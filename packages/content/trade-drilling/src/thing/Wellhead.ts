@@ -40,11 +40,11 @@
  *
  * So the slot is empty on a dead well not because of a gate but because
  * the brine is a hundred metres down. ⭐ And *that* is the hole a pump
- * fills: {@link Wellhead.liftL} is a single number, and a lift mechanism
- * raising it was the pump build's entire attach point — which that build
- * consumed: a pump set IN the hole raises by `liftInto` (this host answers
- * `LiftSource` and `PumpSource`; see docs/subsystems/pump.md), while the
- * bailer's `lift()` is unchanged and asks no pressure.
+ * fills: a pump set IN the hole raises by `liftInto` (this host answers
+ * `LiftSource` and `PumpSource`; see docs/subsystems/pump.md) — and so,
+ * since harbors review 1, does the bailer: `bail` is the platform's bucket
+ * over any lift source, asks no pressure, and this hole adds only its own
+ * words (`bucketRefusal` — a derrick; `bucketLanded` — the answer).
  *
  * ## 4 ⚠⚠ Depth is BANKED; only the swing is ENGAGED
  *
@@ -66,14 +66,11 @@ import Good from '@saxonberg/server/mud/platform/thing/Good';
 import { BulkableMixin } from '@saxonberg/server/mud/lib/bulk/Bulkable';
 import { PersistableMixin } from '@saxonberg/server/mud/lib/persistence/Persistable';
 import { StagedMixin } from '@saxonberg/server/mud/lib/stuff/Staged';
-import { BailableMixin, type BailPlan, type BailRefusal, type BailRequest } from '@saxonberg/server/mud/lib/pump/Bailable';
-import { BulkableApi } from '@saxonberg/server/mud/api/bulk';
-import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import type { VetoResult } from '@saxonberg/server/mud/lib/errors';
-import type { LiftSource, PumpSource } from '@saxonberg/server/mud/lib/pump/Pumpable';
+import type { LiftSource, PumpSource, BucketLanding } from '@saxonberg/server/mud/lib/pump/Pumpable';
 import type { Pumping } from '@saxonberg/server/mud/lib/pump/Pumping';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import { GroundPointMixin } from '@saxonberg/content-ground/src/lib/GroundPoint';
@@ -132,23 +129,12 @@ const CREW_SWINGS_PER_HOUR = 120;
  */
 const SAMPLE_CAP_S = 3_600;
 
-/** Litres one bailer-load brings up. The pre-pump lift, and it is small. */
-const BAILER_L = 12;
-
-/** ⭐ One trip of the bailer down and back, game-ms (moved from the drilling `bail`). */
-const BAIL_MS = 30_000;
-
-/** Endurance one trip costs a fresh body, percentage points. */
-const BAIL_COST = 9;
-
 /** The Discipline the ANSWER credits — the owner's judgment, resolved. */
 const GEOLOGY = 'geology';
 
 /** The Discipline the labour credits. */
 const MINING = 'mining';
 
-/** The topic the hands-work acts narrate on (`EngagedActController`'s). */
-const BAIL_TOPIC = 'act.deed';
 
 /**
  * Litres per game-hour a charged leg gives up into an open hole, per
@@ -200,9 +186,9 @@ export interface CutCost {
 }
 
 export default class Wellhead
-  extends BailableMixin(PersistableMixin(
+  extends PersistableMixin(
     StagedMixin(ContainerMixin(BulkableMixin(GroundPointMixin(Good)))),
-  ))
+  )
   implements LiftSource, PumpSource
 {
   /** Metres sunk. The hole's own fact, on the hole. */
@@ -566,38 +552,6 @@ export default class Wellhead
     return Math.max(0, initial * (1 - Math.min(1, drawn / capacity)));
   }
 
-  /**
-   * ⭐ **Litres one act of lifting brings up** — and the pump's entire
-   * attach point.
-   *
-   * A leather bucket on a rope is {@link BAILER_L}. Anything that raises
-   * this number is a pump, and the reason a pump is a build of its own
-   * rather than a dial is that it also turns a bucket-at-a-time act into
-   * a continuous rate.
-   */
-  public liftL(): number {
-    return BAILER_L;
-  }
-
-  /**
-   * ⭐⭐⭐ **Lift what is standing at the bottom of the hole up to the
-   * wellhead.** Returns the litres raised.
-   *
-   * The physical act a bailer performs, and the reason brine is work
-   * rather than a tap: the fluid is a hundred metres down, and nothing
-   * in the game moves it up except this.
-   */
-  public async lift(): Promise<number> {
-    await this.reconcileRig();
-    const litres = Math.min(this.liftL(), this.sumpL);
-    if (!(litres > 0)) return 0;
-    const material = await this.sumpMaterial();
-    if (material === null) return 0;
-    this.sumpL -= litres;
-    this.addToHead(material, litres);
-    return litres;
-  }
-
   // ---------- ⭐⭐ the pump's attach point (LiftSource) ----------
 
   /** The pump set in this hole, or `null`. */
@@ -645,9 +599,16 @@ export default class Wellhead
    * because a pump's stroke is not a bucket somebody tips.
    */
   public async liftInto(litres: number): Promise<number> {
+    // ⭐ Whether this lift is the first anything has come to (the bet's
+    // answer), as it stood BEFORE the rig caught up — read by a bucket's
+    // `bucketLanded` straight after (runtime, never kept).
+    this._answering = this.drawnL <= 0 && this.sumpL <= 0;
     await this.reconcileRig();
     return this.raiseFromSump(litres);
   }
+
+  /** Runtime: the last lift was the first thing to come up this hole (see {@link liftInto}). */
+  private _answering = false;
 
   public liftScope(): (Stuff & Container) | null {
     const place = this.groundPlace();
@@ -813,15 +774,15 @@ export default class Wellhead
     }
   }
 
-  // ---------- `bail` (harbors P21: the verb is the platform's now) ----------
+  // ---------- `bail`: the platform's bucket over this hole (harbors review 1) ----------
 
   /**
-   * ⭐ One trip of the bailer, planned (the body of the drilling `bail`,
-   * moved onto the hole when the verb went to the platform). A hole wants a
-   * derrick over it — a frame, a beam and a rope — and the rig is caught up
-   * with the clock on the way (*weeks pass while you are away*).
+   * ⭐ A bucket goes down a hole on a rope: a hole wants a derrick over it —
+   * a frame, a beam and a rope — and a bucket for its end (the bailer);
+   * hands do not reach down a bore.
    */
-  public override async planBail(by: Stuff, _req: BailRequest): Promise<BailPlan | BailRefusal> {
+  public async bucketRefusal(by: Stuff, tool: Stuff | null): Promise<{ reason: string; line: Mml } | null> {
+    void by;
     const room = this.getContainer();
     const rigged =
       room !== null &&
@@ -829,92 +790,58 @@ export default class Wellhead
       room.getContents().some((c) => MixinApi.isTool(c) && c.hasCapability('derrick'));
     if (!rigged) {
       return {
-        kind: 'refusal',
         reason: 'no-derrick',
         line: Mml.compose`There is no rig here. A hole wants a derrick over it — a frame, a beam and a rope.`,
       };
     }
-    await this.reconcileRig();
-    return {
-      kind: 'plan',
-      durationMs: BAIL_MS,
-      cost: BAIL_COST,
-      beginSelf: Mml.compose`You pay the rope out and let the bailer go down.`,
-      beginPeers: Mml.compose`${Mml.actor(by)} lets the bailer down the hole.`,
-      token: null,
-    };
+    if (tool === null) {
+      return { reason: 'no-bailer', line: Mml.compose`Your hands will not reach down a bore. Bring a bailer for the end of the rope.` };
+    }
+    return null;
   }
 
   /**
-   * ⭐⭐ The trip, landed. The bail that first brings up the body — or first
-   * brings up nothing at the depth the survey promised — is **the answer to
-   * the bet**, and credits `geology` hard either way: a dry hole is a fact
-   * somebody paid for, not a failed roll.
+   * ⭐⭐ The trip, landed — and its words. The bail that first brings up the
+   * body — or first brings up nothing at the depth the survey promised — is
+   * **the answer to the bet**, and credits `geology` hard either way: a dry
+   * hole is a fact somebody paid for, not a failed roll.
    */
-  public override async completeBail(by: Stuff, req: BailRequest, _token: unknown): Promise<void> {
-    if (by.isDestroyed()) return;
-    const scene = MessageApi.scene(by).topic(BAIL_TOPIC);
-    const vessel = req.vessel !== null && MixinApi.isBulkable(req.vessel) ? req.vessel : null;
+  public async bucketLanded(by: Stuff, landing: BucketLanding): Promise<Mml | null> {
+    const firstAnswer = this._answering;
+    this._answering = false;
     const body = await this.bodyHere();
-    const firstAnswer = this.getDrawnL() <= 0 && this.getSumpL() <= 0;
-    const litres = await this.lift();
+    const advancing = !by.isDestroyed() && MixinApi.isAdvancing(by);
 
-    if (litres <= 0) {
+    if (landing.litres <= 0) {
       // ⭐⭐ The dry hole, and the cuttings that are not nothing.
-      scene
-        .toSelf(
-          body === null
-            ? Mml.compose`The bailer comes up with a yard of broken rock and a cupful of muddy water, and that is all there is down there. ${String(this.getDepthM())} m.`
-            : Mml.compose`The bailer comes up empty. Whatever is in this hole is not coming up fast enough to catch.`,
-        )
-        .send();
-      if (firstAnswer && this.getDepthM() > 0 && MixinApi.isAdvancing(by)) {
+      if (firstAnswer && this.getDepthM() > 0 && advancing) {
         await by.creditDeed({ discipline: GEOLOGY, difficulty: 'hard', outcome: 'success' });
       }
-      return;
+      return body === null
+        ? Mml.compose`The bailer comes up with a yard of broken rock and a cupful of muddy water, and that is all there is down there. ${String(this.getDepthM())} m.`
+        : Mml.compose`The bailer comes up empty. Whatever is in this hole is not coming up fast enough to catch.`;
     }
 
-    // Up at the wellhead now. Into the vessel, through the platform's own
-    // transfer — closure, gas escape and blending are shipped behaviour.
-    let moved = 0;
-    let escaped = false;
-    if (vessel !== null) {
-      const from = BulkableApi.slotFor(this as unknown as Stuff, undefined);
-      const into = BulkableApi.slotFor(vessel, undefined);
-      if (from !== null && into !== null) {
-        // `lenient`: a cask with room for eight of the twelve takes eight.
-        const outcome = BulkableApi.transfer(from, into, { kind: 'measure', litres, mode: 'lenient' });
-        moved = outcome.applied;
-        escaped = outcome.status === 'escaped';
-      }
-    }
-
-    const what = (await this.bodyHere())?.key ?? 'what is down there';
-    if (vessel === null) {
-      scene.toSelf(
-        Mml.compose`The bailer comes up heavy and you tip it into the trough at the wellhead. Bring something to put it in.`,
-      );
-    } else if (escaped) {
-      scene.toSelf(
-        Mml.compose`It will not stay in that — gas wants a sealed vessel, shut. It goes up into the air around you and is gone.`,
-      );
-    } else {
-      // ⚠ Under a litre reads as a CUPFUL, not "0 litres" (the pump build's walk).
-      const amount = moved < 1 ? 'A cupful' : `${String(Math.round(moved))} litres`;
-      const taste =
-        what === 'what is down there'
-          ? 'Whatever it is, there is more of it than there was.'
-          : 'You taste it off your knuckle before you think about it, which is how everybody finds out.';
-      scene.toSelf(Mml.compose`${amount} out of the hole and into it. ${taste}`);
-    }
-    scene.send();
-
-    if (firstAnswer && MixinApi.isAdvancing(by)) {
+    if (firstAnswer && advancing) {
       await by.creditDeed({ discipline: GEOLOGY, difficulty: 'hard', outcome: 'success' });
     }
-    if (MixinApi.isAdvancing(by)) {
+    if (advancing) {
       await by.creditDeed({ discipline: MINING, difficulty: 'standard', outcome: 'success' });
     }
+    if (landing.vessel === null) {
+      return Mml.compose`The bailer comes up heavy and you tip it into the trough at the wellhead. Bring something to put it in.`;
+    }
+    if (landing.escaped) {
+      return Mml.compose`It will not stay in that — gas wants a sealed vessel, shut. It goes up into the air around you and is gone.`;
+    }
+    const what = body?.key ?? 'what is down there';
+    // ⚠ Under a litre reads as a CUPFUL, not "0 litres" (the pump build's walk).
+    const amount = landing.tipped < 1 ? 'A cupful' : `${String(Math.round(landing.tipped))} litres`;
+    const taste =
+      what === 'what is down there'
+        ? 'Whatever it is, there is more of it than there was.'
+        : 'You taste it off your knuckle before you think about it, which is how everybody finds out.';
+    return Mml.compose`${amount} out of the hole and into it. ${taste}`;
   }
 
   // ---------- the bulk seams ----------

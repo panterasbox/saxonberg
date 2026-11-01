@@ -349,6 +349,8 @@ export const Mixins = {
   MovingWater: 'MovingWaterMixin',
   SmallCraft: 'SmallCraftMixin',
   TetherEnd: 'TetherEndMixin',
+  // ⭐ The water a hull holds — a ship's, a boat's (harbors review 1).
+  Bilge: 'BilgeMixin',
   // A landing somebody keeps a book for — a harbor quay (harbors P7).
   BerthKeeper: 'BerthKeeperMixin',
   // A place that answers a hail — a harbor office (harbors P8).
@@ -638,9 +640,6 @@ export const Mixins = {
   // pump, the city intake. The bellows implements the PROTOCOL
   // (`lib/pump/Pumpable`), not this capability.
   Pumping: 'PumpingMixin',
-  // ⭐ A thing you bail a bucketful at a time — a boat taking water, a
-  // bore (harbors P21): one verb, `bail`, behind one protocol.
-  Bailable: 'BailableMixin',
   Behaved: 'BehavedMixin',
   Graded: 'GradedMixin',
   // A physical thing that wears out with use (the condition/wear gauge).
@@ -926,7 +925,6 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
 
   // A pump — the refusal names what one does.
   PumpingMixin: "{} doesn't pump anything",
-  BailableMixin: "there is nothing to bail out of {}",
   PayableMixin: "{} keeps no bills",
 
   // Construction & table — a butcher's blade is any EDGE, and cutlery is

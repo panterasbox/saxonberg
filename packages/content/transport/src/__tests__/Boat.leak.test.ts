@@ -6,8 +6,9 @@
  * - the water in her takes her freeboard; bailed (a bucketful a spell,
  *   more than a hole lets in) she stays up; left, she goes down with what
  *   is in her;
- * - she answers the platform's one `bail` (`BailableMixin`), and she takes
- *   a coat on her outside (`FacedMixin`).
+ * - she is a LIFT SOURCE for the platform's one `bail` (harbors review 1:
+ *   the bucket over any lift source), her bilge is the kernel's
+ *   `BilgeMixin`, and she takes a coat on her outside (`FacedMixin`).
  */
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
@@ -49,9 +50,11 @@ afterEach(() => {
 });
 
 describe('Boat — the leak and bailing (harbors P21)', () => {
-  it('⭐ she answers the one `bail`, and her outside takes a coat', () => {
+  it('⭐ she is a lift source for the one `bail`, her bilge the kernel\'s, and her outside takes a coat', () => {
     const boat = rowboat();
-    expect(MixinApi.isBailable(boat as unknown as Stuff)).toBe(true);
+    expect(typeof boat.liftInto).toBe('function');
+    expect(boat.receivableL()).toBe(Infinity);
+    expect(MixinApi.hasMixin(boat as unknown as Stuff, 'BilgeMixin')).toBe(true);
     expect(MixinApi.hasMixin(boat as unknown as Stuff, 'FacedMixin')).toBe(true);
     expect(boat.faces()).toContain('outside');
   });
@@ -81,12 +84,14 @@ describe('Boat — the leak and bailing (harbors P21)', () => {
     expect(boat.describeBoat().join(' ')).toMatch(/water/);
 
     // Bailing: a bucketful each twenty seconds out-runs the hole.
-    const plan = await boat.planBail({} as never, { vessel: null, tool: null });
-    expect(plan.kind).toBe('plan');
+    expect(await boat.bucketRefusal({} as never, null)).toBeNull();
     const before = boat.bilgeNowL();
+    const hand = { isDestroyed: () => false } as never;
     for (let i = 0; i < 30; i++) {
       now += 20;
-      await boat.completeBail({ isDestroyed: () => false } as never, { vessel: null, tool: null }, null);
+      const litres = await boat.liftInto(10, hand);
+      expect(litres).toBe(10);
+      if (i === 0) expect(String(await boat.bucketLanded(hand, { litres, vessel: null, tipped: 0, escaped: false }))).toMatch(/bucketful of water out over her side/);
     }
     expect(boat.bilgeNowL()).toBeLessThan(before - 100);
     expect(await boat.reconcileFloat()).toBe(false);
@@ -102,7 +107,6 @@ describe('Boat — the leak and bailing (harbors P21)', () => {
   it('a dry boat has nothing to bail', async () => {
     const boat = rowboat();
     lay(boat, makeStuff(() => new SeaPatch()), 0);
-    const plan = await boat.planBail({} as never, { vessel: null, tool: null });
-    expect(plan.kind === 'refusal' && plan.reason).toBe('dry');
+    expect((await boat.bucketRefusal({} as never, null))?.reason).toBe('dry');
   });
 });

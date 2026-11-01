@@ -47,6 +47,7 @@ import BerthExit, { type Berthed } from './BerthExit';
 import ShipWarren, { AUTHORED_SHIP_WARREN } from './ShipWarren';
 import type { Positioned } from '../../lib/expanse/Positioned';
 import Rope from '../thing/Rope';
+import { BilgeMixin } from '../../lib/expanse/Bilge';
 import type { Exitable } from '../../lib/boundary/Exitable';
 import type { BerthKeeper } from '../../lib/expanse/BerthKeeper';
 import type { LineFrame } from '../../lib/expanse/LineFrame';
@@ -210,9 +211,9 @@ export interface BilgeState {
 
 export const SHIP_CLASS_PATH = '/platform/idea/Ship';
 
-export default class Ship extends PersistableMixin(
+export default class Ship extends BilgeMixin(PersistableMixin(
   VoyagingMixin(MovingMixin(EngagedMixin(PositionedMixin(Structure)))),
-) {
+)) {
   static fieldMeta: FieldMeta = {
     deckHeightM: { persistent: true, authorable: true },
     mastheadHeightM: { persistent: true, authorable: true },
@@ -228,8 +229,6 @@ export default class Ship extends PersistableMixin(
     owed: { persistent: true },
     charter: { persistent: true },
     warren: { persistent: true, authorable: true, ref: 'identity:relation' },
-    bilgeL: { persistent: true },
-    bilgeStamp: { persistent: true },
     settling: { persistent: true },
     settled: { persistent: true },
     wreck: { persistent: true },
@@ -295,10 +294,8 @@ export default class Ship extends PersistableMixin(
 
   /* ───────────── the hull clock and the bilge (harbors P19, B4) ───────────── */
 
-  /** ⭐ Litres in her bilge as of `bilgeStamp` (P19). */
-  protected bilgeL = 0;
-  /** Game-seconds her bilge was last reconciled at; `0` = never. */
-  protected bilgeStamp = 0;
+  // ⭐ Her bilge's litres and stamp are `BilgeMixin`'s (review 1 — the
+  // boat's and hers are one substrate); where it comes in is hers below.
 
   /**
    * ⭐ Her hull's band (P19) — her warren's shell, on the house's clock and
@@ -331,7 +328,7 @@ export default class Ship extends PersistableMixin(
   }
 
   /** What her hull holds to the deck, L — past it, she has no more to give. */
-  public bilgeCapacityL(): number {
+  public override bilgeCapacityL(): number {
     const h = this.hull ?? { draftM: 1.2, beamM: 6, lengthM: 30 };
     return h.lengthM * h.beamM * BLOCK * this.hullDepthM() * 1000;
   }
@@ -363,52 +360,51 @@ export default class Ship extends PersistableMixin(
   }
 
   /**
-   * The integral itself, sync, over the standing warren's shell line. With
-   * no warren standing she cannot know her band, and the stamp is left
-   * where it was (the next reconcile covers the gap). `@internal`-shaped:
-   * her warren calls it; nothing else needs to.
+   * The integral itself, sync — `BilgeMixin`'s, over her own leak. Her
+   * warren calls it; a first stamp is kept at once.
    */
-  public integrateBilge(nowS: number): void {
-    const from = this.bilgeStamp;
-    if (from <= 0) {
-      this.bilgeStamp = nowS;
-      this.persistMooring();
-      return;
-    }
-    if (!(nowS > from)) return;
+  public override integrateBilge(nowS: number): void {
+    const fresh = this.bilgeStamp <= 0;
+    super.integrateBilge(nowS);
+    if (fresh) this.persistMooring();
+  }
+
+  /**
+   * ⭐ What came in through her hull between two moments (`BilgeMixin`'s
+   * hook), over the standing warren's shell line — band by band, never
+   * sampled. With no warren standing she cannot know her band (`null`: the
+   * stamp stays where it was and the next reconcile covers the gap) —
+   * except an authored ship whose rooms have not stood yet, whose shell has
+   * never been read and is as it was authored: sound.
+   */
+  public override leakedBetween(from: number, nowS: number): number | null {
     const w = this._warren !== null && !this._warren.isDestroyed() ? this._warren : null;
-    if (w === null && this.isOfKind()) return;
+    if (w === null && this.isOfKind()) return null;
+    if (w === null) return this.leakLpsFor('sound') * (nowS - from);
     let litres = 0;
-    if (w === null) {
-      // An authored ship whose rooms have not stood yet: her shell has never
-      // been read, so it is as it was authored — sound.
-      litres = this.leakLpsFor('sound') * (nowS - from);
-    } else {
-      const line = w.shellTrajectory();
-      const k = line.perSecond;
-      const at = (t: number): number =>
-        line.stampS <= 0 || !(k > 0)
-          ? line.condition
-          : Math.min(1, Math.max(0, line.condition - k * (t - line.stampS)));
-      // Where each band begins on the line, inside the span.
-      const cuts = [from, nowS];
-      if (line.stampS > 0 && k > 0) {
-        for (const [floor] of w.bandFloors()) {
-          if (floor <= 0) continue;
-          const t = line.stampS + (line.condition - floor) / k;
-          if (t > from && t < nowS) cuts.push(t);
-        }
-      }
-      cuts.sort((a, b) => a - b);
-      for (let i = 0; i + 1 < cuts.length; i += 1) {
-        const a = cuts[i]!;
-        const b = cuts[i + 1]!;
-        if (!(b > a)) continue;
-        litres += this.leakLpsFor(w.bandFor(at((a + b) / 2))) * (b - a);
+    const line = w.shellTrajectory();
+    const k = line.perSecond;
+    const at = (t: number): number =>
+      line.stampS <= 0 || !(k > 0)
+        ? line.condition
+        : Math.min(1, Math.max(0, line.condition - k * (t - line.stampS)));
+    // Where each band begins on the line, inside the span.
+    const cuts = [from, nowS];
+    if (line.stampS > 0 && k > 0) {
+      for (const [floor] of w.bandFloors()) {
+        if (floor <= 0) continue;
+        const t = line.stampS + (line.condition - floor) / k;
+        if (t > from && t < nowS) cuts.push(t);
       }
     }
-    this.bilgeL = Math.min(this.bilgeCapacityL(), this.bilgeL + litres);
-    this.bilgeStamp = nowS;
+    cuts.sort((a, b) => a - b);
+    for (let i = 0; i + 1 < cuts.length; i += 1) {
+      const a = cuts[i]!;
+      const b = cuts[i + 1]!;
+      if (!(b > a)) continue;
+      litres += this.leakLpsFor(w.bandFor(at((a + b) / 2))) * (b - a);
+    }
+    return litres;
   }
 
   /**
@@ -418,9 +414,8 @@ export default class Ship extends PersistableMixin(
    */
   public async pumpOut(litres: number): Promise<number> {
     await this.reconcileBilge();
-    const moved = Math.min(Math.max(0, Number(litres) || 0), this.bilgeL);
+    const moved = this.takeBilge(litres);
     if (!(moved > 0)) return 0;
-    this.bilgeL -= moved;
     this.persistMooring();
     await this.noteFlood();
     return moved;
@@ -432,8 +427,7 @@ export default class Ship extends PersistableMixin(
    */
   @CallSecurity(SecurityPolicies.FromModule('/platform/idea/api/TestHarnessLogic#TestHarnessLogic'))
   public stageBilge(litres: number, stampS: number): void {
-    this.bilgeL = Math.min(this.bilgeCapacityL(), Math.max(0, Number(litres) || 0));
-    this.bilgeStamp = Math.max(0, Number(stampS) || 0);
+    this.resetBilge(litres, stampS);
     // A staged bilge is a fresh start: she is afloat with that much in her.
     this.settled = false;
     this.persistMooring();

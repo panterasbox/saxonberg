@@ -63,13 +63,31 @@ narrows by shape; nothing composes them.
 | shape | answered by | says |
 |---|---|---|
 | `Pumpable` (`planPump` → plan \| refusal, `completePump`) | `PumpingMixin`, **`BurnerMixin`** | *a person can work this with their hands* |
-| `LiftSource` (`standingDepthM`, `standingMaterial`, `standingAvailableL`, `receivableL`, `liftInto`, `liftScope`) | `platform/thing/Well`, drilling's `Wellhead` | *a fluid stands this far below my draw point* — ⚠ adds no field anywhere |
+| `LiftSource` (`standingDepthM`, `standingMaterial`, `standingAvailableL`, `receivableL`, `liftInto`, `liftScope`; optional `liftedWords`, `bucketRefusal`, `bucketLanded`) | `platform/thing/Well`, `platform/thing/BilgeWell`, drilling's `Wellhead`, transport's `Boat` | *a fluid stands this far below my draw point* — ⚠ adds no field anywhere |
 | `PumpSource` (`pumpFitted`) | `Well`, `Wellhead`, water's `Conduit` | *a pump is SET in me* — how a pump tells set from carried |
 
 ⭐ **A furnace is not a pump.** Its bellows speaks the protocol (an
 INSTANT act, `durationMs: 0`, the toggle) with the three refusals and two
 scenes `PumpController` printed before this build, moved verbatim (AC 10,
 pinned by `PumpController.test.ts` — the controller had no test before).
+
+## ⭐ The bucket — `bail` (harbors review 1)
+
+Family A has a verb: **`bail` is the bucket over ANY `LiftSource`**
+(`platform/cmd/device/bail.yaml`, `BailController`, `requires: any`,
+narrowed by the shape like `pump`). There is no bail protocol: the
+controller reads the SOURCE and the TOOL. A spell is the handling plus the
+rope down and back (`20 s + 0.4 s/m` of `standingDepthM`, endurance
+`4 + 0.2/m` — the boat's shipped 20 s and the bore's 30 s at 25 m, one
+rule); a bucketful is the tool's (a vessel's capacity; a bailing tool
+`bail.bucketL` 12 L; bare hands `bail.handsL` 10 L); it rises through
+`liftInto` like a stroke and, when the draw point holds it, is tipped into
+the vessel brought. A source says only what is its own: `bucketRefusal`
+(a bore wants a derrick and a bailer; a capsized or dry boat) and
+`bucketLanded` (the bore's answer to the bet; the boat's *over her side*).
+Unnamed, `bail` takes the lift source you sit in (a boat). The water in a
+ship's and a boat's hull is one kernel substrate, `lib/expanse/Bilge.ts`
+(`BilgeMixin`); each answers where it comes in (`leakedBetween`).
 
 ## The verb
 

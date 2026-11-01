@@ -1,8 +1,10 @@
-# bail — ⭐ fill a bucket, lift it, tip it (harbors P21, B5). ONE act with
-# two targets that share no trade: a boat taking water, bailed over her side,
-# and a bore, bailed up the derrick's rope. Moved here from the drilling pack
-# (the ladder's first rung: unify behind an interface) — what one spell IS
-# is the target's to say (`BailableMixin`); this view only binds it.
+# bail — ⭐ fill a bucket, lift it, tip it (harbors P21; review 1). The
+# BUCKET over any lift source (pump.md family A — no ceiling at any depth):
+# a boat taking water, bailed over her side; a ship's bilge well; a village
+# well; a bore, bailed up the derrick's rope. No protocol of its own: the
+# controller reads the source's `LiftSource` shape (how deep, what it lifts
+# into) and the tool (a bailer — or bare hands); a source says only what is
+# its own (`bucketRefusal`, `bucketLanded`).
 #
 # Afforded by what you bail: a boat to whoever sits in her
 # (`Boat.commandContributions.inventory`), a wellhead's derrick and the
@@ -18,15 +20,18 @@ help: |
   A boat that leaks faster than you bail goes down with what is in her;
   stop bailing a holed boat and she fills.
 
-  **A bore.** At a wellhead, the bailer goes down the hole on the
-  derrick's rope and comes back with what is standing there. A bit
+  **A well, a bore.** The bucket goes down on a rope and comes back with
+  what is standing there — the deeper, the longer the trip. At a wellhead
+  the bailer goes down the hole on the derrick's rope. A bit
   swimming in water cuts nothing, so a hole is bailed before it is bored
   deeper — and what comes up at last is the answer to the bet. Bring
   something to put it in (`bail into cask`); a gas wants a sealed vessel,
   shut.
 examples:
   - cmd: bail
-    note: Bail the boat you are sitting in (or the hole you are standing at)
+    note: Bail the boat you are sitting in
+  - cmd: bail wellhead
+    note: Let the bailer down the hole you are standing at
   - cmd: bail with bailer
     note: Quicker with something to bail with
   - cmd: bail into cask
@@ -39,12 +44,16 @@ args:
   # ⚠⚠ ARG ORDER: the positional `target` comes FIRST — a greedy arg must
   # be last or followed only by prepositional args, and every
   # prepositional object arg below is greedy (`lint:reachability` arm G).
+  # ⭐ `requires: any` (the pump's reasoning): a boat, a well and a wellhead
+  # share no mixin — the controller narrows by the `LiftSource` SHAPE, and
+  # with nothing named takes the boat you sit in. `greedy`: `bail village
+  # well` is one target (the pump drive's lesson).
   - name: target
     type: object
     required: false
-    default: "reachable:[mixin.BailableMixin]"
     scope: ["reachable"]
-    requires: [BailableMixin]
+    requires: any
+    greedy: true
   - name: tool
     type: object
     required: false

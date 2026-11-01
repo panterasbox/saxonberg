@@ -60,18 +60,19 @@ import { HirableMixin, type Hirable } from '@saxonberg/server/mud/lib/retail/Hir
 import type { MarkupAugmenter } from '@saxonberg/server/mud/api/mml';
 import { SchedulerApi } from '@saxonberg/server/mud/api/scheduler';
 import { FacedMixin, type Faced } from '@saxonberg/server/mud/lib/material/Faced';
-import { BailableMixin, type Bailable, type BailPlan, type BailRefusal, type BailRequest } from '@saxonberg/server/mud/lib/pump/Bailable';
+import { BilgeMixin, type Bilge } from '@saxonberg/server/mud/lib/expanse/Bilge';
+import type { LiftSource, BucketLanding } from '@saxonberg/server/mud/lib/pump/Pumpable';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { AppApi } from '@saxonberg/server/mud/api/app';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 
-type BoatShape = Stuff & Slotted & Mobile & Container & Containable & Exitable & Engaged & Tangible & SmallCraft & Hirable & Faced & Bailable &
+type BoatShape = Stuff & Slotted & Mobile & Container & Containable & Exitable & Engaged & Tangible & SmallCraft & Hirable & Faced & Bilge &
   { entryMediaIn(env: Stuff & Container): string[]; onMoved(from: (Stuff & Container) | null, to: (Stuff & Container) | null): void };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type BoatCtor = new (...args: any[]) => BoatShape;
 
-const BoatBase = BailableMixin(
+const BoatBase = BilgeMixin(
   FacedMixin(
     HirableMixin(
       PullableMixin(
@@ -131,14 +132,11 @@ const HOLED_LPS = 0.3;
 /** What a hull that does not hold water lets in — a crack, a coat that has opened, L/s (`boat.leak.seep`). */
 const SEEP_LPS = 0.02;
 
-/** One bucketful over the side, L — hands or a bailer (P21, grain). */
-const BAIL_L = 10;
+/** About one spell of bailing her, game-seconds — what "as fast as you throw it out" compares. */
+const BAIL_SPELL_S = 20;
 
-/** One spell of bailing, game-ms (P21, grain). */
-const BAIL_MS = 20_000;
-
-/** Endurance a spell of bailing costs a fresh body, percentage points. */
-const BAIL_COST = 4;
+/** What her bilge water is (the bilge well's material). */
+const WATER_PATH = '/stuff/idea/material/bulk/water';
 
 /** ⭐ What a look says of a boat: how low she rides, and whose hire she is on. */
 const boatAugmenter: MarkupAugmenter = (text, host, _viewer, opts) => {
@@ -151,7 +149,7 @@ const boatAugmenter: MarkupAugmenter = (text, host, _viewer, opts) => {
 };
 
 
-export default class Boat extends BoatBase {
+export default class Boat extends BoatBase implements LiftSource {
   static commandContributions: CommandContributions = {
     inventory: FROM_INSIDE,
     // ⭐ Whoever is in the water beside her can right her (D22): `pull`, the
@@ -166,8 +164,6 @@ export default class Boat extends BoatBase {
     eyeHeightM: { persistent: true, authorable: true },
     heightM: { persistent: true, authorable: true },
     hull: { persistent: true, authorable: true },
-    bilgeL: { persistent: true },
-    bilgeStamp: { persistent: true },
   };
 
   /** Eye height of somebody sitting in it, meters. */
@@ -178,10 +174,6 @@ export default class Boat extends BoatBase {
   protected hull: HullSpec = { ...DEFAULT_HULL };
   /** Upside down in the water (runtime: a restart rights it). */
   private _capsized = false;
-  /** ⭐ Litres in her as of `bilgeStamp` (P21) — what came in through her hull. */
-  protected bilgeL = 0;
-  /** Game-seconds her bilge was last brought up to now; `0` = never. */
-  protected bilgeStamp = 0;
 
   public getEyeHeightM(): number { return this.eyeHeightM; }
   public setEyeHeightM(v: number): void { this.eyeHeightM = Math.max(0, Number(v) || 0); }
@@ -299,67 +291,83 @@ export default class Boat extends BoatBase {
     return holed + seep;
   }
 
+  /** ⭐ Her hull's leak between two moments (`BilgeMixin`): what comes in now — only afloat. */
+  public override leakedBetween(fromS: number, toS: number): number {
+    return this.leakLps() * Math.max(0, toS - fromS);
+  }
+
   /** Litres in her now — the stamp's, plus the leak since (sync: her state is sync). */
   public bilgeNowL(): number {
-    const nowS = boatNowS();
-    const since = this.bilgeStamp > 0 && nowS > this.bilgeStamp ? nowS - this.bilgeStamp : 0;
-    return this.bilgeL + this.leakLps() * since;
+    return this.bilgeAt(boatNowS());
   }
 
   /** Bring her bilge up to now and keep it (the leak as she lay since the stamp). */
   public reconcileBilge(): number {
-    const nowS = boatNowS();
-    this.bilgeL = this.bilgeNowL();
-    this.bilgeStamp = nowS;
-    return this.bilgeL;
+    this.integrateBilge(boatNowS());
+    return this.bilgeAtStamp();
   }
 
-  /**
-   * ⭐ One spell of bailing, planned (P21): a bucketful over her side, by
-   * hand or with a bailer. A dry boat has nothing to give.
-   */
-  public override async planBail(by: Stuff, _req: BailRequest): Promise<BailPlan | BailRefusal> {
-    if (this._capsized) {
-      return { kind: 'refusal', reason: 'capsized', line: Mml.compose`She is upside down. Right her first.` };
-    }
-    if (this.bilgeNowL() < 1) {
-      return { kind: 'refusal', reason: 'dry', line: Mml.compose`She is dry; there is nothing in her to bail.` };
-    }
-    return {
-      kind: 'plan',
-      durationMs: BAIL_MS,
-      cost: BAIL_COST,
-      beginSelf: Mml.compose`You start throwing the water out of her.`,
-      beginPeers: Mml.compose`${Mml.actor(by)} starts bailing out ${Mml.thing(this)}.`,
-      token: null,
-    };
+  /* ───────────── bailing her: a LiftSource (harbors review 1) ───────────── */
+
+  /** How far below her gunwale the water in her stands, m — a reach over the side. */
+  public standingDepthM(): number {
+    return Math.max(0, this.hull.freeboardM);
   }
 
-  /** The spell, landed: up to a bucketful out of her, over the side; seamanship for the hands. */
-  public override async completeBail(by: Stuff, _req: BailRequest, _token: unknown): Promise<void> {
-    const had = this.reconcileBilge();
-    const out = Math.min(BAIL_L, had);
-    this.bilgeL = had - out;
-    const left = this.bilgeL;
+  public async standingMaterial(): Promise<string | null> {
+    return this.bilgeNowL() >= 1 ? WATER_PATH : null;
+  }
+
+  public async standingAvailableL(): Promise<number> {
+    return this.reconcileBilge();
+  }
+
+  /** ⭐ Over her side: what comes out of her never fills anything. */
+  public receivableL(): number {
+    return Infinity;
+  }
+
+  /** ⭐ Up to `litres` out of her and over the side; the hand is credited with seamanship. */
+  public async liftInto(litres: number, by?: Stuff): Promise<number> {
+    this.reconcileBilge();
+    const moved = this.takeBilge(litres);
+    if (moved > 0 && by !== undefined && MixinApi.isAdvancing(by)) {
+      await by.creditDeed({ discipline: 'seamanship', difficulty: 'easy', outcome: 'success' });
+    }
+    this.armFloodWatch();
+    return moved;
+  }
+
+  public liftScope(): (Stuff & Container) | null {
+    const room = this.getContainer();
+    return room !== null && MixinApi.isContainer(room) ? (room as unknown as Stuff & Container) : null;
+  }
+
+  public liftedWords(what: string): Mml {
+    return Mml.compose`${what} goes out over her side.`;
+  }
+
+  /** Upside down, there is nothing to bail; dry, there is nothing in her. */
+  public async bucketRefusal(by: Stuff, tool: Stuff | null): Promise<{ reason: string; line: Mml } | null> {
+    void by;
+    void tool;
+    if (this._capsized) return { reason: 'capsized', line: Mml.compose`She is upside down. Right her first.` };
+    if (this.bilgeNowL() < 1) return { reason: 'dry', line: Mml.compose`She is dry; there is nothing in her to bail.` };
+    return null;
+  }
+
+  /** ⭐ A bucketful over her side, and whether she is winning. */
+  public async bucketLanded(by: Stuff, landing: BucketLanding): Promise<Mml | null> {
+    void by;
+    const left = this.bilgeNowL();
     const leak = this.leakLps();
     const words =
       left < 1
         ? 'She is dry.'
-        : leak * (BAIL_MS / 1000) >= out
+        : leak * BAIL_SPELL_S >= landing.litres
           ? 'The water is coming in as fast as you throw it out.'
           : 'The water in her is going down.';
-    try {
-      MessageApi.scene(by)
-        .topic('act.deed')
-        .toSelf(Mml.compose`You throw a bucketful of water out over her side. ${words}`)
-        .send();
-    } catch {
-      // decoration
-    }
-    if (MixinApi.isAdvancing(by)) {
-      await by.creditDeed({ discipline: 'seamanship', difficulty: 'easy', outcome: 'success' });
-    }
-    this.armFloodWatch();
+    return Mml.compose`You throw a bucketful of water out over her side. ${words}`;
   }
 
   /**
@@ -583,8 +591,7 @@ export default class Boat extends BoatBase {
     // the leak ran; ashore it did not. Brought up to now before she counts
     // as wherever she is now.
     const wasAfloat = from !== null && MixinApi.isWaterPlace(from) && from.isWaterNow();
-    if (wasAfloat) this.bilgeL = this.bilgeLeakedSinceAfloat();
-    this.bilgeStamp = boatNowS();
+    this.resetBilge(wasAfloat ? this.bilgeLeakedSinceAfloat() : this.bilgeAtStamp(), boatNowS());
     super.onMoved(from, to);
     if (to === null) return;
     const home = this.home();
@@ -595,8 +602,9 @@ export default class Boat extends BoatBase {
   /** Her bilge up to now as though she had lain afloat since the stamp. */
   private bilgeLeakedSinceAfloat(): number {
     const nowS = boatNowS();
-    const since = this.bilgeStamp > 0 && nowS > this.bilgeStamp ? nowS - this.bilgeStamp : 0;
-    return this.bilgeL + this.hullLeakLps() * since;
+    const stamp = this.getBilgeStamp();
+    const since = stamp > 0 && nowS > stamp ? nowS - stamp : 0;
+    return this.bilgeAtStamp() + this.hullLeakLps() * since;
   }
 
   /** The boat is its own watch. */

@@ -16,8 +16,8 @@
  *
  *  - **Bucket machines** *carry* the fluid up in a container — a bailer,
  *    a shadoof, a bucket chain, a noria. No seal, no pressure, **no
- *    ceiling at any depth**. Nothing in this file is about them: the
- *    bailer's `lift()` on a wellhead consults no pressure and never will.
+ *    ceiling at any depth**. `bail` is the bucket over any
+ *    {@link LiftSource} (harbors review 1) and consults no pressure.
  *  - **Displacement machines** *push* the fluid through a pipe — a
  *    suction pump, a force pump, a furnace's bellows. They have a seal,
  *    and **only the ones that PULL have the wall**: the atmosphere can push
@@ -151,6 +151,37 @@ export interface LiftSource {
    * it runs into the source.
    */
   liftedWords?(what: string): Mml;
+  /**
+   * ⭐ Family A's hooks (harbors review 1): `bail` is the BUCKET over any
+   * lift source — a boat's bilge, a ship's well, a village well, a bore —
+   * and the verb reads the source and the tool, nothing else. These two
+   * let the source say what is its own.
+   *
+   * Why a bucket cannot be got down to the fluid here, or `null` — a bore
+   * wants a derrick over it; a boat upside down has nothing to bail.
+   * `tool` is the bucket brought (`null`: bare hands). Absent: nothing
+   * stops a bucket.
+   */
+  bucketRefusal?(by: Stuff, tool: Stuff | null): Promise<{ reason: string; line: Mml } | null>;
+  /**
+   * A bucketful has landed (already lifted through {@link liftInto}, and
+   * tipped into the vessel brought when the draw point holds it): the
+   * source's own words for it, and anything it credits — the bore's
+   * answer. `null` (or absent): the verb's words.
+   */
+  bucketLanded?(by: Stuff, landing: BucketLanding): Promise<Mml | null>;
+}
+
+/** What one bucketful did, for a source's {@link LiftSource.bucketLanded}. */
+export interface BucketLanding {
+  /** Litres the bucket brought up (`0`: it came up empty). */
+  litres: number;
+  /** The vessel it was tipped into, or `null`. */
+  vessel: Stuff | null;
+  /** Litres that went into the vessel. */
+  tipped: number;
+  /** The vessel could not hold it (a gas in an open cask). */
+  escaped: boolean;
 }
 
 /**
