@@ -156,6 +156,10 @@ const FURNISHED = [
   "hinkley-hills/content/world/terminus/hinkley-hills/lots/hall.yaml",
   "hinkley-hills/content/world/terminus/hinkley-hills/lots/kitchen.yaml",
   "hinkley-hills/content/world/terminus/hinkley-hills/lots/yard.yaml",
+  // ⭐ The valley farmstead's rooms (tracts build): a holding's floorplan
+  // places every copy at runtime, exactly as a Hinkley house's.
+  "hearts-delight/content/world/terminus/hearts-delight/farmstead/location/barn.yaml",
+  "hearts-delight/content/world/terminus/hearts-delight/farmstead/location/yard.yaml",
   "terminus/content/world/terminus/mayfield-row/seznick-house/location/bedroom.yaml",
   "terminus/content/world/terminus/mayfield-row/seznick-house/location/hall.yaml",
   "terminus/content/world/terminus/mayfield-row/seznick-house/location/main.yaml",
@@ -438,6 +442,12 @@ export const WARREN_PLACED = [
   "rejection/content/world/terminus/rejection/ferrow/junction.yaml",
   "rejection/content/world/terminus/rejection/ferrow/stope.yaml",
   "trade-farming/content/trade/farming/location/tract.yaml",
+  // ⭐ A layout's tracts (tracts build): kinds of place, one keyed copy per
+  // holding, laid out by the holding's floorplan.
+  "hearts-delight/content/world/terminus/hearts-delight/farmstead/tract/lower-meadow.yaml",
+  "hearts-delight/content/world/terminus/hearts-delight/farmstead/tract/orchard-close.yaml",
+  "hearts-delight/content/world/terminus/hearts-delight/farmstead/tract/upper-bench.yaml",
+  "hinkley-hills/content/world/terminus/hinkley-hills/lots/garden.yaml",
   "water/content/system/water/location/band/bed.yaml",
   "water/content/system/water/location/band/dark.yaml",
   "water/content/system/water/location/band/lit.yaml",

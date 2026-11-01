@@ -3464,6 +3464,30 @@ boots.
 
 ### W6 — the archetype, the drive, the docs
 
+> ✅ **Done 2026-11-01.** Notes for review:
+> - `tracts.dirty.wire.test.ts` (11 steps, all instant or short) and its
+>   soak twin `tracts.soak.dirty.wire.test.ts` (a marked field ploughed,
+>   sown and cut a season later). Docs: soil.md, holding.md, ranching.md,
+>   parcel.md, command-spec.md, smallholding.md, husbandry.md.
+> - The archetype's `cultivation` evaluator shipped in W0. ⚠ **Finding:**
+>   `survey` takes stock of ONE room, so the farm archetype — a question
+>   about a whole holding — is reached by no verb (step 11 records it).
+> - What the drive runs found, all fixed: hearts-delight did not declare
+>   residence (the pack failed to boot); `PlatBook` listed nothing for a
+>   plat nobody had loaded (it now loads its holder on use); **a land sale
+>   could never take money** at the realty office — the desk room had no
+>   business, so `takePayment` found no payee and refused *"can't cover"*
+>   (Mayfield & Co., the agency, now operates it; the Registry has the
+>   same gap — a finding); two books on one desk both answered `lot-1`
+>   (`PlatPlan.slotPrefix`: the valley sells `farmstead-1…4`; the land
+>   board is gone and the book is back on the realty desk as D33 said);
+>   `look upper bench` from the yard pinned the focus on the tract, so
+>   `go up` matched "upper bench" (a place seen next door takes no focus
+>   now); `look at <field>` in the drives pinned focus the same way; the
+>   founder may not reach into a buyer's lot to stage a seedbed, so a
+>   farmstead now comes with a plough on its bench and the drive ploughs
+>   for real.
+
 **Goal.** The farm archetype reads tracts; the addendum's drive runs;
 the docs tell the truth.
 
@@ -3670,4 +3694,20 @@ Read first, in this order:
 
 ## Drive record — tracts
 
-*(appended at build time)*
+**2026-11-01, on the final tree** (owned world, fresh DB, WIRE_PORT 2014):
+
+| drive | result | notes |
+|---|---|---|
+| `tracts.dirty.wire.test.ts` | **11/11** | after the fixes above (five runs) |
+| `field-population.dirty.wire.test.ts` | **14/14** | on W3 and again on W4 |
+| `cover.dirty.wire.test.ts` | **17/17** | on W4 (+ the drive's focus fix); the later changes (slot prefix, the agency, the focus rule, the plough) touch none of its steps |
+
+Run lines worth keeping: `title buy farmstead-1 → "… is yours. The gate
+is on the east side."`; the yard's exits *north up east northeast south
+west*; `mark barley field as a third of it → "You pace out the barley
+field — a third of the upper bench — and set a stake at each corner."`;
+`mark oat field as a quarter → all-marked`; `mark wheat field as half →
+crop-stands · "You cannot move a boundary through standing wheat."`; the
+mirrored farmstead-2's meadow is WEST of its yard; the Hinkley garden
+refuses `mark` *"… is zoned residential — dwelling, companions and small
+cultivation — and takes beds, not fields."*
