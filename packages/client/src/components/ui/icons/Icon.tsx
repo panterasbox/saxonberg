@@ -16,7 +16,7 @@ import { FALLBACK_ICON, ICONS, type IconName } from "./iconMap";
 
 export interface IconProps {
   /** A name in our vocabulary. An unmapped one draws the fallback glyph. */
-  name: IconName | (string & {});
+  name: IconName | (string & Record<never, never>);
   /** The word for it — accessible name and tooltip. */
   label: string;
   size?: number;
