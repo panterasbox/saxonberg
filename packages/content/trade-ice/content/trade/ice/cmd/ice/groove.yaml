@@ -1,9 +1,9 @@
-verbs: [mark]
-controller: /trade/ice/idea/cmd/ice/MarkController
+verbs: [groove]
+controller: /trade/ice/idea/cmd/ice/GrooveController
 description: "Score a grid across the ice, to cut into blocks"
 help: |
-  With an ice marker (by hand) or an ice plough (behind a horse), `mark`
-  scores a grid across scraped ice — the squares the saw follows, so every
+  With an ice marker (by hand) or an ice plough (behind a horse), `groove`
+  cuts a grid across scraped ice — the squares the saw follows, so every
   block comes out one size. A hand marker cuts a small grid; the plough a
   large one, and it needs a horse out on the ice with you. Then `cut
   marked` with an ice saw.
