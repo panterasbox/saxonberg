@@ -59,21 +59,31 @@ import WaterExpanse from '@saxonberg/content-water/src/idea/WaterExpanse';
 import { HirableMixin, type Hirable } from '@saxonberg/server/mud/lib/retail/Hirable';
 import type { MarkupAugmenter } from '@saxonberg/server/mud/api/mml';
 import { SchedulerApi } from '@saxonberg/server/mud/api/scheduler';
+import { FacedMixin, type Faced } from '@saxonberg/server/mud/lib/material/Faced';
+import { BailableMixin, type Bailable, type BailPlan, type BailRefusal, type BailRequest } from '@saxonberg/server/mud/lib/pump/Bailable';
+import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
+import { AppApi } from '@saxonberg/server/mud/api/app';
+import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 
-type BoatShape = Stuff & Slotted & Mobile & Container & Containable & Exitable & Engaged & Tangible & SmallCraft & Hirable &
+type BoatShape = Stuff & Slotted & Mobile & Container & Containable & Exitable & Engaged & Tangible & SmallCraft & Hirable & Faced & Bailable &
   { entryMediaIn(env: Stuff & Container): string[]; onMoved(from: (Stuff & Container) | null, to: (Stuff & Container) | null): void };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type BoatCtor = new (...args: any[]) => BoatShape;
 
-const BoatBase = HirableMixin(
-  PullableMixin(
-    HaulableMixin(SmallCraftMixin(StagedMixin(EngagedMixin(MobileMixin(ExitableVessel)))) as unknown as MixinConstructor<BoatShape>),
+const BoatBase = BailableMixin(
+  FacedMixin(
+    HirableMixin(
+      PullableMixin(
+        HaulableMixin(SmallCraftMixin(StagedMixin(EngagedMixin(MobileMixin(ExitableVessel)))) as unknown as MixinConstructor<BoatShape>),
+      ) as unknown as MixinConstructor<BoatShape>,
+    ) as unknown as MixinConstructor<BoatShape>,
   ) as unknown as MixinConstructor<BoatShape>,
 ) as unknown as BoatCtor;
 
 /** What a boat affords to whoever sits in it. */
 const FROM_INSIDE = [
+  'platform/cmd/device/bail.yaml',
   'system/transport/cmd/movement/paddle.yaml',
   'system/transport/cmd/movement/launch.yaml',
   'system/transport/cmd/movement/recover.yaml',
@@ -111,6 +121,25 @@ const WARREN_PATH = '/system/water/idea/ReachWarren';
  */
 const WAVE_SHARE = 0.6;
 
+/**
+ * ⭐ What a hole in her lets in, L/s (harbors P21, grain; `boat.leak.holed`):
+ * less than one person bailing moves — so bailing keeps a holed boat up,
+ * and stopping lets her fill.
+ */
+const HOLED_LPS = 0.3;
+
+/** What a hull that does not hold water lets in — a crack, a coat that has opened, L/s (`boat.leak.seep`). */
+const SEEP_LPS = 0.02;
+
+/** One bucketful over the side, L — hands or a bailer (P21, grain). */
+const BAIL_L = 10;
+
+/** One spell of bailing, game-ms (P21, grain). */
+const BAIL_MS = 20_000;
+
+/** Endurance a spell of bailing costs a fresh body, percentage points. */
+const BAIL_COST = 4;
+
 /** ⭐ What a look says of a boat: how low she rides, and whose hire she is on. */
 const boatAugmenter: MarkupAugmenter = (text, host, _viewer, opts) => {
   if (opts?.filter && !opts.filter.includes('vision')) return text;
@@ -137,6 +166,8 @@ export default class Boat extends BoatBase {
     eyeHeightM: { persistent: true, authorable: true },
     heightM: { persistent: true, authorable: true },
     hull: { persistent: true, authorable: true },
+    bilgeL: { persistent: true },
+    bilgeStamp: { persistent: true },
   };
 
   /** Eye height of somebody sitting in it, meters. */
@@ -147,6 +178,10 @@ export default class Boat extends BoatBase {
   protected hull: HullSpec = { ...DEFAULT_HULL };
   /** Upside down in the water (runtime: a restart rights it). */
   private _capsized = false;
+  /** ⭐ Litres in her as of `bilgeStamp` (P21) — what came in through her hull. */
+  protected bilgeL = 0;
+  /** Game-seconds her bilge was last brought up to now; `0` = never. */
+  protected bilgeStamp = 0;
 
   public getEyeHeightM(): number { return this.eyeHeightM; }
   public setEyeHeightM(v: number): void { this.eyeHeightM = Math.max(0, Number(v) || 0); }
@@ -220,12 +255,167 @@ export default class Boat extends BoatBase {
    * gives, less what its load presses it down.
    */
   public override freeboardNowM(): number {
-    let load = 0;
+    return this.freeboardWithM(this.bilgeNowL());
+  }
+
+  /** Her freeboard with `bilgeL` litres in her (water weighs a kilogram a litre). */
+  private freeboardWithM(bilgeL: number): number {
+    let load = bilgeL;
     for (const c of this.getContents()) {
       if (MixinApi.isTangible(c)) load += c.getMass().rawValue();
     }
-    const waterplane = 1000 * this.hull.lengthM * this.hull.beamM * 0.7;
-    return this.hull.freeboardM - load / Math.max(1, waterplane);
+    return this.hull.freeboardM - load / Math.max(1, this.waterplaneKgPerM());
+  }
+
+  /** Kilograms that sink her a meter (her waterplane in water). */
+  private waterplaneKgPerM(): number {
+    return 1000 * this.hull.lengthM * this.hull.beamM * 0.7;
+  }
+
+  /* ───────────── the leak and the bilge (harbors P21, B5) ───────────── */
+
+  /** Is she in water now — a water place holding water? */
+  public isAfloat(): boolean {
+    const room = this.getContainer();
+    return room !== null && MixinApi.isWaterPlace(room) && room.isWaterNow();
+  }
+
+  /**
+   * ⭐ What comes in through her hull now, L/s (P21) — from her STATE, never
+   * the calendar: every hole stove in her (an integrity flaw, from a
+   * grounding's blow), and a hull that no longer holds water (a crack; a
+   * coat that has opened). Nothing comes in ashore.
+   */
+  public leakLps(): number {
+    return this.isAfloat() ? this.hullLeakLps() : 0;
+  }
+
+  /** What her hull lets in when she is in the water, L/s — her holes and her seal. */
+  public hullLeakLps(): number {
+    const self = this as unknown as Stuff;
+    const holes = MixinApi.isIntegrity(self) ? self.getFlaws().filter((f) => f.kind === 'holed').length : 0;
+    const holed = holes * boatSetting('boat.leak.holed', HOLED_LPS);
+    const seep = this.holdsWater('outside') ? 0 : boatSetting('boat.leak.seep', SEEP_LPS);
+    return holed + seep;
+  }
+
+  /** Litres in her now — the stamp's, plus the leak since (sync: her state is sync). */
+  public bilgeNowL(): number {
+    const nowS = boatNowS();
+    const since = this.bilgeStamp > 0 && nowS > this.bilgeStamp ? nowS - this.bilgeStamp : 0;
+    return this.bilgeL + this.leakLps() * since;
+  }
+
+  /** Bring her bilge up to now and keep it (the leak as she lay since the stamp). */
+  public reconcileBilge(): number {
+    const nowS = boatNowS();
+    this.bilgeL = this.bilgeNowL();
+    this.bilgeStamp = nowS;
+    return this.bilgeL;
+  }
+
+  /**
+   * ⭐ One spell of bailing, planned (P21): a bucketful over her side, by
+   * hand or with a bailer. A dry boat has nothing to give.
+   */
+  public override async planBail(by: Stuff, _req: BailRequest): Promise<BailPlan | BailRefusal> {
+    if (this._capsized) {
+      return { kind: 'refusal', reason: 'capsized', line: Mml.compose`She is upside down. Right her first.` };
+    }
+    if (this.bilgeNowL() < 1) {
+      return { kind: 'refusal', reason: 'dry', line: Mml.compose`She is dry; there is nothing in her to bail.` };
+    }
+    return {
+      kind: 'plan',
+      durationMs: BAIL_MS,
+      cost: BAIL_COST,
+      beginSelf: Mml.compose`You start throwing the water out of her.`,
+      beginPeers: Mml.compose`${Mml.actor(by)} starts bailing out ${Mml.thing(this)}.`,
+      token: null,
+    };
+  }
+
+  /** The spell, landed: up to a bucketful out of her, over the side; seamanship for the hands. */
+  public override async completeBail(by: Stuff, _req: BailRequest, _token: unknown): Promise<void> {
+    const had = this.reconcileBilge();
+    const out = Math.min(BAIL_L, had);
+    this.bilgeL = had - out;
+    const left = this.bilgeL;
+    const leak = this.leakLps();
+    const words =
+      left < 1
+        ? 'She is dry.'
+        : leak * (BAIL_MS / 1000) >= out
+          ? 'The water is coming in as fast as you throw it out.'
+          : 'The water in her is going down.';
+    try {
+      MessageApi.scene(by)
+        .topic('act.deed')
+        .toSelf(Mml.compose`You throw a bucketful of water out over her side. ${words}`)
+        .send();
+    } catch {
+      // decoration
+    }
+    if (MixinApi.isAdvancing(by)) {
+      await by.creditDeed({ discipline: 'seamanship', difficulty: 'easy', outcome: 'success' });
+    }
+    this.armFloodWatch();
+  }
+
+  /**
+   * ⭐ Her flood watch (P21): one game-time call when the water in her will
+   * have taken her freeboard at the leak she has now. Nothing is sampled;
+   * a bailed boat re-arms it.
+   */
+  private armFloodWatch(): void {
+    try {
+      WorldClockApi.cancelByTag('boat.flood', this as unknown as Stuff);
+    } catch {
+      return; // no clock (a unit world)
+    }
+    const leak = this.leakLps();
+    if (!(leak > 0) || this._capsized) return;
+    const room = this.freeboardWithM(0) * this.waterplaneKgPerM();
+    const dueS = Math.max(1, (room - this.bilgeNowL()) / leak);
+    try {
+      WorldClockApi.at(
+        Quantity.of(boatNowS() + dueS, 's'),
+        () => {
+          void this.reconcileFloat().catch(() => undefined);
+        },
+        { host: this as unknown as Stuff, tag: 'boat.flood' },
+      );
+    } catch {
+      // no clock
+    }
+  }
+
+  /**
+   * ⭐ She goes down (P21): the water in her has taken the last of her
+   * freeboard. Whoever sits in her is in the water beside her; she goes to
+   * the bottom with everything else in her. A water with no bottom to send
+   * her to (a stop you stand in) keeps her where she lies, swamped.
+   */
+  private async goDown(): Promise<boolean> {
+    const room = this.getContainer();
+    if (room === null || !MixinApi.isWaterPlace(room)) return false;
+    for (const c of [...this.getContents()]) {
+      if (!MixinApi.isContainable(c) || !MixinApi.isOrganism(c)) continue;
+      try {
+        ContainmentApi.move(c, room as unknown as Stuff & Container);
+        MessageApi.scene(c).topic('act.deed').toSelf(Mml.compose`The water comes in over her gunwale and she goes down under you. You are in the water.`).send();
+      } catch {
+        /* it stays in */
+      }
+    }
+    try {
+      WorldClockApi.cancelByTag('boat.flood', this as unknown as Stuff);
+    } catch {
+      // no clock
+    }
+    if (await room.sink(this as unknown as Stuff)) return true;
+    this.capsize('She fills to her gunwale and settles in the water.');
+    return true;
   }
 
   /**
@@ -285,7 +475,7 @@ export default class Boat extends BoatBase {
    * they could not).
    */
   public override entryMediaIn(env: Stuff & Container): string[] {
-    return MixinApi.isWaterPlace(env) ? ['ground', 'water'] : [];
+    return MixinApi.isWaterPlace(env) && env.isWaterNow() ? ['ground', 'water'] : [];
   }
 
   /** ⭐ She carries a killick (D28): a stop that holds her is held by it. */
@@ -314,6 +504,16 @@ export default class Boat extends BoatBase {
       else if (share < 0.67) out.push('She is riding low with what is in her.');
       else if (share < 0.9) out.push('She sits lower in the water with what is in her.');
     }
+    // ⭐ The water in her (P21), in words.
+    const water = this.bilgeNowL();
+    const room = this.freeboardWithM(0) * this.waterplaneKgPerM();
+    if (water >= 1 && room > 0) {
+      const share = water / room;
+      if (share < 0.15) out.push('There is water slopping in the bottom of her.');
+      else if (share < 0.5) out.push('She has a good deal of water in her.');
+      else out.push('She is half full of water and low in it.');
+    }
+    if (this.leakLps() > 0) out.push('Water is coming in through her hull.');
     const by = this.hiredByName();
     if (by !== null) out.push(`She is out on hire to ${by}.`);
     return out;
@@ -332,12 +532,15 @@ export default class Boat extends BoatBase {
   public async reconcileFloat(): Promise<boolean> {
     if (this._capsized) return false;
     const room = this.getContainer();
-    if (room === null || !MixinApi.isWaterPlace(room)) return false;
+    if (room === null || !MixinApi.isWaterPlace(room) || !room.isWaterNow()) return false;
     const freeboard = this.freeboardNowM();
     if (freeboard <= 0) {
+      // ⭐ Filled through her hull (P21): she goes down; loaded past it, she swamps.
+      if (this.bilgeNowL() > 0 && this.freeboardWithM(0) > 0) return this.goDown();
       this.capsize('She is loaded past her freeboard.');
       return true;
     }
+    this.armFloodWatch();
     const wave = await this.waveAt(room);
     if (wave > freeboard) {
       this.capsize('A sea comes in over her gunwale, and then another, and she fills.');
@@ -376,6 +579,12 @@ export default class Boat extends BoatBase {
    * from, her hire is over; into water, she must float.
    */
   public override onMoved(from: (Stuff & Container) | null, to: (Stuff & Container) | null): void {
+    // ⭐ The water that came in came in where she WAS (P21): afloat there,
+    // the leak ran; ashore it did not. Brought up to now before she counts
+    // as wherever she is now.
+    const wasAfloat = from !== null && MixinApi.isWaterPlace(from) && from.isWaterNow();
+    if (wasAfloat) this.bilgeL = this.bilgeLeakedSinceAfloat();
+    this.bilgeStamp = boatNowS();
     super.onMoved(from, to);
     if (to === null) return;
     const home = this.home();
@@ -383,8 +592,35 @@ export default class Boat extends BoatBase {
     void this.reconcileFloat().catch(() => undefined);
   }
 
+  /** Her bilge up to now as though she had lain afloat since the stamp. */
+  private bilgeLeakedSinceAfloat(): number {
+    const nowS = boatNowS();
+    const since = this.bilgeStamp > 0 && nowS > this.bilgeStamp ? nowS - this.bilgeStamp : 0;
+    return this.bilgeL + this.hullLeakLps() * since;
+  }
+
   /** The boat is its own watch. */
   public async watchRoom(): Promise<(Stuff & Container) | null> {
     return this as unknown as Stuff & Container;
   }
+}
+
+/** Game-seconds now, or 0 with no clock (a unit world). */
+function boatNowS(): number {
+  try {
+    return WorldClockApi.getNow().rawValue();
+  } catch {
+    return 0;
+  }
+}
+
+/** A numeric setting, else the shipped grain. */
+function boatSetting(key: string, fallback: number): number {
+  try {
+    const n = Number.parseFloat(AppApi.setting(key) ?? '');
+    if (Number.isFinite(n) && n >= 0) return n;
+  } catch {
+    // a cold cache or an unregistered key
+  }
+  return fallback;
 }

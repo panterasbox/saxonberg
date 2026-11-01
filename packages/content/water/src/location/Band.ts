@@ -79,7 +79,8 @@ export default class Band extends BandBase {
    * water as its own, so the draw verbs and the read find it here.
    */
   public attachTo(surface: SurfaceStuff, band: ColumnBand): void {
-    this.surface = surface.getIdentityPath() ?? surface.getTemplatePath() ?? '';
+    // ⭐ The surface's durable handle first (harbors B5): a keyed stop's row is shared.
+    this.surface = surface.getDurableHandle() ?? surface.getIdentityPath() ?? surface.getTemplatePath() ?? '';
     this.band = band;
     const water = surface.getWater();
     if (water !== null) this.setWater({ ...water });
@@ -96,7 +97,7 @@ export default class Band extends BandBase {
   /** The live surface, when it is loaded. */
   public getSurface(): SurfaceStuff | null {
     if (this.surface === '') return null;
-    const s = StuffApi.findByTemplatePath<Stuff>(this.surface);
+    const s = StuffApi.findByDurableHandle<Stuff>(this.surface) ?? StuffApi.findByTemplatePath<Stuff>(this.surface);
     return s && !s.isDestroyed() && MixinApi.isWaterPlace(s)
       ? (s as SurfaceStuff)
       : null;

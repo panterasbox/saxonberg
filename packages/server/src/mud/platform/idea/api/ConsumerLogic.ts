@@ -305,6 +305,17 @@ export class ConsumerLogic extends ApiLogic {
       ConsumerLogic,
       ProducerLogic
     );
+    // ⭐ A settling ship counts the acts of the people aboard her (harbors
+    // B5, P20): she listens only while she settles and counts only givers
+    // standing in her own rooms. Re-asserted with her class once it is
+    // loaded — a DYNAMIC import, because a static one pulls the ship's
+    // module graph (her warren) in mid-evaluation of the warren base. Both
+    // taps re-assert the same full set, so whichever lands last keeps it.
+    void import('../Ship')
+      .then(({ default: Ship }) =>
+        EventApi.restrictSubscribe(CommandDispatchedEvent.KIND, ConsumerLogic, ProducerLogic, Ship),
+      )
+      .catch((err) => console.warn('the settling-ship subscriber was not allowed:', err));
     this.dispatchSub = EventApi.on<CommandDispatchedPayload>(
       CommandDispatchedEvent.KIND,
       (p) => {

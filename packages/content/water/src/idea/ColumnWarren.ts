@@ -129,6 +129,13 @@ export default class ColumnWarren extends ColumnWarrenBase {
     await PersistableApi.restoreOrSeed(room, key);
     this._bands.set(key, room);
     await this.wire(room, surface, bands, index);
+    // ⭐ The surface may know what lies down there (harbors B5: a wreck on
+    // the bed) — told once per bud, after the column's own ways.
+    try {
+      await surface.onBandBudded(band, room);
+    } catch (err) {
+      console.warn(`ColumnWarren: ${surfacePath}'s ${band} band budded, and its surface stumbled:`, err);
+    }
     return room;
   }
 
@@ -228,7 +235,10 @@ function rowOf(band: ColumnBand): string {
   return band.startsWith('dark') ? 'dark' : band;
 }
 
-/** A surface's durable path: its identity, else its row. */
+/**
+ * A surface's durable path: its durable handle (a keyed stop's `row#key` —
+ * harbors B5: two stops share a row), else its identity, else its row.
+ */
 function pathOf(s: Stuff): string {
-  return s.getIdentityPath() ?? s.getTemplatePath() ?? '';
+  return s.getDurableHandle() ?? s.getIdentityPath() ?? s.getTemplatePath() ?? '';
 }

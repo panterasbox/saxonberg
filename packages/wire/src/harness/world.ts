@@ -477,6 +477,8 @@ export interface ShipStageSpec {
   bilgeL?: number;
   /** Game-days she has lain unattended: her bilge fills over every band her hull passed through. */
   sleptDays?: number;
+  /** ⭐ B5: her bilge to her deck and her settling window opened (with nobody aboard she goes at once). */
+  settling?: boolean;
 }
 
 /** What the ship route reports. */

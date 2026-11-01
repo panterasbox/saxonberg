@@ -26,6 +26,7 @@ import type { CourseRecord, HullNow } from './Voyaging';
 import type { Craft } from './Voyage';
 import type { Trajectory } from './Trajectory';
 import type { Hailable } from './Hailable';
+import type { Container } from '../spatial/Container';
 
 /** Where a craft is, in the frame it is in. */
 export type FramePos =
@@ -132,6 +133,19 @@ export interface Frame {
    * water — a harbor office. Loaded by the asking (the hail is the use).
    */
   hailables(pos: FramePos): Promise<(Stuff & Hailable)[]>;
+  /**
+   * ⭐ How deep the water is to the bottom at `pos` now, m (harbors B5) —
+   * what a sinking ship settles onto or goes down through; `null` when the
+   * frame cannot say.
+   */
+  depthUnder(pos: FramePos, nowS: number): Promise<number | null>;
+  /**
+   * ⭐ A craft has gone down where she lies (harbors B5): the water keeps a
+   * surface over her and a way down to her — the place at the top of that
+   * water, or `null` when the frame keeps none (her rooms then simply lie
+   * flooded where she went down).
+   */
+  stopOver(craft: Craft): Promise<(Stuff & Container) | null>;
   /** ⭐ One watch, `fromS` to `toS`: what changed, how far she came, and the stop if it has come. */
   watchCraft(craft: Craft, fromS: number, toS: number): Promise<WatchReport>;
 }

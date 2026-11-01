@@ -29,8 +29,11 @@ help: |
   in a band (sound, weathered, worn, shabby, dilapidated), `bilge <L>`
   her bilge at so many litres, and `slept <days>` has her lie that long
   unattended — her bilge fills over every band her hull passed through
-  (with `hull`, the band she reads after it). Options in any order; an
-  `at <frame> <cite>` goes last.
+  (with `hull`, the band she reads after it). `settling` puts her bilge
+  up to her deck and lets the water decide: in deep water she begins to
+  settle (everyone aboard is told, and has their acts; with nobody aboard
+  she goes down at once), at a mud berth she settles onto the bottom.
+  Options in any order; an `at <frame> <cite>` goes last.
 
   The same rules as the wire harness's routes — one implementation
   (TestHarnessApi) behind both.
@@ -77,7 +80,7 @@ subcommands:
         type: string
         required: false
   ship:
-    description: "Stage a ship: `ship <ship> [at node:<path> | at <frame> <cite>] [hull <band>] [bilge <L>] [slept <days>]`"
+    description: "Stage a ship: `ship <ship> [at node:<path> | at <frame> <cite>] [hull <band>] [bilge <L>] [slept <days>] [settling]`"
     args:
       - name: op
         type: string

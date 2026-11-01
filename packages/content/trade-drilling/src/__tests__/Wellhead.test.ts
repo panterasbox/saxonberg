@@ -41,6 +41,8 @@ import Tool from '@saxonberg/server/mud/platform/thing/Tool';
 import Good from '@saxonberg/server/mud/platform/thing/Good';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { AppApi } from '@saxonberg/server/mud/api/app';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { BORE_KIND, BORE_REGISTRY_PATH, BoreRegistry } from '../idea/BoreRegistry';
 
 const DEPOSIT_PATH = '/test/idea/deposit/fixture';
@@ -466,5 +468,53 @@ describe('⭐⭐ the pump\'s attach point — a hole answers LiftSource (pump bu
     (w as unknown as { rigStamp: number }).rigStamp = 1_000_000 - 120;
     await w.reconcileRig();
     expect(w.getBulk('interior').getAmount().rawValue()).toBe(0);
+  });
+});
+
+describe('⭐ `bail` — one trip of the bailer, on the hole (harbors P21: the verb is the platform\'s)', () => {
+  function bored(sumpL: number): Wellhead {
+    const w = hole([SALT]);
+    w.setDepthM(25);
+    (w as unknown as { sumpL: number }).sumpL = sumpL;
+    (w as unknown as { bodyKey: string }).bodyKey = 'salt-leg';
+    return w;
+  }
+
+  it('⭐ the wellhead answers the platform\'s Bailable protocol', () => {
+    expect(MixinApi.isBailable(bored(0) as never)).toBe(true);
+  });
+
+  it('refuses with no derrick over the hole; under one, a thirty-second trip', async () => {
+    const w = bored(30);
+    const hand = makeStuff(() => new Good());
+    const bare = await w.planBail(hand as never, { vessel: null, tool: null });
+    expect(bare.kind).toBe('refusal');
+    expect(bare.kind === 'refusal' && bare.reason).toBe('no-derrick');
+    const room = w.getContainer() as unknown as Location;
+    const derrick = makeStuff(() => new Tool());
+    derrick.setCapabilities(['derrick']);
+    ContainmentApi.move(derrick, room as never);
+    const plan = await w.planBail(hand as never, { vessel: null, tool: null });
+    expect(plan.kind).toBe('plan');
+    expect(plan.kind === 'plan' && plan.durationMs).toBe(30_000);
+  });
+
+  it('⭐⭐ the trip lands as it always did — twelve litres up, into the trough when nothing is brought', async () => {
+    const w = bored(30);
+    const said: string[] = [];
+    const chain = {
+      topic: () => chain,
+      toSelf: (m: unknown) => {
+        said.push(String(m));
+        return chain;
+      },
+      toPeers: () => chain,
+      send: () => undefined,
+    };
+    vi.spyOn(MessageApi, 'scene').mockReturnValue(chain as never);
+    const hand = makeStuff(() => new Good());
+    await w.completeBail(hand as never, { vessel: null, tool: null }, null);
+    expect(w.getSumpL()).toBe(18);
+    expect(said.join(' ')).toMatch(/trough at the wellhead/);
   });
 });

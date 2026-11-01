@@ -42,6 +42,8 @@ import type { Positioned } from '@saxonberg/server/mud/lib/expanse/Positioned';
 import Structure from '@saxonberg/server/mud/lib/spatial/Structure';
 import { ExpanseApi } from '@saxonberg/server/mud/api/expanse';
 import type SeaPatch from '../location/SeaPatch';
+import type SeaStop from '../location/SeaStop';
+import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
 import type SeaZone from '../location/SeaZone';
 import SeaPatchExit from './exits/SeaPatchExit';
 import type WaterExpanse from './WaterExpanse';
@@ -51,6 +53,8 @@ type MemberStuff = Stuff & Container;
 const PATCH_ROW = '/system/water/location/sea/patch/water';
 const PATCH_ZONE = '/system/water/location/sea/patch';
 const EXIT_KIND = '/system/water/idea/exits/sea-patch';
+const STOP_ROW = '/system/water/location/sea/stop/water';
+const STOP_ZONE = '/system/water/location/sea/stop';
 /** How far you can call to somebody in the water, m (`expanse.hailRangeM`). */
 const HAIL_M = 100;
 /** One nautical mile, m. */
@@ -64,6 +68,8 @@ export default class SeaWarren extends SingletonMixin(RoomWarren) {
   private _patches = new Set<SeaPatch>();
   private _serial = 0;
   private _mintChain: Promise<unknown> = Promise.resolve();
+  /** ⭐ The stops standing now, by key (harbors B5) — each persisted by its own record. */
+  private _stops = new Map<string, SeaStop>();
 
   /* ───────────────────────── Warren policy ───────────────────────── */
 
@@ -98,10 +104,21 @@ export default class SeaWarren extends SingletonMixin(RoomWarren) {
     return { ok: false, reason: 'system singleton; never culled' };
   }
 
-  /** An empty patch is reaped, its zone with it. */
+  /**
+   * An empty patch is reaped, its zone with it. ⭐ A stop is kept first (its
+   * record is by position): reaped empty, it stands again whenever its
+   * wreck's deck, or a ship coming to the spot, asks for the water there.
+   */
   protected async reconcile(): Promise<void> {
     for (const m of this.getMembers()) {
+      const stop = [...this._stops.values()].find((st) => (st as unknown) === (m as unknown)) ?? null;
+      if (stop !== null) {
+        await PersistableApi.capture(m, stop.getPersistenceKey() ?? undefined).catch(() => undefined);
+      }
       if (this.occupantsOf(m).length > 0) continue;
+      if (stop !== null) {
+        for (const [k, v] of this._stops) if (v === stop) this._stops.delete(k);
+      }
       this.reap(m);
     }
   }
@@ -136,6 +153,12 @@ export default class SeaWarren extends SingletonMixin(RoomWarren) {
       if (ship === null || !this.stopped(ship)) throw new Error('She is under way; there is no water beside her to go into.');
       return (await this.patchAlongside(ship)) as unknown as Stuff & Container;
     }
+    if (exit.getWay() === 'wreck') {
+      const wreck = await this.shipByHandle(exit.getTarget());
+      const deck = wreck !== null ? await wreck.watchRoom() : null;
+      if (deck === null) throw new Error('There is nothing there now but the bottom.');
+      return deck;
+    }
     const ship = await this.shipByHandle(exit.getTarget());
     if (ship === null || !this.stopped(ship) || !this.within(ship, exit.getSource() as unknown as SeaPatch)) {
       throw new Error('She has sailed.');
@@ -153,6 +176,9 @@ export default class SeaWarren extends SingletonMixin(RoomWarren) {
       if (!this.stopped(ship)) return 'She is under way. Over the side now, and she would be gone before you came up.';
       return null;
     }
+    if (exit.getWay() === 'wreck') {
+      return (await this.shipByHandle(exit.getTarget())) === null ? 'There is nothing there now but the bottom.' : null;
+    }
     const ship = await this.shipByHandle(exit.getTarget());
     if (ship === null || !this.stopped(ship) || !this.within(ship, exit.getSource() as unknown as SeaPatch)) {
       return 'She has sailed; there is only the sea where she was.';
@@ -167,10 +193,74 @@ export default class SeaWarren extends SingletonMixin(RoomWarren) {
    * the first time anybody has gone into it, with a way up onto her deck.
    */
   public async patchAlongside(ship: ShipShape): Promise<SeaPatch> {
+    // ⭐ Over a wreck, the water beside her IS the stop over it (harbors B5):
+    // a diver puts in from a ship that comes to the spot.
+    const stop = [...this._stops.values()].find((r) => !r.isDestroyed() && this.within(ship, r as unknown as SeaPatch)) ?? null;
+    if (stop !== null) {
+      await this.wireDeck(stop as unknown as SeaPatch, ship);
+      return stop as unknown as SeaPatch;
+    }
     let patch = [...this._patches].find((r) => !r.isDestroyed() && this.within(ship, r)) ?? null;
     if (patch === null) patch = await this.mintPatch(ship);
     await this.wireDeck(patch, ship);
     return patch;
+  }
+
+  /* ───────────────────────── stops (harbors B5) ───────────────────────── */
+
+  /**
+   * ⭐ A ship has gone down where she lies (`Frame.stopOver`): the sea keeps a
+   * surface over her — the stop at her position, found or made — and the
+   * ways into and out of her are wired. `null` when she is on no chart.
+   */
+  public async stopOver(ship: ShipShape): Promise<SeaStop | null> {
+    const pos = ship.getExpansePosition();
+    const sea = ship.getExpanse();
+    if (pos === null || !sea) return null;
+    const stop = await this.stopAt(sea, pos);
+    await stop.markWreck(ship as unknown as Parameters<SeaStop['markWreck']>[0]);
+    return stop;
+  }
+
+  /** The stop at a chart position, found or made — the way it comes back after a restart, too. */
+  public async stopAt(sea: string, pos: GeoPosition): Promise<SeaStop> {
+    const key = stopKey(sea, pos);
+    const live = this._stops.get(key);
+    if (live && !live.isDestroyed()) return live;
+    return this.serial(async () => {
+      const again = this._stops.get(key);
+      if (again && !again.isDestroyed()) return again;
+      const stood = (await PersistableApi.standUpKeyed(STOP_ROW, key)) as unknown as SeaStop | null;
+      if (stood === null) throw new Error(`SeaWarren: the stop ${key} could not be stood up`);
+      if (stood.getExpansePosition() === null) {
+        stood.setExpanse(sea);
+        stood.setExpansePosition(pos);
+      }
+      if (stood.getWater() === null) {
+        const water = await StuffApi.singleton<WaterExpanse>(sea).catch(() => null);
+        const depth = water ? await water.depthAt(pos).catch(() => 20) : 20;
+        stood.setWater({ of: sea, depthM: Math.round(depth * 10) / 10 });
+      }
+      await this.adoptStop(stood, key);
+      return stood;
+    });
+  }
+
+  /** ⭐ A stop standing up — fresh, or back from its record: its zone, membership, the warren's note of it. */
+  public async adoptStop(stop: SeaStop, keyGiven?: string): Promise<void> {
+    const pos = stop.getExpansePosition();
+    const key = keyGiven ?? stop.getPersistenceKey() ?? (pos !== null ? stopKey(stop.getExpanse() ?? '', pos) : '');
+    if (key === '' || this._stops.get(key) === stop) return;
+    this._stops.set(key, stop);
+    if (!this.hasMember(stop as unknown as MemberStuff)) this.addMember(stop as unknown as MemberStuff);
+    const zoneId = `${STOP_ZONE}/${key.replace(/[^A-Za-z0-9.@-]+/g, '-')}`;
+    const z = stop.getZone();
+    if (z === null || (z.getIdentityPath() ?? z.getTemplatePath()) !== zoneId) {
+      // identity-keyed-by: lookup — the stop's getZone() resolves to this
+      // instance; nothing persists under it (a zone is minted with its stop).
+      const zone = await StuffApi.clone<SeaZone>(STOP_ZONE, undefined, { asIdentityPath: zoneId });
+      zone.adopt(stop as never);
+    }
   }
 
   private async mintPatch(ship: ShipShape): Promise<SeaPatch> {
@@ -266,4 +356,9 @@ export default class SeaWarren extends SingletonMixin(RoomWarren) {
     this._mintChain = next.then(() => undefined, () => undefined);
     return next;
   }
+}
+
+/** A stop's key: its sea and its position, to a few meters. */
+function stopKey(sea: string, pos: GeoPosition): string {
+  return `${sea}@${pos.latDeg.toFixed(4)}@${pos.lonDeg.toFixed(4)}`;
 }

@@ -287,6 +287,20 @@ export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWar
   }
 
   /**
+   * ⭐ A ship went down on the river (harbors B5, `Frame.stopOver`): the stop
+   * at her position — its floor is the bed — keeps the wreck: a way into her
+   * on it and her deck's way back up. `null` when she is on no line.
+   */
+  public async stopOver(ship: Stuff): Promise<ReachStop | null> {
+    if (!MixinApi.isPositioned(ship)) return null;
+    const pos = ship.getLinePosition();
+    if (pos === null) return null;
+    const stop = await this.stopAt(pos.course, pos.km, 'mid');
+    await stop.markWreck(ship as unknown as Parameters<ReachStop['markWreck']>[0]);
+    return stop;
+  }
+
+  /**
    * The stop at a position, found or made — the `DormWarren.admit` shape,
    * and the way a stop comes back after a restart.
    */

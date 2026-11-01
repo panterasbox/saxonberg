@@ -66,6 +66,11 @@ import Flagstaff from '../thing/Flagstaff';
 import { AppApi } from '../../api/app';
 import { CompetenceBand, type CompetenceBandName } from '../../lib/advancement/CompetenceBand';
 import type { Difficulty } from '../../lib/advancement/ActSignature';
+import { EventApi, type Subscription } from '../../api/event';
+import { CommandDispatchedEvent, type CommandDispatchedPayload } from '../../lib/events/CommandDispatchedEvent';
+import { ScheduleApi, type ScheduleHandle } from '../../api/schedule';
+import { Quantity } from '../../lib/quantity';
+import type { FramePos } from '../../lib/expanse/Frame';
 
 /** A ship's hull (river D28): how deep she floats, how wide, how long. */
 export interface ShipHull {
@@ -160,10 +165,12 @@ export interface BarClearance {
  */
 const LEAK_LPS_PER_M: Record<string, number> = {
   sound: 0,
-  weathered: 0.002,
-  worn: 0.02,
-  shabby: 0.08,
-  dilapidated: 0.2,
+  // ⭐ Retuned at B5 against *nothing fails over a weekend away* (the
+  // arithmetic is in `platform/content/settings/ship.yaml`).
+  weathered: 0.0005,
+  worn: 0.004,
+  shabby: 0.02,
+  dilapidated: 0.08,
 };
 
 /** What a hole lets in on top of her seams, L/s per meter (`ship.leak.holed`, grain). */
@@ -171,6 +178,15 @@ const HOLED_LPS_PER_M = 0.25;
 
 /** The share of her hull's box that is hull (a block coefficient, as `hullNow` uses). */
 const BLOCK = 0.7;
+
+/** ⭐ Pumped down to this much water over her keel, a ship settled on a drying berth floats again, m (grain). */
+const REFLOAT_BILGE_M = 0.15;
+
+/** ⭐ Acts each person aboard has once she is settling (P20, grain). */
+const SETTLING_ACTS = 6;
+
+/** ⭐ Real seconds the settling window stays open at most (P20, grain). */
+const SETTLING_REAL_S = 600;
 
 /** One bilge pump's throughput, L/s — what a sounding tells an expert she out-runs. */
 const ONE_PUMP_LPS = 0.6;
@@ -211,6 +227,9 @@ export default class Ship extends PersistableMixin(
     warren: { persistent: true, authorable: true, ref: 'identity:relation' },
     bilgeL: { persistent: true },
     bilgeStamp: { persistent: true },
+    settling: { persistent: true },
+    settled: { persistent: true },
+    wreck: { persistent: true },
   };
 
   /**
@@ -239,7 +258,7 @@ export default class Ship extends PersistableMixin(
       if (who === null || who.isDestroyed()) continue;
       if (MixinApi.isOrganism(who) && !who.isAlive()) continue;
       const room = MixinApi.isContainable(who) ? who.getContainer() : null;
-      if (room === null || !MixinApi.isWaterPlace(room)) continue;
+      if (room === null || !MixinApi.isWaterPlace(room) || !room.isWaterNow()) continue;
       keep.push(id);
       still.push(who);
     }
@@ -336,6 +355,7 @@ export default class Ship extends PersistableMixin(
     const w = await this.standWarren();
     if (w !== null) w.reconcileShell(); // integrates the bilge first
     else this.integrateBilge(WorldClockApi.getNow().rawValue());
+    await this.noteFlood();
     return this.bilgeL;
   }
 
@@ -399,6 +419,7 @@ export default class Ship extends PersistableMixin(
     if (!(moved > 0)) return 0;
     this.bilgeL -= moved;
     this.persistMooring();
+    await this.noteFlood();
     return moved;
   }
 
@@ -410,6 +431,8 @@ export default class Ship extends PersistableMixin(
   public stageBilge(litres: number, stampS: number): void {
     this.bilgeL = Math.min(this.bilgeCapacityL(), Math.max(0, Number(litres) || 0));
     this.bilgeStamp = Math.max(0, Number(stampS) || 0);
+    // A staged bilge is a fresh start: she is afloat with that much in her.
+    this.settled = false;
     this.persistMooring();
   }
 
@@ -464,6 +487,386 @@ export default class Ship extends PersistableMixin(
         ? 'One pump kept at the brake would gain on it.'
         : 'One pump at the brake would not keep up with it.';
     return `${level} ${rate} ${pump}`;
+  }
+
+  /* ───────────── flooding, settling, sinking, the wreck (harbors P20, B5) ───────────── */
+
+  /**
+   * ⭐ She is settling (P20): the water is at her deck and she will not float
+   * much longer. `null` while she floats. `sinceRealMs` is the WALL clock —
+   * the backstop is real seconds, whatever the world's pace.
+   */
+  protected settling: { sinceS: number; sinceRealMs: number } | null = null;
+  /** ⭐ On the bottom of a berth too shallow to take her (P20): settled, not sunk — pumpable. */
+  protected settled = false;
+  /** ⭐ Gone down (P20): when, and the depth of water she lies in. Her rooms are the wreck. */
+  protected wreck: { atS: number; depthM: number } | null = null;
+
+  /** Runtime: acts each person aboard has made since she began to settle, by stuffId. */
+  private _acts = new Map<string, number>();
+  private _actsSub: Subscription<CommandDispatchedPayload> | null = null;
+  private _backstop: ScheduleHandle | null = null;
+  private _sinking = false;
+
+  public isSunk(): boolean {
+    return this.wreck !== null;
+  }
+
+  public isSettled(): boolean {
+    return this.settled;
+  }
+
+  public isSettling(): boolean {
+    return this.settling !== null;
+  }
+
+  public getWreck(): { atS: number; depthM: number } | null {
+    return this.wreck ? { ...this.wreck } : null;
+  }
+
+  /**
+   * ⭐ The water's height above her keel, m (P20): her bilge spread over her
+   * hull's box (`L × B × 0.7`); sunk, the sea's whole depth over her.
+   */
+  public floodHeightM(): number {
+    if (this.wreck !== null) return this.wreck.depthM;
+    return this.bilgeHeightNowM();
+  }
+
+  /**
+   * ⭐ How high a room's floor stands above her keel, m: what the room says
+   * (`ownFloorM`), else her floorplan's entry for it, else her deck at her
+   * hull's depth and any other room on her keel.
+   */
+  public floorMOf(room: Stuff, ownFloorM: number | null = null): number {
+    if (ownFloorM !== null && Number.isFinite(ownFloorM)) return ownFloorM;
+    const w = this._warren !== null && !this._warren.isDestroyed() ? this._warren : null;
+    if (w !== null) {
+      for (const spec of w.getFloorplan()) {
+        if (w.roomForLeaf(spec.leaf) !== room) continue;
+        const f = Number(w.floorplanEntryOf(spec.leaf ?? '')?.floorM);
+        if (Number.isFinite(f)) return f;
+        if (spec.entry) return this.hullDepthM();
+        return 0;
+      }
+    }
+    const entrance = this.getEntrance();
+    const path = room.getTemplatePath();
+    if (entrance && path === entrance) return this.hullDepthM();
+    return 0;
+  }
+
+  /**
+   * ⭐ How deep the water stands over a room's floor, m (P20) — her rooms
+   * flood from the lowest up by this arithmetic alone. ≤ 0 is dry.
+   */
+  public floodDepthAt(room: Stuff, ownFloorM: number | null = null): number {
+    return this.floodHeightM() - this.floorMOf(room, ownFloorM);
+  }
+
+  /**
+   * ⭐ How deep the water is under her where she lies, m (P20): a kept
+   * berth's own depth (a mud berth, the harbor's fact), else her frame's
+   * read of the bottom; `null` when nobody can say.
+   */
+  public async bottomDepthM(): Promise<number | null> {
+    if (this.moored && this.berth) {
+      const d = (await this.keeperAt(this.berth))?.berthDepthM();
+      if (d !== null && d !== undefined && Number.isFinite(d)) return d;
+    }
+    const frame = await this.liveFrame();
+    if (frame === null) return null;
+    const line = this.getLinePosition();
+    const chart = this.getExpansePosition();
+    const pos: FramePos | null =
+      line !== null ? { frame: 'line', at: line } : chart !== null ? { frame: 'chart', at: chart } : null;
+    if (pos === null) return null;
+    try {
+      return await frame.depthUnder(pos, WorldClockApi.getNow().rawValue());
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * ⭐ Where the water in her has got to, decided (P20). Asked after every
+   * bilge reconcile, every stroke of the pump, at stand-up and when her
+   * flood watch comes due. Nothing is rolled: the bilge and the depth
+   * under her decide.
+   *
+   * - **Settled** at a berth: she floats again once her draft with the
+   *   water in her clears the bottom (pumped out).
+   * - **Settling**: pumped back below her deck, she holds — the window
+   *   closes and she is told so.
+   * - **Full to her deck**: in water shallower than her hull she settles
+   *   onto the bottom; otherwise she begins to settle (the window).
+   * - **Not full**: the watch is armed for when she will be.
+   */
+  public async noteFlood(): Promise<void> {
+    if (this.wreck !== null || this._sinking || this.isDestroyed()) return;
+    const full = this.bilgeL >= this.bilgeCapacityL() - 1e-6;
+    if (this.settled) {
+      // ⭐ She floats again once her draft with the water in her clears the
+      // bottom — and at a berth that dries to her keel anyway (the mud she
+      // always lay on at low water) once she is pumped down to her floors.
+      const bottom = await this.bottomDepthM();
+      const h = this.hull ?? { draftM: 1.2 };
+      const clear = Math.max(bottom ?? 0, h.draftM + REFLOAT_BILGE_M);
+      if (bottom !== null && h.draftM + this.bilgeHeightNowM() < clear) {
+        this.settled = false;
+        this.persistMooring();
+        await this.tellAboard('She lifts off the mud and floats again.');
+      }
+      if (!this.settled) this.armFloodWatch();
+      return;
+    }
+    if (this.settling !== null) {
+      if (!full) await this.endSettling();
+      return;
+    }
+    if (!full) {
+      this.armFloodWatch();
+      return;
+    }
+    const bottom = await this.bottomDepthM();
+    if (bottom !== null && bottom < this.hullDepthM()) {
+      this.settled = true;
+      this.persistMooring();
+      await this.tellAboard('She has settled onto the mud, the water standing in her to her deck.');
+      return;
+    }
+    await this.beginSettling();
+  }
+
+  /**
+   * ⭐ Her flood watch (P20): one game-time call when the water will reach
+   * her deck at the leak she has now — or at her shell's next band, when
+   * that comes first and the leak changes. A watch that fires early just
+   * arms the next one; nothing is sampled.
+   */
+  private armFloodWatch(): void {
+    try {
+      WorldClockApi.cancelByTag('ship.flood', this as unknown as Stuff);
+    } catch {
+      return; // no clock (a unit world)
+    }
+    if (this.wreck !== null || this.settled || this.settling !== null || this.isDestroyed()) return;
+    const w = this._warren !== null && !this._warren.isDestroyed() ? this._warren : null;
+    const band = w === null ? 'sound' : w.conditionBand();
+    const lps = this.leakLpsFor(band);
+    if (!(lps > 0)) return;
+    const nowS = WorldClockApi.getNow().rawValue();
+    let dueS = (this.bilgeCapacityL() - this.bilgeL) / lps;
+    if (w !== null) {
+      const line = w.shellTrajectory();
+      if (line.stampS > 0 && line.perSecond > 0) {
+        const c = line.condition - line.perSecond * (nowS - line.stampS);
+        for (const [floor] of w.bandFloors()) {
+          if (floor <= 0 || floor >= c) continue;
+          dueS = Math.min(dueS, (c - floor) / line.perSecond + 1);
+          break;
+        }
+      }
+    }
+    try {
+      WorldClockApi.at(
+        Quantity.of(nowS + Math.max(1, dueS), 's'),
+        () => {
+          void this.reconcileBilge().catch((err) => console.warn('Ship: the flood watch failed:', err));
+        },
+        { host: this as unknown as Stuff, tag: 'ship.flood' },
+      );
+    } catch (err) {
+      console.warn(`Ship: ${this.getDurableHandle()} could not arm her flood watch:`, err);
+    }
+  }
+
+  /**
+   * ⭐ She begins to settle (P20): everyone aboard is told once, and the
+   * window opens — **per person**, sized in acts (*no window shall be
+   * shorter than the act that answers it*): each person aboard, or who
+   * comes aboard while she settles, has `ship.settlingActs` commands of
+   * their own; she goes down when everyone still aboard has used theirs,
+   * or after `ship.settlingRealS` real seconds (the backstop an idle body
+   * or an empty ship meets). Nobody aboard: she goes at once.
+   */
+  private async beginSettling(): Promise<void> {
+    this.settling = { sinceS: WorldClockApi.getNow().rawValue(), sinceRealMs: Date.now() };
+    this._acts.clear();
+    this.persistMooring();
+    await this.tellAboard('She is settling. The water is at her deck, and she will not float much longer.');
+    if ((await this.peopleAboard()).length === 0) {
+      await this.sink();
+      return;
+    }
+    this.listen();
+  }
+
+  /** The window, back after a restart: the backstop's remainder, the acts afresh. */
+  private async resumeSettling(): Promise<void> {
+    if (this.settling === null) return;
+    if ((await this.peopleAboard()).length === 0) {
+      await this.sink();
+      return;
+    }
+    this.listen();
+  }
+
+  /** Pumped back below her deck in time: the window closes. */
+  private async endSettling(): Promise<void> {
+    this.settling = null;
+    this.stopListening();
+    this.persistMooring();
+    await this.tellAboard('The water is below her deck again; she is holding.');
+    this.armFloodWatch();
+  }
+
+  /** Start counting acts and the backstop's clock. */
+  private listen(): void {
+    if (this._actsSub === null) {
+      try {
+        this._actsSub = EventApi.on<CommandDispatchedPayload>(CommandDispatchedEvent.KIND, (p) => {
+          void this.countAct(p).catch((err) => console.warn('Ship: an act was not counted:', err));
+        });
+      } catch (err) {
+        // ⚠ The bus refused the subscription: the window is the backstop alone.
+        console.warn(`Ship: ${this.getDurableHandle()} cannot count acts aboard; the backstop alone closes her window:`, err);
+      }
+    }
+    if (this._backstop === null && this.settling !== null) {
+      const leftMs = Math.max(0, settlingRealMs() - (Date.now() - this.settling.sinceRealMs));
+      this._backstop = ScheduleApi.schedule(leftMs + 50, () => {
+        this._backstop = null;
+        void this.checkSettling().catch((err) => console.warn('Ship: the settling backstop failed:', err));
+      });
+    }
+  }
+
+  private stopListening(): void {
+    try {
+      this._actsSub?.unsubscribe();
+    } catch {
+      // gone with the bus
+    }
+    this._actsSub = null;
+    if (this._backstop !== null) ScheduleApi.cancel(this._backstop);
+    this._backstop = null;
+    this._acts.clear();
+  }
+
+  /**
+   * ⭐ One command dispatched, somewhere (P20): counted only when its giver
+   * stands in one of her rooms. Anybody else's command is nothing to her.
+   */
+  public async countAct(p: CommandDispatchedPayload): Promise<void> {
+    if (this.settling === null) return;
+    const giver = StuffApi.findById(p.subjectId);
+    if (giver === undefined || !(await this.isAboard(giver))) return;
+    this._acts.set(p.subjectId, (this._acts.get(p.subjectId) ?? 0) + 1);
+    await this.checkSettling();
+  }
+
+  /** Somebody left one of her rooms while she settles: they are out of the count. */
+  public noteLeft(): void {
+    if (this.settling === null) return;
+    void this.checkSettling().catch((err) => console.warn('Ship: the settling window was not checked:', err));
+  }
+
+  /**
+   * ⭐ Has her window closed? (P20) — everyone still aboard has used their
+   * acts, nobody is aboard, or the backstop's real seconds are gone.
+   */
+  public async checkSettling(nowRealMs: number = Date.now()): Promise<boolean> {
+    const window = this.settling;
+    if (window === null || this.wreck !== null) return false;
+    const people = await this.peopleAboard();
+    const acts = settlingActs();
+    const used = people.every((who) => (this._acts.get(who.stuffId) ?? 0) >= acts);
+    const late = nowRealMs - window.sinceRealMs >= settlingRealMs();
+    if (!used && !late) return false;
+    if (this.settling === null || this.wreck !== null) return false; // closed meanwhile
+    await this.sink();
+    return true;
+  }
+
+  /** The interactive people standing in her rooms now. */
+  private async peopleAboard(): Promise<Stuff[]> {
+    return (await this.aboard()).filter((x) => MixinApi.isHasInteractive(x));
+  }
+
+  /** Does `who` stand in one of her rooms? */
+  private async isAboard(who: Stuff): Promise<boolean> {
+    const room = MixinApi.isContainable(who) ? who.getContainer() : null;
+    if (room === null) return false;
+    return (await this.liveMembers()).includes(room as unknown as Stuff & Container);
+  }
+
+  /**
+   * ⭐ She goes down (P20). Where she lies, with everything in her: her
+   * rooms are the wreck, at the bottom's depth; whoever is still aboard is
+   * in a room under the sea; her title, her register entry and her cargo
+   * are untouched. The water keeps a surface over her and a way down to
+   * her (`Frame.stopOver` — the water pack wires it).
+   */
+  public async sink(): Promise<void> {
+    if (this.wreck !== null || this._sinking) return;
+    this._sinking = true;
+    try {
+      this.stopListening();
+      this.settling = null;
+      try {
+        WorldClockApi.cancelByTag('ship.flood', this as unknown as Stuff);
+      } catch {
+        // no clock
+      }
+      if (this.getCourse() !== null) await this.anchorHere();
+      if (this.moored) await this.castOffForGood();
+      const bottom = (await this.bottomDepthM()) ?? this.hullDepthM() * 4;
+      this.wreck = { atS: WorldClockApi.getNow().rawValue(), depthM: Math.max(bottom, this.hullDepthM()) };
+      this.bilgeL = this.bilgeCapacityL();
+      this.persistMooring();
+      await this.tellAboard('She goes down under you. The sea comes in over her deck and closes over everything.');
+      await this.wireWreck();
+    } finally {
+      this._sinking = false;
+    }
+  }
+
+  /**
+   * Made fast where she went down: the lines part and the way aboard comes
+   * off the landing (the register's entry is untouched — she is still
+   * hers, and still where she lies).
+   */
+  private async castOffForGood(): Promise<void> {
+    const lines = this.fastLines;
+    this.fastLines = [];
+    const keeper = await this.keeperAt(this.berth);
+    for (const line of lines) if (!line.isDestroyed()) await line.castOffMooring();
+    this.removeBerth();
+    this.moored = false;
+    this.berth = null;
+    if (keeper !== null) await keeper.release(this as unknown as Stuff, WorldClockApi.getNow().rawValue());
+  }
+
+  /** ⭐ The water over her and the way down to her — asked of her frame; again at every stand-up. */
+  private async wireWreck(): Promise<void> {
+    if (this.wreck === null) return;
+    try {
+      await (await this.liveFrame())?.stopOver(this as never);
+    } catch (err) {
+      console.warn(`Ship: ${this.getDurableHandle()}'s wreck was not wired to the water over her:`, err);
+    }
+  }
+
+  /** Stood up (restored or seeded): the wreck re-wired, the window resumed, or the flood read. */
+  private async afterStanding(): Promise<void> {
+    try {
+      if (this.wreck !== null) await this.wireWreck();
+      else if (this.settling !== null) await this.resumeSettling();
+      else await this.reconcileBilge();
+    } catch (err) {
+      console.warn(`Ship: ${this.getDurableHandle()} could not read the water in her:`, err);
+    }
   }
 
   /**
@@ -1203,6 +1606,7 @@ export default class Ship extends PersistableMixin(
     await super.onRestored();
     await this.standKind();
     await this.armBerth();
+    await this.afterStanding();
   }
 
   /** ⭐ First stood up (no record yet): an authored mooring is made (P4). */
@@ -1210,6 +1614,7 @@ export default class Ship extends PersistableMixin(
     await super.seedBornWith();
     await this.standKind();
     await this.armBerth();
+    await this.afterStanding();
   }
 
   /**
@@ -1255,6 +1660,12 @@ export default class Ship extends PersistableMixin(
 
   /** Her way aboard comes off with her (a reaped or destroyed ship leaves no door). */
   override onDestruct(): void {
+    this.stopListening();
+    try {
+      WorldClockApi.cancelByHost(this as unknown as Stuff);
+    } catch {
+      // no clock (a unit world)
+    }
     for (const line of this.fastLines) if (!line.isDestroyed()) void line.castOffMooring();
     this.fastLines = [];
     this.removeBerth();
@@ -1441,6 +1852,9 @@ export default class Ship extends PersistableMixin(
     if (this.aground && !(await this.floatIfShePasses())) {
       return { refused: 'She is hard aground. Lighten her, wait for the water, or kedge her off.' };
     }
+    if (this.wreck !== null) return { refused: 'She lies on the bottom. She goes nowhere now.' };
+    if (this.settled) return { refused: 'She has settled onto the mud with the water in her. Pump her out first.' };
+    if (this.settling !== null) return { refused: 'She is settling under you; she will answer no helm.' };
     if (this.holed) return { refused: 'She is holed and taking water; she goes nowhere until she is patched.' };
     // ⭐ A course that ends alongside needs a line to make fast with (P5),
     // a kept berth she leaves must clear her and one she comes to admit her
@@ -1546,6 +1960,16 @@ function flagAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
   const name = polity ? GovernmentApi.getGovernment(polity)?.name ?? polity : flag.getPresentation();
   const line = polity ? `She flies the colors of ${name}.` : `She flies ${name}.`;
   return text && text.length > 0 ? `${text}\n\n${line}` : line;
+}
+
+/** ⭐ Acts each person aboard has once she begins to settle (`ship.settlingActs`, grain). */
+function settlingActs(): number {
+  return Math.max(1, Math.round(shipSetting('ship.settlingActs', SETTLING_ACTS)));
+}
+
+/** ⭐ The backstop on her settling window, real ms (`ship.settlingRealS`, grain). */
+function settlingRealMs(): number {
+  return shipSetting('ship.settlingRealS', SETTLING_REAL_S) * 1000;
 }
 
 /** A numeric setting, else the shipped grain (the `FloorplanWarren` read). */

@@ -50,8 +50,8 @@ const CRATE = '/test/ship/crate';
 const DAY = 86_400;
 const T0 = 1_000_000;
 /** A 9 m smack: litres a second by band (the shipped grain × her length). */
-const WEATHERED_LPS = 9 * 0.002;
-const WORN_LPS = 9 * 0.02;
+const WEATHERED_LPS = 9 * 0.0005;
+const WORN_LPS = 9 * 0.004;
 const CAPACITY_L = 9 * 3 * 0.7 * 1.8 * 1000;
 
 let store: Map<string, Doc[]>;
@@ -178,8 +178,8 @@ describe('Ship — the hull clock, the leak and the bilge (harbors B4)', () => {
     expect(ship.leakLpsFor('sound')).toBe(0);
     expect(ship.leakLpsFor('weathered')).toBeCloseTo(WEATHERED_LPS, 9);
     expect(ship.leakLpsFor('worn')).toBeCloseTo(WORN_LPS, 9);
-    expect(ship.leakLpsFor('shabby')).toBeCloseTo(9 * 0.08, 9);
-    expect(ship.leakLpsFor('dilapidated')).toBeCloseTo(9 * 0.2, 9);
+    expect(ship.leakLpsFor('shabby')).toBeCloseTo(9 * 0.02, 9);
+    expect(ship.leakLpsFor('dilapidated')).toBeCloseTo(9 * 0.08, 9);
     expect(await ship.hullBand()).toBe('sound');
     expect(await ship.leakLps()).toBe(0);
     ship.setHoled(true);
@@ -263,8 +263,8 @@ describe('Ship — the hull clock, the leak and the bilge (harbors B4)', () => {
   it('⭐ a sounding in words — how deep for all, how fast for a novice, the pump for an expert', async () => {
     const ship = await mint('w1');
     expect(await ship.bilgeWords('untrained')).toBe('Her well is dry. It is not rising.');
-    now = T0 + 20 * DAY; // ~0.9 m in her, weathered
-    expect(await ship.bilgeWords('untrained')).toBe('There is water waist-deep in her bilge. It is rising.');
+    now = T0 + 20 * DAY; // ~0.23 m in her, weathered
+    expect(await ship.bilgeWords('untrained')).toBe('There is water knee-deep in her bilge. It is rising.');
     expect(await ship.bilgeWords('novice')).toMatch(/rising slowly/);
     expect(await ship.bilgeWords('competent')).not.toMatch(/pump/);
     expect(await ship.bilgeWords('expert')).toMatch(/One pump kept at the brake would gain on it\./);

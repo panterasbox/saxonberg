@@ -6,6 +6,9 @@ data:
   shortDescription: hold
   keywords: [hold, below]
   register: definite
+  # ⭐ Her hold's floor stands just above her keel (harbors B5): the first
+  # of her rooms the water comes into. Her deck stands at her hull's depth.
+  floorM: 0.3
   # ⭐ Below decks: no sky, so nothing on the horizon is seen from here
   # (maritime R4) — the watch is kept on deck.
   _biomePath: /stuff/idea/biome/indoor/baseline

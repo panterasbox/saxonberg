@@ -50,7 +50,7 @@ export default class Hoist extends PullableMixin(Tool) {
       return { ok: false, reason: 'no-bell', line: 'There is no bell on the hoist.' };
     }
     const where = bell.getContainer();
-    if (where === null || !MixinApi.isExitable(where) || !MixinApi.isWaterPlace(where)) {
+    if (where === null || !MixinApi.isExitable(where) || !MixinApi.isWaterPlace(where) || !where.isWaterNow()) {
       return { ok: false, reason: 'not-in-water', line: 'The bell is not in the water.' };
     }
     const way = sense ?? 'down';

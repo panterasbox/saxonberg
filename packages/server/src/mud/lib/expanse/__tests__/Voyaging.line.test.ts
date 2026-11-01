@@ -238,7 +238,8 @@ describe('a ship on a river (river D18)', () => {
     vi.spyOn(MixinApi, 'isOrganism').mockReturnValue(false);
     vi.spyOn(MixinApi, 'isContainable').mockImplementation(((x: unknown) => x === swimmer) as never);
     vi.spyOn(MixinApi, 'isWaterPlace').mockImplementation((() => inWater) as never);
-    (swimmer as unknown as { getContainer(): unknown }).getContainer = () => ({});
+    // The water a swimmer is in holds water now (harbors B5: `isWaterNow`).
+    (swimmer as unknown as { getContainer(): unknown }).getContainer = () => ({ isWaterNow: () => true });
     ship.noteOverboard(swimmer);
     expect(await ship.peopleInTheWater()).toEqual([swimmer]);
     inWater = false;

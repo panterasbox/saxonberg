@@ -29,7 +29,7 @@ export default class RecoverController extends CommandController<CommandModel> {
       return this.decline(context, 'You are not sitting in a boat.', 'not-in-boat');
     }
     const from = boat.getContainer();
-    if (from === null || !MixinApi.isWaterPlace(from)) {
+    if (from === null || !MixinApi.isWaterPlace(from) || !from.isWaterNow()) {
       return this.decline(context, 'She is out of the water already.', 'not-afloat');
     }
     for (const path of WATERS) {

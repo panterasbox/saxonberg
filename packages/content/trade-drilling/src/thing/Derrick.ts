@@ -46,7 +46,7 @@ export default class Derrick extends Tool {
   static commandContributions = {
     peers: [
       'trade/drilling/cmd/drilling/bore.yaml',
-      'trade/drilling/cmd/drilling/bail.yaml',
+      'platform/cmd/device/bail.yaml',
       'trade/drilling/cmd/drilling/line.yaml',
     ],
   };

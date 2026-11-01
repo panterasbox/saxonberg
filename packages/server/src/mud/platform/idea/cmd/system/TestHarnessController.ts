@@ -175,13 +175,19 @@ export default class TestHarnessController extends CommandController<TestHarness
    */
   private async ship(model: TestHarnessModel, context: CommandContext): Promise<void> {
     const usage =
-      'testharness ship <ship> [at node:<path> | at <frame path> <cite>] [hull <band>] [bilge <L>] [slept <days>].';
+      'testharness ship <ship> [at node:<path> | at <frame path> <cite>] [hull <band>] [bilge <L>] [slept <days>] [settling].';
     const handle = model.op;
     const words = [model.value ?? '', ...(model.cite ?? '').trim().split(/\s+/)].filter((w) => w !== '');
     if (!handle || words.length === 0) return this.refuse(context, TOPIC, usage, 'test-usage');
     const spec: ShipStageSpec = {};
     for (let i = 0; i < words.length; ) {
       const key = words[i]!;
+      // ⭐ B5: a flag with no value — her bilge to her deck, the window opened.
+      if (key === 'settling') {
+        spec.settling = true;
+        i += 1;
+        continue;
+      }
       const next = words[i + 1];
       if (next === undefined) return this.refuse(context, TOPIC, usage, 'test-usage');
       if (key === 'at') {

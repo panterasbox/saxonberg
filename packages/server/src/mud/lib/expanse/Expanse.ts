@@ -65,6 +65,7 @@ import type { CourseRequest, Frame, FramePos, FrameSite, WatchReport } from './F
 import { Trajectory, TrajectoryBuilder } from './Trajectory';
 import type { CourseRecord, HullNow } from './Voyaging';
 import type { Craft } from './Voyage';
+import type { Container } from '../spatial/Container';
 import type { Hailable } from './Hailable';
 
 /** What composes at one position. */
@@ -457,6 +458,26 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) implements Fra
    * line names the harbor office inside the bar), and a node's landing that
    * keeps a watch answers itself. Loaded by the hail.
    */
+  /**
+   * ⭐ How deep the sea is at a chart position (harbors B5).
+   * @hook Override on a sea that knows its bottom (the water pack's).
+   *   Default: not known.
+   */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public async depthUnder(_pos: FramePos, _nowS: number): Promise<number | null> {
+    return null;
+  }
+
+  /**
+   * ⭐ The water kept over a craft that went down here (harbors B5).
+   * @hook Override on a sea that keeps a surface over a wreck (the water
+   *   pack's). Default: none.
+   */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public async stopOver(_craft: Craft): Promise<(Stuff & Container) | null> {
+    return null;
+  }
+
   public async hailables(pos: FramePos): Promise<(Stuff & Hailable)[]> {
     if (pos.frame !== 'chart') return [];
     const rangeNm = numSetting('expanse.signalRangeNm', 12);

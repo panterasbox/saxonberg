@@ -20,6 +20,10 @@ data:
     across the transom: the Hesper.
   heightM: 18
   deckHeightM: 3
+  # ⭐ Her hull (harbors B5): the numbers she always floated by (the
+  # fallback `hullNow` read), and `depthM` — keel to deck, what she can take
+  # aboard before the water is at her deck and she settles.
+  hull: { lengthM: 30, beamM: 6, draftM: 1.2, depthM: 3 }
   mastheadHeightM: 20
   house: /world/terminus/hesper/idea/outfit
   expanse: /stuff/idea/WaterExpanse/greywater

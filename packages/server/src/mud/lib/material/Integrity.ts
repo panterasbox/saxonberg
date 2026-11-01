@@ -54,7 +54,7 @@ import { Grade } from '../craft/Grade';
  * that froze last with nothing to feed it; `blowhole` is a damp mould's
  * steam through the metal (B104 — it was a baked grade and baked prose).
  */
-export type FlawKind = 'dunt' | 'crack' | 'misrun' | 'shrinkage' | 'blowhole' | 'check';
+export type FlawKind = 'dunt' | 'crack' | 'misrun' | 'shrinkage' | 'blowhole' | 'check' | 'holed';
 
 /** A flaw in a body — a dunt from a heat shock, a crack, a casting fault. */
 export interface Flaw {
@@ -105,6 +105,8 @@ const DAMAGE_PENALTY: Readonly<Partial<Record<FlawKind, number>>> = {
   dunt: 0.3,
   crack: 0.5,
   check: 0.15,
+  // ⭐ A hole stove in a hull (harbors P21): a boat leaks through it.
+  holed: 0.5,
 };
 
 /**
@@ -229,6 +231,7 @@ const FLAW_WORDS: Readonly<Record<FlawKind, string>> = {
     'Where it froze last it is porous, pitted with little shrinkage holes — the metal drew in and nothing fed it.',
   blowhole: 'It is honeycombed with steam holes, where a damp mould blew under the pour.',
   check: 'Fine checks run across its surface where it dried too fast.',
+  holed: 'There is a hole stove in it.',
 };
 
 /**

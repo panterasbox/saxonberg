@@ -960,7 +960,7 @@ export default class Exit extends ConcealableMixin(Idea) {
    */
   public leadsIntoWater(): boolean {
     const dest = this.peekDestination();
-    return dest !== null && MixinApi.isWaterPlace(dest);
+    return dest !== null && MixinApi.isWaterPlace(dest) && dest.isWaterNow();
   }
 
   /**

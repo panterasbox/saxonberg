@@ -266,6 +266,21 @@ export interface WaterPlace {
    * is here. Run on entry and whenever a fresh read of the water lands.
    */
   reconcileOccupants(): Promise<void>;
+  /**
+   * ⭐ Is there water here NOW (harbors B5)? A water place IS a water, so
+   * by default yes — a tidepool the ebb left is still the pool. A ship's
+   * compartment is a room that may HOLD water and answers by its flood
+   * read: dry, it is a room you walk about in, and a reader asking *am I in
+   * the water / is that the water* (a way into the water, a boat afloat, a
+   * thermometer over the side) must hear no.
+   */
+  isWaterNow(): boolean;
+  /**
+   * ⭐ A band of this water's column has just budded (harbors B5): the
+   * surface may wire what it knows lies down there — the way into a wreck
+   * on the bed. Called by the column, once per bud.
+   */
+  onBandBudded(band: ColumnBand, room: Stuff & Container): Promise<void>;
 }
 
 type FloorStuff = Stuff & Floor;
@@ -411,6 +426,23 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
 
     public getWaterKey(): string {
       return this.water?.feature ?? WATER_KEY;
+    }
+
+    /**
+     * @hook Override on a place that only sometimes holds water (a ship's
+     *   compartment answers by its flood). Default: a water place is a water.
+     */
+    public isWaterNow(): boolean {
+      return true;
+    }
+
+    /**
+     * @hook Override on a surface that knows what lies on its bed (the
+     *   water pack's sea stop: a wreck). Default: nothing to wire.
+     */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    public async onBandBudded(_band: ColumnBand, _room: Stuff & Container): Promise<void> {
+      return;
     }
 
     /* ─────────────────────────── the level ─────────────────────────── */
@@ -845,7 +877,12 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
       const from = via?.getSource() ?? null;
       const fromPath = from?.getDurableHandle() ?? from?.getTemplatePath() ?? '';
       const ship = fromPath ? NavigationApi.structureAtNow(fromPath) : null;
-      if (ship !== null && MixinApi.isVoyaging(ship)) ship.noteOverboard(mover);
+      // ⭐ From one of her rooms into another (harbors B5: a compartment is
+      // a water place) is not over her side.
+      const selfStuff = this as unknown as Stuff;
+      const selfPath = selfStuff.getDurableHandle() ?? selfStuff.getTemplatePath() ?? '';
+      const ownRoom = ship !== null && selfPath !== '' && NavigationApi.structureAtNow(selfPath) === ship;
+      if (ship !== null && !ownRoom && MixinApi.isVoyaging(ship)) ship.noteOverboard(mover);
       const floor = this.waterFloor();
       if (floor === null || !floor.supportIsSlotted()) return;
       const swum = mover.getEngagedMode()?.getMedium() === 'water';

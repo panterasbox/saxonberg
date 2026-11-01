@@ -66,6 +66,10 @@ import Good from '@saxonberg/server/mud/platform/thing/Good';
 import { BulkableMixin } from '@saxonberg/server/mud/lib/bulk/Bulkable';
 import { PersistableMixin } from '@saxonberg/server/mud/lib/persistence/Persistable';
 import { StagedMixin } from '@saxonberg/server/mud/lib/stuff/Staged';
+import { BailableMixin, type BailPlan, type BailRefusal, type BailRequest } from '@saxonberg/server/mud/lib/pump/Bailable';
+import { BulkableApi } from '@saxonberg/server/mud/api/bulk';
+import { MessageApi } from '@saxonberg/server/mud/api/message';
+import { Mml } from '@saxonberg/server/mud/api/mml';
 import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import type { VetoResult } from '@saxonberg/server/mud/lib/errors';
@@ -131,6 +135,21 @@ const SAMPLE_CAP_S = 3_600;
 /** Litres one bailer-load brings up. The pre-pump lift, and it is small. */
 const BAILER_L = 12;
 
+/** ⭐ One trip of the bailer down and back, game-ms (moved from the drilling `bail`). */
+const BAIL_MS = 30_000;
+
+/** Endurance one trip costs a fresh body, percentage points. */
+const BAIL_COST = 9;
+
+/** The Discipline the ANSWER credits — the owner's judgment, resolved. */
+const GEOLOGY = 'geology';
+
+/** The Discipline the labour credits. */
+const MINING = 'mining';
+
+/** The topic the hands-work acts narrate on (`EngagedActController`'s). */
+const BAIL_TOPIC = 'act.deed';
+
 /**
  * Litres per game-hour a charged leg gives up into an open hole, per
  * metre of leg the hole is standing in.
@@ -181,9 +200,9 @@ export interface CutCost {
 }
 
 export default class Wellhead
-  extends PersistableMixin(
+  extends BailableMixin(PersistableMixin(
     StagedMixin(ContainerMixin(BulkableMixin(GroundPointMixin(Good)))),
-  )
+  ))
   implements LiftSource, PumpSource
 {
   /** Metres sunk. The hole's own fact, on the hole. */
@@ -791,6 +810,110 @@ export default class Wellhead
       });
     } catch (err) {
       console.error('Wellhead: the bore log did not resolve', err);
+    }
+  }
+
+  // ---------- `bail` (harbors P21: the verb is the platform's now) ----------
+
+  /**
+   * ⭐ One trip of the bailer, planned (the body of the drilling `bail`,
+   * moved onto the hole when the verb went to the platform). A hole wants a
+   * derrick over it — a frame, a beam and a rope — and the rig is caught up
+   * with the clock on the way (*weeks pass while you are away*).
+   */
+  public override async planBail(by: Stuff, _req: BailRequest): Promise<BailPlan | BailRefusal> {
+    const room = this.getContainer();
+    const rigged =
+      room !== null &&
+      MixinApi.isContainer(room) &&
+      room.getContents().some((c) => MixinApi.isTool(c) && c.hasCapability('derrick'));
+    if (!rigged) {
+      return {
+        kind: 'refusal',
+        reason: 'no-derrick',
+        line: Mml.compose`There is no rig here. A hole wants a derrick over it — a frame, a beam and a rope.`,
+      };
+    }
+    await this.reconcileRig();
+    return {
+      kind: 'plan',
+      durationMs: BAIL_MS,
+      cost: BAIL_COST,
+      beginSelf: Mml.compose`You pay the rope out and let the bailer go down.`,
+      beginPeers: Mml.compose`${Mml.actor(by)} lets the bailer down the hole.`,
+      token: null,
+    };
+  }
+
+  /**
+   * ⭐⭐ The trip, landed. The bail that first brings up the body — or first
+   * brings up nothing at the depth the survey promised — is **the answer to
+   * the bet**, and credits `geology` hard either way: a dry hole is a fact
+   * somebody paid for, not a failed roll.
+   */
+  public override async completeBail(by: Stuff, req: BailRequest, _token: unknown): Promise<void> {
+    if (by.isDestroyed()) return;
+    const scene = MessageApi.scene(by).topic(BAIL_TOPIC);
+    const vessel = req.vessel !== null && MixinApi.isBulkable(req.vessel) ? req.vessel : null;
+    const body = await this.bodyHere();
+    const firstAnswer = this.getDrawnL() <= 0 && this.getSumpL() <= 0;
+    const litres = await this.lift();
+
+    if (litres <= 0) {
+      // ⭐⭐ The dry hole, and the cuttings that are not nothing.
+      scene
+        .toSelf(
+          body === null
+            ? Mml.compose`The bailer comes up with a yard of broken rock and a cupful of muddy water, and that is all there is down there. ${String(this.getDepthM())} m.`
+            : Mml.compose`The bailer comes up empty. Whatever is in this hole is not coming up fast enough to catch.`,
+        )
+        .send();
+      if (firstAnswer && this.getDepthM() > 0 && MixinApi.isAdvancing(by)) {
+        await by.creditDeed({ discipline: GEOLOGY, difficulty: 'hard', outcome: 'success' });
+      }
+      return;
+    }
+
+    // Up at the wellhead now. Into the vessel, through the platform's own
+    // transfer — closure, gas escape and blending are shipped behaviour.
+    let moved = 0;
+    let escaped = false;
+    if (vessel !== null) {
+      const from = BulkableApi.slotFor(this as unknown as Stuff, undefined);
+      const into = BulkableApi.slotFor(vessel, undefined);
+      if (from !== null && into !== null) {
+        // `lenient`: a cask with room for eight of the twelve takes eight.
+        const outcome = BulkableApi.transfer(from, into, { kind: 'measure', litres, mode: 'lenient' });
+        moved = outcome.applied;
+        escaped = outcome.status === 'escaped';
+      }
+    }
+
+    const what = (await this.bodyHere())?.key ?? 'what is down there';
+    if (vessel === null) {
+      scene.toSelf(
+        Mml.compose`The bailer comes up heavy and you tip it into the trough at the wellhead. Bring something to put it in.`,
+      );
+    } else if (escaped) {
+      scene.toSelf(
+        Mml.compose`It will not stay in that — gas wants a sealed vessel, shut. It goes up into the air around you and is gone.`,
+      );
+    } else {
+      // ⚠ Under a litre reads as a CUPFUL, not "0 litres" (the pump build's walk).
+      const amount = moved < 1 ? 'A cupful' : `${String(Math.round(moved))} litres`;
+      const taste =
+        what === 'what is down there'
+          ? 'Whatever it is, there is more of it than there was.'
+          : 'You taste it off your knuckle before you think about it, which is how everybody finds out.';
+      scene.toSelf(Mml.compose`${amount} out of the hole and into it. ${taste}`);
+    }
+    scene.send();
+
+    if (firstAnswer && MixinApi.isAdvancing(by)) {
+      await by.creditDeed({ discipline: GEOLOGY, difficulty: 'hard', outcome: 'success' });
+    }
+    if (MixinApi.isAdvancing(by)) {
+      await by.creditDeed({ discipline: MINING, difficulty: 'standard', outcome: 'success' });
     }
   }
 

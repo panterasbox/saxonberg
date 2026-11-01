@@ -77,6 +77,13 @@ export interface ShipStageSpec {
    * reads that band now; without, she has aged that long too.
    */
   sleptDays?: number;
+  /**
+   * ⭐ Her bilge to her deck, and the water decides (B5): in deep water her
+   * settling window opens — everyone aboard is told, and has their acts —
+   * and with nobody aboard she goes down at once; at a mud berth she settles
+   * onto the bottom. Applied after the rest of the spec.
+   */
+  settling?: boolean;
 }
 
 /** Where in each band a staged hull is put — the band's middle, so a minute's clock does not tip it. */
@@ -222,8 +229,9 @@ export class TestHarnessLogic extends ApiLogic {
     }
     const ship = found;
     const wear = spec.hull !== undefined || spec.bilgeL !== undefined || spec.sleptDays !== undefined;
-    if (!spec.at && !wear) {
-      throw new Error('testharness ship: say what — `at node:<path>`, `at <frame> <cite>`, `hull <band>`, `bilge <L>` or `slept <days>`');
+    const settle = spec.settling === true;
+    if (!spec.at && !wear && !settle) {
+      throw new Error('testharness ship: say what — `at node:<path>`, `at <frame> <cite>`, `hull <band>`, `bilge <L>`, `slept <days>` or `settling`');
     }
     const nowS = WorldClockApi.getNow().rawValue();
     let framePath = ship.getExpanse() ?? '';
@@ -241,6 +249,10 @@ export class TestHarnessLogic extends ApiLogic {
       frame?.adopt(ship as never);
     }
     if (wear) await this.stageWear(ship, spec, nowS);
+    if (settle) {
+      ship.stageBilge(ship.bilgeCapacityL(), nowS);
+      await ship.reconcileBilge(); // the water decides: settling, settled or gone
+    }
     await PersistableApi.capture(ship as unknown as Stuff);
     console.info(`TestHarness: staged ${ship.getTemplatePath()} on ${framePath}`);
     return { ship: ship.getDurableHandle() ?? handle, frame: framePath, at: pos ?? this.lyingAt(ship) };

@@ -2,10 +2,11 @@
  * SeaPatchExit — ⭐ **a way between a ship stopped at sea and the water
  * beside her, worked out when it is taken** (river D30).
  *
- * Two ways: `side`, from her deck into the water beside her (refused while
+ * Three ways: `side`, from her deck into the water beside her (refused while
  * she is under way — swimmers at sea exist only where a ship has stopped);
- * and `deck`, from the water up onto the deck of a ship still lying here
- * (refused, in words, when she has sailed). The sea's warren decides both;
+ * `deck`, from the water up onto the deck of a ship still lying here
+ * (refused, in words, when she has sailed); and ⭐ `wreck` (harbors B5),
+ * from the bed into the ship lying on it — a way that stays while she does. The sea's warren decides both;
  * the exit decides nothing.
  *
  * ⭐ Never on a map: a way that is there only while she lies here is not a
@@ -22,7 +23,7 @@ import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import type SeaWarren from '../SeaWarren';
 
 /** Which way a sea patch exit goes. */
-export type SeaWay = 'side' | 'deck';
+export type SeaWay = 'side' | 'deck' | 'wreck';
 
 const WARREN_PATH = '/system/water/idea/SeaWarren';
 
@@ -35,7 +36,7 @@ export default class SeaPatchExit extends DeferredDestinationExit {
   /** Which way. */
   public way: SeaWay = 'side';
 
-  /** For `deck`: the ship's durable handle (harbors P3) — her deck is hers to say. */
+  /** For `deck` and `wreck`: the ship's durable handle (harbors P3) — her deck is hers to say. */
   public target = '';
 
   public configureSea(way: SeaWay, target = ''): void {

@@ -38,6 +38,10 @@ import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import type FisheryRegistry from './FisheryRegistry';
 import type { FisheryStanding } from './FisheryRegistry';
 import type { GeoPosition } from '@saxonberg/server/mud/lib/expanse/GeoPosition';
+import type { FramePos } from '@saxonberg/server/mud/lib/expanse/Frame';
+import type { Craft } from '@saxonberg/server/mud/lib/expanse/Voyage';
+import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
+import type SeaWarren from './SeaWarren';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { WaterState } from '@saxonberg/server/mud/platform/idea/species/Species';
@@ -303,6 +307,22 @@ export default class WaterExpanse extends WaterSourceMixin(Expanse) {
   /** How deep the water is at `pos`, metres — what the lead finds. */
   public async depthAt(pos: GeoPosition): Promise<number> {
     return (await this.waterBandAt(pos))?.getDepthM() ?? this.depthM;
+  }
+
+  /** ⭐ The bottom under a chart position (harbors B5) — what a sinking ship settles onto. */
+  public override async depthUnder(pos: FramePos, _nowS: number): Promise<number | null> {
+    return pos.frame === 'chart' ? this.depthAt(pos.at) : null;
+  }
+
+  /**
+   * ⭐ A craft went down on this sea (harbors B5): the sea's warren keeps a
+   * stop over her, with a column from the depth and a way into her on its
+   * bed.
+   */
+  public override async stopOver(craft: Craft): Promise<(Stuff & Container) | null> {
+    const warren = await StuffApi.singleton<SeaWarren>('/system/water/idea/SeaWarren').catch(() => null);
+    const stop = warren ? await warren.stopOver(craft as never) : null;
+    return stop as unknown as (Stuff & Container) | null;
   }
 
   /** What the lead brings up at `pos`. */

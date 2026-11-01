@@ -33,7 +33,7 @@ export default class DescendController extends LocomotionControllerBase {
       return this.refuse(context, 'act.deed', "You can't move.", 'not-mobile');
     }
     const room = giver.getContainer();
-    if (room === null || !MixinApi.isWaterPlace(room)) {
+    if (room === null || !MixinApi.isWaterPlace(room) || !room.isWaterNow()) {
       return this.refuse(context, 'act.deed', 'You are not in the water.', 'not-in-water');
     }
     const way = this.goesUp(context) ? room.wayUp() : await room.wayDown(giver);

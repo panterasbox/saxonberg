@@ -28,6 +28,7 @@ import type { CourseRequest, Frame, FramePos, FrameSite, WatchReport } from './F
 import type { CourseRecord, HullNow } from './Voyaging';
 import { TrajectoryBuilder, type Trajectory } from './Trajectory';
 import type { Craft } from './Voyage';
+import type { Container } from '../spatial/Container';
 import type { Hailable } from './Hailable';
 import type { WaterTide } from '../location/WaterSource';
 import { AppApi } from '../../api/app';
@@ -335,6 +336,17 @@ export function LineFrameMixin<TBase extends MixinConstructor<{ getTemplatePath(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async hailables(_pos: FramePos): Promise<(Stuff & Hailable)[]> {
       return [];
+    }
+
+    /** ⭐ The depth under a line position is the river's own read (harbors B5). */
+    async depthUnder(pos: FramePos, nowS: number): Promise<number | null> {
+      return pos.frame === 'line' ? this.depthAt(pos.at, nowS) : null;
+    }
+
+    /** @hook Override on the river: the water kept over a craft that went down. Default: none. */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    async stopOver(_craft: Craft): Promise<(Stuff & Container) | null> {
+      return null;
     }
 
     /** @hook Override on the river: a bank's way into the water. Default: nothing. */

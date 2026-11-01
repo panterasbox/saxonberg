@@ -207,7 +207,8 @@ export class TestAuthRoutes {
     });
 
     // ⭐ A ship staged (harbors P25, B4): `{ship: '/row/path' | '<kind>#<serial>',
-    // at?: {node} | {frame, cite}, hull?: band, bilgeL?: L, sleptDays?: n}` —
+    // at?: {node} | {frame, cite}, hull?: band, bilgeL?: L, sleptDays?: n,
+    // settling?: true}` —
     // put lying where and as the drive needs her, never sailed there.
     app.post('/auth/test-ship', (req: Request, res: Response) => {
       if (TEST_AUTH_TOKEN && req.get('x-test-auth') !== TEST_AUTH_TOKEN) {
@@ -215,7 +216,7 @@ export class TestAuthRoutes {
         return;
       }
       const body = req.body as
-        | { ship?: unknown; at?: unknown; hull?: unknown; bilgeL?: unknown; sleptDays?: unknown }
+        | { ship?: unknown; at?: unknown; hull?: unknown; bilgeL?: unknown; sleptDays?: unknown; settling?: unknown }
         | undefined;
       const ship = body?.ship;
       const at = body?.at as { node?: unknown; frame?: unknown; cite?: unknown } | undefined;
@@ -230,12 +231,13 @@ export class TestAuthRoutes {
       if (typeof body?.hull === 'string') spec.hull = body.hull;
       if (typeof body?.bilgeL === 'number') spec.bilgeL = body.bilgeL;
       if (typeof body?.sleptDays === 'number') spec.sleptDays = body.sleptDays;
+      if (body?.settling === true) spec.settling = true;
       const badAt = at !== undefined && place === null;
       if (typeof ship !== 'string' || ship === '' || badAt || Object.keys(spec).length === 0) {
         res.status(400).json({
           error:
             "test-ship wants {ship: '/row/path', at?: {node: '/path'} | {frame: '/path', cite: '…'}, " +
-            'hull?: band, bilgeL?: litres, sleptDays?: days} — at least one of them',
+            'hull?: band, bilgeL?: litres, sleptDays?: days, settling?: true} — at least one of them',
         });
         return;
       }
