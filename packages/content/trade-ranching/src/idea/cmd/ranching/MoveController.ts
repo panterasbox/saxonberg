@@ -36,6 +36,7 @@ import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { AccessApi } from '@saxonberg/server/mud/api/access';
 import { EmploymentApi } from '@saxonberg/server/mud/api/employment';
 import Tract from '@saxonberg/content-trade-farming/src/location/Tract';
+import type Field from '@saxonberg/content-trade-farming/src/thing/Field';
 import HerdRegistry, { type HerdRecord } from '../../HerdRegistry';
 import { RANCHING_TOPIC, HERD_REGISTRY_PATH } from './DraftController';
 
@@ -70,8 +71,8 @@ export default class MoveController extends CommandController<MoveModel> {
       this.decline(context, Mml.compose`Move ${herd.name} to which field?`, 'no-field');
       return;
     }
-    const field = await this.pickField(giver, herd, wanted);
-    if (!field) {
+    const picked = await this.pickField(giver, registry, herd, wanted);
+    if (picked === null) {
       this.decline(
         context,
         Mml.compose`There is no field called '${wanted}' on ${herd.name}'s ground near here.`,
@@ -79,8 +80,14 @@ export default class MoveController extends CommandController<MoveModel> {
       );
       return;
     }
+    if (typeof picked === 'string') {
+      this.decline(context, Mml.fromMarkup(picked), 'which-field');
+      return;
+    }
+    const field = picked;
+    const tract = field.getTract();
     const home = herd.homeExtent;
-    const path = field.getTemplatePath() ?? '';
+    const path = tract ? this.groundPathOf(tract) : '';
     if (home && !(path === home || path.startsWith(`${home}/`))) {
       this.decline(
         context,
@@ -89,7 +96,7 @@ export default class MoveController extends CommandController<MoveModel> {
       );
       return;
     }
-    if (herd.grazing === path) {
+    if (herd.grazing === registry.refOf(field)) {
       this.decline(
         context,
         Mml.compose`${herd.name} are already on ${Mml.thing(field)}.`,
@@ -101,9 +108,9 @@ export default class MoveController extends CommandController<MoveModel> {
     MessageApi.scene(giver)
       .topic(RANCHING_TOPIC)
       .toSelf(
-        Mml.compose`You put ${herd.name} onto ${Mml.thing(field)}. They spread out and put their heads down.`,
+        Mml.compose`You put ${herd.name} onto ${field.grazingPlacePhrase()}. They spread out and put their heads down.`,
       )
-      .toPeers(Mml.compose`${Mml.actor(giver)} moves ${herd.name} onto ${Mml.thing(field)}.`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} moves ${herd.name} onto ${field.grazingPlacePhrase()}.`)
       .send();
   }
 
@@ -145,8 +152,9 @@ export default class MoveController extends CommandController<MoveModel> {
     const here = MixinApi.isContainable(giver) ? giver.getContainer() : null;
     if (here) places.push(here);
     if (herd.grazing) {
-      const field = StuffApi.findByTemplatePath(herd.grazing);
-      if (field) places.push(field);
+      const registry = await StuffApi.singleton<HerdRegistry>(HERD_REGISTRY_PATH);
+      const tract = (await registry.fieldOf(herd.grazing))?.getTract() ?? null;
+      if (tract) places.push(tract as unknown as Stuff);
     }
     for (const place of places) {
       for (const business of EmploymentApi.operatorsAt(place)) {
@@ -157,20 +165,23 @@ export default class MoveController extends CommandController<MoveModel> {
   }
 
   /**
-   * The field answering to `wanted` among the places the keeper can see
-   * from here: this place, where its ways lead, and the field the herd
-   * is on now.
+   * The field answering to `wanted` among the tracts the keeper can see
+   * from here: this tract, where its ways lead, and the tract the herd is
+   * on now (tracts build D34). A FIELD named by its own name is that
+   * field; a TRACT named (or `here`) is its one field, or its one field
+   * carrying no crop — otherwise the tract's own *"Which field?"* line.
    */
   private async pickField(
     giver: Stuff,
+    registry: HerdRegistry,
     herd: HerdRecord,
     wanted: string,
-  ): Promise<Tract | null> {
+  ): Promise<Field | string | null> {
     const want = wanted.toLowerCase().replace(/^the\s+/, '');
     const here = MixinApi.isContainable(giver) ? giver.getContainer() : null;
+    if (here && want === 'here') return here instanceof Tract ? this.fieldOfTract(here) : null;
     const candidates: Stuff[] = [];
     if (here) candidates.push(here);
-    if (here && want === 'here') return here instanceof Tract ? here : null;
     if (here && MixinApi.isExitable(here)) {
       for (const [, exit] of here.getExits()) {
         try {
@@ -181,15 +192,40 @@ export default class MoveController extends CommandController<MoveModel> {
       }
     }
     if (herd.grazing) {
-      const current = StuffApi.findByTemplatePath(herd.grazing);
-      if (current) candidates.push(current);
+      const current = (await registry.fieldOf(herd.grazing))?.getTract() ?? null;
+      if (current) candidates.push(current as unknown as Stuff);
     }
-    for (const place of candidates) {
-      if (!(place instanceof Tract)) continue;
-      const name = place.getFieldName().toLowerCase().replace(/^the\s+/, '');
-      if (name === want || place.hasKeyword(want)) return place;
+    const tracts = candidates.filter((c): c is Tract & Stuff => c instanceof Tract);
+    for (const tract of tracts) {
+      for (const field of tract.getFields()) {
+        const name = field.getShortDescription().toLowerCase().replace(/^the\s+/, '');
+        if (name === want || field.hasKeyword(want)) return field;
+      }
+    }
+    for (const tract of tracts) {
+      const name = tract.getFieldName().toLowerCase().replace(/^the\s+/, '');
+      if (name === want || tract.hasKeyword(want)) return this.fieldOfTract(tract);
     }
     return null;
+  }
+
+  /**
+   * The path the parcel registry knows a tract by — a holding's keyed copy
+   * by its key (`<extent>/<leaf>`), the one authored tract by its row.
+   */
+  private groundPathOf(tract: Tract): string {
+    return tract.isPersistenceKeyExplicit()
+      ? (tract.getPersistenceKey() ?? '')
+      : (tract.getTemplatePath() ?? '');
+  }
+
+  /** A tract named whole: its one field, its one grass field, or its refusal. */
+  private fieldOfTract(tract: Tract): Field | string | null {
+    const fields = tract.getFields();
+    if (fields.length === 1) return fields[0]!;
+    const grass = fields.filter((f) => f.cropsOn().length === 0);
+    if (grass.length === 1) return grass[0]!;
+    return fields.length === 0 ? null : tract.soilPartRefusal();
   }
 
   /** Decline diegetically, and file the structured reason. */

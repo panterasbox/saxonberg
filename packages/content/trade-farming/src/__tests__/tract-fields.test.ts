@@ -250,13 +250,13 @@ describe('a tract divided into fields', () => {
     expect(p.getKeywords()).not.toContain('gone');
   });
 
-  it("a field's thirst is its crops plus its share of the tract's sward", async () => {
+  it("⭐ a field's thirst is its crops plus its OWN grass (tracts build D24)", async () => {
     const f = await markedTract();
     const top = field(f, 'top-end');
-    const sward = f.swardTranspirationPerGameDay();
-    expect(top.soilWaterDemandPerGameDay()).toBeCloseTo(sward * 0.4, 6);
+    const sward = top.swardTranspirationPerGameDay();
+    expect(top.soilWaterDemandPerGameDay()).toBeCloseTo(sward, 6);
     crop(f, 300, 'top-end');
-    expect(top.soilWaterDemandPerGameDay()).toBeCloseTo(sward * 0.4 + 300 * 1.2, 6);
+    expect(top.soilWaterDemandPerGameDay()).toBeCloseTo(sward + 300 * 1.2, 6);
   });
 
   it('a field catches the sky of the tract it is part of', async () => {
@@ -273,7 +273,9 @@ describe('a tract divided into fields', () => {
     const title = vi.spyOn(f, 'ensureCropTitle').mockResolvedValue(undefined);
     await top.ensureCropTitle();
     expect(title).toHaveBeenCalledOnce();
-    expect(top.sowingRefusal()).toBe(f.sowingRefusal());
+    // ⭐ The seedbed is the FIELD's since the tracts build: a marked tract
+    // has nothing to say about sowing, and the field answers for itself.
+    expect(f.sowingRefusal()).toBeNull();
     expect(top.sowingRefusal()).toMatch(/not been ploughed/);
   });
 
@@ -294,7 +296,10 @@ describe('a tract divided into fields', () => {
     it('a field with no crop says nothing of a crop', async () => {
       const f = await markedTract();
       crop(f, 300, 'top-end');
-      expect(f.tractLines().some((l) => /lane end/.test(l))).toBe(false);
+      const lines = f.tractLines();
+      expect(lines.some((l) => /At the lane end it is/.test(l))).toBe(false);
+      // ⭐ It reads its own grass instead (tracts build D24).
+      expect(lines.some((l) => /At the lane end the grass is/.test(l))).toBe(true);
     });
 
     it('⭐ W2: a novice reads less than an expert, at the same moment — never a different truth', async () => {

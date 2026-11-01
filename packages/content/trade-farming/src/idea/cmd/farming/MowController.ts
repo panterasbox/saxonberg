@@ -38,10 +38,13 @@ import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { SWARD_RESIDUAL_FRACTION } from '../../../lib/Sward';
+import type Field from '../../../thing/Field';
 
 /** ⭐ The instrument is bound by the view, never hunted for here. */
 interface MowModel extends CommandModel {
   tool?: MqlOneResult;
+  /** ⭐ Which field — `mow at the far side` (tracts build D38). */
+  part?: MqlOneResult;
 }
 
 
@@ -98,7 +101,12 @@ export default class MowController extends FieldWorkController {
       );
       return;
     }
-    const { field } = reading;
+    const choice = this.fieldChoice(reading.tract, model.part?.stuff ?? null);
+    if (!choice.ok) {
+      this.decline(context, Mml.fromMarkup(choice.line), choice.reason);
+      return;
+    }
+    const field = choice.field;
     const ceiling = field.swardCeilingKg();
     const standing = field.standingDryMatterKg();
     const cuttable = standing - ceiling * SWARD_RESIDUAL_FRACTION;
@@ -118,7 +126,7 @@ export default class MowController extends FieldWorkController {
       beginSelf: Mml.compose`You set the edge of ${Mml.thing(scythe)} into the grass and start the first swathe.`,
       beginPeers: Mml.compose`${Mml.actor(giver)} starts mowing, working across the field in long even swathes.`,
       onComplete: () => {
-        void MowController.finish(context, reading, cuttable);
+        void MowController.finish(context, reading, field, cuttable);
       },
     });
   }
@@ -126,10 +134,11 @@ export default class MowController extends FieldWorkController {
   private static async finish(
     context: CommandContext,
     reading: NonNullable<Awaited<ReturnType<FieldWorkController['fieldOf']>>>,
+    field: Field & Stuff,
     cuttable: number,
   ): Promise<void> {
     const giver = context.commandGiver;
-    const { field } = reading;
+    const { tract } = reading;
     const taken = field.drawSward(cuttable);
     if (taken <= 0) {
       MessageApi.scene(context.commandGiver)
@@ -176,13 +185,13 @@ export default class MowController extends FieldWorkController {
         (hay as unknown as { baledMoistureFraction?: number })
           .baledMoistureFraction = round2(0.1 + moisture * 0.3);
       }
-      ContainmentApi.move(hay as Stuff & Containable, field as unknown as Stuff & Container);
+      ContainmentApi.move(hay as Stuff & Containable, tract as unknown as Stuff & Container);
     }
     // ⭐ Capture the host, as `harvest` and `sow` do: the cut sward and the
     // bales lying on it are the field's state now, and an idle field that
     // is evicted uncaptured comes back as its row — bales and all gone.
     try {
-      await PersistableApi.captureHostOf(field as unknown as Stuff);
+      await PersistableApi.captureHostOf(tract as unknown as Stuff);
     } catch (err) {
       console.warn('MowController: capture after mowing failed:', err);
     }

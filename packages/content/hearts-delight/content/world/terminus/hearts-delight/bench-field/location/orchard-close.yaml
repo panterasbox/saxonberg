@@ -42,6 +42,12 @@ data:
   # ⭐ Enough for the flock (cover build R4): twelve ewes graze it under
   # the trees, with a trough kept from the barn's rick.
   areaM2: 3600
+  # ⭐ One field over the whole tract (tracts build D24, D32): the grass and the herd on it are a field's.
+  # Pre-marked — an author's starting state.
+  fields:
+    - key: sward
+      name: the sward
+      share: 1
   # ⭐ A clover ley under the trees — the one authored number this whole
   # forage read rests on, and it is authored because nothing writes it.
   legumeFraction: 0.4

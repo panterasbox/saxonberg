@@ -14,6 +14,12 @@ data:
   groundSpotX: 3
   groundSpotY: 3
   areaM2: 8000
+  # ⭐ One field over the whole tract (tracts build D24, D32): the crop stands in a field.
+  # Pre-marked — an author's starting state.
+  fields:
+    - key: planting
+      name: the planting
+      share: 1
   props:
     - /world/terminus/waponi-woo/thing/standing-cane-lower
   exits:

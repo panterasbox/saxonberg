@@ -58,6 +58,7 @@ data:
   # ⭐ Where the herd starts (cover build D8) — applied once; after that
   # `move` is the truth, and the book says where they are.
   grazing: /world/terminus/eternal/campus-field/location/home-field
+  grazingField: far-side
   details:
     numbers:
       keywords: [numbers, columns, entries, hand]

@@ -79,10 +79,11 @@ import type { Soil } from '@saxonberg/server/mud/lib/husbandry/Soil';
 import { ReservedMixin } from '@saxonberg/server/mud/lib/reserve';
 import {
   ImprovableMixin,
+  IMPROVEMENT_DONE_AT,
   type ImprovementCost,
   type ImprovementJob,
 } from '@saxonberg/server/mud/lib/ground/Improvable';
-import { SwardMixin, SWARD_RESIDUAL_FRACTION } from '../lib/Sward';
+import { SWARD_RESIDUAL_FRACTION } from '../lib/Sward';
 import {
   CharacteredSoilMixin,
   CROP_TRANSPIRATION_L_PER_M2_DAY,
@@ -128,35 +129,6 @@ const STONE_THRESHOLD = 0.35;
 const MARL_PH = 7.2;
 
 /**
- * Percentage points of organic matter a kilogram of eaten dry matter
- * returns to the tract as dung.
- *
- * ⭐ Most of what a ruminant eats comes straight back out — the
- * retention is single digits — which is exactly why grazing cycles
- * fertility in place and why the mouths are what fertility follows.
- */
-const MANURE_OM_PER_KG_EATEN = 0.35;
-
-/**
- * Percentage points of nitrogen a fully clover-dominant sward fixes per
- * GAME day (D89).
- *
- * ⭐⭐ **Derived from the historical fact rather than tuned to a target**:
- * *a clover ley fixes about as much nitrogen in a season as a cereal
- * crop takes off, and a bit more.* That surplus is the entire reason the
- * four-course displaced the fallow year, and it is why yields ROSE
- * rather than merely held.
- *
- * The arithmetic: a cereal course draws 18 points here, a season of ley
- * runs ~90 game days, and *a bit more than one cereal* is ~24 points —
- * so 24 / 90 ≈ 0.27. ⚠ Setting it any lower makes the rotation run the
- * ground down, which the control case in `rotation.test.ts` asserts is
- * what happens WITHOUT the ley; setting it higher would make fertility
- * free.
- */
-const N_FIXED_PER_GAME_DAY = 0.27;
-
-/**
  * The base temperature a temperate sward stops growing at, in kelvin
  * (~5 °C).
  *
@@ -176,54 +148,10 @@ const DAYLIGHT_STOP = 0.33;
 /** Daylength fraction at/above which daylength stops limiting (≈13 h). */
 const DAYLIGHT_HAPPY = 0.54;
 
-/**
- * Kelvin below which clover simply is not in flower — well above the
- * grass base, because grass grows in cold a bloom will not open in.
- */
-const BLOOM_MIN_K = 285;
-/** Day length below which the bloom is over (or has not started). */
-const BLOOM_MIN_DAYLIGHT = 0.45;
-
-/**
- * ⭐ One herd's line in the tract's grazing ledger (cover build D8): what
- * it wants, what vessels it will eat from, and what it has been given
- * since it came onto the tract. A PLAIN object, never a `Map` (a Map
- * field has no BSON shape).
- */
-export interface GrazerEntry {
-  /** How the herd reads in `look` — *six head of the college herd*. */
-  label: string;
-  /** Kilograms of dry matter the herd wants a game day. */
-  demandKgPerDay: number;
-  /** The feeder kinds its species eats from (`trough`, `hopper`…). */
-  feederKinds: string[];
-  /** Kilograms it was given (grass + hay) since `since`. */
-  fedKg: number;
-  /** Kilograms it wanted since `since`. */
-  demandKg: number;
-  /** Game-seconds the window opened. */
-  since: number;
-}
-
-/**
- * Game-days a ploughed seedbed stays fit to sow (cover build D4) — about
- * a season. Past it the sward has crept back and the ground wants
- * ploughing again.
- */
-const SEEDBED_DAYS = 90;
-
 /** The share of its ceiling an authored tract's grass starts at. */
 const AUTHORED_SWARD_START = 0.8;
 
 const SECONDS_PER_GAME_DAY = 86_400;
-
-/**
- * Percentage points of organic matter one kilogram per square metre of
- * sward adds when it is ploughed under (cover build D4): a full sward
- * (0.3 kg/m²) turned in is about one point — the green manure that
- * feeds the next crop, and why breaking a ley grows a good first crop.
- */
-const OM_PER_KG_PER_M2_TURNED = 3;
 
 /**
  * ⭐ The tract's own lines in `look` — in words, never numbers: the crop
@@ -251,12 +179,11 @@ const TractGround = CharacteredSoilMixin(SoilMixin(ReservedMixin(Location)));
 // ground, independent of what the polity permits (`LandUse`) and of what
 // the ground is made of (`GroundCharacter`). All three must be satisfied
 // and none substitutes for another.
-// `SwardMixin` is the STANDING CROP, and it goes over soil because it
-// drinks it: the grass transpires the moisture the sky put in, which is
-// what closes the loop and what makes a dry month read as a sward that
-// stopped growing rather than as a message about rain.
+// ⭐ No `SwardMixin` (tracts build D24): the grass belongs to the FIELDS a
+// holder marks on the tract. Unmarked ground is rough, and keeps only its
+// own soil.
 const TractBase = PersistableMixin(
-  WarrenMemberMixin(ImprovableMixin(SwardMixin(TractGround))),
+  WarrenMemberMixin(ImprovableMixin(TractGround)),
 );
 
 export default class Tract extends TractBase {
@@ -275,8 +202,12 @@ export default class Tract extends TractBase {
    *
    * ⭐ Safe to declare alongside the mixins': `bucketFilenames` collects the
    * class's own static **plus** every mixin in the chain, so this unions
-   * with `ImprovableMixin`'s three platform views and `SwardMixin`'s `mow`
-   * rather than shadowing them.
+   * with `ImprovableMixin`'s three platform views rather than shadowing
+   * them.
+   *
+   * ⚠ `mow` is named here too since the grass moved onto the fields
+   * (tracts build): `SwardMixin`'s own contribution now sits on a FIXTURE,
+   * and a fixture's contributions reach nobody.
    */
   static commandContributions = {
     // `inventory`: a location's occupants hear it (`self` is a giver's).
@@ -290,6 +221,7 @@ export default class Tract extends TractBase {
       // its fields — takes muck from whoever stands in it. `feed` rode
       // only `CultivableMixin` before, so a tract afforded nothing.
       'platform/cmd/bulk/feed.yaml',
+      'trade/farming/cmd/farming/mow.yaml',
     ],
   };
 
@@ -303,9 +235,6 @@ export default class Tract extends TractBase {
     legumeFraction: { persistent: true, authorable: true },
     _ambientK: { persistent: true, runtimeState: true },
     _daylightFraction: { persistent: true, runtimeState: true },
-    seedbedStamp: { persistent: true },
-    stubbleStamp: { persistent: true },
-    grazers: { persistent: true },
     fields: { persistent: true, authorable: true },
   };
 
@@ -319,27 +248,6 @@ export default class Tract extends TractBase {
    * (`groundPart: top-end`); a name may change.
    */
   public fields: FieldSpec[] = [];
-
-  /**
-   * ⭐ **Who grazes this tract** (cover build D8), by herd id. Ranching
-   * writes it through `setGrazer`/`clearGrazer`; the tract keeps each
-   * line's fed window inside its own sward integral. The tract never
-   * searches for a herd — the herd's move wrote itself here.
-   */
-  public grazers: Record<string, GrazerEntry> = {};
-
-  /**
-   * Game-seconds the sward was last turned under for a seedbed; `0` =
-   * never ploughed for a crop (cover build D4).
-   */
-  public seedbedStamp = 0;
-
-  /**
-   * Game-seconds the last crop ended (cut down or grubbed out), `0` when
-   * none has — what lets the tract read *stubble* rather than bare
-   * grass. Cleared by the next ploughing.
-   */
-  public stubbleStamp = 0;
 
   /**
    * ⭐ **D88 — holders name their tracts.** Real farms always have: the
@@ -362,46 +270,11 @@ export default class Tract extends TractBase {
   public groundSpotY = 0;
 
   /**
-   * ⭐ **What fraction of the sward is clover** (D43) — the one plant
-   * that is simultaneously the legume that fixes nitrogen, among the
-   * best forage there is, and the classic bee plant. One row satisfying
-   * three decisions without a special case anywhere.
+   * ⭐ **What fraction of the grass is clover** (D43), as authored on the
+   * tract — the share every field marked here starts with unless its own
+   * spec says otherwise. The sward, and so the clover, is the fields'.
    */
   public legumeFraction = 0;
-
-  /**
-   * ⭐⭐ **How much of this sward is in flower** — the read a hive makes
-   * of the land around it (apiculture D6).
-   *
-   * Three terms, and the provenance of each is different, so each is
-   * named:
-   *
-   *   - **`legumeFraction`** — **authored**. Hydrated from the row; see
-   *     {@link fixLegumeNitrogen} on why nothing writes it yet.
-   *   - **the standing sward** — **derived**, reconciled over game-time
-   *     from water, nutrient and the season.
-   *   - **the bloom season** — **derived**, from this tract's own cached
-   *     sky.
-   *
-   * ⚠ The tri-state rule, twice: an unresolved cache (`-1`) reads as
-   * **not limited**, because `restampSeason()` resolves it within the
-   * first read cycle and a cache nothing has warmed must never read as a
-   * hard zero forever. This codebase has been bitten three times by the
-   * other choice.
-   *
-   * ⭐ The sward knows when it blooms; the hive asks. A pack-local helper
-   * reaching into `_ambientK` from outside would break the methods-only
-   * inter-Stuff contract, which is why this lives here and not there.
-   */
-  public inFlowerFraction(): number {
-    if (this.legumeFraction <= 0) return 0;
-    const ambientK = this.ambientAt();
-    const daylight = this.daylightAt();
-    const warmEnough = ambientK < 0 || ambientK >= BLOOM_MIN_K;
-    const lightEnough = daylight < 0 || daylight >= BLOOM_MIN_DAYLIGHT;
-    if (!warmEnough || !lightEnough) return 0;
-    return this.legumeFraction * this.swardFraction();
-  }
 
   public getLegumeFraction(): number {
     return this.legumeFraction;
@@ -515,6 +388,7 @@ export default class Tract extends TractBase {
     model: GroundCharacter | null,
     seed: number,
     fieldSample: GroundSample,
+    swardStart: number = SWARD_RESIDUAL_FRACTION,
   ): Promise<void> {
     const specs = this.fields.filter((p) => p && typeof p.key === 'string' && p.key);
     if (specs.length === 0) return;
@@ -531,10 +405,11 @@ export default class Tract extends TractBase {
           this.addFixture(minted, fieldSlot(spec.key));
           field = minted as unknown as Stuff & Field;
         }
-        field.configureField(spec, areas[i] ?? 0);
+        field.configureField(spec, areas[i] ?? 0, this.legumeFraction);
         field.installFromTract(
           GroundCharacter.resolve(model, this.getGroundSpot(), seed, spec.lean),
           fieldSample,
+          swardStart,
         );
       } catch (err) {
         console.warn(
@@ -556,40 +431,19 @@ export default class Tract extends TractBase {
     return null;
   }
 
-  /** Whether the ground was ploughed within the season. */
-  public isSeedbedFresh(): boolean {
-    if (this.seedbedStamp <= 0) return false;
-    const now = fieldNowSeconds();
-    if (now === null) return true;
-    return now - this.seedbedStamp < SEEDBED_DAYS * SECONDS_PER_GAME_DAY;
+  /** The field marked here under `key`, or `null`. */
+  public fieldByKey(key: string): (Stuff & Field) | null {
+    return key ? this.fieldInSlot(key) : null;
   }
 
   /**
-   * ⭐ The ground answers `sow` (the kernel's hook). A crop of the same
-   * kind may always be widened; otherwise the ground must have been
-   * ploughed this season. The verb refuses a DIFFERENT crop itself.
+   * ⭐ The tract answers `sow` only for its unmarked ground (tracts build
+   * D25): nothing is planted until a field is marked. Once one is, the
+   * FIELD the act lands on answers (ploughed this season, or not).
    */
   public override sowingRefusal(): string | null {
-    if (this.getCrops().length > 0) return null;
-    if (this.isSeedbedFresh()) return null;
-    return this.seedbedStamp > 0
-      ? 'The seedbed has gone back to grass. Plough it again before you sow.'
-      : 'This ground has not been ploughed for a crop. Plough it first.';
-  }
-
-  /**
-   * ⭐ **Turn the sward under** (cover build D4): the standing grass goes
-   * into the ground as organic matter and the seedbed is stamped. What a
-   * plough does to a tract after its clearing is done.
-   */
-  public turnUnder(): void {
-    const kg = this.drawSward(this.standingDryMatterKg());
-    if (kg > 0 && this.areaM2 > 0) {
-      this.addOrganicMatter((kg / this.areaM2) * OM_PER_KG_PER_M2_TURNED);
-    }
-    const now = fieldNowSeconds();
-    this.seedbedStamp = now ?? 1;
-    this.stubbleStamp = 0;
+    if (this.getFields().length > 0) return null;
+    return 'Mark a field first — nothing is planted on unmarked ground.';
   }
 
   /**
@@ -633,16 +487,28 @@ export default class Tract extends TractBase {
    */
   public onContainableAdded(thing: Stuff & Containable): void {
     if (MixinApi.isGrowing(thing) && thing.isAreaCrop()) {
-      this.stubbleStamp = 0;
+      this.fieldOfCrop(thing)?.noteCropArrived();
       void this.settleCropTitle(false).catch(() => undefined);
     }
   }
 
-  /** A crop LEAVING — cut down or grubbed out — leaves stubble. */
+  /** A crop LEAVING — cut down or grubbed out — leaves its field stubble. */
   public onContainableRemoved(thing: Stuff & Containable): void {
     if (MixinApi.isGrowing(thing) && thing.isAreaCrop()) {
-      this.stubbleStamp = fieldNowSeconds() ?? 1;
+      this.fieldOfCrop(thing)?.noteCropRemoved();
     }
+  }
+
+  /**
+   * The field a crop roots in, read by its KEY rather than `getBed()` — a
+   * crop that has just left has no container to resolve its bed through.
+   * On a tract of one field, that field.
+   */
+  private fieldOfCrop(crop: Stuff & Growing): (Stuff & Field) | null {
+    const keyed = this.fieldByKey(crop.getGroundPart());
+    if (keyed) return keyed;
+    const fields = this.getFields();
+    return fields.length === 1 ? fields[0]! : null;
   }
 
   /**
@@ -658,6 +524,16 @@ export default class Tract extends TractBase {
   }
 
   /**
+   * ⭐ Whether the tract's clearing is done, standing crops aside — what a
+   * PLOUGH asks (tracts build): {@link progressOn} reads a crop as scrub so
+   * the kernel's `grub` can take it, and on a tract of several fields a
+   * plough on the empty one must not be sent to grub its neighbor's wheat.
+   */
+  public isClearedForPlough(cost: ImprovementCost): boolean {
+    return super.progressOn('clearing', cost) >= IMPROVEMENT_DONE_AT;
+  }
+
+  /**
    * ⭐ **A tract in use is a tract kept** (cover build B35): stock and a
    * standing crop keep the scrub down, so clearing does not revert while a
    * herd grazes it or a crop stands on it. Without this a kept clover ley
@@ -667,7 +543,8 @@ export default class Tract extends TractBase {
   public override improvementReversion(job: ImprovementJob): number {
     if (
       job === 'clearing' &&
-      (Object.keys(this.grazers).length > 0 || this.getCrops().length > 0)
+      (this.getFields().some((f) => f.grazerIds().length > 0) ||
+        this.getCrops().length > 0)
     ) {
       return 0;
     }
@@ -692,14 +569,16 @@ export default class Tract extends TractBase {
   }
 
   /**
-   * The tract's own lines, in words: the crop and its stage, the
-   * stubble, a fresh seedbed, the grass — and, on a divided tract, one
-   * line per sown field read at the VIEWER's band (field population D9,
-   * D13). ⭐ A pure read.
+   * The tract's own lines, in words: the stand (one thing, over how much
+   * of the tract), then each field's ground, grass and herds — named by
+   * field when there are several (field population D9, D13; tracts build
+   * D24). ⭐ A pure read.
    */
   public tractLines(viewer?: Stuff | null): string[] {
     const lines: string[] = [];
     const crops = this.getCrops();
+    const fields = this.getFields();
+    const several = fields.length > 1;
     // The stand reads as ONE thing: the kind, how much of the tract it
     // covers in all, and the stage of the crop covering the most ground.
     const crop = crops.reduce<(Stuff & Growing) | null>(
@@ -727,30 +606,26 @@ export default class Tract extends TractBase {
       if (crops.some((c) => c.isTiredRatoon())) {
         lines.push('The stools are tired, and the stand comes up thin.');
       }
-      lines.push(...this.fieldLines(viewer ?? null));
-    } else if (this.stubbleStamp > 0) {
-      const band = this.swardBand();
-      lines.push(
-        band === 'bare'
-          ? 'It is cut down to the stubble.'
-          : band === 'grazed-out' || band === 'short'
-            ? 'Grass is coming back over the stubble.'
-            : `The stubble is lost under the grass, ${this.swardPhrase()}.`,
-      );
-      lines.push(...this.grazerLines());
-      return lines;
-    } else if (this.isSeedbedFresh()) {
-      lines.push('It is ploughed for the season, the furrows waiting for seed.');
+      if (several) lines.push(...this.fieldCropLines(viewer ?? null));
+    }
+    if (fields.length === 0) {
+      if (!crop) lines.push('Nobody has marked a field on it. It is rough ground.');
       return lines;
     }
-    if (this.swardAreaM2() >= 1) {
-      lines.push(
-        crop
-          ? `The grass on the rest of it is ${this.swardPhrase()}.`
-          : `The grass is ${this.swardPhrase()}.`,
-      );
+    for (const field of fields) {
+      const name = field.presentationPhrase().definite();
+      if (several) {
+        // A sown field's crop line has said it already.
+        if (field.cropsOn().length === 0) {
+          for (const line of field.groundStateLines()) {
+            lines.push(`At ${name} ${lowerFirst(line)}`);
+          }
+        }
+        lines.push(...field.grazerLines(name));
+      } else {
+        lines.push(...field.groundStateLines(), ...field.grazerLines());
+      }
     }
-    lines.push(...this.grazerLines());
     return lines;
   }
 
@@ -760,7 +635,7 @@ export default class Tract extends TractBase {
    * rooted there, read at the viewer's band (a viewer with no transcript
    * reads the floor). Never a digit; a field with no crop says nothing.
    */
-  private fieldLines(viewer: Stuff | null): string[] {
+  private fieldCropLines(viewer: Stuff | null): string[] {
     const out: string[] = [];
     for (const field of this.getFields()) {
       for (const crop of this.getCrops()) {
@@ -775,110 +650,37 @@ export default class Tract extends TractBase {
     return out;
   }
 
-  // ---------- ⭐ the grazing ledger (cover build D8, D11) ----------
+  // ---------- ⭐ what grazes loose (tracts build D34) ----------
 
-  /** Put a herd on this tract, or replace its line. Opens a fresh window. */
-  public setGrazer(herdId: string, entry: Omit<GrazerEntry, 'fedKg' | 'demandKg' | 'since'>): void {
-    // Settle the window the herd is joining, so it is not billed for it —
-    // and the upkeep window, which was kept or not by who was on it.
-    this.reconcileSward();
-    this.reconcileImprovement();
-    const now = fieldNowSeconds() ?? 0;
-    this.grazers = {
-      ...this.grazers,
-      [herdId]: {
-        label: entry.label,
-        demandKgPerDay: Math.max(0, entry.demandKgPerDay),
-        feederKinds: [...entry.feederKinds],
-        fedKg: 0,
-        demandKg: 0,
-        since: now,
-      },
-    };
-  }
-
-  /** Take a herd off this tract. Returns its closed line, or `null`. */
-  public clearGrazer(herdId: string): GrazerEntry | null {
-    this.reconcileSward();
-    this.reconcileImprovement();
-    const entry = this.grazers[herdId];
-    if (!entry) return null;
-    const rest = { ...this.grazers };
-    delete rest[herdId];
-    this.grazers = rest;
-    return { ...entry, feederKinds: [...entry.feederKinds] };
+  /**
+   * Kilograms a game day the animals standing loose in this tract want —
+   * those with no herd line on a field. ⚠ A pure read of authored demand.
+   * (The occupant-shape probe moved here from the old tract sward; it is
+   * a finding for the ranching slate, not this build's to fix.)
+   */
+  public looseGrazingDemandPerGameDay(): number {
+    let demand = 0;
+    for (const occupant of this.getContents()) {
+      const grazer = occupant as unknown as {
+        grazingDemandPerGameDay?(): number;
+      };
+      if (typeof grazer.grazingDemandPerGameDay === 'function') {
+        demand += Math.max(0, grazer.grazingDemandPerGameDay());
+      }
+    }
+    return demand;
   }
 
   /**
-   * A herd's line, reconciled — what it has been fed since it came on.
-   * `null` when the herd is not on this tract.
+   * `field`'s share of the loose grazing: apportioned over the fields
+   * carrying no crop, by area — a field with a crop is never grazed.
    */
-  public grazerLedger(herdId: string): GrazerEntry | null {
-    this.reconcileSward();
-    const entry = this.grazers[herdId];
-    return entry ? { ...entry, feederKinds: [...entry.feederKinds] } : null;
-  }
-
-  /**
-   * Close a herd's window and open a fresh one: returns the fraction it
-   * was fed over the window just closed (1 when it wanted nothing), and
-   * the window's length in game-days. What the record folds into its
-   * history.
-   */
-  public foldGrazer(herdId: string): { fraction: number; days: number } | null {
-    this.reconcileSward();
-    const entry = this.grazers[herdId];
-    if (!entry) return null;
-    const now = fieldNowSeconds() ?? entry.since;
-    const days = Math.max(0, (now - entry.since) / SECONDS_PER_GAME_DAY);
-    const fraction = entry.demandKg > 0 ? Math.min(1, entry.fedKg / entry.demandKg) : 1;
-    this.grazers = {
-      ...this.grazers,
-      [herdId]: { ...entry, fedKg: 0, demandKg: 0, since: now },
-    };
-    return { fraction, days };
-  }
-
-  /** The herds on this tract, by id. */
-  public grazerIds(): string[] {
-    return Object.keys(this.grazers);
-  }
-
-  /** The feeder kinds any grazer here eats from. */
-  private grazerFeederKinds(): Set<string> {
-    const kinds = new Set<string>();
-    for (const e of Object.values(this.grazers)) {
-      for (const k of e.feederKinds) kinds.add(k);
-    }
-    return kinds;
-  }
-
-  /**
-   * ⭐ **The trough feeds what the grass did not** (D11): every feeder
-   * standing on this tract whose kind a grazer eats from, drawn by mass —
-   * and a feeder kept from a store draws on the store when it is empty.
-   */
-  public override swardShortfallFed(kgNeeded: number): number {
-    if (!(kgNeeded > 0)) return 0;
-    const kinds = this.grazerFeederKinds();
-    if (kinds.size === 0) return 0;
-    let left = kgNeeded;
-    for (const thing of this.getContents()) {
-      if (left <= 0) break;
-      if (!MixinApi.isFeeder(thing) || thing.isDestroyed()) continue;
-      if (!kinds.has(thing.getFeederKind())) continue;
-      left -= thing.drawFodder(left);
-    }
-    return kgNeeded - left;
-  }
-
-  /** `look`'s line per herd: *six head of the college herd are grazing it*. */
-  private grazerLines(): string[] {
-    const out: string[] = [];
-    for (const e of Object.values(this.grazers)) {
-      if (e.label) out.push(`${capitalize(e.label)} ${e.label.startsWith('one ') ? 'is' : 'are'} grazing it.`);
-    }
-    return out;
+  public looseGrazingShareOf(field: Stuff & Field): number {
+    const demand = this.looseGrazingDemandPerGameDay();
+    if (!(demand > 0) || field.cropsOn().length > 0) return 0;
+    const grass = this.getFields().filter((f) => f.cropsOn().length === 0);
+    const total = grass.reduce((n, f) => n + f.getAreaM2(), 0);
+    return total > 0 ? (demand * field.getAreaM2()) / total : 0;
   }
 
   // ---------- the hooks SoilMixin asks of its host ----------
@@ -905,14 +707,13 @@ export default class Tract extends TractBase {
    * different kind of ground.
    */
   public override soilWaterDemandPerGameDay(): number {
-    // ⭐ And a crop standing in it drinks too (cover build) — per square
-    // metre still standing. ⚠ Never read on a divided tract (it holds no
-    // reserve of its own; each field answers for what stands in it).
-    const cropDemand = this.getCrops().reduce(
-      (n, c) => n + c.standingAreaM2() * CROP_TRANSPIRATION_L_PER_M2_DAY,
-      0,
-    );
-    return this.swardTranspirationPerGameDay() + cropDemand;
+    // ⭐ The tract's OWN soil is its unmarked ground (tracts build D25):
+    // rough, no sward of its own, drunk only by a crop rooted in it — none,
+    // once the tract is marked (a crop roots in a field).
+    const self = this as unknown as Stuff;
+    return this.getCrops()
+      .filter((c) => c.getBed() === self)
+      .reduce((n, c) => n + c.standingAreaM2() * CROP_TRANSPIRATION_L_PER_M2_DAY, 0);
   }
 
   /**
@@ -928,54 +729,25 @@ export default class Tract extends TractBase {
     let sum = 0;
     for (let i = 0; i < samples; i++) {
       const t = fromS + ((i + 0.5) * (toS - fromS)) / samples;
-      const k = this.ambientAt(t);
+      const k = this.ambientKAt(t);
       const warm = k > 0 ? clampUnit((k - GRASS_BASE_K) / (GRASS_HAPPY_K - GRASS_BASE_K)) : 1;
       sum += 0.1 + 0.9 * warm;
     }
     return sum / samples;
   }
 
-  // ---------- the three hooks the sward asks of its host ----------
+  // ---------- ⭐ the season, read by the fields' grass ----------
 
   /**
-   * Every square metre of a tract is sward, until something else is
-   * sown — ⭐ and then the crop's ground is not (cover build).
+   * ⭐⭐ WINTER, and it is two facts about a place rather than a mode
+   * (D10): it is cold, and the days are short. The tract's warmth and
+   * daylength limit at game-second `atS`, as one factor in a field's
+   * sward minimum — or `null` when neither is resolved (⚠ unresolved
+   * reads as UNLIMITED, never as frozen).
    */
-  public override swardAreaM2(): number {
-    return Math.max(0, this.areaM2 - this.cropAreaM2());
-  }
-
-  /**
-   * ⭐⭐ **The limiting factor — a MINIMUM, never a product** (the shipped
-   * growth model's rule, applied to grass).
-   *
-   * A sward is limited by whichever of water and nutrient is scarcest,
-   * and multiplying them would let two half-limitations read as a quarter
-   * — which is not how a tract behaves and not what a player should
-   * learn. Warmth and daylength join the same minimum in W6; the shape is
-   * here so they slot in rather than being retrofitted.
-   *
-   * ⚠ Unauthored reserves read `null`, which means *this ground does not
-   * model that factor* and NOT *this factor is zero*. Ground with no
-   * nitrogen reserve is not nitrogen-starved; it is unmodelled.
-   */
-  public override swardGrowthFactor(atS?: number): number {
+  public seasonGrowthFactor(atS?: number): number | null {
     const factors: number[] = [];
-    const moisture = this.soilMoistureFraction();
-    if (moisture !== null) {
-      // Grass is drought-sensitive well before it is dead: growth falls
-      // away below about a third of tract capacity.
-      factors.push(clampUnit(moisture / 0.35));
-    }
-    const nitrogen = this.nutrientFraction();
-    if (nitrogen !== null) {
-      factors.push(clampUnit(0.25 + nitrogen * 1.5));
-    }
-    // ⭐⭐ WINTER, and it is two facts about a place rather than a mode
-    // (D10): it is cold, and the days are short. Both are resolved
-    // asynchronously and cached, so both carry the same tri-state —
-    // ⚠ unresolved reads as UNLIMITED, never as frozen.
-    const ambientK = this.ambientAt(atS);
+    const ambientK = this.ambientKAt(atS);
     if (ambientK > 0) {
       // GRASS_BASE_K is the base temperature every growing-degree-day sum
       // in agronomy is measured against, and it is why a sward stops in
@@ -984,16 +756,15 @@ export default class Tract extends TractBase {
         clampUnit((ambientK - GRASS_BASE_K) / (GRASS_HAPPY_K - GRASS_BASE_K)),
       );
     }
-    const daylight = this.daylightAt(atS);
+    const daylight = this.daylightFractionAt(atS);
     if (daylight >= 0) {
       // ⭐ Photoperiod, not irradiance. Short days limit a temperate
-      // sward well before the light gets dim, which is why growth is
-      // over in October and not in the first hard frost.
+      // sward well before the light gets dim.
       factors.push(
         clampUnit((daylight - DAYLIGHT_STOP) / (DAYLIGHT_HAPPY - DAYLIGHT_STOP)),
       );
     }
-    return factors.length === 0 ? 1 : Math.min(...factors);
+    return factors.length === 0 ? null : Math.min(...factors);
   }
 
   /**
@@ -1020,7 +791,7 @@ export default class Tract extends TractBase {
   private _swardSky: CelestialProfile | null = null;
 
   /** Kelvin at game-second `atS` (the cached now when unknown). */
-  private ambientAt(at?: number): number {
+  public ambientKAt(at?: number): number {
     // ⚠ "Now" is NOW: the cached ambient was resolved once, at placement.
     const atS = at ?? fieldNowSeconds() ?? undefined;
     if (atS === undefined || !this._swardSite || this._swardOffsetK === null || this._ambientK <= 0) {
@@ -1035,7 +806,7 @@ export default class Tract extends TractBase {
   }
 
   /** Daylength as a fraction of the day at `atS` (the cached now when unknown). */
-  private daylightAt(at?: number): number {
+  public daylightFractionAt(at?: number): number {
     const atS = at ?? fieldNowSeconds() ?? undefined;
     const sky = this._swardSky;
     const site = this._swardSite;
@@ -1108,138 +879,6 @@ export default class Tract extends TractBase {
     } finally {
       this._seasonPromise = null;
     }
-  }
-
-  /**
-   * ⭐ **D7's whole graze row: is the mouth standing here?**
-   *
-   * Summed intake of the animals actually in this tract. Nothing else
-   * decides whether the tract is "grazed" — there is no `use` enum, and
-   * the difference between grazing and haymaking is only ever whether the
-   * animal was here when the grass came off.
-   *
-   * ⚠ A PURE read of authored demand, never a reconcile: reading an
-   * animal's own hunger here would re-enter that animal's metabolism,
-   * which reads this tract. Same hazard, same discipline, as the soil's.
-   */
-  public override swardGrazingDemandPerGameDay(): number {
-    // ⭐ The herds whose moves wrote themselves here (cover build D8) —
-    // a drafted head is counted through its herd's line, never twice.
-    let demand = 0;
-    for (const e of Object.values(this.grazers)) demand += e.demandKgPerDay;
-    for (const occupant of this.getContents()) {
-      const grazer = occupant as unknown as {
-        grazingDemandPerGameDay?(): number;
-      };
-      if (typeof grazer.grazingDemandPerGameDay === 'function') {
-        demand += Math.max(0, grazer.grazingDemandPerGameDay());
-      }
-    }
-    return demand;
-  }
-
-  /**
-   * ⭐⭐ **The ledger, closed, in four lines.**
-   *
-   * Every game day this tract integrates: the mouths standing on it put
-   * back most of what they ate (as organic matter, which mineralises);
-   * the clover in the sward fixes nitrogen out of the air; and hooves on
-   * wet ground destroy structure. Rain takes nitrate away on the soil's
-   * own rain edge, and harvest takes it away at the scythe.
-   *
-   * **No path credits nitrogen from nowhere.** The two openings are the
-   * real ones — fixation in, leaching out — and both are named.
-   */
-  public override onSwardIntegrated(
-    dryMatterEatenKg: number,
-    days: number,
-    fedKg = 0,
-  ): void {
-    this.apportionGrazers(dryMatterEatenKg + fedKg, days);
-    if (dryMatterEatenKg > 0) {
-      this.cycleGrazedNitrogen(dryMatterEatenKg);
-      // Hooves. Intensity is what they ate, because that is how long
-      // they stood here — and the damage is the WEATHER's multiplier.
-      this.poachByOccupants(dryMatterEatenKg * 0.02);
-    }
-    this.fixLegumeNitrogen(days);
-  }
-
-  /**
-   * Share what the mouths got (grass + hay) across the herds by their
-   * demand, and add the window to each line (D8). Each herd's fed
-   * fraction is then `fedKg / demandKg` — the one number the herd's
-   * condition reads.
-   */
-  private apportionGrazers(givenKg: number, days: number): void {
-    const entries = Object.entries(this.grazers);
-    if (entries.length === 0 || !(days > 0)) return;
-    const total = entries.reduce((n, [, e]) => n + e.demandKgPerDay, 0);
-    if (!(total > 0)) return;
-    const next: Record<string, GrazerEntry> = {};
-    for (const [id, e] of entries) {
-      const share = e.demandKgPerDay / total;
-      next[id] = {
-        ...e,
-        fedKg: e.fedKg + givenKg * share,
-        demandKg: e.demandKg + e.demandKgPerDay * days,
-      };
-    }
-    this.grazers = next;
-  }
-
-  // ---------- ⭐⭐ the nitrogen ledger, at BOTH ends ----------
-
-  /**
-   * ⭐⭐ **Fertility follows the mouths, and this is the line that makes
-   * it true** (D7, D14).
-   *
-   * An animal standing on the tract eats its nitrogen and gives most of
-   * it straight back where it stands — a ruminant retains only a small
-   * fraction of what it eats. So **grazing cycles nitrogen in place** and
-   * mowing exports it, and the difference between the two land uses is
-   * this one call and no enum anywhere.
-   *
-   * ⭐ It goes back as **organic matter**, not as nitrogen: dung is not
-   * fertiliser, it is what fertiliser slowly comes out of. That single
-   * choice is what makes a grazed ley build the ground over years rather
-   * than merely not depleting it.
-   */
-  public cycleGrazedNitrogen(dryMatterEatenKg: number): number {
-    if (!Number.isFinite(dryMatterEatenKg) || dryMatterEatenKg <= 0) return 0;
-    return this.addOrganicMatter(dryMatterEatenKg * MANURE_OM_PER_KG_EATEN);
-  }
-
-  /**
-   * ⭐ **Legumes fix nitrogen out of the ATMOSPHERE** (D15, D43) — a
-   * genuine faucet in reality, and the one that makes the legume
-   * rotation derivable rather than a "+N bonus".
-   *
-   * ⚠⚠ **`legumeFraction` is AUTHORED, and nothing writes it.** This
-   * docstring used to claim it *"falls when the clover is grazed out and
-   * rises when it is not"*, which was simply false — `setLegumeFraction`
-   * has no production caller. The claim is deleted rather than inherited,
-   * because a substrate rots when whichever framing is most useful at
-   * the moment is how its attributes are described. The writer belongs
-   * to a farming build (grazing pressure against clover recovery); until
-   * it arrives, the clover share is what the row says it is.
-   */
-  public fixLegumeNitrogen(days: number): number {
-    if (this.legumeFraction <= 0 || days <= 0) return 0;
-    return this.fixNitrogen(this.legumeFraction * N_FIXED_PER_GAME_DAY * days);
-  }
-
-  /**
-   * ⚠⚠ **Poaching — the one interlock that runs ranching→farming as
-   * HARM** (D17). Everything else in this build has the animals
-   * improving the ground; hooves on wet clay destroy its structure, and
-   * that is what makes *"put the herd on the tired tract"* a judgement
-   * rather than a free move.
-   */
-  public poachByOccupants(intensity: number): number {
-    const sample = this.lastSample;
-    if (!sample) return 0;
-    return this.poach(intensity, GroundCharacter.poachingFactor(sample.texture));
   }
 
   // ---------- minting ----------
@@ -1364,26 +1003,21 @@ export default class Tract extends TractBase {
   }
 
   /**
-   * Install the sward alongside the soil reserves — one call, because a
-   * tract with soil and no grass on it is not a state the world has.
+   * Install the tract's own soil — sized to its UNMARKED ground (tracts
+   * build D25): the whole tract while nothing is marked, the remainder
+   * between its fields once something is, nothing when the fields tile
+   * it. No grass: the grass is the fields'.
    */
-  public installTractReserves(
-    sample: GroundSample,
-    swardStart: number = SWARD_RESIDUAL_FRACTION,
-  ): void {
-    // ⚠⚠ **A tract with no area is not yet a tract.** Registration runs
-    // BEFORE `plot` has sized a minted one, so installing here would
-    // seed a zero-capacity moisture reserve — and because both installs
-    // are idempotent, the real sizing call would then find the reserve
-    // present and do nothing. A tract that could never hold water, from
-    // one ordering. Found by the plot suite, which is exactly the kind
-    // of thing an authored-content path breaks silently.
+  public installTractReserves(sample: GroundSample): void {
+    // ⚠⚠ **A tract with no area is not yet a tract.** Installing here
+    // would seed a zero-capacity moisture reserve, and because the install
+    // is idempotent the real sizing call would then find the reserve
+    // present and do nothing.
     if (this.areaM2 <= 0) return;
-    // ⭐ A divided tract holds no soil of its own (field population D3):
-    // its fields do, and every soil read of the tract aggregates over
-    // them. The sward stays tract-wide.
-    if (this.getFields().length === 0) this.installSoilReserves(sample);
-    this.installSward(swardStart);
+    const remainder = this.getFields().length === 0
+      ? this.areaM2
+      : this.soilRemainderAreaM2();
+    if (remainder > 0) this.installSoilReserves(sample, remainder / this.areaM2);
     // Learn where — and when — it is, the moment it exists.
     void this.restampSeason();
   }
@@ -1417,11 +1051,10 @@ export default class Tract extends TractBase {
     // ⭐ The parts first (field population D2): with fields minted, the
     // tract installs no soil of its own — each field is sized from this
     // sample nudged by its lean.
-    await this.ensureFields(model, seed, sample);
-    // ⭐ An AUTHORED tract is a kept pasture, not rough ground just broken
-    // (cover build): its grass starts as a good even cover. A plotted
-    // tract starts at the residual — the sod it was cut out of.
-    this.installTractReserves(sample, AUTHORED_SWARD_START);
+    // ⭐ An AUTHORED tract's fields are kept pasture, not rough ground just
+    // broken (cover build): their grass starts as a good even cover.
+    await this.ensureFields(model, seed, sample, AUTHORED_SWARD_START);
+    this.installTractReserves(sample);
     // ⭐ And it is KEPT ground (cover build B37): a ley, a pasture, a cane
     // piece — cleared long ago, so its clearing starts done. Draining and
     // liming stay what the ground's character makes them. A plotted tract
@@ -1467,6 +1100,8 @@ export interface FieldSpec {
   name: string;
   keywords?: string[];
   share: number;
+  /** This field's clover share; the tract's authored one when absent. */
+  legumeFraction?: number;
   lean?: GroundLean;
   description?: string;
 }

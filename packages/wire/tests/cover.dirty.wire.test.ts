@@ -273,7 +273,8 @@ async function swardTo(where: string, parcel: string, fraction: number): Promise
     // ⚠ Of the sward's CEILING, not the reserve's capacity: ploughing and
     // sowing shrink the grass's area, and 0.53 of the capacity read
     // "ready" (blocking run 2) — a quarter-hour's mowing.
-    `return (f => (f.reconcileSward(), f.adjustReserve("sward", f.getReserve("sward").capacity.scale(${fraction} * f.swardCeilingKg() / f.getReserve("sward").capacity.rawValue()).subtract(f.getReserve("sward").current)), f.swardBand()))(self.getContainer())`,
+    // ⭐ Every field's grass — the sward is the fields' (tracts build D24).
+    `return self.getContainer().soilParts().map(f => (f.reconcileSward(), f.adjustReserve("sward", f.getReserve("sward").capacity.scale(${fraction} * f.swardCeilingKg() / f.getReserve("sward").capacity.rawValue()).subtract(f.getReserve("sward").current)), f.swardBand())).join(",")`,
   );
 }
 
@@ -372,7 +373,7 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
 
   it('13a. the college herd is on the home field, and is moved by a keeper only', async () => {
     await goTo(YARD);
-    expect(await read(p, 'look herdbook')).toMatch(/grazing the home field/i);
+    expect(await read(p, 'look herdbook')).toMatch(/grazing the (far side of the )?home field/i);
     // A stranger is refused — the herd, and the field.
     await refused(p, 'move college herd to back paddock', 'not-keeper');
     await doing(p, 'go field');
@@ -392,12 +393,16 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
     await doing(p, 'go east');
     expect(await read(p, 'look')).toMatch(/six head of the college herd are grazing it/i);
     await doing(p, 'go west');
-    let said = '';
-    for (let i = 0; i < 5 && !/ploughed for the season/i.test(said); i++) {
-      said = (await work(p, 'plough')).said + ' ' + (await read(p, 'look'));
+    // ⭐ The seedbed is a FIELD's (tracts build D24): each field the drive
+    // sows is ploughed by name.
+    for (const field of ['the gate end', 'the middle']) {
+      let said = '';
+      for (let i = 0; i < 5 && !/ploughed for the season/i.test(said); i++) {
+        said = (await work(p, `plough at ${field}`)).said + ' ' + (await read(p, 'look at ' + field));
+      }
+      expect(said, field).toMatch(/ploughed for the season/i);
     }
-    expect(said).toMatch(/ploughed for the season/i);
-    await refused(p, 'plough', 'already-ploughed');
+    await refused(p, 'plough at the gate end', 'already-ploughed');
   }, 1_200_000);
 
   it('4. sowing takes an area per act and spends the seed in proportion — drilled, on half of it: about two-thirds sown', async () => {
@@ -462,7 +467,7 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
     await goTo(YARD);
     await act(p, 'get scythe');
     await goTo(HOME_FIELD);
-    mown = /cut it down to the residual/i.test((await act(p, 'mow')).said);
+    mown = /cut it down to the residual/i.test((await act(p, 'mow at the far side')).said);
     expect(mown, 'the long grass was mown for hay').toBe(true);
   }, 1_800_000);
 
@@ -653,9 +658,10 @@ suite.skipIf(!isOwnedTestWorld())('Stage B — grazing', () => {
     await act(p, 'apply for labourer');
     await act(p, 'clock on');
     await doing(p, 'go field');
-    await doing(p, 'move college herd to here');
+    // ⭐ A herd grazes a FIELD (tracts build D34): the stubble of the gate end.
+    await doing(p, 'move college herd to the gate end');
     const before = await read(p, 'look');
-    expect(before).toMatch(/six head of the college herd are grazing it/i);
+    expect(before).toMatch(/six head of the college herd are grazing the gate end/i);
   }, 600_000);
 
   it('15. [staged] winter, unfed: the grass gives out; drafted heads thin; none dies', async () => {

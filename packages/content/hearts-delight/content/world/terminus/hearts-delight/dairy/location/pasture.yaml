@@ -22,6 +22,12 @@ data:
   groundSpotX: 14
   groundSpotY: 2
   areaM2: 30000
+  # ⭐ One field over the whole tract (tracts build D24, D32): the grass and the herd on it are a field's.
+  # Pre-marked — an author's starting state.
+  fields:
+    - key: sward
+      name: the sward
+      share: 1
   legumeFraction: 0.3
   exits:
     north:

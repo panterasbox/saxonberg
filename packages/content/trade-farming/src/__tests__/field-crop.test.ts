@@ -12,7 +12,8 @@
 
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import Tract from '../location/Tract';
+import type Field from '../thing/Field';
+import { markedField } from './marked-tract';
 import Plant from '@saxonberg/server/mud/platform/thing/Plant';
 import { Reserve } from '@saxonberg/server/mud/lib/reserve';
 import {
@@ -25,7 +26,7 @@ import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
-import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
+import { makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import WorldClockRegistry from '@saxonberg/server/mud/platform/idea/WorldClockRegistry';
 import type { GrowthProfileData } from '@saxonberg/server/mud/lib/husbandry/Growing';
 
@@ -45,10 +46,8 @@ function profile(): GrowthProfileData {
   };
 }
 
-function field(area = 1000): Tract {
-  const f = makeStuff(() => new Tract());
-  f.setAreaM2(area);
-  f.installSward();
+function field(area = 1000): Field {
+  const f = markedField(area);
   for (const [key, cap, now] of [
     [SOIL_MOISTURE_RESERVE_KEY, 45_000, 20_000],
     [SOIL_NITROGEN_RESERVE_KEY, 100, 40],
@@ -67,7 +66,7 @@ function field(area = 1000): Tract {
   return f;
 }
 
-function crop(f: Tract, area: number, stage = 'young'): Plant {
+function crop(f: Field, area: number, stage = 'young'): Plant {
   const p = makeStuffAtPath(() => {
     const plant = new Plant();
     plant.setShortDescription('stand of wheat');
@@ -77,7 +76,7 @@ function crop(f: Tract, area: number, stage = 'young'): Plant {
     plant.setSownAreaM2(area);
     return plant;
   }, '/trade/farming/thing/plant/_test-wheat');
-  ContainmentApi.move(p, f as never);
+  ContainmentApi.move(p, f.getTract() as never);
   (p as unknown as { growthStage: string }).growthStage = stage;
   return p;
 }
@@ -127,7 +126,7 @@ describe('a field holds a crop', () => {
   it('⭐ a crop takes its ground out of the sward', () => {
     const f = field(1000);
     crop(f, 400);
-    expect(f.getCrop()).not.toBeNull();
+    expect(f.getTract()!.getCrop()).not.toBeNull();
     expect(f.cropAreaM2()).toBe(400);
     expect(f.swardAreaM2()).toBe(600);
   });
@@ -136,7 +135,7 @@ describe('a field holds a crop', () => {
     const f = field();
     const p = crop(f, 400);
     const destruct = vi.spyOn(StuffApi, 'destruct');
-    f.bankWork('clearing', 1, {
+    f.getTract()!.bankWork('clearing', 1, {
       clearing: 4,
       stonePicking: 0,
       draining: 0,
@@ -148,17 +147,17 @@ describe('a field holds a crop', () => {
   it('a standing crop is something to grub out: clearing reads unfinished', () => {
     const f = field();
     const bill = { clearing: 1, stonePicking: 0, draining: 0, liming: 0 } as never;
-    f.bankWork('clearing', 5, bill);
-    expect(f.progressOn('clearing', bill)).toBe(1);
+    f.getTract()!.bankWork('clearing', 5, bill);
+    expect(f.getTract()!.progressOn('clearing', bill)).toBe(1);
     crop(f, 300);
-    expect(f.progressOn('clearing', bill)).toBeLessThan(1);
+    expect(f.getTract()!.progressOn('clearing', bill)).toBeLessThan(1);
   });
 
   it('a crop leaving leaves stubble, and look says so', () => {
     const f = field();
     const p = crop(f, 400);
     f.turnUnder(); // the sward is bare under and around it
-    f.onContainableRemoved(p as never);
+    f.getTract()!.onContainableRemoved(p as never);
     expect(f.stubbleStamp).toBeGreaterThan(0);
   });
 
@@ -166,7 +165,7 @@ describe('a field holds a crop', () => {
     it('names the crop, its share of the field, and its stage', () => {
       const f = field(900);
       crop(f, 300, 'young');
-      const lines = f.tractLines().join(' ');
+      const lines = f.getTract()!.tractLines().join(' ');
       expect(lines).toMatch(/stand of wheat grows over about a third of it, a young crop, tillering/i);
       expect(lines).not.toMatch(/\d/);
     });
@@ -174,18 +173,18 @@ describe('a field holds a crop', () => {
     it('a ploughed, unsown field reads ploughed for the season', () => {
       const f = field();
       f.turnUnder();
-      expect(f.tractLines().join(' ')).toMatch(/ploughed for the season/);
+      expect(f.getTract()!.tractLines().join(' ')).toMatch(/ploughed for the season/);
     });
 
     it('a cut field reads stubble', () => {
       const f = field();
       f.turnUnder();
       f.stubbleStamp = base;
-      expect(f.tractLines().join(' ')).toMatch(/cut down to the stubble/);
+      expect(f.getTract()!.tractLines().join(' ')).toMatch(/cut down to the stubble/);
     });
 
     it('an untouched field reads its grass', () => {
-      expect(field().tractLines().join(' ')).toMatch(/^The grass is /);
+      expect(field().getTract()!.tractLines().join(' ')).toMatch(/^The grass is /);
     });
   });
 });

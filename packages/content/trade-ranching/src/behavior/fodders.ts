@@ -141,7 +141,13 @@ export const brain = class {
       ? here.find((s) => MixinApi.isFeeder(s) && named(s, r.trough!))
       : undefined;
     const field = room instanceof Tract ? room : null;
-    const band = field ? field.swardBand() : null;
+    // ⭐ The longest grass on any of the tract's fields (tracts build D24).
+    const bands = field ? field.getFields().map((f) => f.swardBand()) : [];
+    const band = bands.includes('ahead-of-them')
+      ? 'ahead-of-them'
+      : bands.includes('ready')
+        ? 'ready'
+        : (bands[0] ?? null);
     return {
       inMeadow: field !== null && store === undefined,
       atStore: store !== undefined,

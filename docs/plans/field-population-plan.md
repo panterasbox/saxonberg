@@ -3160,6 +3160,42 @@ two files); `lint:census` + `lint:instanceable` green (rows ↔ classes);
 
 ### W2 — the field owns its grass, its stamps and its herds
 
+> ✅ **Done 2026-10-31.** Notes for review:
+> - The field composes `SwardMixin` and owns the seedbed and stubble
+>   stamps, the grazing and nitrogen ledgers, its clover share (spec, else
+>   the tract's authored one) and its own look. The tract keeps the season
+>   (`seasonGrowthFactor`, `ambientKAt`, `daylightFractionAt` are public
+>   now — the fields' grass and bloom read them), the clearing, the crop
+>   title, the remainder soil, and affords `mow` itself (the mixin's
+>   contribution now sits on a fixture and would reach nobody).
+> - ⭐ **The drives' acts changed, not just their words** — the planner's
+>   *"acts unchanged"* could not hold once grass and seedbed are a
+>   field's: on the three-field home field `plough`, `mow` and the herd's
+>   move now name a field (`plough at the gate end`, `mow at the far side`,
+>   `move college herd to the gate end`); a herd on several fields reads
+>   *"grazing the far side"*; the herdbook *"grazing the far side of the
+>   home field"*. The farmstead drive's `mow`/`plough` were reworded too.
+> - ⚠ **A plough must not grub the neighbor's crop.** `progressOn` reads
+>   a standing crop as scrub (so the kernel's `grub` can take it); on a
+>   tract of several fields that sent a plough on an empty field into
+>   clearing work that destroys every crop. `Tract.isClearedForPlough`
+>   reads clearing crop-blind.
+> - Kernel: `Growing.getBed` — a crop naming no field on ground of ONE
+>   field roots in it (the `resolvePartFor` rule), so authored cane with
+>   no `groundPart` roots in the piece's field.
+> - One-piece tracts got ONE pre-marked field each, keyed **`sward`**
+>   (grass) or **`planting`** (cane), not the plan's `pasture`/`cane`/
+>   `hay`: those words are the tract's own keywords or a good's (`harvest
+>   cane`, a bale of hay) and would have made `look`/`harvest` ambiguous.
+>   Herdbooks bind `<tract>#<key>`; the campus herd starts on the far side.
+> - `Field.groundStateLines` / `grazerLines(where)` let the tract read
+>   one field plainly and several by name. A tract with no field reads
+>   *"Nobody has marked a field on it. It is rough ground."*
+> - The tract's own soil drinks only a crop rooted in it (none once
+>   marked) — no rough-ground transpiration term; a finding to tune.
+> - Not yet persisted on its own: the field's state rides the tract's
+>   fixtures slice (`runtimeState` marks); W3 gives it its own record.
+
 **Goal.** Move `SwardMixin`, the crop stamps, the grazing + nitrogen
 ledgers and the name down onto `Field`; the tract keeps the remainder
 soil and the season.

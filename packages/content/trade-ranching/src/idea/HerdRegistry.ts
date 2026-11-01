@@ -63,6 +63,7 @@ import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
 import Species, { FEEDER_KINDS } from '@saxonberg/server/mud/platform/idea/species/Species';
 import Tract from '@saxonberg/content-trade-farming/src/location/Tract';
+import Field from '@saxonberg/content-trade-farming/src/thing/Field';
 // ⚠ A cycle (the book imports the register), safe because the book is
 // only read inside a method, never while either module evaluates.
 import Herdbook from '../thing/Herdbook';
@@ -447,6 +448,31 @@ export default class HerdRegistry extends RegistrarMixin(Idea) {
     return true;
   }
 
+  /**
+   * The field a herd's line names (`<tract>#<fieldKey>`, tracts build D34),
+   * loaded on use — or `null`.
+   */
+  public async fieldOf(ref: string): Promise<Field | null> {
+    return loadField(ref);
+  }
+
+  /**
+   * The field `key` of the tract at `where` — or, with no key, the tract's
+   * one field. What an authored herdbook's starting place resolves to.
+   */
+  public async fieldOn(where: string, key: string): Promise<Field | null> {
+    const tract = await loadTract(where).catch(() => null);
+    if (!tract) return null;
+    if (key) return tract.fieldByKey(key);
+    const fields = tract.getFields();
+    return fields.length === 1 ? fields[0]! : null;
+  }
+
+  /** The line a herd on `field` is written with. */
+  public refOf(field: Field): string {
+    return fieldRefOf(field);
+  }
+
   /** Point the herd at a field (cover build D8), or at none. */
   public async setGrazing(herdId: string, path: string | null): Promise<void> {
     const herd = await this.read(herdId);
@@ -483,7 +509,7 @@ export default class HerdRegistry extends RegistrarMixin(Idea) {
    * `grazing:`. Returns the record as it now stands, or `null` when no
    * such herd is filed.
    */
-  public async graze(herdId: string, to: Tract | null): Promise<HerdRecord | null> {
+  public async graze(herdId: string, to: Field | null): Promise<HerdRecord | null> {
     await this.foldOpen(herdId);
     const herd = await this.read(herdId);
     if (herd === null) return null;
@@ -506,7 +532,7 @@ export default class HerdRegistry extends RegistrarMixin(Idea) {
         demandKgPerDay: herd.tally * each,
         feederKinds: [...kinds],
       });
-      herd.grazing = to.getTemplatePath() ?? '';
+      herd.grazing = fieldRefOf(to);
     } else {
       delete herd.grazing;
     }
@@ -514,7 +540,7 @@ export default class HerdRegistry extends RegistrarMixin(Idea) {
     // ⭐ The book on the wall says where the herd is — told by the act,
     // read by `look`.
     const book = herd.bookPath ? StuffApi.findByTemplatePath(herd.bookPath) : null;
-    if (book instanceof Herdbook) book.noteGrazing(to ? to.getPresentation() : '');
+    if (book instanceof Herdbook) book.noteGrazing(to ? to.grazingPlacePhrase() : '');
     return herd;
   }
 
@@ -617,17 +643,48 @@ function nowSeconds(): number | null {
 }
 
 /**
- * The field at `path`, loaded on use (the way an exit loads where it
+ * ⭐ A herd's line names a FIELD by its tract and its key (tracts build
+ * D34): `<tract>#<fieldKey>`, the tract written as its durable handle when
+ * it is one keyed copy of a layout (`<row>#<extent>/<leaf>`) and as its
+ * path when it is the one authored tract. The key is after the LAST `#`.
+ */
+function fieldRefOf(field: Field): string {
+  const tract = field.getTract();
+  if (!tract) return '';
+  const where = tract.getDurableHandle() ?? tract.getTemplatePath() ?? '';
+  return where ? `${where}#${field.getFieldKey()}` : '';
+}
+
+/**
+ * The field a line names, loaded on use (the way an exit loads where it
  * leads), or `null` when it will not resolve or is not a field.
  */
-async function loadField(path: string): Promise<Tract | null> {
+async function loadField(ref: string): Promise<Field | null> {
+  const cut = ref.lastIndexOf('#');
+  if (cut <= 0) return null;
+  const where = ref.slice(0, cut);
+  const key = ref.slice(cut + 1);
   try {
-    const place = await StuffApi.singleton<Stuff>(path);
-    return place instanceof Tract ? place : null;
+    const tract = await loadTract(where);
+    return tract?.fieldByKey(key) ?? null;
   } catch (err) {
-    console.error(`HerdRegistry: field '${path}' did not resolve`, err);
+    console.error(`HerdRegistry: field '${ref}' did not resolve`, err);
     return null;
   }
+}
+
+/** The tract a line names: a keyed copy by its handle, else the one row. */
+async function loadTract(where: string): Promise<Tract | null> {
+  const hash = where.indexOf('#');
+  if (hash > 0) {
+    const row = where.slice(0, hash);
+    const copy = StuffApi.findAllByTemplatePath<Stuff>(row).find(
+      (t) => t.getDurableHandle() === where,
+    );
+    return copy instanceof Tract ? copy : null;
+  }
+  const place = await StuffApi.singleton<Stuff>(where);
+  return place instanceof Tract ? place : null;
 }
 
 /** The species at `path`, or `null`. */

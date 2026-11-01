@@ -147,7 +147,7 @@ suite('the ley and the furrow', () => {
   it('⭐⭐ hay and grazing are the SAME draw on the same grass', async () => {
     // ⚠ On day one it refuses, correctly: the ley is short and even,
     // and there is nothing on it worth a scythe yet.
-    expect(await p.prose('mow')).toMatch(
+    expect(await p.prose('mow at the far side')).toMatch(
       /nothing on it worth a scythe|first swathe/i
     );
   }, 60_000);
@@ -157,7 +157,7 @@ suite('the ley and the furrow', () => {
     // and a share are heavier than a body carries, so it is used where it
     // lies — and it used to be fetched from the yard, which no fresh
     // character could lift, so this checkpoint matched the refusal.
-    expect(await p.prose('plough')).toMatch(
+    expect(await p.prose('plough at the far side')).toMatch(
       /traces over your shoulders|ploughed for the season|already ploughed/i
     );
   }, 120_000);

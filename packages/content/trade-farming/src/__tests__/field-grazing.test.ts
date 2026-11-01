@@ -14,6 +14,8 @@
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Tract from '../location/Tract';
+import Field from '../thing/Field';
+import { markedField } from './marked-tract';
 import Feeder from '@saxonberg/server/mud/platform/thing/Feeder';
 import Provision from '@saxonberg/server/mud/platform/thing/Provision';
 import Vessel from '@saxonberg/server/mud/platform/thing/Vessel';
@@ -53,14 +55,13 @@ function trough(kind: 'trough' | 'hopper' = 'trough'): Feeder {
   return t;
 }
 
-function field(area = 400): Tract {
-  const f = makeStuff(() => new Tract());
-  f.setAreaM2(area);
-  f.installSward();
+function field(area = 400): Field {
+  const f = markedField(area);
   // ⭐ Deep winter: nothing grows, so every kilo the herd eats is one the
-  // test can account for.
-  f._ambientK = 270;
-  f._daylightFraction = 0.3;
+  // test can account for. The season is the TRACT's.
+  const tract = f.getTract()!;
+  tract._ambientK = 270;
+  tract._daylightFraction = 0.3;
   return f;
 }
 
@@ -87,7 +88,7 @@ describe('the field feeds its grazers', () => {
     vi.restoreAllMocks();
   });
 
-  function settle(f: Tract): void {
+  function settle(f: Field): void {
     // First touch stamps the sward clock; integrate from here.
     f.standingDryMatterKg();
   }
@@ -107,7 +108,7 @@ describe('the field feeds its grazers', () => {
   it('⭐ the shortfall comes out of a trough on the field, by mass', () => {
     const f = field(40); // 12 kg ceiling, 6 at the residual — soon gone
     const t = trough();
-    ContainmentApi.move(t, f as never);
+    ContainmentApi.move(t, f.getTract() as never);
     const b = bale(25);
     ContainmentApi.move(b, t);
     settle(f);
@@ -123,7 +124,7 @@ describe('the field feeds its grazers', () => {
   it('a trough of a kind the herd does not eat from feeds nothing', () => {
     const f = field(40);
     const t = trough('hopper');
-    ContainmentApi.move(t, f as never);
+    ContainmentApi.move(t, f.getTract() as never);
     const b = bale(25);
     ContainmentApi.move(b, t);
     settle(f);
@@ -141,7 +142,7 @@ describe('the field feeds its grazers', () => {
     ContainmentApi.move(stacked, rick);
     const t = trough();
     t.setSuppliedBy('/test/farm/thing/_rick');
-    ContainmentApi.move(t, f as never);
+    ContainmentApi.move(t, f.getTract() as never);
     settle(f);
     f.setGrazer('herd-a', { label: 'six head of cattle', demandKgPerDay: 10, feederKinds: ['trough'] });
     at(2);
@@ -174,21 +175,21 @@ describe('the field feeds its grazers', () => {
     const kept = field(400);
     const left = field(400);
     for (const f of [kept, left]) {
-      f.improvementWork = { clearing: 100 };
-      f.reconcileImprovement(); // stamp the upkeep clock
+      f.getTract()!.improvementWork = { clearing: 100 };
+      f.getTract()!.reconcileImprovement(); // stamp the upkeep clock
     }
     kept.setGrazer('herd-a', { label: 'six head of cattle', demandKgPerDay: 1, feederKinds: ['trough'] });
     at(80);
-    kept.reconcileImprovement();
-    left.reconcileImprovement();
-    // ⭐ The herd keeps the scrub down; a field nobody uses goes back.
-    expect(kept.improvementWork.clearing).toBe(100);
-    expect(left.improvementWork.clearing).toBeLessThan(100);
+    kept.getTract()!.reconcileImprovement();
+    left.getTract()!.reconcileImprovement();
+    // ⭐ The herd keeps the scrub down; a tract nobody uses goes back.
+    expect(kept.getTract()!.improvementWork.clearing).toBe(100);
+    expect(left.getTract()!.improvementWork.clearing).toBeLessThan(100);
     // And taking the herd off settles the grazed window first, so the
     // winter it spent there is counted as kept.
     at(81);
     kept.clearGrazer('herd-a');
-    expect(kept.improvementWork.clearing).toBe(100);
+    expect(kept.getTract()!.improvementWork.clearing).toBe(100);
   });
 
   it('⭐ an authored field is kept ground: its clearing starts done; a plotted one starts rough', async () => {
@@ -208,10 +209,42 @@ describe('the field feeds its grazers', () => {
     expect(plotted.isComplete('clearing', bill)).toBe(false);
   });
 
+  it('⭐ a herd grazes ITS field: the neighbor keeps its grass, the tract\'s trough feeds it (D34)', () => {
+    const tract = makeStuff(() => new Tract());
+    tract.setAreaM2(80);
+    tract._ambientK = 270;
+    tract._daylightFraction = 0.3;
+    tract.fields = [
+      { key: 'gate-end', name: 'the gate end', share: 0.5 },
+      { key: 'far-side', name: 'the far side', share: 0.5 },
+    ];
+    const fields = tract.fields.map((spec) => {
+      const f = makeStuff(() => new Field());
+      tract.addFixture(f, `field:${spec.key}`);
+      f.configureField(spec, 40);
+      f.installSward();
+      return f;
+    });
+    const [gate, far] = fields as [Field, Field];
+    const t = trough();
+    ContainmentApi.move(t, tract as never);
+    const b = bale(25);
+    ContainmentApi.move(b, t);
+    settle(gate);
+    settle(far);
+    far.setGrazer('herd-a', { label: 'six head of cattle', demandKgPerDay: 10, feederKinds: ['trough'] });
+    const gateBefore = gate.standingDryMatterKg();
+    at(2);
+    far.standingDryMatterKg();
+    expect(gate.standingDryMatterKg()).toBeCloseTo(gateBefore, 6);
+    expect(massOf(b)).toBeLessThan(25);
+    expect(tract.tractLines().join(' ')).toMatch(/Six head of cattle are grazing the far side\./);
+  });
+
   it('look names the herd grazing it', () => {
     const f = field(400);
     settle(f);
     f.setGrazer('herd-a', { label: 'six head of the college herd', demandKgPerDay: 5, feederKinds: [] });
-    expect(f.tractLines().join(' ')).toMatch(/Six head of the college herd are grazing it\./);
+    expect(f.getTract()!.tractLines().join(' ')).toMatch(/Six head of the college herd are grazing it\./);
   });
 });

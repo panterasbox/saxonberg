@@ -347,7 +347,11 @@ export default class Livestock extends LivestockBase {
     if (!this.herdId) return null;
     const here = this.getContainer();
     if (!(here instanceof Tract)) return null;
-    const line = here.grazerLedger(this.herdId);
+    // ⭐ The herd's line is on one of the tract's FIELDS (tracts build D34).
+    const line = here
+      .getFields()
+      .map((f) => f.grazerLedger(this.herdId))
+      .find((l) => l !== null);
     if (!line) return null;
     return line.demandKg > 0 ? Math.min(1, line.fedKg / line.demandKg) : 1;
   }

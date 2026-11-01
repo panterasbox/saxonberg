@@ -73,6 +73,7 @@ data:
   homeExtent: /world/terminus/hearts-delight
   # ⭐ In the close under the cherries (cover build D8) — applied once.
   grazing: /world/terminus/hearts-delight/bench-field/location/orchard-close
+  grazingField: sward
   details:
     lambed:
       keywords: [lambed, column, columns, entries, numbers]

@@ -109,6 +109,7 @@ export default class Herdbook extends HerdbookBase {
     holderRef: { persistent: true, authorable: true },
     homeExtent: { persistent: true, authorable: true },
     grazing: { persistent: true, authorable: true },
+    grazingField: { persistent: true, authorable: true },
   };
 
   /**
@@ -120,6 +121,12 @@ export default class Herdbook extends HerdbookBase {
   protected grazing: string = '';
 
   /**
+   * ⭐ WHICH field of that tract the herd starts on, by its key (tracts
+   * build D34) — empty for a tract of one field. A herd grazes a field.
+   */
+  protected grazingField: string = '';
+
+  /**
    * What the book last read of where its herd is, for `look` — a cache
    * of the record, refreshed when the book is created and when the herd
    * is moved here. `null` = not yet read.
@@ -128,6 +135,8 @@ export default class Herdbook extends HerdbookBase {
 
   public getGrazing(): string { return this.grazing; }
   public setGrazing(value: string): void { this.grazing = value ?? ''; }
+  public getGrazingField(): string { return this.grazingField; }
+  public setGrazingField(value: string): void { this.grazingField = value ?? ''; }
 
   /** The book's line about where its herd is, or `null` before it knows. */
   public grazingLine(): string | null {
@@ -262,20 +271,22 @@ export default class Herdbook extends HerdbookBase {
       herd = { ...herd, bookPath: own };
       await registry.update(herd);
     }
-    let path = herd.grazing ?? '';
-    if (!path && this.grazing) {
-      try {
-        const place = await StuffApi.singleton<Stuff>(this.grazing);
-        if (place instanceof Tract) {
-          await registry.graze(this.herdId, place);
-          path = this.grazing;
-        }
-      } catch (err) {
-        console.error(`Herdbook: grazing '${this.grazing}' did not resolve`, err);
+    // ⭐ The authored binding names a FIELD — `<tract>#<fieldKey>`
+    // (tracts build D34) — loaded on use.
+    let ref = herd.grazing ?? '';
+    if (!ref && this.grazing) {
+      const authored = await registry.fieldOn(this.grazing, this.grazingField);
+      if (authored) {
+        await registry.graze(this.herdId, authored);
+        ref = registry.refOf(authored);
+      } else {
+        console.error(
+          `Herdbook: grazing '${this.grazing}' field '${this.grazingField}' names no field`,
+        );
       }
     }
-    const field = path ? StuffApi.findByTemplatePath(path) : null;
-    this.noteGrazing(field ? field.getPresentation() : '');
+    const field = ref ? await registry.fieldOf(ref) : null;
+    this.noteGrazing(field ? field.grazingPlacePhrase() : '');
   }
 
   /** The register, or `null` when there is no world to file into yet. */

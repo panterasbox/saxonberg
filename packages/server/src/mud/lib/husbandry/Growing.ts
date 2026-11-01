@@ -1639,9 +1639,15 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
         !MixinApi.isCultivable(ground)
       ) {
         // ⭐ The plant binds to its PART of the ground by key (field
-        // population D4); a key naming no part — a patch deleted from a
+        // population D4); a key naming no part — a field deleted from a
         // row — falls back to the whole ground, never orphans the crop.
-        return ground.soilPart(this.groundPart) ?? ground;
+        // ⭐ On ground of exactly ONE part that part is the whole of what
+        // is planted (tracts build D25): an authored cane stand with no
+        // key roots in the piece's one field, as `resolvePartFor` would.
+        const part = ground.soilPart(this.groundPart);
+        if (part) return part;
+        const parts = ground.soilParts();
+        return parts.length === 1 ? parts[0]! : ground;
       }
       return null;
     }

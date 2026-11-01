@@ -1,5 +1,5 @@
 /**
- * `Tract.inFlowerFraction()` — **how much of this sward is in flower**
+ * `Field.inFlowerFraction()` — **how much of this sward is in flower**
  * (apiculture D6), and the two rules it is easy to get wrong.
  *
  * ⭐ The sward knows when it blooms and the hive asks. Nothing here knows
@@ -15,24 +15,24 @@
 
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect } from 'vitest';
-import Tract from '../location/Tract';
-import { makeStuff } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
+import type Field from '../thing/Field';
+import { markedField } from './marked-tract';
 
 /**
  * A field with its sky already resolved to a summer's day, so the season
  * gate is a lever rather than an accident of when the test ran.
  */
-function field(legume: number, ambientK = 292, daylight = 0.62): Tract {
-  const f = makeStuff(() => new Tract());
-  f.setAreaM2(1000);
+function field(legume: number, ambientK = 292, daylight = 0.62): Field {
+  const f = markedField(1000);
   f.setLegumeFraction(legume);
   // The sward reserve is installed by the host's own registration; a
   // hand-built field has to ask. It comes in at the RESIDUAL, which is
   // ground just out of the rough — so the fraction is well under 1 and
   // every assertion below is against `swardFraction()`, never against 1.
   f.installSward();
-  f._ambientK = ambientK;
-  f._daylightFraction = daylight;
+  // The season is the tract's; the clover and the grass are the field's.
+  f.getTract()!._ambientK = ambientK;
+  f.getTract()!._daylightFraction = daylight;
   return f;
 }
 

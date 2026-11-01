@@ -39,3 +39,13 @@ args:
   - name: detail
     type: string
     required: false
+  # ⭐ WHICH FIELD — `at the gate end` (tracts build D38). The grass and the
+  # seedbed are a field's, so on a tract marked into several fields the act
+  # names one; the TRACT decides whether it must, and says so.
+  - name: part
+    type: object
+    required: false
+    greedy: true
+    scope: ["reachable"]
+    prepositions: [at]
+    requires: SoilMixin

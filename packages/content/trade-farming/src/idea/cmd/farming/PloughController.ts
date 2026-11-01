@@ -47,10 +47,13 @@ import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
 import { GrammarApi } from '@saxonberg/server/mud/api/grammar';
+import type Field from '../../../thing/Field';
 
 /** ⭐ The instrument is bound by the view, never hunted for here. */
 interface PloughModel extends CommandModel {
   tool?: MqlOneResult;
+  /** ⭐ Which field — `plough at the gate end` (tracts build D38). */
+  part?: MqlOneResult;
 }
 
 
@@ -106,14 +109,17 @@ export default class PloughController extends FieldWorkController {
         return;
       }
     }
-    const { field, sample, bill } = reading;
-    // ⭐ Clearing owed: the bout banks clearing (the one-time improvement).
-    // Cleared: it turns the sward under for a seedbed (D4) — refused under
-    // a standing crop, and refused twice in one season.
-    // ⚠ The crop first: while one stands the field reads its clearing as
+    const { tract, sample, bill } = reading;
+    // ⭐ Clearing owed: the bout banks clearing on the TRACT (the one-time
+    // improvement). Cleared: it turns one FIELD's sward under for a seedbed
+    // (D4; tracts build D24) — refused under a standing crop, and refused
+    // twice in one season.
+    // ⚠ The crop first: while one stands the tract reads its clearing as
     // unfinished (a crop is something to grub out), and a plough must
     // never be the thing that grubs it.
-    if (field.getCrop()) {
+    const named = model.part?.stuff ?? null;
+    const clearing = !tract.isClearedForPlough(bill);
+    if (clearing && tract.getCrop()) {
       this.decline(
         context,
         Mml.compose`A crop stands in it. Cut it or grub it out before you plough.`,
@@ -121,14 +127,30 @@ export default class PloughController extends FieldWorkController {
       );
       return;
     }
-    const clearing = !field.isComplete('clearing', bill);
-    if (!clearing && field.isSeedbedFresh()) {
-      this.decline(
-        context,
-        Mml.compose`It is already ploughed for the season. It wants seed, not another furrow.`,
-        'already-ploughed',
-      );
-      return;
+    let field: (Field & Stuff) | null = null;
+    if (!clearing) {
+      const choice = this.fieldChoice(tract, named);
+      if (!choice.ok) {
+        this.decline(context, Mml.fromMarkup(choice.line), choice.reason);
+        return;
+      }
+      field = choice.field;
+      if (field.cropsOn().length > 0) {
+        this.decline(
+          context,
+          Mml.compose`A crop stands in it. Cut it or grub it out before you plough.`,
+          'crop-stands',
+        );
+        return;
+      }
+      if (field.isSeedbedFresh()) {
+        this.decline(
+          context,
+          Mml.compose`It is already ploughed for the season. It wants seed, not another furrow.`,
+          'already-ploughed',
+        );
+        return;
+      }
     }
 
     const draught = this.draughtAvailable(giver);
@@ -158,7 +180,7 @@ export default class PloughController extends FieldWorkController {
         if (MixinApi.isDurable(plough) && !plough.isDestroyed()) {
           plough.wear(SHARE_WEAR_PER_BOUT);
         }
-        void PloughController.finish(context, reading, draught, beast, clearing);
+        void PloughController.finish(context, reading, field, draught, beast);
       },
     });
   }
@@ -166,18 +188,18 @@ export default class PloughController extends FieldWorkController {
   private static async finish(
     context: CommandContext,
     reading: NonNullable<Awaited<ReturnType<FieldWorkController['fieldOf']>>>,
+    field: (Field & Stuff) | null,
     draught: number,
     beast: boolean,
-    clearing: boolean,
   ): Promise<void> {
     const giver = context.commandGiver;
-    const { field, bill } = reading;
-    if (!clearing) {
-      // ⭐ The seedbed: the grass goes under, and the field is ploughed
+    const { tract, bill } = reading;
+    if (field) {
+      // ⭐ The seedbed: the field's grass goes under, and it is ploughed
       // for the season (D4).
       field.turnUnder();
       try {
-        await PersistableApi.captureHostOf(field as unknown as Stuff);
+        await PersistableApi.captureHostOf(tract as unknown as Stuff);
       } catch (err) {
         console.warn('PloughController: capture after ploughing failed:', err);
       }
@@ -193,15 +215,15 @@ export default class PloughController extends FieldWorkController {
     // ⭐⭐ **The ox works ground a person cannot, at the same rate.** One
     // act, many acts' worth of work — and the multiplier is the animal's
     // mass, not a number in this file.
-    const after = field.bankWork('clearing', LABOUR_PER_ACT * draught, bill);
+    const after = tract.bankWork('clearing', LABOUR_PER_ACT * draught, bill);
     MessageApi.scene(giver)
       .topic(FIELD_TOPIC)
       .toSelf(
         after >= 1
-          ? Mml.compose`The last of it goes over. ${GrammarApi.cap(field.improvementPhrase(bill))}.`
+          ? Mml.compose`The last of it goes over. ${GrammarApi.cap(tract.improvementPhrase(bill))}.`
           : beast
-            ? Mml.compose`Four bouts and the end of it is in sight. ${GrammarApi.cap(field.improvementCause(bill) ?? 'there is more to do')}.`
-            : Mml.compose`You get a few yards and stop, and your back tells you what an ox is for. ${GrammarApi.cap(field.improvementCause(bill) ?? 'there is more to do')}.`,
+            ? Mml.compose`Four bouts and the end of it is in sight. ${GrammarApi.cap(tract.improvementCause(bill) ?? 'there is more to do')}.`
+            : Mml.compose`You get a few yards and stop, and your back tells you what an ox is for. ${GrammarApi.cap(tract.improvementCause(bill) ?? 'there is more to do')}.`,
       )
       .send();
     await this.credit(giver, bill.clearing + bill.stonePicking);

@@ -423,11 +423,15 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — the home field in spring', () => 
     await act(p, 'clock on');
     // The home field is wanted for the plough (the cover drive's step 13).
     await act(p, 'move college herd to back paddock');
-    let said = '';
-    for (let i = 0; i < 5 && !/ploughed for the season/i.test(said); i++) {
-      said = (await work(p, 'plough')).said + ' ' + (await read(p, 'look'));
+    // ⭐ The seedbed is a FIELD's (tracts build D24): each field the drive
+    // sows is ploughed by name.
+    for (const field of ['the gate end', 'the middle', 'the far side']) {
+      let said = '';
+      for (let i = 0; i < 5 && !/ploughed for the season/i.test(said); i++) {
+        said = (await work(p, `plough at ${field}`)).said + ' ' + (await read(p, 'look at ' + field));
+      }
+      expect(said, field).toMatch(/ploughed for the season/i);
     }
-    expect(said).toMatch(/ploughed for the season/i);
     // ⭐ Every act on a divided field names its field (R2).
     await refused(p, 'sow wheat', 'part-unnamed');
     // The gate end until it is full, a little in the middle, the rest on
