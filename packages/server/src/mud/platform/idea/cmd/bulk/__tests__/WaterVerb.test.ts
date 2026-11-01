@@ -230,7 +230,7 @@ function model(
   target: MqlOneResult,
   source?: MqlOneResult,
   holder?: Stuff,
-  patch?: MqlOneResult,
+  part?: MqlOneResult,
 ): WaterExecModel {
   let bound: MqlManyResult | undefined;
   if (source) {
@@ -245,7 +245,7 @@ function model(
       raw: '',
     } as unknown as MqlManyResult;
   }
-  return { target, source: bound, patch } as ModelData as unknown as WaterExecModel;
+  return { target, source: bound, part } as ModelData as unknown as WaterExecModel;
 }
 
 function noteReasons(ctx: CommandContext): string[] {
@@ -581,7 +581,7 @@ describe('water.yaml — a plant, a bed, a patch or a field', () => {
   });
 
   it('declares `at <patch>` — optional, greedy, gated on SoilMixin', () => {
-    const patch = args().find((a) => a.name === 'patch')!;
+    const patch = args().find((a) => a.name === 'part')!;
     expect(patch.required).toBe(false);
     expect(patch.greedy).toBe(true);
     expect(patch.prepositions).toEqual(['at']);
@@ -704,7 +704,7 @@ describe('water <crop> [at <patch>] — on a field', () => {
       ctx,
     );
 
-    expect(noteReasons(ctx)).toContain('patch-unnamed');
+    expect(noteReasons(ctx)).toContain('part-unnamed');
     const said = JSON.stringify(giver.received);
     expect(said).toContain('Which part?');
     expect(said).toContain('top end');

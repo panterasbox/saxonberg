@@ -92,7 +92,7 @@ describe('`at <patch>` — which part of a divided field (field population D5)',
   ] as const) {
     it(`${verb}.yaml declares an optional greedy \`patch\` object gated on SoilMixin`, () => {
       const all = args(view) as PatchSpec[];
-      const patch = all.find((a) => a.name === 'patch');
+      const patch = all.find((a) => a.name === 'part');
       expect(patch).toBeDefined();
       expect(patch!.type).toBe('object');
       expect(patch!.required).toBe(false);

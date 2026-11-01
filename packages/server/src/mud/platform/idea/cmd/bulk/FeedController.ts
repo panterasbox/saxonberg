@@ -87,7 +87,7 @@ const POINTS_PER_LITRE = 10;
 interface FeedModel extends CommandModel {
   target: MqlOneResult;
   /** `at <patch>` — which part of a divided field (D5). */
-  patch?: MqlOneResult;
+  part?: MqlOneResult;
   source?: MqlOneResult;
 }
 
@@ -109,8 +109,8 @@ export default class FeedController extends CommandController<FeedModel> {
       return;
     }
 
-    const patchRaw = model.patch?.raw ?? '';
-    const patch = model.patch?.stuff ?? null;
+    const patchRaw = model.part?.raw ?? '';
+    const patch = model.part?.stuff ?? null;
     if (!patch && patchRaw.trim() !== '') {
       MessageApi.scene(giver)
         .topic(TOPIC)

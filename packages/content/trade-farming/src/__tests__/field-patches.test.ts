@@ -196,7 +196,7 @@ describe('a field divided into patches', () => {
     const top = patch(f, 'top-end');
     expect(top.presentationPhrase().definite()).toBe('the top end');
     expect(top.getKeywords()).toEqual(expect.arrayContaining(['top end', 'top', 'end', 'top-end']));
-    expect(f.soilPartRefusal()).toBe('Which part? Name one: the top end or the lane end.');
+    expect(f.soilPartRefusal()).toBe('Which field? Name one: the top end or the lane end.');
   });
 
   it("⭐ the field's moisture is the area-weighted mean of its patches", async () => {

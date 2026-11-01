@@ -54,7 +54,7 @@ interface PlantModel extends CommandModel {
   /** Absent when sowing the ground you stand on. */
   pot?: MqlOneResult;
   /** `at <patch>` — which part of a divided field to sow (D5). */
-  patch?: MqlOneResult;
+  part?: MqlOneResult;
   /** A seed drill within reach — sows in rows at its own seed rate. */
   drill?: MqlOneResult;
 }
@@ -124,8 +124,8 @@ export default class PlantController extends EngagedActController<PlantModel> {
       MixinApi.isContainer(ground) &&
       !MixinApi.isCultivable(ground)
     ) {
-      const patchRaw = model.patch?.raw ?? '';
-      const patch = model.patch?.stuff ?? null;
+      const patchRaw = model.part?.raw ?? '';
+      const patch = model.part?.stuff ?? null;
       if (!patch && patchRaw.trim() !== '') {
         MessageApi.scene(giver)
           .topic(TOPIC)
@@ -315,7 +315,7 @@ export default class PlantController extends EngagedActController<PlantModel> {
    *
    * ⭐ On a divided field the cast goes into the PART named (field
    * population D5) — the ground refuses in its own words when none is —
-   * and fills that part up to its own area: a full part is `patch-sown`.
+   * and fills that part up to its own area: a full part is `part-sown`.
    * Choosing where is the player's job; the game never picks for them.
    */
   private async sowGround(
@@ -436,7 +436,7 @@ export default class PlantController extends EngagedActController<PlantModel> {
           : part
             ? Mml.compose`${Mml.thing(part)} is sown already, edge to edge.`
             : Mml.compose`It is sown already, edge to edge.`,
-        free >= 1 ? 'too-little-seed' : part ? 'patch-sown' : 'ground-full',
+        free >= 1 ? 'too-little-seed' : part ? 'part-sown' : 'ground-full',
       );
       return;
     }

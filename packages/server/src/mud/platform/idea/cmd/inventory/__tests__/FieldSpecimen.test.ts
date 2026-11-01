@@ -312,7 +312,7 @@ describe('sample <crop> at <patch> / label <crop> [text] at <patch>', () => {
     const ctx = makeContext(giver, field, 'sample');
     const model = {
       subject: one(named, 'wheat'),
-      patch: patch ? one(patch, patch.getName(), 'at') : undefined,
+      part: patch ? one(patch, patch.getName(), 'at') : undefined,
     } as ModelData as unknown as SampleModel;
     await makeStuff(() => new SampleController()).execute(model, ctx);
     return ctx;
@@ -368,7 +368,7 @@ describe('sample <crop> at <patch> / label <crop> [text] at <patch>', () => {
   it('on a divided field, naming no part is refused by the ground — nothing pulled', async () => {
     const { giver, field, topStand } = scene();
     const ctx = await sample(giver, field, topStand);
-    expect(noteReasons(ctx)).toContain('patch-unnamed');
+    expect(noteReasons(ctx)).toContain('part-unnamed');
     expect(stems(giver)).toHaveLength(0);
   });
 
@@ -399,7 +399,7 @@ describe('sample <crop> at <patch> / label <crop> [text] at <patch>', () => {
     const model = {
       target: one(named, 'wheat'),
       text,
-      patch: patch ? one(patch, patch.getName(), 'at') : undefined,
+      part: patch ? one(patch, patch.getName(), 'at') : undefined,
     } as ModelData as unknown as LabelModel;
     await makeStuff(() => new LabelController()).execute(model, ctx);
     return ctx;
@@ -450,7 +450,7 @@ describe('sample <crop> at <patch> / label <crop> [text] at <patch>', () => {
       {
         target: one(jar, 'jar'),
         text: 'meet',
-        patch: one(null, 'noon', 'at'),
+        part: one(null, 'noon', 'at'),
       } as ModelData as unknown as LabelModel,
       ctx,
     );

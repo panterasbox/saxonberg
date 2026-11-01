@@ -266,7 +266,7 @@ describe('SoilMixin — a soil made of parts', () => {
     const unnamed = field.resolvePartFor(null);
     expect(unnamed.ok).toBe(false);
     if (!unnamed.ok) {
-      expect(unnamed.reason).toBe('patch-unnamed');
+      expect(unnamed.reason).toBe('part-unnamed');
       expect(unnamed.line).toMatch(/^Which part\? Name one: .+ or .+\.$/);
     }
     expect(field.resolvePartFor(top)).toEqual({ ok: true, part: top });
@@ -288,5 +288,91 @@ describe('SoilMixin — a soil made of parts', () => {
     field.parts = [only];
     expect(field.soilPartRefusal()).toBeNull();
     expect(field.resolvePartFor(null)).toEqual({ ok: true, part: only });
+  });
+});
+
+/**
+ * ⭐ **The remainder is a part** (tracts build D25). A tract keeps soil of
+ * its own for the ground no field covers; the kernel counts it as one more
+ * area-weighted term, so `analyze` on a tract reads the whole ground.
+ */
+class TractGround extends SoilMixin(ReservedMixin(Idea)) {
+  public parts: PartGround[] = [];
+  public area = 0;
+  public override soilParts(): readonly PartGround[] {
+    return this.parts;
+  }
+  public override soilCatchmentAreaM2(): number {
+    return this.area;
+  }
+  public override soilPartNoun(): string {
+    return 'field';
+  }
+}
+
+function makeTract(): { tract: TractGround; top: PartGround; lane: PartGround } {
+  // 1000 m² in all: 600 + 200 marked, 200 left over (a fifth).
+  const top = makePart('top-end', 600, 0, 100, 20);
+  const lane = makePart('lane-end', 200, 50, 100, 60);
+  const tract = makeStuff(() => {
+    const t = new TractGround();
+    t.area = 1000;
+    t.setReserve(
+      new Reserve(SOIL_MOISTURE_RESERVE_KEY, Quantity.of(100, 'L'), Quantity.of(100, 'L'), SOIL_RESERVE_THEME, null),
+    );
+    t.setReserve(
+      new Reserve(SOIL_NITROGEN_RESERVE_KEY, Quantity.of(100, '%'), Quantity.of(80, '%'), SOIL_RESERVE_THEME, null),
+    );
+    return t;
+  });
+  tract.parts = [top, lane];
+  return { tract, top, lane };
+}
+
+describe('SoilMixin — the remainder between the parts', () => {
+  it('the remainder is the catchment less the parts', () => {
+    const { tract } = makeTract();
+    expect(tract.soilRemainderAreaM2()).toBe(200);
+  });
+
+  it('⭐ the remainder is an area-weighted term of every mean', () => {
+    const { tract } = makeTract();
+    // 0.6 × 0 + 0.2 × 0.5 + 0.2 × 1 = 0.3
+    expect(tract.soilMoistureFraction()).toBeCloseTo(0.3, 6);
+    // 0.6 × 0.2 + 0.2 × 0.6 + 0.2 × 0.8 = 0.4
+    expect(tract.nutrientFraction()).toBeCloseTo(0.4, 6);
+  });
+
+  it('water spreads onto the remainder by its share; headroom counts its room', () => {
+    const { tract, top } = makeTract();
+    expect(tract.soilMoistureHeadroomL()).toBeCloseTo(100 + 50 + 0, 6);
+    tract.setReserve(
+      new Reserve(SOIL_MOISTURE_RESERVE_KEY, Quantity.of(100, 'L'), Quantity.of(50, 'L'), SOIL_RESERVE_THEME, null),
+    );
+    expect(tract.waterSoil(10)).toBeCloseTo(10, 6);
+    expect(top.getReserve(SOIL_MOISTURE_RESERVE_KEY)!.current.rawValue()).toBeCloseTo(6, 6);
+    expect(tract.getReserve(SOIL_MOISTURE_RESERVE_KEY)!.current.rawValue()).toBeCloseTo(52, 6);
+  });
+
+  it('a ground cut wholly into parts has no remainder term (the shipped arithmetic)', () => {
+    const { tract } = makeTract();
+    tract.area = 800;
+    expect(tract.soilRemainderAreaM2()).toBe(0);
+    // 0.75 × 0 + 0.25 × 0.5
+    expect(tract.soilMoistureFraction()).toBeCloseTo(0.125, 6);
+  });
+
+  it('a tract with no parts reads its own soil directly', () => {
+    const { tract } = makeTract();
+    tract.parts = [];
+    expect(tract.soilRemainderAreaM2()).toBe(0);
+    expect(tract.soilMoistureFraction()).toBeCloseTo(1, 6);
+  });
+
+  it('the refusal names the part by the host noun', () => {
+    const { tract } = makeTract();
+    const r = tract.resolvePartFor(null);
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.line).toMatch(/^Which field\? Name one: /);
   });
 });

@@ -311,7 +311,7 @@ reaches a patch without importing the farming pack:
 | `soilParts()` | the ground's parts (`[]` = one piece) — `Field` returns its patches |
 | `soilPartKey()` · `soilDepthM()` | a part's key, and its topsoil depth (the roots read) |
 | `soilPart(key)` · `soilPartRefusal()` | find a part; the *"Which part? Name one: …"* line |
-| `resolvePartFor(named)` | the GROUND decides: the named part, the only part, or a refusal (`patch-unnamed`, `not-a-part-here`) |
+| `resolvePartFor(named)` | the GROUND decides: the named part, the only part, or a refusal (`part-unnamed`, `not-a-part-here`) |
 | `rootedAreaCrop(part)` | the area crop rooted in that part (asked of a part, it asks its ground) |
 | `soilMoistureHeadroomL()` · `soilNutrientHeadroom()` | litres (the SUM of the parts), points (the area-weighted MEAN) |
 

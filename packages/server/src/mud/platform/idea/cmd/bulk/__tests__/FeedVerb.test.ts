@@ -302,9 +302,9 @@ type FeedExecModel = Parameters<FeedController['execute']>[0];
 function model(
   target: MqlOneResult,
   source?: MqlOneResult,
-  patch?: MqlOneResult,
+  part?: MqlOneResult,
 ): FeedExecModel {
-  return { target, source, patch } as ModelData as unknown as FeedExecModel;
+  return { target, source, part } as ModelData as unknown as FeedExecModel;
 }
 
 function noteReasons(ctx: CommandContext): string[] {
@@ -763,7 +763,7 @@ describe('feed <crop|ground> [at <patch>] — on a field', () => {
     const ctx = makeContext(giver, field);
     await makeStuff(() => new FeedController()).execute(model(one(crop, 'lily')), ctx);
 
-    expect(noteReasons(ctx)).toContain('patch-unnamed');
+    expect(noteReasons(ctx)).toContain('part-unnamed');
     expect(JSON.stringify(giver.received)).toContain('Which part?');
     expect(sack.getBulkAmount('interior').rawValue()).toBe(20);
     expect(top.nutrientFraction()).toBeCloseTo(0.1, 6);

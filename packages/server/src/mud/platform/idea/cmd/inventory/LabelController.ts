@@ -39,7 +39,7 @@ interface LabelModel extends CommandModel {
   target: MqlOneResult;
   text?: string;
   /** `at <patch>` — which part of a divided field (field population D6). */
-  patch?: MqlOneResult;
+  part?: MqlOneResult;
 }
 
 export default class LabelController extends CommandController<LabelModel> {
@@ -73,7 +73,7 @@ export default class LabelController extends CommandController<LabelModel> {
     // plant the binder found first (a stem in your hand — carried things
     // bind first): the player named the ground.
     if (MixinApi.isGrowing(target)) {
-      const patch = model.patch?.stuff ?? null;
+      const patch = model.part?.stuff ?? null;
       let crop: (Stuff & Growing) | null = target.isAreaCrop() ? target : null;
       if (!crop && patch && MixinApi.isSoil(patch)) {
         // Ask the ground you stand on; a part asks the ground it is fixed to.
@@ -93,7 +93,7 @@ export default class LabelController extends CommandController<LabelModel> {
     // Anywhere else `at …` is part of what you wrote — the view bounds
     // the greedy text at `at`, so it is put back (`label vial meet at
     // noon` labels the vial *meet at noon*, as it always did).
-    const tail = (model.patch?.raw ?? '').trim();
+    const tail = (model.part?.raw ?? '').trim();
     const text = [(model.text ?? '').trim(), tail ? `at ${tail}` : '']
       .filter((t) => t.length > 0)
       .join(' ');
@@ -132,8 +132,8 @@ export default class LabelController extends CommandController<LabelModel> {
     named: Stuff & Growing,
   ): Promise<void> {
     const giver = context.commandGiver as unknown as Stuff;
-    const patchRaw = (model.patch?.raw ?? '').trim();
-    const patchBound = model.patch?.stuff ?? null;
+    const patchRaw = (model.part?.raw ?? '').trim();
+    const patchBound = model.part?.stuff ?? null;
     if (!patchBound && patchRaw !== '') {
       MessageApi.scene(giver)
         .topic(TOPIC)

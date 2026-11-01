@@ -56,10 +56,10 @@ args:
     greedy: true
     scope: ["$focus", "reachable"]
     requires: any
-  # ⭐ WHICH PART — `at <patch>` on a divided field (field population D5,
+  # ⭐ WHICH PART — `at <field>` on a tract marked into fields (field population D5,
   # D7). Optional and greedy, bounded by its preposition — the shape
   # harvest/water/feed/plant carry.
-  - name: patch
+  - name: part
     type: object
     required: false
     greedy: true

@@ -902,12 +902,12 @@ Only an area crop answers to its patch's words (`Plant.getKeywords`).
 **The act names its part.** `water`, `feed`, `sow`, `harvest`, `sample`
 and `label` take `at <patch>` (optional, greedy, `SoilMixin`). The GROUND
 decides (`resolvePartFor`): one part needs no name; several refuse
-`patch-unnamed` with the names; naming a part a plant does not stand in
+`part-unnamed` with the names; naming a part a plant does not stand in
 refuses `not-a-part-here`. `water`/`feed` state the amount (*"You tip 2 L
 …"*, *"You work 6.3 kg of compost…"*) and add *"On 1,000 square meters
 it barely shows."* under 0.1 L/m²; a bystander sees the part (*"Maud
 waters a stand of wheat at the far side."*). `sow` fills a part up to its
-own area and refuses `patch-sown` when it is full; `harvest` cuts that
+own area and refuses `part-sown` when it is full; `harvest` cuts that
 part's stand and grades it by ITS `_worstLimiting`. Area crops only — an
 individual is acted on where it stands.
 

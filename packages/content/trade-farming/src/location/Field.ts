@@ -485,6 +485,19 @@ export default class Field extends FieldBase {
     return this.getPatches();
   }
 
+  /** A refusal names one of these by the word a farmer uses. */
+  public override soilPartNoun(): string {
+    return 'field';
+  }
+
+  /**
+   * ⭐ Open ground reads from its gate (tracts build D30): `look upper
+   * bench` from the farmyard prints its fields without walking in.
+   */
+  public override isSeenAcrossExit(): boolean {
+    return true;
+  }
+
   /**
    * Mint (or find) one patch per authored spec, sized and characterized
    * from this field's sample and the spec's lean.

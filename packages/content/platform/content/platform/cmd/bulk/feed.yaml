@@ -14,7 +14,7 @@ help: |
   every harvest exports some, and an unfed bed yields worse each time.
 
   A field is fed the same way, and you are told how much went in. On a
-  field divided into patches, say which: `feed wheat at the top end`.
+  tract marked into fields, say which: `feed wheat at the top end`.
 examples:
   - cmd: feed the bed
     note: Work compost in from whatever you're carrying
@@ -23,7 +23,7 @@ examples:
   - cmd: feed the carrots
     note: Naming a plant feeds the ground it stands in
   - cmd: feed wheat at the top end
-    note: On a field divided into patches, name the patch
+    note: On ground marked into fields, name the field
 validators:
   - /lib/command/validators/requiresAnimate
   # Pulling a carrot and turning compost into a bed are both acts on
@@ -35,14 +35,14 @@ args:
     type: object
     required: true
     scope: "reachable"
-    # A plant, a bed or pot, a patch or a field (field population D18).
+    # A plant, a bed or pot, a field or a tract (field population D18).
     requires: [VisibleMixin, GrowingMixin|SoilMixin]
-  # ⭐ WHICH PART — `at <patch>` on a divided field (field population D5).
+  # ⭐ WHICH PART — `at <field>` on a tract marked into fields (field population D5).
   # Optional: on one-piece ground there is nothing to name, and on a
   # divided field the GROUND refuses the act without it, listing its parts.
   # Greedy so `at the top end` binds whole (an article would otherwise eat
   # a positional); every arg after it is prepositional, so it stops there.
-  - name: patch
+  - name: part
     type: object
     required: false
     greedy: true

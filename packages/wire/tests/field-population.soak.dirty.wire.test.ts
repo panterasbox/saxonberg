@@ -429,13 +429,13 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — the home field in spring', () => 
     }
     expect(said).toMatch(/ploughed for the season/i);
     // ⭐ Every act on a divided field names its patch (R2).
-    await refused(p, 'sow wheat', 'patch-unnamed');
+    await refused(p, 'sow wheat', 'part-unnamed');
     // The gate end until it is full, a little in the middle, the rest on
     // the far side.
     let filled = false;
     for (let i = 0; i < 14 && !filled; i++) {
       const { r, said: s } = await work(p, 'sow wheat at the gate end');
-      if (refusedFor(r) === 'patch-sown') filled = true;
+      if (refusedFor(r) === 'part-sown') filled = true;
       else expect(refusedFor(r), s).toBeNull();
     }
     expect(filled, 'the gate end was sown full').toBe(true);
@@ -447,7 +447,7 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — the home field in spring', () => 
     let part = 'the far side';
     for (let i = 0; i < 20 && /sack of seed wheat/i.test(await read(p, 'inventory')); i++) {
       const { r, said: s } = await work(p, `sow wheat at ${part}`);
-      if (refusedFor(r) === 'patch-sown' && part === 'the far side') {
+      if (refusedFor(r) === 'part-sown' && part === 'the far side') {
         part = 'the middle';
         continue;
       }
@@ -579,7 +579,7 @@ suite.skipIf(!isOwnedTestWorld())('Stage B — the bench, read by patch', () => 
     }
     expect(can, 'a watering can in hand').toBe(true);
     await goTo(BENCH);
-    const said = await refused(p, 'water wheat', 'patch-unnamed');
+    const said = await refused(p, 'water wheat', 'part-unnamed');
     for (const part of ['the top end', 'the middle', 'the lane end']) expect(said).toContain(part);
   }, 600_000);
 });
@@ -783,10 +783,10 @@ suite.skipIf(!isOwnedTestWorld())('Stage D — one-piece fields and pots', () =>
     await goTo(CANE_PIECE);
     const looked = await read(p, 'look');
     expect(looked).toMatch(/stand of sugar cane grows/i);
-    expect(looked).not.toMatch(/Which part\?|At the [a-z ]+ it is/i);
+    expect(looked).not.toMatch(/Which (part|field)\?|At the [a-z ]+ it is/i);
     const { r, said } = await act(p, 'harvest cane');
-    expect(refusedFor(r), said).not.toBe('patch-unnamed');
-    expect(said).not.toMatch(/Which part\?/i);
+    expect(refusedFor(r), said).not.toBe('part-unnamed');
+    expect(said).not.toMatch(/Which (part|field)\?/i);
   }, 1_200_000);
 
   it('13. a potted plant reads and waters as before', async () => {
@@ -826,7 +826,7 @@ suite.skipIf(!isOwnedTestWorld())('Stage D — one-piece fields and pots', () =>
       } else {
         expect(refusedFor(r), said).toBeNull();
         expect(said).toMatch(/You tip [0-9.]+ L of .* into the soil around .*lily/i);
-        expect(said).not.toMatch(/barely shows|Which part/i);
+        expect(said).not.toMatch(/barely shows|Which (part|field)/i);
       }
       expect(conditionOf(await read(t, 'look lily'))).toBeGreaterThanOrEqual(0);
     } finally {

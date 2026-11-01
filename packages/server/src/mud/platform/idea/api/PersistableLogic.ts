@@ -1028,6 +1028,13 @@ async function captureImpl(host: Stuff, key?: string): Promise<void> {
   rec.place = place;
   rec.writtenAt = Date.now();
   await rec.save();
+  // ⭐ The records this host owns follow it (tracts build D26): a tract's
+  // fields are written with the tract, each under its own key.
+  if (MixinApi.isPersistable(host)) {
+    for (const dependent of host.dependentPersistables()) {
+      if (!dependent.isDestroyed()) await captureImpl(dependent);
+    }
+  }
 }
 
 async function materializeImpl(host: Stuff, key?: string): Promise<void> {

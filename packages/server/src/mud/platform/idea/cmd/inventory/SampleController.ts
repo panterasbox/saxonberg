@@ -56,7 +56,7 @@ import { PersistableApi } from '../../../../api/persistable';
 interface SampleModel extends CommandModel {
   subject?: MqlOneResult;
   /** `at <patch>` — which part of a divided field (field population D5). */
-  patch?: MqlOneResult;
+  part?: MqlOneResult;
 }
 
 const TOPIC = 'act.deed';
@@ -79,9 +79,9 @@ export default class SampleController extends CommandController<SampleModel> {
       // NAMED, the stand of that kind rooted there wins over a plant the
       // binder found first (a stem already in your hand — carried things
       // bind first): the player named the ground. Found staging W4 live.
-      const crop = standingAt(named, model.patch?.stuff ?? null, room);
+      const crop = standingAt(named, model.part?.stuff ?? null, room);
       if (crop) {
-        await this.fromCrop(context, giver, crop, model.patch);
+        await this.fromCrop(context, giver, crop, model.part);
         return;
       }
       await this.fromThing(context, giver, named);

@@ -411,7 +411,7 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
     let part = 'the gate end';
     for (let i = 0; i < 20 && /sack of seed wheat/i.test(await read(p, 'inventory')); i++) {
       const { r, said } = await work(p, `sow wheat at ${part}`);
-      if (refusedFor(r) === 'patch-sown' && part === 'the gate end') {
+      if (refusedFor(r) === 'part-sown' && part === 'the gate end') {
         part = 'the middle';
         continue;
       }

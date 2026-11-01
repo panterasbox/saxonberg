@@ -50,9 +50,9 @@ args:
     type: string
     required: false
     greedy: true
-  # ⭐ WHICH PART — `at <patch>` on a divided field (field population D6).
+  # ⭐ WHICH PART — `at <field>` on a tract marked into fields (field population D6).
   # Optional and greedy; it bounds the greedy `text` before it.
-  - name: patch
+  - name: part
     type: object
     required: false
     greedy: true

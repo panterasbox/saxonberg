@@ -607,7 +607,15 @@ export default class HoldingWarren extends ProgrammeBase {
     (this as unknown as Persistable).markForRevert();
     const extent = this.holdingKey();
     if (extent) {
-      for (const key of [...this._roomsByKey.keys()]) {
+      for (const [key, room] of [...this._roomsByKey]) {
+        // The records a room owns (a tract's fields) go with it, each by
+        // its own key — the room says what they are, the holding does not.
+        if (MixinApi.isPersistable(room)) {
+          for (const dependent of room.dependentPersistables()) {
+            const owned = dependent.getPersistenceKey();
+            if (owned) await PersistableApi.deleteAllFor(owned);
+          }
+        }
         await PersistableApi.deleteAllFor(key);
       }
       await PersistableApi.deleteAllFor(extent);

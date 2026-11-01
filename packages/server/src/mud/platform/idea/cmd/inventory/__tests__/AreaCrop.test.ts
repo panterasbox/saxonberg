@@ -825,7 +825,7 @@ describe('the area crop', () => {
       await makeStuff(() => new HarvestController()).execute(
         {
           target: one(thriving, 'grain'),
-          patch: one(top, 'the top end', 'at'),
+          part: one(top, 'the top end', 'at'),
           tool: one(makeSickle(10), 'sickle'),
         } as ModelData as never,
         makeContext(giver, field, 'harvest'),
@@ -843,7 +843,7 @@ describe('the area crop', () => {
       await makeStuff(() => new HarvestController()).execute(
         {
           target: one(starved, 'grain'),
-          patch: one(lane, 'the lane end', 'at'),
+          part: one(lane, 'the lane end', 'at'),
           tool: one(makeSickle(10), 'sickle'),
         } as ModelData as never,
         makeContext(giver, field, 'harvest'),
@@ -868,7 +868,7 @@ describe('the area crop', () => {
       await makeStuff(() => new HarvestController()).execute(
         {
           target: one(trial, 'grain'),
-          patch: one(top, 'the top end', 'at'),
+          part: one(top, 'the top end', 'at'),
           tool: one(makeSickle(10), 'sickle'),
         } as ModelData as never,
         makeContext(giver, field, 'harvest'),
@@ -880,7 +880,7 @@ describe('the area crop', () => {
       await makeStuff(() => new HarvestController()).execute(
         {
           target: one(trial, 'trial'),
-          patch: one(top, 'the top end', 'at'),
+          part: one(top, 'the top end', 'at'),
           tool: one(makeSickle(10), 'sickle'),
         } as ModelData as never,
         makeContext(giver, field, 'harvest'),
@@ -898,7 +898,7 @@ describe('the area crop', () => {
         ctx,
       );
       await settle();
-      expect(noteReasons(ctx)).toContain('patch-unnamed');
+      expect(noteReasons(ctx)).toContain('part-unnamed');
       expect(JSON.stringify(giver.received)).toContain('Which part?');
       expect(stand.standingAreaM2()).toBe(100);
     });
@@ -908,13 +908,13 @@ describe('the area crop', () => {
       const stand = standAt(field, parts[0]!, 0.9);
       const ctx = makeContext(giver, field, 'harvest');
       await makeStuff(() => new HarvestController()).execute(
-        { target: one(stand, 'grain'), patch: one(parts[1]!, 'the lane end', 'at') } as ModelData as never,
+        { target: one(stand, 'grain'), part: one(parts[1]!, 'the lane end', 'at') } as ModelData as never,
         ctx,
       );
       expect(noteReasons(ctx)).toContain('nothing-sown-there');
     });
 
-    it('⭐ sow at a part fills it, rooted there, then refuses `patch-sown`', async () => {
+    it('⭐ sow at a part fills it, rooted there, then refuses `part-sown`', async () => {
       const { giver, field, parts } = dividedScene([['gate-end', 100], ['middle', 300]]);
       const [gate, middle] = parts as [TestPart, TestPart];
       const seed = makeSeed(100); // enough for 1,000 m²
@@ -923,10 +923,10 @@ describe('the area crop', () => {
 
       const unnamed = makeContext(giver, field, 'sow');
       await ctrl().execute({ seed: one(seed, 'seed') } as ModelData as never, unnamed);
-      expect(noteReasons(unnamed)).toContain('patch-unnamed');
+      expect(noteReasons(unnamed)).toContain('part-unnamed');
 
       await ctrl().execute(
-        { seed: one(seed, 'seed'), patch: one(gate, 'the gate end', 'at') } as ModelData as never,
+        { seed: one(seed, 'seed'), part: one(gate, 'the gate end', 'at') } as ModelData as never,
         makeContext(giver, field, 'sow'),
       );
       await settle();
@@ -939,14 +939,14 @@ describe('the area crop', () => {
 
       const full = makeContext(giver, field, 'sow');
       await ctrl().execute(
-        { seed: one(seed, 'seed'), patch: one(gate, 'the gate end', 'at') } as ModelData as never,
+        { seed: one(seed, 'seed'), part: one(gate, 'the gate end', 'at') } as ModelData as never,
         full,
       );
-      expect(noteReasons(full)).toContain('patch-sown');
+      expect(noteReasons(full)).toContain('part-sown');
 
       // The middle is its own ground: a second stand, rooted there.
       await ctrl().execute(
-        { seed: one(seed, 'seed'), patch: one(middle, 'the middle', 'at') } as ModelData as never,
+        { seed: one(seed, 'seed'), part: one(middle, 'the middle', 'at') } as ModelData as never,
         makeContext(giver, field, 'sow'),
       );
       await settle();
@@ -965,7 +965,7 @@ describe('the area crop', () => {
         ctx,
       );
       await settle();
-      expect(noteReasons(ctx)).not.toContain('patch-unnamed');
+      expect(noteReasons(ctx)).not.toContain('part-unnamed');
       const sown = field.getContents().find((s): s is Plant => s instanceof Plant);
       expect(sown!.getBed()).toBe(parts[0]);
     });

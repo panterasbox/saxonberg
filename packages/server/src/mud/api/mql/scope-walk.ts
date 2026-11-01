@@ -16,6 +16,7 @@
  */
 
 import type { Stuff } from '../../lib/stuff/Stuff';
+import type Place from '../../lib/stuff/Place';
 import type { Container } from '../../lib/spatial/Container';
 import { MixinApi } from '../mixin';
 import { PerceptionApi } from '../perception';
@@ -91,6 +92,19 @@ export function candidatesForHere(
         keywords: [direction],
         via: { exit },
       });
+    }
+    // ⭐ A place read from where it is reached (tracts build D30): open
+    // ground through an exit binds by its own name from this side, so
+    // `look upper bench` from the yard needs no new seed. Only the place
+    // — never what stands in it — and only when it is loaded already.
+    const seenPlaces = new Set<string>();
+    for (const exit of location.obviousExitsFor(viewer)) {
+      const far = exit.peekDestination();
+      if (!far || far === location || !far.isPlace()) continue;
+      if (!(far as Stuff & Place).isSeenAcrossExit()) continue;
+      if (seenPlaces.has(far.stuffId)) continue;
+      seenPlaces.add(far.stuffId);
+      pushDirect(out, far, viewer, attention);
     }
   }
 

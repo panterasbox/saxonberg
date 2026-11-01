@@ -79,7 +79,7 @@ function dial(key: string, fallback: number): number {
 interface HarvestModel extends CommandModel {
   target: MqlOneResult;
   /** `at <patch>` — which part of a divided field (D5). */
-  patch?: MqlOneResult;
+  part?: MqlOneResult;
   /**
    * The instrument, when the plant asks for one (`harvestTool`). The
    * view's `default:` binds the first reachable thing with the
@@ -111,8 +111,8 @@ export default class HarvestController extends EngagedActController<HarvestModel
     // the GROUND resolves to what grows in it: the first harvestable
     // occupant, else the first growing one (so the refusal names the
     // stage rather than saying "no").
-    const patchRaw = model.patch?.raw ?? '';
-    const patchBound = model.patch?.stuff ?? null;
+    const patchRaw = model.part?.raw ?? '';
+    const patchBound = model.part?.stuff ?? null;
     if (!patchBound && patchRaw.trim() !== '') {
       MessageApi.scene(giver)
         .topic(TOPIC)
