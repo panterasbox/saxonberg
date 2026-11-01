@@ -43,6 +43,6 @@ describe('the colorman and the house painter', () => {
     expect(s.extent).toBe('/world/terminus/wharfside/cottage');
     expect(s.coats.outside[0].material).toMatch(/milk-of-lime$/);
     const towpath = parse(readFileSync(join(ROOT, 'valley-road/towpath.yaml'), 'utf8')).data;
-    expect(towpath.exits.cottage.destination).toBe('/world/terminus/wharfside/cottage/location/room');
+    expect(towpath.exits.door.destination).toBe('/world/terminus/wharfside/cottage/location/room');
   });
 });

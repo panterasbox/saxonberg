@@ -19,7 +19,7 @@ data:
   # the glue line is what goes when a brush is left standing in water.
   bill:
     parts:
-      - { part: handle, template: /trade/painting/thing/brush-handle, count: 1, role: structural }
-      - { part: bristles, template: /trade/painting/thing/bristle, count: 1, role: wear }
+      - { part: handle, template: /trade/painting/thing/brush-handle, count: 1, role: structural, material: /stuff/idea/material/wood/beech }
+      - { part: bristles, template: /trade/painting/thing/bristle, count: 1, role: wear, material: /trade/painting/idea/material/hog-bristle }
     joints:
       - { key: setting, method: glued, members: [handle, bristles] }

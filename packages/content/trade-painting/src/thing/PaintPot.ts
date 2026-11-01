@@ -30,11 +30,26 @@ import type { BuildContribution } from '@saxonberg/server/mud/lib/craft/ManualBu
 import type { BulkPayload } from '@saxonberg/server/mud/lib/bulk/Bulkable';
 import type { PaintMakeup, PaintPigment } from '@saxonberg/server/mud/lib/material/Paint';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
+import type { MarkupAugmenter } from '@saxonberg/server/mud/api/mml';
+import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import { Paint } from '@saxonberg/server/mud/lib/material/Paint';
+
+/** ⭐ What a look says of the paint in a pot — its color and what it is made of. */
+const paintAugmenter: MarkupAugmenter = (text, host: Stuff, _viewer, opts) => {
+  if (opts?.filter || !MixinApi.isBulkable(host) || !host.hasInteriorBulk()) return text;
+  const makeup = host.getBulk('interior').getPayload()?.paint;
+  if (!makeup || !(host.getBulkAmount('interior').rawValue() > 0)) return text;
+  const line = `The paint in it is ${new Paint(makeup).words()}.`;
+  return text && text.length > 0 ? `${text}\n\n${line}` : line;
+};
 
 /** An egg broken into a paint pot binds as tempera. */
 const EGG_TEMPERA = '/trade/painting/idea/material/egg-tempera';
 
 export default class PaintPot extends GlazeTub {
+  static markupAugmenters: MarkupAugmenter[] = [paintAugmenter];
+
   static fieldMeta: FieldMeta = {
     // ⭐ A ready-mixed pot's authored makeup — a SEED (phase 3, mint-only):
     // laid on the paint the row filled it with, once.
@@ -62,6 +77,7 @@ export default class PaintPot extends GlazeTub {
       const mat = c.materialPath ? this.materialAt(c.materialPath) : null;
       if (mat === null) continue;
       const kg = c.massKg ?? c.measureL * ((mat.getDensity().rawValue() || 1000) / 1000);
+      if (!Number.isFinite(kg)) continue;
       if (mat.getPigment() !== null && c.kind === 'item') {
         pigmentKg.set(c.materialPath!, (pigmentKg.get(c.materialPath!) ?? 0) + kg);
         continue;
@@ -86,9 +102,12 @@ export default class PaintPot extends GlazeTub {
     }
     if (binder === null) return null;
     const totalPigment = [...pigmentKg.values()].reduce((a, b) => a + b, 0);
+    // A pigment that came to the pot with no recorded mass still colors it:
+    // the papers share equally when nothing weighs them.
+    const n = pigmentKg.size;
     const pigments: PaintPigment[] = [...pigmentKg.entries()].map(([material, kg]) => ({
       material,
-      share: totalPigment > 0 ? kg / totalPigment : 0,
+      share: totalPigment > 0 ? kg / totalPigment : 1 / n,
     }));
     const all = binderKg + totalPigment;
     // A thinner evaporates: it is binder mass that leaves nothing behind.

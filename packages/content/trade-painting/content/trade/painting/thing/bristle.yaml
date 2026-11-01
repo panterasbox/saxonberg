@@ -1,6 +1,6 @@
 # A knot of hog bristle — the head of a brush, before it is glued into its
 # handle (paint D11).
-class: /trade/quarrying/thing/Lump
+class: /platform/thing/Assembly
 data:
   shortDescription: knot of bristle
   keywords: [bristle, bristles, knot, "knot of bristle"]

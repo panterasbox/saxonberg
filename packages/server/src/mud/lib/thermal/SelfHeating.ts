@@ -134,11 +134,15 @@ export function SelfHeatingMixin<TBase extends MixinConstructor<Stuff>>(Base: TB
       if (nowS === null) return;
       if (this.rickStamp === 0) {
         this.rickStamp = nowS;
+        this.catchIfHotEnough();
         return;
       }
       const elapsed = nowS - this.rickStamp;
       if (elapsed <= 0) {
         this.rickStamp = nowS;
+        // ⭐ A heap already past its point catches on the read, not only after
+        // time has passed (the drive found it: a heap set hot never caught).
+        this.catchIfHotEnough();
         return;
       }
       this._reconcilingHeat = true;

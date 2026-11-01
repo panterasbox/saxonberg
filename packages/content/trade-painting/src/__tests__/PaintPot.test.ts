@@ -108,3 +108,35 @@ describe('the binders, as shipped', () => {
     expect(set.getExothermicJPerKg()).toBeGreaterThan(0);
   });
 });
+
+describe('the pot reads its own charge', () => {
+  it('a paper of ochre in a pot of oil is counted as pigment', async () => {
+    const { default: Pigment } = await import('../thing/Pigment');
+    const { Quantity } = await import('@saxonberg/server/mud/lib/quantity');
+    const { ContainmentApi } = await import('@saxonberg/server/mud/api/containment');
+    const { installV1QuantityMarshallers } = await import('@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers');
+    installV1QuantityMarshallers();
+    fromRow(OIL, 'linseed-oil');
+    fromRow(OCHRE, 'yellow-ochre');
+    const pot = makeStuff(() => {
+      const p = new PaintPot();
+      p.setMass(Quantity.of(0.8, 'kg'));
+      p.interiorBulk = true;
+      p.setInteriorCapacity(Quantity.of(6, 'L'));
+      p.setBulkMaterial('interior', StuffApi.findByTemplatePath<Material>(OIL)!);
+      p.setBulkAmount('interior', Quantity.of(0.3, 'L'));
+      return p;
+    });
+    const paper = makeStuff(() => {
+      const x = new Pigment();
+      x.setMaterial(StuffApi.findByTemplatePath<Material>(OCHRE)!);
+      x.setMass(Quantity.of(1, 'kg'));
+      return x;
+    });
+    ContainmentApi.move(paper as never, pot as never);
+    const charge = pot.chargeContributions();
+    const payload = pot.payloadFor(charge);
+    expect(charge.map((c) => [c.kind, c.materialPath, c.massKg])).toContainEqual(['item', OCHRE, 1]);
+    expect(payload?.paint?.pigments).toEqual([{ material: OCHRE, share: 1 }]);
+  });
+});

@@ -1686,6 +1686,48 @@ Read first, in this order:
 
 ## Drive record
 
-*(appended at build time)* — the blocking drive's output and count, what
-each failure was and what fixed it; the soak drive's file name for the
-lane; the browser walk's findings.
+**Result: 16/16 green** (run 6, 2026-11-01). **Files:** blocking `packages/wire/tests/paint.dirty.wire.test.ts`; soak
+`packages/wire/tests/paint.soak.dirty.wire.test.ts` (steps 7 and 14 on the
+real clock, for the soak lane after merge).
+
+**Not driven in the blocking file, and why** (recorded in its header): 13
+(ship from the quay — the Hesper starts at the bar; unit-proved), 16/17 (the
+pine tap and the still — rows over shipped mechanisms; the blade tap
+unit-proved), 18 (fumes need an open dish; B28), 20 (the panel's fade —
+unit-proved in `Weathering.test.ts`), 21 (Tam's round), 22–24 (glue — unit-
+proved in `Assembled.glue.test.ts`). 10 (limewash setting) is unit-proved
+(`Faced.air.test.ts` carbonation).
+
+**What the drive found** (six runs, each a fix and a commit):
+
+1. The colorman's shop was PITCH DARK — the sky-light claim was dropped for
+   `lint:light-sources` and no lamp replaced it. A lamp adornment.
+2. `survey <building>` threw: the controller read `model.target` as the
+   Stuff rather than `model.target.stuff`. Fixed.
+3. The towpath's exit named `cottage` took the word from the building (an
+   exit name is a candidate in the room's pool). The exit is `door`.
+4. A mill's tangible output must compose `Crafted`: the pigment papers are a
+   pack `Pigment` class (Crafted + Thermal + Stackable); the bristle and the
+   handle are `Assembly`.
+5. Milling flax needs a vessel to catch the oil — the counter stocks oil
+   jars.
+6. Rags bought one by one never stack; sold as a stack of six. A rag is
+   DIPPED one at a time, so a heap is the oily rags lying in one place
+   (`Rag.heaped` counts its container), not one stack.
+7. The brush's bill named no part materials, so the bristles read "beech".
+8. `dip` laid the generic paint row, not its binder, so a dipped rag had no
+   drying oil (`GlazeTub.dipPlanFor` lays the binder and keeps the makeup —
+   B14 applied to the bath).
+9. `SelfHeating.reconcileHeating` stamped on its first read and returned
+   before the ignition check — a heap set hot never caught until time
+   passed. It checks on every read.
+10. `paint` took the first coat-laying pot even when it held too little; it
+    now asks each pot (the `dip` precedent).
+11. A look at a pot did not say what paint was in it — `PaintPot`'s look
+    line.
+12. Staging, not code: the harness's `parcels:` grant keeps a town parcel a
+    new character's group already holds, so the "sold" twin transfers the
+    parcel by eval; eval jurisdictions widened to `/world/terminus`; the
+    shop props its own paint pot, so the drive names `me:i:kettle`.
+13. Intermittent: two world boots wedged after the location graph projected
+    (CPU idle); a retry with a longer boot budget booted the same code.

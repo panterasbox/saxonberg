@@ -1,6 +1,6 @@
 # A paper of red ochre — ground pigment, folded in paper the way a colorman sells
 # it. Put it in a paint pot with a binder and stir.
-class: /trade/quarrying/thing/Lump
+class: /trade/painting/thing/Pigment
 data:
   shortDescription: paper of red ochre
   keywords: [paper, pigment, "red ochre", "burnt ochre", ochre, red, "paper of red ochre"]

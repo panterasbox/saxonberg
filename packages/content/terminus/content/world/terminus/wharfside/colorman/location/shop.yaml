@@ -17,6 +17,8 @@ data:
       edgeMinutes: 1
     north:
       destination: /world/terminus/wharfside/colorman/location/yard
+  adornments:
+    - { template: /world/terminus/wharfside/colorman/thing/shop-lamp, slot: lamp:shop }
   props:
     - /world/terminus/wharfside/colorman/thing/counter
     - /trade/painting/thing/paint-pot

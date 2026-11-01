@@ -73,7 +73,7 @@ export default class SurveyController extends CommandController {
   ): Promise<void> {
     const actor = context.commandGiver;
     const room = context.location;
-    const target = model.target as Stuff | null | undefined;
+    const target = (model.target as { stuff?: Stuff | null } | undefined)?.stuff ?? null;
     // ⭐ `survey <building>` from where it meets the weather (paint D3):
     // the binder only finds a structure on its landing, so a target that
     // is one is read from outside, and anything else is refused in words.

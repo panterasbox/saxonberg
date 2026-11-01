@@ -47,8 +47,22 @@ const OILY_IGNITION_K = 420;
 export default class Rag extends SelfHeatingMixin(
   CombustibleMixin(ThermalMixin(ReservedMixin(WetMixin(StackableMixin(Good))))),
 ) {
+  /**
+   * ⭐ A HEAP is the oily rags lying together — this stack and every other
+   * oily rag in the same place, three and more (a rag is dipped one at a
+   * time, so the heap is what is dropped together, not one stack).
+   */
   private heaped(): boolean {
-    return MixinApi.isStackable(this as unknown as Stuff) && this.getQuantity() >= HEAP_AT;
+    const self = this as unknown as Stuff;
+    let n = MixinApi.isStackable(self) ? this.getQuantity() : 1;
+    const where = MixinApi.isContainable(self) ? self.getContainer() : null;
+    if (where !== null && MixinApi.isContainer(where)) {
+      for (const other of where.getContents()) {
+        if (other.stuffId === self.stuffId || !(other instanceof Rag) || other.oilCoats().length === 0) continue;
+        n += MixinApi.isStackable(other) ? other.getQuantity() : 1;
+      }
+    }
+    return n >= HEAP_AT;
   }
 
   private soakedInWater(): boolean {
@@ -57,7 +71,7 @@ export default class Rag extends SelfHeatingMixin(
   }
 
   /** The wet coats of a drying oil on it — its oil. */
-  private oilCoats(): CoatLayer[] {
+  public oilCoats(): CoatLayer[] {
     return this.getCoats('outside').filter((c) => {
       if (c.state !== 'wet') return false;
       const m = StuffApi.findByTemplatePath<Material>(c.material);

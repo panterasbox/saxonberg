@@ -43,7 +43,11 @@ export default class PaintController extends ManualBuildController<PaintModel> {
     const pots = (model.pot?.stuff ?? []).filter(
       (p: Stuff) => p.stuffId !== target.stuffId && p.stuffId !== brush.stuffId,
     );
-    const pot = pots.find((p) => this.laysCoat(p)) ?? null;
+    // ⭐ Every pot that holds a coat-laying liquid is asked in turn (the
+    // `dip` precedent): the first the thing painted can take a coat from
+    // wins; else the first refusal is said.
+    const candidates = pots.filter((p) => this.laysCoat(p));
+    const pot = candidates[0] ?? null;
     if (pot === null) {
       const wet = pots.find((p) => MixinApi.isBulkable(p) && p.hasInteriorBulk() && p.getBulkAmount('interior').rawValue() > 0);
       this.declineStep(
@@ -55,7 +59,12 @@ export default class PaintController extends ManualBuildController<PaintModel> {
       );
       return;
     }
-    const answer = await target.coatPlanFor({ actor: giver, source: pot, brush });
+    let answer = await target.coatPlanFor({ actor: giver, source: pot, brush });
+    for (const next of candidates.slice(1)) {
+      if (answer.ok) break;
+      const tried = await target.coatPlanFor({ actor: giver, source: next, brush });
+      if (tried.ok) answer = tried;
+    }
     if (!answer.ok) {
       this.declineStep(context, answer.line, answer.reason);
       return;
