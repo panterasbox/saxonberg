@@ -2228,3 +2228,1282 @@ with the drill, a staged cut). It found what the wire drives could not:
   owner: after a day's work and a night's rest the drive's hand could not
   lift a 5 kg cut of hay; the founder's fresh body lifted three.
 - `test:near` green (server 358 files + 8 packs); lint family 85/85.
+
+---
+
+# Tracts and fields — plan (2026-10-31)
+
+Executes the addendum at the end of
+[field-population-requirements.md](../requirements/field-population-requirements.md)
+(*"Addendum — tracts and fields: how a farm is laid out"*, agreed with the
+owner 2026-10-31, closed scope). **Kind:** feature. **Lead end:** content
+and kernel together — the first consumers are Quist's farm, four valley
+farmsteads minted from its layout, the dairy, the campus farm, Waponi's
+pieces, Rejection's goat pen and a Hinkley Hills lot. It lands on this
+MR (!480, branch `reqs/cover`) on top of W0–W6 above and the seed round
+(D20–D22), and keeps both blocking drives green.
+
+The shape in one sentence: **a farm is a residence-system holding whose
+floorplan names TRACTS (walkable open ground, sized as shares of the
+holding's open ground); a holder MARKS FIELDS on a tract; a field is
+today's patch promoted — soil, grass, crop stamps and the grazing ledger
+of its own — and a tract is today's `Field` class with the grass and the
+ledger moved down one level.** "Patch" retires in every player-facing
+word; the kernel's word for a part of a soil stays *part*.
+
+Decisions continue the numbering above (D23 onward). D1–D22 are not
+reopened; where this build changes what one of them shipped, the
+decision below says which and why.
+
+---
+
+## Grounding
+
+Facts verified 2026-10-31 by opening the files (paths repo-relative,
+line numbers current at plan time). Three Explore surveys were run and
+every load-bearing claim below was re-checked by hand.
+
+### What this MR already shipped and this plan must not undo
+
+- `platform/thing/PlantableCrop` (D20): wheat/barley sacks are seed;
+  `sow` takes them. `Growing.yieldKgPerM2 × vigor` (D21, `Growing.ts`
+  l.1134). `ToolMixin.seedFactor` + `sow`'s optional `drill` arg (D22);
+  the seed drill row stands in the campus home field beside the plough
+  (`eternal-university/.../campus-field/location/home-field.yaml` props).
+- `getLooseContents` excludes area crops (e9f21b95a); `look`, the sense
+  verbs and the card share it. `Growing.growsByFieldRule()` /
+  `stageWord()` (l.1192–1197). The harvest refusals read the field rule.
+- The kernel parts protocol (D3) on `SoilMixin`
+  (`lib/husbandry/Soil.ts` l.296–352): `soilParts` / `soilPartKey` /
+  `soilDepthM` (@hooks), `soilPart`, `soilPartRefusal` (*"Which part?
+  Name one: …"*), `resolvePartFor` → `PartResolution` with reasons
+  `'patch-unnamed' | 'not-a-part-here'` (l.486–504), `rootedAreaCrop`
+  (l.506–524: a part is a fixture, so it asks `getAdornedTo()` for the
+  container whose contents hold the crop), `soilMoistureHeadroomL` /
+  `soilNutrientHeadroom` (sum / mean over parts). ⚠ When a host HAS parts,
+  every aggregate read is over the parts only — the host's own reserve is
+  not a term (`partWeights`, l.560; `meanOverParts`, l.996–1010); a
+  patched field installs no reserves of its own (`Field.installFieldReserves`
+  l.1372). `Growing.getBed()` (l.1624–1644) = the slot host, else the
+  container, then `ground.soilPart(this.groundPart) ?? ground`.
+- The patch arg (D5) is named `patch` on `water`, `feed`, `harvest`,
+  `plant`, `sample`, `label` (`packages/content/platform/content/platform/cmd/**`;
+  `requires: SoilMixin`, `prepositions: [at]`, greedy, `scope: reachable`).
+  `PlantController` refuses a full part `patch-sown`.
+
+### The field and the patch today (trade-farming)
+
+- `packages/content/trade-farming/src/location/Field.ts` (1,514 lines).
+  `FieldGround = CharacteredSoilMixin(SoilMixin(ReservedMixin(Location)))`
+  (l.248); `FieldBase = PersistableMixin(WarrenMemberMixin(ImprovableMixin(
+  SwardMixin(FieldGround))))` (l.258). `commandContributions.inventory =
+  [plough, plant, feed]` (l.281–294) — ⚠ `mow` rides `SwardMixin`'s own
+  `inventory` contribution (`lib/Sward.ts` l.223), `grub/ditch/lime`
+  ride `ImprovableMixin`'s (`lib/ground/Improvable.ts` l.293–299).
+  `fieldMeta` (l.299–310): `fieldName`, `groundSpotX/Y`, `legumeFraction`,
+  `patches` authorable; `seedbedStamp`, `stubbleStamp`, `grazers`
+  persistent; `_ambientK`/`_daylightFraction` runtimeState. The grazing
+  ledger `grazers: Record<string, GrazerEntry>` + `setGrazer` /
+  `clearGrazer` / `grazerLedger` / `foldGrazer` / `grazerIds` (l.767–831);
+  `swardShortfallFed` walks **`this.getContents()`** for `isFeeder` things
+  (l.848–860); `swardGrazingDemandPerGameDay` sums the ledger plus
+  occupants answering `grazingDemandPerGameDay()` **by shape** (l.1112–
+  1126 — pre-existing duck typing, not this build's to fix, noted).
+  `getCrops()` filters the contents for area crops (l.440); `cropOn(part)`
+  (l.449); `ensurePatches` get-or-create at slot `patch:<key>` (l.501–534,
+  the `ensureFloor` shape); `soilParts()` → `getPatches()` (l.484);
+  `sowingRefusal` (l.559), `turnUnder` (l.572), `ensureCropTitle` →
+  `settleCropTitle` over `EmploymentApi.operatorsAt(this)` (l.589–614);
+  `progressOn` / `improvementReversion` / `bankWork` read crops and
+  grazers (l.641–679); `fieldLines(viewer)` + `patchLines` (l.687–763);
+  `watershedScope()` = itself (l.883); `soilWaterDemandPerGameDay` =
+  sward transpiration + crops (l.894); `soilDrawFactor` by season
+  (l.912); `swardAreaM2 = areaM2 − cropAreaM2` (l.931);
+  `swardGrowthFactor` (l.949); the season caches + `restampSeason`
+  (l.990–1098); `onSwardIntegrated` → `apportionGrazers`,
+  `cycleGrazedNitrogen`, `poachByOccupants`, `fixLegumeNitrogen`
+  (l.1140–1230); `improvementBill/Pace/Spoils` (l.1269–1339);
+  `presentationPhrase` → a proper phrase when named (l.1347);
+  `installFieldReserves` (l.1357 — skips at `areaM2 ≤ 0`; installs soil
+  only when no patches); `onCreate` (l.1393–1429: locality → seed →
+  model → sample → `ensurePatches` → reserves → clearing starts done);
+  `PatchSpec { key, name, keywords?, areaM2, lean?, description? }`
+  (l.1451); `patchAreas` — the LAST absorbs the difference (l.1472).
+- `src/thing/Patch.ts` (278 lines): `CharacteredSoilMixin(SoilMixin(
+  ReservedMixin(AdornmentMixin(VisibleMixin(Thing)))))` (l.82–83); fields
+  `patchKey`, `lean` (persistent + authorable); `getField()` =
+  `getAdornedTo()` narrowed `instanceof Field` (l.112); `soilPartKey`,
+  `soilDepthM`; `watershedScope` = the field; `soilWaterDemandPerGameDay`
+  = its crops + its share of the field's sward (l.147); `soilDrawFactor`
+  → the field's; `ensureCropTitle` / `sowingRefusal` → the field's;
+  `configurePatch(spec, areaM2)` (name, register `definite`, keywords
+  incl. the key) (l.187); `installFromField(sample, fieldSample)` sizes
+  reserves by `depthFactor` and sets the material (l.210); `cropsOn()`
+  (l.229) and `patchLines(viewer)` (l.251). ⚠ A patch persists NOTHING of
+  its own: its runtime state rides the field's fixtures slice.
+- `src/location/SingletonField.ts` = `SingletonMixin(Field)` (B17): the
+  twelve authored field rows name it.
+- `src/lib/CharacteredSoil.ts`: `areaM2` (+ get/set),
+  `installSoilReserves(sample, depthFactor?)` (idempotent), `lastSample`,
+  `soilLeachRate`, `soilCatchmentAreaM2`; `CROP_TRANSPIRATION_L_PER_M2_DAY`.
+  `src/lib/Sward.ts`: host `Stuff & Reserved` (l.204); the three host
+  hooks `swardAreaM2`, `swardGrazingDemandPerGameDay`, `onSwardIntegrated`,
+  `swardShortfallFed` (l.245–265); `installSward`, `standingDryMatterKg`,
+  `swardFraction/Band/Phrase`, `drawSward`, `reconcileSward` (l.345–425).
+- `src/idea/cmd/farming/PlotController.ts`: gate = `coveringParcelOf` +
+  `LandUses.admitsCultivation(landUseOf)` + `AccessApi.heldExtents` (l.121–
+  137); yard check `ParcelApi.workableAreaOf(extent)` ≥ members + 400
+  (l.161–163); mints `/trade/farming/location/field` 400 m² through a
+  **duck-typed** `PlotHost.admitPlot` (l.79–89, 180–186). Afforded by the
+  spade (`src/thing/Spade.ts` l.44, `self`). View
+  `content/trade/farming/cmd/farming/plot.yaml`; controller row
+  `content/trade/farming/idea/cmd/farming/PlotController.yaml`; test
+  `src/idea/cmd/farming/__tests__/PlotVerb.test.ts`. Also referenced:
+  `residence/src/__tests__/HoldingWarren.test.ts` (admitPlot),
+  `docs/subsystems/soil.md`, `cover-plan.md`, two slates.
+- Rows: `content/trade/farming/location/field.yaml` (the kind: no
+  `coords:`, "a warren places it"); `content/trade/farming/thing/patch.yaml`
+  (`_materialPath` loam placeholder). Views `cmd/farming/plough.yaml`
+  (`tool` + `detail` args, no part arg) and `cmd/farming/mow.yaml`
+  (`tool` only).
+- `src/behavior/farms.ts` reads ground through the kernel protocol only
+  (`isSoil && !isCultivable` → `soilParts()` → `rootedAreaCrop(bed)`;
+  l.144–156): it never names `Field` and needs no change for a tract.
+- Tests: `src/__tests__/field-crop.test.ts`, `field-grazing.test.ts`,
+  `field-patches.test.ts`, `field-bloom.test.ts`, `wheat.test.ts`.
+
+### The twelve authored field rooms (the addendum says eleven — Waponi has four)
+
+Every row is `class: /trade/farming/location/SingletonField`. The
+survey, with the parcel each sits under and the room whose exit leads in:
+
+| row (`/world/terminus/…`) | m² | parcel (use) | reached from | parts | props / cast |
+|---|---|---|---|---|---|
+| `hearts-delight/bench-field/location/upper-bench` | 4000 | the valley (agricultural) | `location/farmstead-yard` `up`; orchard-close `up` | top-end · middle · lane-end (leaned) | three standing-wheat rows |
+| `…/bench-field/location/orchard-close` | 3600 | **its own claim** → `idea/farm-business` (agricultural, 3600) | farmstead-yard `northwest`; upper-bench `east` | — | 3 beds, 3 cherries, close-trough |
+| `…/bench-field/location/lower-meadow` | 6000 | the valley | farmstead-yard `west` | — | meadow-trough |
+| `…/dairy/location/pasture` | 30000 | `/dairy` → dairy-business (agricultural) | dairy `location/yard` `south`; hay-meadow `north` | — | rick, trough |
+| `…/dairy/location/hay-meadow` | 6000 | `/dairy` | pasture `south` | — | — |
+| `eternal/campus-field/location/home-field` | 10000 | `campus-field` → group duncan-hall (agricultural) | campus-farm `location/yard` `field`; back-paddock `west` | gate-end · middle · far-side | trough, plough, seed-drill; cast farm-hand |
+| `eternal/campus-field/location/back-paddock` | 20000 | `campus-field` | home-field `east` | — | — |
+| `waponi-woo/location/cane-piece` | 8000 | the island (agricultural) | `location/track` `east` | — | standing cane; cast cutter-1/2 |
+| `waponi-woo/location/lower-piece` | 8000 | the island | track `southeast` | — | standing cane |
+| `waponi-woo/location/smallholding-a` | 1200 | the island | track `southwest`; smallholding-b `east` | — | cane; cast smallholder-a |
+| `waponi-woo/location/smallholding-b` | 1000 | the island | smallholding-a `west` | — | cane, plough, spade; cast smallholder-b |
+| `rejection/kestrel-road/goat-pen` | 400 | `kestrel-road` (**wild**) | `yard-gate` `west` | — | goat-book, pails, pans, rick, trough… |
+
+Quist's farmstead rooms are `hearts-delight/location/farmstead-yard.yaml`
+(a `/platform/location/Locale` with `coords`, `_address`, `props:` and
+`cast:`), `location/barn.yaml`, `location/bench-lane.yaml` (the lane
+that reaches the yard); the dairy's are `dairy/location/yard.yaml`,
+`byre.yaml`. Herdbook `grazing:` bindings name field template paths:
+campus `herdbook.yaml:60` → home-field; `goat-book.yaml:23` → goat-pen;
+`ox-book:87`, `hen-book:74` → lower-meadow; `flock-book:75` →
+orchard-close; `dairy-book:22`, `calf-register:24` → pasture. The cover
+and dairy drives carry `GOAT_PEN = '/world/terminus/rejection/kestrel-road/goat-pen'`
+and reach places by **template path** (`Session.open(…, { startLocation })`,
+`founderEval(where, parcel, …)` — `field-population.dirty.wire.test.ts`
+l.273–286).
+
+### Holdings, plats and the sale (residence)
+
+- `packages/content/residence/src/idea/HoldingWarren.ts`: base
+  `PersistableMixin(WarrenMemberMixin(ContainerMixin(RoomWarren)))`
+  (l.94–100); persistent `floorplan`, `upkeepTerm`, `addressBase`
+  (authorable), `shellCondition`, `shellStamp`. `FloorplanRoom { leaf?,
+  room, entry? }` with nested `exits: [{ to, direction, opposite?,
+  locked? }]` read by `getFloorplanExits()` (l.161). `holdingKey()` = the
+  persistence key = the parcel extent (l.226); `roomKeyOf(leaf)` =
+  `<extent>/<leaf>` (l.231). `wake()` (l.335): `refreshKeyway` →
+  `wakeRoom` per spec → `wireEdge` per exit → `layOut()`. `wakeRoom`
+  (l.414): `StuffApi.clone(spec.room, undefined, { zoneFrom: key })` →
+  `addMember` → `PersistableApi.restoreOrSeed(room, key)` → **stamps the
+  address `<addressBase|derived>/<leaf>`** (overwrites an authored
+  `_address`). `layOut()` (l.369) sets every member's coordinates from
+  the entry at (0,0,0) by the cardinal exits — **overwrites authored
+  `coords:`**; `laysOutOwnFrame()` = true. `wireEdge` (l.448): unlocked
+  → `from.addBidirectionalExit(to, direction, { opposite, keepLiveDestination })`;
+  locked → the keyed-door row one way + a passage back. `admitPlot(spec)`
+  (l.269–318): appends to `floorplan`, wakes the room, wires, lays out,
+  `PersistableApi.capture(this, holdingKey)`. `captureAll()` (l.544)
+  captures every room then the programme; `revert()` (l.606)
+  `deleteAllFor`. `notifyPopulationChange` forwards to the institution
+  (l.556–566): the holding never reaps itself.
+- `src/idea/PlatWarren.ts` = `SingletonMixin(CirculationWarren)`; fields
+  `programmePath`, `roadTemplate`; `onCreate` re-hangs a gate per
+  provisioned key (`ParcelApi.childParcelsOf(parentExtent)`, l.93–113);
+  `provision(lotExtent)` (@hook, l.131) → `admit`; `standUpHolding(key)`
+  (l.190): clone `programmePath` → `addMember` → `restoreOrSeed(programme,
+  key)` → `wake()`; `entryEdgeFor(key, circulation)` (l.270): direction =
+  `gateDirectionOfSlot(leaf) ?? leaf`, returns an existing exit at that
+  direction else installs `/system/residence/idea/exits/lot-gate` on the
+  node toward the programme's entry ROW; `wireHubExit` wires the entry
+  room's way back onto the node. `src/idea/PlatBook.ts`: `priceMinor`,
+  `areaM2`, `landUse`, `holderPath`, `extentFor(raw)`, `lotExtents()`.
+  `LotGateExit extends DeferredDestinationExit` → `holder.provision`.
+- `packages/server/src/mud/lib/location/CirculationWarren.ts`: the four
+  policy hooks (`standUpHolding`, `circulationTemplateFor`,
+  `wireCirculationNode`, `entryEdgeFor`); `reconcile()` (l.562–599):
+  **every holding with no occupants is captured and torn down**, then
+  circulation reaps outside-in; authored nodes never reap.
+- `lib/location/PlatPlan.ts` (kernel value object): shapes `static |
+  linear | branched` (l.33); `StaticNode { key, path, slots: string[] }`
+  (l.48–52); `parse` (l.109); `nodeOfSlot`, `nextFreeSlot`, `nodesInOrder`,
+  `isAuthored`, `authoredPathOf`; `gateDirectionOfSlot(leaf)` (l.455–470)
+  = the **ring** `right, left, ahead-right, ahead-left, behind-right,
+  behind-left` of the road's heading, indexed by the slot's position in
+  its reach — `null` for linear/static. A road's `heading` is one of the
+  four planar directions (l.56), authored or the branch direction.
+- `lib/location/Warren.ts`: `addMember` / `removeMember` / `getMembers`;
+  `occupantsOf` abstract. `lib/location/WarrenMember.ts`:
+  `WarrenMemberMixin<TBase extends MixinConstructor<Stuff & Container>>`
+  (l.58), `getWarren()` / `setWarren()` (l.112–116; the warren is the
+  sole writer).
+- `lib/persistence/Persistable.ts`: hooks `seedBornWith`, `reseedCast`,
+  `getDurableHandle()` (`<row>#<key>` for a keyed host — `Stuff.ts`
+  l.667), `onRestored()` (@hook, after a record restore). **No capture-
+  side hook** — `HoldingWarren.captureAll` walks its rooms by hand.
+  `lib/boundary/Adornable.ts` l.151–206: the fixtures slice captures only
+  a fixture's `persistent && runtimeState` fields and **skips a fixture
+  that is itself Persistable**; `hydrateSlice` overlays onto fixtures
+  that already exist at hydrate time.
+- The sale: `packages/content/platform/content/platform/cmd/civics/title.yaml`
+  (`buy` takes a greedy `lot`) → `platform/idea/cmd/civics/TitleController.ts`
+  `executeBuy` (l.284–451): at a `DeedDesk` (class-lineage check, l.468)
+  → `desk.getBooks()` → `book.extentFor(raw)` → refusals (sold, no
+  identity, ascent gate) → `takePayment` → `ParcelApi.subdivide(extent,
+  parentExtent, districtOwner, book.getAreaM2(), 1, book.getLandUse())`
+  (l.386) → `transfer` to the buyer → keyway + key → `holder.provision(extent)`
+  + `holder.ensureGate(extent)` (duck-typed, best-effort, l.417–433). Desks
+  with `books:`: `terminus/content/world/terminus/realty/desk.yaml` (Ricky's
+  office), `terminus/.../registry/desk.yaml`.
+- Hinkley Hills (`packages/content/hinkley-hills/`, no `src/` classes):
+  `pack.yaml` claims the district (residential, 240 000 m², off-grid)
+  and `lots/lot-1` (residential, 1 000, pre-taken); `package.json`
+  depends on `residence` **and `trade-farming`**; `idea/plat-book.yaml`
+  (`priceMinor: 4000`, `areaM2: 1000`, `landUse: residential`);
+  `idea/lot-holder.yaml` (branched: `lane` 9 segments × 4 frontages,
+  segment 1 authored `location/lane`; `hinkley-court` branches north off
+  segment 2; cap 40); `idea/house-programme.yaml` (verbatim in the
+  survey: yard (entry) `north` → hall (locked); hall `east` kitchen,
+  `west` living, `north` bedroom; bedroom `east` bathroom; no coords
+  authored). Tests `src/__tests__/HinkleyHills.test.ts`, `hinkley-lot.test.ts`.
+- `docs/subsystems/holding.md` § *The lift* (l.599–622): only the shell
+  clock is residential; the lift is deferred — *"do not make it alone, and
+  do not widen a residences MR to do it"*. § *The floorplan is the
+  INITIAL mint, never the closed set* (l.198–203): the member set stays
+  open to runtime-added members.
+
+### Parcels, zoning, the ground account
+
+- `lib/parcel/LandUse.ts`: `LAND_USES` (six), `CULTIVATION_SCALES =
+  ['none','bed','field']`; residential → `bed` (lot band 50–20 000 m²),
+  agricultural → `field` (1 000–4 000 000), wild → `none`;
+  `LandUses.admitsCultivation(use)`, `summaryOf(use)` (the refusal's
+  words), `admitsArea` (0/null = unmeasured, passes).
+- `lib/parcel/ParcelRecord.ts`: `extent`, `area` (gross ground m², 0 =
+  undeclared), `storeys`, `parentParcel`, `landUse | null` (inherit);
+  `ParcelSpace { capacity, allocated, unallocated, utilisation }`
+  (l.133–142: allocated = the children's areas — "footprints on a lot").
+  `api/parcel.ts`: `coveringParcelOf(path)` (async) / `coveringParcelOfSync`,
+  `landUseOf(path)` (total, `wild` default), `cultivationScaleAt(path)`,
+  `spaceOf(extent)`, `workableAreaOf(extent)` (= unallocated),
+  `subdivide`, `transfer`, `childParcelsOf`, `heldUnitsOf`. **There is no
+  footprint read other than a child parcel's own `area`.** Title claims
+  are `pack.yaml` `requires.title` entries `{ extent, parentParcel,
+  holder, landUse?, areaM2?, powerBand? }`; the only field-bearing claim
+  that declares an area is the orchard close (3600).
+- `PlantController.sowGround` (`platform/idea/cmd/inventory/PlantController.ts`):
+  the zoning gate (l.182–200: *"X is zoned Y and admits no cultivation"*,
+  unparcelled ground is not policed) and the title gate (l.488–491:
+  `coveringParcelOf(where)` + `AccessApi.heldExtents(giver)`), both over
+  `groundPath(site)`. This is the expression every new gate copies.
+- `lib/archetype/Archetype.ts`: `satisfies(space | spaces)` (l.465) over
+  contents + fixtures; the `cultivation` need (l.137–145, 260–267) reads
+  `ParcelApi.cultivationScaleAt`. The farm archetype
+  `trade-farming/content/archetypes/farm.yaml`: `ground: { cultivation:
+  field }`, `water`, `storage: presence barn`, `traction`, `groundwork`,
+  `market: presence cart`.
+
+### Herds (trade-ranching) and the dairy
+
+- `trade-ranching/package.json` depends on `@saxonberg/content-trade-farming`;
+  `HerdRegistry.ts:65`, `MoveController.ts:38`, `Herdbook.ts:56`,
+  `Livestock.ts:55` import `…/src/location/Field` (the pack→pack import
+  by declared dependency — the precedent this plan follows for
+  trade-farming → residence). `HerdRegistry.graze(herdId, to: Field | null)`
+  (l.486): fold the open window (`field.foldGrazer`), `clearGrazer` on the
+  old field (loaded by `loadField(path)` = `StuffApi.singleton` +
+  `instanceof Field`, l.623), `to.setGrazer(herdId, { label,
+  demandKgPerDay, feederKinds })`, `herd.grazing = to.getTemplatePath()`,
+  `Herdbook.noteGrazing`. `MoveController` (`move <herd> to <field>`, the
+  field a STRING): `pickField` (l.160–195) gathers candidate places and
+  keeps `instanceof Field` whose `getFieldName()` or keyword matches;
+  then the `homeExtent` prefix check on `field.getTemplatePath()` (l.84);
+  `Livestock.ts:350` `here.grazerLedger(herdId)`; `behavior/fodders.ts:144`
+  `field.swardBand()` + feeders by `isFeeder`/`offerings()`.
+  `trade-dairying/src` makes no Field call.
+
+### The landing (branch `origin/reqs/paint`, build-2 — not on master)
+
+16 commits ahead of master, same merge-base as this branch (`2670990ae`).
+D2 there: *a landing of structure S is a place that does not hold its own
+air with an exit whose far side is a member of S that is enclosed or S's
+entrance*; `lib/structure/Structure.ts` `isLandedAt(room)`, `landingsNow()`;
+room side `lib/stuff/Place.ts` `landedStructuresNow(): Structure[]`
+(l.213–221 there); D3: `api/mql/scope-walk.ts` `candidatesForHere` pushes
+each landed structure with `pushDirect` **after the exits loop** (l.95
+there) — no new seed, the `here` pool feeds `reachable`. `look <structure>`
+renders through `lookAtTarget` (Detailed + augmenters). On this branch
+`candidatesForHere` (`scope-walk.ts` l.78–97) ends with the obvious-exits
+loop; cover's only change to that file is in `scoreCandidates`, a
+different hunk. `LookController.lookAtTarget` (l.589–660) renders ANY
+Visible target as `Mml.actor(target)` + `getMarkupLong(actor)` — a
+`Location` target from another room renders its long description and
+its augmenters, not a room listing.
+
+### Affordances, the here pool, the collision
+
+- `platform/idea/api/CommandLogic.ts` l.3596–3640: `peers` contributions
+  are collected from the giver's container's **`getContents()`** only —
+  a FIXTURE's `commandContributions` reach nobody (fixtures are peer
+  *candidates* in the scope walk, `scope-walk.ts` l.122–160, but not
+  affordance sources). So every verb a field needs must be afforded by
+  its TRACT (`inventory`: a location's occupants hear it).
+- `mark` collides: `trade-ice/content/trade/ice/cmd/ice/mark.yaml`
+  (*"Score a grid across the ice, to cut into blocks"*; args `patch`
+  string, `tool` objects `[capability.marking]`). `lint:verb-collisions`
+  refuses a second view; `KNOWN_COLLISIONS` is not an amnesty
+  (command-spec.md § *When both are bodily acts*).
+- The lint family roster (`pnpm -C packages/server lint:family --list`,
+  85 gates) includes every gate named in § Convention conformance.
+
+---
+
+## Plan-level decisions (D23 onward)
+
+**D23 — A farm is the residence system's `HoldingWarren`; trade-farming
+declares residence as a dependency; nothing lifts.** The farm layout is
+a `HoldingWarren` row (`class: /system/residence/idea/HoldingWarren`)
+whose `floorplan` names structures' rooms and TRACT rows; copies are
+keyed instances `(row, <extent>/<leaf>)` exactly as a Hinkley house.
+`trade-farming/package.json` gains `@saxonberg/content-residence`; the
+tract narrows its warren with `instanceof HoldingWarren` (the
+trade-ranching → trade-farming precedent: *a mod imports the mods it
+declares*). CLAUDE.md's lift test — *substrate goes to the kernel when
+its composers have no common pack ancestor* — does not fire: nothing in
+trade-farming **composes** the floorplan mint; it is read through a
+declared dependency, and the requirements place holdings in residence.
+holding.md's deferred lift stays deferred (a mine is still the named
+second consumer; this build adds to residence, it does not widen into
+`lib/`). ⚠ `admitPlot` (the untyped hook) retires with `plot` (D35).
+
+**D24 — Host placement: TRACT is today's `Field` class renamed; FIELD is
+today's `Patch` promoted.**
+- `Tract` (`src/location/Tract.ts`, row `/trade/farming/location/tract`)
+  = `PersistableMixin(WarrenMemberMixin(ImprovableMixin(
+  CharacteredSoilMixin(SoilMixin(ReservedMixin(Location))))))` —
+  `SwardMixin` LEAVES it. It keeps: the ground spot, the season caches
+  and `restampSeason`, `soilDrawFactor`, `watershedScope` (itself), the
+  improvement hooks (`improvementBill/Pace/Spoils`, `progressOn`,
+  `improvementReversion`, `bankWork` — now reading over its fields),
+  `ensureCropTitle` (the operator at the tract), `getCrops()` (its
+  contents), `fieldLines(viewer)` → renamed `tractLines`: one line per
+  field, the rough ground line when none; the `fields: FieldSpec[]` set
+  (today's `patches`, now persistent AND authorable); `ensureFields`;
+  `soilParts()` → its fields. ⭐ **`ImprovableMixin` stays on the tract**:
+  the three ground verbs are afforded by the mixin on a Location and
+  target the place the actor stands in; clearing/draining/liming per
+  field is a deferred seam (§ Deferred), not a silent narrowing.
+- `Field` (`src/thing/Field.ts`, row `/trade/farming/thing/field`) =
+  `PersistableMixin(SwardMixin(CharacteredSoilMixin(SoilMixin(
+  ReservedMixin(AdornmentMixin(VisibleMixin(Thing)))))))`. It gains from
+  the old Field: `fieldName` (the spec's name; `presentationPhrase` →
+  proper phrase), `seedbedStamp`, `stubbleStamp`, `legumeFraction`, the
+  grazing ledger (`grazers` + its five methods), `turnUnder`,
+  `sowingRefusal` (its own: ploughed this season or a crop of its kind
+  standing), `isSeedbedFresh`, `cropsOn()` (the tract's crops rooted
+  here), `swardAreaM2 = areaM2 − crop area`, `swardGrowthFactor` (reads
+  its own reserves, the tract's season), `swardGrazingDemandPerGameDay`
+  (its ledger + its share of the tract's loose grazers, D34),
+  `onSwardIntegrated` + the nitrogen ledger (`cycleGrazedNitrogen`,
+  `fixLegumeNitrogen`, `poachByOccupants`), `swardShortfallFed` (walks
+  the TRACT's contents for feeders, D34), `inFlowerFraction`, and
+  `fieldLines(viewer)` (its own look: the ground phrase, the crop at the
+  viewer's band, the grass, the herds, labeled plants). It keeps from
+  Patch: `soilPartKey`, `soilDepthM`, `watershedScope` → the tract,
+  `soilWaterDemandPerGameDay` (its crops + its own sward),
+  `soilDrawFactor` → the tract's, `ensureCropTitle` → the tract's,
+  `configureField(spec, areaM2)`, `installFromTract(sample, tractSample)`.
+  `getTract()` replaces `getField()`. ⛔ Still not a Location, not a
+  Container: you stand in the tract; the crop stands in the tract's
+  contents and roots here by key (`Growing.groundPart`, unchanged).
+- Composing `SwardMixin` on a `Thing` fixture claims: *a thing that is
+  not a place may carry grass* — true of exactly this fixture and
+  contradicts nothing (`Sward`'s host constraint is `Stuff & Reserved`).
+  Composing `PersistableMixin` on the fixture claims it keeps its own
+  `(scope, key)` record — D26.
+
+**D25 — The tract's unmarked ground is its own soil, and the kernel
+counts it as a part.** A tract installs its own four reserves sized to
+its REMAINDER area (`areaM2 − Σ field areas`); a field installs its own
+sized to its area. `SoilMixin`'s aggregation (`partWeights`,
+`meanOverParts`, the spread writes, `reconcileSoil`,
+`soilMoistureHeadroomL`) gains the host's own reserve as an implicit
+remainder term weighted by `soilRemainderAreaM2()` (a new @hook,
+default `soilCatchmentAreaM2() − Σ parts' catchment`, counted only when
+`> 0` and the host holds a `moisture` reserve). A pot, a bed and a
+one-piece ground are byte-identical (no parts → the direct path). So
+`analyze soil` on a tract reads the whole ground before any field exists
+(AC: survey works on a tract) and the area-weighted whole once fields
+do. `soilPartNoun()` (@hook, default `'part'`; the tract answers
+`'field'`) words `soilPartRefusal` — *"Which field? Name one: …"*. The
+`PartResolution` reasons rename `'patch-unnamed'` → `'part-unnamed'`;
+`PlantController`'s `'patch-sown'` → `'part-sown'` (the kernel's word is
+*part*; the drives assert the codes). ⭐ Sowing on a tract with no fields
+is refused by the tract: *"Mark a field first — nothing is planted on
+unmarked ground."* (`Tract.sowingRefusal`); with one field it is that
+field (today's `parts[0]` rule); with several, `part-unnamed`.
+
+**D26 — A field persists itself, keyed under its tract.** `Field` is
+`PersistableMixin` with scope = its row and key =
+`<tractKey>/<fieldKey>` (`tractKey` = the tract's persistence key,
+`<extent>/<leaf>`). The fixtures slice already skips a Persistable
+fixture, so nothing is captured twice. The tract's `fields: FieldSpec[]`
+is the persisted SET (what exists, its name and share); the field's
+record is its STATE (reserves, stamps, ledger). Minting is one routine,
+`Tract.ensureFields()`: for each spec with no fixture in slot
+`field:<key>` — clone the row, `addFixture`, `PersistableApi.restoreOrSeed(
+field, key)`, `configureField`, `installFromTract` (idempotent) — run at
+`onWarrenWake` (D28), at `onRestored` (a restored tract's runtime-marked
+specs arrive with its record), and by `mark`. Capture and revert: a new
+kernel @hook `Persistable.dependentPersistables(): (Stuff & Persistable)[]`
+(default `[]`; the tract answers its fields) that `PersistableLogic`'s
+capture and `deleteAllFor` walk after the host — so `HoldingWarren.captureAll`
+and `revert` reach the fields with no residence change and no duck
+typing. `mark` / `unmark` capture the tract (and so its fields) at once,
+the `admitPlot` precedent.
+
+**D27 — A share becomes square metres through the holding's open
+ground.** `FieldSpec.share` (0 < share ≤ 1, a fraction of the tract)
+replaces `PatchSpec.areaM2`; the twelve rows' parts convert (bench
+1000/1500/1500 of 4000 → 0.25/0.375/0.375). A field's area = `share ×
+tract.areaM2`. A tract's `areaM2` is no longer authorable: the floorplan
+entry carries `share` (of the holding's open ground) and the tract is
+sized at wake (D28). **Open ground** = `ParcelApi.workableAreaOf(extent)`
+− Σ `footprintM2` over the floorplan's non-tract entries — a new optional
+floorplan field on `HoldingWarren` (`footprintM2`: the ground a room
+stands on that no tract covers — the barn 150, the byre 120, the yard
+400), read by a new `HoldingWarren.openGroundM2(): Promise<number>`.
+One source in practice: no farm parcel in this build has building
+child-parcels (the orchard close's own claim retires into Quist's farm
+claim, D33), and `workableAreaOf` still subtracts any that a locality
+authors. ⚠ An unmeasured parcel (`area` 0) gives a tract of 0 m²:
+`mark` refuses (*"This ground has never been measured; nobody can say
+what a third of it is."*), `look` reads it as unmeasured, and the
+reserves are not installed (the shipped `areaM2 ≤ 0` guard). Every
+parcel claim this build touches therefore declares `areaM2` (D32, D33).
+`CharacteredSoilMixin.resizeSoilReserves(areaM2)` (new): rescales each
+reserve's capacity and current by the area ratio, keeping fractions —
+what a mark/unmark/resize does to the remainder and to a resized field.
+
+**D28 — A member learns it has been stood up: `WarrenMember.onWarrenWake()`.**
+A kernel @hook on `WarrenMemberMixin` (default no-op) that a warren
+calls after a member is stood up and restored. `HoldingWarren.wakeRoom`
+calls it after `restoreOrSeed` (and `admitPlot`'s path goes away). The
+tract overrides: `getWarren()` narrowed `instanceof HoldingWarren` →
+`await holding.openGroundM2()` × its own share (the floorplan entry's,
+read through `holding.shareOf(leaf)`) → `setAreaM2`, `installTractReserves`
+(idempotent; a restored tract keeps its reserves), `ensureFields()`,
+`restampSeason()`. `onCreate` keeps the locality/seed/model resolve but
+installs nothing when `areaM2 ≤ 0` (the shipped guard) — so a tract
+cloned bare in a unit test behaves as a field does today once a test
+sizes it. `lint:unconsumed-seams`: the tract is the override.
+
+**D29 — `mark` and `unmark`: the verbs, the gates, the collision.**
+Views in trade-farming (`content/trade/farming/cmd/farming/mark.yaml`,
+`unmark.yaml`), controllers `src/idea/cmd/farming/MarkController.ts`,
+`UnmarkController.ts`, both dumb; the acts live on the tract
+(`markField(name, share | null)` → `ActOutcome | ActRefusal`,
+`unmarkField(field)`), the `mixin-authoritative` rule.
+- Grammar: `mark <name> [as <share> of it]` — `name` a greedy string
+  bounded by the `as` preposition (the binder rule: a greedy arg may be
+  followed by prepositional args); `share` a string parsed by
+  `src/lib/Share.ts` (a value object: *a third · two-thirds · half · a
+  quarter · three-quarters · all of it · the rest · 40% · 0.4*; `null` =
+  the rest). A name matching an existing field resizes it; otherwise it
+  is a new field. `unmark <field>` — an object arg `requires: SoilMixin`
+  binding the fixture by keyword (the arg gate). Renaming is unmark +
+  mark (owner's eye, § Risks).
+- Refusals, returned by the tract in this order: not a holder/hand (the
+  SOW's title gate, copied from `PlantController.sowGround` l.480–500 —
+  whoever may sow here may mark here); zoning
+  (`LandUses.admitsCultivation(ParcelApi.landUseOf(groundPath))` below
+  `field` → *"The garden is zoned residential — dwelling, companions and
+  small cultivation — and takes beds, not fields."* using
+  `summaryOf(use)`; unparcelled ground is not policed, the PlantController
+  rule); unmeasured (D27); over the whole (*"Only a sixth of it is
+  unmarked."*); a crop standing on the field being resized or removed
+  (*"You cannot move a boundary through standing wheat."*, lens 3a).
+- Affordance: both views in `Tract.commandContributions.inventory`.
+- ⚠ **The collision.** Ice's `mark` scores a cutting grid; farming's
+  draws a field boundary. Rung 1 (unify behind a protocol where the
+  ground plans the mark) would need the view to carry both grammars
+  (`as <share>` and `with <tool>`) and the controller to ask which; rung
+  2 (generativity) decides: *marking a boundary on held ground* is the
+  primitive other content extends (pens, plots, claims); scoring ice is
+  one trade's gesture with a plain-English word of its own — the help
+  text already says *"scores a grid"*. **Ice yields: `mark` → `score`**
+  (`trade-ice/.../cmd/ice/mark.yaml` → `score.yaml`, its controller row
+  and help; `cut marked` keeps its word — "marked" is the ice's state,
+  the tool stays the ice marker). First-come is not an option
+  (command-spec.md). Owner's eye: § Risks.
+
+**D30 — A tract is seen from where it is reached: a kernel hook on
+`Place`, beside the painting build's landing.** `Place.isSeenAcrossExit():
+boolean` (@hook, default `false`; `Tract` answers `true` — open ground
+reads from its gate). `candidatesForHere` (`scope-walk.ts`) pushes, after
+the exits loop, every exit's far side that is resident, a `Place`, and
+`isSeenAcrossExit()` (`pushDirect`, so `look upper bench` from the yard
+binds it through `reachable` with no grammar change — D3 of the paint
+plan, applied to ground). `lookAtTarget` then renders the tract's long
+description + `tractLines` — the fields, one line each, as from inside.
+**Merge rule with `reqs/paint`:** the two blocks are siblings in the same
+function; whichever branch merges second keeps both (a trivial conflict
+in one hunk, nothing shared). Recorded for the sweep: fold both into one
+`Place.seenBeyondExitsNow()` walk (landed structures ∪ seen-across
+places) once both are on master — a follow-up, not this build's. ⛔ The
+far side's EXITS, contents and occupants are not offered; only the
+place itself. Working a field from the yard stays impossible because the
+field fixtures are peers only of the tract's occupants.
+
+**D31 — Mirroring derives from the gate ring and flips across the road's
+axis.** `PlatPlan.mirrorAxisOfSlot(leaf): 'east-west' | 'north-south' |
+null` (kernel value object): for a branched slot, the ring index's parity
+(right/ahead-right/behind-right = `null`, left/ahead-left/behind-left =
+mirrored) and the axis perpendicular to the road's heading; a static slot
+may author `mirrored: true` (then the axis is authored too: `mirror:
+east-west`); linear = `null`. `HoldingWarren` gains persistent `mirrorAxis`
+(`'' | 'east-west' | 'north-south'`), set by `PlatWarren.standUpHolding`
+before `wake()`; `getFloorplanExits()` maps every direction and opposite
+through the flip (east↔west, northeast↔northwest, southeast↔southwest
+for `east-west`; the other four for `north-south`), so `wireEdge` and
+`layOut` need no change. The gate's own direction and the hub exit back
+are the ring's and untouched. ⭐ This is what makes a layout face the
+lane on both sides: a house whose hall is north of the yard on a
+right-side lot has its hall south of the yard on a left-side lot — so
+**Hinkley's left-side lots (ring index 1, 3, 5) now mirror**, which they
+should have (the house on the south side of the lane faced the lane
+with its bedroom). Owner's eye: § Risks. The valley lane is authored
+heading **north**, so its mirror is east ↔ west — the addendum's words.
+
+**D32 — Authored farms are STANDING holdings of a static-plan plat.**
+Each locality with authored farms gets one `PlatWarren` row with a
+`static` plan whose nodes are the authored approach rooms and whose
+slots are the farms; the holdings are pre-titled by `pack.yaml` claims
+(the Hinkley `lot-1` precedent) with `areaM2` declared. Three residence
+changes, all policy, none in the kernel's reap invariant's spirit:
+1. **Per-slot programme.** `StaticNode.slots` entries become `string |
+   { key, programme?, gate?, mirrored?, mirror? }` (`PlatPlan.parse`;
+   `programmeOfSlot(leaf)`, `gateOfSlot(leaf)`); `PlatWarren.standUpHolding`
+   clones `programmeOfSlot(leaf) ?? programmePath`. One institution per
+   locality, several layouts.
+2. **Standing, not dormant.** A kernel @hook on `CirculationWarren`,
+   `dormancyOf(key): 'reap-when-empty' | 'standing'` (default reap);
+   `reconcile()` skips a `standing` holding; `PlatWarren` answers
+   `standing` for a static plan and admits every provisioned static slot
+   at `onCreate` (beside the gate re-hang). A venue farm, its cast, its
+   herd and its crop exist at boot, as today.
+3. **Authored placement.** `HoldingWarren.placement: 'derived' | 'authored'`
+   (authorable, default `derived`): `authored` skips `layOut()` and the
+   address stamp, so the rows keep their `coords:` and `_address`.
+   `entryEdgeFor` first returns an existing exit on the node whose
+   destination path is the entry ROW (the authored way in — `bench-lane`
+   into the yard, the campus path into the farm yard, the track into a
+   cane piece); `wireHubExit` likewise keeps an authored way out. The
+   static slot's `gate:` names the direction when a gate must be hung.
+   A venue farm's rows become keyed instances `(row, <extent>/<leaf>)`
+   with ONE instance each, so every template-path lookup the drives,
+   the herdbooks and the exits make resolves exactly as today.
+The holdings: HD **quist-farm** (yard entry, barn, byre; tracts
+upper-bench (three fields pre-marked), orchard-close, lower-meadow) and
+**dairy** (yard entry, byre; tracts pasture, hay-meadow); campus
+**campus-farm** (yard entry, byre, hay-barn; tracts home-field (three
+pre-marked), back-paddock); Waponi **cane-pieces** (entry cane-piece;
+lower-piece joined by a floorplan edge `cane-piece south ↔ lower-piece
+north`, the track's `southeast` exit retired) and **smallholdings**
+(entry smallholding-a; smallholding-b `west`); Rejection **goat-pen**
+(the pen is both entry and tract). Parcel claims gain `areaM2` (sum of
+today's room areas + footprints: quist-farm ≈ 14 300, dairy ≈ 36 500,
+campus-field 30 000 (+ the campus-farm yard's), the Waponi pieces 16 000
+and 2 200 as two new child claims of the island, goat-pen stays under
+kestrel-road with a 400 m² child claim). ⚠ The goat pen's covering use
+is **wild**: its pasture is pre-marked (an author's starting state, no
+gate) and `mark` there would be refused by zoning — § Risks.
+
+**D33 — The valley: one branched plat, one sellable layout, Quist's rows
+dressing it.** `hearts-delight/.../idea/valley-plat.yaml` (`PlatWarren`,
+branched: road `valley-lane`, heading `north`, 1 segment × 4 frontages,
+segment 1 authored = a new `location/valley-lane.yaml` off the existing
+lane; `programmePath: …/idea/farmstead`; cap 4) and
+`idea/valley-book.yaml` (`PlatBook`: `areaM2: 16000`, `landUse:
+agricultural`, `priceMinor: 16000` — **grain**, the owner may reprice;
+`holderPath` the plat). The book is listed on the Terminus realty desk
+(`terminus/.../realty/desk.yaml` `books:` + Ricky's) — buyable with
+`title buy` exactly as a Hinkley lot (`TitleController` unchanged;
+`subdivide` stamps `agricultural`, inside its band). The layout row
+`idea/farmstead.yaml` (`HoldingWarren`, `upkeepTerm: owner-all`,
+`placement: derived`): yard (entry, `footprintM2: 400`, `north` → barn
+locked? no — a farmyard is open; the barn door is the locked edge),
+barn (`footprintM2: 150`), byre (`footprintM2: 120`), tracts upper-bench
+(`share: 0.3`, `up` from the yard), orchard-close (`share: 0.25`, `east`
+of the bench and `northwest` of the yard), lower-meadow (`share: 0.45`,
+`west` of the yard) — the same edges Quist's rooms have today. Generic
+rows `hearts-delight/.../farmstead/location/{yard,barn,byre}.yaml` and
+`farmstead/tract/{upper-bench,orchard-close,lower-meadow}.yaml` carry
+neutral prose, no props, no cast, no `fields:`; **Quist's existing rows
+`extends:` them** and keep their prose, props, cast, coords, addresses
+and the bench's pre-marked fields. So the valley's four farmsteads are
+"minted from Quist's layout" in shape and bare of his furniture; a second
+venue is rows only (lens 2). The four lots' ring: right, left,
+ahead-right, ahead-left → lots 1 and 3 unmirrored, 2 and 4 mirrored — the
+addendum's *alternately*. The farm-business title claim to the orchard
+close retires into one claim over the whole quist-farm extent (same
+holder, `areaM2: 14300`); the crop title (`ensureCropTitle` →
+`operatorsAt(tract)`) is unchanged in effect.
+
+**D34 — Herds graze a field; feeders stand on the tract.**
+`HerdRegistry.graze(herdId, to: Field | null)` takes the new `Field`
+(the fixture); `herd.grazing` stores a `FieldRef` string
+`<tract durable handle or template path>#<fieldKey>`; `loadField(ref)`
+splits it, resolves the tract (instances of the row by
+`StuffApi.findAllByTemplatePath` matched on `getDurableHandle()`, else
+`findByTemplatePath`) and asks `tract.fieldByKey(key)`. The five
+herdbook `grazing:` bindings become `<tract path>#<key>`. `MoveController.pickField`
+gathers the fields of every tract that is a member of the warren the
+giver's location belongs to (plus the current grazing), and the
+`homeExtent` check reads the tract's persistence key. `fodders.ts` reads
+`field.swardBand()` as before. **Feeders**: a trough or rick is a thing
+in the TRACT's contents; `Field.swardShortfallFed` walks its tract's
+contents for feeders of its grazers' kinds — so a trough on the tract
+feeds any herd on any of its fields, first come first served (**grain**:
+a feeder tied to one field is a deferred seam). **Loose grazers** (an
+animal standing in the tract with no herd line): the tract apportions
+their demand over its fields that carry no crop, by area; a field with a
+crop is never grazed (the drive's step 10). The pre-existing shape probe
+in `swardGrazingDemandPerGameDay` moves with the method and is noted as a
+finding, not fixed here (`no-duck-typing` owner's call).
+
+**D35 — `plot` retires; `SingletonField` retires once every tract is a
+holding member.** Delete `PlotController.ts`, `PlotController.yaml`,
+`plot.yaml`, `PlotVerb.test.ts`; drop `plot.yaml` from `Spade.ts`'s
+contributions; delete `HoldingWarren.admitPlot` and its test case; the
+`PlotHost` duck type goes with it. Hinkley lots take their garden from
+the house layout (W4). `SingletonField` → `SingletonTract` bridges W1–W3
+(the twelve rows keep booting as singletons until W4/W5 re-express
+them), then is deleted in W5; `lint:instanceable` stays green throughout.
+
+**D36 — The farm archetype's ground slot is satisfied by a tract with a
+marked field, read through the kernel protocol.** `Archetype`'s
+`cultivation: field` evaluator (l.260–267, kernel) gains one more way to
+be met: a space (or a space's warren member — the holding's rooms are
+the spaces `satisfies` is given) that is `isSoil && !isCultivable` with
+`soilParts().length > 0`, reported *"by the upper bench (three fields
+marked)"*; with none marked the row is unmet and names the tracts and
+their counts (*"the upper bench — no fields marked"*). `bed` is as
+today. Reported, never enforced (the no-gauge rule). The drive's step 11
+reads it through the shipped `survey`-style archetype report at the
+farm (the build finds the verb that prints a satisfaction today —
+`survey` at home, holding.md § The acts — and reads the farm's through
+it; if no verb reaches a farm's archetype, the step reads it by `eval`
+and the gap is a finding).
+
+**D37 — Drives.** New blocking drive `packages/wire/tests/tracts.dirty.wire.test.ts`
+(the addendum's 11 steps; every step instant or short — step 6's sowing
+is instant, no season) and its soak twin `tracts.soak.dirty.wire.test.ts`
+(a season on a valley farm: the barley cut from the field marked in step
+4). The cover and field-population drives are **reworded, acts unchanged**
+(D38). Pace table in § Test & gate strategy.
+
+**D38 — Words.** Player-facing: *field* for what you plant, *tract* for
+the ground you walk; "patch" nowhere (`lint:authored-prose` finds a
+stray). Code: the kernel keeps *part* (`soilParts`, `groundPart`,
+`part-unnamed`, `part-sown`); the six platform views' arg `patch`
+renames to `part` (the controllers read `model.part`); `plough` and `mow`
+gain the same `part` arg (`at <field>`, resolved by the tract's
+`resolvePartFor`, the D5 shape) because they now act on a field.
+`PatchSpec` → `FieldSpec`, `patches` → `fields`, `ensurePatches` →
+`ensureFields`, `getPatches` → `getFields`, `patchLines` → `fieldLines`,
+the slot `patch:<key>` → `field:<key>`, the row `thing/patch.yaml` →
+`thing/field.yaml`, `location/field.yaml` → `location/tract.yaml`.
+American English throughout (`labeled`); `plough` stays.
+
+---
+
+## ⭐⭐ Host placement
+
+| new thing | host | what composing it claims — and what it does NOT |
+|---|---|---|
+| `soilRemainderAreaM2()` (@hook), `soilPartNoun()` (@hook), the remainder term in the aggregation, the reason renames | `SoilMixin` (kernel) | any soil with parts may ALSO keep soil of its own for the ground between them; a host with no parts is byte-identical. ⛔ Not on `Tract`: `water`/`feed`/`analyze` aggregate inside the kernel and must see the remainder without knowing a trade. |
+| `isSeenAcrossExit()` (@hook) + the `candidatesForHere` block | `Place` (kernel, `lib/stuff/Place.ts`) + `scope-walk.ts` | a place MAY declare itself readable from the places whose exits lead into it; default false, so no street, room or water place changes. ⛔ Not a mixin: it is one predicate on the one base every place has, the landing's shape. |
+| `onWarrenWake()` (@hook) | `WarrenMemberMixin` (kernel) | a member may finish standing itself up once its warren has placed and restored it; default no-op for every dorm room, lounge satellite, mine working. |
+| `dependentPersistables()` (@hook), walked by capture + delete | `PersistableMixin` (kernel) + `PersistableLogic` | a keyed host may own keyed records of its own that live and die with it; default `[]`. ⛔ Not on `HoldingWarren` by hand (a residence class must not know a field exists). |
+| `dormancyOf(key)` (@hook) | `CirculationWarren` (kernel) | an institution may keep a holding standing; default reap-when-empty, so every dorm, let and plat is as it was. |
+| `mirrorAxisOfSlot`, `programmeOfSlot`, `gateOfSlot`, the static slot object | `PlatPlan` (kernel value object) | a plan knows which side of its road a slot is on and what a static slot stands up. No new static (`lint:lib-statics`). |
+| `share`, `footprintM2` on a floorplan entry; `openGroundM2()`, `shareOf(leaf)`; `mirrorAxis`; `placement`; the exits flip | `HoldingWarren` (residence) | every holding has open ground its rooms stand on and tracts share; a copy may face the other way; a venue holding keeps its authored frame. ⛔ No tract vocabulary here — residence never names farming. |
+| `standing` for static plans; `standUpHolding` per-slot programme; authored-gate reuse | `PlatWarren` (residence) | a static plat is a venue: its holdings stand at boot. |
+| `Tract` (renamed `Field`) — `fields: FieldSpec[]`, `ensureFields`, `getFields`, `fieldByKey`, `markField`, `unmarkField`, `tractLines`, `soilParts`, `onWarrenWake`, `isSeenAcrossExit`, `sowingRefusal` (no fields) | `trade-farming/src/location/Tract.ts` | a walkable piece of a holding's open ground. Composes NO sward: unmarked ground is rough. `ImprovableMixin` stays (D24). |
+| `Field` (renamed `Patch`) — `PersistableMixin`, `SwardMixin`, `fieldName`, the stamps, the grazing ledger, the nitrogen ledger, `fieldLines` | `trade-farming/src/thing/Field.ts` | a named part of a tract with soil, grass and a history of its own; a fixture, never loose, never carried, never a place. |
+| `resizeSoilReserves(areaM2)` | `CharacteredSoilMixin` (trade-farming `lib/`) | charactered ground may change size keeping its fractions. |
+| `Share` | `trade-farming/src/lib/Share.ts` (value object) | a fraction in words. A pack `lib/` value object, consumed only by `mark`. |
+| `MarkController`, `UnmarkController`, `mark.yaml`, `unmark.yaml` | trade-farming `src/idea/cmd/farming/` + `content/trade/farming/cmd/farming/` | dumb controllers; the tract decides. |
+| `part` arg on `plough.yaml`, `mow.yaml`; `patch` → `part` on the six platform views | the views | the kernel verbs take *at <field>*; `requires: SoilMixin` is the arg gate. |
+| `FieldRef` handling in `graze`/`loadField`/`pickField` | trade-ranching | a herd's line names a field by its tract and key. |
+| the `cultivation: field` met-by-parts case | `Archetype` (kernel) | ground with marked parts is field-scale ground. |
+| the layouts, plats, books, claims, the twelve re-expressed rows, the Hinkley garden | content packs | rows only. |
+
+The test, applied: no step above adds a guard that re-narrows a host
+set. The one branch that looks like one — `ImprovableMixin` staying on
+the tract while sward moves to the field — is a placement choice named in
+D24 with its seam, not a guard.
+
+---
+
+## Convention conformance (checked at plan time)
+
+- `props:` / `cast:` — Quist's, the dairy's, the campus's and Waponi's
+  cast and props stay on THEIR rows (which now `extends:` or simply are
+  floorplan room rows); the generic valley rows carry none. A field
+  fixture is minted by its tract (the creator places it); never
+  `container:`.
+- Locations, not rooms — `Tract extends Location` (the permissive
+  twin, keyed); `Field` is a `Thing` fixture. The yard/barn/byre rows are
+  `Locale`/`PersistentLocation` as authored today.
+- The five axes — `/trade/farming/location/Tract` + `/trade/farming/thing/Field`
+  (classes mirror rows); holdings and plats are `/system/residence/idea/*`
+  classes named by `/world/<place>/…/idea/*` rows (*a system's classes
+  are the pack's; its instances are the realm's*).
+- Module scope declares; lifecycles initialize — minting in
+  `onWarrenWake`/`onRestored`/`markField`; `lint:on-create` ceilings
+  unchanged (the tract's `onCreate` shrinks).
+- Import boundary — trade-farming imports residence by package
+  specifier (`@saxonberg/content-residence/src/idea/HoldingWarren`), a
+  declared dependency; trade-ranching imports the new `Field`/`Tract`
+  the same way; no Api, no logic singleton, no free helper in a pack
+  (`Share` is a value object; the fraction words are its concept).
+- Verbs on objects — `tract.markField(…)`, `tract.unmarkField(…)`,
+  `tract.fieldByKey(…)`, `field.getTract()`, `holding.openGroundM2()`,
+  `plan.mirrorAxisOfSlot(…)`; no `XApi.verb(host, …)`.
+- Mixin authoritative, controller dumb — every refusal line is the
+  tract's; the controllers word nothing of their own.
+- No new Mongo collection (`holder_snapshots` carries the field records
+  under new keys); no migration (dev DBs are dropped). No `isWizard`.
+- Name a class for what it is — `Tract`, `Field`, `Share`; no adjective
+  class names.
+- American English — `labeled`, `color`, `center` in every new sentence.
+- ⭐ **No new module category, no exported helper** — the one temptation
+  (a fraction parser) is `Share`, a value object.
+- Lint gates this shape touches (the family is derived; run it whole):
+  `lint:field-meta` (new entries on Tract, Field, HoldingWarren),
+  `lint:mixin-names` (no new mixin name), `lint:instanceable` (Tract and
+  Field rows ↔ classes; no `container:`; `SingletonTract` until W5),
+  `lint:reachability` (mark/unmark/mow/plough afforded by Tract; the six
+  views' `part` arg), `lint:verb-collisions` (ice `score`; `mark` has one
+  claimant), `lint:instrument-args` (no `default:` on `part`),
+  `lint:unconsumed-seams` (every new @hook has its override in the same
+  wave), `lint:lib-statics` (PlatPlan gains instance methods only),
+  `lint:location-graph` (venue holdings' keyed rooms and the valley lane
+  node — the invariant that bit the forestry build; see § Risks),
+  `lint:locations`, `lint:boundary` (the floorplan edges), `lint:mass`
+  (the field row's `_materialPath`), `lint:untitled` (the new claims),
+  `lint:authored-prose` ("patch" gone), `lint:topics`, `lint:drive-scripts`
+  (the new drive + soak twin), `lint:test-bootstrap`, `lint:module-scope`,
+  `lint:imports`, `lint:object-verbs`, `lint:census` (the twelve rows'
+  class references), `lint:pack-extends` (Quist's rows extending the
+  valley's), `lint:controller-rows` (the two new controller rows),
+  `lint:self-contributions`, `lint:get-or-create` (`ensureFields`),
+  `lint:person-keys`.
+
+---
+
+## Waves
+
+Every wave lands green on `pnpm test:near` + the touched packs' vitest
+(`trade-farming`, `trade-ranching`, `residence`, `hinkley-hills`,
+`hearts-delight`, `eternal-university`, `waponi-woo`, `rejection`,
+`trade-ice`, `terminus`) + `pnpm -C packages/server lint:family`, and
+ends at one commit. Stage on a live world between waves
+(`probe-world-fast-loop`): boot once, walk the wave's steps as a player.
+⛔ The full suite runs at code-complete and at `/finalize` only.
+
+### W0 — the kernel seams
+
+**Goal.** Every kernel hook this build needs, each with a default that
+changes nothing, so W1–W5 are pack and content work.
+
+**Decisions.** D25, D26 (the hook), D28, D30, D31 (PlatPlan), D32 (1, 2
+— the plan and the dormancy hook), D36, D38 (reason codes).
+
+**Files.**
+- `packages/server/src/mud/lib/husbandry/Soil.ts` — `soilRemainderAreaM2()`,
+  `soilPartNoun()`, the remainder term in `partWeights`/`meanOverParts`/
+  the spread writes/`reconcileSoil`/the headroom reads; reasons
+  `part-unnamed`; interface + docstrings.
+- `packages/server/src/mud/platform/idea/cmd/inventory/PlantController.ts`
+  — `part-sown`; arg `patch` → `part` (and the five other views'
+  controllers: `WaterController`, `FeedController`, `HarvestController`,
+  `SampleController`, `LabelController`) + the six YAML views under
+  `packages/content/platform/content/platform/cmd/{bulk,inventory}/`.
+- `packages/server/src/mud/lib/stuff/Place.ts` — `isSeenAcrossExit()`;
+  `packages/server/src/mud/api/mql/scope-walk.ts` — the block after the
+  exits loop in `candidatesForHere`.
+- `packages/server/src/mud/lib/location/WarrenMember.ts` —
+  `onWarrenWake()`; `lib/location/CirculationWarren.ts` — `dormancyOf(key)`
+  + the skip in `reconcile()`; `lib/location/PlatPlan.ts` — the static
+  slot object, `programmeOfSlot`, `gateOfSlot`, `mirrorAxisOfSlot`,
+  `ringIndexOfSlot`.
+- `packages/server/src/mud/lib/persistence/Persistable.ts` +
+  `platform/idea/api/PersistableLogic.ts` — `dependentPersistables()`
+  walked by capture and `deleteAllFor`.
+- `packages/server/src/mud/lib/archetype/Archetype.ts` — the met-by-parts
+  case of `cultivation: field`.
+- Tests beside each: `Soil.parts.test.ts` (remainder arithmetic: a
+  3-part ground with a remainder reads the area-weighted whole; no parts
+  → unchanged), `PlatPlan.test.ts` (ring parity → axis; static slot
+  objects parse; a bare string slot still parses), `scope-walk` test
+  (a far place answering true is a `here` candidate; false is not),
+  `Persistable` test (dependents captured and deleted), `Archetype`
+  test (parts satisfy `field`).
+
+**Acceptance.** `test:near` + `lint:family` green; every drive on this
+branch byte-identical except the reason codes, which the two blocking
+drives are updated for in the same commit (`patch-unnamed` →
+`part-unnamed`, `patch-sown` → `part-sown`).
+
+**Commit.** `kernel(tracts): the remainder is a part; a place seen across an exit; onWarrenWake, dependentPersistables, dormancyOf; the static slot and the mirror axis`
+
+### W1 — the rename: Tract and Field
+
+**Goal.** `Field.ts` → `Tract.ts`, `Patch.ts` → `Field.ts`, rows, specs,
+the arg, the drives' words — **no behavior change** (grass and the
+ledger still on the tract this wave).
+
+**Decisions.** D24 (names only), D27 (`share` replaces `areaM2` on the
+spec; the tract's `areaM2` stays authorable until W4), D35 (the
+`SingletonTract` bridge), D38.
+
+**Files.**
+- `packages/content/trade-farming/src/location/Tract.ts` (git mv from
+  `Field.ts`), `src/thing/Field.ts` (git mv from `Patch.ts`),
+  `src/location/SingletonTract.ts`; `content/trade/farming/location/tract.yaml`,
+  `content/trade/farming/thing/field.yaml`; `FieldSpec { key, name,
+  keywords?, share, lean?, description? }`; `fieldAreas` (the last
+  absorbs the rounding, as today); `getFields`, `fieldByKey`,
+  `ensureFields`, slot `field:<key>`; `Field.getTract()`.
+- The twelve rows: `class: /trade/farming/location/SingletonTract`;
+  `patches:` → `fields:` with `share`; the three standing-wheat rows'
+  `groundPart` keys unchanged.
+- `plough.yaml`, `mow.yaml` + `PloughController`, `MowController` gain
+  the `part` arg (resolved by `resolvePartFor`; with one field it is
+  that field; `turnUnder` / `drawSward` on the field — still the tract's
+  methods this wave, so the controller passes the part through to the
+  tract).
+- trade-ranching's four imports → `Tract` (the grazing target is still
+  the tract this wave); `farms.ts` untouched (protocol reads).
+- Tests renamed (`tract-*.test.ts`, `field-fixture.test.ts`); the two
+  blocking drives + soak twins: every "patch" in prose, comments and
+  helper names → "field" (`patchCondition` → `fieldCondition`; the
+  asserted strings the game prints change only where the game's words
+  change — the look lines say *At the top end…* as before).
+- `docs/subsystems/soil.md` cross-references (the sweep rewrites the
+  section; this wave only keeps the names true).
+
+**Acceptance.** Both blocking drives green reworded (`pnpm wire` for the
+two files); `lint:census` + `lint:instanceable` green (rows ↔ classes);
+`grep -rn patch packages/content/trade-farming packages/wire/tests/{cover,field-population}*` finds nothing player-facing.
+
+**Commit.** `refactor(farming): Field is a Tract and a patch is a Field — the rename, shares on the spec, every drive reworded`
+
+### W2 — the field owns its grass, its stamps and its herds
+
+**Goal.** Move `SwardMixin`, the crop stamps, the grazing + nitrogen
+ledgers and the name down onto `Field`; the tract keeps the remainder
+soil and the season.
+
+**Decisions.** D24 (the moves), D25 (the remainder installs), D34.
+
+**Files.**
+- `src/thing/Field.ts` — compose `SwardMixin`; move `fieldName`,
+  `seedbedStamp`, `stubbleStamp`, `legumeFraction`, `grazers` + the five
+  ledger methods, `turnUnder`, `isSeedbedFresh`, `sowingRefusal`,
+  `swardAreaM2`, `swardGrowthFactor`, `swardGrazingDemandPerGameDay`,
+  `onSwardIntegrated`, `apportionGrazers`, `cycleGrazedNitrogen`,
+  `fixLegumeNitrogen`, `poachByOccupants`, `swardShortfallFed` (over
+  `getTract().getContents()`), `inFlowerFraction`, `onContainableAdded/
+  Removed` logic (now the tract forwards a crop's arrival to the field it
+  roots in), `fieldLines` (the full read); `fieldMeta` marks the moved
+  state `persistent` (its own record, D26 lands in W3 — until then the
+  fixtures slice carries `persistent + runtimeState` fields, so mark them
+  `runtimeState: true` this wave and drop that in W3).
+- `src/location/Tract.ts` — drop `SwardMixin`; `installTractReserves`
+  (the remainder, idempotent); `tractLines` (rough ground / one line per
+  field / the loose grazers); `sowingRefusal` (no fields → refuse;
+  else the part's); `progressOn`/`improvementReversion`/`bankWork` over
+  `getFields()`; `looseGrazingDemandPerGameDay()` apportioned to grass
+  fields (D34); `soilWaterDemandPerGameDay` = the remainder's bare-ground
+  evaporation term only (no sward).
+- `src/lib/CharacteredSoil.ts` — `resizeSoilReserves(areaM2)`.
+- trade-ranching: `HerdRegistry.graze(herdId, to: Field | null)`,
+  `FieldRef`, `loadField(ref)`; `MoveController.pickField` over the
+  warren's tracts' fields + the `homeExtent` check on the tract key;
+  `Herdbook.noteGrazing` reads the field's presentation; `Livestock`
+  `grazerLedger` on the field; `fodders.ts` `swardBand` on the field. The
+  five herdbook rows' `grazing:` → `<tract>#<key>`; where a field was
+  one-piece the row gains one pre-marked field named for the place
+  (pasture → `pasture` (share 1); lower-meadow → `meadow`; orchard-close
+  → `close`; back-paddock → `paddock`; goat-pen → `pen`; the Waponi
+  pieces → `cane` each; hay-meadow → `hay`).
+- Tests: `field-grazing.test.ts` (a herd on one field; a crop on the
+  sibling field is not grazed; the trough on the tract feeds it),
+  `field-crop.test.ts` (stubble/seedbed per field), `tract-remainder.test.ts`
+  (mark-less tract reads its own soil; `analyze` after fields reads the
+  weighted whole), ranching's `HerdRegistry.test.ts` + `MoveVerb.test.ts`
+  on a `FieldRef`.
+
+**Acceptance.** Cover drive step 16 (the hay) and the dairy drive's graze
+steps green; the field-population drive green; `pnpm -C packages/content/trade-ranching test`.
+
+**Commit.** `refactor(farming): grass, stamps and the grazing ledger belong to the FIELD — a herd grazes a field, a trough feeds the tract`
+
+### W3 — `mark`, `unmark`, the look from the gate, and the ice's `score`
+
+**Goal.** The player's half: marking fields on a tract, with every
+refusal; a field keeps its own record; a tract reads from the yard.
+
+**Decisions.** D26 (the keyed field record), D27 (shares → m², the
+remainder resize), D29, D30 (the tract's override).
+
+**Files.**
+- `src/thing/Field.ts` — `PersistableMixin` outermost; key
+  `<tractKey>/<key>`; drop the `runtimeState` marks from W2.
+- `src/location/Tract.ts` — `fields` persistent; `ensureFields` through
+  `restoreOrSeed`; `onRestored()` → `ensureFields()`;
+  `dependentPersistables()` → its fields; `markField(name, share | null)`,
+  `resizeField`, `unmarkField(field)` (refusal order per D29; fold the
+  field's reserves into the remainder by area-weighted fraction;
+  `StuffApi.destruct(field)` + `PersistableApi.deleteAllFor(field)`;
+  capture the tract after); `isSeenAcrossExit()` → true;
+  `commandContributions.inventory` += `mark.yaml`, `unmark.yaml`,
+  `mow.yaml` (⚠ explicit, the `plough` lesson: `SwardMixin`'s own
+  contribution now sits on a fixture and reaches nobody).
+- `src/lib/Share.ts`; `src/idea/cmd/farming/MarkController.ts`,
+  `UnmarkController.ts`; `content/trade/farming/idea/cmd/farming/{Mark,Unmark}Controller.yaml`;
+  `content/trade/farming/cmd/farming/{mark,unmark}.yaml` (`mark`: `name`
+  greedy string, `share` string with `prepositions: [as]`, the trailing
+  *of it* accepted and ignored by `Share.parse`; `unmark`: `field` object
+  `requires: SoilMixin`, `scope: reachable`).
+- `packages/content/trade-ice/content/trade/ice/cmd/ice/mark.yaml` →
+  `score.yaml` (`verbs: [score]`, help reworded), its controller row,
+  tests and any drive naming `mark` in trade-ice; `lint:verb-collisions`
+  green with one claimant.
+- Tests: `MarkVerb.test.ts` (new / resize / over the whole / zoning
+  residential / wild unparcelled passes / crop standing / unmeasured /
+  not the holder; `look` from an adjacent room lists the fields),
+  `Share.test.ts`, `field-record.test.ts` (capture → restore brings the
+  field's reserves back under its key; unmark deletes it).
+
+**Acceptance.** On a staged world: at Quist's bench `mark` a fourth field
+past the whole is refused naming what is left; on the campus home field
+`mark` a new field, sow it, resize refused; from the farmstead yard `look
+upper bench` prints the three fields; `lint:family` green including
+`lint:verb-collisions`.
+
+**Commit.** `feat(farming): mark and unmark a field on a tract; a field keeps its own record; a tract reads from where it is reached; ice scores its grid`
+
+### W4 — holdings: the layout substrate, Quist's farm, the valley, the Hinkley garden
+
+**Goal.** A farm is a holding; tracts are sized by share of open ground;
+the four farmsteads are for sale; a Hinkley house has a garden tract.
+
+**Decisions.** D23, D27 (open ground), D28 (the tract's override), D31,
+D32 (3 — authored placement; the venue flavor applied to Quist's farm
+first), D33, D35 (`plot` deleted).
+
+**Files.**
+- `packages/content/residence/src/idea/HoldingWarren.ts` — floorplan
+  `share?`, `footprintM2?`; `placement`; `mirrorAxis`; `openGroundM2()`,
+  `shareOf(leaf)`; `getFloorplanExits()` through the flip; `wakeRoom`
+  calls `onWarrenWake`; `admitPlot` deleted. `PlatWarren.ts` —
+  `dormancyOf`, per-slot programme, `standing` static admits at
+  `onCreate`, `entryEdgeFor`/`wireHubExit` reuse an authored way in/out,
+  `standUpHolding` sets `mirrorAxis` from the plan. `residence/src/__tests__/HoldingWarren.test.ts`
+  (mirroring flips the hall; open ground = workable − footprints; a
+  standing holding is not reaped; the admitPlot case deleted).
+- `packages/content/trade-farming/package.json` + `src/location/Tract.ts`
+  — the residence dependency; `onWarrenWake` (D28); `areaM2` no longer
+  authorable; `plot` files deleted (D35), `Spade.ts` contribution
+  dropped; `SingletonTract` kept for W5's rows.
+- Hearts Delight: `idea/farmstead.yaml` (the layout), the six generic
+  rows under `farmstead/`, Quist's rows `extends:` them (+ the yard's
+  `footprintM2`-bearing floorplan), `idea/farms-plat.yaml` (static:
+  node = `location/bench-lane`, slot `quist-farm` with `programme:
+  …/idea/quist-farm`, `placement: authored`), `idea/quist-farm.yaml` (the
+  dressed holding row), `idea/valley-plat.yaml`, `idea/valley-book.yaml`,
+  `location/valley-lane.yaml` (+ its exit from the existing lane),
+  `pack.yaml` claims (quist-farm with `areaM2`; the valley lane node's
+  extent as the plat's `parentExtent`; the orchard-close claim retired);
+  `terminus/.../realty/desk.yaml` + `agent/ricky.yaml` `books:` += the
+  valley book.
+- Hinkley: `idea/house-programme.yaml` — interior rooms `footprintM2`
+  (hall 30, kitchen 25, living 30, bedroom 25, bathroom 10; the yard
+  100), `garden` tract (`room: /trade/farming/location/tract`, `share: 1`,
+  `west` of the yard); `hinkley-hills/src/__tests__/hinkley-lot.test.ts`
+  (a bought lot has a garden tract of ~780 m²; a left-side lot's hall is
+  south of its yard).
+- Tests: `tract-sizing.test.ts` (share × open ground; unmeasured → 0 and
+  `mark` refused), `farmstead.test.ts` in hearts-delight (the layout
+  parses; Quist's rows extend; the book lists four).
+
+**Acceptance.** Staged: buy a valley farmstead at Ricky's desk, walk in,
+the yard's exits name the three tracts; lot 2's bench is on the other
+side; Quist's bench reads as before (drive step 8); a Hinkley lot's
+garden refuses `mark` by zoning and takes a bed. The cover and
+field-population drives green (Quist's rows resolve by the same paths).
+`lint:location-graph` green.
+
+**Commit.** `feat(residence,farming): a farm is a holding — shares of open ground, mirrored copies, the valley farmsteads for sale, the Hinkley garden; plot retires`
+
+### W5 — the other venues: the dairy, the campus, Waponi, Rejection
+
+**Goal.** Every remaining authored field is a tract of a standing holding;
+`SingletonTract` is deleted.
+
+**Decisions.** D32 (the holdings list), D35 (the bridge removed).
+
+**Files.** Per locality a static plat row, a holding row per farm, the
+rooms' rows re-homed as floorplan members (`placement: authored`),
+claims with `areaM2`: `hearts-delight/.../idea/dairy-holding.yaml` (+
+the farms-plat gains the `dairy` slot); `eternal-university/.../campus-farm/idea/{campus-plat,campus-farm-holding}.yaml`
+(`campus-farm.test.ts`'s class-prefix assertion holds — `/system/`);
+`waponi-woo/.../idea/{waponi-plat,cane-pieces,smallholdings}.yaml` + the
+track's `southeast` exit retired for the floorplan edge; `rejection/.../kestrel-road/idea/{yard-plat,goat-pen-holding}.yaml`
++ the 400 m² child claim. Delete `SingletonTract.ts`; the twelve rows'
+`class:` → `/trade/farming/location/Tract`.
+
+**Acceptance.** The dairy, cover, field-population and sugar drives'
+affected steps green (`GOAT_PEN`, the pasture, the home field and the
+cane pieces resolve by path; the dairy lad and the cutters are where
+they were); `lint:instanceable` green without the singleton; a fresh DB
+boots.
+
+**Commit.** `content(farms): the dairy, the campus farm, Waponi's pieces and the goat pen are holdings — SingletonTract retires`
+
+### W6 — the archetype, the drive, the docs
+
+**Goal.** The farm archetype reads tracts; the addendum's drive runs;
+the docs tell the truth.
+
+**Decisions.** D36, D37.
+
+**Files.** `Archetype.ts` consumer wiring + the farm report
+(`farm.yaml` unchanged); `packages/wire/tests/tracts.dirty.wire.test.ts`
++ `tracts.soak.dirty.wire.test.ts` (helpers copied from
+`field-population.dirty.wire.test.ts`); `docs/subsystems/soil.md`,
+`smallholding.md`, `holding.md` (the tract, the share, the mirror, the
+standing venue), `ranching.md` (a herd grazes a field), `parcel.md`
+(open ground), `command-spec.md` (the `mark`/`score` ruling), the plan's
+drive record. ⚠ `CLAUDE.md`'s map lines are the sweep's.
+
+**Acceptance.** `tracts.dirty` 11/11; cover and field-population green on
+the final tree; `lint:family` green; the soak file named in the MR.
+
+**Commit.** `feat(farming): the farm archetype asks for fields; the tracts drive; docs`
+
+---
+
+## Reachability wiring
+
+| capability | verb | affordance | data | boot | arg gate |
+|---|---|---|---|---|---|
+| `mark` | `trade/farming/cmd/farming/mark.yaml` → `/trade/farming/idea/cmd/farming/MarkController` | `Tract.commandContributions.inventory` | the tract row + the field row (`thing/field.yaml`, `_materialPath`) | the pack's `src/` discovered; `lint:controller-rows` | `name` greedy string required; `share` string optional with `as` |
+| `unmark` | `unmark.yaml` | same | — | — | `field` object `requires: SoilMixin`, `scope: reachable` — a non-field thing is refused before the controller runs |
+| `at <field>` on `plough`/`mow` | the two trade-farming views | `Tract.inventory` (⚠ `mow` named explicitly — the mixin's own contribution is on a fixture now) | — | — | `part` object `requires: SoilMixin`, no default |
+| the tract seen from the yard | none new (`look`) | `Place.isSeenAcrossExit()` on `Tract` | the floorplan edge into the tract | — | — |
+| a farm for sale | `title buy` (unchanged) | the `DeedDesk` `books:` | `valley-book.yaml`, `valley-plat.yaml`, `farmstead.yaml`, the generic rows | the plat's `onCreate` re-hangs gates; the book's `holderPath` | the book's `landUse: agricultural` within the band |
+| a standing venue farm | — | the static plat's `dormancyOf` | the plat row + the holding row + the claim with `areaM2` | `PlatWarren.onCreate` admits static slots | — |
+| a herd on a field | `move <herd> to <field>` (unchanged) | ranching's | herdbook `grazing: <tract>#<key>` | `loadField` on use | the field must be one of the holding's tracts' fields |
+| the archetype's ground | the shipped report | — | `farm.yaml` | — | — |
+
+Each of the five links fails closed and silent; the W3/W4 staged walks
+exercise every row of this table before the drive does.
+
+---
+
+## Acceptance-criteria coverage
+
+| addendum AC | waves |
+|---|---|
+| Every farm is a holding on a parcel, laid out the same way; no field is a room | W1 (fields are fixtures), W4, W5 |
+| A layout on two parcels: same tract names, sizes in proportion, different soil, mirrored → opposite compass | W4 (shares, `onWarrenWake`, the ring's mirror; soil from `GroundCharacter.resolve` at each copy's spot — the tract row's `groundSpot` is offset by the lot leaf as `plot` did) |
+| A holder marks, resizes, removes by player verbs; refused through a standing crop | W3 |
+| The same verb on a Hinkley garden is refused by zoning, in the zoning's words; beds still work | W3 (the gate) + W4 (the garden) |
+| No verb makes a tract; every tract comes from a layout | W4 (`plot` deleted), W5 (every authored tract a member) |
+| From a place leading into a tract, read its fields without entering; fields worked only from their tract | W0 + W3 |
+| Herds graze a field, not a place | W2 |
+| The cover and field-population drives pass, reworded to fields | W1 (reworded), every later wave (kept green), W6 (final run) |
+
+Drive steps 1–11 map: 1, 7, 11 → W4/W6; 2 → W3; 3 → W2; 4–6 → W3; 8 → W4;
+9 → W4; 10 → W2. No AC is unmapped.
+
+---
+
+## Test & gate strategy
+
+- **Unit** (per wave, `test:near` + the pack's vitest): the remainder
+  arithmetic; the ring → mirror axis; the keyed field record's capture/
+  restore/delete; every `mark` refusal; share × open ground; a standing
+  holding not reaped; a herd on one of two fields.
+- **The lint family** whole, every wave (`lint:family`), with
+  `lint:verb-collisions`, `lint:location-graph`, `lint:instanceable`,
+  `lint:reachability`, `lint:unconsumed-seams` the ones most likely to
+  speak.
+- **Drives.** The pace of every step of `tracts.dirty.wire.test.ts`:
+
+| step | pace | staged by |
+|---|---|---|
+| 1 buy, walk in, exits name tracts | instant | founder grants funds (`Session.open('founder')` + the banking eval the Hinkley drive uses) |
+| 2 `look upper bench` from the yard | instant | — |
+| 3 `analyze soil` on the bare tract | instant | — |
+| 4 `mark barley field as a third of it` | instant | — |
+| 5 `mark wheat field as two-thirds`; a third `mark` refused | instant | — |
+| 6 sow barley (threshed grain from the founder's hand); resize refused | instant | the crop is sown, not grown — a standing crop at any stage refuses |
+| 7 the mirrored farmstead's compass; its soil reads differently | instant | buy lot 2 as a second character |
+| 8 Quist's bench reads its three fields | instant | — |
+| 9 the Hinkley garden: walk in, `mark` refused by zoning, a bed takes a planting | instant | a Hinkley lot bought by the same drive shape (`hinkley-lot` precedent) |
+| 10 the dairy herd grazes the pasture field; the cropped field is not grazed | short (one game day) | sow the hay field by founder eval; advance a day; read the ledger by `eval` |
+| 11 the archetype on Quist's and on the fresh farmstead | instant | — |
+
+  **Soak twin** (`tracts.soak.dirty.wire.test.ts`): the barley from step
+  4 through a season to the cut on a valley farm; the mirrored lot's
+  bench through the same season. Never run by `/build`, review or
+  `/finalize`; the MR names it. The cover and field-population drives'
+  pace tables are unchanged.
+- **The browser walk** (the owner's standing rule): after W6, walk
+  steps 1–5 and 9 headless as a player.
+- `pnpm test` at code-complete and at `/finalize` only.
+
+---
+
+## Risks & opens
+
+Owner's eye — decisions the addendum did not settle:
+
+1. **`mark` vs trade-ice's `mark` (D29).** The plan has ice yield to
+   `score` by rung 2. If the owner prefers unification (the `dip`
+   precedent — the ground plans the mark), it is a kernel protocol
+   `MarkableMixin` + a platform view carrying both grammars, about a
+   wave's work more.
+2. **Hinkley's left-side lots now mirror (D31).** Correct by the ring's
+   logic, a visible change for lots 2, 4, 6…; `lot-1` is unchanged.
+3. **Footprints are authored on the floorplan, not minted as child
+   parcels (D27).** The shipped doctrine says a building IS a child
+   parcel; this plan reads child parcels where they exist and authors
+   `footprintM2` where none does. The orchard close's own title claim
+   retires into Quist's farm claim (same holder).
+4. **The goat pen is in `wild` ground (D32).** Its pasture is
+   pre-marked; `mark` there would be refused. Rezoning kestrel-road or
+   the 400 m² pen (below agricultural's 1 000 m² band) is content's
+   call; the plan leaves it wild and honest.
+5. **Renaming a field** is unmark + mark (refused while a crop stands).
+   A `rename`/`name` act is one view if wanted.
+6. **The valley price** (`priceMinor: 16000`, grain) and the lot area
+   (16 000 m²).
+7. **Quist's farm as a dressed copy** (D33): Quist's rows `extends:` the
+   generic farmstead rows. The alternative (the valley lots as bare
+   copies of Quist's rows) would put Quist and his wheat in every copy.
+8. **Waponi's track loses its `southeast` exit** to the lower piece (one
+   gate per holding); the pieces join by a floorplan edge. If the sugar
+   drive walks that exit, the step is reworded in W5.
+
+Engineering risks:
+
+- **`lint:location-graph` on venue holdings.** Keyed rooms with
+  authored coords and addresses, standing at boot, reached by authored
+  exits: the projection must still see one node per room. If the
+  invariant refuses, the fix is in how the standing holding registers
+  with the graph (holding.md: an institution attaches to its
+  `parentExtent`), not in the lint.
+- **`eval --parcel` and the drives' path constants** on keyed tracts:
+  the row path resolves to the one instance; `groundPath(site)` for the
+  parcel gate — reuse `PlantController`'s expression verbatim, which
+  Hinkley beds already pass.
+- **Restore ordering** for runtime-marked fields: `fields` arrives with
+  the tract's record; `onRestored` mints the fixtures and each restores
+  its own record. A field whose record is missing (a crash between mark
+  and capture) is seeded fresh — the `restoreOrSeed` contract; `mark`
+  captures at once to make the window small.
+- **The paint merge** touches `candidatesForHere` in the same hunk (D30).
+- **The ice rename** touches a pack this build otherwise never opens;
+  its suite must run.
+- **Time.** This is a large build: 7 waves, two kernel files of hooks,
+  the residence substrate, every farming class, ranching's references,
+  ~45 content rows, two drives reworded and a third written.
+
+---
+
+## Deferred seams
+
+Each leaves as a slate entry, never a plan section:
+
+- **Per-field improvement** (`grub`/`ditch`/`lime at <field>`;
+  `ImprovableMixin` on the field) → `field-population-slate.md`.
+- **A feeder tied to one field** (a trough that feeds the near field
+  only) → the same slate.
+- **A herd on a minted holding's field** — the `FieldRef` durable-handle
+  resolve is specified; no herd is authored there → `ranching` slate.
+- **Renaming a field in place** → `field-population-slate.md`.
+- **The `HoldingWarren` lift** stays holding.md's deferred seam; this
+  build added residence features and one kernel hook, and did not lift.
+- **The landing and the seen-across place as one walk** (D30's fold)
+  → the painting build's sweep.
+- **A land office / farm market beyond the valley row** →
+  `settlement-model.md`'s land markets.
+- **The occupant-shape probe in `swardGrazingDemandPerGameDay`** (a
+  `no-duck-typing` finding, moved not fixed) → `ranching` slate.
+- **`legumeFraction`'s writer** (unchanged, still authored) → the same.
+
+---
+
+## Critical files
+
+Read first, in this order:
+
+1. `docs/requirements/field-population-requirements.md` — the addendum.
+2. `docs/subsystems/holding.md`, `residence.md` § D1, `parcel.md`
+   § Land use and area, `soil.md`, `smallholding.md`, `ranching.md`.
+3. `packages/content/trade-farming/src/location/Field.ts`,
+   `src/thing/Patch.ts`, `src/lib/CharacteredSoil.ts`, `src/lib/Sward.ts`,
+   `src/idea/cmd/farming/PlotController.ts`.
+4. `packages/server/src/mud/lib/husbandry/Soil.ts` (l.296–560, 990–1010),
+   `lib/husbandry/Growing.ts` (`getBed`, `groundPart`, `standIn`),
+   `lib/stuff/Place.ts`, `api/mql/scope-walk.ts` (`candidatesForHere`),
+   `lib/location/{Warren,WarrenMember,CirculationWarren,PlatPlan}.ts`,
+   `lib/persistence/Persistable.ts`, `lib/boundary/Adornable.ts`
+   (l.140–210), `lib/archetype/Archetype.ts` (l.137–145, 260–267, 465+).
+5. `packages/content/residence/src/idea/{HoldingWarren,PlatWarren,PlatBook,LotGateExit}.ts`,
+   `packages/server/src/mud/platform/idea/cmd/civics/TitleController.ts`
+   (l.284–451), `packages/content/hinkley-hills/content/world/terminus/hinkley-hills/idea/*.yaml`.
+6. `packages/content/trade-ranching/src/idea/HerdRegistry.ts` (l.486–640),
+   `src/idea/cmd/ranching/MoveController.ts`.
+7. The twelve rows in § Grounding; `hearts-delight/.../location/{farmstead-yard,barn,bench-lane}.yaml`,
+   `dairy/location/{yard,byre}.yaml`; the five herdbooks.
+8. `packages/wire/tests/field-population.dirty.wire.test.ts`,
+   `cover.dirty.wire.test.ts` (+ `.soak.`), `hinkley`'s drive for the
+   buy shape.
+9. `packages/content/trade-ice/content/trade/ice/cmd/ice/mark.yaml`.
+10. `git show origin/reqs/paint:packages/server/src/mud/api/mql/scope-walk.ts`
+    (the landing block to sit beside).
+
+## Drive record — tracts
+
+*(appended at build time)*
