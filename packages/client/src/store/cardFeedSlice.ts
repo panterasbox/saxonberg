@@ -309,6 +309,8 @@ export interface CardFeedSlice {
   cardOrder: string[];
   /** Drag `instanceId` to sit just before `beforeId` (or last, with null). */
   reorderCard: (instanceId: string, beforeId: string | null) => void;
+  /** Set the whole order (the gallery's drop commits what it previewed). */
+  setCardOrder: (order: string[]) => void;
   /**
    * ⚠ Named `openCard`, not `openPanel` — the store already has an
    * `openPanel` for the summoned settings overlay, and two things
@@ -414,6 +416,8 @@ export const createCardFeedSlice = (
 ): CardFeedSlice => ({
   cards: {},
   cardOrder: [],
+
+  setCardOrder: (order) => set(() => ({ cardOrder: order })),
 
   reorderCard: (instanceId, beforeId) =>
     set((s) => {

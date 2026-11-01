@@ -49,6 +49,7 @@ const ARRANGE_ACTIONS: readonly CardArrangeAction[] = [
   'shrink',
   'minimize',
   'restore',
+  'maximize',
   'move',
   'place',
   'unplace',
@@ -62,6 +63,7 @@ const ARRANGED: Record<CardArrangeAction, string> = {
   shrink: 'shrunk',
   minimize: 'in the tray',
   restore: 'restored from the tray',
+  maximize: 'maximized',
   move: 'moved',
   place: 'placed — it stays where it is',
   unplace: 'flowing again',
@@ -158,11 +160,14 @@ export default class CockpitCardController extends CommandController<CardModel> 
     // a card opened by a click is keyed `look #4Uans…`, and the echo
     // "card look #4Uans… in the tray" read the transport at the player.
     const name = this.cardName(context, cardId);
-    const { refused } = context.interactive!.arrangeCard(cardId, action, at);
+    const { refused, instanceId } = context.interactive!.arrangeCard(cardId, action, at);
     if (refused) {
       return this.fail(context, `${REFUSED[refused] ?? refused} '${cardId}'`, refused);
     }
-    this.send(context, Mml.fromMarkup(Mml.escape(`\ncard ${name} ${ARRANGED[action]}\n`)));
+    // `shrink` at the foot of the ladder lands in the tray — say so.
+    const landed = context.interactive!.listCards().find((c) => c.instanceId === instanceId);
+    const said = action === 'shrink' && landed?.minimized ? ARRANGED.minimize : ARRANGED[action];
+    this.send(context, Mml.fromMarkup(Mml.escape(`\ncard ${name} ${said}\n`)));
   }
 
   /** A card's header title when it has one, else the ref as typed. */

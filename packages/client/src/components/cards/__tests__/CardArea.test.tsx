@@ -32,12 +32,14 @@ beforeEach(() => {
 const order = (): string[] =>
   Array.from(document.querySelectorAll("[data-card-key]")).map((e) => e.getAttribute("data-card-key")!);
 
+// jsdom lays nothing out (every rect is zero), so clientY -1 is "over the
+// top half" of any slot: the card lands before it. (jsdom has no
+// DragEvent, which would drop clientY; a MouseEvent named dragover keeps it.)
 function drag(fromId: string, onto: Element): void {
-  fireEvent.drop(onto, {
-    dataTransfer: {
-      getData: (t: string) => (t === "application/x-saxonberg-card-id" ? fromId : ""),
-    },
-  });
+  const from = document.querySelector(`[data-card-slot="${fromId}"]`)!;
+  fireEvent.dragStart(from);
+  fireEvent(onto, new MouseEvent("dragover", { bubbles: true, cancelable: true, clientY: -1 }));
+  fireEvent.drop(onto);
 }
 
 describe("CardArea", () => {

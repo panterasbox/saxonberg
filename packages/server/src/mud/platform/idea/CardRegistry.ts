@@ -183,6 +183,7 @@ export type CardArrangeAction =
   | 'restore'
   | 'grow'
   | 'shrink'
+  | 'maximize'
   | 'move'
   | 'place'
   | 'unplace';
@@ -1000,35 +1001,45 @@ export default class CardRegistry extends CardRegistryBase {
         this.close(interactive, state.instanceId, 'dismissed');
         return { refused: null, instanceId: state.instanceId };
       }
+      /*
+       * ⭐ ONE ladder, the tray at its foot (the owner's "make bigger /
+       * make smaller"): tray ← unit ← medium ← full. `shrink` at the
+       * bottom puts the card in the tray; `grow` from the tray brings it
+       * back at unit; a card comes out of the tray at unit, never at the
+       * size it went in with — two buttons, no remembered state to
+       * surprise anyone. `minimize`/`restore` are the tray steps by name;
+       * `maximize` is the top step in one (the drag-to-swap).
+       */
       case 'minimize':
         if (state.role === 'primary') return { refused: 'primary-terminal' };
-        state.minimized = true;
+        this.toTray(state);
         break;
       case 'restore':
         state.minimized = false;
         break;
+      case 'maximize':
+        state.minimized = false;
+        this.resize(state, 'full', bucket);
+        break;
       case 'grow':
       case 'shrink': {
+        if (action === 'grow' && state.minimized) {
+          state.minimized = false;
+          break;
+        }
         const ladder: WidthClass[] =
           state.cardId === 'terminal'
             ? ['line', 'unit', 'medium', 'full']
             : ['unit', 'medium', 'full'];
         const i = Math.max(0, ladder.indexOf(state.size));
-        const next = ladder[action === 'grow' ? Math.min(i + 1, ladder.length - 1) : Math.max(i - 1, 0)]!;
-        if (next === state.size) break;
-        if (next === 'medium' || next === 'full') {
-          // One card per slot: the incumbent returns to its own size.
-          for (const other of bucket.values()) {
-            if (other === state || other.size !== next) continue;
-            other.size = other.sizeBefore ?? 'unit';
-            delete other.sizeBefore;
-            this.pushArranged(other);
-          }
-          if (state.size !== 'medium' && state.size !== 'full') state.sizeBefore = state.size;
-        } else {
-          delete state.sizeBefore;
+        if (action === 'shrink' && i === 0) {
+          if (state.role === 'primary') return { refused: 'primary-terminal' };
+          this.toTray(state);
+          break;
         }
-        state.size = next;
+        const next = ladder[action === 'grow' ? Math.min(i + 1, ladder.length - 1) : i - 1]!;
+        if (next === state.size) break;
+        this.resize(state, next, bucket);
         break;
       }
       case 'move':
@@ -1058,6 +1069,33 @@ export default class CardRegistry extends CardRegistryBase {
     this.syncLive(state);
     this.pushArranged(state);
     return { refused: null, instanceId: state.instanceId };
+  }
+
+  /** Into the tray: off the stage, back to its plain size. */
+  private toTray(state: CardState): void {
+    state.minimized = true;
+    if (state.size === 'medium' || state.size === 'full') state.size = 'unit';
+    delete state.sizeBefore;
+  }
+
+  /**
+   * Set a card's size. Medium and full hold one card each, so growing
+   * into a held slot returns the incumbent to its own size.
+   */
+  private resize(state: CardState, next: WidthClass, bucket: Map<string, CardState>): void {
+    if (next === state.size) return;
+    if (next === 'medium' || next === 'full') {
+      for (const other of bucket.values()) {
+        if (other === state || other.size !== next) continue;
+        other.size = other.sizeBefore ?? 'unit';
+        delete other.sizeBefore;
+        this.pushArranged(other);
+      }
+      if (state.size !== 'medium' && state.size !== 'full') state.sizeBefore = state.size;
+    } else {
+      delete state.sizeBefore;
+    }
+    state.size = next;
   }
 
   /** The bottom of a column: the first free row. */

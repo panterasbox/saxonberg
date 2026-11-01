@@ -116,11 +116,13 @@ const FullStage = styled.div`
   min-height: 0;
 `;
 
-const FullCard = styled.div`
+const FullCard = styled.div<{ $over: boolean }>`
   flex: 1;
   min-height: 0;
   overflow-y: auto;
   padding: ${tokens.space.sm};
+  outline: ${(p) => (p.$over ? `2px dashed ${tokens.color.fgEmphasis}` : "none")};
+  outline-offset: -4px;
 `;
 
 const StripRow = styled.div`
@@ -271,6 +273,8 @@ const DesktopStage: React.FC<LayoutProps & { config: StageConfig }> = ({
   resultDisplay,
 }) => {
   const [viewEditorOpen, setViewEditorOpen] = React.useState(false);
+  /** A card is being dragged over the maximized one (the swap target). */
+  const [swapOver, setSwapOver] = React.useState(false);
   const tabsLoaded = useStore((s) => Array.isArray(s.clientState["console.tabs"]));
   React.useEffect(() => {
     if (tabsLoaded) ensureSeededViews();
@@ -292,6 +296,21 @@ const DesktopStage: React.FC<LayoutProps & { config: StageConfig }> = ({
   const primary = live.find((c) => c.cardId === "terminal" && c.role === "primary");
   const placeable = live.filter((c) => c !== primary);
   const full = placeable.find((c) => c.size === "full");
+  /*
+   * The swap: maximize the dragged card (a real command — the server
+   * returns the incumbent to its own size), and give the incumbent the
+   * dragged card's place in the gallery so nothing else moves.
+   */
+  const swapIntoFull = (id: string, ref: string, incumbent: string): void => {
+    const order = useStore.getState().cardOrder;
+    const at = order.indexOf(id);
+    if (at >= 0) {
+      const next = order.filter((x) => x !== incumbent);
+      next.splice(next.indexOf(id), 1, incumbent);
+      useStore.getState().setCardOrder(next);
+    }
+    onCommandClick(`cockpit card maximize ${ref}`);
+  };
   const medium = placeable.find((c) => c.size === "medium");
   const here =
     config.panel === "here"
@@ -458,19 +477,52 @@ const DesktopStage: React.FC<LayoutProps & { config: StageConfig }> = ({
       ) : null}
       {full ? (
         <FullStage data-testid="full-stage">
-          <FullCard>{renderCard(full)}</FullCard>
+          {/*
+            ⭐ Drop a card on the maximized one to SWAP them: the dragged
+            card is maximized (the server sends the incumbent back to its
+            own size), and the incumbent takes the dragged card's place in
+            the gallery's order.
+          */}
+          <FullCard
+            data-testid="full-drop"
+            $over={swapOver}
+            onDragOver={(e) => {
+              if (!e.dataTransfer.types.includes("application/x-saxonberg-card-id")) return;
+              e.preventDefault();
+              setSwapOver(true);
+            }}
+            onDragLeave={() => setSwapOver(false)}
+            onDrop={(e) => {
+              setSwapOver(false);
+              const id = e.dataTransfer.getData("application/x-saxonberg-card-id");
+              const ref = e.dataTransfer.getData("application/x-saxonberg-card");
+              if (!id || !ref || id === full.instanceId) return;
+              e.preventDefault();
+              swapIntoFull(id, ref, full.instanceId);
+            }}
+          >
+            {renderCard(full)}
+          </FullCard>
           <StripRow>
             <StripColumn>{terminalBits(true)}</StripColumn>
             <StripChips data-testid="stage-chips">
               {placeable
                 .filter((c) => c !== full)
                 .map((c) => {
-                  const cmd = `cockpit card grow ${quoteRef(c.key)}`;
+                  // ⭐ A chip here is a card waiting off-stage: click it, or
+                  // drag it onto the maximized card, and it swaps in.
+                  const cmd = `cockpit card maximize ${quoteRef(c.key)}`;
                   return (
                     <StripChip
                       key={c.instanceId}
                       type="button"
-                      onClick={() => onCommandClick(cmd)}
+                      draggable
+                      onDragStart={(e) => {
+                        e.dataTransfer.setData("application/x-saxonberg-card", quoteRef(c.key));
+                        e.dataTransfer.setData("application/x-saxonberg-card-id", c.instanceId);
+                        e.dataTransfer.effectAllowed = "move";
+                      }}
+                      onClick={() => swapIntoFull(c.instanceId, quoteRef(c.key), full.instanceId)}
                       onMouseEnter={() => onCommandPreview(cmd)}
                       onMouseLeave={() => onCommandPreview(null)}
                     >

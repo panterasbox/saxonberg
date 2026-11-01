@@ -65,7 +65,8 @@ describe('cockpit card — shape and place', () => {
     expect(run(h, { action: 'move', cardId: 'who', col: 1, row: 0 })).toEqual([]);
     expect(run(h, { action: 'minimize', cardId: 'who' })).toEqual([]);
     const who = h.interactive.listCards()[0]!;
-    expect(who).toMatchObject({ size: 'medium', placed: { col: 1, row: 0 }, minimized: true });
+    // The tray takes a card back to its plain size (one ladder).
+    expect(who).toMatchObject({ size: 'unit', placed: { col: 1, row: 0 }, minimized: true });
     expect(tags.every((t) => t.includes('control:card'))).toBe(true);
   });
 
@@ -79,6 +80,46 @@ describe('cockpit card — shape and place', () => {
     run(h, { action: 'minimize', cardId: 'look #abc' });
     expect(said.join('\n')).toContain('card “the house tablet” in the tray');
     expect(said.join('\n')).not.toContain('#abc');
+  });
+
+  it('⭐ one ladder: shrink from unit lands in the tray, and grow brings it back at unit', async () => {
+    const h = await makeHarness();
+    openWho(h);
+    run(h, { action: 'grow', cardId: 'who' });
+    run(h, { action: 'grow', cardId: 'who' });
+    expect(h.interactive.listCards()[0]!.size).toBe('full');
+    run(h, { action: 'shrink', cardId: 'who' });
+    run(h, { action: 'shrink', cardId: 'who' });
+    expect(h.interactive.listCards()[0]).toMatchObject({ size: 'unit', minimized: false });
+    run(h, { action: 'shrink', cardId: 'who' });
+    expect(h.interactive.listCards()[0]).toMatchObject({ size: 'unit', minimized: true });
+    expect(said.join('\n')).toContain('in the tray');
+    run(h, { action: 'grow', cardId: 'who' });
+    expect(h.interactive.listCards()[0]).toMatchObject({ size: 'unit', minimized: false });
+  });
+
+  it('a card minimized from full comes back at unit, not full', async () => {
+    const h = await makeHarness();
+    openWho(h);
+    run(h, { action: 'maximize', cardId: 'who' });
+    run(h, { action: 'minimize', cardId: 'who' });
+    run(h, { action: 'restore', cardId: 'who' });
+    expect(h.interactive.listCards()[0]).toMatchObject({ size: 'unit', minimized: false });
+  });
+
+  it('⭐ maximize is the swap: the incumbent full card goes back to its own size', async () => {
+    const h = await makeHarness();
+    const a = openWho(h);
+    run(h, { action: 'maximize', cardId: 'who' });
+    const b = CardApi.open(
+      makeContext(h, { commandText: 'look #b', verbs: ['look'], opensCard: 'who' }),
+      'who',
+      { key: 'look #b' },
+    )!;
+    run(h, { action: 'maximize', cardId: 'look #b' });
+    const byId = new Map(h.interactive.listCards().map((c) => [c.instanceId, c]));
+    expect(byId.get(b)!.size).toBe('full');
+    expect(byId.get(a)!.size).toBe('unit');
   });
 
   it('`unpin` is `dismiss` by its other name', async () => {

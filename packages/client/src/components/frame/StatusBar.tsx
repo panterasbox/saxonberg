@@ -46,6 +46,8 @@ import React, { useEffect } from "react";
 import styled from "styled-components";
 import { useStore } from "../../store/index";
 import { tokens } from "../ui";
+import { Square } from "lucide-react";
+import { KindMark } from "../cards/KindMark";
 
 /** A card key as a command argument: quoted when it has a space or a quote. */
 function quoteKey(key: string): string {
@@ -123,11 +125,12 @@ const Tray = styled.div`
 
 const TrayIcon = styled.button`
   font: inherit;
-  max-width: 9rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  padding: 0 ${tokens.space.sm};
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.5rem;
+  padding: 0;
   border: 1px solid ${tokens.color.border};
   border-radius: ${tokens.radius.sm};
   background: transparent;
@@ -195,12 +198,20 @@ export function StatusBar({ onCommandClick, onCommandPreview }: StatusBarProps =
                 key={c.instanceId}
                 type="button"
                 data-testid="tray-card"
-                title={c.title ?? c.key}
+                // ⭐ An ICON in the tray (the kind's mark; a plain square for
+                // a card about no one thing), the name on hover — and the
+                // click is the real `restore`, previewed.
+                title={`${c.title ?? (c.records[0]?.displayName as string | undefined) ?? c.cardId} — click to bring it back`}
+                aria-label={cmd}
                 onClick={() => onCommandClick(cmd)}
                 onMouseEnter={() => onCommandPreview?.(cmd)}
                 onMouseLeave={() => onCommandPreview?.(null)}
               >
-                {c.title ?? c.cardId}
+                {c.subjectKind ? (
+                  <KindMark kind={c.subjectKind} size={14} />
+                ) : (
+                  <Square size={14} aria-hidden="true" />
+                )}
               </TrayIcon>
             );
           })}

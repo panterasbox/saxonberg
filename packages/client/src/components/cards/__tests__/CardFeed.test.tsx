@@ -366,11 +366,17 @@ describe("⚠⚠ the client cannot open a card", () => {
 });
 
 describe("the card's controls", () => {
-  it("carries refresh, pin and close as commands", () => {
+  it("carries bigger, smaller, pin and close as commands — and the stamp refreshes", () => {
     landCard(opened({ instanceId: "c1", cardId: "who", key: "who" }));
     render(<CardFeed onSendCommand={noop} />);
     expect(screen.getByTestId("card-refresh").getAttribute("aria-label")).toBe(
       "who",
+    );
+    expect(screen.getByTestId("card-grow").getAttribute("aria-label")).toBe(
+      "cockpit card grow who",
+    );
+    expect(screen.getByTestId("card-shrink").getAttribute("aria-label")).toBe(
+      "cockpit card shrink who",
     );
     expect(screen.getByLabelText("cockpit card pin who")).toBeTruthy();
     expect(screen.getByTestId("card-close").getAttribute("aria-label")).toBe(

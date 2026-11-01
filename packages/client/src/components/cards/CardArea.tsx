@@ -1,14 +1,18 @@
 /**
- * CardArea — the cards beside the terminal column.
+ * CardArea — the cards beside the terminal column, packed like a photo
+ * gallery.
  *
- * ⭐ **A grid that fills the width.** Columns are as many as fit at the
- * unit's minimum width and stretch to share whatever is left, so no
- * space sits unused to the right. Cards keep their full height and the
- * area scrolls; nothing is cut or displaced to make room.
+ * ⭐ **Packed, not gridded.** Cards keep their natural height and each
+ * goes into the shortest column (`packCards`), so a short card leaves no
+ * hole; columns are as many as fit at the minimum card width, stretched
+ * to share the rest. Cards are placed absolutely, so when the order
+ * changes they glide to their new place rather than jump.
  *
  * ⭐ **The order is the player's, in the client.** Cards arrive in the
- * order they were opened; drag one onto another and it moves before it
- * (the store's `cardOrder`). Nothing is sent to the server.
+ * order they were opened. Drag one by its header and the others make
+ * room as you move — the gallery previews where it will land — and the
+ * drop commits it (the store's `cardOrder`). Nothing is sent to the
+ * server for a reorder.
  *
  * Below one unit of room the area is a glance strip of chips, and a
  * chip opens its card at measure.
@@ -23,6 +27,7 @@ import { CardBody } from "./CardBodies";
 import { visibleCards, type CardState } from "../../store/cardFeedSlice";
 import { activeCardKinds } from "../../store/cardViewActions";
 import { CARD_LABEL } from "./useCardFeed";
+import { moveBefore, packCards } from "../../store/cardPacking";
 
 const Area = styled.section<{ $overflow: boolean }>`
   flex: 1;
@@ -46,25 +51,20 @@ const Area = styled.section<{ $overflow: boolean }>`
  */
 const CARD_MIN_REM = 20;
 
-/**
- * ⚠ `min(100%, …)` so a single column never overflows a narrow area;
- * `1fr` so the columns share the leftover instead of leaving it empty.
- */
-const Grid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(
-    auto-fill,
-    minmax(min(100%, ${CARD_MIN_REM}rem), 1fr)
-  );
-  gap: ${tokens.width.gap}rem;
-  align-items: start;
+/** The gallery: a box as tall as its tallest column. */
+const Gallery = styled.div`
+  position: relative;
+  width: 100%;
 `;
 
-const Slot = styled.div<{ $over: boolean }>`
-  min-width: 0;
-  border-radius: ${tokens.radius.md};
-  outline: ${(p) => (p.$over ? `2px dashed ${tokens.color.fgEmphasis}` : "none")};
-  outline-offset: 2px;
+const Slot = styled.div<{ $dragging: boolean }>`
+  position: absolute;
+  top: 0;
+  left: 0;
+  /* ⭐ Cards glide to a new place rather than jump — which is what makes
+     "the others make room" readable while you drag. */
+  transition: transform 160ms ease;
+  opacity: ${(p) => (p.$dragging ? 0.45 : 1)};
 `;
 
 const Trail = styled.div`
@@ -139,8 +139,7 @@ export function CardArea({
   const preview = onCommandPreview ?? (() => undefined);
 
   const order = useStore((s) => s.cardOrder);
-  const reorderCard = useStore((s) => s.reorderCard);
-  const [over, setOver] = React.useState<string | null>(null);
+  const setCardOrder = useStore((s) => s.setCardOrder);
 
   const cards = React.useMemo(() => {
     const shown = visibleCards(byId, { resultDisplay, kinds }).filter(
@@ -161,8 +160,75 @@ export function CardArea({
     });
   }, [byId, resultDisplay, kinds, exclude, order]);
 
-  const dragged = (e: React.DragEvent): string =>
-    e.dataTransfer.getData("application/x-saxonberg-card-id");
+  // ── measuring: the gallery's width, and each card's natural height ──
+  const galleryRef = React.useRef<HTMLDivElement>(null);
+  const [width, setWidth] = React.useState(0);
+  const [heights, setHeights] = React.useState<Map<string, number>>(new Map());
+  const slotKey = cards.map((c) => c.instanceId).join("\n");
+  /*
+   * ⚠ One observer per set of slots, re-observing every slot each time.
+   * A memoized observer with a stable ref callback lost its targets when
+   * its cleanup ran (StrictMode's double mount, or the area remounting as
+   * a card left for the medium slot): the slots were never observed
+   * again, every height fell back to the estimate, and the gallery
+   * opened holes.
+   */
+  React.useLayoutEffect(() => {
+    const el = galleryRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return undefined;
+    const ro = new ResizeObserver((entries) => {
+      setHeights((prev) => {
+        let next: Map<string, number> | null = null;
+        for (const e of entries) {
+          const id = (e.target as HTMLElement).dataset.cardSlot;
+          if (!id) continue;
+          const h = Math.round(e.contentRect.height);
+          if (prev.get(id) !== h) {
+            next ??= new Map(prev);
+            next.set(id, h);
+          }
+        }
+        return next ?? prev;
+      });
+    });
+    el.querySelectorAll<HTMLElement>("[data-card-slot]").forEach((slot) => ro.observe(slot));
+    return () => ro.disconnect();
+  }, [slotKey]);
+  React.useLayoutEffect(() => {
+    const el = galleryRef.current;
+    if (!el) return undefined;
+    setWidth(el.clientWidth);
+    if (typeof ResizeObserver === "undefined") return undefined;
+    const ro = new ResizeObserver(() => setWidth(el.clientWidth));
+    ro.observe(el);
+    return () => ro.disconnect();
+    // The gallery element itself comes and goes (the glance strip, an
+    // empty area), so re-attach whenever what is shown changes.
+  }, [units, slotKey]);
+
+  // ── dragging: the card in hand, and where it would land ──
+  const [dragging, setDragging] = React.useState<string | null>(null);
+  const [landing, setLanding] = React.useState<string[] | null>(null);
+  const ids = cards.map((c) => c.instanceId);
+  const shownOrder = landing ?? ids;
+
+  const rootPx =
+    typeof window === "undefined"
+      ? 16
+      : parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+  const gapPx = tokens.width.gap * rootPx;
+  const packing = packCards(shownOrder, heights, width, CARD_MIN_REM * rootPx, gapPx);
+
+  const endDrag = (): void => {
+    setDragging(null);
+    setLanding(null);
+  };
+  const commit = (next: string[]): void => {
+    // The whole visible order, so it holds even for cards that arrived
+    // before any drag.
+    const rest = order.filter((id) => !next.includes(id));
+    setCardOrder([...next, ...rest]);
+  };
 
   return (
     <Area $overflow data-testid="card-area" data-card-units={units}>
@@ -186,47 +252,69 @@ export function CardArea({
           })}
         </Trail>
       ) : (
-        <Grid
+        <Gallery
+          ref={galleryRef}
           data-testid="card-grid"
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={(e) => {
-            // Dropped on the grid's empty space: it goes last.
-            const id = dragged(e);
-            if (!id) return;
+          data-columns={packing.columns}
+          style={{ height: packing.height }}
+          onDragOver={(e) => {
+            if (!dragging) return;
             e.preventDefault();
-            reorderCard(id, null);
-            setOver(null);
+            // Below every card: it would land last.
+            if (e.target === e.currentTarget) setLanding(moveBefore(ids, dragging, null));
+          }}
+          onDrop={(e) => {
+            if (!dragging) return;
+            e.preventDefault();
+            commit(landing ?? ids);
+            endDrag();
           }}
         >
-          {cards.map((card) => (
-            <Slot
-              key={card.instanceId}
-              data-card-slot={card.instanceId}
-              $over={over === card.instanceId}
-              onDragOver={(e) => {
-                e.preventDefault();
-                if (over !== card.instanceId) setOver(card.instanceId);
-              }}
-              onDragLeave={() => setOver((o) => (o === card.instanceId ? null : o))}
-              onDrop={(e) => {
-                const id = dragged(e);
-                if (!id) return;
-                e.preventDefault();
-                e.stopPropagation();
-                if (id !== card.instanceId) reorderCard(id, card.instanceId);
-                setOver(null);
-              }}
-            >
-              <Card card={card} onSendCommand={onSendCommand} onCommandPreview={onCommandPreview}>
-                {renderBody ? (
-                  renderBody(card, false)
-                ) : (
-                  <CardBody card={card} onSendCommand={onSendCommand} onCommandPreview={onCommandPreview} />
-                )}
-              </Card>
-            </Slot>
-          ))}
-        </Grid>
+          {cards.map((card) => {
+            const at = packing.slots.get(card.instanceId);
+            return (
+              <Slot
+                key={card.instanceId}
+                data-card-slot={card.instanceId}
+                $dragging={dragging === card.instanceId}
+                style={{
+                  width: at?.width ?? "100%",
+                  transform: `translate(${at?.x ?? 0}px, ${at?.y ?? 0}px)`,
+                }}
+                onDragStart={() => setDragging(card.instanceId)}
+                onDragEnd={endDrag}
+                onDragOver={(e) => {
+                  if (!dragging) return;
+                  e.preventDefault();
+                  e.stopPropagation();
+                  if (dragging === card.instanceId) return;
+                  // ⭐ Over the top half: before it; the bottom half: after.
+                  const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                  const i = ids.indexOf(card.instanceId);
+                  const before =
+                    e.clientY < r.top + r.height / 2 ? card.instanceId : (ids[i + 1] ?? null);
+                  const next = moveBefore(ids, dragging, before === dragging ? (ids[i + 2] ?? null) : before);
+                  if (!landing || next.join() !== landing.join()) setLanding(next);
+                }}
+                onDrop={(e) => {
+                  if (!dragging) return;
+                  e.preventDefault();
+                  e.stopPropagation();
+                  commit(landing ?? ids);
+                  endDrag();
+                }}
+              >
+                <Card card={card} onSendCommand={onSendCommand} onCommandPreview={onCommandPreview}>
+                  {renderBody ? (
+                    renderBody(card, false)
+                  ) : (
+                    <CardBody card={card} onSendCommand={onSendCommand} onCommandPreview={onCommandPreview} />
+                  )}
+                </Card>
+              </Slot>
+            );
+          })}
+        </Gallery>
       )}
     </Area>
   );

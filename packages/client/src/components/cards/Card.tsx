@@ -38,6 +38,7 @@ import type { CardId } from "@saxonberg/types";
 import { tokens } from "../ui";
 import { cardReason, type CardState } from "../../store/cardFeedSlice";
 import { CARD_LABEL } from "./useCardFeed";
+import { Maximize2, Minimize2, Pin, X } from "lucide-react";
 import { KIND_COLOR, KindMark } from "./KindMark";
 import { useStore } from "../../store/index";
 
@@ -77,11 +78,19 @@ const Title = styled.h3`
  * changing without the content changing, which invites the reader to
  * believe recency is the lifetime rule. It is not: pinned-ness is.
  */
-const Taken = styled.span`
+const Taken = styled.button`
   font-family: ${tokens.font.mono};
   font-size: ${tokens.font.label};
   color: ${tokens.color.fgMuted};
   white-space: nowrap;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  &:hover {
+    color: ${tokens.color.fg};
+    text-decoration: underline;
+  }
 `;
 
 /** Right-aligned, small, and never a duration. See the header note. */
@@ -137,9 +146,18 @@ const IconButton = styled.button<{ $on?: boolean }>`
     min-width: 1.75rem;
   }
 
-  &:hover {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover:not(:disabled) {
     border-color: ${tokens.color.fgEmphasis};
     color: ${tokens.color.fgEmphasis};
+  }
+
+  &:disabled {
+    opacity: 0.35;
+    cursor: default;
   }
 `;
 
@@ -239,7 +257,6 @@ export function Card({
   const close = `cockpit card close ${ref}`;
   const grow = `cockpit card grow ${ref}`;
   const shrink = `cockpit card shrink ${ref}`;
-  const minimize = `cockpit card minimize ${ref}`;
   const size = card.size ?? "unit";
   const dropCard = useStore((s) => s.dropCard);
   const bodyRef = React.useRef<HTMLDivElement>(null);
@@ -250,21 +267,6 @@ export function Card({
     const over = el.scrollHeight > el.clientHeight + 1;
     setOverflowing((prev) => (prev === over ? prev : over));
   }, [cut, card.records, card.segments, card.prose, card.payload, card.size]);
-  /*
-   * ⭐⭐ **Refresh re-issues the card's own key** — the normalized
-   * command that produced it. Not a new concept, not an API: the
-   * ordinary command bus, previewing exactly what it sends.
-   *
-   * ⚠ **Only on a STATIC card.** See the header note: a refresh on a
-   * live card is a bandage over a wake that does not fire.
-   *
-   * ⚠⚠ **And never on a prompt card**, which is static but is not a
-   * re-issuable READING — it is a question. Its key carries a
-   * `promptId`, so "refresh" would send a uuid at the parser; and the
-   * thing a waiting question wants is an answer, not another copy of
-   * itself.
-   */
-  const refresh = card.live || card.promptId !== undefined ? null : card.key;
   /*
    * ⚠ Before the subject arrives, the title falls back to the card's
    * LABEL, not its catalogue id. Found by driving: a freshly-opened
@@ -330,8 +332,24 @@ export function Card({
           taken; a live card has no stale answer to stamp, so it says
           nothing here rather than something reassuring.
         */}
+        {/*
+          ⭐ The stamp IS the refresh: a static card's answer is as old as
+          it says, and clicking the age asks again (the card's own key).
+          One affordance where there were two, so the header keeps the
+          owner's four buttons.
+        */}
         {!faded && card.takenAt !== undefined && (
-          <Taken data-testid="card-taken">{takenLabel(card.takenAt)}</Taken>
+          <Taken
+            type="button"
+            data-testid="card-refresh"
+            title={`Look again — ${card.key}`}
+            aria-label={card.key}
+            onClick={() => onSendCommand(card.key)}
+            onMouseEnter={() => preview(card.key)}
+            onMouseLeave={() => preview(null)}
+          >
+            <span data-testid="card-taken">{takenLabel(card.takenAt)}</span>
+          </Taken>
         )}
         <Reason data-testid="card-hold-reason">{cardReason(card)}</Reason>
         {/*
@@ -341,65 +359,51 @@ export function Card({
           do what it says. Close stays, because dismissing the husk is
           still a thing you can do to it.
         */}
+        {/*
+          ⭐ Four controls, the owner's: BIGGER and SMALLER walk one ladder
+          — tray ← card ← medium ← maximized — so there is no separate
+          minimize with rules of its own; smaller from a plain card puts
+          it in the tray. Then pin and close. Each is a real `cockpit card`
+          command the status bar previews. Bigger stays in place, dimmed,
+          at the top of the ladder, so the buttons never shuffle.
+        */}
         <Controls>
-          {!faded && refresh && (
-            <IconButton
-              data-testid="card-refresh"
-              title={`Click to send: ${refresh}`}
-              aria-label={refresh}
-              onClick={() => onSendCommand(refresh)}
-              onMouseEnter={() => preview(refresh)}
-              onMouseLeave={() => preview(null)}
-            >
-              ↻
-            </IconButton>
-          )}
           {!faded && (
             <IconButton
-              $on={card.pinned}
-              title={`Click to send: ${command}`}
-              aria-label={command}
-              onClick={() => onSendCommand(command)}
-              onMouseEnter={() => preview(command)}
-              onMouseLeave={() => preview(null)}
-            >
-              {label}
-            </IconButton>
-          )}
-          {!faded && size !== "full" && (
-            <IconButton
               data-testid="card-grow"
-              title={`Click to send: ${grow}`}
+              title={size === "full" ? "As big as it gets" : `Bigger — ${grow}`}
               aria-label={grow}
+              disabled={size === "full"}
               onClick={() => onSendCommand(grow)}
-              onMouseEnter={() => preview(grow)}
+              onMouseEnter={() => preview(size === "full" ? null : grow)}
               onMouseLeave={() => preview(null)}
             >
-              ⤢
+              <Maximize2 size={14} aria-hidden="true" />
             </IconButton>
           )}
-          {!faded && (size === "medium" || size === "full") && (
+          {!faded && card.role !== "primary" && (
             <IconButton
               data-testid="card-shrink"
-              title={`Click to send: ${shrink}`}
+              title={size === "unit" || size === "line" ? `Smaller — into the tray (${shrink})` : `Smaller — ${shrink}`}
               aria-label={shrink}
               onClick={() => onSendCommand(shrink)}
               onMouseEnter={() => preview(shrink)}
               onMouseLeave={() => preview(null)}
             >
-              ⤡
+              <Minimize2 size={14} aria-hidden="true" />
             </IconButton>
           )}
-          {!faded && card.role !== "primary" && (
+          {!faded && (
             <IconButton
-              data-testid="card-minimize"
-              title={`Click to send: ${minimize}`}
-              aria-label={minimize}
-              onClick={() => onSendCommand(minimize)}
-              onMouseEnter={() => preview(minimize)}
+              data-testid="card-pin"
+              $on={card.pinned}
+              title={card.pinned ? `Pinned — ${command}` : `Pin — ${command}`}
+              aria-label={command}
+              onClick={() => onSendCommand(command)}
+              onMouseEnter={() => preview(command)}
               onMouseLeave={() => preview(null)}
             >
-              _
+              <Pin size={14} aria-hidden="true" />
             </IconButton>
           )}
           {faded ? (
@@ -409,18 +413,18 @@ export function Card({
               aria-label="clear"
               onClick={() => dropCard(card.instanceId)}
             >
-              ×
+              <X size={14} aria-hidden="true" />
             </IconButton>
           ) : card.role === undefined ? (
             <IconButton
               data-testid="card-close"
-              title={`Click to send: ${close}`}
+              title={`Close — ${close}`}
               aria-label={close}
               onClick={() => onSendCommand(close)}
               onMouseEnter={() => preview(close)}
               onMouseLeave={() => preview(null)}
             >
-              ×
+              <X size={14} aria-hidden="true" />
             </IconButton>
           ) : null}
         </Controls>

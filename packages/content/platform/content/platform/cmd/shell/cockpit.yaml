@@ -210,10 +210,11 @@ subcommands:
         cockpit card unpin <card>      let it age out again (= dismiss)
         cockpit card auto <card>       hand the decision back
         cockpit card close <card>      close it now
-        cockpit card grow <card>       unit → medium → full
-        cockpit card shrink <card>     full → medium → unit
+        cockpit card grow <card>       tray → unit → medium → full
+        cockpit card shrink <card>     full → medium → unit → tray
+        cockpit card maximize <card>   straight to full
         cockpit card minimize <card>   put it in the tray
-        cockpit card restore <card>    take it out of the tray
+        cockpit card restore <card>    take it out of the tray (at unit)
         cockpit card move <card> <col> <row>
                                        place it there; the column's
                                        cards below shift down
