@@ -175,6 +175,40 @@ export default class ParcelRegistry extends ParcelRegistryBase {
   }
 
   /**
+   * ⭐⭐ **The water read**: where the premises at `path` takes its water —
+   * the longest-prefix resolve, then the `parentParcel` walk upward for the
+   * first row that cites (`''` inherits). The twin of {@link powerOf}.
+   * Returns the cited supply's template path, `'none'` for a declared dry
+   * premises, or `''` when nothing up the chain says — which a tap reads as
+   * `unplumbed`, exactly as an unclaimed meter reads `off-grid`.
+   */
+  @CallSecurity(ParcelApiCallers)
+  public waterOf(path: string): { source: string; parcel: ParcelRecord | null } {
+    const parcel = this.coveringImpl(path);
+    let record: ParcelRecord | null = parcel;
+    const seen = new Set<string>();
+    while (record) {
+      const source = record.getWaterSource();
+      if (source !== "") return { source, parcel };
+      const parent = record.getParentParcel();
+      if (parent === null || seen.has(parent)) break;
+      seen.add(parent);
+      record = this.coverage.exact(parent)[0] ?? null;
+    }
+    return { source: "", parcel };
+  }
+
+  /**
+   * Every parcel row citing water source `sourcePath` — the twin of
+   * {@link parcelsOnFeeder}. A keyed read.
+   */
+  @CallSecurity(ParcelApiCallers)
+  public async parcelsOnWaterSource(sourcePath: string): Promise<ParcelRecord[]> {
+    if (!sourcePath) return [];
+    return [...(this.byWaterSource.get(sourcePath) ?? [])];
+  }
+
+  /**
    * Every parcel row citing feeder node `feederRef` — the meter's twin of
    * {@link parcelsOnReach}. A keyed read; the feeder index is maintained
    * beside the coverage trie.
@@ -393,6 +427,16 @@ export default class ParcelRegistry extends ParcelRegistryBase {
       this.reindex(claim.extent, existing);
       const current = existing.getOwner();
       if (current && (await this.sameHolder(current, claim.holder))) {
+        // ⭐ A claim's water citation fills a record that has none — the
+        // pack reconciles its authored content onto a row granted before
+        // the citation existed. A row already citing (authored, or written
+        // by a plumber's service run) is never overwritten.
+        const water = claim.waterSource ?? "";
+        if (water !== "" && existing.getWaterSource() === "") {
+          existing.setWaterSource(water);
+          await existing.save();
+          this.reindex(claim.extent, existing);
+        }
         return { outcome: "kept", holder: current };
       }
       return { outcome: "conflict", holder: current ?? claim.holder };
@@ -406,6 +450,7 @@ export default class ParcelRegistry extends ParcelRegistryBase {
     record.setReach(claim.reach ?? "");
     record.setFeeder(claim.feeder ?? "");
     record.setPowerBand(claim.powerBand ?? null);
+    record.setWaterSource(claim.waterSource ?? "");
     // ⭐ A claim that says nothing about publication is LIVE content.
     // Authoring `published: false` is the draft wall.
     record.setPublished(claim.published ?? true);
@@ -494,6 +539,28 @@ export default class ParcelRegistry extends ParcelRegistryBase {
     // read is a keyed index, not a scan (⚠ unlike `citeReach`, which only
     // reindexes a freshly-loaded record; its `byReach` can go stale on a
     // re-cite of an already-covered row — a latent gap, not this build's).
+    this.reindex(extent, record);
+    return record;
+  }
+
+  /**
+   * See {@link ParcelApi.citeWaterSource}. The water twin of
+   * {@link citeFeeder}: a plumber's completed service run writes the
+   * premises' citation here.
+   */
+  @CallSecurity(ParcelApiCallers)
+  public async citeWaterSource(
+    extent: string,
+    source: string,
+  ): Promise<ParcelRecord | null> {
+    SecurityApi.assertFieldMutation(this, 'citeWaterSource');
+    let record = this.coverage.exact(extent)[0] ?? null;
+    if (!record) {
+      record = await ParcelRecord.findByExtent(extent);
+      if (!record) return null;
+    }
+    record.setWaterSource(source);
+    await record.save();
     this.reindex(extent, record);
     return record;
   }
@@ -869,6 +936,7 @@ export default class ParcelRegistry extends ParcelRegistryBase {
     this.byOwner.clear();
     this.byReach.clear();
     this.byFeeder.clear();
+    this.byWaterSource.clear();
     for (const record of await ParcelRecord.findAll()) {
       const extent = record.getExtent();
       if (extent.length > 0) this.coverage.insert(extent, record);
@@ -892,6 +960,7 @@ export default class ParcelRegistry extends ParcelRegistryBase {
   >();
   private byReach = new Map<string, Set<ParcelRecord>>();
   private byFeeder = new Map<string, Set<ParcelRecord>>();
+  private byWaterSource = new Map<string, Set<ParcelRecord>>();
 
   /** The owner index's key. `''` for a row with no resolvable holder. */
   private ownerKeyOf(owner: ParcelOwner): string {
@@ -926,6 +995,12 @@ export default class ParcelRegistry extends ParcelRegistryBase {
       if (bucket) bucket.add(record);
       else this.byFeeder.set(feeder, new Set([record]));
     }
+    const water = record.getWaterSource();
+    if (water.length > 0) {
+      const bucket = this.byWaterSource.get(water);
+      if (bucket) bucket.add(record);
+      else this.byWaterSource.set(water, new Set([record]));
+    }
   }
 
   /** Drop everything `extent` contributed to the owner/reach indexes. */
@@ -946,6 +1021,12 @@ export default class ParcelRegistry extends ParcelRegistryBase {
         if (record.getExtent() === extent) bucket.delete(record);
       }
       if (bucket.size === 0) this.byFeeder.delete(feeder);
+    }
+    for (const [water, bucket] of this.byWaterSource) {
+      for (const record of bucket) {
+        if (record.getExtent() === extent) bucket.delete(record);
+      }
+      if (bucket.size === 0) this.byWaterSource.delete(water);
     }
   }
 }

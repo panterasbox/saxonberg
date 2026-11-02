@@ -14,3 +14,7 @@ data:
     A galvanised pipe standing out of the grass with a brass tap on top of it, dripping slightly and greening the ground beneath. It was here before the fence was.
   interiorBulk: true
   interiorMaterial: /stuff/idea/material/bulk/water
+  # ⭐ The yard hydrant is the DISTRICT's, on the tank's main at the lot line
+  # (water-supply D2): it runs whatever the lot behind it has plumbed. The
+  # house's own taps wait for a plumber's service run.
+  suppliedBy: /world/terminus/hinkley-hills/thing/district-tank

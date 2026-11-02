@@ -1,10 +1,27 @@
 /**
  * WaterFixture — plumbed water you can work at: a wash basin, a tap, a
- * standpipe. Inexhaustible, so it never runs dry; its matter is water; and
- * it is the thing that affords `wash`.
+ * standpipe. Its matter is water, it is the thing that affords `wash`, and
+ * ⭐⭐ **it gives what its SUPPLY gives, and nothing from nowhere**
+ * (water-supply build, D2): a fixture resolves its premises (the room it
+ * stands in — a keyed holding room by its persistence key), asks the parcel
+ * registry where that premises takes its water (`ParcelApi.waterOf`), loads
+ * that supply on use, and reads it. A premises that cites nothing reads
+ * `unplumbed`. An author marks a fixture that IS a source (a leat, a pond, a
+ * spring trough) `natural: true`; a fixture plumbed to a NAMED source keeps
+ * `suppliedBy`.
  *
- * ⭐ **Composition: `UnboundedSourceMixin(ThermalMixin(BulkableMixin(Thing)))`
- * — its own stack, not {@link UnboundedReceptacle}'s.** It used to extend
+ * ⚠ **Fail closed.** Before its supply resolves a fixture reports empty and
+ * says nothing; it never runs endlessly because a main was not loaded (the
+ * fail-open warn it replaces). Every draw verb awaits `settleBulk` first, so
+ * the resolve happens on the async path that is already there.
+ *
+ * ⭐ **Pressure is head** (D4): the supply's water surface against this
+ * outlet's own height — its room's zone elevation plus its storey. No head
+ * and nothing comes; little head and a draw gives a trickle.
+ *
+ * ⭐ **Composition: `ThermalMixin(BulkableMixin(Thing))` — its own stack,
+ * not {@link UnboundedReceptacle}'s.** (`UnboundedSourceMixin` came off in
+ * the water-supply build: it claimed every fixture is endless.) It used to extend
  * that class, which sits on `Receptacle`, which since the base-class
  * narrowing sits on `Good`. A standpipe is plumbed into the ground: it is
  * nobody's chattel and you cannot hide it, and the constructor below has
@@ -43,13 +60,18 @@
 import Thing from '../../lib/stuff/Thing';
 import { BulkableMixin } from '../../lib/bulk/Bulkable';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
-import { UnboundedSourceMixin } from '../../lib/bulk/UnboundedSource';
 import type { CommandContributions } from '../../api/command';
 import type { FieldMeta } from '../../lib/mixin';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { BulkAffordance } from '../../lib/bulk/Bulkable';
 import type { MarkupAugmenter } from '../../api/mml';
 import { StuffApi } from '../../api/stuff';
+import { MixinApi } from '../../api/mixin';
+import { ParcelApi } from '../../api/parcel';
+import { ZoneApi } from '../../api/zone';
+import { NavigationApi } from '../../api/navigation';
+import { AppApi } from '../../api/app';
+import { AppSettingKeys } from '../../lib/config/AppSettings';
 import { WaterHardness } from '../../lib/cleanliness/WaterHardness';
 import {
   SUPPLY_STATE_GLOSS,
@@ -57,6 +79,7 @@ import {
   type SupplyReporting,
   type SupplyServing,
   type SupplyState,
+  type WaterSupply,
 } from '../../lib/supply/SupplyState';
 
 /**
@@ -71,76 +94,97 @@ function hardnessAugmenter(text: string, host: Stuff): string {
 }
 
 /**
- * ⭐ Says why nothing comes out of a tap whose main is not delivering — in
+ * ⭐ Says why nothing comes out of a tap whose supply is not delivering — in
  * the shipped vocabulary's own gloss, so a player who has learned what
- * *shut off* means at one tap has learned it at every tap.
+ * *shut off* means at one tap has learned it at every tap. A weak tap says
+ * it runs weak.
  */
 function supplyAugmenter(text: string, host: Stuff): string {
   if (!(host instanceof WaterFixture)) return text;
   const state = host.supplyStateNow();
-  if (state === null) return text;
-  return `${text}\n\nNothing comes out of it: ${SUPPLY_STATE_GLOSS[state]}.`;
+  if (state !== null) {
+    return `${text}\n\nNothing comes out of it: ${SUPPLY_STATE_GLOSS[state]}.`;
+  }
+  if (host.runsWeak()) return `${text}\n\nIt runs weak — a thin stream.`;
+  return text;
 }
+
+/** Numeric dial with a call-site fallback (the water pack's `dial` shape). */
+function dial(key: string, fallback: number): number {
+  try {
+    const raw = AppApi.setting(key);
+    if (raw === '' || raw == null) return fallback;
+    const n = Number.parseFloat(raw);
+    return Number.isFinite(n) ? n : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+/** A supply as the fixture holds it — the shape, read structurally. */
+type Supply = Stuff & WaterSupply;
+
+/**
+ * How the fixture's water was last resolved. `pending` = never asked
+ * (sync reads are silent and empty); `natural` = it is its own source;
+ * `unplumbed` = its premises cites nothing (or `none`); `missing` = it cites
+ * a supply that would not load; `supply` = resolved.
+ */
+type Resolution = 'pending' | 'natural' | 'unplumbed' | 'missing' | 'supply';
 
 // The same order `Receptacle` uses, and for the same reason: Thermal outer
 // of Bulkable, so a holder's heat capacity derives from what is in it.
-const WaterFixtureBase = UnboundedSourceMixin(ThermalMixin(BulkableMixin(Thing)));
+const WaterFixtureBase = ThermalMixin(BulkableMixin(Thing));
 
 export default class WaterFixture
   extends WaterFixtureBase
   implements SupplyServing, SupplyReporting
 {
   /**
-   * ⭐⭐ The main this tap is plumbed to — an identity path, or `''` for a
-   * tap that is its own source (every tap the realm shipped before the
-   * pump build, unchanged). When set, the tap runs only while the main
-   * delivers, and says why when it does not.
+   * ⭐⭐ A NAMED supply this fixture is plumbed to — an identity path, or
+   * `''` to read its premises' citation (the ordinary case). A named source
+   * wins over the premises: a yard hydrant on a district main is the
+   * district's, whatever the lot behind it declares.
    */
   protected suppliedBy = '';
 
   /**
-   * ⭐ How hard this tap's water is when it is its own source (a well, a
-   * spring) — `null` when it does not say. A tap on a main answers the
-   * main's (cleanliness D12).
+   * ⭐ This fixture IS a source — a leat, a pond, a spring-fed trough — and
+   * runs on its own water, endlessly. An author's declaration; the default
+   * is that a fixture is plumbed to something.
+   */
+  protected natural = false;
+
+  /**
+   * ⭐ It draws its share whether anybody uses it or not — the fountain's
+   * *calix* bore (D24). Counted in its supply's demand.
+   */
+  protected continuous = false;
+
+  /**
+   * ⭐ How hard this fixture's water is when it is its own source (a well, a
+   * spring) — `null` when it does not say. A fixture on a supply answers the
+   * supply's (cleanliness D12).
    */
   protected hardnessDgh: number | null = null;
 
   static fieldMeta: FieldMeta = {
     suppliedBy: { persistent: true, authorable: true, ref: 'identity:relation' },
+    natural: { persistent: true, authorable: true },
+    continuous: { persistent: true, authorable: true },
     hardnessDgh: { persistent: true, authorable: true },
   };
 
   static markupAugmenters: MarkupAugmenter[] = [supplyAugmenter, hardnessAugmenter];
 
-  /**
-   * ⭐ Settle the water before it is read (cleanliness D12): the main's
-   * hardness — its source's — is pulled into the tap's own water, so a
-   * pail filled here and carried away is soft or hard as the tap is.
-   */
-  public override async settleBulk(affordance: BulkAffordance): Promise<void> {
-    await super.settleBulk(affordance);
-    if (affordance !== 'interior') return;
-    const main = this.mainOf();
-    const fromMain =
-      main && typeof main.readWaterHardnessDgh === 'function'
-        ? await main.readWaterHardnessDgh().catch(() => null)
-        : null;
-    const dgh = fromMain ?? this.hardnessDgh;
-    if (dgh === null) return;
-    this.setBulkPayload('interior', {
-      ...(this.getBulkPayload('interior') ?? {}),
-      hardnessDgh: dgh,
-    });
-  }
-
-  /** The water's hardness as last settled, or `null`. */
-  public getWaterHardnessDgh(): number | null {
-    const dgh = this.getBulkPayload('interior')?.hardnessDgh;
-    return typeof dgh === 'number' ? dgh : this.hardnessDgh;
-  }
-
-  /** Has the unresolved-main warning already been logged? */
-  private _warnedUnresolved = false;
+  /** Transient: how the water was last resolved, and against what. */
+  private _resolution: Resolution = 'pending';
+  private _sourcePath = '';
+  private _supply: Supply | null = null;
+  /** Head of water over this outlet, m — `null` when either end is unknown. */
+  private _headM: number | null = null;
+  /** The premises' declared land use — for the tap's words only. */
+  private _residential = false;
 
   constructor() {
     super();
@@ -156,59 +200,310 @@ export default class WaterFixture
   public getSuppliedBy(): string {
     return this.suppliedBy;
   }
+  public setSuppliedBy(value: string): void {
+    this.suppliedBy = typeof value === 'string' ? value.trim() : '';
+    this._resolution = 'pending';
+  }
+
+  public isNatural(): boolean {
+    return this.natural;
+  }
+  public setNatural(value: boolean): void {
+    this.natural = value === true;
+    this._resolution = 'pending';
+  }
+
+  public isContinuous(): boolean {
+    return this.continuous;
+  }
+  public setContinuous(value: boolean): void {
+    this.continuous = value === true;
+  }
+
+  // ---------- the premises, and the supply it cites ----------
 
   /**
-   * The main, resolved by path. ⚠ An unresolved main **fails open** and
-   * logs once: a tap on a main the world has not loaded behaves as every
-   * tap always has, and `analyze water` says the main could not be found.
+   * ⭐ The premises this fixture stands on — the path the parcel registry is
+   * asked about. The room at the end of the containment walk; ⭐ a keyed
+   * holding room answers by its PERSISTENCE KEY (`<lot extent>/<leaf>`),
+   * because its template path is the shared row every lot's kitchen clones
+   * from, and that row resolves the district, not the lot.
    */
-  private mainOf(): (Stuff & Partial<SupplyServing & SupplyReporting>) | null {
-    if (this.suppliedBy === '') return null;
-    const main = StuffApi.findByTemplatePath(this.suppliedBy);
-    if (!main && !this._warnedUnresolved) {
-      this._warnedUnresolved = true;
-      console.warn(
-        `WaterFixture: main '${this.suppliedBy}' did not resolve; the tap runs as its own source`,
-      );
+  public resolvePremisesPath(): string | null {
+    const self = this as unknown as Stuff;
+    let cursor: Stuff = self;
+    const seen = new Set<string>();
+    while (MixinApi.isContainable(cursor)) {
+      const next = cursor.getContainer() as Stuff | null;
+      if (next === null || seen.has(next.stuffId)) break;
+      seen.add(next.stuffId);
+      cursor = next;
     }
-    return (main as Stuff & Partial<SupplyServing & SupplyReporting>) ?? null;
+    if (cursor === self) return null;
+    if (MixinApi.isPersistable(cursor)) {
+      const key = cursor.getPersistenceKey();
+      if (key !== null && key.startsWith('/')) return key;
+    }
+    return cursor.getTemplatePath();
   }
 
-  /** Why the main is not delivering, or `null` (running, or no main). */
+  /**
+   * Where this fixture's water comes from, by path — sync, a trie read: the
+   * named source, else the premises' citation. `''` = nothing.
+   */
+  private citedSourcePath(): string {
+    if (this.suppliedBy !== '') return this.suppliedBy;
+    const premises = this.resolvePremisesPath();
+    if (premises === null) return '';
+    const water = ParcelApi.waterOf(premises);
+    this._residential = ParcelApi.landUseOf(premises) === 'residential';
+    return water.source === 'none' ? '' : water.source;
+  }
+
+  /**
+   * ⭐ Resolve the supply and this outlet's head. Async, on the settle path
+   * every draw verb already awaits; re-run each settle, so a premises a
+   * plumber has just connected is read at the next draw. The supply loads
+   * on use (`StuffApi.singleton` — a supply composes `SingletonMixin`, so
+   * the room that props it later adopts the same instance).
+   */
+  public async ensureSupply(): Promise<void> {
+    if (this.natural) {
+      this._resolution = 'natural';
+      this._supply = null;
+      this._headM = null;
+      return;
+    }
+    const path = this.citedSourcePath();
+    if (path === '') {
+      this._resolution = 'unplumbed';
+      this._sourcePath = '';
+      this._supply = null;
+      this._headM = null;
+      return;
+    }
+    if (path !== this._sourcePath || this._supply === null || this._supply.isDestroyed()) {
+      this._sourcePath = path;
+      try {
+        this._supply = await StuffApi.singleton<Supply>(path);
+      } catch {
+        this._supply = null;
+      }
+    }
+    if (this._supply === null || typeof this._supply.drawL !== 'function') {
+      this._resolution = 'missing';
+      this._supply = null;
+      this._headM = null;
+      return;
+    }
+    this._resolution = 'supply';
+    this._headM = await this.resolveHead(this._supply);
+  }
+
+  /** The supply as last resolved — a SYNC read for hot paths; null = none. */
+  private supplyNow(): Supply | null {
+    if (this._resolution === 'pending') void this.ensureSupply().catch(() => {});
+    return this._resolution === 'supply' ? this._supply : null;
+  }
+
+  /**
+   * ⭐ Head of water over this outlet, m: the supply's water surface minus
+   * the outlet's own elevation (its room's zone elevation + its storey).
+   * `null` when either end is unknown — which reads as full head, never as
+   * none.
+   */
+  private async resolveHead(supply: Supply): Promise<number | null> {
+    const surface = await supply.supplyHeadM().catch(() => null);
+    if (surface === null) return null;
+    const outlet = await this.outletElevationM();
+    if (outlet === null) return null;
+    return surface - outlet;
+  }
+
+  /**
+   * This outlet's elevation, m ASL: its room's zone elevation plus the
+   * room's storey × the storey height (D4). A room in no structure, or on
+   * the implicit storey, stands at its zone's elevation.
+   */
+  public async outletElevationM(): Promise<number | null> {
+    const self = this as unknown as Stuff;
+    let room: Stuff = self;
+    while (MixinApi.isContainable(room)) {
+      const next = room.getContainer() as Stuff | null;
+      if (next === null) break;
+      room = next;
+    }
+    const ground = await ZoneApi.elevationFor(room).catch(() => null);
+    if (ground === null) return null;
+    return ground + this.storeyIndexOf(room) * dial(AppSettingKeys.constructionStoreyHeightM, 3);
+  }
+
+  /**
+   * How many storeys up the room stands: the depth of its storey in its
+   * structure's `on:` chain (0 = the ground). One question, asked of the
+   * structure the room belongs to.
+   */
+  private storeyIndexOf(room: Stuff): number {
+    const path = room.getTemplatePath();
+    if (!path) return 0;
+    const structure = NavigationApi.structureAtNow(path);
+    if (structure === null) return 0;
+    let storey = structure.storeyOf(path);
+    let depth = 0;
+    const seen = new Set<string>();
+    while (storey?.on !== undefined && !seen.has(storey.key)) {
+      seen.add(storey.key);
+      depth++;
+      storey = structure.storeyByKey(storey.on);
+    }
+    return depth;
+  }
+
+  /** Is the head so low a draw gives only a trickle? */
+  public runsWeak(): boolean {
+    if (this.supplyNow() === null) return false;
+    const head = this._headM;
+    return head !== null && head > 0 && head < dial(AppSettingKeys.waterWeakHeadM, 3);
+  }
+
+  // ---------- the six-and-one words ----------
+
+  /**
+   * Why this fixture gives nothing, or `null`. A natural source, and a
+   * fixture not yet resolved, say nothing (the second is empty all the
+   * same — see {@link isBulkEmpty}).
+   */
   public supplyStateNow(): SupplyState | null {
-    const main = this.mainOf();
-    if (!main || typeof main.supplyStateNow !== 'function') return null;
-    return main.supplyStateNow();
+    if (this.natural) return null;
+    const supply = this.supplyNow();
+    if (this._resolution === 'pending') return null;
+    if (supply === null) return 'unplumbed';
+    const state = supply.supplyStateNow();
+    if (state !== null) return state;
+    // ⭐ The water stands below this outlet: the source has nothing to give
+    // HERE, whatever it gives the ground floor.
+    if (this._headM !== null && this._headM <= 0) return 'dry';
+    return null;
   }
 
-  public override isBulkEmpty(affordance: BulkAffordance): boolean {
-    if (affordance === 'interior' && this.supplyStateNow() !== null) return true;
-    return super.isBulkEmpty(affordance);
+  /**
+   * ⭐ Settle the water before it is read: resolve the supply and the head,
+   * then pull the supply's hardness — its source's — into the fixture's own
+   * water, so a pail filled here and carried away is soft or hard as the
+   * tap is (cleanliness D12).
+   */
+  public override async settleBulk(affordance: BulkAffordance): Promise<void> {
+    await super.settleBulk(affordance);
+    if (affordance !== 'interior') return;
+    await this.ensureSupply();
+    const supply = this._resolution === 'supply' ? this._supply : null;
+    const fromSupply =
+      supply && typeof supply.readWaterHardnessDgh === 'function'
+        ? await supply.readWaterHardnessDgh().catch(() => null)
+        : null;
+    const dgh = fromSupply ?? this.hardnessDgh;
+    if (dgh === null) return;
+    this.setBulkPayload('interior', {
+      ...(this.getBulkPayload('interior') ?? {}),
+      hardnessDgh: dgh,
+    });
+  }
+
+  /** The water's hardness as last settled, or `null`. */
+  public getWaterHardnessDgh(): number | null {
+    const dgh = this.getBulkPayload('interior')?.hardnessDgh;
+    return typeof dgh === 'number' ? dgh : this.hardnessDgh;
   }
 
   public override getBulkAvailable(affordance: BulkAffordance): number {
-    if (affordance === 'interior' && this.supplyStateNow() !== null) return 0;
-    return super.getBulkAvailable(affordance);
+    if (affordance !== 'interior') return super.getBulkAvailable(affordance);
+    if (this.getBulkMaterialPath('interior') === null) return 0;
+    if (this.natural) return Infinity;
+    const supply = this.supplyNow();
+    if (supply === null || this.supplyStateNow() !== null) return 0;
+    const available = supply.availableL();
+    return this.runsWeak()
+      ? Math.min(available, dial(AppSettingKeys.waterWeakDrawL, 2))
+      : available;
+  }
+
+  public override isBulkEmpty(affordance: BulkAffordance): boolean {
+    if (affordance !== 'interior') return super.isBulkEmpty(affordance);
+    return this.getBulkAvailable('interior') <= 0;
+  }
+
+  /** ⭐ A draw takes from the SUPPLY — a store's level falls; a main's does not. */
+  public override debitBulk(affordance: BulkAffordance, litres: number): void {
+    if (affordance !== 'interior') {
+      super.debitBulk(affordance, litres);
+      return;
+    }
+    if (this.natural) return;
+    this.supplyNow()?.drawL(litres);
+  }
+
+  /** ⭐ Why `fill` got nothing here, in the tap's own words. */
+  public override bulkWhyEmpty(affordance: BulkAffordance): string | null {
+    if (affordance !== 'interior') return super.bulkWhyEmpty(affordance);
+    const state = this.supplyStateNow();
+    if (state === 'unplumbed') {
+      return this._residential
+        ? "Nothing comes out — this house isn't on any supply."
+        : "Nothing comes out — this place isn't on any supply.";
+    }
+    if (state === 'dry' && this._headM !== null && this._headM <= 0) {
+      return 'Nothing comes out — the water stands below here.';
+    }
+    if (state !== null) return `Nothing comes out: ${SUPPLY_STATE_GLOSS[state]}.`;
+    return null;
   }
 
   /**
-   * ⭐ `analyze water <tap>` reads the MAIN — the tap has no working of its
+   * ⭐ `analyze water <tap>` reads the SUPPLY — the tap has no working of its
    * own to show, and the whole lesson is that what you see at the tap is
-   * decided somewhere else.
+   * decided somewhere else — then what this outlet's height makes of it.
    */
   public async supplyReport(nowS: number): Promise<SupplyReport> {
-    const main = this.mainOf();
-    if (main && typeof main.supplyReport === 'function') {
-      return main.supplyReport(nowS);
+    await this.ensureSupply();
+    const label = this.getPresentation();
+    if (this.natural) {
+      return {
+        label,
+        state: null,
+        lines: ['It draws on its own source, and nothing upstream decides whether it runs.'],
+      };
+    }
+    const supply = this._resolution === 'supply' ? this._supply : null;
+    if (supply === null) {
+      return {
+        label,
+        state: 'unplumbed',
+        lines: [
+          this._resolution === 'missing'
+            ? `It is plumbed to ${this._sourcePath}, which cannot be found.`
+            : `unplumbed — ${SUPPLY_STATE_GLOSS.unplumbed}.`,
+        ],
+      };
+    }
+    const report =
+      typeof supply.supplyReport === 'function'
+        ? await supply.supplyReport(nowS)
+        : { label: supply.getPresentation(), state: supply.supplyStateNow(), lines: [] };
+    const lines = [...report.lines];
+    const head = this._headM;
+    if (head !== null) {
+      lines.push(
+        head <= 0
+          ? `the water stands ${(-head).toFixed(1)} m below this outlet — nothing reaches it`
+          : head < dial(AppSettingKeys.waterWeakHeadM, 3)
+            ? `${head.toFixed(1)} m of head over this outlet — it runs weak`
+            : `${head.toFixed(1)} m of head over this outlet`,
+      );
     }
     return {
-      label: this.getPresentation(),
-      state: null,
-      lines: [
-        this.suppliedBy === ''
-          ? 'It draws on its own source, and nothing upstream decides whether it runs.'
-          : 'It is plumbed to a main that cannot be found.',
-      ],
+      label: report.label,
+      state: this.supplyStateNow(),
+      lines,
     };
   }
 

@@ -287,7 +287,7 @@ export class BulkSlot {
    * controller's empty-source line prints this when there is one.
    */
   whyEmpty(): string | null {
-    return null;
+    return this.host.bulkWhyEmpty(this.affordance);
   }
 
   /**
@@ -483,6 +483,12 @@ export interface Bulkable {
    * a tap pulls its main's hardness into its payload (cleanliness D12).
    */
   settleBulk(affordance: BulkAffordance): Promise<void>;
+  /**
+   * @hook Why this slot has nothing to give, in words — or `null` (an
+   * ordinary vessel: empty is just empty). A tap whose house is on no
+   * supply says so (water-supply build). Read after `settleBulk`.
+   */
+  bulkWhyEmpty(affordance: BulkAffordance): string | null;
   /**
    * @hook `by` has just poured `litres` OUT of this (the pour verb calls
    * it). A no-op on an ordinary vessel; a tall lye hopper splashes a
@@ -925,6 +931,10 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
 
     public settleBulk(_affordance: BulkAffordance): Promise<void> {
       return Promise.resolve();
+    }
+
+    public bulkWhyEmpty(_affordance: BulkAffordance): string | null {
+      return null;
     }
 
     public afterPouredOutBy(_by: Stuff, _litres: number): void {}

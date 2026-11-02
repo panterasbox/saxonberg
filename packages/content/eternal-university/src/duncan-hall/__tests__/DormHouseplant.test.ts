@@ -603,6 +603,11 @@ describe('the dorm houseplant — content and placement', () => {
     const plant = plantIn(room)!;
     const can = canIn(room)!;
     const tap = tapIn(room)!;
+    // ⚠ This suite stands up no parcel registry, so the dorm's premises
+    // cites no main and the tap would read `unplumbed` (water-supply D2) —
+    // a true answer about the test world, not about the care loop. The tap
+    // runs on its own water here; the supply is `WaterFixture`'s own suite.
+    (tap as unknown as { setNatural(v: boolean): void }).setNatural(true);
     const tenant = await makeAvatar('tenant');
     ContainmentApi.move(tenant, room as unknown as Stuff & Container);
     ContainmentApi.move(can, tenant); // carried — the verb needs it in hand

@@ -14,5 +14,5 @@ requires:
     - name: hinkley-hills
       purpose: the Improvement District
   title:
-    - { extent: /world/terminus/hinkley-hills, parentParcel: /world/terminus, holder: { group: hinkley-hills }, landUse: residential, areaM2: 240000, powerBand: off-grid }
-    - { extent: /world/terminus/hinkley-hills/lots/lot-1, parentParcel: /world/terminus/hinkley-hills, holder: { group: hinkley-hills }, landUse: residential, areaM2: 1000, powerBand: off-grid }
+    - { extent: /world/terminus/hinkley-hills, parentParcel: /world/terminus, holder: { group: hinkley-hills }, landUse: residential, areaM2: 240000, powerBand: off-grid, waterSource: /world/terminus/hinkley-hills/thing/district-tank }
+    - { extent: /world/terminus/hinkley-hills/lots/lot-1, parentParcel: /world/terminus/hinkley-hills, holder: { group: hinkley-hills }, landUse: residential, areaM2: 1000, powerBand: off-grid, waterSource: none }

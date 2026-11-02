@@ -44,6 +44,8 @@ import { AppSettingKeys } from '@saxonberg/server/mud/lib/config/AppSettings';
 import { BiomeApi } from '@saxonberg/server/mud/api/biome';
 import { ZoneApi } from '@saxonberg/server/mud/api/zone';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
+import { SingletonMixin } from '@saxonberg/server/mud/lib/stuff/Singleton';
+import type { SupplyReport, SupplyState, WaterSupply } from '@saxonberg/server/mud/lib/supply/SupplyState';
 
 /**
  * What shape of store it is.
@@ -67,11 +69,15 @@ export interface StorageMovement {
 }
 
 // PersistableMixin OUTERMOST — the documented host rule.
+//
+// ⭐ Singleton since the water-supply build: a premises cites the tank by
+// its row path and a tap loads it on use; the lane that props it adopts the
+// same instance.
 const StorageNodeBase = PersistableMixin(
-  SwitchableMixin(Thing),
+  SwitchableMixin(SingletonMixin(Thing)),
 );
 
-export default class StorageNode extends StorageNodeBase {
+export default class StorageNode extends StorageNodeBase implements WaterSupply {
   static fieldMeta: FieldMeta = {
     storageKind: { persistent: true, authorable: true },
     capacityM3: { persistent: true, authorable: true },
@@ -216,6 +222,48 @@ export default class StorageNode extends StorageNodeBase {
    * deciding how big to build. `Infinity` at zero draw; zero when it is
    * already empty.
    */
+  // ---------- ⭐ the WaterSupply a premises cites (water-supply D3) ----------
+
+  /** Why it gives nothing: empty is `dry`. */
+  public supplyStateNow(): SupplyState | null {
+    return this.levelM3 <= 0 ? 'dry' : null;
+  }
+
+  /**
+   * The tank's water surface, m ASL: its base elevation plus how deep it
+   * stands (a tower's `elevationM` is where its floor sits — as it fills,
+   * the head rises with it).
+   */
+  public async supplyHeadM(): Promise<number | null> {
+    return this.elevationM + this.depthM();
+  }
+
+  /** How deep the water stands in it, m — a 4 m-deep tank shape assumed. */
+  private depthM(): number {
+    return this.fullness() * 4;
+  }
+
+  /** A draw takes litres from the level, as far as there are any. */
+  public drawL(litres: number): number {
+    return this.draw(Math.max(0, litres) / 1000).m3 * 1000;
+  }
+
+  public availableL(): number {
+    return this.levelM3 * 1000;
+  }
+
+  public async supplyReport(_nowS: number): Promise<SupplyReport> {
+    const state = this.supplyStateNow();
+    return {
+      label: this.getPresentation(),
+      state,
+      lines: [
+        `holds ${this.levelM3.toFixed(1)} of ${this.capacityM3.toFixed(0)} m³`,
+        `its water stands at ${(this.elevationM + this.depthM()).toFixed(1)} m`,
+      ],
+    };
+  }
+
   public outageToleranceS(drawM3S: number): number {
     if (drawM3S <= 0) return Number.POSITIVE_INFINITY;
     return this.levelM3 / drawM3S;

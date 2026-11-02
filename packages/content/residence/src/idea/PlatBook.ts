@@ -36,6 +36,7 @@ export default class PlatBook extends PlatBookBase {
     priceMinor: { persistent: true, authorable: true },
     areaM2: { persistent: true, authorable: true },
     landUse: { persistent: true, authorable: true },
+    lotWaterSource: { persistent: true, authorable: true },
     holderPath: { persistent: true, authorable: true, authorPicker: 'Template' },
   };
 
@@ -65,6 +66,13 @@ export default class PlatBook extends PlatBookBase {
 
   /** The land use a sold lot is stamped with (validated on set). */
   public landUse: LandUse = "residential";
+
+  /**
+   * ⭐ Where a sold lot takes its water (water-supply D1): `none` — an
+   * unserviced lot until a plumber's service run cites a main — or a
+   * supply path, or `''` to inherit the district's citation.
+   */
+  public lotWaterSource: string = "";
 
   /** The {@link PlatWarren} that stands ground up when a lot sells (an
    *  identity path — the book is reference data). */
@@ -129,6 +137,14 @@ export default class PlatBook extends PlatBookBase {
 
   public setLandUse(value: LandUse | string): void {
     this.landUse = LandUses.parse(value);
+  }
+
+  public getLotWaterSource(): string {
+    return this.lotWaterSource;
+  }
+
+  public setLotWaterSource(value: string): void {
+    this.lotWaterSource = typeof value === "string" ? value.trim() : "";
   }
 
   public getHolderPath(): string {

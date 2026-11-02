@@ -28,7 +28,25 @@ data:
   # ⚠ RUNNING — `Switchable` defaults off, and an intake that is off draws
   # nothing for the city (the outfall's twin finding, the fishing drive).
   on: true
-  extent: /world/terminus
+  # ⭐ The CITY's districts (water-supply D23), not every locality under the
+  # realm root: Hinkley drinks from its own tank, the Delight from its
+  # river, Rejection from its wells. A plumber's service run completes only
+  # where one of these is the premises (the first is where the head is
+  # surveyed from).
+  extents:
+    - /world/terminus/market
+    - /world/terminus/terminal
+    - /world/terminus/counting-houses
+    - /world/terminus/general-store
+    - /world/terminus/registry
+    - /world/terminus/university-avenue
+    - /world/terminus/mayfield-row
+    - /world/terminus/realty
+    - /world/terminus/wharfside
+    - /world/terminus/goods-yards
+    - /world/terminus/infirmary
+    - /world/terminus/eternal
+    - /world/terminus/hearthworks
   capacityM3S: 1.2
   treatmentFactor: 0
   ownerRef: "group:terminus"

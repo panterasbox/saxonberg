@@ -62,7 +62,8 @@ import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable'
 import type { VetoResult } from '@saxonberg/server/mud/lib/errors';
 import type { Pumping } from '@saxonberg/server/mud/lib/pump/Pumping';
 import type { PumpSource } from '@saxonberg/server/mud/lib/pump/Pumpable';
-import type { SupplyServing } from '@saxonberg/server/mud/lib/supply/SupplyState';
+import type { SupplyServing, WaterSupply } from '@saxonberg/server/mud/lib/supply/SupplyState';
+import { SingletonMixin } from '@saxonberg/server/mud/lib/stuff/Singleton';
 import { AppApi } from '@saxonberg/server/mud/api/app';
 import { AppSettingKeys } from '@saxonberg/server/mud/lib/config/AppSettings';
 import { ZoneApi } from '@saxonberg/server/mud/api/zone';
@@ -111,17 +112,22 @@ export interface ConduitReading {
 // (`props: [intake-pump]`), and vetoes everything else. The claim is true —
 // a conduit's pump is part of the conduit — and the water pack still ships
 // no mover and no verb: the pump is the energy pack's appliance.
-const ConduitBase = StagedMixin(ContainerMixin(SwitchableMixin(Thing)));
+//
+// ⭐ Singleton since the water-supply build: a premises cites a main by its
+// row path and a tap LOADS it on use (`StuffApi.singleton`); the room that
+// props it later adopts the same instance rather than minting a second.
+const ConduitBase = StagedMixin(ContainerMixin(SwitchableMixin(SingletonMixin(Thing))));
 
 export default class Conduit
   extends ConduitBase
-  implements PumpSource, SupplyServing
+  implements PumpSource, SupplyServing, WaterSupply
 {
   static fieldMeta: FieldMeta = {
     conduitKey: { persistent: true, authorable: true },
     reachRef: { persistent: true, authorable: true },
     at: { persistent: true, authorable: true },
     extent: { persistent: true, authorable: true },
+    extents: { persistent: true, authorable: true },
     direction: { persistent: true, authorable: true },
     capacityM3S: { persistent: true, authorable: true },
     treatmentFactor: { persistent: true, authorable: true },
@@ -161,6 +167,14 @@ export default class Conduit
    * asked of a different registry.
    */
   public extent = '';
+
+  /**
+   * ⭐ The served area as a LIST of prefixes (water-supply D23) — the city
+   * intake serves the city's districts, not every locality under the realm
+   * root. Longest-prefix over all of them. Empty → the single
+   * {@link extent} (every row authored before the list existed).
+   */
+  public extents: string[] = [];
 
   /** `supply` (reach → extent) or `disposal` (extent → reach). */
   public direction: ConduitDirection = 'supply';
@@ -237,10 +251,23 @@ export default class Conduit
   }
 
   public getExtent(): string {
-    return this.extent;
+    return this.servedExtents()[0] ?? '';
   }
   public setExtent(value: string): void {
     this.extent = value;
+  }
+
+  /** Every prefix this conduit serves (D23). */
+  public servedExtents(): string[] {
+    if (this.extents.length > 0) return [...this.extents];
+    return this.extent === '' ? [] : [this.extent];
+  }
+  public setExtents(value: string[] | string | null): void {
+    const list = Array.isArray(value) ? value : typeof value === 'string' ? [value] : [];
+    this.extents = list
+      .filter((e): e is string => typeof e === 'string')
+      .map((e) => e.trim().replace(/\/+$/, ''))
+      .filter((e) => e !== '');
   }
 
   public getDirection(): ConduitDirection {
@@ -329,8 +356,10 @@ export default class Conduit
    * the direction that would be catastrophic.
    */
   public serves(path: string): boolean {
-    if (this.extent === '' || path === '') return false;
-    return path === this.extent || path.startsWith(this.extent + '/');
+    if (path === '') return false;
+    return this.servedExtents().some(
+      (e) => path === e || path.startsWith(e + '/'),
+    );
   }
 
   // ---------- head, and therefore the pump ----------
@@ -359,7 +388,7 @@ export default class Conduit
     // returns null for a path that IS a zone — a zone is not inside
     // itself. The enclosing variant answers for both cases, and
     // elevation inherits through the ancestor walk either way.
-    const zone = await ZoneApi.resolveEnclosingZoneForPath(this.extent);
+    const zone = await ZoneApi.resolveEnclosingZoneForPath(this.getExtent());
     const landM = zone === null
       ? null
       : await zone.lookupField<number>('elevation');
@@ -379,8 +408,8 @@ export default class Conduit
    * extent resolves no zone.
    */
   public async extentAirK(nowS: number): Promise<number | null> {
-    if (this.extent === '') return null;
-    const zone = await ZoneApi.resolveEnclosingZoneForPath(this.extent);
+    if (this.getExtent() === '') return null;
+    const zone = await ZoneApi.resolveEnclosingZoneForPath(this.getExtent());
     // Only a region in space has a site (geography is `SpatialZone`'s); an
     // extent naming a folder or nothing has no air of its own to read.
     if (!(zone instanceof SpatialZone)) return null;
@@ -511,6 +540,37 @@ export default class Conduit
     return state?.hardnessDgh ?? null;
   }
 
+  // ---------- ⭐ the WaterSupply a premises cites (water-supply D3) ----------
+
+  /**
+   * The water surface a tap's head is measured from, m ASL. A gravity main
+   * gives its source's elevation; a PUMPED main gives its served ground plus
+   * the pressure its pump holds the line at (`water.mainPressureHeadM`) —
+   * the city's pump lifts the Kestrel five metres to the streets and then
+   * twenty more into the houses. `null` = unknown (the tap runs full).
+   */
+  public async supplyHeadM(): Promise<number | null> {
+    if (this.direction !== 'supply' || this.reachRef === '') return null;
+    const catalogue = await catalogueOf();
+    if (catalogue === null) return null;
+    if (this.headM === null) await this.resolveHead(catalogue);
+    const reach = await catalogue.reachOf(this.reachRef);
+    if (reach === null) return null;
+    if (this.headM === null || this.headM >= 0) return reach.elevation;
+    const landM = reach.elevation - this.headM;
+    return landM + dial(AppSettingKeys.waterMainPressureHeadM, 20);
+  }
+
+  /** ⭐ A main gives all it is asked while it delivers, and nothing when not. */
+  public drawL(litres: number): number {
+    return this.supplyStateNow() === null ? Math.max(0, litres) : 0;
+  }
+
+  /** A delivering main is unbounded at the tap; a failed one gives nothing. */
+  public availableL(): number {
+    return this.supplyStateNow() === null ? Infinity : 0;
+  }
+
   // ---------- state ----------
 
   /**
@@ -638,8 +698,8 @@ export default class Conduit
 
     lines.push(
       this.direction === 'supply'
-        ? `draws from ${this.reachRef} and serves ${this.extent || '(nothing)'}`
-        : `takes from ${this.extent || '(nothing)'} and outfalls into ${this.reachRef}`,
+        ? `draws from ${this.reachRef} and serves ${this.servedExtents().join(', ') || '(nothing)'}`
+        : `takes from ${this.getExtent() || '(nothing)'} and outfalls into ${this.reachRef}`,
     );
     lines.push(
       flow === null

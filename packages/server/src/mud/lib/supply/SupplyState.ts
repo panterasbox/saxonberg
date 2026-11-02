@@ -1,9 +1,11 @@
 /**
  * SupplyState — **the one closed vocabulary a utility fails in**.
  *
- * Six words, and every supply in the game says its failure in one of
- * them: water, and whatever utility lands next. A seventh is a design
- * conversation, not an edit — the whole value of the list is that a
+ * Seven words, and every supply in the game says its failure in one of
+ * them: water, and whatever utility lands next. An eighth is a design
+ * conversation, not an edit (the seventh, `unplumbed`, was one — the
+ * water-supply build, 2026-11-02: `dry` would make the river lie for a
+ * house no pipe reaches) — the whole value of the list is that a
  * player who has learned what `dry` means at a standpipe has learned
  * what it means everywhere, and a builder reading a failure knows the
  * shape of the fix without knowing the subsystem.
@@ -33,8 +35,10 @@
  * | `fouled` | what arrives is unfit — contamination past what treatment removes |
  * | `off` | somebody **closed** it, and somebody can open it again |
  * | `overdrawn` | more is being asked of it than its **capacity** carries |
+ * | `unplumbed` | **nothing is connected** — no pipe brings water here |
  */
 export type SupplyState =
+  | 'unplumbed'
   | 'dry'
   | 'cut'
   | 'frozen'
@@ -44,6 +48,7 @@ export type SupplyState =
 
 /** Validation array / iteration order for {@link SupplyState}. */
 export const SUPPLY_STATES: readonly SupplyState[] = [
+  'unplumbed',
   'dry',
   'cut',
   'frozen',
@@ -61,9 +66,12 @@ export const SUPPLY_STATES: readonly SupplyState[] = [
  * furthest from being fixed by the person asking**: physical
  * destruction, then a deliberate closure, then the source, then what is
  * in the water, then how much is being asked of it. Reporting
- * `overdrawn` on a severed pipe would be true and useless.
+ * `overdrawn` on a severed pipe would be true and useless. `unplumbed`
+ * heads the list: a house no pipe reaches is further from water than one
+ * whose pipe is cut.
  */
 export const SUPPLY_STATE_PRECEDENCE: readonly SupplyState[] = [
+  'unplumbed',
   'cut',
   'off',
   'dry',
@@ -74,6 +82,7 @@ export const SUPPLY_STATE_PRECEDENCE: readonly SupplyState[] = [
 
 /** One-line player-facing gloss per state — the legibility half. */
 export const SUPPLY_STATE_GLOSS: Record<SupplyState, string> = {
+  unplumbed: "no pipe brings water here",
   dry: 'the source has run too low to draw from',
   cut: 'the line is broken',
   frozen: 'it is frozen',
@@ -135,6 +144,37 @@ export interface SupplyServing {
    * does. Optional: a supply that carries no water (a feeder) has none.
    */
   readWaterHardnessDgh?(): Promise<number | null>;
+}
+
+/**
+ * ⭐⭐ **Everything a tap can hang off** (water-supply build, D3) — a main, a
+ * tank, a cistern, a well with a running pump. A premises cites one of
+ * these by template path (`ParcelRecord.waterSource`); a fixture loads it
+ * on use and asks it, never the other way round, and never enumerates the
+ * other outlets.
+ *
+ * Implemented STRUCTURALLY (the {@link SupplyServing} rule): the water
+ * pack's `Conduit` and `StorageNode`, the kernel's `WaterStore` and `Well`.
+ */
+export interface WaterSupply extends SupplyServing, SupplyReporting {
+  /**
+   * The elevation of the water's SURFACE, metres above sea level — what a
+   * tap's head is measured from. `null` when unknown (the tap then runs
+   * at full head, as every tap did before heads existed).
+   */
+  supplyHeadM(): Promise<number | null>;
+  /**
+   * Give up to `litres` and return what was actually given — a main gives
+   * all it is asked while delivering, a store its level, nothing when the
+   * supply reads a state.
+   */
+  drawL(litres: number): number;
+  /**
+   * How much a tap may draw from it right now, litres — `Infinity` for a
+   * main or a natural source, a store's level for a store, 0 when it
+   * reads a state.
+   */
+  availableL(): number;
 }
 
 /**

@@ -933,6 +933,9 @@ const IGNORED_PATH_FIELDS: readonly string[] = [
   // unresolvable one fails closed and is not the silent hazard this
   // clause exists to catch. See docs/subsystems/watershed.md.
   'extent',
+  // ⭐ …and a conduit's served extents as a LIST (water-supply D23): the
+  // same longest-prefix prefixes, one per district the main serves.
+  'extents',
   'servesExtent',
   // ⭐ A structure's STOREYS (rubber build) are extents too — each a
   // membership prefix resolved longest-prefix, like the structure's own

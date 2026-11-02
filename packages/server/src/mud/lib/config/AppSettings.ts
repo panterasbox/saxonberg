@@ -2291,6 +2291,19 @@ export const AppSettingKeys = {
    * so investing in treatment moves the threshold rather than the
    * river. */
   waterFouledAt: "water.fouledAt",
+  /** Water supply — below this head (m of water over the outlet) a tap runs
+   * WEAK: a draw gives at most {@link waterWeakDrawL}. The top floor of a
+   * house on a low tank. Arithmetic, not a band of feeling. */
+  waterWeakHeadM: "water.weakHeadM",
+  /** Water supply — the pressure a PUMPED main holds its line at, as metres
+   * of head over the ground it serves (a gravity main gives its source's
+   * elevation instead). Twenty metres is two bar: three storeys. */
+  waterMainPressureHeadM: "water.mainPressureHeadM",
+  /** Water supply — the most a weak tap gives in one draw, litres. */
+  waterWeakDrawL: "water.weakDrawL",
+  /** Construction — the height of one storey, metres: a tap on the loft
+   * stands this much higher than one on the ground floor per storey. */
+  constructionStoreyHeightM: "construction.storeyHeightM",
 
   /* ─────────────────────────── textiles ─────────────────────────── */
   /**

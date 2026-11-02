@@ -95,6 +95,25 @@ export class ParcelLogic extends ApiLogic {
       : { band: "off-grid", feeder: "", parcel: null };
   }
 
+  /** See {@link ParcelApi.waterOf}. */
+  @CallSecurity(ParcelApiCallers)
+  public waterOf(path: string): { source: string; parcel: ParcelRecord | null } {
+    const reg = lookupRegistry();
+    return reg ? reg.waterOf(path) : { source: "", parcel: null };
+  }
+
+  /** See {@link ParcelApi.parcelsOnWaterSource}. */
+  @CallSecurity(ParcelApiCallers)
+  public async parcelsOnWaterSource(sourcePath: string): Promise<ParcelRecord[]> {
+    const reg = lookupRegistry();
+    if (!reg) {
+      return (await ParcelRecord.findAll()).filter(
+        (r) => r.getWaterSource() === sourcePath,
+      );
+    }
+    return reg.parcelsOnWaterSource(sourcePath);
+  }
+
   /** See {@link ParcelApi.resolveOwnerRef}. */
   @CallSecurity(ParcelApiCallers)
   public async resolveOwnerRef(owner: ParcelOwner): Promise<GroupRef | null> {
@@ -417,6 +436,16 @@ export class ParcelLogic extends ApiLogic {
   ): Promise<ParcelRecord | null> {
     const reg = lookupRegistry();
     return reg ? reg.citeFeeder(extent, feeder) : null;
+  }
+
+  /** See {@link ParcelApi.citeWaterSource}. */
+  @CallSecurity(ParcelApiCallers)
+  public async citeWaterSource(
+    extent: string,
+    source: string,
+  ): Promise<ParcelRecord | null> {
+    const reg = lookupRegistry();
+    return reg ? reg.citeWaterSource(extent, source) : null;
   }
 
   /** See {@link ParcelApi.grantUse}. */

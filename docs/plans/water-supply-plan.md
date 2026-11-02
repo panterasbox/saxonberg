@@ -765,7 +765,21 @@ Stage A — the supply contract (kernel-led, W0–W3) · Stage B — plumbing
 (W10) · W11 — the drive, docs and slates. Every wave lands green on
 `test:near` + the touched packs' vitest + `lint:family`, at one commit.
 
-### W0 · The premises and the fixture — `build(water-supply W0): a premises cites its water, and a tap reads it or gives nothing`
+### W0 · The premises and the fixture — `build(water-supply W0): a premises cites its water, and a tap reads it or gives nothing` — ✅ DONE
+
+> **Build note (W0).** Shipped as planned, with these decisions:
+> - **A supply composes `SingletonMixin`** (`Conduit`, `StorageNode`). A tap loads its supply with `StuffApi.singleton(path)`, and `StagedMixin.applyProps` already routes a Singleton class through `singleton()`, so the room that props the main later ADOPTS the instance the tap loaded instead of minting a second one. Without this, load-on-use of a propped main would duplicate it.
+> - **`WaterSupply.supplyHeadM()` is async** (a reach's elevation needs the catalogue). The tap resolves head on the settle path every draw verb awaits.
+> - **A PUMPED main's head** is the served ground + `water.mainPressureHeadM` (dial 20). Without it, Terminus's intake (river 30 m, city 35 m) would read `dry` at every tap.
+> - **Storeys** are read through the shipped `NavigationApi.structureAtNow(path)` + `storeyOf`, the `on:` chain depth × `construction.storeyHeightM`. This switches to `place.structureNow()` once paint/harbors land.
+> - **`bulkWhyEmpty(affordance)`** is a new `Bulkable` host hook (default `null`); `BulkSlot.whyEmpty()` asks it. This is how `fill`/`drink` at a dry tap say *"this house isn't on any supply"* with no controller change.
+> - **`lint:water-posture`: an INHERITED `none` does not satisfy the gate** — only an inherited supply does. The realm root declares `none` (the lint requires a civic premises to say something), and every city district cites the intake on its own line.
+> - **A pack claim's citation fills an EMPTY record on a `kept` grant** — a world granted before the field existed picks it up at the next boot. A record already citing (authored, or written by a service run) is never overwritten. This is the installer reconciling authored content, not a migration.
+> - **`PlatBook.lotWaterSource`** (Hinkley: `none`) — `title buy` cites it after `subdivide`, so a sold lot is unserviced until a plumber's service run cites a main.
+> - **Hinkley's yard standpipe is `suppliedBy` the district tank** — the district's hydrant at the lot line. The house's own taps wait for plumbing (AC 3).
+> - **`natural: true`**: the tannery leat, the brickfield pond, and the campus-farm trough (prose: spring-fed).
+> - Conduit `extents:` (the intake lists 13 city prefixes, market first; the head is surveyed from the first one). The census ignores `extents` beside `extent`.
+> - The lounge bar's fixtures read `unplumbed` until W1 gives the lounge a store.
 
 Implements D1, D2, D3, D4, D7, D23, D24.
 
