@@ -205,7 +205,7 @@ async function standOn(room: Stuff & Container): Promise<Stuff> {
 }
 
 async function run(
-  controller: { execute(m: never, c: never): Promise<void> },
+  controller: { execute(m: never, c: never): void | Promise<void> },
   verb: string,
   model: Record<string, unknown>,
   giver: Stuff,
