@@ -178,4 +178,7 @@ data:
     - /world/lounge/agent/remy
     - /world/lounge/agent/sloane
     - /world/lounge/agent/augie
+    # Dave is cast here but rarely HERE: the roster's `owner` seat puts him
+    # out front for an hour of an evening and parks him out back the rest
+    # of the time ("Dave keeps to the back these days").
     - /world/lounge/agent/dave
