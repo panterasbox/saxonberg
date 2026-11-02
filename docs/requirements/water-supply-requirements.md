@@ -17,6 +17,25 @@ It gathers two slates into one build, joined by the irrigation slate's decision 
 *one source, two scales*: a dry year in the valley shows in the city's taps, through
 one shared river, with nobody authoring the link.
 
+> ⚠ **Amended in planning (2026-11-02, all agreed with the owner).** Where
+> this doc and [the plan](../plans/water-supply-plan.md) § *Requirements
+> disagreements* (R1–R10) or its D20, D27–D30 differ, the plan's agreed rows
+> win. The changes:
+> - a well is **dug (`dig a well`) or drilled** (a bore strikes the same
+>   water), not sunk with `sink`;
+> - theft is **cutting the ditch bank**;
+> - the weak top floor is tested in **the Hinkley loft**;
+> - iron pipe comes over the ridge **from Rejection's foundry**;
+> - a flooded field is **standing water on its floor**;
+> - the NPC plumber **sells**, and players lay pipe;
+> - **no `connect` or `plumb`**: a pipe run is an assembly laid with `fit`,
+>   and finished rooms hide their plumbing **under and behind**;
+> - the bucket at the deep well is **harbors' `bail`**;
+> - Rejection's wells sit on **a shallow till aquifer**;
+> - NPC turns **reconcile from the rota under the live refusals**;
+> - **staged or live is chosen per row**;
+> - Avila **hand-pumps into a cistern**.
+
 Seeding slates: [running-water-slate](../slates/builds/running-water-slate.md),
 [irrigation-slate](../slates/builds/irrigation-slate.md). The water trade (the third
 part) is in at its two ends only, and is **the first thing cut** if scope must shrink.
