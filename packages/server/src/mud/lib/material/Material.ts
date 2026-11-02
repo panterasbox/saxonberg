@@ -1570,9 +1570,13 @@ export default class Material extends SingletonMixin(
    * eats glass, not lead). Vitriol ≈ 16, lemon ≈ 1.3, wine ≈ 0.35, milk
    * ≈ 0.007, seawater 0.
    */
-  public acidAttack(): number {
-    if (!(this.ph < 7)) return 0;
-    return Math.pow(10, (VINEGAR_PH - this.ph) / PH_UNITS_PER_TENFOLD);
+  public acidAttack(pH?: number): number {
+    // ⭐ A WATER's own pH, when the contents carry one (water-supply D8): a
+    // soft upland water at 6.3 is this material's row and a different
+    // acidity — the row's pH is the material's, the payload's the water's.
+    const ph = typeof pH === 'number' && Number.isFinite(pH) ? pH : this.ph;
+    if (!(ph < 7)) return 0;
+    return Math.pow(10, (VINEGAR_PH - ph) / PH_UNITS_PER_TENFOLD);
   }
 
   /**

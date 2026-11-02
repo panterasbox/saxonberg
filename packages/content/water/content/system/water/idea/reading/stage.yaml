@@ -1,0 +1,15 @@
+# Stage — how high a river stands against a staff gauge (water-supply D18).
+# The marks are painted; reading them to the centimetre in moving water is
+# the skill.
+class: /system/water/idea/reading/StageReading
+data:
+  channel: stage
+  kind: fact
+  scope: [subject]
+  discipline: hydrology
+  instrument: ""
+  eyeCeiling: expert
+  improves: >-
+    how high the river stands, against the mark the rights are written to
+  stakes: >-
+    a call on the river made a day late

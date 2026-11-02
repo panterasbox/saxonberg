@@ -177,8 +177,11 @@ describe("the civics flagship (authored seeds, end-to-end)", () => {
     // the seat that carries the pump-house key — vacant until somebody
     // applies for it.
     const seats = await GovernmentApi.seatsOf("terminus-city");
-    expect(seats).toHaveLength(4);
+    // …and a fifth, the Health Officer, who reads the city's water with the
+    // test kit — vacant as well.
+    expect(seats).toHaveLength(5);
     expect(seats.find((s) => s.seat.key === "works-keeper")!.holder).toBeNull();
+    expect(seats.find((s) => s.seat.key === "public-health")!.holder).toBeNull();
     expect(seats.find((s) => s.seat.key === "gauger")!.holder).toBe(CLERK_PATH);
     const magistrate = seats.find((s) => s.seat.key === "magistrate")!;
     expect(magistrate.holder).toBe(CLERK_PATH);

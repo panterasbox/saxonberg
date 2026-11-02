@@ -37,6 +37,7 @@ import { WeatherApi } from '../../api/weather';
 import { AddressApi } from '../../api/address';
 import { WorldClockApi } from '../../api/worldclock';
 import { Quantity } from '../../lib/quantity';
+import '../../lib/supply/WaterChemistry';
 import {
   type SupplyReport,
   type SupplyState,
@@ -220,6 +221,18 @@ export default class WaterStore extends WaterStoreBase implements WaterSupply {
         hardnessDgh: this.hardnessDgh,
       });
     }
+  }
+
+  /** ⭐ What its water IS (water-supply D8) — what was rained or poured into it. */
+  public async readWaterChemistry(): Promise<{ pH: number; hardnessDgh: number; salinityPpt: number } | null> {
+    const p = this.getBulkPayload('interior');
+    const dgh = typeof p?.hardnessDgh === 'number' ? p.hardnessDgh : this.hardnessDgh;
+    if (typeof p?.pH !== 'number' && dgh === null) return null;
+    return {
+      pH: typeof p?.pH === 'number' ? p.pH : 7,
+      hardnessDgh: dgh ?? 8,
+      salinityPpt: typeof p?.salinityPpt === 'number' ? p.salinityPpt : 0,
+    };
   }
 
   /** How hard its water is (cleanliness D12) — what a supply reports up a tap. */

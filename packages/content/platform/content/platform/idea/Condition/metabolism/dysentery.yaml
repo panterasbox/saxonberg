@@ -1,0 +1,29 @@
+# Dysentery — the bloody flux from fouled water (water-supply D9). The dose
+# fouled river water has always carried (`toxicity: [{ type: dysentery }]`)
+# and that, until this row, joined NOTHING: a dose tag is the condition
+# row's FILE LEAF, and no `dysentery` row existed, so a town drinking below
+# its own outfall was never ill. `lint:toxin-keys` now holds the join.
+#
+# A burden law on the toxin route — the shipped route fouled water takes —
+# with the fluid loss that makes the flux kill rather than merely sicken.
+# Boiled water and rest are the answer; time clears it.
+class: /platform/idea/Condition
+data:
+  name: dysentery
+  signature:
+    - { kind: reserve, reserve: hydration, pctPerHour: -4 }
+  progression:
+    law: burden
+  resolution:
+    by: time
+  observableSigns: [feverish, cramping, wasted]
+  contagion: null
+  toxinBehavior:
+    toxinType: dysentery
+    absorptionRate: 2
+    clearanceRate: 0.01
+    potency: 1
+    bands:
+      - { threshold: 3, severity: 1 }
+      - { threshold: 9, severity: 2 }
+      - { threshold: 20, severity: 3 }

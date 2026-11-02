@@ -421,6 +421,13 @@ export default class StorageNode extends StorageNodeBase implements WaterSupply 
     return this.levelM3 * 1000;
   }
 
+  /** ⭐ A tank holds its main's water: its chemistry is the main's (D8). */
+  public async readWaterChemistry(): Promise<{ pH: number; hardnessDgh: number; salinityPpt: number } | null> {
+    await this.ensureSource();
+    const src = this._source;
+    return src instanceof Conduit ? src.readWaterChemistry() : null;
+  }
+
   public async supplyReport(nowS: number): Promise<SupplyReport> {
     await this.ensureSource();
     this.reconcileLevel(nowS);

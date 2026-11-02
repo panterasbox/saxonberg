@@ -107,6 +107,13 @@ export interface ConduitReading {
   headM: number | null;
   /** Watts the pump is drawing to deliver that, or 0 when gravity-fed. */
   pumpWatts: number;
+  /**
+   * ⭐ What it can physically CARRY against the demand right now, m³/s —
+   * the pump's lift, the capacity, the river's flow — whatever words the
+   * reading says (water-supply D6). The share rule divides THIS among the
+   * ranks: an overdrawn main still carries its capacity to somebody.
+   */
+  carriesM3S: number;
 }
 
 // ⭐ Staged + Container since the pump build: a pumped main HOLDS its pump
@@ -683,7 +690,7 @@ export default class Conduit
         catalogue === null
           ? 0
           : (await this.readingFor(catalogue, nowS, demand, await catalogue.liveDraws(nowS)))
-              .deliveredM3S;
+              .carriesM3S;
       this._shareCache = { atS: nowS, deliverableM3S: deliverable };
     }
     const deliverable = this._shareCache.deliverableM3S;
@@ -713,6 +720,23 @@ export default class Conduit
       before += need;
     }
     return 1;
+  }
+
+  /**
+   * ⭐ The chemistry of the water this main delivers — its REACH's
+   * (water-supply D8): pH, hardness and salt, after nothing (treatment
+   * removes dirt, not chemistry). `null` for a disposal conduit or a main
+   * whose reach names no water.
+   */
+  public async readWaterChemistry(): Promise<{ pH: number; hardnessDgh: number; salinityPpt: number } | null> {
+    if (this.direction !== 'supply' || this.reachRef === '') return null;
+    const catalogue = await catalogueOf();
+    if (catalogue === null) return null;
+    const state = await catalogue
+      .waterStateAt(this.reachRef, WorldClockApi.getNow().rawValue())
+      .catch(() => null);
+    if (state === null) return null;
+    return { pH: state.pH, hardnessDgh: state.hardnessDgh, salinityPpt: state.salinityPpt };
   }
 
   // ---------- state ----------
@@ -800,12 +824,19 @@ export default class Conduit
           ? 0
           : Math.min(demand, this.capacityM3S);
     const delivered = state === null ? lifted : 0;
+    // A main that is cut, off, or not lifting carries nothing; otherwise it
+    // carries what it lifts, up to what the river passes.
+    const carries =
+      this.cut || !this.isOn() || !this.isLifting()
+        ? 0
+        : Math.max(0, Math.min(lifted, flow?.m3s ?? 0));
     return {
       state,
       deliveredM3S: delivered,
       demandM3S: demand,
       headM: this.headM,
       pumpWatts: this.pumpWattsFor(delivered),
+      carriesM3S: carries,
     };
   }
 

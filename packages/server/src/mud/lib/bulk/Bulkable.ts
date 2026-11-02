@@ -49,6 +49,7 @@ import { Quantity } from '../quantity';
 import { QuantityMarshaller } from '../../platform/idea/persistence/QuantityMarshaller';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
+import { WaterChemistry } from '../supply/WaterChemistry';
 import { BulkableApi } from '../../api/bulk';
 import { MaterialApi } from '../../api/material';
 import { AppSettingKeys } from '../config/AppSettings';
@@ -1095,7 +1096,10 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
       // ⚠ Sparse: an exchange with nothing to do writes nothing — a glazed
       // pot of water carries no payload because of this.
       const insideFace = self.outermost('inside');
-      const leaches = material.acidAttack() > 0 && (insideFace?.getLeaches().length ?? 0) > 0;
+      // ⭐ The contents' own pH when they carry one — a water's, off its
+      // source (water-supply D8) — else the material row's.
+      const payloadPh = this.interiorPayload?.pH;
+      const leaches = material.acidAttack(payloadPh) > 0 && (insideFace?.getLeaches().length ?? 0) > 0;
       const porousInside = !self.holdsWater('inside');
       // A liquid against a wall that lets water through (the face's own read,
       // B100 — this was a second copy of it, inline).
@@ -1124,7 +1128,17 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
         const inside = self.outermost('inside');
         // ⭐ By the contents' pH (B109): vinegar draws the authored rate,
         // vitriol far more, milk next to nothing, seawater none.
-        const attack = material.acidAttack();
+        // ⭐⭐ …and a water's SOFTNESS (water-supply D8): hard water scales a
+        // lead pipe shut and soft water does not, so a soft acid supply
+        // through lead is the poisoning and a hard one is not. A payload
+        // that carries no hardness is not a supply's water (vinegar in a
+        // glazed jar) and the factor is 1 — the shipped glaze law unchanged.
+        const dgh = payload.hardnessDgh;
+        const softness =
+          typeof dgh === 'number' && Number.isFinite(dgh)
+            ? new WaterChemistry(7, dgh, 0).softness()
+            : 1;
+        const attack = material.acidAttack(payload.pH) * softness;
         if (inside !== null && attack > 0) {
           const toxins = [...(payload.dissolvedToxins ?? [])];
           for (const leach of inside.getLeaches()) {

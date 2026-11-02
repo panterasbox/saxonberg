@@ -260,6 +260,28 @@ describe('the slot — the leach and the weep', () => {
     expect(clean.getBulkPayload('interior')?.dissolvedToxins ?? []).toEqual([]);
   });
 
+  it('⭐⭐ a WATER leaches by its own pH and its softness — soft acid draws lead, hard does not (water-supply D8)', () => {
+    const pipe = (dgh: number, ph: number) => {
+      const j = jarOf(stoneware, { m: water, l: 1 });
+      j.layCoat('inside', lead.getTemplatePath()!, 0);
+      j.fuseCoats(1300);
+      j.setBulkPayload('interior', { pH: ph, hardnessDgh: dgh });
+      j.getBulkPayload('interior');
+      return j;
+    };
+    const soft = pipe(2, 6.3);
+    const hard = pipe(14, 6.3);
+    const neutral = pipe(2, 7.4);
+    advance(30 * 86_400);
+    const doseOf = (j: ReturnType<typeof pipe>) =>
+      j.getBulkPayload('interior')?.dissolvedToxins?.find((t) => t.type === 'lead-poisoning')?.amount ?? 0;
+    // 4 mg/L/day x 10^((2.4 - 6.3)/2) x (6 - 2)/6 x 30 days.
+    expect(doseOf(soft)).toBeCloseTo(4 * Math.pow(10, (2.4 - 6.3) / 2) * (4 / 6) * 30, 3);
+    // Hard water scales the pipe shut; neutral water does not attack lead.
+    expect(doseOf(hard)).toBe(0);
+    expect(doseOf(neutral)).toBe(0);
+  });
+
   it('⭐ the attack follows pH: tenfold per two units, nothing at or above neutral (B109)', () => {
     const at = (ph: number): number => {
       const m = makeStuff(() => new Material());

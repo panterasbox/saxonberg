@@ -48,6 +48,10 @@ data:
       label: Keeper of the Works
       department: /world/terminus/budget
       positionKey: works-keeper
+    - key: public-health
+      label: Health Officer of Terminus
+      department: /world/terminus/infirmary/business
+      positionKey: health-officer
   # ⭐ The city's standard measures (assembly D13, AC 24): the tun its
   # gauger gauges against. A second polity declares its own here.
   standards:

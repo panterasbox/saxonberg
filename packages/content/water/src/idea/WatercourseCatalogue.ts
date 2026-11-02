@@ -99,6 +99,7 @@ import {
   type WatercourseNode,
   type WatercourseStock,
   type WatercourseWater,
+  type WatercourseChemistry,
   type WatercourseSite,
 } from './Watercourse';
 import {
@@ -535,8 +536,11 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
         : {
             materialPath: drawn,
             temperatureK: water?.temperatureK ?? UNDER_ICE_K,
-            // ⭐ The water carries its source's hardness (cleanliness D12).
-            ...(water ? { hardnessDgh: water.hardnessDgh } : {}),
+            // ⭐ The water carries its source's hardness (cleanliness D12),
+            // and its acidity and salt (water-supply D8).
+            ...(water
+              ? { hardnessDgh: water.hardnessDgh, pH: water.pH, salinityPpt: water.salinityPpt }
+              : {}),
           },
       // ⭐ The water under the ice (storage-and-ice D15): what comes up
       // through a hole — the reach's own water, at the under-ice floor.
@@ -964,6 +968,10 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
     else if (reach.kmToSea <= dial('water.fishery.brackishWithinKm', 12) && reach.elevation < brackishBelowM) {
       salinityPpt = dial('water.fishery.salinity.brackish', 15);
     }
+    // ⭐ A course that SEEDS its salt (water-supply D8) — an author's
+    // override of the derivation; the tide alone outranks it.
+    const seededSalt = index.waterByCourse.get(reach.courseKey)?.salinityPpt;
+    if (tide === null && typeof seededSalt === 'number') salinityPpt = seededSalt;
 
     // Oxygen: a two-point saturation table, then turbulence — a fast
     // reach is at saturation, a still one holds less.
@@ -1003,8 +1011,8 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
     index: CompiledIndex,
     reach: CompiledReach,
     nowS: number,
-    memo: Map<ReachRef, Required<WatercourseWater>>,
-  ): Required<WatercourseWater> {
+    memo: Map<ReachRef, WatercourseChemistry>,
+  ): WatercourseChemistry {
     const done = memo.get(reach.ref);
     if (done !== undefined) return done;
     const own = seedOf(index.waterByCourse.get(reach.courseKey));
@@ -1012,7 +1020,7 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
     const preds = (index.predecessors.get(reach.ref) ?? [])
       .map((p) => index.reaches.get(p))
       .filter((p): p is CompiledReach => p !== undefined);
-    let mixed: Required<WatercourseWater> = { pH: 0, hardnessDgh: 0, nitrateMgL: 0 };
+    let mixed: WatercourseChemistry = { pH: 0, hardnessDgh: 0, nitrateMgL: 0 };
     let weight = 0;
     for (const pred of preds) {
       const w = this.naturalFlowOf(pred, nowS).total;
@@ -2950,7 +2958,7 @@ function waterOf(value: unknown): WatercourseWater | undefined {
   if (value === null || typeof value !== 'object') return undefined;
   const r = value as Record<string, unknown>;
   const out: WatercourseWater = {};
-  for (const word of ['pH', 'hardnessDgh', 'nitrateMgL'] as const) {
+  for (const word of ['pH', 'hardnessDgh', 'nitrateMgL', 'salinityPpt'] as const) {
     const n = r[word];
     if (typeof n === 'number' && Number.isFinite(n)) out[word] = n;
   }
@@ -2958,7 +2966,7 @@ function waterOf(value: unknown): WatercourseWater | undefined {
 }
 
 /** The chemistry seed, every word filled from the dials where the row is silent. */
-function seedOf(water: WatercourseWater | undefined): Required<WatercourseWater> {
+function seedOf(water: WatercourseWater | undefined): WatercourseChemistry {
   return {
     pH: water?.pH ?? dial('water.chemistry.pH', 7.2),
     hardnessDgh: water?.hardnessDgh ?? dial('water.chemistry.hardnessDgh', 8),
@@ -2967,10 +2975,10 @@ function seedOf(water: WatercourseWater | undefined): Required<WatercourseWater>
 }
 
 function add(
-  a: Required<WatercourseWater>,
-  b: Required<WatercourseWater>,
+  a: WatercourseChemistry,
+  b: WatercourseChemistry,
   w: number,
-): Required<WatercourseWater> {
+): WatercourseChemistry {
   return {
     pH: a.pH + b.pH * w,
     hardnessDgh: a.hardnessDgh + b.hardnessDgh * w,
@@ -2978,7 +2986,7 @@ function add(
   };
 }
 
-function scale(a: Required<WatercourseWater>, k: number): Required<WatercourseWater> {
+function scale(a: WatercourseChemistry, k: number): WatercourseChemistry {
   return { pH: a.pH * k, hardnessDgh: a.hardnessDgh * k, nitrateMgL: a.nitrateMgL * k };
 }
 

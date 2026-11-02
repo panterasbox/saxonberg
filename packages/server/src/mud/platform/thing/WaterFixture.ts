@@ -73,6 +73,7 @@ import { NavigationApi } from '../../api/navigation';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../../lib/config/AppSettings';
 import { WaterHardness } from '../../lib/cleanliness/WaterHardness';
+import '../../lib/supply/WaterChemistry';
 import {
   SUPPLY_STATE_GLOSS,
   type SupplyReport,
@@ -410,15 +411,24 @@ export default class WaterFixture
     if (affordance !== 'interior') return;
     await this.ensureSupply();
     const supply = this._resolution === 'supply' ? this._supply : null;
-    const fromSupply =
-      supply && typeof supply.readWaterHardnessDgh === 'function'
-        ? await supply.readWaterHardnessDgh().catch(() => null)
+    // ⭐ The supply's whole chemistry where it says (water-supply D8) — so a
+    // pail from this tap carries the main's acidity and salt as well as its
+    // hardness — else its hardness alone, else this fixture's own.
+    const chemistry =
+      supply && typeof supply.readWaterChemistry === 'function'
+        ? await supply.readWaterChemistry().catch(() => null)
         : null;
+    const fromSupply =
+      chemistry?.hardnessDgh ??
+      (supply && typeof supply.readWaterHardnessDgh === 'function'
+        ? await supply.readWaterHardnessDgh().catch(() => null)
+        : null);
     const dgh = fromSupply ?? this.hardnessDgh;
-    if (dgh === null) return;
+    if (dgh === null && chemistry === null) return;
     this.setBulkPayload('interior', {
       ...(this.getBulkPayload('interior') ?? {}),
-      hardnessDgh: dgh,
+      ...(dgh !== null ? { hardnessDgh: dgh } : {}),
+      ...(chemistry !== null ? { pH: chemistry.pH, salinityPpt: chemistry.salinityPpt } : {}),
     });
   }
 

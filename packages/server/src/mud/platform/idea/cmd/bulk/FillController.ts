@@ -15,6 +15,7 @@ import { BulkableApi, type TransferAmount } from '../../../../api/bulk';
 import { MixinApi } from '../../../../api/mixin';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
+import type { Stuff } from '../../../../lib/stuff/Stuff';
 
 const TOPIC = 'act.deed';
 
@@ -139,9 +140,19 @@ export default class FillController extends CommandController<FillModel> {
     // revision 3): name the feature, not the place it belongs to.
     const feature = model.source.via?.detailPath?.at(-1);
     const from = feature ? Mml.compose`the ${feature}` : Mml.thing(source);
+    // ⭐ …and WHERE (water-supply D22): the record is the player's own
+    // memory, so `recall fill` finds the standpipe in the market square and
+    // not just "the standpipe". A place drawn from directly names itself.
+    let room: Stuff = source;
+    while (MixinApi.isContainable(room)) {
+      const next = room.getContainer() as Stuff | null;
+      if (next === null) break;
+      room = next;
+    }
+    const where = room !== source && !feature ? Mml.compose` in ${Mml.thing(room)}` : Mml.compose``;
     MessageApi.scene(giver)
       .topic(TOPIC)
-      .toSelf(Mml.compose`You fill ${Mml.thing(target)} from ${from}.`)
+      .toSelf(Mml.compose`You fill ${Mml.thing(target)} from ${from}${where}.`)
       .toPeers(Mml.compose`${Mml.actor(giver)} fills ${Mml.thing(target)} from ${from}.`)
       .send();
   }

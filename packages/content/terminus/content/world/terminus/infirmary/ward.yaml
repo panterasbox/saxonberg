@@ -42,6 +42,9 @@ data:
     # priced board that is also the bank register reading the fridge.
     - /world/terminus/infirmary/thing/blood-window
     - /world/terminus/infirmary/thing/cot
+    # ⭐ The water-test kit (water-supply D18): whether a water is fit is the
+    # kit's to say. It lives on the ward's shelf, for the health officer.
+    - /system/water/thing/test-kit
     - /world/terminus/infirmary/thing/dressing-cabinet
     # ⭐ Cold storage (cold-storage build): a powered blood fridge on the
     # avenue feeder keeps the ward's blood bags cold for weeks, with a colder

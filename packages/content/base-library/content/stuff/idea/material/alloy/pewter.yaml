@@ -28,9 +28,9 @@ data:
   waterAbsorptionCapacity: 0.2
   edibility: false
   nutrients: []
-  toxicity: [{ type: lead-poisoning, amount: 0 }]
+  toxicity: [{ type: lead, amount: 0 }]
   leaches:
-    - { toxin: lead-poisoning, mgPerLPerDay: 0.5 }
+    - { toxin: lead, mgPerLPerDay: 0.5 }
   tags: ["alloy", "metal", "non-ferrous", "tin", "lead"]
   composition:
     - { materialPath: /stuff/idea/material/element/tin, fraction: 0.8 }

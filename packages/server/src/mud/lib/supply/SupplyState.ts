@@ -144,6 +144,13 @@ export interface SupplyServing {
    * does. Optional: a supply that carries no water (a feeder) has none.
    */
   readWaterHardnessDgh?(): Promise<number | null>;
+  /**
+   * ⭐ What the water it delivers IS (water-supply D8) — its source's pH,
+   * hardness and salt, which a tap settles into its own water so a lead
+   * pipe and a field read the supply's chemistry. Optional: a supply that
+   * cannot say leaves the water's chemistry unsaid.
+   */
+  readWaterChemistry?(): Promise<{ pH: number; hardnessDgh: number; salinityPpt: number } | null>;
 }
 
 /**

@@ -217,7 +217,17 @@ export interface WatercourseWater {
   pH?: number;
   hardnessDgh?: number;
   nitrateMgL?: number;
+  /**
+   * ⭐ Its salt, ppt (water-supply D8) — an author's override of the
+   * derived salinity (fresh upriver, brackish near the sea, sea water at
+   * it): a salt spring, an alkali creek. A tide still wins where there is
+   * one. Not flow-weighted: a seed for this course's own reaches.
+   */
+  salinityPpt?: number;
 }
+
+/** The three words the course seed flow-weights at every join. */
+export type WatercourseChemistry = Required<Pick<WatercourseWater, 'pH' | 'hardnessDgh' | 'nitrateMgL'>>;
 
 /**
  * ⭐ **Where on the world a river runs** (the climate build, D-L): the

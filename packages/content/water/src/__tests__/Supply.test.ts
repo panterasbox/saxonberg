@@ -168,6 +168,29 @@ describe('⭐ a short main shares by rank (D6)', () => {
     expect(await c.shareFor('residential')).toBeCloseTo(0.4, 5);
   });
 
+  it('⭐ an OVERDRAWN main still carries what it carries — to the first ranks', async () => {
+    // The real path: the reading says `overdrawn` (demand above capacity)
+    // and delivers nothing in its own words, but it CARRIES its capacity,
+    // and the share rule divides that.
+    const c = makeStuff(() => new Conduit());
+    c.setDemandM3S(2);
+    vi.spyOn(StuffApi, 'singleton').mockResolvedValue({
+      liveDraws: async () => new Map(),
+    } as never);
+    vi.spyOn(c, 'readingFor').mockResolvedValue({
+      state: 'overdrawn',
+      deliveredM3S: 0,
+      demandM3S: 2,
+      headM: null,
+      pumpWatts: 0,
+      carriesM3S: 1.2,
+    });
+    // civic 0.3 + trades 0.7 = 1.0 of 2.0; 1.2 carried.
+    expect(await c.shareFor('civic')).toBe(1);
+    expect(await c.shareFor('industrial')).toBe(1);
+    expect(await c.shareFor('residential')).toBeCloseTo(0.2, 5);
+  });
+
   it('with no authored demand there is no shortage to share', async () => {
     const c = makeStuff(() => new Conduit());
     expect(await c.shareFor('residential')).toBe(1);
