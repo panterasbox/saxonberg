@@ -15,7 +15,7 @@ ready for the user to merge.
 ## Inputs
 
 - The current feature branch (already checked out).
-- The target branch (typically `main` or `master` — confirm).
+- The target branch — always `master`.
 - The requirements doc, plan doc, and seeding slate(s) for this
   build — the requirements doc carries the **drive script**, the plan
   carries the **drive record** (under `docs/requirements/`,
@@ -36,7 +36,12 @@ ready for the user to merge.
 ### 1. Code audit pass
 
 Diff the whole branch (`<target>...HEAD`) and review *as if you
-are a fresh reviewer who has not seen the build*. Look for:
+are a fresh reviewer who has not seen the build*. ⭐ Start with
+[docs/review-questions.md](../../../docs/review-questions.md): every P
+and B question, checked against the diff — above all P1, *every new
+mixin, Api, class, hook, registry and document kind, and what was
+already doing its job*. A question the build skipped is found here or
+in the owner's review; here is cheaper. Then look for:
 
 - **Bad smells that crept in during MR iteration.** Casts (`as any`,
   `as unknown as X`), commented-out code, stub comments
@@ -174,7 +179,7 @@ added — the five links, each of which fails closed and *silent*:
 | **verb** | a capability with no way to invoke it |
 | **affordance** | a verb nothing confers (⚠ an affordance is a static on a class; a row's `commandContributions:` is dead silently) |
 | **data** | the enabling rows absent — `feel`/`taste` shipped and had never run |
-| **boot** | nothing warms the roster — the reference-Idea trap, three times now |
+| **load** | nothing loads the row when it is used — the reference-Idea trap, three times. The fix is load on use by following an authored reference, never a boot entry |
 | **arg gate** | a view's `args[].requires` names a mixin the verb's real targets don't compose — `hammer` required `DurableMixin` and no metal stock has one, so every `hammer <target>` died at the binder while 34 controller tests stayed green |
 
 ⚠ The last one is why a wire drive is not the whole exit criterion: it
@@ -182,6 +187,10 @@ asserts the envelope, and the binder sits upstream of it only for
 targets the harness happens to name. **Walk it in a browser** — the
 metallurgy build's browser walk found six things its 13-checkpoint wire
 drive could not, including that the drive had never actually smelted.
+⚠ The walk belongs to the BUILD (review question B3) — here it is
+**verified**, not first run: confirm `e2e/tests/<feature>-walk.spec.ts`
+exists and ran green. A first walk at /finalize is a late walk; the
+river build's found eight defects that way.
 
 ### 3. Doc sweep pass
 
@@ -259,14 +268,15 @@ stays valid until SOURCE changes*. Before starting one, check
 mechanically — "I am about to commit" is not a reason:
 
 ```bash
-git status --short | grep -vE '^.. (docs/|CLAUDE\.md|.*\.md$)'
+git status --short | grep -vE '^.. (docs/|CLAUDE\.md|.*\.md$|packages/content/)'
 ```
 
 - **Empty output** — the last full run still stands. **Do not re-run
   it.** Cite the number it gave in the sweep commit and move on. A
   docs-only sweep rides CI's gate job; re-running locally is doing CI's
   work by hand.
-- **Non-empty** — the sweep touched code, so `pnpm test` once.
+- **Non-empty** — the sweep touched code, so the full suite once, with
+  `tools/suite` (never a bare `pnpm test`; see `/build` § 4).
 
 Either way:
 
@@ -308,8 +318,8 @@ Commit message rules:
   file → what; retired: which files).
 - End with a one-line status note: "All N tests pass; build is
   type-clean."
-- Include the `Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>`
-  trailer.
+- Include the attribution trailer the session's system reminder gives
+  (the model name changes; do not hardcode one).
 
 ### 7. Stop
 

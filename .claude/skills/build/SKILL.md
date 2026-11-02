@@ -30,7 +30,7 @@ needs."*
 
 1. The **requirements doc** — if it settles it, that is the answer.
 2. The **plan** — including its decisions (D1, D2…) and Grounding.
-3. **`docs/design-lenses.md`** — the six lenses. Lenses 1 (pedagogy)
+3. **`docs/design-lenses.md`** — the seven lenses. Lenses 1 (pedagogy)
    and 2 (author expressiveness) decide forks. ⭐ When they decide one,
    decide it; say in one line which limb chose.
 4. **`CLAUDE.md` + `docs/antipatterns.md`** — the conventions.
@@ -94,9 +94,11 @@ stale `node_modules` fails every pack suite at collection with a
 
 ### 1. Load the inputs
 
-The plan, the requirements doc, `CLAUDE.md` in full, and the subsystem
-docs the plan names in **Critical files**. Nothing else up front — the
-plan's Grounding section already did the survey.
+The plan, the requirements doc, `CLAUDE.md` in full, the subsystem
+docs the plan names in **Critical files**, and
+[docs/review-questions.md](../../../docs/review-questions.md) — the
+questions the owner otherwise opens review with. Nothing else up front
+— the plan's Grounding section already did the survey.
 
 ### 2. The wave loop
 
@@ -108,8 +110,15 @@ For each wave in order:
    runs the whole derived roster in ~2 min and is cheap enough to run
    often — never name a count, the roster is read from
    `package.json`).
-3. **Commit** — `build(<feature> W<n>): <what the wave did>`.
-4. **Update the plan**: mark the wave done, and add a one-or-two-line
+3. ⭐ **Check the build questions before committing** (review questions
+   B1, B4): did this wave add a mixin, Api, class, hook, registry or
+   document kind the plan's **New substrate** list does not have? If
+   so, fold it into what already does the job, or re-plan the wave in
+   place with a line saying why it is genuinely new — and re-check the
+   host table. Did it rename a key, value or class? Grep
+   `packages/content` for it before the commit.
+4. **Commit** — `build(<feature> W<n>): <what the wave did>`.
+5. **Update the plan**: mark the wave done, and add a one-or-two-line
    note — what changed, what you decided, what surprised you.
 
 ⭐ That note is not bookkeeping. MR review usually outlives the context
@@ -134,6 +143,9 @@ The description carries:
 - what shipped, wave by wave;
 - ⭐ **every decision the build made** that the plan did not, and what
   decided it;
+- ⭐ **the new substrate, listed** — every new mixin, Api, class, hook,
+  registry and document kind, each with its reuse-ledger row or
+  *genuinely new*: the review's opening question, answered first;
 - what verification is still running (drive, suite) and that it does
   not block review;
 - ⛔ **the soak drive's name**, for the soak lane to run after merge;
@@ -145,10 +157,14 @@ without it, how long. If you cannot write that sentence, hand over now.
 
 ### 4. The full suite — once
 
-`pnpm test` (~15 min) runs at exactly two moments in a cycle: **here,
-after the MR opens and alongside review**, and again at `/finalize`.
-Everything in between is `test:near` + the lint family. Never start it
-in the background.
+The full suite (~15 min) runs at exactly two moments in a cycle:
+**here, after the MR opens and alongside review**, and again at
+`/finalize`. Run it with **`tools/suite`**, not a bare `pnpm test` —
+`pnpm test` runs every package concurrently and has taken the whole
+machine down; `tools/suite` runs one package at a time, sizes its pool
+from free memory and holds one lock across all worktrees. `tools/panic`
+is the kill switch. Everything in between is `test:near` + the lint
+family. Never start it in the background.
 
 ### 5. Drive it — the exit criterion for the MERGE
 
@@ -181,6 +197,11 @@ dead the day after its MR merged: when they were migrated, two turned
 out to have been RED on master for weeks with nobody able to know.
 See `docs/testing.md § Two tiers`.
 
+⭐ **Prove each checkpoint can fail** (review question B2) before
+trusting a green drive: break the thing each checkpoint asserts, once,
+and watch it go red. A helper blind to a failure kind passes everything
+— the taps drive read 15/15 for three rounds while it was false.
+
 ⚠ Expect it to find things: tests build state, they never use it. Every
 build that was driven found defects the suite could not — cooking 6,
 textiles 3, and metal-chain's drive surfaced five *pre-existing*
@@ -188,7 +209,7 @@ boot-breaking defects. **What it finds becomes more waves, not a
 stop.** Fix, commit, re-drive.
 
 Then check the five reachability links for each new capability —
-**verb · affordance · data · boot · arg gate** — each of which fails
+**verb · affordance · data · load · arg gate** — each of which fails
 closed and silent. The fifth is a view's `args[].requires`: a target
 that does not compose the named mixin is refused at the binder, which
 no controller test can see.
@@ -198,6 +219,22 @@ down (by PID) between runs and while waiting on the user; an idle 3 GB
 world starves the sibling builds.
 
 When it passes: drive record into the plan, MR description updated.
+
+### 5½. Walk it in a browser — during review, never first at /finalize
+
+⭐⭐ The wire drive proves the flow; **the browser walk proves a person
+can use it** (review question B3). Write it as
+`e2e/tests/<feature>-walk.spec.ts` (precedents: cordage, energy,
+ground, paint) over the blocking drive's player-facing steps, and run
+it once the drive is green. It found what the wire drive missed in
+eleven builds — *"swimming drowned you"*, pitch-dark premises, eight
+defects in the river build when it was first walked at /finalize. A
+walk that only happens when the user asks is a late walk.
+
+Recipe: the server on the worktree's own port with `AUTH_MODE=test` and
+`SAXONBERG_TEST_WORLD=1`; vite with both `VITE_SERVER_URL` and
+`VITE_WS_URL`; Playwright logs in with `/auth/test-login` and types into
+the command input. See `e2e/README.md` and `docs/testing.md`.
 
 ### 6. Report, and stay for review
 
