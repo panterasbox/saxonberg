@@ -378,6 +378,30 @@ describe('ShipWarren — ships from a kind (harbors B1)', () => {
     expect((hold as unknown as { shouldPersist(): boolean }).shouldPersist()).toBe(false);
   });
 
+  it('⭐ review 2: standUpKeyed resolves by key — no scan — and never mints her hold outside her warren', async () => {
+    const ship = await mint('q1');
+    const deck = await deckOf(ship);
+    const hold = (deck as unknown as Exitable).getExit('down')!.getDestination() as unknown as Stuff & Container;
+    const warren = (deck as unknown as { getWarren(): ShipWarren }).getWarren();
+    const scan = vi.spyOn(StuffApi, 'findAllByTemplatePath');
+    // Standing: the pair is a lookup.
+    expect(await PersistableApi.standUpKeyed(WARREN, 'q1')).toBe(warren);
+    expect(await PersistableApi.standUpKeyed(HOLD, 'q1/hold')).toBe(hold);
+    expect(scan).not.toHaveBeenCalled();
+    // Asleep: her hold is refused alone — nothing minted.
+    await ship.sleep();
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    expect(await PersistableApi.standUpKeyed(HOLD, 'q1/hold')).toBeNull();
+    expect(StuffApi.findAllByTemplatePath(HOLD).filter((h) => !h.isDestroyed())).toHaveLength(0);
+    warn.mockRestore();
+    // Stood up with her, the one hold; asked by key, the same object.
+    const back = (await ExpanseApi.standUpCraft(`${KIND}/q1`)) as unknown as Ship;
+    const deck2 = await deckOf(back);
+    const hold2 = (deck2 as unknown as Exitable).getExit('down')!.getDestination() as unknown as Stuff;
+    expect(await PersistableApi.standUpKeyed(HOLD, 'q1/hold')).toBe(hold2);
+    expect(StuffApi.findAllByTemplatePath(HOLD).filter((h) => !h.isDestroyed())).toHaveLength(1);
+  });
+
   it('⭐ her way aboard outlives her sleep: taking it stands her up, made fast as she was', async () => {
     vi.spyOn(Ship.prototype, 'linesAboard').mockImplementation(async () => [fakeLine(), fakeLine()]);
     const ship = await mint('w1');

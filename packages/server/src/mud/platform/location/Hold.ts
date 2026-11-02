@@ -22,4 +22,14 @@
 import Compartment from './Compartment';
 import { PersistableMixin } from '../../lib/persistence/Persistable';
 
-export default class Hold extends PersistableMixin(Compartment) {}
+export default class Hold extends PersistableMixin(Compartment) {
+  /**
+   * ⭐ Stood up by her warren, never alone by its key (harbors review 2):
+   * her ship stands her rooms up with her.
+   *
+   * @hook
+   */
+  public override standsUpAlone(): boolean {
+    return false;
+  }
+}

@@ -31,6 +31,7 @@ import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { ParcelApi } from '@saxonberg/server/mud/api/parcel';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
 import { CommandApi, type CommandContext, type CommandModel } from '@saxonberg/server/mud/api/command';
 import { CommandDefinition } from '@saxonberg/server/mud/lib/command/CommandDefinition';
 import Tool from '@saxonberg/server/mud/platform/thing/Tool';
@@ -308,6 +309,34 @@ describe('the residential programme (D16)', () => {
     const porch = holding.roomForLeaf('porch')!;
     expect(porch.getTemplatePath()).toBe(ROOM_C);
     expect(MixinApi.isPersistable(porch)).toBe(false);
+  });
+
+  it('⭐ harbors review 2: a holding\'s room stood up by its key goes through its holding — never minted alone, never twice', async () => {
+    seedLot();
+    await bootRegistries();
+    const w = await institution();
+    // The seam a parked character re-enters a keyed room by, admitting the
+    // holding (the location graph that finds the institution is not
+    // standing in this unit world).
+    const admit = vi.spyOn(CirculationWarren, 'admitFor').mockImplementation(async (key: string) => {
+      await w.admit(LOT1);
+      return (w.holdingFor(LOT1) as unknown as HoldingWarren).roomForKey(key);
+    });
+    const scan = vi.spyOn(StuffApi, 'findAllByTemplatePath');
+    const bedroom = await PersistableApi.standUpKeyed(ROOM_B, `${LOT1}/bedroom`);
+    expect(admit).toHaveBeenCalledWith(`${LOT1}/bedroom`);
+    expect(scan).not.toHaveBeenCalled();
+    const holding = w.holdingFor(LOT1)! as unknown as HoldingWarren;
+    expect(bedroom).toBe(holding.roomForLeaf('bedroom'));
+    // The holding woken again hands back that room: one bedroom, not two.
+    await w.admit(LOT1);
+    expect(holding.roomForLeaf('bedroom')).toBe(bedroom);
+    scan.mockRestore();
+    expect(StuffApi.findAllByTemplatePath(ROOM_B).filter((r) => !r.isDestroyed())).toHaveLength(1);
+    // Standing, the pair is a lookup: the institution is not asked again.
+    admit.mockClear();
+    expect(await PersistableApi.standUpKeyed(ROOM_B, `${LOT1}/bedroom`)).toBe(bedroom);
+    expect(admit).not.toHaveBeenCalled();
   });
 
   it('⭐⭐ lays its rooms out in its OWN frame, from the floorplan (B53)', async () => {

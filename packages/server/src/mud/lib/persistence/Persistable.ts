@@ -40,6 +40,7 @@
  * [docs/requirements/persistence-spine-requirements.md].
  */
 
+import { KeyedHosts } from './KeyedHosts';
 import type { MixinConstructor } from "../mixin";
 import type { Stuff, EvictionContext } from "../stuff/Stuff";
 import type { VetoResult } from "../errors";
@@ -214,6 +215,17 @@ export interface Persistable {
    *   they are.
    */
   dependentPersistables(): (Stuff & Persistable)[];
+
+  /**
+   * May this host be stood up ON ITS OWN by its `(row, key)` — by
+   * `PersistableApi.standUpKeyed` (harbors review 2)? A room a warren
+   * owns may not: minted alone it would stand outside its warren, and the
+   * warren's next wake would mint a second copy under the same key.
+   *
+   * @hook Default `true`. A room only its warren stands up (a ship's hold,
+   *   a holding's furnished room) answers `false`, and is refused there.
+   */
+  standsUpAlone(): boolean;
 }
 
 export function PersistableMixin<
@@ -257,6 +269,9 @@ export function PersistableMixin<
     setPersistenceKey(key: string, explicit = true): void {
       this._persistenceKey = key;
       if (explicit) this._persistenceKeyExplicit = true;
+      // ⭐ Filed under the pair, so "is it standing?" is a lookup, never a
+      // scan of the row's instances (harbors review 2).
+      KeyedHosts.note(this as unknown as Stuff & Persistable, key);
     }
 
     capturesAtShutdown(): boolean {
@@ -313,6 +328,11 @@ export function PersistableMixin<
     /** See {@link Persistable.dependentPersistables}. Default: none. */
     dependentPersistables(): (Stuff & Persistable)[] {
       return [];
+    }
+
+    /** See {@link Persistable.standsUpAlone}. Default: yes. */
+    standsUpAlone(): boolean {
+      return true;
     }
 
     /**

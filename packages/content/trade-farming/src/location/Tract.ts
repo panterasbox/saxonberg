@@ -1348,6 +1348,17 @@ export default class Tract extends TractBase {
   }
 
   /**
+   * ⭐ A keyed tract is a copy in a farm's layout, stood up by its holding,
+   * never alone by its key (harbors review 2); an authored venue tract is
+   * keyless and never asked.
+   *
+   * @hook
+   */
+  public override standsUpAlone(): boolean {
+    return false;
+  }
+
+  /**
    * ⭐ **Stood up by its holding** (tracts build D28): a farm's tract is
    * one copy of a layout, sized as its share of the holding's open ground,
    * on a spot of the soil field of its own (so two copies of one layout
