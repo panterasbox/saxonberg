@@ -56,6 +56,7 @@ const WARREN_PATH = '/world/prog-test/holder';
 const PROGRAMME = '/world/prog-test/house-programme';
 const ROOM_A = '/world/prog-test/hall';
 const ROOM_B = '/world/prog-test/bedroom';
+const ROOM_C = '/world/prog-test/porch';
 const STREET = '/world/prog-test/lane';
 const LOT1 = `${PARENT}/lot-1`;
 
@@ -130,6 +131,8 @@ function seedDomain(): void {
         exits: [{ to: 'bedroom', direction: 'north' }],
       },
       { leaf: 'bedroom', room: ROOM_B },
+      // A PLAIN room: keeps nothing, so has no record (tracts build review).
+      { leaf: 'porch', room: ROOM_C },
     ],
     upkeepTerm: 'owner-all',
     addressBase: 'prog-test/lot-1',
@@ -140,6 +143,9 @@ function seedDomain(): void {
   });
   add(ROOM_B, '/platform/location/PersistentLocation', {
     shortDescription: 'a bedroom',
+  });
+  add(ROOM_C, '/platform/location/Location', {
+    shortDescription: 'a porch',
   });
   add('/world/prog-test/coatrack', '/platform/thing/Thing', {
     shortDescription: 'a coat rack',
@@ -291,6 +297,17 @@ describe('the residential programme (D16)', () => {
     ).toBe('prog-test/lot-1/bedroom');
     // The upkeep term reads on the programme (D5).
     expect(holding.getUpkeepTerm()).toBe('owner-all');
+  });
+
+  it('⭐ a room that keeps nothing stands up with no record (persistence is the exception)', async () => {
+    seedLot();
+    await bootRegistries();
+    const w = await institution();
+    await w.admit(LOT1);
+    const holding = w.holdingFor(LOT1)! as unknown as HoldingWarren;
+    const porch = holding.roomForLeaf('porch')!;
+    expect(porch.getTemplatePath()).toBe(ROOM_C);
+    expect(MixinApi.isPersistable(porch)).toBe(false);
   });
 
   it('⭐⭐ lays its rooms out in its OWN frame, from the floorplan (B53)', async () => {

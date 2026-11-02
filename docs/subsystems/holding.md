@@ -197,6 +197,14 @@ resolve placements against a graph that is half gone.
 
 ### The floorplan is the INITIAL mint, never the closed set
 
+⭐ **A member persists only if it keeps state of its own** (tracts build
+review, 2026-11-01). `wakeRoom` restores a room's `(row, key)` record only
+when the room composes `Persistable`; a plain room — a farmyard — comes up
+from its row each wake and keeps nothing. Before, every member was forced
+to persist. Persistence is the exception: a room keeps a record when it
+must lay an owner's goods back down (the room overlay — a house's rooms,
+a farm's barn) or carries state nothing else does (a tract's soil).
+
 (⚠ `admitPlot`, the runtime-added-member seam below was written for, was
 retired with `plot` by the tracts build; a field is marked ON a tract
 now, never admitted as a room.)

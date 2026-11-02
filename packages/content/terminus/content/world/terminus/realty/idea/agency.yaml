@@ -16,7 +16,7 @@ data:
   call: rota
   positions:
     - key: agent
-      noun: land agent
+      noun: agent
       label: at the deed desk
       wageRate: 3
   rosterSlots:

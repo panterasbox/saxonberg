@@ -1,4 +1,8 @@
 # A valley farmstead's barn — the generic room (tracts build D33).
+# ⭐ Persistent for ONE purpose: it is the farm's store. A holder's grain,
+# hay and tools set down here belong to the holder, and only a room that
+# keeps its own record lays an owner's goods back down when it loads (the
+# room overlay, furnishing.md). Nothing else here needs saving.
 class: /platform/location/PersistentLocation
 data:
   shortDescription: barn

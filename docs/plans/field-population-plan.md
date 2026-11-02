@@ -3692,6 +3692,33 @@ Read first, in this order:
 10. `git show origin/reqs/paint:packages/server/src/mud/api/mql/scope-walk.ts`
     (the landing block to sit beside).
 
+### Review round 1 (2026-11-01) — persistence is the exception
+
+The owner: *"things should only be persistent if that really needs to be a
+save location for some specific purpose."* Scope agreed: what this MR owns,
+plus the most obvious cases; the broad sweep is later.
+
+- **`HoldingWarren.wakeRoom` restores only a room that persists itself.**
+  It called `restoreOrSeed` on every member, which throws on a plain room —
+  so every room of every holding was FORCED to persist. A plain room now
+  comes up from its row each wake (its `props:` laid down at clone).
+- **The farmstead yard is a plain `Location`.** It keeps nothing.
+- **The barn keeps its record, for one stated purpose**: it is the farm's
+  store, and only a room with its own record lays an owner's goods back
+  down when it loads (the room overlay). The purpose is written on the row.
+- **The bathhouse vestibule and gym are plain `Locale`s** — neither named
+  any state a restart must keep (a lamp kept lit was the only comment).
+- Kept, with reasons that hold: `Tract` and `Field` (soil, fields, grass —
+  nowhere else), the Hinkley/Seznick house rooms and the farmhouse (an
+  owner furnishes them: the overlay), the mill house (flour dust building
+  toward a fire, the toll bin).
+- **For the sweep (later):** the 34 `PersistentLocale` rows — several
+  carry the same copied line, *"a kept place — its floor, its fire, what is
+  curing on its shelves"* (the ward, the general store's floor, the byre),
+  which is a class's justification, not a row's; and the persistable
+  things (stock counters, check rack, TPA terminal). Each should name its
+  purpose in one line, under a census-then-ratchet lint.
+
 ## Drive record — tracts
 
 **2026-11-01, on the final tree** (owned world, fresh DB, WIRE_PORT 2014):

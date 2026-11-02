@@ -1,6 +1,8 @@
 # A valley farmstead's yard — the generic room every sold farmstead's yard
-# is a keyed copy of (tracts build D33). No exits: the holding wires them.
-class: /platform/location/PersistentLocation
+# is a copy of (tracts build D33). No exits: the holding wires them.
+# ⚠ NOT persistent: a yard keeps nothing a record must carry (persistence is
+# the exception). It comes up from this row each time its holding wakes.
+class: /platform/location/Location
 data:
   shortDescription: farmyard
   keywords: [yard, farmyard, farmstead]

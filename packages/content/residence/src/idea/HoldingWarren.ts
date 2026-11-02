@@ -393,7 +393,11 @@ export default class HoldingWarren extends ProgrammeBase {
       zoneFrom: key,
     });
     this.addMember(room);
-    await PersistableApi.restoreOrSeed(room, key);
+    // ⭐ Only a room that keeps state of its own has a record to restore
+    // (persistence is the exception — tracts build review). A plain room
+    // — a farmyard — comes up from its row each wake, its `props:` laid
+    // down at clone, and keeps nothing.
+    if (MixinApi.isPersistable(room)) await PersistableApi.restoreOrSeed(room, key);
     this._roomsByKey.set(key, room);
     // The room's address: `<addressBase or derived>/<leaf>` — the
     // Locality address is the human per-place identity (D16).
