@@ -199,12 +199,54 @@ resolve placements against a graph that is half gone.
 
 ### The floorplan is the INITIAL mint, never the closed set
 
+⭐ **A member persists only if it keeps state of its own** (tracts build
+review, 2026-11-01). `wakeRoom` restores a room's `(row, key)` record only
+when the room composes `Persistable`; a plain room — a farmyard — comes up
+from its row each wake and keeps nothing. Before, every member was forced
+to persist. Persistence is the exception: a room keeps a record when it
+must lay an owner's goods back down (the room overlay — a house's rooms,
+a farm's barn) or carries state nothing else does (a tract's soil).
+
+(⚠ `admitPlot`, the runtime-added-member seam below was written for, was
+retired with `plot` by the tracts build; a field is marked ON a tract
+now, never admitted as a room.)
+
 ⚠ Load-bearing for the farming build's Stage B: a programme's member set
 stays **open to runtime-added members**. Break-ground buds field rooms
 into a holding from a programme-level ledger, on this base. Nothing in
 `wake`, dormancy or capture may assume floorplan-only membership.
 
 ---
+
+### ⭐ Tracts in a layout — shares, footprints and the mirror (tracts build, 2026-10-31)
+
+A farm is a holding like a house: its floorplan names its rooms AND its
+**tracts** of open ground (soil.md § Tracts and fields). Three things
+make one layout serve every parcel it is sold on:
+
+- **`footprintM2`** on a room — the ground its building stands on that
+  no tract covers (the yard 400, the barn 150, the farmhouse 120; a
+  Hinkley house 220 in all). **`openGroundM2()`** = the parcel's
+  workable area (`ParcelApi.workableAreaOf`) less every footprint.
+- **`share`** on a tract — its fraction of that open ground. The tract
+  sizes itself when the holding wakes it (the kernel's
+  `WarrenMember.onWarrenWake`, called from `wakeRoom`), so a copy on a
+  bigger parcel has bigger tracts, in proportion; on unmeasured ground it
+  is nothing, and `mark` says why.
+- **The mirror** — `mirrorAxis`, set by the plat from the side of the
+  road the lot is on (`PlatPlan.mirrorAxisOfSlot`: a lot on the LEFT of
+  the road's heading, ring index 1/3/5, is reflected across the road's
+  axis) before the holding wakes; `getFloorplanExits()` reads every
+  direction through it (`up`/`down` and the axis never flip). So every
+  copy faces the lane, and the way out is the gate reversed
+  (`wireHubExit` — it was hard-coded `south`). ⚠ Hinkley's left-side
+  lots mirror now: the house on the south side of the lane has its hall
+  south of the yard.
+
+The first layouts: the valley farmstead (Hearts Delight, sold off a land
+board at the valley lane; drawn for a lot east of the lane — nothing west
+of its yard, which is the way out) and the Hinkley house's garden.
+⚠ The authored venue farms are NOT holdings yet (see § Deferred seams).
 
 ## The way in — keys, doors and the ascent gate
 
@@ -598,6 +640,19 @@ Named, not stubbed — each is a clean attach point:
   court off Hinkley's segment 2 exists in the plan and materializes as
   frontage fills; deeper trees (a court off a court) are untested.
 
+### Standing venue holdings (tracts build D32, deferred)
+
+The plan was to re-home the authored venue farms as STANDING holdings of
+a static plat (`dormancyOf: standing`, per-slot programmes, authored
+placement). It met the load rule: a holding exists only once its plat is
+loaded, and the authored exits into those farms resolve their rows on
+use — so either the plat is booted (forbidden: load on use, never boot)
+or an exit walked first mints a stray room. Doing it right flips the
+reference: the venue's tract (or approach room) names its holding, and a
+venue holding ADOPTS its authored singleton rooms rather than cloning
+keyed copies. `PlatPlan` already parses static slot objects
+(`programme`, `gate`, `mirrored`/`mirror`) for it.
+
 ### ⭐ The lift landed: `FloorplanWarren` in the kernel (harbors P1)
 
 The second consumer arrived as a **ship**, not a mine: her deck, cabin
@@ -610,7 +665,11 @@ lift rather than a rhyme. So the condition axis is **one clock**.
 `Persistable(WarrenMember(Container(RoomWarren)))`) now owns the
 `floorplan` + `upkeepTerm` fields and `UPKEEP_TERMS`, the keyed room mint
 (`wake` / `wakeRoom` / `roomForLeaf` / `roomForKey` / `entryRoom`), the
-intra-plan wiring, `layOut`, `captureAll` / `teardown` / `revert`, and the
+intra-plan wiring, `layOut`, `captureAll` / `teardown` / `revert`, the
+tracts build's layout reads (`share` / `footprintM2` on a floorplan room,
+`shareOf`, the persistent `mirrorAxis` every floorplan direction is read
+through, *only a persistable room restores*, `onWarrenWake` after a room
+is woken, a revert deleting each room's `dependentPersistables`), and the
 shell clock (`shellCondition`, `shellStamp`, `reconcileShell`,
 `conditionBand`, `conditionCause`, `restoreShell`). It speaks through four
 hooks: `reconcile` (who hears a population change — still abstract),
@@ -622,7 +681,8 @@ the kit, the act and its witnessed line).
 `HoldingWarren extends FloorplanWarren` and keeps only what is
 residential: `addressBase` (stamped in `onRoomWoken`), the parcel keyway
 (`refreshKeyway` before the base's wake; the keyed-door edge in
-`wireLockedEdge`), `admitPlot` (the break-ground seam), `reconcile` → the
+`wireLockedEdge`), `openGroundM2()` (the PARCEL's workable area less the
+footprints), `reconcile` → the
 institution, `holdingKey()` (= `warrenKey()`), `entryRowOf`, and the
 house's words (paint, sills, a householder's kit). Its template path,
 fields and observable behavior are unchanged. `maintain` narrows on the

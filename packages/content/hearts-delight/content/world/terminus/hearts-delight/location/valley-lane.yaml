@@ -1,0 +1,19 @@
+# The valley lane — the farm road the valley farmsteads are sold along
+# (tracts build D33): north off the bench lane, gates either side.
+class: /platform/location/Street
+data:
+  shortDescription: valley lane
+  keywords: [lane, valley, farm road, road]
+  register: definite
+  _address: terminus/hearts-delight/valley-lane
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  ambientIntensity: 40000
+  ambientColorTemperature: 5800
+  longDescription: |
+    A cart track running north along the valley floor between staked-out farmsteads, a gate in the hedge on either side wherever a farm has been sold. Back to the southeast it joins the bench lane.
+  coords: { x: -13, y: 1, z: 6 }
+  exits:
+    southeast:
+      destination: /world/terminus/hearts-delight/location/bench-lane
+      media: [ground]
+      edgeMinutes: 3

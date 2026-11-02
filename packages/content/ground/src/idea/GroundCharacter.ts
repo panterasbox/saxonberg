@@ -163,6 +163,15 @@ export interface GroundBand {
   note?: string;
 }
 
+/**
+ * ⭐ A lean with no rectangle — the same nudges a {@link GroundBand}
+ * carries, applied to one already-resolved spot. A caller that divides a
+ * piece of ground into named parts (a field's top end) nudges the
+ * ground's own sample with it, after the pin: whatever the ground is,
+ * authored or not, the part is that ground made thinner or richer.
+ */
+export type GroundLean = Omit<GroundBand, "from" | "to">;
+
 /** What a piece of ground costs to bring into cultivation (D55). */
 export default class GroundCharacter extends GroundSourceMixin(Idea) {
   static fieldMeta: FieldMeta = {
@@ -288,12 +297,19 @@ export default class GroundCharacter extends GroundSourceMixin(Idea) {
     model: GroundCharacter | null,
     at: Spot,
     seed: number,
+    nudge?: GroundLean,
   ): GroundSample {
     const key = spotKey(at);
     const base = GroundCharacter.procedural(at, seed);
     const leaned = model === null ? base : lean(base, model.getBands(), at);
     const pin = model?.getPins()?.[key];
-    return pin ? { ...leaned, ...pin } : leaned;
+    const pinned = pin ? { ...leaned, ...pin } : leaned;
+    // ⭐ The nudge folds LAST — after the pin — so a part of an authored
+    // ground is still that ground, scaled; the same `lean` arithmetic as
+    // an authored band (multiply/offset, never replace), over the spot.
+    return nudge === undefined
+      ? pinned
+      : lean(pinned, [{ from: at, to: at, ...nudge }], at);
   }
 
   /**

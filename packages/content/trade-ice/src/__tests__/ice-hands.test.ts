@@ -138,7 +138,7 @@ describe('4. on the ice', () => {
     world.supported = true;
     world.bearsKg = 250;
     await beat(Bosses, host);
-    expect(said).toEqual(['scrape', 'mark scraped']);
+    expect(said).toEqual(['scrape', 'groove scraped']);
   });
 
   it('the crew scrapes, then cuts the boss\'s grid', async () => {

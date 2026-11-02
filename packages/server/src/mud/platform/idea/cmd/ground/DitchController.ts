@@ -24,6 +24,7 @@ import type { MqlOneResult } from '../../../../api/mql';
 import type { GroundReading } from './GroundWorkController';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
+import { GrammarApi } from '../../../../api/grammar';
 
 /** ⭐ The instrument is bound by the view, never hunted for here. */
 interface DitchModel extends CommandModel {
@@ -44,7 +45,7 @@ export default class DitchController extends GroundWorkController {
       return;
     }
     const { ground, bill } = reading;
-    if (ground.progressOn('draining', bill) >= 1) {
+    if (ground.isComplete('draining', bill)) {
       this.decline(
         context,
         bill.draining <= 0
@@ -61,12 +62,12 @@ export default class DitchController extends GroundWorkController {
       beginSelf: Mml.compose`You open a line along the fall of the ground with ${Mml.thing(tool)}, throwing the spoil to the high side.`,
       beginPeers: Mml.compose`${Mml.actor(giver)} starts cutting a ditch along the fall of the ground.`,
       onComplete: () => {
-        void this.finish(context, reading);
+        void DitchController.finish(context, reading);
       },
     });
   }
 
-  private async finish(context: CommandContext, reading: GroundReading): Promise<void> {
+  private static async finish(context: CommandContext, reading: GroundReading): Promise<void> {
     const giver = context.commandGiver;
     const { ground, bill } = reading;
     const after = ground.bankWork('draining', LABOUR_PER_ACT, bill);
@@ -75,7 +76,7 @@ export default class DitchController extends GroundWorkController {
       .topic(GROUND_TOPIC)
       .toSelf(
         after >= 1
-          ? Mml.compose`The line runs clean to the bottom and the water follows it. ${ground.improvementPhrase(bill)}.`
+          ? Mml.compose`The line runs clean to the bottom and the water follows it. ${GrammarApi.cap(ground.improvementPhrase(bill))}.`
           : Mml.compose`Another length of it is open. It will take more before the wet corner dries.`,
       )
       .send();

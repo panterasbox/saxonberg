@@ -50,6 +50,7 @@ import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
 import type { Persistable } from '../persistence/Persistable';
 import type { FieldMeta } from '../mixin';
+import type { MirrorAxis } from './PlatPlan';
 
 type MemberStuff = Stuff & Container;
 
@@ -62,6 +63,18 @@ export interface FloorplanRoom {
   room: string;
   /** The mover lands here (the way in's destination). */
   entry?: boolean;
+  /**
+   * ⭐ For open ground (a farm's tract): its share of the holding's OPEN
+   * ground — what the buildings leave (tracts build D27). A copy of the
+   * layout on a bigger parcel has bigger tracts, in proportion.
+   */
+  share?: number;
+  /**
+   * The ground a room's building stands on that no tract covers, in m²
+   * (the barn, the yard) — subtracted from the parcel's workable area to
+   * give the open ground the shares divide.
+   */
+  footprintM2?: number;
 }
 
 /** One intra-plan edge (authored on the floorplan row). */
@@ -149,7 +162,25 @@ export abstract class FloorplanWarren extends FloorplanBase {
     upkeepTerm: { persistent: true, authorable: true },
     shellCondition: { persistent: true },
     shellStamp: { persistent: true },
+    mirrorAxis: { persistent: true },
   };
+
+  /**
+   * ⭐ Which way this copy of the layout is MIRRORED, `''` for none
+   * (tracts build D31) — set by whoever places the copy (a plat, from the
+   * side of the road the lot is on) before the warren wakes. Every
+   * floorplan direction is read through it, so a farm on the far side of
+   * the lane faces the lane too.
+   */
+  public mirrorAxis: '' | MirrorAxis = '';
+
+  public getMirrorAxis(): '' | MirrorAxis {
+    return this.mirrorAxis;
+  }
+
+  public setMirrorAxis(value: '' | MirrorAxis | null): void {
+    this.mirrorAxis = value === 'east-west' || value === 'north-south' ? value : '';
+  }
 
   /** The authored floorplan — the INITIAL mint (D16). */
   public floorplan: Array<Record<string, unknown>> = [];
@@ -189,7 +220,15 @@ export abstract class FloorplanWarren extends FloorplanBase {
       leaf: typeof r.leaf === 'string' ? r.leaf : undefined,
       room: String(r.room ?? ''),
       entry: r.entry === true,
+      share: typeof r.share === 'number' ? r.share : undefined,
+      footprintM2: typeof r.footprintM2 === 'number' ? r.footprintM2 : undefined,
     }));
+  }
+
+  /** A floorplan leaf's share of the open ground, or `null` (not open ground). */
+  public shareOf(leaf: string): number | null {
+    const spec = this.getFloorplan().find((r) => r.leaf === leaf);
+    return spec && typeof spec.share === 'number' && spec.share > 0 ? spec.share : null;
   }
 
   public setFloorplan(value: Array<Record<string, unknown>>): void {
@@ -204,12 +243,16 @@ export abstract class FloorplanWarren extends FloorplanBase {
       if (!Array.isArray(exits)) continue;
       for (const e of exits) {
         const o = e as Record<string, unknown>;
+        // ⭐ Read through the mirror (D31): a reflected copy's every
+        // direction is flipped across the axis.
         out.push({
           from: typeof r.leaf === 'string' ? (r.leaf as string) : '',
           to: String(o.to ?? ''),
-          direction: String(o.direction ?? ''),
+          direction: mirrored(String(o.direction ?? ''), this.mirrorAxis),
           opposite:
-            typeof o.opposite === 'string' ? (o.opposite as string) : undefined,
+            typeof o.opposite === 'string'
+              ? mirrored(o.opposite as string, this.mirrorAxis)
+              : undefined,
           locked: o.locked === true,
         });
       }
@@ -340,9 +383,16 @@ export abstract class FloorplanWarren extends FloorplanBase {
       zoneFrom: this.zoneFromFor(spec, key),
     });
     this.addMember(room);
-    await PersistableApi.restoreOrSeed(room, key);
+    // ⭐ Only a room that keeps state of its own has a record to restore
+    // (persistence is the exception — tracts build review). A plain room
+    // — a farmyard — comes up from its row each wake, its `props:` laid
+    // down at clone, and keeps nothing.
+    if (MixinApi.isPersistable(room)) await PersistableApi.restoreOrSeed(room, key);
     this._roomsByKey.set(key, room);
     this.onRoomWoken(room, spec);
+    // ⭐ Stood up and restored: a member may now finish itself against
+    // its warren — a tract sizes itself from the open ground (D28).
+    if (MixinApi.isWarrenMember(room)) await room.onWarrenWake();
     return room;
   }
 
@@ -489,7 +539,15 @@ export abstract class FloorplanWarren extends FloorplanBase {
     (this as unknown as Persistable).markForRevert();
     const key = this.warrenKey();
     if (key) {
-      for (const roomKey of [...this._roomsByKey.keys()]) {
+      for (const [roomKey, room] of [...this._roomsByKey]) {
+        // The records a room owns (a tract's fields) go with it, each by
+        // its own key — the room says what they are, the warren does not.
+        if (MixinApi.isPersistable(room)) {
+          for (const dependent of room.dependentPersistables()) {
+            const owned = dependent.getPersistenceKey();
+            if (owned) await PersistableApi.deleteAllFor(owned);
+          }
+        }
         await PersistableApi.deleteAllFor(roomKey);
       }
       await PersistableApi.deleteAllFor(key);
@@ -643,4 +701,24 @@ export abstract class FloorplanWarren extends FloorplanBase {
   protected async unwireHostFixtures(): Promise<void> {
     /* no-op */
   }
+}
+
+/** The eight planar directions' reflections, per mirror axis (D31). */
+const MIRRORS: Readonly<Record<MirrorAxis, Readonly<Record<string, string>>>> = {
+  'east-west': {
+    east: 'west', west: 'east',
+    northeast: 'northwest', northwest: 'northeast',
+    southeast: 'southwest', southwest: 'southeast',
+  },
+  'north-south': {
+    north: 'south', south: 'north',
+    northeast: 'southeast', southeast: 'northeast',
+    northwest: 'southwest', southwest: 'northwest',
+  },
+};
+
+/** `direction` reflected across `axis`; `up`, `down` and the axis itself stay. */
+function mirrored(direction: string, axis: '' | MirrorAxis): string {
+  if (!axis) return direction;
+  return MIRRORS[axis][direction] ?? direction;
 }

@@ -139,3 +139,39 @@ describe("⭐ a Hinkley house has hot water (cleanliness)", () => {
     );
   });
 });
+
+describe("⭐ a Hinkley house has a garden — a tract of its layout (tracts build W4)", () => {
+  const programme = read(`${HINKLEY}/idea/house-programme.yaml`);
+  const rooms = (programme.data?.floorplan ?? []) as Array<{
+    leaf?: string;
+    room?: string;
+    share?: number;
+    footprintM2?: number;
+    exits?: Array<{ to?: string; direction?: string }>;
+  }>;
+
+  it("the garden is open ground, the lot's share of what the house leaves", () => {
+    const garden = rooms.find((r) => r.leaf === "garden");
+    expect(garden?.room).toBe(`/${HINKLEY}/lots/garden`);
+    expect(garden?.share).toBe(1);
+    expect(read(`${HINKLEY}/lots/garden.yaml`).class).toBe("/trade/farming/location/Tract");
+  });
+
+  it("the house and yard stand on 220 m² of a quarter-acre: the garden is about 780", () => {
+    const built = rooms.reduce((n, r) => n + (r.footprintM2 ?? 0), 0);
+    const book = read(`${HINKLEY}/idea/plat-book.yaml`);
+    expect(built).toBe(220);
+    expect(Number(book.data?.areaM2) - built).toBe(780);
+  });
+
+  it("the garden is west of the yard, clear of the house door and the way out", () => {
+    const yard = rooms.find((r) => r.leaf === "yard");
+    const toGarden = yard?.exits?.find((e) => e.to === "garden");
+    expect(toGarden?.direction).toBe("west");
+  });
+
+  it("the garden takes a planting in a bed (a house lot takes beds, not fields)", () => {
+    const props = (read(`${HINKLEY}/lots/garden.yaml`).data?.props ?? []) as string[];
+    expect(props).toContain("/trade/farming/thing/bed/garden");
+  });
+});

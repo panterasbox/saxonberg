@@ -709,11 +709,13 @@ Three lessons worth keeping, none of them about farming:
 
 ## ⭐ The field arrived (farmstead)
 
-A bed is no longer the largest thing you can cultivate. `plot` breaks a
-**field** out of ground you already hold — the first consumer of
-`LandUse`'s `field` cultivation ceiling, which had shipped here with
-nothing reading it — and a field is a *place* rather than a Thing with a
-bulk interior of soil.
+A bed is no longer the largest thing you can cultivate. A farm's ground
+is a **tract** — a place, open ground in a holding's layout — and its
+holder **marks fields** on it (`mark`), the consumer of `LandUse`'s
+`field` cultivation ceiling: a house lot's garden is zoned residential
+and takes beds, not fields (soil.md § Tracts and fields). `plot`, which
+broke a field out of a held lot, was retired by the tracts build: no
+verb makes a tract.
 
 The land draw still rides the productive object; what is new is that a
 field draws against the parcel's declared yard, and that newly plotted

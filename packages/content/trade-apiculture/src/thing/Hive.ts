@@ -63,8 +63,7 @@ import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable'
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import type { CompositionEntry } from '@saxonberg/server/mud/lib/material/Material';
-import { SWARD_MIXIN } from '@saxonberg/content-trade-farming/src/lib/Sward';
-import type Field from '@saxonberg/content-trade-farming/src/location/Field';
+import Tract from '@saxonberg/content-trade-farming/src/location/Tract';
 import { ColonyMixin, APICULTURE } from '../lib/Colony';
 import type { Colonial } from '../lib/Colony';
 import HiveBox from './HiveBox';
@@ -866,10 +865,14 @@ export default class Hive extends HiveBase implements Splittable {
         return next > rangeMinutes ? null : next;
       },
       fold: (at) => {
-        // The sward under this patch of ground.
-        if (MixinApi.hasMixin(at.constructor as never, SWARD_MIXIN as never)) {
-          const field = at as unknown as Field;
-          const m2 = field.inFlowerFraction() * field.swardAreaM2();
+        // The sward under this patch of ground: a tract's grass is its
+        // marked fields' (tracts build D24), each in flower by its own
+        // clover and the tract's season.
+        if (at instanceof Tract) {
+          let m2 = 0;
+          for (const field of at.getFields()) {
+            m2 += field.inFlowerFraction() * field.swardAreaM2();
+          }
           if (m2 > 0) {
             const key = '/trade/apiculture/idea/material/clover-nectar';
             sources.set(key, (sources.get(key) ?? 0) + m2);

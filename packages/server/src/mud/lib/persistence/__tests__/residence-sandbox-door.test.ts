@@ -34,6 +34,9 @@ const CONTENT = join(HERE, '..', '..', '..', '..', '..', '..', 'content');
 /** The one class a circle is entered through. */
 const CROSSING = '/platform/thing/sandbox/SandboxCrossing';
 
+/** The class a residence programme is (the residence system's holding). */
+const HOLDING = '/system/residence/idea/HoldingWarren';
+
 interface Row {
   template: string;
   cls: string;
@@ -94,9 +97,14 @@ function propsOf(row: Row | undefined): string[] {
 describe('every residence reaches its tenant’s sandbox door', () => {
   const rows = shippedRows();
 
-  /** Programmes = any row declaring a floorplan. Discovered, never listed. */
+  /**
+   * Programmes = any HOLDING row declaring a floorplan. Discovered, never
+   * listed. ⚠ A floorplan alone is no longer a home (harbors P1, the
+   * lift): a ship's `ShipWarren` is a floorplan too, and a ship is not a
+   * residence — no circle is granted aboard her.
+   */
   const programmes = [...rows.values()].filter(
-    (r) => Array.isArray(r.data.floorplan),
+    (r) => Array.isArray(r.data.floorplan) && r.cls === HOLDING,
   );
 
   it('⚠ the walk finds the shipped programmes — a scan that found none would pass', () => {

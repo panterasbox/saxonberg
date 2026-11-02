@@ -88,7 +88,8 @@ export interface Container {
    * on another item *in the same set*. Items placed on a listed host
    * (the bottles on the back-bar, the ham on the hook) are represented
    * by that host and discovered by examining it (`look <host>`); listing
-   * them at top level is the clutter this avoids. Shared by `look`,
+   * them at top level is the clutter this avoids. A crop standing over
+   * an area is likewise represented by its ground. Shared by `look`,
    * `sense` and the inspection-card projection so all three agree.
    *
    * Pass the already-filtered snapshot (perception, worn, adornments);
@@ -505,6 +506,11 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
         items ?? (this as unknown as Stuff & Container).getContents();
       const ids = new Set(snapshot.map((i) => i.stuffId));
       return snapshot.filter((item) => {
+        // ⭐ A crop standing over an area is part of the GROUND, not loose
+        // contents (field population D17): the field's own description
+        // reads the stand. A labeled individual (no sown area) is a plant
+        // and stays listed.
+        if (MixinApi.isGrowing(item) && item.isAreaCrop()) return false;
         const placement = MixinApi.isContainable(item)
           ? item.getPlacement()
           : null;

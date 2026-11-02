@@ -130,8 +130,10 @@ const SWARD_PHRASE: Readonly<Record<SwardBand, string>> = {
   bare: 'grazed to the dirt, with the crowns showing',
   'grazed-out': 'eaten right down; it will be slow to come again',
   short: 'short and even, still coming',
-  ready: 'a good even cover, about ready for them',
-  'ahead-of-them': 'well ahead of them — going stemmy, and seed heads showing',
+  // ⚠ No "them": a meadow and a cane piece are fields with no herd on
+  // them, and the line is read there too (browser walk).
+  ready: 'a good even cover, ready to graze or cut',
+  'ahead-of-them': 'grown long — going stemmy, and seed heads showing',
 };
 
 /** The public surface a paddock speaks. */
@@ -158,7 +160,7 @@ export interface Sward {
    */
   drawSward(kg: number): number;
   /** Install the sward reserve for this ground's area. Idempotent. */
-  installSward(): void;
+  installSward(startFraction?: number): void;
 
   // ---------- the hooks a host answers ----------
 
@@ -172,7 +174,7 @@ export interface Sward {
    * MINIMUM of moisture, warmth, daylength and nutrient, resolved by the
    * host because only the host knows its own soil and sky.
    */
-  swardGrowthFactor(): number;
+  swardGrowthFactor(atS?: number): number;
   /**
    * @hook Kilograms of dry matter the mouths standing on this ground eat
    * per game day. ⭐ *Whether the mouth is here* is the whole of D7's
@@ -188,7 +190,15 @@ export interface Sward {
    * matters — and for a field it matters enormously, because what an
    * animal eats standing on the ground comes back onto the ground.
    */
-  onSwardIntegrated(dryMatterEatenKg: number, days: number): void;
+  onSwardIntegrated(dryMatterEatenKg: number, days: number, fedKg?: number): void;
+  /**
+   * @hook Feed a SHORTFALL from somewhere other than the sward — hay in a
+   * trough standing on the ground (cover build D11). Called once per step
+   * of the integral with what the mouths wanted and the grass did not
+   * give; returns the kilograms actually fed. Default `0`: a paddock that
+   * is only grass is only grass.
+   */
+  swardShortfallFed(kgNeeded: number): number;
 }
 
 export function SwardMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
@@ -236,7 +246,7 @@ export function SwardMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
       return 0;
     }
 
-    public swardGrowthFactor(): number {
+    public swardGrowthFactor(_atS?: number): number {
       return 1;
     }
 
@@ -245,8 +255,13 @@ export function SwardMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
     }
 
     /** See {@link Sward.onSwardIntegrated}. */
-    public onSwardIntegrated(_dryMatterEatenKg: number, _days: number): void {
+    public onSwardIntegrated(_dryMatterEatenKg: number, _days: number, _fedKg?: number): void {
       /* nothing by default — a paddock that is only grass is only grass */
+    }
+
+    /** See {@link Sward.swardShortfallFed}. */
+    public swardShortfallFed(_kgNeeded: number): number {
+      return 0;
     }
 
     // ---------- state ----------
@@ -255,7 +270,7 @@ export function SwardMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
       return this.swardAreaM2() * SWARD_CEILING_KG_PER_M2;
     }
 
-    public installSward(): void {
+    public installSward(startFraction: number = SWARD_RESIDUAL_FRACTION): void {
       const host = this as unknown as Stuff & Reserved;
       if (host.hasReserve(SWARD_RESERVE_KEY)) return;
       const ceiling = this.swardCeilingKg();
@@ -268,7 +283,7 @@ export function SwardMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
           // just come out of the rough carries the grass that was already
           // on it, and the player's first decision is whether to graze it
           // or let it get ahead.
-          Quantity.of(ceiling * SWARD_RESIDUAL_FRACTION, 'kg'),
+          Quantity.of(ceiling * clamp01(startFraction), 'kg'),
           'cultivation',
           null,
         ),
@@ -353,7 +368,10 @@ export function SwardMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
         const r = host.getReserve(SWARD_RESERVE_KEY)!;
         let standing = r.current.rawValue();
         const area = this.swardAreaM2();
-        const factor = clamp01(this.swardGrowthFactor());
+        // ⭐ The factor is read PER STEP at the step's own moment (cover
+        // build): an unwatched summer read in the autumn grew at the
+        // autumn's rate, and a herd starved through grass that never came.
+        const windowStart = this.swardStamp;
         const demandPerDay = Math.max(0, this.swardGrazingDemandPerGameDay());
 
         // ⭐ Stepped rather than closed-form, because the recovery penalty
@@ -364,6 +382,7 @@ export function SwardMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
         const steps = Math.min(365, Math.max(1, Math.ceil(days)));
         const dt = days / steps;
         let grazed = 0;
+        let fed = 0;
         for (let i = 0; i < steps; i++) {
           const fraction = ceiling > 0 ? standing / ceiling : 0;
           // D9: below the residual the RATE is penalised, and the penalty
@@ -377,12 +396,22 @@ export function SwardMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
           // shading itself, which is why grass that gets ahead of the
           // herd stops paying and starts going stemmy.
           const headroom = ceiling > 0 ? Math.max(0, 1 - fraction) : 0;
+          const factor = clamp01(
+            this.swardGrowthFactor(windowStart + (i + 0.5) * dt * SECONDS_PER_GAME_DAY),
+          );
           const growth =
             PEAK_GROWTH_KG_PER_M2_DAY * area * factor * recovery * headroom * dt;
           standing = Math.min(ceiling, standing + growth);
-          const eaten = Math.min(standing, demandPerDay * dt);
+          const wanted = demandPerDay * dt;
+          const eaten = Math.min(standing, wanted);
           standing -= eaten;
           grazed += eaten;
+          // ⭐ What the grass did not give, the trough may (cover build
+          // D11) — asked per STEP, so a herd that eats the sward down
+          // mid-window turns to the hay at the step it ran out, not at
+          // the end of the window.
+          const short = wanted - eaten;
+          if (short > 1e-9) fed += Math.max(0, Math.min(short, this.swardShortfallFed(short)));
         }
 
         const delta = standing - r.current.rawValue();
@@ -393,7 +422,7 @@ export function SwardMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
         this.swardStamp = nowS;
         // ⚠ AFTER the stamp, so a host that reads its own soil in the
         // hook cannot re-enter this reconcile through it.
-        this.onSwardIntegrated(grazed, days);
+        this.onSwardIntegrated(grazed, days, fed);
       } finally {
         this._reconcilingSward = false;
       }

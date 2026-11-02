@@ -1,0 +1,25 @@
+# The valley farmsteads — the plat the Delight sells its farms from
+# (tracts build D33). One lane heading north off the bench lane, four
+# frontages; each sold lot stands up a copy of the farmstead layout.
+#
+# ⭐ The gate ring decides which side of the lane a farm is on, and the
+# side decides whether its copy is MIRRORED: lots 1 and 3 east of the lane
+# as the layout is drawn, lots 2 and 4 west of it, reflected east to west,
+# so every farmyard opens on the lane.
+class: /system/residence/idea/PlatWarren
+data:
+  programmePath: /world/terminus/hearts-delight/idea/farmstead
+  parentExtent: /world/terminus/hearts-delight/valley
+  capacityKey: hearts-delight.valleyCap
+  defaultCapacity: 4
+  plan:
+    shape: branched
+    # The plat's own slot word — the book sells `farmstead-<n>`.
+    slotPrefix: farmstead-
+    roads:
+      - key: valley-lane
+        heading: north
+        segments: 1
+        frontagesPerSegment: 4
+        authored:
+          "1": /world/terminus/hearts-delight/location/valley-lane

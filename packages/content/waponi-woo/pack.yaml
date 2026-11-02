@@ -16,7 +16,9 @@ requires:
       purpose: the island's estate and its smallholders
       owner: { office: prime-minister }
   title:
-    - { extent: /world/terminus/waponi-woo, parentParcel: /world/terminus, holder: { group: waponi-woo } }
+    # A cane island: its ground is farmland (cover build). Without this it
+    # inherited the city's civic zoning and nothing could be sown on it.
+    - { extent: /world/terminus/waponi-woo, parentParcel: /world/terminus, holder: { group: waponi-woo }, landUse: agricultural }
 
 # ⚠ No boot entries: the estate's brains are deferred (sugar W5), so
 # nothing here acts unobserved — the place loads when somebody comes.

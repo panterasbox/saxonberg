@@ -31,10 +31,12 @@ import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import type Species from '@saxonberg/server/mud/platform/idea/species/Species';
 import HerdRegistry, {
   DEFAULT_FEMALE_FRACTION,
+  type FedWindow,
   type HerdRecord,
 } from '../../HerdRegistry';
 import { HeadSeed } from '../../../lib/HeadSeed';
 import type Livestock from '../../../agent/Livestock';
+import { GrammarApi } from '@saxonberg/server/mud/api/grammar';
 
 export const RANCHING_TOPIC = 'act.deed';
 
@@ -89,7 +91,12 @@ export default class DraftController extends CommandController<DraftModel> {
       return;
     }
 
-    const animal = await this.mint(herd, index, giver);
+    // ⭐ What the herd has eaten since this head was last looked at
+    // (cover build D10): close the open window first, so the condition
+    // the head comes out in is the condition the field left it in.
+    await registry.foldOpen(herd.herdId);
+    const fed = (await registry.read(herd.herdId))?.fed ?? [];
+    const animal = await this.mint(herd, index, giver, fed);
     if (!animal) {
       this.decline(context, Mml.compose`You cannot get a rope on it.`, 'mint-failed');
       return;
@@ -99,7 +106,7 @@ export default class DraftController extends CommandController<DraftModel> {
     MessageApi.scene(giver)
       .topic(RANCHING_TOPIC)
       .toSelf(
-        Mml.compose`You cut number ${index} out of ${herd.name} and look it over. ${animal.stockmanRead()}.`,
+        Mml.compose`You cut number ${index} out of ${herd.name} and look it over. ${GrammarApi.cap(animal.stockmanRead())}.`,
       )
       .toPeers(
         Mml.compose`${Mml.actor(giver)} cuts one out of the bunch and stands looking at it.`,
@@ -116,6 +123,7 @@ export default class DraftController extends CommandController<DraftModel> {
     herd: HerdRecord,
     index: number,
     giver: Stuff,
+    fed: readonly FedWindow[] = [],
   ): Promise<Livestock | null> {
     let animal: Livestock;
     try {
@@ -149,11 +157,18 @@ export default class DraftController extends CommandController<DraftModel> {
     }
     animal.setAge(sample.ageDays);
     animal.handling = sample.handling;
+    // ⭐ The flesh it was last known at, replayed through what the herd
+    // was fed since (cover build D10a) — from its return when it has been
+    // out before, else from the herd's founding. Seeded, never drawn: the
+    // shy feeder is thin because its frame is low, every time.
+    const overlay = herd.overlay[String(index)];
+    const since = overlay?.fleshAt ?? herd.founded;
+    const condition = HeadSeed.replay(sample.flesh, since, fed, sample.frame);
     const flesh = animal.getReserve('flesh');
     if (flesh) {
       animal.adjustReserve(
         'flesh',
-        Quantity.of(sample.flesh - flesh.current.rawValue(), '%'),
+        Quantity.of(condition - flesh.current.rawValue(), '%'),
       );
     }
     // ⭐ (dairy, found by the drive) The head exists from the draft, so its

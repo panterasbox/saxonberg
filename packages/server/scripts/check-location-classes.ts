@@ -134,6 +134,9 @@ const MINTED_ROWS = [
   "hinkley-hills/content/world/terminus/hinkley-hills/lots/road-segment.yaml",
   "platform/content/platform/location/venue.yaml",
   "terminus/content/world/terminus/mayfield-row/seznick-house/corridor.yaml",
+  // A valley farmstead's yard (tracts build): a plain kind, one copy per
+  // holding, keeping nothing.
+  "hearts-delight/content/world/terminus/hearts-delight/farmstead/location/yard.yaml",
 ];
 
 /**
@@ -156,6 +159,9 @@ const FURNISHED = [
   "hinkley-hills/content/world/terminus/hinkley-hills/lots/hall.yaml",
   "hinkley-hills/content/world/terminus/hinkley-hills/lots/kitchen.yaml",
   "hinkley-hills/content/world/terminus/hinkley-hills/lots/yard.yaml",
+  // ⭐ The valley farmstead's barn (tracts build): the farm's store, where a
+  // holder's goods are laid back down; its holding places every copy.
+  "hearts-delight/content/world/terminus/hearts-delight/farmstead/location/barn.yaml",
   "terminus/content/world/terminus/mayfield-row/seznick-house/location/bedroom.yaml",
   "terminus/content/world/terminus/mayfield-row/seznick-house/location/hall.yaml",
   "terminus/content/world/terminus/mayfield-row/seznick-house/location/main.yaml",
@@ -441,7 +447,15 @@ export const WARREN_PLACED = [
   "rejection/content/world/terminus/rejection/ferrow/fall.yaml",
   "rejection/content/world/terminus/rejection/ferrow/junction.yaml",
   "rejection/content/world/terminus/rejection/ferrow/stope.yaml",
-  "trade-farming/content/trade/farming/location/field.yaml",
+  "trade-farming/content/trade/farming/location/tract.yaml",
+  // ⭐ A layout's tracts (tracts build): kinds of place, one keyed copy per
+  // holding, laid out by the holding's floorplan.
+  "hearts-delight/content/world/terminus/hearts-delight/farmstead/tract/lower-meadow.yaml",
+  "hearts-delight/content/world/terminus/hearts-delight/farmstead/tract/orchard-close.yaml",
+  "hearts-delight/content/world/terminus/hearts-delight/farmstead/tract/upper-bench.yaml",
+  "hinkley-hills/content/world/terminus/hinkley-hills/lots/garden.yaml",
+  // A farmstead's yard: a plain kind of room, one copy per holding.
+  "hearts-delight/content/world/terminus/hearts-delight/farmstead/location/yard.yaml",
   "water/content/system/water/location/band/bed.yaml",
   "water/content/system/water/location/band/dark.yaml",
   "water/content/system/water/location/band/lit.yaml",

@@ -8,6 +8,8 @@ class: /platform/thing/Plant
 data:
   shortDescription: stand of barley
   keywords: [barley, crop, stand]
+  # What `sample` pulls out of the stand (field population D7).
+  specimenNoun: stem of barley
   register: indefinite
   longDescription: |
     Barley standing in the ear, the awns catching the light, and the whole field going over together when the wind crosses it.
@@ -17,6 +19,9 @@ data:
   seedTemplatePath: /trade/farming/thing/seed/barley
   harvestTemplatePath: /trade/farming/thing/crop/barley
   nutrientDraw: 18
+  # ⭐ Cut with a sickle or a scythe (cover build D3); bare hands cut a
+  # little.
+  harvestTool: reaping
   profile:
     moistureHappyAt: 0.3
     moistureWiltAt: 0.05
@@ -27,3 +32,9 @@ data:
     warmHappyK: 289
     rootDemand: { seedling: 0.2, young: 1.0, established: 2.0, mature: 3.0 }
     daysToStage: { young: 16, established: 50, mature: 100 }
+    # ⭐ The field crop is two numbers (cover build D2, field population):
+    # the seed a hand broadcasts, and what a square metre gives in a
+    # PERFECT season. A stand gives that × its condition at the cut — the
+    # seed-to-yield ratio is derived, never authored (see wheat).
+    seedRateKgPerM2: 0.016
+    yieldKgPerM2: 0.27

@@ -1,5 +1,5 @@
 /**
- * IceActController — the shared shape of `scrape` and `mark` (storage-and-ice
+ * IceActController — the shared shape of `scrape` and `groove` (storage-and-ice
  * D19). ⚠ Dumb: it takes the room's floor, asks it whether it is a sheet
  * you can work (the water pack's `IceSheet`), and hands the act to the
  * sheet's own method — the sheet refuses an actor it is not holding up, a

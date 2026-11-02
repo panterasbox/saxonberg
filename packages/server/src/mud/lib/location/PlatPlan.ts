@@ -44,11 +44,28 @@ interface PlanRoad {
   authored: Map<number, string>;
 }
 
+/** Which way a mirrored layout flips (tracts build D31). */
+export type MirrorAxis = 'east-west' | 'north-south';
+
+/**
+ * One slot of a static plan (parsed). Authored either as a bare leaf
+ * string or as an object naming what stands there: a per-slot
+ * `programme` (one institution, several layouts — tracts build D32), the
+ * `gate` direction when one must be hung, and whether the copy is
+ * `mirrored` (with the `mirror` axis it flips across).
+ */
+interface StaticSlot {
+  key: string;
+  programme: string | null;
+  gate: string | null;
+  mirror: MirrorAxis | null;
+}
+
 /** One authored node of a static plan (parsed). */
 interface StaticNode {
   key: string;
   path: string;
-  slots: string[];
+  slots: StaticSlot[];
 }
 
 const LINEAR_ROAD = 'main';
@@ -97,6 +114,10 @@ export class PlatPlan {
      *  `f<n>-r<p>`) or `u` (a unit building's `f<n>-u<p>`; a distinct
      *  leaf so dorm tooling never misreads a unit extent). */
     private readonly frontageLeaf: string = 'r',
+    /** A branched plan's slot word — `lot-` (`lot-7`), or a plat's own
+     *  (`farmstead-`): two books on one deed desk must not both answer
+     *  `lot-1` (tracts build W4). */
+    private readonly slotPrefix: string = 'lot-',
   ) {}
 
   // ── parsing ─────────────────────────────────────────────────────
@@ -133,7 +154,11 @@ export class PlatPlan {
         if (typeof o.key !== 'string' || typeof o.path !== 'string') {
           throw new Error(`PlatPlan: static node ${i} needs key + path`);
         }
-        const slots = Array.isArray(o.slots) ? (o.slots as string[]) : [];
+        const slots = Array.isArray(o.slots)
+          ? (o.slots as unknown[]).map((raw, j) =>
+              parseStaticSlot(raw, `static node ${String(o.key)} slot ${j}`),
+            )
+          : [];
         return { key: o.key, path: o.path, slots };
       });
       return new PlatPlan('static', 0, [], nodes);
@@ -212,7 +237,11 @@ export class PlatPlan {
       // that branches off it — so a plat asking for more frontages than
       // that is unbuildable, and says so at install rather than running
       // out of compass on a sale.
-      const plan = new PlatPlan('branched', 0, roads, []);
+      const prefix =
+        typeof data?.slotPrefix === 'string' && /^[a-z][a-z-]*-$/.test(data.slotPrefix)
+          ? data.slotPrefix
+          : 'lot-';
+      const plan = new PlatPlan('branched', 0, roads, [], 'r', prefix);
       for (const r of roads) {
         for (let seg = 1; seg <= r.segments; seg++) {
           const room = plan.ringFor(r, seg).length;
@@ -252,11 +281,11 @@ export class PlatPlan {
     }
     if (this.shape === 'static') {
       for (const n of this.staticNodes) {
-        if (n.slots.includes(slotLeaf)) return `${n.key}:1`;
+        if (n.slots.some((slot) => slot.key === slotLeaf)) return `${n.key}:1`;
       }
       return null;
     }
-    const m = /^lot-(\d+)$/.exec(slotLeaf);
+    const m = this.slotNumberOf(slotLeaf);
     if (!m) return null;
     let n = Number(m[1]);
     for (const road of this.roads) {
@@ -289,7 +318,7 @@ export class PlatPlan {
     }
     if (this.shape === 'static') {
       for (const node of this.staticNodes) {
-        for (const leaf of node.slots) {
+        for (const { key: leaf } of node.slots) {
           if (count >= cap) return null;
           count += 1;
           if (!taken.has(leaf)) return leaf;
@@ -303,7 +332,7 @@ export class PlatPlan {
         n += 1;
         if (count >= cap) return null;
         count += 1;
-        const leaf = `lot-${n}`;
+        const leaf = `${this.slotPrefix}${n}`;
         if (!taken.has(leaf)) return leaf;
       }
     }
@@ -454,7 +483,7 @@ export class PlatPlan {
    */
   gateDirectionOfSlot(slotLeaf: string): string | null {
     if (this.shape !== 'branched') return null;
-    const m = /^lot-(\d+)$/.exec(slotLeaf);
+    const m = this.slotNumberOf(slotLeaf);
     if (!m) return null;
     let n = Number(m[1]);
     for (const road of this.roads) {
@@ -464,6 +493,77 @@ export class PlatPlan {
         const index = (n - 1) % road.frontagesPerSegment;
         return this.ringFor(road, segment)[index] ?? null;
       }
+      n -= cap;
+    }
+    return null;
+  }
+
+  /**
+   * The slot's position on its road's gate ring — `0` right, `1` left,
+   * `2` ahead-right, `3` ahead-left, `4` behind-right, `5` behind-left —
+   * or `null` where there is no ring (linear, static, an unknown leaf).
+   * Read off the gate's own direction, so a branch mouth removed from the
+   * reach never shifts which SIDE of the road a lot is on.
+   */
+  ringIndexOfSlot(slotLeaf: string): number | null {
+    const road = this.roadOfSlot(slotLeaf);
+    const gate = this.gateDirectionOfSlot(slotLeaf);
+    if (!road || gate === null) return null;
+    const index = (GATE_RING[road.heading] ?? []).indexOf(gate);
+    return index < 0 ? null : index;
+  }
+
+  /**
+   * ⭐ Which way a holding on this slot is MIRRORED, or `null` for none
+   * (tracts build D31). On a branched plan a lot on the LEFT of the road
+   * (ring index 1, 3, 5) is the right-hand layout reflected across the
+   * road's axis, so every copy faces the lane: on a road heading north or
+   * south east and west swap; heading east or west, north and south. A
+   * static slot authors it (`mirrored: true` + `mirror:`); linear never.
+   */
+  mirrorAxisOfSlot(slotLeaf: string): MirrorAxis | null {
+    if (this.shape === 'static') return this.staticSlot(slotLeaf)?.mirror ?? null;
+    const index = this.ringIndexOfSlot(slotLeaf);
+    if (index === null || index % 2 === 0) return null;
+    const road = this.roadOfSlot(slotLeaf);
+    if (!road) return null;
+    return road.heading === 'north' || road.heading === 'south'
+      ? 'east-west'
+      : 'north-south';
+  }
+
+  /** The programme row a static slot stands up, or `null` (the plat's own). */
+  programmeOfSlot(slotLeaf: string): string | null {
+    return this.staticSlot(slotLeaf)?.programme ?? null;
+  }
+
+  /** The gate direction a static slot authors, or `null`. */
+  gateOfSlot(slotLeaf: string): string | null {
+    return this.staticSlot(slotLeaf)?.gate ?? null;
+  }
+
+  /** Every static slot leaf, in plan order (`[]` for a generative plan). */
+  staticSlotLeaves(): string[] {
+    return this.staticNodes.flatMap((n) => n.slots.map((slot) => slot.key));
+  }
+
+  private staticSlot(slotLeaf: string): StaticSlot | null {
+    if (this.shape !== 'static') return null;
+    for (const n of this.staticNodes) {
+      const slot = n.slots.find((x) => x.key === slotLeaf);
+      if (slot) return slot;
+    }
+    return null;
+  }
+
+  private roadOfSlot(slotLeaf: string): PlanRoad | null {
+    if (this.shape !== 'branched') return null;
+    const m = this.slotNumberOf(slotLeaf);
+    if (!m) return null;
+    let n = Number(m[1]);
+    for (const road of this.roads) {
+      const cap = road.segments * road.frontagesPerSegment;
+      if (n <= cap) return road;
       n -= cap;
     }
     return null;
@@ -484,6 +584,13 @@ export class PlatPlan {
         .map((r) => r.branchesFrom!.direction),
     );
     return taken.size === 0 ? ring : ring.filter((d) => !taken.has(d));
+  }
+
+  /** A branched slot leaf's number match (`lot-7` → 7), or `null`. */
+  private slotNumberOf(slotLeaf: string): RegExpExecArray | null {
+    // The prefix is checked at parse to be lower-case letters and hyphens,
+    // so it needs no escaping here.
+    return new RegExp(`^${this.slotPrefix}(\\d+)$`).exec(slotLeaf);
   }
 
   private parseNode(nodeId: string): { road: string; segment: number } {
@@ -511,6 +618,35 @@ function mustPlanar(d: string, what: string): string {
     );
   }
   return d;
+}
+
+/**
+ * A static slot as authored — a bare leaf, or `{ key, programme?, gate?,
+ * mirrored?, mirror? }`. Checked at parse, the plan's rule.
+ */
+function parseStaticSlot(raw: unknown, what: string): StaticSlot {
+  if (typeof raw === 'string') {
+    return { key: raw, programme: null, gate: null, mirror: null };
+  }
+  const o = (raw ?? {}) as Record<string, unknown>;
+  if (typeof o.key !== 'string' || o.key.length === 0) {
+    throw new Error(`PlatPlan: ${what} needs a key`);
+  }
+  let mirror: MirrorAxis | null = null;
+  if (o.mirrored === true) {
+    if (o.mirror !== 'east-west' && o.mirror !== 'north-south') {
+      throw new Error(
+        `PlatPlan: ${what} is mirrored but names no mirror axis (east-west or north-south)`,
+      );
+    }
+    mirror = o.mirror;
+  }
+  return {
+    key: o.key,
+    programme: typeof o.programme === 'string' ? o.programme : null,
+    gate: typeof o.gate === 'string' ? o.gate : null,
+    mirror,
+  };
 }
 
 function mustPositive(n: number, what: string): number {

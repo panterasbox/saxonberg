@@ -37,6 +37,42 @@ export const COMPETENCE_BANDS: readonly CompetenceBandName[] = [
 ];
 
 /**
+ * ⭐ Half-width of the honest bracket, as a fraction of the magnitude
+ * read, by band — the precision each band reads with. Moved here from
+ * `Reading` (field population D11): the band vocabulary owns its own
+ * precision, and an instrument and a hand reading a crop share it.
+ *
+ * An untrained reader is not WRONG — they are vague, and the truth is
+ * always inside what they say.
+ *
+ * ⚠⚠ **These are the INSTRUMENTED rung's, and the first cut of them was
+ * half an order of magnitude too wide.** The drive printed
+ *
+ *     Temperature: 153.01 K ± 147.5 K (warm)
+ *
+ * for a room at 295 K. Every word of that is defensible on its own —
+ * the truth IS inside the bracket, the band IS untrained — and the
+ * sentence is still nonsense: nobody misreads a thermometer by fifty
+ * per cent. What a dial buys is PRECISION; what the band decides is how
+ * well the reader takes it off the dial, which is a small correction,
+ * not a wild one. ⭐ The eye rung is unaffected, because an eye rung
+ * answers in WORDS and has no bracket to be wrong about.
+ *
+ * ⚠ A channel whose quantity is not on a RATIO scale overrides
+ * `Reading.halfWidthOf` with its own absolute error — Kelvin is the
+ * example (295 K and 5 K are not "the same reading at different
+ * magnitudes"), and mining's bearings are another (`ERROR_DEG`, because
+ * a bearing's error does not scale with the bearing).
+ */
+export const COMPETENCE_HALF_WIDTH: Readonly<Record<CompetenceBandName, number>> = {
+  untrained: 0.08,
+  novice: 0.05,
+  competent: 0.025,
+  proficient: 0.012,
+  expert: 0.005,
+};
+
+/**
  * Lower theta bound (inclusive) for each band, ascending. A theta at or
  * above a band's bound but below the next belongs to that band.
  */

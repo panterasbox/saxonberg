@@ -50,7 +50,17 @@ export default class ClockController extends CommandController<ClockModel> {
     const result =
       sub === 'on' ? await giver.clockOn(where) : await giver.clockOff(where);
     if (!result.ok) {
-      return this.fail(context, ClockController.refusal(result, sub), result.reason);
+      // ⭐ The houses BY NAME, never their paths (the browser walk: "You
+      // hold a job at /world/terminus/…/farm-unit").
+      const named = (result.houses ?? []).map((path) => {
+        const house = StuffApi.findByTemplatePath(path);
+        return house ? EmploymentApi.organizationLabel(house) : path;
+      });
+      return this.fail(
+        context,
+        ClockController.refusal({ ...result, houses: named }, sub),
+        result.reason,
+      );
     }
 
     const house =

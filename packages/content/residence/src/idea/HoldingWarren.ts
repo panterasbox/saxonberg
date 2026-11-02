@@ -21,8 +21,10 @@
  * whole-warren dormancy, `layOut`, the shell clock and its bands are the
  * kernel's `FloorplanWarren` now — a ship's hull weathers on the same
  * clock. What stays here is only what is residential: the address stem,
- * the parcel keyway and the keyed front-door edge, `admitPlot`, the
- * relay to the institution, and the house's words for its fabric.
+ * the parcel keyway and the keyed front-door edge, the parcel's open
+ * ground (`openGroundM2`), the relay to the institution, and the house's
+ * words for its fabric. (`admitPlot`, the break-ground seam, retired with
+ * `plot` in the farming build — a farm's ground is a floorplan's tract.)
  *
  * The member contract stays **open to runtime-added members** (the
  * cross-build interface with farming's break-ground act): the
@@ -110,89 +112,19 @@ export default class HoldingWarren extends FloorplanWarren {
     return this.warrenKey();
   }
 
-  // ── ⭐ runtime-added members: the break-ground seam ──────────────
-
   /**
-   * ⭐⭐ **Admit a room the holder MADE, not one the programme authored.**
-   *
-   * This class has always said the member contract is *"open to
-   * runtime-added members (the cross-build interface with farming's
-   * break-ground act) — the floorplan is the INITIAL mint, never the
-   * closed set."* This is that promise, made real. It was a docstring
-   * and a `wake()` that iterated only the authored rooms.
-   *
-   * The mechanism is deliberately the smallest one available: it appends
-   * to `floorplan`, which is already **persistent**, and then wakes the
-   * one new entry. So a plotted field survives a reboot by the same
-   * machinery that stands up a hall and a kitchen, with no second
-   * ledger, no new collection and no per-caller bookkeeping.
-   *
-   * ⚠ **Duck-typed on purpose.** The caller is `trade-farming`'s `plot`
-   * and it must not import this pack — a trade does not depend on the
-   * residence system to put a field on ground somebody holds. It finds
-   * this method by the shape the object answers, exactly as
-   * `analyze water` finds a waterworks. Both sides document the shape;
-   * neither imports the other.
-   *
-   * @param spec the new room: its `leaf` under the holding extent, the
-   *   `room` ROW it clones from (D17 — always a real row), the
-   *   `direction` you leave the holding's entry room by to reach it, the
-   *   `opposite` you come back through, and any extra authored fields
-   *   the caller wants carried on the entry (they persist untouched).
-   * @returns the live member, or `null` when the holding cannot key it
-   *   or the leaf is already taken.
+   * ⭐ **The holding's open ground**, m² (tracts build D27): the parcel's
+   * workable area less every floorplan room's footprint — what the tracts'
+   * shares (`shareOf`) divide. `0` on an unmeasured parcel (nobody can say
+   * what a third of it is). Residential because the area is the PARCEL's.
    */
-  public async admitPlot(spec: {
-    leaf: string;
-    room: string;
-    direction: string;
-    opposite?: string;
-    from?: string;
-    extra?: Record<string, unknown>;
-  }): Promise<MemberStuff | null> {
-    if (!spec.leaf || !spec.room) return null;
-    if (!this.holdingKey()) return null;
-    const taken = (this.floorplan ?? []).some((r) => r.leaf === spec.leaf);
-    if (taken) return null;
-
-    // The edge is declared on the NEW room's own spec, pointing back at
-    // the room you came from — which is how `getFloorplanExits` reads
-    // them, and it means `wake()` re-wires the gate on every boot with
-    // no special case.
-    const entry: Record<string, unknown> = {
-      ...(spec.extra ?? {}),
-      leaf: spec.leaf,
-      room: spec.room,
-      exits: [
-        {
-          to: spec.from ?? '',
-          direction: spec.opposite ?? 'out',
-          opposite: spec.direction,
-        },
-      ],
-    };
-    this.floorplan = [...(this.floorplan ?? []), entry];
-
-    // ⚠ Leave no half-entry behind. A floorplan row whose room will not
-    // clone is not a one-off failure — it is retried on EVERY wake,
-    // forever, and the holding never finishes standing up. Rolling back
-    // is what makes a bad row a refusal instead of a permanent limp.
-    let room: MemberStuff | null = null;
-    try {
-      room = await this.wakeRoom({ leaf: spec.leaf, room: spec.room });
-    } catch {
-      room = null;
-    }
-    if (!room) {
-      this.floorplan = (this.floorplan ?? []).filter((r) => r.leaf !== spec.leaf);
-      return null;
-    }
-    for (const edge of this.getFloorplanExits()) {
-      if (edge.from === spec.leaf) await this.wireEdge(edge);
-    }
-    this.layOut();
-    await PersistableApi.capture(this as unknown as Stuff, this.holdingKey() ?? undefined);
-    return room;
+  public async openGroundM2(): Promise<number> {
+    const extent = this.holdingKey();
+    if (!extent) return 0;
+    const workable = await ParcelApi.workableAreaOf(extent);
+    if (!(workable > 0)) return 0;
+    const built = this.getFloorplan().reduce((n, r) => n + (r.footprintM2 ?? 0), 0);
+    return Math.max(0, workable - built);
   }
 
   // ── wake / membership ───────────────────────────────────────────

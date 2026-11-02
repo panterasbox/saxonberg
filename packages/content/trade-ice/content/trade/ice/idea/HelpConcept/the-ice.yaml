@@ -4,7 +4,7 @@ data:
   key: the-ice
   title: The ice
   summary: The ice is the pool's floor — on it while it bears you, in the water when it does not.
-  keywords: [ice, frozen, pool, thickness, bear, scrape, mark, cut, icehouse, black, snow-ice]
+  keywords: [ice, frozen, pool, thickness, bear, scrape, groove, cut, icehouse, black, snow-ice]
   seeAlso: [the-cut]
   body: |
     A frozen pool is the same place it was in summer; what changed is
@@ -28,7 +28,7 @@ data:
 
     ## The harvest
 
-    `scrape`, then `mark` a grid, then `cut marked` with an ice saw: each
+    `scrape`, then `groove` a grid, then `cut marked` with an ice saw: each
     block weighs what the ice's thickness and the grid make it. A cut
     patch is open water, and regrows thinner from nothing. `cut hole`
     saws a hole for a line instead. The thaw takes the sheet and every
