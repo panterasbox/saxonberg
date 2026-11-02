@@ -26,6 +26,7 @@ data:
       edgeMinutes: 5
   props:
     - /world/terminus/rejection/put-in/thing/counter
+    - /world/terminus/rejection/put-in/thing/hire-book
     # ⭐ The outfitter's boats, upturned on the shingle — kind rows of the
     # transport pack (zone null for life), so any of them can go in the river.
     - { template: /system/transport/thing/canoe, count: 3 }

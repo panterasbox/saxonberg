@@ -1,0 +1,24 @@
+# The shed's hire book (harbors review 1) — what Fenn's boats lets by the
+# day and who has which boat out until when. ⭐ A let is its own book, not
+# the counter's: the counter sells goods; the book affords `rent`, takes the
+# day's money (its house lists it as a venue) and names, on its page, a
+# boat kept out past her day. Only the house's own boats lying here on the
+# shingle are let.
+#
+# ⭐ Day rates are GRAIN (P28): a canoe under an hour of the outfitter's
+# wage (4 an hour), a rowboat a little over — a day's outing is cheap.
+class: /platform/thing/HireBook
+data:
+  shortDescription: hire book
+  keywords: [book, "hire book", ledger, hires]
+  register: definite
+  longDescription: >-
+    A swollen exercise book on a nail inside the shed door, a pencil tied to
+    it with string, ruled into columns for the boat, the name, and the day
+    she is due back.
+  _materialPath: /stuff/idea/material/organic/leather
+  fixedInPlace: true
+  mass: 1
+  rates:
+    /system/transport/thing/canoe: 3
+    /system/transport/thing/rowboat: 5

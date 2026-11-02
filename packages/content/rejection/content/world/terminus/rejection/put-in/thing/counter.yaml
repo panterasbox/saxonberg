@@ -8,9 +8,8 @@
 # it — a minted line built to order and put down on the shingle (P17), her
 # painter, oars or paddles and killick with her. Priced against the
 # outfitter's own wage (4 an hour, ~56 a shift — P28): a rowboat about three
-# days' wages, a canoe about two. And the shed LETS its own boats by the
-# day (`rent`, P18): `rates:` is a day's hire — a canoe under an hour's
-# wage, so a day's outing is cheap.
+# days' wages, a canoe about two. The shed LETS its own boats by the day
+# too, but a let is not a sale: that is the hire book's (`hire-book.yaml`).
 class: /trade/shopkeeping/thing/Stock
 data:
   shortDescription: boat-shed counter
@@ -43,6 +42,3 @@ data:
     /stuff/thing/instrument/thermometer: 6
     /system/transport/thing/rowboat: 160
     /system/transport/thing/canoe: 110
-  rates:
-    /system/transport/thing/canoe: 3
-    /system/transport/thing/rowboat: 5

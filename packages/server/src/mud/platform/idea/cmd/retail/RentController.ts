@@ -1,21 +1,23 @@
 /**
- * RentController — `rent <boat> [for <n> days] [at <counter>]` (harbors P18).
+ * RentController — `rent <boat> [for <n> days] [at <book>]` (harbors P18;
+ * review 1: the hire book).
  *
- * A boat let by the day: the counter here prices her kind (`Stock.rates`),
- * the hirer pays `n × rate` to the house up front, and she is put on hire
- * to them (`HirableMixin.hireTo`) — in their custody, never their title.
- * The hire ends when she is put down on the landing she was let from
- * (`Boat.onMoved`), so nothing here schedules anything.
+ * A boat let by the day: the shed's hire book prices her kind
+ * (`HireBook.rates`), the hirer pays `n × rate` to the house up front (the
+ * book is the venue), and she is put on hire to them
+ * (`HirableMixin.hireTo`) — in their custody, never their title — and the
+ * book writes the line. The hire ends when she is put down on the landing
+ * she was let from (`Boat.onMoved`), so nothing here schedules anything.
  *
  * Refused, before any money moves: a thing that is not let by the day; a
- * counter here that does not let her kind; a closed shed; a boat that is
- * not lying here, or is out already, or is somebody else's; a span that is
- * not a whole number of days.
+ * book here that does not let her kind; a closed house; a boat that is not
+ * lying in the book's room, or is out already, or is somebody else's; a
+ * span that is not a whole number of days.
  */
 
 import { CommandController } from "../../../../lib/command/CommandController";
 import type { CommandContext, CommandModel } from "../../../../api/command";
-import Stock from "../../../../lib/retail/Stock";
+import HireBook from "../../../thing/HireBook";
 import { MixinApi } from "../../../../api/mixin";
 import { MessageApi } from "../../../../api/message";
 import { Mml } from "../../../../api/mml";
@@ -38,7 +40,7 @@ const DAY_WORDS: Record<string, number> = {
 interface RentModel extends CommandModel {
   boat?: MqlOneResult;
   days?: string;
-  counter?: MqlOneResult;
+  book?: MqlOneResult;
 }
 
 export default class RentController extends CommandController<RentModel> {
@@ -55,24 +57,23 @@ export default class RentController extends CommandController<RentModel> {
       return;
     }
     const kind = boat.getTemplatePath() ?? "";
-    const bound = model.counter?.stuff ?? null;
-    const stock = bound instanceof Stock ? bound.hireCounterFor(kind) : null;
-    if (stock === null) {
+    const bound = model.book?.stuff ?? null;
+    const book = bound instanceof HireBook && bound.rateFor(kind) !== null ? bound : null;
+    if (book === null) {
       this.reject(giver, context, Mml.compose`Nobody here lets ${Mml.thing(boat)} by the day.`, "not-let");
       return;
     }
 
-    // The shed is brought current first, as `buy` does: a closed one lets nothing.
-    await EmploymentApi.ensureOperatorAt(stock.getIdentityPath() ?? "");
-    const key = giver.getIdentityPath();
-    if (key && stock.requestAttention(key).status === "closed") {
-      this.reject(giver, context, Mml.compose`There's no one behind the counter just now.`, "unattended");
+    // The house is brought current first, as `buy` does: a closed one lets nothing.
+    const venue = book.getIdentityPath() ?? "";
+    const house = await EmploymentApi.ensureOperatorAt(venue);
+    if (house !== null && MixinApi.isBusiness(house) && house.isClosed()) {
+      this.reject(giver, context, Mml.compose`There's nobody keeping the boats just now.`, "unattended");
       return;
     }
 
-    // ⭐ She is let from where she lies — the counter's own landing.
-    const counterSelf = stock as unknown as Stuff;
-    const room = MixinApi.isContainable(counterSelf) ? counterSelf.getContainer() : null;
+    // ⭐ She is let from where she lies — the book's own landing.
+    const room = MixinApi.isContainable(book) ? book.getContainer() : null;
     const lies = MixinApi.isContainable(boat) ? boat.getContainer() : null;
     if (room === null || lies !== room) {
       this.reject(giver, context, Mml.compose`${Mml.thing(boat)} is not lying here to be let.`, "not-here");
@@ -85,22 +86,23 @@ export default class RentController extends CommandController<RentModel> {
     // ⭐ Only the house's own boats are let: a boat somebody bought and left
     // on the shingle is theirs, not the shed's.
     const owner = MixinApi.isChattel(boat) ? boat.stampedOwner() : null;
-    if (owner !== null && (owner.kind === "player" || owner.kind === "organization") && owner.templatePath !== stock.getBusinessPath()) {
+    const housePath = house?.getIdentityPath() ?? null;
+    if (owner !== null && (owner.kind === "player" || owner.kind === "organization") && owner.templatePath !== housePath) {
       this.reject(giver, context, Mml.compose`${Mml.thing(boat)} is not the house's to let.`, "not-the-houses");
       return;
     }
 
-    const rate = stock.rateFor(kind) ?? 0;
+    const rate = book.rateFor(kind) ?? 0;
     const total = rate * days;
-    const paid = await EmploymentApi.settleSale(stock.getIdentityPath(), total, total, "a boat's hire");
+    const paid = await EmploymentApi.settleSale(venue, total, total, "a boat's hire");
     if (!paid) {
       this.reject(giver, context, Mml.compose`You can't cover the hire just now.`, "insufficient-funds");
       return;
     }
     const nowS = WorldClockApi.getNow().rawValue();
     const home = room.getDurableHandle() ?? room.getTemplatePath() ?? "";
-    const hire = boat.hireTo(giver, nowS + days * DAY_S, home, stock.getIdentityPath() ?? "");
-    stock.recordHire({ id: hire.id, kind, byName: hire.byName, untilS: hire.untilS });
+    const hire = boat.hireTo(giver, nowS + days * DAY_S, home, venue);
+    book.recordHire({ id: hire.id, kind, byName: hire.byName, untilS: hire.untilS });
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(

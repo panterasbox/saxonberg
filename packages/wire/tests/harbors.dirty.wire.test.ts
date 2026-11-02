@@ -805,8 +805,8 @@ suite('B2 — owning a boat', () => {
     const hired = await say(hirer, `rent #${canoe} for 2 days`);
     expect(hired, hired).toMatch(/You hire the canoe for 2 days/);
     expect(hired, hired).toMatch(/\([^)]*\b6(\.00)?\b[^)]*\)/);
-    const slate = await say(hirer, 'look counter');
-    expect(slate, slate).toMatch(/For hire: /);
+    const page = await say(hirer, 'look hire book');
+    expect(page, page).toMatch(/For hire: /);
     expect(await say(hirer, `look #${canoe}`)).toMatch(/hire/i);
     expectOk(await hirer.cmd(`go #${canoe}`));
     const launched = await say(hirer, 'launch');
@@ -816,8 +816,8 @@ suite('B2 — owning a boat', () => {
     const back = await say(hirer, 'recover');
     expect(back, back).toMatch(/comes up out of the water/);
     expectOk(await hirer.cmd('go out'));
-    const after = await say(hirer, 'look counter');
-    expect(after, after).not.toMatch(/Chalked under it/);
+    const after = await say(hirer, 'look hire book');
+    expect(after, after).not.toMatch(/Written under it/);
     expect(await say(hirer, `look #${canoe}`)).not.toMatch(/on hire/i);
     hirer.close();
   }, 600_000);

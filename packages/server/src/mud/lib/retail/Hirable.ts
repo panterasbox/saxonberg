@@ -7,13 +7,13 @@
  *
  * - **`hireTo(who, untilS, home, letter)`** records the hire — who has her,
  *   the world second she is due back, the landing she is let from, and the
- *   counter that let her (which keeps its own copy, so the shed can say
+ *   hire book that let her (which keeps its own copy, so the shed can say
  *   which of its boats are out past their day). Gated to `rent`.
  * - **The hire ends when she is home** (`endHire`): put down on the landing
  *   she was let from, by whatever means — paddled in, carried round. The
  *   composer calls it from its own `onMoved`; there is no `return` verb.
  * - **Overdue is a fact, never a penalty.** `hiredUntilS` passing changes
- *   nothing on her; the shed's `look` names her. What a polity does about
+ *   nothing on her; the hire book's page names her. What a polity does about
  *   an unreturned boat is the retail slate's (Deferred seams).
  *
  * ⛔ Not on `Good`: every torch would be rentable. A class composes this
@@ -26,11 +26,11 @@ import { CallSecurity } from "../security/decorators";
 import { SecurityPolicies } from "../security/SecurityPolicies";
 import { SecurityApi } from "../../api/security";
 import { StuffApi } from "../../api/stuff";
-import Stock from "./Stock";
+import HireBook from "../../platform/thing/HireBook";
 
 /** One hire, as the thing let keeps it (persisted with her). */
 export interface HireRecord {
-  /** Minted at the hire; the counter's copy carries the same id. */
+  /** Minted at the hire; the hire book's copy carries the same id. */
   id: string;
   /** The hirer's identity path. */
   by: string;
@@ -40,12 +40,12 @@ export interface HireRecord {
   untilS: number;
   /** The landing she is let from — where putting her down ends the hire. */
   home: string;
-  /** The counter that let her (its identity path). */
+  /** The hire book that let her (its identity path). */
   letter: string;
 }
 
 export interface Hirable {
-  /** ⭐ Let her to `who` until `untilS`, from `home`, by the counter `letter`. Gated to `rent`. */
+  /** ⭐ Let her to `who` until `untilS`, from `home`, by the hire book `letter`. Gated to `rent`. */
   hireTo(who: Stuff, untilS: number, home: string, letter: string): HireRecord;
   /** Who has her on hire (an identity path), or `null`. */
   hiredBy(): string | null;
@@ -57,7 +57,7 @@ export interface Hirable {
   home(): string | null;
   /** On hire now? */
   isHired(): boolean;
-  /** ⭐ She is home: the hire is over, and the counter that let her is told. */
+  /** ⭐ She is home: the hire is over, and the hire book that let her is told. */
   endHire(): void;
 }
 
@@ -107,10 +107,10 @@ export function HirableMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase)
       const hire = this.hire;
       if (hire === null) return;
       this.hire = null;
-      // The counter that let her keeps its own copy for its `look`; it is
-      // standing on the landing she has just been put down on.
+      // The hire book that let her keeps its own copy for its `look`; it
+      // lies on the landing she has just been put down on.
       const letter = StuffApi.findByTemplatePath<Stuff>(hire.letter);
-      if (letter instanceof Stock) letter.hireEnded(hire.id);
+      if (letter instanceof HireBook) letter.hireEnded(hire.id);
     }
   }
   return HirableMixin;
