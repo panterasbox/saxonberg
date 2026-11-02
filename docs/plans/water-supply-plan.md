@@ -26,7 +26,7 @@ reverse any of them at review.
 |---|---|---|---|
 | R1 | *"Mining's `sink` sinks a well"* (Placement, D16, drive 15) | `sink` is `trade-mining`'s winze: `SinkController extends WinzeController → driveIn('down')`, which refuses outside a `Working` room and **mints a room** in a `MineWarren`, never a Thing. A well is a point on open ground. Rung 1 of the collision ladder (unify behind an interface) fails: the two acts share no host. | **`dig well`** — the platform's `dig [<what>] [with <tool>]` already exists over the ground protocol (`Workable.planWork(by, tool, what)`); a tract or yard answers `what = 'well'`. No new verb, `sink` untouched, mining credited through `WorkResult.credit`. (D20) ✅ **Owner agreed 2026-11-02**, and widened it: a well is dug OR drilled (D27), and the dug well is the first consumer of a general **hole** (D20). |
 | R2 | drive 22: *"picks or breaks a junior padlock"* | No lock-picking or lock-breaking verb exists anywhere (`break`/`smash`/`pick` are free; `pick` is a `harvest` alias). | ✅ **Owner agreed 2026-11-02: theft is CUTTING THE BANK** (D28) — how water was actually stolen. The thief `ditch`es the ditch bank with a spade; the breach diverts water onto the ground beside it; the weir reads more than the gates account for and the rider's round finds the breach on `look`. The gate's log stays clean (nobody touched it). `break <padlock>` stays a deferred seam. |
-| R3 | drive 7: *"the upstairs room's tap runs weak"* at Hinkley | `house-programme.yaml` has no upper floor and no `Structure` row; keyed holding rooms share one row path, so a kernel `Structure.storeys` cannot name a lot's loft until paint's `HoldingStructure` (MR !513) lands. Never gate on a sibling. | The head test moves to **Seznick House** (`BuildingWarren` floors `f1`…: a unit on floor 2 reads its storey from the building's `Structure`), where head is computed per storey today. Hinkley keeps the tank-low → **roof cistern carries the house** half of step 7. If paint merges first, the Hinkley loft is a one-row follow-up. |
+| R3 | drive 7: *"the upstairs room's tap runs weak"* at Hinkley | `house-programme.yaml` has no upper floor. Paint (MR !513, `reqs/paint`, build-2) mints a `HoldingBuilding` per lot and answers `HoldingWarren.structureOf(room)`, but **no building anywhere authors storeys** — not Hinkley's minted ones, not Seznick (whose floors live in its `BuildingWarren` unit keys `f<floor>-u<pos>`). ⚠ The earlier claim that Seznick "computes head per storey today" was wrong. | ✅ **Owner agreed 2026-11-02: add the loft.** Hinkley's house gains a **loft bedroom** (one floorplan leaf on storey 1). One question answers a room's storey (D4): an authored building's `storeyOf`; a minted room asks the warren that minted it (`BuildingWarren` knows each unit's floor; the holding knows each room's floorplan storey via paint's `structureOf`). Drive 7 runs at Hinkley as written; Seznick's upper units read the same rule. **Built on paint's model** — paint is in review and lands first; if it has not when W0 starts, W0 reads Seznick's floors and the Hinkley half follows the merge of master (never gated). |
 | R4 | *"The plumber's yard is in the goods yards, by the founders"* | The goods yards have no founder or foundry (zero rows); the only founder is Rejection's. | The yard sits in the goods yards (the industrial parcel, the city's demand); iron pipe is a **founding recipe** cast at Rejection's foundry and sold through its counter. The sentence "by the founders" is dropped. |
 | R5 | D12: *"a flooded field becomes a water place you wade"* | `Field` is a fixture Thing; `Tract` is a Location composing neither Shore nor Swimmable nor WaterPlace, and `WaterPlaceMixin` claims a CITED water (`WaterSpec.of`) whose level comes from a water source — a ponded field cites nothing. | Standing water is **a depth on the tract's floor**, the shape the floor's snow already has (`Floor._snowDepthM` → `snowBandOf`): `look` reads it, the posture/traverse verbs read the band. The observable in AC 18 is unchanged; the word "water place" is not met literally. |
 | R6 | D2: *"The plumber may be a player or a hired NPC"* | Hiring an NPC to execute an act on your property is the work-contract (gig) substrate's `fulfill` shape; no shipped brain executes a `connect`/`plumb` on a contract. | The shipped NPC plumber **sells pipe and cisterns** at the yard; the player plumber does the acts. "NPC plumber on a gig" is a deferred seam named in § Deferred seams. AC 3 is met by the player path. |
@@ -188,7 +188,11 @@ cistern row (a `WaterStore`). Every `SupplyServing` reader keeps working
 
 **D4 — Pressure is head, decided at the outlet by its own height.** A
 fixture's `outletElevationM()` = the zone elevation of its room
-(`ZoneApi.elevationFor`) + its storey's height (`Structure.storeyOf(place)`
+(`ZoneApi.elevationFor`) + its storey's height (the room's storey index — one
+question, answered by an authored building's `Structure.storeyOf(place)`, by
+a `BuildingWarren` for its units (the floor it minted them on), or by a
+holding for its rooms (the floorplan leaf's `storey:` key, through paint's
+`HoldingWarren.structureOf`) —
 depth in the `on:` chain × `construction.storeyHeightM`, dial 3.0; a place
 in no structure is 0). Head at the outlet = `supplyHeadM − outletElevationM`.
 ≤ 0 → the outlet gives nothing and the report says *"the water stands below
@@ -196,7 +200,7 @@ here"* (state `dry` — the source has nothing to give THIS outlet); below
 `water.weakHeadM` (dial 3) → **weak**: a draw gives at most
 `water.weakDrawL` (dial 2) and says so. Nothing asks the supply which other
 outlets exist. *Lens 1: head and the weak top floor are derivable from two
-elevations.* ⚠ R3: the head test drives at Seznick House.
+elevations.* R3: the head test drives at the Hinkley loft (and Seznick's upper units).
 
 **D5 — Stores: the tank is the water pack's, the household store is the
 kernel's.** `StorageNode` gains `fillsFrom` (a supply path), `fillRateM3S`,
@@ -700,7 +704,7 @@ Implements D10, the `trade-plumbing` pack skeleton, `connect`, `plumb`, frost/bu
 - Kernel: `platform/thing/PipeRun.ts` (D10; `reconcileThermal` reads the room's trajectory; `burst`/`leak`; `peers: [repair]`); `lib/ground/Floor.ts` `wetFromSpill(litres)` (the floor-wetness seam — read the weather's puddle write first and reuse its field; if none is a field on the floor, this is the one new floor field, `persistent + runtimeState`); `WaterFixture` asks its room for a sound `PipeRun` (`unplumbed` without one, EXCEPT `natural` fixtures and fixtures whose premises cites a `WaterStore` in the same room — a butt feeds the tap beside it with no pipe; a store elsewhere needs the pipe).
 - Pack `packages/content/trade-plumbing` (the cordage skeleton): `pack.yaml` (`root: /trade/plumbing`, title to `/compact/trade`), `package.json`, `tsconfig.json`, `vitest.config.ts`; `content/trade/plumbing/idea/Discipline/plumbing.yaml`; `src/idea/cmd/plumbing/ConnectController.ts` + `content/…/cmd/plumbing/connect.yaml` (`connect [<premises>] to <main>`: the premises is the giver's room's premises (D2's resolution); refuses when no main `serves()` it, when it already cites a supply, when the giver carries no pipe length ≥ `water.serviceRunM` (dial 6); consumes the length; engages (`ManualBuildStep`, minutes by competence); on completion `ParcelApi.citeWaterSource(premises, main)`; credits `plumbing`); `PlumbController.ts` + `plumb.yaml` (`plumb [<room>] [with <pipe>]`: refuses an `unplumbed` premises, a room with a sound run; consumes the pipe length; mints a `PipeRun` of the pipe's material in the room, `fixedInPlace`, joint quality from competence → initial `condition`; credits `plumbing`); both controllers' rows under `content/trade/plumbing/idea/cmd/plumbing/`.
 - Affordance: `connect`/`plumb` are afforded by the **pipe length** in hand (`/trade/plumbing/thing/LeadPipe` and the founding `IronPipe` share a kernel class? — no: one pack class `/trade/plumbing/thing/PipeLength` (`Good`, `lengthM`, material), whose rows are lead (plumbing) and iron (`trade-smelting` content naming the plumbing class → smelting's `package.json` depends on plumbing, OR the iron row lives in plumbing and the founding RECIPE in smelting outputs it — choose the latter: the recipe's `outputTemplate` names `/trade/plumbing/thing/iron-pipe`; no class import crosses). `static commandContributions = { self: [connect, plumb] }` on `PipeLength`.
-- Content: Seznick `stuff/location/room/bathroom.yaml` props `+ /trade/plumbing/thing/lead-run` (a `PipeRun` row); Duncan `dormroom.yaml` props `+ iron-run`; Hinkley `lots/bathroom.yaml` + `lots/kitchen.yaml` props `lead-run`, and a kitchen `tap` row (`/platform/thing/WaterFixture`) propped in the kitchen; Hinkley `house-programme` leaf `scullery` (`/stuff/location/room/scullery`, a new generic room row, unheated, `lead-run` propped) for drive 8; Seznick's unit programme bathroom rows carry the same.
+- Content: Seznick `stuff/location/room/bathroom.yaml` props `+ /trade/plumbing/thing/lead-run` (a `PipeRun` row); Duncan `dormroom.yaml` props `+ iron-run`; Hinkley `lots/bathroom.yaml` + `lots/kitchen.yaml` props `lead-run`, and a kitchen `tap` row (`/platform/thing/WaterFixture`) propped in the kitchen; Hinkley `house-programme` leaves `scullery` and **`loft`** (a bedroom, `storey: 1`, `lead-run` + a basin tap — R3) and leaf `scullery` (`/stuff/location/room/scullery`, a new generic room row, unheated, `lead-run` propped) for drive 8; Seznick's unit programme bathroom rows carry the same.
 - ⚠⚠ **Every room the W0 census found reading a main gets a run, not just the three named above.** The moment a fixture requires a sound `PipeRun` in its room, every bar, brewhouse, still-house, bathhouse, ward and dorm room in the delivered districts that holds a non-`natural` fixture goes `unplumbed` unless its room props a run. W4's content step is therefore **census-driven**: extend W0's fixture census test to list every room holding a supply-reading fixture, and prop `lead-run` or `iron-run` in each (the row's author decides the material; default `iron-run` for civic/commercial rooms, `lead-run` for the residential rows named above). A street outlet (the market standpipe, the fountain) is exempt — its run is under the street, and the outlet rule is "a fixture on a public street reads its supply directly". The census test fails the wave if any room is missed (AC 4).
 - ⚠ `generic-objects` must then depend on `trade-plumbing` for the row path — refused (the commons does not depend on a trade). Instead `PipeRun` rows for pre-connected rooms are **kernel generic rows** `/stuff/thing/fixture/{lead-run,iron-run}` (`class: /platform/thing/PipeRun`, material lead/iron), in `generic-objects`; the plumbing pack's `plumb` mints the same class with the carried pipe's material. The trade owns the ACT and the pipe LENGTHS; the run in a wall is a fixture any pack props.
 - Tests: pack vitest (`connect` refusals; `plumb` mints; competence → condition); `PipeRun.test.ts` (freeze/burst lead vs iron through a trajectory; thaw leak writes the floor; leach into standing water by payload chemistry); a `WaterFixture` + room + run integration test.
@@ -812,7 +816,7 @@ gate** — every one fails closed and silent.
 | 6 lead in soft water → burden | W2, W4 | drive 10 |
 | 7 fouled water → ill | W2 | drive 11 |
 | 8 kit-only fouling | W2 | drive 1, 11 |
-| 9 head; priority | W0, W1 | drive 4, 7 (Seznick upper floor, R3) |
+| 9 head; priority | W0, W1 | drive 4, 7 (the Hinkley loft, R3) |
 | 10 cistern between fills | W1, W5 | drive 7 |
 | 11 rain butt | W1 | drive 12 |
 | 12 intake locked; keeper can | W1 | drive 2, 3 |
@@ -850,7 +854,7 @@ Nothing unmapped.
 | 4 main short, priority | staged | staged | founder `eval`: `intake.setDemandM3S(2.0)` (the district rate above capacity) |
 | 5 buy a lot | instant | player | — |
 | 6 cast, pipe, connect, plumb | short | player | — (heating the pot is minutes) |
-| 7 tank low; cistern carries | staged | staged | `eval`: `tank.setLevelM3(…)`; head at Seznick f2 by `eval` on the store's `elevationM` if the storey read needs forcing |
+| 7 tank low; cistern carries | staged | staged | `eval`: `tank.setLevelM3(…)`; the loft tap reads weak and the ground floor runs (R3) |
 | 8 frost night | short | player | `testharness weather pin frost --at hinkley`, `clock advance 10h` (under a day) |
 | 9 iron cracks | staged | staged | `eval`: swap the run's material row; same frost |
 | 10 soft acid water | staged | staged | `eval`: `intake.chemistryOverride({pH 6.3, hardnessDgh 2})` — ⚠ a tool this build OWES: a `WaterSupply` chemistry override seam, `@TestOnly`-marked |
@@ -898,7 +902,7 @@ butt and a cistern; twins 7, 12), S6 (a lone well through a dry season; twin
 9. **Pack class names in `requires:`** — verify a view's `args[].requires` accepts a pack-registered class/mixin name (the federation says mixins are nameable; a CLASS may not be). Fallback: the controller narrows and the view says `requires: any` with a reason.
 10. **The ReadingCatalogue warm** — verify it keys on `/idea/reading/` across every root so `/system/water/idea/reading/flow` warms (the `MaterialCatalogue` rule: never an allowlist of roots).
 11. **Avila's "pumped well runs"** on an oil-lit parcel: a hand pump feeds a trough, not a tap. The drive asserts the trough fills from the aquifer while the ditch is shut (D21, W9); a powered pump on the bench is content a later epoch adds.
-12. Open: **the Hinkley loft** after paint merges (R3) — one floorplan leaf + a storey, no code.
+12. **Paint merges first** (R3): W0's storey question rides paint's `structureOf`; if paint has not landed, the Hinkley loft half lands after merging master.
 
 Stop and ask only for: a worktree hazard; `requires:` refusing a pack name
 with no honest fallback; the keyed-premises resolution failing both ways.
@@ -920,7 +924,6 @@ Clean attach points, each leaving as a slate line, never a stub:
 - **Sprinkler objects, drip** — `method: overhead` is the seam. → irrigation-slate (kept).
 - **Flood crops** — `floodToleranceDays` is the seam. → farming-slate.
 - **`reach:` on a title claim** — `PackLogic` does not parse it; riparian derivation finds nobody. → water-rights follow-up (one parse line + a test).
-- **The Hinkley loft** → after paint.
 - **Durable cuts on the grid** — the `Conduit.cutLog` ring is the water twin; energy's stays in memory. → power-utility-slate.
 
 ---
