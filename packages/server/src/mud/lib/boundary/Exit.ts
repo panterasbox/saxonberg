@@ -984,19 +984,17 @@ export default class Exit extends ConcealableMixin(Idea) {
   }
 
   /**
-   * The structure lying ALONGSIDE this exit now — a ship at a quay — or
-   * `null` (paint build, 2026-10-31). An ordinary exit leads to the place
-   * its path names, so nothing lies alongside it; an exit whose far side is
-   * whatever is moored there (`AboardExit`) answers. What a landing reads
-   * of a structure that moves.
+   * @hook The structure lying ALONGSIDE this exit now — a ship at a quay
+   * (paint build). Three answers, and they mean different things:
+   * `undefined` — an ordinary exit: its far side is the place its path
+   * names (the default); a structure — the one lying alongside now;
+   * `null` — this exit's far side is whatever lies alongside
+   * (`AboardExit`), and nothing does. A landing never falls back to the
+   * authored path of an exit that answers `null`: a ship that has sailed
+   * lands nowhere. Derived from what is standing — never authored.
    */
-  public alongsideNow(): Structure | null {
-    return null;
-  }
-
-  /** {@link alongsideNow}, after whatever lookup the exit needs first. */
-  public async lyingAlongside(): Promise<Structure | null> {
-    return this.alongsideNow();
+  public alongsideNow(): Structure | null | undefined {
+    return undefined;
   }
 
   public getDestinationTemplatePath(): string | null {

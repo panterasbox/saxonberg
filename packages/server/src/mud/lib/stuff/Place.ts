@@ -223,26 +223,10 @@ export default class Place extends PlaceBase {
     return [...out.values()];
   }
 
-  /**
-   * {@link landedStructuresNow}, standing each exit's structure and far
-   * side up first (load on use: each exit's authored destination is the
-   * ref followed; a ship's quay asks who is alongside).
-   */
-  public async landedStructures(): Promise<Structure[]> {
-    const self = this as unknown as Stuff;
-    if (!MixinApi.isExitable(self)) return [];
-    for (const exit of self.getExits().values()) {
-      if ((await exit.lyingAlongside()) !== null) continue;
-      const dest = exit.getDestinationTemplatePath();
-      if (!dest) continue;
-      const s = await NavigationApi.structureAt(dest);
-      if (s !== null && exit.peekDestination() === null) await StuffApi.singleton(dest).catch(() => null);
-    }
-    return this.landedStructuresNow();
-  }
-
-  private static structureBeyond(alongside: Structure | null, far: Stuff | null, authored: string | null): Structure | null {
-    if (alongside !== null) return alongside;
+  private static structureBeyond(alongside: Structure | null | undefined, far: Stuff | null, authored: string | null): Structure | null {
+    // An exit whose far side is whatever lies alongside answers for itself —
+    // never by its authored berth.
+    if (alongside !== undefined) return alongside;
     if (far !== null && far.isPlace()) return (far as unknown as Place).structureNow();
     return authored ? NavigationApi.structureAtNow(authored) : null;
   }

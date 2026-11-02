@@ -22,8 +22,7 @@ import { attachGraph } from '../../location/__tests__/attachments-fixture';
 const TOWN = '/world/_land';
 
 interface FakeExit {
-  alongsideNow(): Stuff | null;
-  lyingAlongside(): Promise<Stuff | null>;
+  alongsideNow(): Stuff | null | undefined;
   peekDestination(): Stuff | null;
   getDestinationTemplatePath(): string | null;
 }
@@ -35,11 +34,11 @@ function room(path: string, holdsAir: boolean): Location {
   return r;
 }
 
-function to(dest: Stuff | string, alongside: Stuff | null = null): FakeExit {
+/** An exit to `dest`; `alongside` is an aboard exit's answer (`undefined`: an ordinary exit). */
+function to(dest: Stuff | string, alongside: Stuff | null | undefined = undefined): FakeExit {
   const isPath = typeof dest === 'string';
   return {
     alongsideNow: () => alongside,
-    lyingAlongside: async () => alongside,
     peekDestination: () => (isPath ? null : dest),
     getDestinationTemplatePath: () => (isPath ? dest : dest.getTemplatePath()),
   };
@@ -161,11 +160,17 @@ describe('a ship alongside', () => {
     expect(ship.isLandedAt(quay)).toBe(true);
     expect(quay.landedStructuresNow().map((s) => s.stuffId)).toEqual([ship.stuffId]);
 
-    // She sails: the exit's authored berth still names her deck, but
-    // nothing lies alongside — and a moving ship lands nowhere.
-    const sailed = to(`${TOWN}/hesper/deck`, null);
-    sailed.alongsideNow = () => null;
-    exits(quay, [{ ...sailed, alongsideNow: () => building('other', null) }]);
+    // ⭐ She sails: the exit's authored berth still names her deck, and
+    // nothing lies alongside — a ship that has sailed lands nowhere. (The
+    // berth is never a fallback: this was the bug.)
+    exits(quay, [to(`${TOWN}/hesper/deck`, null)]);
     expect(ship.isLandedAt(quay)).toBe(false);
+    expect(quay.landedStructuresNow()).toEqual([]);
+
+    // Another ship lying at her berth is that ship's landing, not hers.
+    const other = building('other', `${TOWN}/other/deck`);
+    exits(quay, [to(`${TOWN}/hesper/deck`, other)]);
+    expect(ship.isLandedAt(quay)).toBe(false);
+    expect(quay.landedStructuresNow().map((s) => s.stuffId)).toEqual([other.stuffId]);
   });
 });

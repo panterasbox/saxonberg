@@ -196,8 +196,8 @@ export default class Structure extends DetailedMixin(
    * the sky passes: it is a landing of its own building.
    *
    * Sync over resident rooms — a non-entrance member that is not standing
-   * does not count until something stands it up (`NavigationApi.
-   * structuresLandedAt` does, by following the exits' authored paths).
+   * does not count until something stands it up (it loads with its zone,
+   * or a traverse into it does).
    */
   public isLandedAt(room: Stuff): boolean {
     if (!MixinApi.isAtmospheric(room) || room.exposure().holdsAir()) return false;
@@ -210,8 +210,10 @@ export default class Structure extends DetailedMixin(
 
   /** Does `exit` lead into this structure the way a landing needs? */
   protected landsBy(exit: Exit): boolean {
+    // An exit whose far side is whatever lies alongside never lands by its
+    // authored berth (`undefined` is an ordinary exit's answer).
     const alongside = exit.alongsideNow();
-    if (alongside !== null) return alongside.stuffId === this.stuffId;
+    if (alongside !== undefined) return alongside !== null && alongside.stuffId === this.stuffId;
     const far = exit.peekDestination();
     if (far === null) {
       const authored = exit.getDestinationTemplatePath();

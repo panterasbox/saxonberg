@@ -912,13 +912,14 @@ fork, the lens that chose is named.
 ### Build decisions (recorded during the build)
 
 - **B1 (W0)** — the ship clause of the landing is a protocol on the EXIT
-  (`Exit.alongsideNow()` / `lyingAlongside()`, null by default; the
-  `AboardExit` answers), not a duck-typed read of `AboardExit`. *CLAUDE.md
+  (`Exit.alongsideNow()`; the `AboardExit` answers), not a duck-typed read
+  of `AboardExit`. ⚠ Corrected in review (B34). *CLAUDE.md
   § no duck typing.*
 - **B2 (W0)** — no `postRegister` stand-up of the entrance: the entrance
   clause is a PATH test and needs nothing standing.
 - **B3 (W1, lint:object-verbs)** — the room-side landing reads are methods
-  on `Place` (`landedStructuresNow()`, `landedStructures()`), not
+  on `Place` (`landedStructuresNow()`; the async `landedStructures()` was
+  never called and is gone, B34), not
   `NavigationApi` statics taking a room; `attachStructure(extent, s)` takes
   the extent first. *Verbs on objects.*
 - **B4 (W1; replaced in review, B32)** — *was* `Stuff.getPlacePath()`, a
@@ -1090,6 +1091,24 @@ fork, the lens that chose is named.
   persisted on master and `HoldingStructure` never left this branch.
   *Lens 3a (a mountain you can paint betrays the fiction); lens 2 (the
   next kind of building composes once).*
+
+- **B34 (review, the owner)** — *a ship that has sailed lands nowhere —
+  really.* `alongsideNow()` answered `null` both for "an ordinary exit" and
+  "nothing alongside", and the landing then fell back to the exit's
+  AUTHORED berth (the Hesper's deck), so the Hesper was always paintable
+  from her berth wherever she was. Now three answers: `undefined` (an
+  ordinary exit — its path), the ship, or `null` (a way aboard with nothing
+  alongside — never the berth). `AboardExit` derives it SYNCHRONOUSLY from
+  where the berth's ship is (her sea's node that lands here via
+  `Expanse.peekNodes()`, or the river's `landingNear`), over what is
+  standing; its async `warm()` (once-only, a miss cached forever) became
+  `standUp()`, which a traverse awaits and which caches nothing. Dead:
+  `Exit.lyingAlongside()`, `Place.landedStructures()`. Rejected: the ship
+  RECORDING where she lies — the Hesper starts alongside by her authored
+  position alone, so it would be a second authored fact to keep in step.
+  Open: after a boot, nothing may have loaded the Greywater's nodes until a
+  course, a horizon read or a boarding does; until then the Hesper reads
+  "not alongside" (honest, not wrong). Test: `AboardExit.test.ts`.
 
 ---
 

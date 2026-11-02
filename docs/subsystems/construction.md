@@ -67,8 +67,13 @@ A structure is not a Thing or a Location, so a player engages it from a
 place that touches it. ⭐ **A landing** is *a place that does not hold its
 own air (`exposure().holdsAir()` false) with an exit into a member that is
 enclosed or is the structure's entrance — or with the structure lying
-alongside it* (a ship at a quay: the exit answers `alongsideNow()`). Derived,
-never authored (`StructureBase.isLandedAt`; `Place.landedStructuresNow()`
+alongside it* (a ship at a quay: the exit answers `alongsideNow()` —
+`undefined` on an ordinary exit, whose far side is its path; the ship or
+`null` on a way aboard, which never falls back to its authored berth, so a
+sailed ship lands nowhere. `AboardExit` derives it synchronously from where
+the berth's ship IS — inside her sea's node that lands here, or within a
+rope's throw of a river landing, not under way — over what is standing; a
+sea whose nodes nothing has loaded answers `null`). Derived, never authored (`StructureBase.isLandedAt`; `Place.landedStructuresNow()`
 from the room's side). A closet holds air; a neighbour's parlour is another
 structure's member; a sailed ship's berth has nothing alongside; a member
 courtyard open to the sky is a landing of its own building. The landed
