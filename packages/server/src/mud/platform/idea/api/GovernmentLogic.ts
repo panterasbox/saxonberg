@@ -17,7 +17,6 @@ import type { RosterAssignment } from "../../../lib/employment/Roster";
 import type { SeatView } from "../../../api/government";
 import type GovernmentCatalogue from "../GovernmentCatalogue";
 import { NavigationApi } from "../../../api/navigation";
-import { ShipRegisterApi } from "../../../api/ship-register";
 import type Ship from "../Ship";
 
 const GovernmentApiCallers = SecurityPolicies.FromModule(
@@ -97,8 +96,8 @@ async function shipChain(ship: Ship): Promise<GovernmentDescriptor[]> {
     const resolution = await AddressApi.resolveFor(port).catch(() => null);
     if (resolution?.address) for (const d of chainForAddress(resolution.address)) add(d);
   }
-  const handle = ship.getDurableHandle() ?? ship.getTemplatePath() ?? "";
-  const flag = handle ? await ShipRegisterApi.flagOf(handle) : null;
+  // ⭐ Her flag state is her own register's word (she knows her register).
+  const flag = await ship.flagState();
   if (flag) add(catalogue()?.getGovernment(flag));
   return out;
 }

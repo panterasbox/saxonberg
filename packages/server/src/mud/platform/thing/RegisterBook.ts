@@ -14,8 +14,9 @@
 
 import Good from '../../lib/stuff/Good';
 import { MarkedMixin } from '../../lib/description/Marked';
-import { ShipRegisterApi, type ShipEntry } from '../../api/ship-register';
+import ShipRegister, { type ShipEntry } from '../idea/ShipRegister';
 import { GovernmentApi } from '../../api/government';
+import { StuffApi } from '../../api/stuff';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { FieldMeta } from '../../lib/mixin';
 
@@ -42,24 +43,35 @@ export default class RegisterBook extends MarkedMixin(Good) {
   /** ⭐ The page, as the register stands now. */
   public override async refreshMarks(_viewer: Stuff): Promise<void> {
     const polity = GovernmentApi.getGovernment(this.government)?.name ?? this.government;
-    const entries = this.government ? await ShipRegisterApi.entriesIn(this.government) : [];
-    this.setMarkText(pageOf(polity, entries));
+    const register = await this.shipRegister();
+    this.setMarkText(this.pageOf(polity, register === null ? [] : await register.entries()));
   }
-}
 
-/** The register's page in words: one line per ship, in the order entered. */
-function pageOf(polity: string, entries: ShipEntry[]): string {
-  const head = `THE REGISTER OF SHIPS of ${polity}.`;
-  if (entries.length === 0) return `${head} No ship is entered.`;
-  const lines = [...entries]
-    .sort((a, b) => a.registeredAtS - b.registeredAtS)
-    .map((e) => {
-      // A ship of a kind says her kind; an authored ship is her own row and says none.
-      const kind = e.kind !== e.key ? ` (${e.kind.split('/').pop() ?? e.kind})` : '';
-      const owners = e.shares
-        .map((h) => `${h.holder.name ?? h.holder.path.split('/').pop() ?? h.holder.path} ${h.shares}/64`)
-        .join('; ');
-      return `The ${e.name}${kind}, under the flag of ${polity}: ${owners}.`;
+  /** The register this book is the page of — the one its government keeps (`Government.shipRegister`). */
+  private async shipRegister(): Promise<ShipRegister | null> {
+    const path = this.government ? GovernmentApi.getGovernment(this.government)?.shipRegister : '';
+    if (!path) return null;
+    const reg = await StuffApi.singleton<Stuff>(path).catch((err) => {
+      console.warn(`RegisterBook: ${this.government}'s register '${path}' did not stand up:`, err);
+      return null;
     });
-  return `${head} ${lines.join(' ')}`;
+    return reg instanceof ShipRegister ? reg : null;
+  }
+
+  /** The register's page in words: one line per ship, in the order entered. */
+  private pageOf(polity: string, entries: ShipEntry[]): string {
+    const head = `THE REGISTER OF SHIPS of ${polity}.`;
+    if (entries.length === 0) return `${head} No ship is entered.`;
+    const lines = [...entries]
+      .sort((a, b) => a.registeredAtS - b.registeredAtS)
+      .map((e) => {
+        // A ship of a kind says her kind; an authored ship is her own row and says none.
+        const kind = e.kind !== e.key ? ` (${e.kind.split('/').pop() ?? e.kind})` : '';
+        const owners = e.shares
+          .map((h) => `${h.holder.name ?? h.holder.path.split('/').pop() ?? h.holder.path} ${h.shares}/64`)
+          .join('; ');
+        return `The ${e.name}${kind}, under the flag of ${polity}: ${owners}.`;
+      });
+    return `${head} ${lines.join(' ')}`;
+  }
 }

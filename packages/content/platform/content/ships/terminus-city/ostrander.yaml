@@ -8,7 +8,6 @@ key: /world/terminus/ostrander/structure
 flag: terminus-city
 registeredAtS: 0
 house: /world/terminus/ostrander/idea/outfit
-lies: null
 shares:
   - holder: { kind: organization, path: /world/terminus/budget, name: the City of Terminus }
     shares: 64

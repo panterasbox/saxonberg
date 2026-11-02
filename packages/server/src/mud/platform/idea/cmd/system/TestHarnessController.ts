@@ -168,14 +168,16 @@ export default class TestHarnessController extends CommandController<TestHarness
 
   /**
    * `testharness ship <ship> [at node:<path> | at <frame> <cite>] [hull
-   * <band>] [bilge <L>] [slept <days>]` (harbors P25, B4): the ship by her
-   * row path or handle (the subcommand's first word, `op`), staged where
+   * <band>] [bilge <L>] [slept <days>] [flag <government>]` (harbors P25,
+   * B4): the ship by her row path or handle — or her registered name, read
+   * in the register `flag`'s government keeps (Terminus by default) — (the
+   * subcommand's first word, `op`), staged where
    * and as the drive needs her. Options in any order; a frame citation
    * (`at <frame> <cite>`) takes the rest of the line, so it goes last.
    */
   private async ship(model: TestHarnessModel, context: CommandContext): Promise<void> {
     const usage =
-      'testharness ship <ship> [at node:<path> | at <frame path> <cite>] [hull <band>] [bilge <L>] [slept <days>] [settling].';
+      'testharness ship <ship> [at node:<path> | at <frame path> <cite>] [hull <band>] [bilge <L>] [slept <days>] [flag <government>] [settling].';
     const handle = model.op;
     const words = [model.value ?? '', ...(model.cite ?? '').trim().split(/\s+/)].filter((w) => w !== '');
     if (!handle || words.length === 0) return this.refuse(context, TOPIC, usage, 'test-usage');
@@ -204,6 +206,7 @@ export default class TestHarnessController extends CommandController<TestHarness
       if (key === 'hull') spec.hull = next;
       else if (key === 'bilge') spec.bilgeL = Number(next);
       else if (key === 'slept') spec.sleptDays = Number(next);
+      else if (key === 'flag') spec.flag = next;
       else return this.refuse(context, TOPIC, usage, 'test-usage');
       i += 2;
     }

@@ -80,7 +80,7 @@ subcommands:
         type: string
         required: false
   ship:
-    description: "Stage a ship: `ship <ship> [at node:<path> | at <frame> <cite>] [hull <band>] [bilge <L>] [slept <days>] [settling]`"
+    description: "Stage a ship: `ship <ship> [at node:<path> | at <frame> <cite>] [hull <band>] [bilge <L>] [slept <days>] [flag <government>] [settling]`"
     args:
       - name: op
         type: string

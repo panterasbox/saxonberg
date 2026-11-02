@@ -21,7 +21,7 @@ import { MqlApi } from '../../../api/mql';
 import { EmploymentApi } from '../../../api/employment';
 import { CompactApi } from '../../../api/compact';
 import { GovernmentApi } from '../../../api/government';
-import { ShipRegisterApi } from '../../../api/ship-register';
+import { ExpanseApi } from '../../../api/expanse';
 import { PlayerApi } from '../../../api/player';
 import { AppApi } from '../../../api/app';
 import { AppSettingKeys } from '../../../lib/config/AppSettings';
@@ -175,7 +175,13 @@ async function holdsRegisterAuthority(
   depth: number,
 ): Promise<boolean> {
   if (depth > 4) return false;
-  const owner = await ShipRegisterApi.managingOwnerOf(ship);
+  // ⭐ The authority names her by handle; she is stood up on use (asleep at
+  // her berth, a ship of a kind is not loaded) and asked — she knows her
+  // own register. (`Ship` loads on use: a static import closes a cycle.)
+  const craft = await ExpanseApi.standUpCraft(ship);
+  const { default: ShipClass } = await import('../Ship');
+  if (!(craft instanceof ShipClass)) return false;
+  const owner = await craft.managingOwner();
   if (owner === null) return false;
   if (owner.kind === 'player') {
     const path = principal.getIdentityPath();

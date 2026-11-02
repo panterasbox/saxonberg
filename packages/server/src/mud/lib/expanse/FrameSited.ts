@@ -28,6 +28,14 @@
  *   each puts her own way back when she loads. Its `look` reads who is
  *   alongside from those ways: *Alongside: the Hesper.* — never a thing in
  *   the room.
+ * - ⭐ **It keeps who lies at it** (Risk 6, review 1): each ship tells the
+ *   landing as she makes fast and as she leaves (`noteAlongside`,
+ *   `noteGone`), and the landing keeps the list in its own `BerthRoll`
+ *   (keyed by its path on the persistence spine — a landing is not a
+ *   persistence host). On first use it reads its OWN list and stands up
+ *   any ship on it that is not loaded — a ship of a kind asleep across a
+ *   restart, whom nothing authored attaches to a frame — and she re-wires
+ *   her way as she loads. Nothing asks a register where ships lie.
  *
  * Composed on the waterside classes (`platform/location/Shore`, `Quay`).
  */
@@ -39,10 +47,11 @@ import { Expanse } from './Expanse';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import { NavigationApi } from '../../api/navigation';
-import { ShipRegisterApi } from '../../api/ship-register';
 import { ExpanseApi } from '../../api/expanse';
+import { PersistableApi } from '../../api/persistable';
 import type { MarkupAugmenter } from '../../api/mml';
 import BerthExit from '../../platform/idea/BerthExit';
+import BerthRoll, { BERTH_ROLL_ROW } from '../../platform/idea/BerthRoll';
 
 /** Where a fixed place stands on a frame. */
 export interface FrameSiteRecord {
@@ -71,6 +80,12 @@ export interface FrameSited {
   sitePosition(): Promise<FramePos | null>;
   /** ⭐ Tell its frame it stands there, once — the first time it is used. */
   frameSiteStood(): Promise<void>;
+  /** ⭐ A ship (by durable handle) has made fast here — kept across a restart. */
+  noteAlongside(handle: string): Promise<void>;
+  /** ⭐ A ship (by durable handle) has left — cast off, adrift, or could not make fast again. */
+  noteGone(handle: string): Promise<void>;
+  /** The handles of the ships this landing keeps as lying at it. */
+  lyingHere(): Promise<string[]>;
 }
 
 export function FrameSitedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
@@ -89,6 +104,33 @@ export function FrameSitedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBa
 
     /** The frame told, once (runtime). */
     private _siteStood: Promise<void> | null = null;
+
+    /**
+     * ⭐ Its roll of the ships lying here, stood up by its own path (the
+     * record's key) — resolve-first, so one roll per landing. `null` for a
+     * landing with no path, or when the spine cannot stand it up (said).
+     */
+    private async berthRoll(): Promise<BerthRoll | null> {
+      const here = (this as unknown as Stuff).getTemplatePath();
+      if (!here) return null;
+      const roll = await PersistableApi.standUpKeyed(BERTH_ROLL_ROW, here).catch((err) => {
+        console.warn(`FrameSitedMixin: ${here}'s roll of the ships lying at it did not stand up:`, err);
+        return null;
+      });
+      return roll instanceof BerthRoll ? roll : null;
+    }
+
+    public async noteAlongside(handle: string): Promise<void> {
+      await (await this.berthRoll())?.add(handle);
+    }
+
+    public async noteGone(handle: string): Promise<void> {
+      await (await this.berthRoll())?.remove(handle);
+    }
+
+    public async lyingHere(): Promise<string[]> {
+      return (await this.berthRoll())?.getLying() ?? [];
+    }
 
     public getFrameSite(): FrameSiteRecord | null {
       return this.frameSite === null ? null : { ...this.frameSite };
@@ -152,16 +194,23 @@ export function FrameSitedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBa
       for (const p of await NavigationApi.attachedTo(path, 'craft')) {
         void StuffApi.singleton<Stuff>(p).catch(() => null);
       }
-      // ⭐ A ship of a KIND is attached to nothing authored (B1): her
-      // register says where she lies (Risk 6), so a landing used after a
-      // restart stands her up, and she re-wires her way as she loads.
+      // ⭐ A ship of a KIND is attached to nothing authored (B1): this
+      // landing keeps who lies at it (Risk 6), so used after a restart it
+      // stands her up, and she re-wires her way as she loads. A ship on the
+      // roll who stands up and is not made fast (a stale record) is struck
+      // off it; one who does not stand up is kept.
       const here = (this as unknown as Stuff).getTemplatePath();
       if (!here) return;
-      for (const handle of await ShipRegisterApi.lyingAt(here)) {
+      for (const handle of await this.lyingHere()) {
         if (StuffApi.findByDurableHandle(handle) !== null) continue;
-        await ExpanseApi.standUpCraft(handle).catch((err) =>
-          console.warn(`FrameSitedMixin: ${handle}, lying at ${here} by her register, did not stand up:`, err),
-        );
+        const ship = await ExpanseApi.standUpCraft(handle);
+        if (ship === null) {
+          // Kept: a ship that did not stand up now (said by the stand-up) may tomorrow.
+          console.warn(`FrameSitedMixin: ${handle}, on ${here}'s roll, did not stand up; kept on it`);
+        } else if (!ship.isMoored()) {
+          console.warn(`FrameSitedMixin: ${handle} is on ${here}'s roll but is not made fast; struck off`);
+          await this.noteGone(handle);
+        }
       }
     }
 

@@ -6,7 +6,11 @@
  *   register), enters her in the register in her buyer's name — sixty-four
  *   shares — keys her (gangway locked), makes her buyer master, and brings
  *   her alongside; only her master takes the helm;
- * - her register knows where she lies (the landing's re-wire after a restart);
+ * - ⭐ she knows her register (review 1): her entry is read off it under
+ *   her registered name, never searched for;
+ * - ⭐ the landing keeps who lies at it (its own roll): she tells it as she
+ *   makes fast and casts off, and after a restart the landing's first use
+ *   stands a sleeping smack up from its OWN list, and her way is back;
  * - asleep, her way aboard still answers for the gangway (`lock`/`unlock`);
  * - the flag on her flagstaff is the flag she flies (a derived look line);
  * - `subjectTo` aboard: at sea the flag state's law, made fast in a port
@@ -27,7 +31,11 @@ import { Document } from '../../../lib/persistence/Document';
 import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
 import { PersistableApi } from '../../../api/persistable';
-import { ShipRegisterApi } from '../../../api/ship-register';
+import ShipRegister from '../ShipRegister';
+import BerthRoll, { BERTH_ROLL_ROW } from '../BerthRoll';
+import { NavigationApi } from '../../../api/navigation';
+import type { FrameSited } from '../../../lib/expanse/FrameSited';
+import type { FrameStuff } from '../../../lib/expanse/Frame';
 import { GovernmentApi } from '../../../api/government';
 import { AddressApi } from '../../../api/address';
 import { CorpoApi } from '../../../api/corpo';
@@ -119,7 +127,9 @@ function installStore(): void {
     positions: [{ key: 'master', noun: 'master', label: 'in command of her', wageRate: 5, headcount: 1 }],
     startsShiftOnHire: true,
   });
-  add(LANDING, '/platform/location/Locale', { shortDescription: 'a landing', props: [BOLLARD] });
+  // A landing on a frame keeps who lies at it (its roll); a Shore is the plain one.
+  add(LANDING, '/platform/location/Shore', { shortDescription: 'a landing', props: [BOLLARD] });
+  add(BERTH_ROLL_ROW, '/platform/idea/BerthRoll');
   add(BOLLARD, '/platform/thing/Bollard', { shortDescription: 'a bollard', fixedInPlace: true });
   add('/stuff/thing/Key', '/platform/thing/Key', { shortDescription: 'a key' });
   add('/platform/idea/Government/test-city', '/platform/idea/Government', { key: 'test-city', name: 'the City of Test', shipRegister: REG });
@@ -205,7 +215,8 @@ async function bootGovernments(): Promise<void> {
 async function buy(buyer: Stuff, serial: string, name: string): Promise<{ ship: Ship; words: string }> {
   const ship = await StuffApi.clone<Ship>(KIND);
   await PersistableApi.restoreOrSeed(ship as unknown as Stuff, serial);
-  const words = await ship.commission(buyer, name, LANDING, 'test-city');
+  const register = await StuffApi.singleton<ShipRegister>(REG);
+  const words = await ship.commission(buyer, name, LANDING, register);
   await settle();
   return { ship, words };
 }
@@ -237,7 +248,11 @@ describe('Ship — her register, owners, flag and gangway (harbors B2)', () => {
     expect(ship.getName()).toBe('the Gull');
     expect(ship.berthWord()).toBe('gull');
 
-    const entry = await ShipRegisterApi.entryOf(`${KIND}#g1`);
+    // ⭐ She knows her register, and the name she is entered under.
+    expect(ship.getShipRegister()).toBe(REG);
+    expect(ship.getRegisteredName()).toBe('Gull');
+    expect(await ship.flagState()).toBe('test-city');
+    const entry = await ship.registerEntry();
     expect(entry).toMatchObject({ name: 'Gull', kind: KIND, key: `${KIND}#g1`, flag: 'test-city' });
     expect(entry!.shares).toEqual([{ holder: { kind: 'player', path: '/platform/agent/Avatar/ann', name: ann.getPresentation() }, shares: 64 }]);
     expect(entry!.house).toBe(`${COMPANY}/g1`);
@@ -256,11 +271,11 @@ describe('Ship — her register, owners, flag and gangway (harbors B2)', () => {
     expect(ship.mayBeSteeredBy(bob)).toBe(false);
     expect(ship.answersFor(bob)).toBe(false);
 
-    // Alongside the landing she was delivered to, by a way named for her — and the register knows.
+    // Alongside the landing she was delivered to, by a way named for her — and the LANDING knows.
     expect(ship.getBerth()).toBe(LANDING);
-    const landing = await StuffApi.singleton<Stuff & Container & Exitable>(LANDING);
+    const landing = await StuffApi.singleton<Stuff & Container & Exitable & FrameSited>(LANDING);
     expect(landing.getExit('gull')).toBeInstanceOf(BerthExit);
-    expect(await ShipRegisterApi.lyingAt(LANDING)).toEqual([`${KIND}#g1`]);
+    expect(await landing.lyingHere()).toEqual([`${KIND}#g1`]);
 
     // A second buyer may not take the name.
     await expect(buy(bob, 'g2', 'Gull')).rejects.toThrow(/register refused Gull/);
@@ -275,13 +290,67 @@ describe('Ship — her register, owners, flag and gangway (harbors B2)', () => {
     expect(gull.mayBeSteeredBy(bob)).toBe(false);
     expect(tern.mayBeSteeredBy(ann)).toBe(false);
     expect(tern.mayBeSteeredBy(bob)).toBe(true);
-    const landing = await StuffApi.singleton<Stuff & Container & Exitable>(LANDING);
+    const landing = await StuffApi.singleton<Stuff & Container & Exitable & FrameSited>(LANDING);
     expect(landing.getExit('gull')).toBeInstanceOf(BerthExit);
     expect(landing.getExit('tern')).toBeInstanceOf(BerthExit);
-    // Casting off, she tells her register she lies nowhere.
+    // Casting off, she tells the landing she has gone.
     await gull.castOff();
     await settle();
-    expect(await ShipRegisterApi.lyingAt(LANDING)).toEqual([`${KIND}#t1`]);
+    expect(await landing.lyingHere()).toEqual([`${KIND}#t1`]);
+  });
+
+  it('⭐⭐ after a restart, the landing\'s first use stands a sleeping smack up from its OWN roll — her way aboard is back', async () => {
+    const ann = makeAvatar('ann');
+    const { ship } = await buy(ann, 'r1', 'Razorbill');
+    expect(ship.isMoored()).toBe(true);
+    // She sleeps (her record kept), and then the process goes: nothing is loaded.
+    await ship.sleep();
+    await settle();
+    StuffApi.clearAll();
+    installV1QuantityMarshallers();
+    expect(StuffApi.findByDurableHandle(`${KIND}#r1`)).toBeNull();
+
+    // The landing comes back bare — no way aboard her (a way is runtime).
+    const landing = await StuffApi.singleton<Stuff & Container & Exitable & FrameSited>(LANDING);
+    expect(landing.getExit('razorbill')).toBeFalsy();
+    // Its roll came back from its record — nobody asked a register.
+    expect(await landing.lyingHere()).toEqual([`${KIND}#r1`]);
+    const roll = await PersistableApi.standUpKeyed(BERTH_ROLL_ROW, LANDING);
+    expect(roll).toBeInstanceOf(BerthRoll);
+
+    // First use: a frame-sited landing tells its frame, then reads its roll.
+    landing.setFrameSite({ frame: '/test/frame', cite: 'here' });
+    const frame = { onSiteStood: async () => undefined, craft: () => [], getTemplatePath: () => '/test/frame' } as unknown as FrameStuff;
+    vi.spyOn(landing, 'liveSiteFrame').mockResolvedValue(frame);
+    vi.spyOn(NavigationApi, 'attachedTo').mockResolvedValue([]);
+    await landing.frameSiteStood();
+    await settle();
+
+    const woke = StuffApi.findByDurableHandle<Ship>(`${KIND}#r1`);
+    expect(woke).toBeInstanceOf(Ship);
+    expect(woke!.isMoored()).toBe(true);
+    expect(landing.getExit('razorbill')).toBeInstanceOf(BerthExit);
+    // She knows her register still: her owner answers for her.
+    expect(woke!.isManagingOwner(ann)).toBe(true);
+    expect(await landing.lyingHere()).toEqual([`${KIND}#r1`]);
+  });
+
+  it('a ship on the roll who stands up and is not made fast is struck off it at the landing\'s first use', async () => {
+    const ann = makeAvatar('ann');
+    const { ship } = await buy(ann, 'x1', 'Shag');
+    await ship.castOff();
+    const landing = await StuffApi.singleton<Stuff & Container & FrameSited>(LANDING);
+    expect(await landing.lyingHere()).toEqual([]);
+    // A stale line on the roll, and she sleeps unmoored.
+    await landing.noteAlongside(`${KIND}#x1`);
+    await ship.sleep();
+    await settle();
+    landing.setFrameSite({ frame: '/test/frame', cite: 'here' });
+    const frame = { onSiteStood: async () => undefined, craft: () => [], getTemplatePath: () => '/test/frame' } as unknown as FrameStuff;
+    vi.spyOn(landing, 'liveSiteFrame').mockResolvedValue(frame);
+    vi.spyOn(NavigationApi, 'attachedTo').mockResolvedValue([]);
+    await landing.frameSiteStood();
+    expect(await landing.lyingHere()).toEqual([]);
   });
 
   it('⭐ asleep, her way aboard still answers for the gangway — the bolt, the keyway, and `unlock` keeps', async () => {

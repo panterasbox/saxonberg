@@ -27,6 +27,11 @@ data:
   heightM: 12
   deckHeightM: 4
   house: /world/terminus/ostrander/idea/outfit
+  # ⭐ The register she is entered in, and the name she is entered under
+  # (harbors P14, review 1): she knows her register — her owners and her
+  # flag are read off her own entry there, never searched for.
+  shipRegister: /platform/idea/ShipRegister/terminus-city
+  registeredName: Ostrander
   line: /stuff/idea/Watercourse/kestrel
   linePosition: { course: kestrel, km: 8.82, across: 20 }
   # ⭐ Made fast at the city quay (harbors P4): `go ostrander` from the bank.

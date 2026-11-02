@@ -15,7 +15,8 @@ import { WorldClockApi } from '../worldclock';
 import { SecurityApi } from '../security';
 import { StuffApi } from '../stuff';
 import { PersistableApi } from '../persistable';
-import { ShipRegisterApi } from '../ship-register';
+import { GovernmentApi } from '../government';
+import ShipRegister from '../../platform/idea/ShipRegister';
 import Ship from '../../platform/idea/Ship';
 import ExpanseNode from '../../platform/idea/ExpanseNode';
 import { Expanse } from '../../lib/expanse/Expanse';
@@ -105,16 +106,27 @@ describe('TestHarnessApi', () => {
       expect(ship.getExpansePosition()?.distanceNm(new GeoPosition(42, -8.5))).toBeLessThan(0.01);
     });
 
-    it('⭐ B6: a ship named by her register NAME is resolved to her handle; none or two flags is refused in words', async () => {
-      const named = vi.spyOn(ShipRegisterApi, 'entriesNamed');
-      named.mockResolvedValueOnce([] as never);
-      await expect(TestHarnessApi.stageShip('Petrel', { hull: 'worn' })).rejects.toThrow(/no register has a ship named 'Petrel'/);
-      named.mockResolvedValueOnce([{ key: '/k#1' }, { key: '/k#2' }] as never);
-      await expect(TestHarnessApi.stageShip('Petrel', { hull: 'worn' })).rejects.toThrow(/entered under 2 flags/);
-      // One entry: her handle is what is looked up (here, not a ship — refused as one).
-      named.mockResolvedValueOnce([{ key: '/stuff/idea/Ship/smack#abc' }] as never);
-      vi.spyOn(StuffApi, 'singleton').mockRejectedValue(new Error('none') as never);
-      await expect(TestHarnessApi.stageShip('Petrel', { hull: 'worn' })).rejects.toThrow(/'\/stuff\/idea\/Ship\/smack#abc' is not a ship/);
+    it('⭐ B6: a ship named by her register NAME is read in ONE government\'s register (Terminus by default, or `flag`)', async () => {
+      const gov = (key: string, reg: string) => ({
+        key, name: key, description: '', charter: '', treasury: '', departments: [], seats: [], standards: [], shipRegister: reg,
+      });
+      const govs = vi.spyOn(GovernmentApi, 'getGovernment').mockImplementation((k: string) =>
+        k === 'terminus-city' ? gov(k, '/test/reg/terminus') : k === 'test-isle' ? gov(k, '/test/reg/isle') : null,
+      );
+      const terminus = makeStuffAtPath(() => new ShipRegister(), '/test/reg/terminus');
+      const isle = makeStuffAtPath(() => new ShipRegister(), '/test/reg/isle');
+      const named = vi.spyOn(terminus, 'entryNamed').mockResolvedValue(null);
+      await expect(TestHarnessApi.stageShip('Petrel', { hull: 'worn' })).rejects.toThrow(/register of terminus-city has no ship named 'Petrel'/);
+      expect(named).toHaveBeenCalledWith('Petrel');
+      await expect(TestHarnessApi.stageShip('Petrel', { hull: 'worn', flag: 'nowhere' })).rejects.toThrow(/nowhere keeps no register/);
+      // Named under another flag: that government's register is the one read; her handle is what is looked up.
+      vi.spyOn(isle, 'entryNamed').mockResolvedValue({ key: '/stuff/idea/Ship/smack#abc' } as never);
+      vi.spyOn(StuffApi, 'singleton').mockImplementation((async (p: string) => {
+        if (p === '/test/reg/isle') return isle;
+        throw new Error('none');
+      }) as never);
+      await expect(TestHarnessApi.stageShip('Petrel', { hull: 'worn', flag: 'test-isle' })).rejects.toThrow(/'\/stuff\/idea\/Ship\/smack#abc' is not a ship/);
+      govs.mockRestore();
     });
 
     it('a ship that is not one, or a place that is no node, is refused in words', async () => {

@@ -22,7 +22,7 @@
  * | `office` | `CompactApi.holdsOffice` | **yes — founder default** |
  * | `seat` | `GovernmentApi.holdsSeat` | no |
  * | `committee` | `CompactApi.isCommitteeMember` | **yes — pool-of-one** |
- * | `register` | `ShipRegisterApi.managingOwnerOf` (the ship's) | only if her managing owner's authority does |
+ * | `register` | the ship's `managingOwner()` (she asks her own register) | only if her managing owner's authority does |
  *
  * ⚠ The *founder passes* column is load-bearing, not trivia. Only `office`
  * and `committee` carry the Art. XI default, so **an authority the founder

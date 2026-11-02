@@ -54,8 +54,7 @@ import type { LineFrame } from '../../lib/expanse/LineFrame';
 import { PersistableApi } from '../../api/persistable';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
-import { ShipRegisterApi } from '../../api/ship-register';
-import type { ShareHolder } from '../../api/ship-register';
+import ShipRegister, { type ShareHolder, type ShipEntry } from './ShipRegister';
 import { BoundaryApi } from '../../api/boundary';
 import { GovernmentApi } from '../../api/government';
 import { Lock } from '../../lib/lock/Lock';
@@ -232,6 +231,8 @@ export default class Ship extends BilgeMixin(PersistableMixin(
     settling: { persistent: true },
     settled: { persistent: true },
     wreck: { persistent: true },
+    shipRegister: { persistent: true, authorable: true, ref: 'identity:relation' },
+    registeredName: { persistent: true, authorable: true },
   };
 
   /**
@@ -993,6 +994,71 @@ export default class Ship extends BilgeMixin(PersistableMixin(
 
   /* ───────────── her register, her owners, her flag (harbors P12, P14, P16) ───────────── */
 
+  /**
+   * ⭐ The register she is entered in — a `ShipRegister` row path, `null`
+   * when she is in none (stateless). Set as she is commissioned; an
+   * authored ship's row names it. ⭐ She knows her register (review 1):
+   * nothing searches the registers for her handle.
+   */
+  protected shipRegister: string | null = null;
+  /** The name she is entered under — the register files her by it (`''`: in none). */
+  protected registeredName = '';
+
+  public getShipRegister(): string | null { return this.shipRegister; }
+  public setShipRegister(v: string | null): void { this.shipRegister = typeof v === 'string' && v !== '' ? v : null; }
+  public getRegisteredName(): string { return this.registeredName; }
+  public setRegisteredName(v: string): void { this.registeredName = typeof v === 'string' ? v.trim() : ''; }
+
+  /** ⭐ Her register, stood up — `null` when she is in none, or the row is not a register (said loudly). */
+  public async ownRegister(): Promise<ShipRegister | null> {
+    if (this.shipRegister === null) return null;
+    const reg = await StuffApi.singleton<Stuff>(this.shipRegister).catch((err) => {
+      console.warn(`Ship: ${this.getDurableHandle()}'s register '${this.shipRegister}' did not stand up:`, err);
+      return null;
+    });
+    if (reg instanceof ShipRegister) return reg;
+    if (reg !== null) console.warn(`Ship: ${this.getDurableHandle()} names '${this.shipRegister}' as her register, which is not one`);
+    return null;
+  }
+
+  /**
+   * ⭐ Her entry in her register (P14) — one keyed read under the name she
+   * was entered as, checked to be HER (the entry names her handle). `null`
+   * when she is stateless.
+   */
+  public async registerEntry(): Promise<ShipEntry | null> {
+    if (this.registeredName === '') return null;
+    const reg = await this.ownRegister();
+    if (reg === null) return null;
+    const entry = await reg.entryNamed(this.registeredName);
+    if (entry === null) return null;
+    const mine = this.getDurableHandle() ?? this.getTemplatePath();
+    if (entry.key !== mine) {
+      console.warn(`Ship: the register's '${this.registeredName}' is ${entry.key}, not ${mine}`);
+      return null;
+    }
+    return entry;
+  }
+
+  /** ⭐ Her flag state (P16) — the government whose register she is entered in, or `null` (stateless). */
+  public async flagState(): Promise<string | null> {
+    const entry = await this.registerEntry();
+    if (entry === null) return null;
+    return entry.flag || (await this.ownRegister())?.getGovernmentKey() || null;
+  }
+
+  /** ⭐ Her managing owner (P12), as her register says — `null` when she is stateless. */
+  public async managingOwner(): Promise<ShareHolder | null> {
+    const entry = await this.registerEntry();
+    if (entry === null) return null;
+    return (await this.ownRegister())?.managingOwnerOf(entry) ?? null;
+  }
+
+  /** Everyone who holds any of her shares, in the order they were entered. */
+  public async shareHolders(): Promise<ShareHolder[]> {
+    return ((await this.registerEntry())?.shares ?? []).map((h) => ({ ...h.holder }));
+  }
+
   /** Runtime: her managing owner as her register last said — read sync by `answersFor`. */
   private _managingOwner: ShareHolder | null = null;
 
@@ -1005,12 +1071,10 @@ export default class Ship extends BilgeMixin(PersistableMixin(
 
   /** ⭐ Read her register again — after she is entered, after her shares change hands, as she stands up. */
   public async refreshRegistry(): Promise<void> {
-    const handle = this.getDurableHandle();
-    if (!handle) return;
     try {
-      this._managingOwner = await ShipRegisterApi.managingOwnerOf(handle);
+      this._managingOwner = await this.managingOwner();
     } catch (err) {
-      console.warn(`Ship: ${handle}'s register could not be read:`, err);
+      console.warn(`Ship: ${this.getDurableHandle()}'s register could not be read:`, err);
     }
   }
 
@@ -1046,8 +1110,8 @@ export default class Ship extends BilgeMixin(PersistableMixin(
 
   /**
    * ⭐ Commission her (P17): a ship of a kind just bought, keyed by her
-   * serial, is named, given her own company, entered in `flag`'s register
-   * in `buyer`'s name (all sixty-four shares), keyed (the gangway locked,
+   * serial, is named, given her own company, entered in `register` (the
+   * register the yard's government keeps) in `buyer`'s name (all sixty-four shares), keyed (the gangway locked,
    * the key to the buyer), her buyer made her master (a sole owner holds
    * all three — owner, managing owner, master), and brought alongside
    * `landingPath`. Returns what the buyer is told.
@@ -1056,12 +1120,16 @@ export default class Ship extends BilgeMixin(PersistableMixin(
    *   — the caller asked the register about her name before taking money,
    *   so a refusal here is a race or a caller error, said loudly.
    */
-  public async commission(buyer: Stuff, name: string, landingPath: string, flag: string): Promise<string> {
+  public async commission(buyer: Stuff, name: string, landingPath: string, register: ShipRegister): Promise<string> {
     const handle = this.getDurableHandle();
     const serial = this.getPersistenceKey();
     if (!this.isOfKind() || !handle || !serial) {
       throw new Error(`Ship.commission: only a ship of a kind, keyed by her serial, is commissioned (got ${handle ?? '?'})`);
     }
+    if (this.shipRegister !== null) throw new Error(`Ship.commission: ${handle} is in a register already (${this.shipRegister})`);
+    const registerPath = register.getTemplatePath();
+    if (!registerPath) throw new Error('Ship.commission: her register has no row path to be named by');
+    const flag = register.getGovernmentKey();
     const owner = buyer.getIdentityPath();
     if (!owner) throw new Error('Ship.commission: her buyer has no durable identity to hold her shares');
     const named = name.trim().replace(/^the\s+/i, '');
@@ -1071,15 +1139,16 @@ export default class Ship extends BilgeMixin(PersistableMixin(
     this.setKeywords([...new Set([named.toLowerCase(), ...words, ...this.getKeywords()])]);
 
     const company = await this.mintCompany(named);
-    const refused = await ShipRegisterApi.enter(flag, {
+    const refused = await register.enter({
       name: named,
       kind: this.getTemplatePath() ?? '',
       key: handle,
       shares: [{ holder: { kind: 'player', path: owner, name: buyer.getPresentation() }, shares: 64 }],
       house: company?.getIdentityPath() ?? '',
-      lies: null,
     });
     if (refused !== null) throw new Error(`Ship.commission: the register refused ${named} — ${refused}`);
+    this.shipRegister = registerPath;
+    this.registeredName = named;
     await this.refreshRegistry();
 
     // ⭐ Her gangway is a door with a key (P9): locked, the key with her owner.
@@ -1163,15 +1232,26 @@ export default class Ship extends BilgeMixin(PersistableMixin(
     }
   }
 
-  /** ⭐ Tell her register where she lies (a ship of a kind) — what re-wires her way after a restart (Risk 6). */
-  private noteLies(landing: string | null): void {
-    if (!this.isOfKind()) return;
-    const handle = this.getDurableHandle();
-    if (!handle) return;
-    const lies = landing === null ? null : { landing, sinceS: WorldClockApi.getNow().rawValue() };
-    void ShipRegisterApi.noteLies(handle, lies).catch((err) =>
-      console.warn(`Ship: ${handle} could not tell her register where she lies:`, err),
-    );
+  /**
+   * ⭐ Tell a landing she lies made fast at it (`alongside`), or has left
+   * it (harbors Risk 6, review 1): a landing keeps who lies at it, and on
+   * its first use after a restart stands those ships up again so their
+   * ways aboard come back. A landing sited on no frame has no first use to
+   * do that with — said for a ship of a kind, whom nothing else stands up.
+   */
+  private async tellLanding(landingPath: string | null, alongside: boolean): Promise<void> {
+    const handle = this.getDurableHandle() ?? this.getTemplatePath();
+    if (!landingPath || !handle) return;
+    try {
+      const landing = await StuffApi.singleton<Stuff>(landingPath);
+      if (MixinApi.isFrameSited(landing)) {
+        await (alongside ? landing.noteAlongside(handle) : landing.noteGone(handle));
+      } else if (alongside && this.isOfKind()) {
+        console.warn(`Ship: ${handle} lies at '${landingPath}', which is sited on no frame — after a restart nothing stands her up there`);
+      }
+    } catch (err) {
+      console.warn(`Ship: ${handle} could not tell '${landingPath}' she ${alongside ? 'lies at it' : 'has left it'}:`, err);
+    }
   }
 
   /* ───────────── the charter (harbors P23) ───────────── */
@@ -1460,7 +1540,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
     this.moored = true;
     await this.installBerth(landing);
     this.persistMooring();
-    this.noteLies(landingPath);
+    await this.tellLanding(landingPath, true);
     // ⭐ A kept berth (a harbor quay): her time alongside starts in its book (P7),
     // and a charter ends there (P23) — its days billed to her.
     let ended = '';
@@ -1483,13 +1563,14 @@ export default class Ship extends BilgeMixin(PersistableMixin(
    * this first.
    */
   public async castOff(): Promise<void> {
+    const was = this.moored ? this.berth : null;
     const keeper = this.moored ? await this.berthingAt(this.berth) : null;
     await this.bringLinesIn();
     this.removeBerth();
     this.moored = false;
     this.berth = null;
     this.persistMooring();
-    this.noteLies(null);
+    await this.tellLanding(was, false);
     // ⭐ The berth is free in its keeper's book (P7).
     if (keeper !== null) await keeper.release(this as unknown as Stuff, WorldClockApi.getNow().rawValue());
   }
@@ -1509,7 +1590,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
     this.moored = false;
     this.berth = null;
     this.persistMooring();
-    this.noteLies(null);
+    void this.tellLanding(was, false);
     // Adrift, she no longer holds the berth she was given (P7).
     void this.berthingAt(was)
       .then((keeper) => keeper?.release(this as unknown as Stuff, WorldClockApi.getNow().rawValue()))
@@ -1622,6 +1703,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
         this.moored = false;
         this.berth = null;
         this.persistMooring();
+        await this.tellLanding(path, false);
         return;
       }
     }

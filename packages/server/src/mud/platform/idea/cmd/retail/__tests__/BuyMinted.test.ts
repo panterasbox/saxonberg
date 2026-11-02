@@ -17,7 +17,7 @@ import Avatar from '../../../../agent/PrimaryAvatar';
 import { StuffApi } from '../../../../../api/stuff';
 import { EmploymentApi } from '../../../../../api/employment';
 import { GovernmentApi } from '../../../../../api/government';
-import { ShipRegisterApi } from '../../../../../api/ship-register';
+import ShipRegister from '../../../ShipRegister';
 import { PersistableApi } from '../../../../../api/persistable';
 import { BankingApi } from '../../../../../api/banking';
 import { ContainmentApi } from '../../../../../api/containment';
@@ -97,6 +97,7 @@ describe('buy — a ship built to order (harbors B2)', () => {
   let settle: MockInstance<typeof EmploymentApi.settleSale>;
   let commission: MockInstance<Ship['commission']>;
   let seed: MockInstance<typeof PersistableApi.restoreOrSeed>;
+  let register: ShipRegister;
 
   beforeEach(() => {
     vi.restoreAllMocks();
@@ -104,8 +105,10 @@ describe('buy — a ship built to order (harbors B2)', () => {
     vi.spyOn(EmploymentApi, 'ensureOperatorAt').mockResolvedValue(null as never);
     vi.spyOn(GovernmentApi, 'subjectTo').mockResolvedValue([GOV]);
     vi.spyOn(GovernmentApi, 'getGovernment').mockReturnValue(GOV);
-    vi.spyOn(ShipRegisterApi, 'keepsRegister').mockResolvedValue(true);
-    vi.spyOn(ShipRegisterApi, 'isNameTaken').mockImplementation(async (_g: string, n: string) => n.toLowerCase() === 'gull');
+    // The register the government over the yard keeps — reached by its row.
+    register = makeStuffAtPath(() => new ShipRegister(), GOV.shipRegister!);
+    register.setGovernment('test-city');
+    vi.spyOn(register, 'isNameTaken').mockImplementation(async (n: string) => n.toLowerCase() === 'gull');
     vi.spyOn(BankingApi, 'canSettle').mockReturnValue(true);
     settle = vi.spyOn(EmploymentApi, 'settleSale').mockResolvedValue({ tail: '(paid)', receipt: { method: 'cash' } } as never);
     vi.spyOn(StuffApi, 'classForRef').mockResolvedValue(Ship as never);
@@ -127,7 +130,7 @@ describe('buy — a ship built to order (harbors B2)', () => {
     expect(settle).toHaveBeenCalledTimes(1);
     expect(settle.mock.calls[0]![1]).toBe(5000);
     expect(typeof seed.mock.calls[0]![1]).toBe('string');
-    expect(commission).toHaveBeenCalledWith(av, 'Tern', QUAY, 'test-city');
+    expect(commission).toHaveBeenCalledWith(av, 'Tern', QUAY, register);
     // Nothing was shelved: a minted line restocks nothing.
     await stock.reset();
     expect((stock as unknown as { getContents(): Stuff[] }).getContents()).toHaveLength(0);
@@ -143,7 +146,7 @@ describe('buy — a ship built to order (harbors B2)', () => {
   });
 
   it('⚠ where nobody keeps a register, no ship is sold — asked before her name, and before the money', async () => {
-    vi.mocked(ShipRegisterApi.keepsRegister).mockResolvedValue(false);
+    vi.mocked(GovernmentApi.subjectTo).mockResolvedValue([{ ...GOV, shipRegister: '' }]);
     const stock = yard();
     const { av, ask } = buyer(['Tern']);
     const ctx = await buy(av, stock);

@@ -201,6 +201,14 @@ describe('the line’s regulars (harbors A2)', () => {
       expect((data(e.house) as { appointingAuthority: unknown }).appointingAuthority).toEqual({ kind: 'register', ship });
     }
     expect(entry('ostrander').shares[0]!.holder.path).toBe('/world/terminus/budget');
+    // ⭐ Each ship knows her register and the name she is entered under (review 1) — nothing searches for her.
+    for (const [slug, ship] of [['hesper', '/world/terminus/hesper/structure'], ['kittiwake', `${SHIPS}/ketch/structure`], ['corrigan', `${SHIPS}/coaster/structure`], ['ostrander', '/world/terminus/ostrander/structure']] as const) {
+      const row = data(ship) as { shipRegister: string; registeredName: string };
+      expect(row.shipRegister).toBe('/platform/idea/ShipRegister/terminus-city');
+      const e = entry(slug) as unknown as { name: string; key: string };
+      expect(row.registeredName).toBe(e.name);
+      expect(e.key).toBe(ship);
+    }
   });
   it('⭐ the chandler sells the caulker\'s kit and mooring line, off the Town Quay (B4)', () => {
     const counter = data('/world/terminus/harbor/chandler/thing/counter') as {

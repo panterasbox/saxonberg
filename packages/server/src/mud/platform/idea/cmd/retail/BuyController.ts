@@ -33,7 +33,7 @@ import Ship from "../../Ship";
 import { PersistableApi } from "../../../../api/persistable";
 import { SecurityApi } from "../../../../api/security";
 import { GovernmentApi } from "../../../../api/government";
-import { ShipRegisterApi } from "../../../../api/ship-register";
+import ShipRegister from "../../ShipRegister";
 import type { ShelfStuff } from "../../../../lib/retail/Consignment";
 import { ContainmentApi } from "../../../../api/containment";
 import { MixinApi } from "../../../../api/mixin";
@@ -274,8 +274,8 @@ export default class BuyController extends CommandController<BuyModel> {
     }
 
     // ── a ship: her register first, her name, then the money, then her ──
-    const flag = await this.registerHere(stock);
-    if (flag === null) {
+    const register = await this.registerHere(stock);
+    if (register === null) {
       this.reject(giver, context, Mml.compose`Nobody here keeps a register of ships, and a ship is sold into one.`, {
         kind: "controller-rejected",
         reason: "no-register",
@@ -300,6 +300,7 @@ export default class BuyController extends CommandController<BuyModel> {
       });
       return;
     }
+    const flag = register.getGovernmentKey();
     const polity = GovernmentApi.getGovernment(flag)?.name ?? flag;
     let name = "";
     for (let tries = 0; tries < NAME_TRIES && name === ""; tries++) {
@@ -316,7 +317,7 @@ export default class BuyController extends CommandController<BuyModel> {
       }
       const bare = asked.replace(/^the\s+/i, "").trim();
       if (bare === "") continue;
-      if (await ShipRegisterApi.isNameTaken(flag, bare)) {
+      if (await register.isNameTaken(bare)) {
         MessageApi.scene(giver)
           .topic(TOPIC)
           .toSelf(Mml.compose`There is a ship in the register of ${polity} named ${bare} already. Another name.`)
@@ -344,7 +345,7 @@ export default class BuyController extends CommandController<BuyModel> {
     }
     const ship = await StuffApi.clone<Ship>(kind);
     await PersistableApi.restoreOrSeed(ship as unknown as Stuff, SecurityApi.uuid());
-    const words = await ship.commission(giver, name, deliversTo, flag);
+    const words = await ship.commission(giver, name, deliversTo, register);
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(Mml.compose`You buy a ${leaf}. ${paid.tail} ${words}`)
@@ -352,13 +353,22 @@ export default class BuyController extends CommandController<BuyModel> {
       .send();
   }
 
-  /** The polity whose register a ship bought here is entered in: the first government over the counter that keeps one. */
-  private async registerHere(stock: Stock): Promise<string | null> {
+  /**
+   * The register a ship bought here is entered in: the one the first
+   * government over the counter keeps (`Government.shipRegister` — the
+   * government names its register; nothing is searched).
+   */
+  private async registerHere(stock: Stock): Promise<ShipRegister | null> {
     const self = stock as unknown as Stuff;
     const room = MixinApi.isContainable(self) ? self.getContainer() : null;
     if (room === null || !MixinApi.isContainer(room)) return null;
     for (const g of await GovernmentApi.subjectTo(room)) {
-      if (g.shipRegister && (await ShipRegisterApi.keepsRegister(g.key))) return g.key;
+      if (!g.shipRegister) continue;
+      const reg = await StuffApi.singleton<Stuff>(g.shipRegister).catch((err) => {
+        console.warn(`BuyController: ${g.key}'s register '${g.shipRegister}' did not stand up:`, err);
+        return null;
+      });
+      if (reg instanceof ShipRegister) return reg;
     }
     return null;
   }

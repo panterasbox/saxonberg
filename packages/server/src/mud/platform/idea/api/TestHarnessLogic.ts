@@ -17,7 +17,8 @@ import { AddressApi } from '../../../api/address';
 import { WeatherApi } from '../../../api/weather';
 import { MixinApi } from '../../../api/mixin';
 import { PersistableApi } from '../../../api/persistable';
-import { ShipRegisterApi } from '../../../api/ship-register';
+import { GovernmentApi } from '../../../api/government';
+import ShipRegister from '../ShipRegister';
 import Ship from '../Ship';
 import ExpanseNode from '../ExpanseNode';
 import { Expanse } from '../../../lib/expanse/Expanse';
@@ -85,7 +86,16 @@ export interface ShipStageSpec {
    * onto the bottom. Applied after the rest of the spec.
    */
   settling?: boolean;
+  /**
+   * The government whose register a ship named by her NAME is looked up in
+   * (`flag terminus-city`) — the City of Terminus by default. A register
+   * is reached from the government that keeps it; none is searched.
+   */
+  flag?: string;
 }
+
+/** The register a ship named by name is staged out of, unless the spec names another. */
+const DEFAULT_STAGE_FLAG = 'terminus-city';
 
 /** Where in each band a staged hull is put — the band's middle, so a minute's clock does not tip it. */
 const STAGED_CONDITION: Record<string, number> = {
@@ -224,16 +234,16 @@ export class TestHarnessLogic extends ApiLogic {
     // harbors B2) and stood up if she sleeps; an authored ship by her row.
     // ⭐ B6: or by her NAME in a register (no leading `/`) — a drive knows
     // the name it gave her at `buy`, never the serial she was minted with.
+    // The name is read in ONE register — the government's the spec names
+    // (Terminus by default), reached from that government.
     if (!handle.startsWith('/')) {
-      const named = await ShipRegisterApi.entriesNamed(handle);
-      if (named.length !== 1) {
-        throw new Error(
-          named.length === 0
-            ? `testharness ship: no register has a ship named '${handle}'`
-            : `testharness ship: '${handle}' is entered under ${named.length} flags — name her by her handle`,
-        );
-      }
-      handle = named[0]!.key;
+      const flag = spec.flag ?? DEFAULT_STAGE_FLAG;
+      const path = GovernmentApi.getGovernment(flag)?.shipRegister;
+      const reg = path ? await StuffApi.singleton<Stuff>(path).catch(() => null) : null;
+      if (!(reg instanceof ShipRegister)) throw new Error(`testharness ship: ${flag} keeps no register of ships`);
+      const entry = await reg.entryNamed(handle);
+      if (entry === null) throw new Error(`testharness ship: the register of ${flag} has no ship named '${handle}'`);
+      handle = entry.key;
     }
     const found = handle.includes('#')
       ? await ExpanseApi.standUpCraft(handle).catch(() => null)

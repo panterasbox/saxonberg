@@ -8,7 +8,6 @@ key: /world/terminus/hesper/structure
 flag: terminus-city
 registeredAtS: 0
 house: /world/terminus/hesper/idea/outfit
-lies: null
 shares:
   - holder: { kind: organization, path: /world/terminus/harbor/line/idea/office, name: the Greywater Line }
     shares: 64

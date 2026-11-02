@@ -33,6 +33,23 @@
  * which refuses a `from` that does not hold them — nobody but a holder can
  * sell.
  *
+ * ## ⭐ Reached by reference, never searched
+ *
+ * Nothing walks every register (review 1 — the retired `ShipRegisterApi`
+ * did, and that was the reverse question). A **ship** names the register
+ * she is entered in and the name she is entered under (`Ship.shipRegister`,
+ * `Ship.registeredName`), so her owners and her flag are one keyed read
+ * of her own entry; a **government** names the register it keeps
+ * (`Government.shipRegister`), which is how a yard enters a new ship, a
+ * desk book reads its pages, and the `transfer` verb finds the ship whose
+ * shares change hands. Where a ship LIES is not the register's business:
+ * a landing keeps that (`FrameSited.noteAlongside`).
+ *
+ * ⚠ The writes are narrow-entry, each naming its one legitimate caller:
+ * `enter` — the ship herself, about herself, as she is commissioned;
+ * `transferShares` — the `transfer` verb's controller, which takes the
+ * seller's consent and the buyer's money in the same act.
+ *
  * ⚠ Read-side verification is mandatory (the herd's reason): a `kind: 'ship'`
  * tag is something anyone who can write a document can apply, so every read
  * re-checks the path lies under this register's prefix.
@@ -44,6 +61,9 @@ import { Idea } from '../../lib/stuff/Idea';
 import { RegistrarMixin, type Registrar } from '../../lib/document/Register';
 import { DocumentApi } from '../../api/document';
 import { WorldClockApi } from '../../api/worldclock';
+import { CallSecurity } from '../../lib/security/decorators';
+import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
+import { Mixins } from '../../lib/mixin';
 import type { Stuff, EvictionContext } from '../../lib/stuff/Stuff';
 import type { VetoResult } from '../../lib/errors';
 import type { FieldMeta } from '../../lib/mixin';
@@ -68,14 +88,6 @@ export interface ShareHolding {
   shares: number;
 }
 
-/** Where a ship lies made fast, as her register last heard. */
-export interface ShipLies {
-  /** The landing's path. */
-  landing: string;
-  /** Game-seconds she was made fast there. */
-  sinceS: number;
-}
-
 /**
  * ⭐ A ship's register entry — the whole of what her register knows about
  * her. Holdings are listed in the order they were entered (the managing
@@ -96,12 +108,26 @@ export interface ShipEntry {
   registeredAtS: number;
   /** Her company — the Business that mans her (`''` when none). */
   house: string;
-  /** ⭐ Where she lies made fast (a ship of a kind): the landing re-wires her way from this. */
-  lies: ShipLies | null;
 }
 
 /** What a share transfer answers: a refusal in words, or the entry as it now stands. */
 export type ShareTransferResult = { ok: true; entry: ShipEntry } | { ok: false; reason: string };
+
+/**
+ * The ship herself, and only about HERSELF — a participant contract: a
+ * voyaging caller whose durable handle is the one being entered. (A
+ * mixin name, not `FromClass(Ship)`: the class import would close a cycle
+ * through the ship back to her register.)
+ */
+const FromTheShipItself = SecurityPolicies.FromMixin(Mixins.Voyaging, {
+  where: (caller, _target, _method, args) => {
+    const mine = (caller as Stuff).getDurableHandle();
+    return mine !== null && (args[0] as { key?: unknown } | undefined)?.key === mine;
+  },
+});
+
+/** The `transfer` verb — consent and money in one act (P15). */
+const FromTheTransfer = SecurityPolicies.FromModule('/platform/idea/cmd/system/TransferController');
 
 export default class ShipRegister extends RegistrarMixin(Idea) {
   static fieldMeta: FieldMeta = {
@@ -156,7 +182,7 @@ export default class ShipRegister extends RegistrarMixin(Idea) {
     const out: ShipEntry[] = [];
     for (const doc of await DocumentApi.list(prefix)) {
       if (!this.isOwnPath(doc.getPath()) || doc.getKind() !== SHIP_ENTRY_KIND) continue;
-      const entry = entryOf(doc.getData());
+      const entry = this.parseEntry(doc.getData());
       if (entry !== null) out.push(entry);
     }
     return out;
@@ -168,13 +194,7 @@ export default class ShipRegister extends RegistrarMixin(Idea) {
     if (path === '') return null;
     const doc = await DocumentApi.read(path);
     if (doc === null || !this.isOwnPath(doc.getPath()) || doc.getKind() !== SHIP_ENTRY_KIND) return null;
-    return entryOf(doc.getData());
-  }
-
-  /** The entry for the ship whose durable handle is `handle`, or `null`. */
-  public async entryFor(handle: string): Promise<ShipEntry | null> {
-    if (!handle) return null;
-    return (await this.entries()).find((e) => e.key === handle) ?? null;
+    return this.parseEntry(doc.getData());
   }
 
   /** Is `name` already taken in this register? (a name with no letters is never available) */
@@ -202,10 +222,14 @@ export default class ShipRegister extends RegistrarMixin(Idea) {
 
   /**
    * ⭐ Enter a ship (P14): refused in words when the name is taken here or
-   * files nowhere, or the shares do not come to sixty-four.
+   * files nowhere. The ship herself calls it, about herself — and she
+   * knows whether she is in a register already (her own `shipRegister`),
+   * so this book never searches itself for her handle.
    *
-   * @throws when the entry is malformed — an authoring or caller error, never a refusal.
+   * @throws when the entry is malformed (the shares do not come to
+   *   sixty-four) — an authoring or caller error, never a refusal.
    */
+  @CallSecurity(FromTheShipItself)
   public async enter(entry: Omit<ShipEntry, 'flag' | 'registeredAtS'> & Partial<Pick<ShipEntry, 'registeredAtS'>>): Promise<string | null> {
     if (!entry.key || !entry.kind) throw new Error(`ShipRegister.enter: an entry names her kind and her handle (got ${JSON.stringify(entry)})`);
     const total = entry.shares.reduce((n, h) => n + h.shares, 0);
@@ -215,7 +239,6 @@ export default class ShipRegister extends RegistrarMixin(Idea) {
     const path = this.pathOf(entry.name);
     if (path === '') return 'A ship is entered under a name with letters in it.';
     if (await this.isNameTaken(entry.name)) return `There is a ship named ${entry.name.trim()} in the register already.`;
-    if ((await this.entryFor(entry.key)) !== null) return 'She is in the register already.';
     const filed: ShipEntry = {
       name: entry.name.trim(),
       kind: entry.kind,
@@ -224,25 +247,26 @@ export default class ShipRegister extends RegistrarMixin(Idea) {
       shares: entry.shares.map((h) => ({ holder: { ...h.holder }, shares: h.shares })),
       registeredAtS: entry.registeredAtS ?? WorldClockApi.getNow().rawValue(),
       house: entry.house ?? '',
-      lies: entry.lies ? { ...entry.lies } : null,
     };
     await this.write(filed);
     return null;
   }
 
   /**
-   * ⭐ Move `n` shares of the ship `handle` from `from` to `to` (P15) —
-   * refused in words when `from` does not hold that many. The register is
-   * written once, whole; a holding that falls to nothing comes off.
+   * ⭐ Move `n` shares of the ship entered as `name` from `from` to `to`
+   * (P15) — refused in words when `from` does not hold that many. The
+   * register is written once, whole; a holding that falls to nothing
+   * comes off. Only the `transfer` verb calls it.
    */
-  public async transferShares(handle: string, from: ShareHolder, to: ShareHolder, n: number): Promise<ShareTransferResult> {
-    const entry = await this.entryFor(handle);
+  @CallSecurity(FromTheTransfer)
+  public async transferShares(name: string, from: ShareHolder, to: ShareHolder, n: number): Promise<ShareTransferResult> {
+    const entry = await this.entryNamed(name);
     if (entry === null) return { ok: false, reason: 'She is not in this register.' };
     if (!Number.isInteger(n) || n <= 0 || n > SHARES_PER_SHIP) {
       return { ok: false, reason: `A share is a sixty-fourth: name a whole number from 1 to ${SHARES_PER_SHIP}.` };
     }
     if (from.path === to.path && from.kind === to.kind) return { ok: false, reason: 'Shares cannot change hands with their own holder.' };
-    const held = entry.shares.find((h) => sameHolder(h.holder, from));
+    const held = entry.shares.find((h) => this.sameHolder(h.holder, from));
     if (!held || held.shares < n) {
       return {
         ok: false,
@@ -250,21 +274,12 @@ export default class ShipRegister extends RegistrarMixin(Idea) {
       };
     }
     held.shares -= n;
-    const into = entry.shares.find((h) => sameHolder(h.holder, to));
+    const into = entry.shares.find((h) => this.sameHolder(h.holder, to));
     if (into) into.shares += n;
     else entry.shares.push({ holder: { ...to }, shares: n });
     entry.shares = entry.shares.filter((h) => h.shares > 0);
     await this.write(entry);
     return { ok: true, entry };
-  }
-
-  /** ⭐ Where she lies made fast now (`null` — under way, or adrift): the landing's re-wire reads it. */
-  public async setLies(handle: string, lies: ShipLies | null): Promise<boolean> {
-    const entry = await this.entryFor(handle);
-    if (entry === null) return false;
-    entry.lies = lies ? { ...lies } : null;
-    await this.write(entry);
-    return true;
   }
 
   /** Write an entry at its path — through the register transport, as this register. */
@@ -273,42 +288,37 @@ export default class ShipRegister extends RegistrarMixin(Idea) {
     if (path === '') throw new Error(`ShipRegister: '${entry.name}' files nowhere`);
     await DocumentApi.saveToRegister(this as unknown as Stuff & Registrar, path, { ...entry } as unknown as Record<string, unknown>);
   }
-}
 
-/** Two share-holders are the same holder. */
-function sameHolder(a: ShareHolder, b: ShareHolder): boolean {
-  return a.kind === b.kind && a.path === b.path;
-}
-
-/** Parse a stored payload into an entry, or `null` when it is not one. */
-function entryOf(data: unknown): ShipEntry | null {
-  if (typeof data !== 'object' || data === null) return null;
-  const d = data as Record<string, unknown>;
-  if (typeof d.name !== 'string' || d.name === '' || typeof d.key !== 'string' || d.key === '') return null;
-  const shares: ShareHolding[] = [];
-  if (Array.isArray(d.shares)) {
-    for (const raw of d.shares as Array<Record<string, unknown>>) {
-      const h = raw?.holder as Record<string, unknown> | undefined;
-      const n = Number(raw?.shares);
-      if (!h || (h.kind !== 'player' && h.kind !== 'organization') || typeof h.path !== 'string' || !(n > 0)) continue;
-      shares.push({
-        holder: { kind: h.kind, path: h.path, ...(typeof h.name === 'string' && h.name !== '' ? { name: h.name } : {}) },
-        shares: n,
-      });
-    }
+  /** Two share-holders are the same holder. */
+  private sameHolder(a: ShareHolder, b: ShareHolder): boolean {
+    return a.kind === b.kind && a.path === b.path;
   }
-  const lies = d.lies as Record<string, unknown> | null | undefined;
-  return {
-    name: d.name,
-    kind: typeof d.kind === 'string' ? d.kind : d.key,
-    key: d.key,
-    flag: typeof d.flag === 'string' ? d.flag : '',
-    shares,
-    registeredAtS: typeof d.registeredAtS === 'number' ? d.registeredAtS : 0,
-    house: typeof d.house === 'string' ? d.house : '',
-    lies:
-      lies && typeof lies.landing === 'string' && lies.landing !== ''
-        ? { landing: lies.landing, sinceS: typeof lies.sinceS === 'number' ? lies.sinceS : 0 }
-        : null,
-  };
+
+  /** Parse a stored payload into an entry, or `null` when it is not one. */
+  private parseEntry(data: unknown): ShipEntry | null {
+    if (typeof data !== 'object' || data === null) return null;
+    const d = data as Record<string, unknown>;
+    if (typeof d.name !== 'string' || d.name === '' || typeof d.key !== 'string' || d.key === '') return null;
+    const shares: ShareHolding[] = [];
+    if (Array.isArray(d.shares)) {
+      for (const raw of d.shares as Array<Record<string, unknown>>) {
+        const h = raw?.holder as Record<string, unknown> | undefined;
+        const n = Number(raw?.shares);
+        if (!h || (h.kind !== 'player' && h.kind !== 'organization') || typeof h.path !== 'string' || !(n > 0)) continue;
+        shares.push({
+          holder: { kind: h.kind, path: h.path, ...(typeof h.name === 'string' && h.name !== '' ? { name: h.name } : {}) },
+          shares: n,
+        });
+      }
+    }
+    return {
+      name: d.name,
+      kind: typeof d.kind === 'string' ? d.kind : d.key,
+      key: d.key,
+      flag: typeof d.flag === 'string' ? d.flag : '',
+      shares,
+      registeredAtS: typeof d.registeredAtS === 'number' ? d.registeredAtS : 0,
+      house: typeof d.house === 'string' ? d.house : '',
+    };
+  }
 }

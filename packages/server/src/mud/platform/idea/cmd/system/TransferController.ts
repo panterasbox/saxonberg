@@ -26,6 +26,12 @@
  *     title only, the receiver's consent, the parcel flow's shape.
  *
  * Nobody but a holder can be the `from`; the register refuses the rest.
+ *
+ * ⭐ **Which register** (review 1): the one kept by the government whose
+ * law runs where the act is done (`GovernmentApi.subjectTo` of the room —
+ * aboard, the flag state's). A bill of sale is lodged with the register
+ * that keeps her, so it is made under that flag; nothing walks every
+ * register looking for her name.
  */
 
 import { CommandController } from "../../../../lib/command/CommandController";
@@ -41,10 +47,10 @@ import { MixinApi } from "../../../../api/mixin";
 import { StuffApi } from "../../../../api/stuff";
 import { Zone } from "../../../../lib/zone/Zone";
 import type { Stuff } from "../../../../lib/stuff/Stuff";
-import { ShipRegisterApi } from "../../../../api/ship-register";
+import { GovernmentApi } from "../../../../api/government";
 import { BankingApi, Money } from "../../../../api/banking";
 import Ship from "../../Ship";
-import { SHARES_PER_SHIP } from "../../ShipRegister";
+import ShipRegister, { SHARES_PER_SHIP, type ShipEntry } from "../../ShipRegister";
 
 const TOPIC = "shell.result";
 
@@ -198,14 +204,11 @@ export default class TransferController extends CommandController<TransferModel>
     if (!Number.isInteger(n) || n <= 0 || n > SHARES_PER_SHIP) {
       return this.fail(context, `A share is a sixty-fourth of her: name a whole number from 1 to ${SHARES_PER_SHIP}.`, "bad-share-count");
     }
-    const entries = await ShipRegisterApi.entriesNamed(shipName);
-    if (entries.length === 0) {
-      return this.fail(context, `No register has a ship named ${shipName.replace(/^the\s+/i, "")}.`, "no-such-ship");
+    const found = await this.entryHere(context, shipName);
+    if (found === null) {
+      return this.fail(context, `No register kept here has a ship named ${shipName.replace(/^the\s+/i, "")}.`, "no-such-ship");
     }
-    if (entries.length > 1) {
-      return this.fail(context, `More than one register has a ship of that name; the flags differ, and so do the ships.`, "which-ship");
-    }
-    const entry = entries[0]!;
+    const { register, entry } = found;
     const self = giver.getIdentityPath() ?? "";
     if (self === "") return this.fail(context, "You have no durable identity to hold a share.", "no-identity");
     const person = (ref: MqlOneResult | string | undefined): Stuff | null =>
@@ -239,7 +242,7 @@ export default class TransferController extends CommandController<TransferModel>
       if (!accepted) return this.fail(context, `${holder.getPresentation()} will not sell.`, "declined");
       const seller = { kind: "player" as const, path: from, name: holder.getPresentation() };
       const buyer = { kind: "player" as const, path: self, name: giver.getPresentation() };
-      const moved = await ShipRegisterApi.transferShares(entry.key, seller, buyer, n);
+      const moved = await register.transferShares(entry.name, seller, buyer, n);
       if (!moved.ok) return this.fail(context, moved.reason, "register-refused");
       if (price > 0) {
         try {
@@ -255,7 +258,7 @@ export default class TransferController extends CommandController<TransferModel>
           );
         } catch (err) {
           // ⭐ Money and shares together or neither: the shares go back.
-          const back = await ShipRegisterApi.transferShares(entry.key, buyer, seller, n);
+          const back = await register.transferShares(entry.name, buyer, seller, n);
           if (!back.ok) console.error(`TransferController: ${n} shares of ${entry.key} moved but were not paid for and could not move back — ${back.reason}`);
           return this.fail(
             context,
@@ -288,8 +291,8 @@ export default class TransferController extends CommandController<TransferModel>
     const accepted = await this.ask(receiver, `Accept ${n} shares in the ${entry.name} from ${giver.getPresentation()}?`);
     if (accepted === null) return this.fail(context, `${receiver.getPresentation()} must be online to accept shares.`, "receiver-offline");
     if (!accepted) return this.fail(context, `${receiver.getPresentation()} declined the shares.`, "declined");
-    const moved = await ShipRegisterApi.transferShares(
-      entry.key,
+    const moved = await register.transferShares(
+      entry.name,
       { kind: "player", path: self, name: giver.getPresentation() },
       { kind: "player", path: to, name: receiver.getPresentation() },
       n,
@@ -309,6 +312,28 @@ export default class TransferController extends CommandController<TransferModel>
     } catch {
       return false;
     }
+  }
+
+  /**
+   * The register kept where this act is done, and the ship entered in it
+   * under `shipName` — the governments over the giver's room, nearest
+   * first, each asked by the register it names (`Government.shipRegister`).
+   * `null` when none of them has her.
+   */
+  private async entryHere(
+    context: CommandContext,
+    shipName: string,
+  ): Promise<{ register: ShipRegister; entry: ShipEntry } | null> {
+    const scope = context.location;
+    if (!scope) return null;
+    for (const g of await GovernmentApi.subjectTo(scope)) {
+      if (!g.shipRegister) continue;
+      const register = await StuffApi.singleton<Stuff>(g.shipRegister).catch(() => null);
+      if (!(register instanceof ShipRegister)) continue;
+      const entry = await register.entryNamed(shipName);
+      if (entry !== null) return { register, entry };
+    }
+    return null;
   }
 
   /** A live ship reads her register again (who answers for her may have changed). */

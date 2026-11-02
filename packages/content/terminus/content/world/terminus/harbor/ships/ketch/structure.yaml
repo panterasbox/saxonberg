@@ -19,6 +19,11 @@ data:
   deckHeightM: 2.5
   mastheadHeightM: 17
   house: /world/terminus/harbor/ships/ketch/idea/company
+  # ⭐ The register she is entered in, and the name she is entered under
+  # (harbors P14, review 1): she knows her register — her owners and her
+  # flag are read off her own entry there, never searched for.
+  shipRegister: /platform/idea/ShipRegister/terminus-city
+  registeredName: Kittiwake
   expanse: /stuff/idea/WaterExpanse/greywater
   expansePosition: { latDeg: 42.001, lonDeg: -8.468 }
   speedKn: 6
