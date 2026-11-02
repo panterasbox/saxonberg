@@ -348,6 +348,52 @@ nobody can be in, on or under the water** — which is the entire lens. The
 guard is the **named-work test** above: *you have not audited this lens
 until you have named something specific you cannot build.*
 
+### ⭐⭐⭐ Staged or live — a question about CONTENT, never about a system
+
+*Added 2026-11-02, out of the water-supply planning, after the owner
+had been asked the same persistence question for the third build
+running.*
+
+> *"The answer is always going to be 'is it staged or is it live?' —
+> that's a question about an individual piece of content, not a system,
+> so both need to be possible, and you build what you need to build to
+> prove that."*
+
+Every stateful thing can be one of two kinds:
+- **staged:** its state is derived or reconciled, and on unload it
+  returns to what its row says. A weir, a tank that fills on a fixed
+  schedule, the butt behind a cottage nobody tends.
+- **live:** its state is history somebody made, and the world
+  remembers it. The intake a keeper switched off, the gate a farmer
+  opened at two in the morning, the well a player dug.
+
+**Which one a thing is depends on what this particular row is for,
+not on what kind of thing it is.** Two gates on one river can differ:
+one is a ledger people audit, the other is scenery.
+
+So the lens asks two things of any system that holds state:
+1. **Can an author make either?** A system that is live by class
+   forces every row to pay for memory it does not need. Persistence is
+   the exception, and every live row says in one line what only it can
+   remember. A system that is staged by class makes the world forget
+   what a player did. Both are failures of this lens: an author cannot
+   choose.
+2. **Did the build prove the forms it shipped?** Ship the plain
+   (staged) form and a `Persistent…` twin only where a row in the build
+   needs one. Prove each form with at least one real row. Build what the
+   content needs. If that is one form, ship one; if it is two, ship two.
+
+⚠ **Lens 3a is the other half of this.** Live state that the world
+forgets, and staged scenery that claims to remember, are both the
+fiction betraying itself. Ask both questions together.
+
+**Failing looks like:**
+- a plan with a table of which CLASSES persist;
+- `PersistentLocation` copied from a sibling row with no stated
+  purpose (the farmstead barn, 2026-11-01);
+- a switch that reverts to "on" when its room unloads (the Wharfside
+  intake before water-supply).
+
 ---
 
 ## 3 · Immersion & roleplay — what experience does it create?
