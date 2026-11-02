@@ -1,8 +1,0 @@
-class: /platform/location/Offstage
-data:
-  coords: { x: 1, y: 0, z: 0 }
-  shortDescription: The Colorman's — Back Room
-  keywords: [room, back]
-  register: proper
-  longDescription: |
-    A back room of drying racks and oil-stiff aprons on hooks.

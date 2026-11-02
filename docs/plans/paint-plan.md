@@ -1110,6 +1110,15 @@ fork, the lens that chose is named.
   course, a horizon read or a boarding does; until then the Hesper reads
   "not alongside" (honest, not wrong). Test: `AboardExit.test.ts`.
 
+- **B35 (review, the owner)** — *no new `Offstage`.* The colorman's
+  outfit and the painter's round named a new `Offstage` back room; the
+  staging slate (§ 6) retires `Offstage` for the wings as null. Both
+  `offstage:` lines and the row are gone. A house that authors no
+  `offstage` moves nobody off at the end of a shift (employment's shipped
+  rule), so Ira stays in his shop and Tam where his round ended — business,
+  not a parking lot. Sending a hand to null, or home, at the end of a shift
+  is the staging build's.
+
 ---
 
 ## ⭐⭐ Host placement

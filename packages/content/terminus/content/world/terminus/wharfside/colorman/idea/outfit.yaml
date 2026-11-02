@@ -19,7 +19,6 @@ data:
       schedule:
         - { days: [0, 1, 2, 3, 4, 5, 6], hours: [7, 19] }
   banksAt: goodkin
-  offstage: /world/terminus/wharfside/colorman/location/offstage
   operatingLocations:
     - /world/terminus/wharfside/colorman/location/shop
     - /world/terminus/wharfside/colorman/thing/counter
