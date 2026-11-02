@@ -1,6 +1,6 @@
 /**
  * The field-population build's drive — a field made of parts
- * (field-population-requirements § The drive, 13 steps), against a booted
+ * (the field-population drive script, 13 steps; its requirements doc retired at the merge), against a booted
  * world, in the order a year runs.
  *
  * ⭐⭐ **Tests build state; this uses it.** Everything is typed the way a

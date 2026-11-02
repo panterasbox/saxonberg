@@ -1,6 +1,6 @@
 /**
- * The cover build's drive — arable and grazing (cover-requirements § The
- * drive, 19 steps), against a booted world, in the order a year runs.
+ * The cover build's drive — arable and grazing (19 steps; its requirements doc retired at the merge,
+ * and the steps are this file), against a booted world, in the order a year runs.
  *
  * ⭐⭐ **Tests build state; this uses it.** Everything here is typed the
  * way a player types it — `plough`, `sow wheat`, `harvest wheat`,

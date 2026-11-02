@@ -1,22 +1,19 @@
 # Cover slate — what grows over ground, and the arable field
 
-> **Status: UNBUILT — DESIGNED 2026-10-28 (§ 8).** ⭐⭐ **The owner's
-> priority: the immediate follow-on after sugar (MR !439, merged)**: *"I
-> thought it was already built and it's pretty core RGO mechanics."* First
-> designed in conversation 2026-10-24, parked for sugar's merge; the open
-> questions were settled 2026-10-28 (§ 8), and the build split in two.
-> **Left:** ⭐ **ARABLE first** (§ 8): a field is a bed with one aggregate
-> crop slot · harvest and sow take an AREA per act · plough turns the sward
-> under each season · seed rate sets the sown area · ratoon decline · the
-> crop is the titleholder's · the island's cane moved onto it (⚠ it dies
-> today, § 9) · `Plant`'s `harvest` retired if nothing loose remains.
-> **Then COVER** (§ 4): the sward and the stand onto kernel rows (species
-> parameters, the stand's full integral). ⭐ **Stage B, grazing and feeding,
-> is folded in** (§ 10): the herd stands on a field, eats by metabolic weight,
-> its condition follows what it ate, hay in a trough carries the winter.
-> **Size:** one large build in two stages: A arable (trade-farming + a kernel
-> bed seam + sugar content), B grazing (trade-ranching + the field hook + the
-> herd record + the condition coupling). Cover (§ 4) is a later, smaller one.
+> **Status: PARTIAL — arable and grazing BUILT (MR !480, 2026-11-01).** A
+> tract of open ground holds area crops on fields its holder marks; harvest
+> and sow take an area per act; plough turns a field's sward under each
+> season; seed rate and condition set the yield; cane ratoons and declines;
+> the crop is the operator's; a herd grazes a field, eats by metabolic
+> weight, its condition follows its feed; hay in a trough carries the
+> winter. See soil.md § Tracts and fields, ranching.md, husbandry.md.
+> **Left:** the kernel `Cover` (§ 4: sward and stand as one growing stock on
+> species rows) · weeds, crop disease, continuous-cropping penalties ·
+> hay quality by sward band · the undrafted tally's satiation feeding milk ·
+> a place affording another pack's verb (command-taxonomy slate) · a
+> written theft record (governance/courts) · paddocks, gates, a hand's
+> grazing cadence (ranching slate).
+> **Size:** a medium build (Cover, § 4).
 
 **Sits on:** [soil.md](../../subsystems/soil.md) (the field, the sward) ·
 [husbandry.md](../../subsystems/husbandry.md) (the growth model, monocarp vs

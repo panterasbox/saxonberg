@@ -1,16 +1,27 @@
 # Field population slate — the plant is the unit at every scale
 
-> **Status: PARTIAL** — designed 2026-10-29 with the owner, during the
-> cover build's review (MR !480), and built on that MR (plan
-> `field-population-plan.md`, W0–W6): authored patches as soil parts, the
-> sampled stem and the labeled plant with its root zone, `water`/`feed`/
-> `sow`/`harvest` at a patch, the banded read, grading by patch, and the
-> campus hand who reads with her own eyes.
-> **Left:** weed/thin (a hoe; `Patch` is where a weed reserve would live)
-> · patches on the sward (§ 9) · the grieve's report (§ 8.5) · the hand
-> harvesting a field · seed saved from a labeled plant · a second arg on
-> `look` (the command-taxonomy slate)
-> **Size:** a small build
+> **Status: PARTIAL** — designed 2026-10-29 with the owner, built on the
+> cover MR (!480): fields as soil parts, the sampled stem and the labeled
+> plant, `water`/`feed`/`sow`/`harvest` at a field, the banded read,
+> grading by field, the campus hand who reads with her own eyes — and
+> (2026-10-31) **tracts and fields**: a farm is a holding whose layout
+> names tracts by share of open ground, copies mirror, a holder `mark`s
+> fields, zoning gates them, the grass and herds are a field's, `plot`
+> retired. See soil.md § Tracts and fields, holding.md § Tracts in a layout.
+> **Left:** weed/thin (a hoe; `Field` is where a weed reserve would live) ·
+> the grieve's report (§ 8.5) · the hand harvesting a field · seed saved
+> from a labeled plant · a second arg on `look` (command-taxonomy slate) ·
+> per-field improvement (`grub`/`ditch`/`lime at <field>`) · a feeder tied
+> to one field · renaming a field in place · `legumeFraction`'s writer ·
+> the venue farms as STANDING holdings (holding.md § Deferred seams) · the
+> farm archetype reached by a verb (`survey` reads one room) · the
+> Registry office's business (a land sale there cannot take money) ·
+> `title buy`'s *"can't cover"* when no business operates the desk · the
+> sweep of persistent places (persistence is the exception — the 34
+> `PersistentLocale` rows and the persistable things, each to name its
+> purpose under a ratchet) · the occupant-shape probe in a tract's loose
+> grazing (ranching).
+> **Size:** a small build each
 
 **Sits on:** [husbandry.md](../../subsystems/husbandry.md) (the plant,
 the pot as a bed with one slot) · [soil.md](../../subsystems/soil.md)

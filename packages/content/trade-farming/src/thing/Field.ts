@@ -39,7 +39,7 @@
  * that *a thing that is not a place may carry grass* — true of exactly
  * this one.
  *
- * See [docs/subsystems/soil.md] and docs/plans/field-population-plan.md.
+ * See docs/subsystems/soil.md § Tracts and fields.
  */
 
 import Thing from '@saxonberg/server/mud/lib/stuff/Thing';

@@ -5,8 +5,8 @@
  * (2026-10-30). It carries the blocking drive's flow and keeps the spans in
  * place — the drive is a farming YEAR — sown in spring (day 80), a fortnight's grazing, the season's stages in ten-day jumps, a month of fallow, an unattended month at the Delight (day 255), and a winter unfed in fortnights; the staged twin of each span is in the blocking file.
  *
- * The cover build's drive — arable and grazing (cover-requirements § The
- * drive, 19 steps), against a booted world, in the order a year runs.
+ * The cover build's drive — arable and grazing (19 steps; its requirements doc retired at the merge,
+ * and the steps are this file), against a booted world, in the order a year runs.
  *
  * ⭐⭐ **Tests build state; this uses it.** Everything here is typed the
  * way a player types it — `plough`, `sow wheat`, `harvest wheat`,

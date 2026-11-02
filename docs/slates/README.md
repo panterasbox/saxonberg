@@ -35,9 +35,9 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**403 slates.** 150 greenfield · 107 continuations · 67 waves · 79 tails.
+**405 slates.** 149 greenfield · 110 continuations · 67 waves · 79 tails.
 
-## ⭐ Greenfield — nothing shipped yet (150)
+## ⭐ Greenfield — nothing shipped yet (149)
 
 Pick from here for a clean cycle with no existing substrate to
 respect.
@@ -76,7 +76,6 @@ respect.
 | [content-generation](./builds/content-generation-slate.md) | the operation vocabulary + its refusals · the generator as a |
 | [controllers-are-io](./builds/controllers-are-io-slate.md) | the census gate (`lint:controller-mutations`) · the burn-down, controller by controller, of 132 controllers / 408 mutating calls · the outcome-type convention · where an engaged step's DURATION lives. |
 | [courts](./builds/courts-slate.md) | the case object (matter · parties · fact record · claims … |
-| [cover](./builds/cover-slate.md) | one kernel `Cover` shape over grass, timber and crops · per-species parameters from rows (ends the hard-coded ryegrass) · the harvest axis (what a cut takes, how it regrows, a ripeness gate) · the arable field crop (`sow`/`harvest` on a field) … |
 | [cover-and-concealment](./builds/cover-and-concealment-slate.md) | the cover protocol answered by an object's mixins · details' light cover facet · the channel split — concealment (perceptual) and protection (delivery) · search techniques per mixin … |
 | [deception-and-detection](./builds/deception-and-detection-slate.md) | the three-party table · NPC suspicion as behavior · the player mark's graded rendering · clues as derived traces read at competence … |
 | [decomposition](./builds/decomposition-slate.md) | ⭐ AUTHORED decay states in model-native terms — per part, by mechanism — that behave, read, repair and continue · authored as a STATE or as a HISTORY the physics derives once at creation · per-material susceptibility per mechanism · the exposure clock kept as the rule (an act starts it, shelter stops it — Law 2 intact) and built only where a consumer needs it … |
@@ -195,7 +194,7 @@ respect.
 | [wizardry-curriculum](./builds/wizardry-curriculum-slate.md) | the kind-of-content intake · the eight topics of W101 as lessons · the exemplar set (one per kind) · the detail-density mirror … |
 | [worlds](./builds/worlds-slate.md) | bodies as biomes under a space root · re-parenting today's world under a home-planet biome · the radius inheritable, gravity derived from mass and radius · the celestial profile on the planet biome … |
 
-## ⭐ Continuations — substrate shipped, a build's worth remains (107)
+## ⭐ Continuations — substrate shipped, a build's worth remains (110)
 
 The subsystem doc is the reference for what already ships; these
 are the named remainders.
@@ -227,6 +226,7 @@ are the named remainders.
 | [cooking](./builds/cooking-slate.md) | the tending wave (the durative cook · braise as a recipe-script · free cooking · the skill seam — S1 + S2 shipped with doneness; what remains is the durative verb, sequencing and the window skill widens) … |
 | [cooperative](./builds/cooperative-slate.md) | the capital faucet (credit per patron per bucket) + the stake ledger enforcing the founding charter + the dono/sub webhook + mint-at-launch · the honor→chronicle / voice→standing split of the two markers · the ballot over the shipped conviction substrate (passage `tally / totalStanding` · quorum … |
 | [corpos](./builds/corpos-slate.md) | the multipolar approval vector · competition + rival-tanking · sponsorship · approval→access gates … |
+| [cover](./builds/cover-slate.md) | the kernel `Cover` (§ 4: sward and stand as one growing stock on species rows) · weeds, crop disease, continuous-cropping penalties · hay quality by sward band · the undrafted tally's satiation feeding milk … |
 | [crafting](./builds/crafting-slate.md) | skill-as-control (the declared next crafting wave — the seam's three levers; tool `control` shipped only as a grade FLOOR) · defects & failure as diegetic events · recipe-spread beyond watching (taught / discovered / tradeable recipe-items; authoring as the fourth vector) · assembly recipes + disassembly … |
 | [credit](./builds/credit-slate.md) | ⭐⭐ risk — a rating, a bureau, risk-based pricing (Part 11) · ⚠ *the LABOR gap Part 11 named is closed — trades-and-labor shipped the openings, the criterion, the sign, `apply` and `clock on/off`, so an NPC house employing a player is a thing that happens now* · ⭐⭐ the secondary market (buying paper) · personal credit + guarantees … |
 | [currency](./builds/currency-slate.md) | a second issuer + who may authorize a mint, and whether one issuer mints every currency or each gets its own · opt-in acceptance lists / corpo scrip · the peg as a redeemable standing offer · the money-changer's mechanics (rate source, settlement, the `convert` seam) … |
@@ -242,6 +242,7 @@ are the named remainders.
 | [eternal-university](./builds/eternal-university-slate.md) | the arrival gate · the Quad + the walkway spine (the EC road names) · Student Services (registrar + housing office) · the Health Center clinic … |
 | [executive](./builds/executive-slate.md) | the **executive log** (append-only; principal · authority invoked · act · authorization … |
 | [farming](./builds/farming-slate.md) | the arable field crop — the aggregate density (`sow`/`water`/ `harvest field`; no verb sows a `Field`) · plant genetics — `Genome`, `express` reaction norms, `pollinate`, cultivars and fixed-vs-segregating seed lots, the husbandry-wide breeding substrate · the environment-control tier (greenhouse glass + hydroponics) · per-stage stress sensitivities + yield scaling + the composition output … |
+| [field-population](./builds/field-population-slate.md) | weed/thin (a hoe; `Field` is where a weed reserve would live) · the grieve's report (§ 8.5) · the hand harvesting a field · seed saved from a labeled plant … |
 | [fire-combustion](./builds/fire-combustion-slate.md) | . → fire.md |
 | [food-safety](./builds/food-safety-slate.md) | molds (Part 10) — the second population's visible surface · rancidity's own small law (Part 10) · the attach points nobody uses yet (irrigation contamination · the `trade-butchery` spin-out … |
 | [freight](./builds/freight-slate.md) | the barricade (exits vs lane edges · the clearing verb · erect via crafting?) · the tollgate + the turnpike trust (the toll schedule as a `parameter` clause … |
@@ -297,6 +298,7 @@ are the named remainders.
 | [sampling-and-labs](./builds/sampling-and-labs-slate.md) | the sample object + its provenance field · bench instruments and the campus lab as a place · the hand-tool middle tier (lens, streak plate, hardness kit) · the certified assayer vocation … |
 | [sanitation](./builds/sanitation-slate.md) | `collect` + the impound yard · the abandonment rule and the two legal regimes a locality picks · animal control (the yard with creatures in it, the shelter as its output) · the scavenger vocation and its rungs … |
 | [scan-sweep](./builds/scan-sweep-slate.md) | the fourteen sync-read catalogues still booted · where singleton-ness lives · AC 7 (log back in to a keyed room after a restart) merged unverified · unstaged content … |
+| [seed-and-propagation](./builds/seed-and-propagation-slate.md) | volunteers and shed grain (weeds of the last crop) · the farm hand moving the barn's stock to the farm shelf (the at-scale seed seller — found empty on the browser walk) · seed set by a crop left standing (roots and biennials) · fiber-or-seed timing (flax, hemp) … |
 | [senses](./builds/senses-slate.md) | ⭐ NPCs reacting to SMELL (§ below — opened 2026-10-18 by the cleanliness review, !380) · smell trails / temporal persistence + NPC scent-tracking · the active-sense pattern (echolocation) + the alien channels (magneto-/electroreception, pit-sensing) · differential per-channel rendering … |
 | [spawn-distribution](./builds/spawn-distribution-slate.md) | the creature half — a procgen-NPC generator over the NameBank / species dossier / `PersonaMixin` · create-monster · creature respawn economics · a true weighted-rarity draw with depth/biome/tag eligibility (shipped item half is region-scoped counts, not this) … |
 | [species](./builds/species-slate.md) | every actual difference — the ectotherm · scent-based recognition · cannot-metabolise-a-staple · equipment incompatibility … |
