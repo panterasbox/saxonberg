@@ -20,6 +20,12 @@ import { AUTHORED_SHIP_WARREN } from '../ShipWarren';
 import TemplateApplier from '../TemplateApplier';
 import RouteController from '../cmd/movement/RouteController';
 import LocateController from '../cmd/perception/LocateController';
+import LookController from '../cmd/perception/LookController';
+import { candidatesForHere } from '../../../api/mql/scope-walk';
+import { CardApi } from '../../../api/card';
+import type BerthExit from '../BerthExit';
+import type Compartment from '../../location/Compartment';
+import type { Exitable } from '../../../lib/boundary/Exitable';
 import { Document } from '../../../lib/persistence/Document';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
@@ -320,5 +326,37 @@ describe('aboard a ship of a kind — the room is asked, never its row (harbors 
     const atSea = await run(locate, 'locate', { target: { stuff: who, raw: 'me' } }, who, deck);
     expect(atSea.text).toMatch(/at sea, by reckoning: /);
     expect(atSea.text).not.toMatch(/made fast/);
+  });
+
+  it('⭐ review 2: from the landing, `look <her>` describes her deck across her way — never standing her up asleep', async () => {
+    expect(await ship.comeAlongside(LANDING)).toMatch(/made fast/);
+    const landing = await StuffApi.singleton<Stuff & Container & Exitable>(LANDING);
+    const way = landing.getExit('smack') as unknown as BerthExit;
+    expect(way).toBeTruthy();
+    // Her way shows HER deck (a second smack of the kind stands too).
+    expect(way.peekDestination()).toBe(deck);
+    expect((deck as unknown as Compartment).isSeenAcrossExit()).toBe(true);
+    const hold = (deck as unknown as Exitable).getExit('down')!.getDestination() as unknown as Compartment;
+    expect(hold.isSeenAcrossExit()).toBe(false);
+    const who = await standOn(landing);
+    expect(candidatesForHere(landing, who).some((c) => c.stuff === deck)).toBe(true);
+
+    // `look smack` binds the way (its name); the look shows her deck.
+    vi.spyOn(CardApi, 'open').mockReturnValue(null as never);
+    const look = makeStuff(() => new LookController());
+    const seen = await run(look, 'look', { target: { stuff: landing, raw: 'smack', via: { exit: way } } }, who, landing);
+    expect(seen.text).toMatch(/smack deck/);
+
+    // Sunk, she is seen by nobody on the quay.
+    const sunk = vi.spyOn(ship, 'isSunk').mockReturnValue(true);
+    expect((deck as unknown as Compartment).isSeenAcrossExit()).toBe(false);
+    sunk.mockRestore();
+
+    // Asleep: nothing is stood up to be looked at — the look is the landing's.
+    await ship.sleep();
+    expect(way.peekDestination()).toBeNull();
+    const asleep = await run(look, 'look', { target: { stuff: landing, raw: 'smack', via: { exit: way } } }, who, landing);
+    expect(asleep.text).not.toMatch(/smack deck/);
+    expect(StuffApi.findByIdentityPath(`${KIND}/k1`).filter((s) => !s.isDestroyed())).toHaveLength(0);
   });
 });

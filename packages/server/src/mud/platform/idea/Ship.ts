@@ -1084,7 +1084,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
    * colors are found out by reading it.
    */
   public flownFlag(): Flag | null {
-    const deck = this.entranceNow();
+    const deck = this.watchRoomNow();
     if (deck === null) return null;
     for (const x of deck.getContents()) {
       if (x instanceof Flagstaff) {
@@ -1095,8 +1095,11 @@ export default class Ship extends BilgeMixin(PersistableMixin(
     return null;
   }
 
-  /** Her entrance room if it stands now (no stand-up: the look is sync). */
-  private entranceNow(): (Stuff & Container) | null {
+  /**
+   * Her deck if it stands now — never stands her up (a look is sync). What
+   * her way aboard shows a viewer on the landing (`BerthExit.peekDestination`).
+   */
+  public watchRoomNow(): (Stuff & Container) | null {
     if (this.isOfKind()) {
       const room = this._warren?.entryRoom() ?? null;
       return room !== null && MixinApi.isContainer(room) ? room : null;

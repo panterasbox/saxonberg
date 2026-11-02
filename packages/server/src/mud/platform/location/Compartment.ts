@@ -126,6 +126,22 @@ export default class Compartment extends WaterPlaceMixin(
     this.setWaters({ ...this.getWaters(), sea });
   }
 
+  /**
+   * ⭐ A ship alongside is seen across her way (harbors review 2, master's
+   * `isSeenAcrossExit`): from the landing, `look hesper` describes her
+   * DECK — the one room of hers in plain view over the side — while she is
+   * afloat. Her cabin and hold are entered to be seen; a wreck is under the
+   * sea, seen by nobody on the quay.
+   *
+   * @hook
+   */
+  public override isSeenAcrossExit(): boolean {
+    const ship = this.shipNow();
+    if (ship === null || ship.isSunk()) return false;
+    const deck = ship.watchRoomNow();
+    return deck !== null && deck.stuffId === (this as unknown as Stuff).stuffId;
+  }
+
   /* ─────────────────────────── the flood reads ─────────────────────────── */
 
   /** ⭐ The water's height above her keel now, m — her bilge (the datum is her keel). */

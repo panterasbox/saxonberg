@@ -48,6 +48,8 @@ export interface Berthed {
   getGangwayKeyway(): string;
   /** Her deck, standing — where the way aboard leads. */
   watchRoom(): Promise<(Stuff & Container) | null>;
+  /** Her deck if it stands now; never stands her up. */
+  watchRoomNow(): (Stuff & Container) | null;
 }
 
 export default class BerthExit extends LockableMixin(DeferredDestinationExit) {
@@ -160,6 +162,18 @@ export default class BerthExit extends LockableMixin(DeferredDestinationExit) {
       };
     }
     return super.canTraverse(mover, mode);
+  }
+
+  /**
+   * ⭐ The far side if it is loaded now (harbors review 2): HER deck, asked
+   * of her — never the entrance row's instances, which for a ship of a
+   * kind are every smack's deck. A sleeping ship is not stood up to be
+   * looked at: `peekDestination` never faults anything in, and the landing
+   * already reads her name while she sleeps (*Alongside: …*); taking the
+   * way is what stands her up.
+   */
+  public override peekDestination(): Stuff | null {
+    return this.ship()?.watchRoomNow() ?? null;
   }
 
   /** Her deck, whenever the way is taken (she may have slept and been stood up again). */
