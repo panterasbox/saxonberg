@@ -523,6 +523,10 @@ The D17 split, shipped in this build and now an invariant the
   `<extent>/<leaf>`. Nothing about a holding room is stamped, so nothing
   about it moved in the addressing build; what it gained is a NAME for
   the pair — `getDurableHandle()` → `<row>#<extent/leaf>`.
+- ⭐ So **no path answers "which building is this room in"** for a holding
+  room: the room asks its warren (`Warren.structureOf`, which
+  `HoldingWarren` answers from its buildings — paint review), never a
+  persistence key passed off as a place.
 - `StuffApi.clone`'s `asTemplatePath` option is **gone**, replaced by
   `asIdentityPath`. The lint proves the channel stays retired and that
   every template-path-valued field in every shipped row resolves.

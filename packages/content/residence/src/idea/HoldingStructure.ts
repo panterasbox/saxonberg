@@ -22,8 +22,10 @@
  * farmstead's house and its barn are two, each with its own coat and
  * condition. Open ground (a yard, a tract, a garden) belongs to none; it
  * is where they are painted from. A house claims exactly its own rooms
- * ({@link hasMember}); the MAIN one (rooms with no `building:` key) also
- * answers at the holding's own extent, so "the home you hold" reads it.
+ * — the holding answers which building a room is in
+ * (`HoldingWarren.structureOf`), since no path names a keyed room. The MAIN
+ * one (rooms with no `building:` key) also answers at the holding's own
+ * extent, so "the home you hold" reads it.
  *
  * ⭐ It persists unconditionally — a holding exists only because somebody
  * holds it — under the holding's own `(scope, key)`.
@@ -42,9 +44,8 @@ import type { Stuff, EvictionContext } from '@saxonberg/server/mud/lib/stuff/Stu
 import type { VetoResult } from '@saxonberg/server/mud/lib/errors';
 import type { ActRefusal } from '@saxonberg/server/mud/lib/craft/ActPlan';
 
-/** What the house reads of its holding — its rooms. */
+/** What the house reads of its holding — whether it still stands. */
 interface HoldingRooms {
-  getMembers(): Stuff[];
   isDestroyed(): boolean;
 }
 
@@ -56,8 +57,8 @@ export default class HoldingStructure extends PersistableMixin(
   /** The holding whose house this is — a weak, runtime ref set at its wake. */
   private holding: HoldingRooms | null = null;
 
-  /** The room keys this building is — set by the holding at its wake. */
-  private roomKeys: ReadonlySet<string> = new Set();
+  /** The rooms this building is — live instances the holding hands it at its wake. */
+  private rooms: Stuff[] = [];
 
   /** Is this the holding's main building (it answers at the holding's extent)? */
   private main = true;
@@ -67,32 +68,49 @@ export default class HoldingStructure extends PersistableMixin(
   }
 
   /** Which of the holding's rooms this building is, and whether it is the main one. */
-  public setRooms(keys: readonly string[], main: boolean): void {
-    this.roomKeys = new Set(keys);
+  public setRooms(rooms: readonly Stuff[], main: boolean): void {
+    this.rooms = [...rooms];
     this.main = main;
   }
 
-  public getRoomKeys(): string[] {
-    return [...this.roomKeys];
+  /** Is `room` one of this building's rooms? */
+  public hasRoom(room: Stuff): boolean {
+    return this.rooms.includes(room);
   }
 
   public isMain(): boolean {
     return this.main;
   }
 
-  /** ⭐ Its own rooms — never the open ground or another building under the same extent. */
+  /**
+   * ⭐ By path, a holding's building answers only at the holding's own
+   * extent, and only the main one ("the home you hold"). Its rooms are
+   * keyed clones no path names; the holding answers for them
+   * (`HoldingWarren.structureOf`).
+   */
   public override hasMember(locationPath: string): boolean {
-    if (this.roomKeys.has(locationPath)) return true;
     return this.main && locationPath === this.getExtent();
   }
 
-  /** The holding's rooms that are this building — keyed clones, never found under the extent by path. */
+  /** The rooms that are this building — never the open ground or another building. */
   public override residentMembers(): Stuff[] {
-    const h = this.holding;
-    if (h === null || h.isDestroyed()) return [];
-    return h
-      .getMembers()
-      .filter((m) => !m.isDestroyed() && MixinApi.isAtmospheric(m) && this.roomKeys.has(m.getPlacePath() ?? ''));
+    return this.rooms.filter((m) => !m.isDestroyed() && MixinApi.isAtmospheric(m));
+  }
+
+  /** Its landings: the places one exit from its own rooms that pass {@link isLandedAt}. */
+  public override landingsNow(): Stuff[] {
+    const seen = new Set<string>();
+    const out: Stuff[] = [];
+    for (const m of this.residentMembers()) {
+      if (!MixinApi.isExitable(m)) continue;
+      for (const exit of m.getExits().values()) {
+        const far = exit.peekDestination();
+        if (far === null || seen.has(far.stuffId)) continue;
+        seen.add(far.stuffId);
+        if (this.isLandedAt(far)) out.push(far);
+      }
+    }
+    return out;
   }
 
   public override weatherScope(): Stuff | null {

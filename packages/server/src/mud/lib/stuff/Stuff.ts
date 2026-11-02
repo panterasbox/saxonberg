@@ -553,16 +553,6 @@ export abstract class Stuff {
   }
 
   /**
-   * ⭐ Where this thing IS in the template namespace (paint D6) — its
-   * identity path; a keyed instance of a shared row (a Hinkley lot's hall,
-   * cloned from a generic hall row) answers its KEY instead
-   * (`PersistableMixin`). What a structure's membership and a landing read.
-   */
-  public getPlacePath(): string | null {
-    return this.getIdentityPath();
-  }
-
-  /**
    * ⭐⭐ The **durable per-instance handle** — a string that still names
    * *this* thing after it has been unloaded and stood back up, or
    * `null` when this object is one of an unbounded many and nothing

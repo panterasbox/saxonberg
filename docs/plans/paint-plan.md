@@ -921,10 +921,10 @@ fork, the lens that chose is named.
   on `Place` (`landedStructuresNow()`, `landedStructures()`), not
   `NavigationApi` statics taking a room; `attachStructure(extent, s)` takes
   the extent first. *Verbs on objects.*
-- **B4 (W1)** — `Place.getPlacePath()`: a keyed room of a shared row (a
-  lot's hall) answers its KEY, else its identity. Membership, the landing,
-  `exposure()` and the survey read it — without it no holding room is a
-  member of its own house.
+- **B4 (W1; replaced in review, B32)** — *was* `Stuff.getPlacePath()`, a
+  keyed room answering its persistence key as its place. Removed: a key is
+  persistence's, not a place. A room now asks its warren which building it
+  is in (`Warren.structureOf` via `Place.structureNow`).
 - **B5 (W1, D7 simplified)** — "sold" = the covering parcel's current
   owner is a PLAYER (`ParcelApi.coveringParcelOfSync`, sync, no
   `refreshTitle`). An organization or group holding the ground is not a
@@ -1061,10 +1061,15 @@ fork, the lens that chose is named.
   holding made a farmstead's house and barn one building with its yard and
   tracts inside it. Now a building is the ENCLOSED rooms grouped by the
   floorplan room's `building:` key (none = the main building); open ground
-  is no building's and is where they are painted from. Each house claims
-  exactly its own rooms (`hasMember`), is registered room by room with the
-  location graph, and persists under `<extent>` (main) or
-  `<extent>@<name>`. The farmstead's barn is `building: barn`. The ascent
+  is no building's and is where they are painted from. Each house holds
+  its room INSTANCES; a room asks its warren which building it is in
+  (`Warren.structureOf`, the hook `HoldingWarren` answers;
+  `Place.structureNow` asks it before the location graph) — a keyed room
+  has no path of its own (holding.md § Identity), and the first cut's
+  `Stuff.getPlacePath()` (a persistence key passed off as a place) is gone;
+  `Stuff.ts` and `Persistable.ts` are master's again. Only the main
+  building is registered with the location graph, at the holding's extent.
+  Each persists under `<extent>` (main) or `<extent>@<name>`. The farmstead's barn is `building: barn`. The ascent
   gate reads the main building. *Lens 2: the author says what a building
   is; the next farm layout is rows.*
 

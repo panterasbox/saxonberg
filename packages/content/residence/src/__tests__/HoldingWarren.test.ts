@@ -14,6 +14,7 @@ import { KERNEL_CONTENT_ROWS } from '@saxonberg/server/test-bootstrap';
 import { Lock } from "@saxonberg/server/mud/lib/lock/Lock";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import HoldingStructure from '../idea/HoldingStructure';
+import type Place from '@saxonberg/server/mud/lib/stuff/Place';
 import HoldingWarren from '../idea/HoldingWarren';
 import HouseholdersKit from '../thing/HouseholdersKit';
 import MaintainController from '../idea/cmd/crafting/MaintainController';
@@ -471,17 +472,23 @@ describe('the residential programme (D16)', () => {
     const all = holding.buildings();
     expect(all).toHaveLength(2);
     const [house, shed] = all as [HoldingStructure, HoldingStructure];
+    const hall = holding.roomForLeaf('hall')!;
+    const bedroom = holding.roomForLeaf('bedroom')!;
+    const porch = holding.roomForLeaf('porch')!;
     expect(holding.house()).toBe(house);
-    expect(house.getRoomKeys()).toEqual([`${LOT1}/hall`]);
-    expect(house.hasMember(`${LOT1}/hall`)).toBe(true);
+    expect(house.hasRoom(hall)).toBe(true);
+    expect(house.hasRoom(bedroom)).toBe(false);
+    expect(house.hasRoom(porch)).toBe(false);
+    expect(shed.hasRoom(bedroom)).toBe(true);
+    // By path, only the main building answers, and only at the extent.
     expect(house.hasMember(LOT1)).toBe(true);
-    expect(house.hasMember(`${LOT1}/bedroom`)).toBe(false);
-    expect(house.hasMember(`${LOT1}/porch`)).toBe(false);
-    expect(shed.getRoomKeys()).toEqual([`${LOT1}/bedroom`]);
     expect(shed.hasMember(LOT1)).toBe(false);
     expect(shed.getPresentation()).toMatch(/shed/);
-    expect(holding.buildingOf(`${LOT1}/bedroom`)).toBe(shed);
-    expect(holding.buildingOf(`${LOT1}/porch`)).toBeNull();
+    // ⭐ A room asks its warren which building it is in — no path names it.
+    expect((bedroom as unknown as Place).structureNow()).toBe(shed);
+    expect((hall as unknown as Place).structureNow()).toBe(house);
+    expect((porch as unknown as Place).structureNow()).toBeNull();
+    expect(holding.buildingOf(porch)).toBeNull();
     // Each keeps its own condition.
     shed.setCondition(0.3);
     expect(shed.getConditionWord()).toBe('badly worn');

@@ -43,6 +43,7 @@ import { AppApi } from '../../../../api/app';
 import { AppSettingKeys } from '../../../../lib/config/AppSettings';
 import { Paint } from '../../../../lib/material/Paint';
 import StructureBase from '../../../../lib/structure/Structure';
+import type Place from '../../../../lib/stuff/Place';
 import type Material from '../../../../lib/material/Material';
 import type { Faced } from '../../../../lib/material/Faced';
 import type { Durable } from '../../../../lib/material/Durable';
@@ -149,8 +150,10 @@ export default class SurveyController extends CommandController {
     // ⭐ The fabric is the BUILDING's (paint D13): whatever structure this
     // room is a member of, read through its condition — a shop, a ship, a
     // home. A holding still answers for who OWES it (the term).
-    const roomPath = room.getPlacePath();
-    const structure = roomPath ? await NavigationApi.structureAt(roomPath) : null;
+    const roomPath = room.getIdentityPath();
+    const structure =
+      (room.isPlace() ? (room as unknown as Place).structureNow() : null) ??
+      (roomPath ? await NavigationApi.structureAt(roomPath) : null);
     if (structure !== null && isKeptBuilding(structure)) {
       lines.push('');
       lines.push(...(await this.outsideLines(structure, 'the place')));

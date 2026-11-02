@@ -41,6 +41,7 @@ import type { Container } from '../spatial/Container';
 import type { Containable } from '../spatial/Containable';
 import type { Exitable } from '../boundary/Exitable';
 import type { WarrenMember } from './WarrenMember';
+import type Structure from '../structure/Structure';
 import { StuffApi } from '../../api/stuff';
 import { ContainmentApi } from '../../api/containment';
 import { MixinApi } from '../../api/mixin';
@@ -126,6 +127,16 @@ export abstract class Warren extends Idea {
    */
   public laysOutOwnFrame(): boolean {
     return false;
+  }
+
+  /**
+   * @hook The building `member` is part of, when this warren knows it
+   * (paint review) — `null` defers to the location graph. A holding's
+   * rooms are keyed clones of shared rows, so no path names them
+   * (holding.md § Identity): the holding that minted them answers.
+   */
+  public structureOf(_member: Stuff): Structure | null {
+    return null;
   }
 
   public addMember(m: MemberStuff): boolean {

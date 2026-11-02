@@ -81,8 +81,10 @@ membership, entrance, height, storeys, the landing, whether it is sold
 (`platform/idea/Structure`, a `Singleton` per row) composes the outside's
 capabilities; a holding's house (`HoldingStructure`) is the base keyed per
 lot and attached to the graph at runtime (`NavigationApi.attachStructure`).
-A keyed room answers its KEY as its place (`Stuff.getPlacePath()`), which is
-what membership and `exposure()` read.
+A holding's keyed rooms have no path of their own, so a place asks its
+WARREN which building it is in first (`Place.structureNow` →
+`Warren.structureOf`, which the holding answers), then the location graph by
+its identity path — what membership, the landing and `exposure()` read.
 
 ## The one rule, and the `Exposure` it computes
 

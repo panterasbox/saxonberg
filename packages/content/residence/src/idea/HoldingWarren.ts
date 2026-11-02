@@ -643,15 +643,26 @@ export default class HoldingWarren extends ProgrammeBase {
     return covering === null ? [] : [covering];
   }
 
-  /** The building `roomKey` is part of — `null` for open ground. */
-  public buildingOf(roomKey: string): (StructureBase & Faced & Durable) | null {
+  /**
+   * The building `room` is part of — one of this holding's own, or the
+   * covering row's — `null` for open ground.
+   */
+  public buildingOf(room: Stuff): (StructureBase & Faced & Durable) | null {
     for (const h of this._houses.values()) {
-      if (!h.isDestroyed() && h.getRoomKeys().includes(roomKey)) return h;
+      if (!h.isDestroyed() && h.hasRoom(room)) return h;
     }
-    const s = NavigationApi.structureAtNow(roomKey);
-    return s !== null && MixinApi.isFaced(s) && MixinApi.isDurable(s)
-      ? (s as StructureBase & Faced & Durable)
-      : null;
+    if (this._houses.size > 0) return null;
+    const covering = this.house();
+    return covering !== null && this.getMembers().includes(room as MemberStuff) ? covering : null;
+  }
+
+  /**
+   * ⭐ Which building a room of this holding is part of (paint review):
+   * its rooms are keyed clones of shared rows, so no path names them —
+   * the holding that minted them answers (holding.md § Identity).
+   */
+  public override structureOf(member: Stuff): StructureBase | null {
+    return this.buildingOf(member);
   }
 
   /** The record key a building persists under: the main one the holding's own extent. */
@@ -659,10 +670,9 @@ export default class HoldingWarren extends ProgrammeBase {
     return name === '' ? extent : `${extent}@${name}`;
   }
 
-  /** Where a building is registered with the location graph: each of its rooms, and the main one at the extent. */
+  /** Where a building is registered with the location graph: the main one at the holding's extent. */
   private attachPointsOf(house: HoldingStructure): string[] {
-    const at = house.getRoomKeys();
-    return house.isMain() ? [...at, house.getExtent()] : at;
+    return house.isMain() ? [house.getExtent()] : [];
   }
 
   /**
@@ -675,28 +685,29 @@ export default class HoldingWarren extends ProgrammeBase {
     if (!extent) return;
     const covering = await NavigationApi.structureAt(extent);
     if (covering !== null && !(covering instanceof HoldingStructure)) return;
-    const groups = new Map<string, string[]>();
+    const groups = new Map<string, MemberStuff[]>();
     for (const spec of this.getFloorplan()) {
       const key = this.roomKeyOf(spec.leaf);
       const room = key === null ? undefined : this._roomsByKey.get(key);
-      if (key === null || room === undefined || room.isDestroyed()) continue;
+      if (room === undefined || room.isDestroyed()) continue;
       if (!MixinApi.isAtmospheric(room) || !room.exposure().holdsAir()) continue;
       const name = spec.building ?? '';
-      groups.set(name, [...(groups.get(name) ?? []), key]);
+      groups.set(name, [...(groups.get(name) ?? []), room]);
     }
     // The main building is the unnamed rooms', else the first named.
     const names = [...groups.keys()].sort((a, b) => (a === '' ? -1 : b === '' ? 1 : a.localeCompare(b)));
     for (const [i, name] of names.entries()) {
-      const keys = groups.get(name)!;
+      const rooms = groups.get(name)!;
       const live = this._houses.get(name);
       if (live !== undefined && !live.isDestroyed()) {
-        live.setRooms(keys, i === 0);
+        live.setRooms(rooms, i === 0);
         continue;
       }
       const house = await StuffApi.clone<HoldingStructure>(HOLDING_STRUCTURE_ROW);
       house.setExtent(extent);
-      house.setEntrance(keys[0] ?? null);
-      house.setRooms(keys, i === 0);
+      // Every room of it holds its own air, so no entrance is needed to land it.
+      house.setEntrance(null);
+      house.setRooms(rooms, i === 0);
       house.setHolding(this);
       // A building of its own goes by its name — the barn — and the main
       // one by its row's (the house).

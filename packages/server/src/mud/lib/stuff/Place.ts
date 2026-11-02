@@ -243,7 +243,23 @@ export default class Place extends PlaceBase {
 
   private static structureBeyond(alongside: Structure | null, far: Stuff | null, authored: string | null): Structure | null {
     if (alongside !== null) return alongside;
-    const path = far?.getPlacePath() || authored;
+    if (far !== null && far.isPlace()) return (far as unknown as Place).structureNow();
+    return authored ? NavigationApi.structureAtNow(authored) : null;
+  }
+
+  /**
+   * ⭐ The building this place is part of, over what is standing, or
+   * `null` (paint review). Its warren answers first — a holding's rooms
+   * are keyed clones of shared rows, so no path names them (holding.md
+   * § Identity) — else the location graph, by this place's identity path.
+   */
+  public structureNow(): Structure | null {
+    const self = this as unknown as Stuff;
+    if (MixinApi.isWarrenMember(self)) {
+      const s = self.getWarren()?.structureOf(self) ?? null;
+      if (s !== null) return s;
+    }
+    const path = self.getIdentityPath();
     return path ? NavigationApi.structureAtNow(path) : null;
   }
 

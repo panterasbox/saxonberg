@@ -33,10 +33,14 @@ building is the holding's ENCLOSED rooms grouped by the room's `building:`
 key, one `HoldingStructure` each. A farmstead's house and its barn
 (`building: barn`) are two buildings, each with its own coat and condition;
 open ground — the yard, a tract, Hinkley's garden — is no building's, and is
-where they are painted from. A house claims exactly its own rooms
-(`hasMember`), so `survey` in a field reads no fabric and `maintain` there
-finds nothing to keep. The main building (the unnamed rooms) also answers at
-the holding's own extent, which is what the ascent gate reads.
+where they are painted from. A holding's rooms are keyed clones of shared
+rows, so no path names them (holding.md § Identity): **a place asks its
+warren which building it is in** (`Warren.structureOf`, a hook the holding
+answers from its buildings' room instances; `Place.structureNow` asks it
+first, then the location graph by identity path). So `survey` in a field
+reads no fabric and `maintain` there finds nothing to keep. By path, only
+the main building (the unnamed rooms) answers, at the holding's own extent —
+what the ascent gate reads.
 
 | mixin | what it claims |
 |---|---|

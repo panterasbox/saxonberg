@@ -156,12 +156,11 @@ export default class MaintainController extends CommandController {
       if (warren instanceof HoldingWarren) {
         // The building THIS room is part of — a farmstead's barn is not its
         // house; open ground (the yard, a tract) is no building's.
-        const key = room.getPlacePath();
-        const house = key ? (warren as unknown as HoldingWarren).buildingOf(key) : null;
+        const house = (warren as unknown as HoldingWarren).buildingOf(room);
         return house !== null && kept(house) ? house : null;
       }
     }
-    const path = room.getPlacePath();
+    const path = room.getIdentityPath();
     const s = path ? await NavigationApi.structureAt(path) : null;
     return s !== null && kept(s) ? s : null;
   }

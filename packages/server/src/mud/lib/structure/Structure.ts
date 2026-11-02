@@ -78,6 +78,7 @@ import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
 import { ParcelApi } from '../../api/parcel';
 import type Exit from '../boundary/Exit';
+import type Place from '../stuff/Place';
 import type { ActRefusal } from '../craft/ActPlan';
 import { Mml } from '../../api/mml';
 import { AppApi } from '../../api/app';
@@ -214,10 +215,19 @@ export default class Structure extends DetailedMixin(
     const alongside = exit.alongsideNow();
     if (alongside !== null) return alongside.stuffId === this.stuffId;
     const far = exit.peekDestination();
-    const path = far?.getPlacePath() || exit.getDestinationTemplatePath();
-    if (!path || !this.hasMember(path)) return false;
+    if (far === null) {
+      const authored = exit.getDestinationTemplatePath();
+      return authored !== null && this.entrance !== null && authored === this.entrance && this.hasMember(authored);
+    }
+    // Is the far side one of mine? By its path, or — a holding's keyed
+    // room, which no path names — by the building its warren says it is in.
+    const path = far.getIdentityPath();
+    const mine =
+      (path !== null && this.hasMember(path)) ||
+      (far.isPlace() && (far as unknown as Place).structureNow() === this);
+    if (!mine) return false;
     if (this.entrance !== null && path === this.entrance) return true;
-    return far !== null && MixinApi.isAtmospheric(far) && far.exposure().holdsAir();
+    return MixinApi.isAtmospheric(far) && far.exposure().holdsAir();
   }
 
   /**
@@ -269,7 +279,7 @@ export default class Structure extends DetailedMixin(
     const out: Stuff[] = [];
     for (const m of [...StuffApi.findAllByTemplatePath(ext), ...StuffApi.findByPathGlob(`${ext}/**`)]) {
       if (m.isDestroyed() || seen.has(m.stuffId) || !MixinApi.isAtmospheric(m)) continue;
-      const path = m.getPlacePath();
+      const path = m.getTemplatePath();
       if (!path || !this.hasMember(path)) continue;
       seen.add(m.stuffId);
       out.push(m);

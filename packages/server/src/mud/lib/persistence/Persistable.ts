@@ -254,12 +254,6 @@ export function PersistableMixin<
       return this._persistenceKey;
     }
 
-    /** A keyed instance is where its KEY says, when the key is a path (paint D6). */
-    getPlacePath(): string | null {
-      const key = this._persistenceKey;
-      return key && key.startsWith('/') ? key : (this as unknown as Stuff).getIdentityPath();
-    }
-
     setPersistenceKey(key: string, explicit = true): void {
       this._persistenceKey = key;
       if (explicit) this._persistenceKeyExplicit = true;
