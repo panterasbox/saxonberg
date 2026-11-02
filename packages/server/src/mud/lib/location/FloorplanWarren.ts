@@ -19,9 +19,11 @@
  *    bands, `restoreShell`, and the `upkeepTerm` vocabulary;
  *  - **the subclass** — what the key MEANS (a parcel extent, a ship's
  *    durable key), who is told when the population changes
- *    (`reconcile`), how a LOCKED edge is gated (`wireLockedEdge`), what a
- *    woken room is stamped with (`onRoomWoken`), and the words the
- *    fabric is described in (`upkeepWords`).
+ *    (`reconcile`), how a LOCKED edge is gated (`wireLockedEdge`), the
+ *    address a woken room is stamped with (`addressFor`), and the words
+ *    the fabric is described in (`upkeepWords`). A room that must finish
+ *    itself against its warren does so in its own
+ *    `WarrenMember.onWarrenWake` — the ONE wake hook (harbors review 2).
  *
  * Identity is the keyed model (D17): every member's `templatePath`
  * resolves to a real row; per-instance uniqueness rides the persistence
@@ -389,7 +391,10 @@ export abstract class FloorplanWarren extends FloorplanBase {
     // down at clone, and keeps nothing.
     if (MixinApi.isPersistable(room)) await PersistableApi.restoreOrSeed(room, key);
     this._roomsByKey.set(key, room);
-    this.onRoomWoken(room, spec);
+    // The room's address — before the room finishes itself, which may
+    // read it (a tract seeds its ground from its locality).
+    const address = this.addressFor(spec);
+    if (address !== null && MixinApi.isAddressable(room)) room.setAddress(address);
     // ⭐ Stood up and restored: a member may now finish itself against
     // its warren — a tract sizes itself from the open ground (D28).
     if (MixinApi.isWarrenMember(room)) await room.onWarrenWake();
@@ -409,14 +414,17 @@ export abstract class FloorplanWarren extends FloorplanBase {
   }
 
   /**
-   * A room has just been stood up (restored or seeded). The place to
-   * stamp what the warren's key means for it — a house stamps its
-   * street address. Default: nothing.
+   * The address a woken room is stamped with — what the warren's key
+   * means for it (a house: its street address), or `null` for none. A
+   * READ the warren answers, not a wake hook: anything a room must do on
+   * waking is its own `WarrenMember.onWarrenWake` (harbors review 2), but
+   * a plain room (a farmyard) composes no `WarrenMember` and still has an
+   * address.
    *
-   * @hook
+   * @hook Default: none.
    */
-  protected onRoomWoken(_room: MemberStuff, _spec: FloorplanRoom): void {
-    /* nothing to stamp */
+  protected addressFor(_spec: FloorplanRoom): string | null {
+    return null;
   }
 
   /** Wire one intra-plan edge (idempotent — an existing exit stands). */

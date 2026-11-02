@@ -681,12 +681,15 @@ shell clock (`shellCondition`, `shellStamp`, `reconcileShell`,
 `conditionBand`, `conditionCause`, `restoreShell`). It speaks through four
 hooks: `reconcile` (who hears a population change — still abstract),
 `wireLockedEdge` (what opens a locked edge — the base **throws**, it has no
-lock to hang), `onRoomWoken` (what a woken room is stamped with), and
+lock to hang), `addressFor` (the address a woken room is stamped with — a
+read, not a wake hook: anything a room does on waking is its own
+`WarrenMember.onWarrenWake`, the ONE wake hook since harbors review 2;
+a ship's deck stamps itself a shore of her sea there), and
 `upkeepWords()` (the words the fabric is described in — the cause lines,
 the kit, the act and its witnessed line).
 
 `HoldingWarren extends FloorplanWarren` and keeps only what is
-residential: `addressBase` (stamped in `onRoomWoken`), the parcel keyway
+residential: `addressBase` (answered by `addressFor`), the parcel keyway
 (`refreshKeyway` before the base's wake; the keyed-door edge in
 `wireLockedEdge`), `openGroundM2()` (the PARCEL's workable area less the
 footprints), `reconcile` → the

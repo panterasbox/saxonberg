@@ -16,9 +16,9 @@
  * - **where the rooms stand** — a ship's key is a serial, not a path, so
  *   a room's zone is resolved under its own row's folder (the kind's
  *   zone, authored once) rather than from the key ({@link zoneFromFor});
- * - **the sea over the side** — a deck that cites a `sea` feature is
- *   stamped a shore of whatever sea she lies on as it wakes
- *   ({@link onRoomWoken});
+ * - **the sea over the side** — a deck that cites a `sea` feature
+ *   stamps itself a shore of whatever sea she lies on as it wakes
+ *   (`Compartment.onWarrenWake`, the one wake hook);
  * - **when she sleeps** — the population witness of her rooms asks her
  *   (`Ship.sleepIfEmpty`): nobody interactive aboard, not under way;
  * - **her words** — seams, oakum and pitch ({@link upkeepWords});
@@ -229,14 +229,6 @@ export default class ShipWarren extends FloorplanWarren {
   protected override zoneFromFor(spec: FloorplanRoom, key: string): string {
     const folder = spec.room.replace(/\/[^/]+$/, '');
     return `${folder}/${key}`;
-  }
-
-  /** ⭐ A deck that names the sea over her side is a shore of the sea she lies on. */
-  protected override onRoomWoken(room: MemberStuff, _spec: FloorplanRoom): void {
-    const sea = this.ship()?.getExpanse() ?? null;
-    if (sea === null || !MixinApi.isShore(room) || !MixinApi.isDetailed(room)) return;
-    if (!room.hasDetail('sea')) return;
-    room.setWaters({ ...room.getWaters(), sea });
   }
 
   /**

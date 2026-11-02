@@ -145,10 +145,10 @@ export default class HoldingWarren extends FloorplanWarren {
    *
    * @hook
    */
-  protected override onRoomWoken(room: MemberStuff, spec: FloorplanRoom): void {
-    if (!MixinApi.isAddressable(room)) return;
+  protected override addressFor(spec: FloorplanRoom): string | null {
     const base = this.addressBase || this.derivedAddressBase();
-    if (base) room.setAddress(spec.leaf ? `${base}/${spec.leaf}` : base);
+    if (!base) return null;
+    return spec.leaf ? `${base}/${spec.leaf}` : base;
   }
 
   private derivedAddressBase(): string {

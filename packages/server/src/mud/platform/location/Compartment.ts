@@ -8,8 +8,8 @@
  * key, not the class.
  *
  * - **A shore of her sea** — `Shore` so a deck that cites the sea over her
- *   side (`waters: { sea: … }`, stamped by her warren at wake for a kind's
- *   deck) reads it as the Hesper's deck always has: `look sea`, a bucket
+ *   side (`waters: { sea: … }`, stamped by the deck itself as her warren wakes
+ *   it — `onWarrenWake`) reads it as the Hesper's deck always has: `look sea`, a bucket
  *   over the side, the rod.
  * - ⭐ **No record of its own** (review 2, *persistence is the exception*):
  *   a deck or a cabin comes up from its row each time she wakes — its
@@ -109,6 +109,21 @@ export default class Compartment extends WaterPlaceMixin(
   public shipNow(): Ship | null {
     const s = this.structureNow();
     return s instanceof Ship ? s : null;
+  }
+
+  /**
+   * ⭐ Stood up by her warren (the one wake hook — harbors review 2): a
+   * room that names the sea over her side (`details: sea`) is a shore of
+   * whatever sea she lies on. A kind's deck row cannot name it — a smack
+   * lies on whichever sea she is on — so the room asks her as it wakes.
+   *
+   * @hook
+   */
+  public override async onWarrenWake(): Promise<void> {
+    await super.onWarrenWake();
+    const sea = this.shipNow()?.getExpanse() ?? null;
+    if (sea === null || !this.hasDetail('sea')) return;
+    this.setWaters({ ...this.getWaters(), sea });
   }
 
   /* ─────────────────────────── the flood reads ─────────────────────────── */

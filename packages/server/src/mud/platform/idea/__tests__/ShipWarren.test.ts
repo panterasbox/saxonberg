@@ -108,7 +108,11 @@ function installStore(): void {
     ],
   });
   add(ROOMS, '/platform/idea/location/CartesianZone', { name: 'a smack' });
-  add(DECK, '/platform/location/Compartment', { shortDescription: 'smack deck', props: [GEAR] });
+  add(DECK, '/platform/location/Compartment', {
+    shortDescription: 'smack deck',
+    props: [GEAR],
+    details: { sea: { keywords: ['sea'], description: 'Below the rail, the water.' } },
+  });
   add(GEAR, '/platform/thing/Thing', { shortDescription: 'a coil of gear' });
   add(HOLD, '/platform/location/Hold', { shortDescription: 'fish hold' });
   add(CRATE, '/platform/thing/Thing', { shortDescription: 'a crate' });
@@ -343,6 +347,15 @@ describe('ShipWarren — ships from a kind (harbors B1)', () => {
     await PersistableApi.capture(who as unknown as Stuff, 'rover-2');
     const rec = col('holder_snapshots').find((d) => d.scope === '/test/rover' && d.owner === 'rover-2');
     expect(rec?.place).toEqual({ container: DECK, containerKey: 'p1/deck' });
+  });
+
+  it('⭐ review 2: the deck stamps itself a shore of the sea she lies on as her warren wakes it (the one wake hook)', async () => {
+    vi.spyOn(Ship.prototype, 'getExpanse').mockReturnValue('/test/sea');
+    const ship = await mint('s9');
+    const deck = (await deckOf(ship)) as unknown as Compartment;
+    expect(deck.getWaters().sea).toBe('/test/sea');
+    const hold = (deck as unknown as Exitable).getExit('down')!.getDestination() as unknown as Compartment;
+    expect(hold.getWaters().sea).toBeUndefined(); // no sea over its side
   });
 
   it('⭐ her way aboard outlives her sleep: taking it stands her up, made fast as she was', async () => {
