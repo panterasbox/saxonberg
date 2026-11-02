@@ -64,6 +64,15 @@ that followed it. This is one build covering all of it; the plan stages it.
   that drain (the moulding design already names *pulp on the paper-maker's
   mould*); the drying loft; `dip`, `dry`, `fold`, `carve`, `strain`, `paint`.
   Faces carry coats.
+- **Adhesives (paint).** A glue is a material that says how strong its set line
+  is, how it stands the damp, the heat it lets go at, and whether heat and steam
+  undo it: hide, bone and fish glue (strong, undone by damp and steam), casein
+  (holds in the damp, never comes apart), starch paste, rosin and rubber cement.
+  A **glued joint** is made by assembly's one verb, `fit`, drawing glue from an
+  open vessel in reach; it holds only between **flat** faces and is weak until
+  the glue sets. A brushed coat sets by its binder, and paint already names *a
+  size* as a coat that sets by drying. `hang` puts a fixture on a wall and it
+  stays the hanger's.
 - **Text-bearing goods** — scrolls, spellbooks, the tide almanac, the assay slip,
   the coat-check ticket, the take-a-number ticket, the signpost — none of paper.
 - **Disciplines:** nothing for papermaking or printing.
@@ -129,21 +138,37 @@ two Disciplines.
   it fails: soaked or torn, it gives way and its contents spill.
 - **Board** — pasteboard (sheets pasted together), corrugated board (fluted paper
   between liners), and **papier-mâché** (pulp or paste in a mould).
-- **Wallpaper is a coat on a wall's face**, pasted; damp peels it and fire takes it.
+- **Wallpaper is a coat on a wall's face**, hung on a coat of paste; fire takes it.
+- ⭐⭐ **The glue decides what glued paper does** (paint's adhesives, not a paper
+  rule). Board, a carton's seams, a book's spine and covers, a label on a bottle
+  and an envelope's flap are glued joints, and each behaves as its glue does:
+  starch paste and hide glue let go in the damp, casein holds. A paste-labelled
+  bottle loses its label in the ice bucket; a casein-labelled one keeps it.
+  Wallpaper peels in a damp room because the paste lets go. A soaked carton
+  fails twice over — the board softens and the seam lets go.
+- **Paper glues only flat.** A sheet that cockled as it dried seats a glued joint
+  short; pressing it flat is why the press comes after the loft as well as before.
+- **A sealed letter shows whether it has been opened.** A gummed flap or a wax
+  seal is broken by opening it, and the break is seen — tamper evidence, which
+  matters because paper is readable by whoever holds it.
 - **Filter paper** is a finer filter for the shipped `strain`.
 
 ### Making it
 - **Paper from rags.** Sell clean rags at the mill's door; tear a worn garment
   into rags. Ret, `beat` in the stamper (which runs on what the river gives),
-  `dip` the mould, `couch` onto felt, press the post, `dry` in the loft, size it.
+  `dip` the mould, `couch` onto felt, press the post, `dry` in the loft, and `dip`
+  it in **size** — glue thinned in hot water (hide or parchment parings), laid on
+  the sheet as a coat that sets by drying.
 - **Grade comes from the making and the water.** Fiber, beating, the vatman's
   hand, sizing — and iron in the water browns the sheet. A mill on clean water
   makes white paper; the same mill below Rejection's mine water makes brown.
   Unsized paper is blotting paper: ink bleeds on it.
-- **Ink is made.** Iron-gall writing ink (galls, copperas, gum — the dyer's
-  iron-tannin black, one chemistry in two trades); printing ink (lampblack ground
-  into boiled linseed oil).
-- **Parchment** from a skin limed, stretched and scraped, never tanned.
+- **Ink is made.** Iron-gall writing ink (galls, copperas, gum arabic — the
+  dyer's iron-tannin black, one chemistry in two trades); printing ink (lampblack
+  ground into boiled linseed oil). **Gum arabic** is imported, and also gums the
+  envelope's flap.
+- **Parchment** from a skin limed, stretched and scraped, never tanned. Its
+  parings go to the glue pot as size.
 - **The `copy` ladder is one act across epochs**, the instrument deciding speed,
   cost and fidelity: the **pen** (by hand, one copy at a time, errors by the
   copyist's competence), the **press** (a forme, a print run), the **printer**
@@ -157,7 +182,8 @@ two Disciplines.
   `distribute` returns the type.
 - **Woodcut.** A block `carve`d and printed on the same press; the image is the
   author's own.
-- **Bookbinding.** Fold the printed sheets, sew the gatherings, cover with board.
+- **Bookbinding.** Fold the printed sheets, sew the gatherings, glue the spine,
+  and glue on board covers — hide glue, so a binder can steam a book apart again.
 
 ### The venues
 - **The paper mill** at Heart's Delight, on the Delight's flats beside the
@@ -238,8 +264,10 @@ two Disciplines.
   - `cast` is arcana's; type is poured into the hand mould, never `cast`.
   - `dip` is reused to form a sheet and to size it (immerse, withdraw with a coat).
   - `dry`, `fold`, `carve`, `strain`, `write`, `read` are reused as they are.
-  - `label` stays write-a-name; affixing a printed label is `paste`.
-  - `paint` stays the brush's; wallpaper is `paste`d.
+  - `label` stays write-a-name; affixing a printed label is a glued joint by
+    `fit`, as is laminating board, a carton's seam and a book's spine and covers.
+  - `paint` lays the coat of paste on a wall; `hang` lays the wallpaper on it (a
+    wall coat) and still hangs a poster (a fixture that stays yours).
   - `sew` stays tailoring's garments; binding is `bind`.
   - `cp` is the shell's; the player's act is `copy`.
 
@@ -295,8 +323,15 @@ and the corrugator carry theirs, and a covenant decides which a place admits.
 
 ### Packaging
 Paper bags and cartons are the shipped sack and crate made of paper and board.
-Wet or torn, they give way and spill (the shipped breakage path). Light is the
-reason to use them.
+Wet or torn, they give way and spill (the shipped breakage path), and their
+glued seams let go by their glue. Light is the reason to use them.
+
+### Adhesives are paint's
+Paper ships no glue and no glue rule. Every place paper is stuck — board,
+cartons, labels, spines, envelopes, wallpaper, papier-mâché — is paint's glued
+joint or a coat of paste, and the glue's own properties decide how it stands the
+damp, heat and taking apart. What this build adds is **size** (glue thinned for
+sizing, since a pour cannot thin a glue from the verbs today) and **gum arabic**.
 
 ### The mill's site — the Delight
 Clean water upstream of the mine water, so its sheets are white; its waste goes
@@ -313,9 +348,10 @@ Imported, sold in Terminus.
 Reused: `read`, `write`, `dip`, `dry`, `fold`, `carve`, `strain`, the screw
 press, pouring into a mould. New: `tear` (rags from a garment; a page from a
 book; a sheet), `beat`, `couch`, `copy`, `compose`, `proof`, `print` (the press
-pulls a forme; a printer takes a document), `distribute`, `bind`, `paste` (a
-label onto a thing; sheets into board; paper onto a wall). No verb is conferred
-by a band; a refusal tells a novice what lifts it.
+pulls a forme; a printer takes a document), `distribute`, `bind`, `seal` (a
+letter, by gum or wax). Gluing is the shipped `fit`; wallpaper is `paint` (the
+paste) then `hang`. No verb is conferred by a band; a refusal tells a novice
+what lifts it.
 
 ### Disciplines
 **Papermaking** and **printing** (composing, proofing, presswork, binding). Type
@@ -344,7 +380,7 @@ casting rides the shipped Founding.
    arrives — in this realm, the medieval country around industrial Terminus.
 6. **Economy** — produces paper, board, ink, type, printed copies, books and
    packaging; consumes rags, water, galls, copperas, lampblack, linseed oil, lead,
-   tin, antimony, skins and labor. Demand already there: the Gazette, the depot's
+   tin, antimony, skins, glue, gum arabic and labor. Demand already there: the Gazette, the depot's
    receipts, the tickets, the grocer's and shipper's goods. The mill fouls water
    that somebody downstream drinks.
 7. **Governance** — the press owner decides what prints; records are destroyed
@@ -374,8 +410,9 @@ step names its assertion: `player` or `staged`.
 8. `short · player` — Size sheets (`dip`, then `dry`). `write` on one: it holds.
 9. `instant · staged` — The same sheet made at a staged mill on the Kestrel below
    Rejection is brown.
-10. `short · player` — `paste` sheets into pasteboard; make a carton and a paper
-    bag at the mill.
+10. `short · player` — `fit` sized sheets together with starch paste: pasteboard.
+    Make a carton and a paper bag at the mill. A cockled sheet seats short until
+    it is pressed flat.
 
 **Ink and parchment**
 11. `staged · staged` — *(twin of soak 2)* Galls already steeped. Mix with copperas
@@ -384,8 +421,9 @@ step names its assertion: `player` or `staged`.
     it: parchment.
 
 **Little paper**
-13. `instant · player` — Write a letter on a sheet; hand it to a second player; they
-    `read` it. Hold it to a lamp in the dark: unreadable without the light.
+13. `instant · player` — Write a letter on a sheet; fold it into an envelope and
+    `seal` it; hand it to a second player. They open it and `read` it; the broken
+    seal shows to anyone who looks at it after. In the dark it cannot be read.
 14. `instant · player` — `tear` the letter: the torn-off half carries the half of
     the text it held. Wet a sheet: its ink runs. Burn one: gone.
 15. `instant · player` — A second player takes a printed copy of the first player's
@@ -424,7 +462,7 @@ step names its assertion: `player` or `staged`.
 28. `instant · player` — Buy a copy over the counter. `distribute` the type: the case
     is whole.
 29. `instant · player` — `carve` a woodcut block, lock it with type, `print` a
-    handbill with the image; `paste` it up in a room; a passerby reads it.
+    handbill with the image; `hang` it in a room; a passerby reads it.
 30. `instant · player` — Restart the world: the copies, the notebook and the poster
     read the same.
 
@@ -442,12 +480,16 @@ step names its assertion: `player` or `staged`.
     Burn it: the records still read on a phone with access; print an extract:
     frozen.
 
-**Packaging and the house**
+**Packaging, glue and the house**
 35. `instant · player` — Pack goods into a carton; carry it — lighter than the crate.
     Soak it: it gives way and the goods spill to the floor.
 36. `instant · player` — The grocer sells into a paper bag; tear it: it spills.
-37. `short · player` — `paste` wallpaper onto a room's wall; `look`: the wall is
-    papered. Damp it (staged): it peels.
+37. `short · player` — `paint` a room's wall with starch paste, then `hang`
+    wallpaper on it; `look`: the wall is papered. Damp the room (staged): it peels,
+    because the paste lets go.
+39. `instant · player` — `fit` a printed label to one bottle with starch paste and
+    to another with casein; stand both in an ice bucket: the paste label slides
+    off, the casein one holds.
 38. `instant · player` — `strain` through filter paper: finer than the cloth.
 
 ### Soak drive
@@ -485,6 +527,9 @@ step names its assertion: `player` or `staged`.
   deposit and leaves the depositor refused; a spent or forged receipt is refused.
 - Paper tears (losing the torn part's text), burns, and runs then pulps when wet;
   a wet or torn carton or bag spills its contents.
+- Everything glued — board, labels, seams, spines, wallpaper — stands the damp as
+  its glue does: paste and hide glue let go, casein holds.
+- A sealed letter that has been opened shows it.
 - Printed copies, notebooks and posters read the same after a world restart.
 - The blocking drive runs green in under half an hour of wall time.
 
@@ -500,4 +545,5 @@ step names its assertion: `player` or `staged`.
   [chronicle.md](../subsystems/chronicle.md) · [scripting.md](../subsystems/scripting.md) (the recipe ladder) ·
   [location-graph.md](../subsystems/location-graph.md) (charted claims) · [faces.md](../subsystems/faces.md) ·
   [mould.md](../subsystems/mould.md) · [watershed.md](../subsystems/watershed.md)
-- Paint (MR !513) — rags, lampblack, linseed oil, paste and glue, coats
+- Paint (MR !513) — rags, lampblack, linseed oil, coats, and ⭐ the adhesives:
+  [painting.md](../subsystems/painting.md) § Glue and [assembly.md](../subsystems/assembly.md)'s glued joint
