@@ -161,18 +161,7 @@ describe('the line’s regulars (harbors A2)', () => {
     expect(data('/stuff/idea/corpo/Brand/greywater-line').owner).toBe('greywater-line');
   });
 
-  it('⭐ the yard sells the smack BUILT TO ORDER, delivered to its own quay — a quay of the harbor\'s book (B2, P17)', () => {
-    const counter = data('/world/terminus/harbor/yard/thing/counter') as {
-      businessPath: string;
-      stockLines: Array<{ itemTemplatePath: string; minted?: boolean; deliversTo?: string }>;
-      prices: Record<string, number>;
-    };
-    expect(counter.stockLines).toEqual([
-      { itemTemplatePath: '/stuff/idea/Ship/smack', par: 1, minted: true, deliversTo: '/world/terminus/harbor/yard/quay' },
-    ]);
-    // ≈ a season of a hand's wages (P28): 90 days × ~56 a shift.
-    expect(counter.prices['/stuff/idea/Ship/smack']).toBe(5000);
-    expect((data(counter.businessPath) as { operatingLocations: string[] }).operatingLocations).toContain('/world/terminus/harbor/yard/thing/counter');
+  it('⭐ the yard\'s quay is a quay of the harbor\'s book (B2, P17)', () => {
     expect(rowAt('/world/terminus/harbor/yard/quay').class).toBe('/system/transport/location/HarborQuay');
     expect(harbor.quays.map((q) => q.place)).toContain('/world/terminus/harbor/yard/quay');
     // The smack's company is appointed by her register; she flies the city's colors.

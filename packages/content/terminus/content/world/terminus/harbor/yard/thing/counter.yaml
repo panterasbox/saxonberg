@@ -20,7 +20,6 @@ data:
   staffingPolicy: self-service
   serverPositionKeys: [shipwright]
   businessPath: /world/terminus/harbor/yard/idea/business
-  stockLines:
-    - { itemTemplatePath: /stuff/idea/Ship/smack, par: 1, minted: true, deliversTo: /world/terminus/harbor/yard/quay }
+  stockLines: []
   prices:
     /stuff/idea/Ship/smack: 5000

@@ -102,16 +102,6 @@ export interface StockLine {
    * never authored: see {@link Stock.bidFor}. Absent: the house buys none.
    */
   buys?: boolean;
-  /**
-   * ⭐ A line BUILT TO ORDER (harbors P17): its kind cannot sit on a
-   * counter — a ship (an Idea), a boat (a vessel) — so nothing is shelved
-   * and nothing restocks; a sale MINTS one and delivers it to
-   * {@link StockLine.deliversTo}. Requires `deliversTo`. A line without it
-   * is byte-identical to before.
-   */
-  minted?: boolean;
-  /** Where a minted line's good is delivered — a place path (the yard's quay, the shed's landing). */
-  deliversTo?: string;
 }
 
 /**
@@ -207,17 +197,6 @@ export default class Stock extends StockBase {
           throw new Error(`Stock.stockLines '${at}': '${retired}:' is retired — write from: { ${retired === "source" ? "store" : "supplier"}: … }`);
         }
       }
-      // ⭐ A minted line is delivered somewhere and comes from nowhere (P17).
-      if (raw?.minted === true) {
-        if (typeof raw.deliversTo !== "string" || raw.deliversTo === "") {
-          throw new Error(`Stock.stockLines '${at}': a minted line names where it is delivered (deliversTo:)`);
-        }
-        if (raw.from !== undefined) {
-          throw new Error(`Stock.stockLines '${at}': a minted line is built to order — it has no from:`);
-        }
-      } else if (raw?.deliversTo !== undefined) {
-        throw new Error(`Stock.stockLines '${at}': deliversTo: is for a minted line (minted: true)`);
-      }
       const from = raw?.from as Record<string, unknown> | undefined;
       if (from === undefined || from === null) continue;
       const keys = Object.keys(from).filter((k) => k !== "importBackstop");
@@ -247,15 +226,6 @@ export default class Stock extends StockBase {
     }
     if (from && "store" in from) return { kind: "store", store: from.store };
     return { kind: "import" };
-  }
-
-  /**
-   * ⭐ The MINTED line a typed word names (P17) — a kind built to order and
-   * delivered, never shelved — or `null`. The one matcher (`lineForWord`).
-   */
-  public mintedLineFor(word: string): StockLine | null {
-    const line = this.lineForWord(word);
-    return line !== null && line.minted === true ? line : null;
   }
 
   /** The stock line for a template, or null. */
@@ -521,8 +491,6 @@ export default class Stock extends StockBase {
    */
   override async reset(): Promise<void> {
     for (const line of this.stockLines) {
-      // ⭐ A minted line is built to order (P17): nothing is shelved.
-      if (line.minted === true) continue;
       const src = this.sourceOf(line);
       // ⭐ A SUPPLIED line is bought, never cloned (economic bootstrap
       // D14): the keeper walks to the supplier and buys the shortfall on

@@ -28,12 +28,6 @@
 import { CommandController } from "../../../../lib/command/CommandController";
 import type { CommandContext, CommandModel } from "../../../../api/command";
 import Stock from "../../../../lib/retail/Stock";
-import type { StockLine } from "../../../../lib/retail/Stock";
-import Ship from "../../Ship";
-import { PersistableApi } from "../../../../api/persistable";
-import { SecurityApi } from "../../../../api/security";
-import { GovernmentApi } from "../../../../api/government";
-import ShipRegister from "../../ShipRegister";
 import type { ShelfStuff } from "../../../../lib/retail/Consignment";
 import { ContainmentApi } from "../../../../api/containment";
 import { MixinApi } from "../../../../api/mixin";
@@ -51,9 +45,6 @@ import type { Containable } from "../../../../lib/spatial/Containable";
 import type { MqlOneResult } from '../../../../api/mql';
 
 const TOPIC = "act.deed";
-
-/** How many names a buyer is asked for before the sale is given up. */
-const NAME_TRIES = 5;
 
 interface BuyModel extends CommandModel {
   /** Where you are buying from — bound by the view, `from`-addressable. */
@@ -106,14 +97,6 @@ export default class BuyController extends CommandController<BuyModel> {
         );
         return;
       }
-    }
-
-    // ⭐ A line built to order (harbors P17): nothing on the shelf to hand
-    // over — a sale mints one and delivers it.
-    const minted = stock?.mintedLineFor(model.thing) ?? null;
-    if (minted !== null && stock) {
-      await this.buyMinted(stock, minted, giver, context, model);
-      return;
     }
 
     // One counter can be both the house's shelf and a brokerage (`Stock`
@@ -210,178 +193,6 @@ export default class BuyController extends CommandController<BuyModel> {
     // bought good never placed was in nobody's estate).
     this.handOver(item, giver);
     this.announce(giver, item, paid.tail, owner, named);
-  }
-
-  /**
-   * ⭐ Buy a kind built to order (harbors P17): priced off the line, paid,
-   * then MINTED and delivered to the line's `deliversTo`.
-   *
-   * - a **ship** is named by her buyer as she is entered in the register of
-   *   the polity the yard stands in (a name it has already is refused and
-   *   asked again — all before any money moves), then commissioned:
-   *   keyed by a fresh serial, her company, her entry, her key, made fast
-   *   at the yard's quay (`Ship.commission`);
-   * - anything else (a boat) is cloned, put down where it is delivered and
-   *   stamped to its buyer — the shipped hand-over, at a place instead of
-   *   into the hands.
-   */
-  private async buyMinted(
-    stock: Stock,
-    line: StockLine,
-    giver: Stuff,
-    context: CommandContext,
-    model: BuyModel,
-  ): Promise<void> {
-    const kind = line.itemTemplatePath;
-    const deliversTo = line.deliversTo ?? "";
-    const leaf = kind.split("/").pop() ?? kind;
-    const price = stock.priceFor(kind);
-    if (price == null) {
-      this.reject(giver, context, Mml.compose`The ${leaf} isn't priced.`, {
-        kind: "controller-rejected",
-        reason: "not-priced",
-        detail: model.thing,
-      });
-      return;
-    }
-    const cls = await StuffApi.classForRef(kind).catch(() => null);
-    const isShip = cls !== null && (cls === Ship || cls.prototype instanceof Ship);
-    if (!isShip) {
-      const paid = await EmploymentApi.settleSale(stock.getIdentityPath(), price, price, "a purchase");
-      if (!paid) {
-        this.reject(giver, context, Mml.compose`You can't cover a ${leaf} just now.`, {
-          kind: "controller-rejected",
-          reason: "insufficient-funds",
-          detail: model.thing,
-        });
-        return;
-      }
-      const item = await StuffApi.clone<Stuff>(kind);
-      const owner = await this.buyerOf(giver, paid.receipt);
-      if (MixinApi.isChattel(item)) await item.stampChattel(owner);
-      const at = await StuffApi.singleton<Stuff>(deliversTo).catch(() => null);
-      if (at !== null && MixinApi.isContainer(at) && MixinApi.isContainable(item)) {
-        ContainmentApi.move(item, at);
-      } else {
-        console.warn(`BuyController: '${kind}' was bought and could not be delivered to '${deliversTo}'`);
-      }
-      MessageApi.scene(giver)
-        .topic(TOPIC)
-        .toSelf(Mml.compose`You buy ${Mml.thing(item)}. ${paid.tail} It is waiting for you at ${at !== null ? Mml.thing(at) : Mml.text("the landing")}.`)
-        .toPeers(Mml.compose`${Mml.actor(giver)} buys ${Mml.thing(item)}.`)
-        .send();
-      return;
-    }
-
-    // ── a ship: her register first, her name, then the money, then her ──
-    const register = await this.registerHere(stock);
-    if (register === null) {
-      this.reject(giver, context, Mml.compose`Nobody here keeps a register of ships, and a ship is sold into one.`, {
-        kind: "controller-rejected",
-        reason: "no-register",
-        detail: model.thing,
-      });
-      return;
-    }
-    const interactive = MixinApi.isHasInteractive(giver) ? [...giver.getInteractives()][0] : undefined;
-    if (!interactive || !giver.getIdentityPath()) {
-      this.reject(giver, context, Mml.compose`A ship is named by the one who buys her.`, {
-        kind: "controller-rejected",
-        reason: "no-namer",
-        detail: model.thing,
-      });
-      return;
-    }
-    if (!BankingApi.canSettle(Money.of(price, BankingApi.compactCurrency()))) {
-      this.reject(giver, context, Mml.compose`You can't cover a ${leaf} just now.`, {
-        kind: "controller-rejected",
-        reason: "insufficient-funds",
-        detail: model.thing,
-      });
-      return;
-    }
-    const flag = register.getGovernmentKey();
-    const polity = GovernmentApi.getGovernment(flag)?.name ?? flag;
-    let name = "";
-    for (let tries = 0; tries < NAME_TRIES && name === ""; tries++) {
-      let asked: string;
-      try {
-        asked = (await interactive.promptText(`Name her — the name she will be entered under in the register of ${polity}:`)).trim();
-      } catch {
-        this.reject(giver, context, Mml.compose`Unnamed, she is not entered, and not sold.`, {
-          kind: "controller-rejected",
-          reason: "unnamed",
-          detail: model.thing,
-        });
-        return;
-      }
-      const bare = asked.replace(/^the\s+/i, "").trim();
-      if (bare === "") continue;
-      if (await register.isNameTaken(bare)) {
-        MessageApi.scene(giver)
-          .topic(TOPIC)
-          .toSelf(Mml.compose`There is a ship in the register of ${polity} named ${bare} already. Another name.`)
-          .send();
-        continue;
-      }
-      name = bare;
-    }
-    if (name === "") {
-      this.reject(giver, context, Mml.compose`She needs a name the register does not have.`, {
-        kind: "controller-rejected",
-        reason: "name-taken",
-        detail: model.thing,
-      });
-      return;
-    }
-    const paid = await EmploymentApi.settleSale(stock.getIdentityPath(), price, price, "a purchase");
-    if (!paid) {
-      this.reject(giver, context, Mml.compose`You can't cover a ${leaf} just now.`, {
-        kind: "controller-rejected",
-        reason: "insufficient-funds",
-        detail: model.thing,
-      });
-      return;
-    }
-    // ⭐ A ship of a kind is a minted identity under her kind (harbors
-    // review 1): `<kind row>/<serial>`, the company's scheme — her handle,
-    // what her register entry, her berth's way, the landing's roll and her
-    // charters name her by. Her record is `(identity, serial)` (the
-    // drilling hole's / stall counter's shape), stood up again by
-    // `ExpanseApi.standUpCraft`.
-    const serial = SecurityApi.uuid();
-    const ship = await StuffApi.clone<Ship>(kind, undefined, {
-      // identity-keyed-by: own-record — her `holder_snapshots` record is
-      // filed under it, and her register entry's `key` names it.
-      asIdentityPath: `${kind}/${serial}`,
-    });
-    await PersistableApi.restoreOrSeed(ship as unknown as Stuff, serial);
-    const words = await ship.commission(giver, name, deliversTo, register);
-    MessageApi.scene(giver)
-      .topic(TOPIC)
-      .toSelf(Mml.compose`You buy a ${leaf}. ${paid.tail} ${words}`)
-      .toPeers(Mml.compose`${Mml.actor(giver)} buys a ${leaf} and names her the ${name}.`)
-      .send();
-  }
-
-  /**
-   * The register a ship bought here is entered in: the one the first
-   * government over the counter keeps (`Government.shipRegister` — the
-   * government names its register; nothing is searched).
-   */
-  private async registerHere(stock: Stock): Promise<ShipRegister | null> {
-    const self = stock as unknown as Stuff;
-    const room = MixinApi.isContainable(self) ? self.getContainer() : null;
-    if (room === null || !MixinApi.isContainer(room)) return null;
-    for (const g of await GovernmentApi.subjectTo(room)) {
-      if (!g.shipRegister) continue;
-      const reg = await StuffApi.singleton<Stuff>(g.shipRegister).catch((err) => {
-        console.warn(`BuyController: ${g.key}'s register '${g.shipRegister}' did not stand up:`, err);
-        return null;
-      });
-      if (reg instanceof ShipRegister) return reg;
-    }
-    return null;
   }
 
   /**
