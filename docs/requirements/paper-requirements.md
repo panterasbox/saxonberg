@@ -75,14 +75,31 @@ that followed it. This is one build covering all of it; the plan stages it.
   stays the hanger's.
 - **Text-bearing goods** — scrolls, spellbooks, the tide almanac, the assay slip,
   the coat-check ticket, the take-a-number ticket, the signpost — none of paper.
+- **Registers.** A government or business may keep a register — a document tree
+  of its own records (herds, fisheries, and in harbors the ship register). ⭐
+  **Harbors (build-4, in flight) ships a register book** you `read`, whose page is
+  drawn from the register each time it is read: the live presentation of a
+  record on a thing, already built.
+- **Sealing.** Doors and windows open and shut on one shipped open/closed state,
+  which names envelopes among its intended uses. Nothing records a seal being
+  broken.
+- **A live view of a business's records on a screen** — the house stock sheet on
+  the house tablet.
+- **Water supply (build-1, in flight)** puts a headgate, a ditch and water rights
+  (senior on the flats, junior on the bench) on the Delight's flats, a supply
+  contract every works draws under, **return flow**, and contamination by kind.
 - **Disciplines:** nothing for papermaking or printing.
 
 **Therefore what is genuinely new here is:** paper and board as materials and the
-mill that makes them; paper as the static rung of a display, bound to a
-document and frozen; reading a document on any carrier; access by possession;
-bearer paper; the book; the `copy` ladder (pen, press, printer); inks; type and
-the forme; woodcut; bookbinding; parchment; paper packaging and wallpaper; and
-two Disciplines.
+mill that makes them; the **frozen** presentation of a document (the live one is
+harbors' register book), shared as one edition by every copy; reading a document
+on any carrier; access by possession; a seal that shows it was broken; bearer
+paper as the paper form of a claim; folding a sheet into formats; the `copy`
+ladder (pen, press, printer); inks; type and the forme; woodcut; bookbinding;
+parchment; paper packaging and wallpaper; and two Disciplines. **Everything
+else is reuse** — the reuse ledger is in the slate
+([paper-and-printing-slate](../slates/builds/paper-and-printing-slate.md) § 11),
+and the plan must account for every line of it.
 
 ## Goals
 
@@ -101,9 +118,10 @@ two Disciplines.
   *known-of*; a chart writes *charted* claims; a spellbook keeps its shipped
   behavior. Nothing read advances a Discipline or confers *can-make*. Errors on
   the paper travel to the reader.
-- **Records stay in the document tree.** A business's ledger book is a live
-  presentation of its own records; any extract made for someone else is frozen
-  paper. Burning the books destroys the books, never the record.
+- **Records stay in the document tree.** A ledger is a register. Its book is the
+  same live book harbors' ship register is read from — one kind of book for
+  every register; any extract made for someone else is frozen paper. Burning the
+  books destroys the books, never the record.
 
 ### Bearer paper
 - **Paper can carry a claim.** Registered paper (the record names a person) is
@@ -155,7 +173,8 @@ two Disciplines.
 
 ### Making it
 - **Paper from rags.** Sell clean rags at the mill's door; tear a worn garment
-  into rags. Ret, `beat` in the stamper (which runs on what the river gives),
+  into rags. Ret, `beat` in the stamper (which turns on the water the mill draws
+  under its right at the flats, like every works there),
   `dip` the mould, `couch` onto felt, press the post, `dry` in the loft, and `dip`
   it in **size** — glue thinned in hot water (hide or parchment parings), laid on
   the sheet as a coat that sets by drying.
@@ -245,9 +264,15 @@ two Disciplines.
 
 ## Collisions
 
-- **The Delight's flats** carry two works on one race; the mill is a third draw
-  on the same reach, and its waste water reaches Heart's Delight's lower farms and
-  Terminus, which drinks last.
+- **The Delight's flats** carry the millrace and the sawmill race, and water
+  supply adds a headgate, a ditch and rights there. The mill is **one more works
+  drawing under a right** on that system — its share falls short in a dry spell by
+  the system's own priority — and its waste is **return flow**, fouled by kind,
+  reaching Heart's Delight's lower farms and Terminus, which drinks last. Paper
+  adds no water rule of its own.
+- **Harbors' register book** is the live book of a register. Paper's ledger book
+  is the same book, and paper's frozen sheet is its second mode; whichever build
+  merges second reconciles the two, and neither waits.
 - **The Gazette** has a publisher and an editor (Hesper Quill) but no premises; the
   print shop gives it a house. Her edition beat keeps posting to the ticker; the
   print run is the shop's to take or not.
@@ -334,8 +359,9 @@ damp, heat and taking apart. What this build adds is **size** (glue thinned for
 sizing, since a pour cannot thin a glue from the verbs today) and **gum arabic**.
 
 ### The mill's site — the Delight
-Clean water upstream of the mine water, so its sheets are white; its waste goes
-downstream to the farming valley's lower reach and Terminus.
+Clean water upstream of the mine water, so its sheets are white. It draws under a
+water right at the flats (water supply's), and its waste goes downstream as return
+flow to the farming valley's lower reach and Terminus.
 
 ### The rag supply
 The mill buys rags at its door from anyone; a worn linen or cotton garment can be
@@ -400,8 +426,8 @@ step names its assertion: `player` or `staged`.
    the mill pays. An oily rag is bought cheaper or refused, with the reason.
 2. `instant · player` — `tear` a worn linen shirt into rags.
 3. `staged · staged` — *(twin of soak 1)* Rags already retted.
-4. `short · player` — `beat` them in the stamper; pulp. With the race slowed
-   (staged), beating is slower.
+4. `short · player` — `beat` them in the stamper; pulp. With the mill's share of
+   the flats short (a staged dry spell), beating is slower.
 5. `instant · player` — `dip` the mould in the vat, `couch` the sheet onto felt;
    repeat to build a post.
 6. `short · player` — Turn the screw press on the post; `dry` the sheets in the loft.
@@ -545,5 +571,9 @@ step names its assertion: `player` or `staged`.
   [chronicle.md](../subsystems/chronicle.md) · [scripting.md](../subsystems/scripting.md) (the recipe ladder) ·
   [location-graph.md](../subsystems/location-graph.md) (charted claims) · [faces.md](../subsystems/faces.md) ·
   [mould.md](../subsystems/mould.md) · [watershed.md](../subsystems/watershed.md)
+- [harbors-requirements](https://gitlab.com/panterasbox/saxonberg/-/blob/reqs/harbors/docs/requirements/harbors-requirements.md)
+  (build-4, in flight) — the register book
+- [water-supply-requirements](https://gitlab.com/panterasbox/saxonberg/-/blob/reqs/water-supply/docs/requirements/water-supply-requirements.md)
+  (build-1, in flight) — rights, the supply contract and return flow on the flats
 - Paint (MR !513) — rags, lampblack, linseed oil, coats, and ⭐ the adhesives:
   [painting.md](../subsystems/painting.md) § Glue and [assembly.md](../subsystems/assembly.md)'s glued joint
