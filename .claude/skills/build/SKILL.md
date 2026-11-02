@@ -206,7 +206,9 @@ and watch it go red. A helper blind to a failure kind passes everything
 build that was driven found defects the suite could not — cooking 6,
 textiles 3, and metal-chain's drive surfaced five *pre-existing*
 boot-breaking defects. **What it finds becomes more waves, not a
-stop.** Fix, commit, re-drive.
+stop.** Fix, commit, re-run the steps that failed. This is the one
+blocking drive of the build phase, run once at code-complete; the next
+is at `/finalize`.
 
 Then check the five reachability links for each new capability —
 **verb · affordance · data · load · arg gate** — each of which fails
@@ -220,13 +222,14 @@ world starves the sibling builds.
 
 When it passes: drive record into the plan, MR description updated.
 
-### 5½. Walk it in a browser — during review, never first at /finalize
+### 5½. Walk it in a browser — once, at code-complete, never first at /finalize
 
 ⭐⭐ The wire drive proves the flow; **the browser walk proves a person
 can use it** (review question B3). Write it as
 `e2e/tests/<feature>-walk.spec.ts` (precedents: cordage, energy,
 ground, paint) over the blocking drive's player-facing steps, and run
-it once the drive is green. It found what the wire drive missed in
+it **once**, when the drive is green — alongside review, like the drive,
+and never again per review round. It found what the wire drive missed in
 eleven builds — *"swimming drowned you"*, pitch-dark premises, eight
 defects in the river build when it was first walked at /finalize. A
 walk that only happens when the user asks is a late walk.
@@ -241,3 +244,11 @@ the command input. See `e2e/README.md` and `docs/testing.md`.
 Review is the user's, and it is a conversation — not a comment-thread
 loop. Stay in this session for it: the build context is what makes
 review cheap.
+
+⛔ **A review round never drives** — not the blocking drive, not its
+affected steps, never a span step. ⭐ **And it takes minutes**: comment
+→ reproduce the bug in an isolated window (a unit test, or wizard tools
+against a standing world) → fix → only the checks the change could
+actually break → push → reply. A comment that needs more is a wave or a
+placement error; say so and re-plan it rather than improvising a refactor
+inside the round. See `docs/workflow.md § MR review iteration`.

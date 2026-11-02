@@ -137,8 +137,10 @@ false for three rounds), cleanliness (a prompt id read wrong for 19 runs),
 climate (blind to a locomotion refusal), cover (a refused `eval` answered
 ok), sugar (the glowcap hid a dark room).
 
-### B3. Walk it in a browser — before review ends, not at /finalize
+### B3. Walk it in a browser — once, at code-complete, not first at /finalize
 The wire drive proves the flow; the browser walk proves a person can use it.
+It runs once, beside the blocking drive at code-complete — never per review
+round — and /finalize verifies it ran.
 The walk is `e2e/tests/<feature>-walk.spec.ts` (precedents: cordage, energy,
 ground, paint). *Evidence:* the walk found what the wire drive missed in
 eleven builds — maritime (*"swimming drowned you"*), river (8, walked only

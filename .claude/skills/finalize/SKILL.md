@@ -156,11 +156,12 @@ migrated **two of them had been failing on master with nobody able to
 know** (`drive-textiles` 5 of 16 checkpoints, `drive-identity` 6 of 18).
 A drive nobody runs decays silently.
 
-⭐ **The drives run HERE, once, after review** (workflow.md § MR review
-iteration — the review's ground rules): a review proves each fix in an
-isolated window and launches nothing clock-hungry, so the time-hungry
-drives — this build's and the sibling drives its changes touched — are
-owed at the sweep. Merge master in FIRST (a sibling's merge can change
+⭐ **The blocking drives run HERE, once more, after the last review
+change** (workflow.md § MR review iteration — the review's ground
+rules): review rounds prove each fix in an isolated window and never
+drive, so the second and last run of this build's blocking drive — and
+the sibling drives its changes touched — is owed at the sweep. Nothing
+here is clock-hungry: span steps are the soak lane's, after merge. Merge master in FIRST (a sibling's merge can change
 what the drive meets), drop the worktree's own database, boot ONE world
 on a worktree-unique `WIRE_PORT`, and run them against it.
 
