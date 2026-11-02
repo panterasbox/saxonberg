@@ -78,6 +78,16 @@ export default class AshoreExit extends LockableMixin(DeferredDestinationExit) {
     return craft instanceof Ship ? craft : null;
   }
 
+  /**
+   * ⭐ Never on a map (river D38 d, harbors review 1): this way comes and
+   * goes with the ship — she leaves, and a map that wrote it down would
+   * tell its owner of a way that left with her. `route` from aboard plans
+   * from where she lies instead.
+   */
+  public override isMapped(): boolean {
+    return false;
+  }
+
   public override isLocked(): boolean {
     return this.berthed()?.isGangwayLocked() ?? false;
   }

@@ -18,6 +18,8 @@ import WaterExpanse from '../idea/WaterExpanse';
 import WaterBand from '../idea/WaterBand';
 import FisheryRegistry from '../idea/FisheryRegistry';
 import Pilot from '../agent/Pilot';
+import DepthReading from '../idea/reading/DepthReading';
+import { ExpanseApi } from '@saxonberg/server/mud/api/expanse';
 
 /** The sea's origin — what the graph's points are measured from. */
 const ORIGIN = new GeoPosition(50, 0);
@@ -177,6 +179,27 @@ describe('the sea as a water a deck cites, and the sea fishery', () => {
     const read = await sea.readWater(SEA, strand, 0);
     expect(read?.pending).toBe(true);
     expect(read?.draw).toBeNull();
+  });
+
+  it('⭐ the lead sounds the sea under a keyed deck\'s ship — the deck is asked, never its row (harbors review 1)', async () => {
+    band('bank', (b) => {
+      b.setExtent(belt(50, 51));
+      b.setDepthM(12);
+    });
+    const at = new GeoPosition(50.5, 0);
+    // A smack of a kind: minted `<kind>/<serial>`, her deck keyed by it.
+    const smack = { getExpansePosition: () => at, getExpanse: () => SEA, getIdentityPath: () => '/test/ship/smack/k1' } as unknown as Stuff;
+    const keyedDeck = {
+      getTemplatePath: () => '/test/ship/rooms/deck',
+      getDurableHandle: () => '/test/ship/rooms/deck#k1/deck',
+      isPlace: () => true,
+      craftHere: async () => smack,
+    } as unknown as Stuff;
+    vi.spyOn(MixinApi, 'isVoyaging').mockImplementation(((s: unknown) => s === smack) as never);
+    const craftAt = vi.spyOn(ExpanseApi, 'craftAt').mockRejectedValue(new Error('the row was asked'));
+    const lead = makeStuffAtPath(() => new DepthReading(), '/system/water/idea/reading/depth');
+    expect(await lead.truth(keyedDeck)).toBe(12);
+    expect(craftAt).not.toHaveBeenCalled();
   });
 
   it('⭐ the fishery reads a sea cell from the stock its bands place', async () => {

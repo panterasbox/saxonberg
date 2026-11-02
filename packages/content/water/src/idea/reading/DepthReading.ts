@@ -118,7 +118,11 @@ export default class DepthReading extends Reading {
     who: Stuff,
   ): Promise<{ craft: Stuff & Positioned & Voyaging; sea: WaterExpanse } | null> {
     const root = MixinApi.isContainable(who) ? who.getRootContainer() ?? who : who;
-    const craft = await ExpanseApi.craftAt(root.getTemplatePath() ?? '');
+    // The place is asked (harbors review 1): a ship of a kind's room is
+    // keyed by her serial, and its row is every ship of the kind's.
+    const craft = root.isPlace()
+      ? await (root as unknown as Place).craftHere()
+      : await ExpanseApi.craftAt(root.getIdentityPath() ?? '');
     if (!craft || !MixinApi.isVoyaging(craft) || craft.getExpansePosition() === null) return null;
     const path = craft.getExpanse();
     const sea = path ? await StuffApi.singleton<Stuff>(path).catch(() => null) : null;
