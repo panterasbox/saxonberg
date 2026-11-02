@@ -1,0 +1,22 @@
+# A field — ⭐ what you plant: a named part of a tract, with soil of its
+# own (field population D2; promoted by the tracts build). The top end of
+# a bench that runs thin and dries first; the lane end that holds its
+# water.
+#
+# Nobody places this row. A tract mints one per entry in its own
+# `fields:` (`Tract.ensureFields`, get-or-create at slot `field:<key>`)
+# and sets its name, its words, its share and its lean from that entry —
+# so the short description and keywords below are what a field is before
+# its tract names it. It is a FIXTURE of the tract: never loose, never
+# carried, read by name (`look at the top end`). Its soil is sized from
+# the tract's sample nudged by its lean.
+#
+# The material is a placeholder: the field takes the material its ground
+# sample says it is (loam, clay, sand) when its tract configures it.
+class: /trade/farming/thing/Field
+data:
+  shortDescription: field
+  keywords: [field, ground]
+  register: definite
+  longDescription: A stretch of the tract, no different to look at from the rest until you look at what grows on it.
+  _materialPath: /stuff/idea/material/earth/loam

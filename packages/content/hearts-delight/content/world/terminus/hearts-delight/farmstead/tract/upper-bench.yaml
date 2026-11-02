@@ -1,0 +1,21 @@
+# the upper bench of a valley farmstead — a TRACT of the layout (tracts build D33):
+# walkable open ground, sized at wake as its share of the holding's open
+# ground, and marked into fields by its holder (`mark`). Nothing is marked
+# on a fresh copy.
+class: /trade/farming/location/Tract
+data:
+  fieldName: the upper bench
+  shortDescription: "upper bench"
+  keywords: [upper bench, bench, tract, ground]
+  register: definite
+  _biomePath: /stuff/idea/biome/outdoor/meadow
+  ambientIntensity: 40000
+  ambientColorTemperature: 5800
+  legumeFraction: 0.4
+  longDescription: |
+    Thin stony ground above the yard, open to the wind, the soil a hand's depth over rock.
+  props:
+    # ⭐ A farmstead is sold with a plough at the headland of its arable
+    # ground (the campus field's precedent): too heavy to carry, used where
+    # it lies.
+    - /trade/farming/thing/plough

@@ -46,7 +46,7 @@ export const brain = class BossesBrain extends IceHand {
     const giver = host as unknown as CommandGiver;
     if (floor.bears(margin)) {
       if (!log.some((p) => p.kind === 'scraped' && p.areaM2 > 0)) await giver.forceCommand('scrape');
-      await giver.forceCommand('mark scraped');
+      await giver.forceCommand('groove scraped');
     }
   }
 };

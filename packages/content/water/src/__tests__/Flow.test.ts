@@ -325,10 +325,18 @@ describe('⭐ snowpack: the spring rise and the late-summer low', () => {
     expect(springMelt).toBeGreaterThan(0);
     expect(summerMelt).toBe(0);
 
-    // …and the LOW falls in the summer half, after the pack has gone.
-    const troughAt = samples.findIndex((s) => s.m3s === trough);
-    expect(troughAt).toBeGreaterThanOrEqual(9);
-    expect(troughAt).toBeLessThanOrEqual(22);
+    // …and there is a LOW in the summer half, after the pack has gone —
+    // the low that makes senior rights bind in the irrigating season.
+    // ⚠ Re-derived in the rainfall calibration (cover B42): with winter's
+    // precipitation banked as snow, a dry early-winter month can dip
+    // lower still (a snow-fed river's winter baseflow is a real low), so
+    // "the annual minimum is in summer" was a claim about one seed, not
+    // about rivers. The claim is that summer HAS a low, well under the
+    // peak, with no pack left to feed it.
+    const summer = samples.slice(9, 23);
+    const summerLow = Math.min(...summer.map((s) => s.m3s));
+    expect(summerLow).toBeLessThan(peak / 3);
+    expect(summer.every((s) => s.pack === 0)).toBe(true);
   });
 });
 

@@ -1,0 +1,20 @@
+# A tract — ⭐ a walkable piece of a holding's open ground (tracts build
+# D24). The bench above a farmyard, the meadow below it, a cottage garden.
+#
+# ⚠ ONE row, and it is a KIND of place rather than a place: a farm's
+# layout names its tracts, and every copy of that layout on a parcel is a
+# keyed instance. What makes one tract different from another is its
+# GROUND — seeded from where it lies — and the fields its holder has
+# marked on it, neither of which is authored here.
+#
+# It carries no `coords:` because a warren places it: a tract is a member
+# of the holding whose layout names it, and a holding's rooms are not on
+# the street's grid.
+class: /trade/farming/location/Tract
+data:
+  shortDescription: tract
+  keywords: [land, tract, ground]
+  register: indefinite
+  longDescription: >-
+    Open ground under open sky, walked out to its edges. Nobody has marked
+    a field on it yet.

@@ -3,10 +3,17 @@
 # same way. This place answers with a pipe from uphill. Another would
 # answer with a well, a pond, a stream or roof catchment, and the
 # archetype would be equally satisfied.
-class: /platform/thing/Thing
+#
+# ⭐ And the pipe is REAL now (field population D12): the trough is a
+# `WaterFixture` — fed from uphill, it never runs dry — so a can is
+# filled here (`fill can from trough`), which is where the farm hand
+# fills before watering the home field.
+class: /platform/thing/WaterFixture
 data:
   shortDescription: stone water trough
   keywords: [trough, stone, water]
   register: indefinite
   longDescription: >-
     A hollowed stone trough along the wall, fed by a lead pipe from somewhere uphill, with a skin of green on the waterline.
+  interiorBulk: true
+  interiorMaterial: /stuff/idea/material/bulk/water

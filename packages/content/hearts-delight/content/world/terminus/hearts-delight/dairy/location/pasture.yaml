@@ -1,0 +1,43 @@
+# The dairy pasture — the water meadow the cows graze (cover build W6).
+#
+# ⭐ A herd grazes a field or it grazes nothing (D12). The cows used to
+# have a meadow that was a sentence in the yard's description; this is
+# the field, sized to the herd: three hectares for six cows and their
+# calves — a cow wants about half a hectare through a season, because a
+# good sward grows at most eighty kilos a hectare on a May day and a cow
+# eats eleven (cover build B19). The rick and the trough are at its head.
+class: /trade/farming/location/SingletonTract
+data:
+  fieldName: the dairy pasture
+  shortDescription: dairy pasture
+  keywords: [pasture, meadow, field, grass, "dairy pasture"]
+  register: definite
+  _address: terminus/hearts-delight/dairy/pasture
+  longDescription: |
+    Flat wet grass running down from the yard to the willows, rich and dark, poached to mud by the gate where the cows come and go. A hay rick stands at the head of it under a thatched cap, with a long wooden trough in front.
+  coords: { x: 0, y: -7, z: 0 }
+  _biomePath: /stuff/idea/biome/outdoor/meadow
+  ambientIntensity: 40000
+  ambientColorTemperature: 5800
+  groundSpotX: 14
+  groundSpotY: 2
+  areaM2: 30000
+  # ⭐ One field over the whole tract (tracts build D24, D32): the grass and the herd on it are a field's.
+  # Pre-marked — an author's starting state.
+  fields:
+    - key: sward
+      name: the sward
+      share: 1
+  legumeFraction: 0.3
+  exits:
+    north:
+      destination: /world/terminus/hearts-delight/dairy/location/yard
+      media: [ground]
+      edgeMinutes: 1
+    south:
+      destination: /world/terminus/hearts-delight/dairy/location/hay-meadow
+      media: [ground]
+      edgeMinutes: 2
+  props:
+    - /world/terminus/hearts-delight/dairy/thing/rick
+    - /world/terminus/hearts-delight/dairy/thing/trough

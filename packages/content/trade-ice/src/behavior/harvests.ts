@@ -1,7 +1,7 @@
 /**
  * `harvests` brain (`/trade/ice/behavior/harvests`) — the ice crew
  * (storage-and-ice D22). On shift and out on the ice, one act a beat, in
- * the order the trade did them: scrape the snow off, mark the grid, cut
+ * the order the trade did them: scrape the snow off, groove the grid, cut
  * the blocks out — but only once the ice boss has marked the first patch
  * (his go-ahead: the ice is fit to work).
  *
@@ -51,7 +51,7 @@ export const brain = class HarvestsBrain extends IceHand {
     const scraped = log.some((p) => p.kind === 'scraped' && p.areaM2 > 0);
     if (!scraped) return void (await giver.forceCommand('scrape'));
     const marked = log.filter((p) => p.kind === 'marked').reduce((n, p) => n + p.areaM2, 0);
-    if (marked < 1) return void (await giver.forceCommand('mark scraped'));
+    if (marked < 1) return void (await giver.forceCommand('groove scraped'));
     await giver.forceCommand('cut marked');
   }
 };

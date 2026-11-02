@@ -1,0 +1,16 @@
+# the orchard close of a valley farmstead — a TRACT of the layout (tracts build D33):
+# walkable open ground, sized at wake as its share of the holding's open
+# ground, and marked into fields by its holder (`mark`). Nothing is marked
+# on a fresh copy.
+class: /trade/farming/location/Tract
+data:
+  fieldName: the orchard close
+  shortDescription: "orchard close"
+  keywords: [orchard close, close, tract, ground]
+  register: definite
+  _biomePath: /stuff/idea/biome/outdoor/meadow
+  ambientIntensity: 40000
+  ambientColorTemperature: 5800
+  legumeFraction: 0.3
+  longDescription: |
+    A sheltered close below the bench, deep soil and a stone wall on the weather side — ground somebody might plant with trees.

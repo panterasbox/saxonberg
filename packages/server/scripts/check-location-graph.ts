@@ -120,9 +120,9 @@ export const CEILINGS: Readonly<Record<GraphRule, number | null>> = {
   "bidirectional-both-sides": null,
   "published-into-unpublished": null,
   "cross-zone-one-sided": 1,
-  "unreachable-from-entrance": 12,
+  "unreachable-from-entrance": 11,
   "asymmetric-edge": 4,
-  "destination-is-a-kind": 2,
+  "destination-is-a-kind": 0,
 };
 
 /** Is this row's effective class a place-or-kind location at all? */

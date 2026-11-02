@@ -30,6 +30,18 @@ data:
       destination: /world/terminus/hearts-delight/bench-field/location/upper-bench
       media: [ground]
       edgeMinutes: 4
+    west:
+      destination: /world/terminus/hearts-delight/bench-field/location/lower-meadow
+      media: [ground]
+      edgeMinutes: 1
+    # The way back up to the close — it always had a way down (the
+    # location graph saw it once the close became a place, cover W6).
+    # ⚠ Cardinal: the close is in this zone (Location.addExit), and `up`
+    # is the bench's.
+    northwest:
+      destination: /world/terminus/hearts-delight/bench-field/location/orchard-close
+      media: [ground]
+      edgeMinutes: 3
   props:
     - /world/terminus/hearts-delight/thing/farm-shelf
     # ⭐ (ceramics W6) A few old clay pots by the door for the seedlings —

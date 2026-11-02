@@ -31,8 +31,12 @@ import { MUD, SERVER_SRC, packSources, packSrcFiles } from "./pack-roots";
  * Pinned at the census (2026-10-17, the cleanliness build): the shipped
  * sites the drive did not reach — equip's several-thing chain, a tap, the
  * ditch, grub, lime, flatten, crack, mow, plough.
+ *
+ * ⭐ Burned to ZERO by the cover build (2026-10-28): its drive needs
+ * `plough` and `grub` to land, and the last seven were the same
+ * mechanical fix (a `static` finish).
  */
-export const COMPLETION_THIS_CEILING = 7;
+export const COMPLETION_THIS_CEILING = 0;
 
 export interface CompletionThisFinding {
   file: string;

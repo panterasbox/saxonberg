@@ -1,0 +1,17 @@
+# A stack of last summer's hay — what a rick holds at the start of a
+# world (cover build W6). Drawn down by weight: a trough kept from the
+# rick takes what the herd wants a step at a time, and a keeper forks
+# off what they can carry. Too heavy to lift whole, as a stack is.
+#
+# ⭐ Made dry (`baledMoistureFraction` at the default 0.15): a stack that
+# went up wet would heat, and this one was made in a good summer.
+class: /trade/farming/thing/HayBale
+data:
+  shortDescription: stack of hay
+  keywords: [hay, stack, "stack of hay", fodder]
+  register: indefinite
+  longDescription: >-
+    Last summer's hay, packed down hard and grey on the outside where the
+    weather has had it, sweet and green a hand's depth in.
+  _materialPath: /stuff/idea/material/food/hay
+  mass: 400

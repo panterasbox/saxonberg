@@ -9,6 +9,7 @@ import { PersistApi } from '@saxonberg/server/mud/api/persist';
 import { Collections } from '@saxonberg/server/mud/lib/persistence/Collections';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { WeatherApi } from '@saxonberg/server/mud/api/weather';
+import { AppApi } from '@saxonberg/server/mud/api/app';
 import { makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import WatercourseCatalogue, { WATERCOURSE_CATALOGUE_PATH } from '../idea/WatercourseCatalogue';
 
@@ -176,6 +177,14 @@ describe('⭐ a ship’s passage on the line (river D18, D28)', () => {
 
   it('⭐ upstream with no landing, the foot of the falls is as far as she goes', async () => {
     WeatherApi._forceTypeForTesting('rain');
+    // A drizzle every segment (0.3 mm/h, the `water.rate.rain` dial): an
+    // ordinary river. At the calibrated 1.5 mm/h (cover B42) a month of
+    // unbroken rain is a spate, and a 3 m/s launch stems it short of the
+    // falls — true, and not what this test is about.
+    const setting = AppApi.setting.bind(AppApi);
+    vi.spyOn(AppApi, 'setting').mockImplementation((key: string) =>
+      key === 'water.rate.rain' ? '0.3' : setting(key),
+    );
     installRows([kestrel()]);
     const c = catalogue();
     const r = await c.planPassage(

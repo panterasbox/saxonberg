@@ -254,6 +254,18 @@ export default class Place extends PlaceBase {
     return true;
   }
 
+  /**
+   * @hook Whether this place can be read from the places whose exits
+   * lead into it — `look upper bench` from the farmyard (tracts build
+   * D30). Default `false`: a room, a street or a water place is entered
+   * to be seen. Open ground answers `true` (a farm's tract is read from
+   * its gate). Only the place itself is offered to the viewer next door:
+   * never its exits, contents or occupants.
+   */
+  public isSeenAcrossExit(): boolean {
+    return false;
+  }
+
   // `getVolume` / `getCeilingHeight` live on AtmosphericMixin (composed
   // above) so Vessels — which also have meaningful interior volume —
   // pick them up too. Concrete Place subclasses (`Location`,

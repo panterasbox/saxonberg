@@ -807,3 +807,158 @@ existed behaves.
 ⚠ `settleCycle()` and the death branch release the latch. The seam was
 pre-authorised: `fruitFillDays`' own docstring named the set moment as
 the home for alternate bearing.
+
+## ⭐⭐ Ground is a bed by containment, and the area crop (cover build, 2026-10-28)
+
+**`getBed()` asks two questions.** The slot host when the plant sits in
+one (a pot, a garden bed — *a pot is a bed with one slot*), else **the
+soil-bearing ground it stands in, when that ground holds no slot** (a
+field). A field is not a vessel of soil with an N-slot, so it composes no
+`Cultivable`; it only has to be `Soil`. Before this a plant standing in a
+field read `null`, `satWater(null)` is 0, and every crop authored into a
+field quietly died of thirst. ⚠ A plant merely sitting in a pot's
+CONTENTS (moved in, not yet seated) is still not rooted: a cultivable
+ground roots through its slot. `rootRoom()` narrows on `isCultivable` —
+only a pot or a bed has a root ceiling.
+
+**The area crop is ONE plant with a sown area.** `GrowingMixin` carries
+`sownAreaM2` (0 = an individual plant, every shipped row unchanged), the
+ratoon `_cycleCount`, the area cut this cycle and the kilograms cut but
+not yet made up into a whole good. The profile carries two numbers and an
+optional third:
+
+| field | meaning |
+|---|---|
+| `seedRateKgPerM2` | the seed a hand broadcast spends — and the marker: no rate, *planted one at a time* |
+| `yieldKgPerM2` | what a square metre gives in a PERFECT season (wheat 0.25, about 2.5 t/ha; barley 0.27; cane 10) |
+| `yieldDeclinePerCycle` | the share a ratoon loses each cycle (cane 0.12); absent = 0 |
+
+The standing crop at ripeness is `area × yieldKgPerM2 × vigor ×
+(1 − decline)^cycles` kilograms: the attainable figure × the stand's
+condition at the cut (vigor, the running mean of what limited it all
+season, held from ripeness). ⭐ **The seed sown does not set the yield**
+(field population, 2026-10-31): the ground and the season do, so the
+seed-to-yield ratio every agrarian history quotes is DERIVED — about 4:1
+on thin ground broadcast by hand, three times that on a manured field
+with clover in the ley, double again sown with a drill. Before this a
+crop's yield was `area × rate × ratio`, so nitrogen, water and manure set
+only the grade, and a field sown twice as thick gave twice the crop.
+
+**Seed.** A crop whose harvest is its planting stock is a
+`PlantableCrop` (`PlantableMixin(Crop)`) that names its `growsIntoPath`:
+threshed wheat and barley, and cut cane. `sow` takes the sack off the
+harvest exactly as it takes a bought sack of seed, so *eat it or sow it*
+is a decision made with one good, and a farm's shelf is a seed seller at
+scale. A **seed drill** is a `Tool` with the `drilling` capability: `sow`
+uses one within reach, laying the crop in rows over its `swathM2` a pass
+at its `seedFactor` share of the broadcast rate (the drill row: 0.5,
+`industrial`). Crops whose seed is a different part or a different year
+(roots and biennials, flax and hemp, dye plants) are not modeled — the
+seed-and-propagation slate. `takeSwath(m²)` cuts and reports `{ kg, areaCut, last }`;
+`settleRatoon()` closes a ratoon's cycle (the whole area stands again,
+one cycle older). The farmer's words come off the stage — *just
+emerging · tillering · in ear · ripening · ripe* — and the area off the
+fraction still standing, never a number. An area crop sets no seed when
+it flowers: its seed IS its harvest.
+
+**The tool owns the swath.** `ToolMixin.swathM2` is the ground one act
+with this tool works (a sickle 40, a scythe 60, a cane knife 4 — about one
+30 kg bundle of cane); bare hands read `husbandry.handSwathM2` (2). Work
+per acre is the tool's number and yield per acre the crop's, so a reaper
+is a row with a bigger number.
+
+**The verbs.** `harvest` on an area crop is an engaged act: one swath,
+goods minted by the crop row's own mass, the remainder carried on the
+plant, the last swath made up as one short good, nitrogen drawn in
+proportion, and what the harvester cannot carry left lying in the row. A
+monocarp ends at its last swath; a ratoon settles. `sow` with no pot
+named (or naming slotless ground) BROADCASTS: one cast covers
+`husbandry.sowHandM2` (400), spends seed at the rate, makes the crop or
+widens one of the same kind, and refuses a different one. The ground is
+asked twice through `Soil` hooks — `sowingRefusal()` (the seedbed is the
+ground's state) and `ensureCropTitle()` (whose the crop is; a field
+titles it to the business that works it, and the harvest awaits it before
+it mints). Who may sow is title: the parcel's holder, or a hand on shift
+for the field's operator. See [soil.md](soil.md) for the field half.
+
+## ⭐⭐ A plant's part — the specimen, the labeled plant, the banded read (field population, 2026-10-30)
+
+*The plant is the unit at every scale* (the field-population slate's
+thesis): what a player learns on one pot is what they use on a field.
+The ground half — fields as soil parts (the "patches" of the field-population build), the kernel's parts protocol —
+is [soil.md](soil.md) § *A soil made of parts*.
+
+**`groundPart`.** An area crop carries the key of the part it is rooted
+in (`groundPart: top-end` on a row; `setGroundPart` before `sow` moves a
+new stand in). `getBed()` resolves it through `soilPart(key)` — so the
+stand drinks, feeds and is drawn on in ITS field, never the tract's
+aggregate — and falls back to the whole ground when the key names no
+part. `standIn(part)` finds the stand of this kind in a part (same
+template path OR same `harvestTemplatePath`: the bench's three
+`extends:` rows are one wheat). `ripeSibling` substitution stays inside
+one bed: a ripe stand at the lane end is no substitute for the middle's.
+Only an area crop answers to its field's words (`Plant.getKeywords`).
+
+**The act names its part.** `water`, `feed`, `sow`, `harvest`, `sample`
+and `label` take `at <field>` (optional, greedy, `SoilMixin`). The GROUND
+decides (`resolvePartFor`): one part needs no name; several refuse
+`part-unnamed` with the names; naming a part a plant does not stand in
+refuses `not-a-part-here`. `water`/`feed` state the amount (*"You tip 2 L
+…"*, *"You work 6.3 kg of compost…"*) and add *"On 1,000 square meters
+it barely shows."* under 0.1 L/m²; a bystander sees the part (*"Maud
+waters a stand of wheat at the far side."*). `sow` fills a part up to its
+own area and refuses `part-sown` when it is full; `harvest` cuts that
+part's stand and grades it by ITS `_worstLimiting`. Area crops only — an
+individual is acted on where it stands.
+
+**The specimen.** `sample <crop> at <field>` pulls a stem
+(`takeSpecimen(variation)`): a non-growing individual stamped with a
+`SpecimenRecord` — the ground and part it came from, the factor limiting
+it and how badly, the next factor, and the roots band (`shallow ·
+cramped · well-down · dry · sodden`, *shallow* below 0.2 m of topsoil).
+Its vigor is the stand's plus a SEEDED variation
+(`specimenVariation()`, hashed on ground · part · cycle): *same spot,
+same plant*. `look stem` reads like a pot plant plus *"Its roots …"* and
+*"Taken from the top end of the upper bench."* (`specimenNoun` on the
+row names it).
+
+**The labeled plant.** `label <crop> [text] at <field>` mints an UNCUT
+individual at the part (`_fromStand`), keyworded by its label (a
+bare `label` names it after the labeler — label with text). It has a
+**root zone** of its own (`installRootZone()` — about a litre and a
+nitrogen reserve, seeded at the bed's fractions): `water`/`feed` aimed at
+it reach the zone alone; the zone relaxes toward the ground's MEAN
+moisture with a two-day constant (nitrogen ten), so a plant watered daily
+holds above its field and a neglected one falls back; the plant never
+moves the ground's reserve. It is NOT an area crop — it is listed among
+loose contents (*"You also see: trial."*) and reads the pot read — but
+⭐ it develops on the FIELD rule (`isAreaCrop() || _fromStand`): a sample
+of its stand must show what the stand does, so it is spoiled by stress
+rather than stopped by it (lens 1, owner-delegated in W5). A pot plant,
+a tree, every other individual keeps the pot rule.
+
+**The banded read.** An area crop's look is read at the VIEWER's
+`horticulture` band (`readFor(band, seed?)`), each rung the start of the
+next: *untrained* stage + how it looks · *novice* + "it is short of
+something" · *competent* + the cause · *proficient* + how badly ·
+*expert* + what runs short behind it. Never a digit, never a different
+truth; the returned `CropRead` is MASKED by band (a novice's read has
+`cause: null`), so a hand acting on it cannot know more than its eyes.
+The band is `competenceBandCached` (the digest is warmed at login and
+refreshed on every deed; a cold or non-Advancing reader reads the
+floor — never a guess upward). A pot plant is not banded. With a seed
+(`readSeedFor(reader)`: reader · part · game day) the read also carries
+`moisture`/`nutrient` observed within `COMPETENCE_HALF_WIDTH[band]`
+(`lib/advancement/CompetenceBand`, the instrumentation bracket's table).
+
+**The campus hand** (`farms` brain, `trade-farming/src/behavior/farms.ts`).
+Maud Hollis is the university farm's hired hand (`hand` seat, hours
+06–18, `station:` the home field — the roster tick only fetches an
+assignee to a live station). On shift, her beat reads each part of a
+non-`Cultivable` home through `rootedAreaCrop(part)` at HER band and
+seed, and gives ONE watering and ONE feeding a beat to the lowest read
+below `waterAt`/`feedAt` (`water wheat at the gate end`, the part by its
+definite phrase), filling the can at `config.water` (`room` + `from`).
+She is a novice by assertion, so two fields a little apart can fool
+her; a student who reads better sees where she watered wrong. ⚠ A
+successful act leaves no `[dispatch]` line — read the effect.

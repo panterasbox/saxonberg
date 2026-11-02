@@ -1573,7 +1573,15 @@ export class CommandLogic extends ApiLogic {
             ? consumePhaseEffects('focus-update', resolved, optionDefs)
             : [];
           const skipFocus = focusEffects.some((e) => e.action === 'skip');
-          if (focusMode !== 'none' && !skipFocus) {
+          // ⭐ A place read from next door (`look upper bench` from the
+          // farmyard — tracts build D30) is not something you work on, so
+          // it does not take the focus: `go up` straight after must still
+          // mean the way up, not a prefix of "upper bench".
+          const seenAcross =
+            picked.isPlace() &&
+            MixinApi.isContainable(focused) &&
+            focused.getContainer() !== picked;
+          if (focusMode !== 'none' && !skipFocus && !seenAcross) {
             // `stuff` is the pre-cardinality candidate list: more than
             // one means the player was asked to choose (or a policy
             // chose for them), so the fragment they typed does not name

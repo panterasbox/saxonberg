@@ -80,6 +80,15 @@ export class DerivedStandingCache<T> {
     return undefined;
   }
 
+  /**
+   * Whether a fold for `subject` has landed — a peek that, unlike
+   * {@link get}, schedules nothing. A per-command preload asks it to
+   * decide whether it must await a fold before a sync read.
+   */
+  public has(subject: string): boolean {
+    return this.values.has(subject);
+  }
+
   /** Replace a subject's value and notify. Called on ledger append. */
   public async refresh(subject: string): Promise<void> {
     try {

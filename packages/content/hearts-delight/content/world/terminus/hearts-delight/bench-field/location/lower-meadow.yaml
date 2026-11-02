@@ -1,0 +1,36 @@
+# The lower meadow — where the oxen and the hens go out (cover build W6),
+# below the farmstead yard on the good side of the lane. A trough by the
+# gate is kept from the rick in the barn.
+class: /trade/farming/location/SingletonTract
+# ⭐ Quist's is the valley layout's lower-meadow, dressed (tracts build D33):
+# the shape every farmstead the Delight sells is a copy of.
+extends: /world/terminus/hearts-delight/farmstead/tract/lower-meadow
+data:
+  fieldName: the lower meadow
+  shortDescription: lower meadow
+  keywords: [meadow, "lower meadow", field, grass]
+  register: definite
+  _address: terminus/hearts-delight/lower-meadow
+  longDescription: |
+    A long meadow below the yard, the grass grazed close round a stone trough by the gate and longer down at the far hedge. Hens work along the bottom of the hedge, and the ground is marked everywhere by heavy hooves.
+  coords: { x: -21, y: 0, z: 7 }
+  _biomePath: /stuff/idea/biome/outdoor/meadow
+  ambientIntensity: 40000
+  ambientColorTemperature: 5800
+  groundSpotX: 8
+  groundSpotY: 5
+  areaM2: 6000
+  # ⭐ One field over the whole tract (tracts build D24, D32): the grass and the herd on it are a field's.
+  # Pre-marked — an author's starting state.
+  fields:
+    - key: sward
+      name: the sward
+      share: 1
+  legumeFraction: 0.2
+  exits:
+    east:
+      destination: /world/terminus/hearts-delight/location/farmstead-yard
+      media: [ground]
+      edgeMinutes: 1
+  props:
+    - /world/terminus/hearts-delight/thing/meadow-trough

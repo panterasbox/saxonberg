@@ -2,9 +2,12 @@
 class: /platform/thing/Seed
 data:
   shortDescription: sack of seed wheat
-  keywords: [seed, seeds, wheat, sack]
+  keywords: [seed, seeds, wheat, sack, "seed wheat", "sack of seed wheat"]
   register: indefinite
   longDescription: |
     Hard amber grain kept back from last year's crop, screened twice and dressed against the smut.
   growsIntoPath: /trade/farming/thing/plant/wheat
   _speciesPath: /stuff/idea/species/plantae/tracheophyta/liliopsida/poales/poaceae/triticum/aestivum
+  # ⭐ A 25 kg sack — what a broadcast sowing spends at the crop's own
+  # seed rate (cover build D4).
+  mass: 25

@@ -1,0 +1,37 @@
+verbs: [mark]
+controller: /trade/farming/idea/cmd/farming/MarkController
+description: "Mark a field on the open ground you stand in"
+help: |
+  Pace out a field on a tract of open ground you hold, and name it.
+
+    mark barley field as a third of it
+    mark the long acre as two-thirds
+    mark the paddock           (the rest of the unmarked ground)
+
+  A field is what you plant: its soil, its grass and its history are its
+  own, and every act on its crop names it — `sow barley at the barley
+  field`. Marking a name you already have moves that field's line. You
+  cannot move a line through a standing crop, and you cannot mark more
+  than the whole.
+
+  ⭐ Zoning decides whether ground takes fields at all: a house plot is
+  zoned for beds, and its garden takes beds, not fields. Farmland does.
+examples:
+  - cmd: mark barley field as a third of it
+    note: A third of the tract, named the barley field
+  - cmd: mark the paddock
+    note: Whatever is left unmarked, as one field
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+args:
+  # The name runs to `as`: a greedy string bounded by the preposition.
+  - name: name
+    type: string
+    required: true
+    greedy: true
+  - name: share
+    type: string
+    required: false
+    greedy: true
+    prepositions: [as]

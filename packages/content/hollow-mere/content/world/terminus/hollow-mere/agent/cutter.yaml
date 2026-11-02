@@ -14,7 +14,7 @@ data:
   competence:
     - { discipline: ice-harvesting, asserting: competent }
   # His own kit, born in his hands (an NPC's `props:` — the storage-and-ice
-  # sweep): the brain forces `scrape` / `mark` / `cut`, and those verbs bind
+  # sweep): the brain forces `scrape` / `groove` / `cut`, and those verbs bind
   # a tool the cutter HOLDS. The shore's kit is the company's for anyone.
   props:
     - /trade/ice/thing/scraper

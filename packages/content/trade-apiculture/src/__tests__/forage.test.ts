@@ -25,7 +25,8 @@
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Hive from '../thing/Hive';
-import Field from '@saxonberg/content-trade-farming/src/location/Field';
+import Tract from '@saxonberg/content-trade-farming/src/location/Tract';
+import Field from '@saxonberg/content-trade-farming/src/thing/Field';
 import Plant from '@saxonberg/server/mud/platform/thing/Plant';
 import Location from '@saxonberg/server/mud/lib/location/Location';
 import Exit from '@saxonberg/server/mud/lib/boundary/Exit';
@@ -86,15 +87,27 @@ function pine(): Material {
   });
 }
 
-/** A field with a clover ley in flower, of a stated size. */
-function ley(areaM2: number, legume = 0.4): Field {
-  const f = makeStuff(() => new Field());
+/**
+ * A tract of one field, a clover ley in flower, of a stated size — the
+ * grass is the FIELD's since the tracts build, the season the tract's.
+ */
+function ley(areaM2: number, legume = 0.4): Tract {
+  const f = makeStuff(() => new Tract());
   f.setAreaM2(areaM2);
-  f.setLegumeFraction(legume);
-  f.installSward();
   f._ambientK = 292;
   f._daylightFraction = 0.62;
+  const spec = { key: 'sward', name: 'the sward', share: 1 };
+  f.fields = [spec];
+  const field = makeStuff(() => new Field());
+  f.addFixture(field, 'field:sward');
+  field.configureField(spec, areaM2, legume);
+  field.installSward();
   return f;
+}
+
+/** The ley's one field's standing sward, as a fraction of its ceiling. */
+function swardOf(f: Tract): number {
+  return f.getFields()[0]!.swardFraction();
 }
 
 function hive(): Hive {
@@ -212,7 +225,7 @@ describe('the forage read', () => {
 
     const census = h.forageCensus();
     // 0.4 clover × the standing sward × 1000 m² of ground.
-    const expected = 0.4 * close.swardFraction() * 1000;
+    const expected = 0.4 * swardOf(close) * 1000;
     expect(census.sources.get(CLOVER)).toBeCloseTo(expected, 4);
     expect(census.totalM2).toBeCloseTo(expected, 4);
   });

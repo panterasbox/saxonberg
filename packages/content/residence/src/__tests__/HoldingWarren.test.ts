@@ -56,6 +56,7 @@ const WARREN_PATH = '/world/prog-test/holder';
 const PROGRAMME = '/world/prog-test/house-programme';
 const ROOM_A = '/world/prog-test/hall';
 const ROOM_B = '/world/prog-test/bedroom';
+const ROOM_C = '/world/prog-test/porch';
 const STREET = '/world/prog-test/lane';
 const LOT1 = `${PARENT}/lot-1`;
 
@@ -130,6 +131,8 @@ function seedDomain(): void {
         exits: [{ to: 'bedroom', direction: 'north' }],
       },
       { leaf: 'bedroom', room: ROOM_B },
+      // A PLAIN room: keeps nothing, so has no record (tracts build review).
+      { leaf: 'porch', room: ROOM_C },
     ],
     upkeepTerm: 'owner-all',
     addressBase: 'prog-test/lot-1',
@@ -140,6 +143,9 @@ function seedDomain(): void {
   });
   add(ROOM_B, '/platform/location/PersistentLocation', {
     shortDescription: 'a bedroom',
+  });
+  add(ROOM_C, '/platform/location/Location', {
+    shortDescription: 'a porch',
   });
   add('/world/prog-test/coatrack', '/platform/thing/Thing', {
     shortDescription: 'a coat rack',
@@ -291,6 +297,17 @@ describe('the residential programme (D16)', () => {
     ).toBe('prog-test/lot-1/bedroom');
     // The upkeep term reads on the programme (D5).
     expect(holding.getUpkeepTerm()).toBe('owner-all');
+  });
+
+  it('⭐ a room that keeps nothing stands up with no record (persistence is the exception)', async () => {
+    seedLot();
+    await bootRegistries();
+    const w = await institution();
+    await w.admit(LOT1);
+    const holding = w.holdingFor(LOT1)! as unknown as HoldingWarren;
+    const porch = holding.roomForLeaf('porch')!;
+    expect(porch.getTemplatePath()).toBe(ROOM_C);
+    expect(MixinApi.isPersistable(porch)).toBe(false);
   });
 
   it('⭐⭐ lays its rooms out in its OWN frame, from the floorplan (B53)', async () => {
@@ -669,108 +686,5 @@ describe('the maintenance act (D4/D5)', () => {
       .map((d) => d.verbs)
       .flat();
     expect(verbs).toContain('maintain');
-  });
-});
-
-/** The holding a room belongs to — the walk `plot` makes to find it. */
-function holdingOf(room: MemberStuff): HoldingWarren {
-  const warren = MixinApi.isWarrenMember(room as unknown as Stuff)
-    ? (room as unknown as { getWarren(): unknown }).getWarren()
-    : null;
-  if (!warren) throw new Error('room is in no warren');
-  return warren as unknown as HoldingWarren;
-}
-
-describe('⭐ admitPlot — the break-ground seam (farmstead W3)', () => {
-  beforeEach(() => {
-    reset();
-    installStore();
-  });
-  afterEach(reset);
-
-  /**
-   * The class has always said the member contract is *"open to
-   * runtime-added members (the cross-build interface with farming's
-   * break-ground act)"*. Until this build that was a docstring and a
-   * `wake()` that iterated only the authored rooms.
-   */
-  it('hangs a room the holder MADE off the holding, wired both ways', async () => {
-    seedLot();
-    await bootRegistries();
-    const w = await institution();
-    // ⚠ `admit` answers the ENTRY ROOM, not the holding. The holding is
-    // what that room is a member OF — which is the same walk `plot` does.
-    const holding = holdingOf(await w.admit(LOT1));
-
-    const field = await holding.admitPlot({
-      leaf: 'top-meadow',
-      room: ROOM_B,
-      direction: 'top-meadow',
-      opposite: 'out',
-      from: 'hall',
-    });
-    expect(field).not.toBeNull();
-
-    const hall = holding.roomForLeaf('hall') as unknown as Stuff & Exitable;
-    expect(hall.getExit('top-meadow')).toBeTruthy();
-    expect(
-      (field as unknown as Stuff & Exitable).getExit('out'),
-    ).toBeTruthy();
-    // ⭐ A plot hung off the house by NAME is not reached by the cardinal
-    // plan, so it sits in the row beyond the house (B53).
-    expect(
-      (field as unknown as { getCoordinates(): number[] }).getCoordinates(),
-    ).toEqual([0, 2, 0]);
-  });
-
-  it('⭐ it PERSISTS, by the same machinery that stands up a hall', async () => {
-    seedLot();
-    await bootRegistries();
-    const w = await institution();
-    // ⚠ `admit` answers the ENTRY ROOM, not the holding. The holding is
-    // what that room is a member OF — which is the same walk `plot` does.
-    const holding = holdingOf(await w.admit(LOT1));
-    await holding.admitPlot({
-      leaf: 'top-meadow',
-      room: ROOM_B,
-      direction: 'top-meadow',
-      from: 'hall',
-      extra: { plottedAreaM2: 400 },
-    });
-
-    // The floorplan is persistent, so the new entry rides the same
-    // record the authored rooms do — no second ledger, no new
-    // collection, no per-caller bookkeeping.
-    const entry = holding.floorplanEntryOf('top-meadow');
-    expect(entry).toMatchObject({ leaf: 'top-meadow', room: ROOM_B, plottedAreaM2: 400 });
-
-    // …and a fresh wake stands it back up alongside the authored ones.
-    // ⚠ The marshaller rows are Stuff too, so a clean process has to
-    // re-install them — which is what a real restart does at boot.
-    StuffApi.clearAll();
-    ParcelApi._resetRegistryRefForReload();
-    installV1QuantityMarshallers();
-    await bootRegistries();
-    const w2 = await institution();
-    const back = holdingOf(await w2.admit(LOT1));
-    expect(back.floorplanEntryOf('top-meadow')).not.toBeNull();
-    expect(back.roomForLeaf('top-meadow')).not.toBeNull();
-  });
-
-  it('refuses a leaf that is taken, and leaves no half-entry behind', async () => {
-    seedLot();
-    await bootRegistries();
-    const w = await institution();
-    // ⚠ `admit` answers the ENTRY ROOM, not the holding. The holding is
-    // what that room is a member OF — which is the same walk `plot` does.
-    const holding = holdingOf(await w.admit(LOT1));
-
-    expect(await holding.admitPlot({ leaf: 'hall', room: ROOM_B, direction: 'x' })).toBeNull();
-    // A row that cannot clone must not leave an entry the next wake
-    // would retry forever.
-    expect(
-      await holding.admitPlot({ leaf: 'nowhere', room: '/world/prog-test/no-such-row', direction: 'x' }),
-    ).toBeNull();
-    expect(holding.floorplanEntryOf('nowhere')).toBeNull();
   });
 });

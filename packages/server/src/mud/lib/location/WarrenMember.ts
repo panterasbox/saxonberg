@@ -53,6 +53,13 @@ export interface WarrenMember {
    * it.
    */
   setWarren(value: (Stuff & Warren) | null): void;
+  /**
+   * @hook Called by the warren after it has stood this member up and
+   * restored it — the moment a member can finish itself against its
+   * warren (a farm's tract sizes itself from the holding's open ground,
+   * tracts build D28). Default: nothing.
+   */
+  onWarrenWake(): Promise<void>;
 }
 
 export function WarrenMemberMixin<TBase extends MixinConstructor<Stuff & Container>>(
@@ -115,6 +122,11 @@ export function WarrenMemberMixin<TBase extends MixinConstructor<Stuff & Contain
 
     public setWarren(value: (Stuff & Warren) | null): void {
       this._warren = value;
+    }
+
+    /** See {@link WarrenMember.onWarrenWake}. Default: nothing. */
+    public async onWarrenWake(): Promise<void> {
+      /* host hook */
     }
   };
 }

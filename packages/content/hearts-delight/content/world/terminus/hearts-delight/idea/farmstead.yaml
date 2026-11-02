@@ -1,0 +1,46 @@
+# A valley farmstead — the LAYOUT every farm sold in the Delight valley is
+# a copy of (tracts build D33). A residence holding like a Hinkley house:
+# its floorplan names the yard and the barn and three TRACTS of open
+# ground, each sized as a share of what the buildings leave.
+#
+# ⭐ Quist's farm is this shape, dressed (his rows extend these): the same
+# yard, barn, bench, close and meadow. A copy on a lot WEST of the lane is
+# mirrored, so it comes out exactly as Quist's lies — meadow to the west,
+# close to the northwest — and one east of the lane faces it.
+#
+# ⚠ Nothing lies west of the yard in this (east-side) layout: that is the
+# way back out to the lane, which the plat hangs. (A copy on the northeast
+# frontage goes out southwest, also clear.)
+class: /system/residence/idea/HoldingWarren
+data:
+  upkeepTerm: owner-all
+  floorplan:
+    - leaf: yard
+      room: /world/terminus/hearts-delight/farmstead/location/yard
+      entry: true
+      footprintM2: 400
+      exits:
+        # The barn door is the locked edge; a farmyard is open.
+        - { to: barn, direction: north, opposite: south, locked: true }
+        - { to: upper-bench, direction: up, opposite: down }
+        - { to: lower-meadow, direction: east, opposite: west }
+        - { to: orchard-close, direction: northeast, opposite: southwest }
+        # The farmhouse door — locked, the holding's own key.
+        - { to: house, direction: south, opposite: north, locked: true }
+    # ⭐ The farmhouse: a farm is a HOME, and its tenant's wardrobe — the
+    # door to the circle they were granted — stands in its bedroom.
+    - leaf: house
+      room: /stuff/location/room/bedroom
+      footprintM2: 120
+    - leaf: barn
+      room: /world/terminus/hearts-delight/farmstead/location/barn
+      footprintM2: 150
+    - leaf: upper-bench
+      room: /world/terminus/hearts-delight/farmstead/tract/upper-bench
+      share: 0.3
+    - leaf: orchard-close
+      room: /world/terminus/hearts-delight/farmstead/tract/orchard-close
+      share: 0.25
+    - leaf: lower-meadow
+      room: /world/terminus/hearts-delight/farmstead/tract/lower-meadow
+      share: 0.45
