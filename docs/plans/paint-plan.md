@@ -1041,6 +1041,21 @@ fork, the lens that chose is named.
   `painter` and `house painter`. *Lens 3a: the fiction speaks the common
   word.*
 
+- **B31 (review, the owner)** — *no new mixins.* `WeatheringMixin` folded
+  into `FacedMixin`: weathering is every outside's, on decomposition's
+  exposure rule (nothing changes indoors — Law 2 by construction), so a
+  second weathering thing needs no class; `GessoPanel` retired to a `Good`
+  row, `SignBoard` is `MarkedMixin(Good)`. `ShellMixin` folded into
+  `DurableMixin`: the fabric was a second 0..1 condition with bands and a
+  restore; a building now composes `Durable`, the weather writes its
+  condition only while the coat is gone (`bareWearPerDay`, the building's
+  `structure.weather.daysToWorn` dial), and `maintain` sets it sound. The
+  five residence bands gave way to `Durable`'s four words. A building with
+  no landing standing leaves its coat unwalked until one stands; a bare one
+  still wears. The staged-ship rule holds: `Durable`'s slice is empty while
+  the coats are not kept. Only `SelfHeatingMixin` remains, promoted, not
+  new. *Lens 2: a second instance needs zero code.*
+
 ---
 
 ## ⭐⭐ Host placement

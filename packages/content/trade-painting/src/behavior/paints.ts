@@ -48,8 +48,8 @@ export const brain = class {
     // The one that most wants it: a coat gone first, then a thin one.
     const wanting = room
       .landedStructuresNow()
-      .filter((s) => MixinApi.isShell(s))
-      .map((s) => ({ s, gone: MixinApi.isShell(s) && s.coatGone(), thin: MixinApi.isShell(s) && s.coatThin(thin) }))
+      .filter((s) => MixinApi.isFaced(s))
+      .map((s) => ({ s, gone: MixinApi.isFaced(s) && s.coatGone(), thin: MixinApi.isFaced(s) && s.coatThin(thin) }))
       .filter((w) => w.gone || w.thin)
       .sort((a, b) => Number(b.gone) - Number(a.gone));
     const target = wanting[0]?.s;

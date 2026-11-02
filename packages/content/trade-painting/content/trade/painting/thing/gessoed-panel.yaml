@@ -1,7 +1,7 @@
 # A gessoed panel (paint D10) — a seasoned board under a white chalk-and-glue
 # ground, scraped smooth: what a tempera is painted on. The painting itself
 # — what the picture IS — is the visual-arts build's; this is the object.
-class: /trade/painting/thing/GessoPanel
+class: /platform/thing/Good
 data:
   shortDescription: gessoed panel
   keywords: [panel, "gessoed panel", board]

@@ -4,7 +4,8 @@
  * stand at (residences D4/D5; paint build D13).
  *
  * The one act on the other side of the weathering clock. A building's
- * fabric wears once its coat is gone (the kernel's `ShellMixin`); this is
+ * fabric — its `Durable` condition — wears once its coat is gone (the
+ * weather walk on its face, `Faced.reconcileWeather`); this is
  * what reverses it, and it costs exactly what upkeep costs in life: a
  * tool, some wear on the tool, and somebody's attention. ⭐ It mends sills
  * and putty and nothing else: laying a coat is `paint`'s.
@@ -42,8 +43,8 @@ import { MixinApi } from "@saxonberg/server/mud/api/mixin";
 import { Mml } from "@saxonberg/server/mud/api/mml";
 import { NavigationApi } from "@saxonberg/server/mud/api/navigation";
 import HoldingWarren from "../../HoldingWarren";
-import type { Shell } from "@saxonberg/server/mud/lib/structure/Shell";
-import type { Weathering } from "@saxonberg/server/mud/lib/material/Weathering";
+import type { Faced } from "@saxonberg/server/mud/lib/material/Faced";
+import StructureBase from "@saxonberg/server/mud/lib/structure/Structure";
 
 /** ⭐ The instrument is bound by the view, never hunted for here. */
 interface MaintainModel extends CommandModel {
@@ -60,6 +61,11 @@ const KIT_WEAR = 0.08;
 
 /** Below this an outside coat reads as going — the platform's `structure.coat.thinM` default. */
 const COAT_THIN_M = 0.00001;
+
+/** A BUILDING with an outside and a condition — what there is to keep up (a chair is `repair`'s). */
+function kept(s: Stuff): s is Stuff & Faced & Durable {
+  return s instanceof StructureBase && MixinApi.isFaced(s) && MixinApi.isDurable(s);
+}
 
 export default class MaintainController extends CommandController {
   async execute(model: MaintainModel, context: CommandContext): Promise<void> {
@@ -98,7 +104,7 @@ export default class MaintainController extends CommandController {
       return;
     }
 
-    const before = building.conditionBand();
+    const before = building.getConditionWord();
     if (before === "sound") {
       const coatWanting = building.coatGone() || building.coatThin(COAT_THIN_M);
       context.note({
@@ -117,7 +123,7 @@ export default class MaintainController extends CommandController {
       return;
     }
 
-    building.mendFabric();
+    building.setCondition(1);
     if (MixinApi.isDurable(kit as Stuff)) {
       (kit as unknown as Durable).wear(KIT_WEAR);
     }
@@ -140,8 +146,8 @@ export default class MaintainController extends CommandController {
   private async buildingOf(
     named: Stuff | null,
     room: Stuff | null | undefined,
-  ): Promise<(Stuff & Shell & Weathering) | null> {
-    if (named !== null && named !== room) return MixinApi.isShell(named) ? named : null;
+  ): Promise<(Stuff & Faced & Durable) | null> {
+    if (named !== null && named !== room) return kept(named) ? named : null;
     if (!room) return null;
     // A holding's room: the holding knows its house (its own, or the
     // building row it stands in).
@@ -149,12 +155,12 @@ export default class MaintainController extends CommandController {
       const warren = room.getWarren();
       if (warren instanceof HoldingWarren) {
         const house = (warren as unknown as HoldingWarren).house();
-        if (house !== null && MixinApi.isShell(house)) return house;
+        if (house !== null) return house;
       }
     }
     const path = room.getPlacePath();
     const s = path ? await NavigationApi.structureAt(path) : null;
-    return s !== null && MixinApi.isShell(s) ? s : null;
+    return s !== null && kept(s) ? s : null;
   }
 
   /** ⭐ The bound kit, if it offers `upkeep`. Resolved by the binder. */

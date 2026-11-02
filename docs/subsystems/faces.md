@@ -222,5 +222,9 @@ a wet coat, frost crazes it). A coat may remember what it was made of
 (`CoatLayer.paint`, the pot's makeup — its color), what was lettered in it
 (`marks`) and how much sun it has had (`faded`). `coatPlanFor` is the
 `paint` verb's protocol on the thing painted; `coatAreaM2` is its face's
-area; `persistsCoats` gates the coat slice. Weathering and the fabric are
-[painting.md](./painting.md)'s.
+area; `persistsCoats` gates the coat slice. ⭐ **The weather works on every
+outside** (`reconcileWeather`, folded in from the paint build's
+`WeatheringMixin` at review): coats thin at their material's rate where the
+weather reaches them, set by the air, fade in the sun, and a durable host's
+condition wears at `bareWearPerDay` once they are gone — none for a good,
+a building's dial for a building. See [painting.md](./painting.md).

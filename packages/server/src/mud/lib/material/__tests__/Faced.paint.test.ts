@@ -15,7 +15,6 @@ import Good from '../../stuff/Good';
 import Material from '../Material';
 import { BulkableMixin } from '../../bulk/Bulkable';
 import { MarkedMixin } from '../../description/Marked';
-import { WeatheringMixin } from '../Weathering';
 import Structure from '../../../platform/idea/Structure';
 import Location from '../../location/Location';
 import { Quantity } from '../../quantity';
@@ -31,7 +30,7 @@ import type { Containable } from '../../spatial/Containable';
 class Pot extends BulkableMixin(Good) {
   static _mixinName = 'PaintTestPot';
 }
-class Board extends MarkedMixin(WeatheringMixin(Good)) {
+class Board extends MarkedMixin(Good) {
   static _mixinName = 'PaintTestBoard';
 }
 

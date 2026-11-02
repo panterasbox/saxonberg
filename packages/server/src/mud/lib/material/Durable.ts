@@ -162,6 +162,18 @@ export function DurableMixin<TBase extends MixinConstructor>(Base: TBase) {
     };
 
     /**
+     * The declared fields — unless the thing's outside is not kept (a
+     * staged ship's hull, paint D7): the wear the weather put on it resets
+     * with the coats it wore through. (A layer with a slice contributes no
+     * `fieldMeta` of its own, so both fields are named here.)
+     */
+    static captureSlice(host: Stuff): { fields: Record<string, unknown> } {
+      if (MixinApi.isFaced(host) && !host.persistsCoats()) return { fields: {} };
+      const self = host as unknown as Durable & { mends: MendRecord[] };
+      return { fields: { condition: self.getWearCondition(), mends: self.mends.map((m) => ({ ...m })) } };
+    }
+
+    /**
      * 0..1 wear gauge; default pristine.
      */
     private _condition: number = 1;

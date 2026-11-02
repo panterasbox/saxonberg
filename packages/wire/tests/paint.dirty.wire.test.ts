@@ -256,7 +256,7 @@ suite('paint — the blocking drive', () => {
       TOWPATH,
       '/world/terminus',
       'cottage',
-      '(self.conditionBand(), self.setCoats({}), self.setFabricStampS(self.getFabricStampS() - 5184000), self.conditionBand())',
+      '(self.getConditionWord(), self.setCoats({}), self.setWeatheredToS(self.getWeatheredToS() - 5184000), self.getConditionWord())',
     );
     const s = await session(painter, TOWPATH);
     const v = await say(s, 'survey cottage');

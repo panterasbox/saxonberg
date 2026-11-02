@@ -25,6 +25,15 @@
  * — *it has an outside, and something may be laid on it* — is true of every
  * good, which is the test for composing on the base. ⚠ Not on `Thing`: a
  * wall, a floor and a fixture take paint through construction's layers.
+ *
+ * ⭐⭐ **The weather** (paint D5, folded in at review): an outside coat
+ * thins where the weather reaches it at its material's rate
+ * (`Material.weatheringMPerGameYear`), outermost first, and fades where the
+ * sun does — {@link Faced.reconcileWeather}. It is decomposition's exposure
+ * clock for a coat: indoors, in a pack or on a rack the weather reaches
+ * nothing and nothing changes (Law 2 holds by construction). What the
+ * weather does to the BODY once its coat is gone is the host's
+ * ({@link Faced.bareWearPerDay}): a building wears; a good does not yet.
  */
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
@@ -44,6 +53,22 @@ import { Mml } from '../../api/mml';
 import { MessageApi } from '../../api/message';
 import { Quantity } from '../quantity';
 import type { PaintMakeup } from './Paint';
+import { BiomeApi } from '../../api/biome';
+import { WorldClockApi } from '../../api/worldclock';
+
+/** Game seconds in a game year (the calendar's 360 days). */
+const GAME_YEAR_S = 360 * 86_400;
+
+const GAME_DAY_S = 86_400;
+
+/** How much of the weather a face out under a roof in the open air still meets. */
+const SHELTERED_EXPOSURE = 0.3;
+
+/** A coat that set badly has opened: it weathers this many times as fast. */
+const OPENED_FACTOR = 2;
+
+/** Sun dose (`0..1`) per game day of full sky light — about a hundred days to fade a lake. */
+const SUN_DOSE_PER_DAY = 0.01;
 
 /** The two faces a good can have. */
 export type FaceName = 'outside' | 'inside';
@@ -195,6 +220,32 @@ export interface Faced {
   absorbedAromas(face: FaceName): readonly AromaTag[];
   /** Record what a porous face keeps — the slot's face exchange writes it. */
   setAbsorbedAromas(face: FaceName, aromas: readonly AromaTag[]): void;
+  /**
+   * ⭐ Walk the weather since the last look over the outside (paint D5):
+   * set what the air sets, thin what the weather reaches, fade what the sun
+   * reaches, and — once the last coat is gone — wear a durable body at
+   * {@link bareWearPerDay}. Returns the game-second the outside went BARE in
+   * this window, or `null` if it did not.
+   */
+  reconcileWeather(): number | null;
+  /**
+   * Thin the outside coats over `segments` at `exposure` (`0..1` of the
+   * weather reaching them). Returns the seconds into the window at which
+   * the last outside coat wore through, or `null`.
+   */
+  weatherCoats(segments: readonly CoatAir[], exposure: number, skyLight: number): number | null;
+  /** Is there no coat left on the outside? */
+  coatGone(): boolean;
+  /** Is the outside coat worn thin (below `thinM`)? */
+  coatThin(thinM: number): boolean;
+  /** What the weather has been doing to the outside, in words — or `null` when nothing shows. */
+  weatherCause(): string | null;
+  /** How much condition a day of weather costs the body once its coat is gone. Default none. */
+  bareWearPerDay(): number;
+  /** The game-second the weather was last walked to, or `null`. */
+  getWeatheredToS(): number | null;
+  /** Restamp the walk — a staging seam. */
+  setWeatheredToS(s: number | null): void;
 }
 
 function dial(key: string, fallback: number): number {
@@ -268,6 +319,8 @@ function nameOf(m: Material | null): string {
 const coatAugmenter: MarkupAugmenter = (text, host, _viewer, opts) => {
   if (opts?.filter) return text;
   if (!MixinApi.isFaced(host)) return text;
+  // Reconcile on read: the weather since the last look, first.
+  host.reconcileWeather();
   const lines: string[] = [];
   for (const face of host.faces()) {
     const top = host.getCoats(face)[0];
@@ -293,6 +346,7 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     static fieldMeta: FieldMeta = {
       coats: { persistent: true, authorable: true, runtimeState: true },
       absorbed: { persistent: true, runtimeState: true },
+      weatheredToS: { persistent: true, runtimeState: true },
     };
 
     /**
@@ -300,9 +354,15 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
      * are not kept (a staged ship's hull, paint D7). Plain JSON either way.
      */
     static captureSlice(host: Stuff): { fields: Record<string, unknown> } {
-      const self = host as unknown as Faced & { coats: unknown; absorbed: unknown };
+      const self = host as unknown as Faced & { coats: unknown; absorbed: unknown; weatheredToS: unknown };
       if (!self.persistsCoats()) return { fields: {} };
-      return { fields: { coats: structuredClone(self.coats), absorbed: structuredClone(self.absorbed) } };
+      return {
+        fields: {
+          coats: structuredClone(self.coats),
+          absorbed: structuredClone(self.absorbed),
+          weatheredToS: self.weatheredToS,
+        },
+      };
     }
 
     /** @hook Why `actor` cannot reach this to paint it — `null` (a good in reach can be). */
@@ -371,7 +431,7 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
           }
           // ⭐ Walk the weather UP TO NOW first, so the rain of last week
           // does not fall on a coat laid today.
-          if (MixinApi.isWeathering(self)) self.reconcileWeather();
+          self.reconcileWeather();
           src.setBulkAmount('interior', Quantity.of(have - litres, 'L'));
           const soil = MixinApi.isSoilable(self) ? Math.max(self.soilAt('outside'), self.soilAt('')) : 0;
           self.layCoat('outside', path, setM, soil, makeup);
@@ -667,6 +727,186 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         return 1.5;
       }
       return 1;
+    }
+
+    // ── the weather (paint D5) ──────────────────────────────────────
+
+    /** Game-second the weather was last walked to (`null`: never — the first look stamps). */
+    public weatheredToS: number | null = null;
+
+    public getWeatheredToS(): number | null {
+      return this.weatheredToS;
+    }
+
+    public setWeatheredToS(s: number | null): void {
+      this.weatheredToS = typeof s === 'number' && Number.isFinite(s) ? s : null;
+    }
+
+    /**
+     * @hook The place whose air this thing's outside meets — a good's
+     * container by default; a building answers one of its landings.
+     */
+    public weatherScope(): Stuff | null {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isContainable(self)) return null;
+      return self.getContainer() ?? null;
+    }
+
+    /**
+     * @hook How much of the weather reaches the outside at `scope`: all of
+     * it where the rain does, some under a roof in the open air, none
+     * indoors (or in a pack: a person has no exposure).
+     */
+    public weatherExposureAt(scope: Stuff): number {
+      const e = BiomeApi.exposureOf(scope);
+      if (e === null) return 0;
+      if (e.rainReaches()) return 1;
+      return e.windEnters() ? SHELTERED_EXPOSURE : 0;
+    }
+
+    /** @hook The sky light at `scope`, `0..1` — what fades a pigment. */
+    public skyLightAt(scope: Stuff): number {
+      return BiomeApi.exposureOf(scope)?.skyLightFraction() ?? 0;
+    }
+
+    /** @hook How freely the air at `scope` changes for a coat that wants it, `0..1`. */
+    public airChangeAt(scope: Stuff): number {
+      if (!MixinApi.isAtmospheric(scope)) return 1;
+      const ach = scope.airChangesPerHour();
+      return Number.isFinite(ach) ? Math.min(1, Math.max(0, ach / 4)) : 1;
+    }
+
+    /**
+     * @hook What a day of weather costs a durable body once its coat is
+     * gone. ⚠ None by default: what bare exposure does to a good's own
+     * material is decomposition's per-material rate, not built. A building
+     * answers its dial (`structure.weather.daysToWorn`).
+     */
+    public bareWearPerDay(): number {
+      return 0;
+    }
+
+    public reconcileWeather(): number | null {
+      const now = WorldClockApi.getNow().rawValue();
+      const from = this.weatheredToS ?? now;
+      if (!(now > from)) {
+        this.weatheredToS = now;
+        return null;
+      }
+      const self = this as unknown as Stuff;
+      const wearPerDay = MixinApi.isDurable(self) ? this.bareWearPerDay() : 0;
+      const wasBare = this.coatGone();
+      // Nothing on the outside and nothing to wear: no weather to walk.
+      if (wasBare && !(wearPerDay > 0)) {
+        this.weatheredToS = now;
+        return null;
+      }
+      const scope = this.weatherScope();
+      if (scope === null) {
+        // ⭐ No place stands to read the air from (a building whose landing
+        // is not loaded). A bare body still takes the weather; a coat waits,
+        // unwalked, for a landing to walk it from — so nothing is lost.
+        if (wasBare && MixinApi.isDurable(self)) self.wear(((now - from) / GAME_DAY_S) * wearPerDay);
+        if (wasBare || !(wearPerDay > 0)) this.weatheredToS = now;
+        return null;
+      }
+      this.weatheredToS = now;
+      const airChange = this.airChangeAt(scope);
+      const segments: CoatAir[] = BiomeApi.airSegmentsFor(scope, from, now).map((seg) => ({
+        seconds: seg.durationS,
+        kelvin: seg.air.tempK,
+        rh: Math.min(1, Math.max(0, seg.air.humidityPct / 100)),
+        rain: seg.rainMmPerH > 0,
+        airChange,
+      }));
+      // ⭐ A thermal body sets its own wet coats over its room's air and
+      // takes an oil's heat (`Thermal.reconcileCoats`); anything else —
+      // a building, a board — sets them here, and an oil's heat is said,
+      // not felt (the survey says the new oil is curing).
+      if (!MixinApi.isThermal(self)) this.airCoats(segments);
+      const bareAfter = this.weatherCoats(segments, this.weatherExposureAt(scope), this.skyLightAt(scope));
+      const bareAt = bareAfter === null ? null : from + bareAfter;
+      // ⭐ The body takes the weather only for the time it stood bare
+      // (paint D13): a building kept painted stays sound.
+      const bareFrom = wasBare ? from : bareAt;
+      if (bareFrom !== null && wearPerDay > 0 && MixinApi.isDurable(self)) {
+        self.wear(((now - bareFrom) / GAME_DAY_S) * wearPerDay);
+      }
+      return bareAt;
+    }
+
+    public weatherCoats(segments: readonly CoatAir[], exposure: number, skyLight: number): number | null {
+      const face: FaceName = 'outside';
+      const coats = [...this.getCoats(face)].map((c) => ({ ...c }));
+      if (coats.length === 0) return null;
+      let elapsed = 0;
+      let bareAt: number | null = null;
+      for (const seg of segments) {
+        if (!(seg.seconds > 0)) continue;
+        // The sun fades the outermost coat's pigment wherever it reaches.
+        const top = coats[0];
+        if (top !== undefined && top.paint !== undefined && skyLight > 0) {
+          top.faded = Math.min(1, (top.faded ?? 0) + (seg.seconds / GAME_DAY_S) * 0.5 * skyLight * SUN_DOSE_PER_DAY);
+        }
+        const segYears = (seg.seconds / GAME_YEAR_S) * Math.max(0, exposure);
+        let used = 0;
+        while (used < segYears && coats.length > 0) {
+          const c = coats[0]!;
+          if (c.state === 'wet') break;
+          const opened = c.state === 'crazed' || c.state === 'run' ? OPENED_FACTOR : 1;
+          const rate = (materialAt(c.material)?.getWeatheringMPerGameYear() ?? 0) * opened;
+          if (!(rate > 0)) break;
+          const yearsToGo = c.thicknessM / rate;
+          if (yearsToGo > segYears - used) {
+            c.thicknessM -= rate * (segYears - used);
+            used = segYears;
+            break;
+          }
+          // This coat wears through partway into the segment.
+          used += yearsToGo;
+          coats.shift();
+          if (coats.length === 0 && bareAt === null) bareAt = elapsed + (used / segYears) * seg.seconds;
+        }
+        elapsed += seg.seconds;
+      }
+      const rest = { ...this.coats };
+      if (coats.length === 0) delete rest[face];
+      else rest[face] = coats;
+      this.coats = rest;
+      return bareAt;
+    }
+
+    public coatGone(): boolean {
+      return this.getCoats('outside').length === 0;
+    }
+
+    public coatThin(thinM: number): boolean {
+      const coats = this.getCoats('outside');
+      if (coats.length === 0) return false;
+      const total = coats.reduce((a, c) => a + (c.state === 'wet' ? 0 : c.thicknessM), 0);
+      return coats.every((c) => c.state !== 'wet') && total < thinM;
+    }
+
+    /**
+     * ⭐ The weather's work on the outside, read off the COAT — the coat is
+     * what a passer-by sees going: *"the paint has gone; the weather is at
+     * what was under it"*. `null` while a sound coat holds.
+     */
+    public weatherCause(): string | null {
+      const top = this.getCoats('outside')[0];
+      if (top !== undefined && top.state === 'wet') {
+        const sets = top.paint ? new Paint(top.paint).binder()?.getKinetics()?.airSet()?.getSets() : null;
+        return sets === 'oxidation'
+          ? 'the new oil is still curing, faintly warm to the hand'
+          : 'the new coat is still wet';
+      }
+      if (top !== undefined && top.state === 'run') return 'the last coat ran in the rain and never set right';
+      if (top !== undefined && top.state === 'crazed') return 'the last coat crazed in the frost';
+      if (top === undefined) return 'the paint has gone; the weather is at what was under it';
+      if (this.coatThin(dial(AppSettingKeys.structureCoatThinM, 0.00001))) {
+        return 'the paint is going; weather is starting to find the seams';
+      }
+      return null;
     }
   }
   return FacedMixin;

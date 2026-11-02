@@ -98,7 +98,7 @@ export const brain = class {
       // anyway; skipping here keeps the beat's teleports honest. ⭐ The
       // fabric is the holding's BUILDING's now (paint D13).
       const house = holding.house();
-      if (house === null || !MixinApi.isShell(house) || house.conditionBand() === 'sound') continue;
+      if (house === null || !MixinApi.isDurable(house) || house.getConditionWord() === 'sound') continue;
       const room = holding.entryRoom();
       if (!room || !MixinApi.isContainer(room)) continue;
       keeper.teleport(room as Stuff & Container);

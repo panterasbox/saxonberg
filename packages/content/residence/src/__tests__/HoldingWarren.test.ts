@@ -417,14 +417,14 @@ describe('the residential programme (D16)', () => {
     const base = WorldClockApi.getNow().rawValue();
     const clock = vi.spyOn(WorldClockApi, 'getNow');
     clock.mockReturnValue(Quantity.of(base, 's'));
-    expect(house.conditionBand()).toBe('sound');
+    expect(house.getConditionWord()).toBe('sound');
 
     // A house that starts bare wears from the day it is held:
     // 45 game-days = the shipped daysToWorn default → half gone.
     clock.mockReturnValue(Quantity.of(base + 45 * 86_400, 's'));
-    expect(house.reconcileFabric()).toBeCloseTo(0.5, 2);
-    expect(house.conditionBand()).toBe('worn');
-    expect(house.conditionCause()).toMatch(/paint has gone/i);
+    expect(house.getCondition()).toBeCloseTo(0.5, 2);
+    expect(house.getConditionWord()).toBe('worn');
+    expect(house.weatherCause()).toMatch(/paint has gone/i);
 
     // "Restart": capture, tear down, re-admit → the decline SURVIVED
     // (the house persists under the holding's key), and keeps declining.
@@ -432,11 +432,11 @@ describe('the residential programme (D16)', () => {
     await w.admit(LOT1);
     const holding2 = w.holdingFor(LOT1)! as unknown as HoldingWarren;
     const house2 = holding2.house()!;
-    expect(house2.reconcileFabric()).toBeLessThanOrEqual(0.51);
+    expect(house2.getCondition()).toBeLessThanOrEqual(0.51);
 
     // The maintenance restore (P10) — the fabric, not the coat.
-    house2.mendFabric();
-    expect(house2.conditionBand()).toBe('sound');
+    house2.setCondition(1);
+    expect(house2.getConditionWord()).toBe('sound');
     clock.mockRestore();
   });
 
@@ -511,9 +511,9 @@ describe('the maintenance act (D4/D5)', () => {
     const base = WorldClockApi.getNow().rawValue();
     const clock = vi.spyOn(WorldClockApi, 'getNow');
     clock.mockReturnValue(Quantity.of(base, 's'));
-    holding.house()!.reconcileFabric();
+    holding.house()!.getCondition();
     clock.mockReturnValue(Quantity.of(base + 45 * 86_400, 's'));
-    expect(holding.house()!.conditionBand()).toBe('worn');
+    expect(holding.house()!.getConditionWord()).toBe('worn');
     return { holding, hall, clock };
   }
 
@@ -582,7 +582,7 @@ describe('the maintenance act (D4/D5)', () => {
 
     const ctx = await maintain(iris as unknown as Stuff, hall as unknown as Stuff);
     expect(reasons(ctx)).toEqual([]);
-    expect(holding.house()!.conditionBand()).toBe('sound');
+    expect(holding.house()!.getConditionWord()).toBe('sound');
     // Law 2: the tool wears with USE. That is the recurring cost of
     // upkeep, and the whole economic content of the act.
     expect(k.getCondition()).toBeLessThan(before);
@@ -595,7 +595,7 @@ describe('the maintenance act (D4/D5)', () => {
 
     const ctx = await maintain(iris as unknown as Stuff, hall as unknown as Stuff);
     expect(reasons(ctx)).toContain('no-upkeep-tool');
-    expect(holding.house()!.conditionBand()).toBe('worn');
+    expect(holding.house()!.getConditionWord()).toBe('worn');
   });
 
   it('refuses where there is no holding to keep', async () => {
@@ -651,7 +651,7 @@ describe('the maintenance act (D4/D5)', () => {
 
     const ctx = await maintain(stranger as unknown as Stuff, hall as unknown as Stuff);
     expect(reasons(ctx)).toEqual([]);
-    expect(holding.house()!.conditionBand()).toBe('sound');
+    expect(holding.house()!.getConditionWord()).toBe('sound');
   });
 
   it('⭐ interior goods show ZERO clock-wear over the same elapsed time (Law 2)', async () => {
@@ -666,9 +666,9 @@ describe('the maintenance act (D4/D5)', () => {
 
     const base = WorldClockApi.getNow().rawValue();
     clock.mockReturnValue(Quantity.of(base + 365 * 86_400, 's'));
-    holding.house()!.reconcileFabric();
+    holding.house()!.getCondition();
 
-    expect(holding.house()!.conditionBand()).toBe('dilapidated');
+    expect(holding.house()!.getConditionWord()).toBe('broken');
     expect(tool.getCondition()).toBe(before);
     clock.mockRestore();
   });

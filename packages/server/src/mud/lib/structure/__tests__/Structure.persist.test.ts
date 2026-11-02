@@ -2,7 +2,7 @@
  * ⭐⭐ Staged vs owned (paint D7): a building nobody has bought writes no
  * record — it comes back as its row authored it every time the world
  * restages (today: every boot); one a PERSON holds keeps its coats and its
- * fabric. A ship keeps her voyage either way, and her hull's coats only
+ * condition. A ship keeps her voyage either way, and her hull's coats only
  * once she is sold.
  */
 
@@ -10,9 +10,6 @@ import '../../../../test-bootstrap';
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import Structure from '../../../platform/idea/Structure';
 import Ship from '../../../platform/idea/Ship';
-import { FacedMixin } from '../../material/Faced';
-import { WeatheringMixin } from '../../material/Weathering';
-import { ShellMixin } from '../Shell';
 import { StuffApi } from '../../../api/stuff';
 import { ParcelApi } from '../../../api/parcel';
 import { MixinApi } from '../../../api/mixin';
@@ -52,7 +49,7 @@ describe('a building persists only once it is sold', () => {
     expect(s.shouldPersist()).toBe(false);
   });
 
-  it('a building a person holds persists its coats and fabric', () => {
+  it('a building a person holds persists its coats and condition', () => {
     const s = makeStuffAtPath(() => new Structure(), '/world/_p/house/structure');
     s.setExtent('/world/_p/house');
     s.setCoats({ outside: [{ material: '/x/oil', thicknessM: 0.00004, state: 'set' }] });
@@ -61,6 +58,7 @@ describe('a building persists only once it is sold', () => {
     expect(s.shouldPersist()).toBe(true);
     const state = slices(s) as Record<string, { fields: Record<string, unknown> }>;
     expect(state.FacedMixin?.fields.coats).toBeTruthy();
+    expect(state.DurableMixin?.fields.condition).toBe(1);
   });
 });
 
@@ -72,20 +70,18 @@ describe('a ship keeps her voyage; her hull resets until she is sold', () => {
     held('organization');
     expect(ship.shouldPersist()).toBe(true);
     const staged = slices(ship) as Record<string, { fields: Record<string, unknown> }>;
-    for (const key of ['FacedMixin', 'WeatheringMixin', 'ShellMixin']) {
+    for (const key of ['FacedMixin', 'DurableMixin']) {
       expect(staged[key]?.fields).toEqual({});
     }
     held('player');
     const sold = slices(ship) as Record<string, { fields: Record<string, unknown> }>;
     expect(sold.FacedMixin?.fields.coats).toBeTruthy();
-    expect(sold.ShellMixin?.fields.fabric).toBe(1);
+    expect(sold.DurableMixin?.fields.condition).toBe(1);
   });
 });
 
 // The capability mixins are composed on the twin, never on the base.
 it('the twin composes the outside; the base does not', () => {
   const s = makeStuffAtPath(() => new Structure(), '/world/_p/barn/structure');
-  expect(MixinApi.isFaced(s) && MixinApi.isWeathering(s) && MixinApi.isShell(s)).toBe(true);
-  void ShellMixin;
-  void WeatheringMixin;
+  expect(MixinApi.isFaced(s) && MixinApi.isDurable(s)).toBe(true);
 });

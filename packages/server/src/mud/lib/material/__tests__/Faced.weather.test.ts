@@ -10,7 +10,6 @@ import { describe, it, expect, afterEach } from 'vitest';
 import Good from '../../stuff/Good';
 import Material from '../Material';
 import { FacedMixin } from '../Faced';
-import { WeatheringMixin } from '../Weathering';
 import { Paint } from '../Paint';
 import { Quantity } from '../../quantity';
 import { StuffApi } from '../../../api/stuff';
@@ -18,10 +17,8 @@ import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup'
 import { Idea } from '../../stuff/Idea';
 import type { CoatAir } from '../Faced';
 
-class Board extends WeatheringMixin(Good) {
-  static _mixinName = 'WeatheringTestBoard';
-}
-class Wall extends WeatheringMixin(FacedMixin(Idea)) {
+class Board extends Good {}
+class Wall extends FacedMixin(Idea) {
   static _mixinName = 'WeatheringTestWall';
 }
 

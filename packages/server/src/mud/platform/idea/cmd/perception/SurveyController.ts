@@ -45,8 +45,14 @@ import { Paint } from '../../../../lib/material/Paint';
 import StructureBase from '../../../../lib/structure/Structure';
 import type Material from '../../../../lib/material/Material';
 import type { Faced } from '../../../../lib/material/Faced';
-import type { Weathering } from '../../../../lib/material/Weathering';
-import type { Shell } from '../../../../lib/structure/Shell';
+import type { Durable } from '../../../../lib/material/Durable';
+
+/** A building with an outside and a condition — what `survey` reads of one. */
+type KeptBuilding = Stuff & Faced & Durable;
+
+function isKeptBuilding(s: Stuff): s is KeptBuilding {
+  return s instanceof StructureBase && MixinApi.isFaced(s) && MixinApi.isDurable(s);
+}
 
 const CATALOGUE_PATH = '/platform/idea/ArchetypeCatalogue';
 
@@ -78,7 +84,7 @@ export default class SurveyController extends CommandController {
     // the binder only finds a structure on its landing, so a target that
     // is one is read from outside, and anything else is refused in words.
     if (target != null && target !== room) {
-      if (MixinApi.isShell(target)) {
+      if (isKeptBuilding(target)) {
         await this.surveyOutside(actor, target);
         return;
       }
@@ -141,11 +147,11 @@ export default class SurveyController extends CommandController {
     }
 
     // ⭐ The fabric is the BUILDING's (paint D13): whatever structure this
-    // room is a member of, read through its shell — a shop, a ship, a
+    // room is a member of, read through its condition — a shop, a ship, a
     // home. A holding still answers for who OWES it (the term).
     const roomPath = room.getPlacePath();
     const structure = roomPath ? await NavigationApi.structureAt(roomPath) : null;
-    if (structure !== null && MixinApi.isShell(structure)) {
+    if (structure !== null && isKeptBuilding(structure)) {
       lines.push('');
       lines.push(...(await this.outsideLines(structure, 'the place')));
     }
@@ -169,7 +175,7 @@ export default class SurveyController extends CommandController {
   }
 
   /** `survey <building>` — its outside, read from a landing. */
-  private async surveyOutside(actor: Stuff, structure: Stuff & Shell & Weathering & Faced): Promise<void> {
+  private async surveyOutside(actor: Stuff, structure: KeptBuilding): Promise<void> {
     const lines = [`You take stock of ${structure.getPresentation()} from outside:`];
     lines.push(...(await this.outsideLines(structure, 'it')));
     MessageApi.scene(actor)
@@ -180,14 +186,14 @@ export default class SurveyController extends CommandController {
 
   /**
    * ⭐ A building's outside, in words (paint D13): the coat and its color,
-   * the fabric's band and why, then the job — how much wall and roof, and
+   * the fabric's condition and why, then the job — how much wall and roof, and
    * roughly how much paint one coat would take. The area and the litres
    * are figures because `survey` measures; the band and the color never are.
    */
-  private async outsideLines(structure: Stuff & Shell & Weathering & Faced, noun: string): Promise<string[]> {
+  private async outsideLines(structure: KeptBuilding, noun: string): Promise<string[]> {
     if (structure instanceof StructureBase) await structure.standUpLandings();
-    const band = structure.conditionBand();
-    const cause = structure.conditionCause();
+    const band = structure.getConditionWord();
+    const cause = structure.weatherCause();
     const out: string[] = [];
     const top = structure.getCoats('outside')[0];
     if (top === undefined) {

@@ -44,8 +44,9 @@ owner, paint build 2026-10-31) — but as an Idea, not a Thing: what it is
 made of is a BILL, the materials it takes to erect and later to maintain
 (the construction slate's). What it is NOT is a container of walls: the
 walls and roofs are the places' own, and `lint:envelope` refuses a
-Structure row that authors an envelope. Its OUTSIDE is its own — the coat,
-the weathering and the fabric ([painting.md](./painting.md)).
+Structure row that authors an envelope. Its OUTSIDE is its own — the coat
+and the weather on it (`FacedMixin`) and the fabric under it (a `Durable`
+condition) ([painting.md](./painting.md)).
 
 ```yaml
 storeys:

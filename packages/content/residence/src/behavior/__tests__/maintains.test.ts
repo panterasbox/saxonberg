@@ -41,8 +41,8 @@ import {
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
 import { FacedMixin } from '@saxonberg/server/mud/lib/material/Faced';
-import { WeatheringMixin } from '@saxonberg/server/mud/lib/material/Weathering';
-import { ShellMixin } from '@saxonberg/server/mud/lib/structure/Shell';
+import { DurableMixin } from '@saxonberg/server/mud/lib/material/Durable';
+import type { ConditionWord } from '@saxonberg/server/mud/lib/material/Durable';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import type { Attachment } from '@saxonberg/server/mud/lib/location/Warren';
@@ -51,11 +51,11 @@ import type { BrainContext } from '@saxonberg/server/mud/lib/behavior/brain';
 const DORMS = '/test/duncan/dorms';
 const OTHER = '/test/elsewhere/units';
 
-/** A stand-in house: its band is set by the test (paint D13 — the fabric is the building's). */
-class TestHouse extends ShellMixin(WeatheringMixin(FacedMixin(Idea))) {
+/** A stand-in house: its condition word is set by the test (paint D13 — the fabric is the building's). */
+class TestHouse extends DurableMixin(FacedMixin(Idea)) {
   static _mixinName = 'MaintainsTestHouse';
-  public band = 'sound';
-  public override conditionBand(): string {
+  public band: ConditionWord = 'sound';
+  public override getConditionWord(): ConditionWord {
     return this.band;
   }
 }
@@ -123,7 +123,7 @@ class TestInstitution extends CirculationWarren {
 
 let institution: TestInstitution;
 
-function programme(key: string, band: string): HoldingWarren {
+function programme(key: string, band: ConditionWord): HoldingWarren {
   const p = makeStuff(() => new HoldingWarren());
   p.key = key;
   p.housed = makeStuff(() => new TestHouse());
@@ -194,7 +194,7 @@ afterEach(() => {
 describe('the maintains beat', () => {
   it('works the worn holdings in its extent, through the literal verb', async () => {
     programme(`${DORMS}/f1-r1`, 'worn');
-    programme(`${DORMS}/f1-r2`, 'shabby');
+    programme(`${DORMS}/f1-r2`, 'badly worn');
     const desk = makeStuff(() => new Locale());
     const katie = keeper(desk);
 
@@ -218,7 +218,7 @@ describe('the maintains beat', () => {
   });
 
   it('never wanders outside its own extent', async () => {
-    programme(`${OTHER}/f1-u1`, 'dilapidated');
+    programme(`${OTHER}/f1-u1`, 'broken');
     const desk = makeStuff(() => new Locale());
     await brain.act(ctxFor(keeper(desk) as unknown as Stuff, { extent: DORMS }));
     expect(maintains()).toHaveLength(0);

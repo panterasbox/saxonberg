@@ -3,10 +3,11 @@
  * is, minted one per holding (paint build D6, 2026-10-31).
  *
  * A holding is a warren one level down — rooms keyed `(row, <extent>/…)`
- * — and until now it carried its shell's condition itself. The shell is
- * every building's now (`ShellMixin`, the kernel's), so a holding needs a
- * building to carry it: one `Structure` per holding, keyed by the holding's
- * own extent, with the outside's three capabilities. Walk around a Hinkley
+ * — and until now it carried its shell's condition itself. A building's
+ * condition is the building's now (a `Durable` condition the weather wears
+ * once the coat is gone), so a holding needs a building to carry it: one
+ * `Structure` per holding, keyed by the holding's own extent, with a face
+ * and a condition. Walk around a Hinkley
  * lot's house from the lane and it is a building like any other: you can
  * `look` at it, `survey` it, `paint` it.
  *
@@ -26,8 +27,7 @@
 
 import StructureBase from '@saxonberg/server/mud/lib/structure/Structure';
 import { FacedMixin } from '@saxonberg/server/mud/lib/material/Faced';
-import { WeatheringMixin } from '@saxonberg/server/mud/lib/material/Weathering';
-import { ShellMixin } from '@saxonberg/server/mud/lib/structure/Shell';
+import { DurableMixin } from '@saxonberg/server/mud/lib/material/Durable';
 import { PersistableMixin } from '@saxonberg/server/mud/lib/persistence/Persistable';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import type { Stuff, EvictionContext } from '@saxonberg/server/mud/lib/stuff/Stuff';
@@ -43,7 +43,7 @@ interface HoldingRooms {
 export const HOLDING_STRUCTURE_ROW = '/system/residence/idea/holding-structure';
 
 export default class HoldingStructure extends PersistableMixin(
-  ShellMixin(WeatheringMixin(FacedMixin(StructureBase))),
+  DurableMixin(FacedMixin(StructureBase)),
 ) {
   /** The holding whose house this is — a weak, runtime ref set at its wake. */
   private holding: HoldingRooms | null = null;
@@ -73,6 +73,15 @@ export default class HoldingStructure extends PersistableMixin(
 
   public override airChangeAt(_scope: Stuff): number {
     return 1;
+  }
+
+  public override bareWearPerDay(): number {
+    return this.bareWearDial();
+  }
+
+  public override getCondition(): number {
+    this.reconcileWeather();
+    return super.getCondition();
   }
 
   public override coatAreaM2(): number {

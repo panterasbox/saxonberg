@@ -742,14 +742,9 @@ export const Mixins = {
   // mass into a form a word names": the wheel, the brick table, the blowpipe.
   Forming: 'FormingMixin',
   // ⭐⭐ Faces and coats (ceramics M6) — "I have an outside, and a vessel an
-  // inside; each carries coats, outermost first". On every Good.
+  // inside; each carries coats, outermost first" — and the outside's
+  // coats thin where the weather reaches them (paint D5). On every Good.
   Faced: 'FacedMixin',
-  // ⭐⭐ Weathering (paint D5) — "my coats thin where the weather reaches
-  // them, and my pigment fades in the sun". Requires Faced.
-  Weathering: 'WeatheringMixin',
-  // ⭐⭐ Shell (paint D5/D13) — "I have a fabric that holds while my coat
-  // does and wears once it is gone, and can be mended". Requires Weathering.
-  Shell: 'ShellMixin',
   // ⭐⭐ SelfHeating (paint D15, promoted from trade-farming) — "I make my own
   // heat faster than I lose it, until I catch": the hay rick, the oily rags.
   SelfHeating: 'SelfHeatingMixin',
@@ -1049,8 +1044,6 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   StrikingDieMixin: "{} isn't a die you could strike a blank on",
   FormingMixin: "{} isn't something you shape things on",
   FacedMixin: "{} has no face you could lay a coat on",
-  WeatheringMixin: "{} does not stand out in the weather",
-  ShellMixin: "{} has no fabric to mend",
   SelfHeatingMixin: "{} does not heat itself",
   GreenwareMixin: "{} isn't green clay",
   // ⭐ The refusal teaches the rule: a sample is a piece you TOOK and

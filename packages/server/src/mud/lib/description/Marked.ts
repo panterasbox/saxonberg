@@ -298,6 +298,7 @@ export function MarkedMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
       // ⭐ Words lettered in paint live in their coats (paint D10): they read
       // in any weather, and go when the weather takes the coat.
+      if (MixinApi.isFaced(self)) self.reconcileWeather();
       const painted = MixinApi.isFaced(self)
         ? self.getCoats('outside').map((c) => c.marks).filter((m): m is string => typeof m === 'string' && m !== '')
         : [];
@@ -387,6 +388,7 @@ export function MarkedMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
       medium.setBulkAmount('interior', Quantity.of(have - litres, 'L'));
       const makeup = medium.getBulk('interior').getPayload()?.paint;
+      self.reconcileWeather();
       self.layCoat('outside', makeup?.binder || (held.getTemplatePath() ?? ''), LETTER_FILM_M, 0, makeup);
       const top = self.getCoats('outside')[0];
       if (top !== undefined) top.marks = text;

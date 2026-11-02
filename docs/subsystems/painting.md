@@ -21,21 +21,25 @@ pool: `look`, `survey`, `paint` and `maintain` bind a building from its
 landing and nowhere else, and refuse elsewhere in words (*"You cannot reach
 the outside of the cottage from here."*).
 
-## 2. The outside: three capabilities, opted into
+## 2. The outside: a face and a condition — no new mixins
 
-The platform `Structure` twin composes all three; a content author opts out
-by naming a class over the base that does not (a ruin, a monument). A
-holding's house (`HoldingStructure`) composes the same three.
+A building's outside is two shipped mixins. The platform `Structure` twin
+composes both; a content author opts out by naming a class over the base
+that does not (a ruin, a monument). A holding's house (`HoldingStructure`)
+composes the same two.
 
 | mixin | what it claims |
 |---|---|
-| `FacedMixin` | one outside a coat can be laid on (`coatAreaM2` = the exterior walls and roof of its members) |
-| `WeatheringMixin` | the coats thin where the weather reaches them, set by the air, fade in the sun |
-| `ShellMixin` | a fabric that holds while a coat does, wears once it is gone, and can be mended |
+| `FacedMixin` | one outside a coat can be laid on (`coatAreaM2` = the exterior walls and roof of its members), **and the weather works on it**: the coats thin where it reaches them, set by the air, fade in the sun |
+| `DurableMixin` | a condition — the fabric under the coat — which the weather wears only while the coat is gone |
 
-`WeatheringMixin` also composes on goods that live out in it — the sign board
-and the gessoed panel (`trade-painting`) — and NOT on every `Good`: a cart's
-coat wearing in the yard waits for decomposition's exposure clock.
+⭐ **Weathering is every good's** (folded into `FacedMixin` at review): it
+is decomposition's exposure clock for a coat. Indoors, in a pack or on a
+rack the weather reaches nothing, so nothing changes — Law 2 holds by
+construction — and a cart's coat in the yard, a sign board hung outside and
+a building weather by the one walk. What the weather does to the BODY once
+the coat is gone is the host's `bareWearPerDay`: a building answers its
+dial; a good answers nothing yet (decomposition's per-material rate).
 
 ### Setting — the binder's chemistry, read off the air
 
@@ -50,24 +54,31 @@ states). `heatCoats` never touches an air-set coat. A thermal good sets
 its coats over its room's air (`Thermal.reconcileCoats`), and an oil warms
 it.
 
-### Weathering — thickness is the arithmetic
+### Weathering — thickness is the arithmetic (`Faced.reconcileWeather`)
 
 `Material.weatheringMPerGameYear` is the rate a SET coat of it thins where
 the weather reaches it (an oil two seasons a coat, a limewash one or two, a
 glaze or tar never). Outermost first; when a coat is gone the next meets the
 world; two coats last twice as long; a crazed or run coat goes twice as
-fast. The walk is `BiomeApi.airSegmentsFor` at a standing landing, so a wet
-day and a dry one do different things; a long absence integrates the tail
-the weather walk keeps.
+fast. The walk is `BiomeApi.airSegmentsFor` at the thing's `weatherScope`
+(a good's container; a building's standing landing), so a wet day and a dry
+one do different things; a long absence integrates the tail the weather walk
+keeps. It reconciles on read — a look, a read of lettered words, a survey, a
+coat laid. A building with no landing standing leaves its coat unwalked
+until one is (nothing is lost), but a bare one still wears. A thermal good
+sets its own wet coats over its room's air (`Thermal.reconcileCoats`, which
+also takes an oil's heat); everything else sets them in this walk.
 
-### The fabric
+### The fabric — a building's `Durable` condition
 
-`ShellMixin.fabric` wears at `0.5 / structure.weather.daysToWorn` per game
-day — **only while the coat is gone**. Five bands, no gauge (`sound` ·
-`weathered` · `worn` · `shabby` · `dilapidated`); the cause line is read off
-the coat (*"the paint is going"*, *"the paint has gone; rain has gotten into
-the sills"*, *"the new oil is still curing"*). `maintain` mends the fabric
-and nothing else (*"a coat is a brush's work"*).
+A building's condition wears at `0.5 / structure.weather.daysToWorn` per
+game day — **only while the coat is gone** (`bareWearPerDay`; reconciled
+whenever the condition is read). It reads as `Durable`'s word, no gauge
+(`sound` · `worn` · `badly worn` · `broken`); the cause line is read off
+the coat (`Faced.weatherCause`: *"the paint is going"*, *"the paint has
+gone; the weather is at what was under it"*, *"the new oil is still
+curing"*). `maintain` restores the condition and nothing else (*"a coat is
+a brush's work"*).
 
 ### Staged and owned
 
@@ -75,7 +86,7 @@ A building persists only once it is **sold** — a PERSON holds the covering
 parcel (`isTitleSold`). A staged building writes no record and comes back as
 its row authored it whenever the world restages (today: every boot). A ship
 keeps her voyage always and her hull's coats only once sold
-(`Faced.persistsCoats` gates the coat slices). A holding's house persists
+(`Faced.persistsCoats` gates the coat slice and the condition's). A holding's house persists
 always (a holding exists because somebody holds it).
 
 ## 3. Paint is a mixture

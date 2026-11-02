@@ -335,9 +335,9 @@ export abstract class CirculationWarren extends Warren {
   /**
    * The fabric of the holding at `extent` — the residence ladder's
    * ascent-gate read (P10): the BUILDING the holding is (paint D13 — the
-   * shell is every building's now): its own minted house, or the
+   * condition is the building's now): its own minted house, or the
    * structure row its units stand in. The holding is admitted first so
-   * its house stands. Null when no building with a shell covers it.
+   * its house stands. Null when no building with a condition covers it.
    */
   public static async conditionOf(
     extent: string,
@@ -345,8 +345,8 @@ export abstract class CirculationWarren extends Warren {
     await CirculationWarren.admitFor(extent);
     const { NavigationApi } = await import('../../api/navigation');
     const house = await NavigationApi.structureAt(extent);
-    if (house === null || !MixinApi.isShell(house)) return null;
-    return { condition: house.reconcileFabric(), band: house.conditionBand() };
+    if (house === null || !MixinApi.isDurable(house)) return null;
+    return { condition: house.getCondition(), band: house.getConditionWord() };
   }
 
   /**

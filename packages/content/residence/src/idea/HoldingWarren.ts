@@ -44,7 +44,8 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Persistable } from '@saxonberg/server/mud/lib/persistence/Persistable';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
-import type { Shell } from '@saxonberg/server/mud/lib/structure/Shell';
+import type { Durable } from '@saxonberg/server/mud/lib/material/Durable';
+import type { Faced } from '@saxonberg/server/mud/lib/material/Faced';
 import HoldingStructure, { HOLDING_STRUCTURE_ROW } from './HoldingStructure';
 import type StructureBase from '@saxonberg/server/mud/lib/structure/Structure';
 
@@ -617,20 +618,23 @@ export default class HoldingWarren extends ProgrammeBase {
 
   /**
    * ⭐⭐ This holding's HOUSE — the building its shell belongs to. The
-   * shell's condition moved off the holding onto the kernel's `ShellMixin`
-   * (paint D13), so a holding stands a building up at its wake: the
+   * shell's condition moved off the holding onto the building, a
+   * `Durable` condition (paint D13), so a holding stands a building up at
+   * its wake: the
    * Structure ROW that already covers its extent (Seznick House, Duncan
    * Hall — one building, many units), else a {@link HoldingStructure} of
    * its own, keyed by its extent and registered with the location graph.
    * Who OWES the upkeep stays here (`upkeepTerm`).
    */
-  public house(): (StructureBase & Shell) | null {
+  public house(): (StructureBase & Faced & Durable) | null {
     const own = this._house;
     if (own !== null && !own.isDestroyed()) return own;
     const extent = this.holdingKey();
     if (!extent) return null;
     const s = NavigationApi.structureAtNow(extent);
-    return s !== null && MixinApi.isShell(s) ? (s as StructureBase & Shell) : null;
+    return s !== null && MixinApi.isFaced(s) && MixinApi.isDurable(s)
+      ? (s as StructureBase & Faced & Durable)
+      : null;
   }
 
   /** Stand this holding's house up — the covering row's, or a minted one. */

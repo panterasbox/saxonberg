@@ -47,8 +47,8 @@ import { installV1QuantityMarshallers } from '../../../../../lib/persistence/__t
 import type { CommandContext, CommandModel } from '../../../../../api/command';
 import type { StoredDocument } from '../../../../../lib/document/StoredDocument';
 import { FacedMixin } from '../../../../../lib/material/Faced';
-import { WeatheringMixin } from '../../../../../lib/material/Weathering';
-import { ShellMixin } from '../../../../../lib/structure/Shell';
+import { DurableMixin } from '../../../../../lib/material/Durable';
+import StructureBase from '../../../../../lib/structure/Structure';
 import { NavigationApi } from '../../../../../api/navigation';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
 import { Idea } from '../../../../../lib/stuff/Idea';
@@ -160,8 +160,8 @@ function bed(): Chair {
   return b;
 }
 
-/** A building whose weather is not walked here — its fabric is set by the test. */
-class TestHouse extends ShellMixin(WeatheringMixin(FacedMixin(Idea))) {
+/** A building whose weather is not walked here — its condition is set by the test. */
+class TestHouse extends DurableMixin(FacedMixin(StructureBase)) {
   static _mixinName = 'SurveyTestHouse';
   public override weatherScope(): Stuff | null {
     return null;
@@ -307,7 +307,7 @@ describe('survey', () => {
     );
     // ⭐ The fabric is the BUILDING's (paint D13): a bare house, half worn.
     const house = makeStuff(() => new TestHouse());
-    house.setFabric(0.5);
+    house.setCondition(0.5);
     vi.spyOn(NavigationApi, 'structureAt').mockResolvedValue(house as never);
 
     // Standing in the HALL, which has nothing in it at all.
@@ -316,7 +316,7 @@ describe('survey', () => {
     // The bedroom next door answers for the whole holding.
     expect(captured).toContain('a bedroom: yes');
     expect(captured).toContain('The fabric of the place is worn');
-    expect(captured).toContain('rain has gotten into the sills');
+    expect(captured).toContain('the paint has gone');
     expect(captured).toContain(
       'Upkeep here is the landlord’s for the shell; yours for what you put in it',
     );

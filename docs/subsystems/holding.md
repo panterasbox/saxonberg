@@ -307,20 +307,22 @@ the world instead of a tutor.
 
 ## Condition — the weathering clock
 
-⭐ **Moved to the kernel by the paint build** (`ShellMixin`, see
-[painting.md](./painting.md)): the fabric is the BUILDING's — the holding's
-house — and it wears **only while the building's coat is gone**, at
+⭐ **Moved to the kernel by the paint build** (the house's `Durable`
+condition, see [painting.md](./painting.md)): the fabric is the BUILDING's
+— the holding's house — and it wears **only while the building's coat is
+gone**, at
 `structure.weather.daysToWorn` (default 45 game-days from sound to worn,
 the dial that was `residence.weather.daysToWorn`). A holding's house starts
 bare, so an unpainted holding wears exactly as the shell always did.
 Reconciled on read, stamp-forward, persistent; honest across a restart.
 
-Five bands, and the readout is **only ever a band**:
+The readout is **only ever a word** — `Durable`'s, one scale for every
+condition in the game (paint review; the five residence bands retired):
 
-`sound` · `weathered` · `worn` · `shabby` · `dilapidated`
+`sound` · `worn` · `badly worn` · `broken`
 
 with a cause line that says what happened in words ("the paint has gone;
-rain has gotten into the sills"). No number, no percentage, no gauge —
+the weather is at what was under it"). No number, no percentage, no gauge —
 `survey`'s suite asserts that no digit reaches the readout.
 
 ### ⚠ Two clocks, and they must never touch
