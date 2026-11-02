@@ -206,6 +206,13 @@ from its row each wake and keeps nothing. Before, every member was forced
 to persist. Persistence is the exception: a room keeps a record when it
 must lay an owner's goods back down (the room overlay — a house's rooms,
 a farm's barn) or carries state nothing else does (a tract's soil).
+A ship follows the same rule (harbors review 2): her **hold** (`Hold`,
+`Persistable(Compartment)`) keeps a record — her cargo — and her deck and
+cabin are plain `Compartment`s. Because a ship sleeps whenever the last
+person leaves, her warren also stows what is loose up top into the hold
+before she sleeps and keeps the row gear each plain room was short of
+(`ShipWarren.stow` / `shortOf`), so a plain room's `props:` are her
+fit-out and never a faucet.
 
 (⚠ `admitPlot`, the runtime-added-member seam below was written for, was
 retired with `plot` by the tracts build; a field is marked ON a tract

@@ -102,7 +102,7 @@ function installStore(): void {
   });
   add(ROOMS, '/platform/idea/location/CartesianZone', { name: 'a smack' });
   add(DECK, '/platform/location/Compartment', { shortDescription: 'smack deck' });
-  add(HOLD, '/platform/location/Compartment', { shortDescription: 'fish hold' });
+  add(HOLD, '/platform/location/Hold', { shortDescription: 'fish hold' });
   add(WELL, '/platform/thing/BilgeWell', { shortDescription: 'bilge well' });
   add(PUMP, '/platform/thing/Pump', { shortDescription: 'bilge pump', throughputLps: 0.6, strokeS: 20 });
   add(CRATE, '/platform/thing/Thing', { shortDescription: 'a crate' });

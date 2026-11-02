@@ -21,7 +21,12 @@
  *   ({@link onRoomWoken});
  * - **when she sleeps** — the population witness of her rooms asks her
  *   (`Ship.sleepIfEmpty`): nobody interactive aboard, not under way;
- * - **her words** — seams, oakum and pitch ({@link upkeepWords}).
+ * - **her words** — seams, oakum and pitch ({@link upkeepWords});
+ * - ⭐ **only her hold keeps a record** (review 2, *persistence is the
+ *   exception*): her deck and cabin come up from their rows each wake, so
+ *   when she sleeps whatever is loose in them is stowed in her hold, and
+ *   the row gear she was short of then is kept short ({@link stow},
+ *   {@link fitOut}).
  *
  * ⭐ **An authored ship adopts.** The Hesper names no `warren:`; her warren
  * is the platform's `/platform/idea/ShipWarren/authored` row, whose
@@ -32,6 +37,7 @@
  */
 
 import { FloorplanWarren, type FloorplanRoom, type UpkeepWords } from '../../lib/location/FloorplanWarren';
+import { ContainmentApi } from '../../api/containment';
 import { Template } from '../../lib/stuff/Template';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
@@ -40,6 +46,8 @@ import { WorldClockApi } from '../../api/worldclock';
 import type { Stuff, EvictionContext } from '../../lib/stuff/Stuff';
 import type { Container } from '../../lib/spatial/Container';
 import type { VetoResult } from '../../lib/errors';
+import type { Containable } from '../../lib/spatial/Containable';
+import type { FieldMeta } from '../../lib/mixin';
 import type Ship from './Ship';
 
 type MemberStuff = Stuff & Container;
@@ -48,6 +56,22 @@ type MemberStuff = Stuff & Container;
 export const AUTHORED_SHIP_WARREN = '/platform/idea/ShipWarren/authored';
 
 export default class ShipWarren extends FloorplanWarren {
+  static fieldMeta: FieldMeta = {
+    shortOf: { persistent: true },
+  };
+
+  /**
+   * ⭐ The row gear each plain room was SHORT of when she slept, by room
+   * leaf then by row (review 2): a line taken ashore, a flag carried off.
+   * A plain room lays its row's gear down afresh every wake, so without
+   * this a rope taken off her came back each time she woke — a faucet.
+   * Applied and cleared at the next wake ({@link fitOut}).
+   */
+  public shortOf: Record<string, Record<string, number>> = {};
+
+  /** Runtime: what each plain room's row laid down at this wake, by leaf. */
+  private laid: Map<string, Set<Stuff>> = new Map();
+
   /** Her rooms are hers, not a holding's: a ship's warren is no address's. */
   private _ship: Ship | null = null;
 
@@ -82,6 +106,92 @@ export default class ShipWarren extends FloorplanWarren {
   public override async wake(): Promise<void> {
     await super.wake();
     if (this.getFloorplan().length === 0) await this.adoptResident();
+    else this.fitOut(this.shortOf);
+  }
+
+  /** Her minted rooms that keep no record of their own, with their leaf. */
+  private plainRooms(): Array<{ leaf: string; room: MemberStuff }> {
+    const out: Array<{ leaf: string; room: MemberStuff }> = [];
+    for (const spec of this.getFloorplan()) {
+      const room = this.roomForLeaf(spec.leaf);
+      if (room !== null && !MixinApi.isPersistable(room)) out.push({ leaf: spec.leaf ?? '', room });
+    }
+    return out;
+  }
+
+  /** Her hold: the first of her minted rooms that keeps a record, or `null`. */
+  public holdRoom(): MemberStuff | null {
+    for (const spec of this.getFloorplan()) {
+      const room = this.roomForLeaf(spec.leaf);
+      if (room !== null && MixinApi.isPersistable(room)) return room;
+    }
+    return null;
+  }
+
+  /**
+   * ⭐ Her plain rooms are stood up from their rows (review 2): note what
+   * each row laid down — her gear — and take back off what she was short
+   * of when she slept, so gear carried off her stays gone.
+   */
+  private fitOut(shortOf: Record<string, Record<string, number>>): void {
+    for (const { leaf, room } of this.plainRooms()) {
+      if (this.laid.has(leaf)) continue;
+      const gear = new Set<Stuff>(room.getContents());
+      const short = shortOf[leaf] ?? {};
+      for (const [row, n] of Object.entries(short)) {
+        let left = n;
+        for (const g of [...gear]) {
+          if (left <= 0) break;
+          if (g.isDestroyed() || g.getTemplatePath() !== row) continue;
+          // Kept in the set, destroyed: still short at her next sleep.
+          StuffApi.destruct(g);
+          left -= 1;
+        }
+      }
+      this.laid.set(leaf, gear);
+    }
+    this.shortOf = {};
+  }
+
+  /**
+   * ⭐ She is going to sleep (review 2): her plain rooms will come up from
+   * their rows, so what is loose in them that is not their row's gear —
+   * a crate left on deck, a flag of yours, a line you bought — is stowed in
+   * her hold, along with what lies in her gear (stones in the dinghy). The
+   * row gear she is short of is recorded ({@link shortOf}). With no hold,
+   * what is loose goes with the rooms, and says so in the log.
+   */
+  public stow(): void {
+    const hold = this.holdRoom();
+    const shortOf: Record<string, Record<string, number>> = {};
+    for (const { leaf, room } of this.plainRooms()) {
+      const gear = this.laid.get(leaf) ?? new Set<Stuff>();
+      const here = new Set<Stuff>(room.getContents());
+      for (const g of gear) {
+        if (!g.isDestroyed() && here.has(g)) continue;
+        const row = g.getTemplatePath() ?? '';
+        if (!row) continue;
+        const byRow = (shortOf[leaf] ??= {});
+        byRow[row] = (byRow[row] ?? 0) + 1;
+      }
+      const loose: Stuff[] = [];
+      for (const x of here) {
+        if (gear.has(x)) {
+          if (MixinApi.isContainer(x)) loose.push(...x.getContents().filter((c) => !gear.has(c)));
+          continue;
+        }
+        loose.push(x);
+      }
+      for (const x of loose) {
+        if (MixinApi.isHasInteractive(x) || !MixinApi.isContainable(x) || x.isFixedInPlace()) continue;
+        if (hold === null) {
+          console.warn(`ShipWarren: ${this.getDurableHandle()} has no hold; ${x.getTemplatePath()} goes with her ${leaf}`);
+          continue;
+        }
+        ContainmentApi.move(x as Stuff & Containable, hold);
+      }
+    }
+    this.shortOf = shortOf;
   }
 
   /**

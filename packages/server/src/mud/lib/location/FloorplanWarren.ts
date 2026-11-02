@@ -463,6 +463,14 @@ export abstract class FloorplanWarren extends FloorplanBase {
     return key ? this.roomForKey(key) : null;
   }
 
+  /** The key a live room was stood up under, or null (see {@link Warren.mintedKeyOf}). */
+  public override mintedKeyOf(member: Stuff): string | null {
+    for (const [key, room] of this._roomsByKey) {
+      if (room === member && !room.isDestroyed()) return key;
+    }
+    return null;
+  }
+
   /** The live room for a full key, or null. */
   public roomForKey(key: string): MemberStuff | null {
     const room = this._roomsByKey.get(key);

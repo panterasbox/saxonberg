@@ -11,8 +11,15 @@
  *   side (`waters: { sea: … }`, stamped by her warren at wake for a kind's
  *   deck) reads it as the Hesper's deck always has: `look sea`, a bucket
  *   over the side, the rod.
- * - **Her own record** — `Persistable`, keyed `(row, <serial>/<leaf>)` for a
- *   kind, by its row for an authored ship.
+ * - ⭐ **No record of its own** (review 2, *persistence is the exception*):
+ *   a deck or a cabin comes up from its row each time she wakes — its
+ *   fixtures and her gear with it — and keeps nothing. The room that keeps
+ *   a record is her HOLD (`Hold`, this class plus `Persistable`): her cargo
+ *   is what survives her sleeping, a restart and her going down. When she
+ *   sleeps, what is loose up here is stowed below first
+ *   (`ShipWarren.stow`). Nothing a flood or a wreck reads lives on a room:
+ *   every water read asks her (below), so a wreck's rooms are under the
+ *   sea again the moment they stand.
  * - **Her warren's member** — `WarrenMember`, so *which ship is this
  *   room?* is its warren's answer, and so an interactive arriving or
  *   leaving pokes the warren's population coalescer (the witness below),
@@ -42,7 +49,6 @@ import Location from './Location';
 import { ShoreMixin } from '../../lib/location/Shore';
 import { SwimmableMixin } from '../../lib/locomotion/Swimmable';
 import { WaterPlaceMixin, type WaterState } from '../../lib/location/WaterPlace';
-import { PersistableMixin } from '../../lib/persistence/Persistable';
 import { WarrenMemberMixin } from '../../lib/location/WarrenMember';
 import { MixinApi } from '../../api/mixin';
 import { AppApi } from '../../api/app';
@@ -70,11 +76,13 @@ const floodAugmenter: MarkupAugmenter = (text, host, _viewer, opts) => {
 };
 
 export default class Compartment extends WaterPlaceMixin(
-  SwimmableMixin(ShoreMixin(PersistableMixin(WarrenMemberMixin(Location)))),
+  SwimmableMixin(ShoreMixin(WarrenMemberMixin(Location))),
 ) {
   static fieldMeta: FieldMeta = {
     floorM: { persistent: true, authorable: true },
   };
+  // (`persistent` here is what lets a `Hold` keep it; a plain compartment
+  // reads it off its row every wake.)
 
   static markupAugmenters: MarkupAugmenter[] = [floodAugmenter];
 

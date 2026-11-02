@@ -1,5 +1,9 @@
 # A smack's fish hold (harbors B1) — forward of the cabin, under the hatch.
-class: /platform/location/Compartment
+# ⭐ A `Hold`: the one room of hers that keeps a record (review 2 —
+# persistence is the exception). Her catch and cargo survive her sleep, a
+# restart and her going down; what is loose on deck or in the cabin when
+# she sleeps is stowed down here.
+class: /platform/location/Hold
 data:
   shortDescription: fish hold
   keywords: [hold, fish hold, below]

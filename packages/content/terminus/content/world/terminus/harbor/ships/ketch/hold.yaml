@@ -1,5 +1,6 @@
 # Kittiwake's hold — below the deck, where her cargo rides (harbors A2).
-class: /platform/location/Compartment
+# A `Hold`: her one room that keeps a record (review 2).
+class: /platform/location/Hold
 data:
   shortDescription: hold
   keywords: [hold, below]

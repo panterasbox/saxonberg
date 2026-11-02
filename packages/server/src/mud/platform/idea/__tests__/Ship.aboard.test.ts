@@ -103,7 +103,7 @@ function installStore(): void {
   });
   add(ROOMS, '/platform/idea/location/CartesianZone', { name: 'a smack' });
   add(DECK, '/platform/location/Compartment', { shortDescription: 'smack deck' });
-  add(HOLD, '/platform/location/Compartment', { shortDescription: 'fish hold' });
+  add(HOLD, '/platform/location/Hold', { shortDescription: 'fish hold' });
   add(CRATE, '/platform/thing/Thing', { shortDescription: 'a crate' });
   add(LANDING, '/platform/location/Locale', { shortDescription: 'a landing', props: [BOLLARD] });
   add(BOLLARD, '/platform/thing/Bollard', { shortDescription: 'a bollard', fixedInPlace: true });
@@ -263,7 +263,8 @@ describe('aboard a ship of a kind — the room is asked, never its row (harbors 
     await mint('z9');
     ship = await mint('k1');
     deck = (await ship.watchRoom())!;
-    expect(deck.getDurableHandle()).toBe(`${DECK}#k1/deck`);
+    // A deck keeps no record (review 2): her warren holds it under her key.
+    expect((deck as unknown as { getWarren(): { mintedKeyOf(s: unknown): string | null } }).getWarren().mintedKeyOf(deck)).toBe('k1/deck');
     // ⛔ Nothing may ask a path read with this room's row: break loudly.
     const craftAt = ExpanseApi.craftAt;
     vi.spyOn(ExpanseApi, 'craftAt').mockImplementation(async (p: string) => {

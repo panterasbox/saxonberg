@@ -1,6 +1,8 @@
 # The Ostrander's hold — cargo. What is down here is what she draws: put it
-# ashore and she comes up (river D28, lightening).
-class: /platform/location/Compartment
+# ashore and she comes up (river D28, lightening). A `Hold`: her one room
+# that keeps a record (harbors review 2) — her deck and saloon come up
+# from their rows.
+class: /platform/location/Hold
 data:
   shortDescription: hold
   keywords: [hold, below]

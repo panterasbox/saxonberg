@@ -1,7 +1,8 @@
-# The Hesper's hold — below the deck. A `Compartment` like every ship's
-# room (harbors B1): it keeps its own record, so what is left in it is
-# still there after a restart, and it is a member of her warren.
-class: /platform/location/Compartment
+# The Hesper's hold — below the deck. A `Hold`: the one room of hers that
+# keeps its own record (harbors review 2, persistence is the exception) —
+# what is stowed in it is her cargo, still there after a restart; her deck
+# comes up from its row. A member of her warren.
+class: /platform/location/Hold
 data:
   shortDescription: hold
   keywords: [hold, below]

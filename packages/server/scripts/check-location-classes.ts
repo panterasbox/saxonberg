@@ -440,7 +440,9 @@ export function unzonedCoords(rows: readonly Row[]): string[] {
  * ⭐ A ship KIND's rooms (harbors B1): her `ShipWarren` mints one of each
  * per ship, keyed `(row, <serial>/<leaf>)`, and lays them out in her own
  * frame from the floorplan (`FloorplanWarren.layOut`) — a smack's deck is
- * every smack's deck row, never a place an author positions.
+ * every smack's deck row, never a place an author positions. Only the hold
+ * keeps a record (`Hold`, review 2 — persistence is the exception); the
+ * deck and cabin are plain `Compartment`s, from their rows each wake.
  */
 export const WARREN_PLACED = [
   "rejection/content/world/terminus/rejection/ferrow/face.yaml",

@@ -1199,6 +1199,7 @@ Ship.shipRegister = 0
 Ship.warren = 0
 Ship.wreck = 0
 ShipRegister.government = 0
+ShipWarren.shortOf = 0
 ShoreMixin.waters = 0
 SlottedMixin.staticSlots = 0
 SmellSourceMixin.emittedConcentration = 0

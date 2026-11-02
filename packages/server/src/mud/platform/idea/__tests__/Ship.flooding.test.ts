@@ -31,6 +31,7 @@ import { ContainmentApi } from '../../../api/containment';
 import { PersistableApi } from '../../../api/persistable';
 import { WorldClockApi } from '../../../api/worldclock';
 import { TestHarnessApi } from '../../../api/test-harness';
+import { ExpanseApi } from '../../../api/expanse';
 import type { CommandDispatchedPayload } from '../../../lib/events/CommandDispatchedEvent';
 import { Quantity } from '../../../lib/quantity';
 import type { Stuff } from '../../../lib/stuff/Stuff';
@@ -103,7 +104,7 @@ function installStore(): void {
   });
   add(ROOMS, '/platform/idea/location/CartesianZone', { name: 'a smack' });
   add(DECK, '/platform/location/Compartment', { shortDescription: 'smack deck' });
-  add(HOLD, '/platform/location/Compartment', { shortDescription: 'fish hold' });
+  add(HOLD, '/platform/location/Hold', { shortDescription: 'fish hold' });
   add(WELL, '/platform/thing/BilgeWell', { shortDescription: 'bilge well' });
   add(PUMP, '/platform/thing/Pump', { shortDescription: 'bilge pump', throughputLps: 0.6, strokeS: 20 });
   add(CRATE, '/platform/thing/Thing', { shortDescription: 'a crate' });
@@ -305,6 +306,27 @@ describe('Ship — flooding, settling, sinking (harbors B5)', () => {
     // ⭐ The register entry and her title are not hers to lose by sinking: she is still the ship.
     expect(ship.isDestroyed()).toBe(false);
     expect(ship.getDurableHandle()).toBe(`${KIND}/n1`);
+  });
+
+  it('⭐ review 2: a wreck stood up after a restart is under the sea again — her plain rooms read it off HER', async () => {
+    const ship = await mint('w2');
+    vi.spyOn(Ship.prototype, 'bottomDepthM').mockResolvedValue(20);
+    await roomsOf(ship);
+    await TestHarnessApi.stageShip(ship.getDurableHandle()!, { bilgeL: ship.bilgeCapacityL() });
+    await ship.reconcileBilge();
+    expect(ship.isSunk()).toBe(true);
+    await PersistableApi.capture(ship as unknown as Stuff);
+    // The process ends; her deck kept no record of its own.
+    StuffApi.clearAll();
+    expect(await PersistableApi.hasRecord(DECK, 'w2/deck')).toBe(false);
+    const back = (await ExpanseApi.standUpCraft(`${KIND}/w2`)) as unknown as Ship;
+    expect(back.isSunk()).toBe(true);
+    const { deck, hold } = await roomsOf(back);
+    expect(MixinApi.isPersistable(deck)).toBe(false);
+    expect(deck.isWaterNow()).toBe(true);
+    expect(deck.depthNow()).toBeCloseTo(18.2, 6);
+    expect(hold.depthNow()).toBeCloseTo(19.7, 6);
+    expect(deck.floodWords()).toMatch(/lies on the bottom/);
   });
 
   it('⭐ pumped back below her deck in time, she holds', async () => {

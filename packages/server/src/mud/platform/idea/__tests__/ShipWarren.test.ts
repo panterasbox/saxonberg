@@ -53,6 +53,7 @@ const ROOMS = '/test/ship/rooms';
 const DECK = `${ROOMS}/deck`;
 const HOLD = `${ROOMS}/hold`;
 const CRATE = '/test/ship/crate';
+const GEAR = '/test/ship/gear';
 const LANDING = '/test/quay/landing';
 const BOLLARD = '/test/quay/bollard';
 const AUTHORED = '/test/hesper/structure';
@@ -107,15 +108,16 @@ function installStore(): void {
     ],
   });
   add(ROOMS, '/platform/idea/location/CartesianZone', { name: 'a smack' });
-  add(DECK, '/platform/location/Compartment', { shortDescription: 'smack deck' });
-  add(HOLD, '/platform/location/Compartment', { shortDescription: 'fish hold' });
+  add(DECK, '/platform/location/Compartment', { shortDescription: 'smack deck', props: [GEAR] });
+  add(GEAR, '/platform/thing/Thing', { shortDescription: 'a coil of gear' });
+  add(HOLD, '/platform/location/Hold', { shortDescription: 'fish hold' });
   add(CRATE, '/platform/thing/Thing', { shortDescription: 'a crate' });
   add(LANDING, '/platform/location/Locale', { shortDescription: 'a landing', props: [BOLLARD] });
   add(BOLLARD, '/platform/thing/Bollard', { shortDescription: 'a bollard', fixedInPlace: true });
   // An authored ship: one row, her rooms rows of their own under her extent.
   add(AUTHORED, '/platform/idea/Ship', { name: 'the Hesper', extent: '/test/hesper', entrance: A_DECK });
   add(A_DECK, '/platform/location/Compartment', { shortDescription: "Hesper's deck" });
-  add(A_HOLD, '/platform/location/Compartment', { shortDescription: "Hesper's hold" });
+  add(A_HOLD, '/platform/location/Hold', { shortDescription: "Hesper's hold" });
 
   const save = vi.fn(async (c: string, doc: Doc) => {
     const arr = col(c);
@@ -220,16 +222,24 @@ describe('ShipWarren — ships from a kind (harbors B1)', () => {
     expect(deckA).not.toBe(deckB);
     expect(deckA).toBeInstanceOf(Compartment);
     expect(deckA.getTemplatePath()).toBe(DECK);
-    expect(deckA.getDurableHandle()).toBe(`${DECK}#a1/deck`);
-    expect(deckB.getDurableHandle()).toBe(`${DECK}#b2/deck`);
+    // ⭐ A deck keeps no record (review 2): it is told apart by the key
+    // her warren stood it up under, and has no handle of its own.
+    expect(MixinApi.isPersistable(deckA)).toBe(false);
+    expect(deckA.getDurableHandle()).toBeNull();
+    expect((deckA as unknown as { getWarren(): ShipWarren }).getWarren().mintedKeyOf(deckA)).toBe('a1/deck');
+    expect((deckB as unknown as { getWarren(): ShipWarren }).getWarren().mintedKeyOf(deckB)).toBe('b2/deck');
     // Her floorplan's way below is wired keyed, to HER hold.
     const down = (deckA as unknown as Exitable).getExit('down');
     expect(down?.getDestination()?.getDurableHandle()).toBe(`${HOLD}#a1/hold`);
 
+    // ⭐ Her cargo is in her HOLD (review 2): two smacks keep separate cargo.
+    const holdA = (deckA as unknown as Exitable).getExit('down')!.getDestination() as unknown as Stuff & Container;
+    const holdB0 = (deckB as unknown as Exitable).getExit('down')!.getDestination() as unknown as Stuff & Container;
+    expect(MixinApi.isPersistable(holdA)).toBe(true);
     const crate = await StuffApi.clone<Stuff & Containable>(CRATE);
-    ContainmentApi.move(crate, deckA);
-    expect(deckA.getContents()).toContain(crate);
-    expect(deckB.getContents()).not.toContain(crate);
+    ContainmentApi.move(crate, holdA);
+    expect(holdA.getContents()).toContain(crate);
+    expect(holdB0.getContents()).not.toContain(crate);
     expect(await a.cargoKg()).toBeGreaterThanOrEqual(0);
 
     // Which ship a room is: its warren's answer — the ROOM is asked.
@@ -277,12 +287,62 @@ describe('ShipWarren — ships from a kind (harbors B1)', () => {
     // Asleep is captured: her record, her warren's, each room's.
     expect(await PersistableApi.hasRecord(`${KIND}/s1`, 's1')).toBe(true);
     expect(await PersistableApi.hasRecord(HOLD, 's1/hold')).toBe(true);
+    // ⭐ Her deck keeps none (review 2): it comes up from its row.
+    expect(await PersistableApi.hasRecord(DECK, 's1/deck')).toBe(false);
     // Woken: the hold still holds the crate.
     const back = await ExpanseApi.standUpCraft(`${KIND}/s1`);
     expect(back).toBeInstanceOf(Ship);
     const deck2 = await deckOf(back as unknown as Ship);
     const hold2 = (deck2 as unknown as Exitable).getExit('down')!.getDestination() as unknown as Stuff & Container;
     expect(hold2.getContents().filter((c) => c.getTemplatePath() === CRATE)).toHaveLength(1);
+  });
+
+  it('⭐⭐ review 2: asleep, what is loose on deck is stowed in her hold, and gear carried off her stays gone', async () => {
+    const ship = await mint('g1');
+    const deck = await deckOf(ship);
+    const gearOf = (room: Stuff & Container) => room.getContents().filter((c) => c.getTemplatePath() === GEAR);
+    expect(gearOf(deck)).toHaveLength(1);
+    // Her gear carried ashore; a crate of yours left on her deck.
+    const away = await StuffApi.singleton<Stuff & Container>(LANDING);
+    ContainmentApi.move(gearOf(deck)[0] as Stuff & Containable, away);
+    const crate = await StuffApi.clone<Stuff & Containable>(CRATE);
+    ContainmentApi.move(crate, deck);
+    await ship.sleep();
+    expect(ship.isDestroyed()).toBe(true);
+
+    let back = (await ExpanseApi.standUpCraft(`${KIND}/g1`)) as unknown as Ship;
+    let deck2 = await deckOf(back);
+    const hold2 = (deck2 as unknown as Exitable).getExit('down')!.getDestination() as unknown as Stuff & Container;
+    // The crate is below; the row did not hand her the gear again.
+    expect(hold2.getContents().filter((c) => c.getTemplatePath() === CRATE)).toHaveLength(1);
+    expect(deck2.getContents().filter((c) => c.getTemplatePath() === CRATE)).toHaveLength(0);
+    expect(gearOf(deck2)).toHaveLength(0);
+
+    // Slept again with nothing carried off: still none, never two.
+    await back.sleep();
+    back = (await ExpanseApi.standUpCraft(`${KIND}/g1`)) as unknown as Ship;
+    deck2 = await deckOf(back);
+    expect(gearOf(deck2)).toHaveLength(0);
+  });
+
+  it('⭐ review 2: gear left aboard comes up from her row — once', async () => {
+    const ship = await mint('g2');
+    await ship.sleep();
+    const back = (await ExpanseApi.standUpCraft(`${KIND}/g2`)) as unknown as Ship;
+    const deck = await deckOf(back);
+    expect(deck.getContents().filter((c) => c.getTemplatePath() === GEAR)).toHaveLength(1);
+  });
+
+  it('⭐ review 2: somebody on a smack\'s deck is placed by the key her warren holds it under, never the shared row', async () => {
+    const ship = await mint('p1');
+    const deck = await deckOf(ship);
+    class Rover extends PersistableMixin(ContainableMixin(Idea)) {}
+    const who = makeStuffAtPath(() => new Rover(), '/test/rover') as unknown as Stuff & Containable;
+    vi.spyOn(MixinApi, 'isHasInteractive').mockImplementation(((s: Stuff) => s === who) as never);
+    ContainmentApi.move(who, deck);
+    await PersistableApi.capture(who as unknown as Stuff, 'rover-2');
+    const rec = col('holder_snapshots').find((d) => d.scope === '/test/rover' && d.owner === 'rover-2');
+    expect(rec?.place).toEqual({ container: DECK, containerKey: 'p1/deck' });
   });
 
   it('⭐ her way aboard outlives her sleep: taking it stands her up, made fast as she was', async () => {
@@ -303,7 +363,7 @@ describe('ShipWarren — ships from a kind (harbors B1)', () => {
     expect((way as BerthExit).alongsideName()).toBe('the smack');
 
     const deck = await (way as BerthExit).resolveDestination();
-    expect(deck.getDurableHandle()).toBe(`${DECK}#w1/deck`);
+    expect(deck.getTemplatePath()).toBe(DECK);
     const woke = filed<Ship>(`${KIND}/w1`)!;
     expect(woke).not.toBe(ship);
     expect(woke.isMoored()).toBe(true);
@@ -332,7 +392,8 @@ describe('ShipWarren — ships from a kind (harbors B1)', () => {
     expect(await ExpanseApi.standUpCraft(`${KIND}/nobody`)).toBeNull();
     expect(filed(`${KIND}/nobody`)).toBeNull();
     const deck = await (back as unknown as Ship).watchRoom();
-    expect(deck?.getDurableHandle()).toBe(`${DECK}#r1/deck`);
+    expect(deck?.getTemplatePath()).toBe(DECK);
+    expect((deck as unknown as { getWarren(): ShipWarren }).getWarren().mintedKeyOf(deck!)).toBe('r1/deck');
   });
 
   it('⭐ B6: somebody on an authored ship\'s deck is placed by the ROOM, never by the shared authored-warren row', async () => {

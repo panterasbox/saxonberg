@@ -1905,7 +1905,8 @@ export default class Ship extends BilgeMixin(PersistableMixin(
   }
 
   /**
-   * ⭐ Sleep whole (P1, D16's rule for a holding): every room's record, the
+   * ⭐ Sleep whole (P1, D16's rule for a holding): what is loose on her
+   * plain rooms is stowed in her hold (review 2), her hold's record, the
    * warren's and her own are captured, then the warren comes down with her
    * rooms and she with it. Made fast, she stays made fast — `moored` and
    * `berth` are kept, her lines' ends ashore come in unannounced (an end is
@@ -1920,6 +1921,9 @@ export default class Ship extends BilgeMixin(PersistableMixin(
     await this.bringLinesIn();
     this.berthExit = null; // left standing on the landing, hers by handle
     const w = this._warren !== null && !this._warren.isDestroyed() ? this._warren : null;
+    // ⭐ Only her hold keeps a record (review 2): what is loose on deck and
+    // in the cabin is stowed below before she is captured.
+    w?.stow();
     if (w !== null) await w.captureAll();
     await PersistableApi.capture(this as unknown as Stuff);
     this._warren = null;

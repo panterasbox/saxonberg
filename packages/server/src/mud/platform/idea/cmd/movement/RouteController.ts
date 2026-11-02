@@ -173,13 +173,6 @@ export default class RouteController extends CommandController<RouteModel> {
       return this.renderPair(context, viewerKey, known, pair, profile, budget);
     }
 
-    if (here.length === 0) {
-      return this.declineWith(
-        context,
-        'You could not say where you are standing.',
-        'nowhere',
-      );
-    }
     // ⭐ A place on open water is not on any road (maritime D18) — asked
     // BEFORE the claims, because a chart makes a sea node a place you
     // know, and planning to it would end in "you do not know the way".
@@ -220,6 +213,15 @@ export default class RouteController extends CommandController<RouteModel> {
         origin = berth;
         ashoreFrom = ship.getName();
       }
+    }
+    // Asked after the ship: a ship's plain room keeps no record and has no
+    // handle of its own (harbors review 2), and aboard, she is the origin.
+    if (origin.length === 0) {
+      return this.declineWith(
+        context,
+        'You could not say where you are standing.',
+        'nowhere',
+      );
     }
     const standingGroup = await RouteController.standingGroup(context);
     const pool = RouteController.candidates(asked, known, standingGroup);

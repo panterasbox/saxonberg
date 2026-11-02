@@ -250,6 +250,13 @@ function capturePlacement(host: Stuff): HostPlacement | null {
     const keyed = w !== null && MixinApi.isPersistable(w) && w.isPersistenceKeyExplicit();
     const warren = keyed ? null : w?.getTemplatePath();
     if (warren) return { startLocation: warren, ...nested };
+    // ⚠ A room a keyed warren MINTED that keeps no record of its own (a
+    // smack's deck — harbors review 2): its row is every smack's deck, so
+    // the row names none of them. Record the key it was stood up under,
+    // exactly as a keyed room's record would.
+    const minted = w?.mintedKeyOf(anchor) ?? null;
+    const row = anchor.getIdentityPath();
+    if (minted !== null && row) return { container: row, containerKey: minted, ...nested };
   }
   const container = anchor.getIdentityPath();
   return container ? { container, ...nested } : null;

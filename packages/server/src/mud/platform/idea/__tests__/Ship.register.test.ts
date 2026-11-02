@@ -118,7 +118,7 @@ function installStore(): void {
     shortDescription: 'smack deck',
     props: [{ template: STAFF, as: 'flagstaff' }, { template: FLAG, on: 'flagstaff' }],
   });
-  add(HOLD, '/platform/location/Compartment', { shortDescription: 'fish hold' });
+  add(HOLD, '/platform/location/Hold', { shortDescription: 'fish hold' });
   add(STAFF, '/platform/thing/Flagstaff', { shortDescription: 'flagstaff' });
   add(FLAG, '/platform/thing/Flag', { shortDescription: 'test ensign', keywords: ['flag', 'ensign'], _brandKey: 'flag-test-city' });
   add(COMPANY, '/platform/idea/Business', {

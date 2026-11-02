@@ -142,6 +142,19 @@ export abstract class Warren extends Idea {
     return null;
   }
 
+  /**
+   * The key this warren minted a member under, or `null` (harbors review
+   * 2). A floorplan's room is one of many off its row, told apart only by
+   * the key its warren holds it under — so a room that keeps no record of
+   * its own still has no address its ROW can name, and a placement must
+   * not name the row.
+   *
+   * @hook Default: none — a warren whose members are rows of their own.
+   */
+  public mintedKeyOf(_member: Stuff): string | null {
+    return null;
+  }
+
   public addMember(m: MemberStuff): boolean {
     if (this._members.has(m)) return true;
     if (MixinApi.isWarrenMember(m)) {
