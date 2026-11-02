@@ -759,13 +759,18 @@ suite('B2 — owning a boat', () => {
   it('17. (instant · staged — a chop pinned) a rowboat bought, her painter in her; loaded she rides lower; overloaded in a chop, she swamps', async () => {
     await inOfficeHours();
     const buyer = await session(SECOND, PUT_IN);
+    // ⭐ The house's rowboat, lying on the shingle (review 1): sold where she
+    // lies — the same boat before and after, hers now.
     const before = await idsHere(buyer, 'rowboat');
+    expect(before.length, 'no rowboat of the house\'s on the shingle').toBeGreaterThan(0);
     const bought = await say(buyer, 'buy rowboat');
     expect(bought, bought).toMatch(/You buy .*rowboat/);
-    expect(bought, bought).toMatch(/waiting for you/);
-    // Hers is the rowboat that was not lying here before.
-    rowboat = (await idsHere(buyer, 'rowboat')).find((id) => !before.includes(id)) ?? '';
+    expect(bought, bought).toMatch(/yours where it lies/);
+    rowboat = (await idsHere(buyer, 'rowboat')).find((id) => before.includes(id)) ?? '';
     expect(rowboat, 'the rowboat bought is not on the landing').not.toBe('');
+    // Finite: the house had one rowboat, and has none now.
+    const none = await say(buyer, 'buy rowboat');
+    expect(none, none).toMatch(/no rowboat of the house's lying here/);
     const inHer = await say(buyer, `look in #${rowboat}`);
     expect(inHer, inHer).toMatch(/painter/i);
     // (staged) Weight to load her with.

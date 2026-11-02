@@ -4,10 +4,15 @@
 # counter cannot hold one (the drive found the whole cascade through the
 # pass failing on it) — they lie on the shingle, the outfitter's own.
 #
-# ⭐ Harbors B3: a boat is still never ON the counter. Priced against the
-# outfitter's own wage (4 an hour, ~56 a shift — P28): a rowboat about three
-# days' wages, a canoe about two. The shed LETS its own boats by the day
-# too, but a let is not a sale: that is the hire book's (`hire-book.yaml`).
+# ⭐ Harbors review 1: a boat is still never ON the counter, but she is
+# SOLD over it — an ordinary good that is already there. The house's boats
+# lie on the shingle (the landing's `props:`); the counter prices them with
+# no stock line, and a sale transfers her title and leaves her where she
+# lies, her painter in her. Finite: nothing restocks them (a boatwright is
+# a later build's). Priced against the outfitter's own wage (4 an hour, ~56
+# a shift — P28): a rowboat about three days' wages, a canoe about two. The
+# shed LETS its own boats by the day too, but a let is not a sale: that is
+# the hire book's (`hire-book.yaml`).
 class: /trade/shopkeeping/thing/Stock
 data:
   shortDescription: boat-shed counter

@@ -446,6 +446,7 @@ export default class Stock extends StockBase {
 
   /**
    * ⭐ What this counter offers: a line it carries (even on a bare shelf),
+   * a priced good its house keeps lying in the room (a boat on the shingle),
    * or a good consigned to it. `ForSaleMixin.sellerFor` asks it, so a market
    * square's several stalls each answer for their own — `buy water filter`
    * once went to whichever the binder found first and was told it "isn't
@@ -453,7 +454,7 @@ export default class Stock extends StockBase {
    * controller.
    */
   public override offers(word: string): boolean {
-    return this.carriesLine(word) || this.resolveConsigned(word) !== null;
+    return this.carriesLine(word) || this.pricedKeyFor(word) !== null || this.resolveConsigned(word) !== null;
   }
 
   /**
@@ -487,6 +488,10 @@ export default class Stock extends StockBase {
     const listItem = listed ? candidate : shelfGood ? null : this.resolveConsigned(word);
     if (shelfGood) return this.sellShelfGood(sale, shelfGood);
     if (listItem) return this.sellListing(sale, listItem);
+    // ⭐ A good too big for any shelf, lying in the counter's room: sold
+    // where it lies (a boat on the shingle).
+    const lying = this.houseGoodLyingHere(word);
+    if (lying !== null) return this.sellWhereItLies(sale, lying);
     // ⭐ Sold out is not the same as not sold. The counter's own
     // description lists every line it carries, so refusing a bare shelf
     // with "isn't for sale here" contradicts what the player just read
@@ -498,7 +503,84 @@ export default class Stock extends StockBase {
         word,
       );
     }
+    const priced = this.pricedKeyFor(word);
+    if (priced !== null) {
+      const leaf = priced.slice(priced.lastIndexOf("/") + 1);
+      return this.refused(
+        Mml.compose`There is no ${leaf} of the house's lying here to sell.`,
+        "sold-out",
+        word,
+      );
+    }
     return this.refused(Mml.compose`"${word}" isn't for sale here.`, "not-on-shelf", word);
+  }
+
+  /**
+   * ⭐ A priced key the counter sells with no stock line, whose leaf the word
+   * names — a good the house sells where it lies rather than off the shelf
+   * (`rowboat (160)` on the put-in's counter). The `lineForWord` matcher,
+   * over the price list.
+   */
+  private pricedKeyFor(word: string): string | null {
+    const want = word.trim().toLowerCase().replace(/[-_]/g, " ");
+    if (want === "") return null;
+    return (
+      this.pricedKeys().find((key) => {
+        if (this.lineFor(key) !== null) return false;
+        const leaf = (key.split("/").pop() ?? "").toLowerCase().replace(/[-_]/g, " ");
+        return leaf === want || leaf.split(" ").includes(want);
+      }) ?? null
+    );
+  }
+
+  /**
+   * ⭐ A good the HOUSE owns lying loose in the counter's room that the word
+   * names and the counter prices — an oversize good no shelf holds (a boat
+   * on the shingle). The house's own: stamped to the counter's business, or
+   * stamped to nobody (the room's authored stock). Never one out on hire,
+   * and never somebody else's.
+   */
+  private houseGoodLyingHere(word: string): (Stuff & Containable) | null {
+    const self = this as unknown as Stuff;
+    const room = MixinApi.isContainable(self) ? self.getContainer() : null;
+    if (room === null || !MixinApi.isContainer(room)) return null;
+    const key = this.pricedKeyFor(word);
+    for (const thing of room.getContents() as Stuff[]) {
+      if (thing === self || !MixinApi.isContainable(thing) || !MixinApi.isChattel(thing)) continue;
+      const path = thing.getTemplatePath() ?? "";
+      if (this.lineFor(path) !== null || this.priceFor(path) == null) continue;
+      const named = path === key || (MixinApi.isPerceptible(thing) && thing.hasKeyword(word));
+      if (!named) continue;
+      if (MixinApi.isHirable(thing) && thing.isHired()) continue;
+      const owner = thing.stampedOwner();
+      const houses = owner !== null && owner.kind === "organization" && owner.templatePath === this.businessPath;
+      if (owner !== null && !houses) continue;
+      return thing;
+    }
+    return null;
+  }
+
+  /**
+   * Sell a good where it lies: settle the price to the house, transfer the
+   * title to the buyer (or their house), and leave it there — what lies in
+   * it (a boat's painter) goes with it, because nothing moved.
+   */
+  private async sellWhereItLies(sale: SaleRequest, item: Stuff & Containable): Promise<SaleOutcome> {
+    const { buyer: giver, word } = sale;
+    const price = this.priceFor(item.getTemplatePath() ?? "");
+    if (price == null) return this.refused(Mml.compose`${Mml.thing(item)} isn't for sale.`, "not-priced", word);
+    const paid = await EmploymentApi.settleSale((this as unknown as Stuff).getIdentityPath(), price, price, "a purchase");
+    if (!paid) return this.refusedBroke(item, word);
+    const owner = await this.purchaserOf(giver, paid.receipt);
+    if (MixinApi.isChattel(item)) {
+      await item.transferChattel(owner);
+      // ⚠ Nothing moved, so the movement primitive recorded nothing: where
+      // the new owner keeps her is recorded here, as a move would.
+      await item.followCustody();
+    }
+    const out = this.bought(giver, item, paid.tail, owner);
+    if (!out.ok) return out;
+    return { ...out, self: Mml.compose`${out.self} It is yours where it lies.` };
   }
 
   /** ⭐ A good this counter holds on supplier terms sells at the SHOP's price. */

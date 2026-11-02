@@ -856,6 +856,14 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
       }
     }
   }
+  // ⭐ (harbors review 1) The hulls on a yard's hull book: each names the
+  // ship kind row she is built to.
+  const hulls = data.hulls;
+  if (Array.isArray(hulls)) {
+    for (const h of hulls) {
+      if (h && typeof h === 'object') push('hulls.kind', (h as Record<string, unknown>).kind);
+    }
+  }
   // ⭐ (ceramics W8) What a solution crystallizes to: the crystals and the
   // mother liquor, both material rows.
   const crystallizesTo = data.crystallizesTo as { product?: unknown; residue?: unknown } | undefined;

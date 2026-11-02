@@ -2,7 +2,11 @@
 # Kestrel's left bank a kilometer and a half below its head, where the road
 # down from the pass comes nearest the water. The outfitter's shed stands
 # on it.
-class: /platform/location/Shore
+#
+# ⭐ KEPT (harbors review 1): the house's boats are sold where they lie, so
+# the shingle is a record — a sold boat is not laid down again at the next
+# restart (`PersistentShore`; no bollards here, so nothing re-ties twice).
+class: /platform/location/PersistentShore
 data:
   shortDescription: put-in
   keywords: [put-in, landing, gravel, shingle]
@@ -29,6 +33,8 @@ data:
     - /world/terminus/rejection/put-in/thing/hire-book
     # ⭐ The outfitter's boats, upturned on the shingle — kind rows of the
     # transport pack (zone null for life), so any of them can go in the river.
+    # The house's: sold where they lie over the counter, let by the day from
+    # the hire book (harbors review 1).
     - { template: /system/transport/thing/canoe, count: 3 }
     - /system/transport/thing/punt
     - /system/transport/thing/rowboat
