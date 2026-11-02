@@ -641,6 +641,9 @@ importers:
       '@saxonberg/content-platform':
         specifier: workspace:*
         version: link:../platform
+      '@saxonberg/content-residence':
+        specifier: workspace:*
+        version: link:../residence
       '@saxonberg/content-terminus':
         specifier: workspace:*
         version: link:../terminus
@@ -838,6 +841,9 @@ importers:
       '@saxonberg/content-trade-drilling':
         specifier: workspace:*
         version: link:../trade-drilling
+      '@saxonberg/content-trade-farming':
+        specifier: workspace:*
+        version: link:../trade-farming
       '@saxonberg/content-trade-forestry':
         specifier: workspace:*
         version: link:../trade-forestry
@@ -1637,6 +1643,9 @@ importers:
       '@saxonberg/content-platform':
         specifier: workspace:*
         version: link:../platform
+      '@saxonberg/content-residence':
+        specifier: workspace:*
+        version: link:../residence
       '@saxonberg/server':
         specifier: workspace:*
         version: link:../../server

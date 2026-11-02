@@ -24,6 +24,7 @@ import type { Detail } from '../../lib/description/Detailed';
 import type { BulkAffordance } from '../../lib/bulk/Bulkable';
 import type { MqlMatch, MqlMatchVia } from './types';
 import { BlendIdentity } from '../../lib/craft/BlendIdentity';
+import { GrammarApi } from '../grammar';
 
 /**
  * One search target inside a scope. Each candidate represents a
@@ -100,6 +101,19 @@ export function candidatesForHere(
       for (const structure of location.landedStructuresNow()) {
         pushDirect(out, structure, viewer, attention);
       }
+    }
+    // ⭐ A place read from where it is reached (tracts build D30): open
+    // ground through an exit binds by its own name from this side, so
+    // `look upper bench` from the yard needs no new seed. Only the place
+    // — never what stands in it — and only when it is loaded already.
+    const seenPlaces = new Set<string>();
+    for (const exit of location.obviousExitsFor(viewer)) {
+      const far = exit.peekDestination();
+      if (!far || far === location || !far.isPlace()) continue;
+      if (!(far as Stuff & Place).isSeenAcrossExit()) continue;
+      if (seenPlaces.has(far.stuffId)) continue;
+      seenPlaces.add(far.stuffId);
+      pushDirect(out, far, viewer, attention);
     }
   }
 
@@ -410,7 +424,13 @@ export function scoreCandidate(
   const nameLower = candidate.name.toLowerCase();
   if (!nameLower && candidate.keywords.length === 0) return 0;
 
-  if (queryWords.length === 1 && nameLower === queryWords[0]) return 100;
+  // The name IS the query — one word or a phrase (`top end`). ⚠ Its
+  // article is the register, not the stem: a definite-register patch
+  // presents as "the top end", and the query's own article is already
+  // stripped (field population final pass 4 — without this it tied the
+  // stand standing in it at the exact-keyword tier, and `look at the top
+  // end` asked which).
+  if (queryWords.length > 0 && bareName(nameLower) === queryWords.join(' ')) return 100;
 
   // ⭐ A query that IS one of the thing's keywords names that thing outright,
   // above a word that merely appears in some other name: `look clay` at the
@@ -457,6 +477,14 @@ export function scoreCandidate(
   return 0;
 }
 
+/** A lowercased name with one leading article dropped. */
+function bareName(nameLower: string): string {
+  const space = nameLower.indexOf(' ');
+  return space > 0 && GrammarApi.ARTICLES.has(nameLower.slice(0, space))
+    ? nameLower.slice(space + 1)
+    : nameLower;
+}
+
 /** Whether `word` begins one of the whitespace-separated words of `text`. */
 function startsAWord(text: string, word: string): boolean {
   return text.split(/\s+/).some((t) => t.startsWith(word));
@@ -489,13 +517,26 @@ export function scoreCandidates(
   // "latex cup"` picked up the three cups AND the coagulating pan (whose
   // keywords say "latex pan"), because scores only order, they never cut.
   const kept = whole.some(Boolean) ? out.filter((_, i) => whole[i]) : out;
-  // ⭐ And a thing the query NAMES outright — its exact name or one of its
-  // keywords (70+) — cuts the things whose name merely holds the word:
-  // `look clay` among the lumps at the clay pit is the clay, not a choice
-  // between the clay and the pit.
-  if (kept.some((m) => m.score >= 70)) return kept.filter((m) => m.score >= 70);
+  // ⭐ One ordered cascade (merged: the ceramics build and the cover build's
+  // field population each found half of it). The highest tier present cuts
+  // every tier below it:
+  //   100 — a thing whose NAME is the query outright, one word or a phrase:
+  //         `look at the middle` / `look at the top end` is the patch so
+  //         named, not the stand that answers to the patch's words;
+  //    70 — a thing one of whose KEYWORDS is the query: `look clay` at the
+  //         pit is the lump, not "the clay pit" whose name merely holds it;
+  //  40–60 — a thing whose NAME carries the words: outranks one that
+  //         reaches them only through keywords (`latex` is the cups, not
+  //         the pan whose keyword says "latex pan").
+  // Things NAMED alike still prompt (`look rod` among three rods).
+  for (const floor of [100, 70, NAME_TIER]) {
+    if (kept.some((m) => m.score >= floor)) return kept.filter((m) => m.score >= floor);
+  }
   return kept;
 }
+
+/** The lowest score at which the candidate's NAME answers every word. */
+const NAME_TIER = 40;
 
 /** Does every query word appear in the candidate's name or a keyword? */
 function namesEveryWord(

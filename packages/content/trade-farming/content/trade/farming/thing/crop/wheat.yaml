@@ -1,6 +1,6 @@
 # A sack of wheat — the head of the grain chain. Everything the miller
 # and the baker do starts here.
-class: /platform/thing/Crop
+class: /platform/thing/PlantableCrop
 data:
   shortDescription: sack of wheat
   keywords: [wheat, corn, crop, sack]
@@ -14,3 +14,6 @@ data:
   # material to eat. Found by the grain-chain wire flow.
   _materialPath: /stuff/idea/material/food/wheat-grain
   mass: 25
+  # ⭐ Threshed grain is seed: kept back from the harvest and sown at the
+  # crop's own rate (field population, seed kept back).
+  growsIntoPath: /trade/farming/thing/plant/wheat

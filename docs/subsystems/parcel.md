@@ -627,6 +627,13 @@ Acreage landed. See [furnishing.md](./furnishing.md) § Acreage.
   building parcel's own `area`.
 - Unmeasured land is not policed — a parcel with no declared area
   subdivides exactly as it did before these fields existed.
+- ⭐ **A holding's OPEN ground** (tracts build D27) is the workable area
+  less the footprints its own layout authors (`HoldingWarren.openGroundM2`
+  — holding.md): no farm parcel in the world has building child-parcels,
+  so a layout says what its yard and barn stand on, and a building that
+  IS a child parcel is already out of the workable area. Unmeasured land
+  has no open ground, so its tracts are nothing and `mark` refuses — every
+  claim a farm stands on declares `areaM2` (the valley claim: 64 000 m²).
 
 ## Escheat walks the title tree (economic bootstrap, 2026-09)
 

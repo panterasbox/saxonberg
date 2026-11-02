@@ -58,6 +58,15 @@ import {
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { EvictionContext } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { VetoResult } from '@saxonberg/server/mud/lib/errors';
+import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
+import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
+import Species, { FEEDER_KINDS } from '@saxonberg/server/mud/platform/idea/species/Species';
+import Tract from '@saxonberg/content-trade-farming/src/location/Tract';
+import Field from '@saxonberg/content-trade-farming/src/thing/Field';
+// ⚠ A cycle (the book imports the register), safe because the book is
+// only read inside a method, never while either module evaluates.
+import Herdbook from '../thing/Herdbook';
 
 /**
  * Where the register lives in the path-addressed document tree.
@@ -145,6 +154,28 @@ export interface HerdRecord {
   /** Heads currently drafted out into their own objects. */
   drafted: DraftedHead[];
   /**
+   * ⭐ The field the herd is on — its identity path (cover build D8) — or
+   * absent when it is on none. `move` writes it; the field's own ledger
+   * holds the open window. The act reads this pointer and never searches
+   * for a field.
+   */
+  grazing?: string;
+  /**
+   * The template path of the book the herd was filed from, when an
+   * authored book filed it — so a move can tell the book where its herd
+   * went (its `look` line). Load on use: the record points at its book;
+   * nothing searches for one.
+   */
+  bookPath?: string;
+  /**
+   * ⭐ What the herd was fed, window by window (cover build D10): each
+   * closed window's fed fraction, its length and when it ended, oldest
+   * first, capped at {@link FED_HISTORY_CAP}. An undrafted head's
+   * condition at the draft is these windows replayed from its own last
+   * known flesh — the tally and the body follow one rule.
+   */
+  fed?: FedWindow[];
+  /**
    * ⭐ **The sparse overlay** (D21) — what actually happened to head
    * *n*, keyed by index. The seed says what head 17 IS; this says what
    * has since become of it, and it is sparse because most of them
@@ -153,10 +184,32 @@ export interface HerdRecord {
   overlay: Record<string, HeadOverlay>;
 }
 
+/** One closed window of the herd's feeding (cover build D10). */
+export interface FedWindow {
+  /** The share of what it wanted that it got, `[0, 1]`. */
+  fraction: number;
+  /** How long the window ran, game days. */
+  days: number;
+  /** Game-seconds the window closed. */
+  end: number;
+}
+
+/**
+ * Windows the record keeps. Older ones fall away — a head out of the
+ * book for longer than this many windows is read from its seed.
+ */
+export const FED_HISTORY_CAP = 24;
+
 /** What a herd remembers about one head it is not currently looking at. */
 export interface HeadOverlay {
   /** Body condition `[0, 100]` folded back in when it was returned. */
   flesh?: number;
+  /**
+   * Game-seconds {@link flesh} was true — the moment it was returned
+   * (cover build D10). The fed windows after it are what it has been
+   * through since.
+   */
+  fleshAt?: number;
   /** Handling `[0, 1]`, likewise. */
   handling?: number;
   /** Age in game days at the moment it was last returned. */
@@ -395,6 +448,125 @@ export default class HerdRegistry extends RegistrarMixin(Idea) {
     return true;
   }
 
+  /**
+   * The field a herd's line names (`<tract>#<fieldKey>`, tracts build D34),
+   * loaded on use — or `null`.
+   */
+  public async fieldOf(ref: string): Promise<Field | null> {
+    return loadField(ref);
+  }
+
+  /**
+   * The field `key` of the tract at `where` — or, with no key, the tract's
+   * one field. What an authored herdbook's starting place resolves to.
+   */
+  public async fieldOn(where: string, key: string): Promise<Field | null> {
+    const tract = await loadTract(where).catch(() => null);
+    if (!tract) return null;
+    if (key) return tract.fieldByKey(key);
+    const fields = tract.getFields();
+    return fields.length === 1 ? fields[0]! : null;
+  }
+
+  /** The line a herd on `field` is written with. */
+  public refOf(field: Field): string {
+    return fieldRefOf(field);
+  }
+
+  /** Point the herd at a field (cover build D8), or at none. */
+  public async setGrazing(herdId: string, path: string | null): Promise<void> {
+    const herd = await this.read(herdId);
+    if (herd === null) return;
+    if (path) herd.grazing = path;
+    else delete herd.grazing;
+    await this.update(herd);
+  }
+
+  /**
+   * Add a closed fed window to the herd's history (cover build D10). A
+   * zero-length window adds nothing.
+   */
+  public async foldFed(herdId: string, window: FedWindow): Promise<void> {
+    if (!(window.days > 0)) return;
+    const herd = await this.read(herdId);
+    if (herd === null) return;
+    const fed = [...(herd.fed ?? []), {
+      fraction: Math.max(0, Math.min(1, window.fraction)),
+      days: window.days,
+      end: window.end,
+    }];
+    herd.fed = fed.slice(-FED_HISTORY_CAP);
+    await this.update(herd);
+  }
+
+
+  // ---------- ⭐ the herd on a field (cover build D8, D10) ----------
+
+  /**
+   * ⭐ **Put the herd on `to`** — or on no field — closing the window on
+   * the field it leaves and folding it into the record (cover build D8).
+   * The one act behind `move` and behind a herdbook's authored
+   * `grazing:`. Returns the record as it now stands, or `null` when no
+   * such herd is filed.
+   */
+  public async graze(herdId: string, to: Field | null): Promise<HerdRecord | null> {
+    await this.foldOpen(herdId);
+    const herd = await this.read(herdId);
+    if (herd === null) return null;
+    if (herd.grazing) {
+      const from = await loadField(herd.grazing);
+      from?.clearGrazer(herdId);
+    }
+    if (to) {
+      const species = await loadSpecies(herd.speciesPath);
+      // A herd eats what its heads' SIZE says — at the herd's mean age,
+      // so a register of calves eats like calves.
+      const now = nowSeconds() ?? herd.founded;
+      const meanAge = herd.foundingMeanAgeDays + Math.max(0, (now - herd.founded) / SECONDS_PER_GAME_DAY);
+      const each = species?.dryMatterIntakeKgPerDay(meanAge) ?? 0;
+      const kinds = (species?.getFeedingStyles() ?? []).filter((k) =>
+        (FEEDER_KINDS as readonly string[]).includes(k),
+      );
+      to.setGrazer(herdId, {
+        label: `${countWord(herd.tally)} head of ${herd.name}`,
+        demandKgPerDay: herd.tally * each,
+        feederKinds: [...kinds],
+      });
+      herd.grazing = fieldRefOf(to);
+    } else {
+      delete herd.grazing;
+    }
+    await this.update(herd);
+    // ⭐ The book on the wall says where the herd is — told by the act,
+    // read by `look`.
+    const book = herd.bookPath ? StuffApi.findByTemplatePath(herd.bookPath) : null;
+    if (book instanceof Herdbook) book.noteGrazing(to ? to.grazingPlacePhrase() : '');
+    return herd;
+  }
+
+  /**
+   * ⭐ **Close the herd's open window** and add it to the fed history
+   * (cover build D10) — what the draft reads before it says what
+   * condition a head is in. On a field, the field's ledger says what it
+   * got; on none, it got nothing for the time since the last window.
+   */
+  public async foldOpen(herdId: string): Promise<void> {
+    const herd = await this.read(herdId);
+    if (herd === null) return;
+    const now = nowSeconds();
+    if (now === null) return;
+    if (herd.grazing) {
+      const field = await loadField(herd.grazing);
+      const fold = field?.foldGrazer(herdId) ?? null;
+      if (fold) await this.foldFed(herdId, { fraction: fold.fraction, days: fold.days, end: now });
+      return;
+    }
+    const last = herd.fed?.[herd.fed.length - 1]?.end ?? herd.founded;
+    if (last > 0 && now > last) {
+      await this.foldFed(herdId, { fraction: 0, days: (now - last) / SECONDS_PER_GAME_DAY, end: now });
+    }
+  }
+
   /** What the register remembers about head `index`. */
   public async overlayFor(
     herdId: string,
@@ -446,9 +618,93 @@ function herdOf(data: unknown): HerdRecord | null {
       ? { femaleFraction: d.femaleFraction }
       : {}),
     drafted: Array.isArray(d.drafted) ? (d.drafted as DraftedHead[]) : [],
+    ...(typeof d.grazing === 'string' && d.grazing !== '' ? { grazing: d.grazing } : {}),
+    ...(typeof d.bookPath === 'string' && d.bookPath !== '' ? { bookPath: d.bookPath } : {}),
+    ...(Array.isArray(d.fed) ? { fed: (d.fed as FedWindow[]).filter(isFedWindow) } : {}),
     overlay:
       typeof d.overlay === 'object' && d.overlay !== null
         ? (d.overlay as Record<string, HeadOverlay>)
         : {},
   };
+}
+
+function isFedWindow(w: unknown): w is FedWindow {
+  if (typeof w !== 'object' || w === null) return false;
+  const x = w as Record<string, unknown>;
+  return typeof x.fraction === 'number' && typeof x.days === 'number' && typeof x.end === 'number';
+}
+
+const SECONDS_PER_GAME_DAY = 86_400;
+
+/** Game-seconds now, or `null` before the clock exists (pre-boot, tests). */
+function nowSeconds(): number | null {
+  if (!StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry)) return null;
+  return WorldClockApi.getNow().rawValue();
+}
+
+/**
+ * ⭐ A herd's line names a FIELD by its tract and its key (tracts build
+ * D34): `<tract>#<fieldKey>`, the tract written as its durable handle when
+ * it is one keyed copy of a layout (`<row>#<extent>/<leaf>`) and as its
+ * path when it is the one authored tract. The key is after the LAST `#`.
+ */
+function fieldRefOf(field: Field): string {
+  const tract = field.getTract();
+  if (!tract) return '';
+  const where = tract.getDurableHandle() ?? tract.getTemplatePath() ?? '';
+  return where ? `${where}#${field.getFieldKey()}` : '';
+}
+
+/**
+ * The field a line names, loaded on use (the way an exit loads where it
+ * leads), or `null` when it will not resolve or is not a field.
+ */
+async function loadField(ref: string): Promise<Field | null> {
+  const cut = ref.lastIndexOf('#');
+  if (cut <= 0) return null;
+  const where = ref.slice(0, cut);
+  const key = ref.slice(cut + 1);
+  try {
+    const tract = await loadTract(where);
+    return tract?.fieldByKey(key) ?? null;
+  } catch (err) {
+    console.error(`HerdRegistry: field '${ref}' did not resolve`, err);
+    return null;
+  }
+}
+
+/** The tract a line names: a keyed copy by its handle, else the one row. */
+async function loadTract(where: string): Promise<Tract | null> {
+  const hash = where.indexOf('#');
+  if (hash > 0) {
+    const row = where.slice(0, hash);
+    const copy = StuffApi.findAllByTemplatePath<Stuff>(row).find(
+      (t) => t.getDurableHandle() === where,
+    );
+    return copy instanceof Tract ? copy : null;
+  }
+  const place = await StuffApi.singleton<Stuff>(where);
+  return place instanceof Tract ? place : null;
+}
+
+/** The species at `path`, or `null`. */
+async function loadSpecies(path: string): Promise<Species | null> {
+  if (!path) return null;
+  try {
+    return await StuffApi.singleton<Species>(path);
+  } catch (err) {
+    console.error(`HerdRegistry: species '${path}' did not resolve`, err);
+    return null;
+  }
+}
+
+const COUNT_WORDS = [
+  'no', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight',
+  'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen',
+  'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty',
+];
+
+/** A head count as a person says it — *six*, *twelve*, *forty*. */
+function countWord(n: number): string {
+  return COUNT_WORDS[n] ?? String(n);
 }

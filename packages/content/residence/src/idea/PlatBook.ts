@@ -178,6 +178,16 @@ export default class PlatBook extends PlatBookBase {
    * what exists is what sold plus what the plan offers next.
    */
   public async lotExtents(): Promise<string[]> {
+    // ⭐ Load on use: the book names its holder, so the listing stands it
+    // up rather than reading only one something else happened to load
+    // (a plat that is not booted listed nothing — tracts build W4).
+    if (this.holderPath && !this.holderView()) {
+      try {
+        await StuffApi.singleton(this.holderPath);
+      } catch (err) {
+        console.warn(`PlatBook: holder '${this.holderPath}' did not stand up —`, err);
+      }
+    }
     const sold: string[] = [];
     const takenLeafs = new Set<string>();
     for (const child of await ParcelApi.childParcelsOf(this.parentExtent)) {

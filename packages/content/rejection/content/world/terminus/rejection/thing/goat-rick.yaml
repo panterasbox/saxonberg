@@ -1,0 +1,11 @@
+# The goats' rick under the lean-to — last summer's hay, bought in
+# (cover build W6). The pen grows nothing, so this is the herd's keep.
+extends: /trade/farming/thing/rick
+data:
+  shortDescription: hay rick
+  keywords: [rick, hayrick, "hay rick"]
+  longDescription: >-
+    Hay stacked against the back wall under the iron, roped down, its
+    near face pulled ragged where the armfuls come out.
+  props:
+    - { template: /trade/farming/thing/hay-stack, count: 2 }

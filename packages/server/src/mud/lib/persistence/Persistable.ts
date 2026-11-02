@@ -202,6 +202,18 @@ export interface Persistable {
    *   `super.onRestored()`.
    */
   onRestored(): Promise<void>;
+
+  /**
+   * The keyed records this host OWNS — records that live and die with it
+   * (a tract's marked fields, tracts build D26). A capture of the host
+   * captures each after it; `markForRevert` marks each; an end-of-tenure
+   * revert deletes each by its own key.
+   *
+   * @hook Default `[]`. A host that mints persistable fixtures of its own
+   *   answers them, so nothing that walks holdings needs to know what
+   *   they are.
+   */
+  dependentPersistables(): (Stuff & Persistable)[];
 }
 
 export function PersistableMixin<
@@ -299,6 +311,14 @@ export function PersistableMixin<
 
     markForRevert(): void {
       this._reverting = true;
+      for (const dependent of this.dependentPersistables()) {
+        dependent.markForRevert();
+      }
+    }
+
+    /** See {@link Persistable.dependentPersistables}. Default: none. */
+    dependentPersistables(): (Stuff & Persistable)[] {
+      return [];
     }
 
     /**

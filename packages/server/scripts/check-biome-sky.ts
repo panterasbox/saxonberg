@@ -87,7 +87,7 @@ export const INTERIORS_FROM_THE_BIOME: readonly string[] = [
   "/trade/carpentry/thing/drying-loft",
   "/trade/cooking/location/kitchen",
   "/trade/distilling/location/warehouse",
-  "/trade/farming/location/field",
+  "/trade/farming/location/tract",
   "/trade/hospitality/location/bar",
   "/trade/hospitality/location/cellar",
   "/world/lounge/location/bar",

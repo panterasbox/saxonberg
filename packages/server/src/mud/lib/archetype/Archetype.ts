@@ -38,6 +38,8 @@ import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
 import { ContainmentApi } from '../../api/containment';
 import { PerceptionApi } from '../../api/perception';
+import { ParcelApi } from '../../api/parcel';
+import { GrammarApi } from '../../api/grammar';
 
 const RECIPES_PATH = '/platform/idea/RecipeCatalogue';
 /**
@@ -515,6 +517,19 @@ export class Archetype {
  * `heatK` without an exemption, because nothing here knows what a forge
  * is.
  */
+/**
+ * The path the parcel registry knows a space by: an establishing
+ * context's explicit key (a holding's room, `<extent>/<leaf>`) before the
+ * row path — the sowing gate's own rule.
+ */
+function groundPathOf(space: Stuff): string {
+  const keyed =
+    MixinApi.isPersistable(space) && space.isPersistenceKeyExplicit()
+      ? space.getPersistenceKey()
+      : null;
+  return keyed ?? space.getTemplatePath() ?? '';
+}
+
 function satisfyingItem(
   need: CapabilityNeed,
   pool: readonly Stuff[],
@@ -571,6 +586,26 @@ function satisfyingItem(
     for (const sp of spaces) {
       const light = vision.signalAt(sp) as { intensity: Quantity<'lux'> } | null;
       if (light && light.intensity.rawValue() >= want) return sp.getPresentation();
+    }
+    return null;
+  }
+  if ('cultivation' in need) {
+    // ⭐ A property of the GROUND (tracts build D36): the space's parcel
+    // must admit this scale of cultivation, and at field scale the ground
+    // must actually be marked into fields — zoned farmland nobody has
+    // divided grows nothing yet. Reported, never enforced.
+    for (const sp of spaces) {
+      const scale = ParcelApi.cultivationScaleAt(groundPathOf(sp));
+      if (need.cultivation === 'bed') {
+        if (scale === 'bed' || scale === 'field') return sp.getPresentation();
+        continue;
+      }
+      if (scale !== 'field') continue;
+      if (!MixinApi.isSoil(sp) || MixinApi.isCultivable(sp)) continue;
+      const marked = sp.soilParts().length;
+      if (marked === 0) continue;
+      const noun = sp.soilPartNoun();
+      return `${sp.getPresentation()} (${GrammarApi.inWords(marked)} ${noun}${marked === 1 ? '' : 's'} marked)`;
     }
     return null;
   }

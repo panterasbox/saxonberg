@@ -1,0 +1,7 @@
+# The pasture trough — kept from the rick (cover build D11).
+extends: /stuff/thing/vessel/trough
+data:
+  shortDescription: long wooden trough
+  keywords: [trough, manger]
+  fixedInPlace: true
+  suppliedBy: /world/terminus/hearts-delight/dairy/thing/rick

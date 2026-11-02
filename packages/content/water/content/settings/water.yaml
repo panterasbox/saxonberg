@@ -15,27 +15,26 @@
 # a dial that fails silently.
 settings:
   # Precipitation rates, in millimetres of liquid water equivalent per
-  # HOUR. These are six-hour SEGMENT AVERAGES, not instantaneous
-  # intensities: our weather is piecewise-constant, so a `rain` segment
-  # rains for six hours straight. Real moderate rain is ~2.5 mm/h but
-  # never for six hours together, so the figures below are the averages
-  # that reproduce a plausible annual total under the shipped transition
-  # grammar — a wet temperate valley, not a desert and not a rainforest.
-  # `WeatherType.test.ts` pins that total.
+  # HOUR — honest intensities, rained for a whole six-hour segment: steady
+  # light-to-moderate rain, a heavy convective storm, a steady snowfall.
+  # The annual total is these times how often the weather grammar rains
+  # (kernel `TRANSITIONS` / `SEASON_BIAS`), calibrated together (cover
+  # build B42, 2026-10-30) to ≈2.8 mm a day at an unleaned temperate
+  # locality — a wet temperate valley. Precipitation.test.ts pins it.
   - key: water.rate.rain
-    value: "0.3"
+    value: "1.5"
 
-  # A storm is four times a shower and shares its `rain` descriptor —
-  # which is exactly why the rate table keys on the weather TYPE rather
-  # than on what falls out of it.
+  # A storm is a heavy downpour and shares its `rain` descriptor — which
+  # is exactly why the rate table keys on the weather TYPE rather than on
+  # what falls out of it.
   - key: water.rate.storm
-    value: "1.2"
+    value: "4"
 
   # Snow's figure is its WATER EQUIVALENT — what melts out of it, not
-  # how deep the drift is. It banks rather than running off; the
-  # release is the spring rise.
+  # how deep the drift is (0.8 mm/h is ~8 mm of fresh snow an hour). It
+  # banks rather than running off; the release is the spring rise.
   - key: water.rate.snow
-    value: "0.25"
+    value: "0.8"
 
   # ── flow ──────────────────────────────────────────────────────────
   # The fraction of precipitation that reaches a channel rather than

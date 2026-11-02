@@ -15,6 +15,10 @@ data:
   archetype: hand
   competence:
     - { discipline: agriculture, asserting: competent }
+  # ⭐ The knife the cut is made with (cover build): the harvest view's
+  # default binds a reaping tool the cutter holds.
+  props:
+    - /trade/sugar/thing/cane-knife
   behaviors:
     - brain: /trade/sugar/behavior/cuts
       trigger: candidate

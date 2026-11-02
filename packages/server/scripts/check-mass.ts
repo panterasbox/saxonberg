@@ -113,7 +113,10 @@ import {
 // earthenware and stoneware rows with a mass now.
 // ⭐ Lowered 235 → 234 by ceramics W5: the commons `Kiln` states its mass
 // (a brick kiln and its 30-brick lining) now that a yard props it.
-export const MASS_CEILING = 233;
+// ⭐ Lowered 234 → 231 merging ceramics into the cover build: the two
+// builds' rows together state three more masses than either alone.
+// ⭐ 231 → 230 merging the cover build into paint: paint's rows state one more.
+export const MASS_CEILING = 230;
 
 /** The high-water mark: what the count was when the gate landed. */
 export const MASS_HIGH_WATER = 242;

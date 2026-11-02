@@ -260,3 +260,93 @@ describe('nodeIdentityOf — one computer of the string', () => {
     expect(afterReap).toBe(first);
   });
 });
+
+describe('⭐ the mirror and the static slot (tracts build D31, D32)', () => {
+  it('a lot on the LEFT of the road mirrors across the road axis', () => {
+    const plan = PlatPlan.parse(BRANCHED);
+    // lane heads west (the default): right = north, left = south.
+    expect(plan.ringIndexOfSlot('lot-1')).toBe(0);
+    expect(plan.mirrorAxisOfSlot('lot-1')).toBeNull();
+    expect(plan.ringIndexOfSlot('lot-2')).toBe(1);
+    expect(plan.mirrorAxisOfSlot('lot-2')).toBe('north-south');
+    expect(plan.mirrorAxisOfSlot('lot-3')).toBeNull();
+    expect(plan.mirrorAxisOfSlot('lot-4')).toBe('north-south');
+  });
+
+  it('a road heading north mirrors east and west', () => {
+    const plan = PlatPlan.parse({
+      shape: 'branched',
+      roads: [{ key: 'valley-lane', heading: 'north', segments: 1, frontagesPerSegment: 4 }],
+    });
+    expect(plan.gateDirectionOfSlot('lot-1')).toBe('east');
+    expect(plan.mirrorAxisOfSlot('lot-1')).toBeNull();
+    expect(plan.gateDirectionOfSlot('lot-2')).toBe('west');
+    expect(plan.mirrorAxisOfSlot('lot-2')).toBe('east-west');
+  });
+
+  it('the side is read off the gate, not the index — a branch mouth never flips a lot', () => {
+    const plan = PlatPlan.parse(BRANCHED);
+    // segment 2 of the lane loses `north` to the court's mouth.
+    for (let n = 5; n <= 8; n++) {
+      const gate = plan.gateDirectionOfSlot(`lot-${n}`)!;
+      const left = ['south', 'southwest', 'southeast'].includes(gate);
+      expect(plan.mirrorAxisOfSlot(`lot-${n}`) !== null).toBe(left);
+    }
+  });
+
+  it('linear plans never mirror', () => {
+    const plan = PlatPlan.parse({ shape: 'linear', frontagesPerNode: 3 });
+    expect(plan.mirrorAxisOfSlot('f1-r2')).toBeNull();
+    expect(plan.ringIndexOfSlot('f1-r2')).toBeNull();
+  });
+
+  it('a static slot may be an object naming its programme, gate and mirror', () => {
+    const plan = PlatPlan.parse({
+      shape: 'static',
+      nodes: [
+        {
+          key: 'lane',
+          path: '/obj/_test/lane',
+          slots: [
+            'plain',
+            { key: 'quist-farm', programme: '/obj/_test/quist', gate: 'up' },
+            { key: 'other', mirrored: true, mirror: 'east-west' },
+          ],
+        },
+      ],
+    });
+    expect(plan.nodeOfSlot('plain')).toBe('lane:1');
+    expect(plan.nodeOfSlot('quist-farm')).toBe('lane:1');
+    expect(plan.programmeOfSlot('quist-farm')).toBe('/obj/_test/quist');
+    expect(plan.programmeOfSlot('plain')).toBeNull();
+    expect(plan.gateOfSlot('quist-farm')).toBe('up');
+    expect(plan.mirrorAxisOfSlot('other')).toBe('east-west');
+    expect(plan.mirrorAxisOfSlot('plain')).toBeNull();
+    expect(plan.staticSlotLeaves()).toEqual(['plain', 'quist-farm', 'other']);
+    expect(plan.nextFreeSlot(new Set(['plain']), 10)).toBe('quist-farm');
+  });
+
+  it('a mirrored static slot must name its axis', () => {
+    expect(() =>
+      PlatPlan.parse({
+        shape: 'static',
+        nodes: [{ key: 'lane', path: '/x', slots: [{ key: 'a', mirrored: true }] }],
+      }),
+    ).toThrow(/mirror axis/);
+  });
+});
+
+describe('a plat names its own slots (tracts build W4)', () => {
+  it('slotPrefix: `farmstead-1` is the first slot, and `lot-1` is not one', () => {
+    const plan = PlatPlan.parse({
+      shape: 'branched',
+      slotPrefix: 'farmstead-',
+      roads: [{ key: 'valley-lane', heading: 'north', segments: 1, frontagesPerSegment: 4 }],
+    });
+    expect(plan.nodeOfSlot('farmstead-2')).toBe('valley-lane:1');
+    expect(plan.nodeOfSlot('lot-2')).toBeNull();
+    expect(plan.gateDirectionOfSlot('farmstead-2')).toBe('west');
+    expect(plan.mirrorAxisOfSlot('farmstead-2')).toBe('east-west');
+    expect(plan.nextFreeSlot(new Set(['farmstead-1']), 4)).toBe('farmstead-2');
+  });
+});
