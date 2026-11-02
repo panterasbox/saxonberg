@@ -947,6 +947,15 @@ Three generic substrate capabilities support it:
   wins, never fatal, and the stale record heals on its next capture.
   `PersistableApi.standUpKeyed` and `HydrateContext.standUpKeyed` are the
   same question from the Api and from a slice.
+  ⭐ **The question is a lookup, never a scan** (harbors review 2): a
+  keyed host is filed under `(row, key)` the moment it is given its key
+  (`KeyedHosts`, written by `setPersistenceKey`), and `liveKeyed` /
+  `assertUniqueKey` read that index — neither walks the row's instances.
+  ⭐ **And a warren's room is never minted alone**: a host that answers
+  `standsUpAlone() === false` (`Hold`, a keyed `PersistentLocation`, a
+  keyed `Tract`) is routed through `CirculationWarren.admitFor` and
+  accepted only when that is the very pair, else refused — minted on its
+  own it stood outside its warren, whose next wake minted a second copy.
 - **Self-owner** — a `HasInteractive` host owns its own record
   (`owner = scope`), so the account-deletion cascade `deleteAllFor(<avatar
   path>)` is a keyed match; and `ContainerMixin.captureSlice` **skips**
@@ -1008,7 +1017,8 @@ a second instance standing up on an occupied key wrote into the first
 one's record with no error anywhere.
 
 ⭐ The population that can collide is *the row's instances*, so the row
-is what gets scanned. `liveKeyed(scope, key)` needed no change — every
+is what is checked — since harbors review 2 through the `(row, key)`
+index, not a scan. `liveKeyed(scope, key)` needed no change — every
 one of its callers already passes a stored `templatePath` — but it now
 carries a comment saying so, because the two functions look
 interchangeable and are not.
