@@ -9,7 +9,9 @@
 import '../../../../test-bootstrap';
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import Structure from '../../../platform/idea/Structure';
+import Building from '../../../platform/idea/Building';
 import Ship from '../../../platform/idea/Ship';
+import type { Stuff } from '../../stuff/Stuff';
 import { StuffApi } from '../../../api/stuff';
 import { ParcelApi } from '../../../api/parcel';
 import { MixinApi } from '../../../api/mixin';
@@ -25,7 +27,7 @@ function held(kind: 'player' | 'organization' | null): void {
   );
 }
 
-function slices(host: Structure): Record<string, unknown> {
+function slices(host: Stuff): Record<string, unknown> {
   const out: Record<string, unknown> = {};
   for (const c of MixinApi.getPersistenceContributors(host.constructor as AnyConstructor)) {
     if (c.captureSlice) out[c.key] = c.captureSlice(host, {} as never);
@@ -40,7 +42,7 @@ afterEach(() => {
 
 describe('a building persists only once it is sold', () => {
   it('a staged building (nobody, or an organization, holds the ground) writes nothing', () => {
-    const s = makeStuffAtPath(() => new Structure(), '/world/_p/cottage/structure');
+    const s = makeStuffAtPath(() => new Building(), '/world/_p/cottage/structure');
     s.setExtent('/world/_p/cottage');
     held(null);
     expect(s.isTitleSold()).toBe(false);
@@ -50,7 +52,7 @@ describe('a building persists only once it is sold', () => {
   });
 
   it('a building a person holds persists its coats and condition', () => {
-    const s = makeStuffAtPath(() => new Structure(), '/world/_p/house/structure');
+    const s = makeStuffAtPath(() => new Building(), '/world/_p/house/structure');
     s.setExtent('/world/_p/house');
     s.setCoats({ outside: [{ material: '/x/oil', thicknessM: 0.00004, state: 'set' }] });
     held('player');
@@ -70,18 +72,23 @@ describe('a ship keeps her voyage; her hull resets until she is sold', () => {
     held('organization');
     expect(ship.shouldPersist()).toBe(true);
     const staged = slices(ship) as Record<string, { fields: Record<string, unknown> }>;
-    for (const key of ['FacedMixin', 'DurableMixin']) {
-      expect(staged[key]?.fields).toEqual({});
-    }
+    expect(staged.FacedMixin?.fields).toEqual({});
     held('player');
     const sold = slices(ship) as Record<string, { fields: Record<string, unknown> }>;
     expect(sold.FacedMixin?.fields.coats).toBeTruthy();
-    expect(sold.DurableMixin?.fields.condition).toBe(1);
+    expect(sold.DurableMixin).toBeUndefined();
   });
 });
 
-// The capability mixins are composed on the twin, never on the base.
-it('the twin composes the outside; the base does not', () => {
-  const s = makeStuffAtPath(() => new Structure(), '/world/_p/barn/structure');
-  expect(MixinApi.isFaced(s) && MixinApi.isDurable(s)).toBe(true);
+// ⭐ The split (paint review): a building has an outside; a bare structure
+// (the Waponi Woo peak) has none; a ship's hull takes coats but has no
+// fabric to maintain.
+it('a building has a face and a condition; a bare structure neither; a ship a face only', () => {
+  const b = makeStuffAtPath(() => new Building(), '/world/_p/barn/structure');
+  expect(MixinApi.isFaced(b) && MixinApi.isDurable(b)).toBe(true);
+  const peak = makeStuffAtPath(() => new Structure(), '/world/_p/peak/structure');
+  expect(MixinApi.isFaced(peak) || MixinApi.isDurable(peak)).toBe(false);
+  const ship = makeStuffAtPath(() => new Ship(), '/world/_p/sloop/structure');
+  expect(MixinApi.isFaced(ship)).toBe(true);
+  expect(MixinApi.isDurable(ship)).toBe(false);
 });

@@ -3,7 +3,7 @@
 > Shipped by the rubber build (2026-10). Code: `lib/spatial/Enclosed.ts`
 > (the vocabulary), `lib/spatial/Exposure.ts` (the answer),
 > `lib/biome/Atmospheric.ts` (`construction()`, `exposure()`),
-> `platform/idea/Structure.ts` (`storeys`). Gates: `lint:envelope`,
+> `lib/structure/Structure.ts` (`storeys`). Gates: `lint:envelope`,
 > `lint:biome-sky`.
 
 ## The one fact a place decides alone
@@ -75,12 +75,17 @@ courtyard open to the sky is a landing of its own building. The landed
 structures enter the room's `here` pool, so `look cottage`, `survey
 cottage` and `paint cottage` bind from the lane with no new MQL seed.
 
-`Structure` is split (paint D1): the BASE (`lib/structure/Structure`) holds
-membership, entrance, height, storeys, the landing, whether it is sold
-(`isTitleSold` — a person holds the covering parcel); the platform twin
-(`platform/idea/Structure`, a `Singleton` per row) composes the outside's
-capabilities; a holding's house (`HoldingStructure`) is the base keyed per
-lot and attached to the graph at runtime (`NavigationApi.attachStructure`).
+⭐ **A structure is not always a building** (paint D1, split in review):
+
+| class | what it is |
+|---|---|
+| `lib/structure/Structure` | *these places are one thing* — membership, entrance, height, storeys, the landing, whether it is sold (`isTitleSold`) |
+| `lib/structure/Building` (only inherited) | a structure with an OUTSIDE: a face painted from its landing, a `Durable` condition the weather wears once the coat is gone |
+| `platform/idea/Building` | what a building row names (a `Singleton` per row); persists once sold |
+| `HoldingBuilding` (`residence`) | a holding's building, minted per `building:` group of its enclosed rooms |
+| `platform/idea/Structure` | a bare structure row — today only the peak of Waponi Woo, until the mountain slate |
+| `Ship` | a structure that moves; her hull takes coats wherever she is, kept once she is sold; no fabric |
+
 A holding's keyed rooms have no path of their own, so a place asks its
 WARREN which building it is in first (`Place.structureNow` →
 `Warren.structureOf`, which the holding answers), then the location graph by

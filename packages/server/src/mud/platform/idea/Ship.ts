@@ -27,6 +27,8 @@
 import Structure from './Structure';
 import { PositionedMixin } from '../../lib/expanse/Positioned';
 import { EngagedMixin } from '../../lib/activity/Engaged';
+import { PersistableMixin } from '../../lib/persistence/Persistable';
+import { FacedMixin } from '../../lib/material/Faced';
 import { VoyagingMixin } from '../../lib/expanse/Voyaging';
 import { MovingMixin } from '../../lib/expanse/Moving';
 import { Template } from '../../lib/stuff/Template';
@@ -41,6 +43,7 @@ import type { CourseRequest, CraftStop } from '../../lib/expanse/Frame';
 import type { StartResult } from '../../api/scheduler';
 import ExpanseNode from './ExpanseNode';
 import type { Positioned } from '../../lib/expanse/Positioned';
+import type { ActRefusal } from '../../lib/craft/ActPlan';
 
 /** A ship's hull (river D28): how deep she floats, how wide, how long. */
 export interface ShipHull {
@@ -57,8 +60,8 @@ const LOOKOUT_POSITION = 'lookout';
 
 export const SHIP_CLASS_PATH = '/platform/idea/Ship';
 
-export default class Ship extends VoyagingMixin(
-  MovingMixin(EngagedMixin(PositionedMixin(Structure))),
+export default class Ship extends PersistableMixin(
+  VoyagingMixin(MovingMixin(EngagedMixin(PositionedMixin(FacedMixin(Structure))))),
 ) {
   static fieldMeta: FieldMeta = {
     deckHeightM: { persistent: true, authorable: true },
@@ -70,9 +73,46 @@ export default class Ship extends VoyagingMixin(
     overboard: { persistent: true },
   };
 
-  /** ⭐ A ship persists whoever holds her — her voyage is hers (paint D7). */
-  protected override persistsWhenStaged(): boolean {
-    return true;
+  // ── her hull's outside (paint review) ──────────────────────────
+  // A hull takes coats — tar, paint — and the weather works on them
+  // WHEREVER SHE IS, not from a landing: at sea most of all. Her record is
+  // hers whoever holds her (her voyage); her hull's coats are kept only
+  // once she is sold (D7). She has no fabric to `maintain`: her hull's
+  // damage is `holed`, and what the sea does to bare timber is
+  // decomposition's.
+
+  /** The place her outside meets the air: her deck. */
+  public override weatherScope(): Stuff | null {
+    const deck = this.getEntrance();
+    return deck ? (StuffApi.findByTemplatePath(deck) ?? null) : null;
+  }
+
+  public override weatherExposureAt(_scope: Stuff): number {
+    return 1;
+  }
+
+  public override skyLightAt(_scope: Stuff): number {
+    return 1;
+  }
+
+  public override airChangeAt(_scope: Stuff): number {
+    return 1;
+  }
+
+  /** Her hull's skin, roughly: length × (beam + twice the draft). */
+  public override coatAreaM2(): number {
+    const h = this.hull;
+    return h ? h.lengthM * (h.beamM + 2 * h.draftM) : 0;
+  }
+
+  /** ⭐ Her hull is painted from where she lies — the quay alongside (paint D9). */
+  public override coatReachRefusal(actor: Stuff): ActRefusal | null {
+    return this.landingRefusal(actor);
+  }
+
+  /** ⭐ Her hull's coats are kept only once she is sold (D7). */
+  public override persistsCoats(): boolean {
+    return this.isTitleSold();
   }
 
   /**

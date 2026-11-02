@@ -2,6 +2,7 @@ import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Structure from '../Structure';
 import Ship from '../Ship';
+import Building from '../Building';
 import { NavigationApi } from '../../../api/navigation';
 import { attachGraph } from '../../../lib/location/__tests__/attachments-fixture';
 import { MixinApi } from '../../../api/mixin';
@@ -26,7 +27,7 @@ describe('Structure', () => {
   });
 
   it('⭐ a building has no position and does not voyage; a ship does — a subclass, not a blank field', () => {
-    const tower = makeStuff(() => new Structure());
+    const tower = makeStuff(() => new Building());
     expect(MixinApi.isPositioned(tower)).toBe(false);
     expect(MixinApi.isVoyaging(tower)).toBe(false);
     // ⭐ A building composes Persistable (paint D7) but keeps a record only

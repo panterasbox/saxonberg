@@ -43,8 +43,7 @@ import { MixinApi } from "@saxonberg/server/mud/api/mixin";
 import { Mml } from "@saxonberg/server/mud/api/mml";
 import { NavigationApi } from "@saxonberg/server/mud/api/navigation";
 import HoldingWarren from "../../HoldingWarren";
-import type { Faced } from "@saxonberg/server/mud/lib/material/Faced";
-import StructureBase from "@saxonberg/server/mud/lib/structure/Structure";
+import BuildingBase from "@saxonberg/server/mud/lib/structure/Building";
 
 /** ⭐ The instrument is bound by the view, never hunted for here. */
 interface MaintainModel extends CommandModel {
@@ -62,9 +61,9 @@ const KIT_WEAR = 0.08;
 /** Below this an outside coat reads as going — the platform's `structure.coat.thinM` default. */
 const COAT_THIN_M = 0.00001;
 
-/** A BUILDING with an outside and a condition — what there is to keep up (a chair is `repair`'s). */
-function kept(s: Stuff): s is Stuff & Faced & Durable {
-  return s instanceof StructureBase && MixinApi.isFaced(s) && MixinApi.isDurable(s);
+/** A BUILDING — what there is to keep up (a chair is `repair`'s, a ship's hull is not this kit's). */
+function kept(s: Stuff): s is BuildingBase {
+  return s instanceof BuildingBase;
 }
 
 export default class MaintainController extends CommandController {
@@ -146,7 +145,7 @@ export default class MaintainController extends CommandController {
   private async buildingOf(
     named: Stuff | null,
     room: Stuff | null | undefined,
-  ): Promise<(Stuff & Faced & Durable) | null> {
+  ): Promise<BuildingBase | null> {
     if (named !== null && named !== room) return kept(named) ? named : null;
     if (!room) return null;
     // A holding's room: the holding knows its house (its own, or the

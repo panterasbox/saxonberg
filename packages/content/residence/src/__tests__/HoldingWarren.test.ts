@@ -13,7 +13,7 @@ import '@saxonberg/server/test-bootstrap';
 import { KERNEL_CONTENT_ROWS } from '@saxonberg/server/test-bootstrap';
 import { Lock } from "@saxonberg/server/mud/lib/lock/Lock";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import HoldingStructure from '../idea/HoldingStructure';
+import HoldingBuilding from '../idea/HoldingBuilding';
 import type Place from '@saxonberg/server/mud/lib/stuff/Place';
 import HoldingWarren from '../idea/HoldingWarren';
 import HouseholdersKit from '../thing/HouseholdersKit';
@@ -119,7 +119,7 @@ function seedDomain(): void {
     domain.push({ _id: `d-${++idCounter}`, ...row });
   }
   add('/system/residence/idea/exits/upstairs', '/system/residence/idea/UpstairsExit');
-  add('/system/residence/idea/holding-structure', '/system/residence/idea/HoldingStructure', {
+  add('/system/residence/idea/holding-building', '/system/residence/idea/HoldingBuilding', {
     shortDescription: 'house',
     keywords: ['house'],
   });
@@ -471,7 +471,7 @@ describe('the residential programme (D16)', () => {
     const holding = w.holdingFor(LOT1)! as unknown as HoldingWarren;
     const all = holding.buildings();
     expect(all).toHaveLength(2);
-    const [house, shed] = all as [HoldingStructure, HoldingStructure];
+    const [house, shed] = all as [HoldingBuilding, HoldingBuilding];
     const hall = holding.roomForLeaf('hall')!;
     const bedroom = holding.roomForLeaf('bedroom')!;
     const porch = holding.roomForLeaf('porch')!;

@@ -46,9 +46,7 @@ import {
 import { installV1QuantityMarshallers } from '../../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import type { CommandContext, CommandModel } from '../../../../../api/command';
 import type { StoredDocument } from '../../../../../lib/document/StoredDocument';
-import { FacedMixin } from '../../../../../lib/material/Faced';
-import { DurableMixin } from '../../../../../lib/material/Durable';
-import StructureBase from '../../../../../lib/structure/Structure';
+import BuildingBase from '../../../../../lib/structure/Building';
 import { NavigationApi } from '../../../../../api/navigation';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
 import { Idea } from '../../../../../lib/stuff/Idea';
@@ -161,7 +159,7 @@ function bed(): Chair {
 }
 
 /** A building whose weather is not walked here — its condition is set by the test. */
-class TestHouse extends DurableMixin(FacedMixin(StructureBase)) {
+class TestHouse extends BuildingBase {
   static _mixinName = 'SurveyTestHouse';
   public override weatherScope(): Stuff | null {
     return null;

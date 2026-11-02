@@ -13,6 +13,7 @@ import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { AppApi } from '@saxonberg/server/mud/api/app';
 import { AppSettingKeys } from '@saxonberg/server/mud/lib/config/AppSettings';
 import Place from '@saxonberg/server/mud/lib/stuff/Place';
+import BuildingBase from '@saxonberg/server/mud/lib/structure/Building';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { BrainContext } from '@saxonberg/server/mud/lib/behavior/brain';
 import { Urgency } from '@saxonberg/server/mud/lib/behavior/Urgency';
@@ -48,8 +49,9 @@ export const brain = class {
     // The one that most wants it: a coat gone first, then a thin one.
     const wanting = room
       .landedStructuresNow()
-      .filter((s) => MixinApi.isFaced(s))
-      .map((s) => ({ s, gone: MixinApi.isFaced(s) && s.coatGone(), thin: MixinApi.isFaced(s) && s.coatThin(thin) }))
+      // A house painter paints BUILDINGS — not a ship lying at the quay.
+      .filter((s): s is BuildingBase => s instanceof BuildingBase)
+      .map((s) => ({ s, gone: s.coatGone(), thin: s.coatThin(thin) }))
       .filter((w) => w.gone || w.thin)
       .sort((a, b) => Number(b.gone) - Number(a.gone));
     const target = wanting[0]?.s;

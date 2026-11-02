@@ -1073,6 +1073,24 @@ fork, the lens that chose is named.
   gate reads the main building. *Lens 2: the author says what a building
   is; the next farm layout is rows.*
 
+- **B33 (review, the owner)** — *a Building is not every Structure.* The
+  outside (coat + condition + upkeep) had been put on the `Structure` twin
+  every row names, so the Hesper inherited a building's (weathered only
+  from a landing, area from walls, `maintain`-able with a householder's
+  kit) and the Waponi Woo PEAK could be painted. Now `lib/structure/
+  Building` (only inherited: `Durable(Faced(Structure))` + the outside's
+  rules, once) under the `platform/idea/Building` twin (11 rows) and
+  `HoldingBuilding` (renamed from `HoldingStructure`, its copied overrides
+  gone; row `holding-building`); the `Structure` twin is bare
+  (`Singleton(Structure)` — the peak); `Ship` is master's
+  `Persistable(…(Structure))` plus a `Faced` hull (weathers at her deck,
+  area L × (B + 2D), coats kept once sold) and no `Durable`;
+  `persistsWhenStaged` is gone. `maintain`, `survey` and the painter's
+  brain narrow on `Building`. No migration: a plain Structure never
+  persisted on master and `HoldingStructure` never left this branch.
+  *Lens 3a (a mountain you can paint betrays the fiction); lens 2 (the
+  next kind of building composes once).*
+
 ---
 
 ## ⭐⭐ Host placement

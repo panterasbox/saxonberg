@@ -81,8 +81,6 @@ import type Exit from '../boundary/Exit';
 import type Place from '../stuff/Place';
 import type { ActRefusal } from '../craft/ActPlan';
 import { Mml } from '../../api/mml';
-import { AppApi } from '../../api/app';
-import { AppSettingKeys } from '../config/AppSettings';
 
 export default class Structure extends DetailedMixin(
   VisibleMixin(PerceptibleMixin(NamedMixin(Idea))),
@@ -298,23 +296,6 @@ export default class Structure extends DetailedMixin(
       if (MixinApi.isAtmospheric(m)) a += m.exposure().exteriorAreaM2();
     }
     return a;
-  }
-
-  /**
-   * ⭐ What a day of weather costs a building's fabric once its coat is
-   * gone (paint D13): half the condition scale in `structure.weather.
-   * daysToWorn` game days (the shipped residence slope). Read by the
-   * composing twins' `bareWearPerDay`.
-   */
-  public bareWearDial(): number {
-    let days = 45;
-    try {
-      const n = Number.parseFloat(AppApi.setting(AppSettingKeys.structureWeatherDaysToWorn) ?? '');
-      if (Number.isFinite(n) && n > 0) days = n;
-    } catch {
-      /* cold cache — the shipped default */
-    }
-    return 0.5 / days;
   }
 
   /**

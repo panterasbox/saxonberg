@@ -3,7 +3,7 @@
 # — is where it meets the weather, so `look seznick house`, `survey house`
 # and `paint house` answer from the pavement. Its walls and roof stay the
 # places' own (`lint:envelope`).
-class: /platform/idea/Structure
+class: /platform/idea/Building
 data:
   extent: /world/terminus/mayfield-row/seznick-house
   entrance: /world/terminus/mayfield-row/seznick-house/lobby

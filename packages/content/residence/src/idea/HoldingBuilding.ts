@@ -1,59 +1,50 @@
 /**
- * HoldingStructure — ⭐⭐ a holding's HOUSE: the building a lot or a unit
- * is, minted one per holding (paint build D6, 2026-10-31).
+ * HoldingBuilding — ⭐⭐ a building of a HOLDING: minted one per building
+ * of a lot or a unit (paint build D6, 2026-10-31; renamed and split in
+ * review).
  *
  * A holding is a warren one level down — rooms keyed `(row, <extent>/…)`
- * — and until now it carried its shell's condition itself. A building's
- * condition is the building's now (a `Durable` condition the weather wears
- * once the coat is gone), so a holding needs a building to carry it: one
- * `Structure` per holding, keyed by the holding's own extent, with a face
- * and a condition. Walk around a Hinkley
+ * — and until the paint build it carried its shell's condition itself. A
+ * building's condition is the building's now (`lib/structure/Building`: a
+ * face, and a `Durable` condition the weather wears once the coat is gone),
+ * so a holding stands its buildings up at its wake. Walk around a Hinkley
  * lot's house from the lane and it is a building like any other: you can
- * `look` at it, `survey` it, `paint` it.
+ * `look` at it, `survey` it, `paint` it, `maintain` it.
  *
- * Not a `Singleton` (every lot's house shares this row), so it is the
- * structure BASE composed here, not the platform twin. Not found by its
- * template path for the same reason: the holding registers it with the
- * location graph by instance (`NavigationApi.attachStructure`) so
- * `structureAt(<a room of the lot>)` answers it.
+ * A building is the holding's ENCLOSED rooms grouped by the floorplan's
+ * `building:` key — a farmstead's house and its barn are two, each with its
+ * own coat and condition. Open ground (a yard, a tract, a garden) belongs to
+ * none; it is where they are painted from. It holds its rooms as INSTANCES
+ * — keyed clones no path names (holding.md § Identity) — and the holding
+ * answers which building a room is in (`HoldingWarren.structureOf`). By
+ * path, only the MAIN building (rooms with no `building:` key) answers, at
+ * the holding's own extent: "the home you hold".
  *
- * ⭐ A holding may have MORE THAN ONE (paint review): a building is the
- * holding's ENCLOSED rooms grouped by the floorplan's `building:` key — a
- * farmstead's house and its barn are two, each with its own coat and
- * condition. Open ground (a yard, a tract, a garden) belongs to none; it
- * is where they are painted from. A house claims exactly its own rooms
- * — the holding answers which building a room is in
- * (`HoldingWarren.structureOf`), since no path names a keyed room. The MAIN
- * one (rooms with no `building:` key) also answers at the holding's own
- * extent, so "the home you hold" reads it.
+ * Not a `Singleton` (every lot's buildings share this row), so it is the
+ * building BASE composed here, not the row twin.
  *
  * ⭐ It persists unconditionally — a holding exists only because somebody
  * holds it — under the holding's own `(scope, key)`.
  *
- * Where a Structure ROW already covers the holding's extent (Seznick
- * House is one building of many units; Duncan Hall one of many rooms),
- * no house is minted: the units read the building they are in.
+ * Where a Building ROW already covers the holding's extent (Seznick House
+ * is one building of many units; Duncan Hall one of many rooms), none is
+ * minted: the units read the building they are in.
  */
 
-import StructureBase from '@saxonberg/server/mud/lib/structure/Structure';
-import { FacedMixin } from '@saxonberg/server/mud/lib/material/Faced';
-import { DurableMixin } from '@saxonberg/server/mud/lib/material/Durable';
+import BuildingBase from '@saxonberg/server/mud/lib/structure/Building';
 import { PersistableMixin } from '@saxonberg/server/mud/lib/persistence/Persistable';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import type { Stuff, EvictionContext } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { VetoResult } from '@saxonberg/server/mud/lib/errors';
-import type { ActRefusal } from '@saxonberg/server/mud/lib/craft/ActPlan';
 
 /** What the house reads of its holding — whether it still stands. */
 interface HoldingRooms {
   isDestroyed(): boolean;
 }
 
-export const HOLDING_STRUCTURE_ROW = '/system/residence/idea/holding-structure';
+export const HOLDING_BUILDING_ROW = '/system/residence/idea/holding-building';
 
-export default class HoldingStructure extends PersistableMixin(
-  DurableMixin(FacedMixin(StructureBase)),
-) {
+export default class HoldingBuilding extends PersistableMixin(BuildingBase) {
   /** The holding whose house this is — a weak, runtime ref set at its wake. */
   private holding: HoldingRooms | null = null;
 
@@ -111,40 +102,6 @@ export default class HoldingStructure extends PersistableMixin(
       }
     }
     return out;
-  }
-
-  public override weatherScope(): Stuff | null {
-    return this.outsideScope();
-  }
-
-  public override weatherExposureAt(_scope: Stuff): number {
-    return 1;
-  }
-
-  public override skyLightAt(_scope: Stuff): number {
-    return 1;
-  }
-
-  public override airChangeAt(_scope: Stuff): number {
-    return 1;
-  }
-
-  public override bareWearPerDay(): number {
-    return this.bareWearDial();
-  }
-
-  public override getCondition(): number {
-    this.reconcileWeather();
-    return super.getCondition();
-  }
-
-  public override coatAreaM2(): number {
-    return this.exteriorAreaM2();
-  }
-
-  /** ⭐ A building is painted from where it meets the weather (paint D9). */
-  public override coatReachRefusal(actor: Stuff): ActRefusal | null {
-    return this.landingRefusal(actor);
   }
 
   /** It goes when its holding does — the holding tears it down. */

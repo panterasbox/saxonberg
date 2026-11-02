@@ -70,7 +70,7 @@ import type ReachExit from './exits/ReachExit';
 import RiverHazard from '../thing/RiverHazard';
 import { RIVER_WATER_MIXIN } from '../lib/RiverWater';
 import type { RiverWater, RiverSpec } from '../lib/RiverWater';
-import Structure from '@saxonberg/server/mud/platform/idea/Structure';
+import Structure from '@saxonberg/server/mud/lib/structure/Structure';
 import type { LineHazard } from '../lib/RiverLine';
 import type { ReachWay } from './exits/ReachExit';
 

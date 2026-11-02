@@ -1,9 +1,10 @@
-# ⭐ A holding's house (paint build D6) — minted one per holding, keyed by
-# the holding's extent, its extent and entrance set at the holding's wake.
+# ⭐ A holding's building (paint build D6) — minted one per building of a
+# holding (its `building:` groups; the main one is "the house"), its extent
+# and rooms set at the holding's wake. A named building goes by its name.
 # ⭐ It starts BARE, as the shell always did: its fabric wears from the day
 # it is held until somebody paints it (lens 6 — the demand for the house
 # painter is there first). `paint` lays a coat; `maintain` mends the fabric.
-class: /system/residence/idea/HoldingStructure
+class: /system/residence/idea/HoldingBuilding
 data:
   shortDescription: house
   register: definite

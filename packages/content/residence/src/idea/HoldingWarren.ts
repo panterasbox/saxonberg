@@ -44,10 +44,9 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Persistable } from '@saxonberg/server/mud/lib/persistence/Persistable';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
-import type { Durable } from '@saxonberg/server/mud/lib/material/Durable';
-import type { Faced } from '@saxonberg/server/mud/lib/material/Faced';
-import HoldingStructure, { HOLDING_STRUCTURE_ROW } from './HoldingStructure';
+import HoldingBuilding, { HOLDING_BUILDING_ROW } from './HoldingBuilding';
 import type StructureBase from '@saxonberg/server/mud/lib/structure/Structure';
+import BuildingBase from '@saxonberg/server/mud/lib/structure/Building';
 import type { MirrorAxis } from '@saxonberg/server/mud/lib/location/PlatPlan';
 
 type MemberStuff = Stuff & Container;
@@ -147,7 +146,7 @@ export default class HoldingWarren extends ProgrammeBase {
 
   /** The holding's minted house, when it has one of its own (paint D6). */
   /** The holding's buildings by name (`''` the main one) — minted at its wake. */
-  private _houses: Map<string, HoldingStructure> = new Map();
+  private _houses: Map<string, HoldingBuilding> = new Map();
 
   /** Live rooms by full key (`<extent>` or `<extent>/<leaf>`). */
   private _roomsByKey: Map<string, MemberStuff> = new Map();
@@ -619,24 +618,22 @@ export default class HoldingWarren extends ProgrammeBase {
    * the one "the home you hold" reads. A holding stands its buildings up
    * at its wake: the Structure ROW that already covers its extent (Seznick
    * House, Duncan Hall — one building, many units), else a
-   * {@link HoldingStructure} per building of its own (a farmstead's house
+   * {@link HoldingBuilding} per building of its own (a farmstead's house
    * and barn are two — the floorplan's `building:` key), registered with
    * the location graph room by room. Who OWES the upkeep stays here
    * (`upkeepTerm`).
    */
-  public house(): (StructureBase & Faced & Durable) | null {
+  public house(): BuildingBase | null {
     const own = this._houses.get('') ?? [...this._houses.values()][0];
     if (own !== undefined && !own.isDestroyed()) return own;
     const extent = this.holdingKey();
     if (!extent) return null;
     const s = NavigationApi.structureAtNow(extent);
-    return s !== null && MixinApi.isFaced(s) && MixinApi.isDurable(s)
-      ? (s as StructureBase & Faced & Durable)
-      : null;
+    return s instanceof BuildingBase ? s : null;
   }
 
   /** Every building this holding minted, the main one first. */
-  public buildings(): (StructureBase & Faced & Durable)[] {
+  public buildings(): BuildingBase[] {
     const out = [...this._houses.values()].filter((h) => !h.isDestroyed());
     if (out.length > 0) return out;
     const covering = this.house();
@@ -647,7 +644,7 @@ export default class HoldingWarren extends ProgrammeBase {
    * The building `room` is part of — one of this holding's own, or the
    * covering row's — `null` for open ground.
    */
-  public buildingOf(room: Stuff): (StructureBase & Faced & Durable) | null {
+  public buildingOf(room: Stuff): BuildingBase | null {
     for (const h of this._houses.values()) {
       if (!h.isDestroyed() && h.hasRoom(room)) return h;
     }
@@ -671,7 +668,7 @@ export default class HoldingWarren extends ProgrammeBase {
   }
 
   /** Where a building is registered with the location graph: the main one at the holding's extent. */
-  private attachPointsOf(house: HoldingStructure): string[] {
+  private attachPointsOf(house: HoldingBuilding): string[] {
     return house.isMain() ? [house.getExtent()] : [];
   }
 
@@ -684,7 +681,7 @@ export default class HoldingWarren extends ProgrammeBase {
     const extent = this.holdingKey();
     if (!extent) return;
     const covering = await NavigationApi.structureAt(extent);
-    if (covering !== null && !(covering instanceof HoldingStructure)) return;
+    if (covering !== null && !(covering instanceof HoldingBuilding)) return;
     const groups = new Map<string, MemberStuff[]>();
     for (const spec of this.getFloorplan()) {
       const key = this.roomKeyOf(spec.leaf);
@@ -703,7 +700,7 @@ export default class HoldingWarren extends ProgrammeBase {
         live.setRooms(rooms, i === 0);
         continue;
       }
-      const house = await StuffApi.clone<HoldingStructure>(HOLDING_STRUCTURE_ROW);
+      const house = await StuffApi.clone<HoldingBuilding>(HOLDING_BUILDING_ROW);
       house.setExtent(extent);
       // Every room of it holds its own air, so no entrance is needed to land it.
       house.setEntrance(null);

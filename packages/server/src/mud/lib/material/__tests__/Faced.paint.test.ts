@@ -15,7 +15,7 @@ import Good from '../../stuff/Good';
 import Material from '../Material';
 import { BulkableMixin } from '../../bulk/Bulkable';
 import { MarkedMixin } from '../../description/Marked';
-import Structure from '../../../platform/idea/Structure';
+import Building from '../../../platform/idea/Building';
 import Location from '../../location/Location';
 import { Quantity } from '../../quantity';
 import { StuffApi } from '../../../api/stuff';
@@ -121,7 +121,7 @@ describe('the thing painted plans the coat', () => {
 
 describe('a building is painted from its landing', () => {
   it('refuses from a room that is not one of its landings', async () => {
-    const house = makeStuffAtPath(() => new Structure(), '/world/_pt/house/structure');
+    const house = makeStuffAtPath(() => new Building(), '/world/_pt/house/structure');
     house.setExtent('/world/_pt/house');
     const parlour = makeStuffAtPath(() => new Location(), '/world/_pt/house/parlour');
     const who = makeStuff(() => new Good());

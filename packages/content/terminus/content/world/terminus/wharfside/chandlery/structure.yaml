@@ -1,6 +1,6 @@
 # The chandlery as a BUILDING (paint D20) — brick, limewashed, staged.
 # Where it meets the weather is its yard door's far side.
-class: /platform/idea/Structure
+class: /platform/idea/Building
 data:
   extent: /world/terminus/wharfside/chandlery
   entrance: /world/terminus/wharfside/chandlery/location/floor

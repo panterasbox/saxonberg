@@ -23,14 +23,18 @@ the outside of the cottage from here."*).
 
 ## 2. The outside: a face and a condition — no new mixins
 
-A building's outside is two shipped mixins. The platform `Structure` twin
-composes both; a content author opts out by naming a class over the base
-that does not (a ruin, a monument). A holding's house (`HoldingStructure`)
-composes the same two.
+A building's outside is two shipped mixins, composed once on
+`lib/structure/Building` — a structure with an outside. Building rows name
+the `platform/idea/Building` twin; a holding's buildings are
+`HoldingBuilding`s. ⭐ A structure that is not a building has no outside of
+its own: the Waponi Woo peak (a bare `Structure` until the mountain slate)
+cannot be painted or maintained, and a `Ship`'s hull takes coats (weathered
+wherever she is, area from her hull, kept once she is sold) but has no
+fabric — `maintain` and the house painter both work on buildings only.
 
 ⭐ **A holding's buildings come from its floorplan** (paint review): a
 building is the holding's ENCLOSED rooms grouped by the room's `building:`
-key, one `HoldingStructure` each. A farmstead's house and its barn
+key, one `HoldingBuilding` each. A farmstead's house and its barn
 (`building: barn`) are two buildings, each with its own coat and condition;
 open ground — the yard, a tract, Hinkley's garden — is no building's, and is
 where they are painted from. A holding's rooms are keyed clones of shared

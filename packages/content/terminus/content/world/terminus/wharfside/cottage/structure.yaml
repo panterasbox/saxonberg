@@ -1,7 +1,7 @@
 # The towpath cottage as a BUILDING (paint D20) — a limewashed brick
 # cottage, staged: it weathers and is restaged as authored, until somebody
 # buys it. Its landing is the towpath, where it meets the weather.
-class: /platform/idea/Structure
+class: /platform/idea/Building
 data:
   extent: /world/terminus/wharfside/cottage
   entrance: /world/terminus/wharfside/cottage/location/room

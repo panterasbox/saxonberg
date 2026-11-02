@@ -179,8 +179,8 @@ persistence key.
 
 **Persistent per instance:** the floorplan and the term. ⭐ The SHELL is the
 holding's BUILDING's now (paint build D6/D13): `wake()` stands up a
-`HoldingStructure` keyed by the holding's extent (or reads the Structure
-row its units stand in — Seznick House), and the fabric lives there.
+`HoldingBuilding` per building of the holding (or reads the Building row
+its units stand in — Seznick House), and the fabric lives there.
 
 **`wake()`** is the whole of standing a holding up: every room in the
 floorplan is stood up as a **keyed instance** — `(scope = the room's row,
