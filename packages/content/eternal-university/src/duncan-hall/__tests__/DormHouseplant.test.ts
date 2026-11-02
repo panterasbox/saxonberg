@@ -171,6 +171,11 @@ function seedDomain(): void {
     DormWarren.PROGRAMME_PATH,
     `${SEEDS}world/terminus/eternal/duncan-hall/idea/dorm-programme.yaml`,
   );
+  // Its one-room blueprint (harbors review 3).
+  addSeed(
+    '/world/terminus/eternal/duncan-hall/idea/dorm-blueprint',
+    `${SEEDS}world/terminus/eternal/duncan-hall/idea/dorm-blueprint.yaml`,
+  );
   addSeed(DormRoom.SCOPE, `${SEEDS}world/terminus/eternal/duncan-hall/location/dormroom.yaml`);
   addSeed(
     DormWarren.CORRIDOR_TEMPLATE,

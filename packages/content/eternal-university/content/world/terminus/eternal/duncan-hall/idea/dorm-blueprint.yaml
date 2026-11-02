@@ -1,0 +1,12 @@
+# The Duncan Hall dorm unit's BLUEPRINT (harbors review 3) — the degenerate
+# one: the unit IS one room, so the blueprint's extent is that room's own
+# row (a Structure's members are every place at or under its extent). The
+# copy of a one-room blueprint is keyed by the holding's own key — the
+# unit extent, no leaf — so the D1 record shape is the pre-programme
+# dorm's, byte for byte. Never served: every leased unit's room is minted
+# from the row.
+class: /platform/idea/Structure
+data:
+  name: a Duncan Hall dorm room
+  extent: /world/terminus/eternal/duncan-hall/location/dormroom
+  entrance: /world/terminus/eternal/duncan-hall/location/dormroom

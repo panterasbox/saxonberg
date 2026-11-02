@@ -21,3 +21,7 @@ data:
   # (lint:light-sources — every room's light has a named source).
   longDescription: |
     A stone barn with a beaten threshing floor between two great doors, swept and empty, waiting for a harvest to fill it.
+  # ⭐ The farmstead's blueprint (harbors review 3): its ways, an ordinary place.
+  exits:
+    south:
+      destination: /world/terminus/hearts-delight/farmstead/location/yard

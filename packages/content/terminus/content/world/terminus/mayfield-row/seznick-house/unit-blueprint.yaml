@@ -1,0 +1,11 @@
+# The Seznick House unit BLUEPRINT (harbors review 3) — every let unit's
+# rooms, authored as an ordinary place under `location/` (its own zone):
+# the hall you come in by, the main room north of it, the bedroom west and
+# the bathroom beyond it, with ordinary `exits:` and `coords:`. Never
+# served: the unit programme mints each unit's rooms from these rows,
+# keyed `(room row, <unit extent>/<leaf>)`.
+class: /platform/idea/Structure
+data:
+  name: a Seznick House flat
+  extent: /world/terminus/mayfield-row/seznick-house/location
+  entrance: /world/terminus/mayfield-row/seznick-house/location/hall

@@ -253,7 +253,26 @@ export default class Tract extends TractBase {
     _daylightFraction: { persistent: true, runtimeState: true },
     fields: { persistent: true, authorable: true },
     remainderSizedM2: { persistent: true, runtimeState: true },
+    share: { persistent: true, authorable: true },
   };
+
+  /**
+   * ⭐ A blueprint tract's share of its holding's OPEN ground (tracts
+   * build D27; authored on the tract's own row since harbors review 3 —
+   * it was the retired `floorplan:` entry's). A copy of the layout on a
+   * bigger parcel has bigger tracts, in proportion. `null`: not sized by
+   * a holding (an authored venue farm's tract is sized by its row).
+   */
+  public share: number | null = null;
+
+  public getShare(): number | null {
+    return this.share;
+  }
+
+  public setShare(value: number | null): void {
+    const n = Number(value);
+    this.share = value !== null && Number.isFinite(n) && n > 0 ? n : null;
+  }
 
   /**
    * ⭐ **The parts this tract is divided into** (field population D2) —
@@ -1370,10 +1389,8 @@ export default class Tract extends TractBase {
     await super.onWarrenWake();
     const holding = this.getWarren();
     if (!(holding instanceof HoldingWarren)) return;
-    const extent = holding.holdingKey() ?? '';
     const key = this.getPersistenceKey() ?? '';
-    const leaf = extent && key.startsWith(`${extent}/`) ? key.slice(extent.length + 1) : '';
-    const share = holding.shareOf(leaf);
+    const share = this.share;
     if (share === null) return;
     this.setAreaM2(share * (await holding.openGroundM2()));
     this.setGroundSpot(spotOf(key));

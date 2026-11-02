@@ -1,0 +1,11 @@
+# A Hinkley house's living room — the generic living room, as a room of
+# the house blueprint (harbors review 3).
+extends: /stuff/location/room/living
+data:
+  # What it is made of (construction.md: walls and roof), like the house's
+  # other rooms.
+  enclosure: { material: /stuff/idea/material/ceramic/brick, thicknessM: 0.23 }
+  roof: { material: /stuff/idea/material/rock/slate, thicknessM: 0.01 }
+  exits:
+    east:
+      destination: /world/terminus/hinkley-hills/house/hall

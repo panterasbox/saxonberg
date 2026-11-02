@@ -194,8 +194,8 @@ export const SKYLIT_INTERIORS: readonly string[] = [
   '/world/terminus/eternal/duncan-hall/location/dormroom', // a narrow window over the desk
   '/world/terminus/mayfield-row/seznick-house/location/main', // a sash window onto the row
   '/world/terminus/mayfield-row/seznick-house/location/hall', // a fanlight over the door — about an hour of it each morning
-  '/world/terminus/hinkley-hills/lots/hall', // a tall sash window beside the door
-  '/world/terminus/hinkley-hills/lots/kitchen', // a small window over the sink
+  '/world/terminus/hinkley-hills/house/hall', // a tall sash window beside the door
+  '/world/terminus/hinkley-hills/house/kitchen', // a small window over the sink
   '/world/terminus/goods-yards/brewing/location/floor', // high shuttered windows above the coppers
   '/world/terminus/goods-yards/vintner/location/floor', // square windows under the eaves, in thick green glass
   '/world/terminus/hearthworks/location/cookhouse', // a wide unglazed window over the wash bench
@@ -206,7 +206,13 @@ export const SKYLIT_INTERIORS: readonly string[] = [
   '/stuff/location/room/bedroom', // a window with a catch that sticks
   '/stuff/location/room/living', // a window taking up most of one wall
   '/stuff/location/room/bathroom', // a small frosted window, high up
-  '/world/terminus/hinkley-hills/lots/bathroom', // the same frosted window, and a copper
+  // ⭐ Blueprint rooms that extend the three above (harbors review 3) —
+  // the same window, inherited.
+  '/world/terminus/hinkley-hills/house/bedroom', // the generic bedroom's window
+  '/world/terminus/hinkley-hills/house/living', // the generic living room's window
+  '/world/terminus/hearts-delight/farmstead/location/house', // the generic bedroom's window
+  '/world/terminus/mayfield-row/seznick-house/location/bathroom', // the generic bathroom's frosted window
+  '/world/terminus/hinkley-hills/house/bathroom', // the same frosted window, and a copper
   '/world/terminus/hearts-delight/creamery/location/floor', // high north-facing louvred windows — light without sun on the milk
   '/world/terminus/hearts-delight/creamery/location/cheese-room', // an iron grating at the top of the cellar wall
   '/world/terminus/hearts-delight/dairy/location/byre', // the wide byre door, propped open — milking is done by daylight

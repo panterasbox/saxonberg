@@ -415,6 +415,15 @@ export default class LocationGraphRegistry extends Idea {
       }
       return p;
     };
+    // ⭐ A BLUEPRINT is never served (harbors review 3): the Structure a
+    // warren names as its `blueprint:` is the kind its copies are minted
+    // from, so it attaches to nothing — a copy's room under its extent must
+    // not stand it up or claim it as its structure, and nothing loads it.
+    const blueprints = new Set<string>();
+    for (const row of all) {
+      const b = (row.data as Record<string, unknown> | undefined)?.blueprint;
+      if (typeof b === 'string' && b !== '') blueprints.add(b);
+    }
     const next = new Map<string, Map<string, AttachmentKind>>();
     const add = (anchor: string, target: string, kind: AttachmentKind): void => {
       if (!anchor || !target) return;
@@ -451,7 +460,7 @@ export default class LocationGraphRegistry extends Idea {
       }
       if ((typeof data.extent === 'string' || typeof data.expanse === 'string' || typeof data.line === 'string' ||
            typeof data.berth === 'string') &&
-          row.class && (await this.isStructureClass(row.class))) {
+          !blueprints.has(row.path) && row.class && (await this.isStructureClass(row.class))) {
         if (typeof data.extent === 'string') add(data.extent, row.path, 'structure');
         if (typeof data.expanse === 'string') add(data.expanse, row.path, 'craft');
         // ⭐ A ship on a river attaches to its LINE as the sea's do to

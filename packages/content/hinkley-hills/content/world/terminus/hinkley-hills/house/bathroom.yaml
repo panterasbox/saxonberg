@@ -35,3 +35,7 @@ data:
       keywords: [window, glass, light]
       description: |
         A small frosted window, high up and cranked open a couple of fingers.
+  # ⭐ The house's blueprint (harbors review 3): its ways, an ordinary place.
+  exits:
+    west:
+      destination: /world/terminus/hinkley-hills/house/bedroom

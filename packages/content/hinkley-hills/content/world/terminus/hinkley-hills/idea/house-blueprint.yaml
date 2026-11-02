@@ -1,0 +1,16 @@
+# The Hinkley house BLUEPRINT (harbors review 3) — the house every sold lot
+# gets, authored as an ordinary place under `house/`: the yard you come in
+# by (with its garden west), the house door north of it (a keyed door),
+# the hall, the kitchen east, the living room west, the bedroom north and
+# the bathroom beyond it. Never served: the house programme mints each
+# lot's rooms from these rows, keyed `(room row, <lot extent>/<leaf>)`.
+#
+# `footprintM2`: the ground the house and yard stand on that the garden
+# does not — the lot's workable area less this is the garden's open
+# ground (tracts build D27).
+class: /platform/idea/Structure
+data:
+  name: a Hinkley house
+  extent: /world/terminus/hinkley-hills/house
+  entrance: /world/terminus/hinkley-hills/house/yard
+  footprintM2: 220

@@ -14,3 +14,9 @@ data:
   legumeFraction: 0.3
   longDescription: |
     A sheltered close below the bench, deep soil and a stone wall on the weather side — ground somebody might plant with trees.
+  # ⭐ The farmstead's blueprint (harbors review 3): its ways, an ordinary place.
+  # Its share of the holding's open ground.
+  share: 0.25
+  exits:
+    southwest:
+      destination: /world/terminus/hearts-delight/farmstead/location/yard

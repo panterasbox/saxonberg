@@ -4,9 +4,10 @@
  *
  * A `Warren` is a class and a `Ship` is a `Structure`, so a ship cannot BE
  * one; she OWNS one, minted keyed `(this row, her key)` the first time she
- * stands (`Ship.standWarren`). Everything a house's floorplan does, hers
- * does — the floorplan mints her rooms keyed `(room row, <serial>/<leaf>)`,
- * the intra-plan ways are wired, she sleeps whole (`FloorplanWarren`), and
+ * stands (`Ship.standWarren`). Everything a house's warren does, hers
+ * does — her kind's BLUEPRINT (a Structure row over her kind's room rows,
+ * harbors review 3) is copied keyed `(room row, <serial>/<leaf>)`, its ways
+ * wired, she sleeps whole (`FloorplanWarren`), and
  * her hull weathers on the house's clock (`WeatheringMixin`, which she
  * composes as a house does) — and what differs is said here:
  *
@@ -30,14 +31,16 @@
  *   {@link fitOut}).
  *
  * ⭐ **An authored ship adopts.** The Hesper names no `warren:`; her warren
- * is the platform's `/platform/idea/ShipWarren/authored` row, whose
- * floorplan is EMPTY, and it takes her resident rooms under her `extent`
+ * is the platform's `/platform/idea/ShipWarren/authored` row, which names
+ * NO blueprint — an authored ship's own Structure is already the
+ * blueprint-shaped place, and it is served — and it takes her resident rooms under her `extent`
  * as members instead of minting any ({@link adoptResident}). One kind of
  * ship room (`Compartment`), two ways of instancing it: keyed for a kind,
  * by its own row for an authored ship.
  */
 
-import { FloorplanWarren, type FloorplanRoom } from '../../lib/location/FloorplanWarren';
+import { FloorplanWarren } from '../../lib/location/FloorplanWarren';
+import type { BlueprintRoom } from '../../lib/location/Blueprint';
 import { WeatheringMixin, type UpkeepWords } from '../../lib/location/Weathering';
 import { ContainmentApi } from '../../api/containment';
 import { Template } from '../../lib/stuff/Template';
@@ -54,7 +57,7 @@ import type Ship from './Ship';
 
 type MemberStuff = Stuff & Container;
 
-/** The row an authored ship's warren is cloned from (empty floorplan). */
+/** The row an authored ship's warren is cloned from (no blueprint: it adopts). */
 export const AUTHORED_SHIP_WARREN = '/platform/idea/ShipWarren/authored';
 
 export default class ShipWarren extends WeatheringMixin(FloorplanWarren) {
@@ -102,19 +105,19 @@ export default class ShipWarren extends WeatheringMixin(FloorplanWarren) {
   }
 
   /**
-   * Stand her rooms up: a kind's floorplan is minted keyed; an authored
+   * Stand her rooms up: a kind's blueprint is copied keyed; an authored
    * ship's resident rooms are adopted.
    */
   public override async wake(): Promise<void> {
     await super.wake();
-    if (this.getFloorplan().length === 0) await this.adoptResident();
+    if (this.getBlueprint() === '') await this.adoptResident();
     else this.fitOut(this.shortOf);
   }
 
   /** Her minted rooms that keep no record of their own, with their leaf. */
   private plainRooms(): Array<{ leaf: string; room: MemberStuff }> {
     const out: Array<{ leaf: string; room: MemberStuff }> = [];
-    for (const spec of this.getFloorplan()) {
+    for (const spec of this.blueprintRooms()) {
       const room = this.roomForLeaf(spec.leaf);
       if (room !== null && !MixinApi.isPersistable(room)) out.push({ leaf: spec.leaf ?? '', room });
     }
@@ -123,7 +126,7 @@ export default class ShipWarren extends WeatheringMixin(FloorplanWarren) {
 
   /** Her hold: the first of her minted rooms that keeps a record, or `null`. */
   public holdRoom(): MemberStuff | null {
-    for (const spec of this.getFloorplan()) {
+    for (const spec of this.blueprintRooms()) {
       const room = this.roomForLeaf(spec.leaf);
       if (room !== null && MixinApi.isPersistable(room)) return room;
     }
@@ -228,8 +231,8 @@ export default class ShipWarren extends WeatheringMixin(FloorplanWarren) {
   }
 
   /** ⭐ A ship's serial names no place: her rooms stand in their own row's zone (the kind's). */
-  protected override zoneFromFor(spec: FloorplanRoom, key: string): string {
-    const folder = spec.room.replace(/\/[^/]+$/, '');
+  protected override zoneFromFor(spec: BlueprintRoom, key: string): string {
+    const folder = spec.row.replace(/\/[^/]+$/, '');
     return `${folder}/${key}`;
   }
 

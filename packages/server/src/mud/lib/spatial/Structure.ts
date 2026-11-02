@@ -38,6 +38,12 @@
  * a structure with no member places (a castle on the horizon) is still a
  * structure.
  *
+ * ⭐ **A blueprint is a Structure** (harbors review 3): a warren that
+ * mints copies of a kind of building names one (`blueprint:`), its
+ * `extent` holding the kind's rooms as ordinary rows. A blueprint is
+ * never served — the location graph attaches it to nothing — and every
+ * copy is minted from its rows (`lib/location/Blueprint.ts`).
+ *
  * ⛔ It does not name an address (member rooms keep their own), and it is
  * not a Parcel (a parcel is title in a gated collection; a structure is
  * content anybody holding the ground may author).
@@ -73,6 +79,7 @@ export default class Structure extends DetailedMixin(
     landmark: { persistent: true, authorable: true },
     heightM: { persistent: true, authorable: true },
     storeys: { persistent: true, authorable: true },
+    footprintM2: { persistent: true, authorable: true },
   };
 
   /** Template-path prefix: every Location row under it is a member. */
@@ -85,6 +92,13 @@ export default class Structure extends DetailedMixin(
   protected heightM = 0;
   /** Which of its places stand on which — relations only. */
   protected storeys: StoreySpec[] = [];
+  /**
+   * The ground its buildings stand on, m² — what a BLUEPRINT's copy
+   * subtracts from its parcel to leave the open ground its tracts share
+   * (harbors review 3; the retired floorplan's per-room `footprintM2`,
+   * summed). A set of rooms' fact no room decides alone.
+   */
+  protected footprintM2 = 0;
 
   public getExtent(): string { return this.extent; }
   public setExtent(value: string): void { this.extent = (value ?? '').replace(/\/+$/, ''); }
@@ -98,6 +112,9 @@ export default class Structure extends DetailedMixin(
   public getHeightM(): number { return this.heightM; }
   public setHeightM(value: number): void { this.heightM = Number(value) || 0; }
 
+
+  public getFootprintM2(): number { return this.footprintM2; }
+  public setFootprintM2(value: number): void { this.footprintM2 = Math.max(0, Number(value) || 0); }
 
   public getStoreys(): readonly StoreySpec[] { return this.storeys; }
   public setStoreys(value: StoreySpec[] | null): void {

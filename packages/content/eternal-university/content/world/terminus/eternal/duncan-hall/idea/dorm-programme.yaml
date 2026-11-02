@@ -1,6 +1,6 @@
 # The Duncan Hall dorm's residential programme — the DEGENERATE holding
-# programme (residences D16/P1): a one-room floorplan citing the shipped
-# dormroom row. One keyed instance per leased unit
+# programme (residences D16/P1): a one-room BLUEPRINT (harbors review 3)
+# over the shipped dormroom row. One keyed instance per leased unit
 # (scope = this row, key = the unit parcel extent); the room keeps its
 # pre-programme identity exactly — (scope = the dormroom row,
 # key = the unit extent, no leaf) — so every existing record shape and
@@ -12,8 +12,6 @@
 # FrontDoorExit is for the two new rungs.
 class: /system/residence/idea/HoldingWarren
 data:
-  floorplan:
-    - room: /world/terminus/eternal/duncan-hall/location/dormroom
-      entry: true
+  blueprint: /world/terminus/eternal/duncan-hall/idea/dorm-blueprint
   upkeepTerm: institution-all
   addressBase: terminus/city/campus/duncan-hall

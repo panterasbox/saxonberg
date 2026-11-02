@@ -127,21 +127,20 @@ function seedDomain(): void {
   });
   add(PROGRAMME, '/system/residence/idea/HoldingWarren', {
     upkeepTerm: 'landlord-shell',
-    floorplan: [
-      {
-        leaf: 'hall',
-        room: `${HOUSE}/location/hall`,
-        entry: true,
-        exits: [{ to: 'main', direction: 'north', opposite: 'south' }],
-      },
-      { leaf: 'main', room: `${HOUSE}/location/main` },
-    ],
+    blueprint: `${HOUSE}/unit-blueprint`,
+  });
+  // ⭐ The unit's blueprint (harbors review 3): ordinary rows, a Structure.
+  add(`${HOUSE}/unit-blueprint`, '/platform/idea/Structure', {
+    extent: `${HOUSE}/location`,
+    entrance: `${HOUSE}/location/hall`,
   });
   add(`${HOUSE}/location/hall`, '/platform/location/PersistentLocation', {
     shortDescription: 'the entry hall',
+    exits: { north: { destination: `${HOUSE}/location/main` } },
   });
   add(`${HOUSE}/location/main`, '/platform/location/PersistentLocation', {
     shortDescription: 'the main room',
+    exits: { south: { destination: `${HOUSE}/location/hall` } },
   });
   add(CORRIDOR, '/platform/location/PersistentLocation', {
     shortDescription: 'a Seznick House landing',
@@ -200,8 +199,12 @@ function installStore(): void {
     return arr.filter((d) =>
       keys.every((k) => {
         const stored = d[k];
-        if (Array.isArray(stored)) return stored.includes(q[k]);
-        return stored === q[k];
+        const want = q[k];
+        if (want !== null && typeof want === 'object' && '$regex' in (want as object)) {
+          return typeof stored === 'string' && new RegExp(String((want as { $regex: string }).$regex)).test(stored);
+        }
+        if (Array.isArray(stored)) return stored.includes(want);
+        return stored === want;
       }),
     );
   });

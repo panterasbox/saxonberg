@@ -1,0 +1,13 @@
+# A Hinkley house's bedroom — the generic bedroom, as a room of the
+# house blueprint (harbors review 3).
+extends: /stuff/location/room/bedroom
+data:
+  # What it is made of (construction.md: walls and roof), like the house's
+  # other rooms.
+  enclosure: { material: /stuff/idea/material/ceramic/brick, thicknessM: 0.23 }
+  roof: { material: /stuff/idea/material/rock/slate, thicknessM: 0.01 }
+  exits:
+    south:
+      destination: /world/terminus/hinkley-hills/house/hall
+    east:
+      destination: /world/terminus/hinkley-hills/house/bathroom

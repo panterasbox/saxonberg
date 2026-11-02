@@ -155,10 +155,10 @@ const FURNISHED = [
   "generic-objects/content/stuff/location/room/bathroom.yaml",
   "generic-objects/content/stuff/location/room/bedroom.yaml",
   "generic-objects/content/stuff/location/room/living.yaml",
-  "hinkley-hills/content/world/terminus/hinkley-hills/lots/bathroom.yaml",
-  "hinkley-hills/content/world/terminus/hinkley-hills/lots/hall.yaml",
-  "hinkley-hills/content/world/terminus/hinkley-hills/lots/kitchen.yaml",
-  "hinkley-hills/content/world/terminus/hinkley-hills/lots/yard.yaml",
+  "hinkley-hills/content/world/terminus/hinkley-hills/house/bathroom.yaml",
+  "hinkley-hills/content/world/terminus/hinkley-hills/house/hall.yaml",
+  "hinkley-hills/content/world/terminus/hinkley-hills/house/kitchen.yaml",
+  "hinkley-hills/content/world/terminus/hinkley-hills/house/yard.yaml",
   // ⭐ The valley farmstead's barn (tracts build): the farm's store, where a
   // holder's goods are laid back down; its holding places every copy.
   "hearts-delight/content/world/terminus/hearts-delight/farmstead/location/barn.yaml",
@@ -455,7 +455,7 @@ export const WARREN_PLACED = [
   "hearts-delight/content/world/terminus/hearts-delight/farmstead/tract/lower-meadow.yaml",
   "hearts-delight/content/world/terminus/hearts-delight/farmstead/tract/orchard-close.yaml",
   "hearts-delight/content/world/terminus/hearts-delight/farmstead/tract/upper-bench.yaml",
-  "hinkley-hills/content/world/terminus/hinkley-hills/lots/garden.yaml",
+  "hinkley-hills/content/world/terminus/hinkley-hills/house/garden.yaml",
   // A farmstead's yard: a plain kind of room, one copy per holding.
   "hearts-delight/content/world/terminus/hearts-delight/farmstead/location/yard.yaml",
   "water/content/system/water/location/band/bed.yaml",

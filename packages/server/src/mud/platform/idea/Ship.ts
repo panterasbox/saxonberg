@@ -533,20 +533,16 @@ export default class Ship extends BilgeMixin(PersistableMixin(
 
   /**
    * ⭐ How high a room's floor stands above her keel, m: what the room says
-   * (`ownFloorM`), else her floorplan's entry for it, else her deck at her
-   * hull's depth and any other room on her keel.
+   * (`ownFloorM`, the room row's own field — her blueprint's rooms author
+   * it), else her deck at her hull's depth and any other room on her keel.
    */
   public floorMOf(room: Stuff, ownFloorM: number | null = null): number {
     if (ownFloorM !== null && Number.isFinite(ownFloorM)) return ownFloorM;
     const w = this._warren !== null && !this._warren.isDestroyed() ? this._warren : null;
-    if (w !== null) {
-      for (const spec of w.getFloorplan()) {
-        if (w.roomForLeaf(spec.leaf) !== room) continue;
-        const f = Number(w.floorplanEntryOf(spec.leaf ?? '')?.floorM);
-        if (Number.isFinite(f)) return f;
-        if (spec.entry) return this.hullDepthM();
-        return 0;
-      }
+    // A room of her blueprint that names no floor: her deck (the entrance)
+    // stands at her hull's depth, any other room on her keel.
+    if (w !== null && w.mintedKeyOf(room) !== null) {
+      return w.entryRoom() === room ? this.hullDepthM() : 0;
     }
     const entrance = this.getEntrance();
     const path = room.getTemplatePath();

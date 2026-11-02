@@ -4,25 +4,37 @@
  * second consumer arrived).
  *
  * The residence ladder's `HoldingWarren` was the first body of this: a
- * keyed instance of ONE floorplan row per holding, whose members are the
+ * keyed instance of ONE programme row per holding, whose members are the
  * holding's rooms. A ship is the second — her deck, cabin and hold are a
- * floorplan exactly as a house's hall and kitchen are, she sleeps whole
+ * plan exactly as a house's hall and kitchen are, and she sleeps whole
  * exactly as a house does (the owner: *"whatever the rule, it works the
  * same way as residences"*). So what both need lives here, and what only
  * a house needs stays in the residence pack:
  *
- *  - **here** — the floorplan (the INITIAL mint, never the closed set),
- *    keyed rooms `(scope = the room row, key = <key>/<leaf>)`, wiring the
- *    intra-plan edges, `layOut` (the plan's own frame), the whole-warren
- *    capture (its rooms that keep a record are its
- *    `dependentPersistables`, so capturing the warren captures them) /
- *    `teardown` / `revert`;
+ *  - **here** — the copy: every room of the warren's BLUEPRINT minted
+ *    keyed `(scope = the room row, key = <key>/<leaf>)`, its ways wired,
+ *    its layout read (and mirrored), the whole-warren capture (its rooms
+ *    that keep a record are its `dependentPersistables`, so capturing the
+ *    warren captures them) / `teardown` / `revert`;
  *  - **the subclass** — what the key MEANS (a parcel extent, a ship's
- *    durable key), who is told when the population changes
- *    (`reconcile`), how a LOCKED edge is gated (`wireLockedEdge`), the
- *    address a woken room is stamped with (`addressFor`). A room that must finish
- *    itself against its warren does so in its own
- *    `WarrenMember.onWarrenWake` — the ONE wake hook (harbors review 2).
+ *    serial), who is told when the population changes (`reconcile`), what
+ *    a copied way needs from the copy (`fitExit` — a house hands its
+ *    keyed doors their keyway), and the address a woken room is stamped
+ *    with (`addressFor`). A room that must finish itself against its
+ *    warren does so in its own `WarrenMember.onWarrenWake` — the ONE wake
+ *    hook (harbors review 2).
+ *
+ * ⭐⭐ **The blueprint is ordinary authored content** (harbors review 3).
+ * The warren row names a `Structure` row (`blueprint:`) whose `extent`
+ * holds the kind's rooms as ordinary rows with ordinary `exits:` — the
+ * authored Hesper's shape — and whose `entrance` is the
+ * way in ({@link Blueprint}). There is no second schema: the retired
+ * `floorplan:` list re-stated every room's exits, its entry and its
+ * layout outside the rooms. Copy N clones every room row and applies ONE
+ * rewrite: a way whose destination is inside the extent leads to the same
+ * room of copy N; a way out stays as authored. Mirroring is a property of
+ * the COPY, applied in the same pass: every copied direction is reflected
+ * across the copy's axis, and the layout read from those ways with it.
  *
  * Identity is the keyed model (D17): every member's `templatePath`
  * resolves to a real row; per-instance uniqueness rides the persistence
@@ -37,13 +49,17 @@
 
 import { type Attachment } from './Warren';
 import { RoomWarren } from './RoomWarren';
+import { Blueprint, type BlueprintPlan, type BlueprintRoom } from './Blueprint';
 import { PersistableMixin } from '../persistence/Persistable';
 import { WarrenMemberMixin } from './WarrenMember';
 import { ContainerMixin } from '../spatial/Container';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
-import { NavigationApi } from '../../api/navigation';
 import { PersistableApi } from '../../api/persistable';
+import { NavigationApi } from '../../api/navigation';
+import { TemplatePaths } from '../paths';
+import type Exit from '../boundary/Exit';
+import type { ExitInstruction } from '../boundary/Exitable';
 import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
 import type { Persistable } from '../persistence/Persistable';
@@ -52,60 +68,48 @@ import type { MirrorAxis } from './PlatPlan';
 
 type MemberStuff = Stuff & Container;
 
-/** One floorplan room spec (authored on the floorplan row). */
-export interface FloorplanRoom {
-  /** The room's leaf under the warren's key; ABSENT for the degenerate
-   *  one-room plan (the dorm) — its key IS the warren's key. */
-  leaf?: string;
-  /** The room ROW the keyed instance clones from (D17: a real row). */
-  room: string;
-  /** The mover lands here (the way in's destination). */
-  entry?: boolean;
-  /**
-   * ⭐ For open ground (a farm's tract): its share of the holding's OPEN
-   * ground — what the buildings leave (tracts build D27). A copy of the
-   * layout on a bigger parcel has bigger tracts, in proportion.
-   */
-  share?: number;
-  /**
-   * The ground a room's building stands on that no tract covers, in m²
-   * (the barn, the yard) — subtracted from the parcel's workable area to
-   * give the open ground the shares divide.
-   */
-  footprintM2?: number;
-}
-
-/** One intra-plan edge (authored on the floorplan row). */
-export interface FloorplanExit {
-  /** Room leafs ('' / absent leaf rooms use the empty string). */
-  from: string;
-  to: string;
-  direction: string;
-  /** The far side's direction back (else the compass inverse). */
-  opposite?: string;
-  /** A LOCKED edge — the subclass decides what opens it
-   *  ({@link FloorplanWarren.wireLockedEdge}). */
-  locked?: boolean;
-}
-
 const FloorplanBase = PersistableMixin(
   WarrenMemberMixin(ContainerMixin(RoomWarren)),
 );
 
 export abstract class FloorplanWarren extends FloorplanBase {
   static fieldMeta: FieldMeta = {
-    floorplan: { persistent: true, authorable: true },
+    blueprint: { persistent: true, authorable: true, authorPicker: 'Template' },
     mirrorAxis: { persistent: true },
   };
 
   /**
+   * ⭐ The `Structure` row this warren's rooms are copies of (harbors
+   * review 3) — '' for a warren that mints nothing (an authored ship's
+   * adopts her own rooms).
+   */
+  public blueprint: string = '';
+
+  /**
    * ⭐ Which way this copy of the layout is MIRRORED, `''` for none
    * (tracts build D31) — set by whoever places the copy (a plat, from the
-   * side of the road the lot is on) before the warren wakes. Every
-   * floorplan direction is read through it, so a farm on the far side of
-   * the lane faces the lane too.
+   * side of the road the lot is on) before the warren wakes. Every copied
+   * direction and cell is reflected across it, so a farm on the far side
+   * of the lane faces the lane too.
    */
   public mirrorAxis: '' | MirrorAxis = '';
+
+  /** Runtime: the blueprint as read off its rows, once per warren. */
+  private _plan: BlueprintPlan | null = null;
+
+  /** Live rooms by full key (`<key>` or `<key>/<leaf>`). */
+  private _roomsByKey: Map<string, MemberStuff> = new Map();
+
+  // ── authored-field surface ──────────────────────────────────────
+
+  public getBlueprint(): string {
+    return this.blueprint;
+  }
+
+  public setBlueprint(value: string | null): void {
+    this.blueprint = typeof value === 'string' ? value : '';
+    this._plan = null;
+  }
 
   public getMirrorAxis(): '' | MirrorAxis {
     return this.mirrorAxis;
@@ -115,62 +119,28 @@ export abstract class FloorplanWarren extends FloorplanBase {
     this.mirrorAxis = value === 'east-west' || value === 'north-south' ? value : '';
   }
 
-  /** The authored floorplan — the INITIAL mint (D16). */
-  public floorplan: Array<Record<string, unknown>> = [];
-
-  /** Live rooms by full key (`<key>` or `<key>/<leaf>`). */
-  private _roomsByKey: Map<string, MemberStuff> = new Map();
-
-  // ── authored-field surface ──────────────────────────────────────
-
-  public getFloorplan(): FloorplanRoom[] {
-    return (this.floorplan ?? []).map((r) => ({
-      leaf: typeof r.leaf === 'string' ? r.leaf : undefined,
-      room: String(r.room ?? ''),
-      entry: r.entry === true,
-      share: typeof r.share === 'number' ? r.share : undefined,
-      footprintM2: typeof r.footprintM2 === 'number' ? r.footprintM2 : undefined,
-    }));
+  /**
+   * The blueprint, read off its rows (cached for the warren's life).
+   * `null` when the warren names none.
+   */
+  public async loadBlueprint(): Promise<BlueprintPlan | null> {
+    if (this._plan !== null) return this._plan;
+    if (!this.blueprint) return null;
+    this._plan = await new Blueprint(this.blueprint).load();
+    return this._plan;
   }
 
-  /** A floorplan leaf's share of the open ground, or `null` (not open ground). */
-  public shareOf(leaf: string): number | null {
-    const spec = this.getFloorplan().find((r) => r.leaf === leaf);
-    return spec && typeof spec.share === 'number' && spec.share > 0 ? spec.share : null;
+  /** The blueprint's rooms as last read — `[]` before the first wake. */
+  public blueprintRooms(): readonly BlueprintRoom[] {
+    return this._plan?.rooms ?? [];
   }
 
-  public setFloorplan(value: Array<Record<string, unknown>>): void {
-    this.floorplan = Array.isArray(value) ? value : [];
-  }
-
-  /** The authored intra-plan edges (parsed off the raw specs). */
-  public getFloorplanExits(): FloorplanExit[] {
-    const out: FloorplanExit[] = [];
-    for (const r of this.floorplan ?? []) {
-      const exits = (r as Record<string, unknown>).exits;
-      if (!Array.isArray(exits)) continue;
-      for (const e of exits) {
-        const o = e as Record<string, unknown>;
-        // ⭐ Read through the mirror (D31): a reflected copy's every
-        // direction is flipped across the axis.
-        out.push({
-          from: typeof r.leaf === 'string' ? (r.leaf as string) : '',
-          to: String(o.to ?? ''),
-          direction: mirrored(String(o.direction ?? ''), this.mirrorAxis),
-          opposite:
-            typeof o.opposite === 'string'
-              ? mirrored(o.opposite as string, this.mirrorAxis)
-              : undefined,
-          locked: o.locked === true,
-        });
-      }
-    }
-    return out;
-  }
-
-  /** The raw floorplan entry for a leaf — authored or admitted. */
-  public floorplanEntryOf(leaf: string): Record<string, unknown> | null {
-    return (this.floorplan ?? []).find((r) => r.leaf === leaf) ?? null;
+  /**
+   * The ground the blueprint's buildings cover, m² (its Structure's
+   * `footprintM2`) — `0` before the first wake or for none.
+   */
+  public footprintM2(): number {
+    return this._plan?.footprintM2 ?? 0;
   }
 
   // ── identity ────────────────────────────────────────────────────
@@ -180,7 +150,7 @@ export abstract class FloorplanWarren extends FloorplanBase {
     return (this as unknown as Persistable).getPersistenceKey();
   }
 
-  /** The full room key for a floorplan leaf ('' = the key itself). */
+  /** The full room key for a leaf (absent = the key itself). */
   public roomKeyOf(leaf: string | undefined): string | null {
     const key = this.warrenKey();
     if (!key) return null;
@@ -190,47 +160,51 @@ export abstract class FloorplanWarren extends FloorplanBase {
   // ── wake / membership ───────────────────────────────────────────
 
   /**
-   * Stand the whole warren up: every floorplan room keyed
-   * `(roomRow, <key>[/leaf])` via the spine's restore-or-seed, the
-   * intra-plan exits wired, the rooms laid out. Idempotent per room
-   * (live rooms are reused).
+   * Stand the whole copy up: every blueprint room keyed
+   * `(roomRow, <key>[/leaf])` via the spine's restore-or-seed, its ways
+   * wired (the rewrite rule), the rooms laid out. Idempotent per room
+   * (live rooms are reused, wired ways stand).
    */
   public async wake(): Promise<void> {
-    for (const spec of this.getFloorplan()) {
-      await this.wakeRoom(spec);
-    }
-    for (const edge of this.getFloorplanExits()) {
-      await this.wireEdge(edge);
-    }
+    const plan = await this.loadBlueprint();
+    if (plan === null) return;
+    for (const spec of plan.rooms) await this.wakeRoom(spec);
+    for (const spec of plan.rooms) await this.wireWays(plan, spec);
     this.layOut();
   }
 
-  /** ⭐ A floorplan is a frame of its own — see {@link layOut}. */
+  /** ⭐ A copy is a frame of its own — see {@link layOut}. */
   public override laysOutOwnFrame(): boolean {
     return true;
   }
 
   /**
-   * ⭐⭐ **Every place has coordinates — a floorplan's rooms in the
-   * WARREN's frame** (the place taxonomy, cleanliness B53).
+   * ⭐⭐ **Every place has coordinates — a copy's rooms in the WARREN's
+   * frame** (the place taxonomy, cleanliness B53). The entrance is the
+   * origin, and the copy's own cardinal ways lay the rest out from it —
+   * the Hinkley yard (0,0,0), its hall one north at (0,1,0), the kitchen
+   * east of the hall at (1,1,0). Read through the mirror, so a reflected
+   * copy is laid out reflected. A room the cardinal ways do not reach sits
+   * in a row beyond, in blueprint order; a cell two ways disagree about
+   * keeps its first room.
    *
-   * The entry room is the origin, and the floorplan's cardinal exits lay
-   * the rest out from it: the Hinkley house's yard (0,0,0), its hall one
-   * north at (0,1,0), the kitchen east of the hall at (1,1,0). Nothing is
-   * authored that was not already: the exits always said where each room
-   * was.
-   *
-   * A room the cardinal plan does not reach (a field plotted off the yard
-   * by NAME, `field-1`) sits in a row beyond, in floorplan order. A cell
-   * two edges disagree about keeps its first room; the second is laid
-   * out with the unreached. Re-run on every wake and every admitted
-   * room — it is derived, never stored on the floorplan.
+   * ⚠ A blueprint row authors NO `coords:` (harbors review 3): a row's
+   * cell registers on its ZONE's grid, and every copy of a row stands in
+   * one zone — every Hinkley yard would claim one square of the lots'
+   * grid. The ways already say where each room is. Derived, never stored.
    */
   public layOut(): void {
-    const plan = this.getFloorplan();
-    const entry = plan.find((r) => r.entry) ?? plan[0];
-    if (!entry) return;
-    const leafOf = (l: string | undefined): string => l ?? '';
+    const plan = this._plan;
+    if (plan === null || plan.rooms.length === 0) return;
+    const leafOf = (r: BlueprintRoom): string => r.leaf ?? '';
+    const byRow = new Map(plan.rooms.map((r) => [r.row, leafOf(r)] as const));
+    const edges: Array<{ from: string; to: string; dir: string }> = [];
+    for (const r of plan.rooms) {
+      for (const [dir, way] of Object.entries(r.exits)) {
+        const to = byRow.get(way.destination);
+        if (to !== undefined) edges.push({ from: leafOf(r), to, dir: mirrored(dir, this.mirrorAxis) });
+      }
+    }
     const keyOf = (c: readonly number[]): string => c.join(',');
     const cells = new Map<string, [number, number, number]>();
     const taken = new Set<string>();
@@ -238,63 +212,54 @@ export abstract class FloorplanWarren extends FloorplanBase {
       cells.set(leaf, cell);
       taken.add(keyOf(cell));
     };
-    place(leafOf(entry.leaf), [0, 0, 0]);
-    const edges = this.getFloorplanExits();
-    const queue = [leafOf(entry.leaf)];
+    const entry = plan.rooms.find((r) => r.entry) ?? plan.rooms[0]!;
+    place(leafOf(entry), [0, 0, 0]);
+    const queue = [leafOf(entry)];
     while (queue.length > 0) {
       const from = queue.shift()!;
       const at = cells.get(from)!;
       for (const e of edges) {
-        const forward = e.from === from;
-        const next = forward ? e.to : e.to === from ? e.from : null;
-        const dir = forward ? e.direction : e.opposite;
-        if (next === null || cells.has(next) || !dir) continue;
-        const off = NavigationApi.directionOffset(dir);
+        if (e.from !== from || cells.has(e.to)) continue;
+        const off = NavigationApi.directionOffset(e.dir);
         if (!off) continue;
-        const cell: [number, number, number] = [
-          at[0] + off[0],
-          at[1] + off[1],
-          at[2] + off[2],
-        ];
+        const cell: [number, number, number] = [at[0] + off[0], at[1] + off[1], at[2] + off[2]];
         if (taken.has(keyOf(cell))) continue;
-        place(next, cell);
-        queue.push(next);
+        place(e.to, cell);
+        queue.push(e.to);
       }
     }
     const beyond = Math.max(...[...cells.values()].map((c) => c[1])) + 1;
     let x = 0;
-    for (const r of plan) {
-      const leaf = leafOf(r.leaf);
-      if (cells.has(leaf)) continue;
+    for (const r of plan.rooms) {
+      if (cells.has(leafOf(r))) continue;
       while (taken.has(keyOf([x, beyond, 0]))) x += 1;
-      place(leaf, [x, beyond, 0]);
+      place(leafOf(r), [x, beyond, 0]);
     }
     for (const [leaf, cell] of cells) {
       const room = this.roomForLeaf(leaf || undefined);
-      if (room && MixinApi.isCartesianCoordinates(room)) {
-        room.setCoordinates(cell);
-      }
+      if (room && MixinApi.isCartesianCoordinates(room)) room.setCoordinates(cell);
     }
   }
 
-  /** Stand one floorplan room up (reused when live). */
-  protected async wakeRoom(spec: FloorplanRoom): Promise<MemberStuff | null> {
+  /** Stand one blueprint room up (reused when live). */
+  protected async wakeRoom(spec: BlueprintRoom): Promise<MemberStuff | null> {
     const key = this.roomKeyOf(spec.leaf);
-    if (!key || !spec.room) return null;
+    if (!key) return null;
     const cached = this._roomsByKey.get(key);
     if (cached && !cached.isDestroyed()) return cached;
     // ⭐ The room stands in the zone its WARREN does, resolved from its
-    // key rather than its row: a room's size is its zone's cell, and a
-    // generic `/stuff/location/room/*` row resolves no zone of its own
-    // (B54). Its identity stays the row — the record's scope.
-    const room = await StuffApi.clone<MemberStuff>(spec.room, undefined, {
+    // key rather than its row: a room's size is its zone's cell (B54).
+    // Its identity stays the row — the record's scope. ⭐ Its ways are
+    // NOT applied by the clone (`exits: {}`): a way into the blueprint
+    // would stand the blueprint's own room up. They are copied below.
+    const room = await StuffApi.clone<MemberStuff>(spec.row, undefined, {
       zoneFrom: this.zoneFromFor(spec, key),
+      ...(Object.keys(spec.exits).length > 0 ? { dataOverlay: { exits: {} } } : {}),
     });
     this.addMember(room);
     // ⭐ Only a room that keeps state of its own has a record to restore
     // (persistence is the exception — tracts build review). A plain room
-    // — a farmyard — comes up from its row each wake, its `props:` laid
-    // down at clone, and keeps nothing.
+    // — a farmyard — comes up from its row each wake and keeps nothing.
     if (MixinApi.isPersistable(room)) await PersistableApi.restoreOrSeed(room, key);
     this._roomsByKey.set(key, room);
     // The room's address — before the room finishes itself, which may
@@ -315,63 +280,85 @@ export abstract class FloorplanWarren extends FloorplanBase {
    *
    * @hook Default: the room's full key.
    */
-  protected zoneFromFor(_spec: FloorplanRoom, key: string): string {
+  protected zoneFromFor(_spec: BlueprintRoom, key: string): string {
     return key;
   }
 
   /**
    * The address a woken room is stamped with — what the warren's key
    * means for it (a house: its street address), or `null` for none. A
-   * READ the warren answers, not a wake hook: anything a room must do on
-   * waking is its own `WarrenMember.onWarrenWake` (harbors review 2), but
-   * a plain room (a farmyard) composes no `WarrenMember` and still has an
-   * address.
+   * READ the warren answers, not a wake hook.
    *
    * @hook Default: none.
    */
-  protected addressFor(_spec: FloorplanRoom): string | null {
+  protected addressFor(_spec: BlueprintRoom): string | null {
     return null;
   }
 
-  /** Wire one intra-plan edge (idempotent — an existing exit stands). */
-  protected async wireEdge(edge: FloorplanExit): Promise<void> {
-    const from = this.roomForLeaf(edge.from);
-    const to = this.roomForLeaf(edge.to);
-    if (!from || !to || !edge.direction) return;
-    if (!MixinApi.isExitable(from) || !MixinApi.isExitable(to)) return;
-    if (from.getExit(edge.direction)) return;
-    if (edge.locked) {
-      await this.wireLockedEdge(from, to, edge);
-      return;
+  /**
+   * ⭐ Copy one room's authored ways (the ONE rewrite rule): a way whose
+   * destination is inside the blueprint's extent leads to the same room
+   * of THIS copy; a way out stays as authored. Every direction is read
+   * through the copy's mirror. Idempotent — a wired direction stands.
+   */
+  protected async wireWays(plan: BlueprintPlan, spec: BlueprintRoom): Promise<void> {
+    const from = this.roomForLeaf(spec.leaf);
+    if (from === null || !MixinApi.isExitable(from)) return;
+    for (const [authored, way] of Object.entries(spec.exits)) {
+      const direction = mirrored(authored, this.mirrorAxis);
+      if (from.getExit(direction)) continue;
+      const inside =
+        way.destination === plan.extent || way.destination.startsWith(`${plan.extent}/`);
+      if (!inside) {
+        await from.applyExits({ [direction]: way });
+        continue;
+      }
+      const target = plan.rooms.find((r) => r.row === way.destination);
+      if (target === undefined) {
+        throw new Error(
+          `${this.constructor.name}: blueprint '${plan.path}' — '${spec.row}' ` +
+            `${authored} leads to '${way.destination}', inside the extent and no room of it`,
+        );
+      }
+      const to = this.roomForLeaf(target.leaf);
+      if (to === null) continue;
+      await from.installExit<Exit>(
+        way.kind ?? TemplatePaths.defaultExitKind,
+        {
+          direction,
+          source: from,
+          destination: to as never,
+          keepLiveDestination: true,
+          oneWay: way.oneWay ?? true,
+          hidden: way.hidden,
+          concealment: way.concealment,
+          concealmentHint: way.hint,
+          blocked: way.blocked,
+          muffled: way.muffled,
+          noFollow: way.noFollow,
+          messageIn: way.messageIn,
+          messageOut: way.messageOut,
+          media: way.media,
+          wheelPassable: way.wheelPassable,
+          edgeMinutes: way.edgeMinutes,
+        },
+        (exit) => this.fitExit(exit),
+      );
     }
-    await from.addBidirectionalExit(to, edge.direction, {
-      opposite: edge.opposite,
-      keepLiveDestination: true,
-    });
   }
 
   /**
-   * Wire a LOCKED edge. What opens it is the subclass's to say — a house
-   * gates on its parcel's keyway, a ship on her own. The base has no
-   * lock to hang, so a floorplan that authors `locked: true` on a warren
-   * that does not answer this is a content error, and it throws rather
-   * than wiring an open door.
+   * A copied way inside the copy, before it is bound — what it needs from
+   * the copy it belongs to. A house hands its keyed doors the holding (the
+   * keyway is the parcel's); an unfitted keyed door opens for nobody.
    *
-   * @hook
+   * @hook Default: nothing.
    */
-  protected async wireLockedEdge(
-    _from: MemberStuff,
-    _to: MemberStuff,
-    edge: FloorplanExit,
-  ): Promise<void> {
-    throw new Error(
-      `${this.constructor.name}: the floorplan edge ` +
-        `'${edge.from}' → '${edge.to}' (${edge.direction}) is locked, ` +
-        `and this warren hangs no lock`,
-    );
+  protected fitExit(_exit: Exit): void {
+    /* nothing to fit */
   }
 
-  /** The live room for a floorplan leaf, or null. */
+  /** The live room for a leaf, or null. */
   public roomForLeaf(leaf: string | undefined): MemberStuff | null {
     const key = this.roomKeyOf(leaf || undefined);
     return key ? this.roomForKey(key) : null;
@@ -396,13 +383,10 @@ export abstract class FloorplanWarren extends FloorplanBase {
     return room;
   }
 
-  /** The mover's landing room — the floorplan `entry`, else the first
-   *  room, else null. */
+  /** The mover's landing room — the blueprint's entrance, or null. */
   public entryRoom(): MemberStuff | null {
-    const rooms = this.getFloorplan();
-    const entry = rooms.find((r) => r.entry) ?? rooms[0];
-    if (!entry) return null;
-    return this.roomForLeaf(entry.leaf);
+    const entry = this.blueprintRooms().find((r) => r.entry);
+    return entry ? this.roomForLeaf(entry.leaf) : null;
   }
 
   // ── dormancy as a unit (D16) ────────────────────────────────────
@@ -410,10 +394,8 @@ export abstract class FloorplanWarren extends FloorplanBase {
   /**
    * ⭐ The records this warren owns: every room it stood up that keeps a
    * record of its own (harbors review 2). So ONE capture of the warren
-   * writes its own record and then each room's, each under the key it
-   * was restored with; `markForRevert` marks them all; `revert` deletes
-   * them. The partial-reap alternative is structurally impossible —
-   * rooms only ever tear down through `teardown()`.
+   * writes its own record and then each room's; `markForRevert` marks
+   * them all; `revert` deletes them.
    *
    * A room is listed only once it has been restored (`wakeRoom` keeps it
    * after `restoreOrSeed`), so a capture racing a wake never writes a
@@ -479,7 +461,7 @@ export abstract class FloorplanWarren extends FloorplanBase {
 
   protected async createMember(): Promise<MemberStuff> {
     throw new Error(
-      `${this.constructor.name} mints rooms from its floorplan, never buds`,
+      `${this.constructor.name} mints rooms from its blueprint, never buds`,
     );
   }
 
@@ -492,7 +474,7 @@ export abstract class FloorplanWarren extends FloorplanBase {
   }
 
   protected async wireHostFixtures(): Promise<void> {
-    /* the entry room is authored by the floorplan, not a host */
+    /* the entry room is the blueprint's, not a host's */
   }
 
   protected async unwireHostFixtures(): Promise<void> {

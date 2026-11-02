@@ -17,3 +17,9 @@ data:
     The rest of the lot, west of the yard where the ground falls away: rough pasture grass to the boundary stakes, and a bed somebody has framed in boards near the house.
   props:
     - /trade/farming/thing/bed/garden
+  # ⭐ The house's blueprint (harbors review 3): its ways, an ordinary place.
+  # A tract: its share of the lot's open ground.
+  share: 1
+  exits:
+    east:
+      destination: /world/terminus/hinkley-hills/house/yard

@@ -42,7 +42,8 @@ interface Doc extends Record<string, unknown> {
   _id?: string;
 }
 
-const PLAN = '/test/fp/plan';
+const PLAN = '/test/fp-warren';
+const BLUEPRINT = '/test/fp-blueprint';
 const DECK = '/test/fp/deck';
 const HOLD = '/test/fp/hold';
 const CLEAT = '/test/fp/cleat';
@@ -99,12 +100,18 @@ function installStore(): void {
   for (const row of KERNEL_CONTENT_ROWS) {
     content.push({ _id: `d-${++idCounter}`, ...row });
   }
+  // ⭐ The blueprint (harbors review 3): a Structure over ordinary rows.
+  add(BLUEPRINT, '/platform/idea/Structure', { extent: '/test/fp', entrance: DECK });
+  // The zone a copy's rooms stand in (resolved from their keys).
+  add('/test/fp', '/platform/idea/location/CartesianZone', { name: 'test vessels' });
   add(DECK, '/platform/location/PersistentLocation', {
     shortDescription: 'the deck',
     props: [CLEAT],
+    exits: { down: { destination: HOLD } },
   });
   add(HOLD, '/platform/location/PersistentLocation', {
     shortDescription: 'the hold',
+    exits: { up: { destination: DECK } },
   });
   add(CLEAT, '/platform/thing/Thing', { shortDescription: 'a cleat' });
 
@@ -127,8 +134,12 @@ function installStore(): void {
     return arr.filter((d) =>
       keys.every((k) => {
         const stored = d[k];
-        if (Array.isArray(stored)) return stored.includes(q[k]);
-        return stored === q[k];
+        const want = q[k];
+        if (want !== null && typeof want === 'object' && '$regex' in (want as object)) {
+          return typeof stored === 'string' && new RegExp(String((want as { $regex: string }).$regex)).test(stored);
+        }
+        if (Array.isArray(stored)) return stored.includes(want);
+        return stored === want;
       }),
     );
   });
@@ -159,23 +170,13 @@ function reset(): void {
   StuffApi.clearAll();
 }
 
-const FLOORPLAN = [
-  {
-    leaf: 'deck',
-    room: DECK,
-    entry: true,
-    exits: [{ to: 'hold', direction: 'down' }],
-  },
-  { leaf: 'hold', room: HOLD },
-];
-
 /** Mint a warren at the plan path, keyed, floorplan set, awake. */
 async function standUp<T extends FloorplanWarren = TestFloorplan>(
   make: () => T = () => new TestFloorplan() as unknown as T,
-  floorplan: Array<Record<string, unknown>> = FLOORPLAN,
+  blueprint: string = BLUEPRINT,
 ): Promise<T> {
   const w = makeStuffAtPath(make, PLAN);
-  w.setFloorplan(floorplan);
+  w.setBlueprint(blueprint);
   await PersistableApi.restoreOrSeed(w as unknown as Stuff, KEY);
   await w.wake();
   return w;
@@ -334,19 +335,48 @@ describe('FloorplanWarren (harbors P1)', () => {
     expect(plain.upkeepWords().kit).toMatch(/kit/);
   });
 
-  it('a LOCKED edge on a warren that hangs no lock throws', async () => {
+  it('⭐ a way into the extent that names no room of it throws (review 3)', async () => {
+    col('content').push({
+      _id: 'bad-1', path: '/test/fp-bad', class: '/platform/idea/Structure',
+      data: { extent: '/test/fpbad', entrance: '/test/fpbad/deck' },
+    });
+    col('content').push({
+      _id: 'bad-2', path: '/test/fpbad/deck', class: '/platform/location/PersistentLocation',
+      data: { shortDescription: 'a deck', exits: { down: { destination: '/test/fpbad/nowhere' } } },
+    });
+    col('content').push({
+      _id: 'bad-3', path: '/test/fpbad/nowhere', class: '/platform/thing/Thing', data: {},
+    });
     const w = makeStuffAtPath(() => new PlainFloorplan(), PLAN);
-    w.setFloorplan([
-      {
-        leaf: 'deck',
-        room: DECK,
-        entry: true,
-        exits: [{ to: 'hold', direction: 'down', locked: true }],
-      },
-      { leaf: 'hold', room: HOLD },
-    ]);
+    w.setBlueprint('/test/fp-bad');
     await PersistableApi.restoreOrSeed(w as unknown as Stuff, KEY);
-    await expect(w.wake()).rejects.toThrow(/hangs no lock/);
+    await expect(w.wake()).rejects.toThrow(/no room of it/);
+  });
+
+  it('⭐ a mirrored copy reflects its ways and its cells; up stays up (review 3)', async () => {
+    const row = (path: string, data: Record<string, unknown>, cls = '/platform/location/PersistentLocation') =>
+      col('content').push({ _id: `m-${path}`, path, class: cls, data });
+    row('/test/fp2-blueprint', { extent: '/test/fp2', entrance: '/test/fp2/yard' }, '/platform/idea/Structure');
+    row('/test/fp2', { name: 'farms' }, '/platform/idea/location/CartesianZone');
+    row('/test/fp2/yard', {
+      exits: { east: { destination: '/test/fp2/meadow' }, up: { destination: '/test/fp2/bench' } },
+    });
+    row('/test/fp2/meadow', { exits: { west: { destination: '/test/fp2/yard' } } });
+    row('/test/fp2/bench', { exits: { down: { destination: '/test/fp2/yard' } } });
+    const w = makeStuffAtPath(() => new TestFloorplan(), PLAN);
+    w.setBlueprint('/test/fp2-blueprint');
+    w.setMirrorAxis('east-west');
+    await PersistableApi.restoreOrSeed(w as unknown as Stuff, '/test/fp2/farm-1');
+    await w.wake();
+    const yard = w.entryRoom() as unknown as Exitable;
+    const meadow = w.roomForLeaf('meadow')!;
+    const cell = (r: unknown) => (r as { getCoordinates(): number[] }).getCoordinates();
+    expect(yard.getExit('east')).toBeUndefined();
+    expect(yard.getExit('west')!.getDestination()).toBe(meadow);
+    expect(yard.getExit('up')!.getDestination()).toBe(w.roomForLeaf('bench'));
+    expect((meadow as unknown as Exitable).getExit('east')!.getDestination()).toBe(w.entryRoom());
+    expect(cell(meadow)).toEqual([-1, 0, 0]);
+    expect(cell(w.roomForLeaf('bench'))).toEqual([0, 0, 1]);
   });
 
   it('validates the upkeep term and never buds', async () => {

@@ -3,8 +3,8 @@
  * one level down
  * (residences D16): a keyed instance of ONE programme row per holding,
  * whose members are the holding's rooms and which owns every
- * holding-level concern — the floorplan mint, intra-holding wiring +
- * the locked front-door edge, dormancy AS A UNIT (the holding sleeps
+ * holding-level concern — the copy of its blueprint, intra-holding
+ * wiring + the keyed doors, dormancy AS A UNIT (the holding sleeps
  * and wakes whole, never room-by-room), the shell condition +
  * weathering clock (D4/P10), the tenure term (D5), the archetype
  * aggregation point (D15), and lease revert.
@@ -25,32 +25,35 @@
  * and a farm has both (its tracts are open ground and weather nothing,
  * but the clock is the holding's, not a room's). A ship's hull weathers
  * on the same clock. What stays here is only what is residential: the
- * address stem,
- * the parcel keyway and the keyed front-door edge, the parcel's open
+ * address stem, the parcel keyway handed to the copy's keyed doors
+ * (`fitExit`), the parcel's open
  * ground (`openGroundM2`), the relay to the institution, and the house's
  * words for its fabric. (`admitPlot`, the break-ground seam, retired with
- * `plot` in the farming build — a farm's ground is a floorplan's tract.)
+ * `plot` in the farming build — a farm's ground is a blueprint's tract.)
+ *
+ * ⭐ **The blueprint (harbors review 3).** The programme row names a
+ * `Structure` row (`blueprint:`) over the kind's rooms authored as
+ * ordinary rows — `exits:`, `coords:`, a tract's `share` — and the
+ * Structure's `footprintM2` is the ground the buildings cover. A keyed
+ * door is the way's own `kind:`.
  *
  * The member contract stays **open to runtime-added members** (the
  * cross-build interface with farming's break-ground act): the
- * floorplan is the *initial* mint, never the closed set — `wake()`
- * stands up the floorplan rooms AND re-admits any extra keyed rooms
- * whose records already ride the holding's extent.
+ * blueprint is the *initial* mint, never the closed set.
  */
 
+import { FloorplanWarren } from '@saxonberg/server/mud/lib/location/FloorplanWarren';
 import {
-  FloorplanWarren,
-  type FloorplanRoom,
-  type FloorplanExit,
-} from '@saxonberg/server/mud/lib/location/FloorplanWarren';
+  Blueprint,
+  type BlueprintRoom,
+} from '@saxonberg/server/mud/lib/location/Blueprint';
+import KeyedDoorExit from './KeyedDoorExit';
 import {
   WeatheringMixin,
   type UpkeepWords,
 } from '@saxonberg/server/mud/lib/location/Weathering';
 import type Exit from '@saxonberg/server/mud/lib/boundary/Exit';
-import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { ParcelApi } from '@saxonberg/server/mud/api/parcel';
-import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
@@ -81,36 +84,21 @@ export default class HoldingWarren extends WeatheringMixin(FloorplanWarren) {
 
   /**
    * The entry room's ROW for a programme row — the eager face a
-   * FrontDoorExit / LotGateExit carries (D17: a real row). Shared by
-   * every institution that hangs doors on this programme.
+   * FrontDoorExit / LotGateExit carries (D17: a real row): its
+   * BLUEPRINT's entrance (harbors review 3), read off the rows without
+   * waking a holding. Shared by every institution that hangs doors on
+   * this programme. Throws on a programme that names no blueprint.
    */
   public static async entryRowOf(programmePath: string): Promise<string> {
     const { Template } = await import(
       '@saxonberg/server/mud/lib/stuff/Template'
     );
     const row = await Template.findByPath(programmePath);
-    const floorplan = (
-      row?.data as { floorplan?: Array<Record<string, unknown>> }
-    )?.floorplan;
-    const entry = floorplan?.find((r) => r.entry === true) ?? floorplan?.[0];
-    return String(entry?.room ?? programmePath);
-  }
-
-  /** The floorplan LEAFS of a programme row (for revert bookkeeping
-   *  without waking the holding). */
-  private static async floorplanLeafsOf(
-    programmePath: string,
-  ): Promise<Array<string | undefined>> {
-    const { Template } = await import(
-      '@saxonberg/server/mud/lib/stuff/Template'
-    );
-    const row = await Template.findByPath(programmePath);
-    const floorplan = (
-      row?.data as { floorplan?: Array<Record<string, unknown>> }
-    )?.floorplan;
-    return (floorplan ?? []).map((r) =>
-      typeof r.leaf === 'string' ? (r.leaf as string) : undefined,
-    );
+    const blueprint = (row?.data as { blueprint?: unknown } | undefined)?.blueprint;
+    if (typeof blueprint !== 'string' || blueprint === '') {
+      throw new Error(`HoldingWarren: programme '${programmePath}' names no blueprint`);
+    }
+    return (await new Blueprint(blueprint).load()).entrance;
   }
 
   // ── identity ────────────────────────────────────────────────────
@@ -122,8 +110,9 @@ export default class HoldingWarren extends WeatheringMixin(FloorplanWarren) {
 
   /**
    * ⭐ **The holding's open ground**, m² (tracts build D27): the parcel's
-   * workable area less every floorplan room's footprint — what the tracts'
-   * shares (`shareOf`) divide. `0` on an unmeasured parcel (nobody can say
+   * workable area less the ground its blueprint's buildings cover (the
+   * Structure's `footprintM2`, harbors review 3) — what the tracts'
+   * shares (each tract's own `share`) divide. `0` on an unmeasured parcel (nobody can say
    * what a third of it is). Residential because the area is the PARCEL's.
    */
   public async openGroundM2(): Promise<number> {
@@ -131,8 +120,8 @@ export default class HoldingWarren extends WeatheringMixin(FloorplanWarren) {
     if (!extent) return 0;
     const workable = await ParcelApi.workableAreaOf(extent);
     if (!(workable > 0)) return 0;
-    const built = this.getFloorplan().reduce((n, r) => n + (r.footprintM2 ?? 0), 0);
-    return Math.max(0, workable - built);
+    await this.loadBlueprint();
+    return Math.max(0, workable - this.footprintM2());
   }
 
   // ── wake / membership ───────────────────────────────────────────
@@ -153,7 +142,7 @@ export default class HoldingWarren extends WeatheringMixin(FloorplanWarren) {
    *
    * @hook
    */
-  protected override addressFor(spec: FloorplanRoom): string | null {
+  protected override addressFor(spec: BlueprintRoom): string | null {
     const base = this.addressBase || this.derivedAddressBase();
     if (!base) return null;
     return spec.leaf ? `${base}/${spec.leaf}` : base;
@@ -169,43 +158,15 @@ export default class HoldingWarren extends WeatheringMixin(FloorplanWarren) {
   }
 
   /**
-   * The locked edge — keyway-gated INWARD (the dorm-door model); the way
-   * back OUT is free (a guest let in is never trapped, and leaving your
-   * own house needs no key). ⭐ The ROOM installs, from a kind ROW.
+   * ⭐ A keyed door of the copy (`kind: /system/residence/idea/exits/keyed-door`
+   * on its blueprint room's way) is locked to THIS holding's keyway; the
+   * blueprint authors the way back out as a plain passage, so a guest let
+   * in is never trapped and leaving your own house needs no key.
    *
    * @hook
    */
-  protected override async wireLockedEdge(
-    from: MemberStuff,
-    to: MemberStuff,
-    edge: FloorplanExit,
-  ): Promise<void> {
-    if (!MixinApi.isExitable(from) || !MixinApi.isExitable(to)) return;
-    const { default: KeyedDoorExitClass } = await import('./KeyedDoorExit');
-    void KeyedDoorExitClass; // the class the kind row names
-    await from.installExit<
-      Exit & { configureKeyedDoor(p: HoldingWarren): void }
-    >(
-      '/system/residence/idea/exits/keyed-door',
-      {
-        direction: edge.direction,
-        source: from,
-        destination: to,
-        keepLiveDestination: true,
-        oneWay: true,
-      },
-      (e) => e.configureKeyedDoor(this),
-    );
-    const back = edge.opposite ?? 'out';
-    if (!to.getExit(back)) {
-      await to.installExit('/platform/idea/exits/passage', {
-        direction: back,
-        source: to,
-        destination: from as never,
-        keepLiveDestination: true,
-        oneWay: true,
-      });
-    }
+  protected override fitExit(exit: Exit): void {
+    if (exit instanceof KeyedDoorExit) exit.configureKeyedDoor(this);
   }
 
   // ── the keyway (the front door's sync lock identity) ────────────

@@ -5,22 +5,9 @@
 # end evicts it to storage intact. `landlord-shell` (D5): Mayfield
 # Holdings owes the shell — the term rent will later pay for — and the
 # tenant owes walls-in. The bathroom is the generic archetype row
-# directly (it is all built-ins).
+# directly (it is all built-ins) — a blueprint row that extends it.
 class: /system/residence/idea/HoldingWarren
 data:
   upkeepTerm: landlord-shell
-  floorplan:
-    - leaf: hall
-      room: /world/terminus/mayfield-row/seznick-house/location/hall
-      entry: true
-      exits:
-        - { to: main, direction: north, opposite: south }
-        - { to: bedroom, direction: west, opposite: east }
-    - leaf: main
-      room: /world/terminus/mayfield-row/seznick-house/location/main
-    - leaf: bedroom
-      room: /world/terminus/mayfield-row/seznick-house/location/bedroom
-      exits:
-        - { to: bathroom, direction: north, opposite: south }
-    - leaf: bathroom
-      room: /stuff/location/room/bathroom
+  # ⭐ The rooms are its blueprint's (harbors review 3).
+  blueprint: /world/terminus/mayfield-row/seznick-house/unit-blueprint

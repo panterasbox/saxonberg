@@ -358,6 +358,22 @@ river node that authors `meanDepthM` is a drowned valley — the authored bed
 with the tide's level on top, not the river's normal depth over its own
 gradient (see [river.md](./river.md)).
 
+### A ship of a kind is a copy of a blueprint (harbors review 3)
+
+A ship KIND (`/stuff/idea/Ship/smack`) names her warren
+(`/stuff/idea/ShipWarren/smack`), and the warren names a BLUEPRINT — a
+`Structure` row (`/stuff/idea/Structure/smack`) over the kind's rooms
+authored as an ordinary place (`/stuff/location/ship/smack/{deck,cabin,
+hold}`, ordinary `exits:` between them, each room's own `floorM`). Every
+smack is a copy: her rooms keyed `(room row, <serial>/<leaf>)`, a way
+inside the extent leading to the same room of HER copy, a way out (her
+`ashore`, her `side`) as authored. The blueprint is never served. An
+AUTHORED ship (the Hesper) names no blueprint: her own Structure already
+is the blueprint-shaped place, and it is served — her warren
+(`ShipWarren/authored`) adopts her live rooms. Her hull weathers on the
+house's clock (`WeatheringMixin`, which `ShipWarren` composes). See
+[holding.md § Blueprints](./holding.md).
+
 ## Perception at range (revision 1)
 
 ⭐⭐ **Pull, never push.** Nothing on the horizon is ever announced to

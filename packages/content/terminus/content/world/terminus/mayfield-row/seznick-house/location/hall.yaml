@@ -24,3 +24,9 @@ data:
       keywords: [fanlight, glass, light]
       description: |
         A dusty fanlight over the door, throwing a half-moon of light onto the boards for about an hour each morning.
+  # ⭐ The unit's blueprint (harbors review 3): its ways, an ordinary place.
+  exits:
+    north:
+      destination: /world/terminus/mayfield-row/seznick-house/location/main
+    west:
+      destination: /world/terminus/mayfield-row/seznick-house/location/bedroom

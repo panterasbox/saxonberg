@@ -11,3 +11,11 @@ data:
   # Her planking for walls and her deck overhead (construction.md).
   enclosure: { material: /stuff/idea/material/wood/oak, thicknessM: 0.05 }
   roof: { material: /stuff/idea/material/wood/pine, thicknessM: 0.04 }
+  # ⭐ Her blueprint (harbors review 3): under the deck, the hold through
+  # the bulkhead forward — her fore is the blueprint's north.
+  floorM: 0.3
+  exits:
+    up:
+      destination: /stuff/location/ship/smack/deck
+    north:
+      destination: /stuff/location/ship/smack/hold

@@ -20,3 +20,9 @@ data:
   # ⭐ DARK, on purpose. A back bedroom with no window — which is WHY it is the cheap one, and now the fiction and the physics agree about it.
   longDescription: |
     A quiet back room with one window on the light-well, an empty picture rail, and a fitted cupboard whose door sticks in a friendly way. No bed yet — the floor is honest about that.
+  # ⭐ The unit's blueprint (harbors review 3): its ways, an ordinary place.
+  exits:
+    east:
+      destination: /world/terminus/mayfield-row/seznick-house/location/hall
+    north:
+      destination: /world/terminus/mayfield-row/seznick-house/location/bathroom

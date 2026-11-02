@@ -98,7 +98,7 @@ function installStore(): void {
   add(TemplateApplier.templatePath, TemplateApplier.templatePath);
   for (const row of KERNEL_CONTENT_ROWS) content.push({ _id: `d-${++idCounter}`, ...row });
   add('/platform/idea/exits/berth', '/platform/idea/BerthExit');
-  add(AUTHORED_SHIP_WARREN, '/platform/idea/ShipWarren', { floorplan: [] });
+  add(AUTHORED_SHIP_WARREN, '/platform/idea/ShipWarren', {});
   add(KIND, '/platform/idea/Ship', {
     name: 'the smack',
     keywords: ['smack', 'ship'],
@@ -107,18 +107,16 @@ function installStore(): void {
     house: COMPANY,
     hull: { lengthM: 9, beamM: 3, draftM: 1.2, depthM: 1.8 },
   });
-  add(WARREN, '/platform/idea/ShipWarren', {
-    floorplan: [
-      { leaf: 'deck', room: DECK, entry: true, floorM: 1.8, exits: [{ to: 'hold', direction: 'down', opposite: 'up' }] },
-      { leaf: 'hold', room: HOLD, floorM: 0.3 },
-    ],
-  });
+  // ⭐ Her kind's blueprint (harbors review 3): a Structure over ordinary rows.
+  add(WARREN, '/platform/idea/ShipWarren', { blueprint: `${ROOMS}-blueprint` });
+  add(`${ROOMS}-blueprint`, '/platform/idea/Structure', { extent: ROOMS, entrance: DECK });
   add(ROOMS, '/platform/idea/location/CartesianZone', { name: 'a smack' });
   add(DECK, '/platform/location/Compartment', {
+    floorM: 1.8, exits: { down: { destination: HOLD } },
     shortDescription: 'smack deck',
     props: [{ template: STAFF, as: 'flagstaff' }, { template: FLAG, on: 'flagstaff' }],
   });
-  add(HOLD, '/platform/location/Hold', { shortDescription: 'fish hold' });
+  add(HOLD, '/platform/location/Hold', { shortDescription: 'fish hold', floorM: 0.3, exits: { up: { destination: DECK } } });
   add(STAFF, '/platform/thing/Flagstaff', { shortDescription: 'flagstaff' });
   add(FLAG, '/platform/thing/Flag', { shortDescription: 'test ensign', keywords: ['flag', 'ensign'], _brandKey: 'flag-test-city' });
   add(COMPANY, '/platform/idea/Business', {

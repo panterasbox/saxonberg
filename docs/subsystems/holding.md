@@ -173,19 +173,28 @@ persistence key.
 
 **Authored on the row** (one row, every holding of that kind):
 
-- `floorplan` — `[{ leaf, room, exits, entry?, door? }]`. Each entry
-  names a real template row for the room; `entry: true` marks the way
-  in; `door: { locked: true }` marks the threshold the key gates.
+- `blueprint` — ⭐ a `Structure` row (harbors review 3; it replaced the
+  `floorplan:` list, a second schema that re-stated every room's exits,
+  its entry and its layout outside the rooms). The Structure's `extent`
+  holds the kind's rooms authored as an ordinary place — ordinary rows
+  with ordinary `exits:` between them, the authored Hesper's shape — and
+  its `entrance` is the way in. A locked threshold is the way's own
+  `kind: /system/residence/idea/exits/keyed-door`; the holding hands it
+  its keyway at mint (`fitExit`). The way back out is a plain passage
+  the blueprint authors. A tract's `share` is the tract row's own field;
+  the ground the buildings cover is the Structure's `footprintM2`. See
+  [§ Blueprints](#-blueprints--a-kind-of-building-as-an-ordinary-place-harbors-review-3).
 - `upkeepTerm` — the tenure vocabulary (below).
 - `addressBase?` — the human address the per-room addresses hang off.
 
 **Persistent per instance:** `shellCondition`, `shellStamp`.
 
-**`wake()`** is the whole of standing a holding up: every room in the
-floorplan is stood up as a **keyed instance** — `(scope = the room's row,
-key = <holdingExtent>/<leaf>)` through `PersistableApi.restoreOrSeed` —
-then the intra-holding exits are wired, the locked front-door edge is
-hung, and each room is stamped with its address.
+**`wake()`** is the whole of standing a holding up: every room of the
+blueprint is stood up as a **keyed instance** — `(scope = the room's row,
+key = <holdingExtent>/<leaf>)`, the leaf being the row's last path
+segment — then each room's authored ways are copied (a way into the
+extent leads to the same room of this copy; a way out stays), the keyed
+doors are fitted, and each room is stamped with its address.
 
 ### Dormancy is whole-holding, never room-by-room
 
@@ -197,7 +206,7 @@ the reason is placement: a good is placed against a room's `(scope,
 key)`, so a room that sleeps while its siblings wake would have to
 resolve placements against a graph that is half gone.
 
-### The floorplan is the INITIAL mint, never the closed set
+### The blueprint is the INITIAL mint, never the closed set
 
 ⭐ **A member persists only if it keeps state of its own** (tracts build
 review, 2026-11-01). `wakeRoom` restores a room's `(row, key)` record only
@@ -227,15 +236,18 @@ into a holding from a programme-level ledger, on this base. Nothing in
 
 ### ⭐ Tracts in a layout — shares, footprints and the mirror (tracts build, 2026-10-31)
 
-A farm is a holding like a house: its floorplan names its rooms AND its
+A farm is a holding like a house: its blueprint holds its rooms AND its
 **tracts** of open ground (soil.md § Tracts and fields). Three things
 make one layout serve every parcel it is sold on:
 
-- **`footprintM2`** on a room — the ground its building stands on that
-  no tract covers (the yard 400, the barn 150, the farmhouse 120; a
-  Hinkley house 220 in all). **`openGroundM2()`** = the parcel's
-  workable area (`ParcelApi.workableAreaOf`) less every footprint.
-- **`share`** on a tract — its fraction of that open ground. The tract
+- **`footprintM2`** on the blueprint's Structure — the ground its
+  buildings stand on that no tract covers (the farmstead 670: the yard
+  400, the barn 150, the farmhouse 120; a Hinkley house 220). (It was per
+  floorplan room; only the sum was ever read, and it is a set of rooms'
+  fact.) **`openGroundM2()`** = the parcel's workable area
+  (`ParcelApi.workableAreaOf`) less it.
+- **`share`** on a tract's own row (`Tract.share`) — its fraction of that
+  open ground. The tract
   sizes itself when the holding wakes it (the kernel's
   `WarrenMember.onWarrenWake`, called from `wakeRoom`), so a copy on a
   bigger parcel has bigger tracts, in proportion; on unmeasured ground it
@@ -243,8 +255,9 @@ make one layout serve every parcel it is sold on:
 - **The mirror** — `mirrorAxis`, set by the plat from the side of the
   road the lot is on (`PlatPlan.mirrorAxisOfSlot`: a lot on the LEFT of
   the road's heading, ring index 1/3/5, is reflected across the road's
-  axis) before the holding wakes; `getFloorplanExits()` reads every
-  direction through it (`up`/`down` and the axis never flip). So every
+  axis) before the holding wakes; the copy reads every way it copies
+  through it (`up`/`down` and the axis never flip), and its layout is read
+  from those ways. So every
   copy faces the lane, and the way out is the gate reversed
   (`wireHubExit` — it was hard-coded `south`). ⚠ Hinkley's left-side
   lots mirror now: the house on the south side of the lane has its hall
@@ -655,6 +668,50 @@ Named, not stubbed — each is a clean attach point:
   court off Hinkley's segment 2 exists in the plan and materializes as
   frontage fills; deeper trees (a court off a court) are untested.
 
+### ⭐ Blueprints — a kind of building as an ordinary place (harbors review 3)
+
+A warren that mints copies of a set of rooms names its **blueprint**: a
+`Structure` row (`platform/idea/Structure`) whose `extent` holds the
+kind's rooms as ordinary rows and whose `entrance` is the way in.
+`lib/location/Blueprint.ts` reads it off the rows — every row at or
+under the extent whose class is a place (so a one-room blueprint, the
+dorm's, names its room as its extent, and its copy is keyed by the
+holding's own key with no leaf). The shipped six:
+
+| warren row | blueprint | rooms |
+|---|---|---|
+| Hinkley `house-programme` | `hinkley-hills/idea/house-blueprint` | `hinkley-hills/house/*` (moved from `lots/`; `living`/`bedroom` extend the generic rows), own zone `house.yaml` |
+| valley `farmstead` | `hearts-delight/idea/farmstead-blueprint` | `hearts-delight/farmstead/{location,tract}/*` (+ `location/house` extends the generic bedroom), own zone `farmstead.yaml` |
+| Seznick `unit-programme` | `seznick-house/unit-blueprint` | `seznick-house/location/*` (its zone; + `bathroom` extends the generic row) |
+| Duncan Hall `dorm-programme` | `duncan-hall/idea/dorm-blueprint` | the `dormroom` row itself |
+| `ShipWarren/smack` | `/stuff/idea/Structure/smack` | `/stuff/location/ship/smack/*` (each room's own `floorM`) |
+| `ShipWarren/authored` | **none** — an authored ship's own Structure already IS the blueprint-shaped place, and it is served; the warren adopts her live rooms | — |
+
+**The copy** (`FloorplanWarren.wake`): every room row is cloned keyed
+`(room row, <key>/<leaf>)` with its `exits:` withheld (a way applied by
+the clone would stand the blueprint's own room up), then ONE rewrite:
+a way whose destination is inside the extent is installed to the same
+room of this copy (its `kind:` honored, `fitExit` the subclass's chance
+to fit it — a keyed door gets its holding); a way out is applied as
+authored. Mirroring is the copy's: every copied direction is reflected,
+and the layout (`layOut`, the entrance at the origin) is read from the
+copied ways. ⚠ **A blueprint row authors no `coords:`** — a row's cell
+registers on its zone's grid, and every copy of a row stands in one zone
+(every Hinkley yard would claim one square of the lots' grid).
+
+**Never served.** Nothing boots a blueprint and no way leads in; the
+location graph attaches no blueprint Structure to its extent
+(`LocationGraphRegistry` skips every Structure some row names as a
+`blueprint:`), so a copy's room under the extent never stands it up or
+claims it as its structure. Its rooms are kinds (non-singleton classes),
+so the projection and `lint:location-graph` never see them as nodes — no
+`unreachable:` value was needed. An author holding title to the extent
+can stand a room of it up by the shipped author path (`clone <row>`,
+gated on `AccessApi.canAtPath`, then `goto`) — ⚠ do it where no copy of
+that row is live: a blueprint room's own ways resolve by row
+(`StuffApi.singleton`), which hands back a live copy, or refuses when
+there are several. Copies are always minted from the ROWS.
+
 ### Standing venue holdings (tracts build D32, deferred)
 
 The plan was to re-home the authored venue farms as STANDING holdings of
@@ -678,7 +735,8 @@ lift rather than a rhyme. So the condition axis is **one clock**.
 
 `packages/server/src/mud/lib/location/FloorplanWarren.ts` (abstract,
 `Persistable(WarrenMember(Container(RoomWarren)))`) now owns the
-`floorplan` + `upkeepTerm` fields and `UPKEEP_TERMS`, the keyed room mint
+`blueprint` field (it was `floorplan` until harbors review 3; the
+`upkeepTerm` field and `UPKEEP_TERMS` moved to `WeatheringMixin`), the keyed room mint
 (`wake` / `wakeRoom` / `roomForLeaf` / `roomForKey` / `entryRoom`), the
 intra-plan wiring, `layOut`, the whole-warren capture (its rooms that
 keep a record are its `dependentPersistables`, so one
@@ -715,7 +773,12 @@ kernel class (`instanceof FloorplanWarren`) and speaks in the warren's
 `upkeepTerm` field and `upkeepWords()` left `FloorplanWarren` for the
 kernel `WeatheringMixin`, which `HoldingWarren` and `ShipWarren` compose
 and `FloorplanWarren` does not; the rate key is the platform's neutral
-`weathering.daysToWorn` (the residence row retired). ⚠ A mine's workings are still not a
+`weathering.daysToWorn` (the residence row retired). And the
+`floorplan:` list, with `share`/`footprintM2`/`shareOf`/
+`getFloorplanExits`/`wireLockedEdge`, is gone for the blueprint
+(§ Blueprints): ways are the rooms' own `exits:`, a locked edge is a
+keyed-door `kind:` fitted by `fitExit`, `share` is the tract's, the
+footprint the Structure's. ⚠ A mine's workings are still not a
 `FloorplanWarren` (`MineWarren` extends `RoomWarren`); adopting it is a
 base swap whenever the metal chain wants a timbering clock. The
 duck-typed shell reads in `CirculationWarren.conditionOf` and

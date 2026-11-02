@@ -30,9 +30,16 @@ const read = (rel: string): { class?: string; data?: Record<string, unknown> } =
   };
 
 const HINKLEY = "world/terminus/hinkley-hills";
+/** The house blueprint's rooms (harbors review 3), by leaf. */
+const rooms: Record<string, { class?: string; data?: Record<string, unknown> }> = Object.fromEntries(
+  ["yard", "hall", "kitchen", "living", "bedroom", "bathroom", "garden"].map((leaf) => [
+    leaf,
+    read(`${HINKLEY}/house/${leaf}.yaml`),
+  ]),
+);
 
 describe("the yard ships the kit that makes it workable", () => {
-  const yard = read(`${HINKLEY}/lots/yard.yaml`);
+  const yard = read(`${HINKLEY}/house/yard.yaml`);
   const populates = (yard.data?.props ?? []) as string[];
 
   it("⭐ ships a WATERING CAN, because `water` is tool-conferred", () => {
@@ -72,7 +79,7 @@ describe("the lane authors no exit into a lot", () => {
       expect(
         spec.destination,
         `lane exit '${dir}' names the yard template`,
-      ).not.toBe(`/${HINKLEY}/lots/yard`);
+      ).not.toBe(`/${HINKLEY}/house/yard`);
     }
   });
 
@@ -112,23 +119,20 @@ describe("one lot ships already sold", () => {
     expect(Number(holder.data?.defaultCapacity)).toBeGreaterThanOrEqual(1);
   });
 
-  it("the house floorplan cites real rows only (D17)", () => {
+  it("the house is a BLUEPRINT over its own rows (harbors review 3)", () => {
     const programme = read(`${HINKLEY}/idea/house-programme.yaml`);
-    const rooms = (programme.data?.floorplan ?? []) as Array<{ room?: string }>;
-    expect(rooms.length).toBeGreaterThanOrEqual(5);
-    for (const r of rooms) {
-      expect(String(r.room ?? '')).toMatch(/^\//);
-    }
+    expect(programme.data?.blueprint).toBe(`/${HINKLEY}/idea/house-blueprint`);
+    const blueprint = read(`${HINKLEY}/idea/house-blueprint.yaml`);
+    expect(blueprint.data?.extent).toBe(`/${HINKLEY}/house`);
+    expect(blueprint.data?.entrance).toBe(`/${HINKLEY}/house/yard`);
+    expect(Object.keys(rooms)).toHaveLength(7);
   });
 });
 
 describe("⭐ a Hinkley house has hot water (cleanliness)", () => {
   it("its bathroom is the house's own row, with a tub, its tap and a copper", () => {
-    const programme = read(`${HINKLEY}/idea/house-programme.yaml`);
-    const rooms = (programme.data?.floorplan ?? []) as Array<{ leaf?: string; room?: string }>;
-    const bath = rooms.find((r) => r.leaf === "bathroom");
-    expect(bath?.room).toBe(`/${HINKLEY}/lots/bathroom`);
-    const row = read(`${HINKLEY}/lots/bathroom.yaml`);
+    expect(rooms.bathroom).toBeDefined();
+    const row = read(`${HINKLEY}/house/bathroom.yaml`);
     expect(row.class).toBe("/platform/location/PersistentLocation");
     expect(row.data?.props).toEqual(
       expect.arrayContaining([
@@ -141,37 +145,25 @@ describe("⭐ a Hinkley house has hot water (cleanliness)", () => {
 });
 
 describe("⭐ a Hinkley house has a garden — a tract of its layout (tracts build W4)", () => {
-  const programme = read(`${HINKLEY}/idea/house-programme.yaml`);
-  const rooms = (programme.data?.floorplan ?? []) as Array<{
-    leaf?: string;
-    room?: string;
-    share?: number;
-    footprintM2?: number;
-    exits?: Array<{ to?: string; direction?: string }>;
-  }>;
-
   it("the garden is open ground, the lot's share of what the house leaves", () => {
-    const garden = rooms.find((r) => r.leaf === "garden");
-    expect(garden?.room).toBe(`/${HINKLEY}/lots/garden`);
-    expect(garden?.share).toBe(1);
-    expect(read(`${HINKLEY}/lots/garden.yaml`).class).toBe("/trade/farming/location/Tract");
+    expect(rooms.garden?.data?.share).toBe(1);
+    expect(read(`${HINKLEY}/house/garden.yaml`).class).toBe("/trade/farming/location/Tract");
   });
 
   it("the house and yard stand on 220 m² of a quarter-acre: the garden is about 780", () => {
-    const built = rooms.reduce((n, r) => n + (r.footprintM2 ?? 0), 0);
+    const built = Number(read(`${HINKLEY}/idea/house-blueprint.yaml`).data?.footprintM2);
     const book = read(`${HINKLEY}/idea/plat-book.yaml`);
     expect(built).toBe(220);
     expect(Number(book.data?.areaM2) - built).toBe(780);
   });
 
   it("the garden is west of the yard, clear of the house door and the way out", () => {
-    const yard = rooms.find((r) => r.leaf === "yard");
-    const toGarden = yard?.exits?.find((e) => e.to === "garden");
-    expect(toGarden?.direction).toBe("west");
+    const exits = (rooms.yard?.data?.exits ?? {}) as Record<string, { destination?: string }>;
+    expect(exits.west?.destination).toBe(`/${HINKLEY}/house/garden`);
   });
 
   it("the garden takes a planting in a bed (a house lot takes beds, not fields)", () => {
-    const props = (read(`${HINKLEY}/lots/garden.yaml`).data?.props ?? []) as string[];
+    const props = (read(`${HINKLEY}/house/garden.yaml`).data?.props ?? []) as string[];
     expect(props).toContain("/trade/farming/thing/bed/garden");
   });
 });

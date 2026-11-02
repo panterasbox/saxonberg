@@ -228,6 +228,13 @@ const MANIFEST: ReadonlyArray<{ site: string; classification: string }> = [
     site: "lib/stuff/Staged.ts::loadClassByPath",
     classification: "transitive-safe",
   },
+  // ⭐ A blueprint's rooms (harbors review 3): the class of each row under
+  // the Structure's extent is resolved only to CHECK it is a place, before
+  // anything is cloned — the row's own `class:` gate already passed it.
+  {
+    site: "lib/location/Blueprint.ts::loadClassByPath",
+    classification: "transitive-safe",
+  },
   // ⭐ Template inheritance: `Template._materialize` resolves the
   // EFFECTIVE class only to read its `fieldMeta`, so the merge algebra
   // can ask each field how it inherits. Transitive-safe by the same

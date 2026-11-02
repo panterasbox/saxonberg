@@ -55,9 +55,10 @@ const PH = TemplateApplier.templatePath;
 const PARENT = '/world/prog-test/lots';
 const WARREN_PATH = '/world/prog-test/holder';
 const PROGRAMME = '/world/prog-test/house-programme';
-const ROOM_A = '/world/prog-test/hall';
-const ROOM_B = '/world/prog-test/bedroom';
-const ROOM_C = '/world/prog-test/porch';
+const BLUEPRINT = '/world/prog-test/house-blueprint';
+const ROOM_A = '/world/prog-test/house/hall';
+const ROOM_B = '/world/prog-test/house/bedroom';
+const ROOM_C = '/world/prog-test/house/porch';
 const STREET = '/world/prog-test/lane';
 const LOT1 = `${PARENT}/lot-1`;
 
@@ -124,30 +125,30 @@ function seedDomain(): void {
 
   add(WARREN_PATH, WARREN_PATH.replace('/holder', '/TestInstitution'));
   add(PROGRAMME, '/system/residence/idea/HoldingWarren', {
-    floorplan: [
-      {
-        leaf: 'hall',
-        room: ROOM_A,
-        entry: true,
-        exits: [{ to: 'bedroom', direction: 'north' }],
-      },
-      { leaf: 'bedroom', room: ROOM_B },
-      // A PLAIN room: keeps nothing, so has no record (tracts build review).
-      { leaf: 'porch', room: ROOM_C },
-    ],
+    blueprint: BLUEPRINT,
     upkeepTerm: 'owner-all',
     addressBase: 'prog-test/lot-1',
   });
+  // ⭐ The house's blueprint (harbors review 3): ordinary rows under an
+  // extent, a Structure naming it and the way in.
+  add(BLUEPRINT, '/platform/idea/Structure', { extent: '/world/prog-test/house', entrance: ROOM_A });
+  // The blueprint's own zone (its rows author cells), and the lots' zone —
+  // a copy's rooms stand in the lots', by their keys (B54).
+  add('/world/prog-test/house', '/platform/idea/location/CartesianZone', { name: 'the house', cellSize: 6 });
+  add(PARENT, '/platform/idea/location/CartesianZone', { name: 'the lots', cellSize: 4 });
   add(ROOM_A, '/platform/location/PersistentLocation', {
     shortDescription: 'the hall',
     props: ['/world/prog-test/coatrack'],
+    exits: { north: { destination: ROOM_B } },
   });
   add(ROOM_B, '/platform/location/PersistentLocation', {
     shortDescription: 'a bedroom',
+    exits: { south: { destination: ROOM_A } },
   });
+  // A PLAIN room: keeps nothing, so has no record (tracts build review).
   add(ROOM_C, '/platform/location/Location', {
     shortDescription: 'a porch',
-  });
+    });
   add('/world/prog-test/coatrack', '/platform/thing/Thing', {
     shortDescription: 'a coat rack',
   });
@@ -189,8 +190,12 @@ function installStore(): void {
     return arr.filter((d) =>
       keys.every((k) => {
         const stored = d[k];
-        if (Array.isArray(stored)) return stored.includes(q[k]);
-        return stored === q[k];
+        const want = q[k];
+        if (want !== null && typeof want === 'object' && '$regex' in (want as object)) {
+          return typeof stored === 'string' && new RegExp(String((want as { $regex: string }).$regex)).test(stored);
+        }
+        if (Array.isArray(stored)) return stored.includes(want);
+        return stored === want;
       }),
     );
   });
@@ -339,10 +344,10 @@ describe('the residential programme (D16)', () => {
     expect(admit).not.toHaveBeenCalled();
   });
 
-  it('⭐⭐ lays its rooms out in its OWN frame, from the floorplan (B53)', async () => {
+  it('⭐⭐ lays its rooms out in its OWN frame, from its blueprint (B53)', async () => {
     // Every place but the void has coordinates. A holding's rooms take
-    // theirs from the floorplan's cardinal exits, the entry at the origin:
-    // the hall at (0,0,0), the bedroom north of it.
+    // theirs from their blueprint rows (harbors review 3): the hall at
+    // (0,0,0), the bedroom north of it.
     seedLot();
     await bootRegistries();
     const w = await institution();
@@ -358,14 +363,9 @@ describe('the residential programme (D16)', () => {
   });
 
   it('⭐⭐ its rooms stand in the HOLDING\'s zone, sized by its cell (B54)', async () => {
-    // A room's size is its zone's cell. The rows live at `/world/prog-test/`
-    // (no zone), the lot under a 4 m zone — so the rooms take the lot's.
-    col('content').push({
-      _id: `d-${++idCounter}`,
-      path: PARENT,
-      class: '/platform/idea/location/CartesianZone',
-      data: { name: 'the lots', cellSize: 4 },
-    });
+    // A room's size is its zone's cell. The blueprint rows live at
+    // `/world/prog-test/house/` (no zone), the lot under a 4 m zone — so a
+    // copy's rooms take the lot's.
     seedLot();
     await bootRegistries();
     const w = await institution();

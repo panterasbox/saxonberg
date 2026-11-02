@@ -23,3 +23,7 @@ data:
       keywords: [window, glass, light]
       description: |
         A sash window onto the row, the sill worn pale where people lean on it to watch the street.
+  # ⭐ The unit's blueprint (harbors review 3): its ways, an ordinary place.
+  exits:
+    south:
+      destination: /world/terminus/mayfield-row/seznick-house/location/hall

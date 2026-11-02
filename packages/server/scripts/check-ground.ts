@@ -210,7 +210,7 @@ export const UNBACKED_GROUND_CLAIMS: readonly string[] = [
 
   // ── Hinkley Hills: the lots nobody has built on ──
   '/world/terminus/hinkley-hills/location/arrival',   // "a CONCRETE apron at the end of the line"
-  '/world/terminus/hinkley-hills/lots/hall',          // "a worn runner on the BOARDS"
+  '/world/terminus/hinkley-hills/house/hall',          // "a worn runner on the BOARDS"
   '/world/terminus/hinkley-hills/lots/road-segment',  // "the made road gives out here into graded DIRT"
 
   // ── Rejection: the yards above the mine ──

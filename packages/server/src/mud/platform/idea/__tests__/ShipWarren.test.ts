@@ -12,7 +12,7 @@
  * - a restart: the spine's resolve-first `standUpKeyed` brings her back
  *   from her record, and asked twice gives the one ship;
  * - an authored ship (one row, one ship) adopts the rooms under her
- *   `extent` through the platform's empty-floorplan warren.
+ *   `extent` through the platform's blueprint-less warren.
  */
 
 import '../../../../test-bootstrap';
@@ -93,28 +93,26 @@ function installStore(): void {
   add(TemplateApplier.templatePath, TemplateApplier.templatePath);
   for (const row of KERNEL_CONTENT_ROWS) content.push({ _id: `d-${++idCounter}`, ...row });
   add('/platform/idea/exits/berth', '/platform/idea/BerthExit');
-  add(AUTHORED_SHIP_WARREN, '/platform/idea/ShipWarren', { floorplan: [] });
-  // A ship kind, its floorplan and its rooms (the rooms stand in the rows' zone).
+  add(AUTHORED_SHIP_WARREN, '/platform/idea/ShipWarren', {});
+  // A ship kind, its blueprint and its rooms (the rooms stand in the rows' zone).
   add(KIND, '/platform/idea/Ship', {
     name: 'the smack',
     entrance: DECK,
     warren: WARREN,
     hull: { lengthM: 9, beamM: 3, draftM: 1.2, depthM: 1.8 },
   });
-  add(WARREN, '/platform/idea/ShipWarren', {
-    floorplan: [
-      { leaf: 'deck', room: DECK, entry: true, floorM: 1.8, exits: [{ to: 'hold', direction: 'down', opposite: 'up' }] },
-      { leaf: 'hold', room: HOLD, floorM: 0.3 },
-    ],
-  });
+  // ⭐ Her kind's blueprint (harbors review 3): a Structure over ordinary rows.
+  add(WARREN, '/platform/idea/ShipWarren', { blueprint: `${ROOMS}-blueprint` });
+  add(`${ROOMS}-blueprint`, '/platform/idea/Structure', { extent: ROOMS, entrance: DECK });
   add(ROOMS, '/platform/idea/location/CartesianZone', { name: 'a smack' });
   add(DECK, '/platform/location/Compartment', {
+    floorM: 1.8, exits: { down: { destination: HOLD } },
     shortDescription: 'smack deck',
     props: [GEAR],
     details: { sea: { keywords: ['sea'], description: 'Below the rail, the water.' } },
   });
   add(GEAR, '/platform/thing/Thing', { shortDescription: 'a coil of gear' });
-  add(HOLD, '/platform/location/Hold', { shortDescription: 'fish hold' });
+  add(HOLD, '/platform/location/Hold', { shortDescription: 'fish hold', floorM: 0.3, exits: { up: { destination: DECK } } });
   add(CRATE, '/platform/thing/Thing', { shortDescription: 'a crate' });
   add(LANDING, '/platform/location/Locale', { shortDescription: 'a landing', props: [BOLLARD] });
   add(BOLLARD, '/platform/thing/Bollard', { shortDescription: 'a bollard', fixedInPlace: true });
@@ -232,7 +230,7 @@ describe('ShipWarren — ships from a kind (harbors B1)', () => {
     expect(deckA.getDurableHandle()).toBeNull();
     expect((deckA as unknown as { getWarren(): ShipWarren }).getWarren().mintedKeyOf(deckA)).toBe('a1/deck');
     expect((deckB as unknown as { getWarren(): ShipWarren }).getWarren().mintedKeyOf(deckB)).toBe('b2/deck');
-    // Her floorplan's way below is wired keyed, to HER hold.
+    // Her blueprint's way below is wired keyed, to HER hold.
     const down = (deckA as unknown as Exitable).getExit('down');
     expect(down?.getDestination()?.getDurableHandle()).toBe(`${HOLD}#a1/hold`);
 

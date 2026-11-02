@@ -86,9 +86,11 @@ function seedDomain(): void {
   add(DormWarren.WARREN_PATH, '/world/terminus/eternal/duncan-hall/idea/DormWarren');
   // D16 step 2: the unit's degenerate one-room programme row.
   add(DormWarren.PROGRAMME_PATH, '/system/residence/idea/HoldingWarren', {
-    floorplan: [{ room: DormRoom.SCOPE, entry: true }],
+    blueprint: '/test/dorm-blueprint',
     upkeepTerm: 'institution-all',
   });
+  // A one-room blueprint (harbors review 3): its extent is the room's row.
+  add('/test/dorm-blueprint', '/platform/idea/Structure', { extent: DormRoom.SCOPE, entrance: DormRoom.SCOPE });
   add(DormRoom.SCOPE, '/world/terminus/eternal/duncan-hall/location/DormRoom', {
     shortDescription: 'dorm room',
     // Fixtures as data — the spine's seedBornWith lays these down once.
