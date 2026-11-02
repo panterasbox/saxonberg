@@ -1,5 +1,8 @@
 node_modules/
 dist/
+# The dev box's bundle swap (deploy/dev/update.sh).
+dist.incoming/
+dist.previous/
 build/
 .vite/
 
