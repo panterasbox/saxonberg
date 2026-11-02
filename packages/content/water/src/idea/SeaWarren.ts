@@ -30,9 +30,9 @@ import type { Attachment } from '@saxonberg/server/mud/lib/location/Warren';
 import { SingletonMixin } from '@saxonberg/server/mud/lib/stuff/Singleton';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
-import { NavigationApi } from '@saxonberg/server/mud/api/navigation';
 import { AppApi } from '@saxonberg/server/mud/api/app';
 import type { Stuff, EvictionContext } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type Place from '@saxonberg/server/mud/lib/stuff/Place';
 import type { VetoResult } from '@saxonberg/server/mud/lib/errors';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Exitable } from '@saxonberg/server/mud/lib/boundary/Exitable';
@@ -316,8 +316,8 @@ export default class SeaWarren extends SingletonMixin(RoomWarren) {
 
   /** The ship a deck (or any of her places) belongs to — her warren's answer for a keyed room (harbors P3). */
   private async shipOf(place: Stuff): Promise<ShipShape | null> {
-    const path = place.getDurableHandle() ?? place.getTemplatePath();
-    const s = path ? await NavigationApi.structureAt(path).catch(() => null) : null;
+    // The place is asked: a keyed room's ship is its warren's (harbors P3).
+    const s = place.isPlace() ? await (place as unknown as Place).structure().catch(() => null) : null;
     if (!s || !MixinApi.isVoyaging(s) || !MixinApi.isPositioned(s)) return null;
     return s;
   }

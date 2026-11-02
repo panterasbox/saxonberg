@@ -89,7 +89,7 @@ export default class ColumnWarren extends ColumnWarrenBase {
     const bands = surface.bandsNow();
     const first = bands[0];
     if (first === undefined || surface.getExit('down')) return;
-    await this.installColumnExit(surface, 'down', pathOf(surface), first);
+    await this.installColumnExit(surface, 'down', surface, first);
   }
 
   public async bandOf(
@@ -99,7 +99,10 @@ export default class ColumnWarren extends ColumnWarrenBase {
     if (!MixinApi.isWaterPlace(surface)) return null;
     if (!surface.bandsNow().includes(band)) return null;
     const live = this.bandAt(pathOf(surface), band);
-    if (live !== null) return live as unknown as MemberStuff;
+    if (live !== null) {
+      live.rejoin(surface as SurfaceStuff); // a stop stood up again is a new object
+      return live as unknown as MemberStuff;
+    }
     const run = this._budChain.then(
       () => this._budOne(surface as SurfaceStuff, band),
       () => this._budOne(surface as SurfaceStuff, band),
@@ -146,13 +149,12 @@ export default class ColumnWarren extends ColumnWarrenBase {
     bands: ColumnBand[],
     index: number,
   ): Promise<void> {
-    const surfacePath = pathOf(surface);
     const ex = this.requireExitable(room);
     const above: ColumnTarget = index === 0 ? 'surface' : bands[index - 1]!;
-    if (!ex.getExit('up')) await this.installColumnExit(ex, 'up', surfacePath, above);
+    if (!ex.getExit('up')) await this.installColumnExit(ex, 'up', surface, above);
     const below = bands[index + 1];
     if (below !== undefined && !ex.getExit('down')) {
-      await this.installColumnExit(ex, 'down', surfacePath, below);
+      await this.installColumnExit(ex, 'down', surface, below);
     }
     for (const n of surface.getColumn().neighbors ?? []) {
       if (n.band !== room.getBand() || ex.getExit(n.direction)) continue;
@@ -169,9 +171,10 @@ export default class ColumnWarren extends ColumnWarrenBase {
   private async installColumnExit(
     on: Stuff & Container & Exitable,
     direction: string,
-    surfacePath: string,
+    surface: Stuff & Container,
     target: ColumnTarget,
   ): Promise<void> {
+    const surfacePath = pathOf(surface);
     await on.installExit<ColumnExit>(
       COLUMN_EXIT_KIND,
       {
@@ -180,7 +183,7 @@ export default class ColumnWarren extends ColumnWarrenBase {
         destinationPath: target === 'surface' ? surfacePath : `${BAND_ROW}${rowOf(target)}`,
         media: ['water'],
       },
-      (e) => e.configureColumn(surfacePath, target),
+      (e) => e.configureColumn(surfacePath, target, surface),
     );
   }
 

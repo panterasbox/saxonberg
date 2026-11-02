@@ -76,7 +76,8 @@ describe('SeaStop (harbors B5)', () => {
     // ⭐ On the bed: a way named for her, onto her deck, by her handle.
     expect(bed.ways.hesper).toMatchObject({ destination: '/ship/hesper/deck', configured: ['wreck', '/ship/hesper'] });
     // ⭐ Her deck's `up`: out of her to the stop's bed band.
-    expect(deck.ways.up).toMatchObject({ configured: [`${STOP_ROW}#here`, 'bed'] });
+    // (the stop itself handed over: a keyed stop's handle is its name, not a way to find it)
+    expect(deck.ways.up).toMatchObject({ configured: [`${STOP_ROW}#here`, 'bed', stop] });
     // Marked twice, recorded once.
     await stop.markWreck(hesper);
     expect(stop.getWrecks()).toHaveLength(1);

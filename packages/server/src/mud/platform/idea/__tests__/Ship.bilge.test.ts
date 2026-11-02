@@ -146,9 +146,9 @@ function pinClock(): void {
   vi.spyOn(WorldClockApi, 'getNow').mockImplementation(() => Quantity.of(now, 's'));
 }
 
-/** Mint a ship of the kind, keyed `serial`, standing. */
+/** Mint a ship of the kind under `<kind>/<serial>` (as `buy` does), standing. */
 async function mint(serial: string): Promise<Ship> {
-  const ship = await StuffApi.clone<Ship>(KIND);
+  const ship = await StuffApi.clone<Ship>(KIND, undefined, { asIdentityPath: `${KIND}/${serial}` });
   await PersistableApi.restoreOrSeed(ship as unknown as Stuff, serial);
   return ship;
 }

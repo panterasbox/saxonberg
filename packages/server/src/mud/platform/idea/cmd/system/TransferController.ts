@@ -338,8 +338,10 @@ export default class TransferController extends CommandController<TransferModel>
 
   /** A live ship reads her register again (who answers for her may have changed). */
   private async refreshShip(handle: string): Promise<void> {
-    const live = StuffApi.findByDurableHandle<Stuff>(handle);
-    if (live instanceof Ship) await live.refreshRegistry();
+    // A ship is filed at her handle — her identity (review 1).
+    for (const live of StuffApi.findByIdentityPath<Stuff>(handle)) {
+      if (live instanceof Ship && !live.isDestroyed()) await live.refreshRegistry();
+    }
   }
 
   /** *The register now shows: …* */

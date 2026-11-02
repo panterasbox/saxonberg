@@ -22,10 +22,10 @@ import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { CompetenceBand, type CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
 import type { CommandContext } from '@saxonberg/server/mud/api/command';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type Place from '@saxonberg/server/mud/lib/stuff/Place';
 import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tooled';
 import type { Positioned } from '@saxonberg/server/mud/lib/expanse/Positioned';
 import type { Voyaging } from '@saxonberg/server/mud/lib/expanse/Voyaging';
-import { NavigationApi } from '@saxonberg/server/mud/api/navigation';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import type { LinePosition } from '../../lib/RiverLine';
 import type WatercourseCatalogue from '../WatercourseCatalogue';
@@ -96,10 +96,10 @@ export default class DepthReading extends Reading {
   /** The river under `who` — their water room's, or the ship they are aboard. */
   private async riverUnder(who: Stuff): Promise<{ depthM: number; flow: string } | null> {
     const room = MixinApi.isContainable(who) ? who.getContainer() : null;
-    const roomPath = room?.getDurableHandle() ?? room?.getTemplatePath() ?? '';
     let pos: LinePosition | null = room !== null && MixinApi.isPositioned(room) ? room.getLinePosition() : null;
-    if (pos === null && roomPath) {
-      const ship = await NavigationApi.structureAt(roomPath).catch(() => null);
+    if (pos === null && room !== null && room.isPlace()) {
+      // The room is asked: a keyed room's ship is its warren's.
+      const ship = (await (room as unknown as Place).structure().catch(() => null)) as unknown as Stuff | null;
       pos = ship && MixinApi.isPositioned(ship) ? ship.getLinePosition() : null;
     }
     if (pos === null) return null;

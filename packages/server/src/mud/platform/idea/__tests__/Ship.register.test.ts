@@ -211,9 +211,9 @@ async function bootGovernments(): Promise<void> {
   await cat.onCreate();
 }
 
-/** A smack bought by `buyer` — minted, keyed by `serial`, commissioned as `name`. */
+/** A smack bought by `buyer` — minted under `<kind>/<serial>` (as `buy` does), commissioned as `name`. */
 async function buy(buyer: Stuff, serial: string, name: string): Promise<{ ship: Ship; words: string }> {
-  const ship = await StuffApi.clone<Ship>(KIND);
+  const ship = await StuffApi.clone<Ship>(KIND, undefined, { asIdentityPath: `${KIND}/${serial}` });
   await PersistableApi.restoreOrSeed(ship as unknown as Stuff, serial);
   const register = await StuffApi.singleton<ShipRegister>(REG);
   const words = await ship.commission(buyer, name, LANDING, register);
@@ -253,12 +253,12 @@ describe('Ship — her register, owners, flag and gangway (harbors B2)', () => {
     expect(ship.getRegisteredName()).toBe('Gull');
     expect(await ship.flagState()).toBe('test-city');
     const entry = await ship.registerEntry();
-    expect(entry).toMatchObject({ name: 'Gull', kind: KIND, key: `${KIND}#g1`, flag: 'test-city' });
+    expect(entry).toMatchObject({ name: 'Gull', kind: KIND, key: `${KIND}/g1`, flag: 'test-city' });
     expect(entry!.shares).toEqual([{ holder: { kind: 'player', path: '/platform/agent/Avatar/ann', name: ann.getPresentation() }, shares: 64 }]);
     expect(entry!.house).toBe(`${COMPANY}/g1`);
     expect(ship.getHouse()).toBe(`${COMPANY}/g1`);
     const company = StuffApi.findByTemplatePath<Stuff>(`${COMPANY}/g1`);
-    expect(company && MixinApi.isOrganization(company) && company.getAppointingAuthority()).toEqual({ kind: 'register', ship: `${KIND}#g1` });
+    expect(company && MixinApi.isOrganization(company) && company.getAppointingAuthority()).toEqual({ kind: 'register', ship: `${KIND}/g1` });
 
     // Her gangway: a fresh keyway, the bolt thrown.
     expect(ship.getGangwayKeyway()).toMatch(/^kw-/);
@@ -275,7 +275,7 @@ describe('Ship — her register, owners, flag and gangway (harbors B2)', () => {
     expect(ship.getBerth()).toBe(LANDING);
     const landing = await StuffApi.singleton<Stuff & Container & Exitable & FrameSited>(LANDING);
     expect(landing.getExit('gull')).toBeInstanceOf(BerthExit);
-    expect(await landing.lyingHere()).toEqual([`${KIND}#g1`]);
+    expect(await landing.lyingHere()).toEqual([`${KIND}/g1`]);
 
     // A second buyer may not take the name.
     await expect(buy(bob, 'g2', 'Gull')).rejects.toThrow(/register refused Gull/);
@@ -296,7 +296,7 @@ describe('Ship — her register, owners, flag and gangway (harbors B2)', () => {
     // Casting off, she tells the landing she has gone.
     await gull.castOff();
     await settle();
-    expect(await landing.lyingHere()).toEqual([`${KIND}#t1`]);
+    expect(await landing.lyingHere()).toEqual([`${KIND}/t1`]);
   });
 
   it('⭐⭐ after a restart, the landing\'s first use stands a sleeping smack up from its OWN roll — her way aboard is back', async () => {
@@ -308,13 +308,13 @@ describe('Ship — her register, owners, flag and gangway (harbors B2)', () => {
     await settle();
     StuffApi.clearAll();
     installV1QuantityMarshallers();
-    expect(StuffApi.findByDurableHandle(`${KIND}#r1`)).toBeNull();
+    expect((StuffApi.findByIdentityPath(`${KIND}/r1`)[0] ?? null)).toBeNull();
 
     // The landing comes back bare — no way aboard her (a way is runtime).
     const landing = await StuffApi.singleton<Stuff & Container & Exitable & FrameSited>(LANDING);
     expect(landing.getExit('razorbill')).toBeFalsy();
     // Its roll came back from its record — nobody asked a register.
-    expect(await landing.lyingHere()).toEqual([`${KIND}#r1`]);
+    expect(await landing.lyingHere()).toEqual([`${KIND}/r1`]);
     const roll = await PersistableApi.standUpKeyed(BERTH_ROLL_ROW, LANDING);
     expect(roll).toBeInstanceOf(BerthRoll);
 
@@ -326,13 +326,13 @@ describe('Ship — her register, owners, flag and gangway (harbors B2)', () => {
     await landing.frameSiteStood();
     await settle();
 
-    const woke = StuffApi.findByDurableHandle<Ship>(`${KIND}#r1`);
+    const woke = (StuffApi.findByIdentityPath<Ship>(`${KIND}/r1`)[0] ?? null);
     expect(woke).toBeInstanceOf(Ship);
     expect(woke!.isMoored()).toBe(true);
     expect(landing.getExit('razorbill')).toBeInstanceOf(BerthExit);
     // She knows her register still: her owner answers for her.
     expect(woke!.isManagingOwner(ann)).toBe(true);
-    expect(await landing.lyingHere()).toEqual([`${KIND}#r1`]);
+    expect(await landing.lyingHere()).toEqual([`${KIND}/r1`]);
   });
 
   it('a ship on the roll who stands up and is not made fast is struck off it at the landing\'s first use', async () => {
@@ -342,7 +342,7 @@ describe('Ship — her register, owners, flag and gangway (harbors B2)', () => {
     const landing = await StuffApi.singleton<Stuff & Container & FrameSited>(LANDING);
     expect(await landing.lyingHere()).toEqual([]);
     // A stale line on the roll, and she sleeps unmoored.
-    await landing.noteAlongside(`${KIND}#x1`);
+    await landing.noteAlongside(`${KIND}/x1`);
     await ship.sleep();
     await settle();
     landing.setFrameSite({ frame: '/test/frame', cite: 'here' });
@@ -372,7 +372,7 @@ describe('Ship — her register, owners, flag and gangway (harbors B2)', () => {
     way.setLocked(false);
     expect(way.isLocked()).toBe(false);
     await settle();
-    const woke = StuffApi.findByDurableHandle<Ship>(`${KIND}#s1`)!;
+    const woke = StuffApi.findByIdentityPath<Ship>(`${KIND}/s1`)[0]!;
     expect(woke).toBeInstanceOf(Ship);
     expect(woke.isGangwayLocked()).toBe(false);
     expect(woke.getGangwayKeyway()).toBe(keyway);

@@ -11,6 +11,7 @@ import type { CommandContext, CommandModel } from '../../../../api/command';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
+import type Place from '../../../../lib/stuff/Place';
 import { MixinApi } from '../../../../api/mixin';
 import { ExpanseApi } from '../../../../api/expanse';
 import type { Positioned } from '../../../../lib/expanse/Positioned';
@@ -52,7 +53,10 @@ export default class AnchorController extends CommandController<CommandModel> {
   /** The craft the giver is aboard — their root container's craft. */
   private async craftOf(giver: Stuff): Promise<(Stuff & Positioned & Voyaging) | null> {
     const root = MixinApi.isContainable(giver) ? giver.getRootContainer() ?? giver : giver;
-    const craft = await ExpanseApi.craftAt(root.getDurableHandle() ?? root.getTemplatePath() ?? '');
+    // The place is asked (a keyed room's craft is its warren's ship).
+    const craft = root.isPlace()
+      ? await (root as unknown as Place).craftHere()
+      : await ExpanseApi.craftAt(root.getIdentityPath() ?? '');
     return craft && MixinApi.isVoyaging(craft) ? craft : null;
   }
 

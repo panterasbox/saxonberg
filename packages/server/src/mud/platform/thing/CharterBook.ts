@@ -20,9 +20,9 @@ import Good from './Good';
 import type { CommandContributions } from '../../api/command';
 import type { FieldMeta } from '../../lib/mixin';
 import type { Stuff } from '../../lib/stuff/Stuff';
+import type Place from '../../lib/stuff/Place';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
-import { NavigationApi } from '../../api/navigation';
 import Ship from '../idea/Ship';
 
 export default class CharterBook extends Good {
@@ -100,9 +100,9 @@ export default class CharterBook extends Good {
   /** The ship whose room the book lies in, or `null`. */
   private async shipAboard(): Promise<Ship | null> {
     const room = MixinApi.isContainable(this) ? this.getContainer() : null;
-    const path = room?.getDurableHandle() ?? room?.getTemplatePath() ?? '';
-    if (path === '') return null;
-    const s = await NavigationApi.structureAt(path);
+    // The room is asked: its warren's ship, else its attachment.
+    if (!room || !room.isPlace()) return null;
+    const s = await (room as unknown as Place).structure();
     return s instanceof Ship ? s : null;
   }
 }

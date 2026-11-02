@@ -35,10 +35,10 @@ import Thing from '../../lib/stuff/Thing';
 import { ContainerMixin } from '../../lib/spatial/Container';
 import { StagedMixin } from '../../lib/stuff/Staged';
 import { MixinApi } from '../../api/mixin';
-import { NavigationApi } from '../../api/navigation';
 import { Mml } from '../../api/mml';
 import Ship from '../idea/Ship';
 import type { Stuff } from '../../lib/stuff/Stuff';
+import type Place from '../../lib/stuff/Place';
 import type { Container } from '../../lib/spatial/Container';
 import type { Containable } from '../../lib/spatial/Containable';
 import type { VetoResult } from '../../lib/errors';
@@ -66,12 +66,8 @@ export default class BilgeWell extends BilgeWellBase implements LiftSource, Pump
   public shipOf(): Ship | null {
     const room = this.getContainer();
     if (room === null) return null;
-    if (MixinApi.isWarrenMember(room)) {
-      const s = room.getWarren()?.structureOf() ?? null;
-      if (s instanceof Ship) return s;
-    }
-    const path = room.getDurableHandle() ?? room.getTemplatePath() ?? '';
-    const s = path === '' ? null : NavigationApi.structureAtNow(path);
+    // The room is asked: its warren's ship, else its attachment.
+    const s = room.isPlace() ? (room as unknown as Place).structureNow() : null;
     return s instanceof Ship ? s : null;
   }
 

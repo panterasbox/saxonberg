@@ -49,9 +49,10 @@ export class ExpanseApi {
    * container: a launched boat answers itself; a room answers the
    * Structure whose extent covers it, if that Structure has a position.
    *
-   * ⭐ `placePath` may be the root's **durable handle** (`row#key`,
-   * harbors P3) — a keyed room of a ship kind is answered by its warren.
-   * Callers pass `root.getDurableHandle() ?? root.getTemplatePath()`.
+   * ⭐ A row or a minted identity, never a keyed handle (`row#key`, which
+   * throws): a keyed room of a ship kind is answered by its warren, so a
+   * caller holding the room asks it — `Place.craftHere()` (harbors
+   * review 1).
    */
   public static craftAt(placePath: string): Promise<(Stuff & Positioned) | null> {
     return logic().craftAt(placePath);
@@ -69,11 +70,13 @@ export class ExpanseApi {
   }
 
   /**
-   * ⭐ The craft a durable handle names, standing (harbors B1): the live one
-   * when she is, else stood up — `row#key` through the persistence spine's
-   * resolve-first `standUpKeyed` (a ship of a kind asleep at her berth), a
-   * bare row through `StuffApi.singleton` (an authored ship). `null` when
-   * the handle names no craft or she will not stand.
+   * ⭐ The craft a durable handle names, standing (harbors B1, review 1):
+   * the live one filed at it when she is, else stood up — an authored
+   * ship's row through `StuffApi.singleton`; a ship of a kind's minted
+   * identity (`<kind row>/<serial>`) cloned from her kind under it and
+   * restored from her own record `(identity, serial)` (a ship asleep at
+   * her berth, or after a restart). `null` when the handle names no craft,
+   * has no record, or she will not stand.
    */
   public static standUpCraft(handle: string): Promise<(Stuff & Positioned & Voyaging) | null> {
     return logic().standUpCraft(handle);

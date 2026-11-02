@@ -230,8 +230,9 @@ export class TestHarnessLogic extends ApiLogic {
   /** See {@link TestHarnessApi.stageShip}. */
   @CallSecurity(TestHarnessApiCallers)
   public async stageShip(handle: string, spec: ShipStageSpec): Promise<ShipStageReport> {
-    // ⭐ A ship of a kind is named by her durable handle (`<kind>#<serial>`,
-    // harbors B2) and stood up if she sleeps; an authored ship by her row.
+    // ⭐ A ship is named by her handle — her identity: minted
+    // `<kind>/<serial>` for a ship of a kind (harbors review 1), her row for
+    // an authored ship — and stood up if she sleeps.
     // ⭐ B6: or by her NAME in a register (no leading `/`) — a drive knows
     // the name it gave her at `buy`, never the serial she was minted with.
     // The name is read in ONE register — the government's the spec names
@@ -245,11 +246,9 @@ export class TestHarnessLogic extends ApiLogic {
       if (entry === null) throw new Error(`testharness ship: the register of ${flag} has no ship named '${handle}'`);
       handle = entry.key;
     }
-    const found = handle.includes('#')
-      ? await ExpanseApi.standUpCraft(handle).catch(() => null)
-      : await StuffApi.singleton<Stuff>(handle).catch(() => null);
+    const found = await ExpanseApi.standUpCraft(handle).catch(() => null);
     if (!(found instanceof Ship)) {
-      throw new Error(`testharness ship: '${handle}' is not a ship (name her by her row path, or a ship of a kind by her handle)`);
+      throw new Error(`testharness ship: '${handle}' is not a ship (name her by her name, her row path, or a ship of a kind by her identity)`);
     }
     const ship = found;
     const wear = spec.hull !== undefined || spec.bilgeL !== undefined || spec.sleptDays !== undefined;

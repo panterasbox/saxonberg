@@ -16,8 +16,8 @@
 import { PullableMixin, type PullOutcome, type PullSense } from '../../lib/spatial/Pullable';
 import { MixinApi } from '../../api/mixin';
 import { Mml } from '../../api/mml';
-import { NavigationApi } from '../../api/navigation';
 import type { Stuff } from '../../lib/stuff/Stuff';
+import type Place from '../../lib/stuff/Place';
 import Fitting from './Fitting';
 import Ship from '../idea/Ship';
 
@@ -29,8 +29,8 @@ export default class Capstan extends PullableMixin(Fitting) {
   public override async pullBy(puller: Stuff, sense: PullSense | null): Promise<PullOutcome> {
     void sense;
     const room = MixinApi.isContainable(this) ? this.getContainer() : null;
-    const path = room?.getDurableHandle() ?? room?.getTemplatePath() ?? '';
-    const ship = path ? await NavigationApi.structureAt(path).catch(() => null) : null;
+    // The room is asked: its warren's ship, else its attachment.
+    const ship = room && room.isPlace() ? await (room as unknown as Place).structure().catch(() => null) : null;
     if (!(ship instanceof Ship) || ship.getLine() === null) {
       return { ok: false, reason: 'no-ship', line: 'The capstan turns freely; there is nothing on it.' };
     }

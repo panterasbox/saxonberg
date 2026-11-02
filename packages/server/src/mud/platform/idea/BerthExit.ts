@@ -11,13 +11,14 @@
  * - **Eager on its face** — its destination template is her entrance row,
  *   describable with nothing loaded; the deck is faulted in when the way is
  *   taken (`computeDestination`).
- * - **Hers by HANDLE** (harbors P3, B1) — the way names her durable handle
- *   (`<kind row>#<serial>` for a ship of a kind, her row for an authored
- *   ship), never a row path a second smack would share.
+ * - **Hers by HANDLE** (harbors P3, B1, review 1) — the way names her
+ *   identity (minted `<kind row>/<serial>` for a ship of a kind, her row
+ *   for an authored ship), never a row path a second smack would share.
  * - **It outlives her sleep** (B1): a ship of a kind asleep at her berth
  *   leaves this way on the landing, and taking it stands her up
- *   (`ExpanseApi.standUpCraft` → the spine's resolve-first `standUpKeyed`)
- *   and leads onto her deck.
+ *   (`ExpanseApi.standUpCraft` — cloned under her identity and restored
+ *   from her record) and leads onto her deck, which it asks HER for
+ *   (`watchRoom`): her rooms are found through her.
  * - **The gangway's lock is HERS** (P9): the bolt and the keyway are the
  *   ship's two facts, read by this way and by her deck's `ashore` alike.
  *   This way refuses a locked gangway to anybody without a key; leaving
@@ -79,7 +80,7 @@ export default class BerthExit extends LockableMixin(DeferredDestinationExit) {
   /** The ship, if she is standing (never stands her up). */
   public ship(): (Stuff & Berthed) | null {
     if (!this.shipHandle) return null;
-    return StuffApi.findByDurableHandle<Stuff & Berthed>(this.shipHandle);
+    return StuffApi.findByIdentityPath<Stuff & Berthed>(this.shipHandle).find((s) => !s.isDestroyed()) ?? null;
   }
 
   /** The ship, stood up if she sleeps. */

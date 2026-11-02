@@ -64,8 +64,8 @@ export default class SeaPatch extends SeaPatchBase {
     const self = this as unknown as Stuff & Exitable;
     for (const exit of self.getExits().values()) {
       if (!(exit instanceof SeaPatchExit) || exit.getWay() !== 'deck') continue;
-      // The way names her by her durable handle (harbors P3).
-      const ship = StuffApi.findByDurableHandle<Stuff>(exit.getTarget());
+      // The way names her by her handle — her identity (harbors P3, review 1).
+      const ship = StuffApi.findByIdentityPath<Stuff>(exit.getTarget()).find((s) => !s.isDestroyed()) ?? null;
       if (ship && MixinApi.isVoyaging(ship) && ship.getCourse() === null) return ship;
     }
     return null;

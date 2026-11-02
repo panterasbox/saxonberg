@@ -49,6 +49,9 @@ import { TemplatePaths } from '../paths';
 import { AppApi } from '../../api/app';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
+import { NavigationApi } from '../../api/navigation';
+import type Structure from '../../platform/idea/Structure';
+import type { Positioned } from '../expanse/Positioned';
 import type { Floor } from '../ground/Floor';
 import type { FieldMeta } from '../mixin';
 
@@ -252,6 +255,59 @@ export default class Place extends PlaceBase {
    */
   public override isPlace(): boolean {
     return true;
+  }
+
+  /**
+   * ⭐ The structure this place is part of, standing — never loads
+   * (harbors P3, review 1).
+   *
+   * A member of a warren is answered by its warren
+   * (`Warren.structureOf`): a ship's keyed room is keyed
+   * `(room row, <serial>/<leaf>)` and its row is every ship of that
+   * kind's, so no path can say which ship it is — the room is asked, and
+   * the room knows its warren. Otherwise the structure attached to its
+   * name in the location graph's record (`NavigationApi.structureAtNow`).
+   * A keyed room no warren claims for a structure (a dorm room) is in
+   * none: its row is not its name.
+   */
+  public structureNow(): Structure | null {
+    const own = this.warrenStructure();
+    if (own !== undefined) return own;
+    const name = this.getDurableHandle() ?? this.getTemplatePath();
+    return name ? NavigationApi.structureAtNow(name) : null;
+  }
+
+  /** {@link structureNow}, standing the attached candidates up first. */
+  public async structure(): Promise<Structure | null> {
+    const own = this.warrenStructure();
+    if (own !== undefined) return own;
+    const name = this.getDurableHandle() ?? this.getTemplatePath();
+    return name ? NavigationApi.structureAt(name) : null;
+  }
+
+  /**
+   * ⭐ The craft this place is part of, on a chart: the place itself when
+   * it has a position at sea (a patch of water), else its structure when
+   * that has one (a ship's deck). `null` ashore.
+   */
+  public async craftHere(): Promise<(Stuff & Positioned) | null> {
+    const self = this as unknown as Stuff;
+    if (MixinApi.isPositioned(self) && self.getExpansePosition() !== null) return self;
+    const s = (await this.structure()) as unknown as Stuff | null;
+    return s !== null && MixinApi.isPositioned(s) && s.getExpansePosition() !== null ? s : null;
+  }
+
+  /**
+   * The warren's answer: its structure, `null` for a keyed member it
+   * claims for none, `undefined` when the path is to be asked instead.
+   */
+  private warrenStructure(): Structure | null | undefined {
+    const self = this as unknown as Stuff;
+    if (MixinApi.isWarrenMember(self)) {
+      const s = self.getWarren()?.structureOf() ?? null;
+      if (s !== null && !s.isDestroyed()) return s as unknown as Structure;
+    }
+    return (this.getDurableHandle() ?? '').includes('#') ? null : undefined;
   }
 
   // `getVolume` / `getCeilingHeight` live on AtmosphericMixin (composed

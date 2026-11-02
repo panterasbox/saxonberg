@@ -5,6 +5,7 @@ import { ApiLogic } from "../../../lib/stuff/ApiLogic";
 import { CallSecurity, Unshadowable } from "../../../lib/security/decorators";
 import { SecurityPolicies } from "../../../lib/security/SecurityPolicies";
 import type { Stuff } from "../../../lib/stuff/Stuff";
+import type Place from "../../../lib/stuff/Place";
 import type { Container } from "../../../lib/spatial/Container";
 import { StuffApi } from "../../../api/stuff";
 import { AddressApi } from "../../../api/address";
@@ -16,7 +17,6 @@ import type { GovernmentDescriptor } from "../Government";
 import type { RosterAssignment } from "../../../lib/employment/Roster";
 import type { SeatView } from "../../../api/government";
 import type GovernmentCatalogue from "../GovernmentCatalogue";
-import { NavigationApi } from "../../../api/navigation";
 import type Ship from "../Ship";
 
 const GovernmentApiCallers = SecurityPolicies.FromModule(
@@ -67,9 +67,8 @@ async function shipAboard(scope: Stuff): Promise<Ship | null> {
     place = MixinApi.isContainable(place) ? place.getContainer() : null;
   }
   if (place === null) return null;
-  const path = place.getDurableHandle() ?? place.getTemplatePath() ?? "";
-  if (!path) return null;
-  const s = await NavigationApi.structureAt(path).catch(() => null);
+  // The place is asked: a keyed room's structure is its warren's.
+  const s = await (place as unknown as Place).structure().catch(() => null);
   if (s === null) return null;
   // Loaded on use: the ship's module sits above this one (an import here
   // would close a cycle through the register and the frame).

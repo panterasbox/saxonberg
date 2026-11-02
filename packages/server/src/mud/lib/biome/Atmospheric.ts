@@ -34,6 +34,7 @@
 import { SecurityApi } from '../../api/security';
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
+import type Place from '../stuff/Place';
 import { Quantity } from '../quantity';
 import type { Unit } from '../quantity';
 import { QuantityMarshaller } from '../../platform/idea/persistence/QuantityMarshaller';
@@ -1382,14 +1383,15 @@ export function AtmosphericMixin<
      */
     public exposure(): Exposure {
       const self = this as unknown as Stuff;
+      // A place is asked (a keyed room's structure is its warren's); a
+      // vessel by its own name.
       const path = self.getDurableHandle() ?? self.getTemplatePath();
       let structure: Structure | null = null;
-      if (path) {
-        try {
-          structure = NavigationApi.structureAtNow(path);
-        } catch {
-          structure = null;
-        }
+      try {
+        if (self.isPlace()) structure = (self as unknown as Place).structureNow();
+        else if (path && !path.includes('#')) structure = NavigationApi.structureAtNow(path);
+      } catch {
+        structure = null;
       }
       // ⚠ An UNDECLARED place's answer is its biome's, and a biome
       // resolves after the room materializes (the Floor snow lesson) — so

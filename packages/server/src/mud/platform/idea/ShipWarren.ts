@@ -98,7 +98,8 @@ export default class ShipWarren extends FloorplanWarren {
       this.extentRows = Template.findDescendants(ext).then((ts) => ts.map((t) => t.path));
     }
     for (const path of await this.extentRows) {
-      const room = StuffApi.findByDurableHandle<Stuff>(path);
+      // An authored room is a row of its own: its one instance, by its path.
+      const room = StuffApi.findByIdentityPath<Stuff>(path).find((r) => !r.isDestroyed()) ?? null;
       if (room === null || !room.isPlace() || !MixinApi.isContainer(room)) continue;
       if (this.hasMember(room)) continue;
       this.addMember(room);

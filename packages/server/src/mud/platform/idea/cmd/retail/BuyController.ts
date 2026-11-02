@@ -343,8 +343,19 @@ export default class BuyController extends CommandController<BuyModel> {
       });
       return;
     }
-    const ship = await StuffApi.clone<Ship>(kind);
-    await PersistableApi.restoreOrSeed(ship as unknown as Stuff, SecurityApi.uuid());
+    // ⭐ A ship of a kind is a minted identity under her kind (harbors
+    // review 1): `<kind row>/<serial>`, the company's scheme — her handle,
+    // what her register entry, her berth's way, the landing's roll and her
+    // charters name her by. Her record is `(identity, serial)` (the
+    // drilling hole's / stall counter's shape), stood up again by
+    // `ExpanseApi.standUpCraft`.
+    const serial = SecurityApi.uuid();
+    const ship = await StuffApi.clone<Ship>(kind, undefined, {
+      // identity-keyed-by: own-record — her `holder_snapshots` record is
+      // filed under it, and her register entry's `key` names it.
+      asIdentityPath: `${kind}/${serial}`,
+    });
+    await PersistableApi.restoreOrSeed(ship as unknown as Stuff, serial);
     const words = await ship.commission(giver, name, deliversTo, register);
     MessageApi.scene(giver)
       .topic(TOPIC)

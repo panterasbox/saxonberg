@@ -22,8 +22,8 @@ import type { Tooled } from '../../../lib/craft/Tooled';
 import { CompetenceBand, type CompetenceBandName } from '../../../lib/advancement/CompetenceBand';
 import type { CommandContext } from '../../../api/command';
 import type { Stuff } from '../../../lib/stuff/Stuff';
+import type Place from '../../../lib/stuff/Place';
 import { MixinApi } from '../../../api/mixin';
-import { NavigationApi } from '../../../api/navigation';
 import { Mml } from '../../../api/mml';
 import { Quantity } from '../../../lib/quantity';
 import Ship from '../Ship';
@@ -68,12 +68,9 @@ export default class BilgeReading extends Reading {
   private async shipUnder(who: Stuff): Promise<Ship | null> {
     const room = this.placeOf(who);
     if (room === null) return null;
-    if (MixinApi.isWarrenMember(room)) {
-      const s = room.getWarren()?.structureOf() ?? null;
-      if (s instanceof Ship) return s;
-    }
-    const path = room.getDurableHandle() ?? room.getTemplatePath() ?? '';
-    const s = path === '' ? null : await NavigationApi.structureAt(path).catch(() => null);
+    // The room is asked: its warren's ship, else its attachment.
+    if (!room.isPlace()) return null;
+    const s = await (room as unknown as Place).structure().catch(() => null);
     return s instanceof Ship ? s : null;
   }
 }

@@ -52,8 +52,8 @@ import { AppApi } from '@saxonberg/server/mud/api/app';
 import { WeatherApi } from '@saxonberg/server/mud/api/weather';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
-import { NavigationApi } from '@saxonberg/server/mud/api/navigation';
 import type { Stuff, EvictionContext } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type Place from '@saxonberg/server/mud/lib/stuff/Place';
 import type { VetoResult } from '@saxonberg/server/mud/lib/errors';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
@@ -1114,8 +1114,8 @@ export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWar
   public async launchPlaceFor(from: Stuff): Promise<(Stuff & Container) | null> {
     // ⭐ A ship's deck on a river (D28, D30): her boat goes into the water
     // where she lies — and comes back up onto her deck while she is within hail.
-    const deckPath = from.getDurableHandle() ?? from.getTemplatePath();
-    const ship = deckPath ? await NavigationApi.structureAt(deckPath).catch(() => null) : null;
+    // The deck is asked: a keyed deck's ship is its warren's (harbors P3).
+    const ship = from.isPlace() ? ((await (from as unknown as Place).structure().catch(() => null)) as unknown as Stuff | null) : null;
     if (ship && MixinApi.isPositioned(ship) && ship.getLinePosition() !== null && MixinApi.isVoyaging(ship)) {
       if (ship.getCourse() !== null) return null;
       const pos = ship.getLinePosition()!;
@@ -1142,7 +1142,8 @@ export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWar
     if (pos === null || cat === null) return null;
     // Back up onto the deck of the ship she came off, while that ship lies within hail.
     const shipPath = this._shipOf.get(from.stuffId) ?? null;
-    const ship = shipPath ? StuffApi.findByDurableHandle<Stuff>(shipPath) : null;
+    // She is filed at her handle — her identity (harbors review 1).
+    const ship = shipPath ? StuffApi.findByIdentityPath<Stuff>(shipPath).find((s) => !s.isDestroyed()) ?? null : null;
     if (ship && MixinApi.isPositioned(ship) && MixinApi.isVoyaging(ship) && ship.getCourse() === null) {
       const at = ship.getLinePosition();
       if (at && at.course === pos.course && Math.abs(at.km - pos.km) <= this.hailM() / 1000) {
@@ -1427,8 +1428,8 @@ export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWar
     const own = this.ownPosition(source);
     if (own !== null) return own;
     // ⭐ A ship's deck on a river (D29): over the side is the water where she is.
-    const path = source.getDurableHandle() ?? source.getTemplatePath();
-    const ship = path ? await NavigationApi.structureAt(path).catch(() => null) : null;
+    // The deck is asked: a keyed deck's ship is its warren's (harbors P3).
+    const ship = source.isPlace() ? ((await (source as unknown as Place).structure().catch(() => null)) as unknown as Stuff | null) : null;
     if (ship && MixinApi.isPositioned(ship) && ship.getLinePosition() !== null) return ship.getLinePosition();
     // A bank on the line: the margin of the water beside it.
     if (this.bankOf(source) !== null) {

@@ -120,12 +120,12 @@ describe('TestHarnessApi', () => {
       expect(named).toHaveBeenCalledWith('Petrel');
       await expect(TestHarnessApi.stageShip('Petrel', { hull: 'worn', flag: 'nowhere' })).rejects.toThrow(/nowhere keeps no register/);
       // Named under another flag: that government's register is the one read; her handle is what is looked up.
-      vi.spyOn(isle, 'entryNamed').mockResolvedValue({ key: '/stuff/idea/Ship/smack#abc' } as never);
+      vi.spyOn(isle, 'entryNamed').mockResolvedValue({ key: '/stuff/idea/Ship/smack/abc' } as never);
       vi.spyOn(StuffApi, 'singleton').mockImplementation((async (p: string) => {
         if (p === '/test/reg/isle') return isle;
         throw new Error('none');
       }) as never);
-      await expect(TestHarnessApi.stageShip('Petrel', { hull: 'worn', flag: 'test-isle' })).rejects.toThrow(/'\/stuff\/idea\/Ship\/smack#abc' is not a ship/);
+      await expect(TestHarnessApi.stageShip('Petrel', { hull: 'worn', flag: 'test-isle' })).rejects.toThrow(/'\/stuff\/idea\/Ship\/smack\/abc' is not a ship/);
       govs.mockRestore();
     });
 

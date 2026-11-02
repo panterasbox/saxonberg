@@ -46,7 +46,7 @@ const COLUMN_EXIT_KIND = '/system/water/idea/exits/column';
 
 /** One wreck lying under this water. */
 export interface WreckRecord {
-  /** Her durable handle (`<kind row>#<serial>`, or her row). */
+  /** Her handle — her identity (minted `<kind row>/<serial>`, or her row). */
   ship: string;
   /** Her name as she went down. */
   name: string;
@@ -139,7 +139,7 @@ export function WreckSiteMixin<TBase extends MixinConstructor<SiteHost>>(Base: T
           await (deck as unknown as SiteHost).installExit<ColumnExit>(
             COLUMN_EXIT_KIND,
             { direction: 'up', source: deck as unknown as SiteHost, destinationPath: surfacePath, media: ['water'] },
-            (e) => e.configureColumn(surfacePath, target),
+            (e) => e.configureColumn(surfacePath, target, self as unknown as Stuff & Container),
           );
         } catch (err) {
           console.warn(`WreckSite: the way out of ${w.name} was not wired:`, err);

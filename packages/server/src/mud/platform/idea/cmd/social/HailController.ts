@@ -23,6 +23,7 @@ import { Mml } from '../../../../api/mml';
 import { MixinApi } from '../../../../api/mixin';
 import { WorldClockApi } from '../../../../api/worldclock';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
+import type Place from '../../../../lib/stuff/Place';
 import { ExpanseApi } from '../../../../api/expanse';
 import type { Positioned } from '../../../../lib/expanse/Positioned';
 import type { Voyaging } from '../../../../lib/expanse/Voyaging';
@@ -82,7 +83,10 @@ export default class HailController extends CommandController<HailModel> {
   /** The craft the giver is aboard — their root container's craft. */
   private async craftOf(giver: Stuff): Promise<(Stuff & Positioned & Voyaging) | null> {
     const root = MixinApi.isContainable(giver) ? giver.getRootContainer() ?? giver : giver;
-    const craft = await ExpanseApi.craftAt(root.getDurableHandle() ?? root.getTemplatePath() ?? '');
+    // The place is asked (a keyed room's craft is its warren's ship).
+    const craft = root.isPlace()
+      ? await (root as unknown as Place).craftHere()
+      : await ExpanseApi.craftAt(root.getIdentityPath() ?? '');
     return craft && MixinApi.isVoyaging(craft) ? craft : null;
   }
 

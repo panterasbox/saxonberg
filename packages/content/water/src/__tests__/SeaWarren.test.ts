@@ -6,7 +6,6 @@
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
-import { NavigationApi } from '@saxonberg/server/mud/api/navigation';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { GeoPosition } from '@saxonberg/server/mud/lib/expanse/GeoPosition';
 import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
@@ -38,10 +37,6 @@ beforeEach(() => {
   ships = {};
   rooms = [];
   installed = [];
-  vi.spyOn(NavigationApi, 'structureAt').mockImplementation((async (p: string) => {
-    const name = p.split('/')[2] ?? '';
-    return (ships[name] ?? null) as never;
-  }) as never);
   vi.spyOn(MixinApi, 'isVoyaging').mockReturnValue(true);
   vi.spyOn(MixinApi, 'isPositioned').mockReturnValue(true);
   vi.spyOn(StuffApi, 'clone').mockImplementation((async (row: string) => {
@@ -68,7 +63,14 @@ afterEach(() => {
   StuffApi.clearAll();
 });
 
-const deck = (name: string) => ({ getTemplatePath: () => `/ship/${name}/deck`, getDurableHandle: () => null }) as unknown as Stuff;
+// ⭐ A deck is ASKED which ship it is (`Place.structure`, harbors review 1).
+const deck = (name: string) =>
+  ({
+    getTemplatePath: () => `/ship/${name}/deck`,
+    getDurableHandle: () => null,
+    isPlace: () => true,
+    structure: async () => ships[name] ?? null,
+  }) as unknown as Stuff;
 
 describe('SeaWarren (river D30)', () => {
   it('⭐ a boat goes into the water beside a ship that has stopped — on the chart where she lies', async () => {

@@ -202,7 +202,8 @@ export function FrameSitedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBa
       const here = (this as unknown as Stuff).getTemplatePath();
       if (!here) return;
       for (const handle of await this.lyingHere()) {
-        if (StuffApi.findByDurableHandle(handle) !== null) continue;
+        // A ship is filed at her handle — her identity (review 1).
+        if (StuffApi.findByIdentityPath(handle).some((s) => !s.isDestroyed())) continue;
         const ship = await ExpanseApi.standUpCraft(handle);
         if (ship === null) {
           // Kept: a ship that did not stand up now (said by the stand-up) may tomorrow.

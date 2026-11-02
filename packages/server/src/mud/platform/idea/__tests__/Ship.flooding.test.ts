@@ -147,9 +147,9 @@ function pinClock(): void {
   vi.spyOn(WorldClockApi, 'getNow').mockImplementation(() => Quantity.of(now, 's'));
 }
 
-/** Mint a ship of the kind, keyed `serial`, standing. */
+/** Mint a ship of the kind under `<kind>/<serial>` (as `buy` does), standing. */
 async function mint(serial: string): Promise<Ship> {
-  const ship = await StuffApi.clone<Ship>(KIND);
+  const ship = await StuffApi.clone<Ship>(KIND, undefined, { asIdentityPath: `${KIND}/${serial}` });
   await PersistableApi.restoreOrSeed(ship as unknown as Stuff, serial);
   return ship;
 }
@@ -304,7 +304,7 @@ describe('Ship — flooding, settling, sinking (harbors B5)', () => {
     expect(deck.isWaterNow()).toBe(true);
     // ⭐ The register entry and her title are not hers to lose by sinking: she is still the ship.
     expect(ship.isDestroyed()).toBe(false);
-    expect(ship.getDurableHandle()).toBe(`${KIND}#n1`);
+    expect(ship.getDurableHandle()).toBe(`${KIND}/n1`);
   });
 
   it('⭐ pumped back below her deck in time, she holds', async () => {

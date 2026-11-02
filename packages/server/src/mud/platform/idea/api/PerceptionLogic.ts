@@ -1232,8 +1232,8 @@ function craftAboard(viewer: Stuff): Craft | null {
   const root = MixinApi.isContainable(viewer) ? viewer.getRootContainer() ?? viewer : viewer;
   if (MixinApi.isVoyaging(root) && !root.isDestroyed()) return root as Craft;
   const room = roomOf(viewer);
-  const path = room?.getDurableHandle() ?? room?.getTemplatePath() ?? '';
-  const s = path ? NavigationApi.structureAtNow(path) : null;
+  // The room is asked: a keyed room's structure is its warren's.
+  const s = room !== null && room.isPlace() ? (room as unknown as Place).structureNow() : null;
   return s && MixinApi.isVoyaging(s) && !s.isDestroyed() ? (s as unknown as Craft) : null;
 }
 

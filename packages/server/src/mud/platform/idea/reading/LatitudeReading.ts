@@ -27,6 +27,7 @@ import { CelestialApi } from '../../../api/celestial';
 import { WorldClockApi } from '../../../api/worldclock';
 import type { CommandContext } from '../../../api/command';
 import type { Stuff } from '../../../lib/stuff/Stuff';
+import type Place from '../../../lib/stuff/Place';
 import type { Tooled } from '../../../lib/craft/Tooled';
 import type { CompetenceBandName } from '../../../lib/advancement/CompetenceBand';
 import type { Positioned } from '../../../lib/expanse/Positioned';
@@ -103,7 +104,10 @@ export default class LatitudeReading extends Reading {
 
   private async craftOf(who: Stuff): Promise<(Stuff & Positioned & Voyaging) | null> {
     const root = MixinApi.isContainable(who) ? who.getRootContainer() ?? who : who;
-    const craft = await ExpanseApi.craftAt(root.getDurableHandle() ?? root.getTemplatePath() ?? '');
+    // The place is asked (a keyed room's craft is its warren's ship).
+    const craft = root.isPlace()
+      ? await (root as unknown as Place).craftHere()
+      : await ExpanseApi.craftAt(root.getIdentityPath() ?? '');
     return craft && MixinApi.isVoyaging(craft) ? craft : null;
   }
 }

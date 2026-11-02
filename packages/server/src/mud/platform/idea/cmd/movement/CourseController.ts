@@ -31,6 +31,7 @@ import { Expanse } from '../../../../lib/expanse/Expanse';
 import { AccountabilityApi } from '../../../../api/accountability';
 import { SpeciesApi } from '../../../../api/species';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
+import type Place from '../../../../lib/stuff/Place';
 import type { Positioned } from '../../../../lib/expanse/Positioned';
 import type { Voyaging } from '../../../../lib/expanse/Voyaging';
 
@@ -166,11 +167,12 @@ export default class CourseController extends CommandController<CourseModel> {
   /** The craft the giver is aboard — their root container's craft, at sea or on a river. */
   private async craftOf(giver: Stuff): Promise<Craft | null> {
     const root = MixinApi.isContainable(giver) ? giver.getRootContainer() ?? giver : giver;
-    // ⭐ By her durable handle (harbors P3): a keyed room of a ship kind is answered by its warren.
-    const path = root.getDurableHandle() ?? root.getTemplatePath() ?? '';
-    const craft = await ExpanseApi.craftAt(path);
+    // ⭐ The place is asked (harbors P3): a keyed room of a ship kind is answered by its warren.
+    const place = root.isPlace() ? (root as unknown as Place) : null;
+    const path = root.getIdentityPath() ?? '';
+    const craft = place !== null ? await place.craftHere() : await ExpanseApi.craftAt(path);
     if (craft && MixinApi.isVoyaging(craft)) return craft;
-    const s = path ? await NavigationApi.structureAt(path) : null;
+    const s = place !== null ? await place.structure() : path ? await NavigationApi.structureAt(path) : null;
     return s && MixinApi.isPositioned(s) && MixinApi.isVoyaging(s) && s.getLine() !== null ? s : null;
   }
 

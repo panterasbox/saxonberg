@@ -45,21 +45,37 @@ export default class ColumnExit extends DeferredDestinationExit {
   /** The band it led to when last resolved (runtime). */
   private _now: (Stuff & Container) | null = null;
 
-  /** Name the column and the band (the `installExit` configure step). */
-  public configureColumn(surfacePath: string, target: ColumnTarget): void {
+  /**
+   * The surface itself, as it was handed over or last stood up (runtime):
+   * a keyed stop's handle (`row#key`) is its name, not a way to find it —
+   * the live ref is (harbors review 1).
+   */
+  private _surface: (Stuff & Container) | null = null;
+
+  /** Name the column and the band (the `installExit` configure step), with the surface when it is to hand. */
+  public configureColumn(surfacePath: string, target: ColumnTarget, surface?: Stuff & Container): void {
     this.surfacePath = surfacePath;
     this.target = target;
+    if (surface !== undefined) this._surface = surface;
   }
 
   public getTarget(): ColumnTarget {
     return this.target;
   }
 
+  /**
+   * The surface standing now — never stood up: the live ref; else, for a
+   * surface named by its row or identity, the one thing filed there. A
+   * keyed stop gone from memory is stood up again by its record
+   * ({@link standSurface}).
+   */
   private surface(): (Stuff & Container) | null {
-    const s = this.surfacePath
-      ? StuffApi.findByDurableHandle<Stuff>(this.surfacePath) ?? StuffApi.findByTemplatePath<Stuff>(this.surfacePath)
-      : null;
-    return s && !s.isDestroyed() && MixinApi.isContainer(s) ? s : null;
+    const live = this._surface;
+    if (live !== null && !live.isDestroyed()) return live;
+    if (!this.surfacePath || this.surfacePath.includes('#')) return null;
+    const filed = StuffApi.findByIdentityPath<Stuff>(this.surfacePath).filter((s) => !s.isDestroyed());
+    const s = filed.length === 1 ? filed[0]! : null;
+    return s !== null && MixinApi.isContainer(s) ? s : null;
   }
 
   /**
@@ -116,10 +132,15 @@ export default class ColumnExit extends DeferredDestinationExit {
     const hash = this.surfacePath.indexOf('#');
     if (hash > 0) {
       const stood = await PersistableApi.standUpKeyed(this.surfacePath.slice(0, hash), this.surfacePath.slice(hash + 1));
-      if (stood !== null && MixinApi.isContainer(stood)) return stood;
+      if (stood !== null && MixinApi.isContainer(stood)) {
+        this._surface = stood;
+        return stood;
+      }
       throw new Error(`ColumnExit: ${this.surfacePath} does not stand`);
     }
-    return StuffApi.singleton<Stuff & Container>(this.surfacePath);
+    const s = await StuffApi.singleton<Stuff & Container>(this.surfacePath);
+    this._surface = s;
+    return s;
   }
 
   /**

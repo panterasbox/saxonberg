@@ -39,6 +39,7 @@
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
+import type Place from '../stuff/Place';
 import type { Container } from '../spatial/Container';
 import type { Containable } from '../spatial/Containable';
 import type { Mobile } from '../spatial/Mobile';
@@ -56,7 +57,6 @@ import type { CommandContributions } from '../../api/command';
 import { MixinApi } from '../../api/mixin';
 import { BiomeApi } from '../../api/biome';
 import { StuffApi } from '../../api/stuff';
-import { NavigationApi } from '../../api/navigation';
 import { ContainmentApi } from '../../api/containment';
 import { BulkableApi } from '../../api/bulk';
 import { WorldClockApi } from '../../api/worldclock';
@@ -874,14 +874,13 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
       void this.reconcileOccupants();
       // ⭐ Over a ship's side (river D30): she keeps who went into the water
       // off her, and her `course` waits for them (`Voyaging.noteOverboard`).
-      const from = via?.getSource() ?? null;
-      const fromPath = from?.getDurableHandle() ?? from?.getTemplatePath() ?? '';
-      const ship = fromPath ? NavigationApi.structureAtNow(fromPath) : null;
+      // Both places are asked (`Place.structureNow`): a keyed room's
+      // structure is its warren's.
+      const from = (via?.getSource() ?? null) as Stuff | null;
+      const ship = from !== null && from.isPlace() ? (from as unknown as Place).structureNow() : null;
       // ⭐ From one of her rooms into another (harbors B5: a compartment is
       // a water place) is not over her side.
-      const selfStuff = this as unknown as Stuff;
-      const selfPath = selfStuff.getDurableHandle() ?? selfStuff.getTemplatePath() ?? '';
-      const ownRoom = ship !== null && selfPath !== '' && NavigationApi.structureAtNow(selfPath) === ship;
+      const ownRoom = ship !== null && (this as unknown as Place).structureNow() === ship;
       if (ship !== null && !ownRoom && MixinApi.isVoyaging(ship)) ship.noteOverboard(mover);
       const floor = this.waterFloor();
       if (floor === null || !floor.supportIsSlotted()) return;

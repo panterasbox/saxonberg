@@ -98,7 +98,7 @@ export interface ShipEntry {
   name: string;
   /** The row she was built from — her kind (`/stuff/idea/Ship/smack`), or her own row. */
   kind: string;
-  /** Her durable handle (`<kind>#<serial>`, or her own row for an authored ship). */
+  /** Her handle — her identity (minted `<kind>/<serial>`, or her own row for an authored ship). */
   key: string;
   /** The flag state — the register's government key. */
   flag: string;

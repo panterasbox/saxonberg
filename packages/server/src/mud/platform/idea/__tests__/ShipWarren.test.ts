@@ -170,11 +170,16 @@ function fakeLine(): Rope {
   } as unknown as Rope;
 }
 
-/** Mint a ship of the kind, keyed `serial`, and stand her up. */
+/** Mint a ship of the kind under her identity `<kind>/<serial>` (as `buy` does), and stand her up. */
 async function mint(serial: string): Promise<Ship> {
-  const ship = await StuffApi.clone<Ship>(KIND);
+  const ship = await StuffApi.clone<Ship>(KIND, undefined, { asIdentityPath: `${KIND}/${serial}` });
   await PersistableApi.restoreOrSeed(ship as unknown as Stuff, serial);
   return ship;
+}
+
+/** The one live thing filed at `path` (a ship at her identity). */
+function filed<T extends Stuff>(path: string): T | null {
+  return (StuffApi.findByIdentityPath<T>(path).find((s) => !s.isDestroyed()) ?? null) as T | null;
 }
 
 async function deckOf(ship: Ship): Promise<Stuff & Container> {
@@ -200,12 +205,15 @@ describe('ShipWarren — ships from a kind (harbors B1)', () => {
   it('⭐ two smacks of one kind are keyed apart — rooms, contents, handles, and which ship a room is', async () => {
     const a = await mint('a1');
     const b = await mint('b2');
-    expect(a.getDurableHandle()).toBe(`${KIND}#a1`);
-    expect(b.getDurableHandle()).toBe(`${KIND}#b2`);
-    expect(StuffApi.findByDurableHandle(`${KIND}#a1`)).toBe(a);
-    expect(StuffApi.findByDurableHandle(`${KIND}#b2`)).toBe(b);
-    // The row is every smack's: it is no durable name for either.
-    expect(StuffApi.findByDurableHandle(KIND)).toBeNull();
+    // ⭐ A ship of a kind is a minted identity (review 1): her handle IS it.
+    expect(a.getDurableHandle()).toBe(`${KIND}/a1`);
+    expect(b.getDurableHandle()).toBe(`${KIND}/b2`);
+    expect(a.getIdentityPath()).toBe(`${KIND}/a1`);
+    expect(filed(`${KIND}/a1`)).toBe(a);
+    expect(filed(`${KIND}/b2`)).toBe(b);
+    expect(a.isOfKind()).toBe(true);
+    // The row is every smack's: nothing is filed at it.
+    expect(filed(KIND)).toBeNull();
 
     const deckA = await deckOf(a);
     const deckB = await deckOf(b);
@@ -224,10 +232,13 @@ describe('ShipWarren — ships from a kind (harbors B1)', () => {
     expect(deckB.getContents()).not.toContain(crate);
     expect(await a.cargoKg()).toBeGreaterThanOrEqual(0);
 
-    // Which ship a room is: its warren's answer, by the room's handle.
-    expect(await NavigationApi.structureAt(deckA.getDurableHandle()!)).toBe(a);
-    expect(await NavigationApi.structureAt(deckB.getDurableHandle()!)).toBe(b);
-    expect(NavigationApi.structureAtNow(`${HOLD}#b2/hold`)).toBe(b);
+    // Which ship a room is: its warren's answer — the ROOM is asked.
+    expect(await (deckA as unknown as Compartment).structure()).toBe(a);
+    expect(await (deckB as unknown as Compartment).structure()).toBe(b);
+    const holdB = (deckB as unknown as Exitable).getExit('down')!.getDestination() as unknown as Compartment;
+    expect(holdB.structureNow()).toBe(b);
+    // A keyed room's handle names it; it is no way to find it.
+    expect(() => NavigationApi.structureAtNow(`${HOLD}#b2/hold`)).toThrow(/ask the place/);
     expect(MixinApi.isWarrenMember(deckA) && deckA.getWarren()).toBeInstanceOf(ShipWarren);
   });
 
@@ -264,10 +275,10 @@ describe('ShipWarren — ships from a kind (harbors B1)', () => {
     interactive.mockRestore();
 
     // Asleep is captured: her record, her warren's, each room's.
-    expect(await PersistableApi.hasRecord(KIND, 's1')).toBe(true);
+    expect(await PersistableApi.hasRecord(`${KIND}/s1`, 's1')).toBe(true);
     expect(await PersistableApi.hasRecord(HOLD, 's1/hold')).toBe(true);
     // Woken: the hold still holds the crate.
-    const back = await ExpanseApi.standUpCraft(`${KIND}#s1`);
+    const back = await ExpanseApi.standUpCraft(`${KIND}/s1`);
     expect(back).toBeInstanceOf(Ship);
     const deck2 = await deckOf(back as unknown as Ship);
     const hold2 = (deck2 as unknown as Exitable).getExit('down')!.getDestination() as unknown as Stuff & Container;
@@ -282,7 +293,7 @@ describe('ShipWarren — ships from a kind (harbors B1)', () => {
     const landing = await StuffApi.singleton<Stuff & Container & Exitable>(LANDING);
     const way = landing.getExit('smack');
     expect(way).toBeInstanceOf(BerthExit);
-    expect((way as BerthExit).getShipHandle()).toBe(`${KIND}#w1`);
+    expect((way as BerthExit).getShipHandle()).toBe(`${KIND}/w1`);
 
     await ship.sleep();
     expect(ship.isDestroyed()).toBe(true);
@@ -293,7 +304,7 @@ describe('ShipWarren — ships from a kind (harbors B1)', () => {
 
     const deck = await (way as BerthExit).resolveDestination();
     expect(deck.getDurableHandle()).toBe(`${DECK}#w1/deck`);
-    const woke = StuffApi.findByDurableHandle<Ship>(`${KIND}#w1`)!;
+    const woke = filed<Ship>(`${KIND}/w1`)!;
     expect(woke).not.toBe(ship);
     expect(woke.isMoored()).toBe(true);
     expect(woke.getBerth()).toBe(LANDING);
@@ -302,22 +313,25 @@ describe('ShipWarren — ships from a kind (harbors B1)', () => {
     expect((way as BerthExit).ship()).toBe(woke);
   });
 
-  it('⭐ a restart: standUpKeyed resolves first, and brings her back from her record', async () => {
+  it('⭐ a restart: standUpCraft resolves first, and brings her back from her record under her identity', async () => {
     const ship = await mint('r1');
     ship.setAground(true);
     await PersistableApi.capture(ship as unknown as Stuff);
     // Resolve-first: asked while she stands, the one ship.
-    expect(await PersistableApi.standUpKeyed(KIND, 'r1')).toBe(ship);
+    expect(await ExpanseApi.standUpCraft(`${KIND}/r1`)).toBe(ship);
 
     // The process ends: nothing stands. Her record does.
     StuffApi.clearAll();
-    const back = await PersistableApi.standUpKeyed(KIND, 'r1');
+    const back = await ExpanseApi.standUpCraft(`${KIND}/r1`);
     expect(back).toBeInstanceOf(Ship);
     expect(back).not.toBe(ship);
-    expect((back as Ship).isAground()).toBe(true);
-    expect((back as Ship).getDurableHandle()).toBe(`${KIND}#r1`);
-    expect(await PersistableApi.standUpKeyed(KIND, 'r1')).toBe(back);
-    const deck = await (back as Ship).watchRoom();
+    expect((back as unknown as Ship).isAground()).toBe(true);
+    expect((back as unknown as Ship).getDurableHandle()).toBe(`${KIND}/r1`);
+    expect(await ExpanseApi.standUpCraft(`${KIND}/r1`)).toBe(back);
+    // A serial with no record names nothing: nothing is minted.
+    expect(await ExpanseApi.standUpCraft(`${KIND}/nobody`)).toBeNull();
+    expect(filed(`${KIND}/nobody`)).toBeNull();
+    const deck = await (back as unknown as Ship).watchRoom();
     expect(deck?.getDurableHandle()).toBe(`${DECK}#r1/deck`);
   });
 
@@ -352,7 +366,8 @@ describe('ShipWarren — ships from a kind (harbors B1)', () => {
     expect(warren).toBeInstanceOf(ShipWarren);
     expect((hold as unknown as { getWarren(): ShipWarren | null }).getWarren()).toBe(warren);
     expect(warren!.ship()).toBe(ship);
-    expect(await NavigationApi.structureAt(A_DECK)).toBe(ship);
+    // The deck is asked: its warren says (a path read is the location graph's alone).
+    expect(await (deck as unknown as Compartment).structure()).toBe(ship);
 
     // The last one off an authored ship: she stands while her zone does.
     ContainmentApi.move(who, hold);

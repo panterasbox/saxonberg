@@ -45,7 +45,6 @@ import { WaterPlaceMixin, type WaterState } from '../../lib/location/WaterPlace'
 import { PersistableMixin } from '../../lib/persistence/Persistable';
 import { WarrenMemberMixin } from '../../lib/location/WarrenMember';
 import { MixinApi } from '../../api/mixin';
-import { NavigationApi } from '../../api/navigation';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../../lib/config/AppSettings';
 import Ship from '../idea/Ship';
@@ -100,12 +99,8 @@ export default class Compartment extends WaterPlaceMixin(
 
   /** The ship this room is a room of, standing — `null` when none is. */
   public shipNow(): Ship | null {
-    const w = this.getWarren();
-    const s = w !== null ? w.structureOf() : null;
-    if (s instanceof Ship) return s;
-    const path = this.getDurableHandle() ?? this.getTemplatePath() ?? '';
-    const found = path === '' ? null : NavigationApi.structureAtNow(path);
-    return found instanceof Ship ? found : null;
+    const s = this.structureNow();
+    return s instanceof Ship ? s : null;
   }
 
   /* ─────────────────────────── the flood reads ─────────────────────────── */
@@ -261,8 +256,7 @@ export default class Compartment extends WaterPlaceMixin(
   /** Ask the ship this room is a room of to adopt it (an authored ship's warren adopts on read). */
   private async joinShip(): Promise<void> {
     try {
-      const path = this.getDurableHandle() ?? this.getTemplatePath() ?? '';
-      const ship = path === '' ? null : await NavigationApi.structureAt(path);
+      const ship = await this.structure();
       if (!(ship instanceof Ship)) return;
       await (await ship.standWarren())?.adoptResident();
     } catch (err) {

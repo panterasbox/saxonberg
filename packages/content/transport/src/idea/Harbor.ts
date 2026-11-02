@@ -650,7 +650,7 @@ export default class Harbor extends PersistableMixin(SingletonMixin(Idea)) {
 
   /**
    * The ship a handle names, standing (harbors B1): an authored ship's row,
-   * or a kind's `<row>#<serial>` stood up from her sleep by the spine.
+   * or a kind's minted identity `<row>/<serial>` stood up from her record.
    */
   private async shipOf(handle: string): Promise<Ship | null> {
     const s = await ExpanseApi.standUpCraft(handle);

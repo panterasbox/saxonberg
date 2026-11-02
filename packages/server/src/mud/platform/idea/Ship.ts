@@ -1101,8 +1101,9 @@ export default class Ship extends BilgeMixin(PersistableMixin(
       const room = this._warren?.entryRoom() ?? null;
       return room !== null && MixinApi.isContainer(room) ? room : null;
     }
+    // An authored ship's entrance is a row of its own: its one instance.
     const entrance = this.getEntrance();
-    const room = entrance ? StuffApi.findByDurableHandle<Stuff>(entrance) : null;
+    const room = entrance ? StuffApi.findByIdentityPath<Stuff>(entrance).find((r) => !r.isDestroyed()) ?? null : null;
     return room !== null && MixinApi.isContainer(room) ? room : null;
   }
 
@@ -1122,9 +1123,9 @@ export default class Ship extends BilgeMixin(PersistableMixin(
    */
   public async commission(buyer: Stuff, name: string, landingPath: string, register: ShipRegister): Promise<string> {
     const handle = this.getDurableHandle();
-    const serial = this.getPersistenceKey();
-    if (!this.isOfKind() || !handle || !serial) {
-      throw new Error(`Ship.commission: only a ship of a kind, keyed by her serial, is commissioned (got ${handle ?? '?'})`);
+    const serial = this.serial();
+    if (!handle || !serial) {
+      throw new Error(`Ship.commission: only a ship of a kind, minted under her serial, is commissioned (got ${handle ?? '?'})`);
     }
     if (this.shipRegister !== null) throw new Error(`Ship.commission: ${handle} is in a register already (${this.shipRegister})`);
     const registerPath = register.getTemplatePath();
@@ -1197,9 +1198,9 @@ export default class Ship extends BilgeMixin(PersistableMixin(
    * their own). `null`, loudly, when she has no seed to mint from.
    */
   private async mintCompany(named?: string): Promise<Stuff | null> {
-    const serial = this.getPersistenceKey();
+    const serial = this.serial();
     const handle = this.getDurableHandle();
-    if (!this.isOfKind() || !serial || !handle) return null;
+    if (!serial || !handle) return null;
     const current = this.house ?? '';
     const seed = current.endsWith(`/${serial}`) ? current.slice(0, -(serial.length + 1)) : current;
     if (seed === '') {
@@ -1748,7 +1749,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
     this._sleeping = false;
     await this.standWarren();
     // Her company stands with her once she has one (commissioned: her house is hers by serial).
-    if ((this.house ?? '').endsWith(`/${this.getPersistenceKey() ?? ''}`)) await this.mintCompany();
+    if ((this.house ?? '').endsWith(`/${this.serial() ?? ''}`)) await this.mintCompany();
     await this.refreshRegistry();
     try {
       (await this.liveFrame())?.adopt(this as never);
@@ -1813,18 +1814,40 @@ export default class Ship extends BilgeMixin(PersistableMixin(
   private _warrenPending: Promise<ShipWarren | null> | null = null;
   private _sleeping = false;
 
-  /** ⭐ A ship of a KIND — keyed `(kind row, serial)` — rather than an authored one-row ship. */
+  /**
+   * ⭐ A ship of a KIND — minted under her own identity
+   * `<kind row>/<serial>` (harbors review 1) — rather than an authored
+   * one-row ship.
+   */
   public isOfKind(): boolean {
-    return this.isPersistenceKeyExplicit();
+    return this.serial() !== null;
   }
 
   /**
-   * ⭐ Her durable handle (P2, P3): `<kind row>#<serial>` for a ship of a
-   * kind; her own row for an authored ship (one row IS one ship — the
-   * singleton rung a building gets from its class, she gets here).
+   * ⭐ Her serial: the leaf of her minted identity under her kind row
+   * (`/stuff/idea/Ship/smack/<serial>`); `null` for an authored ship. Her
+   * record is `(identity, serial)`, her warren `(warren row, serial)`, her
+   * rooms `(room row, <serial>/<leaf>)` and her company
+   * `<company row>/<serial>` — all keyed by it.
+   */
+  private serial(): string | null {
+    const row = this.getTemplatePath();
+    const id = this.getIdentityPath();
+    if (!row || !id || id === row || !id.startsWith(`${row}/`)) return null;
+    const serial = id.slice(row.length + 1);
+    return serial === '' || serial.includes('/') ? null : serial;
+  }
+
+  /**
+   * ⭐ Her durable handle (P2, P3, review 1): her identity — minted
+   * `<kind row>/<serial>` for a ship of a kind, her own row for an
+   * authored ship (one row IS one ship). Never `row#key`: a ship is not a
+   * keyed room; she is a minted identity, found by
+   * `StuffApi.findByIdentityPath`, and her keyed rooms are found through
+   * her.
    */
   public override getDurableHandle(): string | null {
-    return super.getDurableHandle() ?? this.getTemplatePath();
+    return this.getIdentityPath() ?? this.getTemplatePath();
   }
 
   /**
@@ -1839,7 +1862,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
     if (this._warrenPending !== null) return this._warrenPending;
     this._warrenPending = (async () => {
       const row = this.warren ?? AUTHORED_SHIP_WARREN;
-      const key = this.isOfKind() ? this.getPersistenceKey() : this.getTemplatePath();
+      const key = this.serial() ?? this.getTemplatePath();
       if (!key) return null;
       try {
         const w = await PersistableApi.standUpKeyed(row, key);

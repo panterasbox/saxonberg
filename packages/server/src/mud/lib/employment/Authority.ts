@@ -91,7 +91,7 @@ export interface CommitteePrincipalRef {
 /** Whoever a ship's register names her managing owner — a ship's company's authority. */
 export interface RegisterPrincipalRef {
   kind: 'register';
-  /** The ship's durable handle (`<kind>#<serial>`, or an authored ship's row). */
+  /** The ship's handle — her identity (minted `<kind>/<serial>`, or an authored ship's row). */
   ship: string;
 }
 
