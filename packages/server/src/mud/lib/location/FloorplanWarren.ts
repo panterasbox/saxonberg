@@ -15,7 +15,9 @@
  *  - **here** — the floorplan (the INITIAL mint, never the closed set),
  *    keyed rooms `(scope = the room row, key = <key>/<leaf>)`, wiring the
  *    intra-plan edges, `layOut` (the plan's own frame), the whole-warren
- *    `captureAll` / `teardown` / `revert`, the shell clock, its five
+ *    capture (its rooms that keep a record are its
+ *    `dependentPersistables`, so capturing the warren captures them) /
+ *    `teardown` / `revert`, the shell clock, its five
  *    bands, `restoreShell`, and the `upkeepTerm` vocabulary;
  *  - **the subclass** — what the key MEANS (a parcel extent, a ship's
  *    durable key), who is told when the population changes
@@ -502,35 +504,33 @@ export abstract class FloorplanWarren extends FloorplanBase {
   // ── dormancy as a unit (D16) ────────────────────────────────────
 
   /**
-   * The whole-warren capture: every live room's record (keyed), then the
-   * warren's own (shell state). The partial-reap alternative is
-   * structurally impossible — rooms only ever tear down through
-   * `teardown()`.
+   * ⭐ The records this warren owns: every room it stood up that keeps a
+   * record of its own (harbors review 2). So ONE capture of the warren
+   * writes its own record and then each room's, each under the key it
+   * was restored with; `markForRevert` marks them all; `revert` deletes
+   * them. The partial-reap alternative is structurally impossible —
+   * rooms only ever tear down through `teardown()`.
+   *
+   * A room is listed only once it has been restored (`wakeRoom` keeps it
+   * after `restoreOrSeed`), so a capture racing a wake never writes a
+   * room that has not got its record back yet.
+   *
+   * @hook
    */
-  public async captureAll(): Promise<void> {
-    for (const [key, room] of this._roomsByKey) {
-      if (room.isDestroyed()) continue;
-      if (MixinApi.isPersistable(room)) {
-        await PersistableApi.capture(room, key);
-      }
+  public override dependentPersistables(): (Stuff & Persistable)[] {
+    const out: (Stuff & Persistable)[] = [];
+    for (const room of this._roomsByKey.values()) {
+      if (!room.isDestroyed() && MixinApi.isPersistable(room)) out.push(room);
     }
-    const key = this.warrenKey();
-    if (key) await PersistableApi.capture(this as unknown as Stuff, key);
+    return out;
   }
 
   /**
    * Teardown: the rooms follow the warren (whole, D16). When the warren
-   * is marked for revert or has been captured for dormancy, the rooms
-   * skip their destruct-time capture backstop.
+   * is marked for revert its rooms were marked with it (they are its
+   * dependents), so they skip their destruct-time capture backstop.
    */
   public override teardown(): void {
-    const revert = !(this as unknown as Persistable).shouldPersist();
-    for (const room of this._roomsByKey.values()) {
-      if (room.isDestroyed()) continue;
-      if (revert && MixinApi.isPersistable(room)) {
-        (room as unknown as Persistable).markForRevert();
-      }
-    }
     super.teardown(); // destructs every member room
     this._roomsByKey.clear();
   }

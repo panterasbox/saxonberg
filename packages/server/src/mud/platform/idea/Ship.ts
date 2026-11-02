@@ -27,7 +27,7 @@
 import Structure from '../../lib/spatial/Structure';
 import { PositionedMixin } from '../../lib/expanse/Positioned';
 import { EngagedMixin } from '../../lib/activity/Engaged';
-import { PersistableMixin } from '../../lib/persistence/Persistable';
+import { PersistableMixin, type Persistable } from '../../lib/persistence/Persistable';
 import { VoyagingMixin } from '../../lib/expanse/Voyaging';
 import { MovingMixin } from '../../lib/expanse/Moving';
 import { StuffApi } from '../../api/stuff';
@@ -1906,8 +1906,8 @@ export default class Ship extends BilgeMixin(PersistableMixin(
 
   /**
    * ⭐ Sleep whole (P1, D16's rule for a holding): what is loose on her
-   * plain rooms is stowed in her hold (review 2), her hold's record, the
-   * warren's and her own are captured, then the warren comes down with her
+   * plain rooms is stowed in her hold (review 2), and she is captured —
+   * her record, then her warren's and her hold's, her dependents — then the warren comes down with her
    * rooms and she with it. Made fast, she stays made fast — `moored` and
    * `berth` are kept, her lines' ends ashore come in unannounced (an end is
    * runtime, as across a restart) and her way aboard STAYS on the landing:
@@ -1924,11 +1924,24 @@ export default class Ship extends BilgeMixin(PersistableMixin(
     // ⭐ Only her hold keeps a record (review 2): what is loose on deck and
     // in the cabin is stowed below before she is captured.
     w?.stow();
-    if (w !== null) await w.captureAll();
+    // ⭐ One capture (review 2): her warren is her dependent and her hold
+    // its, so saving her saves them.
     await PersistableApi.capture(this as unknown as Stuff);
     this._warren = null;
     if (w !== null) StuffApi.destruct(w as unknown as Stuff);
     StuffApi.destruct(this as unknown as Stuff);
+  }
+
+  /**
+   * ⭐ The records she owns (review 2): her warren, standing — whose own
+   * dependents are her rooms that keep a record (her hold). One capture of
+   * her writes all three; marking her for revert marks all three.
+   *
+   * @hook
+   */
+  public override dependentPersistables(): (Stuff & Persistable)[] {
+    const w = this._warren;
+    return w !== null && !w.isDestroyed() ? [w as unknown as Stuff & Persistable] : [];
   }
 
   /** ⭐ Under way she stays resident (the voyage is hers to keep); otherwise as a structure. */

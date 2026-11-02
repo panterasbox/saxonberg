@@ -218,7 +218,7 @@ describe('FloorplanWarren (harbors P1)', () => {
     expect(w.laysOutOwnFrame()).toBe(true);
   });
 
-  it('⭐⭐ captureAll then a re-wake: the born-with prop lands ONCE and the shell comes back unchanged', async () => {
+  it('⭐⭐ one capture of the warren (its rooms are its dependents) then a re-wake: the born-with prop lands ONCE and the shell comes back unchanged', async () => {
     const base = 1_000_000;
     const clock = pinClock(base);
     const w = await standUp();
@@ -230,7 +230,7 @@ describe('FloorplanWarren (harbors P1)', () => {
       room!.getContents().filter((c) => c instanceof Thing).length;
     expect(cleats(w.entryRoom())).toBe(1);
 
-    await w.captureAll();
+    await PersistableApi.capture(w as unknown as Stuff);
     expect(col('holder_snapshots').length).toBeGreaterThanOrEqual(3);
     const deck = w.entryRoom()!;
     await StuffApi.destruct(w as unknown as Stuff);
@@ -247,7 +247,7 @@ describe('FloorplanWarren (harbors P1)', () => {
 
   it('revert deletes every record under the key', async () => {
     const w = await standUp();
-    await w.captureAll();
+    await PersistableApi.capture(w as unknown as Stuff);
     expect(col('holder_snapshots').length).toBeGreaterThan(0);
     const deck = w.entryRoom()!;
     await w.revert();

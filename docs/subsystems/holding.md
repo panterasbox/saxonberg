@@ -672,7 +672,11 @@ lift rather than a rhyme. So the condition axis is **one clock**.
 `Persistable(WarrenMember(Container(RoomWarren)))`) now owns the
 `floorplan` + `upkeepTerm` fields and `UPKEEP_TERMS`, the keyed room mint
 (`wake` / `wakeRoom` / `roomForLeaf` / `roomForKey` / `entryRoom`), the
-intra-plan wiring, `layOut`, `captureAll` / `teardown` / `revert`, the
+intra-plan wiring, `layOut`, the whole-warren capture (its rooms that
+keep a record are its `dependentPersistables`, so one
+`PersistableApi.capture(warren)` writes them all — harbors review 2
+retired `captureAll`; a ship declares her warren the same way, so saving
+her saves her hold) / `teardown` / `revert`, the
 tracts build's layout reads (`share` / `footprintM2` on a floorplan room,
 `shareOf`, the persistent `mirrorAxis` every floorplan direction is read
 through, *only a persistable room restores*, `onWarrenWake` after a room

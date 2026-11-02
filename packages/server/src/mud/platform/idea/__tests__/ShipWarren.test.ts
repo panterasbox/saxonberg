@@ -358,6 +358,26 @@ describe('ShipWarren — ships from a kind (harbors B1)', () => {
     expect(hold.getWaters().sea).toBeUndefined(); // no sea over its side
   });
 
+  it('⭐ review 2: saving her saves her hold — her warren is her dependent, her hold its', async () => {
+    const ship = await mint('d1');
+    const deck = await deckOf(ship);
+    const hold = (deck as unknown as Exitable).getExit('down')!.getDestination() as unknown as Stuff & Container;
+    const warren = (deck as unknown as { getWarren(): ShipWarren }).getWarren();
+    expect(ship.dependentPersistables()).toEqual([warren]);
+    expect(warren.dependentPersistables()).toEqual([hold]);
+    const crate = await StuffApi.clone<Stuff & Containable>(CRATE);
+    ContainmentApi.move(crate, hold);
+    await PersistableApi.capture(ship as unknown as Stuff);
+    expect(await PersistableApi.hasRecord(`${KIND}/d1`, 'd1')).toBe(true);
+    expect(await PersistableApi.hasRecord(WARREN, 'd1')).toBe(true);
+    expect(await PersistableApi.hasRecord(HOLD, 'd1/hold')).toBe(true);
+    expect(await PersistableApi.hasRecord(DECK, 'd1/deck')).toBe(false);
+    // Marked for revert, she marks them too.
+    ship.markForRevert();
+    expect((warren as unknown as { shouldPersist(): boolean }).shouldPersist()).toBe(false);
+    expect((hold as unknown as { shouldPersist(): boolean }).shouldPersist()).toBe(false);
+  });
+
   it('⭐ her way aboard outlives her sleep: taking it stands her up, made fast as she was', async () => {
     vi.spyOn(Ship.prototype, 'linesAboard').mockImplementation(async () => [fakeLine(), fakeLine()]);
     const ship = await mint('w1');
