@@ -363,7 +363,7 @@ kind it ships both of (the conduit: intake live, outfall staged; the store:
 the yard's cistern live, Rejection's butt staged; the well: the dug well
 live, the village well staged).
 
-**D11 — The envelope sees the night.** `AtmosphericMixin.reconcileEnvelope`
+**D11 — The envelope sees the night.** ✅ *Owner agreed 2026-11-02, with D12's lock check and setting arg (all three shipped-behavior changes).* `AtmosphericMixin.reconcileEnvelope`
 integrates an unobserved gap for an OPAQUE room as one piece against the
 outside at the read. It will instead sample the outside **curve**
 (`WeatherApi.temperatureAt` at each piece midpoint, the sunlit room's ≤
@@ -767,7 +767,8 @@ Implements D8, D9, D18, D22.
 Implements D11, D12 (kernel half).
 
 - Kernel: `lib/biome/Atmospheric.ts` `reconcileEnvelope` piecing (D11; a test that a room read at noon after a −10 °C night shows a minimum breakpoint below 273.15 K in its ring); `lib/spatial/Sealable.ts` (`Throttleable`, `OpeningLog` shape, `canOpen` hook); `platform/thing/Door.ts` `canOpen` with its lock; `platform/idea/cmd/boundary/{Open,Close}Controller.ts` (ask `canOpen`; honor `setting`); `open.yaml`/`close.yaml` optional `setting` arg (`type: text`, not required, no default).
-- Tests: `Atmospheric` night test; `OpenController` refuses a locked chest/door and a setting on a plain door; a `Throttleable` fake takes a quarter.
+- Tests: `Atmospheric` night test; `OpenController` refuses a locked chest/door and a setting on a plain door; a `Throttleable` fake takes a quarter; ⭐ **a parse test that `open the door with the key` does not bind `with the key` as a setting** (owner, 2026-11-02).
+- ⚠ **Benchmark gate (owner, 2026-11-02):** `pnpm bench` before and after D11. If the cost is real, fall back to fine piecing only for rooms holding something that cares about freezing (a `PipeRun`, a `WaterStore`, a `Thermal` store) — the coarse single piece elsewhere.
 - Acceptance: the two door-family wire tests and the chest/footlocker tests still pass; `lint:reconcile-chains` ceiling unchanged (the fix reads `WeatherApi`, no sampling token).
 
 ### W4 · The room pipe and the plumber's two acts — `build(water-supply W4): a room has water because a plumber brought a pipe into it`
