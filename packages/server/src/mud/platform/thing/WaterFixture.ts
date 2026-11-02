@@ -183,8 +183,10 @@ export default class WaterFixture
   private _supply: Supply | null = null;
   /** Head of water over this outlet, m — `null` when either end is unknown. */
   private _headM: number | null = null;
-  /** The premises' declared land use — for the tap's words only. */
-  private _residential = false;
+  /** The premises' declared land use — the tap's words and its rank (D6). */
+  private _landUse = '';
+  /** The share of a full draw this outlet gets from its supply (D6). */
+  private _share = 1;
 
   constructor() {
     super();
@@ -256,7 +258,6 @@ export default class WaterFixture
     const premises = this.resolvePremisesPath();
     if (premises === null) return '';
     const water = ParcelApi.waterOf(premises);
-    this._residential = ParcelApi.landUseOf(premises) === 'residential';
     return water.source === 'none' ? '' : water.source;
   }
 
@@ -298,6 +299,13 @@ export default class WaterFixture
     }
     this._resolution = 'supply';
     this._headM = await this.resolveHead(this._supply);
+    // ⭐ Its rank in a shortage is its premises' land use (D6): the market
+    // fountain before the brewery before the house.
+    const premises = this.resolvePremisesPath();
+    this._landUse = premises === null ? '' : ParcelApi.landUseOf(premises);
+    // A continuous outlet (the fountain's bore) is public by construction.
+    const rank = this.continuous ? 'civic' : this._landUse;
+    this._share = await this._supply.shareFor(rank).catch(() => 1);
   }
 
   /** The supply as last resolved — a SYNC read for hot paths; null = none. */
@@ -362,6 +370,8 @@ export default class WaterFixture
   /** Is the head so low a draw gives only a trickle? */
   public runsWeak(): boolean {
     if (this.supplyNow() === null) return false;
+    // A rank given part of its demand in a shortage trickles (D6).
+    if (this._share > 0 && this._share < 1) return true;
     const head = this._headM;
     return head !== null && head > 0 && head < dial(AppSettingKeys.waterWeakHeadM, 3);
   }
@@ -380,6 +390,9 @@ export default class WaterFixture
     if (supply === null) return 'unplumbed';
     const state = supply.supplyStateNow();
     if (state !== null) return state;
+    // ⭐ Its rank has gone dry in a shortage — more is asked of the supply
+    // than it carries, and this outlet is the one that goes without.
+    if (this._share <= 0) return 'overdrawn';
     // ⭐ The water stands below this outlet: the source has nothing to give
     // HERE, whatever it gives the ground floor.
     if (this._headM !== null && this._headM <= 0) return 'dry';
@@ -447,7 +460,10 @@ export default class WaterFixture
     if (affordance !== 'interior') return super.bulkWhyEmpty(affordance);
     const state = this.supplyStateNow();
     if (state === 'unplumbed') {
-      return this._residential
+      const premises = this.resolvePremisesPath();
+      const residential =
+        premises !== null && ParcelApi.landUseOf(premises) === 'residential';
+      return residential
         ? "Nothing comes out — this house isn't on any supply."
         : "Nothing comes out — this place isn't on any supply.";
     }

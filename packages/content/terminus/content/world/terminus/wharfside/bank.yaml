@@ -163,8 +163,14 @@ data:
       destination: /world/terminus/wharfside/lavoir/location/lavoir
       media: [ground]
       edgeMinutes: 1
+    # ⭐ The pump house (water-supply W1): the city's water behind a locked
+    # door, keyed to the works keeper's seat.
+    pumphouse:
+      destination: /world/terminus/wharfside/pumphouse/location/house
+      media: [ground]
+      edgeMinutes: 1
+      door: /world/terminus/wharfside/thing/pump-house-door
   props:
-    - /world/terminus/wharfside/thing/city-intake
     - /world/terminus/wharfside/thing/city-outfall
     # ⭐⭐ The Cold Fell aqueduct and the house on its last drop — and
     # until the reachability sweep NEITHER STOOD ANYWHERE. Both rows

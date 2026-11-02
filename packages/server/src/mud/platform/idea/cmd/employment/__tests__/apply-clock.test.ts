@@ -15,6 +15,7 @@ import '../../../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import ApplyController from '../ApplyController';
 import ClockController from '../ClockController';
+import { Lock } from '../../../../../lib/lock/Lock';
 import BusinessEntity from '../../../Business';
 import { ContractApi } from '../../../../../api/contract';
 import { EmploymentApi } from '../../../../../api/employment';
@@ -269,6 +270,28 @@ describe('⭐⭐ clock — a shift is something you choose to start', () => {
     await clock('on');
     expect(said).toMatch(/an order here is served by/);
     expect(alice.isFulfilling()).toBe(true);
+  });
+
+  it('⭐ a seat that carries keys hands them over at clock on — once (water-supply D19)', async () => {
+    biz.positions = [
+      seat({ keys: [{ keyway: 'terminus-works', technology: 'pin-tumbler' }] }),
+    ] as never;
+    let held = false;
+    vi.spyOn(Lock.prototype, 'opensFor').mockImplementation(() => held);
+    const issue = vi
+      .spyOn(Lock.prototype, 'issueKeyTo')
+      .mockImplementation(async () => {
+        held = true;
+      });
+    await clock('on');
+    expect(issue).toHaveBeenCalledTimes(1);
+    expect(said).toMatch(/handed the key that goes with it/);
+    await clock('off');
+    said = '';
+    await clock('on');
+    // A key already in hand is not cut twice.
+    expect(issue).toHaveBeenCalledTimes(1);
+    expect(said).not.toMatch(/handed the key/);
   });
 
   it('⭐ you must be where the house works — employer-bounded', async () => {

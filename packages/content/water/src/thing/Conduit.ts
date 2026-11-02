@@ -62,7 +62,8 @@ import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable'
 import type { VetoResult } from '@saxonberg/server/mud/lib/errors';
 import type { Pumping } from '@saxonberg/server/mud/lib/pump/Pumping';
 import type { PumpSource } from '@saxonberg/server/mud/lib/pump/Pumpable';
-import type { SupplyServing, WaterSupply } from '@saxonberg/server/mud/lib/supply/SupplyState';
+import type { SupplyServing, SupplyShares, WaterSupply } from '@saxonberg/server/mud/lib/supply/SupplyState';
+import { TrajectoryLog, Piecewise, type Breakpoint } from '@saxonberg/server/mud/lib/Trajectory';
 import { SingletonMixin } from '@saxonberg/server/mud/lib/stuff/Singleton';
 import { AppApi } from '@saxonberg/server/mud/api/app';
 import { AppSettingKeys } from '@saxonberg/server/mud/lib/config/AppSettings';
@@ -136,6 +137,10 @@ export default class Conduit
     ownerRef: { persistent: true, authorable: true },
     headM: { persistent: true },
     cut: { persistent: true },
+    demandM3S: { persistent: true, authorable: true },
+    shares: { persistent: true, authorable: true },
+    demandSplit: { persistent: true, authorable: true },
+    deliveryLog: { persistent: true, runtimeState: true },
   };
 
   /** Durable identity, independent of the template path. */
@@ -233,6 +238,41 @@ export default class Conduit
 
   /** Physically broken. The one failure state that is stored. */
   public cut = false;
+
+  /**
+   * ⭐ What the district actually draws, m³/s (water-supply D5/D6) — the
+   * authored household rate, **never a sum over live taps**. `0` = the
+   * shipped behavior: a main on is a main drawing its capacity.
+   */
+  public demandM3S = 0;
+
+  /**
+   * ⭐ How it shares a shortage (D6): `priority` — the public outlets first,
+   * then the trades, then the houses (Vitruvius's order, read off each
+   * premises' land use) — or `proportion`, everybody the same fraction.
+   */
+  public shares: SupplyShares = 'priority';
+
+  /**
+   * The fraction of {@link demandM3S} each rank draws, for the priority
+   * rule: civic outlets, the trades (commercial + industrial), and houses.
+   */
+  public demandSplit: { civic: number; trades: number; residential: number } = {
+    civic: 0.15,
+    trades: 0.35,
+    residential: 0.5,
+  };
+
+  /**
+   * ⭐ When it delivered and when it did not — a 0/1 ring of breakpoints,
+   * written on every cut and every switch, so a tank it fills integrates an
+   * outage it never saw (D5). Rides a record only on the `PersistentConduit`
+   * twin (D30).
+   */
+  public deliveryLog: Breakpoint[] = [];
+
+  /** The share rule's last answer: deliverable over demand, and when. */
+  private _shareCache: { atS: number; deliverableM3S: number } | null = null;
 
   // ---------- the ends ----------
 
@@ -344,6 +384,62 @@ export default class Conduit
   }
   public setCut(value: boolean): void {
     this.cut = value === true;
+    this.recordDelivery();
+  }
+
+  public override setOn(value: boolean): void {
+    super.setOn(value);
+    this.recordDelivery();
+  }
+  public override switchOn(): void {
+    super.switchOn();
+    this.recordDelivery();
+  }
+  public override switchOff(): void {
+    super.switchOff();
+    this.recordDelivery();
+  }
+
+  public getDemandM3S(): number {
+    return this.demandM3S;
+  }
+  public setDemandM3S(value: number): void {
+    this.demandM3S = Number.isFinite(value) && value > 0 ? value : 0;
+    this._shareCache = null;
+  }
+
+  public getShares(): SupplyShares {
+    return this.shares;
+  }
+  public setShares(value: SupplyShares): void {
+    this.shares = value === 'proportion' ? 'proportion' : 'priority';
+  }
+
+  public setDemandSplit(value: Partial<{ civic: number; trades: number; residential: number }> | null): void {
+    const n = (x: unknown, d: number): number =>
+      typeof x === 'number' && Number.isFinite(x) && x >= 0 ? x : d;
+    this.demandSplit = {
+      civic: n(value?.civic, 0.15),
+      trades: n(value?.trades, 0.35),
+      residential: n(value?.residential, 0.5),
+    };
+  }
+
+  /** Record whether it delivers, now — on every change of cut or switch. */
+  private recordDelivery(): void {
+    const now = WorldClockApi.getNow().rawValue();
+    const v = !this.cut && this.isOn() ? 1 : 0;
+    new TrajectoryLog(this.deliveryLog).record(now, v, v, 0);
+  }
+
+  /**
+   * ⭐ When it delivered over `[fromS, toS]`, as a 0/1 trajectory — read by
+   * a tank it fills, so an outage in an unwatched night still shorts the
+   * morning's fill. An empty log holds today's state.
+   */
+  public deliveryTrajectory(fromS: number, toS: number): Piecewise {
+    const now = !this.cut && this.isOn() ? 1 : 0;
+    return new TrajectoryLog(this.deliveryLog).window(fromS, toS, now);
   }
 
   // ---------- coverage ----------
@@ -571,6 +667,54 @@ export default class Conduit
     return this.supplyStateNow() === null ? Infinity : 0;
   }
 
+  /**
+   * ⭐⭐ The share an outlet of `landUse` gets (D6). The main's deliverable —
+   * what the river, its capacity and its pump actually carry against the
+   * district's demand — is read async and held for a game minute. With no
+   * authored demand there is no shortage to share: every outlet gets all.
+   */
+  public async shareFor(landUse: string): Promise<number> {
+    const demand = this.demandM3S;
+    if (demand <= 0) return 1;
+    const nowS = WorldClockApi.getNow().rawValue();
+    if (this._shareCache === null || nowS - this._shareCache.atS >= 60) {
+      const catalogue = await catalogueOf();
+      const deliverable =
+        catalogue === null
+          ? 0
+          : (await this.readingFor(catalogue, nowS, demand, await catalogue.liveDraws(nowS)))
+              .deliveredM3S;
+      this._shareCache = { atS: nowS, deliverableM3S: deliverable };
+    }
+    const deliverable = this._shareCache.deliverableM3S;
+    if (deliverable >= demand) return 1;
+    if (this.shares === 'proportion') return Math.max(0, deliverable / demand);
+    // Priority: civic first, then the trades, then houses — each rank is
+    // served in full before the next gets anything.
+    const split = this.demandSplit;
+    const total = split.civic + split.trades + split.residential || 1;
+    const ranks: Array<[string, number]> = [
+      ['civic', (split.civic / total) * demand],
+      ['trades', (split.trades / total) * demand],
+      ['residential', (split.residential / total) * demand],
+    ];
+    const rank =
+      landUse === 'civic'
+        ? 'civic'
+        : landUse === 'commercial' || landUse === 'industrial'
+          ? 'trades'
+          : 'residential';
+    let before = 0;
+    for (const [key, need] of ranks) {
+      if (key === rank) {
+        if (need <= 0) return 1;
+        return Math.max(0, Math.min(1, (deliverable - before) / need));
+      }
+      before += need;
+    }
+    return 1;
+  }
+
   // ---------- state ----------
 
   /**
@@ -780,7 +924,10 @@ export default class Conduit
   public withdrawalM3S(naturalM3S: number): number {
     if (this.direction !== 'supply') return 0;
     if (this.cut || !this.isOn()) return 0;
-    return Math.min(this.capacityM3S, Math.max(0, naturalM3S));
+    // ⭐ A main with an authored district demand draws THAT (water-supply
+    // D5) — a city does not drink its intake's whole capacity at 3 a.m.
+    const drawn = this.demandM3S > 0 ? Math.min(this.demandM3S, this.capacityM3S) : this.capacityM3S;
+    return Math.min(drawn, Math.max(0, naturalM3S));
   }
 
   /**

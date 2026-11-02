@@ -12,7 +12,9 @@
 # on this intake runs forever. That is not a flaw in the content; it is
 # the reason a water tower and an aqueduct are both worth building, and
 # `analyze water the intake` will tell you the kilowatts.
-class: /system/water/thing/Conduit
+# ⭐ LIVE (water-supply D30): a cut or a switch-off is somebody's act on the
+# city's works, so the main keeps its own record across an unload.
+class: /system/water/thing/PersistentConduit
 data:
   shortDescription: city intake
   keywords: [intake, mouth, screen, pillar, waterworks, city]
@@ -48,6 +50,13 @@ data:
     - /world/terminus/eternal
     - /world/terminus/hearthworks
   capacityM3S: 1.2
+  # ⭐ What the city actually draws (water-supply D5/D6) — the district rate,
+  # never a sum over taps. A shortage is this over what the river, the main
+  # and the pump carry, and it is shared by RANK: the public outlets first,
+  # then the trades, then the houses (Vitruvius's order, off each premises'
+  # land use).
+  demandM3S: 0.4
+  shares: priority
   treatmentFactor: 0
   ownerRef: "group:terminus"
   fixedInPlace: true

@@ -175,7 +175,19 @@ export interface WaterSupply extends SupplyServing, SupplyReporting {
    * reads a state.
    */
   availableL(): number;
+  /**
+   * ⭐ What share of a full draw an outlet on a premises of `landUse` gets
+   * right now (water-supply D6): `1` when the supply carries everything
+   * asked of it, `0` when that rank has gone dry, between for a trickle.
+   * A divider decides it by its `shares:` rule — `priority` (civic, then the
+   * trades, then houses) or `proportion` (everybody the same fraction). An
+   * outlet asks ITS supply; it never enumerates the others.
+   */
+  shareFor(landUse: string): Promise<number>;
 }
+
+/** How a short supply shares what it has (water-supply D6). */
+export type SupplyShares = 'priority' | 'proportion';
 
 /**
  * ⭐⭐ **What can keep a town's streets lit tonight** — the goods leg the

@@ -34,6 +34,16 @@ data:
       label: keeping the city's grid and lamps
       wageRate: 4
       purchases: true
+    # ⭐ The keeper of the works (water-supply D19): the seat that carries the
+    # pump-house key. Whoever holds it and clocks on is handed a key to the
+    # door; the city's water is then within their reach, and nobody else's.
+    - key: works-keeper
+      noun: keeper
+      label: keeping the city's pumps and mains
+      wageRate: 3
+      headcount: 1
+      keys:
+        - { keyway: terminus-works, technology: pin-tumbler }
   # A BOUNDED daily shift (not [0,24]): the wage settles at the on->off
   # boundary, so the shift must close for the payout to fire. Weekdays 0-based;
   # hours a half-open [start, end) window.

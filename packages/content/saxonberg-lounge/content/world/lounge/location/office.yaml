@@ -52,6 +52,8 @@ data:
   # costs him the floor. A venue prop by placement, not a player weapon.
   props:
     - /world/lounge/thing/office-taser
+    # ⭐ The house's water (water-supply W1): the lounge's premises cites it.
+    - /world/lounge/thing/cistern
   # One-way declared (bidirectional: false) so it does NOT auto-install a
   # second `north` on the bar that would collide with the bar's own
   # hidden north. The pair is wired explicitly: bar -> hidden north ->

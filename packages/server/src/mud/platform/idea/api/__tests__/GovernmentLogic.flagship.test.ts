@@ -173,8 +173,12 @@ describe("the civics flagship (authored seeds, end-to-end)", () => {
     // held by nobody.
     // ⭐ The assembly build added a third — the Gauger, whose measure of a
     // cask is of record — rostered to the clerk like the magistrate.
+    // ⭐ The water-supply build added a fourth — the Keeper of the Works,
+    // the seat that carries the pump-house key — vacant until somebody
+    // applies for it.
     const seats = await GovernmentApi.seatsOf("terminus-city");
-    expect(seats).toHaveLength(3);
+    expect(seats).toHaveLength(4);
+    expect(seats.find((s) => s.seat.key === "works-keeper")!.holder).toBeNull();
     expect(seats.find((s) => s.seat.key === "gauger")!.holder).toBe(CLERK_PATH);
     const magistrate = seats.find((s) => s.seat.key === "magistrate")!;
     expect(magistrate.holder).toBe(CLERK_PATH);

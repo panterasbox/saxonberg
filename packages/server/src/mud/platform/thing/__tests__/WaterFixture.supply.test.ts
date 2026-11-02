@@ -52,6 +52,10 @@ class FakeSupply extends Good {
   availableL(): number {
     return this.state === null ? this.levelL : 0;
   }
+  public share = 1;
+  async shareFor(): Promise<number> {
+    return this.share;
+  }
   async supplyReport(): Promise<SupplyReport> {
     return { label: 'the main', state: this.state, lines: ['it is the main'] };
   }
@@ -229,6 +233,35 @@ describe('⭐⭐ a fixture reads its PREMISES', () => {
     await t.settleBulk('interior');
     expect(waterOf).not.toHaveBeenCalled();
     expect(t.supplyStateNow()).toBeNull();
+  });
+});
+
+describe('⭐ a shortage is shared by rank (D6)', () => {
+  it('a rank given nothing reads overdrawn; a rank given part trickles', async () => {
+    const main = mainAt();
+    const t = tap({ suppliedBy: MAIN });
+    main.share = 0;
+    await t.settleBulk('interior');
+    expect(t.supplyStateNow()).toBe('overdrawn');
+    expect(t.isBulkEmpty('interior')).toBe(true);
+    main.share = 0.4;
+    await t.settleBulk('interior');
+    expect(t.supplyStateNow()).toBeNull();
+    expect(t.runsWeak()).toBe(true);
+    expect(t.getBulkAvailable('interior')).toBe(2);
+  });
+
+  it('⭐ a continuous outlet asks as a PUBLIC one', async () => {
+    const main = mainAt();
+    const asked: string[] = [];
+    main.shareFor = async (use?: string) => {
+      asked.push(String(use));
+      return 1;
+    };
+    const t = tap({ suppliedBy: MAIN });
+    t.setContinuous(true);
+    await t.settleBulk('interior');
+    expect(asked).toEqual(['civic']);
   });
 });
 
