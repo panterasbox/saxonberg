@@ -136,3 +136,26 @@ the completed product"*, the site can be good content of its own:
 4. **Collapse** — an element below its load: when, how fair, how read.
 5. **Building in water** — the cofferdam and caisson (underwater § 7) as the
    bridge site's hardest case.
+
+## 5. ⭐⭐ The owner's constraint, and the first worked element (2026-11-02)
+
+From the water-supply planning: *"we need a real construction design that
+fits on top of assembly which also fits on crafting and our other RGOs.
+'plumb' as a magic verb that just 'does plumbing' doesn't feel very
+lensworthy."* So construction must sit on **assembly** (elements are
+assemblies of parts, raised with `fit`), **crafting** (the parts are made),
+and the **material trades** (they supply the parts). A "do the job" verb is
+not an answer.
+
+**The first worked example ships in water-supply:**
+- **The pipe run** is an element: an assembly of pipe lengths and wiped or
+  caulked joints, laid with `fit` and dressed by the plumbing Discipline. An
+  incomplete run delivers nothing.
+- **Services in the fabric:** the `under` and `behind` placements
+  (`conceals: true`) hide a finished room's plumbing from the listing. Survey
+  and failure (a leak on the floor) are the evidence.
+
+Open items this adds:
+- opening up the fabric and making good;
+- boxing in;
+- the element order between the plumber and the plasterer.

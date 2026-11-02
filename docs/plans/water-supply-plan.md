@@ -29,8 +29,8 @@ reverse any of them at review.
 | R3 | drive 7: *"the upstairs room's tap runs weak"* at Hinkley | `house-programme.yaml` has no upper floor. Paint (MR !513, `reqs/paint`, build-2) mints a `HoldingBuilding` per lot and answers `HoldingWarren.structureOf(room)`, but **no building anywhere authors storeys** — not Hinkley's minted ones, not Seznick (whose floors live in its `BuildingWarren` unit keys `f<floor>-u<pos>`). ⚠ The earlier claim that Seznick "computes head per storey today" was wrong. | ✅ **Owner agreed 2026-11-02: add the loft.** Hinkley's house gains a **loft bedroom** (one floorplan leaf on storey 1). One question answers a room's storey (D4): an authored building's `storeyOf`; a minted room asks the warren that minted it (`BuildingWarren` knows each unit's floor; the holding knows each room's floorplan storey via paint's `structureOf`). Drive 7 runs at Hinkley as written; Seznick's upper units read the same rule. **Built on paint's model** — paint is in review and lands first; if it has not when W0 starts, W0 reads Seznick's floors and the Hinkley half follows the merge of master (never gated). |
 | R4 | *"The plumber's yard is in the goods yards, by the founders"* | The goods yards have no founder or foundry (zero rows); the only founder is Rejection's. | The yard sits in the goods yards (the industrial parcel, the city's demand); iron pipe is a **founding recipe** cast at Rejection's foundry and sold through its counter. The sentence "by the founders" is dropped. ✅ **Owner agreed 2026-11-02.** |
 | R5 | D12: *"a flooded field becomes a water place you wade"* | `Field` is a fixture Thing; `Tract` is a Location composing neither Shore nor Swimmable nor WaterPlace, and `WaterPlaceMixin` claims a CITED water (`WaterSpec.of`) whose level comes from a water source — a ponded field cites nothing. | Standing water is **a depth on the tract's floor**, the shape the floor's snow already has (`Floor._snowDepthM` → `snowBandOf`): `look` reads it, the posture/traverse verbs read the band. The observable in AC 18 is unchanged; the word "water place" is not met literally. ✅ **Owner agreed 2026-11-02**; a swimmable paddy or bog belongs with the flood crop (farming-slate). |
-| R6 | D2: *"The plumber may be a player or a hired NPC"* | Hiring an NPC to execute an act on your property is the work-contract (gig) substrate's `fulfill` shape; no shipped brain executes a `connect`/`plumb` on a contract. | The shipped NPC plumber **sells pipe and cisterns** at the yard; the player plumber does the acts. "NPC plumber on a gig" is a deferred seam named in § Deferred seams. AC 3 is met by the player path. |
-| R7 | D2/D3/drive 6: one verb `plumb` with two targets (the lot, then the kitchen) | *One verb per act; a controller that narrows on the target is two verbs.* | Two verbs: **`connect`** (the premises to a main — free of collisions) and **`plumb`** (a room). Both the plumber's, both in `trade-plumbing`. |
+| R6 | D2: *"The plumber may be a player or a hired NPC"* | Hiring an NPC to execute an act on your property is the work-contract (gig) substrate's `fulfill` shape; no shipped brain executes a `connect`/`plumb` on a contract. | The shipped NPC plumber **sells pipe and cisterns** at the yard; the player plumber does the acts. "NPC plumber on a gig" is a deferred seam named in § Deferred seams. AC 3 is met by the player path. ✅ **Owner agreed 2026-11-02**; "hire an NPC to perform an act" is the shared mechanism freight, drilling and construction also need → freight-slate + contract. |
+| R7 | D2/D3/drive 6: one verb `plumb` with two targets (the lot, then the kitchen) | *One verb per act*; and the owner (2026-11-02): *"`plumb` as a magic verb that just does plumbing doesn't feel very lensworthy"* — construction must sit on assembly, crafting and the material trades. | ✅ **Owner agreed 2026-11-02: no new verbs — `fit`.** A pipe run is an **assembly** (D10): a bill of pipe lengths and wiped joints (assembly `Joint` rows dressed by plumbing, as cordage's knots are by ropework); `fit lead pipe to <run>` lays a length; a complete run delivers. The lot's **service run** (stopcock → house) works the same way and its completion cites the main (replaces `connect`). Runs sit `under`/`behind` with `conceals: true` (D29) so finished rooms do not show their plumbing. The general construction design is its own conversation → construction-slate. |
 | R8 | drive 13: *"`fill` a bucket at the deep well (no pump) by hand"* | A `Well`'s trough starts empty; nothing lifts without a pump. The bucket act is **harbors'** (`bail` moved to platform over any `LiftSource`, MR in flight on build-4). Never gate on a sibling. | This build ships no bucket act. Drive 13's second half asserts the suction refusal + `analyze pump` at the deep well; the bail assertion is written **guarded** (`skip` with a named reason when `bail` is not installed) and lights up when harbors merges, whichever order. |
 | R9 | D18 Rejection: the wells cite Rejection's aquifer | The zone cites deposit `ferrow` (`waterTable: −45`); the village well authors 6 m, the deep well 14 m. | Rejection's wells sit on a **shallow aquifer row** (`/stuff/idea/Aquifer/rejection-till`, table ≈ 6 m under the pithead yard); the Ferrow's −45 m is the mine's. No deposit edit. The brine bore stays drilling's. |
 | R10 | D17: Furtado and Avila *work their own turns* — drive 20 under a jump | A clock jump runs no brain; the HD pack is deliberately unbooted. | Their turns are **reconciled from the posted rota** when the gate is read (`Gate.reconcileScheduled`), and the `irrigates` brain acts live when the valley is loaded with somebody present. AC 14 is met by both halves; step 20 passes under a jump by the first. |
@@ -142,8 +142,8 @@ inline validation): a **template path** of a thing that answers the
 **inherit** the covering parcel's. `PackLogic` parses it from a manifest
 claim; `ParcelRegistry.waterOf(path)` is the sync longest-prefix-then-walk-up
 twin of `powerOf`; `byWaterSource` is the keyed index twin of `byFeeder`;
-`citeWaterSource(extent, path)` is the runtime mutator the plumber's act
-calls (the `citeFeeder` precedent, which has no caller yet). The realm root
+`citeWaterSource(extent, path)` is the runtime mutator the **service run's
+completion** calls (D10) (the `citeFeeder` precedent, which has no caller yet). The realm root
 `/world/terminus` declares **nothing** (the feeder reasoning: an inherited
 citation would put Rejection on the city main). A new gate,
 `scripts/check-water-posture.ts` (`lint:water-posture`), is the twin of
@@ -279,8 +279,8 @@ room **has water iff** a sound `PipeRun` stands in it (the fixture asks its
 own container's contents — a local read, not a search) **and** the
 premises resolves a supply; else `unplumbed`. Pre-connected rooms author a
 `PipeRun` row in `props:` (Seznick's bathroom: lead; Duncan's: iron;
-Hinkley's bathroom + kitchen: lead) — the same object `plumb` mints, so one
-path, no `plumbing:` fabric key (the `Place.ts` fourth-layer note stands,
+Hinkley's bathroom + kitchen: lead) — the same object a plumber completes
+with `fit`, so one path, no `plumbing:` fabric key (the `Place.ts` fourth-layer note stands,
 and the owner's "a building is not an assembly here" is untouched: the
 pipe is a fixture in the room, like the range). `repair` binds it as any
 Durable. **Frost**: `PipeRun.reconcileThermal` reads its room's
@@ -293,6 +293,40 @@ rises above freezing **leaks**: it empties its standing water onto the floor
 — `Floor.wetFromSpill(litres)` (a small write on the shipped floor-wetness
 seam) — and the room reads *water on the floor* until it dries. Payload lead
 in the leak is dropped (it is not drunk).
+
+**D10 (revised 2026-11-02) — the run is an assembly; `fit` lays it.**
+`PipeRun` also composes `AssembledMixin`: its bill is `lengthM / pipeLengthM`
+**pipe** parts plus a **joint** between each (`Joint` rows of kind
+`wiped` — lead — and `caulked` — iron — dressed by the `plumbing` Discipline;
+the dressing's quality is the joint's weep rate and its frost margin). `fit
+lead pipe to <run>` lays one length and dresses one joint (the shipped
+assembly verb; plumbing credit via the joint dressing). An **incomplete run
+delivers nothing**; a complete one is sound. Material is the parts'
+(a run mixing lead and iron is honest and each part leaches or cracks by its
+own). `repair`/`salvage` act per part (assembly's localized wear). An
+unplumbed room **offers** a run: the `PipeRun` row is propped EMPTY (bill
+unfilled) in every room a floorplan marks `plumbable: true`, so `fit … to
+the run` always has a target. **The service run**: a `PipeRun` row of kind
+`service` at the premises' frontage (a lot's yard/hall; a unit's corridor
+stub); completing it calls `ParcelApi.citeWaterSource(premises, the main
+whose extents serve it)` and refuses its last fit with *"no main runs past
+here"* when none does. No `connect`, no `plumb`, no plumbing controllers.
+
+**D29 — Plumbing is hidden by construction, not by stealth.** Two new
+`Placement` rows (`/platform/idea/Placement/{under,behind}`, prepositions
+`[under, beneath]` / `[behind]`) carry a new row field **`conceals: true`**,
+read by the room listing (`look`, the room card): a thing placed in a
+concealing placement is in the room, nameable and reachable, and **not
+listed**. The `Floor` (minted in every room) offers `under`; a bath panel, a
+sink cabinet and the range offer `behind`. Runs authored in finished rooms
+sit `under` the floor or `behind` a fixture; a scullery's or cellar's run sits
+`on` the wall, exposed (the authored choice, and the honest reason it is the
+one that freezes). Evidence instead of a listing: `survey` gains a plumbing
+line per room (material, sound/weeping/burst); a burst leaks onto the floor
+(D10). This is NOT `ConcealableMixin` (perception bands, `search`): a pipe
+under floorboards is enclosed, not hiding, so `search` does not reveal it.
+`lint:placement-words`: `put` gains the two primary words. The construction
+design inherits these rows as its "services in the fabric" seam.
 
 **D11 — The envelope sees the night.** `AtmosphericMixin.reconcileEnvelope`
 integrates an unobserved gap for an OPAQUE room as one piece against the
@@ -373,7 +407,7 @@ lived on it loses water, with nobody authoring the link.*
 **D15 — Soil takes water through inlets; ponding, drainage and salt are
 kernel soil.** On `SoilMixin`: `inlets: InletSpec[]` (`{gate, method:
 flood|furrow|basin|overhead, capacityLps?}`, persistent, authorable on a
-field row and written by `plumb`-like acts later), `inletClockStamp`,
+field row), `inletClockStamp`,
 `_inletPendingL` (persistent + runtimeState), and an **async**
 `settleInlets(nowS)` — the `restampWatershed` shape: for each inlet it
 integrates `gate.openingTrajectory(from, to)` (from the work log, D12) ×
@@ -551,8 +585,8 @@ the players' own memory).
 **D23 — The intake narrows by a list, not a tree.** `Conduit.extent` becomes
 `extents: string[]` (prefixes, longest-prefix over all; a single `extent:`
 still authors as a one-element list); the city intake lists the fourteen
-city districts. HD, Hinkley, Rejection fall outside, and `connect` refuses
-a premises no main serves (AC 3).
+city districts. HD, Hinkley, Rejection fall outside, and a service run
+refuses to complete where no main serves the premises (AC 3).
 
 **D24 — Continuous outlets.** A `WaterFixture` with `continuous: true`
 (authorable) draws its share whether used or not: the supply's `demandM3S`
@@ -592,7 +626,7 @@ host set means the host is wrong.
 | `salinityPpt?`, `lining` | water `Watercourse` (`water:` seed; course field) + parser | data on the course row. |
 | `pH?` arg + softness factor | `Material.acidAttack(pH?)`, `Bulkable.reconcileFaceExchange` | the shipped law widened; every glaze case unchanged when the payload carries no pH. |
 | dysentery row; retags | content | — |
-| `PipeRun` | new kernel `platform/thing/PipeRun` — `FacedMixin(DurableMixin(ThermalMixin(BulkableMixin(Good))))` | *a pipe is a durable thing in a room that holds water, has a face and a temperature.* Not a `plumbing:` key on `Place`/`Atmospheric` (needs Durable + Bulkable + Thermal state; `repair` requires a Durable Thing). `Good`, not `Thing`: it is somebody's chattel until fixed in place (fixedInPlace after `plumb`). ⚠ `FacedMixin`'s header says "not on `Thing`" for walls/floors — a pipe's INSIDE is a face in exactly the glaze sense (the law reads the inside face), and it composes on `Good` as the glazed pot does. |
+| `PipeRun` | new kernel `platform/thing/PipeRun` — `AssembledMixin(FacedMixin(DurableMixin(ThermalMixin(BulkableMixin(Good)))))` (assembly: D10 revised) | *a pipe is a durable thing in a room that holds water, has a face and a temperature.* Not a `plumbing:` key on `Place`/`Atmospheric` (needs Durable + Bulkable + Thermal state; `repair` requires a Durable Thing). `Good`, not `Thing`: it is somebody's chattel until fixed in place (fixedInPlace after `plumb`). ⚠ `FacedMixin`'s header says "not on `Thing`" for walls/floors — a pipe's INSIDE is a face in exactly the glaze sense (the law reads the inside face), and it composes on `Good` as the glazed pot does. |
 | `reconcileEnvelope` piecing | `AtmosphericMixin` | a correctness fix in an existing method; no new field. |
 | `Throttleable` shape, `canOpen` hook | `lib/spatial/Sealable.ts` | the hook defaults ok (total — nothing re-narrows); `Door` overrides with its lock; `Gate` with its lock. |
 | `Gate` | new water `thing/Gate` — `PersistableMixin(LockableMixin(SealableMixin(ControlStructure)))` | *a controlled structure with a setting, a lock and a log.* Weirs/dams stay plain `ControlStructure` (a weir has no setting). `LockableMixin` on a Thing for the first time — it composes on `MixinConstructor` with no constraint and claims only *this thing has a lock*. Persistable: the log is the ledger. |
@@ -609,7 +643,8 @@ host set means the host is wrong.
 | `keys?` | `PositionData`; issuance in `ClockController` | employment data; the key is bearer. |
 | calendar entries from the rota | `ClockController` + roster tick | writers of the ungated seam, the medicine precedent. |
 | `Fill` prose | `FillController` | — |
-| `trade-plumbing` pack: `Discipline/plumbing`, `connect`/`plumb` controllers + views, rows (lead-pot, sand-bed, pipe-mould, lead-sheet, lead-pipe, roof-cistern body row, the yard, the plumber) | `packages/content/trade-plumbing` (`/trade/plumbing`) | a trade = mechanism; the venue rows live with the locality (Terminus) and name the trade's rows. No `src/lib`, no Api, no helpers. |
+| `conceals` field + `under`/`behind` rows | `Placement` row (platform pack) + the listing reader | a way of sitting that the listing honors; claims nothing about other placements. |
+| `trade-plumbing` pack: `Discipline/plumbing`, joint rows (`wiped`, `caulked`), pipe-length rows, rows (lead-pot, sand-bed, pipe-mould, lead-sheet, lead-pipe, roof-cistern body row, the yard, the plumber) | `packages/content/trade-plumbing` (`/trade/plumbing`) | a trade = mechanism; the venue rows live with the locality (Terminus) and name the trade's rows. No `src/lib`, no Api, no helpers. |
 | `irrigates` brain | `trade-farming/src/behavior/irrigates.ts` | the farmer's act (farming owns "how a field takes water"). |
 | `rides` brain | water pack `src/behavior/rides.ts` | the institution's act (the water system owns gates and the rotation). |
 | `dig well` | kernel `DigController` (`what = 'well'`) over `Diggable` on farming `Tract` (+ the holding yard's ground, `/world/terminus/hearts-delight/farmstead/location/yard`'s class) | the ground protocol; no new verb. |
@@ -637,7 +672,7 @@ Checked at plan time against the current tree.
 - **Module scope declares; lifecycles initialize.** No module-scope statements beyond declarations; the two pack `dial()`/`catalogueOf()` module functions are the shipped water-pack idiom and are copied, not multiplied (`Gate`/`Aquifer` import the catalogue path and call `StuffApi.singleton` at use).
 - **The import boundary.** Packs import the kernel by specifier only (`@saxonberg/server/mud/…`); `trade-plumbing` depends on `platform`, `base-library`, `generic-objects`, `@saxonberg/server`, `@saxonberg/types` (+ `trade-smelting` for the ingot/pig shapes if a class import is needed — else rows only). The water pack does **not** import the ground pack: the aquifer's level is its own (D13); the lone well reads `Deposit.waterTable` only through the zone's `lookupField` (a string/number read, no import). The farming pack imports the water pack **only if** a class is needed — the inlet reads its gate through the kernel `Throttleable` + a kernel `OpeningLog` shape (`openingTrajectory(from, to)`) declared in `lib/spatial/Sealable.ts`; no duck typing (`lint:imports`, the no-duck-typing rule).
 - **No new module category, no free helper.** Every new file is a Stuff class, a mixin (none new in the kernel except shapes), a brain, a reading class, a controller, a value object (`WaterChemistry`), a lint script, or content. A would-be helper folds into the class (`Gate.openingTrajectory`, `WaterStore.reconcileFill`).
-- **Verbs on objects.** `connect`/`plumb`/`dig well`/`open`/`close`/`ditch`/`repair`/`fit`/`pump`/`fill`/`pour`/`measure`/`analyze` act on their targets' own methods; no `XApi.verb(host, …)`; `lint:object-verbs` stays 0.
+- **Verbs on objects.** `dig well`/`open`/`close`/`ditch`/`repair`/`fit`/`pump`/`fill`/`pour`/`measure`/`analyze` act on their targets' own methods; no `XApi.verb(host, …)`; `lint:object-verbs` stays 0.
 - **Mixin authoritative, controller dumb.** `canOpen` on the Sealable; `Gate.setOpening` logs; `WaterFixture.supplyStateNow` decides; `PipeRun.reconcileThermal` bursts; controllers render refusals returned.
 - **Affordances are class statics.** `WaterStore` (`peers`: fill/pour/drink already ride Bulkable), `Gate` (`peers`: `open`, `close`, `lock`, `unlock` views), `StaffGauge`/`ObservationWell`/weir (`measure`/`analyze` are flat verbs — nothing to afford), `Well` (`peers`: `pump`; `fit`), the yard's counter (shopkeeping's class), `PipeRun` (`peers`: `repair`). A row's `commandContributions:` is dead.
 - **Boolean field forms.** `natural`/`continuous`/`drained`/`drainTiled` fields; `isNatural()`/`isContinuous()`/`isDrained()` getters; `setNatural(v)` setters.
@@ -699,20 +734,20 @@ Implements D11, D12 (kernel half).
 
 ### W4 · The room pipe and the plumber's two acts — `build(water-supply W4): a room has water because a plumber brought a pipe into it`
 
-Implements D10, the `trade-plumbing` pack skeleton, `connect`, `plumb`, frost/burst/leak, the lead pipe's leach.
+Implements D10 (revised), D29, the `trade-plumbing` pack skeleton, the run as an assembly laid with `fit`, frost/burst/leak, the lead pipe's leach.
 
 - Kernel: `platform/thing/PipeRun.ts` (D10; `reconcileThermal` reads the room's trajectory; `burst`/`leak`; `peers: [repair]`); `lib/ground/Floor.ts` `wetFromSpill(litres)` (the floor-wetness seam — read the weather's puddle write first and reuse its field; if none is a field on the floor, this is the one new floor field, `persistent + runtimeState`); `WaterFixture` asks its room for a sound `PipeRun` (`unplumbed` without one, EXCEPT `natural` fixtures and fixtures whose premises cites a `WaterStore` in the same room — a butt feeds the tap beside it with no pipe; a store elsewhere needs the pipe).
-- Pack `packages/content/trade-plumbing` (the cordage skeleton): `pack.yaml` (`root: /trade/plumbing`, title to `/compact/trade`), `package.json`, `tsconfig.json`, `vitest.config.ts`; `content/trade/plumbing/idea/Discipline/plumbing.yaml`; `src/idea/cmd/plumbing/ConnectController.ts` + `content/…/cmd/plumbing/connect.yaml` (`connect [<premises>] to <main>`: the premises is the giver's room's premises (D2's resolution); refuses when no main `serves()` it, when it already cites a supply, when the giver carries no pipe length ≥ `water.serviceRunM` (dial 6); consumes the length; engages (`ManualBuildStep`, minutes by competence); on completion `ParcelApi.citeWaterSource(premises, main)`; credits `plumbing`); `PlumbController.ts` + `plumb.yaml` (`plumb [<room>] [with <pipe>]`: refuses an `unplumbed` premises, a room with a sound run; consumes the pipe length; mints a `PipeRun` of the pipe's material in the room, `fixedInPlace`, joint quality from competence → initial `condition`; credits `plumbing`); both controllers' rows under `content/trade/plumbing/idea/cmd/plumbing/`.
-- Affordance: `connect`/`plumb` are afforded by the **pipe length** in hand (`/trade/plumbing/thing/LeadPipe` and the founding `IronPipe` share a kernel class? — no: one pack class `/trade/plumbing/thing/PipeLength` (`Good`, `lengthM`, material), whose rows are lead (plumbing) and iron (`trade-smelting` content naming the plumbing class → smelting's `package.json` depends on plumbing, OR the iron row lives in plumbing and the founding RECIPE in smelting outputs it — choose the latter: the recipe's `outputTemplate` names `/trade/plumbing/thing/iron-pipe`; no class import crosses). `static commandContributions = { self: [connect, plumb] }` on `PipeLength`.
+- Pack `packages/content/trade-plumbing` (the cordage skeleton): `pack.yaml` (`root: /trade/plumbing`, title to `/compact/trade`), `package.json`, `tsconfig.json`, `vitest.config.ts`; `content/trade/plumbing/idea/Discipline/plumbing.yaml`; the joint rows `idea/Joint/{wiped,caulked}.yaml` (dressed by `plumbing`; quality → weep rate and frost margin); the pipe-length rows (`thing/lead-pipe.yaml`; `iron-pipe.yaml` named by smelting's recipe — W5). **No controllers, no new verbs** (R7): the acts are assembly's `fit` / `repair` / `salvage`.
+- Affordance: `fit` is afforded by the `PipeRun` itself (`AssembledMixin`'s shipped contribution — verify it lists `fit`; `peers: [repair]` as before). A pipe length is a plain part row (`Good`, `lengthM`, material) — no pack class is needed; if one is, it is `/trade/plumbing/thing/PipeLength` with no `commandContributions`.
 - Content: Seznick `stuff/location/room/bathroom.yaml` props `+ /trade/plumbing/thing/lead-run` (a `PipeRun` row); Duncan `dormroom.yaml` props `+ iron-run`; Hinkley `lots/bathroom.yaml` + `lots/kitchen.yaml` props `lead-run`, and a kitchen `tap` row (`/platform/thing/WaterFixture`) propped in the kitchen; Hinkley `house-programme` leaf **`loft`** (a bedroom, `storey: 1`, `lead-run` + a basin tap — R3) and leaf `scullery` (`/stuff/location/room/scullery`, a new generic room row, unheated, `lead-run` propped) for drive 8; Seznick's unit programme bathroom rows carry the same.
 - ⚠⚠ **Every room the W0 census found reading a main gets a run, not just the three named above.** The moment a fixture requires a sound `PipeRun` in its room, every bar, brewhouse, still-house, bathhouse, ward and dorm room in the delivered districts that holds a non-`natural` fixture goes `unplumbed` unless its room props a run. W4's content step is therefore **census-driven**: extend W0's fixture census test to list every room holding a supply-reading fixture, and prop `lead-run` or `iron-run` in each (the row's author decides the material; default `iron-run` for civic/commercial rooms, `lead-run` for the residential rows named above). A street outlet (the market standpipe, the fountain) is exempt — its run is under the street, and the outlet rule is "a fixture on a public street reads its supply directly". The census test fails the wave if any room is missed (AC 4).
-- ⚠ `generic-objects` must then depend on `trade-plumbing` for the row path — refused (the commons does not depend on a trade). Instead `PipeRun` rows for pre-connected rooms are **kernel generic rows** `/stuff/thing/fixture/{lead-run,iron-run}` (`class: /platform/thing/PipeRun`, material lead/iron), in `generic-objects`; the plumbing pack's `plumb` mints the same class with the carried pipe's material. The trade owns the ACT and the pipe LENGTHS; the run in a wall is a fixture any pack props.
-- Tests: pack vitest (`connect` refusals; `plumb` mints; competence → condition); `PipeRun.test.ts` (freeze/burst lead vs iron through a trajectory; thaw leak writes the floor; leach into standing water by payload chemistry); a `WaterFixture` + room + run integration test.
-- Acceptance: AC 3 (connect then plumb makes a lot-1 kitchen run; outside a main's extents `connect` refuses), AC 5 (scullery bursts, kitchen beside the range does not, leak on the floor, `repair` mends), AC 6 (lead in soft water through the run).
+- ⚠ `generic-objects` must then depend on `trade-plumbing` for the row path — refused (the commons does not depend on a trade). Instead `PipeRun` rows for pre-connected rooms are **kernel generic rows** `/stuff/thing/fixture/{lead-run,iron-run}` (`class: /platform/thing/PipeRun`, material lead/iron), in `generic-objects`; a plumber completes an empty run of the same class by `fit`ting pipe lengths (D10 revised). The trade owns the joints and the pipe LENGTHS; the run in a wall is a fixture any pack props.
+- Tests: `PipeRun.test.ts` (an empty run delivers nothing; fitting the bill completes it; joint dressing by competence → weep/frost margin; a service run's completion cites the main and refuses where no main serves; freeze/burst lead vs iron per part through a trajectory; thaw leak writes the floor; leach into standing water by payload chemistry); a `Placement` test (`under`/`behind` hide from the listing, stay nameable; `put` accepts both words); a `WaterFixture` + room + run integration test.
+- Acceptance: AC 3 (fitting the service run, then the kitchen run, gives a lot-1 kitchen water; outside a main's extents the service run's last fit refuses), AC 5 (scullery bursts, kitchen beside the range does not, leak on the floor, `repair` mends the part), AC 6 (lead in soft water through the run); a finished room's `look` lists no pipe and `survey` names it.
 
 ### W5 · The plumber's supply chain and the yard — `build(water-supply W5): the plumber casts lead on a sand bed, the founder casts iron, the potter makes tile, the smith a boiler, the cooper a cistern`
 
-- `trade-plumbing` content: `thing/lead-pot.yaml` (a `Receptacle`/`Vat` row on the kettle precedent, Thermal; lead melts at the material's own melting point), `thing/sand-bed.yaml` (`/platform/thing/Mould`, sand medium per `flask.yaml`, `castTemplate: /trade/plumbing/thing/lead-sheet`, `discipline: plumbing`), `thing/pipe-mould.yaml` (`Mould`, mandrel per rubber's `tube-mould`, `castTemplate: /trade/plumbing/thing/lead-pipe`), `thing/lead-sheet.yaml`, `thing/lead-pipe.yaml` (`PipeLength`, 3 m), `thing/iron-pipe.yaml` (`PipeLength`, 3 m), `thing/roof-cistern.yaml` (`/platform/thing/WaterStore`, 600 L, `fillsFrom: ''` → the premises' main, set by `connect` when the premises has one: `WaterStore.fillsFrom` is written by `connect` for every store on the premises whose `fillsFrom` is `''` and `followsMain: true`), `thing/cistern-body.yaml` (coopering's output: `Assembled` bill — `body` + `lining` of lead sheet; `fit lead-sheet to cistern-body` completes it into the `roof-cistern` row via the shipped assembly `completesTo` — verify the bill/complete seam in `assembly.md`; if assembly has no "completes into another row", the body row IS the cistern with `lined: false` until the sheet is fitted and `WaterStore` refuses to hold water unlined), `wiki/guide/plumbing.md`.
+- `trade-plumbing` content: `thing/lead-pot.yaml` (a `Receptacle`/`Vat` row on the kettle precedent, Thermal; lead melts at the material's own melting point), `thing/sand-bed.yaml` (`/platform/thing/Mould`, sand medium per `flask.yaml`, `castTemplate: /trade/plumbing/thing/lead-sheet`, `discipline: plumbing`), `thing/pipe-mould.yaml` (`Mould`, mandrel per rubber's `tube-mould`, `castTemplate: /trade/plumbing/thing/lead-pipe`), `thing/lead-sheet.yaml`, `thing/lead-pipe.yaml` (`PipeLength`, 3 m), `thing/iron-pipe.yaml` (`PipeLength`, 3 m), `thing/roof-cistern.yaml` (`/platform/thing/WaterStore`, 600 L, `fillsFrom: ''` → the premises' main, set when the service run completes: `WaterStore.fillsFrom` is written at the service run's completion for every store on the premises whose `fillsFrom` is `''` and `followsMain: true`), `thing/cistern-body.yaml` (coopering's output: `Assembled` bill — `body` + `lining` of lead sheet; `fit lead-sheet to cistern-body` completes it into the `roof-cistern` row via the shipped assembly `completesTo` — verify the bill/complete seam in `assembly.md`; if assembly has no "completes into another row", the body row IS the cistern with `lined: false` until the sheet is fitted and `WaterStore` refuses to hold water unlined), `wiki/guide/plumbing.md`.
 - Recipes: `trade-smelting/content/recipes/iron-pipe.yaml` (founding, output `/trade/plumbing/thing/iron-pipe`), `trade-ceramics/content/recipes/drain-tile.yaml` + `thing/drain-tile.yaml` + a `drain-tile-mould` row, `trade-smithing/content/recipes/range-boiler.yaml` + `thing/range-boiler.yaml` (a `WaterStore` behind the range with `heatedBy` → it is a Thermal store next to a burner; it warms by the shipped room heat exchange — no new mechanism; hot water is what `fill` from it gives), `trade-coopering/content/recipes/cistern-body.yaml`.
 - Terminus content: `goods-yards/plumbers-yard.yaml` (Locale) + `plumbers-yard/{idea/outfit.yaml (Business: positions plumber, counter), agent/plumber.yaml (Cast, competence plumbing proficient), thing/counter.yaml (shopkeeping's counter class, stock lines: lead-pipe, lead-sheet, roof-cistern, drain-tile, lead pigs), thing/{lead-pot,sand-bed,pipe-mould,hearth}.yaml}`, a parcel line in `terminus/pack.yaml` (industrial, `feeder: terminus-main:bank`, `waterSource: city-intake`); the `plumber` Cast's counter sells.
 - Tests: pack vitest — a pig melted and poured on the bed sets a sheet; the pipe mould sets a pipe; the counter lists the goods.
@@ -790,7 +825,8 @@ gate** — every one fails closed and silent.
 | the kit | `analyze water <x> with kit` | flat verb | `reading/water.yaml` `handTool: water-test`; the kit row `capabilities: [water-test]` | `ReadingCatalogue` warms rows by path (verify the infix covers `/system/water/idea/reading/`) | `lint:instrument-args` |
 | flow / stage / table | `analyze flow <weir>`, `analyze stage <gauge>`, `analyze water-table <obswell>` | flat | three rows + classes | as above | `subjectRequires` on each row |
 | dysentery + lead | `drink` | — | the row leaf = the tag; `lint:toxin-keys` | conditions warm by class | — |
-| `connect` / `plumb` | new, `trade-plumbing` | `PipeLength` `self` | the pack's views + controller rows; `lint:controller-rows`, `lint:verb-collisions` | the pack is installed (`SAXONBERG_PACKS`) | `plumb.yaml` `pipe` arg `requires: [PipeLength]`-shaped by class path; `connect.yaml` `main` arg `requires: [Conduit]`-shaped (a pack-registered class name is nameable since the federation — verify `requires:` accepts a pack class; else gate by the controller's narrowing and say so) |
+| lay a run | shipped `fit` (+ `repair`/`salvage`) | `AssembledMixin`'s shipped contribution on `PipeRun` | the run's bill; the joint rows; empty runs propped where `plumbable: true` | rows only | `fit.yaml` `requires: AssembledMixin` ✓ |
+| hidden plumbing | `look` / `survey` | — | `Placement/{under,behind}` with `conceals`; the survey plumbing line | `PlacementCatalogue` warms rows from any root | `lint:placement-words` (`put` gains both words) |
 | `repair` the run | shipped | `PipeRun` `peers: [repair]` | run rows | — | `repair.yaml` `requires: DurableMixin` ✓ |
 | gates | `open`/`close` + setting, `lock`/`unlock` | `Gate` `peers` | gate rows; the ditch course; `works:` lists; `lint:water-citations` is for shores, not works | the works load when the catalogue scans the ROW (`rowWork` for a Gate) and live when somebody stands at them | `open.yaml` `requires: SealableMixin` ✓ (Gate composes it) |
 | the rota → calendar | `calendar` (shipped) | shipped | roster schedules | written at `clock on`/tick | — |
@@ -810,7 +846,7 @@ gate** — every one fails closed and silent.
 |---|---|---|
 | 1 no fixture runs from nowhere | W0, W1, W4 | `lint:water-posture` 0 + a fixture census test (every `WaterFixture` row is `natural`, `suppliedBy`, or on a claiming premises) + drive 1 |
 | 2 cut/off/dry/frozen/overdrawn | W0, W1 | unit + drive 3, 4 |
-| 3 dry until plumbed; outside = no main | W0, W4 | drive 5, 6; `connect` refusal test |
+| 3 dry until plumbed; outside = no main | W0, W4 | drive 5, 6; the service run's refusal test |
 | 4 houses run on day one | W0, W4 | drive 1, 3 (Seznick tap); wire-suite regressions |
 | 5 frost burst, leak, repair | W3, W4 | drive 8, 9 |
 | 6 lead in soft water → burden | W2, W4 | drive 10 |
@@ -853,7 +889,7 @@ Nothing unmapped.
 | 3 keeper unlocks, switches | instant | staged | `apply`+`clock on` as keeper (player verbs) → the key issues |
 | 4 main short, priority | staged | staged | founder `eval`: `intake.setDemandM3S(2.0)` (the district rate above capacity) |
 | 5 buy a lot | instant | player | — |
-| 6 cast, pipe, connect, plumb | short | player | — (heating the pot is minutes) |
+| 6 cast, pipe; `fit` the service run, then the kitchen run | short | player | — (heating the pot is minutes) |
 | 7 tank low; cistern carries | staged | staged | `eval`: `tank.setLevelM3(…)`; the loft tap reads weak and the ground floor runs (R3) |
 | 8 frost night | short | player | `testharness weather pin frost --at hinkley`, `clock advance 10h` (under a day) |
 | 9 iron cracks | staged | staged | `eval`: swap the run's material row; same frost |
@@ -914,10 +950,11 @@ with no honest fallback; the keyed-premises resolution failing both ways.
 Clean attach points, each leaving as a slate line, never a stub:
 
 - **Every other hole and every bigger dig** — graves, pits and pit traps, trenches and footings, cellars and dugouts (a hole that buds a place), machines (steam shovel, dredge), blasting, the wand of digging as content, backfill, casing an aquifer. `HoleMixin` is the seam. → [digging-slate](../slates/builds/digging-slate.md) (written with this plan).
+- **Construction proper** — *the owner, 2026-11-02: construction must sit on assembly, crafting and the material trades; a magic "do the job" verb is not lensworthy.* The pipe run (an element made of parts by a trade, laid with `fit`) and the `under`/`behind` placements (services in the fabric) are its first worked example. → construction-slate.
 - **`break <padlock>`** — the lock's `lockTechnology` and a striking tool; the gate's log already records whoever opens it. → irrigation-slate (kept) / a locks slate.
-- **The NPC plumber on a gig** — the `fulfill` shape over `connect`/`plumb`. → freight-slate / contract.
+- **The NPC plumber on a gig** — the `fulfill` shape over `fit` on a run. → freight-slate / contract.
 - **Metered billing** (`drawL` × time as a payment leg, with power). → power-utility-slate.
-- **Sewer/WC/septic** — `plumb`, the `PipeRun` and the aquifer are the seams; the outfall is the sink. → sanitation-and-pollution-slate.
+- **Sewer/WC/septic** — the service run (a drain is the same object reversed), the `PipeRun` and the aquifer are the seams; the outfall is the sink. → sanitation-and-pollution-slate.
 - **Bored elm pipe** (a `PipeLength` row of wood). → forestry-slate.
 - **A powered pump on the bench** (wind or grid) feeding a cistern. → irrigation-slate (kept).
 - **The cone of depression, subsidence** — `Aquifer.level` is the seam. → irrigation-slate (kept).
