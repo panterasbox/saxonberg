@@ -56,6 +56,25 @@ available argument that the build is premature. This is the check that
 would have caught `feel`/`taste` shipping without ever running, and
 the reference-Idea roster going inert three separate times.
 
+⚠ **And ask whether it belongs in this build at all**
+([review-questions.md](../../../docs/review-questions.md) R3): *would
+this make sense if the trade did not exist?* If yes, it is a
+cross-cutting capability and gets its own build — never solved inside a
+trade build.
+
+### 0½. Say what the thing IS before how it is made
+
+⭐⭐ Before the trade's process, the slate's verbs or anything about
+waves: **what is this thing, what does it do, where does it sit in the
+supply chain, how does it scale (one versus many), what are its material
+qualities, and which other systems does it touch — in every epoch.**
+Lens 5 goes first here, not last. (Review question R1. Paper,
+2026-11-02: the first draft went straight from the slate to rags and the
+press; the owner had to say *"we need to step way back — I don't even
+know what paper is in this game."* The step back found the build's real
+subject and halved its new substrate.) Put it to the user as a short
+model to agree or correct; it is the frame every later step hangs on.
+
 ### 1. Identify the slate(s)
 
 If the user named slates, load them. If they didn't, read
@@ -71,9 +90,9 @@ requirements doc when the features are tightly coupled — a single
 ### 2. Survey what already exists — at the PRODUCT level
 
 ⭐ **The codebase is a product document, and it is now far too large to
-hold in your head.** 136 subsystem docs, 199 mixins, 466 command
-views, 37 packs, 48 Disciplines. The slate was very likely written
-before some of that existed.
+hold in your head** — well over a hundred subsystem docs and sixty
+packs, growing every week. The slate was very likely written before
+some of that existed.
 
 Survey the built surface for this feature's nouns and verbs, at the
 level a *player* would recognize — not file-level (that is the plan's
@@ -84,12 +103,26 @@ Grounding section):
 - **Subsystem docs** whose subject overlaps (`docs/subsystems/`).
 - **Disciplines** already in the catalogue.
 - **Slates** covering the same design space (a duplicate slate is a
-  real hazard at 214 of them).
+  real hazard at over two hundred of them).
+- ⭐ **The builds in flight** — `git worktree list`, then each sibling
+  branch's requirements and plan (`git show origin/<branch>:docs/…`).
+  Two builds designing the same thing in parallel is the collision this
+  step most often misses.
 
 This is fan-out search, not judgment — delegate it. It ends with the
 sentence that earns the section: **"therefore what is genuinely new
 here is…"** Routinely this shrinks the build, which is a good outcome
 that otherwise never happens.
+
+⭐⭐ **Then write the reuse ledger** (review question R2) — *the question
+the owner opens almost every review with: what new mixins and Apis did
+you make, and what is already doing their job?* For every concept the
+build needs: what already does it, shipped or in flight, and whether
+this build reuses or generalizes it. The ledger names code, so it goes
+in the **slate** (a section titled *Reuse ledger for the plan*), not the
+requirements doc; the requirements point at it. Every row is one the
+plan must account for. Paper's is the precedent
+(`paper-and-printing-slate § 11`).
 
 ### 3. Ideate
 
@@ -97,15 +130,18 @@ Creative back-and-forth. Brainstorm shape, scope, edge cases,
 trade-offs. The user drives direction; you surface implications, prior
 art, and antipatterns that constrain choices.
 
-### 4. Run the six lenses
+### 4. Run the seven lenses
 
 Read `docs/design-lenses.md` and interrogate the scope against all
-six: pedagogy (which Disciplines, what is derivable) · creative
+seven: 1 pedagogy (which Disciplines, what is derivable) · 2 creative
 expression (ordinary case with no code; bespoke without breaking) ·
-immersion & roleplay (what the sim affords without scripting) · values
-(the choice forced; who confers standing) · epochs (the mechanism
-holds, only the dynamics change) · economy (what it produces and
-consumes, who pays, was the demand there first).
+3a immersion (the fiction cannot betray itself) and 3b participation
+(can the polity do something we did not want) · 4 values (the choice
+with no right answer) · 5 continuity (does the capability survive the
+epoch; who is holding the obsolete half) · 6 economy (what it produces
+and consumes, who pays, was the demand there first) · 7 governance
+(when it judges a person: the criterion, the appeal, the entrenchment
+tier).
 
 **Scorecard, not a gate** — 1 and 2 pick the winner at a fork, and
 when they do, ⭐ decide it and say which limb chose rather than asking.
@@ -156,6 +192,17 @@ end-to-end in soak. See `docs/workflow.md § No merge waits on the clock`.
 A **kernel-led** build with no player-facing surface still writes one:
 it drives the nearest existing content that touches the new substrate.
 If nothing touches it, see step 0.
+
+Two steps every drive carries (review questions R4, R5), because tests
+build state and never use it:
+
+- ⭐ **A restart.** If anything the build makes persists, a step
+  restarts the world and reads it back. Five builds shipped a defect
+  only a reboot showed (worn goods came back carried, goods duplicated,
+  players woke in the lounge).
+- **Light.** Every new place is visited and `look`ed at in its own
+  light — at night too, if anyone goes there at night. Three new
+  premises shipped pitch dark.
 
 ### 7. Converge on scope
 
@@ -220,8 +267,8 @@ One subheading each: the question, the answer, the reasoning, and
 
 ## Lens pass
 
-Six short entries against `docs/design-lenses.md`. Gaps recorded
-as gaps.
+Seven short entries against `docs/design-lenses.md` (3a and 3b as
+one). Gaps recorded as gaps.
 
 ## The drive
 
