@@ -161,7 +161,20 @@ describe('the line’s regulars (harbors A2)', () => {
     expect(data('/stuff/idea/corpo/Brand/greywater-line').owner).toBe('greywater-line');
   });
 
-  it('⭐ the yard\'s quay is a quay of the harbor\'s book (B2, P17)', () => {
+  it('⭐ the yard sells TITLE off a finite hull book — two smacks on the stocks, brought alongside its own quay (review 1)', () => {
+    expect(rowAt('/world/terminus/harbor/yard/thing/hull-book').class).toBe('/system/transport/thing/HullBook');
+    const book = data('/world/terminus/harbor/yard/thing/hull-book') as {
+      quay: string;
+      hulls: Array<{ slot: string; kind: string; priceMinor: number }>;
+    };
+    expect(book.quay).toBe('/world/terminus/harbor/yard/quay');
+    // ≈ a season of a hand's wages (P28): 90 days × ~56 a shift.
+    expect(book.hulls).toEqual([
+      { slot: 'the near stocks', kind: '/stuff/idea/Ship/smack', priceMinor: 5000 },
+      { slot: 'the far stocks', kind: '/stuff/idea/Ship/smack', priceMinor: 5000 },
+    ]);
+    expect((data('/world/terminus/harbor/yard/idea/business') as { operatingLocations: string[] }).operatingLocations).toContain('/world/terminus/harbor/yard/thing/hull-book');
+    expect((data('/world/terminus/harbor/yard/shed') as { props: string[] }).props).toContain('/world/terminus/harbor/yard/thing/hull-book');
     expect(rowAt('/world/terminus/harbor/yard/quay').class).toBe('/system/transport/location/HarborQuay');
     expect(harbor.quays.map((q) => q.place)).toContain('/world/terminus/harbor/yard/quay');
     // The smack's company is appointed by her register; she flies the city's colors.

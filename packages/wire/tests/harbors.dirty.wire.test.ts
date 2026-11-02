@@ -31,7 +31,10 @@
  *    can only be driven once the Hesper has left (step 5).
  *  - **10 last**, where the requirements put it.
  *
- * ⭐ **Stage B (11–25)** — owning a ship: bought and named at Pell's yard,
+ * ⭐ **Stage B (11–25)** — owning a ship: bought and named off Pell's yard's
+ * hull book (two hulls on the stocks, both sold here; ⚠ the yard then
+ * sells none, so a SECOND run of this file wants a fresh world — a kept
+ * world's yard is sold out),
  * entered in the city's register in sixty-fourths; a second player's
  * smack keeps her own rooms; the gangway is a lock with a key and the helm
  * is only her master's; shares sold with the money and the shares together;
@@ -569,6 +572,13 @@ suite('B1 — owning a ship', () => {
     expect(r.status, said).toBe('ok');
     expect(said, said).toMatch(new RegExp(`named ${NAME1} already\\. Another name`));
     expect(said, said).toMatch(new RegExp(`as the ${NAME2}, all sixty-four shares in your name`));
+    // ⭐ The yard's hull book had two hulls on the stocks: both are sold, and
+    // the yard sells no third (review 1 — no faucet).
+    const book = await say(second, 'look hull book');
+    expect(book, book).toMatch(/Every hull in it is sold/);
+    expect(book, book).toMatch(new RegExp(`Sold off the far stocks: the smack ${NAME2}`));
+    const none = await say(second, 'buy smack');
+    expect(none, none).toMatch(/The yard has no hull on the stocks/);
     expectOk(await second.cmd('go north'));
 
     // What you leave in your hold is not in hers.

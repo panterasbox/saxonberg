@@ -257,6 +257,7 @@ own book, for the let — `HireBook` and `rent`, which is not a sale).
 |---|---|---|
 | `ConsignmentShelfMixin` | a good it holds a live listing for | the consignor's ask, the remainder split to them, title **transferred**; a `termsAskFor` hook lets a counter price a terms listing itself |
 | `Stock` (composes the shelf) | a line it carries (even bare) or a consigned good | the closed sign first; a shelf good (brought up to order from a store), settled in full and **stamped**; else a listing as above; else *sold out* / *isn't for sale here* |
+| `HullBook` (`/system/transport/thing/HullBook`, the yard) | a hull it lists, by kind or slot — sold out or not | **title** off a finite, authored list (`hulls: [{slot, kind, priceMinor}]`, the farmstead pattern): the closed sign; the first hull still on the stocks (*"the yard has no hull on the stocks"*); the register over the yard; her name asked (refused while the register has it); the slot claimed synchronously, then the money (given back if it does not come); her identity minted `<kind>/<serial>`, `Ship.commission` at the book's `quay:`; the sale kept in the book's own record — no restock |
 
 ⚠ Worth stays on the offer (Law 1) and every sale settles through
 `EmploymentApi.settleSale` to a venue its house operates. ⛔ It is not a
