@@ -245,23 +245,17 @@ export abstract class FloorplanWarren extends FloorplanBase {
   protected async wakeRoom(spec: BlueprintRoom): Promise<MemberStuff | null> {
     const key = this.roomKeyOf(spec.leaf);
     if (!key) return null;
-    const cached = this._roomsByKey.get(key);
-    if (cached && !cached.isDestroyed()) return cached;
+    const cached = this.roomForKey(key);
+    if (cached !== null) return cached;
     // ⭐ The room stands in the zone its WARREN does, resolved from its
     // key rather than its row: a room's size is its zone's cell (B54).
     // Its identity stays the row — the record's scope. ⭐ Its ways are
     // NOT applied by the clone (`exits: {}`): a way into the blueprint
     // would stand the blueprint's own room up. They are copied below.
-    const room = await StuffApi.clone<MemberStuff>(spec.row, undefined, {
+    const room = await this.mintKeyed(spec.row, key, {
       zoneFrom: this.zoneFromFor(spec, key),
-      ...(Object.keys(spec.exits).length > 0 ? { dataOverlay: { exits: {} } } : {}),
+      withholdExits: Object.keys(spec.exits).length > 0,
     });
-    this.addMember(room);
-    // ⭐ Only a room that keeps state of its own has a record to restore
-    // (persistence is the exception — tracts build review). A plain room
-    // — a farmyard — comes up from its row each wake and keeps nothing.
-    if (MixinApi.isPersistable(room)) await PersistableApi.restoreOrSeed(room, key);
-    this._roomsByKey.set(key, room);
     // The room's address — before the room finishes itself, which may
     // read it (a tract seeds its ground from its locality).
     const address = this.addressFor(spec);
@@ -269,6 +263,35 @@ export abstract class FloorplanWarren extends FloorplanBase {
     // ⭐ Stood up and restored: a member may now finish itself against
     // its warren — a tract sizes itself from the open ground (D28).
     if (MixinApi.isWarrenMember(room)) await room.onWarrenWake();
+    return room;
+  }
+
+  /**
+   * ⭐ Mint ONE keyed member: clone `row`, make it a member, let the
+   * caller place it (`beforeRestore` — a mine puts a carved cell on its
+   * grid, since its coordinate IS its identity), restore-or-seed it under
+   * `key` when it keeps a record, and file it by key. The one keyed mint
+   * every floorplan shares — a blueprint's copy and a mine's carve alike
+   * (harbors review 3). Persistence is the exception: a plain room comes
+   * up from its row and keeps nothing.
+   */
+  protected async mintKeyed(
+    row: string,
+    key: string,
+    opts: {
+      zoneFrom?: string;
+      withholdExits?: boolean;
+      beforeRestore?: (room: MemberStuff) => void;
+    } = {},
+  ): Promise<MemberStuff> {
+    const room = await StuffApi.clone<MemberStuff>(row, undefined, {
+      ...(opts.zoneFrom !== undefined ? { zoneFrom: opts.zoneFrom } : {}),
+      ...(opts.withholdExits ? { dataOverlay: { exits: {} } } : {}),
+    });
+    this.addMember(room);
+    opts.beforeRestore?.(room);
+    if (MixinApi.isPersistable(room)) await PersistableApi.restoreOrSeed(room, key);
+    this._roomsByKey.set(key, room);
     return room;
   }
 
@@ -370,6 +393,11 @@ export abstract class FloorplanWarren extends FloorplanBase {
       if (room === member && !room.isDestroyed()) return key;
     }
     return null;
+  }
+
+  /** Let go of a member filed by key (a mine's abandoned cell). */
+  protected forgetKey(key: string): void {
+    this._roomsByKey.delete(key);
   }
 
   /** The live room for a full key, or null. */

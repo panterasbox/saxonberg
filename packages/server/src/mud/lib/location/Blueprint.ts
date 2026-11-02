@@ -21,9 +21,10 @@
  * up by the shipped author path (`clone <row>` — `AccessApi.canAtPath` —
  * then `goto`), as any authored place.
  *
- * Membership is the Structure rule: every row under the extent whose
- * class is a place — and the extent row itself when it is one, so a
- * one-room blueprint (the dorm's) names its room as its extent. A room's
+ * Membership is FOLLOWED, never searched: the entrance, and every room a
+ * way inside the extent leads to from a room already found — the ways
+ * the author wrote. A one-room blueprint (the dorm's) names its room as
+ * both its extent and its entrance. A room's
  * LEAF is the last segment of its row path (unique within the
  * blueprint); a one-room blueprint has none — its copy is keyed by the
  * warren's own key.
@@ -77,22 +78,36 @@ export class Blueprint {
     if (!extent || !entrance) {
       throw new Error(`Blueprint '${this.path}': a blueprint names an extent and an entrance`);
     }
-    const own = await Template.findByPath(extent);
-    const candidates = [...(own ? [own] : []), ...(await Template.findDescendants(extent))];
-    const places: Template[] = [];
-    for (const t of candidates) {
-      if (t.path === this.path || !t.class) continue;
-      const cls = (await StuffApi.loadClassByPath(t.class)) as
-        | { prototype?: { isPlace?: () => boolean } }
-        | undefined;
-      if (cls?.prototype?.isPlace?.() === true) places.push(t);
+    // ⭐ Its rooms are FOLLOWED, never searched (load on use): the
+    // entrance, then every room a way inside the extent leads to from a
+    // room already found — the ways the author wrote. A room no way
+    // reaches is in no copy (a house with a room you cannot walk into is
+    // a content error the author sees as a missing room).
+    const inside = (p: string): boolean => p === extent || p.startsWith(`${extent}/`);
+    if (!inside(entrance)) {
+      throw new Error(`Blueprint '${this.path}': its entrance '${entrance}' is outside '${extent}'`);
     }
-    if (places.length === 0) throw new Error(`Blueprint '${this.path}': no rooms under '${extent}'`);
-    places.sort((a, b) =>
-      a.path === entrance ? -1 : b.path === entrance ? 1 : a.path.localeCompare(b.path),
-    );
-    if (places[0]!.path !== entrance) {
-      throw new Error(`Blueprint '${this.path}': its entrance '${entrance}' is not one of its rooms`);
+    const places: Template[] = [];
+    const seen = new Set<string>([entrance]);
+    const queue = [entrance];
+    while (queue.length > 0) {
+      const path = queue.shift()!;
+      const t = await Template.findByPath(path);
+      const cls = t?.class
+        ? ((await StuffApi.loadClassByPath(t.class)) as { prototype?: { isPlace?: () => boolean } } | undefined)
+        : undefined;
+      if (!t || cls?.prototype?.isPlace?.() !== true) {
+        throw new Error(
+          `Blueprint '${this.path}': '${path}' is inside '${extent}' and no room of it` +
+            (path === entrance ? ' (the entrance)' : ''),
+        );
+      }
+      places.push(t);
+      for (const way of Object.values(exitsOf((t.data as Record<string, unknown> | undefined)?.exits))) {
+        if (!inside(way.destination) || seen.has(way.destination)) continue;
+        seen.add(way.destination);
+        queue.push(way.destination);
+      }
     }
     const single = places.length === 1;
     const leaves = new Set<string>();

@@ -673,10 +673,12 @@ Named, not stubbed — each is a clean attach point:
 A warren that mints copies of a set of rooms names its **blueprint**: a
 `Structure` row (`platform/idea/Structure`) whose `extent` holds the
 kind's rooms as ordinary rows and whose `entrance` is the way in.
-`lib/location/Blueprint.ts` reads it off the rows — every row at or
-under the extent whose class is a place (so a one-room blueprint, the
-dorm's, names its room as its extent, and its copy is keyed by the
-holding's own key with no leaf). The shipped six:
+`lib/location/Blueprint.ts` reads it off the rows — FOLLOWED, never
+searched (`lint:template-scans`): the entrance, then every room a way
+inside the extent leads to from a room already found. A room no way
+reaches is in no copy. A one-room blueprint (the dorm's) names its room
+as both extent and entrance, and its copy is keyed by the holding's own
+key with no leaf. The shipped six:
 
 | warren row | blueprint | rooms |
 |---|---|---|
@@ -778,9 +780,10 @@ and `FloorplanWarren` does not; the rate key is the platform's neutral
 `getFloorplanExits`/`wireLockedEdge`, is gone for the blueprint
 (§ Blueprints): ways are the rooms' own `exits:`, a locked edge is a
 keyed-door `kind:` fitted by `fitExit`, `share` is the tract's, the
-footprint the Structure's. ⚠ A mine's workings are still not a
-`FloorplanWarren` (`MineWarren` extends `RoomWarren`); adopting it is a
-base swap whenever the metal chain wants a timbering clock. The
-duck-typed shell reads in `CirculationWarren.conditionOf` and
-`SurveyController` could now narrow on the kernel class too; they were
-left as they are by this wave.
+footprint the Structure's. ⭐ And `MineWarren` now `extends
+FloorplanWarren` (review 3, the base swap its header planned): it names
+no blueprint, its carve mints keyed members through the base's
+`mintKeyed`, its cells sit on its zone's grid (`laysOutOwnFrame` false)
+and keep their own records; it composes no clock. The shell reads in
+`CirculationWarren.conditionOf` and `SurveyController` narrow on
+`MixinApi.isWeathering`.

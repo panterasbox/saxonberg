@@ -11,29 +11,27 @@
  * static mine is a mine that does not grow, which is a coherent thing to
  * be rather than a degraded one.
  *
- * ## Why `RoomWarren`, and why not `HoldingWarren`
+ * ## Why `FloorplanWarren` (harbors review 3 — the planned base swap)
  *
  * `Warren.occupantsOf` is abstract — a warren cannot be written without
- * declaring which tier it is — and a mine's members are ROOMS, so this
- * is a `RoomWarren`. `LoungeWarren` is the shipped non-residential
- * precedent.
+ * declaring which tier it is — and a mine's members are ROOMS. This header
+ * planned the swap from `RoomWarren` for the day the abstract holding
+ * graduated to the kernel with the shell clock left behind (*"a field has
+ * no paint either"*). It has: `FloorplanWarren` is the kernel's keyed
+ * room set, stood up and put to sleep whole, and the clock is
+ * `WeatheringMixin`, which a mine does not compose. So a mine
+ * `extends FloorplanWarren`, and the keyed mint is the base's
+ * (`mintKeyed` — clone, member, placed, restore-or-seed, filed by key):
+ * the carve adds keyed members on top of it.
  *
- * ⚠ **Not `HoldingWarren`**, and for one reason only: it is
- * `packages/content/residence/` content, and a trade pack must not depend
- * on a residence pack. ⭐ The fit is otherwise good — *a holding is a
- * parcel being put to a use*, and `landUse` names the purpose (rooms
- * serve residential, fields agricultural, workings industrial). Its
- * identity model is this class's verbatim (*"each holding gets a keyed
- * instance; each room is a keyed instance of a REAL room row"*) and its
- * member contract is already *"open to runtime-added members — the
- * floorplan is the INITIAL mint, never the closed set."*
- *
- * ⭐ So the keys here are chosen for a **base swap, not a redesign**:
- * when the abstract holding graduates to kernel — with mining as the
- * second consumer, per the two-consumers rule — adopting it is
- * `extends RoomWarren` → `extends HoldingWarren`. The only genuinely
- * residential residue to leave behind is the shell condition and its
- * weathering clock; a field has no paint either.
+ * ⭐ **A mine names no blueprint** (`blueprint` stays `''`): its spine is
+ * authored singletons and its workings are CARVED, so there is no kind of
+ * room set to copy — the base's wake mints nothing, and every member is a
+ * cell somebody cut. Its members sit on its zone's grid (the cell IS the
+ * identity), so it lays out no frame of its own
+ * (`laysOutOwnFrame() → false`), and a carved cell keeps its own record
+ * by its own acts (`abandon` captures a held cell), never as the warren's
+ * dependent.
  *
  * ## The three-tier room identity (D17, and no rowless mints)
  *
@@ -42,8 +40,8 @@
  *    members.
  *  - **Workings** — every carved cell is a **keyed member**: scope is
  *    one of the venue's four type rows, key is `<claimExtent>/<cell>`.
- *    ⭐ Not a bare coordinate: it matches `HoldingWarren`'s shipped
- *    `<extent>/<leaf>` convention (so the graduation costs nothing) and
+ *    ⭐ Not a bare coordinate: it matches the keyed floorplan's
+ *    `<extent>/<leaf>` convention (so the base swap cost nothing) and
  *    it puts **claim scoping in the key**, which makes part of
  *    `claimFor` derivable rather than a ledger scan.
  *  - **Geology** — no identity at all.
@@ -65,10 +63,10 @@
  * care. That is the falsifiable test the whole trade is built on.
  */
 
-import { RoomWarren } from '@saxonberg/server/mud/lib/location/RoomWarren';
+import { FloorplanWarren } from '@saxonberg/server/mud/lib/location/FloorplanWarren';
 import type { Attachment } from '@saxonberg/server/mud/lib/location/Warren';
 import { SingletonMixin } from '@saxonberg/server/mud/lib/stuff/Singleton';
-import { PersistableMixin } from '@saxonberg/server/mud/lib/persistence/Persistable';
+import type { Persistable } from '@saxonberg/server/mud/lib/persistence/Persistable';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { ParcelApi } from '@saxonberg/server/mud/api/parcel';
@@ -124,7 +122,7 @@ export interface CarvedEntry {
   type: WorkingType;
 }
 
-const MineWarrenBase = SingletonMixin(PersistableMixin(RoomWarren));
+const MineWarrenBase = SingletonMixin(FloorplanWarren);
 
 export default class MineWarren extends MineWarrenBase {
   static fieldMeta: FieldMeta = {
@@ -169,16 +167,6 @@ export default class MineWarren extends MineWarrenBase {
   public setZonePath(v: string): void { this.zonePath = v; }
   public getCarved(): Readonly<Record<string, CarvedEntry>> { return this.carved; }
   public setCarved(v: Record<string, CarvedEntry>): void { this.carved = v ?? {}; }
-
-  /**
-   * Which type row the NEXT `createMember()` clones. Set inside
-   * {@link MineWarren.carve}'s own serialization chain so the field-set
-   * and the clone are atomic; `createMember` takes no arguments and this
-   * is how a keyed, typed member is threaded through it.
-   */
-  private _carveType: WorkingType = 'face';
-  /** The persistence key the next member is restored-or-seeded under. */
-  private _carveKey: string = '';
 
   // ─────────────────────── the ledger ───────────────────────
 
@@ -286,10 +274,8 @@ export default class MineWarren extends MineWarrenBase {
    * standing in one place, and a silent second clone would be exactly the
    * rowless-mint failure D17 exists to prevent.
    *
-   * Carves through **its own serialization chain**: the field-set and the
-   * clone must be atomic, because `createMember()` takes no arguments and
-   * reads `_carveType`. The base's chain still serialises the clone
-   * itself — nested chains are fine.
+   * Carves through **its own serialization chain**, so two cuts of one
+   * cell never race to two clones.
    */
   public async carve(
     cell: Cell,
@@ -322,14 +308,13 @@ export default class MineWarren extends MineWarrenBase {
     holder: string | null,
   ): Promise<MemberStuff> {
     const key = this.memberKeyOf(cell);
-    this._carveType = type;
-    this._carveKey = key;
-    const room = await this.createMemberSerialized();
-    this.addMember(room);
-    // The coordinate IS the identity: the persistence key, the survey
-    // address and the MQL atom are one fact with three faces.
-    this.placeInGrid(room, cell);
-    await PersistableApi.restoreOrSeed(room, key);
+    // ⭐ The base's keyed mint (harbors review 3). The coordinate IS the
+    // identity — the persistence key, the survey address and the MQL atom
+    // are one fact with three faces — so the cell is placed on the grid
+    // before the record comes back.
+    const room = await this.mintKeyed(this.typeRows![type], key, {
+      beforeRestore: (r) => this.placeInGrid(r, cell),
+    });
     this.carved[keyOf(cell)] = { cell: keyOf(cell), tier: 'provisional', holder, type };
     await this.wireHubExit(room);
     // ⭐ The topology changed, so the air did. Driving a heading makes the
@@ -378,6 +363,8 @@ export default class MineWarren extends MineWarrenBase {
       }
       const neighbours = liveNeighboursOf(room);
       this.unwireHubExit(room);
+      const filed = this.mintedKeyOf(room);
+      if (filed !== null) this.forgetKey(filed);
       this.removeMember(room);
       StuffApi.destruct(room as unknown as Stuff);
       for (const n of neighbours) await refreshAirAround(n);
@@ -388,19 +375,22 @@ export default class MineWarren extends MineWarrenBase {
   // ─────────────────────── Warren policy hooks ───────────────────────
 
   /**
-   * Clone one member from the type row `carve` selected. ⭐ Reachable
-   * ONLY through `carve` — a mine has no elastic host, so `getHost()` and
-   * `spawnMember()` are never called. That is deliberate and documented
-   * rather than dead code.
+   * ⭐ A mine's members are cells on its zone's GRID — the coordinate is
+   * the identity — never a frame of its own (a copy's rooms are).
    */
-  protected async createMember(): Promise<MemberStuff> {
-    const rows = this.typeRows!;
-    return StuffApi.clone<MemberStuff>(rows[this._carveType]);
+  public override laysOutOwnFrame(): boolean {
+    return false;
   }
 
-  /** Arrivals land at the adit; a mine never population-buds. */
-  public async admitArrival(): Promise<void> {
-    /* no-op — entry is the adit, an authored singleton, not a member. */
+  /**
+   * A carved cell keeps its own record by its own acts — `abandon`
+   * captures a held cell; a provisional one is forgotten — so the mine's
+   * capture writes its ledger, never its cells.
+   *
+   * @hook
+   */
+  public override dependentPersistables(): (Stuff & Persistable)[] {
+    return [];
   }
 
   /** Unused: `wireHubExit` is overridden wholesale (there is no hub). */
@@ -423,10 +413,6 @@ export default class MineWarren extends MineWarrenBase {
       await this.abandon(c);
     }
   }
-
-  /** A mine has no host fixture: the adit is an authored singleton. */
-  protected async wireHostFixtures(): Promise<void> { /* no-op */ }
-  protected async unwireHostFixtures(): Promise<void> { /* no-op */ }
 
   /**
    * ⭐ **Wire the new cell to its already-carved orthogonal neighbours**,

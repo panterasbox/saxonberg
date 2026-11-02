@@ -139,7 +139,7 @@ function seedDomain(): void {
   add(ROOM_A, '/platform/location/PersistentLocation', {
     shortDescription: 'the hall',
     props: ['/world/prog-test/coatrack'],
-    exits: { north: { destination: ROOM_B } },
+    exits: { north: { destination: ROOM_B }, east: { destination: ROOM_C } },
   });
   add(ROOM_B, '/platform/location/PersistentLocation', {
     shortDescription: 'a bedroom',
@@ -148,7 +148,8 @@ function seedDomain(): void {
   // A PLAIN room: keeps nothing, so has no record (tracts build review).
   add(ROOM_C, '/platform/location/Location', {
     shortDescription: 'a porch',
-    });
+    exits: { west: { destination: ROOM_A } },
+  });
   add('/world/prog-test/coatrack', '/platform/thing/Thing', {
     shortDescription: 'a coat rack',
   });
