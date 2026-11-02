@@ -429,6 +429,13 @@ export interface Atmospheric {
   envelopeTemperatureK: number | null;
   envelopeClockStamp: number;
   envelopeOutsideK: number | null;
+  /**
+   * ⭐ Hand the envelope the OUTSIDE as a function of game time (water-supply
+   * D11), stamped at the async resolve when the outside is the weather's —
+   * so an unwatched gap integrates the night's curve, not the read's noon.
+   * `null` = the outside is an authored constant (a mine's rock).
+   */
+  setEnvelopeOutsideCurve(curve: ((atS: number) => number) | null): void;
 }
 
 /**
@@ -550,6 +557,16 @@ export function AtmosphericMixin<
     public envelopeClockStamp = 0;
     /** What it is drifting TOWARD (K) — stamped at the async resolve. */
     public envelopeOutsideK: number | null = null;
+    /**
+     * ⭐ The outside as a function of game time, when it is the weather's
+     * (water-supply D11). Transient: re-stamped at every async resolve; a
+     * room never resolved since boot integrates against the scalar.
+     */
+    private _envelopeOutsideCurve: ((atS: number) => number) | null = null;
+
+    public setEnvelopeOutsideCurve(curve: ((atS: number) => number) | null): void {
+      this._envelopeOutsideCurve = curve;
+    }
     /**
      * ⭐ The scope air's breakpoint ring, backing
      * {@link temperatureTrajectory}. Runtime state like the envelope
@@ -1618,6 +1635,13 @@ export function AtmosphericMixin<
         // hour, each with the sun at its midpoint. Every opaque room has no
         // solar term and integrates the segment whole, exactly as before.
         const solar = this.hasSolarFaces();
+        // ⭐⭐ (water-supply D11) …and every room whose outside is the
+        // WEATHER follows the outside's curve the same way: a scullery read
+        // at noon after a frost night must have been at the frost, or no
+        // pipe in it ever froze. The outside is sampled at each piece's
+        // midpoint (the sun's rule), capped at the same piece count; an
+        // authored constant outside integrates the segment whole, as before.
+        const curve = this._envelopeOutsideCurve;
         const maxPieces = Math.max(
           1,
           Math.floor(envelopeDial(AppSettingKeys.envelopeSolarSegmentsMax, 48)),
@@ -1627,7 +1651,7 @@ export function AtmosphericMixin<
           segStartS: number,
           segDur: number,
         ): void => {
-          const pieces = solar
+          const pieces = solar || curve !== null
             ? Math.min(maxPieces, Math.max(1, Math.ceil(segDur / 3600)))
             : 1;
           const pieceS = segDur / pieces;
@@ -1645,7 +1669,8 @@ export function AtmosphericMixin<
             const conductanceWperK = coeff.uWperK + budget.conductanceWperK;
             // Coupled to nothing that has resolved yet: hold, do not drift.
             if (!(conductanceWperK > 0)) continue;
-            const steadyState = this.envelopeSteadyStateFrom(outside, coeff.uWperK, budget, driveW);
+            const outsideHere = curve !== null ? curve(pieceStartS + pieceS / 2) : outside;
+            const steadyState = this.envelopeSteadyStateFrom(outsideHere, coeff.uWperK, budget, driveW);
             const pieceTau = coeff.capacityJPerK / conductanceWperK;
             ring.record(
               pieceStartS,

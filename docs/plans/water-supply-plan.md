@@ -833,7 +833,14 @@ Implements D8, D9, D18, D22.
 - Tests: chemistry blend; lead rate soft-acid vs hard-neutral; the toxin gate's fixture; `WaterReading` with and without the kit (a golden on the lines); the unit conversions and the miner's-inch tag.
 - Acceptance: `lint:toxin-keys` 0; a body dosed from fouled water carries dysentery and `assess` finds it (AC 7); `analyze water` at a fouled reach prints no verdict bare and the verdict with the kit (AC 8); a lead run standing in soft acid water doses lead and `assess` finds the burden (AC 6, the law half; the pipe is W4).
 
-### W3 · The envelope sees the night; the gate shape — `build(water-supply W3): an unwatched room remembers the frost, and a sealable can say no`
+### W3 · The envelope sees the night; the gate shape — `build(water-supply W3): an unwatched room remembers the frost, and a sealable can say no` — ✅ DONE
+
+> **Build note (W3).**
+> - **D11 as a CURVE, not a re-walk:** `BiomeLogic.outsideKFor` hands the room `setEnvelopeOutsideCurve(atS → K)` when the outside is the weather's (the climate + deviation at the place, or a sky biome's base + deviation). `reconcileEnvelope` samples it at each piece's midpoint, pieced ≤1 game hour and capped at the shipped 48 (the sun's rule, applied now to every weather-outside room). An authored constant outside (a mine's rock) has no curve and integrates whole as before. The test shows a room starting at 283 K going below freezing over a day and a night, while the same room without the curve stays put.
+> - **Bench (owner's gate), measured as a micro-benchmark rather than `pnpm bench`.** `pnpm bench` times the whole test suite, which neither measures this nor fits the "full suite twice a cycle" rule. Result: **0.12 ms per curve sample**, so **≤ 5.7 ms for a room's first read after a gap of two days or more** (48 pieces), and ~0.12 ms for a read within the hour (one piece). Bounded and paid per read, never per tick, so the "fine piecing only for freezable rooms" fallback was not taken. The owner can reverse this at review.
+> - **`canOpen(by)`** is a hook on `SealableMixin` (default ok). `Door` refuses while LOCKED, for anybody, keyed or not: unlock first. Locked chests: no chest composes `Lockable`, so there is nothing to change.
+> - **`ThrottleableMixin`** (kernel, `lib/spatial/Sealable.ts`, `Mixins.Throttleable`, `MixinApi.isThrottleable`): `opening` 0..1, an `openingCurve` ring (→ `openingTrajectory`), and a 24-deep `workLog` of `{atS, by, opening}`. `open()`/`close()` are full/shut; the controllers pass the giver so the log names them.
+> - **The setting binds after `to`** (`open the headgate to a quarter`), and ⭐ **`open`'s target became `greedy`.** The parse test the owner asked for caught it: with a single-token target, an article ate the positional and `open the headgate to half` handed `headgate to half` to the setting. This is the shipped `measure … with the photometer` finding, fixed the same way. Side effect: `open oak door` (two words, unquoted) now binds, where it used to be "too many arguments". `close` stays binary (shut); only `open` takes an amount.
 
 Implements D11, D12 (kernel half).
 

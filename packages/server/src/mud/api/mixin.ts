@@ -52,7 +52,7 @@ import type { Propertied } from '../lib/stuff/Propertied';
 import type { CommandGiver } from '../lib/command/CommandGiver';
 import type { Focused } from '../lib/command/Focused';
 import type { Exitable } from '../lib/boundary/Exitable';
-import type { Sealable } from '../lib/spatial/Sealable';
+import type { Sealable, Throttleable } from '../lib/spatial/Sealable';
 import type { Display } from '../lib/display/Display';
 import type { Switchable } from '../lib/boundary/Switchable';
 import type { Energized } from '../lib/electricity/Energized';
@@ -1209,6 +1209,11 @@ export class MixinApi {
 
   public static isSealable(obj: Stuff): obj is Stuff & Sealable {
     return this.hasMixin(obj, Mixins.Sealable);
+  }
+
+  /** Opens by an amount and logs who set it (water-supply D12). */
+  public static isThrottleable(obj: Stuff): obj is Stuff & Sealable & Throttleable {
+    return this.hasMixin(obj, Mixins.Throttleable);
   }
 
   public static isSwitchable(obj: Stuff): obj is Stuff & Switchable {

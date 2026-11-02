@@ -7,6 +7,10 @@ help: |
   (`open north`), or name the thing directly (`open oak door`,
   `open chest`).
 
+  A gate with a setting opens BY AN AMOUNT: `open the headgate to a
+  quarter` (or `half`, `three quarters`, `full`, or a figure between 0
+  and 1). A door is open or shut.
+
   The target has to be within reach, so you can't open a door from
   across the room. If it's already open, or it isn't something that
   opens at all, the game tells you so and nothing happens.
@@ -18,7 +22,20 @@ args:
     type: object
     required: true
     scope: "reachable"
+    # ⭐ Greedy (water-supply D12): with a trailing `to <setting>`, an article
+    # would otherwise eat the one positional — `open the headgate to half`
+    # bound `the` and handed `headgate to half` to the setting (the
+    # `measure … with the photometer` finding). Greedy, the name runs to
+    # `to`; `open the door with the key` stays ONE name, never a setting.
+    greedy: true
     updates_focus: extend
     requires: SealableMixin
     validators:
       - /lib/command/validators/canReach
+  # ⭐ How far (water-supply D12) — after `to`, so `open the door with the
+  # key` can never bind as a setting. Greedy and last: `three quarters`.
+  - name: setting
+    type: string
+    required: false
+    prepositions: [to]
+    greedy: true

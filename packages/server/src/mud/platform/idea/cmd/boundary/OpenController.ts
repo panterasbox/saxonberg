@@ -34,6 +34,44 @@ import type { Sealable } from '../../../../lib/spatial/Sealable';
 
 interface OpenModel extends CommandModel {
   target?: MqlOneResult;
+  setting?: string;
+}
+
+/**
+ * The words a setting may be said in (water-supply D12), or a figure 0..1,
+ * or a percent. `null` when the phrase is no setting at all.
+ */
+function parseSetting(raw: string): number | null {
+  const t = raw.trim().toLowerCase().replace(/^(a|an|the)\s+/, '').replace(/\s+(open|way)$/, '');
+  const words: Record<string, number> = {
+    quarter: 0.25,
+    'a quarter': 0.25,
+    third: 1 / 3,
+    half: 0.5,
+    halfway: 0.5,
+    'two thirds': 2 / 3,
+    'three quarters': 0.75,
+    full: 1,
+    fully: 1,
+    wide: 1,
+    shut: 0,
+    closed: 0,
+  };
+  if (t in words) return words[t]!;
+  const pct = /^(\d+(?:\.\d+)?)\s*%$/.exec(t);
+  if (pct) return Math.max(0, Math.min(1, Number(pct[1]) / 100));
+  const n = Number(t);
+  if (t !== '' && Number.isFinite(n) && n >= 0 && n <= 1) return n;
+  return null;
+}
+
+/** A setting said back in words. */
+function settingWords(f: number): string {
+  if (f >= 0.999) return 'fully open';
+  if (Math.abs(f - 0.75) < 0.01) return 'three quarters open';
+  if (Math.abs(f - 0.5) < 0.01) return 'half open';
+  if (Math.abs(f - 0.25) < 0.01) return 'a quarter open';
+  return `${Math.round(f * 100)}% open`;
 }
 
 export default class OpenController extends CommandController<OpenModel> {
@@ -88,6 +126,58 @@ export default class OpenController extends CommandController<OpenModel> {
       return;
     }
 
+    // ⭐ The mixin decides whether this opens for this person (D12): a
+    // locked door does not, a padlocked gate does not for somebody with no
+    // key. The controller only says the refusal it is given.
+    const may = sealable.canOpen(commandGiver);
+    if (!may.ok) {
+      MessageApi.scene(commandGiver)
+        .topic('act.deed')
+        .toSelf(Mml.compose`${may.reason ?? "It won't open."}`)
+        .send();
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'cannot-open',
+        detail: may.reason ?? 'cannot open',
+      });
+      return;
+    }
+
+    // ⭐ How far (D12): a throttled gate opens BY an amount; a door is open
+    // or shut, and says so.
+    const settingRaw = (model.setting ?? '').trim();
+    if (settingRaw !== '') {
+      const fraction = parseSetting(settingRaw);
+      const thing = sealable as unknown as Stuff;
+      if (!MixinApi.isThrottleable(thing)) {
+        MessageApi.scene(commandGiver)
+          .topic('act.deed')
+          .toSelf(Mml.compose`${Mml.thing(thing)} is open or shut — there is nothing between.`)
+          .send();
+        context.note({ kind: 'controller-rejected', reason: 'no-setting', detail: 'open or shut' });
+        return;
+      }
+      if (fraction === null) {
+        MessageApi.scene(commandGiver)
+          .topic('act.deed')
+          .toSelf(Mml.compose`How far? A quarter, half, three quarters or full.`)
+          .send();
+        context.note({ kind: 'controller-rejected', reason: 'bad-setting', detail: settingRaw });
+        return;
+      }
+      thing.setOpening(fraction, commandGiver);
+      MessageApi.scene(commandGiver)
+        .topic('act.deed')
+        .toSelf(
+          fraction <= 0
+            ? Mml.compose`You shut ${Mml.thing(thing)}.`
+            : Mml.compose`You set ${Mml.thing(thing)} ${settingWords(fraction)}.`,
+        )
+        .toPeers(Mml.compose`${Mml.actor(commandGiver)} works ${Mml.thing(thing)}.`)
+        .send();
+      return;
+    }
+
     if (sealable.isOpen()) {
       MessageApi.scene(commandGiver)
         .topic('act.deed')
@@ -101,7 +191,9 @@ export default class OpenController extends CommandController<OpenModel> {
       return;
     }
 
-    sealable.open();
+    const throttled = sealable as unknown as Stuff;
+    if (MixinApi.isThrottleable(throttled)) throttled.setOpening(1, commandGiver);
+    else sealable.open();
 
     // Interact-hazard (a trapped chest): opening it is the touch that
     // springs it. The hazard self-resolves — armed + `trigger: interact`
