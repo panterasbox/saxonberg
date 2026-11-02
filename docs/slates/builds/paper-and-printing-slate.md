@@ -212,3 +212,32 @@ customer.)
 3. **Banknotes** — when the bank issues paper, and the watermark as the guard.
 4. **The rag supply** — the rag-and-bone trade as its own vocation or a buyer at
    the mill.
+
+## 11. ⭐⭐ Reuse ledger for the plan **[DECIDED 2026-11-02 — the owner: fold it in]**
+
+The owner's standing review question — *what new mixins and Apis did you make,
+and what is already doing their job?* — asked before the plan instead of after
+it. Every line here is something the paper build must **reuse or generalize**,
+not re-invent; the plan accounts for each, and a deviation is argued in the
+plan, not discovered in review.
+
+| paper concept | already doing the job | the plan's move |
+|---|---|---|
+| a book drawn from a record | **harbors' `RegisterBook`** (`Marked(Good)`) and the `@hook Marked.refreshMarks(viewer)` that `ReadController` awaits (build-4, `reqs/harbors`) | generalize: one derived-marks hook with two modes, **live** (the register book, a business's ledger) and **frozen** (a sheet bound to an edition). Whichever merges second reconciles |
+| ledgers, receipts, registers | **`RegistrarMixin`** (`lib/document/Register.ts`), `DocumentApi.saveToRegister`; herd, fishery and ship registers | a ledger is a register; no new record type |
+| reading teaches | **`ChartedMixin`** (*"a source whose knowledge is claims"* — `Chart`, `Pilot`); the menu's *known-of* write; arcana's study claim | generalize into one reading-writes-claims protocol; a recipe card is its next consumer, not a fourth path |
+| a sealed letter | **`SealableMixin`** (`lib/spatial/`; *"reusable for chests, trapdoors, envelopes"*) | an envelope is `Sealable`; the **broken seal** (tamper evidence) is the genuinely new state |
+| wet paper | **`WetMixin`** and Marked's `INK_RUNS_AT` | pulping is a higher threshold on the same gauge |
+| folding a sheet | **`FoldableMixin`** and `fold` (a two-state device fold) | one verb; whether a sheet folded *n* times is the same property is the planner's call, argued |
+| bearer paper | the **credential** substrate (records are *presentations*; the issuer decides) | bearer paper is a paper presentation of a credential-style record |
+| tickets | the attendant's **`Ticket`**, the coat-check `Ticket` row | they gain a material, not a class |
+| the book's pages | **assembly** (a thing that keeps its parts) | a book is an assembly; tearing a page out is removing a part — check shipped `salvage` first |
+| the forme | crafting's **manual build buffer** (`ManualBuildMixin`, `mintFromBuild`) | composing banks sorts into a buffer; no new step machine |
+| a live view of records on a screen | the **`house stock` sheet card** on a tablet; display's prose arm (`readScreen`) | the ledger on a screen is that card; the static rung joins the display substrate |
+| a carton or bag failing | the shipped **breakage → spill** path | reused |
+| glue | **paint's** glued `Joint` (`takes: glue`, by `fit`) and `Material.adhesive` | reused (§ adhesives in the requirements) |
+| the mill's water | **water supply's** supply contract, rights at the flats, return flow, contamination by kind (build-1, `reqs/water-supply`) | the mill is a works drawing under a right; no stamper power rule |
+| the mill's power | milling's water-powered mill | the stamper reads power the same way the grist mill does |
+| epochs | **`Epoch`** stamps on instruments + the parcel covenant | the pen, press and printer are stamped; paper is not |
+| frozen editions | — | ⭐ genuinely new (copy-on-write over a document) |
+| access by possession | — | ⭐ genuinely new |
