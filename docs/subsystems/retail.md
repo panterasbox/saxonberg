@@ -229,12 +229,48 @@ chattel stamps a discrete instance, so a fungible stack would fall through
 the buy/consign loops (a CI-adjacent content-integrity lint enforces this
 on the seeds).
 
+## ⭐⭐ The offer protocol — `ForSaleMixin` (harbors review, 2026-11)
+
+`buy` speaks **one** protocol: `lib/retail/ForSale.ts`, a thing that has
+something for sale. The view binds `reachable:[mixin.ForSaleMixin]`
+(`requires: [ForSaleMixin]` — *"{} has nothing for sale"*); the controller
+asks the bound thing `sellerFor(word)` (this one if it `offers(word)`,
+else another `ForSale` standing here that does — a market square's stalls
+each answer for their own; a seller the player NAMED is held to), hands
+that seller the whole `sell({buyer, word, ask})`, and says what comes
+back — `{ok, self, peers}` or `{ok: false, line, note}`. **Every refusal
+is the seller's and is returned before any money moves**; the controller
+holds no branch per seller and narrows by nothing but the mixin.
+`purchaserOf(buyer, receipt)` (the wallet's business, else the buyer) is
+the one shared rule. `ask` is the buyer's prompt, `null` for a script.
+
+⭐ It was extracted from what the counter already answered
+(`counterFor`/`resolveBuy`/`bringUpFor`/`carriesLine`/`priceFor` — the
+sequence that lived in `BuyController`), and it exists because the
+harbors build had grown a THIRD and fourth product on `Stock` — ships
+minted to order and boats let by the day — behind `minted:`/`rates:`
+fields on a shop counter. The user's review: a counter sells goods; a
+ship is title; a hire is a let. Each is now its own implementer (or its
+own book, for the let — `HireBook` and `rent`, which is not a sale).
+
+| implementer | offers | the sale |
+|---|---|---|
+| `ConsignmentShelfMixin` | a good it holds a live listing for | the consignor's ask, the remainder split to them, title **transferred**; a `termsAskFor` hook lets a counter price a terms listing itself |
+| `Stock` (composes the shelf) | a line it carries (even bare) or a consigned good | the closed sign first; a shelf good (brought up to order from a store), settled in full and **stamped**; else a listing as above; else *sold out* / *isn't for sale here* |
+
+⚠ Worth stays on the offer (Law 1) and every sale settles through
+`EmploymentApi.settleSale` to a venue its house operates. ⛔ It is not a
+price list — `PricedOfferMixin` is the map a menu, a tariff and a counter
+share; `ForSale` is the act. `lint:counters` is unmoved: an implementer
+outside the kernel's `platform/**` (a pack's book) is not a counter class.
+
 ## The buy loop (`buy <thing>`, stamps ownership)
 
-`BuyController` (`platform/idea/cmd/retail/`, the new `retail` command category)
-resolves the good off the present `Stock` **or** a consignment listing on
-the `ConsignmentShelf`, settles a presented `Charge` (card → cash), hands
-the good over, and transfers ownership:
+`BuyController` (`platform/idea/cmd/retail/`, the `retail` command
+category) hands the sale to the seller (above). At a counter it resolves
+the good off the present `Stock` **or** a consignment listing on the
+`ConsignmentShelf`, settles a presented `Charge` (card → cash), hands the
+good over, and transfers ownership:
 
 - **stock good** — settle the full price to the store's Business account,
   remit the demo sales tax on it, and **stamp** the buyer
@@ -256,7 +292,7 @@ as *"float-rod" isn't for sale here* — while the counter's own
 `getLong()` still listed it ("On the shelves: float-rod (11), keepnet
 (6)"). `Stock.carriesLine(keyword)` answers *does a stock LINE carry
 this word*, matched against the template **leaf** — which is exactly
-what that description prints — and `BuyController` refuses a carried
+what that description prints — and the counter refuses a carried
 line with reason `sold-out` and prose that says so. ⚠ The match is the
 leaf only: a player who types a keyword the shelf list does not print
 (`cane` for `…/thing/rod`) still falls through to `not-on-shelf`. Every

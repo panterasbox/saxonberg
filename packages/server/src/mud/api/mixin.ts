@@ -83,6 +83,7 @@ import type { Berthing } from '../lib/expanse/Berthing';
 import type { Payable } from '../lib/banking/Payable';
 import type { Hailable } from '../lib/expanse/Hailable';
 import type { Hirable } from '../lib/retail/Hirable';
+import type { ForSale } from '../lib/retail/ForSale';
 import type { Ringable } from '../lib/perception/Ringable';
 import type { MovingZone } from '../lib/zone/MovingZone';
 import type { Charted } from '../lib/expanse/Charted';
@@ -1365,6 +1366,11 @@ export class MixinApi {
   /** ⭐ A thing let by the day — a hired boat (harbors P18). */
   public static isHirable(obj: Stuff): obj is Stuff & Hirable {
     return this.hasMixin(obj, Mixins.Hirable);
+  }
+
+  /** ⭐ A thing with something for sale — what `buy` speaks to (harbors review 1). */
+  public static isForSale(obj: Stuff): obj is Stuff & ForSale {
+    return this.hasMixin(obj, Mixins.ForSale);
   }
 
   /** ⭐ A place that answers a hail — a harbor office (harbors P8). */

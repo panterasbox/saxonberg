@@ -39,6 +39,9 @@ import { AttendantMixin } from "../attendant/Attendant";
 import { ResettableMixin } from "../residency/Resettable";
 import { PersistableMixin } from "../persistence/Persistable";
 import { ConsignmentShelfMixin } from "./Consignment";
+import type { ConsignmentListing } from "./Consignment";
+import type { SaleOutcome, SaleRequest } from "./ForSale";
+import { Mml } from "../../api/mml";
 import { ContainmentApi } from "../../api/containment";
 import { MixinApi } from "../../api/mixin";
 import { StuffApi } from "../../api/stuff";
@@ -439,23 +442,100 @@ export default class Stock extends StockBase {
     return this.lineForWord(keyword) !== null;
   }
 
+  /* ──────────────── the offer protocol (`buy`) ──────────────── */
+
   /**
-   * ⭐ The counter in this place that sells `keyword`: this one when its
-   * lines carry it, else another `Stock` standing in the same place that
-   * does, else this one (whose refusal then names the good). A market
-   * square holds several stalls, and `buy water filter` went to whichever
-   * the binder found first and was told it "isn't for sale here" (the
-   * ceramics drive). The counter answers, not the controller.
+   * ⭐ What this counter offers: a line it carries (even on a bare shelf),
+   * or a good consigned to it. `ForSaleMixin.sellerFor` asks it, so a market
+   * square's several stalls each answer for their own — `buy water filter`
+   * once went to whichever the binder found first and was told it "isn't
+   * for sale here" (the ceramics drive). The counter answers, not the
+   * controller.
    */
-  counterFor(keyword: string): Stock {
-    if (this.carriesLine(keyword)) return this;
-    const self = this as unknown as Stuff;
-    const here = MixinApi.isContainable(self) ? self.getContainer() : null;
-    if (here === null || !MixinApi.isContainer(here)) return this;
-    for (const other of here.getContents() as Stuff[]) {
-      if (other instanceof Stock && other !== this && other.carriesLine(keyword)) return other;
+  public override offers(word: string): boolean {
+    return this.carriesLine(word) || this.resolveConsigned(word) !== null;
+  }
+
+  /**
+   * ⭐ The counter's sale (`buy`): the house is brought current and a closed
+   * counter refuses; then a shelf good — brought up from the store to order
+   * if the shelf is bare — or a good consigned here. A good that carries a
+   * live listing is a consignment wherever it sits, never a priced stock
+   * line. Every refusal is returned before any money moves.
+   */
+  public override async sell(sale: SaleRequest): Promise<SaleOutcome> {
+    const { buyer, word } = sale;
+    // Attendant: a store with a counter refuses when it's closed. The
+    // operator is brought current FIRST — its roster, and its closed sign
+    // (economic bootstrap D16) — so a cold venue's first customer meets
+    // the house as it stands, not as the last tick left it.
+    await EmploymentApi.ensureOperatorAt((this as unknown as Stuff).getIdentityPath() ?? "");
+    const key = buyer.getIdentityPath();
+    if (key && this.requestAttention(key).status === "closed") {
+      return {
+        ok: false,
+        line: Mml.compose`There's no one behind the counter just now.`,
+        note: { kind: "controller-rejected", reason: "unattended", detail: "closed" },
+      };
     }
-    return this;
+    let candidate = this.resolveBuy(word);
+    // ⭐ A store-fed line is brought up TO ORDER (storage-and-ice D8): a
+    // bare shelf asks the store for one before the counter says it is out.
+    if (candidate === null && (await this.bringUpFor(word)) > 0) candidate = this.resolveBuy(word);
+    const listed = candidate && MixinApi.isChattel(candidate) ? this.listingFor(candidate.getChattelId()) !== null : false;
+    const shelfGood = candidate && !listed ? candidate : null;
+    const listItem = listed ? candidate : shelfGood ? null : this.resolveConsigned(word);
+    if (shelfGood) return this.sellShelfGood(sale, shelfGood);
+    if (listItem) return this.sellListing(sale, listItem);
+    // ⭐ Sold out is not the same as not sold. The counter's own
+    // description lists every line it carries, so refusing a bare shelf
+    // with "isn't for sale here" contradicts what the player just read
+    // (the fishing drive, live, run 2 — every new tackle line is `par: 1`).
+    if (this.carriesLine(word)) {
+      return this.refused(
+        Mml.compose`The shelf is bare of "${word}". It is sold here — there is just none of it today.`,
+        "sold-out",
+        word,
+      );
+    }
+    return this.refused(Mml.compose`"${word}" isn't for sale here.`, "not-on-shelf", word);
+  }
+
+  /** ⭐ A good this counter holds on supplier terms sells at the SHOP's price. */
+  public override termsAskFor(item: Stuff, listing: ConsignmentListing): number | null {
+    return this.priceFor(item.getTemplatePath() ?? "") ?? listing.askMinor;
+  }
+
+  /** Buy a fresh stock good — settle full, hand over, stamp the buyer. */
+  private async sellShelfGood(sale: SaleRequest, shelfGood: Stuff & Containable): Promise<SaleOutcome> {
+    const { buyer: giver, word } = sale;
+    let item = shelfGood;
+    const price = this.priceFor(item.getTemplatePath() ?? "");
+    if (price == null) return this.refused(Mml.compose`${Mml.thing(item)} isn't for sale.`, "not-priced", word);
+    const paid = await EmploymentApi.settleSale(
+      (this as unknown as Stuff).getIdentityPath(),
+      price,
+      price, // the whole price is the store's taxable revenue
+      "a purchase",
+    );
+    if (!paid) return this.refusedBroke(item, word);
+    // ⚠⚠ A price is per PIECE, and a restocked stackable sits on the shelf
+    // as one heap: handing over the heap sold thirty staves for the price
+    // of one (found by the assembly drive). One comes off the heap.
+    if (MixinApi.isStackable(item) && item.getQuantity() > 1) {
+      item = (await item.split(1)) as unknown as Stuff & Containable;
+    }
+    const owner = await this.purchaserOf(giver, paid.receipt);
+    // ⚠ Stamped BEFORE it is handed over, and named before: a piece that
+    // arrives where its like already is merges INTO it and is destroyed
+    // (the resident absorbs the arrival), so a stamp or a name after the
+    // move would land on nothing.
+    if (MixinApi.isChattel(item)) await item.stampChattel(owner);
+    const named = item.getPresentation();
+    // `move` records where it now is (the fishing drive's restart: a
+    // bought good never placed was in nobody's estate).
+    this.handOver(item, giver);
+    return this.bought(giver, item, paid.tail, owner, named);
   }
 
   /** The authored par depth for a line (by item template path). */

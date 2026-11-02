@@ -1,5 +1,5 @@
 /**
- * ⭐ Which counter sells it — the counter answers, not the controller. A
+ * ⭐ Which seller sells it — the seller answers (`ForSaleMixin.sellerFor`), not the controller. A
  * market square holds several stalls, and `buy water filter` went to the
  * first counter the binder found and was told it "isn't for sale here"
  * (the ceramics drive).
@@ -37,26 +37,26 @@ beforeEach(() => {
 });
 afterEach(() => vi.restoreAllMocks());
 
-describe("Stock.counterFor", () => {
+describe("Stock.sellerFor — the offer protocol's routing", () => {
   it("is this counter when its own lines carry the word", () => {
     const square = makeStuff(() => new Place());
     const potStall = counter(POT, square);
     counter(FILTER, square);
-    expect(potStall.counterFor("pot")).toBe(potStall);
+    expect(potStall.sellerFor("pot")).toBe(potStall);
   });
 
   it("⭐ is the stall beside it that does, when this one does not", () => {
     const square = makeStuff(() => new Place());
     const potStall = counter(POT, square);
     const filterStall = counter(FILTER, square);
-    expect(potStall.counterFor("filter")).toBe(filterStall);
+    expect(potStall.sellerFor("filter")).toBe(filterStall);
   });
 
   it("is this one when nobody here sells it — its refusal names the good", () => {
     const square = makeStuff(() => new Place());
     const potStall = counter(POT, square);
     counter(FILTER, square);
-    expect(potStall.counterFor("anvil")).toBe(potStall);
-    expect(counter(POT, null).counterFor("filter")).not.toBeNull();
+    expect(potStall.sellerFor("anvil")).toBe(potStall);
+    expect(counter(POT, null).sellerFor("filter")).not.toBeNull();
   });
 });
