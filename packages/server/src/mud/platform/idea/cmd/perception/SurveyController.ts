@@ -30,6 +30,8 @@ import { CommandController } from '../../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Container } from '../../../../lib/spatial/Container';
+import type { Warren } from '../../../../lib/location/Warren';
+import type { Weathering } from '../../../../lib/location/Weathering';
 import type { Archetype, Satisfaction } from '../../../../lib/archetype/Archetype';
 import type ArchetypeCatalogue from '../../ArchetypeCatalogue';
 import { StuffApi } from '../../../../api/stuff';
@@ -48,15 +50,11 @@ const CATALOGUE_PATH = '/platform/idea/ArchetypeCatalogue';
 const LANE_CATALOGUE_PATH = '/system/transport/idea/LaneCatalogue';
 
 /**
- * The holding half of the read, duck-typed. A programme is a Warren that
- * also answers for the condition of the shell and who owes it.
+ * The holding half of the read: a warren whose fabric weathers
+ * (`WeatheringMixin`, harbors review 3) answers for the condition of the
+ * shell and who owes it; its members are the holding's rooms.
  */
-interface HoldingShape {
-  conditionBand(): string;
-  conditionCause(): string | null;
-  getUpkeepTerm(): string;
-  getMembers(): Stuff[];
-}
+type HoldingShape = Stuff & Warren & Weathering;
 
 export default class SurveyController extends CommandController {
   async execute(
@@ -268,19 +266,11 @@ export default class SurveyController extends CommandController {
     return rooms.length > 0 ? rooms : null;
   }
 
-  /** The room's holding, when it belongs to one and it answers for a shell. */
+  /** The room's holding, when it belongs to one and its fabric weathers. */
   private holdingOf(room: Stuff): HoldingShape | null {
     if (!MixinApi.isWarrenMember(room)) return null;
-    const warren = room.getWarren() as unknown as Partial<HoldingShape> | null;
-    if (
-      !warren ||
-      typeof warren.conditionBand !== 'function' ||
-      typeof warren.getUpkeepTerm !== 'function' ||
-      typeof warren.getMembers !== 'function'
-    ) {
-      return null;
-    }
-    return warren as HoldingShape;
+    const warren = room.getWarren();
+    return warren !== null && MixinApi.isWeathering(warren) ? warren : null;
   }
 
   /** The term vocabulary, said in words rather than in its key. */

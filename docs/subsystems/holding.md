@@ -355,9 +355,17 @@ the world instead of a tutor.
 
 ## Condition — the weathering clock
 
+⭐ **The clock is the kernel's `WeatheringMixin`** (`lib/location/Weathering.ts`,
+harbors review 3) — composed by `HoldingWarren` (every holding, the
+farmstead included: its house and barn weather) and by a ship's
+`ShipWarren`, and by nothing else. A floorplan is not a fabric: a mine's
+workings do not weather. Every reader (`maintain`, `survey`, the ascent
+gate's `CirculationWarren.conditionOf`, the `maintains` brain) narrows on
+`MixinApi.isWeathering`.
+
 **Storage:** `shellCondition` (0..1) + `shellStamp` (game-time) on the
 programme instance. **Reconciled on read**, linear slope, rate from
-`residence.weather.daysToWorn` (default 45 game-days from sound to
+`weathering.daysToWorn` (seeded by the platform pack; default 45 game-days from sound to
 worn — half the scale, so a full slide takes twice that). Stamp-forward.
 **No scheduler**, and the stamp is persistent, so the decline is honest
 across a restart and across a holding sleeping for a month.
@@ -381,7 +389,7 @@ economy is gone.
 
 ### Terms — who OWES the upkeep
 
-A validated open string on the programme class (`UPKEEP_TERMS`), not a
+A validated open string on the clock (`WeatheringMixin`'s `UPKEEP_TERMS`), not a
 closed kernel vocabulary — a future `hoa-shell` should be a content
 edit:
 
@@ -703,10 +711,11 @@ fields and observable behavior are unchanged. `maintain` narrows on the
 kernel class (`instanceof FloorplanWarren`) and speaks in the warren's
 `upkeepWords()`, so the same verb caulks a hull and paints a house.
 
-⚠ The rate key is still `residence.weather.daysToWorn` (45 game-days
-fallback), read by the kernel base — the requirements fix *"the same
-rate — the residence setting"*. Renaming it to a neutral key is a
-deliberate later sweep. ⚠ A mine's workings are still not a
+⭐ **Superseded in part by harbors review 3:** the shell clock, the
+`upkeepTerm` field and `upkeepWords()` left `FloorplanWarren` for the
+kernel `WeatheringMixin`, which `HoldingWarren` and `ShipWarren` compose
+and `FloorplanWarren` does not; the rate key is the platform's neutral
+`weathering.daysToWorn` (the residence row retired). ⚠ A mine's workings are still not a
 `FloorplanWarren` (`MineWarren` extends `RoomWarren`); adopting it is a
 base swap whenever the metal chain wants a timbering clock. The
 duck-typed shell reads in `CirculationWarren.conditionOf` and

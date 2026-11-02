@@ -28,7 +28,8 @@ import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { brain } from '../maintains';
 import { attachGraph } from '@saxonberg/server/mud/lib/location/__tests__/attachments-fixture';
-import { RoomWarren } from '@saxonberg/server/mud/lib/location/RoomWarren';
+import { FloorplanWarren } from '@saxonberg/server/mud/lib/location/FloorplanWarren';
+import { WeatheringMixin } from '@saxonberg/server/mud/lib/location/Weathering';
 import { CirculationWarren } from '@saxonberg/server/mud/lib/location/CirculationWarren';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
@@ -47,30 +48,21 @@ import type { BrainContext } from '@saxonberg/server/mud/lib/behavior/brain';
 const DORMS = '/test/duncan/dorms';
 const OTHER = '/test/elsewhere/units';
 
-/** A stand-in programme — the three methods are the contract. */
-class HoldingWarren extends RoomWarren {
+/** A stand-in programme — a weathering floorplan; three reads are the contract. */
+class HoldingWarren extends WeatheringMixin(FloorplanWarren) {
   public key = '';
   public band = 'sound';
   public entry: Stuff | null = null;
-  holdingKey(): string | null {
+  override warrenKey(): string | null {
     return this.key;
   }
-  conditionBand(): string {
+  override conditionBand(): string {
     return this.band;
   }
-  entryRoom(): Stuff | null {
-    return this.entry;
-  }
-  protected async createMember(): Promise<Stuff & Container> {
-    throw new Error('unused');
-  }
-  async admitArrival(): Promise<void> {}
-  protected attachmentFor(): never {
-    throw new Error('unused');
+  override entryRoom(): (Stuff & Container) | null {
+    return this.entry as (Stuff & Container) | null;
   }
   protected async reconcile(): Promise<void> {}
-  protected async wireHostFixtures(): Promise<void> {}
-  protected async unwireHostFixtures(): Promise<void> {}
 }
 
 /**

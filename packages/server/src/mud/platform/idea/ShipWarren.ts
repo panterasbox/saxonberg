@@ -6,8 +6,9 @@
  * one; she OWNS one, minted keyed `(this row, her key)` the first time she
  * stands (`Ship.standWarren`). Everything a house's floorplan does, hers
  * does — the floorplan mints her rooms keyed `(room row, <serial>/<leaf>)`,
- * the intra-plan ways are wired, she sleeps whole, and her hull weathers on
- * the house's clock (`FloorplanWarren`) — and what differs is said here:
+ * the intra-plan ways are wired, she sleeps whole (`FloorplanWarren`), and
+ * her hull weathers on the house's clock (`WeatheringMixin`, which she
+ * composes as a house does) — and what differs is said here:
  *
  * - **which ship** — the warren names its ship (`ship()`), and so answers
  *   *which structure is this room?* for every member
@@ -36,7 +37,8 @@
  * by its own row for an authored ship.
  */
 
-import { FloorplanWarren, type FloorplanRoom, type UpkeepWords } from '../../lib/location/FloorplanWarren';
+import { FloorplanWarren, type FloorplanRoom } from '../../lib/location/FloorplanWarren';
+import { WeatheringMixin, type UpkeepWords } from '../../lib/location/Weathering';
 import { ContainmentApi } from '../../api/containment';
 import { Template } from '../../lib/stuff/Template';
 import { StuffApi } from '../../api/stuff';
@@ -55,7 +57,7 @@ type MemberStuff = Stuff & Container;
 /** The row an authored ship's warren is cloned from (empty floorplan). */
 export const AUTHORED_SHIP_WARREN = '/platform/idea/ShipWarren/authored';
 
-export default class ShipWarren extends FloorplanWarren {
+export default class ShipWarren extends WeatheringMixin(FloorplanWarren) {
   static fieldMeta: FieldMeta = {
     shortOf: { persistent: true },
   };

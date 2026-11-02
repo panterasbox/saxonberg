@@ -14,7 +14,8 @@
 import '../../../../test-bootstrap';
 import { KERNEL_CONTENT_ROWS } from '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { FloorplanWarren, type UpkeepWords } from '../FloorplanWarren';
+import { FloorplanWarren } from '../FloorplanWarren';
+import { WeatheringMixin, type UpkeepWords } from '../Weathering';
 import PersistentLocation from '../../../platform/location/PersistentLocation';
 import Thing from '../../../platform/thing/Thing';
 import Tool from '../../../platform/thing/Tool';
@@ -48,8 +49,8 @@ const CLEAT = '/test/fp/cleat';
 const KEY = '/test/fp/vessel-1';
 const DAY = 86_400;
 
-/** A ship-shaped consumer: its own words, nothing else. */
-class TestFloorplan extends FloorplanWarren {
+/** A ship-shaped consumer: a weathering floorplan, its own words. */
+class TestFloorplan extends WeatheringMixin(FloorplanWarren) {
   static _mixinName = 'FPTestWarren';
   public reconciled = 0;
   protected async reconcile(): Promise<void> {
@@ -64,9 +65,15 @@ class TestFloorplan extends FloorplanWarren {
   }
 }
 
-/** The base's own words — no override. */
+/** A floorplan that does not weather (harbors review 3) — a mine's shape. */
 class PlainFloorplan extends FloorplanWarren {
   static _mixinName = 'FPPlainWarren';
+  protected async reconcile(): Promise<void> {}
+}
+
+/** A weathering floorplan in the clock's own words — no override. */
+class PlainWeathering extends WeatheringMixin(FloorplanWarren) {
+  static _mixinName = 'FPPlainWeathering';
   protected async reconcile(): Promise<void> {}
 }
 
@@ -163,7 +170,7 @@ const FLOORPLAN = [
 ];
 
 /** Mint a warren at the plan path, keyed, floorplan set, awake. */
-async function standUp<T extends FloorplanWarren>(
+async function standUp<T extends FloorplanWarren = TestFloorplan>(
   make: () => T = () => new TestFloorplan() as unknown as T,
   floorplan: Array<Record<string, unknown>> = FLOORPLAN,
 ): Promise<T> {
@@ -292,12 +299,12 @@ describe('FloorplanWarren (harbors P1)', () => {
     clock.mockRestore();
   });
 
-  it('reads the rate from residence.weather.daysToWorn', async () => {
+  it('reads the rate from weathering.daysToWorn', async () => {
     const base = 3_000_000;
     const clock = pinClock(base);
     const real = AppApi.setting.bind(AppApi);
     vi.spyOn(AppApi, 'setting').mockImplementation((key: string) =>
-      key === 'residence.weather.daysToWorn' ? '90' : real(key),
+      key === 'weathering.daysToWorn' ? '90' : real(key),
     );
     const w = await standUp();
     w.reconcileShell();
@@ -323,7 +330,7 @@ describe('FloorplanWarren (harbors P1)', () => {
 
     reset();
     installStore();
-    const plain = await standUp(() => new PlainFloorplan());
+    const plain = await standUp(() => new PlainWeathering());
     expect(plain.upkeepWords().kit).toMatch(/kit/);
   });
 
@@ -349,5 +356,12 @@ describe('FloorplanWarren (harbors P1)', () => {
     expect(w.getUpkeepTerm()).toBe('landlord-shell');
     expect(() => w.setUpkeepTerm('Not A Term')).toThrow(/kebab-case/);
     expect(MixinApi.isPersistable(w)).toBe(true);
+    expect(MixinApi.isWeathering(w)).toBe(true);
+  });
+
+  it('⭐ the clock is not imposed: a floorplan that does not compose it does not weather (review 3)', async () => {
+    const w = await standUp(() => new PlainFloorplan());
+    expect(MixinApi.isWeathering(w)).toBe(false);
+    expect((w as unknown as { reconcileShell?: unknown }).reconcileShell).toBeUndefined();
   });
 });

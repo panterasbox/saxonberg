@@ -30,6 +30,7 @@ import Locale from '../../../../location/Locale';
 import CartesianZone from '../../../location/CartesianZone';
 import { BiomeApi } from '../../../../../api/biome';
 import PersistentLocation from '../../../../location/PersistentLocation';
+import { WeatheringMixin } from '../../../../../lib/location/Weathering';
 import { RoomWarren } from '../../../../../lib/location/RoomWarren';
 import Chair from '../../../../thing/Chair';
 import { DocumentApi } from '../../../../../api/document';
@@ -157,21 +158,21 @@ function bed(): Chair {
 }
 
 /**
- * A programme's duck: a real Warren (so the back-ref wiring is the real
- * wiring) that also answers for the shell and the term. Deliberately NOT
- * the residential class — the point of the seam is that the kernel never
- * names it, and a stand-in with the right SHAPE proves exactly that.
+ * A programme stand-in: a real Warren (so the back-ref wiring is the real
+ * wiring) whose fabric weathers (`WeatheringMixin`, harbors review 3), so
+ * it answers for the shell and the term. Deliberately NOT the residential
+ * class — the kernel never names it; it narrows on the clock's mixin.
  */
-class FakeProgramme extends RoomWarren {
+class FakeProgramme extends WeatheringMixin(RoomWarren) {
   public band = 'sound';
   public cause: string | null = null;
-  conditionBand(): string {
+  override conditionBand(): string {
     return this.band;
   }
-  conditionCause(): string | null {
+  override conditionCause(): string | null {
     return this.cause;
   }
-  getUpkeepTerm(): string {
+  override getUpkeepTerm(): string {
     return 'landlord-shell';
   }
   protected async createMember(): Promise<Stuff & Container> {

@@ -513,6 +513,9 @@ export const Mixins = {
   NotifyPolicy: 'NotifyPolicyMixin',
   SubjectSubscriber: 'SubjectSubscriberMixin',
   WarrenMember: 'WarrenMemberMixin',
+  // ⭐ A fabric the weather is at — a house's shell, a ship's hull
+  // (harbors review 3: split out of FloorplanWarren).
+  Weathering: 'WeatheringMixin',
   Lounge: 'LoungeMixin',
   // The off-shift parking room a venue's cast is relocated to.
   Offstage: 'OffstageMixin',

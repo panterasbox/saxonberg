@@ -10,9 +10,10 @@
  * Three checks, in the order a person would ask them:
  *
  *   1. **Am I somewhere maintainable?** The room must belong to a
- *      floorplan warren with a shell — a house, a ship — reached through
+ *      warren whose fabric weathers — a house, a ship — reached through
  *      the `WarrenMember` back-ref and narrowed on the kernel's
- *      `FloorplanWarren` (harbors P1). A public street has no shell to
+ *      `WeatheringMixin` (harbors review 3). A public street — or a
+ *      mine's workings — has no shell to
  *      keep. Every sentence after this one is the warren's own words
  *      (`upkeepWords()`), so a hull is caulked where a house is painted.
  *   2. **Do I have the kit?** A carried tool offering the `upkeep`
@@ -41,7 +42,7 @@ import type { Durable } from "@saxonberg/server/mud/lib/material/Durable";
 import { MessageApi } from "@saxonberg/server/mud/api/message";
 import { MixinApi } from "@saxonberg/server/mud/api/mixin";
 import { Mml } from "@saxonberg/server/mud/api/mml";
-import { FloorplanWarren } from "@saxonberg/server/mud/lib/location/FloorplanWarren";
+import type { Weathering } from "@saxonberg/server/mud/lib/location/Weathering";
 
 /** ⭐ The instrument is bound by the view, never hunted for here. */
 interface MaintainModel extends CommandModel {
@@ -135,13 +136,11 @@ export default class MaintainController extends CommandController {
     }
   }
 
-  /** The floorplan warren whose shell this room belongs to, or null. */
-  private holdingOf(room: Stuff | null | undefined): FloorplanWarren | null {
+  /** The weathering fabric this room's warren is, or null. */
+  private holdingOf(room: Stuff | null | undefined): (Stuff & Weathering) | null {
     if (!room || !MixinApi.isWarrenMember(room)) return null;
-    const warren = room.getWarren();
-    return warren instanceof FloorplanWarren
-      ? (warren as unknown as FloorplanWarren)
-      : null;
+    const warren = room.getWarren() as unknown as Stuff | null;
+    return warren && MixinApi.isWeathering(warren) ? warren : null;
   }
 
   /** ⭐ The bound kit, if it offers `upkeep`. Resolved by the binder. */

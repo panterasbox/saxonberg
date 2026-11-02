@@ -86,10 +86,6 @@ interface HoldingView {
   entryRoom?: () => MemberStuff | null;
   /** One room of the holding by its leaf key. */
   roomForKey?: (k: string) => MemberStuff | null;
-  /** The shell's weathering, reconciled on read. */
-  reconcileShell?: () => number;
-  /** The banded, no-gauge read of the same. */
-  conditionBand?: () => string;
 }
 
 /** The back-ref a member room carries to the holding it belongs to. */
@@ -337,25 +333,18 @@ export abstract class CirculationWarren extends Warren {
   /**
    * The shell condition of the holding at `extent` — the residence
    * ladder's ascent-gate read (P10): admit the holding through its
-   * institution and ask its programme (duck-typed — the programme class
-   * ships in the residence pack). Null when no institution covers the
-   * extent or the holding carries no shell clock (a bare room).
+   * institution and ask its programme — narrowed on the kernel's
+   * `WeatheringMixin` (harbors review 3; the programme class ships in the
+   * residence pack). Null when no institution covers the extent or the
+   * holding's fabric does not weather (a bare room).
    */
   public static async conditionOf(
     extent: string,
   ): Promise<{ condition: number; band: string } | null> {
     const room = await CirculationWarren.admitFor(extent);
     if (!room) return null;
-    const programme = (
-      room as unknown as WarrenMemberView
-    ).getWarren?.();
-    if (
-      !programme ||
-      typeof programme.reconcileShell !== 'function' ||
-      typeof programme.conditionBand !== 'function'
-    ) {
-      return null;
-    }
+    const programme = MixinApi.isWarrenMember(room) ? room.getWarren() : null;
+    if (programme === null || !MixinApi.isWeathering(programme)) return null;
     return {
       condition: programme.reconcileShell(),
       band: programme.conditionBand(),

@@ -46,15 +46,11 @@ import type {
 } from '@saxonberg/server/mud/lib/behavior/brain';
 import { NavigationApi } from '@saxonberg/server/mud/api/navigation';
 import { CirculationWarren } from '@saxonberg/server/mud/lib/location/CirculationWarren';
+import { FloorplanWarren } from '@saxonberg/server/mud/lib/location/FloorplanWarren';
+import type { Weathering } from '@saxonberg/server/mud/lib/location/Weathering';
 
 const DEFAULT_BATCH = 3;
 
-/** The shape a holding programme presents — read, never imported. */
-interface HoldingShape {
-  holdingKey(): string | null;
-  conditionBand(): string;
-  entryRoom(): Stuff | null;
-}
 
 type Keeper = Stuff & Mobile & Containable & Container & CommandGiver;
 
@@ -125,8 +121,8 @@ export const brain = class {
  * The `key` atom is the programme's own parcel extent (residences D16),
  * so the prefix test is the ownership test.
  */
-async function holdingsUnder(extent: string): Promise<HoldingShape[]> {
-  const out: HoldingShape[] = [];
+async function holdingsUnder(extent: string): Promise<(FloorplanWarren & Weathering)[]> {
+  const out: (FloorplanWarren & Weathering)[] = [];
   // ⭐ Asked of the location graph's record (the scan sweep): an
   // institution is attached to its own `parentExtent`, so the ones over or
   // inside the extent are map reads. One that is not standing has no live
@@ -142,17 +138,12 @@ async function holdingsUnder(extent: string): Promise<HoldingShape[]> {
   }
   for (const institution of institutions) {
     for (const s of institution.holdings()) {
-      const h = s as unknown as Partial<HoldingShape>;
-      if (
-        typeof h.holdingKey !== 'function' ||
-        typeof h.conditionBand !== 'function' ||
-        typeof h.entryRoom !== 'function'
-      ) {
-        continue;
-      }
-      const key = h.holdingKey();
+      // ⭐ A holding whose fabric weathers (harbors review 3) — narrowed on
+      // the kernel's floorplan class and the clock's mixin, never duck-typed.
+      if (!(s instanceof FloorplanWarren) || !MixinApi.isWeathering(s)) continue;
+      const key = s.warrenKey();
       if (!key || (key !== extent && !key.startsWith(`${extent}/`))) continue;
-      out.push(h as HoldingShape);
+      out.push(s);
     }
   }
   return out;

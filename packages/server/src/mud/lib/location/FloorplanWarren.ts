@@ -1,29 +1,26 @@
 /**
  * FloorplanWarren — **a set of rooms authored as one plan, stood up and
- * put to sleep whole, with one fabric that weathers** (harbors P1, the
- * lift holding.md promised when the second consumer arrived).
+ * put to sleep whole** (harbors P1, the lift holding.md promised when the
+ * second consumer arrived).
  *
  * The residence ladder's `HoldingWarren` was the first body of this: a
  * keyed instance of ONE floorplan row per holding, whose members are the
  * holding's rooms. A ship is the second — her deck, cabin and hold are a
  * floorplan exactly as a house's hall and kitchen are, she sleeps whole
- * exactly as a house does, and her hull weathers on the same clock as a
- * house's shell (the owner: *"whatever the rule, it works the same way
- * as residences"*). So what both need lives here, and what only a house
- * needs stays in the residence pack:
+ * exactly as a house does (the owner: *"whatever the rule, it works the
+ * same way as residences"*). So what both need lives here, and what only
+ * a house needs stays in the residence pack:
  *
  *  - **here** — the floorplan (the INITIAL mint, never the closed set),
  *    keyed rooms `(scope = the room row, key = <key>/<leaf>)`, wiring the
  *    intra-plan edges, `layOut` (the plan's own frame), the whole-warren
  *    capture (its rooms that keep a record are its
  *    `dependentPersistables`, so capturing the warren captures them) /
- *    `teardown` / `revert`, the shell clock, its five
- *    bands, `restoreShell`, and the `upkeepTerm` vocabulary;
+ *    `teardown` / `revert`;
  *  - **the subclass** — what the key MEANS (a parcel extent, a ship's
  *    durable key), who is told when the population changes
  *    (`reconcile`), how a LOCKED edge is gated (`wireLockedEdge`), the
- *    address a woken room is stamped with (`addressFor`), and the words
- *    the fabric is described in (`upkeepWords`). A room that must finish
+ *    address a woken room is stamped with (`addressFor`). A room that must finish
  *    itself against its warren does so in its own
  *    `WarrenMember.onWarrenWake` — the ONE wake hook (harbors review 2).
  *
@@ -31,10 +28,11 @@
  * resolves to a real row; per-instance uniqueness rides the persistence
  * spine's `(scope, key)` record. Nothing here mints a row.
  *
- * ⚠ The weathering rate reads `residence.weather.daysToWorn` (45 game-days
- * from sound to worn when the setting is absent). The key keeps its
- * residence name because the requirements fix *"the same rate — the
- * residence setting"*; renaming it is a deliberate later sweep.
+ * ⭐ **The shell clock is not here** (harbors review 3). A fabric that
+ * weathers composes `WeatheringMixin` (`lib/location/Weathering.ts`) — a
+ * house's `HoldingWarren` and a ship's `ShipWarren` do — and a floorplan
+ * that does not weather (a mine's workings: *a field has no paint
+ * either*) does not.
  */
 
 import { type Attachment } from './Warren';
@@ -43,13 +41,9 @@ import { PersistableMixin } from '../persistence/Persistable';
 import { WarrenMemberMixin } from './WarrenMember';
 import { ContainerMixin } from '../spatial/Container';
 import { StuffApi } from '../../api/stuff';
-import { AppApi } from '../../api/app';
 import { MixinApi } from '../../api/mixin';
 import { NavigationApi } from '../../api/navigation';
 import { PersistableApi } from '../../api/persistable';
-import { WorldClockApi } from '../../api/worldclock';
-import { CallSecurity } from '../security/decorators';
-import { SecurityPolicies } from '../security/SecurityPolicies';
 import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
 import type { Persistable } from '../persistence/Persistable';
@@ -94,68 +88,6 @@ export interface FloorplanExit {
   locked?: boolean;
 }
 
-/**
- * The words a fabric is described in — a house's paint and sills, a
- * ship's seams and pitch. Every sentence the shell clock and the upkeep
- * act speak comes from here, so one mechanism tells two fictions.
- */
-export interface UpkeepWords {
-  /** The cause line for a fabric starting to go (weathered / worn). */
-  declining: string;
-  /** The cause line for a fabric that has gone (shabby / dilapidated). */
-  failed: string;
-  /** The kit you would need, with its article ("a householder's kit"). */
-  kit: string;
-  /** The work, second person, before *"It was <band>; it is sound
-   *  again."* — "You work the place over — …". */
-  work: string;
-  /** The witnessed work, after the actor's name — "works over the
-   *  fabric of the place with a householder's kit." */
-  witnessed: string;
-  /**
-   * The Discipline the upkeep act exercises, credited to whoever does it
-   * (harbors P24 — caulking a hull is seamanship). Absent: the act
-   * credits nothing (keeping a house is nobody's Discipline yet).
-   */
-  discipline?: string;
-}
-
-/**
- * ⭐ The shell clock as a straight line (harbors B4): the condition at
- * its stamp and the slope it falls by. Every reader that must integrate
- * something over the shell's band — a hull's leak — reads the line, never
- * a sample, so a long absence is honest across every band it crossed.
- */
-export interface ShellTrajectory {
-  /** The condition at `stampS` (0..1). */
-  condition: number;
-  /** Game-seconds the condition was last reconciled at; `0` = never read. */
-  stampS: number;
-  /** Condition lost per game-second. */
-  perSecond: number;
-}
-
-/** The closed-today, open-by-construction upkeep-term vocabulary (D5). */
-export const UPKEEP_TERMS = [
-  'institution-all',
-  'landlord-shell',
-  'owner-all',
-] as const;
-
-/** The five condition bands — banded prose, no gauge (P10). */
-const CONDITION_BANDS: Array<[number, string]> = [
-  [0.9, 'sound'],
-  [0.7, 'weathered'],
-  [0.5, 'worn'],
-  [0.25, 'shabby'],
-  [0, 'dilapidated'],
-];
-
-const GAME_DAY_SECONDS = 86_400;
-
-/** The shipped weathering default — game-days from sound to worn. */
-const DEFAULT_DAYS_TO_WORN = 45;
-
 const FloorplanBase = PersistableMixin(
   WarrenMemberMixin(ContainerMixin(RoomWarren)),
 );
@@ -163,9 +95,6 @@ const FloorplanBase = PersistableMixin(
 export abstract class FloorplanWarren extends FloorplanBase {
   static fieldMeta: FieldMeta = {
     floorplan: { persistent: true, authorable: true },
-    upkeepTerm: { persistent: true, authorable: true },
-    shellCondition: { persistent: true },
-    shellStamp: { persistent: true },
     mirrorAxis: { persistent: true },
   };
 
@@ -189,35 +118,10 @@ export abstract class FloorplanWarren extends FloorplanBase {
   /** The authored floorplan — the INITIAL mint (D16). */
   public floorplan: Array<Record<string, unknown>> = [];
 
-  /** Who owes the shell (D5): `institution-all` / `landlord-shell` /
-   *  `owner-all` — a validated string vocabulary, open to future
-   *  values (`hoa-shell`) without mechanism. */
-  public upkeepTerm: string = 'owner-all';
-
-  /** Shell condition, 0..1 (D4) — persistent, reconciled on read. */
-  public shellCondition: number = 1;
-
-  /** Game-time stamp (seconds) of the last shell reconcile. */
-  public shellStamp: number = 0;
-
   /** Live rooms by full key (`<key>` or `<key>/<leaf>`). */
   private _roomsByKey: Map<string, MemberStuff> = new Map();
 
   // ── authored-field surface ──────────────────────────────────────
-
-  public getUpkeepTerm(): string {
-    return this.upkeepTerm;
-  }
-
-  public setUpkeepTerm(value: string): void {
-    if (typeof value !== 'string' || !/^[a-z][a-z-]*$/.test(value)) {
-      throw new Error(
-        `${this.constructor.name}: upkeepTerm '${String(value)}' is not a ` +
-          `kebab-case term (shipped: ${UPKEEP_TERMS.join(', ')})`,
-      );
-    }
-    this.upkeepTerm = value;
-  }
 
   public getFloorplan(): FloorplanRoom[] {
     return (this.floorplan ?? []).map((r) => ({
@@ -569,129 +473,6 @@ export abstract class FloorplanWarren extends FloorplanBase {
       await PersistableApi.deleteAllFor(key);
     }
     this.teardown();
-  }
-
-  // ── shell condition + the weathering clock (D4/P10) ─────────────
-
-  /**
-   * Reconcile the shell's weathering: a linear slope on GAME time, rate
-   * from the `residence.weather.daysToWorn` setting (game-days from
-   * sound to worn — HALF the condition scale, so full decay takes twice
-   * that). Stamp-forward; no scheduler; honest across restarts because
-   * the stamp is persistent state.
-   */
-  public reconcileShell(): number {
-    const now = WorldClockApi.getNow().rawValue();
-    if (this.shellStamp <= 0) {
-      this.shellStamp = now;
-      return this.shellCondition;
-    }
-    const elapsed = now - this.shellStamp;
-    if (elapsed <= 0) return this.shellCondition;
-    this.shellCondition = Math.max(
-      0,
-      this.shellCondition - elapsed * this.shellPerSecond(),
-    );
-    this.shellStamp = now;
-    return this.shellCondition;
-  }
-
-  /**
-   * ⭐ The shell's line, read WITHOUT reconciling (harbors B4): where it
-   * stood at its stamp and how fast it falls. A hull integrates her leak
-   * over it, band by band.
-   */
-  public shellTrajectory(): ShellTrajectory {
-    return {
-      condition: this.shellCondition,
-      stampS: this.shellStamp,
-      perSecond: this.shellPerSecond(),
-    };
-  }
-
-  /** Condition lost per game-second — the one rate a house and a hull share. */
-  private shellPerSecond(): number {
-    const daysToWorn = this.settingNumber(
-      'residence.weather.daysToWorn',
-      DEFAULT_DAYS_TO_WORN,
-    );
-    return 0.5 / (daysToWorn * GAME_DAY_SECONDS);
-  }
-
-  /** The banded, no-gauge read (P10): sound / weathered / worn /
-   *  shabby / dilapidated. Reconciles first. */
-  public conditionBand(): string {
-    return this.bandFor(this.reconcileShell());
-  }
-
-  /** The band a condition reads as — the five words, no digit. */
-  public bandFor(condition: number): string {
-    for (const [floor, band] of CONDITION_BANDS) {
-      if (condition >= floor) return band;
-    }
-    return 'dilapidated';
-  }
-
-  /**
-   * The band floors, highest first — `[floor, band]`. What a reader
-   * integrating over the line needs to find where each band begins.
-   */
-  public bandFloors(): Array<[number, string]> {
-    return CONDITION_BANDS.map(([f, b]) => [f, b]);
-  }
-
-  /**
-   * ⭐ Put the shell at `condition`, stamped at `stampS` (harbors P25 —
-   * the staged twin of a fabric that weathered there). A test world's
-   * staging only; the game moves a shell by the clock and `maintain`.
-   */
-  @CallSecurity(SecurityPolicies.FromModule('/platform/idea/api/TestHarnessLogic#TestHarnessLogic'))
-  public stageShell(condition: number, stampS: number): void {
-    this.shellCondition = Math.min(1, Math.max(0, Number(condition) || 0));
-    this.shellStamp = Math.max(0, Number(stampS) || 0);
-  }
-
-  /** The legible cause line for a declined shell, in this warren's
-   *  words ({@link upkeepWords}); null while sound. */
-  public conditionCause(): string | null {
-    const c = this.shellCondition;
-    if (c >= 0.9) return null;
-    const words = this.upkeepWords();
-    return c >= 0.5 ? words.declining : words.failed;
-  }
-
-  /** The upkeep act's restore (P10): back to sound, stamped now. */
-  public restoreShell(): void {
-    this.shellCondition = 1;
-    this.shellStamp = WorldClockApi.getNow().rawValue();
-  }
-
-  /**
-   * The words this fabric is described in. The base speaks plainly of
-   * "the fabric"; a house speaks of paint and sills, a ship of seams and
-   * pitch.
-   *
-   * @hook
-   */
-  public upkeepWords(): UpkeepWords {
-    return {
-      declining: 'The fabric is starting to go; weather is finding the seams.',
-      failed: 'The fabric has gone; the weather is in.',
-      kit: 'a kit for the work',
-      work: 'You work the fabric over, making good what the weather has been at.',
-      witnessed: 'works over the fabric of the place.',
-    };
-  }
-
-  private settingNumber(key: string, fallback: number): number {
-    try {
-      const raw = AppApi.setting(key);
-      const n = Number.parseFloat(raw);
-      if (Number.isFinite(n) && n > 0) return n;
-    } catch {
-      /* cold cache or an unregistered key — the shipped default */
-    }
-    return fallback;
   }
 
   // ── Warren policy hooks ─────────────────────────────────────────

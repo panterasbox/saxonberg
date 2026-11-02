@@ -18,9 +18,14 @@
  * the persistence spine's unique-key guard.
  *
  * ⭐ **The lift (harbors P1).** The floorplan mint, keyed rooms,
- * whole-warren dormancy, `layOut`, the shell clock and its bands are the
- * kernel's `FloorplanWarren` now — a ship's hull weathers on the same
- * clock. What stays here is only what is residential: the address stem,
+ * whole-warren dormancy and `layOut` are the kernel's `FloorplanWarren`
+ * now; the shell clock and its bands are the kernel's `WeatheringMixin`
+ * (harbors review 3), which a holding composes — EVERY holding, the
+ * valley farmstead included: what weathers is the house and the barn,
+ * and a farm has both (its tracts are open ground and weather nothing,
+ * but the clock is the holding's, not a room's). A ship's hull weathers
+ * on the same clock. What stays here is only what is residential: the
+ * address stem,
  * the parcel keyway and the keyed front-door edge, the parcel's open
  * ground (`openGroundM2`), the relay to the institution, and the house's
  * words for its fabric. (`admitPlot`, the break-ground seam, retired with
@@ -37,8 +42,11 @@ import {
   FloorplanWarren,
   type FloorplanRoom,
   type FloorplanExit,
-  type UpkeepWords,
 } from '@saxonberg/server/mud/lib/location/FloorplanWarren';
+import {
+  WeatheringMixin,
+  type UpkeepWords,
+} from '@saxonberg/server/mud/lib/location/Weathering';
 import type Exit from '@saxonberg/server/mud/lib/boundary/Exit';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { ParcelApi } from '@saxonberg/server/mud/api/parcel';
@@ -49,7 +57,7 @@ import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 
 type MemberStuff = Stuff & Container;
 
-export default class HoldingWarren extends FloorplanWarren {
+export default class HoldingWarren extends WeatheringMixin(FloorplanWarren) {
   static fieldMeta: FieldMeta = {
     addressBase: { persistent: true, authorable: true },
   };

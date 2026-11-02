@@ -220,6 +220,7 @@ import type { NotifyPolicy } from '../lib/social/NotifyPolicy';
 import type { SubjectSubscriber } from '../lib/forum/SubjectSubscriber';
 import type { Soul } from '../lib/social/Soul';
 import type { WarrenMember } from '../lib/location/WarrenMember';
+import type { Weathering } from '../lib/location/Weathering';
 import type { Offstage } from '../lib/employment/Offstage';
 import type { BeliefStore } from '../lib/belief/BeliefStore';
 import type { Cartographer } from '../lib/location/Cartographer';
@@ -2076,6 +2077,11 @@ export class MixinApi {
 
   public static isWarrenMember(obj: Stuff): obj is Stuff & WarrenMember {
     return this.hasMixin(obj, Mixins.WarrenMember);
+  }
+
+  /** ⭐ A fabric on the shell clock — a house, a ship (harbors review 3). */
+  public static isWeathering(obj: Stuff): obj is Stuff & Weathering {
+    return this.hasMixin(obj, Mixins.Weathering);
   }
 
   public static isOffstage(obj: Stuff): obj is Stuff & Offstage {
