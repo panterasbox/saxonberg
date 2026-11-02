@@ -24,7 +24,7 @@ reverse any of them at review.
 
 | # | requirement says | what the code/rules say | recommendation |
 |---|---|---|---|
-| R1 | *"Mining's `sink` sinks a well"* (Placement, D16, drive 15) | `sink` is `trade-mining`'s winze: `SinkController extends WinzeController → driveIn('down')`, which refuses outside a `Working` room and **mints a room** in a `MineWarren`, never a Thing. A well is a point on open ground. Rung 1 of the collision ladder (unify behind an interface) fails: the two acts share no host. | **`dig well`** — the platform's `dig [<what>] [with <tool>]` already exists over the ground protocol (`Workable.planWork(by, tool, what)`); a tract or yard answers `what = 'well'`. No new verb, `sink` untouched, mining credited through `WorkResult.credit`. (D20) |
+| R1 | *"Mining's `sink` sinks a well"* (Placement, D16, drive 15) | `sink` is `trade-mining`'s winze: `SinkController extends WinzeController → driveIn('down')`, which refuses outside a `Working` room and **mints a room** in a `MineWarren`, never a Thing. A well is a point on open ground. Rung 1 of the collision ladder (unify behind an interface) fails: the two acts share no host. | **`dig well`** — the platform's `dig [<what>] [with <tool>]` already exists over the ground protocol (`Workable.planWork(by, tool, what)`); a tract or yard answers `what = 'well'`. No new verb, `sink` untouched, mining credited through `WorkResult.credit`. (D20) ✅ **Owner agreed 2026-11-02**, and widened it: a well is dug OR drilled (D27), and the dug well is the first consumer of a general **hole** (D20). |
 | R2 | drive 22: *"picks or breaks a junior padlock"* | No lock-picking or lock-breaking verb exists anywhere (`break`/`smash`/`pick` are free; `pick` is a `harvest` alias). | Drive 22 is driven as **key theft**: the Company keeps a spare turnout key as a physical `Key` prop in its unlocked store; the thief `get`s it and `unlock`s the gate at night. The gate's work log still records them. A `break <padlock> with <striking tool>` act leaves as a **deferred seam** (slate), not a stub. |
 | R3 | drive 7: *"the upstairs room's tap runs weak"* at Hinkley | `house-programme.yaml` has no upper floor and no `Structure` row; keyed holding rooms share one row path, so a kernel `Structure.storeys` cannot name a lot's loft until paint's `HoldingStructure` (MR !513) lands. Never gate on a sibling. | The head test moves to **Seznick House** (`BuildingWarren` floors `f1`…: a unit on floor 2 reads its storey from the building's `Structure`), where head is computed per storey today. Hinkley keeps the tank-low → **roof cistern carries the house** half of step 7. If paint merges first, the Hinkley loft is a one-row follow-up. |
 | R4 | *"The plumber's yard is in the goods yards, by the founders"* | The goods yards have no founder or foundry (zero rows); the only founder is Rejection's. | The yard sits in the goods yards (the industrial parcel, the city's demand); iron pipe is a **founding recipe** cast at Rejection's foundry and sold through its counter. The sentence "by the founders" is dropped. |
@@ -446,19 +446,60 @@ names the junior turnouts' padlocks; the turncock's the tank valve. No
 permission check anywhere: `switch`, `open`, `pump` stay physical; the lock
 is the gate. **Never a wizard check.**
 
-**D20 — `dig well`, and the well as a thing you make.** `Tract` (and the
-holding yard's ground) answers `Diggable.planWork(by, tool, 'well')`:
-each act deepens a `Well` minted in the ground at the first act
-(`bottomM` += `digging` tool pace; discipline credit `mining`), refusing on
-`wild` land use. The well **strikes** when `bottomM ≥ collar − tableASL`
-(the zone's aquifer or, lone, the ground's `waterTable` from its deposit
-when cited, else `water.loneTableM` dial 8 × `1/waterHoldingFactor`); past
-`water.dryHoleM` (dial 25) with no strike it is a **dry hole** (a `Well`
-with `standing: ''`, honest, AC 21). **Lining**: `Well` composes
-`AssembledMixin` with a bill of `lining` courses (`fit brick to well`, the
-assembly build's one verb; `linedToM` += a course per fit); an unlined shaft
-deeper than `water.unlinedMaxM` (dial 3) refuses the next dig *"the sides
-will not hold"*. `sink` is untouched (R1).
+**D20 — The hole, and the dug well as its first consumer.** *(Owner
+conversation 2026-11-02 — the general model of digging; the full taxonomy
+and the deferred consumers live in
+[digging-slate](../slates/builds/digging-slate.md).)* Digging ships in four
+kinds, told apart by **what it leaves**: extraction (material in hand —
+`dig`/`split`), improvement (a changed state — `ditch`/`grub`/`lime`/
+`plough`), **a hole** (a void at a POINT, with a depth — drilling's bore is
+the only one today), and a place (mining's warren mints rooms). **Big and
+small are volume and tooling, never different acts** — the tool owns the
+pace (a spade, a pick, a steam shovel and a wand of digging answer the same
+`dig`, the wand paying its pace in charge). This build adds **the hole** as
+kernel substrate — `lib/ground/Hole.ts`, `HoleMixin`, with four rules, all
+arithmetic over the ground the hole stands in:
+1. **Depth is banked** (`depthM`, persistent + runtimeState; the act is one
+   swing, the hole remembers — drilling's *depth is BANKED*), and each act
+   removes `areaM2 × Δdepth` of ground at the ground's pace.
+2. **Spoil goes somewhere**: the removed volume lands as the room's spoil
+   heap (the shipped spoil row; `dig the spoil heap` already answers).
+3. **The deeper, the more you lift**: past `ground.hoistFreeM` (dial 2) each
+   act costs extra exertion ∝ depth, and past `ground.hoistAloneM` (dial 4)
+   it refuses without a windlass at the collar (a `Tool` row with the
+   `hoisting` capability, propped or carried) — *"you cannot throw it out
+   from this deep"*.
+4. **Walls stand to the ground's depth**: an unlined hole deeper than the
+   ground's standing depth (`GroundSample` hardness → `standsUnlinedM`, the
+   drilling liner's rule generalized; default dial 3 for soil) refuses the
+   next act *"the sides will not hold"* until lined (`AssembledMixin`, a
+   bill of `lining` courses; `fit brick to well`; `linedToM`).
+5. **Below the water, it fills**: a hole whose bottom passes the water table
+   (the zone's aquifer, else the lone body's seeded table — D13) **strikes**.
+
+`Well` composes `HoleMixin` (a dug well IS a hole that struck). `Tract` (the
+farmstead ground) answers `Diggable.planWork(by, tool, 'well')`: the first
+act mints the `Well` (as a hole) in the tract, refusing on `wild` land use;
+discipline credit `mining`. Past `water.dryHoleM` (dial 25) with no strike
+it is a **dry hole** (a `Well` with `standing: ''`, honest, AC 21). `sink`
+is untouched (R1). ⚠ The controller never branches on the kind of hole —
+the god-verb guard holds; the ground answers `what`.
+
+**D27 — A drilled well strikes the same water.** *(Owner, 2026-11-02:
+"wells can be dug or drilled".)* Drilling's bore strikes only the ground's
+fluid bodies (traps of oil, gas, brine); groundwater is not one. The
+`Wellhead`'s depth read gains one rule: a bore whose depth passes the water
+table of its zone's aquifer (or, uncited, the lone body seeded for that
+point — D13's seed, keyed on the wellhead) **strikes water** before any
+trap; stopped there, the wellhead's fluid is that water and its draws record
+on the same aquifer (`recordDraw`), so a deep bore and the shallow dug wells
+share one level and the shallow ones fail first. A bore admits no bucket
+(narrow); below the suction ceiling a pump must sit down the hole (a force
+pump — the mechanism row's `pulls: false`), which the shipped `planPump`
+refusal order already says. The bore is its own hole (it does not compose
+`HoleMixin`'s hoist/spoil rules — a rig lifts its cuttings); the water strike
+is the shared rule. Casing off an aquifer and contaminating it with an
+uncased oil bore → digging-slate / drilling's next layer.
 
 **D21 — The NPC irrigators: reconcile from the rota, act when present.**
 The Delight Ditch Company is a `Business` (`/world/terminus/hearts-delight/ditch-company/idea/company`)
@@ -685,6 +726,7 @@ Implements D13.
 
 - Water pack: `idea/Aquifer.ts` + a commons row shape; `ObservationWell` reads it (`WaterTableReading` lights up); `src/__tests__/Aquifer.test.ts` (recharge over a gap from pinned rain; draws; percolation credits; two wells share one level).
 - Kernel: `Well.ts` (D13 fields; `PersistableMixin` outermost; lone body seed; `standingAvailableL`/`standingDepthM` from the body or the aquifer; `liftInto` records; `bottomM`); `lib/zone/SpatialZone.ts` `aquifer` fieldMeta (authorable, inherited); `lib/pump/Pumping.ts` `reconcileRunning` records a running pump's drawn volume to the source when the source `recordDraw`s (a `LiftSource` optional member? — no duck typing: `LiftSource` gains a required `recordDraw(litres, atS, by?)` with `Well`/`Wellhead` implementing it; `Wellhead` forwards to its body register as today); `WaterFixture` + a premises citing a `Well`: supplied only while `pumpFitted()?.isRunning()` (an electric pump on Avila's well) — a hand pump feeds a trough, never a tap.
+- Drilling pack (D27): `Wellhead.ts` — the water strike in its depth read (`fluidAtDepth` consults the zone's aquifer / the point's lone body before the deposit's traps), draws recorded on the aquifer; a `Wellhead.test.ts` case (a bore through a cited aquifer strikes water; a deep bore lowers the shared level a shallow well reads). ⚠ Harbors edits `Wellhead.ts` (bail over any `LiftSource`) — whichever merges second reconciles.
 - Content: `/stuff/idea/Aquifer/{rejection-till, delight-valley}.yaml` (in `world-seed`, beside the rivers); Rejection zone `aquifer:`; `village-well.yaml`/`deep-well.yaml` cite `rejection-till` (R9: the deep well's hillside zone sits 8 m above the yard so its 14 m reaches the same table); HD valley zone `aquifer: delight-valley`; `hearts-delight/thing/observation-well.yaml` propped at the flats.
 - Tests above + `Well.test.ts` (lone body: pumped low, recovers with rain; aquifer: shared; the hand pump sucks air at 10.3 m while the body still stands at 12 m → the "bucket still reaches water" half asserts `standingAvailableL() > 0` and the suction refusal, R8).
 - Acceptance: AC 19, 20.
@@ -702,7 +744,7 @@ Implements D21 (brains + Cast + their ground), the drive's valley content.
 
 Implements D20, the cask leg, Rejection's content.
 
-- Kernel: `platform/idea/cmd/ground/DigController.ts` — no change if `what` already reaches `planWork` (verify; else pass it); `Well.ts` (`AssembledMixin` total, bill `lining`; `linedToM`; strike/dry hole; `fit brick`).
+- Kernel: `lib/ground/Hole.ts` (`HoleMixin`, D20's five rules; `ground.hoistFreeM`, `ground.hoistAloneM` dials; a `windlass` Tool row with `hoisting`); `platform/idea/cmd/ground/DigController.ts` — no change if `what` already reaches `planWork` (verify; else pass it); `Well.ts` composes `HoleMixin` (`AssembledMixin` total, bill `lining`; `linedToM`; strike/dry hole; `fit brick`).
 - Farming pack: `Tract.ts` `planWork(by, tool, 'well')` / `completeWork` (`Diggable`; mints or deepens the `Well` prop of the tract; refuses on `wild`); the holding yard row's class (`/world/terminus/hearts-delight/farmstead/location/yard` — a `Locale`; give it the same through a small `YardGround` class? No: the farmstead's tracts are where a farmer digs; the yard is paved. `dig well` works on a **tract**.)
 - Content: Rejection `thing/village-well.yaml` keeps its hand pump; `thing/town-cask.yaml`? — no: the cask-on-a-dray is the shipped haulage `cask` on a dray; `generic-objects` `vessel/cask.yaml` is pourable already. A bucket of bricks is `trade-ceramics`' brick row. Drive 15/16 content is HD's farmstead (sold in the drive by `title buy`).
 - Tests: `Tract` dig-well (strike at the table; dry past the dial; unlined refusal), `Well` lining bill.
@@ -853,6 +895,7 @@ with no honest fallback; the keyed-premises resolution failing both ways.
 
 Clean attach points, each leaving as a slate line, never a stub:
 
+- **Every other hole and every bigger dig** — graves, pits and pit traps, trenches and footings, cellars and dugouts (a hole that buds a place), machines (steam shovel, dredge), blasting, the wand of digging as content, backfill, casing an aquifer. `HoleMixin` is the seam. → [digging-slate](../slates/builds/digging-slate.md) (written with this plan).
 - **`break <padlock>`** — the lock's `lockTechnology` and a striking tool; the gate's log already records whoever opens it. → irrigation-slate (kept) / a locks slate.
 - **The NPC plumber on a gig** — the `fulfill` shape over `connect`/`plumb`. → freight-slate / contract.
 - **Metered billing** (`drawL` × time as a payment leg, with power). → power-utility-slate.
