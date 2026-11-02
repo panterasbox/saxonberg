@@ -312,10 +312,18 @@ the docs are reachable without a GitLab login.
 **stateful** server — the world lives in memory; a restart drops live
 connections, so you merge freely and *click* deploy):
 
-- **`deploy-dev`** (default branch) — refreshes the **dev** box in place.
-  Renders the dev env from SSM, `scp`s it to `/srv/saxonberg/.env`, then
-  `ssh`es and runs `deploy/dev/update.sh` (`git pull` → `pnpm install`
-  → build types + client → `systemctl restart saxonberg`). No image.
+- **`deploy-dev`** (default branch) — refreshes the **dev** box in place,
+  in two jobs: clicking `deploy-dev` **builds the client bundle on the
+  runner**, and `deploy-dev-ship` follows automatically — renders the dev
+  env from SSM, `scp`s it to `/srv/saxonberg/.env`, fast-forwards the box
+  to the pipeline's commit, ships the bundle to
+  `packages/client/dist.incoming`, and runs `deploy/dev/update.sh`
+  (fast-forward → `pnpm install` → build types → swap the bundle in →
+  `systemctl restart saxonberg`). No image.
+  ⛔ **The box never builds the client.** It has ~2 GiB and the game runs
+  beside the build; on 2026-11-01 an on-box `vite build` thrashed swap
+  for two hours and wedged the instance until a reboot ~22 hours later.
+  `update.sh` stops if no bundle was shipped rather than build one.
 - **`build-image`** (git **tags** only) — `docker build` + push the
   release image to the GitLab Container Registry, tagged `:<tag>` and
   `:latest`. This is how you cut a **prod** release.
@@ -374,8 +382,8 @@ pulled branch, breaking live deploy). The steps, done deliberately:
    per-avatar commit `--author` uses a synthetic `<playerId>@saxonberg.local`
    email (the repo is public — no real Google address enters history); the
    token is the machine's one push identity.
-4. **`deploy/dev/update.sh` needs no change.** Its `git pull --ff-only`
-   already runs on the box's *checked-out* branch (no hard-coded branch)
+4. **`deploy/dev/update.sh` needs no change.** Its `git merge --ff-only`
+   to the deployed commit already runs on the box's *checked-out* branch (no hard-coded branch)
    and the `--ff-only` was chosen precisely to anticipate `GitApi`
    ("refuses to clobber local work and surfaces the conflict"). It works
    unchanged on `authoring`.
