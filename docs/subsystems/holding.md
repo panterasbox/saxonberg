@@ -351,8 +351,9 @@ the world instead of a tutor.
 
 ⭐ **Moved to the kernel by the paint build** (the house's `Durable`
 condition, see [painting.md](./painting.md)): the fabric is the BUILDING's
-— the holding's house — and it wears **only while the building's coat is
-gone**, at
+— the holding's house, or houses: one per `building:` group of its
+enclosed rooms, so a farmstead's barn keeps its own — and it wears **only
+while the building's coat is gone**, at
 `structure.weather.daysToWorn` (default 45 game-days from sound to worn,
 the dial that was `residence.weather.daysToWorn`). A holding's house starts
 bare, so an unpainted holding wears exactly as the shell always did.

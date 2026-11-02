@@ -58,6 +58,10 @@ class TestHouse extends DurableMixin(FacedMixin(Idea)) {
   public override getConditionWord(): ConditionWord {
     return this.band;
   }
+  /** No rooms of its own here — the keeper works from the holding's entry. */
+  residentMembers(): Stuff[] {
+    return [];
+  }
 }
 
 /** A stand-in programme — the three methods are the contract. */
@@ -68,8 +72,8 @@ class HoldingWarren extends RoomWarren {
   holdingKey(): string | null {
     return this.key;
   }
-  house(): Stuff | null {
-    return this.housed;
+  buildings(): Stuff[] {
+    return this.housed === null ? [] : [this.housed];
   }
   entryRoom(): Stuff | null {
     return this.entry;

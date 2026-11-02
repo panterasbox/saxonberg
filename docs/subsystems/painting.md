@@ -28,6 +28,16 @@ composes both; a content author opts out by naming a class over the base
 that does not (a ruin, a monument). A holding's house (`HoldingStructure`)
 composes the same two.
 
+⭐ **A holding's buildings come from its floorplan** (paint review): a
+building is the holding's ENCLOSED rooms grouped by the room's `building:`
+key, one `HoldingStructure` each. A farmstead's house and its barn
+(`building: barn`) are two buildings, each with its own coat and condition;
+open ground — the yard, a tract, Hinkley's garden — is no building's, and is
+where they are painted from. A house claims exactly its own rooms
+(`hasMember`), so `survey` in a field reads no fabric and `maintain` there
+finds nothing to keep. The main building (the unnamed rooms) also answers at
+the holding's own extent, which is what the ascent gate reads.
+
 | mixin | what it claims |
 |---|---|
 | `FacedMixin` | one outside a coat can be laid on (`coatAreaM2` = the exterior walls and roof of its members), **and the weather works on it**: the coats thin where it reaches them, set by the air, fade in the sun |

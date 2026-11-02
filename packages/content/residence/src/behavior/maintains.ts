@@ -53,7 +53,12 @@ const DEFAULT_BATCH = 3;
 interface HoldingShape {
   holdingKey(): string | null;
   entryRoom(): Stuff | null;
-  house(): Stuff | null;
+  buildings(): Stuff[];
+}
+
+/** A building's rooms, as the brain reads them — to stand in one. */
+interface BuildingShape {
+  residentMembers(): Stuff[];
 }
 
 type Keeper = Stuff & Mobile & Containable & Container & CommandGiver;
@@ -96,17 +101,20 @@ export const brain = class {
       if (done >= batch) break;
       // Sound fabric costs nothing to skip and the verb would refuse
       // anyway; skipping here keeps the beat's teleports honest. ⭐ The
-      // fabric is the holding's BUILDING's now (paint D13).
-      const house = holding.house();
-      if (house === null || !MixinApi.isDurable(house) || house.getConditionWord() === 'sound') continue;
-      const room = holding.entryRoom();
-      if (!room || !MixinApi.isContainer(room)) continue;
-      keeper.teleport(room as Stuff & Container);
-      try {
-        await keeper.forceCommand('maintain');
-        done += 1;
-      } finally {
-        /* keep walking the round even if one holding refuses */
+      // fabric is each BUILDING's (paint D13) — a farmstead's house and
+      // barn are kept apart — and the keeper works from inside it.
+      for (const house of holding.buildings()) {
+        if (done >= batch) break;
+        if (!MixinApi.isDurable(house) || house.getConditionWord() === 'sound') continue;
+        const room = (house as unknown as BuildingShape).residentMembers()[0] ?? holding.entryRoom();
+        if (!room || !MixinApi.isContainer(room)) continue;
+        keeper.teleport(room as Stuff & Container);
+        try {
+          await keeper.forceCommand('maintain');
+          done += 1;
+        } finally {
+          /* keep walking the round even if one building refuses */
+        }
       }
     }
     // Back to the desk. A property manager who ends the beat in
@@ -147,7 +155,7 @@ async function holdingsUnder(extent: string): Promise<HoldingShape[]> {
       const h = s as unknown as Partial<HoldingShape>;
       if (
         typeof h.holdingKey !== 'function' ||
-        typeof h.house !== 'function' ||
+        typeof h.buildings !== 'function' ||
         typeof h.entryRoom !== 'function'
       ) {
         continue;

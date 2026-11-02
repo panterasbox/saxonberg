@@ -154,8 +154,11 @@ export default class MaintainController extends CommandController {
     if (MixinApi.isWarrenMember(room)) {
       const warren = room.getWarren();
       if (warren instanceof HoldingWarren) {
-        const house = (warren as unknown as HoldingWarren).house();
-        if (house !== null) return house;
+        // The building THIS room is part of — a farmstead's barn is not its
+        // house; open ground (the yard, a tract) is no building's.
+        const key = room.getPlacePath();
+        const house = key ? (warren as unknown as HoldingWarren).buildingOf(key) : null;
+        return house !== null && kept(house) ? house : null;
       }
     }
     const path = room.getPlacePath();

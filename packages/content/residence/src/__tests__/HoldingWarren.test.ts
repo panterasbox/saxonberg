@@ -13,6 +13,7 @@ import '@saxonberg/server/test-bootstrap';
 import { KERNEL_CONTENT_ROWS } from '@saxonberg/server/test-bootstrap';
 import { Lock } from "@saxonberg/server/mud/lib/lock/Lock";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import HoldingStructure from '../idea/HoldingStructure';
 import HoldingWarren from '../idea/HoldingWarren';
 import HouseholdersKit from '../thing/HouseholdersKit';
 import MaintainController from '../idea/cmd/crafting/MaintainController';
@@ -134,8 +135,10 @@ function seedDomain(): void {
         entry: true,
         exits: [{ to: 'bedroom', direction: 'north' }],
       },
-      { leaf: 'bedroom', room: ROOM_B },
+      // ⭐ A building of its own (paint review): its own coat and condition.
+      { leaf: 'bedroom', room: ROOM_B, building: 'shed' },
       // A PLAIN room: keeps nothing, so has no record (tracts build review).
+      // Open to the sky, so it is no building's.
       { leaf: 'porch', room: ROOM_C },
     ],
     upkeepTerm: 'owner-all',
@@ -150,6 +153,8 @@ function seedDomain(): void {
   });
   add(ROOM_C, '/platform/location/Location', {
     shortDescription: 'a porch',
+    enclosure: 'none',
+    roof: 'none',
   });
   add('/world/prog-test/coatrack', '/platform/thing/Thing', {
     shortDescription: 'a coat rack',
@@ -455,6 +460,32 @@ describe('the residential programme (D16)', () => {
     house2.setCondition(1);
     expect(house2.getConditionWord()).toBe('sound');
     clock.mockRestore();
+  });
+
+  it('⭐ a holding has a building per `building:` key; open ground is no building (paint review)', async () => {
+    seedLot();
+    await bootRegistries();
+    const w = await institution();
+    await w.admit(LOT1);
+    const holding = w.holdingFor(LOT1)! as unknown as HoldingWarren;
+    const all = holding.buildings();
+    expect(all).toHaveLength(2);
+    const [house, shed] = all as [HoldingStructure, HoldingStructure];
+    expect(holding.house()).toBe(house);
+    expect(house.getRoomKeys()).toEqual([`${LOT1}/hall`]);
+    expect(house.hasMember(`${LOT1}/hall`)).toBe(true);
+    expect(house.hasMember(LOT1)).toBe(true);
+    expect(house.hasMember(`${LOT1}/bedroom`)).toBe(false);
+    expect(house.hasMember(`${LOT1}/porch`)).toBe(false);
+    expect(shed.getRoomKeys()).toEqual([`${LOT1}/bedroom`]);
+    expect(shed.hasMember(LOT1)).toBe(false);
+    expect(shed.getPresentation()).toMatch(/shed/);
+    expect(holding.buildingOf(`${LOT1}/bedroom`)).toBe(shed);
+    expect(holding.buildingOf(`${LOT1}/porch`)).toBeNull();
+    // Each keeps its own condition.
+    shed.setCondition(0.3);
+    expect(shed.getConditionWord()).toBe('badly worn');
+    expect(house.getConditionWord()).toBe('sound');
   });
 
   it('heldUnitsOf returns every rung (lease + lease)', async () => {

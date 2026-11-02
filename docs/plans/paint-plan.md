@@ -1056,6 +1056,18 @@ fork, the lens that chose is named.
   the coats are not kept. Only `SelfHeatingMixin` remains, promoted, not
   new. *Lens 2: a second instance needs zero code.*
 
+- **B32 (review, after merging the tracts build)** — *a holding's buildings
+  come from its floorplan.* Farms became holdings, and D6's one house per
+  holding made a farmstead's house and barn one building with its yard and
+  tracts inside it. Now a building is the ENCLOSED rooms grouped by the
+  floorplan room's `building:` key (none = the main building); open ground
+  is no building's and is where they are painted from. Each house claims
+  exactly its own rooms (`hasMember`), is registered room by room with the
+  location graph, and persists under `<extent>` (main) or
+  `<extent>@<name>`. The farmstead's barn is `building: barn`. The ascent
+  gate reads the main building. *Lens 2: the author says what a building
+  is; the next farm layout is rows.*
+
 ---
 
 ## ⭐⭐ Host placement

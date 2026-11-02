@@ -73,6 +73,13 @@ export interface FloorplanRoom {
    * give the open ground the shares divide.
    */
   footprintM2?: number;
+  /**
+   * ⭐ Which BUILDING an enclosed room is part of (paint review): rooms
+   * with no key are the main building; a farmstead's barn names `barn`
+   * and is a building of its own, with its own coat and condition. Open
+   * ground is no building's, whatever it says.
+   */
+  building?: string;
 }
 
 /** One intra-holding edge (authored on the programme row). */
@@ -139,7 +146,8 @@ export default class HoldingWarren extends ProgrammeBase {
   public addressBase: string = '';
 
   /** The holding's minted house, when it has one of its own (paint D6). */
-  private _house: HoldingStructure | null = null;
+  /** The holding's buildings by name (`''` the main one) — minted at its wake. */
+  private _houses: Map<string, HoldingStructure> = new Map();
 
   /** Live rooms by full key (`<extent>` or `<extent>/<leaf>`). */
   private _roomsByKey: Map<string, MemberStuff> = new Map();
@@ -169,6 +177,7 @@ export default class HoldingWarren extends ProgrammeBase {
       entry: r.entry === true,
       share: typeof r.share === 'number' ? r.share : undefined,
       footprintM2: typeof r.footprintM2 === 'number' ? r.footprintM2 : undefined,
+      building: typeof r.building === 'string' && r.building !== '' ? r.building : undefined,
     }));
   }
 
@@ -296,7 +305,7 @@ export default class HoldingWarren extends ProgrammeBase {
       await this.wireEdge(edge);
     }
     this.layOut();
-    await this.wakeHouse();
+    await this.wakeHouses();
   }
 
   /** ⭐ A holding is a frame of its own — see {@link layOut}. */
@@ -512,9 +521,11 @@ export default class HoldingWarren extends ProgrammeBase {
     }
     const extent = this.holdingKey();
     if (extent) await PersistableApi.capture(this as unknown as Stuff, extent);
-    const house = this._house;
-    if (extent && house !== null && !house.isDestroyed()) {
-      await PersistableApi.capture(house as unknown as Stuff, extent);
+    if (extent) {
+      for (const [name, house] of this._houses) {
+        if (house.isDestroyed()) continue;
+        await PersistableApi.capture(house as unknown as Stuff, this.houseKeyOf(extent, name));
+      }
     }
   }
 
@@ -549,10 +560,11 @@ export default class HoldingWarren extends ProgrammeBase {
     }
     super.teardown(); // destructs every member room
     this._roomsByKey.clear();
-    const house = this._house;
-    this._house = null;
-    if (house !== null && !house.isDestroyed()) {
-      NavigationApi.detachStructure(house.getExtent(), house);
+    const houses = [...this._houses.values()];
+    this._houses.clear();
+    for (const house of houses) {
+      if (house.isDestroyed()) continue;
+      for (const at of this.attachPointsOf(house)) NavigationApi.detachStructure(at, house);
       if (revert) (house as unknown as Persistable).markForRevert();
       house.setHolding(null);
       StuffApi.destruct(house as unknown as Stuff);
@@ -592,26 +604,29 @@ export default class HoldingWarren extends ProgrammeBase {
         }
         await PersistableApi.deleteAllFor(key);
       }
+      for (const name of this._houses.keys()) {
+        if (name !== '') await PersistableApi.deleteAllFor(this.houseKeyOf(extent, name));
+      }
       await PersistableApi.deleteAllFor(extent);
     }
     this.teardown();
   }
 
-  // ── the house: the shell is the building's now (paint D6/D13) ──
+  // ── the buildings: the fabric is the building's (paint D6/D13) ──
 
   /**
-   * ⭐⭐ This holding's HOUSE — the building its shell belongs to. The
-   * shell's condition moved off the holding onto the building, a
-   * `Durable` condition (paint D13), so a holding stands a building up at
-   * its wake: the
-   * Structure ROW that already covers its extent (Seznick House, Duncan
-   * Hall — one building, many units), else a {@link HoldingStructure} of
-   * its own, keyed by its extent and registered with the location graph.
-   * Who OWES the upkeep stays here (`upkeepTerm`).
+   * ⭐⭐ This holding's MAIN building — the one its shell belongs to, and
+   * the one "the home you hold" reads. A holding stands its buildings up
+   * at its wake: the Structure ROW that already covers its extent (Seznick
+   * House, Duncan Hall — one building, many units), else a
+   * {@link HoldingStructure} per building of its own (a farmstead's house
+   * and barn are two — the floorplan's `building:` key), registered with
+   * the location graph room by room. Who OWES the upkeep stays here
+   * (`upkeepTerm`).
    */
   public house(): (StructureBase & Faced & Durable) | null {
-    const own = this._house;
-    if (own !== null && !own.isDestroyed()) return own;
+    const own = this._houses.get('') ?? [...this._houses.values()][0];
+    if (own !== undefined && !own.isDestroyed()) return own;
     const extent = this.holdingKey();
     if (!extent) return null;
     const s = NavigationApi.structureAtNow(extent);
@@ -620,21 +635,79 @@ export default class HoldingWarren extends ProgrammeBase {
       : null;
   }
 
-  /** Stand this holding's house up — the covering row's, or a minted one. */
-  private async wakeHouse(): Promise<void> {
+  /** Every building this holding minted, the main one first. */
+  public buildings(): (StructureBase & Faced & Durable)[] {
+    const out = [...this._houses.values()].filter((h) => !h.isDestroyed());
+    if (out.length > 0) return out;
+    const covering = this.house();
+    return covering === null ? [] : [covering];
+  }
+
+  /** The building `roomKey` is part of — `null` for open ground. */
+  public buildingOf(roomKey: string): (StructureBase & Faced & Durable) | null {
+    for (const h of this._houses.values()) {
+      if (!h.isDestroyed() && h.getRoomKeys().includes(roomKey)) return h;
+    }
+    const s = NavigationApi.structureAtNow(roomKey);
+    return s !== null && MixinApi.isFaced(s) && MixinApi.isDurable(s)
+      ? (s as StructureBase & Faced & Durable)
+      : null;
+  }
+
+  /** The record key a building persists under: the main one the holding's own extent. */
+  private houseKeyOf(extent: string, name: string): string {
+    return name === '' ? extent : `${extent}@${name}`;
+  }
+
+  /** Where a building is registered with the location graph: each of its rooms, and the main one at the extent. */
+  private attachPointsOf(house: HoldingStructure): string[] {
+    const at = house.getRoomKeys();
+    return house.isMain() ? [...at, house.getExtent()] : at;
+  }
+
+  /**
+   * Stand this holding's buildings up — unless a covering row already is
+   * its building. A building is the ENCLOSED rooms (they hold their own
+   * air) grouped by `building:`; open ground is no building's.
+   */
+  private async wakeHouses(): Promise<void> {
     const extent = this.holdingKey();
     if (!extent) return;
-    if (this._house !== null && !this._house.isDestroyed()) return;
     const covering = await NavigationApi.structureAt(extent);
     if (covering !== null && !(covering instanceof HoldingStructure)) return;
-    const house = await StuffApi.clone<HoldingStructure>(HOLDING_STRUCTURE_ROW);
-    house.setExtent(extent);
-    const entry = this.getFloorplan().find((r) => r.entry) ?? this.getFloorplan()[0];
-    house.setEntrance(entry ? this.roomKeyOf(entry.leaf) : extent);
-    house.setHolding(this);
-    await PersistableApi.restoreOrSeed(house as unknown as Stuff, extent);
-    NavigationApi.attachStructure(extent, house);
-    this._house = house;
+    const groups = new Map<string, string[]>();
+    for (const spec of this.getFloorplan()) {
+      const key = this.roomKeyOf(spec.leaf);
+      const room = key === null ? undefined : this._roomsByKey.get(key);
+      if (key === null || room === undefined || room.isDestroyed()) continue;
+      if (!MixinApi.isAtmospheric(room) || !room.exposure().holdsAir()) continue;
+      const name = spec.building ?? '';
+      groups.set(name, [...(groups.get(name) ?? []), key]);
+    }
+    // The main building is the unnamed rooms', else the first named.
+    const names = [...groups.keys()].sort((a, b) => (a === '' ? -1 : b === '' ? 1 : a.localeCompare(b)));
+    for (const [i, name] of names.entries()) {
+      const keys = groups.get(name)!;
+      const live = this._houses.get(name);
+      if (live !== undefined && !live.isDestroyed()) {
+        live.setRooms(keys, i === 0);
+        continue;
+      }
+      const house = await StuffApi.clone<HoldingStructure>(HOLDING_STRUCTURE_ROW);
+      house.setExtent(extent);
+      house.setEntrance(keys[0] ?? null);
+      house.setRooms(keys, i === 0);
+      house.setHolding(this);
+      // A building of its own goes by its name — the barn — and the main
+      // one by its row's (the house).
+      if (name !== '') {
+        house.setShortDescription(name);
+        house.setKeywords([name, 'building']);
+      }
+      await PersistableApi.restoreOrSeed(house as unknown as Stuff, this.houseKeyOf(extent, name));
+      for (const at of this.attachPointsOf(house)) NavigationApi.attachStructure(at, house);
+      this._houses.set(name, house);
+    }
   }
 
   // ── Warren policy hooks ─────────────────────────────────────────
