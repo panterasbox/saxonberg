@@ -60,6 +60,39 @@ what the decisions turn on. Paths relative to `packages/` unless absolute.
 - `content/ground/src/idea/Deposit.ts` — `waterTable` (authorable, spoiler 1; `ferrow` −45, `valley-alluvium` −1.2).
 - Harbors (`../build-4`, `reqs/harbors`): changes `LiftSource.liftInto(litres, by?)`, adds optional `liftedWords/bucketRefusal/bucketLanded`, moves `bail` to platform over any `LiftSource`, adds `barWaterAt`/`stopOver`/`hailables` on `Watercourse`/`WatercourseCatalogue`. **Untouched by harbors:** `Conduit`, `StorageNode`, `ControlStructure`, `WaterRightRegistry`, `Well`, `WaterFixture`, `lib/supply/*`, `flowAt`, `worldScan`, `contaminationAt`.
 
+### Sibling check — paint and harbors heads, 2026-11-02
+
+Re-read at `origin/reqs/paint` a6ea93601 and `origin/reqs/harbors` 015a246da
+(neither merged). What the plan rides, and what it must not assume:
+
+- **`Place.structureNow()`** — BOTH branches add it independently (a room asks
+  its structure), and both rewrite `AtmosphericMixin`'s structure lookup to use
+  it. ⚠ The two disagree on where the `Structure` base lives (paint:
+  `lib/structure/Structure.ts` + `Building.ts`; harbors: `lib/spatial/Structure.ts`)
+  — their conflict, resolved by whichever of them merges second. **D4's storey
+  question is written against `place.structureNow()` and `storeyOf(path)`
+  only, never a module path.** Minted rooms: paint's
+  `HoldingWarren.structureOf(member)` (l.661) answers the building.
+- **`reconcileEnvelope`** — neither branch touches its piecing; D11's edit is
+  confined there. Both touch the file's imports and structure lookup — a
+  textual merge, nothing semantic.
+- **`DurableMixin`** (paint) gains a `captureSlice` that keeps `condition` +
+  `mends` — skipped only when the host is `Faced` and `persistsCoats()` is
+  false (a staged building, paint D7). `persistsCoats()` defaults **true** for
+  a good, so a `PipeRun` keeps its burst/condition in a live room's record,
+  and a staged room's run reverts with its room — exactly D30.
+- **`WeatheringMixin`** (harbors review 3) — the shell clock split out of
+  `FloorplanWarren`; `HoldingWarren` composes it and `survey`/`maintain` narrow
+  with `MixinApi.isWeathering`. D29's survey plumbing line is added beside
+  the weathering read, not inside it (plumbing is not the shell clock).
+- **`LiftSource`** (harbors) — `liftInto(litres, by?)`, optional
+  `liftedWords`/`bucketRefusal`/`bucketLanded`; drilling's `Wellhead` loses
+  `liftL()`/`lift()` and gains `bucketRefusal`/`bucketLanded`. D13/D27 add
+  `recordDraw` to `LiftSource` — on our side after harbors merges (R8).
+- **`WatercourseCatalogue`** (harbors) — hunks at the line-place interface,
+  ~l.1412–1430, ~l.1580–1611 and `compilePlaces`; **not** `worldScan`
+  (l.1142), `flowAt` (l.803) or `rowWork` (l.2135), which D14 edits.
+
 ### Energy's premises pattern (the template)
 
 - `lib/parcel/ParcelRecord.ts` — `TitleClaim {extent, holder, parentParcel?, landUse?, areaM2?, reach?, feeder?, powerBand?, published?}`; fields `reach`, `feeder`, `powerBand` persistent with get/set pairs; `setPowerBand` validates inline (no static helper — `lint:lib-statics` is a ratchet).
@@ -189,7 +222,8 @@ cistern row (a `WaterStore`). Every `SupplyServing` reader keeps working
 **D4 — Pressure is head, decided at the outlet by its own height.** A
 fixture's `outletElevationM()` = the zone elevation of its room
 (`ZoneApi.elevationFor`) + its storey's height (the room's storey index — one
-question, answered by an authored building's `Structure.storeyOf(place)`, by
+question, asked of `place.structureNow()` (both sibling branches add it; see
+§ Sibling check) and answered by an authored building's `storeyOf(path)`, by
 a `BuildingWarren` for its units (the floor it minted them on), or by a
 holding for its rooms (the floorplan leaf's `storey:` key, through paint's
 `HoldingWarren.structureOf`) —
