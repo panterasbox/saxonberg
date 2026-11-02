@@ -240,7 +240,9 @@ A fixture whose premises declares `none`, cites nothing resolvable, or whose
 room has no sound pipe (D10) reports `unplumbed`, ahead of `cut` in
 precedence (it is the furthest from being fixed by the person asking).
 `watershed.md` says a seventh word is a design conversation; this is it:
-`dry` would make the river lie for the house (lens 3a).
+`dry` would make the river lie for the house (lens 3a). ✅ **Owner agreed
+2026-11-02.** Words: the tap *"Nothing comes out — this house isn't on any
+supply."*; `analyze water` *"unplumbed — no pipe brings water here."*
 `SUPPLY_STATES`/`PRECEDENCE`/`GLOSS` gain the entry; every speaker keeps
 compiling (the union widens, no switch is exhaustive on it — verified in W0).
 
