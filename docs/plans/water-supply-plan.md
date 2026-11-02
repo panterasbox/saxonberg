@@ -328,6 +328,39 @@ under floorboards is enclosed, not hiding, so `search` does not reveal it.
 `lint:placement-words`: `put` gains the two primary words. The construction
 design inherits these rows as its "services in the fabric" seam.
 
+**D30 — Staged or live is the CONTENT's choice, never the class's.**
+*(Owner, 2026-11-02: "the answer is always going to be 'is it staged or is
+it live?' — that's a question about an individual piece of content, not a
+system, so both need to be possible and you build what you need to build to
+prove that.")* This supersedes every "becomes Persistable" in D5, D12, D13
+and Host placement. Each new stateful kind ships as a **plain** class
+(staged: its state derives or reconciles, and reverts to its row on unload)
+and, **only where a row in this build needs it**, a **`Persistent…` twin**
+(the place-taxonomy prefix: `PersistentConduit`, `PersistentGate`,
+`PersistentWaterStore`, `PersistentWell`). An `Aquifer`'s draws ride a
+persisted record only when its row says `live: true`. Each row picks, with
+its one-line purpose when live:
+
+| row | staged / live | why |
+|---|---|---|
+| city intake, Cold Fell aqueduct | **live** (`PersistentConduit`) | a cut or switch is somebody's act on the city's works |
+| city outfall | staged | nothing acts on it in this build |
+| Hinkley district tank | staged | its level derives entirely from the schedule and the district rate |
+| Delight headgate, both turnouts | **live** (`PersistentGate`) | who opened what is the ledger the rider audits |
+| weirs, the staff gauge | staged | readings, no state |
+| a roof cistern sold at the yard; a holding's butt or cistern | **live** (`PersistentWaterStore`) | what was poured in and drawn out is the house's water |
+| Rejection's butts, the potash rain butt | staged | rain-fill derives; nobody's water is kept there |
+| authored wells (Rejection, Avila's) | staged | they read their aquifer; the trough reverts |
+| a well a player digs | **live** (`PersistentWell`) | its banked depth and lining are the player's work |
+| `delight-valley` aquifer | **live** | the valley's draws are the commons' history |
+| `rejection-till` aquifer | staged | nothing in this build draws it beyond a pump that refills between visits |
+| the Delight ditch bank | **live** (`PersistentLocation`, D28) | an open breach is the ditch's damage until closed |
+
+**Proof:** the drive exercises at least one staged and one live row of every
+kind it ships both of (the conduit: intake live, outfall staged; the store:
+the yard's cistern live, Rejection's butt staged; the well: the dug well
+live, the village well staged).
+
 **D11 — The envelope sees the night.** `AtmosphericMixin.reconcileEnvelope`
 integrates an unobserved gap for an OPAQUE room as one piece against the
 outside at the read. It will instead sample the outside **curve**
