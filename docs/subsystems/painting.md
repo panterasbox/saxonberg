@@ -206,3 +206,9 @@ four load-bearing things, and the reasons are worth keeping:
 - **A sailed ship lands nowhere.** `Exit.alongsideNow()` gained its third
   answer (`undefined`) so a way aboard never falls back to its berth —
   `a6ea93601`.
+
+The decision numbers cited in code comments (`paint D1`…, `B1`…) are the
+build plan's, retired at the sweep; read them with
+`git show a0183ceb2:docs/plans/paint-plan.md` (its drive record and
+deferred seams too — the seams went to the respiration, decor,
+construction, visual-arts and decomposition slates).
