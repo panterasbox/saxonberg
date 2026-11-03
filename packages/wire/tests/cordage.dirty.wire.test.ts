@@ -449,7 +449,9 @@ suite('cordage — the blocking drive', () => {
     expect(heave, heave).toMatch(/15 meters of hemp rope/);
     const putIn = await session(maker, PUT_IN);
     await say(putIn, 'buy bow line');
-    const painter = await look(putIn, 'bow line');
+    // Two are in view (the one bought and the counter's) — the first, as
+    // the lifeline above.
+    const painter = await look(putIn, 'first bow line');
     expect(painter, painter).toMatch(/15 meters of hemp rope/);
   }, 300_000);
 

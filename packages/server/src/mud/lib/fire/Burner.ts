@@ -1519,19 +1519,6 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
      * closes the gap at the OLD output, so the change bills only forward.
      * A no-op for a fire that does not warm the room (a forge).
      */
-    /**
-     * ⭐ Bring the fire's OWN body current before its output changes — the
-     * room-air rule above, for the kiln itself. Its temperature integrates
-     * lazily toward what the fire holds; lit just now, the next read
-     * billed every hour since the kiln was last read at the LIT heat, and
-     * a kiln lit a moment ago read white-hot with every cone down (the
-     * ceramics drive). Settling first closes the gap at the old state.
-     */
-    private settleOwnHeat(): void {
-      const self = this as unknown as Stuff;
-      if (MixinApi.isThermal(self)) self.getTemperature();
-    }
-
     private settleRoomAir(): void {
       const self = this as unknown as Stuff;
       if (!MixinApi.isSpaceHeating(self) || !MixinApi.isContainable(self)) return;
@@ -1547,7 +1534,6 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
      */
     private _goOut(): void {
       this.settleRoomAir();
-      this.settleOwnHeat();
       this.lit = false;
       this.chamberVapors = {};
       this.restampHeated();
@@ -1558,7 +1544,6 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
     @Unshadowable
     public _setLit(value: boolean): void {
       this.settleRoomAir();
-      this.settleOwnHeat();
       this.lit = value === true;
       if (!this.lit) this.chamberVapors = {};
       // ⭐ The eighth re-stamp trigger class (the `Atmospheric

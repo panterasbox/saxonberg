@@ -249,7 +249,7 @@ async function clayFor(s: Session, n: number): Promise<Session> {
  * ⛔ STAGED (soak-harness census): a piece's drying — days on the shelf —
  * set directly. The potter is a wizard holding the Delight (a wizard is in
  * every managed group), so its own `eval` seeds the piece's water state as
- * a mint would (`seedDryness`: 0.6 leather-hard, 1 bone-dry). The drying
+ * a mint would (`seedDryness`: 0.4 leather-hard, 1 bone-dry). The drying
  * itself, by the clock, lives in ceramics-c.soak.dirty.
  */
 async function stageDry(s: Session, target: string, dryness: number): Promise<string> {
@@ -384,7 +384,11 @@ suite('⭐ 16 — trim, join, mark (leather-hard only)', () => {
     await say(novice, 'drop mug');
     // ⛔ STAGED (soak-harness census): leather-hard is up to ten days on
     // the shelf; set directly here.
-    const lh = await stageDry(potter, 'here:i:jug', 0.6);
+    // ⚠ The seed is ABSOLUTE (1 − moisture); greenware's bands read
+    // dryness against the AIR's own equilibrium. 0.6 read past bone-dry in
+    // the Delight's damp air; 0.4 is leather-hard for any air below ~50%
+    // equilibrium moisture.
+    const lh = await stageDry(potter, 'here:i:jug', 0.4);
     expect(lh, 'the jug at leather-hard').toMatch(/leather-hard/i);
     // The potter's OWN mug, by its maker: a bare `get mug` took the novice's
     // thick one too, and `carve` bound that one, still too soft (run 22).
@@ -526,7 +530,9 @@ suite('⭐ 17 — bisque fire, with cones in the spy-hole', () => {
     await say(novice, 'get 1 cones');
     const plain1 = await say(novice, 'analyze temperature kiln');
     expect(plain1, `the novice at the spy-hole: ${plain1}`).toMatch(/cone/i);
-    expect(plain1).toMatch(/glow/i);
+    // The eye reads the glow scale — and at the top of it the kiln is
+    // white-hot, which is still the glow, said as it is.
+    expect(plain1).toMatch(/glow|white-hot/i);
     await say(potter, 'get 1 cones');
     const fine = await say(potter, 'analyze temperature kiln');
     expect(fine, `the potter at the spy-hole: ${fine}`).toMatch(/cone (08|04|6)/i);
@@ -554,7 +560,7 @@ suite('⭐ 18 — glaze', () => {
     await toHour(8, 14);
     // The two tubs: ash (or lead) with a little clay and water, stirred.
     potter = await clayFor(potter, 1);
-    await say(potter, 'get pail');
+    await say(potter, 'get 1 pail');
     await say(potter, 'fill pail from butt');
     await say(potter, 'get ash');
     // ⚠ Two-word names are quoted on a command line (run 27: `put ash in

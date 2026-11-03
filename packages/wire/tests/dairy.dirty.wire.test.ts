@@ -858,7 +858,7 @@ suite('22–23. an unwashed hand, raw milk, and a stranger who drinks it', () =>
       startLocation: YARD,
     });
     await stranger.drainProse();
-    await doing(stranger, 'get pail');
+    await doing(stranger, 'get 1 pail');
     const drank = await act(stranger, 'drink pail');
     expect(refusedFor(drank.r)).toBeNull();
     await advance('18 hours');
