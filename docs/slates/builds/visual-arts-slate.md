@@ -128,3 +128,7 @@ would be content-blind money. The performance slate's rule, unchanged.
 4. **Metadata disputes** — how a viewer contests a tag and what follows.
 5. **Copies and forgeries** — a copy is a new object claiming the same piece;
    whether the game can tell, and who can.
+
+- **The picture itself** (from the paint build, 2026-11): a gessoed panel
+  and tempera exist as goods and a panel takes a painted coat, but what is
+  painted ON it — the work — is this slate's.

@@ -99,10 +99,14 @@ export default class Ship extends PersistableMixin(
     return 1;
   }
 
-  /** Her hull's skin, roughly: length × (beam + twice the draft). */
+  /**
+   * Her hull's skin, roughly: length × (beam + twice the draft) — read off
+   * her hull as she floats (`hullNow`), which every hull reader uses, so a
+   * ship nobody measured still has a hull to paint (the walk found it 0).
+   */
   public override coatAreaM2(): number {
-    const h = this.hull;
-    return h ? h.lengthM * (h.beamM + 2 * h.draftM) : 0;
+    const h = this.hullNow();
+    return h.lengthM * (h.beamM + 2 * h.draftM);
   }
 
   /** ⭐ Her hull is painted from where she lies — the quay alongside (paint D9). */

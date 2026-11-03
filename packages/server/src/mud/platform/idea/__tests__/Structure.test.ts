@@ -45,6 +45,13 @@ describe('Structure', () => {
     expect(ship.getExpansePosition()!.latDeg).toBe(50);
   });
 
+  it('⭐ a ship nobody measured still has a hull to paint (the walk found it 0)', () => {
+    const ship = makeStuff(() => new Ship());
+    expect(ship.coatAreaM2()).toBeGreaterThan(0);
+    ship.setHull({ draftM: 2, beamM: 5, lengthM: 20 });
+    expect(ship.coatAreaM2()).toBeCloseTo(20 * (5 + 4), 6);
+  });
+
   it('⭐ the lookout seat sees from the masthead; everybody else from the deck', () => {
     const s = makeStuff(() => new Ship());
     s.setDeckHeightM(3);

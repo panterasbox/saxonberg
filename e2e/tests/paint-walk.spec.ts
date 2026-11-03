@@ -167,8 +167,8 @@ test.describe('the paint build, in a browser', () => {
       console.log(`[paint-walk] first look at the Hesper from the mouth: ${first.trim().slice(0, 200)}`);
 
       // Aboard and back: she is alongside at the bar.
-      expect(await sayAwaiting(page, 'aboard', /You leave|Nothing is alongside/i)).toMatch(/You leave/);
-      expect(await sayAwaiting(page, 'ashore', /You leave/i)).toMatch(/You leave/);
+      expect(await sayAwaiting(page, 'go aboard', /You leave|Nothing is alongside/i)).toMatch(/You leave/);
+      expect(await sayAwaiting(page, 'go ashore', /You leave/i)).toMatch(/You leave/);
 
       // From where she lies, her hull is at hand: look binds her.
       const hull = await lookFor(page, 'hesper', /Hesper|ketch/i);

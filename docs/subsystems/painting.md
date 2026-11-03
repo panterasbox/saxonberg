@@ -185,3 +185,24 @@ A swept flue gives lampblack where the realm names it
 - Only `fit`'s raise arm consumes glue; re-making a glued joint by the
   replace arm does not.
 - The house painter does not restock his own pot.
+
+## History
+
+Built by the paint build (MR !513, 2026-10-31 → 11-02). Review moved
+four load-bearing things, and the reasons are worth keeping:
+
+- **No new mixins.** The build shipped `WeatheringMixin` and `ShellMixin`;
+  review folded the first into `FacedMixin` (every outside weathers, on
+  decomposition's exposure rule) and the second into `DurableMixin` (the
+  fabric is a building's condition) — `e9ce36e85`.
+- **A Building is not every Structure.** The outside lived on the
+  `Structure` twin every row names, so a ship and a mountain peak had a
+  building's; `lib/structure/Building` and its twin split off —
+  `e01aa1599`. ⚠ The location graph tested `instanceof` the twin and lost
+  every building until it read the base — `08125e0b7`.
+- **No new path concept.** `Stuff.getPlacePath()` (a persistence key passed
+  off as a place) became the warren's say, `Warren.structureOf` —
+  `cbb51116d`.
+- **A sailed ship lands nowhere.** `Exit.alongsideNow()` gained its third
+  answer (`undefined`) so a way aboard never falls back to its berth —
+  `a6ea93601`.

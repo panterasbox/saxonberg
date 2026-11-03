@@ -174,3 +174,8 @@ test.
 *(Retire when: the in-place trigger and the reserve read ship with fire as
 the driven consumer, and the BOD term has a home in the water pack or has
 been declined there.)*
+
+- **Continuous evaporation of an open volatile** (from the paint build,
+  2026-11): turpentine puts its vapor in a room as a ONE-SHOT dose at a
+  pour or a stir; an open jar that keeps evaporating while it stands is not
+  modelled.

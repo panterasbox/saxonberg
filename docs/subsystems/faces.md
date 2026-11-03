@@ -79,7 +79,7 @@ look line changes. A wet coat says *not yet fired* when its material sets by
 heat, *not yet set* otherwise. The faults (`crazed`, `run`, `crawled`) are
 every coat's: paint crazes, crawls over grease and runs too.
 
-⭐⭐ **Paint extends this, not beside it** ([paint-slate](../slates/builds/paint-slate.md)).
+⭐⭐ **Paint extends this, not beside it** ([paint-slate](../slates/tails/paint-slate.md)).
 What the paint build adds to `Faced`: setting by the coat material's BINDER
 (carbonation, oxidation, evaporation — heat is the glaze's case), WEAR (a coat
 is the sacrificial layer that weathers so the body does not), a thing's COLOR
@@ -204,7 +204,7 @@ glaze or a tight body.
 
 ## Seams
 
-- **Paint** ([paint-slate](../slates/builds/paint-slate.md)) rides `Faced` for
+- **Paint** ([paint-slate](../slates/tails/paint-slate.md)) rides `Faced` for
   goods: a coat on a cart or a sign is a coat on its outside face, weathering
   by decomposition's exposure clock. Buildings take paint through
   construction's layers.

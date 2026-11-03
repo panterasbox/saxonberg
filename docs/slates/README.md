@@ -35,7 +35,7 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**405 slates.** 149 greenfield · 110 continuations · 67 waves · 79 tails.
+**406 slates.** 149 greenfield · 110 continuations · 68 waves · 79 tails.
 
 ## ⭐ Greenfield — nothing shipped yet (149)
 
@@ -139,7 +139,6 @@ respect.
 | [optics](./builds/optics-slate.md) | the derivable power model (focal length from index × curvature) · the grind as the shaping act · **Half A** additive detail instruments (loupe/microscope/telescope/burning-glass) · **Half B** visual acuity as a NUMERIC perception modifier + the corrective lens … |
 | [organized-religion](./builds/organized-religion-slate.md) | the charter readout (structure derived, the vibe a claim) · the three polities on the Organization substrate · territorial vs gathered · title decides the schism … |
 | [pace](./builds/pace-slate.md) | the pace ruling (encounter · session · absence · calendar) … |
-| [paint](./builds/paint-slate.md) | the coat as the outermost, sacrificial layer · paint derived from a pigment and a binder (lime, linseed, glue, casein, egg, resin) · how each binder sets (carbonation, oxidation, evaporation) · pigments (earths, lampblack, chalk, verdigris, lead white) and the dye/pigment line, the lake … |
 | [paper-and-printing](./builds/paper-and-printing-slate.md) | the printed thing as the **static rung of a display** (never a special class) · the honest dynamics per rung (frozen, unpowered, costly to copy, irrevocable) · paper from rags (beat, form, couch, press, dry, size), the watermark, parchment · iron-gall and printing ink … |
 | [performance](./builds/performance-slate.md) | the stage as a source the room hears (the performer's live stream; audio by default, video by the performer's choice) · the stage presentation (performer foregrounded, NPC chatter silenced, the audience murmuring) · the theater before, around and after · measurement in three layers (happened … |
 | [person-targeting](./builds/person-targeting-slate.md) | `$name` bound to an expression · an identity literal · `[group.…]` and `[contacts.…]` filters · ⭐ group names — committees and studios named by the extent they hold (public or private by who manages it), official groups by bare name, social groups within their creator … |
@@ -182,6 +181,7 @@ respect.
 | [unfree-labour](./builds/unfree-labour-slate.md) | the register as a jurisdiction's filed record · what an enslaving claim gives an NPC owner · the enslaved NPC's derived pressure and its four resistances · flight to free soil … |
 | [unobserved-economy](./builds/unobserved-economy-slate.md) | whether the realm's NPC trade runs while unobserved at all · if it does, how it is computed without loading the places it moves between (⭐ against the location graph's record, not live content) · what a player arriving after a gap sees at a counter, a job board, the cash-and-carry and the Gazette · the faucet question the guild slate already raised. |
 | [verb-interfaces](./builds/verb-interfaces-slate.md) | `boil` folded into heating (immersion takes the liquid's heat) · `scrub` as a manner of `wash` · `strew`'s wider uses · an audit of every verb for single-target narrowness … |
+| [visual-arts](./builds/visual-arts-slate.md) | the piece as the artist's own digitized work (image and video) · how a player contributes media, and its moderation · the piece attached to a physical object · exhibition: hanging, lighting, the gallery, the show … |
 | [warranty](./builds/warranty-slate.md) | the representation/assertion primitive · post-delivery clause verification on contract.md · the remedy ladder (rescission · replacement … |
 | [waste](./builds/waste-slate.md) | whether waste must be COLLECTED and moved before it is destroyed · transformation on the way (composting, rotting, salvage) · who does the collecting · abandoned things' ownership … |
 | [wellbeing](./builds/wellbeing-slate.md) | the TASTE PROFILE (born, learned, aversive, aging) · PLEASURE from taste × internal state × recent eating × expectation, separate from satisfaction · DISCOMFORT as the baseline from shipped physiology · afterglow and hedonic adaptation … |
@@ -312,7 +312,7 @@ are the named remainders.
 | [venue-and-supply](./builds/venue-and-supply-slate.md) | V6 producer `yields` (the `needs` vocabulary now admits `cultivation` and `lightLux`) · V5 `lint:supply` · V4 the five support archetypes (only the depot ships) · V2 the uniform `kind: office` sweep (16 `entity` rows remain) … |
 | [zoning](./builds/zoning-slate.md) | the emission/nuisance model over `signalAt` (minus the water relation) · the cap at the boundary · the LULU host problem · nonconforming use … |
 
-## Waves — rides another build (67)
+## Waves — rides another build (68)
 
 | slate | left |
 |---|---|
@@ -358,6 +358,7 @@ are the named remainders.
 | [naming](./tails/naming-slate.md) | the rename act (notify every recognition holder · decay window · chronicle deed) · Defense A, `learnIdentity` refusing a conflicting name … |
 | [npc-dialogue](./tails/npc-dialogue-slate.md) | the scripted free-text `intent-dialogue` responder (pattern/synonym tables + the `addressed`/`handleMessage` trigger + the implant `tell` entry; NPC-led hooks, conditional state rules, graceful redirects) · mode-mixing (banter ↔ setpiece over shared state) · undirected `say` as an opt-in bark trigger · NPC initiative depth … |
 | [pack-seams](./tails/pack-seams-slate.md) | named boundary sockets + graft points (`fills:`, one filler per socket, socket paths as API) · the provides/needs capability vocabulary + per-capability cardinality · reconcile symmetry on uninstall (closed states revert) · the worked Terminus ⊃ EU seam |
+| [paint](./tails/paint-slate.md) | the corrosion jar (vinegar on lead or copper → white lead, verdigris) and the madder-lake strike — the colorman stocks them · thinning oil paint with turpentine (a pour joins only like with like) · glue on `fit`'s replace arm · starch paste mixed bulk with bulk … |
 | [party](./tails/party-slate.md) | the party purse + payout/loot-split policy + contract-binding · the crew's durable name (renown-as-subject over a party chronicle) · the odometer layer · party morale … |
 | [patina-design-pack](./tails/patina-design-pack.md) | `SeasonedMixin` (the accrual band + the use-then-care cycle) · the `takesPatina` material field · maintenance verbs accruing · the failure-mode reads + wear slowed by patina … |
 | [preservation](./tails/preservation-slate.md) | the acidity term `f_pH` (pickling as a `MaturationProfile` row + one read; ⚠ inherits the fermentation/spoilage `Vat` collision — absorbed from food-safety 2026-09-21) · the sealing decision (binary until a consumer wants a hurdle multiplier, never a flora model) · the agricultural year (winter stores) · the trade geography spoilage creates … |
