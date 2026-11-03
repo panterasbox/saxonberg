@@ -1,15 +1,23 @@
 # The Ostrander's company — the house whose roster mans her (river D36):
 # the master who has her, the engineer who keeps her fire, a deckhand who
 # handles her lines and her lead.
-class: /platform/idea/Business
+class: /platform/idea/PersistentBusiness
 data:
   name: "the Ostrander's company"
-  # ⭐ Whoever her register names her managing owner appoints her master
-  # (harbors P12): her entry in the city's register (`read register` at the
-  # harbor office) says who owns her, by shares.
+  # ⭐ She is owned by this company, and this company by its cap table
+  # (harbors review 1): the city owns her outright — all sixty-four in the municipal budget's name. Whoever holds a MAJORITY of the table
+  # appoints her master (`kind: owners`) — an organization holder through
+  # its own authority. Her register entry names this company as her owner;
+  # `read register` at the harbor office shows the table beside it, and
+  # `transfer <n> shares of <her> …` moves its units.
   appointingAuthority:
-    kind: register
-    ship: /world/terminus/ostrander/structure
+    kind: owners
+  capTable:
+    units: 64
+    transfer: free
+    rows:
+      - holder: { kind: organization, path: /world/terminus/budget, name: the City of Terminus }
+        units: 64
   positions:
     - key: master
       noun: master

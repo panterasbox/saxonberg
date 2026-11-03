@@ -21,7 +21,6 @@ import { MqlApi } from '../../../api/mql';
 import { EmploymentApi } from '../../../api/employment';
 import { CompactApi } from '../../../api/compact';
 import { GovernmentApi } from '../../../api/government';
-import { ExpanseApi } from '../../../api/expanse';
 import { PlayerApi } from '../../../api/player';
 import { AppApi } from '../../../api/app';
 import { AppSettingKeys } from '../../../lib/config/AppSettings';
@@ -156,40 +155,48 @@ async function holdsAuthorityImpl(
       return PlayerApi.isAvatarStuff(principal)
         ? CompactApi.isCommitteeMember(principal, ref.parcel)
         : false;
-    case 'register':
-      return holdsRegisterAuthority(principal, ref.ship, depth);
+    case 'owners':
+      return holdsOwnersAuthority(principal, ref.organization ?? '', depth);
   }
 }
 
 /**
- * ⭐ A ship's company's authority (harbors P12): whoever her register names
- * her managing owner. A player owner is an identity match; an organization
- * owner's OWN authority is asked in turn (the line's office appoints the
- * Hesper's master). Fails closed: a stateless ship (in no register), an
- * owner organization that does not stand, or a chain of organizations
- * owning each other's ships deeper than a handful.
+ * ⭐ The `owners` authority (harbors review 1, the institutions slate's cap
+ * table): whoever holds a MAJORITY of the organization's table. A player
+ * holder is an identity match; an organization holder's OWN authority is
+ * asked in turn (the line's office appoints the Hesper's master). Fails
+ * closed: an organization that is not standing or keeps no table, a table
+ * with no majority, or a chain of organizations holding each other deeper
+ * than a handful.
  */
-async function holdsRegisterAuthority(
+async function holdsOwnersAuthority(
   principal: Stuff,
-  ship: string,
+  organization: string,
   depth: number,
 ): Promise<boolean> {
-  if (depth > 4) return false;
-  // ⭐ The authority names her by handle; she is stood up on use (asleep at
-  // her berth, a ship of a kind is not loaded) and asked — she knows her
-  // own register. (`Ship` loads on use: a static import closes a cycle.)
-  const craft = await ExpanseApi.standUpCraft(ship);
-  const { default: ShipClass } = await import('../Ship');
-  if (!(craft instanceof ShipClass)) return false;
-  const owner = await craft.managingOwner();
+  if (depth > 4 || organization === '') return false;
+  const org = await organizationAt(organization);
+  if (org === null || !MixinApi.isCapTable(org)) return false;
+  const owner = org.majorityHolder();
   if (owner === null) return false;
   if (owner.kind === 'player') {
     const path = principal.getIdentityPath();
     return path !== null && path === owner.path;
   }
-  const org = await StuffApi.singleton(owner.path).catch(() => null);
-  if (!org || !MixinApi.isOrganization(org)) return false;
-  return holdsAuthorityImpl(principal, org.getAppointingAuthority(), depth + 1);
+  const holder = await organizationAt(owner.path);
+  if (holder === null || !MixinApi.isOrganization(holder)) return false;
+  return holdsAuthorityImpl(principal, holder.getAppointingAuthority(), depth + 1);
+}
+
+/**
+ * The organization at `path`: the live one with that identity (a minted
+ * company stands with whatever minted it), else its row stood up. `null`
+ * when neither stands.
+ */
+async function organizationAt(path: string): Promise<Stuff | null> {
+  const live = StuffApi.findByIdentityPath<Stuff>(path).find((s) => !s.isDestroyed());
+  if (live !== undefined) return live;
+  return StuffApi.singleton<Stuff>(path).catch(() => null);
 }
 
 /**

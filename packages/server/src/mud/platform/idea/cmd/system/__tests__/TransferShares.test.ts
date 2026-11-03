@@ -1,14 +1,18 @@
 /**
  * `transfer <n> shares of <ship> …` — ⭐ a ship's shares change hands with
- * the money in ONE act, or not at all (harbors B2, P15). Driven as the
- * dispatcher would (a real controller Stuff), over a real register on an
- * in-memory store; the money primitive is stubbed.
+ * the money in ONE act, or not at all (harbors B2, P15) — on HER COMPANY'S
+ * cap table (review 1): the register names her owning company, and the
+ * units move there. Driven as the dispatcher would (a real controller
+ * Stuff), over a real register and a kept company on an in-memory store;
+ * the money primitive is stubbed.
  *
- * - bought: the buyer acts, the holder consents; the shares move and the
+ * - bought: the buyer acts, the holder consents; the units move and the
  *   buyer pays the holder's account;
- * - ⚠ a payment that fails leaves the entry exactly as it was;
+ * - ⚠ a payment that fails leaves the table exactly as it was;
  * - the holder declines, or does not hold that many: nothing moves, nobody pays;
- * - given: the holder acts, the receiver consents; no money.
+ * - given: the holder acts, the receiver consents; no money;
+ * - under the `consent` term every other holder is asked, and a no stops it;
+ * - the register entry carries no shares — only her owner.
  */
 
 import '../../../../../../test-bootstrap';
@@ -16,6 +20,8 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import TransferController from '../TransferController';
 import ShipRegister, { SHIP_ENTRY_KIND } from '../../../ShipRegister';
 import Ship from '../../../Ship';
+import PersistentBusiness from '../../../PersistentBusiness';
+import { ExpanseApi } from '../../../../../api/expanse';
 import Avatar from '../../../../agent/PrimaryAvatar';
 import { StuffApi } from '../../../../../api/stuff';
 import { GovernmentApi } from '../../../../../api/government';
@@ -33,6 +39,7 @@ import type { GovernmentDescriptor } from '../../../Government';
 
 const REG = '/platform/idea/ShipRegister/test-city';
 const GULL = '/test/ship/gull';
+const COMPANY = '/test/ship/gull-company';
 const ANN = '/platform/agent/Avatar/ann';
 const BOB = '/platform/agent/Avatar/bob';
 
@@ -125,8 +132,9 @@ async function run(giver: Avatar, model: Record<string, unknown>): Promise<Comma
 
 const who = (s: Avatar, raw: string): MqlOneResult => ({ stuff: s as never, raw });
 
-describe('transfer … shares — money and shares together, or neither (harbors B2)', () => {
+describe('transfer … shares — money and shares together, or neither (harbors B2, review 1)', () => {
   let reg: ShipRegister;
+  let company: PersistentBusiness;
 
   beforeEach(async () => {
     vi.restoreAllMocks();
@@ -147,14 +155,20 @@ describe('transfer … shares — money and shares together, or neither (harbors
     vi.spyOn(GovernmentApi, 'subjectTo').mockResolvedValue([gov]);
     vi.spyOn(BankingApi, 'primaryAccountIdOf').mockImplementation(async (k: string) => `acct:${k}`);
     // Entered as she is commissioned — by the ship herself.
+    // ⭐ Her company owns her; its table is Ann's, whole (the founding a
+    // row or a commissioning lays down — set raw here: the setter is the
+    // applier's alone).
+    company = makeStuffAtPath(() => new PersistentBusiness(), COMPANY);
+    Object.assign(company, { capTable: { units: 64, transfer: 'free', rows: [{ holder: { kind: 'player', path: ANN, name: 'Ann' }, units: 64 }] } });
     const gull = makeStuffAtPath(() => new Ship(), GULL);
+    gull.setHouse(COMPANY);
+    vi.spyOn(ExpanseApi, 'standUpCraft').mockImplementation(async (h: string) => (h === GULL ? (gull as never) : null));
     await withRootContext(gull, 'commission', () =>
-      reg.enter({
-        name: 'Gull', kind: '/test/ship/smack', key: GULL, house: '',
-        shares: [{ holder: { kind: 'player', path: ANN, name: 'Ann' }, shares: 64 }],
-      }),
+      reg.enter({ name: 'Gull', kind: '/test/ship/smack', key: GULL, owner: COMPANY }),
     );
   });
+
+  const table = (): Array<[string, number]> => company.capTableRows().map((x) => [x.holder.path, x.units]);
   afterEach(() => {
     vi.restoreAllMocks();
     StuffApi.clearAll();
@@ -170,18 +184,21 @@ describe('transfer … shares — money and shares together, or neither (harbors
     const charge = pay.mock.calls[0]![0];
     expect(charge.payeeAccountId).toBe(`acct:${ANN}`);
     expect(charge.amount.render()).toMatch(/40/);
-    const entry = await reg.entryNamed('Gull');
-    expect(entry!.shares.map((h) => [h.holder.path, h.shares])).toEqual([[ANN, 48], [BOB, 16]]);
+    expect(table()).toEqual([[ANN, 48], [BOB, 16]]);
+    // ⭐ The register keeps her title, never her shares.
+    expect(await reg.entryNamed('Gull')).toMatchObject({ name: 'Gull', owner: COMPANY });
+    expect(await reg.entryNamed('Gull')).not.toHaveProperty('shares');
+    // ⭐ The majority is Ann's still: she appoints.
+    expect(company.majorityHolder()?.path).toBe(ANN);
   });
 
   it('⚠⚠ a payment that fails moves nothing — the entry is exactly as it was', async () => {
     const ann = makeAvatar('ann', true);
     const bob = makeAvatar('bob');
-    const before = await reg.entryNamed('Gull');
     vi.spyOn(BankingApi, 'settle').mockRejectedValue(new Error('insufficient funds'));
     const ctx = await run(bob, { parcel: '16 shares of gull', holder: who(ann, 'ann'), price: '4000' });
     expect(rejection(ctx)).toBe('unpaid');
-    expect(await reg.entryNamed('Gull')).toEqual(before);
+    expect(table()).toEqual([[ANN, 64]]);
   });
 
   it('the holder declines, or holds too few, or is no holder: nothing moves and nobody pays', async () => {
@@ -189,12 +206,12 @@ describe('transfer … shares — money and shares together, or neither (harbors
     const no = makeAvatar('ann', false);
     const bob = makeAvatar('bob', true);
     expect(rejection(await run(bob, { parcel: '16 shares of gull', holder: who(no, 'ann'), price: '40' }))).toBe('declined');
-    expect(rejection(await run(bob, { parcel: '65 shares of gull', holder: who(no, 'ann'), price: '40' }))).toBe('bad-share-count');
+    expect(rejection(await run(bob, { parcel: '65 shares of gull', holder: who(no, 'ann'), price: '40' }))).toBe('not-a-holder');
     // Bob holds none, so nobody can buy his.
     expect(rejection(await run(no, { parcel: '1 share of gull', holder: who(bob, 'bob'), price: '1' }))).toBe('not-a-holder');
     expect(rejection(await run(bob, { parcel: '2 shares of the tern', holder: who(no, 'ann'), price: '1' }))).toBe('no-such-ship');
     expect(pay).not.toHaveBeenCalled();
-    expect((await reg.entryNamed('Gull'))!.shares).toHaveLength(1);
+    expect(table()).toEqual([[ANN, 64]]);
   });
 
   it('⭐ given: the holder acts, the receiver accepts — title only, no money', async () => {
@@ -204,8 +221,34 @@ describe('transfer … shares — money and shares together, or neither (harbors
     const ctx = await run(ann, { parcel: '8 shares of gull', recipient: who(bob, 'bob') });
     expect(rejection(ctx)).toBeNull();
     expect(pay).not.toHaveBeenCalled();
-    expect((await reg.entryNamed('Gull'))!.shares.map((h) => [h.holder.path, h.shares])).toEqual([[ANN, 56], [BOB, 8]]);
+    expect(table()).toEqual([[ANN, 56], [BOB, 8]]);
     // A non-holder cannot give what they do not hold.
     expect(rejection(await run(makeAvatar('cy'), { parcel: '1 share of gull', recipient: who(bob, 'bob') }))).toBe('not-a-holder');
+  });
+
+  it('⭐ under the `consent` term every other holder is asked: a no stops the sale, a yes lets it through', async () => {
+    Object.assign(company, {
+      capTable: {
+        units: 64,
+        transfer: 'consent',
+        rows: [
+          { holder: { kind: 'player', path: ANN, name: 'Ann' }, units: 48 },
+          { holder: { kind: 'player', path: '/platform/agent/Avatar/cy', name: 'Cy' }, units: 16 },
+        ],
+      },
+    });
+    const pay = vi.spyOn(BankingApi, 'settle').mockResolvedValue({ method: 'credential' } as never);
+    const ann = makeAvatar('ann', true);
+    const bob = makeAvatar('bob');
+    makeAvatar('cy', false);
+    expect(rejection(await run(bob, { parcel: '8 shares of gull', holder: who(ann, 'ann'), price: '10' }))).toBe('declined');
+    expect(pay).not.toHaveBeenCalled();
+    expect(table()).toEqual([[ANN, 48], ['/platform/agent/Avatar/cy', 16]]);
+    // Cy agrees this time.
+    StuffApi.findByIdentityPath<Avatar>('/platform/agent/Avatar/cy').forEach((c) =>
+      vi.spyOn(c, 'getInteractives').mockReturnValue(new Set([{ promptConfirm: vi.fn().mockResolvedValue(true), sendMessage: vi.fn() } as never])),
+    );
+    expect(rejection(await run(bob, { parcel: '8 shares of gull', holder: who(ann, 'ann'), price: '10' }))).toBeNull();
+    expect(table()).toEqual([[ANN, 40], ['/platform/agent/Avatar/cy', 16], [BOB, 8]]);
   });
 });

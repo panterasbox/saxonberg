@@ -691,6 +691,10 @@ export const Mixins = {
   // augments). A ministry is an organization that does not trade.
   Organization: 'OrganizationMixin',
   Business: 'BusinessMixin',
+  // ⭐ A table of owners and their units — who holds a business, and so
+  // who appoints its managing position (the institutions slate's cap
+  // table; ships are its first consumer, harbors review 1).
+  CapTable: 'CapTableMixin',
   // ⭐ `EmployedMixin` also carries "who answers for you"
   // (`institutionPath`) — the standing party that fields an actor, which
   // is NOT the episodic `directedBy`: a guard acting for the watch was
@@ -932,6 +936,7 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   PumpingMixin: "{} doesn't pump anything",
   PayableMixin: "{} keeps no bills",
   ForSaleMixin: "{} has nothing for sale",
+  CapTableMixin: "{} keeps no table of owners",
 
   // Construction & table — a butcher's blade is any EDGE, and cutlery is
   // what you eat with.

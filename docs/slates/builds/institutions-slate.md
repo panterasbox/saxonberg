@@ -1,18 +1,24 @@
 # Institutions slate — forms, charters, committees, and the five corpos as forms
 
-> **Status: UNBUILT** — no entity form exists (every business is a single
-> proprietor edge); no charter exists as a document; a corpo's authorial
+> **Status: PRIMITIVE BUILT** — the cap table shipped with harbors (MR
+> !511): a kept table of owners and units, the majority read, the
+> `owners` appointing authority and the one secondary-sale act, with
+> ships as its first consumer (see *Shipped: the cap table* at the end).
+> No entity form exists (every other business is a single proprietor
+> edge, and carries no table); no charter exists as a document; a corpo's authorial
 > committee and its diegetic organization are the same set of people; no
 > publish covenant exists (a pack enters the live world by a dependency
 > line, not by anyone vouching); the five corpos are marks with an ethos
 > and no form. The substrate it rides — organizations, appointing
 > authority, committee-as-title-holder, pack title claims, maintainers —
 > shipped with the civics, organization and content-pack builds.
-> **Left:** the entity-form ladder over a cap table (sole trader ·
-> partnership · company · mutual · chartered corporation) · the
+> **Left:** the entity-form ladder over the shipped cap table — every
+> business carrying one (sole trader ·
+> partnership · company · mutual · chartered corporation) · the draw as a
+> pro-rata distribution · endorsements that assemble a majority · the
 > partnership deed + sweat equity · the registry + the
 > general-incorporation act · the managing-position trading rule · equity
-> minimally (primary/secondary · dividends ≤ retained earnings · escheated
+> minimally (primary issue — the secondary shipped · dividends ≤ retained earnings · escheated
 > interests do not vote) · the charter as
 > a document with grants, ledger-checkable duties and a term · renewal ·
 > the wall module · committee/show separation
@@ -572,3 +578,38 @@ extraction left it with all three of its sources working.
 residual and retired absorbed, so this line and
 [legal-code-slate](./legal-code-slate.md) are the only places it now lives.
 
+## ⭐ Shipped: the cap table (harbors, MR !511, 2026-11-02)
+
+The primitive of Part 1, and nothing above it, landed in the kernel as a
+review commit of the harbors build — ships needed owners in sixty-fourths,
+and a register holding shares had been a second, ship-only cap table.
+
+- **What landed.** `CapTableMixin` (`lib/employment/CapTable.ts`): authored
+  `units`, rows `{holder, units}` (a player or an organization by identity
+  path), a transfer term (`free` | `consent`), the majority read (MORE than
+  half, else nobody), and ONE secondary act — `sellUnits` moves units and
+  money together or not at all (claimed before the money is awaited, given
+  back if it does not clear); `giveUnits` is the gift. The host is
+  `PersistentBusiness` (a kept Business — a table that changes hands must
+  survive the process). The appointing authority `{kind: owners}` is
+  *whoever holds a majority of this table*; an organization holder answers
+  through its own authority, and a sole owner appoints themself.
+- **Ships, the first consumer.** Each ship is owned by her company, and her
+  company's table is 64 units. The register went back to its job — name,
+  flag, and the owning company (title). A smack bought off the yard's hull
+  book founds her company with the buyer as its 64/64 row; the line's
+  ships are held 64/64 by the Greywater Line's office, the Ostrander by the
+  city's budget. `transfer <n> shares of <ship> …` resolves ship → her
+  company → its table.
+- **Lens notes.** 1 *pedagogy* and 2 *expression* decided one primitive
+  over a ship-only register of shares: control-derives-from-the-table is
+  the lesson, and an author gives any business owners by authoring a row.
+  7 *governance*: a unit is a vote in the company, never standing in the
+  polity.
+- **Still this slate's.** Every form and the registry; general
+  incorporation; primary issue (dilution); the draw as a distribution and
+  dividends ≤ retained earnings; endorsements (no majority today means
+  nobody appoints); escheated interests that do not vote; the bank wall;
+  charters; giving every business a table (only ship companies carry one).
+  ⚠ The Compact's capital chamber is NOT equity (company-and-capital Part
+  7) and was not touched.

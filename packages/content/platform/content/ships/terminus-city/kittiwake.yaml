@@ -1,11 +1,8 @@
-# The Kittiwake's entry (harbors P14) — the line's ketch, all sixty-four
-# shares the Greywater Line's.
+# The Kittiwake's entry (harbors P14) — the line's ketch. Her owner is her
+# company, whose cap table is the Greywater Line's, all sixty-four.
 name: Kittiwake
 kind: /world/terminus/harbor/ships/ketch/structure
 key: /world/terminus/harbor/ships/ketch/structure
 flag: terminus-city
 registeredAtS: 0
-house: /world/terminus/harbor/ships/ketch/idea/company
-shares:
-  - holder: { kind: organization, path: /world/terminus/harbor/line/idea/office, name: the Greywater Line }
-    shares: 64
+owner: /world/terminus/harbor/ships/ketch/idea/company

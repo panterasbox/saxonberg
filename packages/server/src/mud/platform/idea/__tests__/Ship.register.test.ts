@@ -2,10 +2,11 @@
  * Ship — ⭐ her register, her owners, her flag, her gangway (harbors B2),
  * over synthetic rows under `/test/**` and the platform's own branches.
  *
- * - `commission` names a ship of a kind, mints HER company (authority: her
- *   register), enters her in the register in her buyer's name — sixty-four
- *   shares — keys her (gangway locked), makes her buyer master, and brings
- *   her alongside; only her master takes the helm;
+ * - `commission` names a ship of a kind, mints HER company — a kept
+ *   business whose cap table is her buyer's, all sixty-four units, and whose
+ *   authority is that table (review 1) — enters her in the register as that
+ *   company's, keys her (gangway locked), makes her buyer master, and
+ *   brings her alongside; only her master takes the helm;
  * - ⭐ she knows her register (review 1): her entry is read off it under
  *   her registered name, never searched for;
  * - ⭐ the landing keeps who lies at it (its own roll): she tells it as she
@@ -31,7 +32,9 @@ import { Document } from '../../../lib/persistence/Document';
 import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
 import { PersistableApi } from '../../../api/persistable';
+import { EmploymentApi } from '../../../api/employment';
 import ShipRegister from '../ShipRegister';
+import RegisterBook from '../../thing/RegisterBook';
 import BerthRoll, { BERTH_ROLL_ROW } from '../BerthRoll';
 import { NavigationApi } from '../../../api/navigation';
 import type { FrameSited } from '../../../lib/expanse/FrameSited';
@@ -119,9 +122,10 @@ function installStore(): void {
   add(HOLD, '/platform/location/Hold', { shortDescription: 'fish hold', floorM: 0.3, exits: { up: { destination: DECK } } });
   add(STAFF, '/platform/thing/Flagstaff', { shortDescription: 'flagstaff' });
   add(FLAG, '/platform/thing/Flag', { shortDescription: 'test ensign', keywords: ['flag', 'ensign'], _brandKey: 'flag-test-city' });
-  add(COMPANY, '/platform/idea/Business', {
+  add(COMPANY, '/platform/idea/PersistentBusiness', {
     name: "a ship's company",
-    appointingAuthority: { kind: 'register' },
+    appointingAuthority: { kind: 'owners' },
+    capTable: { units: 64, transfer: 'free', rows: [] },
     positions: [{ key: 'master', noun: 'master', label: 'in command of her', wageRate: 5, headcount: 1 }],
     startsShiftOnHire: true,
   });
@@ -252,11 +256,22 @@ describe('Ship — her register, owners, flag and gangway (harbors B2)', () => {
     expect(await ship.flagState()).toBe('test-city');
     const entry = await ship.registerEntry();
     expect(entry).toMatchObject({ name: 'Gull', kind: KIND, key: `${KIND}/g1`, flag: 'test-city' });
-    expect(entry!.shares).toEqual([{ holder: { kind: 'player', path: '/platform/agent/Avatar/ann', name: ann.getPresentation() }, shares: 64 }]);
-    expect(entry!.house).toBe(`${COMPANY}/g1`);
+    // ⭐ The register keeps her title: her owner is her company, and no shares.
+    expect(entry!.owner).toBe(`${COMPANY}/g1`);
+    expect(entry).not.toHaveProperty('shares');
     expect(ship.getHouse()).toBe(`${COMPANY}/g1`);
     const company = StuffApi.findByTemplatePath<Stuff>(`${COMPANY}/g1`);
-    expect(company && MixinApi.isOrganization(company) && company.getAppointingAuthority()).toEqual({ kind: 'register', ship: `${KIND}/g1` });
+    expect(company && MixinApi.isOrganization(company) && company.getAppointingAuthority()).toEqual({ kind: 'owners', organization: `${COMPANY}/g1` });
+    // ⭐ Her company's table: her buyer, whole — the sixty-fourths survive.
+    expect((await ship.company())?.getCapTable()).toEqual({
+      units: 64,
+      transfer: 'free',
+      rows: [{ holder: { kind: 'player', path: '/platform/agent/Avatar/ann', name: ann.getPresentation() }, units: 64 }],
+    });
+    expect((await ship.managingOwner())?.path).toBe('/platform/agent/Avatar/ann');
+    // Whoever holds a majority of it appoints her master: Ann, not Bob.
+    expect(company && MixinApi.isOrganization(company) && (await EmploymentApi.holdsAuthority(ann, company.getAppointingAuthority()))).toBe(true);
+    expect(company && MixinApi.isOrganization(company) && (await EmploymentApi.holdsAuthority(bob, company.getAppointingAuthority()))).toBe(false);
 
     // Her gangway: a fresh keyway, the bolt thrown.
     expect(ship.getGangwayKeyway()).toMatch(/^kw-/);
@@ -277,6 +292,17 @@ describe('Ship — her register, owners, flag and gangway (harbors B2)', () => {
 
     // A second buyer may not take the name.
     await expect(buy(bob, 'g2', 'Gull')).rejects.toThrow(/register refused Gull/);
+  });
+
+  it('⭐ `read register`: name, kind, flag and the company that owns her — and beside it who holds that company, in sixty-fourths', async () => {
+    const ann = makeAvatar('ann');
+    await buy(ann, 'p1', 'Petrel');
+    const book = makeStuffAtPath(() => new RegisterBook(), '/test/office/register');
+    book.setGovernment('test-city');
+    await book.refreshMarks(ann);
+    expect(book.getMarkText()).toMatch(
+      new RegExp(`The Petrel \\(smack\\), under the flag of the City of Test: owned by the Petrel's company, held ${ann.getPresentation()} 64/64\\.`),
+    );
   });
 
   it('⭐ two smacks, two owners: her company is hers; the other owner holds none of her authority', async () => {
@@ -328,8 +354,9 @@ describe('Ship — her register, owners, flag and gangway (harbors B2)', () => {
     expect(woke).toBeInstanceOf(Ship);
     expect(woke!.isMoored()).toBe(true);
     expect(landing.getExit('razorbill')).toBeInstanceOf(BerthExit);
-    // She knows her register still: her owner answers for her.
+    // ⭐ Her company was kept with her: its table restored, her owner answers for her.
     expect(woke!.isManagingOwner(ann)).toBe(true);
+    expect((await woke!.shareHolders()).map((h) => h.path)).toEqual(['/platform/agent/Avatar/ann']);
     expect(await landing.lyingHere()).toEqual([`${KIND}/r1`]);
   });
 

@@ -54,7 +54,9 @@ import type { LineFrame } from '../../lib/expanse/LineFrame';
 import { PersistableApi } from '../../api/persistable';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
-import ShipRegister, { type ShareHolder, type ShipEntry } from './ShipRegister';
+import ShipRegister, { type ShipEntry } from './ShipRegister';
+import type { CapTable, CapTableData, UnitHolder } from '../../lib/employment/CapTable';
+import { Template } from '../../lib/stuff/Template';
 import { BoundaryApi } from '../../api/boundary';
 import { GovernmentApi } from '../../api/government';
 import { Lock } from '../../lib/lock/Lock';
@@ -963,8 +965,8 @@ export default class Ship extends BilgeMixin(PersistableMixin(
    * her dues and bills are? Whoever holds her company's `master` seat, her
    * charterer while the charter runs, and a charterer whose days she still
    * carries unpaid (the charter ended as she berthed; clearing her is still
-   * theirs), and her managing owner by her register (B2) — a player who
-   * holds the most of her shares.
+   * theirs), and her managing owner (review 1) — a player who holds a
+   * majority of her company's units.
    */
   public answersFor(who: Stuff): boolean {
     if (this.holdsMasterSeat(who) || this.isChartererOf(who) || this.isManagingOwner(who)) return true;
@@ -1043,34 +1045,59 @@ export default class Ship extends BilgeMixin(PersistableMixin(
     return entry.flag || (await this.ownRegister())?.getGovernmentKey() || null;
   }
 
-  /** ⭐ Her managing owner (P12), as her register says — `null` when she is stateless. */
-  public async managingOwner(): Promise<ShareHolder | null> {
-    const entry = await this.registerEntry();
-    if (entry === null) return null;
-    return (await this.ownRegister())?.managingOwnerOf(entry) ?? null;
+  /**
+   * ⭐ Her company (review 1) — the business that owns her, whose cap table
+   * holds her units (her sixty-fourths). A ship of a kind's is minted under
+   * her serial at her commissioning and kept with her; an authored ship's
+   * is her `house:` row. `null` when she has none yet (a hull not
+   * commissioned), or it keeps no table (said loudly).
+   */
+  public async company(): Promise<(Stuff & CapTable) | null> {
+    const house = this.house ?? '';
+    if (house === '') return null;
+    let c: Stuff | null;
+    if (this.isOfKind()) {
+      const serial = this.serial() ?? '';
+      if (serial === '' || !house.endsWith(`/${serial}`)) return null;
+      c = await this.mintCompany();
+    } else {
+      c = await StuffApi.singleton<Stuff>(house).catch((err) => {
+        console.warn(`Ship: ${this.getDurableHandle()}'s company '${house}' did not stand up:`, err);
+        return null;
+      });
+    }
+    if (c === null) return null;
+    if (MixinApi.isCapTable(c)) return c;
+    console.warn(`Ship: ${this.getDurableHandle()}'s company '${house}' keeps no table of owners`);
+    return null;
   }
 
-  /** Everyone who holds any of her shares, in the order they were entered. */
-  public async shareHolders(): Promise<ShareHolder[]> {
-    return ((await this.registerEntry())?.shares ?? []).map((h) => ({ ...h.holder }));
+  /** ⭐ Her managing owner (P12, review 1): whoever holds a MAJORITY of her company's units — `null` when nobody does. */
+  public async managingOwner(): Promise<UnitHolder | null> {
+    return (await this.company())?.majorityHolder() ?? null;
   }
 
-  /** Runtime: her managing owner as her register last said — read sync by `answersFor`. */
-  private _managingOwner: ShareHolder | null = null;
+  /** Everyone who holds any of her company's units, in the order they first held. */
+  public async shareHolders(): Promise<UnitHolder[]> {
+    return ((await this.company())?.capTableRows() ?? []).map((x) => ({ ...x.holder }));
+  }
 
-  /** Is `who` her managing owner by her register (a player holding the most of her shares)? */
+  /** Runtime: her managing owner as her company's table last said — read sync by `answersFor`. */
+  private _managingOwner: UnitHolder | null = null;
+
+  /** Is `who` her managing owner (a player holding a majority of her company's units)? */
   public isManagingOwner(who: Stuff): boolean {
     const owner = this._managingOwner;
     const id = idOf(who);
     return owner !== null && owner.kind === 'player' && id !== '' && owner.path === id;
   }
 
-  /** ⭐ Read her register again — after she is entered, after her shares change hands, as she stands up. */
-  public async refreshRegistry(): Promise<void> {
+  /** ⭐ Read her company's table again — after she is commissioned, after her units change hands, as she stands up. */
+  public async refreshOwners(): Promise<void> {
     try {
       this._managingOwner = await this.managingOwner();
     } catch (err) {
-      console.warn(`Ship: ${this.getDurableHandle()}'s register could not be read:`, err);
+      console.warn(`Ship: ${this.getDurableHandle()}'s owners could not be read:`, err);
     }
   }
 
@@ -1109,9 +1136,11 @@ export default class Ship extends BilgeMixin(PersistableMixin(
   static markupAugmenters: MarkupAugmenter[] = [flagAugmenter];
 
   /**
-   * ⭐ Commission her (P17): a ship of a kind just bought, keyed by her
-   * serial, is named, given her own company, entered in `register` (the
-   * register the yard's government keeps) in `buyer`'s name (all sixty-four shares), keyed (the gangway locked,
+   * ⭐ Commission her (P17, review 1): a ship of a kind just bought, keyed
+   * by her serial, is named, given her own company — `buyer` its founder,
+   * holding the whole of its table (all sixty-four units) — entered in
+   * `register` (the register the yard's government keeps) as that
+   * company's, keyed (the gangway locked,
    * the key to the buyer), her buyer made her master (a sole owner holds
    * all three — owner, managing owner, master), and brought alongside
    * `landingPath`. Returns what the buyer is told.
@@ -1131,25 +1160,31 @@ export default class Ship extends BilgeMixin(PersistableMixin(
     if (!registerPath) throw new Error('Ship.commission: her register has no row path to be named by');
     const flag = register.getGovernmentKey();
     const owner = buyer.getIdentityPath();
-    if (!owner) throw new Error('Ship.commission: her buyer has no durable identity to hold her shares');
+    if (!owner) throw new Error('Ship.commission: her buyer has no durable identity to hold her units');
     const named = name.trim().replace(/^the\s+/i, '');
     this.setName(`the ${named}`);
     this.setShortDescription(named);
     const words = named.toLowerCase().split(/\s+/).filter((w) => w.length > 0);
     this.setKeywords([...new Set([named.toLowerCase(), ...words, ...this.getKeywords()])]);
 
-    const company = await this.mintCompany(named);
+    // ⭐ Her company first — the register enters her as ITS (the title), and
+    // its table is her buyer's, whole.
+    const company = await this.mintCompany(named, { kind: 'player', path: owner, name: buyer.getPresentation() });
+    const companyPath = company?.getIdentityPath() ?? '';
+    if (company === null || companyPath === '' || !MixinApi.isCapTable(company)) {
+      throw new Error(`Ship.commission: ${named}'s company was not minted with a table of owners — she would have no owner`);
+    }
     const refused = await register.enter({
       name: named,
       kind: this.getTemplatePath() ?? '',
       key: handle,
-      shares: [{ holder: { kind: 'player', path: owner, name: buyer.getPresentation() }, shares: 64 }],
-      house: company?.getIdentityPath() ?? '',
+      owner: companyPath,
     });
     if (refused !== null) throw new Error(`Ship.commission: the register refused ${named} — ${refused}`);
     this.shipRegister = registerPath;
     this.registeredName = named;
-    await this.refreshRegistry();
+    await this.refreshOwners();
+    const units = company.totalUnits();
 
     // ⭐ Her gangway is a door with a key (P9): locked, the key with her owner.
     const keyway = BoundaryApi.mintKeyway();
@@ -1160,8 +1195,8 @@ export default class Ship extends BilgeMixin(PersistableMixin(
     } catch (err) {
       console.warn(`Ship.commission: ${named}'s key was not issued:`, err);
     }
-    // A sole owner is her master too: whoever her register names appoints, and she names herself.
-    if (company !== null && MixinApi.isOrganization(company)) {
+    // A sole owner is her master too: whoever holds a majority of her company appoints, and she names herself.
+    if (MixinApi.isOrganization(company)) {
       const appointed = await company.appoint(buyer, MASTER_POSITION);
       if (appointed === null) console.warn(`Ship.commission: ${buyer.getPresentation()} was not made master of ${named}`);
     }
@@ -1170,7 +1205,8 @@ export default class Ship extends BilgeMixin(PersistableMixin(
     const lying = await this.putDownAt(landingPath);
     await PersistableApi.capture(this as unknown as Stuff);
     const polity = GovernmentApi.getGovernment(flag)?.name ?? flag;
-    return `She is entered in the register of ${polity} as the ${named}, all sixty-four shares in your name, and you are her master. Her gangway is locked; the key is yours. ${lying}`.trim();
+    const all = units === 64 ? 'all sixty-four shares' : `all ${units} shares`;
+    return `She is entered in the register of ${polity} as the ${named}, ${all} in your name, and you are her master. Her gangway is locked; the key is yours. ${lying}`.trim();
   }
 
   /** ⭐ Put her on the frame where `landingPath` is sited and bring her alongside it. */
@@ -1189,14 +1225,16 @@ export default class Ship extends BilgeMixin(PersistableMixin(
   }
 
   /**
-   * ⭐ Her own company (P2): a Business minted from her kind's seed row
-   * (`house:`) at `<seed>/<serial>` — the drilling outfit's precedent — whose
-   * appointing authority is her register (`kind: register`). Stood up again
-   * from the same seed when she loads and it does not stand (a company keeps
-   * no record of its own: its seats are the seed's, its holders' records
-   * their own). `null`, loudly, when she has no seed to mint from.
+   * ⭐ Her own company (P2, review 1): a `PersistentBusiness` minted from
+   * her kind's seed row (`house:`) at `<seed>/<serial>` — the drilling
+   * outfit's precedent — whose appointing authority is its OWN cap table
+   * (`kind: owners`). KEPT, keyed `(seed, serial)`: at her commissioning
+   * its table is laid down whole in `founder`'s name (the seed authors the
+   * units and the transfer term, nobody holding any) and captured; when
+   * she loads again it is stood up from the same seed and its record
+   * restored. `null`, loudly, when she has no seed to mint from.
    */
-  private async mintCompany(named?: string): Promise<Stuff | null> {
+  private async mintCompany(named?: string, founder?: UnitHolder): Promise<Stuff | null> {
     const serial = this.serial();
     const handle = this.getDurableHandle();
     if (!serial || !handle) return null;
@@ -1214,16 +1252,25 @@ export default class Ship extends BilgeMixin(PersistableMixin(
     }
     const label = named ?? this.getName().replace(/^the\s+/i, '');
     try {
+      const overlay: Record<string, unknown> = { name: `the ${label}'s company` };
+      if (founder !== undefined) {
+        // ⭐ Founded: the seed's table (units, transfer term), held whole by her buyer.
+        const shape = ((await Template.findByPath(seed))?.data as { capTable?: Partial<CapTableData> } | undefined)?.capTable;
+        const units = Number(shape?.units);
+        if (!Number.isInteger(units) || units <= 0) {
+          throw new Error(`her company row '${seed}' authors no capTable units to found it with`);
+        }
+        overlay.capTable = { units, transfer: shape?.transfer ?? 'free', rows: [{ holder: { ...founder }, units }] };
+      }
       const company = await StuffApi.clone<Stuff>(seed, undefined, {
-        // identity-keyed-by: referenced — her register entry's `house`, her
-        // own `house` field, and the employment records of whoever holds her
-        // seats name it; its seats are the seed's.
+        // identity-keyed-by: own-record — her company's `holder_snapshots`
+        // record (its table) is filed `(seed, serial)`; her register
+        // entry's `owner`, her own `house` field and the employment records
+        // of whoever holds her seats name it.
         asIdentityPath: identity,
-        dataOverlay: {
-          name: `the ${label}'s company`,
-          appointingAuthority: { kind: 'register', ship: handle },
-        },
+        dataOverlay: overlay,
       });
+      if (MixinApi.isPersistable(company)) await PersistableApi.restoreOrSeed(company, serial);
       this.house = identity;
       return company;
     } catch (err) {
@@ -1749,7 +1796,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
     await this.standWarren();
     // Her company stands with her once she has one (commissioned: her house is hers by serial).
     if ((this.house ?? '').endsWith(`/${this.serial() ?? ''}`)) await this.mintCompany();
-    await this.refreshRegistry();
+    await this.refreshOwners();
     try {
       (await this.liveFrame())?.adopt(this as never);
     } catch (err) {
@@ -1939,8 +1986,17 @@ export default class Ship extends BilgeMixin(PersistableMixin(
    * @hook
    */
   public override dependentPersistables(): (Stuff & Persistable)[] {
+    const out: (Stuff & Persistable)[] = [];
     const w = this._warren;
-    return w !== null && !w.isDestroyed() ? [w as unknown as Stuff & Persistable] : [];
+    if (w !== null && !w.isDestroyed()) out.push(w as unknown as Stuff & Persistable);
+    // ⭐ Her minted company (review 1): its table is kept with her.
+    const house = this.house ?? '';
+    const serial = this.serial() ?? '';
+    if (this.isOfKind() && serial !== '' && house.endsWith(`/${serial}`)) {
+      const c = StuffApi.findByTemplatePath<Stuff>(house);
+      if (c !== undefined && !c.isDestroyed() && MixinApi.isPersistable(c)) out.push(c);
+    }
+    return out;
   }
 
   /** ⭐ Under way she stays resident (the voyage is hers to keep); otherwise as a structure. */

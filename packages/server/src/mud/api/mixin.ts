@@ -259,6 +259,7 @@ import type { PricedOffer } from '../lib/commerce/PricedOffer';
 import type { DonationBank } from '../lib/commerce/DonationBank';
 import type { Business } from '../platform/idea/Business';
 import type { Organization } from '../lib/employment/Organization';
+import type { CapTable } from '../lib/employment/CapTable';
 import type { Publisher } from '../lib/press/Publisher';
 import type { Registrar } from '../lib/document/Register';
 import type { Attendant } from '../lib/attendant/Attendant';
@@ -2316,6 +2317,14 @@ export class MixinApi {
    */
   public static isRegistrar(obj: Stuff): obj is Stuff & Registrar {
     return this.hasMixin(obj, Mixins.Registrar);
+  }
+
+  /**
+   * ⭐ A business that keeps a table of owners and their units
+   * (`CapTableMixin`) — the read the `owners` appointing authority takes.
+   */
+  public static isCapTable(obj: Stuff): obj is Stuff & CapTable {
+    return this.hasMixin(obj, Mixins.CapTable);
   }
 
   /** A standalone employing Business (the `BusinessMixin` marker). */

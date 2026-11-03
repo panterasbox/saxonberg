@@ -151,6 +151,12 @@ export const CLOSED_BY_DESIGN: Readonly<Record<string, string>> = {
     'The procedural / conceptual / bodily split (Bloom, Kolb) — a ' +
     'taxonomy claim about how learning works, which is the advancement ' +
     "model's premise rather than a list of options.",
+  TRANSFER_TERMS:
+    'How a cap table\'s units may move: freely, or with every other ' +
+    'holder\'s consent — the institutions slate\'s one transferability ' +
+    'question (consent-of-others, or none-needed). Each term is a branch ' +
+    'of the move itself (`CapTable.refusalOf`), so a third term is new ' +
+    'transfer code, never a row (harbors review 1, 2026-11-02).',
 };
 
 interface Vocabulary {

@@ -35,7 +35,7 @@
  * hull book (two hulls on the stocks, both sold here; ⚠ the yard then
  * sells none, so a SECOND run of this file wants a fresh world — a kept
  * world's yard is sold out),
- * entered in the city's register in sixty-fourths; a second player's
+ * entered in the city's register as her company's, its sixty-fourths all hers; a second player's
  * smack keeps her own rooms; the gangway is a lock with a key and the helm
  * is only her master's; shares sold with the money and the shares together;
  * she keeps across a server RESTART (15, run in the middle, in a world this
@@ -560,7 +560,8 @@ suite('B1 — owning a ship', () => {
     expectOk(await owner.cmd('go east'));
     expectOk(await owner.cmd('go south'));
     const reg = await say(owner, 'read register');
-    expect(reg, reg).toMatch(new RegExp(`The ${NAME1} \\(smack\\), under the flag of the City of Terminus: [^.]*64/64`));
+    // ⭐ The register keeps her title — her company — and the company's table beside it (review 1).
+    expect(reg, reg).toMatch(new RegExp(`The ${NAME1} \\(smack\\), under the flag of the City of Terminus: owned by the ${NAME1}'s company, held [^.]*64/64`));
     expectOk(await owner.cmd('go north'));
     expectOk(await owner.cmd('go west'));
     expectOk(await owner.cmd('go west'));
@@ -637,7 +638,7 @@ suite('B1 — owning a ship', () => {
     const { r, said } = await withPrompts(second, `transfer 16 shares of ${NAME1} from "${ownerName}" for 400`, ['yes'], owner);
     expect(r.status, said).toBe('ok');
     expect(said, said).toMatch(new RegExp(`You buy 16 of the ${NAME1}'s shares from .* for [^.]*400`));
-    // At the office: both owners in the register.
+    // At the office: both owners on her company's table, beside her register entry.
     expectOk(await second.cmd('go east'));
     expectOk(await second.cmd('go east'));
     expectOk(await second.cmd('go south'));

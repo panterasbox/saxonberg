@@ -177,14 +177,20 @@ describe('the line’s regulars (harbors A2)', () => {
     expect((data('/world/terminus/harbor/yard/shed') as { props: string[] }).props).toContain('/world/terminus/harbor/yard/thing/hull-book');
     expect(rowAt('/world/terminus/harbor/yard/quay').class).toBe('/system/transport/location/HarborQuay');
     expect(harbor.quays.map((q) => q.place)).toContain('/world/terminus/harbor/yard/quay');
-    // The smack's company is appointed by her register; she flies the city's colors.
-    expect((data('/stuff/idea/Business/ship-company') as { appointingAuthority: { kind: string } }).appointingAuthority.kind).toBe('register');
+    // The smack's company is kept, appointed by whoever holds a majority of
+    // its sixty-four units, and held by nobody until a buyer founds it
+    // (review 1); she flies the city's colors.
+    expect(rowAt('/stuff/idea/Business/ship-company').class).toBe('/platform/idea/PersistentBusiness');
+    expect(data('/stuff/idea/Business/ship-company')).toMatchObject({
+      appointingAuthority: { kind: 'owners' },
+      capTable: { units: 64, transfer: 'free', rows: [] },
+    });
     const deck = data('/stuff/location/ship/smack/deck') as { props: Array<string | Record<string, string>> };
     expect(deck.props).toContainEqual({ template: '/stuff/thing/flag/terminus-city', on: 'flagstaff' });
     expect(data('/stuff/idea/corpo/Brand/flag-terminus-city').government).toBe('terminus-city');
   });
 
-  it('⭐ the city keeps a register, and the line and the city own their ships in it (B2, P14)', () => {
+  it('⭐ the city keeps a register of title; the line and the city own their ships through each ship\'s company (B2, P14, review 1)', () => {
     const city = data('/platform/idea/Government/terminus-city');
     expect(city.shipRegister).toBe('/platform/idea/ShipRegister/terminus-city');
     const reg = data('/platform/idea/ShipRegister/terminus-city');
@@ -192,17 +198,22 @@ describe('the line’s regulars (harbors A2)', () => {
     const entry = (slug: string) =>
       YAML.parse(readFileSync(join(PACKS, 'platform', 'content', 'ships', 'terminus-city', `${slug}.yaml`), 'utf8')) as {
         key: string;
-        house: string;
-        shares: Array<{ holder: { kind: string; path: string }; shares: number }>;
+        owner: string;
       };
+    const LINE = { kind: 'organization', path: '/world/terminus/harbor/line/idea/office', name: 'the Greywater Line' };
     for (const [slug, ship] of [['hesper', '/world/terminus/hesper/structure'], ['kittiwake', `${SHIPS}/ketch/structure`], ['corrigan', `${SHIPS}/coaster/structure`]] as const) {
       const e = entry(slug);
       expect(e.key).toBe(ship);
-      expect(e.shares).toEqual([{ holder: { kind: 'organization', path: '/world/terminus/harbor/line/idea/office', name: 'the Greywater Line' }, shares: 64 }]);
-      // Her company's authority is her register (whoever owns her appoints her master).
-      expect((data(e.house) as { appointingAuthority: unknown }).appointingAuthority).toEqual({ kind: 'register', ship });
+      // ⭐ The register keeps her title — her company — and no shares.
+      expect(e).not.toHaveProperty('shares');
+      expect(rowAt(e.owner).class).toBe('/platform/idea/PersistentBusiness');
+      // Her company's table is the line's, whole; whoever holds a majority appoints her master.
+      expect(data(e.owner)).toMatchObject({
+        appointingAuthority: { kind: 'owners' },
+        capTable: { units: 64, transfer: 'free', rows: [{ holder: LINE, units: 64 }] },
+      });
     }
-    expect(entry('ostrander').shares[0]!.holder.path).toBe('/world/terminus/budget');
+    expect((data(entry('ostrander').owner) as { capTable: { rows: Array<{ holder: { path: string } }> } }).capTable.rows[0]!.holder.path).toBe('/world/terminus/budget');
     // ⭐ Each ship knows her register and the name she is entered under (review 1) — nothing searches for her.
     for (const [slug, ship] of [['hesper', '/world/terminus/hesper/structure'], ['kittiwake', `${SHIPS}/ketch/structure`], ['corrigan', `${SHIPS}/coaster/structure`], ['ostrander', '/world/terminus/ostrander/structure']] as const) {
       const row = data(ship) as { shipRegister: string; registeredName: string };

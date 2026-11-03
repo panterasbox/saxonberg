@@ -22,7 +22,7 @@
  * | `office` | `CompactApi.holdsOffice` | **yes — founder default** |
  * | `seat` | `GovernmentApi.holdsSeat` | no |
  * | `committee` | `CompactApi.isCommitteeMember` | **yes — pool-of-one** |
- * | `register` | the ship's `managingOwner()` (she asks her own register) | only if her managing owner's authority does |
+ * | `owners` | the majority holder of an organization's cap table (`CapTableMixin`) | only if the majority holder's own authority does |
  *
  * ⚠ The *founder passes* column is load-bearing, not trivia. Only `office`
  * and `committee` carry the Art. XI default, so **an authority the founder
@@ -35,19 +35,24 @@
  * accountable person, never an "author tier"), never an appointing
  * authority in its own right. Five kinds, each with a consumer.
  *
- * ⭐ `register` (harbors P12) is a ship's company's: *whoever her register
- * says owns her appoints her master*. The managing owner (more than half
- * her shares, else the largest holding) is a player — an identity match —
- * or an organization, whose OWN appointing authority is then asked (the
- * Greywater Line's office appoints the Hesper's master). Only ship
- * companies author it.
+ * ⭐ `owners` (harbors review 1, the institutions slate's cap table) is
+ * *whoever holds a majority of this organization's table appoints*: a
+ * player holding more than half the units — an identity match, so a sole
+ * owner appoints themself — or an organization holding them, whose OWN
+ * appointing authority is then asked (the Greywater Line's office appoints
+ * the Hesper's master). No majority, nobody: an even split appoints no one
+ * until somebody buys a majority (the slate's endorsements, which would
+ * assemble one from a coalition, are not built). Authored bare —
+ * `{kind: owners}` — it reads the organization's OWN table
+ * (`getAppointingAuthority` fills in its path); `organization:` names
+ * another's (a subsidiary appointed by whoever owns its parent).
  *
  * Types and constants only — the resolver lives in `EmploymentLogic`,
  * where the Api surfaces it can reach live.
  */
 
 /** The discriminator of a {@link PrincipalRef}. */
-export type PrincipalRefKind = 'entity' | 'office' | 'seat' | 'committee' | 'register';
+export type PrincipalRefKind = 'entity' | 'office' | 'seat' | 'committee' | 'owners';
 
 /** The blessed kind vocabulary (validation array). */
 export const PRINCIPAL_REF_KINDS: readonly PrincipalRefKind[] = [
@@ -55,7 +60,7 @@ export const PRINCIPAL_REF_KINDS: readonly PrincipalRefKind[] = [
   'office',
   'seat',
   'committee',
-  'register',
+  'owners',
 ] as const;
 
 /** A specific entity, by durable templatePath — the shipped proprietor edge. */
@@ -88,11 +93,14 @@ export interface CommitteePrincipalRef {
   parcel: string;
 }
 
-/** Whoever a ship's register names her managing owner — a ship's company's authority. */
-export interface RegisterPrincipalRef {
-  kind: 'register';
-  /** The ship's handle — her identity (minted `<kind>/<serial>`, or an authored ship's row). */
-  ship: string;
+/** Whoever holds a majority of an organization's cap table. */
+export interface OwnersPrincipalRef {
+  kind: 'owners';
+  /**
+   * The organization whose table decides, by identity path. Omitted when
+   * authored — the organization's own (`getAppointingAuthority` fills it).
+   */
+  organization?: string;
 }
 
 /** Who may fill an organization's positions. */
@@ -101,7 +109,7 @@ export type PrincipalRef =
   | OfficePrincipalRef
   | SeatPrincipalRef
   | CommitteePrincipalRef
-  | RegisterPrincipalRef;
+  | OwnersPrincipalRef;
 
 /**
  * Coerce a seed / hydrated blob into a {@link PrincipalRef}, or `null`
@@ -142,10 +150,10 @@ export class Authority {
         return typeof r.parcel === 'string' && r.parcel.length > 0
           ? { kind: 'committee', parcel: r.parcel }
           : null;
-      case 'register':
-        return typeof r.ship === 'string' && r.ship.length > 0
-          ? { kind: 'register', ship: r.ship }
-          : null;
+      case 'owners':
+        return typeof r.organization === 'string' && r.organization.length > 0
+          ? { kind: 'owners', organization: r.organization }
+          : { kind: 'owners' };
       default:
         return null;
     }

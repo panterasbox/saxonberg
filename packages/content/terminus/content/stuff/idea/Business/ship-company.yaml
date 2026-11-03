@@ -1,18 +1,25 @@
 # A ship's company (harbors P2, B1) — the house whose roster mans a ship of
-# a kind. One `master` seat: whoever holds it commands her, takes her helm
-# and answers for her at a harbor office.
+# a kind, and (harbors review 1) the business that OWNS her. One `master`
+# seat: whoever holds it commands her, takes her helm and answers for her at
+# a harbor office.
 #
-# ⭐ The SEED of every smack's company (harbors B2): the yard mints one per
-# ship from it (`asIdentityPath …/ship-company/<serial>`, the drilling
-# outfit's precedent), naming HER handle as the authority's ship — so her
-# register's managing owner appoints her master (`kind: register`). The
-# seed itself names no ship, and so nobody appoints at it: it is a shape,
-# not a company.
-class: /platform/idea/Business
+# ⭐ The SEED of every smack's company: the yard mints one per ship from it
+# (`asIdentityPath …/ship-company/<serial>`, the drilling outfit's
+# precedent) and KEEPS it, keyed `(this row, serial)`. Its cap table is
+# founded whole in her buyer's name — sixty-four units, the shipping
+# trade's sixty-fourths — and whoever holds a majority of it appoints her
+# master (`kind: owners`). Her register entry names the minted company as
+# her owner. The seed itself is held by nobody (`rows: []`), and so nobody
+# appoints at it: it is a shape, not a company.
+class: /platform/idea/PersistentBusiness
 data:
   name: "a ship's company"
   appointingAuthority:
-    kind: register
+    kind: owners
+  capTable:
+    units: 64
+    transfer: free
+    rows: []
   positions:
     - key: master
       noun: master
