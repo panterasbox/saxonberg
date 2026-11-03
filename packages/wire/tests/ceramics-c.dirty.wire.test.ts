@@ -395,6 +395,9 @@ suite('⭐ 16 — trim, join, mark (leather-hard only)', () => {
     const mugs = (await potter.query('here:i:mug', { fields: 'detail' }).catch(() => [])) as { stuffId?: string; longDescription?: string }[];
     const mine = mugs.find((m) => String(m.longDescription ?? '').includes(`Made by ${potter.handle}`));
     expect(mine?.stuffId, `the potter's own mug: ${JSON.stringify(mugs.map((m) => m.longDescription?.slice(0, 120)))}`).toBeDefined();
+    // The mug is trimmed too, so it is staged with the jug — left green it
+    // refused the tool as too soft (paint finalize, run 3).
+    expect(await stageDry(potter, `#${mine!.stuffId}`, 0.4), 'the mug at leather-hard').toMatch(/leather-hard/i);
     await say(potter, `get #${mine!.stuffId}`);
     // ⚠ An engaged act: the foot is turned when the trimming is DONE, so
     // jump past it (run 27 read the mug while the tool was still on it).
@@ -785,6 +788,17 @@ suite('⭐ 21 — the weeping jar', () => {
     await examine(potter, `#${full}`); // the record: what it was before the fill
     await say(potter, `fill #${full} from butt`);
     await examine(potter, `#${full}`); // the record: sound, or cracked by the fill
+    // ⛔ STAGED: the butt stands outdoors, so a warm shop can still draw
+    // water at the freezing point — and a jar of slush sits on its melt
+    // plateau for hours (paint finalize: 271 K and 275 K after six hours in
+    // a 289 K shop). That is a cold day, not a weep: skip, loudly.
+    const drawnK = Number(/([0-9]+(?:\.[0-9]+)?)\s*K\b/.exec(await say(potter, `measure temperature #${full}`))?.[1] ?? NaN);
+    if (drawnK <= 277) {
+      // eslint-disable-next-line no-console -- the drive's own record
+      console.log(`  [drive] the butt's water is ${drawnK} K — the weep needs a warm day; it lives in ceramics-c.soak.dirty`);
+      ctx.skip();
+      return;
+    }
     await say(potter, 'fill leadpot from butt');
     await say(potter, `drop #${full}`);
     await say(potter, 'drop leadpot');
@@ -1040,7 +1054,9 @@ suite('⭐ 20 — flame and body', () => {
     const crock = `#${crockId}`;
     // The grogged body: grog trodden into clay in the temper pit.
     potter = await goTo(potter, TEMPER);
-    await say(potter, 'put clay in pit');
+    // ONE lump: a bare `put clay` tipped all eight the potter carried, and
+    // kneaded together they were one mass too heavy to lift (paint finalize).
+    await say(potter, 'put 1 clay in pit');
     expect(await say(potter, 'put grog in pit'), 'the grog from 23').toMatch(/put/i);
     await act(potter, 'knead pit', '30 minutes');
     await say(potter, 'get clay from pit');
