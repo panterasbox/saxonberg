@@ -1,5 +1,5 @@
 # The island's berth book (harbors A3) — on the estate store's counter:
-# who lies at the jetty and since when, read off the estate's harbor. Dues
+# who lies at the jetty and since when — the estate harbor's record, kept here. Dues
 # are paid at it (`pay book`, or `pay office`), and whoever keeps the jetty
 # on shift makes the harbormaster's call here (`berth <ship> at landing`).
 class: /system/transport/thing/HarborBook

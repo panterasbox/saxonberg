@@ -6,10 +6,10 @@
  * no craft comes alongside an office) that answers the kernel's
  * `Hailable` protocol: a ship at the bar hails it (`hail office`), and the
  * answer is its harbor's (`Harbor.answerHail` — the NPC's routine, by the
- * posted criteria). A player holding the seat on shift is told as well.
+ * posted criteria, written in the harbor's berth book). A player holding the seat on shift is told as well.
  *
  * ⭐ And where a ship's dues are paid (`Payable`, P13): `pay office` pays
- * the bills its harbor holds for you — the book on the desk answers the
+ * the bills its harbor reads off its book for you — the book on the desk answers the
  * same (`pay book`). The office is the word a payer uses, so it answers.
  */
 

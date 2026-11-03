@@ -340,6 +340,14 @@ kernel imports no pack:
   book's five questions and the berth's depth). `hail <word>` tries
   these first (`hail office`, `hail harbor`), then the sails in sight.
 
+On the pack side (harbors review 2) the **record is the berth book's**: the
+`HarborBook` fixture on the office desk persists the lines (berths given,
+ships alongside, debts, dues stamped paid) and the hails, and is what
+players act on (`look book`, `pay book`, `berth … at`). The `Harbor` row
+keeps only its posted rules — quays, rates, exempt, roads, seat, office —
+and applies them in order over the book it names forward (`book:`); it
+persists nothing. A second port is rows only: a harbor row and a book.
+
 A place sited on a river that is no landing authors `frameSite.landing:
 false` — the harbor office above its quays: on the line (a hail finds it,
 a drifting swimmer passes it) and never a course.

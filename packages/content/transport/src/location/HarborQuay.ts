@@ -6,8 +6,9 @@
  *
  * It answers the kernel's `Berthing` protocol — the only way the ship
  * reaches the harbor — by asking its `Harbor` (`harbor:`, the port's
- * row): `admit` before her course is laid, `madeFast` as her lines go
- * ashore, `clearance` before she leaves, `release` as she casts off.
+ * row), which applies its posted rules over its berth book: `admit` before
+ * her course is laid, `madeFast` as her lines go ashore, `clearance`
+ * before she leaves, `release` as she casts off.
  * Every quay a ship can be left at owes dues to some book: a river's
  * public landing that does not compose this keeps first-come.
  */
@@ -30,7 +31,7 @@ export default class HarborQuay extends BerthingMixin(Quay) {
   public getHarbor(): string | null { return this.harbor; }
   public setHarbor(v: string | null): void { this.harbor = typeof v === 'string' && v !== '' ? v : null; }
 
-  /** Its harbor, loaded — the book is kept there. */
+  /** Its harbor, loaded — the rules are posted there, and it names the book. */
   public async liveHarbor(): Promise<Harbor | null> {
     if (this.harbor === null) return null;
     const h = await StuffApi.singleton<Stuff>(this.harbor).catch(() => null);
@@ -47,7 +48,7 @@ export default class HarborQuay extends BerthingMixin(Quay) {
   }
 
   public override async madeFast(ship: Stuff, nowS: number): Promise<void> {
-    (await this.liveHarbor())?.madeFast(ship, this.place(), nowS);
+    await (await this.liveHarbor())?.madeFast(ship, this.place(), nowS);
   }
 
   public override async clearance(ship: Stuff, nowS: number): Promise<string | null> {
@@ -56,10 +57,10 @@ export default class HarborQuay extends BerthingMixin(Quay) {
   }
 
   public override async release(ship: Stuff, nowS: number): Promise<void> {
-    (await this.liveHarbor())?.release(ship, nowS);
+    await (await this.liveHarbor())?.release(ship, nowS);
   }
 
-  /** ⭐ The berth's depth is the harbor's posted fact (P20) — read while the book is loaded. */
+  /** ⭐ The berth's depth is the harbor's posted fact (P20) — read while the harbor is loaded. */
   public override berthDepthM(): number | null {
     if (this.harbor === null) return null;
     const h = StuffApi.findByTemplatePath<Stuff>(this.harbor);

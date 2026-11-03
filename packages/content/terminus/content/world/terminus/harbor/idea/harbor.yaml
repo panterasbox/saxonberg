@@ -1,5 +1,5 @@
-# The Port of Terminus — the harbor's book and its posted criteria (harbors
-# A1, P7). ⭐ The criteria are THIS ROW's data: the harbor works' committee
+# The Port of Terminus — the harbor's posted criteria (harbors A1, P7);
+# its record is the berth book's. ⭐ The criteria are THIS ROW's data: the harbor works' committee
 # posts them by editing it under its title; whoever holds the harbormaster's
 # seat applies them and has no write path to them.
 #
@@ -8,6 +8,10 @@
 # with room by her length, in the order listed → dues owed → else the roads.
 class: /system/transport/idea/Harbor
 data:
+  # ⭐ The record is the BOOK's (review 2): the berth book on the office
+  # desk keeps who lies where, the debts and the hails; this row keeps
+  # only the posted rules.
+  book: /world/terminus/harbor/thing/berth-book
   office: /world/terminus/harbor/office
   seat:
     business: /world/terminus/wharfside/idea/harbor-works
