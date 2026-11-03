@@ -32,7 +32,9 @@ data:
     - { itemTemplatePath: /trade/forestry/thing/billet, par: 8 }
     # ⭐ Staves, riven and seasoned — the cooper's raw part, sold by a yard
     # that makes nothing else of them (drive 16).
-    - { itemTemplatePath: /trade/coopering/thing/stave, par: 30 }
+    # ⭐ Two casks' worth: a yard that serves coopers is not bare after
+    # one cask (the assembly drive bought thirty, then a cooper thirty).
+    - { itemTemplatePath: /trade/coopering/thing/stave, par: 60 }
   prices:
     # ⚠ Against the shipped ladder (stipend 20, wages 4-6 per game-hour):
     # a board is an hour's wage, a quartered one half again — two boards

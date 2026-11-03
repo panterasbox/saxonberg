@@ -60,6 +60,7 @@ declareFile({
     'generic-objects',
     'eternal-university',
     'saxonberg-lounge',
+    'trade-fuel',
   ],
   dirtyReason: DIRTY_REASON,
 });
@@ -323,6 +324,15 @@ suite('⭐ a lantern you light, and that runs out', () => {
 
   it('⭐ step 4 — light it and the dark lifts; douse it and it comes back', async () => {
     expectOk(await me.cmd('clone /world/terminus/general-store/thing/lantern'));
+    await me.drainProse();
+    // ⭐ A lantern is sold DRY (its row says so): the oil is a separate
+    // purchase, and a dry lantern refuses `no-fuel`. Fill it as a player
+    // would — from a cask of lamp oil — before lighting it.
+    expectOk(await me.cmd('clone /trade/fuel/thing/lamp-oil-cask'));
+    await me.drainProse();
+    await me.cmd('open cask');
+    await me.drainProse();
+    expectOk(await me.cmd('fill lantern from cask'));
     await me.drainProse();
 
     // ⚠⚠ **Douse FIRST, with nothing in between.** The ordering is the
