@@ -180,3 +180,77 @@ is what lets that one fall.
 
 **Size:** a build — two of its five steps (the exit as a candidate, the async augmenter pass) touch
 every exit verb and every described object.
+
+---
+
+## 4. The scorer's NAME tiers — ⭐ DECIDED: the name is not special (user, 2026-11-03)
+
+*Appended during harbors review 3; nothing above is cut.*
+
+**The question the user raised.** `scoreCandidate` reads two fields, NAME and KEYWORDS, and ranks the
+name above the keywords: **100** the name IS the query (one word or a phrase, its own article
+dropped — `bareName`) · **70** a KEYWORD is the query · **60** every query word is a whole word of
+the name · **50** every query word begins a word of the name · **40** every query word begins a
+name word (word-prefix AND) · **25** every word begins a keyword · partials `10 × n` (keyword) and
+`5 × n` (name word). `scoreCandidates` then cuts by tier (`100 → 70 → 40`) and drops any partial when
+something answers to every word. Should the name be just another keyword?
+
+**⭐ The decision.** *The name is not special. The scorer reads ONE place — `getKeywords()`.
+`NamedMixin` contributes its name by overriding/extending `getKeywords()` (the name, and its bare form
+without the article), so a named thing still answers to its name, but through the same keyword list as
+everything else.* The name tiers (100, 60/50/40, the `5 × n` partial) collapse into keyword tiers:
+*a keyword IS the phrase* · *every word is a whole word of a keyword* · *every word begins a keyword
+word* · partials. The build is a **content pass + a scorer simplification**, not a regression — each
+finding that created a name tier keeps its outcome when the objects carry the right keyword data:
+
+| Tier it created | The drive finding (from `scoreCandidate`'s comments) | Keyword data that keeps the outcome with keywords alone |
+|---|---|---|
+| 100 *(name is the phrase)* + `bareName` | field population pass 4: `look at the top end` / `look at the middle` tied the PATCH named "the top end" with the STAND standing in it (which answered to the patch's words) and asked which | the patch carries the whole phrase `top end` (and `middle`) as a keyword — a whole-phrase keyword match outranks the stand's single-word keywords; the stand stops carrying its patch's words |
+| 70 *(a keyword is the query)* over 60/50 | ceramics browser walk: `look clay` at the pit looked at "the clay pit" (its NAME held the word) instead of the lumps of clay | the lump's keyword `clay` is the phrase; the pit carries `clay pit` and `pit`, NOT bare `clay` — with no name tier there is nothing for the pit to win with |
+| 60 *(whole word of the name)* over 50 | fishing drive ×3: `haul net` with a keepnet in hand hauled the KEEPNET (`net` a substring of `keepnet`); also creel/eel, ledger/edge | whole-word matching over keyword WORDS (`net` is a word of `net`; it begins no word of `keepnet`) — the keepnet carries `keepnet`, `keep net` only if an author wants it |
+| 40 *(name-word prefix)* — the `NAME_TIER` cut | rubber/latex live: `get "latex cup"` picked up the three cups AND the coagulating pan (keywords "latex pan"); `latex` alone should mean the cups | the cups carry `latex cup`, `cup`, `latex`; the pan carries `pan`, `coagulating pan`, `latex pan` — the whole-phrase cut (partials never ride along) already separates `latex cup`; for bare `latex`, either both answer (and it prompts — honest) or the pan drops bare `latex` |
+| the mid-word ban (`startsAWord`) | ceramics drive C, run 28: `consign "plant pot"`, with no pot in hand, put the aether imPLANT up for sale; `get 1 brick` took the "brick table" by its keyword's tail | unchanged — it is already a rule over words, not names |
+
+⚠ **What leans on the name tier today, and must move first.** Harbors review 3's exits: an exit's
+name is its direction, and `look hesper` on the quay binds the berth way (name 100) over the line
+from her and her deck (keyword 70). The direction is already IN `Exit.getKeywords()` (with its short
+forms), so the collapse leaves the way, the line (`hesper` keyword) and the deck tied at one tier:
+`look hesper` would PROMPT on the quay (`go hesper` would not — its scope is `here:exits`). That is the
+honest outcome under the rule — three things answer to her name — and the fix, if one is wanted, is
+keyword data (the line answers to `line`, `hesper line`; the deck to `hesper deck`), never a tier.
+
+**The known inconsistency (§ 3 row 5), unchanged:** `namesEveryWord` (the whole-phrase cut) matches
+with `includes` — MID-word — while `scoreCandidate` bans mid-word matches (`startsAWord`). A partial
+that only reaches a word by its middle still counts as "answers every word" for the cut. Fix:
+`startsAWord` in both; folds into the collapse above.
+
+## 5. MQL reads only Perceptible (user, 2026-11-03)
+
+*The rule: MQL reads a Stuff ONLY through its Perceptible interface (`getName` / `getKeywords`). Any
+name, keyword or candidate MQL synthesizes on the query side is undocumented special grammar — MQL
+misbehaving. If an object must answer to a word, the object says so: authored keywords, or an
+override of `getKeywords()` on its own class, documented there as derived.* Fixed in harbors review 3
+for exits and directions only (`Exit.getKeywords`: authored ∪ direction ∪ short forms; Mobile's
+`n` → `go n`; no `via.exit`). Everything else, inventoried — **not fixed in !511**:
+
+| # | What MQL synthesizes | Where | In `mql-grammar.md`? | Judged against the rule |
+|---|---|---|---|---|
+| 1 | **Detail candidates** — one candidate per detail id, `name: id, keywords: [id]`, on the HOST with `via.detailPath` | `pushDetails` (`scope-walk.ts`), `candidatesForAnchor`, `detailExtensionCandidates` / `directCandidate` (`resolver.ts`) | ✅ documented (`:keyword` detail-extension; `here:bookcase:book`) | ⚠ documented grammar, but the words are built by MQL from detail ids, not read from a Perceptible face. Conforming shape: a detail answers through the host's (or the detail's own) `getKeywords()` — the host's Detailed mixin contributes its ids as derived keywords, named there |
+| 2 | **Bulk-material candidates** — a holder answers to its slot's MATERIAL name and keywords (`drink coffee` binds the cup), with `via.bulk` | `pushBulkMaterials` (`scope-walk.ts`, via `BlendIdentity`) | ⚠ only `:b` is touched (§ bracket text); the material-keyword path is not | ⛔ synthesized words — the holder never said it answers to `coffee`. Conforming: `Bulkable.getKeywords()` folds in the held material's words (derived, named on the mixin) |
+| 3 | **The tract candidate** — a loaded place across an exit answering `isSeenAcrossExit()` joins `here` by its own name | `candidatesForHere` (tracts D30) | ❌ not documented | ⚠ a synthesized CANDIDATE (not a word): the words are the place's own. Opt-in by hook, so it is the object saying so — but the pool membership is MQL's. With `:exits:…:to` (harbors review 3) the same place is NAMEABLE by grammar; the build decides whether the implicit candidate stays (§ 3 row 9) |
+| 4 | **Recognition-relative names and keywords** — a person answers only to what the viewer perceives (`describeFor(viewer)`, tokens of the `distinguishing` form); authored keywords dropped for a persona | `pushDirect` → `RecognitionLogic.perceivedKeywordsImpl` | ❌ not in the grammar (belief.md / presentation.md own it) | ⚠ synthesized words (tokenized prose), but on the object's own face (`perceivedKeywordsFor` is a Stuff method). Conforming once named on the class as derived; ⚠ and the SLOW path + chain steps read the viewer-blind `getPresentation`/`getKeywords` instead (`nameOf`/`keywordsOf`) — two answers to *what does this answer to* |
+| 5 | **The candidate's name** is `getPresentation()` / `describeFor`, not `getName()` — an unnamed thing's name is its rendered short description | `nameOf`, `pushDirect` | ❌ | ⚠ the name read is a projection, not the Perceptible field. Moot under § 4's decision (the name becomes keywords) |
+| 6 | **Article handling** — the query's leading article stripped; the candidate NAME's article dropped before the 100 compare (`bareName`) | `desugar.ts`; `scoreCandidate` | ✅ query side (§ Article stripping); ❌ candidate side | ⚠ `bareName` is name-tier machinery — under § 4 the bare form is a keyword `NamedMixin` contributes |
+| 7 | **Quoted literal** — exact compare of the lowercased NAME only (no keywords, no `bareName`) | `resolveLiteralSeed`, `filterByLiteral` | ✅ (literals) | ⚠ inconsistent with the scorer (§ 3 row 12); under § 4 a literal is one phrase against keywords |
+| 8 | **`effectiveTarget`** — the bound thing, else the door hung in a bound way | `MqlLogic.effectiveTarget` | ✅ (harbors review 3, § Direction tokens) | ✅ not a word or candidate — a documented resolution rule over what was bound. The boundary slate retires the door rung (the side and its boundary become one candidate) |
+| 9 | **Pronoun memory** — `it`/`them`/`him`/`her`/`$$` replay a stored result | `pronoun-memory.ts`, `matchesFromStash` | ✅ (§ Pronouns) | ✅ grammar over results, not words |
+| 10 | **Seed and chain words** shadow objects so named (`inventory`, `world`, `peers`, `reachable`, `person`, `horizon`, `online`; `members`, `exits`, `to`, `from`) | `resolveKeywordSeed`, `applyColon` | ✅ (§ Reserved keywords) | ✅ documented grammar; `[keyword.x]` is the escape |
+| 11 | **Predicates** (`living`, `mine`, `here`, `visible`, …) shadow a single-word filter | `filterByKeywordsOrPredicate` | ✅ | ✅ documented grammar |
+| 12 | **Seed promotion scores** — every seed candidate scores 100 | `candidatesToMatches` | n/a | ✅ not a word |
+| 13 | **The quantity / ordinal prefixes** (`2 coins`, `second sword`, `all coins`) | `desugar.ts` | ✅ (§ Natural-language layer) | ✅ documented grammar |
+| 14 | ~~Direction words~~ — `via.exit`, exit candidates built as `{name: direction, keywords: [direction]}` | was `candidatesForHere` / `candidatesForAnchor` | — | ✅ **fixed in harbors review 3**: the exit's own `getKeywords()`; no query-side alias rewrite |
+
+**Verdict.** Three synthesize WORDS the object never supplied (1 detail ids, 2 bulk materials, 4/6 the
+recognition tokens and the bare name) and one synthesizes a CANDIDATE (3). Each has a conforming home
+on the object's own `getKeywords()` — a derived override, named where it lives — which is the same
+shape exits now have. Rows 5–7 dissolve under § 4's decision.
