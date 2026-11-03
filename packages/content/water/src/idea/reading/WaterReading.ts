@@ -335,6 +335,22 @@ export default class WaterReading extends Reading {
   ): Promise<void> {
     const giver = ctx.commandGiver;
     const report = (target as unknown as SupplyReporting).supplyReport;
+    // ⭐ Water a thing HOLDS — a pail filled at a standpipe, a jug from a
+    // well — is read the same way: bare, you cannot tell; with the kit,
+    // what is in it (the browser walk: a full pail "carried no water").
+    if (typeof report !== 'function' && this.holdsWater(target)) {
+      const lines =
+        kit === null
+          ? ['whether it is fit to drink, you cannot tell by looking']
+          : this.kitLines(target);
+      MessageApi.scene(giver)
+        .topic('sense.reading')
+        .toSelf(
+          Mml.compose`${target.getPresentation()}\n${lines.map((l) => `  ${l}`).join('\n')}\n`,
+        )
+        .send();
+      return;
+    }
     if (typeof report !== 'function') {
       ctx.note({
         kind: 'controller-rejected',
@@ -355,7 +371,10 @@ export default class WaterReading extends Reading {
     const lines =
       kit === null
         ? read.lines.filter((l) => !/\bfouled\b/.test(l))
-        : [...read.lines, ...this.kitLines(target)];
+        : [
+            ...read.lines,
+            ...this.kitLines(target, read.lines.some((l) => /\bfouled\b/.test(l))),
+          ];
     if (kit === null && read.lines.length !== lines.length) {
       lines.push('whether its water is fit to drink, you cannot tell by looking');
     }
@@ -367,18 +386,38 @@ export default class WaterReading extends Reading {
       .send();
   }
 
+  /** Whether a thing holds water in its interior now (a pail, a jug). */
+  private holdsWater(target: Stuff): boolean {
+    if (!MixinApi.isBulkable(target)) return false;
+    const material = target.getBulkMaterial('interior');
+    return material !== null && /water/i.test(material.getTemplatePath() ?? '');
+  }
+
   /**
    * ⭐ What the kit finds in the water a thing HOLDS — a tap's, a pipe's, a
    * pail's: lead (the leaf the lead law doses), and the water's acidity and
    * hardness off its payload, which is how a health officer works out that
    * a soft, acid supply through lead is the poisoning.
    */
-  private kitLines(target: Stuff): string[] {
+  private kitLines(target: Stuff, reportedFouled = false): string[] {
     if (!MixinApi.isBulkable(target)) return [];
     const payload = target.getBulkPayload('interior');
-    if (payload === null) return [];
     const out: string[] = [];
-    const lead = payload.dissolvedToxins?.find((t) => t.type === 'lead')?.amount ?? 0;
+    const lead = payload?.dissolvedToxins?.find((t) => t.type === 'lead')?.amount ?? 0;
+    // What the WATER is: fouled water carries its dose on its material.
+    const fouled =
+      reportedFouled ||
+      (target.getBulkMaterial('interior')?.getToxicity() ?? []).some((t) => t.type !== 'lead');
+    // ⭐ The verdict, every time the kit reads (requirements drive 1:
+    // "with the kit it reads the water clean") — silence is not "clean".
+    if (fouled) {
+      if (!reportedFouled) out.push('fouled — unfit to drink unboiled');
+    } else if (lead > 0) {
+      out.push('lead in it; unfit to drink');
+    } else {
+      out.push('the kit finds nothing in it; fit to drink');
+    }
+    if (payload === null) return out;
     if (lead > 0) out.push(`lead in the water — ${lead.toFixed(2)} mg a litre`);
     if (typeof payload.pH === 'number') {
       out.push(`pH ${payload.pH.toFixed(1)}${payload.pH < 7 ? ' — on the acid side' : ''}`);

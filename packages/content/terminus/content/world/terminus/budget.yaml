@@ -61,3 +61,9 @@ data:
   banksAt: goodkin
   operatingLocations:
     - /world/terminus/terminal/thing/departure-terminal-a
+    # ⭐ The embankment, where the city's waterworks are (the intake's
+    # walkway, the outfall, the pump house). The works keeper clocks on HERE,
+    # outside the locked door, and `clock on` hands over the key (D19): with
+    # only the terminal, the keeper had to ride the bus to collect a key to a
+    # door on the river (the water-supply browser walk).
+    - /world/terminus/wharfside/bank
