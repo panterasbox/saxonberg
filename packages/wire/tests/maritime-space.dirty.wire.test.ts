@@ -98,7 +98,7 @@ async function look(s: Session, what = 'look here'): Promise<string> {
 async function sail(s: Session, hours: string): Promise<string> {
   await s.drainProse();
   await advanceWorldClock(hours);
-  return squash(await s.listen(WATCH_MS));
+  return squash(await s.listen(WATCH_MS, { sinceDrain: true }));
 }
 
 /**
@@ -488,8 +488,11 @@ suite('19 · 20 · 25 · sight at sea', () => {
   it('20 · ⭐ a watch from the deck misses the light; an appointed lookout calls it', async () => {
     // Out past the deck's horizon for the light, inside the masthead's,
     // and at anchor so the weather can be waited out without moving.
+    // ⚠ The world is a third of Earth's size (sugar D12): the deck raises
+    // the light at about nine miles and the masthead at about twelve, so
+    // she stands out from the Rock under two hours, not three.
     expectOk(await me.cmd('course open sea'));
-    await sail(me, '3 hours');
+    await sail(me, '105 minutes');
     expectOk(await me.cmd('anchor'));
     const w = await me.cmd('watch horizon');
     expectOk(w);
@@ -671,7 +674,8 @@ suite('31 – 39 · the shore as a place, and drawing water', () => {
     const read = await w.cmd('analyze water');
     expectOk(read);
     const gauge = squash(await read.said());
-    expect(gauge).toMatch(/reach: kestrel:confluence/);
+    // The reach by the river's own key (river: reaches are positional).
+    expect(gauge).toMatch(/reach: kestrel:\S+/);
     expect(gauge).toMatch(/an outfall above here/);
     expectOk(await w.cmd(`clone ${SKIN}`));
     const fill = await w.cmd('fill skin from river');
