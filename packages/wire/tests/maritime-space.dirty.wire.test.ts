@@ -509,10 +509,14 @@ suite('19 · 20 · 25 · sight at sea', () => {
     // Out past the deck's horizon for the light, inside the masthead's,
     // and at anchor so the weather can be waited out without moving.
     // ⚠ The world is a third of Earth's size (sugar D12): the deck raises
-    // the light at about nine miles and the masthead at about twelve, so
-    // she stands out from the Rock under two hours, not three.
+    // the light out to about nine miles and the masthead to about twelve.
+    // Stand out a mile at a time until the deck loses it, and anchor there
+    // — past the deck's horizon by construction, inside the masthead's.
     expectOk(await me.cmd('course open sea'));
-    await sail(me, '105 minutes');
+    for (let i = 0; i < 24; i++) {
+      await sail(me, '10 minutes');
+      if (!LIGHT.test(await look(me, 'scan horizon'))) break;
+    }
     expectOk(await me.cmd('anchor'));
     const w = await me.cmd('watch horizon');
     expectOk(w);
