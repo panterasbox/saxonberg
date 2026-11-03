@@ -58,5 +58,26 @@ const PlantPotGround = SoilMixin(
 const PlantPotBase = CultivableMixin(PlantPotGround);
 
 export default class PlantPot extends PlantPotBase {
-  static fieldMeta: FieldMeta = {};
+  /**
+   * ⭐ Does it have a drainage hole? (water-supply D16) Every shipped pot
+   * does: what the soil cannot take runs out of the bottom. An undrained
+   * pot (a glazed jar) holds the excess, and the roots stand in it.
+   */
+  protected drained = true;
+
+  public isDrained(): boolean {
+    return this.drained;
+  }
+  public setDrained(value: boolean): void {
+    this.drained = value !== false;
+  }
+
+  /** A drained pot lets the excess out of its hole; an undrained one holds it. */
+  public override soilAcceptsPonding(): boolean {
+    return !this.drained;
+  }
+
+  static fieldMeta: FieldMeta = {
+    drained: { persistent: true, authorable: true },
+  };
 }

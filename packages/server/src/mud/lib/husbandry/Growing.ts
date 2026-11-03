@@ -107,6 +107,16 @@ export type LimitingFactor =
  * slice with no marshaller.
  */
 export interface GrowthProfileData {
+  /**
+   * ⭐ Maas–Hoffman salt tolerance (water-supply D15): the soil salinity,
+   * dS/m, a crop takes without loss, and the % of its water it loses per
+   * dS/m above that. Wheat 6 / 7.1; barley 8 / 5. Absent: 3 / 10, a
+   * moderately sensitive plant.
+   */
+  saltThresholdDsm?: number;
+  saltSlopePerDsm?: number;
+  /** ⭐ A crop that stands in water (rice, cranberry) — ponding does not drown it. */
+  floodTolerant?: boolean;
   /** Root-zone moisture fraction at/above which water satisfaction is 1. */
   moistureHappyAt: number;
   /** Moisture fraction at/below which water satisfaction is 0. */
@@ -2140,7 +2150,31 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
       const profile = this.profile;
       if (!profile) return 1;
       if (fraction === null) return 0;
-      return ramp(fraction, profile.moistureWiltAt, profile.moistureHappyAt);
+      // ⭐⭐ Salt is physiological DROUGHT (water-supply D15): a salty soil
+      // holds water the roots cannot draw, so Maas–Hoffman takes its share
+      // off the water the plant actually gets. Wheat fails in a soil barley
+      // stands in, and the field's crust says why.
+      return ramp(fraction * this.saltRelief(), profile.moistureWiltAt, profile.moistureHappyAt) * this.floodRelief();
+    }
+
+    /**
+     * ⭐ Roots standing in water drown (water-supply D16): ground with water
+     * ponded on it gives a plant a quarter of its water satisfaction — a
+     * crop bred for it (`floodTolerant`) none of the loss.
+     */
+    private floodRelief(): number {
+      const ponded = this.getBed()?.getPondedL() ?? 0;
+      if (!(ponded > 0)) return 1;
+      return this.profile?.floodTolerant === true ? 1 : 0.25;
+    }
+
+    /** The share of its water a plant still gets in this soil's salt, 0..1. */
+    private saltRelief(): number {
+      const ec = this.getBed()?.soilSalinityDsm() ?? 0;
+      if (!(ec > 0)) return 1;
+      const threshold = this.profile?.saltThresholdDsm ?? 3;
+      const slope = this.profile?.saltSlopePerDsm ?? 10;
+      return clamp01(1 - (Math.max(0, ec - threshold) * slope) / 100);
     }
 
     /**

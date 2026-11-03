@@ -75,6 +75,32 @@ const SECONDS_PER_GAME_DAY = 86_400;
  */
 const SOIL_MAX_STEPS = 180;
 
+/** How water is let onto ground (water-supply D15). */
+export type InletMethod = 'flood' | 'furrow' | 'basin' | 'overhead';
+
+/** One inlet onto a ground: the gate, the method, its capacity, its water's salt. */
+export interface InletSpec {
+  gate: string;
+  method: InletMethod;
+  capacityLps?: number;
+  salinityPpt?: number;
+}
+
+/**
+ * The share of the water let in that the soil keeps, by method — the rest
+ * runs off the end or soaks past the roots. Flood is the oldest and the
+ * most wasteful; a banked basin keeps the most (water-supply D15).
+ */
+const INLET_EFFICIENCY: Record<InletMethod, number> = {
+  flood: 0.5,
+  furrow: 0.65,
+  basin: 0.8,
+  overhead: 0.75,
+};
+
+/** How fast standing water drains off or soaks away, share per game day. */
+const POND_DRAIN_PER_DAY = 0.3;
+
 /**
  * The fraction of newly-worked organic matter available as nitrogen
  * immediately. ⭐ Small on purpose: most of muck's value is next year's
@@ -263,6 +289,31 @@ export interface Soil {
    */
   soilCatchmentAreaM2(): number;
   /**
+   * ⭐ Bring the water let in through this ground's INLETS up to now
+   * (water-supply D15): each inlet integrates its gate's opening over the
+   * gap, the method decides how much the soil keeps, and what the soil
+   * cannot hold stands on it (ponding). Async because the gate is loaded
+   * on use; an inlet whose gate will not resolve does not advance its
+   * stamp — unresolved never reads as dry.
+   */
+  settleInlets(nowS: number): Promise<void>;
+  /** Litres standing on this ground — what the soil could not take in. */
+  getPondedL(): number;
+  /** Stand `litres` of water on this ground — a flood, or the drive's staging. */
+  pond(litres: number): void;
+  /**
+   * @hook Does water the soil cannot take STAND on this ground? A field and
+   * a bed: yes. A pot with a drainage hole: no — it runs out of the bottom.
+   */
+  soilAcceptsPonding(): boolean;
+  /** Salt arriving in water poured onto this ground, kg. */
+  addSoilSalt(kg: number): void;
+  /**
+   * ⭐ The soil solution's salinity, dS/m — the salt irrigation water left
+   * behind, over the water the soil holds. Maas–Hoffman reads it.
+   */
+  soilSalinityDsm(): number;
+  /**
    * @hook Fraction of the standing nitrogen a millimetre of rain carries
    * past the roots. ⭐ The host answers, because only the host knows its
    * own TEXTURE: sand leaks and clay holds. That is D2's multiplication
@@ -415,7 +466,108 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
       _rainSkyExposed: { persistent: true, runtimeState: true },
       _rainResolved: { persistent: true, runtimeState: true },
       _rainAbsorbedLitres: { persistent: true, runtimeState: true },
+      // ⭐ water-supply D15: the inlets (authored), their stamp, the water
+      // standing on the ground, and the salt the water has left.
+      inlets: { persistent: true, authorable: true },
+      inletClockStamp: { persistent: true, runtimeState: true },
+      pondedL: { persistent: true, runtimeState: true },
+      soilSaltKg: { persistent: true, runtimeState: true },
     };
+
+    /**
+     * ⭐ How water is let onto this ground (water-supply D15): a gate (a
+     * turnout's path, or a cistern's), the METHOD — `flood` (the whole
+     * field, 0.5 kept), `furrow` (down ploughed furrows, 0.65), `basin`
+     * (banked basins, 0.8), `overhead` (sprinkled, 0.75) — the inlet's
+     * capacity in L/s, and the water's salt.
+     */
+    public inlets: InletSpec[] = [];
+    /** When the inlets were last integrated, game s; `null` = never. */
+    public inletClockStamp: number | null = null;
+    /** Litres standing on the ground — more than the soil could take. */
+    public pondedL = 0;
+    /** Salt in the root zone, kg — what irrigation water leaves behind. */
+    public soilSaltKg = 0;
+
+    public getPondedL(): number {
+      return this.pondedL;
+    }
+    public pond(litres: number): void {
+      if (Number.isFinite(litres) && litres > 0) this.pondedL += litres;
+    }
+    public soilAcceptsPonding(): boolean {
+      return true;
+    }
+    public addSoilSalt(kg: number): void {
+      if (Number.isFinite(kg) && kg > 0) this.soilSaltKg += kg;
+    }
+    public setInlets(value: InletSpec[] | null): void {
+      this.inlets = Array.isArray(value)
+        ? value.filter((i) => typeof i?.gate === 'string' && i.gate !== '')
+        : [];
+    }
+
+    /**
+     * ⭐ Standing water over `days` (water-supply D15): it soaks into the
+     * soil as the soil frees room, and the rest drains away by the day —
+     * and what drains past the roots carries salt with it, so a ponded
+     * field is LEACHED (the reclamation every salted valley learned).
+     */
+    private settlePond(days: number): void {
+      if (!(this.pondedL > 0) || !(days > 0)) return;
+      const took = this.creditReserve(SOIL_MOISTURE_RESERVE_KEY, this.pondedL, 'L');
+      this.pondedL -= took;
+      const drained = this.pondedL * Math.min(1, POND_DRAIN_PER_DAY * days);
+      this.pondedL -= drained;
+      if (drained > 0 && this.soilSaltKg > 0) {
+        const held = Math.max(1, this.soilHost.getReserve(SOIL_MOISTURE_RESERVE_KEY)?.current.rawValue() ?? 0);
+        this.soilSaltKg *= held / (held + drained);
+      }
+      if (this.pondedL < 0.5) this.pondedL = 0;
+    }
+
+    public soilSalinityDsm(): number {
+      if (!(this.soilSaltKg > 0)) return 0;
+      const reserve = this.soilHost.getReserve(SOIL_MOISTURE_RESERVE_KEY);
+      const litres = Math.max(
+        1,
+        reserve?.current.rawValue() ?? 0,
+        (reserve?.capacity.rawValue() ?? 0) * 0.25,
+      );
+      // kg/L → mg/L, and ~640 mg/L of dissolved salt is 1 dS/m.
+      return ((this.soilSaltKg / litres) * 1_000_000) / 640;
+    }
+
+    public async settleInlets(nowS: number): Promise<void> {
+      if (this.inlets.length === 0) return;
+      if (this.inletClockStamp === null) {
+        this.inletClockStamp = nowS;
+        return;
+      }
+      const from = this.inletClockStamp;
+      if (!(nowS > from)) return;
+      let litres = 0;
+      let salt = 0;
+      for (const inlet of this.inlets) {
+        const gate = await StuffApi.singleton<Stuff>(inlet.gate).catch(() => null);
+        // ⚠ Unresolved: hold the stamp; the backlog waits.
+        if (gate === null || !MixinApi.isThrottleable(gate)) return;
+        const openS = gate.openingTrajectory(from, nowS).integrate((v) => v, 4);
+        const capLps =
+          inlet.capacityLps ??
+          (((await gate.passingCapM3S(nowS)) ?? 0) * 1000);
+        const lent = Math.max(0, openS) * capLps;
+        litres += lent * (INLET_EFFICIENCY[inlet.method] ?? 0.5);
+        // ppt is g/kg ≈ g/L, so kg = L × ppt / 1000.
+        salt += (lent * (inlet.salinityPpt ?? 0.3)) / 1000;
+      }
+      this.inletClockStamp = nowS;
+      if (!(litres > 0)) return;
+      this.soilSaltKg += salt;
+      this.reconcileSoil();
+      const taken = this.creditReserve(SOIL_MOISTURE_RESERVE_KEY, litres, 'L');
+      if (litres - taken > 0) this.pondedL += litres - taken;
+    }
 
     /**
      * The prerequisite surface, narrowed. TypeScript does not carry a
@@ -807,6 +959,7 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
         }
         if (meanSteps > 0) this._soilMeanMoisture = meanSum / meanSteps;
         this.integrateNutrientCycle(elapsed / SECONDS_PER_GAME_DAY);
+        this.settlePond(elapsed / SECONDS_PER_GAME_DAY);
         this.soilClockStamp = nowS;
       } finally {
         this._reconcilingSoil = false;

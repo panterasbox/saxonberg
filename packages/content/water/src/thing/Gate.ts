@@ -33,6 +33,7 @@ import type { VetoResult } from '@saxonberg/server/mud/lib/errors';
 import type { ShiftEntry } from '@saxonberg/server/mud/lib/employment/Roster';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import ControlStructure, { type ControlSplit } from './ControlStructure';
+import WatercourseCatalogue, { WATERCOURSE_CATALOGUE_PATH } from '../idea/WatercourseCatalogue';
 
 /** Whose turns open this gate: a position on a business's roster. */
 export interface TurnOf {
@@ -160,6 +161,18 @@ export default class Gate extends GateBase {
   public async settledOpeningTrajectory(fromS: number, toS: number): Promise<Piecewise> {
     await this.reconcileScheduled(toS);
     return this.openingTrajectory(fromS, toS);
+  }
+
+  /**
+   * ⭐ What it passes fully open right now (D15): its capacity, or less when
+   * less water arrives at it — a turnout on a dry ditch passes nothing, so
+   * the field it serves is credited nothing however long it stands open.
+   */
+  public override async passingCapM3S(nowS: number): Promise<number | null> {
+    const cat = await StuffApi.singleton<WatercourseCatalogue>(WATERCOURSE_CATALOGUE_PATH).catch(() => null);
+    if (cat === null || this.reachRef === '') return this.capacityM3S;
+    const flow = await cat.flowAt(this.reachRef, nowS, await cat.liveDraws(nowS));
+    return Math.min(this.capacityM3S, Math.max(0, flow?.m3s ?? 0));
   }
 
   /** The time now, for callers with no clock in hand. */

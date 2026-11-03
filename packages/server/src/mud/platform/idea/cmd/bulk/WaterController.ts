@@ -148,6 +148,24 @@ export default class WaterController extends CommandController<WaterModel> {
     } else {
       headroom = ground.soilMoistureHeadroomL();
     }
+    // ⭐ Full ground that holds water (a field, an undrained pot) does not
+    // refuse a pour: the water STANDS on it (water-supply D15/D16). A
+    // drained pot lets it out of its hole, and says the soil is wet through.
+    if (headroom <= 0 && ground.soilAcceptsPonding()) {
+      const litres = fromSlot.available();
+      const salt = fromSlot.getPayload()?.salinityPpt;
+      const poured = BulkableApi.transfer(fromSlot, null, { kind: 'measure', litres, mode: 'lenient' });
+      for (const note of poured.notes) context.note(note);
+      if (poured.applied > 0) {
+        ground.pond(poured.applied);
+        if (typeof salt === 'number' && salt > 0) ground.addSoilSalt((poured.applied * salt) / 1000);
+        MessageApi.scene(giver)
+          .topic(TOPIC)
+          .toSelf(Mml.compose`The water stands on ${Mml.thing(plant ?? ground)} — the soil cannot take any more.`)
+          .send();
+        return;
+      }
+    }
     if (headroom <= 0) {
       MessageApi.scene(giver)
         .topic(TOPIC)

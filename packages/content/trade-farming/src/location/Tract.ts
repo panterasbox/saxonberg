@@ -857,6 +857,10 @@ export default class Tract extends TractBase {
    */
   public tractLines(viewer?: Stuff | null): string[] {
     const lines: string[] = [];
+    // ⭐ What the water left (water-supply D15/D18): standing water, and a
+    // white crust where irrigation has salted the ground — both seen.
+    if (this.getPondedL() > 0) lines.push('Water stands on the ground in sheets.');
+    if (this.soilSalinityDsm() >= 4) lines.push('A white crust of salt lies on the ground between the furrows.');
     const crops = this.getCrops();
     const fields = this.getFields();
     const several = fields.length > 1;

@@ -118,6 +118,12 @@ export interface Throttleable {
   openingTrajectory(fromS: number, toS: number): Piecewise;
   /** The worked record, oldest first. */
   getWorkLog(): readonly WorkRecord[];
+  /**
+   * @hook What it passes fully open right now, m³/s — the most a field's
+   * inlet off it can take (water-supply D15). `null` = it does not say. A
+   * pack's gate answers from its own capacity and the water arriving at it.
+   */
+  passingCapM3S(nowS: number): Promise<number | null>;
 }
 
 /** How many worked settings a gate's record keeps. */
@@ -180,6 +186,10 @@ export function ThrottleableMixin<TBase extends MixinConstructor<Stuff & Sealabl
 
     public getWorkLog(): readonly WorkRecord[] {
       return this.workLog;
+    }
+
+    public async passingCapM3S(_nowS: number): Promise<number | null> {
+      return null;
     }
   };
 }
