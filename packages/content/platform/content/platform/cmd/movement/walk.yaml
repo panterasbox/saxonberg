@@ -21,7 +21,7 @@ args:
     # hesper` is the way named for her, never a line from her lying on the
     # quay or the thing in focus. A vessel standing here is entered by its
     # entry-exit (`go carriage`), tried second.
-    scope: ["reachable:[class.Exit]", "reachable:[class.ExitableVessel]"]
+    scope: ["here:exits", "reachable:[class.ExitableVessel]"]
     required: true
     validators:
       - /lib/command/validators/canReach

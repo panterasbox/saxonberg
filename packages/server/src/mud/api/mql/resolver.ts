@@ -188,7 +188,7 @@ function namesASet(ast: QueryNode): boolean {
     const w = el.words[0]!.toLowerCase();
     return atHead
       ? SEED_WORDS.has(w)
-      : w === 'members' || NAMED_SEED_KEYWORDS.has(w) || ELEMENT_DERIVABLE_SEEDS.has(w);
+      : w === 'members' || PLACE_STEPS.has(w) || NAMED_SEED_KEYWORDS.has(w) || ELEMENT_DERIVABLE_SEEDS.has(w);
   };
   // One referent stepped through a set (`me:i` — your contents) is a set.
   const oneReferent = (el: ChainElement): boolean =>
@@ -925,6 +925,9 @@ function applyColon(
         if (name === 'members') {
           return flatMapMembers(input);
         }
+        if (PLACE_STEPS.has(name)) {
+          return flatMapPlaceStep(input, name, ctx.commandGiver);
+        }
         if (ELEMENT_DERIVABLE_SEEDS.has(name)) {
           return flatMapBySeed(input, name, ctx.attention);
         }
@@ -1028,6 +1031,46 @@ function flatMapMembers(input: MqlMatch[]): MqlMatch[] {
       if (seen.has(s.stuffId)) continue;
       seen.add(s.stuffId);
       out.push({ stuff: s, score: m.score });
+    }
+  }
+  return out;
+}
+
+/**
+ * ⭐ **The steps between places** (harbors review 3) — element-derivable
+ * flat-maps, reserved as chain words like `:members`:
+ *
+ *   - `:exits` — each prior PLACE's exits, as the viewer sees them
+ *     (`obviousExitsFor(viewer)`; system mode: every obvious exit);
+ *   - `:to` — each prior EXIT's destination, LIVE ONLY: a far place that
+ *     is not loaded contributes nothing (a query never materializes a
+ *     place — the `:members` rule). Perception still gates the verb:
+ *     `look here:exits:north:to` describes the far place only where it is
+ *     seen across;
+ *   - `:from` — each prior EXIT's source place.
+ *
+ * There is no reverse step (`:entrances`): what leads INTO a place is the
+ * location graph's question, never a scan. An object keyworded `to` is
+ * reached with `[keyword.to]`.
+ */
+const PLACE_STEPS: ReadonlySet<string> = new Set(['exits', 'to', 'from']);
+
+function flatMapPlaceStep(input: MqlMatch[], step: string, viewer: Stuff | null): MqlMatch[] {
+  const out: MqlMatch[] = [];
+  const seen = new Set<string>();
+  const push = (s: Stuff | null, score: number): void => {
+    if (!s || seen.has(s.stuffId)) return;
+    seen.add(s.stuffId);
+    out.push({ stuff: s, score });
+  };
+  for (const m of input) {
+    const x = m.stuff;
+    if (step === 'exits') {
+      if (!MixinApi.isExitable(x)) continue;
+      const exits = viewer === null ? x.getObviousExits() : x.obviousExitsFor(viewer);
+      for (const e of exits) push(e, m.score);
+    } else if (x.isExit()) {
+      push(step === 'to' ? x.peekDestination() : x.getSource(), m.score);
     }
   }
   return out;

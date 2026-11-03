@@ -21,7 +21,7 @@ args:
     # quay or the thing in focus. A vessel standing here is entered by its
     # entry-exit (`go carriage`), tried second. This retires the private
     # `["reachable", "$focus"]` order the Stage A drive (run 6) forced.
-    scope: ["reachable:[class.Exit]", "reachable:[class.ExitableVessel]"]
+    scope: ["here:exits", "reachable:[class.ExitableVessel]"]
     required: true
     validators:
       - /lib/command/validators/canReach

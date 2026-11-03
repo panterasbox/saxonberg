@@ -36,7 +36,7 @@ args:
     # hesper` is the way named for her, never a line from her lying on the
     # quay or the thing in focus. A vessel standing here is entered by its
     # entry-exit (`go carriage`), tried second.
-    scope: ["reachable:[class.Exit]", "reachable:[class.ExitableVessel]"]
+    scope: ["here:exits", "reachable:[class.ExitableVessel]"]
     # ⭐ Optional: with no target the verb is *swim here* (go into the
     # water where you are) — the one shape nothing else claims.
     required: false

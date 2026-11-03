@@ -679,8 +679,10 @@ split lets `get` declare the surgical scope it actually wants
 
 There is no `via.exit`. A verb that needs the door on a way asks
 `MqlApi.effectiveTarget` (the bound thing, else the door hung in a bound
-exit); movement verbs scope to ways (`reachable:[class.Exit]`), so a
-word can only mean one.
+exit); movement verbs scope to ways (`here:exits`), so a word can only
+mean one. The place steps `:exits` / `:to` / `:from` (`flatMapPlaceStep`,
+reserved chain words like `:members`; `:to` is live-only) are in
+[mql-grammar.md](../mql-grammar.md#places-and-the-ways-between-them).
 
 Collisions between a door's keywords and an exit's direction (a
 door author who adds `north` as a keyword on the door at the north

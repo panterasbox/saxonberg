@@ -91,6 +91,9 @@ keywords:
 - **Existence** (inside `[…]`): `has`
 - **Transforms:** `i`, `e` (one-letter chain pivots — inventory,
   environment)
+- **Chain words:** `members`, `exits`, `to`, `from` (flat-map steps —
+  see [Places and the ways between them](#places-and-the-ways-between-them));
+  an object keyworded with one is reached with `[keyword.to]`
 - **Ordinal hints** (in the natural-language layer): `first`,
   `second`, …, `tenth`, `last`, plus `1st` / `2nd` / … / `Nth`
 - **Quantity hint** (in the natural-language layer): `all` followed
@@ -209,6 +212,9 @@ alias `n` is `go n`, the word untouched).
 
 A hidden exit is in nobody's pool until the viewer perceives it
 (`obviousExitsFor(viewer)`, on both the fast and the slow scope paths).
+A verb that acts only on ways says so in its scope with the grammar —
+the movement verbs declare `scope: ["here:exits", …]`, so `go hesper`
+can only mean the way, whatever else answers to the word.
 
 > **Doors and exits aren't the same thing — yet.** A door is a Stuff
 > with its own keywords (`oak`, `iron`, `door`) hung in an exit; an
@@ -420,6 +426,31 @@ it means "peers of each flower, excluding the flowers themselves"
 (flat-map). To express the old intent, swap the order:
 `peers:flower` (peer pool, then keyword filter "flower"). The
 keyword direction is the more natural shape anyway.
+
+### Places and the ways between them
+
+Three element-derivable steps walk the place graph, flat-mapping like
+`:members` (reserved as chain words):
+
+| Step | From each prior… | Yields |
+|---|---|---|
+| `:exits` | place | its exits, as the viewer sees them (a hidden one only once perceived) |
+| `:to` | exit | its destination — **live only**: a far place that is not loaded yields nothing (a query never stands a place up) |
+| `:from` | exit | its source place |
+
+```
+here:exits                    the ways out of where you stand (a set)
+here:exits:north              the north way, by its keywords (`here:exits:n` too)
+here:exits:north:to           the place it leads to — when it is loaded
+here:exits:north:to:exits     that place's ways
+here:exits:hesper:to          her deck, from the quay (her berth way's far side)
+```
+
+⚠ The steps NAME things; they do not grant sight. `look
+here:exits:north:to` describes the far place only where `look` would
+see it (perception still gates the verb). There is **no reverse step**
+(`:entrances`): what leads INTO a place is the location graph's
+question (`location-graph.md`), never a scan of every exit.
 
 ## Brackets `[…]`
 
