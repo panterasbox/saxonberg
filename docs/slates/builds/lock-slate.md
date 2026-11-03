@@ -490,3 +490,36 @@ leaves its own evidence.
   [assessment-slate](./assessment-slate.md) — we measure real competence, mostly by tests, over a
   much finer Discipline tree; lockcraft is its first consumer and the **Locksmiths' Guild** its
   first examiner. Q3 (lockcraft's dominant act) and the rest resume against that slate.
+
+## § 6 · ⭐⭐ Reuse ledger for the plan **[2026-11-02]**
+
+Review question R2: every concept the lock build needs, against what already does it. The plan
+accounts for every row — reuse, generalize, or argue *genuinely new*.
+
+| concept | already doing the job | the plan's move |
+|---|---|---|
+| the bolt and the key | `LockableMixin` (bolt) + `lib/lock/Lock` (keyway), `canPass = !isLocked() \|\| opensFor(mover)` | keep; `opensFor` matches by **shape** for shape technologies |
+| a key | `KeyCredential` keychain + the physical `platform/thing/Key`; `issueKeyTo` issues both | shape keys become **physical only**; the keychain keeps record credentials; migration mints a missing physical key |
+| the technology list | `LockType` closed union + `Lock.keyDescription` switch | retire both for a technology **row** + a gate that owns the namespace (§ 4) |
+| quality | **`GradedMixin`** (`lib/craft/Grade.ts`) | compose; the technology row maps grade → pins/depths/tolerance/security pins |
+| maker | **`CraftedMixin`** (maker's mark) + **`BrandedMixin`** | compose |
+| condition | **`DurableMixin`** (wear by use) | compose; wear loosens tolerance |
+| weather | paint's weathering where weather reaches (`Faced`) + the `corrosion` channel ([materials-response.md](../../subsystems/materials-response.md)) | compose; seizing |
+| locks on things | **`SealableMixin`** (open/shut, names chests) | a closable container composes the bolt and keyway like a door |
+| the lock as a part | **assembly** (a thing that keeps its parts; `fit`, `salvage`, `repair`) | a built-in lock is a part |
+| the padlock and the hasp | water supply's padlocked turnout (build-1, in flight) | ONE model: a padlock is a good; a closure with a hasp accepts one — second to merge reconciles |
+| reading a lock / a key | **`analyze`** over `Reading` rows ([instrumentation.md](../../subsystems/instrumentation.md)) | a `lock` reading row; no new verb |
+| the pick | the **engaged durative act** (`activity.md`), seeded properties ([uncertainty.md](../../uncertainty.md)) | compose; time computed, nothing drawn |
+| who walks past | **concealment / stealth** (`HidingMixin`; motion degrades hiding) | compose |
+| manipulating a combination | sound as a sense channel ([senses.md](../../subsystems/senses.md)) | compose |
+| copying by impression | **`impress`** into a mould's soft medium ([mould.md](../../subsystems/mould.md)) | `impress key on wax`; no new verb |
+| cutting a key | the **one `cut`** over a cut-plan protocol (cloth, ice) | a blank answers the protocol (`--from`, `--code`, `at <door>`) |
+| the register of issues | **`RegistrarMixin`** + `DocumentApi.saveToRegister` ([document-store.md](../../subsystems/document-store.md)) | each issuer keeps a key register |
+| seat-held keys | employment's seats and `GovernmentApi.holdsSeat` | a shape key issued to the holder *in capacity*; a record lock resolves the seat live |
+| the master key | `Lock.issueMasterKeyTo` (no caller) + Duncan Hall's `master-ring` row | issue it to the warden's seat |
+| issuers | `TitleController`, `LeaseController`, Duncan's `ProvisionController`; harbors' shipowner (in flight) | route all through the register |
+| lockcraft evidence | the Transcript's deeds, act signatures, BKT ([advancement.md](../../subsystems/advancement.md)) | five Disciplines; exams later ([assessment-slate](./assessment-slate.md)) |
+| inputs | brass, steel, copper, zinc, beeswax rows; founding and smithing | the locksmith's recipes |
+| matching by shape | — | ⭐ genuinely new (bitting seeded from the keyway) |
+| the pick-time formula and floor | — | ⭐ genuinely new |
+| restricted blanks | — | ⭐ genuinely new (a profile only an authorized cutter sells) |
