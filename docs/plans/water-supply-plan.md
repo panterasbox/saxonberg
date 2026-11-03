@@ -967,7 +967,7 @@ Implements D20, the cask leg, Rejection's content.
 - Tests: `Tract` dig-well (strike at the table; dry past the dial; unlined refusal), `Well` lining bill.
 - Acceptance: AC 21, AC 22 (W1 did the store; here the drive's cask leg is wired and driven).
 
-### W11 · The drive, the soak, the docs — `drive(water-supply): <what driving found>` + `docs(water-supply): subsystem docs + slate deltas` — 🔄 code-complete; drive running
+### W11 · The drive, the soak, the docs — `drive(water-supply): <what driving found>` + `docs(water-supply): subsystem docs + slate deltas` — ✅ drive 7/7 (2026-11-03); see § Drive record
 
 > **Build note (W11).** `docs/subsystems/water-supply.md` is the new subsystem doc. The `CLAUDE.md` map line, the other subsystem docs' deltas, and the slate compaction are the `/finalize` sweep's (index files are swept, not raced). The blocking drive is `packages/wire/tests/water-supply.dirty.wire.test.ts`: seven steps over what this build ships (a tap through premises + pipe, the fountain, the bare read, the locked pump house, the kit, the headgate's three readings, a turnout set by amount). Requirements steps it does not reach are listed in the drive record. **The soak file is not written** — the soak steps' mechanisms (seasonal salt, the rider's dry year, lead over months) are partly deferred; the soak lane gets a file when those land.
 
@@ -1155,6 +1155,71 @@ Read first, in this order:
 
 ## Drive record
 
-*(appended at build time)* — the blocking drive's run log (the output, the
-count, each failure), and the soak file's name for the lane:
-`packages/wire/tests/water-supply.soak.dirty.wire.test.ts`.
+**2026-11-03, build-1, `WIRE_PORT=2014`, fresh DB** —
+`packages/wire/tests/water-supply.dirty.wire.test.ts`.
+
+**Run 1: 3/7.** The first boot on a fresh DB took longer than the harness's
+420 s boot timeout (the world came up about 150 s later). Attached with
+`WIRE_REUSE=1`. It found four things:
+
+| step | found | fix |
+|---|---|---|
+| 1, 2 | `drink from tap` / `drink from fountain` → *"doesn't match any known command shape"*: `drink`'s target had no `from` and no `greedy` (the article defect) | `drink.yaml` + `sip.yaml`: `greedy: true`, `prepositions: [from]` |
+| 7 | `close furtado turnout` → shape fall-through: `close` lacked the `greedy` target `open` got in W6 | `close.yaml`: `greedy: true` |
+| 6 | the weir, staff and well read as *"something"* | **not a defect** — the Delight was pitch dark at night and the name is perceptual; the readings still came. The assertions now check the reading, not the name |
+
+**Run 2 (rebooted, fresh DB, `WIRE_BOOT_TIMEOUT=900000`): 7/7.**
+
+```
+drink from tap → You drink the clear water.
+look fountain → … running a steady arc of water into the bowl day and night … It holds clear water.
+drink from fountain → You drink the clear water.
+analyze water standpipe → the city intake draws from kestrel:confluence and serves /world/terminus/market, …
+open pump-house door → It's locked.
+get kit → You pick up a water-test kit . You pick up a rolled surgeon's kit . … (the ward's kits, all of them)
+analyze water → reach: kestrel:confluence 17.84 m³/s passing … traces of an outfall above here …
+analyze flow weir → Over something : about 5.6 m³/s ± 0.3 m³/s .
+analyze stage staff → The water stands at 0.81 m ± 0.03 m on something .
+analyze water-table well → The water stands 1.22 m ± 0.02 m below the collar of something .
+open furtado turnout to a quarter → You set something a quarter open.
+close furtado turnout → You close something .
+```
+
+**What run 2 still showed (fixed or open):**
+
+- ✅ fixed after the run: the standpipe's reading read the served
+  extents out as **paths**. `Conduit` now says them as place words
+  (`market, terminal, counting houses, …`), which the water pack's unit
+  tests cover. Not re-driven: that would cost a 10-minute reboot for one
+  string.
+- ⚠ open: `get kit` in the ward picks up **every** kit (the water-test kit,
+  two surgeon's kits, a suture kit). This is the kernel's `get` over a
+  shared keyword, not this build's. Left for review.
+- ⚠ open: step 5's `analyze water` in the ward read the **river reach**,
+  not a tap. The kit's verdict on tap water is covered by unit tests, not
+  by the drive.
+
+**Requirements steps the drive does not reach.** The requirements'
+blocking drive has 27 steps; this file walks steps 1–2, 17, the
+open-by-amount half of 19, and the kit. The rest need staging this file
+does not do yet:
+
+- the works keeper unlocks (3) and the shortage by priority (4);
+- the Hinkley lot buy → plumber → service run → tap runs (5–6);
+- the tank low by floor (7), the frost burst and leak (8–9), the soft-water
+  lead (10), the fouled intake (11);
+- the Rejection rain into the butt (12), the village pump (13), the low
+  aquifer (14);
+- the farmstead well (15) and the cask on a dray (16);
+- the calendar turn (18 — rota → calendar is deferred), Furtado's own turn
+  (20), the rider's dry year (21 — the rider brain is deferred), the
+  junior padlock (22);
+- earth against lined (23), the salt crust (24), the drowned pot (25), the
+  flooded field (26), the overhead inlet (27).
+
+These are the review's first question: extend this file, or accept the
+unit-test coverage the plan's § Test & gate strategy lists for each.
+
+**Soak:** no soak file yet (W11 note): the soak steps' mechanisms are
+partly deferred. The lane gets
+`packages/wire/tests/water-supply.soak.dirty.wire.test.ts` when they land.

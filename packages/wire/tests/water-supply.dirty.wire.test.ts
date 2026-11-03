@@ -123,9 +123,11 @@ suite.skipIf(!isOwnedTestWorld())('the water supply — blocking drive', () => {
   it('6. the weir, the staff and the observation well read at the headgate', async () => {
     await goTo(HEADGATE);
     const flow = await say('analyze flow weir');
-    expect(flow.said).toMatch(/Over .*weir.*about/i);
+    // The name is perceptual: at night the bank is pitch dark and the weir
+    // reads as "something" — the reading still comes.
+    expect(flow.said).toMatch(/Over .*about .*m³\/s/i);
     const stage = await say('analyze stage staff');
-    expect(stage.said).toMatch(/stands at .* on/i);
+    expect(stage.said).toMatch(/stands at .* m .* on/i);
     const table = await say('analyze water-table well');
     expect(table.said).toMatch(/below the collar/i);
   });

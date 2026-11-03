@@ -309,6 +309,17 @@ export default class Conduit
     if (this.extents.length > 0) return [...this.extents];
     return this.extent === '' ? [] : [this.extent];
   }
+
+  /**
+   * The districts this main serves, as a reader says them — the last
+   * word of each extent (`/world/terminus/mayfield-row` → `mayfield row`),
+   * never the path (the water-supply drive read the paths aloud).
+   */
+  private servedPlaceNames(): string[] {
+    return this.servedExtents().map(
+      (extent) => (extent.split('/').filter(Boolean).pop() ?? extent).replace(/-/g, ' '),
+    );
+  }
   public setExtents(value: string[] | string | null): void {
     const list = Array.isArray(value) ? value : typeof value === 'string' ? [value] : [];
     this.extents = list
@@ -873,7 +884,7 @@ export default class Conduit
 
     lines.push(
       this.direction === 'supply'
-        ? `draws from ${this.reachRef} and serves ${this.servedExtents().join(', ') || '(nothing)'}`
+        ? `draws from ${this.reachRef} and serves ${this.servedPlaceNames().join(', ') || '(nothing)'}`
         : `takes from ${this.getExtent() || '(nothing)'} and outfalls into ${this.reachRef}`,
     );
     lines.push(
