@@ -1,0 +1,19 @@
+# The pipe mould (water-supply W5) — an iron mould split along its length
+# round a mandrel: pour molten lead in and a length of pipe sets in the
+# shape of the bore. The container decides the shape of what sets in it.
+class: /platform/thing/Mould
+data:
+  shortDescription: pipe mould
+  keywords: [mould, mold, "pipe mould", "pipe mold"]
+  register: indefinite
+  longDescription: >-
+    A long iron mould in two halves clamped together round a polished steel
+    mandrel, with a pouring cup at one end.
+  interiorBulk: true
+  interiorCapacity: 0.8
+  closure: liquidTight
+  castTemplate: /trade/plumbing/thing/lead-pipe
+  reusable: true
+  discipline: plumbing
+  _materialPath: /stuff/idea/material/alloy/cast-iron
+  mass: 30

@@ -1,0 +1,13 @@
+# A pig of lead (water-supply W5) — what a plumber buys, melts in a crucible
+# on the hearth (lead runs at 600 K, a fire's worth) and pours into a pipe
+# mould or onto the sand bed.
+class: /platform/thing/Ingot
+data:
+  shortDescription: pig of lead
+  keywords: [pig, "lead pig", "pig of lead", lead, ingot]
+  register: indefinite
+  longDescription: >-
+    A heavy, dull-grey bar of lead with a rounded back, the smelter's mark
+    stamped into its top. It leaves a grey smear on your fingers.
+  _materialPath: /stuff/idea/material/element/lead
+  mass: 10

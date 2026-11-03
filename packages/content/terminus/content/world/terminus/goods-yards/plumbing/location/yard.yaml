@@ -1,0 +1,27 @@
+# The plumber's yard (water-supply W5) — where the city's houses get their
+# pipe. Lead comes in as pigs and goes out as pipe and sheet: melted in the
+# crucible on the hearth, poured into the pipe mould or along the sand bed.
+# The counter sells the lengths, the sheet, the pigs and the cisterns; iron
+# pipe comes up the road from Rejection's foundry. Staged (D30): the yard's
+# furnishing is authored, and what a plumber makes is theirs.
+class: /platform/location/Locale
+data:
+  # Open to the sky: a cobbled yard behind a gate, the racks under a lean-to.
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  coords: { x: 0, y: 0, z: 0 }
+  shortDescription: plumber's yard
+  keywords: [yard, "plumber's yard", plumbers, workshop]
+  register: definite
+  longDescription: |
+    A cobbled yard behind a high gate, stacked with racks of grey pipe and rolls of sheet lead under a lean-to roof. A hearth with a crucible on it stands by the wall, a long iron pipe mould rests on trestles, and the sand bed runs down one side under a sheet of canvas. The counter is a plank on two barrels under a painted board: PLUMBING — LEAD WORK — CISTERNS.
+  exits:
+    out:
+      destination: /world/terminus/goods-yards/yard
+      media: [ground]
+      edgeMinutes: 1
+  props:
+    - /world/terminus/goods-yards/plumbing/thing/counter
+    - /stuff/thing/Hearth
+    - /trade/smelting/thing/crucible
+    - /trade/plumbing/thing/pipe-mould
+    - /trade/plumbing/thing/sand-bed
