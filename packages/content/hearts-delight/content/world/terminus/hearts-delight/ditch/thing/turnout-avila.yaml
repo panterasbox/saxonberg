@@ -16,5 +16,10 @@ data:
   keyway: ditch-junior
   lockTechnology: pin-tumbler
   locked: false
+  # ⭐ Its turns are the rota's (D21): opened and shut for them, unwatched.
+  turnOf:
+    business: /world/terminus/hearts-delight/ditch/idea/company
+    positionKey: irrigator
+    assignee: /world/terminus/hearts-delight/ditch/agent/avila
   mass: 100
   _materialPath: /stuff/idea/material/wood/oak

@@ -905,7 +905,16 @@ Implements D12 (pack half), D14, D21 (the company and the rota), rights.
 - Tests: `Gate.test.ts` (opening, lock refusal, log, schedule reconcile across a gap), catalogue tests (diversion credited at the ditch head and lost at the tail; lined vs earth; the river below reads the difference), `FlowReading` discrepancy, rights load from `contentDir`.
 - Acceptance: AC 13 (first half: water flows to the ditch only while the headgate is open; a turnout passes only while open), AC 15 (a locked junior gate; an opened one shows at the weir), AC 16 (lined vs earth).
 
-### W7 · The soil's water budget — `build(water-supply W7): soil takes water through inlets, ponds when over-full, drains or salts, and a crust shows`
+### W7 · The soil's water budget — `build(water-supply W7): soil takes water through inlets, ponds when over-full, drains or salts, and a crust shows` — ✅ DONE (lean)
+
+> **Build note (W7).** Shipped, with simplifications recorded:
+> - **`SoilMixin`**: `inlets: InletSpec[]` (`{gate, method, capacityLps?, salinityPpt?}`, authorable), `inletClockStamp`, `pondedL`, `soilSaltKg`. ⭐ **`settleInlets(nowS)`** integrates each gate's `openingTrajectory` over the gap (`Piecewise.integrate`) × the inlet's L/s (or the gate's live `passingCapM3S`, a new `ThrottleableMixin` hook the water pack's `Gate` answers from its capacity and the ditch's flow) × method efficiency (flood 0.5 · furrow 0.65 · basin 0.8 · overhead 0.75). What the soil can't take is **ponded**; an unresolved gate holds the stamp. It is called on the async read path — the farming `analyze soil` survey awaits it. Ponds soak in as room frees and drain 30 %/day (`settlePond`, in the shipped daily walk), and draining **leaches** salt pro rata.
+> - ⭐ **Salt is a field (`soilSaltKg`), not a fifth reserve**: a reserve clamps to a capacity, and salt has none. `soilSalinityDsm()` = kg/L → mg/L ÷ 640.
+> - ⭐ **Maas–Hoffman folds into the WATER term, not a sixth `LimitingFactor`**: salt hurts a plant as *physiological drought* (water the roots can't draw), so `satWater` multiplies the moisture by `1 − slope×(EC − threshold)/100`. The factor word reads `water`, and the field's crust line says why. Profile numbers: wheat 6/7.1, barley 8/5 (default 3/10). Lens 1: the botany is derivable. This also avoided touching every exhaustive phrase table across packs.
+> - **Flood**: a plant whose bed has water ponded on it gets a quarter of its water satisfaction (`floodTolerant` crops none of the loss). Duration is not modeled.
+> - **`PlantPot.drained`** (default true). `soilAcceptsPonding()` is true for any ground except a drained pot. **`water`** no longer refuses full ground that ponds: the pour stands on it (*"The water stands on …"*), and a poured payload's `salinityPpt` salts the ground.
+> - **Look/survey**: a tract shows *"Water stands on the ground in sheets."* / *"A white crust of salt lies on the ground…"*. The survey adds moisture %, standing litres and salt dS/m.
+> - **Deferred**: `ditch with tile` and drain tile, `furrowStamp` set by `plough`, overhead's noon/wind loss, nitrate leaching keyed to percolated water, and deep percolation crediting an aquifer.
 
 Implements D15, D16, D17.
 
@@ -915,7 +924,13 @@ Implements D15, D16, D17.
 - Tests: `Soil.test.ts` (inlet integration against a fake opening trajectory and flow; ponding; percolation by drainage; salt in/out; tiled stops the revert), `Growing.test.ts` (Maas–Hoffman wheat vs barley; flood days), `PlantPot` undrained waterlog, `SoilSurveyReading` golden lines, `DitchController` with tile.
 - Acceptance: AC 17, 18 (both halves), drive 19's survey line, drive 25, 26, 27 arithmetic in unit tests.
 
-### W8 · The aquifer — `build(water-supply W8): a well draws on water that can run low, and the observation well is how a commons sees it`
+### W8 · The aquifer — `build(water-supply W8): a well draws on water that can run low, and the observation well is how a commons sees it` — ✅ DONE (lean)
+
+> **Build note (W8).** `Aquifer`/`PersistentAquifer` landed in W2. This wave added:
+> - **The kernel `GroundWater` shape** (`surfaceM`, `getBottomM`, `recordDraw`, `ensureLocality`) in `SupplyState.ts`, which the kernel `Well` reads by shape (no import of the pack).
+> - **`Well`**: `aquifer` (cited directly — the well follows ITS reference), `collarM` (authorable; `-1` = its room's zone elevation), and for a LONE well `bodyM3` (`-1` bottomless), `drawnM3`, `rechargeM3PerDay` (a day's seepage back in; a simpler lone body than the plan's ground-character seed), `bodyStamp`. `standingAvailableL` is `Infinity` while the aquifer's surface is above THIS well's bottom, else 0, or the lone body's litres. `standingDepthM` is `collar − surface` for an aquifer well, and ⚠ **a lone well keeps the shipped depth** (its water at its bottom), so every shipped pump test still reads the same suction. `liftInto` records the draw. **`PersistentWell`** twin (D30) for a dug well.
+> - **Content**: `/stuff/idea/Aquifer/rejection-till` (staged; table 446, bottom 438, under the 450 m yard) and `/stuff/idea/Aquifer/delight-valley` (`PersistentAquifer`, live; table 178.8, bottom 165). Rejection's village well cites the till (water 4 m down; the hand pump works); ⭐ **the deep well stands on the hillside, `collarM: 458` (R9)**, so the same water is 12 m down — beyond suction, as drive 13 expects. The **observation well** stands at the ditch headgate (collar 180) citing the valley gravels.
+> - **Deferred**: a running pump's metered draw at `reconcileRunning` (only `liftInto` records), the zone `aquifer:` field (wells cite directly, and `dig well` in W10 will want it), and D27's drilled bore striking water (drilling's next layer). AC 20 holds: nothing but the observation well prints the level.
 
 Implements D13.
 
@@ -926,7 +941,14 @@ Implements D13.
 - Tests above + `Well.test.ts` (lone body: pumped low, recovers with rain; aquifer: shared; the hand pump sucks air at 10.3 m while the body still stands at 12 m → the "bucket still reaches water" half asserts `standingAvailableL() > 0` and the suction refusal, R8).
 - Acceptance: AC 19, 20.
 
-### W9 · The valley's people and ground — `build(water-supply W9): Furtado farms the flats on senior water, Avila the bench on junior water and his own pump`
+### W9 · The valley's people and ground — `build(water-supply W9): Furtado farms the flats on senior water, Avila the bench on junior water and his own pump` — ✅ DONE (lean)
+
+> **Build note (W9).** Shipped: **Manuel Furtado** (senior) and **Rosa Avila** (junior), Cast at the ditch bank; **the Delight Ditch Company** (`ditch/idea/company`), whose roster IS the turn list (Furtado daily 04–10, Avila nights 1/3/5 22–04) and whose vacant **ditch-rider** seat carries the company and junior keys (D19); the turnouts name their turns (`turnOf`), so the gate reconciles them unwatched. **Inlets**: the lower meadow takes Furtado's turnout by flood, the close takes Avila's by furrow. These are existing tracts on the flats-side farmstead, not new tract rows: new rows need ground ids and coordinates, and the observable (water reaches the field only through its turnout) is the same.
+> **Deferred, each to its slate:** the `irrigates` and `rides` brains (the reconcile already covers the NPCs' turns, R10's first half; the live brains and the rider's padlocking in a dry year → irrigation-slate); rota → calendar entries for a player irrigator (AC 13's second half → employment follow-up); the water-rights documents (the pack `contentDir` → registry path wants checking first → water-rights follow-up); D28's bank breach (`ditch` on the bank → irrigation-slate; the weir's *"no gate accounts for"* line is already the rider's evidence); Avila's bench well and cistern (a `WaterStore` is not a `Throttleable` inlet; → irrigation-slate).
+
+### W10 · ✂ CUT — the plan's first cut (Stage D)
+
+> **Cut 2026-11-02, as the plan allows ("⚠ first to cut").** The cask-to-cistern leg is already carried by W1 and W5: a `WaterStore` takes `pour` from any vessel, and the yard sells a roof cistern. The `dig well` half (`HoleMixin`'s five rules, `Tract.planWork('well')`, the dry hole, lining) → **digging-slate**, which already names the hole as its seam. AC 21 is unmet by this build.
 
 Implements D21 (brains + Cast + their ground), the drive's valley content.
 

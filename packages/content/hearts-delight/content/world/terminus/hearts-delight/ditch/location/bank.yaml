@@ -21,3 +21,6 @@ data:
   props:
     - /world/terminus/hearts-delight/ditch/thing/turnout-furtado
     - /world/terminus/hearts-delight/ditch/thing/turnout-avila
+  cast:
+    - /world/terminus/hearts-delight/ditch/agent/furtado
+    - /world/terminus/hearts-delight/ditch/agent/avila

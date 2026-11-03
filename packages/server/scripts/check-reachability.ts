@@ -616,6 +616,7 @@ const CITATIONS: Record<string, string> = {
   suppliedBy: "the main a tap is plumbed to — read live, never placed (the pump build)",
   fillsFrom: "the supply a tank or store fills from — loaded on use, never placed (water-supply D5)",
   connectsTo: "the main a plumber's service run connects to — loaded on use, never placed (water-supply D10)",
+  gate: "the gate a field's inlet draws on — loaded on use, placed by its own room (water-supply D15)",
   source: "a feeder's generator — read live, never placed (the case that forced this list)",
   supply: "a locality's supply point",
   shelf: "a brain's config — the fixture is propped by its room",
