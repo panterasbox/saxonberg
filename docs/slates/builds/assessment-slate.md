@@ -183,7 +183,7 @@ progression UI*), and the proposition survives intact:
 
 From the player's seat that **is** *take a test, unlock an ability*.
 
-## 10. ⭐⭐⭐ The Discipline tree pass **[DECIDED — the owner: run it as a workflow]**
+## 10. ⭐⭐⭐ The Discipline tree pass **[DEFERRED — the owner, 2026-11-02: not worth the tokens now]**
 
 93 Disciplines today, most one node per trade (`geology` is all of *reading ground*), 17 of
 them the magic grid, a few coarse fields, prerequisite edges nearly empty. *"'Mining' isn't just
@@ -191,7 +191,7 @@ them the magic grid, a few coarse fields, prerequisite edges nearly empty. *"'Mi
 **ESCO** (the EU skills/occupations classification), **O\*NET** (US occupational task
 statements), **ISCED-F**, **Wikidata/Wikipedia** — and marks each proposed node **modelled**
 (a mechanic exercises it), **seam** (a slated build will) or **out** (real, not this game's).
-Lockcraft is the pilot cluster. Output: `discipline-tree-slate.md` (a slate; migrating
+Lockcraft is the pilot cluster; a pilot draft of its subtree exists (2026-11-02, unreviewed, kept out of the tree). Output, when run: `discipline-tree-slate.md` (a slate; migrating
 transcript rows onto finer nodes is its own build).
 
 ## 11. Lockcraft — the first consumer
