@@ -15,7 +15,8 @@
  *
  * ⚠ Not for a quay a ship makes fast at: a ship's lines re-tie from her own
  * record at a restart, so a kept quay would restore the ends twice (the
- * `BerthRoll` note). A kept shore holds no bollards.
+ * reason a landing's list of who lies at it is a `berth-roll` document,
+ * not its own state). A kept shore holds no bollards.
  */
 
 import Shore from './Shore';

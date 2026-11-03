@@ -44,7 +44,8 @@
  * (`Government.shipRegister`), which is how a yard enters a new ship, a
  * desk book reads its pages, and the `transfer` verb finds the ship whose
  * owners' units change hands. Where a ship LIES is not the register's business:
- * a landing keeps that (`FrameSited.noteAlongside`).
+ * a landing's berth roll keeps that, each ship writing her own line
+ * (`DocumentApi.saveBerth`).
  *
  * ⚠ The one write is narrow-entry: `enter` — the ship herself, about
  * herself, as she is commissioned.

@@ -28,14 +28,15 @@
  *   each puts her own way back when she loads. Its `look` reads who is
  *   alongside from those ways: *Alongside: the Hesper.* — never a thing in
  *   the room.
- * - ⭐ **It keeps who lies at it** (Risk 6, review 1): each ship tells the
- *   landing as she makes fast and as she leaves (`noteAlongside`,
- *   `noteGone`), and the landing keeps the list in its own `BerthRoll`
- *   (keyed by its path on the persistence spine — a landing is not a
- *   persistence host). On first use it reads its OWN list and stands up
- *   any ship on it that is not loaded — a ship of a kind asleep across a
- *   restart, whom nothing authored attaches to a frame — and she re-wires
- *   her way as she loads. Nothing asks a register where ships lie.
+ * - ⭐ **It has a roll of who lies at it** (Risk 6, review 1): a
+ *   `berth-roll` document keyed by its path, on which each ship writes her
+ *   own line as she makes fast and strikes it as she leaves
+ *   (`DocumentApi.saveBerth` — only she holds the pen). A landing is not a
+ *   persistence host, and the roll is not a live thing: nothing targets
+ *   it. On first use the landing reads its roll and stands up any ship on
+ *   it that is not loaded — a ship of a kind asleep across a restart, whom
+ *   nothing authored attaches to a frame — and she re-wires her way as she
+ *   loads. Nothing asks a register where ships lie.
  *
  * Composed on the waterside classes (`platform/location/Shore`, `Quay`).
  */
@@ -48,10 +49,9 @@ import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import { NavigationApi } from '../../api/navigation';
 import { ExpanseApi } from '../../api/expanse';
-import { PersistableApi } from '../../api/persistable';
+import { DocumentApi } from '../../api/document';
 import type { MarkupAugmenter } from '../../api/mml';
 import BerthExit from '../../platform/idea/BerthExit';
-import BerthRoll, { BERTH_ROLL_ROW } from '../../platform/idea/BerthRoll';
 
 /** Where a fixed place stands on a frame. */
 export interface FrameSiteRecord {
@@ -80,11 +80,7 @@ export interface FrameSited {
   sitePosition(): Promise<FramePos | null>;
   /** ⭐ Tell its frame it stands there, once — the first time it is used. */
   frameSiteStood(): Promise<void>;
-  /** ⭐ A ship (by durable handle) has made fast here — kept across a restart. */
-  noteAlongside(handle: string): Promise<void>;
-  /** ⭐ A ship (by durable handle) has left — cast off, adrift, or could not make fast again. */
-  noteGone(handle: string): Promise<void>;
-  /** The handles of the ships this landing keeps as lying at it. */
+  /** The handles on this landing's berth roll — the ships that wrote themselves as lying at it. */
   lyingHere(): Promise<string[]>;
 }
 
@@ -105,31 +101,9 @@ export function FrameSitedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBa
     /** The frame told, once (runtime). */
     private _siteStood: Promise<void> | null = null;
 
-    /**
-     * ⭐ Its roll of the ships lying here, stood up by its own path (the
-     * record's key) — resolve-first, so one roll per landing. `null` for a
-     * landing with no path, or when the spine cannot stand it up (said).
-     */
-    private async berthRoll(): Promise<BerthRoll | null> {
-      const here = (this as unknown as Stuff).getTemplatePath();
-      if (!here) return null;
-      const roll = await PersistableApi.standUpKeyed(BERTH_ROLL_ROW, here).catch((err) => {
-        console.warn(`FrameSitedMixin: ${here}'s roll of the ships lying at it did not stand up:`, err);
-        return null;
-      });
-      return roll instanceof BerthRoll ? roll : null;
-    }
-
-    public async noteAlongside(handle: string): Promise<void> {
-      await (await this.berthRoll())?.add(handle);
-    }
-
-    public async noteGone(handle: string): Promise<void> {
-      await (await this.berthRoll())?.remove(handle);
-    }
-
     public async lyingHere(): Promise<string[]> {
-      return (await this.berthRoll())?.getLying() ?? [];
+      const here = (this as unknown as Stuff).getTemplatePath();
+      return here ? DocumentApi.berthRollOf(here) : [];
     }
 
     public getFrameSite(): FrameSiteRecord | null {
@@ -197,8 +171,8 @@ export function FrameSitedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBa
       // ⭐ A ship of a KIND is attached to nothing authored (B1): this
       // landing keeps who lies at it (Risk 6), so used after a restart it
       // stands her up, and she re-wires her way as she loads. A ship on the
-      // roll who stands up and is not made fast (a stale record) is struck
-      // off it; one who does not stand up is kept.
+      // roll who stands up is asked to answer it — one not made fast here (a
+      // stale line) strikes herself off; one who does not stand up is kept.
       const here = (this as unknown as Stuff).getTemplatePath();
       if (!here) return;
       for (const handle of await this.lyingHere()) {
@@ -208,9 +182,8 @@ export function FrameSitedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBa
         if (ship === null) {
           // Kept: a ship that did not stand up now (said by the stand-up) may tomorrow.
           console.warn(`FrameSitedMixin: ${handle}, on ${here}'s roll, did not stand up; kept on it`);
-        } else if (!ship.isMoored()) {
-          console.warn(`FrameSitedMixin: ${handle} is on ${here}'s roll but is not made fast; struck off`);
-          await this.noteGone(handle);
+        } else {
+          await ship.answerBerthRoll(here);
         }
       }
     }

@@ -306,6 +306,31 @@ export const DOCUMENT_KINDS = {
    * the register's (`ShipRegister`).
    */
   ship: { kind: 'ship', naturalKey: null, contentDir: 'ships', ext: 'yaml', onVanish: 'keep' },
+  /**
+   * A **berth roll** — the ships a landing has lying at it, by durable
+   * handle, in the order they came (harbors Risk 6, review 1). A landing
+   * reads its own roll the first time it is used after a restart and
+   * stands up every ship on it that is not loaded, so her way aboard
+   * comes back.
+   *
+   * ⭐ The reference points the right way: the landing is never asked to
+   * search a register for who lies at it — each ship writes her own line
+   * as she makes fast and strikes it as she leaves.
+   *
+   * ⭐⭐ **Only the ship holds the pen for her line, and she cannot lie
+   * with it.** The write (`DocumentApi.saveBerth`) is gated to the ship
+   * herself, and it takes no "lying / gone" flag: the store reads whether
+   * she is made fast at that landing NOW off the ship and writes that.
+   *
+   * One document per landing, at `/platform/berths<landing path>` — the
+   * landing's path keeps its slashes, so a harbor's berths are a prefix
+   * read. Owned by the landing (its path), which is whose list it is.
+   *
+   * ⚠ Runtime-written, on the `map` pattern: no pack ships one and
+   * nothing authors one by hand. `onVanish: 'keep'` for the declared
+   * kinds' reason — a night going by must not cast a ship adrift.
+   */
+  'berth-roll': { kind: 'berth-roll', naturalKey: null, contentDir: 'berth-rolls', ext: 'yaml', onVanish: 'keep' },
 } as const satisfies Record<string, DocumentKindSpec>;
 
 export type DeclaredDocumentKind = keyof typeof DOCUMENT_KINDS;

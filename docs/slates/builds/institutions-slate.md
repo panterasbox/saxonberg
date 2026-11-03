@@ -613,3 +613,7 @@ and a register holding shares had been a second, ship-only cap table.
   charters; giving every business a table (only ship companies carry one).
   ⚠ The Compact's capital chamber is NOT equity (company-and-capital Part
   7) and was not touched.
+- ⚠ **Open: a table on a Stuff, or in a document?** `PersistentBusiness`
+  exists only so a cap table survives a restart; whether a table belongs on
+  a persisted Stuff or in a document (as the harbors berth roll moved) is
+  for the institutions build to decide.

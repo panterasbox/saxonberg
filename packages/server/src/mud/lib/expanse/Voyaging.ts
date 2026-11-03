@@ -123,6 +123,8 @@ export interface Voyaging {
   isMoored(): boolean;
   /** ⭐ A landing is being used: if she lies made fast there, her way aboard is put back on it (harbors P4). */
   wireBerthAt(place: Stuff): Promise<void>;
+  /** ⭐ A landing reads her on its berth roll: her line on it is brought up to the truth (harbors review 1). */
+  answerBerthRoll(landingPath: string): Promise<void>;
   /** ⭐ May `who` take her helm — lay or end her course (harbors P12)? A boat answers anyone. */
   mayBeSteeredBy(who: Stuff): boolean;
   /** The navigator's reckoning, as a value (the chart's). */
@@ -453,6 +455,16 @@ export function VoyagingMixin<
      */
     async wireBerthAt(place: Stuff): Promise<void> {
       void place;
+    }
+
+    /**
+     * A landing that keeps her on its berth roll has stood her up: her
+     * line on it is made to say whether she lies there now.
+     * @hook A ship writes her own line (harbors review 1). Default: nothing
+     *   — a boat is on no roll.
+     */
+    async answerBerthRoll(landingPath: string): Promise<void> {
+      void landingPath;
     }
 
     /**

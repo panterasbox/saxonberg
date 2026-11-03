@@ -1,7 +1,0 @@
-# A landing's roll of the ships lying at it (harbors Risk 6, review 1).
-# Minted per landing on the self-persistence spine, keyed by the landing's
-# path — `(this row, /world/terminus/harbor/yard-quay)` — the first time a
-# ship makes fast there, and read by the landing's first use after a
-# restart to stand those ships up. No `data:`: the list is runtime state,
-# written by the ships as they come and go.
-class: /platform/idea/BerthRoll

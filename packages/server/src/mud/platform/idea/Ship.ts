@@ -33,6 +33,7 @@ import { MovingMixin } from '../../lib/expanse/Moving';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
 import { WorldClockApi } from '../../api/worldclock';
+import { DocumentApi } from '../../api/document';
 import type { Container } from '../../lib/spatial/Container';
 import type { FieldMeta } from '../../lib/mixin';
 import type { EvictionContext } from '../../lib/stuff/Stuff';
@@ -1288,19 +1289,26 @@ export default class Ship extends BilgeMixin(PersistableMixin(
    * ways aboard come back. A landing sited on no frame has no first use to
    * do that with — said for a ship of a kind, whom nothing else stands up.
    */
-  private async tellLanding(landingPath: string | null, alongside: boolean): Promise<void> {
-    const handle = this.getDurableHandle() ?? this.getTemplatePath();
-    if (!landingPath || !handle) return;
+  /**
+   * ⭐ Her line on `landingPath`'s berth roll is brought up to the truth
+   * (harbors Risk 6, review 1): she is on it while she is made fast there,
+   * struck off it when she is not. Only she writes it, and the store reads
+   * where she lies off her — she cannot write a false line. Said, never
+   * thrown: a roll that cannot be written costs her nothing but the
+   * stand-up after a restart.
+   */
+  private async fileBerth(landingPath: string | null): Promise<void> {
+    if (!landingPath) return;
     try {
-      const landing = await StuffApi.singleton<Stuff>(landingPath);
-      if (MixinApi.isFrameSited(landing)) {
-        await (alongside ? landing.noteAlongside(handle) : landing.noteGone(handle));
-      } else if (alongside && this.isOfKind()) {
-        console.warn(`Ship: ${handle} lies at '${landingPath}', which is sited on no frame — after a restart nothing stands her up there`);
-      }
+      await DocumentApi.saveBerth(this as unknown as Stuff & Berthed, landingPath);
     } catch (err) {
-      console.warn(`Ship: ${handle} could not tell '${landingPath}' she ${alongside ? 'lies at it' : 'has left it'}:`, err);
+      console.warn(`Ship: ${this.getDurableHandle() ?? this.getTemplatePath()}'s line on '${landingPath}''s berth roll was not written:`, err);
     }
+  }
+
+  /** ⭐ A landing that keeps her on its roll has stood her up: her line is made true. */
+  public override async answerBerthRoll(landingPath: string): Promise<void> {
+    await this.fileBerth(landingPath);
   }
 
   /* ───────────── the charter (harbors P23) ───────────── */
@@ -1596,7 +1604,10 @@ export default class Ship extends BilgeMixin(PersistableMixin(
     this.moored = true;
     await this.installBerth(landing);
     this.persistMooring();
-    await this.tellLanding(landingPath, true);
+    await this.fileBerth(landingPath);
+    if (this.isOfKind() && !MixinApi.isFrameSited(landing)) {
+      console.warn(`Ship: ${this.getDurableHandle()} lies at '${landingPath}', which is sited on no frame — after a restart nothing stands her up there`);
+    }
     // ⭐ A kept berth (a harbor quay): her time alongside starts in its book (P7),
     // and a charter ends there (P23) — its days billed to her.
     let ended = '';
@@ -1626,7 +1637,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
     this.moored = false;
     this.berth = null;
     this.persistMooring();
-    await this.tellLanding(was, false);
+    await this.fileBerth(was);
     // ⭐ The berth is free in its keeper's book (P7).
     if (keeper !== null) await keeper.release(this as unknown as Stuff, WorldClockApi.getNow().rawValue());
   }
@@ -1646,7 +1657,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
     this.moored = false;
     this.berth = null;
     this.persistMooring();
-    void this.tellLanding(was, false);
+    void this.fileBerth(was);
     // Adrift, she no longer holds the berth she was given (P7).
     void this.berthingAt(was)
       .then((keeper) => keeper?.release(this as unknown as Stuff, WorldClockApi.getNow().rawValue()))
@@ -1759,7 +1770,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
         this.moored = false;
         this.berth = null;
         this.persistMooring();
-        await this.tellLanding(path, false);
+        await this.fileBerth(path);
         return;
       }
     }

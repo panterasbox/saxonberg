@@ -9,7 +9,7 @@
  *   brings her alongside; only her master takes the helm;
  * - ⭐ she knows her register (review 1): her entry is read off it under
  *   her registered name, never searched for;
- * - ⭐ the landing keeps who lies at it (its own roll): she tells it as she
+ * - ⭐ the landing has a roll of who lies at it (a `berth-roll` document): she writes her line as she
  *   makes fast and casts off, and after a restart the landing's first use
  *   stands a sleeping smack up from its OWN list, and her way is back;
  * - asleep, her way aboard still answers for the gangway (`lock`/`unlock`);
@@ -35,7 +35,7 @@ import { PersistableApi } from '../../../api/persistable';
 import { EmploymentApi } from '../../../api/employment';
 import ShipRegister from '../ShipRegister';
 import RegisterBook from '../../thing/RegisterBook';
-import BerthRoll, { BERTH_ROLL_ROW } from '../BerthRoll';
+import { DocumentApi } from '../../../api/document';
 import { NavigationApi } from '../../../api/navigation';
 import type { FrameSited } from '../../../lib/expanse/FrameSited';
 import type { FrameStuff } from '../../../lib/expanse/Frame';
@@ -131,7 +131,6 @@ function installStore(): void {
   });
   // A landing on a frame keeps who lies at it (its roll); a Shore is the plain one.
   add(LANDING, '/platform/location/Shore', { shortDescription: 'a landing', props: [BOLLARD] });
-  add(BERTH_ROLL_ROW, '/platform/idea/BerthRoll');
   add(BOLLARD, '/platform/thing/Bollard', { shortDescription: 'a bollard', fixedInPlace: true });
   add('/stuff/thing/Key', '/platform/thing/Key', { shortDescription: 'a key' });
   add('/platform/idea/Government/test-city', '/platform/idea/Government', { key: 'test-city', name: 'the City of Test', shipRegister: REG });
@@ -337,10 +336,11 @@ describe('Ship — her register, owners, flag and gangway (harbors B2)', () => {
     // The landing comes back bare — no way aboard her (a way is runtime).
     const landing = await StuffApi.singleton<Stuff & Container & Exitable & FrameSited>(LANDING);
     expect(landing.getExit('razorbill')).toBeFalsy();
-    // Its roll came back from its record — nobody asked a register.
+    // Its roll is a document, by the landing's path — nobody asked a register.
     expect(await landing.lyingHere()).toEqual([`${KIND}/r1`]);
-    const roll = await PersistableApi.standUpKeyed(BERTH_ROLL_ROW, LANDING);
-    expect(roll).toBeInstanceOf(BerthRoll);
+    const roll = await DocumentApi.read(`/platform/berths${LANDING}`);
+    expect(roll?.getKind()).toBe('berth-roll');
+    expect(roll?.getOwner()).toBe(LANDING);
 
     // First use: a frame-sited landing tells its frame, then reads its roll.
     landing.setFrameSite({ frame: '/test/frame', cite: 'here' });
@@ -366,8 +366,11 @@ describe('Ship — her register, owners, flag and gangway (harbors B2)', () => {
     await ship.castOff();
     const landing = await StuffApi.singleton<Stuff & Container & FrameSited>(LANDING);
     expect(await landing.lyingHere()).toEqual([]);
-    // A stale line on the roll, and she sleeps unmoored.
-    await landing.noteAlongside(`${KIND}/x1`);
+    // A stale line on the roll (written behind her back), and she sleeps unmoored.
+    const row = col('documents').find((d) => d.path === `/platform/berths${LANDING}`);
+    expect(row?.kind).toBe('berth-roll');
+    row!.data = { lying: [`${KIND}/x1`] };
+    expect(await landing.lyingHere()).toEqual([`${KIND}/x1`]);
     await ship.sleep();
     await settle();
     landing.setFrameSite({ frame: '/test/frame', cite: 'here' });
@@ -376,6 +379,15 @@ describe('Ship — her register, owners, flag and gangway (harbors B2)', () => {
     vi.spyOn(NavigationApi, 'attachedTo').mockResolvedValue([]);
     await landing.frameSiteStood();
     expect(await landing.lyingHere()).toEqual([]);
+  });
+
+  it('⭐ only the ship holds the pen for her line: anyone else writing it is refused', async () => {
+    const ann = makeAvatar('ann');
+    const { ship } = await buy(ann, 'p1', 'Puffin');
+    await expect(async () => DocumentApi.saveBerth(ship as unknown as Parameters<typeof DocumentApi.saveBerth>[0], LANDING))
+      .rejects.toThrow();
+    const landing = await StuffApi.singleton<Stuff & Container & FrameSited>(LANDING);
+    expect(await landing.lyingHere()).toEqual([`${KIND}/p1`]);
   });
 
   it('⭐ asleep, her way aboard still answers for the gangway — the bolt, the keyway, and `unlock` keeps', async () => {
