@@ -14,13 +14,11 @@ data:
   businessPath: /world/terminus/goods-yards/plumbing/idea/outfit
   stockLines:
     - { itemTemplatePath: /trade/plumbing/thing/lead-pipe, par: 8 }
-    - { itemTemplatePath: /trade/plumbing/thing/iron-pipe, par: 4 }
     - { itemTemplatePath: /trade/plumbing/thing/lead-pig, par: 4 }
     - { itemTemplatePath: /trade/plumbing/thing/lead-sheet, par: 3 }
     - { itemTemplatePath: /trade/plumbing/thing/roof-cistern, par: 1 }
   prices:
     /trade/plumbing/thing/lead-pipe: 6
-    /trade/plumbing/thing/iron-pipe: 5
     /trade/plumbing/thing/lead-pig: 5
     /trade/plumbing/thing/lead-sheet: 6
     /trade/plumbing/thing/roof-cistern: 40

@@ -82,6 +82,12 @@ describe("the four archetypes are template rows over ONE class (D6)", () => {
       // the verb — it was in `environment`, which reaches only the
       // containers ABOVE a thing, and nobody carries a basin).
       "/platform/thing/WaterFixture",
+      // The pipe in the room (water-supply D10): a durable adornment that
+      // bursts, leaks and is mended — a real thing, so its own class.
+      "/platform/thing/PipeRun",
+      // The butt and the cistern hold what the roof and the bucket give
+      // them, and a tap can read one as its supply (water-supply D8).
+      "/platform/thing/WaterStore",
       "/platform/thing/Fitting", // the counter
       "/platform/thing/Thing", // the toilet — prose, no capability
       // ⭐ The one fixture that DID need a class, made explicitly (this
@@ -182,6 +188,9 @@ describe("the kitchen — BUNDLE (D12)", () => {
       // populated before anything that could rest on it), and a bounded
       // prop is a starting condition rather than a supply.
       { template: "/stuff/thing/items/dry-log", count: 3 },
+      // The pipe that brings water into the room (water-supply D10): a
+      // basin reads its premises' supply only through a sound run.
+      "/stuff/thing/fixture/iron-run",
     ]);
   });
 
@@ -225,6 +234,8 @@ describe("the bathroom — PRESENCE (D13)", () => {
       // …and a towel on its rail (cleanliness): a bath you cannot dry off
       // from leaves you wet.
       "/stuff/thing/gear/towel",
+      // …and the lead run that brings its water in (water-supply D10).
+      "/stuff/thing/fixture/lead-run",
     ]);
   });
 
