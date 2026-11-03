@@ -1,0 +1,28 @@
+# At the headgate (water-supply W6) — where the Delight is taken into the
+# ditch. The headgate, the measuring weir below it and the staff gauge
+# stand here: the three things a ditch rider reads every morning.
+class: /platform/location/Street
+data:
+  shortDescription: headgate on the Delight
+  keywords: [headgate, flats, ditch, river]
+  register: definite
+  _address: terminus/hearts-delight/valley-gate
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  ambientIntensity: 40000
+  ambientColorTemperature: 5800
+  longDescription: |
+    The Delight runs wide and shallow over the gravel here, and on its near bank a timber headgate stands across the mouth of a ditch, its board in iron guides with a lifting rack and a chained padlock. Below it, a plank weir with a notched crest spills the river's water over in a smooth sheet, and a painted staff stands up out of the shallows marked in feet and tenths. The ditch runs off west along the foot of the bench.
+  coords: { x: 0, y: 0, z: 0 }
+  exits:
+    out:
+      destination: /world/terminus/hearts-delight/location/valley-gate
+      media: [ground]
+      edgeMinutes: 5
+    west:
+      destination: /world/terminus/hearts-delight/ditch/location/bank
+      media: [ground]
+      edgeMinutes: 8
+  props:
+    - /world/terminus/hearts-delight/ditch/thing/headgate
+    - /world/terminus/hearts-delight/ditch/thing/weir
+    - /world/terminus/hearts-delight/ditch/thing/staff-gauge

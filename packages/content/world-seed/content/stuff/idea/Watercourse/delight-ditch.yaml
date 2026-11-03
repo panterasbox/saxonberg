@@ -1,0 +1,23 @@
+# The Delight ditch (water-supply D14) — an earth irrigation ditch taken out
+# of the Delight at the flats by a headgate, running along the foot of the
+# bench past two farms' turnouts and back into the river below. ⭐ It is a
+# WATERCOURSE: it carries only what the headgate diverts into it (its own
+# catchment is nothing), loses a share per km to the ground through its
+# earth bed (`lining: earth` — line it and the neighbor below who lived on
+# the seepage loses water with nobody authoring the link), and what reaches
+# its tail goes back into the Delight.
+class: /system/water/idea/Watercourse
+data:
+  key: delight-ditch
+  name: the Delight ditch
+  basin: kestrel
+  branchesFrom: delight:flats
+  lining: earth
+  site: { latitudeDeg: 42 }
+  source: { kind: outlet }
+  mouth: { into: river, course: delight, node: mouth }
+  bed: mud
+  nodes:
+    - { name: head, km: 3, elevation: 179, catchmentKm2: 0, channelWidthM: 2, works: [/world/terminus/hearts-delight/ditch/thing/turnout-furtado] }
+    - { name: bench, km: 1.6, elevation: 177, catchmentKm2: 0, channelWidthM: 1.5, works: [/world/terminus/hearts-delight/ditch/thing/turnout-avila] }
+    - { name: tail, km: 0, elevation: 174, catchmentKm2: 0, channelWidthM: 1 }

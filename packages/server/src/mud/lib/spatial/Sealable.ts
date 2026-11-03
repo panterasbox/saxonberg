@@ -146,10 +146,15 @@ export function ThrottleableMixin<TBase extends MixinConstructor<Stuff & Sealabl
 
     public setOpening(fraction: number, by: Stuff | null = null): void {
       const f = Number.isFinite(fraction) ? Math.max(0, Math.min(1, fraction)) : 0;
+      const atS = WorldClockApi.getNow().rawValue();
+      const curve = new TrajectoryLog(this.openingCurve);
+      // ⚠ A trajectory holds its OLDEST breakpoint backwards in time, so the
+      // first change must be preceded by what the opening WAS — else a gate
+      // opened today reads as open since forever.
+      if (this.openingCurve.length === 0) curve.record(atS - 1, this.opening, this.opening, 0);
       this.opening = f;
       super.setOpen(f > 0);
-      const atS = WorldClockApi.getNow().rawValue();
-      new TrajectoryLog(this.openingCurve).record(atS, f, f, 0);
+      curve.record(atS, f, f, 0);
       this.workLog.push({ atS, by: by?.getIdentityPath?.() ?? '', opening: f });
       while (this.workLog.length > WORK_LOG_DEPTH) this.workLog.shift();
     }

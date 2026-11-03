@@ -887,7 +887,15 @@ Implements D10 (revised), D29, the `trade-plumbing` pack skeleton, the run as an
 - Tests: pack vitest — a pig melted and poured on the bed sets a sheet; the pipe mould sets a pipe; the counter lists the goods.
 - Acceptance: drive 6's first half end to end by player verbs.
 
-### W6 · Gates, the ditch, rights and the rota — `build(water-supply W6): a headgate opens the river into a ditch, a turnout opens the ditch onto a field, and the turns are posted`
+### W6 · Gates, the ditch, rights and the rota — `build(water-supply W6): a headgate opens the river into a ditch, a turnout opens the ditch onto a field, and the turns are posted` — ✅ DONE (rights, rota-calendar, rider and breach moved to W9)
+
+> **Build note (W6).**
+> - **`Gate` = `ThrottleableMixin(LockableMixin(SealableMixin(ControlStructure)))`**, plus a `PersistentGate` twin (the headgate and both turnouts are live, D30). `split`/`withdrawalM3S` take `opening × capacityM3S`, up to what arrives. `canOpen` refuses a padlocked gate unless the opener's key fits (the key works the padlock in the same act). It affords open/close/lock/unlock as `peers`.
+> - **The rota reconcile (D21)** is `Gate.reconcileScheduled(nowS)`: windows from the position's roster schedule via `ShiftSchedule` (night turns wrap). Each window opens the gate at its start and shuts it at its end, `by` the assignee; a padlocked gate logs `<assignee>#refused`. ⚠ **A trajectory holds its OLDEST breakpoint backwards**, so a gate opened today read as open since forever. `ThrottleableMixin.setOpening` now records the prior opening before its first change, and the reconcile's first stamp does the same.
+> - **Diversions are credited** as NEGATIVE entries in the draw ledger (only `flowAt` reads it), at the reach a control's `divertsTo` names, with seepage by the course's `lining` (`water.ditch.seepagePerKm` 0.08/km earth, a tenth lined; what leaves the ditch's mouth has run its whole length). ⭐ **An artificial channel** (a course with `lining`) catches no catchment, ignores the river's draws upstream of its headgate, and its works (the turnouts) draw on what the channel carries, through a **second scan pass**. Without those three, the ditch inherited the falls' natural flow and lost the gate's own withdrawal (the test caught both).
+> - **`accountAt(ref)`** and the competent `analyze flow` line: *"The gates above take N L/s by their settings; another M L/s is leaving the river that no gate accounts for."* This is how a cut bank shows up (D28).
+> - **Content**: `/stuff/idea/Watercourse/delight-ditch` (earth; head 3 km · bench 1.6 · tail 0; mouth back into the Delight); the Delight's flats `works` += headgate, weir; a new `ditch` zone off the valley gate by a named `ditch` exit, with `headgate` (Street: headgate, weir, staff gauge) and `bank` (PersistentLocation, D28's purpose, on `FURNISHED` with its reason: turnouts for Furtado (company key) and Avila (`ditch-junior` padlock)).
+> - **Moved to W9** (they need the valley's people): the Delight Ditch Company and the turnouts' `turnOf`, the water-rights documents (the pack `contentDir` → registry path mapping wants checking against a shipped example first), the rider's `rides` brain, rota → calendar entries, and D28's breach.
 
 Implements D12 (pack half), D14, D21 (the company and the rota), rights.
 

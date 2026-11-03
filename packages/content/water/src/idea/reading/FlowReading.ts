@@ -14,7 +14,7 @@ import { Mml } from '@saxonberg/server/mud/api/mml';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
-import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
+import { CompetenceBand, type CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
 import type { CommandContext } from '@saxonberg/server/mud/api/command';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tooled';
@@ -43,7 +43,23 @@ export default class FlowReading extends Reading {
     const giver = this.actorOf(ctx);
     const value = m3s < 1 ? Quantity.of(m3s * 1000, 'L/s') : Quantity.of(m3s, 'm³/s');
     const shown = this.bracketed(value, band, this.seedFor(giver, subject, param));
-    this.report(ctx, Mml.compose`Over ${Mml.thing(subject)}: about ${shown}.\n`);
+    let body = Mml.compose`Over ${Mml.thing(subject)}: about ${shown}.`;
+    // ⭐⭐ A competent reader squares it with the gates (D14/D28): what the
+    // gates above account for, and what nobody does — a cut bank shows
+    // here first, as water that is simply not there.
+    if (CompetenceBand.atOrAbove(band, 'competent')) {
+      const cat = await StuffApi.singleton<WatercourseCatalogue>(CATALOGUE_PATH).catch(() => null);
+      const acct = cat ? await cat.accountAt(subject.getReachRef(), WorldClockApi.getNow().rawValue()) : null;
+      if (acct !== null) {
+        const ls = (m3s: number): string => `${(m3s * 1000).toFixed(0)} L/s`;
+        const tail =
+          acct.otherM3S > 0.001
+            ? `; another ${ls(acct.otherM3S)} is leaving the river that no gate accounts for.`
+            : ', and that is all the river is missing.';
+        body = Mml.compose`${body} The gates above take ${ls(acct.gatesM3S)} by their settings${tail}`;
+      }
+    }
+    this.report(ctx, Mml.compose`${body}\n`);
     if (MixinApi.isAdvancing(giver)) {
       await giver.creditDeed({ discipline: 'hydrology', difficulty: 'standard', outcome: 'success' });
     }
