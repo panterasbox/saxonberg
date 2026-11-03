@@ -1,0 +1,5 @@
+# The standing cane of the Okafor piece — the island's cane over 800 square
+# metres of it (cover build); the headlands and the cart track are grass.
+extends: /world/terminus/waponi-woo/thing/standing-cane
+data:
+  sownAreaM2: 800

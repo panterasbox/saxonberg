@@ -1,0 +1,17 @@
+# The wheat at the lane end of the upper bench (field population D15) — one
+# of the bench's three stands, a thousand square metres sown last autumn
+# and well established. The best of the bench, on the deepest of its soil by the lane.
+#
+# ⭐ `groundPart: lane-end` roots it in that patch's soil: its water, its
+# nitrogen, its depth. It ripens on the season, and the farm cuts it.
+# ⚠ An `extends:` row, because a `props:` entry carries no overrides
+# (cover build B10).
+extends: /trade/farming/thing/plant/wheat
+data:
+  sownAreaM2: 1000
+  groundPart: lane-end
+  growthStage: established
+  # Fifty-five good days in — the established mark, so the season ripens
+  # it rather than starting it again.
+  _maturity: 4752000
+  _vigor: 0.8

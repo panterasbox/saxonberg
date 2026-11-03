@@ -62,6 +62,11 @@ export default class ReturnController extends CommandController<ReturnModel> {
     const driedOffAt = await this.driedOffStamps(registry, herdId, index, target);
     const ok = await registry.returnHead(herdId, index, {
       flesh: flesh ? round1(flesh.current.rawValue()) : undefined,
+      // ⭐ When that flesh was true (cover build D10): the fed windows
+      // after it are what the head goes through while it is in the book.
+      ...(StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry)
+        ? { fleshAt: WorldClockApi.getNow().rawValue() }
+        : {}),
       handling: round2(target.getHandling()),
       ageDays: round1(target.getAgeDays()),
       ...(driedOffAt ? { driedOffAt } : {}),

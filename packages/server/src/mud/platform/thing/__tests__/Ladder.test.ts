@@ -121,4 +121,14 @@ describe('Ladder — somebody can finally climb', () => {
     await controller.execute({ target } as ModelData as CommandModel, makeContext(climber, head));
     expect(climber.getContainer()).toBe(foot);
   });
+
+  it('⭐ the host that enabled a climb hears of it after the move, once (cordage D11)', async () => {
+    const l = ladderHere();
+    const heard = vi.spyOn(l, 'afterEnabledTraverse');
+    const guard = await climber.traverse(down, 'climb');
+    expect(guard.ok).toBe(true);
+    expect(climber.getContainer()).toBe(foot);
+    expect(heard).toHaveBeenCalledTimes(1);
+    expect(heard.mock.calls[0]![1]).toBe('down');
+  });
 });

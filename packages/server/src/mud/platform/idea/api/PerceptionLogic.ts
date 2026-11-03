@@ -278,6 +278,13 @@ export class PerceptionLogic extends ApiLogic {
               : place.resolveWeatherLocality(),
           ])
         : Promise.resolve(),
+      // ⭐ The competence digest (field population D10): a crop's read is
+      // banded by the viewer's competence through a SYNC augmenter, so
+      // the first look after login must find the digest folded. Folds
+      // once; the ledger keeps it fresh after that.
+      MixinApi.isAdvancing(actor)
+        ? actor.warmCompetenceDigest().catch(() => undefined)
+        : Promise.resolve(),
     ]);
     awarenessBandCache.set(actor.stuffId, band);
   }

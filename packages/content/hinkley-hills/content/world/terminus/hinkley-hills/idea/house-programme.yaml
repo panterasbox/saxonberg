@@ -13,21 +13,35 @@ data:
     - leaf: yard
       room: /world/terminus/hinkley-hills/lots/yard
       entry: true
+      # ⭐ Footprints (tracts build D27): the ground each room stands on.
+      # What the lot leaves is the garden's open ground.
+      footprintM2: 100
       exits:
         - { to: hall, direction: north, opposite: south, locked: true }
+        - { to: garden, direction: west, opposite: east }
     - leaf: hall
       room: /world/terminus/hinkley-hills/lots/hall
+      footprintM2: 30
       exits:
         - { to: kitchen, direction: east, opposite: west }
         - { to: living, direction: west, opposite: east }
         - { to: bedroom, direction: north, opposite: south }
     - leaf: kitchen
       room: /world/terminus/hinkley-hills/lots/kitchen
+      footprintM2: 25
     - leaf: living
       room: /stuff/location/room/living
+      footprintM2: 30
     - leaf: bedroom
       room: /stuff/location/room/bedroom
+      footprintM2: 25
       exits:
         - { to: bathroom, direction: east, opposite: west }
     - leaf: bathroom
       room: /world/terminus/hinkley-hills/lots/bathroom
+      footprintM2: 10
+    # ⭐ The garden — the lot's open ground, a TRACT of the layout (tracts
+    # build W4). Zoned residential: it takes beds, not fields.
+    - leaf: garden
+      room: /world/terminus/hinkley-hills/lots/garden
+      share: 1

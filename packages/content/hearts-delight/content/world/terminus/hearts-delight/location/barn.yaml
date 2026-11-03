@@ -33,6 +33,9 @@ data:
       media: [ground]
       edgeMinutes: 1
   props:
+    # ⭐ The farm's hay (cover build W6), what the meadow and close troughs
+    # draw on.
+    - /world/terminus/hearts-delight/thing/farm-rick
     - /trade/farming/thing/crop/wheat
     - /trade/farming/thing/crop/wheat
     - /trade/farming/thing/crop/wheat

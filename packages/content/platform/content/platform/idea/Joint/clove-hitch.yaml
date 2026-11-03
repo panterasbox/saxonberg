@@ -1,0 +1,15 @@
+# Clove hitch (cordage D7) — a knot is a JOINT: the share of the
+# rope's strength it keeps is `strength`. Two turns round a post, the second crossing the first — quick to make and to cast off, and it works loose under a jerk.
+class: /platform/idea/Joint
+data:
+  key: clove-hitch
+  label: made fast with a clove hitch
+  portability: hand
+  instrument: ''
+  competence: null
+  reversible: freely
+  strength: 0.6
+  structuralRecovery: 1.0
+  fastenerRecovery: 1.0
+  tightenable: true
+  failure: slack

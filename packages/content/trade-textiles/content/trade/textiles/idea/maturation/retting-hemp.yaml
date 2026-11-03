@@ -1,0 +1,19 @@
+# Retting hemp (cordage D14) — the pit rots the glue out of hemp straw as
+# it does flax's, a little slower (the stalk is thicker), and gives hemp
+# fiber. Its own profile because a profile names ONE product material, and
+# its own input category (`retting-hemp`) so the flax profile never also
+# matches a hemp sheaf.
+class: /platform/idea/maturation/MaturationProfile
+data:
+  key: retting-hemp
+  mechanism: microbial
+  inputCategory: retting-hemp
+  stallBelowK: 283
+  happyK: 295
+  damageAboveK: 305
+  ratePerDay: 0.06
+  productMaterial: /stuff/idea/material/textile/hemp
+  turnedMaterial: /trade/textiles/idea/material/rotted-hemp
+  turnDays: 4
+  sealedOnly: false
+  leesFraction: 0

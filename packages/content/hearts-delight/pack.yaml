@@ -47,7 +47,16 @@ requires:
       parentParcel: /world/terminus/hearts-delight
       holder: { organization: /world/terminus/hearts-delight/idea/farm-business }
       landUse: agricultural
-      areaM2: 1200
+      areaM2: 3600
+    # ⭐ (tracts build D33) The valley farmsteads — the ground the valley
+    # book sells four farms out of, held by the valley until each is sold.
+    # MEASURED, because a farm's tracts are shares of its open ground and
+    # nobody can say what a third of unmeasured ground is.
+    - extent: /world/terminus/hearts-delight/valley
+      parentParcel: /world/terminus/hearts-delight
+      holder: { group: hearts-delight }
+      landUse: agricultural
+      areaM2: 64000
     # ⭐ (dairy D14) The dairy farm — titled to the dairy household, the
     # close's precedent: the herd is demonstrably somebody's.
     - extent: /world/terminus/hearts-delight/dairy

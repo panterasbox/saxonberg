@@ -15,6 +15,9 @@
 > material (carton, bag) · licensing the press · the Gazette first, Rejection's
 > print shop second · the mill's site (open)
 > **Size:** a build (content-led; it supplies the cannery's labels)
+> **Order: paper FIRST, ahead of the cannery** (the owner, 2026-11-02). This
+> build **owns the static display rung**; the cannery arrives later as a
+> customer, not a prerequisite. The Gazette is the demand that is already there.
 
 ## 0. "The arts" is not one build — where each went
 
@@ -89,11 +92,14 @@ The book is one member. A printed thing is a **claim** read by somebody:
 | the ticket, the banknote | a claim held in the hand | whoever takes it |
 | the page | a frozen version of a document | the reader |
 
-⭐ **The label and the static display rung ship in the cannery build**
-([cannery-and-bottling-slate](./cannery-and-bottling-slate.md) § 6a), which is
-first and needs them; its labels begin imported. **This build replaces the
-import** with local production — the cannery is the mill's first big customer
-before the mill exists.
+⭐ **This build ships the static display rung** **[DECIDED 2026-11-02 — the
+owner: paper first]**. The first draft gave the rung to the cannery
+([cannery-and-bottling-slate](./cannery-and-bottling-slate.md) § 6a); the order
+flipped, and lens 5 agrees — the page is the rung's natural first member, a can
+label a later one. The Gazette (which prints on nothing today) is the first
+demand; the **label** ships here as a printed thing any good can carry, and the
+cannery, when it builds, is a customer of the mill and the jobbing printer
+rather than the rung's author.
 
 **Packaging tiers** run through one product: primary (the can, the bottle —
 cannery), secondary (the carton or case — paper's board, or carpentry's crate),
@@ -112,6 +118,8 @@ tertiary (the pallet — freight).
   first demand. **Unsized paper is blotting paper**, a product of its own.
 - **The watermark** — wire sewn onto the mould (wire drawing from the cannery
   build's metal-forming rung); the anti-forgery feature of the banknote.
+  ⚠ **Waits on metal-forming** now that paper goes first: this build ships the
+  mould without one, and the watermark lands with wire drawing.
 - **Grade** — sheet weight, evenness, color (iron browns rag paper, the same
   logic as glass), sizing.
 - **Parchment and vellum** — skin limed, stretched and scraped, never tanned: a
@@ -170,9 +178,11 @@ and an appeal for whoever tries to shut it.
   kind). Lean: on a river near Terminus, upstream of somebody. **Open.**
 
 **The drive, in one line:** you buy rags from the rag-and-bone man, beat, form,
-press and size the sheets; you set a label for the cannery's apricots, misprint
-the weight, proof and correct it, pull five hundred; and the next case leaves
-Cannery Row with a local label on it.
+press and size the sheets; you set the Gazette's front page, misprint a name,
+proof and correct it, pull a run, and a reader in Terminus reads the same page
+the ticker carried — except this one can never be taken back. (Superseded first
+draft: a cannery label on Cannery Row — that drive returns when the cannery is a
+customer.)
 
 ## 9. Lens pass
 
@@ -196,8 +206,38 @@ Cannery Row with a local label on it.
 ## 10. Open
 
 1. **The mill's site** — a river near Terminus, and who is downstream.
-2. **The static rung's exact shape on the display substrate** — shipped by the
-   cannery build; this build adds the page and the print run.
+2. **The static rung's exact shape on the display substrate** — ⭐ **this
+   build's** now (paper first, 2026-11-02): the page, the label and the print
+   run all land here.
 3. **Banknotes** — when the bank issues paper, and the watermark as the guard.
 4. **The rag supply** — the rag-and-bone trade as its own vocation or a buyer at
    the mill.
+
+## 11. ⭐⭐ Reuse ledger for the plan **[DECIDED 2026-11-02 — the owner: fold it in]**
+
+The owner's standing review question — *what new mixins and Apis did you make,
+and what is already doing their job?* — asked before the plan instead of after
+it. Every line here is something the paper build must **reuse or generalize**,
+not re-invent; the plan accounts for each, and a deviation is argued in the
+plan, not discovered in review.
+
+| paper concept | already doing the job | the plan's move |
+|---|---|---|
+| a book drawn from a record | **harbors' `RegisterBook`** (`Marked(Good)`) and the `@hook Marked.refreshMarks(viewer)` that `ReadController` awaits (build-4, `reqs/harbors`) | generalize: one derived-marks hook with two modes, **live** (the register book, a business's ledger) and **frozen** (a sheet bound to an edition). Whichever merges second reconciles |
+| ledgers, receipts, registers | **`RegistrarMixin`** (`lib/document/Register.ts`), `DocumentApi.saveToRegister`; herd, fishery and ship registers | a ledger is a register; no new record type |
+| reading teaches | **`ChartedMixin`** (*"a source whose knowledge is claims"* — `Chart`, `Pilot`); the menu's *known-of* write; arcana's study claim | generalize into one reading-writes-claims protocol; a recipe card is its next consumer, not a fourth path |
+| a sealed letter | **`SealableMixin`** (`lib/spatial/`; *"reusable for chests, trapdoors, envelopes"*) | an envelope is `Sealable`; the **broken seal** (tamper evidence) is the genuinely new state |
+| wet paper | **`WetMixin`** and Marked's `INK_RUNS_AT` | pulping is a higher threshold on the same gauge |
+| folding a sheet | **`FoldableMixin`** and `fold` (a two-state device fold) | one verb; whether a sheet folded *n* times is the same property is the planner's call, argued |
+| bearer paper | the **credential** substrate (records are *presentations*; the issuer decides) | bearer paper is a paper presentation of a credential-style record |
+| tickets | the attendant's **`Ticket`**, the coat-check `Ticket` row | they gain a material, not a class |
+| the book's pages | **assembly** (a thing that keeps its parts) | a book is an assembly; tearing a page out is removing a part — check shipped `salvage` first |
+| the forme | crafting's **manual build buffer** (`ManualBuildMixin`, `mintFromBuild`) | composing banks sorts into a buffer; no new step machine |
+| a live view of records on a screen | the **`house stock` sheet card** on a tablet; display's prose arm (`readScreen`) | the ledger on a screen is that card; the static rung joins the display substrate |
+| a carton or bag failing | the shipped **breakage → spill** path | reused |
+| glue | **paint's** glued `Joint` (`takes: glue`, by `fit`) and `Material.adhesive` | reused (§ adhesives in the requirements) |
+| the mill's water | **water supply's** supply contract, rights at the flats, return flow, contamination by kind (build-1, `reqs/water-supply`) | the mill is a works drawing under a right; no stamper power rule |
+| the mill's power | milling's water-powered mill | the stamper reads power the same way the grist mill does |
+| epochs | **`Epoch`** stamps on instruments + the parcel covenant | the pen, press and printer are stamped; paper is not |
+| frozen editions | — | ⭐ genuinely new (copy-on-write over a document) |
+| access by possession | — | ⭐ genuinely new |

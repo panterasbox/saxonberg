@@ -35,6 +35,10 @@ data:
   diet: herbivore
   # ⭐ Adult liveweight in kg — a hardy hill goat, not a show breed.
   adultMass: 60
+  # ⭐ How it is fed (cover build D9): it grazes the field it stands on,
+  # and eats hay from a trough when the grass runs short. What it eats
+  # is its size — `0.1 × adultMass^0.75` kilograms of dry matter a day.
+  feedingStyle: [graze, trough]
   ageCurve: { weanedAt: 30, matureAt: 150, agedAt: 1000, senescentAt: 1500 }
   breeding: { daylightFrom: 0, daylightTo: 0.44, gestationDays: 60, litter: 2 }
   production:

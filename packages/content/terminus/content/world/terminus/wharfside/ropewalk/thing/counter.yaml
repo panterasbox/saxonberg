@@ -1,0 +1,30 @@
+# The ropewalk counter (cordage D17) — coils by the fifty meters, hemp by
+# the hank and the skein. ⚠ It buys no rope back: a house bids per ROW, so a
+# coil cut into five would sell as five coils. Per-instance worth is
+# retail's to build (retail slate); until then rope goes one way.
+class: /trade/shopkeeping/thing/Stock
+data:
+  shortDescription: rope counter
+  keywords: [counter, till]
+  register: definite
+  longDescription: |
+    A long plank counter heaped with coils, hanks of grey hemp and skeins of yarn, a chalked board of prices behind it.
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 70
+  discipline: scrum
+  attendDurationMs: 0
+  staffingPolicy: self-service
+  serverPositionKeys: [keeper]
+  businessPath: /world/terminus/wharfside/ropewalk/idea/outfit
+  stockLines:
+    - { itemTemplatePath: /trade/cordage/thing/rope, par: 2 }
+    - { itemTemplatePath: /trade/cordage/thing/hemp-line, par: 6 }
+    - { itemTemplatePath: /trade/cordage/thing/hemp-yarn, par: 40 }
+    - { itemTemplatePath: /trade/cordage/thing/rigging-knife, par: 2 }
+    - { itemTemplatePath: /trade/diving/thing/painter, par: 2 }
+  prices:
+    /trade/cordage/thing/rope: 25
+    /trade/cordage/thing/hemp-line: 2
+    /trade/cordage/thing/hemp-yarn: 1
+    /trade/cordage/thing/rigging-knife: 4
+    /trade/diving/thing/painter: 8

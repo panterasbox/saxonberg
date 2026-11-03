@@ -1,0 +1,6 @@
+# The Wharfside ropewalk (cordage D17) — a long shed down the towpath where
+# rope is laid. Its own small zone, as the dive shop is.
+class: /platform/idea/location/CartesianZone
+data:
+  name: The Ropewalk
+  cellSize: 4.0

@@ -20,7 +20,7 @@ hopper's, the pot's and the kiln's.
 | fell | `fell beech` | every felling trims **brash** (ten bundles, a fifth of the bole) of the stand entry's `brashMaterialPath` | `FellController.dropStandard` |
 | burn | `stoke brash into pit`, `ignite pit`, `draught wide` | the **ash pit** is simply a big Burner (`AshPit extends Firebox`) | trade-potash |
 | rake | `sweep pit` (a broom) | the grate rule: kg burnt × `ashFraction`, its alkali by `alkaliShare` → heaps of `fire.ash.heapKg` | `Burner.consumeFuel`, `mintAshHeaps` |
-| leach | `put ash in hopper`, `pour pail into hopper` | strength derived at the fill; heaps leave **spent ash**; a lye poured back through fresh ash is a second pass | `Hopper.matchProfile` / `leach` |
+| leach | `put ash in hopper`, `pour pail into hopper` | the liquor PERCOLATES down through the heaps over half a day, each giving up its alkali; heaps leave **spent ash** once it is through; a lye poured back through fresh ash is a second pass | `Ash` (`PercolatingMixin`), `Hopper.leach` |
 | read | `analyze density hopper` (an egg in reach) | the **egg** is the density reading's eye rung; the glass words a lye too | `DensityReading`, `LyeStrength` |
 | boil | `pour pail into pot`, a fire under it | the kernel's latent-heat **plateau**; the pot keeps count of the alkali and casts the cake when dry | `IronPot` |
 | calcine | `put cake in kiln`, `fire kiln` | the black salts' own `calcine` heat transition (ceramics M1 — no recipe); the same cake comes out, made of pearl ash, its potash concentrated | `ThermalMixin` heat-work |
@@ -128,19 +128,19 @@ The chain's goods are titled by the kernel's fresh-good rule
   ash, because the town's hearths have burned little: *a supplement, not a
   living* (AC 9).
 
-- **The boil runs on read.** The kernel plateau reconciles when someone
-  reads the pot, keeping the alkali as the water leaves; the pot reads the
-  strength the plateau wrote and casts the black salts at saturation. It
-  keeps no count of its own.
+- ✅ **Ash percolates (cordage W7, 2026-10-30).** `Ash` composes the kernel
+  `PercolatingMixin`: water poured into the hopper is put on the heaps,
+  works down through them over half a game day, and each heap gives up its
+  alkali as it goes — spent ash only once the water is through. The hopper
+  decides only whose the lye is, at the fill.
 - ✅ **`potash-on-sugar` landed with the sugar build (MR !439, 2026-10-24).**
   Potash's `dissolvedSolidsKgPerL` declaration and its lye-only fold in
   `BulkableLogic` are gone (a lye's strength is the same fold as a juice's
   sugar); lye authors `solidsKgPerL` (replacing `UNMEASURED_LYE_KG_PER_L`);
   `IronPot`'s `alkaliKg`/`lastSeenL` count and its re-base are gone — the pot
-  reads the plateau and casts at saturation. **Still open:** the drive's
-  equal-potash TIMING checkpoint (AC 5's time half), and `Ash` composing
-  `PercolatingMixin` so the hopper stops destroying the heaps (it still
-  turns a heap into spent ash in one step).
+  reads the plateau and casts at saturation. The percolation closed with
+  cordage W7 (above); the drive's equal-potash TIMING checkpoint is the
+  cordage drive's.
 - Rain spoiling open ash, big ash (burnt ground), spent ash on a field, the
   kelp burn, a fresh hen's egg as a hand tool, a solid put into a filled vat
   re-matching, person-to-person purchase, river freight — see the potash

@@ -39,7 +39,7 @@ export const JOINT_REVERSIBILITIES = ["freely", "effort", "never"] as const;
 export type JointReversibility = (typeof JOINT_REVERSIBILITIES)[number];
 
 /** The word a failed joint is described by. */
-export const JOINT_FAILURES = ["slack", "sprung", "parted", "split"] as const;
+export const JOINT_FAILURES = ["slack", "sprung", "parted", "split", "spilled"] as const;
 export type JointFailure = (typeof JOINT_FAILURES)[number];
 
 /** The runtime descriptor the catalogue caches. */

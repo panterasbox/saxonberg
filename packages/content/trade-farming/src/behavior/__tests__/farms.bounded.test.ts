@@ -31,9 +31,11 @@ const SRC = readFileSync(
 
 describe('the farms beat is bounded and literal', () => {
   it('drives the literal verbs, nothing else', () => {
-    expect(SRC).toContain("'fill can from standpipe'");
+    expect(SRC).toContain('`fill can from ${from}`');
     expect(SRC).toContain('`water ${kw}`');
+    expect(SRC).toContain('`water ${kw} at ${part}`');
     expect(SRC).toContain('`feed ${kw} with sack`');
+    expect(SRC).toContain('`feed ${kw} at ${part} with sack`');
     expect(SRC).toContain('`pick ${kw}`');
     expect(SRC).toContain("'wallet use house'");
     expect(SRC).toContain('`consign ${kw} --ask ${ask}`');
@@ -58,5 +60,17 @@ describe('the farms beat is bounded and literal', () => {
 
   it('re-takes home in finally — a dead beat never strands the farmer', () => {
     expect(SRC).toMatch(/finally \{\s*\n\s*hand\.teleport\(home/);
+  });
+
+  it('⭐ a field is read at the hand\'s OWN band, seeded — never the true figure (D11)', () => {
+    expect(SRC).toContain('crop.readFor(band, crop.readSeedFor(hand))');
+    expect(SRC).toContain('await hand.competenceBandFor(crop.getDiscipline())');
+    // One watering and one feeding a beat — a can is one can.
+    expect(SRC).toContain('lowest(tends, (t) => t.moisture, waterAt)');
+    expect(SRC).toContain('lowest(tends, (t) => t.nutrient, feedAt)');
+  });
+
+  it('a hired hand works on shift only (the cuts rule)', () => {
+    expect(SRC).toContain("hand.shiftState() !== 'on-shift'");
   });
 });

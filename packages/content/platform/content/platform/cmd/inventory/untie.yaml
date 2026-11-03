@@ -1,0 +1,22 @@
+# `untie` (cordage D8): cast something off what it is tied to — a rope off
+# its post into your hands, the end of a line off its load, yourself off
+# the end of a rope.
+verbs: [untie]
+controller: /platform/idea/cmd/inventory/UntieController
+description: "Untie a rope, a line's end or a bag from what it is fast to"
+help: |
+  `untie rope` takes a rope off the post it is tied round, into your
+  hands; held, it casts off whoever is on its end. `untie end` takes the
+  end of a line off the load it is tied to — or, if it is round you, gets
+  you off the line.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: target
+    type: object
+    required: true
+    scope: ["$focus", "reachable"]
+    requires: [TieableMixin]
+    greedy: true

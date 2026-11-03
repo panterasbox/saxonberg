@@ -9,6 +9,7 @@
     "@saxonberg/content-distribution": "workspace:*",
     "@saxonberg/content-ground": "workspace:*",
     "@saxonberg/content-platform": "workspace:*",
+    "@saxonberg/content-residence": "workspace:*",
     "@saxonberg/server": "workspace:*",
     "@saxonberg/types": "workspace:*"
   },

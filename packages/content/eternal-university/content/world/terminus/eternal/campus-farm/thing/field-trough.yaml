@@ -1,0 +1,14 @@
+# The feed trough on the home field — where the college herd eats hay
+# when the grass runs short (cover build D11). The yard's stone trough is
+# their WATER; this one is their winter.
+#
+# ⭐ Nothing supplies it: on the teaching farm the student forks the hay
+# in from the barn.
+extends: /stuff/thing/vessel/trough
+data:
+  shortDescription: hay trough
+  keywords: [trough, "hay trough", manger]
+  longDescription: >-
+    A long wooden trough on legs by the field gate, the inside worn smooth
+    and the boards at one end chewed.
+  fixedInPlace: true

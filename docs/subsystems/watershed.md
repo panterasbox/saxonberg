@@ -116,16 +116,26 @@ way to derive one from the other. So
 on the weather **type** rather than the descriptor — a storm and a
 shower share the descriptor `rain` and differ by a factor of four.
 
-The figures are **six-hour segment averages**, not instantaneous
-intensities: our weather is piecewise-constant, so a `rain` segment
-rains for six hours straight. Real moderate rain falls at ~2.5 mm/h but
-never for six hours together, so the authored values are the averages
-that reproduce a plausible annual total under the shipped transition
-grammar. `Precipitation.test.ts` asserts that total as a **climate**
-claim, so a dial change that would make the realm a desert or a
-rainforest fails rather than passing quietly. Operators override through
+The figures are **honest intensities**, rained for a whole six-hour
+segment: `rain` 1.5 mm/h (steady light-to-moderate rain), `storm` 4
+(a heavy downpour), `snow` 0.8 of water (a steady snowfall). The
+annual total is those times how often the grammar rains, and the two
+were calibrated together (cover build B42 — see
+[weather.md § the rainfall calibration](./weather.md#the-rainfall-calibration)):
+≈2.8 mm a day, ≈1,000 mm a year at an unleaned temperate locality.
+`Precipitation.test.ts` asserts that total as a **climate** claim, so a
+dial change that would make the realm a desert or a rainforest fails
+rather than passing quietly. Operators override through
 `water.rate.{rain,storm,snow}`; the table is the fallback, so the kernel
 rains correctly with the `water` pack absent.
+
+⚠ Before B42 the table was 0.3 / 1.2 / 0.25 "six-hour averages" under a
+grammar that rained ~15% of segments — ≈1.75 mm a day in all, ≈1.2 of
+it liquid, so every unirrigated field dried out by summer. The rivers'
+flows rose ~1.7× with the calibration (the runoff coefficient stayed
+0.35, an honest humid-temperate ratio); a test that FORCES `rain` every
+segment now forces a spate, and the river tests that want an ordinary
+river force a drizzle instead (the `water.rate.rain` dial at 0.3).
 
 ### The cap
 

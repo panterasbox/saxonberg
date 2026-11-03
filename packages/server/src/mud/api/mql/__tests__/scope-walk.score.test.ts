@@ -15,8 +15,10 @@ const cand = (name: string, keywords: string[] = []): ScopeCandidate =>
   ({ stuff: {} as never, name, keywords }) as ScopeCandidate;
 
 describe('scoreCandidate — whole words beat substrings', () => {
-  it('⭐ `net`: "a net" (a whole word, 60); "a keepnet" does not answer to it at all', () => {
-    expect(scoreCandidate(cand('a net'), ['net'])).toBe(60);
+  it('⭐ `net`: "a drift net" (a whole word, 60); "a keepnet" does not answer to it at all', () => {
+    expect(scoreCandidate(cand('a drift net'), ['net'])).toBe(60);
+    // The article is the register, not the stem: "a net" IS `net`.
+    expect(scoreCandidate(cand('a net'), ['net'])).toBe(100);
     // A word matches where a word BEGINS, never mid-word (ceramics run 28).
     expect(scoreCandidate(cand('a keepnet'), ['net'])).toBe(0);
     expect(scoreCandidate(cand('a keepnet'), ['keep'])).toBeGreaterThan(0);
@@ -40,8 +42,9 @@ describe('scoreCandidate — whole words beat substrings', () => {
 
   it('an exact single-word name is still the top (100); every query word must be a whole word for 60', () => {
     expect(scoreCandidate(cand('net'), ['net'])).toBe(100);
-    expect(scoreCandidate(cand('a cane rod'), ['cane', 'rod'])).toBe(60);
-    expect(scoreCandidate(cand('a cane rod'), ['can', 'rod'])).toBe(50);
+    expect(scoreCandidate(cand('a cane rod'), ['cane', 'rod'])).toBe(100);
+    expect(scoreCandidate(cand('a long cane rod'), ['cane', 'rod'])).toBe(60);
+    expect(scoreCandidate(cand('a long cane rod'), ['can', 'rod'])).toBe(50);
   });
 
   it('three rods still tie on `rod` — which is the prompt, and correct', () => {
@@ -105,8 +108,57 @@ describe('scoreCandidates — a whole-phrase match CUTS the partials', () => {
     expect(scoreCandidates([pan], ['latex', 'cup']).length).toBe(1);
   });
 
-  it('a one-word query is unaffected', () => {
-    expect(scoreCandidates([cup, pan], ['latex']).length).toBe(2);
+  it('a one-word query keeps the name and drops the keyword-only reach', () => {
+    // The cups carry "latex" in their name; the pan only in a keyword.
+    expect(scoreCandidates([cup, pan], ['latex']).map((m) => m.stuff)).toEqual([cup.stuff]);
+  });
+
+  it('a one-word query with no name match keeps every keyword reach', () => {
+    expect(scoreCandidates([pan], ['latex']).length).toBe(1);
+  });
+});
+
+describe('scoreCandidates — a NAME carrying the phrase outranks a keyword reach', () => {
+  /**
+   * Found staging field population W2 live: the stand at the top end
+   * answers to the patch's words (so `look top end wheat` binds it), and
+   * `look at the top end` then asked which of the two was meant.
+   */
+  const patch = cand('top end', ['patch', 'ground', 'top', 'end', 'top-end']);
+  const stand = cand('stand of wheat', ['wheat', 'stand', 'top end', 'top-end']);
+
+  it('⭐ "top end" keeps the patch and drops the stand that only stands there', () => {
+    const got = scoreCandidates([stand, patch], ['top', 'end']);
+    // The patch's NAME is the phrase outright (100, the merged cascade).
+    expect(got.map((m) => m.score)).toEqual([100]);
+  });
+
+  it('"top end wheat" still binds the stand (no name carries the phrase)', () => {
+    const got = scoreCandidates([stand, patch], ['top', 'end', 'wheat']);
+    expect(got.length).toBe(1);
+    expect(got[0]!.score).toBe(25);
+  });
+
+  it('⭐ a one-word query too: "middle" binds the patch named middle, not the stand standing in it', () => {
+    const middle = cand('middle', ['patch', 'ground', 'middle']);
+    const midStand = cand('stand of wheat', ['wheat', 'stand', 'middle']);
+    expect(scoreCandidates([midStand, middle], ['middle']).map((m) => m.stuff)).toEqual([middle.stuff]);
+  });
+
+  it('⭐ the patch as the world names it — "the top end", answering to "top end" too — still wins', () => {
+    // Live, a definite-register patch presents WITH its article and keeps
+    // its stem as a keyword, while the query's article is stripped. The
+    // exact-name tier missed and both tied at the exact KEYWORD (70):
+    // `look at the top end` asked again (field population final pass 4).
+    const named = cand('the top end', ['top end', 'top', 'end', 'top-end']);
+    const got = scoreCandidates([stand, named], ['top', 'end']);
+    expect(got.map((m) => m.stuff)).toEqual([named.stuff]);
+    expect(got[0]!.score).toBe(100);
+  });
+
+  it('several things NAMED by one word still prompt (three rods)', () => {
+    const rods = [cand('fishing rod'), cand('iron rod'), cand('curtain rod')];
+    expect(scoreCandidates(rods, ['rod']).length).toBe(3);
   });
 });
 

@@ -1,0 +1,17 @@
+# lay — a reading channel (cordage D15): a rope read by hand and eye. Its
+# fiber, how it is laid, what it would hold; and, opening the lay with a
+# thumbnail, the colored yarn in its heart — the rogue's yarn that says
+# whose rope it is. No instrument; competence resolves the DETAIL.
+class: /trade/cordage/idea/reading/LayReading
+data:
+  channel: lay
+  kind: fact
+  scope: [subject]
+  subjectRequires: [TieableMixin]
+  discipline: ropework
+  instrument: ""
+  eyeCeiling: expert
+  improves: >-
+    what a rope will hold, how worn it is, and whose it is
+  stakes: >-
+    a man on a rope that will not hold him

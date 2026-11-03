@@ -296,7 +296,7 @@ export default class IceSheet extends IceSheetBase implements Cuttable {
     return { ok: true, line: `You scrape the snow off a patch of the ice, about ${Math.round(area)} square metres of it, down to the black.` };
   }
 
-  /** `mark`: score a grid across scraped (or field) ice. */
+  /** `groove`: score a grid across scraped (or field) ice. */
   public markPatch(actor: Stuff, tool: Stuff, raw: string | null): { ok: boolean; line: string } {
     const refusal = this.actRefusal(actor);
     if (refusal) return { ok: false, line: refusal };
@@ -316,7 +316,7 @@ export default class IceSheet extends IceSheetBase implements Cuttable {
       return { ok: false, line };
     };
     for (const old of this.log.filter((p) => p.kind === 'marked' && p.areaM2 > 0)) this.unmark(old);
-    // A bare `mark` takes the scraped patch, else the field; a NAMED patch
+    // A bare `groove` takes the scraped patch, else the field; a NAMED patch
     // is that patch or a refusal (`mark banana` is not the field).
     const from = raw === null ? (this.patchByWord('scraped') ?? this.patchByWord('field')) : this.patchByWord(raw);
     if (from === null || !(from.kind === 'scraped' || from.kind === 'field')) {

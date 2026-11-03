@@ -19,6 +19,11 @@ import type { Stuff } from '../stuff/Stuff';
 /** The protocol: does this hold `thing` up in the water? */
 export interface Buoy {
   buoys(thing: Stuff): boolean;
+  /**
+   * What it lifts at `depthM`, kg of water displaced less its own weight —
+   * what a line hauling the load it buoys no longer has to (cordage D20).
+   */
+  liftKg(depthM: number): number;
 }
 
 export function BuoyMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
@@ -29,6 +34,12 @@ export function BuoyMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     public buoys(thing: Stuff): boolean {
       void thing;
       return false;
+    }
+
+    /** @hook Override on the host: what it lifts at `depthM`, kg. Default: nothing. */
+    public liftKg(depthM: number): number {
+      void depthM;
+      return 0;
     }
   };
 }

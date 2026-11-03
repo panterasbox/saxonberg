@@ -23,7 +23,7 @@ import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
-import Lifeline from './Lifeline';
+import Hose from './Hose';
 
 /** What the helmet a hose feeds looks like to the pump. */
 interface Helmet {
@@ -54,12 +54,12 @@ export default class AirPump extends Tool implements Pumpable {
     const self = this as unknown as Stuff;
     const here = MixinApi.isContainable(self) ? self.getContainer() : null;
     if (here === null || !MixinApi.isContainer(here)) return null;
-    const hoses: Lifeline[] = [];
+    const hoses: Hose[] = [];
     for (const c of here.getContents()) {
-      if (c instanceof Lifeline && c.getKind() === 'hose') hoses.push(c);
+      if (c instanceof Hose) hoses.push(c);
       if (MixinApi.isContainer(c)) {
         for (const held of c.getContents()) {
-          if (held instanceof Lifeline && held.getKind() === 'hose') hoses.push(held);
+          if (held instanceof Hose) hoses.push(held);
         }
       }
     }

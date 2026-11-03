@@ -191,7 +191,7 @@ water never needs boats), so the boat, `paddle`, `launch`, `recover` and
 the ice crossing type the warrens and the catalogue. The water reaches the
 boat through **`SmallCraftMixin`** (freeboard, capsize, her kedge, her
 anchor, her sail — also what the kernel's `course` and `anchor` ask), a
-painter through **`TetherEndMixin`** (diving's `LineEnd`), and a bell
+painter through **`TetherEndMixin`** (the kernel `LineEnd` — the painter is a `Rope` since cordage), and a bell
 through **`RingableMixin`** (diving's `SignalBell` and smelting's cast
 `Bell`, what the ferryman listens for; each also composes `AudibleMixin`,
 so `ring` sounds it from the bell itself — review R2-D4). The ford and the ferry read the river through `LineFrame`.

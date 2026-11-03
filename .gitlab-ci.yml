@@ -165,6 +165,10 @@ build:
 pages:
   extends: .node
   stage: documentation
+  # TypeDoc over the whole server outgrew Node's default ~2 GB heap and
+  # died out of memory (2026-11-01); the runner has the room.
+  variables:
+    NODE_OPTIONS: --max-old-space-size=6144
   script:
     # TypeDoc reads the server's TS project references, so
     # @saxonberg/types must be built first — a fresh CI checkout has no
@@ -298,24 +302,47 @@ e2e:
 # DEV: refresh the mutable native instance in place. `when: manual` — the
 # server is stateful (the world lives in memory; a restart drops live
 # connections), so you merge freely and click deploy when ready.
+#
+# ⛔ The client is built HERE, on the runner, never on the box: the box has
+# ~2 GiB and the game runs beside the build. On 2026-11-01 an on-box
+# `vite build` thrashed swap for two hours and wedged the instance until a
+# reboot ~22 hours later. Clicking `deploy-dev` builds the bundle;
+# `deploy-dev-ship` follows automatically and ships it.
 deploy-dev:
+  extends: .node
+  stage: deploy
+  interruptible: false
+  variables:
+    NODE_OPTIONS: --max-old-space-size=4096
+  script:
+    - pnpm --filter @saxonberg/types build
+    - pnpm --filter @saxonberg/client build
+  artifacts:
+    paths:
+      - packages/client/dist
+    expire_in: 1 week
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+      when: manual
+
+deploy-dev-ship:
   extends: .deploy-base
   stage: deploy
+  needs: [deploy-dev]
   script:
     - bash deploy/materialize-env.sh dev env.out
     - scp env.out "$DEPLOY_USER@$DEPLOY_HOST:/srv/saxonberg/.env"
-    # NODE_OPTIONS is also set inside update.sh, but update.sh git-pulls
-    # itself before building — the in-flight copy is the pre-fix one, so
-    # exporting it here guarantees the heap cap applies on the very next
-    # deploy (the runner reads this file fresh; the var propagates into
-    # the on-box build child).
-    - ssh "$DEPLOY_USER@$DEPLOY_HOST" "cd /srv/saxonberg && NODE_OPTIONS=--max-old-space-size=2048 ./deploy/dev/update.sh"
+    # Fast-forward first, so the update.sh that runs below is this
+    # commit's copy, not the box's previous one.
+    - ssh "$DEPLOY_USER@$DEPLOY_HOST" "cd /srv/saxonberg && git fetch --quiet origin && git merge --ff-only $CI_COMMIT_SHA"
+    # The bundle, into dist.incoming; update.sh swaps it in.
+    - tar -C packages/client/dist -czf - . | ssh "$DEPLOY_USER@$DEPLOY_HOST" "rm -rf /srv/saxonberg/packages/client/dist.incoming && mkdir -p /srv/saxonberg/packages/client/dist.incoming && tar -xzf - -C /srv/saxonberg/packages/client/dist.incoming"
+    - ssh "$DEPLOY_USER@$DEPLOY_HOST" "cd /srv/saxonberg && DEPLOY_SHA=$CI_COMMIT_SHA ./deploy/dev/update.sh"
   environment:
     name: dev
     url: https://dev.saxonberg.panterasbox.net
   rules:
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
-      when: manual
 
 # PROD: build the release image (tags only) and ship it immutably.
 build-image:

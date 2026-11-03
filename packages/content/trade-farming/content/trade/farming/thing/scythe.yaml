@@ -15,7 +15,11 @@ data:
     back and black beyond that; it wants peening as often as it wants
     sharpening.
   mass: 3.4
-  capabilities: ["mowing"]
+  # ⭐ It reaps grain as well as mowing grass — a scythe cuts a wider
+  # swath than a sickle (cover build D3), and the same string answers
+  # whichever verb asks.
+  capabilities: ["mowing", "reaping"]
+  swathM2: 60
   # ⭐ An EDGE (repair D3): the form word is what makes it honable —
   # `sharpen` reaches it loose, and through the whole it is fitted in.
   constructionForm: bladed

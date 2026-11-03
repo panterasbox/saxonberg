@@ -30,14 +30,16 @@ import type {
 } from '@saxonberg/server/mud/lib/supply/SupplyState';
 import { SUPPLY_STATE_GLOSS } from '@saxonberg/server/mud/lib/supply/SupplyState';
 import GridCatalogue, { GRID_CATALOGUE_PATH } from '../idea/GridCatalogue';
+import { SpliceableMixin, type SpliceOutcome } from '@saxonberg/server/mud/lib/spatial/Spliceable';
 
 /** The verbs a pole affords, environment + peers (the `CharcoalPit` shape). */
 const LINE_VERBS = [
   'system/energy/cmd/energy/sever.yaml',
-  'system/energy/cmd/energy/splice.yaml',
+  'platform/cmd/crafting/splice.yaml',
 ];
 
-const LineAccessBase = Thing;
+// ⭐ `splice` is the kernel's one verb (cordage D9): the pole answers it.
+const LineAccessBase = SpliceableMixin(Thing);
 
 export default class LineAccess
   extends LineAccessBase
@@ -102,6 +104,18 @@ export default class LineAccess
   /** Splice the line here back together — the lineman's `splice`. */
   public splice(): void {
     if (this.nodeRef) this.catalogue()?.splice(this.nodeRef);
+  }
+
+  /**
+   * ⭐ `splice` at the pole (cordage D9): the line here made whole. A pole
+   * is spliced back into itself — there is no second line to name.
+   */
+  public override async spliceBy(by: Stuff, other: Stuff | null): Promise<SpliceOutcome> {
+    void by;
+    if (other !== null) return { ok: false, reason: 'one-line', line: 'There is only the one line here to splice.' };
+    if (!this.isCut()) return { ok: false, reason: 'not-cut', line: 'The line here is not cut.' };
+    this.splice();
+    return { ok: true, line: 'You splice the line back together.', peers: 'splices the line back together.' };
   }
 
   /** Is this access point's node currently cut? */
