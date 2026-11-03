@@ -366,6 +366,12 @@ export default class WaterReading extends Reading {
       return;
     }
     const read = await report.call(target, WorldClockApi.getNow().rawValue());
+    // ⭐ The kit tests what would come out NOW — the water that stood in the
+    // pipe overnight included — so settle the outlet's water before reading
+    // it (the browser walk: the kit read a stale tap, without the lead).
+    if (kit !== null && MixinApi.isBulkable(target)) {
+      await target.settleBulk('interior').catch(() => undefined);
+    }
     // ⭐ Without the kit, a supply's working is legible — its ends, its
     // head, its pump — but whether its water is FIT is not (D18).
     const lines =

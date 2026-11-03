@@ -529,9 +529,11 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
     public soilSalinityDsm(): number {
       if (!(this.soilSaltKg > 0)) return 0;
       const reserve = this.soilHost.getReserve(SOIL_MOISTURE_RESERVE_KEY);
+      // Salt dissolves in all the water holding it — the soil's and what
+      // stands on it.
       const litres = Math.max(
         1,
-        reserve?.current.rawValue() ?? 0,
+        (reserve?.current.rawValue() ?? 0) + this.pondedL,
         (reserve?.capacity.rawValue() ?? 0) * 0.25,
       );
       // kg/L → mg/L, and ~640 mg/L of dissolved salt is 1 dS/m.
@@ -563,10 +565,36 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
       }
       this.inletClockStamp = nowS;
       if (!(litres > 0)) return;
-      this.soilSaltKg += salt;
+      // ⭐ A ground made of parts keeps its soil in them (a tract's fields):
+      // the water and its salt go to the parts by area, as every other
+      // soil write does. The browser walk: a meadow's turnout credited the
+      // TRACT, which holds no water of its own — every litre ponded and the
+      // salt was read over one litre (813 919 dS/m).
+      const parts = this.dividedInto();
+      if (parts.length > 0) {
+        this.spreadOverParts(
+          parts,
+          litres,
+          (p, l) => {
+            p.addSoilSalt((salt * l) / litres);
+            const took = p.waterSoil(l);
+            if (l - took > 0) p.pond(l - took);
+            return took;
+          },
+          (l) => this.ownTerm(() => this.takeInletWater(l, (salt * l) / litres)),
+        );
+        return;
+      }
+      this.takeInletWater(litres, salt);
+    }
+
+    /** Whole ground: take what the soil holds, pond the rest, keep the salt. */
+    private takeInletWater(litres: number, saltKg: number): number {
+      this.soilSaltKg += saltKg;
       this.reconcileSoil();
       const taken = this.creditReserve(SOIL_MOISTURE_RESERVE_KEY, litres, 'L');
       if (litres - taken > 0) this.pondedL += litres - taken;
+      return taken;
     }
 
     /**

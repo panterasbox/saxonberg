@@ -16,6 +16,8 @@ import { ReservedMixin, Reserve } from '../../reserve';
 import { SoilMixin, SOIL_MOISTURE_RESERVE_KEY, SOIL_RESERVE_THEME } from '../Soil';
 import { SealableMixin, ThrottleableMixin } from '../../spatial/Sealable';
 import { StuffApi } from '../../../api/stuff';
+import type { Stuff } from '../../stuff/Stuff';
+import type { Soil } from '../Soil';
 import { WorldClockApi } from '../../../api/worldclock';
 import { Quantity } from '../../quantity';
 import { makeStuff } from '../../security/__tests__/test-setup';
@@ -84,6 +86,33 @@ describe('⭐ an inlet lets in what its gate was open for', () => {
     now += H;
     await g.settleInlets(now);
     expect((g as unknown as { inletClockStamp: number }).inletClockStamp).toBe(now - H);
+  });
+});
+
+describe('⭐ a ground made of parts waters its parts', () => {
+  it('a tract’s turnout wets its fields, not the tract, and the salt reads sane', async () => {
+    class Divided extends Ground {
+      public parts: Ground[] = [];
+      public override soilParts(): readonly (Stuff & Soil)[] {
+        return this.parts as unknown as readonly (Stuff & Soil)[];
+      }
+    }
+    const field = ground(50, 2000);
+    vi.spyOn(field, 'soilCatchmentAreaM2').mockReturnValue(100);
+    const tract = makeStuff(() => new Divided());
+    tract.parts = [field];
+    vi.spyOn(tract, 'soilCatchmentAreaM2').mockReturnValue(100);
+    const gate = makeStuff(() => new Turnout());
+    vi.spyOn(StuffApi, 'singleton').mockResolvedValue(gate as never);
+    tract.setInlets([{ gate: '/test/thing/turnout', method: 'furrow', capacityLps: 0.1, salinityPpt: 0.3 }]);
+    await tract.settleInlets(now);
+    gate.setOpening(1);
+    now += H;
+    await tract.settleInlets(now);
+    const water = field.getReserve(SOIL_MOISTURE_RESERVE_KEY)!.current.rawValue();
+    expect(water).toBeGreaterThan(50);
+    expect(tract.getPondedL()).toBe(0);
+    expect(field.soilSalinityDsm()).toBeLessThan(10);
   });
 });
 
