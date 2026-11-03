@@ -28,7 +28,6 @@ import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { brain } from '../maintains';
 import { attachGraph } from '@saxonberg/server/mud/lib/location/__tests__/attachments-fixture';
-import { RoomWarren } from '@saxonberg/server/mud/lib/location/RoomWarren';
 import { CirculationWarren } from '@saxonberg/server/mud/lib/location/CirculationWarren';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
@@ -39,9 +38,8 @@ import {
   makeStuffAtPath,
 } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
-import { FacedMixin } from '@saxonberg/server/mud/lib/material/Faced';
-import { DurableMixin } from '@saxonberg/server/mud/lib/material/Durable';
+import BuildingBase from '@saxonberg/server/mud/lib/structure/Building';
+import HoldingWarren from '../../idea/HoldingWarren';
 import type { ConditionWord } from '@saxonberg/server/mud/lib/material/Durable';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
@@ -52,42 +50,32 @@ const DORMS = '/test/duncan/dorms';
 const OTHER = '/test/elsewhere/units';
 
 /** A stand-in house: its condition word is set by the test (paint D13 — the fabric is the building's). */
-class TestHouse extends DurableMixin(FacedMixin(Idea)) {
+class TestHouse extends BuildingBase {
   static _mixinName = 'MaintainsTestHouse';
   public band: ConditionWord = 'sound';
   public override getConditionWord(): ConditionWord {
     return this.band;
   }
   /** No rooms of its own here — the keeper works from the holding's entry. */
-  residentMembers(): Stuff[] {
+  public override residentMembers(): Stuff[] {
     return [];
   }
 }
 
-/** A stand-in programme — the three methods are the contract. */
-class HoldingWarren extends RoomWarren {
+/** The real holding class, its three reads stood in — the brain names the class, never a shape. */
+class TestHolding extends HoldingWarren {
   public key = '';
   public housed: TestHouse | null = null;
-  public entry: Stuff | null = null;
-  holdingKey(): string | null {
+  public entry: (Stuff & Container) | null = null;
+  public override holdingKey(): string | null {
     return this.key;
   }
-  buildings(): Stuff[] {
+  public override buildings(): BuildingBase[] {
     return this.housed === null ? [] : [this.housed];
   }
-  entryRoom(): Stuff | null {
+  public override entryRoom(): (Stuff & Container) | null {
     return this.entry;
   }
-  protected async createMember(): Promise<Stuff & Container> {
-    throw new Error('unused');
-  }
-  async admitArrival(): Promise<void> {}
-  protected attachmentFor(): never {
-    throw new Error('unused');
-  }
-  protected async reconcile(): Promise<void> {}
-  protected async wireHostFixtures(): Promise<void> {}
-  protected async unwireHostFixtures(): Promise<void> {}
 }
 
 /**
@@ -127,12 +115,12 @@ class TestInstitution extends CirculationWarren {
 
 let institution: TestInstitution;
 
-function programme(key: string, band: ConditionWord): HoldingWarren {
-  const p = makeStuff(() => new HoldingWarren());
+function programme(key: string, band: ConditionWord): TestHolding {
+  const p = makeStuff(() => new TestHolding());
   p.key = key;
   p.housed = makeStuff(() => new TestHouse());
   p.housed.band = band;
-  p.entry = makeStuff(() => new Locale()) as unknown as Stuff;
+  p.entry = makeStuff(() => new Locale()) as unknown as Stuff & Container;
   institution.standing.push(p as unknown as Stuff & Container);
   return p;
 }

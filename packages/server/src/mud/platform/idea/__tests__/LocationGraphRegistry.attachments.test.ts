@@ -29,6 +29,8 @@ beforeEach(() => {
     { path: `${T}/idea/farm`, class: '/platform/idea/Business', data: { operatingLocations: [`${T}/yard`] } },
     // A tower over the district, a ship on a sea.
     { path: `${T}/tower`, class: '/platform/idea/Structure', data: { extent: T } },
+    // ⭐ A building row names the Building twin — a structure, not the Structure twin.
+    { path: `${T}/cottage/structure`, class: '/platform/idea/Building', data: { extent: `${T}/cottage` } },
     { path: `${T}/ship`, class: '/platform/idea/Ship', data: { extent: `${T}/ship`, expanse: '/test/sea' } },
     // An institution over an extent.
     { path: `${T}/idea/warren`, class: '/platform/idea/Business', data: { parentExtent: `${T}/lots` } },
@@ -83,6 +85,10 @@ describe('the location graph attaches what belongs with a place', () => {
     expect(await NavigationApi.attachedWithin(T, 'structure')).toEqual(
       expect.arrayContaining([`${T}/tower`, `${T}/ship`]),
     );
+  });
+
+  it('⭐ a BUILDING row is attached at its extent too — the graph reads the structure base, not the twin', async () => {
+    expect(await NavigationApi.attachedTo(`${T}/cottage/parlor`, 'structure')).toContain(`${T}/cottage/structure`);
   });
 
   it('a ship is attached to its sea as craft', async () => {

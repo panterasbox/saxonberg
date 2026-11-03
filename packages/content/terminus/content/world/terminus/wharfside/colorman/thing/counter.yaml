@@ -36,6 +36,7 @@ data:
     - { itemTemplatePath: /trade/painting/thing/varnish-pot, par: 2 }
     - { itemTemplatePath: /trade/painting/thing/glue-pot, par: 2 }
     - { itemTemplatePath: /trade/painting/thing/glue-cake, par: 4 }
+    - { itemTemplatePath: /trade/painting/thing/pot-of-hide-glue, par: 2 }
     - { itemTemplatePath: /trade/painting/thing/casein-pot, par: 2 }
     - { itemTemplatePath: /trade/painting/thing/paste-pot, par: 2 }
     - { itemTemplatePath: /trade/painting/thing/cement-pot, par: 2 }
@@ -66,6 +67,7 @@ data:
     /trade/painting/thing/varnish-pot: 3
     /trade/painting/thing/glue-pot: 4
     /trade/painting/thing/glue-cake: 2
+    /trade/painting/thing/pot-of-hide-glue: 6
     /trade/painting/thing/casein-pot: 2
     /trade/painting/thing/paste-pot: 2
     /trade/painting/thing/cement-pot: 2

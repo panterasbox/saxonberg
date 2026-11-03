@@ -46,20 +46,10 @@ import type {
 } from '@saxonberg/server/mud/lib/behavior/brain';
 import { NavigationApi } from '@saxonberg/server/mud/api/navigation';
 import { CirculationWarren } from '@saxonberg/server/mud/lib/location/CirculationWarren';
+import HoldingWarren from '../idea/HoldingWarren';
 
 const DEFAULT_BATCH = 3;
 
-/** The shape a holding programme presents — read, never imported. */
-interface HoldingShape {
-  holdingKey(): string | null;
-  entryRoom(): Stuff | null;
-  buildings(): Stuff[];
-}
-
-/** A building's rooms, as the brain reads them — to stand in one. */
-interface BuildingShape {
-  residentMembers(): Stuff[];
-}
 
 type Keeper = Stuff & Mobile & Containable & Container & CommandGiver;
 
@@ -105,8 +95,8 @@ export const brain = class {
       // barn are kept apart — and the keeper works from inside it.
       for (const house of holding.buildings()) {
         if (done >= batch) break;
-        if (!MixinApi.isDurable(house) || house.getConditionWord() === 'sound') continue;
-        const room = (house as unknown as BuildingShape).residentMembers()[0] ?? holding.entryRoom();
+        if (house.getConditionWord() === 'sound') continue;
+        const room = house.residentMembers()[0] ?? holding.entryRoom();
         if (!room || !MixinApi.isContainer(room)) continue;
         keeper.teleport(room as Stuff & Container);
         try {
@@ -135,8 +125,8 @@ export const brain = class {
  * The `key` atom is the programme's own parcel extent (residences D16),
  * so the prefix test is the ownership test.
  */
-async function holdingsUnder(extent: string): Promise<HoldingShape[]> {
-  const out: HoldingShape[] = [];
+async function holdingsUnder(extent: string): Promise<HoldingWarren[]> {
+  const out: HoldingWarren[] = [];
   // ⭐ Asked of the location graph's record (the scan sweep): an
   // institution is attached to its own `parentExtent`, so the ones over or
   // inside the extent are map reads. One that is not standing has no live
@@ -152,17 +142,11 @@ async function holdingsUnder(extent: string): Promise<HoldingShape[]> {
   }
   for (const institution of institutions) {
     for (const s of institution.holdings()) {
-      const h = s as unknown as Partial<HoldingShape>;
-      if (
-        typeof h.holdingKey !== 'function' ||
-        typeof h.buildings !== 'function' ||
-        typeof h.entryRoom !== 'function'
-      ) {
-        continue;
-      }
-      const key = h.holdingKey();
+      // ⭐ The holding is this pack's own class — named, never read by shape.
+      if (!(s instanceof HoldingWarren)) continue;
+      const key = s.holdingKey();
       if (!key || (key !== extent && !key.startsWith(`${extent}/`))) continue;
-      out.push(h as HoldingShape);
+      out.push(s);
     }
   }
   return out;

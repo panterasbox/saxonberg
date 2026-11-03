@@ -584,6 +584,7 @@ describe('the maintenance act (D4/D5)', () => {
   async function maintain(
     actor: Stuff,
     room: Stuff | null,
+    target?: Stuff,
   ): Promise<CommandContext> {
     const ctx = CommandApi.createCommandContext({
       commandGiver: actor as never,
@@ -612,7 +613,10 @@ describe('the maintenance act (D4/D5)', () => {
       return typeof t.hasCapability === 'function' && t.hasCapability('upkeep');
     });
     await controller.execute(
-      (kit === undefined ? {} : { kit: { stuff: kit, raw: 'kit' } }) as CommandModel,
+      {
+        ...(kit === undefined ? {} : { kit: { stuff: kit, raw: 'kit' } }),
+        ...(target === undefined ? {} : { target: { stuff: target, raw: 'target' } }),
+      } as CommandModel,
       ctx,
     );
     return ctx;
@@ -641,6 +645,15 @@ describe('the maintenance act (D4/D5)', () => {
     // Law 2: the tool wears with USE. That is the recurring cost of
     // upkeep, and the whole economic content of the act.
     expect(k.getCondition()).toBeLessThan(before);
+  });
+
+  it('⭐ a named thing that is not a building is refused as such — a ship has no sills (paint B33)', async () => {
+    const { hall } = await wornHolding();
+    const iris = makeStuffAtPath(() => new Avatar(), '/platform/agent/Avatar/iris');
+    ContainmentApi.move(iris as unknown as Stuff & Containable, hall);
+    const notABuilding = makeStuffAtPath(() => new Tool(), '/world/prog-test/oar');
+    const ctx = await maintain(iris as unknown as Stuff, hall as unknown as Stuff, notABuilding as unknown as Stuff);
+    expect(reasons(ctx)).toEqual(['not-a-building']);
   });
 
   it('refuses without a kit — the shell is untouched', async () => {

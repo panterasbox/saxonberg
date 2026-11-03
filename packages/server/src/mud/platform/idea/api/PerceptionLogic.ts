@@ -43,7 +43,7 @@ import type {
 import { WorldClockApi } from '../../../api/worldclock';
 import type { SpatialZone } from '../../../lib/zone/SpatialZone';
 import type Place from '../../../lib/stuff/Place';
-import type Structure from '../Structure';
+import type Structure from '../../../lib/structure/Structure';
 import type { Positioned } from '../../../lib/expanse/Positioned';
 import type { Voyaging } from '../../../lib/expanse/Voyaging';
 import { Expanse, type Contact } from '../../../lib/expanse/Expanse';

@@ -523,7 +523,7 @@ export default class HoldingWarren extends ProgrammeBase {
     if (extent) {
       for (const [name, house] of this._houses) {
         if (house.isDestroyed()) continue;
-        await PersistableApi.capture(house as unknown as Stuff, this.houseKeyOf(extent, name));
+        await PersistableApi.capture(house, this.houseKeyOf(extent, name));
       }
     }
   }
@@ -564,9 +564,9 @@ export default class HoldingWarren extends ProgrammeBase {
     for (const house of houses) {
       if (house.isDestroyed()) continue;
       for (const at of this.attachPointsOf(house)) NavigationApi.detachStructure(at, house);
-      if (revert) (house as unknown as Persistable).markForRevert();
+      if (revert) house.markForRevert();
       house.setHolding(null);
-      StuffApi.destruct(house as unknown as Stuff);
+      StuffApi.destruct(house);
     }
   }
 
@@ -712,7 +712,7 @@ export default class HoldingWarren extends ProgrammeBase {
         house.setShortDescription(name);
         house.setKeywords([name, 'building']);
       }
-      await PersistableApi.restoreOrSeed(house as unknown as Stuff, this.houseKeyOf(extent, name));
+      await PersistableApi.restoreOrSeed(house, this.houseKeyOf(extent, name));
       for (const at of this.attachPointsOf(house)) NavigationApi.attachStructure(at, house);
       this._houses.set(name, house);
     }

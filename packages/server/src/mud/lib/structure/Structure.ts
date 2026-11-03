@@ -78,7 +78,6 @@ import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
 import { ParcelApi } from '../../api/parcel';
 import type Exit from '../boundary/Exit';
-import type Place from '../stuff/Place';
 import type { ActRefusal } from '../craft/ActPlan';
 import { Mml } from '../../api/mml';
 
@@ -220,11 +219,13 @@ export default class Structure extends DetailedMixin(
       return authored !== null && this.entrance !== null && authored === this.entrance && this.hasMember(authored);
     }
     // Is the far side one of mine? By its path, or — a holding's keyed
-    // room, which no path names — by the building its warren says it is in.
+    // room, which no path names — by its warren's say. ⚠ The warren hook,
+    // never `structureNow()`: that falls back to the location graph's
+    // registry, which a jurisdiction-scoped eval may not read.
     const path = far.getIdentityPath();
     const mine =
       (path !== null && this.hasMember(path)) ||
-      (far.isPlace() && (far as unknown as Place).structureNow() === this);
+      (MixinApi.isWarrenMember(far) && far.getWarren()?.structureOf(far) === this);
     if (!mine) return false;
     if (this.entrance !== null && path === this.entrance) return true;
     return MixinApi.isAtmospheric(far) && far.exposure().holdsAir();

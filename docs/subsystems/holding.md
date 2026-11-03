@@ -370,10 +370,12 @@ the weather is at what was under it"). No number, no percentage, no gauge —
 
 ### ⚠ Two clocks, and they must never touch
 
-A **shell** weathers on the passage of days. A **good** wears only when
-you use it (economy Law 2). A regression test pins a durable good at
-unchanged condition across a game YEAR that takes the shell from sound
-to dilapidated. If a durable ever loses condition to the calendar, every
+A **building** weathers on the passage of days — its coat where the
+weather reaches it, and its fabric once the coat is gone. A **good** wears
+only when you use it (economy Law 2): its coat weathers only where it is
+left out in the weather, and its own condition never does. A regression
+test pins a durable good at unchanged condition across a game YEAR that
+takes the house from sound to broken. If a durable ever loses condition to the calendar, every
 object a player owns rots while they sleep, and the second law of the
 economy is gone.
 
@@ -667,9 +669,11 @@ keyed copies. `PlatPlan` already parses static slot objects
 Worth naming before a second consumer arrives, because it will be
 cheaper to see coming than to discover. Of everything the pack's
 `HoldingWarren` owns — the keyed floorplan mint, whole-unit dormancy,
-wake/sleep, the front-door edge, revert — **only the shell clock (now the house's, paint D13) is
-residential**, and even that is residential only in its *vocabulary*
-(`shellCondition`, `landlord-shell`, `residence.weather.daysToWorn`).
+wake/sleep, the front-door edge, revert — **only the upkeep term is
+residential**, and even that only in its *vocabulary* (`landlord-shell`).
+The shell clock left the holding entirely (paint D13): it is each
+building's `Durable` condition now, on the `structure.weather.daysToWorn`
+dial.
 The mechanism underneath is *a held thing weathers on the passage of
 days, and a term says who owes the upkeep*, which is not about houses.
 

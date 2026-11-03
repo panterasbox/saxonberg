@@ -71,7 +71,25 @@ export default class MaintainController extends CommandController {
     const actor = context.commandGiver;
     const room = context.location;
 
-    const building = await this.buildingOf(model.target?.stuff ?? null, room);
+    const named = model.target?.stuff ?? null;
+    // ⭐ Named something that is not a building — a ship's hull, a peak: the
+    // kit has nothing on it to mend (paint B33). Said of the thing named.
+    if (named !== null && named !== room && !kept(named)) {
+      context.note({
+        kind: "controller-rejected",
+        reason: "not-a-building",
+        detail: "not a building",
+      });
+      MessageApi.scene(actor)
+        .topic("sense.survey")
+        .toSelf(
+          Mml.compose`${Mml.thing(named)} is not a building — there are no sills or putty on it for a householder's kit.`,
+        )
+        .send();
+      return;
+    }
+
+    const building = await this.buildingOf(named, room);
     if (!building) {
       context.note({
         kind: "controller-rejected",
@@ -155,7 +173,7 @@ export default class MaintainController extends CommandController {
       if (warren instanceof HoldingWarren) {
         // The building THIS room is part of — a farmstead's barn is not its
         // house; open ground (the yard, a tract) is no building's.
-        const house = (warren as unknown as HoldingWarren).buildingOf(room);
+        const house = warren.buildingOf(room);
         return house !== null && kept(house) ? house : null;
       }
     }

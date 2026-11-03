@@ -1475,7 +1475,7 @@ export function AtmosphericMixin<
         const sameStructure =
           structure !== null &&
           ((destPath !== null && structure.hasMember(destPath)) ||
-            (dest.isPlace() && (dest as unknown as Place).structureNow() === structure));
+            (MixinApi.isWarrenMember(dest) && dest.getWarren()?.structureOf(dest) === structure));
         if (sameStructure && enclosed(dest)) {
           if (seen.has(dest.stuffId)) continue;
           seen.add(dest.stuffId);

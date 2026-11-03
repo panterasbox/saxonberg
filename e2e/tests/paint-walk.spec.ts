@@ -144,4 +144,48 @@ test.describe('the paint build, in a browser', () => {
       await w.close();
     }
   });
+
+  test('⭐ the Hesper at the bar: a hull takes paint from where she lies; she is no building to maintain', async ({ browser }) => {
+    test.setTimeout(600_000);
+    const MOUTH = '/world/terminus/estuary/estuary-mouth';
+    const w = await openWorldAs(browser, 'paint-hull', { startLocation: MOUTH });
+    const { page, handle } = w;
+    try {
+      for (const t of [
+        '/trade/painting/thing/brush',
+        '/trade/painting/thing/ochre-oil-paint',
+        '/system/residence/thing/householders-kit',
+      ]) {
+        await hand(handle, t);
+      }
+
+      // ⚠ Before anyone has boarded since boot, the sea's nodes may be
+      // unloaded and she reads "not alongside" (plan B34's open). Record
+      // what a player meets first; boarding stands it up.
+      const first = await sayAwaiting(page, 'look hesper', /Hesper|don't see|no .*hesper|nothing/i);
+      await page.screenshot({ path: 'test-results/paint-walk/10-mouth-first-look.png', fullPage: true });
+      console.log(`[paint-walk] first look at the Hesper from the mouth: ${first.trim().slice(0, 200)}`);
+
+      // Aboard and back: she is alongside at the bar.
+      expect(await sayAwaiting(page, 'aboard', /You leave|Nothing is alongside/i)).toMatch(/You leave/);
+      expect(await sayAwaiting(page, 'ashore', /You leave/i)).toMatch(/You leave/);
+
+      // From where she lies, her hull is at hand: look binds her.
+      const hull = await lookFor(page, 'hesper', /Hesper|ketch/i);
+      expect(hull).toMatch(/ketch|Hesper/i);
+
+      // Paint her hull: the job is priced by her hull, from the quay.
+      const painted = await sayAwaiting(page, 'paint hesper with ochre paint', /start laying|wet coat|not enough|cannot|runs dry/i, 300_000);
+      expect(painted).not.toMatch(NOT_UNDERSTOOD);
+      expect(painted).not.toMatch(/cannot reach the outside/i);
+      await page.screenshot({ path: 'test-results/paint-walk/11-hull.png', fullPage: true });
+
+      // ⭐ A ship is not a building: the householder's kit has nothing to
+      // mend on her (paint B33).
+      const maint = await sayAwaiting(page, 'maintain hesper', /sound again|nothing|not|cannot|can't/i);
+      expect(maint).not.toMatch(/sound again|putty into the seams/i);
+    } finally {
+      await w.close();
+    }
+  });
 });
