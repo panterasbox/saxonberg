@@ -243,6 +243,9 @@ suite('2 · 3 · the wade, the small water', () => {
   let wader: Session;
   beforeAll(async () => {
     wader = await Session.open(LANDSMAN, { startLocation: MOUTH });
+    // The suites before this one spend game hours on the fast clock: by
+    // the time it runs the strand can be dark again (a fresh world, alone).
+    await daylight(wader);
   });
   afterAll(() => wader?.close());
 
