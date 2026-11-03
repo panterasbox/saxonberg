@@ -2,9 +2,9 @@
  * `rent canoe for 2 days` — ⭐ a boat let by the day (harbors B3, P18;
  * review 1: the shed's hire book). The hire book prices her kind
  * (`HireBook.rates`); the hirer pays `n × rate` to the house up front (the
- * book is the venue); she is put on hire to them — custody, never title —
- * and the book keeps its copy so its page can name a boat out past her
- * day. Every refusal comes before any money moves.
+ * book is the venue); she is put on hire to them — custody, never title.
+ * ⭐ Her hire is the ONE record (review 2): the book keeps no copy and reads
+ * its boats out off the boats. Every refusal comes before any money moves.
  */
 
 import '../../../../../../test-bootstrap';
@@ -106,8 +106,9 @@ describe('rent — a boat by the day (harbors B3)', () => {
     expect(canoe.hiredBy()).toBe('/platform/agent/Avatar/ann');
     expect(canoe.hiredUntilS()).toBe(NOW_S + 2 * DAY_S);
     expect(canoe.home()).toBe(LANDING);
-    expect(book.getHires()).toHaveLength(1);
-    expect(book.getHires()[0]!.id).toBe(canoe.hire!.id);
+    expect(canoe.hiredFrom()).toBe(BOOK);
+    // ⭐ The book reads her out off her own hire — it wrote nothing.
+    expect(book.hiresOut().map((h) => h.boat)).toEqual([canoe]);
   });
 
   it('without `for`, a day; in words, as many', async () => {
@@ -127,7 +128,7 @@ describe('rent — a boat by the day (harbors B3)', () => {
     vi.mocked(WorldClockApi.getNow).mockReturnValue({ rawValue: () => NOW_S + 4 * DAY_S } as never);
     expect(book.getLong()).toMatch(/a canoe out with .*, 3 days past its day/);
     canoe.endHire();
-    expect(book.getHires()).toEqual([]);
+    expect(book.hiresOut()).toEqual([]);
     expect(book.getLong()).not.toMatch(/past its day/);
   });
 
@@ -181,9 +182,19 @@ describe('rent — a boat by the day (harbors B3)', () => {
     expect(rejection(await rent(hirer(), book, canoe))).toBeNull();
   });
 
-  it('⛔ nothing but `rent` writes a line in the book', () => {
-    const { book } = shed();
-    expect(() => book.recordHire({ id: 'x', kind: CANOE, byName: 'Ann', untilS: NOW_S })).toThrow();
+  it('⭐ one record of a hire: the book persists nothing, and a boat let from another book is not on its page', async () => {
+    const { book, canoe } = shed();
+    expect(MixinApi.isPersistable(book as never)).toBe(false);
+    await rent(hirer(), book, canoe, '1 day');
+    const other = makeStuffAtPath(() => {
+      const b = new HireBook();
+      b.setRates({ [CANOE]: 3 });
+      return b;
+    }, '/test/elsewhere/hire-book');
+    expect(other.hiresOut()).toEqual([]);
+    vi.mocked(WorldClockApi.getNow).mockReturnValue({ rawValue: () => NOW_S + 4 * DAY_S } as never);
+    expect(other.getLong()).not.toMatch(/past its day/);
+    expect(book.getLong()).toMatch(/past its day/);
   });
 
   it('⛔ nothing but `rent` puts a boat on hire', () => {

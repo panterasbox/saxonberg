@@ -5,8 +5,9 @@
  * A boat let by the day: the shed's hire book prices her kind
  * (`HireBook.rates`), the hirer pays `n × rate` to the house up front (the
  * book is the venue), and she is put on hire to them
- * (`HirableMixin.hireTo`) — in their custody, never their title — and the
- * book writes the line. The hire ends when she is put down on the landing
+ * (`HirableMixin.hireTo`) — in their custody, never their title. ⭐ Her hire
+ * is the one record (harbors review 2): it names the book that let her, and
+ * the book writes nothing — its page reads its boats out off the boats. The hire ends when she is put down on the landing
  * she was let from (`Boat.onMoved`), so nothing here schedules anything.
  *
  * Refused, before any money moves: a thing that is not let by the day; a
@@ -101,8 +102,7 @@ export default class RentController extends CommandController<RentModel> {
     }
     const nowS = WorldClockApi.getNow().rawValue();
     const home = room.getDurableHandle() ?? room.getTemplatePath() ?? "";
-    const hire = boat.hireTo(giver, nowS + days * DAY_S, home, venue);
-    book.recordHire({ id: hire.id, kind, byName: hire.byName, untilS: hire.untilS });
+    boat.hireTo(giver, nowS + days * DAY_S, home, venue);
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(

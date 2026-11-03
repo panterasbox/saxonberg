@@ -252,6 +252,11 @@ minted to order and boats let by the day — behind `minted:`/`rates:`
 fields on a shop counter. The user's review: a counter sells goods; a
 ship is title; a hire is a let. Each is now its own implementer (or its
 own book, for the let — `HireBook` and `rent`, which is not a sale).
+⭐ The let has ONE record, the boat's own hire (`HirableMixin.hireTo`,
+naming the book that let her): `HireBook` keeps only its authored `rates`,
+persists nothing, and reads which boats are out — and overdue — off the
+standing boats of the kinds it lets whose hire names it (harbors review
+2).
 
 | implementer | offers | the sale |
 |---|---|---|

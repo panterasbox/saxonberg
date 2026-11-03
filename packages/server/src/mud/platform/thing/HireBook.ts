@@ -1,16 +1,21 @@
 /**
  * HireBook — ⭐ **the shed's hire book** (harbors review 1): what a house
- * lets by the day, and who has which of its boats out until when. It is a
+ * lets by the day, and which of its boats are out past their day. It is a
  * LET, not a sale — a thing in your custody and never your title — so it is
  * its own book and nothing a shop counter keeps (`Stock` sells goods).
  *
  * - **`rates`** — kind row → minor units a day (`{ …/canoe: 3 }`); a kind
  *   with no rate is not let here. Authored.
- * - **The book of hires** — `rent` writes a line when a boat goes out
- *   (`recordHire`), and the boat strikes it when she is put down again on
- *   the landing she was let from (`HirableMixin.endHire` → `hireEnded`).
- *   The boat keeps the other copy. The book keeps its own so its `look` can
- *   name the boats out past their day without searching for them.
+ * - ⭐ **One record of a hire: the boat's** (harbors review 2). `rent` puts
+ *   her on hire (`HirableMixin.hireTo`) and her hire names this book as the
+ *   one that let her; the book writes nothing. Its page reads who has which
+ *   boat, and until when, OFF THE BOATS: the live boats of the kinds its own
+ *   `rates` name whose hire names this book (`hiresOut`). That follows the
+ *   book's authored refs (the kinds) through the registry's by-row index —
+ *   no world walk, and no second copy to drift (*Two records of one fact*,
+ *   antipatterns.md). A boat that is not standing — her hirer away, her
+ *   hire riding his snapshot — is not on the page until she is loaded
+ *   again: the book cannot read what is not there, and it never guesses.
  * - **It affords `rent`** to whoever stands at it, and it is the VENUE the
  *   day's money is paid to — its house lists it in `operatingLocations`, as
  *   a counter is listed. Only the house's own boats lying in the book's room
@@ -22,37 +27,35 @@
  * on the page, never a penalty — what a polity does about an unreturned
  * boat is the retail slate's.
  *
- * A fixture: its rows author `fixedInPlace: true`. Persistable, so the book
- * of hires survives a restart (a path-string `props:` entry stands it up
- * through `StuffApi.singleton`, which restores its record).
+ * A fixture: its rows author `fixedInPlace: true`. Not persistable — it
+ * keeps nothing but what its row authors.
  */
 
 import Good from './Good';
-import { PersistableMixin } from '../../lib/persistence/Persistable';
-import { PersistableApi } from '../../api/persistable';
+import { StuffApi } from '../../api/stuff';
+import { MixinApi } from '../../api/mixin';
 import { WorldClockApi } from '../../api/worldclock';
-import { CallSecurity } from '../../lib/security/decorators';
-import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import type { CommandContributions } from '../../api/command';
 import type { FieldMeta } from '../../lib/mixin';
 import type { Stuff } from '../../lib/stuff/Stuff';
+import type { Hirable } from '../../lib/retail/Hirable';
 
 /** A world day, seconds — what a hire is let by. */
 const DAY_S = 86_400;
 
-/** One line in the book: a boat out, and until when. */
-export interface HireEntry {
-  /** The hire's id — the boat let carries the same one. */
-  id: string;
-  /** The kind row let (what the page names). */
+/** A boat this book let, as her own hire says it. */
+export interface HireOut {
+  /** The boat, live. */
+  boat: Stuff & Hirable;
+  /** The kind row she was cloned from (what the page names). */
   kind: string;
-  /** The hirer's name, as it was when she went out. */
+  /** The hirer's name, as she was let. */
   byName: string;
   /** The world second she is due back. */
   untilS: number;
 }
 
-export default class HireBook extends PersistableMixin(Good) {
+export default class HireBook extends Good {
   /** ⭐ A boat is hired at the book. */
   static commandContributions: CommandContributions = {
     peers: ['platform/cmd/retail/rent.yaml'],
@@ -60,14 +63,10 @@ export default class HireBook extends PersistableMixin(Good) {
 
   static fieldMeta: FieldMeta = {
     rates: { persistent: true, authorable: true },
-    hires: { persistent: true, runtimeState: true },
   };
 
   /** Kind row → minor units a day. */
   protected rates: Record<string, number> = {};
-
-  /** Every hire let from this book and not yet back. */
-  protected hires: HireEntry[] = [];
 
   public getRates(): Record<string, number> {
     return { ...this.rates };
@@ -95,28 +94,26 @@ export default class HireBook extends PersistableMixin(Good) {
     return this.rates[kind] ?? null;
   }
 
-  /** The hires out now, a copy. */
-  public getHires(): HireEntry[] {
-    return this.hires.map((h) => ({ ...h }));
+  /**
+   * ⭐ The boats out on hire from this book, read off their own hires: the
+   * standing boats of every kind this book lets whose hire names it.
+   */
+  public hiresOut(): HireOut[] {
+    const me = this.getIdentityPath() ?? '';
+    if (me === '') return [];
+    const out: HireOut[] = [];
+    for (const kind of Object.keys(this.rates)) {
+      for (const boat of StuffApi.findAllByTemplatePath<Stuff>(kind)) {
+        if (boat.isDestroyed() || !MixinApi.isHirable(boat) || boat.hiredFrom() !== me) continue;
+        out.push({ boat, kind, byName: boat.hiredByName() ?? 'somebody', untilS: boat.hiredUntilS() ?? 0 });
+      }
+    }
+    return out;
   }
 
-  /** ⭐ A boat went out (`rent`): a line in the book. */
-  @CallSecurity(SecurityPolicies.FromModule('/platform/idea/cmd/retail/RentController'))
-  public recordHire(hire: HireEntry): void {
-    this.hires = [...this.hires.filter((h) => h.id !== hire.id), { ...hire }];
-    this.save();
-  }
-
-  /** ⭐ She is home: the line is struck. Ending a hire harms nobody, so it is ungated. */
-  public hireEnded(id: string): void {
-    const before = this.hires.length;
-    this.hires = this.hires.filter((h) => h.id !== id);
-    if (this.hires.length !== before) this.save();
-  }
-
-  /** The hires out past their day at `nowS`. */
-  public overdueHires(nowS: number): HireEntry[] {
-    return this.hires.filter((h) => h.untilS < nowS).map((h) => ({ ...h }));
+  /** The boats out past their day at `nowS`. */
+  public overdueHires(nowS: number): HireOut[] {
+    return this.hiresOut().filter((h) => h.untilS < nowS);
   }
 
   override getLong(): string {
@@ -139,13 +136,5 @@ export default class HireBook extends PersistableMixin(Good) {
       parts.push(`Written under it: a ${name} out with ${h.byName}, ${days === 1 ? 'a day' : `${days} days`} past its day.`);
     }
     return parts.join(' ');
-  }
-
-  private save(): void {
-    try {
-      void PersistableApi.capture(this as unknown as Stuff).catch((err) => console.warn('HireBook: capture failed:', err));
-    } catch (err) {
-      console.warn('HireBook: capture failed:', err);
-    }
   }
 }

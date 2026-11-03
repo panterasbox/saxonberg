@@ -5,8 +5,10 @@
 > and its first case shipped: `platform/idea/BerthRoll` → the
 > `berth-roll` document kind (harbors review 1, MR !511) →
 > [document-store.md](../../subsystems/document-store.md)
-> **Left:** `Harbor`'s `book` + `hails` onto the fixture that is named
-> for them (`HarborBook`) or a `harbor-book` document · `ReachWarren`'s
+>
+> ✅ `Harbor`'s `book` + `hails` → onto `HarborBook`, and `HireBook`'s
+> duplicate `hires` → removed (both fixed in !511, harbors review 2).
+> **Left:** `ReachWarren`'s
 > persisted `stops` index — derive it or file it · the census question
 > (a gate, or not)
 > **Size:** a tail
@@ -42,12 +44,12 @@ caller (the keyed-mint sites).
 | class | what it keeps | written / read by | targeted? behavior? | verdict |
 |---|---|---|---|---|
 | ~~`platform/idea/BerthRoll`~~ | which ships lie at one landing | the ship on make-fast / cast-off; the landing on first use | nothing named it; add/remove/list only | **VIOLATION — fixed**: `berth-roll` document, `DocumentApi.saveBerth` gated `FromMixin(Voyaging)` with caller = the ship (!511) |
-| `transport/idea/Harbor` | authored quays/rates/seat/office **+ runtime `book` (assignments, made-fast, dues paid-through) and `hails`** | `answerHail`, `admit`, `madeFast`, `release`, `settleDues`, `onPaid`; read by `HarborOffice`, `HarborBook`, `berth` | **No verb names it** — `hail office`, `pay office`, `pay book`, `berth … at` all reach it through `HarborOffice` / `HarborBook`. Real behavior and invariants: posted criteria in order, room by length, lapse, dues accrual | **BORDERLINE** — tests 2 and 4 hold, so it is not a record-only Stuff; but the persisted half sits on the one object no verb reaches, while a fixture named *the berth book* exists and holds nothing. The exception's tell, exactly |
+| `transport/idea/Harbor` | authored quays/rates/seat/office **+ runtime `book` (assignments, made-fast, dues paid-through) and `hails`** | `answerHail`, `admit`, `madeFast`, `release`, `settleDues`, `onPaid`; read by `HarborOffice`, `HarborBook`, `berth` | **No verb names it** — `hail office`, `pay office`, `pay book`, `berth … at` all reach it through `HarborOffice` / `HarborBook`. Real behavior and invariants: posted criteria in order, room by length, lapse, dues accrual | **BORDERLINE** — tests 2 and 4 hold, so it is not a record-only Stuff; but the persisted half sits on the one object no verb reaches, while a fixture named *the berth book* exists and holds nothing. The exception's tell, exactly. ✅ **Fixed in !511** (review 2): the record (lines, debts, dues stamped paid, hails) is `HarborBook`'s, persistable; `Harbor` keeps only its posted rules, names its book forward (`book:`), and composes no `PersistableMixin` |
 | `water/idea/ReachWarren` (`stops`) | an index of river stops holding something, by `(course, km, side)` | the warren when a stop takes something; read when water drifts past a position | the warren is a real runtime mechanism (mints, moves, merges, reaps patches) | **BORDERLINE** — the HOST is right; the persisted `stops` list is an add/list index of facts the stops' own `holder_snapshots` rows (keyed by position) already hold. Derivable, or a document — not a warren field |
 | `platform/thing/HullBook` | the hulls on the stocks + the ones sold | `buy` at it; the yard | targeted (`buy`), `ForSale`, refuses a sold slot | **FINE** — the exception: a fixture that keeps its own book |
-| `platform/thing/HireBook` | rates + the hires out | `rent` at it; the boat strikes her line on return | targeted (`rent`), the venue the day is paid to | **FINE** — the exception. ⚠ Its `hires` is a second copy of the boat's own hire record ("so its `look` can name the boats out"): that is [*Two records of one fact*](../../antipatterns.md), not this rule |
+| `platform/thing/HireBook` | rates + the hires out | `rent` at it; the boat strikes her line on return | targeted (`rent`), the venue the day is paid to | **FINE** — the exception. ⚠ Its `hires` is a second copy of the boat's own hire record ("so its `look` can name the boats out"): that is [*Two records of one fact*](../../antipatterns.md), not this rule. ✅ **Fixed in !511** (review 2): the boat's hire is the only record — the book keeps only its rates, persists nothing, and reads its boats out (and overdue) off the live boats of the kinds its `rates` name whose hire names it (`hiresOut`); a boat not standing is not on the page until she is |
 | `platform/thing/CharterBook` | authored rates + `payTo` | `charter` at it | targeted | **FINE** — not persistable; the charter is the ship's record |
-| `transport/thing/HarborBook`, `transport/location/HarborOffice` | nothing of their own (`harbor:` ref) | `berth`, `pay`, `hail` | targeted, `Payable`, `Hailable` | **FINE** — but see `Harbor`: the book belongs here |
+| `transport/thing/HarborBook`, `transport/location/HarborOffice` | nothing of their own (`harbor:` ref) | `berth`, `pay`, `hail` | targeted, `Payable`, `Hailable` | **FINE** — but see `Harbor`: the book belongs here. ✅ **Fixed in !511**: the book now keeps the harbor's record |
 | `platform/idea/ShipRegister` | nothing — `government:` only; entries are `ship` documents | `enter` (the ship, about herself); `entries`, `entryNamed`, `isNameTaken` | a `Registrar`: the principal its transport checks (`caller === register`) | **FINE** — already the document shape; the Idea is the keeper, not the record |
 | pack `Registrar`s — `HerdRegistry`, `BoreRegistry`, `FisheryRegistry`, `WaterRightRegistry`, `BodyRegister`, `RateCardRegistry`, `WaybillRegistry` | records are documents | the registrar | call-security principal | **FINE** — the model this rule generalizes |
 | `platform/idea/PersistentBusiness` | a cap table | `sellUnits`, `giveUnits`, `transfer … shares`; a smack's company minted `(seed, serial)` | a Business: seats, roster, payee; the table refuses a sale without consent | **FINE** — tests 2–4. A minted company is keyed, but it is not minted to hold data: it holds her master's seat |
@@ -70,7 +72,7 @@ everything else fine (≈ 50 classes across 27 rows).
 
 ## What is left, by migration shape
 
-### 1 · `Harbor`'s book — onto the fixture, or a document (a wave)
+### 1 · `Harbor`'s book — onto the fixture, or a document (a wave) — ✅ fixed in !511 (fixture shape)
 
 Two shapes, and the rule picks between them:
 

@@ -7,13 +7,15 @@
  *
  * - **`hireTo(who, untilS, home, letter)`** records the hire — who has her,
  *   the world second she is due back, the landing she is let from, and the
- *   hire book that let her (which keeps its own copy, so the shed can say
- *   which of its boats are out past their day). Gated to `rent`.
+ *   hire book that let her. ⭐ It is the ONLY record of the hire (harbors
+ *   review 2): the hire book keeps no copy, and reads which of its boats are
+ *   out past their day off the boats themselves (`hiredFrom`). Gated to
+ *   `rent`.
  * - **The hire ends when she is home** (`endHire`): put down on the landing
  *   she was let from, by whatever means — paddled in, carried round. The
  *   composer calls it from its own `onMoved`; there is no `return` verb.
  * - **Overdue is a fact, never a penalty.** `hiredUntilS` passing changes
- *   nothing on her; the hire book's page names her. What a polity does about
+ *   nothing on her; the hire book's page reads it off her and names her. What a polity does about
  *   an unreturned boat is the retail slate's (Deferred seams).
  *
  * ⛔ Not on `Good`: every torch would be rentable. A class composes this
@@ -25,12 +27,10 @@ import type { Stuff } from "../stuff/Stuff";
 import { CallSecurity } from "../security/decorators";
 import { SecurityPolicies } from "../security/SecurityPolicies";
 import { SecurityApi } from "../../api/security";
-import { StuffApi } from "../../api/stuff";
-import HireBook from "../../platform/thing/HireBook";
 
 /** One hire, as the thing let keeps it (persisted with her). */
 export interface HireRecord {
-  /** Minted at the hire; the hire book's copy carries the same id. */
+  /** Minted at the hire. */
   id: string;
   /** The hirer's identity path. */
   by: string;
@@ -55,9 +55,11 @@ export interface Hirable {
   hiredUntilS(): number | null;
   /** The landing she was let from, or `null` when she is not out. */
   home(): string | null;
+  /** The hire book that let her (its identity path), or `null` when she is not out. */
+  hiredFrom(): string | null;
   /** On hire now? */
   isHired(): boolean;
-  /** ⭐ She is home: the hire is over, and the hire book that let her is told. */
+  /** ⭐ She is home: the hire is over (the one record of it, struck). */
   endHire(): void;
 }
 
@@ -99,18 +101,18 @@ export function HirableMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase)
       return this.hire?.home ?? null;
     }
 
+    public hiredFrom(): string | null {
+      return this.hire?.letter ?? null;
+    }
+
     public isHired(): boolean {
       return this.hire !== null;
     }
 
     public endHire(): void {
-      const hire = this.hire;
-      if (hire === null) return;
+      // ⭐ The one record of the hire is hers: struck, the book's page no
+      // longer finds her out (it reads the boats, it keeps no copy).
       this.hire = null;
-      // The hire book that let her keeps its own copy for its `look`; it
-      // lies on the landing she has just been put down on.
-      const letter = StuffApi.findByTemplatePath<Stuff>(hire.letter);
-      if (letter instanceof HireBook) letter.hireEnded(hire.id);
     }
   }
   return HirableMixin;

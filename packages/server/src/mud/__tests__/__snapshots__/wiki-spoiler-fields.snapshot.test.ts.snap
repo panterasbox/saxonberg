@@ -646,7 +646,6 @@ HelpConcept.title = 0
 HidingMixin.hiddenLevel = 0
 HidingMixin.hiding = 0
 HirableMixin.hire = 0
-HireBook.hires = 0
 HireBook.rates = 0
 IceBlock.iceQuality = 0
 IdentifiableMixin.descriptorClass = 0
