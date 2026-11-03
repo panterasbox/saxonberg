@@ -66,6 +66,8 @@ data:
     - /trade/distilling/thing/wash-bucket
     - { template: /trade/distilling/thing/empty-spirit-bottle, count: 6 }
     - { template: /stuff/thing/items/dry-log, count: 6 }
+    # ⭐ The pipe that brings water into this room (water-supply D10).
+    - /stuff/thing/fixture/iron-run
   cast:
     - /world/terminus/goods-yards/veshko/agent/hand
     - /world/terminus/goods-yards/veshko/agent/distiller

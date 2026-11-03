@@ -126,6 +126,38 @@ export default class WaterStore extends WaterStoreBase implements WaterSupply {
     this.initialLevelL = Number.isFinite(value) ? value : -1;
   }
 
+  /** Has the authored first level been stood? Transient — a record carries the real level. */
+  private _primed = false;
+
+  /**
+   * ⭐ A store stands at its authored first level from its very FIRST read,
+   * not from its first settle: a craft gathering water from a butt reads
+   * its level without settling it, and found it empty (the cooking suite).
+   */
+  private prime(): void {
+    if (this._primed) return;
+    this._primed = true;
+    if (this.fillStamp === null && this.initialLevelL >= 0) {
+      const raw = super.getBulkAmount('interior').rawValue();
+      if (!(raw > 0)) this.standAt(this.initialLevelL);
+    }
+  }
+
+  public override getBulkAmount(affordance: BulkAffordance): Quantity<'L'> {
+    if (affordance === 'interior') this.prime();
+    return super.getBulkAmount(affordance);
+  }
+
+  public override getBulkAvailable(affordance: BulkAffordance): number {
+    if (affordance === 'interior') this.prime();
+    return super.getBulkAvailable(affordance);
+  }
+
+  public override isBulkEmpty(affordance: BulkAffordance): boolean {
+    if (affordance === 'interior') this.prime();
+    return super.isBulkEmpty(affordance);
+  }
+
   /** How much water it holds, litres. */
   public levelL(): number {
     return this.getBulkAmount('interior').rawValue();
@@ -269,6 +301,11 @@ export default class WaterStore extends WaterStoreBase implements WaterSupply {
 
   public availableL(): number {
     return this.levelL();
+  }
+
+  /** A store serves whatever premises cites it — it is the house's own water. */
+  public serves(_path: string): boolean {
+    return true;
   }
 
   /** A store has no ranks: whoever draws first gets it. */

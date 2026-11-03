@@ -191,6 +191,12 @@ export interface WaterSupply extends SupplyServing, SupplyReporting {
    * outlet asks ITS supply; it never enumerates the others.
    */
   shareFor(landUse: string): Promise<number>;
+  /**
+   * Does it serve the premises at `path`? A main serves its extents, a
+   * district tank its district; a plumber's service run completes only
+   * where the main it names says yes (D10).
+   */
+  serves(path: string): boolean;
 }
 
 /** How a short supply shares what it has (water-supply D6). */

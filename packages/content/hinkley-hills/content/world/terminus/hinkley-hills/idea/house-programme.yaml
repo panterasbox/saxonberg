@@ -28,7 +28,15 @@ data:
         - { to: bedroom, direction: north, opposite: south }
     - leaf: kitchen
       room: /world/terminus/hinkley-hills/lots/kitchen
-      footprintM2: 25
+      # The scullery's 8 m² are the kitchen's old back end (water-supply W4).
+      footprintM2: 17
+      exits:
+        - { to: scullery, direction: east, opposite: west }
+    # ⭐ The scullery (water-supply W4): unheated, its pipe bare on the wall
+    # — the room a frost night gets into first.
+    - leaf: scullery
+      room: /world/terminus/hinkley-hills/lots/scullery
+      footprintM2: 8
     - leaf: living
       room: /stuff/location/room/living
       footprintM2: 30

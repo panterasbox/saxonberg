@@ -87,3 +87,5 @@ data:
     # are the precedent): a starting condition, not a supply. What
     # restocks it is the trade that makes it.
     - { template: /stuff/thing/items/dry-log, count: 3 }
+    # ⭐ The pipe that brings water into this room (water-supply D10).
+    - /stuff/thing/fixture/iron-run

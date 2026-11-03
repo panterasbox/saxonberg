@@ -71,8 +71,12 @@ import { ParcelApi } from '../../api/parcel';
 import { ZoneApi } from '../../api/zone';
 import { NavigationApi } from '../../api/navigation';
 import { AppApi } from '../../api/app';
+import { WorldClockApi } from '../../api/worldclock';
 import { AppSettingKeys } from '../../lib/config/AppSettings';
 import { WaterHardness } from '../../lib/cleanliness/WaterHardness';
+import PipeRun from './PipeRun';
+import Street from '../location/Street';
+import WaterStore from './WaterStore';
 import '../../lib/supply/WaterChemistry';
 import {
   SUPPLY_STATE_GLOSS,
@@ -298,6 +302,16 @@ export default class WaterFixture
       this._headM = null;
       return;
     }
+    // ⭐⭐ A room has water because a pipe brings it (D10): the supply alone
+    // is not enough. A natural source needs none, a fixture on a NAMED
+    // source is its own pipe (a hydrant on the district main), a public
+    // outlet on a street has its pipe under the street, and a store
+    // standing in the same room feeds the tap beside it.
+    if (this.needsRun(this._supply) && this.soundRun() === null) {
+      this._resolution = 'unplumbed';
+      this._headM = null;
+      return;
+    }
     this._resolution = 'supply';
     this._headM = await this.resolveHead(this._supply);
     // ⭐ Its rank in a shortage is its premises' land use (D6): the market
@@ -307,6 +321,53 @@ export default class WaterFixture
     // A continuous outlet (the fountain's bore) is public by construction.
     const rank = this.continuous ? 'civic' : this._landUse;
     this._share = await this._supply.shareFor(rank).catch(() => 1);
+  }
+
+  /** The room this fixture stands in — the end of its containment walk. */
+  private roomOf(): Stuff | null {
+    const self = this as unknown as Stuff;
+    let cursor: Stuff = self;
+    while (MixinApi.isContainable(cursor)) {
+      const next = cursor.getContainer() as Stuff | null;
+      if (next === null) break;
+      cursor = next;
+    }
+    return cursor === self ? null : cursor;
+  }
+
+  /** The run in this fixture's room, whatever its state, or `null`. */
+  public runOf(): PipeRun | null {
+    const room = this.roomOf();
+    if (room === null) return null;
+    // A run rides the room's `props:` (its contents) or hangs as a fixture;
+    // either way it is the room's own, read locally — never a search.
+    const here: Stuff[] = [
+      ...(MixinApi.isContainer(room) ? (room.getContents() as Stuff[]) : []),
+      ...(MixinApi.isAdornable(room) ? (room.getFixtures() as readonly Stuff[]) : []),
+    ];
+    for (const f of here) {
+      if (f instanceof PipeRun && f.getRunKind() === 'room') return f;
+    }
+    return null;
+  }
+
+  /** The room's run when it carries water, after its frost is read. */
+  private soundRun(): PipeRun | null {
+    const run = this.runOf();
+    if (run === null) return null;
+    run.reconcileFrost(WorldClockApi.getNow().rawValue());
+    return run.isSound() ? run : null;
+  }
+
+  /** Does this outlet need a pipe in its room to reach `supply`? */
+  private needsRun(supply: Supply): boolean {
+    if (this.suppliedBy !== '') return false;
+    const room = this.roomOf();
+    if (room instanceof Street) return false;
+    if (supply instanceof WaterStore && MixinApi.isContainable(supply) && supply.getContainer() === room) {
+      return false;
+    }
+    return true;
   }
 
   /** The supply as last resolved — a SYNC read for hot paths; null = none. */
@@ -424,11 +485,16 @@ export default class WaterFixture
         ? await supply.readWaterHardnessDgh().catch(() => null)
         : null);
     const dgh = fromSupply ?? this.hardnessDgh;
-    if (dgh === null && chemistry === null) return;
+    // ⭐ What stood in the room's pipe since the last draw comes out first
+    // (D8/D10): a lead run in soft acid water has leached into it overnight.
+    const run = supply !== null && this.needsRun(supply) ? this.runOf() : null;
+    const standing = run?.standingWater(chemistry) ?? null;
+    if (dgh === null && chemistry === null && standing === null) return;
     this.setBulkPayload('interior', {
       ...(this.getBulkPayload('interior') ?? {}),
       ...(dgh !== null ? { hardnessDgh: dgh } : {}),
       ...(chemistry !== null ? { pH: chemistry.pH, salinityPpt: chemistry.salinityPpt } : {}),
+      ...(standing?.dissolvedToxins ? { dissolvedToxins: standing.dissolvedToxins } : {}),
     });
   }
 
@@ -463,6 +529,8 @@ export default class WaterFixture
     }
     if (this.natural) return;
     this.supplyNow()?.drawL(litres);
+    // The draw flushed the pipe: fresh water stands in it now.
+    if (litres > 0) this.runOf()?.flush();
   }
 
   /** ⭐ Why `fill` got nothing here, in the tap's own words. */

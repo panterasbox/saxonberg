@@ -58,6 +58,8 @@ data:
     # Born-with, so it lands once on first provisioning and is then the
     # owner's, recorded in their own yard's snapshot.
     - /stuff/thing/vessel/watering-can
+    # ⭐ The pipe that brings water into this room (water-supply D10).
+    - /world/terminus/hinkley-hills/thing/service-run
   details:
     house:
       keywords: [house, wall, weatherboard, windows, door, kitchen, step]

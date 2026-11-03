@@ -1,0 +1,15 @@
+# Plumbing — the trade of bringing water into a building (water-supply D10).
+# Wiping a lead joint so it holds under a winter's frost, caulking an iron
+# hub, laying a run to fall so it drains. Improves by laying; it changes
+# how well a joint is made, never what the water is.
+class: /platform/idea/Discipline
+data:
+  key: plumbing
+  channel: skill
+  label: Plumbing
+  iscedf: "0732"  # ISCED-F 2013: building and civil engineering
+  description: >-
+    Laying the pipe that brings water into a house and keeping it there:
+    the lengths, the falls, and above all the joints — a wiped lead joint
+    that holds through a hard frost is the whole of a plumber's
+    reputation. Improves by laying and mending.

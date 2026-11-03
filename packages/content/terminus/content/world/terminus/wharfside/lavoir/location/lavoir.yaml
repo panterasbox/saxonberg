@@ -32,6 +32,8 @@ data:
     - /world/terminus/wharfside/lavoir/thing/tariff
     - /trade/chandlery/thing/soap-bar
     - /stuff/thing/fixture/midden
+    # ⭐ The pipe that brings water into this room (water-supply D10).
+    - /stuff/thing/fixture/iron-run
   cast:
     - /world/terminus/wharfside/lavoir/agent/laundress
     - /world/terminus/wharfside/lavoir/agent/washerwoman

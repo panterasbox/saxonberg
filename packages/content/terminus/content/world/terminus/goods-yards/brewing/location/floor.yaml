@@ -42,6 +42,8 @@ data:
     - /trade/brewing/thing/vat
     - /trade/brewing/thing/vat
     - /trade/brewing/thing/jar-of-barm
+    # ⭐ The pipe that brings water into this room (water-supply D10).
+    - /stuff/thing/fixture/iron-run
   cast:
     - /world/terminus/goods-yards/brewing/agent/hand
   details:

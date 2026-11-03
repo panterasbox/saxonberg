@@ -17,6 +17,7 @@ import WaterFixture from '../WaterFixture';
 import Good from '../../../lib/stuff/Good';
 import Location from '../../location/Location';
 import PersistentLocation from '../../location/PersistentLocation';
+import PipeRun from '../PipeRun';
 import Material from '../../../lib/material/Material';
 import { StuffApi } from '../../../api/stuff';
 import { ParcelApi } from '../../../api/parcel';
@@ -53,6 +54,9 @@ class FakeSupply extends Good {
     return this.state === null ? this.levelL : 0;
   }
   public share = 1;
+  serves(): boolean {
+    return true;
+  }
   async shareFor(): Promise<number> {
     return this.share;
   }
@@ -196,15 +200,21 @@ describe('⭐⭐ a fixture reads its PREMISES', () => {
     expect(t.supplyStateNow()).toBe('unplumbed');
   });
 
-  it('a premises citing a supply loads it on use and runs', async () => {
+  it('a premises citing a supply loads it on use and runs — through the room\'s pipe', async () => {
     mainAt();
     const waterOf = vi
       .spyOn(ParcelApi, 'waterOf')
       .mockReturnValue({ source: MAIN, parcel: null });
+    const bar = room('/test/place/bar');
     const t = tap();
-    ContainmentApi.move(t, room('/test/place/bar'));
+    ContainmentApi.move(t, bar);
+    // ⭐⭐ No pipe in the room: the supply alone is not water (D10).
     await t.settleBulk('interior');
     expect(waterOf).toHaveBeenCalledWith('/test/place/bar');
+    expect(t.supplyStateNow()).toBe('unplumbed');
+    // A sound run in the room, and it runs.
+    ContainmentApi.move(makeStuff(() => new PipeRun()), bar);
+    await t.settleBulk('interior');
     expect(t.supplyStateNow()).toBeNull();
     expect(t.getBulkAvailable('interior')).toBe(Infinity);
   });

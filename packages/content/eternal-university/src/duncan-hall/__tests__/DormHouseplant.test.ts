@@ -205,6 +205,8 @@ function seedDomain(): void {
   addSeed('/trade/farming/thing/seed/peace-lily', `${PRODUCE}trade/farming/thing/seed/peace-lily.yaml`);
   addSeed('/trade/farming/thing/seed/snake-plant', `${PRODUCE}trade/farming/thing/seed/snake-plant.yaml`);
   addSeed('/stuff/thing/vessel/watering-can', `${OBJECTS}stuff/thing/vessel/watering-can.yaml`);
+  // ⭐ The dorm room's pipe (water-supply D10).
+  addSeed('/stuff/thing/fixture/iron-run', `${OBJECTS}stuff/thing/fixture/iron-run.yaml`);
   // ⭐ The winter coat the footlocker is born with (the climate build, D18).
   addSeed('/stuff/thing/clothes/greatcoat', `${OBJECTS}stuff/thing/clothes/greatcoat.yaml`);
   // …and its fabric form, which the real world's catalogue registers.

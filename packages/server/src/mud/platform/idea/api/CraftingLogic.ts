@@ -4848,6 +4848,10 @@ async function fitImpl(req: FitRequest): Promise<FitOutcome> {
   const stack = MixinApi.isStackable(part);
   const have = stack ? part.getQuantity() : 1;
   const k = Math.min(have, line.failed > 0 ? line.failed : 1, line.count);
+  // ⭐ The whole has its own say (water-supply D10), after the joints'
+  // gates and before anything is spent.
+  const veto = await whole.canTakeMembers(line.part, k, maker);
+  if (!veto.ok) return { ok: false, reason: 'refused-by-whole', detail: veto.reason };
   // ⭐ A SOUND member swapped out comes back to hand — a haft you are
   // replacing because you want a better one is still a haft. A failed one
   // (split, sprung) is not worth minting: it is the irreversible branch's.
@@ -4907,6 +4911,7 @@ async function fitImpl(req: FitRequest): Promise<FitOutcome> {
   if (slipMismatch && MixinApi.isIntegrity(whole)) {
     whole.addFlaw('check', true, nowGameS());
   }
+  await whole.afterMembersFitted(maker);
   // The whole is as good as its worst line (weakest link).
   if (MixinApi.isGraded(whole)) {
     const worst = whole

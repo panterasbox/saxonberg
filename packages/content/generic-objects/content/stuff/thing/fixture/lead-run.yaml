@@ -1,0 +1,16 @@
+# The lead pipe in a pre-plumbed room's walls (water-supply D10, D29) —
+# ONE PIECE (assembly's monolith rule: no bill, so nothing to lay): the run
+# a city built with water in it already has. It is part of the room's
+# structure, out of the room's listing; `look run` finds it, `repair`
+# mends it. In soft acid water it leaches lead; in a hard frost it bulges.
+class: /platform/thing/PipeRun
+data:
+  shortDescription: lead pipe run
+  keywords: [run, "pipe run", plumbing, pipes, "lead pipe"]
+  register: definite
+  longDescription: >-
+    The lead supply pipe, where it comes up through the floor and along the
+    wall to the taps: dull grey, dressed neatly round the corners, with the
+    smooth bulb of a wiped joint at every bend.
+  _materialPath: /stuff/idea/material/element/lead
+  lengthM: 6

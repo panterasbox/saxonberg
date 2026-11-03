@@ -27,6 +27,8 @@ data:
   props:
     - /trade/smithing/thing/barbell
     - /stuff/thing/fixture/basin
+    # ⭐ The pipe that brings water into this room (water-supply D10).
+    - /stuff/thing/fixture/iron-run
   details:
     windows:
       keywords: [windows, window]

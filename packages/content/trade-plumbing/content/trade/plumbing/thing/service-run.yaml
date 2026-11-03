@@ -1,0 +1,24 @@
+# The SERVICE run (water-supply D10) — a lot's connection to the main in
+# the street. Unlaid: four lengths of lead and the wiped joints between.
+# ⭐ Laying its LAST length connects the premises — the main it names is
+# cited for the lot — and that last length is refused (*"No main runs past
+# here"*) where the main does not serve the lot. A locality's own row
+# `extends:` this and names its main in `connectsTo:`.
+class: /platform/thing/PipeRun
+data:
+  shortDescription: unfinished service pipe
+  keywords: [run, "service run", "service pipe", plumbing, pipes]
+  register: definite
+  longDescription: >-
+    A trench dug from the lane to the house wall, a stopcock box sunk at
+    the boundary, and nothing in the trench yet.
+  _materialPath: /stuff/idea/material/element/lead
+  runKind: service
+  unlaid: true
+  mass: 40
+  lengthM: 12
+  bill:
+    parts:
+      - { part: pipe, template: /trade/plumbing/thing/lead-pipe, count: 4, role: structural, plural: lengths }
+    joints:
+      - { key: wiping, method: wiped, members: [pipe] }

@@ -158,6 +158,9 @@ const FURNISHED = [
   "hinkley-hills/content/world/terminus/hinkley-hills/lots/bathroom.yaml",
   "hinkley-hills/content/world/terminus/hinkley-hills/lots/hall.yaml",
   "hinkley-hills/content/world/terminus/hinkley-hills/lots/kitchen.yaml",
+  // ⭐ The scullery (water-supply W4): a bought house's room like its
+  // kitchen — the washing, the sink, and the pipe that freezes.
+  "hinkley-hills/content/world/terminus/hinkley-hills/lots/scullery.yaml",
   "hinkley-hills/content/world/terminus/hinkley-hills/lots/yard.yaml",
   // ⭐ The valley farmstead's barn (tracts build): the farm's store, where a
   // holder's goods are laid back down; its holding places every copy.

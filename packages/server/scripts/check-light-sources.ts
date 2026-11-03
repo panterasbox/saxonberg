@@ -196,6 +196,7 @@ export const SKYLIT_INTERIORS: readonly string[] = [
   '/world/terminus/mayfield-row/seznick-house/location/hall', // a fanlight over the door — about an hour of it each morning
   '/world/terminus/hinkley-hills/lots/hall', // a tall sash window beside the door
   '/world/terminus/hinkley-hills/lots/kitchen', // a small window over the sink
+  '/world/terminus/hinkley-hills/lots/scullery', // a small window over the stone sink (water-supply W4)
   '/world/terminus/goods-yards/brewing/location/floor', // high shuttered windows above the coppers
   '/world/terminus/goods-yards/vintner/location/floor', // square windows under the eaves, in thick green glass
   '/world/terminus/hearthworks/location/cookhouse', // a wide unglazed window over the wash bench
