@@ -56,8 +56,11 @@ describe('MobileMixin default aliases', () => {
     ['sw', 'southwest'],
     ['u', 'up'],
     ['d', 'down'],
-  ])('maps abbreviation %s to "go %s"', (abbrev, fullName) => {
-    expect(aliasByName.get(abbrev)).toBe(`go ${fullName}`);
+  ])('maps abbreviation %s to "go %s" — the word unrewritten; the %s exit answers to it', (abbrev, fullName) => {
+    // ⭐ MQL reads only Perceptible: `n` is not rewritten to `north` on
+    // the way in — the north exit's own keywords carry `n`.
+    expect(aliasByName.get(abbrev)).toBe(`go ${abbrev}`);
+    void fullName;
   });
 });
 

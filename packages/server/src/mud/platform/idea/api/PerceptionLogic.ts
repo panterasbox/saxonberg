@@ -315,7 +315,7 @@ export class PerceptionLogic extends ApiLogic {
   public canReach(
     actor: Stuff,
     target: Stuff,
-    opts?: { location?: Stuff | null; viaExit?: boolean },
+    opts?: { location?: Stuff | null },
   ): boolean {
     const id = target.stuffId;
     if (id === actor.stuffId) return true;
@@ -326,12 +326,6 @@ export class PerceptionLogic extends ApiLogic {
         : MixinApi.isContainable(actor)
           ? actor.getContainer()
           : null;
-
-    // The door-via-direction case: `open north` resolves to the LOCATION
-    // carrying an exit attribution, and the controller then fetches the
-    // door off that exit. Without this the commonest way to open a door
-    // is unreachable.
-    if (opts?.viaExit && location && id === location.stuffId) return true;
 
     // ⭐ ONE LEVEL into an open container, on both sides. Reach into the
     // open crate standing here, or into the open pouch you are carrying;
@@ -384,7 +378,9 @@ export class PerceptionLogic extends ApiLogic {
     // `open` verb worked on perfectly well.
     if (location && MixinApi.isExitable(location)) {
       for (const exit of location.getObviousExits()) {
-        if (exit.getDoor()?.stuffId === id) return true;
+        // ⭐ The way itself (a direction binds the exit — harbors review 3)
+        // or the door hung in it.
+        if (exit.stuffId === id || exit.getDoor()?.stuffId === id) return true;
       }
     }
     // ⚠ ...and neither are fixtures. A hung sconce, a wall TV, a neon

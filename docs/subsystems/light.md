@@ -763,8 +763,7 @@ What stays the same:
 
 What changes observably: a closed Door now blocks light propagation
 between its two rooms. The Door also appears as a fixture on each
-side via its anchors — MQL fixture walks dedupe by `stuffId` so the
-existing `getExitDoors()` path keeps `via.exit` attribution.
+side via its anchors — MQL fixture walks dedupe by `stuffId`.
 
 `Door.detach()` was extended to clear BOTH the existing
 `attachedTo` Exit references AND the Boundary anchor pair (via
@@ -851,8 +850,7 @@ as inventory items.
 
 Door duplication: the fixture walk surfaces a Door once via
 exit-doors and once via fixture-boundaries. The resolver dedupes
-by `(stuff, via)`; the exit path wins, preserving `via.exit`
-attribution.
+by `stuffId`. (The exit it hangs in is a separate candidate.)
 
 Fixtures are NOT auto-listed in `look` room descriptions in v1.
 Authors who want them mentioned write the long description

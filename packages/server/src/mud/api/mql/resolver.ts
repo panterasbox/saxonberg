@@ -68,7 +68,7 @@ import type {
   SublistNode,
   ValueNode,
 } from './types';
-// Loads `detailPath` and `exit` augmentations onto `MqlMatchVia`.
+// Loads the `detailPath` augmentation onto `MqlMatchVia`.
 import './via-augment';
 
 export class MqlResolveError extends Error {
@@ -653,7 +653,7 @@ function candidatesFromQuery(
  *   - When **no via** AND the stuff is a `Container`: include its
  *     contents (each item plus its own details).
  *   - When **no via** AND the stuff is `Exitable`: include doors and
- *     direction candidates.
+ *     each exit the viewer can see (the exit itself).
  *
  * The "no via" gate on contents/exits matches the via-aware transform
  * rule: a candidate with via is "inside" a detail, so its
@@ -751,17 +751,13 @@ function candidatesForAnchor(
           }
         }
       }
-      const seenDirs = new Set<string>();
-      for (const exit of stuff.getObviousExits()) {
-        const direction = exit.getDirection();
-        if (seenDirs.has(direction)) continue;
-        seenDirs.add(direction);
-        out.push({
-          stuff,
-          name: direction,
-          keywords: [direction],
-          via: { exit },
-        });
+      // ⭐ Each exit the VIEWER can see, as itself (harbors review 3) —
+      // the same rule as the fast path's `candidatesForHere`, so a drilled
+      // focus is no longer blind to which ways are hidden. System mode
+      // (no viewer) lists every obvious exit.
+      const exits = viewer === null ? stuff.getObviousExits() : stuff.obviousExitsFor(viewer);
+      for (const exit of exits) {
+        out.push({ stuff: exit, name: nameOf(exit), keywords: keywordsOf(exit) });
       }
     }
   }
@@ -995,8 +991,7 @@ function intersectWithSeed(
  * of the giver), then union the results.
  *
  * Each resulting match takes its `via` from the candidate (e.g.,
- * detail subcandidates carry `via.detailPath`, exit candidates carry
- * `via.exit`). Score is inherited from the prior match — same
+ * detail subcandidates carry `via.detailPath`). Score is inherited from the prior match — same
  * convention as {@link applyTransform}.
  *
  * Dedup is by `(stuffId, JSON-stringified via)` — same shape as the
@@ -1087,28 +1082,17 @@ const SEEDS_EXCLUDING_PRIOR: ReadonlySet<string> = new Set([
 
 /**
  * ⛔⛔ A stable dedupe key for a match's `via`, **and it may not be
- * `JSON.stringify`.**
+ * `JSON.stringify` of anything Stuff-shaped.**
  *
- * `MqlMatchVia` is an open interface every subsystem augments, and
- * `lib/boundary/Exit.ts` augments it with a LIVE `Exit` Stuff. An Exit
- * reaches its `Boundary`, whose `anchorA`/`anchorB` point back at it, so
- * stringifying one throws `Converting circular structure to JSON` and
- * the whole resolve fails with `mql-error`.
- *
- * ⚠⚠ That is a defect this chain walk shipped with, and it was
- * unreachable until the lock build conferred `lock`/`unlock`: those are
- * the first views to combine a `requires:` mixin gate with a DIRECTION
- * candidate, which is the only candidate that carries an exit. The
- * symptom was `unlock north` → `mql-error[target]` while `unlock gate`
- * worked, at the one locked door in the realm. ⭐ Found by the drive;
- * nothing else could see it, because no test had ever targeted a
- * boundary verb by direction — `OpenController`'s own test names the
- * door by keyword.
- *
- * So: identity, never serialization. Anything Stuff-shaped contributes
- * its `stuffId`; everything else is JSON, which is safe because the
- * remaining augmentations are plain data (`detailPath: string[]`,
- * `bulk: { affordance }`).
+ * `MqlMatchVia` is an open interface every subsystem augments. It once
+ * carried a LIVE `Exit` (`via.exit`), which reaches its `Boundary`, whose
+ * anchors point back at it — stringifying one threw `Converting circular
+ * structure to JSON`, and `unlock north` failed with `mql-error` at the
+ * realm's one locked door (found by the lock build's drive). Since
+ * harbors review 3 an exit binds as itself and every via is plain data
+ * (`detailPath: string[]`, `bulk: { affordance }`), but the rule stays:
+ * anything Stuff-shaped contributes its `stuffId`, everything else is
+ * JSON, so a future augmentation cannot reopen it.
  */
 function viaKey(via: MqlMatchVia | undefined): string {
   if (!via) return '';

@@ -15,13 +15,13 @@ validators:
 args:
   - name: target
     type: object
-    # ⚠ The room FIRST, the drill chain as the fallback (harbors drive run
-    # 6). A way is the room's: with the focus first, `look first line` on
-    # the Town Quay (a line from the Hesper) and then `go hesper` searched
-    # the focused line, matched its NAME, and never saw the way named for
-    # her — "You can't walk that way". Something only the drill reaches
-    # (a hatch on the thing you are examining) still resolves.
-    scope: ["reachable", "$focus"]
+    # ⭐ Ways only (harbors review 3): an exit is a candidate in its own
+    # right, so the scope names WAYS and the word can only mean one — `go
+    # hesper` is the way named for her, never a line from her lying on the
+    # quay or the thing in focus. A vessel standing here is entered by its
+    # entry-exit (`go carriage`), tried second. This retires the private
+    # `["reachable", "$focus"]` order the Stage A drive (run 6) forced.
+    scope: ["reachable:[class.Exit]", "reachable:[class.ExitableVessel]"]
     required: true
     validators:
       - /lib/command/validators/canReach

@@ -99,6 +99,20 @@ Carries:
   `media` declaration, so old content stays backcompat-safe. See
   [locomotion.md](./locomotion.md#exitmedia).
 
+⭐ **An exit is a thing you can name and look at** (harbors review 3).
+`Exit` composes `Visible` + `Perceptible` over `Concealable`, and MQL
+binds a direction to the EXIT itself — there is no `via.exit`. Its name
+is its direction (`presentationPhrase`) and its keywords are the authored
+ones plus its direction plus its short forms (`n`, `u` — `getKeywords`,
+reading `NavigationApi.shortFormsOf`) — both ⚠ **derived**, and named so
+on the methods. MQL reads an exit only through that interface; `go n`
+binds the north exit because the exit answers to `n`. It describes itself: an authored `longDescription`
+(the berth way's *"A gangway runs up to {{ ship }}'s deck."*), else
+`plainWay()` — *a way north; the oak door is closed* — which never names
+the far side (the map's evidence firewall). A verb that needs the door
+on a way reaches it through `MqlApi.effectiveTarget`; `Stuff.isExit()`
+is how a reader asks, since `Exit` sits on the locomotion import graph.
+
 ### `Exit.hidden` — subsumed into the concealment gate
 
 `Exit` now composes `ConcealableMixin` (`Exit extends

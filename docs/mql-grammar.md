@@ -181,30 +181,43 @@ you need a single token to compose mid-chain.
 
 ### Direction tokens as seeds
 
-Directions (`north`, `up`, `nw`) aren't a separate seed kind —
-they're barewords. They resolve through the `here` scope's exit-match
-path: the matcher looks at the location's exits and matches by
-direction or alias, returning the location with `via.exit` so
-controllers (`go`, `open`, `close`) can act on the exit directly.
+Directions (`north`, `up`, `hesper`) aren't a separate seed kind —
+they're barewords, and an exit is an ordinary candidate. Every exit
+the viewer can see is in the `here` pool (and so in `reachable`) as
+**itself**: its `stuff` IS the way, scored by the one scorer over its
+NAME (its direction) and its KEYWORDS. A verb acts on what came back —
+`look` describes the way, `go` crosses it, and a verb that needs a
+door reaches the one hung in it through `MqlApi.effectiveTarget`.
 
 ```
-go north         resolves to (location, via.exit=north-exit) — controller traverses
-open east        resolves to (location, via.exit=east-exit) — controller opens its door
+go north         resolves to the north exit — the controller crosses it
+look north       resolves to the north exit — "A way north; the oak door is closed."
+open north       resolves to the north exit — effectiveTarget finds its door
+look gangway     resolves to a berth way by its authored keyword
 ```
 
-The direction vocabulary (canonical names + aliases like `n` →
-`north`) lives in the spatial subsystem.
+⚠ **MQL reads a Stuff only through its Perceptible interface** — its
+name and `getKeywords()` — and synthesizes no word of its own. So the
+words an exit answers to are the exit's, **derived (magic) and named
+where they live**: its *name* is its direction
+(`Exit.presentationPhrase`) and its *keywords* are its authored keywords
+plus its direction plus that direction's short forms (`Exit.getKeywords`
+— `north`, `n`; `up`, `u`; the short forms read from the direction
+table). Nothing rewrites `n` to `north` on the way in: `n` and `go n`
+bind the north exit because the exit answers to `n` (the bare-verb
+alias `n` is `go n`, the word untouched).
 
-> **Doors and exits aren't the same thing.** A door is a Stuff —
-> a thing with its own keywords (`oak`, `iron`, `door`) that
-> players reach for. An exit is a feature of the room — a
-> direction the room offers, with an optional door attached. Both
-> are addressable from the `here` scope, but through different
-> paths: `oak` matches the door directly; `north` matches the
-> exit and lands `via.exit` so the controller can find any door
-> hanging off it. That mirrors how players think about the world
-> — `look at the oak door` and `go north` are different verbs
-> aimed at different concepts, and MQL keeps them distinct.
+A hidden exit is in nobody's pool until the viewer perceives it
+(`obviousExitsFor(viewer)`, on both the fast and the slow scope paths).
+
+> **Doors and exits aren't the same thing — yet.** A door is a Stuff
+> with its own keywords (`oak`, `iron`, `door`) hung in an exit; an
+> exit is the way through, named by its direction. Both are candidates
+> from `here`: `oak` matches the door, `north` matches the exit, and a
+> door-verb on the exit (`open north`) reaches the door by MQL's one
+> rule — the bound thing, else the door on a bound way. The
+> boundary slate (`docs/slates/builds/boundary-slate.md`) folds the two
+> into one shared edge whose sides are the exits.
 
 ### Path globs
 

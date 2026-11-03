@@ -644,6 +644,8 @@ export default class Rope extends SpliceableMixin(TieableMixin(ClimbableMixin(Gr
     const stem = this.getShortDescription() || 'line';
     if (name) {
       end.setShortDescription(`line from ${name}`);
+      // ⚠ DERIVED (magic), named here: the end ashore answers to the words
+      // of the ship it came from — written at mint, not authored.
       end.setKeywords([...end.getKeywords(), ...name.replace(/^the\s+/i, '').toLowerCase().split(/\s+/)]);
       end.setLongDescription(
         `${GrammarApi.cap(`${GrammarApi.articleFor(stem)} ${stem}`)} comes ashore from ${name}, ${made.knot.label.replace(/^made fast/, `made fast round ${load.getPresentation()}`)}.`,

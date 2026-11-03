@@ -260,13 +260,12 @@ suite('A1 — the port', () => {
     expect(quay, quay).toMatch(/Town Quay/);
     expect(quay, quay).toMatch(/Alongside: the Hesper/);
     expect(quay, quay).toMatch(/line from the Hesper/i);
-    // ⭐ (review 2) `look hesper` is MQL's one rule: the name binds the quay
-    // through her way, and look shows what came back — the quay, whose own
-    // description reads the way's (asked before the line is looked at, so
-    // no focus stands in front of the quay). Her deck is seen by going aboard.
+    // ⭐ (review 3) `look hesper` binds her WAY — an exit is a candidate in
+    // its own right, named for her — and the way describes itself. Her deck
+    // is seen by going aboard. (No ordering needed: `go` names ways only.)
     const her = await say(sailor, 'look hesper');
-    expect(her, her).toMatch(/Town Quay/);
     expect(her, her).toMatch(/A gangway runs up to the Hesper's deck\./);
+    expect(her, her).not.toMatch(/Town Quay/);
     // Her lines are made fast round the quay's bollards: the line ashore says so.
     const line = await say(sailor, 'look first line');
     expect(line, line).toMatch(/mooring line comes ashore from the Hesper, made fast round .*bollard/i);

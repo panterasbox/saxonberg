@@ -486,6 +486,20 @@ function scopeTries(yamlScopes: readonly string[], giver: Stuff): string[] {
   );
 }
 
+/**
+ * ⭐ Does a candidate satisfy every `requires:` term — by the SAME rule the
+ * field validator applies (`MqlApi.effectiveTarget`: the thing itself, or
+ * the door hung in a way)? So `open north` finds the way admissible in the
+ * scope walk exactly as the validator will accept it (harbors review 3 —
+ * an exit is a candidate in its own right).
+ */
+function admitsAll(terms: readonly RequirementTerm[]): (s: Stuff) => boolean {
+  return (s) =>
+    terms.every(
+      (t) => MqlApi.effectiveTarget({ stuff: s, raw: '' }, (x): x is Stuff & object => t.test(x)) !== null,
+    );
+}
+
 async function walkScopes(
   raw: string,
   giver: Stuff & CommandGiver,
@@ -1421,7 +1435,7 @@ export class CommandLogic extends ApiLogic {
       // first-name-match-wins). No `requires:` → every match counts.
       const terms =
         (def as { _requirementTerms?: RequirementTerm[] })._requirementTerms ?? [];
-      const admissible = (s: Stuff): boolean => terms.every((t) => t.test(s));
+      const admissible = admitsAll(terms);
 
       if (def.type === 'objects') {
         let r: MqlMany;
@@ -1621,7 +1635,7 @@ export class CommandLogic extends ApiLogic {
       // Same `requires:`-aware scan as the positional loop.
       const terms =
         (def as { _requirementTerms?: RequirementTerm[] })._requirementTerms ?? [];
-      const admissible = (s: Stuff): boolean => terms.every((t) => t.test(s));
+      const admissible = admitsAll(terms);
 
       if (def.type === 'objects') {
         let r: MqlMany;

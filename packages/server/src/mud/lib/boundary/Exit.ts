@@ -40,6 +40,9 @@
 
 import { Idea } from '../stuff/Idea';
 import { ConcealableMixin } from '../concealment/Concealable';
+import { PerceptibleMixin } from '../description/Perceptible';
+import { VisibleMixin } from '../description/Visible';
+import type { NounPhrase } from '../description/NounPhrase';
 import { ConcealmentLevels } from '../concealment/ConcealmentLevel';
 import type { ConcealmentLevel } from '../concealment/ConcealmentLevel';
 import type { Enablement } from '../locomotion/Enablement';
@@ -56,6 +59,7 @@ import { LocomotionApi } from '../../api/locomotion';
 import { MixinApi } from '../../api/mixin';
 import { GrammarApi } from '../../api/grammar';
 import { ParcelApi } from '../../api/parcel';
+import { NavigationApi } from '../../api/navigation';
 
 /**
  * Discriminator naming which gate failed during `canTraverse`. Backcompat
@@ -229,7 +233,14 @@ const EXIT_MEDIUM_VERB: Readonly<Record<string, string>> = {
   air: 'fly',
 };
 
-export default class Exit extends ConcealableMixin(Idea) {
+/**
+ * ⭐ An exit is a thing you can NAME and LOOK AT (harbors review 3): MQL
+ * binds a direction to the exit itself, scored by its own name (its
+ * direction) and its authored keywords (`Perceptible` — `gangway` on a
+ * ship's berth way), and it describes itself (`Visible` — an authored
+ * `longDescription`, else {@link Exit.getLongFor}'s default).
+ */
+export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin(Idea))) {
   /**
    * The exit-KIND hydration allowlist (the applier applies only
    * declared fields). Exits are never saved — no persistence host
@@ -266,6 +277,68 @@ export default class Exit extends ConcealableMixin(Idea) {
   protected direction: string;
   public getDirection(): string { return this.direction; }
   public setDirection(value: string): void { this.direction = value; }
+
+  /**
+   * ⚠ **DERIVED (magic), named here:** an exit is CALLED by its direction
+   * — `north`, `up`, `hesper` (a berth way is named for her) — never an
+   * authored name. That is the name MQL scores (`look
+   * north` is this exit at the top tier), and the heading `look` prints.
+   * An unbound kind clone (no direction yet) falls back to the ladder.
+   */
+  /**
+   * ⚠ **DERIVED (magic), named here:** the keywords an author wrote on
+   * this exit's row (`gangway` on a berth way) PLUS its direction PLUS
+   * that direction's short forms (`north` → `n`, `up` → `u`, read from
+   * the direction table via `NavigationApi.shortFormsOf`). None of these
+   * is authored — they are folded in, the `Door.getKeywords()` shape — and
+   * MQL reads an exit ONLY through this Perceptible interface: it builds
+   * no exit-shaped name or keyword and rewrites no word, so `go n` binds
+   * the north exit because the exit says it answers to `n`.
+   */
+  public override getKeywords(): string[] {
+    const out = super.getKeywords();
+    const dir = this.direction?.toLowerCase().trim();
+    if (!dir) return out;
+    for (const w of [dir, ...NavigationApi.shortFormsOf(dir)]) {
+      if (!out.includes(w)) out.push(w);
+    }
+    return out;
+  }
+
+  /** Yes — see {@link Stuff.isExit}. */
+  public override isExit(): this is Exit {
+    return true;
+  }
+
+  public override presentationPhrase(): NounPhrase {
+    if (this.direction) return GrammarApi.properPhrase(this.direction);
+    return super.presentationPhrase();
+  }
+
+  /**
+   * ⭐ The exit describes itself: an authored `longDescription` when it
+   * has one, else *a way north* and the state of what hangs in it.
+   *
+   * ⛔ Never names the far side. Where a way LEADS is map evidence the
+   * viewer earns by walking it (`location-graph.md` § the evidence
+   * firewall); the way itself is all that stands here to be seen.
+   */
+  public override getLongFor(viewer: Stuff): string {
+    if (this.getLongDescription()) return super.getLongFor(viewer);
+    return this.plainWay();
+  }
+
+  /** *A way north; the oak door is closed.* — the unauthored description. */
+  protected plainWay(): string {
+    let said = `A way ${this.direction}`;
+    if (this.door) {
+      const door = this.door.presentationPhrase().withRegister('definite').render();
+      said += `; ${door} is ${this.door.stateWord()}`;
+    } else if (MixinApi.isLockable(this) && this.isLocked()) {
+      said += '; it is locked';
+    }
+    return `${said}.`;
+  }
 
   protected source: Stuff & Container;
   public getSource(): Stuff & Container { return this.source; }

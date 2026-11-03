@@ -1164,6 +1164,8 @@ export default class Ship extends BilgeMixin(PersistableMixin(
     const named = name.trim().replace(/^the\s+/i, '');
     this.setName(`the ${named}`);
     this.setShortDescription(named);
+    // ⚠ DERIVED (magic), named here: her keywords are written from her
+    // name at commissioning — no author typed them.
     const words = named.toLowerCase().split(/\s+/).filter((w) => w.length > 0);
     this.setKeywords([...new Set([named.toLowerCase(), ...words, ...this.getKeywords()])]);
 
@@ -1437,7 +1439,14 @@ export default class Ship extends BilgeMixin(PersistableMixin(
   public setBerth(v: string | null): void { this.berth = typeof v === 'string' && v !== '' ? v : null; }
   public setMoored(v: boolean): void { this.moored = v === true; }
 
-  /** The word her way aboard is called by: her name, lowercased, the article dropped. */
+  /**
+   * The word her way aboard is called by: her name, lowercased, the
+   * article dropped.
+   *
+   * ⚠ DERIVED (magic), named here: her way aboard is NAMED for her — this
+   * word becomes the berth exit's direction (and so its name and keyword,
+   * `Exit.getKeywords`). No author writes it.
+   */
   public berthWord(): string {
     return this.getName().replace(/^the\s+/i, '').trim().toLowerCase() || 'ship';
   }

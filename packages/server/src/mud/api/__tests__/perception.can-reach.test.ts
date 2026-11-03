@@ -151,16 +151,15 @@ describe('PerceptionApi.canReach', () => {
   });
 
   /*
-   * The door-via-direction binding: `open north` resolves to the
-   * LOCATION carrying an exit attribution, and the controller reads the
-   * door off `via.exit`. Without this clause the commonest way to open a
-   * door is unreachable.
+   * ⭐ A direction binds the WAY itself (harbors review 3): `open north`
+   * and `go north` hold the exit, so the exit is within reach — and the
+   * room you stand in is not something you reach.
    */
-  it('reaches the location itself only when the binding came via an exit', () => {
+  it('reaches an exit of the room; never the room itself', async () => {
+    await here.addBidirectionalExit(there, 'north');
+    const north = here.getExit('north')!;
+    expect(PerceptionApi.canReach(s(actor), s(north))).toBe(true);
     expect(PerceptionApi.canReach(s(actor), s(here))).toBe(false);
-    expect(PerceptionApi.canReach(s(actor), s(here), { viaExit: true })).toBe(
-      true,
-    );
   });
   // ⭐ ONE LEVEL into an open container, and the negatives are the point:
   // this clause is what four callers had each hand-rolled, so the rule it

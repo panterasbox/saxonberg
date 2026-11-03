@@ -97,6 +97,8 @@ export function WreckSiteMixin<TBase extends MixinConstructor<SiteHost>>(Base: T
       const deck = ship.getEntrance() ?? '';
       if (handle === '' || deck === '') return;
       if (!this.wrecks.some((w) => w.ship === handle)) {
+        // ⚠ DERIVED (magic), named here: the way to her wreck is named for
+        // the first word of her name.
         const word = ship.getName().replace(/^the\s+/i, '').trim().toLowerCase().split(/\s+/)[0] || 'wreck';
         this.wrecks = [...this.wrecks, { ship: handle, name: ship.getName(), word, deck }];
         const self = this as unknown as SiteHost;

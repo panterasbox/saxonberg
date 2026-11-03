@@ -96,6 +96,16 @@ export class NavigationApi {
   }
 
   /**
+   * The conventional short forms of a direction (`north` → `['n']`,
+   * `up` → `['u']`); `[]` for a non-cardinal. ⚠ Read by
+   * `Exit.getKeywords()`, which is where those words become an exit's
+   * own (derived, and named so there) — MQL never rewrites a word.
+   */
+  public static shortFormsOf(direction: string): string[] {
+    return logic().shortFormsOf(direction);
+  }
+
+  /**
    * Return the cardinal inverse of a direction.
    *
    * Returns `undefined` for non-cardinals (semantic labels like `'office'` or

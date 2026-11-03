@@ -23,6 +23,7 @@ import LocateController from '../cmd/perception/LocateController';
 import LookController from '../cmd/perception/LookController';
 import { candidatesForHere } from '../../../api/mql/scope-walk';
 import { CardApi } from '../../../api/card';
+import { MqlApi } from '../../../api/mql';
 import type BerthExit from '../BerthExit';
 import type Compartment from '../../location/Compartment';
 import type { Exitable } from '../../../lib/boundary/Exitable';
@@ -92,7 +93,11 @@ function installStore(): void {
     content.push({ _id: `d-${++idCounter}`, path, class: cls, data });
   add(TemplateApplier.templatePath, TemplateApplier.templatePath);
   for (const row of KERNEL_CONTENT_ROWS) content.push({ _id: `d-${++idCounter}`, ...row });
-  add('/platform/idea/exits/berth', '/platform/idea/BerthExit');
+  // The row's authored data, as `exits/berth.yaml` carries it.
+  add('/platform/idea/exits/berth', '/platform/idea/BerthExit', {
+    longDescription: "A gangway runs up to {{ ship }}'s deck.",
+    keywords: ['gangway'],
+  });
   add(AUTHORED_SHIP_WARREN, '/platform/idea/ShipWarren', {});
   // A ship kind, its blueprint and its rooms (the rooms stand in the rows' zone).
   add(KIND, '/platform/idea/Ship', {
@@ -325,7 +330,7 @@ describe('aboard a ship of a kind — the room is asked, never its row (harbors 
     expect(atSea.text).not.toMatch(/made fast/);
   });
 
-  it('⭐ review 2: from the landing, her way describes itself; `look <her>` shows what MQL bound — the landing, never a swap to her deck', async () => {
+  it('⭐ review 3: from the landing, `look <her>` binds her WAY (an exit is a candidate) and the way describes itself — never a swap to her deck', async () => {
     expect(await ship.comeAlongside(LANDING)).toMatch(/made fast/);
     const landing = await StuffApi.singleton<Stuff & Container & Exitable>(LANDING);
     const way = landing.getExit('smack') as unknown as BerthExit;
@@ -338,16 +343,21 @@ describe('aboard a ship of a kind — the room is asked, never its row (harbors 
     const who = await standOn(landing);
     // Her deck is in the landing's pool by its OWN name (MQL's tract rule).
     expect(candidatesForHere(landing, who).some((c) => c.stuff === deck)).toBe(true);
-    // The way's own description, her name in it — what the landing reads.
-    expect(way.describe()).toMatch(/^A gangway runs up to .+'s deck\.$/);
+    // The way's own description, her name in it.
+    expect(way.getLongFor(who)).toMatch(/^A gangway runs up to .+'s deck\.$/);
 
-    // `look smack` binds the landing through the way (its name): look shows
-    // what MQL resolved — the landing — and never second-guesses it.
+    // `look smack` binds the WAY itself — its name (her direction) outranks
+    // her deck's keyword — and look shows what MQL bound: the way.
+    const bound = MqlApi.resolveOne('smack', { commandGiver: who as never, scope: 'reachable' });
+    expect(bound.stuff).toBe(way);
     vi.spyOn(CardApi, 'open').mockReturnValue(null as never);
     const look = makeStuff(() => new LookController());
-    const seen = await run(look, 'look', { target: { stuff: landing, raw: 'smack', via: { exit: way } } }, who, landing);
-    expect(seen.text).toMatch(/a landing/);
-    expect(seen.text).not.toMatch(/smack deck/);
+    const seen = await run(look, 'look', { target: { stuff: way, raw: 'smack' } }, who, landing);
+    expect(seen.text).toMatch(/A gangway runs up to .+'s deck\./);
+    expect(seen.text).not.toMatch(/a landing/);
+    // ⚠ The landing's own look no longer repeats it — the way says it.
+    const quay = await run(look, 'look', { target: { stuff: landing, raw: 'here' } }, who, landing);
+    expect(quay.text).not.toMatch(/gangway runs up/);
 
     // Sunk, she is seen by nobody on the quay.
     const sunk = vi.spyOn(ship, 'isSunk').mockReturnValue(true);
@@ -357,7 +367,7 @@ describe('aboard a ship of a kind — the room is asked, never its row (harbors 
     // Asleep: nothing is stood up to be looked at — the look is the landing's.
     await ship.sleep();
     expect(way.peekDestination()).toBeNull();
-    expect(way.describe()).toMatch(/gangway runs up to .+'s deck/);
+    expect(way.getLongFor(who)).toMatch(/gangway runs up to .+'s deck/);
     expect(StuffApi.findByIdentityPath(`${KIND}/k1`).filter((s) => !s.isDestroyed())).toHaveLength(0);
   });
 });

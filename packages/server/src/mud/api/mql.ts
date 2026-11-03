@@ -135,15 +135,13 @@ export class MqlApi {
 
 
   /**
-   * Pick the effective target Stuff from a single-cardinality binding,
-   * considering both the direct match and any door attached to a
-   * `via.exit`. Returns the first Stuff (in that order) that satisfies
-   * `predicate`, or `null` when neither does.
-   *
-   * The "direct first, door second" rule is what makes door-acting verbs
-   * (`open`, `close`, future `knock` / `lock`) work uniformly across the
-   * two ways MQL can land on a door: by keyword on the door itself
-   * (`open oak`) or by direction through the location (`open north`).
+   * Pick the effective target Stuff from a single-cardinality binding:
+   * the bound thing when it satisfies `predicate`, else — when the bound
+   * thing is an EXIT — the door hung on it. Returns `null` when neither
+   * does. ⭐ One rule, and MQL's: the verbs that need a door (`open`,
+   * `close`, `lock`, `unlock`) work the same whether the player named
+   * the door (`open oak`) or the way it hangs in (`open north` binds the
+   * exit itself — a candidate in its own right).
    *
    * `predicate` is the standard `MixinApi.isX` shape — a type guard
    * returning `obj is Stuff & T`. The narrowing flows through the return

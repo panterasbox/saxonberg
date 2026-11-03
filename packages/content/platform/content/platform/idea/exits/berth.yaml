@@ -4,7 +4,9 @@
 # way and by her deck's `ashore` alike.
 class: /platform/idea/BerthExit
 data:
-  # What the way is, as the landing describes it — `{{ ship }}` is her name.
-  description: "A gangway runs up to {{ ship }}'s deck."
+  # What the way is — `look hesper` binds the way itself and shows this.
+  # `{{ ship }}` is her name; the way is CALLED by its direction (hers).
+  longDescription: "A gangway runs up to {{ ship }}'s deck."
+  keywords: [gangway]
   messageOut: "{{ mover }} goes aboard."
   messageIn: "{{ mover }} comes aboard."

@@ -22,30 +22,15 @@ const MqlApiCallers = SecurityPolicies.FromModule('/api/mql#MqlApi');
 /**
  * Decide whether the match list shares a single `via` shape — when every
  * match's via is undefined, return undefined; when every match's via is
- * the same identity (shallow-equal), return that one; otherwise
- * `undefined` (mixed paths). "Same identity" = same exit reference or
- * same detailPath sequence.
+ * the same (shallow-equal), return that one; otherwise `undefined`
+ * (mixed paths).
  *
- * ⛔⛔ **Compared by IDENTITY, never by `JSON.stringify`** — and this
- * function's own comment used to say *"same exit reference … kept cheap
- * by JSON-stringifying"*, which is the contradiction that shipped. An
- * `exit` via holds a LIVE `Exit`, which reaches its `Boundary`, whose
- * `anchorA`/`anchorB` point back at it; stringifying one throws
- * `Converting circular structure to JSON` and the caller reports
- * `mql-error` on a query that was perfectly well-formed.
- *
- * ⚠⚠ Unreachable until the lock build conferred `lock`/`unlock`: a
- * direction is the only candidate carrying an exit, and these are the
- * first views to resolve one through a `requires:` mixin gate. It
- * presented as `unlock north` → `mql-error[target]` while `unlock gate`
- * worked — at the realm's one locked door. ⭐ Found by the drive, and
- * findable nowhere else: no test had ever targeted a boundary verb by
- * direction (`OpenController`'s own test names the door by keyword), so
- * `open north` and `close north` were broken the same way for as long
- * as they have existed, each promised by its own help text.
- *
- * ⭐ A shallow reference compare is also what the doc always SAID, and
- * it is cheaper than serializing an object graph.
+ * ⛔ Compared by IDENTITY (and `detailPath` by value), never by
+ * `JSON.stringify`: a via once held a live `Exit` whose boundary points
+ * back at it, and stringifying threw on a well-formed `unlock north`
+ * (the lock build's drive). Exits bind as themselves now (harbors review
+ * 3) and every via is plain data, but a shallow compare is still both
+ * what the doc says and cheaper than serializing.
  */
 function sameVia(a: MqlMatchVia, b: MqlMatchVia): boolean {
   const ka = Object.keys(a) as Array<keyof MqlMatchVia>;
@@ -185,22 +170,19 @@ export class MqlLogic extends ApiLogic {
     value: MqlOneResult,
     predicate: (s: Stuff) => s is Stuff & T
   ): (Stuff & T) | null {
-    if (value.stuff && predicate(value.stuff)) return value.stuff;
-    const exit = value.via?.exit;
-    if (exit) {
-      const door = exit.getDoor();
+    const bound = value.stuff;
+    if (!bound) return null;
+    if (predicate(bound)) return bound;
+    // ⭐ The one carve-out, and it is MQL's: a WAY that does not itself
+    // satisfy the verb is answered by the door hung on it. `open north`
+    // binds the exit (a candidate in its own right — harbors review 3);
+    // `open` needs a sealable thing, and the way's sealable thing is its
+    // door. The keyed-exit family (`KeyedDoorExit`, `FrontDoorExit`,
+    // `BerthExit`) carries its lock on the exit itself, so `lock north`
+    // stops at the first rung.
+    if (bound.isExit()) {
+      const door = bound.getDoor();
       if (door && predicate(door)) return door;
-      // ⭐⭐ The THIRD rung, and `lock north` needed it. The question
-      // this method answers is *what, reachable that way, satisfies the
-      // predicate* — and for the keyed-door family the answer is the
-      // EXIT: `KeyedDoorExit` / `FrontDoorExit` / `DormDoor` carry the
-      // lock themselves and have no `Door` Thing at all, so a
-      // door-only walk found nothing and the verb refused with
-      // `not-lockable` at the one door in the realm you actually hold
-      // a key to.
-      // ⭐ No cast: `Exit extends ConcealableMixin(Idea)` and `Idea
-      // extends Stuff`, so the predicate's own type guard narrows it.
-      if (predicate(exit)) return exit;
     }
     return null;
   }

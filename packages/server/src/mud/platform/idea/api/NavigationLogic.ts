@@ -118,6 +118,11 @@ const DIRECTION_OFFSETS: Record<CardinalDirection, [number, number, number]> = {
 /**
  * Alias → canonical long form. Keys are lower-cased tokens the parser will
  * see (`n`, `ne`, `u`, `d`, ...).
+ *
+ * ⚠ **DERIVED (magic) — the table only.** MQL never rewrites a word with
+ * it: an exit answers to `n` because `Exit.getKeywords()` folds its
+ * direction's short forms (`shortFormsOf`) into its own keywords, and the
+ * bare-verb aliases (`n` → `go n`) pass the word through untouched.
  */
 const DIRECTION_ALIASES: Record<string, CardinalDirection> = {
   n: 'north',
@@ -231,6 +236,16 @@ export class NavigationLogic extends ApiLogic {
     const canonical = normalize(direction);
     if (!canonical) return undefined;
     return DIRECTION_INVERSES[canonical];
+  }
+
+  /** See {@link NavigationApi.shortFormsOf}. */
+  @CallSecurity(NavigationApiCallers)
+  public shortFormsOf(direction: string): string[] {
+    const canonical = normalize(direction);
+    if (!canonical) return [];
+    return Object.keys(DIRECTION_ALIASES).filter(
+      (k) => k !== canonical && DIRECTION_ALIASES[k] === canonical,
+    );
   }
 
   /** See {@link NavigationApi.directionOffset}. */

@@ -35,7 +35,6 @@ import { Lock } from '../../lib/lock/Lock';
 import { StuffApi } from '../../api/stuff';
 import { ExpanseApi } from '../../api/expanse';
 import { ProseApi } from '../../api/prose';
-import type { FieldMeta } from '../../lib/mixin';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Container } from '../../lib/spatial/Container';
 import type { Containable } from '../../lib/spatial/Containable';
@@ -55,20 +54,6 @@ export interface Berthed {
 }
 
 export default class BerthExit extends LockableMixin(DeferredDestinationExit) {
-  static fieldMeta: FieldMeta = {
-    description: { persistent: true },
-  };
-
-  /**
-   * ⭐ What the way IS, as the landing it stands on describes it (harbors
-   * review 2) — ordinary authored prose on the object, its kind row's
-   * `description:`, with `{{ ship }}` her name. `look hesper` binds the
-   * landing through this way (MQL's one rule), and the landing's own
-   * description reads its ways (`FrameSitedMixin`'s alongside line); no
-   * verb knows a way is named for a ship.
-   */
-  private description = "A gangway runs up to {{ ship }}'s deck.";
-
   /** The ship this way leads aboard — her durable handle (an identity ref). */
   private shipHandle = '';
   /** Her name as she made fast — what the landing reads while she sleeps. */
@@ -109,20 +94,19 @@ export default class BerthExit extends LockableMixin(DeferredDestinationExit) {
     return (await ExpanseApi.standUpCraft(this.shipHandle)) as unknown as (Stuff & Berthed) | null;
   }
 
-  public getDescription(): string {
-    return this.description;
-  }
-
-  public setDescription(value: string): void {
-    if (typeof value !== 'string') throw new TypeError(`BerthExit.description must be a string, got ${typeof value}`);
-    this.description = value;
-  }
-
-  /** ⭐ The way described — her name in it, asleep or awake (markup). */
-  public describe(): string {
+  /**
+   * ⭐ The way describes ITSELF (harbors review 3): `look hesper` binds this
+   * exit — a candidate in its own right, named for her — and `look` shows
+   * what MQL bound. The prose is the kind row's authored `longDescription`
+   * with `{{ ship }}` her name (*"A gangway runs up to the Hesper's
+   * deck."*), read asleep or awake; with no ship to name, the plain way.
+   */
+  public override getLongFor(viewer: Stuff): string {
     const ship = this.alongsideName();
-    if (!ship || !this.description) return '';
-    return ProseApi.format(this.description, { ship }).toString();
+    const said = this.getLongDescription();
+    if (!said) return super.getLongFor(viewer);
+    if (!ship) return this.plainWay();
+    return ProseApi.format(said, { ship }).toString();
   }
 
   /** Her name, as the landing's `look` reads it — asleep or awake. */
