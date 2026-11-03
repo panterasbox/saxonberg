@@ -11,9 +11,9 @@ data:
   register: definite
   longDescription: >-
     A round stone basin in the middle of the square with a bronze spout
-    rising out of it, running a steady arc of water into the bowl day and
-    night. The rim is worn smooth by elbows and buckets, and pigeons stand
-    in the overflow.
+    rising out of it, made to run into the bowl day and night for as long
+    as the city has water to give it. The rim is worn smooth by elbows and
+    buckets, and pigeons stand in the overflow.
   mass: 4000
   _materialPath: /stuff/idea/material/rock/granite
   interiorBulk: true

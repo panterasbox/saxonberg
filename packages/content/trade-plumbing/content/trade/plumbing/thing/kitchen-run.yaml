@@ -4,13 +4,13 @@
 # kitchen's tap reads `unplumbed` until the last length is wiped home.
 class: /platform/thing/PipeRun
 data:
-  shortDescription: unfinished pipe run
-  keywords: [run, "pipe run", plumbing, pipes]
+  shortDescription: kitchen pipe run
+  keywords: [run, "pipe run", "kitchen run", plumbing, pipes]
   register: definite
   longDescription: >-
     A channel chased into the plaster and a hole bored through the floor
-    where a pipe is meant to come up to the sink. Brackets wait along the
-    wall with nothing in them.
+    where the pipe comes up to the sink, held to the wall in iron
+    brackets.
   _materialPath: /stuff/idea/material/element/lead
   runKind: room
   unlaid: true

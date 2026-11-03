@@ -51,6 +51,8 @@ import type { VetoResult } from '../../lib/errors';
 import type Material from '../../lib/material/Material';
 import type { BulkAffordance, BulkPayload } from '../../lib/bulk/Bulkable';
 import { Quantity } from '../../lib/quantity';
+import { MessageApi } from '../../api/message';
+import { Mml } from '../../api/mml';
 
 /** The fresh water a burst spills. */
 const WATER_PATH = '/stuff/idea/material/bulk/water';
@@ -97,6 +99,7 @@ export default class PipeRun extends PipeRunBase {
     frostStamp: { persistent: true, runtimeState: true },
     burstAt: { persistent: true, runtimeState: true },
     leaked: { persistent: true, runtimeState: true },
+    laying: { persistent: true, runtimeState: true },
   };
 
   /** `room` — the pipe into this room; `service` — the lot's connection to the main. */
@@ -113,6 +116,11 @@ export default class PipeRun extends PipeRunBase {
   protected burstAt: number | null = null;
   /** Whether its burst has already run out onto the floor. */
   protected leaked = false;
+  /**
+   * Being laid: materialized unlaid and not yet complete. Its missing
+   * lengths are SEATS, not breakage — the look says it wants them.
+   */
+  protected laying = false;
 
   constructor() {
     super();
@@ -151,9 +159,15 @@ export default class PipeRun extends PipeRunBase {
     super.ensureParts();
     if (first && this.unlaid) {
       for (const line of this.parts) {
-        if (line.role === 'structural') line.failed = line.count;
+        if (line.role === 'structural') {
+          line.failed = line.count;
+          // ⭐ An empty seat, not a split length: the browser walk read an
+          // unlaid run as "broken… four of the lengths are split".
+          line.empty = true;
+        }
       }
       this.unlaid = false;
+      this.laying = true;
     }
   }
 
@@ -318,7 +332,30 @@ export default class PipeRun extends PipeRunBase {
   /** The last length laid on a service run connects the premises. */
   public override async afterMembersFitted(by: Stuff): Promise<void> {
     await super.afterMembersFitted(by);
-    if (this.runKind === 'service' && this.isComplete()) await this.connectPremises();
+    if (this.laying) {
+      if (this.isComplete()) {
+        this.laying = false;
+      } else {
+        // The substrate clears a line's `empty` at its first member; the
+        // lengths still to lay are seats all the same.
+        for (const line of this.getParts()) {
+          if (line.role === 'structural' && line.failed > 0) line.empty = true;
+        }
+      }
+    }
+    if (this.runKind === 'service' && this.isComplete()) {
+      const connected = await this.connectPremises();
+      // ⭐ Say what the last length did (the browser walk: the run went
+      // quiet at the moment it put a house on the main).
+      MessageApi.scene(by)
+        .topic('act.deed')
+        .toSelf(
+          connected.ok
+            ? Mml.compose`The last length is in: ${Mml.thing(this as unknown as Stuff)} carries the main's water to the house now.`
+            : Mml.compose`${connected.reason ?? 'It does not connect.'}`,
+        )
+        .send();
+    }
   }
 
   /** Does the main this service run names serve its premises? */

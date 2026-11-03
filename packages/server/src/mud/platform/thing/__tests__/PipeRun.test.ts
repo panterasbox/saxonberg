@@ -93,6 +93,16 @@ describe('⭐ an unlaid run delivers nothing until the last length is laid', () 
     expect(r.stateWords()).toContain('not yet laid');
   });
 
+  it('⭐ its missing lengths are SEATS, not split lengths — through the laying', async () => {
+    const r = run(lead, { unlaid: true });
+    expect(r.getParts()[0]!.empty).toBe(true);
+    r.replaceMembers('pipe', 1, { material: '/test/material/lead', grade: 'fair', maker: '' });
+    await r.afterMembersFitted(r as never);
+    // One laid, one still wanted — and still read as wanted, not broken.
+    expect(r.getParts()[0]!.failed).toBe(1);
+    expect(r.getParts()[0]!.empty).toBe(true);
+  });
+
   it('laying both lengths makes it sound', () => {
     const r = run(lead, { unlaid: true });
     r.ensureParts();

@@ -6,12 +6,13 @@
 # `extends:` this and names its main in `connectsTo:`.
 class: /platform/thing/PipeRun
 data:
-  shortDescription: unfinished service pipe
+  shortDescription: service pipe
   keywords: [run, "service run", "service pipe", plumbing, pipes]
   register: definite
   longDescription: >-
-    A trench dug from the lane to the house wall, a stopcock box sunk at
-    the boundary, and nothing in the trench yet.
+    A trench dug from the lane to the house wall, with a stopcock box sunk
+    at the boundary. Whatever is laid in it carries the main's water to the
+    house.
   _materialPath: /stuff/idea/material/element/lead
   runKind: service
   unlaid: true

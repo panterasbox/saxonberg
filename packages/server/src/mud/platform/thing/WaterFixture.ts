@@ -584,6 +584,19 @@ export default class WaterFixture
         ? await supply.supplyReport(nowS)
         : { label: supply.getPresentation(), state: supply.supplyStateNow(), lines: [] };
     const lines = [...report.lines];
+    // ⭐ What a shortage leaves THIS outlet (D6) — the main's report says it
+    // is short; only the outlet can say whose rank goes without (the
+    // browser walk: a tap on a short main read exactly like a full one).
+    const rank = this.continuous ? 'civic' : this._landUse;
+    const rankWord =
+      rank === 'civic' ? 'public outlets' : rank === 'commercial' || rank === 'industrial' ? 'the trades' : 'houses';
+    if (this._share <= 0) {
+      lines.push(`more is asked of it than it carries, and ${rankWord} go without — nothing reaches this outlet`);
+    } else if (this._share < 1) {
+      lines.push(
+        `more is asked of it than it carries: ${rankWord} get ${Math.round(this._share * 100)}% of their share — it runs weak`,
+      );
+    }
     const head = this._headM;
     if (head !== null) {
       lines.push(

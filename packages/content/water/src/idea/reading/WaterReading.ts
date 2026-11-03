@@ -371,10 +371,14 @@ export default class WaterReading extends Reading {
     const lines =
       kit === null
         ? read.lines.filter((l) => !/\bfouled\b/.test(l))
-        : [
-            ...read.lines,
-            ...this.kitLines(target, read.lines.some((l) => /\bfouled\b/.test(l))),
-          ];
+        : read.state !== null && read.state !== 'fouled'
+          ? // Nothing comes out, so the kit has nothing to test — a verdict
+            // on no water was "fit to drink" (the browser walk).
+            [...read.lines, 'nothing comes out for the kit to test']
+          : [
+              ...read.lines,
+              ...this.kitLines(target, read.lines.some((l) => /\bfouled\b/.test(l))),
+            ];
     if (kit === null && read.lines.length !== lines.length) {
       lines.push('whether its water is fit to drink, you cannot tell by looking');
     }
