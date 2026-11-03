@@ -129,12 +129,12 @@ labels, you opened it or you trusted the seller.
 - **The law lands on the label** — contents, net weight, maker. Weights and
   measures and food standards act on the label, never on the can.
 - ⭐ **The label is a static display** — the same rung the printed page takes in
-  [paper-and-printing-slate](./paper-and-printing-slate.md). **This build ships
-  the rung** because it is first and needs it; its labels begin as an
-  **imported** printed good (imports are the backstop's ceiling, which our
-  doctrine allows), and the paper and printing build replaces the import with
-  the mill, the press and the jobbing printer. The cannery is the paper mill's
-  first big customer before the mill exists — demand first.
+  [paper-and-printing-slate](./paper-and-printing-slate.md). ⭐ **Paper builds
+  first and ships the rung** (the owner, 2026-11-02 — reversing this slate's
+  first draft): the label is a printed thing the paper build already makes, and
+  this build is a **customer** of the mill and the jobbing printer. It adds what
+  is the cannery's own — the claim on a sealed good, the lot code, the recall,
+  the label law.
 
 ## 7. ⭐⭐ Why it matters — the economy **[DECIDED — lens 6]**
 
