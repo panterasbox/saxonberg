@@ -490,3 +490,82 @@ leaves its own evidence.
   [assessment-slate](./assessment-slate.md) — we measure real competence, mostly by tests, over a
   much finer Discipline tree; lockcraft is its first consumer and the **Locksmiths' Guild** its
   first examiner. Q3 (lockcraft's dominant act) and the rest resume against that slate.
+
+## § 6 · ⭐⭐ Reuse ledger for the plan **[2026-11-02]**
+
+Review question R2: every concept the lock build needs, against what already does it. The plan
+accounts for every row — reuse, generalize, or argue *genuinely new*.
+
+| concept | already doing the job | the plan's move |
+|---|---|---|
+| the bolt and the key | `LockableMixin` (bolt) + `lib/lock/Lock` (keyway), `canPass = !isLocked() \|\| opensFor(mover)` | keep; `opensFor` matches by **shape** for shape technologies |
+| a key | `KeyCredential` keychain + the physical `platform/thing/Key`; `issueKeyTo` issues both | shape keys become **physical only**; the keychain keeps record credentials; migration mints a missing physical key |
+| the technology list | `LockType` closed union + `Lock.keyDescription` switch | retire both for a technology **row** + a gate that owns the namespace (§ 4) |
+| quality | **`GradedMixin`** (`lib/craft/Grade.ts`) | compose; the technology row maps grade → pins/depths/tolerance/security pins |
+| maker | **`CraftedMixin`** (maker's mark) + **`BrandedMixin`** | compose |
+| condition | **`DurableMixin`** (wear by use) | compose; wear loosens tolerance |
+| weather | paint's weathering where weather reaches (`Faced`) + the `corrosion` channel ([materials-response.md](../../subsystems/materials-response.md)) | compose; seizing |
+| locks on things | **`SealableMixin`** (open/shut, names chests) | a closable container composes the bolt and keyway like a door |
+| the lock as a part | **assembly** (a thing that keeps its parts; `fit`, `salvage`, `repair`) | a built-in lock is a part |
+| the padlock and the hasp | water supply's padlocked turnout (build-1, in flight) | ONE model: a padlock is a good; a closure with a hasp accepts one — second to merge reconciles |
+| reading a lock / a key | **`analyze`** over `Reading` rows ([instrumentation.md](../../subsystems/instrumentation.md)) | a `lock` reading row; no new verb |
+| the pick | the **engaged durative act** (`activity.md`), seeded properties ([uncertainty.md](../../uncertainty.md)) | compose; time computed, nothing drawn |
+| who walks past | **concealment / stealth** (`HidingMixin`; motion degrades hiding) | compose |
+| manipulating a combination | sound as a sense channel ([senses.md](../../subsystems/senses.md)) | compose |
+| copying by impression | **`impress`** into a mould's soft medium ([mould.md](../../subsystems/mould.md)) | `impress key on wax`; no new verb |
+| cutting a key | the **one `cut`** over a cut-plan protocol (cloth, ice) | a blank answers the protocol (`--from`, `--code`, `at <door>`) |
+| the register of issues | **`RegistrarMixin`** + `DocumentApi.saveToRegister` ([document-store.md](../../subsystems/document-store.md)) | each issuer keeps a key register |
+| seat-held keys | employment's seats and `GovernmentApi.holdsSeat` | a shape key issued to the holder *in capacity*; a record lock resolves the seat live |
+| the master key | `Lock.issueMasterKeyTo` (no caller) + Duncan Hall's `master-ring` row | issue it to the warden's seat |
+| issuers | `TitleController`, `LeaseController`, Duncan's `ProvisionController`; harbors' shipowner (in flight) | route all through the register |
+| lockcraft evidence | the Transcript's deeds, act signatures, BKT ([advancement.md](../../subsystems/advancement.md)) | five Disciplines; exams later ([assessment-slate](./assessment-slate.md)) |
+| inputs | brass, steel, copper, zinc, beeswax rows; founding and smithing | the locksmith's recipes |
+| matching by shape | — | ⭐ genuinely new (bitting seeded from the keyway) |
+| the pick-time formula and floor | — | ⭐ genuinely new |
+| restricted blanks | — | ⭐ genuinely new (a profile only an authorized cutter sells) |
+
+**Reuse ledger additions for the range (§ 7):**
+
+| concept | already doing the job | the plan's move |
+|---|---|---|
+| driving a lock by mind | **display's by-mind ladder** (held · in sight · anywhere by mind); *the modem is a predicate on the driver* ([display.md](../../subsystems/display.md)) | the aether lock rides it; no aether mixin on the lock |
+| power and fail modes | **`Powered`** / the grid's feeder cut ([energy.md](../../subsystems/energy.md)) | an aether lock reads its premises' power |
+| coverage | the off-grid design ([off-grid-slate](./off-grid-slate.md)) | no reach by mind off grid |
+| the spoken password | acoustic **speech** (`Vocal`; [comms.md](../../subsystems/comms.md)) | the room hears it |
+| the hidden lock | **concealment** + `search` ([concealment.md](../../subsystems/concealment.md)); exits already concealable | a concealed lock |
+| the time lock | **`WorldClockApi`** | the window is the clock |
+| entry-only refusal | harbors' *"refuses boarding, never leaving"*; passage among the guarantees of play ([measurement.md](../../measurement.md) Tier B) | universal |
+| the access log | measurement doctrine (no hidden measurement of a player) | the subject reads their lines |
+| a lock as conditions | the contract substrate's *clauses over verifiable conditions* ([contract.md](../../subsystems/contract.md)) | ⚠ a parallel, NOT a merge — a lock's conditions are a small closed set |
+| the key ring | containment (a container that accepts only keys); the wallet scan over reachable things | a row |
+| the key board | employment's station and shift | a row at a seat's station |
+
+## § 7 · The range, run through the lenses **[DECIDED — the owner, 2026-11-02: "take all the leans"]**
+
+The first pass designed one lock. Tested across the whole range — combination, password, keycard,
+aether, inside bar, time lock, dual control, hidden lock, biometric, magical ward, seal — **a lock is a
+set of conditions, all of which must be met**: shape held · string known · string spoken · named in a
+record · on this side · this hour · found. A seal is the other half — evidence without refusal.
+
+- **1 Pedagogy** — each condition is a real security principle (eavesdropping, separation of duties,
+  procedural control, obscurity and why `search` beats it, fail-safe vs fail-secure, the audit trail).
+  ⚠ Lens 1 argues FOR biometric — the credential you cannot revoke — recorded and overridden by lens 4.
+- **2 Expression** — *Ali Baba*, *Ocean's Eleven*, the speakeasy, the gatehouse pass. ⭐ The vault
+  needs time AND combination AND two keys → a lock is a set of conditions.
+- **3a Immersion** — every condition is decided by what is physically there; the guard against an
+  out-of-fiction control panel is that every aether act is a verb through a held carrier.
+  **3b Participation** — prohibition and the speakeasy; a bank's dual-control policy; a landlord
+  reading tenants' logs and a polity writing privacy law; the doorman's bar.
+- **4 Values** — ⭐⭐ **no lock refuses leaving** (harbors' rule, the passage guarantee; cells are
+  policing's); **biometric out** (a body as a key opens to a held-down sleeper or a corpse's hand —
+  coercion the unbuilt compulsion gate must answer first).
+- **5 Continuity** — the same verbs on every rung that allows them; the doorman and the brass
+  locksmith hold the obsolete halves.
+- **6 Economy** — the bank's vault is demand already there (the clockwork imported — no clockmaker);
+  aether locks need a real consumer → **Duncan Hall moves to keycards**; the lockbox has none → cut.
+- **7 Governance** — an access list judges people (criterion: the issuer's discretion; appeal: the
+  refusal names the issuer; tier C: tenancy law); an access log is a measurement of a person, so the
+  person reads it.
+
+Aether devices in general (switches, meters, sensors, pumps by mind) went to the
+[aether-devices-slate](./aether-devices-slate.md) — cross-cutting by R3.
