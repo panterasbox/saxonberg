@@ -81,6 +81,9 @@ function dial(key: string, fallback: number): number {
 /** ⭐ `look run` says what state it is in — laid, sound, weeping, burst. */
 function stateAugmenter(text: string, host: Stuff): string {
   if (!(host instanceof PipeRun)) return text;
+  // Read the frost first: a look is a read like a draw (the browser walk —
+  // a thawed scullery's run still read "burst", and its water never came).
+  host.reconcileFrost(WorldClockApi.getNow().rawValue());
   return `${text}\n\nIt is ${host.stateWords()}.`;
 }
 

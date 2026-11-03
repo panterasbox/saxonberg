@@ -318,9 +318,19 @@ export default class WaterFixture
     // fountain before the brewery before the house.
     const premises = this.resolvePremisesPath();
     this._landUse = premises === null ? '' : ParcelApi.landUseOf(premises);
-    // A continuous outlet (the fountain's bore) is public by construction.
-    const rank = this.continuous ? 'civic' : this._landUse;
-    this._share = await this._supply.shareFor(rank).catch(() => 1);
+    this._share = await this._supply.shareFor(this.shortageRank()).catch(() => 1);
+  }
+
+  /**
+   * Its rank in a shortage (D6). A PUBLIC outlet is civic whatever the
+   * ground under it is zoned: the fountain's continuous bore, and an
+   * outlet standing in a street (the market standpipe — the square is a
+   * commercial parcel, and the browser walk found the public standpipe
+   * going weak with the trades). Otherwise its premises' land use.
+   */
+  private shortageRank(): string {
+    if (this.continuous || this.roomOf() instanceof Street) return 'civic';
+    return this._landUse;
   }
 
   /** The room this fixture stands in — the end of its containment walk. */
@@ -537,6 +547,15 @@ export default class WaterFixture
   public override bulkWhyEmpty(affordance: BulkAffordance): string | null {
     if (affordance !== 'interior') return super.bulkWhyEmpty(affordance);
     const state = this.supplyStateNow();
+    if (state === 'unplumbed' && this._supply !== null) {
+      // ⭐ On a supply, but the pipe in this room is missing or failed (the
+      // browser walk: a burst scullery pipe read "this house isn't on any
+      // supply" in a house that was).
+      const run = this.runOf();
+      return run === null
+        ? 'Nothing comes out — no pipe brings water into this room.'
+        : `Nothing comes out — the pipe is ${run.stateWords()}.`;
+    }
     if (state === 'unplumbed') {
       const premises = this.resolvePremisesPath();
       const residential =
@@ -587,7 +606,7 @@ export default class WaterFixture
     // ⭐ What a shortage leaves THIS outlet (D6) — the main's report says it
     // is short; only the outlet can say whose rank goes without (the
     // browser walk: a tap on a short main read exactly like a full one).
-    const rank = this.continuous ? 'civic' : this._landUse;
+    const rank = this.shortageRank();
     const rankWord =
       rank === 'civic' ? 'public outlets' : rank === 'commercial' || rank === 'industrial' ? 'the trades' : 'houses';
     if (this._share <= 0) {

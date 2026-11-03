@@ -18,6 +18,7 @@ import Good from '../../../lib/stuff/Good';
 import Location from '../../location/Location';
 import PersistentLocation from '../../location/PersistentLocation';
 import PipeRun from '../PipeRun';
+import Street from '../../location/Street';
 import Material from '../../../lib/material/Material';
 import { StuffApi } from '../../../api/stuff';
 import { ParcelApi } from '../../../api/parcel';
@@ -212,6 +213,8 @@ describe('⭐⭐ a fixture reads its PREMISES', () => {
     await t.settleBulk('interior');
     expect(waterOf).toHaveBeenCalledWith('/test/place/bar');
     expect(t.supplyStateNow()).toBe('unplumbed');
+    // …and it says the PIPE is the cause, not the supply.
+    expect(t.bulkWhyEmpty('interior')).toBe('Nothing comes out — no pipe brings water into this room.');
     // A sound run in the room, and it runs.
     ContainmentApi.move(makeStuff(() => new PipeRun()), bar);
     await t.settleBulk('interior');
@@ -270,6 +273,22 @@ describe('⭐ a shortage is shared by rank (D6)', () => {
     };
     const t = tap({ suppliedBy: MAIN });
     t.setContinuous(true);
+    await t.settleBulk('interior');
+    expect(asked).toEqual(['civic']);
+  });
+});
+
+describe('⭐ a public outlet in a street ranks as a public one', () => {
+  it('the market standpipe asks as civic, whatever the square is zoned', async () => {
+    const main = mainAt();
+    const asked: string[] = [];
+    main.shareFor = async (use?: string) => {
+      asked.push(String(use));
+      return 1;
+    };
+    const square = makeStuff(() => new Street());
+    const t = tap({ suppliedBy: MAIN });
+    ContainmentApi.move(t, square);
     await t.settleBulk('interior');
     expect(asked).toEqual(['civic']);
   });
