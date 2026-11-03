@@ -35,8 +35,17 @@ Concretely, four things nobody else in the loop owns:
    post-MR rewrites in this repo's history.* See below.
 3. **Wave decomposition** — the build's real structure, which the
    workflow doc calls `W0…Wn` or `Stage A / Stage B`.
-4. **Reachability wiring** — the four links that make a capability
-   actually reachable, each of which fails closed and silent.
+4. **Reachability wiring** — the five links (verb · affordance · data
+   · load · arg gate) that make a capability actually reachable, each
+   of which fails closed and silent.
+5. ⭐⭐ **The review questions** — every **P** question in
+   `docs/review-questions.md`, answered in the plan. They are the
+   owner's standing review opener (*what new mixins and Apis did you
+   make, and what is already doing their job?*) and the defect classes
+   that recur across builds; asked here they cost a sentence, asked at
+   review they cost a rewrite. The slate's **reuse ledger** is the input
+   to P1: every new mixin, Api, class, hook, registry and document kind
+   cites its row, or says *genuinely new* and what was searched.
 
 ## ⭐⭐ Host placement — the rework class
 
@@ -66,14 +75,21 @@ a base class silently claims it for every object in the game.
 adding a guard that re-narrows the host set, the mixin is on the wrong
 host.* Write the narrowing down as a finding instead of coding it.
 
+⭐ **And its quieter form**, which the guard test misses: *an honest
+default that answers "no" on most of the hosts.* Ask how many of the
+things that compose this host will ever answer yes. The river build put
+a current on every pool and a firebox on every ship that way; the paint
+build made a mountain peak paintable.
+
 ## Conventions to check, at plan time
 
 Not from memory — these change, and a plan written against a stale
 convention is rework. Check the current state of at least:
 
 - `props:` / `cast:` designation (`populates:` is retired).
-- Locations, not rooms — `Location` / `SphericalLocation`;
-  `PersistentLocation` is for interiors somebody furnishes.
+- Locations, not rooms — `Location` / `SphericalLocation`.
+- Persistence is chosen per piece of CONTENT, never per class — a row
+  picks staged or live, with a named purpose (review question P6).
 - The five namespace axes and `<root>/<branch>/` path pattern.
 - Module scope declares; lifecycles initialize.
 - The import boundary (`lint:imports`) and the module categories —
