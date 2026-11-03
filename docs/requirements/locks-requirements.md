@@ -34,6 +34,25 @@ and it is the bearer/registered split paper settled the same day:
 The ladder is the epoch axis (warded → lever → pin tumbler → combination → keycard → implant).
 Every defeat — **force · pick · copy the secret · take it · go around** — leaves its own evidence.
 
+⭐⭐ **Tested across the whole range, the model generalizes: a lock is a SET OF CONDITIONS, all of
+which must be met.** The three secrets above are the conditions you can *carry* (in a pocket, in
+your head, in a record); four more are conditions of the *world*:
+
+| condition | the lock | defeated by | what it teaches |
+|---|---|---|---|
+| **holds a shape** | warded, lever, pin tumbler | pick, rake, impression, copy, force | tolerance, binding, keyspace |
+| **knows a string** | combination dial, keypad | listening, watching, telling | the observer is the weakness |
+| **says a string** | a password door | **overhearing** — speech carries to the room | knowledge spoken leaks by perception |
+| **is named in a record** | keycard; an aether lock | talk your way onto the list; forging is out | revocation per person; the audit trail |
+| **is on this side** | a bar or bolt on the inside | force, from outside | a lock with no secret |
+| **it is this hour** | a time lock | waiting — even for the owner | procedural control; the heist window |
+| **has found it** | a hidden lock, a secret door | `search` | security through obscurity, and why it fails |
+
+A bank vault is three at once — a time lock, a combination and two keys (**dual control**: no
+single holder can open it). ⭐⭐ **And no lock refuses LEAVING** — a lock refuses entry only.
+Harbors already ruled *"a lock refuses boarding, never leaving"*, and passage is a guarantee of
+play; a cell that holds someone is policing's, with its own consent and sentence, never a lock's.
+
 ## What already exists
 
 - **The bolt and the keyway, composed** — `lock`/`unlock` on doors; *the bolt refuses, the key
@@ -124,8 +143,51 @@ accounts for every row.
   still has a working key until somebody re-keys. A record lock names the seat, and access follows
   the seat live.
 - **A master key is a key**, issued by the lock system's fiction-side owner (lessor, title holder,
-  housing office, Works department) to a seat of its own — never by parcel title. Duncan Hall's
-  master ring is issued to the dorm's warden seat.
+  housing office, Works department) to a seat of its own — never by parcel title. **Mayfield Row's
+  landlord issues a master key to its agent's seat.** (Duncan Hall's authored master ring retires: its
+  rooms move to keycards, where the warden's seat is on the access list.)
+
+### The range of locks
+- **A lock is a set of conditions, all of which must be met**, from the seven above; an author
+  composes them in rows (the vault: time AND combination AND two keys).
+- **The spring latch locks when it shuts** — you can lock yourself out, and the locksmith opens it
+  for a fee.
+- **The inside bar** has no secret: it holds from the side it is barred on and yields only to force
+  from the other.
+- **The combination** is opened by its numbers; it is manipulated by **listening** (sound is a shipped
+  sense) at a lockcraft band; whoever **watches** it dialed learns it.
+- **The password door opens to the spoken word** — and everyone in the room hears it, by the shipped
+  speech. A whisper carries less far than a shout.
+- **The hidden lock and the secret door** are found by `search` through the shipped concealment
+  before anything else can be tried.
+- **Dual control** needs two holders present together.
+- **The time lock** opens only in its window, by the world clock, for the owner too. Its clockwork is
+  **imported** until the realm has a clockmaker.
+- ⭐⭐ **No lock refuses leaving.** Every lock refuses entry only; leaving is always possible.
+
+### Keycards and the aether lock
+- **A record lock admits whoever its issuer's record names**; a keycard presents the record by hand,
+  and an **aether lock** can also be driven **by mind** — `unlock` from anywhere you have a working
+  aether carrier, through the same ladder a display is driven by (held · in sight · anywhere by
+  mind). Let a friend into your room from across the city.
+- **It needs coverage.** Off grid or in a dead zone it cannot be reached by mind, and a keycard falls
+  back to the lock's **mechanical override** if it has one.
+- **It needs power.** In a blackout it **fails safe** (opens to entry) or **fails secure** (stays shut
+  to entry), as its author chose — entry only, since leaving is always free.
+- **It keeps a log** of who opened it and when, and **the person a log line is about can read it**
+  (the measurement doctrine: no hidden measurement of a player). The issuer reads all of it.
+- **Its weak point is people** — the seat that edits the access list.
+- **A covenant refuses it below the modern rung**, like any instrument.
+- **Duncan Hall's room doors move to keycards**, the dorm's desk the issuer that edits the list —
+  the record rung's first consumer (a dorm is where keycards realistically live). The warden's seat
+  is on every room's list.
+
+### Around a lock
+- **A key ring** holds keys; every key on it counts as carried, and trying the ring on a cheap lock is
+  a real act. Lose the ring, lose them all. A key's tag is written on it.
+- **A key board** at a seat's station holds the seat's keys on hooks: the keeper takes the
+  pump-house key at the start of a shift, and an empty hook shows a key is out.
+- **A hasp, a staple, a chain** — what a padlock fits.
 
 ### Locks on things
 - **Any closable container can carry a built-in lock** — a chest, strongbox, cabinet, trunk, cashbox
@@ -138,7 +200,9 @@ accounts for every row.
 ### The technologies
 - **One row per technology**, any pack may add one: its name and its key's prose, the kind of
   secret, the grade-to-mechanism table, the defeat acts that apply, and its epoch (so a covenant can
-  refuse it). Shipped with: **warded, lever, pin tumbler, combination, keycard**. A lock names its
+  refuse it). Shipped with: **warded, lever, pin tumbler, combination, keycard, aether, password,
+time, inside bar** — one row per condition-bearing technology; the hidden lock is a property of any
+lock (it is concealed), and dual control is a lock with two keyways. A lock names its
   technology by reference; a misspelled technology is refused when the content is checked, never
   left as a door that opens for nobody.
 
@@ -180,19 +244,32 @@ accounts for every row.
 - **Arcana's ward** → the arcana pack, as a technology row, when it wants one.
 - **Moving every chest in the realm onto a lock** → content passes; this build ships the two that
   exist.
+- **Biometric locks** → nowhere in this build, deliberately (lens 4): a lock whose key is a body
+  opens to a held-down sleeper or a corpse's hand — coercion of a body, which the unbuilt compulsion
+  gate must answer first. Lens 1's case for it is recorded: it teaches the credential you cannot
+  revoke.
+- **Cells and anything that holds a person in** → policing (a sentence, with consent rules). A lock
+  never refuses leaving.
+- **The lockbox** (a combination box holding a key) → nowhere until something needs one (lens 6).
+- **Aether devices in general** — switches, meters, sensors, the works' pumps driven by mind → the
+  [aether-devices-slate](../slates/builds/aether-devices-slate.md) (cross-cutting, R3). This build
+  ships only the aether lock, on the display's by-mind ladder.
+- **A clockmaker** → the time lock's clockwork is imported until a clockmaking trade exists.
 
 ## Placement
 
 - **Kernel:** the lock's physics — the secret by technology, the bitting seeded from the identity,
   matching by shape, the pick-time formula and floor, wear and seizing; the defeat acts (`pick`,
   `force`); reading through a `lock` reading row; the register of issues and seat-held keys; locks
-  on closable containers; the padlock and the hasp; the technology row and its check. Doors, chests,
+  on closable containers; the padlock and the hasp; the technology row and its check; a lock as a
+  set of conditions; the record lock driven by mind through the display's ladder; entry-only
+  refusal. Doors, chests,
   ships and sluices across the realm use it with no common pack.
 - **`trade-locksmithing`** (`/trade/locksmithing`): lock making, blanks, the cutting bench, keys cut
   through `cut`, re-keying and repair as services, the locksmith's seat and recipes over founding and
   smithing.
 - **Terminus** (Mayfield Row): the shop, the locksmith, the rota.
-- **Eternal University** (Duncan Hall): the master ring issued to the warden's seat.
+- **Eternal University** (Duncan Hall): the room doors move to keycards; the desk issues them.
 - ⭐ **A second locksmith, a second technology, a second padlock are rows.**
 
 ## Collisions
@@ -210,9 +287,17 @@ accounts for every row.
 - **Water supply's padlocked turnout** is the first lock on a thing: one model — *a padlock is a good,
   a closure with a hasp accepts one* — and whichever build merges second reconciles to it.
 - **Harbors' gangway** issues keys through the same register (the shipowner is its issuer).
-- **Duncan Hall's authored master ring** is finally issued.
 - **The Hearthworks pantry chest and the *Hesper*'s sea chest** gain locks.
-- **Mayfield Row** gains a shop; its landlord's leases issue keys through the register.
+- **Mayfield Row** gains a shop; its landlord's leases issue keys through the register, and its
+  agent holds the master key.
+- **Duncan Hall** moves its room doors from pin tumbler to keycards; its authored master ring
+  retires; players who lived there keep their rooms — the card is issued to whoever held the brass
+  key.
+- **The Wharfside bank** gains its vault door: a time lock, a combination and two officers' keys.
+- **The energy grid** powers the aether locks; a premises cut from its feeder puts them in their
+  fail mode.
+- **Off-grid places** (the off-grid slate) reach no aether lock by mind.
+- **Harbors' gangway rule** (*"refuses boarding, never leaving"*) becomes every lock's rule.
 
 ## Surface decisions
 
@@ -242,6 +327,15 @@ The design session's answers, 2026-11-02 (lock-slate § 5):
     lists and revokes; `lock`/`unlock` unchanged.
 12. **The shop is in Mayfield Row** — lens 6: the demand (lease turnover, re-keying) is already
     there.
+13. **A lock is a set of conditions** (shape · string known · string spoken · record · side · hour ·
+    found), all of which must be met — lens 2's vault test.
+14. **No lock refuses leaving** — lens 4 and the guarantees of play; cells are policing's.
+15. **The aether lock** is a record lock driven by mind through the display's ladder; coverage and
+    power are its dependencies; its fail mode is entry-only and authored; its log is readable by the
+    person it is about; Duncan Hall is its first consumer (lens 6).
+16. **Out:** biometric (lens 4), the magical ward (arcana's row), the lockbox (lens 6). **Aether
+    devices in general** get their own slate (R3).
+17. **Around a lock:** the key ring, the key board at a seat's station, hasp, staple and chain.
 
 ## Lens pass
 
@@ -265,6 +359,11 @@ The design session's answers, 2026-11-02 (lock-slate § 5):
    ship and works issues keys.
 7. **Governance** — the issuer's register is the readable record; the refusal names who issues
    keys; restricted blanks are the authorized cutter's; warrants are policing's.
+
+⭐ **The range was run through all seven lenses on 2026-11-02** — lens 2 found that a lock is a set
+of conditions (the vault), lens 4 that no lock refuses leaving and that biometric stays out, lens 6
+that aether locks need a real consumer (Duncan Hall) and the lockbox has none, lens 7 that an access
+log must be readable by the person it is about. Detail: [lock-slate § 7](../slates/builds/lock-slate.md).
 
 ## The drive
 
@@ -320,7 +419,7 @@ Paces: `instant` · `short` (up to a game day) · `staged` (a span's outcome set
     one every time.
 
 **Seats, masters and things**
-20. `instant · player` — The Duncan Hall warden opens any dorm room with the master ring.
+20. `instant · player` — Mayfield Row's agent opens any of the row's doors with the master key.
 21. `instant · staged` — The Works keeper is dismissed: the register shows the pump-house key
     outstanding; the key still opens the door until the works re-key it.
 22. `instant · player` — The *Hesper*'s sea chest is locked; its key opens it; `get` from the locked
@@ -329,13 +428,36 @@ Paces: `instant` · `short` (up to a game day) · `staged` (a span's outcome set
     refuses until it is oiled or repaired, for its owner too.
 24. `instant · staged` — A lock staged as heavily worn: a lock that refused to rake now rakes.
 
+**The range**
+25. `instant · player` — Pull a latched door shut behind you without the key: you are locked out;
+    the locksmith opens it for a fee.
+26. `instant · player` — Bar a door from inside; a second player outside cannot open it except by
+    `force`; you walk out freely.
+27. `instant · player` — Say the password at a staged password door: it opens; a third player in the
+    room heard it and can now say it too.
+28. `instant · player` — A staged secret door: nothing to try until `search` finds it.
+29. `instant · player` — Watch a second player dial a combination; dial it yourself.
+30. `short · staged` — The Wharfside bank's vault: refused outside its window even with both keys and
+    the combination; at the hour, with two officers present and the combination, it opens.
+31. `instant · player` — Duncan Hall: your keycard opens your room; your phone opens it by mind from
+    across campus for a friend; the desk revokes a former resident and their card stops working
+    while yours does not.
+32. `instant · player` — Read your room door's log: the lines about you are readable by you.
+33. `instant · staged` — Cut the hall's power: the doors fall into their authored fail mode for entry;
+    a player inside walks out either way. Off grid (staged), the phone cannot reach the door and the
+    card uses the mechanical override.
+34. `instant · player` — Put your keys on a ring; `unlock` finds the right one; drop the ring and
+    every door it held refuses you.
+35. `instant · player` — The Works keeper takes the pump-house key off the key board; the hook shows
+    it out.
+
 **Verbs, restart and migration**
-25. `instant · player` — `pick apples` in an orchard: not a lock; `harvest apples` works; the
+36. `instant · player` — `pick apples` in an orchard: not a lock; `harvest apples` works; the
     farming help says `harvest`.
-26. `instant · player` — Restart the world (R4): your padlock is still on the shed, locked; your keys
+37. `instant · player` — Restart the world (R4): your padlock is still on the shed, locked; your keys
     and copies still open what they opened; a re-keyed door still refuses the old key; the register
-    reads the same.
-27. `instant · staged` — A player whose wallet held a shape key and who carries no physical key logs
+    reads the same; Duncan Hall's access list and logs survive, and a revoked card still fails.
+38. `instant · staged` — A player whose wallet held a shape key and who carries no physical key logs
     in after the migration: they are carrying the physical key, and their door opens.
 
 ### Soak drive
@@ -360,22 +482,36 @@ Paces: `instant` · `short` (up to a game day) · `staged` (a span's outcome set
 - An issuer's register lists the keys it issued and restricted copies; a refused player is told who
   issues keys; re-keying kills every old key; a record lock revokes one person.
 - A seat's key follows its holder, and a key kept by a dismissed holder still works until re-keyed;
-  Duncan Hall's master ring opens the dorm's rooms.
+  Mayfield Row's agent opens the row's doors with the master key.
 - A chest and a padlock lock and unlock like a door; a padlock is the owner's own good; a weathered
   padlock seizes for its owner too.
-- Five technologies exist as rows; a misspelled technology in content is refused when the content
+- The technology rows exist (warded, lever, pin tumbler, combination, keycard, aether, password,
+  time, inside bar); a misspelled technology in content is refused when the content
   is checked.
 - A locksmith's shop in Mayfield Row sells padlocks and blanks, cuts keys and re-keys locks, lit by
   day and night.
 - `pick` acts on locks; `harvest` takes crops; the farming help agrees.
 - Locks, keys, padlocks and registers read the same after a world restart.
+- A lock can require several conditions at once; the bank vault opens only in its window, with its
+  combination and two officers.
+- No lock anywhere prevents a person from leaving.
+- A spoken password is heard by everyone in the room; a combination is learned by watching; a hidden
+  lock is found by `search`; a latched door locks you out; a barred door yields only to force.
+- Duncan Hall's doors open to keycards and by phone, revoke one resident at a time, log entries the
+  resident can read, fall into their authored fail mode without power, and cannot be reached by mind
+  off grid.
+- A key ring's keys count as carried; a key board shows which keys are out.
 - The blocking drive runs green in under half an hour of wall time.
 
 ## Cross-references
 
 - [lock-slate](../slates/builds/lock-slate.md) — seeding slate, § 5 the session, § 6 the reuse ledger
 - [assessment-slate](../slates/builds/assessment-slate.md) — exams, the guild, the finer tree
-- [policing-slate](../slates/builds/policing-slate.md) — warrants, the constable
+- [policing-slate](../slates/builds/policing-slate.md) — warrants, the constable, cells
+- [aether-devices-slate](../slates/builds/aether-devices-slate.md) — devices driven by mind
+- [display.md](../subsystems/display.md) — the by-mind ladder the aether lock rides
+- [off-grid-slate](../slates/builds/off-grid-slate.md) · [energy.md](../subsystems/energy.md) —
+  coverage and power
 - [boundary.md](../subsystems/boundary.md) § Locks · [credential.md](../subsystems/credential.md) ·
   [assembly.md](../subsystems/assembly.md) · [spatial.md](../subsystems/spatial.md) (sealable
   closures) · [concealment.md](../subsystems/concealment.md) · [stealth.md](../subsystems/stealth.md) ·

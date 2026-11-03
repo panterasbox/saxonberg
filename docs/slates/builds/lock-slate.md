@@ -523,3 +523,49 @@ accounts for every row — reuse, generalize, or argue *genuinely new*.
 | matching by shape | — | ⭐ genuinely new (bitting seeded from the keyway) |
 | the pick-time formula and floor | — | ⭐ genuinely new |
 | restricted blanks | — | ⭐ genuinely new (a profile only an authorized cutter sells) |
+
+**Reuse ledger additions for the range (§ 7):**
+
+| concept | already doing the job | the plan's move |
+|---|---|---|
+| driving a lock by mind | **display's by-mind ladder** (held · in sight · anywhere by mind); *the modem is a predicate on the driver* ([display.md](../../subsystems/display.md)) | the aether lock rides it; no aether mixin on the lock |
+| power and fail modes | **`Powered`** / the grid's feeder cut ([energy.md](../../subsystems/energy.md)) | an aether lock reads its premises' power |
+| coverage | the off-grid design ([off-grid-slate](./off-grid-slate.md)) | no reach by mind off grid |
+| the spoken password | acoustic **speech** (`Vocal`; [comms.md](../../subsystems/comms.md)) | the room hears it |
+| the hidden lock | **concealment** + `search` ([concealment.md](../../subsystems/concealment.md)); exits already concealable | a concealed lock |
+| the time lock | **`WorldClockApi`** | the window is the clock |
+| entry-only refusal | harbors' *"refuses boarding, never leaving"*; passage among the guarantees of play ([measurement.md](../../measurement.md) Tier B) | universal |
+| the access log | measurement doctrine (no hidden measurement of a player) | the subject reads their lines |
+| a lock as conditions | the contract substrate's *clauses over verifiable conditions* ([contract.md](../../subsystems/contract.md)) | ⚠ a parallel, NOT a merge — a lock's conditions are a small closed set |
+| the key ring | containment (a container that accepts only keys); the wallet scan over reachable things | a row |
+| the key board | employment's station and shift | a row at a seat's station |
+
+## § 7 · The range, run through the lenses **[DECIDED — the owner, 2026-11-02: "take all the leans"]**
+
+The first pass designed one lock. Tested across the whole range — combination, password, keycard,
+aether, inside bar, time lock, dual control, hidden lock, biometric, magical ward, seal — **a lock is a
+set of conditions, all of which must be met**: shape held · string known · string spoken · named in a
+record · on this side · this hour · found. A seal is the other half — evidence without refusal.
+
+- **1 Pedagogy** — each condition is a real security principle (eavesdropping, separation of duties,
+  procedural control, obscurity and why `search` beats it, fail-safe vs fail-secure, the audit trail).
+  ⚠ Lens 1 argues FOR biometric — the credential you cannot revoke — recorded and overridden by lens 4.
+- **2 Expression** — *Ali Baba*, *Ocean's Eleven*, the speakeasy, the gatehouse pass. ⭐ The vault
+  needs time AND combination AND two keys → a lock is a set of conditions.
+- **3a Immersion** — every condition is decided by what is physically there; the guard against an
+  out-of-fiction control panel is that every aether act is a verb through a held carrier.
+  **3b Participation** — prohibition and the speakeasy; a bank's dual-control policy; a landlord
+  reading tenants' logs and a polity writing privacy law; the doorman's bar.
+- **4 Values** — ⭐⭐ **no lock refuses leaving** (harbors' rule, the passage guarantee; cells are
+  policing's); **biometric out** (a body as a key opens to a held-down sleeper or a corpse's hand —
+  coercion the unbuilt compulsion gate must answer first).
+- **5 Continuity** — the same verbs on every rung that allows them; the doorman and the brass
+  locksmith hold the obsolete halves.
+- **6 Economy** — the bank's vault is demand already there (the clockwork imported — no clockmaker);
+  aether locks need a real consumer → **Duncan Hall moves to keycards**; the lockbox has none → cut.
+- **7 Governance** — an access list judges people (criterion: the issuer's discretion; appeal: the
+  refusal names the issuer; tier C: tenancy law); an access log is a measurement of a person, so the
+  person reads it.
+
+Aether devices in general (switches, meters, sensors, pumps by mind) went to the
+[aether-devices-slate](./aether-devices-slate.md) — cross-cutting by R3.
