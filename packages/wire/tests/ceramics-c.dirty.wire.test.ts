@@ -819,6 +819,8 @@ suite('⭐ 22 — the filter (W8)', () => {
    * act under test.
    */
   let w: Session;
+  /** The crock each round stood its filter in, by room. */
+  const crockIn = new Map<string, string>();
   async function filterRound(room: string, water: string): Promise<void> {
     w = await goTo(w, SQUARE);
     // ⚠ The stall stocks one filter: the second round found it sold out
@@ -837,18 +839,26 @@ suite('⭐ 22 — the filter (W8)', () => {
     await say(w, 'get crock');
     await say(w, 'get filter');
     expect(await held(w), 'the crock goes with the filterer').toMatch(/crock/i);
+    // ⭐ By id from here: the yard already holds the potter's crocks and
+    // filters, and bare names bound the FIRST — the filter poured into was
+    // not the one standing in the crock, and both read empty (finalize).
+    const idOf = async (q: string): Promise<string> =>
+      String(((await w.query(q, { fields: 'ref' }).catch(() => [])) as { stuffId?: string }[])[0]?.stuffId ?? '');
+    const crockId = await idOf('me:i:crock');
+    const filterId = await idOf('me:i:filter');
+    expect(crockId && filterId, 'the filterer holds a crock and a filter').toBeTruthy();
     w = await goTo(w, room);
-    // The crock stands on the ground and the filter goes in it: `put … in
-    // crock` names a crock HERE, not one in hand (run 28).
-    await say(w, 'drop crock');
-    const set = await run(w, 'put filter in crock');
+    // The crock stands on the ground and the filter goes in it.
+    await say(w, `drop #${crockId}`);
+    const set = await run(w, `put #${filterId} in #${crockId}`);
     expect(refusedFor(set.r), `put filter in crock: ${set.said}`).toBeNull();
     // ⚠ The pail of each water is SETUP, handed already filled (the row's
     // own `interiorMaterial`/`interiorAmount`, as a data overlay): the
     // founder's eval is parcel-bound, and it holds no authority over the
     // brickfield (runs 31 and 34). The FILTER is the act under test.
     const pail = await hand(w, PAIL, { interiorMaterial: water, interiorAmount: 2 });
-    const poured = await say(w, `pour #${pail} into filter`);
+    const poured = await say(w, `pour #${pail} into #${filterId}`);
+    crockIn.set(room, crockId);
     expect(poured, `the pour: ${poured}`).toMatch(/pour/i);
     await say(w, `drop #${pail}`);
   }
@@ -864,7 +874,7 @@ suite('⭐ 22 — the filter (W8)', () => {
       contents?: { primaryKeyword?: string }[];
       longDescription?: string;
     }[];
-    const crock = rows.find((r) => (r.contents ?? []).some((c) => c.primaryKeyword === 'filter'));
+    const crock = rows.find((r) => r.stuffId === crockIn.get(room));
     if (!crock?.stuffId) return null;
     const look = String(crock.longDescription ?? '');
     const chem = await say(w, `analyze chemistry #${crock.stuffId}`);
