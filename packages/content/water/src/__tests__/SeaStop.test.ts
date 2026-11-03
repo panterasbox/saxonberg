@@ -100,7 +100,7 @@ describe('SeaStop (harbors B5)', () => {
     const stop = makeStuffAtPath(() => new SeaStop(), STOP_ROW);
     stop.setWater({ of: SEA, depthM: 20 });
     expect(stop.bandsNow()).toContain('bed');
-    expect(stop.isWaterNow()).toBe(true);
+    expect(stop.depthNow() > 0).toBe(true);
   });
 
   it('⭐ SeaWarren.stopOver: the stop at her position, the sea\'s depth, the wreck marked', async () => {

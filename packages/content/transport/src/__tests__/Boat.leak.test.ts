@@ -39,6 +39,13 @@ function lay(boat: Boat, room: Stuff, kg: number): void {
   vi.spyOn(MixinApi, 'isTangible').mockImplementation(((x: Stuff) => 'getMass' in x) as never);
 }
 
+/** A patch of sea as the warren mints one: its water stamped, with its depth. */
+function seaWater(): SeaPatch {
+  const p = makeStuff(() => new SeaPatch());
+  p.setWater({ of: '/test/sea', depthM: 20 });
+  return p;
+}
+
 beforeEach(() => {
   StuffApi.clearAll();
   now = T0;
@@ -61,7 +68,7 @@ describe('Boat — the leak and bailing (harbors P21)', () => {
 
   it('⭐ sound, nothing comes in — afloat or ashore, whatever the calendar says', () => {
     const boat = rowboat();
-    const water = makeStuff(() => new SeaPatch());
+    const water = seaWater();
     lay(boat, water, 80);
     vi.spyOn(MixinApi, 'isWaterPlace').mockReturnValue(true);
     boat.reconcileBilge();
@@ -72,7 +79,7 @@ describe('Boat — the leak and bailing (harbors P21)', () => {
 
   it('⭐⭐ holed: she fills; bailed she stays up; left, she goes down with what is in her', async () => {
     const boat = rowboat();
-    const water = makeStuff(() => new SeaPatch());
+    const water = seaWater();
     lay(boat, water, 80);
     vi.spyOn(MixinApi, 'isWaterPlace').mockReturnValue(true);
     boat.reconcileBilge();
@@ -106,7 +113,7 @@ describe('Boat — the leak and bailing (harbors P21)', () => {
 
   it('a dry boat has nothing to bail', async () => {
     const boat = rowboat();
-    lay(boat, makeStuff(() => new SeaPatch()), 0);
+    lay(boat, seaWater(), 0);
     expect((await boat.bucketRefusal({} as never, null))?.reason).toBe('dry');
   });
 });

@@ -235,7 +235,7 @@ export default class Line extends PullableMixin(TossableMixin(GoodBase)) {
     const medium = MixinApi.isRespiration(target) ? target : null;
     if (medium !== null && MixinApi.isContainable(target)) {
       const place = target.getContainer();
-      if (place !== null && MixinApi.isWaterPlace(place) && place.isWaterNow()) medium.holdUp();
+      if (place !== null && MixinApi.isWaterPlace(place) && place.depthNow() > 0) medium.holdUp();
     }
     try {
       MessageApi.scene(target)
@@ -371,7 +371,7 @@ export default class Line extends PullableMixin(TossableMixin(GoodBase)) {
     const isLoad = !diver.isAgent?.();
     let loadKg = 0;
     if (isLoad) {
-      const inWater = MixinApi.isWaterPlace(where) && where.isWaterNow();
+      const inWater = MixinApi.isWaterPlace(where) && where.depthNow() > 0;
       const depthM = inWater ? Math.max(0, BiomeApi.mediumFor(diver).depthM) : 0;
       const lashed = inWater ? this.buoysOf(diver, where) : [];
       const kg = MixinApi.isTangible(diver) ? diver.getMass().rawValue() : 0;
@@ -427,7 +427,7 @@ export default class Line extends PullableMixin(TossableMixin(GoodBase)) {
     else ContainmentApi.move(diver, next);
     for (const bag of bags) ContainmentApi.move(bag as never, next);
     this._end?.followLoad();
-    if (MixinApi.isRespiration(diver) && !out && MixinApi.isWaterPlace(next) && next.isWaterNow() &&
+    if (MixinApi.isRespiration(diver) && !out && MixinApi.isWaterPlace(next) && next.depthNow() > 0 &&
         next.surfacePlace() === (next as unknown as Stuff)) {
       diver.holdUp();
     }

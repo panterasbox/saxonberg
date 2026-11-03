@@ -34,9 +34,9 @@
  * ⚠ **Dry is dry.** A water place with no water cited would read
  * `swimming` and fifty-odd readers of `isWaterPlace` would treat people on
  * deck as in the water (the reason B1 left this composition out). So every
- * read is overridden: a dry compartment says `dry`, answers
- * {@link isWaterNow} `false` (the readers that ask *is this the water*
- * hear no), has no column (`bandsNow` is always empty — a diver reaches a
+ * read is overridden: a dry compartment says `dry`, its `depthNow()` is
+ * 0 (the readers that ask *is this the water* — `depthNow() > 0`, the read
+ * every water place has — hear no), has no column (`bandsNow` is always empty — a diver reaches a
  * wreck through her deck, from the water's own column over her), and puts
  * whoever stands in it in the AIR unless the water is over their head.
  *
@@ -159,11 +159,6 @@ export default class Compartment extends WaterPlaceMixin(
     if (d <= 0) return 'dry';
     if (d <= wadeDepthM()) return 'wading';
     return 'swimming';
-  }
-
-  /** ⭐ Water here only while it stands over the floor. */
-  public override isWaterNow(): boolean {
-    return this.depthNow() > 0;
   }
 
   /** ⭐ A cut-off basin is a tidepool's idea; a ship's room has no rim. */

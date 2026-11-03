@@ -172,6 +172,16 @@ export default class Band extends BandBase {
     return this.getSurface()?.levelNow() ?? 0;
   }
 
+  /**
+   * ⭐ How deep the water is here: the column's, which is its surface's —
+   * a band lies under the whole of it. The band's own stamped water (a
+   * copy of the surface's at bud, or authored on a room beside a column)
+   * answers while the surface is not loaded.
+   */
+  public depthNow(): number {
+    return this.getSurface()?.depthNow() ?? super.depthNow();
+  }
+
   /** The place at the top of this water: the surface it lies under. */
   public surfacePlace(): (Stuff & Container) | null {
     return this.getSurface();

@@ -267,15 +267,6 @@ export interface WaterPlace {
    */
   reconcileOccupants(): Promise<void>;
   /**
-   * ⭐ Is there water here NOW (harbors B5)? A water place IS a water, so
-   * by default yes — a tidepool the ebb left is still the pool. A ship's
-   * compartment is a room that may HOLD water and answers by its flood
-   * read: dry, it is a room you walk about in, and a reader asking *am I in
-   * the water / is that the water* (a way into the water, a boat afloat, a
-   * thermometer over the side) must hear no.
-   */
-  isWaterNow(): boolean;
-  /**
    * ⭐ A band of this water's column has just budded (harbors B5): the
    * surface may wire what it knows lies down there — the way into a wreck
    * on the bed. Called by the column, once per bud.
@@ -426,14 +417,6 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
 
     public getWaterKey(): string {
       return this.water?.feature ?? WATER_KEY;
-    }
-
-    /**
-     * @hook Override on a place that only sometimes holds water (a ship's
-     *   compartment answers by its flood). Default: a water place is a water.
-     */
-    public isWaterNow(): boolean {
-      return true;
     }
 
     /**

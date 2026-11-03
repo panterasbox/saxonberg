@@ -64,7 +64,7 @@ function seaPatch(): SeaPatch {
     if (!s) throw new Error(`no fixture ${p}`);
     return s as never;
   });
-  const patch = makeStuff(() => new SeaPatch());
+  const patch = seaWater();
   patch.setExpanse(SEA);
   patch.setExpansePosition(ORIGIN);
   return patch;
@@ -73,6 +73,13 @@ function seaPatch(): SeaPatch {
 /** The weather pinned to a wind, m/s, everywhere. */
 function wind(mps: number): void {
   vi.spyOn(WeatherApi, 'deviatedFieldFor').mockReturnValue({ rawValue: () => mps } as never);
+}
+
+/** A patch of sea as the warren mints one: its water stamped, with its depth. */
+function seaWater(): SeaPatch {
+  const p = makeStuff(() => new SeaPatch());
+  p.setWater({ of: '/test/sea', depthM: 20 });
+  return p;
 }
 
 beforeEach(() => StuffApi.clearAll());
@@ -84,7 +91,7 @@ afterEach(() => {
 describe('Boat — load and swamping (harbors P22)', () => {
   it('⭐ afloat and loaded past her freeboard, she swamps where she lies', async () => {
     const boat = rowboat();
-    const water = makeStuff(() => new SeaPatch());
+    const water = seaWater();
     vi.spyOn(MixinApi, 'isWaterPlace').mockReturnValue(true);
     const over = vi.spyOn(boat, 'capsize');
     // 4.5 × 1.3 × 0.7 × 1000 = 4,095 kg a meter: 2,000 kg takes 0.49 m.
@@ -96,7 +103,7 @@ describe('Boat — load and swamping (harbors P22)', () => {
 
   it('ashore — on a landing, a deck — she floats on nothing, and nothing happens', async () => {
     const boat = rowboat();
-    const shingle = makeStuff(() => new SeaPatch());
+    const shingle = seaWater();
     vi.spyOn(MixinApi, 'isWaterPlace').mockReturnValue(false);
     const over = vi.spyOn(boat, 'capsize');
     lay(boat, shingle, 2000);
@@ -126,10 +133,10 @@ describe('Boat — load and swamping (harbors P22)', () => {
 
   it('a look says how low her load has her riding', () => {
     const boat = rowboat();
-    lay(boat, makeStuff(() => new SeaPatch()), 0);
+    lay(boat, seaWater(), 0);
     expect(boat.describeBoat()).toEqual([]);
     vi.restoreAllMocks();
-    lay(boat, makeStuff(() => new SeaPatch()), 1000);
+    lay(boat, seaWater(), 1000);
     expect(boat.describeBoat().join(' ')).toMatch(/riding low/);
   });
 });

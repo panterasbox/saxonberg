@@ -158,6 +158,19 @@ describe('the state is derived from the depth now (D1)', () => {
     expect(tidepool.stateNow()).toBe('wading');
   });
 
+  it('⭐ "is there water here" is depthNow() > 0: a strandline the ebb left is not water, a pool is', async () => {
+    // (harbors review: no `isWaterNow` synonym — every water place has this read.)
+    const { pool: strand } = await pool({ of: '/stuff/idea/WaterExpanse/greywater', depthM: -1.3 });
+    readAt(strand, -0.5);
+    expect(strand.depthNow() > 0).toBe(false);
+    expect(strand.stateNow()).toBe('dry');
+    vi.restoreAllMocks();
+    readAt(strand, 1.5);
+    expect(strand.depthNow() > 0).toBe(true);
+    const { pool: deep } = await pool({ of: 'kestrel:confluence', depthM: 4 });
+    expect(deep.depthNow() > 0).toBe(true);
+  });
+
   it('⭐ water you can stand in bears you; water over your head does not', async () => {
     const { pool: p, floor } = await pool({ of: 'kestrel:confluence', depthM: 1 });
     readAt(p, 0);

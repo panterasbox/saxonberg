@@ -263,7 +263,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
       if (who === null || who.isDestroyed()) continue;
       if (MixinApi.isOrganism(who) && !who.isAlive()) continue;
       const room = MixinApi.isContainable(who) ? who.getContainer() : null;
-      if (room === null || !MixinApi.isWaterPlace(room) || !room.isWaterNow()) continue;
+      if (room === null || !MixinApi.isWaterPlace(room) || room.depthNow() <= 0) continue;
       keep.push(id);
       still.push(who);
     }

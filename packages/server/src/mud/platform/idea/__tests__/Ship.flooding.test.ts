@@ -208,7 +208,7 @@ describe('Ship — flooding, settling, sinking (harbors B5)', () => {
     await ship.reconcileBilge();
     expect(MixinApi.isWaterPlace(deck as unknown as Stuff)).toBe(true);
     expect(deck.stateNow()).toBe('dry');
-    expect(deck.isWaterNow()).toBe(false);
+    expect(deck.depthNow() > 0).toBe(false);
     expect(hold.stateNow()).toBe('dry');
     expect(deck.bandsNow()).toEqual([]);
     const someone = await personIn(deck as unknown as Stuff & Container, people);
@@ -218,7 +218,7 @@ describe('Ship — flooding, settling, sinking (harbors B5)', () => {
     await TestHarnessApi.stageShip(ship.getDurableHandle()!, { bilgeL: litresAt(0.8) });
     expect(hold.depthNow()).toBeCloseTo(0.5, 6);
     expect(hold.stateNow()).toBe('wading');
-    expect(hold.isWaterNow()).toBe(true);
+    expect(hold.depthNow() > 0).toBe(true);
     expect(hold.floodWords()).toBe('Water stands waist-deep here.');
     expect(hold.mediumFor(someone).immersed).toBe(false); // standing in it, head in the air
     expect(deck.stateNow()).toBe('dry');
@@ -228,7 +228,7 @@ describe('Ship — flooding, settling, sinking (harbors B5)', () => {
     await TestHarnessApi.stageShip(ship.getDurableHandle()!, { bilgeL: litresAt(1.79) });
     expect(hold.stateNow()).toBe('wading');
     expect(hold.floodWords()).toBe('The water is up to your chest here.');
-    expect(deck.isWaterNow()).toBe(false);
+    expect(deck.depthNow() > 0).toBe(false);
     expect(ship.isSettling()).toBe(false);
   });
 
@@ -299,7 +299,7 @@ describe('Ship — flooding, settling, sinking (harbors B5)', () => {
     expect(ship.getWreck()!.depthM).toBe(20);
     expect(hold.depthNow()).toBeCloseTo(19.7, 6);
     expect(deck.depthNow()).toBeCloseTo(18.2, 6);
-    expect(deck.isWaterNow()).toBe(true);
+    expect(deck.depthNow() > 0).toBe(true);
     // ⭐ The register entry and her title are not hers to lose by sinking: she is still the ship.
     expect(ship.isDestroyed()).toBe(false);
     expect(ship.getDurableHandle()).toBe(`${KIND}/n1`);
@@ -320,7 +320,7 @@ describe('Ship — flooding, settling, sinking (harbors B5)', () => {
     expect(back.isSunk()).toBe(true);
     const { deck, hold } = await roomsOf(back);
     expect(MixinApi.isPersistable(deck)).toBe(false);
-    expect(deck.isWaterNow()).toBe(true);
+    expect(deck.depthNow() > 0).toBe(true);
     expect(deck.depthNow()).toBeCloseTo(18.2, 6);
     expect(hold.depthNow()).toBeCloseTo(19.7, 6);
     expect(deck.floodWords()).toMatch(/lies on the bottom/);

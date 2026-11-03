@@ -269,7 +269,7 @@ export default class Boat extends BoatBase implements LiftSource {
   /** Is she in water now — a water place holding water? */
   public isAfloat(): boolean {
     const room = this.getContainer();
-    return room !== null && MixinApi.isWaterPlace(room) && room.isWaterNow();
+    return room !== null && MixinApi.isWaterPlace(room) && room.depthNow() > 0;
   }
 
   /**
@@ -483,7 +483,7 @@ export default class Boat extends BoatBase implements LiftSource {
    * they could not).
    */
   public override entryMediaIn(env: Stuff & Container): string[] {
-    return MixinApi.isWaterPlace(env) && env.isWaterNow() ? ['ground', 'water'] : [];
+    return MixinApi.isWaterPlace(env) && env.depthNow() > 0 ? ['ground', 'water'] : [];
   }
 
   /** ⭐ She carries a killick (D28): a stop that holds her is held by it. */
@@ -540,7 +540,7 @@ export default class Boat extends BoatBase implements LiftSource {
   public async reconcileFloat(): Promise<boolean> {
     if (this._capsized) return false;
     const room = this.getContainer();
-    if (room === null || !MixinApi.isWaterPlace(room) || !room.isWaterNow()) return false;
+    if (room === null || !MixinApi.isWaterPlace(room) || room.depthNow() <= 0) return false;
     const freeboard = this.freeboardNowM();
     if (freeboard <= 0) {
       // ⭐ Filled through her hull (P21): she goes down; loaded past it, she swamps.
@@ -590,7 +590,7 @@ export default class Boat extends BoatBase implements LiftSource {
     // ⭐ The water that came in came in where she WAS (P21): afloat there,
     // the leak ran; ashore it did not. Brought up to now before she counts
     // as wherever she is now.
-    const wasAfloat = from !== null && MixinApi.isWaterPlace(from) && from.isWaterNow();
+    const wasAfloat = from !== null && MixinApi.isWaterPlace(from) && from.depthNow() > 0;
     this.resetBilge(wasAfloat ? this.bilgeLeakedSinceAfloat() : this.bilgeAtStamp(), boatNowS());
     super.onMoved(from, to);
     if (to === null) return;
