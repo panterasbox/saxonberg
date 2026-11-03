@@ -237,13 +237,18 @@ export function FrameSitedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBa
 function alongsideAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
   if (!MixinApi.isExitable(host)) return text;
   const names: string[] = [];
+  const ways: string[] = [];
   for (const exit of host.getExits().values()) {
     if (exit instanceof BerthExit) {
       const name = exit.alongsideName();
       if (name) names.push(name);
+      // ⭐ Each way's own description (harbors review 2): what `look
+      // hesper` shows, because MQL binds the landing through her way.
+      const said = exit.describe();
+      if (said) ways.push(said);
     }
   }
   if (names.length === 0) return text;
-  const line = `Alongside: ${names.join(', ')}.`;
+  const line = [`Alongside: ${names.join(', ')}.`, ...ways].join(' ');
   return text && text.length > 0 ? `${text}\n\n${line}` : line;
 }

@@ -32,7 +32,6 @@ import type {
 import type { MqlOneResult } from '../../../../api/mql';
 import InventoryController from '../inventory/InventoryController';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
-import type Place from '../../../../lib/stuff/Place';
 import { MixinApi } from '../../../../api/mixin';
 import { StuffApi } from '../../../../api/stuff';
 import { ChattelApi } from '../../../../api/chattel';
@@ -90,14 +89,6 @@ export default class LookController extends CommandController<LookModel> {
     const detailPath = target?.via?.detailPath;
     if (detailPath && detailPath.length > 0) {
       return this.lookAtDetail(one, detailPath, context);
-    }
-    // ⭐ A way named for what lies across it (harbors review 2): `look
-    // hesper` on the quay binds the way aboard her, and her deck is seen
-    // across it — the place, never what stands in it (the tracts build's
-    // rule, `Place.isSeenAcrossExit`). Only when that place is loaded.
-    const across = one === context.location ? target?.via?.exit?.peekDestination() ?? null : null;
-    if (across !== null && across !== one && across.isPlace() && (across as Stuff & Place).isSeenAcrossExit()) {
-      return this.lookAtTarget(across, context);
     }
     // Render the room (with exits) when the resolved target IS the
     // current location — bare `look` on arrival, `look here`.
