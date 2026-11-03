@@ -457,3 +457,36 @@ own key's description instead of the kernel guessing.
 problem. A `lock-technology` row holding `{ displayName, keyProse,
 masterProse }` retires both, and `LOCK_TYPES` becomes the catalogue's
 warm roster rather than a literal array.
+
+## § 5 · Decided 2026-11-02 — Q1 and Q2, and where the rest went
+
+The design session began 2026-11-02 with a step back (*what is a lock*): a lock holds a closure
+shut against everyone but whoever presents the right **secret**, and the secret's form is the
+bearer/registered split paper settled the same day — a key's **shape** is bearer, a
+**combination** is bearer knowledge, a keycard or the implant is a **registered** record. The
+ladder is the epoch axis. Every defeat (force · pick · copy the secret · take it · go around)
+leaves its own evidence.
+
+- **Q4 → Q1 · ⭐⭐ The secret is what the TECHNOLOGY says it is [DECIDED — the owner].** Shape
+  rungs (warded; lever and pin tumbler) carry a physical secret: a ward pattern, or a **bitting**
+  plus a **keyway profile** (the blank family). A combination is numbers; a keycard is an opaque
+  record (today's token, right for that rung). For the shape rungs: cheap locks share keys (the
+  keyspace is pins × depths — quality becomes arithmetic), copying needs the key, an impression
+  or the code plus the right blank (a **restricted keyway** is the guild's lever), re-keying is a
+  paid service, master keying admits two bittings and is therefore easier to pick, and a skilled
+  eye reads a key's cuts. ⭐ **The opaque keyway stays the lock's identity; its bitting is SEEDED
+  from it** — existing doors need no data change; matching moves from identity to shape.
+- **Q1 → Q2 · ⭐⭐ A pick is a durative act whose LENGTH is computed [DECIDED — the owner].** Seeded
+  at manufacture (what the world IS): bitting, binding order, tolerance, security pins. The time
+  comes from pins, tolerance, competence, tool, light and condition; a novice who cannot feel the
+  binding order wastes a FIXED amount on a given lock; below the floor the lock never yields and
+  the refusal says what lifts it; security pins false-set a picker below a band (time, not
+  chance); raking opens a lock iff its tolerance is loose enough. Interruption drops the pins;
+  concealment decides who walks past; reading the lock tells a skilled eye the cost beforehand; a
+  picked lock carries tool marks, a forced one is ruined and loud. Warded locks are bypassed by
+  geometry; a combination is manipulated by sound; keycards and the implant are not picked here.
+- **Open:** impressioning (making a key at the lock) — with copying (Q5), or later.
+- ⭐⭐⭐ **The competence that sets the floor is ASSESSED**: the session turned into the
+  [assessment-slate](./assessment-slate.md) — we measure real competence, mostly by tests, over a
+  much finer Discipline tree; lockcraft is its first consumer and the **Locksmiths' Guild** its
+  first examiner. Q3 (lockcraft's dominant act) and the rest resume against that slate.
