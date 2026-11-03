@@ -246,6 +246,8 @@ describe('a card is born on the server, or not at all', () => {
         'cms',
         'git',
         'help',
+        // ⭐ `map` opens the navigator (client-surface, 2026-11-01).
+        'map',
         'news',
         'settings',
         'stock',
