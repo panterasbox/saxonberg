@@ -26,3 +26,5 @@ data:
     - /world/terminus/hearts-delight/ditch/thing/headgate
     - /world/terminus/hearts-delight/ditch/thing/weir
     - /world/terminus/hearts-delight/ditch/thing/staff-gauge
+    # ⭐ The one thing that reads the valley's water table (D13).
+    - /world/terminus/hearts-delight/ditch/thing/observation-well

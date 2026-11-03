@@ -199,6 +199,24 @@ export interface WaterSupply extends SupplyServing, SupplyReporting {
   serves(path: string): boolean;
 }
 
+/**
+ * ⭐⭐ **The water under the ground, as a well reads it** (water-supply D13):
+ * an aquifer's surface and bottom, and the one write — a draw. Implemented
+ * structurally by the water pack's `Aquifer`; read by the kernel's `Well`
+ * by SHAPE, so the kernel never imports the pack. Its level is otherwise
+ * hidden: only an observation well reads it as a number.
+ */
+export interface GroundWater {
+  /** Where its water stands now, m ASL. */
+  surfaceM(nowS: number): number;
+  /** Where it gives out, m ASL. */
+  getBottomM(): number;
+  /** A well took `litres` at `atS`; returns what it actually gave. */
+  recordDraw(litres: number, atS: number): number;
+  /** Resolve whose rain recharges it — once, async, before the first read. */
+  ensureLocality(): Promise<void>;
+}
+
 /** How a short supply shares what it has (water-supply D6). */
 export type SupplyShares = 'priority' | 'proportion';
 
