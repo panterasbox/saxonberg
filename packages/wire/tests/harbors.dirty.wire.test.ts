@@ -522,6 +522,27 @@ async function act(s: Session, line: string): Promise<{ r: CommandResult; said: 
   return { r, said: squash(await r.said()) };
 }
 
+/**
+ * ⭐ One crossing under water (a swim up her hatch, a stroke up or down the
+ * column). It takes real seconds and its reply comes BEFORE the move — no
+ * engagement note rides it — so wait until you are somewhere else, or the
+ * next act is "your hands are already busy" (fresh-DB run 2026-11-04,
+ * steps 22–23). The underwater drive's `stroke`, verbatim in shape.
+ */
+async function cross(s: Session, line: string): Promise<{ r: CommandResult; said: string }> {
+  const where = async (): Promise<string> => JSON.stringify(await s.query('here', { fields: 'ref' }));
+  const before = await where();
+  await s.drainProse();
+  const r = await s.cmd(line);
+  const said = squash(await r.said());
+  if (r.status !== 'ok') return { r, said };
+  for (let t = 0; t < 120; t++) {
+    if ((await where()) !== before) break;
+    await new Promise((res) => setTimeout(res, 500));
+  }
+  return { r, said };
+}
+
 /** What the bilge reads, as a sounding rod finds it. */
 async function sound(s: Session): Promise<string> {
   return say(s, 'measure bilge');
@@ -685,8 +706,11 @@ suite('B1 — she keeps across a restart (15)', () => {
     // Her way aboard is wired again from the register's `lies`.
     expectOk(await owner.cmd(`go ${way1}`));
     expect(await look(owner)).toMatch(/smack's deck/i);
-    expectOk(await owner.cmd('go down'));
-    expectOk(await owner.cmd('go north'));
+    // Her rooms are under water too: each way through them is a crossing.
+    for (const way of ['go down', 'go north']) {
+      const step = await cross(owner, way);
+      expect(step.r.status, step.said).toBe('ok');
+    }
     const hold = await look(owner);
     expect(hold, `her hold, after a restart: ${hold}`).toMatch(/oakum/i);
     expectOk(await owner.cmd('go south'));
@@ -898,11 +922,11 @@ suite('B3 — she goes down', () => {
     // under water the way up answers "you'll have to swim" — honestly.
     // A crossing under water costs real seconds (an engaged act): each is
     // waited out, or the next is "your hands are already busy" (run 9).
-    const up = await act(owner, 'swim up');
+    const up = await cross(owner, 'swim up');
     expect(up.r.status, up.said).toBe('ok');
     let top = '';
     for (let i = 0; i < 10; i++) {
-      const { r, said } = await act(owner, 'ascend');
+      const { r, said } = await cross(owner, 'ascend');
       if (r.status !== 'ok') {
         top = said;
         break;
@@ -916,16 +940,20 @@ suite('B3 — she goes down', () => {
     const tank = await hand(owner, AIR_TANK);
     expectOk(await owner.cmd(`wear #${tank}`));
     for (let i = 0; i < 10; i++) {
-      const { r } = await act(owner, 'descend');
+      const { r } = await cross(owner, 'descend');
       if (r.status !== 'ok') break;
     }
     const bed = await look(owner);
     expect(bed, bed).toMatch(new RegExp(`\\b${way1}\\b`));
     // Into her from the water around her: a swim, as up her side is.
-    expectOk(await owner.cmd(`swim ${way1}`));
+    const aboard = await cross(owner, `swim ${way1}`);
+    expect(aboard.r.status, aboard.said).toBe('ok');
     expect(await look(owner)).toMatch(/smack's deck/i);
-    expectOk(await owner.cmd('go down'));
-    expectOk(await owner.cmd('go north'));
+    // Her rooms are under water too: each way through them is a crossing.
+    for (const way of ['go down', 'go north']) {
+      const step = await cross(owner, way);
+      expect(step.r.status, step.said).toBe('ok');
+    }
     const hold = await look(owner);
     expect(hold, hold).toMatch(/oakum/i);
     expect(hold, hold).toMatch(/sea fills her/);
