@@ -360,6 +360,19 @@ describe('water <plant>', () => {
     expect(captured).toContain(pot);
   });
 
+  it('⭐ an UNDRAINED pot takes the whole can: the soil drinks its fill and the rest stands', async () => {
+    const { giver, room, plant, pot } = scene();
+    pot.setDrained(false);
+    const can = makeCan(2);
+    ContainmentApi.move(can, giver);
+    dryOut(plant, 6);
+    const ctrl = makeStuff(() => new WaterController());
+    await ctrl.execute(model(one(plant, 'lily'), undefined, giver), makeContext(giver, room));
+    expect(plant.getSoilMoisture()).toBeCloseTo(1, 3);
+    expect(can.getBulkAmount('interior').rawValue()).toBeCloseTo(0, 3);
+    expect(pot.getPondedL()).toBeGreaterThan(1.4);
+  });
+
   it('naming the POT waters its occupant — a player types both', async () => {
     const { giver, room, plant, pot } = scene();
     const can = makeCan(2);

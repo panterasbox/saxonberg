@@ -90,7 +90,7 @@ import {
 import type { EvictionContext } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import ControlStructure from '../thing/ControlStructure';
 import type { VetoResult } from '@saxonberg/server/mud/lib/errors';
-import {
+import Watercourse, {
   WATERCOURSE_PATH_PREFIX,
   type WatercourseDescriptor,
   type WatercourseSource,
@@ -1905,8 +1905,17 @@ async function loadIndex(): Promise<CompiledIndex> {
   const courses = new Map<string, WatercourseDescriptor>();
 
   for (const tpl of templates) {
-    const d = descriptorOf(tpl.data as Record<string, unknown>);
+    let d = descriptorOf(tpl.data as Record<string, unknown>);
     if (d === null) continue;
+    // ⭐ A ditch's lining is WORK somebody does to it, so a loaded course's
+    // live lining wins over its row — the overlay the works already get
+    // (the browser walk: lining the Delight ditch changed nothing the
+    // catalogue read).
+    const live = StuffApi.findByTemplatePath(tpl.path);
+    if (live instanceof Watercourse && !live.isDestroyed()) {
+      const lining = live.getLining();
+      if (lining !== null) d = { ...d, lining };
+    }
     if (courses.has(d.key)) {
       problems.push(
         `two watercourses claim the key '${d.key}' — a key is an ` +

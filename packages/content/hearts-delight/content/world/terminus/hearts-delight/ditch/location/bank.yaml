@@ -15,10 +15,11 @@ data:
   coords: { x: -1, y: 0, z: 0 }
   # ⭐ The water this bank stands beside is the DITCH, not the river
   # (water-supply, the browser walk): `analyze water` here reads the ditch
-  # at its head — how much it carries, so a lined ditch and an earth one
-  # read differently. The river is the headgate's.
+  # at the bench, where Avila's turnout draws — downstream of what the bed
+  # loses on the way, so an earth ditch and a lined one read differently.
+  # The river is the headgate's.
   waters:
-    ditch: delight-ditch:head
+    ditch: delight-ditch:bench
   details:
     ditch:
       keywords: [ditch, water, channel]

@@ -187,9 +187,15 @@ export default class WaterController extends CommandController<WaterModel> {
     // slot, for the prose.
     const material = fromSlot.getMaterial();
     const payload = fromSlot.getPayload();
+    // ⭐ Ground that HOLDS water (an undrained pot, a field) takes the whole
+    // can: the soil drinks what it can and the rest stands on it. Only a
+    // drained pot is poured to its headroom (the rest would run out of the
+    // hole). The browser walk: an undrained pot drained a sliver between
+    // pours, so its headroom never reached 0 and it could not be overwatered.
+    const holds = ground.soilAcceptsPonding();
     const result = BulkableApi.transfer(fromSlot, null, {
       kind: 'measure',
-      litres: Math.min(headroom, fromSlot.available()),
+      litres: holds ? fromSlot.available() : Math.min(headroom, fromSlot.available()),
       mode: 'lenient',
     });
     for (const note of result.notes) context.note(note);
@@ -213,8 +219,14 @@ export default class WaterController extends CommandController<WaterModel> {
     const difficulty =
       plant instanceof Plant ? plant.careDifficulty() : plant ? 'standard' : 'easy';
     const absorbed = plant
-      ? plant.waterPlant(result.applied)
-      : ground.waterSoil(result.applied);
+      ? plant.waterPlant(Math.min(result.applied, headroom))
+      : ground.waterSoil(Math.min(result.applied, headroom));
+    const standing = holds ? result.applied - Math.max(0, absorbed) : 0;
+    if (standing > 0.01) {
+      ground.pond(standing);
+      const salt = payload?.salinityPpt;
+      if (typeof salt === 'number' && salt > 0) ground.addSoilSalt((standing * salt) / 1000);
+    }
 
     // Capture the GROUND, not the plant: since phase 2 the litres land in
     // the pot's (or bed's, or patch's) moisture reserve, so capturing only
@@ -258,7 +270,12 @@ export default class WaterController extends CommandController<WaterModel> {
       : part
         ? Mml.compose`You tip ${litres} of ${appearance} into the soil at ${Mml.thing(part)}.`
         : Mml.compose`You tip ${litres} of ${appearance} into the soil of ${Mml.thing(ground)}.`;
-    const drinks = plant && absorbed > 0 ? ' It drinks it in.' : '';
+    const drinks =
+      standing > 0.01
+        ? ' The soil cannot take it all; the rest stands on top, with nowhere to go.'
+        : plant && absorbed > 0
+          ? ' It drinks it in.'
+          : '';
     // A labeled plant's water went round its own roots, not over the ground.
     const areaM2 =
       plant instanceof Plant && plant.hasRootZone() ? 0 : ground.soilCatchmentAreaM2();
