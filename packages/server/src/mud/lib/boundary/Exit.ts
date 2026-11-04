@@ -1032,6 +1032,31 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
    * @hook Override on a way worked out against moving water, whose far
    *   side is not known until it is taken.
    */
+  /**
+   * ⭐ A way flooded at both ends is a swim, whatever it was authored as
+   * (harbors drive 2026-11-04). A sunk ship's companionway is a dry
+   * stair by its row, and under the sea it is neither walkable (over your
+   * head) nor — before this — swimmable, so the diver could reach her deck
+   * and nothing below it. The place is the water (swim.yaml): a water
+   * mode passes a way when the mover is in water over their head AND its
+   * far side is too. Never a way out of the water — a basin's wall stays
+   * a climb, because the quay above it is dry.
+   */
+  protected async floodedFor(mover: Stuff & Containable, modeName: string): Promise<boolean> {
+    if (LocomotionApi.modeOf(modeName)?.getMedium() !== 'water') return false;
+    const here = mover.getContainer();
+    if (here === null || !MixinApi.isWaterPlace(here) || here.stateNow() !== 'swimming') return false;
+    let far: Stuff | null = this.peekDestination();
+    if (far === null) {
+      try {
+        far = await this.resolveDestination();
+      } catch {
+        return false;
+      }
+    }
+    return MixinApi.isWaterPlace(far) && far.stateNow() === 'swimming';
+  }
+
   public leadsIntoWater(): boolean {
     const dest = this.peekDestination();
     return dest !== null && MixinApi.isWaterPlace(dest) && dest.depthNow() > 0;
@@ -1244,7 +1269,7 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
         reason: `${GrammarApi.cap(doorName)} is closed.`,
       };
     }
-    if (mode != null && !this.allowsMode(mode)) {
+    if (mode != null && !this.allowsMode(mode) && !(await this.floodedFor(mover, mode))) {
       // ⭐ Name the way that works (found by the underwater browser walk:
       // the card's `up` out of the river sends `go up`, which said only
       // "You can't walk that way" beside steps you have to climb).

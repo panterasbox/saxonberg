@@ -229,7 +229,13 @@ export default class Place extends PlaceBase {
     // never by its authored berth.
     if (alongside !== undefined) return alongside;
     if (far !== null && far.isPlace()) return (far as unknown as Place).structureNow();
-    return authored ? NavigationApi.structureAtNow(authored) : null;
+    // ⚠ A way to a KEYED room not standing (a column's water band, a ship
+    // of a kind's deck) names no structure by its path — a keyed room's
+    // structure is its warren's, and only the room can say which (harbors
+    // drive 2026-11-04: every arrival on the sea bed beside a wreck threw
+    // out of the MQL scope walk). Unloaded, it lands nothing here.
+    if (!authored || authored.includes('#')) return null;
+    return NavigationApi.structureAtNow(authored);
   }
 
   /**

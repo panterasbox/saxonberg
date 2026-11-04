@@ -37,6 +37,7 @@ import Exit from '../../boundary/Exit';
 import { SchedulerApi } from '../../../api/scheduler';
 import { HAZARD_PIN_TYPE } from '../../hazard/HazardActivity';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
+import { buildAllModes } from '../../locomotion/__tests__/test-helpers';
 
 class Walker extends Actor {}
 function walker(): Walker {
@@ -417,5 +418,44 @@ describe('⭐ still water and moving water are different water (river W14)', () 
     expect(MixinApi.isMovingWater(r as unknown as Stuff)).toBe(true);
     expect(r.mediumFor(swimmer as unknown as Stuff)).toMatchObject({ currentMps: 1.4, roughness: 0.5 });
     expect(r.standsOnArrival(swimmer as unknown as Stuff)).toBe(false);
+  });
+});
+
+describe('⭐ a way flooded at both ends is a swim (harbors drive 2026-11-04)', () => {
+  /** Two rooms joined by a way authored as a dry stair (no media). */
+  async function stair(from: Stuff, to: Stuff): Promise<Exit> {
+    return makeStuff(() => new Exit({ direction: 'down', source: from as never, destination: to as never }));
+  }
+
+  it('a sunk ship’s companionway: water over your head on both sides admits the swim', async () => {
+    buildAllModes();
+    const { pool: deck } = await pool();
+    const { pool: cabin } = await pool();
+    const diver = walker();
+    ContainmentApi.move(diver as never, deck as never);
+    const way = await stair(deck, cabin);
+    expect(way.allowsMode('swim')).toBe(false);
+    expect((await way.canTraverse(diver as never, 'swim')).ok).toBe(true);
+  });
+
+  it('never a way out of the water: into a dry room it stays what it was authored as', async () => {
+    buildAllModes();
+    const { pool: water } = await pool();
+    const dry = makeStuff(() => new Locale());
+    const swimmer = walker();
+    ContainmentApi.move(swimmer as never, water as never);
+    const way = await stair(water, dry);
+    const guard = await way.canTraverse(swimmer as never, 'swim');
+    expect(guard.ok).toBe(false);
+  });
+
+  it('nor from a dry room into the water', async () => {
+    buildAllModes();
+    const dry = makeStuff(() => new Locale());
+    const { pool: water } = await pool();
+    const walkerOnDeck = walker();
+    ContainmentApi.move(walkerOnDeck as never, dry as never);
+    const way = await stair(dry, water);
+    expect((await way.canTraverse(walkerOnDeck as never, 'swim')).ok).toBe(false);
   });
 });

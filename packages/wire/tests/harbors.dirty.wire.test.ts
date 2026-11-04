@@ -533,8 +533,15 @@ async function cross(s: Session, line: string): Promise<{ r: CommandResult; said
   const where = async (): Promise<string> => JSON.stringify(await s.query('here', { fields: 'ref' }));
   const before = await where();
   await s.drainProse();
-  const r = await s.cmd(line);
-  const said = squash(await r.said());
+  let r = await s.cmd(line);
+  let said = squash(await r.said());
+  // Hands still busy with the act before (putting the tank on is an
+  // engaged act too — run 2 of 2026-11-04 went down nowhere): wait it out.
+  for (let i = 0; i < 30 && r.status !== 'ok' && /busy/i.test(said); i++) {
+    await new Promise((res) => setTimeout(res, 1_000));
+    r = await s.cmd(line);
+    said = squash(await r.said());
+  }
   if (r.status !== 'ok') return { r, said };
   for (let t = 0; t < 120; t++) {
     if ((await where()) !== before) break;
@@ -706,8 +713,9 @@ suite('B1 — she keeps across a restart (15)', () => {
     // Her way aboard is wired again from the register's `lies`.
     expectOk(await owner.cmd(`go ${way1}`));
     expect(await look(owner)).toMatch(/smack's deck/i);
-    // Her rooms are under water too: each way through them is a crossing.
-    for (const way of ['go down', 'go north']) {
+    // Her rooms are under water too: each way through them is a swim
+    // (`go` is over your head) and a crossing that takes its seconds.
+    for (const way of ['swim down', 'swim north']) {
       const step = await cross(owner, way);
       expect(step.r.status, step.said).toBe('ok');
     }
@@ -938,7 +946,8 @@ suite('B3 — she goes down', () => {
   it('23. (instant · player) a diver goes down to her: the wreck is the ship — her rooms, her cargo in the hold — and she is still in your name in the register', async () => {
     // (staged) The diver's kit, handed.
     const tank = await hand(owner, AIR_TANK);
-    expectOk(await owner.cmd(`wear #${tank}`));
+    const worn = await act(owner, `wear #${tank}`);
+    expect(worn.r.status, worn.said).toBe('ok');
     for (let i = 0; i < 10; i++) {
       const { r } = await cross(owner, 'descend');
       if (r.status !== 'ok') break;
@@ -949,8 +958,9 @@ suite('B3 — she goes down', () => {
     const aboard = await cross(owner, `swim ${way1}`);
     expect(aboard.r.status, aboard.said).toBe('ok');
     expect(await look(owner)).toMatch(/smack's deck/i);
-    // Her rooms are under water too: each way through them is a crossing.
-    for (const way of ['go down', 'go north']) {
+    // Her rooms are under water too: each way through them is a swim
+    // (`go` is over your head) and a crossing that takes its seconds.
+    for (const way of ['swim down', 'swim north']) {
       const step = await cross(owner, way);
       expect(step.r.status, step.said).toBe('ok');
     }
