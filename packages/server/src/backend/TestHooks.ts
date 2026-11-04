@@ -56,6 +56,7 @@ import { SecurityApi } from '../mud/api/security';
 import {
   TestHarnessApi,
   type ClockJump,
+  type StageReport,
   type WeatherPinReport,
 } from '../mud/api/test-harness';
 import type { WeatherPinMode } from '../mud/lib/weather/WeatherType';
@@ -371,6 +372,17 @@ export class TestHooks {
         ? TestHarnessApi.unpinWeather(scope)
         : TestHarnessApi.pinWeather(scope, type, mode)
     );
+  }
+
+  /**
+   * TEST-ONLY: call one authored mutator on the Stuff at `path` — the
+   * staging a drive needs for a state its players cannot make in time (an
+   * aquifer drawn low, an outfall loaded, a ditch lined). Same gates as
+   * the clock; the call is `TestHarnessApi.stage`'s.
+   */
+  public static async stage(path: string, method: string, args: readonly unknown[]): Promise<StageReport> {
+    TestHooks.#assertTestMode('stage');
+    return ExecutionContextApi.runRoot(TestHooks, 'stage', () => TestHarnessApi.stage(path, method, args));
   }
 
   /** TEST-ONLY: game-seconds now. The read half of {@link advanceClock}. */

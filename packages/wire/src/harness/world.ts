@@ -461,3 +461,19 @@ export async function pinWeather(
 export async function unpinWeather(scope: string): Promise<WeatherPinResult> {
   return postWeather(`unpinWeather('${scope}')`, { scope, type: null });
 }
+
+/**
+ * ⭐ Stage a state a drive cannot reach by playing — an aquifer drawn low,
+ * an outfall loaded, a ditch lined: one authored mutator (`set*`, `add*`,
+ * `pond`, `invalidateCache`) on the Stuff at `path`, outside the eval
+ * sandbox (a parcel-bound `eval` may not reach a realm-level Idea).
+ * Returns the method's result. Only in a world this run owns.
+ */
+export async function stage(path: string, method: string, ...args: unknown[]): Promise<unknown> {
+  const res = await postTestRoute('/auth/test-stage', { path, method, args });
+  const out = (await res.json()) as { result?: unknown; error?: string };
+  if (!res.ok) {
+    throw new Error(`stage('${path}', '${method}') failed (${res.status}): ${out.error ?? JSON.stringify(out)}`);
+  }
+  return out.result ?? null;
+}

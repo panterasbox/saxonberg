@@ -13,12 +13,36 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { TestHarnessApi } from '../test-harness';
 import { WorldClockApi } from '../worldclock';
 import { SecurityApi } from '../security';
+import { StuffApi } from '../stuff';
+import Material from '../../lib/material/Material';
+import { makeStuffAtPath } from '../../lib/security/__tests__/test-setup';
 
 const DAY_S = 86_400;
 
 describe('TestHarnessApi', () => {
   beforeEach(() => WorldClockApi._resetForTesting());
   afterEach(() => WorldClockApi._resetForTesting());
+
+  describe('stage — one authored mutator on one Stuff (water-supply)', () => {
+    afterEach(() => StuffApi.clearAll());
+
+    it('calls a set* on the Stuff at the path and reports its return', async () => {
+      const m = makeStuffAtPath(() => new Material(), '/test/idea/material/stage-me') as unknown as Material;
+      await TestHarnessApi.stage('/test/idea/material/stage-me', 'setName', ['staged']);
+      expect(m.getName()).toBe('staged');
+    });
+
+    it('⛔ refuses anything that is not an authored mutator', async () => {
+      makeStuffAtPath(() => new Material(), '/test/idea/material/stage-me');
+      await expect(TestHarnessApi.stage('/test/idea/material/stage-me', 'destroy', [])).rejects.toThrow(
+        /not a mutator a row authors/,
+      );
+    });
+
+    it('names a path that loads nothing', async () => {
+      await expect(TestHarnessApi.stage('/test/nowhere', 'setName', ['x'])).rejects.toThrow(/nothing loads/);
+    });
+  });
 
   describe('advanceClock — the line is one game day', () => {
     it('a day or less moves the clock', async () => {

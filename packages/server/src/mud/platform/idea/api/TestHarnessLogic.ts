@@ -12,6 +12,7 @@ import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import { WorldClockApi } from '../../../api/worldclock';
 import { PersistApi } from '../../../api/persist';
 import { StuffApi } from '../../../api/stuff';
+import type { Stuff } from '../../../lib/stuff/Stuff';
 import { AddressApi } from '../../../api/address';
 import { WeatherApi } from '../../../api/weather';
 import {
@@ -23,6 +24,21 @@ import {
 const TestHarnessApiCallers = SecurityPolicies.FromModule(
   '/api/test-harness#TestHarnessApi',
 );
+
+/**
+ * What `stage` may call: the mutators a row authors (`set*`), the
+ * additive ones (`add*`, `pond`), and a cache drop so a read sees what
+ * was staged. Never an arbitrary method — the seam stages STATE.
+ */
+const STAGEABLE_METHOD = /^(set[A-Z]\w*|add[A-Z]\w*|pond|invalidateCache)$/;
+
+/** What `testharness stage` did. */
+export interface StageReport {
+  path: string;
+  method: string;
+  /** The method's return, JSON-safe (`null` for none). */
+  result: unknown;
+}
 
 /** What a clock jump reports. */
 export interface ClockJump {
@@ -143,6 +159,38 @@ export class TestHarnessLogic extends ApiLogic {
   @CallSecurity(TestHarnessApiCallers)
   public async unpinWeather(scope: string): Promise<WeatherPinReport> {
     return this.setPin(scope, null);
+  }
+
+  /** See {@link TestHarnessApi.stage}. */
+  @CallSecurity(TestHarnessApiCallers)
+  public async stage(
+    path: string,
+    method: string,
+    args: readonly unknown[],
+  ): Promise<StageReport> {
+    if (!STAGEABLE_METHOD.test(method)) {
+      throw new Error(
+        `testharness stage: '${method}' is not a mutator a row authors — ` +
+          `stage calls set*/add*/pond/invalidateCache only`,
+      );
+    }
+    let target: Stuff | null = StuffApi.findByTemplatePath(path) ?? null;
+    if (target === null) {
+      target = await StuffApi.singleton<Stuff>(path).catch(() => null);
+    }
+    if (target === null || target.isDestroyed()) {
+      throw new Error(`testharness stage: nothing loads at '${path}'`);
+    }
+    const fn = (target as unknown as Record<string, unknown>)[method];
+    if (typeof fn !== 'function') {
+      throw new Error(`testharness stage: '${path}' has no method '${method}'`);
+    }
+    const result: unknown = await (fn as (...a: unknown[]) => unknown).apply(target, [...args]);
+    return {
+      path,
+      method,
+      result: result === undefined ? null : JSON.parse(JSON.stringify(result) ?? 'null'),
+    };
   }
 
   /** See {@link TestHarnessApi.weatherPinAt}. */

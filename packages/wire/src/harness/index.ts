@@ -42,4 +42,5 @@ export {
   worldClockNow,
   pinWeather,
   unpinWeather,
+  stage,
 } from './world';

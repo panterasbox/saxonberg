@@ -17,12 +17,13 @@ import { TestOnly } from '../lib/security/decorators';
 import {
   TestHarnessLogic,
   type ClockJump,
+  type StageReport,
   type WeatherPinReport,
 } from '../platform/idea/api/TestHarnessLogic';
 import type { WeatherPinMode } from '../lib/weather/WeatherType';
 import { fileURLToPath } from 'url';
 
-export type { ClockJump, WeatherPinReport };
+export type { ClockJump, StageReport, WeatherPinReport };
 
 const LOGIC_PATH = '/platform/idea/api/test-harness';
 const LOGIC_CLASS_FILE = fileURLToPath(
@@ -118,6 +119,18 @@ export class TestHarnessApi {
   )
   public static unpinWeather(scope: string): Promise<WeatherPinReport> {
     return logic().unpinWeather(scope);
+  }
+
+  /**
+   * Stage a state a drive cannot reach by playing: load the Stuff at
+   * `path` (its live instance, else its singleton) and call one of its own
+   * authored mutators — `set*`, `add*`, `pond`, `invalidateCache` — with
+   * `args`. Outside the eval sandbox, which (rightly) will not let a
+   * parcel-bound eval reach a realm-level aquifer or the catchment.
+   */
+  @TestOnly('In a test world, stage state with the wire harness\u2019s stage() (POST /auth/test-stage).')
+  public static stage(path: string, method: string, args: readonly unknown[] = []): Promise<StageReport> {
+    return logic().stage(path, method, args);
   }
 
   /** The pin on the Locality covering `scope`, if any. */

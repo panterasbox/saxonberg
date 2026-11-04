@@ -206,6 +206,33 @@ export class TestAuthRoutes {
         });
     });
 
+    // ⭐ Staging (water-supply): one authored mutator on one Stuff, by
+    // path — the state a drive cannot reach by playing (an aquifer drawn
+    // low, an outfall loaded). A parcel-bound `eval` may not reach a
+    // realm-level Idea, which is right; this is the harness's door.
+    app.post('/auth/test-stage', (req: Request, res: Response) => {
+      if (TEST_AUTH_TOKEN && req.get('x-test-auth') !== TEST_AUTH_TOKEN) {
+        res.status(403).json({ error: 'forbidden' });
+        return;
+      }
+      const body = req.body as { path?: unknown; method?: unknown; args?: unknown } | undefined;
+      if (typeof body?.path !== 'string' || typeof body.method !== 'string') {
+        res.status(400).json({ error: 'test-stage wants {path, method, args?: []}' });
+        return;
+      }
+      const args = body.args === undefined ? [] : body.args;
+      if (!Array.isArray(args)) {
+        res.status(400).json({ error: 'args, when given, must be an array' });
+        return;
+      }
+      TestHooks.stage(body.path, body.method, args)
+        .then((report) => res.json(report))
+        .catch((err: unknown) => {
+          console.error('TestAuthRoutes: test-stage failed:', err);
+          res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
+        });
+    });
+
     // ⭐ A test character fed and watered (the meals between a drive's
     // checkpoints) — a route for the clock's reason: a parcel-bound `eval`
     // may not read the biome the body's reconcile reads.
