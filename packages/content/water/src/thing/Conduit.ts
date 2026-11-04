@@ -839,7 +839,10 @@ export default class Conduit
         : this.requiresPump()
           ? 0
           : Math.min(demand, this.capacityM3S);
-    const delivered = state === null ? lifted : 0;
+    // ⭐ Fouled water is still delivered — it is what a drinker falls ill
+    // of (the browser walk: a fouled main read "lifts 0.00 m³/s" while its
+    // taps poured). Every other trouble stops the water.
+    const delivered = state === null || state === 'fouled' ? lifted : 0;
     // A main that is cut, off, or not lifting carries nothing; otherwise it
     // carries what it lifts, up to what the river passes.
     const carries =
@@ -917,7 +920,9 @@ export default class Conduit
     lines.push(
       reading.state === null
         ? `delivering ${reading.deliveredM3S.toFixed(2)} m³/s`
-        : `NOT delivering: ${SUPPLY_STATE_GLOSS[reading.state]} (${reading.state})`,
+        : reading.state === 'fouled'
+          ? `delivering ${reading.deliveredM3S.toFixed(2)} m³/s — fouled: ${SUPPLY_STATE_GLOSS.fouled}`
+          : `NOT delivering: ${SUPPLY_STATE_GLOSS[reading.state]} (${reading.state})`,
     );
     return { label, state: reading.state, lines };
   }
