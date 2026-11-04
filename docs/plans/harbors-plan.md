@@ -654,3 +654,43 @@ This was the first full drive after review round 1: about 25 review commits and 
 - Cascades only: 16, 19, 20, 21, 22, 23 (the owner was left in the hold after 15) and 25 (no seamanship was credited because the owner's acts had failed).
 
 **Run 2: reaped by Claude Code for low system memory** during the boot (other worktrees' sessions held about 10 GB). The lint family, running alongside, was reaped too. Neither was restarted, as the reaper instructs. **OWED:** the blocking drive on `eba27518c` from a fresh DB; the lint family on that tree (`tsc --noEmit` for server and wire is clean, and `Ship.aboard`/`Ship.mooring` pass 19/19); the sibling drives (tracts, farmstead, paint, cordage, maritime-space, lock-reconciliation, location-graph, reachability, field-population, routing); and the browser walk. Port 2019 was left free.
+
+### Post-review re-drive, continued — 2026-11-04: 22/24 at run 9; run 10 not completed
+
+I ran nine full drives on a fresh DB, port 2019. Pass counts by run: 8, 11, 14, 16, 20, 20, 19, 22, 22 (of 24). Stage A has been 9/9 since run 2. Run 10, on `5353cca4a`, was stopped during boot because the session ended (the server died with code 143). **OWED:** one fresh-DB run on `5353cca4a`. The only change it carries over run 9 is to the drive file: steps 22 and 23 now wait for each underwater crossing to finish.
+
+**Defects fixed (kernel or pack), each with a unit test that fails on the old code:**
+- **Landing on an authored ship's room by its row path cloned another deck** (`2b73f8c4a`, `StuffApi.singletonOrClone`). Since review 2 a deck is a plain Compartment, so neither the Singleton nor the Persistable branch caught it. The Corrigan ended up with eleven decks, `watchRoom` read none of them, and the ship reported "no lines to make fast" (step 4). The Hesper's hold `up` threw on the same duplicates (step 10). A `WarrenMember` room now goes through the same get-or-create path.
+- **On the river, `course` checked the heading before the helm** (`2b73f8c4a`). A non-master was told "no 'roads' on this river" instead of "Only her master takes the helm" (step 12).
+- **A room's dormancy released the title of a player's good left in it** (`ec063c3a5`, `Chattel.keepTitleThroughDestruct`, called from `ContainerMixin.cleanupOnDestruct` for a persistable host). When the smack slept, her hold's destruct destructed the oakum and deleted its chattel row, so the owner's estate entry pointed at nothing and the overlay restored nothing (step 15). This affected every dormant persistable room, residences included. The `RoomOverlay` test now uses a real destruct instead of `clearAll`.
+- **Each sleep stowed another set of the dinghy's oars, bow line and pump in the hold** (`ec063c3a5`, `ShipWarren.fitOut`/`stow`). Anything the gear holds now counts as gear.
+- **`unlock <her name>` on the quay bound the ship, and the name-tier cut dropped her gangway** (`ec063c3a5`). The binder now retries a scope with the slot's `requires:` applied before the tiers cut, but only when the first answer held nothing of the right kind. This uses a code-only `admits` on MqlContext, following the `attention` precedent.
+- **Boarding while she was going to sleep put you in a deck being destroyed** (`69b63100b`, `Ship.goingToSleep` and `BerthExit.standing`). The symptom was "You can't walk that way" on the first `go <her>` after a restart or a quick ashore-and-back.
+- **River roughness had a floor at any speed** (`69b63100b`, water pack `WatercourseCatalogue`). A headwater rapid at a winter trickle of 0.8 m/s threw a 0.3 m sea. Every canoe hired at the Rejection put-in swamped on launch and drowned its hirer, which is why the caulker in step 25 was a shade. Broken water now scales with the current.
+- **Sitting in her dinghy on deck did not count as aboard** (`88a8b39ca`, `Ship.sleepIfEmpty`). She slept under the owner and stowed the stones he had loaded. This was also the run-4 launch crash ("s.getContents is not a function").
+- **Test seams:**
+  - A staged hull band plus a staged sleep leaked as if the hull were sound (`69b63100b`).
+  - `stageBilge` cleared `settled`, so step 16 could never lift her off the mud (`325017757`).
+  - `handCharacter` put a boat in someone's hands (`325017757`). A boat is now handed where the character stands.
+
+**Steps that were wrong (fixed in the file):**
+- 14 and 16: `course roads` from the river became `course bar`.
+- 17: the rain pin on the roads was dropped, because no Locality covers open water. The chop is covered by `Boat.float`'s unit test, and the dinghy is now overloaded with 16 stones of 90 kg.
+- 17 and 23: getting back aboard from the water is `swim <her>`.
+- 21: the staged bilge is 33,850 L. At 33,000 L she could not reach her deck in four hours.
+- 22: `swim up`.
+- 22 and 23: each crossing under water is now run to its end.
+- 24: the stones are unloaded one at a time, and the hole is staged in the boatman's own boat. The sandbox correctly refuses a founder eval on a player's titled boat.
+
+**Findings left open:**
+- From the sea, `go <ship>` replies "you'll have to swim or climb", but nobody in the water has a `climb` verb. The refusal names a verb the player can't use (climb/swim slate).
+- `look river` at the put-in prompts between "the put-in" and "river".
+- At sea the smack's deck still lists `ashore` among its exits.
+
+**Gates on `23c1f5092`** (the ship sleep fix followed; ShipWarren is 15/15 and tsc is clean):
+- `lint:family`: 85/85 after fixing `lint:test-content`, which had caught a kernel test naming `/world/x`.
+- `test:near`: 44 targets, 0 failures.
+
+**NOT DONE this session:**
+- the sibling drives (tracts, farmstead, paint, cordage, maritime-space, lock-reconciliation, location-graph, reachability, field-population, routing);
+- the browser walk. Its spec is drafted at `e2e/tests/harbors-walk.spec.ts` (untracked, not run).
