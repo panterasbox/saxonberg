@@ -4019,8 +4019,15 @@ function instrumentFor(
   | { ok: true; instrument: (Stuff & Tooled) | null; capability: string }
   | { ok: false; reason: RepairDeclineReason; detail: string } {
   if (material?.hasTag('metal')) {
+    // ⭐ A soft metal is worked well below forge heat: lead is wiped and
+    // mended near its own melting point (600 K) and would run off a 900 K
+    // fire. The heat a mend asks is bounded by the metal it mends — the
+    // water-supply browser walk found a plumber who could mend lead only at
+    // a forge.
+    const meltK = material.getMeltingPoint().rawValue();
+    const needK = Number.isFinite(meltK) && meltK > 0 ? Math.min(heatK, meltK * 0.9) : heatK;
     const reach = MixinApi.isThermal(m.hand) ? m.hand.reachableHeatK() : 0;
-    if (reach < heatK) return { ok: false, reason: 'insufficient-heat', detail: `${heatK}` };
+    if (reach < needK) return { ok: false, reason: 'insufficient-heat', detail: `${Math.round(needK)}` };
     return {
       ok: true,
       instrument: m.tools.find((t) => t.hasCapability('anvil')) ?? null,
