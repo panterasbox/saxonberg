@@ -158,7 +158,18 @@ export default class ShipWarren extends FloorplanWarren {
   private fitOut(shortOf: Record<string, Record<string, number>>): void {
     for (const { leaf, room } of this.plainRooms()) {
       if (this.laid.has(leaf)) continue;
-      const gear = new Set<Stuff>(room.getContents());
+      // ⭐ What her gear holds is gear too (harbors drive, 2026-11-04): the
+      // dinghy's oars, bow line and pump came up with the dinghy, and
+      // counting only the room's own contents stowed them in her hold at
+      // every sleep — two sleeps, two sets of oars below.
+      const gear = new Set<Stuff>();
+      const lay = (xs: readonly Stuff[]): void => {
+        for (const x of xs) {
+          gear.add(x);
+          if (MixinApi.isContainer(x)) lay(x.getContents());
+        }
+      };
+      lay(room.getContents());
       const short = shortOf[leaf] ?? {};
       for (const [row, n] of Object.entries(short)) {
         let left = n;
@@ -189,8 +200,17 @@ export default class ShipWarren extends FloorplanWarren {
     for (const { leaf, room } of this.plainRooms()) {
       const gear = this.laid.get(leaf) ?? new Set<Stuff>();
       const here = new Set<Stuff>(room.getContents());
+      // Gear still aboard anywhere in this room — in the dinghy counts.
+      const aboard = new Set<Stuff>();
+      const walk = (xs: readonly Stuff[]): void => {
+        for (const x of xs) {
+          aboard.add(x);
+          if (MixinApi.isContainer(x)) walk(x.getContents());
+        }
+      };
+      walk(room.getContents());
       for (const g of gear) {
-        if (!g.isDestroyed() && here.has(g)) continue;
+        if (!g.isDestroyed() && aboard.has(g)) continue;
         const row = g.getTemplatePath() ?? '';
         if (!row) continue;
         const byRow = (shortOf[leaf] ??= {});
@@ -199,7 +219,11 @@ export default class ShipWarren extends FloorplanWarren {
       const loose: Stuff[] = [];
       for (const x of here) {
         if (gear.has(x)) {
-          if (MixinApi.isContainer(x)) loose.push(...x.getContents().filter((c) => !gear.has(c)));
+          const within = (c: Stuff): void => {
+            if (!gear.has(c)) loose.push(c);
+            else if (MixinApi.isContainer(c)) c.getContents().forEach(within);
+          };
+          if (MixinApi.isContainer(x)) x.getContents().forEach(within);
           continue;
         }
         loose.push(x);

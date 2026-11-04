@@ -138,3 +138,51 @@ describe('onFiltered at resolve time', () => {
     expect(filteredNotes(ctx)).toHaveLength(1);
   });
 });
+
+/**
+ * ⭐ The kind applies BEFORE the name tiers cut (harbors drive,
+ * 2026-11-03): `unlock petrel` on the quay named the ship outright (her
+ * NAME is the word, score 100) and the tier cut dropped her gangway (the
+ * word is one of its KEYWORDS, 70) — the one thing there that locks — so
+ * the verb said "the Petrel doesn't lock". The binder now asks again with
+ * the kind applied first when nothing of the kind survived.
+ */
+describe('the kind before the name tiers', () => {
+  it('binds the admissible keyword match under an inadmissible exact name', async () => {
+    const world = makeWorld();
+    const add = <T extends Stuff>(make: () => T, name: string): T => {
+      const s = makeStuff(make) as unknown as Stuff & {
+        setName: (n: string) => void;
+        addKeyword: (k: string) => void;
+      };
+      s.setName(name);
+      s.addKeyword('petrel');
+      ContainmentApi.move(
+        s as unknown as Parameters<typeof ContainmentApi.move>[0],
+        world.location as unknown as Parameters<typeof ContainmentApi.move>[1],
+      );
+      return s as unknown as T;
+    };
+    add(() => new TestPainting(), 'petrel');
+    const crate = add(() => new TestCrate(), "the petrel's gangway");
+    const command = defFor('warn');
+    const ctx = CommandApi.createCommandContext({
+      commandGiver: world.giver,
+      location: world.location as never,
+      commandText: 'openish petrel',
+      executionId: 'test',
+      commandId: 'test',
+      verb: 'openish',
+      command,
+    });
+    await CommandApi.resolveValidators(command);
+    const outcome = await CommandApi.resolveModel({ target: 'petrel' }, ctx);
+    expect('resolved' in outcome).toBe(true);
+    const bound = (outcome as { resolved: Record<string, unknown> }).resolved.target as { stuff?: unknown } | unknown;
+    const stuff = (bound as { stuff?: unknown })?.stuff ?? bound;
+    expect(stuff).toBe(crate);
+    // The ship-shaped candidate is still reported as discarded.
+    expect(ctx.getNotes().filter((n) => n.kind === 'candidates-filtered')).toHaveLength(1);
+  });
+});
+

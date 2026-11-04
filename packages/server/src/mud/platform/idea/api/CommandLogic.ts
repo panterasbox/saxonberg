@@ -512,9 +512,21 @@ async function walkScopes(
   let isSet = false;
   const discarded: Stuff[] = [];
   for (const scope of tries) {
-    const got = await scopedMany(raw, giver, scope, field, context);
+    let got = await scopedMany(raw, giver, scope, field, context);
     if (got.isSet) isSet = true;
     if (got.stuff.length > 0 && !firstRaw) firstRaw = got;
+    // ⭐ Nothing of the kind survived the name tiers: ask again with the
+    // kind applied BEFORE they cut (harbors drive, 2026-11-03). `unlock
+    // petrel` on the quay named the ship outright and cut her gangway,
+    // which answers to her name only by keyword and is the one thing
+    // there that locks. What the first answer held still counts as
+    // discarded, and a second empty answer leaves the 0-of-N fallback.
+    if (got.stuff.length > 0 && !got.stuff.some(admissible)) {
+      for (const s of got.stuff) discarded.push(s);
+      const narrowed = await scopedMany(raw, giver, scope, field, context, admissible);
+      if (narrowed.stuff.length === 0) continue;
+      got = narrowed;
+    }
     // Filter by INDEX so each kept match keeps its own `via`.
     const keep = got.stuff.map((_, i) => i).filter((i) => admissible(got.stuff[i]!));
     const kept = keep.map((i) => got.stuff[i]!);
@@ -566,9 +578,10 @@ async function scopedMany(
   scope: string,
   field: string,
   context: CommandContext,
+  admits?: (s: Stuff) => boolean,
 ): Promise<MqlMany> {
   try {
-    return MqlApi.resolveMany(raw, { commandGiver: giver, scope });
+    return MqlApi.resolveMany(raw, { commandGiver: giver, scope, ...(admits ? { admits } : {}) });
   } catch (err) {
     const wide = await worldRetry(err, raw, giver, scope, field, context);
     if (wide) return wide;

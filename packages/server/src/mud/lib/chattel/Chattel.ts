@@ -91,6 +91,12 @@ export interface Chattel {
   isStamped(): boolean;
   /** Persisted by its owner rather than its host? (player-stamped only). */
   isOwnerPersisted(): boolean;
+  /**
+   * ⭐ Its room is going dormant, not away: the destruct that follows is
+   * the room's, and the title outlives it. Called only by a persistable
+   * container's destruct cascade.
+   */
+  keepTitleThroughDestruct(): void;
   /** Record where the owner keeps this good (the single write path). */
   setChattelPlace(place: string): Promise<void>;
   /**
@@ -330,8 +336,34 @@ export function ChattelMixin<TBase extends MixinConstructor<Stuff>>(
       );
     }
 
+    /**
+     * Set by {@link keepTitleThroughDestruct}: this instance dies with a
+     * room going dormant, and its title (and its owner's estate entry,
+     * which names that room) must survive it so the room's next overlay
+     * lays it down again.
+     */
+    private _titleOutlivesThis = false;
+
+    /**
+     * See {@link Chattel.keepTitleThroughDestruct}. ⭐ (harbors drive,
+     * 2026-11-04) A smack slept with a player's oakum in her hold: the hold
+     * was captured, the owned good flushed to its owner's estate, and then
+     * the hold's destruct destructed the oakum and RELEASED its title — so
+     * the estate entry named a good the registry no longer had, and the
+     * next overlay laid nothing down. Every dormant room did the same.
+     */
+    // Only the destruct cascade: `ContainerMixin.cleanupOnDestruct` is a
+    // static run inside `StuffApi.destruct`, so the frame it calls from is
+    // StuffApi's — there is no container instance to name.
+    @CallSecurity(SecurityPolicies.FromModule('/api/stuff#StuffApi'))
+    @Final
+    @Unshadowable
+    public keepTitleThroughDestruct(): void {
+      this._titleOutlivesThis = true;
+    }
+
     public onDestruct(): void {
-      const id = this._chattelId;
+      const id = this._titleOutlivesThis ? '' : this._chattelId;
       if (id) {
         void import("../../api/chattel")
           .then(({ ChattelApi }) => ChattelApi.release(id))

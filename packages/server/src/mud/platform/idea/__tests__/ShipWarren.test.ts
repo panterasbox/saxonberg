@@ -54,6 +54,8 @@ const DECK = `${ROOMS}/deck`;
 const HOLD = `${ROOMS}/hold`;
 const CRATE = '/test/ship/crate';
 const GEAR = '/test/ship/gear';
+const TENDER = '/test/ship/tender';
+const OAR = '/test/ship/oar';
 const LANDING = '/test/quay/landing';
 const BOLLARD = '/test/quay/bollard';
 const AUTHORED = '/test/hesper/structure';
@@ -109,10 +111,13 @@ function installStore(): void {
   add(DECK, '/platform/location/Compartment', {
     floorM: 1.8, exits: { down: { destination: HOLD } },
     shortDescription: 'smack deck',
-    props: [GEAR],
+    props: [GEAR, TENDER],
     details: { sea: { keywords: ['sea'], description: 'Below the rail, the water.' } },
   });
   add(GEAR, '/platform/thing/Thing', { shortDescription: 'a coil of gear' });
+  // A piece of her gear that holds gear of its own (a dinghy and its oars).
+  add(TENDER, '/platform/thing/Icebox', { shortDescription: 'a tender', props: [OAR] });
+  add(OAR, '/platform/thing/Thing', { shortDescription: 'an oar' });
   add(HOLD, '/platform/location/Hold', { shortDescription: 'fish hold', floorM: 0.3, exits: { up: { destination: DECK } } });
   add(CRATE, '/platform/thing/Thing', { shortDescription: 'a crate' });
   add(LANDING, '/platform/location/Locale', { shortDescription: 'a landing', props: [BOLLARD] });
@@ -326,6 +331,23 @@ describe('ShipWarren — ships from a kind (harbors B1)', () => {
     back = (await ExpanseApi.standUpCraft(`${KIND}/g1`)) as unknown as Ship;
     deck2 = await deckOf(back);
     expect(gearOf(deck2)).toHaveLength(0);
+  });
+
+  it('⭐ what her gear holds is gear: the tender\'s oar is never stowed below (drive, 2026-11-04)', async () => {
+    const ship = await mint('t1');
+    const deck = await deckOf(ship);
+    const tender = deck.getContents().find((c) => c.getTemplatePath() === TENDER) as (Stuff & Container) | undefined;
+    expect(tender?.getContents().filter((c) => c.getTemplatePath() === OAR)).toHaveLength(1);
+    await ship.sleep();
+    for (let i = 0; i < 2; i++) {
+      const back = (await ExpanseApi.standUpCraft(`${KIND}/t1`)) as unknown as Ship;
+      const d = await deckOf(back);
+      const hold = (d as unknown as Exitable).getExit('down')!.getDestination() as unknown as Stuff & Container;
+      expect(hold.getContents().filter((c) => c.getTemplatePath() === OAR)).toHaveLength(0);
+      const t = d.getContents().find((c) => c.getTemplatePath() === TENDER) as unknown as Stuff & Container;
+      expect(t.getContents().filter((c) => c.getTemplatePath() === OAR)).toHaveLength(1);
+      await back.sleep();
+    }
   });
 
   it('⭐ review 2: gear left aboard comes up from her row — once', async () => {

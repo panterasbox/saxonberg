@@ -852,7 +852,9 @@ function candidatesForHereScope(ctx: MqlContext): ScopeCandidate[] {
 }
 
 function scopeKeywordSearch(words: string[], ctx: MqlContext): MqlMatch[] {
-  const candidates = candidatesForScope(ctx.scope, ctx);
+  const pool = candidatesForScope(ctx.scope, ctx);
+  const admits = ctx.admits;
+  const candidates = admits ? pool.filter((c) => admits(c.stuff)) : pool;
   return scoreCandidates(candidates, words);
 }
 

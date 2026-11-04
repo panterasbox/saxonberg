@@ -69,6 +69,15 @@ export interface MqlContext {
    * element-derived forms.
    */
   attention?: number;
+  /**
+   * ⭐ A **code-only** kind filter applied to a bare-word search's pool
+   * BEFORE the name tiers cut it (harbors drive, 2026-11-03). The command
+   * binder passes a slot's `requires:` here only on a second try, when the
+   * first answer held nothing of the kind: `unlock petrel` on the yard quay
+   * named the ship outright (score 100) and cut her gangway (a keyword, 70)
+   * — the only thing there that locks. Never set by player-typed MQL.
+   */
+  admits?: (s: Stuff) => boolean;
 }
 
 /**

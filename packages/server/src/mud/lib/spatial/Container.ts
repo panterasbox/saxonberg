@@ -302,6 +302,17 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
           ) {
             ContainmentApi.move(item, evacuationFallback);
           } else {
+            // ⭐ A persistable host's destruct is its dormancy: its record
+            // keeps its contents and an owned good rides its owner's
+            // estate, naming this host — so the good's title must outlive
+            // this instance (harbors drive, 2026-11-04).
+            if (
+              MixinApi.isPersistable(host) &&
+              MixinApi.isChattel(item) &&
+              item.isOwnerPersisted()
+            ) {
+              item.keepTitleThroughDestruct();
+            }
             StuffApi.destruct(item);
           }
         } catch (err) {
