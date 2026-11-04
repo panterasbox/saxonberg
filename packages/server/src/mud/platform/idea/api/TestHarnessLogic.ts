@@ -174,10 +174,8 @@ export class TestHarnessLogic extends ApiLogic {
           `stage calls set*/add*/pond/invalidateCache only`,
       );
     }
-    let target: Stuff | null = StuffApi.findByTemplatePath(path) ?? null;
-    if (target === null) {
-      target = await StuffApi.singleton<Stuff>(path).catch(() => null);
-    }
+    // `singleton` is the get-or-create: the live instance when one stands.
+    const target = await StuffApi.singleton<Stuff>(path).catch(() => null);
     if (target === null || target.isDestroyed()) {
       throw new Error(`testharness stage: nothing loads at '${path}'`);
     }
