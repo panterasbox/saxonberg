@@ -17,8 +17,10 @@ data:
     - { itemTemplatePath: /trade/plumbing/thing/lead-pig, par: 4 }
     - { itemTemplatePath: /trade/plumbing/thing/lead-sheet, par: 3 }
     - { itemTemplatePath: /trade/plumbing/thing/roof-cistern, par: 1 }
+    - { itemTemplatePath: /trade/plumbing/thing/firepot, par: 2 }
   prices:
     /trade/plumbing/thing/lead-pipe: 6
     /trade/plumbing/thing/lead-pig: 5
     /trade/plumbing/thing/lead-sheet: 6
     /trade/plumbing/thing/roof-cistern: 40
+    /trade/plumbing/thing/firepot: 9

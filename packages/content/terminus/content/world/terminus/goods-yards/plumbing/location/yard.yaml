@@ -25,3 +25,5 @@ data:
     - /trade/smelting/thing/crucible
     - /trade/plumbing/thing/pipe-mould
     - /trade/plumbing/thing/sand-bed
+    # The fire a plumber carries to the job (a mend in lead wants heat).
+    - /trade/plumbing/thing/firepot
