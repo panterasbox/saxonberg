@@ -1223,3 +1223,77 @@ unit-test coverage the plan's § Test & gate strategy lists for each.
 **Soak:** no soak file yet (W11 note): the soak steps' mechanisms are
 partly deferred. The lane gets
 `packages/wire/tests/water-supply.soak.dirty.wire.test.ts` when they land.
+
+### Browser walk record (2026-11-03)
+
+The requirements' blocking drive, walked in the **real client** (Playwright
+Chromium against `vite` on 5194 and a world on 2014; the chrome-devtools
+profile was held by a sibling session). A player (`walker1`) for the player
+steps and the founder for staging (`eval`, `clone`, `practice`, the clock and
+weather routes). Nine commits, b066b10fb … 031e81eda; each fix is tested.
+
+**What the walk fixed (this build's surfaces):**
+
+| step | found | fix |
+|---|---|---|
+| 1 | `analyze water pail` on a full pail: "carries no water anywhere"; the kit gave no verdict | the kit reads held water; every kit read ends in a verdict |
+| 1 | `fill the pail from the standpipe` (fill's own help example) had no shape | `fill` target + source greedy |
+| 3 | the works keeper could never clock on: the city's only operating location was the bus terminal, and the key comes at clock-on | the embankment is a city operating location |
+| 3 | `unlock pump-house door` had no shape | `lock`/`unlock` targets greedy |
+| 4 | an outlet on a short main read like a full one | the outlet says what its rank gets ("the trades get 43% … runs weak") |
+| 4 | the market standpipe ranked with the trades (the square is a commercial parcel) | an outlet in a `Street` ranks civic, as the fountain does |
+| 3 | the kit said "fit to drink" of a tap giving nothing | "nothing comes out for the kit to test" |
+| 3 | the stopped fountain's prose said it ran "day and night" | state-neutral prose |
+| 5 | after one visit a lot's gate read "The way is blocked" | `LotGateExit.wiresItsOwnInverse()` (one shared keyed yard row) |
+| 6 | an unlaid run read "broken… four of the lengths are split" | missing lengths are `empty` seats through the laying |
+| 6 | the last service length said nothing | it says the house is on the main |
+| 6 | "kitchen run" matched the service run / the range | the run answers to "kitchen run"; names lost "unfinished" |
+| 8 | a burst scullery pipe said "this house isn't on any supply" | the tap names the pipe as the cause |
+| 8 | `look run` showed a stale (pre-frost) state | the look reconciles the frost |
+| 8 | ⭐ no plumber could mend lead away from the yard's hearth | trade-plumbing **firepot** (a `Brazier` row), propped + stocked; a metal mend's heat is bounded by the metal (≤ 0.9 × its melting point: lead ~540 K, iron still the forge) |
+| 8 | `repair lead run` took `run` for the kit | `repair`'s item greedy; runs answer to "lead run"/"iron run" |
+| 10 | the kit missed the overnight lead at a tap | the kit settles the outlet first |
+| 19 | ⭐ a turnout credited the TRACT (whose soil is its fields): 868 181 L ponded, moisture unmoved, salt 813 919 dS/m | inlets spread water + salt over a divided ground's parts by area; salinity over all the water holding it |
+| 19/26 | the tract's `look`/`analyze soil` never showed its fields' standing water | `getPondedL` sums the parts; salinity is their area-weighted mean |
+| 20 | ⭐ a rota's turns reached no field (soil read the raw opening) | `ThrottleableMixin.settleOpening` @hook; Gate overrides with its rota; soil settles each inlet's gate |
+| 20 | a gate's look said neither its setting nor its record (D12) | "It is shut. furtado last set it fully open." |
+| 20 | a gate read "shut" inside its turn: the first read only stamped, and a running turn was clipped to the read and shut | the rota starts at the day's midnight; a running turn stays open |
+| — | `drink from`, `close` on two words (the wire drive's run 1) | greedy + `from` |
+
+**What the walk saw working:** the pump house locked to a passer-by and
+opened by the seated keeper (key at clock-on); the intake switched off and on
+with the standpipe and fountain saying why; a lot bought, its tap
+unconnected, a service run and a kitchen run laid (`fit`), the tap then
+naming the District tank; a frosted lead run bursting and its thaw on the
+floor, an **iron** run cracking; soft acid water taking up lead in a lead
+run; the headgate's weir, staff and observation well; a measured turn
+lifting the meadow from 50 % to 100 % and ponding the rest; the rota
+watering the meadow with nobody at the gate (56 → 68 %).
+
+**Not reached, and why** (recorded, not fixed here):
+
+- **Pre-existing, outside this build:** the bank's till is empty on a fresh
+  world and a funded account cannot `buy` ("can't cover"); `appoint` cannot
+  find an online player; a lead pig melted on a hearth vanishes (the
+  casting leg of step 6 was staged with cloned pipe); `get pig` on a stack
+  lifts the whole stack; an indoor "glare" line; the prompt's focus
+  captures later targets.
+- **Step 7** (tank low by floor, the cistern carrying the house): the loft
+  is deferred to paint's storeys.
+- **Step 11** (an outfall fouls an intake): the city's outfall is below its
+  intake; moving it at runtime does not reach the catalogue's compiled
+  scan. Needs a contamination pin (the owed `pinFlowAt` family).
+- **Step 12** (rain into a butt): pinned rain over Rejection in midwinter
+  added nothing — most likely it fell as snow (a butt takes liquid only).
+- **Step 13** (a bucket at the deep well): no verb lowers a bucket on a
+  rope; the pump half works (the trough is the well's `interior`).
+- **Step 14** (aquifer low): both Rejection wells bottom at ~444 m, so a
+  staged low table dries both; the contrast lives in `Well.water.test`.
+- **Steps 15–16** (sink a well; the cask on a dray): W10 cut.
+- **Step 17** (read the filed rights) and **18** (the calendar turn):
+  deferred (rights documents; rota → calendar).
+- **Step 21** (the rider's dry year): the rider brain is deferred.
+- **Step 22** (pick or break a junior padlock): belongs to the locks build.
+- **Steps 23, 24, 27** (earth vs lined, the salt crust, the overhead inlet):
+  unit-tested; not staged live in this walk.
+- **Step 25** (the drowned pot): no undrained pot ships; unit-tested.
