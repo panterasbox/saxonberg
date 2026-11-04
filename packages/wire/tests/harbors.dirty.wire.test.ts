@@ -894,7 +894,9 @@ suite('B3 — she goes down', () => {
   it('22. (instant · player) still aboard, you are in her rooms under water; swim up the column to the surface', async () => {
     const under = await look(owner);
     expect(under, under).toMatch(/She lies on the bottom, and the sea fills her/);
-    const up = await owner.cmd('go up');
+    // ⚠ (drive 2026-11-04) `swim up`, as the step says: `go` walks, and
+    // under water the way up answers "you'll have to swim" — honestly.
+    const up = await owner.cmd('swim up');
     expect(up.status, squash(await up.said())).toBe('ok');
     let top = '';
     for (let i = 0; i < 10; i++) {
