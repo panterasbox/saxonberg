@@ -47,6 +47,7 @@ import type { GroundWater } from '../../lib/supply/SupplyState';
 import { WorldClockApi } from '../../api/worldclock';
 import { ZoneApi } from '../../api/zone';
 import { BulkableApi } from '../../api/bulk';
+import { GrammarApi } from '../../api/grammar';
 import Rope from './Rope';
 import type { BulkAffordance } from '../../lib/bulk/Bulkable';
 
@@ -290,7 +291,7 @@ export default class Well extends WellBase implements LiftSource, PumpSource {
     }
     if (rope.getLengthM() < depthM) {
       this._haulRefusal =
-        `${rope.getPresentation()} is ${rope.getLengthM().toFixed(0)} m long; ` +
+        `${GrammarApi.cap(rope.getPresentation())} is ${rope.getLengthM().toFixed(0)} m long; ` +
         `the water stands ${depthM.toFixed(0)} m down.`;
       return;
     }

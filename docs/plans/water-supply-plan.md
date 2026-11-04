@@ -1331,3 +1331,18 @@ can says only "You can't fill…".
 | step 11 — no valve on an outlet | a piped `WaterFixture` composes `SwitchableMixin` (open until shut; a natural source has none) | `switch standpipe off` → "Nothing comes out: it has been shut off."; on → it pours |
 | step 23 — no reading of a ditch | the bank is a `PersistentShore` (new: `PersistableMixin` over the Shore stack) citing `delight-ditch:bench`; `analyze water` reads against the live draw ledger (a ditch carries only what is diverted in — it read 0.00 without it); a loaded Watercourse's live lining overlays its row | the bank reads **0.53 m³/s earth, 0.59 lined** (0.60 at the head) |
 | step 25 — no undrained, planted pot | trade-farming `cachepot` (glazed, `drained: false`, a snake plant) with a can in the infirmary ward; `water` pours the whole can into ground that holds water (a sliver of headroom kept it from ever overfilling); `Growing.waterShortfallCause()` names drowning / salt / dry | "The soil cannot take it all; the rest stands on top, with nowhere to go." → the plant: "Its roots are standing in water, and drowning." |
+
+#### Step 13, the bucket (2026-11-04)
+
+No new verb — drawing water into a pail is `fill`. Bulkable gains a
+`beforeDrawInto(affordance, vessel, by)` @hook that `fill` calls before
+reading its source; a Well with no pump overrides it: a rope tied round
+the vessel, or one the drawer carries, at least as long as the water
+stands deep, hauls what the vessel holds into the trough (the shipped
+`liftInto` — a bucket asks no suction question) and `fill` pours it on.
+
+Walked at Rejection's deep well: with no rope, "The water stands 12 m
+down. A bucket wants a rope to reach it."; with the shipped 10 m rope, "A
+rope is 10 m long; the water stands 12 m down."; `splice rope to 2nd
+rope` → one 20 m rope → "You fill a wooden pail from the deep well" and
+it holds clear water.
