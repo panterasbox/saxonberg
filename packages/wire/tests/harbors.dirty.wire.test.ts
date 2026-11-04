@@ -260,12 +260,17 @@ suite('A1 — the port', () => {
     expect(quay, quay).toMatch(/Town Quay/);
     expect(quay, quay).toMatch(/Alongside: the Hesper/);
     expect(quay, quay).toMatch(/line from the Hesper/i);
-    // ⭐ (review 3) `look hesper` binds her WAY — an exit is a candidate in
-    // its own right, named for her — and the way describes itself. Her deck
-    // is seen by going aboard. (No ordering needed: `go` names ways only.)
+    // ⭐ (review 3) An exit is a candidate in its own right and describes
+    // itself. ⚠ (drive 2026-11-03) Since the paint merge the SHIP is a
+    // candidate on the quay she lies at, so the way is CALLED her gangway
+    // and `look hesper` is HER — before, the two tied by name and the look
+    // prompted *"which target? hesper / the Hesper"*. The way answers to
+    // `gangway` (and `go hesper`, whose scope is ways only).
     const her = await say(sailor, 'look hesper');
-    expect(her, her).toMatch(/A gangway runs up to the Hesper's deck\./);
+    expect(her, her).toMatch(/black-hulled ketch/);
     expect(her, her).not.toMatch(/Town Quay/);
+    const gangway = await say(sailor, 'look gangway');
+    expect(gangway, gangway).toMatch(/A gangway runs up to the Hesper's deck\./);
     // Her lines are made fast round the quay's bollards: the line ashore says so.
     const line = await say(sailor, 'look first line');
     expect(line, line).toMatch(/mooring line comes ashore from the Hesper, made fast round .*bollard/i);
@@ -666,9 +671,14 @@ suite('B1 — she keeps across a restart (15)', () => {
       /* no log to keep */
     }
     const serverDir = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'server');
+    // ⭐ A RESTART, not a crash (the sugar soak's precedent): the server gets
+    // a minute to capture what it holds. Preflight's default two seconds
+    // SIGKILLs it before the shutdown capture — run 1 (2026-11-03) lost the
+    // oakum in her hold that way.
     spawnSync('node', [join(serverDir, 'scripts', 'dev-preflight.mjs'), String(WIRE_PORT), 'server'], {
       cwd: serverDir,
       stdio: 'ignore',
+      env: { ...process.env, PREFLIGHT_GRACE_MS: '60000' },
     });
     process.env.WIRE_SERVER_URL = await bootOwnedWorld();
     owner = await session(OWNER, YARD);
@@ -776,9 +786,10 @@ suite('B2 — owning a boat', () => {
     expect(none, none).toMatch(/no rowboat of the house's lying here/);
     const inHer = await say(buyer, `look in #${rowboat}`);
     expect(inHer, inHer).toMatch(/bow line/i);
-    // (staged) Weight to load her with.
-    for (let i = 0; i < 2; i++) {
-      const id = await hand(buyer, STONE, { mass: 90 });
+    // (staged) Weight to load her with — in stones a body can lift back
+    // out (step 24 unloads her by hand; a 90 kg stone "doesn't budge").
+    for (let i = 0; i < 6; i++) {
+      const id = await hand(buyer, STONE, { mass: 30 });
       stones.push(id);
       expectOk(await buyer.cmd(`put #${id} in #${rowboat}`));
     }
@@ -821,7 +832,7 @@ suite('B2 — owning a boat', () => {
     const canoe = (await idsHere(hirer, 'canoe'))[0] ?? '';
     expect(canoe, 'no canoe on the shingle').not.toBe('');
     const hired = await say(hirer, `rent #${canoe} for 2 days`);
-    expect(hired, hired).toMatch(/You hire the canoe for 2 days/);
+    expect(hired, hired).toMatch(/You hire (a|the) canoe for 2 days/);
     expect(hired, hired).toMatch(/\([^)]*\b6(\.00)?\b[^)]*\)/);
     const page = await say(hirer, 'look hire book');
     expect(page, page).toMatch(/For hire: /);

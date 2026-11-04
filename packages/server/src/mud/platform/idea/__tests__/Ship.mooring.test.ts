@@ -262,6 +262,23 @@ describe('a ship made fast (harbors P4–P6)', () => {
     expect((quay.getExit('hesper') as BerthExit).isLocked()).toBe(true);
   });
 
+  it('⭐ her deck’s `ashore` reads her bolt before anybody has crossed it (drive 2026-11-03: `unlock ashore` said *already unlocked*)', async () => {
+    bollardOn(quay);
+    lineOn(deck);
+    await ship.comeAlongside(QUAY);
+    vi.spyOn(NavigationApi, 'structureAtNow').mockReturnValue(ship as never);
+    ship.setGangwayLocked(true);
+    const ashore = await deck.installExit<AshoreExit>('/platform/idea/exits/ashore', {
+      direction: 'ashore',
+      source: deck as unknown as Stuff & Container,
+      destinationPath: '/somewhere/else',
+    });
+    // Never traversed, never warmed: the bolt is still hers.
+    expect(ashore.isLocked()).toBe(true);
+    ashore.unlock();
+    expect(ship.isGangwayLocked()).toBe(false);
+  });
+
   it('⭐⭐ restart: loaded from her record, she makes fast again where she was (the wake, not the read)', async () => {
     bollardOn(quay);
     lineOn(deck);

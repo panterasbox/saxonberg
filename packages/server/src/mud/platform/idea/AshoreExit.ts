@@ -73,7 +73,17 @@ export default class AshoreExit extends LockableMixin(DeferredDestinationExit) {
 
   /** The ship, standing, when she has a gangway (a Ship). */
   private berthed(): Ship | null {
-    if (this.craftPath === null) return null;
+    // ⚠ The lock is read synchronously (`isLocked`, `lock`, `unlock`), and
+    // the handle is only filled by `warm()` on a crossing — so before
+    // anybody had gone ashore by this way, `unlock ashore` from her deck
+    // read *already unlocked* off a locked gangway (harbors drive,
+    // 2026-11-03, step 12). Not warmed yet: ask the deck, synchronously.
+    if (this.craftPath === null) {
+      const source = this.getSource() as unknown as Stuff;
+      if (!source.isPlace()) return null;
+      const craft = (source as unknown as Place).structureNow();
+      return craft instanceof Ship ? craft : null;
+    }
     const craft = this.craft();
     return craft instanceof Ship ? craft : null;
   }

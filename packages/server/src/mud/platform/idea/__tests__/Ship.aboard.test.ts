@@ -347,9 +347,14 @@ describe('aboard a ship of a kind — the room is asked, never its row (harbors 
     // The way's own description, her name in it.
     expect(way.getLongFor(who)).toMatch(/^A gangway runs up to .+'s deck\.$/);
 
-    // `look smack` binds the WAY itself — its name (her direction) outranks
-    // her deck's keyword — and look shows what MQL bound: the way.
-    const bound = MqlApi.resolveOne('smack', { commandGiver: who as never, scope: 'reachable' });
+    // ⭐ The way is CALLED her gangway (drive 2026-11-03): her name is the
+    // ship's, so a player who looks at her where she is a candidate gets
+    // HER, never a prompt between two things called by one name. The way
+    // keeps her name as its direction and among its keywords (`go smack`).
+    expect(way.describeFor(who)).toMatch(/^the smack's gangway$/i);
+    expect(way.getKeywords()).toEqual(expect.arrayContaining(['gangway', 'smack']));
+    // `look gangway` binds the WAY itself, and look shows what MQL bound.
+    const bound = MqlApi.resolveOne('gangway', { commandGiver: who as never, scope: 'reachable' });
     expect(bound.stuff).toBe(way);
     vi.spyOn(CardApi, 'open').mockReturnValue(null as never);
     const look = makeStuff(() => new LookController());

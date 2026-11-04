@@ -35,6 +35,8 @@ import { Lock } from '../../lib/lock/Lock';
 import { StuffApi } from '../../api/stuff';
 import { ExpanseApi } from '../../api/expanse';
 import { ProseApi } from '../../api/prose';
+import { GrammarApi } from '../../api/grammar';
+import type { NounPhrase } from '../../lib/description/NounPhrase';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Container } from '../../lib/spatial/Container';
 import type { Containable } from '../../lib/spatial/Containable';
@@ -120,6 +122,26 @@ export default class BerthExit extends LockableMixin(DeferredDestinationExit) {
     const ship = this.ship();
     if (ship === null || !(ship instanceof StructureBase)) return null;
     return ship.getBerth() === this.getSource().getTemplatePath() ? ship : null;
+  }
+
+  /**
+   * ⭐ The way is CALLED her gangway — *the Hesper's gangway* — never her
+   * bare name (harbors drive, 2026-11-03). Its direction stays her name
+   * (`go hesper`, *Obvious exits: hesper*), and that word is still among
+   * its keywords (`Exit.getKeywords`). Decided by lens 3a (immersion):
+   * since the paint merge the ship herself is a candidate on the quay she
+   * lies at (`Place.landedStructuresNow`), and with the way ALSO named
+   * `hesper` the two tied at the name tier — `look hesper` prompted
+   * *"which target? hesper / the Hesper"*, two choices no player could tell
+   * apart. A player who looks at the Hesper means the ship; the way answers
+   * to `gangway` and to her name as a keyword, so `go` (whose scope is ways
+   * only) is unchanged. Keyword data on the object, never a scorer tier
+   * (one-resolution-rule slate § 4).
+   */
+  public override presentationPhrase(): NounPhrase {
+    const ship = this.alongsideName();
+    if (!ship) return super.presentationPhrase();
+    return GrammarApi.properPhrase(`${ship}'s gangway`);
   }
 
   /** Her name, as the landing's `look` reads it — asleep or awake. */
