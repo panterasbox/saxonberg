@@ -896,16 +896,17 @@ suite('B3 — she goes down', () => {
     expect(under, under).toMatch(/She lies on the bottom, and the sea fills her/);
     // ⚠ (drive 2026-11-04) `swim up`, as the step says: `go` walks, and
     // under water the way up answers "you'll have to swim" — honestly.
-    const up = await owner.cmd('swim up');
-    expect(up.status, squash(await up.said())).toBe('ok');
+    // A crossing under water costs real seconds (an engaged act): each is
+    // waited out, or the next is "your hands are already busy" (run 9).
+    const up = await act(owner, 'swim up');
+    expect(up.r.status, up.said).toBe('ok');
     let top = '';
     for (let i = 0; i < 10; i++) {
-      const r = await owner.cmd('ascend');
+      const { r, said } = await act(owner, 'ascend');
       if (r.status !== 'ok') {
-        top = squash(await r.said());
+        top = said;
         break;
       }
-      await owner.listen(4_000);
     }
     expect(top, top).toMatch(/already at the surface/i);
   }, 600_000);
@@ -915,9 +916,8 @@ suite('B3 — she goes down', () => {
     const tank = await hand(owner, AIR_TANK);
     expectOk(await owner.cmd(`wear #${tank}`));
     for (let i = 0; i < 10; i++) {
-      const r = await owner.cmd('descend');
+      const { r } = await act(owner, 'descend');
       if (r.status !== 'ok') break;
-      await owner.listen(4_000);
     }
     const bed = await look(owner);
     expect(bed, bed).toMatch(new RegExp(`\\b${way1}\\b`));
