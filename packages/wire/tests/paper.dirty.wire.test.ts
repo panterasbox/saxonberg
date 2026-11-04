@@ -185,7 +185,7 @@ suite('paper — the blocking drive', () => {
     const now = await worldClockNow();
     const hour = Math.floor((now % 86_400) / 3_600);
     const ahead = (9 - hour + 24) % 24;
-    if (ahead > 0) await advanceWorldClock(`${ahead}h`);
+    if (ahead > 0) await advanceWorldClock(`${ahead} hours`);
   }, 300_000);
 
   it('2. a garment tears into rags', async () => {
@@ -216,7 +216,7 @@ suite('paper — the blocking drive', () => {
     await say(s, 'put rags in stamper');
     const on = await say(s, 'switch stamper on');
     expect(on, on).not.toMatch(REFUSED);
-    await advanceWorldClock('2h');
+    await advanceWorldClock('2 hours');
     const l = await say(s, 'look stamper');
     expect(l, l).toMatch(/stocks/i);
   }, 600_000);
@@ -240,7 +240,7 @@ suite('paper — the blocking drive', () => {
     expect(await carried(s, 'handmade')).toBeGreaterThanOrEqual(1);
     await say(s, 'up');
     await act(s, 'dry handmade on line');
-    await advanceWorldClock('6h');
+    await advanceWorldClock('6 hours');
   }, 900_000);
 
   it('7. look: the color, the weight, the evenness — and unsized, the ink bleeds', async () => {
@@ -257,7 +257,7 @@ suite('paper — the blocking drive', () => {
     const s = await session(maker, VAT_HOUSE);
     await act(s, 'dip me:i:handmade in size tub');
     await act(s, 'dry me:i:handmade');
-    await advanceWorldClock('6h');
+    await advanceWorldClock('6 hours');
     const w = await say(s, 'write it holds on me:i:handmade');
     expect(w, w).toMatch(/you write/i);
   }, 900_000);
@@ -311,7 +311,15 @@ suite('paper — the blocking drive', () => {
 
   it('34. the ledger reads the Gazette\'s papers', async () => {
     const s = await session(maker, GAZETTE);
-    const rd = await say(s, 'read ledger');
+    // The Gazette's editor posts the prices every six game hours; if the
+    // feed is still empty, wait one beat for the first release.
+    let rd = await say(s, 'read ledger');
+    if (/Nothing is entered/i.test(rd)) {
+      await advanceWorldClock('6 hours');
+      await new Promise((res) => setTimeout(res, 5_000));
+      rd = await say(s, 'read ledger');
+    }
+    expect(rd, rd).toMatch(/release/i);
     expect(rd, rd).toMatch(/THE BOOK of/i);
   }, 300_000);
 
@@ -401,8 +409,12 @@ suite('paper — the blocking drive', () => {
     expect(f, f).toMatch(/smooth it onto|paste/i);
     const l = await say(back, 'look me:i:ink pot');
     expect(l, l).toMatch(/label is pasted/i);
-    await say(back, 'pour water on me:i:ink pot');
+    // Staged: the jar wet through (the ice bucket's water, held still).
+    await say(back, 'drop me:i:ink pot');
+    await founderEval(VAT_HOUSE, '/world/terminus/hearts-delight', 'ink pot', '(self.wet(0.6), self.getWetness())');
+    await say(back, 'get ink pot');
     const wet = await say(back, 'look me:i:ink pot');
+    expect(wet, wet).toMatch(/squat stoneware pot/i);
     expect(wet, wet).not.toMatch(/label is pasted/i);
   }, 600_000);
 });

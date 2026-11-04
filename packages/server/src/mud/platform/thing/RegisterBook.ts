@@ -28,10 +28,13 @@ const LINES_PER_PAGE = 40;
 export default class RegisterBook extends MarkedMixin(Good) {
   static fieldMeta: FieldMeta = {
     registerPrefix: { persistent: true, authorable: true },
+    registerTitle: { persistent: true, authorable: true },
   };
 
   /** ⭐ What this book is the ledger OF — a document prefix. */
   protected registerPrefix = '';
+  /** Whose book it is, in words (`the Terminus Gazette`); `''` = read off the prefix. */
+  protected registerTitle = '';
 
   constructor() {
     super();
@@ -68,6 +71,7 @@ export default class RegisterBook extends MarkedMixin(Good) {
   }
 
   private houseName(): string {
+    if (this.registerTitle !== '') return this.registerTitle;
     const parts = this.registerPrefix.split('/').filter(Boolean);
     const leaf = parts[parts.length - 1] ?? 'the house';
     return leaf.replace(/-/g, ' ');

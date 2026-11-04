@@ -117,7 +117,7 @@ export function PrintingMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase
       }
       return {
         ok: true,
-        line: `${n} ${n === 1 ? 'copy' : 'copies'} of ${req.title} come off ${self.getPresentation()}${req.pages.length > 1 ? `, ${req.pages.length} pages each` : ''}.`,
+        line: `${n} ${n === 1 ? 'copy' : 'copies'} of ${req.title} ${n === 1 ? 'comes' : 'come'} off ${self.getPresentation()}${req.pages.length > 1 ? `, ${req.pages.length} pages each` : ''}.`,
         copies,
       };
     }
