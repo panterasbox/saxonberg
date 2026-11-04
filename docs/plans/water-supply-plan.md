@@ -1346,3 +1346,26 @@ down. A bucket wants a rope to reach it."; with the shipped 10 m rope, "A
 rope is 10 m long; the water stands 12 m down."; `splice rope to 2nd
 rope` → one 20 m rope → "You fill a wooden pail from the deep well" and
 it holds clear water.
+
+#### Steps 12 and 27 (2026-11-04)
+
+- **Step 27, the overhead inlet** — `overhead` is no longer a flat 0.75: of
+  a 0.85 base, what LANDS is derived hour by hour from the weather the
+  ground stands in — wind drift (2 %/m·s⁻¹, to 40 %) and evaporation in
+  the heat under an open sky (1.5 %/K above 283 K, cloud shading 70 % of
+  it, to 40 %); `SoilMixin.overheadLandedShare` is the pure law. Content:
+  the upper bench (above the ditch's command) has a `sprinkler-valve` on
+  the ditch head, on pressure from a ram, and an overhead inlet off it.
+  **Walked**: a calm midwinter dawn hour landed 15 594 L; a pinned storm
+  hour landed 7 841 L of spray (20 998 open − 13 157 rain alone). In
+  midwinter the noon air never passes 283 K, so heat takes nothing — the
+  summer noon is the unit test's.
+- **Step 12, the rain butt** — a rain store now takes the roof's MELT as
+  well as its rain (`WeatherApi.snowCoverAt` → `meltMm` over the window),
+  so a winter's snow reaches the butt at the thaw. **Walked**: 24 hours of
+  pinned rain over the Rejection goat pen in midwinter added nothing — at
+  that altitude it fell as snow and lies on the roof below freezing,
+  which is right; the thaw is past a blocking clock, so the melt is the
+  unit test's (a staged 4 mm melt → +40 L on 10 m²).
+- **Found walking it**: one `drink from butt` emptied the butt (180 L → 0).
+  A source fixed in place now gives a draught (0.25 L).
