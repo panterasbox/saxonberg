@@ -713,12 +713,8 @@ suite('B1 — she keeps across a restart (15)', () => {
     // Her way aboard is wired again from the register's `lies`.
     expectOk(await owner.cmd(`go ${way1}`));
     expect(await look(owner)).toMatch(/smack's deck/i);
-    // Her rooms are under water too: each way through them is a swim
-    // (`go` is over your head) and a crossing that takes its seconds.
-    for (const way of ['swim down', 'swim north']) {
-      const step = await cross(owner, way);
-      expect(step.r.status, step.said).toBe('ok');
-    }
+    expectOk(await owner.cmd('go down'));
+    expectOk(await owner.cmd('go north'));
     const hold = await look(owner);
     expect(hold, `her hold, after a restart: ${hold}`).toMatch(/oakum/i);
     expectOk(await owner.cmd('go south'));
