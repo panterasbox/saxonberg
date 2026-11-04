@@ -148,9 +148,11 @@ export interface SupplyServing {
    * ⭐ What the water it delivers IS (water-supply D8) — its source's pH,
    * hardness and salt, which a tap settles into its own water so a lead
    * pipe and a field read the supply's chemistry. Optional: a supply that
-   * cannot say leaves the water's chemistry unsaid.
+   * cannot say leaves the water's chemistry unsaid. `fouled` = what
+   * arrives is unfit (contamination past its treatment): a tap on it
+   * delivers fouled water, which is what doses the drinker.
    */
-  readWaterChemistry?(): Promise<{ pH: number; hardnessDgh: number; salinityPpt: number } | null>;
+  readWaterChemistry?(): Promise<{ pH: number; hardnessDgh: number; salinityPpt: number; fouled?: boolean } | null>;
 }
 
 /**

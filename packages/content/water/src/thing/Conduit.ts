@@ -739,15 +739,20 @@ export default class Conduit
    * removes dirt, not chemistry). `null` for a disposal conduit or a main
    * whose reach names no water.
    */
-  public async readWaterChemistry(): Promise<{ pH: number; hardnessDgh: number; salinityPpt: number } | null> {
+  public async readWaterChemistry(): Promise<{ pH: number; hardnessDgh: number; salinityPpt: number; fouled?: boolean } | null> {
     if (this.direction !== 'supply' || this.reachRef === '') return null;
     const catalogue = await catalogueOf();
     if (catalogue === null) return null;
-    const state = await catalogue
-      .waterStateAt(this.reachRef, WorldClockApi.getNow().rawValue())
-      .catch(() => null);
+    const nowS = WorldClockApi.getNow().rawValue();
+    const state = await catalogue.waterStateAt(this.reachRef, nowS).catch(() => null);
     if (state === null) return null;
-    return { pH: state.pH, hardnessDgh: state.hardnessDgh, salinityPpt: state.salinityPpt };
+    // ⭐ Whether what arrives is fit, after this main's treatment — the same
+    // test its report's `fouled` makes. The tap delivers it as fouled water
+    // (the browser walk: a fouled main poured clean water, and nobody who
+    // drank from it ever fell ill).
+    const dirt = await catalogue.contaminationAt(this.reachRef, nowS).catch(() => null);
+    const fouled = this.foulingOf(dirt?.level ?? 0) > dial(AppSettingKeys.waterFouledAt, 0.35);
+    return { pH: state.pH, hardnessDgh: state.hardnessDgh, salinityPpt: state.salinityPpt, fouled };
   }
 
   // ---------- state ----------

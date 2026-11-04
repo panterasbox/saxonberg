@@ -66,6 +66,7 @@ import type { Stuff } from '../../lib/stuff/Stuff';
 import type { BulkAffordance } from '../../lib/bulk/Bulkable';
 import type { MarkupAugmenter } from '../../api/mml';
 import { StuffApi } from '../../api/stuff';
+import type Material from '../../lib/material/Material';
 import { MixinApi } from '../../api/mixin';
 import { ParcelApi } from '../../api/parcel';
 import { ZoneApi } from '../../api/zone';
@@ -139,6 +140,10 @@ type Resolution = 'pending' | 'natural' | 'unplumbed' | 'missing' | 'supply';
 
 // The same order `Receptacle` uses, and for the same reason: Thermal outer
 // of Bulkable, so a holder's heat capacity derives from what is in it.
+/** What a tap delivers, clean and fouled. */
+const PLAIN_WATER_PATH = '/stuff/idea/material/bulk/water';
+const FOULED_WATER_PATH = '/stuff/idea/material/bulk/fouled-water';
+
 const WaterFixtureBase = ThermalMixin(BulkableMixin(Thing));
 
 export default class WaterFixture
@@ -495,6 +500,15 @@ export default class WaterFixture
         ? await supply.readWaterHardnessDgh().catch(() => null)
         : null);
     const dgh = fromSupply ?? this.hardnessDgh;
+    // ⭐ A fouled supply delivers fouled water — the material whose dose is
+    // the dysentery — and clean water again once it clears.
+    if (chemistry !== null && chemistry.fouled !== undefined && !this.natural) {
+      const want = chemistry.fouled ? FOULED_WATER_PATH : PLAIN_WATER_PATH;
+      if (this.getBulkMaterialPath('interior') !== want) {
+        const m = StuffApi.findByTemplatePath<Material>(want) ?? null;
+        if (m !== null) this.setBulkMaterial('interior', m);
+      }
+    }
     // ⭐ What stood in the room's pipe since the last draw comes out first
     // (D8/D10): a lead run in soft acid water has leached into it overnight.
     const run = supply !== null && this.needsRun(supply) ? this.runOf() : null;

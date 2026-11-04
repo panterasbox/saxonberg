@@ -278,6 +278,30 @@ describe('⭐ a shortage is shared by rank (D6)', () => {
   });
 });
 
+describe('⭐ a fouled supply pours fouled water (step 11)', () => {
+  it('the tap delivers the fouled material while the main is fouled, and clean water after', async () => {
+    const main = mainAt();
+    let fouled = true;
+    (main as unknown as { readWaterChemistry: () => Promise<unknown> }).readWaterChemistry = async () => ({
+      pH: 7.5,
+      hardnessDgh: 10,
+      salinityPpt: 0.3,
+      fouled,
+    });
+    makeStuffAtPath(() => {
+      const m = new Material();
+      m.setName('fouled water');
+      return m;
+    }, '/stuff/idea/material/bulk/fouled-water');
+    const t = tap({ suppliedBy: MAIN });
+    await t.settleBulk('interior');
+    expect(t.getBulkMaterialPath('interior')).toBe('/stuff/idea/material/bulk/fouled-water');
+    fouled = false;
+    await t.settleBulk('interior');
+    expect(t.getBulkMaterialPath('interior')).toBe('/stuff/idea/material/bulk/water');
+  });
+});
+
 describe('⭐ a public outlet in a street ranks as a public one', () => {
   it('the market standpipe asks as civic, whatever the square is zoned', async () => {
     const main = mainAt();
