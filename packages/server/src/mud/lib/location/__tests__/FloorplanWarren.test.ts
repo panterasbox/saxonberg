@@ -14,7 +14,7 @@
 import '../../../../test-bootstrap';
 import { KERNEL_CONTENT_ROWS } from '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { Blueprint } from '../Blueprint';
+import { Floorplan } from '../Floorplan';
 import { FloorplanWarren } from '../FloorplanWarren';
 import PersistentLocation from '../../../platform/location/PersistentLocation';
 import Thing from '../../../platform/thing/Thing';
@@ -37,7 +37,6 @@ interface Doc extends Record<string, unknown> {
 }
 
 const PLAN = '/test/fp-warren';
-const BLUEPRINT = '/test/fp-blueprint';
 const DECK = '/test/fp/deck';
 const HOLD = '/test/fp/hold';
 const CLEAT = '/test/fp/cleat';
@@ -80,8 +79,8 @@ function installStore(): void {
   for (const row of KERNEL_CONTENT_ROWS) {
     content.push({ _id: `d-${++idCounter}`, ...row });
   }
-  // ⭐ The blueprint (harbors review 3): a Structure over ordinary rows.
-  add(BLUEPRINT, '/platform/idea/Structure', { extent: '/test/fp', entrance: DECK });
+  // ⭐ The plan's rows (harbors review 3): ordinary places under its extent.
+  // The plan itself is the warren's own fields (no blueprint row).
   // The zone a copy's rooms stand in (resolved from their keys).
   add('/test/fp', '/platform/idea/location/CartesianZone', { name: 'test vessels' });
   add(DECK, '/platform/location/PersistentLocation', {
@@ -150,13 +149,13 @@ function reset(): void {
   StuffApi.clearAll();
 }
 
-/** Mint a warren at the plan path, keyed, floorplan set, awake. */
+/** Mint a warren at the plan path, keyed, its plan set, awake. */
 async function standUp<T extends FloorplanWarren = TestFloorplan>(
   make: () => T = () => new TestFloorplan() as unknown as T,
-  blueprint: string = BLUEPRINT,
 ): Promise<T> {
   const w = makeStuffAtPath(make, PLAN);
-  w.setBlueprint(blueprint);
+  w.setExtent('/test/fp');
+  w.setEntrance(DECK);
   await PersistableApi.restoreOrSeed(w as unknown as Stuff, KEY);
   await w.wake();
   return w;
@@ -232,10 +231,6 @@ describe('FloorplanWarren (harbors P1)', () => {
 
   it('⭐ a way into the extent that names no room of it throws (review 3)', async () => {
     col('content').push({
-      _id: 'bad-1', path: '/test/fp-bad', class: '/platform/idea/Structure',
-      data: { extent: '/test/fpbad', entrance: '/test/fpbad/deck' },
-    });
-    col('content').push({
       _id: 'bad-2', path: '/test/fpbad/deck', class: '/platform/location/PersistentLocation',
       data: { shortDescription: 'a deck', exits: { down: { destination: '/test/fpbad/nowhere' } } },
     });
@@ -243,7 +238,8 @@ describe('FloorplanWarren (harbors P1)', () => {
       _id: 'bad-3', path: '/test/fpbad/nowhere', class: '/platform/thing/Thing', data: {},
     });
     const w = makeStuffAtPath(() => new PlainFloorplan(), PLAN);
-    w.setBlueprint('/test/fp-bad');
+    w.setExtent('/test/fpbad');
+    w.setEntrance('/test/fpbad/deck');
     await PersistableApi.restoreOrSeed(w as unknown as Stuff, KEY);
     await expect(w.wake()).rejects.toThrow(/no room of it/);
   });
@@ -251,7 +247,6 @@ describe('FloorplanWarren (harbors P1)', () => {
   it('⭐ a mirrored copy reflects its ways and its cells; up stays up (review 3)', async () => {
     const row = (path: string, data: Record<string, unknown>, cls = '/platform/location/PersistentLocation') =>
       col('content').push({ _id: `m-${path}`, path, class: cls, data });
-    row('/test/fp2-blueprint', { extent: '/test/fp2', entrance: '/test/fp2/yard' }, '/platform/idea/Structure');
     row('/test/fp2', { name: 'farms' }, '/platform/idea/location/CartesianZone');
     row('/test/fp2/yard', {
       exits: { east: { destination: '/test/fp2/meadow' }, up: { destination: '/test/fp2/bench' } },
@@ -259,7 +254,8 @@ describe('FloorplanWarren (harbors P1)', () => {
     row('/test/fp2/meadow', { exits: { west: { destination: '/test/fp2/yard' } } });
     row('/test/fp2/bench', { exits: { down: { destination: '/test/fp2/yard' } } });
     const w = makeStuffAtPath(() => new TestFloorplan(), PLAN);
-    w.setBlueprint('/test/fp2-blueprint');
+    w.setExtent('/test/fp2');
+    w.setEntrance('/test/fp2/yard');
     w.setMirrorAxis('east-west');
     await PersistableApi.restoreOrSeed(w as unknown as Stuff, '/test/fp2/farm-1');
     await w.wake();
@@ -274,13 +270,14 @@ describe('FloorplanWarren (harbors P1)', () => {
     expect(cell(w.roomForLeaf('bench'))).toEqual([0, 0, 1]);
   });
 
-  it('⭐⭐ a blueprint\'s buildings are AUTHORED: each one\'s rooms are the rooms under its extent, never how they connect (harbors review, 2026-11-03)', async () => {
+  it('⭐⭐ a plan\'s buildings are AUTHORED on its owner: each one\'s rooms are the rooms under its extent, never how they connect (harbors review, 2026-11-03)', async () => {
     const row = (path: string, data: Record<string, unknown>, cls = '/platform/location/PersistentLocation') =>
       col('content').push({ _id: `b-${path}`, path, class: cls, data });
-    const plan = (buildings: string[]) =>
-      row(`/test/fp3-blueprint-${buildings.length}`, {
-        extent: '/test/fp3', entrance: '/test/fp3/yard', buildings,
-      }, '/platform/idea/Structure');
+    // The plan is its OWNER's fields (a programme row's) — no blueprint row.
+    const plan = (buildings?: string[]) =>
+      new Floorplan('/test/fp3-programme', {
+        extent: '/test/fp3', entrance: '/test/fp3/yard', ...(buildings ? { buildings } : {}),
+      }).load();
     row('/test/fp3/yard', {
       exits: { north: { destination: '/test/fp3/home/hall' }, east: { destination: '/test/fp3/shed' } },
     });
@@ -290,24 +287,29 @@ describe('FloorplanWarren (harbors P1)', () => {
     });
     row('/test/fp3/home/loft', { exits: { down: { destination: '/test/fp3/home/hall' } } });
     row('/test/fp3/shed', { exits: { west: { destination: '/test/fp3/yard' } } });
-    row('/test/fp3-house', { extent: '/test/fp3/home', entrance: '/test/fp3/home/hall' }, '/platform/idea/Structure');
-    row('/test/fp3-shed', { extent: '/test/fp3/shed', entrance: '/test/fp3/shed' }, '/platform/idea/Structure');
-    plan(['/test/fp3-house', '/test/fp3-shed']);
-    const loaded = await new Blueprint('/test/fp3-blueprint-2').load();
+    row('/test/fp3-house', { extent: '/test/fp3/home', entrance: '/test/fp3/home/hall' }, '/platform/idea/Building');
+    row('/test/fp3-shed', { extent: '/test/fp3/shed', entrance: '/test/fp3/shed' }, '/platform/idea/Building');
+    const loaded = await plan(['/test/fp3-house', '/test/fp3-shed']);
     expect(loaded.buildings).toEqual([
       { row: '/test/fp3-house', leaf: 'fp3-house', rooms: ['/test/fp3/home/hall', '/test/fp3/home/loft'] },
       { row: '/test/fp3-shed', leaf: 'fp3-shed', rooms: ['/test/fp3/shed'] },
     ]);
-    // The yard lies under neither: open ground. A blueprint naming none has none.
-    row('/test/fp3-none', { extent: '/test/fp3', entrance: '/test/fp3/yard' }, '/platform/idea/Structure');
-    expect((await new Blueprint('/test/fp3-none').load()).buildings).toEqual([]);
+    // The yard lies under neither: open ground. A plan naming none has none.
+    expect((await plan()).buildings).toEqual([]);
     // Loud on a content error: a room in two buildings, an entrance not its own.
-    row('/test/fp3-all', { extent: '/test/fp3', entrance: '/test/fp3/yard' }, '/platform/idea/Structure');
-    row('/test/fp3-twice', { extent: '/test/fp3', entrance: '/test/fp3/yard', buildings: ['/test/fp3-all', '/test/fp3-shed'] }, '/platform/idea/Structure');
-    await expect(new Blueprint('/test/fp3-twice').load()).rejects.toThrow(/in two buildings/);
-    row('/test/fp3-wrongdoor', { extent: '/test/fp3/home', entrance: '/test/fp3/shed' }, '/platform/idea/Structure');
-    row('/test/fp3-bad', { extent: '/test/fp3', entrance: '/test/fp3/yard', buildings: ['/test/fp3-wrongdoor'] }, '/platform/idea/Structure');
-    await expect(new Blueprint('/test/fp3-bad').load()).rejects.toThrow(/none of its rooms/);
+    row('/test/fp3-all', { extent: '/test/fp3', entrance: '/test/fp3/yard' }, '/platform/idea/Building');
+    await expect(plan(['/test/fp3-all', '/test/fp3-shed'])).rejects.toThrow(/in two buildings/);
+    row('/test/fp3-wrongdoor', { extent: '/test/fp3/home', entrance: '/test/fp3/shed' }, '/platform/idea/Building');
+    await expect(plan(['/test/fp3-wrongdoor'])).rejects.toThrow(/none of its rooms/);
+    row('/test/fp3-away', { extent: '/test/elsewhere', entrance: '/test/elsewhere' }, '/platform/idea/Building');
+    await expect(plan(['/test/fp3-away'])).rejects.toThrow(/lies outside it/);
+    // A warren authoring its buildings reads them off its own fields.
+    const w = makeStuffAtPath(() => new PlainFloorplan(), PLAN);
+    w.setExtent('/test/fp3');
+    w.setEntrance('/test/fp3/yard');
+    w.setBuildings(['/test/fp3-house', '/test/fp3-shed']);
+    expect((await w.loadPlan())?.buildings.map((b) => b.row)).toEqual(['/test/fp3-house', '/test/fp3-shed']);
+    expect(() => w.setBuildings([''] as string[])).toThrow(/list of row paths/);
   });
 
   it('names no upkeep term of its own and never buds — a holding answers its term', async () => {

@@ -29,7 +29,7 @@ data:
       keywords: [hooks, pegs]
       description: |
         A row of iron hooks at shoulder height, polished by decades of coats that are not here any more. They are yours to fill.
-  # ⭐ The house's blueprint (harbors review 3): its ways, an ordinary place.
+  # ⭐ The house's plan (harbors review 3): its ways, an ordinary place.
   exits:
     south:
       destination: /world/terminus/hinkley-hills/house/yard

@@ -30,7 +30,7 @@ const read = (rel: string): { class?: string; data?: Record<string, unknown> } =
   };
 
 const HINKLEY = "world/terminus/hinkley-hills";
-/** The house blueprint's rooms (harbors review 3), by leaf. */
+/** The house plan's rooms (harbors review 3), by leaf. */
 const rooms: Record<string, { class?: string; data?: Record<string, unknown> }> = Object.fromEntries(
   ["yard", "indoors/hall", "indoors/kitchen", "indoors/living", "indoors/bedroom", "indoors/bathroom", "garden"].map(
     (rel) => [rel.slice(rel.lastIndexOf("/") + 1), read(`${HINKLEY}/house/${rel}.yaml`)],
@@ -118,18 +118,17 @@ describe("one lot ships already sold", () => {
     expect(Number(holder.data?.defaultCapacity)).toBeGreaterThanOrEqual(1);
   });
 
-  it("the house is a BLUEPRINT over its own rows (harbors review 3)", () => {
+  it("the house is a PLAN over its own rows, authored on the programme (harbors review 3; no blueprint row)", () => {
     const programme = read(`${HINKLEY}/idea/house-programme.yaml`);
-    expect(programme.data?.blueprint).toBe(`/${HINKLEY}/idea/house-blueprint`);
-    const blueprint = read(`${HINKLEY}/idea/house-blueprint.yaml`);
-    expect(blueprint.data?.extent).toBe(`/${HINKLEY}/house`);
-    expect(blueprint.data?.entrance).toBe(`/${HINKLEY}/house/yard`);
+    expect(programme.data?.blueprint).toBeUndefined();
+    expect(programme.data?.extent).toBe(`/${HINKLEY}/house`);
+    expect(programme.data?.entrance).toBe(`/${HINKLEY}/house/yard`);
     expect(Object.keys(rooms)).toHaveLength(7);
   });
 
   it("⭐ its one building is AUTHORED over the indoor rooms; the yard and garden are open ground (harbors review, 2026-11-03)", () => {
-    const blueprint = read(`${HINKLEY}/idea/house-blueprint.yaml`);
-    expect(blueprint.data?.buildings).toEqual([`/${HINKLEY}/idea/house-building`]);
+    const programme = read(`${HINKLEY}/idea/house-programme.yaml`);
+    expect(programme.data?.buildings).toEqual([`/${HINKLEY}/idea/house-building`]);
     const building = read(`${HINKLEY}/idea/house-building.yaml`);
     expect(building.class).toBe("/system/residence/idea/HoldingBuilding");
     expect(building.data?.extent).toBe(`/${HINKLEY}/house/indoors`);
@@ -159,7 +158,7 @@ describe("⭐ a Hinkley house has a garden — a tract of its layout (tracts bui
   });
 
   it("the house and yard stand on 220 m² of a quarter-acre: the garden is about 780", () => {
-    const built = Number(read(`${HINKLEY}/idea/house-blueprint.yaml`).data?.footprintM2);
+    const built = Number(read(`${HINKLEY}/idea/house-programme.yaml`).data?.footprintM2);
     const book = read(`${HINKLEY}/idea/plat-book.yaml`);
     expect(built).toBe(220);
     expect(Number(book.data?.areaM2) - built).toBe(780);

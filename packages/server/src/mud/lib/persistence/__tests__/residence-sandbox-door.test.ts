@@ -105,18 +105,18 @@ describe('every residence reaches its tenant’s sandbox door', () => {
   const rows = shippedRows();
 
   /**
-   * Programmes = any HOLDING row naming a blueprint. Discovered, never
-   * listed. ⚠ A blueprint alone is no home (harbors P1, the lift): a
-   * ship's `ShipWarren` names one too, and a ship is not a residence — no
-   * circle is granted aboard her.
+   * Programmes = any HOLDING row authoring a plan (its own `extent`, no
+   * blueprint row). Discovered, never listed. ⚠ A plan alone is no home
+   * (harbors P1, the lift): a ship kind names one too, and a ship is not a
+   * residence — no circle is granted aboard her.
    */
   const programmes = [...rows.values()].filter(
-    (r) => typeof r.data.blueprint === 'string' && r.cls === HOLDING,
+    (r) => typeof r.data.extent === 'string' && r.cls === HOLDING,
   );
 
-  /** A blueprint's room rows: every row at or under its Structure's extent. */
-  const roomsOf = (blueprint: string): Row[] => {
-    const extent = rows.get(blueprint)?.data.extent;
+  /** A plan's room rows: every row at or under the programme's extent. */
+  const roomsOf = (prog: Row): Row[] => {
+    const extent = prog.data.extent;
     if (typeof extent !== 'string') return [];
     return [...rows.values()].filter(
       (r) => r.template === extent || r.template.startsWith(`${extent}/`),
@@ -127,10 +127,10 @@ describe('every residence reaches its tenant’s sandbox door', () => {
     expect(programmes.length).toBeGreaterThanOrEqual(3);
   });
 
-  it('⭐ every blueprint includes a room carrying a SandboxCrossing', () => {
+  it('⭐ every plan includes a room carrying a SandboxCrossing', () => {
     const without: string[] = [];
     for (const prog of programmes) {
-      const hasDoor = roomsOf(prog.data.blueprint as string).some((room) =>
+      const hasDoor = roomsOf(prog).some((room) =>
         propsOf(room, rows).some((p) => rows.get(p)?.cls === CROSSING),
       );
       if (!hasDoor) without.push(prog.template);

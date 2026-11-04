@@ -453,21 +453,23 @@ export default class LocationGraphRegistry extends Idea {
       }
       return p;
     };
-    // ⭐ A BLUEPRINT is never served (harbors review 3): the Structure a
-    // warren names as its `blueprint:` is the kind its copies are minted
-    // from, so it attaches to nothing — a copy's room under its extent must
-    // not stand it up or claim it as its structure, and nothing loads it.
-    // Nor is a building a blueprint names (`buildings:`): it is the kind
-    // each copy's building is minted from, its extent a blueprint room.
-    const blueprints = new Set<string>();
+    // ⭐ A PLAN is never served (harbors review 3; 2026-11-03): its rows
+    // are the kind its copies are minted from, so nothing that names one
+    // attaches there — a copy's room must not stand it up or claim it as
+    // its structure, and nothing loads it. Two owners name a plan: a ship
+    // KIND (a Structure row whose rooms its `warren:` mints — her
+    // `extent` is the plan, not her rooms) and a holding's programme,
+    // whose `buildings:` are the kind each copy's building is minted
+    // from, their extents plan rooms. (A programme row is a warren, not a
+    // structure, so its own `extent` attaches nothing anyway.)
+    const plans = new Set<string>();
     for (const row of all) {
-      const b = (row.data as Record<string, unknown> | undefined)?.blueprint;
-      if (typeof b === 'string' && b !== '') blueprints.add(b);
-    }
-    for (const path of [...blueprints]) {
-      const named = (rows.get(path) as Record<string, unknown> | undefined)?.buildings;
-      if (!Array.isArray(named)) continue;
-      for (const b of named) if (typeof b === 'string' && b !== '') blueprints.add(b);
+      const data = (row.data ?? {}) as Record<string, unknown>;
+      if (typeof data.warren === 'string' && data.warren !== '' && typeof data.extent === 'string') {
+        plans.add(row.path);
+      }
+      if (!Array.isArray(data.buildings)) continue;
+      for (const b of data.buildings) if (typeof b === 'string' && b !== '') plans.add(b);
     }
     const next = new Map<string, Map<string, AttachmentKind>>();
     const add = (anchor: string, target: string, kind: AttachmentKind): void => {
@@ -505,7 +507,7 @@ export default class LocationGraphRegistry extends Idea {
       }
       if ((typeof data.extent === 'string' || typeof data.expanse === 'string' || typeof data.line === 'string' ||
            typeof data.berth === 'string') &&
-          !blueprints.has(row.path) && row.class && (await this.isStructureClass(row.class))) {
+          !plans.has(row.path) && row.class && (await this.isStructureClass(row.class))) {
         if (typeof data.extent === 'string') add(data.extent, row.path, 'structure');
         if (typeof data.expanse === 'string') add(data.expanse, row.path, 'craft');
         // ⭐ A ship on a river attaches to its LINE as the sea's do to

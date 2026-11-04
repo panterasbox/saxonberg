@@ -52,11 +52,11 @@
  * open to the sky. A closet holds air; a sailed ship's berth has nothing
  * alongside.
  *
- * ⭐ **A blueprint is a Structure** (harbors review 3): a warren that
- * mints copies of a kind of building names one (`blueprint:`), its
- * `extent` holding the kind's rooms as ordinary rows. A blueprint is
- * never served — the location graph attaches it to nothing — and every
- * copy is minted from its rows (`lib/location/Blueprint.ts`).
+ * ⛔ **A plan is NOT a Structure** (harbors review, 2026-11-03): a
+ * Structure is only ever a thing standing in the world. The plan a warren
+ * copies (an `extent` of room rows and an `entrance`) lives on whoever
+ * owns it — a holding's programme row, a ship kind's own row — and is
+ * read by `lib/location/Floorplan.ts`; there is no blueprint row.
  *
  * ⛔ It does not name an address (member rooms keep their own), and it is
  * not a Parcel (a parcel is title in a gated collection; a structure is
@@ -102,8 +102,6 @@ export default class Structure extends DetailedMixin(
     landmark: { persistent: true, authorable: true },
     heightM: { persistent: true, authorable: true },
     storeys: { persistent: true, authorable: true },
-    footprintM2: { persistent: true, authorable: true },
-    buildings: { persistent: true, authorable: true },
   };
 
   /** Template-path prefix: every Location row under it is a member. */
@@ -116,22 +114,6 @@ export default class Structure extends DetailedMixin(
   protected heightM = 0;
   /** Which of its places stand on which — relations only. */
   protected storeys: StoreySpec[] = [];
-  /**
-   * The ground its buildings stand on, m² — what a BLUEPRINT's copy
-   * subtracts from its parcel to leave the open ground its tracts share
-   * (harbors review 3; the retired floorplan's per-room `footprintM2`,
-   * summed). A set of rooms' fact no room decides alone.
-   */
-  protected footprintM2 = 0;
-  /**
-   * ⭐ A BLUEPRINT's buildings, the main one first: each a Building row
-   * whose own `extent` (inside the blueprint's) holds that building's
-   * rooms and whose `entrance` is its way in (harbors review, 2026-11-03).
-   * AUTHORED, never derived from how the rooms connect — the ground no
-   * building's extent covers (a yard, a tract) is nobody's building. A
-   * copy stands one up per row (`lib/location/Blueprint.ts`).
-   */
-  protected buildings: string[] = [];
 
   public getExtent(): string { return this.extent; }
   public setExtent(value: string): void { this.extent = (value ?? '').replace(/\/+$/, ''); }
@@ -145,16 +127,16 @@ export default class Structure extends DetailedMixin(
   public getHeightM(): number { return this.heightM; }
   public setHeightM(value: number): void { this.heightM = Number(value) || 0; }
 
-  public getFootprintM2(): number { return this.footprintM2; }
-  public setFootprintM2(value: number): void { this.footprintM2 = Math.max(0, Number(value) || 0); }
-
-  public getBuildings(): readonly string[] { return this.buildings; }
-  public setBuildings(value: readonly string[]): void {
-    if (!Array.isArray(value) || value.some((v) => typeof v !== 'string' || v === '')) {
-      throw new Error(`Structure: buildings must be a list of row paths, got ${JSON.stringify(value)}`);
-    }
-    this.buildings = [...value];
-  }
+  /**
+   * The prefix its members are told by — every room at or under it is one
+   * of this structure's. The read every membership question below asks.
+   *
+   * @hook Default: its `extent`. A ship of a KIND answers `''`: her rooms
+   *   are keyed copies of her kind's plan rows, shared with every other
+   *   ship of the kind, so no path tells hers apart — her warren does
+   *   (`Warren.structureOf`).
+   */
+  protected memberExtent(): string { return this.extent; }
 
   public getStoreys(): readonly StoreySpec[] { return this.storeys; }
   public setStoreys(value: StoreySpec[] | null): void {
@@ -219,7 +201,7 @@ export default class Structure extends DetailedMixin(
    * extent prefix, on a path-segment boundary.
    */
   public hasMember(locationPath: string): boolean {
-    const ext = this.extent;
+    const ext = this.memberExtent();
     if (ext === '') return false;
     return locationPath === ext || locationPath.startsWith(`${ext}/`);
   }
@@ -277,7 +259,7 @@ export default class Structure extends DetailedMixin(
    * quay's side (its exit answers who is alongside), not from here.
    */
   public landingsNow(): Stuff[] {
-    const ext = this.extent;
+    const ext = this.memberExtent();
     if (ext === '') return [];
     const seen = new Set<string>();
     const out: Stuff[] = [];
@@ -303,7 +285,7 @@ export default class Structure extends DetailedMixin(
    * or a group holding the ground is not a sale.
    */
   public isTitleSold(): boolean {
-    const ext = this.extent;
+    const ext = this.memberExtent();
     if (ext === '') return false;
     try {
       return ParcelApi.coveringParcelOfSync(ext)?.getOwner()?.kind === 'player';
@@ -314,7 +296,7 @@ export default class Structure extends DetailedMixin(
 
   /** The resident members — rooms under the extent standing now. */
   public residentMembers(): Stuff[] {
-    const ext = this.extent;
+    const ext = this.memberExtent();
     if (ext === '') return [];
     const seen = new Set<string>();
     const out: Stuff[] = [];

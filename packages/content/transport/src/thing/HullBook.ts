@@ -18,7 +18,7 @@
  *   6. she is COMMISSIONED: her identity minted `<kind>/<serial>`, her
  *      record seeded, then `Ship.commission` — named, entered in the
  *      register in the buyer's name (her deed: all sixty-four shares),
- *      keyway + key, her buyer her master, stood up from her blueprint and
+ *      keyway + key, her buyer her master, stood up from her kind's plan and
  *      brought alongside the yard's quay (`quay:`);
  *   7. the slot is SOLD — kept in this book's own record, so a sold-out
  *      yard stays sold out across a restart. No faucet: nothing restocks.

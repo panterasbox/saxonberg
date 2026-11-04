@@ -1,8 +1,17 @@
 # The smack — ⭐ a ship KIND (harbors P2, B1): one row every smack is cloned
 # from, each minted under her own identity `/stuff/idea/Ship/smack/<serial>`
-# (her handle; her record is `(identity, serial)`). Her rooms are minted from her
-# floorplan (`warren:`), not authored under an `extent`, so a kind names no
-# extent and attaches to no sea: whoever owns one stands her up.
+# (her handle; her record is `(identity, serial)`). Whoever owns one stands
+# her up; a kind attaches to no sea.
+#
+# ⭐ Her PLAN is this row's own (harbors review 3; 2026-11-03 — no blueprint
+# row), named exactly as the authored Hesper's row names hers: `extent`
+# holds her deck, the cabin under it and the fish hold through the
+# bulkhead forward, rows of their own with ordinary `exits:` between them
+# and each room's own `floorM` (how high its floor stands above her keel);
+# `entrance` is her deck. Her warren (`warren:`) mints each smack's rooms
+# from those rows, keyed `(room row, <serial>/<leaf>)`, and points a way
+# inside the extent at the same room of HER copy. The plan's rows are
+# never served: no way leads in and nothing loads them.
 #
 # A small gaff-rigged fishing boat of nine meters, decked, one mast, a
 # cabin aft and a fish hold forward — the cheapest ship a person can own
@@ -18,6 +27,7 @@ data:
     mast stepped well forward and a tiller over her transom.
   # Her deck row — the face of the way aboard her; the deck itself is her
   # warren's keyed room.
+  extent: /stuff/location/ship/smack
   entrance: /stuff/location/ship/smack/deck
   warren: /stuff/idea/ShipWarren/smack
   heightM: 10

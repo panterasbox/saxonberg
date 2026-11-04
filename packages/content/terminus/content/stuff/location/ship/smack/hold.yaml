@@ -13,7 +13,7 @@ data:
     A deep, narrow hold under the hatch, its boards scrubbed but still smelling of fish and salt, with pound boards to keep a catch from shifting.
   enclosure: { material: /stuff/idea/material/wood/oak, thicknessM: 0.05 }
   roof: { material: /stuff/idea/material/wood/pine, thicknessM: 0.04 }
-  # ⭐ Her blueprint (harbors review 3): just above her keel — the first of
+  # ⭐ Her plan (harbors review 3): just above her keel — the first of
   # her rooms the water comes into.
   floorM: 0.3
   exits:

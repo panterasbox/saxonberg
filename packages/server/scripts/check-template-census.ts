@@ -13,7 +13,7 @@
  *       `exits.<dir>.door`, `adornments`, `floor.material` +
  *       `floor.template`, `stockLines[].itemTemplatePath`,
  *       `prices` keys, `roomTemplate`, `holderPath`, `streetPath`,
- *       `corridorTemplate`, `programmePath`, and a warren's `blueprint`
+ *       `corridorTemplate`, `programmePath`, and a holding plan's `buildings`
  *       entries. (`class:` stays `check-instanceable-placement`'s —
  *       shared reader, no duplicate.)
  *   (c) Every `TemplatePaths` constant in `lib/paths.ts` that names a
@@ -915,11 +915,9 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
   ] as const) {
     push(scalar, data[scalar]);
   }
-  // ⭐ A warren's blueprint (harbors review 3) — a Structure row; its rooms
-  // are the rows under the Structure's `extent`.
-  push('blueprint', data.blueprint);
-  // ⭐ …and the buildings it names (harbors review, 2026-11-03) — Building
-  // rows, each minted per copy; the main one first.
+  // ⭐ The buildings a holding's plan names (harbors review, 2026-11-03) —
+  // Building rows on the programme row itself (no blueprint row), each
+  // minted per copy; the main one first.
   if (Array.isArray(data.buildings)) {
     for (const b of data.buildings) push('buildings', b);
   }

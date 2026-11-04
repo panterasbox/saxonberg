@@ -105,14 +105,15 @@ function installStore(): void {
   add(KIND, '/platform/idea/Ship', {
     name: 'the smack',
     keywords: ['smack', 'ship'],
+    extent: ROOMS,
     entrance: DECK,
     warren: WARREN,
     house: COMPANY,
     hull: { lengthM: 9, beamM: 3, draftM: 1.2, depthM: 1.8 },
   });
-  // ⭐ Her kind's blueprint (harbors review 3): a Structure over ordinary rows.
-  add(WARREN, '/platform/idea/ShipWarren', { blueprint: `${ROOMS}-blueprint` });
-  add(`${ROOMS}-blueprint`, '/platform/idea/Structure', { extent: ROOMS, entrance: DECK });
+  // ⭐ Her kind's PLAN is her kind row's own `extent` + `entrance` (harbors
+  // review, 2026-11-03 — no blueprint row); her warren row names nothing.
+  add(WARREN, '/platform/idea/ShipWarren', {});
   add(ROOMS, '/platform/idea/location/CartesianZone', { name: 'a smack' });
   add(DECK, '/platform/location/Compartment', {
     floorM: 1.8, exits: { down: { destination: HOLD } },

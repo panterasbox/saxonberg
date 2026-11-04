@@ -173,12 +173,8 @@ function seedDomain(): void {
     DormWarren.PROGRAMME_PATH,
     `${SEEDS}world/terminus/eternal/duncan-hall/idea/dorm-programme.yaml`,
   );
-  // Its one-room blueprint (harbors review 3).
-  addSeed(
-    '/world/terminus/eternal/duncan-hall/idea/dorm-blueprint',
-    `${SEEDS}world/terminus/eternal/duncan-hall/idea/dorm-blueprint.yaml`,
-  );
-  // …and the one building it names (harbors review, 2026-11-03).
+  // The one building its plan names (harbors review, 2026-11-03 — the
+  // plan is the programme row's own; no blueprint row).
   addSeed(
     '/world/terminus/eternal/duncan-hall/idea/dorm-building',
     `${SEEDS}world/terminus/eternal/duncan-hall/idea/dorm-building.yaml`,

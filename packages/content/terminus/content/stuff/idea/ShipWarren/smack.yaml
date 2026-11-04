@@ -1,9 +1,9 @@
 # The smack's warren (harbors P2, B1) — the rooms every smack is minted
-# with, keyed `(room row, <serial>/<leaf>)`: copies of her BLUEPRINT
-# (harbors review 3), a Structure over her kind's rooms authored as an
-# ordinary place — her deck, the cabin under it and the fish hold forward.
-# Her rooms' ways, cells and floors are their own rows' (`floorM` is how
-# high a floor stands above her keel: water fills her from the bottom up).
+# with, keyed `(room row, <serial>/<leaf>)`: copies of her PLAN, which is
+# HER kind row's (`/stuff/idea/Ship/smack` — its `extent` and `entrance`,
+# harbors review 2026-11-03), handed to this warren as she stands it up.
+# It names nothing itself. Her rooms' ways, cells and floors are their own
+# rows' (`floorM` is how high a floor stands above her keel: water fills
+# her from the bottom up).
 class: /platform/idea/ShipWarren
-data:
-  blueprint: /stuff/idea/Structure/smack
+data: {}

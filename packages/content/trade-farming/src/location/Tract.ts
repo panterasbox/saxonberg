@@ -257,7 +257,7 @@ export default class Tract extends TractBase {
   };
 
   /**
-   * ⭐ A blueprint tract's share of its holding's OPEN ground (tracts
+   * ⭐ A plan tract's share of its holding's OPEN ground (tracts
    * build D27; authored on the tract's own row since harbors review 3 —
    * it was the retired `floorplan:` entry's). A copy of the layout on a
    * bigger parcel has bigger tracts, in proportion. `null`: not sized by

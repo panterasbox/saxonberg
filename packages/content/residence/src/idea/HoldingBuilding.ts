@@ -12,7 +12,8 @@
  * `look` at it, `survey` it, `paint` it, `maintain` it.
  *
  * ⭐ A building is AUTHORED (harbors review, 2026-11-03): the holding's
- * blueprint names its buildings (`buildings:`, the main one first), each
+ * programme row names its buildings (`buildings:`, the main one first,
+ * beside the plan's `extent` and `entrance` it authors), each
  * a row of this class with its own `extent` and `entrance` — a
  * farmstead's house and its barn are two, each with its own coat and
  * condition, and the rooms under each one's extent are its rooms. Open
@@ -30,7 +31,7 @@
  * ⭐ It persists unconditionally — a holding exists only because somebody
  * holds it — under the holding's own `(scope, key)`.
  *
- * A blueprint that names no building (a Seznick House flat) mints none:
+ * A plan that names no building (a Seznick House flat) mints none:
  * its units read the Building row they are in.
  */
 

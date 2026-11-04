@@ -7,7 +7,6 @@ import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import Tract from '../location/Tract';
 import HoldingWarren from '@saxonberg/content-residence/src/idea/HoldingWarren';
-import { Blueprint } from '@saxonberg/server/mud/lib/location/Blueprint';
 import { ParcelApi } from '@saxonberg/server/mud/api/parcel';
 import { AddressApi } from '@saxonberg/server/mud/api/address';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -19,17 +18,12 @@ const LOT = '/world/_t/valley/lots/lot-1';
 
 function holding(): HoldingWarren {
   const h = makeStuffAtPath(() => new HoldingWarren(), '/world/_t/farmstead');
-  // ⭐ Its blueprint (harbors review 3): the yard's 400 m² is the
-  // Structure's footprint; the tract's share is its own row's field.
-  vi.spyOn(Blueprint.prototype, 'load').mockResolvedValue({
-    path: '/world/_t/farmstead-blueprint',
-    extent: '/world/_t/farm',
-    entrance: '/world/_t/farm/yard',
-    footprintM2: 400,
-    rooms: [],
-    buildings: [],
-  });
-  h.setBlueprint('/world/_t/farmstead-blueprint');
+  // ⭐ Its plan is its own (harbors review 3; no blueprint row): the
+  // yard's 400 m² is the programme's footprint; the tract's share is its
+  // own row's field.
+  h.setExtent('/world/_t/farm');
+  h.setEntrance('/world/_t/farm/yard');
+  h.setFootprintM2(400);
   h.setPersistenceKey(LOT, true);
   return h;
 }

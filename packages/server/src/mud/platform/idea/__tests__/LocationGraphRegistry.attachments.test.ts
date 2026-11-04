@@ -31,11 +31,17 @@ beforeEach(() => {
     { path: `${T}/tower`, class: '/platform/idea/Structure', data: { extent: T } },
     // ⭐ A building row names the Building twin — a structure, not the Structure twin.
     { path: `${T}/cottage/structure`, class: '/platform/idea/Building', data: { extent: `${T}/cottage` } },
-    // ⭐ A holding kind's BLUEPRINT and the building it names: neither is
-    // served, so neither attaches at its extent (harbors review, 2026-11-03).
-    { path: `${T}/idea/lot-kind`, class: '/platform/idea/Business', data: { blueprint: `${T}/idea/house-blueprint` } },
-    { path: `${T}/idea/house-blueprint`, class: '/platform/idea/Structure', data: {
+    // ⭐ A holding kind's PLAN is its programme row's own, and the building
+    // it names is a kind: neither is served, so neither attaches at its
+    // extent (harbors review, 2026-11-03 — no blueprint row). (A programme
+    // is a warren, never a structure; a Business stands in for it here.)
+    { path: `${T}/idea/lot-kind`, class: '/platform/idea/Business', data: {
       extent: `${T}/house`, entrance: `${T}/house/yard`, buildings: [`${T}/idea/house-building`],
+    } },
+    // ⭐ A ship KIND's plan is her own row's: her extent is a plan (her
+    // `warren:` mints her rooms), so she attaches nothing there.
+    { path: `${T}/idea/smack`, class: '/platform/idea/Ship', data: {
+      extent: `${T}/house`, entrance: `${T}/house/yard`, warren: `${T}/idea/smack-warren`,
     } },
     { path: `${T}/idea/house-building`, class: '/platform/idea/Building', data: { extent: `${T}/house/indoors` } },
     { path: `${T}/ship`, class: '/platform/idea/Ship', data: { extent: `${T}/ship`, expanse: '/test/sea', berth: `${T}/quay` } },
@@ -102,10 +108,11 @@ describe('the location graph attaches what belongs with a place', () => {
     expect(await NavigationApi.attachedTo(`${T}/cottage/parlor`, 'structure')).toContain(`${T}/cottage/structure`);
   });
 
-  it('⭐ a blueprint and the buildings it names attach to nothing — they are kinds, never served', async () => {
+  it('⭐ a plan attaches nothing — the buildings a programme names and a ship kind are kinds, never served', async () => {
     const at = await NavigationApi.attachedTo(`${T}/house/indoors/hall`, 'structure');
-    expect(at).not.toContain(`${T}/idea/house-blueprint`);
+    expect(at).not.toContain(`${T}/idea/lot-kind`);
     expect(at).not.toContain(`${T}/idea/house-building`);
+    expect(at).not.toContain(`${T}/idea/smack`);
     expect(at).toContain(`${T}/tower`);
   });
 

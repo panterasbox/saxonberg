@@ -682,13 +682,13 @@ export default class Ship extends BilgeMixin(PersistableMixin(
 
   /**
    * ⭐ How high a room's floor stands above her keel, m: what the room says
-   * (`ownFloorM`, the room row's own field — her blueprint's rooms author
+   * (`ownFloorM`, the room row's own field — her kind's plan rows author
    * it), else her deck at her hull's depth and any other room on her keel.
    */
   public floorMOf(room: Stuff, ownFloorM: number | null = null): number {
     if (ownFloorM !== null && Number.isFinite(ownFloorM)) return ownFloorM;
     const w = this._warren !== null && !this._warren.isDestroyed() ? this._warren : null;
-    // A room of her blueprint that names no floor: her deck (the entrance)
+    // A room of her plan that names no floor: her deck (the entrance)
     // stands at her hull's depth, any other room on her keel.
     if (w !== null && w.mintedKeyOf(room) !== null) {
       return w.entryRoom() === room ? this.hullDepthM() : 0;
@@ -2011,11 +2011,28 @@ export default class Ship extends BilgeMixin(PersistableMixin(
   /* ───────────── her rooms: the warren, the handle, sleep (harbors P1–P3, B1) ───────────── */
 
   /**
-   * ⭐ The floorplan her rooms are minted from — a `ShipWarren` row
+   * ⭐ The warren her rooms are minted by — a `ShipWarren` row
    * (`/stuff/idea/ShipWarren/smack`), authored on a ship KIND. `null` for
    * an authored ship (the Hesper), whose warren adopts her own rows.
+   * ⭐ The PLAN it copies is hers, not the warren's (harbors review,
+   * 2026-11-03): her kind row's own `extent` and `entrance`, exactly as an
+   * authored ship's row names them — the warren reads them off her
+   * (`ShipWarren.planOf`). No blueprint row.
    */
   protected warren: string | null = null;
+
+  /**
+   * ⭐ A ship of a kind is told by her WARREN, never by a path: her kind
+   * row's `extent` is her PLAN, and every smack's rooms are keyed copies of
+   * its rows — so no path is hers alone, and `hasMember`, her landings and
+   * her resident members read nothing off it (her warren's `structureOf`
+   * answers for her rooms). An authored ship's extent is her own rooms.
+   *
+   * @hook
+   */
+  protected override memberExtent(): string {
+    return this.isOfKind() ? '' : super.memberExtent();
+  }
 
   public getWarrenRow(): string | null { return this.warren; }
   public setWarren(v: string | null): void { this.warren = typeof v === 'string' && v !== '' ? v : null; }

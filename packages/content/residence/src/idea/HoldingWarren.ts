@@ -3,7 +3,7 @@
  * one level down
  * (residences D16): a keyed instance of ONE programme row per holding,
  * whose members are the holding's rooms and which owns every
- * holding-level concern — the copy of its blueprint, intra-holding
+ * holding-level concern — the copy of its plan, intra-holding
  * wiring + the keyed doors, dormancy AS A UNIT (the holding sleeps
  * and wakes whole, never room-by-room), the shell condition +
  * weathering clock (D4/P10), the tenure term (D5), the archetype
@@ -24,35 +24,37 @@
  * parcel's open ground (`openGroundM2`), the relay to the institution,
  * the tenure term (who OWES the upkeep), and the holding's BUILDINGS.
  * (`admitPlot`, the break-ground seam, retired with `plot` in the farming
- * build — a farm's ground is a blueprint's tract.)
+ * build — a farm's ground is a plan's tract.)
  *
  * ⭐⭐ **The fabric is the building's** (paint D6/D13). A holding stands
  * its buildings up at its wake — a {@link HoldingBuilding} per building
- * its blueprint NAMES (`buildings:`, each a Building row with its own
- * extent and entrance), else none, and its rooms read the Building row
+ * its plan NAMES (`buildings:`, each a Building row with its own extent
+ * and entrance), else none, and its rooms read the Building row
  * that covers its extent (Seznick House) — and each carries its own coat
  * and its `Durable` condition, which the weather wears once the coat is
  * gone. ⭐ A building is AUTHORED (harbors review, 2026-11-03 — the
  * owner: deriving it from how rooms connect is magic): a farmstead's
- * house and barn are the two its blueprint names, and the yard, which no
+ * house and barn are the two its plan names, and the yard, which no
  * building's extent covers, is open ground and no building's.
  *
- * ⭐ **The blueprint (harbors review 3).** The programme row names a
- * `Structure` row (`blueprint:`) over the kind's rooms authored as
- * ordinary rows — `exits:`, `coords:`, a tract's `share` — and the
- * Structure's `footprintM2` is the ground the buildings cover. A keyed
+ * ⭐ **The plan is the programme row's own** (harbors review 3;
+ * 2026-11-03). The programme row authors its plan itself — `extent` (the
+ * kind's rooms, authored as ordinary rows: `exits:`, a tract's `share`),
+ * `entrance`, `footprintM2` (the ground the buildings cover) and
+ * `buildings:` — on the kernel `FloorplanWarren`'s fields. ⛔ No blueprint
+ * row: a `Structure` is only ever a thing standing in the world. A keyed
  * door is the way's own `kind:`.
  *
  * The member contract stays **open to runtime-added members** (the
  * cross-build interface with farming's break-ground act): the
- * blueprint is the *initial* mint, never the closed set.
+ * plan is the *initial* mint, never the closed set.
  */
 
 import { FloorplanWarren } from '@saxonberg/server/mud/lib/location/FloorplanWarren';
 import {
-  Blueprint,
-  type BlueprintRoom,
-} from '@saxonberg/server/mud/lib/location/Blueprint';
+  Floorplan,
+  type FloorplanRoom,
+} from '@saxonberg/server/mud/lib/location/Floorplan';
 import KeyedDoorExit from './KeyedDoorExit';
 import type Exit from '@saxonberg/server/mud/lib/boundary/Exit';
 import { ParcelApi } from '@saxonberg/server/mud/api/parcel';
@@ -123,21 +125,22 @@ export default class HoldingWarren extends FloorplanWarren {
 
   /**
    * The entry room's ROW for a programme row — the eager face a
-   * FrontDoorExit / LotGateExit carries (D17: a real row): its
-   * BLUEPRINT's entrance (harbors review 3), read off the rows without
-   * waking a holding. Shared by every institution that hangs doors on
-   * this programme. Throws on a programme that names no blueprint.
+   * FrontDoorExit / LotGateExit carries (D17: a real row): its PLAN's
+   * entrance (the programme row's own, harbors review 3 / 2026-11-03),
+   * read off the rows without waking a holding. Shared by every
+   * institution that hangs doors on this programme. Throws on a programme
+   * that authors no plan.
    */
   public static async entryRowOf(programmePath: string): Promise<string> {
     const { Template } = await import(
       '@saxonberg/server/mud/lib/stuff/Template'
     );
     const row = await Template.findByPath(programmePath);
-    const blueprint = (row?.data as { blueprint?: unknown } | undefined)?.blueprint;
-    if (typeof blueprint !== 'string' || blueprint === '') {
-      throw new Error(`HoldingWarren: programme '${programmePath}' names no blueprint`);
+    const data = (row?.data ?? {}) as Record<string, unknown>;
+    if (typeof data.extent !== 'string' || data.extent === '') {
+      throw new Error(`HoldingWarren: programme '${programmePath}' authors no plan (extent)`);
     }
-    return (await new Blueprint(blueprint).load()).entrance;
+    return (await new Floorplan(programmePath, data).load()).entrance;
   }
 
   // ── identity ────────────────────────────────────────────────────
@@ -149,9 +152,9 @@ export default class HoldingWarren extends FloorplanWarren {
 
   /**
    * ⭐ **The holding's open ground**, m² (tracts build D27): the parcel's
-   * workable area less the ground its blueprint's buildings cover (the
-   * Structure's `footprintM2`, harbors review 3) — what the tracts'
-   * shares (each tract's own `share`) divide. `0` on an unmeasured parcel (nobody can say
+   * workable area less the ground its plan's buildings cover (its own
+   * `footprintM2`, harbors review 3) — what the tracts' shares (each
+   * tract's own `share`) divide. `0` on an unmeasured parcel (nobody can say
    * what a third of it is). Residential because the area is the PARCEL's.
    */
   public async openGroundM2(): Promise<number> {
@@ -159,8 +162,7 @@ export default class HoldingWarren extends FloorplanWarren {
     if (!extent) return 0;
     const workable = await ParcelApi.workableAreaOf(extent);
     if (!(workable > 0)) return 0;
-    await this.loadBlueprint();
-    return Math.max(0, workable - this.footprintM2());
+    return Math.max(0, workable - this.getFootprintM2());
   }
 
   // ── wake / membership ───────────────────────────────────────────
@@ -182,7 +184,7 @@ export default class HoldingWarren extends FloorplanWarren {
    *
    * @hook
    */
-  protected override addressFor(spec: BlueprintRoom): string | null {
+  protected override addressFor(spec: FloorplanRoom): string | null {
     const base = this.addressBase || this.derivedAddressBase();
     if (!base) return null;
     return spec.leaf ? `${base}/${spec.leaf}` : base;
@@ -199,8 +201,8 @@ export default class HoldingWarren extends FloorplanWarren {
 
   /**
    * ⭐ A keyed door of the copy (`kind: /system/residence/idea/exits/keyed-door`
-   * on its blueprint room's way) is locked to THIS holding's keyway; the
-   * blueprint authors the way back out as a plain passage, so a guest let
+   * on its plan room's way) is locked to THIS holding's keyway; the
+   * plan authors the way back out as a plain passage, so a guest let
    * in is never trapped and leaving your own house needs no key.
    *
    * @hook
@@ -259,7 +261,7 @@ export default class HoldingWarren extends FloorplanWarren {
   }
 
   /** Every building this holding minted, the main one first. */
-  public buildings(): BuildingBase[] {
+  public standingBuildings(): BuildingBase[] {
     const out = [...this._houses.values()].filter((h) => !h.isDestroyed());
     if (out.length > 0) return out;
     const covering = this.house();
@@ -338,18 +340,18 @@ export default class HoldingWarren extends FloorplanWarren {
   }
 
   /**
-   * Stand this holding's buildings up: one per building its blueprint
+   * Stand this holding's buildings up: one per building its plan
    * NAMES (`buildings:`, the main one first), each a clone of that
    * building's own row holding the copy's rooms that lie under its
    * extent. ⭐ Authored, never derived — no read of how the rooms connect
    * or which hold their air, so a reordered `exits:` map changes nothing.
-   * A blueprint that names none (a Seznick flat) mints none: its rooms
+   * A plan that names none (a Seznick flat) mints none: its rooms
    * read the Building row its extent lies in.
    */
   private async wakeHouses(): Promise<void> {
     const extent = this.holdingKey();
     if (!extent) return;
-    for (const [i, spec] of this.blueprintBuildings().entries()) {
+    for (const [i, spec] of this.planBuildings().entries()) {
       const name = i === 0 ? '' : spec.leaf;
       const rooms = this.roomsOfRows(spec.rooms);
       const live = this._houses.get(name);
@@ -373,10 +375,10 @@ export default class HoldingWarren extends FloorplanWarren {
     }
   }
 
-  /** This copy's live rooms for blueprint room rows. */
+  /** This copy's live rooms for plan room rows. */
   private roomsOfRows(rows: readonly string[]): MemberStuff[] {
     const out: MemberStuff[] = [];
-    for (const spec of this.blueprintRooms()) {
+    for (const spec of this.planRooms()) {
       if (!rows.includes(spec.row)) continue;
       const room = this.roomForLeaf(spec.leaf);
       if (room !== null) out.push(room);

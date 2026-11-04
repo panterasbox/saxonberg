@@ -96,16 +96,14 @@ function seedDomain(): void {
   // — so the test world has to seed its row like any other singleton.
   add(DormThemes.CATALOGUE_PATH, '/world/terminus/eternal/duncan-hall/idea/DormThemes');
   // D16 step 2: the unit's degenerate one-room programme row.
+  // A one-room plan, the programme's own (harbors review 3; no blueprint
+  // row): its extent is the room's row.
   add(DormWarren.PROGRAMME_PATH, '/system/residence/idea/HoldingWarren', {
-    blueprint: '/test/dorm-blueprint',
-    upkeepTerm: 'institution-all',
-  });
-  // A one-room blueprint (harbors review 3): its extent is the room's row.
-  add('/test/dorm-blueprint', '/platform/idea/Structure', {
     extent: DormRoom.SCOPE,
     entrance: DormRoom.SCOPE,
     // ⭐ Its one building, authored (harbors review, 2026-11-03).
     buildings: ['/test/dorm-building'],
+    upkeepTerm: 'institution-all',
   });
   add('/test/dorm-building', '/system/residence/idea/HoldingBuilding', {
     shortDescription: 'dorm room',

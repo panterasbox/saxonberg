@@ -126,12 +126,10 @@ function seedDomain(): void {
     defaultCapacity: 3,
     plan: { shape: 'linear', frontagesPerNode: 2, frontageLeaf: 'u' },
   });
+  // ⭐ The unit's plan, the programme's own (harbors review 3; no
+  // blueprint row): ordinary rows under its extent.
   add(PROGRAMME, '/system/residence/idea/HoldingWarren', {
     upkeepTerm: 'landlord-shell',
-    blueprint: `${HOUSE}/unit-blueprint`,
-  });
-  // ⭐ The unit's blueprint (harbors review 3): ordinary rows, a Structure.
-  add(`${HOUSE}/unit-blueprint`, '/platform/idea/Structure', {
     extent: `${HOUSE}/location`,
     entrance: `${HOUSE}/location/hall`,
   });

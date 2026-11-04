@@ -19,7 +19,7 @@ data:
     # ground (the campus field's precedent): too heavy to carry, used where
     # it lies.
     - /trade/farming/thing/plough
-  # ⭐ The farmstead's blueprint (harbors review 3): its ways, an ordinary place.
+  # ⭐ The farmstead's plan (harbors review 3): its ways, an ordinary place.
   # Its share of the holding's open ground.
   share: 0.3
   exits:

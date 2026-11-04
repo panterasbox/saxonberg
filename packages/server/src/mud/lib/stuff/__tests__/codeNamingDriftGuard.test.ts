@@ -228,11 +228,11 @@ const MANIFEST: ReadonlyArray<{ site: string; classification: string }> = [
     site: "lib/stuff/Staged.ts::loadClassByPath",
     classification: "transitive-safe",
   },
-  // ⭐ A blueprint's rooms (harbors review 3): the class of each row under
-  // the Structure's extent is resolved only to CHECK it is a place, before
-  // anything is cloned — the row's own `class:` gate already passed it.
+  // ⭐ A plan's rooms (harbors review 3): the class of each row under the
+  // plan's extent is resolved only to CHECK it is a place, before anything
+  // is cloned — the row's own `class:` gate already passed it.
   {
-    site: "lib/location/Blueprint.ts::loadClassByPath",
+    site: "lib/location/Floorplan.ts::loadClassByPath",
     classification: "transitive-safe",
   },
   // ⭐ Template inheritance: `Template._materialize` resolves the

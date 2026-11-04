@@ -25,7 +25,7 @@
  * (`mintKeyed` — clone, member, placed, restore-or-seed, filed by key):
  * the carve adds keyed members on top of it.
  *
- * ⭐ **A mine names no blueprint** (`blueprint` stays `''`): its spine is
+ * ⭐ **A mine copies no plan** (its `extent` stays `''`): its spine is
  * authored singletons and its workings are CARVED, so there is no kind of
  * room set to copy — the base's wake mints nothing, and every member is a
  * cell somebody cut. Its members sit on its zone's grid (the cell IS the

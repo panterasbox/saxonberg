@@ -11,7 +11,7 @@
  * same way as residences"*). So what both need lives here, and what only
  * a house needs stays in the residence pack:
  *
- *  - **here** — the copy: every room of the warren's BLUEPRINT minted
+ *  - **here** — the copy: every room of the warren's PLAN minted
  *    keyed `(scope = the room row, key = <key>/<leaf>)`, its ways wired,
  *    its layout read (and mirrored), the whole-warren capture (its rooms
  *    that keep a record are its `dependentPersistables`, so capturing the
@@ -24,13 +24,16 @@
  *    warren does so in its own `WarrenMember.onWarrenWake` — the ONE wake
  *    hook (harbors review 2).
  *
- * ⭐⭐ **The blueprint is ordinary authored content** (harbors review 3).
- * The warren row names a `Structure` row (`blueprint:`) whose `extent`
- * holds the kind's rooms as ordinary rows with ordinary `exits:` — the
- * authored Hesper's shape — and whose `entrance` is the
- * way in ({@link Blueprint}). There is no second schema: the retired
- * `floorplan:` list re-stated every room's exits, its entry and its
- * layout outside the rooms. Copy N clones every room row and applies ONE
+ * ⭐⭐ **The plan is ordinary authored content, on its OWNER** (harbors
+ * review 3; 2026-11-03). The plan is an `extent` holding the kind's rooms
+ * as ordinary rows with ordinary `exits:` — the authored Hesper's shape —
+ * and an `entrance`, the way in ({@link Floorplan}). Whoever owns the plan
+ * authors it: a holding's programme row carries `extent`, `entrance`,
+ * `footprintM2` and `buildings:` on THIS class's fields; a ship of a kind
+ * hands her warren her own row's ({@link planOf}). ⛔ No blueprint row —
+ * a `Structure` is only ever a thing standing in the world. There is no
+ * second schema: the retired `floorplan:` list re-stated every room's
+ * exits, its entry and its layout outside the rooms. Copy N clones every room row and applies ONE
  * rewrite: a way whose destination is inside the extent leads to the same
  * room of copy N; a way out stays as authored. Mirroring is a property of
  * the COPY, applied in the same pass: every copied direction is reflected
@@ -48,7 +51,7 @@
 
 import { type Attachment } from './Warren';
 import { RoomWarren } from './RoomWarren';
-import { Blueprint, type BlueprintBuilding, type BlueprintPlan, type BlueprintRoom } from './Blueprint';
+import { Floorplan, type FloorplanBuilding, type LoadedFloorplan, type FloorplanRoom } from './Floorplan';
 import { PersistableMixin } from '../persistence/Persistable';
 import { WarrenMemberMixin } from './WarrenMember';
 import { ContainerMixin } from '../spatial/Container';
@@ -73,16 +76,39 @@ const FloorplanBase = PersistableMixin(
 
 export abstract class FloorplanWarren extends FloorplanBase {
   static fieldMeta: FieldMeta = {
-    blueprint: { persistent: true, authorable: true, authorPicker: 'Template' },
+    extent: { persistent: true, authorable: true },
+    entrance: { persistent: true, authorable: true },
+    footprintM2: { persistent: true, authorable: true },
+    buildings: { persistent: true, authorable: true },
     mirrorAxis: { persistent: true },
   };
 
   /**
-   * ⭐ The `Structure` row this warren's rooms are copies of (harbors
-   * review 3) — '' for a warren that mints nothing (an authored ship's
-   * adopts her own rooms).
+   * ⭐ The PLAN, when this warren's own row owns it (a holding's
+   * programme): the template-path prefix whose rows are the kind's rooms
+   * — '' for a warren whose plan is somebody else's (a ship of a kind
+   * hands hers over) or that mints nothing (a mine, an authored ship).
    */
-  public blueprint: string = '';
+  public extent: string = '';
+
+  /** The plan's room you come in by. */
+  public entrance: string = '';
+
+  /**
+   * The ground the plan's buildings stand on that no tract covers, m² —
+   * what a copy subtracts from its parcel to leave the open ground its
+   * tracts share (the retired floorplan's per-room `footprintM2`, summed).
+   */
+  public footprintM2: number = 0;
+
+  /**
+   * ⭐ The plan's buildings, the main one first: each a Building row whose
+   * own `extent` (inside the plan's) holds that building's rooms and whose
+   * `entrance` is its way in (harbors review, 2026-11-03). AUTHORED, never
+   * derived from how the rooms connect — ground no building's extent
+   * covers (a yard, a tract) is nobody's building.
+   */
+  public buildings: string[] = [];
 
   /**
    * ⭐ Which way this copy of the layout is MIRRORED, `''` for none
@@ -93,20 +119,54 @@ export abstract class FloorplanWarren extends FloorplanBase {
    */
   public mirrorAxis: '' | MirrorAxis = '';
 
-  /** Runtime: the blueprint as read off its rows, once per warren. */
-  private _plan: BlueprintPlan | null = null;
+  /** Runtime: the plan as read off its rows, once per warren. */
+  private _plan: LoadedFloorplan | null = null;
 
   /** Live rooms by full key (`<key>` or `<key>/<leaf>`). */
   private _roomsByKey: Map<string, MemberStuff> = new Map();
 
   // ── authored-field surface ──────────────────────────────────────
 
-  public getBlueprint(): string {
-    return this.blueprint;
+  public getExtent(): string {
+    return this.extent;
   }
 
-  public setBlueprint(value: string | null): void {
-    this.blueprint = typeof value === 'string' ? value : '';
+  public setExtent(value: string | null): void {
+    this.extent = typeof value === 'string' ? value.replace(/\/+$/, '') : '';
+    this._plan = null;
+  }
+
+  public getEntrance(): string {
+    return this.entrance;
+  }
+
+  public setEntrance(value: string | null): void {
+    this.entrance = typeof value === 'string' ? value : '';
+    this._plan = null;
+  }
+
+  /** The ground the plan's buildings cover, m² (its owner's `footprintM2`). */
+  public getFootprintM2(): number {
+    return this.footprintM2;
+  }
+
+  public setFootprintM2(value: number | null): void {
+    const n = Number(value);
+    this.footprintM2 = Number.isFinite(n) && n > 0 ? n : 0;
+  }
+
+  public getBuildings(): readonly string[] {
+    return this.buildings;
+  }
+
+  public setBuildings(value: readonly string[] | null): void {
+    if (value === null || value === undefined) {
+      this.buildings = [];
+    } else if (!Array.isArray(value) || value.some((v) => typeof v !== 'string' || v === '')) {
+      throw new Error(`${this.constructor.name}: buildings must be a list of row paths, got ${JSON.stringify(value)}`);
+    } else {
+      this.buildings = [...value];
+    }
     this._plan = null;
   }
 
@@ -119,32 +179,46 @@ export abstract class FloorplanWarren extends FloorplanBase {
   }
 
   /**
-   * The blueprint, read off its rows (cached for the warren's life).
-   * `null` when the warren names none.
+   * ⭐ Whose plan this warren copies, and its fields — the row that owns
+   * it (named in every error) and what it authors. `null` for a warren
+   * that copies none (a mine carves; an authored ship adopts).
+   *
+   * @hook Default: this warren's own row, when it authors an `extent` (a
+   *   holding's programme). A ship's warren answers her KIND's row.
    */
-  public async loadBlueprint(): Promise<BlueprintPlan | null> {
-    if (this._plan !== null) return this._plan;
-    if (!this.blueprint) return null;
-    this._plan = await new Blueprint(this.blueprint).load();
-    return this._plan;
-  }
-
-  /** The blueprint's rooms as last read — `[]` before the first wake. */
-  public blueprintRooms(): readonly BlueprintRoom[] {
-    return this._plan?.rooms ?? [];
-  }
-
-  /** The blueprint's authored buildings, the main one first — `[]` before the first wake or for none. */
-  public blueprintBuildings(): readonly BlueprintBuilding[] {
-    return this._plan?.buildings ?? [];
+  protected planOf(): { owner: string; data: Record<string, unknown> } | null {
+    if (this.extent === '') return null;
+    return {
+      owner: this.getTemplatePath() ?? this.constructor.name,
+      data: {
+        extent: this.extent,
+        entrance: this.entrance,
+        footprintM2: this.footprintM2,
+        buildings: this.buildings,
+      },
+    };
   }
 
   /**
-   * The ground the blueprint's buildings cover, m² (its Structure's
-   * `footprintM2`) — `0` before the first wake or for none.
+   * The plan, read off its rows (cached for the warren's life). `null`
+   * when the warren copies none.
    */
-  public footprintM2(): number {
-    return this._plan?.footprintM2 ?? 0;
+  public async loadPlan(): Promise<LoadedFloorplan | null> {
+    if (this._plan !== null) return this._plan;
+    const of = this.planOf();
+    if (of === null) return null;
+    this._plan = await new Floorplan(of.owner, of.data).load();
+    return this._plan;
+  }
+
+  /** The plan's rooms as last read — `[]` before the first wake. */
+  public planRooms(): readonly FloorplanRoom[] {
+    return this._plan?.rooms ?? [];
+  }
+
+  /** The plan's authored buildings, the main one first — `[]` before the first wake or for none. */
+  public planBuildings(): readonly FloorplanBuilding[] {
+    return this._plan?.buildings ?? [];
   }
 
   // ── identity ────────────────────────────────────────────────────
@@ -164,13 +238,13 @@ export abstract class FloorplanWarren extends FloorplanBase {
   // ── wake / membership ───────────────────────────────────────────
 
   /**
-   * Stand the whole copy up: every blueprint room keyed
+   * Stand the whole copy up: every plan room keyed
    * `(roomRow, <key>[/leaf])` via the spine's restore-or-seed, its ways
    * wired (the rewrite rule), the rooms laid out. Idempotent per room
    * (live rooms are reused, wired ways stand).
    */
   public async wake(): Promise<void> {
-    const plan = await this.loadBlueprint();
+    const plan = await this.loadPlan();
     if (plan === null) return;
     for (const spec of plan.rooms) await this.wakeRoom(spec);
     for (const spec of plan.rooms) await this.wireWays(plan, spec);
@@ -189,10 +263,10 @@ export abstract class FloorplanWarren extends FloorplanBase {
    * the Hinkley yard (0,0,0), its hall one north at (0,1,0), the kitchen
    * east of the hall at (1,1,0). Read through the mirror, so a reflected
    * copy is laid out reflected. A room the cardinal ways do not reach sits
-   * in a row beyond, in blueprint order; a cell two ways disagree about
+   * in a row beyond, in plan order; a cell two ways disagree about
    * keeps its first room.
    *
-   * ⚠ A blueprint row authors NO `coords:` (harbors review 3): a row's
+   * ⚠ A plan's room row authors NO `coords:` (harbors review 3): a row's
    * cell registers on its ZONE's grid, and every copy of a row stands in
    * one zone — every Hinkley yard would claim one square of the lots'
    * grid. The ways already say where each room is. Derived, never stored.
@@ -200,7 +274,7 @@ export abstract class FloorplanWarren extends FloorplanBase {
   public layOut(): void {
     const plan = this._plan;
     if (plan === null || plan.rooms.length === 0) return;
-    const leafOf = (r: BlueprintRoom): string => r.leaf ?? '';
+    const leafOf = (r: FloorplanRoom): string => r.leaf ?? '';
     const byRow = new Map(plan.rooms.map((r) => [r.row, leafOf(r)] as const));
     const edges: Array<{ from: string; to: string; dir: string }> = [];
     for (const r of plan.rooms) {
@@ -245,8 +319,8 @@ export abstract class FloorplanWarren extends FloorplanBase {
     }
   }
 
-  /** Stand one blueprint room up (reused when live). */
-  protected async wakeRoom(spec: BlueprintRoom): Promise<MemberStuff | null> {
+  /** Stand one plan room up (reused when live). */
+  protected async wakeRoom(spec: FloorplanRoom): Promise<MemberStuff | null> {
     const key = this.roomKeyOf(spec.leaf);
     if (!key) return null;
     const cached = this.roomForKey(key);
@@ -254,8 +328,8 @@ export abstract class FloorplanWarren extends FloorplanBase {
     // ⭐ The room stands in the zone its WARREN does, resolved from its
     // key rather than its row: a room's size is its zone's cell (B54).
     // Its identity stays the row — the record's scope. ⭐ Its ways are
-    // NOT applied by the clone (`exits: {}`): a way into the blueprint
-    // would stand the blueprint's own room up. They are copied below.
+    // NOT applied by the clone (`exits: {}`): a way into the plan
+    // would stand the plan's own room up. They are copied below.
     const room = await this.mintKeyed(spec.row, key, {
       zoneFrom: this.zoneFromFor(spec, key),
       withholdExits: Object.keys(spec.exits).length > 0,
@@ -275,7 +349,7 @@ export abstract class FloorplanWarren extends FloorplanBase {
    * caller place it (`beforeRestore` — a mine puts a carved cell on its
    * grid, since its coordinate IS its identity), restore-or-seed it under
    * `key` when it keeps a record, and file it by key. The one keyed mint
-   * every floorplan shares — a blueprint's copy and a mine's carve alike
+   * every floorplan shares — a plan's copy and a mine's carve alike
    * (harbors review 3). Persistence is the exception: a plain room comes
    * up from its row and keeps nothing.
    */
@@ -307,7 +381,7 @@ export abstract class FloorplanWarren extends FloorplanBase {
    *
    * @hook Default: the room's full key.
    */
-  protected zoneFromFor(_spec: BlueprintRoom, key: string): string {
+  protected zoneFromFor(_spec: FloorplanRoom, key: string): string {
     return key;
   }
 
@@ -318,17 +392,17 @@ export abstract class FloorplanWarren extends FloorplanBase {
    *
    * @hook Default: none.
    */
-  protected addressFor(_spec: BlueprintRoom): string | null {
+  protected addressFor(_spec: FloorplanRoom): string | null {
     return null;
   }
 
   /**
    * ⭐ Copy one room's authored ways (the ONE rewrite rule): a way whose
-   * destination is inside the blueprint's extent leads to the same room
+   * destination is inside the plan's extent leads to the same room
    * of THIS copy; a way out stays as authored. Every direction is read
    * through the copy's mirror. Idempotent — a wired direction stands.
    */
-  protected async wireWays(plan: BlueprintPlan, spec: BlueprintRoom): Promise<void> {
+  protected async wireWays(plan: LoadedFloorplan, spec: FloorplanRoom): Promise<void> {
     const from = this.roomForLeaf(spec.leaf);
     if (from === null || !MixinApi.isExitable(from)) return;
     for (const [authored, way] of Object.entries(spec.exits)) {
@@ -343,7 +417,7 @@ export abstract class FloorplanWarren extends FloorplanBase {
       const target = plan.rooms.find((r) => r.row === way.destination);
       if (target === undefined) {
         throw new Error(
-          `${this.constructor.name}: blueprint '${plan.path}' — '${spec.row}' ` +
+          `${this.constructor.name}: the plan of '${plan.path}' — '${spec.row}' ` +
             `${authored} leads to '${way.destination}', inside the extent and no room of it`,
         );
       }
@@ -426,9 +500,9 @@ export abstract class FloorplanWarren extends FloorplanBase {
     return room;
   }
 
-  /** The mover's landing room — the blueprint's entrance, or null. */
+  /** The mover's landing room — the plan's entrance, or null. */
   public entryRoom(): MemberStuff | null {
-    const entry = this.blueprintRooms().find((r) => r.entry);
+    const entry = this.planRooms().find((r) => r.entry);
     return entry ? this.roomForLeaf(entry.leaf) : null;
   }
 
@@ -504,7 +578,7 @@ export abstract class FloorplanWarren extends FloorplanBase {
 
   protected async createMember(): Promise<MemberStuff> {
     throw new Error(
-      `${this.constructor.name} mints rooms from its blueprint, never buds`,
+      `${this.constructor.name} mints rooms from its plan, never buds`,
     );
   }
 
@@ -517,7 +591,7 @@ export abstract class FloorplanWarren extends FloorplanBase {
   }
 
   protected async wireHostFixtures(): Promise<void> {
-    /* the entry room is the blueprint's, not a host's */
+    /* the entry room is the plan's, not a host's */
   }
 
   protected async unwireHostFixtures(): Promise<void> {

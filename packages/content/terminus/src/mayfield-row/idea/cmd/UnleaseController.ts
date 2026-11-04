@@ -110,18 +110,18 @@ export default class UnleaseController extends LettingController<UnleaseModel> {
     );
   }
 
-  /** The programme's blueprint rooms (leaf + room row), read off the
-   *  ROWS so a dormant unit reverts without being woken (harbors review 3:
-   *  the programme names a blueprint, a Structure over its room rows). */
+  /** The programme's plan rooms (leaf + room row), read off the ROWS so
+   *  a dormant unit reverts without being woken (harbors review 3: the
+   *  programme row authors its plan — an `extent` over its room rows). */
   private async floorplanOf(): Promise<
     Array<{ leaf?: string; room: string | null }>
   > {
     const { Template } = await import('@saxonberg/server/mud/lib/stuff/Template');
-    const { Blueprint } = await import('@saxonberg/server/mud/lib/location/Blueprint');
+    const { Floorplan } = await import('@saxonberg/server/mud/lib/location/Floorplan');
     const row = await Template.findByPath(PROGRAMME_PATH);
-    const blueprint = (row?.data as { blueprint?: unknown } | undefined)?.blueprint;
-    if (typeof blueprint !== 'string' || blueprint === '') return [];
-    const plan = await new Blueprint(blueprint).load();
+    const data = (row?.data ?? {}) as Record<string, unknown>;
+    if (typeof data.extent !== 'string' || data.extent === '') return [];
+    const plan = await new Floorplan(PROGRAMME_PATH, data).load();
     return plan.rooms.map((r) => ({ leaf: r.leaf, room: r.row }));
   }
 

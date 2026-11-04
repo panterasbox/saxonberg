@@ -39,7 +39,7 @@ data:
     # claim only: strike it, or fly another, and her register is unchanged.
     - { template: /platform/thing/flagstaff, as: flagstaff }
     - { template: /stuff/thing/flag/terminus-city, on: flagstaff }
-  # ⭐ Her blueprint (harbors review 3): her floor stands at the top of her
+  # ⭐ Her plan (harbors review 3): her floor stands at the top of her
   # hull (`hull.depthM`), the origin of her frame.
   floorM: 1.8
   exits:

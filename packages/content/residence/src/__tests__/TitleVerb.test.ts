@@ -184,12 +184,13 @@ function installStore(): void {
   add('/system/residence/idea/holding-building', '/system/residence/idea/HoldingBuilding', { shortDescription: 'house' });
   add('/system/residence/idea/exits/keyed-door', '/system/residence/idea/KeyedDoorExit');
 
+  // A one-room plan, the programme's own (harbors review 3; no blueprint
+  // row): its extent is the room's row.
   add(PROGRAMME, '/system/residence/idea/HoldingWarren', {
-    blueprint: `${PROGRAMME}-blueprint`,
+    extent: YARD_ROW,
+    entrance: YARD_ROW,
     upkeepTerm: 'owner-all',
   });
-  // A one-room blueprint (harbors review 3): its extent is the room's row.
-  add(`${PROGRAMME}-blueprint`, '/platform/idea/Structure', { extent: YARD_ROW, entrance: YARD_ROW });
   add(YARD_ROW, '/platform/location/PersistentLocation', {
     shortDescription: 'the yard behind the house',
   });
@@ -672,7 +673,7 @@ describe('title', () => {
     expect(yard.getTemplatePath()).toBe(YARD_ROW);
     expect(
       (yard as unknown as { getPersistenceKey(): string }).getPersistenceKey(),
-    // A one-room blueprint's copy is keyed by the holding's own key — no
+    // A one-room plan's copy is keyed by the holding's own key — no
     // leaf (harbors review 3, the dorm's shape).
     ).toBe(LOT2);
     // The holding is the keyed programme, carrying the tenure term (D5).

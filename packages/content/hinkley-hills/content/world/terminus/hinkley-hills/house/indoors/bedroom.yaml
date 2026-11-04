@@ -1,5 +1,5 @@
 # A Hinkley house's bedroom — the generic bedroom, as a room of the
-# house blueprint (harbors review 3).
+# house plan (harbors review 3).
 extends: /stuff/location/room/bedroom
 data:
   # What it is made of (construction.md: walls and roof), like the house's

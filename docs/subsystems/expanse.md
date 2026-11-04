@@ -366,25 +366,30 @@ river node that authors `meanDepthM` is a drowned valley — the authored bed
 with the tide's level on top, not the river's normal depth over its own
 gradient (see [river.md](./river.md)).
 
-### A ship of a kind is a copy of a blueprint (harbors review 3)
+### A ship of a kind is a copy of her kind's plan (harbors review 3, 2026-11-03)
 
-A ship KIND (`/stuff/idea/Ship/smack`) names her warren
-(`/stuff/idea/ShipWarren/smack`), and the warren names a BLUEPRINT — a
-`Structure` row (`/stuff/idea/Structure/smack`) over the kind's rooms
-authored as an ordinary place (`/stuff/location/ship/smack/{deck,cabin,
-hold}`, ordinary `exits:` between them, each room's own `floorM`). Every
-smack is a copy: her rooms keyed `(room row, <serial>/<leaf>)`, a way
-inside the extent leading to the same room of HER copy, a way out (her
-`ashore`, her `side`) as authored. The blueprint is never served. An
-AUTHORED ship (the Hesper) names no blueprint: her own Structure already
-is the blueprint-shaped place, and it is served — her warren
-(`ShipWarren/authored`) adopts her live rooms. Her hull is HERS, as a
+A ship KIND (`/stuff/idea/Ship/smack`) owns her PLAN: her row names
+`extent` (`/stuff/location/ship/smack` — her deck, cabin and hold
+authored as an ordinary place, ordinary `exits:` between them, each
+room's own `floorM`) and `entrance` (her deck), exactly as the authored
+Hesper's row does. ⛔ There is no blueprint row — a `Structure` is only
+ever a thing standing in the world. Her warren
+(`/stuff/idea/ShipWarren/smack`) names nothing; it reads the plan off her
+(`ShipWarren.planOf`). Every smack is a copy: her rooms keyed `(room
+row, <serial>/<leaf>)`, a way inside the extent leading to the same room
+of HER copy, a way out (her `ashore`, her `side`) as authored. The plan's
+rows are never served: the location graph attaches nothing for a
+Structure row whose rooms a `warren:` mints, and a kind's membership is
+her warren's, never a path (`Structure.memberExtent` answers `''` for
+her). An AUTHORED ship (the Hesper) copies no plan: her own rows are the
+place, and they are served — her warren (`ShipWarren/authored`) adopts
+her live rooms. Her hull is HERS, as a
 house's fabric is the building's (paint merged into harbors): `Ship`
 composes `Faced` (tar, paint) over `Durable` (her seams), the weather wears
 the seams at the house's rate (`structure.weather.daysToWorn`) once the
 coat is gone, `maintain` with a caulker's kit makes them sound, and how far
 they have opened is her leak (five seam bands, `ship.leak.<band>`). See
-[holding.md § Blueprints](./holding.md).
+[holding.md § Plans](./holding.md).
 
 ## Perception at range (revision 1)
 

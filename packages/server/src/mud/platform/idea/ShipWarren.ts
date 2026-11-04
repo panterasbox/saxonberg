@@ -5,9 +5,9 @@
  * A `Warren` is a class and a `Ship` is a `Structure`, so a ship cannot BE
  * one; she OWNS one, minted keyed `(this row, her key)` the first time she
  * stands (`Ship.standWarren`). Everything a house's warren does, hers
- * does — her kind's BLUEPRINT (a Structure row over her kind's room rows,
- * harbors review 3) is copied keyed `(room row, <serial>/<leaf>)`, its ways
- * wired, she sleeps whole (`FloorplanWarren`) — and what differs is said
+ * does — her kind's PLAN (her kind row's own `extent` over its room rows
+ * and its `entrance`, harbors review 3 and 2026-11-03) is copied keyed
+ * `(room row, <serial>/<leaf>)`, its ways wired, she sleeps whole (`FloorplanWarren`) — and what differs is said
  * here. (Her hull is HERS, not her rooms': a `Durable` fabric under a
  * coat, as a house's is — `Ship`.)
  *
@@ -30,16 +30,21 @@
  *   {@link fitOut}).
  *
  * ⭐ **An authored ship adopts.** The Hesper names no `warren:`; her warren
- * is the platform's `/platform/idea/ShipWarren/authored` row, which names
- * NO blueprint — an authored ship's own Structure is already the
- * blueprint-shaped place, and it is served — and it takes her resident rooms under her `extent`
- * as members instead of minting any ({@link adoptResident}). One kind of
+ * is the platform's `/platform/idea/ShipWarren/authored` row; it copies
+ * NO plan — an authored ship's own rows already ARE the place, and they
+ * are served — and it takes her resident rooms under her `extent` as
+ * members instead of minting any ({@link adoptResident}).
+ *
+ * ⭐ **The plan is the ship's** (harbors review, 2026-11-03): a warren row
+ * names nothing; a ship of a kind hands her warren her own row's
+ * `extent` and `entrance` ({@link planOf}). The ship owns the plan, as a
+ * holding's programme row owns its own. One kind of
  * ship room (`Compartment`), two ways of instancing it: keyed for a kind,
  * by its own row for an authored ship.
  */
 
 import { FloorplanWarren } from '../../lib/location/FloorplanWarren';
-import type { BlueprintRoom } from '../../lib/location/Blueprint';
+import type { FloorplanRoom } from '../../lib/location/Floorplan';
 import { ContainmentApi } from '../../api/containment';
 import { Template } from '../../lib/stuff/Template';
 import { StuffApi } from '../../api/stuff';
@@ -53,7 +58,7 @@ import type Ship from './Ship';
 
 type MemberStuff = Stuff & Container;
 
-/** The row an authored ship's warren is cloned from (no blueprint: it adopts). */
+/** The row an authored ship's warren is cloned from (no plan: it adopts). */
 export const AUTHORED_SHIP_WARREN = '/platform/idea/ShipWarren/authored';
 
 export default class ShipWarren extends FloorplanWarren {
@@ -101,19 +106,35 @@ export default class ShipWarren extends FloorplanWarren {
   }
 
   /**
-   * Stand her rooms up: a kind's blueprint is copied keyed; an authored
-   * ship's resident rooms are adopted.
+   * ⭐ Her plan is HERS: a ship of a kind hands over her own row's
+   * `extent` and `entrance` (her kind row, named in every error); an
+   * authored ship copies none — her rows are the place, adopted.
+   *
+   * @hook
+   */
+  protected override planOf(): { owner: string; data: Record<string, unknown> } | null {
+    const ship = this.ship();
+    if (ship === null || !ship.isOfKind()) return null;
+    return {
+      owner: ship.getTemplatePath() ?? 'a ship of a kind',
+      data: { extent: ship.getExtent(), entrance: ship.getEntrance() ?? '' },
+    };
+  }
+
+  /**
+   * Stand her rooms up: a kind's plan is copied keyed; an authored ship's
+   * resident rooms are adopted.
    */
   public override async wake(): Promise<void> {
     await super.wake();
-    if (this.getBlueprint() === '') await this.adoptResident();
+    if (this.ship()?.isOfKind() !== true) await this.adoptResident();
     else this.fitOut(this.shortOf);
   }
 
   /** Her minted rooms that keep no record of their own, with their leaf. */
   private plainRooms(): Array<{ leaf: string; room: MemberStuff }> {
     const out: Array<{ leaf: string; room: MemberStuff }> = [];
-    for (const spec of this.blueprintRooms()) {
+    for (const spec of this.planRooms()) {
       const room = this.roomForLeaf(spec.leaf);
       if (room !== null && !MixinApi.isPersistable(room)) out.push({ leaf: spec.leaf ?? '', room });
     }
@@ -122,7 +143,7 @@ export default class ShipWarren extends FloorplanWarren {
 
   /** Her hold: the first of her minted rooms that keeps a record, or `null`. */
   public holdRoom(): MemberStuff | null {
-    for (const spec of this.blueprintRooms()) {
+    for (const spec of this.planRooms()) {
       const room = this.roomForLeaf(spec.leaf);
       if (room !== null && MixinApi.isPersistable(room)) return room;
     }
@@ -227,7 +248,7 @@ export default class ShipWarren extends FloorplanWarren {
   }
 
   /** ⭐ A ship's serial names no place: her rooms stand in their own row's zone (the kind's). */
-  protected override zoneFromFor(spec: BlueprintRoom, key: string): string {
+  protected override zoneFromFor(spec: FloorplanRoom, key: string): string {
     const folder = spec.row.replace(/\/[^/]+$/, '');
     return `${folder}/${key}`;
   }

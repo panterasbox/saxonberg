@@ -57,7 +57,6 @@ const PH = TemplateApplier.templatePath;
 const PARENT = '/world/prog-test/lots';
 const WARREN_PATH = '/world/prog-test/holder';
 const PROGRAMME = '/world/prog-test/house-programme';
-const BLUEPRINT = '/world/prog-test/house-blueprint';
 const ROOM_A = '/world/prog-test/house/home/hall';
 const ROOM_B = '/world/prog-test/house/home/bedroom';
 const ROOM_C = '/world/prog-test/house/porch';
@@ -131,20 +130,17 @@ function seedDomain(): void {
   add('/system/residence/idea/exits/keyed-door', '/system/residence/idea/KeyedDoorExit');
 
   add(WARREN_PATH, WARREN_PATH.replace('/holder', '/TestInstitution'));
+  // ⭐ The house's PLAN is the programme row's own (harbors review 3;
+  // 2026-11-03 — no blueprint row): ordinary rows under an extent, and the
+  // way in. ⭐ Its buildings are AUTHORED: the house (first, the main one)
+  // over `house/home/`, and the shed over its one room. The porch lies
+  // under neither — open ground, whatever its air.
   add(PROGRAMME, '/system/residence/idea/HoldingWarren', {
-    blueprint: BLUEPRINT,
-    upkeepTerm: 'owner-all',
-    addressBase: 'prog-test/lot-1',
-  });
-  // ⭐ The house's blueprint (harbors review 3): ordinary rows under an
-  // extent, a Structure naming it and the way in.
-  // ⭐ Its buildings are AUTHORED (harbors review, 2026-11-03): the house
-  // (first, the main one) over `house/home/`, and the shed over its one
-  // room. The porch lies under neither — open ground, whatever its air.
-  add(BLUEPRINT, '/platform/idea/Structure', {
     extent: '/world/prog-test/house',
     entrance: ROOM_A,
     buildings: ['/world/prog-test/house-building', '/world/prog-test/shed-building'],
+    upkeepTerm: 'owner-all',
+    addressBase: 'prog-test/lot-1',
   });
   add('/world/prog-test/house-building', '/system/residence/idea/HoldingBuilding', {
     shortDescription: 'house',
@@ -158,7 +154,7 @@ function seedDomain(): void {
     extent: ROOM_D,
     entrance: ROOM_D,
   });
-  // The blueprint's own zone (its rows author cells), and the lots' zone —
+  // The plan's own zone (its rows author cells), and the lots' zone —
   // a copy's rooms stand in the lots', by their keys (B54).
   add('/world/prog-test/house', '/platform/idea/location/CartesianZone', { name: 'the house', cellSize: 6 });
   add(PARENT, '/platform/idea/location/CartesianZone', { name: 'the lots', cellSize: 4 });
@@ -175,7 +171,7 @@ function seedDomain(): void {
   add(ROOM_C, '/platform/location/Location', {
     shortDescription: 'a porch',
     // Open to the sky — but that is not why it is no building's: no
-    // building the blueprint names has it under its extent.
+    // building the programme names has it under its extent.
     enclosure: 'none',
     roof: 'none',
     exits: { west: { destination: ROOM_A }, north: { destination: ROOM_D } },
@@ -382,9 +378,9 @@ describe('the residential programme (D16)', () => {
     expect(admit).not.toHaveBeenCalled();
   });
 
-  it('⭐⭐ lays its rooms out in its OWN frame, from its blueprint (B53)', async () => {
+  it('⭐⭐ lays its rooms out in its OWN frame, from its plan (B53)', async () => {
     // Every place but the void has coordinates. A holding's rooms take
-    // theirs from their blueprint rows (harbors review 3): the hall at
+    // theirs from their plan rows (harbors review 3): the hall at
     // (0,0,0), the bedroom north of it.
     seedLot();
     await bootRegistries();
@@ -401,7 +397,7 @@ describe('the residential programme (D16)', () => {
   });
 
   it('⭐⭐ its rooms stand in the HOLDING\'s zone, sized by its cell (B54)', async () => {
-    // A room's size is its zone's cell. The blueprint rows live at
+    // A room's size is its zone's cell. The plan rows live at
     // `/world/prog-test/house/` (no zone), the lot under a 4 m zone — so a
     // copy's rooms take the lot's.
     seedLot();
@@ -520,13 +516,13 @@ describe('the residential programme (D16)', () => {
     clock.mockRestore();
   });
 
-  it('⭐ a holding has the buildings its blueprint NAMES; ground under none is no building (harbors review, 2026-11-03)', async () => {
+  it('⭐ a holding has the buildings its programme NAMES; ground under none is no building (harbors review, 2026-11-03)', async () => {
     seedLot();
     await bootRegistries();
     const w = await institution();
     await w.admit(LOT1);
     const holding = w.holdingFor(LOT1)! as unknown as HoldingWarren;
-    const all = holding.buildings();
+    const all = holding.standingBuildings();
     expect(all).toHaveLength(2);
     const [house, shed] = all as [HoldingBuilding, HoldingBuilding];
     const hall = holding.roomForLeaf('hall')!;
