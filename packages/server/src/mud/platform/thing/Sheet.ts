@@ -225,9 +225,21 @@ export default class Sheet extends SheetBase {
 
   // ---------- writing (D18, D19) ----------
 
+  /**
+   * ⭐ A coat laid on a sheet starts its clock NOW: a thermal body sets its
+   * wet coats on its own reconcile, which counts from its last read — so a
+   * size coat laid and left alone counted no time at all (the drive).
+   */
+  public override layCoat(...args: Parameters<Good['layCoat']>): void {
+    this.reconcileThermal();
+    super.layCoat(...args);
+    this.reconcileThermal();
+  }
+
   /** Sized: made so, or a set coat of size on it. */
   public isSized(): boolean {
     if (this.sized) return true;
+    this.reconcileThermal();
     return this.getCoats('outside').some((c) => {
       if (c.state !== 'set') return false;
       const m = StuffApi.findByTemplatePath<Material>(c.material);

@@ -159,12 +159,6 @@ async function funded(prefix: string, amount = 400): Promise<string> {
 /** What a refusal sounds like — a step whose act was refused must not pass. */
 const REFUSED = /don'?t see|don'?t have|don'?t find|You can'?t|cannot make out|pitch dark|not enough|nothing to/i;
 
-/** The name another player answers to here. */
-async function nameOf(s: Session): Promise<string> {
-  const me = (await s.query('me', { fields: ['displayName'] }).catch(() => [])) as { displayName?: string }[];
-  return (me[0]?.displayName ?? '').split(/\s+/)[0] ?? '';
-}
-
 async function carried(s: Session, keyword: string): Promise<number> {
   return (await s.query(`me:i:${keyword}`, { fields: ['displayName'] }).catch(() => [])).length;
 }
@@ -270,8 +264,8 @@ suite('paper — the blocking drive', () => {
   }, 300_000);
 
   it('13. a letter folded, enveloped, sealed and given; opened, the seal shows it', async () => {
-    const s = await session(maker, STORE);
-    const r = await session(reader, STORE);
+    const s = await session(maker, BANK_HALL);
+    const r = await session(reader, BANK_HALL);
     const w = await say(s, 'write meet me at the mill at noon on me:i:sheet');
     expect(w, w).toMatch(/you write/i);
     await say(s, 'fold me:i:sheet');
@@ -279,7 +273,10 @@ suite('paper — the blocking drive', () => {
     await say(s, 'close envelope');
     const sealed = await say(s, 'seal envelope');
     expect(sealed, sealed).toMatch(/flap|seal/i);
-    await say(s, `give envelope to ${await nameOf(r)}`);
+    // Handed over by setting it down — `give` does not find a player by
+    // handle; the bank hall has no envelopes of its own to confuse it.
+    await say(s, 'drop envelope');
+    await say(r, 'get envelope');
     await say(r, 'open envelope');
     const l = await say(r, 'look envelope');
     expect(l, l).toMatch(/has been broken/i);
@@ -289,7 +286,7 @@ suite('paper — the blocking drive', () => {
   }, 600_000);
 
   it('14. torn, each half keeps its half of the words; soaked, the ink runs', async () => {
-    const r = await session(reader, STORE);
+    const r = await session(reader, BANK_HALL);
     const t = await say(r, 'tear sheet');
     expect(t, t).toMatch(/two/i);
     const rd = await say(r, 'read sheet');
@@ -297,11 +294,12 @@ suite('paper — the blocking drive', () => {
   }, 300_000);
 
   it('17. a notebook: a recipe on page 3, lent; the borrower reads it, knows of it, cannot make it', async () => {
-    const s = await session(maker, STORE);
-    const r = await session(reader, STORE);
+    const s = await session(maker, BANK_HALL);
+    const r = await session(reader, BANK_HALL);
     const w = await say(s, 'write bristle — a knot of hog hair, tied and split on me:i:notebook page 3');
     expect(w, w).toMatch(/page 3/i);
-    await say(s, `give notebook to ${await nameOf(r)}`);
+    await say(s, 'drop notebook');
+    await say(r, 'get notebook');
     const rd = await say(r, 'read notebook page 3');
     expect(rd, rd).toMatch(/bristle/i);
     const no = await say(r, 'write mine now on notebook page 3');
@@ -309,7 +307,7 @@ suite('paper — the blocking drive', () => {
   }, 600_000);
 
   it('18. a page torn out leaves a gap', async () => {
-    const r = await session(reader, STORE);
+    const r = await session(reader, BANK_HALL);
     const t = await say(r, 'tear notebook page 3');
     expect(t, t).toMatch(/page 3/i);
     const rd = await say(r, 'read notebook page 3');
@@ -373,7 +371,7 @@ suite('paper — the blocking drive', () => {
     await founderEval(GAZETTE, '/world/terminus', 'here', "(self.getZone().setAdmitsEpochThrough('medieval'), 'medieval')");
     const refused = await say(s, 'print ledger on printer');
     expect(refused, refused).toMatch(/covenant here admits nothing later than medieval/i);
-    const c = await say(s, 'copy me:i:copy onto me:i:sheet with pen');
+    const c = await say(s, 'copy me:i:copy onto me:i:ream with pen');
     expect(c, c).toMatch(/copy .* by hand/i);
     await founderEval(GAZETTE, '/world/terminus', 'here', '(self.getZone().setAdmitsEpochThrough(null), "cleared")');
   }, 600_000);
@@ -388,7 +386,8 @@ suite('paper — the blocking drive', () => {
       return;
     }
     expect(dep, dep).toMatch(/whoever presents it/i);
-    await say(s, `give receipt to ${reader}`);
+    await say(s, 'drop receipt');
+    await say(r, 'get receipt');
     const mine = await say(s, 'store withdraw pen');
     expect(mine, mine).toMatch(/present no receipt/i);
     const theirs = await say(r, 'store withdraw pen');
@@ -418,9 +417,9 @@ suite('paper — the blocking drive', () => {
     const l = await say(back, 'look me:i:inkpot');
     expect(l, l).toMatch(/label is pasted/i);
     // Staged: the jar wet through (the ice bucket's water, held still).
-    await say(back, 'drop me:i:inkpot');
-    await founderEval(VAT_HOUSE, '/world/terminus/hearts-delight', 'inkpot', '(self.wet(0.6), self.getWetness())');
-    await say(back, 'get inkpot');
+    const pot = ((await back.query('me:i:inkpot', { fields: ['displayName'] }).catch(() => [])) as { stuffId?: string }[])[0];
+    expect(pot?.stuffId, 'the ink pot in hand').toBeDefined();
+    await founderEval(VAT_HOUSE, '/world/terminus/hearts-delight', `#${pot!.stuffId}`, '(self.wet(0.6), self.getWetness())');
     const wet = await say(back, 'look me:i:inkpot');
     expect(wet, wet).toMatch(/squat stoneware pot/i);
     expect(wet, wet).not.toMatch(/label is pasted/i);

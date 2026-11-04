@@ -871,7 +871,12 @@ export function StoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       out.receipt.editionPath = edition;
       await this.fileReceipt(business, out.receipt);
       const paper = await StuffApi.clone<Stuff>(this.receiptPaper);
-      if (paper instanceof Sheet) paper.bindTo(edition, 0);
+      if (paper instanceof Sheet) {
+        paper.bindTo(edition, 0);
+        // It answers to what it is: `give receipt`, `read receipt`.
+        const words = paper.getKeywords();
+        if (!words.includes('receipt')) paper.setKeywords([...words, 'receipt']);
+      }
       if (MixinApi.isContainable(paper) && MixinApi.isContainer(actor)) {
         ContainmentApi.move(paper, actor as unknown as Stuff & Container);
       }
