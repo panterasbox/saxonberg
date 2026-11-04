@@ -568,6 +568,9 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
         const gate = await StuffApi.singleton<Stuff>(inlet.gate).catch(() => null);
         // ⚠ Unresolved: hold the stamp; the backlog waits.
         if (gate === null || !MixinApi.isThrottleable(gate)) return;
+        // ⭐ Its rota's turns first: a turn nobody watched still watered the
+        // field (the browser walk — Furtado's turn reached no field).
+        await gate.settleOpening(nowS);
         const openS = gate.openingTrajectory(from, nowS).integrate((v) => v, 4);
         const capLps =
           inlet.capacityLps ??

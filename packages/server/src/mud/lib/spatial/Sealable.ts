@@ -124,6 +124,12 @@ export interface Throttleable {
    * pack's gate answers from its own capacity and the water arriving at it.
    */
   passingCapM3S(nowS: number): Promise<number | null>;
+  /**
+   * @hook Bring its settings up to `nowS` before anyone integrates them — a
+   * gate worked by a rota opens and shuts on its turns whether or not
+   * anybody watched. Default: nothing to settle.
+   */
+  settleOpening(nowS: number): Promise<void>;
 }
 
 /** How many worked settings a gate's record keeps. */
@@ -190,6 +196,10 @@ export function ThrottleableMixin<TBase extends MixinConstructor<Stuff & Sealabl
 
     public async passingCapM3S(_nowS: number): Promise<number | null> {
       return null;
+    }
+
+    public async settleOpening(_nowS: number): Promise<void> {
+      // A hand-worked setting is already its own record.
     }
   };
 }

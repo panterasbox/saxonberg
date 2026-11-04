@@ -32,6 +32,7 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { VetoResult } from '@saxonberg/server/mud/lib/errors';
 import type { ShiftEntry } from '@saxonberg/server/mud/lib/employment/Roster';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
+import type { MarkupAugmenter } from '@saxonberg/server/mud/api/mml';
 import ControlStructure, { type ControlSplit } from './ControlStructure';
 import WatercourseCatalogue, { WATERCOURSE_CATALOGUE_PATH } from '../idea/WatercourseCatalogue';
 
@@ -40,6 +41,47 @@ export interface TurnOf {
   business: string;
   positionKey: string;
   assignee: string;
+}
+
+/** A setting in the words the `open … to` verb takes. */
+function settingWords(opening: number): string {
+  if (opening <= 0) return 'shut';
+  if (opening >= 1) return 'fully open';
+  const words: Array<[number, string]> = [
+    [0.25, 'a quarter open'],
+    [0.5, 'half open'],
+    [0.75, 'three quarters open'],
+  ];
+  const named = words.find(([f]) => Math.abs(opening - f) < 0.01);
+  return named ? named[1] : `${Math.round(opening * 100)}% open`;
+}
+
+/** Who a record names — a body if one is loaded, else the leaf of the path. */
+function workerName(by: string): string {
+  if (by === '') return 'somebody';
+  const live = StuffApi.findByIdentityPath(by)[0] ?? StuffApi.findByTemplatePath(by);
+  if (live) return live.getPresentation();
+  return by.split('/').filter(Boolean).pop() ?? by;
+}
+
+/**
+ * ⭐ `look turnout` says how it is set and who last worked it — its own
+ * record (D12), the ledger a rider audits. The browser walk found a gate
+ * whose look said neither.
+ */
+function gateStateAugmenter(text: string, host: Stuff): string {
+  if (!(host instanceof Gate)) return text;
+  const lines = [`It is ${settingWords(host.getOpening())}.`];
+  // The latest by time: a rota's catch-up appends past turns after a hand.
+  const last = [...host.getWorkLog()].sort((a, b) => a.atS - b.atS).at(-1);
+  if (last) {
+    lines.push(
+      last.by.endsWith('#refused')
+        ? `Its last turn was refused: ${workerName(last.by.slice(0, -'#refused'.length))} found it padlocked.`
+        : `${workerName(last.by)} last set it ${settingWords(last.opening)}.`,
+    );
+  }
+  return `${text}\n\n${lines.join(' ')}`;
 }
 
 const GateBase = ThrottleableMixin(LockableMixin(SealableMixin(ControlStructure)));
@@ -157,6 +199,11 @@ export default class Gate extends GateBase {
     return slot ? [...slot.schedule] : [];
   }
 
+  /** ⭐ A gate worked by a rota settles its turns before it is integrated. */
+  public override async settleOpening(nowS: number): Promise<void> {
+    await this.reconcileScheduled(nowS);
+  }
+
   /** The opening over a span, after the rota's turns are in. */
   public async settledOpeningTrajectory(fromS: number, toS: number): Promise<Piecewise> {
     await this.reconcileScheduled(toS);
@@ -181,6 +228,8 @@ export default class Gate extends GateBase {
   }
 
   /** Anybody at the gate can work it, lock it, unlock it. */
+  static markupAugmenters: MarkupAugmenter[] = [gateStateAugmenter];
+
   static commandContributions: CommandContributions = {
     peers: [
       'platform/cmd/boundary/open.yaml',
