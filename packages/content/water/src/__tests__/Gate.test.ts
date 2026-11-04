@@ -97,6 +97,15 @@ describe('⭐⭐ the rota is the turn list (D21)', () => {
     expect(g.openingTrajectory(now - DAY, now).secondsAtOrAbove(0.5)).toBeCloseTo(6 * H, -1);
   });
 
+  it('⭐ a gate first read mid-turn is open for that turn', async () => {
+    const g = gate();
+    rostered(g, [{ days: [0, 1, 2, 3, 4, 5, 6], hours: [4, 10] }]);
+    now += 6 * H; // 06:00, inside the 04:00–10:00 turn
+    await g.settleOpening(now);
+    expect(g.getOpening()).toBe(1);
+    expect(g.getWorkLog().at(-1)?.by).toBe('/test/agent/furtado');
+  });
+
   it('⭐ its look says how it is set and who last worked it', async () => {
     const g = gate();
     rostered(g, [{ days: [0, 1, 2, 3, 4, 5, 6], hours: [4, 10] }]);

@@ -4,7 +4,7 @@
 class: /platform/thing/PipeRun
 data:
   shortDescription: iron pipe run
-  keywords: [run, "pipe run", plumbing, pipes, "iron pipe"]
+  keywords: [run, "pipe run", plumbing, pipes, "iron pipe", "iron run"]
   register: definite
   longDescription: >-
     The iron supply pipe, black and bracketed to the wall, hub to spigot,

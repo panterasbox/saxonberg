@@ -23,6 +23,9 @@ args:
     type: object
     required: true
     scope: "reachable"
+    # The article defect (the water-supply browser walk): `repair lead run`
+    # bound `lead` and took `run` for the kit.
+    greedy: true
     requires: DurableMixin
   # ⭐ WHICH KIT — DECLARED, not hunted for (`lint:instrument-args`).
   # A mending kit, an anvil or an edge (wood is mended with a cutting

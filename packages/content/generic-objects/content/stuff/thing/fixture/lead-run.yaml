@@ -6,7 +6,7 @@
 class: /platform/thing/PipeRun
 data:
   shortDescription: lead pipe run
-  keywords: [run, "pipe run", plumbing, pipes, "lead pipe"]
+  keywords: [run, "pipe run", plumbing, pipes, "lead pipe", "lead run"]
   register: definite
   longDescription: >-
     The lead supply pipe, where it comes up through the floor and along the

@@ -157,25 +157,33 @@ export default class Gate extends GateBase {
     const turn = this.turnOf;
     if (turn === null) return;
     if (this.turnStamp === null) {
-      this.turnStamp = nowS;
-      // What it stands at now opens the record, so the first turn is a change.
+      // ⭐ The rota starts from the day's midnight, not from the first look:
+      // a gate first read mid-turn is open for that turn (the browser walk —
+      // Furtado's turnout read "shut" at 06:38, inside his 04:00–10:00).
+      const dayStart = nowS - (((nowS % 86_400) + 86_400) % 86_400);
+      this.turnStamp = dayStart;
+      // What it stands at opens the record, so the first turn is a change.
       if (this.openingCurve.length === 0) {
-        new TrajectoryLog(this.openingCurve).record(nowS, this.getOpening(), this.getOpening(), 0);
+        new TrajectoryLog(this.openingCurve).record(dayStart, this.getOpening(), this.getOpening(), 0);
       }
-      return;
+      if (!(nowS > dayStart)) return;
     }
     const from = this.turnStamp;
     if (!(nowS > from)) return;
     this.turnStamp = nowS;
     const schedule = await this.scheduleOf(turn);
     if (schedule.length === 0) return;
-    for (const w of new ShiftSchedule(schedule).windowsBetween(from, nowS)) {
+    const rota = new ShiftSchedule(schedule);
+    const onNow = rota.isOnAt(nowS);
+    for (const w of rota.windowsBetween(from, nowS)) {
       if (this.isLocked()) {
         this.workLog.push({ atS: w.fromS, by: `${turn.assignee}#refused`, opening: this.getOpening() });
         continue;
       }
-      this.logSetting(w.fromS, 1, turn.assignee);
-      if (w.toS <= nowS) this.logSetting(w.toS, 0, turn.assignee);
+      // A turn still running is clipped to `nowS` by the walk: it stays
+      // open (it read "shut" mid-turn), and is not re-opened on every read.
+      if (this.getOpening() < 1) this.logSetting(w.fromS, 1, turn.assignee);
+      if (w.toS < nowS || !onNow) this.logSetting(w.toS, 0, turn.assignee);
     }
     while (this.workLog.length > 24) this.workLog.shift();
   }
