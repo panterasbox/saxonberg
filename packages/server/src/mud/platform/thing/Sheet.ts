@@ -80,6 +80,10 @@ export default class Sheet extends SheetBase {
     sized: { persistent: true, authorable: true, stackIdentity: true },
     pulped: { persistent: true },
     pulpTemplate: { persistent: true, authorable: true },
+    color: { persistent: true, authorable: true, stackIdentity: true },
+    evenness: { persistent: true, stackIdentity: true },
+    formed: { persistent: true, stackIdentity: true },
+    pressed: { persistent: true, stackIdentity: true },
   };
 
   static markupAugmenters: MarkupAugmenter[] = [sheetAugmenter];
@@ -100,6 +104,14 @@ export default class Sheet extends SheetBase {
   public pulped = false;
   /** The row a pulped sheet leaves behind (a lump of wet fibre); `''` = none. */
   public pulpTemplate = '';
+  /** ⭐ Its color, read off the vat's water at the dip (paper D9): `white` · `brown`. */
+  public color = 'white';
+  /** How evenly the vatman laid the pulp — their band at the dip; `''` = shop paper. */
+  public evenness = '';
+  /** Formed on a mould at a vat (a mill's sheet), not cut from a ream. */
+  public formed = false;
+  /** Pressed in the post before it dried; a formed sheet dried unpressed cockles. */
+  public pressed = false;
 
   // ---------- reading (D1, D2, D6) ----------
 
@@ -135,6 +147,38 @@ export default class Sheet extends SheetBase {
     if (this.boundTo === '') return null;
     const pages = await DocumentApi.pagesOf(this.boundTo);
     return this.teachRecipes(reader, pages?.teaches ?? []);
+  }
+
+  // ---------- the making (paper W2) ----------
+
+  /** ⭐ Formed at a vat: wet through, its color and evenness the vat's and the hand's. */
+  public formAt(color: string, evenness: string): void {
+    this.formed = true;
+    this.pressed = false;
+    this.color = color === 'brown' ? 'brown' : 'white';
+    this.evenness = evenness;
+    this.sized = false;
+    this.setWaterState({ moisture: 1, solute: 0 });
+  }
+
+  /** ⭐ Squeezed in the post: the water pressed out, and it will dry flat. */
+  public pressOut(): boolean {
+    if (!this.formed || this.pressed) return false;
+    this.pressed = true;
+    // The stored water, not a read against the air: the press acts now.
+    this.setWaterState({ moisture: Math.min(this._moisture, 0.5), solute: this._solute });
+    return true;
+  }
+
+  /** Dried without pressing, a formed sheet ripples and will not lie flat (D20). */
+  public isCockled(): boolean {
+    if (this.cockled) return true;
+    return this.formed && !this.pressed && this.getMoisture() < 0.5;
+  }
+
+  /** Too wet to take ink or to fold: it has just come off the mould. */
+  public isWaterleaf(): boolean {
+    return this.formed && this.getMoisture() >= 0.5;
   }
 
   // ---------- the format (D10) ----------
@@ -205,6 +249,9 @@ export default class Sheet extends SheetBase {
           ? `There is no ink in ${medium.getPresentation()}.`
           : `You have nothing to write on ${self.getPresentation()} with — paper takes ink, and you hold none.`,
       };
+    }
+    if (this.isWaterleaf()) {
+      return { ok: false, reason: 'wet', line: `${self.getPresentation()} is still wet from the mould; the ink would spread. Let it dry.` };
     }
     if (!this.isSized()) {
       return {
@@ -299,7 +346,13 @@ export default class Sheet extends SheetBase {
     const bits: string[] = [];
     if (this.folds > 0) bits.push(`It is folded to ${this.format()}.`);
     if (this.torn) bits.push('It is a torn half of a sheet.');
-    if (this.cockled) bits.push('It has dried cockled, rippled and unflat.');
+    if (this.formed) {
+      const kg = this.getMass().rawValue() / Math.max(1, this.getQuantity());
+      const weight = kg >= 0.008 ? 'heavy' : kg >= 0.004 ? 'middling' : 'thin';
+      bits.push(`It is ${this.color} paper, ${weight} in the hand${this.evenness ? `, ${this.evenness}` : ''}.`);
+      if (this.isWaterleaf()) bits.push('It is still wet from the mould.');
+    }
+    if (this.isCockled()) bits.push('It has dried cockled, rippled and unflat.');
     if (this.isSized()) bits.push('It is sized, smooth to the nib.');
     else if (this.boundTo === '') bits.push('It is unsized, soft as blotting paper.');
     return bits.join(' ');

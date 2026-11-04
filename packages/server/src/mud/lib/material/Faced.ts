@@ -165,6 +165,18 @@ export interface Faced {
   airCoats(segments: readonly CoatAir[]): AirCoatResult;
   /** The area of a face, m² — a good's skin (`6·V^⅔`); a building's walls and roof. */
   coatAreaM2(): number;
+  /**
+   * ⭐ Paste a sheet onto the outside with the glue in `pot` (paper D19): the
+   * glue goes on as a coat carrying the sheet's words, and the sheet is
+   * gone into it. How long it stays is the glue's own damp-resistance.
+   */
+  pasteOn(sheet: Stuff, pot: Stuff): Promise<{ ok: true; line: string } | { ok: false; reason: string; line: string }>;
+  /**
+   * ⭐ The damp lets a weak glue go (paper D19): on a good that is WET, a
+   * glued coat whose glue does not resist damp comes away — and the words
+   * pasted in it go with it. Returns how many let go.
+   */
+  releaseDampGlue(): number;
   /** Are this thing's coats kept in its record? A good's always; a staged building's not (paint D7). */
   persistsCoats(): boolean;
   /**
@@ -316,12 +328,26 @@ function nameOf(m: Material | null): string {
  * a glazed crock read exactly as a bare one (the ceramics drive C, run 37;
  * run 36 had passed only because "froze wet" matched).
  */
+/** Litres of glue a label takes. */
+const PASTE_LITRES = 0.005;
+/** A pasted label's glue film, m. */
+const PASTE_FILM_M = 0.00005;
+/** Wet past this (the `wet` band), a weak glue lets go (paper D19). */
+const DAMP_LETS_GO_AT = 0.45;
+/** A glue that resists the damp at least this well holds in it. */
+const GLUE_HOLDS_DAMP = 0.5;
+
 const coatAugmenter: MarkupAugmenter = (text, host, _viewer, opts) => {
   if (opts?.filter) return text;
   if (!MixinApi.isFaced(host)) return text;
   // Reconcile on read: the weather since the last look, first.
   host.reconcileWeather();
+  host.releaseDampGlue();
   const lines: string[] = [];
+  // ⭐ A pasted label reads (paper D19) — on any good with an outside.
+  for (const c of host.getCoats('outside')) {
+    if (c.marks && !MixinApi.isMarked(host)) lines.push(`A label is pasted on it: "${c.marks}".`);
+  }
   for (const face of host.faces()) {
     const top = host.getCoats(face)[0];
     if (!top) continue;
@@ -492,6 +518,50 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         }
       }
       this.coats = value ?? {};
+    }
+
+    public async pasteOn(
+      sheet: Stuff,
+      pot: Stuff,
+    ): Promise<{ ok: true; line: string } | { ok: false; reason: string; line: string }> {
+      const self = this as unknown as Stuff;
+      const held = MixinApi.isBulkable(pot) && pot.hasInteriorBulk() ? pot.getBulkMaterial('interior') : null;
+      if (held === null || held.getAdhesive() === null || !MixinApi.isBulkable(pot)) {
+        return { ok: false, reason: 'not-glue', line: `What is in ${pot.getPresentation()} will not stick paper to anything.` };
+      }
+      const have = pot.getBulkAmount('interior').rawValue();
+      if (have + 1e-9 < PASTE_LITRES) {
+        return { ok: false, reason: 'source-too-low', line: `There is not enough left in ${pot.getPresentation()} to paste with.` };
+      }
+      if (!MixinApi.isMarked(sheet)) {
+        return { ok: false, reason: 'not-paper', line: `${sheet.getPresentation()} is not a thing you paste on.` };
+      }
+      await sheet.refreshMarks(sheet);
+      const words = sheet.getMarkText().trim();
+      pot.setBulkAmount('interior', Quantity.of(have - PASTE_LITRES, 'L'));
+      this.layCoat('outside', held.getTemplatePath() ?? '', PASTE_FILM_M, 0);
+      const top = this.getCoats('outside')[0];
+      if (top !== undefined && words !== '') top.marks = words;
+      StuffApi.destruct(sheet);
+      return {
+        ok: true,
+        line: words !== ''
+          ? `You brush ${held.getName()} on the back of the label and smooth it onto ${self.getPresentation()}: "${words}".`
+          : `You paste the paper onto ${self.getPresentation()} with ${held.getName()}.`,
+      };
+    }
+
+    public releaseDampGlue(): number {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isWet(self) || self.getWetness() < DAMP_LETS_GO_AT) return 0;
+      const list = this.coats.outside ?? [];
+      const kept = list.filter((c) => {
+        const glue = materialAt(c.material)?.getAdhesive() ?? null;
+        return glue === null || glue.resistsDamp >= GLUE_HOLDS_DAMP;
+      });
+      const gone = list.length - kept.length;
+      if (gone > 0) this.coats = { ...this.coats, outside: kept };
+      return gone;
     }
 
     public faces(): FaceName[] {

@@ -30,6 +30,7 @@ import type { Assembled } from '../../../../lib/craft/Assembled';
 import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
+import Sheet from '../../../thing/Sheet';
 
 const TOPIC = 'act.deed';
 
@@ -52,6 +53,25 @@ export default class FitController extends CraftController<FitModel> {
         .toSelf(Mml.compose`Fit what? Name a part and the thing it goes on — or a thing to raise from its parts.`)
         .send();
       context.note({ kind: 'controller-rejected', reason: 'nothing-named', detail: '' });
+      return;
+    }
+
+    // ⭐ A LABEL is pasted, not fitted into a bill (paper D19): a sheet onto
+    // a good's face, with the glue in the pot named. The good decides
+    // (`Faced.pasteOn`); the glue's own damp-resistance decides how long it
+    // stays.
+    if (part instanceof Sheet && whole !== null && MixinApi.isFaced(whole) && !MixinApi.isAssembled(whole)) {
+      const pot = (model.tool?.stuff ?? []).find((s) => MixinApi.isBulkable(s)) ?? null;
+      if (pot === null) {
+        return this.refuse(context, TOPIC, `Paste it on with what? Name the pot: \`fit ${raw} to ${whole.getPresentation()} with <pot>\`.`, 'no-glue');
+      }
+      const out = await whole.pasteOn(part, pot);
+      if (!out.ok) return this.refuse(context, TOPIC, out.line, out.reason);
+      MessageApi.scene(giver)
+        .topic(TOPIC)
+        .toSelf(Mml.text(out.line))
+        .toPeers(Mml.compose`${Mml.actor(giver)} pastes a label onto ${Mml.thing(whole)}.`)
+        .send();
       return;
     }
 

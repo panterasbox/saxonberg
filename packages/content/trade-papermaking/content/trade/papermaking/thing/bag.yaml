@@ -1,0 +1,13 @@
+# A paper bag (paper D20) — what a grocer puts your things in. Light; soaked,
+# it gives way and they fall out; torn open, the same.
+class: /trade/papermaking/thing/Packet
+data:
+  shortDescription: paper bag
+  keywords: [bag, "paper bag", sack]
+  register: indefinite
+  longDescription: A brown paper bag, its bottom folded and pasted square.
+  _materialPath: /stuff/idea/material/organic/paper
+  mass: 0.03
+  charMaterialPath: /stuff/idea/material/organic/ash
+  reserves:
+    fuel: { capacityValue: 100, currentValue: 100, unit: "%", theme: combustion, floorEffect: null }

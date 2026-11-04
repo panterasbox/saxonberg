@@ -1,0 +1,11 @@
+# A label (paper D19) — a small slip of sized paper to write on and paste on
+# a jar: `fit label to jar with <pot>`. Starch paste lets go in the damp;
+# casein holds.
+class: /platform/thing/Sheet
+extends: /platform/thing/sheet
+data:
+  shortDescription: label
+  keywords: [label, slip, tag]
+  longDescription: A small slip of sized paper with a ruled border, for a jar or a box.
+  mass: 0.001
+  writingRoom: 80

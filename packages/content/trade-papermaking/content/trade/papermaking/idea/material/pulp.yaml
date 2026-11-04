@@ -1,0 +1,18 @@
+# Pulp (paper W2) — rag fibre beaten apart and hanging in water: what the
+# stamper makes and the vat holds. A sheet is lifted out of it on a wire.
+class: /platform/idea/material/Material
+data:
+  name: pulp
+  keywords: [pulp, stuff, "paper pulp"]
+  appearance: a grey-white milky slurry with fibre hanging in it
+  density: 1010
+  specificHeat: 4100
+  thermalConductivity: 0.58
+  meltingPoint: 272
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: [liquid, pulp, cellulose, organic, once-living]
+  composition: []
+  chemistry: null
+  biologicalSource: null

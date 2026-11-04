@@ -1,0 +1,34 @@
+# The Delight paper mill (paper W2) — a vatman's outfit at the fall, east of
+# the grist mill and on the same race. It buys clean rags at the door and
+# makes paper out of them; a hand's place is open for a player.
+class: /platform/idea/Business
+data:
+  name: "the Delight paper mill"
+  appointingAuthority:
+    kind: entity
+    path: /world/terminus/hearts-delight/paper-mill/agent/vatman
+  call: rota
+  positions:
+    - key: vatman
+      noun: vatman
+      label: at the vat
+      wageRate: 5
+      purchases: true
+      fulfills: [papermaking]
+    - key: hand
+      noun: hand
+      label: at the press and the lines
+      wageRate: 3
+      purchases: true
+      fulfills: [papermaking]
+  rosterSlots:
+    - positionKey: vatman
+      assignee: /world/terminus/hearts-delight/paper-mill/agent/vatman
+      station: /world/terminus/hearts-delight/paper-mill/location/vat-house
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5], hours: [6, 18] }
+  banksAt: goodkin
+  operatingLocations:
+    - /world/terminus/hearts-delight/paper-mill/location/vat-house
+    - /world/terminus/hearts-delight/paper-mill/location/loft
+    - /world/terminus/hearts-delight/paper-mill/thing/rag-counter

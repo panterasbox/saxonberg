@@ -15,18 +15,18 @@
  * alight when its core passes the oily cloth's autoignition point.
  */
 
-import Good from '@saxonberg/server/mud/platform/thing/Good';
-import { SelfHeatingMixin } from '@saxonberg/server/mud/lib/thermal/SelfHeating';
-import { CombustibleMixin } from '@saxonberg/server/mud/lib/fire/Combustible';
-import { ThermalMixin } from '@saxonberg/server/mud/lib/thermal/Thermal';
-import { StackableMixin } from '@saxonberg/server/mud/lib/stuff/Stackable';
-import { ReservedMixin } from '@saxonberg/server/mud/lib/reserve';
-import { WetMixin } from '@saxonberg/server/mud/lib/wetness/Wet';
-import { MixinApi } from '@saxonberg/server/mud/api/mixin';
-import { StuffApi } from '@saxonberg/server/mud/api/stuff';
-import type Material from '@saxonberg/server/mud/lib/material/Material';
-import type { CoatLayer } from '@saxonberg/server/mud/lib/material/Faced';
-import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import Good from './Good';
+import { SelfHeatingMixin } from '../../lib/thermal/SelfHeating';
+import { CombustibleMixin } from '../../lib/fire/Combustible';
+import { ThermalMixin } from '../../lib/thermal/Thermal';
+import { StackableMixin } from '../../lib/stuff/Stackable';
+import { ReservedMixin } from '../../lib/reserve';
+import { WetMixin } from '../../lib/wetness/Wet';
+import { MixinApi } from '../../api/mixin';
+import { StuffApi } from '../../api/stuff';
+import type Material from '../../lib/material/Material';
+import type { CoatLayer } from '../../lib/material/Faced';
+import type { Stuff } from '../../lib/stuff/Stuff';
 
 /** Three rags and more stacked together is a heap. */
 const HEAP_AT = 3;

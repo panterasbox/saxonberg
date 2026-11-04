@@ -49,6 +49,8 @@ import { AssembledMixin } from '../../../lib/craft/Assembled';
 import { SoilableMixin } from '../../../lib/cleanliness/Soilable';
 import type { WashCleanser, WashOutcome, WashSpec } from '../../../lib/cleanliness/Soilable';
 import { LabelledMixin } from '../../../lib/description/Labelled';
+import { TearableMixin, type TearOutcome } from '../../../lib/material/Tearable';
+import { ContainmentApi } from '../../../api/containment';
 import type Material from '../../../lib/material/Material';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import { MixinApi } from '../../../api/mixin';
@@ -70,13 +72,20 @@ import type { WashPolicy, WashSubject } from '../../../lib/cleanliness/WashPolic
 // is what a laundry mark is. Parts or one piece beneath (repair D4): a
 // welted boot is two uppers and two soles a cobbler re-soles; a shirt is
 // one piece. One class.
-const GarmentBase = LabelledMixin(SoilableMixin(WearableMixin(
+// ⭐ Tearable (paper D13): an old shirt tears into rags — the mill's raw
+// stuff — mass for mass, and not while somebody is wearing it.
+const GarmentBase = TearableMixin(LabelledMixin(SoilableMixin(WearableMixin(
   SlottableMixin(
     AssembledMixin(
       CraftedMixin(DurableMixin(ConstructedMixin(DyedMixin(Good)))),
     ),
   ),
-)));
+))));
+
+/** The commons' clean rag a torn garment becomes (paper D23). */
+const RAG_TEMPLATE = '/stuff/thing/rag';
+/** A rag's mass, kg — the row's. */
+const RAG_KG = 0.05;
 
 /** Damage words that are a RUINED garment (a fade is only wear). */
 const LAUNDRY_RUIN = new Set(['felted', 'shrunk', 'rotted', 'burnt', 'bled']);
@@ -95,6 +104,25 @@ const SUN_DOSE_PER_HOUR = 0.012;
 const FUME_DOSE_PER_FRACTION_HOUR = 20;
 
 export default class Garment extends GarmentBase {
+  /**
+   * ⭐ Tear it up for rags (paper D13): as many clean rags as its cloth
+   * weighs, and the garment is gone. Refused while worn.
+   */
+  public override async tear(_by: Stuff, _page?: number): Promise<TearOutcome> {
+    const self = this as unknown as Stuff;
+    if (this.getOccupiedHost() !== null) {
+      return { ok: false, reason: 'worn', line: `You would have to take ${self.getPresentation()} off first.` };
+    }
+    const kg = MixinApi.isTangible(self) ? self.getMass().rawValue() : 0;
+    const n = Math.max(1, Math.floor(kg / RAG_KG));
+    const where = MixinApi.isContainable(self) ? self.getContainer() : null;
+    const rags = await StuffApi.clone<Stuff>(RAG_TEMPLATE);
+    if (MixinApi.isStackable(rags)) rags.setQuantity(n);
+    if (where !== null && MixinApi.isContainer(where) && MixinApi.isContainable(rags)) ContainmentApi.move(rags, where);
+    StuffApi.destruct(self);
+    return { ok: true, line: `You tear ${self.getPresentation()} into ${n} rag${n === 1 ? '' : 's'}.`, made: [rags] };
+  }
+
   // ── airing (cleanliness D21): the sun and the fumes ──
 
   /**
