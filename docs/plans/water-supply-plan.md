@@ -1323,3 +1323,11 @@ fault, not the game's; the driver now feeds through `/auth/test-nourish`.
 Also seen, not this build's: `get watering can` picked up two water
 filters and a pair of canvas shoes ("can" → "canvas"); `fill` into a full
 can says only "You can't fill…".
+
+#### The three gaps, closed (2026-11-04)
+
+| gap | fix | walked |
+|---|---|---|
+| step 11 — no valve on an outlet | a piped `WaterFixture` composes `SwitchableMixin` (open until shut; a natural source has none) | `switch standpipe off` → "Nothing comes out: it has been shut off."; on → it pours |
+| step 23 — no reading of a ditch | the bank is a `PersistentShore` (new: `PersistableMixin` over the Shore stack) citing `delight-ditch:bench`; `analyze water` reads against the live draw ledger (a ditch carries only what is diverted in — it read 0.00 without it); a loaded Watercourse's live lining overlays its row | the bank reads **0.53 m³/s earth, 0.59 lined** (0.60 at the head) |
+| step 25 — no undrained, planted pot | trade-farming `cachepot` (glazed, `drained: false`, a snake plant) with a can in the infirmary ward; `water` pours the whole can into ground that holds water (a sliver of headroom kept it from ever overfilling); `Growing.waterShortfallCause()` names drowning / salt / dry | "The soil cannot take it all; the rest stands on top, with nowhere to go." → the plant: "Its roots are standing in water, and drowning." |
