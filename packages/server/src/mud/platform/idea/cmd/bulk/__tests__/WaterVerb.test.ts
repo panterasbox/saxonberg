@@ -371,6 +371,8 @@ describe('water <plant>', () => {
     expect(plant.getSoilMoisture()).toBeCloseTo(1, 3);
     expect(can.getBulkAmount('interior').rawValue()).toBeCloseTo(0, 3);
     expect(pot.getPondedL()).toBeGreaterThan(1.4);
+    // …and its cause line says the roots are drowning, never "dry".
+    expect(plant.waterShortfallCause()).toBe('drowning');
   });
 
   it('naming the POT waters its occupant — a player types both', async () => {

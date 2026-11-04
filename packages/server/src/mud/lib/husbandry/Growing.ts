@@ -430,6 +430,12 @@ export interface Growing {
    * (or the plant is dead — a dead plant has no cause line).
    */
   getLimitingFactor(): LimitingFactor;
+  /**
+   * WHY its water is short, when water is what limits it: roots standing
+   * in water (`drowning`), salt the roots cannot draw past (`salt`), or
+   * plain `dry` soil. The cause line names the right one.
+   */
+  waterShortfallCause(): WaterShortfall;
   /** Reconcile growth over elapsed game-time (sync, read-triggered). */
   reconcileGrowth(): void;
   /**
@@ -666,6 +672,25 @@ const CONDITION_PHRASE: Record<Exclude<ConditionBand, 'dead'>, string> = {
   failing: 'It is failing.',
 };
 
+/** Why a plant short of water is short of it (water-supply D15/D16). */
+export type WaterShortfall = 'dry' | 'drowning' | 'salt';
+
+/**
+ * ⭐ The water cause line by its real cause (the browser walk: a snake
+ * plant drowning in a cachepot read "The soil is dry"). The plant's own
+ * line, then the crop's (read off ground).
+ */
+const WATER_CAUSE_PHRASE: Record<WaterShortfall, string> = {
+  dry: 'The soil is dry.',
+  drowning: 'Its roots are standing in water, and drowning.',
+  salt: 'The soil is salt — the roots cannot draw the water in it.',
+};
+const CROP_WATER_CAUSE_PHRASE: Record<WaterShortfall, string> = {
+  dry: 'The soil is dry there.',
+  drowning: 'Water stands on it, and the roots are drowning.',
+  salt: 'The ground is salt there; the roots cannot draw its water.',
+};
+
 /** The plain-language cause line per limiting factor. */
 const CAUSE_PHRASE: Record<Exclude<LimitingFactor, null>, string> = {
   water: 'The soil is dry.',
@@ -862,7 +887,11 @@ function conditionAugmenter(text: string, host: Stuff, viewer: Stuff): string {
     );
     lines.push(CONDITION_PHRASE[band]);
     const limiting = host.getLimitingFactor();
-    if (limiting) lines.push(CAUSE_PHRASE[limiting]);
+    if (limiting) {
+      lines.push(
+        limiting === 'water' ? WATER_CAUSE_PHRASE[host.waterShortfallCause()] : CAUSE_PHRASE[limiting],
+      );
+    }
   }
   const suffix = lines.join(' ');
   return text && text.length > 0 ? `${text}\n\n${suffix}` : suffix;
@@ -1395,7 +1424,11 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
       if (rank >= 2) {
         read.cause = limiting;
         read.lines.push(
-          limiting ? CROP_CAUSE_PHRASE[limiting] : 'Nothing is holding it back.',
+          limiting === 'water'
+            ? CROP_WATER_CAUSE_PHRASE[this.waterShortfallCause()]
+            : limiting
+              ? CROP_CAUSE_PHRASE[limiting]
+              : 'Nothing is holding it back.',
         );
       }
       if (rank >= 3) {
@@ -2166,6 +2199,12 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
       const ponded = this.getBed()?.getPondedL() ?? 0;
       if (!(ponded > 0)) return 1;
       return this.profile?.floodTolerant === true ? 1 : 0.25;
+    }
+
+    public waterShortfallCause(): WaterShortfall {
+      if (this.floodRelief() < 1) return 'drowning';
+      if (this.saltRelief() < 0.75) return 'salt';
+      return 'dry';
     }
 
     /** The share of its water a plant still gets in this soil's salt, 0..1. */
