@@ -5,9 +5,25 @@
 # now — which is the whole point of the create→clone sweep. The rack
 # path and the number are still patched on after the clone: those are
 # the runtime state a factory legitimately supplies.
+#
+# ⭐ Paper (paper build): a ticket is a sheet — it pulps in the wet and burns.
+# The rack reclaims by the owner stamp, never by the ticket.
 class: /platform/thing/Ticket
 data:
   shortDescription: coat-check ticket
   register: indefinite
   keywords: [ticket, coat-check, check]
   longDescription: A numbered paper tab, torn from a book at the counter.
+  _materialPath: /stuff/idea/material/organic/paper
+  mass: 0.001
+  sized: true
+  dryness: 0.95
+  charMaterialPath: /stuff/idea/material/organic/ash
+  pulpTemplate: /stuff/thing/pulp
+  reserves:
+    fuel:
+      capacityValue: 100
+      currentValue: 100
+      unit: "%"
+      theme: combustion
+      floorEffect: null

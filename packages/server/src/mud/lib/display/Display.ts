@@ -59,6 +59,8 @@ import { StuffApi } from '../../api/stuff';
 import { CardApi } from '../../api/card';
 import { PerceptionApi } from '../../api/perception';
 import { EmploymentApi } from '../../api/employment';
+import { DocumentApi } from '../../api/document';
+import type { CommandContributions } from '../../api/command';
 
 /** The per-viewer focal-embed key the `watch` verb writes. */
 const WATCH_KEY = 'cockpit.watch';
@@ -88,8 +90,8 @@ export const DISPLAY_PAIRINGS: readonly DisplayPairing[] = [
  * declares *"I do cards"*: it shows content, and the content knows how
  * it manifests.
  */
-export type DisplayKind = 'video' | 'card' | 'prose';
-export const DISPLAY_KINDS: readonly DisplayKind[] = ['video', 'card', 'prose'];
+export type DisplayKind = 'video' | 'card' | 'prose' | 'document';
+export const DISPLAY_KINDS: readonly DisplayKind[] = ['video', 'card', 'prose', 'document'];
 
 /** What a display shows. */
 export type DisplaySource =
@@ -102,7 +104,13 @@ export type DisplaySource =
       /** The prose the driver's command emitted — rides the card. */
       prose?: Mml;
     }
-  | { kind: 'prose'; body: Mml };
+  | { kind: 'prose'; body: Mml }
+  /**
+   * ⭐ A stored document, shown LIVE (paper D5): the screen reads it through
+   * `DocumentApi.pagesOf` at read time, so an edit shows and a retraction
+   * reads as withdrawn. The live rung beside paper's frozen one.
+   */
+  | { kind: 'document'; path: string; title: string };
 
 /** Public shape provided by DisplayMixin. */
 export interface Display {
@@ -161,6 +169,17 @@ export function DisplayMixin<TBase extends MixinConstructor<Stuff>>(
 ) {
   class DisplayMixin extends Base implements Display {
     static _mixinName = 'DisplayMixin';
+
+    /**
+     * ⭐ Every screen can be READ (paper D5 — one `read`, two faces) and can
+     * be told what to SHOW (`show <document> on <screen>`).
+     */
+    static commandContributions: CommandContributions = {
+      self: [],
+      inventory: ['platform/cmd/perception/read.yaml'],
+      peers: ['platform/cmd/perception/read.yaml'],
+      environment: ['platform/cmd/perception/read.yaml'],
+    };
 
     static fieldMeta: FieldMeta = {
       pairing: { persistent: true, authorable: true },
@@ -231,6 +250,18 @@ export function DisplayMixin<TBase extends MixinConstructor<Stuff>>(
           return Mml.compose`Showing: ${source.label}.`;
         case 'card':
           return Mml.compose`Showing: the ${source.cardId} card.`;
+        case 'document': {
+          // ⚠ Coverage (whether a handset can fetch it HERE) is the
+          // off-grid build's; every screen fetches today (paper R1).
+          const doc = await DocumentApi.read(source.path);
+          if (doc === null) return Mml.compose`${source.title}: withdrawn; there is nothing to show.`;
+          if (doc.getData().retracted === true) {
+            return Mml.compose`${source.title}: withdrawn by its publisher.`;
+          }
+          const pages = await DocumentApi.pagesOf(source.path);
+          if (pages === null) return Mml.compose`${source.title}: that does not read as a page.`;
+          return Mml.text(pages.pages.join('\n\n'));
+        }
       }
     }
 
@@ -366,6 +397,9 @@ export function DisplayMixin<TBase extends MixinConstructor<Stuff>>(
           }
           return;
         }
+        case 'document':
+          // A document is READ off the screen, live, like prose.
+          return;
         case 'prose':
           // ⭐ **Prose has no projection, and that is the finding.** The
           // other two arms push because the client holds a component that

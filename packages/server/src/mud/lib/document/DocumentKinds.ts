@@ -283,6 +283,31 @@ export const DOCUMENT_KINDS = {
    * new one writes a new path; nothing overwrites the old.
    */
   'rate-card': { kind: 'rate-card', naturalKey: null, contentDir: 'rate-cards', ext: 'yaml', onVanish: 'keep' },
+  /**
+   * ⭐ An **edition** — what a printing froze: the pages of a document AS
+   * SET on the day it was run (paper D2/D3). The document is the truth;
+   * paper is one way of showing it, and the frozen rung is this record.
+   *
+   * Path-keyed at `<source>/editions/<hash of the pages>`, so a second run
+   * of the same text finds the same edition and five hundred copies are
+   * one record. Owned by the source's owner. Written only by
+   * `DocumentApi.freezeEdition` (the press, the printer, the bearer
+   * receipt, the ledger's extract); read by every sheet bound to it, with
+   * no title check — whoever holds the paper reads it (D6).
+   *
+   * `onVanish: 'keep'`: an edition is a record of what was printed, and
+   * the source's edit or retraction never reaches it — that is the
+   * point of paper.
+   */
+  edition: { kind: 'edition', naturalKey: null, contentDir: 'editions', ext: 'yaml', onVanish: 'keep' },
+  /**
+   * ⭐ A **book**'s pages — what somebody wrote in a bound notebook
+   * (paper D14), one page per entry, at `/home/<writer>/books/<id>`.
+   * Owner-scoped content under the ordinary self-home gate: the writer
+   * writes, a borrower holding the book reads and cannot write.
+   * `onVanish: 'keep'` for the map's reason.
+   */
+  book: { kind: 'book', naturalKey: null, contentDir: 'books', ext: 'yaml', onVanish: 'keep' },
 } as const satisfies Record<string, DocumentKindSpec>;
 
 export type DeclaredDocumentKind = keyof typeof DOCUMENT_KINDS;

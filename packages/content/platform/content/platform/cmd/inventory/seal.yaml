@@ -1,0 +1,33 @@
+# ⭐ Seal a thing shut (paper D11) — an envelope's gummed flap, a blob of
+# wax over a letter's fold. A seal shows when it has been broken: opening a
+# sealed thing breaks it, and closing it again never mends it.
+verbs: [seal]
+controller: /platform/idea/cmd/inventory/SealController
+description: "Seal a letter or an envelope shut, with gum or wax"
+help: |
+  `seal <thing>` gums an envelope's flap down; `seal <thing> with wax`
+  drips wax over the join (you need some wax in hand — a candle end, a
+  stick of sealing wax). It must be closed first.
+
+  Whoever opens it breaks the seal, and anyone who looks at it afterwards
+  sees that it has been broken. A gummed flap will not take gum twice; a
+  fresh wax seal can go over a broken one — but it is a new seal, and
+  anyone who knew the old one can tell.
+examples:
+  - cmd: seal envelope
+  - cmd: seal letter with wax
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: thing
+    type: object
+    required: true
+    greedy: true
+    scope: ["inventory", "reachable"]
+    requires: [SealableMixin]
+  - name: seal
+    type: string
+    required: false
+    prepositions: [with]

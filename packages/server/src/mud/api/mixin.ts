@@ -58,6 +58,7 @@ import type { Switchable } from '../lib/boundary/Switchable';
 import type { Energized } from '../lib/electricity/Energized';
 import type { Lockable } from '../lib/boundary/Lockable';
 import type { Foldable } from '../lib/slot/Foldable';
+import type { Tearable } from '../lib/material/Tearable';
 import type { Timekeeping } from '../lib/time/Timekeeping';
 import type { CartesianCoordinates } from '../lib/location/CartesianCoordinates';
 import type { SphericalCoordinates } from '../lib/location/SphericalCoordinates';
@@ -1227,6 +1228,10 @@ export class MixinApi {
 
   public static isFoldable(obj: Stuff): obj is Stuff & Foldable {
     return this.hasMixin(obj, Mixins.Foldable);
+  }
+
+  public static isTearable(obj: Stuff): obj is Stuff & Tearable {
+    return this.hasMixin(obj, Mixins.Tearable);
   }
 
   public static isTimekeeping(obj: Stuff): obj is Stuff & Timekeeping {

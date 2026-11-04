@@ -1,0 +1,32 @@
+# Paper (paper build) — a felted mat of cellulose fibre: rag beaten to pulp,
+# lifted on a mould, couched, pressed and dried. The medium a printed
+# document is frozen onto, and the commonest wrapping a city has.
+#
+# ⭐ It burns low (~506 K, the famous 451 °F), and it fails in water: a
+# soaked sheet's felt lets go — the `soaked` band is where paper pulps
+# (D12). Sized paper takes ink; unsized paper drinks it and the line
+# bleeds (D19). Neither is this row's: sizing is a COAT on the sheet.
+class: /platform/idea/material/Material
+data:
+  name: paper
+  keywords: [paper]
+  appearance: matte felted paper
+  density: 800
+  thermalConductivity: 0.05
+  hardness: 1
+  toughness: 1
+  specificHeat: 1340
+  electricalConductivity: 1.0e-10
+  # Paper drinks water: a blotter holds several times its weight.
+  waterAbsorptionCapacity: 100
+  heatOfCombustion: 16
+  autoignitionTemperature: 506
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["organic", "plant", "cellulose", "paper", "once-living"]
+  composition: []
+  chemistry:
+    formula: C6H10O5
+    molarMass: 162.14
+  biologicalSource: null

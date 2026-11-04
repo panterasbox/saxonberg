@@ -22,6 +22,11 @@ help: |
   ⭐ `write <words> on <board> with <pot>` letters the words in PAINT: they
   go on as a coat, in the paint's color, readable by anyone, in any
   weather — until the weather takes the coat, and the words with it.
+
+  ⭐ Paper takes INK: hold an ink pot or a charged pen (`with <pen>` names
+  one). Unsized paper drinks the ink and the line bleeds — size it first.
+  In a book, name the page: `write <words> on <book> page <n>`. A book you
+  borrowed you can read, not write in.
 examples:
   - cmd: write meet at the anchor on slate
     note: A diver's slate, under the water where nobody can hear you
@@ -45,6 +50,12 @@ args:
     prepositions: [on, onto, in]
     scope: ["inventory", "reachable"]
     requires: [MarkedMixin]
+  # ⭐ A page of a book (paper D14): `write … on notebook page 3`. Its
+  # preposition stops the greedy surface's lookahead, as `with` does.
+  - name: page
+    type: number
+    required: false
+    prepositions: [page]
   # ⭐ Paint as the medium (paint build D10): optional; its preposition
   # stops the greedy surface's lookahead (`on board with pot`).
   - name: medium

@@ -698,6 +698,8 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
   push('vapourMaterial', data.vapourMaterial);
   // A floor's sweep heaps into this row (cleanliness D15).
   push('sweepsInto', data.sweepsInto);
+  // ⭐ What a soaked sheet leaves (paper D12) — cloned when it pulps.
+  push('pulpTemplate', data.pulpTemplate);
   // The house whose doorman keeps a door (cleanliness D29).
   push('keptBy', data.keptBy);
   /*

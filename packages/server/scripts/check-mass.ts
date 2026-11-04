@@ -116,7 +116,8 @@ import {
 // ⭐ Lowered 234 → 231 merging ceramics into the cover build: the two
 // builds' rows together state three more masses than either alone.
 // ⭐ 231 → 230 merging the cover build into paint: paint's rows state one more.
-export const MASS_CEILING = 230;
+// ⭐ 230 → 229 (paper W0): the coat-check ticket is paper now, and says its mass.
+export const MASS_CEILING = 229;
 
 /** The high-water mark: what the count was when the gate landed. */
 export const MASS_HIGH_WATER = 242;

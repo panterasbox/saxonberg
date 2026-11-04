@@ -46,6 +46,11 @@ import { Quantity } from '../quantity';
 import { Paint } from '../material/Paint';
 import { PerceptionApi } from '../../api/perception';
 import type { MarkupAugmenter } from '../../api/mml';
+import { RecipeKnowledge } from '../script/RecipeKnowledge';
+import type { EditionTeaching } from '../document/Edition';
+
+/** Litres of ink a written character takes (a dip pen's charge writes ~100). */
+const INK_LITRES_PER_CHAR = 0.00001;
 
 /** How wet inked paper must be before the ink runs (0..1). */
 const INK_RUNS_AT = 0.5;
@@ -175,6 +180,22 @@ export interface Marked {
    * {@link DEVICE_MODALITIES}).
    */
   deviceFor(viewer: Stuff): string | null;
+  /**
+   * @hook ⭐ Bring the marks up to date before they are read (harbors B2;
+   * paper D1): a surface whose words are DERIVED from a record elsewhere —
+   * a ship register's page, a printed sheet's edition, a ledger's papers —
+   * reads the record here, so `getMarkText()` stays a sync read. Default:
+   * nothing (authored marks are what they are).
+   */
+  refreshMarks(viewer: Stuff): Promise<void>;
+  /**
+   * @hook ⭐ What reading this writes into the reader (paper D1; the
+   * reading-writes-claims protocol): a chart's places into the map, a
+   * printed recipe's *known-of* into the chronicle. Runs after the text has
+   * landed. Returns a line to tell the reader, or `null` for nothing.
+   * Default: teaches nothing.
+   */
+  teach(reader: Stuff): Promise<string | null>;
 
   // ---------- storage (public for the applier) ----------
   markText: string;
@@ -235,7 +256,9 @@ export function MarkedMixin<TBase extends MixinConstructor>(Base: TBase) {
     static fieldMeta: FieldMeta = {
       // A stamped brick and a bare one, or tokens off two dies, do not stack.
       markDevice: { persistent: true, authorable: true, stackIdentity: true },
-      markText: { persistent: true, authorable: true },
+      // ⭐ Two sheets with different words are different goods (paper): a
+      // written sheet never merges into the blank ream it came off.
+      markText: { persistent: true, authorable: true, stackIdentity: true },
       markForm: { persistent: true, authorable: true },
       markScript: { persistent: true, authorable: true },
       writingRoom: { persistent: true, authorable: true },
@@ -285,8 +308,68 @@ export function MarkedMixin<TBase extends MixinConstructor>(Base: TBase) {
      * the reading is what failed. Fixed things (a sign in the rain) and
      * marks that are not ink (chalk, a scratched slate) are unaffected.
      */
+    /** @hook See {@link Marked.refreshMarks}. Authored marks need nothing. */
+    public async refreshMarks(_viewer: Stuff): Promise<void> {}
+
+    /** @hook See {@link Marked.teach}. Most marks teach nothing. */
+    public async teach(_reader: Stuff): Promise<string | null> {
+      return null;
+    }
+
+    /**
+     * ⭐ The ink to hand (paper D18): the vessel named (`with <pot|pen>`),
+     * else the first vessel the writer holds whose contents are ink. For a
+     * surface that takes INK — paper; a slate scratches and needs none.
+     */
+    protected inkInHand(by: Stuff, medium?: Stuff): Stuff | null {
+      const holdsInk = (v: Stuff): boolean => {
+        if (!MixinApi.isBulkable(v) || !v.hasInteriorBulk()) return false;
+        const m = v.getBulkMaterial('interior');
+        return m !== null && m.hasTag('ink') && v.getBulkAmount('interior').rawValue() > 0;
+      };
+      if (medium !== undefined) return holdsInk(medium) ? medium : null;
+      if (!MixinApi.isContainer(by)) return null;
+      return by.getContents().find((c) => holdsInk(c)) ?? null;
+    }
+
+    /** Draw the ink `chars` written characters took. */
+    protected spendInk(ink: Stuff, chars: number): void {
+      if (!MixinApi.isBulkable(ink)) return;
+      const have = ink.getBulkAmount('interior').rawValue();
+      ink.setBulkAmount('interior', Quantity.of(Math.max(0, have - chars * INK_LITRES_PER_CHAR), 'L'));
+    }
+
+    /**
+     * ⭐ Mint the *known-of* claims a page teaches, once each (the menu's
+     * rung: reading tells you a thing exists; making it is the deed).
+     * Returns the line to tell the reader, or `null` for nothing new.
+     */
+    protected async teachRecipes(reader: Stuff, teaches: readonly EditionTeaching[]): Promise<string | null> {
+      if (teaches.length === 0 || !MixinApi.isPersona(reader)) return null;
+      const learned: string[] = [];
+      for (const t of teaches) {
+        const key = RecipeKnowledge.knownKey(t.recipeId);
+        if (await reader.hasClaimed(key)) continue;
+        await reader.recordChronicleOnce(key, RecipeKnowledge.knownEntry(t.name));
+        learned.push(t.name);
+      }
+      if (learned.length === 0) return null;
+      return `You have read how ${learned.join(' and ')} is made. Knowing of it is not knowing how — work it by hand to learn it.`;
+    }
+
     public getMarkText(): string {
       const self = this as unknown as Stuff;
+      // ⭐ Burnt to ash (paper D12): the words went with the page. The same
+      // shape as the ink rule below — the text is stored, the reading fails.
+      if (
+        this.markText !== '' &&
+        MixinApi.isCombustible(self) &&
+        MixinApi.isTangible(self) &&
+        self.getCharMaterialPath() !== null &&
+        self.getMaterial()?.getTemplatePath() === self.getCharMaterialPath()
+      ) {
+        return 'Nothing is left of it but ash.';
+      }
       if (
         this.markForm === 'inked' &&
         this.markText !== '' &&

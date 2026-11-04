@@ -52,6 +52,12 @@ export interface Foldable {
   setFolded(value: boolean): void;
   fold(): void;
   unfold(): void;
+  /**
+   * @hook Why this will not fold (again), in words — or `null` when it
+   * will. Default: a folded thing is *already folded*. A sheet folds three
+   * times (paper D10).
+   */
+  foldRefusal(): { reason: string; line: string } | null;
 }
 
 export function FoldableMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -99,6 +105,11 @@ export function FoldableMixin<TBase extends MixinConstructor>(Base: TBase) {
     /** Unfold it. Idempotent — unfolding an already-unfolded one is a no-op. */
     unfold(): void {
       (this as unknown as BistateInternal).setState(false, 'Foldable.folded');
+    }
+
+    /** @hook See {@link Foldable.foldRefusal}. */
+    foldRefusal(): { reason: string; line: string } | null {
+      return this.isFolded() ? { reason: 'already-folded', line: 'It is already folded.' } : null;
     }
   };
 }

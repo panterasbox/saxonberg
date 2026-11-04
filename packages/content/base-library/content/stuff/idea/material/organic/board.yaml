@@ -1,0 +1,26 @@
+# Board (paper build) — pasteboard: sheets of paper glued in plies until they
+# stand stiff. A book's covers, a carton's walls. The same cellulose as
+# paper, denser and much stiffer; it burns as paper does, a little slower.
+class: /platform/idea/material/Material
+data:
+  name: board
+  keywords: [board, pasteboard, cardboard]
+  appearance: stiff grey pasteboard
+  density: 700
+  thermalConductivity: 0.06
+  hardness: 3
+  toughness: 2
+  specificHeat: 1340
+  electricalConductivity: 1.0e-10
+  waterAbsorptionCapacity: 80
+  heatOfCombustion: 15
+  autoignitionTemperature: 520
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: ["organic", "plant", "cellulose", "paper", "once-living"]
+  composition: []
+  chemistry:
+    formula: C6H10O5
+    molarMass: 162.14
+  biologicalSource: null
