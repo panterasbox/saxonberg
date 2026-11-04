@@ -262,7 +262,7 @@ suite('paper — the blocking drive', () => {
     expect(w, w).toMatch(/you write/i);
   }, 900_000);
 
-  it('(staged) daylight again — the mill's clock jumps ran into the evening', async () => {
+  it('(staged) daylight again — the mill clock jumps ran into the evening', async () => {
     const now = await worldClockNow();
     const hour = Math.floor((now % 86_400) / 3_600);
     const ahead = (9 - hour + 24) % 24;
