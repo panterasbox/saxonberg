@@ -947,7 +947,8 @@ suite('B3 — she goes down', () => {
     const holedBoat = await hand(boatman, '/system/transport/thing/rowboat', {
       flaws: [{ kind: 'holed', visible: true, atS: now }],
     });
-    expectOk(await boatman.cmd(`drop #${holedBoat}`));
+    // (A boat is handed where you stand, never into your hands.)
+    expectOk(await boatman.cmd(`get #${stones[0]}`));
     expectOk(await boatman.cmd(`put #${stones[0]} in #${holedBoat}`));
     rowboat = holedBoat;
     expectOk(await boatman.cmd(`go #${rowboat}`));

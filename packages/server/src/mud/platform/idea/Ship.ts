@@ -578,8 +578,11 @@ export default class Ship extends BilgeMixin(PersistableMixin(
   @CallSecurity(SecurityPolicies.FromModule('/platform/idea/api/TestHarnessLogic#TestHarnessLogic'))
   public stageBilge(litres: number, stampS: number): void {
     this.resetBilge(litres, stampS);
-    // A staged bilge is a fresh start: she is afloat with that much in her.
-    this.settled = false;
+    // ⭐ The water decides, not the staging (harbors drive, 2026-11-04): a
+    // settled ship staged down near her floors is still ON the mud until
+    // she is read — `noteFlood` floats her when her draft clears the
+    // bottom. Resetting `settled` here meant step 16's pumping could never
+    // lift her off.
     this.persistMooring();
   }
 

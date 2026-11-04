@@ -537,7 +537,18 @@ export class TestHooks {
         await StuffApi.destruct(thing);
         throw new Error(`'${templatePath}' is not a thing that can be held`);
       }
-      ContainmentApi.move(thing, body);
+      // ⭐ A thing you get into (a boat, a vessel with a way in) is never
+      // carried — it is handed where the character stands (harbors drive,
+      // 2026-11-04: a holed rowboat for the bail step).
+      const into =
+        MixinApi.isExitable(thing) && MixinApi.isContainable(body)
+          ? body.getContainer()
+          : body;
+      if (!into || !MixinApi.isContainer(into)) {
+        await StuffApi.destruct(thing);
+        throw new Error(`'${handle}' stands nowhere to put '${templatePath}' down`);
+      }
+      ContainmentApi.move(thing, into);
       return thing.stuffId;
     });
   }
