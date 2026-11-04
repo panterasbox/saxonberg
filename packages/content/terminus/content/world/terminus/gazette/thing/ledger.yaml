@@ -1,0 +1,12 @@
+# The Gazette's ledger (paper D7) — open on the counter: one line for every
+# release the Gazette has published, read off its feed each time it is read.
+# It keeps nothing; burn it and the releases stand.
+class: /platform/thing/RegisterBook
+data:
+  shortDescription: ledger
+  keywords: [ledger, book, "gazette ledger"]
+  register: definite
+  longDescription: A heavy ledger bound in green cloth, open on the counter.
+  _materialPath: /stuff/idea/material/organic/paper
+  mass: 3
+  registerPrefix: /world/terminus/gazette/feed

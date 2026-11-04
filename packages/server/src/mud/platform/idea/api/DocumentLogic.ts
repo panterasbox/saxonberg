@@ -737,6 +737,32 @@ async function freezeEditionImpl(req: EditionRequest): Promise<string> {
 }
 
 /**
+ * ⭐ The document `reader` may CALL UP by a word (paper D5): the newest
+ * standing release whose headline or publisher answers to it (an in-game
+ * reader is a member — `members` and `public` both read; the press room's
+ * `public` filter is the anonymous web's), else a paper of the reader's own
+ * whose title does. Never a search of anyone else's papers.
+ */
+async function callUpImpl(reader: Stuff, word: string): Promise<{ path: string; title: string } | null> {
+  const w = word.trim().toLowerCase();
+  if (w === '') return null;
+  const releases = (await StoredDocument.findByKind(RELEASE_DOCUMENT_KIND))
+    .map((d) => Release.fromDocument(d))
+    .filter((r) => !r.isRetracted() && Release.publishedByOwner(r))
+    .filter((r) => r.getHeadline().toLowerCase().includes(w) || r.owner.toLowerCase().includes(w))
+    .sort((a, b) => b.getPublishedAt() - a.getPublishedAt());
+  const release = releases[0];
+  if (release !== undefined) return { path: release.getPath(), title: `"${release.getHeadline()}"` };
+  const key = (reader.getIdentityPath() ?? '').split('/').filter(Boolean).pop() ?? '';
+  if (key === '') return null;
+  for (const d of await StoredDocument.findByPrefix(`/home/${key}/`)) {
+    const pages = await pagesOfImpl(d.getPath());
+    if (pages !== null && pages.title.toLowerCase().includes(w)) return { path: d.getPath(), title: pages.title };
+  }
+  return null;
+}
+
+/**
  * DocumentLogic — the hot-reloadable logic singleton behind
  * {@link DocumentApi}.
  *
@@ -845,6 +871,12 @@ export class DocumentLogic extends ApiLogic {
   @CallSecurity(DocumentApiCallers)
   public async pagesOf(path: string): Promise<DocumentPages | null> {
     return pagesOfImpl(path);
+  }
+
+  /** See {@link DocumentApi.callUp}. */
+  @CallSecurity(DocumentApiCallers)
+  public async callUp(reader: Stuff, word: string): Promise<{ path: string; title: string } | null> {
+    return callUpImpl(reader, word);
   }
 
   /** See {@link DocumentApi.freezeEdition}. Rails in `freezeEditionImpl`. */

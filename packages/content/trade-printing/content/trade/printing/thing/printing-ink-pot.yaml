@@ -1,0 +1,15 @@
+# A pot of printing ink (paper D18) — lampblack in boiled linseed, beaten
+# onto the forme with the balls. The press draws it by the page.
+class: /platform/thing/CompoundingVessel
+data:
+  shortDescription: pot of printing ink
+  keywords: [ink, pot, "printing ink", "ink pot", "pot of printing ink"]
+  register: indefinite
+  longDescription: A wide iron pot of stiff black ink, a palette knife standing in it.
+  _materialPath: /stuff/idea/material/element/iron
+  mass: 2
+  interiorBulk: true
+  interiorCapacity: 2
+  interiorMaterial: /trade/printing/idea/material/printing-ink
+  interiorAmount: 1.5
+  closure: liquidTight

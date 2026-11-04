@@ -605,6 +605,7 @@ function recipeFiles(contentDir: string): string[] {
  * *Named by a field* is not enough; the field must mint.
  */
 const CITATIONS: Record<string, string> = {
+  casePath: "the case a forme is set from — named, not minted: it stands in its own room (paper D17)",
   stamper: "the stamper that feeds a pulp vat — named, not minted: it stands in its own room (paper W2)",
   onto: "a props entry's target — the target is placed by its OWN entry",
   on: "a placement target, as `onto`",

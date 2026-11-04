@@ -1,0 +1,14 @@
+# A hand press (paper D17) — an iron common press: the forme on the bed, the
+# platen pulled down by the bar. Industrial work: a medieval covenant keeps it
+# idle.
+class: /trade/printing/thing/Press
+data:
+  shortDescription: printing press
+  keywords: [press, "printing press", "hand press", platen]
+  register: indefinite
+  longDescription: An iron hand press as tall as a man, its platen hung over a bed and a long bar at its side.
+  _materialPath: /stuff/idea/material/element/iron
+  mass: 600
+  fixedInPlace: true
+  epoch: industrial
+  capabilities: [printing]

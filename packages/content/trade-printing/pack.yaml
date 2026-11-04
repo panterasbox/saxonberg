@@ -1,0 +1,17 @@
+id: trade-printing
+version: 0.1.0
+root: /trade/printing
+description: >-
+  The printer's trade — ⭐ **a press freezes a document onto paper.** The
+  compositor sets a document in type from the case (`compose`), the
+  proofreader catches what they can (`proof`), the press runs off copies
+  bound to the edition AS SET (`print forme 20`) — misprints and all — and
+  the type goes back in the case (`distribute`). The copies say what the
+  document said that day: edit or withdraw it and every printed copy still
+  reads as it did. Below the press, a pen copies by hand (`copy`), making
+  the copyist's mistakes; above it, a printer prints a document as it
+  stands. ⭐ A covenant that admits nothing later than medieval keeps the
+  press and the printer idle and lets the pen work.
+requires:
+  title:
+    - { extent: /trade/printing, holder: { organization: /compact/trade } }

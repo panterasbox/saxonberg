@@ -1,0 +1,15 @@
+# An ink pot (paper D18) — a small stoppered pot of iron-gall ink, for the
+# pen and for writing on paper. Hold it to write.
+class: /platform/thing/CompoundingVessel
+data:
+  shortDescription: ink pot
+  keywords: [ink, pot, "ink pot", inkpot, inkwell]
+  register: indefinite
+  longDescription: A squat stoneware pot with a cork, ink-black about the rim.
+  _materialPath: /stuff/idea/material/ceramic/earthenware
+  mass: 0.2
+  interiorBulk: true
+  interiorCapacity: 0.1
+  interiorMaterial: /trade/printing/idea/material/iron-gall-ink
+  interiorAmount: 0.08
+  closure: liquidTight

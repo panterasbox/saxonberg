@@ -15,18 +15,12 @@ import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
 import { DocumentApi } from '../../../../api/document';
 import { Mml } from '../../../../api/mml';
-import { Release } from '../../../../lib/press/Release';
 
 const TOPIC = 'act.deed';
 
 interface ShowModel extends CommandModel {
   what: string;
   screen?: MqlOneResult;
-}
-
-interface Found {
-  path: string;
-  title: string;
 }
 
 export default class ShowController extends CommandController<ShowModel> {
@@ -49,7 +43,7 @@ export default class ShowController extends CommandController<ShowModel> {
     }
     const wanted = (model.what ?? '').trim().toLowerCase();
     if (wanted === '') return this.refuse(context, TOPIC, 'Show what?', 'nothing-named');
-    const found = await this.find(giver, wanted);
+    const found = await DocumentApi.callUp(giver, wanted);
     if (found === null) {
       return this.refuse(context, TOPIC, `You can call up nothing called "${model.what}".`, 'no-document');
     }
@@ -62,30 +56,5 @@ export default class ShowController extends CommandController<ShowModel> {
       .topic(TOPIC)
       .toSelf(Mml.compose`${Mml.thing(screen)} shows ${found.title}. \`read\` it to read it.`)
       .send();
-  }
-
-  /**
-   * The document `reader` may call up by `word`: the newest standing release
-   * (an in-game reader is a member: `members` and `public` both read — the
-   * press room's `public` filter is the anonymous web's) whose headline or
-   * publisher answers to it, else a paper of their
-   * own whose title does. Never a search of anyone else's papers.
-   */
-  private async find(reader: Stuff, word: string): Promise<Found | null> {
-    const releases = (await DocumentApi.listOfKind('release'))
-      .map((d) => Release.fromDocument(d))
-      .filter((r) => !r.isRetracted() && Release.publishedByOwner(r))
-      .filter((r) => r.getHeadline().toLowerCase().includes(word) || r.owner.toLowerCase().includes(word))
-      .sort((a, b) => b.getPublishedAt() - a.getPublishedAt());
-    const release = releases[0];
-    if (release !== undefined) return { path: release.getPath(), title: `"${release.getHeadline()}"` };
-
-    const key = (reader.getIdentityPath() ?? '').split('/').filter(Boolean).pop() ?? '';
-    if (key === '') return null;
-    for (const d of await DocumentApi.list(`/home/${key}/`)) {
-      const pages = await DocumentApi.pagesOf(d.getPath());
-      if (pages !== null && pages.title.toLowerCase().includes(word)) return { path: d.getPath(), title: pages.title };
-    }
-    return null;
   }
 }

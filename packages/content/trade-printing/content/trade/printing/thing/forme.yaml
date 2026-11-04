@@ -1,0 +1,10 @@
+# A forme (paper D17) — an iron chase to lock type up in. Its case is named
+# on the venue's own row (`casePath`).
+class: /trade/printing/thing/Forme
+data:
+  shortDescription: forme
+  keywords: [forme, form, chase]
+  register: indefinite
+  longDescription: An iron frame the size of a page, with wooden quoins to lock the type up tight.
+  _materialPath: /stuff/idea/material/element/iron
+  mass: 4

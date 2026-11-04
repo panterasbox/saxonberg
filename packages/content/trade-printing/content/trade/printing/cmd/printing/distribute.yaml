@@ -1,0 +1,17 @@
+# ⭐ Distribute the type (paper D17): every sort back in its box.
+verbs: [distribute]
+controller: ../../idea/cmd/printing/DistributeController
+description: "Break up a forme and put its type back in the case"
+help: |
+  `distribute <forme>` breaks the forme up and puts every sort back in the
+  case, ready for the next job.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: forme
+    type: object
+    required: true
+    greedy: true
+    scope: ["inventory", "reachable"]
+    requires: any

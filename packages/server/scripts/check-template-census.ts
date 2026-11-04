@@ -704,6 +704,8 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
   push('receiptPaper', data.receiptPaper);
   // ⭐ The wet sheet a pulp vat lifts (paper W2) — cloned at each dip.
   push('sheetTemplate', data.sheetTemplate);
+  // The case a forme is set from (paper D17) — a row named, not minted.
+  push('casePath', data.casePath);
   // The house whose doorman keeps a door (cleanliness D29).
   push('keptBy', data.keptBy);
   /*
@@ -926,6 +928,9 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
  * until somebody decides which it is. Enumerate, never infer.
  */
 const IGNORED_PATH_FIELDS: readonly string[] = [
+  // A ledger's PREFIX (paper D7) — a document-tree prefix read by
+  // `DocumentApi.list`, not a row: a business's feed, a register's branch.
+  'registerPrefix',
   // Addresses resolve by AddressApi's longest-prefix walk, not by
   // template lookup.
   '_address',

@@ -1,0 +1,12 @@
+# A printer (paper D3) — a modern machine: prints a document as it stands,
+# every page, no type. Modern work: refused by any older covenant.
+class: /trade/printing/thing/Printer
+data:
+  shortDescription: printer
+  keywords: [printer, machine]
+  register: indefinite
+  longDescription: A squat grey machine with a paper tray and a slot that hums when it is asked for something.
+  _materialPath: /stuff/idea/material/element/iron
+  mass: 12
+  epoch: modern
+  capabilities: [printing]

@@ -1,0 +1,32 @@
+# ⭐ Set a document in type (paper D17): from the forme's case, letter by
+# letter. Refused naming the first glyph the case runs short of. The
+# compositor's errors are theirs, and nobody announces them.
+verbs: [compose]
+controller: ../../idea/cmd/printing/ComposeController
+description: "Set a document in type, in a forme"
+help: |
+  `compose <document> in <forme>` sets a document in type from the forme's
+  case — a Gazette release by a word of its headline, a paper of your own
+  by its title. Type is capital: what you set is out of the case until you
+  `distribute` the forme. A case short of a letter refuses, and says which.
+
+  Nobody tells you what you set wrong. `proof <forme>` reads it through and
+  corrects what the proofreader catches; `print <forme>` runs it off.
+examples:
+  - cmd: compose prices in forme
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: what
+    type: string
+    required: true
+    greedy: true
+  - name: forme
+    type: object
+    required: true
+    greedy: true
+    prepositions: [in, into]
+    scope: ["inventory", "reachable"]
+    requires: any

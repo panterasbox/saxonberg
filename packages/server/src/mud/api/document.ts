@@ -246,6 +246,16 @@ export class DocumentApi {
   }
 
   /**
+   * ⭐ The document a reader may CALL UP by a word (paper D5) — to show on a
+   * screen, to set in type, to print: the newest standing release whose
+   * headline or publisher answers to it, else a paper of the reader's own.
+   * `null` when nothing answers.
+   */
+  static callUp(reader: Stuff, word: string): Promise<{ path: string; title: string } | null> {
+    return logic().callUp(reader, word);
+  }
+
+  /**
    * ⚠⚠ **The edition transport** (paper D2) — freeze the pages of a
    * printing as a `kind: 'edition'` document at
    * `<source>/editions/<hash>`, owned by the source's owner, and return
