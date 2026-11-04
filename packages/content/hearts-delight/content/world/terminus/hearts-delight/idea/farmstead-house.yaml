@@ -1,0 +1,15 @@
+# The farmhouse — the valley farmstead's MAIN building (harbors review,
+# 2026-11-03): named by the farmstead blueprint (`buildings:`, first), its
+# rooms the blueprint rooms under its extent — the one farmhouse room. A
+# copy is minted per farm at the holding's wake; this is "the home you
+# hold", the one the ascent gate reads.
+class: /system/residence/idea/HoldingBuilding
+extends: /system/residence/idea/holding-building
+data:
+  extent: /world/terminus/hearts-delight/farmstead/location/house
+  entrance: /world/terminus/hearts-delight/farmstead/location/house
+  shortDescription: farmhouse
+  keywords: [farmhouse, house, home, building]
+  longDescription: >-
+    A timber farmhouse under slate, its boards and sills set in the valley
+    weather.

@@ -79,7 +79,7 @@ function seedDomain(): void {
   for (const row of KERNEL_CONTENT_ROWS) {
     domain.push({ _id: `d-${++idCounter}`, ...row });
   }
-  // A holding mints its house at wake (paint D6).
+  // The parent of every holding's building row (paint D6).
   domain.push({ _id: `d-${++idCounter}`, path: '/system/residence/idea/holding-building', class: '/system/residence/idea/HoldingBuilding', data: { shortDescription: 'house' } });
   add('/world/terminus/eternal/duncan-hall/idea/exits/floor-stair', '/world/terminus/eternal/duncan-hall/idea/FloorStairExit');
   add('/world/terminus/eternal/duncan-hall/idea/exits/dorm-door', '/world/terminus/eternal/duncan-hall/idea/DormDoor');
@@ -92,7 +92,17 @@ function seedDomain(): void {
     upkeepTerm: 'institution-all',
   });
   // A one-room blueprint (harbors review 3): its extent is the room's row.
-  add('/test/dorm-blueprint', '/platform/idea/Structure', { extent: DormRoom.SCOPE, entrance: DormRoom.SCOPE });
+  add('/test/dorm-blueprint', '/platform/idea/Structure', {
+    extent: DormRoom.SCOPE,
+    entrance: DormRoom.SCOPE,
+    // ⭐ Its one building, authored (harbors review, 2026-11-03).
+    buildings: ['/test/dorm-building'],
+  });
+  add('/test/dorm-building', '/system/residence/idea/HoldingBuilding', {
+    shortDescription: 'dorm room',
+    extent: DormRoom.SCOPE,
+    entrance: DormRoom.SCOPE,
+  });
   add(DormRoom.SCOPE, '/world/terminus/eternal/duncan-hall/location/DormRoom', {
     shortDescription: 'dorm room',
     // Fixtures as data — the spine's seedBornWith lays these down once.

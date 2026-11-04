@@ -86,7 +86,7 @@ cottage` and `paint cottage` bind from the lane with no new MQL seed.
 | `lib/structure/Structure` | *these places are one thing* — membership, entrance, height, storeys, the landing, whether it is sold (`isTitleSold`) |
 | `lib/structure/Building` (only inherited) | a structure with an OUTSIDE: a face painted from its landing, a `Durable` condition the weather wears once the coat is gone |
 | `platform/idea/Building` | what a building row names (a `Singleton` per row); persists once sold |
-| `HoldingBuilding` (`residence`) | a holding's building, minted per `building:` group of its enclosed rooms |
+| `HoldingBuilding` (`residence`) | a holding's building, minted per building row its blueprint names (`buildings:`, main first); its rooms are the blueprint's under that row's `extent` — authored, never grouped by how rooms connect |
 | `platform/idea/Structure` | a bare structure row — today only the peak of Waponi Woo, until the mountain slate |
 | `Ship` | a structure that moves; her hull takes coats wherever she is, and her seams are a `Durable` fabric under them (harbors) — worn, she leaks |
 

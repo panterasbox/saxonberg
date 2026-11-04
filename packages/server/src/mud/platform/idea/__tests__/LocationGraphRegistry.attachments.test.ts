@@ -31,6 +31,13 @@ beforeEach(() => {
     { path: `${T}/tower`, class: '/platform/idea/Structure', data: { extent: T } },
     // ⭐ A building row names the Building twin — a structure, not the Structure twin.
     { path: `${T}/cottage/structure`, class: '/platform/idea/Building', data: { extent: `${T}/cottage` } },
+    // ⭐ A holding kind's BLUEPRINT and the building it names: neither is
+    // served, so neither attaches at its extent (harbors review, 2026-11-03).
+    { path: `${T}/idea/lot-kind`, class: '/platform/idea/Business', data: { blueprint: `${T}/idea/house-blueprint` } },
+    { path: `${T}/idea/house-blueprint`, class: '/platform/idea/Structure', data: {
+      extent: `${T}/house`, entrance: `${T}/house/yard`, buildings: [`${T}/idea/house-building`],
+    } },
+    { path: `${T}/idea/house-building`, class: '/platform/idea/Building', data: { extent: `${T}/house/indoors` } },
     { path: `${T}/ship`, class: '/platform/idea/Ship', data: { extent: `${T}/ship`, expanse: '/test/sea', berth: `${T}/quay` } },
     // An institution over an extent.
     { path: `${T}/idea/warren`, class: '/platform/idea/Business', data: { parentExtent: `${T}/lots` } },
@@ -93,6 +100,13 @@ describe('the location graph attaches what belongs with a place', () => {
 
   it('⭐ a BUILDING row is attached at its extent too — the graph reads the structure base, not the twin', async () => {
     expect(await NavigationApi.attachedTo(`${T}/cottage/parlor`, 'structure')).toContain(`${T}/cottage/structure`);
+  });
+
+  it('⭐ a blueprint and the buildings it names attach to nothing — they are kinds, never served', async () => {
+    const at = await NavigationApi.attachedTo(`${T}/house/indoors/hall`, 'structure');
+    expect(at).not.toContain(`${T}/idea/house-blueprint`);
+    expect(at).not.toContain(`${T}/idea/house-building`);
+    expect(at).toContain(`${T}/tower`);
   });
 
   it('a ship is attached to its sea as craft', async () => {

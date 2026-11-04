@@ -1,0 +1,15 @@
+# The barn — the valley farmstead's second building (harbors review,
+# 2026-11-03): named by the farmstead blueprint (`buildings:`), its rooms
+# the blueprint rooms under its extent — the one barn room. Its own coat
+# and its own condition, kept apart from the farmhouse's; the yard between
+# them lies under neither, so it is open ground and no building's.
+class: /system/residence/idea/HoldingBuilding
+extends: /system/residence/idea/holding-building
+data:
+  extent: /world/terminus/hearts-delight/farmstead/location/barn
+  entrance: /world/terminus/hearts-delight/farmstead/location/barn
+  shortDescription: barn
+  keywords: [barn, building]
+  longDescription: >-
+    A stone barn under a slate roof, its great doors onto the yard.
+  heightM: 8

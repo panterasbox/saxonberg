@@ -50,4 +50,4 @@ data:
   # ⭐ The house's blueprint (harbors review 3): its ways, an ordinary place.
   exits:
     west:
-      destination: /world/terminus/hinkley-hills/house/hall
+      destination: /world/terminus/hinkley-hills/house/indoors/hall

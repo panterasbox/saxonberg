@@ -1,0 +1,11 @@
+# The Hinkley house itself — the house blueprint's one building (harbors
+# review, 2026-11-03): named by the blueprint (`buildings:`), its rooms the
+# blueprint rooms under its extent — the hall, the kitchen, the living
+# room, the bedroom and the bathroom, all under `house/indoors/`. The yard
+# and the garden lie outside it: open ground, where it is painted from.
+# A copy is minted per sold lot at the holding's wake.
+class: /system/residence/idea/HoldingBuilding
+extends: /system/residence/idea/holding-building
+data:
+  extent: /world/terminus/hinkley-hills/house/indoors
+  entrance: /world/terminus/hinkley-hills/house/indoors/hall

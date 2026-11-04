@@ -1313,6 +1313,7 @@ StoredDocument.data = 0
 StoredDocument.kind = 0
 StoredDocument.owner = 0
 StoredDocument.path = 0
+Structure.buildings = 0
 Structure.entrance = 0
 Structure.extent = 0
 Structure.footprintM2 = 0

@@ -27,14 +27,15 @@
  * build — a farm's ground is a blueprint's tract.)
  *
  * ⭐⭐ **The fabric is the building's** (paint D6/D13). A holding stands
- * its buildings up at its wake — the Building row that already covers its
- * extent (Seznick House, Duncan Hall), else a {@link HoldingBuilding} per
- * building of its own — and each carries its own coat and its `Durable`
- * condition, which the weather wears once the coat is gone. A building is
- * the copy's ENCLOSED rooms joined by the ways between them (merge of
- * paint into harbors — derived from the blueprint, nothing authored): a
- * farmstead's house and barn are two, parted by the yard, which is open
- * ground and no building's.
+ * its buildings up at its wake — a {@link HoldingBuilding} per building
+ * its blueprint NAMES (`buildings:`, each a Building row with its own
+ * extent and entrance), else none, and its rooms read the Building row
+ * that covers its extent (Seznick House) — and each carries its own coat
+ * and its `Durable` condition, which the weather wears once the coat is
+ * gone. ⭐ A building is AUTHORED (harbors review, 2026-11-03 — the
+ * owner: deriving it from how rooms connect is magic): a farmstead's
+ * house and barn are the two its blueprint names, and the yard, which no
+ * building's extent covers, is open ground and no building's.
  *
  * ⭐ **The blueprint (harbors review 3).** The programme row names a
  * `Structure` row (`blueprint:`) over the kind's rooms authored as
@@ -56,14 +57,13 @@ import KeyedDoorExit from './KeyedDoorExit';
 import type Exit from '@saxonberg/server/mud/lib/boundary/Exit';
 import { ParcelApi } from '@saxonberg/server/mud/api/parcel';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
-import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { NavigationApi } from '@saxonberg/server/mud/api/navigation';
 import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Persistable } from '@saxonberg/server/mud/lib/persistence/Persistable';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
-import HoldingBuilding, { HOLDING_BUILDING_ROW } from './HoldingBuilding';
+import HoldingBuilding from './HoldingBuilding';
 import type StructureBase from '@saxonberg/server/mud/lib/structure/Structure';
 import BuildingBase from '@saxonberg/server/mud/lib/structure/Building';
 
@@ -338,82 +338,48 @@ export default class HoldingWarren extends FloorplanWarren {
   }
 
   /**
-   * Stand this holding's buildings up — unless a covering row already is
-   * its building.
-   *
-   * ⭐ A building is DERIVED from the copy (merge of paint into harbors):
-   * the enclosed rooms (they hold their own air) joined by the ways
-   * between them — two enclosed rooms with a way between them are one
-   * building, and open ground (a yard, a tract) parts them. The MAIN
-   * building is the first one met from the entrance, in the blueprint's
-   * own order; another goes by its first room's leaf (the barn).
+   * Stand this holding's buildings up: one per building its blueprint
+   * NAMES (`buildings:`, the main one first), each a clone of that
+   * building's own row holding the copy's rooms that lie under its
+   * extent. ⭐ Authored, never derived — no read of how the rooms connect
+   * or which hold their air, so a reordered `exits:` map changes nothing.
+   * A blueprint that names none (a Seznick flat) mints none: its rooms
+   * read the Building row its extent lies in.
    */
   private async wakeHouses(): Promise<void> {
     const extent = this.holdingKey();
     if (!extent) return;
-    const covering = await NavigationApi.structureAt(extent);
-    if (covering !== null && !(covering instanceof HoldingBuilding)) return;
-    const groups = this.enclosedGroups();
-    for (const [i, { name, rooms }] of groups.entries()) {
+    for (const [i, spec] of this.blueprintBuildings().entries()) {
+      const name = i === 0 ? '' : spec.leaf;
+      const rooms = this.roomsOfRows(spec.rooms);
       const live = this._houses.get(name);
       if (live !== undefined && !live.isDestroyed()) {
         live.setRooms(rooms, i === 0);
         continue;
       }
-      const house = await StuffApi.clone<HoldingBuilding>(HOLDING_BUILDING_ROW);
+      const house = await StuffApi.clone<HoldingBuilding>(spec.row);
+      if (!(house instanceof HoldingBuilding)) {
+        StuffApi.destruct(house);
+        throw new Error(`HoldingWarren: building '${spec.row}' is not a holding's building (class HoldingBuilding)`);
+      }
       house.setExtent(extent);
-      // Every room of it holds its own air, so no entrance is needed to land it.
+      // Its rooms are keyed clones no path names, so it lands by them.
       house.setEntrance(null);
       house.setRooms(rooms, i === 0);
       house.setHolding(this);
-      // A building of its own goes by its name — the barn — and the main
-      // one by its row's (the house).
-      if (name !== '') {
-        house.setShortDescription(name);
-        house.setKeywords([name, 'building']);
-      }
       await PersistableApi.restoreOrSeed(house, this.houseKeyOf(extent, name));
       for (const at of this.attachPointsOf(house)) NavigationApi.attachStructure(at, house);
       this._houses.set(name, house);
     }
   }
 
-  /**
-   * The copy's enclosed rooms in connected groups, in blueprint order (the
-   * entrance first): the first group is the main building (name `''`), and
-   * each other is named by its first room's leaf.
-   */
-  private enclosedGroups(): Array<{ name: string; rooms: MemberStuff[] }> {
-    const specs = this.blueprintRooms();
-    const live = new Map<string, MemberStuff>();
-    for (const spec of specs) {
+  /** This copy's live rooms for blueprint room rows. */
+  private roomsOfRows(rows: readonly string[]): MemberStuff[] {
+    const out: MemberStuff[] = [];
+    for (const spec of this.blueprintRooms()) {
+      if (!rows.includes(spec.row)) continue;
       const room = this.roomForLeaf(spec.leaf);
-      if (room === null) continue;
-      if (!MixinApi.isAtmospheric(room) || !room.exposure().holdsAir()) continue;
-      live.set(spec.row, room);
-    }
-    const leafOf = new Map(specs.map((s) => [s.row, s.leaf ?? ''] as const));
-    const waysOf = new Map(specs.map((s) => [s.row, Object.values(s.exits).map((w) => w.destination)] as const));
-    const seen = new Set<string>();
-    const out: Array<{ name: string; rooms: MemberStuff[] }> = [];
-    for (const spec of specs) {
-      if (!live.has(spec.row) || seen.has(spec.row)) continue;
-      const rooms: MemberStuff[] = [];
-      const queue = [spec.row];
-      seen.add(spec.row);
-      while (queue.length > 0) {
-        const row = queue.shift()!;
-        rooms.push(live.get(row)!);
-        // A way either side joins two rooms (the blueprint authors both).
-        for (const other of specs) {
-          if (seen.has(other.row) || !live.has(other.row)) continue;
-          if ((waysOf.get(row) ?? []).includes(other.row) || (waysOf.get(other.row) ?? []).includes(row)) {
-            seen.add(other.row);
-            queue.push(other.row);
-          }
-        }
-      }
-      out.push({ name: out.length === 0 ? '' : (leafOf.get(spec.row) ?? '') || `building-${out.length}`, rooms });
+      if (room !== null) out.push(room);
     }
     return out;
   }

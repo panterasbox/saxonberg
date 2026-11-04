@@ -1,0 +1,16 @@
+# A Duncan Hall dorm room as a BUILDING of its holding (harbors review,
+# 2026-11-03): the dorm blueprint's one building, named by it
+# (`buildings:`), whose extent and entrance are the one room — so each
+# leased unit keeps its own fabric and coat. (Duncan Hall has no Building
+# row of its own yet; were it given one, the blueprint would name none and
+# its units would read the hall's, as a Seznick flat reads Seznick House.)
+class: /system/residence/idea/HoldingBuilding
+extends: /system/residence/idea/holding-building
+data:
+  extent: /world/terminus/eternal/duncan-hall/location/dormroom
+  entrance: /world/terminus/eternal/duncan-hall/location/dormroom
+  shortDescription: dorm room
+  keywords: [dorm, room, "dorm room", building]
+  longDescription: >-
+    A student's room in Duncan Hall, its window frame and sill set in the
+    weather like the rest of the hall's.

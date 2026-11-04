@@ -380,18 +380,37 @@ game-days from sound to worn, the dial that was
 unpainted holding wears exactly as the shell always did. Reconciled on
 read, stamp-forward, persistent; honest across a restart.
 
-⭐ **A holding's buildings are DERIVED from its copy** (merge of paint into
-harbors, 2026-11-03): the enclosed rooms joined by the ways between them —
-two enclosed rooms with a way between them are one building, and open
-ground (a yard, a tract, a porch) parts them. The main building is the
-first one met from the blueprint's entrance, in the blueprint's own order
-(the farmstead's yard writes the farmhouse's way first); another goes by
-its first room's leaf (*the barn*). Nothing is authored: a barn drawn
-across a yard is a building of its own. A ship's hull is the same
-mechanism on `Ship` (her seams a `Durable` fabric under her coat; worn,
-she leaks — see [expanse.md](./expanse.md)). (`WeatheringMixin`, harbors'
-review-3 clock on the warren, retired in the merge: the paint review had
-already folded the same clock into `Faced` + `Durable`.)
+⭐⭐ **A holding's buildings are AUTHORED** (harbors review, 2026-11-03 —
+the owner, on the paint merge's derived grouping: *magic*). The blueprint
+names them — `buildings:`, a list of building rows, **the main one first**
+— and each is a Building row (class `HoldingBuilding`, `extends:
+/system/residence/idea/holding-building` for the plain house's words) with
+its own `extent` and `entrance`, like any building. A building's rooms are
+the blueprint rooms **at or under its extent** — the Structure rule, read
+off the paths; nothing reads how the rooms connect, which ones hold their
+air, or the order of an `exits:` map. Ground under no building's extent (a
+yard, a tract, a garden) is open ground and no building's. A copy mints
+one `HoldingBuilding` per named row at the holding's wake, persisted under
+the holding's extent (the main one) or `<extent>@<row leaf>`.
+`Blueprint.load` refuses loudly a building outside the blueprint, one with
+no rooms, an entrance that is not one of its rooms, a room two buildings
+claim, or two buildings with one leaf. A blueprint that names **none** (a
+Seznick flat) mints none: its rooms read the Building row whose extent the
+holding lies in (Seznick House), and the location graph attaches neither a
+blueprint nor a building it names to anything.
+
+| blueprint | `buildings:` |
+|---|---|
+| valley farmstead | `farmstead-house` (`location/house`, main) · `farmstead-barn` (`location/barn`); the yard and three tracts are open ground |
+| Hinkley house | `house-building` over `house/indoors/` (hall, kitchen, living, bedroom, bathroom); the yard and garden are open ground |
+| Duncan Hall dorm | `dorm-building` over the `dormroom` row |
+| Seznick flat | none — every unit stands in Seznick House |
+
+A ship's hull is the same fabric on `Ship` (her seams a `Durable` fabric
+under her coat; worn, she leaks — see [expanse.md](./expanse.md)).
+(`WeatheringMixin`, harbors' review-3 clock on the warren, retired in the
+paint merge: the paint review had already folded the same clock into
+`Faced` + `Durable`.)
 
 The readout is **only ever a word** — `Durable`'s, one scale for every
 condition in the game (paint review; the five residence bands retired):
@@ -695,11 +714,14 @@ searched (`lint:template-scans`): the entrance, then every room a way
 inside the extent leads to from a room already found. A room no way
 reaches is in no copy. A one-room blueprint (the dorm's) names its room
 as both extent and entrance, and its copy is keyed by the holding's own
-key with no leaf. The shipped six:
+key with no leaf. ⭐ Its BUILDINGS are named the same way — `buildings:`,
+building rows each with its own `extent` and `entrance`, the main one
+first (see [§ Condition](#condition--the-weathering-clock)); a blueprint
+derives none. The shipped six:
 
 | warren row | blueprint | rooms |
 |---|---|---|
-| Hinkley `house-programme` | `hinkley-hills/idea/house-blueprint` | `hinkley-hills/house/*` (moved from `lots/`; `living`/`bedroom` extend the generic rows), own zone `house.yaml` |
+| Hinkley `house-programme` | `hinkley-hills/idea/house-blueprint` | `hinkley-hills/house/*` (moved from `lots/`; the house's own rooms under `house/indoors/`, its building's extent; `living`/`bedroom` extend the generic rows), own zone `house.yaml` |
 | valley `farmstead` | `hearts-delight/idea/farmstead-blueprint` | `hearts-delight/farmstead/{location,tract}/*` (+ `location/house` extends the generic bedroom), own zone `farmstead.yaml` |
 | Seznick `unit-programme` | `seznick-house/unit-blueprint` | `seznick-house/location/*` (its zone; + `bathroom` extends the generic row) |
 | Duncan Hall `dorm-programme` | `duncan-hall/idea/dorm-blueprint` | the `dormroom` row itself |
@@ -784,8 +806,8 @@ residential: `addressBase` (answered by `addressFor`), the parcel keyway
 footprints), `reconcile` → the
 institution, `holdingKey()` (= `warrenKey()`), `entryRowOf`, the tenure
 term, and its BUILDINGS (`house()`, `buildings()`, `buildingOf(room)`,
-answered as `structureOf` — paint D6/D13, derived from the copy since the
-paint merge). `maintain` works on the building a room is part of, or the
+answered as `structureOf` — paint D6/D13; the buildings its blueprint
+names, harbors review 2026-11-03). `maintain` works on the building a room is part of, or the
 ship whose room it is, and speaks in that fabric's words — a
 householder's kit and putty, a caulker's kit and pitch.
 

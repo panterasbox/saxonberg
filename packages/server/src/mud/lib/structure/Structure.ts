@@ -103,6 +103,7 @@ export default class Structure extends DetailedMixin(
     heightM: { persistent: true, authorable: true },
     storeys: { persistent: true, authorable: true },
     footprintM2: { persistent: true, authorable: true },
+    buildings: { persistent: true, authorable: true },
   };
 
   /** Template-path prefix: every Location row under it is a member. */
@@ -122,6 +123,15 @@ export default class Structure extends DetailedMixin(
    * summed). A set of rooms' fact no room decides alone.
    */
   protected footprintM2 = 0;
+  /**
+   * ⭐ A BLUEPRINT's buildings, the main one first: each a Building row
+   * whose own `extent` (inside the blueprint's) holds that building's
+   * rooms and whose `entrance` is its way in (harbors review, 2026-11-03).
+   * AUTHORED, never derived from how the rooms connect — the ground no
+   * building's extent covers (a yard, a tract) is nobody's building. A
+   * copy stands one up per row (`lib/location/Blueprint.ts`).
+   */
+  protected buildings: string[] = [];
 
   public getExtent(): string { return this.extent; }
   public setExtent(value: string): void { this.extent = (value ?? '').replace(/\/+$/, ''); }
@@ -137,6 +147,14 @@ export default class Structure extends DetailedMixin(
 
   public getFootprintM2(): number { return this.footprintM2; }
   public setFootprintM2(value: number): void { this.footprintM2 = Math.max(0, Number(value) || 0); }
+
+  public getBuildings(): readonly string[] { return this.buildings; }
+  public setBuildings(value: readonly string[]): void {
+    if (!Array.isArray(value) || value.some((v) => typeof v !== 'string' || v === '')) {
+      throw new Error(`Structure: buildings must be a list of row paths, got ${JSON.stringify(value)}`);
+    }
+    this.buildings = [...value];
+  }
 
   public getStoreys(): readonly StoreySpec[] { return this.storeys; }
   public setStoreys(value: StoreySpec[] | null): void {

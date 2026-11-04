@@ -5,6 +5,10 @@
 # the bathroom beyond it. Never served: the house programme mints each
 # lot's rooms from these rows, keyed `(room row, <lot extent>/<leaf>)`.
 #
+# ⭐ `buildings`: the house's rooms lie under `house/indoors/`, the extent
+# of its one building (harbors review, 2026-11-03); the yard and the
+# garden lie under no building's, so they are open ground.
+#
 # `footprintM2`: the ground the house and yard stand on that the garden
 # does not — the lot's workable area less this is the garden's open
 # ground (tracts build D27).
@@ -14,3 +18,5 @@ data:
   extent: /world/terminus/hinkley-hills/house
   entrance: /world/terminus/hinkley-hills/house/yard
   footprintM2: 220
+  buildings:
+    - /world/terminus/hinkley-hills/idea/house-building

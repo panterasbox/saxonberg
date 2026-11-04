@@ -58,8 +58,8 @@ const PARENT = '/world/prog-test/lots';
 const WARREN_PATH = '/world/prog-test/holder';
 const PROGRAMME = '/world/prog-test/house-programme';
 const BLUEPRINT = '/world/prog-test/house-blueprint';
-const ROOM_A = '/world/prog-test/house/hall';
-const ROOM_B = '/world/prog-test/house/bedroom';
+const ROOM_A = '/world/prog-test/house/home/hall';
+const ROOM_B = '/world/prog-test/house/home/bedroom';
 const ROOM_C = '/world/prog-test/house/porch';
 const ROOM_D = '/world/prog-test/house/shed';
 const STREET = '/world/prog-test/lane';
@@ -138,7 +138,26 @@ function seedDomain(): void {
   });
   // ⭐ The house's blueprint (harbors review 3): ordinary rows under an
   // extent, a Structure naming it and the way in.
-  add(BLUEPRINT, '/platform/idea/Structure', { extent: '/world/prog-test/house', entrance: ROOM_A });
+  // ⭐ Its buildings are AUTHORED (harbors review, 2026-11-03): the house
+  // (first, the main one) over `house/home/`, and the shed over its one
+  // room. The porch lies under neither — open ground, whatever its air.
+  add(BLUEPRINT, '/platform/idea/Structure', {
+    extent: '/world/prog-test/house',
+    entrance: ROOM_A,
+    buildings: ['/world/prog-test/house-building', '/world/prog-test/shed-building'],
+  });
+  add('/world/prog-test/house-building', '/system/residence/idea/HoldingBuilding', {
+    shortDescription: 'house',
+    keywords: ['house'],
+    extent: '/world/prog-test/house/home',
+    entrance: ROOM_A,
+  });
+  add('/world/prog-test/shed-building', '/system/residence/idea/HoldingBuilding', {
+    shortDescription: 'shed',
+    keywords: ['shed', 'building'],
+    extent: ROOM_D,
+    entrance: ROOM_D,
+  });
   // The blueprint's own zone (its rows author cells), and the lots' zone —
   // a copy's rooms stand in the lots', by their keys (B54).
   add('/world/prog-test/house', '/platform/idea/location/CartesianZone', { name: 'the house', cellSize: 6 });
@@ -155,8 +174,8 @@ function seedDomain(): void {
   // A PLAIN room: keeps nothing, so has no record (tracts build review).
   add(ROOM_C, '/platform/location/Location', {
     shortDescription: 'a porch',
-    // Open to the sky, so it is no building's — and it parts the shed
-    // from the house (a building is enclosed rooms joined by their ways).
+    // Open to the sky — but that is not why it is no building's: no
+    // building the blueprint names has it under its extent.
     enclosure: 'none',
     roof: 'none',
     exits: { west: { destination: ROOM_A }, north: { destination: ROOM_D } },
@@ -346,23 +365,10 @@ describe('the residential programme (D16)', () => {
       await w.admit(LOT1);
       return (w.holdingFor(LOT1) as unknown as HoldingWarren).roomForKey(key);
     });
-    // ⭐ A scan TO FIND the room is what is refused. (The holding's wake
-    // reads each room's exposure to group its buildings — paint merge — and
-    // that kernel read checks its neighbours are live by path; it finds no
-    // room, so it is not counted.)
-    const real = StuffApi.findAllByTemplatePath.bind(StuffApi);
-    const scans: string[] = [];
-    const scan = vi.spyOn(StuffApi, 'findAllByTemplatePath').mockImplementation(((p: string) => {
-      const prev = Error.stackTraceLimit;
-      Error.stackTraceLimit = 200;
-      const stack = new Error().stack ?? '';
-      Error.stackTraceLimit = prev;
-      if (!stack.includes('getObviousNeighbours')) scans.push(p);
-      return real(p);
-    }) as never);
+    const scan = vi.spyOn(StuffApi, 'findAllByTemplatePath');
     const bedroom = await PersistableApi.standUpKeyed(ROOM_B, `${LOT1}/bedroom`);
     expect(admit).toHaveBeenCalledWith(`${LOT1}/bedroom`);
-    expect(scans).toEqual([]);
+    expect(scan).not.toHaveBeenCalled();
     const holding = w.holdingFor(LOT1)! as unknown as HoldingWarren;
     expect(bedroom).toBe(holding.roomForLeaf('bedroom'));
     // The holding woken again hands back that room: one bedroom, not two.
@@ -514,7 +520,7 @@ describe('the residential programme (D16)', () => {
     clock.mockRestore();
   });
 
-  it('⭐ a holding has a building per group of enclosed rooms; open ground parts them and is no building (paint review)', async () => {
+  it('⭐ a holding has the buildings its blueprint NAMES; ground under none is no building (harbors review, 2026-11-03)', async () => {
     seedLot();
     await bootRegistries();
     const w = await institution();
@@ -528,7 +534,7 @@ describe('the residential programme (D16)', () => {
     const porch = holding.roomForLeaf('porch')!;
     const shedRoom = holding.roomForLeaf('shed')!;
     expect(holding.house()).toBe(house);
-    // The hall and the bedroom are joined by a way: one building.
+    // The hall and the bedroom lie under the house's extent: one building.
     expect(house.hasRoom(hall)).toBe(true);
     expect(house.hasRoom(bedroom)).toBe(true);
     expect(house.hasRoom(porch)).toBe(false);

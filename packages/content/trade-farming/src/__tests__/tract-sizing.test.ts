@@ -27,6 +27,7 @@ function holding(): HoldingWarren {
     entrance: '/world/_t/farm/yard',
     footprintM2: 400,
     rooms: [],
+    buildings: [],
   });
   h.setBlueprint('/world/_t/farmstead-blueprint');
   h.setPersistenceKey(LOT, true);

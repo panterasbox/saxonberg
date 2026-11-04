@@ -32,10 +32,9 @@ const read = (rel: string): { class?: string; data?: Record<string, unknown> } =
 const HINKLEY = "world/terminus/hinkley-hills";
 /** The house blueprint's rooms (harbors review 3), by leaf. */
 const rooms: Record<string, { class?: string; data?: Record<string, unknown> }> = Object.fromEntries(
-  ["yard", "hall", "kitchen", "living", "bedroom", "bathroom", "garden"].map((leaf) => [
-    leaf,
-    read(`${HINKLEY}/house/${leaf}.yaml`),
-  ]),
+  ["yard", "indoors/hall", "indoors/kitchen", "indoors/living", "indoors/bedroom", "indoors/bathroom", "garden"].map(
+    (rel) => [rel.slice(rel.lastIndexOf("/") + 1), read(`${HINKLEY}/house/${rel}.yaml`)],
+  ),
 );
 
 describe("the yard ships the kit that makes it workable", () => {
@@ -127,12 +126,21 @@ describe("one lot ships already sold", () => {
     expect(blueprint.data?.entrance).toBe(`/${HINKLEY}/house/yard`);
     expect(Object.keys(rooms)).toHaveLength(7);
   });
+
+  it("⭐ its one building is AUTHORED over the indoor rooms; the yard and garden are open ground (harbors review, 2026-11-03)", () => {
+    const blueprint = read(`${HINKLEY}/idea/house-blueprint.yaml`);
+    expect(blueprint.data?.buildings).toEqual([`/${HINKLEY}/idea/house-building`]);
+    const building = read(`${HINKLEY}/idea/house-building.yaml`);
+    expect(building.class).toBe("/system/residence/idea/HoldingBuilding");
+    expect(building.data?.extent).toBe(`/${HINKLEY}/house/indoors`);
+    expect(building.data?.entrance).toBe(`/${HINKLEY}/house/indoors/hall`);
+  });
 });
 
 describe("⭐ a Hinkley house has hot water (cleanliness)", () => {
   it("its bathroom is the house's own row, with a tub, its tap and a copper", () => {
     expect(rooms.bathroom).toBeDefined();
-    const row = read(`${HINKLEY}/house/bathroom.yaml`);
+    const row = read(`${HINKLEY}/house/indoors/bathroom.yaml`);
     expect(row.class).toBe("/platform/location/PersistentLocation");
     expect(row.data?.props).toEqual(
       expect.arrayContaining([

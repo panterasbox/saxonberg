@@ -88,6 +88,6 @@ data:
   exits:
     north:
       kind: /system/residence/idea/exits/keyed-door
-      destination: /world/terminus/hinkley-hills/house/hall
+      destination: /world/terminus/hinkley-hills/house/indoors/hall
     west:
       destination: /world/terminus/hinkley-hills/house/garden

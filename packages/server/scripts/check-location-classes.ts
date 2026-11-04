@@ -155,9 +155,9 @@ const FURNISHED = [
   "generic-objects/content/stuff/location/room/bathroom.yaml",
   "generic-objects/content/stuff/location/room/bedroom.yaml",
   "generic-objects/content/stuff/location/room/living.yaml",
-  "hinkley-hills/content/world/terminus/hinkley-hills/house/bathroom.yaml",
-  "hinkley-hills/content/world/terminus/hinkley-hills/house/hall.yaml",
-  "hinkley-hills/content/world/terminus/hinkley-hills/house/kitchen.yaml",
+  "hinkley-hills/content/world/terminus/hinkley-hills/house/indoors/bathroom.yaml",
+  "hinkley-hills/content/world/terminus/hinkley-hills/house/indoors/hall.yaml",
+  "hinkley-hills/content/world/terminus/hinkley-hills/house/indoors/kitchen.yaml",
   "hinkley-hills/content/world/terminus/hinkley-hills/house/yard.yaml",
   // ⭐ The valley farmstead's barn (tracts build): the farm's store, where a
   // holder's goods are laid back down; its holding places every copy.

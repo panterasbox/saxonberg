@@ -918,6 +918,11 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
   // ⭐ A warren's blueprint (harbors review 3) — a Structure row; its rooms
   // are the rows under the Structure's `extent`.
   push('blueprint', data.blueprint);
+  // ⭐ …and the buildings it names (harbors review, 2026-11-03) — Building
+  // rows, each minted per copy; the main one first.
+  if (Array.isArray(data.buildings)) {
+    for (const b of data.buildings) push('buildings', b);
+  }
   return out;
 }
 

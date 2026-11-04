@@ -4,6 +4,11 @@
 # the bathroom beyond it, with ordinary `exits:` and `coords:`. Never
 # served: the unit programme mints each unit's rooms from these rows,
 # keyed `(room row, <unit extent>/<leaf>)`.
+#
+# ⭐ It names NO `buildings` (harbors review, 2026-11-03): a flat is not a
+# building of its own, it is in one — every unit's extent lies under
+# Seznick House's (`structure.yaml`), so its rooms read that building's
+# fabric and coat. Its one building is authored there, not here.
 class: /platform/idea/Structure
 data:
   name: a Seznick House flat

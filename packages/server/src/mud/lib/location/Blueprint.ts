@@ -28,6 +28,15 @@
  * LEAF is the last segment of its row path (unique within the
  * blueprint); a one-room blueprint has none — its copy is keyed by the
  * warren's own key.
+ *
+ * ⭐⭐ **Its buildings are authored too** (harbors review, 2026-11-03).
+ * The blueprint's `buildings:` names each building of the kind, the main
+ * one first — a Building row with its own `extent` and `entrance`, like
+ * any building. A building's rooms are the blueprint's rooms at or under
+ * ITS extent: the Structure rule, read off the paths, never off how the
+ * rooms connect. Ground no building's extent covers (a yard, a tract, a
+ * garden) is no building's. A blueprint that names none (a flat) stands
+ * in the building its holding's own extent lies in.
  */
 
 import { Template } from '../stuff/Template';
@@ -46,6 +55,16 @@ export interface BlueprintRoom {
   exits: Record<string, ExitInstruction>;
 }
 
+/** One building of a blueprint, as its row says. */
+export interface BlueprintBuilding {
+  /** The building's row — what every copy's building clones from. */
+  row: string;
+  /** Its row's last segment — what tells a copy's buildings apart. */
+  leaf: string;
+  /** Its rooms' row paths: the blueprint's rooms at or under its extent. */
+  rooms: string[];
+}
+
 /** A blueprint, read off its rows. */
 export interface BlueprintPlan {
   /** The Structure row. */
@@ -56,8 +75,10 @@ export interface BlueprintPlan {
   entrance: string;
   /** The ground the buildings stand on that no tract covers, m². */
   footprintM2: number;
-  /** The rooms, the entrance first, then by row path. */
+  /** The rooms, the entrance first, then as the ways reach them. */
   rooms: BlueprintRoom[];
+  /** Its buildings, the main one first — `[]` when it names none. */
+  buildings: BlueprintBuilding[];
 }
 
 export class Blueprint {
@@ -132,7 +153,59 @@ export class Blueprint {
       entrance,
       footprintM2: Number.isFinite(footprint) && footprint > 0 ? footprint : 0,
       rooms,
+      buildings: await this.loadBuildings(data.buildings, rooms, inside),
     };
+  }
+
+  /**
+   * The blueprint's buildings off their rows. Throws — naming the row —
+   * on a building outside the blueprint, one with no rooms, an entrance
+   * that is not one of its rooms, or a room two buildings claim: each
+   * would stand up a building nobody could find or a room in two.
+   */
+  private async loadBuildings(
+    raw: unknown,
+    rooms: readonly BlueprintRoom[],
+    inside: (p: string) => boolean,
+  ): Promise<BlueprintBuilding[]> {
+    if (raw === undefined || raw === null) return [];
+    if (!Array.isArray(raw) || raw.some((r) => typeof r !== 'string' || r === '')) {
+      throw new Error(`Blueprint '${this.path}': buildings is a list of building rows`);
+    }
+    const claimed = new Map<string, string>();
+    const leaves = new Set<string>();
+    const out: BlueprintBuilding[] = [];
+    for (const path of raw as string[]) {
+      const row = await Template.findByPath(path);
+      if (!row) throw new Error(`Blueprint '${this.path}': building '${path}' has no row`);
+      const d = (row.data ?? {}) as Record<string, unknown>;
+      const extent = typeof d.extent === 'string' ? d.extent.replace(/\/+$/, '') : '';
+      const entrance = typeof d.entrance === 'string' ? d.entrance : '';
+      if (!extent || !entrance) {
+        throw new Error(`Blueprint '${this.path}': building '${path}' names an extent and an entrance`);
+      }
+      if (!inside(extent)) {
+        throw new Error(`Blueprint '${this.path}': building '${path}' lies outside it ('${extent}')`);
+      }
+      const within = (p: string): boolean => p === extent || p.startsWith(`${extent}/`);
+      const mine = rooms.filter((r) => within(r.row)).map((r) => r.row);
+      if (mine.length === 0) throw new Error(`Blueprint '${this.path}': building '${path}' has no rooms`);
+      if (!mine.includes(entrance)) {
+        throw new Error(`Blueprint '${this.path}': building '${path}' is entered by '${entrance}', none of its rooms`);
+      }
+      for (const r of mine) {
+        const other = claimed.get(r);
+        if (other !== undefined) {
+          throw new Error(`Blueprint '${this.path}': '${r}' is in two buildings ('${other}', '${path}')`);
+        }
+        claimed.set(r, path);
+      }
+      const leaf = path.slice(path.lastIndexOf('/') + 1);
+      if (leaves.has(leaf)) throw new Error(`Blueprint '${this.path}': two buildings are '${leaf}'`);
+      leaves.add(leaf);
+      out.push({ row: path, leaf, rooms: mine });
+    }
+    return out;
   }
 }
 

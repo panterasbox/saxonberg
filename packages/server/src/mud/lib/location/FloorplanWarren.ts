@@ -48,7 +48,7 @@
 
 import { type Attachment } from './Warren';
 import { RoomWarren } from './RoomWarren';
-import { Blueprint, type BlueprintPlan, type BlueprintRoom } from './Blueprint';
+import { Blueprint, type BlueprintBuilding, type BlueprintPlan, type BlueprintRoom } from './Blueprint';
 import { PersistableMixin } from '../persistence/Persistable';
 import { WarrenMemberMixin } from './WarrenMember';
 import { ContainerMixin } from '../spatial/Container';
@@ -132,6 +132,11 @@ export abstract class FloorplanWarren extends FloorplanBase {
   /** The blueprint's rooms as last read — `[]` before the first wake. */
   public blueprintRooms(): readonly BlueprintRoom[] {
     return this._plan?.rooms ?? [];
+  }
+
+  /** The blueprint's authored buildings, the main one first — `[]` before the first wake or for none. */
+  public blueprintBuildings(): readonly BlueprintBuilding[] {
+    return this._plan?.buildings ?? [];
   }
 
   /**

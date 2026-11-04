@@ -457,10 +457,17 @@ export default class LocationGraphRegistry extends Idea {
     // warren names as its `blueprint:` is the kind its copies are minted
     // from, so it attaches to nothing — a copy's room under its extent must
     // not stand it up or claim it as its structure, and nothing loads it.
+    // Nor is a building a blueprint names (`buildings:`): it is the kind
+    // each copy's building is minted from, its extent a blueprint room.
     const blueprints = new Set<string>();
     for (const row of all) {
       const b = (row.data as Record<string, unknown> | undefined)?.blueprint;
       if (typeof b === 'string' && b !== '') blueprints.add(b);
+    }
+    for (const path of [...blueprints]) {
+      const named = (rows.get(path) as Record<string, unknown> | undefined)?.buildings;
+      if (!Array.isArray(named)) continue;
+      for (const b of named) if (typeof b === 'string' && b !== '') blueprints.add(b);
     }
     const next = new Map<string, Map<string, AttachmentKind>>();
     const add = (anchor: string, target: string, kind: AttachmentKind): void => {

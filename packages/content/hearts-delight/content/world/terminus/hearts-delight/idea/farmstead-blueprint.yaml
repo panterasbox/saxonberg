@@ -8,9 +8,16 @@
 #
 # `footprintM2`: the ground the yard (400), the farmhouse (120) and the
 # barn (150) stand on, which no tract covers.
+#
+# ⭐ `buildings`: the farmhouse (the main one, first) and the barn — each
+# its own Building row with its own extent (harbors review, 2026-11-03).
+# The yard and the tracts lie under neither, so they are open ground.
 class: /platform/idea/Structure
 data:
   name: a valley farmstead
   extent: /world/terminus/hearts-delight/farmstead
   entrance: /world/terminus/hearts-delight/farmstead/location/yard
   footprintM2: 670
+  buildings:
+    - /world/terminus/hearts-delight/idea/farmstead-house
+    - /world/terminus/hearts-delight/idea/farmstead-barn

@@ -34,8 +34,8 @@ data:
     south:
       destination: /world/terminus/hinkley-hills/house/yard
     east:
-      destination: /world/terminus/hinkley-hills/house/kitchen
+      destination: /world/terminus/hinkley-hills/house/indoors/kitchen
     west:
-      destination: /world/terminus/hinkley-hills/house/living
+      destination: /world/terminus/hinkley-hills/house/indoors/living
     north:
-      destination: /world/terminus/hinkley-hills/house/bedroom
+      destination: /world/terminus/hinkley-hills/house/indoors/bedroom

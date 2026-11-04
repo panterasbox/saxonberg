@@ -5,8 +5,13 @@
 # unit extent, no leaf — so the D1 record shape is the pre-programme
 # dorm's, byte for byte. Never served: every leased unit's room is minted
 # from the row.
+#
+# ⭐ `buildings`: the room is its one building's extent and entrance
+# (harbors review, 2026-11-03) — authored, as every holding's are.
 class: /platform/idea/Structure
 data:
   name: a Duncan Hall dorm room
   extent: /world/terminus/eternal/duncan-hall/location/dormroom
   entrance: /world/terminus/eternal/duncan-hall/location/dormroom
+  buildings:
+    - /world/terminus/eternal/duncan-hall/idea/dorm-building

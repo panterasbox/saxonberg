@@ -14,6 +14,7 @@
 import '../../../../test-bootstrap';
 import { KERNEL_CONTENT_ROWS } from '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { Blueprint } from '../Blueprint';
 import { FloorplanWarren } from '../FloorplanWarren';
 import PersistentLocation from '../../../platform/location/PersistentLocation';
 import Thing from '../../../platform/thing/Thing';
@@ -271,6 +272,42 @@ describe('FloorplanWarren (harbors P1)', () => {
     expect((meadow as unknown as Exitable).getExit('east')!.getDestination()).toBe(w.entryRoom());
     expect(cell(meadow)).toEqual([-1, 0, 0]);
     expect(cell(w.roomForLeaf('bench'))).toEqual([0, 0, 1]);
+  });
+
+  it('⭐⭐ a blueprint\'s buildings are AUTHORED: each one\'s rooms are the rooms under its extent, never how they connect (harbors review, 2026-11-03)', async () => {
+    const row = (path: string, data: Record<string, unknown>, cls = '/platform/location/PersistentLocation') =>
+      col('content').push({ _id: `b-${path}`, path, class: cls, data });
+    const plan = (buildings: string[]) =>
+      row(`/test/fp3-blueprint-${buildings.length}`, {
+        extent: '/test/fp3', entrance: '/test/fp3/yard', buildings,
+      }, '/platform/idea/Structure');
+    row('/test/fp3/yard', {
+      exits: { north: { destination: '/test/fp3/home/hall' }, east: { destination: '/test/fp3/shed' } },
+    });
+    // A way joins the hall to the shed — and they are still two buildings.
+    row('/test/fp3/home/hall', {
+      exits: { south: { destination: '/test/fp3/yard' }, up: { destination: '/test/fp3/home/loft' }, east: { destination: '/test/fp3/shed' } },
+    });
+    row('/test/fp3/home/loft', { exits: { down: { destination: '/test/fp3/home/hall' } } });
+    row('/test/fp3/shed', { exits: { west: { destination: '/test/fp3/yard' } } });
+    row('/test/fp3-house', { extent: '/test/fp3/home', entrance: '/test/fp3/home/hall' }, '/platform/idea/Structure');
+    row('/test/fp3-shed', { extent: '/test/fp3/shed', entrance: '/test/fp3/shed' }, '/platform/idea/Structure');
+    plan(['/test/fp3-house', '/test/fp3-shed']);
+    const loaded = await new Blueprint('/test/fp3-blueprint-2').load();
+    expect(loaded.buildings).toEqual([
+      { row: '/test/fp3-house', leaf: 'fp3-house', rooms: ['/test/fp3/home/hall', '/test/fp3/home/loft'] },
+      { row: '/test/fp3-shed', leaf: 'fp3-shed', rooms: ['/test/fp3/shed'] },
+    ]);
+    // The yard lies under neither: open ground. A blueprint naming none has none.
+    row('/test/fp3-none', { extent: '/test/fp3', entrance: '/test/fp3/yard' }, '/platform/idea/Structure');
+    expect((await new Blueprint('/test/fp3-none').load()).buildings).toEqual([]);
+    // Loud on a content error: a room in two buildings, an entrance not its own.
+    row('/test/fp3-all', { extent: '/test/fp3', entrance: '/test/fp3/yard' }, '/platform/idea/Structure');
+    row('/test/fp3-twice', { extent: '/test/fp3', entrance: '/test/fp3/yard', buildings: ['/test/fp3-all', '/test/fp3-shed'] }, '/platform/idea/Structure');
+    await expect(new Blueprint('/test/fp3-twice').load()).rejects.toThrow(/in two buildings/);
+    row('/test/fp3-wrongdoor', { extent: '/test/fp3/home', entrance: '/test/fp3/shed' }, '/platform/idea/Structure');
+    row('/test/fp3-bad', { extent: '/test/fp3', entrance: '/test/fp3/yard', buildings: ['/test/fp3-wrongdoor'] }, '/platform/idea/Structure');
+    await expect(new Blueprint('/test/fp3-bad').load()).rejects.toThrow(/none of its rooms/);
   });
 
   it('names no upkeep term of its own and never buds — a holding answers its term', async () => {

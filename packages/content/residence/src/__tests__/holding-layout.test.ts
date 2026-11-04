@@ -21,6 +21,7 @@ function farm(): HoldingWarren {
     entrance: '/world/_t/farmstead/yard',
     footprintM2: 550,
     rooms: [],
+    buildings: [],
   });
   const h = makeStuffAtPath(() => new HoldingWarren(), '/world/_t/farmstead');
   h.setBlueprint('/world/_t/farmstead-blueprint');

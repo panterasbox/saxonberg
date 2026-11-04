@@ -8,4 +8,4 @@ data:
   roof: { material: /stuff/idea/material/rock/slate, thicknessM: 0.01 }
   exits:
     east:
-      destination: /world/terminus/hinkley-hills/house/hall
+      destination: /world/terminus/hinkley-hills/house/indoors/hall
