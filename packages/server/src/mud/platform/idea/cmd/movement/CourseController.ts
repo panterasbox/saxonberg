@@ -206,6 +206,11 @@ export default class CourseController extends CommandController<CourseModel> {
       ];
       return this.tell(context, lines.join('\n'));
     }
+    // ⭐ Her helm before her heading (harbors drive, 2026-11-03): somebody
+    // who is not her master is told so whatever they name — not that the
+    // river has no such landing, which reads as if naming the right one
+    // would have worked.
+    if (!this.mayHelm(context, craft, context.commandGiver)) return;
     let direction = RIVER_WAYS[heading];
     let landing: string | null = null;
     if (direction === undefined && (heading === 'bar' || heading === 'sea' || heading === 'mouth')) {
@@ -221,7 +226,6 @@ export default class CourseController extends CommandController<CourseModel> {
       direction = named.km > here.km ? 'upstream' : 'downstream';
       landing = named.path;
     }
-    if (!this.mayHelm(context, craft, context.commandGiver)) return;
     if (!(await this.mayLeave(model, context, craft, context.commandGiver))) return;
     const started = await craft.steer({ speedKn: craft.getSpeedKn(), direction, toward: landing, slow });
     if ('refused' in started) return this.decline(context, started.refused, 'river-refused');

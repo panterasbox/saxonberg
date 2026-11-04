@@ -698,7 +698,7 @@ suite('B1 — she keeps across a restart (15)', () => {
 
   it('16. (staged · player — twin of soak S1) her hull staged worn and her sleep staged long: settled at her berth; her hull reads worn; pump her out', async () => {
     await stageShip(NAME1, { hull: 'worn', sleptDays: 60 });
-    const held = await say(owner, 'course roads');
+    const held = await say(owner, 'course bar');
     expect(held, held).toMatch(/settled onto the mud/);
     const survey = await say(owner, 'survey');
     expect(survey, survey).toMatch(/fabric of the place is worn/);
@@ -746,7 +746,7 @@ suite('B3 — the hull’s decline (at her berth)', () => {
 });
 
 suite('B1 — at sea (14)', () => {
-  it('14. (short · player) her dues paid, `course roads`; at sea, `government`: the City of Terminus, her flag state', async () => {
+  it('14. (short · player) her dues paid, `course bar`; at sea, `government`: the City of Terminus, her flag state', async () => {
     await inOfficeHours();
     // ⚠ A smack owes a day's dues the moment she leaves the yard quay.
     expectOk(await owner.cmd('go ashore'));
@@ -759,7 +759,12 @@ suite('B1 — at sea (14)', () => {
     expectOk(await owner.cmd('go west'));
     expectOk(await owner.cmd('go west'));
     expectOk(await owner.cmd(`go ${way1}`));
-    const laid = await say(owner, 'course roads');
+    // ⚠ (drive 2026-11-03) `course bar`, not `course roads`: on the river a
+    // course is up, down, or a landing on it — the river takes her out over
+    // the bar and "the next course is the sea's" (river D18). The roads are
+    // a node of the sea, so naming them from the yard quay was the step's
+    // error; she is at sea once she lies off the bar.
+    const laid = await say(owner, 'course bar');
     expect(laid, laid).toMatch(/lay a course|under way/i);
     const heard = await comeIn(owner, 18);
     expect(heard, heard).toMatch(/not under way|roads|lies/i);

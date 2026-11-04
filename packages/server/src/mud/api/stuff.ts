@@ -752,17 +752,18 @@ export class StuffApi {
    * fresh instance). Any *domain* semantics on top (a Warren landing in
    * its host, a recall) belong in the caller, not here.
    *
-   * ⭐ **A `Persistable` host reached by its bare path is the row's one
-   * record** — the establishing context {@link singleton} documents — so
+   * ⭐ **A `Persistable` host, or a `WarrenMember` room, reached by its
+   * bare path is the row's one instance** — the establishing context {@link singleton} documents — so
    * it is get-or-created, never cloned again. Its keyed instances (a
    * smack's deck, a dorm unit) are minted by their provisioner and are
    * reached by their own durable handle (`row#key`), never by the bare
    * row: a bare path naming a row that only has keyed instances live is a
    * caller error and THROWS rather than handing back somebody's room or
-   * a bare clone. (The harbors drive found it: a ship's room is a
-   * `Compartment` — `Persistable`, not `Singleton`, because a kind's row
-   * is every smack's — and every landing on the Hesper's deck by path
-   * minted another, empty, deck.)
+   * a bare clone. (The harbors drive found it twice: a ship's room is a
+   * `Compartment` — not `Singleton`, because a kind's row is every
+   * smack's — and every landing on an authored ship's deck by path minted
+   * another deck; since a deck keeps no record it is the warren-member
+   * test, not the persistable one, that catches it.)
    */
   public static async singletonOrClone<T extends Stuff>(
     path: string,
@@ -772,7 +773,17 @@ export class StuffApi {
     if (MixinApi.hasMixin(cls, Mixins.Singleton)) {
       return this.singleton<T>(path, context);
     }
-    if (MixinApi.hasMixin(cls, Mixins.Persistable)) {
+    // ⭐ A warren member is the same case (harbors drive, 2026-11-03): an
+    // authored ship's deck is a plain `Compartment` since review 2 (only
+    // her hold keeps a record), and a landing on it by its row's path —
+    // a login's `startLocation`, a `goto` — cloned a SECOND deck every
+    // time. The ship then found eleven decks where her `watchRoom` asks
+    // for one, read none, and had "no lines to make fast". Her own wake
+    // stands her rooms up through `singleton()`; a landing must too.
+    if (
+      MixinApi.hasMixin(cls, Mixins.Persistable) ||
+      MixinApi.hasMixin(cls, Mixins.WarrenMember)
+    ) {
       const keyed = this.#indexes.byTemplatePath
         .exact(path)
         .some(

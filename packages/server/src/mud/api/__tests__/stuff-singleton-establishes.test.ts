@@ -127,3 +127,33 @@ describe("StuffApi.singletonOrClone on a persistable, non-singleton class", () =
   });
 });
 
+
+/**
+ * ⭐ A `WarrenMember` room that keeps no record (an authored ship's deck, a
+ * plain `Compartment` since harbors review 2) is the same case: a landing
+ * by its row's path gets the one standing room. The harbors drive
+ * (2026-11-03) found eleven Corrigan decks — one per founder login on her
+ * deck — and her `watchRoom` read none of them.
+ */
+describe("StuffApi.singletonOrClone on a warren member that keeps no record", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("routes through singleton(), never a second clone", async () => {
+    StuffApi.clearAll();
+    const { default: Compartment } = await import(
+      "../../platform/location/Compartment"
+    );
+    vi.spyOn(StuffApi, "classForRef").mockResolvedValue(Compartment as never);
+    const room = makeStuff(() => new Compartment());
+    const single = vi
+      .spyOn(StuffApi, "singleton")
+      .mockResolvedValue(room as never);
+    const clone = vi.spyOn(StuffApi, "clone");
+    expect(await StuffApi.singletonOrClone("/world/x/ship/deck")).toBe(room);
+    expect(await StuffApi.singletonOrClone("/world/x/ship/deck")).toBe(room);
+    expect(single).toHaveBeenCalledTimes(2);
+    expect(clone).not.toHaveBeenCalled();
+  });
+});
