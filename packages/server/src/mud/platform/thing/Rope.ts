@@ -2,7 +2,7 @@
  * Rope — ⭐⭐ **one rope; its use is where its ends are tied** (cordage D1).
  *
  * A lifeline is a rope a tender holds with a diver on the end; a heaving
- * line is a rope thrown to a swimmer; a painter is a rope on a boat's bow;
+ * line is a rope thrown to a swimmer; a bow line is a rope on a boat's bow;
  * a rope tied round a post at the lip of a pit is a way down. There is one
  * class and one row shape — what it is FOR is where its two ends are:
  *

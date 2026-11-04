@@ -2,8 +2,8 @@
  * BilgeWell — ⭐ **the well in a ship's bottom where her bilge water
  * gathers, and the pump set in it** (harbors P19, B4).
  *
- * A ship's hull weeps as its seams go (her shell's band, on the house's
- * clock), and what comes in lies in her bilge: `Ship.bilgeL`, reconciled
+ * A ship's hull weeps as its seams go (her `Durable` seams, worn once her coat
+ * is gone), and what comes in lies in her bilge: `Ship.bilgeL`, reconciled
  * on read. This fixture is how a hand gets at it. It answers the kernel's
  * two pump shapes off its SHIP and holds nothing of its own:
  *

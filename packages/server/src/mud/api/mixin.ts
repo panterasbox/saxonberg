@@ -1349,7 +1349,7 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.SmallCraft);
   }
 
-  /** ⭐ The end of a line in somebody's hand (river W16) — a painter, a lifeline. */
+  /** ⭐ The end of a line in somebody's hand (river W16) — a bow line, a lifeline. */
   public static isTetherEnd(obj: Stuff): obj is Stuff & TetherEnd {
     return this.hasMixin(obj, Mixins.TetherEnd);
   }

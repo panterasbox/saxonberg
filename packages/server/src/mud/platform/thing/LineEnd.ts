@@ -52,7 +52,7 @@ export default class LineEnd extends TieableMixin(TetherEndMixin(Good)) {
   /**
    * ⭐ The line's far end (river W16): whoever or whatever has the line
    * itself — the tender carrying it, the boat it lies in. What the water
-   * asks of a painter in a walker's hand.
+   * asks of a bow line in a walker's hand.
    */
   public override tetheredTo(): Stuff | null {
     const line = this.getLine();

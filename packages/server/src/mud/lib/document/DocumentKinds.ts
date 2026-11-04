@@ -285,8 +285,8 @@ export const DOCUMENT_KINDS = {
   'rate-card': { kind: 'rate-card', naturalKey: null, contentDir: 'rate-cards', ext: 'yaml', onVanish: 'keep' },
   /**
    * A **ship's register entry** — her name in this register, her kind, her
-   * durable handle, her flag, her owners by shares (sixty-fourths) and
-   * where she lies (harbors P14).
+   * identity, her flag, when she was entered, and the company that owns
+   * her (title only — her owners are that company's cap table).
    *
    * ⭐⭐ **You file; you do not hold the pen** — the herd's rule. An entry
    * lives under the GOVERNMENT's own branch
