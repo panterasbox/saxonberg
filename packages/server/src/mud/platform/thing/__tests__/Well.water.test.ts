@@ -11,6 +11,10 @@
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Well from '../Well';
+import Rope from '../Rope';
+import Vessel from '../CraftVessel';
+import Chest from '../Chest';
+import { ContainmentApi } from '../../../api/containment';
 import Material from '../../../lib/material/Material';
 import { StuffApi } from '../../../api/stuff';
 import { WorldClockApi } from '../../../api/worldclock';
@@ -107,5 +111,53 @@ describe('⭐⭐ wells on one aquifer share one level', () => {
     const hillside = well(14, { aquifer: '/stuff/idea/Aquifer/test', collar: 458 });
     await hillside.standingAvailableL();
     expect(hillside.standingDepthM()).toBe(12);
+  });
+});
+
+describe('⭐ a bucket on a rope draws where no pump is (step 13)', () => {
+  function pail(): Vessel {
+    return makeStuff(() => {
+      const v = new Vessel();
+      (v as unknown as { interiorBulk: boolean }).interiorBulk = true;
+      v.setInteriorCapacity(Quantity.of(10, 'L'));
+      return v;
+    });
+  }
+  function rope(m: number): Rope {
+    return makeStuff(() => {
+      const r = new Rope();
+      r.setLengthM(m);
+      return r;
+    });
+  }
+  function holder(...things: Array<Rope | Vessel>): Chest {
+    const c = makeStuff(() => new Chest());
+    for (const t of things) ContainmentApi.move(t, c);
+    return c;
+  }
+
+  it('with a rope long enough, the haul brings up what the pail holds', async () => {
+    const w = well(14, { body: 5 });
+    const p = pail();
+    const by = holder(p, rope(20));
+    await w.beforeDrawInto('interior', p, by);
+    expect(w.getBulkAmount('interior').rawValue()).toBe(10);
+    expect(w.bulkWhyEmpty('interior')).toBeNull();
+  });
+
+  it('without a rope, it says the water is out of reach and how far down', async () => {
+    const w = well(14, { body: 5 });
+    const p = pail();
+    await w.beforeDrawInto('interior', p, holder(p));
+    expect(w.getBulkAmount('interior').rawValue()).toBe(0);
+    expect(w.bulkWhyEmpty('interior')).toMatch(/stands 14 m down\. A bucket wants a rope/);
+  });
+
+  it('a rope too short for the depth reaches nothing', async () => {
+    const w = well(14, { body: 5 });
+    const p = pail();
+    await w.beforeDrawInto('interior', p, holder(p, rope(6)));
+    expect(w.getBulkAmount('interior').rawValue()).toBe(0);
+    expect(w.bulkWhyEmpty('interior')).toMatch(/6 m long; the water stands 14 m down/);
   });
 });

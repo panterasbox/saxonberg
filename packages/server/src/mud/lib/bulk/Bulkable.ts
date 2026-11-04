@@ -491,6 +491,13 @@ export interface Bulkable {
    */
   bulkWhyEmpty(affordance: BulkAffordance): string | null;
   /**
+   * @hook Called by `fill` before it draws from this slot into `vessel`,
+   * for `by` — a source that has to be WORKED to give (a well with no pump:
+   * a bucket on a rope hauls the water up) brings it to the slot here.
+   * Default: nothing to do. Read before `settleBulk`.
+   */
+  beforeDrawInto(affordance: BulkAffordance, vessel: Stuff, by: Stuff): Promise<void>;
+  /**
    * @hook `by` has just poured `litres` OUT of this (the pour verb calls
    * it). A no-op on an ordinary vessel; a tall lye hopper splashes a
    * bare-handed pourer's face (cleanliness D23).
@@ -936,6 +943,10 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
 
     public bulkWhyEmpty(_affordance: BulkAffordance): string | null {
       return null;
+    }
+
+    public beforeDrawInto(_affordance: BulkAffordance, _vessel: Stuff, _by: Stuff): Promise<void> {
+      return Promise.resolve();
     }
 
     public afterPouredOutBy(_by: Stuff, _litres: number): void {}

@@ -64,6 +64,11 @@ export default class FillController extends CommandController<FillModel> {
       source,
       model.source.via
     );
+    // A source worked to give (a well's bucket on a rope) brings its water
+    // up first; the slot then reads what it holds.
+    if (fromSlot !== null && MixinApi.isBulkable(source)) {
+      await source.beforeDrawInto(fromSlot.affordance, target, giver);
+    }
     await fromSlot?.settle();
     if (fromSlot === null) {
       MessageApi.scene(giver)

@@ -46,6 +46,9 @@ import type { CommandContributions } from '../../api/command';
 import type { GroundWater } from '../../lib/supply/SupplyState';
 import { WorldClockApi } from '../../api/worldclock';
 import { ZoneApi } from '../../api/zone';
+import { BulkableApi } from '../../api/bulk';
+import Rope from './Rope';
+import type { BulkAffordance } from '../../lib/bulk/Bulkable';
 
 /** What stands at the bottom of a well when the row does not say. */
 const WATER_PATH = '/stuff/idea/material/bulk/water';
@@ -254,6 +257,60 @@ export default class Well extends WellBase implements LiftSource, PumpSource {
     if (slot.getMaterialPath() === null) slot.setMaterial(material);
     slot.setAmount(Quantity.of(slot.getAmount().rawValue() + moved, 'L'));
     return moved;
+  }
+
+  // ---------- ⭐ the bucket on a rope ----------
+
+  /** Why the last haul gave nothing, for `fill` to say — cleared by the next. */
+  private _haulRefusal: string | null = null;
+
+  /**
+   * ⭐ A bucket on a rope (water-supply, the browser walk): `fill pail from
+   * well` at a well with no pump hauls the water up — a rope tied to the
+   * vessel, or one the drawer carries, at least as long as the water stands
+   * deep. A bucket asks no suction question (pump.md: category A, any
+   * depth); the haul lifts what the vessel will hold into the trough, and
+   * `fill` pours it on. A well with a pump in it is pumped instead.
+   */
+  public override async beforeDrawInto(affordance: BulkAffordance, vessel: Stuff, by: Stuff): Promise<void> {
+    await super.beforeDrawInto(affordance, vessel, by);
+    this._haulRefusal = null;
+    if (affordance !== 'interior' || this.pumpFitted() !== null) return;
+    if (!this.getBulk('interior').isEmpty()) return;
+    const available = await this.standingAvailableL();
+    const depthM = this.standingDepthM();
+    if (!(available > 0)) {
+      this._haulRefusal = 'You let the bucket down and it comes up dry: there is no water standing in the well.';
+      return;
+    }
+    const rope = this.ropeFor(vessel, by);
+    if (rope === null) {
+      this._haulRefusal = `The water stands ${depthM.toFixed(0)} m down. A bucket wants a rope to reach it.`;
+      return;
+    }
+    if (rope.getLengthM() < depthM) {
+      this._haulRefusal =
+        `${rope.getPresentation()} is ${rope.getLengthM().toFixed(0)} m long; ` +
+        `the water stands ${depthM.toFixed(0)} m down.`;
+      return;
+    }
+    const want = BulkableApi.slotFor(vessel, undefined)?.remaining() ?? 0;
+    if (want > 0) await this.liftInto(Number.isFinite(want) ? want : 10);
+  }
+
+  public override bulkWhyEmpty(affordance: BulkAffordance): string | null {
+    return affordance === 'interior' && this._haulRefusal !== null
+      ? this._haulRefusal
+      : super.bulkWhyEmpty(affordance);
+  }
+
+  /** The rope a haul uses: one tied round the vessel, else one the drawer holds. */
+  private ropeFor(vessel: Stuff, by: Stuff): Rope | null {
+    const held = MixinApi.isContainer(by) ? (by.getContents() as Stuff[]) : [];
+    const here = this.getContainer();
+    const around = here !== null && MixinApi.isContainer(here) ? (here.getContents() as Stuff[]) : [];
+    const ropes = [...held, ...around].filter((c): c is Rope => c instanceof Rope && !c.isDestroyed());
+    return ropes.find((r) => r.getAnchor() === vessel) ?? ropes.find((r) => held.includes(r)) ?? null;
   }
 
   public liftScope(): (Stuff & Container) | null {
