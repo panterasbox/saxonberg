@@ -492,7 +492,7 @@ suite('⭐ 17 — bisque fire, with cones in the spy-hole', () => {
     await say(novice, 'get 1 cones');
     const plain1 = await say(novice, 'analyze temperature kiln');
     expect(plain1, `the novice at the spy-hole: ${plain1}`).toMatch(/cone/i);
-    expect(plain1).toMatch(/glow/i);
+    expect(plain1).toMatch(/glow|white-hot/i);
     await say(potter, 'get 1 cones');
     const fine = await say(potter, 'analyze temperature kiln');
     expect(fine, `the potter at the spy-hole: ${fine}`).toMatch(/cone (08|04|6)/i);
@@ -520,7 +520,7 @@ suite('⭐ 18 — glaze', () => {
     await toHour(8, 14);
     // The two tubs: ash (or lead) with a little clay and water, stirred.
     potter = await clayFor(potter, 1);
-    await say(potter, 'get pail');
+    await say(potter, 'get 1 pail');
     await say(potter, 'fill pail from butt');
     await say(potter, 'get ash');
     // ⚠ Two-word names are quoted on a command line (run 27: `put ash in

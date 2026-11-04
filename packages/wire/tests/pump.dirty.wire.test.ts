@@ -265,7 +265,7 @@ suite('1. the village well reads in words, and no numbers', () => {
 
 suite('2. pump well, and carry water a machine raised', () => {
   it('⭐⭐ an unpumped trough is empty, honestly', async () => {
-    await say(k, 'get pail');
+    await say(k, 'get 1 pail');
     await k.drainProse();
     expect(await carried(k)).toMatch(/pail/i);
     const { r: fill, said } = await act(k, 'fill pail from well');

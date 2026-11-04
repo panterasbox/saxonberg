@@ -36,7 +36,7 @@ data:
   # The shipped toxin route: lead, the persistent contaminant the lead
   # glaze's leach already doses with (`leaches` on a lead glaze).
   toxicity:
-    - { type: lead-poisoning, amount: 6 }
+    - { type: lead, amount: 6 }
   tags: [liquid, water, beverage, drinkable]
   composition: []
   biologicalSource: null

@@ -46,6 +46,8 @@ import {
 import { installV1QuantityMarshallers } from '../../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import type { CommandContext, CommandModel } from '../../../../../api/command';
 import type { StoredDocument } from '../../../../../lib/document/StoredDocument';
+import BuildingBase from '../../../../../lib/structure/Building';
+import { NavigationApi } from '../../../../../api/navigation';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
 import { Idea } from '../../../../../lib/stuff/Idea';
 import type { Container } from '../../../../../lib/spatial/Container';
@@ -154,6 +156,14 @@ function bed(): Chair {
   b.setRestQuality(2.0);
   b.setShortDescription('a bed');
   return b;
+}
+
+/** A building whose weather is not walked here — its condition is set by the test. */
+class TestHouse extends BuildingBase {
+  static _mixinName = 'SurveyTestHouse';
+  public override weatherScope(): Stuff | null {
+    return null;
+  }
 }
 
 /**
@@ -282,7 +292,7 @@ describe('survey', () => {
   });
 
   it('at home it reads the WHOLE place, and adds the shell and the term', async () => {
-    const hall = makeStuff(() => new PersistentLocation());
+    const hall = makeStuffAtPath(() => new PersistentLocation(), '/world/_survey/house/hall');
     const bedroom = makeStuff(() => new PersistentLocation());
     ContainmentApi.move(
       bed() as unknown as Stuff & Containable,
@@ -293,6 +303,10 @@ describe('survey', () => {
       'worn',
       'the paint has gone; rain has gotten into the sills',
     );
+    // ⭐ The fabric is the BUILDING's (paint D13): a bare house, half worn.
+    const house = makeStuff(() => new TestHouse());
+    house.setCondition(0.5);
+    vi.spyOn(NavigationApi, 'structureAt').mockResolvedValue(house as never);
 
     // Standing in the HALL, which has nothing in it at all.
     await survey(makeStuff(() => new Locale()), hall);
@@ -300,7 +314,7 @@ describe('survey', () => {
     // The bedroom next door answers for the whole holding.
     expect(captured).toContain('a bedroom: yes');
     expect(captured).toContain('The fabric of the place is worn');
-    expect(captured).toContain('rain has gotten into the sills');
+    expect(captured).toContain('the paint has gone');
     expect(captured).toContain(
       'Upkeep here is the landlord’s for the shell; yours for what you put in it',
     );

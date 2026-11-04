@@ -3,7 +3,7 @@
 // @internal lands on the reflection TypeDoc emits, not on the module.)
 
 import type { Stuff } from '../../../lib/stuff/Stuff';
-import type Structure from '../Structure';
+import type Structure from '../../../lib/structure/Structure';
 import type { AttachmentKind } from '../../../api/navigation';
 import { ApiLogic } from '../../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../../lib/security/decorators';
@@ -62,15 +62,20 @@ function isStructure(s: Stuff): s is Stuff & Structure {
   return typeof c.hasMember === 'function' && typeof c.getExtent === 'function';
 }
 
-function innermostStructure(place: string, paths: readonly string[]): Structure | null {
+function innermostStructure(
+  place: string,
+  paths: readonly string[],
+  live: readonly Stuff[] = [],
+): Structure | null {
   let best: Structure | null = null;
-  for (const p of paths) {
-    // Structural: a value import of `Structure` here closes a module cycle.
-    const s = StuffApi.findByTemplatePath(p) as (Stuff & Partial<Structure>) | undefined;
-    if (!s || typeof s.hasMember !== 'function' || s.isDestroyed()) continue;
-    if (!isStructure(s) || !s.hasMember(place)) continue;
+  const consider = (s: Stuff | undefined): void => {
+    if (!s || s.isDestroyed()) return;
+    if (!isStructure(s) || !s.hasMember(place)) return;
     if (best === null || s.getExtent().length > best.getExtent().length) best = s;
-  }
+  };
+  // Structural: a value import of `Structure` here closes a module cycle.
+  for (const p of paths) consider(StuffApi.findByTemplatePath(p) as Stuff | undefined);
+  for (const s of live) consider(s);
   return best;
 }
 
@@ -304,15 +309,33 @@ export class NavigationLogic extends ApiLogic {
   /** See {@link NavigationApi.structureAt}. */
   @CallSecurity(NavigationApiCallers)
   public async structureAt(path: string): Promise<Structure | null> {
-    const paths = (await registry()?.attachedTo(path, 'structure')) ?? [];
+    const reg = registry();
+    const paths = (await reg?.attachedTo(path, 'structure')) ?? [];
     await Promise.all(paths.map((p) => StuffApi.singleton(p).catch(() => null)));
-    return innermostStructure(path, paths);
+    return innermostStructure(path, paths, reg?.liveStructuresAt(path) ?? []);
   }
 
   /** See {@link NavigationApi.structureAtNow}. */
   @CallSecurity(NavigationApiCallers)
   public structureAtNow(path: string): Structure | null {
-    return innermostStructure(path, registry()?.attachedNow(path, 'structure') ?? []);
+    return this.innermostNow(path);
+  }
+
+  private innermostNow(path: string): Structure | null {
+    const reg = registry();
+    return innermostStructure(path, reg?.attachedNow(path, 'structure') ?? [], reg?.liveStructuresAt(path) ?? []);
+  }
+
+  /** See {@link NavigationApi.attachStructure}. */
+  @CallSecurity(NavigationApiCallers)
+  public attachStructure(extent: string, structure: Structure): void {
+    registry()?.attachStructure(extent, structure);
+  }
+
+  /** See {@link NavigationApi.detachStructure}. */
+  @CallSecurity(NavigationApiCallers)
+  public detachStructure(extent: string, structure: Structure): void {
+    registry()?.detachStructure(extent, structure);
   }
 
   /** See {@link NavigationApi.attachedWithinNow}. */

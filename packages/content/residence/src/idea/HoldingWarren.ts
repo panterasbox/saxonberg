@@ -36,16 +36,17 @@ import { PersistableMixin } from '@saxonberg/server/mud/lib/persistence/Persista
 import { WarrenMemberMixin } from '@saxonberg/server/mud/lib/location/WarrenMember';
 import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
-import { AppApi } from '@saxonberg/server/mud/api/app';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { NavigationApi } from '@saxonberg/server/mud/api/navigation';
 import { ParcelApi } from '@saxonberg/server/mud/api/parcel';
 import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
-import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Persistable } from '@saxonberg/server/mud/lib/persistence/Persistable';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
+import HoldingBuilding, { HOLDING_BUILDING_ROW } from './HoldingBuilding';
+import type StructureBase from '@saxonberg/server/mud/lib/structure/Structure';
+import BuildingBase from '@saxonberg/server/mud/lib/structure/Building';
 import type { MirrorAxis } from '@saxonberg/server/mud/lib/location/PlatPlan';
 
 type MemberStuff = Stuff & Container;
@@ -71,6 +72,13 @@ export interface FloorplanRoom {
    * give the open ground the shares divide.
    */
   footprintM2?: number;
+  /**
+   * ⭐ Which BUILDING an enclosed room is part of (paint review): rooms
+   * with no key are the main building; a farmstead's barn names `barn`
+   * and is a building of its own, with its own coat and condition. Open
+   * ground is no building's, whatever it says.
+   */
+  building?: string;
 }
 
 /** One intra-holding edge (authored on the programme row). */
@@ -93,17 +101,6 @@ export const UPKEEP_TERMS = [
   'owner-all',
 ] as const;
 
-/** The five condition bands — banded prose, no gauge (P10). */
-const CONDITION_BANDS: Array<[number, string]> = [
-  [0.9, 'sound'],
-  [0.7, 'weathered'],
-  [0.5, 'worn'],
-  [0.25, 'shabby'],
-  [0, 'dilapidated'],
-];
-
-const GAME_DAY_SECONDS = 86_400;
-
 const ProgrammeBase = PersistableMixin(
   WarrenMemberMixin(
     ContainerMixin(RoomWarren),
@@ -115,8 +112,6 @@ export default class HoldingWarren extends ProgrammeBase {
     floorplan: { persistent: true, authorable: true },
     upkeepTerm: { persistent: true, authorable: true },
     addressBase: { persistent: true, authorable: true },
-    shellCondition: { persistent: true },
-    shellStamp: { persistent: true },
     mirrorAxis: { persistent: true },
   };
 
@@ -149,11 +144,9 @@ export default class HoldingWarren extends ProgrammeBase {
    *  derives from the holding key's tail. */
   public addressBase: string = '';
 
-  /** Shell condition, 0..1 (D4) — persistent, reconciled on read. */
-  public shellCondition: number = 1;
-
-  /** Game-time stamp (seconds) of the last shell reconcile. */
-  public shellStamp: number = 0;
+  /** The holding's minted house, when it has one of its own (paint D6). */
+  /** The holding's buildings by name (`''` the main one) — minted at its wake. */
+  private _houses: Map<string, HoldingBuilding> = new Map();
 
   /** Live rooms by full key (`<extent>` or `<extent>/<leaf>`). */
   private _roomsByKey: Map<string, MemberStuff> = new Map();
@@ -183,6 +176,7 @@ export default class HoldingWarren extends ProgrammeBase {
       entry: r.entry === true,
       share: typeof r.share === 'number' ? r.share : undefined,
       footprintM2: typeof r.footprintM2 === 'number' ? r.footprintM2 : undefined,
+      building: typeof r.building === 'string' && r.building !== '' ? r.building : undefined,
     }));
   }
 
@@ -310,6 +304,7 @@ export default class HoldingWarren extends ProgrammeBase {
       await this.wireEdge(edge);
     }
     this.layOut();
+    await this.wakeHouses();
   }
 
   /** ⭐ A holding is a frame of its own — see {@link layOut}. */
@@ -525,6 +520,12 @@ export default class HoldingWarren extends ProgrammeBase {
     }
     const extent = this.holdingKey();
     if (extent) await PersistableApi.capture(this as unknown as Stuff, extent);
+    if (extent) {
+      for (const [name, house] of this._houses) {
+        if (house.isDestroyed()) continue;
+        await PersistableApi.capture(house, this.houseKeyOf(extent, name));
+      }
+    }
   }
 
   /**
@@ -558,6 +559,15 @@ export default class HoldingWarren extends ProgrammeBase {
     }
     super.teardown(); // destructs every member room
     this._roomsByKey.clear();
+    const houses = [...this._houses.values()];
+    this._houses.clear();
+    for (const house of houses) {
+      if (house.isDestroyed()) continue;
+      for (const at of this.attachPointsOf(house)) NavigationApi.detachStructure(at, house);
+      if (revert) house.markForRevert();
+      house.setHolding(null);
+      StuffApi.destruct(house);
+    }
   }
 
   /**
@@ -593,73 +603,119 @@ export default class HoldingWarren extends ProgrammeBase {
         }
         await PersistableApi.deleteAllFor(key);
       }
+      for (const name of this._houses.keys()) {
+        if (name !== '') await PersistableApi.deleteAllFor(this.houseKeyOf(extent, name));
+      }
       await PersistableApi.deleteAllFor(extent);
     }
     this.teardown();
   }
 
-  // ── shell condition + the weathering clock (D4/P10) ─────────────
+  // ── the buildings: the fabric is the building's (paint D6/D13) ──
 
   /**
-   * Reconcile the shell's weathering: a linear slope on GAME time,
-   * rate from the `residence.weather.daysToWorn` setting (game-days
-   * from sound to worn — HALF the condition scale, so full decay takes
-   * twice that). Stamp-forward; no scheduler; honest across restarts
-   * because the stamp is persistent state.
+   * ⭐⭐ This holding's MAIN building — the one its shell belongs to, and
+   * the one "the home you hold" reads. A holding stands its buildings up
+   * at its wake: the Structure ROW that already covers its extent (Seznick
+   * House, Duncan Hall — one building, many units), else a
+   * {@link HoldingBuilding} per building of its own (a farmstead's house
+   * and barn are two — the floorplan's `building:` key), registered with
+   * the location graph room by room. Who OWES the upkeep stays here
+   * (`upkeepTerm`).
    */
-  public reconcileShell(): number {
-    const now = WorldClockApi.getNow().rawValue();
-    if (this.shellStamp <= 0) {
-      this.shellStamp = now;
-      return this.shellCondition;
-    }
-    const elapsed = now - this.shellStamp;
-    if (elapsed <= 0) return this.shellCondition;
-    const daysToWorn = this.settingNumber('residence.weather.daysToWorn', 45);
-    const perSecond = 0.5 / (daysToWorn * GAME_DAY_SECONDS);
-    this.shellCondition = Math.max(
-      0,
-      this.shellCondition - elapsed * perSecond,
-    );
-    this.shellStamp = now;
-    return this.shellCondition;
+  public house(): BuildingBase | null {
+    const own = this._houses.get('') ?? [...this._houses.values()][0];
+    if (own !== undefined && !own.isDestroyed()) return own;
+    const extent = this.holdingKey();
+    if (!extent) return null;
+    const s = NavigationApi.structureAtNow(extent);
+    return s instanceof BuildingBase ? s : null;
   }
 
-  /** The banded, no-gauge read (P10): sound / weathered / worn /
-   *  shabby / dilapidated. Reconciles first. */
-  public conditionBand(): string {
-    const c = this.reconcileShell();
-    for (const [floor, band] of CONDITION_BANDS) {
-      if (c >= floor) return band;
-    }
-    return 'dilapidated';
+  /** Every building this holding minted, the main one first. */
+  public buildings(): BuildingBase[] {
+    const out = [...this._houses.values()].filter((h) => !h.isDestroyed());
+    if (out.length > 0) return out;
+    const covering = this.house();
+    return covering === null ? [] : [covering];
   }
 
-  /** The legible cause line for a declined shell. */
-  public conditionCause(): string | null {
-    const c = this.shellCondition;
-    if (c >= 0.9) return null;
-    if (c >= 0.5) {
-      return 'The paint is going; weather is starting to find the seams.';
+  /**
+   * The building `room` is part of — one of this holding's own, or the
+   * covering row's — `null` for open ground.
+   */
+  public buildingOf(room: Stuff): BuildingBase | null {
+    for (const h of this._houses.values()) {
+      if (!h.isDestroyed() && h.hasRoom(room)) return h;
     }
-    return 'The paint has gone; rain has gotten into the sills.';
+    if (this._houses.size > 0) return null;
+    const covering = this.house();
+    return covering !== null && this.getMembers().includes(room as MemberStuff) ? covering : null;
   }
 
-  /** The maintenance act's restore (P10): back to sound, stamped now. */
-  public restoreShell(): void {
-    this.shellCondition = 1;
-    this.shellStamp = WorldClockApi.getNow().rawValue();
+  /**
+   * ⭐ Which building a room of this holding is part of (paint review):
+   * its rooms are keyed clones of shared rows, so no path names them —
+   * the holding that minted them answers (holding.md § Identity).
+   */
+  public override structureOf(member: Stuff): StructureBase | null {
+    return this.buildingOf(member);
   }
 
-  private settingNumber(key: string, fallback: number): number {
-    try {
-      const raw = AppApi.setting(key);
-      const n = Number.parseFloat(raw);
-      if (Number.isFinite(n) && n > 0) return n;
-    } catch {
-      /* cold cache — fallback */
+  /** The record key a building persists under: the main one the holding's own extent. */
+  private houseKeyOf(extent: string, name: string): string {
+    return name === '' ? extent : `${extent}@${name}`;
+  }
+
+  /** Where a building is registered with the location graph: the main one at the holding's extent. */
+  private attachPointsOf(house: HoldingBuilding): string[] {
+    return house.isMain() ? [house.getExtent()] : [];
+  }
+
+  /**
+   * Stand this holding's buildings up — unless a covering row already is
+   * its building. A building is the ENCLOSED rooms (they hold their own
+   * air) grouped by `building:`; open ground is no building's.
+   */
+  private async wakeHouses(): Promise<void> {
+    const extent = this.holdingKey();
+    if (!extent) return;
+    const covering = await NavigationApi.structureAt(extent);
+    if (covering !== null && !(covering instanceof HoldingBuilding)) return;
+    const groups = new Map<string, MemberStuff[]>();
+    for (const spec of this.getFloorplan()) {
+      const key = this.roomKeyOf(spec.leaf);
+      const room = key === null ? undefined : this._roomsByKey.get(key);
+      if (room === undefined || room.isDestroyed()) continue;
+      if (!MixinApi.isAtmospheric(room) || !room.exposure().holdsAir()) continue;
+      const name = spec.building ?? '';
+      groups.set(name, [...(groups.get(name) ?? []), room]);
     }
-    return fallback;
+    // The main building is the unnamed rooms', else the first named.
+    const names = [...groups.keys()].sort((a, b) => (a === '' ? -1 : b === '' ? 1 : a.localeCompare(b)));
+    for (const [i, name] of names.entries()) {
+      const rooms = groups.get(name)!;
+      const live = this._houses.get(name);
+      if (live !== undefined && !live.isDestroyed()) {
+        live.setRooms(rooms, i === 0);
+        continue;
+      }
+      const house = await StuffApi.clone<HoldingBuilding>(HOLDING_BUILDING_ROW);
+      house.setExtent(extent);
+      // Every room of it holds its own air, so no entrance is needed to land it.
+      house.setEntrance(null);
+      house.setRooms(rooms, i === 0);
+      house.setHolding(this);
+      // A building of its own goes by its name — the barn — and the main
+      // one by its row's (the house).
+      if (name !== '') {
+        house.setShortDescription(name);
+        house.setKeywords([name, 'building']);
+      }
+      await PersistableApi.restoreOrSeed(house, this.houseKeyOf(extent, name));
+      for (const at of this.attachPointsOf(house)) NavigationApi.attachStructure(at, house);
+      this._houses.set(name, house);
+    }
   }
 
   // ── Warren policy hooks ─────────────────────────────────────────

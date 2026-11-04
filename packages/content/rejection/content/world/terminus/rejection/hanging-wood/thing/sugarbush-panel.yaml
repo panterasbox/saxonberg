@@ -24,7 +24,7 @@ data:
   keywords: [panel, bush, sugarbush, trees, stand]
   register: indefinite
   longDescription: |
-    Not a planted block so much as what was left when somebody cleared round the trees worth keeping: six stems standing in open trodden ground, three white and three grey, each with the old scars of previous years' spiles healed over at waist height.
+    Not a planted block so much as what was left when somebody cleared round the trees worth keeping: six stems standing in open trodden ground, three white and three grey, each with the old scars of previous years' spiles healed over at waist height — and three red-barked pines at the edge with long resin-crusted faces cut in them.
   _materialPath: /stuff/idea/material/wood/birch
   mass: 2400
   fixedGround: true
@@ -49,7 +49,7 @@ data:
   staticSlots:
     - name: plant
       accepts: SlottableMixin
-      capacity: 6
+      capacity: 9
       userFacingDetail: planting
   props:
     - /world/terminus/rejection/hanging-wood/thing/birch-north
@@ -58,6 +58,10 @@ data:
     - /world/terminus/rejection/hanging-wood/thing/maple-north
     - /world/terminus/rejection/hanging-wood/thing/maple-middle
     - /world/terminus/rejection/hanging-wood/thing/maple-south
+    # ⭐ Three Scots pines at the edge (paint D17) — tapped for gum.
+    - /world/terminus/rejection/hanging-wood/thing/pine-north
+    - /world/terminus/rejection/hanging-wood/thing/pine-middle
+    - /world/terminus/rejection/hanging-wood/thing/pine-south
   details:
     planting:
       keywords: [ground, trodden, scars, stems, waist]

@@ -46,15 +46,10 @@ import type {
 } from '@saxonberg/server/mud/lib/behavior/brain';
 import { NavigationApi } from '@saxonberg/server/mud/api/navigation';
 import { CirculationWarren } from '@saxonberg/server/mud/lib/location/CirculationWarren';
+import HoldingWarren from '../idea/HoldingWarren';
 
 const DEFAULT_BATCH = 3;
 
-/** The shape a holding programme presents — read, never imported. */
-interface HoldingShape {
-  holdingKey(): string | null;
-  conditionBand(): string;
-  entryRoom(): Stuff | null;
-}
 
 type Keeper = Stuff & Mobile & Containable & Container & CommandGiver;
 
@@ -94,17 +89,22 @@ export const brain = class {
     let done = 0;
     for (const holding of await holdingsUnder(extent)) {
       if (done >= batch) break;
-      // Sound shells cost nothing to skip and the verb would refuse
-      // anyway; skipping here keeps the beat's teleports honest.
-      if (holding.conditionBand() === 'sound') continue;
-      const room = holding.entryRoom();
-      if (!room || !MixinApi.isContainer(room)) continue;
-      keeper.teleport(room as Stuff & Container);
-      try {
-        await keeper.forceCommand('maintain');
-        done += 1;
-      } finally {
-        /* keep walking the round even if one holding refuses */
+      // Sound fabric costs nothing to skip and the verb would refuse
+      // anyway; skipping here keeps the beat's teleports honest. ⭐ The
+      // fabric is each BUILDING's (paint D13) — a farmstead's house and
+      // barn are kept apart — and the keeper works from inside it.
+      for (const house of holding.buildings()) {
+        if (done >= batch) break;
+        if (house.getConditionWord() === 'sound') continue;
+        const room = house.residentMembers()[0] ?? holding.entryRoom();
+        if (!room || !MixinApi.isContainer(room)) continue;
+        keeper.teleport(room as Stuff & Container);
+        try {
+          await keeper.forceCommand('maintain');
+          done += 1;
+        } finally {
+          /* keep walking the round even if one building refuses */
+        }
       }
     }
     // Back to the desk. A property manager who ends the beat in
@@ -125,8 +125,8 @@ export const brain = class {
  * The `key` atom is the programme's own parcel extent (residences D16),
  * so the prefix test is the ownership test.
  */
-async function holdingsUnder(extent: string): Promise<HoldingShape[]> {
-  const out: HoldingShape[] = [];
+async function holdingsUnder(extent: string): Promise<HoldingWarren[]> {
+  const out: HoldingWarren[] = [];
   // ⭐ Asked of the location graph's record (the scan sweep): an
   // institution is attached to its own `parentExtent`, so the ones over or
   // inside the extent are map reads. One that is not standing has no live
@@ -142,17 +142,11 @@ async function holdingsUnder(extent: string): Promise<HoldingShape[]> {
   }
   for (const institution of institutions) {
     for (const s of institution.holdings()) {
-      const h = s as unknown as Partial<HoldingShape>;
-      if (
-        typeof h.holdingKey !== 'function' ||
-        typeof h.conditionBand !== 'function' ||
-        typeof h.entryRoom !== 'function'
-      ) {
-        continue;
-      }
-      const key = h.holdingKey();
+      // ⭐ The holding is this pack's own class — named, never read by shape.
+      if (!(s instanceof HoldingWarren)) continue;
+      const key = s.holdingKey();
       if (!key || (key !== extent && !key.startsWith(`${extent}/`))) continue;
-      out.push(h as HoldingShape);
+      out.push(s);
     }
   }
   return out;

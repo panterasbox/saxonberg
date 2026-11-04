@@ -177,7 +177,10 @@ persistence key.
 - `upkeepTerm` — the tenure vocabulary (below).
 - `addressBase?` — the human address the per-room addresses hang off.
 
-**Persistent per instance:** `shellCondition`, `shellStamp`.
+**Persistent per instance:** the floorplan and the term. ⭐ The SHELL is the
+holding's BUILDING's now (paint build D6/D13): `wake()` stands up a
+`HoldingBuilding` per building of the holding (or reads the Building row
+its units stand in — Seznick House), and the fabric lives there.
 
 **`wake()`** is the whole of standing a holding up: every room in the
 floorplan is stood up as a **keyed instance** — `(scope = the room's row,
@@ -346,27 +349,33 @@ the world instead of a tutor.
 
 ## Condition — the weathering clock
 
-**Storage:** `shellCondition` (0..1) + `shellStamp` (game-time) on the
-programme instance. **Reconciled on read**, linear slope, rate from
-`residence.weather.daysToWorn` (default 45 game-days from sound to
-worn — half the scale, so a full slide takes twice that). Stamp-forward.
-**No scheduler**, and the stamp is persistent, so the decline is honest
-across a restart and across a holding sleeping for a month.
+⭐ **Moved to the kernel by the paint build** (the house's `Durable`
+condition, see [painting.md](./painting.md)): the fabric is the BUILDING's
+— the holding's house, or houses: one per `building:` group of its
+enclosed rooms, so a farmstead's barn keeps its own — and it wears **only
+while the building's coat is gone**, at
+`structure.weather.daysToWorn` (default 45 game-days from sound to worn,
+the dial that was `residence.weather.daysToWorn`). A holding's house starts
+bare, so an unpainted holding wears exactly as the shell always did.
+Reconciled on read, stamp-forward, persistent; honest across a restart.
 
-Five bands, and the readout is **only ever a band**:
+The readout is **only ever a word** — `Durable`'s, one scale for every
+condition in the game (paint review; the five residence bands retired):
 
-`sound` · `weathered` · `worn` · `shabby` · `dilapidated`
+`sound` · `worn` · `badly worn` · `broken`
 
 with a cause line that says what happened in words ("the paint has gone;
-rain has gotten into the sills"). No number, no percentage, no gauge —
+the weather is at what was under it"). No number, no percentage, no gauge —
 `survey`'s suite asserts that no digit reaches the readout.
 
 ### ⚠ Two clocks, and they must never touch
 
-A **shell** weathers on the passage of days. A **good** wears only when
-you use it (economy Law 2). A regression test pins a durable good at
-unchanged condition across a game YEAR that takes the shell from sound
-to dilapidated. If a durable ever loses condition to the calendar, every
+A **building** weathers on the passage of days — its coat where the
+weather reaches it, and its fabric once the coat is gone. A **good** wears
+only when you use it (economy Law 2): its coat weathers only where it is
+left out in the weather, and its own condition never does. A regression
+test pins a durable good at unchanged condition across a game YEAR that
+takes the house from sound to broken. If a durable ever loses condition to the calendar, every
 object a player owns rots while they sleep, and the second law of the
 economy is gone.
 
@@ -516,6 +525,10 @@ The D17 split, shipped in this build and now an invariant the
   `<extent>/<leaf>`. Nothing about a holding room is stamped, so nothing
   about it moved in the addressing build; what it gained is a NAME for
   the pair — `getDurableHandle()` → `<row>#<extent/leaf>`.
+- ⭐ So **no path answers "which building is this room in"** for a holding
+  room: the room asks its warren (`Warren.structureOf`, which
+  `HoldingWarren` answers from its buildings — paint review), never a
+  persistence key passed off as a place.
 - `StuffApi.clone`'s `asTemplatePath` option is **gone**, replaced by
   `asIdentityPath`. The lint proves the channel stays retired and that
   every template-path-valued field in every shipped row resolves.
@@ -656,9 +669,11 @@ keyed copies. `PlatPlan` already parses static slot objects
 Worth naming before a second consumer arrives, because it will be
 cheaper to see coming than to discover. Of everything the pack's
 `HoldingWarren` owns — the keyed floorplan mint, whole-unit dormancy,
-wake/sleep, the front-door edge, revert — **only the shell clock is
-residential**, and even that is residential only in its *vocabulary*
-(`shellCondition`, `landlord-shell`, `residence.weather.daysToWorn`).
+wake/sleep, the front-door edge, revert — **only the upkeep term is
+residential**, and even that only in its *vocabulary* (`landlord-shell`).
+The shell clock left the holding entirely (paint D13): it is each
+building's `Durable` condition now, on the `structure.weather.daysToWorn`
+dial.
 The mechanism underneath is *a held thing weathers on the passage of
 days, and a term says who owes the upkeep*, which is not about houses.
 

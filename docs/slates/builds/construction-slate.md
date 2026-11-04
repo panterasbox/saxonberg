@@ -136,3 +136,7 @@ the completed product"*, the site can be good content of its own:
 4. **Collapse** — an element below its load: when, how fair, how read.
 5. **Building in water** — the cofferdam and caisson (underwater § 7) as the
    bridge site's hardest case.
+
+- **The erection bill** (from the paint build, 2026-11): a `Structure` IS
+  made of materials — a bill to erect and later to maintain (the owner) —
+  but no bill is authored or consumed yet; `maintain` takes only a kit.

@@ -1,0 +1,18 @@
+# A gessoed panel (paint D10) — a seasoned board under a white chalk-and-glue
+# ground, scraped smooth: what a tempera is painted on. The painting itself
+# — what the picture IS — is the visual-arts build's; this is the object.
+class: /platform/thing/Good
+data:
+  shortDescription: gessoed panel
+  keywords: [panel, "gessoed panel", board]
+  register: indefinite
+  longDescription: >-
+    A flat poplar panel the size of a window pane, its face laid with a
+    smooth bone-white ground.
+  _materialPath: /stuff/idea/material/wood/pine
+  mass: 2
+  coats:
+    outside:
+      - material: /trade/painting/idea/material/gesso
+        thicknessM: 0.0005
+        state: set

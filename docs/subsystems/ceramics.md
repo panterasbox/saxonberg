@@ -468,7 +468,7 @@ retires, and these are the attach points it recorded.
 | seam | destination |
 |---|---|
 | casks, pitch-lined amphorae, tin-lined copper onto faces | `maturation.md` § a recorded target (W7's sweep writes the note; no migration) |
-| coats on building faces, the painted image, binders | [paint-slate](../slates/builds/paint-slate.md) (rides `Faced` for goods, construction layers for buildings) |
+| coats on building faces, the painted image, binders | [paint-slate](../slates/tails/paint-slate.md) (rides `Faced` for goods, construction layers for buildings) |
 | wet clothes and sweat reading `evaporativeDepressionK` | `exertion.md` / `textiles.md` deferred lists |
 | frost tilth, frost damage to brick (the count's next readers) | repair W7, `soil.md` |
 | lime mortar by cure, repointing, the spall, `maintain` | repair W7 |

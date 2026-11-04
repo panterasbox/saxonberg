@@ -43,7 +43,7 @@ import type {
 import { WorldClockApi } from '../../../api/worldclock';
 import type { SpatialZone } from '../../../lib/zone/SpatialZone';
 import type Place from '../../../lib/stuff/Place';
-import type Structure from '../Structure';
+import type Structure from '../../../lib/structure/Structure';
 import type { Positioned } from '../../../lib/expanse/Positioned';
 import type { Voyaging } from '../../../lib/expanse/Voyaging';
 import { Expanse, type Contact } from '../../../lib/expanse/Expanse';
@@ -573,7 +573,20 @@ export class PerceptionLogic extends ApiLogic {
     // EXPANSE's (its landmarks and registered craft), and ashore a named
     // zone's structures are the catalogue's again. Nothing asks the
     // registry for every craft in the world.
-    return horizonAtSea(viewer) ?? horizonOnRiver(viewer) ?? horizonAshore(viewer);
+    const atSea = horizonAtSea(viewer);
+    if (atSea !== null) return atSea;
+    // ⭐ A bank on a river sees the river AND what its horizon names (the
+    // tower over the roofs): the line's answer adds to the declaration,
+    // never replaces it (the maritime drive found the bank blind).
+    const ashore = horizonAshore(viewer);
+    const river = horizonOnRiver(viewer);
+    if (river === null) return ashore;
+    const seen = new Set(river.things.map((t) => t.stuff));
+    return {
+      things: [...river.things, ...ashore.things.filter((t) => !seen.has(t.stuff))],
+      traffic: [...river.traffic, ...ashore.traffic],
+      atSea: false,
+    };
   }
 
   /** See {@link PerceptionApi.visibleContentsOf}. */

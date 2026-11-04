@@ -657,3 +657,13 @@ clamp's burnt-through ash uses it too, sized to the charge. `sweep` rakes
 ANY burner's grate (it used to require a flue). A firing now concentrates
 the constituents it keeps by `1 / massYield` and grades a Graded output by
 its weakest Graded input. See [potash.md](potash.md).
+
+
+## Self-heating (paint build, 2026-10-31)
+
+`SelfHeatingMixin` is the kernel's (`lib/thermal/SelfHeating`, promoted
+from trade-farming's hay rick): a heap's heat and loss are its host's
+hooks, and a COMBUSTIBLE heap whose core passes its (wetness-adjusted)
+autoignition point ignites, the fire driver spreading it. Hay is not
+combustible here and smokes as before; a heap of oily rags catches. See
+[painting.md](./painting.md) § The hazards.

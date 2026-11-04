@@ -24,6 +24,8 @@ import type { Burner } from './Burner';
 import type { MarkupAugmenter } from '../../api/mml';
 import { MixinApi } from '../../api/mixin';
 import { PersistableApi } from '../../api/persistable';
+import { StuffApi } from '../../api/stuff';
+import { ContainmentApi } from '../../api/containment';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import { AppApi } from '../../api/app';
@@ -41,7 +43,7 @@ export interface Flued {
    * ⭐ The whole chimney sweep (cleanliness D18): the soot comes down onto
    * the room's floor and the sweeper's hands, the room kept.
    */
-  sweepChimney(sweeper: Stuff): Promise<{ sootKg: number }>;
+  sweepChimney(sweeper: Stuff): Promise<{ sootKg: number; taken: Stuff[] }>;
   /** Is the flue sooted enough to catch? */
   isFlueFoul(): boolean;
 }
@@ -94,7 +96,7 @@ export function FluedMixin<TBase extends MixinConstructor<Stuff & Burner>>(
       return this.flueSoot >= dial(AppSettingKeys.fireFlueIgnitesAtKg, 0.5);
     }
 
-    public async sweepChimney(sweeper: Stuff): Promise<{ sootKg: number }> {
+    public async sweepChimney(sweeper: Stuff): Promise<{ sootKg: number; taken: Stuff[] }> {
       const self = this as unknown as Stuff;
       const soot = this.sweepFlue();
       const room = MixinApi.isContainable(self) ? self.getContainer() : null;
@@ -104,8 +106,34 @@ export function FluedMixin<TBase extends MixinConstructor<Stuff & Burner>>(
         floor.soil('soot', soot * SOOT_LOAD_PER_KG);
       }
       if (MixinApi.isHygienic(sweeper)) sweeper.soilFrom([{ kind: 'soot', amount: 0.3, where: 'hands' }]);
+      const taken = await this.takeSoot(sweeper, soot);
       await PersistableApi.captureHostOf(self).catch(() => {});
-      return { sootKg: soot };
+      return { sootKg: soot, taken };
+    }
+
+    /**
+     * ⭐ The soot brought down is a THING when the realm names one (paint
+     * D18): `cleanliness.sootTemplate` — the painting trade sets it to its
+     * lampblack, the oldest black there is. One per `cleanliness.sootPerUnitKg`
+     * of soot, into the sweeper's hands. Unset (the default), nothing is
+     * minted and the soot is only the floor's dirt, as it always was.
+     */
+    private async takeSoot(sweeper: Stuff, kg: number): Promise<Stuff[]> {
+      const template = (() => {
+        try {
+          return AppApi.setting(AppSettingKeys.cleanlinessSootTemplate) ?? '';
+        } catch {
+          return '';
+        }
+      })();
+      const perUnit = dial(AppSettingKeys.cleanlinessSootPerUnitKg, 0.1);
+      const units = Math.floor(kg / perUnit);
+      if (template === '' || units < 1) return [];
+      const lump = await StuffApi.clone<Stuff>(template);
+      if (MixinApi.isStackable(lump)) lump.setQuantity(units);
+      const into = MixinApi.isContainer(sweeper) ? sweeper : MixinApi.isContainable(sweeper) ? sweeper.getContainer() : null;
+      if (into !== null && MixinApi.isContainer(into) && MixinApi.isContainable(lump)) ContainmentApi.move(lump, into);
+      return [lump];
     }
 
     public sweepFlue(): number {

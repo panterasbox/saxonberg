@@ -124,13 +124,15 @@ export default class SweepController extends ManualBuildController<SweepModel> {
   private static async finishHearth(giver: Stuff, hearth: Stuff, brush: boolean): Promise<void> {
     if (brush && MixinApi.isFlued(hearth)) {
       // ⭐ The chimney's own act: soot onto the floor and your hands.
-      const { sootKg } = await hearth.sweepChimney(giver);
+      const { sootKg, taken } = await hearth.sweepChimney(giver);
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(
-          sootKg > 0.05
-            ? Mml.compose`Soot comes down the flue in a black fall, all over the hearthstone. The chimney is clear.`
-            : Mml.compose`A little soot comes down. The flue was clean enough.`,
+          taken.length > 0
+            ? Mml.compose`Soot comes down the flue in a black fall, and you gather the finest of it up: ${Mml.thing(taken[0]!)}. The chimney is clear.`
+            : sootKg > 0.05
+              ? Mml.compose`Soot comes down the flue in a black fall, all over the hearthstone. The chimney is clear.`
+              : Mml.compose`A little soot comes down. The flue was clean enough.`,
         )
         .toPeers(Mml.compose`${Mml.actor(giver)} sweeps the chimney.`)
         .send();

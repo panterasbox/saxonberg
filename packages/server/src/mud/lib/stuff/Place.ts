@@ -49,6 +49,8 @@ import { TemplatePaths } from '../paths';
 import { AppApi } from '../../api/app';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
+import { NavigationApi } from '../../api/navigation';
+import type Structure from '../structure/Structure';
 import type { Floor } from '../ground/Floor';
 import type { FieldMeta } from '../mixin';
 
@@ -203,6 +205,47 @@ export default class Place extends PlaceBase {
     horizon: { persistent: true, authorable: true },
     featured: { persistent: true, authorable: true },
   };
+
+  /**
+   * ⭐⭐ The structures whose LANDING this place is — the buildings whose
+   * outside is at hand from here (paint D2): the structure beyond each
+   * exit (or the ship lying alongside it), kept when this place passes its
+   * `isLandedAt`. Over what is standing.
+   */
+  public landedStructuresNow(): Structure[] {
+    const self = this as unknown as Stuff;
+    if (!MixinApi.isExitable(self)) return [];
+    const out = new Map<string, Structure>();
+    for (const exit of self.getExits().values()) {
+      const s = Place.structureBeyond(exit.alongsideNow(), exit.peekDestination(), exit.getDestinationTemplatePath());
+      if (s !== null && !out.has(s.stuffId) && s.isLandedAt(self)) out.set(s.stuffId, s);
+    }
+    return [...out.values()];
+  }
+
+  private static structureBeyond(alongside: Structure | null | undefined, far: Stuff | null, authored: string | null): Structure | null {
+    // An exit whose far side is whatever lies alongside answers for itself —
+    // never by its authored berth.
+    if (alongside !== undefined) return alongside;
+    if (far !== null && far.isPlace()) return (far as unknown as Place).structureNow();
+    return authored ? NavigationApi.structureAtNow(authored) : null;
+  }
+
+  /**
+   * ⭐ The building this place is part of, over what is standing, or
+   * `null` (paint review). Its warren answers first — a holding's rooms
+   * are keyed clones of shared rows, so no path names them (holding.md
+   * § Identity) — else the location graph, by this place's identity path.
+   */
+  public structureNow(): Structure | null {
+    const self = this as unknown as Stuff;
+    if (MixinApi.isWarrenMember(self)) {
+      const s = self.getWarren()?.structureOf(self) ?? null;
+      if (s !== null) return s;
+    }
+    const path = self.getIdentityPath();
+    return path ? NavigationApi.structureAtNow(path) : null;
+  }
 
   /**
    * The ZONES scanned from this room, overriding its zone's `horizon`

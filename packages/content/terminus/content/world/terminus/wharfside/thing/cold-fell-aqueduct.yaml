@@ -49,7 +49,8 @@ data:
   fixedInPlace: true
   details:
     channel:
-      keywords: [channel, trough, conduit, water]
+      # ⚠ Not `water`: on the bank the common word is the river's.
+      keywords: [channel, trough, conduit]
       description: |
         A stone trough the width of a cart, running so nearly level that the water in it looks still until you drop something in. It falls about a foot every quarter mile, the whole way from the fell.
     piers:

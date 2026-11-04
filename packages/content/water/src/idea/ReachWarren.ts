@@ -70,7 +70,7 @@ import type ReachExit from './exits/ReachExit';
 import RiverHazard from '../thing/RiverHazard';
 import { RIVER_WATER_MIXIN } from '../lib/RiverWater';
 import type { RiverWater, RiverSpec } from '../lib/RiverWater';
-import Structure from '@saxonberg/server/mud/platform/idea/Structure';
+import Structure from '@saxonberg/server/mud/lib/structure/Structure';
 import type { LineHazard } from '../lib/RiverLine';
 import type { ReachWay } from './exits/ReachExit';
 
@@ -1224,7 +1224,7 @@ export default class ReachWarren extends SingletonMixin(PersistableMixin(RoomWar
     if (river && MixinApi.isExerting(walker)) {
       walker.exert({ durationS: 60, powerW: Math.min(400, 60 + 40 * Math.abs(river.currentMps)) });
     }
-    this.tellOf(walker, Mml.compose`You lean on the painter and walk her up the bank, the boat sheering out on the current and coming along.`);
+    this.tellOf(walker, Mml.compose`You lean on the bow line and walk her up the bank, the boat sheering out on the current and coming along.`);
   }
 
   /**

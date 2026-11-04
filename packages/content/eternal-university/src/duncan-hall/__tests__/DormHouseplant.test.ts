@@ -157,6 +157,8 @@ function seedDomain(): void {
   for (const row of KERNEL_CONTENT_ROWS) {
     col('content').push({ _id: `d-${++idCounter}`, ...row });
   }
+  // A holding mints its house at wake (paint D6).
+  col('content').push({ _id: `d-${++idCounter}`, path: '/system/residence/idea/holding-building', class: '/system/residence/idea/HoldingBuilding', data: { shortDescription: 'house' } });
   for (const [path, cls] of [
     ['/world/terminus/eternal/duncan-hall/idea/exits/floor-stair', '/world/terminus/eternal/duncan-hall/idea/FloorStairExit'],
     ['/world/terminus/eternal/duncan-hall/idea/exits/dorm-door', '/world/terminus/eternal/duncan-hall/idea/DormDoor'],

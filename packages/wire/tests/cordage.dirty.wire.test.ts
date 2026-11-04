@@ -440,7 +440,7 @@ suite('cordage — the blocking drive', () => {
 
   // ⚠ 17's sale is cut: the ropewalk buys no rope back (a house bids per
   // row, so a coil cut into five would sell as five) — retail's seam.
-  it('17. the lifeline, the heaving line and a painter read as rope', async () => {
+  it('17. the lifeline, the heaving line and a bow line read as rope', async () => {
     const shop = await session(maker, SHOP);
     const life = await look(shop, 'first lifeline');
     expect(life, life).toMatch(/20 meters of hemp rope/);
@@ -448,8 +448,10 @@ suite('cordage — the blocking drive', () => {
     const heave = await look(bank, 'heaving line');
     expect(heave, heave).toMatch(/15 meters of hemp rope/);
     const putIn = await session(maker, PUT_IN);
-    await say(putIn, 'buy painter');
-    const painter = await look(putIn, 'painter');
+    await say(putIn, 'buy bow line');
+    // Two are in view (the one bought and the counter's) — the first, as
+    // the lifeline above.
+    const painter = await look(putIn, 'first bow line');
     expect(painter, painter).toMatch(/15 meters of hemp rope/);
   }, 300_000);
 

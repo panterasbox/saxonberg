@@ -1,0 +1,10 @@
+# A cake of glue — animal glue gone cold and set (its cast). Warm it in a
+# pot and it is glue again.
+class: /trade/quarrying/thing/Lump
+data:
+  shortDescription: cake of glue
+  keywords: [glue, cake, "cake of glue"]
+  register: indefinite
+  longDescription: A hard brown cake of glue, translucent at the edges like horn.
+  _materialPath: /trade/painting/idea/material/hide-glue
+  mass: 0.3

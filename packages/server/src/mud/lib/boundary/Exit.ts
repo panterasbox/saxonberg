@@ -48,6 +48,7 @@ import type { VetoResult } from '../errors';
 import type { Container } from '../spatial/Container';
 import type { Containable } from '../spatial/Containable';
 import type Door from '../../platform/thing/Door';
+import type Structure from '../structure/Structure';
 import { StuffApi } from '../../api/stuff';
 import { CallSecurity, Final, Unshadowable } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
@@ -980,6 +981,20 @@ export default class Exit extends ConcealableMixin(Idea) {
     } catch {
       return null;
     }
+  }
+
+  /**
+   * @hook The structure lying ALONGSIDE this exit now — a ship at a quay
+   * (paint build). Three answers, and they mean different things:
+   * `undefined` — an ordinary exit: its far side is the place its path
+   * names (the default); a structure — the one lying alongside now;
+   * `null` — this exit's far side is whatever lies alongside
+   * (`AboardExit`), and nothing does. A landing never falls back to the
+   * authored path of an exit that answers `null`: a ship that has sailed
+   * lands nowhere. Derived from what is standing — never authored.
+   */
+  public alongsideNow(): Structure | null | undefined {
+    return undefined;
   }
 
   public getDestinationTemplatePath(): string | null {

@@ -1,0 +1,14 @@
+# The varnish pot (paint D17) — pour turpentine in, put rosin in, stir: it
+# comes together as varnish.
+class: /platform/thing/CompoundingVessel
+data:
+  shortDescription: varnish pot
+  keywords: [pot, "varnish pot"]
+  register: indefinite
+  longDescription: A lidded copper pot, its rim crusted amber with old varnish.
+  _materialPath: /stuff/idea/material/element/copper
+  mass: 1.5
+  interiorBulk: true
+  interiorCapacity: 4
+  closure: liquidTight
+  productMaterial: /trade/painting/idea/material/varnish

@@ -34,6 +34,9 @@ data:
       footprintM2: 120
     - leaf: barn
       room: /world/terminus/hearts-delight/farmstead/location/barn
+      # ⭐ A building of its own (paint review): its own coat, its own
+      # condition — painted from the yard, apart from the house.
+      building: barn
       footprintM2: 150
     - leaf: upper-bench
       room: /world/terminus/hearts-delight/farmstead/tract/upper-bench

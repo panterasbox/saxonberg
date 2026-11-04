@@ -1886,6 +1886,20 @@ export const AppSettingKeys = {
   cordageMinHangM: "cordage.minHangM",
   /** Cordage — a caught fall's shock, as a multiple of the climber's weight (D12). */
   cordageFallFactor: "cordage.fallFactor",
+  /** Metabolism — the lead a bare grind of a lead-tagged stock raises into the grinder (paint D14). */
+  metabolismLeadDustDose: "metabolism.leadDustDose",
+  /** Metabolism — the lead per litre of lead paint brushed on, through the hands (paint D14). */
+  metabolismLeadSkinDosePerL: "metabolism.leadSkinDosePerL",
+  /** Crafting — relative humidity at or over which a glue line takes the damp (paint D11). */
+  craftingGlueDampRh: "crafting.glueDampRh",
+  /** Crafting — litres of glue one glued joint takes (paint D11). */
+  craftingGlueLitresPerJoint: "crafting.glueLitresPerJoint",
+  /** Structure — game-days a bare building's fabric takes from sound to worn (paint D5; was residence's). */
+  structureWeatherDaysToWorn: "structure.weather.daysToWorn",
+  /** Structure — the wet film one brushed coat of paint lays, m (paint D9). */
+  structurePaintCoatThicknessM: "structure.paint.coatThicknessM",
+  /** Structure — an outside coat thinner than this reads as going, m (paint D5). */
+  structureCoatThinM: "structure.coat.thinM",
   /** Faces — the thickness a dipped coat is laid at, m (ceramics D5). */
   facesDipThicknessM: "faces.dipThicknessM",
   /** Faces — a coat shrinking this much more than its body (1/K) crazes. */
@@ -2518,6 +2532,10 @@ export const AppSettingKeys = {
   kitchenSurfaceInoculum: "kitchen.surfaceInoculum",
   /** Cleanliness — the row a hearth's raked-out ash is minted as. */
   cleanlinessAshTemplate: "cleanliness.ashTemplate",
+  /** Cleanliness — the thing a swept flue's soot comes down as, if any (paint D18; a pack sets it). */
+  cleanlinessSootTemplate: "cleanliness.sootTemplate",
+  /** Cleanliness — kg of soot per unit of that thing. */
+  cleanlinessSootPerUnitKg: "cleanliness.sootPerUnitKg",
   /** Potash — the alkali (kg/L) from which a liquor reads as a WEAK lye
    * rather than water (potash D5). */
   potashLyeWeakFromKgPerL: "potash.lye.weakFromKgPerL",

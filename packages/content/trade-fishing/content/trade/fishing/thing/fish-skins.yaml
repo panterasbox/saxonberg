@@ -1,0 +1,10 @@
+# A parcel of fish skins — the fishmonger's strippings, sold to the
+# glue-maker (paint D19).
+class: /platform/thing/Good
+data:
+  shortDescription: parcel of fish skins
+  keywords: [skins, "fish skins", parcel, "parcel of fish skins"]
+  register: indefinite
+  longDescription: A wet newspaper parcel of silvery fish skins.
+  _materialPath: /trade/fishing/idea/material/fish-skin
+  mass: 0.5

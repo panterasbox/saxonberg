@@ -67,6 +67,7 @@ import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
 import { ProseApi } from '../../../../api/prose';
 import { ChattelApi } from '../../../../api/chattel';
+import { StackableApi } from '../../../../api/stackable';
 import type { Chattel } from '../../../../lib/chattel/Chattel';
 
 interface PutModel extends CommandModel {
@@ -75,7 +76,7 @@ interface PutModel extends CommandModel {
 }
 
 export default class PutController extends CommandController<PutModel> {
-  execute(model: PutModel, context: CommandContext): void {
+  async execute(model: PutModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     const item = model.item.stuff;
     const target = model.target.stuff;
@@ -107,6 +108,29 @@ export default class PutController extends CommandController<PutModel> {
 
     // The consumed preposition, lowercased by the binder, or undefined.
     const prep = model.target.prep;
+
+    // ⭐ A count (`put 1 clay in tub`) splits it off the stack first — the
+    // `drop` path: the helper walks the operands, and a put refused here
+    // restacks what it split (the ceramics drive: `put` had no count).
+    const quantity = model.item.quantity;
+    if (!quantity || !MixinApi.isStackable(item)) {
+      this.putOne(item, target, prep, context);
+      return;
+    }
+    await StackableApi.applyQuantity<Stuff>(
+      [item],
+      quantity,
+      async (operand) =>
+        this.putOne(operand, target, prep, context)
+          ? { ok: true, payload: operand }
+          : { ok: false, reason: 'refused' },
+      { field: 'item', query: model.item.raw },
+    );
+  }
+
+  /** Put ONE item (or one split-off stack) into the target; `true` when it went. */
+  private putOne(item: Stuff, target: Stuff, prep: string | undefined, context: CommandContext): boolean {
+    const giver = context.commandGiver;
 
     // ⭐ D6 — build the OFFERS this target makes, in listing order.
     const offers = PutController.offersFor(target);
@@ -145,7 +169,7 @@ export default class PutController extends CommandController<PutModel> {
             reason: 'wrong-preposition',
             detail: `target takes ${primaries.join('|')}; got '${prep}'`,
           });
-          return;
+          return false;
         }
       } else {
         matches = offers;
@@ -169,7 +193,7 @@ export default class PutController extends CommandController<PutModel> {
           reason: matches.length === 0 ? 'wrong-preposition' : 'preposition-ambiguous',
           detail: `target accepts ${words.join(', ')}`,
         });
-        return;
+        return false;
       }
       chosen = matches[0]!;
     }
@@ -190,7 +214,7 @@ export default class PutController extends CommandController<PutModel> {
           reason: 'slot-host-not-container',
           detail: 'a slot host must also hold its occupant',
         });
-        return;
+        return false;
       }
     } else if (mode === 'zero') {
       // ⭐ Region zero is the container's own interior. A shut lid
@@ -209,7 +233,7 @@ export default class PutController extends CommandController<PutModel> {
           reason: 'shut',
           detail: `${target.getPresentation()} is closed`,
         });
-        return;
+        return false;
       }
       // ⭐ A container that says what it is FOR refuses here, in its own
       // words — *"Only a pump goes in a well."*, *"A hive is not a
@@ -234,7 +258,7 @@ export default class PutController extends CommandController<PutModel> {
             reason: 'refused-by-container',
             detail: `host rejected item (${veto.reason ?? ''})`,
           });
-          return;
+          return false;
         }
       }
     } else {
@@ -257,7 +281,7 @@ export default class PutController extends CommandController<PutModel> {
           reason: veto.reason === 'shut' ? 'shut' : 'cannot-rest',
           detail: `host rejected item (${veto.reason})`,
         });
-        return;
+        return false;
       }
     }
 
@@ -281,7 +305,7 @@ export default class PutController extends CommandController<PutModel> {
           reason: 'cursed-will-not-release',
           detail: `${item.getPresentation()} refuses release`,
         });
-        return;
+        return false;
       }
     }
 
@@ -332,7 +356,7 @@ export default class PutController extends CommandController<PutModel> {
           Mml.compose`${Mml.actor(giver)} fits ${Mml.thing(item)} into ${Mml.thing(target)}.`,
         )
         .send();
-      return;
+      return true;
     }
 
     // ⭐ The sentence is the MEMBER's, not the controller's — one Liquid
@@ -367,7 +391,7 @@ export default class PutController extends CommandController<PutModel> {
           }),
         )
         .send();
-      return;
+      return true;
     }
     scene
       .toSelf(Mml.compose`You put ${what} ${word} ${Mml.thing(target)}.`)
@@ -375,6 +399,7 @@ export default class PutController extends CommandController<PutModel> {
         Mml.compose`${Mml.actor(giver)} puts ${what} ${word} ${Mml.thing(target)}.`,
       )
       .send();
+    return true;
   }
 
   /**

@@ -17,7 +17,7 @@
  * `StuffApi.singletonSync`. `dest /platform/idea/api/navigation` reloads it.
  */
 
-import type Structure from '../platform/idea/Structure';
+import type Structure from '../lib/structure/Structure';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { NavigationLogic } from '../platform/idea/api/NavigationLogic';
@@ -228,6 +228,21 @@ export class NavigationApi {
   /** {@link structureAt} over what is already standing — never loads. */
   public static structureAtNow(path: string): Structure | null {
     return logic().structureAtNow(path);
+  }
+
+  /**
+   * ⭐ Attach a MINTED structure (no row of its own — a holding's house)
+   * at `extent`, so {@link structureAt} answers it for its rooms and their
+   * exposure sees its walls (paint build, 2026-10-31). The owner detaches
+   * it when the building goes.
+   */
+  public static attachStructure(extent: string, structure: Structure): void {
+    logic().attachStructure(extent, structure);
+  }
+
+  /** Undo {@link attachStructure}. */
+  public static detachStructure(extent: string, structure: Structure): void {
+    logic().detachStructure(extent, structure);
   }
 
   /** Every node in one zone. */

@@ -1,0 +1,20 @@
+# Rags (paint D15) — squares of old linen for wiping a brush, sold by the
+# half-dozen in one stack (a heap is three and more in one stack). ⚠ Oily rags
+# dropped in a heap heat themselves and catch: spread them out to dry, or
+# put them in water.
+class: /trade/painting/thing/Rag
+data:
+  shortDescription: rag
+  keywords: [rag, rags, cloth, "paint rag"]
+  register: indefinite
+  longDescription: A square of old linen, stiff in places with paint.
+  _materialPath: /stuff/idea/material/textile/linen
+  mass: 0.05
+  quantity: 6
+  reserves:
+    fuel:
+      capacityValue: 100
+      currentValue: 100
+      unit: "%"
+      theme: combustion
+      floorEffect: null

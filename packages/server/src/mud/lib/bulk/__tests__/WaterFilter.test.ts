@@ -157,7 +157,7 @@ describe('⭐⭐ the ceramic water filter', () => {
     const f = filterOf(body, {
       m: tainted,
       l: 2,
-      payload: { dissolvedToxins: [{ type: 'lead-poisoning', amount: 3 }] },
+      payload: { dissolvedToxins: [{ type: 'lead', amount: 3 }] },
     });
     ContainmentApi.move(f, c);
     f.getBulkAmount('interior');
@@ -165,7 +165,7 @@ describe('⭐⭐ the ceramic water filter', () => {
     f.getBulkAmount('interior');
     expect(c.getBulkAmount('interior').rawValue()).toBeGreaterThan(0);
     expect(c.getBulkMaterial('interior')?.getTemplatePath()).toBe(TAINTED);
-    const dose = c.getBulkPayload('interior')?.dissolvedToxins?.find((t) => t.type === 'lead-poisoning');
+    const dose = c.getBulkPayload('interior')?.dissolvedToxins?.find((t) => t.type === 'lead');
     expect(dose?.amount).toBeCloseTo(3, 9);
   });
 
@@ -177,7 +177,7 @@ describe('⭐⭐ the ceramic water filter', () => {
       m: tainted,
       l: 2,
       payload: {
-        dissolvedToxins: [{ type: 'lead-poisoning', amount: 3 }],
+        dissolvedToxins: [{ type: 'lead', amount: 3 }],
         pathogens: { 'test-flux': 5 },
         freshness: { load: 0.6, stamp: 0 },
       },
@@ -188,7 +188,7 @@ describe('⭐⭐ the ceramic water filter', () => {
     f.getBulkAmount('interior');
     expect(c.getBulkAmount('interior').rawValue()).toBeGreaterThan(0);
     const through = c.getBulkPayload('interior');
-    expect(through?.dissolvedToxins?.find((t) => t.type === 'lead-poisoning')?.amount).toBeCloseTo(3, 9);
+    expect(through?.dissolvedToxins?.find((t) => t.type === 'lead')?.amount).toBeCloseTo(3, 9);
     expect(Object.keys(through?.pathogens ?? {})).toEqual([]);
     expect(through?.freshness?.load ?? 0).toBe(0);
   });

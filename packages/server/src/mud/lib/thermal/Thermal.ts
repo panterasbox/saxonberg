@@ -1307,6 +1307,25 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       let peak = this.stampedTemperatureK;
       for (const smp of window.samples(8)) if (smp.value > peak) peak = smp.value;
       self.heatCoats((c) => window.integrate((k) => c.rateAt(k), 8), peak);
+      // ⭐ A coat the AIR sets (paint D4) — an oil on a chair, a size on a
+      // board — sets by the room's air over the same window; an oil warms
+      // the good as it does (`Faced.reconcileWeather` leaves a thermal
+      // body's setting to this). A self-heating heap (oily rags) walks its
+      // oil's oxidation as its own heat.
+      if (!self.hasWetCoats() || MixinApi.isSelfHeating(self)) return;
+      const room = MixinApi.isContainable(self) ? self.getContainer() : null;
+      if (room === null) return;
+      const ach = MixinApi.isAtmospheric(room) ? room.airChangesPerHour() : Infinity;
+      const airChange = Number.isFinite(ach) ? Math.min(1, Math.max(0, ach / 4)) : 1;
+      const air = BiomeApi.airSegmentsFor(room, fromS, nowS).map((seg) => ({
+        seconds: seg.durationS,
+        kelvin: seg.air.tempK,
+        rh: Math.min(1, Math.max(0, seg.air.humidityPct / 100)),
+        rain: seg.rainMmPerH > 0,
+        airChange,
+      }));
+      const result = self.airCoats(air);
+      if (result.heatJPerM2 > 0) this.depositHeat(result.heatJPerM2 * self.coatAreaM2());
     }
 
     // ---------- kinetics: what heat and time do to its material ----------

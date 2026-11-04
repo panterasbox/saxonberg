@@ -15,6 +15,7 @@ import { Mml } from '../../../../api/mml';
 interface WriteOnModel extends CommandModel {
   words: string;
   surface: MqlOneResult;
+  medium?: MqlOneResult;
 }
 
 export default class WriteOnController extends CommandController<WriteOnModel> {
@@ -28,7 +29,7 @@ export default class WriteOnController extends CommandController<WriteOnModel> {
     if (!MixinApi.isMarked(surface)) {
       return this.refuse(context, 'act.deed', `There is nowhere to write on ${surface.getPresentation()}.`, 'no-room');
     }
-    const out = surface.writeOn(giver, model.words ?? '');
+    const out = surface.writeOn(giver, model.words ?? '', model.medium?.stuff ?? undefined);
     if (!out.ok) return this.refuse(context, 'act.deed', out.line, out.reason);
     MessageApi.scene(giver)
       .topic('act.deed')

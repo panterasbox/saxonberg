@@ -152,6 +152,7 @@ import type { Turnable } from '../lib/craft/Turnable';
 import type { HandWorked } from '../lib/craft/HandWorked';
 import type { StrikingDie } from '../lib/craft/StrikingDie';
 import type { Faced } from '../lib/material/Faced';
+import type { SelfHeating } from '../lib/thermal/SelfHeating';
 import type { Greenware } from '../lib/material/Greenware';
 import type { Burner } from '../lib/fire/Burner';
 import type { SpaceHeating } from '../lib/thermal/SpaceHeating';
@@ -1791,6 +1792,10 @@ export class MixinApi {
 
   public static isFaced(obj: Stuff): obj is Stuff & Faced {
     return this.hasMixin(obj, Mixins.Faced);
+  }
+
+  public static isSelfHeating(obj: Stuff): obj is Stuff & SelfHeating {
+    return this.hasMixin(obj, Mixins.SelfHeating);
   }
 
   public static isGreenware(obj: Stuff): obj is Stuff & Greenware {
