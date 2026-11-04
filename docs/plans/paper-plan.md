@@ -974,6 +974,39 @@ once at `/finalize`.
 - Commit: `build(paper W0): the medium — derived marks, frozen editions,
   the sheet, the book, the seal, tearing`.
 
+✅ **W0 done — `59ad19fc8`.** Notes for the reader who has forgotten:
+- **D27 (build):** the page rides as a trailing `page <n>` on `read`,
+  `write` and `tear` (`read notebook page 3`, `write … on notebook page 3`,
+  `tear notebook page 3`) — the binder's prepositional-arg shape; the
+  plan's `page 3 of notebook` needs a grammar the binder does not have.
+  ⚠ Cost: `page` now stops `write`'s greedy words, so the word *page* in
+  a sentence wants quoting.
+- **D28 (build):** a notebook's page is written by `Book.writePage`
+  (async — the document save), called by `WriteOnController` when the
+  surface is a `Book`; `Marked.writeOn` stays sync for every other host.
+  The book's document key is a minted `bookKey` (a chattel id is empty on
+  an unowned good).
+- **D29 (build):** `Envelope` is a **kernel** class (`platform/thing/Envelope.ts`),
+  not W3's pack class — `seal` needed a conferrer to pass `lint:reachability`
+  in this wave, and a letter in an envelope is the medium, not the mill's
+  trade. Shut, it vetoes in and out (`canAdd/RemoveContainable`).
+- **D30 (build):** `Display.canFetchAt` was **not** shipped — a hook nobody
+  overrides tripped `lint:unconsumed-seams`; the coverage seam is a
+  comment at the document arm for the off-grid build (R1).
+- The ink/known-of helpers are **protected methods on `MarkedMixin`**
+  (`inkInHand`, `spendInk`, `teachRecipes`), not statics on `Sheet` —
+  `lint:lib-statics` holds at 341.
+- A lit screen is read with **no light gate** (it is its own light).
+- `pulpTemplate` (authored on the sheet rows) names the lump a soaked
+  sheet leaves; classified a faucet in `check-reachability`/`check-template-census`.
+- Stationery (sheet, ream, envelope, notebook) is on the **general
+  store**'s counter so the rows are reachable before the print shop
+  exists; the print shop sells its own in W5.
+- ⚠ `lint:water-citations` failed inside one `lint:family` run and passed
+  alone — not paper's (flaky under the family's concurrency).
+- ⚠ `NODE_OPTIONS` carries a VS Code debugger bootloader in this shell;
+  run gates with `NODE_OPTIONS=` or they hang at *"Debugger listening"*.
+
 ### W1 — the live rung, bearer paper, the register book
 *Decisions D5, D7, D8.*
 

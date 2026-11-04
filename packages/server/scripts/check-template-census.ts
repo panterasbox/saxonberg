@@ -700,6 +700,10 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
   push('sweepsInto', data.sweepsInto);
   // ⭐ What a soaked sheet leaves (paper D12) — cloned when it pulps.
   push('pulpTemplate', data.pulpTemplate);
+  // ⭐ The paper a bearer receipt is written on (paper D8) — cloned at a deposit.
+  push('receiptPaper', data.receiptPaper);
+  // ⭐ The wet sheet a pulp vat lifts (paper W2) — cloned at each dip.
+  push('sheetTemplate', data.sheetTemplate);
   // The house whose doorman keeps a door (cleanliness D29).
   push('keptBy', data.keptBy);
   /*

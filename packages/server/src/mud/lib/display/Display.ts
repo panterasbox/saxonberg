@@ -176,9 +176,9 @@ export function DisplayMixin<TBase extends MixinConstructor<Stuff>>(
      */
     static commandContributions: CommandContributions = {
       self: [],
-      inventory: ['platform/cmd/perception/read.yaml'],
-      peers: ['platform/cmd/perception/read.yaml'],
-      environment: ['platform/cmd/perception/read.yaml'],
+      inventory: ['platform/cmd/perception/read.yaml', 'platform/cmd/perception/show.yaml'],
+      peers: ['platform/cmd/perception/read.yaml', 'platform/cmd/perception/show.yaml'],
+      environment: ['platform/cmd/perception/read.yaml', 'platform/cmd/perception/show.yaml'],
     };
 
     static fieldMeta: FieldMeta = {

@@ -30,6 +30,7 @@ import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import { EmployedMixin } from '@saxonberg/server/mud/lib/employment/Employed';
 import { stampTemplatePathForTest } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
+import Sheet from '@saxonberg/server/mud/platform/thing/Sheet';
 import DepotCounter from '../thing/DepotCounter';
 import Warehouse from '../thing/Warehouse';
 import WaybillRegistry from '../idea/WaybillRegistry';
@@ -311,5 +312,83 @@ describe('the warehouse', () => {
         ),
       ),
     ).rejects.toThrow(/duty of care/);
+  });
+});
+
+describe('⭐ the bearer receipt (paper D8)', () => {
+  const PAPER = '/test/thing/receipt-paper';
+
+  async function bearerShed(): Promise<{ shed: Warehouse; crate: Crate; brewer: Hand; carter: Hand }> {
+    const shed = makeStuff(() => new Warehouse());
+    shed.setBaileePath(DEPOT);
+    shed.keeperPositions = ['warehouseman'];
+    shed.terms = { allowancePct: 10, feeMinorPerKg: 0, bearer: true };
+    shed.receiptPaper = PAPER;
+    stampTemplatePathForTest(shed as unknown as Stuff, '/trade/haulage/thing/warehouse');
+    ContainmentApi.move(shed as unknown as Stuff & Containable, quay as unknown as Stuff & Container);
+    const man = makeStuffAtPath(() => new Hand(), '/platform/agent/Avatar/warehouseman');
+    (man as unknown as { employments: unknown }).employments = [
+      { organizationPath: DEPOT, positionKey: 'warehouseman', status: 'on-shift', hiredAt: 0, onShiftSince: 0 },
+    ];
+    ContainmentApi.move(man as unknown as Stuff & Containable, quay as unknown as Stuff & Container);
+    const brewer = makeStuffAtPath(() => new Hand(), '/platform/agent/Avatar/brewer');
+    ContainmentApi.move(brewer as unknown as Stuff & Containable, quay as unknown as Stuff & Container);
+    const carter = makeStuffAtPath(() => new Hand(), '/platform/agent/Avatar/carter');
+    ContainmentApi.move(carter as unknown as Stuff & Containable, quay as unknown as Stuff & Container);
+    const crate = makeStuff(() => new Crate());
+    stampTemplatePathForTest(crate as unknown as Stuff, '/stuff/thing/crate');
+    ContainmentApi.move(crate, brewer as unknown as Stuff & Container);
+    const real = StuffApi.clone.bind(StuffApi);
+    vi.spyOn(StuffApi, 'clone').mockImplementation((async (path: string) => {
+      if (path === PAPER) return makeStuff(() => new Sheet()) as never;
+      return real(path);
+    }) as typeof StuffApi.clone);
+    return { shed, crate, brewer, carter };
+  }
+
+  const sheetsOf = (h: Hand): Sheet[] =>
+    (h as unknown as Stuff & Container).getContents().filter((c): c is Sheet => c instanceof Sheet) as Sheet[];
+
+  it('the keeper hands the depositor a receipt on paper, bound to a frozen edition', async () => {
+    const { shed, crate, brewer } = await bearerShed();
+    const out = await asClerk(() => shed.deposit(crate as unknown as Stuff & Containable, brewer as unknown as Stuff));
+    expect(out.ok).toBe(true);
+    const [paper] = sheetsOf(brewer);
+    expect(paper).toBeDefined();
+    expect(paper!.getBoundTo()).toMatch(/warehouse-receipts\/[^/]+\/editions\//);
+    await paper!.refreshMarks(brewer as unknown as Stuff);
+    expect(paper!.getMarkText()).toMatch(/BEARER/);
+  });
+
+  it('⭐ whoever presents it draws the goods; the depositor without it is refused', async () => {
+    const { shed, crate, brewer, carter } = await bearerShed();
+    await asClerk(() => shed.deposit(crate as unknown as Stuff & Containable, brewer as unknown as Stuff));
+    const [paper] = sheetsOf(brewer);
+    ContainmentApi.move(paper as unknown as Stuff & Containable, carter as unknown as Stuff & Container);
+    expect(await asClerk(() => shed.withdraw(brewer as unknown as Stuff, 'crate'))).toMatchObject({
+      ok: false,
+      reason: 'no-receipt',
+    });
+    const out = await asClerk(() => shed.withdraw(carter as unknown as Stuff, 'crate'));
+    expect(out.ok).toBe(true);
+    expect(crate.getContainer()).toBe(carter);
+    // Spent: answered so, and the paper stays in hand.
+    expect(await asClerk(() => shed.withdraw(carter as unknown as Stuff, 'crate'))).toMatchObject({
+      ok: false,
+      reason: 'already-settled',
+    });
+    expect(paper!.getContainer()).toBe(carter);
+  });
+
+  it('a hand copy is bound to nothing and presents nothing', async () => {
+    const { shed, crate, brewer, carter } = await bearerShed();
+    await asClerk(() => shed.deposit(crate as unknown as Stuff & Containable, brewer as unknown as Stuff));
+    const copy = makeStuff(() => new Sheet());
+    copy.setMarkText('RECEIVED into warehouse: a crate. To be delivered to the BEARER.');
+    ContainmentApi.move(copy as unknown as Stuff & Containable, carter as unknown as Stuff & Container);
+    expect(await asClerk(() => shed.withdraw(carter as unknown as Stuff, 'crate'))).toMatchObject({
+      ok: false,
+      reason: 'no-receipt',
+    });
   });
 });

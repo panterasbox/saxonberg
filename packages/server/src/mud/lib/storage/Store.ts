@@ -68,6 +68,7 @@ import { ExecutionContextApi } from '../../api/execution-context';
 import { DocumentApi } from '../../api/document';
 import { EmploymentApi } from '../../api/employment';
 import { SecurityApi } from '../../api/security';
+import Sheet from '../../platform/thing/Sheet';
 
 /** A face is any pooled good the store holds as a line's exemplar. */
 type PoolableStuff = Stuff & Containable & Poolable;
@@ -102,6 +103,8 @@ export type CustodyOutcome =
       goods: Stuff[];
       /** The fee charged, minor units (withdrawal only). */
       feeMinor: number;
+      /** ⭐ The bearer receipt handed over the counter (paper D8). */
+      paper?: Stuff;
     }
   | { ok: false; reason: string; line: string };
 
@@ -109,6 +112,8 @@ export type CustodyOutcome =
 const RECEIPT_KIND = 'warehouse-receipt';
 /** Where a business's receipts live under its branch. */
 const RECEIPTS_DIR = 'warehouse-receipts';
+/** A bearer receipt's depositor: nobody's name — the paper is the claim. */
+const BEARER_PREFIX = 'bearer:';
 
 /** The smallest line worth keeping, kg. */
 const LINE_EPSILON_KG = 1e-6;
@@ -203,6 +208,7 @@ export function StoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       keeperPositions: { persistent: true, authorable: true },
       terms: { persistent: true, authorable: true },
       acceptsLiveGoods: { persistent: true, authorable: true },
+      receiptPaper: { persistent: true, authorable: true, authorPicker: 'Template' },
     };
 
     /** The ledger. */
@@ -225,6 +231,11 @@ export function StoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     public terms: ReceiptTerms = { allowancePct: 10, feeMinorPerKg: 0 };
     /** Whether this store holds unique goods live (a depot's crates), one receipt each. */
     public acceptsLiveGoods = false;
+    /**
+     * ⭐ The sheet row a BEARER receipt is written on (paper D8) — the
+     * keeper's receipt paper. Read only when `terms.bearer`.
+     */
+    public receiptPaper = '';
     /** Transient: the claims as last read from the document tree. */
     private _claimsCache: StoreReceipt[] = [];
     /** Transient: arrivals a custody act is booking itself (no house credit). */
@@ -824,8 +835,75 @@ export function StoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       if (!staff && this.custodianIn(room) === null) {
         return { ok: false, reason: 'no-keeper', line: 'Nobody is keeping the book just now.' };
       }
-      const depositor = staff ? this.businessPath : actor.getIdentityPath() ?? '';
-      return this.receive(item, depositor);
+      // ⭐ A BEARER receipt is its own claim (paper D8): the paper conveys
+      // it, so it never merges into another deposit's receipt.
+      const bearer = !staff && this.terms.bearer === true;
+      const depositor = staff
+        ? this.businessPath
+        : bearer
+          ? `${BEARER_PREFIX}${SecurityApi.uuid(12)}`
+          : actor.getIdentityPath() ?? '';
+      const out = await this.receive(item, depositor);
+      if (!out.ok || !bearer) return out;
+      return this.writeBearerPaper(business, out, actor);
+    }
+
+    /**
+     * ⭐ Hand the depositor the receipt ON PAPER (paper D8): the receipt is
+     * frozen as an edition, a sheet of the keeper's receipt paper is bound
+     * to it, and the sheet goes into the depositor's hands. From now on the
+     * goods are drawn by whoever presents it.
+     */
+    private async writeBearerPaper(
+      business: Stuff & Business,
+      out: CustodyOutcome,
+      actor: Stuff,
+    ): Promise<CustodyOutcome> {
+      if (!out.ok || !out.receiptPath || !out.receipt) return out;
+      if (this.receiptPaper === '') return out;
+      const pages = await DocumentApi.pagesOf(out.receiptPath);
+      if (pages === null) return out;
+      const edition = await DocumentApi.freezeEdition({
+        source: out.receiptPath,
+        pages: pages.pages,
+        title: `receipt for ${out.receipt.what}`,
+      });
+      out.receipt.editionPath = edition;
+      await this.fileReceipt(business, out.receipt);
+      const paper = await StuffApi.clone<Stuff>(this.receiptPaper);
+      if (paper instanceof Sheet) paper.bindTo(edition, 0);
+      if (MixinApi.isContainable(paper) && MixinApi.isContainer(actor)) {
+        ContainmentApi.move(paper, actor as unknown as Stuff & Container);
+      }
+      return { ...out, paper };
+    }
+
+    /**
+     * ⭐ The bearer receipts `actor` PRESENTS here (paper D8): printed sheets
+     * in their hands (or one wrapper down — a letter in an envelope does
+     * not count; a sheet in a satchel does) bound to an edition of one of
+     * THIS house's receipts. A hand copy is bound to nothing and presents
+     * nothing: the issuer checks its own record.
+     */
+    private presentedReceiptIds(actor: Stuff): Set<string> {
+      const prefix = `${this.businessPath}/${RECEIPTS_DIR}/`;
+      const ids = new Set<string>();
+      const look = (holder: Stuff, depth: number): void => {
+        if (!MixinApi.isContainer(holder)) return;
+        for (const c of holder.getContents()) {
+          if (c instanceof Sheet) {
+            const bound = c.getBoundTo();
+            if (bound.startsWith(prefix)) {
+              const id = bound.slice(prefix.length).split('/')[0];
+              if (id) ids.add(id);
+            }
+          } else if (depth > 0 && !MixinApi.isSealable(c)) {
+            look(c, depth - 1);
+          }
+        }
+      };
+      look(actor, 1);
+      return ids;
     }
 
     public async receive(item: Stuff & Containable, depositor: string): Promise<CustodyOutcome> {
@@ -883,9 +961,30 @@ export function StoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       if (!staff && this.custodianIn(room) === null) {
         return { ok: false, reason: 'no-keeper', line: 'Nobody is keeping the book just now.' };
       }
-      const depositor = staff ? this.businessPath : actor.getIdentityPath() ?? '';
-      const mine = (await this.allClaims()).filter((r) => r.depositor === depositor);
       const word = good.trim().toLowerCase();
+      let mine: StoreReceipt[];
+      if (!staff && this.terms.bearer === true) {
+        // ⭐ BEARER (paper D8): the paper in hand is the claim — the
+        // depositor's name draws nothing; a settled receipt answers so and
+        // stays in hand.
+        const presented = this.presentedReceiptIds(actor);
+        mine = (await this.allClaims()).filter((r) => presented.has(r.receiptId));
+        if (mine.length === 0) {
+          // The keeper checks the book: a receipt of this house's that is
+          // paid out is SETTLED (and stays in hand); anything else is no
+          // receipt at all.
+          for (const id of presented) {
+            const doc = await DocumentApi.read(`${this.businessPath}/${RECEIPTS_DIR}/${id}`);
+            if (doc !== null) {
+              return { ok: false, reason: 'already-settled', line: 'The keeper turns the receipt over: it is already settled.' };
+            }
+          }
+          return { ok: false, reason: 'no-receipt', line: 'You present no receipt for that here.' };
+        }
+      } else {
+        const depositor = staff ? this.businessPath : actor.getIdentityPath() ?? '';
+        mine = (await this.allClaims()).filter((r) => r.depositor === depositor);
+      }
 
       // A unique good first: the depot's crate comes back as itself.
       for (const r of mine.filter((x) => x.unit === 'count' && matchesGood(x, word))) {
