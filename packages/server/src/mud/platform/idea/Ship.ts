@@ -2142,8 +2142,14 @@ export default class Ship extends BilgeMixin(PersistableMixin(
    */
   public async sleepIfEmpty(): Promise<void> {
     if (!this.isOfKind() || this.getCourse() !== null || this._sleeping) return;
+    // ⭐ Aboard is anywhere in her rooms — sitting in her dinghy on deck is
+    // aboard (harbors drive, 2026-11-04: the owner got into the dinghy to
+    // launch it, she counted nobody on deck, slept, and stowed the stones
+    // he had loaded into it in her hold).
+    const anyoneIn = (xs: readonly Stuff[], depth: number): boolean =>
+      xs.some((x) => MixinApi.isHasInteractive(x) || (depth < 4 && MixinApi.isContainer(x) && anyoneIn(x.getContents(), depth + 1)));
     for (const room of await this.liveMembers()) {
-      for (const x of room.getContents()) if (MixinApi.isHasInteractive(x)) return;
+      if (anyoneIn(room.getContents(), 0)) return;
     }
     await this.sleep();
   }

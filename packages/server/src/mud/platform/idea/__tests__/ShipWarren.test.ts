@@ -451,6 +451,19 @@ describe('ShipWarren — ships from a kind (harbors B1)', () => {
     expect((way as BerthExit).ship()).toBe(woke);
   });
 
+  it('⭐ somebody sitting in her tender on deck is aboard: she does not sleep (drive, 2026-11-04)', async () => {
+    const ship = await mint('t2');
+    const deck = await deckOf(ship);
+    const tender = deck.getContents().find((c) => c.getTemplatePath() === TENDER) as unknown as Stuff & Container;
+    const who = await StuffApi.clone<Stuff & Containable>(CRATE);
+    const interactive = vi.spyOn(MixinApi, 'isHasInteractive').mockImplementation(((s: Stuff) => s === who) as never);
+    ContainmentApi.move(who, deck);
+    ContainmentApi.move(who, tender);
+    for (let i = 0; i < 6; i++) await tick();
+    expect(ship.isDestroyed()).toBe(false);
+    interactive.mockRestore();
+  });
+
   it('⭐ taken while she is going to sleep, her way waits and leads onto a deck that stands (drive, 2026-11-04)', async () => {
     vi.spyOn(Ship.prototype, 'linesAboard').mockImplementation(async () => [fakeLine(), fakeLine()]);
     const ship = await mint('w2');
