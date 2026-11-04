@@ -71,6 +71,7 @@ function workerName(by: string): string {
  */
 function gateStateAugmenter(text: string, host: Stuff): string {
   if (!(host instanceof Gate)) return text;
+  host.reconcileFromLoaded(WorldClockApi.getNow().rawValue());
   const lines = [`It is ${settingWords(host.getOpening())}.`];
   // The latest by time: a rota's catch-up appends past turns after a hand.
   const last = [...host.getWorkLog()].sort((a, b) => a.atS - b.atS).at(-1);
@@ -156,6 +157,25 @@ export default class Gate extends GateBase {
   public async reconcileScheduled(nowS: number): Promise<void> {
     const turn = this.turnOf;
     if (turn === null) return;
+    this.applyRota(nowS, turn, await this.scheduleOf(turn));
+  }
+
+  /**
+   * ⭐ The same reconcile, synchronously, when the company is already loaded
+   * — what `look` runs, so a gate looked at mid-turn reads open even when
+   * no field has read it since (the browser walk). Nothing loaded, nothing
+   * settled: the next async read catches up.
+   */
+  public reconcileFromLoaded(nowS: number): void {
+    const turn = this.turnOf;
+    if (turn === null) return;
+    const biz = StuffApi.findByTemplatePath<Stuff>(turn.business) ?? null;
+    if (biz === null || !MixinApi.isOrganization(biz)) return;
+    this.applyRota(nowS, turn, this.slotSchedule(biz, turn));
+  }
+
+  /** Bring the record up to `nowS` from a schedule in hand. */
+  private applyRota(nowS: number, turn: TurnOf, schedule: ShiftEntry[]): void {
     if (this.turnStamp === null) {
       // ⭐ The rota starts from the day's midnight, not from the first look:
       // a gate first read mid-turn is open for that turn (the browser walk —
@@ -171,7 +191,6 @@ export default class Gate extends GateBase {
     const from = this.turnStamp;
     if (!(nowS > from)) return;
     this.turnStamp = nowS;
-    const schedule = await this.scheduleOf(turn);
     if (schedule.length === 0) return;
     const rota = new ShiftSchedule(schedule);
     const onNow = rota.isOnAt(nowS);
@@ -200,6 +219,12 @@ export default class Gate extends GateBase {
   private async scheduleOf(turn: TurnOf): Promise<ShiftEntry[]> {
     const biz = await StuffApi.singleton<Stuff>(turn.business).catch(() => null);
     if (biz === null || !MixinApi.isOrganization(biz)) return [];
+    return this.slotSchedule(biz, turn);
+  }
+
+  /** The turn's hours on a loaded business's roster. */
+  private slotSchedule(biz: Stuff, turn: TurnOf): ShiftEntry[] {
+    if (!MixinApi.isOrganization(biz)) return [];
     const roster = biz.getRoster();
     const slot = roster
       .getAssignments()
