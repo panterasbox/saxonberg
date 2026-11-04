@@ -1297,3 +1297,29 @@ watering the meadow with nobody at the gate (56 → 68 %).
 - **Steps 23, 24, 27** (earth vs lined, the salt crust, the overhead inlet):
   unit-tested; not staged live in this walk.
 - **Step 25** (the drowned pot): no undrained pot ships; unit-tested.
+
+#### Staged with the owed tool (2026-11-04)
+
+The walk found why `eval` could not be the staging tool: a governed eval
+runs inside its parcel's sandbox boundary, which rightly refuses a
+realm-level Idea — a well read DRY under an eval probe while a player's
+`pump` drew water. The build now ships the seam the plan owed:
+**`TestHarnessApi.stage(path, method, args)`** (`@TestOnly`), behind
+`POST /auth/test-stage` and the wire harness's `stage()` — one authored
+mutator (`set*`/`add*`/`pond`/`invalidateCache`) on the Stuff at a path.
+
+| step | staged by | seen |
+|---|---|---|
+| 11 | `city-outfall.setDischargeLoadPerSecond(60)` | the kit reads the intake **fouled**; bare, "you cannot tell by looking"; the standpipe pours `fouled-water` and a draught puts 12 units of dysentery in the drinker's gut. ⚠ Found: a tap had poured plain water from a fouled main (fixed — `readWaterChemistry.fouled`), and the main's report said "NOT delivering" while it poured (fixed). ⚠ Not seen: the absorption into a burden across the clock jump (the shipped metabolism's reconcile) — and the officer's valve does not exist (no outlet is switchable) |
+| 14 | `rejection-till.setTableM(440)` | the village pump: "You work the handle and draw only air: there is nothing standing below"; back at 446, water. The deep well's bucket has no verb |
+| 21 | `delight-valley.setTableM(176.5)` | the observation well falls 1.23 → 3.59 m below the collar. The rider is deferred |
+| 23 | `delight-ditch.setLining('lined')` + `invalidateCache` | ⚠ nothing a player can read shows it: the bank and the weir read the RIVER; no instrument reads a ditch's own flow. A gap for the ditch's reading |
+| 24 | the field's `addSoilSalt(1500)` (eval; the field is in the parcel) | `look`: "A white crust of salt lies on the ground between the furrows"; `analyze soil`: 15.3 dS/m with the warning. (A meadow has no furrows — a prose nit) |
+| 25 | a starter pot, `setDrained(false)` | ⚠ the starter pot ships unplanted and `water` refuses an empty pot — staging a plant needs seed + planting; unit-tested |
+
+⚠ **Bodies died in this walk**: days of clock jumps with nobody fed (and
+the dysentery) killed the founder and the first walker — the staging's
+fault, not the game's; the driver now feeds through `/auth/test-nourish`.
+Also seen, not this build's: `get watering can` picked up two water
+filters and a pair of canvas shoes ("can" → "canvas"); `fill` into a full
+can says only "You can't fill…".
