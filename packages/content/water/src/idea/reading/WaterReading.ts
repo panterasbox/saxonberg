@@ -220,7 +220,13 @@ export default class WaterReading extends Reading {
     const flow =
       drainage?.flowAt === undefined
         ? null
-        : await drainage.flowAt(reach, WorldClockApi.getNow().rawValue());
+        : await (async () => {
+            // ⭐ Against the LIVE ledger, as a turnout reads it: an
+            // artificial channel carries only what is diverted into it, and
+            // without the draws a ditch read 0.00 m³/s (the browser walk).
+            const nowS = WorldClockApi.getNow().rawValue();
+            return drainage.flowAt(reach, nowS, await drainage.liveDraws(nowS));
+          })();
     if (flow === null) {
       MessageApi.scene(giver)
         .topic('sense.reading')
