@@ -170,9 +170,15 @@ importers:
       '@saxonberg/content-trade-painting':
         specifier: workspace:*
         version: link:packages/content/trade-painting
+      '@saxonberg/content-trade-papermaking':
+        specifier: workspace:*
+        version: link:packages/content/trade-papermaking
       '@saxonberg/content-trade-potash':
         specifier: workspace:*
         version: link:packages/content/trade-potash
+      '@saxonberg/content-trade-printing':
+        specifier: workspace:*
+        version: link:packages/content/trade-printing
       '@saxonberg/content-trade-quarrying':
         specifier: workspace:*
         version: link:packages/content/trade-quarrying
