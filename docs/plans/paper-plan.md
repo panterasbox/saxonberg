@@ -1715,6 +1715,8 @@ season's fouling, the almanac's year) belongs to a part this build deferred.
 | 8 | ⭐ **22/22** | green — the blocking drive passes end to end. |
 | 9 | ⭐ **22/22** | green again after the suite's fixes moved the stationery to the mill's counter. |
 
+**Browser walk** (`e2e/tests/paper-walk.spec.ts`, server on 2013 with `AUTH_MODE=test`, `CLIENT_URL=http://localhost:5183`, vite on 5183): ⭐ **passed** (1.3 min) on a fresh world. The forms parse at the real binder and act — a notebook written on page 3, read, torn and read again ("torn out"); a letter written, set in a set-down envelope, closed, sealed, opened, and the broken seal on the inspection card; the Gazette shop seen, a release shown on the reading screen, the ledger read, `compose` answered. What getting there found: the walk's own staging (the shops are window-lit — daylight; `look` renders to the CARD; a loose regex matched a refusal, the drive's step-5 trap again; the server's `CLIENT_URL` for a non-default client port).
+
 **Full suite** (`tools/suite`, 22 min): 54/56 packages green; `server` (the wiki-fields snapshot — Garment's `tear` sat above its `fieldMeta` and hid two fields; the pack count) and `terminus` (the general store's tests hold every stocked good discrete — stationery moved to the mill) fixed in `5f235c28d` and re-run green in isolation.
 
 Not driven (each in the file header): 3, 9, 10–12, 16, 19, 22, 27, 29, 30,
