@@ -40,6 +40,18 @@ is not the state but the depot, whose coverage is its market share.
 ⚠ `DocumentApi.saveAsBusiness` is the gate: derived owner, a path under
 the business's branch, and a closed kind allowlist.
 
+⭐ **`ship` — a ship's register entry** (harbors P14). One document per
+ship a register holds, at `<register prefix>/<name slug>`
+(`/platform/ships/terminus-city/petrel`), written only by its
+`ShipRegister` through `DocumentApi.saveToRegister` (the herdbook's
+transport, below — the second `Registrar`). The slug is the uniqueness:
+a register refuses a second ship of a name because the path is taken.
+The entry is TITLE only — `{name, kind, key, flag, registeredAtS,
+owner}`, the owner being her company; who holds the company is its cap
+table ([employment.md](./employment.md)). Pack-shipped for the authored
+ships, runtime-written by a yard sale, `onVanish: 'keep'`. See
+[ship.md](./ship.md).
+
 ⭐ **`berth-roll` — a landing's list of the ships lying at it** (harbors
 review 1). It was a live `Persistable(Idea)` per landing with no behavior
 beyond add/remove/list and nothing targeting it — so it is a document:

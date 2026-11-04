@@ -194,7 +194,7 @@ test refuses a venue's). It carries what drives it:
   beside you survives the boat being carried (the browser walk found
   `anchor` gone once she was launched — a moving container dropped what its
   insides afforded each other).
-- **Lining**: throw a boat's `painter` to somebody on the bank; as they walk
+- **Lining**: throw a boat's bow line (`/platform/thing/bow-line`) to somebody on the bank; as they walk
   the bank the boat comes along beside them.
 - `launch` / `recover` ask the water mod's warrens (the river's and the
   sea's): a bank's edge, a ship's side on a river or at sea.
@@ -206,7 +206,7 @@ water never needs boats), so the boat, `paddle`, `launch`, `recover` and
 the ice crossing type the warrens and the catalogue. The water reaches the
 boat through **`SmallCraftMixin`** (freeboard, capsize, her kedge, her
 anchor, her sail — also what the kernel's `course` and `anchor` ask), a
-painter through **`TetherEndMixin`** (the kernel `LineEnd` — the painter is a `Rope` since cordage), and a bell
+bow line through **`TetherEndMixin`** (the kernel `LineEnd` — the bow line is a `Rope` since cordage; it was the *painter* until paint gave that word to the house painter), and a bell
 through **`RingableMixin`** (diving's `SignalBell` and smelting's cast
 `Bell`, what the ferryman listens for; each also composes `AudibleMixin`,
 so `ring` sounds it from the bell itself — review R2-D4). The ford and the ferry read the river through `LineFrame`.
@@ -241,8 +241,11 @@ and a way aboard named for her (`go ostrander`, a `BerthExit`) put on it
 but the bollard. Her deck's `ashore` leads to the landing she is made
 fast at, else the one within 60 m (`ALONGSIDE_M`). A river keeps the
 craft it has adopted (`LineFrameMixin.adopt`), so a landing's first use
-can ask them whether one lies made fast there; the landing's `look` says
-who is alongside. See [expanse.md § Exits](./expanse.md).
+can ask them whether one lies made fast there, and it also reads the
+landing's `berth-roll` document (`lyingHere()` → `DocumentApi.berthRollOf`)
+to stand up a ship of a kind that lies there asleep. The landing's `look` says
+who is alongside. See [expanse.md § Exits](./expanse.md) and
+[ship.md](./ship.md).
 
 ## Ferries
 
@@ -325,3 +328,9 @@ after a season jump can outlast 30 s.
   duck typing (`SmallCraft`/`TetherEnd`/`Ringable`; transport declares
   water). The browser walk at finalize found eight defects the wire drive
   could not — see the bullets above and the commits `walk(river): …`.
+- **Harbors (2026-10/11, MR !511).** The estuary below the tide's reach
+  reads the sea's level (P10), `frameSite.landing: false` sites, and ships
+  made fast alongside a landing. Review round 1 put a landing's list of
+  who lies there into a `berth-roll` document each ship writes for herself
+  (the `BerthRoll` Idea was deleted). The boat's *painter* row became
+  `/platform/thing/bow-line` when paint merged (`5cfd1a5db`).

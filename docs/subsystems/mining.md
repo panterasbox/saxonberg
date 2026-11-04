@@ -31,11 +31,12 @@ its zone:
 
 **`MineWarren`** owns only what a warren genuinely owns and a static mine
 genuinely cannot do: **carve · abandon · the tier ledger · seal-and-reap.**
-⭐ It `extends FloorplanWarren` (harbors review 3 — the base swap its
+⭐ It `extends FloorplanWarren` (harbors review, MR !511, `8b5f04273` — the base swap its
 header planned): the kernel's keyed room set, with the shell clock left
 out (the fabric is a structure's — a building's or a ship's `Durable`
-condition — and *a field has no paint either*). A mine names **no blueprint** — its spine is authored singletons
-and its workings are carved — so the base mints nothing at wake; a carve
+condition — and *a field has no paint either*). A mine copies **no plan** (its `extent` stays `''` — its spine is
+authored singletons and its workings are carved), so the base mints
+nothing at wake; a carve
 adds a keyed member through the base's `mintKeyed`, placed on the grid
 before its record comes back. Its cells sit on its zone's grid, not a
 frame of its own, and keep their own records (`abandon` captures a held

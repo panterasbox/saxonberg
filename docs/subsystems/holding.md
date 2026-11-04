@@ -411,7 +411,7 @@ building a programme names to anything.
 | Seznick flat | none — every unit stands in Seznick House |
 
 A ship's hull is the same fabric on `Ship` (her seams a `Durable` fabric
-under her coat; worn, she leaks — see [expanse.md](./expanse.md)).
+under her coat; worn, she leaks — see [ship.md](./ship.md)).
 (`WeatheringMixin`, harbors' review-3 clock on the warren, retired in the
 paint merge: the paint review had already folded the same clock into
 `Faced` + `Durable`.)
@@ -811,13 +811,15 @@ keep a record are its `dependentPersistables`, so one
 `PersistableApi.capture(warren)` writes them all — harbors review 2
 retired `captureAll`; a ship declares her warren the same way, so saving
 her saves her hold) / `teardown` / `revert`, the
-tracts build's layout reads (`share` / `footprintM2` on a floorplan room,
-`shareOf`, the persistent `mirrorAxis` every floorplan direction is read
-through, *only a persistable room restores*, `onWarrenWake` after a room
-is woken, a revert deleting each room's `dependentPersistables`). It
-speaks through four hooks: `reconcile` (who hears a population change — still abstract),
-`wireLockedEdge` (what opens a locked edge — the base **throws**, it has no
-lock to hang), `addressFor` (the address a woken room is stamped with — a
+tracts build's layout reads (the persistent `mirrorAxis` every copied
+direction is read through, *only a persistable room restores*,
+`onWarrenWake` after a room is woken, a revert deleting each room's
+`dependentPersistables`; a tract's `share` is the tract row's own field
+now). It speaks through five hooks: `planOf` (whose fields the plan is —
+the warren's own, or a ship kind's row), `reconcile` (who hears a
+population change — still abstract), `fitExit` (what a copied way needs
+from the copy — a keyed door gets its holding's keyway; the base does
+nothing), `addressFor` (the address a woken room is stamped with — a
 read, not a wake hook: anything a room does on waking is its own
 `WarrenMember.onWarrenWake`, the ONE wake hook since harbors review 2;
 a ship's deck stamps itself a shore of her sea there), and
@@ -826,8 +828,8 @@ answers its term, and `survey` reads it).
 
 `HoldingWarren extends FloorplanWarren` and keeps only what is
 residential: `addressBase` (answered by `addressFor`), the parcel keyway
-(`refreshKeyway` before the base's wake; the keyed-door edge in
-`wireLockedEdge`), `openGroundM2()` (the PARCEL's workable area less the
+(`refreshKeyway` before the base's wake; the keyed doors fitted in
+`fitExit`), `openGroundM2()` (the PARCEL's workable area less the
 footprints), `reconcile` → the
 institution, `holdingKey()` (= `warrenKey()`), `entryRowOf`, the tenure
 term, and its BUILDINGS (`house()`, `standingBuildings()`,
@@ -852,3 +854,19 @@ and keep their own records; it has no fabric. `CirculationWarren.conditionOf`
 reads the holding's main building (`MixinApi.isDurable`); `SurveyController`
 reads the structure a room is part of (a `Building` or a `Ship`) and the
 term off `FloorplanWarren.getUpkeepTerm`.
+
+## History
+
+- **Harbors (2026-10/11, MR !511).** P1 lifted the floorplan half of
+  `HoldingWarren` into the kernel `FloorplanWarren` so a ship's warren
+  could share it. Review round 1 then reshaped it: one wake hook
+  (`WarrenMember.onWarrenWake`; `onRoomWoken` deleted, `abdae7e98`);
+  saving the warren saves the rooms that keep a record
+  (`dependentPersistables`; `captureAll` deleted, `e3141e2d3`); a
+  kernel `WeatheringMixin` on the warren (`015a246da`) was retired again
+  when paint merged (`5cfd1a5db`), the fabric being the building's or
+  the ship's `Durable`; the `floorplan:` list became a `blueprint:` row
+  (`b00f8d45c`), the buildings were authored rather than derived
+  (`8125deeed`), and the blueprint row went, the plan living on its
+  owner (`a20704a98`); `MineWarren extends FloorplanWarren`
+  (`8b5f04273`).

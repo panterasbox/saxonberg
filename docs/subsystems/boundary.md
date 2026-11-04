@@ -191,6 +191,19 @@ a key check vs. a reachability check). Consumers: the dorm's `DormDoor`
 yard, hung on the street by `PlatWarren`; see
 [smallholding.md](./smallholding.md)).
 
+⭐ **A ship's two ways** (harbors) are `DeferredDestinationExit`s too,
+both `LockableMixin` over it: `BerthExit` (`platform/idea/BerthExit`,
+the `exits/berth` row) is the way aboard the ship herself puts on the
+landing she makes fast at, named for her (`go hesper`), and gone when
+she casts off; `AshoreExit` (on her entrance) leads to the landing she
+lies at. Both read her gangway's lock (`lock ashore`, `unlock hesper`);
+asleep, the berth way reads the lock she was left with. Both answer
+`isMapped() → false` — a way that comes and goes with a ship is never
+written to a map. There is no third derived *alongside* way (the
+`AboardExit` that maritime derived was deleted): `Exit.alongsideNow()`
+on the berth way answers her while she stands and lies at that landing.
+See [ship.md](./ship.md).
+
 `LotGateExit` is the case where the eager path is **exact** rather than a
 class name: each lot's room is minted at its own identity, so the stored
 `destinationTemplatePath` is that identity. That matters beyond honesty —
@@ -1132,6 +1145,11 @@ shared **`BistateMixin`** base (`lib/Bistate.ts`) was extracted in
 `17add9a5` — superseded by build-3's `lib/lock/` real `Lock`+`Key`
 model; the keyed-credential lock is the future, and this boolean is to be
 retired (not grown) at reconcile.
+
+The harbors build (MR !511) added `BerthExit`/`AshoreExit` (P4–P6), made
+both unmapped in review round 1 (`4cce826da`), and made an exit a Visible
+thing MQL binds directly (review 3); master's `AboardExit` stayed deleted
+at the paint merge (`5cfd1a5db`).
 
 ## Cross-References
 

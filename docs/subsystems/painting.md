@@ -35,12 +35,15 @@ building dial once the coat is gone, which `maintain` with a caulker's kit
 makes sound (and which, worn, LEAKS into her bilge). The house painter
 works on buildings only.
 
-⭐ **A holding's buildings come from its copy** (paint review; derived
-since the merge into harbors — enclosed rooms joined by their ways, open
-ground parting them; see [holding.md](./holding.md)): a
-building is the holding's ENCLOSED rooms joined by the ways between them,
-one `HoldingBuilding` each. A farmstead's house and its barn (across the
-yard) are two buildings, each with its own coat and condition;
+⭐ **A holding's buildings are AUTHORED** (harbors review, 2026-11-03 —
+the paint build grouped them by a `building:` key on the retired
+`floorplan:` list, and the merge into harbors briefly derived them from
+how rooms connect; see [holding.md](./holding.md) § Condition): the
+programme row names `buildings:` (main first), each a building row with
+its own `extent` and `entrance`, and the holding mints one
+`HoldingBuilding` per row, its rooms the plan's rooms under that extent.
+A farmstead's house and its barn are two buildings, each with its own
+coat and condition;
 open ground — the yard, a tract, Hinkley's garden — is no building's, and is
 where they are painted from. A holding's rooms are keyed clones of shared
 rows, so no path names them (holding.md § Identity): **a place asks its
@@ -48,8 +51,9 @@ warren which building it is in** (`Warren.structureOf`, a hook the holding
 answers from its buildings' room instances; `Place.structureNow` asks it
 first, then the location graph by identity path). So `survey` in a field
 reads no fabric and `maintain` there finds nothing to keep. By path, only
-the main building (the unnamed rooms) answers, at the holding's own extent —
-what the ascent gate reads.
+the main building (the first named) answers, at the holding's own extent —
+what the ascent gate reads; the others are kept under
+`<extent>@<row leaf>`.
 
 | mixin | what it claims |
 |---|---|
@@ -211,6 +215,14 @@ four load-bearing things, and the reasons are worth keeping:
 - **A sailed ship lands nowhere.** `Exit.alongsideNow()` gained its third
   answer (`undefined`) so a way aboard never falls back to its berth —
   `a6ea93601`.
+
+Merged into harbors (MR !511, `5cfd1a5db`): harbors' own kernel
+`WeatheringMixin` on the warren was retired in favor of this model, so a
+ship's hull is `Durable(Faced(Structure))` on the same
+`structure.weather.daysToWorn` dial, and the boat's bow rope took the
+name *bow line* (`/platform/thing/bow-line`), leaving *painter* to the
+house painter. Harbors review then made a holding's buildings authored
+rows (`8125deeed`, `a20704a98`).
 
 The decision numbers cited in code comments (`paint D1`…, `B1`…) are the
 build plan's, retired at the sweep; read them with

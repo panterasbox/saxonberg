@@ -809,6 +809,24 @@ The first consumer is the houseplant (each cultivated plant is its own keyed
 host, carrying its own location), and **pets and livestock are the same
 shape** — see [husbandry.md](./husbandry.md).
 
+### Dependent records — `dependentPersistables`
+
+A host may OWN keyed records that live and die with it — a tract's marked
+fields (tracts build D26), a warren's rooms that keep a record, a ship's
+warren and her minted company (harbors review). `Persistable.dependentPersistables()`
+(`@hook`, default `[]`) names them, so a capture of the host captures each
+after its own record write (each through its own record's queue — the
+list is read before the write awaits, so a dependent destroyed meanwhile
+is skipped), `markForRevert` marks each, and an end-of-tenure revert
+deletes each by its own key. Nothing that walks holdings needs to know
+what they are. ⭐ So `PersistableApi.capture(warren)` writes the holding
+or the ship whole (`FloorplanWarren` lists only the rooms it stood up
+that keep a record, and only after their `restoreOrSeed`); the
+`captureAll` the harbors build first shipped was retired for it
+(`e3141e2d3`). ⚠ A ship's plain rooms keep nothing: only her `Hold`
+(`Persistable(Compartment)`) is a dependent of her warren
+([holding.md](./holding.md) § The plan is the INITIAL mint).
+
 ### `captureHostOf` — the mutating-act capture
 
 Capture is **event-driven, not periodic**: autosave is Avatar-only.

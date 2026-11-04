@@ -73,7 +73,7 @@ alongside it* (a ship at a quay: the exit answers `alongsideNow()` —
 sailed ship lands nowhere. The way aboard is the ship's own `BerthExit`
 (harbors), installed when she makes fast and taken up when she casts off:
 it answers her while she stands and lies at that landing, else `null`). Derived, never authored (`StructureBase.isLandedAt`; `Place.landedStructuresNow()`
-from the room's side). A closet holds air; a neighbour's parlour is another
+from the room's side). A closet holds air; a neighbor's parlor is another
 structure's member; a sailed ship's berth has nothing alongside; a member
 courtyard open to the sky is a landing of its own building. The landed
 structures enter the room's `here` pool, so `look cottage`, `survey
@@ -88,7 +88,7 @@ cottage` and `paint cottage` bind from the lane with no new MQL seed.
 | `platform/idea/Building` | what a building row names (a `Singleton` per row); persists once sold |
 | `HoldingBuilding` (`residence`) | a holding's building, minted per building row its programme names (`buildings:`, main first, on the programme row beside the plan's `extent` and `entrance`); its rooms are the plan's under that row's `extent` — authored, never grouped by how rooms connect |
 | `platform/idea/Structure` | a bare structure row — a thing with no outside; today only the peak of Waponi Woo, until the mountain slate |
-| `Ship` | a structure that moves; her hull takes coats wherever she is, and her seams are a `Durable` fabric under them (harbors) — worn, she leaks |
+| `Ship` (`platform/idea/Ship`, `Durable(Faced(lib/structure/Structure))`) | a structure that moves; her hull takes coats wherever she is, and her seams are a `Durable` fabric under them (harbors) — worn, she leaks. A ship of a kind's members are her warren's, never a path (`Structure.memberExtent()` `@hook` answers `''`; every smack shares her kind's room rows). See [ship.md](./ship.md) |
 
 ⛔ **There is no blueprint row** (harbors review, 2026-11-03). A
 `Structure` is only ever a thing standing in the world; the plan a warren
@@ -114,7 +114,7 @@ its identity path — what membership, the landing and `exposure()` read.
 | field / method | answers |
 |---|---|
 | `top` | `open` (no roof) · `roof` · `ceiling` (an enclosed member stands `on:` this storey) |
-| `walls[]` | four faces; `exterior: false` for a face onto an enclosed member (it carries the neighbour and the exit) |
+| `walls[]` | four faces; `exterior: false` for a face onto an enclosed member (it carries the neighbor and the exit) |
 | `openSides` | doorless exits to a place that is not enclosed — an open-fronted barn's missing wall (declared places only) |
 | `floorIsRoofOf` | a roof terrace: the place below, whose roof is this floor |
 | `rainReaches()` | `top === 'open'` |
@@ -130,7 +130,7 @@ shared* is answered by *who is next door through an exit*. Openings are
 exits; there is no per-wall vocabulary.
 
 ⚠ The cache: rebuilt when the place's structure or its resident
-neighbours change, re-checked at most once a real second (the envelope gate
+neighbors change, re-checked at most once a real second (the envelope gate
 asks many times a command); door state is read live; an undeclared place
 keys on its biome's sky bit (a biome resolves after its room).
 
@@ -158,7 +158,7 @@ keys on its biome's sky bit (a biome resolves after its room).
   noonIrradianceWm2` 700, `sideWeight` 0.25), a `RoomHeatExchange` `fixedW`
   term, integrated in ≤ 1-game-hour pieces with the sun at each midpoint.
 - **heat (between rooms)** — each interior face is a conductance to the
-  neighbour's LAST temperature: **shut ⇒ conduction** through both places'
+  neighbor's LAST temperature: **shut ⇒ conduction** through both places'
   walls in series (symmetric), **open ⇒ flow** at the open-opening constant
   × min(V). One hop, recursion-free. `feel` names the sun and the warm room
   next door.

@@ -97,13 +97,13 @@ the spine (`lib/persistence/Persistable.ts`, `platform/idea/api/PersistableLogic
   marshalling a null; hydrate skips un-marshalling it) — a latent spine gap
   a full `Location` host (a null `_temperature: Quantity`) surfaced.
 
-⭐ **A keyed room is a copy of a BLUEPRINT row** (harbors review 3): the
-holding's programme names a `Structure` over its rooms authored as an
-ordinary place, and each room is cloned from its row keyed `(room row,
-<holding extent>/<leaf>)` — the dorm's one-room blueprint keys its room
+⭐ **A keyed room is a copy of its holding's PLAN** (harbors review): the
+programme row itself authors `extent` (its rooms, authored as an ordinary
+place) and `entrance`, and each room is cloned from its row keyed `(room
+row, <holding extent>/<leaf>)` — the dorm's one-room plan keys its room
 by the unit extent itself, no leaf, so this record shape is unchanged.
-The blueprint itself is never stood up for play; see
-[holding.md § Blueprints](./holding.md).
+There is no blueprint row, and the plan's rooms are never stood up for
+play; see [holding.md § Plans](./holding.md).
 
 **Avatar migrated onto this** (the regression boundary): its key is its own
 `templatePath`, equal to the pre-D1 self-derived owner, so the `owner` column

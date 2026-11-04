@@ -196,7 +196,7 @@ as `{kind: 'entity', path}` — the legacy shape, same value under the new
 type — and the mixin keeps `proprietorPath` as a legacy hydration slot
 that `appointingAuthority` overrides when both are present.
 
-### ⭐ The owners authority — a cap table (harbors review 1, 2026-11-02)
+### ⭐ The owners authority — a cap table (harbors review 1, 2026-11-02, MR !511, `362ec52aa`)
 
 The first slice of the [institutions slate](../slates/builds/institutions-slate.md)'s
 primitive. `lib/employment/CapTable.ts` (`CapTableMixin`, `Mixins.CapTable`,
@@ -227,7 +227,7 @@ record throws.
   company's table is her sixty-fourths (`units: 64`); the register keeps
   her title (`owner:` — the company), not shares. A smack's company is
   minted at commissioning with the buyer as its whole row and kept
-  `(seed row, serial)` with her.
+  `(seed row, serial)` with her. See [ship.md](./ship.md).
 - ⭐ **A unit is a vote in the business, never standing in the polity**
   (lens 7). Not built here: forms, a filing registry, primary issue,
   distributions/dividends, the bank wall, charters, endorsements that
@@ -1291,7 +1291,7 @@ sheet) — see `blood.md` (`DonationBankMixin`).
 ## A seat with a perceptual effect: the lookout (the maritime build, 2026-10)
 
 The first seat whose holding changes what somebody can SEE. A ship's
-house (`Structure.house`) carries a `lookout` position; whoever holds it
+house (`Ship.house`) carries a `lookout` position; whoever holds it
 **on shift** sees from the masthead (`Structure.sightHeightFor`), and
 everyone else from the deck. Read off the shipped roster — `appoint`,
 `clock on` — with nothing about the ship changing.

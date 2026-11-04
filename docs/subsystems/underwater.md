@@ -81,6 +81,18 @@ Derived on read, nothing stored:
 An uncited `Pool` reads `swimming` (legacy deep water). ⚠ The wading depth
 is one dial for every body; the plan's per-stature factor was not built.
 
+⭐ **"Is this the water?" is `depthNow() > 0`** (harbors review 1). A
+ship's room composes `WaterPlace` so it can flood (`Compartment`: dry
+until her bilge is over its floor), so `isWaterPlace` alone no longer
+means *the water*; every reader that means it (swimming, diving,
+`descend`, `pull`, `launch`/`recover`, `Exit.leadsIntoWater`, the
+temperature and current readings, a line, a boat, an air bag, a hoist)
+asks the depth. There is no second read with a default of yes, so depth
+is real everywhere: sea and reach stops and patches stamp theirs at
+mint, and a column `Band` answers its surface's depth. A tidal place the
+ebb has drained below its floor (the strandline at low water) is not the
+water while it is `dry`. See [ship.md](./ship.md) for the flooding.
+
 ⭐ **Who is in the water is per occupant, not per room.** The place's
 floor (the water's surface `WaterSurface`, or an ice sheet) either holds
 an occupant up or it does not, so a body on the ice and a body in the

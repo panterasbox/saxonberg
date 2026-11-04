@@ -309,7 +309,7 @@ first use asks its frame's craft (`Frame.craft()`). Its `look` reads
 *Alongside: the Hesper.* off the ways. `AshoreExit` (on a ship's
 entrance) leads to her `getBerth()` first, then to the landing within a
 rope's throw on a river or the node's landing at sea; it refuses in
-words between nodes. Both faces read her gangway's lock (`keyway`,
+words between nodes. Both faces read her gangway's lock (`gangwayKeyway`,
 `gangwayLocked`), and only the way aboard is gated by it.
 
 ### Harbors: a kept berth, a hail, the bar (harbors A1)
@@ -383,7 +383,13 @@ Structure row whose rooms a `warren:` mints, and a kind's membership is
 her warren's, never a path (`Structure.memberExtent` answers `''` for
 her). An AUTHORED ship (the Hesper) copies no plan: her own rows are the
 place, and they are served — her warren (`ShipWarren/authored`) adopts
-her live rooms. Her hull is HERS, as a
+her live rooms. ⭐ Only her HOLD keeps a record (`platform/location/Hold`
+= `Persistable(Compartment)`); her deck and cabin are plain rooms the
+warren stands up again at wake, and before she sleeps `ShipWarren.stow`
+moves what is loose up top into the hold. Her register, her company's
+cap table, the charter, the bilge and going down are
+[ship.md](./ship.md)'s; the harbor's book and its rules are
+[harbor.md](./harbor.md)'s. Her hull is HERS, as a
 house's fabric is the building's (paint merged into harbors): `Ship`
 composes `Faced` (tar, paint) over `Durable` (her seams), the weather wears
 the seams at the house's rate (`structure.weather.daysToWorn`) once the
@@ -471,13 +477,23 @@ instead of a 9.81 literal.
 | the tide, a water biome, latitude as a resolved value | `WaterExpanse`, the `open-water` stub | climate-and-water |
 | vector wind | `Band.lean` becomes a deviation | weather |
 | a boat adrift across a restart | the dinghy is a deck prop, not boot-listed | the vessel build |
-| cargo in a ship's hold | the rooms are singleton, non-persistable | the vessel build |
 | the logbook (*what proves the depletion*) | `chronicle` is append-only and exists | navigable-water § salvaged Q1 |
 | the place↔bulk line (a bath, a cistern, a spring) | `Shore` (beside) and `Pool` (in) are its two drawn edges | navigable-water § salvaged Q2 |
 | reversing flow, the tidal bore | — | navigable-water § 4 / salvaged Q3 |
 
 ## History
 
+- **Harbors (2026-10/11, MR !511, `14b2bfcf9`…`1116a9e2d`).** The way
+  aboard named for her (`BerthExit`/`AshoreExit`), the `Berthing` and
+  `Hailable` protocols, the bar's tide window, and the ship of a kind.
+  Review round 1 replaced the shapes the build first shipped: the
+  `MooringLine` mixin became cordage's `Tieable` + `Rope.tieTo`
+  (`88e6d3045`); `BerthKeeper` became `Berthing` and the hail moved onto
+  the node's row (`ExpanseNode.hail`, `24d31eeb6`); `ShipRegisterApi`
+  went, a ship naming her own register (`ebbb157fe`); the handle scan
+  went, a ship being a minted identity whose rooms are found through her
+  (`a2f34a285`); only the hold persists (`e6b86cfbd`); and the blueprint
+  row went, the plan living on the ship kind's own row (`a20704a98`).
 - **Maritime review — lazy, not booted (2026-10-14).** Maritime R4 had
   booted every Structure and sea and enforced it (`lint:structures-
   booted`), and kept a `StructureCatalogue` — a class scan of every

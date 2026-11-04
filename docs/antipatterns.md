@@ -6305,8 +6305,8 @@ already said where a minted identity's backing goes —
 that is not a host's state has no host to capture.
 
 **The exception, and it is a real one: a fixture players use that keeps
-its own book.** `HullBook` (`buy`), `HireBook` (`rent`), a shop `Stock`,
-a `CheckRack` — the record is held by the thing the verb acts on, it
+its own book.** `HullBook` (`buy`), the `HarborBook` (`berth`, `pay`), a
+shop `Stock`, a `CheckRack` — the record is held by the thing the verb acts on, it
 refuses what its own state forbids, and you can `look` at it. Test 1
 holds; it stays a persistable fixture. ⚠ The tell that the exception has
 been stretched: a fixture *named* for the book exists, holds nothing, and
@@ -6314,8 +6314,8 @@ forwards to a placeless Idea that holds the record. (Harbors review 2 found
 exactly that — `HarborBook` holding nothing, `Harbor` holding the berths
 — and moved the record onto the book.) ⚠ And the exception never licenses
 a COPY: `HireBook` kept a `hires` list beside each boat's own hire record
-— *Two records of one fact* — and now keeps only its rates and reads its
-boats out off the boats.
+— *Two records of one fact* — and now keeps only its authored rates,
+persists nothing, and reads its boats out off the boats.
 
 **Why.** A Stuff costs a proxy, a residency entry, a lifecycle, a
 template row and a snapshot slot — and buys methods, a shadow seam and a

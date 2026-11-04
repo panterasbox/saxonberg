@@ -156,13 +156,19 @@ part model absorbs it.
   gave up took it).
 - **A bore** — drilling's `Wellhead` answers `LiftSource` from the hole's
   depth and sump; `liftInto` is bounded by the sump AND the trough;
-  `lift()` (the bailer) is byte-identical and asks no pressure. A crew at
+  the bailer is `bail` over it (§ The bucket — the bore's own `lift()`
+  went in harbors review 1) and asks no pressure. A crew at
   a fitted pump earns a **continuous rate** in `reconcileRig`
   (`throughput × elapsed × hands × pump.crewDuty`) — only if the pump's
   own law lets it lift from that depth (`liftsFrom`). Rejection ships the
   old brine bore at the spring (25 m, `bodyKey` authored — authorable
   since this build).
 - **A conduit** — water's `Conduit` holds its pump; see below.
+- **`BilgeWell`** (`platform/thing/BilgeWell`, harbors) — the well in a
+  ship's bottom where her bilge stands; it answers `LiftSource` and
+  `PumpSource` off her (what stands is her bilge, reconciled now; a lift
+  goes over her side, so the draw point never fills), and is born with a
+  bilge pump in it — `pump well` aboard. See [ship.md](./ship.md).
 
 ## The city, and the tap that reads its main
 
@@ -213,6 +219,12 @@ dewatering and trade-mining's `drain`, which narrates *"work the pump"*
 with no pump object · the gym's `pace` slot.
 
 ## History
+
+Harbors, MR !511 (review round 1, `c60944860`): the boat's
+`BailableMixin` and the bore's `planBail`/`completeBail`/`lift()` were
+deleted for one `bail` over any `LiftSource` (§ The bucket); the boat
+and the ship's `BilgeWell` joined the `LiftSource` implementers, and one
+`BilgeMixin` holds a hull's water for both a ship and a boat.
 
 Pump build, 2026-10-09, `4bd010214..` on `reqs/pumps`. The drive found:
 a pail that could not hold water (`closure: open` means not liquid-tight;

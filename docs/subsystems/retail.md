@@ -261,7 +261,7 @@ standing boats of the kinds it lets whose hire names it (harbors review
 | implementer | offers | the sale |
 |---|---|---|
 | `ConsignmentShelfMixin` | a good it holds a live listing for | the consignor's ask, the remainder split to them, title **transferred**; a `termsAskFor` hook lets a counter price a terms listing itself |
-| `Stock` (composes the shelf) | a line it carries (even bare), a priced good its house keeps lying in its room, or a consigned good | the closed sign first; a shelf good (brought up to order from a store), settled in full and **stamped**; else a listing as above; else ⭐ **a good sold where it lies** — priced on the counter with NO line (`prices` only), lying loose in the counter's room, the house's (stamped to its business or to nobody), not out on hire: settled, title **transferred**, nothing moved (a boat's painter stays in her), custody re-read in place; else *sold out* (a line, or *there is no rowboat of the house's lying here*) / *isn't for sale here* |
+| `Stock` (composes the shelf) | a line it carries (even bare), a priced good its house keeps lying in its room, or a consigned good | the closed sign first; a shelf good (brought up to order from a store), settled in full and **stamped**; else a listing as above; else ⭐ **a good sold where it lies** — priced on the counter with NO line (`prices` only), lying loose in the counter's room, the house's (stamped to its business or to nobody), not out on hire: settled, title **transferred**, nothing moved (a boat's bow line stays in her), custody re-read in place; else *sold out* (a line, or *there is no rowboat of the house's lying here*) / *isn't for sale here* |
 | `HullBook` (`/system/transport/thing/HullBook`, the yard) | a hull it lists, by kind or slot — sold out or not | **title** off a finite, authored list (`hulls: [{slot, kind, priceMinor}]`, the farmstead pattern): the closed sign; the first hull still on the stocks (*"the yard has no hull on the stocks"*); the register over the yard; her name asked (refused while the register has it); the slot claimed synchronously, then the money (given back if it does not come); her identity minted `<kind>/<serial>`, `Ship.commission` at the book's `quay:`; the sale kept in the book's own record — no restock |
 
 ⚠ Worth stays on the offer (Law 1) and every sale settles through
@@ -269,6 +269,30 @@ standing boats of the kinds it lets whose hire names it (harbors review
 price list — `PricedOfferMixin` is the map a menu, a tariff and a counter
 share; `ForSale` is the act. `lint:counters` is unmoved: an implementer
 outside the kernel's `platform/**` (a pack's book) is not a counter class.
+
+**Sold where it lies, and title only.** The sale where a good lies
+transfers its title (the good's own `transferChattel`) and moves nothing, then
+calls the good's `followCustody()` so the new owner's estate records
+where they keep it ([chattel.md](./chattel.md)). Such a landing is
+**kept** — `platform/location/PersistentShore` (`Persistable(Shore)`):
+it lays its `props:` down once and its record is authoritative after, so
+the boat sold does not come back at the next restart (⚠ never a quay a
+ship makes fast at; her lines re-tie from her own record). The yard's
+`HullBook` sells a ship's TITLE: the ship, her register and her company
+are [ship.md](./ship.md)'s, the harbor that keeps the yard
+[harbor.md](./harbor.md)'s.
+
+**The let — `rent`** (`platform/cmd/retail/rent.yaml`,
+`RentController`): `rent <boat> for <n> days` at a `HireBook`
+(`platform/thing/HireBook`, a fixture; its house lists it in
+`operatingLocations`, so the day's money settles there). It lets only a
+boat of the house's lying in the book's room, refuses while the house is
+closed, takes `n ×` the book's `rates` for her kind up front, and puts
+her in the hirer's CUSTODY — her title stays the house's
+(`HirableMixin.hireTo`; ⛔ not on `Good`, a class composes it when its
+kind is let). The hire ends when she is put down on the landing she was
+let from (`endHire`, from her own `onMoved`; there is no return verb).
+Overdue is a fact on the book's page, never a penalty.
 
 ## The buy loop (`buy <thing>`, stamps ownership)
 
@@ -655,3 +679,14 @@ and pearl ash; the Hanging Wood glasshouse's chalked board buys pearl ash
 and black salts. The ash round is a sole trader who buys at the hearth at
 the chandlery's own bid and sells at its counter. See
 [potash.md](potash.md).
+
+## History — the harbors build (MR !511, 2026-11)
+
+The build first sold ships and day hires off `Stock` (`minted:` /
+`deliversTo` lines, `Stock.rates` / `Stock.hires`). Review round 1
+reverted that: the hire book took the let (`f3305cb19`), `Stock` went back
+to selling goods (`f91ad08c7`), `buy` became one offer protocol
+(`ForSaleMixin`, `d898a4a15`; `Stock.counterFor` generalized into
+`sellerFor`), a ship became title off the yard's `HullBook` (`af492d81d`),
+and a boat became a priced good sold where it lies on a kept
+`PersistentShore` (`0b7c75e60`).
