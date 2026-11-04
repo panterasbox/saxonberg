@@ -132,6 +132,9 @@ export default class Sheet extends SheetBase {
     this.boundTo = editionPath;
     this.page = Math.max(0, Math.floor(page));
     this.setWritingRoom(0);
+    // A printed copy answers to what it is: `read copy`, `get printed`.
+    const words = this.getKeywords();
+    this.setKeywords([...words, ...['copy', 'printed', 'print'].filter((w) => !words.includes(w))]);
   }
 
   /** @hook A printed sheet reads its edition — no title check (D6). */
@@ -311,6 +314,8 @@ export default class Sheet extends SheetBase {
     const left = text.slice(0, cut).trim();
     const right = text.slice(cut).trim();
     const self = piece as unknown as Stuff;
+    // Named BEFORE the tear: two blank halves are alike and stack on arrival.
+    const name = self.getPresentation();
     const path = self.getTemplatePath() ?? '/platform/thing/sheet';
     const other = await StuffApi.clone<Sheet>(path);
     for (const half of [piece, other]) {
@@ -333,8 +338,8 @@ export default class Sheet extends SheetBase {
     return {
       ok: true,
       line: text.length > 0
-        ? `You tear ${self.getPresentation()} in two; the writing goes with the halves.`
-        : `You tear ${self.getPresentation()} in two.`,
+        ? `You tear ${name} in two; the writing goes with the halves.`
+        : `You tear ${name} in two.`,
       made: [self, other],
     };
   }

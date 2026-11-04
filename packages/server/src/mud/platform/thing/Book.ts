@@ -185,7 +185,10 @@ export default class Book extends BookBase {
       if (this.bookKey === '') this.bookKey = SecurityApi.uuid(12);
       path = `/home/${key}/books/${this.bookKey}`;
     }
-    if (!(await AccessApi.canAtPath(by, 'write-document', path))) {
+    // ⭐ A borrowed book is refused BEFORE the write: once its document
+    // exists, it is the title on that document that decides. A first write
+    // goes to the writer's own home, and the store's own gate decides that.
+    if (this.document !== '' && !(await AccessApi.canAtPath(by, 'write-document', path))) {
       return { ok: false, reason: 'not-yours-to-write-in', line: `${self.getPresentation()} is somebody else's; you can read it, not write in it.` };
     }
     const existing = this.document === '' ? null : await DocumentApi.read(path);
@@ -199,7 +202,12 @@ export default class Book extends BookBase {
     }
     pages[this.openPage - 1] = next;
     const title = self.getPresentation();
-    await DocumentApi.save(path, 'book', { title, pageCount: this.getPageCount(), pages });
+    try {
+      await DocumentApi.save(path, 'book', { title, pageCount: this.getPageCount(), pages });
+    } catch (err) {
+      console.warn(`Book.writePage: ${path} refused:`, err);
+      return { ok: false, reason: 'not-yours-to-write-in', line: `${self.getPresentation()} is somebody else's; you can read it, not write in it.` };
+    }
     this.document = path;
     this.spendInk(ink, text.length);
     return { ok: true, line: `You write "${text}" on page ${this.openPage} of ${title}.` };

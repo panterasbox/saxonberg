@@ -21,9 +21,11 @@ data:
     - { itemTemplatePath: /trade/papermaking/thing/bag, par: 6 }
     - { itemTemplatePath: /trade/papermaking/thing/carton, par: 3 }
     - { itemTemplatePath: /trade/papermaking/thing/label, par: 10 }
+    - { itemTemplatePath: /trade/papermaking/thing/pot-of-paste, par: 3 }
   prices:
     /trade/papermaking/thing/bag: 1
     /trade/papermaking/thing/carton: 3
     /trade/papermaking/thing/label: 1
+    /trade/papermaking/thing/pot-of-paste: 2
     /stuff/thing/rag: 1
     /trade/papermaking/thing/paper-mould: 8

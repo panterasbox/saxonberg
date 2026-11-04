@@ -59,13 +59,10 @@ export default class Envelope extends EnvelopeBase {
         spilled.push(c);
       }
     }
+    const line = spilled.length > 0
+      ? `You tear ${self.getPresentation()} open; ${spilled.map((s) => s.getPresentation()).join(', ')} falls out.`
+      : `You tear ${self.getPresentation()} open; it is empty.`;
     StuffApi.destruct(self);
-    return {
-      ok: true,
-      line: spilled.length > 0
-        ? `You tear ${self.getPresentation()} open; ${spilled.map((s) => s.getPresentation()).join(', ')} falls out.`
-        : `You tear ${self.getPresentation()} open; it is empty.`,
-      made: spilled,
-    };
+    return { ok: true, line, made: spilled };
   }
 }

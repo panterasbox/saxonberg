@@ -34,6 +34,7 @@ import {
   expectOk,
   nourish,
   advanceWorldClock,
+  worldClockNow,
 } from '../src/harness';
 import type { CommandResult } from '../src/harness';
 
@@ -155,6 +156,15 @@ async function funded(prefix: string, amount = 400): Promise<string> {
   return handle;
 }
 
+/** What a refusal sounds like — a step whose act was refused must not pass. */
+const REFUSED = /don'?t see|don'?t have|don'?t find|You can'?t|cannot make out|pitch dark|not enough|nothing to/i;
+
+/** The name another player answers to here. */
+async function nameOf(s: Session): Promise<string> {
+  const me = (await s.query('me', { fields: ['displayName'] }).catch(() => [])) as { displayName?: string }[];
+  return (me[0]?.displayName ?? '').split(/\s+/)[0] ?? '';
+}
+
 async function carried(s: Session, keyword: string): Promise<number> {
   return (await s.query(`me:i:${keyword}`, { fields: ['displayName'] }).catch(() => [])).length;
 }
@@ -167,9 +177,15 @@ let maker = '';
 let reader = '';
 
 suite('paper — the blocking drive', () => {
-  it('setup: a papermaker with money, and a second person to hand things to', async () => {
+  it('setup: a papermaker with money, a second person, and daylight', async () => {
     maker = await funded('ppr');
     reader = await funded('rdr', 100);
+    // Staged: the mill and the shops are lit by their windows — bring the
+    // world to nine in the morning (the drive found them pitch dark).
+    const now = await worldClockNow();
+    const hour = Math.floor((now % 86_400) / 3_600);
+    const ahead = (9 - hour + 24) % 24;
+    if (ahead > 0) await advanceWorldClock(`${ahead}h`);
   }, 300_000);
 
   it('2. a garment tears into rags', async () => {
@@ -188,17 +204,18 @@ suite('paper — the blocking drive', () => {
     const s = await session(maker, VAT_HOUSE);
     const l = await say(s, 'look');
     expect(l, l).toMatch(/stamper|vat/i);
+    expect(l, l).not.toMatch(REFUSED);
     const sold = await say(s, 'sell rag');
-    expect(sold, sold).not.toMatch(/doesn'?t understand/i);
+    expect(sold, sold).not.toMatch(REFUSED);
     const m = await say(s, 'buy paper mould');
-    expect(m, m).not.toMatch(/bare|cannot afford/i);
+    expect(m, m).toMatch(/You buy/i);
   }, 600_000);
 
   it('4. rags in the stamper; switched on, the race beats them to pulp', async () => {
     const s = await session(maker, VAT_HOUSE);
     await say(s, 'put rags in stamper');
-    const on = await say(s, 'switch on stamper');
-    expect(on, on).toMatch(/switch|stamper/i);
+    const on = await say(s, 'switch stamper on');
+    expect(on, on).not.toMatch(REFUSED);
     await advanceWorldClock('2h');
     const l = await say(s, 'look stamper');
     expect(l, l).toMatch(/stocks/i);
@@ -208,9 +225,10 @@ suite('paper — the blocking drive', () => {
     const s = await session(maker, VAT_HOUSE);
     for (let i = 0; i < 3; i++) {
       const d = await act(s, 'dip me:i:mould in vat');
-      expect(d, d).toMatch(/lift|mould|sheet/i);
+      expect(d, d).not.toMatch(REFUSED);
+      expect(d, d).toMatch(/shaking the wire/i);
       const c = await say(s, 'couch me:i:mould');
-      expect(c, c).toMatch(/lets go of the wire|couch/i);
+      expect(c, c).toMatch(/lets go of the wire/i);
     }
   }, 900_000);
 
@@ -218,7 +236,7 @@ suite('paper — the blocking drive', () => {
     const s = await session(maker, VAT_HOUSE);
     const p = await say(s, 'turn press');
     expect(p, p).toMatch(/water runs|post|platen/i);
-    await say(s, 'get sheets from press');
+    await say(s, 'get handmade');
     expect(await carried(s, 'handmade')).toBeGreaterThanOrEqual(1);
     await say(s, 'up');
     await act(s, 'dry handmade on line');
@@ -227,7 +245,7 @@ suite('paper — the blocking drive', () => {
 
   it('7. look: the color, the weight, the evenness — and unsized, the ink bleeds', async () => {
     const s = await session(maker, LOFT);
-    await say(s, 'get handmade from line');
+    await say(s, 'get handmade');
     const l = await say(s, 'look me:i:handmade');
     expect(l, l).toMatch(/white paper|brown paper/i);
     expect(l, l).toMatch(/unsized/i);
@@ -254,7 +272,7 @@ suite('paper — the blocking drive', () => {
     await say(s, 'close envelope');
     const sealed = await say(s, 'seal envelope');
     expect(sealed, sealed).toMatch(/flap|seal/i);
-    await say(s, `give envelope to ${reader}`);
+    await say(s, `give envelope to ${await nameOf(r)}`);
     await say(r, 'open envelope');
     const l = await say(r, 'look envelope');
     expect(l, l).toMatch(/has been broken/i);
@@ -276,7 +294,7 @@ suite('paper — the blocking drive', () => {
     const r = await session(reader, STORE);
     const w = await say(s, 'write bristle — a knot of hog hair, tied and split on me:i:notebook page 3');
     expect(w, w).toMatch(/page 3/i);
-    await say(s, `give notebook to ${reader}`);
+    await say(s, `give notebook to ${await nameOf(r)}`);
     const rd = await say(r, 'read notebook page 3');
     expect(rd, rd).toMatch(/bristle/i);
     const no = await say(r, 'write mine now on notebook page 3');
@@ -291,14 +309,6 @@ suite('paper — the blocking drive', () => {
     expect(rd, rd).toMatch(/torn out/i);
   }, 300_000);
 
-  it('20. the live rung: a release called up on the reading screen', async () => {
-    const s = await session(maker, GAZETTE);
-    const sh = await say(s, 'show gazette on screen');
-    expect(sh, sh).toMatch(/shows|nothing called/i);
-    const rd = await say(s, 'read screen');
-    expect(rd, rd).toMatch(/reads|dark/i);
-  }, 300_000);
-
   it('34. the ledger reads the Gazette\'s papers', async () => {
     const s = await session(maker, GAZETTE);
     const rd = await say(s, 'read ledger');
@@ -309,37 +319,46 @@ suite('paper — the blocking drive', () => {
     const s = await session(maker, GAZETTE);
     await founderEval(GAZETTE, '/world/terminus', 'case', '(self.font = {...self.font, e: 1}, self.getFont().e)');
     const short = await say(s, 'compose gazette in forme');
-    expect(short, short).toMatch(/no more lowercase e|nothing called/i);
+    expect(short, short).toMatch(/no more lowercase e/i);
     await founderEval(GAZETTE, '/world/terminus', 'case', '(self.font = {...self.font, e: 1200}, self.getFont().e)');
     const set = await say(s, 'compose gazette in forme');
-    expect(set, set).toMatch(/set .* letter by letter|nothing called/i);
+    expect(set, set).toMatch(/letter by letter/i);
   }, 600_000);
+
+  it('20. the live rung: a release called up on the reading screen', async () => {
+    const s = await session(maker, GAZETTE);
+    const sh = await say(s, 'show gazette on screen');
+    expect(sh, sh).toMatch(/shows/i);
+    const rd = await say(s, 'read screen');
+    expect(rd, rd).toMatch(/reads:/i);
+  }, 300_000);
 
   it('24–26. proof it, print three on the press, read a copy as set', async () => {
     const s = await session(maker, GAZETTE);
     await say(s, 'proof forme');
     await say(s, 'get ream');
     const p = await say(s, 'print forme 3');
-    expect(p, p).toMatch(/copies .* come off|no type|nothing/i);
-    const rd = await say(s, 'read me:i:gazette');
-    expect(rd, rd).toMatch(/reads|don't see/i);
+    expect(p, p).toMatch(/copies of .* come off/i);
+    const rd = await say(s, 'read me:i:copy');
+    expect(rd, rd).toMatch(/reads:/i);
+    expect(rd, rd).toMatch(/Prices|basket|GAZETTE/i);
   }, 600_000);
 
   it('28. distribute the forme: the type goes back', async () => {
     const s = await session(maker, GAZETTE);
     const d = await say(s, 'distribute forme');
-    expect(d, d).toMatch(/back in its box|no type/i);
+    expect(d, d).toMatch(/back in its box/i);
   }, 300_000);
 
   it('21. the printer prints a document; a medieval covenant keeps it idle, and the pen still copies', async () => {
     const s = await session(maker, GAZETTE);
     const p = await say(s, 'print notebook on printer');
-    expect(p, p).not.toMatch(/doesn'?t understand/i);
+    expect(p, p).toMatch(/come off/i);
     await founderEval(GAZETTE, '/world/terminus', 'here', "(self.getZone().setAdmitsEpochThrough('medieval'), 'medieval')");
     const refused = await say(s, 'print ledger on printer');
     expect(refused, refused).toMatch(/covenant here admits nothing later than medieval/i);
-    const c = await say(s, 'copy me:i:handmade onto me:i:sheet with pen');
-    expect(c, c).toMatch(/copy .* by hand|not a blank|nothing written|covenant/i);
+    const c = await say(s, 'copy me:i:copy onto me:i:sheet with pen');
+    expect(c, c).toMatch(/copy .* by hand/i);
     await founderEval(GAZETTE, '/world/terminus', 'here', '(self.getZone().setAdmitsEpochThrough(null), "cleared")');
   }, 600_000);
 
@@ -373,13 +392,17 @@ suite('paper — the blocking drive', () => {
 
   it('39. a label pasted with starch paste lets go when the jar is wet', async () => {
     const s = await session(maker, COLORMAN);
-    await say(s, 'buy paste pot');
+    void s;
     const back = await session(maker, VAT_HOUSE);
+    await say(back, 'buy pot of paste');
     await say(back, 'buy label');
     await say(back, 'write ink on me:i:label');
-    const f = await say(back, 'fit me:i:label to me:i:ink pot with me:i:paste pot');
+    const f = await say(back, 'fit me:i:label to me:i:ink pot with me:i:pot of paste');
     expect(f, f).toMatch(/smooth it onto|paste/i);
     const l = await say(back, 'look me:i:ink pot');
     expect(l, l).toMatch(/label is pasted/i);
+    await say(back, 'pour water on me:i:ink pot');
+    const wet = await say(back, 'look me:i:ink pot');
+    expect(wet, wet).not.toMatch(/label is pasted/i);
   }, 600_000);
 });
