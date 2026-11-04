@@ -113,6 +113,10 @@ describe('⭐ a ground made of parts waters its parts', () => {
     expect(water).toBeGreaterThan(50);
     expect(tract.getPondedL()).toBe(0);
     expect(field.soilSalinityDsm()).toBeLessThan(10);
+    // …and the tract reads its field: the salt, and what stands on it.
+    expect(tract.soilSalinityDsm()).toBeCloseTo(field.soilSalinityDsm(), 6);
+    field.pond(500);
+    expect(tract.getPondedL()).toBe(500);
   });
 });
 

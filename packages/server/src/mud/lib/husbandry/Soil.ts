@@ -490,7 +490,11 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
     public soilSaltKg = 0;
 
     public getPondedL(): number {
-      return this.pondedL;
+      // ⭐ A ground made of parts: what stands on its fields stands on it
+      // (the walk: 743 565 L on the meadow's field, none on `look`).
+      const parts = this.dividedInto();
+      if (parts.length === 0) return this.pondedL;
+      return this.pondedL + parts.reduce((sum, p) => sum + p.getPondedL(), 0);
     }
     public pond(litres: number): void {
       if (Number.isFinite(litres) && litres > 0) this.pondedL += litres;
@@ -527,6 +531,16 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
     }
 
     public soilSalinityDsm(): number {
+      // A ground made of parts reads its parts' salt, by area.
+      const parts = this.dividedInto();
+      if (parts.length > 0) {
+        return this.meanOverParts(parts, (p) => p.soilSalinityDsm(), () => this.ownSalinityDsm()) ?? 0;
+      }
+      return this.ownSalinityDsm();
+    }
+
+    /** This ground's own salt over its own water. */
+    private ownSalinityDsm(): number {
       if (!(this.soilSaltKg > 0)) return 0;
       const reserve = this.soilHost.getReserve(SOIL_MOISTURE_RESERVE_KEY);
       // Salt dissolves in all the water holding it — the soil's and what
