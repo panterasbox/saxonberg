@@ -1,12 +1,12 @@
 # Boundaries — one shared edge, each side is the exit
 
-> **Status: UNBUILT · opened 2026-11-03 (user, during the harbors MR review !511).**
+> **Status:** PARTIAL — opened 2026-11-03 (user, during the harbors MR review !511); its
+> compatible first step shipped in !511 — an exit is an MQL candidate in its own right (§ 4).
 > **Left:** the `Boundary` edge object every way between two places shares · the exit as that
 > edge's SIDE · door↔exit references retired · the four overlapping models of today folded into
 > it · the per-side `BoundaryAnchor` fixture retired · a window as a side that passes no movement ·
 > the migration of the keyed exit classes · the named list of every derivation (§ 5).
-> **Size:** a build. Its compatible first step shipped in !511 — an exit is an MQL candidate in its
-> own right (§ 4).
+> **Size:** a build.
 
 ## ⭐⭐⭐ The model (user, 2026-11-03)
 

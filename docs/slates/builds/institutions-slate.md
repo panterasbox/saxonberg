@@ -1,6 +1,6 @@
 # Institutions slate — forms, charters, committees, and the five corpos as forms
 
-> **Status: PRIMITIVE BUILT** — the cap table shipped with harbors (MR
+> **Status:** PARTIAL — the primitive built: the cap table shipped with harbors (MR
 > !511): a kept table of owners and units, the majority read, the
 > `owners` appointing authority and the one secondary-sale act, with
 > ships as its first consumer (see *Shipped: the cap table* at the end).
@@ -28,7 +28,8 @@
 > no-authored-faucet rule (a lint) · NPC-floor / player-apex locality
 > seats + municipal paper · the five corpos
 > re-authored as forms, with Veshko's bank as Goodkin's real competitor
-> and the four disposition brains
+> and the four disposition brains · where a cap table lives (a kept Stuff
+> or a document)
 > **Size:** a build (cuts in two — forms + committees first, charters +
 > covenant second; the lore rewrite rides whichever lands last)
 
@@ -143,8 +144,8 @@ mutual's table is its membership roll, one vote each.
   vote, an appointment stands when holders of a majority have endorsed
   it, read from the table when somebody tries. No majority → enough
   endorsements to make one, which is what a coalition of partners *is*.
-- **Transferability is a term on the table**: consent-of-others, or
-  none-needed.
+- *Transferability as a term on the table shipped (`free` | `consent`) →
+  [employment.md](../../subsystems/employment.md) § The owners authority.*
 - ⭐ It gives the corpos a real representation for the first time: the
   corpo is the 100% row on each of its businesses' tables. "Goodkin owns
   the bank" becomes a fact in the world rather than a config key.
@@ -580,32 +581,10 @@ residual and retired absorbed, so this line and
 
 ## ⭐ Shipped: the cap table (harbors, MR !511, 2026-11-02)
 
-The primitive of Part 1, and nothing above it, landed in the kernel as a
-review commit of the harbors build — ships needed owners in sixty-fourths,
-and a register holding shares had been a second, ship-only cap table.
+*What landed, ships as its first consumer and the lens notes →
+[employment.md](../../subsystems/employment.md) § The owners authority — a cap
+table. What stays here:*
 
-- **What landed.** `CapTableMixin` (`lib/employment/CapTable.ts`): authored
-  `units`, rows `{holder, units}` (a player or an organization by identity
-  path), a transfer term (`free` | `consent`), the majority read (MORE than
-  half, else nobody), and ONE secondary act — `sellUnits` moves units and
-  money together or not at all (claimed before the money is awaited, given
-  back if it does not clear); `giveUnits` is the gift. The host is
-  `PersistentBusiness` (a kept Business — a table that changes hands must
-  survive the process). The appointing authority `{kind: owners}` is
-  *whoever holds a majority of this table*; an organization holder answers
-  through its own authority, and a sole owner appoints themself.
-- **Ships, the first consumer.** Each ship is owned by her company, and her
-  company's table is 64 units. The register went back to its job — name,
-  flag, and the owning company (title). A smack bought off the yard's hull
-  book founds her company with the buyer as its 64/64 row; the line's
-  ships are held 64/64 by the Greywater Line's office, the Ostrander by the
-  city's budget. `transfer <n> shares of <ship> …` resolves ship → her
-  company → its table.
-- **Lens notes.** 1 *pedagogy* and 2 *expression* decided one primitive
-  over a ship-only register of shares: control-derives-from-the-table is
-  the lesson, and an author gives any business owners by authoring a row.
-  7 *governance*: a unit is a vote in the company, never standing in the
-  polity.
 - **Still this slate's.** Every form and the registry; general
   incorporation; primary issue (dilution); the draw as a distribution and
   dividends ≤ retained earnings; endorsements (no majority today means

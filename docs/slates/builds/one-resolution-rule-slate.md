@@ -1,12 +1,16 @@
 # One resolution rule
 
-> **Status: UNBUILT · opened 2026-11-03 (user, during the harbors MR review !511).**
+> **Status:** PARTIAL — opened 2026-11-03 (user, during the harbors MR review !511); applied
+> in !511 to exits and directions only (an exit is a candidate, no `via.exit`, § 5 row 14).
 > **Left:** `look` renders what MQL bound and nothing else — the `via.exit` gap closed in MQL, the
 > class-specific appends moved onto their objects · the binder's cross-scope tiering (which retires
 > `go.yaml`'s private scope order) · a `defaulted` fact on a bound result (which retires `buy`'s
 > raw-text sniff) · ⭐ one listing protocol + one scorer for words that name an ENTRY in a record
 > (eleven hand-rolled matchers today) · the MQL inconsistencies in § 3 · the `lint:controller-resolution`
-> census-then-ratchet.
+> census-then-ratchet · ⭐ the name is not special — the scorer reads `getKeywords()` only, the
+> name tiers collapse into keyword tiers, with the content pass that keeps each finding's outcome
+> (§ 4) · MQL reads only Perceptible — detail ids, bulk materials and recognition tokens become
+> derived `getKeywords()` overrides on their objects, the implicit tract candidate decided (§ 5).
 > **Size:** a build.
 
 ## ⭐⭐⭐ The rule (user, 2026-11-03)
