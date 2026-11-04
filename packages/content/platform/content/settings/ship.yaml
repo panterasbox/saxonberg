@@ -1,8 +1,9 @@
 # ship — application settings shipped by the platform pack (the `settings`
 # kind: merge-missing — an operator's `config` change is never touched).
 #
-# ⭐ What a hull lets in (harbors P19), by her shell's band — the house's
-# clock and the house's rate (`weathering.daysToWorn`), read as
+# ⭐ What a hull lets in (harbors P19), by how far her seams have opened —
+# her hull is a `Durable` fabric under her coat, worn at the house's rate
+# (`structure.weather.daysToWorn`) once the coat is gone, read as
 # WATER: litres a second per meter of her length. These are the grain an
 # author may change. See docs/subsystems/ship.md.
 #

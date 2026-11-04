@@ -3,7 +3,7 @@
 # singleton lacks is merged in; a value the operator changed via
 # `config` is never touched). These are the residences build's shipped
 # defaults (D10 capacity dials, the P10 ascent number — the weathering
-# rate is the platform's `weathering.daysToWorn` since harbors review 3);
+# rate is the platform's `structure.weather.daysToWorn` since the paint build);
 # the institution rows name their own capacity keys.
 settings:
   # Units per dorm floor — DormWarren's graduated ROOMS_PER_FLOOR knob.

@@ -892,11 +892,16 @@ export class Session {
    * scheduled beat narrated between two commands is lost to the next
    * one. A test that asserts what an engagement SAID on its own clock
    * listens instead of sending a command to find out.
+   *
+   * ⭐ `sinceDrain` keeps what already arrived since the last
+   * `drainProse` — a clock jump holds its reply until the world settles
+   * (river D46), so what a voyage's watches told DURING the jump is in the
+   * buffer before the listen starts, and clearing it lost every report.
    */
-  async listen(ms: number): Promise<string> {
+  async listen(ms: number, opts: { sinceDrain?: boolean } = {}): Promise<string> {
     this.captureLast?.();
     this.captureLast = null;
-    this.proseFrames.length = 0;
+    if (!opts.sinceDrain) this.proseFrames.length = 0;
     await pause(ms);
     const heard = plain(this.proseFrames.join('\n'));
     this.proseFrames.length = 0;

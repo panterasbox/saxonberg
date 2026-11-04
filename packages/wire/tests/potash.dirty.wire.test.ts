@@ -485,7 +485,7 @@ suite('⭐ drive 6–8 — the leach, the egg, a second pass, and hard water (AC
     let s = await goTo(ashMaker, LEAN_TO);
     await say(s, 'fill waterskin from butt').catch(() => '');
     expect(await inside(s, 'hopper', /wood ash/i), 'beech heaps in the hopper').toBeGreaterThanOrEqual(2);
-    await say(s, 'get pail');
+    await say(s, 'get 1 pail');
     await say(s, 'fill pail from butt');
     await say(s, 'pour pail into hopper');
     s.close();
@@ -756,7 +756,7 @@ suite('⭐ drive 12 — lime slaked, lye made caustic, hard soap straight (AC 7)
     s.close();
     s = await goTo(ashMaker, CHANDLERY);
     await say(s, 'put lime in kettle');
-    await say(s, 'get pail').catch(() => '');
+    await say(s, 'get 1 pail').catch(() => '');
     await say(s, 'fill pail from butt');
     // ⚠ A measure: the kettle holds 10 L and the pail more, so a whole
     // pail leaves no room for the lye.

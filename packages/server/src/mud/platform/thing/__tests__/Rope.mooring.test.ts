@@ -12,7 +12,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Rope from '../Rope';
 import RopeEnd from '../RopeEnd';
 import Bollard from '../Bollard';
-import Structure from '../../../lib/spatial/Structure';
+import Structure from '../../../lib/structure/Structure';
 import { TemplatePaths } from '../../../lib/paths';
 import Location from '../../location/Location';
 import { Character } from '../../../lib/character/Character';

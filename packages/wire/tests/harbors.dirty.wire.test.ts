@@ -759,7 +759,7 @@ suite('B1 — at sea (14)', () => {
 });
 
 suite('B2 — owning a boat', () => {
-  it('17. (instant · staged — a chop pinned) a rowboat bought, her painter in her; loaded she rides lower; overloaded in a chop, she swamps', async () => {
+  it('17. (instant · staged — a chop pinned) a rowboat bought, her bow line in her; loaded she rides lower; overloaded in a chop, she swamps', async () => {
     await inOfficeHours();
     const buyer = await session(SECOND, PUT_IN);
     // ⭐ The house's rowboat, lying on the shingle (review 1): sold where she
@@ -775,7 +775,7 @@ suite('B2 — owning a boat', () => {
     const none = await say(buyer, 'buy rowboat');
     expect(none, none).toMatch(/no rowboat of the house's lying here/);
     const inHer = await say(buyer, `look in #${rowboat}`);
-    expect(inHer, inHer).toMatch(/painter/i);
+    expect(inHer, inHer).toMatch(/bow line/i);
     // (staged) Weight to load her with.
     for (let i = 0; i < 2; i++) {
       const id = await hand(buyer, STONE, { mass: 90 });
@@ -912,7 +912,7 @@ suite('B3 — she goes down', () => {
   it('24. (short · player) a boat holed on a grounding leaks: `bail` keeps her up; stop, and she sinks with what is in her', async () => {
     await inOfficeHours();
     const boatman = await session(uniqueHandle('hbb'), PUT_IN);
-    // Her load out on the shingle; the painter stays in her.
+    // Her load out on the shingle; the bow line stays in her.
     for (const id of stones) expectOk(await boatman.cmd(`get #${id} from #${rowboat}`));
     for (const id of stones) expectOk(await boatman.cmd(`drop #${id}`));
     expectOk(await boatman.cmd(`go #${rowboat}`));

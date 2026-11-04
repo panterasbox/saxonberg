@@ -33,8 +33,8 @@ its zone:
 genuinely cannot do: **carve · abandon · the tier ledger · seal-and-reap.**
 ⭐ It `extends FloorplanWarren` (harbors review 3 — the base swap its
 header planned): the kernel's keyed room set, with the shell clock left
-out (`WeatheringMixin` is a house's and a ship's — *a field has no paint
-either*). A mine names **no blueprint** — its spine is authored singletons
+out (the fabric is a structure's — a building's or a ship's `Durable`
+condition — and *a field has no paint either*). A mine names **no blueprint** — its spine is authored singletons
 and its workings are carved — so the base mints nothing at wake; a carve
 adds a keyed member through the base's `mintKeyed`, placed on the grid
 before its record comes back. Its cells sit on its zone's grid, not a

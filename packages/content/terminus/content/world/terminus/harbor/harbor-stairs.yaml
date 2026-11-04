@@ -25,7 +25,7 @@ data:
     ring:
       keywords: [ring, iron, "iron ring"]
       description: |
-        A ring of iron as thick as a thumb, set in a lead-filled socket in the wall for a boat's painter.
+        A ring of iron as thick as a thumb, set in a lead-filled socket in the wall for a boat's bow line.
   exits:
     west:
       destination: /world/terminus/harbor/town-quay

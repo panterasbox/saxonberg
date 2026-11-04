@@ -17,7 +17,13 @@ data:
   # ⭐ The farmstead's blueprint (harbors review 3): its ways, an ordinary place.
   # The barn door and the farmhouse door are KEYED doors — the holding's key.
   # Nothing lies west: that is the way back out to the lane.
+  # ⭐ The farmhouse is written FIRST: the holding's main building is the
+  # first one met from the way in (paint merge), and the barn is a
+  # building of its own beside it.
   exits:
+    south:
+      kind: /system/residence/idea/exits/keyed-door
+      destination: /world/terminus/hearts-delight/farmstead/location/house
     north:
       kind: /system/residence/idea/exits/keyed-door
       destination: /world/terminus/hearts-delight/farmstead/location/barn
@@ -27,6 +33,3 @@ data:
       destination: /world/terminus/hearts-delight/farmstead/tract/lower-meadow
     northeast:
       destination: /world/terminus/hearts-delight/farmstead/tract/orchard-close
-    south:
-      kind: /system/residence/idea/exits/keyed-door
-      destination: /world/terminus/hearts-delight/farmstead/location/house

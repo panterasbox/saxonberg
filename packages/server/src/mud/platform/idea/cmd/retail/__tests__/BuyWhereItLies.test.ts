@@ -3,7 +3,7 @@
  * already there (harbors review 1). Too big for any shelf, she lies on the
  * shingle, the house's; the counter prices her (`prices`, no line), and a
  * sale settles, transfers her title and leaves her where she lies — her
- * painter in her. Finite: a boat sold is not the house's to sell again,
+ * bow line in her. Finite: a boat sold is not the house's to sell again,
  * and nothing restocks her.
  */
 

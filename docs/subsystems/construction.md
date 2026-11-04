@@ -3,7 +3,7 @@
 > Shipped by the rubber build (2026-10). Code: `lib/spatial/Enclosed.ts`
 > (the vocabulary), `lib/spatial/Exposure.ts` (the answer),
 > `lib/biome/Atmospheric.ts` (`construction()`, `exposure()`),
-> `platform/idea/Structure.ts` (`storeys`). Gates: `lint:envelope`,
+> `lib/structure/Structure.ts` (`storeys`). Gates: `lint:envelope`,
 > `lint:biome-sky`.
 
 ## The one fact a place decides alone
@@ -36,11 +36,17 @@ class that knows its own construction declares it: an `ExitableVessel`
 (its own material all round, or `none` for an open boat), a `Hive`, a
 `ColdStore`, a `SealedCellar` (a metre of granite over it too).
 
-## A structure is a set of places, and made of nothing
+## A structure is a set of places — and made of materials, as an Idea is
 
 A `Structure` row says which places are its members (an `extent` prefix)
-and which stand on which (`storeys`), and **never** what anything is made
-of — `lint:envelope` refuses a Structure row that authors a material.
+and which stand on which (`storeys`). ⭐ **It IS made of materials** (the
+owner, paint build 2026-10-31) — but as an Idea, not a Thing: what it is
+made of is a BILL, the materials it takes to erect and later to maintain
+(the construction slate's). What it is NOT is a container of walls: the
+walls and roofs are the places' own, and `lint:envelope` refuses a
+Structure row that authors an envelope. Its OUTSIDE is its own — the coat
+and the weather on it (`FacedMixin`) and the fabric under it (a `Durable`
+condition) ([painting.md](./painting.md)).
 
 ```yaml
 storeys:
@@ -54,6 +60,40 @@ No `storeys` is one implicit storey; a storey with no `on` stands on the
 ground; whether a storey is enclosed is read off its members' own walls
 and roof (never authored on it). A lone hut is complete with no structure;
 a structure with no member places (a landmark) still stands on the horizon.
+
+## The landing — where a structure meets the weather
+
+A structure is not a Thing or a Location, so a player engages it from a
+place that touches it. ⭐ **A landing** is *a place that does not hold its
+own air (`exposure().holdsAir()` false) with an exit into a member that is
+enclosed or is the structure's entrance — or with the structure lying
+alongside it* (a ship at a quay: the exit answers `alongsideNow()` —
+`undefined` on an ordinary exit, whose far side is its path; the ship or
+`null` on a way aboard, which never falls back to its authored berth, so a
+sailed ship lands nowhere. The way aboard is the ship's own `BerthExit`
+(harbors), installed when she makes fast and taken up when she casts off:
+it answers her while she stands and lies at that landing, else `null`). Derived, never authored (`StructureBase.isLandedAt`; `Place.landedStructuresNow()`
+from the room's side). A closet holds air; a neighbour's parlour is another
+structure's member; a sailed ship's berth has nothing alongside; a member
+courtyard open to the sky is a landing of its own building. The landed
+structures enter the room's `here` pool, so `look cottage`, `survey
+cottage` and `paint cottage` bind from the lane with no new MQL seed.
+
+⭐ **A structure is not always a building** (paint D1, split in review):
+
+| class | what it is |
+|---|---|
+| `lib/structure/Structure` | *these places are one thing* — membership, entrance, height, storeys, the landing, whether it is sold (`isTitleSold`) |
+| `lib/structure/Building` (only inherited) | a structure with an OUTSIDE: a face painted from its landing, a `Durable` condition the weather wears once the coat is gone |
+| `platform/idea/Building` | what a building row names (a `Singleton` per row); persists once sold |
+| `HoldingBuilding` (`residence`) | a holding's building, minted per `building:` group of its enclosed rooms |
+| `platform/idea/Structure` | a bare structure row — today only the peak of Waponi Woo, until the mountain slate |
+| `Ship` | a structure that moves; her hull takes coats wherever she is, and her seams are a `Durable` fabric under them (harbors) — worn, she leaks |
+
+A holding's keyed rooms have no path of their own, so a place asks its
+WARREN which building it is in first (`Place.structureNow` →
+`Warren.structureOf`, which the holding answers), then the location graph by
+its identity path — what membership, the landing and `exposure()` read.
 
 ## The one rule, and the `Exposure` it computes
 

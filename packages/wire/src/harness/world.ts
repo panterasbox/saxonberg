@@ -272,6 +272,11 @@ export async function dress(s: Session, template: string = WINTER_COAT): Promise
   const worn = await s.cmd(`wear #${id}`);
   await worn.said();
   if (worn.status !== 'ok') throw new Error(`dress(${s.handle}): 'wear #${id}' was ${worn.status}`);
+  // ⭐ Putting a coat on takes the hands for a while: wait it out, or the
+  // drive's next act meets "your hands are on something else" (the
+  // cordage drive's `turn jack`, straight after dressing).
+  const started = worn.notes.find((n) => n.kind === 'engagement-started') as { engagementId?: string } | undefined;
+  if (started?.engagementId) await s.awaitActivity(started.engagementId);
 }
 
 /** {@link dress} for the founder, wherever it is resident — every drive's setup opens it. */

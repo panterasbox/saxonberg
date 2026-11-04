@@ -1,0 +1,24 @@
+# A pot of ready-mixed yellow ochre oil paint — what the colorman sells to a
+# buyer who would rather not grind their own. The same pot, the same paint
+# row, the makeup written on its payload: yellow ochre in linseed oil.
+class: /trade/painting/thing/PaintPot
+data:
+  shortDescription: pot of ochre paint
+  keywords: [pot, "paint pot", "ochre paint", paint, ochre, "pot of ochre paint"]
+  register: indefinite
+  longDescription: >-
+    A tin pot of thick yellow ochre paint under a skin of oil, a stick
+    standing in it.
+  _materialPath: /stuff/idea/material/element/iron
+  mass: 0.8
+  interiorBulk: true
+  interiorCapacity: 6
+  closure: liquidTight
+  productMaterial: /trade/painting/idea/material/paint
+  interiorMaterial: /trade/painting/idea/material/paint
+  interiorAmount: 5
+  makeup:
+    binder: /trade/painting/idea/material/linseed-oil
+    pigments:
+      - { material: /trade/painting/idea/material/yellow-ochre, share: 1 }
+    solidsFraction: 0.75

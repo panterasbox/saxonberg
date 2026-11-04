@@ -238,7 +238,7 @@ suite('S1 — the hull clock at her berth', () => {
     expect(quay, quay).toMatch(new RegExp(`Alongside: [^.]*the ${name}`));
     expectOk(await back.cmd(`go ${name.toLowerCase()}`));
     const survey = await say(back, 'survey');
-    expect(survey, survey).toMatch(/fabric of the place is (worn|shabby)/);
+    expect(survey, survey).toMatch(/fabric of the place is (worn|badly worn)/);
     const held = await say(back, 'course roads');
     expect(held, held).toMatch(/settled onto the mud/);
   }, 7_200_000);

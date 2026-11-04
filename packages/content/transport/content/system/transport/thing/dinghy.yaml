@@ -15,5 +15,5 @@ data:
   hull: { form: round, draftM: 0.25, beamM: 1.3, lengthM: 3.7, freeboardM: 0.4, capacityKg: 400 }
   props:
     - { template: /system/transport/thing/propulsion/oar, count: 2 }
-    # ⭐ Every boat comes with her painter (harbors P17) — the line on her bow.
-    - /platform/thing/painter
+    # ⭐ Every boat comes with her bow line (harbors P17; a sailor's "painter").
+    - /platform/thing/bow-line

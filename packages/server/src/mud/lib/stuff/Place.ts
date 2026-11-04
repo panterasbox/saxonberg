@@ -50,7 +50,7 @@ import { AppApi } from '../../api/app';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import { NavigationApi } from '../../api/navigation';
-import type Structure from '../../platform/idea/Structure';
+import type Structure from '../structure/Structure';
 import type { Positioned } from '../expanse/Positioned';
 import type { Floor } from '../ground/Floor';
 import type { FieldMeta } from '../mixin';
@@ -208,6 +208,31 @@ export default class Place extends PlaceBase {
   };
 
   /**
+   * ⭐⭐ The structures whose LANDING this place is — the buildings whose
+   * outside is at hand from here (paint D2): the structure beyond each
+   * exit (or the ship lying alongside it), kept when this place passes its
+   * `isLandedAt`. Over what is standing.
+   */
+  public landedStructuresNow(): Structure[] {
+    const self = this as unknown as Stuff;
+    if (!MixinApi.isExitable(self)) return [];
+    const out = new Map<string, Structure>();
+    for (const exit of self.getExits().values()) {
+      const s = Place.structureBeyond(exit.alongsideNow(), exit.peekDestination(), exit.getDestinationTemplatePath());
+      if (s !== null && !out.has(s.stuffId) && s.isLandedAt(self)) out.set(s.stuffId, s);
+    }
+    return [...out.values()];
+  }
+
+  private static structureBeyond(alongside: Structure | null | undefined, far: Stuff | null, authored: string | null): Structure | null {
+    // An exit whose far side is whatever lies alongside answers for itself —
+    // never by its authored berth.
+    if (alongside !== undefined) return alongside;
+    if (far !== null && far.isPlace()) return (far as unknown as Place).structureNow();
+    return authored ? NavigationApi.structureAtNow(authored) : null;
+  }
+
+  /**
    * The ZONES scanned from this room, overriding its zone's `horizon`
    * (the `suppressesMagic` shape: the room's own value wins, then the zone
    * walk). `null` defers; `[]` is *nothing from in here* (maritime R3).
@@ -262,7 +287,8 @@ export default class Place extends PlaceBase {
    * (harbors P3, review 1).
    *
    * A member of a warren is answered by its warren
-   * (`Warren.structureOf`): a ship's keyed room is keyed
+   * (`Warren.structureOf` — a holding knows which of its buildings a room
+   * is part of, paint review): a ship's keyed room is keyed
    * `(room row, <serial>/<leaf>)` and its row is every ship of that
    * kind's, so no path can say which ship it is — the room is asked, and
    * the room knows its warren. Otherwise the structure attached to its
@@ -304,7 +330,7 @@ export default class Place extends PlaceBase {
   private warrenStructure(): Structure | null | undefined {
     const self = this as unknown as Stuff;
     if (MixinApi.isWarrenMember(self)) {
-      const s = self.getWarren()?.structureOf() ?? null;
+      const s = self.getWarren()?.structureOf(self) ?? null;
       if (s !== null && !s.isDestroyed()) return s as unknown as Structure;
     }
     return (this.getDurableHandle() ?? '').includes('#') ? null : undefined;

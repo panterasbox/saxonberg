@@ -30,8 +30,7 @@ import Locale from '../../../../location/Locale';
 import CartesianZone from '../../../location/CartesianZone';
 import { BiomeApi } from '../../../../../api/biome';
 import PersistentLocation from '../../../../location/PersistentLocation';
-import { WeatheringMixin } from '../../../../../lib/location/Weathering';
-import { RoomWarren } from '../../../../../lib/location/RoomWarren';
+import { FloorplanWarren } from '../../../../../lib/location/FloorplanWarren';
 import Chair from '../../../../thing/Chair';
 import { DocumentApi } from '../../../../../api/document';
 import { MessageApi } from '../../../../../api/message';
@@ -47,6 +46,8 @@ import {
 import { installV1QuantityMarshallers } from '../../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import type { CommandContext, CommandModel } from '../../../../../api/command';
 import type { StoredDocument } from '../../../../../lib/document/StoredDocument';
+import BuildingBase from '../../../../../lib/structure/Building';
+import { NavigationApi } from '../../../../../api/navigation';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
 import { Idea } from '../../../../../lib/stuff/Idea';
 import type { Container } from '../../../../../lib/spatial/Container';
@@ -157,40 +158,27 @@ function bed(): Chair {
   return b;
 }
 
+/** A building whose weather is not walked here — its condition is set by the test. */
+class TestHouse extends BuildingBase {
+  static _mixinName = 'SurveyTestHouse';
+  public override weatherScope(): Stuff | null {
+    return null;
+  }
+}
+
 /**
- * A programme stand-in: a real Warren (so the back-ref wiring is the real
- * wiring) whose fabric weathers (`WeatheringMixin`, harbors review 3), so
- * it answers for the shell and the term. Deliberately NOT the residential
- * class — the kernel never names it; it narrows on the clock's mixin.
+ * A programme stand-in: a real floorplan Warren (so the back-ref wiring is
+ * the real wiring) that names a tenure term — the kernel's
+ * `FloorplanWarren.getUpkeepTerm` hook. Deliberately NOT the residential
+ * class: the kernel never names it.
  */
-class FakeProgramme extends WeatheringMixin(RoomWarren) {
+class FakeProgramme extends FloorplanWarren {
   public band = 'sound';
   public cause: string | null = null;
-  override conditionBand(): string {
-    return this.band;
-  }
-  override conditionCause(): string | null {
-    return this.cause;
-  }
   override getUpkeepTerm(): string {
     return 'landlord-shell';
   }
-  protected async createMember(): Promise<Stuff & Container> {
-    throw new Error('not used');
-  }
-  async admitArrival(): Promise<void> {
-    /* not used */
-  }
-  protected attachmentFor(): never {
-    throw new Error('not used');
-  }
   protected async reconcile(): Promise<void> {
-    /* not used */
-  }
-  protected async wireHostFixtures(): Promise<void> {
-    /* not used */
-  }
-  protected async unwireHostFixtures(): Promise<void> {
     /* not used */
   }
 }
@@ -283,7 +271,7 @@ describe('survey', () => {
   });
 
   it('at home it reads the WHOLE place, and adds the shell and the term', async () => {
-    const hall = makeStuff(() => new PersistentLocation());
+    const hall = makeStuffAtPath(() => new PersistentLocation(), '/world/_survey/house/hall');
     const bedroom = makeStuff(() => new PersistentLocation());
     ContainmentApi.move(
       bed() as unknown as Stuff & Containable,
@@ -294,6 +282,10 @@ describe('survey', () => {
       'worn',
       'the paint has gone; rain has gotten into the sills',
     );
+    // ⭐ The fabric is the BUILDING's (paint D13): a bare house, half worn.
+    const house = makeStuff(() => new TestHouse());
+    house.setCondition(0.5);
+    vi.spyOn(NavigationApi, 'structureAt').mockResolvedValue(house as never);
 
     // Standing in the HALL, which has nothing in it at all.
     await survey(makeStuff(() => new Locale()), hall);
@@ -301,7 +293,7 @@ describe('survey', () => {
     // The bedroom next door answers for the whole holding.
     expect(captured).toContain('a bedroom: yes');
     expect(captured).toContain('The fabric of the place is worn');
-    expect(captured).toContain('rain has gotten into the sills');
+    expect(captured).toContain('the paint has gone');
     expect(captured).toContain(
       'Upkeep here is the landlord’s for the shell; yours for what you put in it',
     );

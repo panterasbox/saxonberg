@@ -8,7 +8,7 @@
 # SOLD over it — an ordinary good that is already there. The house's boats
 # lie on the shingle (the landing's `props:`); the counter prices them with
 # no stock line, and a sale transfers her title and leaves her where she
-# lies, her painter in her. Finite: nothing restocks them (a boatwright is
+# lies, her bow line in her. Finite: nothing restocks them (a boatwright is
 # a later build's). Priced against the outfitter's own wage (4 an hour, ~56
 # a shift — P28): a rowboat about three days' wages, a canoe about two. The
 # shed LETS its own boats by the day too, but a let is not a sale: that is
@@ -31,14 +31,14 @@ data:
     - { itemTemplatePath: /system/transport/thing/propulsion/paddle, par: 4 }
     - { itemTemplatePath: /system/transport/thing/propulsion/pole, par: 2 }
     - { itemTemplatePath: /system/transport/thing/killick, par: 2 }
-    - { itemTemplatePath: /platform/thing/painter, par: 3 }
+    - { itemTemplatePath: /platform/thing/bow-line, par: 3 }
     - { itemTemplatePath: /system/water/thing/current-log, par: 2 }
     - { itemTemplatePath: /stuff/thing/instrument/thermometer, par: 2 }
   prices:
     /system/transport/thing/propulsion/paddle: 4
     /system/transport/thing/propulsion/pole: 5
     /system/transport/thing/killick: 3
-    /platform/thing/painter: 2
+    /platform/thing/bow-line: 2
     /system/water/thing/current-log: 5
     /stuff/thing/instrument/thermometer: 6
     /system/transport/thing/rowboat: 160

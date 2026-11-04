@@ -19,17 +19,22 @@
  *
  * ⭐ **The lift (harbors P1).** The floorplan mint, keyed rooms,
  * whole-warren dormancy and `layOut` are the kernel's `FloorplanWarren`
- * now; the shell clock and its bands are the kernel's `WeatheringMixin`
- * (harbors review 3), which a holding composes — EVERY holding, the
- * valley farmstead included: what weathers is the house and the barn,
- * and a farm has both (its tracts are open ground and weather nothing,
- * but the clock is the holding's, not a room's). A ship's hull weathers
- * on the same clock. What stays here is only what is residential: the
- * address stem, the parcel keyway handed to the copy's keyed doors
- * (`fitExit`), the parcel's open
- * ground (`openGroundM2`), the relay to the institution, and the house's
- * words for its fabric. (`admitPlot`, the break-ground seam, retired with
- * `plot` in the farming build — a farm's ground is a blueprint's tract.)
+ * now. What stays here is only what is residential: the address stem,
+ * the parcel keyway handed to the copy's keyed doors (`fitExit`), the
+ * parcel's open ground (`openGroundM2`), the relay to the institution,
+ * the tenure term (who OWES the upkeep), and the holding's BUILDINGS.
+ * (`admitPlot`, the break-ground seam, retired with `plot` in the farming
+ * build — a farm's ground is a blueprint's tract.)
+ *
+ * ⭐⭐ **The fabric is the building's** (paint D6/D13). A holding stands
+ * its buildings up at its wake — the Building row that already covers its
+ * extent (Seznick House, Duncan Hall), else a {@link HoldingBuilding} per
+ * building of its own — and each carries its own coat and its `Durable`
+ * condition, which the weather wears once the coat is gone. A building is
+ * the copy's ENCLOSED rooms joined by the ways between them (merge of
+ * paint into harbors — derived from the blueprint, nothing authored): a
+ * farmstead's house and barn are two, parted by the yard, which is open
+ * ground and no building's.
  *
  * ⭐ **The blueprint (harbors review 3).** The programme row names a
  * `Structure` row (`blueprint:`) over the kind's rooms authored as
@@ -48,22 +53,41 @@ import {
   type BlueprintRoom,
 } from '@saxonberg/server/mud/lib/location/Blueprint';
 import KeyedDoorExit from './KeyedDoorExit';
-import {
-  WeatheringMixin,
-  type UpkeepWords,
-} from '@saxonberg/server/mud/lib/location/Weathering';
 import type Exit from '@saxonberg/server/mud/lib/boundary/Exit';
 import { ParcelApi } from '@saxonberg/server/mud/api/parcel';
+import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import { NavigationApi } from '@saxonberg/server/mud/api/navigation';
+import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
+import type { Persistable } from '@saxonberg/server/mud/lib/persistence/Persistable';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
+import HoldingBuilding, { HOLDING_BUILDING_ROW } from './HoldingBuilding';
+import type StructureBase from '@saxonberg/server/mud/lib/structure/Structure';
+import BuildingBase from '@saxonberg/server/mud/lib/structure/Building';
 
 type MemberStuff = Stuff & Container;
 
-export default class HoldingWarren extends WeatheringMixin(FloorplanWarren) {
+/** The closed-today, open-by-construction upkeep-term vocabulary (D5). */
+export const UPKEEP_TERMS = [
+  'institution-all',
+  'landlord-shell',
+  'owner-all',
+] as const;
+
+export default class HoldingWarren extends FloorplanWarren {
   static fieldMeta: FieldMeta = {
     addressBase: { persistent: true, authorable: true },
+    upkeepTerm: { persistent: true, authorable: true },
   };
+
+  /** Who owes the upkeep (D5): a validated kebab-case term, open to
+   *  future values (`hoa-shell`) without mechanism. */
+  public upkeepTerm: string = 'owner-all';
+
+  /** The holding's buildings by name (`''` the main one) — minted at its wake. */
+  private _houses: Map<string, HoldingBuilding> = new Map();
 
   /** The address stem rooms stamp (`<addressBase>/<leaf>`); empty
    *  derives from the holding key's tail. */
@@ -80,6 +104,21 @@ export default class HoldingWarren extends WeatheringMixin(FloorplanWarren) {
 
   public setAddressBase(value: string): void {
     this.addressBase = value;
+  }
+
+  /** ⭐ Who owes the upkeep — the term `survey` reads (D5). */
+  public override getUpkeepTerm(): string {
+    return this.upkeepTerm;
+  }
+
+  public setUpkeepTerm(value: string): void {
+    if (typeof value !== 'string' || !/^[a-z][a-z-]*$/.test(value)) {
+      throw new Error(
+        `HoldingWarren: upkeepTerm '${String(value)}' is not a ` +
+          `kebab-case term (shipped: ${UPKEEP_TERMS.join(', ')})`,
+      );
+    }
+    this.upkeepTerm = value;
   }
 
   /**
@@ -134,6 +173,7 @@ export default class HoldingWarren extends WeatheringMixin(FloorplanWarren) {
   public override async wake(): Promise<void> {
     await this.refreshKeyway();
     await super.wake();
+    await this.wakeHouses();
   }
 
   /**
@@ -202,20 +242,179 @@ export default class HoldingWarren extends WeatheringMixin(FloorplanWarren) {
     }
   }
 
-  // ── the house's words for its fabric ────────────────────────────
+  // ── the buildings: the fabric is the building's (paint D6/D13) ──
 
   /**
-   * A house speaks of paint, sills and a householder's kit.
+   * ⭐⭐ This holding's MAIN building — the one "the home you hold" reads
+   * (the ascent gate's condition): its own, or the Building row that
+   * covers its extent.
+   */
+  public house(): BuildingBase | null {
+    const own = this._houses.get('') ?? [...this._houses.values()][0];
+    if (own !== undefined && !own.isDestroyed()) return own;
+    const extent = this.holdingKey();
+    if (!extent) return null;
+    const s = NavigationApi.structureAtNow(extent);
+    return s instanceof BuildingBase ? s : null;
+  }
+
+  /** Every building this holding minted, the main one first. */
+  public buildings(): BuildingBase[] {
+    const out = [...this._houses.values()].filter((h) => !h.isDestroyed());
+    if (out.length > 0) return out;
+    const covering = this.house();
+    return covering === null ? [] : [covering];
+  }
+
+  /**
+   * The building `room` is part of — one of this holding's own, or the
+   * covering row's — `null` for open ground.
+   */
+  public buildingOf(room: Stuff): BuildingBase | null {
+    for (const h of this._houses.values()) {
+      if (!h.isDestroyed() && h.hasRoom(room)) return h;
+    }
+    if (this._houses.size > 0) return null;
+    const covering = this.house();
+    return covering !== null && this.getMembers().includes(room as MemberStuff) ? covering : null;
+  }
+
+  /**
+   * ⭐ Which building a room of this holding is part of (paint review):
+   * its rooms are keyed clones of shared rows, so no path names them —
+   * the holding that minted them answers (holding.md § Identity).
+   */
+  public override structureOf(member: Stuff): StructureBase | null {
+    return this.buildingOf(member);
+  }
+
+  /**
+   * ⭐ The records this holding owns: its rooms' (the floorplan's) and
+   * its buildings' — each persists under its own key, so one capture of
+   * the holding writes them all and a revert marks them all.
    *
    * @hook
    */
-  public override upkeepWords(): UpkeepWords {
-    return {
-      declining: 'The paint is going; weather is starting to find the seams.',
-      failed: 'The paint has gone; rain has gotten into the sills.',
-      kit: "a householder's kit",
-      work: 'You work the place over — putty into the seams, paint where the weather has been at it, a nail where a nail was wanted.',
-      witnessed: "works over the fabric of the place with a householder's kit.",
-    };
+  public override dependentPersistables(): (Stuff & Persistable)[] {
+    const out = super.dependentPersistables();
+    for (const house of this._houses.values()) {
+      if (!house.isDestroyed()) out.push(house as unknown as Stuff & Persistable);
+    }
+    return out;
+  }
+
+  /** The buildings come down with the rooms. */
+  public override teardown(): void {
+    super.teardown();
+    const houses = [...this._houses.values()];
+    this._houses.clear();
+    for (const house of houses) {
+      if (house.isDestroyed()) continue;
+      for (const at of this.attachPointsOf(house)) NavigationApi.detachStructure(at, house);
+      house.setHolding(null);
+      StuffApi.destruct(house);
+    }
+  }
+
+  /** End-lease revert: the buildings' records go with the rooms'. */
+  public override async revert(): Promise<void> {
+    const extent = this.holdingKey();
+    if (extent) {
+      for (const name of this._houses.keys()) {
+        if (name !== '') await PersistableApi.deleteAllFor(this.houseKeyOf(extent, name));
+      }
+    }
+    await super.revert();
+  }
+
+  /** The record key a building persists under: the main one the holding's own extent. */
+  private houseKeyOf(extent: string, name: string): string {
+    return name === '' ? extent : `${extent}@${name}`;
+  }
+
+  /** Where a building is registered with the location graph: the main one at the holding's extent. */
+  private attachPointsOf(house: HoldingBuilding): string[] {
+    return house.isMain() ? [house.getExtent()] : [];
+  }
+
+  /**
+   * Stand this holding's buildings up — unless a covering row already is
+   * its building.
+   *
+   * ⭐ A building is DERIVED from the copy (merge of paint into harbors):
+   * the enclosed rooms (they hold their own air) joined by the ways
+   * between them — two enclosed rooms with a way between them are one
+   * building, and open ground (a yard, a tract) parts them. The MAIN
+   * building is the first one met from the entrance, in the blueprint's
+   * own order; another goes by its first room's leaf (the barn).
+   */
+  private async wakeHouses(): Promise<void> {
+    const extent = this.holdingKey();
+    if (!extent) return;
+    const covering = await NavigationApi.structureAt(extent);
+    if (covering !== null && !(covering instanceof HoldingBuilding)) return;
+    const groups = this.enclosedGroups();
+    for (const [i, { name, rooms }] of groups.entries()) {
+      const live = this._houses.get(name);
+      if (live !== undefined && !live.isDestroyed()) {
+        live.setRooms(rooms, i === 0);
+        continue;
+      }
+      const house = await StuffApi.clone<HoldingBuilding>(HOLDING_BUILDING_ROW);
+      house.setExtent(extent);
+      // Every room of it holds its own air, so no entrance is needed to land it.
+      house.setEntrance(null);
+      house.setRooms(rooms, i === 0);
+      house.setHolding(this);
+      // A building of its own goes by its name — the barn — and the main
+      // one by its row's (the house).
+      if (name !== '') {
+        house.setShortDescription(name);
+        house.setKeywords([name, 'building']);
+      }
+      await PersistableApi.restoreOrSeed(house, this.houseKeyOf(extent, name));
+      for (const at of this.attachPointsOf(house)) NavigationApi.attachStructure(at, house);
+      this._houses.set(name, house);
+    }
+  }
+
+  /**
+   * The copy's enclosed rooms in connected groups, in blueprint order (the
+   * entrance first): the first group is the main building (name `''`), and
+   * each other is named by its first room's leaf.
+   */
+  private enclosedGroups(): Array<{ name: string; rooms: MemberStuff[] }> {
+    const specs = this.blueprintRooms();
+    const live = new Map<string, MemberStuff>();
+    for (const spec of specs) {
+      const room = this.roomForLeaf(spec.leaf);
+      if (room === null) continue;
+      if (!MixinApi.isAtmospheric(room) || !room.exposure().holdsAir()) continue;
+      live.set(spec.row, room);
+    }
+    const leafOf = new Map(specs.map((s) => [s.row, s.leaf ?? ''] as const));
+    const waysOf = new Map(specs.map((s) => [s.row, Object.values(s.exits).map((w) => w.destination)] as const));
+    const seen = new Set<string>();
+    const out: Array<{ name: string; rooms: MemberStuff[] }> = [];
+    for (const spec of specs) {
+      if (!live.has(spec.row) || seen.has(spec.row)) continue;
+      const rooms: MemberStuff[] = [];
+      const queue = [spec.row];
+      seen.add(spec.row);
+      while (queue.length > 0) {
+        const row = queue.shift()!;
+        rooms.push(live.get(row)!);
+        // A way either side joins two rooms (the blueprint authors both).
+        for (const other of specs) {
+          if (seen.has(other.row) || !live.has(other.row)) continue;
+          if ((waysOf.get(row) ?? []).includes(other.row) || (waysOf.get(other.row) ?? []).includes(row)) {
+            seen.add(other.row);
+            queue.push(other.row);
+          }
+        }
+      }
+      out.push({ name: out.length === 0 ? '' : (leafOf.get(spec.row) ?? '') || `building-${out.length}`, rooms });
+    }
+    return out;
   }
 }

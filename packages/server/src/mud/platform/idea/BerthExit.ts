@@ -38,6 +38,7 @@ import { ProseApi } from '../../api/prose';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Container } from '../../lib/spatial/Container';
 import type { Containable } from '../../lib/spatial/Containable';
+import StructureBase from '../../lib/structure/Structure';
 
 /** What a berth asks of the ship it leads aboard (a Ship answers it). */
 export interface Berthed {
@@ -107,6 +108,18 @@ export default class BerthExit extends LockableMixin(DeferredDestinationExit) {
     if (!said) return super.getLongFor(viewer);
     if (!ship) return this.plainWay();
     return ProseApi.format(said, { ship }).toString();
+  }
+
+  /**
+   * ⭐ What lies alongside, for the LANDING (paint review): she, while she
+   * stands and lies here; `null` when she does not — never `undefined`
+   * (*my far side is my path*), because this way's far side is HER, and a
+   * ship that sleeps is not standing to be painted from the quay.
+   */
+  public override alongsideNow(): StructureBase | null {
+    const ship = this.ship();
+    if (ship === null || !(ship instanceof StructureBase)) return null;
+    return ship.getBerth() === this.getSource().getTemplatePath() ? ship : null;
   }
 
   /** Her name, as the landing's `look` reads it — asleep or awake. */

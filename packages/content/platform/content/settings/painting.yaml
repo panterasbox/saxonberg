@@ -1,0 +1,18 @@
+# painting — application settings shipped by the platform pack (the
+# `settings` kind: merge-missing). The kernel dials of the paint build: the
+# lead a painter takes in, and the glue a joint takes.
+settings:
+  # ⭐ Lead (paint D14). Grinding a cake of white lead raises a dust that
+  # goes down the throat; brushing lead paint on wets the hands with it. A
+  # glove halves the skin's share. The colic shows at a burden of two.
+  - key: metabolism.leadDustDose
+    value: "0.3"
+  - key: metabolism.leadSkinDosePerL
+    value: "0.6"
+
+  # A glued joint takes a cupful of glue (paint D11).
+  - key: crafting.glueLitresPerJoint
+    value: "0.02"
+  # At or over this relative humidity a glue line takes the damp.
+  - key: crafting.glueDampRh
+    value: "0.85"

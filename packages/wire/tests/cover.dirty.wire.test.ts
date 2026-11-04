@@ -632,7 +632,7 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
     // ⭐ And she milks: the pasture and the rick behind it kept her in
     // condition, and milk follows condition.
     await goTo(BYRE);
-    await act(p, 'get pail');
+    await act(p, 'get 1 pail');
     const cow = await doing(p, 'draft 1 from dairy');
     expect(bandOf(cow), 'the pasture and the rick kept her in flesh').toBeGreaterThanOrEqual(2);
     // ⚠ Should she have dried off (milk is an `expire` tap and the

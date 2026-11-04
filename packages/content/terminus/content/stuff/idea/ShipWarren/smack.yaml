@@ -6,5 +6,4 @@
 # high a floor stands above her keel: water fills her from the bottom up).
 class: /platform/idea/ShipWarren
 data:
-  upkeepTerm: owner-all
   blueprint: /stuff/idea/Structure/smack

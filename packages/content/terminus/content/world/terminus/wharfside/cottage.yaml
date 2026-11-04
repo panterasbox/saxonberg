@@ -1,0 +1,7 @@
+# The towpath cottage (paint D20) — a small brick cottage off the towpath,
+# limewashed, its own small zone: the drive's building, and the house
+# painter's first stop.
+class: /platform/idea/location/CartesianZone
+data:
+  name: The Towpath Cottage
+  cellSize: 4.0

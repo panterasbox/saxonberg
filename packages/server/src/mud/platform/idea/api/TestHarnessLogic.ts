@@ -286,11 +286,9 @@ export class TestHarnessLogic extends ApiLogic {
    * to now as she stood; the hull is put in its band; then the bilge's stamp
    * is moved back `sleptDays`, so the next read fills her over every band
    * her hull's line passed through on the way to where it is now. (With no
-   * `hull`, her shell ages the same days.)
+   * `hull`, her hull ages the same days — at its bare rate.)
    */
   private async stageWear(ship: Ship, spec: ShipStageSpec, nowS: number): Promise<void> {
-    const warren = await ship.standWarren();
-    if (warren === null) throw new Error(`testharness ship: ${ship.getDurableHandle()}'s rooms do not stand`);
     await ship.reconcileBilge();
     const days = spec.sleptDays ?? 0;
     if (!(days >= 0) || !Number.isFinite(days)) throw new Error(`testharness ship: slept wants days (got ${spec.sleptDays})`);
@@ -300,18 +298,18 @@ export class TestHarnessLogic extends ApiLogic {
       if (c === undefined) {
         throw new Error(`testharness ship: hull wants a band — ${Object.keys(STAGED_CONDITION).join(', ')} (got '${spec.hull}')`);
       }
-      warren.stageShell(c, nowS);
+      ship.stageHull(c, nowS);
     } else if (sleptS > 0) {
-      const line = warren.shellTrajectory();
+      const line = ship.hullTrajectory();
       const was = line.stampS > 0 ? line.condition : 1;
-      warren.stageShell(was - line.perSecond * sleptS, nowS);
+      ship.stageHull(was - line.perSecond * sleptS, nowS);
     }
     if (spec.bilgeL !== undefined && !(spec.bilgeL >= 0)) {
       throw new Error(`testharness ship: bilge wants litres (got ${spec.bilgeL})`);
     }
     ship.stageBilge(spec.bilgeL ?? ship.bilgeNowL(), nowS - sleptS);
     await ship.reconcileBilge();
-    await PersistableApi.capture(warren as unknown as Stuff);
+    await PersistableApi.capture(ship as unknown as Stuff);
   }
 
   /** Where she lies now, for the report when she was not moved. */

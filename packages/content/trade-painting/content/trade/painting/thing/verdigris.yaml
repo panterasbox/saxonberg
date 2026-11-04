@@ -1,0 +1,10 @@
+# A paper of verdigris — ground pigment, folded in paper the way a colorman sells
+# it. Put it in a paint pot with a binder and stir.
+class: /trade/painting/thing/Pigment
+data:
+  shortDescription: paper of verdigris
+  keywords: [paper, pigment, verdigris, green, "paper of verdigris"]
+  register: indefinite
+  longDescription: A twist of paper holding a crumbly blue-green powder.
+  _materialPath: /trade/painting/idea/material/verdigris
+  mass: 0.25

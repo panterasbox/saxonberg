@@ -199,7 +199,7 @@ async function drink(): Promise<void> {
   const back = at;
   expect(back, 'drink() needs to know where to come back to').not.toBe('');
   await goTo(PITHEAD);
-  await say('get pail');
+  await say('get 1 pail');
   await act('pump village well', '1 minute');
   await say('fill pail from well');
   for (let i = 0; i < 2; i++) await say('drink pail --amount 1L');

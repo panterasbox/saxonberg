@@ -1,0 +1,8 @@
+# The colorman's lamp — a colorman matches colors by a steady light.
+class: /generic-objects/thing/SconceLamp
+extends: /stuff/thing/fixture/sconce-lamp
+data:
+  shortDescription: oil lamp
+  keywords: [lamp, light, "oil lamp"]
+  on: true
+  emittedIntensity: 1500

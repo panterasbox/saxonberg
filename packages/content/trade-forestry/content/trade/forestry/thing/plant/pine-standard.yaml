@@ -1,0 +1,35 @@
+# A pine standard (paint D17) — a Scots pine that bleeds gum where its face
+# is cut. Tapped with a BLADE, not an auger (the species row says so): you
+# cut a face through the bark and set a cup under it.
+class: /trade/forestry/thing/SapStandard
+data:
+  shortDescription: pine
+  keywords: [pine, tree, standard, "scots pine"]
+  register: indefinite
+  longDescription: |
+    A Scots pine, red-barked and straight, smelling of resin in the sun.
+  _speciesPath: /stuff/idea/species/plantae/tracheophyta/pinopsida/pinales/pinaceae/pinus/sylvestris
+  _materialPath: /stuff/idea/material/tissue/plant-tissue
+  mass: 2
+  lifecycleState: alive
+  harvestTemplatePath: null
+  discipline: silviculture
+  standardMaterialPath: /stuff/idea/material/wood/pine
+  seedTemplatePath: null
+  nutrientDraw: 0
+  spiles: 0
+  profile:
+    moistureHappyAt: 0.2
+    moistureWiltAt: 0.04
+    litresPerGameDay: 0.3
+    luxHappyAt: 25
+    luxDarkAt: 4
+    rootDemand:
+      seedling: 0.5
+      young: 3
+      established: 8
+      mature: 16
+    daysToStage:
+      young: 270
+      established: 1080
+      mature: 3600

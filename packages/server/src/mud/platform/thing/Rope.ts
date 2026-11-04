@@ -45,7 +45,7 @@
 import Line from '../../lib/spatial/Line';
 import LineEnd from './LineEnd';
 import { TieableMixin, type TieOutcome } from '../../lib/spatial/Tieable';
-import Structure from '../../lib/spatial/Structure';
+import Structure from '../../lib/structure/Structure';
 import { SpliceableMixin, type SpliceOutcome } from '../../lib/spatial/Spliceable';
 import { ClimbableMixin } from '../../lib/locomotion/Climbable';
 import { GradedMixin } from '../../lib/craft/Graded';
@@ -661,7 +661,7 @@ export default class Rope extends SpliceableMixin(TieableMixin(ClimbableMixin(Gr
   private isRoomOf(by: Structure, room: Stuff): boolean {
     const path = room.getTemplatePath() ?? '';
     if (path !== '' && by.hasMember(path)) return true;
-    return MixinApi.isWarrenMember(room) && room.getWarren()?.structureOf() === (by as unknown);
+    return MixinApi.isWarrenMember(room) && room.getWarren()?.structureOf(room) === (by as unknown);
   }
 
   /**

@@ -187,7 +187,10 @@ persistence key.
 - `upkeepTerm` — the tenure vocabulary (below).
 - `addressBase?` — the human address the per-room addresses hang off.
 
-**Persistent per instance:** `shellCondition`, `shellStamp`.
+**Persistent per instance:** the floorplan and the term. ⭐ The SHELL is the
+holding's BUILDING's now (paint build D6/D13): `wake()` stands up a
+`HoldingBuilding` per building of the holding (or reads the Building row
+its units stand in — Seznick House), and the fabric lives there.
 
 **`wake()`** is the whole of standing a holding up: every room of the
 blueprint is stood up as a **keyed instance** — `(scope = the room's row,
@@ -368,41 +371,51 @@ the world instead of a tutor.
 
 ## Condition — the weathering clock
 
-⭐ **The clock is the kernel's `WeatheringMixin`** (`lib/location/Weathering.ts`,
-harbors review 3) — composed by `HoldingWarren` (every holding, the
-farmstead included: its house and barn weather) and by a ship's
-`ShipWarren`, and by nothing else. A floorplan is not a fabric: a mine's
-workings do not weather. Every reader (`maintain`, `survey`, the ascent
-gate's `CirculationWarren.conditionOf`, the `maintains` brain) narrows on
-`MixinApi.isWeathering`.
+⭐ **Moved to the kernel by the paint build** (the house's `Durable`
+condition, see [painting.md](./painting.md)): the fabric is the BUILDING's
+— the holding's house, or houses — and it wears **only while the
+building's coat is gone**, at `structure.weather.daysToWorn` (default 45
+game-days from sound to worn, the dial that was
+`residence.weather.daysToWorn`). A holding's house starts bare, so an
+unpainted holding wears exactly as the shell always did. Reconciled on
+read, stamp-forward, persistent; honest across a restart.
 
-**Storage:** `shellCondition` (0..1) + `shellStamp` (game-time) on the
-programme instance. **Reconciled on read**, linear slope, rate from
-`weathering.daysToWorn` (seeded by the platform pack; default 45 game-days from sound to
-worn — half the scale, so a full slide takes twice that). Stamp-forward.
-**No scheduler**, and the stamp is persistent, so the decline is honest
-across a restart and across a holding sleeping for a month.
+⭐ **A holding's buildings are DERIVED from its copy** (merge of paint into
+harbors, 2026-11-03): the enclosed rooms joined by the ways between them —
+two enclosed rooms with a way between them are one building, and open
+ground (a yard, a tract, a porch) parts them. The main building is the
+first one met from the blueprint's entrance, in the blueprint's own order
+(the farmstead's yard writes the farmhouse's way first); another goes by
+its first room's leaf (*the barn*). Nothing is authored: a barn drawn
+across a yard is a building of its own. A ship's hull is the same
+mechanism on `Ship` (her seams a `Durable` fabric under her coat; worn,
+she leaks — see [expanse.md](./expanse.md)). (`WeatheringMixin`, harbors'
+review-3 clock on the warren, retired in the merge: the paint review had
+already folded the same clock into `Faced` + `Durable`.)
 
-Five bands, and the readout is **only ever a band**:
+The readout is **only ever a word** — `Durable`'s, one scale for every
+condition in the game (paint review; the five residence bands retired):
 
-`sound` · `weathered` · `worn` · `shabby` · `dilapidated`
+`sound` · `worn` · `badly worn` · `broken`
 
 with a cause line that says what happened in words ("the paint has gone;
-rain has gotten into the sills"). No number, no percentage, no gauge —
+the weather is at what was under it"). No number, no percentage, no gauge —
 `survey`'s suite asserts that no digit reaches the readout.
 
 ### ⚠ Two clocks, and they must never touch
 
-A **shell** weathers on the passage of days. A **good** wears only when
-you use it (economy Law 2). A regression test pins a durable good at
-unchanged condition across a game YEAR that takes the shell from sound
-to dilapidated. If a durable ever loses condition to the calendar, every
+A **building** weathers on the passage of days — its coat where the
+weather reaches it, and its fabric once the coat is gone. A **good** wears
+only when you use it (economy Law 2): its coat weathers only where it is
+left out in the weather, and its own condition never does. A regression
+test pins a durable good at unchanged condition across a game YEAR that
+takes the house from sound to broken. If a durable ever loses condition to the calendar, every
 object a player owns rots while they sleep, and the second law of the
 economy is gone.
 
 ### Terms — who OWES the upkeep
 
-A validated open string on the clock (`WeatheringMixin`'s `UPKEEP_TERMS`), not a
+A validated open string on the holding (`HoldingWarren.upkeepTerm`, its `UPKEEP_TERMS`), not a
 closed kernel vocabulary — a future `hoa-shell` should be a content
 edit:
 
@@ -546,6 +559,10 @@ The D17 split, shipped in this build and now an invariant the
   `<extent>/<leaf>`. Nothing about a holding room is stamped, so nothing
   about it moved in the addressing build; what it gained is a NAME for
   the pair — `getDurableHandle()` → `<row>#<extent/leaf>`.
+- ⭐ So **no path answers "which building is this room in"** for a holding
+  room: the room asks its warren (`Warren.structureOf`, which
+  `HoldingWarren` answers from its buildings — paint review), never a
+  persistence key passed off as a place.
 - `StuffApi.clone`'s `asTemplatePath` option is **gone**, replaced by
   `asIdentityPath`. The lint proves the channel stays retired and that
   every template-path-valued field in every shipped row resolves.
@@ -730,15 +747,17 @@ keyed copies. `PlatPlan` already parses static slot objects
 ### ⭐ The lift landed: `FloorplanWarren` in the kernel (harbors P1)
 
 The second consumer arrived as a **ship**, not a mine: her deck, cabin
-and hold are a floorplan, she sleeps whole, and her hull weathers on the
-same clock as a house's shell — the owner's rule was *"whatever the rule,
-it works the same way as residences"*, which made the clock part of the
-lift rather than a rhyme. So the condition axis is **one clock**.
+and hold are a floorplan and she sleeps whole. Her hull weathers as a
+house's fabric does — the owner's rule was *"whatever the rule, it works
+the same way as residences"* — but the fabric is the STRUCTURE's, not the
+floorplan's (paint D13): a `Durable` condition on the building or the
+ship, under its coat, on the `structure.weather.daysToWorn` dial. Of
+everything the floorplan owns, **only the upkeep term is residential**
+(`FloorplanWarren.getUpkeepTerm`, which a holding answers).
 
 `packages/server/src/mud/lib/location/FloorplanWarren.ts` (abstract,
 `Persistable(WarrenMember(Container(RoomWarren)))`) now owns the
-`blueprint` field (it was `floorplan` until harbors review 3; the
-`upkeepTerm` field and `UPKEEP_TERMS` moved to `WeatheringMixin`), the keyed room mint
+`blueprint` field (it was `floorplan` until harbors review 3), the keyed room mint
 (`wake` / `wakeRoom` / `roomForLeaf` / `roomForKey` / `entryRoom`), the
 intra-plan wiring, `layOut`, the whole-warren capture (its rooms that
 keep a record are its `dependentPersistables`, so one
@@ -748,34 +767,33 @@ her saves her hold) / `teardown` / `revert`, the
 tracts build's layout reads (`share` / `footprintM2` on a floorplan room,
 `shareOf`, the persistent `mirrorAxis` every floorplan direction is read
 through, *only a persistable room restores*, `onWarrenWake` after a room
-is woken, a revert deleting each room's `dependentPersistables`), and the
-shell clock (`shellCondition`, `shellStamp`, `reconcileShell`,
-`conditionBand`, `conditionCause`, `restoreShell`). It speaks through four
-hooks: `reconcile` (who hears a population change — still abstract),
+is woken, a revert deleting each room's `dependentPersistables`). It
+speaks through four hooks: `reconcile` (who hears a population change — still abstract),
 `wireLockedEdge` (what opens a locked edge — the base **throws**, it has no
 lock to hang), `addressFor` (the address a woken room is stamped with — a
 read, not a wake hook: anything a room does on waking is its own
 `WarrenMember.onWarrenWake`, the ONE wake hook since harbors review 2;
 a ship's deck stamps itself a shore of her sea there), and
-`upkeepWords()` (the words the fabric is described in — the cause lines,
-the kit, the act and its witnessed line).
+`getUpkeepTerm()` (who owes the upkeep — none by default; a holding
+answers its term, and `survey` reads it).
 
 `HoldingWarren extends FloorplanWarren` and keeps only what is
 residential: `addressBase` (answered by `addressFor`), the parcel keyway
 (`refreshKeyway` before the base's wake; the keyed-door edge in
 `wireLockedEdge`), `openGroundM2()` (the PARCEL's workable area less the
 footprints), `reconcile` → the
-institution, `holdingKey()` (= `warrenKey()`), `entryRowOf`, and the
-house's words (paint, sills, a householder's kit). Its template path,
-fields and observable behavior are unchanged. `maintain` narrows on the
-kernel class (`instanceof FloorplanWarren`) and speaks in the warren's
-`upkeepWords()`, so the same verb caulks a hull and paints a house.
+institution, `holdingKey()` (= `warrenKey()`), `entryRowOf`, the tenure
+term, and its BUILDINGS (`house()`, `buildings()`, `buildingOf(room)`,
+answered as `structureOf` — paint D6/D13, derived from the copy since the
+paint merge). `maintain` works on the building a room is part of, or the
+ship whose room it is, and speaks in that fabric's words — a
+householder's kit and putty, a caulker's kit and pitch.
 
-⭐ **Superseded in part by harbors review 3:** the shell clock, the
-`upkeepTerm` field and `upkeepWords()` left `FloorplanWarren` for the
-kernel `WeatheringMixin`, which `HoldingWarren` and `ShipWarren` compose
-and `FloorplanWarren` does not; the rate key is the platform's neutral
-`weathering.daysToWorn` (the residence row retired). And the
+⭐ **Superseded in part by harbors review 3 and the paint merge:** the
+shell clock left `FloorplanWarren` (review 3 gave it a `WeatheringMixin`
+on the warren; the paint merge retired that for the paint build's model —
+the fabric is a STRUCTURE's `Durable` condition, under its coat, on
+`structure.weather.daysToWorn`). And the
 `floorplan:` list, with `share`/`footprintM2`/`shareOf`/
 `getFloorplanExits`/`wireLockedEdge`, is gone for the blueprint
 (§ Blueprints): ways are the rooms' own `exits:`, a locked edge is a
@@ -784,6 +802,7 @@ footprint the Structure's. ⭐ And `MineWarren` now `extends
 FloorplanWarren` (review 3, the base swap its header planned): it names
 no blueprint, its carve mints keyed members through the base's
 `mintKeyed`, its cells sit on its zone's grid (`laysOutOwnFrame` false)
-and keep their own records; it composes no clock. The shell reads in
-`CirculationWarren.conditionOf` and `SurveyController` narrow on
-`MixinApi.isWeathering`.
+and keep their own records; it has no fabric. `CirculationWarren.conditionOf`
+reads the holding's main building (`MixinApi.isDurable`); `SurveyController`
+reads the structure a room is part of (a `Building` or a `Ship`) and the
+term off `FloorplanWarren.getUpkeepTerm`.

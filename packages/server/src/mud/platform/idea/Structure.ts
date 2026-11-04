@@ -1,16 +1,17 @@
 /**
- * Structure — *these rooms are one building*: the concrete, singleton
- * twin of {@link StructureBase} (`lib/spatial/Structure`), which carries
- * the whole concept — membership by `extent`, the entrance, the storeys,
- * the height a horizon reads.
+ * Structure — what a bare structure ROW names: one {@link StructureBase}
+ * per row (a `Singleton` keyed by the row's path), with no outside of its
+ * own (paint review, 2026-11-02).
  *
- * ⭐ What this twin adds is the one claim a BUILDING makes and a ship of a
- * kind does not: **one row is one structure** (`SingletonMixin`), keyed by
- * its scope. Every building row names this class; `Ship` extends the base
- * (harbors B1 — a ship kind is many ships of one row).
+ * Everything a structure IS — membership, entrance, height, storeys, the
+ * landing — is the base's (`lib/structure/Structure`). A building names
+ * `platform/idea/Building` (a face and a condition); a ship is `Ship`.
+ * What is left here is a structure that is neither: today the peak of
+ * Waponi Woo, a stopgap until the mountain slate moves it onto rising
+ * ground.
  */
 
-import StructureBase from '../../lib/spatial/Structure';
+import StructureBase from '../../lib/structure/Structure';
 import { SingletonMixin } from '../../lib/stuff/Singleton';
 
 export const STRUCTURE_CLASS_PATH = '/platform/idea/Structure';

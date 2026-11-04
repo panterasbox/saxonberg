@@ -24,10 +24,13 @@
  * Structure).
  */
 
-import Structure from '../../lib/spatial/Structure';
+import Structure from '../../lib/structure/Structure';
 import { PositionedMixin } from '../../lib/expanse/Positioned';
 import { EngagedMixin } from '../../lib/activity/Engaged';
 import { PersistableMixin, type Persistable } from '../../lib/persistence/Persistable';
+import { FacedMixin } from '../../lib/material/Faced';
+import { DurableMixin } from '../../lib/material/Durable';
+import { AppSettingKeys } from '../../lib/config/AppSettings';
 import { VoyagingMixin } from '../../lib/expanse/Voyaging';
 import { MovingMixin } from '../../lib/expanse/Moving';
 import { StuffApi } from '../../api/stuff';
@@ -74,6 +77,7 @@ import { CommandDispatchedEvent, type CommandDispatchedPayload } from '../../lib
 import { ScheduleApi, type ScheduleHandle } from '../../api/schedule';
 import { Quantity } from '../../lib/quantity';
 import type { FramePos } from '../../lib/expanse/Frame';
+import type { ActRefusal } from '../../lib/craft/ActPlan';
 
 /** A ship's hull (river D28): how deep she floats, how wide, how long. */
 export interface ShipHull {
@@ -165,9 +169,29 @@ export interface BarClearance {
 }
 
 /**
- * ⭐ What a hull lets in by her shell's band (harbors P19, grain): litres
- * a second per meter of her length, each a setting (`ship.leak.<band>`).
- * A sound hull is tight; a worn one weeps at every seam.
+ * ⭐ How far her seams have opened, by her hull's condition — the floors,
+ * highest first (harbors P19; the five bands the leak is tuned in, grain).
+ * The WORD anyone reads is her `Durable` condition's, a house's word.
+ */
+const SEAM_BANDS: Array<[number, string]> = [
+  [0.9, 'sound'],
+  [0.7, 'weathered'],
+  [0.5, 'worn'],
+  [0.25, 'shabby'],
+  [0, 'dilapidated'],
+];
+
+/** The seam band a hull condition reads as. */
+function seamBandFor(condition: number): string {
+  for (const [floor, band] of SEAM_BANDS) if (condition >= floor) return band;
+  return 'dilapidated';
+}
+
+/**
+ * ⭐ What a hull lets in by how far her seams have opened (harbors P19,
+ * grain): litres a second per meter of her length, each a setting
+ * (`ship.leak.<band>`). A sound hull is tight; a worn one weeps at every
+ * seam.
  */
 const LEAK_LPS_PER_M: Record<string, number> = {
   sound: 0,
@@ -214,7 +238,7 @@ export interface BilgeState {
 export const SHIP_CLASS_PATH = '/platform/idea/Ship';
 
 export default class Ship extends BilgeMixin(PersistableMixin(
-  VoyagingMixin(MovingMixin(EngagedMixin(PositionedMixin(Structure)))),
+  VoyagingMixin(MovingMixin(EngagedMixin(PositionedMixin(DurableMixin(FacedMixin(Structure)))))),
 )) {
   static fieldMeta: FieldMeta = {
     deckHeightM: { persistent: true, authorable: true },
@@ -237,6 +261,137 @@ export default class Ship extends BilgeMixin(PersistableMixin(
     shipRegister: { persistent: true, authorable: true, ref: 'identity:relation' },
     registeredName: { persistent: true, authorable: true },
   };
+
+  // ── her hull's outside (paint review; harbors B4) ───────────────
+  // A hull takes coats — tar, paint — and the weather works on them
+  // WHEREVER SHE IS, not from a landing: at sea most of all. Under the
+  // coat is her FABRIC — her seams, their oakum and pitch — a `Durable`
+  // condition exactly as a house's is: once the coat is gone the weather
+  // wears it at the house's rate (`structure.weather.daysToWorn`), read in
+  // the house's words, and `maintain` with a caulker's kit makes it sound.
+  // What a house's worn fabric reads as, a hull's LEAKS (her bilge). A
+  // ship authored with no coat on her is bare from her launch, so her
+  // seams start to go at once. A hole is something else again: `holed`.
+
+  /**
+   * ⭐ Once the coat is gone her seams go (harbors: *the same clock, the
+   * same rate as a house*): half the condition scale in
+   * `structure.weather.daysToWorn` game days.
+   */
+  public override bareWearPerDay(): number {
+    let days = 45;
+    try {
+      const n = Number.parseFloat(AppApi.setting(AppSettingKeys.structureWeatherDaysToWorn) ?? '');
+      if (Number.isFinite(n) && n > 0) days = n;
+    } catch {
+      /* cold cache — the shipped default */
+    }
+    return 0.5 / days;
+  }
+
+  /**
+   * ⭐ Reconcile on read (harbors B4): her bilge is brought up to now over
+   * her hull's line as it stood — so the leak is integrated band by band,
+   * and the bilge's stamp never falls behind the hull's — then the weather
+   * since the last read. The first read of a fresh hull is kept at once:
+   * an authored ship never sleeps, and a stamp never captured would
+   * restart her clock on every boot.
+   */
+  public override getCondition(): number {
+    this.reconcileWeather();
+    return super.getCondition();
+  }
+
+  /** The weather's walk on her hull — her bilge first, over the line as it stood. */
+  public override reconcileWeather(): number | null {
+    const fresh = this.getWeatheredToS() === null;
+    this.integrateBilge(WorldClockApi.getNow().rawValue());
+    const bareAt = super.reconcileWeather();
+    if (fresh) this.persistMooring();
+    return bareAt;
+  }
+
+  /**
+   * ⭐ Caulked (`maintain`): the water that came in came in at the old
+   * rate, then her seams are what they are set to — and kept at once.
+   */
+  public override setCondition(value: number): void {
+    this.integrateBilge(WorldClockApi.getNow().rawValue());
+    super.setCondition(value);
+    this.persistMooring();
+  }
+
+  /**
+   * ⭐ Her hull's line, read WITHOUT reconciling (harbors B4): where her
+   * seams stood at the last read and how fast they are going now — only
+   * while her coat is gone. A leak integrates over it, band by band.
+   */
+  private hullLine(): { condition: number; stampS: number; perSecond: number } {
+    return {
+      condition: this.getWearCondition(),
+      stampS: this.getWeatheredToS() ?? 0,
+      perSecond: this.coatGone() ? this.bareWearPerDay() / 86_400 : 0,
+    };
+  }
+
+  /**
+   * ⭐ Put her hull at `condition`, read as of `stampS` (harbors P25 — the
+   * staged twin of a hull that weathered there). A test world's staging
+   * only; the game moves a hull by the weather and `maintain`.
+   */
+  @CallSecurity(SecurityPolicies.FromModule('/platform/idea/api/TestHarnessLogic#TestHarnessLogic'))
+  public stageHull(condition: number, stampS: number): void {
+    super.setCondition(Math.min(1, Math.max(0, Number(condition) || 0)));
+    this.setWeatheredToS(Math.max(0, Number(stampS) || 0));
+  }
+
+  /** Her hull's line, for staging a sleep (the slope while bare). */
+  public hullTrajectory(): { condition: number; stampS: number; perSecond: number } {
+    return this.hullLine();
+  }
+
+  /** The place her outside meets the air: her deck. */
+  public override weatherScope(): Stuff | null {
+    // HER deck, asked of her (harbors review 2) — a ship of a kind's deck
+    // row is every smack's.
+    return this.watchRoomNow();
+  }
+
+  public override weatherExposureAt(_scope: Stuff): number {
+    return 1;
+  }
+
+  public override skyLightAt(_scope: Stuff): number {
+    return 1;
+  }
+
+  public override airChangeAt(_scope: Stuff): number {
+    return 1;
+  }
+
+  /**
+   * Her hull's skin, roughly: length × (beam + twice the draft) — read off
+   * her hull as she floats (`hullNow`), which every hull reader uses, so a
+   * ship nobody measured still has a hull to paint (the walk found it 0).
+   */
+  public override coatAreaM2(): number {
+    const h = this.hullNow();
+    return h.lengthM * (h.beamM + 2 * h.draftM);
+  }
+
+  /** ⭐ Her hull is painted from where she lies — the quay alongside (paint D9). */
+  public override coatReachRefusal(actor: Stuff): ActRefusal | null {
+    return this.landingRefusal(actor);
+  }
+
+  /**
+   * ⭐ Her hull's coats are kept with her record (merge of paint into
+   * harbors): a ship keeps a record whoever holds her — her mooring, her
+   * bilge, her register entry — so the tar on her hull is kept with it.
+   */
+  public override persistsCoats(): boolean {
+    return true;
+  }
 
   /**
    * ⭐ Who went over her side and has not come back aboard (river D30):
@@ -302,13 +457,12 @@ export default class Ship extends BilgeMixin(PersistableMixin(
   // boat's and hers are one substrate); where it comes in is hers below.
 
   /**
-   * ⭐ Her hull's band (P19) — her warren's shell, on the house's clock and
-   * the house's rate: `sound · weathered · worn · shabby · dilapidated`.
-   * Read live, so `maintain` aboard makes her sound at once.
+   * ⭐ How far her seams have opened (P19) — `sound · weathered · worn ·
+   * shabby · dilapidated`, the five the leak is tuned in. Read live, so
+   * `maintain` aboard makes her tight at once.
    */
   public async hullBand(): Promise<string> {
-    const w = await this.standWarren();
-    return w === null ? 'sound' : w.conditionBand();
+    return seamBandFor(this.getCondition());
   }
 
   /** ⭐ What is coming in now, L/s (P19): her band's rate by her length, and a hole's. */
@@ -356,9 +510,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
    * stamp never falls behind the shell's. Returns her litres.
    */
   public async reconcileBilge(): Promise<number> {
-    const w = await this.standWarren();
-    if (w !== null) w.reconcileShell(); // integrates the bilge first
-    else this.integrateBilge(WorldClockApi.getNow().rawValue());
+    this.getCondition(); // integrates the bilge first, then the weather
     await this.noteFlood();
     return this.bilgeL;
   }
@@ -375,18 +527,12 @@ export default class Ship extends BilgeMixin(PersistableMixin(
 
   /**
    * ⭐ What came in through her hull between two moments (`BilgeMixin`'s
-   * hook), over the standing warren's shell line — band by band, never
-   * sampled. With no warren standing she cannot know her band (`null`: the
-   * stamp stays where it was and the next reconcile covers the gap) —
-   * except an authored ship whose rooms have not stood yet, whose shell has
-   * never been read and is as it was authored: sound.
+   * hook), over her hull's line — band by band, never sampled. Her hull is
+   * HERS (merge of paint): she knows it whether or not her rooms stand.
    */
   public override leakedBetween(from: number, nowS: number): number | null {
-    const w = this._warren !== null && !this._warren.isDestroyed() ? this._warren : null;
-    if (w === null && this.isOfKind()) return null;
-    if (w === null) return this.leakLpsFor('sound') * (nowS - from);
     let litres = 0;
-    const line = w.shellTrajectory();
+    const line = this.hullLine();
     const k = line.perSecond;
     const at = (t: number): number =>
       line.stampS <= 0 || !(k > 0)
@@ -395,7 +541,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
     // Where each band begins on the line, inside the span.
     const cuts = [from, nowS];
     if (line.stampS > 0 && k > 0) {
-      for (const [floor] of w.bandFloors()) {
+      for (const [floor] of SEAM_BANDS) {
         if (floor <= 0) continue;
         const t = line.stampS + (line.condition - floor) / k;
         if (t > from && t < nowS) cuts.push(t);
@@ -406,7 +552,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
       const a = cuts[i]!;
       const b = cuts[i + 1]!;
       if (!(b > a)) continue;
-      litres += this.leakLpsFor(w.bandFor(at((a + b) / 2))) * (b - a);
+      litres += this.leakLpsFor(seamBandFor(at((a + b) / 2))) * (b - a);
     }
     return litres;
   }
@@ -648,17 +794,16 @@ export default class Ship extends BilgeMixin(PersistableMixin(
       return; // no clock (a unit world)
     }
     if (this.wreck !== null || this.settled || this.settling !== null || this.isDestroyed()) return;
-    const w = this._warren !== null && !this._warren.isDestroyed() ? this._warren : null;
-    const band = w === null ? 'sound' : w.conditionBand();
+    const band = seamBandFor(this.getWearCondition());
     const lps = this.leakLpsFor(band);
     if (!(lps > 0)) return;
     const nowS = WorldClockApi.getNow().rawValue();
     let dueS = (this.bilgeCapacityL() - this.bilgeL) / lps;
-    if (w !== null) {
-      const line = w.shellTrajectory();
+    {
+      const line = this.hullLine();
       if (line.stampS > 0 && line.perSecond > 0) {
         const c = line.condition - line.perSecond * (nowS - line.stampS);
-        for (const [floor] of w.bandFloors()) {
+        for (const [floor] of SEAM_BANDS) {
           if (floor <= 0 || floor >= c) continue;
           dueS = Math.min(dueS, (c - floor) / line.perSecond + 1);
           break;

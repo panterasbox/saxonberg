@@ -1,0 +1,16 @@
+# red ochre — yellow ochre burnt: the iron earth with its water driven off, a warm brick red that never fades.
+class: /platform/idea/material/Material
+data:
+  name: red ochre
+  keywords: ["red ochre", "burnt ochre", ochre, pigment]
+  appearance: a soft brick-red powder
+  density: 1400
+  specificHeat: 800
+  thermalConductivity: 0.3
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: [granular, solid, pigment, earth-pigment, ochre]
+  pigment: { transmitR: 0.7, transmitG: 0.3, transmitB: 0.2, hidingPower: 0.9, lightfastness: 1 }
+  composition: []
+  biologicalSource: null

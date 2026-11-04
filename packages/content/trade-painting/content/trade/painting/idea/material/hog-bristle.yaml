@@ -1,0 +1,16 @@
+# Hog bristle — the stiff hair off a pig's back, split at the tip: what a
+# brush is made of (paint D11).
+class: /platform/idea/material/Material
+data:
+  name: hog bristle
+  keywords: ["hog bristle", bristle, bristles, hair]
+  appearance: a bundle of stiff pale bristles, split and feathered at the tips
+  density: 1300
+  specificHeat: 1500
+  thermalConductivity: 0.2
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: [bristle, hair, organic, once-living]
+  composition: []
+  biologicalSource: null

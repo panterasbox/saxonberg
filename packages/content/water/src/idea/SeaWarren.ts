@@ -39,7 +39,7 @@ import type { Exitable } from '@saxonberg/server/mud/lib/boundary/Exitable';
 import type { GeoPosition } from '@saxonberg/server/mud/lib/expanse/GeoPosition';
 import type { Voyaging } from '@saxonberg/server/mud/lib/expanse/Voyaging';
 import type { Positioned } from '@saxonberg/server/mud/lib/expanse/Positioned';
-import Structure from '@saxonberg/server/mud/lib/spatial/Structure';
+import Structure from '@saxonberg/server/mud/lib/structure/Structure';
 import { ExpanseApi } from '@saxonberg/server/mud/api/expanse';
 import type SeaPatch from '../location/SeaPatch';
 import type SeaStop from '../location/SeaStop';

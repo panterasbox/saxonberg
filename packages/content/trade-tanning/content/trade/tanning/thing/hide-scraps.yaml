@@ -1,0 +1,10 @@
+# A bag of hide scraps — the tannery's trimmings, sold to the glue-maker
+# (paint D19).
+class: /platform/thing/Good
+data:
+  shortDescription: bag of hide scraps
+  keywords: [scraps, "hide scraps", bag, trimmings, "bag of hide scraps"]
+  register: indefinite
+  longDescription: A damp sacking bag of hide trimmings that smells of the tanyard.
+  _materialPath: /trade/tanning/idea/material/hide-scraps
+  mass: 1

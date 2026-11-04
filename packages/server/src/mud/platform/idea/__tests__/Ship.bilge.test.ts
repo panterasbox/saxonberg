@@ -17,7 +17,7 @@ import '../../../../test-bootstrap';
 import { KERNEL_CONTENT_ROWS } from '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Ship from '../Ship';
-import ShipWarren, { AUTHORED_SHIP_WARREN } from '../ShipWarren';
+import { AUTHORED_SHIP_WARREN } from '../ShipWarren';
 import BilgeWell from '../../thing/BilgeWell';
 import TemplateApplier from '../TemplateApplier';
 import { Document } from '../../../lib/persistence/Document';
@@ -150,12 +150,6 @@ async function mint(serial: string): Promise<Ship> {
   return ship;
 }
 
-async function warrenOf(ship: Ship): Promise<ShipWarren> {
-  const w = await ship.standWarren();
-  expect(w).toBeInstanceOf(ShipWarren);
-  return w!;
-}
-
 function reset(): void {
   vi.restoreAllMocks();
   StuffApi.clearAll();
@@ -208,18 +202,18 @@ describe('Ship — the hull clock, the leak and the bilge (harbors B4)', () => {
     const ship = await mint('m1');
     await ship.reconcileBilge();
     now = T0 + 20 * DAY;
-    const w = await warrenOf(ship);
-    expect(w.conditionBand()).toBe('weathered');
+    expect(await ship.hullBand()).toBe('weathered');
+    // ⭐ Her seams are a `Durable` fabric, read in a house's words (paint merge).
+    expect(ship.getConditionWord()).toBe('worn');
     const capture = vi.spyOn(PersistableApi, 'capture');
-    w.restoreShell();
-    expect(capture).toHaveBeenCalledWith(w);
+    ship.setCondition(1);
+    expect(capture).toHaveBeenCalledWith(ship);
     expect(ship.bilgeNowL()).toBeCloseTo(11 * DAY * WEATHERED_LPS, 3);
     expect(await ship.hullBand()).toBe('sound');
+    expect(ship.getConditionWord()).toBe('sound');
     expect(await ship.leakLps()).toBe(0);
     now = T0 + 21 * DAY;
     expect(await ship.reconcileBilge()).toBeCloseTo(11 * DAY * WEATHERED_LPS, 3);
-    expect(w.upkeepWords().discipline).toBe('seamanship');
-    expect(w.upkeepWords().kit).toBe("a caulker's kit");
   });
 
   it('⭐ the bilge well: a pump in it lifts her bilge over the side, crediting the hand at the brake', async () => {

@@ -40,6 +40,7 @@ import type { CommandContributions } from '../../api/command';
 import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
 import type { BuildContribution } from '../craft/ManualBuild';
+import type { BulkPayload } from '../bulk/Bulkable';
 import { MixinApi } from '../../api/mixin';
 import { CraftingApi } from '../../api/crafting';
 import { Freshness } from './Freshness';
@@ -101,6 +102,13 @@ export interface Compounding extends KneadVessel {
    * of it — the end of a `knead` or a `stir`.
    */
   compound(by: Stuff, verb: string): Promise<CompoundOutcome>;
+  /**
+   * @hook What the product IS made of, beyond its material — read off the
+   * charge BEFORE the mint consumes it, written onto a bulk product's
+   * payload after (paint D8: a pot of paint records its binder and its
+   * pigments). Default: nothing.
+   */
+  payloadFor(charge: readonly BuildContribution[]): BulkPayload | null;
 }
 
 export function CompoundingMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
@@ -272,9 +280,33 @@ export function CompoundingMixin<TBase extends MixinConstructor<Stuff>>(Base: TB
       };
     }
 
+    /**
+     * ⭐ Stirring a VOLATILE liquid in the open stirs its vapor into the room
+     * (paint D16) — the same quarter-hour of evaporation a pour into an
+     * open vessel exposes (`BulkableLogic`'s emission). A shut room keeps
+     * it; its air changes clear it.
+     */
+    private ventVolatiles(): void {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isBulkable(self) || !self.hasInteriorBulk()) return;
+      const held = self.getBulkMaterial('interior');
+      if (held === null || !(held.getVapourLPerLPerHour() > 0) || held.getVapourMaterial() === '') return;
+      const room = MixinApi.isContainable(self) ? self.getContainer() : null;
+      if (room === null || !MixinApi.isAtmospheric(room)) return;
+      const litres = self.getBulkAmount('interior').rawValue();
+      room.addAtmosphereContent(held.getVapourMaterial(), litres * held.getVapourLPerLPerHour() * 0.25);
+    }
+
+    public payloadFor(_charge: readonly BuildContribution[]): BulkPayload | null {
+      return null;
+    }
+
     public async compound(by: Stuff, verb: string): Promise<CompoundOutcome> {
       const self = this as unknown as Stuff;
-      const inputs = this.chargeContributions().length;
+      const charge = this.chargeContributions();
+      const inputs = charge.length;
+      const payload = this.payloadFor(charge);
+      this.ventVolatiles();
       // ⭐ The ONE mint (re-plan R1-D7): the charge runs the path a
       // shaker's buffer runs, and this vessel's product names what it makes.
       const minted = await CraftingApi.mintFromBuild({
@@ -285,6 +317,10 @@ export function CompoundingMixin<TBase extends MixinConstructor<Stuff>>(Base: TB
       if (minted.ok) {
         // A solid product is its own piece; a bulk one is this vessel's belly.
         const product = minted.output === self ? null : minted.output;
+        if (product === null && payload !== null && MixinApi.isBulkable(self) && self.hasInteriorBulk()) {
+          const slot = self.getBulk('interior');
+          slot.setPayload({ ...(slot.getPayload() ?? {}), ...payload });
+        }
         const massKg =
           product !== null
             ? MixinApi.isTangible(product) ? product.getMass().rawValue() : 0

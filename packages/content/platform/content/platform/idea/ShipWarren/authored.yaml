@@ -8,5 +8,4 @@
 # are her warren's answers for every ship, authored or of a kind. Keyed by
 # the ship's own row.
 class: /platform/idea/ShipWarren
-data:
-  upkeepTerm: owner-all
+data: {}

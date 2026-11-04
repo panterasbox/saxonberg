@@ -40,11 +40,10 @@
  * resolves to a real row; per-instance uniqueness rides the persistence
  * spine's `(scope, key)` record. Nothing here mints a row.
  *
- * ⭐ **The shell clock is not here** (harbors review 3). A fabric that
- * weathers composes `WeatheringMixin` (`lib/location/Weathering.ts`) — a
- * house's `HoldingWarren` and a ship's `ShipWarren` do — and a floorplan
- * that does not weather (a mine's workings: *a field has no paint
- * either*) does not.
+ * ⭐ **The fabric is not here** (paint review, merged into harbors). What
+ * weathers is a STRUCTURE's outside — a building's coat and its `Durable`
+ * condition (`lib/structure/Building`), a ship's hull (`Ship`) — never a
+ * set of rooms by being one plan: *a field has no paint either*.
  */
 
 import { type Attachment } from './Warren';
@@ -379,6 +378,17 @@ export abstract class FloorplanWarren extends FloorplanBase {
    */
   protected fitExit(_exit: Exit): void {
     /* nothing to fit */
+  }
+
+  /**
+   * Who owes the upkeep of what this warren is, as a tenure term
+   * (`owner-all`, `landlord-shell` …) — what `survey` tells a holder.
+   *
+   * @hook Default: none — a mine's workings and a ship's rooms are owed
+   *   by nobody's tenure (a holding answers its term).
+   */
+  public getUpkeepTerm(): string | null {
+    return null;
   }
 
   /** The live room for a leaf, or null. */

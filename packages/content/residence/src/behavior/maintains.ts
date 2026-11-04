@@ -46,8 +46,7 @@ import type {
 } from '@saxonberg/server/mud/lib/behavior/brain';
 import { NavigationApi } from '@saxonberg/server/mud/api/navigation';
 import { CirculationWarren } from '@saxonberg/server/mud/lib/location/CirculationWarren';
-import { FloorplanWarren } from '@saxonberg/server/mud/lib/location/FloorplanWarren';
-import type { Weathering } from '@saxonberg/server/mud/lib/location/Weathering';
+import HoldingWarren from '../idea/HoldingWarren';
 
 const DEFAULT_BATCH = 3;
 
@@ -90,17 +89,22 @@ export const brain = class {
     let done = 0;
     for (const holding of await holdingsUnder(extent)) {
       if (done >= batch) break;
-      // Sound shells cost nothing to skip and the verb would refuse
-      // anyway; skipping here keeps the beat's teleports honest.
-      if (holding.conditionBand() === 'sound') continue;
-      const room = holding.entryRoom();
-      if (!room || !MixinApi.isContainer(room)) continue;
-      keeper.teleport(room as Stuff & Container);
-      try {
-        await keeper.forceCommand('maintain');
-        done += 1;
-      } finally {
-        /* keep walking the round even if one holding refuses */
+      // Sound fabric costs nothing to skip and the verb would refuse
+      // anyway; skipping here keeps the beat's teleports honest. ⭐ The
+      // fabric is each BUILDING's (paint D13) — a farmstead's house and
+      // barn are kept apart — and the keeper works from inside it.
+      for (const house of holding.buildings()) {
+        if (done >= batch) break;
+        if (house.getConditionWord() === 'sound') continue;
+        const room = house.residentMembers()[0] ?? holding.entryRoom();
+        if (!room || !MixinApi.isContainer(room)) continue;
+        keeper.teleport(room as Stuff & Container);
+        try {
+          await keeper.forceCommand('maintain');
+          done += 1;
+        } finally {
+          /* keep walking the round even if one building refuses */
+        }
       }
     }
     // Back to the desk. A property manager who ends the beat in
@@ -121,8 +125,8 @@ export const brain = class {
  * The `key` atom is the programme's own parcel extent (residences D16),
  * so the prefix test is the ownership test.
  */
-async function holdingsUnder(extent: string): Promise<(FloorplanWarren & Weathering)[]> {
-  const out: (FloorplanWarren & Weathering)[] = [];
+async function holdingsUnder(extent: string): Promise<HoldingWarren[]> {
+  const out: HoldingWarren[] = [];
   // ⭐ Asked of the location graph's record (the scan sweep): an
   // institution is attached to its own `parentExtent`, so the ones over or
   // inside the extent are map reads. One that is not standing has no live
@@ -138,10 +142,9 @@ async function holdingsUnder(extent: string): Promise<(FloorplanWarren & Weather
   }
   for (const institution of institutions) {
     for (const s of institution.holdings()) {
-      // ⭐ A holding whose fabric weathers (harbors review 3) — narrowed on
-      // the kernel's floorplan class and the clock's mixin, never duck-typed.
-      if (!(s instanceof FloorplanWarren) || !MixinApi.isWeathering(s)) continue;
-      const key = s.warrenKey();
+      // ⭐ The holding is this pack's own class — named, never read by shape.
+      if (!(s instanceof HoldingWarren)) continue;
+      const key = s.holdingKey();
       if (!key || (key !== extent && !key.startsWith(`${extent}/`))) continue;
       out.push(s);
     }

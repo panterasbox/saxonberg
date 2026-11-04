@@ -43,6 +43,7 @@ import {
   plain,
   expectOk,
   expectRefused,
+  hand,
 } from '../src/harness';
 
 export const DIRTY_REASON =
@@ -60,6 +61,7 @@ declareFile({
     'generic-objects',
     'eternal-university',
     'saxonberg-lounge',
+    'trade-fuel',
   ],
   dirtyReason: DIRTY_REASON,
 });
@@ -323,6 +325,16 @@ suite('⭐ a lantern you light, and that runs out', () => {
 
   it('⭐ step 4 — light it and the dark lifts; douse it and it comes back', async () => {
     expectOk(await me.cmd('clone /world/terminus/general-store/thing/lantern'));
+    await me.drainProse();
+    // ⭐ A lantern is sold DRY (its row says so): the oil is a separate
+    // purchase, and a dry lantern refuses `no-fuel`. Fill it as a player
+    // would — from a cask of lamp oil — before lighting it.
+    // Setup, not the act under test: the cask is handed (clone is gated on
+    // held extents, and the fuel row is not this player's).
+    const cask = await hand(me, '/trade/fuel/thing/lamp-oil-cask');
+    await me.cmd(`open #${cask}`);
+    await me.drainProse();
+    expectOk(await me.cmd(`fill lantern from #${cask}`));
     await me.drainProse();
 
     // ⚠⚠ **Douse FIRST, with nothing in between.** The ordering is the

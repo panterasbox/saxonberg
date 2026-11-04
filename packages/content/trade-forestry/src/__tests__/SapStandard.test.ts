@@ -255,6 +255,27 @@ describe('a tree you tap', () => {
     expect(plan.prose).toMatch(/auger/i);
   });
 
+  it('⭐ a tap that names a BLADE refuses the auger and takes the knife (paint D17)', async () => {
+    const gum: TapSpec[] = [{ ...SAP[0]!, key: 'gum', instrument: 'cutting' }];
+    StuffApi.findByTemplatePath<Species>(SPECIES_PATH)!.setProduction(gum);
+    const t = tree();
+    const bored = await t.planTap(handsWith([{ spile: true }]) as never, 'gum', auger(), null, null);
+    expect(bored.kind).toBe('refusal');
+    if (bored.kind === 'refusal') {
+      expect(bored.reason).toBe('no-tool');
+      expect(bored.prose).toMatch(/blade/);
+    }
+    const knife = makeStuff(() => {
+      const k = new Tool();
+      k.setShortDescription('knife');
+      k.setCapabilities(['cutting']);
+      return k;
+    });
+    const cut = await t.planTap(handsWith([{ spile: true }]) as never, 'gum', knife, null, null);
+    expect(cut.kind).toBe('plan');
+    if (cut.kind === 'plan') expect(cut.beginSelf).toMatch(/face through the bark/);
+  });
+
   it('⚠ setting needs a SPILE, and the refusal names that too', async () => {
     const t = tree();
     const plan = await t.planTap(handsWith() as never, 'sap', auger(), null, null);

@@ -7,9 +7,9 @@
  * stands (`Ship.standWarren`). Everything a house's warren does, hers
  * does — her kind's BLUEPRINT (a Structure row over her kind's room rows,
  * harbors review 3) is copied keyed `(room row, <serial>/<leaf>)`, its ways
- * wired, she sleeps whole (`FloorplanWarren`), and
- * her hull weathers on the house's clock (`WeatheringMixin`, which she
- * composes as a house does) — and what differs is said here:
+ * wired, she sleeps whole (`FloorplanWarren`) — and what differs is said
+ * here. (Her hull is HERS, not her rooms': a `Durable` fabric under a
+ * coat, as a house's is — `Ship`.)
  *
  * - **which ship** — the warren names its ship (`ship()`), and so answers
  *   *which structure is this room?* for every member
@@ -23,7 +23,6 @@
  *   (`Compartment.onWarrenWake`, the one wake hook);
  * - **when she sleeps** — the population witness of her rooms asks her
  *   (`Ship.sleepIfEmpty`): nobody interactive aboard, not under way;
- * - **her words** — seams, oakum and pitch ({@link upkeepWords});
  * - ⭐ **only her hold keeps a record** (review 2, *persistence is the
  *   exception*): her deck and cabin come up from their rows each wake, so
  *   when she sleeps whatever is loose in them is stowed in her hold, and
@@ -41,13 +40,10 @@
 
 import { FloorplanWarren } from '../../lib/location/FloorplanWarren';
 import type { BlueprintRoom } from '../../lib/location/Blueprint';
-import { WeatheringMixin, type UpkeepWords } from '../../lib/location/Weathering';
 import { ContainmentApi } from '../../api/containment';
 import { Template } from '../../lib/stuff/Template';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
-import { PersistableApi } from '../../api/persistable';
-import { WorldClockApi } from '../../api/worldclock';
 import type { Stuff, EvictionContext } from '../../lib/stuff/Stuff';
 import type { Container } from '../../lib/spatial/Container';
 import type { VetoResult } from '../../lib/errors';
@@ -60,7 +56,7 @@ type MemberStuff = Stuff & Container;
 /** The row an authored ship's warren is cloned from (no blueprint: it adopts). */
 export const AUTHORED_SHIP_WARREN = '/platform/idea/ShipWarren/authored';
 
-export default class ShipWarren extends WeatheringMixin(FloorplanWarren) {
+export default class ShipWarren extends FloorplanWarren {
   static fieldMeta: FieldMeta = {
     shortOf: { persistent: true },
   };
@@ -95,7 +91,7 @@ export default class ShipWarren extends WeatheringMixin(FloorplanWarren) {
   }
 
   /** ⭐ Every member room is HER (P3). */
-  public override structureOf(): Stuff | null {
+  public override structureOf(_member: Stuff): Ship | null {
     return this.ship();
   }
 
@@ -252,58 +248,5 @@ export default class ShipWarren extends WeatheringMixin(FloorplanWarren) {
   public override canEvict(_context: EvictionContext): VetoResult {
     if (this.ship() !== null) return { ok: false, reason: "a ship's warren stands while she does" };
     return { ok: true };
-  }
-
-  /**
-   * ⭐ Her hull is her shell (harbors B4): the house's clock, the house's
-   * rate. Before the shell moves, her bilge is brought up to now over the
-   * line as it stood — so the leak is integrated band by band, and the
-   * bilge's stamp never falls behind the shell's. The first read of a
-   * fresh shell is kept at once: an authored ship never sleeps, and a
-   * stamp that was never captured would restart her clock on every boot.
-   */
-  public override reconcileShell(): number {
-    this.ship()?.integrateBilge(WorldClockApi.getNow().rawValue());
-    const fresh = this.shellStamp <= 0;
-    const c = super.reconcileShell();
-    if (fresh) this.keep();
-    return c;
-  }
-
-  /**
-   * ⭐ Caulked (`maintain` aboard): the water that came in came in at the
-   * old band, then the shell is sound and the leak stops — read live.
-   * Kept at once (an authored ship's warren is captured by nothing else).
-   */
-  public override restoreShell(): void {
-    this.ship()?.integrateBilge(WorldClockApi.getNow().rawValue());
-    super.restoreShell();
-    this.keep();
-  }
-
-  private keep(): void {
-    try {
-      void PersistableApi.capture(this as unknown as Stuff).catch((err) =>
-        console.warn('ShipWarren: capture failed:', err),
-      );
-    } catch (err) {
-      console.warn('ShipWarren: capture failed:', err);
-    }
-  }
-
-  /**
-   * A ship speaks of seams, oakum and pitch.
-   *
-   * @hook
-   */
-  public override upkeepWords(): UpkeepWords {
-    return {
-      declining: 'Her seams are starting to open; the weather is getting in under the pitch.',
-      failed: 'Her seams have gone; she weeps at every one of them.',
-      kit: "a caulker's kit",
-      work: 'You work along her seams, paying in oakum and hot pitch wherever the weather has been at them.',
-      witnessed: "works along her seams with a caulker's kit.",
-      discipline: 'seamanship',
-    };
   }
 }

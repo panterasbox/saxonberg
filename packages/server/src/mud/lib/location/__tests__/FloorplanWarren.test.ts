@@ -1,34 +1,27 @@
 /**
- * FloorplanWarren — the floorplan, the keyed rooms and the shell clock
- * lifted to the kernel (harbors P1), over SYNTHETIC fixtures under
- * `/test/**` (lint:test-content: kernel tests never name /world/).
+ * FloorplanWarren — the floorplan and the keyed rooms lifted to the
+ * kernel (harbors P1), over SYNTHETIC fixtures under `/test/**`
+ * (lint:test-content: kernel tests never name /world/).
  *
  * What a house and a ship share: the whole-warren wake over
  * `(scope = row, key = <key>/<leaf>)` records, the intra-plan wiring,
  * the plan's own frame, the whole-warren capture that a re-wake
- * restores (born-with props land once and the shell's state comes back
- * unchanged), revert, the weathering clock across a game year at the
- * residence rate, and the hooks a subclass speaks through.
+ * restores (born-with props land once), revert, and the hooks a subclass
+ * speaks through. (The fabric is a STRUCTURE's — a building's or a
+ * ship's `Durable` condition under its coat — never a floorplan's.)
  */
 
 import '../../../../test-bootstrap';
 import { KERNEL_CONTENT_ROWS } from '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { FloorplanWarren } from '../FloorplanWarren';
-import { WeatheringMixin, type UpkeepWords } from '../Weathering';
 import PersistentLocation from '../../../platform/location/PersistentLocation';
 import Thing from '../../../platform/thing/Thing';
-import Tool from '../../../platform/thing/Tool';
-import { ContainmentApi } from '../../../api/containment';
-import type { Containable } from '../../spatial/Containable';
 import TemplateApplier from '../../../platform/idea/TemplateApplier';
 import { Document } from '../../persistence/Document';
 import { StuffApi } from '../../../api/stuff';
-import { AppApi } from '../../../api/app';
 import { MixinApi } from '../../../api/mixin';
 import { PersistableApi } from '../../../api/persistable';
-import { WorldClockApi } from '../../../api/worldclock';
-import { Quantity } from '../../quantity';
 import type { Stuff } from '../../stuff/Stuff';
 import type { Container } from '../../spatial/Container';
 import type { Exitable } from '../../boundary/Exitable';
@@ -48,33 +41,19 @@ const DECK = '/test/fp/deck';
 const HOLD = '/test/fp/hold';
 const CLEAT = '/test/fp/cleat';
 const KEY = '/test/fp/vessel-1';
-const DAY = 86_400;
 
-/** A ship-shaped consumer: a weathering floorplan, its own words. */
-class TestFloorplan extends WeatheringMixin(FloorplanWarren) {
+/** A ship-shaped consumer. */
+class TestFloorplan extends FloorplanWarren {
   static _mixinName = 'FPTestWarren';
   public reconciled = 0;
   protected async reconcile(): Promise<void> {
     this.reconciled += 1;
   }
-  public override upkeepWords(): UpkeepWords {
-    return {
-      ...super.upkeepWords(),
-      declining: 'The seams are opening.',
-      failed: 'She is weeping at every seam.',
-    };
-  }
 }
 
-/** A floorplan that does not weather (harbors review 3) — a mine's shape. */
+/** A plain floorplan — a mine's shape. */
 class PlainFloorplan extends FloorplanWarren {
   static _mixinName = 'FPPlainWarren';
-  protected async reconcile(): Promise<void> {}
-}
-
-/** A weathering floorplan in the clock's own words — no override. */
-class PlainWeathering extends WeatheringMixin(FloorplanWarren) {
-  static _mixinName = 'FPPlainWeathering';
   protected async reconcile(): Promise<void> {}
 }
 
@@ -182,12 +161,6 @@ async function standUp<T extends FloorplanWarren = TestFloorplan>(
   return w;
 }
 
-function pinClock(at: number): ReturnType<typeof vi.spyOn> {
-  const clock = vi.spyOn(WorldClockApi, 'getNow');
-  clock.mockReturnValue(Quantity.of(at, 's'));
-  return clock;
-}
-
 describe('FloorplanWarren (harbors P1)', () => {
   beforeEach(() => {
     reset();
@@ -226,14 +199,8 @@ describe('FloorplanWarren (harbors P1)', () => {
     expect(w.laysOutOwnFrame()).toBe(true);
   });
 
-  it('⭐⭐ one capture of the warren (its rooms are its dependents) then a re-wake: the born-with prop lands ONCE and the shell comes back unchanged', async () => {
-    const base = 1_000_000;
-    const clock = pinClock(base);
+  it('⭐⭐ one capture of the warren (its rooms are its dependents) then a re-wake: the born-with prop lands ONCE', async () => {
     const w = await standUp();
-    w.reconcileShell(); // stamp
-    clock.mockReturnValue(Quantity.of(base + 30 * DAY, 's'));
-    const before = w.reconcileShell();
-    expect(before).toBeCloseTo(1 - (30 * 0.5) / 45, 5);
     const cleats = (room: MemberStuff | null) =>
       room!.getContents().filter((c) => c instanceof Thing).length;
     expect(cleats(w.entryRoom())).toBe(1);
@@ -245,12 +212,8 @@ describe('FloorplanWarren (harbors P1)', () => {
     // The rooms followed the warren down — whole, never room-by-room.
     expect(deck.isDestroyed()).toBe(true);
 
-    // Same moment: nothing has elapsed, so the durable state is pinned.
     const again = await standUp();
-    expect(again.shellCondition).toBeCloseTo(before, 9);
-    expect(again.reconcileShell()).toBeCloseTo(before, 9);
     expect(cleats(again.entryRoom())).toBe(1);
-    clock.mockRestore();
   });
 
   it('revert deletes every record under the key', async () => {
@@ -263,76 +226,7 @@ describe('FloorplanWarren (harbors P1)', () => {
     expect(w.entryRoom()).toBeNull();
     await StuffApi.destruct(w as unknown as Stuff);
     const fresh = await standUp();
-    expect(fresh.shellCondition).toBe(1);
-  });
-
-  it('⭐⭐ the clock across a game year: five bands at the residence rate, the durable pinned unchanged', async () => {
-    const base = 2_000_000;
-    const clock = pinClock(base);
-    const w = await standUp();
-    // ⚠ Two clocks: a durable good in a member room must NOT weather
-    // with the shell (economy Law 2).
-    const tool = makeStuffAtPath(() => new Tool(), '/test/fp/spanner');
-    ContainmentApi.move(
-      tool as unknown as Stuff & Containable,
-      w.roomForLeaf('hold')!,
-    );
-    const toolBefore = tool.getCondition();
-    const at = (days: number): string => {
-      clock.mockReturnValue(Quantity.of(base + days * DAY, 's'));
-      return w.conditionBand();
-    };
-    expect(at(0)).toBe('sound');
-    expect(at(9)).toBe('sound'); // 0.9 exactly
-    expect(at(20)).toBe('weathered');
-    expect(at(45)).toBe('worn'); // half gone at daysToWorn
-    expect(w.shellCondition).toBeCloseTo(0.5, 5);
-    expect(at(60)).toBe('shabby');
-    expect(at(90)).toBe('dilapidated');
-    expect(at(365)).toBe('dilapidated');
-    expect(w.shellCondition).toBe(0);
-    expect(tool.getCondition()).toBe(toolBefore);
-
-    // The upkeep act's restore — sound, stamped now.
-    w.restoreShell();
-    expect(w.conditionBand()).toBe('sound');
-    expect(at(365 + 45)).toBe('worn');
-    clock.mockRestore();
-  });
-
-  it('reads the rate from weathering.daysToWorn', async () => {
-    const base = 3_000_000;
-    const clock = pinClock(base);
-    const real = AppApi.setting.bind(AppApi);
-    vi.spyOn(AppApi, 'setting').mockImplementation((key: string) =>
-      key === 'weathering.daysToWorn' ? '90' : real(key),
-    );
-    const w = await standUp();
-    w.reconcileShell();
-    clock.mockReturnValue(Quantity.of(base + 45 * DAY, 's'));
-    expect(w.reconcileShell()).toBeCloseTo(0.75, 5);
-    expect(w.conditionBand()).toBe('weathered');
-    clock.mockRestore();
-  });
-
-  it('speaks in the subclass\'s words, and the base in its own', async () => {
-    const base = 4_000_000;
-    const clock = pinClock(base);
-    const w = await standUp();
-    w.reconcileShell();
-    expect(w.conditionCause()).toBeNull();
-    clock.mockReturnValue(Quantity.of(base + 30 * DAY, 's'));
-    w.reconcileShell();
-    expect(w.conditionCause()).toBe('The seams are opening.');
-    clock.mockReturnValue(Quantity.of(base + 80 * DAY, 's'));
-    w.reconcileShell();
-    expect(w.conditionCause()).toBe('She is weeping at every seam.');
-    clock.mockRestore();
-
-    reset();
-    installStore();
-    const plain = await standUp(() => new PlainWeathering());
-    expect(plain.upkeepWords().kit).toMatch(/kit/);
+    expect(fresh.entryRoom()).not.toBeNull();
   });
 
   it('⭐ a way into the extent that names no room of it throws (review 3)', async () => {
@@ -379,19 +273,10 @@ describe('FloorplanWarren (harbors P1)', () => {
     expect(cell(w.roomForLeaf('bench'))).toEqual([0, 0, 1]);
   });
 
-  it('validates the upkeep term and never buds', async () => {
+  it('names no upkeep term of its own and never buds — a holding answers its term', async () => {
     const w = await standUp();
-    expect(w.getUpkeepTerm()).toBe('owner-all');
-    w.setUpkeepTerm('landlord-shell');
-    expect(w.getUpkeepTerm()).toBe('landlord-shell');
-    expect(() => w.setUpkeepTerm('Not A Term')).toThrow(/kebab-case/);
+    expect(w.getUpkeepTerm()).toBeNull();
     expect(MixinApi.isPersistable(w)).toBe(true);
-    expect(MixinApi.isWeathering(w)).toBe(true);
-  });
-
-  it('⭐ the clock is not imposed: a floorplan that does not compose it does not weather (review 3)', async () => {
-    const w = await standUp(() => new PlainFloorplan());
-    expect(MixinApi.isWeathering(w)).toBe(false);
-    expect((w as unknown as { reconcileShell?: unknown }).reconcileShell).toBeUndefined();
+    await expect((w as unknown as { createMember(): Promise<unknown> }).createMember()).rejects.toThrow(/never buds/);
   });
 });

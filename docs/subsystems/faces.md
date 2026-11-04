@@ -79,7 +79,7 @@ look line changes. A wet coat says *not yet fired* when its material sets by
 heat, *not yet set* otherwise. The faults (`crazed`, `run`, `crawled`) are
 every coat's: paint crazes, crawls over grease and runs too.
 
-⭐⭐ **Paint extends this, not beside it** ([paint-slate](../slates/builds/paint-slate.md)).
+⭐⭐ **Paint extends this, not beside it** ([paint-slate](../slates/tails/paint-slate.md)).
 What the paint build adds to `Faced`: setting by the coat material's BINDER
 (carbonation, oxidation, evaporation — heat is the glaze's case), WEAR (a coat
 is the sacrificial layer that weathers so the body does not), a thing's COLOR
@@ -204,7 +204,7 @@ glaze or a tight body.
 
 ## Seams
 
-- **Paint** ([paint-slate](../slates/builds/paint-slate.md)) rides `Faced` for
+- **Paint** ([paint-slate](../slates/tails/paint-slate.md)) rides `Faced` for
   goods: a coat on a cart or a sign is a coat on its outside face, weathering
   by decomposition's exposure clock. Buildings take paint through
   construction's layers.
@@ -212,3 +212,19 @@ glaze or a tight body.
   are inside-face coats; recorded, not migrated.
 - **Wet clothes and sweat** reading `evaporativeDepressionK`: exertion and
   textiles' deferred lists.
+
+
+## Setting by the air, weathering, color (paint build, 2026-10-31)
+
+A coat need not set by heat: `KineticSpec.sets` names carbonation,
+oxidation, drying or solvent, and `Faced.airCoats` walks the air (rain runs
+a wet coat, frost crazes it). A coat may remember what it was made of
+(`CoatLayer.paint`, the pot's makeup — its color), what was lettered in it
+(`marks`) and how much sun it has had (`faded`). `coatPlanFor` is the
+`paint` verb's protocol on the thing painted; `coatAreaM2` is its face's
+area; `persistsCoats` gates the coat slice. ⭐ **The weather works on every
+outside** (`reconcileWeather`, folded in from the paint build's
+`WeatheringMixin` at review): coats thin at their material's rate where the
+weather reaches them, set by the air, fade in the sun, and a durable host's
+condition wears at `bareWearPerDay` once they are gone — none for a good,
+a building's dial for a building. See [painting.md](./painting.md).

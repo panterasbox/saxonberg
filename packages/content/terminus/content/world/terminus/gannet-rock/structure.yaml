@@ -5,7 +5,7 @@
 # A landmark — featured when it is in view — and a FIXED subject, so a
 # bearing taken on it fixes the reckoning (maritime R8). Nothing fixes
 # anything by being seen.
-class: /platform/idea/Structure
+class: /platform/idea/Building
 data:
   name: the light on Gannet Rock
   extent: /world/terminus/gannet-rock

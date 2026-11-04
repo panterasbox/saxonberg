@@ -515,9 +515,6 @@ export const Mixins = {
   NotifyPolicy: 'NotifyPolicyMixin',
   SubjectSubscriber: 'SubjectSubscriberMixin',
   WarrenMember: 'WarrenMemberMixin',
-  // ⭐ A fabric the weather is at — a house's shell, a ship's hull
-  // (harbors review 3: split out of FloorplanWarren).
-  Weathering: 'WeatheringMixin',
   Lounge: 'LoungeMixin',
   // The off-shift parking room a venue's cast is relocated to.
   Offstage: 'OffstageMixin',
@@ -761,8 +758,12 @@ export const Mixins = {
   // mass into a form a word names": the wheel, the brick table, the blowpipe.
   Forming: 'FormingMixin',
   // ⭐⭐ Faces and coats (ceramics M6) — "I have an outside, and a vessel an
-  // inside; each carries coats, outermost first". On every Good.
+  // inside; each carries coats, outermost first" — and the outside's
+  // coats thin where the weather reaches them (paint D5). On every Good.
   Faced: 'FacedMixin',
+  // ⭐⭐ SelfHeating (paint D15, promoted from trade-farming) — "I make my own
+  // heat faster than I lose it, until I catch": the hay rick, the oily rags.
+  SelfHeating: 'SelfHeatingMixin',
   // ⭐⭐ Green ware (ceramics M4) — "I am unfired clay, and my water decides
   // whether I can be trimmed, fired, or ruined by the weather".
   Greenware: 'GreenwareMixin',
@@ -1063,6 +1064,7 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   StrikingDieMixin: "{} isn't a die you could strike a blank on",
   FormingMixin: "{} isn't something you shape things on",
   FacedMixin: "{} has no face you could lay a coat on",
+  SelfHeatingMixin: "{} does not heat itself",
   GreenwareMixin: "{} isn't green clay",
   // ⭐ The refusal teaches the rule: a sample is a piece you TOOK and
   // NOTED, and what makes it evidence is the noting. A lump off the

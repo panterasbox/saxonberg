@@ -378,8 +378,12 @@ inside the extent leading to the same room of HER copy, a way out (her
 `ashore`, her `side`) as authored. The blueprint is never served. An
 AUTHORED ship (the Hesper) names no blueprint: her own Structure already
 is the blueprint-shaped place, and it is served — her warren
-(`ShipWarren/authored`) adopts her live rooms. Her hull weathers on the
-house's clock (`WeatheringMixin`, which `ShipWarren` composes). See
+(`ShipWarren/authored`) adopts her live rooms. Her hull is HERS, as a
+house's fabric is the building's (paint merged into harbors): `Ship`
+composes `Faced` (tar, paint) over `Durable` (her seams), the weather wears
+the seams at the house's rate (`structure.weather.daysToWorn`) once the
+coat is gone, `maintain` with a caulker's kit makes them sound, and how far
+they have opened is her leak (five seam bands, `ship.leak.<band>`). See
 [holding.md § Blueprints](./holding.md).
 
 ## Perception at range (revision 1)

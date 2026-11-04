@@ -18,8 +18,9 @@
  * planned the swap from `RoomWarren` for the day the abstract holding
  * graduated to the kernel with the shell clock left behind (*"a field has
  * no paint either"*). It has: `FloorplanWarren` is the kernel's keyed
- * room set, stood up and put to sleep whole, and the clock is
- * `WeatheringMixin`, which a mine does not compose. So a mine
+ * room set, stood up and put to sleep whole, and the fabric is a
+ * STRUCTURE's (a building's or a ship's `Durable` condition), never a
+ * floorplan's. So a mine
  * `extends FloorplanWarren`, and the keyed mint is the base's
  * (`mintKeyed` — clone, member, placed, restore-or-seed, filed by key):
  * the carve adds keyed members on top of it.

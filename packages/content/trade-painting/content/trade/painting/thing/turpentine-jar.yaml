@@ -1,0 +1,15 @@
+# A jar of turpentine — the colorman's spirit, sold by the jar.
+class: /platform/thing/Bottle
+data:
+  shortDescription: jar of turpentine
+  keywords: [jar, turpentine, turps, "jar of turpentine"]
+  register: indefinite
+  longDescription: A stoppered glass jar of clear, sharp-smelling spirit.
+  category: jar
+  _materialPath: /stuff/idea/material/ceramic/stoneware
+  interiorBulk: true
+  interiorCapacity: 1
+  interiorMaterial: /trade/painting/idea/material/turpentine
+  interiorAmount: 1
+  closure: liquidTight
+  open: true

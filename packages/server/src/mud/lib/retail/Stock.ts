@@ -563,7 +563,7 @@ export default class Stock extends StockBase {
   /**
    * Sell a good where it lies: settle the price to the house, transfer the
    * title to the buyer (or their house), and leave it there — what lies in
-   * it (a boat's painter) goes with it, because nothing moved.
+   * it (a boat's bow line) goes with it, because nothing moved.
    */
   private async sellWhereItLies(sale: SaleRequest, item: Stuff & Containable): Promise<SaleOutcome> {
     const { buyer: giver, word } = sale;

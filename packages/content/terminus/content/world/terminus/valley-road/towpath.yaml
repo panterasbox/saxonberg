@@ -32,6 +32,19 @@ data:
       destination: /world/terminus/wharfside/ropewalk/location/walk
       media: [ground]
       edgeMinutes: 1
+    # ⭐ The colorman's (paint D20) — a shop off the towpath.
+    colorman:
+      destination: /world/terminus/wharfside/colorman/location/shop
+      media: [ground]
+      edgeMinutes: 1
+    # ⭐ The towpath cottage (paint D20) — the towpath is where it meets the
+    # weather: `look cottage`, `survey cottage`, `paint cottage` from here.
+    # ⚠ The exit is its DOOR, not "cottage": an exit's name is a candidate
+    # in the room's pool and would take the word from the building.
+    door:
+      destination: /world/terminus/wharfside/cottage/location/room
+      media: [ground]
+      edgeMinutes: 1
   details:
     channels:
       keywords: [channels, ruts, gravel, carts]

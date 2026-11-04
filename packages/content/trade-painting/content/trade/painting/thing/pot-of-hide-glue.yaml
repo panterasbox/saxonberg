@@ -1,0 +1,18 @@
+# A pot of hide glue, ready — what the colorman sells to a joiner who would
+# rather not boil his own scraps. The same glue pot the trade boils glue in,
+# filled: a glued joint draws its glue from a pot like this in reach.
+class: /trade/painting/thing/GluePot
+data:
+  shortDescription: pot of hide glue
+  keywords: [pot, "glue pot", glue, "hide glue", "pot of hide glue"]
+  register: indefinite
+  longDescription: >-
+    A heavy iron pot in a water jacket, half full of brown hide glue that
+    smells of the tannery.
+  _materialPath: /stuff/idea/material/element/iron
+  mass: 3
+  interiorBulk: true
+  interiorCapacity: 4
+  closure: liquidTight
+  interiorMaterial: /trade/painting/idea/material/hide-glue
+  interiorAmount: 2

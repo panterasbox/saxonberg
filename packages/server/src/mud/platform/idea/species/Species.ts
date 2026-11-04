@@ -473,6 +473,13 @@ export interface TapSpec {
    */
   yieldShape?: 'mass' | 'volume' | 'count';
   /**
+   * ⭐ The tool capability that OPENS the tap (paint build D17): an auger
+   * bores a maple (`boring`, the default — every row before this field), a
+   * blade cuts the face of a pine for its gum (`cutting`). The tree reads
+   * it; the refusal names the tool.
+   */
+  instrument?: string;
+  /**
    * ⭐ A ceiling on a `continuous` tap's standing. Past it the growth is
    * simply lost (a fleece that has shed), and `look` says so. Absent
    * means unbounded, which is what wool meant before the cap existed.

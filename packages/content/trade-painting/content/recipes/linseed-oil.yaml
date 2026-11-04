@@ -1,0 +1,19 @@
+# Linseed oil — on the stones (paint D19). A hand quern carries `millstone` and so
+# does a mill: the capital decides your time, not your access.
+recipeId: linseed-oil
+name: Linseed oil
+keywords: ["linseed-oil", linseed, oil]
+inputSlots:
+- slot: stock
+  kind: item
+  category: oilseed
+  minGrade: poor
+  count: 1
+toolCapabilities:
+- millstone
+outputTemplate: /trade/painting/thing/oil-jar
+outputMaterial: /trade/painting/idea/material/linseed-oil
+outputApplication: bulk
+# A packet of flax seed gives up a cupful of oil under the stones.
+outputPortionL: 0.3
+outputAppearance: a clear amber oil

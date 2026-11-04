@@ -10,16 +10,16 @@
  *      a hotplate reads as a kitchen and says "the hotplate". Nothing
  *      is enforced anywhere: an unrecognized room provisions, persists
  *      and functions identically, and no multiplier reads this.
- *   2. **What shape is the place in?** The holding's shell condition, as
- *      a BAND with its cause named ("the paint has gone; rain has
- *      gotten into the sills") — never a number, never a gauge.
+ *   2. **What shape is the place in?** The BUILDING's fabric (paint D13 —
+ *      a shop, a ship, a home: whatever structure this room is part of),
+ *      as a BAND with its cause named ("the paint has gone; rain has
+ *      gotten into the sills"), the coat on it, and the job in litres.
  *   3. **Who owes the upkeep?** The holding's tenure term.
  *
- * Questions 2 and 3 answer only when the room belongs to a holding, and
- * they are read through the `WarrenMember` back-ref by SHAPE, never by
- * import: the residential programme is a capability pack's class and the
- * kernel does not import packs. It is the same duck-typed seam
- * `CirculationWarren` already uses in the other direction.
+ * Question 3 answers only when the room belongs to a warren that names a
+ * tenure term — the kernel's `FloorplanWarren.getUpkeepTerm` hook, which
+ * a holding answers (the residential programme is a capability pack's
+ * class and the kernel does not import packs).
  *
  * Room archetypes are the industry-less ones — a bedroom derives from no
  * recipes, which is exactly what distinguishes it from a venue
@@ -30,8 +30,6 @@ import { CommandController } from '../../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Container } from '../../../../lib/spatial/Container';
-import type { Warren } from '../../../../lib/location/Warren';
-import type { Weathering } from '../../../../lib/location/Weathering';
 import type { Archetype, Satisfaction } from '../../../../lib/archetype/Archetype';
 import type ArchetypeCatalogue from '../../ArchetypeCatalogue';
 import { StuffApi } from '../../../../api/stuff';
@@ -39,6 +37,18 @@ import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
 import { BiomeApi } from '../../../../api/biome';
 import { Mml } from '../../../../api/mml';
+import { NavigationApi } from '../../../../api/navigation';
+import { AppApi } from '../../../../api/app';
+import { AppSettingKeys } from '../../../../lib/config/AppSettings';
+import { Paint } from '../../../../lib/material/Paint';
+import type Place from '../../../../lib/stuff/Place';
+import type Material from '../../../../lib/material/Material';
+import BuildingBase from '../../../../lib/structure/Building';
+import { FloorplanWarren } from '../../../../lib/location/FloorplanWarren';
+import Ship from '../../Ship';
+
+/** What has an outside to take stock of: a building, or a ship's hull. */
+type Outside = BuildingBase | Ship;
 
 const CATALOGUE_PATH = '/platform/idea/ArchetypeCatalogue';
 
@@ -49,20 +59,35 @@ const CATALOGUE_PATH = '/platform/idea/ArchetypeCatalogue';
  */
 const LANE_CATALOGUE_PATH = '/system/transport/idea/LaneCatalogue';
 
-/**
- * The holding half of the read: a warren whose fabric weathers
- * (`WeatheringMixin`, harbors review 3) answers for the condition of the
- * shell and who owes it; its members are the holding's rooms.
- */
-type HoldingShape = Stuff & Warren & Weathering;
+/** The holding half of the read: a floorplan whose term says who owes it. */
+interface HoldingShape {
+  warren: FloorplanWarren;
+  term: string;
+}
 
 export default class SurveyController extends CommandController {
   async execute(
-    _model: CommandModel,
+    model: CommandModel,
     context: CommandContext,
   ): Promise<void> {
     const actor = context.commandGiver;
     const room = context.location;
+    const target = (model.target as { stuff?: Stuff | null } | undefined)?.stuff ?? null;
+    // ⭐ `survey <building>` from where it meets the weather (paint D3):
+    // the binder only finds a structure on its landing, so a target that
+    // is one is read from outside, and anything else is refused in words.
+    if (target != null && target !== room) {
+      if (target instanceof BuildingBase || target instanceof Ship) {
+        await this.surveyOutside(actor, target);
+        return;
+      }
+      context.note({ kind: 'controller-rejected', reason: 'not-a-building', detail: 'not a building' });
+      MessageApi.scene(actor)
+        .topic('sense.survey')
+        .toSelf(Mml.compose`${Mml.thing(target)} is not a building you could take stock of. Survey the place you are in, or a building from outside it.`)
+        .send();
+      return;
+    }
     if (!room || !MixinApi.isContainer(room)) {
       context.note({
         kind: 'controller-rejected',
@@ -79,7 +104,7 @@ export default class SurveyController extends CommandController {
     const archetypes = this.roomArchetypes();
     const holding = this.holdingOf(room);
     const spaces: (Stuff & Container)[] = holding
-      ? holding.getMembers().filter((m): m is Stuff & Container =>
+      ? holding.warren.getMembers().filter((m): m is Stuff & Container =>
           MixinApi.isContainer(m),
         )
       : [room as Stuff & Container];
@@ -114,15 +139,19 @@ export default class SurveyController extends CommandController {
       );
     }
 
-    if (holding) {
-      const cause = holding.conditionCause();
+    // ⭐ The fabric is the BUILDING's (paint D13): whatever structure this
+    // room is a member of, read through its condition — a shop, a ship, a
+    // home. A holding still answers for who OWES it (the term).
+    const roomPath = room.getIdentityPath();
+    const structure =
+      (room.isPlace() ? (room as unknown as Place).structureNow() : null) ??
+      (roomPath ? await NavigationApi.structureAt(roomPath) : null);
+    if (structure instanceof BuildingBase || structure instanceof Ship) {
       lines.push('');
-      lines.push(
-        `The fabric of the place is ${holding.conditionBand()}` +
-          (cause ? ` — ${cause}` : '') +
-          '.',
-      );
-      lines.push(`Upkeep here is ${this.termProse(holding.getUpkeepTerm())}.`);
+      lines.push(...(await this.outsideLines(structure, 'the place')));
+    }
+    if (holding) {
+      lines.push(`Upkeep here is ${this.termProse(holding.term)}.`);
     }
 
     // ⭐ How the place is KEPT (cleanliness D15) — after the holding and
@@ -138,6 +167,70 @@ export default class SurveyController extends CommandController {
       .topic('sense.survey')
       .toSelf(Mml.text(`\n${lines.join('\n')}\n`))
       .send();
+  }
+
+  /** `survey <building>` — its outside, read from a landing. */
+  private async surveyOutside(actor: Stuff, structure: Outside): Promise<void> {
+    const lines = [`You take stock of ${structure.getPresentation()} from outside:`];
+    lines.push(...(await this.outsideLines(structure, 'it')));
+    MessageApi.scene(actor)
+      .topic('sense.survey')
+      .toSelf(Mml.text(`\n${lines.join('\n')}\n`))
+      .send();
+  }
+
+  /**
+   * ⭐ A building's outside, in words (paint D13): the coat and its color,
+   * the fabric's condition and why, then the job — how much wall and roof, and
+   * roughly how much paint one coat would take. The area and the litres
+   * are figures because `survey` measures; the band and the color never are.
+   */
+  private async outsideLines(structure: Outside, noun: string): Promise<string[]> {
+    await structure.standUpLandings();
+    const band = structure.getConditionWord();
+    const cause = structure.weatherCause();
+    const out: string[] = [];
+    const top = structure.getCoats('outside')[0];
+    if (top === undefined) {
+      out.push(`There is no coat left on ${noun === 'it' ? 'it' : 'the outside'}.`);
+    } else {
+      const paint = top.paint ? new Paint(top.paint) : null;
+      const mat = StuffApi.findByTemplatePath<Material>(top.material) ?? null;
+      const word = paint?.coatWord() ?? mat?.getCoatWord() ?? 'coated';
+      const color = paint ? ` ${paint.colorTag(top.faded ?? 0)}` : '';
+      const what = paint ? paint.words(top.faded ?? 0) : mat?.getName() || 'a coat';
+      out.push(
+        top.state === 'wet'
+          ? `The outside has a wet coat of ${what}, not yet set.`
+          : top.state === 'set'
+            ? `The outside is ${word}${color} — ${what}.`
+            : top.state === 'run'
+              ? `The ${what} on the outside ran before it set.`
+              : top.state === 'crazed'
+                ? `The ${what} on the outside is crazed with fine cracks.`
+                : `The ${what} on the outside has crawled off bare patches.`,
+      );
+    }
+    out.push(`The fabric of ${noun} is ${band}${cause ? ` — ${cause}` : ''}.`);
+    const area = structure.coatAreaM2();
+    if (area > 0) {
+      const film = this.dial(AppSettingKeys.structurePaintCoatThicknessM, 0.00005);
+      const litres = area * film * 1000;
+      out.push(
+        `There is about ${Math.round(area)} square meters of ${structure instanceof Ship ? 'hull' : 'wall and roof'} to the weather; ` +
+          `one coat of paint would take about ${Math.max(1, Math.round(litres))} litres.`,
+      );
+    }
+    return out;
+  }
+
+  private dial(key: string, fallback: number): number {
+    try {
+      const n = Number.parseFloat(AppApi.setting(key) ?? '');
+      return Number.isFinite(n) && n > 0 ? n : fallback;
+    } catch {
+      return fallback;
+    }
   }
 
   /** One archetype's line: the verdict, then what met or missed each need. */
@@ -266,11 +359,13 @@ export default class SurveyController extends CommandController {
     return rooms.length > 0 ? rooms : null;
   }
 
-  /** The room's holding, when it belongs to one and its fabric weathers. */
+  /** The room's holding, when it belongs to one that names who owes its upkeep. */
   private holdingOf(room: Stuff): HoldingShape | null {
     if (!MixinApi.isWarrenMember(room)) return null;
     const warren = room.getWarren();
-    return warren !== null && MixinApi.isWeathering(warren) ? warren : null;
+    if (!(warren instanceof FloorplanWarren)) return null;
+    const term = warren.getUpkeepTerm();
+    return term === null ? null : { warren, term };
   }
 
   /** The term vocabulary, said in words rather than in its key. */

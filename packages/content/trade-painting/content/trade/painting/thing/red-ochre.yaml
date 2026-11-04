@@ -1,0 +1,10 @@
+# A paper of red ochre — ground pigment, folded in paper the way a colorman sells
+# it. Put it in a paint pot with a binder and stir.
+class: /trade/painting/thing/Pigment
+data:
+  shortDescription: paper of red ochre
+  keywords: [paper, pigment, "red ochre", "burnt ochre", ochre, red, "paper of red ochre"]
+  register: indefinite
+  longDescription: A twist of paper stained brick red, the powder inside warm-colored and fine.
+  _materialPath: /trade/painting/idea/material/red-ochre
+  mass: 0.25

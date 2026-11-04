@@ -85,7 +85,7 @@ import type { BoundaryRole } from '../security/BoundaryRole';
  */
 /** What a face gives its contents (ceramics M7). */
 export interface LeachSpec {
-  /** The toxin type, as metabolism names it (`lead-poisoning`). */
+  /** The toxin type, as metabolism names it (`lead` — the Condition row's `toxinType`, not its name). */
   toxin: string;
   /**
    * mg per litre per game-day against VINEGAR (pH 2.4, the acid a lead-
@@ -198,6 +198,33 @@ export interface BiologicalSource {
 export interface CrystallizesTo {
   product: string;
   residue: string;
+}
+
+/**
+ * ⭐ A material as a PIGMENT (paint build D8) — the dyestuff row's shape,
+ * on the material because a pigment is SUSPENDED, not dissolved: what of
+ * each channel it gives back, how much of what is under it a coat hides,
+ * and how well it stands the sun (`1` never fades).
+ */
+export interface PigmentSpec {
+  transmitR: number;
+  transmitG: number;
+  transmitB: number;
+  hidingPower: number;
+  lightfastness: number;
+}
+
+/**
+ * ⭐ A material as a GLUE (paint build D11): the strength of a set line
+ * (`0..1`), whether it comes apart and how (`never`, or heat to `heatK`
+ * and steam), how well it stands the damp (`1` waterproof), and the
+ * temperature it lets go at.
+ */
+export interface AdhesiveSpec {
+  strength: number;
+  reversible: 'never' | { heatK?: number; steam?: boolean };
+  resistsDamp: number;
+  softensAtK?: number;
 }
 
 /** Numeric AppSetting read for the wet law, falling back to the seeded literal. */
@@ -1193,6 +1220,16 @@ export default class Material extends SingletonMixin(
     // The word a look uses for a sound coat of this — "glazed", later
     // "painted", "tarred", "varnished". Absent reads "coated".
     coatWord: { persistent: true, authorable: true },
+    // ⭐ How fast a SET coat of this thins where the weather reaches it,
+    // meters per game year (paint build D5). Absent: never weathers — a
+    // glaze, a tar. A painter learns it by what peels.
+    weatheringMPerGameYear: { persistent: true, authorable: true },
+    // ⭐ This is a PIGMENT: its color suspended in a binder, how well it
+    // hides what is under it, how it stands the sun (paint build D8).
+    pigment: { persistent: true, authorable: true },
+    // ⭐ This is a GLUE: how strong its line, whether heat and steam undo
+    // it, how it stands the damp (paint build D11). Measured facts.
+    adhesive: { persistent: true, authorable: true },
     // ⭐ What a broken piece of this becomes (ceramics M5) — fired clay
     // breaks to sherds; glass keeps its cullet (the cast template).
     brokenTemplate: { persistent: true, authorable: true },
@@ -1635,6 +1672,69 @@ export default class Material extends SingletonMixin(
   }
   public setCoatWord(value: string): void {
     this.coatWord = typeof value === 'string' ? value.trim() : '';
+  }
+
+  /** Meters a set coat of this loses per game year in the weather (`0`: never). */
+  protected weatheringMPerGameYear = 0;
+  public getWeatheringMPerGameYear(): number {
+    return this.weatheringMPerGameYear;
+  }
+  public setWeatheringMPerGameYear(value: number): void {
+    const n = Number(value);
+    this.weatheringMPerGameYear = Number.isFinite(n) && n > 0 ? n : 0;
+  }
+
+  /** This material as a pigment, or `null` when it is none. */
+  protected pigment: PigmentSpec | null = null;
+  public getPigment(): PigmentSpec | null {
+    return this.pigment;
+  }
+  public setPigment(value: PigmentSpec | null): void {
+    if (value === null || typeof value !== 'object') {
+      this.pigment = null;
+      return;
+    }
+    const unitOf = (v: unknown, d: number): number => {
+      const n = Number(v);
+      return Number.isFinite(n) ? Math.min(1, Math.max(0, n)) : d;
+    };
+    this.pigment = {
+      transmitR: unitOf(value.transmitR, 1),
+      transmitG: unitOf(value.transmitG, 1),
+      transmitB: unitOf(value.transmitB, 1),
+      hidingPower: unitOf(value.hidingPower, 0.5),
+      lightfastness: unitOf(value.lightfastness, 1),
+    };
+  }
+
+  /** This material as a glue, or `null` when it is none. */
+  protected adhesive: AdhesiveSpec | null = null;
+  public getAdhesive(): AdhesiveSpec | null {
+    return this.adhesive;
+  }
+  public setAdhesive(value: AdhesiveSpec | null): void {
+    if (value === null || typeof value !== 'object') {
+      this.adhesive = null;
+      return;
+    }
+    const unitOf = (v: unknown, d: number): number => {
+      const n = Number(v);
+      return Number.isFinite(n) ? Math.min(1, Math.max(0, n)) : d;
+    };
+    const rev = value.reversible;
+    const spec: AdhesiveSpec = {
+      strength: unitOf(value.strength, 0.7),
+      reversible:
+        rev !== null && typeof rev === 'object'
+          ? {
+              ...(Number(rev.heatK) > 0 ? { heatK: Number(rev.heatK) } : {}),
+              ...(rev.steam === true ? { steam: true } : {}),
+            }
+          : 'never',
+      resistsDamp: unitOf(value.resistsDamp, 0),
+    };
+    if (Number(value.softensAtK) > 0) spec.softensAtK = Number(value.softensAtK);
+    this.adhesive = spec;
   }
 
   /**

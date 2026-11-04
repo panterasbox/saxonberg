@@ -134,6 +134,9 @@ function describe(data: unknown): JointDescriptor | string {
   if (!JOINT_REVERSIBILITIES.includes(reversible as JointReversibility)) {
     return `reversible '${String(reversible)}' is not one of ${JOINT_REVERSIBILITIES.join("|")}`;
   }
+  if (d.takes !== undefined && d.takes !== null && d.takes !== "" && d.takes !== "glue") {
+    return `takes '${String(d.takes)}' is not glue`;
+  }
   const failure = d.failure ?? "parted";
   if (!JOINT_FAILURES.includes(failure as JointFailure)) {
     return `failure '${String(failure)}' is not one of ${JOINT_FAILURES.join("|")}`;
@@ -170,6 +173,7 @@ function describe(data: unknown): JointDescriptor | string {
     tightenable: d.tightenable === true,
     needsFlat: d.needsFlat === true,
     failure: failure as JointFailure,
+    ...(d.takes === "glue" ? { takes: "glue" as const } : {}),
   };
 }
 

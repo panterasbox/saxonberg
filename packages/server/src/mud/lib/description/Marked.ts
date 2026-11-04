@@ -42,6 +42,8 @@ import type { CommandContributions } from '../../api/command';
 import type { SenseChannel } from './Perceiver';
 import type { Stuff } from '../stuff/Stuff';
 import { MixinApi } from '../../api/mixin';
+import { Quantity } from '../quantity';
+import { Paint } from '../material/Paint';
 import { PerceptionApi } from '../../api/perception';
 import type { MarkupAugmenter } from '../../api/mml';
 
@@ -148,7 +150,7 @@ export interface Marked {
    * who can read it reads — a note to yourself is writing on a thing of
    * your own.
    */
-  writeOn(by: Stuff, words: string): { ok: true; line: string } | { ok: false; reason: string; line: string };
+  writeOn(by: Stuff, words: string, medium?: Stuff): { ok: true; line: string } | { ok: false; reason: string; line: string };
   /**
    * ⭐ WHOSE mark this bears — a DEVICE, not words: a potter's stamp on a
    * pot's base, a die's device on a struck token, the device cut in the
@@ -205,6 +207,11 @@ const deviceAugmenter: MarkupAugmenter = (text, host, viewer, opts) => {
   const line = `It bears ${mark}.`;
   return text && text.length > 0 ? `${text}\n\n${line}` : line;
 };
+
+/** Litres of paint a lettered character takes (sign-writing, a brush's width). */
+const LITRES_PER_LETTER = 0.002;
+/** A lettered stroke's set film, m. */
+const LETTER_FILM_M = 0.00003;
 
 export function MarkedMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class MarkedMixin extends Base implements Marked {
@@ -299,7 +306,14 @@ export function MarkedMixin<TBase extends MixinConstructor>(Base: TBase) {
       ) {
         return 'The ink has run; nothing of it can be read.';
       }
-      return this.markText;
+      // ⭐ Words lettered in paint live in their coats (paint D10): they read
+      // in any weather, and go when the weather takes the coat.
+      if (MixinApi.isFaced(self)) self.reconcileWeather();
+      const painted = MixinApi.isFaced(self)
+        ? self.getCoats('outside').map((c) => c.marks).filter((m): m is string => typeof m === 'string' && m !== '')
+        : [];
+      if (painted.length === 0) return this.markText;
+      return [this.markText, ...painted.reverse()].filter((t) => t.trim() !== '').join(' / ');
     }
 
     public setMarkText(text: string): void {
@@ -335,7 +349,7 @@ export function MarkedMixin<TBase extends MixinConstructor>(Base: TBase) {
       this.writingRoom = Number.isFinite(chars) && chars > 0 ? Math.floor(chars) : 0;
     }
 
-    public writeOn(by: Stuff, words: string): { ok: true; line: string } | { ok: false; reason: string; line: string } {
+    public writeOn(by: Stuff, words: string, medium?: Stuff): { ok: true; line: string } | { ok: false; reason: string; line: string } {
       const self = this as unknown as Stuff;
       const text = words.trim();
       if (text === '') return { ok: false, reason: 'nothing-to-write', line: 'Write what?' };
@@ -349,6 +363,9 @@ export function MarkedMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (!held && !fixed) {
         return { ok: false, reason: 'not-holding', line: `You need ${self.getPresentation()} in your hand to write on it.` };
       }
+      // ⭐ In PAINT (paint D10): the words go on as a coat — the surface must
+      // take one, the medium must lay one — and they last as the coat does.
+      if (medium !== undefined) return this.letterInPaint(by, text, medium);
       const before = this.markText.trim();
       const next = before === '' ? text : `${before} / ${text}`;
       if (next.length - before.length > this.getWritingRoom()) {
@@ -358,6 +375,35 @@ export function MarkedMixin<TBase extends MixinConstructor>(Base: TBase) {
       this.markText = next;
       const how = this.getMarkForm() === 'inked' ? 'write' : 'scratch';
       return { ok: true, line: `You ${how} "${text}" on ${self.getPresentation()}.` };
+    }
+
+    /** A litre letters about this many characters of sign-writing. */
+    private letterInPaint(
+      _by: Stuff,
+      text: string,
+      medium: Stuff,
+    ): { ok: true; line: string } | { ok: false; reason: string; line: string } {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isFaced(self)) {
+        return { ok: false, reason: 'not-faced', line: `Paint will not take on ${self.getPresentation()}.` };
+      }
+      const held = MixinApi.isBulkable(medium) && medium.hasInteriorBulk() ? medium.getBulkMaterial('interior') : null;
+      if (held === null || !held.getLaysCoat() || !MixinApi.isBulkable(medium)) {
+        return { ok: false, reason: 'not-paint', line: `What is in ${medium.getPresentation()} will not letter anything.` };
+      }
+      const litres = Math.max(0.01, text.length * LITRES_PER_LETTER);
+      const have = medium.getBulkAmount('interior').rawValue();
+      if (have + 1e-9 < litres) {
+        return { ok: false, reason: 'source-too-low', line: `There is not enough left in ${medium.getPresentation()} to letter that.` };
+      }
+      medium.setBulkAmount('interior', Quantity.of(have - litres, 'L'));
+      const makeup = medium.getBulk('interior').getPayload()?.paint;
+      self.reconcileWeather();
+      self.layCoat('outside', makeup?.binder || (held.getTemplatePath() ?? ''), LETTER_FILM_M, 0, makeup);
+      const top = self.getCoats('outside')[0];
+      if (top !== undefined) top.marks = text;
+      const color = makeup ? ` in ${new Paint(makeup).colorTag()}` : '';
+      return { ok: true, line: `You letter "${text}" on ${self.getPresentation()}${color}, the paint wet on the brush.` };
     }
 
     public getMarkScript(): MarkScript {

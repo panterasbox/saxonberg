@@ -331,24 +331,20 @@ export abstract class CirculationWarren extends Warren {
   }
 
   /**
-   * The shell condition of the holding at `extent` — the residence
-   * ladder's ascent-gate read (P10): admit the holding through its
-   * institution and ask its programme — narrowed on the kernel's
-   * `WeatheringMixin` (harbors review 3; the programme class ships in the
-   * residence pack). Null when no institution covers the extent or the
-   * holding's fabric does not weather (a bare room).
+   * The fabric of the holding at `extent` — the residence ladder's
+   * ascent-gate read (P10): the BUILDING the holding is (paint D13 — the
+   * condition is the building's now): its own minted house, or the
+   * structure row its units stand in. The holding is admitted first so
+   * its house stands. Null when no building with a condition covers it.
    */
   public static async conditionOf(
     extent: string,
   ): Promise<{ condition: number; band: string } | null> {
-    const room = await CirculationWarren.admitFor(extent);
-    if (!room) return null;
-    const programme = MixinApi.isWarrenMember(room) ? room.getWarren() : null;
-    if (programme === null || !MixinApi.isWeathering(programme)) return null;
-    return {
-      condition: programme.reconcileShell(),
-      band: programme.conditionBand(),
-    };
+    await CirculationWarren.admitFor(extent);
+    const { NavigationApi } = await import('../../api/navigation');
+    const house = await NavigationApi.structureAt(extent);
+    if (house === null || !MixinApi.isDurable(house)) return null;
+    return { condition: house.getCondition(), band: house.getConditionWord() };
   }
 
   /**

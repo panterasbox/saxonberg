@@ -1,0 +1,13 @@
+# A sign board (paint D10) — a planed board to letter in paint and hang. Its
+# words are a coat: anyone reads them, in any light, until the weather has
+# taken the coat.
+class: /trade/painting/thing/SignBoard
+data:
+  shortDescription: sign board
+  keywords: [board, sign, "sign board", signboard]
+  register: indefinite
+  longDescription: A long planed board with two iron eyes for hanging.
+  _materialPath: /stuff/idea/material/wood/pine
+  mass: 4
+  markForm: inked
+  writingRoom: 40

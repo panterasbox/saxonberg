@@ -90,7 +90,10 @@ export default class GlazeTub extends DipBathMixin(CompoundingVessel) {
       };
     }
     const where = onto.length === 2 ? 'inside and out' : onto[0] === 'inside' ? 'inside' : 'outside';
-    const path = material.getTemplatePath() ?? '';
+    // ⭐ A bath of PAINT lays its binder, the makeup kept for its color
+    // (paint D8/B14) — a rag dipped in oil paint is oily.
+    const makeup = self.getBulk('interior').getPayload()?.paint;
+    const path = makeup?.binder || (material.getTemplatePath() ?? '');
     const sets = material.getKinetics()?.setsByHeat() ? 'It will set when it is fired.' : 'Let it set.';
     const giver = req.actor;
     return {
@@ -112,7 +115,7 @@ export default class GlazeTub extends DipBathMixin(CompoundingVessel) {
         self.setBulkAmount('interior', Quantity.of(have - litres, 'L'));
         for (const face of onto) {
           const soil = MixinApi.isSoilable(target) ? Math.max(target.soilAt(face), target.soilAt('')) : 0;
-          target.layCoat(face, path, thicknessM, soil);
+          target.layCoat(face, path, thicknessM, soil, makeup);
         }
         if (!giver.isDestroyed()) {
           MessageApi.scene(giver)

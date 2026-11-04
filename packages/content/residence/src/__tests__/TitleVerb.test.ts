@@ -181,6 +181,7 @@ function installStore(): void {
   add('/system/residence/idea/exits/upstairs', '/system/residence/idea/UpstairsExit');
   add('/system/residence/idea/exits/front-door', '/system/residence/idea/FrontDoorExit');
   add('/system/residence/idea/exits/lot-gate', '/system/residence/idea/LotGateExit');
+  add('/system/residence/idea/holding-building', '/system/residence/idea/HoldingBuilding', { shortDescription: 'house' });
   add('/system/residence/idea/exits/keyed-door', '/system/residence/idea/KeyedDoorExit');
 
   add(PROGRAMME, '/system/residence/idea/HoldingWarren', {

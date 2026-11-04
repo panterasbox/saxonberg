@@ -16,10 +16,10 @@
  */
 
 import type { Stuff } from '../../lib/stuff/Stuff';
-import type Place from '../../lib/stuff/Place';
 import type { Container } from '../../lib/spatial/Container';
 import { MixinApi } from '../mixin';
 import { PerceptionApi } from '../perception';
+import Place from '../../lib/stuff/Place';
 import type { Detail } from '../../lib/description/Detailed';
 import type { BulkAffordance } from '../../lib/bulk/Bulkable';
 import type { MqlMatch, MqlMatchVia } from './types';
@@ -89,6 +89,15 @@ export function candidatesForHere(
     // through `MqlApi.effectiveTarget`; `go north` crosses it.
     for (const exit of location.obviousExitsFor(viewer)) {
       pushDirect(out, exit, viewer, attention);
+    }
+    // ⭐ The buildings whose LANDING this is (paint build, 2026-10-31): a
+    // structure is an Idea, never in a room, so it enters the pool from
+    // where it meets the weather — `look cottage` from the lane, `paint
+    // hesper` from the quay — with no new seed.
+    if (location instanceof Place) {
+      for (const structure of location.landedStructuresNow()) {
+        pushDirect(out, structure, viewer, attention);
+      }
     }
     // ⭐ A place read from where it is reached (tracts build D30): open
     // ground through an exit binds by its own name from this side, so

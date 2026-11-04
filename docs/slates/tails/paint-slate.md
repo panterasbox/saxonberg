@@ -1,21 +1,19 @@
 # Paint slate — the sacrificial layer, pigment in a binder
 
-> **Status: UNBUILT** — designed at high level 2026-10-19 with the owner, out of
-> the gap walk (it absorbs "binders and finishes" and the easel half of "the
-> arts"). **No paint exists**, yet the holding shell's weathering readout already
-> says *"the paint has gone; rain has gotten into the sills"*
-> ([holding.md](../../subsystems/holding.md)), and repair's W7 already decided
-> that *"a building's walls and roof are layers … each weathers at its material's
-> pace, and `maintain` replaces what time took"* ([repair-slate](./repair-slate.md)).
-> **Left:** the coat as the outermost, sacrificial layer · paint derived from a
-> pigment and a binder (lime, linseed, glue, casein, egg, resin) · how each binder
-> sets (carbonation, oxidation, evaporation) · pigments (earths, lampblack, chalk,
-> verdigris, lead white) and the dye/pigment line, the lake · color on `Colour`
-> and the subtractive stack · one `paint` verb for a wall and a picture ·
-> `maintain` with paint in hand · the oily-rag fire, lead, fumes · the colorman,
-> the house painter, the signwriter, the artist · the epoch ladder
-> **Size:** a build (content-led, on construction's layers, W7 and the shipped
-> `Faced` coat — § 0)
+> **Status: SHIPPED (MR !513, 2026-11)** — the paint build built most of this
+> slate: the coat as a sacrificial layer that weathers (every outside, the
+> exposure rule), paint as a binder + pigments, how each binder sets, `paint`,
+> `write … with` a pot, the glued joint, lead · oily rags · turpentine, the
+> colorman and the house painter. → [painting.md](../../subsystems/painting.md).
+> **Left:** the corrosion jar (vinegar on lead or copper → white lead,
+> verdigris) and the madder-lake strike — the colorman stocks them · thinning
+> oil paint with turpentine (a pour joins only like with like) · glue on
+> `fit`'s replace arm · starch paste mixed bulk with bulk · the house painter
+> restocking his own pot · upstream supply: a lampblack lamp, the
+> fishmonger's skins, the pig's bristle, a tannery's and knacker's counter ·
+> the signwriter and the artist as trades · the epoch ladder (alkyd, latex —
+> the same `paint`) · Duncan Hall's structure row · a `sets badly` coat word
+> **Size:** a wave
 
 ## 0. ⭐⭐ What already ships — `Faced` is the coat on goods (ceramics, 2026-10)
 
@@ -66,7 +64,7 @@ sills later.** One principle covers three trades: galvanizing (zinc corrodes so
 the steel does not), tarring a hull (tar ships), and paint.
 
 **On goods**, a coat on a cart or a sign rides
-[decomposition](./decomposition-slate.md)'s exposure clock for things left
+[decomposition](../builds/decomposition-slate.md)'s exposure clock for things left
 outside. Economy Law 2 holds — nothing weathers on the calendar except through
 exposure.
 
@@ -100,7 +98,7 @@ subtractively, cover by their hiding power, and fade by their lightfastness.
 
 Pigment in a binder, applied to a surface, is **`paint`**. On a wall it is a coat;
 on a canvas whose image is the author's, it is an artwork — the easel half of
-"the arts", routed here by the [paper and printing slate](./paper-and-printing-slate.md)
+"the arts", routed here by the [paper and printing slate](../builds/paper-and-printing-slate.md)
 § 0; the image is the player's own. **`maintain` with paint in hand** is how a
 shell gets its coat back. **`dip` stays dip-coating** — already decided as the
 generative primitive for accreting a layer from a bath

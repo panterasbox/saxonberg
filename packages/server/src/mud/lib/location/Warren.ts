@@ -41,6 +41,7 @@ import type { Container } from '../spatial/Container';
 import type { Containable } from '../spatial/Containable';
 import type { Exitable } from '../boundary/Exitable';
 import type { WarrenMember } from './WarrenMember';
+import type Structure from '../structure/Structure';
 import { StuffApi } from '../../api/stuff';
 import { ContainmentApi } from '../../api/containment';
 import { MixinApi } from '../../api/mixin';
@@ -129,16 +130,19 @@ export abstract class Warren extends Idea {
   }
 
   /**
-   * ⭐ The structure these rooms ARE, when the warren is one (harbors P3):
-   * a ship's rooms are her warren's members, and a keyed room of a ship
-   * KIND has no row of its own for an `extent` prefix to cover — so *which
-   * ship is this room?* is answered by the room's warren, never its path.
-   * `NavigationApi.structureAt` asks this before the extent attachments.
+   * ⭐ The structure `member` is part of, when this warren knows it —
+   * `null` defers to the location graph. Two warrens answer: a ship's
+   * rooms are her warren's members, and a keyed room of a ship KIND has no
+   * row of its own for an `extent` prefix to cover, so *which ship is this
+   * room?* is answered by the room's warren, never its path (harbors P3);
+   * a holding's rooms are keyed clones of shared rows, so the holding that
+   * minted them says which of its buildings each is part of (paint review,
+   * holding.md § Identity).
    *
    * @hook Default: none — a street's lanes or a lot's rooms are no
    *   structure's members by being in a warren.
    */
-  public structureOf(): Stuff | null {
+  public structureOf(_member: Stuff): Structure | null {
     return null;
   }
 

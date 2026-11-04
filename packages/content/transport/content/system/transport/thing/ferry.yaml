@@ -16,5 +16,5 @@ data:
   hull: { form: flat, draftM: 0.3, beamM: 3.5, lengthM: 9, freeboardM: 0.5, capacityKg: 3000 }
   props:
     - /system/transport/thing/propulsion/pole
-    # ⭐ Every boat comes with her painter (harbors P17) — the line on her bow.
-    - /platform/thing/painter
+    # ⭐ Every boat comes with her bow line (harbors P17; a sailor's "painter").
+    - /platform/thing/bow-line

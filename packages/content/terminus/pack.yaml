@@ -104,6 +104,10 @@ requires:
     # the day anybody wires one.
     - { extent: /world/terminus/wharfside/knackers,  parentParcel: /world/terminus/wharfside, holder: { group: terminus }, landUse: industrial, powerBand: off-grid }
     - { extent: /world/terminus/wharfside/tannery,   parentParcel: /world/terminus/wharfside, holder: { group: terminus }, landUse: industrial, powerBand: off-grid }
+    # ⭐ The towpath cottage (paint D20): its own parcel so the building can be
+    # SOLD — held by the town it is staged and restages; a person who buys
+    # it owns a building that keeps its paint.
+    - { extent: /world/terminus/wharfside/cottage, parentParcel: /world/terminus/wharfside, holder: { group: terminus }, landUse: residential, powerBand: domestic }
     - { extent: /world/terminus/wharfside/chandlery, parentParcel: /world/terminus/wharfside, holder: { group: terminus }, landUse: industrial, powerBand: industrial, feeder: terminus-main:bank }
     # ⭐ The lavoir (cleanliness D27) — the town's washing place on the bank.
     - { extent: /world/terminus/wharfside/lavoir, parentParcel: /world/terminus/wharfside, holder: { group: terminus }, landUse: commercial, powerBand: off-grid }
