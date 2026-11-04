@@ -40,15 +40,6 @@ data:
     # was a tin nobody could light. See the row's own header.
     - { itemTemplatePath: /trade/apiculture/thing/sacking, par: 4 }
     - { itemTemplatePath: /world/terminus/general-store/thing/whetstone, par: 2 }
-    # ⭐ Stationery (paper build): writing paper by the sheet and the ream,
-    # envelopes, and a plain notebook. Ink is the printing trade's (an ink
-    # pot, a pen); the mill at Heart's Delight is where paper comes from.
-    - { itemTemplatePath: /platform/thing/sheet, par: 12 }
-    - { itemTemplatePath: /platform/thing/ream, par: 1 }
-    - { itemTemplatePath: /platform/thing/envelope, par: 6 }
-    - { itemTemplatePath: /platform/thing/book, par: 3 }
-    - { itemTemplatePath: /trade/printing/thing/ink-pot, par: 4 }
-    - { itemTemplatePath: /trade/printing/thing/pen, par: 4 }
     # ⭐ A billhook (repair W5): an edged tool you can buy, so `sharpen`
     # has an edge to find outside a weapon, and the hook comes apart into a
     # blade and a handle — the drive's first lesson in parts.
@@ -426,14 +417,6 @@ data:
     - { itemTemplatePath: /trade/apiculture/thing/bellows, par: 2 }
     - { itemTemplatePath: /trade/tailoring/thing/cushion, par: 2 }
   prices:
-    # Paper (paper build): a sheet costs what a candle end does; a ream of
-    # 480 at the quantity price; a notebook is a day's careful work.
-    /platform/thing/sheet: 1
-    /platform/thing/ream: 60
-    /platform/thing/envelope: 1
-    /platform/thing/book: 6
-    /trade/printing/thing/ink-pot: 2
-    /trade/printing/thing/pen: 1
     /trade/chandlery/thing/soap-bar: 3
     /trade/fuel/thing/washing-soda: 2
     /stuff/thing/gear/scrub-brush: 2

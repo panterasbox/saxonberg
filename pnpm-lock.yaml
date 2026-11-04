@@ -689,6 +689,9 @@ importers:
       '@saxonberg/content-trade-papermaking':
         specifier: workspace:*
         version: link:../trade-papermaking
+      '@saxonberg/content-trade-printing':
+        specifier: workspace:*
+        version: link:../trade-printing
       '@saxonberg/content-trade-quarrying':
         specifier: workspace:*
         version: link:../trade-quarrying

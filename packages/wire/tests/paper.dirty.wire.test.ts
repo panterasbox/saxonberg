@@ -186,9 +186,6 @@ suite('paper — the blocking drive', () => {
     const s = await session(maker, STORE);
     const b = await say(s, 'buy padded gambeson');
     expect(b, b).not.toMatch(/bare|cannot afford/i);
-    for (const line of ['buy ink pot', 'buy pen', 'buy notebook', 'buy envelope', 'buy sheet of paper', 'buy sheet of paper', 'buy sheet of paper']) {
-      await say(s, line);
-    }
     const t = await say(s, 'tear gambeson');
     expect(t, t).toMatch(/rags?/i);
     expect(await carried(s, 'rag')).toBeGreaterThanOrEqual(1);
@@ -203,6 +200,11 @@ suite('paper — the blocking drive', () => {
     expect(sold, sold).not.toMatch(REFUSED);
     const m = await say(s, 'buy paper mould');
     expect(m, m).toMatch(/You buy/i);
+    // Stationery is sold where paper is made.
+    for (const line of ['buy ink pot', 'buy pen', 'buy notebook', 'buy envelope', 'buy sheet of paper', 'buy sheet of paper', 'buy sheet of paper']) {
+      const b = await say(s, line);
+      expect(b, b).toMatch(/You buy/i);
+    }
   }, 600_000);
 
   it('4. rags in the stamper; switched on, the race beats them to pulp', async () => {

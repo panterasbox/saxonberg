@@ -7,5 +7,5 @@ data:
   # It presents as what it is — sheets — so a ream picked up reads "480
   # sheets of paper", never "480 reams".
   shortDescription: sheet of paper
-  keywords: [ream, paper, sheet, sheets, "ream of paper"]
+  keywords: [ream, paper, sheet, sheets, "ream of paper", "sheet of paper"]
   quantity: 480

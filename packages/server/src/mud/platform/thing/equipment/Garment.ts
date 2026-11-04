@@ -104,6 +104,22 @@ const SUN_DOSE_PER_HOUR = 0.012;
 const FUME_DOSE_PER_FRACTION_HOUR = 20;
 
 export default class Garment extends GarmentBase {
+
+  // ── airing (cleanliness D21): the sun and the fumes ──
+
+  /**
+   * ⭐ How far the sun has YELLOWED this (a protein fibre — wool — in
+   * daylight), `0..1`; sulfur fume whitens it back. Read out in words.
+   */
+  public sunYellow = 0;
+  /** Game-seconds of the last airing reconcile; `0` = never. */
+  public airingStamp = 0;
+
+  static fieldMeta: FieldMeta = {
+    sunYellow: { persistent: true, runtimeState: true },
+    airingStamp: { persistent: true, runtimeState: true },
+  };
+
   /**
    * ⭐ Tear it up for rags (paper D13): as many clean rags as its cloth
    * weighs, and the garment is gone. Refused while worn.
@@ -124,21 +140,6 @@ export default class Garment extends GarmentBase {
     StuffApi.destruct(self);
     return { ok: true, line, made: [rags] };
   }
-
-  // ── airing (cleanliness D21): the sun and the fumes ──
-
-  /**
-   * ⭐ How far the sun has YELLOWED this (a protein fibre — wool — in
-   * daylight), `0..1`; sulfur fume whitens it back. Read out in words.
-   */
-  public sunYellow = 0;
-  /** Game-seconds of the last airing reconcile; `0` = never. */
-  public airingStamp = 0;
-
-  static fieldMeta: FieldMeta = {
-    sunYellow: { persistent: true, runtimeState: true },
-    airingStamp: { persistent: true, runtimeState: true },
-  };
 
   /**
    * ⭐⭐ What washing does to CLOTH (cleanliness D10) — on top of the dirt

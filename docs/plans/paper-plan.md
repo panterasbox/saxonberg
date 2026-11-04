@@ -1712,6 +1712,7 @@ season's fouling, the almanac's year) belongs to a part this build deferred.
 | 5 | 20/23 | size dried at a day's rate in the damp mill — rates raised to an hour or two; `put … in` finds a container in the room, not the hand (shipped). |
 | 6 | 21/23 | one `look` got no reply in 30 s after a six-hour jump (no server error; the world's own snapshot dup-key on the market stalls is pre-existing). |
 | 7 | 21/22 | the same: the first command after the jump carries the world's settle. Everything else green — bearer paper end to end (depositor refused, holder paid, "already settled"), the copy with fresh misprints ("hnndred", "o base"), *known-of* from a notebook page, the label let go in the wet. ⚠ Step 17's borrower answered "no ink", not "somebody else's" — that refusal is unit-proved only. |
+| 8 | ⭐ **22/22** | green — the blocking drive passes end to end. |
 
 Not driven (each in the file header): 3, 9, 10–12, 16, 19, 22, 27, 29, 30,
 33, 35, 37, 38 — the deferrals in the wave notes. Step 31's bearer flow ran
