@@ -12,7 +12,7 @@ data:
   edibility: false
   nutrients: []
   toxicity: []
-  tags: [liquid, ink, once-living]
+  tags: [liquid, ink, organic, once-living]
   composition: []
   chemistry: null
   biologicalSource: null
