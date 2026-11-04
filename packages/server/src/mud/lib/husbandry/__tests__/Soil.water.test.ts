@@ -150,3 +150,34 @@ describe('⭐ salt comes in with the water and leaves with the drainage', () => 
     WorldClockApi._resetForTesting();
   });
 });
+
+describe('⭐ an overhead inlet loses water in the air (step 27)', () => {
+  it('a calm cool dawn lands nearly all of it; a hot windy noon measurably less', () => {
+    const g = ground();
+    const dawn = g.overheadLandedShare(1, 281, 0.3);
+    const noon = g.overheadLandedShare(8, 300, 0);
+    expect(dawn).toBeGreaterThan(0.95);
+    expect(noon).toBeLessThan(0.65);
+    expect(noon).toBeLessThan(dawn);
+  });
+
+  it('cloud keeps the sun off the spray — less evaporation under an overcast', () => {
+    const g = ground();
+    expect(g.overheadLandedShare(0, 300, 1)).toBeGreaterThan(g.overheadLandedShare(0, 300, 0));
+  });
+
+  it('an overhead inlet credits the soil through the weather', async () => {
+    const g = ground(50);
+    const gate = makeStuff(() => new Turnout());
+    vi.spyOn(StuffApi, 'singleton').mockResolvedValue(gate as never);
+    g.setInlets([{ gate: '/test/thing/turnout', method: 'overhead', capacityLps: 0.1 }]);
+    await g.settleInlets(now);
+    gate.setOpening(1);
+    now += H;
+    gate.setOpening(0);
+    await g.settleInlets(now);
+    const water = g.getReserve(SOIL_MOISTURE_RESERVE_KEY)!.current.rawValue();
+    expect(water).toBeGreaterThan(50);
+    expect(water).toBeLessThanOrEqual(50 + H * 0.1 * 0.85 + 1e-6);
+  });
+});

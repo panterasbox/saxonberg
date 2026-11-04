@@ -57,10 +57,17 @@ afterEach(() => {
   StuffApi.clearAll();
 });
 
-function rain(mm: number): void {
+function rain(mm: number, meltMm = 0): void {
   vi.spyOn(WeatherApi, 'precipitationBetween').mockReturnValue({
     liquid: Quantity.of(mm, 'mm'),
     frozen: Quantity.of(0, 'mm'),
+  } as never);
+  vi.spyOn(WeatherApi, 'snowCoverAt').mockReturnValue({
+    packMm: 0,
+    meltMm,
+    depthM: 0,
+    perennial: false,
+    overS: 0,
   } as never);
 }
 
@@ -80,6 +87,16 @@ describe('⭐ a rain store fills from its roof', () => {
     now += 3 * DAY;
     await b.settleBulk('interior');
     expect(b.levelL()).toBe(50 + 60);
+  });
+
+  it('⭐ snow on the roof runs in when it MELTS, not when it falls', async () => {
+    rain(0);
+    const b = butt();
+    await b.settleBulk('interior');
+    rain(0, 4); // a winter's snow, 4 mm of it melted off over the window
+    now += 2 * DAY;
+    await b.settleBulk('interior');
+    expect(b.levelL()).toBe(50 + 40);
   });
 
   it('it brims and spills — never above its capacity', async () => {

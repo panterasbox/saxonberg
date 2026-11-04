@@ -201,7 +201,18 @@ export default class WaterStore extends WaterStoreBase implements WaterSupply {
         this._site.locality,
         this._site.site as never,
       );
-      gained = fell.liquid.rawValue() * this.catchmentM2;
+      // ⭐ And what MELTED off the roof over the window (the browser walk: a
+      // winter butt under pinned rain never rose — the rain fell as snow,
+      // and snow on a roof runs into the butt when it melts, not when it
+      // falls). The kernel's ONE snow function, so the roof and the ground
+      // and the catchment never disagree.
+      const melt =
+        this._site.site !== null && this._site.site !== undefined
+          ? WeatherApi.snowCoverAt(this._site.site as never, this._site.locality, Quantity.of(nowS, 's'), {
+              meltWindowS: nowS - from,
+            }).meltMm
+          : 0;
+      gained = (fell.liquid.rawValue() + Math.max(0, melt)) * this.catchmentM2;
     } else if (this.fillsFrom !== '' && this.fillRateLps > 0) {
       const src = this._source;
       if (src === null) return;

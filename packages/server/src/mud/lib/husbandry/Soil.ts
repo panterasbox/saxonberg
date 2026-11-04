@@ -63,6 +63,7 @@ import { Quantity } from "../quantity";
 import type { Reserved } from "../reserve";
 import type { Stuff } from "../stuff/Stuff";
 import type { Growing } from "./Growing";
+import type { Throttleable } from "../spatial/Sealable";
 import type { Container } from "../spatial/Container";
 import type Locality from "../../platform/idea/Locality";
 
@@ -95,8 +96,22 @@ const INLET_EFFICIENCY: Record<InletMethod, number> = {
   flood: 0.5,
   furrow: 0.65,
   basin: 0.8,
-  overhead: 0.75,
+  overhead: 0.85,
 };
+
+/**
+ * ⭐ An OVERHEAD inlet loses water in the air before it lands (water-supply
+ * D15, step 27): wind DRIFT carries the spray off the ground, and the
+ * spray EVAPORATES in the heat of an open sky — so a sprinkler at noon in
+ * a wind delivers measurably less than the same one at dawn. Derived from
+ * the weather the ground stands in, never a flat number (the browser walk
+ * found a flat 0.75 and no field using it). Grain, not law: the shares.
+ */
+const OVERHEAD_DRIFT_PER_MPS = 0.02;
+const OVERHEAD_DRIFT_CAP = 0.4;
+const OVERHEAD_EVAP_PER_K = 0.015;
+const OVERHEAD_EVAP_FROM_K = 283;
+const OVERHEAD_EVAP_CAP = 0.4;
 
 /** How fast standing water drains off or soaks away, share per game day. */
 const POND_DRAIN_PER_DAY = 0.3;
@@ -499,6 +514,48 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
     public pond(litres: number): void {
       if (Number.isFinite(litres) && litres > 0) this.pondedL += litres;
     }
+    /**
+     * The share of an overhead spray that LANDS, 0..1 — what wind drift and
+     * evaporation leave (step 27). Pure: wind m/s, air K, cloud 0..1.
+     */
+    public overheadLandedShare(windMps: number, airK: number, cloud: number): number {
+      const drift = Math.min(OVERHEAD_DRIFT_CAP, OVERHEAD_DRIFT_PER_MPS * Math.max(0, windMps));
+      const sun = 1 - 0.7 * Math.min(1, Math.max(0, cloud));
+      const evap = Math.min(
+        OVERHEAD_EVAP_CAP,
+        OVERHEAD_EVAP_PER_K * Math.max(0, airK - OVERHEAD_EVAP_FROM_K) * sun,
+      );
+      return (1 - drift) * (1 - evap);
+    }
+
+    /**
+     * Open seconds of an overhead inlet's gate over `[fromS, toS]`, each
+     * hour weighted by the share that landed in that hour's weather here.
+     */
+    private async overheadLandedS(gate: Stuff & Throttleable, fromS: number, toS: number): Promise<number> {
+      const host = this as unknown as Stuff;
+      const atmo = MixinApi.isAtmospheric(host) ? host : null;
+      const site = atmo !== null ? atmo.climateSite() : null;
+      const locality = MixinApi.isContainer(host)
+        ? await AddressApi.resolveLocalityFor(host as Stuff & Container).catch(() => null)
+        : null;
+      const baseWind = atmo?.getBiome()?.getDefaultWind()?.rawValue() ?? 0;
+      const slices = Math.min(48, Math.max(1, Math.ceil((toS - fromS) / 3600)));
+      let landed = 0;
+      for (let i = 0; i < slices; i++) {
+        const a = fromS + ((toS - fromS) * i) / slices;
+        const b = fromS + ((toS - fromS) * (i + 1)) / slices;
+        const open = gate.openingTrajectory(a, b).integrate((v) => v, 4);
+        if (!(open > 0)) continue;
+        const t = Quantity.of((a + b) / 2, 's');
+        const wind = baseWind + WeatherApi.deviatedFieldFor(host, locality, 'wind', t, site).rawValue();
+        const airK = site !== null ? WeatherApi.temperatureAt(site, locality, t).rawValue() : OVERHEAD_EVAP_FROM_K;
+        const cloud = WeatherApi.weatherAt(t, locality).cloud;
+        landed += open * this.overheadLandedShare(wind, airK, cloud);
+      }
+      return landed;
+    }
+
     public soilAcceptsPonding(): boolean {
       return true;
     }
@@ -571,7 +628,12 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
         // ⭐ Its rota's turns first: a turn nobody watched still watered the
         // field (the browser walk — Furtado's turn reached no field).
         await gate.settleOpening(nowS);
-        const openS = gate.openingTrajectory(from, nowS).integrate((v) => v, 4);
+        // An overhead inlet weighs each hour's open time by what the weather
+        // let land; every other method keeps its share of all of it.
+        const openS =
+          inlet.method === 'overhead'
+            ? await this.overheadLandedS(gate, from, nowS)
+            : gate.openingTrajectory(from, nowS).integrate((v) => v, 4);
         const capLps =
           inlet.capacityLps ??
           (((await gate.passingCapM3S(nowS)) ?? 0) * 1000);

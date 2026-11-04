@@ -1,0 +1,26 @@
+# The upper bench's sprinkler (water-supply, step 27) — an OVERHEAD inlet
+# on pressure. The bench stands above the ditch's command: no furrow from
+# the ditch can climb to it. A ram at the ditch head lifts a little of the
+# ditch up an iron pipe to a standpipe at the lane end, and a wheel valve
+# on it throws a spray across the strip.
+#
+# Water in the air is water the wind takes and the sun drinks: an hour of
+# it at a calm dawn lands nearly all its water, the same hour at a hot,
+# windy noon measurably less (the soil's overhead inlet reads the weather).
+# A Gate on the ditch's head reach, so its draw is the ditch's, and
+# whoever opens it is on its record.
+class: /system/water/thing/PersistentGate
+data:
+  shortDescription: sprinkler valve
+  keywords: [sprinkler, valve, "sprinkler valve", standpipe, spray, wheel]
+  register: definite
+  longDescription: >-
+    An iron standpipe at the lane end of the strip, with a wheel valve and
+    a brass rose on a swivel above it. The pipe runs away downhill to the
+    ditch, where a ram thumps patiently at the head.
+  reachRef: delight-ditch:head
+  controlKind: sluice
+  capacityM3S: 0.006
+  open: false
+  mass: 40
+  _materialPath: /stuff/idea/material/alloy/cast-iron
