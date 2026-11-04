@@ -373,15 +373,19 @@ Every fact below was verified by opening the file this cycle (2026-11-03).
     lines); implementers `Stock`, `ConsignmentShelfMixin`, `HullBook`;
     `Hirable.ts` + `rent` beside it. `Stock.buys` (the house buys) is
     untouched (12 mentions on the branch, as on master).
-  - **A holding's buildings are authored** (`8125deeed`):
-    `Structure.buildings: string[]` (kernel, authorable — a blueprint
-    names its `HoldingBuilding` rows, main first); `HoldingWarren.enclosedGroups`
-    deleted; farmstead rows gain `farmstead-house.yaml`, `farmstead-barn.yaml`,
-    `farmstead-blueprint.yaml`. ⚠ So the grounding line above (*"a
-    holding's buildings come from its floorplan … grouped by the room's
-    `building:` key"*) describes **master's** paint merge; harbors replaces
-    the topology derivation with the authored list. `Place.structureNow`
-    (which building am I in) survives on both.
+  - **A holding's buildings are authored, and plans live on their owners**
+    (`8125deeed`, then `a20704a98`): no blueprint rows. A
+    `FloorplanWarren` authors `extent`, `entrance` and its `buildings`
+    itself (the programme rows carry their plans); each named building is a
+    `HoldingBuilding` row with its own extent and entrance.
+    `lib/location/Blueprint.ts` → `Floorplan.ts`; `Structure.buildings` and
+    `footprintM2` are **deleted**; `Structure.memberExtent()` is a new hook
+    (a ship kind's membership is her warren's, read through
+    `FloorplanWarren.planOf`). The location graph skips a Structure row a
+    warren mints and every building a programme names. ⚠ So the grounding
+    line above (*"a holding's buildings come from its floorplan … grouped by
+    the room's `building:` key"*) describes **master's** paint merge.
+    `Place.structureNow` (which building am I in) survives on both.
   - `Integrity.ts` gains the `holed` flaw; `WatercourseCatalogue.ts` gains
     `barWaterAt` and a `'site'` kind — neither touches paper.
 - **Water supply** (`origin/reqs/water-supply` at `b2523236f`, merge-base
@@ -719,8 +723,8 @@ poster path untouched); `airCoats` for the inside face walks the member
 rooms' **air** (humidity), not the weather — a damp room lets paste go.
 `look` in a member room adds *"The walls are papered."* ⚠ Which building
 a room belongs to is `Place.structureNow` on both master (paint's
-topology-derived `HoldingBuilding`) and harbors (`Structure.buildings`,
-authored rows) — D21 calls only that and never groups rooms itself, so
+topology-derived `HoldingBuilding`) and harbors (authored `HoldingBuilding`
+rows named by the warren's own plan) — D21 calls only that and never groups rooms itself, so
 harbors' change costs paper nothing; the drive's cottage is Wharfside's
 towpath cottage (a `Building` row, not a holding), untouched by either.
 
@@ -1423,7 +1427,7 @@ will likely land first.
 | `lib/document/DocumentKinds.ts` | `edition`, `book` | `ship`, `berth-roll` | additive — four new entries, all `naturalKey: null`, `onVanish: 'keep'` |
 | `api/document.ts` + `platform/idea/api/DocumentLogic.ts` | `freezeEdition`, `pagesOf` | `saveBerth` (gated `FromMixin(Voyaging, caller === args[0])`), `berthRollOf` | additive. ⭐ Same shape, checked: a per-purpose transport that pins kind and path, derives the owner and reads the truth off the subject (`saveBerth` reads *does she lie here* off the ship; `freezeEdition` reads the source document's owner off the document and takes only the pages, which are the truth being frozen). `freezeEdition`'s callers span the kernel (`Store`, `RegisterBook`) and a pack (`Press`, `Printer`), so its gate is structural (`saveAsBusiness`'s posture) rather than one `FromMixin`; `pagesOf` is a read, ungated like `berthRollOf` |
 | `lib/mixin.ts`, `api/mixin.ts` | `Tearable` | `ForSale`, `Hirable`, `Voyaging`… | additive entries |
-| `lib/structure/Structure.ts` / `Building.ts` | `Building.faces()` inside + the room-air walk (`Building.ts`) | `Structure.buildings` (`Structure.ts`) | no overlap; D21 binds through `Place.structureNow`, which both keep |
+| `lib/structure/Structure.ts` / `Building.ts` | `Building.faces()` inside + the room-air walk (`Building.ts`) | `Structure.memberExtent()` hook; `buildings`/`footprintM2` deleted (`Structure.ts`); `Blueprint.ts` → `Floorplan.ts` | no overlap; D21 binds through `Place.structureNow`, which both keep. Paper adds no blueprint or plan rows; its mill, print shop and Gazette rooms are places plus plain `Building` rows (extent + entrance), the towpath cottage's shape |
 | `lib/retail/*`, `cmd/retail/buy.yaml`, `BuyController.ts` | **nothing** | `ForSale`, `Hirable`, `rent` | paper's two counters are `Stock` rows; they ride `ForSale` the day it lands with no paper change |
 | `hearts-delight/.../farmstead*` | nothing (paper adds `paper-mill/**`, `thing/leat.yaml`, one `exits:` entry on `millsite.yaml`) | the authored house/barn rows | no overlap |
 | `lib/material/Integrity.ts` | nothing | `holed` | — |
