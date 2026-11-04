@@ -813,7 +813,11 @@ suite('B2 — owning a boat', () => {
     expect(rides, rides).not.toMatch(/fills|swamp/i);
     expectOk(await owner.cmd('recover'));
     expectOk(await owner.cmd('go out'));
-    for (let i = 0; i < 4; i++) {
+    // ⚠ (drive 2026-11-04) Past her freeboard with no chop to help: her
+    // 0.4 m of freeboard over 3.7 × 1.3 m of waterline is ~1,350 kg, so
+    // sixteen 90 kg stones (and their owner) put her under — four only
+    // took 0.13 m.
+    for (let i = 0; i < 16; i++) {
       const id = await hand(owner, STONE, { mass: 90 });
       expectOk(await owner.cmd(`put #${id} in dinghy`));
     }

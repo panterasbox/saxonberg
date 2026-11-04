@@ -151,8 +151,8 @@ describe("StuffApi.singletonOrClone on a warren member that keeps no record", ()
       .spyOn(StuffApi, "singleton")
       .mockResolvedValue(room as never);
     const clone = vi.spyOn(StuffApi, "clone");
-    expect(await StuffApi.singletonOrClone("/world/x/ship/deck")).toBe(room);
-    expect(await StuffApi.singletonOrClone("/world/x/ship/deck")).toBe(room);
+    expect(await StuffApi.singletonOrClone("/test/ship/deck")).toBe(room);
+    expect(await StuffApi.singletonOrClone("/test/ship/deck")).toBe(room);
     expect(single).toHaveBeenCalledTimes(2);
     expect(clone).not.toHaveBeenCalled();
   });
