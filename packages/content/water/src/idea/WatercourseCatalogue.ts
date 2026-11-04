@@ -1657,7 +1657,13 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
     temperatureK = Math.max(UNDER_ICE_K, temperatureK);
 
     const speed = Math.abs(currentHereMps);
-    const roughness = Math.min(1, (ROUGHNESS[stretch.flow] ?? 0) * Math.max(0.5, speed / 2));
+    // ⭐ Broken water is the bed's AND the current's (harbors drive,
+    // 2026-11-04): a standing wave grows with the water's speed, so a
+    // headwater rapid at a winter trickle throws next to nothing. The old
+    // floor (half the bed's roughness at any speed) had the Rejection
+    // put-in — 0.8 m/s, "too little for a boat" — swamp every hired canoe
+    // the moment it was launched, and drown its paddler.
+    const roughness = Math.min(1, (ROUGHNESS[stretch.flow] ?? 0) * (speed / 2));
     const tt = Math.max(0, Math.min(1, (temperatureK - 273) / 30));
     const saturation = 14.6 + (7.5 - 14.6) * tt;
     const turbulence = speed >= 0.5 ? 1 : speed >= 0.2 ? 0.9 : 0.8;

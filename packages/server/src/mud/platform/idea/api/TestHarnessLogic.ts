@@ -307,7 +307,18 @@ export class TestHarnessLogic extends ApiLogic {
     if (spec.bilgeL !== undefined && !(spec.bilgeL >= 0)) {
       throw new Error(`testharness ship: bilge wants litres (got ${spec.bilgeL})`);
     }
-    ship.stageBilge(spec.bilgeL ?? ship.bilgeNowL(), nowS - sleptS);
+    if (spec.hull !== undefined && sleptS > 0) {
+      // ⭐ (harbors drive, 2026-11-04) Her hull was staged in its band NOW,
+      // so the line read backwards from now is SOUNDER the further back it
+      // goes — a 60-day sleep "through every band" leaked like a sound hull
+      // and her well was dry. Staged hull and staged sleep mean: she lay
+      // that long leaking at the band she reads.
+      const leak = (await ship.bilgeState()).leakLps;
+      const base = spec.bilgeL ?? ship.bilgeNowL();
+      ship.stageBilge(Math.min(ship.bilgeCapacityL(), base + leak * sleptS), nowS);
+    } else {
+      ship.stageBilge(spec.bilgeL ?? ship.bilgeNowL(), nowS - sleptS);
+    }
     await ship.reconcileBilge();
     await PersistableApi.capture(ship as unknown as Stuff);
   }

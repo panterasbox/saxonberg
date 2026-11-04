@@ -451,6 +451,21 @@ describe('ShipWarren — ships from a kind (harbors B1)', () => {
     expect((way as BerthExit).ship()).toBe(woke);
   });
 
+  it('⭐ taken while she is going to sleep, her way waits and leads onto a deck that stands (drive, 2026-11-04)', async () => {
+    vi.spyOn(Ship.prototype, 'linesAboard').mockImplementation(async () => [fakeLine(), fakeLine()]);
+    const ship = await mint('w2');
+    await ship.comeAlongside(LANDING);
+    const landing = await StuffApi.singleton<Stuff & Container & Exitable>(LANDING);
+    const way = landing.getExit('smack') as BerthExit;
+    // Her sleep is in flight (her capture awaits the store) when the way is taken.
+    const sleeping = ship.sleep();
+    const deck = await way.resolveDestination();
+    await sleeping;
+    expect(ship.isDestroyed()).toBe(true);
+    expect(deck.isDestroyed()).toBe(false);
+    expect(way.ship()).not.toBe(ship);
+  });
+
   it('⭐ a restart: standUpCraft resolves first, and brings her back from her record under her identity', async () => {
     const ship = await mint('r1');
     ship.setAground(true);

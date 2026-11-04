@@ -54,6 +54,8 @@ export interface Berthed {
   watchRoom(): Promise<(Stuff & Container) | null>;
   /** Her deck if it stands now; never stands her up. */
   watchRoomNow(): (Stuff & Container) | null;
+  /** Settles when the sleep she is in the middle of is done; `null` if none. */
+  goingToSleep(): Promise<void> | null;
 }
 
 export default class BerthExit extends LockableMixin(DeferredDestinationExit) {
@@ -92,7 +94,12 @@ export default class BerthExit extends LockableMixin(DeferredDestinationExit) {
   /** The ship, stood up if she sleeps. */
   private async standing(): Promise<(Stuff & Berthed) | null> {
     const live = this.ship();
-    if (live !== null) return live;
+    // ⭐ Going to sleep is not standing: wait for her rooms to come down,
+    // then stand her up again (harbors drive, 2026-11-04 — boarding in
+    // that gap put you in a deck that was being destroyed).
+    const sleeping = live?.goingToSleep() ?? null;
+    if (sleeping !== null) await sleeping.catch(() => undefined);
+    else if (live !== null) return live;
     if (!this.shipHandle) return null;
     return (await ExpanseApi.standUpCraft(this.shipHandle)) as unknown as (Stuff & Berthed) | null;
   }

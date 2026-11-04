@@ -2041,6 +2041,19 @@ export default class Ship extends BilgeMixin(PersistableMixin(
   private _warren: ShipWarren | null = null;
   private _warrenPending: Promise<ShipWarren | null> | null = null;
   private _sleeping = false;
+  /** Runtime: her going to sleep, in flight — finished when she is gone. */
+  private _asleep: Promise<void> | null = null;
+
+  /**
+   * ⭐ She is going to sleep and will be gone when this settles, or `null`
+   * (harbors drive, 2026-11-04). A sleep awaits her capture, so somebody
+   * could come up her gangway between her deciding to sleep and her rooms
+   * coming down — and found themselves nowhere, in a destroyed deck. A way
+   * aboard waits this out and stands her up again.
+   */
+  public goingToSleep(): Promise<void> | null {
+    return this._asleep;
+  }
 
   /**
    * ⭐ A ship of a KIND — minted under her own identity
@@ -2144,6 +2157,11 @@ export default class Ship extends BilgeMixin(PersistableMixin(
   public async sleep(): Promise<void> {
     if (!this.isOfKind() || this._sleeping || this.isDestroyed()) return;
     this._sleeping = true;
+    this._asleep = this.sleepNow();
+    await this._asleep;
+  }
+
+  private async sleepNow(): Promise<void> {
     // Her lines' ends come in unannounced: `moored` is kept, and she is
     // bringing them in herself, so a line let go says nothing.
     await this.bringLinesIn();
