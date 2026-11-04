@@ -827,7 +827,9 @@ suite('B2 — owning a boat', () => {
     expect(seen, seen).toMatch(/fills|swamp|over her gunwale|loaded past/i);
     // Back aboard her, whatever the water did.
     if (!/smack's deck/i.test(await look(owner))) {
-      const back = await owner.cmd(`go ${way1}`);
+      // ⚠ (drive 2026-11-04) Out of the water up her side is a SWIM (the
+      // way's media are water and vertical; `go` walks and is refused).
+      const back = await owner.cmd(`swim ${way1}`);
       if (back.status !== 'ok') await owner.cmd('go out');
     }
     expect(await look(owner)).toMatch(/smack's deck/i);
@@ -917,7 +919,8 @@ suite('B3 — she goes down', () => {
     }
     const bed = await look(owner);
     expect(bed, bed).toMatch(new RegExp(`\\b${way1}\\b`));
-    expectOk(await owner.cmd(`go ${way1}`));
+    // Into her from the water around her: a swim, as up her side is.
+    expectOk(await owner.cmd(`swim ${way1}`));
     expect(await look(owner)).toMatch(/smack's deck/i);
     expectOk(await owner.cmd('go down'));
     expectOk(await owner.cmd('go north'));
@@ -963,9 +966,15 @@ suite('B3 — she goes down', () => {
     expect(bailed, bailed).toMatch(/bucketful of water out over her side/);
     expect(bailed, bailed).toMatch(/going down|She is dry/);
     // Stop: she fills, and goes down with what is in her.
-    const hearing = boatman.listen(10_000);
-    await advanceWorldClock('3 hours');
-    const sank = `${squash(await hearing)} ${await look(boatman)}`;
+    // ⚠ (drive 2026-11-04) Listened for in slices: one three-hour jump took
+    // four minutes to drain, and a ten-second ear heard none of it.
+    let heardSink = '';
+    for (let i = 0; i < 10 && !/goes down under you|You are in the water/.test(heardSink); i++) {
+      const hearing = boatman.listen(6_000);
+      await advanceWorldClock('18 minutes');
+      heardSink += ' ' + squash(await hearing);
+    }
+    const sank = `${heardSink} ${await look(boatman)}`;
     expect(sank, sank).toMatch(/goes down under you|You are in the water/);
     boatman.close();
   }, 600_000);
