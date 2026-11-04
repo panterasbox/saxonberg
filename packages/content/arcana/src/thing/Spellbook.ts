@@ -57,6 +57,9 @@
 
 import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { MarkedMixin } from '@saxonberg/server/mud/lib/description/Marked';
+import { CombustibleMixin } from '@saxonberg/server/mud/lib/fire/Combustible';
+import { ThermalMixin } from '@saxonberg/server/mud/lib/thermal/Thermal';
+import { ReservedMixin } from '@saxonberg/server/mud/lib/reserve';
 import { LabelledMixin } from '@saxonberg/server/mud/lib/description/Labelled';
 import { IdentifiableMixin } from '@saxonberg/server/mud/lib/identification/Identifiable';
 import { GradedMixin } from '@saxonberg/server/mud/lib/craft/Graded';
@@ -69,9 +72,14 @@ import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 // because `Identifiable` lenses the tree — a detail key is a parser
 // token, so an unidentified item shows its CLASS's parts (`grip`, `seal`)
 // and never its own. See `Detailed.detailRoot`.
+// ⭐ Paper (paper D15): a spellbook is leaves and boards, and it BURNS — the
+// working text goes with it (the `Marked` ash read). Its reading behavior
+// (`study`, the comprehension floor) is untouched.
 const SpellbookBase = CirculatingMixin(
   GradedMixin(
-    IdentifiableMixin(LabelledMixin(MarkedMixin(Good))),
+    IdentifiableMixin(
+      LabelledMixin(CombustibleMixin(ThermalMixin(ReservedMixin(MarkedMixin(Good))))),
+    ),
   ),
 );
 

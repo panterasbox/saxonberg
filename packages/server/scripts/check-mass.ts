@@ -117,7 +117,8 @@ import {
 // builds' rows together state three more masses than either alone.
 // ⭐ 231 → 230 merging the cover build into paint: paint's rows state one more.
 // ⭐ 230 → 229 (paper W0): the coat-check ticket is paper now, and says its mass.
-export const MASS_CEILING = 229;
+// ⭐ 229 → 227 (paper W6): the two spellbooks are paper now, and say so.
+export const MASS_CEILING = 227;
 
 /** The high-water mark: what the count was when the gate landed. */
 export const MASS_HIGH_WATER = 242;
