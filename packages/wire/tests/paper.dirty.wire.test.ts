@@ -239,6 +239,9 @@ suite('paper — the blocking drive', () => {
 
   it('7. look: the color, the weight, the evenness — and unsized, the ink bleeds', async () => {
     const s = await session(maker, LOFT);
+    // The world settles the six-hour jump on the first command after it —
+    // let a plain look of the room take that, not the step's own read.
+    await run(s, 'look').catch(() => null);
     await say(s, 'get handmade');
     const l = await say(s, 'look me:i:handmade');
     expect(l, l).toMatch(/white paper|brown paper/i);

@@ -1697,4 +1697,24 @@ Read first, in this order:
 
 ## Drive record
 
+`packages/wire/tests/paper.dirty.wire.test.ts` (blocking; owned world on
+`WIRE_PORT=2013`, `WIRE_BOOT=1`). Seven runs, 2026-11-03/04. ⛔ **No soak
+drive was written**: every span step (retting, galls, the lime pit, a
+season's fouling, the almanac's year) belongs to a part this build deferred.
+
+| run | ✓ / steps | what it found |
+|---|---|---|
+| 0 | — | ⭐ **The world did not know the two new packs**: a pack is discovered through the root `package.json`; Terminus and Heart's Delight failed `requires-kernel` on the new classes (`e39878bf2`). |
+| 1 | 13/24 | night (the mill and the shops are window-lit); "You tear **undefined**" (named after destruct — garment, envelope); a torn blank sheet named after its halves stacked; **the owner of a notebook refused their own first page**; a ream picked up as "480 reams"; a printed copy answered to nothing but "sheet"; a bought paste pot is empty. ⚠ **Step 5 PASSED while every dip was refused** — its regex matched "mould" inside the refusal; every act's assertion now fails on a refusal (B2). |
+| 2 | — | the drive's own clock durations (`'9h'` is not a duration) — everything cascaded from the dark. |
+| 3 | 14/22 | ⭐ a dried sheet read "thoroughly dried" AND "still wet from the mould" — waterleaf/cockle now read **dryness against the air**, not raw moisture; the mill's clock jumps ran into the evening. The printed copy carried the compositor's seeded misprints past the proof: *"the basket **sfands** at one **hunbred** and two against a **bose** of one hundred"* — AC met. |
+| 4 | 16/23 | ⭐ **a size coat never set**: a thermal body sets its wet coats on its own reconcile from its last read, so a coat laid and left counted no time — the sheet now starts the clock at the lay and reconciles before saying it is sized; a bearer receipt did not answer to `receipt`; `give` finds no player by handle (drop and pick-up instead). Bearer paper ran live at the depot. |
+| 5 | 20/23 | size dried at a day's rate in the damp mill — rates raised to an hour or two; `put … in` finds a container in the room, not the hand (shipped). |
+| 6 | 21/23 | one `look` got no reply in 30 s after a six-hour jump (no server error; the world's own snapshot dup-key on the market stalls is pre-existing). |
+| 7 | 21/22 | the same: the first command after the jump carries the world's settle. Everything else green — bearer paper end to end (depositor refused, holder paid, "already settled"), the copy with fresh misprints ("hnndred", "o base"), *known-of* from a notebook page, the label let go in the wet. ⚠ Step 17's borrower answered "no ink", not "somebody else's" — that refusal is unit-proved only. |
+
+Not driven (each in the file header): 3, 9, 10–12, 16, 19, 22, 27, 29, 30,
+33, 35, 37, 38 — the deferrals in the wave notes. Step 31's bearer flow ran
+live in runs 4–6 (the warehouseman on shift).
+
 *(appended at build time, not at plan time)*
