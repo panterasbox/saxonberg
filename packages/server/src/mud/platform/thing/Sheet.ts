@@ -50,6 +50,9 @@ import type Material from '../../lib/material/Material';
 export const SHEET_FORMATS = ['sheet', 'folio', 'quarto', 'octavo'] as const;
 export type SheetFormat = (typeof SHEET_FORMATS)[number];
 
+/** As dry as its air lets it, near enough: a formed sheet has dried (`dryness`). */
+const DRY_AT = 0.8;
+
 /** Wet past this (the `soaked` band) and the felt lets go (D12). */
 const PULPS_AT = 0.8;
 
@@ -176,12 +179,16 @@ export default class Sheet extends SheetBase {
   /** Dried without pressing, a formed sheet ripples and will not lie flat (D20). */
   public isCockled(): boolean {
     if (this.cockled) return true;
-    return this.formed && !this.pressed && this.getMoisture() < 0.5;
+    return this.formed && !this.pressed && this.dryness() >= DRY_AT;
   }
 
-  /** Too wet to take ink or to fold: it has just come off the mould. */
+  /**
+   * Too wet to take ink: it has just come off the mould. ⚠ Read as DRYNESS
+   * against the air, never raw moisture — paper in damp air holds water and
+   * is dry (the drive: "thoroughly dried … still wet from the mould").
+   */
   public isWaterleaf(): boolean {
-    return this.formed && this.getMoisture() >= 0.5;
+    return this.formed && this.dryness() < DRY_AT;
   }
 
   // ---------- the format (D10) ----------

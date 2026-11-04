@@ -255,12 +255,19 @@ suite('paper — the blocking drive', () => {
 
   it('8. sized in the tub and dried, the same sheet takes the ink', async () => {
     const s = await session(maker, VAT_HOUSE);
-    await act(s, 'dip me:i:handmade in size tub');
+    await act(s, 'dip me:i:handmade in "size tub"');
     await act(s, 'dry me:i:handmade');
     await advanceWorldClock('6 hours');
     const w = await say(s, 'write it holds on me:i:handmade');
     expect(w, w).toMatch(/you write/i);
   }, 900_000);
+
+  it('(staged) daylight again — the mill's clock jumps ran into the evening', async () => {
+    const now = await worldClockNow();
+    const hour = Math.floor((now % 86_400) / 3_600);
+    const ahead = (9 - hour + 24) % 24;
+    if (ahead > 0) await advanceWorldClock(`${ahead} hours`);
+  }, 300_000);
 
   it('13. a letter folded, enveloped, sealed and given; opened, the seal shows it', async () => {
     const s = await session(maker, STORE);
@@ -347,6 +354,7 @@ suite('paper — the blocking drive', () => {
     await say(s, 'get ream');
     const p = await say(s, 'print forme 3');
     expect(p, p).toMatch(/copies of .* come off/i);
+    expect(p, p).not.toMatch(REFUSED);
     const rd = await say(s, 'read me:i:copy');
     expect(rd, rd).toMatch(/reads:/i);
     expect(rd, rd).toMatch(/Prices|basket|GAZETTE/i);
@@ -361,7 +369,7 @@ suite('paper — the blocking drive', () => {
   it('21. the printer prints a document; a medieval covenant keeps it idle, and the pen still copies', async () => {
     const s = await session(maker, GAZETTE);
     const p = await say(s, 'print notebook on printer');
-    expect(p, p).toMatch(/come off/i);
+    expect(p, p).toMatch(/comes? off/i);
     await founderEval(GAZETTE, '/world/terminus', 'here', "(self.getZone().setAdmitsEpochThrough('medieval'), 'medieval')");
     const refused = await say(s, 'print ledger on printer');
     expect(refused, refused).toMatch(/covenant here admits nothing later than medieval/i);
@@ -405,15 +413,15 @@ suite('paper — the blocking drive', () => {
     await say(back, 'buy pot of paste');
     await say(back, 'buy label');
     await say(back, 'write ink on me:i:label');
-    const f = await say(back, 'fit me:i:label to me:i:ink pot with me:i:pot of paste');
+    const f = await say(back, 'fit me:i:label to me:i:inkpot with "pot of paste"');
     expect(f, f).toMatch(/smooth it onto|paste/i);
-    const l = await say(back, 'look me:i:ink pot');
+    const l = await say(back, 'look me:i:inkpot');
     expect(l, l).toMatch(/label is pasted/i);
     // Staged: the jar wet through (the ice bucket's water, held still).
-    await say(back, 'drop me:i:ink pot');
-    await founderEval(VAT_HOUSE, '/world/terminus/hearts-delight', 'ink pot', '(self.wet(0.6), self.getWetness())');
-    await say(back, 'get ink pot');
-    const wet = await say(back, 'look me:i:ink pot');
+    await say(back, 'drop me:i:inkpot');
+    await founderEval(VAT_HOUSE, '/world/terminus/hearts-delight', 'inkpot', '(self.wet(0.6), self.getWetness())');
+    await say(back, 'get inkpot');
+    const wet = await say(back, 'look me:i:inkpot');
     expect(wet, wet).toMatch(/squat stoneware pot/i);
     expect(wet, wet).not.toMatch(/label is pasted/i);
   }, 600_000);

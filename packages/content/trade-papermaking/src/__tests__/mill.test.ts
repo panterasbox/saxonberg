@@ -122,6 +122,7 @@ describe('⭐ the vat and the mould', () => {
     const { sheet } = await dip('white');
     expect(sheet).not.toBeNull();
     expect(sheet!.color).toBe('white');
+    vi.spyOn(sheet!, 'dryness').mockReturnValue(0);
     expect(sheet!.isWaterleaf()).toBe(true);
     expect(sheet!.isSized()).toBe(false);
     expect((await dip('brown')).sheet!.color).toBe('brown');
@@ -149,10 +150,10 @@ describe('⭐ the vat and the mould', () => {
     await press.turnBy(makeStuff(() => new Holder()), false);
     expect(sheet!.pressed).toBe(true);
     // Dried (the loft's air is the world's; here the water is read as dry).
-    vi.spyOn(sheet!, 'getMoisture').mockReturnValue(0.05);
+    vi.spyOn(sheet!, 'dryness').mockReturnValue(1);
     expect(sheet!.isCockled()).toBe(false);
     const other = (await dip('white')).sheet!;
-    vi.spyOn(other, 'getMoisture').mockReturnValue(0.05);
+    vi.spyOn(other, 'dryness').mockReturnValue(1);
     expect(other.isCockled()).toBe(true);
   });
 });
