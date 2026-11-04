@@ -1037,6 +1037,26 @@ once at `/finalize`.
 - Commit: `build(paper W1): one read on sheet and screen; the bearer
   receipt; the register book`.
 
+✅ **W1 done — `034efcf66`.**
+- **D31 (build):** the receipt's paper is minted from the store's authored
+  `receiptPaper` row (the depot's: `/platform/thing/sheet`), not drawn off
+  a ream on the book — `StoreBook` holds nothing and gaining a container
+  would have made it a second record of paper. The *"no paper left"*
+  refusal is therefore not shipped.
+- **D32 (build):** **no handset row.** A phone-shaped screen nobody can get
+  is a dead row (`lint:reachability`); the live rung is driven on the
+  Gazette's open **reading screen** (W5). The handset is the off-grid
+  build's (R1).
+- A bearer depositor is `bearer:<id>` (each receipt its own claim — the
+  paper conveys it, so deposits never merge); the presenter's sheets are
+  scanned in hand and one wrapper down, never through a seal.
+- A settled receipt is read off the book directly (`allClaims` drops
+  settled ones), so *"already settled"* and *"no receipt"* are told apart.
+- `show`'s document rule became **`DocumentApi.callUp(reader, word)`** in
+  W5 so `compose` and `print` share it.
+- ⚠ The W1 commit also carried the staged `Rag` rename (a `git mv` index
+  entry); W1 alone has the rag half-moved — W2–W3 completes it.
+
 ### W2 — the mill (`trade-papermaking` + Heart's Delight)
 *Decisions D9, D19 (size), D23, D24.*
 
@@ -1095,6 +1115,26 @@ once at `/finalize`.
 - Commit: `build(paper W2): the mill at Heart's Delight — rags to sized
   sheets, white or brown by the water`.
 
+✅ **W2 done (with W3) — `536b74dfa`.** Re-planned in place, the simplest
+true forms, each recorded:
+- **D33:** the dip **forms the sheet directly** on the mould's wire
+  (`PulpVat.dipPlanFor` → `Sheet.formAt`), not through `Mould`'s drain
+  set — the drain set casts from a pool on a load, which a sheet lifted
+  in a second does not have.
+- **D34:** **the post is the press bed** — `couch mould` lands the sheet ON
+  the press (the view's default binds the turnable in reach); the felt is
+  prose on the press row, not a separate `Placing` row. The press's new
+  arm squeezes `Sheet`s on its bed (`pressOut`): pressed → dries flat;
+  formed and dried unpressed → `isCockled()` (derived, no hook).
+- **D35:** the stamper is **not** a `Discharging` works yet — the fouling
+  (soak 4) is deferred with retting; the color reads the reach's
+  persistent load through `WatercourseCatalogue.contaminationAt`
+  (imported, the water pack declared). **Retting** (drive 3, soak 1) is
+  deferred: the stamper beats clean rags as bought.
+- The mill buys rags through the shipped `buys: true` line; a paint rag is
+  a different row (D24, no pool key needed).
+- ⚠ The dip does not credit `papermaking` (no act-plan discipline seam).
+
 ### W3 — paper goods, glue, wallpaper (`trade-papermaking` + kernel seams)
 *Decisions D19 (paste), D20, D21.*
 
@@ -1117,6 +1157,20 @@ once at `/finalize`.
   `Carton.test.ts` (soaked → spills; torn → spills).
 - Commit: `build(paper W3): board, cartons and bags; the pasted label; the
   papered wall`.
+
+✅ **W3 done (with W2) — `536b74dfa`.**
+- **D36:** a **label is pasted with `fit`** — but `fit.yaml`'s `whole`
+  required `AssembledMixin` and `tool` `ToolMixin`, so the plan's arm
+  would have died at the binder; both gates widened
+  (`AssembledMixin|FacedMixin`, `ToolMixin|BulkableMixin`).
+- **D37:** the damp is read on a **wet host** (`releaseDampGlue`, the `wet`
+  band) for any glue whose `resistsDamp` < 0.5; a pasted label reads on
+  `look` of any good.
+- **D38:** one class `Packet` for the bag and the carton (identical
+  behavior; `Carton`/`Bag` would be two names for one thing).
+- **Deferred:** wallpaper and `Building`'s inside face (R4 — the owner's
+  call on walls); pasteboard from glued plies and bag/carton **bills**
+  (they are sold made, at the mill); filter paper (R3).
 
 ### W4 — inks, parchment, type (`trade-printing` + tanning + base-library)
 *Decisions D17 (type), D18.*
@@ -1145,6 +1199,12 @@ once at `/finalize`.
 - Tests: `TypeCase.test.ts` (absorb, debit, short glyph named),
   `Pen.test.ts`, the alloy row via the smelting suite's pattern.
 - Commit: `build(paper W4): inks, parchment, type metal and the case`.
+
+✅ **W4 done (with W5) — `cc3a3720e`.**
+- Inks are rows (ink pots sold at the general store and stocked at the
+  Gazette). **Deferred:** the iron-gall recipe and its steeping span
+  (soak 2), type metal, the hand mould and casting sorts (drive 22),
+  parchment (R6, drive 12), the woodblock (drive 29).
 
 ### W5 — the press, the printer, the copy ladder, the print shop
 *Decisions D3, D16, D17, D22.*
@@ -1188,6 +1248,21 @@ once at `/finalize`.
 - Commit: `build(paper W5): the press, the printer and the pen; the Gazette
   has a house`.
 
+✅ **W5 done (with W4) — `cc3a3720e`.**
+- **D39:** the forme names its case by path (`casePath`) and follows it on
+  use — no hunting a room for type.
+- **D40:** `print <what> [n] [on <tool>]` binds the instrument by the
+  view's default (`ToolMixin`); a forme goes to the press, a ledger's page
+  or a document to the printer.
+- **D41:** the copyist reads `printing` (the plan's grain; a `scribing`
+  Discipline is a row away).
+- The Gazette's shop is a `Locale` off Mayfield Row (the land agents'
+  shape), titled to the city like realty; its ledger reads the Gazette's
+  **feed** (`registerPrefix: …/gazette/feed`).
+- **Deferred:** the shop's counter selling copies (drive 28 — a printed
+  copy can be consigned on any shelf), the tide almanac's year (D16, soak
+  5), Hesper's home.
+
 ### W6 — binding, the notebook, spellbooks
 *Decisions D14, D15.*
 
@@ -1206,6 +1281,10 @@ once at `/finalize`.
 - Tests: `Bind.test.ts`, `Book.notebook.test.ts` (end to end over the wire
   harness is W7's), arcana's `Spellbook.test.ts` gains *burns*.
 - Commit: `build(paper W6): binding; the notebook; spellbooks burn`.
+
+✅ **W6 done — `f714ae962`.** Spellbooks are paper and burn. **Deferred:**
+`fit notebook` from folded sheets and boards (the notebook is sold made;
+its bill needs the pasteboard bill W3 deferred).
 
 ### W7 — the drive, the walk, docs
 - `packages/wire/tests/paper.dirty.wire.test.ts` (blocking, 39 steps
