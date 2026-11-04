@@ -45,6 +45,12 @@ data:
     # ⭐ The water-test kit (water-supply D18): whether a water is fit is the
     # kit's to say. It lives on the ward's shelf, for the health officer.
     - /system/water/thing/test-kit
+    # A snake plant in a glazed cachepot on the sill, and the can to water
+    # it with (water-supply, the browser walk): the pot has no drainage
+    # hole, so a visitor who waters it too kindly drowns it — the one
+    # undrained pot in the game, where people stand about with nothing to do.
+    - /trade/farming/thing/pot/cachepot
+    - /stuff/thing/vessel/watering-can
     - /world/terminus/infirmary/thing/dressing-cabinet
     # ⭐ Cold storage (cold-storage build): a powered blood fridge on the
     # avenue feeder keeps the ward's blood bags cold for weeks, with a colder

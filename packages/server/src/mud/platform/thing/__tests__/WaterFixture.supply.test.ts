@@ -278,6 +278,28 @@ describe('⭐ a shortage is shared by rank (D6)', () => {
   });
 });
 
+describe('⭐ a piped outlet has a valve (step 11, the officer)', () => {
+  it('shut, it gives nothing and says so; opened, it runs again', async () => {
+    mainAt();
+    const t = tap({ suppliedBy: MAIN });
+    await t.settleBulk('interior');
+    expect(t.isOn()).toBe(true);
+    expect(t.supplyStateNow()).toBeNull();
+    t.switchOff();
+    expect(t.supplyStateNow()).toBe('off');
+    expect(t.isBulkEmpty('interior')).toBe(true);
+    expect(t.bulkWhyEmpty('interior')).toBe('Nothing comes out: it has been shut off.');
+    t.switchOn();
+    expect(t.supplyStateNow()).toBeNull();
+  });
+
+  it('a natural source has no valve to shut', () => {
+    const t = tap({ natural: true });
+    t.switchOff();
+    expect(t.supplyStateNow()).toBeNull();
+  });
+});
+
 describe('⭐ a fouled supply pours fouled water (step 11)', () => {
   it('the tap delivers the fouled material while the main is fouled, and clean water after', async () => {
     const main = mainAt();

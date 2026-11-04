@@ -60,6 +60,7 @@
 import Thing from '../../lib/stuff/Thing';
 import { BulkableMixin } from '../../lib/bulk/Bulkable';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
+import { SwitchableMixin } from '../../lib/boundary/Switchable';
 import type { CommandContributions } from '../../api/command';
 import type { FieldMeta } from '../../lib/mixin';
 import type { Stuff } from '../../lib/stuff/Stuff';
@@ -144,7 +145,10 @@ type Resolution = 'pending' | 'natural' | 'unplumbed' | 'missing' | 'supply';
 const PLAIN_WATER_PATH = '/stuff/idea/material/bulk/water';
 const FOULED_WATER_PATH = '/stuff/idea/material/bulk/fouled-water';
 
-const WaterFixtureBase = ThermalMixin(BulkableMixin(Thing));
+// ⭐ A piped outlet has a VALVE (the browser walk: the public health
+// officer had no way to take a fouled standpipe out of service). `switch
+// standpipe off` shuts it; it reads `off` in the shipped vocabulary.
+const WaterFixtureBase = SwitchableMixin(ThermalMixin(BulkableMixin(Thing)));
 
 export default class WaterFixture
   extends WaterFixtureBase
@@ -207,6 +211,8 @@ export default class WaterFixture
     // what `fixedInPlace` says: no agent pockets it, while a remodel or
     // a `place` still moves it.
     this.fixedInPlace = true;
+    // Its valve stands open until somebody shuts it.
+    this.setOn(true);
   }
 
   public getSuppliedBy(): string {
@@ -462,6 +468,8 @@ export default class WaterFixture
    */
   public supplyStateNow(): SupplyState | null {
     if (this.natural) return null;
+    // The valve first: a shut outlet gives nothing, whatever its supply.
+    if (!this.isOn()) return 'off';
     const supply = this.supplyNow();
     if (this._resolution === 'pending') return null;
     if (supply === null) return 'unplumbed';
@@ -650,6 +658,8 @@ export default class WaterFixture
   /** Sideways: anyone in the room with the basin can wash at it. */
   static commandContributions: CommandContributions = {
     peers: [
+      // The valve: anybody at the outlet can shut it or open it.
+      'platform/cmd/device/switch.yaml',
       'platform/cmd/crafting/wash.yaml',
       // ⭐ …and `scrub`, the same act harder (cleanliness D10).
       'platform/cmd/crafting/scrub.yaml',
