@@ -1,11 +1,11 @@
 /**
- * ShipRegister — ⭐ **a government's book of ships** (harbors P14): a
+ * ShipRegister — ⭐ **a government's book of ships**: a
  * ship's name, her flag, and the company that owns her.
  *
- * A government keeps one **if it chooses to** (`Government.register`): the
+ * A government keeps one **if it chooses to** (`Government.shipRegister`): the
  * row names this register, and a ship entered here flies that polity's
  * flag. An unregistered ship is stateless. Only Terminus City keeps one
- * this build; a second register is a row and a `register:` line.
+ * this build; a second register is a row and a `shipRegister:` line.
  *
  * ## ⭐⭐ You file; you do not hold the pen
  *

@@ -29,7 +29,7 @@
  * upkeep, and that is a different question with a different answer
  * surface (`survey`). A tenant who paints their landlord's window
  * frames has painted them; a stranger who does it has done the
- * neighbourhood a favour. Refusing that would be modelling permission
+ * neighborhood a favor. Refusing that would be modeling permission
  * where the world models work.
  */
 
