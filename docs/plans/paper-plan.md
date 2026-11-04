@@ -345,6 +345,94 @@ Every fact below was verified by opening the file this cycle (2026-11-03).
   layer said*, so a subclass's `markText: { persistent: false }` overrides
   the mixin's.
 
+### The siblings, second read (2026-11-03, after `git fetch`)
+
+- **Harbors** (`origin/reqs/harbors` at `8125deeed`, merge-base = master
+  `5cfd1a5db`, so it **contains paint**). Beyond the register book:
+  - ⭐ **Records are documents** — `docs/antipatterns.md § A Stuff whose
+    only job is to hold a record` (commit `02de8944d`) + the scan in
+    `docs/slates/tails/records-as-documents-slate.md`. The four-question
+    test (targetable · behavior beyond add/remove/list · a runtime
+    participant · invariants on the object; none → a document), the two
+    document shapes (system-written behind a narrow named transport gated
+    like `saveToRegister`/`saveBerth`; owner-scoped content under the
+    parcel-title gate), and the one exception (a fixture players use that
+    keeps its own book — `HullBook`, `HireBook`, `Stock`, `CheckRack`,
+    `Stockpile`; the tell that it is stretched: a fixture named for the
+    book holds nothing and forwards to a placeless Idea). Worked example:
+    `BerthRoll` (`PersistableMixin(Idea)` per landing) → the `berth-roll`
+    kind. § Records audit below applies it to every record this plan makes.
+  - `DocumentKinds.ts` gains `ship` and `berth-roll` (both `naturalKey:
+    null`, `onVanish: 'keep'`); `document.ts`/`DocumentLogic.ts` gain
+    `saveBerth(ship, landingPath)` gated `FromMixin(Mixins.Voyaging, caller
+    === args[0])` (the subject writes its own line; the truth — does she
+    lie here — is READ off the ship, never passed in) and `berthRollOf`.
+  - ⭐ **`buy` is one protocol**: `lib/retail/ForSale.ts` (`ForSaleMixin`:
+    `offers(word)`, `sellerFor(word)`, `sell(sale) → SaleOutcome`,
+    `purchaserOf`); `BuyController` shrinks to a narrowing on it (−401
+    lines); implementers `Stock`, `ConsignmentShelfMixin`, `HullBook`;
+    `Hirable.ts` + `rent` beside it. `Stock.buys` (the house buys) is
+    untouched (12 mentions on the branch, as on master).
+  - **A holding's buildings are authored** (`8125deeed`):
+    `Structure.buildings: string[]` (kernel, authorable — a blueprint
+    names its `HoldingBuilding` rows, main first); `HoldingWarren.enclosedGroups`
+    deleted; farmstead rows gain `farmstead-house.yaml`, `farmstead-barn.yaml`,
+    `farmstead-blueprint.yaml`. ⚠ So the grounding line above (*"a
+    holding's buildings come from its floorplan … grouped by the room's
+    `building:` key"*) describes **master's** paint merge; harbors replaces
+    the topology derivation with the authored list. `Place.structureNow`
+    (which building am I in) survives on both.
+  - `Integrity.ts` gains the `holed` flaw; `WatercourseCatalogue.ts` gains
+    `barWaterAt` and a `'site'` kind — neither touches paper.
+- **Water supply** (`origin/reqs/water-supply` at `b2523236f`, merge-base
+  `060704faa` — ⚠ it does **not** contain paint; it will merge master's
+  glue into its own `Assembled.ts` edits before it lands). Read
+  `docs/subsystems/water-supply.md` and the plan on that branch:
+  - **The premises citation**: `ParcelRecord.waterSource` (`''` inherit ·
+    `none` · a supply path; `setWaterSource` throws otherwise) and
+    `TitleClaim.waterSource?`; `ParcelApi.waterOf(path)`; `lint:water-posture`
+    (`scripts/check-water-posture.ts`, ceiling 0): every
+    residential/commercial/industrial/civic claim declares or inherits;
+    `agricultural`/`wild` exempt; the realm root declares nothing. Terminus's
+    premises cite `/world/terminus/wharfside/thing/city-intake`; Heart's
+    Delight's creamery, brickfield and potter's shop declare `none`.
+  - **A natural source**: `natural: true` on a `/platform/thing/WaterFixture`
+    row (the tannery leat `wharfside/tannery/thing/leat.yaml`, the
+    brickfield pond) — *"it runs on its own water, never a premises'
+    citation"*. `WaterFixture.ts` exists on master; the `natural` field is
+    the branch's.
+  - **The supply contract**: `WaterSupply` (`lib/supply/SupplyState.ts`):
+    `shareFor(landUse)`, `serves(path)`, `supplyStateNow`; `Conduit.shares:
+    'priority' | 'proportion'` — priority serves civic, then trades, then
+    houses. **This is the city main's rule, not the river's.** A river
+    works still draws through `Withdrawing.withdrawalM3S` as on master;
+    `WaterRightRegistry.allocate` still has no caller.
+  - **An artificial channel carries only what it is given**: the catalogue
+    credits a control's diversion into the course it names
+    (`divertsTo`), less seepage by `lining`; its works draw on what it
+    carries. The headgate (`hearts-delight/ditch/thing/headgate.yaml`,
+    `PersistentGate`, `reachRef: delight:flats`, `at: delight:flats+0.2,left`,
+    `divertsTo: delight-ditch:head`, `capacityM3S: 0.6`) sits **upstream**
+    of the millrace (`at: delight:flats+0.3,right`, unchanged on the
+    branch) and the sawmill race (`+0.9`). `delight.yaml`'s flats node adds
+    the headgate and weir to `works:` (one line). ⭐ So the ditch's draw
+    comes off the river *before* the mill's race sees it — the river's own
+    accounting shorts the mill in a dry spell, with no right in play.
+  - **Water carries its chemistry**: `WatercourseChemistry {pH, hardnessDgh,
+    nitrateMgL}` seeded by the Watercourse row's `water:` block
+    (`kestrel.yaml:30 water: { pH: 7.8, hardnessDgh: 12, nitrateMgL: 2 }`),
+    mixed downstream by `WatercourseCatalogue.chemistryAt` (private, by
+    flow weight) into `WaterState.pH`; `lib/supply/WaterChemistry.ts`
+    (pH, hardness, salinity) rides `BulkPayload` (`pH`, `salinityPpt` by
+    declaration merge). **No iron anywhere.** Contamination by kind
+    (organic · persistent · sediment · nutrient) is a separate axis for
+    fouling.
+  - `lib/spatial/Sealable.ts` (+117): `canOpen(by): VetoResult` on
+    `Sealable` and a new `ThrottleableMixin` (`opening`, `workLog`,
+    `openingCurve`) in the same file; `lib/craft/Assembled.ts` (+19):
+    `canTakeMembers` / `afterMembersFitted` hooks; `ParcelRecord.ts` (+39);
+    `CraftingLogic.ts` (+5). All additive against what paper writes.
+
 ---
 
 ## ⭐⭐ New substrate
@@ -489,6 +577,16 @@ grist mill does. The sheet's **color** is read off the vat's water:
 `kestrel:headwaters` with a staged persistent discharge makes brown. ⚠ The
 grist mill reaches its race by a structural cast (`typeof duck.generationW`);
 the stamper imports water's `ControlStructure` type and does not (P4).
+⭐ **Designed for the chemistry home** (the owner's preferred one, water
+supply's `WaterChemistry` — § Reconciliation): the color has ONE reader,
+`Sheet.colorFrom(water)`, fed by `PulpVat.waterCharacter()` at the dip.
+On master `waterCharacter()` asks the catalogue's contamination; after
+water supply merges it reads the vat's own payload (`BulkPayload.ironMgL`,
+which water supply does not have yet — reconciliation adds `ironMgL` to
+`WatercourseChemistry`/`WaterChemistry`, authored on the Kestrel's
+`water:` seed where the ore is). The sheet never learns which; the AC
+(*brown, authored nowhere*) holds in both — only the water's iron is
+authored, on the river row.
 
 **D10. Folding is `Foldable` with a count.** `Sheet` composes
 `FoldableMixin` and overrides `fold()`/`unfold()` to step `folds` 0→3
@@ -619,7 +717,12 @@ answers which building you are in); `paint inside of <building> with
 face rather than a wall hook — one more arm in `HangController`, the
 poster path untouched); `airCoats` for the inside face walks the member
 rooms' **air** (humidity), not the weather — a damp room lets paste go.
-`look` in a member room adds *"The walls are papered."*
+`look` in a member room adds *"The walls are papered."* ⚠ Which building
+a room belongs to is `Place.structureNow` on both master (paint's
+topology-derived `HoldingBuilding`) and harbors (`Structure.buildings`,
+authored rows) — D21 calls only that and never groups rooms itself, so
+harbors' change costs paper nothing; the drive's cottage is Wharfside's
+towpath cottage (a `Building` row, not a holding), untouched by either.
 
 **D22. The epoch covenant is a zone field read by the instrument.** Zone
 field `admitsEpochThrough: Epoch` (inherited by `lookupField`, default
@@ -707,6 +810,37 @@ Sheet))` anywhere. The two places a narrowing was tempting — a `Book` bound
 to a register (D14, resolved by using `RegisterBook`) and `TamperSeal` as
 its own mixin (D11, resolved by two fields on `Sealable` with real second
 composers) — are decided in the text.
+
+---
+
+## Records audit — records are documents (harbors' rule, applied)
+
+Every record this plan creates, against the four-question test
+(targetable · behavior · runtime participant · invariants on the object;
+none → a document). Verdicts; nothing failed, two were sharpened.
+
+| record | where it lives | 1 targeted? | 2 behavior? | 3 participant? | 4 invariants? | verdict |
+|---|---|---|---|---|---|---|
+| the **edition** (`{source, pages, teaches?, validUntilS?, hash}`) | `edition` document at `<source>/editions/<hash>` | no — a sheet names it by path, no verb does | none | no | no | **document** ✓ (D2); written by the printing act through `freezeEdition`, the system-written shape; the pages are the truth passed in because the pages ARE what was set |
+| the **notebook's pages** (`{pageCount, pages[]}`) | `book` document at `/home/<writer>/books/<id>` | no | none | no | no | **document** ✓ (D14); owner-scoped content under the parcel-title gate — the second shape, exactly |
+| the **bearer receipt**'s `bearer`, `editionPath` | fields on the existing `warehouse-receipt` document | — | — | — | — | **document** ✓ (already was) |
+| the **forme** (`{source, setText, debits, locked}`) | `Forme` (Stuff, `trade-printing`) | yes — `compose`/`proof`/`print`/`distribute` name it; `look` reads it | yes — seeds misprints by band; proof corrects | no | yes — refuses a glyph the case lacks; refuses `print` unlocked | **Stuff** — the fixture exception (tests 1, 2, 4) |
+| the **case's font** (`Record<glyph, n>`) | `TypeCase` (Stuff) | yes — `put sorts in case`, `distribute … to case`, `look case` | the store's absorb | holds the sorts' matter (a `Holder`) | refuses a debit it cannot cover | **Stuff** — `Stockpile`'s shape (a count the fixture keeps of what it physically holds) |
+| the **stamper's hours** + trough | `Stamper` (Stuff) | yes — `switch on`, `put rags in` | the beat over game-hours | a `Discharging` works the catalogue reads | — | **Stuff** — physical state of a machine, not a list about other things |
+| `Book.missing[]` | field on `Book` | — | — | — | — | not a record: the gap IS the thing's state (a torn book), like `MineWarren.carved` |
+| `Sheet.boundTo`, `.page`, `.folds`, `.cockled`, `.pulped` | fields on `Sheet` | — | — | — | — | not a record: one ref + physical state |
+| `TideAlmanac.printedAtS` | field on the almanac | — | — | — | — | not a record: a stamp on a good |
+| the **press's paper and ink** | `props:` contents of `Press` | — | — | — | — | not a record: contents |
+| the **shop's copies** | `Stockpile` (shipped) + its counter line | yes (`buy`) | — | — | full / empty | **Stuff** — listed FINE in the scan already |
+| the **ledger book** | `RegisterBook` — holds **nothing**; reads `list(prefix)` | yes (`read`, `print`) | derives a page | — | — | **Stuff with no record** ✓ — the tell (*a fixture named for the book holds nothing and forwards to an Idea that holds the record*) does **not** apply: there is no Idea; the records are the business's own documents and the book is a view |
+| the mill's **rag stack** + receipts | `Stockpile` + `warehouse-receipt` documents (shipped) | yes | — | — | — | shipped shapes, unchanged |
+
+⚠ Two sharpenings from the audit: (i) `TypeCase.font` must be a count of
+sorts the case **physically holds** — the sorts are absorbed into it like
+a store's face, never a parallel list beside loose sorts lying in it (*two
+records of one fact*); (ii) `Forme.debits` is the case's own `font`
+debit, not a second ledger — the forme records what it took and the case
+is the one truth of what is left.
 
 ---
 
@@ -908,7 +1042,15 @@ once at `/finalize`.
 - Discipline `papermaking.yaml`; the mill rooms at Heart's Delight
   (`hearts-delight/.../paper-mill/location/{door,vat-house,loft}.yaml`,
   `paper-mill/idea/business.yaml`, the vatman `cast:`), the millsite exit;
-  wiki guide `paper.md`.
+  the mill's **leat** (`paper-mill/thing/leat.yaml`, a
+  `/platform/thing/WaterFixture` row cut off the flats — the tannery
+  leat's shape; the vat is filled from it, and it is the row water supply's
+  `natural: true` lands on); the pack's title claim for
+  `/world/terminus/hearts-delight/paper-mill` (`landUse: industrial`,
+  `powerBand: off-grid`); wiki guide `paper.md`. The rag counter's buying
+  line rides master's shipped `Stock.buys` (`lib/retail/Stock.ts:104`,
+  `SellController.ts`) — on harbors `buy`'s side becomes `ForSale`, the
+  house-buys side is unchanged.
 - Tests: `Stamper.test.ts` (power from the race; short share → slower;
   fouling load with hours), `PulpVat.test.ts` (dip → mould charged → sheet
   set; brown on persistent contamination), `Sheet.grade.test.ts`,
@@ -989,7 +1131,14 @@ once at `/finalize`.
   `sheet|blank`, a written one never); Hesper's row gains the shop as her
   home; the shop's `print-shop` business (`cast:` a pressman) with
   `printing` in its positions; the counter sells copies at a price the row
-  authors.
+  authors. The counter is a shipped `Stock` row with a store-fed line
+  (`from: { store }`): on master it sells through `BuyController`'s
+  shipped path, on harbors through `ForSaleMixin` (which `Stock`
+  implements) — paper writes **no retail code**, so it rides whichever is
+  on master. The shop's title claim (`/world/terminus/gazette`, `landUse:
+  commercial`) goes in the terminus pack's `pack.yaml`; when water supply
+  lands it cites the city intake as every Terminus premises does
+  (§ Reconciliation).
 - `TideAlmanac.printedAtS` (D16); the diving counter's almanac row.
 - Discipline `printing.yaml`; wiki guide `print.md`.
 - Tests: `Forme.test.ts` (compose debits; short glyph refused; seeded
@@ -1126,12 +1275,12 @@ twins) the wizard tool that stages it:
 | 1 | instant · player | — | `sell rags` at the mill door; an oily rag refused with the line |
 | 2 | instant · player | — | `tear shirt` → rags |
 | 3 | staged · staged | `eval` sets the retting vat's maturation progress to 1 (twin of soak 1) | |
-| 4 | short · player | `eval` pins the flats' flow low for the second run (the dry spell; water's `pinFlow` test seam if present, else `eval` on the race's `passFraction`) | `put rags in stamper`, `switch on stamper`, jump; pulp; slower under the short share (D26) |
+| 4 | short · player | `eval` pins the flats' flow low for the second run (the dry spell; water's `pinFlow` test seam if present, else `eval` on the race's `passFraction`). **After water supply merges:** pin the natural flow low and `open headgate` to its full 0.6 m³/s — the ditch takes its water above the race and the catalogue's accounting shorts the mill (§ Reconciliation) | `put rags in stamper`, `switch on stamper`, jump; pulp; slower under the short share (D26) |
 | 5 | instant · player | — | `dip mould in vat`, `couch mould on felt`, ×3 |
 | 6 | short · player | — | `turn press`, `dry sheets on lines`, clock jump 6 h |
 | 7 | instant · player | — | `look sheet`; `write … on sheet` → bleeds |
 | 8 | short · player | — | `dip sheet in size tub`, `dry`, jump; `write` holds |
-| 9 | instant · staged | `eval` clones a stamper + vat at `kestrel:headwaters` and a persistent discharge works row; one dip | brown |
+| 9 | instant · staged | `eval` clones a stamper + vat at `kestrel:headwaters` and a persistent discharge works row; one dip. **After water supply merges:** no discharge row — `eval` sets the staged vat's water payload `ironMgL` (or the Kestrel seed authors it) | brown |
 | 10 | short · player | — | `fit pasteboard` (paste), carton, bag; a cockled sheet seats short until pressed |
 | 11 | staged · staged | `eval` sets the gall jar's progress (twin of soak 2) | iron-gall; printing ink in the paint pot |
 | 12 | staged · staged | `eval` sets the lime pit's progress (twin of soak 3) | parchment |
@@ -1259,27 +1408,91 @@ wave (`trade-papermaking`, `trade-printing`, `trade-painting`, `trade-haulage`,
 
 ## § Reconciliation with the siblings
 
-**Harbors (`reqs/harbors`).** Both branches add `Marked.refreshMarks`
-(identical text — copied from harbors on purpose), the same `await` line
-in `ReadController`, and `platform/thing/RegisterBook.ts`. Whichever merges
-second: keep one `refreshMarks` (they are byte-identical); in
-`RegisterBook.ts` keep both fields (`government` + `registerPrefix`) and
-let `refreshMarks` branch on which is set (harbors' `pageOf` for a
-government's ship register; paper's `pagesOf` listing for a prefix);
-`ReadController` keeps harbors' line plus paper's `teach` and display
-branches. Nothing else overlaps (paper does not touch `Ship`, `Government`
-or the harbor rows).
+The owner's choice (2026-11-03): **paper builds against master as
+planned; this section records exactly what reconciles when each sibling
+merges. Never gate on either.** Water supply is in its browser walk and
+will likely land first.
 
-**Water supply (`reqs/water-supply`).** No file overlap: the mill is a
-works row at `delight:flats` on the same `Watercourse` node the two races
-sit on (`world-seed/.../Watercourse/delight.yaml` — paper adds one entry to
-`works:`; water supply adds the headgate and weir to the same list, a
-one-line merge). There is **no water right to draw under on either branch**
-(grounding), so *"its share falls short in a dry spell by the system's own
-priority"* is driven by the race's flow being low (drive 4), which is what
-the grist mill already answers. When rights land and `allocate` gets a
-caller, the stamper's `powerFrom` race is the works that gets allocated —
-no paper change.
+### Harbors (`origin/reqs/harbors`, contains paint)
+
+| file | paper writes | harbors writes | the merge |
+|---|---|---|---|
+| `lib/description/Marked.ts` | `refreshMarks` (copied from harbors, byte-identical) + `teach` + `markText` stackIdentity + the ash read | `refreshMarks` | keep one `refreshMarks`; the rest is paper's |
+| `platform/idea/cmd/perception/ReadController.ts` | the same `await target.refreshMarks(giver)` line, the Display branch, `teach` replacing `takeAnyChart` | the `await` line | keep one line; paper's branches stand |
+| `platform/thing/RegisterBook.ts` | `registerPrefix` + a `pagesOf` listing | `government` + the ship register page | keep both fields; `refreshMarks` branches on which is set |
+| `lib/document/DocumentKinds.ts` | `edition`, `book` | `ship`, `berth-roll` | additive — four new entries, all `naturalKey: null`, `onVanish: 'keep'` |
+| `api/document.ts` + `platform/idea/api/DocumentLogic.ts` | `freezeEdition`, `pagesOf` | `saveBerth` (gated `FromMixin(Voyaging, caller === args[0])`), `berthRollOf` | additive. ⭐ Same shape, checked: a per-purpose transport that pins kind and path, derives the owner and reads the truth off the subject (`saveBerth` reads *does she lie here* off the ship; `freezeEdition` reads the source document's owner off the document and takes only the pages, which are the truth being frozen). `freezeEdition`'s callers span the kernel (`Store`, `RegisterBook`) and a pack (`Press`, `Printer`), so its gate is structural (`saveAsBusiness`'s posture) rather than one `FromMixin`; `pagesOf` is a read, ungated like `berthRollOf` |
+| `lib/mixin.ts`, `api/mixin.ts` | `Tearable` | `ForSale`, `Hirable`, `Voyaging`… | additive entries |
+| `lib/structure/Structure.ts` / `Building.ts` | `Building.faces()` inside + the room-air walk (`Building.ts`) | `Structure.buildings` (`Structure.ts`) | no overlap; D21 binds through `Place.structureNow`, which both keep |
+| `lib/retail/*`, `cmd/retail/buy.yaml`, `BuyController.ts` | **nothing** | `ForSale`, `Hirable`, `rent` | paper's two counters are `Stock` rows; they ride `ForSale` the day it lands with no paper change |
+| `hearts-delight/.../farmstead*` | nothing (paper adds `paper-mill/**`, `thing/leat.yaml`, one `exits:` entry on `millsite.yaml`) | the authored house/barn rows | no overlap |
+| `lib/material/Integrity.ts` | nothing | `holed` | — |
+
+### Water supply (`origin/reqs/water-supply`, branched before paint)
+
+⚠ Water supply must take master's paint merge into its own `Assembled.ts`
+(it adds `canTakeMembers`/`afterMembersFitted` beside paint's glue, which
+its two-dot diff shows as "removed" only because the branch predates it).
+That is water supply's merge, not paper's — but paper's `Sealable.ts` edit
+lands on the same file water supply grew by 117 lines:
+
+| file | paper writes | water supply writes | the merge |
+|---|---|---|---|
+| `lib/spatial/Sealable.ts` | `seal`, `sealBroken`, the augmenter, `open()` breaking the seal (D11) | `canOpen(by): VetoResult` on `Sealable`; `ThrottleableMixin` in the same file | additive on the mixin; `ThrottleableMixin.open()` → `setOpening(1)` must still break a seal if a throttled gate is ever sealed — it is not, so the second merger only checks `open()` is called through `super` |
+| `lib/craft/Assembled.ts` | nothing (the book's spine is a `glued` joint on a bill — rows) | the two hooks | — |
+| `world-seed/.../Watercourse/delight.yaml` | one `works:` entry (the stamper) | two `works:` entries (headgate, weir) | one-line list merge |
+| `hearts-delight/pack.yaml` | the mill's claim: `{ extent: /world/terminus/hearts-delight/paper-mill, landUse: industrial, powerBand: off-grid }` | `waterSource:` on every premises claim; the ditch's claims | **after the merge the mill's claim gains `waterSource: /world/terminus/hearts-delight/paper-mill/thing/leat`** — its own leat (a `WaterFixture` row paper ships now; water supply's `natural: true` is added to it then, the tannery leat's shape); `lint:water-posture` (ceiling 0) refuses the claim without it |
+| `terminus/pack.yaml` | the print shop's claim: `{ extent: /world/terminus/gazette, landUse: commercial, feeder: terminus-main:avenue }` | `waterSource:` on every Terminus claim | **after the merge: `waterSource: /world/terminus/wharfside/thing/city-intake`**, as `realty`, `mayfield-row` and the wharfside cite |
+| `lib/parcel/ParcelRecord.ts`, `lib/supply/*`, `content/water/src/**` | nothing | `waterSource`, `WaterSupply`, `WaterChemistry`, `Gate`, the ditch | — |
+
+**The mill's water, after the merge — three statements, precisely:**
+
+1. **What the stamper draws on.** The millrace (`thing/millrace.yaml`,
+   a `ControlStructure` at `delight:flats+0.3`, `generates: true`), by
+   `powerFrom` — a works on the **river**, exactly as the grist mill. It is
+   **not** a `Conduit` and never asks `shareFor('industrial')`: rank-shared
+   shortage (`Conduit.shares`, civic → trades → houses) is the city main's
+   contract and no main reaches the flats. The mill's **taps** (the vat
+   filled from its leat) read a `natural` source, which "runs on its own
+   water, never a premises' citation" — so the mill as a *trade drawing on
+   the system* is a trade drawing on the river at the flats, and the system
+   that shorts it is the river's own accounting.
+2. **How a dry spell shorts it.** The headgate (`delight:flats+0.2`) is
+   **upstream** of the race (`+0.3`): `flowAt(delight:flats)` subtracts the
+   ditch's diversion (`capacityM3S: 0.6`, credited to `delight-ditch:head`)
+   before the race's take. So after the merge drive 4 is staged as: pin the
+   natural flow low (water's test seam) **and `open headgate`** (full) — the
+   ditch takes first, the race's `generationW` falls, the beat is slower.
+   The staged twin on master (a pinned flow or `passFraction`) is replaced
+   by a player act plus the pin. No rights are in play on either branch;
+   when `WaterRightRegistry.allocate` gets a caller the race is the works
+   it allocates to.
+3. **The stamper's waste** stays a `Discharging` works row (`dischargeKind:
+   organic`, the city outfall's shape) — contamination by kind is fouling,
+   which the mill does; it reaches the ditch's return and Terminus as the
+   catalogue already carries it.
+
+**The sheet's color, after the merge — the chemistry home.** Water supply
+ships `WatercourseChemistry {pH, hardnessDgh, nitrateMgL}` seeded by a
+Watercourse row's `water:` block and mixed downstream by `chemistryAt`,
+and `WaterChemistry` (lib/supply) carrying it onto `BulkPayload`. **No
+iron yet.** Reconciliation adds one field end to end — `ironMgL` on
+`WatercourseChemistry` (`seedOf`/`add`/`scale` in `WatercourseCatalogue.ts`),
+on `WaterChemistry` and its `toPayload` (`BulkPayload.ironMgL`) — and
+**authors it once**: `kestrel.yaml`'s `water:` seed gains `ironMgL` (the
+row's own comment puts the ore at the headwaters); the Delight's seed
+authors none. The ONE reader that changes is `PulpVat.waterCharacter()`
+(D9): from `contaminationAt(reach).byKind.persistent` to the vat's own
+payload's `ironMgL` (the leat's draw carries the reach's chemistry).
+`Sheet.colorFrom(water)` is untouched; drive 9's stage becomes a payload
+`eval` or a staged Kestrel seed instead of a discharge row. The AC holds
+unchanged: the color is derived; only the river's iron is authored, on
+the river row, the way its pH is.
+
+**Gates that start firing on paper's rows when water supply lands:**
+`lint:water-posture` (the two claims above), `lint:water-plumbed` (the
+vat reads a `natural` fixture standing in its room — exempt). Nothing
+else.
 
 ---
 
@@ -1354,6 +1567,15 @@ Read first, in this order:
     `gazette/agent/editor.yaml`, `packages/server/src/mud/lib/behavior/prints.ts`
 15. `packages/wire/tests/paint.dirty.wire.test.ts` (the drive's shape),
     `docs/testing.md` § The soak lane
+16. On the siblings, by `git show origin/<branch>:<path>` (never checked
+    out): harbors' `docs/antipatterns.md § A Stuff whose only job is to
+    hold a record`, `lib/retail/ForSale.ts`, `lib/document/DocumentKinds.ts`
+    + `platform/idea/api/DocumentLogic.ts` (`saveBerth`); water supply's
+    `docs/subsystems/water-supply.md`, `docs/plans/water-supply-plan.md`
+    (D14), `lib/supply/WaterChemistry.ts`, `content/water/src/idea/WatercourseCatalogue.ts`
+    (`chemistryAt`, `seedOf`), `lib/spatial/Sealable.ts`,
+    `hearts-delight/.../ditch/thing/headgate.yaml`,
+    `terminus/.../wharfside/tannery/thing/leat.yaml`
 
 ---
 
