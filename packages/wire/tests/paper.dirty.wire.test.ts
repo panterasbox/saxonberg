@@ -269,14 +269,15 @@ suite('paper — the blocking drive', () => {
     const w = await say(s, 'write meet me at the mill at noon on me:i:sheet');
     expect(w, w).toMatch(/you write/i);
     await say(s, 'fold me:i:sheet');
-    await say(s, 'put sheet in envelope');
+    // ⚠ `put … in` finds a container in the room, not in the hand: the
+    // envelope is set down to take the letter (shipped `put` behavior).
+    // Handed over the same way — `give` finds no player by handle.
+    await say(s, 'drop envelope');
+    const put = await say(s, 'put me:i:sheet in envelope');
+    expect(put, put).toMatch(/You put/i);
     await say(s, 'close envelope');
     const sealed = await say(s, 'seal envelope');
-    expect(sealed, sealed).toMatch(/flap|seal/i);
-    // Handed over by setting it down — `give` does not find a player by
-    // handle; the bank hall has no envelopes of its own to confuse it.
-    await say(s, 'drop envelope');
-    await say(r, 'get envelope');
+    expect(sealed, sealed).toMatch(/flap/i);
     await say(r, 'open envelope');
     const l = await say(r, 'look envelope');
     expect(l, l).toMatch(/has been broken/i);

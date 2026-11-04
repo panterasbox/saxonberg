@@ -21,7 +21,9 @@ data:
     - key: set
       sets: drying
       order: 0
-      rate: [[273, 0.05], [283, 0.12], [293, 0.25], [303, 0.4]]
+      # Per hour, scaled by (1 − relative humidity): a thin size film is dry
+      # to the touch in an hour or two of moving air, longer in a damp mill.
+      rate: [[273, 0.25], [283, 0.6], [293, 1.2], [303, 1.8]]
   composition: []
   chemistry: null
   biologicalSource: null
