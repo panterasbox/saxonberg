@@ -1007,6 +1007,16 @@ once at `/finalize`.
 - ⚠ `NODE_OPTIONS` carries a VS Code debugger bootloader in this shell;
   run gates with `NODE_OPTIONS=` or they hang at *"Debugger listening"*.
 
+**D42 (owner, 2026-11-04) — nothing in paper contradicts the recipes
+design** ([recipes-slate](../slates/builds/recipes-slate.md), MR !522). The
+notebook's keyword scan (a handwritten page that mentioned a recipe's keyword
+taught *known-of*) is **removed** — a guess with false positives that
+pre-empted the slate's "your own recipe in your book". A **printed** recipe
+still gives *known-of*, which the slate keeps as recognition. The known-of line
+no longer says "work it by hand to learn it" (the old ladder the slate
+replaces): it says *you know of X now*. The requirements' AC "the borrower
+reads → known-of" and drive step 17's matching clause are retired with this.
+
 ### W1 — the live rung, bearer paper, the register book
 *Decisions D5, D7, D8.*
 
@@ -1350,7 +1360,7 @@ W1/W3 and a drive step (20, 37, 13).
 | read on the phone where there is coverage; printed where a printer is admitted; covenant refuses the printer, allows the pen | W1, W5 | 20, 21 — ⚠ the *"off grid, the phone cannot fetch"* half is R1 |
 | after edit/retract every printed copy reads as it did; the ticker reads the change | W0, W5 | 27 |
 | whoever holds a sheet reads it | W0 | 15 |
-| reading a recipe on paper gives known-of and never `make` | W0 | 17 |
+| reading a recipe on paper gives known-of and never `make` | W0 | 17 — ⚠ **changed by the owner 2026-11-04 (D42):** a PRINTED recipe gives known-of; a handwritten notebook page gives nothing on read |
 | notebook written, read, lent, torn; spellbooks work and burn | W0, W6 | 16–19 |
 | misprints nobody announces; proof finds some; a short case refuses naming the glyph | W5 | 23–26 |
 | the shop sells copies; a handbill with a woodcut | W5 | 28, 29 |

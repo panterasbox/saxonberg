@@ -39,7 +39,6 @@ import { ContainmentApi } from '../../api/containment';
 import { DocumentApi } from '../../api/document';
 import { AccessApi } from '../../api/access';
 import { SecurityApi } from '../../api/security';
-import { CraftingApi } from '../../api/crafting';
 import Sheet from './Sheet';
 
 /** Where a loose leaf comes from when a page is torn out. */
@@ -127,24 +126,17 @@ export default class Book extends BookBase {
   }
 
   /**
-   * @hook A page that names a recipe teaches *known-of* — a printed one by
-   * its edition, a handwritten one by the recipe it names.
+   * @hook A PRINTED book's page tells the reader of what its edition names
+   * (*known-of* — recognition, the recipes slate § 4). A handwritten page
+   * teaches nothing by being read: what a notebook holds as a recipe is the
+   * recipes build's (a cook's own recipe, consulted when they `make`), never
+   * a guess at the words on the page.
    */
   public override async teach(reader: Stuff): Promise<string | null> {
-    if (this.missing.includes(this.openPage)) return null;
+    if (this.edition === '' || this.missing.includes(this.openPage)) return null;
     const pages = await this.pages();
-    if (pages === null) return null;
-    if (pages.teaches && pages.teaches.length > 0) return this.teachRecipes(reader, pages.teaches);
-    const text = (pages.pages[this.openPage - 1] ?? '').toLowerCase();
-    if (text === '') return null;
-    // A handwritten page teaches the recipe it names — by a recipe's own
-    // keyword, as a menu is read.
-    const words = text.split(/[^a-z-]+/).filter((w) => w.length >= 4);
-    for (const w of words) {
-      const recipe = await CraftingApi.lookupRecipe(w);
-      if (recipe !== null) return this.teachRecipes(reader, [{ recipeId: recipe.recipeId, name: recipe.name }]);
-    }
-    return null;
+    if (pages === null || !pages.teaches || pages.teaches.length === 0) return null;
+    return this.teachRecipes(reader, pages.teaches);
   }
 
   /** Nothing is written on a book's cover — write on a page. */

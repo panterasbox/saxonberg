@@ -134,4 +134,14 @@ describe('⭐ a notebook', () => {
     expect(b.getMarkText()).toMatch(/torn out/);
     expect(await b.tear(ann, 2)).toMatchObject({ ok: false, reason: 'torn-out' });
   });
+
+  it('⭐ a handwritten page teaches nothing by being read (the recipes slate — D42)', async () => {
+    vi.spyOn(AccessApi, 'canAtPath').mockResolvedValue(true);
+    const ann = person('ann');
+    const b = notebook();
+    ContainmentApi.move(b, ann);
+    ContainmentApi.move(inkPot(), ann);
+    await b.writePage(ann, 'bristle — a knot of hog hair', 3);
+    expect(await b.teach(ann)).toBeNull();
+  });
 });

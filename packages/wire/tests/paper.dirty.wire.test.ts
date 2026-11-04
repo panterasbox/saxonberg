@@ -299,7 +299,7 @@ suite('paper — the blocking drive', () => {
     expect(rd, rd).toMatch(/reads/i);
   }, 300_000);
 
-  it('17. a notebook: a recipe on page 3, lent; the borrower reads it, knows of it, cannot make it', async () => {
+  it('17. a notebook: words on page 3, lent; the borrower reads them and cannot write in it', async () => {
     const s = await session(maker, BANK_HALL);
     const r = await session(reader, BANK_HALL);
     const w = await say(s, 'write bristle — a knot of hog hair, tied and split on me:i:notebook page 3');

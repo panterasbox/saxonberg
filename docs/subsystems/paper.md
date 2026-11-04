@@ -20,9 +20,12 @@ Built by the paper build (MR on `reqs/paper`, 2026-11). Packs:
   runs before a read: a printed sheet reads its edition, a book its open
   page, a ledger its house's papers. `getMarkText()` stays sync.
 - **What reading teaches.** `Marked.teach(reader)` (`@hook`) runs after the
-  text lands: a chart writes its places into the map; a printed recipe, or
-  a notebook page that names one, writes *known-of* into the chronicle —
-  never `make` (the recipe ladder).
+  text lands: a chart writes its places into the map; a **printed** recipe
+  writes *known-of* (you know the dish exists, and can recognize it). ⚠ A
+  handwritten page teaches nothing by being read, and nothing here decides
+  how a recipe is held or consulted — that is the
+  [recipes slate](../slates/builds/recipes-slate.md)'s (your own recipe in
+  your book, consulted when you `make`).
 - **Ash.** A burnt marked thing (its material swapped to its char) reads
   *"nothing but ash"* — the ink rule's shape.
 

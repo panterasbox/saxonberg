@@ -340,8 +340,9 @@ export function MarkedMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /**
-     * ⭐ Mint the *known-of* claims a page teaches, once each (the menu's
-     * rung: reading tells you a thing exists; making it is the deed).
+     * ⭐ Mint the *known-of* claims a page teaches, once each: reading ABOUT a
+     * dish tells you it exists and lets you recognize it (the recipes slate
+     * § 4). How a recipe is held and consulted is the recipes build's.
      * Returns the line to tell the reader, or `null` for nothing new.
      */
     protected async teachRecipes(reader: Stuff, teaches: readonly EditionTeaching[]): Promise<string | null> {
@@ -354,7 +355,7 @@ export function MarkedMixin<TBase extends MixinConstructor>(Base: TBase) {
         learned.push(t.name);
       }
       if (learned.length === 0) return null;
-      return `You have read how ${learned.join(' and ')} is made. Knowing of it is not knowing how — work it by hand to learn it.`;
+      return `You know of ${learned.join(' and ')} now.`;
     }
 
     public getMarkText(): string {
