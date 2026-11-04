@@ -11,4 +11,3 @@ data:
   mass: 600
   fixedInPlace: true
   epoch: industrial
-  capabilities: [printing]

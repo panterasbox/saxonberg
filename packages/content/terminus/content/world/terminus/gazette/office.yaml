@@ -9,6 +9,9 @@ data:
   register: definite
   alternateNames: ["the gazette", "print shop"]
   _address: terminus/city/mayfield-row/gazette
+  # A brick shopfront under slate, like its neighbors on the Row.
+  enclosure: { material: /stuff/idea/material/ceramic/brick, thicknessM: 0.23 }
+  roof: { material: /stuff/idea/material/rock/slate, thicknessM: 0.01 }
   coords:
     x: 0
     y: 0
