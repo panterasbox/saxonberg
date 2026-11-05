@@ -345,4 +345,34 @@ describe('⭐⭐ clock — a shift is something you choose to start', () => {
     await expect(clock('off')).rejects.toThrow(/authors no banksAt/);
     expect(alice.isOnShift()).toBe(true); // the shift is NOT lost
   });
+
+  it('⭐⭐ leaving the world ends the shift — a body away is not paid for the absence (the payroll gap)', async () => {
+    // Live, before the fix: clocked on, logged out for two game days, back
+    // and `clock off` — paid 72 hours for a few minutes in the world.
+    const t0 = WorldClockApi.getNow().rawValue();
+    await clock('on');
+    const now = vi.spyOn(WorldClockApi, 'getNow').mockReturnValue({
+      rawValue: () => t0 + 2 * 3600,
+    } as never);
+    vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    await alice.leaveShifts();
+    expect(alice.isOnShift()).toBe(false); // ended even though this house cannot pay
+    now.mockReturnValue({ rawValue: () => t0 + 50 * 3600 } as never);
+    said = '';
+    const off = await clock('off');
+    expect(reasons(off)).toEqual(['not-on-shift']); // nothing left open to pay for
+  });
+
+  it('⭐ an unloaded body on shift settles on the way out', async () => {
+    await clock('on');
+    const leave = vi.spyOn(alice, 'leaveShifts').mockResolvedValue(undefined);
+    alice.onDestruct();
+    expect(leave).toHaveBeenCalledTimes(1);
+  });
+
+  it('…and a body off shift leaves nothing to settle', () => {
+    const leave = vi.spyOn(alice, 'leaveShifts').mockResolvedValue(undefined);
+    alice.onDestruct();
+    expect(leave).not.toHaveBeenCalled();
+  });
 });

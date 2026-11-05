@@ -1449,3 +1449,25 @@ delegates to it. A night window is on in the small hours of the next day, an
 equal-hours entry covers nothing, and a season-bound window is off without the
 house's season (the integral takes an optional season reader). Open, not
 checked: whether payroll pays the shifts of a business that sat unloaded.
+
+#### The payroll gap (2026-11-05)
+
+Checked after the shift-entry fix, then fixed. **Walked before**: a player
+clocked on, logged out, was away two game days (in two one-day jumps), came
+back and clocked off, then repeated it for one day: **290 zorkmids** for a few
+minutes in the world (72 h at 4/h, the first 48 owed as arrears by an unfunded
+yard and paid off by the second wage). Nothing ended a player's shift at
+logout; the wage is rate × (off − `onShiftSince`). NPC staff had the opposite
+fault: they are not saved, so a hand unloaded mid-shift took that shift's wage
+with it.
+
+The fix: **a body leaving the world ends its shifts and is paid to the moment
+it left.** `Employed.leaveShifts()` → `EmploymentLogic.leaveShifts`, called
+from `Avatar.onLinkdead` (sign-out or a dropped line alike, as `markSeen`
+reasons) and from the mixin's `onDestruct` (an unloaded hand). The shift ends
+even when the wage cannot settle — an open shift is what a later `clock off`
+paid the whole absence for — and a leaving settle tells nobody, so it never
+loads back a body being unloaded. The hours a venue sits unwatched are still
+not paid: a venue nobody visits makes no sales either. **Walked after**: away
+a day → *"You're not on shift"*, nothing paid for the absence; three game hours
+worked, then logged out → **12 zorkmids** (3 h × 4).
