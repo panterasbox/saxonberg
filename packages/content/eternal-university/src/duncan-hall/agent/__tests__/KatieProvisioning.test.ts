@@ -241,8 +241,8 @@ describe('Katie — the dorms-agent authorization boundary', () => {
     });
     const ctrl = makeStuffAtPath(() => new ProvisionController(), "/world/terminus/eternal/duncan-hall/idea/cmd/ProvisionController");
     await ctrl.execute({ player: { stuff: tenant } } as never, ctx);
-    const notes = ctx.getNotes() as Array<{ reason?: string; detail?: string }>;
-    expect(notes.map((n) => n.reason)).toContain('not-authorized');
+    const notes = ctx.getNotes();
+    expect(notes.map((n) => (n as { reason?: string }).reason)).toContain('not-authorized');
     expect(JSON.stringify(notes)).toContain("hall's committee");
   });
 });

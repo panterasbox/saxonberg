@@ -23,6 +23,7 @@ interface GitModel extends CommandModel {
   sha?: string;
   message?: string;
   limit?: number;
+  dryRun?: boolean;
 }
 
 function status(over: Partial<GitStatusResult> = {}): GitStatusResult {
@@ -143,8 +144,23 @@ describe('GitController', () => {
 
   it('publish forwards the message and reports the result', async () => {
     await run({ subcommand: 'publish', message: 'fix bar' });
-    expect(GitApi.publish).toHaveBeenCalledWith('fix bar');
+    expect(GitApi.publish).toHaveBeenCalledWith('fix bar', { dryRun: false });
     expect(output.join('\n')).toContain('Committed 1 file');
+  });
+
+  it('publish --dry-run forwards the flag and says nothing was committed', async () => {
+    vi.mocked(GitApi.publish).mockResolvedValue({
+      committed: false,
+      committedPaths: ['packages/x.yaml'],
+      skippedPaths: [],
+      pushed: false,
+      branch: 'main',
+      detail: 'would commit 1 file(s)',
+      dryRun: true,
+    });
+    await run({ subcommand: 'publish', message: 'probe', dryRun: true });
+    expect(GitApi.publish).toHaveBeenCalledWith('probe', { dryRun: true });
+    expect(output.join('\n')).toContain('Dry run — would commit: packages/x.yaml');
   });
 
   it('revert requires a sha', async () => {

@@ -13,9 +13,9 @@ help: |
 
   ⚠ It is a composition surface, not a second content tree. What it
   writes goes through the same CMS routes the editor uses; the Studio
-  is the shape of the question, not a separate answer.
+  is the shape of the question, not a separate answer. Publishing a
+  class is writing a `.ts`, so it asks for the wizard axis and title;
+  without them you are handed the draft.
 examples:
   - cmd: studio
     note: Open the composer
-validators:
-  - /lib/command/validators/requiresWizard

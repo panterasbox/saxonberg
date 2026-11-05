@@ -249,22 +249,23 @@ export default class AccessRegistry extends AccessRegistryBase {
   }
 
   /**
-   * Orthogonal wizard axis — is the actor in `'wizards'`? This is the
-   * code-trust capability: it determines who can write TypeScript
-   * source, run `eval`, `reload` modules, AND set the executable
-   * code-naming fields (`class` / `behaviors[].brain`)
-   * on a content template (see the code-field gate in `TemplateLogic`).
-   * Doesn't matter what slices they own; the question is whether they
-   * have escape capability. A non-wizard author is a "protowizard" —
-   * content-write access without code trust.
+   * Orthogonal wizard axis — **authoring TypeScript**, and nothing else:
+   * writing a code file into the source tree, typing code into `eval`.
+   * Doesn't matter what slices they own; it confers no title.
+   *
+   * ⭐ **PM ⇒ archwizard ⇒ wizard, derived** (wizard-axis D17): a member of
+   * `'wizards'`, OR an archwizard — a member of `'archwizards'` or the
+   * Prime Minister. An archwizard who could confer the axis but not hold
+   * it was a contradiction. (Composed from the caches directly: a
+   * gated self-call through the proxy would be refused.)
    */
   @CallSecurity(AccessApiCallers)
   public async isWizard(subject: Stuff | null): Promise<boolean> {
     if (subject === null) return false;
     const memberKey = this.memberKeyOf(subject);
     if (memberKey === null) return false;
-    const cache = await this.ensureWizardCache();
-    if (cache.has(memberKey)) return true;
+    if ((await this.ensureWizardCache()).has(memberKey)) return true;
+    if ((await this.ensureArchwizardCache()).has(memberKey)) return true;
     return this.holdsPrimeMinister(subject);
   }
 
@@ -287,9 +288,9 @@ export default class AccessRegistry extends AccessRegistryBase {
   /**
    * Orthogonal archwizard axis — is the actor in `'archwizards'`?
    * Archwizards confer/revoke wizard status (the `wizard grant/revoke`
-   * verb, authorized by the `requiresArchwizard` validator). Operator/
-   * root-managed for now (env seed + the `group` verb); the Prime
-   * Minister office above them is deferred.
+   * verb, authorized by the `requiresArchwizard` validator), and every
+   * archwizard is a wizard (see above). The Prime Minister is one by
+   * office (`holdsPrimeMinister`), derived, never stored.
    */
   @CallSecurity(AccessApiCallers)
   public async isArchwizard(subject: Stuff | null): Promise<boolean> {

@@ -42,6 +42,9 @@ const BAR_REL = 'packages/server/src/mud/lib/lounge/Bar.ts';
 const OTHER_REL = 'packages/server/src/mud/obj/Other.ts';
 const DOCS_REL = 'docs/foo.md';
 const BAR_LOGICAL = '/server/src/mud/lib/lounge/Bar.ts';
+// A pack's content row in the same writable slice — content, not code.
+const ROW_REL = 'packages/server/src/mud/lib/lounge/bar.yaml';
+const ROW_LOGICAL = '/server/src/mud/lib/lounge/bar.yaml';
 
 /** Set of source-logical paths the spied `can('write')` allows. */
 let writable: Set<string>;
@@ -84,7 +87,7 @@ beforeEach(() => {
 
   _setRepoRootForTesting(work);
 
-  writable = new Set<string>([BAR_LOGICAL]);
+  writable = new Set<string>([BAR_LOGICAL, ROW_LOGICAL]);
   vi.spyOn(ExecutionContextApi, 'getActingAuthor').mockReturnValue(ACTOR);
   vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(true);
   // Echo the source-logical path as the "zone" so `can` can key on it.
@@ -114,8 +117,13 @@ describe('GitApi.status', () => {
     expect(bar?.workingDir).toBe('M');
   });
 
-  it('is denied to a non-wizard', async () => {
+  it('is OPEN to a non-wizard — reading is not authoring (wizard-axis D14)', async () => {
     vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(false);
+    await expect(GitApi.status()).resolves.toMatchObject({ branch: 'main' });
+  });
+
+  it('is denied with no acting avatar (fails closed)', async () => {
+    vi.spyOn(ExecutionContextApi, 'getActingAuthor').mockReturnValue(null as never);
     await expect(GitApi.status()).rejects.toMatchObject({ code: 'denied' });
   });
 
@@ -156,14 +164,14 @@ describe('GitApi.status', () => {
 });
 
 describe('GitApi.diff / log', () => {
-  it('diff is denied to a non-wizard', async () => {
+  it('diff is open to a non-wizard', async () => {
     vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(false);
-    await expect(GitApi.diff()).rejects.toMatchObject({ code: 'denied' });
+    await expect(GitApi.diff()).resolves.toBeDefined();
   });
 
-  it('log is denied to a non-wizard', async () => {
+  it('log is open to a non-wizard', async () => {
     vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(false);
-    await expect(GitApi.log()).rejects.toMatchObject({ code: 'denied' });
+    await expect(GitApi.log()).resolves.toBeDefined();
   });
 
   it('log returns the commit history', async () => {
@@ -251,8 +259,31 @@ describe('GitApi.publish', () => {
     expect(r.skippedPaths).toContain(DOCS_REL);
   });
 
-  it('is denied to a non-wizard', async () => {
+  it('⭐ a non-wizard with title publishes content but never a .ts (wizard-axis D2)', async () => {
     vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(false);
+    put(BAR_REL, 'export const bar = 1;\n'); // code, in a held slice
+    put(ROW_REL, 'class: /x\n'); // content, in the same slice
+    const r = await GitApi.publish('content only');
+    expect(r.committed).toBe(true);
+    expect(r.committedPaths).toEqual([ROW_REL]);
+    expect(r.skippedPaths).toContain(BAR_REL);
+  });
+
+  it('--dry-run reports the split and touches nothing', async () => {
+    put(BAR_REL, 'export const bar = 1;\n');
+    put(OTHER_REL, 'export const other = 1;\n');
+    const before = git(work, ['rev-parse', 'HEAD']).trim();
+    const r = await GitApi.publish('probe', { dryRun: true });
+    expect(r.dryRun).toBe(true);
+    expect(r.committed).toBe(false);
+    expect(r.committedPaths).toEqual([BAR_REL]);
+    expect(r.skippedPaths).toContain(OTHER_REL);
+    expect(git(work, ['rev-parse', 'HEAD']).trim()).toBe(before);
+    expect(git(work, ['diff', '--cached', '--name-only']).trim()).toBe('');
+  });
+
+  it('is denied with no acting avatar', async () => {
+    vi.spyOn(ExecutionContextApi, 'getActingAuthor').mockReturnValue(null as never);
     await expect(GitApi.publish('x')).rejects.toMatchObject({
       code: 'denied',
     });
@@ -288,9 +319,11 @@ describe('GitApi.revert', () => {
     });
   });
 
-  it('is denied to a non-wizard', async () => {
+  it('a non-wizard cannot revert a commit that touched a .ts', async () => {
+    put(BAR_REL, 'export const bar = 9;\n');
+    const sha = commitAll('change bar');
     vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(false);
-    await expect(GitApi.revert('HEAD')).rejects.toMatchObject({
+    await expect(GitApi.revert(sha)).rejects.toMatchObject({
       code: 'denied',
     });
   });

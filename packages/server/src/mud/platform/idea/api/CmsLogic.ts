@@ -179,23 +179,16 @@ async function gateContentWrite(
 }
 
 /**
- * Source-tree write gate — verbatim from
- * `WriteController._gateSourceWrite`. `isWizard(actor)` AND
- * `can(actor, 'write', resolveSourceFolderZone(path))`.
- * Returns null on allow, a human-readable reason on deny.
+ * Source-tree write gate — the one predicate,
+ * `AccessApi.sourceWriteRefusal` (a code file asks for the wizard axis and
+ * title; anything else, title). Returns null on allow, a human-readable
+ * reason on deny.
  */
 async function gateSourceWrite(
   actor: Stuff | null,
   sourceLogical: string
 ): Promise<string | null> {
-  if (!(await AccessApi.isWizard(actor))) {
-    return "you don't have permission to write source";
-  }
-  const resource = await AccessApi.resolveSourceFolderZone(sourceLogical);
-  if (!(await AccessApi.can(actor, 'write', resource))) {
-    return "you don't have permission to write to that source slice";
-  }
-  return null;
+  return AccessApi.sourceWriteRefusal(actor, sourceLogical, 'write');
 }
 
 /**
@@ -217,8 +210,10 @@ function actingActor(): Stuff | null {
 }
 
 /**
- * Read/list gate on the context-derived actor. Source (engine TS) is
- * wizard-only; content (templates) and document (the owned-JSON store)
+ * Read/list gate on the context-derived actor. Source is OPEN to any
+ * signed-in avatar (wizard-axis D14 — reading is not authoring; the
+ * backend is sandboxed to the mud root by `sourceAbs`, so no secret is
+ * reachable); content (templates) and document (the owned-JSON store)
  * are PER PATH (content-packs wave 3 — everyone is an author): `read`
  * refuses a path the actor cannot read, `listTree` prunes the children
  * they cannot. Throws `CmsError('denied')` (null actor fails closed).
@@ -226,8 +221,8 @@ function actingActor(): Stuff | null {
 async function gateRead(backend: CmsBackend, path?: string): Promise<void> {
   const actor = actingActor();
   if (backend === 'source') {
-    if (!(await AccessApi.isWizard(actor))) {
-      throw new CmsError('denied', 'you must be a wizard to browse source');
+    if (actor === null) {
+      throw new CmsError('denied', 'sign in to browse source');
     }
     return;
   }
@@ -672,8 +667,8 @@ export class CmsLogic extends ApiLogic {
     path: string,
     body: string
   ): Promise<CmsWriteResult> {
-    // Gate on the mud-rooted source location (isWizard is checked
-    // first, so non-wizards are denied before any filesystem work).
+    // Gate on the mud-rooted source location (the one write predicate,
+    // before any filesystem work).
     const display =
       path === '/' ? SOURCE_ROOT_DISPLAY : SOURCE_ROOT_DISPLAY + path;
     const denial = await gateSourceWrite(actor, display);

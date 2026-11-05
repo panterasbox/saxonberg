@@ -97,11 +97,9 @@ export function AuthorMixin<TBase extends MixinConstructor>(Base: TBase) {
         // ordinary player could not ask for. It is contributed by
         // `ShelledCharacter` now, and its publishing SUBCOMMANDS carry
         // `requiresPublisher` for themselves.
-        // Banking operator surface — the central-bank faucet (mint subsidy),
-        // wage payment, and the P&L read. Afforded on the operator command
-        // surface like the rest of this suite; each carries
-        // `requiresWizard`, so a non-author sees nothing (no employment
-        // relationship yet — operator == wizard in v1).
+        // Banking surface — the reserve (the Governor's: `requiresGovernor`),
+        // the Treasury (the Minister of Finance's, below) and the house P&L
+        // (a venue's seat). Each is gated on a SEAT; none asks the wizard.
         'platform/cmd/banking/reserve.yaml',
         // The Treasury's surface (economic bootstrap D9) — the Minister of
         // Finance's book and appropriation; `requiresFinanceMinister`
@@ -145,16 +143,14 @@ export function AuthorMixin<TBase extends MixinConstructor>(Base: TBase) {
         // Author-diagnostics reader — `errors list/raw/clear` over the
         // diagnostics store (compile / runtime / console). Afforded here;
         // what you see is what you hold (`DiagnosticApi.list` filters to
-        // your extents and the packs you maintain). The finer gates (raw
-        // → wizard, clear → author-of-path) are enforced in the
-        // controller / DiagnosticApi.
+        // your extents and the packs you maintain; compile rows are open).
+        // The finer gates (raw → the Prime Minister, clear → title or
+        // author-of-path) are enforced in the controller / DiagnosticApi.
         'platform/cmd/system/errors.yaml',
         // In-runtime VCS — `git status/diff/log/publish/revert` over the
-        // engine source tree. Afforded on the operator command surface
-        // like the rest of this suite; `git.yaml` carries `requiresWizard`
-        // (it version-controls engine TS), so a non-wizard sees it but
-        // can't run it. The per-affected-path `can('write')` refinement
-        // stays in `GitLogic`.
+        // source tree. Reading is open; `publish`/`revert` ask the one
+        // source-write predicate per touched file in `GitLogic` (a `.ts`:
+        // the wizard axis and title; content: title).
         'platform/cmd/system/git.yaml',
         // Test-world staging — `testharness clock|weather`. Afforded on the
         // operator surface beside `git`; the view is `testOnly`, so outside
@@ -166,10 +162,9 @@ export function AuthorMixin<TBase extends MixinConstructor>(Base: TBase) {
         // may do in a played world, credential or not, so it is a
         // test-world verb (`testOnly`) like `testharness`, not a wizard's.
         'platform/cmd/system/practice.yaml',
-        // The authoring CARDS. Afforded on the operator command surface
-        // like the rest of this suite; each carries `requiresWizard`
-        // (they edit engine content), so a non-wizard sees the verb but
-        // cannot run it — the parser floor, not a hidden verb.
+        // The authoring CARDS. Opening one asks for nothing: what you can
+        // read is open, and what you can write is decided per path by the
+        // CMS routes (title; a `.ts` also asks for the wizard axis).
         'platform/cmd/author/cms.yaml',
         'platform/cmd/author/studio.yaml',
       ],

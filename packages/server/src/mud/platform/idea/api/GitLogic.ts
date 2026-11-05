@@ -124,24 +124,16 @@ function actingActor(): Stuff | null {
 }
 
 /**
- * Source-tree write gate — verbatim from `CmsLogic.gateSourceWrite` /
- * `WriteController._gateSourceWrite` (per D1: mirror, don't share). Two
- * checks: `isWizard(actor)` AND `can(actor, 'write',
- * resolveSourceFolderZone(sourceLogical))`. Returns null on allow, a
- * human-readable reason on deny.
+ * Source-tree write gate — the one predicate,
+ * `AccessApi.sourceWriteRefusal`, asked per touched file: a code file asks
+ * for the wizard axis and title, anything else (a pack's content YAML) for
+ * title only. Returns null on allow, a human-readable reason on deny.
  */
 async function gateSourceWrite(
   actor: Stuff | null,
   sourceLogical: string
 ): Promise<string | null> {
-  if (!(await AccessApi.isWizard(actor))) {
-    return "you don't have permission to write source";
-  }
-  const resource = await AccessApi.resolveSourceFolderZone(sourceLogical);
-  if (!(await AccessApi.can(actor, 'write', resource))) {
-    return "you don't have permission to write to that source slice";
-  }
-  return null;
+  return AccessApi.sourceWriteRefusal(actor, sourceLogical, 'write');
 }
 
 /** The avatar-scoped commit author: `<Name> <playerId@saxonberg.local>`.
@@ -214,8 +206,10 @@ async function pushCurrentBranch(branch: string): Promise<{
  * intra-singleton `this.x()` self-calls the gate would deny — the
  * `SourceTreeLogic` / `CmsLogic` pattern.
  *
- * The whole security spine: reads are `isWizard`-gated; `publish` /
- * `revert` additionally run the per-affected-path source-write gate. The
+ * The whole security spine: reads are OPEN to any signed-in avatar
+ * (wizard-axis D14 — reading is not authoring); `publish` / `revert` run
+ * the one source-write predicate per affected path (a `.ts` asks for the
+ * wizard axis, content for title). The
  * push token and the synthetic author email are hard-derived here, never
  * caller-supplied.
  *
@@ -230,9 +224,7 @@ export class GitLogic extends ApiLogic {
   @CallSecurity(GitApiCallers)
   public async status(): Promise<GitStatusResult> {
     const actor = actingActor();
-    if (!(await AccessApi.isWizard(actor))) {
-      throw new GitError('denied', 'you must be a wizard to read git status');
-    }
+    if (!actor) throw new GitError('denied', 'sign in to read git status');
     await assertRepo();
     const s = await git().status();
     const diverged = s.ahead > 0 || s.behind > 0 || s.tracking == null;
@@ -263,9 +255,7 @@ export class GitLogic extends ApiLogic {
   @CallSecurity(GitApiCallers)
   public async diff(pathArg?: string): Promise<GitDiffResult> {
     const actor = actingActor();
-    if (!(await AccessApi.isWizard(actor))) {
-      throw new GitError('denied', 'you must be a wizard to read git diffs');
-    }
+    if (!actor) throw new GitError('denied', 'sign in to read git diffs');
     await assertRepo();
     const rel = pathArg ? repoRelOf(pathArg) : undefined;
     // Pathspec after `--`, never interpolated into a command string.
@@ -282,9 +272,7 @@ export class GitLogic extends ApiLogic {
     pathArg?: string;
   }): Promise<GitLogEntry[]> {
     const actor = actingActor();
-    if (!(await AccessApi.isWizard(actor))) {
-      throw new GitError('denied', 'you must be a wizard to read git log');
-    }
+    if (!actor) throw new GitError('denied', 'sign in to read git log');
     await assertRepo();
     const rel = opts?.pathArg ? repoRelOf(opts.pathArg) : undefined;
     const result = await git().log({
@@ -301,11 +289,12 @@ export class GitLogic extends ApiLogic {
 
   /** See {@link GitApi.publish}. */
   @CallSecurity(GitApiCallers)
-  public async publish(message: string): Promise<GitPublishResult> {
+  public async publish(
+    message: string,
+    opts?: { dryRun?: boolean }
+  ): Promise<GitPublishResult> {
     const actor = actingActor();
-    if (!actor || !(await AccessApi.isWizard(actor))) {
-      throw new GitError('denied', 'you must be a wizard to publish');
-    }
+    if (!actor) throw new GitError('denied', 'sign in to publish');
     await assertRepo();
     const s = await git().status();
     const branch = s.current ?? '(detached)';
@@ -317,7 +306,7 @@ export class GitLogic extends ApiLogic {
     for (const f of s.files) {
       const logical = toSourceLogical(f.path);
       // A `null` logical (path outside packages/) still flows in → the
-      // gate resolves it to core-owned → denied for a normal wizard.
+      // gate resolves it to core-owned → denied unless you hold it.
       const denial = await gateSourceWrite(actor, logical ?? f.path);
       if (denial === null) committedPaths.push(f.path);
       else skippedPaths.push(f.path);
@@ -331,6 +320,21 @@ export class GitLogic extends ApiLogic {
         pushed: false,
         branch,
         detail: 'nothing you may write is dirty',
+        ...(opts?.dryRun ? { dryRun: true } : {}),
+      };
+    }
+
+    // `--dry-run`: report the split and touch nothing — no stage, no
+    // commit, no push.
+    if (opts?.dryRun) {
+      return {
+        committed: false,
+        committedPaths,
+        skippedPaths,
+        pushed: false,
+        branch,
+        detail: `would commit ${committedPaths.length} file(s)`,
+        dryRun: true,
       };
     }
 
@@ -368,9 +372,7 @@ export class GitLogic extends ApiLogic {
   @CallSecurity(GitApiCallers)
   public async revert(sha: string): Promise<GitRevertResult> {
     const actor = actingActor();
-    if (!actor || !(await AccessApi.isWizard(actor))) {
-      throw new GitError('denied', 'you must be a wizard to revert');
-    }
+    if (!actor) throw new GitError('denied', 'sign in to revert');
     await assertRepo();
     if (!isSafeRef(sha)) {
       throw new GitError('bad-ref', `not a valid commit ref: ${sha}`);

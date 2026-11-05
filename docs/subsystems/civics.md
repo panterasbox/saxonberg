@@ -186,9 +186,10 @@ dispatch it (no Interactive assumptions).
 
 ## The two staffs (never merged)
 
-- **Meta staff** — the committee: parcel owners + code-trusted wizards,
-  on the property/code-trust axes (`CompactApi.committeeOf` — the
-  title-holding group IS the committee; see access.md).
+- **Meta staff** — the committee: parcel owners, on the property axis
+  (`CompactApi.committeeOf` — the title-holding group IS the committee;
+  see access.md). The wizard axis is authoring TypeScript and seats
+  nobody on a committee.
 - **Diegetic staff** — seat-holders: players or NPCs, on employment
   positions.
 

@@ -1186,6 +1186,22 @@ Read first, in this order:
 12. `packages/content/platform/content/platform/cmd/system/testharness.yaml`
     + `lib/command/validators/requiresTestWorld.ts` (the `practice` shape)
 
+## Build log
+
+- **W0 ✅ `1f59c2704`** — `lint:wizard-axis`: 57 files at the census. The
+  reason set carries `sweep` while the build is in flight; it is removed
+  from `REASONS` once W3 lands, so no shipped line can say it.
+- **W1 ✅ `1887377e2`** — ⭐ **Found:** a forced dispatch RUNS view validators
+  (npc-dialogue.md, proven 2026-08-04), so the letting views'
+  `requiresWizard` was refusing Katie's own `provision` dispatch — a live
+  defect the deletion fixes, not just a cleanup. The Grounding's *"Katie's
+  dispatch skips validators"* was wrong; residence.md and the controller
+  headers now say what is true. ⚠ Removing `isAgentOf` re-attached a
+  stray `@CallSecurity(AccessApiCallers)` to `AccessLogic.isWizard`, which it
+  had been meant for all along (the forwarder is the only caller). The
+  refusal text names the seat: *"Only the college's staff or a member of
+  the hall's committee may let Duncan Hall's rooms."* Allowlist 57 → 44.
+
 ## Drive record
 
 *(appended at build time)*

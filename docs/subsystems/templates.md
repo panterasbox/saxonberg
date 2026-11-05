@@ -136,12 +136,12 @@ through `Document.save()`: `saveTemplate`, `cp`, `mv`, the CMS,
 `pack --export`. The effective fields are typed `readonly` so a stray
 writer is a compile error rather than a silently forked row.
 
-**Five surfaces read `own` rather than the effective fields**, and they
-are exactly the authoring ones: `saveTemplate` + its code-field gate
-(the delta baseline — a protowizard editing a class-less child must not
-be refused for "changing" a class the row never stated), `cp`, `mv`,
-the CMS read/write round-trip, and `cat` (which prints what the author
-wrote, with inherited values annotated).
+**Four surfaces read `own` rather than the effective fields**, and they
+are exactly the authoring ones: `cp`, `mv` (the raw copy keeps a copied
+child a child), the CMS read/write round-trip, and `cat` (which prints
+what the author wrote, with inherited values annotated). There were five
+until the wizard-axis cleanup (2026-11-05) deleted `saveTemplate`'s
+code-field gate, whose delta baseline was the fifth.
 
 ⚠ **A child that inherits its class is invisible to a raw Mongo query.**
 `findByClass` and `findWhereDataHas` therefore union their raw hits
@@ -240,14 +240,17 @@ Class names are the last path segment (e.g., `/platform/agent/Avatar` →
 `Avatar`); the import succeeds only if a named export with that name
 exists in the resolved module. Anything else throws.
 
-This validation is **format-only** (shape of the path). The orthogonal
-**trust** question — *may this author name this code at all?* — is
-enforced separately at the `saveTemplate` chokepoint: a non-wizard
-(protowizard) author cannot introduce or change the executable
-code-naming fields (`class` / `behaviors[].brain`). ⭐ `hydratorClass`
-was the third until 2026-10-01, and it left the gate WITH the field
-rather than by exemption: a row cannot name an applier, so there is
-nothing to refuse and nothing carved out.
+This validation is **format-only** (shape of the path). There is no
+separate **trust** question — *may this author name this code at all?*
+— any more: naming a class or a brain from a row is content, decided by
+title over the row's path like any other field. The `saveTemplate`
+code-naming gate that used to ask it (a non-wizard could not introduce
+or change `class` / `behaviors[].brain`) was **deleted by the
+wizard-axis cleanup (2026-11-05)**: *publishing* a class is what says
+"you may use this", and `lint:instanceable` already states that
+structurally (not under `/lib/`, a real module + export, under a branch
+segment); a `brain:` is bounded by the brain module category, and
+`CmsLogic.validateBehaviorPaths` refuses an unresolvable one at save.
 See [access.md § The code-trust lockdown](./access.md).
 
 ## The Clone Pipeline

@@ -358,9 +358,6 @@ export class DiagnosticLogic extends ApiLogic {
     if (!connected()) return [];
     const subject = actor();
     if (subject === null) return [];
-    const isWiz = await AccessApi.isWizard(subject);
-    // Non-wizards can't see TS-source compile diagnostics (wizard-tier content).
-    if (!isWiz && filter.source === 'compile') return [];
     // The within-your-extent pattern (content-packs wave 3): a row is
     // yours to read when its path is under an extent you hold, or it is
     // a pack's channel and you maintain that pack. No author tier.
@@ -373,8 +370,9 @@ export class DiagnosticLogic extends ApiLogic {
         if (!maintains.has(id)) maintains.set(id, await maintainsPack(subject, id));
         return maintains.get(id)!;
       }
-      // Compile rows have no path: the wizard axis alone reads them.
-      return row.source === 'compile' && isWiz;
+      // Compile rows are a read of source, and reading source is open
+      // (wizard-axis D14): any signed-in avatar reads them.
+      return row.source === 'compile';
     };
 
     const q: Record<string, unknown> = {};
@@ -383,7 +381,6 @@ export class DiagnosticLogic extends ApiLogic {
     }
     if (filter.severity) q.severity = filter.severity;
     if (filter.source) q.source = filter.source;
-    else if (!isWiz) q.source = { $ne: 'compile' };
     if (filter.author) q.author = filter.author;
     // `mine`: the spoof-safe "my content" lens — author resolved from the
     // context actor here, never the caller. A subject with no durable
@@ -407,13 +404,15 @@ export class DiagnosticLogic extends ApiLogic {
 
   /**
    * See {@link DiagnosticApi.clear}. Returns the delete count, or `-1`
-   * when the actor is neither a wizard nor the author of `path`.
+   * when the actor neither holds title over `path` nor authored it.
+   * ⭐ Clearing DELETES rows, so it keeps a gate — title, not the wizard
+   * axis (wizard-axis D14): deleting a diagnostic is not authoring code.
    */
   @CallSecurity(DiagnosticApiCallers)
   public async clear(path: string): Promise<number> {
     if (!connected()) return 0;
     const subject = actor();
-    let ok = await AccessApi.isWizard(subject);
+    let ok = await AccessApi.canAtPath(subject, 'write-document', path);
     if (!ok && subject) {
       const owner = await ProvenanceApi.authorOf(path);
       ok = !!owner && owner === subject.getIdentityPath();

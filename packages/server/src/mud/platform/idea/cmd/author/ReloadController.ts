@@ -10,9 +10,10 @@
  * lands. `--no-check` skips that; `--strict` checks FIRST and refuses to
  * swap code with type errors in. No `-f` / `forceReload`
  * — reload operates on modules and prototypes, not on Stuff
- * targets, so there's no per-target witness to bypass. Permission
- * gating is the right shape for "are you allowed to reload this
- * path?" and lives in the future permission framework.
+ * targets, so there's no per-target witness to bypass. ⭐ The gate is
+ * TITLE over the target's path (`refusedTitle`, wizard-axis D4) — "are
+ * you allowed to reload this path?" is the same question `clone` asks,
+ * and reloading code is not authoring it, so it never asks the wizard.
  */
 
 import { CommandController } from '../../../../lib/command/CommandController';
@@ -23,6 +24,7 @@ import type {
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
 import { MixinApi } from '../../../../api/mixin';
+import { AccessApi } from '../../../../api/access';
 import { HotReloadApi } from '../../../../api/hot-reload';
 import { SourceTreeApi } from '../../../../api/source-tree';
 import { StuffApi } from '../../../../api/stuff';
@@ -88,11 +90,12 @@ function tellGiver(giver: Stuff, text: string): void {
 
 export default class ReloadController extends CommandController<ReloadModel> {
   async execute(model: ReloadModel, context: CommandContext): Promise<void> {
-    // Wizard axis check is declarative — see reload.yaml's
-    // `validators: requiresWizard`. No slice check applies — module
-    // reloads aren't scoped to a content area.
+    // ⭐ Reloading is not authoring (wizard-axis D4): it asks for TITLE
+    // over the target — the question `clone` asks — and never the axis. A
+    // content developer with YAML access reloads what they hold.
     const path = this.resolveTarget(model, context);
     if (path === null) return;
+    if (await this.refusedTitle(model, context, path)) return;
 
     if (model.strict) {
       const checked = await this.check(context, path);
@@ -180,6 +183,33 @@ export default class ReloadController extends CommandController<ReloadModel> {
       return null;
     }
     return path;
+  }
+
+  /**
+   * ⭐ The title gate `reload` and `typecheck` share (wizard-axis D4):
+   * `canAtPath(giver, 'reload', <the target's path>)`. The path is the
+   * class or template path the giver named (a live clone's template
+   * stamp under `--mql`), never the backing file the resolver returns.
+   * Refuses — naming what the giver does hold — and returns `true` when
+   * the giver holds no title there.
+   */
+  protected async refusedTitle(
+    model: ReloadModel,
+    context: CommandContext,
+    path: string,
+  ): Promise<boolean> {
+    const giver = context.commandGiver;
+    const titlePath =
+      !model.mql && model.target?.startsWith('/') ? model.target : path;
+    if (await AccessApi.canAtPath(giver, 'reload', titlePath)) return false;
+    const held = await AccessApi.heldExtents(giver);
+    this.fail(
+      context,
+      `${this.verb()} needs title over ${titlePath}; you hold ` +
+        (held.length > 0 ? held.join(', ') : 'nothing'),
+      'access-denied',
+    );
+    return true;
   }
 
   /** The verb name for messages (`typecheck` overrides it). */

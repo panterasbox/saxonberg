@@ -5,12 +5,14 @@
  * gate.
  *
  * Dispatches on the subcommand (default `status`):
- *   - `status` / `diff` / `log` — reads (wizard-tier, enforced by the YAML
- *     `requiresWizard` validator + `GitApi` itself).
- *   - `publish -m <msg>` — snapshot-and-push the writable dirty files.
+ *   - `status` / `diff` / `log` — reads, open to any signed-in avatar
+ *     (wizard-axis D14).
+ *   - `publish -m <msg> [--dry-run]` — snapshot-and-push the writable dirty
+ *     files (each asks the one source-write predicate), or report the
+ *     split and touch nothing.
  *   - `revert <sha>` — additive, permission-scoped rollback.
  *
- * Holds **no authz beyond the YAML validator** and passes **no actor** —
+ * Holds **no authz of its own** and passes **no actor** —
  * `GitApi` derives the acting principal from execution context. Read-only
  * output rides `MessageApi.scene`; failures (a `GitError`, a missing
  * message/sha) surface as `controller-rejected` notes.
@@ -37,6 +39,7 @@ interface GitModel extends CommandModel {
   sha?: string;
   message?: string;
   limit?: number;
+  dryRun?: boolean;
 }
 
 export default class GitController extends CommandController<GitModel> {
@@ -125,7 +128,9 @@ export default class GitController extends CommandController<GitModel> {
       });
       return;
     }
-    const r: GitPublishResult = await GitApi.publish(message);
+    const r: GitPublishResult = await GitApi.publish(message, {
+      dryRun: model.dryRun === true,
+    });
     this.tell(context, renderPublish(r));
   }
 
@@ -175,7 +180,13 @@ function renderLogEntry(c: GitLogEntry): string {
 
 function renderPublish(r: GitPublishResult): string {
   const lines: string[] = [];
-  if (!r.committed) {
+  if (r.dryRun) {
+    lines.push(
+      r.committedPaths.length > 0
+        ? `Dry run — would commit: ${r.committedPaths.join(', ')}`
+        : `Dry run — nothing would be committed: ${r.detail}`
+    );
+  } else if (!r.committed) {
     lines.push(`Nothing committed: ${r.detail}`);
   } else {
     lines.push(

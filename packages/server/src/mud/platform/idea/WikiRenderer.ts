@@ -91,6 +91,8 @@ const LIMIT_KEYS = {
 
 /** The reader-preference setting declared on `Avatar` (D-9). */
 const APPETITE_SETTING = 'wiki.spoilerAppetite';
+/** The encyclopedia's namespace root — the zone whose owners read at 3. */
+const WIKI_ROOT = '/wiki';
 
 /**
  * ⭐ Who may run a render — and therefore **why criterion 49 is
@@ -235,8 +237,9 @@ export default class WikiRenderer extends Idea {
    * The reader's ceiling — **derived from identity, never stored**.
    *
    * The ladder, most-privileged first:
-   *   - **3** — a wizard. Code trust implies seeing everything the
-   *     content declares.
+   *   - **3** — the encyclopedia's moderators: the owner role on the
+   *     `/wiki` root zone (wizard-axis D6 — the wizard axis is authoring
+   *     TypeScript and confers no reading privilege).
    *   - **2** — may mutate the namespace zone (its owner role). If you
    *     can roll the page back, hiding its content from you is theatre.
    *   - **1** — may edit in the namespace, **or is simply a player**.
@@ -279,7 +282,11 @@ export default class WikiRenderer extends Idea {
     namespaceZone?: unknown,
   ): Promise<SpoilerLevel> {
     if (actor === null) return SpoilerLevels.OPEN;
-    if (await AccessApi.isWizard(actor)) return 3;
+    // ⭐ Level 3 is the encyclopedia's OWN capability (wizard-axis D6):
+    // the owner role on the `/wiki` root — its moderators. A wizard with
+    // no wiki title reads like any player.
+    const root = await this.wikiRoot();
+    if (root !== null && (await AccessApi.canMutateZone(actor, root))) return 3;
     const zone = isStuff(namespaceZone) ? namespaceZone : null;
     if (zone !== null) {
       if (await AccessApi.canMutateZone(actor, zone)) return 2;
@@ -292,6 +299,18 @@ export default class WikiRenderer extends Idea {
     // content". The rungs that need the zone are still the ones that
     // fail closed without it.
     return this.isPlayerReader(actor) ? 1 : SpoilerLevels.OPEN;
+  }
+
+  /**
+   * The `/wiki` root zone (loaded on use), or null when it is not seeded —
+   * the level-3 rung then fails closed.
+   */
+  private async wikiRoot(): Promise<Stuff | null> {
+    try {
+      return (await StuffApi.singleton<Stuff>(WIKI_ROOT)) ?? null;
+    } catch {
+      return null;
+    }
   }
 
   /**

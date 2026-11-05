@@ -303,8 +303,8 @@ reissue).
   boundary) from the **Business account**, skipping the proprietor's unpaid
   cover — see [employment.md](./employment.md). **No employer-solvency
   check** — the venue runs its P&L red by design (subsidy covers). `house
-  payroll <worker> <amount>` (operator-gated via `AuthorMixin` +
-  `requiresWizard`) stays the manual override, resolving the venue's account
+  payroll <worker> <amount>` (gated on the venue SEAT — see
+  [employment.md](./employment.md); no longer `requiresWizard`) stays the manual override, resolving the venue's account
   via the covering Business (`EmploymentApi.businessAt`), now redundant for
   the normal loop.
 - **Demo sales tax** — `BankingApi.remitDemoTax(sellerAccount, saleAmount)`:
@@ -528,8 +528,8 @@ The plan flagged 6 open implementation choices; settled as reached:
    (open/deposit/withdraw/transfer/balance/statement),
    `wallet` (use/freeze), `tab` (settle/skip), plus the flat `pay`; the
    operator surface splits **`reserve`** (mint/supply, central bank) vs
-   **`house`** (pnl/payroll, venue owner): `house` is `requiresWizard` via
-   `AuthorMixin`; **`reserve` is `requiresGovernor`** (the
+   **`house`** (pnl/payroll, venue owner): `house` is gated on the venue
+   seat (it once carried `requiresWizard`); **`reserve` is `requiresGovernor`** (the
    `central-bank-governor` office — see [governance.md](./governance.md)),
    the monetary-authority axis rather than code-trust. 13 flat verbs → 6, collapsing most verb collisions
    (no more banking `open` shadowing the boundary `open`). A pure view-layer
