@@ -52,6 +52,14 @@ table ([employment.md](./employment.md)). Pack-shipped for the authored
 ships, runtime-written by a yard sale, `onVanish: 'keep'`. See
 [ship.md](./ship.md).
 
+⭐ **`berth-book` — a harbor's berth record** (paper D45): the berth
+book's lines and hails, one document per harbor at
+`<registerPrefix>/record`, filed by the harbor through
+`saveToRegister` (the harbor is a `Registrar` of its own branch). The book
+on the desk loads it on use and writes through; burning the book forgives
+nothing. Runtime-written, `onVanish: 'keep'`. See
+[harbor.md](./harbor.md).
+
 ⭐ **`berth-roll` — a landing's list of the ships lying at it** (harbors
 review 1). It was a live `Persistable(Idea)` per landing with no behavior
 beyond add/remove/list and nothing targeting it — so it is a document:

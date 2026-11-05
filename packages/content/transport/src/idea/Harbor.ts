@@ -6,7 +6,9 @@
  *   record*). It is the `HarborBook` on the office desk this row names
  *   (`book:`, followed forward — never searched for): who has been given
  *   which quay and since when, the debts, the hails. The harbor holds no
- *   state of its own and persists nothing; it reads and writes the book.
+ *   state of its own; it reads and writes the book, and ⭐ it FILES the
+ *   book's record (a registrar of its own branch — `registerPrefix:`, kind
+ *   `berth-book`), so the record outlives the book (paper D45).
  *   A ship hails the office (`answerHail`), is given a quay or sent to the
  *   roads, comes in on a course to the quay (the quay asks `admit` before
  *   her course is laid), makes fast (`madeFast` — her time alongside
@@ -37,6 +39,10 @@
 
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
 import { SingletonMixin } from '@saxonberg/server/mud/lib/stuff/Singleton';
+import { RegistrarMixin, type Registrar } from '@saxonberg/server/mud/lib/document/Register';
+import { CallSecurity } from '@saxonberg/server/mud/lib/security/decorators';
+import { SecurityPolicies } from '@saxonberg/server/mud/lib/security/SecurityPolicies';
+import { DocumentApi } from '@saxonberg/server/mud/api/document';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -51,7 +57,7 @@ import BerthExit from '@saxonberg/server/mud/platform/idea/BerthExit';
 import type { LineFrame } from '@saxonberg/server/mud/lib/expanse/LineFrame';
 import { Expanse } from '@saxonberg/server/mud/lib/expanse/Expanse';
 import type { Bill } from '@saxonberg/server/mud/lib/banking/Payable';
-import HarborBook, { type BerthRecord, type HarborCriterion } from '../thing/HarborBook';
+import HarborBook, { type BerthRecord, type BerthBookRecord, type HarborCriterion } from '../thing/HarborBook';
 
 export type { BerthRecord, HailRecord, HarborCriterion } from '../thing/HarborBook';
 
@@ -93,7 +99,18 @@ const HOUR_S = 3_600;
 /** How far ahead the office's next opening is looked for, days. */
 const OPENING_LOOKAHEAD_DAYS = 7;
 
-export default class Harbor extends SingletonMixin(Idea) {
+/**
+ * Only this harbor's own berth book files its record — the book names the
+ * harbor (`harbor:`), and the write is about that book's record.
+ */
+const FromItsOwnBook = SecurityPolicies.FromClass(() => HarborBook, {
+  where: (caller, target) => (caller as HarborBook).getHarbor() === (target as Stuff).getTemplatePath(),
+});
+
+/** The leaf the berth book's record is filed at, under the harbor's branch. */
+const RECORD_LEAF = 'record';
+
+export default class Harbor extends RegistrarMixin(SingletonMixin(Idea)) {
   static fieldMeta: FieldMeta = {
     quays: { persistent: true, authorable: true },
     office: { persistent: true, authorable: true, ref: 'identity:relation' },
@@ -157,7 +174,30 @@ export default class Harbor extends SingletonMixin(Idea) {
     const b = await StuffApi.singleton<Stuff>(this.book);
     if (!(b instanceof HarborBook)) throw new Error(`Harbor ${path}: ${this.book} is not a berth book`);
     if (b.getHarbor() !== path) throw new Error(`Harbor ${path}: the book ${this.book} is kept for ${b.getHarbor() ?? 'no harbor'}`);
+    await b.loadRecord();
     return b;
+  }
+
+  /**
+   * ⭐ Where the berth book's record is filed — this harbor's own branch
+   * (`registerPrefix:`), or `''` when none is authored (a harbor that files
+   * nothing keeps its book only while the world runs).
+   */
+  public recordPath(): string {
+    const prefix = this.getRegisterPrefix().replace(/\/+$/, '');
+    return prefix === '' ? '' : `${prefix}/${RECORD_LEAF}`;
+  }
+
+  /**
+   * ⭐⭐ File the berth book's record — *you file; you do not hold the pen*
+   * (paper D45). Written through the register transport as this harbor;
+   * only its own book calls it.
+   */
+  @CallSecurity(FromItsOwnBook)
+  public async fileRecord(record: BerthBookRecord): Promise<void> {
+    const path = this.recordPath();
+    if (path === '') return;
+    await DocumentApi.saveToRegister(this as unknown as Stuff & Registrar, path, { ...record } as unknown as Record<string, unknown>);
   }
 
   /** The spec of a quay this harbor keeps, or `null`. */

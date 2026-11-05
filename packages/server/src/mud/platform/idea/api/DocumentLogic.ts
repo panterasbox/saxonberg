@@ -754,6 +754,7 @@ async function pagesOfImpl(path: string): Promise<DocumentPages | null> {
     case 'archetype':
     case 'map':
     case 'berth-roll':
+    case 'berth-book':
       return null;
     default: {
       const unreachable: never = kind;

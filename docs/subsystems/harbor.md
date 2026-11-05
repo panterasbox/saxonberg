@@ -22,8 +22,8 @@ sail. Her crew can walk off her.
 
 | piece | class (pack) | what it is |
 |---|---|---|
-| the harbor | `Harbor` (`/system/transport/idea/Harbor`), one singleton row per port | the **posted rules** (quays, rates, seat, office, roads, exempt) and how they are applied. It holds no state and persists nothing. |
-| the berth book | `HarborBook` (`/system/transport/thing/HarborBook`), a persistable fixture on the office desk | **the record**: lines (berths given, ships alongside, debts, dues stamped paid) and the last hail of each ship |
+| the harbor | `Harbor` (`/system/transport/idea/Harbor`) = `Registrar(Singleton(Idea))`, one row per port | the **posted rules** (quays, rates, seat, office, roads, exempt) and how they are applied. It holds no state; it **files** the berth book's record (paper D45). |
+| the berth book | `HarborBook` (`/system/transport/thing/HarborBook`) = `Marked(Payable(Good))`, a fixture on the office desk | where **the record** is kept and read: lines (berths given, ships alongside, debts, dues stamped paid) and the last hail of each ship. The record itself is a `berth-book` document the harbor files. |
 | a kept quay | `HarborQuay` (`/system/transport/location/HarborQuay`) = `Berthing(Quay)` | a quay where a ship comes alongside only at the berth she was given; it asks its `harbor:` |
 | the office | `HarborOffice` (`/system/transport/location/HarborOffice`) = `Payable(Hailable(FrameSited(Locale)))` | the room a hail reaches and where dues are paid; sited on the river with `frameSite.landing: false` |
 | the berth roll | a `berth-roll` **document** at `/platform/berths<landing path>` (kernel) | a landing's list of who lies at it, each ship writing her own line. It is not the book (see below). |
@@ -34,7 +34,7 @@ A river's public landing (`Quay`, `Shore`) composes none of this and
 stays first-come: any ship may lie there and go. A ship left asleep at an
 unkept landing is charged by nobody (see Deferred).
 
-## ⭐⭐ The rules on the row, the record on the book
+## ⭐⭐ The rules on the row, the record filed, the book its page
 
 `Harbor` keeps only what is **posted**, and its authored fields are all of
 it:
@@ -50,11 +50,23 @@ it:
   whose book is kept for another harbor (`HarborBook.harbor`), throws.
 
 `HarborBook` keeps the record and knows nothing of the criteria. It is
-the fixture players act on (`look book`, `pay book`, `berth … at`) and
-the thing an author places. It is persistable: a path-string `props:`
-entry stands it up through `StuffApi.singleton`, which restores its
-record. Its fields are `lines: BerthRecord[]` and `hails:
-HailRecord[]`:
+the fixture players act on (`look book`, `read book`, `pay book`,
+`berth … at`) and the thing an author places.
+
+⭐⭐ **The record is filed, not held** (paper D45, 2026-11-05 — an
+institution's records are documents and the book on the desk is their
+page; paper's ledger and the ship register work the same way). The lines
+and hails are ONE `berth-book` document at `<registerPrefix>/record` in the
+harbor's own branch (`registerOwner: /world/terminus/harbor`,
+`registerPrefix: …/berths`, `registerKind: berth-book` on the harbor row).
+The harbor files it (`Harbor.fileRecord` → `DocumentApi.saveToRegister`,
+gated to the harbor's own book — *you file; you do not hold the pen*).
+The book loads it on use (`loadRecord`: the harbor's `liveBook`, a
+`read`, the book's own creation) and writes every change through, in
+order. ⭐ **Burn or lose the book and no debt is forgiven:** the next book
+on the desk reads the same record. The harbor still holds no state of its
+own (review 2 stands); the book is no longer a persistence host. Its
+working fields are `lines: BerthRecord[]` and `hails: HailRecord[]`:
 
 - **`BerthRecord`** `{ship, name, lengthM, quay, assignedAtS, sinceS,
   paidThroughS, leftAtS?}`. `sinceS` is `null` while she is still coming
@@ -121,7 +133,7 @@ ashore from the Hesper, made fast round the bollard with a clove hitch."*
 
 ## ⭐ Two lists, two questions: the berth book and the berth roll
 
-| | the berth book (`HarborBook.lines`) | the berth roll (`berth-roll` document) |
+| | the berth book (the `berth-book` document) | the berth roll (`berth-roll` document) |
 |---|---|---|
 | answers | *who was given which quay, since when, and what is owed* | *which ships lie made fast at this landing* |
 | exists at | kept quays only (a harbor's book) | every landing a ship makes fast at, kept or not |

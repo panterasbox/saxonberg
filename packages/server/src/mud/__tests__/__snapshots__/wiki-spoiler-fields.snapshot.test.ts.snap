@@ -1141,7 +1141,6 @@ Recipe.requiresHeatK = 1 (name 0)
 Recipe.soils = 1 (name 0)
 Recipe.toolCapabilities = 1 (name 0)
 Recipe.volatiles = 1 (name 0)
-RegisterBook.government = 0
 RegisterBook.registerPrefix = 0
 RegisterBook.registerTitle = 0
 RegistrarMixin.registerKind = 0

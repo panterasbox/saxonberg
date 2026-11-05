@@ -1,27 +1,25 @@
 /**
- * RegisterBook — ⭐ **the ship register, open on a desk**.
+ * RegisterBook — ⭐ **the book of a house's or a polity's records, open on a
+ * desk** (paper D7; harbors' ship register): `read ledger` at the print
+ * shop, `read register` at the harbor office.
  *
- * `read register` at the harbor office: every ship entered in the register
- * of the polity this book names (`government:`), by name, kind, flag and
- * owner — the company that holds her title — and, beside it, who holds
- * that company in sixty-fourths (its cap table, read off the company
- * itself: the register keeps the title, the company keeps its owners —
- * review 1). The page is DERIVED each time it is read (`refreshMarks`) —
- * never authored, never stale, and never written by anybody holding the
- * book: the register holds the pen, and the table moves only by a sale or
- * a gift.
+ * ⭐⭐ **A view, never the record.** The book names a document branch
+ * (`registerPrefix:` — a business's feed, a government's register of ships)
+ * and its page is DERIVED each time it is read (`refreshMarks`): one line
+ * per record filed there, never authored, never stale, and never written by
+ * anybody holding the book. The records are documents; burn the book and
+ * they stand, and a new book reads them again. An extract is `print <book>`
+ * — the page frozen as an edition whose source is the prefix.
  *
- * ⭐ The register is public (lens 4): anybody who can read can find out a
- * ship flying colors she is not entered under — false colors are a claim
- * the book contradicts.
+ * ⭐ **What a line says is the record's kind.** A ship's entry reads as her
+ * name, kind and flag, the company that holds her title and — beside it —
+ * who holds that company in sixty-fourths (its cap table, read off the
+ * company itself: the register keeps the title, the company keeps its
+ * owners). Any other paper reads as its kind, its leaf and its title.
  *
- * ⭐ **Or a house's ledger** (paper D7): `registerPrefix:` names a document
- * prefix instead — a business's own branch — and the page lists one line per
- * paper filed under it (`read ledger` at the print shop). Same rule: the page
- * is a VIEW of the records, written by nobody holding the book; burn the book
- * and the documents stand. An extract is `print <book>` — the page frozen as
- * an edition whose source is the prefix. One class, two ways to name what it
- * reads; `refreshMarks` branches on which is set (`government` first).
+ * ⭐ A register is public (lens 4): anybody who can read can find out a ship
+ * flying colors she is not entered under — false colors are a claim the
+ * book contradicts.
  */
 
 import Good from '../../lib/stuff/Good';
@@ -30,27 +28,28 @@ import ShipRegister, { type ShipEntry } from '../idea/ShipRegister';
 import Ship from '../idea/Ship';
 import { GovernmentApi } from '../../api/government';
 import { ExpanseApi } from '../../api/expanse';
-import type { CapTable } from '../../lib/employment/CapTable';
-import { StuffApi } from '../../api/stuff';
 import { DocumentApi } from '../../api/document';
+import { StuffApi } from '../../api/stuff';
+import type { CapTable } from '../../lib/employment/CapTable';
+import type { StoredDocument } from '../../lib/document/StoredDocument';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { FieldMeta } from '../../lib/mixin';
 
-/** A ledger page lists this many papers; the rest are older pages. */
+/** A page lists this many records; the rest are older pages. */
 const LINES_PER_PAGE = 40;
+
+/** The document kind a ship's register entry is filed as. */
+const SHIP_ENTRY_KIND = 'ship';
 
 export default class RegisterBook extends MarkedMixin(Good) {
   static fieldMeta: FieldMeta = {
-    government: { persistent: true, authorable: true },
     registerPrefix: { persistent: true, authorable: true },
     registerTitle: { persistent: true, authorable: true },
   };
 
-  /** ⭐ Whose register this book is — a government key. */
-  protected government = '';
-  /** ⭐ Or: what this book is the ledger OF — a document prefix. */
+  /** ⭐ What this book is the page OF — a document branch. */
   protected registerPrefix = '';
-  /** Whose ledger it is, in words (`the Terminus Gazette`); `''` = read off the prefix. */
+  /** What the book is, in words, for its head (`the register of ships of the City of Terminus`); `''` = read off the prefix. */
   protected registerTitle = '';
 
   constructor() {
@@ -58,63 +57,84 @@ export default class RegisterBook extends MarkedMixin(Good) {
     this.fixedInPlace = true;
   }
 
-  public getGovernment(): string {
-    return this.government;
-  }
-  public setGovernment(value: string): void {
-    this.government = typeof value === 'string' ? value : '';
-  }
-
   public getRegisterPrefix(): string {
     return this.registerPrefix;
   }
+
   public setRegisterPrefix(value: string): void {
     this.registerPrefix = typeof value === 'string' ? value.replace(/\/+$/, '') : '';
   }
 
-  /** ⭐ The page, as the register (or the ledger) stands now. */
+  public setRegisterTitle(value: string): void {
+    this.registerTitle = typeof value === 'string' ? value : '';
+  }
+
+  /** ⭐ The page, as the records stand now. */
   public override async refreshMarks(_viewer: Stuff): Promise<void> {
     this.setMarkText(await this.currentPage());
   }
 
-  /** The page in words — the ship register's, or the house ledger's. */
+  /** The page in words: one line per record, in the order filed. */
   public async currentPage(): Promise<string> {
-    if (this.government !== '') {
-      const polity = GovernmentApi.getGovernment(this.government)?.name ?? this.government;
-      const register = await this.shipRegister();
-      const entries = register === null ? [] : await register.entries();
-      const owners = new Map<string, (Stuff & CapTable) | null>();
-      for (const e of entries) owners.set(e.key, await this.companyOf(e));
-      return this.pageOf(polity, entries, owners);
-    }
-    return this.ledgerPage();
-  }
-
-  /** A house's ledger: one line per paper filed under the prefix, newest last. */
-  private async ledgerPage(): Promise<string> {
     if (this.registerPrefix === '') return '';
-    const docs = await DocumentApi.list(`${this.registerPrefix}/`);
-    const papers = docs.filter((d) => d.getKind() !== 'edition');
-    const head = `THE BOOK of ${this.houseName()}.`;
-    if (papers.length === 0) return `${head} Nothing is entered.`;
+    const docs = (await DocumentApi.list(`${this.registerPrefix}/`)).filter((d) => d.getKind() !== 'edition');
+    const head = `${this.headWords()}.`;
+    if (docs.length === 0) return `${head} Nothing is entered.`;
+    // Stable: records with a filing time (a ship's entry) in that order; the rest as listed.
+    const ordered = docs
+      .map((d, i) => ({ d, at: Number((d.getData() as Record<string, unknown>).registeredAtS ?? 0) || 0, i }))
+      .sort((a, b) => a.at - b.at || a.i - b.i)
+      .slice(-LINES_PER_PAGE);
     const lines: string[] = [];
-    for (const d of papers.slice(-LINES_PER_PAGE)) {
-      const pages = await DocumentApi.pagesOf(d.getPath());
-      const leaf = d.getPath().split('/').filter(Boolean).pop() ?? d.getPath();
-      lines.push(`${d.getKind()} ${leaf}: ${(pages?.title ?? '').trim() || 'a paper'}.`);
-    }
+    for (const { d } of ordered) lines.push(await this.lineFor(d));
     return `${head} ${lines.join(' ')}`;
   }
 
-  private houseName(): string {
-    if (this.registerTitle !== '') return this.registerTitle;
-    const parts = this.registerPrefix.split('/').filter(Boolean);
-    return (parts[parts.length - 1] ?? 'the house').replace(/-/g, ' ');
+  /** One record's line — in the words its kind is read in. */
+  private async lineFor(doc: StoredDocument): Promise<string> {
+    if (doc.getKind() === SHIP_ENTRY_KIND) {
+      const entry = await this.shipEntryOf(doc);
+      if (entry !== null) return this.shipLine(entry);
+    }
+    const pages = await DocumentApi.pagesOf(doc.getPath());
+    const leaf = doc.getPath().split('/').filter(Boolean).pop() ?? doc.getPath();
+    return `${doc.getKind()} ${leaf}: ${(pages?.title ?? '').trim() || 'a paper'}.`;
+  }
+
+  /**
+   * A ship's entry, as her register reads it — the register named by her
+   * flag (its government's `shipRegister`), followed forward, never searched.
+   */
+  private async shipEntryOf(doc: StoredDocument): Promise<ShipEntry | null> {
+    const data = doc.getData() as Record<string, unknown>;
+    const flag = typeof data.flag === 'string' ? data.flag : '';
+    const name = typeof data.name === 'string' ? data.name : '';
+    const path = flag === '' ? '' : (GovernmentApi.getGovernment(flag)?.shipRegister ?? '');
+    if (path === '' || name === '') return null;
+    const reg = await StuffApi.singleton<Stuff>(path).catch((err) => {
+      console.warn(`RegisterBook: ${flag}'s register '${path}' did not stand up:`, err);
+      return null;
+    });
+    return reg instanceof ShipRegister ? reg.entryNamed(name) : null;
+  }
+
+  /** A ship's entry: her name, kind and flag, her owning company, and who holds it. */
+  private async shipLine(e: ShipEntry): Promise<string> {
+    const polity = GovernmentApi.getGovernment(e.flag)?.name ?? e.flag;
+    // A ship of a kind says her kind; an authored ship is her own row and says none.
+    const kind = e.kind !== e.key ? ` (${e.kind.split('/').pop() ?? e.kind})` : '';
+    const company = await this.companyOf(e);
+    const title = company?.getPresentation() ?? (e.owner.split('/').pop() || 'nobody');
+    const total = company?.totalUnits() ?? 0;
+    const held = (company?.capTableRows() ?? [])
+      .map((x) => `${x.holder.name ?? x.holder.path.split('/').pop() ?? x.holder.path} ${x.units}/${total}`)
+      .join('; ');
+    return `The ${e.name}${kind}, under the flag of ${polity}: owned by ${title}${held === '' ? '' : `, held ${held}`}.`;
   }
 
   /**
    * The company that holds her title, standing — asked of HER (stood up by
-   * her handle if she sleeps), never searched for. `null` (the page then
+   * her handle if she sleeps), never searched for. `null` (the line then
    * names the title alone) when she or it does not stand, or her company
    * is not the one entered.
    */
@@ -125,34 +145,9 @@ export default class RegisterBook extends MarkedMixin(Good) {
     return company !== null && company.getIdentityPath() === e.owner ? company : null;
   }
 
-  /** The register this book is the page of — the one its government keeps (`Government.shipRegister`). */
-  private async shipRegister(): Promise<ShipRegister | null> {
-    const path = this.government ? GovernmentApi.getGovernment(this.government)?.shipRegister : '';
-    if (!path) return null;
-    const reg = await StuffApi.singleton<Stuff>(path).catch((err) => {
-      console.warn(`RegisterBook: ${this.government}'s register '${path}' did not stand up:`, err);
-      return null;
-    });
-    return reg instanceof ShipRegister ? reg : null;
-  }
-
-  /** The register's page in words: one line per ship, in the order entered. */
-  private pageOf(polity: string, entries: ShipEntry[], owners: Map<string, (Stuff & CapTable) | null>): string {
-    const head = `THE REGISTER OF SHIPS of ${polity}.`;
-    if (entries.length === 0) return `${head} No ship is entered.`;
-    const lines = [...entries]
-      .sort((a, b) => a.registeredAtS - b.registeredAtS)
-      .map((e) => {
-        // A ship of a kind says her kind; an authored ship is her own row and says none.
-        const kind = e.kind !== e.key ? ` (${e.kind.split('/').pop() ?? e.kind})` : '';
-        const company = owners.get(e.key) ?? null;
-        const title = company?.getPresentation() ?? (e.owner.split('/').pop() || 'nobody');
-        const total = company?.totalUnits() ?? 0;
-        const held = (company?.capTableRows() ?? [])
-          .map((x) => `${x.holder.name ?? x.holder.path.split('/').pop() ?? x.holder.path} ${x.units}/${total}`)
-          .join('; ');
-        return `The ${e.name}${kind}, under the flag of ${polity}: owned by ${title}${held === '' ? '' : `, held ${held}`}.`;
-      });
-    return `${head} ${lines.join(' ')}`;
+  private headWords(): string {
+    if (this.registerTitle !== '') return this.registerTitle.charAt(0).toUpperCase() + this.registerTitle.slice(1);
+    const parts = this.registerPrefix.split('/').filter(Boolean);
+    return `The book of ${(parts[parts.length - 1] ?? 'the house').replace(/-/g, ' ')}`;
   }
 }

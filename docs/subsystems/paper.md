@@ -76,8 +76,15 @@ Built by the paper build (MR on `reqs/paper`, 2026-11). Packs:
   `write` / `tear <book> page <n>`; tearing a page out takes the leaf's
   words (or its edition page) into a loose `Sheet` and leaves a stub.
   ⚠ Binding sheets into a book (`fit notebook`) is deferred.
-- **`RegisterBook`**: a fixed ledger that holds nothing — `registerPrefix`
-  names the papers it lists on each read.
+- **`RegisterBook`**: a fixed book that holds nothing — `registerPrefix`
+  names the branch it lists on each read (the Gazette's feed; a
+  government's register of ships). ⭐ What a line says is the record's
+  kind: a ship's entry reads as her name, flag, company and shareholders
+  (harbors' line), any other paper as its kind, leaf and title. ⭐⭐ The
+  rule it embodies (D45): **an institution's records are documents; the
+  book on the desk is their page** — the harbor's berth book follows it
+  too. A person's own handwriting is the other half (D44): it lives on
+  the leaf.
 - **`Envelope`**: shut, it vetoes in and out; `seal` (gum or wax — wax wants
   wax in hand). On `Sealable`: `seal`, `sealBroken` — opening breaks it,
   closing never mends it, a look says so.

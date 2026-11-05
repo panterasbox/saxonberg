@@ -27,7 +27,7 @@ describe('⭐ a register book', () => {
     const book = makeStuff(() => new RegisterBook());
     book.setRegisterPrefix('/w/shop/');
     await book.refreshMarks(book);
-    expect(book.getMarkText()).toMatch(/THE BOOK of shop\..*paper a1/);
+    expect(book.getMarkText()).toMatch(/The book of shop\..*paper a1/);
     papers = [...papers, doc('/w/shop/warehouse-receipts/a2', 'warehouse-receipt'), doc('/w/shop/warehouse-receipts/a1/editions/h', 'edition')];
     await book.refreshMarks(book);
     expect(book.getMarkText()).toMatch(/paper a2/);

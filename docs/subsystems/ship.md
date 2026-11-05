@@ -220,7 +220,9 @@ ShipEntry { name, kind, key, flag, registeredAtS, owner }
 - The authored ships' entries ship in the platform pack
   (`content/ships/terminus-city/{hesper,ostrander,kittiwake,corrigan}.yaml`).
 - `read register` on the harbor office desk (`RegisterBook`,
-  `Marked(Good)`) derives its page each read: name, kind, flag and owner,
+  `Marked(Good)`, `registerPrefix: /platform/ships/terminus-city` — the
+  same view class as paper's ledger; a ship entry's line is rendered by
+  its kind) derives its page each read: name, kind, flag and owner,
   and beside it who holds that company (*"…: owned by the Petrel's
   company, held Ann 64/64."*). The register is public, so false colors can
   be caught by anyone.

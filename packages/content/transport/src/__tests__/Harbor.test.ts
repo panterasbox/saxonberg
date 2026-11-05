@@ -14,7 +14,7 @@ import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
-import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
+import { DocumentApi } from '@saxonberg/server/mud/api/document';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
 import { LineFrameMixin, type BarWater } from '@saxonberg/server/mud/lib/expanse/LineFrame';
@@ -55,6 +55,7 @@ class TestRiver extends LineFrameMixin(Idea) {
 let fixtures: Map<string, Stuff>;
 let harbor: Harbor;
 let book: HarborBook;
+let filed: Map<string, Record<string, unknown>>;
 let river: TestRiver;
 let town: HarborQuay;
 let works: Business;
@@ -99,6 +100,9 @@ beforeEach(() => {
   harbor.setRates({ duesPerMeterPerDay: 0.25 });
   harbor.setExempt(['/test/ships/ferry']);
   harbor.setBook(BOOK);
+  harbor.setRegisterOwner('/test/port');
+  harbor.setRegisterPrefix('/test/port/berths');
+  harbor.setRegisterKind('berth-book');
   fixtures.set(HARBOR, harbor as unknown as Stuff);
   book = makeStuffAtPath(() => new HarborBook(), BOOK);
   book.setHarbor(HARBOR);
@@ -108,7 +112,14 @@ beforeEach(() => {
     if (!s) throw new Error(`no fixture ${p}`);
     return s;
   }) as never);
-  vi.spyOn(PersistableApi, 'capture').mockResolvedValue(undefined as never);
+  filed = new Map();
+  vi.spyOn(DocumentApi, 'saveToRegister').mockImplementation((async (_reg: unknown, path: string, data: Record<string, unknown>) => {
+    filed.set(path, structuredClone(data));
+  }) as never);
+  vi.spyOn(DocumentApi, 'read').mockImplementation((async (path: string) => {
+    const d = filed.get(path);
+    return d ? ({ getData: () => d } as never) : null;
+  }) as never);
   vi.spyOn(MessageApi, 'scene').mockImplementation(() => {
     const b: Record<string, unknown> = {};
     b.topic = () => b;
@@ -421,19 +432,36 @@ describe('the harbormaster’s call — the NPC’s and no other (A2, P8, P11)',
   });
 });
 
-describe('⭐ the berth book keeps the harbor’s record; the harbor keeps only its rules (review 2)', () => {
-  it('the harbor persists nothing — every line and hail is written on the book, and captured there', async () => {
+describe('⭐ the berth book keeps the harbor’s record, filed; the harbor keeps only its rules (review 2, paper D45)', () => {
+  it('⭐ the harbor holds no state; the book\'s record is FILED by the harbor, and a new book reads it again (paper D45)', async () => {
     expect(MixinApi.isPersistable(harbor as unknown as Stuff)).toBe(false);
-    expect(MixinApi.isPersistable(book as unknown as Stuff)).toBe(true);
-    const capture = vi.mocked(PersistableApi.capture);
-    capture.mockClear();
+    expect(MixinApi.isPersistable(book as unknown as Stuff)).toBe(false);
     const hesper = ship('/test/ships/hesper', 'the Hesper', 30, 1.2);
     river.levelM = 1.5;
     expect(await harbor.answerHail(hesper as unknown as Stuff, at(12))).toMatchObject({ kind: 'quay', quay: TOWN });
     expect(book.getLines(at(12)).map((r) => [r.name, r.quay, r.sinceS])).toEqual([['the Hesper', TOWN, null]]);
     expect(book.lastHail('/test/ships/hesper', at(12))?.quay).toBe(TOWN);
-    expect(capture.mock.calls.every(([host]) => host === (book as unknown as Stuff))).toBe(true);
-    expect(capture).toHaveBeenCalled();
+    await book.whenFiled();
+    expect([...filed.keys()]).toEqual(['/test/port/berths/record']);
+    expect(vi.mocked(DocumentApi.saveToRegister).mock.calls.every(([reg]) => reg === (harbor as unknown as Stuff))).toBe(true);
+
+    // The book is lost: a new one on the desk reads the same record.
+    const again = makeStuffAtPath(() => new HarborBook(), '/test/port/thing/new-book');
+    again.setHarbor(HARBOR);
+    await again.loadRecord();
+    expect(again.getLines(at(12)).map((r) => [r.name, r.quay])).toEqual([['the Hesper', TOWN]]);
+    expect(again.lastHail('/test/ships/hesper', at(12))?.quay).toBe(TOWN);
+  });
+
+  it('⭐ a debt is not forgiven by losing the book', async () => {
+    const smack = ship('/test/ships/smack', 'the Smack', 9, 1.2);
+    await harbor.madeFast(smack as unknown as Stuff, FISH, at(10));
+    await harbor.release(smack as unknown as Stuff, at(10) + 2 * DAY);
+    await book.whenFiled();
+    const again = makeStuffAtPath(() => new HarborBook(), '/test/port/thing/new-book');
+    again.setHarbor(HARBOR);
+    await again.loadRecord();
+    expect(harbor.duesOwedIn(again, '/test/ships/smack', at(10) + 3 * DAY)).toBeGreaterThan(0);
   });
 
   it('a book kept for another harbor, or none named, is an authoring error the act throws on', async () => {

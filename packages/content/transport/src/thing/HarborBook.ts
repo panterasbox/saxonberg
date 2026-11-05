@@ -4,11 +4,16 @@
  * which quay and since when, who left owing, and what each ship hailing the
  * office was told. `look book` reads today's page.
  *
- * ⭐ The record is HERE, on the thing players act on and an author places
- * (lens 2 — a second port is a second book on a second desk, rows only).
- * Its `Harbor` keeps only the posted rules and applies them, reading and
- * writing this book through the record's own methods below; the book
- * knows nothing of the criteria, and the harbor holds no state of its own.
+ * ⭐⭐ **The record is FILED; the book is where it is kept and read**
+ * (paper D45 — an institution's records are documents, the book on the desk
+ * is their page). The lines and hails are one `berth-book` document in the
+ * harbor's own branch, filed by the harbor (`Harbor.fileRecord`, the
+ * register transport — *you file; you do not hold the pen*). The book loads
+ * it on use and writes every change through; burn or lose the book and the
+ * debts stand, and the next book on the desk reads them again. The `Harbor`
+ * keeps only the posted rules and applies them through the record's own
+ * methods below; the book knows nothing of the criteria. A second port is
+ * still a second book and a second harbor row (lens 2 — rows only).
  *
  * - **`lines`** — one line per ship given a quay (`sinceS` null while she
  *   is still coming in), and a line kept as a DEBT when she cast off owing
@@ -21,9 +26,10 @@
  * - An assignment she never takes up, and a hail, lapse after twelve hours
  *   (grain).
  *
- * A fixture (its rows author `fixedInPlace: true`) and persistable: a
- * path-string `props:` entry stands it up through `StuffApi.singleton`,
- * which restores its record — the same call its harbor makes (`book:`).
+ * A fixture (its rows author `fixedInPlace: true`): a path-string `props:`
+ * entry stands it up through `StuffApi.singleton`, the same call its harbor
+ * makes (`book:`), and the harbor's first use loads its record. `read book`
+ * reads today's page (it bears marks); `look book` shows it too.
  * It is where the harbormaster's acts are afforded (`berth <ship> at
  * <quay>`, `berth <ship> roads` — the verb refuses anyone not keeping the
  * harbor on shift) and what dues are paid at (`Payable`: `pay book`;
@@ -32,14 +38,15 @@
 
 import Good from '@saxonberg/server/mud/platform/thing/Good';
 import { PayableMixin, type Bill } from '@saxonberg/server/mud/lib/banking/Payable';
-import { PersistableMixin } from '@saxonberg/server/mud/lib/persistence/Persistable';
-import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
+import { MarkedMixin } from '@saxonberg/server/mud/lib/description/Marked';
+import { DocumentApi } from '@saxonberg/server/mud/api/document';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { MarkupAugmenter } from '@saxonberg/server/mud/api/mml';
+import type { HydrationSource, HydrateOutcome } from '@saxonberg/server/mud/lib/persistence/PersistenceSlice';
 import Harbor from '../idea/Harbor';
 
 /** One line of the book. */
@@ -94,7 +101,13 @@ const HOUR_S = 3_600;
 /** An assignment she never takes up, and a hail, lapse after this long (grain), s. */
 const ASSIGNMENT_HOLDS_S = 12 * HOUR_S;
 
-export default class HarborBook extends PersistableMixin(PayableMixin(Good)) {
+/** What the filed `berth-book` document holds. */
+export interface BerthBookRecord {
+  lines: BerthRecord[];
+  hails: HailRecord[];
+}
+
+export default class HarborBook extends MarkedMixin(PayableMixin(Good)) {
   /** ⭐ The harbormaster's call is made at the book. */
   static commandContributions: CommandContributions = {
     peers: ['system/transport/cmd/harbor/berth.yaml'],
@@ -102,19 +115,44 @@ export default class HarborBook extends PersistableMixin(PayableMixin(Good)) {
 
   static fieldMeta: FieldMeta = {
     harbor: { persistent: true, authorable: true, ref: 'identity:relation' },
-    lines: { persistent: true, runtimeState: true },
-    hails: { persistent: true, runtimeState: true },
   };
 
   /** ⭐ The book's page, read off its own lines (derived — never written by a look). */
   static markupAugmenters: MarkupAugmenter[] = [bookAugmenter];
 
+  /**
+   * ⭐ The book remembers nothing itself: its record is the filed
+   * `berth-book` document, read as it stands up so a first `look` shows the
+   * page. `required: false` — an unreachable store (early boot, every test
+   * run) is a recorded skip; the book stands with today's page empty, which
+   * is also what a new harbor's book looks like.
+   */
+  static hydrationSource: HydrationSource = {
+    name: 'documents (berth-book)',
+    required: false,
+  };
+
+  static async hydrateFromSource(host: Stuff): Promise<HydrateOutcome> {
+    if (!(host instanceof HarborBook)) return { status: 'skipped', reason: 'not a berth book' };
+    try {
+      await host.loadRecord();
+      return { status: 'hydrated' };
+    } catch (err) {
+      // ⚠ Never throw: a throw unregisters the half-built book.
+      return { status: 'unreachable', reason: String(err) };
+    }
+  }
+
   /** The port whose book this is, by row path — whose posted rules it is kept by. */
   protected harbor: string | null = null;
-  /** The book's lines: berths given, ships alongside, debts. */
+  /** The book's lines: berths given, ships alongside, debts — the filed record, as loaded. */
   protected lines: BerthRecord[] = [];
-  /** The last answer given each ship that hailed. */
+  /** The last answer given each ship that hailed — the filed record, as loaded. */
   protected hails: HailRecord[] = [];
+  /** The load in flight or done (the record is read once, on first use). */
+  private loading: Promise<void> | null = null;
+  /** Writes through to the filed record, in order. */
+  private filing: Promise<void> = Promise.resolve();
 
   public getHarbor(): string | null { return this.harbor; }
   public setHarbor(v: string | null): void { this.harbor = typeof v === 'string' && v !== '' ? v : null; }
@@ -127,6 +165,34 @@ export default class HarborBook extends PersistableMixin(PayableMixin(Good)) {
   }
 
   /* ───────────────────────── the record ───────────────────────── */
+
+  /**
+   * ⭐ Read the filed record into the book — once (as it stands up, and on
+   * use: the harbor's `liveBook`, a `read`). A failed read is retried on the
+   * next use.
+   */
+  public loadRecord(): Promise<void> {
+    if (this.loading === null) {
+      this.loading = (async () => {
+        const harbor = await this.liveHarbor();
+        const path = harbor?.recordPath() ?? '';
+        if (path === '') return;
+        const doc = await DocumentApi.read(path);
+        const data = (doc?.getData() ?? {}) as Partial<BerthBookRecord>;
+        if (Array.isArray(data.lines)) this.lines = data.lines.map((r) => ({ ...r }));
+        if (Array.isArray(data.hails)) this.hails = data.hails.map((h) => ({ ...h }));
+      })().catch((err) => {
+        this.loading = null;
+        throw err;
+      });
+    }
+    return this.loading;
+  }
+
+  /** The record as it stands, a copy (what is filed). */
+  public getRecord(): BerthBookRecord {
+    return { lines: this.lines.map((r) => ({ ...r })), hails: this.hails.map((h) => ({ ...h })) };
+  }
 
   /** Every line as it stands at `nowS` (lapsed assignments struck), copies. */
   public getLines(nowS: number): BerthRecord[] {
@@ -273,19 +339,42 @@ export default class HarborBook extends PersistableMixin(PayableMixin(Good)) {
     if (this.lines.length !== before || this.hails.length !== hailsBefore) this.save();
   }
 
+  /** ⭐ Write the record through: the harbor files it (the book never holds the pen alone). */
   private save(): void {
-    try {
-      void PersistableApi.capture(this as unknown as Stuff).catch((err) => console.warn('HarborBook: capture failed:', err));
-    } catch (err) {
-      console.warn('HarborBook: capture failed:', err);
-    }
+    const record = this.getRecord();
+    this.filing = this.filing
+      .then(async () => {
+        const harbor = await this.liveHarbor();
+        if (harbor === null) throw new Error(`HarborBook ${this.getTemplatePath()}: no harbor to file its record`);
+        await harbor.fileRecord(record);
+      })
+      .catch((err) => console.warn('HarborBook: filing the record failed:', err));
   }
+
+  /** Writes still in flight have landed (a test, a restart drill). */
+  public whenFiled(): Promise<void> {
+    return this.filing;
+  }
+
+  /* ───────────────────────── reading it ───────────────────────── */
+
+  /** @hook `read book`: today's page, from the filed record. */
+  public override async refreshMarks(_viewer: Stuff): Promise<void> {
+    await this.loadRecord();
+    this.setMarkText(pageOf(this));
+  }
+
 }
 
 /** Today's page: every ship in the book, or that it is empty. */
 function bookAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
   if (!(host instanceof HarborBook)) return text;
-  const lines = host.pageLines();
-  const page = lines.length === 0 ? "Today's page is empty." : `Today's page:\n${lines.join('\n')}`;
+  const page = pageOf(host);
   return text && text.length > 0 ? `${text}\n\n${page}` : page;
+}
+
+/** The page in words. */
+function pageOf(book: HarborBook): string {
+  const lines = book.pageLines();
+  return lines.length === 0 ? "Today's page is empty." : `Today's page:\n${lines.join('\n')}`;
 }

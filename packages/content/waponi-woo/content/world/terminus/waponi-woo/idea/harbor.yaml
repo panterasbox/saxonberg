@@ -12,6 +12,11 @@ data:
   # counter keeps who lies where, the debts and the hails; this row keeps
   # only the posted rules.
   book: /world/terminus/waponi-woo/thing/berth-book
+  # ⭐ The berth book's record is FILED here, by this harbor (paper D45):
+  # burn the book and the debts stand; the next book reads them again.
+  registerOwner: /world/terminus/waponi-woo
+  registerPrefix: /world/terminus/waponi-woo/berths
+  registerKind: berth-book
   office: /world/terminus/waponi-woo/location/store
   seat:
     business: /world/terminus/waponi-woo/idea/estate

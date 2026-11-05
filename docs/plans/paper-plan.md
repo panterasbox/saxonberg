@@ -1047,6 +1047,32 @@ Drive step 17 now has the borrower write (in their own hand); step 21 prints
 the Gazette instead of the notebook (a notebook has no document to print).
 Binding (`fit`) stays deferred.
 
+**D45 (owner, 2026-11-05) — an institution's records are documents; the
+book on the desk is their page. Cleanup after harbors merged (harbors
+shipped, so reconciliation is this build's).** Two places harbors and paper
+disagreed:
+1. **`RegisterBook` is one view class.** The merge had left it branching on
+   `government:` (harbors' ship register) vs `registerPrefix:` (paper's
+   ledger). Now it reads only a prefix (`/platform/ships/terminus-city` for
+   the register of ships), and **what a line says is the record's kind**: a
+   `ship` entry is read through its flag's register (`entryNamed`, followed
+   forward) and rendered as harbors' full line; anything else as kind, leaf
+   and title. `government` is gone; `registerTitle` heads the page (*The
+   register of ships of the City of Terminus.* / *The book of the Terminus
+   Gazette.*). A third register is rows only.
+2. **The berth book's record is filed.** Harbors kept berths, debts and
+   hails as fields on a persistable `HarborBook`, so burning the book would
+   have forgiven every debt, and the record could never move to a screen
+   (lens 5) or be `read` (lens 3a). Now `Harbor` is a `Registrar` of its own
+   branch and files one `berth-book` document (new kind) at
+   `<prefix>/record` through `saveToRegister`, gated to its own book; the
+   book is `Marked(Payable(Good))`, loads the record on use and writes
+   through. Harbors' review-2 rule ("the harbor keeps only its rules")
+   holds — the harbor still holds no state. Both harbor rows author the
+   three registrar fields.
+The berth book's keywords stay (`book` is what a harbormaster's book is
+called; resolution prefers what is in reach).
+
 ### W1 — the live rung, bearer paper, the register book
 *Decisions D5, D7, D8.*
 
