@@ -19,7 +19,6 @@ data:
   sized: true
   dryness: 0.95
   charMaterialPath: /stuff/idea/material/organic/ash
-  pulpTemplate: /stuff/thing/pulp
   reserves:
     fuel:
       capacityValue: 100

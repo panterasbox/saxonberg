@@ -46,7 +46,7 @@ export function PrintingMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase
 
     /** A blank: an unbound, unwritten, dry sheet with no words on it. */
     private isBlank(s: Stuff): s is Sheet {
-      return s instanceof Sheet && s.getBoundTo() === '' && s.getMarkText() === '' && !s.isWaterleaf() && !s.isPulped();
+      return s instanceof Sheet && s.getBoundTo() === '' && s.getMarkText() === '' && !s.isWaterleaf() && !s.isSodden();
     }
 
     /** Blank sheets in the instrument first, else in the printer's hands. */

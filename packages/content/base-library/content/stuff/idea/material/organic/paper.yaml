@@ -20,6 +20,10 @@ data:
   # Paper drinks water: a blotter holds several times its weight.
   waterAbsorptionCapacity: 100
   heatOfCombustion: 16
+  # ⭐ Paper fails in WATER (paper D12): it keeps about a tenth of its
+  # strength wet, and a good of it soaked through gives way to pulp.
+  wetStrength: 0.1
+  soddenTemplate: /stuff/thing/pulp
   autoignitionTemperature: 506
   edibility: false
   nutrients: []

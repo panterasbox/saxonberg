@@ -536,7 +536,7 @@ const FAUCETS: Record<string, string> = {
   growsIntoPath: "what a seed becomes; cloned at germination",
   harvestTemplatePath: "what a plant yields; cloned at harvest",
   sweepsInto: "what a floor's sweep heaps up — cloned when the broom takes it (cleanliness D15)",
-  pulpTemplate: "what a soaked sheet of paper leaves behind — cloned when it pulps (paper D12)",
+  soddenTemplate: "what a soaked-through good of a weak-wet material leaves — cloned when it gives way (paper D12)",
   receiptPaper: "the sheet a bearer store writes its receipt on — cloned at each deposit (paper D8)",
   sheetTemplate: "the wet sheet a pulp vat lifts onto a mould — cloned at each dip (paper W2)",
   seedPath: "a stand's seed — cloned at a felling",

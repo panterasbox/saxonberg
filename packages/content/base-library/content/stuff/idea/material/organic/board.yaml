@@ -14,6 +14,10 @@ data:
   electricalConductivity: 1.0e-10
   waterAbsorptionCapacity: 80
   heatOfCombustion: 15
+  # ⭐ Paper fails in WATER (paper D12): it keeps about a tenth of its
+  # strength wet, and a good of it soaked through gives way to pulp.
+  wetStrength: 0.1
+  soddenTemplate: /stuff/thing/pulp
   autoignitionTemperature: 520
   edibility: false
   nutrients: []

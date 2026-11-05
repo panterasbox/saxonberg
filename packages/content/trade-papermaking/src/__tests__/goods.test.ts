@@ -25,6 +25,7 @@ class Pot extends BulkableMixin(Good) {
 }
 
 const PASTE = '/trade/papermaking/idea/material/_test/paste';
+const PAPER = '/trade/papermaking/idea/material/_test/paper';
 const CASEIN = '/trade/papermaking/idea/material/_test/casein';
 
 beforeEach(() => {
@@ -38,6 +39,13 @@ beforeEach(() => {
       return m;
     }, path);
   }
+  makeStuffAtPath(() => {
+    const m = new Material();
+    m.setName('paper');
+    m.setDensity(Quantity.of(800, 'kg/m³'));
+    m.setWetStrength(0.1);
+    return m;
+  }, PAPER);
   vi.spyOn(ScheduleApi, 'schedule').mockImplementation(((_ms: number, fn: () => void) => {
     fn();
     return {} as never;
@@ -50,7 +58,11 @@ afterEach(() => {
 
 function bagWith(): { room: Holder; bag: Packet; apple: Holder } {
   const room = makeStuff(() => new Holder());
-  const bag = makeStuff(() => new Packet());
+  const bag = makeStuff(() => {
+    const b = new Packet();
+    b.setMaterial(StuffApi.findByTemplatePath<Material>(PAPER)!);
+    return b;
+  });
   ContainmentApi.move(bag, room as unknown as Stuff & Container);
   const apple = makeStuff(() => new Holder());
   ContainmentApi.move(apple, bag as unknown as Stuff & Container);
@@ -65,11 +77,12 @@ describe('⭐ a paper bag', () => {
     expect(apple.getContainer()).toBe(room);
   });
 
-  it('soaked through, it gives way and spills', () => {
+  it('soaked through, it gives way and spills', async () => {
     const { room, bag, apple } = bagWith();
     bag.wet(0.5);
     expect(bag.isDestroyed()).toBe(false);
     bag.wet(0.4);
+    await new Promise((r) => setTimeout(r, 0));
     expect(bag.isDestroyed()).toBe(true);
     expect(apple.getContainer()).toBe(room);
   });

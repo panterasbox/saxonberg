@@ -1233,6 +1233,10 @@ export default class Material extends SingletonMixin(
     // ⭐ What a broken piece of this becomes (ceramics M5) — fired clay
     // breaks to sherds; glass keeps its cullet (the cast template).
     brokenTemplate: { persistent: true, authorable: true },
+    // ⭐ How a good of this fails in WATER (paper): its strength wet as a
+    // share of dry, and what a soaked-through good of it leaves.
+    wetStrength: { persistent: true, authorable: true },
+    soddenTemplate: { persistent: true, authorable: true },
     // ⭐ What a piece shaped of this becomes, by form class (ceramics D16):
     // `{open: …/vessel, closed: …/jar, flat: …/dish, block: …/block, cone: …}`.
     formTemplates: { persistent: true, authorable: true },
@@ -1637,6 +1641,30 @@ export default class Material extends SingletonMixin(
   }
   public setBrokenTemplate(value: string): void {
     this.brokenTemplate = typeof value === 'string' ? value.trim() : '';
+  }
+
+  /**
+   * ⭐ **How a good of this fails in water** (paper build): the share of its
+   * dry strength it keeps when soaked, `[0, 1]`; `null` = water does not
+   * break it (wood swells, cloth holds, iron rusts — those are other rules).
+   * Paper and board keep about a tenth; a good of them soaked through gives
+   * way (`Integrity`), leaving {@link getSoddenTemplate}.
+   */
+  protected wetStrength: number | null = null;
+  public getWetStrength(): number | null {
+    return this.wetStrength;
+  }
+  public setWetStrength(value: number | null): void {
+    this.wetStrength = typeof value === 'number' && Number.isFinite(value) ? Math.min(1, Math.max(0, value)) : null;
+  }
+
+  /** What a soaked-through good of this leaves (paper → a lump of pulp); `''` = nothing. */
+  protected soddenTemplate = '';
+  public getSoddenTemplate(): string {
+    return this.soddenTemplate;
+  }
+  public setSoddenTemplate(value: string): void {
+    this.soddenTemplate = typeof value === 'string' ? value.trim() : '';
   }
 
   /**

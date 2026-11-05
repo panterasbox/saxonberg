@@ -1017,6 +1017,19 @@ no longer says "work it by hand to learn it" (the old ladder the slate
 replaces): it says *you know of X now*. The requirements' AC "the borrower
 reads → known-of" and drive step 17's matching clause are retired with this.
 
+**D43 (owner, 2026-11-04) — paper fails in water by its MATERIAL, not by
+product class.** The build had shipped the pulp latch twice (`Sheet`,
+`Packet`) and not at all on `Book`, `Envelope`, `Spellbook` — a soaked
+notebook survived. Moved onto `Integrity`, the shipped home of "the material
+decides how a good fails" (the impact rule's wet twin): `Material.wetStrength`
+(share of dry strength kept wet; `null` = water does not break it) and
+`Material.soddenTemplate` (the residue); paper and board author 0.1 and
+`/stuff/thing/pulp`. `Integrity.afterWetted` latches `sodden` past the
+`soaked` band and destroys on the next tick; a container spills by the
+shipped rule. `Wet` gained the `afterWetted` hook. ⭐ **No `PaperGoodsMixin`**:
+"made of paper" is a material; tearing stays a protocol each thing
+implements. Sheet's `pulped`/`pulpTemplate` and Packet's latch retired.
+
 ### W1 — the live rung, bearer paper, the register book
 *Decisions D5, D7, D8.*
 

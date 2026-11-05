@@ -1,12 +1,13 @@
 /**
  * Packet — a container made of paper (paper D20): a grocer's bag, a carton
- * of board. Light, cheap, and it FAILS like paper: soaked through it pulps
+ * of board. Light, cheap, and it fails like paper: soaked through it gives
+ * way (the material's rule on `Integrity` — paper and board are weak wet)
  * and whatever it held falls out where it stood; torn open it spills the
  * same way. A crate is the wooden answer, and weighs it.
  *
  * ⭐ The spill is the shipped one: a destroyed container's contents go to
  * its own container (`Container.cleanupOnDestruct`). This class only says
- * WHEN a paper container is destroyed.
+ * what TEARING it does.
  */
 
 import Good from '@saxonberg/server/mud/lib/stuff/Good';
@@ -15,24 +16,12 @@ import { ReservedMixin } from '@saxonberg/server/mud/lib/reserve';
 import { ThermalMixin } from '@saxonberg/server/mud/lib/thermal/Thermal';
 import { CombustibleMixin } from '@saxonberg/server/mud/lib/fire/Combustible';
 import { TearableMixin, type TearOutcome } from '@saxonberg/server/mud/lib/material/Tearable';
-import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
-import { ScheduleApi } from '@saxonberg/server/mud/api/schedule';
-
-/** Soaked past this (the `soaked` band), paper lets go. */
-const PULPS_AT = 0.8;
 
 export default class Packet extends TearableMixin(
   CombustibleMixin(ThermalMixin(ReservedMixin(ContainerMixin(Good)))),
 ) {
-  static fieldMeta: FieldMeta = {
-    pulped: { persistent: true },
-  };
-
-  /** Soaked through; destructs on the next tick, spilling what it held. */
-  public pulped = false;
-
   private spilledInto(): string {
     const n = this.getContents().length;
     return n === 0 ? '' : ` — ${this.getContents().map((c) => c.getPresentation()).join(', ')} ${n === 1 ? 'falls' : 'fall'} out`;
@@ -44,16 +33,5 @@ export default class Packet extends TearableMixin(
     const line = `You tear ${self.getPresentation()} open${this.spilledInto()}.`;
     StuffApi.destruct(self);
     return { ok: true, line, made: spilled };
-  }
-
-  /** Pushed water: soaked through, the paper gives way (the sheet's latch). */
-  public override wet(delta: number): void {
-    super.wet(delta);
-    if (this.pulped || this.getWetness() < PULPS_AT) return;
-    this.pulped = true;
-    const self = this as unknown as Stuff;
-    ScheduleApi.schedule(0, () => {
-      if (!self.isDestroyed()) StuffApi.destruct(self);
-    });
   }
 }

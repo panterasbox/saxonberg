@@ -59,8 +59,7 @@ Built by the paper build (MR on `reqs/paper`, 2026-11). Packs:
 - **`Sheet`** (`platform/thing/Sheet.ts`): folds sheet → folio → quarto →
   octavo and no further; writing wants **ink in hand** and **size** (an
   unsized sheet bleeds; a set coat of a `size`-tagged material, or
-  `sized: true` on the row); soaked (`soaked` band) it latches `pulped` and
-  goes on the next tick, leaving its `pulpTemplate`; torn, each half keeps
+  `sized: true` on the row); soaked through it gives way (below); torn, each half keeps
   its half of the words, bound to nothing; `markText` is stack identity.
   A mill's sheet carries its making: `color` (the vat's water), `evenness`
   (the vatman's band), `formed`, `pressed` — formed and dried unpressed it
@@ -77,6 +76,33 @@ Built by the paper build (MR on `reqs/paper`, 2026-11). Packs:
 - **`TearableMixin`** + `tear`: sheet, book, garment (rags, mass for mass,
   not while worn), envelope, `Packet` (spills).
 - **`Ticket extends Sheet`.**
+
+## Paper fails by its material
+
+⭐ There is no paper-goods mixin: **"made of paper" is a material.** Paper and
+board keep about a tenth of their strength wet (`Material.wetStrength`), and
+`Integrity` — the shipped home of how a good fails (the impact rule) — gives
+way any good of a weak-wet material soaked through (`afterWetted`, the
+`soaked` band), leaving its `soddenTemplate` (a lump of pulp). A notebook, an
+envelope, a bag, a sheet and a spellbook alike, with nothing on their classes.
+Burning is `Combustible` with the material's ignition point; tearing stays a
+protocol each thing implements (`Tearable`), because what tearing makes is
+the thing's own business.
+
+## Paper's representations
+
+Paper's version of the forestry four-representations pattern (a tree is a
+place, a slot, a record or a prop by scale and use):
+
+| rung | example | the act between |
+|---|---|---|
+| bulk | pulp in the vat | `dip` → a sheet |
+| stack | a ream of blank sheets | `split` / merge (written words keep a sheet out) |
+| thing | a letter, a notebook, a copy | `fit … with <pot>` → a coat |
+| a coat on a face | a pasted label, a poster | wallpaper waits on walls having faces (R4) |
+| a view at a fixture | the ledger | — |
+
+There is no "big paper" as a place; paper's large scale is the face coat.
 
 ## Bearer paper
 

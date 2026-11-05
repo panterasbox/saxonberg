@@ -16,8 +16,8 @@
  *   and a fourth fold will not go (D10);
  * - **ink and size**: writing needs ink in hand, and unsized paper drinks it
  *   and the line bleeds (D18, D19);
- * - **pulping**: soaked through, the felt lets go — a latch, then the sheet
- *   destructs to a lump of pulp on the next tick (D12); burnt, it reads as
+ * - **pulping**: soaked through, the felt lets go — the material's rule on
+ *   `Integrity` (D12), shared by every good of paper; burnt, it reads as
  *   ash (the `Marked` ash read);
  * - **tearing** makes two halves, each with the half of the text it held,
  *   bound to nothing (D13).
@@ -42,7 +42,6 @@ import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import { ContainmentApi } from '../../api/containment';
 import { DocumentApi } from '../../api/document';
-import { ScheduleApi } from '../../api/schedule';
 import { Quantity } from '../../lib/quantity';
 import type Material from '../../lib/material/Material';
 
@@ -53,8 +52,6 @@ export type SheetFormat = (typeof SHEET_FORMATS)[number];
 /** As dry as its air lets it, near enough: a formed sheet has dried (`dryness`). */
 const DRY_AT = 0.8;
 
-/** Wet past this (the `soaked` band) and the felt lets go (D12). */
-const PULPS_AT = 0.8;
 
 /** What `look` adds: the format, the state of the paper. */
 const sheetAugmenter: MarkupAugmenter = (text, host, _viewer, opts) => {
@@ -81,8 +78,6 @@ export default class Sheet extends SheetBase {
     torn: { persistent: true, stackIdentity: true },
     cockled: { persistent: true, authorable: true, stackIdentity: true },
     sized: { persistent: true, authorable: true, stackIdentity: true },
-    pulped: { persistent: true },
-    pulpTemplate: { persistent: true, authorable: true },
     color: { persistent: true, authorable: true, stackIdentity: true },
     evenness: { persistent: true, stackIdentity: true },
     formed: { persistent: true, stackIdentity: true },
@@ -103,10 +98,6 @@ export default class Sheet extends SheetBase {
   public cockled = false;
   /** Sized (a set coat of size, or made so): it takes ink without bleeding. */
   public sized = false;
-  /** Soaked through and gone to pulp; destructs on the next tick. */
-  public pulped = false;
-  /** The row a pulped sheet leaves behind (a lump of wet fibre); `''` = none. */
-  public pulpTemplate = '';
   /** ⭐ Its color, read off the vat's water at the dip (paper D9): `white` · `brown`. */
   public color = 'white';
   /** How evenly the vatman laid the pulp — their band at the dip; `''` = shop paper. */
@@ -288,39 +279,8 @@ export default class Sheet extends SheetBase {
   }
 
   // ---------- water (D12) ----------
-
-  public isPulped(): boolean {
-    return this.pulped;
-  }
-
-  /** Pushed water: soaked through, the felt lets go and the sheet pulps. */
-  public override wet(delta: number): void {
-    super.wet(delta);
-    if (!this.pulped && this.getWetness() >= PULPS_AT) this.pulp();
-  }
-
-  /**
-   * ⭐ The latch-then-tick shape (Combustible's burn-through): destructing
-   * from inside a read is unsafe, so the sheet latches and goes on the next
-   * tick, leaving a lump of pulp where it lay.
-   */
-  protected pulp(): void {
-    this.pulped = true;
-    const self = this as unknown as Stuff;
-    ScheduleApi.schedule(0, () => {
-      void (async () => {
-        if (self.isDestroyed?.()) return;
-        const where = MixinApi.isContainable(self) ? self.getContainer() : null;
-        if (this.pulpTemplate !== '') {
-          const lump = await StuffApi.clone(this.pulpTemplate);
-          if (where !== null && MixinApi.isContainable(lump) && MixinApi.isContainer(where)) {
-            ContainmentApi.move(lump, where);
-          }
-        }
-        StuffApi.destruct(self);
-      })();
-    });
-  }
+  // ⭐ Soaked through, a sheet gives way — the MATERIAL's rule on
+  // `Integrity` (paper's low wet strength), shared by every good of paper.
 
   // ---------- tearing (D13) ----------
 

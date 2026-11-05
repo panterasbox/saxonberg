@@ -75,6 +75,7 @@ beforeEach(() => {
   vi.spyOn(MessageApi, 'scene').mockReturnValue(scene as never);
   material(INK, ['ink']);
   material(PAPER, ['paper', 'cellulose']);
+  StuffApi.findByTemplatePath<Material>(PAPER)!.setWetStrength(0.1);
   material(ASH, ['residue']);
 });
 
@@ -140,12 +141,12 @@ describe('⭐ writing on paper (D18, D19)', () => {
 });
 
 describe('⭐ paper fails (D12)', () => {
-  it('soaked through, it latches pulped', () => {
+  it('soaked through, it gives way — paper is weak wet (the material decides)', () => {
     const s = sheet();
     s.wet(0.3);
-    expect(s.isPulped()).toBe(false);
+    expect(s.isSodden()).toBe(false);
     s.wet(0.7);
-    expect(s.isPulped()).toBe(true);
+    expect(s.isSodden()).toBe(true);
   });
 
   it('burnt to its char material, the words read as ash', () => {

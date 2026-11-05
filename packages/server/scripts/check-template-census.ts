@@ -698,8 +698,8 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
   push('vapourMaterial', data.vapourMaterial);
   // A floor's sweep heaps into this row (cleanliness D15).
   push('sweepsInto', data.sweepsInto);
-  // ⭐ What a soaked sheet leaves (paper D12) — cloned when it pulps.
-  push('pulpTemplate', data.pulpTemplate);
+  // ⭐ What a soaked-through good of a weak-wet material leaves (paper D12).
+  push('soddenTemplate', data.soddenTemplate);
   // ⭐ The paper a bearer receipt is written on (paper D8) — cloned at a deposit.
   push('receiptPaper', data.receiptPaper);
   // ⭐ The wet sheet a pulp vat lifts (paper W2) — cloned at each dip.
