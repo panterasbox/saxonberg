@@ -18,11 +18,23 @@ data:
     by: time
   observableSigns: [feverish, cramping, wasted]
   contagion: null
+  # ⭐ The rates are the disease's, not placeholders (the water-supply
+  # browser walk: at 2 / 0.01 / 1 a draught of fouled water left a burden
+  # of 0.17 against a first band of 3, gone in twenty minutes — nobody
+  # could ever fall ill of a fouled main). Bacillary dysentery comes on
+  # over a day or so and lasts most of a week, and one bad draught is
+  # enough:
+  #   - absorptionRate 0.01/min — one draught's 12 crosses in over ~20 h
+  #     (the onset);
+  #   - potency 25 — 12 × 25 / 70 kg ≈ 4.3 absorbed, ~3.7 at its peak:
+  #     band 1, feverish; three draughts reach band 2;
+  #   - clearanceRate 0.0005/min — ~0.7 a day: a single draught's illness
+  #     runs about five days.
   toxinBehavior:
     toxinType: dysentery
-    absorptionRate: 2
-    clearanceRate: 0.01
-    potency: 1
+    absorptionRate: 0.01
+    clearanceRate: 0.0005
+    potency: 25
     bands:
       - { threshold: 3, severity: 1 }
       - { threshold: 9, severity: 2 }
