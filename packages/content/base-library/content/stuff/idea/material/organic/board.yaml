@@ -24,7 +24,6 @@ data:
   toxicity: []
   tags: ["organic", "plant", "cellulose", "paper", "once-living"]
   composition: []
-  chemistry:
-    formula: C6H10O5
-    molarMass: 162.14
+  formula: C6H10O5
+  molarMass: 162.14
   biologicalSource: null

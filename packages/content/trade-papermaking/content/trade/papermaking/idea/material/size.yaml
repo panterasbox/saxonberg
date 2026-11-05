@@ -25,5 +25,4 @@ data:
       # to the touch in an hour or two of moving air, longer in a damp mill.
       rate: [[273, 0.25], [283, 0.6], [293, 1.2], [303, 1.8]]
   composition: []
-  chemistry: null
   biologicalSource: null
