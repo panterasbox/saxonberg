@@ -298,7 +298,7 @@ describe('Ship — her register, owners, flag and gangway (harbors B2)', () => {
     const ann = makeAvatar('ann');
     await buy(ann, 'p1', 'Petrel');
     const book = makeStuffAtPath(() => new RegisterBook(), '/test/office/register');
-    book.setGovernment('test-city');
+    book.setRegisterPrefix('/platform/ships/test-city');
     await book.refreshMarks(ann);
     expect(book.getMarkText()).toMatch(
       new RegExp(`The Petrel \\(smack\\), under the flag of the City of Test: owned by the Petrel's company, held ${ann.getPresentation()} 64/64\\.`),

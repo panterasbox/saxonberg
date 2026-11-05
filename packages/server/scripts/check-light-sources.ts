@@ -186,6 +186,8 @@ export const SKYLIT_INTERIORS: readonly string[] = [
   '/world/terminus/waponi-woo/boiling-house/location/curing-house', // slatted openings under the eaves, for the drain's air
   '/world/terminus/rejection/hanging-wood/lean-to', // open along its front to the ashery clearing — daylight under the eaves
   '/world/terminus/hearts-delight/location/mill-house', // little windows at the top of the wheel shaft — the light the dust hangs in
+  '/world/terminus/hearts-delight/paper-mill/location/vat-house', // the vat stands by the window: a vatman holds every sheet up to it (paper W2)
+  '/world/terminus/hearts-delight/paper-mill/location/loft', // louvered on every side for the air, and the light comes with it (paper W2)
   '/world/terminus/market/bathhouse/location/vestibule', // high misted windows over the boot bench
   '/world/terminus/market/bathhouse/location/baths', // high misted windows over the tubs
   '/world/terminus/market/bathhouse/location/gym', // one high window over the barbell

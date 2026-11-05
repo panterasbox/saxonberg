@@ -1,0 +1,35 @@
+# The Gazette's office and print shop (paper W5) — ⭐ the Terminus Gazette
+# gets a HOUSE: a shop on Mayfield Row with a press, a case, a printer and
+# the ledger of everything it has published. The editor posts; the press
+# runs it off; a printed copy says what the release said that day.
+class: /platform/location/Locale
+data:
+  shortDescription: Gazette print shop
+  keywords: [gazette, shop, "print shop", office, printer]
+  register: definite
+  alternateNames: ["the gazette", "print shop"]
+  _address: terminus/city/mayfield-row/gazette
+  # A brick shopfront under slate, like its neighbors on the Row.
+  enclosure: { material: /stuff/idea/material/ceramic/brick, thicknessM: 0.23 }
+  roof: { material: /stuff/idea/material/rock/slate, thicknessM: 0.01 }
+  coords:
+    x: 0
+    y: 0
+    z: 0
+  longDescription: |
+    A deep, ink-smelling shop behind a bow window with THE TERMINUS GAZETTE painted across it. An iron hand press stands at the back, a case of type on its frame beside it and a forme on the imposing stone; a grey printer hums on a side table. A ledger lies open on the counter, and a reading screen on the wall shows whatever it is asked to.
+  props:
+    - /trade/printing/thing/press
+    - /world/terminus/gazette/thing/case
+    - /world/terminus/gazette/thing/forme
+    - /trade/printing/thing/printing-ink-pot
+    - /trade/printing/thing/printer
+    - /world/terminus/gazette/thing/ledger
+    - /world/terminus/gazette/thing/directory
+    - /world/terminus/gazette/thing/screen
+    - /platform/thing/ream
+    - { template: /trade/printing/thing/pen, count: 2 }
+    - { template: /trade/printing/thing/ink-pot, count: 2 }
+  exits:
+    row:
+      destination: /world/terminus/mayfield-row/street

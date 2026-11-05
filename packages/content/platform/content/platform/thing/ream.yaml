@@ -1,0 +1,11 @@
+# A ream of paper (paper build) — 480 blank sheets in one stack: the paper a
+# keeper writes receipts on and a pressman feeds the press from. A ream is a
+# stack of the sheet row, not a thing of its own.
+class: /platform/thing/Sheet
+extends: /platform/thing/sheet
+data:
+  # It presents as what it is — sheets — so a ream picked up reads "480
+  # sheets of paper", never "480 reams".
+  shortDescription: sheet of paper
+  keywords: [ream, paper, sheet, sheets, "ream of paper", "sheet of paper"]
+  quantity: 480

@@ -1,0 +1,12 @@
+# A paper mould (paper W2) — a wooden frame with a face of fine brass wire
+# and a loose deckle round its edge. Dipped in the vat it lifts a wet sheet;
+# `couch` turns the sheet off onto the post.
+class: /trade/papermaking/thing/PaperMould
+data:
+  shortDescription: paper mould
+  keywords: [mould, mold, "paper mould", "paper mold", frame, deckle]
+  register: indefinite
+  longDescription: A shallow wooden frame faced with close brass wire, with a loose deckle that fits round its edge.
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 1.2
+  placements: [on]

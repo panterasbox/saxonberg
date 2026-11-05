@@ -50,7 +50,10 @@ A good arriving from nowhere (just minted) is titled by
 `ContainmentApi.move` itself, in order: the owner of what it was **made
 from** (`StuffApi.clone(row, ctx, { madeFrom })`) → the person whose
 **hands** it lands in → the person **acting** in a live command → the
-recorded **maker**. With none of those (a seed a plant sets, a spoil a
+recorded **maker**. ⚠ A piece split off a thing is *made from* it: a page
+torn out of a book, a sheet's second half, a garment's rags all pass
+`madeFrom` — without it the tearer's hands would title the owner's paper
+(the paper build, 2026-11-05). With none of those (a seed a plant sets, a spoil a
 field hook mints) it carries no title. Custody (`followCustody`) is derived
 in the same primitive on every move. `ContainmentApi.place`/`land` and the
 hand-called `stampChattel` + `followCustody` pair at mint sites are gone —

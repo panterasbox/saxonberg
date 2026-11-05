@@ -73,7 +73,9 @@ export default class StoreController extends CommandController<StoreModel> {
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(
-        Mml.compose`You leave ${name} in the store's keeping. The book records ${amount} to ${r.depositor === r.bailee ? 'the house' : 'your name'} — an allowance of ${r.terms.allowancePct}% for shrinkage, and ${r.terms.feeMinorPerKg} a kilogram to take it out.`,
+        out.paper !== undefined
+          ? Mml.compose`You leave ${name} in the store's keeping. The keeper writes ${amount} into the book and hands you ${Mml.thing(out.paper)} — whoever presents it draws the goods. An allowance of ${r.terms.allowancePct}% for shrinkage, and ${r.terms.feeMinorPerKg} a kilogram to take it out.`
+          : Mml.compose`You leave ${name} in the store's keeping. The book records ${amount} to ${r.depositor === r.bailee ? 'the house' : 'your name'} — an allowance of ${r.terms.allowancePct}% for shrinkage, and ${r.terms.feeMinorPerKg} a kilogram to take it out.`,
       )
       .toPeers(Mml.compose`${Mml.actor(giver)} leaves ${name} in the store's keeping, and it is written in the book.`)
       .send();

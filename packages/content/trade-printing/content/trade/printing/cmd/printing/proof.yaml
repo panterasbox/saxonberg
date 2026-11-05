@@ -1,0 +1,20 @@
+# ⭐ Read the proof: a share of the turned letters, by the
+# proofreader's band, found and set right. Never how many were missed.
+verbs: [proof]
+controller: ../../idea/cmd/printing/ProofController
+description: "Read the proof of a forme and correct what you catch"
+help: |
+  `proof <forme>` pulls a proof and reads it against the copy. You correct
+  what you catch — how much depends on your eye. What you miss goes to
+  press. A second read by the same eye finds nothing new; a second reader
+  might.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+args:
+  - name: forme
+    type: object
+    required: true
+    greedy: true
+    scope: ["inventory", "reachable"]
+    requires: any

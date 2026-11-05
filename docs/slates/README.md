@@ -35,7 +35,7 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**409 slates.** 143 greenfield · 114 continuations · 70 waves · 82 tails.
+**410 slates.** 143 greenfield · 115 continuations · 70 waves · 82 tails.
 
 ## ⭐ Greenfield — nothing shipped yet (143)
 
@@ -188,7 +188,7 @@ respect.
 | [wizardry-curriculum](./builds/wizardry-curriculum-slate.md) | the kind-of-content intake · the eight topics of W101 as lessons · the exemplar set (one per kind) · the detail-density mirror … |
 | [worlds](./builds/worlds-slate.md) | bodies as biomes under a space root · re-parenting today's world under a home-planet biome · the radius inheritable, gravity derived from mass and radius · the celestial profile on the planet biome … |
 
-## ⭐ Continuations — substrate shipped, a build's worth remains (114)
+## ⭐ Continuations — substrate shipped, a build's worth remains (115)
 
 The subsystem doc is the reference for what already ships; these
 are the named remainders.
@@ -281,6 +281,7 @@ are the named remainders.
 | [policing](./builds/policing-slate.md) | Terminus as Peelers + the Tiebout spread of policing modes · the police bundle and the department roster (constable · sergeant · inspector … |
 | [power-utility](./builds/power-utility-slate.md) | ⭐ **street lighting's missing goods leg** (see § below — the first demand case, and it is already live and calibrated) · the supply reference on `Energized` fixtures · outage propagation + directional network failure over exit edges · gas as the second conduit commodity … |
 | [press](./builds/press-slate.md) | the newsroom roster (publisher → editor-in-chief → editor → reporter, layered on the shipped organization substrate) · bylines · subscription / push distribution (the aether as delivery) · the credibility track record and whether a correction repairs standing … |
+| [printing](./builds/printing-slate.md) | printing's labor in time (the fixed-vs-marginal curve made felt) · what a printed page LOOKS like in a game made of text · images (woodcut, engraving, the poster) · type founding … |
 | [property](./builds/property-slate.md) | the compute economy (Phase 1 — predicted heartbeat budget, measured degradation, cost-owner attribution; `allowance` is inert) · dormancy-as-reclamation for insolvency / over-deficit · governance allocation (Phase 2 — fiscal cycle, commons subsidy, frontier/center curve, over-subscription) · tenancy economics (Phase 3 — rent as a recurring charge, sublet, valuation + resale) … |
 | [provenance](./builds/provenance-slate.md) | the generalized path-ownership resolver over both namespaces (Layer A — leaf templates + code modules, declared splits — not the same thing as parcel/zone ownership, which stops at land) · the dependency DAG (Layer C) · the contributor-set / team split behind `authorOf`'s derivation seam (+ the richer explicit `release` action) · versioned law (an amendment as branch/edit/merge) … |
 | [psychology](./builds/psychology-slate.md) | the scoped disclosure grant · the therapist's file object · the psychology vocation + its Discipline · privilege and the conflict class … |
