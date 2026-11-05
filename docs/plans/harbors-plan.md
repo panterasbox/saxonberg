@@ -694,3 +694,53 @@ I ran nine full drives on a fresh DB, port 2019. Pass counts by run: 8, 11, 14, 
 **NOT DONE this session:**
 - the sibling drives (tracts, farmstead, paint, cordage, maritime-space, lock-reconciliation, location-graph, reachability, field-population, routing);
 - the browser walk. Its spec is drafted at `e2e/tests/harbors-walk.spec.ts` (untracked, not run).
+
+### Final drive + browser walk — 2026-11-04: 24/24 (fresh DB); siblings 8 of 10 green or not ours; walk 1 passed
+
+**Blocking drive — `harbors.dirty.wire.test.ts`, 24/24 on run 4.** Four runs, each on a fresh DB, port 2019: run 1 22/24 · run 2 23/24 · run 3 23/24 · **run 4 24/24** (on `1116a9e2d`).
+- Run 1 (`5353cca4a`), steps 22 and 23. `swim up` and each `descend` reply before the move and carry no engagement note, so the next stroke and the air tank's `wear` got "Your hands are already busy." **The step was wrong** (`68f955145`): a new `cross` helper waits until `here` changes (the underwater drive's `stroke`) and retries while the hands are busy.
+- Run 2, step 23. **Two kernel defects** (`1e52b335f`, each with a unit test that fails on the old code):
+  - Every arrival on the sea bed beside the wreck threw out of the MQL scope walk. `Place.landedStructuresNow` asked the graph for the structure at an unloaded way's authored KEYED path, which `structureAtNow` refuses by design. The fix: an unloaded keyed room lands nothing. Test: `Structure.landing`.
+  - A sunk ship's companionway is a dry stair by its row. Under the sea `go down` is over your head, and `swim down` answered "can't swim that way". The fix: a way flooded at both ends now admits a water mode (`Exit.floodedFor`). Test: `WaterPlace`.
+  - Step 23 itself now swims through her rooms.
+- Run 3, step 15. **My own step error.** The step-23 edit matched step 15's lines too, so the restart step swam a dry companionway. It was reverted in `1116a9e2d`, and run 4 went 24/24.
+
+**Sibling blocking drives.** A first attempt ran all ten in one world. The server died of heap OOM (4 GB) in the paint file, about 80 minutes in, so that run is void. Each file was then run alone on a fresh DB, and the red ones were run again after the fixes.
+
+| drive | result | notes |
+|---|---|---|
+| tracts | ✅ 11/11 | |
+| paint | ✅ 16/16 | |
+| maritime-space | ✅ 40/40 | It was red in the shared world on `look river` (a prompt: *the bank at the confluence / river*). **Ours, fixed** in `9c3968fd6`, and the 40/40 run includes the fix. |
+| cordage | ✅ 18/18 | First 14/18: steps 9–16 got *you can't reach down*. **Ours, fixed** in `9c3968fd6`. |
+| lock-reconciliation | ✅ 14/14 | Green in the shared run (the clean files ran before the OOM). Not re-run alone. |
+| reachability | 20/22 | Step 8 (`lock north` must be unknown) was **ours and the step was wrong**: since review 3 `lock` reaches a way's lock. The file now asserts that `lock north` is understood and `fly up` is not. ⚠ Steps 1 (`walk out` from the general store) and 7 (`swim` must be unknown) are **not ours**. Step 7 says in its own comment that it fails once water lands (maritime, 10-13). No exit on the shop floor answers to `out`, and none did before review 3 either. Both are stale on master. |
+| location-graph | 10/11 | ⚠ Step 7 is **not ours**. `map` was read right after `look`/`north`. The map write is fire-and-forget (`recordSurroundings` → `void recordPerceived`), and harbors did not touch it. A probe showed the map present a moment later, and the file's next step reads it fine. The test reads too soon. The Cartographer now logs a failed write instead of swallowing it, and none failed. |
+| routing | 12/14 | ⚠ Step 7 is **not ours**: the same race (`route` straight after arrival finds *no map yet*). `help route` timed out once at 30 s with the world under load. It passed in the shared run. |
+| farmstead | 10/12 | ⚠ **Not ours.** *The light check* expects daylight, but a fresh world boots at midnight; the file passes only after something else has moved the clock. Its plough step met *hands busy* (a fresh body still dressing). No harbors code is on either path. |
+| field-population | 13/14 | ⚠ Step 13 is **not ours**. The potted plant's read lacks *soil is dry/spent*. That is the farming read path, which harbors did not touch. |
+
+Unverified against a master world: the "not ours" rows. That would mean booting master on this worktree's DB. The attribution rests on the code paths and the files' own history.
+
+Two more kernel fixes came out of the sibling drives (`9c3968fd6`, with tests):
+- `PerceptionApi.canReach` read the viewer-blind way list, while MQL names ways from `obviousExitsFor(viewer)`. The rope's concealed way down at the Sunken Delve bound and was then out of reach. Reach now reads the actor's own list.
+- On the bank, the way `river` (named by its direction, a candidate since review 3) tied the bank's own *river* at the name tier. A way whose word is not a direction and whose media are water is now CALLED *the way into the river*. Its direction and keyword are unchanged. This was decided by lens 3a, on the gangway's precedent.
+
+**Browser walk — `e2e/tests/harbors-walk.spec.ts`** (now tracked, in the paint and cordage walks' convention). Two runs, each on its own fresh world: our server on 2019 with `AUTH_MODE=test SAXONBERG_TEST_WORLD=1`, and our Vite on 5219 with both `VITE_SERVER_URL` and `VITE_WS_URL`. Both runs passed (5.8 and 6.2 min). Transcripts and screenshots are in `/home/bobalu/.claude/jobs/477f9cab/tmp/walk/` (run 1) and `…/walk2/` (run 2, with the card feed scrolled to the newest card).
+
+What the walk covered: the estuary-mouth `look`, `look hesper`, `look gangway`, `go hesper`, the deck, `measure bilge`, `pump well`, `charter`, `course bar`, `hail office` until the office opens, `course town-quay`, the Town Quay, `pay office`, the yard's `buy smack` with the rendered naming PROMPT, `go <her>`, her hold, `lock <her>` from the quay, `lock`/`unlock ashore` aboard, `read register`, the chandler's `buy caulker's kit`, `look north`/`go north`, the put-in's `buy rowboat`, `rent canoe for 2 days`, `look hire book`, `maintain` aboard, and `survey` on Hinkley Lane.
+
+Fixed (`b1cb8bb1c`, tests in `Ship.charter`):
+- A charterer aboard read the charter's end **twice**: once as a line of its own, then again inside her arrival (run 1, `walk/09-look-hesper.png`). Run 2 shows it once (`walk2/09-look-hesper.png`).
+- The office's bill read *"2 zorkmids for 1 day' charter"*. It now reads *"1 day's charter"*.
+- The spec had two wrong steps: a second `go ashore` on the quay, and `lock ashore` from the quay, where her way is named for her.
+
+Left open, none of it from a harbors file unless said:
+- **`survey` on Hinkley Lane** lists every floor on the lane's whole road network as the corridor's "shelter": hundreds of *a featureless plain floor* (`walk/23-survey.png`). `SurveyController.waysideSpaces` reads the lane, and `reportOf` names every provider. This is a rendering defect in the corridor read from the rubber build. A provider list wants a cap or a count.
+- **A dry smack's cabin affords `ascend bathe descend drink fill`** (`walk2/15-hold.png`). Her rooms compose `WaterPlace` so they can flood, so a dry cabin offers water verbs. That is *afford statically, decline diegetically*, but it reads wrong in a dry room. Harbors (B5) — worth a slate line.
+- *"You unlock ashore."* The way aboard is named by its direction, so the sentence reads oddly. *The gangway* would be the word (harbors, `AshoreExit`). Not fixed.
+- The card feed shows a place card twice after a login (`walk/19-put-in.png`, `walk2/15-hold.png`): the arrival look and the typed `look` each mint one. The feed reads *newest at the bottom* and does not scroll to it. Both are client card surface, not harbors.
+- A worn air tank still cues *"You can't breathe!"* under water while it feeds you (`Respiration.respirationDrainTick` cues on any non-medium cause, including `supply`). That is respiration, not harbors.
+- `maintain` with nothing to do says *"…Put the kit down."* That wording is residence content.
+
+Port 2019 and Vite's 5219 are free, and every process this session started has been stopped.
