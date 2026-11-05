@@ -11,6 +11,25 @@ Built by the paper build (MR on `reqs/paper`, 2026-11). Packs:
 (`/trade/printing`); venues at Heart's Delight (the paper mill) and Terminus
 (the Gazette's print shop).
 
+## ⭐⭐ What paper adds to text, in a game made of text
+
+Text is the platform's primitive: every message, card and release is text
+the platform makes and moves for free (the owner, 2026-11-05). So paper is
+never "the text"; it is worth something only for what interface text lacks:
+
+1. **A text that is a thing** — it lies somewhere, belongs to somebody, is
+   carried, lost, burnt, torn or stolen, and is read by whoever holds it.
+2. **A text frozen in time** — paper says what the document said that day;
+   it goes stale, contradicts the present, and is evidence.
+3. **A text with marks of its making** — a hand, a device, a misprint.
+4. **A text that reaches where the network does not** — carried, at a
+   walker's speed, into places and epochs with no screen.
+
+Every piece below serves one of these. A design that makes paper a second
+way to be READ — competing with the platform's own publishing — is wrong
+by this test. Printing, the cost of copying such a thing, has its own
+slate ([printing-slate](../slates/builds/printing-slate.md)).
+
 ## Reading: two faces, one verb
 
 - **`read`** takes a written thing (`MarkedMixin`) or a screen
@@ -157,7 +176,16 @@ rags; a paint rag is another row. `Packet` (bag, carton); labels pasted
 with `fit <label> to <good> with <pot>` (`Faced.pasteOn`), let go in the
 wet unless the glue resists damp (`Faced.releaseDampGlue`).
 
-## The press (`trade-printing`)
+## The press (`trade-printing`) — ⚠ a PLACEHOLDER
+
+⚠ **Printing shipped as what paper implies, not as a designed trade**
+(D47, 2026-11-05). Every act below is instant, which hides the
+fixed-versus-marginal curve that IS printing; the printing build replaces
+this section ([printing-slate](../slates/builds/printing-slate.md) — its
+lens-decided forks: labor takes time, misprints stay because the document
+is never altered, images are half of printing, and a printed page should
+LOOK like one).
+
 
 `TypeCase` (the font, capital), `Forme` (`compose` debits the case and
 seeds the compositor's errors; `proof` corrects a seeded share; nobody is

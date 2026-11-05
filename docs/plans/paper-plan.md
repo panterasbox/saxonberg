@@ -1100,6 +1100,21 @@ pieces, the rest slated:
    edition `/world/terminus/editions/terminus-directory`). Drive step 35
    is the scene. `lint:census` ignores `edition` (a document path).
 
+**D47 (owner, 2026-11-05) — printing is a placeholder; it gets its own
+slate and build.** The owner had no design discussion on printing, and the
+build's printing (`trade-printing`, W4–W5) is instant end to end. Framing
+from the owner: text is the platform's primitive, so "printing makes
+copies of text" is worth nothing — what is special is what PAPER adds to
+text (a thing · frozen · marked by its making · reaching past the network;
+now the head of `paper.md`) and what copying a thing costs (the
+fixed-vs-marginal curve). The placeholder stays in this MR, labelled; the
+new [printing-slate](../slates/builds/printing-slate.md) records the forks
+the lenses decided (labor takes time — lens 1; misprints stay, the document
+never altered — lens 1, lens 2 satisfied; images are half of printing —
+lens 2; continuity of `print` across press, printer, screen — lens 5) and
+the open one (what a printed page LOOKS like in a game of text — lens 3a;
+where an image comes from — lens 4).
+
 ### W1 — the live rung, bearer paper, the register book
 *Decisions D5, D7, D8.*
 
