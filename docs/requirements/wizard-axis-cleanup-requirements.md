@@ -56,9 +56,10 @@ is deletion.
   reviewable list.
 - **The lease/provision seats are exercised, not bypassed.** A person
   who holds the seat can act; a wizard who does not hold it cannot.
-- **Every door that reaches TypeScript is gated as TypeScript** — and
-  where a door also touches a specific resource, both halves survive:
-  *may you touch code at all* and *may you touch THIS*.
+- **The wizard axis gates authoring TypeScript, and nothing else.**
+  Writing or executing TS you wrote is wizard; everything a YAML-only
+  content developer needs — reloading, writing rows, committing rows — is
+  gated on title over the path, never on the axis.
 - **The world's political dials leave the operator's hands.** The eight
   policy keys become a thing the polity decides and the record shows.
 - **The keyspace is total** — every key carries a tier, and a new key
@@ -114,15 +115,33 @@ exactly what the bypasses were hiding.
 
 ## Surface decisions
 
-### The code-doors fold into the TypeScript gate
-`reload` executes modules; `git publish`/`revert` write the tree; CMS
-and Studio write source files; the template fields that name a class,
-hydrator or brain are content naming code; the command-view gate is the
-same. Every one reaches TypeScript by another route, so each is the axis
-rather than an exception to it. ⭐ Where a door already checks
-`isWizard` **and** a per-resource authority, **both halves survive** —
-the first asks whether you may touch code at all, the second whether you
-may touch this particular thing.
+### The axis is authoring TypeScript — that simple (owner, 2026-11-05)
+
+> *"it really is all about whether you're authoring typescript code or not
+> its that simple."*
+
+The test for every door is one question: **is this person writing (or
+executing) TypeScript they authored?** If yes, it is the wizard axis. If
+no, it is title over the path (`can` / held extents), the same gate
+`clone` uses — and a missing title is a refusal, never a grant.
+
+- **`reload` is NOT the axis.** It re-runs code already in the tree; it
+  writes nothing. A content developer with only YAML access must be able
+  to reload what they hold title over. Its wizard gate comes off and
+  title over the reloaded path replaces it.
+- **Writes are decided by WHAT is written.** CMS and Studio writing a
+  `.ts` file are the axis; writing a row, a view or a document is title
+  only. Where a door already checks both, the wizard half applies only
+  to TypeScript.
+- **A git commit is a write**, so `git publish` / `revert` follow the same
+  rule over the files the commit touches: if any is TypeScript, the axis
+  applies; if all are content, title only.
+- **`eval` stays the axis** — it executes TypeScript the person typed.
+- **Content that NAMES code is not authoring it.** A row's `class:` or
+  `brain:` field and a command view's `controller:` select code that is
+  already in the tree; under the rule they are content, gated on title.
+  ⚠ This reverses the shipped `TemplateLogic` / `DocumentLogic` gates —
+  ⚠ the build applies the rule as stated; review confirms.
 
 ### The command-running spell is deleted
 A spell that executes arbitrary commands is a console in a costume. Its
@@ -176,11 +195,13 @@ bites. Run against a fresh world.
 2. **The bypass is gone.** As a wizard holding no seat, attempt the same
    provisioning act. Refused, with a legible reason naming the seat.
 3. Repeat 1–2 for the letting flow on Mayfield Row.
-4. **A code door still opens for a wizard, and only for a wizard.**
-   Write to the source tree, then reload. Both work. As a non-wizard,
-   both refuse.
-5. **A code door still respects the resource half.** As a wizard, write
-   to a path you hold no title over. Refused.
+4. **Authoring TypeScript is the wizard's alone.** As a wizard, write a
+   `.ts` file to the source tree and commit it. Both work. As a
+   non-wizard holding title over the same path, both refuse.
+5. **A content developer needs no wizard.** As a non-wizard holding
+   title over a path, edit a row there, reload it, and commit it. All
+   three work. As a wizard WITHOUT title over a path, write a row there.
+   Refused.
 6. **Tier B is unchanged.** Read and set an ordinary physics setting.
    Works exactly as before.
 7. **Tier C is unreachable from the operator verb.** Attempt to set the
@@ -204,6 +225,8 @@ bites. Run against a fresh world.
 - The transcript-fabricating verb is absent from a production world.
 - A wizard reading a spoiler-tagged wiki page sees what a non-wizard
   sees.
+- A person with title over a path and no wizardness can edit, reload and
+  commit the content there; only TypeScript asks for the wizard.
 - Adding a new wizard-axis site anywhere fails the build until it is
   added to a reviewed list.
 - Adding a settings key without a tier fails the build.
