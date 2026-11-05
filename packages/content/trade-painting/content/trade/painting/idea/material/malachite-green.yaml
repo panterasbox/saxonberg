@@ -1,0 +1,16 @@
+# malachite green — copper ore ground fine: a deep stony green.
+class: /platform/idea/material/Material
+data:
+  name: malachite green
+  keywords: ["malachite green", malachite, green, pigment]
+  appearance: a gritty deep-green powder
+  density: 3900
+  specificHeat: 800
+  thermalConductivity: 0.3
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: [granular, solid, pigment, copper-pigment]
+  pigment: { transmitR: 0.25, transmitG: 0.55, transmitB: 0.35, hidingPower: 0.7, lightfastness: 0.9 }
+  composition: []
+  biologicalSource: null

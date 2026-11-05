@@ -1,0 +1,18 @@
+# structure — application settings shipped by the platform pack (the
+# `settings` kind: merge-missing). A building's outside: the coat on it and
+# the fabric under it (paint build).
+settings:
+  # A bare building goes from sound to worn in a season and a half of
+  # weather — the dial that used to be residence's `residence.weather.daysToWorn`.
+  - key: structure.weather.daysToWorn
+    value: "45"
+
+  # One brushed coat is a wet film about fifty microns thick — what a
+  # painter lays with a full brush. The pot gives litres = area × film / solids.
+  - key: structure.paint.coatThicknessM
+    value: "0.00005"
+
+  # Below about ten microns a coat no longer keeps the weather out: the
+  # survey says the paint is going.
+  - key: structure.coat.thinM
+    value: "0.00001"

@@ -676,7 +676,7 @@ descriptor at most — `Foo` / `PersistentFoo`, never stacked prefixes:
 
 | | transient | kept |
 |---|---|---|
-| **Locale** — ONE particular place, one row = one place (you *visit* a locale) | `Locale` | `PersistentLocale` ✅ (the cookhouse, chandlery, lavoir, bathhouse; `Wood` and the quarries in shape) |
+| **Locale** — ONE particular place, one row = one place (you *visit* a locale) | `Locale` | `PersistentLocale` ✅ (the cookhouse, chandlery, lavoir, bathhouse; `Wood` and the quarries in shape; `PersistentShore` — the put-in, whose house sells boats where they lie, harbors review 1 — the same shape over a shore's stack, never for a quay a ship makes fast at) |
 | **Location** — one of MANY laid out to a plan (you *fill* a location) | `Location` | `PersistentLocation` (lots, dorm rooms, let units; `Field`, `MineRoom` in shape) |
 | spherical, one place | `SphericalLocale` | `PersistentSphericalLocale` when wanted |
 | spherical, one of many | `SphericalLocation` (unchanged) | `PersistentSphericalLocation` when wanted |

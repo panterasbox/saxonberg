@@ -698,3 +698,13 @@ pottery now), `ruined`. ⭐ Two pieces whose dryness differs by more than
 `green.joinMismatch` (0.25) still join — and the whole takes a `check` (a
 drying crack, seen) where they meet: the wetter one shrinks more as they dry.
 That is the lesson in the timing, and the only thing the joint grades on.
+
+
+## The glued joint takes glue (paint build, 2026-10-31)
+
+A `Joint` row may say `takes: glue` (`glued` does). Making the joint by
+`fit`'s raise arm draws glue from an open vessel in reach and records it on
+the joint (`JointState.glue`, `setProgress`); the GLUE then decides the
+line's strength (weak until set), how it stands the damp, the heat it lets
+go at, and whether `salvage` gets the parts back. See
+[painting.md](./painting.md) § Glue.

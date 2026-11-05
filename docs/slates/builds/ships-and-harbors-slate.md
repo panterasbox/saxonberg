@@ -1,23 +1,45 @@
 # Ships and harbors slate — craft, berths, and life aboard
 
-> **Status: UNBUILT** — designed 2026-10-19 with the owner, high level; the
-> drill-downs follow. The maritime build shipped `Ship` (a Structure with a
-> position — the *Hesper*), a singleton `Boat` (the dinghy), `launch` /
-> `recover`, `AboardExit` / `AshoreExit`, and the barge; no harbor exists →
-> [expanse.md](../../subsystems/expanse.md). Supersedes
-> [navigable-water-slate](./navigable-water-slate.md) § 7a where they differ.
-> **Left:** boats in water rooms only, ships alone in the field · boats as
-> minted, Durable, chattel assemblies with capacity and derived draught ·
-> the expanse Warren budding sea rooms where ships stop · *a ship is always
-> alongside a room* — exits wired on arrival, unwired on departure, named
-> for her, transient · singleton and minted as one `(scope, key)` model ·
-> `Ship extends Structure` + `Named`, owning her floorplan, keyed rooms,
-> whole-ship dormancy and condition · a Structure row naming its warren ·
-> ship registers per government, flags, the flag state's law · craft
-> ARCHETYPES (the shipped venue archetype) and media by parts · harbors —
-> anchor vs alongside, berths on quays, the harbormaster, mooring by
-> `course` · leaks, the pump, swamping, sinking to the bed as her own wreck ·
-> life aboard by tenure · boatbuilding under carpentry · the pack map
+> **Status:** PARTIAL — designed 2026-10-19 with the owner, high level; the
+> drill-downs follow. The maritime build shipped `Ship` and the *Hesper*;
+> the river build (MR !464) the sea patches and `course` waiting for her
+> PEOPLE in the water → [river.md](../../subsystems/river.md). ⭐ **The
+> harbors build (MR !511) shipped § 1's berth ways, § 2's ship kinds, § 3's
+> register / owners / flag state, § 6's harbor, berths, harbormaster, dues
+> and tide window, and § 7's leaks, pump, bail, swamping, sinking and the
+> wreck** → [harbor.md](../../subsystems/harbor.md) ·
+> [ship.md](../../subsystems/ship.md); its deferred seams are named below
+> where they stand. Compacted 2026-11-04 against the harbors build's code.
+> **Left:** a hove-to ship's water drifting with the set · `course` refused
+> for her own BOATS in the water · a ship among an authored water's places
+> (room to room, admission by draught and beam) · boats as Durable chattel
+> assemblies · a building naming the warren inside it · how else a ship is
+> got (commissioned, claimed abandoned, inherited) · a second register,
+> re-flagging, flags of convenience, the stateless ship · false and struck
+> colours, the horizon reading the flown flag · letters of marque,
+> navigation acts · archetypes on all three Structure kinds, media by
+> parts, the hovercraft · the craft catalogue · the anchorage reached by
+> boat, anchorage dues · leased berths and the liveaboard's address ·
+> rafting · quarantine and enemy-flag refusals with an appeal · private
+> wharves (wharfage at a private landing) · piers, slipway, boathouse,
+> careening hard, quay crane, customs house · the wreck's air pockets and
+> exposure clock · the wreck charted on the map · a wreck as a river
+> obstruction · getting her back (salvage, raising, pumping her dry) ·
+> life aboard by tenure · boatbuilding under carpentry, the shipyard slip
+> under construction · the pack map
+> (`trade-seafaring`, haulage widened) · the stale prose sweep and
+> haulage's `ship` verb · the crew, stations and manning, the watch, the
+> articles, the lay, the cook · the master's certificate, the shipping
+> office, the mariners' guild and the Watermen's ruin · boats crossing the
+> field · the moving encounter (whaling) · shipping as a business — income
+> by share, liner/tramp, the charter as a contract, demurrage, insurance,
+> general average, bottomry · the harbormaster's day (health, pilot,
+> archetype quays, wharfage by cargo, the shipping news), contention
+> (one-way channel, swinging room, holding ground, the dredger), dragging
+> anchors, fire and explosion · pilots and the bar, grounding · quarantine
+> · customs and smuggling · the sailortown · the lifeboat · epochs at sea ·
+> aether dead zones · the research ship, maritime instruments · the
+> passenger's voyage · the cruise ship
 > **Size:** a build — and several; the drill-downs decide
 
 **Sits on:** [expanse.md](../../subsystems/expanse.md) ·
@@ -41,24 +63,14 @@ branch).
 
 A survey of what shipped found:
 
-1. **Three boat models** — a launched `Boat` detaches and holds a position at
-   sea; the barge moves room to room; the river and underwater slates put a
-   boat inside the water's room. A launched boat can never land; `Boat` is a
-   **singleton** (one row, one boat — none can be bought or built) and not
-   `Durable`.
-2. **"The hull may be assumed"** — nothing hosts a hull, yet upkeep, sinking,
-   draught, capacity and repair all need one.
-3. **A ship's rooms do not persist** — deck and hold are non-persistable, so
-   cargo and wear vanish on restart.
-4. **Ships are realm content only** — the *Hesper*'s crew is appointed by the
-   PM office; no owner, title or registry; § 7a's "title in the parcel's
-   shape" conflated the code-maintenance axis with fictional ownership.
-5. **The berth was argued on a false premise** — § 7a: *the way aboard must
-   not be an exit* because *"a ship's interior is minted per ship"*; ships
-   turned out authored, and exits shipped. A landing finds its sea through ONE
-   authored ship; with several alongside, the first wins.
-6. **"No berths to let"** — right for the water-holder; it left berths, dues
-   and moorings with no owner anywhere.
+1. *Superseded by the river build → [river.md](../../subsystems/river.md)
+   § The one rule, § Small craft: ONE boat model (a Thing in a water place,
+   never positioned), six kind rows, no singleton marker; still not `Durable`
+   (§ 2).*
+2–6. *Resolved by the harbors build (MR !511) → [ship.md](../../subsystems/ship.md),
+   [harbor.md](../../subsystems/harbor.md): her hull (`Durable`/`Faced` on `Ship`), a
+   kept hold, owners / register / flag, the berth as a way named for her (two ships,
+   two ways), berths and dues owned by the harbor works.*
 7. Small: going ashore at the-pool lands you **in the water**; *"sails on with
    nobody aboard"* is one watch at load; haulage's verb `ship` will collide
    with the noun; stale prose (logistics D5's *hull plus a warren*, § 7f's
@@ -85,19 +97,14 @@ slate); the berth as the liveaboard's address.
 
 ### The expanse Warren — the sea's own rooms
 
-The owner rejected *water that belongs to a ship* (*"what are you actually
-modelling here… how do you know if it's starboard or portside"*):
+*Shipped by the river build (MR !464) → [river.md](../../subsystems/river.md)
+§ The sea, brought into line: the `SeaWarren` buds a patch where a ship
+stops, within hail (`expanse.hailRangeM`), shared by ships stopped within
+hail, reaped when empty; `launch` / `recover` / `side`; `course` waits for
+her PEOPLE in the water, `--leaving-them` records `abandonment`.*
 
-- **The expanse buds surface-water rooms where ships stop** — a third Warren
-  consumer beside the river's stretches and the column's bands; reaped when
-  empty. Each is a water place citing the sea there (sea state, depth, fish,
-  a column below).
-- ⭐ **Keyed to a cell of about hailing distance**, not to a ship, so **ships
-  stopped near each other share one room** — their boats row between them; a
-  rendezvous is ordinary co-presence.
 - **A ship hove to drifts with the band's set, and the room with her**; anchored
   holds both. You need only have stopped, never to have anchored.
-- **`launch`, `recover` and over the side** move between her deck and that room.
 - ⭐ **`course` is refused while her own boats or people are in the water** —
   *"the dinghy's still in the water, and Tam's swimming off the starboard
   quarter — recover them first, or `course … leaving them`."* Nobody is
@@ -112,20 +119,13 @@ modelling here… how do you know if it's starboard or portside"*):
 | a river | the `RiverWarren`'s stretches + authored places | the river voyage — a distance along |
 | ⭐ a fully authored water (a mere, a basin, a canal, a lagoon) | the authored water places | **room to room through their water exits**; her position IS which room she is alongside; admission = her draught against the room's `depthM`, her beam against an exit's width |
 
-**Exits come and go with her** (*"putting 'aboard' on every water place for a
-ship that's not there 90% of the time is stupid"*): arriving alongside, she
-**wires** an exit on that room **named for her** (`hesper`) to her deck, and
-`over the side` / `ashore` on her deck back; leaving, she **unwires** them —
-the Warren's shipped `wireHubExit` / `unwireHubExit`. Restart-safe (her
-position persists; the water loads its attached craft, which re-wire). The
-semantic-exit zone check passes (two authored zones). ⚠ **Transient** — never
-written to the per-player map (*"maps never name a ship"*). **Two ships in one
-room are two exits**, each named for her — no prompt, no "first wins".
-Rafting (deck to deck) is a deliberate act (§ 6).
+*⚠ The river row is superseded by the river build → [river.md](../../subsystems/river.md) § Ships on a river: no `RiverWarren`, no stretch rooms — she is positioned on the LINE, alongside a landing when she lies within a rope's throw of it, and the landing's `aboard` is authored and names one ship.*
 
-**No new spatial object**: one changing field (her position — a coordinate, a
-distance, or a room), exits that resolve late, and the water knowing its
-ships.
+*Exits come and go with her — shipped in another shape by the harbors build →
+[harbor.md](../../subsystems/harbor.md): a `BerthExit` named for her, wired on
+any landing she makes fast at and removed when she casts off, never mapped; the
+landing's derived* Alongside: *line; the landing's berth roll (a document)
+re-wires her at a restart. Rafting stays § 6.*
 
 ## 2. ⭐⭐ Singleton and minted — one model **[DECIDED]**
 
@@ -138,45 +138,26 @@ the degenerate case … there is no singleton-vs-multi branch."*
   chattel and the estate. Boats become **`Durable`**, **assemblies** (hull +
   propulsion, the river slate), with **capacity** and **draught derived from
   load** (an overloaded boat rides low and swamps).
-- **Ships** — an authored ship (the *Hesper*) is a singleton; a **ship kind**
-  is a **floorplan** instanced many times. Holding's **`HoldingWarren`** is
-  the shape, deliberately *not* a singleton: *"one live instance per holding,
-  all sharing one row and separated by their persistence key"*, a
-  **`floorplan`** of `[{ leaf, room, exits, entry, door }]` naming real room
-  templates, **`wake()`** standing every room up as a keyed instance, and
-  **whole-holding dormancy**. So: **a generic ship class whose rows are kinds
-  with a floorplan blueprint (no content scan), each ship a keyed instance**
-  — her own rooms, cargo, wear and name; **whole-ship dormancy**; holding's
-  per-instance **`shellCondition` is her hull condition** (W7's `maintain`,
-  the shell clock).
-- ⭐ **`Ship extends Structure` and composes `Named`** (*"so we're both
-  right"*): membership, the outside look, position and voyage from Structure;
-  her name from `Named`; and the Ship **owns her floorplan instance** —
-  **one coordinator per ship** (two objects claiming one set of rooms would be
-  the refused hull in another form). Everything that names her — a room's look
-  (*"the Kittiwake's great cabin"*), the wired exit, the horizon — asks the
-  ship through membership.
-- ⚠ **Structure membership becomes `(extent, key)`** — extent prefix alone
-  cannot tell two brigs apart.
-- ⚠ **For the plan**: `Warren` is an abstract base, not a mixin, so the Ship
-  cannot extend both; holding's floorplan, keyed-instance and dormancy
-  behaviour must be lifted into something the Ship composes.
+- *Ships — shipped by the harbors build in another shape → [ship.md](../../subsystems/ship.md),
+  [holding.md](../../subsystems/holding.md) § The lift landed, § Plans: the kernel
+  `FloorplanWarren`; a ship of a kind is a minted identity owning a keyed
+  `ShipWarren` that copies her kind row's own plan (`extent`/`entrance`); whole-ship
+  dormancy (only her `Hold` keeps a record); one coordinator per ship; membership is
+  her warren's (no `(extent, key)`); her hull condition is `Durable`/`Faced` on the
+  `Ship`, caulked by `maintain`.*
 - ⭐ **A Structure row may name the warren that stands its rooms up** — the
   relationship is **authored, forward** (*"we need some relationship between
   Structure and Warren that's expressible by the content creators"*): a ship
   kind names its floorplan; a building may name the warren of homes inside it;
   an authored singleton names none.
-- The zone worry dissolves: the **zone is the kind's**, authored once;
-  instances differ by key, as dorm rooms do.
 
 ## 3. Ownership, registers and flags **[DECIDED]**
 
-- ⭐ **A ship registry** — title by name, with **shares** possible (British
-  law's sixty-fourths). Not a Parcel (structures-slate), and not parcel title
-  (the code-maintenance axis).
-- **The owner is separate from the house that runs her**: the owner hires the
-  master, the master the crew (employment, shipped). Today's `house` is the
-  second.
+- *The registry and the owner — shipped by the harbors build in another shape →
+  [ship.md](../../subsystems/ship.md), [employment.md](../../subsystems/employment.md)
+  § The owners authority: a government's `ShipRegister` keeps title only (name,
+  kind, flag, owning company); her company owns her and its cap table holds the
+  sixty-fourths; a majority of the table appoints her master.*
 - **How you get one**: buy from the holder (transfer); commission from a yard
   (construction); claim an abandoned one (decomposition's abandoned property);
   inherit (the estate). Until construction, **ships are bought as minted stock
@@ -283,8 +264,7 @@ address** (*your post goes to the berth*).
 - **Ownership is adjacent, never nested**: the water's holder holds the water
   (navigable § 5 stands); **quays and berths** belong to a **harbor
   authority**, private wharf owners or the town.
-- **The bar and the tide** — a deep ship crosses only near high water (tides +
-  draught), so the queue moves with the moon.
+- *The bar and the tide — shipped (harbors P10) → [harbor.md](../../subsystems/harbor.md).*
 
 ### What else a harbor holds
 
@@ -300,30 +280,21 @@ the making trades (§ 10).
 
 ## 7. ⭐⭐ Leaks, swamping and sinking **[DECIDED]**
 
-- **A leak is the hull's condition read as water** — worn caulking (the `coat`
-  sealant's decay), a holed plank, a sprung joint — at a rate by the damage and
-  depth below the waterline, into **the bilge** (the lowest room, or the boat).
-- **The pump** (shipped; the *Hesper* carries one) moves it over the side at
-  the crew's power — ⭐ *a leaky ship is a pumping job*.
-- **Swamping** — derived freeboard (draught from load) against the wave height
-  (the expanse's sea state, a river's rapid). Not a roll.
+*Leaks, the pump, swamping and sinking — shipped by the harbors build →
+[ship.md](../../subsystems/ship.md), [pump.md](../../subsystems/pump.md) § The
+bucket: one `BilgeMixin` on `Ship` and `Boat` (a ship leaks from her worn seams
+and holes, a boat from holes and an opened coat); the bilge well and pump, `bail`
+over any `LiftSource`; a boat swamps by load; rooms flood lowest-up by
+arithmetic; she settles over a per-person window of acts and goes down, alongside
+the bed band by *the wreck of the …*, her rooms under water, cargo and title
+intact; a boat sinks with what is in her. What remains:*
+
 - ⭐⭐ **Sinking** — build-4's plan supplies the pieces (the `ColumnWarren`'s
   bands keyed `<surface>/<band>`; D7's authored neighbours beside a band; D9's
   *sinking goes to the bed band*):
-  - **A sunk ship is alongside the bed band** of the column at her position —
-    the same exit-wiring: the bed band gets *the wreck of the Kittiwake* to her
-    deck.
-  - ⭐ **Her rooms become her scene, no new rooms** — water is a state of any
-    place, so each of her rooms becomes a water place at its depth; the
-    wreck at the bottom IS the ship, her cargo in her hold, title intact.
   - ⭐ **Air pockets** — a sealed upper compartment holds trapped air (build-4's
     air pocket, Boyle).
   - From that moment her materials are on decomposition's exposure clock.
-  - ⭐ **Sinking takes time** — the bilge rises, rooms flood from the lowest up,
-    and when buoyancy is gone she goes down; **anyone still aboard goes down
-    with her, in rooms now at depth**, and can swim out up the column on the
-    breath model. Anyone off before is in the surface room with the boats and
-    the lifeboat.
   - **On the expanse her position becomes a node** — *the wreck of the
     Kittiwake* — with a surface room the expanse Warren buds over her and a
     column down to her. ⚠ A node **minted at runtime** (nodes are authored rows
@@ -332,7 +303,6 @@ the making trades (§ 10).
   - **In a river or lake** she lies at the bed of the stretch or room — ⭐ **in a
     river an obstruction** (blocks a ship by admission, snags a boat, fouls a
     line).
-  - **Boats are just Things** — they sink to the bed band with what is in them.
 - **Getting her back**: beach her on the hard; pump her dry; salvage her.
 
 ## 8. ⭐⭐ Life aboard, by tenure **[DECIDED]**
@@ -414,14 +384,10 @@ ledger.
 
 ## 11. ⚠ Notes to sibling builds and shipped content
 
-- **build-1 (sugar, `reqs/sugar`)** — carry on through **W5**; **hold W6 (the
-  voyage)** until the harbor lands: (1) **Waponi Woo's landing** is an `aboard`
-  exit hard-wired to the *Hesper*'s deck (`oneWay`) — it becomes **a quay with
-  berths**; (2) **the crew's home leg is the-pool node**, where going ashore puts
-  you **in the water** — the home port becomes **the harbor**; (3) **D13 (the
-  hold persists by re-class)** is right and generalizes to every ship's rooms.
-- **build-4 (underwater)** — insulated (it defers all craft); its bell is a
-  vessel Thing in the water's room, the craft size rule. No change.
+*The build-1 (sugar) and build-4 (underwater) notes were delivered — both merged;
+Waponi Woo's landing is a `HarborQuay` and the Hesper lies made fast at the
+estuary mouth (harbors P26, P4).*
+
 - **Shipped content** — the *Hesper*'s landings become berths; `Boat` loses its
   singleton marker; going ashore at the-pool gains a dry landing; the stale
   prose (logistics D5, navigable § 7f, the structures slate's retired
@@ -473,13 +439,11 @@ cut): the voyage's weather, combat, whaling's chase.
 
 ## 14. Open (for the plan)
 
-1. Lifting holding's floorplan, keyed-instance and dormancy behaviour into
-   something `Ship` composes (`Warren` is a base class).
-2. Structure membership by `(extent, key)`.
-3. A runtime-minted expanse node for a wreck.
-4. The sea-room cell size (grain).
-5. Where the ship registry lives (a civics document tree per government — no
-   new collections).
+1. *Resolved: the kernel `FloorplanWarren`; the ship owns a `ShipWarren` → [holding.md](../../subsystems/holding.md) § The lift landed.*
+2. *Resolved (superseded): membership is her warren's, not `(extent, key)` → [ship.md](../../subsystems/ship.md).*
+3. *Resolved (superseded): no runtime node — the water keeps a persisted `SeaStop` over her → [ship.md](../../subsystems/ship.md); charting her stays § 7.*
+4. *Resolved: the cell is `expanse.hailRangeM` (100 m) → [river.md](../../subsystems/river.md) § The sea, brought into line.*
+5. *Resolved: a `ShipRegister` row per government, its entries `ship` documents under `/platform/ships/<gov>` → [ship.md](../../subsystems/ship.md).*
 
 ## 15. ⭐⭐ Drill-down: `trade-seafaring` (2026-10-19)
 
@@ -523,9 +487,10 @@ other end in [wellbeing-slate](./wellbeing-slate.md) § 8.
 
 ### From boy to master **[DECIDED]**
 
-- **⭐ `seamanship` is a new discipline** (ropework, sail, the helm, boat
-  handling, anchoring and mooring) beside the shipped **navigation** and
-  **command**.
+- *`seamanship` shipped (harbors P24) → [ship.md](../../subsystems/ship.md): a
+  platform Discipline on ropework, credited by mooring, casting off, the pump,
+  the bilge read, `maintain` aboard and a course's node; sail and the helm as
+  stations are § 15's.*
 - **The ladder** — boy → ordinary → **able seaman** (*can hand, reef and
   steer* — a seamanship band) → bosun or mate → master — as positions whose
   seats want bands; ⭐ **the refusal is the progression UI** (the shipping
@@ -621,11 +586,7 @@ Location inside a Location, never a hull Thing.
 
 ### The sea is bounded; rooms bud only at ENCOUNTERS **[DECIDED]**
 
-*"Is it infinite or bounded?"* — **bounded by the expanse's own extent** (its
-chart region, nodes and bands), and **rooms are budded at encounters, not across
-the sea**: a stopped craft is a one-craft encounter, two ships hove to share one
-(the cell rule), everywhere else is field. The count of rooms is the count of
-things happening at sea now.
+*Shipped → [river.md](../../subsystems/river.md) § The sea, brought into line: patches only where a ship has stopped, shared within hail, field everywhere else.*
 
 **The geography a chase runs on already ships**: **bands** (set, fog, races, sea
 state, and **`stock`** — ⭐ *a whaling ground is a band*), **nodes** (rocks,
@@ -643,9 +604,9 @@ stories lean on it (Monte Cristo's Morrel, Moby-Dick's lay):
 
 - **Ownership in shares** (the registry's sixty-fourths; income split by share
   through banking).
-- **Three roles** — the **owners**; ⭐ the **managing owner** (*the ship's
-  husband* — the house that runs her: cargoes, the master, the bills); the
-  **master** (often a shareholder).
+- *Three roles — shipped in another shape by the harbors build →
+  [employment.md](../../subsystems/employment.md) § The owners authority: her
+  company is the house; its majority holder appoints; the master is a seat on it.*
 - **Three earnings** — ⭐ **the liner** (a scheduled service sailing *full or
   not* — the Black Ball Line, 1818; a timetable the `published` map channel
   reads); **the tramp** (any cargo, haulage's market); ⭐ **the charter** (hiring

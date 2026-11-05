@@ -86,8 +86,8 @@ export default class CurrentReading extends Reading {
     while (at !== null) {
       // ⭐ Still water has no current at all (W14) — not a current of
       // nought — so the log says there is no running water here.
-      if (MixinApi.isWaterPlace(at)) return MixinApi.isMovingWater(at) ? at.currentFor(who) : null;
-      if (MixinApi.isShore(at) && !MixinApi.isWaterPlace(at) && at !== who) {
+      if (MixinApi.isWaterPlace(at) && at.depthNow() > 0) return MixinApi.isMovingWater(at) ? at.currentFor(who) : null;
+      if (MixinApi.isShore(at) && !(MixinApi.isWaterPlace(at) && at.depthNow() > 0) && at !== who) {
         const pick = await at.waterRefFor(param || undefined);
         if ('ref' in pick) return 'currentMps' in pick.read && typeof pick.read.currentMps === 'number' ? pick.read.currentMps : null;
         if (param !== '') return null;

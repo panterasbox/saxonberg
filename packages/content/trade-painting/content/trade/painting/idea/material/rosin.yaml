@@ -1,0 +1,26 @@
+# Rosin — what is left in the still when the turpentine has come over
+# (paint D17): an amber resin, glassy cold and molten warm, that sets as a
+# lump wherever it cools. Dissolved in turpentine it is a varnish; melted it
+# is a cement.
+class: /platform/idea/material/Material
+data:
+  name: rosin
+  keywords: [rosin, colophony, resin]
+  appearance: a glassy amber resin that smells of a hot pine wood
+  density: 1080
+  specificHeat: 1300
+  thermalConductivity: 0.13
+  meltingPoint: 350
+  boilingPoint: 630
+  heatOfCombustion: 37
+  autoignitionTemperature: 640
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: [resin, rosin, flammable, organic, once-living]
+  castTemplate: /trade/painting/thing/rosin
+  # ⭐ Melted, it is a CEMENT (paint D11): a stiff, waterproof line that
+  # sets as it cools and lets go again when it is warmed.
+  adhesive: { strength: 0.5, reversible: { heatK: 360 }, resistsDamp: 0.9, softensAtK: 340 }
+  composition: []
+  biologicalSource: null

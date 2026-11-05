@@ -9,4 +9,7 @@ data:
   longDescription: |
     Tiny hard brown seeds, slippery between the fingers and shining like they have been oiled — because they have.
   growsIntoPath: /trade/farming/thing/plant/flax
+  # ⭐ What the seed IS (paint D19): an oilseed — the stones press linseed
+  # oil out of it (`mill flax seed`).
+  _materialPath: /trade/farming/idea/material/flax-seed
   _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/malpighiales/linaceae/linum/usitatissimum

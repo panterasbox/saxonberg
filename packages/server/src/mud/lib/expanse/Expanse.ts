@@ -51,7 +51,7 @@ import { SpatialZone } from '../zone/SpatialZone';
 import { SingletonMixin } from '../stuff/Singleton';
 import { Template } from '../stuff/Template';
 import type { Stuff } from '../stuff/Stuff';
-import type { FieldMeta } from '../mixin';
+import { Mixins, type FieldMeta } from '../mixin';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
 import { AppApi } from '../../api/app';
@@ -60,11 +60,13 @@ import ExpanseNode from '../../platform/idea/ExpanseNode';
 import { GeoPosition, type GeoPositionRecord } from './GeoPosition';
 import type { Positioned } from './Positioned';
 import type { SightingChannel } from './SightingChannel';
-import type Structure from '../../platform/idea/Structure';
+import type Structure from '../structure/Structure';
 import type { CourseRequest, Frame, FramePos, FrameSite, WatchReport } from './Frame';
 import { Trajectory, TrajectoryBuilder } from './Trajectory';
 import type { CourseRecord, HullNow } from './Voyaging';
 import type { Craft } from './Voyage';
+import type { Container } from '../spatial/Container';
+import type { Hailable } from './Hailable';
 
 /** What composes at one position. */
 export interface ExpanseField {
@@ -441,9 +443,76 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) implements Fra
     return m ? { frame: 'chart', at: new GeoPosition(Number(m[1]), Number(m[2])) } : null;
   }
 
-  /** Standing on the chart's shore means nothing more yet (W13). */
+  /**
+   * Standing on the chart's shore (W13): the nodes are compiled, so a place
+   * cited by a node's path (`siteOf`) is placed — the ships lying there are
+   * re-wired by the place itself.
+   */
   public async onSiteStood(_place: Stuff): Promise<void> {
-    return;
+    await this.nodes();
+  }
+
+  /**
+   * ⭐ What answers a hail from a chart position: every node in
+   * signal range that is a river's mouth hands the hail up the river (its
+   * line names the harbor office inside the bar), and a node's landing that
+   * keeps a watch answers itself. Loaded by the hail.
+   */
+  /**
+   * ⭐ How deep the sea is at a chart position.
+   * @hook Override on a sea that knows its bottom (the water pack's).
+   *   Default: not known.
+   */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public async depthUnder(_pos: FramePos, _nowS: number): Promise<number | null> {
+    return null;
+  }
+
+  /**
+   * ⭐ The water kept over a craft that went down here.
+   * @hook Override on a sea that keeps a surface over a wreck (the water
+   *   pack's). Default: none.
+   */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public async stopOver(_craft: Craft): Promise<(Stuff & Container) | null> {
+    return null;
+  }
+
+  public async hailables(pos: FramePos): Promise<(Stuff & Hailable)[]> {
+    if (pos.frame !== 'chart') return [];
+    const rangeNm = numSetting('expanse.signalRangeNm', 12);
+    const out: (Stuff & Hailable)[] = [];
+    const seen = new Set<Stuff>();
+    const add = (xs: (Stuff & Hailable)[]): void => {
+      for (const x of xs) if (!seen.has(x)) { seen.add(x); out.push(x); }
+    };
+    for (const node of await this.nodes()) {
+      const at = node.getExpansePosition();
+      if (at === null || pos.at.distanceNm(at) > rangeNm) continue;
+      const river = node.getRiver();
+      if (river) {
+        const frame = await StuffApi.singleton<Stuff>(river).catch(() => null);
+        if (frame !== null && MixinApi.isLineFrame(frame)) {
+          add(await frame.hailables({ frame: 'line', at: { course: frame.courseKey(), km: 0, across: 0 } }));
+        }
+      }
+      const dest = node.getDestination();
+      // Its class decides, read off the row — only a landing that answers is loaded.
+      const cls = dest ? await StuffApi.classForRef(dest).catch(() => null) : null;
+      if (dest && cls !== null && MixinApi.hasMixin(cls, Mixins.Hailable)) {
+        const place = await StuffApi.singleton<Stuff>(dest).catch(() => null);
+        if (place !== null && MixinApi.isHailable(place)) add([place]);
+      }
+      // ⭐ The station the chart names for the node (the
+      // island's office answers for its quay): followed forward, loaded
+      // only when it is named.
+      const station = node.getHail();
+      if (station !== null) {
+        const place = await StuffApi.singleton<Stuff>(station).catch(() => null);
+        if (place !== null && MixinApi.isHailable(place)) add([place]);
+      }
+    }
+    return out;
   }
 
   /**
@@ -478,7 +547,13 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) implements Fra
       const node = arrived.data?.node ? await this.node(arrived.data.node) : null;
       const at = node?.getExpansePosition() ?? null;
       if (at !== null) {
-        return { told, distanceKm, stop: { reason: 'arrived', words: arrived.words ?? '', at: { frame: 'chart', at } } };
+        // ⭐ The landing behind the node: what she comes alongside.
+        const landing = node!.getDestination();
+        return {
+          told,
+          distanceKm,
+          stop: { reason: 'arrived', words: arrived.words ?? '', at: { frame: 'chart', at }, ...(landing ? { landing } : {}) },
+        };
       }
     }
     // 3. Neglect — the gear remembers.

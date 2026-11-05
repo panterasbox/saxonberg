@@ -2712,6 +2712,13 @@ export class BankingLogic extends ApiLogic {
     return accountsOfImpl(actingActorKey());
   }
 
+  /** See {@link BankingApi.accountIdsOf}. Primary first. */
+  @CallSecurity(BankingApiCallers)
+  public async accountIdsOf(ownerKey: string): Promise<string[]> {
+    const owned = await accountsOfImpl(ownerKey);
+    return [...owned.filter((a) => a.isPrimary), ...owned.filter((a) => !a.isPrimary)].map((a) => a.accountId);
+  }
+
   /** See {@link BankingApi.primaryAccountIdOf}. Receive-by-identity target. */
   @CallSecurity(BankingApiCallers)
   public async primaryAccountIdOf(ownerKey: string): Promise<string | null> {

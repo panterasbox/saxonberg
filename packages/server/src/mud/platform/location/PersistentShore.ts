@@ -1,20 +1,30 @@
 /**
- * PersistentShore — a {@link Shore} that is KEPT: a place beside a named
- * water whose state outlives the process.
+ * PersistentShore — ⭐ **a shore that is KEPT**: a
+ * {@link Shore} whose state outlives the process — the kept-locale shape
+ * (`PersistentLocale`) over a shore's stack, `PersistableMixin` outermost.
  *
- * The shape {@link PersistentLocale} names for a kept locale with
- * substrate of its own: `PersistableMixin` outermost over its own stack.
- * The first is the Delight ditch's bank (water-supply, the browser walk):
- * it was kept already, and it had no way to say which water it stands
- * beside — so `analyze water` there read the RIVER, and no instrument in
- * the game could read the ditch, whether it ran earth or lined.
+ * A landing where a house keeps goods it sells where they lie — the put-in,
+ * its boats upturned on the shingle — has state a sale made: the boat sold
+ * is the buyer's, and the house has one fewer. A plain shore re-lays its
+ * authored `props:` every time it is stood up again (a restart, a residency
+ * eviction), so the house's boats would come back — a faucet, the fiction
+ * betraying itself. Kept, it lays its `props:` down ONCE and its record is
+ * authoritative thereafter: unstamped goods (the house's boats, their hire
+ * state) capture as its contents, a buyer's boat persists owner-side and is
+ * laid back down here, the cast is transient.
+ *
+ * ⚠ Not for a quay a ship makes fast at: a ship's lines re-tie from her own
+ * record at a restart, so a kept quay would restore the ends twice (the
+ * reason a landing's list of who lies at it is a `berth-roll` document,
+ * not its own state). A kept shore holds no bollards.
+ *
+ * The second is the Delight ditch's bank (water-supply): it was kept
+ * already, and as a plain kept locale it could not say which water it
+ * stands beside — so `analyze water` there read the river, and no
+ * instrument in the game could read the ditch, earth or lined.
  */
 
-import { FrameSitedMixin } from '../../lib/expanse/FrameSited';
-import { ShoreMixin } from '../../lib/location/Shore';
+import Shore from './Shore';
 import { PersistableMixin } from '../../lib/persistence/Persistable';
-import Locale from './Locale';
 
-export default class PersistentShore extends PersistableMixin(
-  FrameSitedMixin(ShoreMixin(Locale)),
-) {}
+export default class PersistentShore extends PersistableMixin(Shore) {}

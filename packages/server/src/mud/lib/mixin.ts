@@ -352,6 +352,18 @@ export const Mixins = {
   MovingWater: 'MovingWaterMixin',
   SmallCraft: 'SmallCraftMixin',
   TetherEnd: 'TetherEndMixin',
+  // ⭐ The water a hull holds — a ship's, a boat's.
+  Bilge: 'BilgeMixin',
+  // A landing somebody keeps a book for — a harbor quay.
+  Berthing: 'BerthingMixin',
+  // A place that answers a hail — a harbor office.
+  Hailable: 'HailableMixin',
+  // A thing that says what you owe — a harbor office's book.
+  Payable: 'PayableMixin',
+  // A thing let by the day — a hired boat.
+  Hirable: 'HirableMixin',
+  // A thing with something for sale — `buy`'s one protocol.
+  ForSale: 'ForSaleMixin',
   Ringable: 'RingableMixin',
   MovingZone: 'MovingZoneMixin',
   // A craft that holds a course across an expanse (a ship, a boat).
@@ -679,6 +691,10 @@ export const Mixins = {
   // augments). A ministry is an organization that does not trade.
   Organization: 'OrganizationMixin',
   Business: 'BusinessMixin',
+  // ⭐ A table of owners and their units — who holds a business, and so
+  // who appoints its managing position (the institutions slate's cap
+  // table; ships are its first consumer).
+  CapTable: 'CapTableMixin',
   // ⭐ `EmployedMixin` also carries "who answers for you"
   // (`institutionPath`) — the standing party that fields an actor, which
   // is NOT the episodic `directedBy`: a guard acting for the watch was
@@ -745,8 +761,12 @@ export const Mixins = {
   // mass into a form a word names": the wheel, the brick table, the blowpipe.
   Forming: 'FormingMixin',
   // ⭐⭐ Faces and coats (ceramics M6) — "I have an outside, and a vessel an
-  // inside; each carries coats, outermost first". On every Good.
+  // inside; each carries coats, outermost first" — and the outside's
+  // coats thin where the weather reaches them (paint D5). On every Good.
   Faced: 'FacedMixin',
+  // ⭐⭐ SelfHeating (paint D15, promoted from trade-farming) — "I make my own
+  // heat faster than I lose it, until I catch": the hay rick, the oily rags.
+  SelfHeating: 'SelfHeatingMixin',
   // ⭐⭐ Green ware (ceramics M4) — "I am unfired clay, and my water decides
   // whether I can be trimmed, fired, or ruined by the weather".
   Greenware: 'GreenwareMixin',
@@ -900,6 +920,7 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   CoolboxMixin: "{} isn't a cold box",
   HeldGoodsMixin: "{} isn't a shelf goods are held on",
   ConsignmentShelfMixin: "{} isn't a shelf you can trade from",
+  SmallCraftMixin: "{} isn't a boat",
 
   // Reduction & separation — a mill, a stamp battery.
   ComminutingMixin: "{} isn't something that grinds",
@@ -917,6 +938,9 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
 
   // A pump — the refusal names what one does.
   PumpingMixin: "{} doesn't pump anything",
+  PayableMixin: "{} keeps no bills",
+  ForSaleMixin: "{} has nothing for sale",
+  CapTableMixin: "{} keeps no table of owners",
 
   // Construction & table — a butcher's blade is any EDGE, and cutlery is
   // what you eat with.
@@ -1044,6 +1068,7 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   StrikingDieMixin: "{} isn't a die you could strike a blank on",
   FormingMixin: "{} isn't something you shape things on",
   FacedMixin: "{} has no face you could lay a coat on",
+  SelfHeatingMixin: "{} does not heat itself",
   GreenwareMixin: "{} isn't green clay",
   // ⭐ The refusal teaches the rule: a sample is a piece you TOOK and
   // NOTED, and what makes it evidence is the noting. A lump off the

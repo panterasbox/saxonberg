@@ -7,7 +7,7 @@
 # zones' size in metres). ⛔ No room repeats it — a room that mentions the
 # tower does so in its own words, for its own reason (the crossing's
 # `tower` detail tells the time).
-class: /platform/idea/Structure
+class: /platform/idea/Building
 data:
   extent: /world/terminus/terminal
   entrance: /world/terminus/terminal/location/arrival-gate

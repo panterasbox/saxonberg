@@ -124,10 +124,15 @@ describe('the shipped packs (real discovery, no install)', () => {
     // build `trade-potash`, and the sugar build `trade-sugar` and its venue
     // `waponi-woo` (built in parallel; the sum, whatever git says).
     // ⭐ 70 → 71: the cordage build adds `trade-cordage`.
-    // ⭐ 71 → 72: the water-supply build adds `trade-plumbing`.
-    expect(ids).toHaveLength(72);
+    // ⭐ 71 → 72: the paint build adds `trade-painting`; 72 → 73: the
+    // water-supply build adds `trade-plumbing`.
+    expect(ids).toHaveLength(73);
     // A house's plumbing names the trade's runs and lengths.
     expect(ids.indexOf('hinkley-hills')).toBeGreaterThan(ids.indexOf('trade-plumbing'));
+    // The colorman's trade orders after the trades whose oil, lime and
+    // glue stock it buys.
+    expect(ids.indexOf('trade-painting')).toBeGreaterThan(ids.indexOf('trade-chandlery'));
+    expect(ids.indexOf('trade-painting')).toBeGreaterThan(ids.indexOf('trade-farming'));
     // The ropewalk's rows name the textile chain's yarn class.
     expect(ids.indexOf('trade-cordage')).toBeGreaterThan(ids.indexOf('trade-textiles'));
     // The island orders after the trade whose cane and train it rows, the

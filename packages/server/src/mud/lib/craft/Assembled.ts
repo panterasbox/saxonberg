@@ -70,6 +70,7 @@ import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
 import { TemplatePaths } from '../paths';
 import { WorldClockApi } from '../../api/worldclock';
+import { BiomeApi } from '../../api/biome';
 import { MqlSubscriptionApi } from '../../api/mql-subscription';
 import type JointCatalogue from '../../platform/idea/JointCatalogue';
 import type { JointDescriptor } from '../../platform/idea/Joint';
@@ -225,6 +226,12 @@ export interface JointState {
   tension: number;
   /** Identity path of whoever made or last re-made it. */
   maker: string;
+  /** ⭐ The glue the line was made with, a material path (paint D11). */
+  glue?: string;
+  /** 0..1 — how far the glue has set: the line is weak until it has. */
+  setProgress?: number;
+  /** Game-second the glue was last walked to. */
+  glueStampS?: number;
 }
 
 /** A gauger's record of a vessel's measure (assembly D13). */
@@ -255,6 +262,12 @@ export interface Assembled {
    * on an output the mint is stamping.
    */
   recordAssembly(parts: PartLine[], joints: JointState[]): void;
+  /**
+   * ⭐ Make every joint whose row TAKES glue with `glue` (paint D11): the
+   * line starts wet — weak until it sets by the glue's own rule over the
+   * air it stands in. Returns how many joints took it.
+   */
+  glueJoints(glue: string): number;
   /** Materialize the record from the bill if it has none (a found thing). */
   ensureParts(): void;
   /** Any structural line failed, or any joint slack. */
@@ -381,6 +394,11 @@ const WARP_SLACK_PER_SHRINKAGE = 6;
 const CUP_SLACK_PER_SHRINKAGE = WARP_SLACK_PER_SHRINKAGE;
 
 /** The default a joint is read at when its row is not (yet) warm. */
+/** A whole this wet (wetness `0..1`) wets its glue lines through. */
+const GLUE_WET_AT = 0.5;
+/** Tension a glue that does not resist the damp at all loses per damp game day. */
+const GLUE_DAMP_SLACK_PER_DAY = 0.5;
+
 const JOINT_DEFAULT: Pick<JointDescriptor, 'strength' | 'failure'> = {
   strength: 0.5,
   failure: 'parted',
@@ -526,7 +544,9 @@ function assemblyAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
         ? GrammarApi.cap(
             `The ${j.key} has never held: the ${cupped.part} has cupped as it dried, and will not lie flat under it.`,
           )
-        : GrammarApi.cap(`The ${j.key} has gone slack.`),
+        : j.glue
+          ? GrammarApi.cap(`The ${j.key} has let go: the glue line has failed.`)
+          : GrammarApi.cap(`The ${j.key} has gone slack.`),
     );
   }
   // ⭐ Whose hands are in it (drive 18): everyone who made or fitted a
@@ -727,9 +747,83 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
     getJoints(): JointState[] {
       if (this.parts.length > 0) {
         this.reconcileWarp();
+        this.reconcileGlue();
         return this.joints;
       }
       return this.joints.length > 0 ? this.joints : this.billJoints();
+    }
+
+    glueJoints(glue: string): number {
+      const now = WorldClockApi.getNow().rawValue();
+      let n = 0;
+      for (const j of this.joints) {
+        if (jointRow(j.method)?.takes !== 'glue') continue;
+        j.glue = glue;
+        j.setProgress = 0;
+        j.glueStampS = now;
+        n += 1;
+      }
+      return n;
+    }
+
+    /**
+     * ⭐⭐ A glue line over the air it stands in (paint D11), since the last
+     * look: it SETS by its glue's rule (a hide glue dries, a rubber cement
+     * loses its spirit); in the DAMP it slackens by what the glue does not
+     * resist — a hide line lets go in a wet cellar, a casein one holds; and
+     * past the glue's softening heat it lets go at once. The Vat's drying
+     * staves are the precedent: a joint that reads its surroundings.
+     */
+    private reconcileGlue(): void {
+      const glued = this.joints.filter((j) => j.glue);
+      if (glued.length === 0) return;
+      const self = this as unknown as Stuff;
+      const now = WorldClockApi.getNow().rawValue();
+      const room = MixinApi.isContainable(self) ? self.getContainer() : null;
+      const wet = MixinApi.isWet(self) && self.getWetness() >= GLUE_WET_AT;
+      const dampRh = dial(AppSettingKeys.craftingGlueDampRh, 0.85);
+      for (const j of glued) {
+        const from = j.glueStampS ?? now;
+        j.glueStampS = now;
+        if (!(now > from)) continue;
+        const mat = materialAt(j.glue!);
+        const adhesive = mat?.getAdhesive() ?? null;
+        const change = mat?.getKinetics()?.airSet() ?? null;
+        const segs =
+          room !== null
+            ? BiomeApi.airSegmentsFor(room, from, now).map((sg) => ({
+                s: sg.durationS,
+                k: sg.air.tempK,
+                rh: Math.min(1, Math.max(0, sg.air.humidityPct / 100)),
+              }))
+            : [{ s: now - from, k: 293, rh: 0.5 }];
+        let progress = j.setProgress ?? 1;
+        for (const sg of segs) {
+          if (!(sg.s > 0)) continue;
+          if (change !== null && progress < 1) {
+            progress = change.advance(progress, (change.rateAt(sg.k) * Math.max(0, 1 - sg.rh) * sg.s) / 3_600);
+          }
+          if (adhesive === null) continue;
+          if (adhesive.softensAtK !== undefined && sg.k >= adhesive.softensAtK) {
+            j.tension = 0;
+            continue;
+          }
+          if (wet || sg.rh >= dampRh) {
+            const days = sg.s / 86_400;
+            j.tension = Math.max(0, j.tension - (1 - adhesive.resistsDamp) * GLUE_DAMP_SLACK_PER_DAY * days);
+          }
+        }
+        j.setProgress = progress;
+      }
+    }
+
+    /** A joint's effective strength — its glue's, weak until it has set. */
+    private jointStrength(j: JointState): number {
+      if (j.glue) {
+        const a = materialAt(j.glue)?.getAdhesive();
+        if (a) return a.strength * Math.max(0.2, j.setProgress ?? 1);
+      }
+      return jointRow(j.method)?.strength ?? JOINT_DEFAULT.strength;
     }
 
     getLine(part: string): PartLine | null {
@@ -1229,8 +1323,10 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
         this.wearLine(line.part, a);
         for (const j of this.joints) {
           if (!j.members.includes(line.part)) continue;
-          const strength = jointRow(j.method)?.strength ?? JOINT_DEFAULT.strength;
-          this.slackenJoint(j.key, a * (1 - strength));
+          // ⭐ A glue line disturbed before it has set loses what it had not
+          // yet gained (paint D11).
+          const unset = j.glue ? 1 - (j.setProgress ?? 1) : 0;
+          this.slackenJoint(j.key, a * (1 - this.jointStrength(j)) + a * unset);
         }
         return;
       }

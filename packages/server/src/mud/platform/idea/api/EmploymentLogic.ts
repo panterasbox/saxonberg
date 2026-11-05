@@ -136,6 +136,7 @@ type EmployedActor = Stuff & Employed;
 async function holdsAuthorityImpl(
   principal: Stuff | null,
   ref: PrincipalRef | null,
+  depth = 0,
 ): Promise<boolean> {
   if (principal === null || ref === null) return false;
   switch (ref.kind) {
@@ -154,7 +155,48 @@ async function holdsAuthorityImpl(
       return PlayerApi.isAvatarStuff(principal)
         ? CompactApi.isCommitteeMember(principal, ref.parcel)
         : false;
+    case 'owners':
+      return holdsOwnersAuthority(principal, ref.organization ?? '', depth);
   }
+}
+
+/**
+ * ⭐ The `owners` authority (the institutions slate's cap
+ * table): whoever holds a MAJORITY of the organization's table. A player
+ * holder is an identity match; an organization holder's OWN authority is
+ * asked in turn (the line's office appoints the Hesper's master). Fails
+ * closed: an organization that is not standing or keeps no table, a table
+ * with no majority, or a chain of organizations holding each other deeper
+ * than a handful.
+ */
+async function holdsOwnersAuthority(
+  principal: Stuff,
+  organization: string,
+  depth: number,
+): Promise<boolean> {
+  if (depth > 4 || organization === '') return false;
+  const org = await organizationAt(organization);
+  if (org === null || !MixinApi.isCapTable(org)) return false;
+  const owner = org.majorityHolder();
+  if (owner === null) return false;
+  if (owner.kind === 'player') {
+    const path = principal.getIdentityPath();
+    return path !== null && path === owner.path;
+  }
+  const holder = await organizationAt(owner.path);
+  if (holder === null || !MixinApi.isOrganization(holder)) return false;
+  return holdsAuthorityImpl(principal, holder.getAppointingAuthority(), depth + 1);
+}
+
+/**
+ * The organization at `path`: the live one with that identity (a minted
+ * company stands with whatever minted it), else its row stood up. `null`
+ * when neither stands.
+ */
+async function organizationAt(path: string): Promise<Stuff | null> {
+  const live = StuffApi.findByIdentityPath<Stuff>(path).find((s) => !s.isDestroyed());
+  if (live !== undefined) return live;
+  return StuffApi.singleton<Stuff>(path).catch(() => null);
 }
 
 /**

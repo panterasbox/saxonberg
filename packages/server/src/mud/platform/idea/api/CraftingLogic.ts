@@ -14,6 +14,7 @@ import { BulkableApi } from '../../../api/bulk';
 import { ExecutionContextApi } from '../../../api/execution-context';
 import { WorldClockApi } from '../../../api/worldclock';
 import { Quantity } from '../../../lib/quantity';
+import type { Bulkable } from '../../../lib/bulk/Bulkable';
 import { Grade } from '../../../lib/craft/Grade';
 import {
   Texture,
@@ -4721,6 +4722,55 @@ async function jointGate(
   return null;
 }
 
+/** What a competent hand gets back of a glue line steamed apart. */
+const GLUE_STEAMED_RECOVERY = 0.8;
+
+/** Does `glue` let go of `whole` as it stands — hot enough and wet enough? */
+function glueLetsGo(whole: Stuff, glue: string): boolean {
+  const a = StuffApi.findByTemplatePath<Material>(glue)?.getAdhesive() ?? null;
+  if (a === null || a.reversible === 'never') return false;
+  const hot = a.reversible.heatK === undefined ||
+    (MixinApi.isThermal(whole) && whole.getTemperature().rawValue() >= a.reversible.heatK);
+  const wet = !a.reversible.steam || (MixinApi.isWet(whole) && whole.getWetness() >= 0.5);
+  return hot && wet;
+}
+
+/** Litres of glue one glued joint takes (`crafting.glueLitresPerJoint`, a cupful). */
+function glueLitresPerJoint(): number {
+  try {
+    const n = Number.parseFloat(AppApi.setting(AppSettingKeys.craftingGlueLitresPerJoint) ?? '');
+    return Number.isFinite(n) && n > 0 ? n : 0.02;
+  } catch {
+    return 0.02;
+  }
+}
+
+/**
+ * An open vessel of GLUE in reach holding at least `litres` — the maker's
+ * hands first, then the room (paint D11). A glue is a material with an
+ * `adhesive` block, held liquid (a cold animal glue has set to a cake and
+ * must be warmed first).
+ */
+function glueInReach(
+  location: Stuff,
+  maker: Stuff,
+  litres: number,
+): { vessel: Stuff & Bulkable; material: string } | null {
+  const pool: Stuff[] = [
+    ...(MixinApi.isContainer(maker) ? maker.getContents() : []),
+    ...(MixinApi.isContainer(location) ? location.getContents() : []),
+  ];
+  for (const v of pool) {
+    if (!MixinApi.isBulkable(v) || !v.hasInteriorBulk()) continue;
+    if (MixinApi.isSealable(v) && !v.isOpen()) continue;
+    const m = v.getBulkMaterial('interior');
+    if (m === null || m.getAdhesive() === null) continue;
+    if (v.getBulkAmount('interior').rawValue() + 1e-9 < litres) continue;
+    return { vessel: v, material: m.getTemplatePath() ?? '' };
+  }
+  return null;
+}
+
 /** The joints a line sits in (as a member or as the fastener). */
 function jointsOf(host: Assembled, part: string): JointState[] {
   return host.getJoints().filter((j) => j.members.includes(part) || j.fastener === part);
@@ -4758,14 +4808,29 @@ async function fitImpl(req: FitRequest): Promise<FitOutcome> {
     // `carve`, `rive`), and the refusal says so rather than quietly
     // running a transformation under the wrong verb (assembly D5).
     if (!bill) return { ok: false, reason: 'no-line', detail: 'not-raised-from-parts' };
+    let gluedJoints = 0;
     for (const j of bill?.joints ?? []) {
       const row = j.method ? await cat.warmed(j.method) : null;
       if (!row) continue;
       const gate = await jointGate(maker, row, tools);
       if (gate) return { ok: false, reason: gate.reason, detail: gate.detail };
+      if (row.takes === 'glue') gluedJoints += 1;
+    }
+    // ⭐ A glued joint TAKES glue (paint D11): an open vessel of it in
+    // reach, enough for every glue line the thing will carry — checked
+    // before anything is spent, drawn once the thing is made.
+    const glueLitres = gluedJoints * glueLitresPerJoint();
+    const glue = gluedJoints > 0 ? glueInReach(location, maker, glueLitres) : null;
+    if (gluedJoints > 0 && glue === null) {
+      return { ok: false, reason: 'insufficient-input', detail: 'glue' };
     }
     const made = await craftImpl({ recipeRef: recipe.getRecipeId(), makerMode: 'self' });
     if (!made.ok) return made;
+    if (glue !== null && made.output !== null && MixinApi.isAssembled(made.output)) {
+      const have = glue.vessel.getBulkAmount('interior').rawValue();
+      glue.vessel.setBulkAmount('interior', Quantity.of(Math.max(0, have - glueLitres), 'L'));
+      made.output.glueJoints(glue.material);
+    }
     return {
       ok: true,
       arm: 'raise',
@@ -5078,6 +5143,17 @@ async function salvageByJoints(
     let factor = 1;
     for (const j of mine) {
       const row = await cat.warmed(j.method);
+      // ⭐ A glue line comes apart as its GLUE does (paint D11): an animal
+      // glue softens hot and wet — steam it and it lets go; casein, a
+      // resin, a rubber cement never come apart.
+      if (row && j.glue) {
+        if (!glueLetsGo(item, j.glue)) {
+          rec = 0;
+          break;
+        }
+        rec = Math.min(rec, GLUE_STEAMED_RECOVERY);
+        continue;
+      }
       if (!row || row.reversible === 'never') {
         rec = 0;
         break;

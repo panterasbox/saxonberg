@@ -1,0 +1,15 @@
+# The glue pot (paint D12) — a double pot: put hide scraps, bone or fish
+# skins in, pour water over them, set it on the hearth. Over a few hours
+# below the boil the collagen comes out into a glue; cold, it sets to a
+# cake, warmed again it is ready.
+class: /trade/painting/thing/GluePot
+data:
+  shortDescription: glue pot
+  keywords: [pot, "glue pot"]
+  register: indefinite
+  longDescription: A heavy iron pot in a water jacket, crusted brown at the rim with old glue.
+  _materialPath: /stuff/idea/material/element/iron
+  mass: 3
+  interiorBulk: true
+  interiorCapacity: 4
+  closure: liquidTight

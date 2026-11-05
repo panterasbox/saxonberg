@@ -235,7 +235,7 @@ export interface BulkPayload {
 
 
 // `via.bulk` facet — declaration-merged onto MqlMatchVia, colocated
-// with the owning subsystem (mirrors `via.detailPath` / `via.exit`).
+// with the owning subsystem (mirrors `via.detailPath`).
 // Compile-time only; at runtime `via.bulk` is a plain property the
 // resolver and controllers read.
 declare module '../../api/mql/types' {

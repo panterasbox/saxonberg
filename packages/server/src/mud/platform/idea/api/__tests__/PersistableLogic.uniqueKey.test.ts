@@ -151,3 +151,40 @@ describe('assertUniqueKey covers a stamped keyed host', () => {
     ).resolves.toBe(false);
   });
 });
+
+describe('two captures of one host with no record yet (harbors B6)', () => {
+  it('⭐ write one record between them — the second never INSERTS a duplicate', async () => {
+    // The store as Mongo is: an insert that would duplicate (scope, owner)
+    // fails on the unique index — and a write takes a moment to land.
+    const mgr = PersistenceManager.get() as unknown as {
+      save: ReturnType<typeof vi.fn>;
+      find: ReturnType<typeof vi.fn>;
+    };
+    mgr.find.mockImplementation(async (col: string, query: Record<string, unknown>) => {
+      await new Promise((r) => setTimeout(r, 5));
+      if (col !== 'holder_snapshots') return [];
+      return snapshots.filter((d) => Object.entries(query).every(([k, v]) => d[k] === v));
+    });
+    mgr.save.mockImplementation(async (col: string, doc: Record<string, unknown>) => {
+      if (col !== 'holder_snapshots') return 'id';
+      await new Promise((r) => setTimeout(r, 10));
+      const i = snapshots.findIndex((d) => d.scope === doc.scope && d.owner === doc.owner);
+      if (i >= 0 && !doc._id) throw new Error('E11000 duplicate key error');
+      if (i >= 0) {
+        snapshots[i] = { ...doc };
+        return doc._id as string;
+      }
+      const _id = String(snapshots.length + 1);
+      snapshots.push({ ...doc, _id });
+      return _id;
+    });
+    const host = makeStuffAtPath(() => new Counter(), ROW);
+    host.setLabel('first');
+    const a = PersistableApi.capture(host, 'k1');
+    host.setLabel('second');
+    const b = PersistableApi.capture(host, 'k1');
+    await expect(Promise.all([a, b])).resolves.toBeDefined();
+    const rows = snapshots.filter((d) => d.owner === 'k1');
+    expect(rows).toHaveLength(1);
+  });
+});

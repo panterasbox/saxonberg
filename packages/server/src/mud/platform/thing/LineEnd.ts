@@ -33,8 +33,10 @@ export default class LineEnd extends TieableMixin(TetherEndMixin(Good)) {
   /** The line this is the end of (runtime live ref). */
   private _line: Line | null = null;
 
-  public attachTo(line: Line): void {
+  /** Its line's — and, minted round something across, what it is tied to. */
+  public attachTo(line: Line, tiedTo: Stuff | null = null): void {
     this._line = line;
+    this._lashedTo = tiedTo;
     const words = line.endWords();
     if (words !== null) {
       this.setShortDescription(words.short);
@@ -50,7 +52,7 @@ export default class LineEnd extends TieableMixin(TetherEndMixin(Good)) {
   /**
    * ⭐ The line's far end (river W16): whoever or whatever has the line
    * itself — the tender carrying it, the boat it lies in. What the water
-   * asks of a painter in a walker's hand.
+   * asks of a bow line in a walker's hand.
    */
   public override tetheredTo(): Stuff | null {
     const line = this.getLine();
@@ -113,6 +115,7 @@ export default class LineEnd extends TieableMixin(TetherEndMixin(Good)) {
     if (!MixinApi.isContainer(by)) return { ok: false, reason: 'no-hands', line: 'You have no hands to take it in.' };
     this._lashedTo = null;
     ContainmentApi.move(this, by as Stuff & Container);
+    if (line !== null) await line.endUntied(by, load);
     return { ok: true, line: `You cast the end of the line off ${load.getPresentation()} and take it up.` };
   }
 

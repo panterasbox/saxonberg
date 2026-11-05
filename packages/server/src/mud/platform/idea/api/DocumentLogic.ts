@@ -16,6 +16,7 @@ import type { Business } from "../Business";
 import { RELEASE_DOCUMENT_KIND } from "../../../lib/press/Release";
 import { CommandApi } from "../../../api/command";
 import type { Registrar } from '../../../lib/document/Register';
+import type { Berthed } from '../BerthExit';
 import {
   DECLARED_DOCUMENT_KINDS,
   type DeclaredDocumentKind,
@@ -347,6 +348,76 @@ async function saveMapImpl(
   await doc.save();
 }
 
+/** The branch every landing's berth roll lives under. */
+const BERTHS_BRANCH = '/platform/berths';
+
+/** The document kind a berth roll is stored under. */
+const BERTH_ROLL_KIND = 'berth-roll';
+
+/** A landing's roll, by its path — `null` for a path that names no landing. */
+function berthRollPath(landingPath: string): string | null {
+  const landing = landingPath.replace(/\/+$/, '');
+  return landing.startsWith('/') && landing.length > 1 ? `${BERTHS_BRANCH}${landing}` : null;
+}
+
+/** The handles on a stored roll. */
+function handlesOf(doc: StoredDocument | null): string[] {
+  const lying = doc?.getData().lying;
+  return Array.isArray(lying) ? lying.filter((h): h is string => typeof h === 'string' && h !== '') : [];
+}
+
+/**
+ * The writes to each landing's roll, chained — two ships making fast at one
+ * quay in one tick each read-modify-write the same document, and the second
+ * must read the first's line. A cache of in-flight promises, never state.
+ */
+const berthWrites = new Map<string, Promise<void>>();
+
+/**
+ * ⚠⚠ **The berth transport** — a ship's own line on a landing's roll.
+ *
+ * Rails, all structural: the Api face admits only the ship writing for
+ * herself; the handle is hers (durable handle, else her row); whether she
+ * lies there is READ off her (`getBerth()`), never taken from the caller;
+ * the path and the kind are pinned; the owner is the landing.
+ */
+async function saveBerthImpl(ship: Stuff & Berthed, landingPath: string): Promise<void> {
+  const path = berthRollPath(landingPath);
+  const handle = ship.getDurableHandle() ?? ship.getTemplatePath();
+  if (path === null || !handle) {
+    throw new Error(`DocumentApi.saveBerth: no roll for '${landingPath}' or no handle to write on it`);
+  }
+  const landing = landingPath.replace(/\/+$/, '');
+  const lies = ship.getBerth() === landing;
+  const write = async (): Promise<void> => {
+    const doc = await StoredDocument.findByPath(path);
+    const was = handlesOf(doc);
+    const has = was.includes(handle);
+    if (has === lies) return;
+    if (doc === null && !lies) return;
+    const row = doc ?? new StoredDocument();
+    row.path = path;
+    row.owner = landing;
+    row.kind = BERTH_ROLL_KIND;
+    row.data = { lying: lies ? [...was, handle] : was.filter((h) => h !== handle) };
+    await row.save();
+  };
+  const prior = berthWrites.get(path) ?? Promise.resolve();
+  const mine = prior.catch(() => undefined).then(write);
+  berthWrites.set(path, mine);
+  try {
+    await mine;
+  } finally {
+    if (berthWrites.get(path) === mine) berthWrites.delete(path);
+  }
+}
+
+/** A landing's roll, read. */
+async function berthRollOfImpl(landingPath: string): Promise<string[]> {
+  const path = berthRollPath(landingPath);
+  return path === null ? [] : handlesOf(await StoredDocument.findByPath(path));
+}
+
 /**
  * One player's maps under a locality prefix — theirs only.
  *
@@ -672,6 +743,18 @@ export class DocumentLogic extends ApiLogic {
     localityPrefix: string,
   ): Promise<Array<{ path: string; data: Record<string, unknown> }>> {
     return readMapsImpl(ownerKey, localityPrefix);
+  }
+
+  /** See {@link DocumentApi.saveBerth}. Rails in `saveBerthImpl`. */
+  @CallSecurity(DocumentApiCallers)
+  public async saveBerth(ship: Stuff & Berthed, landingPath: string): Promise<void> {
+    return saveBerthImpl(ship, landingPath);
+  }
+
+  /** See {@link DocumentApi.berthRollOf}. */
+  @CallSecurity(DocumentApiCallers)
+  public async berthRollOf(landingPath: string): Promise<string[]> {
+    return berthRollOfImpl(landingPath);
   }
 
   /** See {@link DocumentApi.saveInstrument}. Rails in `saveInstrumentImpl`. */

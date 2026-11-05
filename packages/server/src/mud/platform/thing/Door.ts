@@ -49,8 +49,9 @@
  * MQL: a Door surfaces twice on its containing Location — once via
  * `ExitableMixin.getExitDoors()` and once via
  * `Adornable.getFixtureBoundaries()`. The `getFixtureBoundaries`
- * walk dedupes by `stuffId`, and the resolver dedupes the (stuff, via)
- * pair so the existing `via.exit` attribution survives.
+ * walk dedupes by `stuffId`, and the resolver dedupes by `stuffId`.
+ * The exit it hangs in is a separate candidate (by its direction);
+ * `MqlApi.effectiveTarget` reaches this door from it.
  */
 
 import { Boundary } from '../../lib/boundary/Boundary';
@@ -177,6 +178,10 @@ export default class Door extends DoorBase {
    * the door's shortDescription. A door constructed with only
    * `shortDescription: 'heavy oak door'` should still be targetable
    * as `oak` / `door` without re-listing those as explicit keywords.
+   *
+   * ⚠ **DERIVED (magic), named here:** the description's tokens are not
+   * authored keywords; this override folds them in, and MQL reads them
+   * only through this Perceptible interface.
    */
   override getKeywords(): string[] {
     const base = super.getKeywords();

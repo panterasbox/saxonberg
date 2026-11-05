@@ -15,4 +15,5 @@ data:
   toughness: 6
   edibility: false
   nutrients: ["calcium"]
-  tags: ["tissue", "animal", "bone", "mineral", "skeletal"]
+  # `collagen`: boiled in a glue pot, bone gives bone glue (paint D19).
+  tags: ["tissue", "animal", "bone", "mineral", "skeletal", "collagen"]

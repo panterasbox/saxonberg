@@ -10,10 +10,10 @@
  *   - **Direct hit on a Sealable** — `target.stuff` is the Sealable
  *     itself (a chest, a door matched by keyword like
  *     `open oak door`).
- *   - **Direction match** — `target.stuff` is the actor's current
- *     location and `target.via.exit` is the exit the actor named.
- *     The door is fetched from `via.exit.getDoor()`. This is the
- *     canonical `open north` shape.
+ *   - **Direction match** — `target.stuff` is the EXIT the actor
+ *     named (a way is a candidate in its own right); the door hung
+ *     in it is the sealable thing. This is the canonical
+ *     `open north` shape.
  *
  * The YAML wires `canReach` so MQL queries that resolve to remote
  * Sealables fail validation before reaching the controller; the
@@ -103,10 +103,9 @@ export default class OpenController extends CommandController<OpenModel> {
       return;
     }
 
-    // Direct hit (open oak) → the door is target.stuff;
-    // direction match (open north) → the door is via.exit.getDoor().
-    // MqlApi.effectiveTarget tries both and returns the first
-    // Sealable. The arrow wrapper preserves MixinApi as `this` —
+    // Direct hit (open oak) → the door is target.stuff; a way (open
+    // north) → the door hung in it. MqlApi.effectiveTarget is that one
+    // rule. The arrow wrapper preserves MixinApi as `this` —
     // the security-gated static needs it for the internal
     // hasMixin lookup.
     const sealable = MqlApi.effectiveTarget(

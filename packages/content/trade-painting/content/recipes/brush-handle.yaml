@@ -1,0 +1,13 @@
+# A brush handle — turned or whittled from a piece of seasoned wood, with a
+# socket cut for the knot (paint D11).
+recipeId: brush-handle
+name: Brush handle
+keywords: ["brush-handle", handle]
+inputSlots:
+  - { slot: stock, category: wood, minGrade: poor, kind: item, count: 1 }
+toolCapabilities: [cutting]
+outputTemplate: /trade/painting/thing/brush-handle
+outputMaterial: ''
+outputApplication: tangible
+difficulty: standard
+discipline: painting

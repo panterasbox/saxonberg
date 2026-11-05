@@ -281,7 +281,10 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
      * Default aliases for the 10 canonical cardinal directions
      * (`NavigationApi.cardinalDirections()`) plus their conventional
      * single/double-letter abbreviations. Every entry expands to
-     * `go <full-name>`, which dispatches through `GoController` and
+     * `go <the same word>` — `n` is `go n`, never a rewrite to `go
+     * north`: the north exit answers to `n` because its own keywords say
+     * so (`Exit.getKeywords`, derived and named there). It dispatches
+     * through `GoController` and
      * resolves the actor's currently-engaged locomotion mode at run
      * time — so `n` does the right thing whether the actor is
      * walking, swimming, or climbing.
@@ -295,25 +298,25 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
      * forms they expect from MUD muscle memory.
      */
     static defaultAliases: DefaultAliasEntry[] = [
-      { name: 'n', body: 'go north' },
+      { name: 'n', body: 'go n' },
       { name: 'north', body: 'go north' },
-      { name: 's', body: 'go south' },
+      { name: 's', body: 'go s' },
       { name: 'south', body: 'go south' },
-      { name: 'e', body: 'go east' },
+      { name: 'e', body: 'go e' },
       { name: 'east', body: 'go east' },
-      { name: 'w', body: 'go west' },
+      { name: 'w', body: 'go w' },
       { name: 'west', body: 'go west' },
-      { name: 'ne', body: 'go northeast' },
+      { name: 'ne', body: 'go ne' },
       { name: 'northeast', body: 'go northeast' },
-      { name: 'nw', body: 'go northwest' },
+      { name: 'nw', body: 'go nw' },
       { name: 'northwest', body: 'go northwest' },
-      { name: 'se', body: 'go southeast' },
+      { name: 'se', body: 'go se' },
       { name: 'southeast', body: 'go southeast' },
-      { name: 'sw', body: 'go southwest' },
+      { name: 'sw', body: 'go sw' },
       { name: 'southwest', body: 'go southwest' },
-      { name: 'u', body: 'go up' },
+      { name: 'u', body: 'go u' },
       { name: 'up', body: 'go up' },
-      { name: 'd', body: 'go down' },
+      { name: 'd', body: 'go d' },
       { name: 'down', body: 'go down' },
     ];
 

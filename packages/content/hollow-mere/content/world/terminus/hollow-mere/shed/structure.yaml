@@ -1,6 +1,6 @@
 # The control shed — the big house's build and size with nothing in it
 # (storage-and-ice D22): what the house would read without its ice.
-class: /platform/idea/Structure
+class: /platform/idea/Building
 data:
   extent: /world/terminus/hollow-mere/shed
   entrance: /world/terminus/hollow-mere/shed/location/shed

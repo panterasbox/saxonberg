@@ -672,6 +672,12 @@ export function MoistureMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase
     public seedDryness(value: number): void {
       if (typeof value !== 'number' || !Number.isFinite(value)) return;
       this._moisture = clamp01(1 - value);
+      // ⭐ It is this dry NOW: the water clock starts here. Without the
+      // stamp the next read integrated the drying of every hour since the
+      // thing was made, and a jug seeded leather-hard read bone-dry (the
+      // ceramics drive). At mint the stamp is fresh either way.
+      const nowS = nowSeconds();
+      if (nowS !== null) this.waterClockStamp = nowS;
     }
 
     // ---------- reads ----------

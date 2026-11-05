@@ -114,6 +114,17 @@ export default class PersistentLocation extends PersistentLocationBase {
   };
 
   /**
+   * ⭐ A KEYED furnished room is a warren's — a holding's, a dorm's — and
+   * is stood up by that warren, never alone by its key (a
+   * free-standing venue room is keyless, a singleton, and never asked).
+   *
+   * @hook
+   */
+  public override standsUpAlone(): boolean {
+    return false;
+  }
+
+  /**
    * **What the sign on the door says** — `unisex`, `gendered`, `staff`,
    * `members`, whatever the fiction posts. Free text, defaulting to
    * `unrestricted`.

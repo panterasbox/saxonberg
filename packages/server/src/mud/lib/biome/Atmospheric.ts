@@ -34,6 +34,7 @@
 import { SecurityApi } from '../../api/security';
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
+import type Place from '../stuff/Place';
 import { Quantity } from '../quantity';
 import type { Unit } from '../quantity';
 import { QuantityMarshaller } from '../../platform/idea/persistence/QuantityMarshaller';
@@ -74,7 +75,7 @@ import { Exposure, type Face } from '../spatial/Exposure';
 import type { RoomHeatExchange } from '../thermal/RoomHeatExchange';
 import { CelestialApi } from '../../api/celestial';
 import type Exit from '../boundary/Exit';
-import type Structure from '../../platform/idea/Structure';
+import type Structure from '../structure/Structure';
 
 export interface Atmospheric {
   /** Days since `atS` this place's air crossed freezing; 0 indoors. */
@@ -1399,14 +1400,20 @@ export function AtmosphericMixin<
      */
     public exposure(): Exposure {
       const self = this as unknown as Stuff;
-      const path = self.getTemplatePath();
+      // A place is asked (a keyed room's structure is its warren's); a
+      // vessel by its own name.
+      const path = self.getDurableHandle() ?? self.getTemplatePath();
       let structure: Structure | null = null;
-      if (path) {
-        try {
-          structure = NavigationApi.structureAtNow(path);
-        } catch {
-          structure = null;
-        }
+      try {
+        // A place asks its own warren first (a holding's keyed rooms);
+        // anything else is found by its path, as before.
+        structure = self.isPlace()
+          ? (self as unknown as Place).structureNow()
+          : path && !path.includes('#')
+            ? NavigationApi.structureAtNow(path)
+            : null;
+      } catch {
+        structure = null;
       }
       // ⚠ An UNDECLARED place's answer is its biome's, and a biome
       // resolves after the room materializes (the Floor snow lesson) — so
@@ -1483,9 +1490,11 @@ export function AtmosphericMixin<
       let wallsShared = 0;
       for (const { exit, dest } of neighbours) {
         const vertical = AtmosphericMixin.isVertical(exit.getDirection());
-        const destPath = dest.getTemplatePath();
+        const destPath = dest.getIdentityPath();
         const sameStructure =
-          structure !== null && destPath !== null && structure.hasMember(destPath);
+          structure !== null &&
+          ((destPath !== null && structure.hasMember(destPath)) ||
+            (MixinApi.isWarrenMember(dest) && dest.getWarren()?.structureOf(dest) === structure));
         if (sameStructure && enclosed(dest)) {
           if (seen.has(dest.stuffId)) continue;
           seen.add(dest.stuffId);

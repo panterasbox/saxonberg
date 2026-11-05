@@ -16,10 +16,10 @@
  */
 
 import type { Stuff } from '../../lib/stuff/Stuff';
-import type Place from '../../lib/stuff/Place';
 import type { Container } from '../../lib/spatial/Container';
 import { MixinApi } from '../mixin';
 import { PerceptionApi } from '../perception';
+import Place from '../../lib/stuff/Place';
 import type { Detail } from '../../lib/description/Detailed';
 import type { BulkAffordance } from '../../lib/bulk/Bulkable';
 import type { MqlMatch, MqlMatchVia } from './types';
@@ -34,7 +34,7 @@ import { GrammarApi } from '../grammar';
  * the pool.
  *
  * Multiple candidates may point at the same Stuff — e.g., a location
- * appears once for itself, once per Detail, and once per Exit. The
+ * appears once for itself and once per Detail. The
  * resolver dedups by (`stuff`, `via`) tuple before reporting matches.
  */
 export interface ScopeCandidate {
@@ -53,7 +53,8 @@ export interface ScopeCandidate {
  * 1. The location itself.
  * 2. Each Detail on the location.
  * 3. Doors associated with the location's exits (each door + details).
- * 4. Each Exit on the location (direction + aliases).
+ * 4. Each Exit the viewer can see — the exit itself, by its direction
+ *    and keywords.
  *
  * Peers (the location's contents) live in their own seed —
  * {@link candidatesForPeers}. `here` is the location's own surface,
@@ -77,21 +78,26 @@ export function candidatesForHere(
       pushDirect(out, door, viewer, attention);
       pushDetails(out, door, viewer);
     }
-    // Use `getObviousExits()` so synthesized exits (an
-    // `ExitableVessel`'s `out` exit, a Cartesian zone's derived
-    // cardinal directions) appear in the candidate pool the same
-    // way explicit exits do.
-    const seenDirs = new Set<string>();
+    // ⭐ Each exit the VIEWER can see is a candidate in its own right
+    //: its `stuff` IS the way, read like every other
+    // candidate through its Perceptible face — the name and keywords are
+    // the EXIT's (`Exit.getKeywords`: authored + direction + short forms),
+    // never built here. `obviousExitsFor(viewer)` so a
+    // hidden way stays hidden and synthesized exits (an `ExitableVessel`'s
+    // `out`, a Cartesian zone's cardinals) appear like explicit ones.
+    // `look north` describes the way; `open north` reaches its door
+    // through `MqlApi.effectiveTarget`; `go north` crosses it.
     for (const exit of location.obviousExitsFor(viewer)) {
-      const direction = exit.getDirection();
-      if (seenDirs.has(direction)) continue;
-      seenDirs.add(direction);
-      out.push({
-        stuff: location,
-        name: direction,
-        keywords: [direction],
-        via: { exit },
-      });
+      pushDirect(out, exit, viewer, attention);
+    }
+    // ⭐ The buildings whose LANDING this is (paint build, 2026-10-31): a
+    // structure is an Idea, never in a room, so it enters the pool from
+    // where it meets the weather — `look cottage` from the lane, `paint
+    // hesper` from the quay — with no new seed.
+    if (location instanceof Place) {
+      for (const structure of location.landedStructuresNow()) {
+        pushDirect(out, structure, viewer, attention);
+      }
     }
     // ⭐ A place read from where it is reached (tracts build D30): open
     // ground through an exit binds by its own name from this side, so

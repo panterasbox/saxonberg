@@ -1,0 +1,18 @@
+# The paint pot (paint D8) — ⭐⭐ the ONE pot every paint is mixed in. Pour
+# in a binder (linseed oil, milk of lime, water and an egg), put in the
+# pigment, `stir`: it comes together as paint whose makeup — binder,
+# pigments by mass, a thinner if one went in — rides the liquid to the coat.
+class: /trade/painting/thing/PaintPot
+data:
+  shortDescription: paint pot
+  keywords: [pot, "paint pot", can, kettle]
+  register: indefinite
+  longDescription: >-
+    A squat tin pot with a wire bail, its rim thick with the dried drips of a
+    dozen colors.
+  _materialPath: /stuff/idea/material/element/iron
+  mass: 0.8
+  interiorBulk: true
+  interiorCapacity: 6
+  closure: liquidTight
+  productMaterial: /trade/painting/idea/material/paint

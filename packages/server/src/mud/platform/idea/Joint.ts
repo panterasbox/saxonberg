@@ -71,6 +71,13 @@ export interface JointDescriptor {
    */
   needsFlat: boolean;
   failure: JointFailure;
+  /**
+   * ⭐ What the joint TAKES to make (paint D11): `glue` — a glue line costs
+   * glue from an open vessel in reach, and the GLUE decides its strength,
+   * how it sets, how it stands the damp and whether it comes apart. The
+   * row's own `strength`/`reversible` are the defaults a glue overrides.
+   */
+  takes?: 'glue';
 }
 
 export default class Joint extends Idea {
@@ -90,6 +97,7 @@ export default class Joint extends Idea {
   public tightenable: boolean = false;
   public needsFlat: boolean = false;
   public failure: JointFailure = "parted";
+  public takes: string = "";
 
   static fieldMeta: FieldMeta = {
     key: { persistent: true },
@@ -104,6 +112,7 @@ export default class Joint extends Idea {
     tightenable: { persistent: true },
     needsFlat: { persistent: true },
     failure: { persistent: true },
+    takes: { persistent: true },
   };
 
   public getKey(): string {

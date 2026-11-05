@@ -1,5 +1,5 @@
 # The Ostrander's saloon — where the passengers sit out of the weather.
-class: /platform/location/Locale
+class: /platform/location/Compartment
 data:
   shortDescription: saloon
   keywords: [saloon, cabin]

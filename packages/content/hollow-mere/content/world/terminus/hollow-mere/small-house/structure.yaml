@@ -1,7 +1,7 @@
 # The small house — the same build at a sixth of the size, the scale
 # check (storage-and-ice D22): a small stack has more surface for its
 # mass and loses a larger share of itself through a summer.
-class: /platform/idea/Structure
+class: /platform/idea/Building
 data:
   extent: /world/terminus/hollow-mere/small-house
   entrance: /world/terminus/hollow-mere/small-house/location/house

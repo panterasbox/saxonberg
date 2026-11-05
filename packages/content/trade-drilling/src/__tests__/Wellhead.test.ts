@@ -41,6 +41,8 @@ import Tool from '@saxonberg/server/mud/platform/thing/Tool';
 import Good from '@saxonberg/server/mud/platform/thing/Good';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { AppApi } from '@saxonberg/server/mud/api/app';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { BORE_KIND, BORE_REGISTRY_PATH, BoreRegistry } from '../idea/BoreRegistry';
 
 const DEPOSIT_PATH = '/test/idea/deposit/fixture';
@@ -279,14 +281,15 @@ describe('⭐⭐⭐ the bottom of the hole is not the wellhead', () => {
     expect(w.getBulk('interior').getAmount().rawValue()).toBe(0);
   });
 
-  it('⭐⭐ `lift` is the ONLY way up for a dead well, and it is small', async () => {
+  it('⭐⭐ a lift is the ONLY way up for a dead well, and a bailer\'s is small', async () => {
     const w = hole([SALT]);
     w.setDepthM(120);
     // Seed the sump the way a reconcile would.
     (w as unknown as { sumpL: number }).sumpL = 100;
     (w as unknown as { bodyKey: string }).bodyKey = 'salt-leg';
-    const raised = await w.lift();
-    expect(raised).toBe(w.liftL());
+    // A bailer's bucketful (`bail.bucketL`, 12 L) through the one lift.
+    const raised = await w.liftInto(12);
+    expect(raised).toBe(12);
     expect(raised).toBeLessThan(100);
     expect(w.getBulk('interior').getAmount().rawValue()).toBeCloseTo(raised, 6);
     expect(w.getBulk('interior').getMaterialPath()).toBe(BRINE);
@@ -295,7 +298,7 @@ describe('⭐⭐⭐ the bottom of the hole is not the wellhead', () => {
   it('lifting an empty hole raises nothing, rather than nothing-shaped brine', async () => {
     const w = hole([SALT]);
     w.setDepthM(120);
-    expect(await w.lift()).toBe(0);
+    expect(await w.liftInto(12)).toBe(0);
     expect(w.getBulk('interior').getMaterialPath()).toBeNull();
   });
 });
@@ -423,9 +426,9 @@ describe('⭐⭐ the pump\'s attach point — a hole answers LiftSource (pump bu
     expect(await w.liftInto(10)).toBe(0);
   });
 
-  it('⭐⭐ the bailer is untouched: twelve litres a trip, and no pressure asked (AC 11)', async () => {
+  it('⭐⭐ the bailer asks no pressure: a bucketful comes up from any depth (AC 11)', async () => {
     const w = seeded(100);
-    expect(await w.lift()).toBe(12);
+    expect(await w.liftInto(12)).toBe(12);
   });
 
   it('only a pump goes down a hole, and only one', () => {
@@ -466,5 +469,48 @@ describe('⭐⭐ the pump\'s attach point — a hole answers LiftSource (pump bu
     (w as unknown as { rigStamp: number }).rigStamp = 1_000_000 - 120;
     await w.reconcileRig();
     expect(w.getBulk('interior').getAmount().rawValue()).toBe(0);
+  });
+});
+
+describe('⭐ `bail` — the platform\'s bucket down the hole (harbors review 1: a LiftSource, no protocol of its own)', () => {
+  function bored(sumpL: number): Wellhead {
+    const w = hole([SALT]);
+    w.setDepthM(25);
+    (w as unknown as { sumpL: number }).sumpL = sumpL;
+    (w as unknown as { bodyKey: string }).bodyKey = 'salt-leg';
+    return w;
+  }
+
+  it('refuses with no derrick over the hole, and with no bailer for the rope\'s end', async () => {
+    const w = bored(30);
+    const hand = makeStuff(() => new Good());
+    const bare = await w.bucketRefusal(hand as never, null);
+    expect(bare?.reason).toBe('no-derrick');
+    const room = w.getContainer() as unknown as Location;
+    const derrick = makeStuff(() => new Tool());
+    derrick.setCapabilities(['derrick']);
+    ContainmentApi.move(derrick, room as never);
+    expect((await w.bucketRefusal(hand as never, null))?.reason).toBe('no-bailer');
+    expect(await w.bucketRefusal(hand as never, makeStuff(() => new Tool()) as never)).toBeNull();
+  });
+
+  it('⭐⭐ a bucketful lands in the trough, in the hole\'s own words', async () => {
+    const w = bored(30);
+    const hand = makeStuff(() => new Good());
+    const litres = await w.liftInto(12);
+    expect(litres).toBe(12);
+    expect(w.getSumpL()).toBe(18);
+    const said = await w.bucketLanded(hand as never, { litres, vessel: null, tipped: 0, escaped: false });
+    expect(String(said)).toMatch(/trough at the wellhead/);
+  });
+
+  it('⭐⭐ the dry hole is an answer: the bailer comes up with rock and the depth', async () => {
+    const w = hole([]);
+    w.setDepthM(25);
+    const hand = makeStuff(() => new Good());
+    const litres = await w.liftInto(12);
+    expect(litres).toBe(0);
+    const said = await w.bucketLanded(hand as never, { litres, vessel: null, tipped: 0, escaped: false });
+    expect(String(said)).toMatch(/broken rock .* 25 m/);
   });
 });

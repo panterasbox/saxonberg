@@ -71,6 +71,10 @@ requires:
     # The estuary towpath is the city's own working waterfront and is
     # kept by the municipality like any other street.
     - { extent: /world/terminus/estuary, parentParcel: /world/terminus, holder: { group: terminus }, landUse: civic, powerBand: off-grid, waterSource: none }
+    # ⭐ The Port of Terminus: the quays, the stairs, the
+    # office and the line's desk inside the bar — civic ground the city
+    # keeps, like the estuary path it opens off.
+    - { extent: /world/terminus/harbor, parentParcel: /world/terminus, holder: { group: terminus }, landUse: civic, powerBand: off-grid, waterSource: none }
     # ⚠ `wild` — "unserviced ground: PASSAGE and gathering only" — is the
     # Delight road, which crosses ground nobody's municipality maintains.
     # The civic/wild split IS the toll-versus-obstruction distinction
@@ -100,6 +104,10 @@ requires:
     # the day anybody wires one.
     - { extent: /world/terminus/wharfside/knackers,  parentParcel: /world/terminus/wharfside, holder: { group: terminus }, landUse: industrial, powerBand: off-grid }
     - { extent: /world/terminus/wharfside/tannery,   parentParcel: /world/terminus/wharfside, holder: { group: terminus }, landUse: industrial, powerBand: off-grid }
+    # ⭐ The towpath cottage (paint D20): its own parcel so the building can be
+    # SOLD — held by the town it is staged and restages; a person who buys
+    # it owns a building that keeps its paint.
+    - { extent: /world/terminus/wharfside/cottage, parentParcel: /world/terminus/wharfside, holder: { group: terminus }, landUse: residential, powerBand: domestic }
     - { extent: /world/terminus/wharfside/chandlery, parentParcel: /world/terminus/wharfside, holder: { group: terminus }, landUse: industrial, powerBand: industrial, feeder: terminus-main:bank }
     # ⭐ The lavoir (cleanliness D27) — the town's washing place on the bank.
     - { extent: /world/terminus/wharfside/lavoir, parentParcel: /world/terminus/wharfside, holder: { group: terminus }, landUse: commercial, powerBand: off-grid }

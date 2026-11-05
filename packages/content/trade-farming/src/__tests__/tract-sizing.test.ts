@@ -18,10 +18,12 @@ const LOT = '/world/_t/valley/lots/lot-1';
 
 function holding(): HoldingWarren {
   const h = makeStuffAtPath(() => new HoldingWarren(), '/world/_t/farmstead');
-  h.setFloorplan([
-    { leaf: 'yard', room: '/world/_t/yard', entry: true, footprintM2: 400 },
-    { leaf: 'bench', room: '/trade/farming/location/tract', share: 0.3 },
-  ]);
+  // ⭐ Its plan is its own (no blueprint row): the
+  // yard's 400 m² is the programme's footprint; the tract's share is its
+  // own row's field.
+  h.setExtent('/world/_t/farm');
+  h.setEntrance('/world/_t/farm/yard');
+  h.setFootprintM2(400);
   h.setPersistenceKey(LOT, true);
   return h;
 }
@@ -30,6 +32,7 @@ function copyOn(h: HoldingWarren, lot = LOT): Tract {
   const t = makeStuffAtPath(() => new Tract(), '/trade/farming/location/tract');
   h.addMember(t as never);
   t.setPersistenceKey(`${lot}/bench`, true);
+  t.setShare(0.3);
   return t;
 }
 

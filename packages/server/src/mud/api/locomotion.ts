@@ -194,7 +194,7 @@ export class LocomotionApi {
   /**
    * Run the full mode-gate cascade against an actor + a pre-resolved
    * exit. Used by `LocomotionControllerBase` after MQL has resolved
-   * the player's typed direction (or door alias) into `target.via.exit`.
+   * the player's typed direction (or the way's keyword) to the exit.
    *
    * Gate order (first failure surfaces):
    *   1. body-plan eligibility

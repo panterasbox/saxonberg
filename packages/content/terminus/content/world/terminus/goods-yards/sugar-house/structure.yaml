@@ -1,4 +1,4 @@
-class: /platform/idea/Structure
+class: /platform/idea/Building
 data:
   extent: /world/terminus/goods-yards/sugar-house
   entrance: /world/terminus/goods-yards/sugar-house/location/ground/boiling-floor

@@ -18,7 +18,9 @@ primary:
   # material is a parser ambiguity (`look at saffron` would have two
   # answers) and a modelling lie besides. The colour survives as
   # `ochre`; the substance is now a thing you can grow.
-  [azure, crimson, viridian, violet, umber, ochre, magenta,
+  # ⚠ And `ochre` went the same way (the paint build): ochre is a pigment
+  # you dig and grind now, so the colour survives as `tawny`.
+  [azure, crimson, viridian, violet, umber, tawny, magenta,
    cerulean, russet, chartreuse, indigo]
 secondaryAxis: clarity
 secondary:

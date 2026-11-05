@@ -1,0 +1,16 @@
+# Yellow ochre — on the stones (paint D19). A hand quern carries `millstone` and so
+# does a mill: the capital decides your time, not your access.
+recipeId: yellow-ochre
+name: Yellow ochre
+keywords: ["yellow-ochre", ochre]
+inputSlots:
+- slot: stock
+  kind: item
+  category: ochre-clay
+  minGrade: poor
+  count: 1
+toolCapabilities:
+- millstone
+outputTemplate: /trade/painting/thing/yellow-ochre
+outputMaterial: /trade/painting/idea/material/yellow-ochre
+outputApplication: tangible

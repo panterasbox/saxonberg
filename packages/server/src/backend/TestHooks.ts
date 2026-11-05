@@ -58,6 +58,8 @@ import {
   type ClockJump,
   type StageReport,
   type WeatherPinReport,
+  type ShipStageSpec,
+  type ShipStageReport,
 } from '../mud/api/test-harness';
 import type { WeatherPinMode } from '../mud/lib/weather/WeatherType';
 import { ParcelApi } from '../mud/api/parcel';
@@ -387,6 +389,19 @@ export class TestHooks {
     return ExecutionContextApi.runRoot(TestHooks, 'stage', () => TestHarnessApi.stage(path, method, args));
   }
 
+  /**
+   * TEST-ONLY: stage a ship — put her lying somewhere the
+   * drive needs her, never sailed there. Same three gates as the clock;
+   * the staging itself is `TestHarnessApi.stageShip`'s, the one
+   * implementation the `testharness ship` command calls too.
+   */
+  public static async stageShip(handle: string, spec: ShipStageSpec): Promise<ShipStageReport> {
+    TestHooks.#assertTestMode('stageShip');
+    return ExecutionContextApi.runRoot(TestHooks, 'stageShip', () =>
+      TestHarnessApi.stageShip(handle, spec)
+    );
+  }
+
   /** TEST-ONLY: game-seconds now. The read half of {@link advanceClock}. */
   public static clockNow(): number {
     TestHooks.#assertTestMode('clockNow');
@@ -556,7 +571,18 @@ export class TestHooks {
         await StuffApi.destruct(thing);
         throw new Error(`'${templatePath}' is not a thing that can be held`);
       }
-      ContainmentApi.move(thing, body);
+      // ⭐ A thing you get into (a boat, a vessel with a way in) is never
+      // carried — it is handed where the character stands (a
+      // holed rowboat for the bail step).
+      const into =
+        MixinApi.isExitable(thing) && MixinApi.isContainable(body)
+          ? body.getContainer()
+          : body;
+      if (!into || !MixinApi.isContainer(into)) {
+        await StuffApi.destruct(thing);
+        throw new Error(`'${handle}' stands nowhere to put '${templatePath}' down`);
+      }
+      ContainmentApi.move(thing, into);
       return thing.stuffId;
     });
   }

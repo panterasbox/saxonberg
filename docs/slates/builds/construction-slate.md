@@ -137,6 +137,9 @@ the completed product"*, the site can be good content of its own:
 5. **Building in water** — the cofferdam and caisson (underwater § 7) as the
    bridge site's hardest case.
 
+- **The erection bill** (from the paint build, 2026-11): a `Structure` IS
+  made of materials — a bill to erect and later to maintain (the owner) —
+  but no bill is authored or consumed yet; `maintain` takes only a kit.
 ## 5. ⭐⭐ The owner's constraint, and the first worked element (2026-11-02)
 
 From the water-supply planning: *"we need a real construction design that

@@ -406,8 +406,17 @@ suite('cordage — the blocking drive', () => {
     const w = await session(holder, WALK);
     await say(w, 'buy rope');
     for (let i = 0; i < 2; i++) await say(w, 'buy hemp yarn');
-    await act(w, 'twist yarn --yarns 6 --length 8', 900_000);
-    await act(w, 'twist yarn --yarns 6 --length 8', 900_000);
+    // A fresh body may still be shrugging its coat on (hands busy) — step
+    // 8's race: both strands must be twisted, or the unbelayed half has
+    // nothing to tie.
+    for (let made = 0, tries = 0; made < 2 && tries < 4; tries++) {
+      const twisted = await act(w, 'twist yarn --yarns 6 --length 8', 900_000);
+      if (/hands are busy/i.test(twisted)) {
+        await new Promise((r) => setTimeout(r, 5_000));
+        continue;
+      }
+      made++;
+    }
     const belayer = await atTheLip(holder);
     const c = await atTheLip(climber);
     // They meet: a rope is tied round somebody by what the tier knows them as.
@@ -440,7 +449,7 @@ suite('cordage — the blocking drive', () => {
 
   // ⚠ 17's sale is cut: the ropewalk buys no rope back (a house bids per
   // row, so a coil cut into five would sell as five) — retail's seam.
-  it('17. the lifeline, the heaving line and a painter read as rope', async () => {
+  it('17. the lifeline, the heaving line and a bow line read as rope', async () => {
     const shop = await session(maker, SHOP);
     const life = await look(shop, 'first lifeline');
     expect(life, life).toMatch(/20 meters of hemp rope/);
@@ -448,8 +457,10 @@ suite('cordage — the blocking drive', () => {
     const heave = await look(bank, 'heaving line');
     expect(heave, heave).toMatch(/15 meters of hemp rope/);
     const putIn = await session(maker, PUT_IN);
-    await say(putIn, 'buy painter');
-    const painter = await look(putIn, 'painter');
+    await say(putIn, 'buy bow line');
+    // Two are in view (the one bought and the counter's) — the first, as
+    // the lifeline above.
+    const painter = await look(putIn, 'first bow line');
     expect(painter, painter).toMatch(/15 meters of hemp rope/);
   }, 300_000);
 

@@ -18,9 +18,15 @@ help: |
   needs light to read and runs when it gets soaked; a scratch on a slate
   can be felt in the dark and survives the water. Something you carry,
   you write on in your hands; a board on a wall, where it hangs.
+
+  ⭐ `write <words> on <board> with <pot>` letters the words in PAINT: they
+  go on as a coat, in the paint's color, readable by anyone, in any
+  weather — until the weather takes the coat, and the words with it.
 examples:
   - cmd: write meet at the anchor on slate
     note: A diver's slate, under the water where nobody can hear you
+  - cmd: write ROPEWALK on board with pot
+    note: Letter a sign board in paint
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
@@ -39,3 +45,12 @@ args:
     prepositions: [on, onto, in]
     scope: ["inventory", "reachable"]
     requires: [MarkedMixin]
+  # ⭐ Paint as the medium (paint build D10): optional; its preposition
+  # stops the greedy surface's lookahead (`on board with pot`).
+  - name: medium
+    type: object
+    required: false
+    greedy: true
+    prepositions: [with, using]
+    scope: ["inventory", "reachable"]
+    requires: [BulkableMixin]

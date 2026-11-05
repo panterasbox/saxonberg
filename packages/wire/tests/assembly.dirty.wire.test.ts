@@ -58,6 +58,7 @@ declareFile({
     'trade-tailoring',
     'trade-shopkeeping',
     'generic-objects',
+    'trade-painting',
     'base-library',
     'hearthworks',
     'hearts-delight',
@@ -545,6 +546,8 @@ suite('⭐⭐ the cut — glue wants a flat board (plan D16)', () => {
     await cloneHere(SMITHY, T.hideFace);
     await cloneHere(SMITHY, T.boss);
     await cloneHere(SMITHY, T.rivet, 4);
+    // ⭐ A glued joint draws real glue from a pot in reach (paint B24).
+    await cloneHere(SMITHY, '/trade/painting/thing/pot-of-hide-glue');
     const made = await say(wright, 'fit shield');
     expect(made, `fit shield: ${made}`).toMatch(/shield/i);
     const cupped = await examine(wright, 'shield');

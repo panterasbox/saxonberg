@@ -114,6 +114,7 @@ function seedDomain(): void {
   add('/system/residence/idea/exits/upstairs', '/system/residence/idea/UpstairsExit');
   add('/system/residence/idea/exits/front-door', '/system/residence/idea/FrontDoorExit');
   add('/system/residence/idea/exits/lot-gate', '/system/residence/idea/LotGateExit');
+  add('/system/residence/idea/holding-building', '/system/residence/idea/HoldingBuilding', { shortDescription: 'house' });
   add('/system/residence/idea/exits/keyed-door', '/system/residence/idea/KeyedDoorExit');
 
   add(BUILDING, '/system/residence/idea/BuildingWarren', {
@@ -125,23 +126,20 @@ function seedDomain(): void {
     defaultCapacity: 3,
     plan: { shape: 'linear', frontagesPerNode: 2, frontageLeaf: 'u' },
   });
+  // ⭐ The unit's plan, the programme's own (harbors review 3; no
+  // blueprint row): ordinary rows under its extent.
   add(PROGRAMME, '/system/residence/idea/HoldingWarren', {
     upkeepTerm: 'landlord-shell',
-    floorplan: [
-      {
-        leaf: 'hall',
-        room: `${HOUSE}/location/hall`,
-        entry: true,
-        exits: [{ to: 'main', direction: 'north', opposite: 'south' }],
-      },
-      { leaf: 'main', room: `${HOUSE}/location/main` },
-    ],
+    extent: `${HOUSE}/location`,
+    entrance: `${HOUSE}/location/hall`,
   });
   add(`${HOUSE}/location/hall`, '/platform/location/PersistentLocation', {
     shortDescription: 'the entry hall',
+    exits: { north: { destination: `${HOUSE}/location/main` } },
   });
   add(`${HOUSE}/location/main`, '/platform/location/PersistentLocation', {
     shortDescription: 'the main room',
+    exits: { south: { destination: `${HOUSE}/location/hall` } },
   });
   add(CORRIDOR, '/platform/location/PersistentLocation', {
     shortDescription: 'a Seznick House landing',
@@ -200,8 +198,12 @@ function installStore(): void {
     return arr.filter((d) =>
       keys.every((k) => {
         const stored = d[k];
-        if (Array.isArray(stored)) return stored.includes(q[k]);
-        return stored === q[k];
+        const want = q[k];
+        if (want !== null && typeof want === 'object' && '$regex' in (want as object)) {
+          return typeof stored === 'string' && new RegExp(String((want as { $regex: string }).$regex)).test(stored);
+        }
+        if (Array.isArray(stored)) return stored.includes(want);
+        return stored === want;
       }),
     );
   });

@@ -86,12 +86,6 @@ interface HoldingView {
   entryRoom?: () => MemberStuff | null;
   /** One room of the holding by its leaf key. */
   roomForKey?: (k: string) => MemberStuff | null;
-  /** Capture the holding WHOLE (never room-by-room — see `sleep`). */
-  captureAll?: () => Promise<void>;
-  /** The shell's weathering, reconciled on read. */
-  reconcileShell?: () => number;
-  /** The banded, no-gauge read of the same. */
-  conditionBand?: () => string;
 }
 
 /** The back-ref a member room carries to the holding it belongs to. */
@@ -337,31 +331,20 @@ export abstract class CirculationWarren extends Warren {
   }
 
   /**
-   * The shell condition of the holding at `extent` — the residence
-   * ladder's ascent-gate read (P10): admit the holding through its
-   * institution and ask its programme (duck-typed — the programme class
-   * ships in the residence pack). Null when no institution covers the
-   * extent or the holding carries no shell clock (a bare room).
+   * The fabric of the holding at `extent` — the residence ladder's
+   * ascent-gate read (P10): the BUILDING the holding is (paint D13 — the
+   * condition is the building's now): its own minted house, or the
+   * structure row its units stand in. The holding is admitted first so
+   * its house stands. Null when no building with a condition covers it.
    */
   public static async conditionOf(
     extent: string,
   ): Promise<{ condition: number; band: string } | null> {
-    const room = await CirculationWarren.admitFor(extent);
-    if (!room) return null;
-    const programme = (
-      room as unknown as WarrenMemberView
-    ).getWarren?.();
-    if (
-      !programme ||
-      typeof programme.reconcileShell !== 'function' ||
-      typeof programme.conditionBand !== 'function'
-    ) {
-      return null;
-    }
-    return {
-      condition: programme.reconcileShell(),
-      band: programme.conditionBand(),
-    };
+    await CirculationWarren.admitFor(extent);
+    const { NavigationApi } = await import('../../api/navigation');
+    const house = await NavigationApi.structureAt(extent);
+    if (house === null || !MixinApi.isDurable(house)) return null;
+    return { condition: house.getCondition(), band: house.getConditionWord() };
   }
 
   /**
@@ -633,20 +616,15 @@ export abstract class CirculationWarren extends Warren {
   // ── shared internals ────────────────────────────────────────────
 
   /**
-   * The dormancy capture, holding-shaped: a programme-shaped holding
-   * captures WHOLE (every room's record + its own — D16's
-   * sleeps-and-wakes-whole; duck-typed for the pack-shipped programme),
-   * a plain persistable room captures itself.
+   * The dormancy capture: the holding captures itself. A programme-shaped
+   * holding captures WHOLE because its rooms that keep a record are its
+   * `dependentPersistables` (D16's sleeps-and-wakes-whole; the
+   * duck-typed `captureAll` is retired).
    */
   protected async captureHoldingForDormancy(
     key: string,
     holding: MemberStuff,
   ): Promise<void> {
-    const whole = (holding as unknown as HoldingView).captureAll;
-    if (typeof whole === 'function') {
-      await whole.call(holding);
-      return;
-    }
     if (MixinApi.isPersistable(holding)) {
       await PersistableApi.capture(holding, key); // no-op if markForRevert
     }

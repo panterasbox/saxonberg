@@ -1,0 +1,23 @@
+# Turpentine poisoning — the painter's headache (paint D16). The vapor of a
+# dish of turpentine in a shut room is breathed in with every breath
+# (RespirationMixin folds an atmosphere content's `toxicity` into the toxin
+# burden): dizzy, then sick. It clears fast once the air is fresh — open
+# the door.
+class: /platform/idea/Condition
+data:
+  name: turpentine-poisoning
+  signature: []
+  progression:
+    law: burden
+  resolution:
+    by: fresh-air
+  observableSigns: [dizzy, confused]
+  contagion: null
+  toxinBehavior:
+    toxinType: turpentine
+    absorptionRate: 1
+    clearanceRate: 0.3
+    potency: 1
+    bands:
+      - { threshold: 3, severity: 1 }
+      - { threshold: 15, severity: 2 }

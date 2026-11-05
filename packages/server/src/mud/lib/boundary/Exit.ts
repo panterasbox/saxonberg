@@ -40,6 +40,9 @@
 
 import { Idea } from '../stuff/Idea';
 import { ConcealableMixin } from '../concealment/Concealable';
+import { PerceptibleMixin } from '../description/Perceptible';
+import { VisibleMixin } from '../description/Visible';
+import type { NounPhrase } from '../description/NounPhrase';
 import { ConcealmentLevels } from '../concealment/ConcealmentLevel';
 import type { ConcealmentLevel } from '../concealment/ConcealmentLevel';
 import type { Enablement } from '../locomotion/Enablement';
@@ -48,6 +51,7 @@ import type { VetoResult } from '../errors';
 import type { Container } from '../spatial/Container';
 import type { Containable } from '../spatial/Containable';
 import type Door from '../../platform/thing/Door';
+import type Structure from '../structure/Structure';
 import { StuffApi } from '../../api/stuff';
 import { CallSecurity, Final, Unshadowable } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
@@ -56,6 +60,7 @@ import { LocomotionApi } from '../../api/locomotion';
 import { MixinApi } from '../../api/mixin';
 import { GrammarApi } from '../../api/grammar';
 import { ParcelApi } from '../../api/parcel';
+import { NavigationApi } from '../../api/navigation';
 
 /**
  * Discriminator naming which gate failed during `canTraverse`. Backcompat
@@ -229,7 +234,14 @@ const EXIT_MEDIUM_VERB: Readonly<Record<string, string>> = {
   air: 'fly',
 };
 
-export default class Exit extends ConcealableMixin(Idea) {
+/**
+ * ⭐ An exit is a thing you can NAME and LOOK AT: MQL
+ * binds a direction to the exit itself, scored by its own name (its
+ * direction) and its authored keywords (`Perceptible` — `gangway` on a
+ * ship's berth way), and it describes itself (`Visible` — an authored
+ * `longDescription`, else {@link Exit.getLongFor}'s default).
+ */
+export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin(Idea))) {
   /**
    * The exit-KIND hydration allowlist (the applier applies only
    * declared fields). Exits are never saved — no persistence host
@@ -266,6 +278,87 @@ export default class Exit extends ConcealableMixin(Idea) {
   protected direction: string;
   public getDirection(): string { return this.direction; }
   public setDirection(value: string): void { this.direction = value; }
+
+  /**
+   * ⚠ **DERIVED (magic), named here:** an exit is CALLED by its direction
+   * — `north`, `up`, `hesper` (a berth way is named for her) — never an
+   * authored name. That is the name MQL scores (`look
+   * north` is this exit at the top tier), and the heading `look` prints.
+   * An unbound kind clone (no direction yet) falls back to the ladder.
+   */
+  /**
+   * ⚠ **DERIVED (magic), named here:** the keywords an author wrote on
+   * this exit's row (`gangway` on a berth way) PLUS its direction PLUS
+   * that direction's short forms (`north` → `n`, `up` → `u`, read from
+   * the direction table via `NavigationApi.shortFormsOf`). None of these
+   * is authored — they are folded in, the `Door.getKeywords()` shape — and
+   * MQL reads an exit ONLY through this Perceptible interface: it builds
+   * no exit-shaped name or keyword and rewrites no word, so `go n` binds
+   * the north exit because the exit says it answers to `n`.
+   */
+  public override getKeywords(): string[] {
+    const out = super.getKeywords();
+    const dir = this.direction?.toLowerCase().trim();
+    if (!dir) return out;
+    for (const w of [dir, ...NavigationApi.shortFormsOf(dir)]) {
+      if (!out.includes(w)) out.push(w);
+    }
+    return out;
+  }
+
+  /** Yes — see {@link Stuff.isExit}. */
+  public override isExit(): this is Exit {
+    return true;
+  }
+
+  /**
+   * ⭐ A way named for the water it goes into is CALLED *the way into the
+   * river* — never the water's bare name (harbors sibling drives,
+   * 2026-11-04). Its direction stays the word (`swim river`, *Obvious
+   * exits: river*) and the word stays among its keywords. Decided by lens
+   * 3a, on the gangway's precedent (`BerthExit.presentationPhrase`): since
+   * review 3 an exit is a candidate in its own right, so on the bank — whose
+   * own description has the river in it — the way `river` and the river
+   * tied at the name tier and `look river` prompted *"the bank at the
+   * confluence / river"*, two choices no player could tell apart. A player
+   * who looks at the river means the water. Only a word that is not a
+   * direction, on a way whose media are water. Keyword data on the
+   * object, never a scorer tier.
+   */
+  public override presentationPhrase(): NounPhrase {
+    if (this.direction) {
+      if (this.media.includes('water') && NavigationApi.normalizeDirection(this.direction) === undefined) {
+        return GrammarApi.properPhrase(`the way into the ${this.direction}`);
+      }
+      return GrammarApi.properPhrase(this.direction);
+    }
+    return super.presentationPhrase();
+  }
+
+  /**
+   * ⭐ The exit describes itself: an authored `longDescription` when it
+   * has one, else *a way north* and the state of what hangs in it.
+   *
+   * ⛔ Never names the far side. Where a way LEADS is map evidence the
+   * viewer earns by walking it (`location-graph.md` § the evidence
+   * firewall); the way itself is all that stands here to be seen.
+   */
+  public override getLongFor(viewer: Stuff): string {
+    if (this.getLongDescription()) return super.getLongFor(viewer);
+    return this.plainWay();
+  }
+
+  /** *A way north; the oak door is closed.* — the unauthored description. */
+  protected plainWay(): string {
+    let said = `A way ${this.direction}`;
+    if (this.door) {
+      const door = this.door.presentationPhrase().withRegister('definite').render();
+      said += `; ${door} is ${this.door.stateWord()}`;
+    } else if (MixinApi.isLockable(this) && this.isLocked()) {
+      said += '; it is locked';
+    }
+    return `${said}.`;
+  }
 
   protected source: Stuff & Container;
   public getSource(): Stuff & Container { return this.source; }
@@ -958,9 +1051,34 @@ export default class Exit extends ConcealableMixin(Idea) {
    * @hook Override on a way worked out against moving water, whose far
    *   side is not known until it is taken.
    */
+  /**
+   * ⭐ A way flooded at both ends is a swim, whatever it was authored as
+   *. A sunk ship's companionway is a dry
+   * stair by its row, and under the sea it is neither walkable (over your
+   * head) nor — before this — swimmable, so the diver could reach her deck
+   * and nothing below it. The place is the water (swim.yaml): a water
+   * mode passes a way when the mover is in water over their head AND its
+   * far side is too. Never a way out of the water — a basin's wall stays
+   * a climb, because the quay above it is dry.
+   */
+  protected async floodedFor(mover: Stuff & Containable, modeName: string): Promise<boolean> {
+    if (LocomotionApi.modeOf(modeName)?.getMedium() !== 'water') return false;
+    const here = mover.getContainer();
+    if (here === null || !MixinApi.isWaterPlace(here) || here.stateNow() !== 'swimming') return false;
+    let far: Stuff | null = this.peekDestination();
+    if (far === null) {
+      try {
+        far = await this.resolveDestination();
+      } catch {
+        return false;
+      }
+    }
+    return MixinApi.isWaterPlace(far) && far.stateNow() === 'swimming';
+  }
+
   public leadsIntoWater(): boolean {
     const dest = this.peekDestination();
-    return dest !== null && MixinApi.isWaterPlace(dest);
+    return dest !== null && MixinApi.isWaterPlace(dest) && dest.depthNow() > 0;
   }
 
   /**
@@ -980,6 +1098,20 @@ export default class Exit extends ConcealableMixin(Idea) {
     } catch {
       return null;
     }
+  }
+
+  /**
+   * @hook The structure lying ALONGSIDE this exit now — a ship at a quay
+   * (paint build). Three answers, and they mean different things:
+   * `undefined` — an ordinary exit: its far side is the place its path
+   * names (the default); a structure — the one lying alongside now;
+   * `null` — this exit's far side is a ship (`BerthExit`, the way aboard
+   * her) and she is not lying here now. A landing never falls back to the
+   * authored path of an exit that answers `null`: a ship that has sailed
+   * lands nowhere. Derived from what is standing — never authored.
+   */
+  public alongsideNow(): Structure | null | undefined {
+    return undefined;
   }
 
   public getDestinationTemplatePath(): string | null {
@@ -1156,7 +1288,7 @@ export default class Exit extends ConcealableMixin(Idea) {
         reason: `${GrammarApi.cap(doorName)} is closed.`,
       };
     }
-    if (mode != null && !this.allowsMode(mode)) {
+    if (mode != null && !this.allowsMode(mode) && !(await this.floodedFor(mover, mode))) {
       // ⭐ Name the way that works (found by the underwater browser walk:
       // the card's `up` out of the river sends `go up`, which said only
       // "You can't walk that way" beside steps you have to climb).

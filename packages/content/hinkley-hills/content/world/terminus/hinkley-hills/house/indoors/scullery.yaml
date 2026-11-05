@@ -1,0 +1,32 @@
+# The scullery (water-supply W4) — a lean-to off the kitchen, unheated,
+# boarded rather than walled, where the copper sink and the washing go. Its
+# lead run is BARE on the outside wall, which is the honest reason it is the
+# pipe that freezes: the kitchen's run sits behind the range and does not.
+class: /platform/location/PersistentLocation
+data:
+  ambientSource: sky
+  ambientOpening: window
+  shortDescription: scullery
+  keywords: [scullery, lean-to]
+  register: definite
+  ambientIntensity: 1600
+  ambientColorTemperature: 5000
+  # Thin board, no fire: the room the night gets into first.
+  enclosure: { material: /stuff/idea/material/wood/pine, thicknessM: 0.02 }
+  roof: { material: /stuff/idea/material/rock/slate, thicknessM: 0.01 }
+  longDescription: |
+    A narrow lean-to off the kitchen, boarded and cold, with a stone sink under a small window and a lead pipe running bare along the outside wall to the tap above it. Washing lines are strung under the rafters.
+  details:
+    window:
+      keywords: [window, pane, glass]
+      description: |
+        A small square window over the sink, its sill grey with damp and its glass furred with frost on a cold morning.
+  props:
+    # ⭐ The pipe that brings water into this room (water-supply D10) —
+    # exposed on the wall, as the prose says.
+    - /stuff/thing/fixture/lead-run
+    - /stuff/thing/fixture/basin
+  # ⭐ The house's plan: its ways, an ordinary place.
+  exits:
+    west:
+      destination: /world/terminus/hinkley-hills/house/indoors/kitchen

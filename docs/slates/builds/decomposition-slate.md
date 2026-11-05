@@ -17,6 +17,13 @@
 > consumer needs it · decay as a second writer of assembly's per-part
 > condition, on maturation's reconcile machinery
 > **Size:** a build
+>
+> ⭐ **The coat leg shipped with the paint build (MR !513):** every good's
+> outside weathers on the exposure rule (`Faced.reconcileWeather` — coats
+> thin at `Material.weatheringMPerGameYear` where the weather reaches them,
+> nothing indoors), and a durable host's condition wears once its coat is
+> gone at the host's `bareWearPerDay` — a building's dial today, `0` for a
+> good. Per-material bare-body susceptibility is this build's.
 
 ## 0. The reframing (the owner, 2026-10-18)
 

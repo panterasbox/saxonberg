@@ -52,6 +52,10 @@ data:
       label: Health Officer of Terminus
       department: /world/terminus/infirmary/business
       positionKey: health-officer
+  # ⭐ The city keeps a register of ships — by choice: this
+  # line is the choosing. A ship entered there flies the city's flag, and
+  # at sea the city's law is the law aboard her.
+  shipRegister: /platform/idea/ShipRegister/terminus-city
   # ⭐ The city's standard measures (assembly D13, AC 24): the tun its
   # gauger gauges against. A second polity declares its own here.
   standards:

@@ -1,7 +1,7 @@
 # The icehouse — the platform and the house behind it, one building
 # (storage-and-ice D22): under rooms-share-heat the two couple through
 # their shared wall, which is real.
-class: /platform/idea/Structure
+class: /platform/idea/Building
 data:
   extent: /world/terminus/hollow-mere/icehouse
   entrance: /world/terminus/hollow-mere/icehouse/location/platform

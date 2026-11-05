@@ -5,6 +5,7 @@ import { ApiLogic } from "../../../lib/stuff/ApiLogic";
 import { CallSecurity, Unshadowable } from "../../../lib/security/decorators";
 import { SecurityPolicies } from "../../../lib/security/SecurityPolicies";
 import type { Stuff } from "../../../lib/stuff/Stuff";
+import type Place from "../../../lib/stuff/Place";
 import type { Container } from "../../../lib/spatial/Container";
 import { StuffApi } from "../../../api/stuff";
 import { AddressApi } from "../../../api/address";
@@ -16,6 +17,7 @@ import type { GovernmentDescriptor } from "../Government";
 import type { RosterAssignment } from "../../../lib/employment/Roster";
 import type { SeatView } from "../../../api/government";
 import type GovernmentCatalogue from "../GovernmentCatalogue";
+import type Ship from "../Ship";
 
 const GovernmentApiCallers = SecurityPolicies.FromModule(
   "/api/government#GovernmentApi"
@@ -58,6 +60,65 @@ function chainForAddress(address: string): GovernmentDescriptor[] {
 }
 
 /** The character's domicile address, or `null` (non-Characters included). */
+/** The ship whose room `scope` stands in (walking out to the place), or `null`. */
+async function shipAboard(scope: Stuff): Promise<Ship | null> {
+  let place: Stuff | null = scope;
+  for (let i = 0; place !== null && i < 8 && !place.isPlace(); i++) {
+    place = MixinApi.isContainable(place) ? place.getContainer() : null;
+  }
+  if (place === null) return null;
+  // The place is asked: a keyed room's structure is its warren's.
+  const s = await (place as unknown as Place).structure().catch(() => null);
+  if (s === null) return null;
+  // Loaded on use: the ship's module sits above this one (an import here
+  // would close a cycle through the register and the frame).
+  const { default: ShipClass } = await import("../Ship");
+  return s instanceof ShipClass ? s : null;
+}
+
+/**
+ * ⭐ The law aboard a ship: her flag state's — the register she is
+ * entered in, never the colors she flies — and, in harbor (made fast at a
+ * landing, or on a river within reach of one), the port's before it. At
+ * sea, the flag state's alone; a stateless ship at sea is under nobody's.
+ */
+async function shipChain(ship: Ship): Promise<GovernmentDescriptor[]> {
+  const out: GovernmentDescriptor[] = [];
+  const seen = new Set<string>();
+  const add = (d: GovernmentDescriptor | null | undefined): void => {
+    if (!d || seen.has(d.key)) return;
+    seen.add(d.key);
+    out.push(d);
+  };
+  const port = await portOf(ship);
+  if (port !== null) {
+    const resolution = await AddressApi.resolveFor(port).catch(() => null);
+    if (resolution?.address) for (const d of chainForAddress(resolution.address)) add(d);
+  }
+  // ⭐ Her flag state is her own register's word (she knows her register).
+  const flag = await ship.flagState();
+  if (flag) add(catalogue()?.getGovernment(flag));
+  return out;
+}
+
+/** The landing whose port she is in: where she is made fast, else the nearest on her river. */
+async function portOf(ship: Ship): Promise<(Stuff & Container) | null> {
+  let path = ship.getBerth();
+  if (path === null) {
+    const pos = ship.getLinePosition();
+    const frame = pos !== null ? await ship.liveFrame() : null;
+    if (pos !== null && frame !== null && MixinApi.isLineFrame(frame)) {
+      path = frame.landingNear(pos, IN_HARBOR_M);
+    }
+  }
+  if (!path) return null;
+  const landing = await StuffApi.singleton<Stuff>(path).catch(() => null);
+  return landing !== null && MixinApi.isContainer(landing) ? landing : null;
+}
+
+/** How far up or down a river a ship is still in a landing's port — the river's banks' law (grain). */
+const IN_HARBOR_M = 2000;
+
 function domicileOf(character: Stuff): string | null {
   if (!(character instanceof Character)) return null;
   const address = character.getDomicileAddress();
@@ -196,6 +257,12 @@ export class GovernmentLogic extends ApiLogic {
   public async subjectTo(
     scope: Stuff & Container
   ): Promise<GovernmentDescriptor[]> {
+    // ⭐⭐ Aboard a ship is asked FIRST: her rooms
+    // stand in her own zone, which no address covers, so the address walk
+    // would say "no government" — and so would an unaddressed cellar. The
+    // question is *is this a ship*, never *is the chain empty*.
+    const ship = await shipAboard(scope);
+    if (ship !== null) return shipChain(ship);
     const resolution = await AddressApi.resolveFor(scope);
     return resolution.address ? chainForAddress(resolution.address) : [];
   }

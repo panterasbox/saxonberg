@@ -17,3 +17,5 @@ data:
     - /system/transport/thing/propulsion/sail
     - /system/transport/thing/tiller
     - { template: /system/transport/thing/propulsion/oar, count: 2 }
+    # ⭐ Every boat comes with her bow line (a sailor's "painter").
+    - /platform/thing/bow-line

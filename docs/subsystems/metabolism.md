@@ -553,3 +553,12 @@ against the rule that a pack must never need one. Accepted because the
 list is physiology; a pack that genuinely needs its own aroma (a
 smokehouse wanting *tar*) is the signal to move the list to rows rather
 than add the word.
+
+
+## Lead arrives (paint build, 2026-10-31)
+
+Every lead dose and leach in the shipped rows named the Condition
+(`lead-poisoning`) where `resolveToxinBehavior` looks up the toxin TYPE
+(`lead`), so every lead dose was dropped. The rows now say `lead`; the
+Condition gains a colic band at a burden of two before the acute one.
+Grinding a lead stock and brushing lead paint dose the body.

@@ -17,7 +17,7 @@
  * `StuffApi.singletonSync`. `dest /platform/idea/api/navigation` reloads it.
  */
 
-import type Structure from '../platform/idea/Structure';
+import type Structure from '../lib/structure/Structure';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { NavigationLogic } from '../platform/idea/api/NavigationLogic';
@@ -93,6 +93,16 @@ export class NavigationApi {
     input: string
   ): CardinalDirection | undefined {
     return logic().normalizeDirection(input);
+  }
+
+  /**
+   * The conventional short forms of a direction (`north` → `['n']`,
+   * `up` → `['u']`); `[]` for a non-cardinal. ⚠ Read by
+   * `Exit.getKeywords()`, which is where those words become an exit's
+   * own (derived, and named so there) — MQL never rewrites a word.
+   */
+  public static shortFormsOf(direction: string): string[] {
+    return logic().shortFormsOf(direction);
   }
 
   /**
@@ -220,6 +230,11 @@ export class NavigationApi {
    * The Structure `path` is a member of — the innermost (longest extent)
    * when one stands inside another, a wing in a mansion — standing the
    * attached candidates up first; `null` when it is in none.
+   *
+   * ⭐ `path` is a row or a minted identity — never a keyed handle
+   * (`row#key`, which throws): a keyed room of a ship kind is answered by
+   * its warren, so holding the room, ask it — `Place.structure()` /
+   * `structureNow()`.
    */
   public static structureAt(path: string): Promise<Structure | null> {
     return logic().structureAt(path);
@@ -228,6 +243,21 @@ export class NavigationApi {
   /** {@link structureAt} over what is already standing — never loads. */
   public static structureAtNow(path: string): Structure | null {
     return logic().structureAtNow(path);
+  }
+
+  /**
+   * ⭐ Attach a MINTED structure (no row of its own — a holding's house)
+   * at `extent`, so {@link structureAt} answers it for its rooms and their
+   * exposure sees its walls (paint build, 2026-10-31). The owner detaches
+   * it when the building goes.
+   */
+  public static attachStructure(extent: string, structure: Structure): void {
+    logic().attachStructure(extent, structure);
+  }
+
+  /** Undo {@link attachStructure}. */
+  public static detachStructure(extent: string, structure: Structure): void {
+    logic().detachStructure(extent, structure);
   }
 
   /** Every node in one zone. */

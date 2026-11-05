@@ -99,6 +99,20 @@ Carries:
   `media` declaration, so old content stays backcompat-safe. See
   [locomotion.md](./locomotion.md#exitmedia).
 
+⭐ **An exit is a thing you can name and look at** (harbors review 3).
+`Exit` composes `Visible` + `Perceptible` over `Concealable`, and MQL
+binds a direction to the EXIT itself — there is no `via.exit`. Its name
+is its direction (`presentationPhrase`) and its keywords are the authored
+ones plus its direction plus its short forms (`n`, `u` — `getKeywords`,
+reading `NavigationApi.shortFormsOf`) — both ⚠ **derived**, and named so
+on the methods. MQL reads an exit only through that interface; `go n`
+binds the north exit because the exit answers to `n`. It describes itself: an authored `longDescription`
+(the berth way's *"A gangway runs up to {{ ship }}'s deck."*), else
+`plainWay()` — *a way north; the oak door is closed* — which never names
+the far side (the map's evidence firewall). A verb that needs the door
+on a way reaches it through `MqlApi.effectiveTarget`; `Stuff.isExit()`
+is how a reader asks, since `Exit` sits on the locomotion import graph.
+
 ### `Exit.hidden` — subsumed into the concealment gate
 
 `Exit` now composes `ConcealableMixin` (`Exit extends
@@ -176,6 +190,19 @@ a key check vs. a reachability check). Consumers: the dorm's `DormDoor`
 [residence.md](./residence.md) — and `obj/LotGateExit` (a sold lot's
 yard, hung on the street by `PlatWarren`; see
 [smallholding.md](./smallholding.md)).
+
+⭐ **A ship's two ways** (harbors) are `DeferredDestinationExit`s too,
+both `LockableMixin` over it: `BerthExit` (`platform/idea/BerthExit`,
+the `exits/berth` row) is the way aboard the ship herself puts on the
+landing she makes fast at, named for her (`go hesper`), and gone when
+she casts off; `AshoreExit` (on her entrance) leads to the landing she
+lies at. Both read her gangway's lock (`lock ashore`, `unlock hesper`);
+asleep, the berth way reads the lock she was left with. Both answer
+`isMapped() → false` — a way that comes and goes with a ship is never
+written to a map. There is no third derived *alongside* way (the
+`AboardExit` that maritime derived was deleted): `Exit.alongsideNow()`
+on the berth way answers her while she stands and lies at that landing.
+See [ship.md](./ship.md).
 
 `LotGateExit` is the case where the eager path is **exact** rather than a
 class name: each lot's room is minted at its own identity, so the stored
@@ -1118,6 +1145,11 @@ shared **`BistateMixin`** base (`lib/Bistate.ts`) was extracted in
 `17add9a5` — superseded by build-3's `lib/lock/` real `Lock`+`Key`
 model; the keyed-credential lock is the future, and this boolean is to be
 retired (not grown) at reconcile.
+
+The harbors build (MR !511) added `BerthExit`/`AshoreExit` (P4–P6), made
+both unmapped in review round 1 (`4cce826da`), and made an exit a Visible
+thing MQL binds directly (review 3); master's `AboardExit` stayed deleted
+at the paint merge (`5cfd1a5db`).
 
 ## Cross-References
 
