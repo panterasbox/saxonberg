@@ -15,7 +15,10 @@
 > 2026-09-21) + the `execScript` verdict + the `practice` verdict · W2
 > the code-door folds (reload/git/cms/studio/Template/Document) · W3
 > `AppSettingKeys` B/C tier tags + Tier C routed to an office + the
-> tier-totality check · W4 the reads/reveals
+> tier-totality check · W4 ⭐ **spoilers in code** — reading source is
+> open to everyone (owner, 2026-11-05: *"reading should not need wizard"*),
+> so the spoiler system must extend to source that would spoil the game
+> (the reads themselves open in the build)
 > **Size:** a build
 
 > Written 2026-09-03, out of MR !231 (cooking), where a live drive
@@ -216,8 +219,12 @@ reason.
   gate, or name their authorities. Shrink the W0 allowlist accordingly.
 - **W3** — the settings tier split: tag the keyspace, route Tier C to an
   office, add the totality check.
-- **W4** — the reads/reveals, which are the least urgent and the most
-  arguable.
+- **W4** — ~~the reads/reveals~~ the reads open in the build (owner,
+  2026-11-05); what remains is **spoilers in code**: source that would
+  spoil the game — a puzzle's answer in a controller, a secret in a row —
+  hidden from a reader the way the wiki's spoiler tags hide a page. The
+  wiki's two-axis reveal model (capability deletes, appetite tags) is the
+  natural substrate.
 
 ## Open questions
 

@@ -68,10 +68,12 @@ is deletion.
 
 ## Non-goals
 
-- **The reads and reveals** — the `errors raw` tier and the client's
-  `isWizard` response flag. *(Destination: a follow-on tail; the slate's
-  W4 stays open for them.)* The wiki spoiler reveal IS in scope, having
-  been decided.
+- **Spoilers in code.** Reading source is open to everyone now (below),
+  so source that would spoil the game needs the spoiler system extended
+  to code. *(Destination: [wizard-axis-cleanup-slate](../slates/builds/wizard-axis-cleanup-slate.md)
+  W4, which now carries it.)* The client's `isWizard` response flag stays
+  as it is: it tells the client whether to offer authoring panes, which
+  is the axis.
 - **Re-deciding what conferral means.** `requiresArchwizard` on the
   conferral verb is the one place the axis is the subject rather than
   the gate. *(Destination: nowhere — deliberately untouched.)*
@@ -163,11 +165,40 @@ Source access is an out-of-game capability. A wizard playing a character
 should not have their character's screen spoiled; the in-game reveal
 keys on the wiki's own two axes.
 
-### Tier C is eight keys, and everything else defaults to B
-The keyspace is 389 keys and overwhelmingly physics. The political set
-is the taxes, levies, grants and capital controls: the sales tax, the
-corpo royalty, the consignment commission, the onboarding stipend, the
-two withdrawal caps, and the opening capital and float.
+### Reading is open (owner, 2026-11-05)
+
+*"reading should not need wizard."* Reading source, `git status` /
+`diff` / `log`, and the raw `errors` tier are not authoring, so none of
+them asks for the wizard. The one real cost — source that spoils the
+game — is answered by extending spoilers to code, a later build.
+
+### A wizard with no seat is the default case, and PM ⇒ archwizard ⇒ wizard (owner, 2026-11-05)
+
+> *"a wizard with no seat is the default case it needs to work … if it's
+> just a matter of granting authority to a test avatar make them the PM.
+> We probably want to hardcode the PM as an archwizard and hardcode the
+> PM and all archwizards as wizards."*
+
+- Being a wizard confers authoring and nothing else; an ordinary wizard
+  holds no seat, and everything in this build must work for one.
+- **The Prime Minister is an archwizard, and every archwizard is a
+  wizard** — derived, not granted, so it cannot drift.
+- Anything that needs authority (a test character included) gets it by
+  holding a seat — the PM when it needs the realm's.
+
+### Tier C is the political keys, and everything else defaults to B
+The keyspace is overwhelmingly physics. The political set is the taxes,
+levies, grants and capital controls. (Three keys the original list named
+— the onboarding stipend, opening capital and opening float — were removed
+by economic bootstrap; the split below applies to the living keys, which
+the plan names.)
+
+### Tier B is the Prime Minister's (owner, 2026-11-05)
+
+Setting an ordinary key is not authoring TypeScript, so `config` does not
+ask for the wizard. It defaults to the **Prime Minister** — the executive
+that holds the platform. (An *operations* office could be minted for it
+later; not in this build.)
 
 ### Which office holds them — split fiscal from monetary (owner, 2026-11-05)
 
@@ -222,6 +253,8 @@ bites. Run against a fresh world.
    Refused.
 6. **Tier B is unchanged.** Read and set an ordinary physics setting.
    Works exactly as before.
+6b. **Tier B is the PM's.** As a wizard with no seat, set an ordinary
+   key: refused, naming the Prime Minister. As the PM, it works.
 7. **Tier C is unreachable from the operator verb.** Attempt to set the
    sales tax there. Refused, pointing at the Minister of Finance.
 8. **Tier C works through the seat.** As the Minister of Finance, set
@@ -239,7 +272,11 @@ bites. Run against a fresh world.
   without the seat cannot.
 - Setting the sales tax from the operator verb is refused and says where
   it belongs; setting it from the office works and lands in the record.
-- Every physics setting behaves exactly as it did before.
+- Every physics setting behaves exactly as it did before, and is set by
+  the Prime Minister rather than by a wizard.
+- A wizard with no seat can author TypeScript and read anything, and can
+  do nothing that needs authority. The PM is a wizard and an archwizard
+  without being granted either.
 - The command-running spell does not appear in any spell listing.
 - The transcript-fabricating verb is absent from a production world.
 - A wizard reading a spoiler-tagged wiki page sees what a non-wizard
