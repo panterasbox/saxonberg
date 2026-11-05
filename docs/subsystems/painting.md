@@ -194,6 +194,14 @@ A swept flue gives lampblack where the realm names it
 - Only `fit`'s raise arm consumes glue; re-making a glued joint by the
   replace arm does not.
 - The house painter does not restock his own pot.
+- **Upkeep by layer did not ship.** The repair plan's W7 (`maintain` lays
+  a named material from hand into the worst layer, by that layer's trade,
+  at the hand's band; the keeper's employer buys what is laid) was
+  replaced by this build's `Faced` + `Durable` model, where `maintain` with
+  a kit restores the fabric with no materials and no band. The layered
+  fabric, the materials-in-hand mend and the par-sheet keeper remain
+  [repair-slate](../slates/tails/repair-slate.md)'s; masonry and
+  brickmaking route lime mortar, repointing and the spall to it.
 
 ## History
 

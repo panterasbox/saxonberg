@@ -13,6 +13,14 @@ hopper's, the pot's and the kiln's.
 > Nothing anywhere stores a "strength" but the heap's composition and the
 > liquor's payload — and no number for it ever reaches a player.
 
+**Why one material.** Big ash and little ash are the SAME thing — one
+`Ash` class, one tag set (`potash` · `flux`), one hopper, one set of
+buyers — whether it came out of a hearth's grate, the ash pit, or (when
+it ships) a burnt wood's ground. The sources differ only in *where the
+ash is and how you get it*; nothing downstream asks which. That is the
+founding requirement (2026-10-18) and it is why the ash row lives in
+`trade-fuel`, upstream of every source.
+
 ## The chain
 
 | step | act | mechanism | where it lives |
@@ -26,10 +34,22 @@ hopper's, the pot's and the kiln's.
 | calcine | `put cake in kiln`, `fire kiln` | the black salts' own `calcine` heat transition (ceramics M1 — no recipe); the same cake comes out, made of pearl ash, its potash concentrated | `ThermalMixin` heat-work |
 | sell | `sell "pearl ash"` | buying lines at the glasshouse board and the chandlery counter | `Stock.buyFrom` |
 
+**Why the pit is its own `Firebox`, and why there is no `burn`.** The
+slate designed the heap as the charcoal clamp run at the open draught, with
+`burn` an alias of `char`. It shipped as `AshPit extends Firebox` instead:
+every kernel twin of the firebox chain adds something an open pit has not
+got (a flue, a seat, room heat), and the clamp would afford `char` — the
+wrong word for a fire meant to burn through. So the pit is a big Burner
+and nothing more (300 kW against a two-tonne bed, about sixty kilos of
+wood an hour), driven by the Burner's own verbs and raked with `sweep`
+when it has burned down — in game time, not read at a day's end.
+
 ## The numbers (grain — an author's)
 
 - **Ash.** `Material.ashFraction` (beech 0.01, pine 0.005; brash ×3) and
-  `Material.alkaliShare` (beech 0.18 … pine 0.08; brash ×1.3). A raked
+  `Material.alkaliShare` (beech 0.18 … pine 0.08; brash ×1.3). ⭐ The
+  per-part figure lives on the PART: `wood/<species>-brash` is its own
+  material row, `extends:` the wood, overriding only the two ash fields. A raked
   heap's composition is `[{ fire.ash.alkaliMaterial, alkaliKg / kg }]`;
   `gradedByStrength` rows re-grade by it (<0.10 poor · <0.165 fair · <0.22
   fine · <0.30 exceptional) and the look line reads it: *grey and gritty* ·
@@ -80,6 +100,11 @@ is untouched.
   and a weak lye on one fire), a hopper, a rain butt (1 °dH), the test egg, a
   pail, a broom, a store of six heaps of wood ash, four cordwood, the
   ash-burner. The ride now stands beech and pine beside the oak and ash.
+  ⭐ It stands in the wood, not at Wharfside, because potash is about a
+  tenth of the ash's mass: burn where the wood is, leach and boil where the
+  ash is, and cart the cake. The lean-to's hearth is itself a Burner, so
+  the boiling fires' own ash is raked into the same heaps the hopper takes
+  — the loop closes by composition.
 - **The glasshouse** buys pearl ash (20) and black salts (12) on a chalked
   board; its stock of clamp-ash became wood ash.
 - **The Wharfside chandlery** (still vacant — a player-shaped hole) buys
@@ -89,7 +114,9 @@ is untouched.
   no operating locations): the `ashes` brain rakes the grates on his stops,
   pays each heap's owner the chandlery's own bid from his own account, takes
   title, and sells at the counter with `sell`. He earns by volume, never by
-  margin.
+  margin. ⭐ He is a brain, not a job: nothing the round does is
+  unavailable to a player — sweep your own hearth, carry the ash in, and
+  you are paid the same bid.
 
 ## Whose it is — the communal oven
 

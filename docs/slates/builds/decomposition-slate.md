@@ -191,7 +191,7 @@ Writes **assembly's per-part condition**; runs on **maturation's reconcile
 machinery**; keeps **Law 2's year-long regression test** green. First
 consumers: authored ruins and barrows, [underwater-slate](./underwater-slate.md)
 § 10's wrecks, the river's works ([river-slate](./river-slate.md)), and
-[brickmaking-slate](./brickmaking-slate.md)'s frost (which shares the
+[brickmaking-slate](../tails/brickmaking-slate.md)'s frost (which shares the
 freeze–thaw count).
 
 ## 7. Open

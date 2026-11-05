@@ -232,6 +232,8 @@ model; a timer would be a distribution pretending to be a population.
 
 ## ⭐⭐ One build with foraging, and whaling belongs in it (2026-10-08)
 
+> ⚠ **Whaling half superseded 2026-11-05 (owner):** whaling is designed and built **before** hunting, as the last RGO gap and on fishing's precedent (fishing was designed without hunting), so that [RGO unification](./rgo-unification-slate.md) sees a roster with no gaps. Hunting + foraging stay one design, after the architecture season and the unification pass; that design may revisit whaling and fishing. See [rgo-unification § *The sequence, decided 2026-11-05*](./rgo-unification-slate.md).
+
 Two notes from the RGO-track pass.
 
 **1 · Hunting and foraging are one build, at one rung.** Not siblings that
@@ -258,7 +260,7 @@ three, because the consumer landed first:
   is `trade-cooking`'s shipped `render-tallow` shape with a different
   input, and the cask and the burn already exist.
 - ⭐⭐ **And it is drilling's historical antagonist** —
-  [drilling-slate](./drilling-slate.md). Kerosene is what ended the whale
+  [drilling-slate](../tails/drilling-slate.md). Kerosene is what ended the whale
   fishery, which means the two builds are the **two ends of one market**
   rather than unrelated verticals: ship whaling and the street lamp has a
   supply; ship drilling and it has a cheaper one, and a vocation collapses

@@ -61,7 +61,7 @@ Paleontology speaks of **mold and cast** fossils;
 [mould.md](../../subsystems/mould.md)'s rule — *the container decides the shape of
 what sets in it* — is the mechanism. An organism leaves a hollow in sediment and
 minerals fill it; **permineralization keeps the form and replaces the substance**
-(the [moulding slate](./moulding-slate.md)'s impression).
+(the [moulding slate](../tails/moulding-slate.md)'s impression).
 
 **Found** as a **seeded layer** of the ground (the deposit field, *seeded, never
 drawn*), exposed:

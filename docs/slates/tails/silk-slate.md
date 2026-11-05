@@ -9,7 +9,8 @@
 > (unobserved-economy-slate) · microscope certification of a lot
 > (optics-slate) · the fibre's own base colour in the dye mix
 > (textiles-slate) · ⚠ the shared `reel` verb is a false unification to
-> undo (`command-taxonomy-slate.md` item 7).
+> undo (`command-taxonomy-slate.md` item 7) · the silk laundress drive line
+> (§ *Absorbed from sericulture-slate*).
 > **Size:** a tail
 
 *Designed 2026-10-18 in conversation. The owner knew little of the
@@ -99,7 +100,7 @@ precision claim, so the reading is banded by competence (#66).
 content, no new lesson."** Both halves were wrong — silk is a protein
 fibre and the richest lesson in the vertical. Fixed with this slate in
 [textiles.md](../../subsystems/textiles.md) and
-[textiles-slate.md](./textiles-slate.md).
+[textiles-slate.md](../builds/textiles-slate.md).
 
 ---
 
@@ -153,12 +154,12 @@ or fifth age, after the leaf and the labour are spent.
    has not reached. ⭐ This is Baricco's *Silk* exactly (§ 9).
 2. **After optics** — the spores are ~3 µm; the shipped hand lens (10×)
    cannot see them, and that refusal is the lesson. A compound
-   microscope can — [optics-slate](./optics-slate.md) Half A, made by the
+   microscope can — [optics-slate](../builds/optics-slate.md) Half A, made by the
    glass trade. That turns the grainer's reputation into a **certificate
    anyone can check** (§ 7).
 
 So silk does not wait on optics; optics adds a rung to it. The
-`ContagionSpec` machinery is [disease-slate](./disease-slate.md)'s; silk
+`ContagionSpec` machinery is [disease-slate](../builds/disease-slate.md)'s; silk
 needs only the per-lot seeded load and its read at the rearing, which
 spoilage's seam already carries — if the build finds otherwise, that is
 the disease slate's work, not silk's.
@@ -179,7 +180,7 @@ Darwin opens *On the Origin of Species* with domestic breeding.
   payoff — a line with a colour nobody else has — and it falls out of the
   chain rather than a customizer.
 - ⚠ Kept small on purpose: one trait moves, by one formula. Expression is
-  inelastic; a full genetics model is [lineage-slate](./lineage-slate.md)'s
+  inelastic; a full genetics model is [lineage-slate](../builds/lineage-slate.md)'s
   territory, not this one's.
 
 ---
@@ -260,7 +261,7 @@ cross-cutting capability:
 - **whether NPC hands are a finite labour pool** — if they are infinite
   and cheap, every hour-heavy good is cheap.
 
-Both → [markets-slate](./markets-slate.md). Silk is the first trade whose
+Both → [markets-slate](../builds/markets-slate.md). Silk is the first trade whose
 price *should* depend on them, and the bench is the instrument that will
 show whether it does.
 
@@ -381,10 +382,10 @@ famously smoke-sensitive).
   slavery — a different lesson, not a second row).
 - **Patterned weaving, drawloom → Jacquard** → textiles-slate's tail
   (patterned weaving), with silk named as its first consumer.
-- **The microscope** → [optics-slate](./optics-slate.md) Half A.
-- **`ContagionSpec`, between-room spread** → [disease-slate](./disease-slate.md).
-- **Status demand, the finite labour pool** → [markets-slate](./markets-slate.md).
-- **Full genetics** → [lineage-slate](./lineage-slate.md).
+- **The microscope** → [optics-slate](../builds/optics-slate.md) Half A.
+- **`ContagionSpec`, between-room spread** → [disease-slate](../builds/disease-slate.md).
+- **Status demand, the finite labour pool** → [markets-slate](../builds/markets-slate.md).
+- **Full genetics** → [lineage-slate](../builds/lineage-slate.md).
 - **The mulberry-dyke fish pond** (frass feeds fish, pond mud feeds the
   mulberry — a thousand-year closed loop) → a hook for the fishing and
   soil packs; nowhere yet, deliberately.
@@ -406,3 +407,14 @@ famously smoke-sensitive).
   the deadline is visible coming (`look`), and a hired hand can stifle.
   Lens #27: the world agrees not to charge you for your absence.
 - **Sumptuary law's expressibility** in civics — unchecked (§ 10.7).
+
+## Absorbed from sericulture-slate — Open 6, cleanliness's dropped case
+
+*(Moved verbatim 2026-11-05; the rest of sericulture-slate was shipped or
+superseded by MR !395 and the stub retired.)*
+
+**Cleanliness's dropped case.** The laundress who ruins a silk blouse
+(cleanliness drive step 18) was moved onto wool for lack of silk. When
+silk ships, add the silk case back as a drive line. ⚠ Silk has shipped, but
+**no garment row names `/trade/sericulture/idea/material/silk`** yet, so the
+drive line also waits on a silk garment row (textiles content).
