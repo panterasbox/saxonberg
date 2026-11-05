@@ -406,8 +406,17 @@ suite('cordage — the blocking drive', () => {
     const w = await session(holder, WALK);
     await say(w, 'buy rope');
     for (let i = 0; i < 2; i++) await say(w, 'buy hemp yarn');
-    await act(w, 'twist yarn --yarns 6 --length 8', 900_000);
-    await act(w, 'twist yarn --yarns 6 --length 8', 900_000);
+    // A fresh body may still be shrugging its coat on (hands busy) — step
+    // 8's race: both strands must be twisted, or the unbelayed half has
+    // nothing to tie.
+    for (let made = 0, tries = 0; made < 2 && tries < 4; tries++) {
+      const twisted = await act(w, 'twist yarn --yarns 6 --length 8', 900_000);
+      if (/hands are busy/i.test(twisted)) {
+        await new Promise((r) => setTimeout(r, 5_000));
+        continue;
+      }
+      made++;
+    }
     const belayer = await atTheLip(holder);
     const c = await atTheLip(climber);
     // They meet: a rope is tied round somebody by what the tier knows them as.

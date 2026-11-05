@@ -21,6 +21,7 @@ import { StuffApi } from "../../api/stuff";
 import { SpeciesApi } from "../../api/species";
 import { MixinApi } from "../../api/mixin";
 import { MqlApi } from "../../api/mql";
+import { BankingApi } from "../../api/banking";
 import type { CommandGiver } from "../../lib/command/CommandGiver";
 import type { AetherHost } from "../../lib/message/Aether";
 import type { Comms } from "../../lib/comms/Comms";
@@ -130,6 +131,16 @@ describe("Avatar.installDefaultLoadout", () => {
     expect(hostedComms(avatar)).toHaveLength(1);
     expect(hostedCredentials(avatar)).toHaveLength(1);
     expect(hostedForums(avatar)).toHaveLength(1);
+  });
+
+  it("⭐ the wallet app links again every account its person holds — primary active (harbors B6: after a restart it held none)", async () => {
+    const avatar = makeAvatarOfSpecies([]);
+    const ids = vi.spyOn(BankingApi, "accountIdsOf").mockResolvedValue(["acct-primary", "acct-other"]);
+    await runLoadout(avatar);
+    expect(ids).toHaveBeenCalledWith(avatar.getIdentityPath());
+    const pay = hostedCredentials(avatar)[0]!.getCredential("payment")!;
+    expect([...pay.getLinkedAccounts()]).toEqual(["acct-primary", "acct-other"]);
+    expect(pay.getActiveAccount()).toBe("acct-primary");
   });
 
   it("born-attuned species: skips the implant but still hosts both updates", async () => {

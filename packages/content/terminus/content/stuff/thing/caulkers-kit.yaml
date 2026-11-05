@@ -1,0 +1,28 @@
+# The caulker's kit — what `maintain` takes aboard a ship:
+# irons and a mallet to drive oakum into her seams, and a pitch ladle to
+# pay them over.
+#
+# ⭐ The householder's kit by another name (the owner's rule: re-caulking a
+# hull is the same upkeep act as keeping a house): the same class, the
+# same `upkeep` capability, the same wear on use — so a season of keeping
+# a hull tight costs a kit, bought at the chandler. Her warren's words say
+# what the work is; the kit only makes it possible.
+class: /system/residence/thing/HouseholdersKit
+data:
+  shortDescription: caulker's kit
+  keywords: [kit, caulker, caulkers, "caulker's", "caulker's kit", irons, mallet]
+  register: indefinite
+  longDescription: |
+    A canvas roll tied with a thong, holding a caulking mallet with iron hoops on its head, three caulking irons of different widths, a reefing hook for raking old oakum out of a seam, a twist of oakum and a pitch ladle black to the handle.
+  mass: 5
+  condition: 1
+  capabilities:
+    - kind: upkeep
+      rate: 1
+  details:
+    mallet:
+      keywords: [mallet]
+      description: A long-headed mallet of lignum with iron rings round the head, slotted so it rings as it strikes.
+    irons:
+      keywords: [irons, iron]
+      description: Flat chisels of iron with dull edges, for driving oakum into a seam rather than cutting anything.

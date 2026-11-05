@@ -39,6 +39,7 @@
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
+import type Place from '../stuff/Place';
 import type { Container } from '../spatial/Container';
 import type { Containable } from '../spatial/Containable';
 import type { Mobile } from '../spatial/Mobile';
@@ -56,7 +57,6 @@ import type { CommandContributions } from '../../api/command';
 import { MixinApi } from '../../api/mixin';
 import { BiomeApi } from '../../api/biome';
 import { StuffApi } from '../../api/stuff';
-import { NavigationApi } from '../../api/navigation';
 import { ContainmentApi } from '../../api/containment';
 import { BulkableApi } from '../../api/bulk';
 import { WorldClockApi } from '../../api/worldclock';
@@ -266,6 +266,12 @@ export interface WaterPlace {
    * is here. Run on entry and whenever a fresh read of the water lands.
    */
   reconcileOccupants(): Promise<void>;
+  /**
+   * ⭐ A band of this water's column has just budded: the
+   * surface may wire what it knows lies down there — the way into a wreck
+   * on the bed. Called by the column, once per bud.
+   */
+  onBandBudded(band: ColumnBand, room: Stuff & Container): Promise<void>;
 }
 
 type FloorStuff = Stuff & Floor;
@@ -411,6 +417,15 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
 
     public getWaterKey(): string {
       return this.water?.feature ?? WATER_KEY;
+    }
+
+    /**
+     * @hook Override on a surface that knows what lies on its bed (the
+     *   water pack's sea stop: a wreck). Default: nothing to wire.
+     */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    public async onBandBudded(_band: ColumnBand, _room: Stuff & Container): Promise<void> {
+      return;
     }
 
     /* ─────────────────────────── the level ─────────────────────────── */
@@ -842,9 +857,14 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
       void this.reconcileOccupants();
       // ⭐ Over a ship's side (river D30): she keeps who went into the water
       // off her, and her `course` waits for them (`Voyaging.noteOverboard`).
-      const fromPath = via?.getSource()?.getTemplatePath() ?? '';
-      const ship = fromPath ? NavigationApi.structureAtNow(fromPath) : null;
-      if (ship !== null && MixinApi.isVoyaging(ship)) ship.noteOverboard(mover);
+      // Both places are asked (`Place.structureNow`): a keyed room's
+      // structure is its warren's.
+      const from = (via?.getSource() ?? null) as Stuff | null;
+      const ship = from !== null && from.isPlace() ? (from as unknown as Place).structureNow() : null;
+      // ⭐ From one of her rooms into another (a compartment is
+      // a water place) is not over her side.
+      const ownRoom = ship !== null && (this as unknown as Place).structureNow() === ship;
+      if (ship !== null && !ownRoom && MixinApi.isVoyaging(ship)) ship.noteOverboard(mover);
       const floor = this.waterFloor();
       if (floor === null || !floor.supportIsSlotted()) return;
       const swum = mover.getEngagedMode()?.getMedium() === 'water';

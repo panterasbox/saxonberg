@@ -9,6 +9,7 @@ import { ApiLogic } from '../../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../../lib/security/decorators';
 import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import { StuffApi } from '../../../api/stuff';
+import { MixinApi } from '../../../api/mixin';
 import type LocationGraphRegistry from '../LocationGraphRegistry';
 import type { PlaceNode } from '../../../lib/location/PlaceNode';
 import type { GraphFinding } from '../../../lib/location/GraphInvariants';
@@ -79,6 +80,21 @@ function innermostStructure(
   return best;
 }
 
+/**
+ * ⭐ A keyed handle (`row#key`) is never a row: the structure a keyed room
+ * belongs to is its warren's answer, asked of the room
+ * (`Place.structure()`), never of a path (the handle
+ * scan is gone). Said loudly: a caller that passes one asks the wrong
+ * question.
+ */
+function refuseHandle(path: string): void {
+  if (path.includes('#')) {
+    throw new TypeError(
+      `NavigationApi.structureAt('${path}'): a keyed room's structure is its warren's — ask the place (Place.structure())`,
+    );
+  }
+}
+
 function registry(): LocationGraphRegistry | null {
   return (
     StuffApi.findByTemplatePath<LocationGraphRegistry>(GRAPH_REGISTRY_PATH) ??
@@ -107,6 +123,11 @@ const DIRECTION_OFFSETS: Record<CardinalDirection, [number, number, number]> = {
 /**
  * Alias → canonical long form. Keys are lower-cased tokens the parser will
  * see (`n`, `ne`, `u`, `d`, ...).
+ *
+ * ⚠ **DERIVED (magic) — the table only.** MQL never rewrites a word with
+ * it: an exit answers to `n` because `Exit.getKeywords()` folds its
+ * direction's short forms (`shortFormsOf`) into its own keywords, and the
+ * bare-verb aliases (`n` → `go n`) pass the word through untouched.
  */
 const DIRECTION_ALIASES: Record<string, CardinalDirection> = {
   n: 'north',
@@ -222,6 +243,16 @@ export class NavigationLogic extends ApiLogic {
     return DIRECTION_INVERSES[canonical];
   }
 
+  /** See {@link NavigationApi.shortFormsOf}. */
+  @CallSecurity(NavigationApiCallers)
+  public shortFormsOf(direction: string): string[] {
+    const canonical = normalize(direction);
+    if (!canonical) return [];
+    return Object.keys(DIRECTION_ALIASES).filter(
+      (k) => k !== canonical && DIRECTION_ALIASES[k] === canonical,
+    );
+  }
+
   /** See {@link NavigationApi.directionOffset}. */
   @CallSecurity(NavigationApiCallers)
   public directionOffset(
@@ -309,6 +340,7 @@ export class NavigationLogic extends ApiLogic {
   /** See {@link NavigationApi.structureAt}. */
   @CallSecurity(NavigationApiCallers)
   public async structureAt(path: string): Promise<Structure | null> {
+    refuseHandle(path);
     const reg = registry();
     const paths = (await reg?.attachedTo(path, 'structure')) ?? [];
     await Promise.all(paths.map((p) => StuffApi.singleton(p).catch(() => null)));
@@ -318,6 +350,7 @@ export class NavigationLogic extends ApiLogic {
   /** See {@link NavigationApi.structureAtNow}. */
   @CallSecurity(NavigationApiCallers)
   public structureAtNow(path: string): Structure | null {
+    refuseHandle(path);
     return this.innermostNow(path);
   }
 

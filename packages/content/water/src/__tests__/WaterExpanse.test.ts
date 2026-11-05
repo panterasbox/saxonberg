@@ -18,6 +18,8 @@ import WaterExpanse from '../idea/WaterExpanse';
 import WaterBand from '../idea/WaterBand';
 import FisheryRegistry from '../idea/FisheryRegistry';
 import Pilot from '../agent/Pilot';
+import DepthReading from '../idea/reading/DepthReading';
+import { ExpanseApi } from '@saxonberg/server/mud/api/expanse';
 
 /** The sea's origin — what the graph's points are measured from. */
 const ORIGIN = new GeoPosition(50, 0);
@@ -138,11 +140,18 @@ describe('sea state is derived', () => {
 });
 
 describe('the sea as a water a deck cites, and the sea fishery', () => {
-  const deck = { getTemplatePath: () => '/test/ship/deck' } as unknown as Stuff;
+  // ⭐ The deck is ASKED which craft it is part of (`Place.structureNow`,
+  // harbors review 1) — a keyed deck's ship is its warren's.
+  let craftNow: Stuff | null = null;
+  const deck = {
+    getTemplatePath: () => '/test/ship/deck',
+    getDurableHandle: () => null,
+    isPlace: () => true,
+    structureNow: () => craftNow,
+    structure: async () => craftNow,
+  } as unknown as Stuff;
   function onCraft(at: GeoPosition): void {
-    const craft = { getExpansePosition: () => at, getExpanse: () => SEA } as unknown as Stuff;
-    (sea as unknown as { craftOfPlace: Map<string, string> }).craftOfPlace.set('/test/ship/deck', '/test/ship/structure');
-    vi.spyOn(StuffApi, 'findByTemplatePath').mockReturnValue(craft as never);
+    craftNow = { getExpansePosition: () => at, getExpanse: () => SEA } as unknown as Stuff;
     vi.spyOn(MixinApi, 'isPositioned').mockReturnValue(true);
   }
 
@@ -165,11 +174,32 @@ describe('the sea as a water a deck cites, and the sea fishery', () => {
   });
 
   it('a place on no craft and no landing is not yet knowable — pending, never a wrong cell', async () => {
-    const strand = { getTemplatePath: () => '/elsewhere/strand' } as unknown as Stuff;
+    const strand = { getTemplatePath: () => '/elsewhere/strand', getDurableHandle: () => null, isPlace: () => false } as unknown as Stuff;
     expect(sea.currentWaterRef(SEA, strand)).toBeNull();
     const read = await sea.readWater(SEA, strand, 0);
     expect(read?.pending).toBe(true);
     expect(read?.draw).toBeNull();
+  });
+
+  it('⭐ the lead sounds the sea under a keyed deck\'s ship — the deck is asked, never its row', async () => {
+    band('bank', (b) => {
+      b.setExtent(belt(50, 51));
+      b.setDepthM(12);
+    });
+    const at = new GeoPosition(50.5, 0);
+    // A smack of a kind: minted `<kind>/<serial>`, her deck keyed by it.
+    const smack = { getExpansePosition: () => at, getExpanse: () => SEA, getIdentityPath: () => '/test/ship/smack/k1' } as unknown as Stuff;
+    const keyedDeck = {
+      getTemplatePath: () => '/test/ship/rooms/deck',
+      getDurableHandle: () => '/test/ship/rooms/deck#k1/deck',
+      isPlace: () => true,
+      craftHere: async () => smack,
+    } as unknown as Stuff;
+    vi.spyOn(MixinApi, 'isVoyaging').mockImplementation(((s: unknown) => s === smack) as never);
+    const craftAt = vi.spyOn(ExpanseApi, 'craftAt').mockRejectedValue(new Error('the row was asked'));
+    const lead = makeStuffAtPath(() => new DepthReading(), '/system/water/idea/reading/depth');
+    expect(await lead.truth(keyedDeck)).toBe(12);
+    expect(craftAt).not.toHaveBeenCalled();
   });
 
   it('⭐ the fishery reads a sea cell from the stock its bands place', async () => {

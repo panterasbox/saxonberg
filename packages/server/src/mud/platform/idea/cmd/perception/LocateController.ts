@@ -19,6 +19,9 @@ import { Mml } from '../../../../api/mml';
 import { MixinApi } from '../../../../api/mixin';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import { ExpanseApi } from '../../../../api/expanse';
+import { StuffApi } from '../../../../api/stuff';
+import type Place from '../../../../lib/stuff/Place';
+import Ship from '../../Ship';
 
 interface LocateModel extends CommandModel {
   target?: MqlOneResult;
@@ -51,9 +54,11 @@ export default class LocateController extends CommandController<LocateModel> {
         ? `in: ${chain.slice(1).join(' > ')}`
         : '(no containing context)';
     const atSea = await this.reckoningOf(target.stuff, context.commandGiver);
+    const lies = atSea === null ? await LocateController.whereSheLies(target.stuff) : null;
+    const extra = atSea ?? lies;
     this.tell(
       context,
-      `\n${chain[0]}\n${display}\n${atSea ? `${atSea}\n` : ''}`,
+      `\n${chain[0]}\n${display}\n${extra ? `${extra}\n` : ''}`,
     );
     return;
   }
@@ -73,7 +78,14 @@ export default class LocateController extends CommandController<LocateModel> {
       beside = MixinApi.isMovingPlace(at) ? at.alongsideCraft() : null;
       at = MixinApi.isContainable(at) ? (at.getContainer() as Stuff | null) : null;
     }
-    const craft = beside ?? (await ExpanseApi.craftAt(root.getTemplatePath() ?? ''));
+    // ⭐ The place is asked: a ship of a kind's room is
+    // keyed `(room row, <serial>/<leaf>)` and its row is every smack's, so
+    // only the room's warren can say which ship it is.
+    const craft =
+      beside ??
+      (root.isPlace()
+        ? await (root as unknown as Place).craftHere()
+        : await ExpanseApi.craftAt(root.getIdentityPath() ?? ''));
     if (!craft || !MixinApi.isVoyaging(craft)) return null;
     const reckoned = craft.reckonedNow();
     const plot = craft.getPlot();
@@ -83,6 +95,27 @@ export default class LocateController extends CommandController<LocateModel> {
       : 'untrained';
     const bracket = plot ? plot.statedBracket(craft.reckoningUncertaintyNm(), band) : 'exactly';
     return `at sea, by reckoning: ${reckoned.toString()} — ${bracket}.`;
+  }
+
+  /**
+   * ⭐ Where the ship `target` is aboard lies, when she is not at sea
+   *: made fast at a landing, its name; else under way.
+   * `null` ashore. One answer for an authored ship and a ship of a kind —
+   * the room is asked which ship it is, never its row. Her rooms are on no
+   * map (a kind's are kinds), so this line is what tells you where the
+   * chain above sits.
+   */
+  private static async whereSheLies(target: Stuff): Promise<string | null> {
+    const root = MixinApi.isContainable(target) ? target.getRootContainer() ?? target : target;
+    if (!root.isPlace()) return null;
+    const ship = await (root as unknown as Place).structure().catch(() => null);
+    if (!(ship instanceof Ship)) return null;
+    const berth = ship.getBerth();
+    if (berth === null) return `aboard ${ship.getName()}, under way.`;
+    const landing = StuffApi.findByIdentityPath<Stuff>(berth).find((s) => !s.isDestroyed()) ?? null;
+    return landing !== null
+      ? `aboard ${ship.getName()}, made fast alongside ${landing.getPresentation()}.`
+      : `aboard ${ship.getName()}, made fast alongside.`;
   }
 
   private tell(context: CommandContext, text: string): void {

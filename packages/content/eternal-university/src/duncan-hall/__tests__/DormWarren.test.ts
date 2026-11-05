@@ -79,7 +79,7 @@ function seedDomain(): void {
   for (const row of KERNEL_CONTENT_ROWS) {
     domain.push({ _id: `d-${++idCounter}`, ...row });
   }
-  // A holding mints its house at wake (paint D6).
+  // The parent of every holding's building row (paint D6).
   domain.push({ _id: `d-${++idCounter}`, path: '/system/residence/idea/holding-building', class: '/system/residence/idea/HoldingBuilding', data: { shortDescription: 'house' } });
   add('/world/terminus/eternal/duncan-hall/idea/exits/floor-stair', '/world/terminus/eternal/duncan-hall/idea/FloorStairExit');
   add('/world/terminus/eternal/duncan-hall/idea/exits/dorm-door', '/world/terminus/eternal/duncan-hall/idea/DormDoor');
@@ -87,9 +87,19 @@ function seedDomain(): void {
 
   add(DormWarren.WARREN_PATH, '/world/terminus/eternal/duncan-hall/idea/DormWarren');
   // D16 step 2: the unit's degenerate one-room programme row.
+  // A one-room plan, the programme's own (harbors review 3; no blueprint
+  // row): its extent is the room's row.
   add(DormWarren.PROGRAMME_PATH, '/system/residence/idea/HoldingWarren', {
-    floorplan: [{ room: DormRoom.SCOPE, entry: true }],
+    extent: DormRoom.SCOPE,
+    entrance: DormRoom.SCOPE,
+    // ⭐ Its one building, authored.
+    buildings: ['/test/dorm-building'],
     upkeepTerm: 'institution-all',
+  });
+  add('/test/dorm-building', '/system/residence/idea/HoldingBuilding', {
+    shortDescription: 'dorm room',
+    extent: DormRoom.SCOPE,
+    entrance: DormRoom.SCOPE,
   });
   add(DormRoom.SCOPE, '/world/terminus/eternal/duncan-hall/location/DormRoom', {
     shortDescription: 'dorm room',

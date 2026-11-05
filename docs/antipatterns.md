@@ -6255,3 +6255,81 @@ already emptied, and crystals that left their liquor for no place. The
 policy is [spatial.md § Writes on a detached subject](./subsystems/spatial.md);
 the remaining guards are counted by the
 [silent-write-census slate](./slates/tails/silent-write-census-slate.md).
+
+## ⭐⭐ A Stuff whose only job is to hold a record — records are DOCUMENTS
+
+**Don't:** compose `PersistableMixin` onto a Stuff — usually an `Idea`
+singleton, or a keyed Idea minted per subject — whose whole surface is
+add / remove / list / read over a list it keeps. A template row that
+exists only so something can be keyed by a path, and a live object that
+exists only so its fields reach `holder_snapshots`, is a record wearing
+a body.
+
+```ts
+// WRONG — a live Idea per landing, so its list survives a restart.
+export default class BerthRoll extends PersistableMixin(Idea) {
+  static fieldMeta = { lying: { persistent: true, runtimeState: true } };
+  public add(handle: string): void { … }
+  public remove(handle: string): void { … }
+  public lying(): string[] { … }
+}
+
+// RIGHT — a document kind; the subject writes its own line.
+await DocumentApi.saveBerth(ship, landingPath);       // gated FromMixin(Voyaging), caller === ship
+const roll = await DocumentApi.berthRollOf(landingPath);
+```
+
+**Do:** make it a **document kind** ([document-store.md](./subsystems/document-store.md)):
+
+- a **system-written record** — written by the subject or the keeper,
+  never by whoever holds the branch — rides a narrow named transport
+  gated like the register (`saveToRegister` for a `Registrar`, `saveBerth`
+  for a ship writing her own line), with the truth READ off the subject
+  rather than passed in where it can be;
+- **owner-scoped content** with a place to live goes on the owner's
+  branch through the ordinary `DocumentApi.save` and its parcel-title gate.
+
+**The test — make it a Stuff only if at least one holds:**
+
+| | question | e.g. |
+|---|---|---|
+| 1 | **Is it targetable** — does a player or a verb name it? | a book on a desk you `buy` at |
+| 2 | **Does it carry behavior or rules** beyond keeping the list? | posted criteria applied in order |
+| 3 | **Does it take part in the world's runtime** — perception, containment, residency, a bill payee, a call-security principal? | a `Registrar` is the caller its transport checks |
+| 4 | **Are there invariants that live ON the object** — a write it refuses by its own state? | a quay with no room by length |
+
+None of the four → it is a document. ⭐ The `ref-shapes.md` doctrine
+already said where a minted identity's backing goes —
+*`holder_snapshots` / a purpose Document / nothing* — and
+`holder_snapshots` is the spine for a **host's** runtime state. A record
+that is not a host's state has no host to capture.
+
+**The exception, and it is a real one: a fixture players use that keeps
+its own book.** `HullBook` (`buy`), the `HarborBook` (`berth`, `pay`), a
+shop `Stock`, a `CheckRack` — the record is held by the thing the verb acts on, it
+refuses what its own state forbids, and you can `look` at it. Test 1
+holds; it stays a persistable fixture. ⚠ The tell that the exception has
+been stretched: a fixture *named* for the book exists, holds nothing, and
+forwards to a placeless Idea that holds the record. (Harbors review 2 found
+exactly that — `HarborBook` holding nothing, `Harbor` holding the berths
+— and moved the record onto the book.) ⚠ And the exception never licenses
+a COPY: `HireBook` kept a `hires` list beside each boat's own hire record
+— *Two records of one fact* — and now keeps only its authored rates,
+persists nothing, and reads its boats out off the boats.
+
+**Why.** A Stuff costs a proxy, a residency entry, a lifecycle, a
+template row and a snapshot slot — and buys methods, a shadow seam and a
+place in the world. A record uses none of what it pays for, and the row
+it needs exists only to be keyed, which is the per-instance `domain`
+row ref-shapes calls the anti-pattern. A document is one row, path-
+addressed, gated at write, kept or dropped by its kind's vanish policy —
+and the write gate is where the honesty lives: *you file; you do not hold
+the pen.*
+
+**Worked example.** Harbors review 1: `platform/idea/BerthRoll` was
+`PersistableMixin(Idea)`, one per landing, with no behavior beyond
+add/remove/list and nothing targeting it. It became the `berth-roll`
+document kind (MR !511): one per landing at `/platform/berths<landing
+path>`, each ship writing her own line through `DocumentApi.saveBerth`,
+the lying/gone fact read off her. The whole-repo scan this rule prompted:
+[records-as-documents slate](./slates/tails/records-as-documents-slate.md).

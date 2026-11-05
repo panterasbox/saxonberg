@@ -636,7 +636,7 @@ const CITATIONS: Record<string, string> = {
   window: "as `shelf`",
   shore: "as `shelf` — the fisher's reach",
   floor: "a brain's room, or a location's own floor citation",
-  room: "a brain's room / a floorplan's location row (not a thing)",
+  room: "a brain's room (a location row, not a thing)",
   holdPath: "the warehouse a depot counter books into",
   storePath: "the store a store book keeps — resolved live, propped by its room (storage-and-ice)",
   projectileTemplate: "what a launcher ACCEPTS — matched against what you carry",
@@ -649,6 +649,7 @@ const CITATIONS: Record<string, string> = {
   bunker: "the bin a ship's fire is fed from — propped on her deck, read by the ship on use (river D29)",
   ferry: "the boat a ferry crossing works with — propped at its landing, looked for there on use (river D31)",
   bells: "the bells a ferryman listens for — propped on their landings, read on his beat (river D31)",
+  book: "the berth book a harbor keeps its record in — propped on its office desk, followed forward on use",
 };
 
 /** Is this a `thing`-branch template path? */
@@ -857,7 +858,7 @@ export const PHRASE_SHAPE_CEILING = 6;
  * stale tree is opened at the wrong number.** Measure at the merge, not
  * at the branch point, and say which you did.
  */
-export const ARTICLE_SHAPE_CEILING = 115;
+export const ARTICLE_SHAPE_CEILING = 114;
 
 /**
  * ⭐ The naming ratchet — stocked goods whose printed name is a phrase

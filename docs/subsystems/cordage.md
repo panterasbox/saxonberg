@@ -2,7 +2,7 @@
 
 A rope is ONE kernel thing (`/platform/thing/Rope`), and what it is FOR is
 where its two ends are: a lifeline is a rope a tender holds with a diver on
-the end, a heaving line a rope thrown to a swimmer, a painter a rope on a
+the end, a heaving line a rope thrown to a swimmer, a bow line a rope on a
 boat's bow, and a rope tied round a post at the lip of a pit is a way down.
 The owner's two rules: *one rope, its use is where its ends are tied* and
 *a rope and a hose are different things; if they share a superclass that's
@@ -115,7 +115,7 @@ but its end is re-minted only by untying and tying again.
 - **The Wharfside ropewalk** (`/world/terminus/wharfside/ropewalk/`), off the
   towpath by a `ropewalk` exit: a 300 m walk, the jack, a tar tub of pitch
   (`GlazeTub`), the ropekeeper Agnes Tarrow and her counter (50 m coils,
-  hemp line, hemp yarn, rigging knives, painters; she buys no rope back).
+  hemp line, hemp yarn, rigging knives, bow lines; she buys no rope back).
   ⭐ She takes the jack's wheel for whoever lays (the `turns` brain), and
   the ropewalk has an open **wheel-hand** seat (headcount 1) a player can
   `apply` for. The walk is open to the sky (a room's light is spread over

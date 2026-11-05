@@ -315,7 +315,7 @@ export class PerceptionLogic extends ApiLogic {
   public canReach(
     actor: Stuff,
     target: Stuff,
-    opts?: { location?: Stuff | null; viaExit?: boolean },
+    opts?: { location?: Stuff | null },
   ): boolean {
     const id = target.stuffId;
     if (id === actor.stuffId) return true;
@@ -326,12 +326,6 @@ export class PerceptionLogic extends ApiLogic {
         : MixinApi.isContainable(actor)
           ? actor.getContainer()
           : null;
-
-    // The door-via-direction case: `open north` resolves to the LOCATION
-    // carrying an exit attribution, and the controller then fetches the
-    // door off that exit. Without this the commonest way to open a door
-    // is unreachable.
-    if (opts?.viaExit && location && id === location.stuffId) return true;
 
     // ⭐ ONE LEVEL into an open container, on both sides. Reach into the
     // open crate standing here, or into the open pouch you are carrying;
@@ -383,8 +377,16 @@ export class PerceptionLogic extends ApiLogic {
     // card hold that omitted it released `out-of-reach` on doors the
     // `open` verb worked on perfectly well.
     if (location && MixinApi.isExitable(location)) {
-      for (const exit of location.getObviousExits()) {
-        if (exit.getDoor()?.stuffId === id) return true;
+      // ⭐ The ways the ACTOR can see — the list MQL names them from
+      // (`obviousExitsFor`), so what you can name is what you can touch.
+      // Never the physics list (`getObviousExits`), which skips a way whose
+      // far side is not standing: the rope's way down off the Sunken
+      // Delve's lip bound, and was "you can't reach down" (harbors sibling
+      // drives, 2026-11-04).
+      for (const exit of location.obviousExitsFor(actor)) {
+        // ⭐ The way itself (a direction binds the exit)
+        // or the door hung in it.
+        if (exit.stuffId === id || exit.getDoor()?.stuffId === id) return true;
       }
     }
     // ⚠ ...and neither are fixtures. A hung sconce, a wall TV, a neon
@@ -1252,8 +1254,8 @@ function craftAboard(viewer: Stuff): Craft | null {
   const root = MixinApi.isContainable(viewer) ? viewer.getRootContainer() ?? viewer : viewer;
   if (MixinApi.isVoyaging(root) && !root.isDestroyed()) return root as Craft;
   const room = roomOf(viewer);
-  const path = room?.getTemplatePath() ?? '';
-  const s = path ? NavigationApi.structureAtNow(path) : null;
+  // The room is asked: a keyed room's structure is its warren's.
+  const s = room !== null && room.isPlace() ? (room as unknown as Place).structureNow() : null;
   return s && MixinApi.isVoyaging(s) && !s.isDestroyed() ? (s as unknown as Craft) : null;
 }
 

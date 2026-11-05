@@ -33,6 +33,7 @@ import { fileURLToPath } from "url";
 import { CallSecurity } from "../lib/security/decorators";
 import { Mixins } from '../lib/mixin';
 import type { Registrar } from '../lib/document/Register';
+import type { Berthed } from '../platform/idea/BerthExit';
 import { SecurityPolicies } from "../lib/security/SecurityPolicies";
 import { SecurityApi } from './security';
 
@@ -104,6 +105,20 @@ const INSTRUMENT_TRANSPORT_CALLERS = SecurityPolicies.FromModule(
  */
 const MAP_TRANSPORT_CALLERS = SecurityPolicies.FromModule(
   "/platform/idea/api/NavigationLogic#NavigationLogic",
+);
+
+/**
+ * ⚠⚠ **The berth transport — the ship herself, writing her own line, and
+ * nothing else**. A landing's roll of the ships lying
+ * at it is the landing's, but each line on it is one ship's word about
+ * herself — so the caller must be a voyaging craft and the craft it is
+ * writing for (`saveToRegister`'s relational shape). It takes no flag:
+ * whether she lies there is READ off her, so even she cannot write a
+ * false line.
+ */
+const BERTH_TRANSPORT_CALLERS = SecurityPolicies.FromMixin(
+  Mixins.Voyaging,
+  { where: (caller, _target, _method, args) => caller === args[0] },
 );
 
 const REGISTER_TRANSPORT_CALLERS = SecurityPolicies.FromMixin(
@@ -200,6 +215,33 @@ export class DocumentApi {
     data: Record<string, unknown>,
   ): Promise<void> {
     return logic().saveToRegister(register, path, data);
+  }
+
+  /**
+   * ⭐ Bring `ship`'s line on `landingPath`'s berth roll up to the truth:
+   * her durable handle is on it iff she is made fast there now
+   * (`getBerth() === landingPath`), struck off it otherwise. The roll is
+   * one document per landing at `/platform/berths<landing path>`, kind
+   * `berth-roll`, owned by the landing.
+   *
+   * ⚠⚠ An ownership bypass, narrow by construction: only the ship may
+   * call it for herself ({@link BERTH_TRANSPORT_CALLERS}), it writes only
+   * her own handle, and it takes no word from her about where she lies.
+   */
+  @CallSecurity(BERTH_TRANSPORT_CALLERS)
+  static saveBerth(
+    ship: Stuff & Berthed,
+    landingPath: string,
+  ): Promise<void> {
+    return logic().saveBerth(ship, landingPath);
+  }
+
+  /**
+   * The durable handles on `landingPath`'s berth roll, in the order they
+   * came — `[]` for a landing nobody has made fast at.
+   */
+  static berthRollOf(landingPath: string): Promise<string[]> {
+    return logic().berthRollOf(landingPath);
   }
 
   /**

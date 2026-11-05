@@ -22,6 +22,7 @@ import type { ColumnBand } from '@saxonberg/server/mud/lib/location/WaterColumn'
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
 import { BiomeApi } from '@saxonberg/server/mud/api/biome';
 import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
 import Band from '../../location/Band';
@@ -44,19 +45,37 @@ export default class ColumnExit extends DeferredDestinationExit {
   /** The band it led to when last resolved (runtime). */
   private _now: (Stuff & Container) | null = null;
 
-  /** Name the column and the band (the `installExit` configure step). */
-  public configureColumn(surfacePath: string, target: ColumnTarget): void {
+  /**
+   * The surface itself, as it was handed over or last stood up (runtime):
+   * a keyed stop's handle (`row#key`) is its name, not a way to find it —
+   * the live ref is.
+   */
+  private _surface: (Stuff & Container) | null = null;
+
+  /** Name the column and the band (the `installExit` configure step), with the surface when it is to hand. */
+  public configureColumn(surfacePath: string, target: ColumnTarget, surface?: Stuff & Container): void {
     this.surfacePath = surfacePath;
     this.target = target;
+    if (surface !== undefined) this._surface = surface;
   }
 
   public getTarget(): ColumnTarget {
     return this.target;
   }
 
+  /**
+   * The surface standing now — never stood up: the live ref; else, for a
+   * surface named by its row or identity, the one thing filed there. A
+   * keyed stop gone from memory is stood up again by its record
+   * ({@link standSurface}).
+   */
   private surface(): (Stuff & Container) | null {
-    const s = this.surfacePath ? StuffApi.findByTemplatePath<Stuff>(this.surfacePath) : null;
-    return s && !s.isDestroyed() && MixinApi.isContainer(s) ? s : null;
+    const live = this._surface;
+    if (live !== null && !live.isDestroyed()) return live;
+    if (!this.surfacePath || this.surfacePath.includes('#')) return null;
+    const filed = StuffApi.findByIdentityPath<Stuff>(this.surfacePath).filter((s) => !s.isDestroyed());
+    const s = filed.length === 1 ? filed[0]! : null;
+    return s !== null && MixinApi.isContainer(s) ? s : null;
   }
 
   /**
@@ -94,7 +113,7 @@ export default class ColumnExit extends DeferredDestinationExit {
   }
 
   protected override async computeDestination(): Promise<Stuff & Container> {
-    const surface = this.surface() ?? (await StuffApi.singleton<Stuff & Container>(this.surfacePath));
+    const surface = this.surface() ?? (await this.standSurface());
     if (this.target === 'surface') return surface;
     const column = await StuffApi.singleton<Stuff>(TemplatePaths.waterColumn);
     const band = MixinApi.isWaterColumn(column) ? await column.bandOf(surface, this.target) : null;
@@ -102,6 +121,26 @@ export default class ColumnExit extends DeferredDestinationExit {
       throw new Error(`ColumnExit: ${this.surfacePath} has no ${this.target} band now`);
     }
     return band;
+  }
+
+  /**
+   * ⭐ The surface, stood up when it is not standing: a keyed stop (a
+   * wreck's deck leads up to the stop over her) by its record, any
+   * other surface as the singleton its row is.
+   */
+  private async standSurface(): Promise<Stuff & Container> {
+    const hash = this.surfacePath.indexOf('#');
+    if (hash > 0) {
+      const stood = await PersistableApi.standUpKeyed(this.surfacePath.slice(0, hash), this.surfacePath.slice(hash + 1));
+      if (stood !== null && MixinApi.isContainer(stood)) {
+        this._surface = stood;
+        return stood;
+      }
+      throw new Error(`ColumnExit: ${this.surfacePath} does not stand`);
+    }
+    const s = await StuffApi.singleton<Stuff & Container>(this.surfacePath);
+    this._surface = s;
+    return s;
   }
 
   /**

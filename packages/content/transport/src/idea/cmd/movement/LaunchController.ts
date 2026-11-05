@@ -35,7 +35,7 @@ export default class LaunchController extends CommandController<CommandModel> {
     }
     const from = boat.getContainer();
     if (from === null) return this.decline(context, 'There is nowhere to put her into.', 'no-water');
-    if (MixinApi.isWaterPlace(from)) {
+    if (MixinApi.isWaterPlace(from) && from.depthNow() > 0) {
       return this.decline(context, 'She is in the water already.', 'already-launched');
     }
     for (const path of WATERS) {

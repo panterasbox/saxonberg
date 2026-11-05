@@ -1,0 +1,19 @@
+# A bilge well — the boarded shaft down to a ship's bottom
+# where her bilge water gathers, with her pump set in it. `pump well` works
+# the brake; `measure bilge` with a sounding rod says how much is in her.
+#
+# ⭐ It holds nothing of its own: the water is her bilge (the ship's, on
+# her hull's clock), and what the pump lifts goes over the side. Only a
+# pump goes in it.
+class: /platform/thing/BilgeWell
+data:
+  keywords: [well, "bilge well", "pump well", bilge]
+  shortDescription: bilge well
+  register: definite
+  longDescription: >-
+    A square shaft of boards going down beside the mast to her bottom
+    timbers, where whatever she lets in gathers. A pump stands in it.
+  _materialPath: /stuff/idea/material/wood/pine
+  mass: 80
+  props:
+    - /stuff/thing/bilge-pump

@@ -20,7 +20,8 @@ export default class ClimbController extends LocomotionControllerBase {
     model: LocomotionModel,
   ): string {
     if (guard.gate === 'enablement') {
-      const direction = model.target?.via?.exit?.getDirection() ?? 'that way';
+      const bound = model.target?.stuff;
+      const direction = bound?.isExit() ? bound.getDirection() : 'that way';
       return `There's nothing to climb ${direction}.`;
     }
     if (guard.gate === 'capability') {

@@ -34,6 +34,7 @@
 import { SecurityApi } from '../../api/security';
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
+import type Place from '../stuff/Place';
 import { Quantity } from '../quantity';
 import type { Unit } from '../quantity';
 import { QuantityMarshaller } from '../../platform/idea/persistence/QuantityMarshaller';
@@ -75,7 +76,6 @@ import type { RoomHeatExchange } from '../thermal/RoomHeatExchange';
 import { CelestialApi } from '../../api/celestial';
 import type Exit from '../boundary/Exit';
 import type Structure from '../structure/Structure';
-import type Place from '../stuff/Place';
 
 export interface Atmospheric {
   /** Days since `atS` this place's air crossed freezing; 0 indoors. */
@@ -1383,14 +1383,16 @@ export function AtmosphericMixin<
      */
     public exposure(): Exposure {
       const self = this as unknown as Stuff;
-      const path = self.getTemplatePath();
+      // A place is asked (a keyed room's structure is its warren's); a
+      // vessel by its own name.
+      const path = self.getDurableHandle() ?? self.getTemplatePath();
       let structure: Structure | null = null;
       try {
         // A place asks its own warren first (a holding's keyed rooms);
         // anything else is found by its path, as before.
         structure = self.isPlace()
           ? (self as unknown as Place).structureNow()
-          : path
+          : path && !path.includes('#')
             ? NavigationApi.structureAtNow(path)
             : null;
       } catch {

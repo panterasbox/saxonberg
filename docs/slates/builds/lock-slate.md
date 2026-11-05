@@ -517,7 +517,7 @@ accounts for every row — reuse, generalize, or argue *genuinely new*.
 | the register of issues | **`RegistrarMixin`** + `DocumentApi.saveToRegister` ([document-store.md](../../subsystems/document-store.md)) | each issuer keeps a key register |
 | seat-held keys | employment's seats and `GovernmentApi.holdsSeat` | a shape key issued to the holder *in capacity*; a record lock resolves the seat live |
 | the master key | `Lock.issueMasterKeyTo` (no caller) + Duncan Hall's `master-ring` row | issue it to the warden's seat |
-| issuers | `TitleController`, `LeaseController`, Duncan's `ProvisionController`; harbors' shipowner (in flight) | route all through the register |
+| issuers | `TitleController`, `LeaseController`, Duncan's `ProvisionController`; a ship's gangway key (`Lock.mintKeyway`, issued on purchase and appointment — [ship.md](../../subsystems/ship.md)) | route all through the register |
 | lockcraft evidence | the Transcript's deeds, act signatures, BKT ([advancement.md](../../subsystems/advancement.md)) | five Disciplines; exams later ([assessment-slate](./assessment-slate.md)) |
 | inputs | brass, steel, copper, zinc, beeswax rows; founding and smithing | the locksmith's recipes |
 | matching by shape | — | ⭐ genuinely new (bitting seeded from the keyway) |

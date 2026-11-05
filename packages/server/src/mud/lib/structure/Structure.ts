@@ -52,6 +52,12 @@
  * open to the sky. A closet holds air; a sailed ship's berth has nothing
  * alongside.
  *
+ * ⛔ **A plan is NOT a Structure**: a
+ * Structure is only ever a thing standing in the world. The plan a warren
+ * copies (an `extent` of room rows and an `entrance`) lives on whoever
+ * owns it — a holding's programme row, a ship kind's own row — and is
+ * read by `lib/location/Floorplan.ts`; there is no blueprint row.
+ *
  * ⛔ It does not name an address (member rooms keep their own), and it is
  * not a Parcel (a parcel is title in a gated collection; a structure is
  * content anybody holding the ground may author).
@@ -62,6 +68,12 @@
  * default building every row names: one row, one structure, and the
  * outside's capabilities. A ruin or a monument is a class over this base
  * that composes none of them.
+ *
+ * ⭐ A {@link Ship} extends THIS base too, because a ship
+ * KIND (`/stuff/idea/Ship/smack`) is one row many ships are cloned from,
+ * keyed `(row, serial)` — the singleton guard would refuse the second
+ * smack. An authored ship (the Hesper) is still one-row-one-ship by the
+ * way it is loaded (`StuffApi.singleton`), which is all the guard added.
  */
 
 import { Idea } from '../stuff/Idea';
@@ -115,6 +127,16 @@ export default class Structure extends DetailedMixin(
   public getHeightM(): number { return this.heightM; }
   public setHeightM(value: number): void { this.heightM = Number(value) || 0; }
 
+  /**
+   * The prefix its members are told by — every room at or under it is one
+   * of this structure's. The read every membership question below asks.
+   *
+   * @hook Default: its `extent`. A ship of a KIND answers `''`: her rooms
+   *   are keyed copies of her kind's plan rows, shared with every other
+   *   ship of the kind, so no path tells hers apart — her warren does
+   *   (`Warren.structureOf`).
+   */
+  protected memberExtent(): string { return this.extent; }
 
   public getStoreys(): readonly StoreySpec[] { return this.storeys; }
   public setStoreys(value: StoreySpec[] | null): void {
@@ -179,7 +201,7 @@ export default class Structure extends DetailedMixin(
    * extent prefix, on a path-segment boundary.
    */
   public hasMember(locationPath: string): boolean {
-    const ext = this.extent;
+    const ext = this.memberExtent();
     if (ext === '') return false;
     return locationPath === ext || locationPath.startsWith(`${ext}/`);
   }
@@ -237,7 +259,7 @@ export default class Structure extends DetailedMixin(
    * quay's side (its exit answers who is alongside), not from here.
    */
   public landingsNow(): Stuff[] {
-    const ext = this.extent;
+    const ext = this.memberExtent();
     if (ext === '') return [];
     const seen = new Set<string>();
     const out: Stuff[] = [];
@@ -263,7 +285,7 @@ export default class Structure extends DetailedMixin(
    * or a group holding the ground is not a sale.
    */
   public isTitleSold(): boolean {
-    const ext = this.extent;
+    const ext = this.memberExtent();
     if (ext === '') return false;
     try {
       return ParcelApi.coveringParcelOfSync(ext)?.getOwner()?.kind === 'player';
@@ -274,7 +296,7 @@ export default class Structure extends DetailedMixin(
 
   /** The resident members — rooms under the extent standing now. */
   public residentMembers(): Stuff[] {
-    const ext = this.extent;
+    const ext = this.memberExtent();
     if (ext === '') return [];
     const seen = new Set<string>();
     const out: Stuff[] = [];
@@ -340,6 +362,20 @@ export default class Structure extends DetailedMixin(
       reason: 'no-landing',
       line: Mml.compose`You cannot reach the outside of ${Mml.thing(this as unknown as Stuff)} from here.`,
     };
+  }
+
+  /**
+   * A rope this structure made fast ACROSS (the end of
+   * a rope lying in one of its rooms, tied round a fixture in another:
+   * `Rope.tieTo(structure, fixture, knot)`) has been let go — untied where
+   * it was round the fixture, or cast off where the rope lies.
+   *
+   * @hook Default: nothing — a structure that ties nothing out hears
+   *   nothing. A ship answers: her mooring is a read over her ropes, and
+   *   with the last one off she is adrift.
+   */
+  public onLineLetGo(line: Stuff): void {
+    void line;
   }
 
   /**

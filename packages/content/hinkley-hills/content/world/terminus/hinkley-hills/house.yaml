@@ -1,0 +1,8 @@
+# /world/terminus/hinkley-hills/house — the ZONE of the Hinkley house
+# PLAN: the house's rooms authored as an ordinary
+# place. Nothing stands here in play — every sold lot's house is a copy
+# minted from these rows, standing in the `lots` zone under its lot's key.
+class: /platform/idea/location/CartesianZone
+data:
+  name: the Hinkley house
+  cellSize: 6.0

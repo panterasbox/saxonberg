@@ -51,7 +51,10 @@ import {
   type LineWater,
   type PassagePlan,
   type PassageRequest,
+  type BarWater,
 } from '@saxonberg/server/mud/lib/expanse/LineFrame';
+import type { Hailable } from '@saxonberg/server/mud/lib/expanse/Hailable';
+import { AppApi } from '@saxonberg/server/mud/api/app';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import type WatercourseCatalogue from './WatercourseCatalogue';
 import type ReachWarren from './ReachWarren';
@@ -59,7 +62,9 @@ import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable'
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { FramePos } from '@saxonberg/server/mud/lib/expanse/Frame';
-import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
+import type { Craft } from '@saxonberg/server/mud/lib/expanse/Voyage';
+import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
+import { Mixins, type FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 
 import type { BoundaryRole } from '@saxonberg/server/mud/lib/security/BoundaryRole';
 /**
@@ -582,6 +587,51 @@ export default class Watercourse extends LineFrameMixin(NamedMixin(Idea)) {
   public override async shallowsAt(pos: LinePositionRecord, side: 'left' | 'right'): Promise<Stuff | null> {
     const warren = await this.liveWarren();
     return warren ? ((await warren.stopAt(pos.course, pos.km, side)) as Stuff) : null;
+  }
+
+  /** ⭐ The water over the bar now: the channel at the mouth, the tide in it. */
+  public override async barWater(nowS: number): Promise<BarWater | null> {
+    return (await this.liveCatalogue())?.barWaterAt(this.key, nowS) ?? null;
+  }
+
+  /**
+   * ⭐ What answers a hail from `pos`: the places this river
+   * names on its line, within the signal channel's range of her, whose
+   * class keeps a watch on the water — the harbor office inside the bar.
+   */
+  /**
+   * ⭐ A craft went down on this river: the water keeps a stop
+   * over her — the river's own stop at her position, whose floor is the
+   * bed — with a way into her and her deck's way back up to it.
+   */
+  public override async stopOver(craft: Craft): Promise<(Stuff & Container) | null> {
+    const warren = await StuffApi.singleton<ReachWarren>('/system/water/idea/ReachWarren').catch(() => null);
+    return warren ? warren.stopOver(craft as unknown as Stuff) : null;
+  }
+
+  public override async hailables(pos: FramePos): Promise<(Stuff & Hailable)[]> {
+    if (pos.frame !== 'line') return [];
+    const cat = await this.liveCatalogue();
+    if (cat === null) return [];
+    let rangeNm = 12;
+    try {
+      const n = Number(AppApi.setting('expanse.signalRangeNm'));
+      if (Number.isFinite(n) && n > 0) rangeNm = n;
+    } catch {
+      // the default range
+    }
+    const rangeKm = (rangeNm * 1852) / 1000;
+    const out: (Stuff & Hailable)[] = [];
+    for (const p of await cat.placesOf(this.key)) {
+      const d = pos.at.km > p.upKm ? pos.at.km - p.upKm : pos.at.km < p.downKm ? p.downKm - pos.at.km : 0;
+      if (d > rangeKm) continue;
+      // Its class decides, read off the row — only a place that answers is loaded.
+      const cls = await StuffApi.classForRef(p.path).catch(() => null);
+      if (cls === null || !MixinApi.hasMixin(cls, Mixins.Hailable)) continue;
+      const place = await StuffApi.singleton<Stuff>(p.path).catch(() => null);
+      if (place !== null && MixinApi.isHailable(place)) out.push(place);
+    }
+    return out;
   }
 
   public override mouthOnSea(): { expanse: string; node: string } | null {

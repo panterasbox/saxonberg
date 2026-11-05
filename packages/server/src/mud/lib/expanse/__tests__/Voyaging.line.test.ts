@@ -8,6 +8,7 @@ import ExpanseNode from '../../../platform/idea/ExpanseNode';
 import { Expanse } from '../Expanse';
 import type { Stuff } from '../../stuff/Stuff';
 import type { Container } from '../../spatial/Container';
+import type Rope from '../../../platform/thing/Rope';
 import { LineFrameMixin, type LinePositionRecord, type PassagePlan, type PassageRequest } from '../LineFrame';
 import { Idea } from '../../stuff/Idea';
 import { StuffApi } from '../../../api/stuff';
@@ -44,6 +45,8 @@ class TestShip extends Ship {
   override async aboard(): Promise<Stuff[]> { return [listener]; }
   override async watchRoom(): Promise<(Stuff & Container) | null> { return deck; }
   override async cargoKg(): Promise<number> { return 0; }
+  // ⭐ A line aboard to make fast with: a course for a landing asks.
+  override async linesAboard(): Promise<Rope[]> { return [{} as Rope]; }
 }
 
 /** ⭐ A real line frame (river review, W7) with the river's hooks stubbed. */
@@ -235,7 +238,8 @@ describe('a ship on a river (river D18)', () => {
     vi.spyOn(MixinApi, 'isOrganism').mockReturnValue(false);
     vi.spyOn(MixinApi, 'isContainable').mockImplementation(((x: unknown) => x === swimmer) as never);
     vi.spyOn(MixinApi, 'isWaterPlace').mockImplementation((() => inWater) as never);
-    (swimmer as unknown as { getContainer(): unknown }).getContainer = () => ({});
+    // The water a swimmer is in holds water now — it has depth (`depthNow`).
+    (swimmer as unknown as { getContainer(): unknown }).getContainer = () => ({ depthNow: () => 3 });
     ship.noteOverboard(swimmer);
     expect(await ship.peopleInTheWater()).toEqual([swimmer]);
     inWater = false;

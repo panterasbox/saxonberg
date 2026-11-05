@@ -235,6 +235,7 @@ function buildBrandDescriptor(data: unknown): BrandDescriptor | null {
     key: d.key,
     name: typeof d.name === "string" && d.name.length > 0 ? d.name : d.key,
     owner: str(d.owner),
+    government: str(d.government),
     category: str(d.category),
     positioning: str(d.positioning),
     descriptor: str(d.descriptor),

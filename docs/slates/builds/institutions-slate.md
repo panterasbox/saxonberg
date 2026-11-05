@@ -1,18 +1,24 @@
 # Institutions slate — forms, charters, committees, and the five corpos as forms
 
-> **Status: UNBUILT** — no entity form exists (every business is a single
-> proprietor edge); no charter exists as a document; a corpo's authorial
+> **Status:** PARTIAL — the primitive built: the cap table shipped with harbors (MR
+> !511): a kept table of owners and units, the majority read, the
+> `owners` appointing authority and the one secondary-sale act, with
+> ships as its first consumer (see *Shipped: the cap table* at the end).
+> No entity form exists (every other business is a single proprietor
+> edge, and carries no table); no charter exists as a document; a corpo's authorial
 > committee and its diegetic organization are the same set of people; no
 > publish covenant exists (a pack enters the live world by a dependency
 > line, not by anyone vouching); the five corpos are marks with an ethos
 > and no form. The substrate it rides — organizations, appointing
 > authority, committee-as-title-holder, pack title claims, maintainers —
 > shipped with the civics, organization and content-pack builds.
-> **Left:** the entity-form ladder over a cap table (sole trader ·
-> partnership · company · mutual · chartered corporation) · the
+> **Left:** the entity-form ladder over the shipped cap table — every
+> business carrying one (sole trader ·
+> partnership · company · mutual · chartered corporation) · the draw as a
+> pro-rata distribution · endorsements that assemble a majority · the
 > partnership deed + sweat equity · the registry + the
 > general-incorporation act · the managing-position trading rule · equity
-> minimally (primary/secondary · dividends ≤ retained earnings · escheated
+> minimally (primary issue — the secondary shipped · dividends ≤ retained earnings · escheated
 > interests do not vote) · the charter as
 > a document with grants, ledger-checkable duties and a term · renewal ·
 > the wall module · committee/show separation
@@ -22,7 +28,8 @@
 > no-authored-faucet rule (a lint) · NPC-floor / player-apex locality
 > seats + municipal paper · the five corpos
 > re-authored as forms, with Veshko's bank as Goodkin's real competitor
-> and the four disposition brains
+> and the four disposition brains · where a cap table lives (a kept Stuff
+> or a document)
 > **Size:** a build (cuts in two — forms + committees first, charters +
 > covenant second; the lore rewrite rides whichever lands last)
 
@@ -137,8 +144,8 @@ mutual's table is its membership roll, one vote each.
   vote, an appointment stands when holders of a majority have endorsed
   it, read from the table when somebody tries. No majority → enough
   endorsements to make one, which is what a coalition of partners *is*.
-- **Transferability is a term on the table**: consent-of-others, or
-  none-needed.
+- *Transferability as a term on the table shipped (`free` | `consent`) →
+  [employment.md](../../subsystems/employment.md) § The owners authority.*
 - ⭐ It gives the corpos a real representation for the first time: the
   corpo is the 100% row on each of its businesses' tables. "Goodkin owns
   the bank" becomes a fact in the world rather than a config key.
@@ -572,3 +579,20 @@ extraction left it with all three of its sources working.
 residual and retired absorbed, so this line and
 [legal-code-slate](./legal-code-slate.md) are the only places it now lives.
 
+## ⭐ Shipped: the cap table (harbors, MR !511, 2026-11-02)
+
+*What landed, ships as its first consumer and the lens notes →
+[employment.md](../../subsystems/employment.md) § The owners authority — a cap
+table. What stays here:*
+
+- **Still this slate's.** Every form and the registry; general
+  incorporation; primary issue (dilution); the draw as a distribution and
+  dividends ≤ retained earnings; endorsements (no majority today means
+  nobody appoints); escheated interests that do not vote; the bank wall;
+  charters; giving every business a table (only ship companies carry one).
+  ⚠ The Compact's capital chamber is NOT equity (company-and-capital Part
+  7) and was not touched.
+- ⚠ **Open: a table on a Stuff, or in a document?** `PersistentBusiness`
+  exists only so a cap table survives a restart; whether a table belongs on
+  a persisted Stuff or in a document (as the harbors berth roll moved) is
+  for the institutions build to decide.

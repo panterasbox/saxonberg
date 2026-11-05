@@ -31,6 +31,10 @@ args:
     default: "reachable:[mixin.BulkableMixin],reachable:[mixin.ShoreMixin]"
     scope: ["reachable"]
     requires: any
+    # Something named must hold water — a shore citing none (a ship's dry
+    # cabin) is no bath, and the verb is not offered on it.
+    validators:
+      - /lib/command/validators/anyHasBulkSlot
   # ⭐ WHAT WITH — a cleanser (soap, fuller's earth…), as `wash`.
   - name: cleanser
     type: objects

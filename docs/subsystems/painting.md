@@ -28,14 +28,22 @@ A building's outside is two shipped mixins, composed once on
 the `platform/idea/Building` twin; a holding's buildings are
 `HoldingBuilding`s. ⭐ A structure that is not a building has no outside of
 its own: the Waponi Woo peak (a bare `Structure` until the mountain slate)
-cannot be painted or maintained, and a `Ship`'s hull takes coats (weathered
-wherever she is, area from her hull, kept once she is sold) but has no
-fabric — `maintain` and the house painter both work on buildings only.
+cannot be painted or maintained. A `Ship`'s hull takes coats (weathered
+wherever she is, area from her hull) and — since the merge into harbors —
+has a fabric under them too: her seams, a `Durable` condition worn at the
+building dial once the coat is gone, which `maintain` with a caulker's kit
+makes sound (and which, worn, LEAKS into her bilge). The house painter
+works on buildings only.
 
-⭐ **A holding's buildings come from its floorplan** (paint review): a
-building is the holding's ENCLOSED rooms grouped by the room's `building:`
-key, one `HoldingBuilding` each. A farmstead's house and its barn
-(`building: barn`) are two buildings, each with its own coat and condition;
+⭐ **A holding's buildings are AUTHORED** (harbors review, 2026-11-03 —
+the paint build grouped them by a `building:` key on the retired
+`floorplan:` list, and the merge into harbors briefly derived them from
+how rooms connect; see [holding.md](./holding.md) § Condition): the
+programme row names `buildings:` (main first), each a building row with
+its own `extent` and `entrance`, and the holding mints one
+`HoldingBuilding` per row, its rooms the plan's rooms under that extent.
+A farmstead's house and its barn are two buildings, each with its own
+coat and condition;
 open ground — the yard, a tract, Hinkley's garden — is no building's, and is
 where they are painted from. A holding's rooms are keyed clones of shared
 rows, so no path names them (holding.md § Identity): **a place asks its
@@ -43,8 +51,9 @@ warren which building it is in** (`Warren.structureOf`, a hook the holding
 answers from its buildings' room instances; `Place.structureNow` asks it
 first, then the location graph by identity path). So `survey` in a field
 reads no fabric and `maintain` there finds nothing to keep. By path, only
-the main building (the unnamed rooms) answers, at the holding's own extent —
-what the ascent gate reads.
+the main building (the first named) answers, at the holding's own extent —
+what the ascent gate reads; the others are kept under
+`<extent>@<row leaf>`.
 
 | mixin | what it claims |
 |---|---|
@@ -103,8 +112,8 @@ a brush's work"*).
 A building persists only once it is **sold** — a PERSON holds the covering
 parcel (`isTitleSold`). A staged building writes no record and comes back as
 its row authored it whenever the world restages (today: every boot). A ship
-keeps her voyage always and her hull's coats only once sold
-(`Faced.persistsCoats` gates the coat slice and the condition's). A holding's house persists
+keeps her hull with her record, coats and seams both (she keeps a record
+whoever holds her — harbors; `Faced.persistsCoats` is `true` on her). A holding's house persists
 always (a holding exists because somebody holds it).
 
 ## 3. Paint is a mixture
@@ -206,6 +215,14 @@ four load-bearing things, and the reasons are worth keeping:
 - **A sailed ship lands nowhere.** `Exit.alongsideNow()` gained its third
   answer (`undefined`) so a way aboard never falls back to its berth —
   `a6ea93601`.
+
+Merged into harbors (MR !511, `5cfd1a5db`): harbors' own kernel
+`WeatheringMixin` on the warren was retired in favor of this model, so a
+ship's hull is `Durable(Faced(Structure))` on the same
+`structure.weather.daysToWorn` dial, and the boat's bow rope took the
+name *bow line* (`/platform/thing/bow-line`), leaving *painter* to the
+house painter. Harbors review then made a holding's buildings authored
+rows (`8125deeed`, `a20704a98`).
 
 The decision numbers cited in code comments (`paint D1`…, `B1`…) are the
 build plan's, retired at the sweep; read them with

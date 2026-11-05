@@ -21,10 +21,10 @@ data:
     - { itemTemplatePath: /trade/cordage/thing/hemp-line, par: 6 }
     - { itemTemplatePath: /trade/cordage/thing/hemp-yarn, par: 40 }
     - { itemTemplatePath: /trade/cordage/thing/rigging-knife, par: 2 }
-    - { itemTemplatePath: /trade/diving/thing/painter, par: 2 }
+    - { itemTemplatePath: /platform/thing/bow-line, par: 2 }
   prices:
     /trade/cordage/thing/rope: 25
     /trade/cordage/thing/hemp-line: 2
     /trade/cordage/thing/hemp-yarn: 1
     /trade/cordage/thing/rigging-knife: 4
-    /trade/diving/thing/painter: 8
+    /platform/thing/bow-line: 8

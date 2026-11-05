@@ -6,7 +6,7 @@
 # revision 3) — `look sea`, `fish`, a bucket over the side; the lead and the sextant are how you
 # find out where you are; the rigging and the pump are what an unwatched
 # deck wears out; the dinghy is what goes over the side.
-class: /platform/location/Shore
+class: /platform/location/Compartment
 data:
   shortDescription: Hesper's deck
   keywords: [deck, hesper, ketch, ship]
@@ -22,6 +22,8 @@ data:
     - /world/terminus/hesper/thing/helm
     - /world/terminus/hesper/thing/rigging
     - /world/terminus/hesper/thing/pump
+    # ⭐ Sounding the well: `measure bilge`.
+    - /platform/thing/sounding-rod
     - /system/water/thing/lead-line
     - /stuff/thing/instrument/sextant
     - /stuff/thing/instrument/hand-compass
@@ -29,15 +31,24 @@ data:
     - /trade/fishing/thing/worm
     - /system/transport/thing/dinghy
     - /world/terminus/hesper/thing/sea-chest
+    # ⭐ Her mooring lines: coming alongside, each goes ashore
+    # round a bollard; with none aboard she cannot make fast.
+    # ⭐ Her bitts: the lines kept AT them are her mooring lines.
+    - { template: /platform/thing/bitts, as: bitts }
+    - { template: /platform/thing/mooring-line, count: 2, on: bitts }
   cast:
     # ⭐ A deckhand who keeps the watch once appointed (maritime R7).
     - /world/terminus/hesper/agent/lookout
   exits:
     down:
       destination: /world/terminus/hesper/hold
+    # ⭐ Ashore is wherever she is made fast, worked out when
+    # taken; the destination is only her usual berth. One way by rows: the
+    # way back aboard is hers, named for her, put on the landing she lies at.
     ashore:
       kind: /platform/idea/exits/ashore
       destination: /world/terminus/estuary/estuary-mouth
+      oneWay: true
     # ⭐ Over the side (the river build, D30): the water beside her, while
     # she lies stopped — worked out by the sea's warren when taken.
     side:

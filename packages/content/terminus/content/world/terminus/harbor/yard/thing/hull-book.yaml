@@ -1,0 +1,28 @@
+# The yard's hull book — where a smack is bought. ⭐ A
+# ship is TITLE, sold off a finite list of hulls on the stocks (the
+# farmstead pattern: named slots, sold once, fronted where the sale is
+# made): `buy smack` names her as she is entered in the city's register,
+# and she is brought round to the yard's quay with her gangway locked and
+# the key in your hand. When both are sold the yard has none — nothing
+# restocks; a shipwright laying down a new keel is a later build's.
+#
+# ⭐ Priced at about a SEASON of a hand's wages (grain): the harbor
+# works pays 4 an hour, ~56 a fourteen-hour shift, and a season is ninety
+# days — ~5,040, set at 5,000. A ship is capital, bought in shares if one
+# purse will not reach (`transfer … shares`).
+class: /system/transport/thing/HullBook
+data:
+  shortDescription: hull book
+  keywords: [book, "hull book", ledger, "yard book"]
+  register: definite
+  longDescription: >-
+    A ledger open on a trestle by the shed door, a tin of nails holding the
+    pages down, a page for each hull on the stocks with her price written
+    at the head of it and a space below for her name and her owner's.
+  _materialPath: /stuff/idea/material/organic/leather
+  fixedInPlace: true
+  mass: 3
+  quay: /world/terminus/harbor/yard/quay
+  hulls:
+    - { slot: the near stocks, kind: /stuff/idea/Ship/smack, priceMinor: 5000 }
+    - { slot: the far stocks, kind: /stuff/idea/Ship/smack, priceMinor: 5000 }

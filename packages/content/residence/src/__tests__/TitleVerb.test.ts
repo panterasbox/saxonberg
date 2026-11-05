@@ -184,8 +184,11 @@ function installStore(): void {
   add('/system/residence/idea/holding-building', '/system/residence/idea/HoldingBuilding', { shortDescription: 'house' });
   add('/system/residence/idea/exits/keyed-door', '/system/residence/idea/KeyedDoorExit');
 
+  // A one-room plan, the programme's own (harbors review 3; no blueprint
+  // row): its extent is the room's row.
   add(PROGRAMME, '/system/residence/idea/HoldingWarren', {
-    floorplan: [{ leaf: 'yard', room: YARD_ROW, entry: true }],
+    extent: YARD_ROW,
+    entrance: YARD_ROW,
     upkeepTerm: 'owner-all',
   });
   add(YARD_ROW, '/platform/location/PersistentLocation', {
@@ -670,7 +673,9 @@ describe('title', () => {
     expect(yard.getTemplatePath()).toBe(YARD_ROW);
     expect(
       (yard as unknown as { getPersistenceKey(): string }).getPersistenceKey(),
-    ).toBe(`${LOT2}/yard`);
+    // A one-room plan's copy is keyed by the holding's own key — no
+    // leaf (the dorm's shape).
+    ).toBe(LOT2);
     // The holding is the keyed programme, carrying the tenure term (D5).
     const holding = holder.holdingFor(LOT2)! as unknown as HoldingWarren;
     expect(holding).toBeInstanceOf(HoldingWarren);

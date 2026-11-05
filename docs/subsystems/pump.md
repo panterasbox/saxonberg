@@ -63,13 +63,31 @@ narrows by shape; nothing composes them.
 | shape | answered by | says |
 |---|---|---|
 | `Pumpable` (`planPump` → plan \| refusal, `completePump`) | `PumpingMixin`, **`BurnerMixin`** | *a person can work this with their hands* |
-| `LiftSource` (`standingDepthM`, `standingMaterial`, `standingAvailableL`, `receivableL`, `liftInto`, `liftScope`) | `platform/thing/Well`, drilling's `Wellhead` | *a fluid stands this far below my draw point* — ⚠ adds no field anywhere |
+| `LiftSource` (`standingDepthM`, `standingMaterial`, `standingAvailableL`, `receivableL`, `liftInto`, `liftScope`; optional `liftedWords`, `bucketRefusal`, `bucketLanded`) | `platform/thing/Well`, `platform/thing/BilgeWell`, drilling's `Wellhead`, transport's `Boat` | *a fluid stands this far below my draw point* — ⚠ adds no field anywhere |
 | `PumpSource` (`pumpFitted`) | `Well`, `Wellhead`, water's `Conduit` | *a pump is SET in me* — how a pump tells set from carried |
 
 ⭐ **A furnace is not a pump.** Its bellows speaks the protocol (an
 INSTANT act, `durationMs: 0`, the toggle) with the three refusals and two
 scenes `PumpController` printed before this build, moved verbatim (AC 10,
 pinned by `PumpController.test.ts` — the controller had no test before).
+
+## ⭐ The bucket — `bail` (harbors review 1)
+
+Family A has a verb: **`bail` is the bucket over ANY `LiftSource`**
+(`platform/cmd/device/bail.yaml`, `BailController`, `requires: any`,
+narrowed by the shape like `pump`). There is no bail protocol: the
+controller reads the SOURCE and the TOOL. A spell is the handling plus the
+rope down and back (`20 s + 0.4 s/m` of `standingDepthM`, endurance
+`4 + 0.2/m` — the boat's shipped 20 s and the bore's 30 s at 25 m, one
+rule); a bucketful is the tool's (a vessel's capacity; a bailing tool
+`bail.bucketL` 12 L; bare hands `bail.handsL` 10 L); it rises through
+`liftInto` like a stroke and, when the draw point holds it, is tipped into
+the vessel brought. A source says only what is its own: `bucketRefusal`
+(a bore wants a derrick and a bailer; a capsized or dry boat) and
+`bucketLanded` (the bore's answer to the bet; the boat's *over her side*).
+Unnamed, `bail` takes the lift source you sit in (a boat). The water in a
+ship's and a boat's hull is one kernel substrate, `lib/expanse/Bilge.ts`
+(`BilgeMixin`); each answers where it comes in (`leakedBetween`).
 
 ## The verb
 
@@ -138,13 +156,19 @@ part model absorbs it.
   gave up took it).
 - **A bore** — drilling's `Wellhead` answers `LiftSource` from the hole's
   depth and sump; `liftInto` is bounded by the sump AND the trough;
-  `lift()` (the bailer) is byte-identical and asks no pressure. A crew at
+  the bailer is `bail` over it (§ The bucket — the bore's own `lift()`
+  went in harbors review 1) and asks no pressure. A crew at
   a fitted pump earns a **continuous rate** in `reconcileRig`
   (`throughput × elapsed × hands × pump.crewDuty`) — only if the pump's
   own law lets it lift from that depth (`liftsFrom`). Rejection ships the
   old brine bore at the spring (25 m, `bodyKey` authored — authorable
   since this build).
 - **A conduit** — water's `Conduit` holds its pump; see below.
+- **`BilgeWell`** (`platform/thing/BilgeWell`, harbors) — the well in a
+  ship's bottom where her bilge stands; it answers `LiftSource` and
+  `PumpSource` off her (what stands is her bilge, reconciled now; a lift
+  goes over her side, so the draw point never fills), and is born with a
+  bilge pump in it — `pump well` aboard. See [ship.md](./ship.md).
 
 ## The city, and the tap that reads its main
 
@@ -195,6 +219,12 @@ dewatering and trade-mining's `drain`, which narrates *"work the pump"*
 with no pump object · the gym's `pace` slot.
 
 ## History
+
+Harbors, MR !511 (review round 1, `c60944860`): the boat's
+`BailableMixin` and the bore's `planBail`/`completeBail`/`lift()` were
+deleted for one `bail` over any `LiftSource` (§ The bucket); the boat
+and the ship's `BilgeWell` joined the `LiftSource` implementers, and one
+`BilgeMixin` holds a hull's water for both a ship and a boat.
 
 Pump build, 2026-10-09, `4bd010214..` on `reqs/pumps`. The drive found:
 a pail that could not hold water (`closure: open` means not liquid-tight;

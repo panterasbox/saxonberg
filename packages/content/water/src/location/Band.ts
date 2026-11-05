@@ -75,14 +75,28 @@ export default class Band extends BandBase {
   public band: ColumnBand = 'lit';
 
   /**
+   * The surface itself (runtime), handed over at bud and again whenever
+   * the column reaches this band through it: a keyed stop's handle is its
+   * name, not a way to find it.
+   */
+  private _surfaceLive: SurfaceStuff | null = null;
+
+  /**
    * Stamp the band at bud: which surface, which band, and the surface's
    * water as its own, so the draw verbs and the read find it here.
    */
   public attachTo(surface: SurfaceStuff, band: ColumnBand): void {
-    this.surface = surface.getIdentityPath() ?? surface.getTemplatePath() ?? '';
+    // ⭐ The surface's durable handle first: a keyed stop's row is shared.
+    this.surface = surface.getDurableHandle() ?? surface.getIdentityPath() ?? surface.getTemplatePath() ?? '';
     this.band = band;
+    this._surfaceLive = surface;
     const water = surface.getWater();
     if (water !== null) this.setWater({ ...water });
+  }
+
+  /** The surface it lies under, reached again (a stop stood up anew is a new object). */
+  public rejoin(surface: SurfaceStuff): void {
+    this._surfaceLive = surface;
   }
 
   public getSurfacePath(): string {
@@ -93,13 +107,20 @@ export default class Band extends BandBase {
     return this.band;
   }
 
-  /** The live surface, when it is loaded. */
+  /**
+   * The live surface, when it is loaded: the one it was budded under (or
+   * last reached through); else, for a surface named by row or identity,
+   * the one thing filed there. A keyed stop is never looked for by its
+   * handle — when it is stood up again the column hands it back
+   * ({@link rejoin}).
+   */
   public getSurface(): SurfaceStuff | null {
-    if (this.surface === '') return null;
-    const s = StuffApi.findByTemplatePath<Stuff>(this.surface);
-    return s && !s.isDestroyed() && MixinApi.isWaterPlace(s)
-      ? (s as SurfaceStuff)
-      : null;
+    const live = this._surfaceLive;
+    if (live !== null && !live.isDestroyed()) return live;
+    if (this.surface === '' || this.surface.includes('#')) return null;
+    const filed = StuffApi.findByIdentityPath<Stuff>(this.surface).filter((s) => !s.isDestroyed());
+    const s = filed.length === 1 ? filed[0]! : null;
+    return s !== null && MixinApi.isWaterPlace(s) ? (s as SurfaceStuff) : null;
   }
 
   /** How far below the surface this band lies now, m. */
@@ -149,6 +170,16 @@ export default class Band extends BandBase {
   /** The water's level is the surface's. */
   public levelNow(): number {
     return this.getSurface()?.levelNow() ?? 0;
+  }
+
+  /**
+   * ⭐ How deep the water is here: the column's, which is its surface's —
+   * a band lies under the whole of it. The band's own stamped water (a
+   * copy of the surface's at bud, or authored on a room beside a column)
+   * answers while the surface is not loaded.
+   */
+  public depthNow(): number {
+    return this.getSurface()?.depthNow() ?? super.depthNow();
   }
 
   /** The place at the top of this water: the surface it lies under. */

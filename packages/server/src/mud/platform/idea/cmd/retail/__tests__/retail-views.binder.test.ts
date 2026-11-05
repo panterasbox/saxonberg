@@ -110,7 +110,7 @@ describe('buy — a good whose name is a phrase', () => {
 
   it('⚠ a bare good leaves `counter` to its MQL default, not to word two', () => {
     const m = bind('buy dog loaf', 'buy');
-    expect(m.counter).toBe('reachable:[mixin.ConsignmentShelfMixin]');
+    expect(m.counter).toBe('reachable:[mixin.ForSaleMixin]');
   });
 
   it('`purchase` — the alias — binds identically', () => {

@@ -79,6 +79,11 @@ import type { FrameSited } from '../lib/expanse/FrameSited';
 import type { MovingWater } from '../lib/location/MovingWater';
 import type { SmallCraft } from '../lib/expanse/SmallCraft';
 import type { TetherEnd } from '../lib/spatial/TetherEnd';
+import type { Berthing } from '../lib/expanse/Berthing';
+import type { Payable } from '../lib/banking/Payable';
+import type { Hailable } from '../lib/expanse/Hailable';
+import type { Hirable } from '../lib/retail/Hirable';
+import type { ForSale } from '../lib/retail/ForSale';
 import type { Ringable } from '../lib/perception/Ringable';
 import type { MovingZone } from '../lib/zone/MovingZone';
 import type { Charted } from '../lib/expanse/Charted';
@@ -254,6 +259,7 @@ import type { PricedOffer } from '../lib/commerce/PricedOffer';
 import type { DonationBank } from '../lib/commerce/DonationBank';
 import type { Business } from '../platform/idea/Business';
 import type { Organization } from '../lib/employment/Organization';
+import type { CapTable } from '../lib/employment/CapTable';
 import type { Publisher } from '../lib/press/Publisher';
 import type { Registrar } from '../lib/document/Register';
 import type { Attendant } from '../lib/attendant/Attendant';
@@ -1343,9 +1349,34 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.SmallCraft);
   }
 
-  /** ⭐ The end of a line in somebody's hand (river W16) — a painter, a lifeline. */
+  /** ⭐ The end of a line in somebody's hand (river W16) — a bow line, a lifeline. */
   public static isTetherEnd(obj: Stuff): obj is Stuff & TetherEnd {
     return this.hasMixin(obj, Mixins.TetherEnd);
+  }
+
+  /** ⭐ A landing somebody keeps a book for — a harbor quay. */
+  public static isBerthing(obj: Stuff): obj is Stuff & Berthing {
+    return this.hasMixin(obj, Mixins.Berthing);
+  }
+
+  /** ⭐ A thing that says what you owe — a harbor office's book. */
+  public static isPayable(obj: Stuff): obj is Stuff & Payable {
+    return this.hasMixin(obj, Mixins.Payable);
+  }
+
+  /** ⭐ A thing let by the day — a hired boat. */
+  public static isHirable(obj: Stuff): obj is Stuff & Hirable {
+    return this.hasMixin(obj, Mixins.Hirable);
+  }
+
+  /** ⭐ A thing with something for sale — what `buy` speaks to. */
+  public static isForSale(obj: Stuff): obj is Stuff & ForSale {
+    return this.hasMixin(obj, Mixins.ForSale);
+  }
+
+  /** ⭐ A place that answers a hail — a harbor office. */
+  public static isHailable(obj: Stuff): obj is Stuff & Hailable {
+    return this.hasMixin(obj, Mixins.Hailable);
   }
 
   /** ⭐ A bell or signal you strike (river W16), which remembers when. */
@@ -2285,6 +2316,14 @@ export class MixinApi {
    */
   public static isRegistrar(obj: Stuff): obj is Stuff & Registrar {
     return this.hasMixin(obj, Mixins.Registrar);
+  }
+
+  /**
+   * ⭐ A business that keeps a table of owners and their units
+   * (`CapTableMixin`) — the read the `owners` appointing authority takes.
+   */
+  public static isCapTable(obj: Stuff): obj is Stuff & CapTable {
+    return this.hasMixin(obj, Mixins.CapTable);
   }
 
   /** A standalone employing Business (the `BusinessMixin` marker). */

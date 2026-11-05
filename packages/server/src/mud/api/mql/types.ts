@@ -69,6 +69,15 @@ export interface MqlContext {
    * element-derived forms.
    */
   attention?: number;
+  /**
+   * ⭐ A **code-only** kind filter applied to a bare-word search's pool
+   * BEFORE the name tiers cut it. The command
+   * binder passes a slot's `requires:` here only on a second try, when the
+   * first answer held nothing of the kind: `unlock petrel` on the yard quay
+   * named the ship outright (score 100) and cut her gangway (a keyword, 70)
+   * — the only thing there that locks. Never set by player-typed MQL.
+   */
+  admits?: (s: Stuff) => boolean;
 }
 
 /**
@@ -89,16 +98,21 @@ export class MqlPermissionError extends Error {
 
 /**
  * Sub-feature attribution. Tells callers which path produced the
- * match, so a controller (e.g., GoController) can act on the discovery
- * (traverse the Exit, drill into the Detail) without re-discovering it.
+ * match, so a controller can act on the discovery (drill into the
+ * Detail, pour from the bulk slot) without re-discovering it.
  *
  * The base shape is intentionally empty; subsystems augment via
  * `declare module '../api/mql/types' { interface MqlMatchVia { … } }`:
  *
- *   - `lib/description/Detailed.ts` adds `detailPath?: string[]`.
- *   - `lib/spatial/Exit.ts` adds `exit?: Exit`.
+ *   - `via-augment.ts` adds `detailPath?: string[]`.
+ *   - `lib/bulk/Bulkable.ts` adds `bulk?: { affordance }`.
  *
- * When matches arrive via mixed paths (e.g., one detail, one exit),
+ * ⭐ An exit is NOT a via. A direction binds the EXIT
+ * itself — `stuff` is the way, a candidate in its own right, scored by
+ * its own name (its direction) and keywords — so every via is plain
+ * data and a verb reads the thing MQL bound.
+ *
+ * When matches arrive via mixed paths (e.g., one detail, one bulk slot),
  * the resolver returns `via: undefined` per the consistency rule.
  */
 export interface MqlMatchVia {}
@@ -258,8 +272,8 @@ export interface RegistryScan {
  *     from the field being absent on the model (player typed
  *     nothing) — controllers can tell the two apart.
  *
- *   - `via`: sub-feature attribution (`exit` for direction matches,
- *     `detailPath` for detail drills, etc.). (Inherited from
+ *   - `via`: sub-feature attribution (`detailPath` for detail
+ *     drills, `bulk` for a holder's slot). (Inherited from
  *     {@link MqlOne}.)
  *
  *   - `raw`: the player-typed text post-desugar, before MQL replaced

@@ -45,6 +45,8 @@ async function water(): Promise<{ quay: Location; top: Location; bed: Location }
   vi.spyOn(MixinApi, 'isWaterPlace').mockImplementation(((o: unknown) => wet.has(o)) as never);
   for (const w of [top, bed]) {
     (w as unknown as { surfacePlace(): Stuff }).surfacePlace = () => top as unknown as Stuff;
+    // A water place holds water now — it has depth (`depthNow`).
+    (w as unknown as { depthNow(): number }).depthNow = () => 8;
     // The water gives up what comes out of it (river D22): here, a move.
     (w as unknown as { deliverOut(l: Stuff, to: Stuff): void }).deliverOut = (l, to) => ContainmentApi.move(l as never, to as never);
   }

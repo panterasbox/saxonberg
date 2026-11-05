@@ -153,7 +153,7 @@ async function readInDaylight(s: Session, what: string): Promise<CommandResult> 
 }
 
 async function aboardFrom(s: Session): Promise<void> {
-  const r = await s.cmd('go aboard');
+  const r = await s.cmd('go hesper');
   expectOk(r);
   expect(await look(s)).toMatch(/Hesper's deck/i);
 }
@@ -280,6 +280,10 @@ suite('4 · 5 · aboard, a course, the reckoning', () => {
     me.close();
     me = await Session.open('founder', { startLocation: MOUTH, wizard: true });
     await aboardFrom(me);
+    // ⭐ Only her master takes the helm: the founder holds the
+    // office that appoints her company, and appoints himself to command her.
+    // (Not asserted: a re-run finds him already appointed.)
+    await me.cmd(`appoint me to master at ${OUTFIT}`);
     const plot = squash(await me.prose('course'));
     expect(plot).toMatch(/not under way/);
     expect(plot).toMatch(/by reckoning/);

@@ -62,12 +62,12 @@ export default class Bailer extends Tool {
   static commandContributions = {
     environment: [
       'trade/drilling/cmd/drilling/bore.yaml',
-      'trade/drilling/cmd/drilling/bail.yaml',
+      'platform/cmd/device/bail.yaml',
       'trade/drilling/cmd/drilling/line.yaml',
     ],
     peers: [
       'trade/drilling/cmd/drilling/bore.yaml',
-      'trade/drilling/cmd/drilling/bail.yaml',
+      'platform/cmd/device/bail.yaml',
       'trade/drilling/cmd/drilling/line.yaml',
     ],
   };

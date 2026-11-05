@@ -11,24 +11,28 @@
  * lot's house from the lane and it is a building like any other: you can
  * `look` at it, `survey` it, `paint` it, `maintain` it.
  *
- * A building is the holding's ENCLOSED rooms grouped by the floorplan's
- * `building:` key — a farmstead's house and its barn are two, each with its
- * own coat and condition. Open ground (a yard, a tract, a garden) belongs to
- * none; it is where they are painted from. It holds its rooms as INSTANCES
- * — keyed clones no path names (holding.md § Identity) — and the holding
- * answers which building a room is in (`HoldingWarren.structureOf`). By
- * path, only the MAIN building (rooms with no `building:` key) answers, at
- * the holding's own extent: "the home you hold".
+ * ⭐ A building is AUTHORED: the holding's
+ * programme row names its buildings (`buildings:`, the main one first,
+ * beside the plan's `extent` and `entrance` it authors), each
+ * a row of this class with its own `extent` and `entrance` — a
+ * farmstead's house and its barn are two, each with its own coat and
+ * condition, and the rooms under each one's extent are its rooms. Open
+ * ground (a yard, a tract, a garden) lies under none; it is where they
+ * are painted from. It holds its rooms as INSTANCES — keyed clones no
+ * path names (holding.md § Identity) — and the holding answers which
+ * building a room is in (`HoldingWarren.structureOf`). By path, only the
+ * MAIN building answers, at the holding's own extent: "the home you hold".
  *
- * Not a `Singleton` (every lot's buildings share this row), so it is the
- * building BASE composed here, not the row twin.
+ * Not a `Singleton` (every lot's copy of a building shares that row), so
+ * it is the building BASE composed here, not the row twin. Its rows
+ * `extends: /system/residence/idea/holding-building`, the plain house's
+ * words.
  *
  * ⭐ It persists unconditionally — a holding exists only because somebody
  * holds it — under the holding's own `(scope, key)`.
  *
- * Where a Building ROW already covers the holding's extent (Seznick House
- * is one building of many units; Duncan Hall one of many rooms), none is
- * minted: the units read the building they are in.
+ * A plan that names no building (a Seznick House flat) mints none:
+ * its units read the Building row they are in.
  */
 
 import BuildingBase from '@saxonberg/server/mud/lib/structure/Building';
@@ -41,8 +45,6 @@ import type { VetoResult } from '@saxonberg/server/mud/lib/errors';
 interface HoldingRooms {
   isDestroyed(): boolean;
 }
-
-export const HOLDING_BUILDING_ROW = '/system/residence/idea/holding-building';
 
 export default class HoldingBuilding extends PersistableMixin(BuildingBase) {
   /** The holding whose house this is — a weak, runtime ref set at its wake. */

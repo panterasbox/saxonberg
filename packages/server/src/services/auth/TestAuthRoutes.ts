@@ -206,6 +206,49 @@ export class TestAuthRoutes {
         });
     });
 
+    // ⭐ A ship staged: `{ship: '/row/path' | '<kind>/<serial>',
+    // at?: {node} | {frame, cite}, hull?: band, bilgeL?: L, sleptDays?: n,
+    // settling?: true}` —
+    // put lying where and as the drive needs her, never sailed there.
+    app.post('/auth/test-ship', (req: Request, res: Response) => {
+      if (TEST_AUTH_TOKEN && req.get('x-test-auth') !== TEST_AUTH_TOKEN) {
+        res.status(403).json({ error: 'forbidden' });
+        return;
+      }
+      const body = req.body as
+        | { ship?: unknown; at?: unknown; hull?: unknown; bilgeL?: unknown; sleptDays?: unknown; settling?: unknown }
+        | undefined;
+      const ship = body?.ship;
+      const at = body?.at as { node?: unknown; frame?: unknown; cite?: unknown } | undefined;
+      const place =
+        at && typeof at.node === 'string'
+          ? { node: at.node }
+          : at && typeof at.frame === 'string' && typeof at.cite === 'string'
+            ? { frame: at.frame, cite: at.cite }
+            : null;
+      const spec: Parameters<typeof TestHooks.stageShip>[1] = {};
+      if (place !== null) spec.at = place;
+      if (typeof body?.hull === 'string') spec.hull = body.hull;
+      if (typeof body?.bilgeL === 'number') spec.bilgeL = body.bilgeL;
+      if (typeof body?.sleptDays === 'number') spec.sleptDays = body.sleptDays;
+      if (body?.settling === true) spec.settling = true;
+      const badAt = at !== undefined && place === null;
+      if (typeof ship !== 'string' || ship === '' || badAt || Object.keys(spec).length === 0) {
+        res.status(400).json({
+          error:
+            "test-ship wants {ship: '/row/path', at?: {node: '/path'} | {frame: '/path', cite: '…'}, " +
+            'hull?: band, bilgeL?: litres, sleptDays?: days, settling?: true} — at least one of them',
+        });
+        return;
+      }
+      void TestHooks.stageShip(ship, spec)
+        .then((report) => res.json(report))
+        .catch((err: unknown) => {
+          console.error('TestAuthRoutes: test-ship failed:', err);
+          res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
+        });
+    });
+
     // ⭐ A test character fed and watered (the meals between a drive's
     // checkpoints) — a route for the clock's reason: a parcel-bound `eval`
     // may not read the biome the body's reconcile reads.
@@ -254,7 +297,7 @@ export class TestAuthRoutes {
 
     console.warn(
       'TestAuthRoutes: ⚠  /auth/test-login, /auth/test-clock, /auth/test-weather, ' +
-        '/auth/test-nourish and /auth/test-hand are MOUNTED (test seams). Never in production.'
+        '/auth/test-ship, /auth/test-nourish and /auth/test-hand are MOUNTED (test seams). Never in production.'
     );
   }
 }
