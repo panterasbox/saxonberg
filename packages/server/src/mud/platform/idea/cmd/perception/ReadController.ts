@@ -185,8 +185,9 @@ export default class ReadController extends CommandController<ReadModel> {
       return;
     }
 
-    const text = target.getMarkText();
-    // ⭐ The writing, and whose mark it bears — both, as the reader knows it.
+    // ⭐ The writing as THIS reader reads it — the hands named as they know
+    // the writers (paper D44) — and whose mark it bears.
+    const text = target.readFor(giver);
     const body =
       text.length > 0 && device !== null
         ? Mml.compose`${Mml.thing(target)} reads: ${text} It bears ${device}.`

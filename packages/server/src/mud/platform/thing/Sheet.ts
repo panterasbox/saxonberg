@@ -27,7 +27,7 @@
  */
 
 import Good from '../../lib/stuff/Good';
-import { MarkedMixin } from '../../lib/description/Marked';
+import { MarkedMixin, type Passage } from '../../lib/description/Marked';
 import { MoistureMixin } from '../../lib/material/Moisture';
 import { ReservedMixin } from '../../lib/reserve';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
@@ -82,6 +82,8 @@ export default class Sheet extends SheetBase {
     evenness: { persistent: true, stackIdentity: true },
     formed: { persistent: true, stackIdentity: true },
     pressed: { persistent: true, stackIdentity: true },
+    passages: { persistent: true },
+    tornFrom: { persistent: true, stackIdentity: true },
   };
 
   static markupAugmenters: MarkupAugmenter[] = [sheetAugmenter];
@@ -106,6 +108,14 @@ export default class Sheet extends SheetBase {
   public formed = false;
   /** Pressed in the post before it dried; a formed sheet dried unpressed cockles. */
   public pressed = false;
+  /**
+   * ⭐ Its handwriting, passage by passage, each with the hand that wrote it
+   * (paper D46: a sheet is one leaf). The stored text stays the words
+   * alone; `read` names the hands as the reader knows the writers.
+   */
+  public passages: Passage[] = [];
+  /** A whole page torn out of a book: what it was torn from, in words; `''` = not. */
+  public tornFrom = '';
 
   // ---------- reading (D1, D2, D6) ----------
 
@@ -115,6 +125,58 @@ export default class Sheet extends SheetBase {
 
   public getPage(): number {
     return this.page;
+  }
+
+  /** Its handwriting, a copy. */
+  public getPassages(): Passage[] {
+    return this.passages.map((p) => ({ ...p }));
+  }
+
+  /**
+   * ⭐ Lay a leaf's handwriting on this sheet whole — a page torn out of a
+   * book keeps every passage and every hand on it (paper D46).
+   */
+  public takePassages(passages: readonly Passage[], room: number): void {
+    this.passages = passages.map((p) => ({ ...p }));
+    this.setMarkText(this.passages.map((p) => p.text).join(' / '));
+    this.setWritingRoom(Math.max(0, room));
+  }
+
+  public getTornFrom(): string {
+    return this.tornFrom;
+  }
+
+  /** Torn whole out of a book: it says so, and answers to `page`. */
+  public setTornFrom(what: string): void {
+    this.tornFrom = typeof what === 'string' ? what : '';
+    if (this.tornFrom === '') return;
+    const words = this.getKeywords();
+    this.setKeywords([...words, ...['page', 'torn page'].filter((w) => !words.includes(w))]);
+  }
+
+  /**
+   * Two sheets with the same words in different hands are different papers
+   * (stack identity compares scalars, so the hands are checked here).
+   */
+  public override canMergeWith(other: Stuff): boolean {
+    if (!super.canMergeWith(other)) return false;
+    if (!(other instanceof Sheet)) return true;
+    const a = this.passages;
+    const b = other.getPassages();
+    return a.length === b.length && a.every((p, i) => p.text === b[i]!.text && p.hand === b[i]!.hand);
+  }
+
+  /** @hook The words, with each hand named as this reader knows its writer. */
+  public override readFor(viewer: Stuff): string {
+    const shown = this.getMarkText();
+    // The ink ran, or it burnt: what the reading fails at, it fails at whole.
+    if (this.passages.length === 0 || shown !== this.markText) return shown;
+    const plain = this.passages.map((p) => p.text).join(' / ');
+    const hands = this.passagesFor(viewer, this.passages);
+    if (this.markText === plain) return hands;
+    // Authored words first (a printed form, a label), then what was written on it.
+    if (this.markText.endsWith(` / ${plain}`)) return `${this.markText.slice(0, -plain.length - 3)} / ${hands}`;
+    return shown;
   }
 
   /**
@@ -274,7 +336,10 @@ export default class Sheet extends SheetBase {
       };
     }
     const out = super.writeOn(by, words);
-    if (out.ok) this.spendInk(ink, text.length);
+    if (out.ok) {
+      this.spendInk(ink, text.length);
+      this.passages = [...this.passages, { text, hand: by.getIdentityPath() ?? '' }];
+    }
     return out;
   }
 
@@ -289,23 +354,26 @@ export default class Sheet extends SheetBase {
     if (this.getQuantity() > 1) piece = (await this.split(1)) as unknown as Sheet;
     await piece.refreshMarks(by);
     const text = piece.getMarkText();
-    const cut = Math.ceil(text.length / 2);
-    const left = text.slice(0, cut).trim();
-    const right = text.slice(cut).trim();
+    const [left, right] = piece.halvesOf(text);
     const self = piece as unknown as Stuff;
     // Named BEFORE the tear: two blank halves are alike and stack on arrival.
     const name = self.getPresentation();
     const path = self.getTemplatePath() ?? '/platform/thing/sheet';
-    const other = await StuffApi.clone<Sheet>(path);
+    // ⭐ The second half is made FROM this sheet, so it is whoever's the
+    // sheet was — never the tearer's for the tearing (paper D46).
+    const other = await StuffApi.clone<Sheet>(path, undefined, { madeFrom: self });
     for (const half of [piece, other]) {
       half.boundTo = '';
       half.page = 0;
       half.torn = true;
+      half.tornFrom = '';
       half.folds = 0;
       half.setWritingRoom(Math.floor(piece.getWritingRoom() / 2));
     }
-    piece.setMarkText(left);
-    other.setMarkText(right);
+    piece.passages = left.passages;
+    other.passages = right.passages;
+    piece.setMarkText(left.text);
+    other.setMarkText(right.text);
     other.sized = piece.sized;
     if (MixinApi.isTangible(self) && MixinApi.isTangible(other)) {
       const half = self.getMass().rawValue() / 2;
@@ -323,13 +391,43 @@ export default class Sheet extends SheetBase {
     };
   }
 
+  /**
+   * The two halves' words. ⭐ All handwriting: split between passages, each
+   * keeping its hand (one passage splits down its middle, both halves in
+   * that hand). Anything else (a printed page, authored words): split down
+   * the middle, and the halves are nobody's writing.
+   */
+  private halvesOf(text: string): [{ text: string; passages: Passage[] }, { text: string; passages: Passage[] }] {
+    const ps = this.passages;
+    const plain = ps.map((p) => p.text).join(' / ');
+    if (ps.length > 0 && text === plain) {
+      if (ps.length === 1) {
+        const p = ps[0]!;
+        const cut = Math.ceil(p.text.length / 2);
+        const a = { text: p.text.slice(0, cut).trim(), hand: p.hand };
+        const b = { text: p.text.slice(cut).trim(), hand: p.hand };
+        return [{ text: a.text, passages: [a] }, { text: b.text, passages: [b] }];
+      }
+      const n = Math.ceil(ps.length / 2);
+      const a = ps.slice(0, n).map((p) => ({ ...p }));
+      const b = ps.slice(n).map((p) => ({ ...p }));
+      return [
+        { text: a.map((p) => p.text).join(' / '), passages: a },
+        { text: b.map((p) => p.text).join(' / '), passages: b },
+      ];
+    }
+    const cut = Math.ceil(text.length / 2);
+    return [{ text: text.slice(0, cut).trim(), passages: [] }, { text: text.slice(cut).trim(), passages: [] }];
+  }
+
   // ---------- look ----------
 
   /** The state of the paper, in words — format, sizing, cockle, torn. */
   public paperWords(): string {
     const bits: string[] = [];
     if (this.folds > 0) bits.push(`It is folded to ${this.format()}.`);
-    if (this.torn) bits.push('It is a torn half of a sheet.');
+    if (this.tornFrom !== '') bits.push(`It is a page torn from ${this.tornFrom}; one edge is ragged.`);
+    else if (this.torn) bits.push('It is a torn half of a sheet.');
     if (this.formed) {
       const kg = this.getMass().rawValue() / Math.max(1, this.getQuantity());
       const weight = kg >= 0.008 ? 'heavy' : kg >= 0.004 ? 'middling' : 'thin';

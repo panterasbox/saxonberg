@@ -25,6 +25,7 @@ data:
     - /trade/printing/thing/printing-ink-pot
     - /trade/printing/thing/printer
     - /world/terminus/gazette/thing/ledger
+    - /world/terminus/gazette/thing/directory
     - /world/terminus/gazette/thing/screen
     - /platform/thing/ream
     - { template: /trade/printing/thing/pen, count: 2 }

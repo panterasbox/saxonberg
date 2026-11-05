@@ -196,6 +196,13 @@ export interface Marked {
    * Default: teaches nothing.
    */
   teach(reader: Stuff): Promise<string | null>;
+  /**
+   * @hook ⭐ The marks as THIS reader reads them (paper D44/D46): handwriting
+   * names its hands as the reader knows the writers. The stored text
+   * (`getMarkText`) stays the words alone — it is stack identity. Default:
+   * the stored text.
+   */
+  readFor(viewer: Stuff): string;
 
   // ---------- storage (public for the applier) ----------
   markText: string;
@@ -203,6 +210,13 @@ export interface Marked {
   markScript: string;
   writingRoom: number;
   markDevice: string;
+}
+
+/** ⭐ One passage of handwriting, and whose hand wrote it (paper D44). */
+export interface Passage {
+  text: string;
+  /** The writer's identity path; `''` when nobody is known to have written it. */
+  hand: string;
 }
 
 /** ⭐ A device is relief — pressed or cut — so it is seen or felt. */
@@ -301,19 +315,35 @@ export function MarkedMixin<TBase extends MixinConstructor>(Base: TBase) {
       return name ? `${name}'s mark` : "a maker's mark you do not know";
     }
 
-    /**
-     * ⭐ What the marks say — unless they were inked on something you can
-     * carry that has been soaked (underwater D29 seam 2): the ink has run.
-     * Drying it does not bring the words back; the text is still stored,
-     * the reading is what failed. Fixed things (a sign in the rain) and
-     * marks that are not ink (chalk, a scratched slate) are unaffected.
-     */
     /** @hook See {@link Marked.refreshMarks}. Authored marks need nothing. */
     public async refreshMarks(_viewer: Stuff): Promise<void> {}
 
     /** @hook See {@link Marked.teach}. Most marks teach nothing. */
     public async teach(_reader: Stuff): Promise<string | null> {
       return null;
+    }
+
+    /** @hook See {@link Marked.readFor}. Most marks read the same to everyone. */
+    public readFor(_viewer: Stuff): string {
+      return this.getMarkText();
+    }
+
+    /**
+     * ⭐ A hand as THIS viewer knows its writer (paper D44) — the device
+     * mark's rule: *your hand*, *Hester's hand*, *a hand you do not know*.
+     */
+    protected handFor(viewer: Stuff, hand: string): string {
+      if (hand === '') return 'an unknown hand';
+      if (viewer.getIdentityPath() === hand) return 'your hand';
+      const name = MixinApi.isBeliefStore(viewer) ? viewer.knownNameOf(hand) : null;
+      return name ? `${name}'s hand` : 'a hand you do not know';
+    }
+
+    /** Passages in words, each run of one hand named as this viewer knows it. */
+    protected passagesFor(viewer: Stuff, passages: readonly Passage[]): string {
+      return passages
+        .map((p, i) => (passages[i - 1]?.hand === p.hand ? p.text : `(in ${this.handFor(viewer, p.hand)}) ${p.text}`))
+        .join(' / ');
     }
 
     /**
@@ -358,6 +388,13 @@ export function MarkedMixin<TBase extends MixinConstructor>(Base: TBase) {
       return `You know of ${learned.join(' and ')} now.`;
     }
 
+    /**
+     * ⭐ What the marks say — unless they were inked on something you can
+     * carry that has been soaked (underwater D29 seam 2): the ink has run.
+     * Drying it does not bring the words back; the text is still stored,
+     * the reading is what failed. Fixed things (a sign in the rain) and
+     * marks that are not ink (chalk, a scratched slate) are unaffected.
+     */
     public getMarkText(): string {
       const self = this as unknown as Stuff;
       // ⭐ Burnt to ash (paper D12): the words went with the page. The same

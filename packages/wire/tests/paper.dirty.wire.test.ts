@@ -342,6 +342,24 @@ suite('paper — the blocking drive', () => {
     expect(rd, rd).toMatch(/THE BOOK of/i);
   }, 300_000);
 
+  it('35. the city directory: a page torn out goes with the reader, and the directory has lost it', async () => {
+    const r = await session(reader, GAZETTE);
+    const rd = await say(r, 'read directory page 3');
+    expect(rd, rd).toMatch(/QUILL, Hesper/);
+    const t = await say(r, 'tear directory page 3');
+    expect(t, t).toMatch(/You tear page 3 out of the city directory/i);
+    // The page is in the reader's hand, with the same printed words — and says what it is.
+    const mine = await say(r, 'read me:i:page');
+    expect(mine, mine).toMatch(/QUILL, Hesper/);
+    const look = await say(r, 'look me:i:page');
+    expect(look, look).toMatch(/page torn from the city directory; one edge is ragged/i);
+    // The directory has lost it.
+    const gone = await say(r, 'read directory page 3');
+    expect(gone, gone).toMatch(/torn out/i);
+    const book = await say(r, 'look directory');
+    expect(book, book).toMatch(/Page 3 has been torn out of it/i);
+  }, 300_000);
+
   it('23. compose: a short case refuses naming the glyph; a full one sets it', async () => {
     const s = await session(maker, GAZETTE);
     await founderEval(GAZETTE, '/world/terminus', 'case', '(self.font = {...self.font, e: 1}, self.getFont().e)');

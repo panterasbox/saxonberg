@@ -1,14 +1,15 @@
 /**
  * Book — leaves between boards, joined at a spine (paper D14, re-planned by
- * the owner as D44): a notebook somebody writes in, a printed book.
+ * the owner as D44 and D46): a notebook somebody writes in, a printed book —
+ * a town directory on a counter.
  *
- * ⭐⭐ **A book is its leaves.** It is an assembly (`Assembled`): the
- * assembly record carries the physical SET — the leaves' paper, its grade
- * and wear, the boards, the spine joint — and the book keeps **one record
- * per leaf** for what that leaf carries: its words and the hands that wrote
- * them, or the edition page it was printed with. There is no document behind
- * a notebook: handwriting has no existence apart from the paper, so it lives
- * on the leaf, exactly as it does on a loose sheet.
+ * ⭐⭐ **A book is its leaves, and a leaf is a sheet still bound.** It is an
+ * assembly (`Assembled`): the assembly record carries the physical SET — the
+ * leaves' paper, its grade and wear, the boards, the spine joint — and the
+ * book keeps **one record per leaf** for what that leaf carries: passages of
+ * handwriting, each with the hand that wrote it, or the edition page it was
+ * printed with. A loose `Sheet` carries exactly the same two things, so a
+ * page torn out is that leaf, whole.
  *
  * - **Writing in a book is writing on a leaf** — the same ink, size and room
  *   rules as a sheet. ⭐ Anyone holding it can write (lend someone your
@@ -17,10 +18,13 @@
  *   a reader sees as they know the writer (*your hand*, *Hester's hand*,
  *   *a hand you do not know*), the device mark's rule.
  * - **A printed leaf** points at an edition page and reads it with no title
- *   check (whoever holds the book reads it — D6).
- * - **Tearing a page out** takes that leaf's state out with it: a loose
- *   `Sheet` with the same words (or the same edition page), and a stub at
- *   the spine.
+ *   check (whoever holds the book reads it — D6). A row authors a printed
+ *   book by naming its edition (`edition:`, seeded at mint).
+ * - **Tearing a page out** takes that leaf out whole: a loose `Sheet` with
+ *   the same passages and hands (or the same edition page), which says it
+ *   was torn from this book — and which is still the book's OWNER's paper
+ *   (made from the book), whoever tore it. A stub is left at the spine, and
+ *   a look at the book says which pages are gone.
  * - **Reading** shows the page the book lies open at; `read <book> page <n>`
  *   opens it there.
  *
@@ -29,11 +33,11 @@
  *
  * ⚠ Binding sheets into a book (`fit`) is deferred: carrying each sheet's
  * words into its leaf needs a raise-arm hook master does not have. A book is
- * sold made, its leaves blank (or, for a printed book, bound to an edition).
+ * sold made, its leaves blank, or authored bound to an edition.
  */
 
 import Good from '../../lib/stuff/Good';
-import { MarkedMixin } from '../../lib/description/Marked';
+import { MarkedMixin, type Passage } from '../../lib/description/Marked';
 import { AssembledMixin } from '../../lib/craft/Assembled';
 import { CraftedMixin } from '../../lib/craft/Crafted';
 import { DurableMixin } from '../../lib/material/Durable';
@@ -43,6 +47,7 @@ import { CombustibleMixin } from '../../lib/fire/Combustible';
 import { TearableMixin, type TearOutcome } from '../../lib/material/Tearable';
 import type { FieldMeta } from '../../lib/mixin';
 import type { Stuff } from '../../lib/stuff/Stuff';
+import type { MarkupAugmenter } from '../../api/mml';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import { ContainmentApi } from '../../api/containment';
@@ -55,12 +60,7 @@ const LEAF_TEMPLATE = '/platform/thing/sheet';
 /** What writing in a book did, in words. */
 export type PageOutcome = { ok: true; line: string } | { ok: false; reason: string; line: string };
 
-/** One passage on a leaf, and whose hand wrote it. */
-export interface Passage {
-  text: string;
-  /** The writer's identity path. */
-  hand: string;
-}
+export type { Passage } from '../../lib/description/Marked';
 
 /** ⭐ One leaf of a book — what it carries. A plain record; persists with the book. */
 export interface Leaf {
@@ -71,6 +71,22 @@ export interface Leaf {
   page: number;
   /** Torn out — a stub at the spine. */
   torn: boolean;
+}
+
+/** A look at a book says which pages are gone. */
+const bookAugmenter: MarkupAugmenter = (text, host, _viewer, opts) => {
+  if (opts?.filter || !(host instanceof Book)) return text;
+  const gone = host.getMissing();
+  if (gone.length === 0) return text;
+  const pages = gone.length === 1 ? `Page ${gone[0]} has` : `Pages ${listOf(gone)} have`;
+  const line = `${pages} been torn out of it; ${gone.length === 1 ? 'a stub is' : 'stubs are'} left at the spine.`;
+  return text && text.length > 0 ? `${text}\n\n${line}` : line;
+};
+
+/** `3`, `3 and 37`, `3, 9 and 37`. */
+function listOf(ns: readonly number[]): string {
+  if (ns.length <= 1) return ns.join('');
+  return `${ns.slice(0, -1).join(', ')} and ${ns[ns.length - 1]}`;
 }
 
 const BookBase = TearableMixin(
@@ -84,7 +100,11 @@ export default class Book extends BookBase {
     sizedLeaves: { persistent: true, authorable: true },
     leaves: { persistent: true },
     openPage: { persistent: true },
+    // ⭐ A printed book on a row: the edition its leaves carry, laid down at mint.
+    edition: { authorable: true, seed: true },
   };
+
+  static markupAugmenters: MarkupAugmenter[] = [bookAugmenter];
 
   /** How many leaves it was bound with. */
   public pageCount = 16;
@@ -96,6 +116,8 @@ export default class Book extends BookBase {
   public leaves: Leaf[] = [];
   /** The page it lies open at (1-based). */
   public openPage = 1;
+  /** The edition a row names (the seed's value; the leaves are the record). */
+  public edition = '';
 
   private ensureLeaves(): Leaf[] {
     const n = Math.max(1, Math.floor(this.pageCount || 1));
@@ -123,7 +145,7 @@ export default class Book extends BookBase {
   /** A copy of one leaf's record (1-based), or null past the last page. */
   public getLeaf(page: number): Leaf | null {
     const leaf = this.ensureLeaves()[page - 1];
-    return leaf ? { ...leaf, passages: [...leaf.passages] } : null;
+    return leaf ? { ...leaf, passages: leaf.passages.map((p) => ({ ...p })) } : null;
   }
 
   /** Bind a printed book: every leaf carries one page of the edition. */
@@ -131,6 +153,21 @@ export default class Book extends BookBase {
     const n = Math.max(1, Math.floor(pages));
     this.pageCount = n;
     this.leaves = Array.from({ length: n }, (_, i) => ({ passages: [], boundTo: editionPath, page: i, torn: false }));
+  }
+
+  /**
+   * ⭐ Seed (mint only): a row that names an edition is a printed book — its
+   * leaves bound to the edition's pages. A row naming an edition that does
+   * not exist is an authoring error, said loudly.
+   */
+  public async seedEdition(value: unknown): Promise<void> {
+    if (typeof value !== 'string' || value === '') return;
+    const pages = await DocumentApi.pagesOf(value);
+    if (pages === null || pages.pages.length === 0) {
+      throw new Error(`Book ${(this as unknown as Stuff).getTemplatePath()}: edition '${value}' has no pages to bind`);
+    }
+    this.edition = value;
+    this.bindEdition(value, pages.pages.length);
   }
 
   /** Open it at a page, or say why not. */
@@ -144,16 +181,8 @@ export default class Book extends BookBase {
     return { ok: true, line: '' };
   }
 
-  /** A hand as THIS viewer knows its writer — the device mark's rule. */
-  private handFor(viewer: Stuff, hand: string): string {
-    if (hand === '') return 'an unknown hand';
-    if (viewer.getIdentityPath() === hand) return 'your hand';
-    const name = MixinApi.isBeliefStore(viewer) ? viewer.knownNameOf(hand) : null;
-    return name ? `${name}'s hand` : 'a hand you do not know';
-  }
-
-  /** @hook The open page, read off its leaf as this viewer knows the hands on it. */
-  public override async refreshMarks(viewer: Stuff): Promise<void> {
+  /** @hook The open page's words, read off its leaf (the hands are `readFor`'s). */
+  public override async refreshMarks(_viewer: Stuff): Promise<void> {
     const n = this.openPage;
     const total = this.getPageCount();
     const leaf = this.ensureLeaves()[n - 1];
@@ -167,10 +196,17 @@ export default class Book extends BookBase {
       return this.setMarkText(text.trim() === '' ? '' : `Page ${n} of ${total}: ${text}`);
     }
     if (leaf.passages.length === 0) return this.setMarkText('');
-    const body = leaf.passages
-      .map((p, i) => (leaf.passages[i - 1]?.hand === p.hand ? p.text : `(in ${this.handFor(viewer, p.hand)}) ${p.text}`))
-      .join(' / ');
-    this.setMarkText(`Page ${n} of ${total}: ${body}`);
+    this.setMarkText(`Page ${n} of ${total}: ${leaf.passages.map((p) => p.text).join(' / ')}`);
+  }
+
+  /** @hook The open page as this reader reads it: each hand named as they know its writer. */
+  public override readFor(viewer: Stuff): string {
+    const shown = this.getMarkText();
+    const leaf = this.ensureLeaves()[this.openPage - 1];
+    if (shown !== this.markText || leaf === undefined || leaf.torn || leaf.boundTo !== '' || leaf.passages.length === 0) {
+      return shown;
+    }
+    return `Page ${this.openPage} of ${this.getPageCount()}: ${this.passagesFor(viewer, leaf.passages)}`;
   }
 
   /**
@@ -230,8 +266,12 @@ export default class Book extends BookBase {
     return { ok: true, line: `You write "${text}" on page ${at} of ${self.getPresentation()}.` };
   }
 
-  /** Tear page `n` out: a stub at the spine and a loose sheet carrying the leaf. */
-  public override async tear(_by: Stuff, page?: number): Promise<TearOutcome> {
+  /**
+   * ⭐ Tear page `n` out: the leaf, whole, as a loose sheet — its passages
+   * and hands, or its edition page — that says what it was torn from and is
+   * still the book's owner's paper (D46). A stub is left at the spine.
+   */
+  public override async tear(by: Stuff, page?: number): Promise<TearOutcome> {
     const self = this as unknown as Stuff;
     if (page === undefined) {
       return { ok: false, reason: 'which-page', line: `Tear which page out of ${self.getPresentation()}? (\`tear <book> page <n>\`)` };
@@ -241,21 +281,24 @@ export default class Book extends BookBase {
     const at = this.openPage;
     const leaf = this.ensureLeaves()[at - 1]!;
     if (leaf.torn) return { ok: false, reason: 'torn-out', line: `Page ${at} is already gone.` };
-    const loose = await StuffApi.clone<Sheet>(LEAF_TEMPLATE);
-    loose.torn = true;
+    const from = self.getPresentation();
+    // ⭐ Made FROM the book: the page is whoever's the book is, not the tearer's.
+    const loose = await StuffApi.clone<Sheet>(LEAF_TEMPLATE, undefined, { madeFrom: self });
+    loose.setTornFrom(from);
     loose.sized = this.sizedLeaves;
     if (leaf.boundTo !== '') {
       loose.bindTo(leaf.boundTo, leaf.page);
     } else {
-      const words = leaf.passages.map((p) => p.text).join(' / ');
-      loose.setMarkText(words);
-      loose.setWritingRoom(Math.max(0, this.roomPerPage - words.length));
+      const used = leaf.passages.reduce((n, p) => n + p.text.length + 3, 0);
+      loose.takePassages(leaf.passages, this.roomPerPage - used);
     }
     const next = [...this.leaves];
     next[at - 1] = { passages: [], boundTo: '', page: 0, torn: true };
     this.leaves = next;
-    const where = MixinApi.isContainable(self) ? self.getContainer() : null;
+    // ⭐ A page torn out is in the hand that tore it (a book chained to a
+    // counter included); with no hand to take it, it falls where the book is.
+    const where = MixinApi.isContainer(by) ? by : MixinApi.isContainable(self) ? self.getContainer() : null;
     if (where !== null && MixinApi.isContainer(where)) ContainmentApi.move(loose, where);
-    return { ok: true, line: `You tear page ${at} out of ${self.getPresentation()}.`, made: [loose as unknown as Stuff] };
+    return { ok: true, line: `You tear page ${at} out of ${from}.`, made: [loose as unknown as Stuff] };
   }
 }

@@ -132,6 +132,29 @@ describe('⭐ writing on paper (D18, D19)', () => {
     expect(a.canMergeWith(b)).toBe(false);
   });
 
+  it('⭐ a sheet is a leaf: what is written on it keeps its hand, and a reader sees it as they know the writer (D46)', () => {
+    const s = sheet();
+    const h = makeStuffAtPath(() => new Holder(), '/platform/agent/Avatar/marty');
+    ContainmentApi.move(s, h);
+    ContainmentApi.move(inkPot(), h);
+    expect(s.writeOn(h, 'meet me at noon').ok).toBe(true);
+    expect(s.getMarkText()).toBe('meet me at noon');
+    expect(s.getPassages()).toEqual([{ text: 'meet me at noon', hand: h.getIdentityPath() }]);
+    expect(s.readFor(h)).toBe('(in your hand) meet me at noon');
+    const stranger = makeStuffAtPath(() => new Holder(), '/platform/agent/Avatar/stranger');
+    expect(s.readFor(stranger)).toBe('(in a hand you do not know) meet me at noon');
+  });
+
+  it('the same words in two different hands are two different papers', () => {
+    const a = sheet();
+    const b = sheet();
+    a.takePassages([{ text: 'noon', hand: '/platform/agent/Avatar/ann' }], 10);
+    b.takePassages([{ text: 'noon', hand: '/platform/agent/Avatar/bob' }], 10);
+    expect(a.canMergeWith(b)).toBe(false);
+    b.takePassages([{ text: 'noon', hand: '/platform/agent/Avatar/ann' }], 10);
+    expect(a.canMergeWith(b)).toBe(true);
+  });
+
   it('a printed sheet takes no handwriting', () => {
     const s = sheet();
     s.bindTo('/x/editions/abc', 0);
@@ -177,5 +200,23 @@ describe('⭐ tearing (D13)', () => {
     expect(right!.getMarkText()).toBe('the second half');
     expect(left!.torn && right!.torn).toBe(true);
     expect(right!.getContainer()).toBe(h);
+  });
+
+  it('⭐ handwriting tears between its passages, each half keeping its hands — and the second half is made FROM the sheet (D46)', async () => {
+    const s = sheet();
+    const h = writer(s);
+    s.takePassages([
+      { text: 'Doc Brown', hand: '/platform/agent/Avatar/ann' },
+      { text: '1640 Riverside', hand: '/platform/agent/Avatar/bob' },
+    ], 50);
+    const clone = vi.spyOn(StuffApi, 'clone').mockImplementation(async () => sheet() as never);
+    const out = await s.tear(h);
+    expect(out.ok).toBe(true);
+    if (!out.ok) return;
+    expect(clone.mock.calls[0]?.[2]).toMatchObject({ madeFrom: s });
+    const [left, right] = out.made as Sheet[];
+    expect(left!.getPassages()).toEqual([{ text: 'Doc Brown', hand: '/platform/agent/Avatar/ann' }]);
+    expect(right!.getPassages()).toEqual([{ text: '1640 Riverside', hand: '/platform/agent/Avatar/bob' }]);
+    expect(right!.getMarkText()).toBe('1640 Riverside');
   });
 });

@@ -132,7 +132,8 @@ export default class Garment extends GarmentBase {
     const kg = MixinApi.isTangible(self) ? self.getMass().rawValue() : 0;
     const n = Math.max(1, Math.floor(kg / RAG_KG));
     const where = MixinApi.isContainable(self) ? self.getContainer() : null;
-    const rags = await StuffApi.clone<Stuff>(RAG_TEMPLATE);
+    // ⭐ Made FROM the garment: the rags are whoever's the garment was.
+    const rags = await StuffApi.clone<Stuff>(RAG_TEMPLATE, undefined, { madeFrom: self });
     if (MixinApi.isStackable(rags)) rags.setQuantity(n);
     if (where !== null && MixinApi.isContainer(where) && MixinApi.isContainable(rags)) ContainmentApi.move(rags, where);
     // The name first: a destroyed thing has none (the drive's "tear undefined").

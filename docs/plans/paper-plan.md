@@ -1073,6 +1073,33 @@ disagreed:
 The berth book's keywords stay (`book` is what a harbormaster's book is
 called; resolution prefers what is in reach).
 
+**D46 (owner, 2026-11-05) — a sheet is a leaf; a torn page is the leaf
+whole, still its owner's.** From the phone-book scene (slate § 12). Four
+pieces, the rest slated:
+1. **Title (a bug):** `Book.tear`, `Sheet.tear`'s second half and
+   `Garment`'s rags cloned with no `madeFrom`, so the chattel rule fell to
+   the next rung and the TEARER got title — tearing laundered ownership.
+   All three now pass `madeFrom`: a page torn from the diner's book is the
+   diner's, in your pocket.
+2. **A sheet is a leaf:** `Sheet.passages` (each with its hand), the same
+   record a book's leaf keeps. `Marked` gained the `Passage` type,
+   `handFor` and `passagesFor` (moved from `Book`), and the `readFor(viewer)`
+   hook — the marks as THIS reader reads them; `read` uses it. The stored
+   text stays the words alone (stack identity); `Sheet.canMergeWith` keeps
+   the same words in different hands apart (stack identity compares
+   scalars). Tearing a handwritten leaf out moves its passages whole; a
+   sheet torn in two splits between passages, each half keeping its hands.
+3. **A torn-out page says what it is:** `Sheet.tornFrom` — *It is a page
+   torn from the city directory; one edge is ragged* — and answers to
+   `page`; it lands in the hand that tore it (a chained book included). A
+   look at the book names the stubs.
+4. **A row authors a printed book:** `Book.edition` (`seed: true` →
+   `seedEdition`, mint only) binds the leaves to an edition document a pack
+   ships (`content/editions/`). The Gazette's counter has the Terminus
+   Directory, chained (`world/terminus/gazette/thing/directory.yaml`,
+   edition `/world/terminus/editions/terminus-directory`). Drive step 35
+   is the scene. `lint:census` ignores `edition` (a document path).
+
 ### W1 — the live rung, bearer paper, the register book
 *Decisions D5, D7, D8.*
 

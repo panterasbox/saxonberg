@@ -59,23 +59,34 @@ Built by the paper build (MR on `reqs/paper`, 2026-11). Packs:
 - **`Sheet`** (`platform/thing/Sheet.ts`): folds sheet → folio → quarto →
   octavo and no further; writing wants **ink in hand** and **size** (an
   unsized sheet bleeds; a set coat of a `size`-tagged material, or
-  `sized: true` on the row); soaked through it gives way (below); torn, each half keeps
-  its half of the words, bound to nothing; `markText` is stack identity.
+  `sized: true` on the row); soaked through it gives way (below); ⭐ what
+  is written on it keeps its HAND (`passages`, D46 — a sheet is a leaf);
+  torn, the halves split between passages (each keeping its hands) or down
+  the middle of printed words, bound to nothing, and the second half is the
+  sheet's owner's (made from it); `markText` is stack identity, and the
+  same words in two hands never stack.
   A mill's sheet carries its making: `color` (the vat's water), `evenness`
   (the vatman's band), `formed`, `pressed` — formed and dried unpressed it
   is `isCockled()`.
-- **`Book`** (`platform/thing/Book.ts`) — ⭐ **a book is its leaves**
-  (D44). The assembly record carries the physical set (the leaves' paper,
-  the boards, the spine); the book keeps one record per leaf (`leaves`) for
-  what that leaf carries: **passages, each with the hand that wrote it**, or
-  the edition page it was printed with. There is no document behind a
-  notebook — handwriting lives on the paper, as it does on a loose sheet.
-  Whoever holds it writes (ink in hand, sized leaves, room on the page); a
-  reader sees each hand as they know its writer (*your hand*, *Hester's
-  hand*, *a hand you do not know* — the device mark's rule). `read` /
-  `write` / `tear <book> page <n>`; tearing a page out takes the leaf's
-  words (or its edition page) into a loose `Sheet` and leaves a stub.
-  ⚠ Binding sheets into a book (`fit notebook`) is deferred.
+- **`Book`** (`platform/thing/Book.ts`) — ⭐ **a book is its leaves, and
+  a leaf is a sheet still bound** (D44, D46). The assembly record carries
+  the physical set (the leaves' paper, the boards, the spine); the book
+  keeps one record per leaf (`leaves`): **passages, each with the hand that
+  wrote it**, or the edition page it was printed with. There is no document
+  behind a notebook — handwriting lives on the paper. Whoever holds it
+  writes (ink in hand, sized leaves, room on the page); `read` names each
+  hand as the reader knows its writer (*your hand*, *Hester's hand*, *a
+  hand you do not know* — `Marked.readFor`, the device mark's rule).
+  `read` / `write` / `tear <book> page <n>`. A row authors a **printed
+  book** by naming its edition (`edition:`, seeded at mint) — the Gazette's
+  Terminus Directory. **Tearing a page out** takes the leaf whole into a
+  loose `Sheet` in the tearer's hand — its passages and hands, or its
+  edition page — that says *a page torn from …*, answers to `page`, and is
+  **still the book's owner's paper** (made from the book). A stub is left,
+  and a look at the book names the pages gone.
+  ⚠ Binding sheets into a book (`fit notebook`) is deferred; so are
+  leafing for a word (`read … for`), a compiled directory and who is
+  listed in it — the slate's § 12.
 - **`RegisterBook`**: a fixed book that holds nothing — `registerPrefix`
   names the branch it lists on each read (the Gazette's feed; a
   government's register of ships). ⭐ What a line says is the record's

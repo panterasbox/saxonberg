@@ -1,0 +1,35 @@
+# The Terminus Directory — the city's residents, trades and offices, printed
+# by the Gazette (paper D46). A FROZEN edition: what the city was the day it
+# was set. Whoever has moved since, the directory still says where they were;
+# that is what paper is. The directory on the Gazette's counter is bound to
+# it (`edition:` on its row); a page torn out carries its page away.
+#
+# ⚠ Authored, not compiled: the residence and address data do not yet say
+# who lives at which door, and a directory compiled from a player's home
+# wants that player's consent (the unlisted number) — see the paper plan's
+# deferred list.
+title: The Terminus Directory
+pages:
+  - >-
+    THE TERMINUS DIRECTORY. Residents, trades and offices of the City of
+    Terminus, compiled and printed by the Terminus Gazette. A to G.
+    CASSADY, Miren — registrar, the Infirmary.
+    CROLE, Mabley — nurse, the Infirmary.
+    GAZETTE, THE TERMINUS — printers and publishers, Mayfield Row. Hesper
+    Quill, editor.
+    GENERAL STORE, THE — groceries and sundries; Odell Marrow, keeper.
+  - >-
+    THE TERMINUS DIRECTORY. H to P.
+    HALLORAN — officer, the Counting Houses.
+    HARBOR OFFICE, THE — berths and dues; Ruth Harrow, harbormaster.
+    HARROW, Ruth — harbormaster, the Harbor Office.
+    MARROW, Odell — keeper, the General Store.
+    ORTANE, Pell — runner, the Infirmary.
+    PEMBY — clerk, the General Store.
+    PRUITT, Mr — doorman, the Counting Houses.
+  - >-
+    THE TERMINUS DIRECTORY. Q to Z.
+    QUILL, Hesper — editor, the Terminus Gazette, Mayfield Row.
+    VERROW, Aldis — physician, the Infirmary.
+    WALTER — Mayfield Row.
+    WENNA — teller, the Counting Houses.

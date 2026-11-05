@@ -241,3 +241,37 @@ plan, not discovered in review.
 | epochs | **`Epoch`** stamps on instruments + the parcel covenant | the pen, press and printer are stamped; paper is not |
 | frozen editions | — | ⭐ genuinely new (copy-on-write over a document) |
 | access by possession | — | ⭐ genuinely new |
+
+## 12. ⭐ Books after the paper build — what the phone-book scene left open **[OPEN — carried from MR !521, 2026-11-05]**
+
+The scene that tested the model: someone in a diner tears the page with an
+address on it out of the phone book and keeps it, and the book has lost it.
+The paper build made that work: a printed book's leaves are bound to an
+edition, a page torn out is the leaf whole (its edition page, or its
+handwriting with every hand), it says what it was torn from, it is in the
+tearer's hand, and it is still the book's owner's paper (plan D44–D46; the
+Gazette's city directory is the worked example). Four pieces were left:
+
+1. **Finding the page — `read <book> for <words>`.** Leafing, not a
+   lookup: the act turns pages until the words appear, at a game-time cost
+   per page turned (the abstraction law: it still costs the activity), so
+   knowing where to open — the alphabet, guide words at a page head — is
+   the skill. One verb form for every book (a name in a directory, a recipe
+   in a cookbook, a line in a ledger), probably with a starting page. Size:
+   medium — an arg form, a scan over the edition's pages, a timed act.
+   ⚠ The engine must not jump to the page (engine-must-not-do-the-player's-job).
+2. **Who is in a directory — the unlisted number (lens 4).** A directory
+   compiled from where people live publishes where a PLAYER lives. History
+   has the answer: residents are listed by default and may ask to be
+   unlisted, or players are listed only by opting in — the owner's call.
+   Today's directory is authored and lists only NPCs and businesses. A
+   compiled one also needs residence data that says who lives at which
+   door, which the address substrate (coverage localities) does not hold.
+3. **Print-and-bind** — the press prints the pages, the binder binds them
+   (`fit`, the deferred raise arm). Until then a printed book exists only
+   by a row naming its edition.
+4. **Tearing at a place on the page.** Halves split between passages (or
+   down the middle of printed text). ⭐ The owner (2026-11-05): sub-sheet
+   geometry does not matter much — in the scene the whole page is torn out,
+   not just the address — **until large-format paper or paper on rolls**
+   (a broadsheet cut down, a roll torn to length). Design it with those.

@@ -952,6 +952,9 @@ const IGNORED_PATH_FIELDS: readonly string[] = [
   // A ledger's PREFIX (paper D7) — a document-tree prefix read by
   // `DocumentApi.list`, not a row: a business's feed, a register's branch.
   'registerPrefix',
+  // A printed book's EDITION (paper D46) — a document path (`DocumentApi.pagesOf`),
+  // the frozen pages its leaves are bound to; not a row.
+  'edition',
   // Addresses resolve by AddressApi's longest-prefix walk, not by
   // template lookup.
   '_address',
