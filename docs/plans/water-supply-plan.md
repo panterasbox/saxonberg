@@ -1369,3 +1369,18 @@ it holds clear water.
   unit test's (a staged 4 mm melt → +40 L on 10 m²).
 - **Found walking it**: one `drink from butt` emptied the butt (180 L → 0).
   A source fixed in place now gives a draught (0.25 L).
+
+#### Dysentery (2026-11-04)
+
+The dose reached the gut and was absorbed exactly as written — and was
+never anything: 12 × potency 1 / 70 kg = 0.17 against a first band of 3,
+cleared at 0.01/min. The rates are now the disease's (on the row, with the
+derivation): absorptionRate 0.01/min, potency 25, clearanceRate
+0.0005/min — one draught comes on over ~20 h, peaks ≈3.7 (band 1) and runs
+about five days; three draughts reach band 2. `FouledWater.test` steps the
+body's own law over both rows. **Walked** (3-hour steps — the metabolism's
+4-game-hour far-past guard drops a longer jump for an inhabited body, by
+design): one draught at the fouled market standpipe; the gut pool drained
+12 → 0 over 21 h, the burden rose to 3.65, the affliction attached, and
+`assess` reads **"You have dysentery."** (It read "You seem dysentery." —
+a name is what a body HAS, a sign what it SEEMS; fixed.)
