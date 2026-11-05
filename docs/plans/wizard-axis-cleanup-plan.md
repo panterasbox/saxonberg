@@ -19,6 +19,15 @@ Written 2026-11-05 against master at `0f746f045` (harbors merged). The
 slate's inventory was taken 2026-09-03 and master has moved ~1,000
 commits since; **everything below was re-verified by opening the file.**
 
+**Revised the same day against the amended requirements (`edc4438d3`):**
+reading is open (no source read asks for the wizard); Tier B is the
+**Prime Minister's** (`config` loses its wizard gate); **PM ⇒ archwizard
+⇒ wizard**, derived; a wizard with no seat is the default case and
+everything here must work for one; the harness's `wizard: true` becomes
+the axis only and authority comes from a seat. The decisions that changed
+are D12, D13, D14 and the new D17–D20; the new W5 is the harness
+migration.
+
 ## Grounding
 
 ### The census, re-taken 2026-11-05, every site classified
@@ -34,9 +43,9 @@ checks. Every live check, with its verdict under the rulings:
 | 1 | `platform/cmd/author/eval.yaml` — `requiresWizard` | typing TS into `eval` | **KEEP** — authoring |
 | 2 | `cmd/shell/WriteController.ts:294` | source-tree write (`write -s`) | **FOLD** → the one predicate (D2); wizard only when the file is code |
 | 3–6 | `RmController.ts:118` · `MvController.ts:98` · `CpController.ts:103` · `MkdirController.ts:70` | source-tree file ops | **FOLD** → D2 (same per-path rule; `mkdir` of a directory is content — title only) |
-| 7–8 | `api/CmsLogic.ts:191` (`gateSourceWrite`) · `:229` (`gateRead` source) | CMS source write · CMS source browse | write **FOLD** → D2; read **KEEP, allowlisted as a W4 read** (D14) |
+| 7–8 | `api/CmsLogic.ts:191` (`gateSourceWrite`) · `:229` (`gateRead` source) | CMS source write · CMS source browse | write **FOLD** → D2; read **OPEN** to any signed-in avatar (D14) |
 | 9–10 | `api/StudioLogic.ts:203` (`gateSourceWrite`) · `:942` (scaffold → draft when not wizard) | publishing a class | both **FOLD** → D2 (a refused `.ts` target yields the draft path) |
-| 11–16 | `api/GitLogic.ts:137` (`gateSourceWrite`) · `:233` status · `:266` diff · `:285` log · `:306` publish · `:371` revert | git | `gateSourceWrite` **FOLD** → D2 (per touched file); `publish`/`revert` lose the verb-wide wizard check (the per-file fold decides); `status`/`diff`/`log` **KEEP, W4 reads** (D14) |
+| 11–16 | `api/GitLogic.ts:137` (`gateSourceWrite`) · `:233` status · `:266` diff · `:285` log · `:306` publish · `:371` revert | git | `gateSourceWrite` **FOLD** → D2 (per touched file); `publish`/`revert` lose the verb-wide wizard check (the per-file fold decides); `status`/`diff`/`log` **OPEN** to any signed-in avatar (D14) |
 | 17 | `cmd/author/reload.yaml` — `requiresWizard` | re-running code already in the tree | **REPLACE** → title over the reloaded path (D4) |
 | 18 | `cmd/author/typecheck.yaml` — `requiresWizard` | a verdict on a file, no write | **REPLACE** → same gate as `reload` (D4) |
 | 19 | `api/TemplateLogic.ts:225` (`enforceCodeFieldGate`) | a row's `class:` / `behaviors[].brain` | **DELETE** (D5) — content that names code is content |
@@ -45,15 +54,17 @@ checks. Every live check, with its verdict under the rulings:
 | 22–25 | `duncan-hall/cmd/provision.yaml` · `unprovision.yaml` · `mayfield-row/cmd/lease.yaml` · `unlease.yaml` — `requiresWizard` | who may let a building | **DELETE** the validator (D1); the seat check is already at `execute()` |
 | 26 | `api/MagicLogic.ts:2137` (`execScript`) | the command-running spell | **DELETE** the effect kind (D7) |
 | 27 | `cmd/author/practice.yaml` — `requiresWizard` | fabricating a Transcript deed | **RELOCATE** to a test-world verb (D8) |
-| 28 | `cmd/system/config.yaml` — `requiresWizard` | the operator's knob board | **KEEP** for Tier B (D12); Tier C refused inside (D11) |
+| 28 | `cmd/system/config.yaml` — `requiresWizard` | the operator's knob board | **REPLACE** → the Prime Minister's seat (D12); Tier C refused inside (D11) |
 | 29 | `cmd/system/git.yaml` · `cms.yaml` · `studio.yaml` — `requiresWizard` | verb-wide | **DELETE** the verb-level validator; the per-path fold decides (D2, D14) |
 | 30 | `cmd/system/testharness.yaml` — `requiresWizard` (+ `requiresTestWorld`) | test-world staging | **DELETE** the wizard half — staging the clock is not authoring; `testOnly` + `requiresTestWorld` stay |
 | 31 | `WikiRenderer.ts:282` (`ceilingFor` → 3) | spoiler reveal | **REPLACE** → the wiki's own capability axis (D6) |
 | 32 | `WikiRegistry.ts:800` (`satisfies` — a wizard clears every rung) | wiki edit | **DELETE** the rung; title decides (D6) |
-| 33–35 | `cmd/system/ErrorsController.ts:90` · `api/DiagnosticLogic.ts:361` · `:416` | `errors raw`, compile diagnostics, clear | **KEEP, W4 reads** (requirements § Non-goals) |
-| 36 | `services/auth/AuthRoutes.ts:184` (`response.isWizard`) | client UX hint | **KEEP, W4** (requirements § Non-goals) |
+| 33 | `api/DiagnosticLogic.ts:361` (`list` — compile rows wizard-only) | reading compile diagnostics | **OPEN** — compile rows are a read of source; the per-path arm beside it (held extents / pack maintainer) is kept, it protects authorship, not code trust (D14) |
+| 34 | `api/DiagnosticLogic.ts:416` (`clear` — wizard OR author-of-path) | **deleting** diagnostic rows — a mutation, not a read | **REPLACE** the wizard arm → title over the path (`canAtPath(subject, 'write-document', path)`), the author-of-path arm stays (D14) |
+| 35 | `cmd/system/ErrorsController.ts:90` (`errors raw`) | the server's console ring | **REPLACE** → the Prime Minister (D19): the ring is the box's console, not source, and carries other players' lines — what it protects is their privacy, not code trust |
+| 36 | `services/auth/AuthRoutes.ts:184` (`response.isWizard`) | "offer the authoring panes" | **KEEP** — it IS the axis (requirements § Non-goals, amended) |
 | 37 | `cmd/author/wizard.yaml` — `requiresArchwizard` | conferral | **KEEP** — the axis is the subject (requirements § Non-goals) |
-| 38–40 | `api/access.ts` · `api/AccessLogic.ts` · `platform/idea/AccessRegistry.ts` — the `isWizard`/`isArchwizard` definitions; `lib/command/validators/requiresWizard.ts` · `requiresArchwizard.ts` | the predicate and its validators | **KEEP** — definitions, not sites |
+| 38–40 | `api/access.ts` · `api/AccessLogic.ts` · `platform/idea/AccessRegistry.ts` — the `isWizard`/`isArchwizard` definitions; `lib/command/validators/requiresWizard.ts` · `requiresArchwizard.ts` | the predicate and its validators | **KEEP as definitions**; the definition itself changes — `isWizard = wizards ∪ isArchwizard`, `isArchwizard = archwizards ∪ the PM` (D17) |
 
 The prose sites (`Katie.ts:43`, `Walter.ts:17`, `ProvisionController.ts:22,27`,
 `Author.ts` ×6, `CodeNamingFields.ts`, `TemplateLogic.ts` ×10,
@@ -172,18 +183,68 @@ rewrites.
   The source-logical path space is `/<package>/...` under `packages/`
   (`GitLogic.toSourceLogical`), so it holds `.ts` AND every pack's
   content YAML.
-- **`AccessRegistry.isWizard` already includes a seat**: the Prime
-  Minister is a wizard derived on every check (`:269 holdsPrimeMinister`;
-  access.md § *The Prime Minister backstop*). The wire harness's founder
-  is the PM, so **the founder is always a wizard**.
+- **The PM backstop is half-built.** `AccessRegistry.isArchwizard`
+  (`:295–302`) is `archwizards ∪ holdsPrimeMinister`; `isWizard`
+  (`:262–270`) is `wizards ∪ holdsPrimeMinister` — the PM is both, but
+  **an archwizard who is not in `wizards` is not a wizard** today. D17
+  closes that: `isWizard = wizards ∪ isArchwizard`. `holdsPrimeMinister`
+  (`:328`) is `CompactApi.holdsOffice(subject, 'prime-minister')`, which
+  is the founder by default (`office_holders` sparse row absent). The wire
+  harness's founder (`boot.ts:81` sets `FOUNDER_GOOGLE_EMAIL`;
+  `TestHooks.ts:93` mints `<handle>@e2e.local`) is therefore the PM, an
+  archwizard and a wizard with no grant, and stays so under D17.
+- **What a seat confers versus what every-group gave** (the harness
+  question, grounded):
+  - `canAtPath` → `subjectIsOwnerMember` (`AccessRegistry.ts:443–455`):
+    a `group` owner is plain `GroupApi.isMember`; an `organization`
+    owner is its staff or appointing authority (`subjectHoldsOrganization`,
+    `:488`); **there is no seat backstop** — unlike
+    `CompactLogic.isCommitteeMember` (`:178`), which has the Art. XI
+    founder backstop (`isFounderImpl`). `canMutateZone` →
+    `subjectHasOwnerRole` (`:462`) is the same shape with the `'owner'`
+    role.
+  - So the PM holds exactly what `/compact/executive` holds: the platform
+    pack's roots (`/obj /cmd /domain /compact /studio /home /platform
+    /blueprints`) and the **`/world` root** (`platform/pack.yaml:41`) —
+    which **every locality's own claim beats** under nearest-parcel-wins.
+  - Every-group gave membership of **26 groups holding ~50 parcels**:
+    `terminus` (23 parcels), `duncan-hall` (4), `rejection` (3), `lounge`,
+    `hinkley-hills`, `hearts-delight` (2 each), and one each for
+    `wiki-editors`, `water`, `waponi-woo`, `transport`, `tpa`, `soul`,
+    `residence`, `newbie-wilds`, `mayfield-holdings`, `hollow-mere`,
+    `hearthworks`, `ground`, `fishing`, `energy`, `arcana` and the five
+    corpo committees. Twelve of those groups are `owner: { office:
+    prime-minister }` (the seat APPOINTS members; it is not one), five are
+    the registrar's, the rest have no owner.
+  - **Neither covers `/compact/trade`**: an organization holding 54
+    titles (`/stuff*`, every `/trade/<x>`); only its staff and the
+    Minister of Trade (founder default) hold them. That is why drive
+    comments already say *"a founder `clone` is refused for any kind whose
+    first live copy stands on ground the founder does not hold"*.
+  - `/compact/executive` (`packages/content/platform/content/compact/executive.yaml`)
+    is an `Organization` with two authored positions,
+    `communications-director` and `press-secretary`; its staff hold what
+    it holds (`subjectHoldsOrganization`), and `requiresPackInstaller`
+    already reads that as *"the PM and her staff"*.
+  - `eval` (`EvalController.ts:72–80`) runs against a parcel the giver
+    holds (`holdsAuthority` — owner-kind dispatch, self-home by rule);
+    `clone` against the kind's path. **26 of the 59 `wizard: true` files
+    stage with `eval`/`clone`/`goto`/`destruct`/`write`** (23 use
+    `--parcel`), **7 run `config` from a non-founder wizard session**
+    (`cordage:189`, `fishing:427,429,534,538`, `maritime-space:173`,
+    `paint:172`, `sugar.soak:438,439,473,481,649`, `routing:354`,
+    `nutrition-fitness` uses the founder), and 13 of the 59 are `.soak.`
+    files (the soak lane's).
 - ⚠ **The wire harness's `wizard: true` joins EVERY managed group**
   (`backend/TestHooks.ts:163–207`: *"a test character needs authority
   wherever the thing under test lives"*), so a `wizard: true` session is a
   member of `duncan-hall`, `mayfield-holdings`, `wiki-editors`, … — i.e. a
   committee member everywhere. **The harness conflates the axis with every
-  title.** Drive step 2 (*a wizard holding no seat*) cannot be driven with
-  the option as it stands (D13). `parcels: [...]` (`TestHooks.#grantParcels`,
-  a real `ParcelApi.transfer`) already stages title for a non-wizard.
+  title**, and 59 files (`packages/wire/tests` + `e2e/tests`) stand on it.
+  D13/D18/D20 unwind it. `parcels: [...]` (`TestHooks.#grantParcels`, a
+  real `ParcelApi.transfer` — ⚠ which SELLS the parcel out from under the
+  pack that claimed it, a `conflict` at its next reconcile) already stages
+  title for a non-wizard, and is the wrong tool for fifty parcels a run.
 - ⚠ **`office assign` cannot resolve an online player** — still open
   (`governance.md § Open`, `world-scan.dirty.wire.test.ts:388` warns and
   returns; `e2e/tests/helpers.ts:311` is marked INTERIM for it). The
@@ -223,7 +284,9 @@ lint script, and a wire-harness option.
 | `AppApi.tierOf(key)` · `AppApi.seatFor(key)` | two Api reads | `AppApi.setting`/`settings` (api/app.ts) | — |
 | `treasury set <row> <value>` | subcommand | `reserve set` (`ReserveController.set`) is the twin; app-settings.md § Deferred names `treasury set` as the seam | `TreasuryController` |
 | `lint:wizard-axis` (`scripts/check-wizard-axis.ts` + `scripts/wizard-axis-allowlist.txt`) | lint gate | `check-test-content.ts` + its allowlist (list-only-shrinks); `pack-roots.ts` for the pack walk | the lint roster |
-| `wizard: 'bare'` and `offices: [...]` on the test login | harness options | `parcels: [...]` (`TestHooks.#grantParcels`) is the shape | `TestAuthRoutes`, `session.ts`, e2e `helpers.ts` |
+| `requiresPrimeMinister` | validator | the third hand-written office twin after `requiresGovernor` / `requiresFinanceMinister` — governance.md § Deferred names the third copy as the signal to parameterize, which needs a schema change this build does not make (Deferred seams) | the validators dir |
+| the executive backstop in `subjectIsOwnerMember` / `subjectHasOwnerRole` + `isCommitteeMember` (D18) | a predicate arm | **generalizes** `CompactLogic.isCommitteeMember`'s founder backstop (`:178`, Art. XI) from the founder's credential to the seat that already carries code trust (access.md § *The Prime Minister backstop*) | `AccessRegistry`, `CompactLogic` |
+| `offices: [...]` and `staff: [...]` on the test login; `wizard: true` re-meant | harness options | `parcels: [...]` (`TestHooks.#grantParcels`) is the shape; the seams are `@TestOnly` (`lib/security/decorators.ts:275`) | `TestAuthRoutes`, `session.ts`, e2e `helpers.ts` |
 | `git publish --dry-run` | option | `GitLogic.publish`'s existing per-file split into `committedPaths`/`skippedPaths` | — |
 | the chronicle deed for a Tier C change | a `recordDeed` call | `PersonaMixin.recordDeed` (chronicle.md) | provenance (`recordAuthoring` — authorship, wrong concept), accountability (harm), the ledger (money only) |
 
@@ -345,28 +408,49 @@ copies; the `requiresWizard` lines on eleven views.
   `ConfigController.set` arm refuses any `C:` key with
   `controller-rejected: tier-c` naming the seat and its verb; reads and the
   listing are unchanged (the listing marks C keys with the seat).
-- **D12 — `config.yaml` keeps `requiresWizard`.** Tier B is *amendable by
-  whoever ships the code* (measurement.md § Tier B) — the knob board is the
-  code-shipper's, which is what the wizard group is. It is allowlisted with
-  that reason; it is not a new check.
-- **D13 — The harness owes two staging options.** (a) `wizard: 'bare'` on
-  the test login joins **only** the `wizards` group (today's `true`, which
-  joins every managed group, is kept for the forty drives that rely on
-  it). (b) `offices: ['minister-of-finance']` seats the minted character
-  through a `@TestOnly`-marked seam on `OfficeRegistry` (`assignForTest`,
-  the `assertTestOnly` convention; the `parcels` precedent — *a grant, not
-  a bypass*: it writes the same `office_holders` row `office assign`
-  would). The drive uses (b) because `office assign` is defective; the
-  drive still TRIES the verb first and records the outcome.
-- **D14 — Source READS keep their wizard check this build**, allowlisted
-  as the W4 tail with `errors raw`: `GitLogic.status/diff/log`,
-  `CmsLogic.gateRead('source')`. The requirements' non-goal names *"the
-  reads and reveals"* as a follow-on, and these are reads. The verb-level
-  `requiresWizard` on `git.yaml`, `cms.yaml`, `studio.yaml` comes off so a
-  content developer reaches `git publish` and the CMS content backend;
-  a non-wizard's `git status` is refused by the logic until W4. ⚠ Flagged
-  for the owner: this leaves a content developer able to publish but not
-  to see status.
+- **D12 — `config` is the Prime Minister's (REVERSED 2026-11-05).**
+  Setting an ordinary key is not authoring TypeScript. `config.yaml`
+  drops `requiresWizard` and takes a new `requiresPrimeMinister` validator
+  (`CompactApi.holdsOffice(giver, 'prime-minister')`, the
+  `requiresGovernor` shape; refusal: *"you must hold the Prime Minister's
+  office to `config` the world's settings"*). A seatless wizard is refused
+  naming the PM; the founder (PM by default) is unchanged. No new office
+  is minted. ⚠ This is the **third** hand-written office validator — the
+  parameterization signal governance.md deferred is now met (Deferred
+  seams).
+- **D13 — The harness tells the truth (REVISED 2026-11-05).**
+  `wizard: true` on the test login joins **only** the `wizards` group —
+  the axis and nothing else; the every-managed-group loop in
+  `TestHooks.provisionCharacter` is deleted, not kept behind another
+  flag. Authority comes from a seat, through two options that write the
+  same rows the verbs would (the `parcels` precedent — *a grant, not a
+  bypass*): `offices: ['prime-minister' | 'minister-of-finance' | …]`
+  seats the minted character through a `@TestOnly` seam on
+  `OfficeRegistry` (`assignForTest`; needed while `office assign` is
+  defective — the drive still TRIES the verb first and logs the outcome);
+  `staff: ['/compact/executive']` gives it a non-exited position on the
+  named organization's chart through a `@TestOnly` seam beside
+  `EmploymentApi`'s appoint path (needed because an office has ONE holder
+  and a drive opens several sessions that need the realm — the executive's
+  staff hold what the executive holds, D18). Both options are validated at
+  the route (an unknown office or a path that is not an organization is a
+  400 naming it).
+- **D14 — Reading is open (REVERSED 2026-11-05).** No read asks for the
+  wizard: `GitLogic.status/diff/log` and `CmsLogic.gateRead('source')`
+  admit any signed-in avatar (a null actor still fails closed; the CMS
+  source backend is already sandboxed to the mud root by `sourceAbs`, so
+  no secret is reachable); `DiagnosticLogic.list` drops the compile-rows
+  wizard arm (compile diagnostics are a read of source) and **keeps** the
+  per-path arm beside it — a row under an extent you hold or a pack you
+  maintain — because that arm protects authorship, not code trust.
+  Two sites in the "reads" list are not reads and keep a gate for a
+  reason other than code trust, stated: `DiagnosticLogic.clear` DELETES
+  rows → its wizard arm becomes title over the path
+  (`canAtPath(subject, 'write-document', path)`), the author-of-path arm
+  stays; `errors raw` is D19. The verb-level `requiresWizard` on
+  `git.yaml`, `cms.yaml`, `studio.yaml` comes off. The client's
+  `response.isWizard` stays — it means *offer the authoring panes*, which
+  is the axis.
 - **D15 — `isAgentOf` is deleted**, not re-decided: zero callers.
 - **D16 — The drive never pushes.** `git publish` commits to and pushes
   the server's real checkout; the drive proves the gate through
@@ -374,6 +458,47 @@ copies; the `requiresWizard` lines on eleven views.
   without staging, committing or pushing) and the unit tests prove the
   commit path. The drive file is `.dirty.` because step 4 writes a real
   `.ts` into the source tree (and removes it).
+- **D17 — PM ⇒ archwizard ⇒ wizard, derived.** `AccessRegistry.isWizard`
+  becomes `wizards ∪ isArchwizard`; `isArchwizard` stays
+  `archwizards ∪ holdsPrimeMinister` (already shipped). The only behavior
+  change in production: an archwizard who was never added to `wizards`
+  can now author (before, it could confer the axis it did not hold). The
+  founder default is untouched (founder = PM = both). `requiresArchwizard`
+  on `wizard grant/revoke` is untouched — the PM already passed it. This is
+  the allowlist's `definition` row changing shape, not a new axis site;
+  `AccessLogic`/`access.ts` forwarders are unchanged. access.md § *The
+  Prime Minister backstop* gains the sentence.
+- **D18 — The executive is the title backstop, the way the founder is
+  every committee's member (⚠ needs the owner's eye — it changes
+  production authority).** `subjectIsOwnerMember` and
+  `subjectHasOwnerRole` answer **true for anyone who holds
+  `/compact/executive`** (the PM, or a non-exited position on its chart —
+  `subjectHoldsOrganization`, the predicate that already exists), before
+  the owner-kind dispatch; and `CompactLogic.isCommitteeMember`'s
+  `isFounderImpl` backstop (`:178`) becomes the **same executive
+  predicate**, so there is ONE Art. XI backstop and it is seat-keyed: hand
+  the PM on and every default authority moves with it, in one act. Nearest-
+  parcel-wins still decides among everyone else. Consequence in the world:
+  the Prime Minister (and her staff) can clone, eval, write and let in any
+  locality — the pool-of-one of Art. XI stated as the seat rather than the
+  credential, which is the direction access.md already took for code
+  trust. Without it, the PM holds only the executive's own extents and the
+  harness migration (D20) would need per-session `parcels:` transfers
+  (side-effecting, fifty parcels a run) — the costlier honest path, listed
+  under Risks as the alternative if the owner refuses the backstop.
+- **D19 — `errors raw` is the Prime Minister's.** The console ring is the
+  box's stdout, not source: it carries other players' command lines and
+  errors naming them. Reading it is open of code trust but not of
+  privacy, so the gate moves from the wizard to the executive
+  (`holdsOffice(actor, 'prime-minister')` in `ErrorsController.raw`, the
+  reason `pm-only`). Stated as the one read that keeps a gate, and why.
+- **D20 — The harness migration is its own wave (W5).** 59 files set
+  `wizard: true` meaning *every group*; after D13 it means the axis.
+  Sessions that stage (`eval --parcel`, `clone`, `goto`, `destruct`,
+  `write`) add `staff: ['/compact/executive']` (the executive backstop
+  makes that the realm); the founder session needs nothing (PM by default);
+  the seven files whose non-founder wizard session runs `config` move
+  that line to the founder (D12). Sized under W5.
 
 ## ⭐⭐ Host placement
 
@@ -385,7 +510,9 @@ copies; the `requiresWizard` lines on eleven views.
 | `treasury set` | `TreasuryController` (the Minister's verb) | the verb that spends also tunes the fisc's dials — app-settings.md § Deferred's own argument |
 | the Tier C deed | the officer's `PersonaMixin` (`recordDeed`) | **every player** composes Persona; a deed is a thing a character did — true of every host; nothing is claimed for NPCs (an NPC never holds an office) |
 | `'reload'` | `TreeAction` | a title action; nothing hosts it |
-| `wizard: 'bare'` · `offices` | `TestHooks` / `TestAuthRoutes` / wire `session.ts` / e2e `helpers.ts` | test-mode only (`#assertTestMode`) |
+| `requiresPrimeMinister` | `lib/command/validators/` | a verb-level, giver-only check — the sanctioned home (access.md § *Where the gate lives*) |
+| the executive backstop | `AccessRegistry.subjectIsOwnerMember` / `subjectHasOwnerRole`, `CompactLogic.isCommitteeMember` | the access face and the committee predicate are the ONLY places title membership is answered; one backstop, consulted before the owner-kind dispatch, claims nothing about any host |
+| `wizard: true` (axis only) · `offices` · `staff` | `TestHooks` / `TestAuthRoutes` / wire `session.ts` / e2e `helpers.ts` | test-mode only (`#assertTestMode`) |
 
 No mixin is added and no class is widened, so the two P2 tests (a guard
 that re-narrows; an honest "no" on most hosts) have nothing to catch.
@@ -467,8 +594,8 @@ changes behavior (census, then ratchet).
 - `packages/server/scripts/wizard-axis-allowlist.txt` — one line per
   file: `<repo-relative path>  <count>  <reason>`, reasons from a closed
   set: `axis` (authoring TS) · `subject` (conferral) · `definition` ·
-  `tier-b` (D12) · `w4-read` · `prose` · `sweep` (a site W1–W3 will
-  remove). **The list only shrinks**: a file not listed → error; a listed
+  `ux` (the client's authoring-panes flag, `AuthRoutes`) · `prose` ·
+  `sweep` (a site W1–W3 will remove). **The list only shrinks**: a file not listed → error; a listed
   file whose count rose → error; a listed file whose count fell or that
   no longer exists → *stale*, also an error (the `check-test-content`
   rule, so a deletion is recorded).
@@ -536,10 +663,16 @@ Implements D2, D3, D4, D5, D6, D14.
   `StudioLogic.gateSourceWrite` + the scaffold draft arm (`:942` → *a
   refused target yields the draft path*), `GitLogic.gateSourceWrite`;
   `GitLogic.publish`/`revert` drop their leading `isWizard` (the per-file
-  loop decides; `publish` reports what it skipped, as today); `status`/
-  `diff`/`log` and `CmsLogic.gateRead('source')` keep theirs with a
-  `W4 read` comment (D14). Remove the verb-level `requiresWizard` from
-  `git.yaml`, `cms.yaml`, `studio.yaml`; rewrite their help.
+  loop decides; `publish` reports what it skipped, as today). **Reads open
+  (D14):** `GitLogic.status/diff/log` and `CmsLogic.gateRead('source')`
+  drop `isWizard` and keep only the null-actor fail-closed;
+  `DiagnosticLogic.list` drops its compile-rows wizard arm (the per-path
+  arm stays); `DiagnosticLogic.clear`'s wizard arm → `canAtPath(subject,
+  'write-document', path)`; `ErrorsController.raw` → the PM (D19). Remove
+  the verb-level `requiresWizard` from `git.yaml`, `cms.yaml`,
+  `studio.yaml`; rewrite their help (*"Wizard-only — it version-controls
+  engine TypeScript"* → *publishing a `.ts` asks for the wizard; reading
+  and publishing content ask for title*).
 - `reload`/`typecheck` (D4): remove `requiresWizard` from both views; in
   `ReloadController.execute` (and `TypecheckController`, which shares
   `resolveTarget`) gate `AccessApi.canAtPath(giver, 'reload', path)` on
@@ -568,11 +701,14 @@ Implements D2, D3, D4, D5, D6, D14.
   code-trust lockdown* and § *Verb-controller gates*; `hot-reload.md`,
   `cms.md`, `studio.md`, `git-workflow.md`, `shell-author.md`,
   `document-store.md`, `templates.md`, `wiki.md § The capability ladder`.
-- Shrink the allowlist to: `eval.yaml` (axis), `config.yaml` (tier-b),
-  `wizard.yaml` (subject), the definitions, `AccessLogic` (the one
-  predicate), `GitLogic` ×3 / `CmsLogic` ×1 / `DiagnosticLogic` ×2 /
-  `ErrorsController` ×1 / `AuthRoutes` ×1 (w4-read), and the prose rows
-  that remain.
+- Apply D17 in `AccessRegistry.isWizard` (`wizards ∪ isArchwizard`) with
+  its unit case in `platform/__tests__/AccessRegistry.test.ts` (an
+  archwizard not in `wizards` is a wizard; a PM is both; a plain wizard is
+  neither archwizard nor seated).
+- Shrink the allowlist to: `eval.yaml` (axis), `wizard.yaml` (subject),
+  the definitions (`access.ts`, `AccessLogic.ts`, `AccessRegistry.ts`, the
+  two validators), `AccessLogic` (the one write predicate), `AuthRoutes`
+  (ux), and the prose rows that remain. No `config`, no reads.
 
 Acceptance: `GitLogic.test.ts`, `StudioLogic.test.ts`, `cms.test.ts`,
 `CmsRoutes.test.ts`, `release-transport.test.ts`,
@@ -590,9 +726,15 @@ Implements D9, D10, D11, D12.
   key; the C rows of D10); `lib/config/__tests__/AppSettings.test.ts`
   totality + seat validity.
 - `AppApi.tierOf` / `seatFor` (→ `AppLogic`).
+- `config` is the PM's (D12): `lib/command/validators/requiresPrimeMinister.ts`
+  (the `requiresGovernor` shape, with its `__tests__` twin of
+  `requiresGovernor.test.ts`); `config.yaml` swaps `requiresWizard` for it
+  and its help says *the Prime Minister's knob board*; `Author.ts`'s
+  comment block on `config` (`:127–135`) rewritten.
 - `ConfigController`: `set` refuses a `C:` key (`controller-rejected:
   tier-c`, naming seat + verb); `list` marks C keys with the seat;
-  `ConfigController.test.ts` gains both cases.
+  `ConfigController.test.ts` gains both cases plus *a seatless wizard is
+  refused naming the PM*.
 - `ReserveController.set`: admits `reserve.*` OR `seatFor(row) ===
   'central-bank-governor'`; refuses otherwise with `wrong-seat` (the
   `not-a-reserve-row` reason is retired — `economic-bootstrap.dirty:259`
@@ -619,11 +761,25 @@ to a seat and lands in the chronicle`.
 
 Implements D13, D16; writes and runs the blocking drive.
 
-- `TestHooks.provisionCharacter`: `wizard: boolean | 'bare'` (`'bare'`
-  joins `wizards` only); `offices: readonly OfficeKey[]` →
-  `OfficeRegistry.assignForTest` (`@TestOnly`, `#assertTestMode`);
-  `TestAuthRoutes` body parsing; `packages/wire/src/harness/session.ts`
-  `SessionOptions`; `e2e/tests/helpers.ts` `mintSession`.
+- `TestHooks.provisionCharacter` (D13): `wizard: true` joins **only**
+  `wizards` — the every-`Group.find({})` loop is deleted and the header
+  comment rewritten; `offices: readonly string[]` →
+  `OfficeRegistry.assignForTest` (`@TestOnly`, `#assertTestMode`, each
+  key checked by `Office.byKey`); `staff: readonly string[]` → a
+  `@TestOnly` seam beside the appoint path that writes a non-exited
+  position row for the character on the named organization's chart (the
+  executive's `press-secretary`, authored in
+  `platform/content/compact/executive.yaml`; ⚠ the build checks the
+  position's cardinality — if one holder, the seam appoints into a
+  test-only position the seam adds to the chart, named `test-clerk`,
+  never shipped content); `TestAuthRoutes` body parsing + 400s;
+  `packages/wire/src/harness/session.ts` `SessionOptions`;
+  `e2e/tests/helpers.ts` `mintSession` (its `wizard` doc comment already
+  says *"the code-trust axis"* — now true).
+- The executive backstop (D18) in `AccessRegistry.subjectIsOwnerMember` /
+  `subjectHasOwnerRole` and `CompactLogic.isCommitteeMember`, with unit
+  cases: the PM holds a group-held parcel she is not a member of; executive
+  staff do; a seatless wizard does not; handing the PM off moves it.
 - `GitLogic.publish(message, { dryRun })` + `git publish --dry-run`
   (`git.yaml` option, `GitController`).
 - `packages/wire/tests/wizard-axis.dirty.wire.test.ts` — the drive
@@ -631,8 +787,59 @@ Implements D13, D16; writes and runs the blocking drive.
   this plan.
 - `docs/testing.md` gains the two options beside `parcels`.
 
-Acceptance: the drive 12/12; every checkpoint made to fail once (B2).
-Commit: `drive(wizard-axis): the blocking drive, 12/12`.
+Acceptance: the drive 15/15; every checkpoint made to fail once (B2).
+Commit: `drive(wizard-axis): the blocking drive, 15/15`.
+
+### W5 — The harness migration: 59 files stop standing on every-group
+
+Implements D20. Its own wave because its proof is a drive run per file,
+and that is the build's wall time, not its diff.
+
+**The size, honestly.** 59 files (46 in the blocking lanes `wire` /
+`wire:dirty`, 13 `.soak.` for the soak lane; 6 of the 59 are `e2e/tests`
+specs). The textual change per file is one or two session-option edits;
+the proof is running the file. Per file:
+
+1. Every `Session.open(…, { wizard: true })` / `mintSession({ wizard: true })`
+   whose session **stages** — `eval` (30 files), `--parcel` (23), `clone`
+   (28), `goto` (5), `destruct` (2), `teleport` (2), `write -c` (1),
+   `broadcast` (3), `title` (21), `pack` (12) — gains
+   `staff: ['/compact/executive']`. Under D18 that is the realm, the same
+   reach every-group gave and more (it also covers `/compact/trade`'s 54
+   titles, which every-group never did — a drive that worked around *"a
+   founder clone is refused…"* may lose its workaround; leave the
+   workaround, note it).
+2. A session that only **plays** (combat, cooking, carrying) keeps
+   `wizard: true` only if it `eval`s or `practice`s; otherwise the option
+   comes off — a plain player is the honest body.
+3. The **7 files whose non-founder wizard session runs `config`**
+   (`cordage.dirty:189`, `fishing.dirty:427,429,534,538`,
+   `maritime-space.dirty:173`, `paint.dirty:172`, `routing:354`,
+   `sugar.soak.dirty:438,439,473,481,649` — and `nutrition-fitness`, which
+   already uses the founder) move that line to the founder session (the
+   PM by default), or to a session opened `offices: ['prime-minister']`
+   when the founder is not in the file. ⚠ Two sessions cannot both be PM:
+   an office has one holder.
+4. `e2e/tests/helpers.ts`'s `openWorldAsFounder` is unchanged (the
+   founder is the PM); its INTERIM note about `seatAsGovernor` gets the
+   `offices:` option it was waiting for.
+5. Run the file. A failure is a finding: either a staging act the
+   executive genuinely should not reach (then say which and why — none is
+   expected under D18) or a drive that relied on a **group ROLE** every-
+   group never gave either (an `'owner'` role — `canMutateZone` — is
+   covered by the backstop too).
+
+The 46 blocking-lane files are run by the build in W5 (the wire suite's
+per-file cost, roughly 1–6 minutes each in a standing world; the whole
+lane is `pnpm wire:dirty`); the 13 soak files are **edited, typechecked,
+and named for the soak lane** — never run before merge (§ *No merge waits
+on the clock*).
+
+Acceptance: `grep -rn 'wizard: true' packages/wire/tests e2e/tests` finds
+only sessions that author or stage; `pnpm wire:dirty` green; the soak
+files typecheck (`pnpm -C packages/wire typecheck`).
+Commit: `build(wizard-axis W5): the harness confers the axis; authority is
+a seat — 59 drives migrated`.
 
 ## Reachability wiring
 
@@ -645,7 +852,9 @@ Commit: `drive(wizard-axis): the blocking drive, 12/12`.
 | the deed | `chronicle` (existing) reads it | — | `chronicles` row | owner-scoped find | — |
 | `practice` in a test world | `practice` | `AuthorMixin` — ⚠ the path in `Author.ts` MUST change with the move or the verb is dead silently | — | `admitsView` | `discipline` required |
 | the gate | `pnpm lint:wizard-axis` | `lint:family` derives it | the allowlist file | — | — |
-| the harness options | `/auth/test-login` body | wire `Session.open` / e2e `mintSession` | — | — | `offices[]` validated against `OFFICE_APPARATUS` keys, else 400 |
+| `config` as the PM | `config` (existing) | `AuthorMixin` (every player) | `office_holders` (sparse; founder default) | `holdsOffice` at the act | `requiresPrimeMinister` (verb-level) |
+| open reads | `git status/diff/log`, the CMS source browse, `errors` (compile rows) | `AuthorMixin` affords `git.yaml`/`errors.yaml`; the CMS launcher | — | — | none — a null actor fails closed |
+| the harness options | `/auth/test-login` body | wire `Session.open` / e2e `mintSession` | `office_holders` · the organization's position rows | — | `offices[]` checked by `Office.byKey`, `staff[]` must name an `Organization` row, else 400 naming it |
 
 ## Acceptance-criteria coverage
 
@@ -653,7 +862,8 @@ Commit: `drive(wizard-axis): the blocking drive, 12/12`.
 |---|---|
 | a seat holder can do the act; a wizard without the seat cannot | W1 (+ W4 drive 1–3) |
 | the sales tax from `config` is refused and says where it belongs; from the office it works and lands in the record | W3 (+ drive 7–8) |
-| every physics setting behaves as before | W3 (`B` rows change nothing; drive 6) |
+| every physics setting behaves as before, and is set by the Prime Minister rather than by a wizard | W3 (`B` rows change nothing; `requiresPrimeMinister`; drive 6, 6b) |
+| a wizard with no seat can author TypeScript and read anything, and can do nothing that needs authority; the PM is a wizard and an archwizard without being granted either | W2 (D14, D17; drive 2, 4, 4b, 5, 6b) + W4 (D13 — the harness can open one) |
 | the command-running spell appears in no listing | W1 (drive 9) |
 | the transcript-fabricating verb is absent from a production world | W1 (`testOnly`; drive 11 runs the loader's admission check through `help practice` in the wire world, and the unit test asserts `admitsView` is false outside a test world) |
 | a wizard reading spoiler-tagged material sees what a non-wizard sees | W2 (drive 10) |
@@ -679,7 +889,8 @@ is untouched (it guards the `developers` rename).
 run once at code-complete alongside review and once at `/finalize`;
 **no span step, no soak twin**. Sessions: `katie`-side acts are driven by
 the Katie dialogue (`talk katie` → the move-in branch, which `dispatch`es
-`provision`); the wizard-with-no-seat is `Session.open(h, { wizard: 'bare' })`;
+`provision`); the wizard-with-no-seat is `Session.open(h, { wizard: true })` (the axis
+only, after D13);
 the title-holding non-wizard is `Session.open(h, { parcels: ['/world/terminus/eternal/duncan-hall'] })`;
 the Minister and the Governor are two non-founder sessions opened with
 `offices: ['minister-of-finance']` / `offices: ['central-bank-governor']`
@@ -688,23 +899,27 @@ the Minister and the Governor are two non-founder sessions opened with
 | step | what | pace | assertion |
 |---|---|---|---|
 | 1 | a new player talks to Katie and is moved in (the seat, exercised, not bypassed) | instant | `status: ok`, the unit's door reachable (`look` names the unit) |
-| 2 | a `'bare'` wizard runs `provision <player>` by Katie's desk | instant | `controller-rejected: not-authorized`, prose names the college's staff or the committee |
+| 2 | a seatless wizard runs `provision <player>` by Katie's desk | instant | `controller-rejected: not-authorized`, prose names the college's staff or the committee |
 | 3 | 1–2 again at Seznick House via Walter / `lease` | instant | as above, the agency named |
-| 4 | the `'bare'` wizard with `parcels: ['/platform']`-equivalent title (the founder, who is the PM, holds `/platform`) writes `/platform/thing/WizardAxisProbe.ts` (`write -s`) and `git publish --dry-run -m probe`; a non-wizard holding title over the same path does both | instant | wizard: write ok, dry-run lists the file as committable; non-wizard: `access-denied` on the write, dry-run lists nothing committable; the probe file is removed in `finally` |
-| 5 | the non-wizard with title over `/world/terminus/eternal/duncan-hall` writes a row there (`write -c`), `reload`s it, `git publish --dry-run`s its YAML; a `'bare'` wizard with no title writes a row there | instant | three oks; the wizard is refused `access-denied` |
+| 4 | the seatless wizard with `parcels: ['/platform']`-equivalent title (the founder, who is the PM, holds `/platform`) writes `/platform/thing/WizardAxisProbe.ts` (`write -s`) and `git publish --dry-run -m probe`; a non-wizard holding title over the same path does both | instant | wizard: write ok, dry-run lists the file as committable; non-wizard: `access-denied` on the write, dry-run lists nothing committable; the probe file is removed in `finally` |
+| 4b | the seatless wizard, holding nothing, runs `git status`, `git log --limit 3`, `cat`s a kernel `.ts` through the workspace source tree, and `errors --source compile`; a plain player does the same | instant | all ok for both (reading is open); `errors raw` from either is refused `pm-only`; from the founder it answers |
+| 5 | the non-wizard with title over `/world/terminus/eternal/duncan-hall` writes a row there (`write -c`), `reload`s it, `git publish --dry-run`s its YAML; a seatless wizard with no title writes a row there | instant | three oks; the wizard is refused `access-denied` |
 | 6 | the founder reads and sets `combat.poise.openingTicks` with `config` and sets it back | instant | both ok, value round-trips |
+| 6b | the seatless wizard `config combat.poise.openingTicks 3`; a session opened `offices: ['prime-minister']` (the founder vacated first, so the seat moves) does the same, then the seat is handed back | **staged** | the wizard is refused naming the Prime Minister; the PM's set works; the founder, now seatless, is refused in turn (D18's "moves with the seat") |
 | 7 | the founder (a wizard) `config banking.salesTaxRate 0.1` | instant | `controller-rejected: tier-c`, prose names *Minister of Finance* and `treasury set` |
 | 8 | the Minister `treasury set banking.salesTaxRate 0.1`; the Governor `reserve set banking.withdrawalDailyCap 600`; the Governor `treasury set banking.salesTaxRate 0.08`; the Minister `reserve set banking.withdrawalDailyCap 500` | **staged** (the seats are staged through `offices`) | two oks whose `config banking.salesTaxRate` read-back (as the founder) shows the value; each officer's `chronicle` shows the deed; two `wrong-seat` refusals naming the other seat |
 | 8b | the world restarts (R4) and the founder reads both values back; the Minister's `chronicle` still shows the deed | staged | values and deed survive |
 | 9 | `cast script …` / `spells` listing | instant | no such spell; the listing contains no `script` |
-| 10 | a `'bare'` wizard and a plain player read a wiki page whose test namespace carries `<spoiler level="3">` material (seeded by the drive under a `parcels`-held wiki namespace) | instant | both renders omit the fragment (never on the wire); the root-zone owner sees it |
+| 10 | a seatless wizard and a plain player read a wiki page whose test namespace carries `<spoiler level="3">` material (seeded by the drive under a `parcels`-held wiki namespace) | instant | both renders omit the fragment (never on the wire); the root-zone owner sees it |
 | 11 | `help practice` and `practice carpentry hard success` in the wire world | instant | both ok (a test world admits it); the unit test carries the production half |
 | 12 | `pnpm lint:wizard-axis` against a tree with one injected site | instant (a shell step in the test, not a verb) | non-zero exit naming the file |
 
 ⭐ **B2 — every checkpoint is made to fail once** before the record is
 written: step 2 by restoring the deleted `isAgentOf` short-circuit in a
-scratch edit, step 7 by tagging the key `B`, step 10 by restoring the
-wizard rung, step 12 by removing the injected site. The record notes each.
+scratch edit, step 4b by restoring one git read's wizard check, step 6b
+by restoring `requiresWizard` on `config.yaml`, step 7 by tagging the key
+`B`, step 10 by restoring the wizard rung, step 12 by removing the
+injected site. The record notes each.
 
 **Existing drives that break, each a finding the build fixes:**
 
@@ -718,15 +933,20 @@ wizard rung, step 12 by removing the injected site. The record notes each.
    be refused on the axis → refused on title (the player holds nothing
    under `/platform`); the founder's `reload`/`typecheck` lines pass
    because the PM holds `/platform`.
-4. The `practice` drives (~20 files): **no change** — the verb is admitted
-   in a test world and no longer asks for the axis. Verified by running
-   `instrumentation.dirty.wire` in W1.
+4. The `practice` drives (~20 files): **no change from W1** — the verb is
+   admitted in a test world and no longer asks for the axis. Verified by
+   running `instrumentation.dirty.wire` in W1.
 5. `e2e/tests/residences.spec.ts:229` (`lease founder` as the founder):
-   **no change** — the founder is every committee's member by the Art. XI
-   backstop. Noted so nobody re-adds a wizard to make it pass.
-6. ⚠ The harness itself: `wizard: true` = every managed group (TestHooks)
-   is the axis-as-title conflation in the tooling. Not changed this build
-   (forty drives stand on it); recorded as a deferred seam.
+   **no change** — the founder is the PM, and the PM is every committee's
+   member by the backstop (D18; it was the founder's credential before).
+   Noted so nobody re-adds a wizard to make it pass.
+6. ⚠⚠ **All 59 `wizard: true` files** (W5, D20): after D13 a wizard
+   session holds no title, so every staging act in them (`eval --parcel`,
+   `clone`, `goto`, `destruct`, `write -c`, `broadcast`, `title`, `pack`)
+   fails until the session gains `staff: ['/compact/executive']`. The
+   7 files whose non-founder wizard runs `config` also fail on D12 until
+   that line moves to the founder/PM. Each is fixed in W5 and proved by
+   running the file (soak files: edited and typechecked only).
 
 **Gates:** the family, as listed under Convention conformance. `pnpm test`
 twice only: at code-complete and at `/finalize`; between, `test:near` +
@@ -746,18 +966,43 @@ vitest + the family.
   "the reserve's mandate" — tagging them C would break `config
   reserve.defaultHorizonGameDays` in `economic-bootstrap.dirty` (fixable
   by `reserve set`). The build follows the plan unless told.
-- ⚠ **D5 reverses two shipped gates, and one of them was defended on a
-  ground the ruling does not address.** access.md § *The code-trust
-  lockdown* already records the `class` arm as wrong. The `brain` arm was
-  kept there *"under a different name"* — autonomy and shared-world
-  resource, not provenance (*"data the engine runs BY ITSELF, on a timer,
-  with no player act"*). The ruling says `brain:` is content, so it goes;
-  what still bounds a brain is the module category (only a brain module
-  exports `brain`; `CmsLogic.validateBehaviorPaths` refuses an
-  unresolvable one) and `lint:idle-cadence` on the resource half. The
-  content-generation slate's premise (*a generator may create things and
-  may never change what a thing IS*) loses its mechanism; its budget
-  (title = extent) is untouched. **Review-attention item.**
+- **D5 is confirmed by the owner** (*"putting a brain on your NPC is a
+  content choice not coding"*) — no review flag. For the record: what
+  still bounds a brain is the module category (only a brain module exports
+  `brain`; `CmsLogic.validateBehaviorPaths` refuses an unresolvable one)
+  and `lint:idle-cadence` on the resource half; the content-generation
+  slate's *"may never change what a thing IS"* loses its mechanism while
+  its budget (title = extent) stands — the build leaves that slate a
+  one-line note.
+- ⚠⚠ **D18 changes production authority, not only the harness.** Today
+  the PM holds the executive's extents and nothing a locality's group
+  holds; after D18 the PM and the executive's staff hold every title and
+  sit on every committee by default, derived from the seat. It is the Art.
+  XI pool-of-one stated as the seat (the direction access.md took for code
+  trust), it moves in one act with `office handoff prime-minister`, and it
+  replaces a founder-credential backstop that already said the same of
+  committees. The owner suggested the shape; the plan applies it. **The
+  alternative if refused:** no backstop; W5 stages title per session with
+  `parcels: [...]` (an exact extent each, `ParcelApi.transfer`, a `conflict`
+  at the pack's next reconcile) — fifty parcels a run across 59 files, and
+  `/compact/trade`'s 54 titles still unreachable. Costlier and
+  side-effecting; honest.
+- ⚠ **D19 keeps one gate on a "read"** — `errors raw` is the Prime
+  Minister's because the console ring carries other players' lines. If
+  the owner reads the ruling as "the ring is open too", the gate comes off
+  with a one-line change and the drive's 4b assertion flips.
+- ⚠ **The executive's positions may be single-holder.** The `staff:`
+  option needs a position several test characters can hold at once;
+  `executive.yaml` authors `communications-director` and
+  `press-secretary` (personal staff). If `Organization` positions are
+  one-holder, the seam appoints into a `test-clerk` position it adds to
+  the chart under `#assertTestMode` — never authored content. The build
+  reads `lib/employment/` before W4 and records which.
+- **`appoint`'s target scope is `["reachable", "online"]`** — the same
+  `online` binding `office assign` fails on, so the `staff:` seam is also
+  how W5 avoids a second instance of that defect; if the build finds the
+  defect small, fixing it retires both seams' reason to exist (not their
+  use — staging stays faster than dialogue).
 - **Did anything depend on the deleted gates?** Checked: the sandbox's
   safety does not (*"never depends on trusting the actor"*, sandbox.md:41;
   `HotReloadApi` has its own circle guard); call-security does not (the
@@ -778,10 +1023,6 @@ vitest + the family.
   (D13). If the build finds the `online`-scope defect is small, fixing it
   is in scope as a finding; if not, it stays the governance doc's open and
   the staged twin is the proof.
-- **D14 leaves a wart**: a content developer may `git publish` but not
-  `git status`. The W4 tail (reads) is where it is fixed; the owner may
-  prefer to fold the three git reads and the CMS source browse now — a
-  one-line change each.
 - **`lint:closed-vocabularies`** may count `SettingTier`; the gate's
   declared set is the escape — no ceiling rise.
 - **Sibling merges**: `reqs/water-supply` adds settings keys (the tier
@@ -795,21 +1036,26 @@ vitest + the family.
 
 ## Deferred seams
 
-- **W4 reads and reveals** → the slate's W4 stays open
-  (`wizard-axis-cleanup-slate.md`): `errors raw`, compile diagnostics,
-  `git status/diff/log`, CMS source browse, the client's `isWizard` flag
-  (`StartScreen.tsx`, `AccountMenu.tsx`, `CmsGitPanel.tsx`, `studioSlice.ts`,
-  …). The allowlist's `w4-read` rows are the inventory.
-- **The harness's `wizard: true` = every group** → a line in
-  `docs/slates/tails/soak-lane-slate.md` (the harness is its subject): the
-  option should become `groups: 'all'` with `wizard` meaning the axis only,
-  when the forty drives can be re-pointed.
+- **Spoilers in code** → the slate's W4 (`wizard-axis-cleanup-slate.md`,
+  rewritten 2026-11-05): reading source is open after this build, so
+  source that would spoil the game — a puzzle's answer in a controller, a
+  secret in a row — needs the wiki's two-axis reveal model (capability
+  deletes, appetite tags) extended to code. Nothing in this build hides
+  source; the attach point is `CmsLogic.gateRead('source')` and the
+  workspace read verbs, which today answer any signed-in avatar.
+- **A parameterized `requiresOffice(<key>)` validator** — the third
+  hand-written twin (`requiresPrimeMinister`, after `requiresGovernor` and
+  `requiresFinanceMinister`) is governance.md's own signal to parameterize;
+  what it needs is a schema change so a view's `validators:` entry can
+  carry the office key. Not this build; the three twins are the inventory.
+- **The harness after D13** — the every-group mode is gone, not
+  deferred. What remains for the soak-lane slate: the `offices:`/`staff:`
+  seams exist because `office assign` and `appoint` cannot bind an online
+  player; when that defect is fixed the seams stay as staging tools but
+  their comments lose the *"because"*.
 - **The amendment library** consumes `AppSettingTiers`'s `C:` rows as its
   first legos (amendment-library-slate — already named by the
   requirements).
-- **A generic `requiresOffice(<key>)` validator** — the third hand-written
-  twin would be the signal; this build adds none (`treasury set` rides the
-  verb's existing validator).
 - **`reserve.*` as Tier C** — recorded under D10 for the owner.
 
 ## Critical files
@@ -835,7 +1081,12 @@ Read first, in this order:
    `treasury.yaml`, `packages/content/platform/content/settings/banking.yaml`,
    `treasury.yaml`, `retail.yaml`
 7. `packages/server/src/mud/lib/governance/Office.ts`,
-   `packages/server/src/mud/lib/character/Persona.ts` (`recordDeed`)
+   `packages/server/src/mud/lib/character/Persona.ts` (`recordDeed`),
+   `packages/server/src/mud/platform/idea/api/CompactLogic.ts`
+   (`isCommitteeMember`, `isFounderImpl` — the backstop D18 re-keys),
+   `packages/content/platform/content/compact/executive.yaml` (the
+   executive's chart), `packages/server/src/mud/lib/command/validators/requiresGovernor.ts`
+   (the shape `requiresPrimeMinister` copies)
 8. `packages/server/src/mud/platform/idea/WikiRenderer.ts` (`ceilingFor`),
    `WikiRegistry.ts` (`satisfies`, `zoneFor`)
 9. `packages/server/src/mud/lib/magic/Effect.ts`, `api/MagicLogic.ts`
