@@ -219,6 +219,9 @@ describe('AssessController — the affliction readout', () => {
     expect(captured.toLowerCase()).toContain('recovering');
     expect(captured).not.toContain('/platform/idea/Condition/mortality');
     expect(captured).toContain('No visible wounds.');
+    // A name is what a body HAS; a sign is what it SEEMS.
+    expect(captured).toContain('You have recovering.');
+    expect(captured).not.toContain('You seem recovering');
   });
 
   it('the leaf fallback still withholds the diagnosis from the untrained', async () => {
