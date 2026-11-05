@@ -215,6 +215,22 @@ derivable.
 which is why, with the mixin deep inside the family, no subclass restates
 anything. (The narrow twins had to: `AssembledLauncher` restated `shoot`.)
 
+### ⭐ A line carries its part's own state (repair W0)
+
+A fitted part is a line, not an object — so the state a part has when
+it is loose has to live on the line while it is fitted, or be lost at the
+joint. A `PartLine` carries its part's `condition`, `grade`, `keenness`,
+`name` and `mends`; `fit` reads a loose part's values IN when it is
+fitted and a sound member swapped out is minted WITH its line's values
+(`CraftingLogic` fit/replace). ⭐ The why: *what was done to a part before
+it was fitted stays with it* — a head honed loose keeps its edge when it
+is hafted. That is what lets `Keen` route outward: a whole's keenness is
+its edged lines' minimum (`edgedLines`, `lineKeenness`), `sharpen` hones
+those lines, and a one-piece thing keeps its own gauge. Temper is NOT line
+state (the whole's), and a working has no part to sit in — `recharge`
+reaches the whole; where a working lives when its shell is a thing of
+parts is the repair slate's.
+
 ### ⭐ A name — `Named`'s, living in the part that bears it
 
 A proper name is `NamedMixin`'s and nothing else's (repair D18, folded

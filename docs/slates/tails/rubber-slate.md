@@ -9,7 +9,7 @@
 > **Left:** synthetic rubber and tyres
 > ([destructive-distillation-slate](../builds/destructive-distillation-slate.md))
 > · compression moulding, a pressed pan, consumed moulds
-> ([moulding-slate](../builds/moulding-slate.md)) · the stove house's
+> ([moulding-slate](./moulding-slate.md)) · the stove house's
 > stoker brain ([standing-instructions-slate](../builds/standing-instructions-slate.md))
 > · a published cure curve ([inquiry-slate](../builds/inquiry-slate.md))
 > · the consumer rows not yet authored (mat · gasket · hose)

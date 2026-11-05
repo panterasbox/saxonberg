@@ -309,6 +309,13 @@ is an `ImpressibleMixin` and a `CarvableMixin`, which afford `impress` and
 `carve` (environment + peers) — a mould cut to its
 own shape answers both with its own refusal.
 
+⛔ **Forming over a form is not moulding** (the moulding slate's § 2
+ruling, 2026-10-16): a shoe on a last, a hat on a block, boiled leather,
+steam-bent wood, slumped glass are material worked OVER a shape, not
+matter setting IN a cavity — there is no container, so nothing composes
+`Mould`, and each is its own trade's act (cobbling, millinery, cooperage's
+bending). Pressing IS moulding, because the cavity is the shared thing (M2).
+
 | host | composition | rows |
 |---|---|---|
 | `platform/thing/Mould` | `Mould(Assembled(Durable(Crafted(Thermal(Bulkable(Container(Good)))))))` | `ice-pan`, `ingot-mould`, `chill-mould`, `flask`, `wax-block`, `bell-pit` (smelting), `plaster-case` (two-piece), `plaster-mould`, `tile-mould` (ceramics), the rubber moulds, the soap frame |
@@ -325,6 +332,13 @@ own shape answers both with its own refusal.
 - **The curfew bell** hangs on the Terminus market square; anyone rings it
   (`ring`, the `Bell`'s own `ringSound`).
 - **The creamery's cheese press**, beside the stone.
+- ⭐ **Founding is `trade-smelting`'s discipline**
+  (`/trade/smelting/idea/Discipline/founding`), credited by the flask, the
+  chill mould, the wax block and the bell pit, which ship in that pack with
+  the die and the moulding sand; the plaster case, the plaster mould and the
+  tile mould credit `pottery` ([ceramics.md](./ceramics.md)). Not its own
+  pack: a foundry is where the smelter's metal goes next, so the smelter's
+  pack owns it, and a second foundry is rows. (Closes the moulding slate's Q4.)
 
 ## ⭐ The mould keeps its drainings (sugar, 2026-10)
 

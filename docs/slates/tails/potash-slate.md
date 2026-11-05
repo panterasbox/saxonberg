@@ -1,18 +1,20 @@
 # Potash — big ash and little ash
 
-> **Status: UNBUILT** · opened 2026-10-18 from the cleanliness MR's ash lens
-> pass (!380), **designed the same day** with the founder. Little ash ships
-> with cleanliness (a grate's `ashKg`, `sweep`, the lye hopper and the glass
-> flux competing by tag).
-> **Left:** the heap at scale — the burn at the clamp's open draught (`burn`,
-> an alias of `char`), yield and strength from the fuel, rain spoiling open
-> ash · the leach with derived lye strength, the egg test, caustic lye with
-> lime · the boil as the third `evaporative` profile, the pot cake, pearl
-> ash · the ash-burner at Hanging Wood and the ashery at Wharfside, the
-> ash-man · the kelp burn on the shore · the `flux` / `stabilizer` role
-> vocabulary · big ash as a burnt `Wood`'s derived ash layer (designed,
-> gathering foraging-shaped)
-> **Size:** a tail (of fire + forestry + cleanliness + glass)
+> **Status: PARTIAL** · opened 2026-10-18 from the cleanliness MR's ash lens
+> pass (!380), **designed the same day** with the founder. Little ash
+> shipped with cleanliness (!380); the heap at scale — the pit, the derived
+> leach, the egg, the boil on the plateau, pearl ash, the flux/stabilizer
+> retag, the Hanging Wood ashery and the ash round — shipped with the potash
+> build (MR !440, 2026-10-22) → [potash.md](../../subsystems/potash.md).
+> Compacted 2026-11-05.
+> **Left:** rain spoiling open ash · bracken and straw as feedstock · spent
+> ash on a field (waits on soil's potassium reserve) · the open sinks —
+> bucking, the dye vat, fertilizer, saltpetre · potash as the Kestrel's
+> downstream freight · big ash — burnt ground, its derived ash layer,
+> leaching into soil and water, the aftermath as a foraging site · the kelp
+> burn and soda (natron · Leblanc · Solvay hooks) · bagasse ash as little
+> ash for the ashery
+> **Size:** a tail (of fire + forestry + soil + the shore)
 
 **Sits on:** [mining.md](../../subsystems/mining.md) § the clamp (`trade-fuel`) ·
 [maturation.md](../../subsystems/maturation.md) § `evaporative` ·
@@ -26,34 +28,17 @@ cleanliness (this MR).
 
 ---
 
-## What shipped (cleanliness, !380)
-
-Little ash only. A wood fire accrues `ashKg += kg burnt × ashFraction` in its
-grate (`Burner`; oak 0.01, pine 0.005; coal and charcoal leave none).
-`sweep <hearth>` without a flue brush rakes it out as
-`/trade/fuel/thing/wood-ash`, **made from the hearth** — so it is the
-hearth owner's, and raking a stranger's grate is the ordinary taking case. A
-deep ash bed **chokes the draught** (`fire.ash.choke*`, as a share of the
-burner's own capacity), so a grate nobody rakes burns worse and says so. Two
-sinks compete for it by tag `potash`: the chandlery's lye hopper
-(0.3 kg/L) and the glass batch's flux — the glass demand was there first.
-
-## ⭐ The requirement (founder, 2026-10-18)
-
-**The potash design must accommodate BIG ash and LITTLE ash both** — one
-material, one set of roles, one set of sinks; the sources differ only in
-WHERE the ash is and HOW you get it. And then: *"the main application we
-want to implement this build is actually the middle one, ash production at
-scale with forestry as an input, more like glassmaking and sand
-excavation."*
+*Little ash (the grate, `sweep`, the choke, the hopper and the flux
+competing by tag) shipped with cleanliness — [cleanliness.md § The
+grate](../../subsystems/cleanliness.md), [fire.md § History — the potash
+build](../../subsystems/fire.md). The requirement — one material, one set of
+roles, one set of sinks whatever the source — is [potash.md § Why one
+material](../../subsystems/potash.md).*
 
 ## 1. Three sources **[DECIDED]**
 
-| source | what | mechanism | in this build |
-|---|---|---|---|
-| **the grate** | little ash, a hearth's by-product | shipped | ✅ shipped |
-| **⭐ the heap** | the ash-burner's deliberate burn of bought or felled wood | the clamp at the open draught (§ 2) | ⭐ **the build** |
-| **burnt ground** | big ash, the aftermath of a fire that took the stand where it stood | a ground state (§ 7) | designed and recorded |
+*The grate and the heap shipped — [potash.md § The
+chain](../../subsystems/potash.md); burnt ground is § 7 below.*
 
 **Did people set wildfires for ash? No.** Deliberate burning was
 controlled — the ash-burner (*Aschenbrenner*) and the clearing settler
@@ -72,80 +57,41 @@ process). Big ash is the forest converted.
 
 ## 2. The burn — the clamp's other end **[DECIDED]**
 
-`trade-fuel` already says it (mining.md § the clamp): *"the judgment is the
-draught: **too much air and the charge burns through to ash**, too little
-and it never carbonises… it runs for a game-day and is read at the end."*
-⭐ **The ash-burner's product is the collier's failure mode.**
+*Superseded by the code: the heap shipped as `AshPit extends Firebox`, a
+big Burner driven by `stoke`/`ignite`/`draught`/`sweep` in game time — not
+the clamp at the open draught, and no `burn` alias of `char` —
+[potash.md § The chain, "Why the pit is its own
+`Firebox`"](../../subsystems/potash.md). Strength carried on the ash:
+potash.md's blockquote + § The numbers.*
 
-- **One craft; the draught decides what stays** — starve it for charcoal,
-  open it for white ash, between for brands or grey ash full of char. The
-  heap is an open **ash pit** row on the clamp's shape (`CharcoalPit`
-  composes `BurnerMixin`). The fire build's complete/incomplete combustion
-  (D5) is the physics.
-- ⭐ **Read at the end of a game-day**, so fire's *an unwatched fire
-  freezes* does not bite: light it and come back; you can still lose a
-  whole burn.
-- **`burn` is an alias of `char`** (the verb ladder's first rung — *`grind`
-  rides `mill`*): one act, a word for each end of the draught.
 - **Yield = mass × the fuel's ash fraction, by PART**: ⭐ bark, twigs and
   leaves carry several times heartwood's ash, so forestry's **brash and
   stumps — today's waste — are the richest feed per kilo**. Bracken and
   straw were major potash sources (bracken-burning for glass and soap was an
   upland trade), so the moor's bracken is a feedstock once it is a row.
-- **Strength is the fuel's alkali share, carried on the ash** — the
-  `wood-ash` good carries its potash strength from what burnt (beech strong,
-  pine weak, a mixed heap the mass-weighted mix). *Why the soapmaker wants
-  beech ash and not pine* is the lesson.
 - ⭐ **Rain spoils open ash** — an open heap burns badly in the rain and its
   ash leaches as it lies (§ 7's rule); burn in dry weather and get it under
   cover. Why an ashery has a roofed ash-house.
 
 ## 3. The leach **[DECIDED]**
 
-The chandlery hopper's fixed 0.3 kg/L becomes **derived**:
+*Shipped — the derived strength, passes, hardness, the egg (`DensityReading`)
+and caustic lye by slaked lime: [potash.md § The numbers · Lye / The egg,
+§ Lime in the soap kettle](../../subsystems/potash.md); lye's harm route
+is [materials-response.md](../../subsystems/materials-response.md) §
+corrosion.*
 
-- **lye strength = ash strength × ash-to-water ratio × passes** — asheries
-  concentrated by running lye back through fresh ash;
-- ⭐ **water hardness wastes the alkali** — soapmakers leached with
-  **rainwater**; the Kestrel row is hard (12 dGH), so lye made from river
-  water is weaker and the ashery keeps a rain cistern;
-- ⭐ **the egg test** — float a fresh egg; a coin-sized patch showing means
-  strong enough for soap — a **`Reading` row** (a hydrometer the later rung;
-  competence sharpens it);
-- **lye is caustic** — a harm route on the chemical channel (materials-
-  response does vitriol and lime); rubber gloves answer it, leather
-  corrodes;
-- **⭐ caustic lye** — slaked lime + potash lye gives caustic lye strong
-  enough for hard soap; lime ships from the quarry, so it is one more
-  `chemical` step and the soapmaker's reason to buy lime;
 - **spent ash** is a by-product — still carries lime and minerals, spread on
   fields historically; a soil amendment waiting on soil's mineral reserves.
 
 ## 4. The boil, and calcining **[DECIDED]**
 
-⚠ Corrected in the session: evaporation is **not** new substrate. Maturation
-ships the **`evaporative`** mechanism with two consumers — brine (the
-saltern, by sun) and sap (the sugarhouse, by the arch) — and *"before
-designing a mechanism, look for the shipped one with a different
-feedstock."*
-
-- **Lye is the third `evaporative` profile**, fire-heated like sap, its
-  `productFraction` from the lye's strength. ⭐ The energy is the lesson:
-  evaporating a kilo of water takes ~2.26 MJ, so **weak lye burns a lot of
-  firewood** — the arch's budget, already shipped.
-- ⭐ **The pot is a mould** — *"the container decides the shape of what sets
-  in it"* — so the black salts set as a cake in the iron pot: literally *pot
-  ash*.
-- ⭐ **The boiling fires' own little ash goes back into the leach** — a
-  closed loop.
-- **Calcining** — bake the cake at red heat in the kiln (`fire`, shipped
-  with glass): organics burn off, black salts become **pearl ash** — white,
-  purer, the premium grade.
-- **Grade end to end**: species → burn completeness → leach → raw potash or
-  pearl ash. Soap takes either; ⚠ glass preferring pearl ash for a clean
-  batch is a **LEAN** until checked against how the glass batch reads purity
-  (its colour is iron by Beer–Lambert; do not claim an impurity effect it
-  does not model).
+*Superseded by the code: the boil is the kernel latent-heat PLATEAU
+(`IronPot`), not a third `evaporative` profile — [maturation.md § Note —
+the potash build](../../subsystems/maturation.md). The pot as mould, the
+closed ash loop, `calcine` to pearl ash and grade end to end shipped —
+[potash.md § The numbers, § The places](../../subsystems/potash.md); the
+glass LEAN is resolved (the glass melt is ungraded — potash.md § Limits).*
 
 ## 5. Sinks **[DECIDED]**
 
@@ -168,26 +114,11 @@ reason.
 
 ## 6. The venues, and the ash-man **[DECIDED]**
 
-The content picks them: **Rejection's Hanging Wood already has the
-glasshouse** (forest glass) beside the fuel yard's clamp, and **Wharfside
-has the chandlery**. `/trade/potash`, rows only if the mechanics hold (the
-glass precedent).
+*Shipped, and the ashery moved: it stands at Hanging Wood (the pit, the
+kiln, the lean-to) and Wharfside's chandlery BUYS; the ash-burner, the ash
+round (`ashes` brain — a supplement, not a living, AC 9) —
+[potash.md § The places](../../subsystems/potash.md).*
 
-- **The ash-burner at Hanging Wood** — the clamp at the open draught, fed
-  with the wood's brash and stumps and cordwood from the fellers; the
-  glasshouse next door is the natural buyer. Burning on someone's wood needs
-  their leave (the owner's slash; the smoke a nuisance) — lens 7, a
-  criterion, nothing to build.
-- **The ashery at Wharfside** — buys ash, leaches, boils, calcines, sells
-  potash and pearl ash; an employment venue whose counter **buys `wood-ash`
-  by line** (*the house buys*). Its boiling fires feed its leach.
-- ⭐ **The ash-man** collects hearth ash door to door — little ash is its
-  hearth owner's, so he *buys* it: every city hearth, the bar's grate, the
-  bakery's oven. A round for a player or a brain for an NPC, and selling your
-  swept ash to him is the first act of the chain any player can take.
-  ⚠ **His arithmetic is thin** — a city hearth leaves 0.1–0.2 kg of ash a
-  day, a fifty-hearth round 5–10 kg, about a kilo of potash. Ash-men were
-  poor; **the drive must show it as a living or name it a supplement.**
 - ⭐ **Potash is the Kestrel's first downstream freight** — made at the
   headwaters, wanted at the confluence; downstream is cheap. This answers
   [river-slate](../builds/river-slate.md)'s lens-6 gap (*nothing along the
@@ -237,18 +168,9 @@ fire.md's deferred list and an unwatched fire freezes, so:
 gives hard soap and potash soft** — sodium soaps set, potassium soaps stay
 soft — so the soapmaker's choice of alkali is real.
 
-**Roles are material TAGS — no new mechanism.** A recipe slot's `category:`
-matches a tag on the input's material (crafting.md, *match input slots* —
-one rule for the bar and the glass batch alike), so a material carrying
-several tags IS role membership and a slot asking for a family tag IS "any
-member". The shipped sweetener vocabulary is the precedent (crafting.md: the
-family tag `sweetener` exists and, by design, *gates nothing*). Here the
-family SHOULD be slottable, because glassmakers really did substitute soda
-for potash: potash, soda and pearl ash carry **`flux`** and the batch's flux
-slot asks for `flux`. ⚠ The batch slots **lime on `alkali`** (`quicklime` is
-tagged `alkali`), but in glass lime is the **stabilizer**, not the flux — so
-lime's slot moves to **`stabilizer`**: a small row change in this build. In
-soap the specific alkali decides the product.
+*Roles as material tags (`flux` the glassmaker's, lime on `stabilizer`,
+limestone on `smelting-flux`) shipped — [potash.md §
+Tags](../../subsystems/potash.md).*
 
 ## 9. Shared with sugar
 
@@ -296,8 +218,9 @@ Wharfside's ashery.
 
 ## 11. Open
 
-1. Where the per-part ash fraction lives — the wood material row, or the
-   part (bark, brash) as its own material.
-2. Whether the role vocabulary (`flux` / `stabilizer`) is this build's or
-   the glass trade's to own, given this build edits the glass batch rows.
-3. The ash-man as a player job, an NPC brain, or both from the first build.
+1. Q1 resolved: the part is its own material row (`wood/<species>-brash`,
+   `extends:` the wood) — potash.md § The numbers · Ash.
+2. Q2 resolved: `flux` is the glassmaker's; the retag landed in the potash
+   build — potash.md § Tags, § History.
+3. Q3 resolved: an NPC brain whose every act is a player verb — potash.md
+   § The places, the ash round.

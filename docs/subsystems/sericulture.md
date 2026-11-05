@@ -31,6 +31,11 @@ as a colony is the hive's ([apiculture.md](apiculture.md)). Nothing mints a
   hive's microtask lesson). A one-brood lot that has not wintered is
   refused in words; the winter clock (`chillS` below 5 °C) lives on the
   `EggLot`.
+- **No tap window.** The species row declares no `production` — the take
+  is the reel, which ends the animal, so it is not a tap — and the hatch
+  is therefore NOT a `TapWindowSpec` timed to the leaf flush. The keeper
+  picks the day by setting a wintered lot on a warm tray; whether there is
+  leaf on the walk that day is the keeper's judgment, not the engine's.
 - **The clock is degree-days** off the tray's own temperature trajectory
   (base 10 °C): hatch at 150, five ages ending at 52 · 97 · 157 · 232 ·
   352 after hatch, the last tenth of ages I–IV a moult (asleep, eating
@@ -117,6 +122,14 @@ A bolt boils off its gum in a **copper** (the textiles pack's
 `FinishingMixin` + the degumming profile here, through the kernel's
 immersion rung — [thermal.md](thermal.md)) and comes out **silk**, white
 and a quarter lighter. Gummed cloth takes a dye thinly.
+
+⚠ **The copper holds water, not soap.** In life the sericin comes off in
+soap and lye; the model is the water's heat alone (`degumming.yaml`:
+`stallBelowK` 343 · `happyK` 363 · `damageAboveK` 383 — a band a copper of
+water cannot reach, so only something that is not water could over-boil
+it). So cleanliness's cleanser `damages` rule has no consumer in this
+trade, and lye never meets the silk in its own chain — the laundress's
+tub is where a protein fibre meets lye, not the finishing copper.
 
 ## The silk house and the mill
 

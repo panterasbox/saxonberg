@@ -37,11 +37,11 @@ master edit.
 |---|---|---|---|
 | **rubber** | latex (ships) | vulcanizing — sulfur crosslinking (ships) | seals, insulation, tires |
 | **gutta-percha** | the latex of a tree that sets hard | cooling | ⭐ **it insulated the first undersea telegraph cables** (the Channel, 1850–51) — the post and telegraph cluster's consumer |
-| **shellac** | a resin secreted by the lac insect | evaporation | varnish ([paint-slate](./paint-slate.md)), records, ⭐ **sealing wax** — the signet's wax ([gems-and-precious-metals-slate](./gems-and-precious-metals-slate.md) § 5) |
+| **shellac** | a resin secreted by the lac insect | evaporation | varnish ([paint-slate](../tails/paint-slate.md)), records, ⭐ **sealing wax** — the signet's wax ([gems-and-precious-metals-slate](./gems-and-precious-metals-slate.md) § 5) |
 | **casein plastic** | milk protein ([dairying](../../subsystems/dairying.md)) | hardened in formaldehyde | ⭐ **buttons** — a named gap |
 
 Each is rows on shipped mechanisms: a tap or a harvest, a set process (the
-[moulding slate](./moulding-slate.md)'s list — cooling, evaporation, crosslinking), and
+[moulding slate](../tails/moulding-slate.md)'s list — cooling, evaporation, crosslinking), and
 the mould.
 
 ## 3. The lens pass
