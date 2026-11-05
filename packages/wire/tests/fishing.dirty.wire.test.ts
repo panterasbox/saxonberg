@@ -16,7 +16,8 @@
  *
  * ⚠ Game-day skips are wizard `eval`s on the OBJECT that carries the
  * clock — a net's set stamp, a dead fish's death stamp, a carp's fed
- * days — inside a parcel the wizard administers (the market square).
+ * days — inside a parcel whose committee the angler is seated on (the
+ * market square).
  * Nothing here moves the world clock. The restart step (15's second
  * half) is run by hand and recorded in the plan.
  *
@@ -35,6 +36,7 @@
  */
 
 import { describe as suite, it, expect, beforeAll, afterAll } from 'vitest';
+import type { CommandResult } from '../src/harness';
 import {
   Session,
   declareFile,
@@ -63,6 +65,12 @@ const SQUARE = '/world/terminus/market/square';
 const HEATH = '/world/moor/stormy-heath';
 const MILLSITE = '/world/hearts-delight/location/millsite';
 const PARCEL = '--parcel /world/terminus/market';
+/**
+ * The angler's login when it stages by `eval`: the wizard axis (it types
+ * code) plus a SEAT on Terminus's committee, which is what `eval --parcel
+ * /world/terminus/market` asks — not a credential (wizard-axis D13).
+ */
+const ANGLER = { wizard: true, committees: ['/world/terminus'] };
 /** A fish as the inventory lists it → the keyword a verb reaches it by. */
 const FISH = /\b(brown trout|eel|grey mullet|carp|shore crab|sturgeon)\b/i;
 const KEYWORD: Record<string, string> = {
@@ -88,6 +96,16 @@ async function peek(s: Session, target: string): Promise<string> {
 
 let handle: string;
 let me: Session;
+
+/** One command as the founder — `config` is the Prime Minister's (wizard-axis W2). */
+async function asFounder(line: string): Promise<CommandResult> {
+  const gov = await Session.open('founder', { startLocation: BANK_HALL });
+  try {
+    return await gov.cmd(line);
+  } finally {
+    gov.close();
+  }
+}
 
 const inventory = async (s: Session): Promise<string> => {
   await s.drainProse();
@@ -207,7 +225,7 @@ beforeAll(async () => {
   // ⚠ `reserve override`, not `reserve issue` — the reserve stopped issuing
   // coin by hand at the economic bootstrap, and this setup had failed
   // ever since (found re-driving retail at the storage-and-ice review).
-  let s = await Session.open(handle, { startLocation: BANK_HALL, wizard: true });
+  let s = await Session.open(handle, { startLocation: BANK_HALL });
   expectOk(await s.cmd('bank open'));
   const gov = await Session.open('founder', { startLocation: BANK_HALL });
   try {
@@ -216,7 +234,7 @@ beforeAll(async () => {
     gov.close();
   }
   s.close();
-  s = await Session.open(handle, { startLocation: STORE, wizard: true });
+  s = await Session.open(handle, { startLocation: STORE });
   // ⚠ `pot` alone is the farming pack's clay pot at this counter; the
   // crab pot answers to `crab-pot`.
   // ⚠ A day's fishing is eight game hours, and a body burns food to stay
@@ -228,7 +246,7 @@ beforeAll(async () => {
     expectOk(await s.cmd(`buy ${good}`));
   }
   s.close();
-  me = await Session.open(handle, { startLocation: BANK, wizard: true });
+  me = await Session.open(handle, { startLocation: BANK, ...ANGLER });
 }, 300_000);
 
 afterAll(() => {
@@ -422,11 +440,12 @@ suite('9 · the net empties the reach; the fisher says so; it recovers', () => {
   }, 900_000);
 
   it('⭐ days on, the water is recovering and the net gives fish again; the fisher reads the water before you can', async () => {
-    // Recovery is reconcile-on-read from the record's stamp; a wizard
-    // turns the half-life dial to seconds, reads, and turns it back.
-    expectOk(await me.cmd('config water.fishery.recoveryHalfLifeDays 0.00001'));
+    // Recovery is reconcile-on-read from the record's stamp; the founder
+    // (the Prime Minister's `config`) turns the half-life dial to seconds,
+    // the angler reads, and the founder turns it back.
+    expectOk(await asFounder('config water.fishery.recoveryHalfLifeDays 0.00001'));
     const haul = await haulAfterAnAfternoon();
-    expectOk(await me.cmd('config water.fishery.recoveryHalfLifeDays 2'));
+    expectOk(await asFounder('config water.fishery.recoveryHalfLifeDays 2'));
     expect(haul).toBeGreaterThan(0);
     expect(await talkToTheFisher(me)).toMatch(/Eels run on the ebb|in this water/i);
   }, 300_000);
@@ -464,7 +483,7 @@ suite('11–12 · the stall', () => {
     // `bank` is the counting-house's verb: the balance is read there, on
     // a short second session of the same character.
     const balance = async (): Promise<string> => {
-      const at = await Session.open(handle, { startLocation: BANK_HALL, wizard: true });
+      const at = await Session.open(handle, { startLocation: BANK_HALL });
       try {
         await at.drainProse();
         return squash(await at.prose('bank'));
@@ -474,7 +493,7 @@ suite('11–12 · the stall', () => {
     };
     me.close();
     const before = await balance();
-    me = await Session.open(handle, { startLocation: SQUARE, wizard: true });
+    me = await Session.open(handle, { startLocation: SQUARE, ...ANGLER });
     // `on slab`: the square has two consignment counters and the produce
     // stalls come first in reach.
     const c = await me.cmd(`consign ${name} on slab --ask 4`);
@@ -510,7 +529,7 @@ suite('11–12 · the stall', () => {
     me.close();
     const after = await balance();
     expect(after, `${before} → ${after}`).not.toBe(before);
-    me = await Session.open(handle, { startLocation: SQUARE, wizard: true });
+    me = await Session.open(handle, { startLocation: SQUARE, ...ANGLER });
   }, 600_000);
 
   it('⭐ a fish held a game-day has turned: refused as turned', async () => {
@@ -530,12 +549,13 @@ suite('11–12 · the stall', () => {
       'return (this.setLifecycleState("dead"), this.diedAtGameSec = 1, this.freshnessLoad())',
     );
     expect(Number(load)).toBeGreaterThan(0);
-    // Not a game-day of world clock yet: the band edge is the dial.
-    expectOk(await me.cmd('config freshness.band.taintedAt 0.0001'));
+    // Not a game-day of world clock yet: the band edge is the dial (the
+    // Prime Minister's `config` — the founder's).
+    expectOk(await asFounder('config freshness.band.taintedAt 0.0001'));
     const c = await me.cmd(`consign ${name} on slab --ask 4`);
     expectRefused(c);
     expectNote(c, 'controller-rejected', { reason: 'turned' });
-    await me.cmd('config freshness.band.taintedAt 0.25');
+    await asFounder('config freshness.band.taintedAt 0.25');
     expectOk(await me.cmd(`drop ${name}`));
     await me.drainProse();
   }, 600_000);
@@ -543,7 +563,7 @@ suite('11–12 · the stall', () => {
 
 suite('13 · the heath', () => {
   it("⭐ the moor's water reads soft and cold and fresh; what it holds is the Holloway's own", async () => {
-    const m = await Session.open(handle, { startLocation: HEATH, wizard: true });
+    const m = await Session.open(handle, { startLocation: HEATH });
     try {
       await m.drainProse();
       // ⚠ `mere` is also the heath floor's pool detail; `tarn` is the heath's
@@ -562,7 +582,7 @@ suite('13 · the heath', () => {
 
 suite('13b · the millsite', () => {
   it("⭐ nobody authored fishing here: `fish` from the millsite is afforded by the rod in hand and draws from the Delight's flats", async () => {
-    const g = await Session.open(handle, { startLocation: MILLSITE, wizard: true });
+    const g = await Session.open(handle, { startLocation: MILLSITE });
     try {
       const r = await g.cmd('fish using cane');
       expectOk(r);
@@ -597,7 +617,7 @@ async function bias(s: Session, species: string, fightRating: number): Promise<v
 
 suite('14–15 · the kept carp', () => {
   it('⭐ a carp in a bowl of water lives; unnamed it is "not chosen"; fed three days in its bowl, it can be named; `find … mine` lists it', async () => {
-    let k = await Session.open(handle, { startLocation: BANK, wizard: true });
+    let k = await Session.open(handle, { startLocation: BANK, ...ANGLER });
     let landed = '';
     try {
       await eat(k);
@@ -613,7 +633,7 @@ suite('14–15 · the kept carp', () => {
     } finally {
       k.close();
     }
-    k = await Session.open(handle, { startLocation: SQUARE, wizard: true });
+    k = await Session.open(handle, { startLocation: SQUARE, ...ANGLER });
     try {
       expect(await inventory(k)).toMatch(/carp/i);
       // The bowl on the ground (`put` targets peers), filled by a wizard
@@ -644,7 +664,7 @@ suite('14–15 · the kept carp', () => {
 
 suite('16 · the sturgeon', () => {
   it('⭐ a practised reader is told a royal fish lies in the confluence; landed, its catch is a deed', async () => {
-    const s = await Session.open(handle, { startLocation: BANK, wizard: true });
+    const s = await Session.open(handle, { startLocation: BANK, ...ANGLER });
     try {
       await eat(s);
       expect(await talkToTheFisher(s)).toMatch(/royal fish|sturgeon/i);
@@ -670,7 +690,7 @@ suite('16 · the sturgeon', () => {
 
 suite('17 · the rig, the lure and the keepnet (B8)', () => {
   it('⭐ the rig is where the bait sits: a leger over a surface shoal is a long afternoon; the float takes a mullet', async () => {
-    const s = await Session.open(handle, { startLocation: BANK, wizard: true });
+    const s = await Session.open(handle, { startLocation: BANK, ...ANGLER });
     try {
       await eat(s);
       await setAbundance(s, 'sturgeon', 2);
@@ -685,7 +705,7 @@ suite('17 · the rig, the lure and the keepnet (B8)', () => {
   }, 600_000);
 
   it('⭐ the hook selects: a big hook over the crabs never takes a crab; the plain hook takes one', async () => {
-    const s = await Session.open(handle, { startLocation: BANK, wizard: true });
+    const s = await Session.open(handle, { startLocation: BANK, ...ANGLER });
     try {
       await setAbundance(s, 'grey-mullet', 50);
       await bias(s, 'shore-crab', 0.1);
@@ -701,7 +721,7 @@ suite('17 · the rig, the lure and the keepnet (B8)', () => {
   }, 600_000);
 
   it('⭐ a spoon fishes only while it is worked; it takes a hunter and is still on the line after', async () => {
-    const s = await Session.open(handle, { startLocation: BANK, wizard: true });
+    const s = await Session.open(handle, { startLocation: BANK, ...ANGLER });
     try {
       await setAbundance(s, 'shore-crab', 60);
       await bias(s, 'brown-trout', 0.1);
@@ -720,7 +740,7 @@ suite('17 · the rig, the lure and the keepnet (B8)', () => {
   }, 600_000);
 
   it('⭐ a landed fish in a laid keepnet is alive a minute later — the water takes it back; a minute in the hand and the water will not', async () => {
-    const s = await Session.open(handle, { startLocation: BANK, wizard: true });
+    const s = await Session.open(handle, { startLocation: BANK });
     try {
       const kept = await fishUntilLanded(s, 'fish with worm using cane', 40);
       expectOk(await s.cmd('lay keepnet'));

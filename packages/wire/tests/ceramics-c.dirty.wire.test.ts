@@ -36,6 +36,7 @@ import { describe as suite, it, expect, beforeAll, afterAll } from 'vitest';
 import {
   Session,
   type CommandResult,
+  type SessionOptions,
   declareFile,
   uniqueHandle,
   expectOk,
@@ -122,7 +123,7 @@ async function say(s: Session, line: string): Promise<string> {
 async function advance(duration: string): Promise<void> {
   // Lived time: in day-long jumps, the drive's people fed between them.
   await advanceLiving(duration, sessions);
-  const probe = await Session.open('founder', { startLocation: SHOP, wizard: true }).catch(() => null);
+  const probe = await Session.open('founder', { startLocation: SHOP }).catch(() => null);
   try {
     const until = Date.now() + 600_000;
     while (probe && Date.now() < until) {
@@ -170,18 +171,30 @@ async function held(s: Session): Promise<string> {
   return rows.map((r) => String((r as { displayName?: unknown }).displayName ?? '')).join(' | ');
 }
 
+/**
+ * The potter's login: the one session here that types code (`stageDry`'s
+ * `eval --parcel /world/terminus/hearts-delight`), so the wizard axis and a
+ * seat on the Delight's committee — seated, not a credential (wizard-axis
+ * D13). Everyone else logs in as a plain player.
+ */
+const casters = new Set<string>();
+const loginAs = (handle: string, where: string): SessionOptions =>
+  casters.has(handle)
+    ? { startLocation: where, wizard: true, committees: ['/world/terminus/hearts-delight'] }
+    : { startLocation: where };
+
 /** The same person somewhere else (inventory travels). */
 async function goTo(s: Session, where: string): Promise<Session> {
   const handle = s.handle;
   s.close();
-  const next = await Session.open(handle, { startLocation: where, wizard: true });
+  const next = await Session.open(handle, loginAs(handle, where));
   sessions.push(next);
   await next.drainProse();
   return next;
 }
 
 async function mint(where: string, path: string, count = 1): Promise<void> {
-  const gov = await Session.open('founder', { startLocation: where, wizard: true });
+  const gov = await Session.open('founder', { startLocation: where });
   try {
     expectOk(await gov.cmd(`clone ${path} --here${count > 1 ? ` --count ${count}` : ''}`));
     await gov.drainProse();
@@ -190,9 +203,10 @@ async function mint(where: string, path: string, count = 1): Promise<void> {
   }
 }
 
-async function funded(tag: string, where: string): Promise<Session> {
+async function funded(tag: string, where: string, caster = false): Promise<Session> {
   const handle = uniqueHandle(tag);
-  const bank = await Session.open(handle, { startLocation: BANK_HALL, wizard: true });
+  if (caster) casters.add(handle);
+  const bank = await Session.open(handle, { startLocation: BANK_HALL });
   expectOk(await bank.cmd('bank open'));
   bank.close();
   const gov = await Session.open('founder', { startLocation: BANK_HALL });
@@ -201,7 +215,7 @@ async function funded(tag: string, where: string): Promise<Session> {
   } finally {
     gov.close();
   }
-  const s = await Session.open(handle, { startLocation: where, wizard: true });
+  const s = await Session.open(handle, loginAs(handle, where));
   sessions.push(s);
   await s.drainProse();
   return s;
@@ -247,8 +261,8 @@ async function clayFor(s: Session, n: number): Promise<Session> {
 
 /**
  * ⛔ STAGED (soak-harness census): a piece's drying — days on the shelf —
- * set directly. The potter is a wizard holding the Delight (a wizard is in
- * every managed group), so its own `eval` seeds the piece's water state as
+ * set directly. The potter is a wizard seated on the Delight's committee
+ * (`loginAs`), so its own `eval` seeds the piece's water state as
  * a mint would (`seedDryness`: 0.4 leather-hard, 1 bone-dry). The drying
  * itself, by the clock, lives in ceramics-c.soak.dirty.
  */
@@ -321,7 +335,7 @@ beforeAll(async () => {
   // itself in a frost.
   await toHour(8, 14);
   novice = await funded('novice', SHOP);
-  potter = await funded('potter', SHOP);
+  potter = await funded('potter', SHOP, true);
   // ⭐ Dressed for the winter (run 26's founder died of a night of it).
   await dress(novice);
   await dress(potter);

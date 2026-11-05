@@ -116,15 +116,23 @@ const open: Session[] = [];
 const SAILOR = uniqueHandle('hbs');
 let sailor: Session;
 
-async function session(handle: string, at: string, wizard = false): Promise<Session> {
-  const s = await Session.open(handle, { startLocation: at, ...(wizard ? { wizard: true } : {}) });
+async function session(handle: string, at: string, committees: string[] = []): Promise<Session> {
+  const s = await Session.open(handle, {
+    startLocation: at,
+    ...(committees.length ? { committees } : {}),
+  });
   open.push(s);
   return s;
 }
 
-/** The founder, put down at `at` — one session at a time (a second login replaces the first). */
+/**
+ * The founder, put down at `at` — one session at a time (a second login
+ * replaces the first). It holds every office by default but sits on no
+ * committee, so it is seated on Terminus's: the harbor works' house
+ * (`house pnl` at the office) answers to that committee (wizard-axis D13).
+ */
 async function founderAt(at: string): Promise<Session> {
-  return session('founder', at, true);
+  return session('founder', at, ['/world/terminus']);
 }
 
 async function say(s: Session, text: string): Promise<string> {
@@ -187,7 +195,7 @@ async function hailUntil(s: Session, want: RegExp, tries = 14): Promise<string> 
   return heard.join(' | ');
 }
 
-/** A venue's running balance, as the house's own P&L reads it (the founder holds every house). */
+/** A venue's running balance, as the house's own P&L reads it (the founder: the line's as Prime Minister, the works' by its committee seat). */
 async function balanceAt(where: string): Promise<number> {
   const f = await founderAt(where);
   try {

@@ -137,9 +137,23 @@ async function inReach(s: Session): Promise<string> {
   return rows.map((r) => String((r as { displayName?: unknown }).displayName ?? '')).join(', ');
 }
 
+/**
+ * The founder's committee seats for this drive. The founder holds every
+ * office (so the `/trade/*` kinds' title, the Minister of Trade's) but sits
+ * on NO committee by default; it is seated on the ones whose ground it
+ * clones into, whose kinds it clones (the glowcap jar is Rejection's), and
+ * whose business appoints the gauger (wizard-axis D13/D18).
+ */
+const FOUNDER_SEATS = [
+  '/world/terminus',
+  '/world/terminus/hearthworks',
+  '/world/terminus/hearts-delight',
+  '/world/terminus/rejection',
+];
+
 /** Into the ROOM, by the founder, who holds the title. */
 async function cloneHere(where: string, path: string, count = 1): Promise<void> {
-  const f = await Session.open('founder', { startLocation: where, wizard: true });
+  const f = await Session.open('founder', { startLocation: where, committees: FOUNDER_SEATS });
   try {
     expectOk(await f.cmd(`clone ${path} --here${count > 1 ? ` --count ${count}` : ''}`));
   } finally {
@@ -150,7 +164,7 @@ async function cloneHere(where: string, path: string, count = 1): Promise<void> 
 /** A funded player, standing at `where` with a light (the world boots at midnight). */
 async function newPlayer(tag: string, where: string): Promise<Session> {
   const handle = uniqueHandle(tag);
-  const bank = await Session.open(handle, { startLocation: BANK_HALL, wizard: true });
+  const bank = await Session.open(handle, { startLocation: BANK_HALL });
   expectOk(await bank.cmd('bank open'));
   const gov = await Session.open('founder', { startLocation: BANK_HALL });
   try {
@@ -171,7 +185,7 @@ const LIT = new Set<string>();
  * cloned once and carried after.
  */
 async function goTo(handle: string, where: string): Promise<Session> {
-  const s = await Session.open(handle, { startLocation: where, wizard: true });
+  const s = await Session.open(handle, { startLocation: where });
   if (!LIT.has(handle)) {
     LIT.add(handle);
     await cloneHere(where, GLOWCAP);
@@ -448,7 +462,10 @@ suite('⭐⭐ the proficient cooper (drive 6, 7, 8, 11, 17, 22; AC 6, 14, 23, 24
     const mine = await say(cooper, 'measure capacity cask');
     expect(mine, `cooper gauges: ${mine}`).toMatch(/not of record/i);
     await cloneHere(REGISTRY_OFFICE, GLOWCAP);
-    const gauger = await Session.open('founder', { startLocation: REGISTRY_OFFICE, wizard: true });
+    const gauger = await Session.open('founder', {
+      startLocation: REGISTRY_OFFICE,
+      committees: FOUNDER_SEATS,
+    });
     try {
       await gauger.cmd('get glowcap');
       expectOk(await gauger.cmd(`appoint me to gauger at ${REGISTRY}`));

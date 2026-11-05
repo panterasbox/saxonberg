@@ -113,7 +113,7 @@ async function say(s: Session, line: string): Promise<string> {
 async function advance(duration: string): Promise<void> {
   // Lived time: in day-long jumps, the drive's people fed between them.
   await advanceLiving(duration, open);
-  const probe = await Session.open('founder', { startLocation: GROUND, wizard: true }).catch(() => null);
+  const probe = await Session.open('founder', { startLocation: GROUND }).catch(() => null);
   try {
     const until = Date.now() + 600_000;
     while (probe && Date.now() < until) {
@@ -220,7 +220,7 @@ async function held(s: Session): Promise<string[]> {
 }
 
 async function at(handle: string, where: string): Promise<Session> {
-  const s = await Session.open(handle, { startLocation: where, wizard: true });
+  const s = await Session.open(handle, { startLocation: where });
   open.push(s);
   await s.drainProse();
   return s;

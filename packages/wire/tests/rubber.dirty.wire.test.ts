@@ -118,7 +118,13 @@ async function examine(s: Session, keyword: string): Promise<string> {
 
 /** Into the ROOM, by the founder, who holds the title. */
 async function cloneHere(where: string, path: string, count = 1): Promise<void> {
-  const f = await Session.open('founder', { startLocation: where, wizard: true });
+  // `clone` asks title over the KIND's path: the trade rows are the
+  // Minister of Trade's (the founder's office); the coach is the transport
+  // committee's, and the founder sits on none by default (wizard-axis D13).
+  const f = await Session.open('founder', {
+    startLocation: where,
+    committees: ['/system/transport'],
+  });
   try {
     expectOk(await f.cmd(`clone ${path} --here${count > 1 ? ` --count ${count}` : ''}`));
   } finally {
@@ -146,7 +152,7 @@ async function cloneInto(
 }
 
 async function at(handle: string, where: string): Promise<Session> {
-  const s = await Session.open(handle, { startLocation: where, wizard: true });
+  const s = await Session.open(handle, { startLocation: where });
   open.push(s);
   await s.drainProse();
   return s;
@@ -154,7 +160,7 @@ async function at(handle: string, where: string): Promise<Session> {
 
 async function funded(tag: string, where: string): Promise<Session> {
   const handle = uniqueHandle(tag);
-  const bank = await Session.open(handle, { startLocation: BANK_HALL, wizard: true });
+  const bank = await Session.open(handle, { startLocation: BANK_HALL });
   expectOk(await bank.cmd('bank open'));
   const gov = await Session.open('founder', { startLocation: BANK_HALL });
   try {

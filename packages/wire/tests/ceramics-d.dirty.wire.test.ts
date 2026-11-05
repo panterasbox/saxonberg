@@ -263,7 +263,7 @@ async function idsOf(s: Session, keyword: string): Promise<string[]> {
 async function goTo(s: Session, where: string): Promise<Session> {
   const handle = s.handle;
   s.close();
-  const next = await Session.open(handle, { startLocation: where, wizard: true });
+  const next = await Session.open(handle, { startLocation: where });
   sessions.push(next);
   await next.drainProse();
   return next;
@@ -271,7 +271,7 @@ async function goTo(s: Session, where: string): Promise<Session> {
 
 /** As the caster, clone `path` into `where` (rows nobody here sells). */
 async function mint(where: string, path: string, count = 1): Promise<void> {
-  const gov = await Session.open('founder', { startLocation: where, wizard: true });
+  const gov = await Session.open('founder', { startLocation: where });
   try {
     expectOk(await gov.cmd(`clone ${path} --here${count > 1 ? ` --count ${count}` : ''}`));
     await gov.drainProse();
@@ -287,7 +287,9 @@ async function founderEval(
   parcel = R,
   then?: () => Promise<unknown>,
 ): Promise<string> {
-  const gov = await Session.open('founder', { startLocation: where, wizard: true });
+  // `eval --parcel` asks the parcel's committee: seated, not a credential
+  // (wizard-axis D13).
+  const gov = await Session.open('founder', { startLocation: where, wizard: true, committees: [parcel] });
   try {
     const r = await gov.cmd(`eval --parcel ${parcel} ${code}`);
     // ⭐ What must follow at once (a pour off a melt) goes BEFORE the prose
@@ -306,7 +308,7 @@ async function founderEval(
 
 /** As the caster, run `code` with `this` bound to the thing called `keyword` in `where`. */
 async function founderEvalOn(where: string, keyword: string, code: string, parcel = R): Promise<string> {
-  const gov = await Session.open('founder', { startLocation: where, wizard: true });
+  const gov = await Session.open('founder', { startLocation: where, wizard: true, committees: [parcel] });
   try {
     const r = await gov.cmd(`eval --parcel ${parcel} --on ${keyword} return ${code}`);
     const said = await r.said();
@@ -367,7 +369,7 @@ async function melt(
 
 async function funded(tag: string, where: string): Promise<Session> {
   const handle = uniqueHandle(tag);
-  const bank = await Session.open(handle, { startLocation: BANK_HALL, wizard: true });
+  const bank = await Session.open(handle, { startLocation: BANK_HALL });
   expectOk(await bank.cmd('bank open'));
   bank.close();
   const gov = await Session.open('founder', { startLocation: BANK_HALL });
@@ -376,7 +378,7 @@ async function funded(tag: string, where: string): Promise<Session> {
   } finally {
     gov.close();
   }
-  const s = await Session.open(handle, { startLocation: where, wizard: true });
+  const s = await Session.open(handle, { startLocation: where });
   sessions.push(s);
   await s.drainProse();
   return s;
@@ -437,7 +439,8 @@ async function clearFloor(only?: RegExp): Promise<void> {
     }
     await caster.drainProse();
   }
-  const gov = await Session.open('founder', { startLocation: FOUNDRY, wizard: true });
+  // `destruct` + `eval --parcel` at Rejection: seated on its committee.
+  const gov = await Session.open('founder', { startLocation: FOUNDRY, wizard: true, committees: [R] });
   try {
     const rows = await gov.query('here', { fields: 'detail' }).catch(() => []);
     const floor = ((rows[0] as { contents?: { stuffId: string; displayName: string }[] } | undefined)?.contents ?? [])
@@ -1158,7 +1161,7 @@ suite('⭐⭐⭐ 35 — restart the server', () => {
     });
     process.env.WIRE_SERVER_URL = await bootOwnedWorld();
 
-    const back = await Session.open(handle, { startLocation: FOUNDRY, wizard: true });
+    const back = await Session.open(handle, { startLocation: FOUNDRY });
     try {
       await back.drainProse();
       const flask = await examine(back, 'flask');

@@ -204,8 +204,8 @@ async function read(s: Session, text: string): Promise<string> {
  * A read from a FRESH session (see the header): open `who` at `where`,
  * read once, and leave.
  */
-async function freshRead(who: string, where: string, text: string, wizard = false): Promise<string> {
-  const s = await Session.open(who, { startLocation: where, ...(wizard ? { wizard: true } : {}) });
+async function freshRead(who: string, where: string, text: string): Promise<string> {
+  const s = await Session.open(who, { startLocation: where });
   try {
     await s.drainProse();
     return await read(s, text);
@@ -278,7 +278,14 @@ async function goTo(where: string): Promise<void> {
 
 /** As the founder, run a setup `eval` in `where` under `parcel`'s title. */
 async function founderEval(where: string, parcel: string, code: string): Promise<string> {
-  const gov = await Session.open('founder', { startLocation: where, wizard: true });
+  // `eval --parcel` under a parcel's title: the founder holds offices but
+  // sits on no committee, so it is seated on the one over `parcel` (the
+  // campus → duncan-hall) — not a credential (wizard-axis D13).
+  const gov = await Session.open('founder', {
+    startLocation: where,
+    wizard: true,
+    committees: [parcel],
+  });
   try {
     const r = await gov.cmd(`eval --parcel ${parcel} ${code}`);
     const said = await r.said();
@@ -381,8 +388,9 @@ beforeAll(async () => {
   }
   k.close();
   // ⭐ The expert reader is trained by the SHIPPED harness (`practice`,
-  // wizard-gated), and the drive's own hand is left a novice.
-  const x = await Session.open(expert, { startLocation: BANK_HALL, wizard: true });
+  // open to any session in a test world), and the drive's own hand is left
+  // a novice.
+  const x = await Session.open(expert, { startLocation: BANK_HALL });
   try {
     for (let i = 0; i < 8; i++) await x.cmd('practice horticulture hard success');
     const said = await read(x, 'competence');
@@ -508,7 +516,7 @@ suite.skipIf(!isOwnedTestWorld())('Stage B — the bench, read by field', () => 
   it('2. the same field, the same moment: the novice reads less, never a different truth', async () => {
     // Back to back, no clock between: an untrained handle and an expert.
     const plain = await freshRead(novice, BENCH, 'look at the top end');
-    const trained = await freshRead(expert, BENCH, 'look at the top end', true);
+    const trained = await freshRead(expert, BENCH, 'look at the top end');
     expect(plain).toMatch(/A stand of wheat grows here/i);
     expect(plain, 'the floor band names no cause').not.toMatch(CAUSE);
     expect(trained, 'the expert names the cause').toMatch(CAUSE);
@@ -526,13 +534,13 @@ suite.skipIf(!isOwnedTestWorld())('Stage B — the bench, read by field', () => 
     }
     expect(flatTrained.length).toBeGreaterThan(plain.replace(/\s+/g, ' ').length);
     // ⭐ And the stand answers to its field's name (amended D13).
-    const stand = await freshRead(expert, BENCH, 'look top end wheat', true);
+    const stand = await freshRead(expert, BENCH, 'look top end wheat');
     expect(stand).toMatch(/It stands at the top end\./);
     expect(stand).toMatch(CAUSE);
   }, 600_000);
 
   it('3. sample wheat at the top end: a stem that names its tract and field, the same twice', async () => {
-    const x = await Session.open(expert, { startLocation: BENCH, wizard: true });
+    const x = await Session.open(expert, { startLocation: BENCH });
     try {
       await x.drainProse();
       expect(await doing(x, 'sample wheat at the top end')).toMatch(/pull a stem of wheat from the top end/i);
@@ -556,7 +564,7 @@ suite.skipIf(!isOwnedTestWorld())('Stage B — the bench, read by field', () => 
   }, 600_000);
 
   it('4. sample wheat at the lane end: it reads better than the top end', async () => {
-    const x = await Session.open(expert, { startLocation: BENCH, wizard: true });
+    const x = await Session.open(expert, { startLocation: BENCH });
     try {
       await x.drainProse();
       // Hands empty: two stems in hand make `look me:i:stem` ask which.
@@ -614,9 +622,9 @@ suite.skipIf(!isOwnedTestWorld())('Stage C — care by field, and the hand', () 
     }
     await daylight();
     await dryTo({ 'gate-end': 0.1 });
-    const trial = await freshRead(expert, HOME_FIELD, 'look trial', true);
-    const field = await freshRead(expert, HOME_FIELD, 'look at the gate end', true);
-    const x = await Session.open(expert, { startLocation: HOME_FIELD, wizard: true });
+    const trial = await freshRead(expert, HOME_FIELD, 'look trial');
+    const field = await freshRead(expert, HOME_FIELD, 'look at the gate end');
+    const x = await Session.open(expert, { startLocation: HOME_FIELD });
     let sample = '';
     try {
       await x.drainProse();
@@ -698,7 +706,7 @@ suite.skipIf(!isOwnedTestWorld())('Stage C — care by field, and the hand', () 
     // soil dropped (staged W6), before the drive's own `listen` began.
     const STAGE = { 'gate-end': 0.44, middle: 0.4, 'far-side': 0.42 };
     let heard = await dryTo(STAGE);
-    const expertRead = await freshRead(expert, HOME_FIELD, 'look', true);
+    const expertRead = await freshRead(expert, HOME_FIELD, 'look');
     heard += ` ${expertRead}`;
     const WATERS = /waters a stand of wheat at (the gate end|the middle|the far side)/i;
     let watered: string | null = WATERS.exec(heard)?.[1] ?? null;
@@ -743,7 +751,7 @@ suite.skipIf(!isOwnedTestWorld())('Stage C — care by field, and the hand', () 
     }
     await daylight();
     await dryTo({ 'far-side': 0.25 });
-    await freshRead(expert, HOME_FIELD, 'look at the far side', true);
+    await freshRead(expert, HOME_FIELD, 'look at the far side');
     note(`after the dry spell: ${await founderEval(HOME_FIELD, CAMPUS, WORST)}`);
     const GRADES_EVAL =
       'return self.getContainer().getContents().filter(c => /crop\\/wheat$/.test(c.getTemplatePath() ?? "")).map(c => c.stuffId + ":" + c.getGradeBand()).join(",")';

@@ -62,6 +62,33 @@ const LANE = '/world/terminus/hinkley-hills/location/lane';
  * so it can run against a live world forever.
  */
 const SOLD_LOT = 'lot-1';
+
+/**
+ * The founder lays `kinds` on the floor at `where` for an ordinary player
+ * to pick up. Cloning a `/trade/*` or `/stuff/*` kind is the Minister of
+ * Trade's (the title over those kinds is `/compact/trade`'s), and the
+ * founder holds that seat by default; the founder sits on no committee,
+ * so it is seated on the one over `where` (wizard-axis D13/D18).
+ */
+async function founderLays(
+  browser: import('@playwright/test').Browser,
+  where: string,
+  committee: string,
+  kinds: string[],
+  seen: RegExp
+): Promise<void> {
+  const { page, close } = await openWorldAsFounder(browser, {
+    startLocation: where,
+    committees: [committee],
+  });
+  try {
+    await sendUntil(page, 'look', page.getByText(/./).first());
+    for (const kind of kinds) await runCommand(page, `clone ${kind} --here`);
+    await sendUntil(page, 'look', page.getByText(seen).first());
+  } finally {
+    await close();
+  }
+}
 // ⭐ The gate is a compass point, not the lot leaf. The lane runs west,
 // so its ring is north, south, northwest, southwest — lot-1 faces north,
 // lot-2 south. `title buy` tells the buyer which side theirs is on.
@@ -103,7 +130,6 @@ test('the suburb is reachable and the lane describes the empty lots', async ({
 }) => {
   const { page, close } = await openWorldAs(browser, 'hh-reach', {
     startLocation: '/world/terminus/hinkley-hills/location/arrival',
-    wizard: true,
   });
   try {
     await sendUntil(page, 'look', page.getByText(/Hinkley Hills/i).first());
@@ -153,7 +179,6 @@ test('⭐ an UNSOLD lot has no gate — the lane only opens what sold', async ({
 }) => {
   const { page, close } = await openWorldAs(browser, 'hh-nogate', {
     startLocation: LANE,
-    wizard: true,
   });
   try {
     // Nothing in this suite buys, so every lot but SOLD_LOT is open ground.
@@ -173,14 +198,32 @@ test('⭐ WALK IN and WORK IT — the gate, populates, and the whole verb set', 
   // The long one: a gate traversal, a first provisioning, and six verbs
   // with settle time between them. It runs ~25s on a warm world and the
   // suite default is 30 — too close to the edge to be honest about.
-  test.setTimeout(120_000);
+  test.setTimeout(180_000);
+  // The player brings a can, soil and a seed; the founder (who holds the
+  // kinds' title) lays them on the lane first.
+  await founderLays(
+    browser,
+    LANE,
+    '/world/terminus/hinkley-hills',
+    [
+      '/stuff/thing/vessel/watering-can',
+      '/stuff/thing/vessel/soil-sack',
+      '/trade/farming/thing/seed/carrot',
+    ],
+    /carrot seed/i
+  );
   const { page, close } = await openWorldAs(browser, 'hh-work', {
     startLocation: LANE,
-    wizard: true,
   });
   try {
     // ⭐ The gate is hanging, on the side of the road the ring gave it.
     await sendUntil(page, 'look', page.getByText(new RegExp(SOLD_GATE, 'i')).first());
+    // Bring our own: the can, the soil and the seed the founder laid on
+    // the lane.
+    await runCommand(page, 'get can');
+    await runCommand(page, 'get sack');
+    await runCommand(page, 'get seed');
+    await sendUntil(page, 'inventory', page.getByText(/carrot seed/i).first());
     // `go` is one-way, so it must NOT ride `sendUntil` (a re-send after a
     // successful move just bounces off a wall). Arrival prints movement
     // prose, not a room description — the `look` is what shows the yard.
@@ -196,12 +239,6 @@ test('⭐ WALK IN and WORK IT — the gate, populates, and the whole verb set', 
     // `world/terminus/hinkley-hills/__tests__`.
     await expect(page.getByText(/raised garden bed/i).first()).toBeVisible();
     await expect(page.getByText(/standpipe/i).first()).toBeVisible();
-
-    // So bring our own, the way the wizard brings the soil and the seed.
-    await runCommand(page, 'clone /stuff/thing/vessel/watering-can');
-    await runCommand(page, 'clone /stuff/thing/vessel/soil-sack');
-    await runCommand(page, 'clone /trade/farming/thing/seed/carrot');
-    await sendUntil(page, 'inventory', page.getByText(/carrot seed/i).first());
 
     // ⭐ From here the assertions are about DISPATCH, not outcome, and
     // that is deliberate.
@@ -226,8 +263,7 @@ test('⭐ WALK IN and WORK IT — the gate, populates, and the whole verb set', 
     // some in first." Without this the plant never takes, so there is
     // nothing growing for `water` to water, and the watering assertion
     // below fails on any database where a previous run has not already
-    // left a crop in the bed. Pouring first is what the wizard brought
-    // the sack for.
+    // left a crop in the bed. Pouring first is what the sack is for.
     await runCommand(page, 'pour sack into bed');
     await page.waitForTimeout(2000);
 
@@ -279,7 +315,6 @@ test('⭐ BUY A LOT — minted by the one office allowed to mint', async ({
   // chokepoint under the sale. Nothing here knows it is a test.
   const ordinary = await openWorldAs(browser, 'hh-nogov', {
     startLocation: REGISTRY,
-    wizard: true,
   });
   try {
     // ⭐ The reserve is SHUT to everyone else. This is the assertion that
@@ -328,15 +363,31 @@ test('⭐ BUY A LOT — minted by the one office allowed to mint', async ({
 test('⭐ the land-use gate REFUSES a bed on the Registry floor', async ({
   browser,
 }) => {
+  test.setTimeout(120_000);
+  // The founder (who holds the kinds' title) lays the bed, the soil and
+  // the seed on the Registry floor.
+  await founderLays(
+    browser,
+    REGISTRY,
+    '/world/terminus',
+    [
+      '/trade/farming/thing/bed/garden',
+      '/stuff/thing/vessel/soil-sack',
+      '/trade/farming/thing/seed/carrot',
+    ],
+    /carrot seed/i
+  );
+  // `destruct` here asks the Registry's title: seated on the terminus
+  // committee — a seat, not a credential (wizard-axis D13).
   const { page, close } = await openWorldAs(browser, 'hh-gate', {
     startLocation: REGISTRY,
-    wizard: true,
+    committees: ['/world/terminus'],
   });
   try {
-    await runCommand(page, 'clone /trade/farming/thing/bed/garden --here');
-    await runCommand(page, 'clone /stuff/thing/vessel/soil-sack');
-    await runCommand(page, 'clone /trade/farming/thing/seed/carrot');
     await sendUntil(page, 'look', page.getByText(/garden bed/i).first());
+    await runCommand(page, 'get sack');
+    await runCommand(page, 'get seed');
+    await sendUntil(page, 'inventory', page.getByText(/carrot seed/i).first());
 
     // ⭐ Clear the slot BEFORE planting, not after. The lot is PRE-SOLD,
     // so its yard is never re-provisioned and a crop persists between
@@ -363,7 +414,6 @@ test('the sale refuses cleanly when the buyer cannot cover it', async ({
 }) => {
   const { page, close } = await openWorldAs(browser, 'hh-broke', {
     startLocation: REGISTRY,
-    wizard: true,
   });
   try {
     await sendUntil(

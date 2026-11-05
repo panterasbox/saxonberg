@@ -31,9 +31,12 @@ test.describe('mortality — the dying arc', () => {
   test('die, become a shade, act as one, and come back', async ({
     browser,
   }) => {
+    // eval --parcel /world/lounge — seated on its committee, not a
+    // credential (wizard-axis D13).
     const { page, close } = await openWorldAs(browser, 'mortal', {
       startLocation: START,
       wizard: true,
+      committees: [PARCEL],
     });
     try {
       // ---- alive ----------------------------------------------------

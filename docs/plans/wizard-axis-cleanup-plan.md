@@ -1201,6 +1201,37 @@ Read first, in this order:
   had been meant for all along (the forwarder is the only caller). The
   refusal text names the seat: *"Only the college's staff or a member of
   the hall's committee may let Duncan Hall's rooms."* Allowlist 57 → 44.
+- **W2 ✅ `39976d929`** — decisions the plan did not make:
+  - **D2' — the predicate lives on `AccessApi`, not `AccessLogic`.** The
+    logic singleton's methods are gated `FromModule(AccessApi)` and it makes
+    no self-calls, so the predicate composes the Api's own `isWizard` /
+    `resolveSourceFolderZone` / `can` (each keeps its system-context wrap and
+    fail-closed path, and every test spy on them still bites). It takes an
+    `action` (`write`/`rm`/`mkdir`) because `rm`/`mv` asked `can(…, 'rm')`.
+  - **D14 reached the shell.** AC 4 (*read anything*) and drive step 4b
+    (`cat` a kernel `.ts`) were unreachable while `cat`/`ls`/`grep`/`cp`'s
+    source endpoint asked title for a source READ — opened (lens 1: reading
+    the world's code is how it is learned).
+  - `TemplateLogic.transitiveClosure.test.ts` was deleted with the gate it
+    proved (its whole premise was D5's gate).
+  - `isWizard` is composed from the caches in `AccessRegistry` (a gated
+    self-call through the proxy is refused).
+  - The doc sweep ran as a subagent (docs only, disjoint files).
+- **W3 + W4 harness ✅ `3ec72dfd1`** —
+  - `AppApi.whoSets(key)` + `SettingTierVerbs` (seat → verb) so the three
+    refusing controllers say one sentence from one place; the shared write
+    path is `BankingControllerBase.setSeatDial` (both seat verbs).
+  - `assignForTest` landed on **`CompactApi`** (`assignOfficeForTest`),
+    not `OfficeRegistry`: `@TestOnly` is Api-statics-only.
+  - The founder backstop's dependents went as the plan listed; prose in
+    press/corpo/employment/fasttravel/access/governance said *yes* through
+    it and was corrected (cold-box corpo boards are seated by their owner —
+    the Registrar — with the `group` verb).
+  - ⚠ The drive drives the source-write predicate through `cp -s` /
+    `mkdir -s`, not `edit`: the wire harness sends no payloads. Step 10
+    (wiki) is the unit suite's for the same reason. Recorded in the file.
+- **W5 ⏳** — fanned to four subagents (static edits + `tsc`; no worlds);
+  the proof is `wire:dirty`, run alongside review.
 
 ## Drive record
 
