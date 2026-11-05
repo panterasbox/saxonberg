@@ -253,4 +253,39 @@ describe('the line’s regulars (harbors A2)', () => {
       expect((data(deck) as { props: unknown[] }).props, deck).toContain('/platform/thing/sounding-rod');
     }
   });
+
+  it('⭐ every authored ship reaches each of her rooms from her entrance by her own ways (her warren follows them, never searches)', () => {
+    const ships = ['/world/terminus/hesper/structure', '/world/terminus/ostrander/structure', '/world/terminus/harbor/ships/ketch/structure', '/world/terminus/harbor/ships/coaster/structure'];
+    for (const path of ships) {
+      const { extent, entrance } = data(path) as { extent: string; entrance: string };
+      // Every room row under her extent, off the files.
+      const dir = (p: string) => join(PACKS, 'terminus', 'content', p.replace(/^\//, ''));
+      const rooms: string[] = [];
+      const walk = (p: string): void => {
+        for (const e of readdirSync(dir(p))) {
+          const sub = `${p}/${e}`;
+          if (statSync(dir(sub)).isDirectory()) walk(sub);
+          else if (e.endsWith('.yaml')) {
+            const row = rowAt(sub.replace(/\.yaml$/, ''));
+            if (String(row.class).startsWith('/platform/location/')) rooms.push(sub.replace(/\.yaml$/, ''));
+          }
+        }
+      };
+      walk(extent);
+      // What her warren adopts: the entrance, then every room a way inside her extent leads to.
+      const seen = new Set([entrance]);
+      const queue = [entrance];
+      while (queue.length > 0) {
+        const exits = (data(queue.shift()!).exits ?? {}) as Record<string, { destination?: string }>;
+        for (const w of Object.values(exits)) {
+          const to = w.destination ?? '';
+          if (!to.startsWith(`${extent}/`) || seen.has(to)) continue;
+          seen.add(to);
+          queue.push(to);
+        }
+      }
+      expect([...seen].sort(), path).toEqual(rooms.sort());
+    }
+    expect(data('/world/terminus/ostrander/structure').entrance).toBe('/world/terminus/ostrander/deck');
+  });
 });

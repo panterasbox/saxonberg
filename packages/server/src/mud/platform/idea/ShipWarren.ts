@@ -32,7 +32,8 @@
  * is the platform's `/platform/idea/ShipWarren/authored` row; it copies
  * NO plan — an authored ship's own rows already ARE the place, and they
  * are served — and it takes her resident rooms under her `extent` as
- * members instead of minting any ({@link adoptResident}).
+ * members instead of minting any ({@link adoptResident}) — FOLLOWED from
+ * her `entrance` through the ways her rows author, never searched.
  *
  * ⭐ **The plan is the ship's**: a warren row
  * names nothing; a ship of a kind hands her warren her own row's
@@ -43,9 +44,9 @@
  */
 
 import { FloorplanWarren } from '../../lib/location/FloorplanWarren';
+import { Floorplan } from '../../lib/location/Floorplan';
 import type { FloorplanRoom } from '../../lib/location/Floorplan';
 import { ContainmentApi } from '../../api/containment';
-import { Template } from '../../lib/stuff/Template';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
 import type { Stuff, EvictionContext } from '../../lib/stuff/Stuff';
@@ -80,8 +81,8 @@ export default class ShipWarren extends FloorplanWarren {
   /** Her rooms are hers, not a holding's: a ship's warren is no address's. */
   private _ship: Ship | null = null;
 
-  /** Runtime cache of her member rows (an authored ship's extent descendants). */
-  private extentRows: Promise<string[]> | null = null;
+  /** Runtime cache of her room rows (an authored ship's plan, followed from her entrance). */
+  private planRows: Promise<string[]> | null = null;
 
   /** Set once, by the ship that stands this warren up. */
   public attachShip(ship: Ship): void {
@@ -242,17 +243,23 @@ export default class ShipWarren extends FloorplanWarren {
   /**
    * ⭐ An authored ship's rooms are rows of their own, loaded as any room
    * is (walked to, by her berth, by her zone): whichever of them stand now
-   * become members. Asked again on every read of her rooms — a room that
-   * loaded later joins then.
+   * become members. Which rows are hers is her PLAN, read as a kind's is —
+   * her `entrance`, then every room a way inside her `extent` leads to
+   * ({@link Floorplan}): followed, never searched. Asked again on every
+   * read of her rooms — a room that loaded later joins then.
    */
   public async adoptResident(): Promise<void> {
     const ship = this.ship();
-    const ext = ship?.getExtent() ?? '';
-    if (ext === '') return;
-    if (this.extentRows === null) {
-      this.extentRows = Template.findDescendants(ext).then((ts) => ts.map((t) => t.path));
+    if (ship === null) return;
+    const extent = ship.getExtent();
+    const entrance = ship.getEntrance() ?? '';
+    if (extent === '' || entrance === '') return;
+    if (this.planRows === null) {
+      this.planRows = new Floorplan(ship.getTemplatePath() ?? 'an authored ship', { extent, entrance })
+        .load()
+        .then((plan) => plan.rooms.map((r) => r.row));
     }
-    for (const path of await this.extentRows) {
+    for (const path of await this.planRows) {
       // An authored room is a row of its own: its one instance, by its path.
       const room = StuffApi.findByIdentityPath<Stuff>(path).find((r) => !r.isDestroyed()) ?? null;
       if (room === null || !room.isPlace() || !MixinApi.isContainer(room)) continue;

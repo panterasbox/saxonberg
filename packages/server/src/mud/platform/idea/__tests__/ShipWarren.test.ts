@@ -25,6 +25,7 @@ import Compartment from '../../location/Compartment';
 import Thing from '../../thing/Thing';
 import TemplateApplier from '../TemplateApplier';
 import { Document } from '../../../lib/persistence/Document';
+import { Template } from '../../../lib/stuff/Template';
 import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
 import { NavigationApi } from '../../../api/navigation';
@@ -61,6 +62,9 @@ const BOLLARD = '/test/quay/bollard';
 const AUTHORED = '/test/hesper/structure';
 const A_DECK = '/test/hesper/deck';
 const A_HOLD = '/test/hesper/hold';
+const A_SALOON = '/test/hesper/saloon';
+const A_PUMP = '/test/hesper/thing/pump';
+const A_STRAY = '/test/hesper/stray';
 
 let store: Map<string, Doc[]>;
 let idCounter = 0;
@@ -122,10 +126,21 @@ function installStore(): void {
   add(CRATE, '/platform/thing/Thing', { shortDescription: 'a crate' });
   add(LANDING, '/platform/location/Locale', { shortDescription: 'a landing', props: [BOLLARD] });
   add(BOLLARD, '/platform/thing/Bollard', { shortDescription: 'a bollard', fixedInPlace: true });
-  // An authored ship: one row, her rooms rows of their own under her extent.
+  // An authored ship: one row, her rooms rows of their own under her extent,
+  // joined by the ways her rows author (a saloon aft, as the Ostrander's).
   add(AUTHORED, '/platform/idea/Ship', { name: 'the Hesper', extent: '/test/hesper', entrance: A_DECK });
-  add(A_DECK, '/platform/location/Compartment', { shortDescription: "Hesper's deck" });
-  add(A_HOLD, '/platform/location/Hold', { shortDescription: "Hesper's hold" });
+  add(A_DECK, '/platform/location/Compartment', {
+    shortDescription: "Hesper's deck",
+    exits: { down: { destination: A_HOLD }, west: { destination: A_SALOON } },
+  });
+  add(A_HOLD, '/platform/location/Hold', { shortDescription: "Hesper's hold", exits: { up: { destination: A_DECK } } });
+  add(A_SALOON, '/platform/location/Compartment', {
+    shortDescription: "Hesper's saloon",
+    exits: { east: { destination: A_DECK } },
+  });
+  // Under her extent but no room of hers: a thing row, and a room no way reaches.
+  add(A_PUMP, '/platform/thing/Thing', { shortDescription: 'a pump' });
+  add(A_STRAY, '/platform/location/Compartment', { shortDescription: 'a stray room' });
 
   const save = vi.fn(async (c: string, doc: Doc) => {
     const arr = col(c);
@@ -516,6 +531,26 @@ describe('ShipWarren — ships from a kind (harbors B1)', () => {
     await PersistableApi.capture(who as unknown as Stuff, 'rover-1');
     const rec = col('holder_snapshots').find((d) => d.scope === '/test/rover' && d.owner === 'rover-1');
     expect(rec?.place).toEqual({ container: A_DECK });
+  });
+
+  it('⭐ an authored ship adopts every room her ways reach from her entrance — the saloon too — and nothing else', async () => {
+    const ship = await StuffApi.singleton<Ship>(AUTHORED);
+    const deck = await StuffApi.singleton<Stuff & Container>(A_DECK);
+    const hold = await StuffApi.singleton<Stuff & Container>(A_HOLD);
+    const saloon = await StuffApi.singleton<Stuff & Container>(A_SALOON);
+    const stray = await StuffApi.singleton<Stuff & Container>(A_STRAY);
+    // Followed, never searched: no descendant scan of her extent.
+    const scan = vi.spyOn(Template, 'findDescendants');
+    await ship.aboard();
+    expect(scan).not.toHaveBeenCalled();
+    const warren = (deck as unknown as { getWarren(): ShipWarren | null }).getWarren();
+    expect(warren).toBeInstanceOf(ShipWarren);
+    expect(warren!.liveRooms().map((r) => r.getTemplatePath()).sort()).toEqual([A_DECK, A_HOLD, A_SALOON].sort());
+    for (const room of [hold, saloon]) {
+      expect((room as unknown as { getWarren(): ShipWarren | null }).getWarren()).toBe(warren);
+    }
+    // A room under her extent that no way of hers reaches is not her room.
+    expect((stray as unknown as { getWarren(): ShipWarren | null }).getWarren()).toBeNull();
   });
 
   it('⭐ an authored ship adopts the rooms under her extent, and never sleeps', async () => {
