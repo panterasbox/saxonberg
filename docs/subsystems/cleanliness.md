@@ -332,8 +332,9 @@ Each names where it goes; a slate that does not exist yet is the line that opens
 - **Stale urine's collection** (who fills the tub) → `sanitation-slate`.
 - **An appraisal of a garment's value** (the laundress pays a cover,
   not a value) → `retail`/`contract` slates (an `appraise` reading).
-- **Silk** → ⭐ a raw-goods chain nobody has designed (sericulture: mulberry,
-  the worm, reeling, throwing) — the user's call, 2026-10-17; no slate yet.
+- **Silk** → shipped as `trade-sericulture` ([sericulture.md](sericulture.md),
+  MR !395); the laundress's ruin case still uses wool — the silk drive line
+  and a silk garment row are [silk-slate](../slates/tails/silk-slate.md)'s.
   **Cotton** → `textiles` content. The laundress's ruin case uses wool.
 - **Seznick's and the dorm's windows as objects** → content, one row
   each over `Window`, when those homes want the drive's light step.
