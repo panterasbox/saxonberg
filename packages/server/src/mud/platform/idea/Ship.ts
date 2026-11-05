@@ -25,6 +25,7 @@
  */
 
 import Structure from '../../lib/structure/Structure';
+import type Place from '../../lib/stuff/Place';
 import { PositionedMixin } from '../../lib/expanse/Positioned';
 import { EngagedMixin } from '../../lib/activity/Engaged';
 import { PersistableMixin, type Persistable } from '../../lib/persistence/Persistable';
@@ -1533,14 +1534,19 @@ export default class Ship extends BilgeMixin(PersistableMixin(
     const name = this.getPresentation();
     let words: string;
     if (amount > 0) {
-      this.owe({ to: c.payTo, amountMinor: amount, reason: `for ${days} day${days === 1 ? '' : 's'}' charter of ${name}`, by: c.charterer });
+      this.owe({ to: c.payTo, amountMinor: amount, reason: `for ${days} ${days === 1 ? "day's" : "days'"} charter of ${name}`, by: c.charterer });
       words = `The charter of ${name} ends as she makes fast: ${days} day${days === 1 ? '' : 's'} at ${c.ratePerDay} — ${Math.ceil(amount)} owed to the line, paid at the harbor office.`;
     } else {
       this.persistMooring();
       words = `The charter of ${name} ends as she makes fast.`;
     }
     const charterer = StuffApi.findByIdentityPath<Stuff>(c.charterer)[0] ?? null;
-    if (charterer !== null && !charterer.isDestroyed() && MixinApi.isSensor(charterer)) {
+    // Aboard her, the charterer hears it in her arrival (the words are
+    // returned into it); told here too, they read it twice (the browser
+    // walk, 2026-11-04). Only a charterer ashore is told on their own.
+    const at = charterer !== null && MixinApi.isContainable(charterer) ? charterer.getContainer() : null;
+    const aboardHer = at !== null && at.isPlace() && (at as unknown as Place).structureNow() === (this as unknown as Structure);
+    if (charterer !== null && !aboardHer && !charterer.isDestroyed() && MixinApi.isSensor(charterer)) {
       try {
         MessageApi.scene(charterer).topic('sense.surroundings').toSelf(Mml.compose`${words}`).send();
       } catch {

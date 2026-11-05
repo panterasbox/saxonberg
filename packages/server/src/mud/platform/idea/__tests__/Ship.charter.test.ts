@@ -248,6 +248,33 @@ describe('⭐ the charter ends as she berths at a kept quay, its days billed (P2
     nowS = 10 * DAY;
   });
 
+  it('one day is "1 day\'s charter" — the browser walk read "1 day\' charter" on the office\'s bill', async () => {
+    const me = person('/test/charterer');
+    vi.spyOn(StuffApi, 'findByIdentityPath').mockReturnValue([]);
+    expect(await ship.charterTo(me, 2, DESK)).toBeNull();
+    bollardOn(quay);
+    lineOn(deck);
+    nowS = 10.5 * DAY;
+    await ship.comeAlongside(QUAY);
+    expect(ship.getOwed()).toEqual([{ to: DESK, amountMinor: 2, reason: "for 1 day's charter of the Hesper", by: '/test/charterer' }]);
+  });
+
+  it('a charterer aboard hears the charter end once — in her arrival — and one ashore is told on their own', async () => {
+    const me = person('/test/charterer');
+    vi.spyOn(StuffApi, 'findByIdentityPath').mockReturnValue([me] as never);
+    vi.spyOn(MixinApi, 'isSensor').mockImplementation(((x: unknown) => x === me) as never);
+    expect(await ship.charterTo(me, 2, DESK)).toBeNull();
+    bollardOn(quay);
+    lineOn(deck);
+    ContainmentApi.move(me as never, deck as never);
+    vi.spyOn(deck, 'structureNow').mockReturnValue(ship as never);
+    nowS = 10.5 * DAY;
+    told.length = 0;
+    const words = await ship.comeAlongside(QUAY);
+    expect(words).toMatch(/charter of the Hesper ends/);
+    expect(told.filter((t) => /charter of the Hesper ends/.test(t))).toEqual([]);
+  });
+
   it('⭐ two days and a bit at 2 a day: three days owed to the line, by the charterer, who still answers for her', async () => {
     const me = person('/test/charterer');
     vi.spyOn(StuffApi, 'findByIdentityPath').mockReturnValue([]);
