@@ -569,3 +569,41 @@ record · on this side · this hour · found. A seal is the other half — evide
 
 Aether devices in general (switches, meters, sensors, pumps by mind) went to the
 [aether-devices-slate](./aether-devices-slate.md) — cross-cutting by R3.
+
+## § 8 · What water supply shipped that locks reconciles **[2026-11-05, MR !520]**
+
+Water supply merges first, so by the collision line in
+[locks-requirements](../requirements/locks-requirements.md) (*"whichever build
+merges second reconciles"*) these touchpoints are locks' to move. Nothing here
+contradicts the design: water supply already treats a key as physical (a holder
+who quits keeps it) and a seat as naming **keyways**, not lock paths. What
+differs is mechanism the locks build replaces.
+
+1. **The "padlocks" are built-in locks on the gates.** The Delight ditch's
+   gates carry a `keyway` and `lockTechnology` on the gate itself (the shipped
+   `Lockable`); only the prose says "chain and padlock". Under locks' model
+   (*a padlock is a good; a closure with a hasp accepts one*) each becomes a
+   hasp on the gate and the Ditch Company's padlock on it, owned by the
+   company:
+   - `hearts-delight/…/ditch/thing/headgate.yaml` — `keyway: ditch-company`
+   - `hearts-delight/…/ditch/thing/turnout-furtado.yaml` — `keyway: ditch-company`
+   - `hearts-delight/…/ditch/thing/turnout-avila.yaml` — `keyway: ditch-junior`
+     (the junior turnout the rider locks in a dry year — D19)
+2. **A seat's key is handed over by minting one at `clock on`.**
+   `ClockController.issueSeatKeys` builds a `Lock` for each of the seat's keys
+   and calls `issueKeyTo`. That creates a key from nothing and also puts it in
+   the implant's keychain: the founding defect, and the implant-held shape
+   key, which locks retires. Locks' answer is the **key board** at the seat's
+   station (the keeper takes the key from a hook; an empty hook shows it is
+   out) and the **register** recording the issue to the holder in their
+   capacity as seat-holder. The seats that carry keys:
+   - `Position.keys` (`lib/employment/Position.ts`) — the field, `{ keyway, technology }[]`;
+   - `terminus/…/budget.yaml` — the Keeper of the Works: `terminus-works`;
+   - `hearts-delight/…/ditch/idea/company.yaml` — the rider: `ditch-company`, `ditch-junior`.
+3. **The pump-house door** (`terminus/…/wharfside/thing/pump-house-door.yaml`,
+   `keyway: terminus-works`) is an ordinary keyed door. It wants a grade
+   (*fine* or better, so a stray key does not open the city's water), and is
+   a natural home for the key board in item 2.
+
+The water-supply drive's step 22 (picking or breaking a padlock) was left
+for this build.
