@@ -167,7 +167,21 @@ keys on the wiki's own two axes.
 The keyspace is 389 keys and overwhelmingly physics. The political set
 is the taxes, levies, grants and capital controls: the sales tax, the
 corpo royalty, the consignment commission, the onboarding stipend, the
-two withdrawal caps, and the opening capital and float. Tier B is the
+two withdrawal caps, and the opening capital and float.
+
+### Which office holds them — split fiscal from monetary (owner, 2026-11-05)
+
+- **The Minister of Finance** — the sales tax, the corpo royalty, the
+  consignment commission, the onboarding stipend. Fiscal policy: what the
+  state takes and pays out. The seat already appropriates from the
+  treasury, so taking and spending sit in one place.
+- **The Governor of the Central Bank** — the two withdrawal caps, the
+  opening capital and the float. Monetary policy and capital controls:
+  how much money there is and how it moves. The seat already holds the
+  reserve lever.
+
+Decided by lens 1: the split is the real distinction between fiscal and
+monetary policy, and a player learns it by finding out whom to petition. Tier B is the
 default and changes nothing, so the build is safe; the **totality check
 is what makes the default honest**, by forcing every new key to be
 classified deliberately rather than by silence.
@@ -209,10 +223,11 @@ bites. Run against a fresh world.
 6. **Tier B is unchanged.** Read and set an ordinary physics setting.
    Works exactly as before.
 7. **Tier C is unreachable from the operator verb.** Attempt to set the
-   sales tax there. Refused, pointing at the office that holds it.
-8. **Tier C works through the seat.** As the office holder, set the
-   sales tax through the governance surface. It takes effect, and the
-   decision appears in the record.
+   sales tax there. Refused, pointing at the Minister of Finance.
+8. **Tier C works through the seat.** As the Minister of Finance, set
+   the sales tax; as the Governor, set a withdrawal cap. Each takes
+   effect and appears in the record. The Governor setting the sales tax,
+   and the Minister setting a cap, are both refused.
 9. **The spell is gone.** Attempt to cast it. No such spell; nothing in
    the catalogue names it.
 10. **Spoilers stay hidden.** As a wizard, read a wiki page with
