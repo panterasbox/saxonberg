@@ -780,9 +780,12 @@ export class StuffApi {
     // time. The ship then found eleven decks where her `watchRoom` asks
     // for one, read none, and had "no lines to make fast". Her own wake
     // stands her rooms up through `singleton()`; a landing must too.
+    // ⛔ Not the elastic warren's room (the lounge): every live lounge room
+    // is a fresh clone of its one row — repeated clones are the point.
     if (
       MixinApi.hasMixin(cls, Mixins.Persistable) ||
-      MixinApi.hasMixin(cls, Mixins.WarrenMember)
+      (MixinApi.hasMixin(cls, Mixins.WarrenMember) &&
+        !MixinApi.hasMixin(cls, Mixins.Lounge))
     ) {
       const keyed = this.#indexes.byTemplatePath
         .exact(path)
