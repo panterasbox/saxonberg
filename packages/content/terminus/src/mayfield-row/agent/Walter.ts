@@ -33,7 +33,13 @@ import type { CommandContributions } from "@saxonberg/server/mud/api/command";
 
 export default class Walter extends CastMixin(StagedMixin(NPC)) {
   static commandContributions: CommandContributions = {
-    self: [],
+    // ⭐ SELF too: the desk's own dialogue `dispatch`es these verbs AS him, and a
+    // verb nobody affords to the dispatcher is `unknown-verb` — the intake
+    // was dead on that alone (wizard-axis drive, 2026-11-05).
+    self: [
+      "world/terminus/mayfield-row/cmd/lease.yaml",
+      "world/terminus/mayfield-row/cmd/unlease.yaml",
+    ],
     peers: [
       "world/terminus/mayfield-row/cmd/lease.yaml",
       "world/terminus/mayfield-row/cmd/unlease.yaml",

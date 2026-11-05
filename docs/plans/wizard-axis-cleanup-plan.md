@@ -1235,4 +1235,31 @@ Read first, in this order:
 
 ## Drive record
 
-*(appended at build time)*
+`packages/wire/tests/wizard-axis.dirty.wire.test.ts`, owned world on
+2019, fresh database. **Run 3: 13/13 green** (2026-11-05). Run 1 was
+11/13; run 2 12/13. What the drive found:
+
+1. ⭐⭐ **Katie's intake was dead on a second count** — after the
+   validator went, her dispatch failed `unknown-verb(provision)`: Katie and
+   Walter afforded their desk verbs to `peers` only, never to `self`, and a
+   dispatch runs AS the NPC. Both classes now afford them to themselves too.
+   (So the move-in path was broken twice over before this build — the
+   wizard validator, then the missing self-affordance — and no unit test
+   could see either.)
+2. The Duncan Hall lobby is unlit at night: the drive brings the clock
+   round in 2-hour `testharness` steps before talking to Katie (instant).
+3. `git`'s report rides `shell.diagnostic`, which the wire harness skips —
+   step 4 proves `--dry-run` on the checkout (`HEAD` and the index
+   unchanged), not the prose.
+4. The dialogue harness: the previous wheel's `prompt-dismissed` frame
+   arrives before the next wheel — `choose()` skips frames with no choices.
+
+B2 (each checkpoint seen to fail): step 1's quiet-log assertion failed on
+the live `unknown-verb` line (run 2); step 4 failed on the dry-run prose
+(run 1) before it read the checkout; step 12 injects a site and sees the
+gate exit non-zero inside the run itself. Steps 2/3/6b/7 assert reasons
+(`not-authorized`, `tier-c`, the PM named) that the pre-build code could
+not produce.
+
+Soak drive: none of this file's — the soak lane runs the 13 `.soak.`
+files W5 migrated (listed in the MR).

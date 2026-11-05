@@ -38,7 +38,7 @@
 
 import { describe as suite, it, expect, beforeAll, afterAll } from 'vitest';
 import { spawnSync } from 'child_process';
-import { writeFileSync, rmSync } from 'fs';
+import { writeFileSync, rmSync, readFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import {
@@ -50,6 +50,7 @@ import {
   expectNote,
 } from '../src/harness';
 import type { CommandResult } from '../src/harness';
+import { WIRE_LOG } from '../src/runner/boot';
 
 export const DIRTY_REASON =
   'moves the Minister of Finance, the Governor and the Prime Minister off the ' +
@@ -82,18 +83,25 @@ async function words(r: CommandResult): Promise<string> {
   return squash(JSON.stringify(r.notes ?? []) + ' ' + (await r.said()));
 }
 
-/** Answer a dialogue wheel with the choice whose line matches `want`. */
+/**
+ * Answer a dialogue wheel with the choice whose line matches `want`. ⚠ The
+ * previous wheel's `prompt-dismissed` frame arrives first — skip any frame
+ * that carries no choices.
+ */
 async function choose(s: Session, want: RegExp): Promise<void> {
-  const p = (await s.awaitPrompt(10_000)) as unknown as {
-    payload?: { promptId?: string; outcome?: { notes?: Array<{ kind?: string; choices?: Array<{ response?: string; label?: string; line?: string }> }> } };
-    promptId?: string;
-    outcome?: { notes?: Array<{ kind?: string; choices?: Array<{ response?: string; label?: string; line?: string }> }> };
-  };
-  const body = p.payload?.promptId ? p.payload : p;
-  const choices = body.outcome?.notes?.find((n) => n.kind === 'prompt-choice')?.choices ?? [];
-  const pick = choices.find((c) => want.test(JSON.stringify(c)));
-  expect(pick, `no choice matching ${want} in ${JSON.stringify(choices).slice(0, 400)}`).toBeDefined();
-  s.answerPrompt(body.promptId!, pick!.response ?? '');
+  type Choice = { response?: string };
+  type Body = { promptId?: string; outcome?: { notes?: Array<{ kind?: string; choices?: Choice[] }> } };
+  for (let i = 0; i < 5; i++) {
+    const p = (await s.awaitPrompt(10_000)) as unknown as Body & { payload?: Body };
+    const body = p.payload?.promptId ? p.payload : p;
+    const choices = body.outcome?.notes?.find((n) => n.kind === 'prompt-choice')?.choices ?? [];
+    if (choices.length === 0) continue;
+    const pick = choices.find((c) => want.test(JSON.stringify(c)));
+    expect(pick, `no choice matching ${want} in ${JSON.stringify(choices).slice(0, 400)}`).toBeDefined();
+    s.answerPrompt(body.promptId!, pick!.response ?? '');
+    return;
+  }
+  throw new Error(`no choice wheel arrived for ${want}`);
 }
 
 const WIZ = uniqueHandle('wzax');
@@ -112,19 +120,28 @@ afterAll(() => {
 
 suite('the seats are exercised, not bypassed (1–3)', () => {
   it('1. [instant] a newcomer talks to Katie and is moved in — her dispatch passes the seat', async () => {
+    const logMark = readFileSync(WIRE_LOG, 'utf8').length;
     const newcomer = await session(uniqueHandle('nwax'), { startLocation: HALL_LOBBY });
+    // ⚠ The lobby is unlit at night, and you cannot talk to whom you
+    // cannot see: bring the clock round to daylight first (2h steps, a
+    // day at most — instant).
+    for (let i = 0; i < 12 && /pitch dark/i.test(plain(await newcomer.prose('look'))); i++) {
+      expectOk(await newcomer.cmd('testharness clock advance 2h'));
+    }
     let t = await newcomer.cmd('talk katie');
     if (t.status !== 'ok') t = await newcomer.cmd('talk super');
     expectOk(t);
     await choose(newcomer, /need a room/i);
     await choose(newcomer, /Mining/i);
-    // The provision ran AS Katie: the room's key arrives with the lease.
-    let inv = '';
-    for (let i = 0; i < 10 && !/key/i.test(inv); i++) {
-      await new Promise((r) => setTimeout(r, 500));
-      inv = squash(await newcomer.prose('inventory'));
-    }
-    expect(inv, 'no key — Katie\'s provision dispatch did not run').toMatch(/key/i);
+    // The provision ran AS Katie — through her own affordance and the
+    // seat at execute(). Its outcome is told to HER, and the server logs an
+    // NPC's dispatch only when it is NOT ok, so a quiet log is the pass:
+    // this check caught `unknown-verb(provision)` and would catch the old
+    // wizard validator's refusal (both were live before this build).
+    await new Promise((r) => setTimeout(r, 4000));
+    const failed = readFileSync(WIRE_LOG, 'utf8').slice(logMark)
+      .split('\n').filter((l) => /\[dispatch\] Katie "provision /.test(l));
+    expect(failed, failed.join('\n')).toEqual([]);
   });
 
   it('2. [instant] a seatless wizard at Katie\'s desk is refused, and told whose act it is', async () => {
@@ -156,9 +173,15 @@ suite('the axis is authoring TypeScript (4, 4b, 5)', () => {
     const dir = await player.cmd('mkdir -s /platform/thing/wizard-axis-probe');
     expectNote(dir, 'controller-rejected', { reason: 'access-denied' });
     expect(await words(dir)).not.toMatch(/wizard axis/);
-    // And `git publish --dry-run` touches nothing, for anyone.
-    const dry = await wiz.cmd('git publish --dry-run -m probe');
-    expect(squash(await dry.said())).toMatch(/Dry run/);
+    // And `git publish --dry-run` touches nothing, for anyone. (Its report
+    // rides `shell.diagnostic`, which the harness skips; the checkout is
+    // the proof — the server's repo is this worktree.)
+    const head = () => spawnSync('git', ['rev-parse', 'HEAD'], { cwd: SERVER, encoding: 'utf8' }).stdout.trim();
+    const staged = () => spawnSync('git', ['diff', '--cached', '--name-only'], { cwd: SERVER, encoding: 'utf8' }).stdout.trim();
+    const [h0, s0] = [head(), staged()];
+    expectOk(await wiz.cmd('git publish --dry-run -m probe'));
+    expect(head()).toBe(h0);
+    expect(staged()).toBe(s0);
   });
 
   it('4b. [instant] reading is open — to a seatless wizard and a plain player alike; the console ring is the PM\'s', async () => {

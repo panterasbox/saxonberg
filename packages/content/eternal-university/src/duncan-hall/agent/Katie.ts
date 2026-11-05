@@ -45,7 +45,13 @@ export default class Katie extends CastMixin(StagedMixin(NPC)) {
    * namespace — the core `AuthorMixin` no longer references Duncan Hall.
    */
   static commandContributions: CommandContributions = {
-    self: [],
+    // ⭐ SELF too: her own dialogue `dispatch`es these verbs AS her, and a
+    // verb nobody affords to the dispatcher is `unknown-verb` — the intake
+    // was dead on that alone (wizard-axis drive, 2026-11-05).
+    self: [
+      'world/terminus/eternal/duncan-hall/cmd/provision.yaml',
+      'world/terminus/eternal/duncan-hall/cmd/unprovision.yaml',
+    ],
     peers: [
       'world/terminus/eternal/duncan-hall/cmd/provision.yaml',
       'world/terminus/eternal/duncan-hall/cmd/unprovision.yaml',
