@@ -11,16 +11,24 @@
  * the integral instead of the sample.
  *
  * ⭐ A window whose end hour is BEFORE its start runs across midnight: a
- * night turn `[22, 4)` on day 1 is 22:00 on day 1 to 04:00 on day 2. The
- * roster's own `[start, end)` never wraps; a schedule read for a gate's turn
- * must.
+ * night turn `[22, 4)` on day 1 is 22:00 on day 1 to 04:00 on day 2. An
+ * entry whose two hours are equal covers nothing.
+ *
+ * ⭐⭐ This is the ONE reading of a `ShiftEntry`: {@link ShiftSchedule.covers}
+ * at an instant (the roster's question) and {@link windowsBetween} over a
+ * span. The roster used to read the same data its own way, so a night turn
+ * watered the field through the gate while its irrigator was never on
+ * shift, and a season-bound window was honored by one and ignored by the
+ * other (found after the water-supply merge).
  *
  * Pure: the default calendar's day and week (24 h, the calendar's week),
- * no clock read, no state.
+ * no clock read, no state. Season is the house's (its climate decides), so
+ * a caller passes it; a season-bound window with no season known is off.
  */
 
 import { DefaultCalendar } from '../time/DefaultCalendar';
-import type { ShiftEntry } from './Roster';
+import type { RosterClock, ShiftEntry } from './Roster';
+import type { Season } from '../time/CelestialProfile';
 
 /** One stretch of time a schedule was on, `[fromS, toS)`. */
 export interface ScheduleWindow {
@@ -40,6 +48,31 @@ export class ShiftSchedule {
     );
   }
 
+  /**
+   * ⭐ Is the schedule on at the decomposed instant `clock`? The roster's
+   * question, by the same rules as {@link windowsBetween}: an evening
+   * window runs on into the small hours of the next day, and a
+   * season-bound window is off while the house's season is unknown.
+   */
+  public covers(clock: RosterClock): boolean {
+    return this.entries.some((e) => ShiftSchedule.entryCovers(e, clock));
+  }
+
+  private static entryCovers(entry: ShiftEntry, clock: RosterClock): boolean {
+    if (entry.season && (clock.season === undefined || !entry.season.includes(clock.season))) {
+      return false;
+    }
+    const [h0, h1] = entry.hours;
+    if (h1 > h0) return entry.days.includes(clock.weekday) && clock.hour >= h0 && clock.hour < h1;
+    if (h1 === h0) return false;
+    const week = DefaultCalendar.singleton().daysPerWeek;
+    const yesterday = (((clock.weekday - 1) % week) + week) % week;
+    return (
+      (entry.days.includes(clock.weekday) && clock.hour >= h0) ||
+      (entry.days.includes(yesterday) && clock.hour < h1)
+    );
+  }
+
   /** Does the schedule say anything at all? */
   public isEmpty(): boolean {
     return this.entries.length === 0;
@@ -48,9 +81,15 @@ export class ShiftSchedule {
   /**
    * Every stretch of `[fromS, toS)` the schedule is on, merged and in
    * order. A gap longer than {@link MAX_WALK_DAYS} is read from its last
-   * `MAX_WALK_DAYS` only.
+   * `MAX_WALK_DAYS` only. `seasonAt` is the house's season at a time; a
+   * season-bound window is read in the season of the day it starts, and is
+   * off when no reader is given.
    */
-  public windowsBetween(fromS: number, toS: number): ScheduleWindow[] {
+  public windowsBetween(
+    fromS: number,
+    toS: number,
+    seasonAt?: (atS: number) => Season | undefined,
+  ): ScheduleWindow[] {
     if (!(toS > fromS) || this.entries.length === 0) return [];
     const cal = DefaultCalendar.singleton();
     const day = cal.hoursPerDay * 3600;
@@ -66,6 +105,11 @@ export class ShiftSchedule {
       for (const e of this.entries) {
         if (!e.days.includes(weekday)) continue;
         const [h0, h1] = e.hours;
+        if (h1 === h0) continue;
+        if (e.season) {
+          const season = seasonAt?.(dayStart);
+          if (season === undefined || !e.season.includes(season)) continue;
+        }
         const open = dayStart + h0 * 3600;
         const close = h1 > h0 ? dayStart + h1 * 3600 : dayStart + (h1 + cal.hoursPerDay) * 3600;
         const a = Math.max(open, start);
@@ -84,12 +128,16 @@ export class ShiftSchedule {
   }
 
   /** Seconds of `[fromS, toS)` the schedule is on. */
-  public onSecondsBetween(fromS: number, toS: number): number {
-    return this.windowsBetween(fromS, toS).reduce((n, w) => n + (w.toS - w.fromS), 0);
+  public onSecondsBetween(
+    fromS: number,
+    toS: number,
+    seasonAt?: (atS: number) => Season | undefined,
+  ): number {
+    return this.windowsBetween(fromS, toS, seasonAt).reduce((n, w) => n + (w.toS - w.fromS), 0);
   }
 
   /** Is the schedule on at `atS`? */
-  public isOnAt(atS: number): boolean {
-    return this.windowsBetween(atS, atS + 1).length > 0;
+  public isOnAt(atS: number, seasonAt?: (atS: number) => Season | undefined): boolean {
+    return this.windowsBetween(atS, atS + 1, seasonAt).length > 0;
   }
 }

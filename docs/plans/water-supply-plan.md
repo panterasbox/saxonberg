@@ -1436,3 +1436,16 @@ hand (the merge commit lists them). On the merged tree:
 
 Where harbors meets supply is this line's own work:
 `running-water-slate.md` §7.
+
+#### One reading of a shift entry (2026-11-05)
+
+Found looking for other users of `ShiftSchedule`: the roster and the gate
+read the same `ShiftEntry` two ways. Avila's irrigator slot is `hours: [22, 4]`;
+the gate (through `ShiftSchedule`) wrapped it past midnight and watered her
+field, while `Roster.evaluate` never wrapped, so employment never had her on
+shift. `season` was the reverse: the roster honored it, the schedule ignored
+it. `ShiftSchedule.covers(clock)` is now the one reading, and the roster
+delegates to it. A night window is on in the small hours of the next day, an
+equal-hours entry covers nothing, and a season-bound window is off without the
+house's season (the integral takes an optional season reader). Open, not
+checked: whether payroll pays the shifts of a business that sat unloaded.
