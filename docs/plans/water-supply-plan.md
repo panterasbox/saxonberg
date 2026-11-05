@@ -1423,3 +1423,16 @@ Both were walked again on a fresh world, in a browser.
   (resolve): bare integer '20' is not valid at the head of a chain".
   `deposit` takes the coins (`bank deposit pieces`), and a player will type
   the amount.
+
+#### After the master merge (2026-11-05)
+
+Merged master (harbors and paint) at 8546d6b86; 21 conflicts resolved by
+hand (the merge commit lists them). On the merged tree:
+
+- **Full suite** (`tools/suite`): all 54 packages, **18,675 tests** green, 30 min.
+- **`lint:family`**: 88/88 (the article ratchet fell to 113).
+- **Blocking wire drive** on a freshly dropped database:
+  `water-supply.dirty.wire.test.ts` **7/7**.
+
+Where harbors meets supply is this line's own work:
+`running-water-slate.md` §7.
