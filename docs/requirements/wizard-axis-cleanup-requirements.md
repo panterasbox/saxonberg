@@ -6,8 +6,9 @@ shipped content: the dorms-agent seat at Duncan Hall (Katie) and the
 letting seat on Mayfield Row (Walter), both of which work today and are
 currently bypassed rather than exercised.
 
-**Wizardness is TypeScript access. That is all it is** — writing TS into
-the source tree, executing TS, and file operations on it. Everything
+**Wizardness is AUTHORING TypeScript. That is all it is** — writing TS,
+into the source tree or into an `eval`. Running TypeScript is not the
+axis: code another wizard wrote is anyone's to run. Everything
 else is authority, and authority comes from a **seat**. The axis has
 been leaking for a long time, most recently in the cooking build's live
 drive, and **nothing in the build gates catches it**. This build strips
@@ -57,7 +58,7 @@ is deletion.
 - **The lease/provision seats are exercised, not bypassed.** A person
   who holds the seat can act; a wizard who does not hold it cannot.
 - **The wizard axis gates authoring TypeScript, and nothing else.**
-  Writing or executing TS you wrote is wizard; everything a YAML-only
+  Writing TS is wizard; running it is not; everything a YAML-only
   content developer needs — reloading, writing rows, committing rows — is
   gated on title over the path, never on the axis.
 - **The world's political dials leave the operator's hands.** The eight
@@ -120,8 +121,9 @@ exactly what the bypasses were hiding.
 > *"it really is all about whether you're authoring typescript code or not
 > its that simple."*
 
-The test for every door is one question: **is this person writing (or
-executing) TypeScript they authored?** If yes, it is the wizard axis. If
+The test for every door is one question: **is this person
+AUTHORING TypeScript?** Running code that is already written — by
+anyone — is never the axis. If yes, it is the wizard axis. If
 no, it is title over the path (`can` / held extents), the same gate
 `clone` uses — and a missing title is a refusal, never a grant.
 
@@ -136,7 +138,9 @@ no, it is title over the path (`can` / held extents), the same gate
 - **A git commit is a write**, so `git publish` / `revert` follow the same
   rule over the files the commit touches: if any is TypeScript, the axis
   applies; if all are content, title only.
-- **`eval` stays the axis** — it executes TypeScript the person typed.
+- **`eval` stays the axis** because typing the code into it IS authoring
+  it — not because it runs. A verb that runs code a wizard already wrote
+  is open to anyone the code's own gates admit.
 - **Content that NAMES code is not authoring it.** A row's `class:` or
   `brain:` field and a command view's `controller:` select code that is
   already in the tree; under the rule they are content, gated on title.
