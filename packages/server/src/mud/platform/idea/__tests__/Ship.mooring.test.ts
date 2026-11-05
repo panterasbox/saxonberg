@@ -279,6 +279,30 @@ describe('a ship made fast (harbors P4–P6)', () => {
     expect(ship.isGangwayLocked()).toBe(false);
   });
 
+  it('⭐ aboard a ship the way ashore is CALLED the gangway — `unlock` says *the gangway*, `go ashore` is unchanged', async () => {
+    bollardOn(quay);
+    lineOn(deck);
+    await ship.comeAlongside(QUAY);
+    vi.spyOn(NavigationApi, 'structureAtNow').mockReturnValue(ship as never);
+    const ashore = await deck.installExit<AshoreExit>('/platform/idea/exits/ashore', {
+      direction: 'ashore',
+      source: deck as unknown as Stuff & Container,
+      destinationPath: '/somewhere/else',
+    });
+    expect(ashore.presentationPhrase().render()).toBe('the gangway');
+    expect(ashore.getKeywords()).toEqual(expect.arrayContaining(['ashore', 'gangway']));
+    expect(ashore.getDirection()).toBe('ashore');
+    // A deck no ship answers for (a boat's) keeps the direction for its name.
+    vi.spyOn(NavigationApi, 'structureAtNow').mockReturnValue(null as never);
+    const bare = await deck.installExit<AshoreExit>('/platform/idea/exits/ashore', {
+      direction: 'off',
+      source: deck as unknown as Stuff & Container,
+      destinationPath: '/somewhere/else',
+    });
+    expect(bare.presentationPhrase().render()).toBe('off');
+    expect(bare.getKeywords()).not.toContain('gangway');
+  });
+
   it('⭐⭐ restart: loaded from her record, she makes fast again where she was (the wake, not the read)', async () => {
     bollardOn(quay);
     lineOn(deck);

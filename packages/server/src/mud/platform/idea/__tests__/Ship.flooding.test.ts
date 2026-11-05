@@ -32,6 +32,7 @@ import { PersistableApi } from '../../../api/persistable';
 import { WorldClockApi } from '../../../api/worldclock';
 import { TestHarnessApi } from '../../../api/test-harness';
 import { ExpanseApi } from '../../../api/expanse';
+import { BulkableApi } from '../../../api/bulk';
 import type { CommandDispatchedPayload } from '../../../lib/events/CommandDispatchedEvent';
 import { Quantity } from '../../../lib/quantity';
 import type { Stuff } from '../../../lib/stuff/Stuff';
@@ -231,6 +232,24 @@ describe('Ship — flooding, settling, sinking (harbors B5)', () => {
     expect(hold.floodWords()).toBe('The water is up to your chest here.');
     expect(deck.depthNow() > 0).toBe(false);
     expect(ship.isSettling()).toBe(false);
+  });
+
+  it('⭐ a dry room offers no water verbs: `descend`/`ascend` decline until water stands over its floor; `drink`/`fill`/`bathe` find no source', async () => {
+    const { default: requiresInWater } = await import('../../../lib/command/validators/requiresInWater');
+    const { default: anyHasBulkSlot } = await import('../../../lib/command/validators/anyHasBulkSlot');
+    const ship = await mint('f9');
+    const { hold } = await roomsOf(ship);
+    await ship.reconcileBilge();
+    const someone = await personIn(hold as unknown as Stuff & Container, people);
+    const ctx = { commandGiver: someone } as never;
+    expect(requiresInWater(ctx)).toBe('You are not in the water.');
+    // A room cites no water of its own: no source to drink, fill or bathe from, dry or not.
+    expect(BulkableApi.slotFor(hold as unknown as Stuff, undefined)).toBeNull();
+    expect(anyHasBulkSlot({ stuff: [hold] } as never, 'water', ctx)).toMatch(/holds no water/);
+    // Knee-deep in her hold: the water is there to go down into.
+    await TestHarnessApi.stageShip(ship.getDurableHandle()!, { bilgeL: litresAt(0.8) });
+    expect(hold.depthNow() > 0).toBe(true);
+    expect(requiresInWater(ctx)).toBeUndefined();
   });
 
   it('⭐⭐ the water at her deck opens the window — per person, in acts', async () => {

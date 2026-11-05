@@ -33,6 +33,8 @@ import type { Containable } from '../../lib/spatial/Containable';
 import { Expanse } from '../../lib/expanse/Expanse';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
+import { GrammarApi } from '../../api/grammar';
+import type { NounPhrase } from '../../lib/description/NounPhrase';
 
 /** How near a landing a ship on a river lies to be alongside it, m. */
 const ALONGSIDE_M = 60;
@@ -86,6 +88,26 @@ export default class AshoreExit extends LockableMixin(DeferredDestinationExit) {
     }
     const craft = this.craft();
     return craft instanceof Ship ? craft : null;
+  }
+
+  /**
+   * ⭐ Aboard a ship the way ashore is CALLED her gangway — *"You unlock
+   * the gangway."*, never *"You unlock ashore."* — as the way aboard from
+   * the quay is *the Hesper's gangway* (`BerthExit.presentationPhrase`).
+   * It is one gangway seen from its two ends, and its lock is hers. The
+   * direction (`go ashore`, *Obvious exits: ashore*) is unchanged, and the
+   * way answers to `gangway` as a keyword too. A craft with no gangway (a
+   * boat) keeps the direction for its name. Decided by lens 3a.
+   */
+  public override presentationPhrase(): NounPhrase {
+    if (this.berthed() === null) return super.presentationPhrase();
+    return GrammarApi.properPhrase('the gangway');
+  }
+
+  public override getKeywords(): string[] {
+    const out = super.getKeywords();
+    if (this.berthed() !== null && !out.includes('gangway')) out.push('gangway');
+    return out;
   }
 
   /**
