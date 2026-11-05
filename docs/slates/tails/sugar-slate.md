@@ -130,7 +130,7 @@ strike · sequence.
   **curing house** — the mould subsystem's draining shape (the cheese hoop),
   so the loaf sets and separates its molasses with no new mechanism.
   ⚠ **An assumption, not a settled base**: *"moulds shipped without a real
-  design conversation"* — the [moulding slate](../builds/moulding-slate.md) is that
+  design conversation"* — the [moulding slate](./moulding-slate.md) is that
   conversation, and this design should be checked against what it decides.
 - ⭐ **Claying is a leach.** Wet clay on the loaf's wide end lets water seep
   down through the crystals, washing the remaining molasses out of the tip —
