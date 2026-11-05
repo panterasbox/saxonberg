@@ -1,6 +1,5 @@
 /**
- * Envelope — a paper sleeve a letter goes in, gummed or waxed shut (paper
- * D11).
+ * Envelope — a paper sleeve a letter goes in, gummed or waxed shut.
  *
  * ⭐ A closed envelope keeps its letter: nothing goes in or comes out of it
  * shut, so the only way to the letter is to OPEN it — and opening a sealed

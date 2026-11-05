@@ -50,7 +50,7 @@ args:
     prepositions: [on, onto, in]
     scope: ["inventory", "reachable"]
     requires: [MarkedMixin]
-  # ⭐ A page of a book (paper D14): `write … on notebook page 3`. Its
+  # ⭐ A page of a book: `write … on notebook page 3`. Its
   # preposition stops the greedy surface's lookahead, as `with` does.
   - name: page
     type: number

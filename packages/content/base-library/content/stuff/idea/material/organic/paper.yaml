@@ -4,8 +4,8 @@
 #
 # ⭐ It burns low (~506 K, the famous 451 °F), and it fails in water: a
 # soaked sheet's felt lets go — the `soaked` band is where paper pulps
-# (D12). Sized paper takes ink; unsized paper drinks it and the line
-# bleeds (D19). Neither is this row's: sizing is a COAT on the sheet.
+#. Sized paper takes ink; unsized paper drinks it and the line
+# bleeds. Neither is this row's: sizing is a COAT on the sheet.
 class: /platform/idea/material/Material
 data:
   name: paper
@@ -20,7 +20,7 @@ data:
   # Paper drinks water: a blotter holds several times its weight.
   waterAbsorptionCapacity: 100
   heatOfCombustion: 16
-  # ⭐ Paper fails in WATER (paper D12): it keeps about a tenth of its
+  # ⭐ Paper fails in WATER: it keeps about a tenth of its
   # strength wet, and a good of it soaked through gives way to pulp.
   wetStrength: 0.1
   soddenTemplate: /stuff/thing/pulp

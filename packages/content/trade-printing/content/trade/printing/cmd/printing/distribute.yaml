@@ -1,4 +1,4 @@
-# ⭐ Distribute the type (paper D17): every sort back in its box.
+# ⭐ Distribute the type: every sort back in its box.
 verbs: [distribute]
 controller: ../../idea/cmd/printing/DistributeController
 description: "Break up a forme and put its type back in the case"

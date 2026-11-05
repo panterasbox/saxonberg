@@ -34,7 +34,7 @@ import type { Stuff } from '../stuff/Stuff';
 import { MixinApi } from '../../api/mixin';
 
 /**
- * ⭐ What a thing can be SEALED with (paper D11) — a gummed flap, a blob
+ * ⭐ What a thing can be SEALED with — a gummed flap, a blob
  * of wax pressed with a device. `''` = no seal. A closed vocabulary.
  */
 export const SEALS = ['', 'gum', 'wax'] as const;
@@ -46,7 +46,7 @@ export type SealOutcome =
   | { ok: false; reason: 'open' | 'seal-broken' | 'unknown-seal'; line: string };
 
 /**
- * ⭐ A broken seal SHOWS (paper D11): *its seal is broken* on a look, so a
+ * ⭐ A broken seal SHOWS: *its seal is broken* on a look, so a
  * letter that has been opened says so to whoever holds it next.
  */
 const sealAugmenter: MarkupAugmenter = (text, host, _viewer, opts) => {
@@ -161,7 +161,7 @@ export function SealableMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /** Open the sealable. Idempotent — opening an already-open one is a no-op. */
     open(): void {
-      // ⭐ Opening a sealed thing BREAKS the seal (paper D11); closing it
+      // ⭐ Opening a sealed thing BREAKS the seal; closing it
       // again never mends it.
       if (!this.isOpen() && this.getSeal() !== '') this.sealBroken = true;
       (this as unknown as BistateInternal).setState(true, 'Sealable.open');

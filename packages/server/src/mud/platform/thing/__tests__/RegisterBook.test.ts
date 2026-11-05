@@ -1,5 +1,5 @@
 /**
- * ⭐ The ledger (paper D7): a book that holds no record of its own — it
+ * ⭐ The ledger: a book that holds no record of its own — it
  * reads the house's papers each time it is read, so it is never stale, and
  * burning it loses nothing the documents do not keep.
  */

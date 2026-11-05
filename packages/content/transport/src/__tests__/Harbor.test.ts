@@ -432,8 +432,8 @@ describe('the harbormaster’s call — the NPC’s and no other (A2, P8, P11)',
   });
 });
 
-describe('⭐ the berth book keeps the harbor’s record, filed; the harbor keeps only its rules (review 2, paper D45)', () => {
-  it('⭐ the harbor holds no state; the book\'s record is FILED by the harbor, and a new book reads it again (paper D45)', async () => {
+describe('⭐ the berth book keeps the harbor’s record, filed; the harbor keeps only its rules (review 2)', () => {
+  it('⭐ the harbor holds no state; the book\'s record is FILED by the harbor, and a new book reads it again', async () => {
     expect(MixinApi.isPersistable(harbor as unknown as Stuff)).toBe(false);
     expect(MixinApi.isPersistable(book as unknown as Stuff)).toBe(false);
     const hesper = ship('/test/ships/hesper', 'the Hesper', 30, 1.2);

@@ -1,6 +1,5 @@
 /**
- * Book — leaves between boards, joined at a spine (paper D14, re-planned by
- * the owner as D44 and D46): a notebook somebody writes in, a printed book —
+ * Book — leaves between boards, joined at a spine: a notebook somebody writes in, a printed book —
  * a town directory on a counter.
  *
  * ⭐⭐ **A book is its leaves, and a leaf is a sheet still bound.** It is an
@@ -18,7 +17,7 @@
  *   a reader sees as they know the writer (*your hand*, *Hester's hand*,
  *   *a hand you do not know*), the device mark's rule.
  * - **A printed leaf** points at an edition page and reads it with no title
- *   check (whoever holds the book reads it — D6). A row authors a printed
+ *   check (whoever holds the book reads it). A row authors a printed
  *   book by naming its edition (`edition:`, seeded at mint).
  * - **Tearing a page out** takes that leaf out whole: a loose `Sheet` with
  *   the same passages and hands (or the same edition page), which says it
@@ -234,7 +233,7 @@ export default class Book extends BookBase {
   }
 
   /**
-   * ⭐ Write on a page (D44): whoever holds the book writes on the leaf, in
+   * ⭐ Write on a page: whoever holds the book writes on the leaf, in
    * their own hand. A printed or torn leaf takes no writing.
    */
   public async writePage(by: Stuff, words: string, page: number, medium?: Stuff): Promise<PageOutcome> {
@@ -269,7 +268,7 @@ export default class Book extends BookBase {
   /**
    * ⭐ Tear page `n` out: the leaf, whole, as a loose sheet — its passages
    * and hands, or its edition page — that says what it was torn from and is
-   * still the book's owner's paper (D46). A stub is left at the spine.
+   * still the book's owner's paper. A stub is left at the spine.
    */
   public override async tear(by: Stuff, page?: number): Promise<TearOutcome> {
     const self = this as unknown as Stuff;

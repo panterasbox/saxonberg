@@ -181,15 +181,15 @@ export interface Marked {
    */
   deviceFor(viewer: Stuff): string | null;
   /**
-   * @hook ⭐ Bring the marks up to date before they are read (harbors B2;
-   * paper D1): a surface whose words are DERIVED from a record elsewhere —
+   * @hook ⭐ Bring the marks up to date before they are read (harbors B2):
+   * a surface whose words are DERIVED from a record elsewhere —
    * a ship register's page, a printed sheet's edition, a ledger's papers —
    * reads the record here, so `getMarkText()` stays a sync read. Default:
    * nothing (authored marks are what they are).
    */
   refreshMarks(viewer: Stuff): Promise<void>;
   /**
-   * @hook ⭐ What reading this writes into the reader (paper D1; the
+   * @hook ⭐ What reading this writes into the reader (the
    * reading-writes-claims protocol): a chart's places into the map, a
    * printed recipe's *known-of* into the chronicle. Runs after the text has
    * landed. Returns a line to tell the reader, or `null` for nothing.
@@ -197,7 +197,7 @@ export interface Marked {
    */
   teach(reader: Stuff): Promise<string | null>;
   /**
-   * @hook ⭐ The marks as THIS reader reads them (paper D44/D46): handwriting
+   * @hook ⭐ The marks as THIS reader reads them: handwriting
    * names its hands as the reader knows the writers. The stored text
    * (`getMarkText`) stays the words alone — it is stack identity. Default:
    * the stored text.
@@ -212,7 +212,7 @@ export interface Marked {
   markDevice: string;
 }
 
-/** ⭐ One passage of handwriting, and whose hand wrote it (paper D44). */
+/** ⭐ One passage of handwriting, and whose hand wrote it. */
 export interface Passage {
   text: string;
   /** The writer's identity path; `''` when nobody is known to have written it. */
@@ -329,7 +329,7 @@ export function MarkedMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /**
-     * ⭐ A hand as THIS viewer knows its writer (paper D44) — the device
+     * ⭐ A hand as THIS viewer knows its writer — the device
      * mark's rule: *your hand*, *Hester's hand*, *a hand you do not know*.
      */
     protected handFor(viewer: Stuff, hand: string): string {
@@ -347,7 +347,7 @@ export function MarkedMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /**
-     * ⭐ The ink to hand (paper D18): the vessel named (`with <pot|pen>`),
+     * ⭐ The ink to hand: the vessel named (`with <pot|pen>`),
      * else the first vessel the writer holds whose contents are ink. For a
      * surface that takes INK — paper; a slate scratches and needs none.
      */
@@ -397,7 +397,7 @@ export function MarkedMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     public getMarkText(): string {
       const self = this as unknown as Stuff;
-      // ⭐ Burnt to ash (paper D12): the words went with the page. The same
+      // ⭐ Burnt to ash: the words went with the page. The same
       // shape as the ink rule below — the text is stored, the reading fails.
       if (
         this.markText !== '' &&

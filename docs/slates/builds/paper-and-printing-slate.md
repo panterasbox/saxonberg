@@ -249,7 +249,7 @@ address on it out of the phone book and keeps it, and the book has lost it.
 The paper build made that work: a printed book's leaves are bound to an
 edition, a page torn out is the leaf whole (its edition page, or its
 handwriting with every hand), it says what it was torn from, it is in the
-tearer's hand, and it is still the book's owner's paper (plan D44–D46; the
+tearer's hand, and it is still the book's owner's paper (the owner's decisions of 2026-11-04/05; the
 Gazette's city directory is the worked example). Four pieces were left:
 
 1. **Finding the page — `read <book> for <words>`.** Leafing, not a
@@ -275,3 +275,55 @@ Gazette's city directory is the worked example). Four pieces were left:
    geometry does not matter much — in the scene the whole page is torn out,
    not just the address — **until large-format paper or paper on rolls**
    (a broadsheet cut down, a roll torn to length). Design it with those.
+
+## 13. What the paper build left, and where each goes **[OPEN — salvaged from the retired paper plan, 2026-11-05]**
+
+The paper build shipped the medium, the mill, bearer paper and a printing
+placeholder (MR !521; [paper.md](../../subsystems/paper.md)). Its plan was
+retired at the sweep. This section is everything the plan carried that was
+not built, each with its destination.
+
+**The mill and paper goods**
+- **Retting and the stamper's fouling.** The stamper beats clean rags as
+  bought and is not yet a discharging works. Rags rotted in a pit (a span),
+  and the mill's outfall fouling the reach, stay with this slate.
+- **Brown paper in the drive.** The color rule (the vat's water decides it)
+  is unit-proved only, because no persistent discharge exists in the world
+  to stage. It waits on a real discharging works upstream.
+- **Pasteboard from glued plies, and the bag, carton and book BILLS.** They
+  are sold made today. `fit notebook` (binding sheets into a book) waits on
+  the assembly raise arm carrying each sheet's words into its leaf, and
+  shares print-and-bind with § 12.3.
+- **Wallpaper and a room's wall face.** Walls are construction's authored
+  layers, and only a building's outside is `Faced`. Wallpaper waits on a
+  wall face, which is construction's work.
+- **Filter paper.** `strain` is the bartender's terminal act with no mesh.
+  The honest form is a porous sheet in a funnel under `pour`. A filtering
+  `strain` belongs to the command-taxonomy slate.
+- **Parchment.** "Stretch and scrape" names no verb. Parchment is tanning's
+  acts plus a recipe, built when tanning has a scraping act.
+- **Edition garbage collection.** An edition nobody holds stays forever.
+  Collecting it needs a holder count, not a reverse search; the seam is
+  listing documents of the `edition` kind.
+
+**Ink and type** (these move to the [printing-slate](./printing-slate.md))
+- The iron-gall recipe and its steeping (a span), type metal, the hand
+  mould and casting sorts, the woodblock, engraving and etching, a
+  `scribing` Discipline (the copyist reads `printing` today), the shop
+  counter selling copies, and the tide almanac's year.
+
+**Elsewhere**
+- **The phone, coverage and off-grid places.** The live rung shows a
+  document on a screen; whether a phone can fetch it where you stand belongs
+  to the off-grid build. The handset row was not shipped (a phone nobody can
+  get is a dead row).
+- **Forgery, banknotes and the watermark.** These go to the currency /
+  money-warehouse slate. The seam is a sheet's edition binding plus a
+  receipt's `bearer` term.
+- **The Hollow Mere ice houses' receipts as bearer paper.** This goes to
+  the storage slate: one row key each, plus a storage drive re-run.
+- **The epoch covenant's reader.** It shipped as the smallest form, one
+  zone field and one method on a tool. Anything wider (a covenant on verbs,
+  on goods) belongs to the epochs work.
+- **Rejection's print shop; moving the assay slip and the icehouse book to
+  paper.** These are content passes, rows only.

@@ -1,6 +1,6 @@
 /**
- * PrintingMixin — an instrument that runs a document off onto paper (paper
- * D2, D17, D22): the press and the printer. What they share is the run:
+ * PrintingMixin — an instrument that runs a document off onto paper:
+ * the press and the printer. What they share is the run:
  * the covenant asked first, blank sheets drawn from the instrument (or the
  * printer's hands), the pages frozen as an edition, and each copy a sheet
  * bound to it.
@@ -74,7 +74,7 @@ export function PrintingMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase
 
     public async runOff(req: RunRequest): Promise<RunOutcome> {
       const self = this as unknown as Stuff;
-      // ⭐ The covenant first (D22): a medieval quarter keeps the press idle.
+      // ⭐ The covenant first: a medieval quarter keeps the press idle.
       const room = MixinApi.isContainable(self) ? self.getContainer() : null;
       if (MixinApi.isTool(self) && room !== null) {
         const refused = await self.admittedAt(room);

@@ -1,5 +1,5 @@
 /**
- * ⭐ The printer's trade (paper D2, D3, D17, D22).
+ * ⭐ The printer's trade.
  */
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';

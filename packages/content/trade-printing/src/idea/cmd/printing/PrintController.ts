@@ -1,11 +1,10 @@
 /**
- * PrintController — `print <what> [n] [on <press|printer>]` (paper D2, D3,
- * D7, D17). Binds; the instrument decides. A forme in reach goes to the
+ * PrintController — `print <what> [n] [on <press|printer>]`. Binds; the instrument decides. A forme in reach goes to the
  * press; a ledger's page or a document goes to the printer.
  */
 import { CommandController } from '@saxonberg/server/mud/lib/command/CommandController';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
-import type { MqlManyResult, MqlOneResult } from '@saxonberg/server/mud/api/mql';
+import type { MqlManyResult } from '@saxonberg/server/mud/api/mql';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';

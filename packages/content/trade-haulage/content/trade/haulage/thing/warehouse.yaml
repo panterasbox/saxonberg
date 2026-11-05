@@ -14,7 +14,7 @@ data:
   baileePath: /trade/haulage/idea/depot-business
   # Who can take a deposit or pay one out: the depot's warehouseman.
   keeperPositions: [warehouseman]
-  # ⭐ BEARER paper (paper D8): the depot's receipt is a sheet the keeper
+  # ⭐ BEARER paper: the depot's receipt is a sheet the keeper
   # hands over the counter, and the goods go to whoever presents it — sell
   # the receipt and you have sold the crate. The depositor without the paper
   # is refused; a settled receipt is answered so; a hand copy presents

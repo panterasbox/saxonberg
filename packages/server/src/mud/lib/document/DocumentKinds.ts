@@ -285,7 +285,7 @@ export const DOCUMENT_KINDS = {
   'rate-card': { kind: 'rate-card', naturalKey: null, contentDir: 'rate-cards', ext: 'yaml', onVanish: 'keep' },
   /**
    * ⭐ An **edition** — what a printing froze: the pages of a document AS
-   * SET on the day it was run (paper D2/D3). The document is the truth;
+   * SET on the day it was run. The document is the truth;
    * paper is one way of showing it, and the frozen rung is this record.
    *
    * Path-keyed at `<source>/editions/<hash of the pages>`, so a second run
@@ -293,7 +293,7 @@ export const DOCUMENT_KINDS = {
    * one record. Owned by the source's owner. Written only by
    * `DocumentApi.freezeEdition` (the press, the printer, the bearer
    * receipt, the ledger's extract); read by every sheet bound to it, with
-   * no title check — whoever holds the paper reads it (D6).
+   * no title check — whoever holds the paper reads it.
    *
    * `onVanish: 'keep'`: an edition is a record of what was printed, and
    * the source's edit or retraction never reaches it — that is the
@@ -351,7 +351,7 @@ export const DOCUMENT_KINDS = {
   /**
    * ⭐ A **berth book**'s record — a harbor's lines (berths given, ships
    * alongside, debts with their dues stamped paid) and the last hail each
-   * ship was answered (paper D45). The book on the office desk is where it
+   * ship was answered. The book on the office desk is where it
    * is kept and read; the RECORD is this document, filed by the harbor
    * itself in its own branch (`DocumentApi.saveToRegister` — *you file;
    * you do not hold the pen*), so burning or losing the book never forgives

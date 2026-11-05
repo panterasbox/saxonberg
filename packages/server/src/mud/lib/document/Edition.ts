@@ -1,5 +1,5 @@
 /**
- * Edition — the frozen rung of a document (paper D2–D4).
+ * Edition — the frozen rung of a document.
  *
  * ⭐ **The Document is the source of truth; paper is one way of showing
  * it.** A screen shows a document live; a printed sheet shows what the
@@ -40,7 +40,7 @@ export interface DocumentPages {
 export interface EditionRequest {
   /** The document (or register prefix) this edition was printed from. */
   source: string;
-  /** The text AS SET — the forme's set text, misprints and all (D3). */
+  /** The text AS SET — the forme's set text, misprints and all. */
   pages: string[];
   title?: string;
   teaches?: EditionTeaching[];

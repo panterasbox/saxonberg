@@ -5,8 +5,8 @@
  * office was told. `look book` reads today's page.
  *
  * ⭐⭐ **The record is FILED; the book is where it is kept and read**
- * (paper D45 — an institution's records are documents, the book on the desk
- * is their page). The lines and hails are one `berth-book` document in the
+ * (an institution's records are documents, the book on the desk is their
+ * page). The lines and hails are one `berth-book` document in the
  * harbor's own branch, filed by the harbor (`Harbor.fileRecord`, the
  * register transport — *you file; you do not hold the pen*). The book loads
  * it on use and writes every change through; burn or lose the book and the

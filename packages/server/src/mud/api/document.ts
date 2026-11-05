@@ -278,7 +278,7 @@ export class DocumentApi {
   }
 
   /**
-   * ⭐ A stored document rendered as PAGES (paper D4) — what a sheet, a
+   * ⭐ A stored document rendered as PAGES — what a sheet, a
    * book or a screen shows of it. Exhaustive over the closed kind table;
    * `null` for a kind that does not read as a page (a script, a map).
    * A read, ungated like {@link DocumentApi.read}.
@@ -288,7 +288,7 @@ export class DocumentApi {
   }
 
   /**
-   * ⭐ The document a reader may CALL UP by a word (paper D5) — to show on a
+   * ⭐ The document a reader may CALL UP by a word — to show on a
    * screen, to set in type, to print: the newest standing release whose
    * headline or publisher answers to it, else a paper of the reader's own.
    * `null` when nothing answers.
@@ -298,7 +298,7 @@ export class DocumentApi {
   }
 
   /**
-   * ⚠⚠ **The edition transport** (paper D2) — freeze the pages of a
+   * ⚠⚠ **The edition transport** — freeze the pages of a
    * printing as a `kind: 'edition'` document at
    * `<source>/editions/<hash>`, owned by the source's owner, and return
    * its path. Idempotent: the same pages freeze to the same edition. No

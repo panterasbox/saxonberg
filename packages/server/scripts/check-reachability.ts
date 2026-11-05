@@ -536,8 +536,8 @@ const FAUCETS: Record<string, string> = {
   growsIntoPath: "what a seed becomes; cloned at germination",
   harvestTemplatePath: "what a plant yields; cloned at harvest",
   sweepsInto: "what a floor's sweep heaps up — cloned when the broom takes it (cleanliness D15)",
-  soddenTemplate: "what a soaked-through good of a weak-wet material leaves — cloned when it gives way (paper D12)",
-  receiptPaper: "the sheet a bearer store writes its receipt on — cloned at each deposit (paper D8)",
+  soddenTemplate: "what a soaked-through good of a weak-wet material leaves — cloned when it gives way",
+  receiptPaper: "the sheet a bearer store writes its receipt on — cloned at each deposit",
   sheetTemplate: "the wet sheet a pulp vat lifts onto a mould — cloned at each dip (paper W2)",
   seedPath: "a stand's seed — cloned at a felling",
   wins: "what winning a band mints",
@@ -605,7 +605,7 @@ function recipeFiles(contentDir: string): string[] {
  * *Named by a field* is not enough; the field must mint.
  */
 const CITATIONS: Record<string, string> = {
-  casePath: "the case a forme is set from — named, not minted: it stands in its own room (paper D17)",
+  casePath: "the case a forme is set from — named, not minted: it stands in its own room",
   stamper: "the stamper that feeds a pulp vat — named, not minted: it stands in its own room (paper W2)",
   onto: "a props entry's target — the target is placed by its OWN entry",
   on: "a placement target, as `onto`",

@@ -1,5 +1,5 @@
 /**
- * ⭐ The epoch covenant's reader (paper D22): a region that admits nothing
+ * ⭐ The epoch covenant's reader: a region that admits nothing
  * later than medieval refuses the printer and admits the pen; a tool with no
  * epoch, or a region with no covenant, is admitted everywhere.
  */

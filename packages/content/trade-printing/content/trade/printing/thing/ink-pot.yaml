@@ -1,4 +1,4 @@
-# An ink pot (paper D18) — a small stoppered pot of iron-gall ink, for the
+# An ink pot — a small stoppered pot of iron-gall ink, for the
 # pen and for writing on paper. Hold it to write.
 class: /platform/thing/CompoundingVessel
 data:

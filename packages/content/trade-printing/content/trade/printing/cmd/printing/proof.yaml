@@ -1,4 +1,4 @@
-# ⭐ Read the proof (paper D17): a share of the turned letters, by the
+# ⭐ Read the proof: a share of the turned letters, by the
 # proofreader's band, found and set right. Never how many were missed.
 verbs: [proof]
 controller: ../../idea/cmd/printing/ProofController

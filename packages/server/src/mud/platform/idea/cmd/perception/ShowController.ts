@@ -1,5 +1,5 @@
 /**
- * ShowController — `show <what> on <screen>` (paper D5): put a document on
+ * ShowController — `show <what> on <screen>`: put a document on
  * a screen, LIVE. The screen (`DisplayMixin`) decides whether you may drive
  * it and whether it shows documents; this verb finds the document the
  * reader may call up — a release they may read, a paper of their own — and

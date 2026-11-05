@@ -52,7 +52,7 @@ table ([employment.md](./employment.md)). Pack-shipped for the authored
 ships, runtime-written by a yard sale, `onVanish: 'keep'`. See
 [ship.md](./ship.md).
 
-⭐ **`berth-book` — a harbor's berth record** (paper D45): the berth
+⭐ **`berth-book` — a harbor's berth record** (the paper build, reconciling harbors, 2026-11-05): the berth
 book's lines and hails, one document per harbor at
 `<registerPrefix>/record`, filed by the harbor through
 `saveToRegister` (the harbor is a `Registrar` of its own branch). The book

@@ -50,7 +50,7 @@ export abstract class SpatialZone extends Zone {
    * them walks on and the reader takes its empty default.
    */
   static fieldMeta: FieldMeta = {
-    // ⭐ The epoch covenant (paper D22): the latest instrument this region
+    // ⭐ The epoch covenant: the latest instrument this region
     // admits. Read by `Tool.admittedAt`; unset = everything admitted.
     admitsEpochThrough: { persistent: true, authorable: true },
     stocks: { persistent: true, authorable: true },
@@ -337,7 +337,7 @@ export abstract class SpatialZone extends Zone {
   protected elevation: number | null = null;
 
   /**
-   * ⭐ **The epoch covenant** (paper D22): the latest technological epoch an
+   * ⭐ **The epoch covenant**: the latest technological epoch an
    * instrument may be used at here — a medieval quarter admits the pen and
    * refuses the printer. `null` = not declared here (walk further); unset
    * everywhere = everything admitted. Read through `lookupField` by

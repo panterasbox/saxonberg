@@ -32,10 +32,14 @@ args:
   - name: target
     type: object
     required: true
+    # ⭐ Greedy, bounded by `page <n>`: a name is many words (`read city
+    # directory page 3`, `read torn-out page`). `page` ends it only before
+    # a number.
+    greedy: true
     scope: ["$focus", "reachable"]
     updates_focus: extend
     requires: [VisibleMixin, MarkedMixin|DisplayMixin]
-  # ⭐ A book reads at a page (paper D14): `read notebook page 3` opens it
+  # ⭐ A book reads at a page: `read notebook page 3` opens it
   # there. A positional number reaches the controller raw; it parses.
   - name: page
     type: number

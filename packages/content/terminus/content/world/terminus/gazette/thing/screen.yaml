@@ -1,4 +1,4 @@
-# The reading screen (paper D5) — on the shop wall, open to anyone in the
+# The reading screen — on the shop wall, open to anyone in the
 # shop: `show <release> on screen`, then `read screen`. The live rung: it
 # shows a release as it stands now.
 class: /platform/thing/Tablet

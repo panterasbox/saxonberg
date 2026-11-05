@@ -22,7 +22,7 @@ sail. Her crew can walk off her.
 
 | piece | class (pack) | what it is |
 |---|---|---|
-| the harbor | `Harbor` (`/system/transport/idea/Harbor`) = `Registrar(Singleton(Idea))`, one row per port | the **posted rules** (quays, rates, seat, office, roads, exempt) and how they are applied. It holds no state; it **files** the berth book's record (paper D45). |
+| the harbor | `Harbor` (`/system/transport/idea/Harbor`) = `Registrar(Singleton(Idea))`, one row per port | the **posted rules** (quays, rates, seat, office, roads, exempt) and how they are applied. It holds no state; it **files** the berth book's record. |
 | the berth book | `HarborBook` (`/system/transport/thing/HarborBook`) = `Marked(Payable(Good))`, a fixture on the office desk | where **the record** is kept and read: lines (berths given, ships alongside, debts, dues stamped paid) and the last hail of each ship. The record itself is a `berth-book` document the harbor files. |
 | a kept quay | `HarborQuay` (`/system/transport/location/HarborQuay`) = `Berthing(Quay)` | a quay where a ship comes alongside only at the berth she was given; it asks its `harbor:` |
 | the office | `HarborOffice` (`/system/transport/location/HarborOffice`) = `Payable(Hailable(FrameSited(Locale)))` | the room a hail reaches and where dues are paid; sited on the river with `frameSite.landing: false` |
@@ -53,7 +53,7 @@ it:
 the fixture players act on (`look book`, `read book`, `pay book`,
 `berth … at`) and the thing an author places.
 
-⭐⭐ **The record is filed, not held** (paper D45, 2026-11-05 — an
+⭐⭐ **The record is filed, not held** (the paper build, 2026-11-05 — an
 institution's records are documents and the book on the desk is their
 page; paper's ledger and the ship register work the same way). The lines
 and hails are ONE `berth-book` document at `<registerPrefix>/record` in the

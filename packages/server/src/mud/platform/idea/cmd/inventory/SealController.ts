@@ -1,5 +1,5 @@
 /**
- * SealController — `seal <thing> [with <gum|wax>]` (paper D11). Dumb: the
+ * SealController — `seal <thing> [with <gum|wax>]`. Dumb: the
  * sealable decides (`Sealable.sealWith`); the verb renders.
  */
 

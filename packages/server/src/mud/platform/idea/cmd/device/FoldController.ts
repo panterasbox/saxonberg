@@ -69,7 +69,7 @@ export default class FoldController extends CommandController<FoldModel> {
       return;
     }
 
-    // ⭐ The thing says whether it folds again (paper D10: a sheet folds
+    // ⭐ The thing says whether it folds again (a sheet folds
     // three times — folio, quarto, octavo — a chair once).
     const refusal = foldable.foldRefusal();
     if (refusal !== null) {

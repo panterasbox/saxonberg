@@ -1,5 +1,5 @@
 /**
- * ⭐ The edition transport (paper D2) and pages (D4).
+ * ⭐ The edition transport and pages.
  *
  * A printing freezes the text AS SET into an `edition` at
  * `<source>/editions/<hash>`: owned by the source's owner (never a caller's
@@ -85,7 +85,7 @@ describe('⭐ freezeEdition', () => {
   });
 });
 
-describe('⭐ pagesOf (D4)', () => {
+describe('⭐ pagesOf', () => {
   it('renders a recipe and says what it teaches', async () => {
     put('/recipes/ink', '/trade/printing', 'recipe', {
       recipeId: 'iron-gall-ink',

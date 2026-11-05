@@ -1,5 +1,5 @@
 /**
- * Stamper — the papermill's beating engine (paper W2, D26): heavy wooden
+ * Stamper — the papermill's beating engine (paper W2): heavy wooden
  * stocks lifted by cams on a shaft the race turns, falling on rags in a
  * trough until the cloth is fibre again.
  *

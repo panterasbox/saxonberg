@@ -1,5 +1,5 @@
 /**
- * Printer — a modern printer (paper D3, D22): prints a document AS IT STANDS
+ * Printer — a modern printer: prints a document AS IT STANDS
  * now, every page, with no type and no compositor's errors. Modern work: a
  * covenant that admits nothing later than medieval keeps it idle.
  */

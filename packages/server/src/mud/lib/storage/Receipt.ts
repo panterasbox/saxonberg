@@ -22,7 +22,7 @@ export interface ReceiptTerms {
   /** What the house charges on withdrawal, minor units per kilogram. */
   feeMinorPerKg: number;
   /**
-   * ⭐ BEARER paper (paper D8): the receipt is a sheet handed over the
+   * ⭐ BEARER paper: the receipt is a sheet handed over the
    * counter, and whoever presents it draws the goods — the depositor
    * without it is refused. Absent/false: a registered receipt, drawn by
    * the depositor's name (the ice houses).
@@ -61,7 +61,7 @@ export interface StoreReceipt {
   shortfallPct?: number;
   /** Whether that shortfall was within the printed allowance. */
   withinAllowance?: boolean;
-  /** ⭐ The edition a bearer receipt's paper is bound to (paper D8). */
+  /** ⭐ The edition a bearer receipt's paper is bound to. */
   editionPath?: string;
 }
 

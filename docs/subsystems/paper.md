@@ -59,7 +59,7 @@ slate ([printing-slate](../slates/builds/printing-slate.md)).
   `null` for a kind that does not read as a page.
 - An edition freezes the text **as set** (a forme's misprints included);
   an edit or retraction of the source never reaches it.
-- **Access by possession** (D6): a sheet reads its edition with no title
+- **Access by possession**: a sheet reads its edition with no title
   check. Printing a private record is the printer's risk.
 
 ## The live rung — screens
@@ -79,7 +79,7 @@ slate ([printing-slate](../slates/builds/printing-slate.md)).
   octavo and no further; writing wants **ink in hand** and **size** (an
   unsized sheet bleeds; a set coat of a `size`-tagged material, or
   `sized: true` on the row); soaked through it gives way (below); ⭐ what
-  is written on it keeps its HAND (`passages`, D46 — a sheet is a leaf);
+  is written on it keeps its HAND (`passages` — a sheet is a leaf);
   torn, the halves split between passages (each keeping its hands) or down
   the middle of printed words, bound to nothing, and the second half is the
   sheet's owner's (made from it); `markText` is stack identity, and the
@@ -88,7 +88,7 @@ slate ([printing-slate](../slates/builds/printing-slate.md)).
   (the vatman's band), `formed`, `pressed` — formed and dried unpressed it
   is `isCockled()`.
 - **`Book`** (`platform/thing/Book.ts`) — ⭐ **a book is its leaves, and
-  a leaf is a sheet still bound** (D44, D46). The assembly record carries
+  a leaf is a sheet still bound** (the owner, 2026-11-04/05). The assembly record carries
   the physical set (the leaves' paper, the boards, the spine); the book
   keeps one record per leaf (`leaves`): **passages, each with the hand that
   wrote it**, or the edition page it was printed with. There is no document
@@ -100,9 +100,12 @@ slate ([printing-slate](../slates/builds/printing-slate.md)).
   book** by naming its edition (`edition:`, seeded at mint) — the Gazette's
   Terminus Directory. **Tearing a page out** takes the leaf whole into a
   loose `Sheet` in the tearer's hand — its passages and hands, or its
-  edition page — that says *a page torn from …*, answers to `page`, and is
-  **still the book's owner's paper** (made from the book). A stub is left,
-  and a look at the book names the pages gone.
+  edition page — named *a torn-out page*, saying *a page torn from …*, and
+  **still the book's owner's paper** (made from the book; a book nobody
+  holds title to, like an authored prop, makes no claim, so the page is
+  the tearer's — the chattel rule). A stub is left, and a look at the book
+  names the pages gone. `read`'s target is a greedy name bounded by
+  `page <n>` (`read city directory page 3`, `read torn-out page`).
   ⚠ Binding sheets into a book (`fit notebook`) is deferred; so are
   leafing for a word (`read … for`), a compiled directory and who is
   listed in it — the slate's § 12.
@@ -111,9 +114,9 @@ slate ([printing-slate](../slates/builds/printing-slate.md)).
   government's register of ships). ⭐ What a line says is the record's
   kind: a ship's entry reads as her name, flag, company and shareholders
   (harbors' line), any other paper as its kind, leaf and title. ⭐⭐ The
-  rule it embodies (D45): **an institution's records are documents; the
+  rule it embodies (the owner, 2026-11-05, reconciling harbors): **an institution's records are documents; the
   book on the desk is their page** — the harbor's berth book follows it
-  too. A person's own handwriting is the other half (D44): it lives on
+  too. A person's own handwriting is the other half: it lives on
   the leaf.
 - **`Envelope`**: shut, it vetoes in and out; `seal` (gum or wax — wax wants
   wax in hand). On `Sealable`: `seal`, `sealBroken` — opening breaks it,
@@ -179,7 +182,7 @@ wet unless the glue resists damp (`Faced.releaseDampGlue`).
 ## The press (`trade-printing`) — ⚠ a PLACEHOLDER
 
 ⚠ **Printing shipped as what paper implies, not as a designed trade**
-(D47, 2026-11-05). Every act below is instant, which hides the
+(the owner, 2026-11-05). Every act below is instant, which hides the
 fixed-versus-marginal curve that IS printing; the printing build replaces
 this section ([printing-slate](../slates/builds/printing-slate.md) — its
 lens-decided forks: labor takes time, misprints stay because the document

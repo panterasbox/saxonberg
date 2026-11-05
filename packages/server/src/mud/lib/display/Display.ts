@@ -106,7 +106,7 @@ export type DisplaySource =
     }
   | { kind: 'prose'; body: Mml }
   /**
-   * ⭐ A stored document, shown LIVE (paper D5): the screen reads it through
+   * ⭐ A stored document, shown LIVE: the screen reads it through
    * `DocumentApi.pagesOf` at read time, so an edit shows and a retraction
    * reads as withdrawn. The live rung beside paper's frozen one.
    */
@@ -171,7 +171,7 @@ export function DisplayMixin<TBase extends MixinConstructor<Stuff>>(
     static _mixinName = 'DisplayMixin';
 
     /**
-     * ⭐ Every screen can be READ (paper D5 — one `read`, two faces) and can
+     * ⭐ Every screen can be READ (one `read`, two faces) and can
      * be told what to SHOW (`show <document> on <screen>`).
      */
     static commandContributions: CommandContributions = {

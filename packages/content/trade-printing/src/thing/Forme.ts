@@ -1,5 +1,5 @@
 /**
- * Forme — type set and locked in a chase, ready for the press (paper D17).
+ * Forme — type set and locked in a chase, ready for the press.
  *
  * ⭐ A record the fixture keeps of what IT holds: the document it was set
  * from, the text AS SET (misprints included), where the errors still are,
@@ -106,7 +106,7 @@ export default class Forme extends Good {
     return c instanceof TypeCase ? c : null;
   }
 
-  /** ⭐ Set `path` in type from the case (D17). */
+  /** ⭐ Set `path` in type from the case. */
   public async compose(path: string, title: string, by: Stuff): Promise<FormeOutcome> {
     if (this.isSet()) return { ok: false, reason: 'already-set', line: 'The forme is full of type already — distribute it first.' };
     const kase = this.typeCase();
@@ -132,7 +132,7 @@ export default class Forme extends Good {
     return { ok: true, line: `You set ${title} letter by letter from the case and lock it up in the chase.` };
   }
 
-  /** ⭐ Read the proof and correct what you catch (D17). Nobody is told how many were missed. */
+  /** ⭐ Read the proof and correct what you catch. Nobody is told how many were missed. */
   public async proof(by: Stuff): Promise<FormeOutcome> {
     if (!this.isSet()) return { ok: false, reason: 'not-set', line: 'There is nothing in the forme to proof.' };
     const who = by.getIdentityPath() ?? by.stuffId;

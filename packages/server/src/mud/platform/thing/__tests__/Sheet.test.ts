@@ -1,5 +1,5 @@
 /**
- * ⭐ A sheet of paper (paper D10–D13, D18–D19): it folds to octavo and no
+ * ⭐ A sheet of paper: it folds to octavo and no
  * further, writing wants ink and size, two sheets with different words do
  * not stack, soaked it pulps, burnt it reads as ash, torn its halves keep
  * the halves of the words.
@@ -84,7 +84,7 @@ afterEach(() => {
   StuffApi.clearAll();
 });
 
-describe('⭐ folding (D10)', () => {
+describe('⭐ folding', () => {
   it('folds sheet → folio → quarto → octavo, and a fourth fold will not go', () => {
     const s = sheet();
     expect(s.format()).toBe('sheet');
@@ -102,7 +102,7 @@ describe('⭐ folding (D10)', () => {
   });
 });
 
-describe('⭐ writing on paper (D18, D19)', () => {
+describe('⭐ writing on paper', () => {
   it('refuses with no ink in hand', () => {
     const s = sheet();
     const h = writer(s);
@@ -132,7 +132,7 @@ describe('⭐ writing on paper (D18, D19)', () => {
     expect(a.canMergeWith(b)).toBe(false);
   });
 
-  it('⭐ a sheet is a leaf: what is written on it keeps its hand, and a reader sees it as they know the writer (D46)', () => {
+  it('⭐ a sheet is a leaf: what is written on it keeps its hand, and a reader sees it as they know the writer', () => {
     const s = sheet();
     const h = makeStuffAtPath(() => new Holder(), '/platform/agent/Avatar/marty');
     ContainmentApi.move(s, h);
@@ -163,7 +163,7 @@ describe('⭐ writing on paper (D18, D19)', () => {
   });
 });
 
-describe('⭐ paper fails (D12)', () => {
+describe('⭐ paper fails', () => {
   it('soaked through, it gives way — paper is weak wet (the material decides)', () => {
     const s = sheet();
     s.wet(0.3);
@@ -182,7 +182,7 @@ describe('⭐ paper fails (D12)', () => {
   });
 });
 
-describe('⭐ tearing (D13)', () => {
+describe('⭐ tearing', () => {
   it('tears into two halves, each with the half of the words it held, bound to nothing', async () => {
     const s = sheet();
     const h = writer(s);
@@ -202,7 +202,7 @@ describe('⭐ tearing (D13)', () => {
     expect(right!.getContainer()).toBe(h);
   });
 
-  it('⭐ handwriting tears between its passages, each half keeping its hands — and the second half is made FROM the sheet (D46)', async () => {
+  it('⭐ handwriting tears between its passages, each half keeping its hands — and the second half is made FROM the sheet', async () => {
     const s = sheet();
     const h = writer(s);
     s.takePassages([

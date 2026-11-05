@@ -1,5 +1,5 @@
 /**
- * ⭐ The broken seal (paper D11): opening a sealed thing breaks the seal,
+ * ⭐ The broken seal: opening a sealed thing breaks the seal,
  * closing it never mends it, a gummed flap does not take gum twice, a wax
  * seal wants wax in hand — and a look says whether the seal is whole.
  */

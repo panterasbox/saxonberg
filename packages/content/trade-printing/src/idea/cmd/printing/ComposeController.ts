@@ -1,4 +1,4 @@
-/** ComposeController — `compose <document> in <forme>` (paper D17). Dumb: the forme decides. */
+/** ComposeController — `compose <document> in <forme>`. Dumb: the forme decides. */
 import { CommandController } from '@saxonberg/server/mud/lib/command/CommandController';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';

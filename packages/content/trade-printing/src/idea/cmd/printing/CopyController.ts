@@ -1,4 +1,4 @@
-/** CopyController — `copy <sheet> onto <blank> with <pen>` (paper D3). Dumb: the pen decides. */
+/** CopyController — `copy <sheet> onto <blank> with <pen>`. Dumb: the pen decides. */
 import { CommandController } from '@saxonberg/server/mud/lib/command/CommandController';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import type { MqlManyResult, MqlOneResult } from '@saxonberg/server/mud/api/mql';

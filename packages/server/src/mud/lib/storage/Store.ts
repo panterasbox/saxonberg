@@ -103,7 +103,7 @@ export type CustodyOutcome =
       goods: Stuff[];
       /** The fee charged, minor units (withdrawal only). */
       feeMinor: number;
-      /** ⭐ The bearer receipt handed over the counter (paper D8). */
+      /** ⭐ The bearer receipt handed over the counter. */
       paper?: Stuff;
     }
   | { ok: false; reason: string; line: string };
@@ -232,7 +232,7 @@ export function StoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     /** Whether this store holds unique goods live (a depot's crates), one receipt each. */
     public acceptsLiveGoods = false;
     /**
-     * ⭐ The sheet row a BEARER receipt is written on (paper D8) — the
+     * ⭐ The sheet row a BEARER receipt is written on — the
      * keeper's receipt paper. Read only when `terms.bearer`.
      */
     public receiptPaper = '';
@@ -835,7 +835,7 @@ export function StoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       if (!staff && this.custodianIn(room) === null) {
         return { ok: false, reason: 'no-keeper', line: 'Nobody is keeping the book just now.' };
       }
-      // ⭐ A BEARER receipt is its own claim (paper D8): the paper conveys
+      // ⭐ A BEARER receipt is its own claim: the paper conveys
       // it, so it never merges into another deposit's receipt.
       const bearer = !staff && this.terms.bearer === true;
       const depositor = staff
@@ -849,7 +849,7 @@ export function StoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     }
 
     /**
-     * ⭐ Hand the depositor the receipt ON PAPER (paper D8): the receipt is
+     * ⭐ Hand the depositor the receipt ON PAPER: the receipt is
      * frozen as an edition, a sheet of the keeper's receipt paper is bound
      * to it, and the sheet goes into the depositor's hands. From now on the
      * goods are drawn by whoever presents it.
@@ -884,7 +884,7 @@ export function StoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     }
 
     /**
-     * ⭐ The bearer receipts `actor` PRESENTS here (paper D8): printed sheets
+     * ⭐ The bearer receipts `actor` PRESENTS here: printed sheets
      * in their hands (or one wrapper down — a letter in an envelope does
      * not count; a sheet in a satchel does) bound to an edition of one of
      * THIS house's receipts. A hand copy is bound to nothing and presents
@@ -969,7 +969,7 @@ export function StoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       const word = good.trim().toLowerCase();
       let mine: StoreReceipt[];
       if (!staff && this.terms.bearer === true) {
-        // ⭐ BEARER (paper D8): the paper in hand is the claim — the
+        // ⭐ BEARER: the paper in hand is the claim — the
         // depositor's name draws nothing; a settled receipt answers so and
         // stays in hand.
         const presented = this.presentedReceiptIds(actor);

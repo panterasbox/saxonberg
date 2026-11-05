@@ -1,5 +1,5 @@
 /**
- * ⭐ A book is its leaves (paper D14, D44): it opens at a page, whoever holds
+ * ⭐ A book is its leaves: it opens at a page, whoever holds
  * it writes on the leaf in their own hand, a reader sees each hand as they
  * know its writer, and a page torn out takes the leaf's words with it.
  */
@@ -117,7 +117,7 @@ describe('⭐ a notebook', () => {
     expect(await b.writePage(ann, 'twelve chars', 1)).toMatchObject({ ok: false, reason: 'full' });
   });
 
-  it('⭐ tearing a page out takes the leaf whole — words AND hands — says where it came from, and leaves a stub (D46)', async () => {
+  it('⭐ tearing a page out takes the leaf whole — words AND hands — says where it came from, and leaves a stub', async () => {
     const ann = person('ann');
     const bob = person('bob');
     const b = notebook();
@@ -139,6 +139,7 @@ describe('⭐ a notebook', () => {
     expect(page.readFor(bob)).toBe('(in a hand you do not know) the recipe');
     expect(page.paperWords()).toMatch(/It is a page torn from .+; one edge is ragged\./);
     expect(page.paperWords()).not.toMatch(/torn half/);
+    expect(page.getKeywords()).toContain('torn-out page');
     expect(b.getMissing()).toEqual([2]);
     await b.refreshMarks(ann);
     expect(b.getMarkText()).toMatch(/torn out/);
@@ -149,7 +150,7 @@ describe('⭐ a notebook', () => {
     expect(look).toMatch(/Page 2 has been torn out of it; a stub is left at the spine\./);
   });
 
-  it('⭐ a handwritten page teaches nothing by being read (the recipes slate — D42)', async () => {
+  it('⭐ a handwritten page teaches nothing by being read (the recipes slate)', async () => {
     const ann = person('ann');
     const b = notebook();
     ContainmentApi.move(b, ann);

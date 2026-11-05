@@ -315,7 +315,7 @@ describe('the warehouse', () => {
   });
 });
 
-describe('⭐ the bearer receipt (paper D8)', () => {
+describe('⭐ the bearer receipt', () => {
   const PAPER = '/test/thing/receipt-paper';
 
   async function bearerShed(): Promise<{ shed: Warehouse; crate: Crate; brewer: Hand; carter: Hand }> {

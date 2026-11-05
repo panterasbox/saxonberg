@@ -55,7 +55,7 @@ export interface Foldable {
   /**
    * @hook Why this will not fold (again), in words — or `null` when it
    * will. Default: a folded thing is *already folded*. A sheet folds three
-   * times (paper D10).
+   * times.
    */
   foldRefusal(): { reason: string; line: string } | null;
 }

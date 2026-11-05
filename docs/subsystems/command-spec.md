@@ -733,6 +733,14 @@ When a *later* field declares `prepositions:`, the greedy field
 at `to` because `recipient.prepositions: [to]`. See
 [Multi-positional verbs](#multi-positional-verbs) below.
 
+⭐ **A preposition that opens only `number` fields ends the span only when a
+number follows it** (the paper build, 2026-11-05). `read`'s target is
+greedy, bounded by `page <n>`: `read notebook page 3` binds `notebook` and
+page 3, while `read torn-out page` binds the whole name, because "page" is
+a word in names too. Before this rule a trailing number field turned its
+preposition into a word no name could end in (`collectNumericOnlyPrepositions`
+in `CommandLogic`).
+
 ### ⭐⭐⭐ The phrase ladder — a name with a space in it
 
 A good's name is a **phrase**, not a word. Thirty-four of the ninety-three

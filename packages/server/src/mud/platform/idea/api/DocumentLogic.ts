@@ -659,7 +659,7 @@ async function deleteImpl(path: string): Promise<boolean> {
   return true;
 }
 
-/* ─────────────────────────── paper (D2, D4) ─────────────────────────── */
+/* ─────────────────────────── paper ─────────────────────────── */
 
 /** One line of a record a register lists — the summary its book prints. */
 function summaryLine(doc: StoredDocument): string {
@@ -692,7 +692,7 @@ function receiptText(data: Record<string, unknown>): string {
 }
 
 /**
- * ⭐ Render a stored document as pages (D4) — **exhaustive over the closed
+ * ⭐ Render a stored document as pages — **exhaustive over the closed
  * kind table**, so a new kind is a compile error here rather than a list a
  * pack must remember. `null` = *that is not something that reads as a page*
  * (a script, a command view, a map): the verb says so in words.
@@ -765,7 +765,7 @@ async function pagesOfImpl(path: string): Promise<DocumentPages | null> {
 }
 
 /**
- * ⭐ Freeze a printing (D2) — the edition transport. Rails, all structural
+ * ⭐ Freeze a printing — the edition transport. Rails, all structural
  * (`saveAsBusiness`'s posture — its callers span the kernel and the
  * printing pack, so a module allowlist would be a kernel list every
  * printing trade needs): the **path is pinned** to
@@ -810,7 +810,7 @@ async function freezeEditionImpl(req: EditionRequest): Promise<string> {
 }
 
 /**
- * ⭐ The document `reader` may CALL UP by a word (paper D5): the newest
+ * ⭐ The document `reader` may CALL UP by a word: the newest
  * standing release whose headline or publisher answers to it (an in-game
  * reader is a member — `members` and `public` both read; the press room's
  * `public` filter is the anonymous web's), else a paper of the reader's own

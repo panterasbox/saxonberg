@@ -72,7 +72,7 @@ import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 // because `Identifiable` lenses the tree — a detail key is a parser
 // token, so an unidentified item shows its CLASS's parts (`grip`, `seal`)
 // and never its own. See `Detailed.detailRoot`.
-// ⭐ Paper (paper D15): a spellbook is leaves and boards, and it BURNS — the
+// ⭐ Paper: a spellbook is leaves and boards, and it BURNS — the
 // working text goes with it (the `Marked` ash read). Its reading behavior
 // (`study`, the comprehension floor) is untouched.
 const SpellbookBase = CirculatingMixin(

@@ -1,4 +1,4 @@
-# The rag counter (paper D24) — the mill door, where the rags come in. It
+# The rag counter — the mill door, where the rags come in. It
 # BUYS clean rags (`sell rags`) and nothing else: a paint rag is another
 # row, and the house's line does not take it.
 class: /trade/shopkeeping/thing/Stock
@@ -17,7 +17,7 @@ data:
   stockLines:
     - { itemTemplatePath: /stuff/thing/rag, par: 40, buys: true }
     - { itemTemplatePath: /trade/papermaking/thing/paper-mould, par: 1 }
-    # ⭐ What the mill makes of paper (paper D19, D20): bags, cartons, labels.
+    # ⭐ What the mill makes of paper: bags, cartons, labels.
     - { itemTemplatePath: /trade/papermaking/thing/bag, par: 6 }
     - { itemTemplatePath: /trade/papermaking/thing/carton, par: 3 }
     - { itemTemplatePath: /trade/papermaking/thing/label, par: 10 }

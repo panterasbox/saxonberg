@@ -55,7 +55,7 @@ args:
     scope: ["reachable"]
     requires: any
   # What it is fitted TO. Only an assembly can take a part — ⭐ or a good's
-  # FACE a label (a sheet) is pasted onto (paper D19).
+  # FACE a label (a sheet) is pasted onto.
   - name: whole
     type: object
     required: false
@@ -73,5 +73,5 @@ args:
     prepositions: [with, using]
     default: "reachable:[mixin.ToolMixin]"
     scope: ["reachable"]
-    # ⭐ …or the POT a label is pasted from (paper D19).
+    # ⭐ …or the POT a label is pasted from.
     requires: [ToolMixin|BulkableMixin]

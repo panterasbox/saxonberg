@@ -1,8 +1,8 @@
 /**
- * Press — the hand press (paper D17): an industrial instrument that pulls
+ * Press — the hand press: an industrial instrument that pulls
  * the forme's text AS SET onto paper. Ink is drawn by the page from a pot of
  * printing ink in reach; paper from the press (`put ream in press`) or the
- * pressman's hands. The covenant may keep it idle (D22).
+ * pressman's hands. The covenant may keep it idle.
  */
 
 import Good from '@saxonberg/server/mud/lib/stuff/Good';

@@ -1,5 +1,5 @@
 /**
- * ⭐ The live rung (paper D5): a screen showing a document reads it at READ
+ * ⭐ The live rung: a screen showing a document reads it at READ
  * time — an edit shows, a retraction reads as withdrawn — where a printed
  * copy keeps what it said.
  */

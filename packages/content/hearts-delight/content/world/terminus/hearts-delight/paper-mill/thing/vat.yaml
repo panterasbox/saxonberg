@@ -1,5 +1,5 @@
 # The Delight mill's vat — filled from the Delight at the flats, fed by the
-# stamper. ⭐ Its paper is the color of that water (D9).
+# stamper. ⭐ Its paper is the color of that water.
 class: /trade/papermaking/thing/PulpVat
 extends: /trade/papermaking/thing/pulp-vat
 data:

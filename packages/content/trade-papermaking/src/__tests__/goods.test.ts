@@ -1,5 +1,5 @@
 /**
- * ⭐ Paper goods (paper D19, D20): a bag or carton torn open, or soaked
+ * ⭐ Paper goods: a bag or carton torn open, or soaked
  * through, spills what it held; a label pasted with starch paste lets go
  * when the jar is wet, one pasted with casein holds.
  */

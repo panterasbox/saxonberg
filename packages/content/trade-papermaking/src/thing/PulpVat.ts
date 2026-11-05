@@ -3,7 +3,7 @@
  * kept stirred, and a mould dipped in it lifts a sheet.
  *
  * ⭐ The BATH affords `dip` (the platform's verb): `dip mould in vat` lays a
- * wet sheet on the mould's wire. Its COLOR is the vat's water (D9): the vat
+ * wet sheet on the mould's wire. Its COLOR is the vat's water: the vat
  * reads the river it stands on, and a persistent load in it — iron off the
  * mine at the headwaters — makes brown paper. Authored nowhere: a second
  * mill on cleaner water makes white. Its EVENNESS is the vatman's hand —
@@ -64,7 +64,7 @@ export default class PulpVat extends DipBathMixin(CompoundingVessel) {
     self.setBulkAmount('interior', Quantity.of(Math.min(cap, have + litres), 'L'));
   }
 
-  /** ⭐ The color the vat's water gives a sheet (D9). */
+  /** ⭐ The color the vat's water gives a sheet. */
   public async waterColor(): Promise<'white' | 'brown'> {
     if (this.reachRef === '') return 'white';
     const catalogue = await StuffApi.singleton<Stuff>(WATERCOURSE_CATALOGUE_PATH).catch(() => null);

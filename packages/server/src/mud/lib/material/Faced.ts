@@ -166,13 +166,13 @@ export interface Faced {
   /** The area of a face, m² — a good's skin (`6·V^⅔`); a building's walls and roof. */
   coatAreaM2(): number;
   /**
-   * ⭐ Paste a sheet onto the outside with the glue in `pot` (paper D19): the
+   * ⭐ Paste a sheet onto the outside with the glue in `pot`: the
    * glue goes on as a coat carrying the sheet's words, and the sheet is
    * gone into it. How long it stays is the glue's own damp-resistance.
    */
   pasteOn(sheet: Stuff, pot: Stuff): Promise<{ ok: true; line: string } | { ok: false; reason: string; line: string }>;
   /**
-   * ⭐ The damp lets a weak glue go (paper D19): on a good that is WET, a
+   * ⭐ The damp lets a weak glue go: on a good that is WET, a
    * glued coat whose glue does not resist damp comes away — and the words
    * pasted in it go with it. Returns how many let go.
    */
@@ -332,7 +332,7 @@ function nameOf(m: Material | null): string {
 const PASTE_LITRES = 0.005;
 /** A pasted label's glue film, m. */
 const PASTE_FILM_M = 0.00005;
-/** Wet past this (the `wet` band), a weak glue lets go (paper D19). */
+/** Wet past this (the `wet` band), a weak glue lets go. */
 const DAMP_LETS_GO_AT = 0.45;
 /** A glue that resists the damp at least this well holds in it. */
 const GLUE_HOLDS_DAMP = 0.5;
@@ -344,7 +344,7 @@ const coatAugmenter: MarkupAugmenter = (text, host, _viewer, opts) => {
   host.reconcileWeather();
   host.releaseDampGlue();
   const lines: string[] = [];
-  // ⭐ A pasted label reads (paper D19) — on any good with an outside.
+  // ⭐ A pasted label reads — on any good with an outside.
   for (const c of host.getCoats('outside')) {
     if (c.marks && !MixinApi.isMarked(host)) lines.push(`A label is pasted on it: "${c.marks}".`);
   }

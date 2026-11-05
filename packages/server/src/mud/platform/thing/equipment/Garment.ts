@@ -72,7 +72,7 @@ import type { WashPolicy, WashSubject } from '../../../lib/cleanliness/WashPolic
 // is what a laundry mark is. Parts or one piece beneath (repair D4): a
 // welted boot is two uppers and two soles a cobbler re-soles; a shirt is
 // one piece. One class.
-// ⭐ Tearable (paper D13): an old shirt tears into rags — the mill's raw
+// ⭐ Tearable: an old shirt tears into rags — the mill's raw
 // stuff — mass for mass, and not while somebody is wearing it.
 const GarmentBase = TearableMixin(LabelledMixin(SoilableMixin(WearableMixin(
   SlottableMixin(
@@ -82,7 +82,7 @@ const GarmentBase = TearableMixin(LabelledMixin(SoilableMixin(WearableMixin(
   ),
 ))));
 
-/** The commons' clean rag a torn garment becomes (paper D23). */
+/** The commons' clean rag a torn garment becomes. */
 const RAG_TEMPLATE = '/stuff/thing/rag';
 /** A rag's mass, kg — the row's. */
 const RAG_KG = 0.05;
@@ -121,7 +121,7 @@ export default class Garment extends GarmentBase {
   };
 
   /**
-   * ⭐ Tear it up for rags (paper D13): as many clean rags as its cloth
+   * ⭐ Tear it up for rags: as many clean rags as its cloth
    * weighs, and the garment is gone. Refused while worn.
    */
   public override async tear(_by: Stuff, _page?: number): Promise<TearOutcome> {

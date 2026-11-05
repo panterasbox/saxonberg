@@ -713,13 +713,13 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
   push('vapourMaterial', data.vapourMaterial);
   // A floor's sweep heaps into this row (cleanliness D15).
   push('sweepsInto', data.sweepsInto);
-  // ⭐ What a soaked-through good of a weak-wet material leaves (paper D12).
+  // ⭐ What a soaked-through good of a weak-wet material leaves.
   push('soddenTemplate', data.soddenTemplate);
-  // ⭐ The paper a bearer receipt is written on (paper D8) — cloned at a deposit.
+  // ⭐ The paper a bearer receipt is written on — cloned at a deposit.
   push('receiptPaper', data.receiptPaper);
   // ⭐ The wet sheet a pulp vat lifts (paper W2) — cloned at each dip.
   push('sheetTemplate', data.sheetTemplate);
-  // The case a forme is set from (paper D17) — a row named, not minted.
+  // The case a forme is set from — a row named, not minted.
   push('casePath', data.casePath);
   // The house whose doorman keeps a door (cleanliness D29).
   push('keptBy', data.keptBy);
@@ -949,10 +949,10 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
  * until somebody decides which it is. Enumerate, never infer.
  */
 const IGNORED_PATH_FIELDS: readonly string[] = [
-  // A ledger's PREFIX (paper D7) — a document-tree prefix read by
+  // A ledger's PREFIX — a document-tree prefix read by
   // `DocumentApi.list`, not a row: a business's feed, a register's branch.
   'registerPrefix',
-  // A printed book's EDITION (paper D46) — a document path (`DocumentApi.pagesOf`),
+  // A printed book's EDITION — a document path (`DocumentApi.pagesOf`),
   // the frozen pages its leaves are bound to; not a row.
   'edition',
   // Addresses resolve by AddressApi's longest-prefix walk, not by

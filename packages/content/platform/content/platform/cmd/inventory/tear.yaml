@@ -1,4 +1,4 @@
-# ⭐ Tear a thing (paper D13) — a sheet into halves, a page out of a book, a
+# ⭐ Tear a thing — a sheet into halves, a page out of a book, a
 # shirt into rags. Afforded by `TearableMixin`; each thing says what tearing
 # it makes and what is lost (a torn sheet's halves each keep the half of the
 # words they held, bound to nothing).

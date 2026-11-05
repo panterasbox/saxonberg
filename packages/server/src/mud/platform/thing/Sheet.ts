@@ -6,21 +6,21 @@
  * it.** A PRINTED sheet is bound to an *edition* (`boundTo` + `page`) — the
  * pages a printing froze — and reads it by path with **no title check**:
  * whoever holds the paper reads it, which is both the point of paper and
- * the risk of printing a private record (D6). A HANDWRITTEN sheet carries
+ * the risk of printing a private record. A HANDWRITTEN sheet carries
  * its own words (`markText`) and is bound to nothing, which is what makes a
- * hand copy decidable by the issuer of the original (D3, D8).
+ * hand copy decidable by the issuer of the original.
  *
  * What the class decides, model-side:
  *
  * - **folding** steps a sheet through its formats — folio, quarto, octavo —
- *   and a fourth fold will not go (D10);
+ *   and a fourth fold will not go;
  * - **ink and size**: writing needs ink in hand, and unsized paper drinks it
- *   and the line bleeds (D18, D19);
+ *   and the line bleeds;
  * - **pulping**: soaked through, the felt lets go — the material's rule on
- *   `Integrity` (D12), shared by every good of paper; burnt, it reads as
+ *   `Integrity`, shared by every good of paper; burnt, it reads as
  *   ash (the `Marked` ash read);
  * - **tearing** makes two halves, each with the half of the text it held,
- *   bound to nothing (D13).
+ *   bound to nothing.
  *
  * `Ticket` extends this; wallpaper, labels, filter paper and the blank ream
  * are ROWS of it.
@@ -45,7 +45,7 @@ import { DocumentApi } from '../../api/document';
 import { Quantity } from '../../lib/quantity';
 import type Material from '../../lib/material/Material';
 
-/** The formats a sheet folds through (D10). */
+/** The formats a sheet folds through. */
 export const SHEET_FORMATS = ['sheet', 'folio', 'quarto', 'octavo'] as const;
 export type SheetFormat = (typeof SHEET_FORMATS)[number];
 
@@ -100,7 +100,7 @@ export default class Sheet extends SheetBase {
   public cockled = false;
   /** Sized (a set coat of size, or made so): it takes ink without bleeding. */
   public sized = false;
-  /** ⭐ Its color, read off the vat's water at the dip (paper D9): `white` · `brown`. */
+  /** ⭐ Its color, read off the vat's water at the dip: `white` · `brown`. */
   public color = 'white';
   /** How evenly the vatman laid the pulp — their band at the dip; `''` = shop paper. */
   public evenness = '';
@@ -110,14 +110,14 @@ export default class Sheet extends SheetBase {
   public pressed = false;
   /**
    * ⭐ Its handwriting, passage by passage, each with the hand that wrote it
-   * (paper D46: a sheet is one leaf). The stored text stays the words
+   * (a sheet is one leaf). The stored text stays the words
    * alone; `read` names the hands as the reader knows the writers.
    */
   public passages: Passage[] = [];
   /** A whole page torn out of a book: what it was torn from, in words; `''` = not. */
   public tornFrom = '';
 
-  // ---------- reading (D1, D2, D6) ----------
+  // ---------- reading ----------
 
   public getBoundTo(): string {
     return this.boundTo;
@@ -134,7 +134,7 @@ export default class Sheet extends SheetBase {
 
   /**
    * ⭐ Lay a leaf's handwriting on this sheet whole — a page torn out of a
-   * book keeps every passage and every hand on it (paper D46).
+   * book keeps every passage and every hand on it.
    */
   public takePassages(passages: readonly Passage[], room: number): void {
     this.passages = passages.map((p) => ({ ...p }));
@@ -146,12 +146,13 @@ export default class Sheet extends SheetBase {
     return this.tornFrom;
   }
 
-  /** Torn whole out of a book: it says so, and answers to `page`. */
+  /** Torn whole out of a book: it is a torn-out page, says so, and answers to it. */
   public setTornFrom(what: string): void {
     this.tornFrom = typeof what === 'string' ? what : '';
     if (this.tornFrom === '') return;
+    this.setShortDescription('torn-out page');
     const words = this.getKeywords();
-    this.setKeywords([...words, ...['page', 'torn page'].filter((w) => !words.includes(w))]);
+    this.setKeywords([...words, ...['page', 'torn page', 'torn-out page'].filter((w) => !words.includes(w))]);
   }
 
   /**
@@ -193,7 +194,7 @@ export default class Sheet extends SheetBase {
     this.setKeywords([...words, ...['copy', 'printed', 'print'].filter((w) => !words.includes(w))]);
   }
 
-  /** @hook A printed sheet reads its edition — no title check (D6). */
+  /** @hook A printed sheet reads its edition — no title check. */
   public override async refreshMarks(_viewer: Stuff): Promise<void> {
     if (this.boundTo === '') return;
     const pages = await DocumentApi.pagesOf(this.boundTo);
@@ -229,7 +230,7 @@ export default class Sheet extends SheetBase {
     return true;
   }
 
-  /** Dried without pressing, a formed sheet ripples and will not lie flat (D20). */
+  /** Dried without pressing, a formed sheet ripples and will not lie flat. */
   public isCockled(): boolean {
     if (this.cockled) return true;
     return this.formed && !this.pressed && this.dryness() >= DRY_AT;
@@ -244,7 +245,7 @@ export default class Sheet extends SheetBase {
     return this.formed && this.dryness() < DRY_AT;
   }
 
-  // ---------- the format (D10) ----------
+  // ---------- the format ----------
 
   public format(): SheetFormat {
     return SHEET_FORMATS[Math.min(3, Math.max(0, this.folds))] ?? 'sheet';
@@ -276,7 +277,7 @@ export default class Sheet extends SheetBase {
     return this.folds >= 3 ? { reason: 'will-not-fold-again', line: 'It is folded to octavo already; it will not fold again.' } : null;
   }
 
-  // ---------- writing (D18, D19) ----------
+  // ---------- writing ----------
 
   /**
    * ⭐ A coat laid on a sheet starts its clock NOW: a thermal body sets its
@@ -343,15 +344,15 @@ export default class Sheet extends SheetBase {
     return out;
   }
 
-  // ---------- water (D12) ----------
+  // ---------- water ----------
   // ⭐ Soaked through, a sheet gives way — the MATERIAL's rule on
   // `Integrity` (paper's low wet strength), shared by every good of paper.
 
-  // ---------- tearing (D13) ----------
+  // ---------- tearing ----------
 
   public override async tear(by: Stuff, _page?: number): Promise<TearOutcome> {
-    let piece: Sheet = this;
-    if (this.getQuantity() > 1) piece = (await this.split(1)) as unknown as Sheet;
+    // One sheet off a stack, or this one.
+    const piece: Sheet = this.getQuantity() > 1 ? ((await this.split(1)) as unknown as Sheet) : this;
     await piece.refreshMarks(by);
     const text = piece.getMarkText();
     const [left, right] = piece.halvesOf(text);
@@ -360,7 +361,7 @@ export default class Sheet extends SheetBase {
     const name = self.getPresentation();
     const path = self.getTemplatePath() ?? '/platform/thing/sheet';
     // ⭐ The second half is made FROM this sheet, so it is whoever's the
-    // sheet was — never the tearer's for the tearing (paper D46).
+    // sheet was — never the tearer's for the tearing.
     const other = await StuffApi.clone<Sheet>(path, undefined, { madeFrom: self });
     for (const half of [piece, other]) {
       half.boundTo = '';

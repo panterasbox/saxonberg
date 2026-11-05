@@ -1,5 +1,5 @@
 /**
- * Packet — a container made of paper (paper D20): a grocer's bag, a carton
+ * Packet — a container made of paper: a grocer's bag, a carton
  * of board. Light, cheap, and it fails like paper: soaked through it gives
  * way (the material's rule on `Integrity` — paper and board are weak wet)
  * and whatever it held falls out where it stood; torn open it spills the

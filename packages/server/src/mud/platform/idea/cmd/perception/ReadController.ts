@@ -47,7 +47,7 @@ const TOPIC = 'sense.survey';
 
 interface ReadModel extends CommandModel {
   target: MqlOneResult;
-  /** A book's page (paper D14); raw from the binder, parsed here. */
+  /** A book's page; raw from the binder, parsed here. */
   page?: string | number;
 }
 
@@ -70,7 +70,7 @@ export default class ReadController extends CommandController<ReadModel> {
       return;
     }
 
-    // ⭐ One `read`, two faces (paper D5): a SCREEN is read off what it
+    // ⭐ One `read`, two faces: a SCREEN is read off what it
     // shows, live; a written thing (below) by its marks.
     if (!MixinApi.isMarked(target) && MixinApi.isDisplay(target)) {
       // A lit screen is its own light: no light gate here.
@@ -95,7 +95,7 @@ export default class ReadController extends CommandController<ReadModel> {
       return;
     }
 
-    // ⭐ A book opens at the page named (paper D14).
+    // ⭐ A book opens at the page named.
     if (model.page !== undefined && model.page !== '') {
       if (!(target instanceof Book)) {
         MessageApi.scene(giver).topic(TOPIC).toSelf(Mml.compose`${Mml.thing(target)} has no pages to turn to.`).send();
@@ -111,7 +111,7 @@ export default class ReadController extends CommandController<ReadModel> {
     }
 
     // ⭐ Marks derived from a record (a register's page, a printed sheet's
-    // edition) are read now, so the text below is a sync read (paper D1).
+    // edition) are read now, so the text below is a sync read.
     await target.refreshMarks(giver);
 
     // ── Perceive ──
@@ -186,7 +186,7 @@ export default class ReadController extends CommandController<ReadModel> {
     }
 
     // ⭐ The writing as THIS reader reads it — the hands named as they know
-    // the writers (paper D44) — and whose mark it bears.
+    // the writers — and whose mark it bears.
     const text = target.readFor(giver);
     const body =
       text.length > 0 && device !== null
@@ -200,7 +200,7 @@ export default class ReadController extends CommandController<ReadModel> {
 
     // ── …and whatever reading it sets off ──
     await this.fireAnyWorking(target, context);
-    // ⭐ What reading writes into the reader (paper D1): a chart's places
+    // ⭐ What reading writes into the reader: a chart's places
     // into the map, a printed recipe's known-of into the chronicle. The
     // marks show first; the thing read decides what it teaches.
     const taught = await target.teach(giver);

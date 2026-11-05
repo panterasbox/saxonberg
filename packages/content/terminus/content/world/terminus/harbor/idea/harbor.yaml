@@ -11,7 +11,7 @@ data:
   # ⭐ The berth book on the office desk keeps who lies where, the debts and
   # the hails; this row keeps only the posted rules.
   book: /world/terminus/harbor/thing/berth-book
-  # ⭐ The berth book's record is FILED here, by this harbor (paper D45):
+  # ⭐ The berth book's record is FILED here, by this harbor:
   # burn the book and the debts stand; the next book reads them again.
   registerOwner: /world/terminus/harbor
   registerPrefix: /world/terminus/harbor/berths

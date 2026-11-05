@@ -17,7 +17,7 @@ interface WriteOnModel extends CommandModel {
   words: string;
   surface: MqlOneResult;
   medium?: MqlOneResult;
-  /** A book's page (paper D14); raw from the binder. */
+  /** A book's page; raw from the binder. */
   page?: string | number;
 }
 
@@ -37,7 +37,7 @@ export default class WriteOnController extends CommandController<WriteOnModel> {
     if (hasPage && !(surface instanceof Book)) {
       return this.refuse(context, 'act.deed', `${surface.getPresentation()} has no pages.`, 'not-a-book');
     }
-    // ⭐ A book is written on a page, and its pages are a document (D14).
+    // ⭐ A book is written on a page, and its pages are a document.
     const out =
       surface instanceof Book
         ? await surface.writePage(giver, model.words ?? '', hasPage ? Number(model.page) : surface.getOpenPage(), medium)

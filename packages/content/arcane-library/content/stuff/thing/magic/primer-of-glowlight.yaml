@@ -35,7 +35,7 @@ data:
   markForm: inked
   censusKey: spellbook
   materialTags: [paper, board]
-  # ⭐ Paper (paper D15): it burns, and the working goes with the pages.
+  # ⭐ Paper: it burns, and the working goes with the pages.
   _materialPath: /stuff/idea/material/organic/paper
   charMaterialPath: /stuff/idea/material/organic/ash
   reserves:

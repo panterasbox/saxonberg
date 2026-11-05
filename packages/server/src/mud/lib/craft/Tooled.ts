@@ -48,8 +48,8 @@ export interface Tooled {
   getEpoch(): Epoch | null;
   setEpoch(value: Epoch | null): void;
   /**
-   * ⭐ Does the covenant where `place` stands admit this instrument (paper
-   * D22)? `null` = admitted; else the refusal, in words. A tool with no
+   * ⭐ Does the covenant where `place` stands admit this instrument?
+   * `null` = admitted; else the refusal, in words. A tool with no
    * epoch stamp is admitted everywhere; a region with no covenant admits
    * everything.
    */

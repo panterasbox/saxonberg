@@ -1,5 +1,5 @@
 /**
- * Misprint — the seeded errors of a hand at type or a pen (paper D17).
+ * Misprint — the seeded errors of a hand at type or a pen.
  *
  * ⭐ Seeded, never drawn (docs/uncertainty.md: the error is the actor's
  * competence, resolved from who set it and what — epistemic provenance, not

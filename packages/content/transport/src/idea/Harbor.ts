@@ -8,7 +8,7 @@
  *   which quay and since when, the debts, the hails. The harbor holds no
  *   state of its own; it reads and writes the book, and ⭐ it FILES the
  *   book's record (a registrar of its own branch — `registerPrefix:`, kind
- *   `berth-book`), so the record outlives the book (paper D45).
+ *   `berth-book`), so the record outlives the book.
  *   A ship hails the office (`answerHail`), is given a quay or sent to the
  *   roads, comes in on a course to the quay (the quay asks `admit` before
  *   her course is laid), makes fast (`madeFast` — her time alongside
@@ -190,7 +190,7 @@ export default class Harbor extends RegistrarMixin(SingletonMixin(Idea)) {
 
   /**
    * ⭐⭐ File the berth book's record — *you file; you do not hold the pen*
-   * (paper D45). Written through the register transport as this harbor;
+   *. Written through the register transport as this harbor;
    * only its own book calls it.
    */
   @CallSecurity(FromItsOwnBook)

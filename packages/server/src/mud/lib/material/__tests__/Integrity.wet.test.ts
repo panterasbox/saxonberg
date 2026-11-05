@@ -1,5 +1,5 @@
 /**
- * ⭐ The material decides how a good fails in water (paper D12): a good of a
+ * ⭐ The material decides how a good fails in water: a good of a
  * weak-wet material (paper, board) gives way when soaked through — a
  * notebook, an envelope and a sheet alike, with no class of its own saying
  * so — and a good of a material that holds wet does not.

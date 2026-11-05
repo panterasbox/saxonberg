@@ -56,7 +56,7 @@ export default class FitController extends CraftController<FitModel> {
       return;
     }
 
-    // ⭐ A LABEL is pasted, not fitted into a bill (paper D19): a sheet onto
+    // ⭐ A LABEL is pasted, not fitted into a bill: a sheet onto
     // a good's face, with the glue in the pot named. The good decides
     // (`Faced.pasteOn`); the glue's own damp-resistance decides how long it
     // stays.

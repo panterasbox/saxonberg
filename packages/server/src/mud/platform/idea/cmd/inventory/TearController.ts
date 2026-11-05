@@ -1,5 +1,5 @@
 /**
- * TearController — `tear <thing> [page <n>]` (paper D13). Dumb: the thing
+ * TearController — `tear <thing> [page <n>]`. Dumb: the thing
  * torn decides what tearing it makes (`Tearable.tear`); the verb renders.
  */
 

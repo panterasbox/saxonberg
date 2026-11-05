@@ -1,6 +1,6 @@
 /**
  * RegisterBook — ⭐ **the book of a house's or a polity's records, open on a
- * desk** (paper D7; harbors' ship register): `read ledger` at the print
+ * desk** (harbors' ship register): `read ledger` at the print
  * shop, `read register` at the harbor office.
  *
  * ⭐⭐ **A view, never the record.** The book names a document branch

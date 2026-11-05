@@ -1,5 +1,5 @@
 /**
- * Pen — a quill or a steel nib (paper D3, D22): the medieval rung of the
+ * Pen — a quill or a steel nib: the medieval rung of the
  * copy ladder. `copy <sheet> onto <blank> with pen` writes the words of one
  * sheet onto another by hand, with the copyist's errors (their printing
  * band, seeded), and the copy is bound to NOTHING — which is what lets the

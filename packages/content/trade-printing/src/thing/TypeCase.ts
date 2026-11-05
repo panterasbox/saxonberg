@@ -1,5 +1,5 @@
 /**
- * TypeCase — the compositor's case (paper D17): the sorts it holds, counted
+ * TypeCase — the compositor's case: the sorts it holds, counted
  * by glyph. ⭐ Type is CAPITAL: the font is persistent state on the case;
  * setting a document debits it, and the type is not there for the next job
  * until the forme is distributed back.

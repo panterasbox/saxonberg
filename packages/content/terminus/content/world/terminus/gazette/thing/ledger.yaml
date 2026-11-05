@@ -1,4 +1,4 @@
-# The Gazette's ledger (paper D7) — open on the counter: one line for every
+# The Gazette's ledger — open on the counter: one line for every
 # release the Gazette has published, read off its feed each time it is read.
 # It keeps nothing; burn it and the releases stand.
 class: /platform/thing/RegisterBook

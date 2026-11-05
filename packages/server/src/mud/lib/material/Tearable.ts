@@ -1,5 +1,5 @@
 /**
- * TearableMixin — a thing you can TEAR (paper D13): a sheet into halves, a
+ * TearableMixin — a thing you can TEAR: a sheet into halves, a
  * page out of a book, a shirt into rags, a paper bag open.
  *
  * ⭐ A protocol on the thing torn, not a verb that knows the cases. One

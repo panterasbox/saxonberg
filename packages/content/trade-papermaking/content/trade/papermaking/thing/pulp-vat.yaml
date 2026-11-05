@@ -1,7 +1,7 @@
 # The vat (paper W2) — a lead-lined tub of pulp hanging in water, kept warm
 # and stirred. The vatman dips the mould in it (`dip mould in vat`). Its
 # water is the river's: `reachRef` names the reach it is filled from, and the
-# sheet's color is that water's (D9).
+# sheet's color is that water's.
 class: /trade/papermaking/thing/PulpVat
 data:
   shortDescription: vat
