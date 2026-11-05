@@ -311,8 +311,27 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
     return true;
   }
 
+  /**
+   * ⭐ A way named for the water it goes into is CALLED *the way into the
+   * river* — never the water's bare name (harbors sibling drives,
+   * 2026-11-04). Its direction stays the word (`swim river`, *Obvious
+   * exits: river*) and the word stays among its keywords. Decided by lens
+   * 3a, on the gangway's precedent (`BerthExit.presentationPhrase`): since
+   * review 3 an exit is a candidate in its own right, so on the bank — whose
+   * own description has the river in it — the way `river` and the river
+   * tied at the name tier and `look river` prompted *"the bank at the
+   * confluence / river"*, two choices no player could tell apart. A player
+   * who looks at the river means the water. Only a word that is not a
+   * direction, on a way whose media are water. Keyword data on the
+   * object, never a scorer tier.
+   */
   public override presentationPhrase(): NounPhrase {
-    if (this.direction) return GrammarApi.properPhrase(this.direction);
+    if (this.direction) {
+      if (this.media.includes('water') && NavigationApi.normalizeDirection(this.direction) === undefined) {
+        return GrammarApi.properPhrase(`the way into the ${this.direction}`);
+      }
+      return GrammarApi.properPhrase(this.direction);
+    }
     return super.presentationPhrase();
   }
 

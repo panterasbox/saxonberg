@@ -161,6 +161,25 @@ describe('PerceptionApi.canReach', () => {
     expect(PerceptionApi.canReach(s(actor), s(north))).toBe(true);
     expect(PerceptionApi.canReach(s(actor), s(here))).toBe(false);
   });
+  // ⭐ What you can name is what you can touch: reach reads the ways the
+  // ACTOR perceives (the list MQL names them from), never the viewer-blind
+  // physics list — the rope's way down off the Sunken Delve's lip is a
+  // concealed way its rigger sees, and bound to "you can't reach down".
+  it('reaches a concealed way the actor perceives, and not one they do not', async () => {
+    await here.addBidirectionalExit(there, 'down');
+    const down = here.getExit('down')!;
+    down.setHidden(true);
+    expect(here.getObviousExits()).not.toContain(down);
+    const sees = vi.spyOn(PerceptionApi, 'perceives').mockReturnValue(true);
+    try {
+      expect(PerceptionApi.canReach(s(actor), s(down))).toBe(true);
+      sees.mockReturnValue(false);
+      expect(PerceptionApi.canReach(s(actor), s(down))).toBe(false);
+    } finally {
+      sees.mockRestore();
+    }
+  });
+
   // ⭐ ONE LEVEL into an open container, and the negatives are the point:
   // this clause is what four callers had each hand-rolled, so the rule it
   // encodes has to be exactly the shared one (`MixinApi.isOpenContainer`).

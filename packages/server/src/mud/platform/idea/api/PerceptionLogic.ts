@@ -377,7 +377,13 @@ export class PerceptionLogic extends ApiLogic {
     // card hold that omitted it released `out-of-reach` on doors the
     // `open` verb worked on perfectly well.
     if (location && MixinApi.isExitable(location)) {
-      for (const exit of location.getObviousExits()) {
+      // ⭐ The ways the ACTOR can see — the list MQL names them from
+      // (`obviousExitsFor`), so what you can name is what you can touch.
+      // Never the physics list (`getObviousExits`), which skips a way whose
+      // far side is not standing: the rope's way down off the Sunken
+      // Delve's lip bound, and was "you can't reach down" (harbors sibling
+      // drives, 2026-11-04).
+      for (const exit of location.obviousExitsFor(actor)) {
         // ⭐ The way itself (a direction binds the exit — harbors review 3)
         // or the door hung in it.
         if (exit.stuffId === id || exit.getDoor()?.stuffId === id) return true;
