@@ -984,6 +984,7 @@ PersonaMixin.bio = 0
 PipeRun.burstAt = 0
 PipeRun.connectsTo = 0
 PipeRun.frostStamp = 0
+PipeRun.laying = 0
 PipeRun.leaked = 0
 PipeRun.lengthM = 0
 PipeRun.runKind = 0

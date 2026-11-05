@@ -330,6 +330,13 @@ export const AppSettingKeys = {
    * docs/subsystems/banking.md.
    */
   bankingDefaultCustodianBank: "banking.defaultCustodianBank",
+  /**
+   * Banking — the round sum a branch orders into its till from its own
+   * reserves when a withdrawal finds the till short (minor units). The
+   * float is supply-neutral (a `disburse` from the branch's or its corpo's
+   * own balance); this is only its grain.
+   */
+  bankingTillFloatQuantum: "banking.tillFloatQuantum",
 
   // ── The Schedule of Parameters: the reserve's rows (the Governor's, via
   // `reserve set`) and the treasury's (economic bootstrap D4). ──

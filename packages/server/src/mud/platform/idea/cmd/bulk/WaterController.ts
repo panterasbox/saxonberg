@@ -192,7 +192,11 @@ export default class WaterController extends CommandController<WaterModel> {
     // drained pot is poured to its headroom (the rest would run out of the
     // hole). The browser walk: an undrained pot drained a sliver between
     // pours, so its headroom never reached 0 and it could not be overwatered.
-    const holds = ground.soilAcceptsPonding();
+    // A plant with a root zone of its own is the exception: the pour is
+    // aimed at its pocket, and spilling the rest across the patch would
+    // water the stand the trial is measured against.
+    const holds =
+      ground.soilAcceptsPonding() && !(plant instanceof Plant && plant.hasRootZone());
     const result = BulkableApi.transfer(fromSlot, null, {
       kind: 'measure',
       litres: holds ? fromSlot.available() : Math.min(headroom, fromSlot.available()),

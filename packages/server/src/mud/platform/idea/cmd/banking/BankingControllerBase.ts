@@ -34,6 +34,18 @@ export abstract class BankingControllerBase<
     }).stuff;
   }
 
+  /**
+   * A refusal from the banking logic, in the player's words: the logic tags
+   * its errors with the method that threw (`BankingLogic.withdraw: …`) for
+   * the log, and that tag is not for the counter (the water-supply walk
+   * read "BankingLogic.withdraw: the branch can't cover …").
+   */
+  protected refusalWords(err: unknown): string {
+    const raw = err instanceof Error ? err.message : String(err);
+    const bare = raw.replace(/^[A-Z][A-Za-z]*(Logic|Api)\.[a-zA-Z]+: /, '');
+    return bare.charAt(0).toUpperCase() + bare.slice(1);
+  }
+
   /** The affording bank counter, else the BankMixin host present in the room. */
   /**
    * Who a fiscal act names — `reserve override … to <target>`, `treasury

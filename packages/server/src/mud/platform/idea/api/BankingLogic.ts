@@ -563,6 +563,34 @@ async function ensureCorpoTreasuryImpl(
   return ensureVenueAccountImpl(`corpo:${corpoKey}`, bank, corpoKey, currency);
 }
 
+/**
+ * ⭐ Float a branch's till from the bank's OWN money when it cannot cover
+ * `amount`: the branch's account first, then its corpo's treasury, each a
+ * `disburse` (withdraw leg + coin into the vault) — supply-neutral, so the
+ * 1:1 identity and the money supply are untouched. Rounded up to the
+ * `banking.tillFloatQuantum` (a branch orders cash in round sums).
+ */
+async function floatTillImpl(bank: Stuff & Bank, amount: Money): Promise<void> {
+  let short = amount.minor - bank.getTillLiquidity().minor;
+  if (short <= 0) return;
+  const quantum = Math.max(1, dialNumber(AppSettingKeys.bankingTillFloatQuantum) || 500);
+  short = Math.ceil(short / quantum) * quantum;
+  const vault = bank as unknown as Stuff & Container;
+  const sources = [
+    await resolveBranchAccountImpl(bank, amount.currency).catch(() => null),
+    bank.getCorpoKey()
+      ? await ensureCorpoTreasuryImpl(bank.getCorpoKey(), bank.getBank(), amount.currency).catch(() => null)
+      : null,
+  ];
+  for (const accountId of sources) {
+    if (accountId === null || short <= 0) continue;
+    const take = Math.min(short, balanceMinor(accountId));
+    if (take <= 0) continue;
+    await disburseImpl(accountId, vault, Money.of(take, amount.currency), "float");
+    short -= take;
+  }
+}
+
 /* ─────────── the treasury · the reserve's two rules · the override ─────────── */
 
 /** The Treasury organization — the owner of the state's one account. */
@@ -2800,6 +2828,13 @@ export class BankingLogic extends ApiLogic {
         );
       }
     }
+    // ⭐ A branch keeps its OWN reserves in its till (economic bootstrap
+    // D9's own consumer of `disburse`, never built until the water-supply
+    // walk found a fresh world's till empty for everyone): when the till is
+    // short, the branch draws the shortfall from its own balance, then its
+    // corpo's treasury — supply-neutral, no mint. Neither holding it, the
+    // till stays low, which is still honest.
+    await floatTillImpl(bank, amount);
     // The diegetic limit (AC#13): a branch can run low on physical coin even
     // when the account is solvent — bounded by the actual till, not a gate.
     if (bank.getTillLiquidity().minor < amount.minor) {

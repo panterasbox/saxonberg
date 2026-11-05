@@ -401,7 +401,7 @@ export default class BankController extends BankingControllerBase<BankModel> {
   ): void {
     MessageApi.scene(context.commandGiver)
       .topic(TOPIC)
-      .toSelf(Mml.compose`${String(err instanceof Error ? err.message : err)}`)
+      .toSelf(Mml.compose`${this.refusalWords(err)}`)
       .send();
     context.note({ kind: "controller-rejected", reason, detail: field ?? "" });
   }
