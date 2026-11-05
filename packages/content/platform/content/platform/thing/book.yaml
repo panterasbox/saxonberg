@@ -1,8 +1,8 @@
 # A blank notebook (paper build) — sixteen leaves of sized paper between
-# pasteboard covers, glued at the spine. Whoever writes in it first owns its
-# pages; whoever holds it reads them. Raised by `fit notebook` from folded
-# sheets, two boards and a pot of glue (the trade's recipe); this row is the
-# finished thing a stationer sells.
+# pasteboard covers, glued at the spine. What is written in it lives on its
+# leaves, each passage in the hand that wrote it; whoever holds it reads and
+# writes. Binding it from folded sheets (`fit notebook`) is deferred; this row
+# is the finished thing a stationer sells.
 class: /platform/thing/Book
 data:
   shortDescription: notebook
@@ -13,6 +13,7 @@ data:
   mass: 0.15
   pageCount: 16
   roomPerPage: 600
+  sizedLeaves: true
   charMaterialPath: /stuff/idea/material/organic/ash
   reserves:
     fuel:

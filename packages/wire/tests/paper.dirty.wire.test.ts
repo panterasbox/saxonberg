@@ -299,17 +299,25 @@ suite('paper — the blocking drive', () => {
     expect(rd, rd).toMatch(/reads/i);
   }, 300_000);
 
-  it('17. a notebook: words on page 3, lent; the borrower reads them and cannot write in it', async () => {
+  it('17. a notebook: words on page 3, lent; the borrower reads them and writes in it too, in their own hand', async () => {
     const s = await session(maker, BANK_HALL);
     const r = await session(reader, BANK_HALL);
     const w = await say(s, 'write bristle — a knot of hog hair, tied and split on me:i:notebook page 3');
-    expect(w, w).toMatch(/page 3/i);
+    expect(w, w).toMatch(/You write .* page 3/i);
     await say(s, 'drop notebook');
+    await say(s, 'drop inkpot');
     await say(r, 'get notebook');
+    await say(r, 'get inkpot');
     const rd = await say(r, 'read notebook page 3');
-    expect(rd, rd).toMatch(/bristle/i);
-    const no = await say(r, 'write mine now on notebook page 3');
-    expect(no, no).toMatch(/somebody else|nothing to write with/i);
+    expect(rd, rd).toMatch(/\(in [^)]*hand\) bristle/i);
+    const mine = await say(r, 'write mine now on notebook page 3');
+    expect(mine, mine).toMatch(/You write "mine now" on page 3/i);
+    const both = await say(r, 'read notebook page 3');
+    expect(both, both).toMatch(/bristle/i);
+    expect(both, both).toMatch(/\(in your hand\) mine now/i);
+    // The ink pot goes back to its owner for the steps that paste with it.
+    await say(r, 'drop inkpot');
+    await say(s, 'get inkpot');
   }, 600_000);
 
   it('18. a page torn out leaves a gap', async () => {
@@ -372,7 +380,7 @@ suite('paper — the blocking drive', () => {
 
   it('21. the printer prints a document; a medieval covenant keeps it idle, and the pen still copies', async () => {
     const s = await session(maker, GAZETTE);
-    const p = await say(s, 'print notebook on printer');
+    const p = await say(s, 'print gazette on printer');
     expect(p, p).toMatch(/comes? off/i);
     await founderEval(GAZETTE, '/world/terminus', 'here', "(self.getZone().setAdmitsEpochThrough('medieval'), 'medieval')");
     const refused = await say(s, 'print ledger on printer');

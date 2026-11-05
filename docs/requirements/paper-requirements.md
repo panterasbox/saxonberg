@@ -332,7 +332,9 @@ the issuer cannot check.
 
 ### One book
 Notebook, printed book and ledger are one thing filled three ways; the notebook
-is the reference case.
+is the reference case. ⚠ Changed by the owner (2026-11-04, plan D44): a book is
+its leaves — what is written lives on the leaf with the writer's hand, and
+anyone holding a notebook can write in it.
 
 ### Epochs — no paper logic, only carriers and instruments
 | epoch | a document reaches you by | paper is for | copying |

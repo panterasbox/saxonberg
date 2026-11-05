@@ -64,10 +64,18 @@ Built by the paper build (MR on `reqs/paper`, 2026-11). Packs:
   A mill's sheet carries its making: `color` (the vat's water), `evenness`
   (the vatman's band), `formed`, `pressed` — formed and dried unpressed it
   is `isCockled()`.
-- **`Book`** (`platform/thing/Book.ts`): a notebook's pages are a `book`
-  document at `/home/<writer>/books/<key>`, minted at first write; a
-  borrower reads and is refused the pen (`AccessApi.canAtPath`); `read` /
-  `write` / `tear <book> page <n>`; a torn page leaves a gap.
+- **`Book`** (`platform/thing/Book.ts`) — ⭐ **a book is its leaves**
+  (D44). The assembly record carries the physical set (the leaves' paper,
+  the boards, the spine); the book keeps one record per leaf (`leaves`) for
+  what that leaf carries: **passages, each with the hand that wrote it**, or
+  the edition page it was printed with. There is no document behind a
+  notebook — handwriting lives on the paper, as it does on a loose sheet.
+  Whoever holds it writes (ink in hand, sized leaves, room on the page); a
+  reader sees each hand as they know its writer (*your hand*, *Hester's
+  hand*, *a hand you do not know* — the device mark's rule). `read` /
+  `write` / `tear <book> page <n>`; tearing a page out takes the leaf's
+  words (or its edition page) into a loose `Sheet` and leaves a stub.
+  ⚠ Binding sheets into a book (`fit notebook`) is deferred.
 - **`RegisterBook`**: a fixed ledger that holds nothing — `registerPrefix`
   names the papers it lists on each read.
 - **`Envelope`**: shut, it vetoes in and out; `seal` (gum or wax — wax wants

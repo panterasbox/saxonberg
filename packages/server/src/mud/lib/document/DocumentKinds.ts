@@ -300,14 +300,6 @@ export const DOCUMENT_KINDS = {
    * point of paper.
    */
   edition: { kind: 'edition', naturalKey: null, contentDir: 'editions', ext: 'yaml', onVanish: 'keep' },
-  /**
-   * ⭐ A **book**'s pages — what somebody wrote in a bound notebook
-   * (paper D14), one page per entry, at `/home/<writer>/books/<id>`.
-   * Owner-scoped content under the ordinary self-home gate: the writer
-   * writes, a borrower holding the book reads and cannot write.
-   * `onVanish: 'keep'` for the map's reason.
-   */
-  book: { kind: 'book', naturalKey: null, contentDir: 'books', ext: 'yaml', onVanish: 'keep' },
 } as const satisfies Record<string, DocumentKindSpec>;
 
 export type DeclaredDocumentKind = keyof typeof DOCUMENT_KINDS;

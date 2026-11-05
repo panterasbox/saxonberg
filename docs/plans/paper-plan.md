@@ -1030,6 +1030,23 @@ shipped rule. `Wet` gained the `afterWetted` hook. ⭐ **No `PaperGoodsMixin`**:
 "made of paper" is a material; tearing stays a protocol each thing
 implements. Sheet's `pulped`/`pulpTemplate` and Packet's latch retired.
 
+**D44 (owner, 2026-11-04) — a book is its leaves; borrowers can write.**
+The notebook's pages had been a `book` document under the first writer's
+home, which made a lent notebook read-only to the borrower and put the words
+somewhere other than the paper. Replaced: `Book` keeps `leaves` — one record
+per leaf (`passages[]` each with the writer's `hand`, or `boundTo` + `page`
+for a printed leaf, and `torn`); the assembly record carries the physical
+set. **Anyone holding the book writes**; each passage records whose hand,
+and `read` renders hands as the viewer knows the writer (the device-mark
+rule: *your hand* · *X's hand* · *a hand you do not know*). Tearing a page
+out moves the leaf's state into the loose `Sheet` (its words, or its edition
+page via `bindTo`). ⛔ The **`book` document kind is retired** (no data to
+migrate — dev only), and `pagesOf` no longer reads it. `missing`,
+`document`, `edition`, `bookKey` fields are gone; `sizedLeaves` is new.
+Drive step 17 now has the borrower write (in their own hand); step 21 prints
+the Gazette instead of the notebook (a notebook has no document to print).
+Binding (`fit`) stays deferred.
+
 ### W1 — the live rung, bearer paper, the register book
 *Decisions D5, D7, D8.*
 

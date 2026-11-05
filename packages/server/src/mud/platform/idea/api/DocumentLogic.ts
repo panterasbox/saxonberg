@@ -658,7 +658,6 @@ async function pagesOfImpl(path: string): Promise<DocumentPages | null> {
       const teaches: EditionTeaching[] = id ? [{ recipeId: id, name }] : [];
       return { title: name, pages: [body.join('\n')], teaches };
     }
-    case 'book':
     case 'edition': {
       const pages = pagesFrom(data.pages);
       if (pages.length === 0) return null;
