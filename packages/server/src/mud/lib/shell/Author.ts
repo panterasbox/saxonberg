@@ -73,11 +73,6 @@ export function AuthorMixin<TBase extends MixinConstructor>(Base: TBase) {
         'platform/cmd/author/destruct.yaml',
         'platform/cmd/author/eval.yaml',
 
-        // Advancement developer harness — fabricate Transcript deeds so
-        // the derive-on-read Competence loop + band conferrals are
-        // exercisable without lane-2's real craft verbs. Wizard-gated
-        // (requiresWizard) on top of this AuthorMixin visibility.
-        'platform/cmd/author/practice.yaml',
         // Soul authoring — emote catalog mint / edit / delete / show /
         // list. Gated identically to the rest of the AuthorMixin suite:
         // non-authors don't see the verb in their recency stack.
@@ -166,6 +161,11 @@ export function AuthorMixin<TBase extends MixinConstructor>(Base: TBase) {
         // a test world the loader withholds it and this key resolves to
         // nothing (the verb is unknown there, by design).
         'platform/cmd/system/testharness.yaml',
+        // Test-world competence staging — `practice` fabricates one
+        // Transcript deed. Fabricating a record is not something anybody
+        // may do in a played world, credential or not, so it is a
+        // test-world verb (`testOnly`) like `testharness`, not a wizard's.
+        'platform/cmd/system/practice.yaml',
         // The authoring CARDS. Afforded on the operator command surface
         // like the rest of this suite; each carries `requiresWizard`
         // (they edit engine content), so a non-wizard sees the verb but

@@ -1,0 +1,36 @@
+verbs: [practice]
+controller: /platform/idea/cmd/system/PracticeController
+# ⛔ A TEST-WORLD verb (the `testharness` shape). It fabricates a deed, and
+# nobody may fabricate a record in a world somebody plays in — not a
+# wizard, not an officer. The loader admits it only when
+# SecurityApi.isTestEnvironment(); `requiresTestWorld` keeps the gate in
+# the view's own data too.
+testOnly: true
+description: "Test-world staging: record a practice deed against a Discipline"
+help: |
+  Scaffolding for drives, in a test world only. Records a single
+  learning-event deed on your own Transcript for a Discipline, so the
+  derive-on-read Competence estimator has evidence to fold — the staged
+  twin of practising for real.
+
+  `practice <discipline> [difficulty] [outcome]`
+
+  - difficulty: trivial | easy | standard | hard | formidable
+    (default standard)
+  - outcome:    failure | partial | success | critical
+    (default success)
+
+  Hard, surprising attempts move your competence most; grinding
+  trivial successes barely moves it at all.
+validators:
+  - /lib/command/validators/requiresTestWorld
+args:
+  - name: discipline
+    type: string
+    required: true
+  - name: difficulty
+    type: string
+    required: false
+  - name: outcome
+    type: string
+    required: false

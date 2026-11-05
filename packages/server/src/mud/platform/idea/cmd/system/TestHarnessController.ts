@@ -16,8 +16,8 @@
  * state can be checked before and after an act.
  *
  * ⛔ It exists only in a test world: the view is `testOnly` (the loader
- * withholds it anywhere else) and carries `requiresTestWorld` +
- * `requiresWizard`. A refusal — the span rule past a day, the clock's own
+ * withholds it anywhere else) and carries `requiresTestWorld`. No
+ * credential: staging the clock is not authoring code. A refusal — the span rule past a day, the clock's own
  * parse, a weather kind that is not one — comes back in its own words.
  */
 

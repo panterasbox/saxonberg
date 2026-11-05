@@ -3,23 +3,14 @@
 # rise is an error, and a fall is stale (lower or delete the line).
 # Reasons: axis · subject · definition · ux · prose · sweep. See
 # scripts/check-wizard-axis.ts and access.md § The two account axes.
-packages/content/eternal-university/content/world/terminus/eternal/duncan-hall/cmd/provision.yaml  1  sweep
-packages/content/eternal-university/content/world/terminus/eternal/duncan-hall/cmd/unprovision.yaml  1  sweep
-packages/content/eternal-university/src/duncan-hall/agent/Katie.ts  1  sweep
-packages/content/eternal-university/src/duncan-hall/idea/cmd/ProvisionController.ts  2  sweep
 packages/content/platform/content/platform/cmd/author/cms.yaml  1  sweep
 packages/content/platform/content/platform/cmd/author/eval.yaml  1  axis
-packages/content/platform/content/platform/cmd/author/practice.yaml  1  sweep
 packages/content/platform/content/platform/cmd/author/reload.yaml  1  sweep
 packages/content/platform/content/platform/cmd/author/studio.yaml  1  sweep
 packages/content/platform/content/platform/cmd/author/typecheck.yaml  1  sweep
 packages/content/platform/content/platform/cmd/author/wizard.yaml  1  subject
 packages/content/platform/content/platform/cmd/system/config.yaml  1  sweep
 packages/content/platform/content/platform/cmd/system/git.yaml  1  sweep
-packages/content/platform/content/platform/cmd/system/testharness.yaml  1  sweep
-packages/content/terminus/content/world/terminus/mayfield-row/cmd/lease.yaml  1  sweep
-packages/content/terminus/content/world/terminus/mayfield-row/cmd/unlease.yaml  1  sweep
-packages/content/terminus/src/mayfield-row/agent/Walter.ts  1  sweep
 packages/content/trade-haulage/content/trade/haulage/agent/warehouseman.yaml  1  prose
 packages/server/src/mud/api/access.ts  6  definition
 packages/server/src/mud/api/banking.ts  1  prose
@@ -31,22 +22,19 @@ packages/server/src/mud/lib/command/validators/requiresPackInstaller.ts  1  pros
 packages/server/src/mud/lib/command/validators/requiresStreamer.ts  1  prose
 packages/server/src/mud/lib/command/validators/requiresTestWorld.ts  1  prose
 packages/server/src/mud/lib/command/validators/requiresWizard.ts  2  definition
-packages/server/src/mud/lib/magic/Effect.ts  1  sweep
-packages/server/src/mud/lib/shell/Author.ts  7  sweep
+packages/server/src/mud/lib/shell/Author.ts  6  sweep
 packages/server/src/mud/platform/idea/AccessRegistry.ts  7  definition
 packages/server/src/mud/platform/idea/OfficeRegistry.ts  1  prose
 packages/server/src/mud/platform/idea/WikiRegistry.ts  1  sweep
 packages/server/src/mud/platform/idea/WikiRenderer.ts  1  sweep
-packages/server/src/mud/platform/idea/api/AccessLogic.ts  9  definition
+packages/server/src/mud/platform/idea/api/AccessLogic.ts  7  definition
 packages/server/src/mud/platform/idea/api/CmsLogic.ts  4  sweep
 packages/server/src/mud/platform/idea/api/DiagnosticLogic.ts  2  sweep
 packages/server/src/mud/platform/idea/api/DocumentLogic.ts  1  sweep
 packages/server/src/mud/platform/idea/api/GitLogic.ts  8  sweep
-packages/server/src/mud/platform/idea/api/MagicLogic.ts  1  sweep
 packages/server/src/mud/platform/idea/api/StudioLogic.ts  3  sweep
 packages/server/src/mud/platform/idea/api/TemplateLogic.ts  2  sweep
 packages/server/src/mud/platform/idea/cmd/author/EvalController.ts  1  prose
-packages/server/src/mud/platform/idea/cmd/author/PracticeController.ts  1  sweep
 packages/server/src/mud/platform/idea/cmd/author/ReloadController.ts  1  sweep
 packages/server/src/mud/platform/idea/cmd/author/WizardController.ts  1  subject
 packages/server/src/mud/platform/idea/cmd/banking/HouseController.ts  1  prose
@@ -58,5 +46,4 @@ packages/server/src/mud/platform/idea/cmd/shell/WriteController.ts  2  sweep
 packages/server/src/mud/platform/idea/cmd/system/ConfigController.ts  1  sweep
 packages/server/src/mud/platform/idea/cmd/system/ErrorsController.ts  1  sweep
 packages/server/src/mud/platform/idea/cmd/system/GitController.ts  1  sweep
-packages/server/src/mud/platform/idea/cmd/system/TestHarnessController.ts  1  prose
 packages/server/src/services/auth/AuthRoutes.ts  5  ux

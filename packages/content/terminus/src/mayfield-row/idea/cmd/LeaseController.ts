@@ -65,7 +65,7 @@ export default class LeaseController extends LettingController<LeaseModel> {
     if (!(await LeaseController.mayLet(actor))) {
       return this.fail(
         context,
-        "You're not authorized to let Seznick House's rooms.",
+        "Only the letting agency's staff or a member of the building's committee may let Seznick House's rooms.",
         'not-authorized',
       );
     }
