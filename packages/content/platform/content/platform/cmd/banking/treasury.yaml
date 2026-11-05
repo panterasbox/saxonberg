@@ -14,10 +14,26 @@ help: |
   appropriate <amount> to <target>` spends from the account to a named
   business or member — the Minister's act, and it names its destination.
   Nothing mints here: the supply does not move when the Treasury spends.
+
+  `treasury set <row> <value>` sets one of the fisc's Tier C dials — the
+  sales tax, the local share, the corpo royalty, the consignment
+  commission, the Arrival Note's principal, the opening advance. It goes
+  on the Minister's record (`chronicle`). Any other key is refused, naming
+  the seat that sets it: the capital controls are the Governor's
+  (`reserve set`), everything else the Prime Minister's (`config`).
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresFinanceMinister
 subcommands:
+  set:
+    description: "Set one of the fisc's Tier C dials, on the record"
+    args:
+      - name: row
+        type: string
+        required: true
+      - name: value
+        type: string
+        required: true
   appropriate:
     description: "Spend from the treasury's account: <amount> to <target>"
     args:

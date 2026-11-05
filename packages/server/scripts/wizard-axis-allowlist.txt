@@ -1,11 +1,10 @@
 # check-wizard-axis allowlist — every file that names the wizard axis, its
 # token count, and why. THE LIST ONLY SHRINKS: an unlisted file is an error, a
 # rise is an error, and a fall is stale (lower or delete the line).
-# Reasons: axis · subject · definition · ux · prose · sweep. See
+# Reasons: axis · subject · definition · ux · prose. See
 # scripts/check-wizard-axis.ts and access.md § The two account axes.
 packages/content/platform/content/platform/cmd/author/eval.yaml  1  axis
 packages/content/platform/content/platform/cmd/author/wizard.yaml  1  subject
-packages/content/platform/content/platform/cmd/system/config.yaml  1  sweep
 packages/content/trade-haulage/content/trade/haulage/agent/warehouseman.yaml  1  prose
 packages/server/src/mud/api/access.ts  6  definition
 packages/server/src/mud/api/sandbox.ts  1  prose
@@ -16,12 +15,11 @@ packages/server/src/mud/lib/command/validators/requiresPackInstaller.ts  1  pros
 packages/server/src/mud/lib/command/validators/requiresStreamer.ts  1  prose
 packages/server/src/mud/lib/command/validators/requiresTestWorld.ts  1  prose
 packages/server/src/mud/lib/command/validators/requiresWizard.ts  2  definition
-packages/server/src/mud/lib/shell/Author.ts  3  sweep
+packages/server/src/mud/lib/shell/Author.ts  1  prose
 packages/server/src/mud/platform/idea/AccessRegistry.ts  7  definition
 packages/server/src/mud/platform/idea/OfficeRegistry.ts  1  prose
 packages/server/src/mud/platform/idea/api/AccessLogic.ts  7  definition
 packages/server/src/mud/platform/idea/cmd/author/EvalController.ts  1  prose
 packages/server/src/mud/platform/idea/cmd/author/WizardController.ts  1  subject
 packages/server/src/mud/platform/idea/cmd/banking/HouseController.ts  1  prose
-packages/server/src/mud/platform/idea/cmd/system/ConfigController.ts  1  sweep
 packages/server/src/services/auth/AuthRoutes.ts  5  ux

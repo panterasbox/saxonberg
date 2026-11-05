@@ -34,7 +34,7 @@ import type {
 import { StuffApi } from "./stuff";
 import { ExecutionContextApi } from "./execution-context";
 import { HotReloadApi } from "./hot-reload";
-import { CallSecurity } from "../lib/security/decorators";
+import { CallSecurity, TestOnly } from "../lib/security/decorators";
 import { SecurityPolicies } from "../lib/security/SecurityPolicies";
 import { CompactLogic } from "../platform/idea/api/CompactLogic";
 import { fileURLToPath } from "url";
@@ -216,6 +216,23 @@ export class CompactApi {
   }
 
   /**
+   * TEST-ONLY: seat `playerId` in `officeKey` — the same write
+   * `assignOffice` makes, for the wire harness's `offices:` login option
+   * (wizard-axis D13). It exists because `office assign` binds its target
+   * through the `online` scope, which cannot resolve a second session yet
+   * (governance.md § Open); the harness still TRIES the verb in a drive.
+   */
+  @TestOnly(
+    "Seat a player with `office assign <player> <office>` as the founding authority."
+  )
+  public static async assignOfficeForTest(
+    playerId: string,
+    officeKey: string
+  ): Promise<OfficeAssignResult> {
+    return logic().assignOffice(playerId, officeKey);
+  }
+
+  /**
    * Narrow-entry mutation: clear an office's explicit holder (the seat
    * reverts to the founder default). Office-only — a singular seat has
    * no empty state. Same `OfficeController` gate as `assignOffice`.
@@ -248,9 +265,10 @@ export class CompactApi {
   }
 
   /**
-   * Whether `player` sits on the committee over `path` — a member of
-   * the title-holding group, or the founder (the Art. XI pool-of-one
-   * backstop, mirroring the office founder default).
+   * Whether `player` sits on the committee over `path` — a member of the
+   * title-holding group, or (an organization-held extent) on its chart.
+   * ⛔ Nobody sits on every committee — not the founder, not the Prime
+   * Minister (wizard-axis D18).
    */
   public static async isCommitteeMember(
     player: Stuff,

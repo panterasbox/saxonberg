@@ -116,20 +116,13 @@ export function AuthorMixin<TBase extends MixinConstructor>(Base: TBase) {
         'platform/cmd/author/pack.yaml',
         // The app-settings surface — `config [key [value]]`.
         //
-        // ⚠⚠ **Afforded here under protest: its GATE is on the wrong
-        // axis.** `config.yaml` carries `requiresWizard`, and what it
-        // actually reaches is 361 BALANCE DIALS — `freshness.muMaxPerHour`,
-        // `combat.*`, `response.*`. None of that is TypeScript access, and
-        // `requiresWizard` is the code-trust axis and nothing else. There
-        // is simply no authority modelled for "who may retune the world",
-        // and *a missing authority is not a grant* (access.md) — so the
-        // gate defaulted to the nearest strong thing to hand, which is the
-        // anti-pattern, not the answer. **The seat is missing and wants
-        // building; do not read this line as an endorsement.**
-        //
-        // Contributed anyway because the alternative is worse: the verb
-        // was reachable by NOBODY (below), and an unreachable verb hides
-        // the gate question entirely.
+        // ⭐ Gated on the Prime Minister's seat (`requiresPrimeMinister`,
+        // wizard-axis D12): retuning the world's Tier B dials is the chief
+        // executive's act, not authoring TypeScript. Tier C keys (taxes,
+        // levies, capital controls) are refused inside, naming the seat
+        // and verb that set them (`treasury set`, `reserve set`). It used
+        // to carry the wizard validator — the nearest strong thing to
+        // hand, which a missing authority is not.
         //
         // ⚠⚠ It was afforded NOWHERE until a live drive tried to type
         // it: view shipped, controller shipped, `ConfigController.test`

@@ -309,8 +309,9 @@ reissue).
   the normal loop.
 - **Demo sales tax** — `BankingApi.remitDemoTax(sellerAccount, saleAmount)`:
   a **seller-collected** `tax`/`tax` posting seller → placeholder treasury at
-  the authored, **inert** rate (`banking.salesTaxRate` AppSetting; recorded,
-  not governed — the corpo-affiliation-edge precedent), so the tax shows in
+  the authored rate (`banking.salesTaxRate`, a Tier C dial the Minister of
+  Finance sets with `treasury set`, on the record — app-settings.md
+  § The tiers), so the tax shows in
   the *seller's* P&L (a `tax` line) and the treasury merely accumulates (no
   appropriation path). (The general payer-side remittance-split seam from
   Phase 3 stays for tips/fees.) The **general store's consignment sale**

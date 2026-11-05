@@ -23,7 +23,6 @@
  *   definition  the predicate itself, its forwarders, its validators
  *   ux          the client's "offer the authoring panes" flag
  *   prose       a comment / help line that explains the axis
- *   sweep       a site the build in flight removes (the shipped list has none)
  *
  * A file NOT listed is an error. A listed file whose count ROSE is an
  * error. A listed file whose count FELL, or that no longer names the
@@ -57,7 +56,7 @@ export const ALLOWLIST_FILE = join(HERE, "wizard-axis-allowlist.txt");
 /** The axis tokens. Word-bounded so `isWizardly` never counts. */
 export const AXIS_RE = /\b(?:isWizard|requiresWizard|isArchwizard|requiresArchwizard)\b/g;
 /** The closed set of reasons a file may name the axis. */
-export const REASONS = ["axis", "subject", "definition", "ux", "prose", "sweep"] as const;
+export const REASONS = ["axis", "subject", "definition", "ux", "prose"] as const;
 export type Reason = (typeof REASONS)[number];
 
 const SOURCE_RE = /\.(ts|ya?ml)$/;

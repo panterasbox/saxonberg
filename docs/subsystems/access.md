@@ -652,8 +652,9 @@ the platform's roots, a corpo over `/corpo/<key>`). A player-held
 subdivision has none; an untitled path has none. Reads live on
 **`CompactApi`** (the single meta-institution facade — `api/compact.ts`):
 `committeeOf(path)`, `isCommitteeMember` (group membership, or the
-organization's staff/authority, or the founder via the Art. XI
-pool-of-one backstop — mirroring the office founder default),
+organization's staff/authority — ⛔ and nothing else: the founder sits
+on no committee; the Art. XI pool-of-one backstop that used to live here
+misread the JURY rule and was deleted by the wizard-axis cleanup, D18),
 `committeeMembersOf`, and the chat seam
 (`committeeChannelOf` / idempotent `ensureCommitteeChannel` — a bound
 channel whose audience IS the committee group; chat.md). Surfaced by
