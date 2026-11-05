@@ -28,6 +28,15 @@ the axis only and authority comes from a seat. The decisions that changed
 are D12, D13, D14 and the new D17–D20; the new W5 is the harness
 migration.
 
+**Revised again the same evening (owner's answers, plan commit
+`e7f21bf23`):** the executive title backstop is **rejected entirely**
+(*"no one should 'sit on every committee' not even the founder"*), and in
+its place the shipped founder committee backstop is **deleted** (D18);
+test sessions are seated on the committees they need, by name (D13); the
+regulated form of the hole — an **executive warrant** — leaves as
+[executive-warrant-slate](../slates/builds/executive-warrant-slate.md);
+D19 is decided.
+
 ## Grounding
 
 ### The census, re-taken 2026-11-05, every site classified
@@ -198,11 +207,11 @@ rewrites.
   - `canAtPath` → `subjectIsOwnerMember` (`AccessRegistry.ts:443–455`):
     a `group` owner is plain `GroupApi.isMember`; an `organization`
     owner is its staff or appointing authority (`subjectHoldsOrganization`,
-    `:488`); **there is no seat backstop** — unlike
-    `CompactLogic.isCommitteeMember` (`:178`), which has the Art. XI
-    founder backstop (`isFounderImpl`). `canMutateZone` →
-    `subjectHasOwnerRole` (`:462`) is the same shape with the `'owner'`
-    role.
+    `:488`); **there is no seat backstop, and after D18 there is none
+    anywhere** — `CompactLogic.isCommitteeMember` (`:176–178`) had the
+    one (`isFounderImpl`, misreading the jury pool-of-one), and it is
+    deleted. `canMutateZone` → `subjectHasOwnerRole` (`:462`) is the same
+    shape with the `'owner'` role.
   - So the PM holds exactly what `/compact/executive` holds: the platform
     pack's roots (`/obj /cmd /domain /compact /studio /home /platform
     /blueprints`) and the **`/world` root** (`platform/pack.yaml:41`) —
@@ -285,8 +294,10 @@ lint script, and a wire-harness option.
 | `treasury set <row> <value>` | subcommand | `reserve set` (`ReserveController.set`) is the twin; app-settings.md § Deferred names `treasury set` as the seam | `TreasuryController` |
 | `lint:wizard-axis` (`scripts/check-wizard-axis.ts` + `scripts/wizard-axis-allowlist.txt`) | lint gate | `check-test-content.ts` + its allowlist (list-only-shrinks); `pack-roots.ts` for the pack walk | the lint roster |
 | `requiresPrimeMinister` | validator | the third hand-written office twin after `requiresGovernor` / `requiresFinanceMinister` — governance.md § Deferred names the third copy as the signal to parameterize, which needs a schema change this build does not make (Deferred seams) | the validators dir |
-| the executive backstop in `subjectIsOwnerMember` / `subjectHasOwnerRole` + `isCommitteeMember` (D18) | a predicate arm | **generalizes** `CompactLogic.isCommitteeMember`'s founder backstop (`:178`, Art. XI) from the founder's credential to the seat that already carries code trust (access.md § *The Prime Minister backstop*) | `AccessRegistry`, `CompactLogic` |
-| `offices: [...]` and `staff: [...]` on the test login; `wizard: true` re-meant | harness options | `parcels: [...]` (`TestHooks.#grantParcels`) is the shape; the seams are `@TestOnly` (`lib/security/decorators.ts:275`) | `TestAuthRoutes`, `session.ts`, e2e `helpers.ts` |
+| `offices: [...]` and `committees: [...]` on the test login; `wizard: true` re-meant | harness options | `parcels: [...]` (`TestHooks.#grantParcels`) is the shape — a grant written the way the verb would write it; the seams are `@TestOnly` (`lib/security/decorators.ts:275`); `committees:` writes the managed group's member row the `group` verb / the installer's enrolment writes | `TestAuthRoutes`, `session.ts`, e2e `helpers.ts` |
+
+**Deleted substrate added this revision:** `CompactLogic.isCommitteeMember`'s
+founder backstop (`:176–178`) — D18.
 | `git publish --dry-run` | option | `GitLogic.publish`'s existing per-file split into `committedPaths`/`skippedPaths` | — |
 | the chronicle deed for a Tier C change | a `recordDeed` call | `PersonaMixin.recordDeed` (chronicle.md) | provenance (`recordAuthoring` — authorship, wrong concept), accountability (harm), the ledger (money only) |
 
@@ -418,23 +429,35 @@ copies; the `requiresWizard` lines on eleven views.
   is minted. ⚠ This is the **third** hand-written office validator — the
   parameterization signal governance.md deferred is now met (Deferred
   seams).
-- **D13 — The harness tells the truth (REVISED 2026-11-05).**
+- **D13 — The harness tells the truth (REVISED twice, 2026-11-05).**
   `wizard: true` on the test login joins **only** the `wizards` group —
   the axis and nothing else; the every-managed-group loop in
   `TestHooks.provisionCharacter` is deleted, not kept behind another
-  flag. Authority comes from a seat, through two options that write the
-  same rows the verbs would (the `parcels` precedent — *a grant, not a
-  bypass*): `offices: ['prime-minister' | 'minister-of-finance' | …]`
-  seats the minted character through a `@TestOnly` seam on
-  `OfficeRegistry` (`assignForTest`; needed while `office assign` is
-  defective — the drive still TRIES the verb first and logs the outcome);
-  `staff: ['/compact/executive']` gives it a non-exited position on the
-  named organization's chart through a `@TestOnly` seam beside
-  `EmploymentApi`'s appoint path (needed because an office has ONE holder
-  and a drive opens several sessions that need the realm — the executive's
-  staff hold what the executive holds, D18). Both options are validated at
-  the route (an unknown office or a path that is not an organization is a
-  400 naming it).
+  flag, **under any name**. Authority comes from being seated exactly as
+  a content author is — *"you get ownership over that content and are
+  seated on a committee"* — through two options that write the same rows
+  the verbs would (the `parcels` precedent — *a grant, not a bypass*):
+  - `committees: ['/world/terminus', '/corpo/goodkin:owner', …]` — each
+    entry an EXTENT; the seam resolves the committee over it
+    (`CompactApi.committeeOf`, the same lookup the verbs make) and adds
+    the character to that managed group as `member` (or `owner` with the
+    `:owner` suffix — the role `canMutateZone` needs). An extent whose
+    committee is an organization (the executive, `/compact/trade`, a
+    business) is refused at the route with the office or chart that
+    seats it named: an organization's title is held by its staff and its
+    appointing authority, and a test character gets that through
+    `offices:` (the Minister of Trade for `/compact/trade`'s 54 titles,
+    the PM for the platform's) — or does without.
+  - `offices: ['prime-minister' | 'minister-of-trade' | 'minister-of-finance' | …]`
+    seats the minted character through a `@TestOnly` seam on
+    `OfficeRegistry` (`assignForTest`; needed while `office assign`
+    cannot bind an online player — the drive still TRIES the verb first
+    and logs the outcome). ⚠ One holder per office: a drive seats one
+    session per seat.
+  Both options are validated at the route (an unknown office, an extent
+  nothing covers, or an organization-held extent is a 400 naming it).
+  There is **no `staff:` option** — it existed only for the rejected
+  backstop.
 - **D14 — Reading is open (REVERSED 2026-11-05).** No read asks for the
   wizard: `GitLogic.status/diff/log` and `CmsLogic.gateRead('source')`
   admit any signed-in avatar (a null actor still fails closed; the CMS
@@ -468,37 +491,48 @@ copies; the `requiresWizard` lines on eleven views.
   the allowlist's `definition` row changing shape, not a new axis site;
   `AccessLogic`/`access.ts` forwarders are unchanged. access.md § *The
   Prime Minister backstop* gains the sentence.
-- **D18 — The executive is the title backstop, the way the founder is
-  every committee's member (⚠ needs the owner's eye — it changes
-  production authority).** `subjectIsOwnerMember` and
-  `subjectHasOwnerRole` answer **true for anyone who holds
-  `/compact/executive`** (the PM, or a non-exited position on its chart —
-  `subjectHoldsOrganization`, the predicate that already exists), before
-  the owner-kind dispatch; and `CompactLogic.isCommitteeMember`'s
-  `isFounderImpl` backstop (`:178`) becomes the **same executive
-  predicate**, so there is ONE Art. XI backstop and it is seat-keyed: hand
-  the PM on and every default authority moves with it, in one act. Nearest-
-  parcel-wins still decides among everyone else. Consequence in the world:
-  the Prime Minister (and her staff) can clone, eval, write and let in any
-  locality — the pool-of-one of Art. XI stated as the seat rather than the
-  credential, which is the direction access.md already took for code
-  trust. Without it, the PM holds only the executive's own extents and the
-  harness migration (D20) would need per-session `parcels:` transfers
-  (side-effecting, fifty parcels a run) — the costlier honest path, listed
-  under Risks as the alternative if the owner refuses the backstop.
-- **D19 — `errors raw` is the Prime Minister's.** The console ring is the
-  box's stdout, not source: it carries other players' command lines and
-  errors naming them. Reading it is open of code trust but not of
-  privacy, so the gate moves from the wizard to the executive
-  (`holdsOffice(actor, 'prime-minister')` in `ErrorsController.raw`, the
-  reason `pm-only`). Stated as the one read that keeps a gate, and why.
-- **D20 — The harness migration is its own wave (W5).** 59 files set
-  `wizard: true` meaning *every group*; after D13 it means the axis.
-  Sessions that stage (`eval --parcel`, `clone`, `goto`, `destruct`,
-  `write`) add `staff: ['/compact/executive']` (the executive backstop
-  makes that the realm); the founder session needs nothing (PM by default);
-  the seven files whose non-founder wizard session runs `config` move
-  that line to the founder (D12). Sized under W5.
+- **D18 — No title backstop for anyone; the founder committee backstop
+  is DELETED (owner, 2026-11-05).** The executive backstop the previous
+  revision proposed is **rejected entirely** — *"giving anyone root even
+  the PM sounds like something we need to talk about … I'd rather punching
+  holes like that be temporary and regulated even for the PM"*; and *"no
+  one should 'sit on every committee' not even the founder. there are
+  certain offices we've said are platform level and need to be seated in
+  order for the game to function, and those get seated by the founder by
+  default until they're otherwise filled. that does not mean the founder
+  is on every committee -- ever."* So: `subjectIsOwnerMember` /
+  `subjectHasOwnerRole` are **unchanged**; the founder default for the
+  platform OFFICES (`holdsOffice`, the sparse `office_holders` row) is
+  **unchanged**; and the shipped `if (await isFounderImpl(player)) return
+  true;` in `CompactLogic.isCommitteeMember` (`:176–178`) is **deleted** —
+  its comment reads Art. XI's pool-of-one, which is the JURY rule
+  (`draft-constitution.md:305`, `compact-political-science.md:244`), as a
+  committee rule. A committee's membership is its group, or an
+  organization's chart, and nothing else. The regulated form of the hole
+  the backstop pretended to be — the **executive warrant**: one named
+  extent, a stated reason, an expiry, on the record, the committee told,
+  revocable by the legislature or the courts — leaves as
+  [executive-warrant-slate](../slates/builds/executive-warrant-slate.md),
+  built on the agency slate's grant. **Dependents of the deleted backstop,
+  each re-seated honestly:** listed under Test & gate strategy.
+- **D19 — `errors raw` is the Prime Minister's (DECIDED by the owner,
+  2026-11-05: *"errors raw can stay PM, it's other people's data"*).** The
+  console ring is the box's stdout, not source: it carries other players'
+  command lines and errors naming them. The gate moves from the wizard to
+  the seat (`holdsOffice(actor, 'prime-minister')` in
+  `ErrorsController.raw`, the reason `pm-only`) — the one read that keeps
+  a gate, for a reason other than code trust.
+- **D20 — The harness migration is its own wave (W5), and each file
+  names its committees.** 59 files set `wizard: true` meaning *every
+  group*; after D13 it means the axis. Every session that stages names
+  the committees it needs (`committees: [<extent>…]`) — read off the file
+  itself: its `startLocation`s, its `eval --parcel` arguments, its
+  `goto`/`write -c`/`destruct` targets, the organizations it `appoint`s
+  at. The founder session keeps the platform offices by default and is
+  seated on **no** committee: where a file had the founder act inside a
+  locality's extent, the founder session gets `committees:` too. The
+  seven files whose non-founder wizard runs `config` move that line to
+  the founder (D12). Sized under W5.
 
 ## ⭐⭐ Host placement
 
@@ -511,8 +545,7 @@ copies; the `requiresWizard` lines on eleven views.
 | the Tier C deed | the officer's `PersonaMixin` (`recordDeed`) | **every player** composes Persona; a deed is a thing a character did — true of every host; nothing is claimed for NPCs (an NPC never holds an office) |
 | `'reload'` | `TreeAction` | a title action; nothing hosts it |
 | `requiresPrimeMinister` | `lib/command/validators/` | a verb-level, giver-only check — the sanctioned home (access.md § *Where the gate lives*) |
-| the executive backstop | `AccessRegistry.subjectIsOwnerMember` / `subjectHasOwnerRole`, `CompactLogic.isCommitteeMember` | the access face and the committee predicate are the ONLY places title membership is answered; one backstop, consulted before the owner-kind dispatch, claims nothing about any host |
-| `wizard: true` (axis only) · `offices` · `staff` | `TestHooks` / `TestAuthRoutes` / wire `session.ts` / e2e `helpers.ts` | test-mode only (`#assertTestMode`) |
+| `wizard: true` (axis only) · `offices` · `committees` | `TestHooks` / `TestAuthRoutes` / wire `session.ts` / e2e `helpers.ts` | test-mode only (`#assertTestMode`); no production predicate changes for the harness |
 
 No mixin is added and no class is widened, so the two P2 tests (a guard
 that re-narrows; an honest "no" on most hosts) have nothing to catch.
@@ -765,21 +798,28 @@ Implements D13, D16; writes and runs the blocking drive.
   `wizards` — the every-`Group.find({})` loop is deleted and the header
   comment rewritten; `offices: readonly string[]` →
   `OfficeRegistry.assignForTest` (`@TestOnly`, `#assertTestMode`, each
-  key checked by `Office.byKey`); `staff: readonly string[]` → a
-  `@TestOnly` seam beside the appoint path that writes a non-exited
-  position row for the character on the named organization's chart (the
-  executive's `press-secretary`, authored in
-  `platform/content/compact/executive.yaml`; ⚠ the build checks the
-  position's cardinality — if one holder, the seam appoints into a
-  test-only position the seam adds to the chart, named `test-clerk`,
-  never shipped content); `TestAuthRoutes` body parsing + 400s;
-  `packages/wire/src/harness/session.ts` `SessionOptions`;
-  `e2e/tests/helpers.ts` `mintSession` (its `wizard` doc comment already
-  says *"the code-trust axis"* — now true).
-- The executive backstop (D18) in `AccessRegistry.subjectIsOwnerMember` /
-  `subjectHasOwnerRole` and `CompactLogic.isCommitteeMember`, with unit
-  cases: the PM holds a group-held parcel she is not a member of; executive
-  staff do; a seatless wizard does not; handing the PM off moves it.
+  key checked by `Office.byKey`); `committees: readonly string[]` →
+  `TestHooks.#seatOnCommittees`: for each `<extent>[:owner]`,
+  `CompactApi.committeeOf(extent)` → a `group` kind → `Group.addMember`
+  with the role + `provider.fireChange` (the write the installer's
+  enrolment and the `group` verb make); an `organization` kind or an
+  uncovered extent → the login fails naming the office/chart that seats
+  it (the `#grantParcels` *"name that"* precedent). `TestAuthRoutes` body
+  parsing + 400s; `packages/wire/src/harness/session.ts`
+  `SessionOptions`; `e2e/tests/helpers.ts` `mintSession` (its `wizard`
+  doc comment already says *"the code-trust axis"* — now true).
+- Delete the founder committee backstop (D18): `CompactLogic.ts:176–178`
+  and its comment; `CompactLogic.test.ts:180` (*"the founder backstop"*)
+  becomes *the founder, seated on no committee, is not a member*; the
+  `cold-box-walk.test.ts` header (`:5–7`) and its AC 27 step re-seat the
+  founder on the committee the self-appointment needs (honestly — a group
+  row) instead of passing by credential. Prose: `access.md:725–727`
+  (*"or the founder via the Art. XI pool-of-one backstop"*),
+  `employment.md:167` (the `committee` row's *"founder passes? yes"* →
+  **no**), `governance.md § The founder default` gains one sentence
+  (*the default seats the platform OFFICES; it seats the founder on no
+  committee*). The slate `executive-warrant-slate.md` is the forward
+  pointer, already written.
 - `GitLogic.publish(message, { dryRun })` + `git publish --dry-run`
   (`git.yaml` option, `GitController`).
 - `packages/wire/tests/wizard-axis.dirty.wire.test.ts` — the drive
@@ -795,49 +835,66 @@ Commit: `drive(wizard-axis): the blocking drive, 15/15`.
 Implements D20. Its own wave because its proof is a drive run per file,
 and that is the build's wall time, not its diff.
 
-**The size, honestly.** 59 files (46 in the blocking lanes `wire` /
-`wire:dirty`, 13 `.soak.` for the soak lane; 6 of the 59 are `e2e/tests`
-specs). The textual change per file is one or two session-option edits;
-the proof is running the file. Per file:
+**The size, honestly — it grew.** 59 files (46 in the blocking lanes
+`wire` / `wire:dirty`, 13 `.soak.` for the soak lane; 6 of the 59 are
+`e2e/tests` specs). There is no mechanical edit: **each file has to be
+READ to learn which committees each of its sessions needs**, and the
+proof is running the file. The previous revision's one-option edit was
+only possible because the executive backstop made one seat the realm;
+without it a session is seated on exactly the committees a content
+author would be. Per file:
 
-1. Every `Session.open(…, { wizard: true })` / `mintSession({ wizard: true })`
-   whose session **stages** — `eval` (30 files), `--parcel` (23), `clone`
-   (28), `goto` (5), `destruct` (2), `teleport` (2), `write -c` (1),
-   `broadcast` (3), `title` (21), `pack` (12) — gains
-   `staff: ['/compact/executive']`. Under D18 that is the realm, the same
-   reach every-group gave and more (it also covers `/compact/trade`'s 54
-   titles, which every-group never did — a drive that worked around *"a
-   founder clone is refused…"* may lose its workaround; leave the
-   workaround, note it).
-2. A session that only **plays** (combat, cooking, carrying) keeps
-   `wizard: true` only if it `eval`s or `practice`s; otherwise the option
-   comes off — a plain player is the honest body.
-3. The **7 files whose non-founder wizard session runs `config`**
+1. **Inventory the file's extents**: every `startLocation`, every
+   `eval --parcel <X>` (23 files), every `clone` (28 — by the founder, who
+   holds `/compact/trade` as Minister of Trade by default, or refused
+   today already), `goto`/`teleport` (7), `write -c` (1), `destruct` (2),
+   `broadcast --at` (3), `title` (21), `pack` (12 — PM + staff, the
+   founder), and every `appoint … at <org>` (7 files) with that
+   organization's `appointingAuthority`. Map each extent to its committee
+   (`terminus` holds 23 parcels — most drives need only
+   `committees: ['/world/terminus']`; `hearts-delight`, `rejection`,
+   `hinkley-hills`, `duncan-hall`, `/corpo/goodkin` are the others that
+   recur).
+2. Every `Session.open(…, { wizard: true })` / `mintSession({ wizard: true })`
+   whose session **stages** gains `committees: [<its extents>]`; it keeps
+   `wizard: true` only if it `eval`s (the axis). A session that only
+   **plays** loses the option — a plain player is the honest body.
+3. **The founder session is seated on no committee by default now
+   (D18).** Where the founder acted inside a locality — `eval --parcel
+   /world/terminus/…`, `appoint` at an organization whose authority is a
+   committee (`economic-bootstrap:231–232` at the counting houses, whose
+   authority is `/corpo/goodkin`'s committee), `lease`/`provision` — the
+   founder session gets `committees:` too, or the act moves to a seated
+   session. ⚠ The founder keeps `offices` by default (PM, the Ministers,
+   the Governor): `clone` of trade kinds, `config`, `pack`, `treasury`,
+   `reserve` are unaffected.
+4. The **7 files whose non-founder wizard runs `config`**
    (`cordage.dirty:189`, `fishing.dirty:427,429,534,538`,
    `maritime-space.dirty:173`, `paint.dirty:172`, `routing:354`,
-   `sugar.soak.dirty:438,439,473,481,649` — and `nutrition-fitness`, which
-   already uses the founder) move that line to the founder session (the
-   PM by default), or to a session opened `offices: ['prime-minister']`
-   when the founder is not in the file. ⚠ Two sessions cannot both be PM:
-   an office has one holder.
-4. `e2e/tests/helpers.ts`'s `openWorldAsFounder` is unchanged (the
-   founder is the PM); its INTERIM note about `seatAsGovernor` gets the
-   `offices:` option it was waiting for.
-5. Run the file. A failure is a finding: either a staging act the
-   executive genuinely should not reach (then say which and why — none is
-   expected under D18) or a drive that relied on a **group ROLE** every-
-   group never gave either (an `'owner'` role — `canMutateZone` — is
-   covered by the backstop too).
+   `sugar.soak.dirty:438,439,473,481,649`) move that line to the founder
+   (PM by default) or to a session opened `offices: ['prime-minister']`
+   when the founder is not in the file. One PM per world.
+5. `e2e/tests/helpers.ts`: `openWorldAsFounder` gains an optional
+   `committees` passthrough; its INTERIM note about `seatAsGovernor` gets
+   the `offices:` option it was waiting for; `residences.spec.ts:229` seats
+   the founder on `/world/terminus/mayfield-row/seznick-house`.
+6. Run the file. A failure is a finding: an extent the inventory missed
+   (add it), a role the act needs (`:owner`), or a seat the file never
+   honestly had — then the file is wrong, not the harness, and the fix
+   is in the file.
 
-The 46 blocking-lane files are run by the build in W5 (the wire suite's
-per-file cost, roughly 1–6 minutes each in a standing world; the whole
-lane is `pnpm wire:dirty`); the 13 soak files are **edited, typechecked,
-and named for the soak lane** — never run before merge (§ *No merge waits
-on the clock*).
+Estimate: ~46 file reads at 10–30 minutes each plus one run each
+(1–6 minutes in a standing world, longer for the drives that jump the
+clock) — **the largest wave of the build by wall time, comparable to
+W0–W4 together**; the 13 soak files are **read, edited, typechecked and
+named for the soak lane** — never run before merge (§ *No merge waits on
+the clock*). The build may land W5 as several commits (by pack or by
+lane) rather than one.
 
 Acceptance: `grep -rn 'wizard: true' packages/wire/tests e2e/tests` finds
-only sessions that author or stage; `pnpm wire:dirty` green; the soak
-files typecheck (`pnpm -C packages/wire typecheck`).
+only sessions that author; every staging session names its committees;
+`pnpm wire:dirty` green; the soak files typecheck
+(`pnpm -C packages/wire typecheck`).
 Commit: `build(wizard-axis W5): the harness confers the axis; authority is
 a seat — 59 drives migrated`.
 
@@ -854,7 +911,7 @@ a seat — 59 drives migrated`.
 | the gate | `pnpm lint:wizard-axis` | `lint:family` derives it | the allowlist file | — | — |
 | `config` as the PM | `config` (existing) | `AuthorMixin` (every player) | `office_holders` (sparse; founder default) | `holdsOffice` at the act | `requiresPrimeMinister` (verb-level) |
 | open reads | `git status/diff/log`, the CMS source browse, `errors` (compile rows) | `AuthorMixin` affords `git.yaml`/`errors.yaml`; the CMS launcher | — | — | none — a null actor fails closed |
-| the harness options | `/auth/test-login` body | wire `Session.open` / e2e `mintSession` | `office_holders` · the organization's position rows | — | `offices[]` checked by `Office.byKey`, `staff[]` must name an `Organization` row, else 400 naming it |
+| the harness options | `/auth/test-login` body | wire `Session.open` / e2e `mintSession` | `office_holders` · the managed group's member row | `committeeOf(extent)` at login | `offices[]` checked by `Office.byKey`; `committees[]` must resolve to a group-held committee (an organization-held or uncovered extent is a 400 naming the office or chart that seats it) |
 
 ## Acceptance-criteria coverage
 
@@ -905,7 +962,7 @@ the Minister and the Governor are two non-founder sessions opened with
 | 4b | the seatless wizard, holding nothing, runs `git status`, `git log --limit 3`, `cat`s a kernel `.ts` through the workspace source tree, and `errors --source compile`; a plain player does the same | instant | all ok for both (reading is open); `errors raw` from either is refused `pm-only`; from the founder it answers |
 | 5 | the non-wizard with title over `/world/terminus/eternal/duncan-hall` writes a row there (`write -c`), `reload`s it, `git publish --dry-run`s its YAML; a seatless wizard with no title writes a row there | instant | three oks; the wizard is refused `access-denied` |
 | 6 | the founder reads and sets `combat.poise.openingTicks` with `config` and sets it back | instant | both ok, value round-trips |
-| 6b | the seatless wizard `config combat.poise.openingTicks 3`; a session opened `offices: ['prime-minister']` (the founder vacated first, so the seat moves) does the same, then the seat is handed back | **staged** | the wizard is refused naming the Prime Minister; the PM's set works; the founder, now seatless, is refused in turn (D18's "moves with the seat") |
+| 6b | the seatless wizard `config combat.poise.openingTicks 3`; a session opened `offices: ['prime-minister']` (the founder vacated first, so the seat moves) does the same, then the seat is handed back | **staged** | the wizard is refused naming the Prime Minister; the PM's set works; the founder, having vacated, is refused in turn (the office moved, so the authority did) |
 | 7 | the founder (a wizard) `config banking.salesTaxRate 0.1` | instant | `controller-rejected: tier-c`, prose names *Minister of Finance* and `treasury set` |
 | 8 | the Minister `treasury set banking.salesTaxRate 0.1`; the Governor `reserve set banking.withdrawalDailyCap 600`; the Governor `treasury set banking.salesTaxRate 0.08`; the Minister `reserve set banking.withdrawalDailyCap 500` | **staged** (the seats are staged through `offices`) | two oks whose `config banking.salesTaxRate` read-back (as the founder) shows the value; each officer's `chronicle` shows the deed; two `wrong-seat` refusals naming the other seat |
 | 8b | the world restarts (R4) and the founder reads both values back; the Minister's `chronicle` still shows the deed | staged | values and deed survive |
@@ -936,17 +993,51 @@ injected site. The record notes each.
 4. The `practice` drives (~20 files): **no change from W1** — the verb is
    admitted in a test world and no longer asks for the axis. Verified by
    running `instrumentation.dirty.wire` in W1.
-5. `e2e/tests/residences.spec.ts:229` (`lease founder` as the founder):
-   **no change** — the founder is the PM, and the PM is every committee's
-   member by the backstop (D18; it was the founder's credential before).
-   Noted so nobody re-adds a wizard to make it pass.
+5. ⚠ **The deleted founder committee backstop's dependents (D18)** —
+   every one passed by credential and is re-seated honestly:
+   - `packages/server/src/mud/platform/idea/api/__tests__/CompactLogic.test.ts:180`
+     — asserts the backstop; inverted (*the founder, on no committee, is
+     not a member*).
+   - `packages/server/src/mud/api/__tests__/cold-box-walk.test.ts` (AC 27,
+     header `:5–7`) — the founder *"appoints THEMSELVES → isCommitteeMember
+     passes by the Art. XI pool-of-one backstop"*; the test seats the
+     founder on that committee's group first (a real `Group` row), and the
+     header says so.
+   - `packages/wire/tests/economic-bootstrap.dirty.wire.test.ts:231–232` —
+     the founder `appoint`s at `/world/terminus/counting-houses/business`,
+     whose `appointingAuthority` is the committee over `/corpo/goodkin`
+     (`counting-houses/business.yaml:35`); the founder session opens with
+     `committees: ['/corpo/goodkin']` (`:207`, the distributor, is
+     PM-authority — unaffected).
+   - `e2e/tests/residences.spec.ts:229` (`lease founder` as the founder
+     — `mayLet` fell through to the committee over Seznick House) — the
+     founder session opens with
+     `committees: ['/world/terminus/mayfield-row/seznick-house']`.
+   - `assembly.dirty:454` / `assembly.soak:519` (`gauger` `appoint`s at
+     `/world/terminus/registry/business`, authority the committee over
+     `/world/terminus/registry` — group `terminus`): passed by every-group,
+     not the backstop, but lands in the same bucket:
+     `committees: ['/world/terminus']`.
+   - Ship companies (`harbors:284,299`, `maritime-space:286,541`,
+     `river-d/e`) are `owners`-authority (the cap table) — not dependents.
+   - `DormResidence.test.ts:254` mocks `isCommitteeMember`;
+     `KatieProvisioning.test.ts:222` asserts a stranger is NOT a member —
+     neither depends on it. `Authority.test.ts`, `OfficeRegistry.test.ts`,
+     `office.test.ts`, `requiresFoundingAuthority.test.ts` name
+     `isFounder` for the OFFICE default, which is unchanged.
+   - `HallController.mayProvision` / `LettingController.mayLet` fall
+     through to `isCommitteeMember`: a founder who is not on the hall's or
+     the building's committee is refused there now — correct, and drive
+     step 2's wizard-with-no-seat refusal is what the founder gets too.
+   Noted so nobody re-adds a credential to make any of these pass.
 6. ⚠⚠ **All 59 `wizard: true` files** (W5, D20): after D13 a wizard
    session holds no title, so every staging act in them (`eval --parcel`,
    `clone`, `goto`, `destruct`, `write -c`, `broadcast`, `title`, `pack`)
-   fails until the session gains `staff: ['/compact/executive']`. The
-   7 files whose non-founder wizard runs `config` also fail on D12 until
-   that line moves to the founder/PM. Each is fixed in W5 and proved by
-   running the file (soak files: edited and typechecked only).
+   fails until the session is seated on the committees it needs
+   (`committees:`) or the office (`offices:`). The 7 files whose
+   non-founder wizard runs `config` also fail on D12 until that line moves
+   to the founder/PM. Each is fixed in W5 and proved by running the file
+   (soak files: edited and typechecked only).
 
 **Gates:** the family, as listed under Convention conformance. `pnpm test`
 twice only: at code-complete and at `/finalize`; between, `test:near` +
@@ -974,35 +1065,19 @@ vitest + the family.
   slate's *"may never change what a thing IS"* loses its mechanism while
   its budget (title = extent) stands — the build leaves that slate a
   one-line note.
-- ⚠⚠ **D18 changes production authority, not only the harness.** Today
-  the PM holds the executive's extents and nothing a locality's group
-  holds; after D18 the PM and the executive's staff hold every title and
-  sit on every committee by default, derived from the seat. It is the Art.
-  XI pool-of-one stated as the seat (the direction access.md took for code
-  trust), it moves in one act with `office handoff prime-minister`, and it
-  replaces a founder-credential backstop that already said the same of
-  committees. The owner suggested the shape; the plan applies it. **The
-  alternative if refused:** no backstop; W5 stages title per session with
-  `parcels: [...]` (an exact extent each, `ParcelApi.transfer`, a `conflict`
-  at the pack's next reconcile) — fifty parcels a run across 59 files, and
-  `/compact/trade`'s 54 titles still unreachable. Costlier and
-  side-effecting; honest.
-- ⚠ **D19 keeps one gate on a "read"** — `errors raw` is the Prime
-  Minister's because the console ring carries other players' lines. If
-  the owner reads the ruling as "the ring is open too", the gate comes off
-  with a one-line change and the drive's 4b assertion flips.
-- ⚠ **The executive's positions may be single-holder.** The `staff:`
-  option needs a position several test characters can hold at once;
-  `executive.yaml` authors `communications-director` and
-  `press-secretary` (personal staff). If `Organization` positions are
-  one-holder, the seam appoints into a `test-clerk` position it adds to
-  the chart under `#assertTestMode` — never authored content. The build
-  reads `lib/employment/` before W4 and records which.
-- **`appoint`'s target scope is `["reachable", "online"]`** — the same
-  `online` binding `office assign` fails on, so the `staff:` seam is also
-  how W5 avoids a second instance of that defect; if the build finds the
-  defect small, fixing it retires both seams' reason to exist (not their
-  use — staging stays faster than dialogue).
+- ⚠ **D18 deletes a shipped backstop, and its dependents are the ones
+  listed — plus whatever a drive run finds.** The six named sites are
+  the grep's answer (`isCommitteeMember` callers, `holdsAuthority`'s
+  `committee` arm, every test naming `isFounder`); a founder session in a
+  drive that acted inside a locality by credential alone would not show
+  in a grep and surfaces only when W5 runs the file. That is W5's job and
+  the reason it is sized as a read of every file.
+- **`office assign` and `appoint` both bind their target through the
+  `online` scope** that cannot resolve a second session (governance.md
+  § Open) — the reason the `offices:` and `committees:` seams write rows
+  instead of driving the verbs. If the build finds the defect small,
+  fixing it is a finding worth taking; the seams stay as staging tools
+  either way (staging is faster than dialogue).
 - **Did anything depend on the deleted gates?** Checked: the sandbox's
   safety does not (*"never depends on trusting the actor"*, sandbox.md:41;
   `HotReloadApi` has its own circle guard); call-security does not (the
@@ -1048,11 +1123,19 @@ vitest + the family.
   `requiresFinanceMinister`) is governance.md's own signal to parameterize;
   what it needs is a schema change so a view's `validators:` entry can
   carry the office key. Not this build; the three twins are the inventory.
+- **The executive warrant** → [executive-warrant-slate](../slates/builds/executive-warrant-slate.md)
+  (written this cycle, UNBUILT): the regulated form of the hole the
+  deleted backstop pretended to be — the PM requests one named extent
+  with a stated reason; it expires; it is on the governance record; the
+  overridden committee is told; the legislature or the courts may revoke
+  it. Built on the agency slate's scoped, revocable grant. The attach
+  point this build leaves is exactly `isCommitteeMember` /
+  `subjectIsOwnerMember` with no backstop arm in either.
 - **The harness after D13** — the every-group mode is gone, not
-  deferred. What remains for the soak-lane slate: the `offices:`/`staff:`
-  seams exist because `office assign` and `appoint` cannot bind an online
-  player; when that defect is fixed the seams stay as staging tools but
-  their comments lose the *"because"*.
+  deferred. What remains for the soak-lane slate: the
+  `offices:`/`committees:` seams exist because `office assign` and
+  `appoint` cannot bind an online player; when that defect is fixed the
+  seams stay as staging tools but their comments lose the *"because"*.
 - **The amendment library** consumes `AppSettingTiers`'s `C:` rows as its
   first legos (amendment-library-slate — already named by the
   requirements).
@@ -1083,10 +1166,12 @@ Read first, in this order:
 7. `packages/server/src/mud/lib/governance/Office.ts`,
    `packages/server/src/mud/lib/character/Persona.ts` (`recordDeed`),
    `packages/server/src/mud/platform/idea/api/CompactLogic.ts`
-   (`isCommitteeMember`, `isFounderImpl` — the backstop D18 re-keys),
-   `packages/content/platform/content/compact/executive.yaml` (the
-   executive's chart), `packages/server/src/mud/lib/command/validators/requiresGovernor.ts`
-   (the shape `requiresPrimeMinister` copies)
+   (`isCommitteeMember` — the founder backstop D18 deletes;
+   `committeeOf`, which the `committees:` seam reuses),
+   `packages/server/src/mud/lib/command/validators/requiresGovernor.ts`
+   (the shape `requiresPrimeMinister` copies),
+   `docs/slates/builds/executive-warrant-slate.md` (what the deleted
+   backstop becomes, later)
 8. `packages/server/src/mud/platform/idea/WikiRenderer.ts` (`ceilingFor`),
    `WikiRegistry.ts` (`satisfies`, `zoneFor`)
 9. `packages/server/src/mud/lib/magic/Effect.ts`, `api/MagicLogic.ts`
