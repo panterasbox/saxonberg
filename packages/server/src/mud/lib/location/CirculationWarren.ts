@@ -86,8 +86,6 @@ interface HoldingView {
   entryRoom?: () => MemberStuff | null;
   /** One room of the holding by its leaf key. */
   roomForKey?: (k: string) => MemberStuff | null;
-  /** Capture the holding WHOLE (never room-by-room — see `sleep`). */
-  captureAll?: () => Promise<void>;
 }
 
 /** The back-ref a member room carries to the holding it belongs to. */
@@ -618,20 +616,15 @@ export abstract class CirculationWarren extends Warren {
   // ── shared internals ────────────────────────────────────────────
 
   /**
-   * The dormancy capture, holding-shaped: a programme-shaped holding
-   * captures WHOLE (every room's record + its own — D16's
-   * sleeps-and-wakes-whole; duck-typed for the pack-shipped programme),
-   * a plain persistable room captures itself.
+   * The dormancy capture: the holding captures itself. A programme-shaped
+   * holding captures WHOLE because its rooms that keep a record are its
+   * `dependentPersistables` (D16's sleeps-and-wakes-whole; the
+   * duck-typed `captureAll` is retired).
    */
   protected async captureHoldingForDormancy(
     key: string,
     holding: MemberStuff,
   ): Promise<void> {
-    const whole = (holding as unknown as HoldingView).captureAll;
-    if (typeof whole === 'function') {
-      await whole.call(holding);
-      return;
-    }
     if (MixinApi.isPersistable(holding)) {
       await PersistableApi.capture(holding, key); // no-op if markForRevert
     }

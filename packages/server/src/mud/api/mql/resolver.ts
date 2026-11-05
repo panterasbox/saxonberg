@@ -68,7 +68,7 @@ import type {
   SublistNode,
   ValueNode,
 } from './types';
-// Loads `detailPath` and `exit` augmentations onto `MqlMatchVia`.
+// Loads the `detailPath` augmentation onto `MqlMatchVia`.
 import './via-augment';
 
 export class MqlResolveError extends Error {
@@ -188,7 +188,7 @@ function namesASet(ast: QueryNode): boolean {
     const w = el.words[0]!.toLowerCase();
     return atHead
       ? SEED_WORDS.has(w)
-      : w === 'members' || NAMED_SEED_KEYWORDS.has(w) || ELEMENT_DERIVABLE_SEEDS.has(w);
+      : w === 'members' || PLACE_STEPS.has(w) || NAMED_SEED_KEYWORDS.has(w) || ELEMENT_DERIVABLE_SEEDS.has(w);
   };
   // One referent stepped through a set (`me:i` — your contents) is a set.
   const oneReferent = (el: ChainElement): boolean =>
@@ -653,7 +653,7 @@ function candidatesFromQuery(
  *   - When **no via** AND the stuff is a `Container`: include its
  *     contents (each item plus its own details).
  *   - When **no via** AND the stuff is `Exitable`: include doors and
- *     direction candidates.
+ *     each exit the viewer can see (the exit itself).
  *
  * The "no via" gate on contents/exits matches the via-aware transform
  * rule: a candidate with via is "inside" a detail, so its
@@ -751,17 +751,13 @@ function candidatesForAnchor(
           }
         }
       }
-      const seenDirs = new Set<string>();
-      for (const exit of stuff.getObviousExits()) {
-        const direction = exit.getDirection();
-        if (seenDirs.has(direction)) continue;
-        seenDirs.add(direction);
-        out.push({
-          stuff,
-          name: direction,
-          keywords: [direction],
-          via: { exit },
-        });
+      // ⭐ Each exit the VIEWER can see, as itself —
+      // the same rule as the fast path's `candidatesForHere`, so a drilled
+      // focus is no longer blind to which ways are hidden. System mode
+      // (no viewer) lists every obvious exit.
+      const exits = viewer === null ? stuff.getObviousExits() : stuff.obviousExitsFor(viewer);
+      for (const exit of exits) {
+        out.push({ stuff: exit, name: nameOf(exit), keywords: keywordsOf(exit) });
       }
     }
   }
@@ -856,7 +852,9 @@ function candidatesForHereScope(ctx: MqlContext): ScopeCandidate[] {
 }
 
 function scopeKeywordSearch(words: string[], ctx: MqlContext): MqlMatch[] {
-  const candidates = candidatesForScope(ctx.scope, ctx);
+  const pool = candidatesForScope(ctx.scope, ctx);
+  const admits = ctx.admits;
+  const candidates = admits ? pool.filter((c) => admits(c.stuff)) : pool;
   return scoreCandidates(candidates, words);
 }
 
@@ -929,6 +927,9 @@ function applyColon(
         if (name === 'members') {
           return flatMapMembers(input);
         }
+        if (PLACE_STEPS.has(name)) {
+          return flatMapPlaceStep(input, name, ctx.commandGiver);
+        }
         if (ELEMENT_DERIVABLE_SEEDS.has(name)) {
           return flatMapBySeed(input, name, ctx.attention);
         }
@@ -995,8 +996,7 @@ function intersectWithSeed(
  * of the giver), then union the results.
  *
  * Each resulting match takes its `via` from the candidate (e.g.,
- * detail subcandidates carry `via.detailPath`, exit candidates carry
- * `via.exit`). Score is inherited from the prior match — same
+ * detail subcandidates carry `via.detailPath`). Score is inherited from the prior match — same
  * convention as {@link applyTransform}.
  *
  * Dedup is by `(stuffId, JSON-stringified via)` — same shape as the
@@ -1033,6 +1033,46 @@ function flatMapMembers(input: MqlMatch[]): MqlMatch[] {
       if (seen.has(s.stuffId)) continue;
       seen.add(s.stuffId);
       out.push({ stuff: s, score: m.score });
+    }
+  }
+  return out;
+}
+
+/**
+ * ⭐ **The steps between places** — element-derivable
+ * flat-maps, reserved as chain words like `:members`:
+ *
+ *   - `:exits` — each prior PLACE's exits, as the viewer sees them
+ *     (`obviousExitsFor(viewer)`; system mode: every obvious exit);
+ *   - `:to` — each prior EXIT's destination, LIVE ONLY: a far place that
+ *     is not loaded contributes nothing (a query never materializes a
+ *     place — the `:members` rule). Perception still gates the verb:
+ *     `look here:exits:north:to` describes the far place only where it is
+ *     seen across;
+ *   - `:from` — each prior EXIT's source place.
+ *
+ * There is no reverse step (`:entrances`): what leads INTO a place is the
+ * location graph's question, never a scan. An object keyworded `to` is
+ * reached with `[keyword.to]`.
+ */
+const PLACE_STEPS: ReadonlySet<string> = new Set(['exits', 'to', 'from']);
+
+function flatMapPlaceStep(input: MqlMatch[], step: string, viewer: Stuff | null): MqlMatch[] {
+  const out: MqlMatch[] = [];
+  const seen = new Set<string>();
+  const push = (s: Stuff | null, score: number): void => {
+    if (!s || seen.has(s.stuffId)) return;
+    seen.add(s.stuffId);
+    out.push({ stuff: s, score });
+  };
+  for (const m of input) {
+    const x = m.stuff;
+    if (step === 'exits') {
+      if (!MixinApi.isExitable(x)) continue;
+      const exits = viewer === null ? x.getObviousExits() : x.obviousExitsFor(viewer);
+      for (const e of exits) push(e, m.score);
+    } else if (x.isExit()) {
+      push(step === 'to' ? x.peekDestination() : x.getSource(), m.score);
     }
   }
   return out;
@@ -1087,28 +1127,17 @@ const SEEDS_EXCLUDING_PRIOR: ReadonlySet<string> = new Set([
 
 /**
  * ⛔⛔ A stable dedupe key for a match's `via`, **and it may not be
- * `JSON.stringify`.**
+ * `JSON.stringify` of anything Stuff-shaped.**
  *
- * `MqlMatchVia` is an open interface every subsystem augments, and
- * `lib/boundary/Exit.ts` augments it with a LIVE `Exit` Stuff. An Exit
- * reaches its `Boundary`, whose `anchorA`/`anchorB` point back at it, so
- * stringifying one throws `Converting circular structure to JSON` and
- * the whole resolve fails with `mql-error`.
- *
- * ⚠⚠ That is a defect this chain walk shipped with, and it was
- * unreachable until the lock build conferred `lock`/`unlock`: those are
- * the first views to combine a `requires:` mixin gate with a DIRECTION
- * candidate, which is the only candidate that carries an exit. The
- * symptom was `unlock north` → `mql-error[target]` while `unlock gate`
- * worked, at the one locked door in the realm. ⭐ Found by the drive;
- * nothing else could see it, because no test had ever targeted a
- * boundary verb by direction — `OpenController`'s own test names the
- * door by keyword.
- *
- * So: identity, never serialization. Anything Stuff-shaped contributes
- * its `stuffId`; everything else is JSON, which is safe because the
- * remaining augmentations are plain data (`detailPath: string[]`,
- * `bulk: { affordance }`).
+ * `MqlMatchVia` is an open interface every subsystem augments. It once
+ * carried a LIVE `Exit` (`via.exit`), which reaches its `Boundary`, whose
+ * anchors point back at it — stringifying one threw `Converting circular
+ * structure to JSON`, and `unlock north` failed with `mql-error` at the
+ * realm's one locked door (found by the lock build's drive). Since
+ * an exit binds as itself and every via is plain data
+ * (`detailPath: string[]`, `bulk: { affordance }`), but the rule stays:
+ * anything Stuff-shaped contributes its `stuffId`, everything else is
+ * JSON, so a future augmentation cannot reopen it.
  */
 function viaKey(via: MqlMatchVia | undefined): string {
   if (!via) return '';

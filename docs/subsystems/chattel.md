@@ -306,3 +306,24 @@ A good whose host is transient space (a river patch, a sea room) is written
 to the estate as **`loose`** (`ESTATE_LOOSE`): kept where its place is
 persisted (a river stop), lost otherwise, titled still. `Estate.hydrateSlice`
 skips loose entries.
+
+## Harbors build (2026-11, MR !511)
+
+⭐ **Sold where it lies — title moves, the good does not.** A boat the
+put-in's house sells is already lying on its shingle, too big to hand
+across a counter: the sale settles the price, then the good's own
+`transferChattel(buyer)` moves the TITLE and nothing moves the thing; then
+`followCustody()` re-reads where its new owner keeps it, as a move would
+have, so the buyer's estate places it on that landing
+([retail.md](./retail.md) § the offer protocol). The landing is a kept
+`PersistentShore`, so the house's unsold boats do not come back after a
+sold one at a restart.
+
+⭐ **A hire is custody, never title.** `rent` puts a house boat in the
+hirer's hands for a term (`HirableMixin.hireTo`); her stamp stays the
+house's, and the hire ends when she is put down where she was let from.
+It is consignment's split the other way round: custody leaves the owner
+and the title stays put.
+
+A ship is not chattel: her title is her register entry, owned by her
+company, whose holders are its cap table ([ship.md](./ship.md)).

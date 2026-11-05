@@ -155,10 +155,10 @@ const FURNISHED = [
   "generic-objects/content/stuff/location/room/bathroom.yaml",
   "generic-objects/content/stuff/location/room/bedroom.yaml",
   "generic-objects/content/stuff/location/room/living.yaml",
-  "hinkley-hills/content/world/terminus/hinkley-hills/lots/bathroom.yaml",
-  "hinkley-hills/content/world/terminus/hinkley-hills/lots/hall.yaml",
-  "hinkley-hills/content/world/terminus/hinkley-hills/lots/kitchen.yaml",
-  "hinkley-hills/content/world/terminus/hinkley-hills/lots/yard.yaml",
+  "hinkley-hills/content/world/terminus/hinkley-hills/house/indoors/bathroom.yaml",
+  "hinkley-hills/content/world/terminus/hinkley-hills/house/indoors/hall.yaml",
+  "hinkley-hills/content/world/terminus/hinkley-hills/house/indoors/kitchen.yaml",
+  "hinkley-hills/content/world/terminus/hinkley-hills/house/yard.yaml",
   // ⭐ The valley farmstead's barn (tracts build): the farm's store, where a
   // holder's goods are laid back down; its holding places every copy.
   "hearts-delight/content/world/terminus/hearts-delight/farmstead/location/barn.yaml",
@@ -436,7 +436,13 @@ export function unzonedCoords(rows: readonly Row[]): string[] {
  * ⭐ The last three are the COLUMN's bands (underwater D5): the
  * `ColumnWarren` clones one per band under a deep water and stamps it a
  * cell below its surface, so a band row is a KIND of depth, never a
- * place an author positions.
+ * place an author positions. *
+ * ⭐ A ship KIND's rooms: her `ShipWarren` mints one of each
+ * per ship, keyed `(row, <serial>/<leaf>)`, and lays them out in her own
+ * frame from the floorplan (`FloorplanWarren.layOut`) — a smack's deck is
+ * every smack's deck row, never a place an author positions. Only the hold
+ * keeps a record (`Hold`, review 2 — persistence is the exception); the
+ * deck and cabin are plain `Compartment`s, from their rows each wake.
  */
 export const WARREN_PLACED = [
   "rejection/content/world/terminus/rejection/ferrow/face.yaml",
@@ -449,7 +455,7 @@ export const WARREN_PLACED = [
   "hearts-delight/content/world/terminus/hearts-delight/farmstead/tract/lower-meadow.yaml",
   "hearts-delight/content/world/terminus/hearts-delight/farmstead/tract/orchard-close.yaml",
   "hearts-delight/content/world/terminus/hearts-delight/farmstead/tract/upper-bench.yaml",
-  "hinkley-hills/content/world/terminus/hinkley-hills/lots/garden.yaml",
+  "hinkley-hills/content/world/terminus/hinkley-hills/house/garden.yaml",
   // A farmstead's yard: a plain kind of room, one copy per holding.
   "hearts-delight/content/world/terminus/hearts-delight/farmstead/location/yard.yaml",
   "water/content/system/water/location/band/bed.yaml",
@@ -457,6 +463,9 @@ export const WARREN_PLACED = [
   "water/content/system/water/location/band/lit.yaml",
   "eternal-university/content/world/terminus/eternal/duncan-hall/location/corridor.yaml",
   "saxonberg-lounge/content/world/lounge/location/lounge.yaml",
+  "terminus/content/stuff/location/ship/smack/deck.yaml",
+  "terminus/content/stuff/location/ship/smack/cabin.yaml",
+  "terminus/content/stuff/location/ship/smack/hold.yaml",
 ];
 
 /**

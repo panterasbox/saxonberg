@@ -81,7 +81,7 @@ export default class AirBag extends TieableMixin(BuoyMixin(BulkableMixin(Good)))
     if (place === null || load.getContainer() !== place) {
       return { ok: false, reason: 'out-of-reach', line: `${load.getPresentation()} is not here.` };
     }
-    if (!MixinApi.isWaterPlace(place)) {
+    if (!MixinApi.isWaterPlace(place) || place.depthNow() <= 0) {
       return { ok: false, reason: 'not-in-water', line: 'It would only lift in the water.' };
     }
     const depthM = Math.max(0, BiomeApi.mediumFor(by).depthM);

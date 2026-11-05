@@ -486,6 +486,20 @@ function scopeTries(yamlScopes: readonly string[], giver: Stuff): string[] {
   );
 }
 
+/**
+ * ⭐ Does a candidate satisfy every `requires:` term — by the SAME rule the
+ * field validator applies (`MqlApi.effectiveTarget`: the thing itself, or
+ * the door hung in a way)? So `open north` finds the way admissible in the
+ * scope walk exactly as the validator will accept it (an
+ * exit is a candidate in its own right).
+ */
+function admitsAll(terms: readonly RequirementTerm[]): (s: Stuff) => boolean {
+  return (s) =>
+    terms.every(
+      (t) => MqlApi.effectiveTarget({ stuff: s, raw: '' }, (x): x is Stuff & object => t.test(x)) !== null,
+    );
+}
+
 async function walkScopes(
   raw: string,
   giver: Stuff & CommandGiver,
@@ -498,9 +512,21 @@ async function walkScopes(
   let isSet = false;
   const discarded: Stuff[] = [];
   for (const scope of tries) {
-    const got = await scopedMany(raw, giver, scope, field, context);
+    let got = await scopedMany(raw, giver, scope, field, context);
     if (got.isSet) isSet = true;
     if (got.stuff.length > 0 && !firstRaw) firstRaw = got;
+    // ⭐ Nothing of the kind survived the name tiers: ask again with the
+    // kind applied BEFORE they cut. `unlock
+    // petrel` on the quay named the ship outright and cut her gangway,
+    // which answers to her name only by keyword and is the one thing
+    // there that locks. What the first answer held still counts as
+    // discarded, and a second empty answer leaves the 0-of-N fallback.
+    if (got.stuff.length > 0 && !got.stuff.some(admissible)) {
+      for (const s of got.stuff) discarded.push(s);
+      const narrowed = await scopedMany(raw, giver, scope, field, context, admissible);
+      if (narrowed.stuff.length === 0) continue;
+      got = narrowed;
+    }
     // Filter by INDEX so each kept match keeps its own `via`.
     const keep = got.stuff.map((_, i) => i).filter((i) => admissible(got.stuff[i]!));
     const kept = keep.map((i) => got.stuff[i]!);
@@ -552,9 +578,10 @@ async function scopedMany(
   scope: string,
   field: string,
   context: CommandContext,
+  admits?: (s: Stuff) => boolean,
 ): Promise<MqlMany> {
   try {
-    return MqlApi.resolveMany(raw, { commandGiver: giver, scope });
+    return MqlApi.resolveMany(raw, { commandGiver: giver, scope, ...(admits ? { admits } : {}) });
   } catch (err) {
     const wide = await worldRetry(err, raw, giver, scope, field, context);
     if (wide) return wide;
@@ -1421,7 +1448,7 @@ export class CommandLogic extends ApiLogic {
       // first-name-match-wins). No `requires:` → every match counts.
       const terms =
         (def as { _requirementTerms?: RequirementTerm[] })._requirementTerms ?? [];
-      const admissible = (s: Stuff): boolean => terms.every((t) => t.test(s));
+      const admissible = admitsAll(terms);
 
       if (def.type === 'objects') {
         let r: MqlMany;
@@ -1621,7 +1648,7 @@ export class CommandLogic extends ApiLogic {
       // Same `requires:`-aware scan as the positional loop.
       const terms =
         (def as { _requirementTerms?: RequirementTerm[] })._requirementTerms ?? [];
-      const admissible = (s: Stuff): boolean => terms.every((t) => t.test(s));
+      const admissible = admitsAll(terms);
 
       if (def.type === 'objects') {
         let r: MqlMany;

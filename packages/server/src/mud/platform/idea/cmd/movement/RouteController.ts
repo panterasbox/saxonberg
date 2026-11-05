@@ -42,6 +42,8 @@ import { AppApi } from '../../../../api/app';
 import { AddressApi } from '../../../../api/address';
 import { MixinApi } from '../../../../api/mixin';
 import { ExpanseApi } from '../../../../api/expanse';
+import type Place from '../../../../lib/stuff/Place';
+import Ship from '../../Ship';
 import { StuffApi } from '../../../../api/stuff';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Container } from '../../../../lib/spatial/Container';
@@ -171,13 +173,6 @@ export default class RouteController extends CommandController<RouteModel> {
       return this.renderPair(context, viewerKey, known, pair, profile, budget);
     }
 
-    if (here.length === 0) {
-      return this.declineWith(
-        context,
-        'You could not say where you are standing.',
-        'nowhere',
-      );
-    }
     // ⭐ A place on open water is not on any road (maritime D18) — asked
     // BEFORE the claims, because a chart makes a sea node a place you
     // know, and planning to it would end in "you do not know the way".
@@ -192,6 +187,41 @@ export default class RouteController extends CommandController<RouteModel> {
           'open-water',
         );
       }
+    }
+    // ⭐ Aboard a ship the plan starts where she LIES.
+    // Her rooms are on no map that could be planned from: a ship of a
+    // kind's are kinds (keyed by her serial, absent from the graph by
+    // construction), and a way off any ship goes where she is moored NOW
+    // (`isMapped()` is false on both ways across — *maps never name a
+    // ship*). So the deck is not an origin; the landing she is made fast
+    // at is, one `ashore` away. Under way there is no road (lens 3a: the
+    // map cannot claim a way that left with her).
+    let origin = here;
+    let ashoreFrom: string | null = null;
+    {
+      const ship = await RouteController.shipAboard(context);
+      if (ship !== null) {
+        const berth = ship.getBerth();
+        if (berth === null) {
+          return this.declineWith(
+            context,
+            `You are aboard ${ship.getName()}, and she is made fast nowhere: ` +
+              'no road runs from her deck. `course` is the verb that knows.',
+            'under-way',
+          );
+        }
+        origin = berth;
+        ashoreFrom = ship.getName();
+      }
+    }
+    // Asked after the ship: a ship's plain room keeps no record and has no
+    // handle of its own, and aboard, she is the origin.
+    if (origin.length === 0) {
+      return this.declineWith(
+        context,
+        'You could not say where you are standing.',
+        'nowhere',
+      );
     }
     const standingGroup = await RouteController.standingGroup(context);
     const pool = RouteController.candidates(asked, known, standingGroup);
@@ -218,16 +248,23 @@ export default class RouteController extends CommandController<RouteModel> {
     if (target.place === here) {
       return this.declineWith(context, 'You are already there.', 'already-there');
     }
+    if (ashoreFrom !== null && target.place === origin) {
+      return this.declineWith(
+        context,
+        `${RouteController.capitalized(ashoreFrom)} lies alongside it: go \`ashore\`.`,
+        'alongside',
+      );
+    }
 
     const outcome = await NavigationApi.routeOnMap(
       viewerKey,
       '',
-      here,
+      origin,
       target.place,
       profile.spec,
       budget,
     );
-    this.renderOutcome(context, outcome, known, target, profile, here);
+    this.renderOutcome(context, outcome, known, target, profile, here, ashoreFrom);
   }
 
   /**
@@ -331,6 +368,7 @@ export default class RouteController extends CommandController<RouteModel> {
     target: Known,
     profile: Profile,
     here: string,
+    ashoreFrom: string | null = null,
   ): void {
     if (!outcome.ok) {
       return this.declineWith(
@@ -356,6 +394,8 @@ export default class RouteController extends CommandController<RouteModel> {
 
     outcome.plans.forEach((plan, i) => {
       if (several) lines.push('', `  ${i + 1}.`);
+      // Aboard: the first leg is off her, onto where she lies.
+      if (ashoreFrom !== null) lines.push(`  ashore from ${ashoreFrom}`);
       for (const leg of plan.legs) {
         const from = RouteController.nameOf(leg.from, known);
         lines.push(`  ${leg.dir} from ${from}`);
@@ -828,10 +868,30 @@ export default class RouteController extends CommandController<RouteModel> {
       .send();
   }
 
+  /**
+   * The ship whose room the actor stands in — the ROOM is asked
+   * (`Place.structure()`): a ship of a kind's room is
+   * keyed by her serial and its row is every ship of the kind's. `null`
+   * ashore, or in a structure that is no ship.
+   */
+  private static async shipAboard(context: CommandContext): Promise<Ship | null> {
+    const at = context.location as unknown as Stuff | null | undefined;
+    if (!at || !at.isPlace()) return null;
+    const s = await (at as unknown as Place).structure().catch(() => null);
+    return s instanceof Ship ? s : null;
+  }
+
+  private static capitalized(s: string): string {
+    return s.length > 0 ? s[0]!.toUpperCase() + s.slice(1) : s;
+  }
+
   /** The name of a node on the asker's craft's expanse answering `asked`. */
   private static async seaNodeNamed(giver: Stuff, asked: string): Promise<string | null> {
     const root = MixinApi.isContainable(giver) ? giver.getRootContainer() ?? giver : giver;
-    const craft = await ExpanseApi.craftAt(root.getTemplatePath() ?? '');
+    // The place is asked: a keyed room's craft is its warren's ship.
+    const craft = root.isPlace()
+      ? await (root as unknown as Place).craftHere()
+      : await ExpanseApi.craftAt(root.getIdentityPath() ?? '');
     if (!craft || !MixinApi.isVoyaging(craft)) return null;
     const frame = await craft.liveFrame();
     const node = frame instanceof Expanse ? await frame.nodeByKeyword(asked) : null;

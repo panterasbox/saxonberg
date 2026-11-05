@@ -21,6 +21,7 @@
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { ExpanseApi } from '@saxonberg/server/mud/api/expanse';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type Place from '@saxonberg/server/mud/lib/stuff/Place';
 import type { BrainContext } from '@saxonberg/server/mud/lib/behavior/brain';
 import { Urgency } from '@saxonberg/server/mud/lib/behavior/Urgency';
 import type { TaskKind } from '@saxonberg/server/mud/lib/behavior/Urgency';
@@ -88,7 +89,10 @@ export const brain = class {
   /** The structure whose deck she stands on, if any. */
   static async craftOf(host: Stuff): Promise<Ship | null> {
     const root = MixinApi.isContainable(host) ? host.getRootContainer() ?? host : host;
-    const craft = await ExpanseApi.craftAt(root.getTemplatePath() ?? '');
+    // The place is asked (a keyed room's craft is its warren's ship).
+    const craft = root.isPlace()
+      ? await (root as unknown as Place).craftHere()
+      : await ExpanseApi.craftAt(root.getIdentityPath() ?? '');
     return craft instanceof Ship ? craft : null;
   }
 

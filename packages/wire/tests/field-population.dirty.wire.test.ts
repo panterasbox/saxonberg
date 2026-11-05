@@ -95,7 +95,7 @@ const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
 /** Where a watering can lies to be picked up (the store sells none). */
 const CANS = [
   '/world/terminus/goods-yards/rubber-works/location/ground/stove-house',
-  '/world/terminus/hinkley-hills/lots/yard',
+  '/world/terminus/hinkley-hills/house/yard',
 ];
 const YARD = '/world/terminus/eternal/campus-farm/location/yard';
 const HOME_FIELD = '/world/terminus/eternal/campus-field/location/home-field';

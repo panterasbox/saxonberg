@@ -451,6 +451,38 @@ describe('StuffApi', () => {
       vi.restoreAllMocks();
     });
 
+    it('⭐ two SIBLING clones of one row inside one tree do not false-trip the guard (the chain, not the tree)', async () => {
+      // The harbors × cordage boot: two `passage` exits cloned side by
+      // side inside one room's tree shared one mutable in-flight set, and
+      // the second threw `passage → … → passage` with no real cycle.
+      const { Template } = await import('../../lib/stuff/Template');
+      const { LeafTemplate } = await import('../../lib/stuff/LeafTemplate');
+      const { vi } = await import('vitest');
+      const PARENT = '/stuff/test/clone-chain/room';
+      const CHILD = '/stuff/test/clone-chain/passage';
+      let siblings: unknown[] = [];
+      vi.spyOn(Template, 'findByPath').mockImplementation(
+        async (path: string) => {
+          if (path === PARENT) {
+            // Runs under the parent's chain: two children, concurrently.
+            siblings = await Promise.all([StuffApi.clone(CHILD), StuffApi.clone(CHILD)]);
+          }
+          if (path === CHILD) await new Promise((r) => setTimeout(r, 5));
+          if (path !== PARENT && path !== CHILD) return null;
+          const t = new LeafTemplate();
+          t.path = path;
+          t.setOwn({ class: '/platform/thing/Thing', data: {} });
+          return t;
+        }
+      );
+      try {
+        await StuffApi.clone(PARENT);
+        expect(siblings).toHaveLength(2);
+      } finally {
+        vi.restoreAllMocks();
+      }
+    });
+
     it('a callback scheduled INSIDE a clone tree is a fresh root — two later concurrent clones of one path do not false-trip the guard', async () => {
       // The live-drive race: an NPC's onCreate arms its cadence inside
       // the room's clone tree; the guard's ALS store rode into the timer,

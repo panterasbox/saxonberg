@@ -1,0 +1,18 @@
+# A ship's bitts — the pair of stout posts on her deck
+# her mooring lines are kept at. A rope flaked down ON them (`put rope on
+# bitts`, or a deck row's `{ template: <rope>, on: bitts }`), or tied round
+# them, is one of her lines: coming alongside, its end goes ashore round a
+# bollard while the rope stays here. A rope lying loose on her deck is not.
+#
+# ⭐ A bitts IS a bollard (the same post, aboard): class Bollard.
+class: /platform/thing/Bollard
+data:
+  shortDescription: bitts
+  keywords: [bitts, bitt, "mooring bitts", posts]
+  register: definite
+  longDescription: >-
+    A pair of stout oak posts through the deck, joined by a crosspiece and
+    worn smooth where her lines have run round them.
+  _materialPath: /stuff/idea/material/wood/oak
+  fixedInPlace: true
+  mass: 80

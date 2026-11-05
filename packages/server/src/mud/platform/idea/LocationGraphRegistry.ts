@@ -300,7 +300,7 @@ export default class LocationGraphRegistry extends Idea {
    * institutions over its extent, the fixtures that seat themselves in it.
    * Every one is DERIVED from a reference the content already authors,
    * pointing at the place (`operatingLocations`, a structure's `extent`, a
-   * ship's `expanse`, `parentExtent`, `seatIn`, an agent's `institution`),
+   * ship's `expanse` and `berth`, `parentExtent`, `seatIn`, an agent's `institution`),
    * so loading a place can load what belongs with it without anybody
    * writing the reverse down and without a search: a read is a map lookup
    * over the place's path and its ancestors.
@@ -453,6 +453,24 @@ export default class LocationGraphRegistry extends Idea {
       }
       return p;
     };
+    // ⭐ A PLAN is never served: its rows
+    // are the kind its copies are minted from, so nothing that names one
+    // attaches there — a copy's room must not stand it up or claim it as
+    // its structure, and nothing loads it. Two owners name a plan: a ship
+    // KIND (a Structure row whose rooms its `warren:` mints — her
+    // `extent` is the plan, not her rooms) and a holding's programme,
+    // whose `buildings:` are the kind each copy's building is minted
+    // from, their extents plan rooms. (A programme row is a warren, not a
+    // structure, so its own `extent` attaches nothing anyway.)
+    const plans = new Set<string>();
+    for (const row of all) {
+      const data = (row.data ?? {}) as Record<string, unknown>;
+      if (typeof data.warren === 'string' && data.warren !== '' && typeof data.extent === 'string') {
+        plans.add(row.path);
+      }
+      if (!Array.isArray(data.buildings)) continue;
+      for (const b of data.buildings) if (typeof b === 'string' && b !== '') plans.add(b);
+    }
     const next = new Map<string, Map<string, AttachmentKind>>();
     const add = (anchor: string, target: string, kind: AttachmentKind): void => {
       if (!anchor || !target) return;
@@ -487,13 +505,17 @@ export default class LocationGraphRegistry extends Idea {
       if (typeof data.institution === 'string' && placedIn.has(row.path)) {
         add(placeOf(row.path), data.institution, 'institution');
       }
-      if ((typeof data.extent === 'string' || typeof data.expanse === 'string' || typeof data.line === 'string') &&
-          row.class && (await this.isStructureClass(row.class))) {
+      if ((typeof data.extent === 'string' || typeof data.expanse === 'string' || typeof data.line === 'string' ||
+           typeof data.berth === 'string') &&
+          !plans.has(row.path) && row.class && (await this.isStructureClass(row.class))) {
         if (typeof data.extent === 'string') add(data.extent, row.path, 'structure');
         if (typeof data.expanse === 'string') add(data.expanse, row.path, 'craft');
         // ⭐ A ship on a river attaches to its LINE as the sea's do to
         // theirs (river D2): the river loads what is attached to it.
         if (typeof data.line === 'string') add(data.line, row.path, 'craft');
+        // ⭐ A ship authored made fast at a landing loads with
+        // it, and puts her way aboard on it as she does.
+        if (typeof data.berth === 'string') add(data.berth, row.path, 'craft');
       }
     }
     this.attachments = next;

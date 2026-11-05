@@ -13,6 +13,10 @@ help: |
   Inside, `maintain` works over the building you are in. Outside, where
   a building meets the weather, `maintain <building>` works over that one.
 
+  A ship's hull is kept the same way: aboard her, or from the quay she
+  lies at, `maintain` with a caulker's kit (oakum and pitch) pays in her
+  seams. A worn hull leaks into her bilge.
+
   You need the kit in your hands; that is also what makes this verb
   appear. It wears a little each time, and a worn-out kit is a trip to
   the store.

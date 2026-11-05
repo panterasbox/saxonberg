@@ -5,22 +5,19 @@
 # end evicts it to storage intact. `landlord-shell` (D5): Mayfield
 # Holdings owes the shell — the term rent will later pay for — and the
 # tenant owes walls-in. The bathroom is the generic archetype row
-# directly (it is all built-ins).
+# directly (it is all built-ins) — a plan row that extends it.
+#
+# ⭐ Its PLAN is its own (no blueprint row):
+# every let unit's rooms, authored as an ordinary place under `location/`
+# (its own zone) — the hall you come in by, the main room north of it, the
+# bedroom west and the bathroom beyond it. Each unit's rooms are keyed
+# `(room row, <unit extent>/<leaf>)`; the plan's rows are never served.
+#
+# ⭐ It names NO `buildings`: a flat is not a building of its own, it is in
+# one — every unit's extent lies under Seznick House's (`structure.yaml`),
+# so its rooms read that building's fabric and coat.
 class: /system/residence/idea/HoldingWarren
 data:
   upkeepTerm: landlord-shell
-  floorplan:
-    - leaf: hall
-      room: /world/terminus/mayfield-row/seznick-house/location/hall
-      entry: true
-      exits:
-        - { to: main, direction: north, opposite: south }
-        - { to: bedroom, direction: west, opposite: east }
-    - leaf: main
-      room: /world/terminus/mayfield-row/seznick-house/location/main
-    - leaf: bedroom
-      room: /world/terminus/mayfield-row/seznick-house/location/bedroom
-      exits:
-        - { to: bathroom, direction: north, opposite: south }
-    - leaf: bathroom
-      room: /stuff/location/room/bathroom
+  extent: /world/terminus/mayfield-row/seznick-house/location
+  entrance: /world/terminus/mayfield-row/seznick-house/location/hall

@@ -3,7 +3,7 @@
  * row are template-path references (residences wave 1, D17). The walk,
  * the retired-channel grep and the constants scan are exercised by the
  * script run in CI; what a unit test pins is the FIELD GRAMMAR — a new
- * shape (a floorplan room, an `{template, onto}` populate) must be
+ * shape (a holding plan's buildings, an `{template, onto}` populate) must be
  * seen, and prose that merely looks like a path must not.
  */
 
@@ -58,17 +58,10 @@ describe('refsOf — the template-path field grammar', () => {
     ]);
   });
 
-  it('reads floorplan room rows (the residences programme shape)', () => {
-    const refs = refsOf({
-      floorplan: [
-        { leaf: 'bedroom', room: '/stuff/location/room/bedroom' },
-        { leaf: 'hall', room: '/obj/_test/lots/hall', entry: true },
-      ],
-    });
-    expect(refs.map((r) => r.path)).toEqual([
-      '/stuff/location/room/bedroom',
-      '/obj/_test/lots/hall',
-    ]);
+  it("reads a holding plan's buildings — no blueprint row", () => {
+    const refs = refsOf({ buildings: ['/obj/_test/house-building', '/obj/_test/shed'] });
+    expect(refs.map((r) => r.path)).toEqual(['/obj/_test/house-building', '/obj/_test/shed']);
+    expect(refsOf({ blueprint: '/obj/_test/house-blueprint' })).toEqual([]);
   });
 
   it('⭐ walks composition[].materialPath — a blend names its constituents', () => {

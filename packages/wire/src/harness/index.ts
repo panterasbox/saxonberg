@@ -42,4 +42,6 @@ export {
   worldClockNow,
   pinWeather,
   unpinWeather,
+  stageShip,
 } from './world';
+export type { ShipStagePlace, ShipStageSpec, ShipStageResult } from './world';

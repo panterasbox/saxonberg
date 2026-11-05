@@ -1,0 +1,12 @@
+# The way aboard a ship, named for her — `go hesper`. A ship
+# made fast at a landing installs one on it, and takes it away when she
+# casts off; nothing authors one. Her gangway's lock is hers, read by this
+# way and by her deck's `ashore` alike.
+class: /platform/idea/BerthExit
+data:
+  # What the way is — `look hesper` binds the way itself and shows this.
+  # `{{ ship }}` is her name; the way is CALLED by its direction (hers).
+  longDescription: "A gangway runs up to {{ ship }}'s deck."
+  keywords: [gangway]
+  messageOut: "{{ mover }} goes aboard."
+  messageIn: "{{ mover }} comes aboard."

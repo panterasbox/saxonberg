@@ -31,7 +31,20 @@ beforeEach(() => {
     { path: `${T}/tower`, class: '/platform/idea/Structure', data: { extent: T } },
     // ⭐ A building row names the Building twin — a structure, not the Structure twin.
     { path: `${T}/cottage/structure`, class: '/platform/idea/Building', data: { extent: `${T}/cottage` } },
-    { path: `${T}/ship`, class: '/platform/idea/Ship', data: { extent: `${T}/ship`, expanse: '/test/sea' } },
+    // ⭐ A holding kind's PLAN is its programme row's own, and the building
+    // it names is a kind: neither is served, so neither attaches at its
+    // extent (no blueprint row). (A programme
+    // is a warren, never a structure; a Business stands in for it here.)
+    { path: `${T}/idea/lot-kind`, class: '/platform/idea/Business', data: {
+      extent: `${T}/house`, entrance: `${T}/house/yard`, buildings: [`${T}/idea/house-building`],
+    } },
+    // ⭐ A ship KIND's plan is her own row's: her extent is a plan (her
+    // `warren:` mints her rooms), so she attaches nothing there.
+    { path: `${T}/idea/smack`, class: '/platform/idea/Ship', data: {
+      extent: `${T}/house`, entrance: `${T}/house/yard`, warren: `${T}/idea/smack-warren`,
+    } },
+    { path: `${T}/idea/house-building`, class: '/platform/idea/Building', data: { extent: `${T}/house/indoors` } },
+    { path: `${T}/ship`, class: '/platform/idea/Ship', data: { extent: `${T}/ship`, expanse: '/test/sea', berth: `${T}/quay` } },
     // An institution over an extent.
     { path: `${T}/idea/warren`, class: '/platform/idea/Business', data: { parentExtent: `${T}/lots` } },
     // A fixture that seats itself in a warren a ROOM names.
@@ -87,8 +100,20 @@ describe('the location graph attaches what belongs with a place', () => {
     );
   });
 
+  it('⭐ a ship authored made fast at a landing is attached to it, so it loads with the landing (harbors P4)', async () => {
+    expect(await NavigationApi.attachedTo(`${T}/quay`, 'craft')).toEqual([`${T}/ship`]);
+  });
+
   it('⭐ a BUILDING row is attached at its extent too — the graph reads the structure base, not the twin', async () => {
     expect(await NavigationApi.attachedTo(`${T}/cottage/parlor`, 'structure')).toContain(`${T}/cottage/structure`);
+  });
+
+  it('⭐ a plan attaches nothing — the buildings a programme names and a ship kind are kinds, never served', async () => {
+    const at = await NavigationApi.attachedTo(`${T}/house/indoors/hall`, 'structure');
+    expect(at).not.toContain(`${T}/idea/lot-kind`);
+    expect(at).not.toContain(`${T}/idea/house-building`);
+    expect(at).not.toContain(`${T}/idea/smack`);
+    expect(at).toContain(`${T}/tower`);
   });
 
   it('a ship is attached to its sea as craft', async () => {

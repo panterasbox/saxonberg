@@ -24,7 +24,6 @@
  */
 
 import { BiomeApi } from '@saxonberg/server/mud/api/biome';
-import { NavigationApi } from '@saxonberg/server/mud/api/navigation';
 import { Expanse } from '@saxonberg/server/mud/lib/expanse/Expanse';
 import {
   WaterSourceMixin,
@@ -38,7 +37,12 @@ import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import type FisheryRegistry from './FisheryRegistry';
 import type { FisheryStanding } from './FisheryRegistry';
 import type { GeoPosition } from '@saxonberg/server/mud/lib/expanse/GeoPosition';
+import type { FramePos } from '@saxonberg/server/mud/lib/expanse/Frame';
+import type { Craft } from '@saxonberg/server/mud/lib/expanse/Voyage';
+import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
+import type SeaWarren from './SeaWarren';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type Place from '@saxonberg/server/mud/lib/stuff/Place';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { WaterState } from '@saxonberg/server/mud/platform/idea/species/Species';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
@@ -124,12 +128,6 @@ export default class WaterExpanse extends WaterSourceMixin(Expanse) {
    * entry, no tide (an inland sea).
    */
   protected tidal: { rangeM: number; lagH?: number } | null = null;
-
-  /**
-   * Place path → the craft whose deck it is (`''` = none), resolved once
-   * per place through the structure catalogue. Transient.
-   */
-  private craftOfPlace = new Map<string, string>();
 
   /* ───────────── the sea a shore cites (maritime revision 3) ───────────── */
 
@@ -232,30 +230,25 @@ export default class WaterExpanse extends WaterSourceMixin(Expanse) {
     return `${this.getTemplatePath()}@${at.latDeg.toFixed(1)},${at.lonDeg.toFixed(1)}`;
   }
 
-  /** A deck's craft position on THIS sea, else the place's nearest landing. */
+  /**
+   * A deck's craft position on THIS sea, else the place's nearest landing.
+   * ⭐ The deck is asked (`Place.structureNow`): a keyed
+   * deck's ship is its warren's, an authored deck's its attachment — two
+   * smacks' decks share a row, so nothing keyed by path could tell them.
+   */
   private positionFor(place: Stuff): GeoPosition | null {
     const path = place.getTemplatePath() ?? '';
-    const craftPath = this.craftOfPlace.get(path);
-    if (craftPath) {
-      const craft = StuffApi.findByTemplatePath<Stuff>(craftPath);
-      if (craft && MixinApi.isPositioned(craft) && craft.getExpanse() === this.getTemplatePath()) {
-        return craft.getExpansePosition() ?? null;
-      }
+    const craft = place.isPlace() ? ((place as unknown as Place).structureNow() as unknown as Stuff | null) : null;
+    if (craft && MixinApi.isPositioned(craft) && craft.getExpanse() === this.getTemplatePath()) {
+      return craft.getExpansePosition() ?? null;
     }
     return path ? this.peekShorePositionFor(path) : null;
   }
 
+  /** Stand the deck's structure up (its attachment), so the sync read finds it. */
   private async resolveCraftOf(place: Stuff): Promise<void> {
-    const path = place.getTemplatePath() ?? '';
-    if (!path || this.craftOfPlace.has(path)) return;
-    try {
-      // The craft this place belongs to — attached to it in the location
-      // graph's record (never a catalogue of every structure).
-      const craft = await NavigationApi.structureAt(path);
-      this.craftOfPlace.set(path, craft?.getTemplatePath() ?? '');
-    } catch {
-      /* asked again on the next read */
-    }
+    if (!place.isPlace()) return;
+    await (place as unknown as Place).structure().catch(() => undefined);
   }
 
   public getDepthM(): number { return this.depthM; }
@@ -302,6 +295,22 @@ export default class WaterExpanse extends WaterSourceMixin(Expanse) {
   /** How deep the water is at `pos`, metres — what the lead finds. */
   public async depthAt(pos: GeoPosition): Promise<number> {
     return (await this.waterBandAt(pos))?.getDepthM() ?? this.depthM;
+  }
+
+  /** ⭐ The bottom under a chart position — what a sinking ship settles onto. */
+  public override async depthUnder(pos: FramePos, _nowS: number): Promise<number | null> {
+    return pos.frame === 'chart' ? this.depthAt(pos.at) : null;
+  }
+
+  /**
+   * ⭐ A craft went down on this sea: the sea's warren keeps a
+   * stop over her, with a column from the depth and a way into her on its
+   * bed.
+   */
+  public override async stopOver(craft: Craft): Promise<(Stuff & Container) | null> {
+    const warren = await StuffApi.singleton<SeaWarren>('/system/water/idea/SeaWarren').catch(() => null);
+    const stop = warren ? await warren.stopOver(craft as never) : null;
+    return stop as unknown as (Stuff & Container) | null;
   }
 
   /** What the lead brings up at `pos`. */

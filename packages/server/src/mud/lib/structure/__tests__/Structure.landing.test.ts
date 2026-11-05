@@ -174,3 +174,13 @@ describe('a ship alongside', () => {
     expect(quay.landedStructuresNow().map((s) => s.stuffId)).toEqual([other.stuffId]);
   });
 });
+
+describe('a way to a keyed room that is not standing', () => {
+  it('lands nothing and never asks the graph by the handle (which throws)', () => {
+    const bed = room(`${TOWN}/bed`, false);
+    // The sea bed's ways up the column and into a wreck name keyed rooms.
+    exits(bed, [to(`${TOWN}/column/water#band@1`), to(`${TOWN}/smack/deck#s1/deck`)]);
+    expect(() => bed.landedStructuresNow()).not.toThrow();
+    expect(bed.landedStructuresNow()).toEqual([]);
+  });
+});

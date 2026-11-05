@@ -10,12 +10,12 @@
  * owns every gate, the flee, the conveyance host and the move — and
  * renders the refusal the crossing returns.
  *
- * Target shape mirrors `go.yaml`: MQL pre-resolves the player's typed
- * direction (or door alias) to a `target` carrying `via.exit` (via the
- * `canReach` validator on the YAML view). The controller reads
- * `target.via?.exit` directly; no manual exit lookup. Falls back to an
- * ExitableVessel's entry-exit when the player named a sibling vessel
- * (`walk cabin` / `climb cabin`).
+ * Target shape mirrors `go.yaml`: MQL binds the player's typed
+ * direction (or the way's keyword) to the EXIT itself — an exit is a
+ * candidate in its own right — and the view's scope
+ * is filtered to ways, so `go hesper` can only mean the way. The
+ * controller acts on what was bound; no manual exit lookup. A sibling
+ * vessel (`walk cabin` / `climb cabin`) is entered by its entry-exit.
  */
 
 import WaterSurface from '../../../thing/WaterSurface';
@@ -113,18 +113,15 @@ export abstract class LocomotionControllerBase extends CommandController<Locomot
       return;
     }
 
-    // Resolve to an Exit. MQL's `target.via?.exit` is the primary path
-    // (typed-direction or door-alias; `MqlMatchVia` is augmented with
-    // `exit?: Exit` by `lib/boundary/Exit.ts` via declaration merging).
-    // The ExitableVessel entry-exit fallback handles sibling-vessel
-    // entry (`walk cabin`) where MQL resolved to the vessel Stuff but
-    // not via a direction.
-    const viaExit = target.via?.exit;
+    // What MQL bound: the way itself, or a sibling vessel entered by its
+    // entry-exit (`walk cabin`).
+    const bound = target.stuff;
     const exit: Exit | null =
-      viaExit ??
-      (target.stuff instanceof ExitableVessel
-        ? target.stuff.getEntryExit() ?? null
-        : null);
+      bound.isExit()
+        ? bound
+        : bound instanceof ExitableVessel
+          ? bound.getEntryExit() ?? null
+          : null;
     if (!exit) {
       this.emitRejection(
         { ok: false, gate: 'exitMode', mode: mode.getName() },

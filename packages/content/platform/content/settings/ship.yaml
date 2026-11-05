@@ -1,0 +1,56 @@
+# ship — application settings shipped by the platform pack (the `settings`
+# kind: merge-missing — an operator's `config` change is never touched).
+#
+# ⭐ What a hull lets in, by how far her seams have opened —
+# her hull is a `Durable` fabric under her coat, worn at the house's rate
+# (`structure.weather.daysToWorn`) once the coat is gone, read as
+# WATER: litres a second per meter of her length. These are the grain an
+# author may change. See docs/subsystems/ship.md.
+#
+# ⭐⭐ Sized against two requirements: *nothing fails over a
+# weekend away* and *a neglected season settles her*. At the house's rate
+# (45 game days sound→worn) a hull is sound to day 9, weathered to day 27,
+# worn to day 45, shabby to day 67. A weekend at 12× is 24 world days, and
+# a long one (Friday evening to Monday morning, 60 real hours) 30. A smack
+# (9 m, 34,000 L to her deck) left alone from sound has ~5,800 L in her at
+# day 24 (her cabin floor barely wet), ~16,300 L at day 30 (thigh-deep
+# below, still floating), and reaches her deck about day 36 — six world
+# days, half a real day, past the longest weekend, and well inside the worn
+# band (so a ship left asleep from sound to worn is found settled). The
+# 30 m Hesper, with three times the hull per meter, settles about day 48.
+# Worn, a smack takes ~0.036 L/s: one bilge pump (0.6 L/s) gains on it
+# easily; dilapidated (0.72 L/s) outruns one pump. The first tuning was 0.002 /
+# 0.02 / 0.08 / 0.2, under which a smack filled at day ~27 — inside a long
+# weekend — so the grain was retuned rather than the requirement.
+settings:
+  - key: ship.leak.sound
+    value: "0"
+  - key: ship.leak.weathered
+    value: "0.0005"
+  - key: ship.leak.worn
+    value: "0.004"
+  - key: ship.leak.shabby
+    value: "0.02"
+  - key: ship.leak.dilapidated
+    value: "0.08"
+  # A hole (a snag, a grounding) on top of her seams, L/s per meter.
+  - key: ship.leak.holed
+    value: "0.25"
+  # ⭐ The settling window: once the water is at her deck,
+  # every person aboard has this many commands of their own before she goes
+  # down — sized in ACTS, never seconds (*no window shall be shorter than
+  # the act that answers it*) ...
+  - key: ship.settlingActs
+    value: "6"
+  # ... and this many REAL seconds at most — the backstop an idle body or an
+  # empty ship meets. Nobody aboard: she goes at once.
+  - key: ship.settlingRealS
+    value: "600"
+  # ⭐ A boat's leak — from her STATE, never the calendar: a
+  # hole stove in her (L/s each), and a hull that no longer holds water (a
+  # crack, an opened coat). Under one person bailing (10 L a 20 s spell,
+  # 0.5 L/s), so bailing keeps a holed boat up and stopping lets her fill.
+  - key: boat.leak.holed
+    value: "0.3"
+  - key: boat.leak.seep
+    value: "0.02"

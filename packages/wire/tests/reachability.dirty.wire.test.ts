@@ -523,7 +523,15 @@ suite('1–8. the verbs that shipped and could not be said', () => {
     // no air exit, no flying species and no composer, which makes it the
     // one case where *afford statically, decline diegetically* does not
     // apply: the refusal would point at nothing.
-    for (const dead of ['lock north', 'fly up']) {
+    // ⭐ (harbors, 2026-11-04) `lock north` is a verb now, by decision:
+    // harbors review 3 bound a direction to the WAY, and `lock` reaches the
+    // lock a way carries (`lock ashore` on a smack's gangway is the harbors
+    // drive's step 12). The view lost its `unreachable:` hold with it, so
+    // the word is understood — and refused in the world's words where the
+    // way has no lock. `fly up` is still the recorded absence.
+    const lock = await say(k, 'lock north');
+    expectUnderstood(lock, 'lock north');
+    for (const dead of ['fly up']) {
       const out = await say(k, dead);
       const notes = out.notes as Array<{ kind?: string; reason?: string }>;
       // ⭐ `unknown-verb` specifically — a shape error would ALSO be

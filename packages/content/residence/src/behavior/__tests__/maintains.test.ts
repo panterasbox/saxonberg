@@ -70,7 +70,7 @@ class TestHolding extends HoldingWarren {
   public override holdingKey(): string | null {
     return this.key;
   }
-  public override buildings(): BuildingBase[] {
+  public override standingBuildings(): BuildingBase[] {
     return this.housed === null ? [] : [this.housed];
   }
   public override entryRoom(): (Stuff & Container) | null {

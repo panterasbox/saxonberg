@@ -93,7 +93,7 @@ export const brain = class {
       // anyway; skipping here keeps the beat's teleports honest. ⭐ The
       // fabric is each BUILDING's (paint D13) — a farmstead's house and
       // barn are kept apart — and the keeper works from inside it.
-      for (const house of holding.buildings()) {
+      for (const house of holding.standingBuildings()) {
         if (done >= batch) break;
         if (house.getConditionWord() === 'sound') continue;
         const room = house.residentMembers()[0] ?? holding.entryRoom();

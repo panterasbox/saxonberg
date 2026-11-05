@@ -1,6 +1,8 @@
-# ⭐ A holding's building (paint build D6) — minted one per building of a
-# holding (its `building:` groups; the main one is "the house"), its extent
-# and rooms set at the holding's wake. A named building goes by its name.
+# ⭐ A holding's building (paint build D6) — the PARENT every building a
+# programme names extends (`buildings:`): each
+# building row states its own extent and entrance and whatever it is
+# called (a barn); this row is the plain house's words. A copy of each is
+# minted per holding at its wake, its extent and rooms set there.
 # ⭐ It starts BARE, as the shell always did: its fabric wears from the day
 # it is held until somebody paints it (lens 6 — the demand for the house
 # painter is there first). `paint` lays a coat; `maintain` mends the fabric.

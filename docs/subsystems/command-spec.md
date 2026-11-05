@@ -1289,7 +1289,7 @@ Live under `mud/lib/command/validators/`:
 | `mustBeContainable` | every bound Stuff composes `ContainableMixin` | `get`, `drop`, `give` (any verb that calls `ContainmentApi.move`) |
 | `mustBeInInventory` | every bound Stuff is in the giver's inventory | `drop`, `give` (the gift) |
 | `mustBeInLocation` | every bound Stuff is in the giver's location's contents | `get` (excludes inventory items by design — you can't pick up what you already carry) |
-| `canReach` | every bound Stuff is in inventory, location contents, attached to a location exit (door), OR the location with `via.exit` set (door-via-direction) | `open`, `close`, `go`, any verb that interacts with the immediate environment |
+| `canReach` | every bound Stuff is in inventory, location contents, one of the location's exits, or a door attached to one | `open`, `close`, `go`, any verb that interacts with the immediate environment |
 | `requiresAnimate` | giver passes `SpeciesApi.isAnimate` (verb-level — declared under `validators:` at the top of the YAML, not on a specific field) | `eat`, `drink`, future combat / vocal verbs |
 | `requiresAvatar` | giver is an Avatar (player character) | `player` / `me` |
 | `requiresEnvironment` | giver composes `EnvironmentMixin` (has settings / var storage) | `settings`, `var` |

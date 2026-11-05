@@ -16,11 +16,10 @@
  *      gotten into the sills"), the coat on it, and the job in litres.
  *   3. **Who owes the upkeep?** The holding's tenure term.
  *
- * Question 3 answers only when the room belongs to a holding, and it is
- * read through the `WarrenMember` back-ref by SHAPE, never by
- * import: the residential programme is a capability pack's class and the
- * kernel does not import packs. It is the same duck-typed seam
- * `CirculationWarren` already uses in the other direction.
+ * Question 3 answers only when the room belongs to a warren that names a
+ * tenure term — the kernel's `FloorplanWarren.getUpkeepTerm` hook, which
+ * a holding answers (the residential programme is a capability pack's
+ * class and the kernel does not import packs).
  *
  * Room archetypes are the industry-less ones — a bedroom derives from no
  * recipes, which is exactly what distinguishes it from a venue
@@ -45,6 +44,11 @@ import { Paint } from '../../../../lib/material/Paint';
 import type Place from '../../../../lib/stuff/Place';
 import type Material from '../../../../lib/material/Material';
 import BuildingBase from '../../../../lib/structure/Building';
+import { FloorplanWarren } from '../../../../lib/location/FloorplanWarren';
+import Ship from '../../Ship';
+
+/** What has an outside to take stock of: a building, or a ship's hull. */
+type Outside = BuildingBase | Ship;
 
 const CATALOGUE_PATH = '/platform/idea/ArchetypeCatalogue';
 
@@ -55,13 +59,10 @@ const CATALOGUE_PATH = '/platform/idea/ArchetypeCatalogue';
  */
 const LANE_CATALOGUE_PATH = '/system/transport/idea/LaneCatalogue';
 
-/**
- * The holding half of the read, duck-typed. A programme is a Warren that
- * also answers for the condition of the shell and who owes it.
- */
+/** The holding half of the read: a floorplan whose term says who owes it. */
 interface HoldingShape {
-  getUpkeepTerm(): string;
-  getMembers(): Stuff[];
+  warren: FloorplanWarren;
+  term: string;
 }
 
 export default class SurveyController extends CommandController {
@@ -76,7 +77,7 @@ export default class SurveyController extends CommandController {
     // the binder only finds a structure on its landing, so a target that
     // is one is read from outside, and anything else is refused in words.
     if (target != null && target !== room) {
-      if (target instanceof BuildingBase) {
+      if (target instanceof BuildingBase || target instanceof Ship) {
         await this.surveyOutside(actor, target);
         return;
       }
@@ -103,7 +104,7 @@ export default class SurveyController extends CommandController {
     const archetypes = this.roomArchetypes();
     const holding = this.holdingOf(room);
     const spaces: (Stuff & Container)[] = holding
-      ? holding.getMembers().filter((m): m is Stuff & Container =>
+      ? holding.warren.getMembers().filter((m): m is Stuff & Container =>
           MixinApi.isContainer(m),
         )
       : [room as Stuff & Container];
@@ -145,12 +146,12 @@ export default class SurveyController extends CommandController {
     const structure =
       (room.isPlace() ? (room as unknown as Place).structureNow() : null) ??
       (roomPath ? await NavigationApi.structureAt(roomPath) : null);
-    if (structure instanceof BuildingBase) {
+    if (structure instanceof BuildingBase || structure instanceof Ship) {
       lines.push('');
       lines.push(...(await this.outsideLines(structure, 'the place')));
     }
     if (holding) {
-      lines.push(`Upkeep here is ${this.termProse(holding.getUpkeepTerm())}.`);
+      lines.push(`Upkeep here is ${this.termProse(holding.term)}.`);
     }
 
     // ⭐ How the place is KEPT (cleanliness D15) — after the holding and
@@ -169,7 +170,7 @@ export default class SurveyController extends CommandController {
   }
 
   /** `survey <building>` — its outside, read from a landing. */
-  private async surveyOutside(actor: Stuff, structure: BuildingBase): Promise<void> {
+  private async surveyOutside(actor: Stuff, structure: Outside): Promise<void> {
     const lines = [`You take stock of ${structure.getPresentation()} from outside:`];
     lines.push(...(await this.outsideLines(structure, 'it')));
     MessageApi.scene(actor)
@@ -184,7 +185,7 @@ export default class SurveyController extends CommandController {
    * roughly how much paint one coat would take. The area and the litres
    * are figures because `survey` measures; the band and the color never are.
    */
-  private async outsideLines(structure: BuildingBase, noun: string): Promise<string[]> {
+  private async outsideLines(structure: Outside, noun: string): Promise<string[]> {
     await structure.standUpLandings();
     const band = structure.getConditionWord();
     const cause = structure.weatherCause();
@@ -216,7 +217,7 @@ export default class SurveyController extends CommandController {
       const film = this.dial(AppSettingKeys.structurePaintCoatThicknessM, 0.00005);
       const litres = area * film * 1000;
       out.push(
-        `There is about ${Math.round(area)} square meters of wall and roof to the weather; ` +
+        `There is about ${Math.round(area)} square meters of ${structure instanceof Ship ? 'hull' : 'wall and roof'} to the weather; ` +
           `one coat of paint would take about ${Math.max(1, Math.round(litres))} litres.`,
       );
     }
@@ -358,18 +359,13 @@ export default class SurveyController extends CommandController {
     return rooms.length > 0 ? rooms : null;
   }
 
-  /** The room's holding, when it belongs to one and it answers for a shell. */
+  /** The room's holding, when it belongs to one that names who owes its upkeep. */
   private holdingOf(room: Stuff): HoldingShape | null {
     if (!MixinApi.isWarrenMember(room)) return null;
-    const warren = room.getWarren() as unknown as Partial<HoldingShape> | null;
-    if (
-      !warren ||
-      typeof warren.getUpkeepTerm !== 'function' ||
-      typeof warren.getMembers !== 'function'
-    ) {
-      return null;
-    }
-    return warren as HoldingShape;
+    const warren = room.getWarren();
+    if (!(warren instanceof FloorplanWarren)) return null;
+    const term = warren.getUpkeepTerm();
+    return term === null ? null : { warren, term };
   }
 
   /** The term vocabulary, said in words rather than in its key. */

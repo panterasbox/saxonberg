@@ -47,7 +47,7 @@ export default class PullController extends CommandController<PullModel> {
     if (target === null || !MixinApi.isPullable(target)) {
       // Not on a line: whatever water it is in gives it up, by hand.
       const inWater = target !== null && MixinApi.isContainable(target) ? target.getContainer() : null;
-      if (target !== null && inWater !== null && MixinApi.isWaterPlace(inWater)) {
+      if (target !== null && inWater !== null && MixinApi.isWaterPlace(inWater) && inWater.depthNow() > 0) {
         return this.run(context, giver, await inWater.pullOut(target, giver));
       }
       for (const water of watersWithinReach(giver)) {
@@ -108,7 +108,7 @@ function watersWithinReach(giver: Stuff): Array<Stuff & WaterPlace> {
   const out: Array<Stuff & WaterPlace> = [];
   const add = (x: unknown): void => {
     const s = x as Stuff | null;
-    if (s && MixinApi.isWaterPlace(s) && !out.includes(s)) out.push(s);
+    if (s && MixinApi.isWaterPlace(s) && s.depthNow() > 0 && !out.includes(s)) out.push(s);
   };
   const at = MixinApi.isContainable(giver) ? (giver.getContainer() as unknown as Stuff | null) : null;
   if (at === null) return out;

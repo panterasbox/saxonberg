@@ -196,11 +196,15 @@ export class StuffApi {
    * Avatar trees). ALS gives each top-level clone its own store; nested
    * clones inherit the parent's via `getStore()`.
    *
-   * Invariant: every `clone()` adds its `templatePath` to the active
-   * store on entry and removes it in a finally block, regardless of
-   * success / failure.
+   * ⭐ And the store is the CHAIN, not the tree (harbors × cordage, 2026-10-31):
+   * each nested `clone()` runs under its parent's chain plus its own path,
+   * a fresh immutable array, so two SIBLING clones of one shared row inside
+   * one tree — two `passage` exits on a deck, or a ship standing up in the
+   * background while a room's exits are cloned — never see each other. A
+   * single mutable set per tree conflated them exactly as the module-global
+   * did, and boot died on `passage → … → passage` with no real cycle.
    */
-  static #cloneStackALS = new AsyncLocalStorage<Set<string>>();
+  static #cloneStackALS = new AsyncLocalStorage<readonly string[]>();
 
   /**
    * In-flight `singleton()` resolutions, keyed by path. Coalesces
@@ -498,31 +502,23 @@ export class StuffApi {
     // applier resolution and a hook that clones can hit this.
     // The in-flight set is scoped to this async clone tree, so concurrent
     // independent clones of the same path don't false-trip it.
-    const existing = this.#cloneStackALS.getStore();
-    const stack = existing ?? new Set<string>();
+    const chain = this.#cloneStackALS.getStore() ?? [];
 
-    if (stack.has(templatePath)) {
+    if (chain.includes(templatePath)) {
       throw new Error(
         `StuffApi.clone('${templatePath}'): circular template ` +
           `dependency — already in flight (path chain: ${[
-            ...stack,
+            ...chain,
             templatePath,
           ].join(' → ')})`
       );
     }
 
-    const run = async (): Promise<T> => {
-      stack.add(templatePath);
-      try {
-        return await this.#cloneInner<T>(templatePath, context, opts);
-      } finally {
-        stack.delete(templatePath);
-      }
-    };
-
-    // A top-level clone establishes the tree's store; nested clones
-    // (triggered during hydrate / onCreate) inherit it via getStore().
-    const made = await (existing ? run() : this.#cloneStackALS.run(stack, run));
+    // Each clone runs under its own chain — its ancestors and itself;
+    // nested clones (triggered during hydrate / onCreate) extend it.
+    const made = await this.#cloneStackALS.run([...chain, templatePath], () =>
+      this.#cloneInner<T>(templatePath, context, opts)
+    );
     if (opts?.madeFrom !== undefined && MixinApi.isChattel(made)) {
       const inputs = Array.isArray(opts.madeFrom)
         ? (opts.madeFrom as readonly Stuff[])
@@ -755,15 +751,63 @@ export class StuffApi {
    * the one instance, clone-if-absent); otherwise → `clone(path)` (a
    * fresh instance). Any *domain* semantics on top (a Warren landing in
    * its host, a recall) belong in the caller, not here.
+   *
+   * ⭐ **A `Persistable` host, or a `WarrenMember` room, reached by its
+   * bare path is the row's one instance** — the establishing context {@link singleton} documents — so
+   * it is get-or-created, never cloned again. Its keyed instances (a
+   * smack's deck, a dorm unit) are minted by their provisioner and are
+   * reached by their own durable handle (`row#key`), never by the bare
+   * row: a bare path naming a row that only has keyed instances live is a
+   * caller error and THROWS rather than handing back somebody's room or
+   * a bare clone. (The drive found it twice: a ship's room is a
+   * `Compartment` — not `Singleton`, because a kind's row is every
+   * smack's — and every landing on an authored ship's deck by path minted
+   * another deck; since a deck keeps no record it is the warren-member
+   * test, not the persistable one, that catches it.)
    */
   public static async singletonOrClone<T extends Stuff>(
     path: string,
     context?: unknown
   ): Promise<T> {
     const cls = await this.classForRef(path);
-    return MixinApi.hasMixin(cls, Mixins.Singleton)
-      ? this.singleton<T>(path, context)
-      : this.clone<T>(path, context);
+    if (MixinApi.hasMixin(cls, Mixins.Singleton)) {
+      return this.singleton<T>(path, context);
+    }
+    // ⭐ A warren member is the same case: an
+    // authored ship's deck is a plain `Compartment` since review 2 (only
+    // her hold keeps a record), and a landing on it by its row's path —
+    // a login's `startLocation`, a `goto` — cloned a SECOND deck every
+    // time. The ship then found eleven decks where her `watchRoom` asks
+    // for one, read none, and had "no lines to make fast". Her own wake
+    // stands her rooms up through `singleton()`; a landing must too.
+    // ⛔ Not the elastic warren's room (the lounge): every live lounge room
+    // is a fresh clone of its one row — repeated clones are the point.
+    if (
+      MixinApi.hasMixin(cls, Mixins.Persistable) ||
+      (MixinApi.hasMixin(cls, Mixins.WarrenMember) &&
+        !MixinApi.hasMixin(cls, Mixins.Lounge))
+    ) {
+      const keyed = this.#indexes.byTemplatePath
+        .exact(path)
+        .some(
+          (o) =>
+            !o.isDestroyed() &&
+            MixinApi.isPersistable(o) &&
+            // An EXPLICIT key is a per-instance one (a unit, a serial); a
+            // singleton's first capture stashes its scope-derived owner,
+            // which is not a key of this kind.
+            o.isPersistenceKeyExplicit(),
+        );
+      if (keyed) {
+        throw new Error(
+          `StuffApi.singletonOrClone('${path}'): the row's live instances ` +
+            `are keyed (minted by their warren) — name one by its durable ` +
+            `handle ('${path}#<key>'), not the bare row.`,
+        );
+      }
+      return this.singleton<T>(path, context);
+    }
+    return this.clone<T>(path, context);
   }
 
   /**

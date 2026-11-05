@@ -96,6 +96,16 @@ export class NavigationApi {
   }
 
   /**
+   * The conventional short forms of a direction (`north` → `['n']`,
+   * `up` → `['u']`); `[]` for a non-cardinal. ⚠ Read by
+   * `Exit.getKeywords()`, which is where those words become an exit's
+   * own (derived, and named so there) — MQL never rewrites a word.
+   */
+  public static shortFormsOf(direction: string): string[] {
+    return logic().shortFormsOf(direction);
+  }
+
+  /**
    * Return the cardinal inverse of a direction.
    *
    * Returns `undefined` for non-cardinals (semantic labels like `'office'` or
@@ -220,6 +230,11 @@ export class NavigationApi {
    * The Structure `path` is a member of — the innermost (longest extent)
    * when one stands inside another, a wing in a mansion — standing the
    * attached candidates up first; `null` when it is in none.
+   *
+   * ⭐ `path` is a row or a minted identity — never a keyed handle
+   * (`row#key`, which throws): a keyed room of a ship kind is answered by
+   * its warren, so holding the room, ask it — `Place.structure()` /
+   * `structureNow()`.
    */
   public static structureAt(path: string): Promise<Structure | null> {
     return logic().structureAt(path);

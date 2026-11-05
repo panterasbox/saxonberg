@@ -162,15 +162,29 @@ export default class Line extends PullableMixin(TossableMixin(GoodBase)) {
 
   /**
    * Mint the free end into `into` — somebody's hands, or the bottom of a
-   * drop the line hangs down (cordage D11).
+   * drop the line hangs down (cordage D11) — tied to `tiedTo` there when
+   * the line was made fast round something across (a ship's rope round a
+   * bollard ashore).
    */
-  protected async mintEnd(into: Stuff & Container): Promise<LineEnd> {
+  protected async mintEnd(into: Stuff & Container, tiedTo: Stuff | null = null): Promise<LineEnd> {
     const end = await StuffApi.clone<LineEnd>((this.constructor as typeof Line).END_ROW);
-    end.attachTo(this);
+    end.attachTo(this, tiedTo);
     ContainmentApi.move(end, into);
     this._end = end;
     this._tugs = [];
     return end;
+  }
+
+  /**
+   * The free end was untied from `load` (a fixture, a thing on the bed)
+   * and is in `by`'s hands now — cordage's `untie end`.
+   *
+   * @hook Default: nothing. A rope a structure made fast across tells it
+   *   (a ship's line cast off a bollard).
+   */
+  public async endUntied(by: Stuff, load: Stuff): Promise<void> {
+    void by;
+    void load;
   }
 
   /** Let go of the free end: whoever had it is off the line. */
@@ -221,7 +235,7 @@ export default class Line extends PullableMixin(TossableMixin(GoodBase)) {
     const medium = MixinApi.isRespiration(target) ? target : null;
     if (medium !== null && MixinApi.isContainable(target)) {
       const place = target.getContainer();
-      if (place !== null && MixinApi.isWaterPlace(place)) medium.holdUp();
+      if (place !== null && MixinApi.isWaterPlace(place) && place.depthNow() > 0) medium.holdUp();
     }
     try {
       MessageApi.scene(target)
@@ -357,7 +371,7 @@ export default class Line extends PullableMixin(TossableMixin(GoodBase)) {
     const isLoad = !diver.isAgent?.();
     let loadKg = 0;
     if (isLoad) {
-      const inWater = MixinApi.isWaterPlace(where);
+      const inWater = MixinApi.isWaterPlace(where) && where.depthNow() > 0;
       const depthM = inWater ? Math.max(0, BiomeApi.mediumFor(diver).depthM) : 0;
       const lashed = inWater ? this.buoysOf(diver, where) : [];
       const kg = MixinApi.isTangible(diver) ? diver.getMass().rawValue() : 0;
@@ -413,7 +427,7 @@ export default class Line extends PullableMixin(TossableMixin(GoodBase)) {
     else ContainmentApi.move(diver, next);
     for (const bag of bags) ContainmentApi.move(bag as never, next);
     this._end?.followLoad();
-    if (MixinApi.isRespiration(diver) && !out && MixinApi.isWaterPlace(next) &&
+    if (MixinApi.isRespiration(diver) && !out && MixinApi.isWaterPlace(next) && next.depthNow() > 0 &&
         next.surfacePlace() === (next as unknown as Stuff)) {
       diver.holdUp();
     }

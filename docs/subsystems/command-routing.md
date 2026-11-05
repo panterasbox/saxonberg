@@ -1721,9 +1721,11 @@ Three consequences worth naming:
 
 - **The door rule is the framework's now.** MQL lands on a door two ways
   — by keyword (`open oak`) or by direction (`open north`), where the
-  door rides the match's `via.exit` and is *not* the matched Stuff.
-  Every `requires:` check resolves through `MqlApi.effectiveTarget`, so
-  every slot gets the direct-first / door-second walk. It used to be
+  matched Stuff is the EXIT (a candidate in its own right since harbors
+  review 3) and the door hangs in it. Every `requires:` check — and the
+  scope walk's admissibility test — resolves through
+  `MqlApi.effectiveTarget`, so every slot gets the bound-thing /
+  door-on-a-bound-way rule. It used to be
   copy-pasted into the six validators whose authors remembered it.
 - **The refusal sentence lives on the mixin** (`MixinRefusals` in
   `lib/mixin.ts`), with `{}` standing for the target's presentation.

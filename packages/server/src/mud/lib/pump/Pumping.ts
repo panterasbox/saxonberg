@@ -408,7 +408,7 @@ export function PumpingMixin<TBase extends MixinConstructor>(Base: TBase) {
           litres: 0,
         };
       }
-      const litres = await source.liftInto(want);
+      const litres = await source.liftInto(want, by);
       this.wearPacking(dial(AppSettingKeys.pumpWearPerStroke, WEAR_PER_STROKE_FALLBACK));
       if (!(litres > 0)) {
         return {
@@ -423,7 +423,9 @@ export function PumpingMixin<TBase extends MixinConstructor>(Base: TBase) {
       const name = (path ? StuffApi.findByTemplatePath<Material>(path)?.getName() : '') || 'water';
       const What = name.charAt(0).toUpperCase() + name.slice(1);
       return {
-        self: Mml.compose`${What} comes up in gouts and runs into ${Mml.thing(source)}.`,
+        self: source.liftedWords
+          ? source.liftedWords(What)
+          : Mml.compose`${What} comes up in gouts and runs into ${Mml.thing(source)}.`,
         peers: Mml.compose`${Mml.actor(by)} works the handle of ${Mml.thing(self)}, and ${name} comes up.`,
         litres,
       };

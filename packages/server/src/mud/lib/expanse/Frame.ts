@@ -25,6 +25,8 @@ import type { LinePositionRecord } from './LineFrame';
 import type { CourseRecord, HullNow } from './Voyaging';
 import type { Craft } from './Voyage';
 import type { Trajectory } from './Trajectory';
+import type { Hailable } from './Hailable';
+import type { Container } from '../spatial/Container';
 
 /** Where a craft is, in the frame it is in. */
 export type FramePos =
@@ -93,6 +95,12 @@ export interface Frame {
    */
   adopt(craft: Craft): void;
   /**
+   * ⭐ The craft this frame knows of now — those it adopted,
+   * and on the chart the ships attached to the sea that are standing. A
+   * landing being used asks them whether any lies made fast at it.
+   */
+  craft(): Stuff[];
+  /**
    * ⭐ Turn a request into a course from where she is now, and the
    * TRAJECTORY she will follow on it (W10, W11) — or the frame's refusal,
    * in its words. The trajectory carries everything the frame knows at the
@@ -119,6 +127,25 @@ export interface Frame {
   onSiteStood(place: Stuff): Promise<void>;
   /** ⭐ The geography at a position on this frame (D44): elevation, address, climate. */
   siteAt(pos: FramePos): FrameSite | null;
+  /**
+   * ⭐ What answers a hail from `pos`: the places this frame
+   * knows of within the signal channel's range that keep a watch on the
+   * water — a harbor office. Loaded by the asking (the hail is the use).
+   */
+  hailables(pos: FramePos): Promise<(Stuff & Hailable)[]>;
+  /**
+   * ⭐ How deep the water is to the bottom at `pos` now, m —
+   * what a sinking ship settles onto or goes down through; `null` when the
+   * frame cannot say.
+   */
+  depthUnder(pos: FramePos, nowS: number): Promise<number | null>;
+  /**
+   * ⭐ A craft has gone down where she lies: the water keeps a
+   * surface over her and a way down to her — the place at the top of that
+   * water, or `null` when the frame keeps none (her rooms then simply lie
+   * flooded where she went down).
+   */
+  stopOver(craft: Craft): Promise<(Stuff & Container) | null>;
   /** ⭐ One watch, `fromS` to `toS`: what changed, how far she came, and the stop if it has come. */
   watchCraft(craft: Craft, fromS: number, toS: number): Promise<WatchReport>;
 }

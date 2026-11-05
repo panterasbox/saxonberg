@@ -30,7 +30,7 @@ import Locale from '../../../../location/Locale';
 import CartesianZone from '../../../location/CartesianZone';
 import { BiomeApi } from '../../../../../api/biome';
 import PersistentLocation from '../../../../location/PersistentLocation';
-import { RoomWarren } from '../../../../../lib/location/RoomWarren';
+import { FloorplanWarren } from '../../../../../lib/location/FloorplanWarren';
 import Chair from '../../../../thing/Chair';
 import { DocumentApi } from '../../../../../api/document';
 import { MessageApi } from '../../../../../api/message';
@@ -167,39 +167,18 @@ class TestHouse extends BuildingBase {
 }
 
 /**
- * A programme's duck: a real Warren (so the back-ref wiring is the real
- * wiring) that also answers for the shell and the term. Deliberately NOT
- * the residential class — the point of the seam is that the kernel never
- * names it, and a stand-in with the right SHAPE proves exactly that.
+ * A programme stand-in: a real floorplan Warren (so the back-ref wiring is
+ * the real wiring) that names a tenure term — the kernel's
+ * `FloorplanWarren.getUpkeepTerm` hook. Deliberately NOT the residential
+ * class: the kernel never names it.
  */
-class FakeProgramme extends RoomWarren {
+class FakeProgramme extends FloorplanWarren {
   public band = 'sound';
   public cause: string | null = null;
-  conditionBand(): string {
-    return this.band;
-  }
-  conditionCause(): string | null {
-    return this.cause;
-  }
-  getUpkeepTerm(): string {
+  override getUpkeepTerm(): string {
     return 'landlord-shell';
   }
-  protected async createMember(): Promise<Stuff & Container> {
-    throw new Error('not used');
-  }
-  async admitArrival(): Promise<void> {
-    /* not used */
-  }
-  protected attachmentFor(): never {
-    throw new Error('not used');
-  }
   protected async reconcile(): Promise<void> {
-    /* not used */
-  }
-  protected async wireHostFixtures(): Promise<void> {
-    /* not used */
-  }
-  protected async unwireHostFixtures(): Promise<void> {
     /* not used */
   }
 }

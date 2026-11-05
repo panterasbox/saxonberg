@@ -316,7 +316,11 @@ export function packBrainShapeOk(source: string): boolean {
 // 352 → 350 (ceramics re-plan R1, W-R1a, 2026-10-28): measured at 350
 // when the composition record became `makeup`; the two were not isolated
 // between this wave and the forming refactor just before it.
-const ORPHAN_DATA_KEY_CEILING = 350;
+// 350 → 306 (the harbors /finalize sweep, 2026-11-04): measured at 306 on
+// the branch with master merged; the `floorplan:` schema's deletion (the
+// plan's fields moved onto their owners) and master's merged sweeps were
+// not isolated.
+const ORPHAN_DATA_KEY_CEILING = 306;
 
 
 function main(): void {

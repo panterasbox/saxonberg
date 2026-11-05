@@ -14,7 +14,7 @@
  * press secretary. So nothing in this file is ever consulted by a
  * do-the-work check — see `mayPublishAs` for the other half.
  *
- * ## The four kinds
+ * ## The five kinds
  *
  * | kind | resolves through | founder passes? |
  * |---|---|---|
@@ -22,6 +22,7 @@
  * | `office` | `CompactApi.holdsOffice` | **yes — founder default** |
  * | `seat` | `GovernmentApi.holdsSeat` | no |
  * | `committee` | `CompactApi.isCommitteeMember` | **yes — pool-of-one** |
+ * | `owners` | the majority holder of an organization's cap table (`CapTableMixin`) | only if the majority holder's own authority does |
  *
  * ⚠ The *founder passes* column is load-bearing, not trivia. Only `office`
  * and `committee` carry the Art. XI default, so **an authority the founder
@@ -32,14 +33,26 @@
  * ⚠ **There is deliberately no `author` kind.** The operator override is
  * the Prime Minister's SEAT (`isProprietorOf`'s `holdsOffice` arm — the
  * accountable person, never an "author tier"), never an appointing
- * authority in its own right. Four kinds, each with a consumer.
+ * authority in its own right. Five kinds, each with a consumer.
+ *
+ * ⭐ `owners` (the institutions slate's cap table) is
+ * *whoever holds a majority of this organization's table appoints*: a
+ * player holding more than half the units — an identity match, so a sole
+ * owner appoints themself — or an organization holding them, whose OWN
+ * appointing authority is then asked (the Greywater Line's office appoints
+ * the Hesper's master). No majority, nobody: an even split appoints no one
+ * until somebody buys a majority (the slate's endorsements, which would
+ * assemble one from a coalition, are not built). Authored bare —
+ * `{kind: owners}` — it reads the organization's OWN table
+ * (`getAppointingAuthority` fills in its path); `organization:` names
+ * another's (a subsidiary appointed by whoever owns its parent).
  *
  * Types and constants only — the resolver lives in `EmploymentLogic`,
  * where the Api surfaces it can reach live.
  */
 
 /** The discriminator of a {@link PrincipalRef}. */
-export type PrincipalRefKind = 'entity' | 'office' | 'seat' | 'committee';
+export type PrincipalRefKind = 'entity' | 'office' | 'seat' | 'committee' | 'owners';
 
 /** The blessed kind vocabulary (validation array). */
 export const PRINCIPAL_REF_KINDS: readonly PrincipalRefKind[] = [
@@ -47,6 +60,7 @@ export const PRINCIPAL_REF_KINDS: readonly PrincipalRefKind[] = [
   'office',
   'seat',
   'committee',
+  'owners',
 ] as const;
 
 /** A specific entity, by durable templatePath — the shipped proprietor edge. */
@@ -79,12 +93,23 @@ export interface CommitteePrincipalRef {
   parcel: string;
 }
 
+/** Whoever holds a majority of an organization's cap table. */
+export interface OwnersPrincipalRef {
+  kind: 'owners';
+  /**
+   * The organization whose table decides, by identity path. Omitted when
+   * authored — the organization's own (`getAppointingAuthority` fills it).
+   */
+  organization?: string;
+}
+
 /** Who may fill an organization's positions. */
 export type PrincipalRef =
   | EntityPrincipalRef
   | OfficePrincipalRef
   | SeatPrincipalRef
-  | CommitteePrincipalRef;
+  | CommitteePrincipalRef
+  | OwnersPrincipalRef;
 
 /**
  * Coerce a seed / hydrated blob into a {@link PrincipalRef}, or `null`
@@ -125,6 +150,10 @@ export class Authority {
         return typeof r.parcel === 'string' && r.parcel.length > 0
           ? { kind: 'committee', parcel: r.parcel }
           : null;
+      case 'owners':
+        return typeof r.organization === 'string' && r.organization.length > 0
+          ? { kind: 'owners', organization: r.organization }
+          : { kind: 'owners' };
       default:
         return null;
     }

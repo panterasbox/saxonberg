@@ -25,11 +25,13 @@ import { ExpanseApi } from '../../../../api/expanse';
 import { NavigationApi } from '../../../../api/navigation';
 import { StuffApi } from '../../../../api/stuff';
 import Ship from '../../Ship';
+import { WorldClockApi } from '../../../../api/worldclock';
 import ExpanseNode from '../../ExpanseNode';
 import { Expanse } from '../../../../lib/expanse/Expanse';
 import { AccountabilityApi } from '../../../../api/accountability';
 import { SpeciesApi } from '../../../../api/species';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
+import type Place from '../../../../lib/stuff/Place';
 import type { Positioned } from '../../../../lib/expanse/Positioned';
 import type { Voyaging } from '../../../../lib/expanse/Voyaging';
 
@@ -82,6 +84,7 @@ export default class CourseController extends CommandController<CourseModel> {
     }
     const heading = (model.heading ?? '').trim();
     if (heading === '') return this.readout(context, craft, giver);
+    if (!this.mayHelm(context, craft, giver)) return;
     if (!(await this.mayLeave(model, context, craft, giver))) return;
 
     let bearingDeg: number;
@@ -93,6 +96,13 @@ export default class CourseController extends CommandController<CourseModel> {
     } else {
       const target = await expanse.nodeByKeyword(heading);
       const at = target?.getExpansePosition() ?? null;
+      // ⭐ A landing inside the bar: lying at a river's
+      // mouth, a quay up the river is a course — in over the bar, then up to
+      // it, the way a river ship comes alongside a landing.
+      if (!target || !at) {
+        const inside = await this.landingInside(craft, expanse, heading);
+        if (inside !== null) return this.intoRiver(context, craft, inside.river, inside.landing);
+      }
       if (!target || !at) {
         return this.decline(
           context,
@@ -105,9 +115,17 @@ export default class CourseController extends CommandController<CourseModel> {
       const lying = craft.getExpansePosition();
       // ⭐ At a river's mouth, the river's name takes her in over the bar
       // and onto its line (river D29): the next course is the river's.
-      const river = target instanceof ExpanseNode ? target.getRiver() : null;
+      // ⚠ Only the RIVER's name: `course bar` lying at the bar is where she
+      // already is, never in over it.
+      const river = target instanceof ExpanseNode && target.namesRiver(heading) ? target.getRiver() : null;
       if (lying !== null && target.isAt(lying) && river !== null) {
         return this.intoRiver(context, craft, river);
+      }
+      // ⭐ Lying off a node with a landing she is not made fast at (the
+      // island's quay): its name brings her in alongside, asked of its keeper.
+      const landing = target instanceof ExpanseNode ? target.getDestination() : null;
+      if (lying !== null && target.isAt(lying) && landing && craft instanceof Ship && craft.getBerth() !== landing) {
+        return this.comeIn(context, craft, landing);
       }
       if (lying !== null && target.isAt(lying)) {
         return this.decline(context, `You are at ${target.getName()} already.`, 'already-there');
@@ -149,10 +167,12 @@ export default class CourseController extends CommandController<CourseModel> {
   /** The craft the giver is aboard — their root container's craft, at sea or on a river. */
   private async craftOf(giver: Stuff): Promise<Craft | null> {
     const root = MixinApi.isContainable(giver) ? giver.getRootContainer() ?? giver : giver;
-    const path = root.getTemplatePath() ?? '';
-    const craft = await ExpanseApi.craftAt(path);
+    // ⭐ The place is asked: a keyed room of a ship kind is answered by its warren.
+    const place = root.isPlace() ? (root as unknown as Place) : null;
+    const path = root.getIdentityPath() ?? '';
+    const craft = place !== null ? await place.craftHere() : await ExpanseApi.craftAt(path);
     if (craft && MixinApi.isVoyaging(craft)) return craft;
-    const s = path ? await NavigationApi.structureAt(path) : null;
+    const s = place !== null ? await place.structure() : path ? await NavigationApi.structureAt(path) : null;
     return s && MixinApi.isPositioned(s) && MixinApi.isVoyaging(s) && s.getLine() !== null ? s : null;
   }
 
@@ -186,6 +206,11 @@ export default class CourseController extends CommandController<CourseModel> {
       ];
       return this.tell(context, lines.join('\n'));
     }
+    // ⭐ Her helm before her heading: somebody
+    // who is not her master is told so whatever they name — not that the
+    // river has no such landing, which reads as if naming the right one
+    // would have worked.
+    if (!this.mayHelm(context, craft, context.commandGiver)) return;
     let direction = RIVER_WAYS[heading];
     let landing: string | null = null;
     if (direction === undefined && (heading === 'bar' || heading === 'sea' || heading === 'mouth')) {
@@ -212,6 +237,28 @@ export default class CourseController extends CommandController<CourseModel> {
         ? `You ring for ${slow ? 'slow ahead' : 'steam'} and she gets under way ${direction}, for ${name}.`
         : `You ring for ${slow ? 'slow ahead' : 'steam'} and she gets under way ${direction}.`,
     );
+  }
+
+  /**
+   * ⭐ Only her master takes the helm: her charterer, or
+   * whoever holds her company's `master` seat. `true` when `giver` may.
+   */
+  private mayHelm(context: CommandContext, craft: Craft, giver: Stuff): boolean {
+    if (craft.mayBeSteeredBy(giver)) return true;
+    this.decline(context, 'Only her master takes the helm — charter her, or be appointed to command her.', 'not-her-master');
+    return false;
+  }
+
+  /**
+   * ⭐ In alongside the landing of the node she lies at: the keeper's
+   * criteria first, then her lines go ashore.
+   */
+  private async comeIn(context: CommandContext, craft: Ship, landing: string): Promise<void> {
+    const refused = await craft.courseRefusal(landing);
+    if (refused !== null) return this.decline(context, refused, 'course-refused');
+    const name = (await StuffApi.singleton<Stuff>(landing).catch(() => null))?.getPresentation() ?? 'the landing';
+    const words = await craft.comeAlongside(landing);
+    this.tell(context, `You bring her in to ${name}. ${words}`);
   }
 
   /**
@@ -244,8 +291,28 @@ export default class CourseController extends CommandController<CourseModel> {
     return true;
   }
 
-  /** At a river's mouth: off the chart and onto the river's line (D29). */
-  private async intoRiver(context: CommandContext, craft: Craft, river: string): Promise<void> {
+  /**
+   * ⭐ The landing named `heading` up the river whose mouth she lies at
+   * — `null` when she lies at no river's mouth or it has none
+   * by that name.
+   */
+  private async landingInside(craft: Craft, expanse: Expanse, heading: string): Promise<{ river: string; landing: { path: string; name: string } } | null> {
+    const lying = craft.getExpansePosition();
+    const node = lying !== null ? await expanse.nodeAt(lying) : null;
+    const river = node instanceof ExpanseNode ? node.getRiver() : null;
+    if (river === null) return null;
+    const frame = await StuffApi.singleton<Stuff>(river).catch(() => null);
+    if (frame === null || !MixinApi.isLineFrame(frame)) return null;
+    const named = frame.landingNamed(heading);
+    return named === null ? null : { river, landing: { path: named.path, name: named.name } };
+  }
+
+  /**
+   * At a river's mouth: off the chart and onto the river's line (D29) —
+   * over the bar only when the water over it now will float her,
+   * and on up to `landing` when she was set for one.
+   */
+  private async intoRiver(context: CommandContext, craft: Craft, river: string, landing?: { path: string; name: string }): Promise<void> {
     const frame = await StuffApi.singleton<Stuff>(river).catch(() => null);
     if (frame === null || !MixinApi.isLineFrame(frame)) {
       return this.decline(context, 'There is no river there you can take her into.', 'no-river');
@@ -253,10 +320,29 @@ export default class CourseController extends CommandController<CourseModel> {
     if (!(craft instanceof Ship)) {
       return this.decline(context, 'She cannot go up a river.', 'not-a-river-craft');
     }
+    // ⭐ The tide's window: her draft against the water over the bar.
+    const nowS = WorldClockApi.getNow().rawValue();
+    const bar = await craft.barRefusal(frame, nowS);
+    if (bar !== null) return this.decline(context, bar, 'bar-too-shallow');
+    if (landing) {
+      // Asked before she moves: a quay that will not have her refuses here.
+      const refused = await craft.courseRefusal(landing.path);
+      if (refused !== null) return this.decline(context, refused, 'course-refused');
+    }
     // The line is km from the mouth: she comes in at nought, mid-river.
-    craft.enterRiver(river, frame.courseKey(), 0, 0);
+    await craft.enterRiver(river, frame.courseKey(), 0, 0);
     await craft.anchorHere();
-    this.tell(context, `You take her in over the bar, and she is in the river's mouth: ${frame.getPresentation()}. The next course is the river's — \`course upstream\`.`);
+    if (!landing) {
+      this.tell(context, `You take her in over the bar, and she is in the river's mouth: ${frame.getPresentation()}. The next course is the river's — \`course upstream\`.`);
+      return;
+    }
+    const started = await craft.steer({ speedKn: craft.getSpeedKn(), direction: 'upstream', toward: landing.path });
+    if ('refused' in started) {
+      return this.decline(context, `You take her in over the bar. ${started.refused}`, 'river-refused');
+    }
+    if (started.ok && started.status !== 'completed-sync') context.note(started.note);
+    const name = (await StuffApi.singleton<Stuff>(landing.path).catch(() => null))?.getPresentation() ?? landing.name;
+    this.tell(context, `You take her in over the bar and up the river, for ${name}.`);
   }
 
 

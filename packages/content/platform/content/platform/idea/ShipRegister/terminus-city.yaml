@@ -1,0 +1,15 @@
+# The register of ships the City of Terminus keeps — named by
+# its Government row's `register:`. ⭐ A government keeps one IF IT CHOOSES
+# TO: this row and that line are the whole of choosing. A ship entered here
+# flies the city's flag; at sea the city's law is the law aboard her.
+#
+# ⭐⭐ You file; you do not hold the pen: the entries live under the
+# platform's own branch (`/platform/ships/terminus-city/<name>`), written
+# only by this register, so no shipowner can rewrite whose she is. The book
+# on the harbor office's desk (`read register`) is its public page.
+class: /platform/idea/ShipRegister
+data:
+  government: terminus-city
+  registerOwner: /platform
+  registerPrefix: /platform/ships/terminus-city
+  registerKind: ship

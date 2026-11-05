@@ -1,0 +1,10 @@
+# Corrigan's helm — it affords `course`, `anchor` and `hail`.
+class: /platform/thing/Helm
+data:
+  shortDescription: wheel
+  keywords: [wheel, helm, compass]
+  register: definite
+  fixedInPlace: true
+  longDescription: |
+    A spoked wheel of mahogany on a cast-iron pedestal, its rim polished by hands, with the binnacle before it. This is where the Corrigan is steered from.
+  _materialPath: /stuff/idea/material/wood/mahogany

@@ -227,4 +227,8 @@ outside** (`reconcileWeather`, folded in from the paint build's
 `WeatheringMixin` at review): coats thin at their material's rate where the
 weather reaches them, set by the air, fade in the sun, and a durable host's
 condition wears at `bareWearPerDay` once they are gone — none for a good,
-a building's dial for a building. See [painting.md](./painting.md).
+a building's dial for a building and for a ship's hull (harbors: `Ship`
+composes `Faced` over `Durable`, her seams the fabric, and they leak as
+they open — [ship.md](./ship.md)). Transport's `Boat` composes `Faced`
+too (no fabric; a coat that has opened lets water in). See
+[painting.md](./painting.md).

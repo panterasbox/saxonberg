@@ -59,6 +59,7 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { EvictionContext } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { VetoResult } from '@saxonberg/server/mud/lib/errors';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import { CirculationWarren } from '@saxonberg/server/mud/lib/location/CirculationWarren';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
 import Species, { FEEDER_KINDS } from '@saxonberg/server/mud/platform/idea/species/Species';
@@ -301,7 +302,7 @@ export default class HerdRegistry extends RegistrarMixin(Idea) {
         `HerdRegistry.file: refusing '${herd.herdId}' — ${problems.join('; ')}`,
       );
     }
-    const path = pathOf(herd.herdId);
+    const path = this.pathOf(herd.herdId);
     // ⚠⚠ `saveToRegister`, not `save`. The ordinary write gate admits
     // the BRANCH OWNER, which here is the trade — so a keeper drafting a
     // head out could not write, and granting them the branch would hand
@@ -324,13 +325,13 @@ export default class HerdRegistry extends RegistrarMixin(Idea) {
    * home branch and have it count.
    */
   public async read(herdId: string): Promise<HerdRecord | null> {
-    const path = pathOf(herdId);
-    if (!isRegistryPath(path)) return null;
+    const path = this.pathOf(herdId);
+    if (!this.isRegistryPath(path)) return null;
     const doc = await DocumentApi.read(path);
     if (doc === null) return null;
-    if (!isRegistryPath(doc.getPath())) return null;
+    if (!this.isRegistryPath(doc.getPath())) return null;
     if (doc.getKind() !== HERD_KIND) return null;
-    return herdOf(doc.getData());
+    return this.herdOf(doc.getData());
   }
 
   /**
@@ -345,9 +346,9 @@ export default class HerdRegistry extends RegistrarMixin(Idea) {
     const docs = await DocumentApi.list(HERD_PREFIX);
     const out: HerdRecord[] = [];
     for (const doc of docs) {
-      if (!isRegistryPath(doc.getPath())) continue;
+      if (!this.isRegistryPath(doc.getPath())) continue;
       if (doc.getKind() !== HERD_KIND) continue;
-      const herd = herdOf(doc.getData());
+      const herd = this.herdOf(doc.getData());
       if (herd !== null) out.push(herd);
     }
     return out;
@@ -392,7 +393,7 @@ export default class HerdRegistry extends RegistrarMixin(Idea) {
   public async update(herd: HerdRecord): Promise<void> {
     await DocumentApi.saveToRegister(
       this as unknown as Stuff & Registrar,
-      pathOf(herd.herdId),
+      this.pathOf(herd.herdId),
       { ...herd },
     );
   }
@@ -453,7 +454,7 @@ export default class HerdRegistry extends RegistrarMixin(Idea) {
    * loaded on use — or `null`.
    */
   public async fieldOf(ref: string): Promise<Field | null> {
-    return loadField(ref);
+    return this.loadField(ref);
   }
 
   /**
@@ -461,7 +462,7 @@ export default class HerdRegistry extends RegistrarMixin(Idea) {
    * one field. What an authored herdbook's starting place resolves to.
    */
   public async fieldOn(where: string, key: string): Promise<Field | null> {
-    const tract = await loadTract(where).catch(() => null);
+    const tract = await this.loadTract(where).catch(() => null);
     if (!tract) return null;
     if (key) return tract.fieldByKey(key);
     const fields = tract.getFields();
@@ -470,7 +471,7 @@ export default class HerdRegistry extends RegistrarMixin(Idea) {
 
   /** The line a herd on `field` is written with. */
   public refOf(field: Field): string {
-    return fieldRefOf(field);
+    return this.fieldRefOf(field);
   }
 
   /** Point the herd at a field (cover build D8), or at none. */
@@ -514,25 +515,25 @@ export default class HerdRegistry extends RegistrarMixin(Idea) {
     const herd = await this.read(herdId);
     if (herd === null) return null;
     if (herd.grazing) {
-      const from = await loadField(herd.grazing);
+      const from = await this.loadField(herd.grazing);
       from?.clearGrazer(herdId);
     }
     if (to) {
-      const species = await loadSpecies(herd.speciesPath);
+      const species = await this.loadSpecies(herd.speciesPath);
       // A herd eats what its heads' SIZE says — at the herd's mean age,
       // so a register of calves eats like calves.
-      const now = nowSeconds() ?? herd.founded;
+      const now = this.nowSeconds() ?? herd.founded;
       const meanAge = herd.foundingMeanAgeDays + Math.max(0, (now - herd.founded) / SECONDS_PER_GAME_DAY);
       const each = species?.dryMatterIntakeKgPerDay(meanAge) ?? 0;
       const kinds = (species?.getFeedingStyles() ?? []).filter((k) =>
         (FEEDER_KINDS as readonly string[]).includes(k),
       );
       to.setGrazer(herdId, {
-        label: `${countWord(herd.tally)} head of ${herd.name}`,
+        label: `${this.countWord(herd.tally)} head of ${herd.name}`,
         demandKgPerDay: herd.tally * each,
         feederKinds: [...kinds],
       });
-      herd.grazing = fieldRefOf(to);
+      herd.grazing = this.fieldRefOf(to);
     } else {
       delete herd.grazing;
     }
@@ -553,10 +554,10 @@ export default class HerdRegistry extends RegistrarMixin(Idea) {
   public async foldOpen(herdId: string): Promise<void> {
     const herd = await this.read(herdId);
     if (herd === null) return;
-    const now = nowSeconds();
+    const now = this.nowSeconds();
     if (now === null) return;
     if (herd.grazing) {
-      const field = await loadField(herd.grazing);
+      const field = await this.loadField(herd.grazing);
       const fold = field?.foldGrazer(herdId) ?? null;
       if (fold) await this.foldFed(herdId, { fraction: fold.fraction, days: fold.days, end: now });
       return;
@@ -576,135 +577,152 @@ export default class HerdRegistry extends RegistrarMixin(Idea) {
     if (herd === null) return null;
     return herd.overlay[String(index)] ?? null;
   }
-}
 
-/** A herd id → its document path. */
-function pathOf(herdId: string): string {
-  return `${HERD_PREFIX}/${herdId}`;
-}
+  // ---------- the register's own reads (private) ----------
 
-/**
- * ⚠⚠ The prefix check. A path is a registry path only if it sits under
- * the branch this trade holds title to — and `/trade/ranching/herdsX` is
- * NOT under `/trade/ranching/herds`, which is why the separator is part
- * of the test.
- */
-function isRegistryPath(path: string): boolean {
-  return path.startsWith(`${HERD_PREFIX}/`);
-}
+  /** A herd id → its document path. */
+  private pathOf(herdId: string): string {
+    return `${HERD_PREFIX}/${herdId}`;
+  }
 
-/** Parse a stored payload into a herd, or `null` when it is not one. */
-function herdOf(data: unknown): HerdRecord | null {
-  if (typeof data !== 'object' || data === null) return null;
-  const d = data as Record<string, unknown>;
-  if (typeof d.herdId !== 'string' || d.herdId === '') return null;
-  if (typeof d.speciesPath !== 'string') return null;
-  if (typeof d.tally !== 'number') return null;
-  return {
-    herdId: d.herdId,
-    name: typeof d.name === 'string' ? d.name : d.herdId,
-    speciesPath: d.speciesPath,
-    tally: d.tally,
-    holderRef: typeof d.holderRef === 'string' ? d.holderRef : '',
-    homeExtent: typeof d.homeExtent === 'string' ? d.homeExtent : '',
-    founded: typeof d.founded === 'number' ? d.founded : 0,
-    foundingMeanAgeDays:
-      typeof d.foundingMeanAgeDays === 'number' && d.foundingMeanAgeDays > 0
-        ? d.foundingMeanAgeDays
-        : DEFAULT_FOUNDING_MEAN_AGE_DAYS,
-    ...(typeof d.femaleFraction === 'number' &&
-    d.femaleFraction >= 0 &&
-    d.femaleFraction <= 1
-      ? { femaleFraction: d.femaleFraction }
-      : {}),
-    drafted: Array.isArray(d.drafted) ? (d.drafted as DraftedHead[]) : [],
-    ...(typeof d.grazing === 'string' && d.grazing !== '' ? { grazing: d.grazing } : {}),
-    ...(typeof d.bookPath === 'string' && d.bookPath !== '' ? { bookPath: d.bookPath } : {}),
-    ...(Array.isArray(d.fed) ? { fed: (d.fed as FedWindow[]).filter(isFedWindow) } : {}),
-    overlay:
-      typeof d.overlay === 'object' && d.overlay !== null
-        ? (d.overlay as Record<string, HeadOverlay>)
-        : {},
-  };
-}
+  /**
+   * ⚠⚠ The prefix check. A path is a registry path only if it sits under
+   * the branch this trade holds title to — and `/trade/ranching/herdsX` is
+   * NOT under `/trade/ranching/herds`, which is why the separator is part
+   * of the test.
+   */
+  private isRegistryPath(path: string): boolean {
+    return path.startsWith(`${HERD_PREFIX}/`);
+  }
 
-function isFedWindow(w: unknown): w is FedWindow {
-  if (typeof w !== 'object' || w === null) return false;
-  const x = w as Record<string, unknown>;
-  return typeof x.fraction === 'number' && typeof x.days === 'number' && typeof x.end === 'number';
+  /** Parse a stored payload into a herd, or `null` when it is not one. */
+  private herdOf(data: unknown): HerdRecord | null {
+    if (typeof data !== 'object' || data === null) return null;
+    const d = data as Record<string, unknown>;
+    if (typeof d.herdId !== 'string' || d.herdId === '') return null;
+    if (typeof d.speciesPath !== 'string') return null;
+    if (typeof d.tally !== 'number') return null;
+    return {
+      herdId: d.herdId,
+      name: typeof d.name === 'string' ? d.name : d.herdId,
+      speciesPath: d.speciesPath,
+      tally: d.tally,
+      holderRef: typeof d.holderRef === 'string' ? d.holderRef : '',
+      homeExtent: typeof d.homeExtent === 'string' ? d.homeExtent : '',
+      founded: typeof d.founded === 'number' ? d.founded : 0,
+      foundingMeanAgeDays:
+        typeof d.foundingMeanAgeDays === 'number' && d.foundingMeanAgeDays > 0
+          ? d.foundingMeanAgeDays
+          : DEFAULT_FOUNDING_MEAN_AGE_DAYS,
+      ...(typeof d.femaleFraction === 'number' &&
+      d.femaleFraction >= 0 &&
+      d.femaleFraction <= 1
+        ? { femaleFraction: d.femaleFraction }
+        : {}),
+      drafted: Array.isArray(d.drafted) ? (d.drafted as DraftedHead[]) : [],
+      ...(typeof d.grazing === 'string' && d.grazing !== '' ? { grazing: d.grazing } : {}),
+      ...(typeof d.bookPath === 'string' && d.bookPath !== '' ? { bookPath: d.bookPath } : {}),
+      ...(Array.isArray(d.fed)
+        ? { fed: (d.fed as unknown[]).filter((w): w is FedWindow => this.isFedWindow(w)) }
+        : {}),
+      overlay:
+        typeof d.overlay === 'object' && d.overlay !== null
+          ? (d.overlay as Record<string, HeadOverlay>)
+          : {},
+    };
+  }
+
+  private isFedWindow(w: unknown): w is FedWindow {
+    if (typeof w !== 'object' || w === null) return false;
+    const x = w as Record<string, unknown>;
+    return typeof x.fraction === 'number' && typeof x.days === 'number' && typeof x.end === 'number';
+  }
+
+  /** Game-seconds now, or `null` before the clock exists (pre-boot, tests). */
+  private nowSeconds(): number | null {
+    if (!StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry)) return null;
+    return WorldClockApi.getNow().rawValue();
+  }
+
+  /**
+   * ⭐ A herd's line names a FIELD by its tract and its key (tracts build
+   * D34): `<tract>#<fieldKey>`, the tract written as its durable handle when
+   * it is one keyed copy of a layout (`<row>#<extent>/<leaf>`) and as its
+   * path when it is the one authored tract. The key is after the LAST `#`.
+   */
+  private fieldRefOf(field: Field): string {
+    const tract = field.getTract();
+    if (!tract) return '';
+    const where = tract.getDurableHandle() ?? tract.getTemplatePath() ?? '';
+    return where ? `${where}#${field.getFieldKey()}` : '';
+  }
+
+  /**
+   * The field a line names, loaded on use (the way an exit loads where it
+   * leads), or `null` when it will not resolve or is not a field.
+   */
+  private async loadField(ref: string): Promise<Field | null> {
+    const cut = ref.lastIndexOf('#');
+    if (cut <= 0) return null;
+    const where = ref.slice(0, cut);
+    const key = ref.slice(cut + 1);
+    try {
+      const tract = await this.loadTract(where);
+      return tract?.fieldByKey(key) ?? null;
+    } catch (err) {
+      console.error(`HerdRegistry: field '${ref}' did not resolve`, err);
+      return null;
+    }
+  }
+
+  /**
+   * The tract a line names: one keyed copy of a layout by its handle
+   * (`<row>#<key>`), else the one authored tract by its path.
+   *
+   * ⭐ A keyed copy is re-entered through the FARM that owns it —
+   * `CirculationWarren.admitFor(key)`, the same seam a parked character's
+   * record re-enters a keyed room by: the institution over the key is a
+   * map read up the key's ancestry, the holding is admitted (stood up and
+   * woken if it was asleep) and the room is the holding's `roomForKey`. No
+   * scan of the row's instances, and an asleep farm comes back WHOLE — its
+   * tract sized against its open ground and wired to its yard — rather than
+   * one tract minted on its own outside its farm (which a later wake would
+   * then mint a second time under the same key). `admitFor` falls back to
+   * the holding's entry room, so the answer is checked: it must be a tract
+   * and it must be THIS one.
+   */
+  private async loadTract(where: string): Promise<Tract | null> {
+    const hash = where.indexOf('#');
+    if (hash > 0) {
+      const key = where.slice(hash + 1);
+      const room = await CirculationWarren.admitFor(key);
+      return room instanceof Tract && room.getDurableHandle() === where ? room : null;
+    }
+    const place = await StuffApi.singleton<Stuff>(where);
+    return place instanceof Tract ? place : null;
+  }
+
+  /** The species at `path`, or `null`. */
+  private async loadSpecies(path: string): Promise<Species | null> {
+    if (!path) return null;
+    try {
+      return await StuffApi.singleton<Species>(path);
+    } catch (err) {
+      console.error(`HerdRegistry: species '${path}' did not resolve`, err);
+      return null;
+    }
+  }
+
+  /** A head count as a person says it — *six*, *twelve*, *forty*. */
+  private countWord(n: number): string {
+    return COUNT_WORDS[n] ?? String(n);
+  }
 }
 
 const SECONDS_PER_GAME_DAY = 86_400;
-
-/** Game-seconds now, or `null` before the clock exists (pre-boot, tests). */
-function nowSeconds(): number | null {
-  if (!StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry)) return null;
-  return WorldClockApi.getNow().rawValue();
-}
-
-/**
- * ⭐ A herd's line names a FIELD by its tract and its key (tracts build
- * D34): `<tract>#<fieldKey>`, the tract written as its durable handle when
- * it is one keyed copy of a layout (`<row>#<extent>/<leaf>`) and as its
- * path when it is the one authored tract. The key is after the LAST `#`.
- */
-function fieldRefOf(field: Field): string {
-  const tract = field.getTract();
-  if (!tract) return '';
-  const where = tract.getDurableHandle() ?? tract.getTemplatePath() ?? '';
-  return where ? `${where}#${field.getFieldKey()}` : '';
-}
-
-/**
- * The field a line names, loaded on use (the way an exit loads where it
- * leads), or `null` when it will not resolve or is not a field.
- */
-async function loadField(ref: string): Promise<Field | null> {
-  const cut = ref.lastIndexOf('#');
-  if (cut <= 0) return null;
-  const where = ref.slice(0, cut);
-  const key = ref.slice(cut + 1);
-  try {
-    const tract = await loadTract(where);
-    return tract?.fieldByKey(key) ?? null;
-  } catch (err) {
-    console.error(`HerdRegistry: field '${ref}' did not resolve`, err);
-    return null;
-  }
-}
-
-/** The tract a line names: a keyed copy by its handle, else the one row. */
-async function loadTract(where: string): Promise<Tract | null> {
-  const hash = where.indexOf('#');
-  if (hash > 0) {
-    const row = where.slice(0, hash);
-    const copy = StuffApi.findAllByTemplatePath<Stuff>(row).find(
-      (t) => t.getDurableHandle() === where,
-    );
-    return copy instanceof Tract ? copy : null;
-  }
-  const place = await StuffApi.singleton<Stuff>(where);
-  return place instanceof Tract ? place : null;
-}
-
-/** The species at `path`, or `null`. */
-async function loadSpecies(path: string): Promise<Species | null> {
-  if (!path) return null;
-  try {
-    return await StuffApi.singleton<Species>(path);
-  } catch (err) {
-    console.error(`HerdRegistry: species '${path}' did not resolve`, err);
-    return null;
-  }
-}
 
 const COUNT_WORDS = [
   'no', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight',
   'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen',
   'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty',
 ];
-
-/** A head count as a person says it — *six*, *twelve*, *forty*. */
-function countWord(n: number): string {
-  return COUNT_WORDS[n] ?? String(n);
-}

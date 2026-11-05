@@ -1,0 +1,30 @@
+# Marta Hobb, ship chandler — keeps the chandler's at the
+# corner of the Town Quay on the roster's day; sells what a ship uses up.
+class: /platform/agent/Cast
+extends: /stuff/agent/costume/student
+data:
+  costume:
+    - /stuff/thing/clothes/field-jacket
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  name: Marta Hobb
+  keywords: [marta, hobb, chandler]
+  pronouns: she
+  shortDescription: ship chandler
+  register: definite
+  longDescription: >-
+    A square, weathered woman with tar under her nails and a pencil stub on
+    a string round her neck, who weighs oakum by eye and is never more than
+    a few ounces out.
+  archetype: proprietor
+  prologue:
+    - "Her father caulked hulls on this quay; she sells the oakum and pitch to the men who do it now."
+    - "Can tell you which ship in the harbor is due a caulking by the stain under her scuppers."
+  competence:
+    - { discipline: seamanship, asserting: competent }
+  dispositions:
+    - { disposition: sociability, valence: 30 }
+    - { disposition: composure, valence: 60 }
+  behaviors:
+    - brain: /lib/behavior/introduces
+      trigger: arrival

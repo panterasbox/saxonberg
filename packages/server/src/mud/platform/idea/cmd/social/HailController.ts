@@ -7,6 +7,12 @@
  * contact resolves by name against what the signal channel can reach
  * (never through MQL — it is not in the room). A real craft has the hail
  * delivered to everyone aboard her; seeded traffic answers in kind.
+ *
+ * ⭐ A place that keeps a watch on the water answers FIRST:
+ * the craft's frame names what answers a hail near her
+ * (`Frame.hailables` — a harbor office inside the bar), and a word one of
+ * them answers to (`hail office`) is that place's to answer, by its own
+ * criteria. Only then the sails in sight, which only the sea has.
  */
 
 import { Expanse } from '../../../../lib/expanse/Expanse';
@@ -17,6 +23,7 @@ import { Mml } from '../../../../api/mml';
 import { MixinApi } from '../../../../api/mixin';
 import { WorldClockApi } from '../../../../api/worldclock';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
+import type Place from '../../../../lib/stuff/Place';
 import { ExpanseApi } from '../../../../api/expanse';
 import type { Positioned } from '../../../../lib/expanse/Positioned';
 import type { Voyaging } from '../../../../lib/expanse/Voyaging';
@@ -35,8 +42,21 @@ export default class HailController extends CommandController<HailModel> {
     const frame = await craft.liveFrame();
     const expanse = frame instanceof Expanse ? frame : null;
     const asked = (model.contact ?? '').trim().toLowerCase().replace(/^the\s+/, '');
-    if (expanse === null || asked === '') {
-      return this.decline(context, 'Hail whom? Name a sail in sight.', 'no-contact');
+    if (frame === null || asked === '') {
+      return this.decline(context, 'Hail whom? Name a sail in sight, or the harbor office.', 'no-contact');
+    }
+    // ⭐ A place that keeps a watch on the water answers first:
+    // `hail office` raises the harbor office inside the bar.
+    const pos = craft.whereAtS(WorldClockApi.getNow().rawValue());
+    const places = pos !== null ? await frame.hailables(pos) : [];
+    const place = places.find((p) => p.answersTo(asked));
+    if (place) {
+      this.say(giver, `You hail ${place.hailName()}.`);
+      this.say(giver, await place.answerHail(craft, giver));
+      return;
+    }
+    if (expanse === null) {
+      return this.decline(context, `Nothing within hail answers to '${model.contact}'.`, 'not-in-sight');
     }
     const hour = Math.floor(WorldClockApi.getNow().rawValue() / 3600);
     const contacts = await expanse.contactsFrom(craft, giver, 'signal', hour);
@@ -63,7 +83,10 @@ export default class HailController extends CommandController<HailModel> {
   /** The craft the giver is aboard — their root container's craft. */
   private async craftOf(giver: Stuff): Promise<(Stuff & Positioned & Voyaging) | null> {
     const root = MixinApi.isContainable(giver) ? giver.getRootContainer() ?? giver : giver;
-    const craft = await ExpanseApi.craftAt(root.getTemplatePath() ?? '');
+    // The place is asked (a keyed room's craft is its warren's ship).
+    const craft = root.isPlace()
+      ? await (root as unknown as Place).craftHere()
+      : await ExpanseApi.craftAt(root.getIdentityPath() ?? '');
     return craft && MixinApi.isVoyaging(craft) ? craft : null;
   }
 

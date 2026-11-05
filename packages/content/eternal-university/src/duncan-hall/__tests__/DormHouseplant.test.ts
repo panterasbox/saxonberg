@@ -157,7 +157,7 @@ function seedDomain(): void {
   for (const row of KERNEL_CONTENT_ROWS) {
     col('content').push({ _id: `d-${++idCounter}`, ...row });
   }
-  // A holding mints its house at wake (paint D6).
+  // The parent of every holding's building row (paint D6).
   col('content').push({ _id: `d-${++idCounter}`, path: '/system/residence/idea/holding-building', class: '/system/residence/idea/HoldingBuilding', data: { shortDescription: 'house' } });
   for (const [path, cls] of [
     ['/world/terminus/eternal/duncan-hall/idea/exits/floor-stair', '/world/terminus/eternal/duncan-hall/idea/FloorStairExit'],
@@ -172,6 +172,12 @@ function seedDomain(): void {
   addSeed(
     DormWarren.PROGRAMME_PATH,
     `${SEEDS}world/terminus/eternal/duncan-hall/idea/dorm-programme.yaml`,
+  );
+  // The one building its plan names (harbors review, 2026-11-03 — the
+  // plan is the programme row's own; no blueprint row).
+  addSeed(
+    '/world/terminus/eternal/duncan-hall/idea/dorm-building',
+    `${SEEDS}world/terminus/eternal/duncan-hall/idea/dorm-building.yaml`,
   );
   addSeed(DormRoom.SCOPE, `${SEEDS}world/terminus/eternal/duncan-hall/location/dormroom.yaml`);
   addSeed(

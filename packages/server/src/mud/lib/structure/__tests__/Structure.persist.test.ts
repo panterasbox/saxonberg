@@ -64,31 +64,28 @@ describe('a building persists only once it is sold', () => {
   });
 });
 
-describe('a ship keeps her voyage; her hull resets until she is sold', () => {
-  it('persists while staged, and her coat slices are empty until sold', () => {
+describe('a ship keeps her hull with her record (paint merged into harbors)', () => {
+  it('her coat and her seams are captured whoever holds her', () => {
     const ship = makeStuffAtPath(() => new Ship(), '/world/_p/hesper/structure');
     ship.setExtent('/world/_p/hesper');
     ship.setCoats({ outside: [{ material: '/x/tar', thicknessM: 0.001, state: 'set' }] });
     held('organization');
     expect(ship.shouldPersist()).toBe(true);
-    const staged = slices(ship) as Record<string, { fields: Record<string, unknown> }>;
-    expect(staged.FacedMixin?.fields).toEqual({});
-    held('player');
-    const sold = slices(ship) as Record<string, { fields: Record<string, unknown> }>;
-    expect(sold.FacedMixin?.fields.coats).toBeTruthy();
-    expect(sold.DurableMixin).toBeUndefined();
+    const kept = slices(ship) as Record<string, { fields: Record<string, unknown> }>;
+    expect(kept.FacedMixin?.fields.coats).toBeTruthy();
+    expect(kept.DurableMixin?.fields.condition).toBe(1);
   });
 });
 
 // ⭐ The split (paint review): a building has an outside; a bare structure
-// (the Waponi Woo peak) has none; a ship's hull takes coats but has no
-// fabric to maintain.
-it('a building has a face and a condition; a bare structure neither; a ship a face only', () => {
+// (the Waponi Woo peak) has none; a ship's hull takes coats AND has a
+// fabric under them — her seams, which `maintain` caulks (harbors).
+it('a building has a face and a condition; a bare structure neither; a ship both', () => {
   const b = makeStuffAtPath(() => new Building(), '/world/_p/barn/structure');
   expect(MixinApi.isFaced(b) && MixinApi.isDurable(b)).toBe(true);
   const peak = makeStuffAtPath(() => new Structure(), '/world/_p/peak/structure');
   expect(MixinApi.isFaced(peak) || MixinApi.isDurable(peak)).toBe(false);
   const ship = makeStuffAtPath(() => new Ship(), '/world/_p/sloop/structure');
   expect(MixinApi.isFaced(ship)).toBe(true);
-  expect(MixinApi.isDurable(ship)).toBe(false);
+  expect(MixinApi.isDurable(ship)).toBe(true);
 });

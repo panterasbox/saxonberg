@@ -194,6 +194,7 @@ function buildGovernmentDescriptor(
     treasury: str(d.treasury),
     departments: stringArray(d.departments),
     seats,
+    shipRegister: str(d.shipRegister),
     standards: Array.isArray(d.standards)
       ? (d.standards as Record<string, unknown>[])
           .filter(

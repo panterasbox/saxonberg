@@ -40,6 +40,34 @@ is not the state but the depot, whose coverage is its market share.
 ⚠ `DocumentApi.saveAsBusiness` is the gate: derived owner, a path under
 the business's branch, and a closed kind allowlist.
 
+⭐ **`ship` — a ship's register entry** (harbors P14). One document per
+ship a register holds, at `<register prefix>/<name slug>`
+(`/platform/ships/terminus-city/petrel`), written only by its
+`ShipRegister` through `DocumentApi.saveToRegister` (the herdbook's
+transport, below — the second `Registrar`). The slug is the uniqueness:
+a register refuses a second ship of a name because the path is taken.
+The entry is TITLE only — `{name, kind, key, flag, registeredAtS,
+owner}`, the owner being her company; who holds the company is its cap
+table ([employment.md](./employment.md)). Pack-shipped for the authored
+ships, runtime-written by a yard sale, `onVanish: 'keep'`. See
+[ship.md](./ship.md).
+
+⭐ **`berth-roll` — a landing's list of the ships lying at it** (harbors
+review 1). It was a live `Persistable(Idea)` per landing with no behavior
+beyond add/remove/list and nothing targeting it — so it is a document:
+one per landing at `/platform/berths<landing path>` (the path keeps its
+slashes; a harbor's berths are a prefix read), owned by the landing,
+`data: { lying: [handle…] }`, runtime-written on the `map` pattern,
+`onVanish: 'keep'`. ⚠⚠ Its write, `DocumentApi.saveBerth(ship,
+landingPath)`, is an ownership bypass narrow by construction: gated
+`FromMixin(Voyaging, caller === args[0])` (the ship herself, writing her
+own line — the register transport's relational shape), and it takes **no
+lying/gone flag** — the store reads whether she is made fast there now off
+the ship, so even she cannot write a false line. Writes to one roll are
+chained per path. The landing reads it with `DocumentApi.berthRollOf` on
+first use and stands up every ship on it that is not loaded
+([expanse.md](./expanse.md), `FrameSited`).
+
 ⭐ **`water-right` is the worked example of why the vocabulary is closed**
 (water build). A prior-appropriation right is a *record* — dated,
 transferable, and meaningless if it can be quietly lost — so it is
@@ -284,6 +312,9 @@ A thin gated forwarding shell over a hot-reloadable logic singleton at
 - ⚠⚠ `DocumentApi.saveToRegister(register, path, data)` — the **generic**
   one: a `Registrar` files into the branch it keeps the book for. See
   *The register transport* below.
+- ⚠⚠ `DocumentApi.saveBerth(ship, landingPath)` — a ship's own line on a
+  landing's `berth-roll`, truth read off her; `DocumentApi.berthRollOf`
+  reads the roll. See *`berth-roll`* above.
 
 The acting **owner is always derived from `ExecutionContextApi`** (the
 in-world command-frame giver, or a transport's `tagActingAuthor` stamp),
