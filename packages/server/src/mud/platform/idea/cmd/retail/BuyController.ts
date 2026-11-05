@@ -173,7 +173,7 @@ export default class BuyController extends CommandController<BuyModel> {
       "a purchase",
     );
     if (!paid) {
-      this.rejectBroke(giver, context, item, model);
+      this.rejectBroke(giver, context, item, model, price);
       return;
     }
     // ⚠⚠ A price is per PIECE, and a restocked stackable sits on the shelf
@@ -263,7 +263,7 @@ export default class BuyController extends CommandController<BuyModel> {
       const ask = stock.priceFor(item.getTemplatePath() ?? "") ?? listing.askMinor;
       paid = await EmploymentApi.settleSale(venuePath, ask, ask, "a purchase");
       if (!paid) {
-        this.rejectBroke(giver, context, item, model);
+        this.rejectBroke(giver, context, item, model, ask);
         return;
       }
       await this.settleTerms(venuePath, consignorPrimary, listing.askMinor, item);
@@ -289,7 +289,7 @@ export default class BuyController extends CommandController<BuyModel> {
         splits,
       );
       if (!paid) {
-        this.rejectBroke(giver, context, item, model);
+        this.rejectBroke(giver, context, item, model, ask);
         return;
       }
     }
@@ -368,16 +368,41 @@ export default class BuyController extends CommandController<BuyModel> {
       .send();
   }
 
+  /**
+   * A sale that did not settle, told by WHICH side failed — "you can't
+   * cover it" was the one line for all three, and a newcomer with no
+   * account read it as being poor (the water-supply browser walk).
+   */
   private rejectBroke(
     giver: Stuff,
     context: CommandContext,
     item: Stuff,
     model: BuyModel,
+    priceMinor: number,
   ): void {
     // ⚠ ONE piece: the price is per piece, and a stocked heap sits on the
     // shelf as one stack — naming the heap told a broke buyer they had
     // tried to buy all three (found by the assembly browser walk).
     const one = item.presentationPhrase().withCount(1).render();
+    const currency = BankingApi.compactCurrency();
+    if (BankingApi.canSettle(Money.of(priceMinor, currency))) {
+      // The buyer could pay; the counter could not take it.
+      this.reject(giver, context, Mml.compose`The counter can't take payment for ${one} just now.`, {
+        kind: "controller-rejected",
+        reason: "venue-cannot-take-payment",
+        detail: model.thing,
+      });
+      return;
+    }
+    if (!BankingApi.canSettle(Money.of(1, currency))) {
+      this.reject(
+        giver,
+        context,
+        Mml.compose`You have nothing to pay for ${one} with — no coin, and no account your wallet can reach. A bank will open one (\`bank open\`).`,
+        { kind: "controller-rejected", reason: "no-means-of-payment", detail: model.thing },
+      );
+      return;
+    }
     this.reject(giver, context, Mml.compose`You can't cover ${one} just now.`, {
       kind: "controller-rejected",
       reason: "insufficient-funds",
