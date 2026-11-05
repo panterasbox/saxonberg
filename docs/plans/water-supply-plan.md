@@ -1384,3 +1384,42 @@ design): one draught at the fouled market standpipe; the gut pool drained
 12 → 0 over 21 h, the burden rose to 3.65, the affliction attached, and
 `assess` reads **"You have dysentery."** (It read "You seem dysentery." —
 a name is what a body HAS, a sign what it SEEMS; fixed.)
+
+#### The bank till and buying on account (2026-11-05)
+
+Both were walked again on a fresh world, in a browser.
+
+- **The till was working as designed.** banking.md AC#13: the till fills
+  only from deposited coin. `reserve override` credits the ledger with no
+  coin behind it, which is exactly the balance the till is meant to refuse
+  to pay out in cash. The walk staged its money that way and read the
+  refusal as a dead till. The walk's real gap was the harness: `embody
+  confirm` gives a newcomer the Arrival Note (20 in coin), and test-login
+  skips char-gen. It now has **`/auth/test-arrive {handle}`**
+  (`TestHooks.arriveCharacter`, the wire harness's `arrive()`), which
+  issues the real note. **Walked**: a newcomer arrived with 4 five-zorkmid
+  pieces and deposited them, so the till held 20. The override-funded
+  walker withdrew 15 in cash, and a second 15 was refused ("till low").
+  Both are right.
+- **A branch now also stocks its till from its own reserves**
+  (`floatTillImpl`): the shortfall, rounded up to `banking.tillFloatQuantum`
+  (500 minor), drawn by `disburse` from the branch's own account, then from
+  its corpo's treasury. This is the till-float consumer that `disburse`'s
+  doc names. It is supply-neutral, and it does nothing on a fresh world,
+  where neither account holds anything.
+- **Buying on account settles**: the general store and the plumber's yard,
+  before and after clocking on, and after a title purchase. The old walk's
+  failures did not reproduce. The one that did reproduce was the
+  **message**. "You can't cover X" was the line for three different
+  causes, and a walker with no account and no coin read it as being poor.
+  The refusal is now told by which side failed, using
+  `BankingApi.canSettle`:
+  - you have nothing to pay with (`bank open`);
+  - you can't cover it;
+  - the counter can't take payment.
+- Bank, pay and wallet refusals no longer show `BankingLogic.withdraw:`
+  to the player.
+- **Seen, not fixed**: `bank deposit 20` answers "Couldn't resolve 'coins'
+  (resolve): bare integer '20' is not valid at the head of a chain".
+  `deposit` takes the coins (`bank deposit pieces`), and a player will type
+  the amount.

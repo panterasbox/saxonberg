@@ -254,6 +254,27 @@ export class TestAuthRoutes {
       }
     });
 
+    // ⭐ A test character arrives as a newcomer does — the Arrival Note's
+    // coin in hand (a walk's real cash, where `reserve override` is only
+    // ledger money the till rightly refuses to pay out).
+    app.post('/auth/test-arrive', (req: Request, res: Response) => {
+      if (TEST_AUTH_TOKEN && req.get('x-test-auth') !== TEST_AUTH_TOKEN) {
+        res.status(403).json({ error: 'forbidden' });
+        return;
+      }
+      const handle = (req.body as { handle?: unknown } | undefined)?.handle;
+      if (typeof handle !== 'string' || handle === '') {
+        res.status(400).json({ error: 'handle must be a string' });
+        return;
+      }
+      TestHooks.arriveCharacter(handle)
+        .then((result) => res.json(result))
+        .catch((err: unknown) => {
+          console.error('TestAuthRoutes: test-arrive failed:', err);
+          res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
+        });
+    });
+
     // ⭐ A test character handed a thing (a drive's setup: a winter coat to
     // wear, an ore to smelt) — by name, not dropped from the founder's hands.
     app.post('/auth/test-hand', (req: Request, res: Response) => {
@@ -281,7 +302,7 @@ export class TestAuthRoutes {
 
     console.warn(
       'TestAuthRoutes: ⚠  /auth/test-login, /auth/test-clock, /auth/test-weather, ' +
-        '/auth/test-nourish and /auth/test-hand are MOUNTED (test seams). Never in production.'
+        '/auth/test-nourish, /auth/test-arrive and /auth/test-hand are MOUNTED (test seams). Never in production.'
     );
   }
 }

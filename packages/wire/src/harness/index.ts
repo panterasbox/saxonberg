@@ -35,6 +35,7 @@ export {
   toWarmSeason,
   toSeasonDay,
   nourish,
+  arrive,
   dress,
   dressFounder,
   hand,

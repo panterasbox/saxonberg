@@ -252,6 +252,23 @@ async function nourishHandle(handle: string): Promise<void> {
   }
 }
 
+/**
+ * ⭐ **Arrive as a newcomer does** — the Arrival Note issued, its principal
+ * as coin in hand (`POST /auth/test-arrive`; `embody confirm` does this for
+ * a real player, and a test-login character skips char-gen). The honest way
+ * to give a drive character CASH: `reserve override` is ledger money with no
+ * coin behind it, which a branch's till is designed to refuse (AC#13).
+ *
+ * @throws if the world refuses (already issued, treasury short).
+ */
+export async function arrive(s: Session): Promise<void> {
+  const res = await postTestRoute('/auth/test-arrive', { handle: s.handle });
+  const body = (await res.json()) as { ok?: boolean; reason?: string; error?: string };
+  if (!res.ok || body.ok !== true) {
+    throw new Error(`arrive(${s.handle}) failed (${res.status}): ${body.error ?? body.reason ?? JSON.stringify(body)}`);
+  }
+}
+
 /** The commons' warmest honest garment — the coat the dorm footlocker offers. */
 export const WINTER_COAT = '/stuff/thing/clothes/greatcoat';
 
