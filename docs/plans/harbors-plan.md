@@ -713,7 +713,7 @@ I ran nine full drives on a fresh DB, port 2019. Pass counts by run: 8, 11, 14, 
 | paint | ✅ 16/16 | |
 | maritime-space | ✅ 40/40 | It was red in the shared world on `look river` (a prompt: *the bank at the confluence / river*). **Ours, fixed** in `9c3968fd6`, and the 40/40 run includes the fix. |
 | cordage | ✅ 18/18 | First 14/18: steps 9–16 got *you can't reach down*. **Ours, fixed** in `9c3968fd6`. |
-| lock-reconciliation | ✅ 14/14 | Green in the shared run (the clean files ran before the OOM). Not re-run alone. |
+| lock-reconciliation | ✅ 13/13 | Green in the shared run (the clean files ran before the OOM). Not re-run alone. |
 | reachability | 20/22 | Step 8 (`lock north` must be unknown) was **ours and the step was wrong**: since review 3 `lock` reaches a way's lock. The file now asserts that `lock north` is understood and `fly up` is not. ⚠ Steps 1 (`walk out` from the general store) and 7 (`swim` must be unknown) are **not ours**. Step 7 says in its own comment that it fails once water lands (maritime, 10-13). No exit on the shop floor answers to `out`, and none did before review 3 either. Both are stale on master. |
 | location-graph | 10/11 | ⚠ Step 7 is **not ours**. `map` was read right after `look`/`north`. The map write is fire-and-forget (`recordSurroundings` → `void recordPerceived`), and harbors did not touch it. A probe showed the map present a moment later, and the file's next step reads it fine. The test reads too soon. The Cartographer now logs a failed write instead of swallowing it, and none failed. |
 | routing | 12/14 | ⚠ Step 7 is **not ours**: the same race (`route` straight after arrival finds *no map yet*). `help route` timed out once at 30 s with the world under load. It passed in the shared run. |
