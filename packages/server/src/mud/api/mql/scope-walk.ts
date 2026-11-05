@@ -79,7 +79,7 @@ export function candidatesForHere(
       pushDetails(out, door, viewer);
     }
     // ⭐ Each exit the VIEWER can see is a candidate in its own right
-    // (harbors review 3): its `stuff` IS the way, read like every other
+    //: its `stuff` IS the way, read like every other
     // candidate through its Perceptible face — the name and keywords are
     // the EXIT's (`Exit.getKeywords`: authored + direction + short forms),
     // never built here. `obviousExitsFor(viewer)` so a

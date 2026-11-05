@@ -1,5 +1,5 @@
-# Corrigan's hold — below the deck, where her cargo rides (harbors A2).
-# A `Hold`: her one room that keeps a record (review 2).
+# Corrigan's hold — below the deck, where her cargo rides.
+# A `Hold`: her one room that keeps a record.
 class: /platform/location/Hold
 data:
   shortDescription: hold

@@ -110,7 +110,7 @@ afterEach(() => {
   StuffApi.clearAll();
 });
 
-describe('BailController — the bucket over any lift source (harbors review 1)', () => {
+describe('BailController — the bucket over any lift source', () => {
   it('⭐ a spell is the handling plus the rope: 20 s at a boat\'s bilge, 30 s down a 25 m bore', async () => {
     const shallow = makeStuff(() => new TestSource());
     await bail({ target: one(shallow, 'boat') });

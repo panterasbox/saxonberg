@@ -1,12 +1,12 @@
 /**
- * RentController — `rent <boat> [for <n> days] [at <book>]` (harbors P18;
- * review 1: the hire book).
+ * RentController — `rent <boat> [for <n> days] [at <book>]` (the hire
+ * book).
  *
  * A boat let by the day: the shed's hire book prices her kind
  * (`HireBook.rates`), the hirer pays `n × rate` to the house up front (the
  * book is the venue), and she is put on hire to them
  * (`HirableMixin.hireTo`) — in their custody, never their title. ⭐ Her hire
- * is the one record (harbors review 2): it names the book that let her, and
+ * is the one record: it names the book that let her, and
  * the book writes nothing — its page reads its boats out off the boats. The hire ends when she is put down on the landing
  * she was let from (`Boat.onMoved`), so nothing here schedules anything.
  *

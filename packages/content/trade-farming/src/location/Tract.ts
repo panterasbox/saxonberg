@@ -258,7 +258,7 @@ export default class Tract extends TractBase {
 
   /**
    * ⭐ A plan tract's share of its holding's OPEN ground (tracts
-   * build D27; authored on the tract's own row since harbors review 3 —
+   * build D27; authored on the tract's own row —
    * it was the retired `floorplan:` entry's). A copy of the layout on a
    * bigger parcel has bigger tracts, in proportion. `null`: not sized by
    * a holding (an authored venue farm's tract is sized by its row).
@@ -1368,7 +1368,7 @@ export default class Tract extends TractBase {
 
   /**
    * ⭐ A keyed tract is a copy in a farm's layout, stood up by its holding,
-   * never alone by its key (harbors review 2); an authored venue tract is
+   * never alone by its key; an authored venue tract is
    * keyless and never asked.
    *
    * @hook

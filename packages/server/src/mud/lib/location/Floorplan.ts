@@ -1,6 +1,6 @@
 /**
  * Floorplan — ⭐ **a kind of building's rooms, read off the plan its
- * OWNER authors** (harbors review 3; the owner moved, 2026-11-03).
+ * OWNER authors** (the owner moved).
  *
  * A warren that mints copies of a set of rooms — a Hinkley house, a dorm
  * unit, a valley farmstead, a smack — copies a PLAN: an `extent` whose
@@ -33,7 +33,7 @@
  * row path (unique within the plan); a one-room plan has none — its copy
  * is keyed by the warren's own key.
  *
- * ⭐⭐ **Its buildings are authored too** (harbors review, 2026-11-03).
+ * ⭐⭐ **Its buildings are authored too**.
  * The owner's `buildings:` names each building of the kind, the main one
  * first — a Building row with its own `extent` and `entrance`, like any
  * building. A building's rooms are the plan's rooms at or under ITS

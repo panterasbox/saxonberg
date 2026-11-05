@@ -1,6 +1,6 @@
 /**
  * BerthController — `berth <ship> at <quay>` / `berth <ship> roads`: the
- * harbormaster's call (harbors A2, P8, P11).
+ * harbormaster's call.
  *
  * Afforded by the berth book (`HarborBook`, peers). The controller only
  * finds the book, the ship and the quay by the words given and asks the
@@ -33,7 +33,7 @@ export default class BerthController extends CommandController<BerthModel> {
     if (book === null) return this.decline(context, 'There is no berth book here to give a berth from.', 'no-book');
     const harbor = await book.liveHarbor();
     if (harbor === null) return this.decline(context, 'Nobody keeps this book.', 'no-harbor');
-    // ⭐ The seat, on shift — before anything is looked up (P11).
+    // ⭐ The seat, on shift — before anything is looked up.
     if (!harbor.keptBy(giver)) return this.decline(context, 'You do not keep this harbor.', 'not-keeper');
     const nowS = WorldClockApi.getNow().rawValue();
     const ship = await harbor.shipNamed(model.ship, nowS);

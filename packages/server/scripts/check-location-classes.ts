@@ -437,7 +437,7 @@ export function unzonedCoords(rows: readonly Row[]): string[] {
  * `ColumnWarren` clones one per band under a deep water and stamps it a
  * cell below its surface, so a band row is a KIND of depth, never a
  * place an author positions. *
- * ⭐ A ship KIND's rooms (harbors B1): her `ShipWarren` mints one of each
+ * ⭐ A ship KIND's rooms: her `ShipWarren` mints one of each
  * per ship, keyed `(row, <serial>/<leaf>)`, and lays them out in her own
  * frame from the floorplan (`FloorplanWarren.layOut`) — a smack's deck is
  * every smack's deck row, never a place an author positions. Only the hold

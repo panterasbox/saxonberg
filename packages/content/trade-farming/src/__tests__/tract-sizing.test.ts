@@ -18,7 +18,7 @@ const LOT = '/world/_t/valley/lots/lot-1';
 
 function holding(): HoldingWarren {
   const h = makeStuffAtPath(() => new HoldingWarren(), '/world/_t/farmstead');
-  // ⭐ Its plan is its own (harbors review 3; no blueprint row): the
+  // ⭐ Its plan is its own (no blueprint row): the
   // yard's 400 m² is the programme's footprint; the tract's share is its
   // own row's field.
   h.setExtent('/world/_t/farm');

@@ -161,7 +161,7 @@ async function holdsAuthorityImpl(
 }
 
 /**
- * ⭐ The `owners` authority (harbors review 1, the institutions slate's cap
+ * ⭐ The `owners` authority (the institutions slate's cap
  * table): whoever holds a MAJORITY of the organization's table. A player
  * holder is an identity match; an organization holder's OWN authority is
  * asked in turn (the line's office appoints the Hesper's master). Fails

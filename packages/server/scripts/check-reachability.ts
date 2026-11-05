@@ -649,7 +649,7 @@ const CITATIONS: Record<string, string> = {
   bunker: "the bin a ship's fire is fed from — propped on her deck, read by the ship on use (river D29)",
   ferry: "the boat a ferry crossing works with — propped at its landing, looked for there on use (river D31)",
   bells: "the bells a ferryman listens for — propped on their landings, read on his beat (river D31)",
-  book: "the berth book a harbor keeps its record in — propped on its office desk, followed forward on use (harbors review 2)",
+  book: "the berth book a harbor keeps its record in — propped on its office desk, followed forward on use",
 };
 
 /** Is this a `thing`-branch template path? */

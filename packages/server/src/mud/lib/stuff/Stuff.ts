@@ -1343,7 +1343,7 @@ export abstract class Stuff {
 
   /**
    * Am I a WAY between places — an `Exit`? MQL binds a direction to the
-   * exit itself (harbors review 3), so the readers of a binding ask this
+   * exit itself, so the readers of a binding ask this
    * rather than importing the class: `Exit` sits on the locomotion
    * import graph, and a value import of it from the query engine closed
    * a load cycle through containment.

@@ -1,4 +1,4 @@
-# The kind zone of a sea stop (harbors B5): the sea over a ship that went
+# The kind zone of a sea stop: the sea over a ship that went
 # down. It stands EMPTY: every stop is minted with a zone of its own from
 # this row (its identity under this path), as a sea patch is.
 class: /system/water/location/SeaZone

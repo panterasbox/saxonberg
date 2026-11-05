@@ -234,7 +234,7 @@ export class NavigationApi {
    * ⭐ `path` is a row or a minted identity — never a keyed handle
    * (`row#key`, which throws): a keyed room of a ship kind is answered by
    * its warren, so holding the room, ask it — `Place.structure()` /
-   * `structureNow()` (harbors review 1).
+   * `structureNow()`.
    */
   public static structureAt(path: string): Promise<Structure | null> {
     return logic().structureAt(path);

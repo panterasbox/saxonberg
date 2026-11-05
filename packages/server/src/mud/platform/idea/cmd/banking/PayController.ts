@@ -11,7 +11,7 @@
  * `BankingApi.settle`; the bar wires that in the integration phase.)
  *
  * ⭐ **A recipient that holds your bills** (`Payable` — the harbor office's
- * book, harbors P13) is paid what it says you owe, never an amount you
+ * book) is paid what it says you owe, never an amount you
  * type: each bill settles to the venue it names through
  * `EmploymentApi.settleSale` as you (credential, then cash), in its order,
  * and the first that cannot be paid stops the rest — you are told what was
@@ -43,7 +43,7 @@ export default class PayController extends BankingControllerBase<PayModel> {
   async execute(model: PayModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
 
-    // ⭐ A recipient that holds your bills is paid what it says (P13).
+    // ⭐ A recipient that holds your bills is paid what it says.
     const held = model.recipient.stuff;
     if (held && MixinApi.isPayable(held)) {
       await this.payBills(held, model, context);
@@ -140,7 +140,7 @@ export default class PayController extends BankingControllerBase<PayModel> {
 
   /**
    * ⭐ Pay every bill `holder` keeps for the giver, in order, stopping at
-   * the first that fails (P13). A stated amount is refused: what is owed
+   * the first that fails. A stated amount is refused: what is owed
    * is the holder's to say.
    */
   private async payBills(

@@ -68,7 +68,7 @@ export default class SeaWarren extends SingletonMixin(RoomWarren) {
   private _patches = new Set<SeaPatch>();
   private _serial = 0;
   private _mintChain: Promise<unknown> = Promise.resolve();
-  /** ⭐ The stops standing now, by key (harbors B5) — each persisted by its own record. */
+  /** ⭐ The stops standing now, by key — each persisted by its own record. */
   private _stops = new Map<string, SeaStop>();
 
   /* ───────────────────────── Warren policy ───────────────────────── */
@@ -193,7 +193,7 @@ export default class SeaWarren extends SingletonMixin(RoomWarren) {
    * the first time anybody has gone into it, with a way up onto her deck.
    */
   public async patchAlongside(ship: ShipShape): Promise<SeaPatch> {
-    // ⭐ Over a wreck, the water beside her IS the stop over it (harbors B5):
+    // ⭐ Over a wreck, the water beside her IS the stop over it:
     // a diver puts in from a ship that comes to the spot.
     const stop = [...this._stops.values()].find((r) => !r.isDestroyed() && this.within(ship, r as unknown as SeaPatch)) ?? null;
     if (stop !== null) {
@@ -206,7 +206,7 @@ export default class SeaWarren extends SingletonMixin(RoomWarren) {
     return patch;
   }
 
-  /* ───────────────────────── stops (harbors B5) ───────────────────────── */
+  /* ───────────────────────── stops ───────────────────────── */
 
   /**
    * ⭐ A ship has gone down where she lies (`Frame.stopOver`): the sea keeps a
@@ -284,7 +284,7 @@ export default class SeaWarren extends SingletonMixin(RoomWarren) {
   /** A way up onto her deck, named for her, if the patch has none yet. */
   private async wireDeck(patch: SeaPatch, ship: ShipShape): Promise<void> {
     const deck = ship.getEntrance();
-    // ⭐ The way names HER (harbors P3) — her durable handle, never her deck's
+    // ⭐ The way names HER — her durable handle, never her deck's
     // row, which every ship of a kind shares; the row is only its face.
     const handle = ship.getDurableHandle() ?? ship.getTemplatePath() ?? '';
     if (!deck || !handle || !MixinApi.isExitable(patch)) return;
@@ -314,9 +314,9 @@ export default class SeaWarren extends SingletonMixin(RoomWarren) {
 
   /* ───────────────────────── reads ───────────────────────── */
 
-  /** The ship a deck (or any of her places) belongs to — her warren's answer for a keyed room (harbors P3). */
+  /** The ship a deck (or any of her places) belongs to — her warren's answer for a keyed room. */
   private async shipOf(place: Stuff): Promise<ShipShape | null> {
-    // The place is asked: a keyed room's ship is its warren's (harbors P3).
+    // The place is asked: a keyed room's ship is its warren's.
     const s = place.isPlace() ? await (place as unknown as Place).structure().catch(() => null) : null;
     if (!s || !MixinApi.isVoyaging(s) || !MixinApi.isPositioned(s)) return null;
     return s;

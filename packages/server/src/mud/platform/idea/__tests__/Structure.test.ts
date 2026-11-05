@@ -37,7 +37,7 @@ describe('Structure', () => {
     expect(tower.shouldPersist()).toBe(false);
     const ship = makeStuff(() => new Ship());
     // ⭐ A ship is a structure — of the BASE: a building row is one building
-    // (the singleton twin), a ship kind is many ships of one row (harbors B1).
+    // (the singleton twin), a ship kind is many ships of one row.
     expect(ship).toBeInstanceOf(StructureBase);
     expect(ship).not.toBeInstanceOf(Structure);
     expect(MixinApi.isSingleton(tower)).toBe(true);

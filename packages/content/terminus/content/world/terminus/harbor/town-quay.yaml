@@ -1,4 +1,4 @@
-# The Town Quay (harbors A1) — the harbor's long berth: seventy meters of
+# The Town Quay — the harbor's long berth: seventy meters of
 # stone wall, room for a coaster and a ketch end to end, or the Hesper and
 # change. ⭐ A HarborQuay: a ship comes alongside only at the berth the
 # harbormaster gave her (`hail office`), and is in the harbor's book while
@@ -16,7 +16,7 @@ data:
     Northward the quay opens onto the estuary mouth and the made path back to the city. West, past a cart and a stack of fish boxes, the wall steps down to the Fish Quay; east, a flight of stairs goes into the water. The harbor office stands at the back of the quay with its door open and a flagstaff over it, and on the corner to the southwest a ship chandler's has its door propped with a cask.
   coords: { x: 0, y: 0, z: 0 }
   harbor: /world/terminus/harbor/idea/harbor
-  # ⭐ What a ship's lines are made fast round (harbors P6) — four along the
+  # ⭐ What a ship's lines are made fast round — four along the
   # wall, so two ships lie end to end with a line each way.
   props:
     - { template: /platform/thing/bollard, count: 4 }
@@ -48,7 +48,7 @@ data:
     south:
       destination: /world/terminus/harbor/office
       media: [ground]
-    # ⭐ The ship chandler (harbors B4), at the corner of the quay.
+    # ⭐ The ship chandler, at the corner of the quay.
     southwest:
       destination: /world/terminus/harbor/chandler/shop
       media: [ground]

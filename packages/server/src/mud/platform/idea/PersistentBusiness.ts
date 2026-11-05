@@ -1,6 +1,6 @@
 /**
  * PersistentBusiness — ⭐ **a business that is KEPT, and keeps a table of
- * its owners** (harbors review 1, the institutions slate's cap table): a
+ * its owners** (the institutions slate's cap table): a
  * {@link BusinessEntity} composing `CapTableMixin`, with `PersistableMixin`
  * outermost so the table outlives the process.
  *

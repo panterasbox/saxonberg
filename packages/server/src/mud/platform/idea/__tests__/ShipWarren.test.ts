@@ -1,5 +1,5 @@
 /**
- * ShipWarren — ⭐ ships from a KIND (harbors B1, P1–P3), over synthetic rows
+ * ShipWarren — ⭐ ships from a KIND, over synthetic rows
  * under `/test/**` (lint:test-content: kernel tests never name /world/).
  *
  * - two ships of one kind are keyed apart: their own rooms, their own
@@ -215,7 +215,7 @@ describe('ShipWarren — ships from a kind (harbors B1)', () => {
   it('⭐ two smacks of one kind are keyed apart — rooms, contents, handles, and which ship a room is', async () => {
     const a = await mint('a1');
     const b = await mint('b2');
-    // ⭐ A ship of a kind is a minted identity (review 1): her handle IS it.
+    // ⭐ A ship of a kind is a minted identity: her handle IS it.
     expect(a.getDurableHandle()).toBe(`${KIND}/a1`);
     expect(b.getDurableHandle()).toBe(`${KIND}/b2`);
     expect(a.getIdentityPath()).toBe(`${KIND}/a1`);
@@ -230,7 +230,7 @@ describe('ShipWarren — ships from a kind (harbors B1)', () => {
     expect(deckA).not.toBe(deckB);
     expect(deckA).toBeInstanceOf(Compartment);
     expect(deckA.getTemplatePath()).toBe(DECK);
-    // ⭐ A deck keeps no record (review 2): it is told apart by the key
+    // ⭐ A deck keeps no record: it is told apart by the key
     // her warren stood it up under, and has no handle of its own.
     expect(MixinApi.isPersistable(deckA)).toBe(false);
     expect(deckA.getDurableHandle()).toBeNull();
@@ -240,7 +240,7 @@ describe('ShipWarren — ships from a kind (harbors B1)', () => {
     const down = (deckA as unknown as Exitable).getExit('down');
     expect(down?.getDestination()?.getDurableHandle()).toBe(`${HOLD}#a1/hold`);
 
-    // ⭐ Her cargo is in her HOLD (review 2): two smacks keep separate cargo.
+    // ⭐ Her cargo is in her HOLD: two smacks keep separate cargo.
     const holdA = (deckA as unknown as Exitable).getExit('down')!.getDestination() as unknown as Stuff & Container;
     const holdB0 = (deckB as unknown as Exitable).getExit('down')!.getDestination() as unknown as Stuff & Container;
     expect(MixinApi.isPersistable(holdA)).toBe(true);
@@ -295,7 +295,7 @@ describe('ShipWarren — ships from a kind (harbors B1)', () => {
     // Asleep is captured: her record, her warren's, each room's.
     expect(await PersistableApi.hasRecord(`${KIND}/s1`, 's1')).toBe(true);
     expect(await PersistableApi.hasRecord(HOLD, 's1/hold')).toBe(true);
-    // ⭐ Her deck keeps none (review 2): it comes up from its row.
+    // ⭐ Her deck keeps none: it comes up from its row.
     expect(await PersistableApi.hasRecord(DECK, 's1/deck')).toBe(false);
     // Woken: the hold still holds the crate.
     const back = await ExpanseApi.standUpCraft(`${KIND}/s1`);

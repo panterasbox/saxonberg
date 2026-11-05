@@ -13,7 +13,7 @@
  * context) before updating the current-state row — never a destructive
  * overwrite. Title-only; `sell` (payment-coupled) is deferred.
  *
- * ⭐ **A ship's shares** (harbors P15, review 1) are the verb's second
+ * ⭐ **A ship's shares** are the verb's second
  * form, read off the parcel phrase (`<n> shares of <ship>`). A ship is
  * owned by her company, and her shares are the units of its cap table
  * (`CapTableMixin`): the verb finds her in the register, the register
@@ -32,7 +32,7 @@
  * up. Nobody but a holder can be the `from`; the table refuses the rest.
  * This controller only asks and says: the table decides.
  *
- * ⭐ **Which register** (review 1): the one kept by the government whose
+ * ⭐ **Which register**: the one kept by the government whose
  * law runs where the act is done (`GovernmentApi.subjectTo` of the room —
  * aboard, the flag state's). A bill of sale is made under the flag she is
  * entered under; nothing walks every register looking for her name.
@@ -60,13 +60,13 @@ import type { CapTable, CapTableResult, UnitHolder } from "../../../../lib/emplo
 
 const TOPIC = "shell.result";
 
-/** `16 shares of the gull` — the register's form of the verb (harbors P15). */
+/** `16 shares of the gull` — the register's form of the verb. */
 const SHARES_PHRASE = /^(\d+)\s+shares?\s+(?:of|in)\s+(.+)$/i;
 
 interface TransferModel extends CommandModel {
   parcel?: string;
   recipient?: MqlOneResult | string;
-  /** Shares bought: whose they are (harbors P15). */
+  /** Shares bought: whose they are. */
   holder?: MqlOneResult | string;
   /** Shares bought: what the buyer pays for them. */
   price?: string;
@@ -196,7 +196,7 @@ export default class TransferController extends CommandController<TransferModel>
   }
 
   /**
-   * ⭐ Shares of a ship change hands (harbors P15, review 1): bought from a
+   * ⭐ Shares of a ship change hands: bought from a
    * holder (`from … for …`, the buyer acting, the holder consenting) or
    * given by one (`to …`, the receiver consenting) — on her company's table.
    */

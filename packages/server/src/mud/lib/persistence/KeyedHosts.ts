@@ -1,6 +1,6 @@
 /**
  * KeyedHosts — ⭐ **the live keyed persistable hosts, indexed by
- * `(row, key)`** (harbors review 2).
+ * `(row, key)`**.
  *
  * A keyed host's identity IS the pair: its row (the template it was
  * cloned from) and the key its record is filed under. "Is it already

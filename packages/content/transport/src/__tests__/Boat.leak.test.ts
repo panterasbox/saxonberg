@@ -1,5 +1,5 @@
 /**
- * Boat — ⭐ the leak and bailing (harbors B5, P21).
+ * Boat — ⭐ the leak and bailing.
  *
  * - a boat leaks from her STATE — a hole stove in her — never the
  *   calendar; ashore nothing comes in;

@@ -20,20 +20,20 @@ data:
     across the transom: the Hesper.
   heightM: 18
   deckHeightM: 3
-  # ⭐ Her hull (harbors B5): the numbers she always floated by (the
+  # ⭐ Her hull: the numbers she always floated by (the
   # fallback `hullNow` read), and `depthM` — keel to deck, what she can take
   # aboard before the water is at her deck and she settles.
   hull: { lengthM: 30, beamM: 6, draftM: 1.2, depthM: 3 }
   mastheadHeightM: 20
   house: /world/terminus/hesper/idea/outfit
   # ⭐ The register she is entered in, and the name she is entered under
-  # (harbors P14, review 1): she knows her register — her owners and her
+  #: she knows her register — her owners and her
   # flag are read off her own entry there, never searched for.
   shipRegister: /platform/idea/ShipRegister/terminus-city
   registeredName: Hesper
   expanse: /stuff/idea/WaterExpanse/greywater
   expansePosition: { latDeg: 42.000, lonDeg: -8.470 }
-  # ⭐ Made fast at the estuary mouth (harbors P4): her lines round its
+  # ⭐ Made fast at the estuary mouth: her lines round its
   # bollards, and a way aboard named for her — `go hesper` — on it. A
   # course casts her off; a landing she comes to, she makes fast at.
   berth: /world/terminus/estuary/estuary-mouth

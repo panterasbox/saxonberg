@@ -46,7 +46,7 @@ args:
     scope: "online"
     prepositions: [to]
     requires: class:Agent
-  # ⭐ Shares bought (harbors P15): whose shares — a holder, online, who is
+  # ⭐ Shares bought: whose shares — a holder, online, who is
   # asked; and the price you pay them.
   - name: holder
     type: object

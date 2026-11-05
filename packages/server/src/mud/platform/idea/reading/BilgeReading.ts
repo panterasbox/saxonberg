@@ -1,6 +1,6 @@
 /**
  * BilgeReading — `measure bilge`: sounding a ship's well with a rod
- * (harbors P19, B4).
+ *.
  *
  * ⭐ How a hull's neglect is SEEN: the rod goes down the well, comes up
  * wet to a mark, and a second sounding after an hour says whether she is
@@ -13,7 +13,7 @@
  * bracketed; an expert whether one pump at the brake would gain on it.
  * No eye rung — you cannot see down a bilge well.
  *
- * Sounding her is seamanship too (P24): a ship is kept afloat by somebody
+ * Sounding her is seamanship too: a ship is kept afloat by somebody
  * who sounds her well every watch.
  */
 

@@ -83,7 +83,7 @@ function innermostStructure(
 /**
  * ⭐ A keyed handle (`row#key`) is never a row: the structure a keyed room
  * belongs to is its warren's answer, asked of the room
- * (`Place.structure()`), never of a path (harbors review 1 — the handle
+ * (`Place.structure()`), never of a path (the handle
  * scan is gone). Said loudly: a caller that passes one asks the wrong
  * question.
  */

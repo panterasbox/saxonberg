@@ -1,5 +1,5 @@
 /**
- * ⭐⭐ **An exit is a candidate in its own right** (harbors review 3).
+ * ⭐⭐ **An exit is a candidate in its own right**.
  *
  * A direction used to bind the ROOM carrying `via: { exit }` — a live
  * Exit inside a via, which reached its door's boundary and back (a cycle

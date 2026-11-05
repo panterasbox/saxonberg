@@ -1428,7 +1428,7 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
   }
 
   /**
-   * ⭐ The water over a river's bar now (harbors P10): the channel's depth
+   * ⭐ The water over a river's bar now: the channel's depth
    * at its mouth, the tide's level included, and the sea's tide there.
    * `null` for a course with no line or no mouth on the sea.
    */
@@ -1608,7 +1608,7 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
     const reachRef = `${pos.course}:${line.nearestNode(pos.km).name}`;
     const reach = index.reaches.get(reachRef);
     let tidal = false;
-    // ⭐ Below the tide's reach the river is the SEA'S (harbors P10): a
+    // ⭐ Below the tide's reach the river is the SEA'S: a
     // drowned valley whose depth is not the river's normal depth over its
     // own gradient (that is half a meter spread over an estuary's width)
     // but the bed below sea level the node authors (`meanDepthM`), with the
@@ -1657,8 +1657,7 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
     temperatureK = Math.max(UNDER_ICE_K, temperatureK);
 
     const speed = Math.abs(currentHereMps);
-    // ⭐ Broken water is the bed's AND the current's (harbors drive,
-    // 2026-11-04): a standing wave grows with the water's speed, so a
+    // ⭐ Broken water is the bed's AND the current's: a standing wave grows with the water's speed, so a
     // headwater rapid at a winter trickle throws next to nothing. The old
     // floor (half the bed's roughness at any speed) had the Rejection
     // put-in — 0.8 m/s, "too little for a boat" — swamp every hired canoe

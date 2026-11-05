@@ -58,7 +58,7 @@ describe('refsOf — the template-path field grammar', () => {
     ]);
   });
 
-  it("reads a holding plan's buildings — no blueprint row (harbors review, 2026-11-03)", () => {
+  it("reads a holding plan's buildings — no blueprint row", () => {
     const refs = refsOf({ buildings: ['/obj/_test/house-building', '/obj/_test/shed'] });
     expect(refs.map((r) => r.path)).toEqual(['/obj/_test/house-building', '/obj/_test/shed']);
     expect(refsOf({ blueprint: '/obj/_test/house-blueprint' })).toEqual([]);

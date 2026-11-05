@@ -1,5 +1,5 @@
 /**
- * A holding's LAYOUT as data (tracts build D27, D31; harbors review 3):
+ * A holding's LAYOUT as data (tracts build D27, D31):
  * the open ground its tracts share is the parcel's workable area less the
  * ground its plan's buildings cover (the programme's own `footprintM2` —
  * no blueprint row).

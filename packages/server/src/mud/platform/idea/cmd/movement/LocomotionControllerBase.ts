@@ -12,7 +12,7 @@
  *
  * Target shape mirrors `go.yaml`: MQL binds the player's typed
  * direction (or the way's keyword) to the EXIT itself — an exit is a
- * candidate in its own right (harbors review 3) — and the view's scope
+ * candidate in its own right — and the view's scope
  * is filtered to ways, so `go hesper` can only mean the way. The
  * controller acts on what was bound; no manual exit lookup. A sibling
  * vessel (`walk cabin` / `climb cabin`) is entered by its entry-exit.

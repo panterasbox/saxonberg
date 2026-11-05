@@ -37,7 +37,7 @@ describe('Waponi Woo', () => {
     expect(node.data.focus.theta).toBe(180);
     const landing = row(`${W}/location/landing`);
     // ⭐ The way aboard is the ship's, named for her and put here while she
-    // lies made fast (harbors P4); the landing authors what she makes fast to.
+    // lies made fast; the landing authors what she makes fast to.
     expect(landing.data.exits.aboard).toBeUndefined();
     expect(landing.data.props).toContain('/platform/thing/mooring-ring');
   });

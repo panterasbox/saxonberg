@@ -1,5 +1,5 @@
 /**
- * HullBook — ⭐ **the yard's hull book** (harbors review 1): the hulls a
+ * HullBook — ⭐ **the yard's hull book**: the hulls a
  * shipyard has on the stocks, each one a ship it will sell — title, not a
  * good off a shelf. The farmstead pattern: the plat book lists named lots
  * and a desk fronts the sale; here the book IS the fixture you buy at (it

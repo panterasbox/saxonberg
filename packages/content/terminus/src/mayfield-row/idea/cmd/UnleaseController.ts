@@ -111,7 +111,7 @@ export default class UnleaseController extends LettingController<UnleaseModel> {
   }
 
   /** The programme's plan rooms (leaf + room row), read off the ROWS so
-   *  a dormant unit reverts without being woken (harbors review 3: the
+   *  a dormant unit reverts without being woken (the
    *  programme row authors its plan — an `extent` over its room rows). */
   private async floorplanOf(): Promise<
     Array<{ leaf?: string; room: string | null }>

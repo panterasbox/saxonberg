@@ -267,7 +267,7 @@ export interface WaterPlace {
    */
   reconcileOccupants(): Promise<void>;
   /**
-   * ⭐ A band of this water's column has just budded (harbors B5): the
+   * ⭐ A band of this water's column has just budded: the
    * surface may wire what it knows lies down there — the way into a wreck
    * on the bed. Called by the column, once per bud.
    */
@@ -861,7 +861,7 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
       // structure is its warren's.
       const from = (via?.getSource() ?? null) as Stuff | null;
       const ship = from !== null && from.isPlace() ? (from as unknown as Place).structureNow() : null;
-      // ⭐ From one of her rooms into another (harbors B5: a compartment is
+      // ⭐ From one of her rooms into another (a compartment is
       // a water place) is not over her side.
       const ownRoom = ship !== null && (this as unknown as Place).structureNow() === ship;
       if (ship !== null && !ownRoom && MixinApi.isVoyaging(ship)) ship.noteOverboard(mover);

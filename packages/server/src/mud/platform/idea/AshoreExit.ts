@@ -10,13 +10,13 @@
  *
  * The craft is the Structure whose entrance this room is, looked up
  * (once, then cached) when the async gate is asked — of the deck itself
- * (`Place.structure()`, harbors P3), so a keyed deck of a ship KIND is
+ * (`Place.structure()`), so a keyed deck of a ship KIND is
  * answered by its warren, never by a row every ship of the kind shares.
  *
- * ⭐ A ship made fast at a landing (harbors P4) is ashore THERE: the berth
+ * ⭐ A ship made fast at a landing is ashore THERE: the berth
  * she records is read first, and the shipped reads (the landing within a
  * rope's throw on a river, the node's landing at sea) only after. Her
- * gangway's lock is read by this way as by the way aboard (P9) — `lock
+ * gangway's lock is read by this way as by the way aboard — `lock
  * ashore` bolts it from the deck — but leaving never refuses: this way's
  * gate never reads the bolt.
  */
@@ -76,8 +76,8 @@ export default class AshoreExit extends LockableMixin(DeferredDestinationExit) {
     // ⚠ The lock is read synchronously (`isLocked`, `lock`, `unlock`), and
     // the handle is only filled by `warm()` on a crossing — so before
     // anybody had gone ashore by this way, `unlock ashore` from her deck
-    // read *already unlocked* off a locked gangway (harbors drive,
-    // 2026-11-03, step 12). Not warmed yet: ask the deck, synchronously.
+    // read *already unlocked* off a locked gangway.
+    // Not warmed yet: ask the deck, synchronously.
     if (this.craftPath === null) {
       const source = this.getSource() as unknown as Stuff;
       if (!source.isPlace()) return null;
@@ -89,7 +89,7 @@ export default class AshoreExit extends LockableMixin(DeferredDestinationExit) {
   }
 
   /**
-   * ⭐ Never on a map (river D38 d, harbors review 1): this way comes and
+   * ⭐ Never on a map (river D38 d): this way comes and
    * goes with the ship — she leaves, and a map that wrote it down would
    * tell its owner of a way that left with her. `route` from aboard plans
    * from where she lies instead.
@@ -123,7 +123,7 @@ export default class AshoreExit extends LockableMixin(DeferredDestinationExit) {
   private landing(): string | null {
     const craft = this.craft();
     if (!craft || !MixinApi.isVoyaging(craft) || craft.getCourse() !== null) return null;
-    // ⭐ Made fast at a landing: ashore is THERE (harbors P4).
+    // ⭐ Made fast at a landing: ashore is THERE.
     const berth = this.berthed()?.getBerth() ?? null;
     if (berth !== null) return berth;
     // ⭐ On a river (D18): the landing she lies within hailing of a rope's

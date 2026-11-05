@@ -52,7 +52,7 @@
  * open to the sky. A closet holds air; a sailed ship's berth has nothing
  * alongside.
  *
- * ⛔ **A plan is NOT a Structure** (harbors review, 2026-11-03): a
+ * ⛔ **A plan is NOT a Structure**: a
  * Structure is only ever a thing standing in the world. The plan a warren
  * copies (an `extent` of room rows and an `entrance`) lives on whoever
  * owns it — a holding's programme row, a ship kind's own row — and is
@@ -69,7 +69,7 @@
  * outside's capabilities. A ruin or a monument is a class over this base
  * that composes none of them.
  *
- * ⭐ A {@link Ship} extends THIS base too (harbors B1), because a ship
+ * ⭐ A {@link Ship} extends THIS base too, because a ship
  * KIND (`/stuff/idea/Ship/smack`) is one row many ships are cloned from,
  * keyed `(row, serial)` — the singleton guard would refuse the second
  * smack. An authored ship (the Hesper) is still one-row-one-ship by the
@@ -365,7 +365,7 @@ export default class Structure extends DetailedMixin(
   }
 
   /**
-   * A rope this structure made fast ACROSS (harbors review 1 — the end of
+   * A rope this structure made fast ACROSS (the end of
    * a rope lying in one of its rooms, tied round a fixture in another:
    * `Rope.tieTo(structure, fixture, knot)`) has been let go — untied where
    * it was round the fixture, or cast off where the rope lies.

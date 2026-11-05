@@ -1,9 +1,9 @@
 /**
- * `rent canoe for 2 days` — ⭐ a boat let by the day (harbors B3, P18;
- * review 1: the shed's hire book). The hire book prices her kind
+ * `rent canoe for 2 days` — ⭐ a boat let by the day (the
+ * shed's hire book). The hire book prices her kind
  * (`HireBook.rates`); the hirer pays `n × rate` to the house up front (the
  * book is the venue); she is put on hire to them — custody, never title.
- * ⭐ Her hire is the ONE record (review 2): the book keeps no copy and reads
+ * ⭐ Her hire is the ONE record: the book keeps no copy and reads
  * its boats out off the boats. Every refusal comes before any money moves.
  */
 

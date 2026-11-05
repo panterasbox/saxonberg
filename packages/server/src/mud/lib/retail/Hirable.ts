@@ -1,5 +1,5 @@
 /**
- * HirableMixin — ⭐ **a thing let by the day** (harbors P18): a canoe at
+ * HirableMixin — ⭐ **a thing let by the day**: a canoe at
  * the outfitter's put-in, a rowboat at a boat shed. `rent <boat> for <n>
  * days` pays the house `n × rate` up front and puts her in the hirer's
  * CUSTODY — never her title: whose she is stays the house's, and the hire

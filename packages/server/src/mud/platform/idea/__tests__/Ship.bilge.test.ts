@@ -1,6 +1,6 @@
 /**
- * Ship — ⭐ the hull clock, the leak, the bilge and the pump (harbors B4,
- * P19), over synthetic rows under `/test/**`.
+ * Ship — ⭐ the hull clock, the leak, the bilge and the pump,
+ * over synthetic rows under `/test/**`.
  *
  * - the leak is her shell's band × her length (+ a hole), the house's rate;
  * - the bilge is the leak integrated over the shell's LINE, band by band —

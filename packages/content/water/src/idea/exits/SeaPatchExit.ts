@@ -5,7 +5,7 @@
  * Three ways: `side`, from her deck into the water beside her (refused while
  * she is under way — swimmers at sea exist only where a ship has stopped);
  * `deck`, from the water up onto the deck of a ship still lying here
- * (refused, in words, when she has sailed); and ⭐ `wreck` (harbors B5),
+ * (refused, in words, when she has sailed); and ⭐ `wreck`,
  * from the bed into the ship lying on it — a way that stays while she does. The sea's warren decides both;
  * the exit decides nothing.
  *
@@ -36,7 +36,7 @@ export default class SeaPatchExit extends DeferredDestinationExit {
   /** Which way. */
   public way: SeaWay = 'side';
 
-  /** For `deck` and `wreck`: the ship's durable handle (harbors P3) — her deck is hers to say. */
+  /** For `deck` and `wreck`: the ship's durable handle — her deck is hers to say. */
   public target = '';
 
   public configureSea(way: SeaWay, target = ''): void {

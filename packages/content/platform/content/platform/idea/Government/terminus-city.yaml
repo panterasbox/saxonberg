@@ -44,7 +44,7 @@ data:
       label: Commissioner of Works
       department: /world/terminus/budget
       positionKey: works-foreman
-  # ⭐ The city keeps a register of ships (harbors P14) — by choice: this
+  # ⭐ The city keeps a register of ships — by choice: this
   # line is the choosing. A ship entered there flies the city's flag, and
   # at sea the city's law is the law aboard her.
   shipRegister: /platform/idea/ShipRegister/terminus-city

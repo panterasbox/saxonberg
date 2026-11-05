@@ -206,7 +206,7 @@ export class TestAuthRoutes {
         });
     });
 
-    // ⭐ A ship staged (harbors P25, B4): `{ship: '/row/path' | '<kind>/<serial>',
+    // ⭐ A ship staged: `{ship: '/row/path' | '<kind>/<serial>',
     // at?: {node} | {frame, cite}, hull?: band, bilgeL?: L, sleptDays?: n,
     // settling?: true}` —
     // put lying where and as the drive needs her, never sailed there.

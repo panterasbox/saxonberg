@@ -1,4 +1,4 @@
-# A smack's cabin (harbors B1) — under her deck: two bunks and a stove, and a
+# A smack's cabin — under her deck: two bunks and a stove, and a
 # door through the bulkhead forward into the fish hold.
 class: /platform/location/Compartment
 data:
@@ -11,7 +11,7 @@ data:
   # Her planking for walls and her deck overhead (construction.md).
   enclosure: { material: /stuff/idea/material/wood/oak, thicknessM: 0.05 }
   roof: { material: /stuff/idea/material/wood/pine, thicknessM: 0.04 }
-  # ⭐ Her plan (harbors review 3): under the deck, the hold through
+  # ⭐ Her plan: under the deck, the hold through
   # the bulkhead forward — her fore is the plan's north.
   floorM: 0.3
   exits:

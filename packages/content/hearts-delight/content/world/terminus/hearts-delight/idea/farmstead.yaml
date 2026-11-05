@@ -1,7 +1,7 @@
 # A valley farmstead — the LAYOUT every farm sold in the Delight valley is
 # a copy of (tracts build D33). A residence holding like a Hinkley house.
 #
-# ⭐ Its PLAN is its own (harbors review 3; 2026-11-03 — no blueprint row),
+# ⭐ Its PLAN is its own (no blueprint row),
 # authored as an ordinary place under `farmstead/`: the yard you come in
 # by, the barn north (a keyed door), the farmhouse south (a keyed door),
 # and three TRACTS of open ground — the bench up, the meadow east, the
@@ -18,7 +18,7 @@
 # frontage goes out southwest, also clear.)
 #
 # `buildings`: the farmhouse (the main one, first) and the barn — each its
-# own Building row with its own extent (harbors review, 2026-11-03). The
+# own Building row with its own extent. The
 # yard and the tracts lie under neither, so they are open ground.
 #
 # `footprintM2`: the ground the yard (400), the farmhouse (120) and the

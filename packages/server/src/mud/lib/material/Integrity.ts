@@ -105,7 +105,7 @@ const DAMAGE_PENALTY: Readonly<Partial<Record<FlawKind, number>>> = {
   dunt: 0.3,
   crack: 0.5,
   check: 0.15,
-  // ⭐ A hole stove in a hull (harbors P21): a boat leaks through it.
+  // ⭐ A hole stove in a hull: a boat leaks through it.
   holed: 0.5,
 };
 

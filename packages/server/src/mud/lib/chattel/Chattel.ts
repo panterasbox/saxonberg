@@ -345,8 +345,8 @@ export function ChattelMixin<TBase extends MixinConstructor<Stuff>>(
     private _titleOutlivesThis = false;
 
     /**
-     * See {@link Chattel.keepTitleThroughDestruct}. ⭐ (harbors drive,
-     * 2026-11-04) A smack slept with a player's oakum in her hold: the hold
+     * See {@link Chattel.keepTitleThroughDestruct}. ⭐ A
+     * smack slept with a player's oakum in her hold: the hold
      * was captured, the owned good flushed to its owner's estate, and then
      * the hold's destruct destructed the oakum and RELEASED its title — so
      * the estate entry named a good the registry no longer had, and the

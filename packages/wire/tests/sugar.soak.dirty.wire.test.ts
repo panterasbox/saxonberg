@@ -665,7 +665,7 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage B, Waponi Woo and the 
     // What Terminus feels like tonight, for step 14 to compare against.
     homeFeel = await say(sailor, 'analyze temperature');
     await say(sailor, 'go hesper');
-    // ⭐ Only her master takes the helm (harbors P12, P27): the sailor
+    // ⭐ Only her master takes the helm: the sailor
     // charters her from the book in her hold, and lays her course as her
     // master for the charter.
     await say(sailor, 'go down');
@@ -708,7 +708,7 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage B, Waponi Woo and the 
         // river build's voyage, drive 20: she was there and nothing said
         // so) — the course's own refusal is the state, and it is enough.
         const laid = await say(sailor, 'course waponi woo');
-        // ⭐ Lying off the island already (harbors A3): its name brings her
+        // ⭐ Lying off the island already: its name brings her
         // in — or the jetty's keeper wants a hail first.
         if (/at Waponi Woo already|given her a berth|bring her in/i.test(laid)) {
           heard += ' You raise Waponi Woo';
@@ -719,7 +719,7 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage B, Waponi Woo and the 
     }
     expect(fixed, 'the peak never came up over the horizon').toBe(true);
     expect(heard, 'she never raised the island').toMatch(/You raise Waponi Woo/);
-    // ⭐ The island's jetty is a berth (harbors P26): she lies off until the
+    // ⭐ The island's jetty is a berth: she lies off until the
     // estate store gives it her — hail, then `course waponi woo` brings her
     // in alongside, and her charter ends there, billed.
     let answer = '';
@@ -886,7 +886,7 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage B, Waponi Woo and the 
     if (bought < 1) bought += await buyEstateBlocks(1);
     if (bought < 1) await books(`${W}/location/store`);
     expect(bought, 'the estate never had a block to sell').toBe(1);
-    // ⭐ Cleared before she sails (harbors P13, P26): the jetty's dues and
+    // ⭐ Cleared before she sails: the jetty's dues and
     // step 13's charter days are paid at the estate store — the island's
     // harbor office.
     const paidUp = await say(sailor, 'pay office');
@@ -894,7 +894,7 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage B, Waponi Woo and the 
     sailor.close();
     sailor = await goTo(sailorHandle, `${W}/location/landing`);
     await say(sailor, 'go hesper');
-    // ⭐ Chartered again from the book in her hold (harbors P27): her helm is
+    // ⭐ Chartered again from the book in her hold: her helm is
     // the charterer's until she next berths at a kept quay.
     await say(sailor, 'go down');
     const again = await say(sailor, 'charter');

@@ -300,7 +300,7 @@ function positionalLean(scope: Stuff | null): ClimateLean | null {
   if (expanseApi === null || scope === null) return null;
   const root = MixinApi.isContainable(scope) ? scope.getRootContainer() ?? scope : scope;
   try {
-    // ⭐ A room is asked which structure it is part of (harbors review 1):
+    // ⭐ A room is asked which structure it is part of:
     // a ship of a kind's room is keyed by her serial and its row is every
     // ship of the kind's, so the craft is named by HER identity.
     const s = root.isPlace() ? (root as unknown as Place).structureNow() : null;

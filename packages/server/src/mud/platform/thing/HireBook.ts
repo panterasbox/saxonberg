@@ -1,12 +1,12 @@
 /**
- * HireBook — ⭐ **the shed's hire book** (harbors review 1): what a house
+ * HireBook — ⭐ **the shed's hire book**: what a house
  * lets by the day, and which of its boats are out past their day. It is a
  * LET, not a sale — a thing in your custody and never your title — so it is
  * its own book and nothing a shop counter keeps (`Stock` sells goods).
  *
  * - **`rates`** — kind row → minor units a day (`{ …/canoe: 3 }`); a kind
  *   with no rate is not let here. Authored.
- * - ⭐ **One record of a hire: the boat's** (harbors review 2). `rent` puts
+ * - ⭐ **One record of a hire: the boat's**. `rent` puts
  *   her on hire (`HirableMixin.hireTo`) and her hire names this book as the
  *   one that let her; the book writes nothing. Its page reads who has which
  *   boat, and until when, OFF THE BOATS: the live boats of the kinds its own

@@ -42,7 +42,7 @@
  * the brine is a hundred metres down. ⭐ And *that* is the hole a pump
  * fills: a pump set IN the hole raises by `liftInto` (this host answers
  * `LiftSource` and `PumpSource`; see docs/subsystems/pump.md) — and so,
- * since harbors review 1, does the bailer: `bail` is the platform's bucket
+ * does the bailer: `bail` is the platform's bucket
  * over any lift source, asks no pressure, and this hole adds only its own
  * words (`bucketRefusal` — a derrick; `bucketLanded` — the answer).
  *
@@ -774,7 +774,7 @@ export default class Wellhead
     }
   }
 
-  // ---------- `bail`: the platform's bucket over this hole (harbors review 1) ----------
+  // ---------- `bail`: the platform's bucket over this hole ----------
 
   /**
    * ⭐ A bucket goes down a hole on a rope: a hole wants a derrick over it —

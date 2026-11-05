@@ -1,6 +1,6 @@
 /**
- * ForSaleMixin — ⭐ **a thing that has something for sale** (harbors review
- * 1): the ONE protocol `buy` speaks. `buy <thing>` binds the thing in front
+ * ForSaleMixin — ⭐ **a thing that has something for sale**:
+ * the ONE protocol `buy` speaks. `buy <thing>` binds the thing in front
  * of you that composes this, asks it which of the sellers standing here
  * offers the word (`sellerFor`), and hands that seller the whole sale
  * (`sell`) — every refusal comes back in words, before any money moves.

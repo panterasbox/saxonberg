@@ -17,7 +17,7 @@
  * always resolves to a row (D17), per-holding uniqueness carried by
  * the persistence spine's unique-key guard.
  *
- * ⭐ **The lift (harbors P1).** The floorplan mint, keyed rooms,
+ * ⭐ **The lift.** The floorplan mint, keyed rooms,
  * whole-warren dormancy and `layOut` are the kernel's `FloorplanWarren`
  * now. What stays here is only what is residential: the address stem,
  * the parcel keyway handed to the copy's keyed doors (`fitExit`), the
@@ -32,13 +32,11 @@
  * and entrance), else none, and its rooms read the Building row
  * that covers its extent (Seznick House) — and each carries its own coat
  * and its `Durable` condition, which the weather wears once the coat is
- * gone. ⭐ A building is AUTHORED (harbors review, 2026-11-03 — the
- * owner: deriving it from how rooms connect is magic): a farmstead's
+ * gone. ⭐ A building is AUTHORED (deriving it from how rooms connect is magic): a farmstead's
  * house and barn are the two its plan names, and the yard, which no
  * building's extent covers, is open ground and no building's.
  *
- * ⭐ **The plan is the programme row's own** (harbors review 3;
- * 2026-11-03). The programme row authors its plan itself — `extent` (the
+ * ⭐ **The plan is the programme row's own**. The programme row authors its plan itself — `extent` (the
  * kind's rooms, authored as ordinary rows: `exits:`, a tract's `share`),
  * `entrance`, `footprintM2` (the ground the buildings cover) and
  * `buildings:` — on the kernel `FloorplanWarren`'s fields. ⛔ No blueprint
@@ -126,7 +124,7 @@ export default class HoldingWarren extends FloorplanWarren {
   /**
    * The entry room's ROW for a programme row — the eager face a
    * FrontDoorExit / LotGateExit carries (D17: a real row): its PLAN's
-   * entrance (the programme row's own, harbors review 3 / 2026-11-03),
+   * entrance (the programme row's own),
    * read off the rows without waking a holding. Shared by every
    * institution that hangs doors on this programme. Throws on a programme
    * that authors no plan.
@@ -153,7 +151,7 @@ export default class HoldingWarren extends FloorplanWarren {
   /**
    * ⭐ **The holding's open ground**, m² (tracts build D27): the parcel's
    * workable area less the ground its plan's buildings cover (its own
-   * `footprintM2`, harbors review 3) — what the tracts' shares (each
+   * `footprintM2`) — what the tracts' shares (each
    * tract's own `share`) divide. `0` on an unmeasured parcel (nobody can say
    * what a third of it is). Residential because the area is the PARCEL's.
    */

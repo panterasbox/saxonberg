@@ -11,7 +11,7 @@
  * lot's house from the lane and it is a building like any other: you can
  * `look` at it, `survey` it, `paint` it, `maintain` it.
  *
- * ⭐ A building is AUTHORED (harbors review, 2026-11-03): the holding's
+ * ⭐ A building is AUTHORED: the holding's
  * programme row names its buildings (`buildings:`, the main one first,
  * beside the plan's `extent` and `entrance` it authors), each
  * a row of this class with its own `extent` and `entrance` — a

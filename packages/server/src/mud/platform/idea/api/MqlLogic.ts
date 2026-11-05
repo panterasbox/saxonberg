@@ -28,8 +28,8 @@ const MqlApiCallers = SecurityPolicies.FromModule('/api/mql#MqlApi');
  * ⛔ Compared by IDENTITY (and `detailPath` by value), never by
  * `JSON.stringify`: a via once held a live `Exit` whose boundary points
  * back at it, and stringifying threw on a well-formed `unlock north`
- * (the lock build's drive). Exits bind as themselves now (harbors review
- * 3) and every via is plain data, but a shallow compare is still both
+ * (the lock build's drive). Exits bind as themselves now
+ * and every via is plain data, but a shallow compare is still both
  * what the doc says and cheaper than serializing.
  */
 function sameVia(a: MqlMatchVia, b: MqlMatchVia): boolean {
@@ -175,7 +175,7 @@ export class MqlLogic extends ApiLogic {
     if (predicate(bound)) return bound;
     // ⭐ The one carve-out, and it is MQL's: a WAY that does not itself
     // satisfy the verb is answered by the door hung on it. `open north`
-    // binds the exit (a candidate in its own right — harbors review 3);
+    // binds the exit (a candidate in its own right);
     // `open` needs a sealable thing, and the way's sealable thing is its
     // door. The keyed-exit family (`KeyedDoorExit`, `FrontDoorExit`,
     // `BerthExit`) carries its lock on the exit itself, so `lock north`

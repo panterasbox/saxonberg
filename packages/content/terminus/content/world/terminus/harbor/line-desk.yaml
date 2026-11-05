@@ -1,6 +1,6 @@
-# The line's desk (harbors A1) — the shipping line's counter on the Town
+# The line's desk — the shipping line's counter on the Town
 # Quay, under an awning against the wall. ⭐ Where the Hesper and the line's
-# regulars are chartered: its CharterBook comes with the charter (A3).
+# regulars are chartered: its CharterBook comes with the charter.
 class: /platform/location/Locale
 data:
   shortDescription: line's desk

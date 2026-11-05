@@ -1,9 +1,9 @@
-# The Greywater Line's charter book (harbors A3, P23) — on the line's desk
+# The Greywater Line's charter book — on the line's desk
 # on the Town Quay: `charter <ship>` names one of the ships it lets. The
 # charter is the ship's record; the book posts what a day costs and where
 # it is paid (the desk — the line's books).
 #
-# ⭐ Day rates are GRAIN (P28): the Hesper and the Kittiwake at 2 (see the
+# ⭐ Day rates are GRAIN: the Hesper and the Kittiwake at 2 (see the
 # Hesper's own book for the sugar sizing), the deeper Corrigan at 3. A
 # regular with her own master aboard on shift is not to be chartered.
 class: /platform/thing/CharterBook

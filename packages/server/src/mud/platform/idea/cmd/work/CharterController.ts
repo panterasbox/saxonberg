@@ -1,6 +1,6 @@
 /**
  * CharterController — `charter [<ship>]`: hire a whole ship for a voyage
- * (harbors P23).
+ *.
  *
  * Afforded by a charter book (`CharterBook`, peers). The controller finds
  * the ship by the book (`CharterBook.shipFor` — the ship it is aboard, or

@@ -208,7 +208,7 @@ suite('stage E — the ferry, and the sea', () => {
   it('35. the Hesper stopped at sea: her boat into the water beside her; over the side, and her course waits', async () => {
     const master = await session(uniqueHandle('rem'), DECK);
     const hand = await session(uniqueHandle('reh'), DECK);
-    // ⭐ Only her master takes the helm (harbors P12): the founder, who holds
+    // ⭐ Only her master takes the helm: the founder, who holds
     // the office that appoints her company, puts this player in command —
     // and dismisses them after, so the seat is free for the next drive.
     const me = await master.query('me', { fields: ['displayName'] });

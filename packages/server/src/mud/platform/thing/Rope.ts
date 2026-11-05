@@ -31,7 +31,7 @@
  * things; if they share a superclass that's fine*): the diving pack's
  * `Hose` is the other `Line`.
  *
- * ⭐ And a rope is what holds a ship to the shore (harbors P6, review 1):
+ * ⭐ And a rope is what holds a ship to the shore:
  * a STRUCTURE may tie the free end of a rope lying in one of its rooms
  * round a fixture in another (`tieTo(structure, bollard, knot)` — "the
  * end across"). The rope stays at her bitts and its end lies on the quay
@@ -277,7 +277,7 @@ export default class Rope extends SpliceableMixin(TieableMixin(ClimbableMixin(Gr
   public hungVia: string | null = null;
 
   /**
-   * ⭐ The end across (harbors review 1): the fixture in another room its
+   * ⭐ The end across: the fixture in another room its
    * free end was made fast round, and the structure that made it so
    * (runtime — an end does not outlive the process; a ship re-makes hers).
    */
@@ -612,7 +612,7 @@ export default class Rope extends SpliceableMixin(TieableMixin(ClimbableMixin(Gr
     across.by.onLineLetGo(this as unknown as Stuff);
   }
 
-  /* ─────────────────────────── the end across (harbors P6, review 1) ─────────────────────────── */
+  /* ─────────────────────────── the end across ─────────────────────────── */
 
   /**
    * ⭐ `structure` makes the free end of this rope — lying in one of its

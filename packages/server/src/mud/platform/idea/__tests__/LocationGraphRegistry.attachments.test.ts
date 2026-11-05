@@ -33,7 +33,7 @@ beforeEach(() => {
     { path: `${T}/cottage/structure`, class: '/platform/idea/Building', data: { extent: `${T}/cottage` } },
     // ⭐ A holding kind's PLAN is its programme row's own, and the building
     // it names is a kind: neither is served, so neither attaches at its
-    // extent (harbors review, 2026-11-03 — no blueprint row). (A programme
+    // extent (no blueprint row). (A programme
     // is a warren, never a structure; a Business stands in for it here.)
     { path: `${T}/idea/lot-kind`, class: '/platform/idea/Business', data: {
       extent: `${T}/house`, entrance: `${T}/house/yard`, buildings: [`${T}/idea/house-building`],

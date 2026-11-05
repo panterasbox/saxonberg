@@ -1,4 +1,4 @@
-# Abel Pell, shipwright (harbors B2) — keeps the boat shed and builds the
+# Abel Pell, shipwright — keeps the boat shed and builds the
 # smack the yard sells; stationed at the shed on the roster's day.
 class: /platform/agent/Cast
 extends: /stuff/agent/costume/student

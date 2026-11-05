@@ -2,7 +2,7 @@
 # programme (residences D16/P1). One keyed instance per leased unit
 # (scope = this row, key = the unit parcel extent).
 #
-# ⭐ Its PLAN is its own (harbors review 3; 2026-11-03 — no blueprint row),
+# ⭐ Its PLAN is its own (no blueprint row),
 # and the degenerate one: the unit IS one room, so the plan's extent and
 # entrance are both the shipped dormroom row (a plan's rooms are every
 # place at or under its extent). The copy of a one-room plan is keyed by

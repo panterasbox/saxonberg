@@ -1,5 +1,5 @@
 /**
- * ⭐ The steps between places (harbors review 3): `:exits` (a place's
+ * ⭐ The steps between places: `:exits` (a place's
  * exits, as the viewer sees them), `:to` (an exit's destination — live
  * only, never materialized), `:from` (an exit's source). Element-derivable
  * flat-maps, reserved like `:members`.

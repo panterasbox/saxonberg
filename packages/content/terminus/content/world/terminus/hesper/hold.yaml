@@ -1,5 +1,5 @@
 # The Hesper's hold — below the deck. A `Hold`: the one room of hers that
-# keeps its own record (harbors review 2, persistence is the exception) —
+# keeps its own record (persistence is the exception) —
 # what is stowed in it is her cargo, still there after a restart; her deck
 # comes up from its row. A member of her warren.
 class: /platform/location/Hold
@@ -7,7 +7,7 @@ data:
   shortDescription: hold
   keywords: [hold, below]
   register: definite
-  # ⭐ Her hold's floor stands just above her keel (harbors B5): the first
+  # ⭐ Her hold's floor stands just above her keel: the first
   # of her rooms the water comes into. Her deck stands at her hull's depth.
   floorM: 0.3
   # ⭐ Below decks: no sky, so nothing on the horizon is seen from here
@@ -24,7 +24,7 @@ data:
   props:
     - /world/terminus/hesper/thing/chart
     - /world/terminus/hesper/thing/old-chart
-    # ⭐ Her charter book (harbors P23): `charter` here makes you her master.
+    # ⭐ Her charter book: `charter` here makes you her master.
     - /world/terminus/hesper/thing/charter-book
   exits:
     up:

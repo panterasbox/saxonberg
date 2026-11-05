@@ -123,7 +123,7 @@ function brandMarkAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
   const branded = host as unknown as Branded;
   const brand = branded.getBrand();
   if (!brand) return text;
-  // ⭐ A polity's colors (harbors P16): a flag says whose, never a label.
+  // ⭐ A polity's colors: a flag says whose, never a label.
   if (brand.government) {
     const polity = GovernmentApi.getGovernment(brand.government);
     const line = `The colors of ${polity?.name ?? brand.name}.`;

@@ -153,7 +153,7 @@ const FromTheApplier = SecurityPolicies.AnyOf(
   SecurityPolicies.FromTemplate('/platform/idea/TemplateApplier'),
 );
 
-/** The `transfer` verb — it takes the consents before it asks (harbors P15, review 1). */
+/** The `transfer` verb — it takes the consents before it asks. */
 const FromTheTransfer = SecurityPolicies.FromModule('/platform/idea/cmd/system/TransferController');
 
 function sameHolder(a: UnitHolder, b: UnitHolder): boolean {

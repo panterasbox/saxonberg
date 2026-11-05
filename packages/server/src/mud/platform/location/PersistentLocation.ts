@@ -115,8 +115,8 @@ export default class PersistentLocation extends PersistentLocationBase {
 
   /**
    * ⭐ A KEYED furnished room is a warren's — a holding's, a dorm's — and
-   * is stood up by that warren, never alone by its key (harbors review 2;
-   * a free-standing venue room is keyless, a singleton, and never asked).
+   * is stood up by that warren, never alone by its key (a
+   * free-standing venue room is keyless, a singleton, and never asked).
    *
    * @hook
    */

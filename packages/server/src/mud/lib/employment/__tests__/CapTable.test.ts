@@ -139,7 +139,7 @@ function reset(): void {
   StuffApi.clearAll();
 }
 
-describe('CapTableMixin — a table of owners and their units (harbors review 1)', () => {
+describe('CapTableMixin — a table of owners and their units', () => {
   beforeEach(() => {
     reset();
     installStore();

@@ -1,5 +1,5 @@
 /**
- * PayableMixin — ⭐ **a thing that says what you owe** (harbors P13): a
+ * PayableMixin — ⭐ **a thing that says what you owe**: a
  * harbor office's book, and later any bill. `pay <it>` with no amount pays
  * every bill it holds for the payer, in the order it lists them, each to
  * the venue the bill names (`EmploymentApi.settleSale` — the payer is the

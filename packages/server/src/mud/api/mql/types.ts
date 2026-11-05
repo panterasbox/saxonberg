@@ -71,7 +71,7 @@ export interface MqlContext {
   attention?: number;
   /**
    * ⭐ A **code-only** kind filter applied to a bare-word search's pool
-   * BEFORE the name tiers cut it (harbors drive, 2026-11-03). The command
+   * BEFORE the name tiers cut it. The command
    * binder passes a slot's `requires:` here only on a second try, when the
    * first answer held nothing of the kind: `unlock petrel` on the yard quay
    * named the ship outright (score 100) and cut her gangway (a keyword, 70)
@@ -107,7 +107,7 @@ export class MqlPermissionError extends Error {
  *   - `via-augment.ts` adds `detailPath?: string[]`.
  *   - `lib/bulk/Bulkable.ts` adds `bulk?: { affordance }`.
  *
- * ⭐ An exit is NOT a via (harbors review 3). A direction binds the EXIT
+ * ⭐ An exit is NOT a via. A direction binds the EXIT
  * itself — `stuff` is the way, a candidate in its own right, scored by
  * its own name (its direction) and keywords — so every via is plain
  * data and a verb reads the thing MQL bound.

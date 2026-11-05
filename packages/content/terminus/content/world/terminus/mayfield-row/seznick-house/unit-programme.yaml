@@ -7,7 +7,7 @@
 # tenant owes walls-in. The bathroom is the generic archetype row
 # directly (it is all built-ins) — a plan row that extends it.
 #
-# ⭐ Its PLAN is its own (harbors review 3; 2026-11-03 — no blueprint row):
+# ⭐ Its PLAN is its own (no blueprint row):
 # every let unit's rooms, authored as an ordinary place under `location/`
 # (its own zone) — the hall you come in by, the main room north of it, the
 # bedroom west and the bathroom beyond it. Each unit's rooms are keyed

@@ -1,5 +1,5 @@
 /**
- * RegisterBook — ⭐ **the ship register, open on a desk** (harbors P14).
+ * RegisterBook — ⭐ **the ship register, open on a desk**.
  *
  * `read register` at the harbor office: every ship entered in the register
  * of the polity this book names (`government:`), by name, kind, flag and

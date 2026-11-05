@@ -384,7 +384,7 @@ export class PerceptionLogic extends ApiLogic {
       // Delve's lip bound, and was "you can't reach down" (harbors sibling
       // drives, 2026-11-04).
       for (const exit of location.obviousExitsFor(actor)) {
-        // ⭐ The way itself (a direction binds the exit — harbors review 3)
+        // ⭐ The way itself (a direction binds the exit)
         // or the door hung in it.
         if (exit.stuffId === id || exit.getDoor()?.stuffId === id) return true;
       }

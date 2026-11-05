@@ -63,7 +63,7 @@ afterEach(() => {
   StuffApi.clearAll();
 });
 
-// ⭐ A deck is ASKED which ship it is (`Place.structure`, harbors review 1).
+// ⭐ A deck is ASKED which ship it is (`Place.structure`).
 const deck = (name: string) =>
   ({
     getTemplatePath: () => `/ship/${name}/deck`,
@@ -80,7 +80,7 @@ describe('SeaWarren (river D30)', () => {
     expect(room).toBeInstanceOf(SeaPatch);
     expect(room.getExpanse()).toBe(SEA);
     expect(room.getExpansePosition()!.distanceNm(new GeoPosition(42, -8.47))).toBeLessThan(0.01);
-    // ⭐ The way up names HER, by her durable handle (harbors P3) — never her deck's row.
+    // ⭐ The way up names HER, by her durable handle — never her deck's row.
     expect(installed).toEqual([{ room, direction: 'hesper', target: '/ship/hesper' }]);
   });
 

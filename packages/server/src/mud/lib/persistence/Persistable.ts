@@ -218,7 +218,7 @@ export interface Persistable {
 
   /**
    * May this host be stood up ON ITS OWN by its `(row, key)` — by
-   * `PersistableApi.standUpKeyed` (harbors review 2)? A room a warren
+   * `PersistableApi.standUpKeyed`? A room a warren
    * owns may not: minted alone it would stand outside its warren, and the
    * warren's next wake would mint a second copy under the same key.
    *
@@ -270,7 +270,7 @@ export function PersistableMixin<
       this._persistenceKey = key;
       if (explicit) this._persistenceKeyExplicit = true;
       // ⭐ Filed under the pair, so "is it standing?" is a lookup, never a
-      // scan of the row's instances (harbors review 2).
+      // scan of the row's instances.
       KeyedHosts.note(this as unknown as Stuff & Persistable, key);
     }
 

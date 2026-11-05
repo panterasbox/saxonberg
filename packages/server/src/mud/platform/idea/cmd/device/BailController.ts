@@ -1,6 +1,5 @@
 /**
- * BailController — `bail`: ⭐ fill a bucket, lift it, tip it (harbors P21;
- * review 1).
+ * BailController — `bail`: ⭐ fill a bucket, lift it, tip it.
  *
  * ⭐⭐ **The bucket act over ANY {@link LiftSource}** — pump.md's family A
  * (a bucket *carries* the fluid up: no seal, no ceiling at any depth). A

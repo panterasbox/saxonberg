@@ -164,7 +164,7 @@ export default class Line extends PullableMixin(TossableMixin(GoodBase)) {
    * Mint the free end into `into` — somebody's hands, or the bottom of a
    * drop the line hangs down (cordage D11) — tied to `tiedTo` there when
    * the line was made fast round something across (a ship's rope round a
-   * bollard ashore, harbors review 1).
+   * bollard ashore).
    */
   protected async mintEnd(into: Stuff & Container, tiedTo: Stuff | null = null): Promise<LineEnd> {
     const end = await StuffApi.clone<LineEnd>((this.constructor as typeof Line).END_ROW);
@@ -180,7 +180,7 @@ export default class Line extends PullableMixin(TossableMixin(GoodBase)) {
    * and is in `by`'s hands now — cordage's `untie end`.
    *
    * @hook Default: nothing. A rope a structure made fast across tells it
-   *   (harbors review 1: a ship's line cast off a bollard).
+   *   (a ship's line cast off a bollard).
    */
   public async endUntied(by: Stuff, load: Stuff): Promise<void> {
     void by;

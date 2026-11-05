@@ -31,7 +31,7 @@ function filedAt(path: string): Stuff | null {
 }
 
 /**
- * ⭐ A ship of a kind asleep, or after a restart (harbors review 1): her
+ * ⭐ A ship of a kind asleep, or after a restart: her
  * identity is `<kind row>/<serial>` (minted at `buy`, the
  * `Business/ship-company/<serial>` scheme), so her kind is the identity's
  * folder and her record is `(identity, serial)`. Cloned under her identity

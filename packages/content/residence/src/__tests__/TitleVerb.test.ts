@@ -674,7 +674,7 @@ describe('title', () => {
     expect(
       (yard as unknown as { getPersistenceKey(): string }).getPersistenceKey(),
     // A one-room plan's copy is keyed by the holding's own key — no
-    // leaf (harbors review 3, the dorm's shape).
+    // leaf (the dorm's shape).
     ).toBe(LOT2);
     // The holding is the keyed programme, carrying the tenure term (D5).
     const holding = holder.holdingFor(LOT2)! as unknown as HoldingWarren;

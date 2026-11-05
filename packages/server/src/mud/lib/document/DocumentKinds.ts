@@ -308,7 +308,7 @@ export const DOCUMENT_KINDS = {
   ship: { kind: 'ship', naturalKey: null, contentDir: 'ships', ext: 'yaml', onVanish: 'keep' },
   /**
    * A **berth roll** — the ships a landing has lying at it, by durable
-   * handle, in the order they came (harbors Risk 6, review 1). A landing
+   * handle, in the order they came. A landing
    * reads its own roll the first time it is used after a restart and
    * stands up every ship on it that is not loaded, so her way aboard
    * comes back.

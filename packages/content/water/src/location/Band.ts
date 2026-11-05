@@ -77,7 +77,7 @@ export default class Band extends BandBase {
   /**
    * The surface itself (runtime), handed over at bud and again whenever
    * the column reaches this band through it: a keyed stop's handle is its
-   * name, not a way to find it (harbors review 1).
+   * name, not a way to find it.
    */
   private _surfaceLive: SurfaceStuff | null = null;
 
@@ -86,7 +86,7 @@ export default class Band extends BandBase {
    * water as its own, so the draw verbs and the read find it here.
    */
   public attachTo(surface: SurfaceStuff, band: ColumnBand): void {
-    // ⭐ The surface's durable handle first (harbors B5): a keyed stop's row is shared.
+    // ⭐ The surface's durable handle first: a keyed stop's row is shared.
     this.surface = surface.getDurableHandle() ?? surface.getIdentityPath() ?? surface.getTemplatePath() ?? '';
     this.band = band;
     this._surfaceLive = surface;

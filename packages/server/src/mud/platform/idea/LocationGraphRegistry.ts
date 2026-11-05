@@ -453,7 +453,7 @@ export default class LocationGraphRegistry extends Idea {
       }
       return p;
     };
-    // ⭐ A PLAN is never served (harbors review 3; 2026-11-03): its rows
+    // ⭐ A PLAN is never served: its rows
     // are the kind its copies are minted from, so nothing that names one
     // attaches there — a copy's room must not stand it up or claim it as
     // its structure, and nothing loads it. Two owners name a plan: a ship
@@ -513,7 +513,7 @@ export default class LocationGraphRegistry extends Idea {
         // ⭐ A ship on a river attaches to its LINE as the sea's do to
         // theirs (river D2): the river loads what is attached to it.
         if (typeof data.line === 'string') add(data.line, row.path, 'craft');
-        // ⭐ A ship authored made fast at a landing (harbors P4) loads with
+        // ⭐ A ship authored made fast at a landing loads with
         // it, and puts her way aboard on it as she does.
         if (typeof data.berth === 'string') add(data.berth, row.path, 'craft');
       }

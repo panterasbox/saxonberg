@@ -168,8 +168,8 @@ export default class TestHarnessController extends CommandController<TestHarness
 
   /**
    * `testharness ship <ship> [at node:<path> | at <frame> <cite>] [hull
-   * <band>] [bilge <L>] [slept <days>] [flag <government>]` (harbors P25,
-   * B4): the ship by her row path or handle — or her registered name, read
+   * <band>] [bilge <L>] [slept <days>] [flag <government>]`:
+   * the ship by her row path or handle — or her registered name, read
    * in the register `flag`'s government keeps (Terminus by default) — (the
    * subcommand's first word, `op`), staged where
    * and as the drive needs her. Options in any order; a frame citation
@@ -184,7 +184,7 @@ export default class TestHarnessController extends CommandController<TestHarness
     const spec: ShipStageSpec = {};
     for (let i = 0; i < words.length; ) {
       const key = words[i]!;
-      // ⭐ B5: a flag with no value — her bilge to her deck, the window opened.
+      // ⭐ A flag with no value — her bilge to her deck, the window opened.
       if (key === 'settling') {
         spec.settling = true;
         i += 1;

@@ -290,7 +290,7 @@ export default class Place extends PlaceBase {
 
   /**
    * ⭐ The structure this place is part of, standing — never loads
-   * (harbors P3, review 1).
+   *.
    *
    * A member of a warren is answered by its warren
    * (`Warren.structureOf` — a holding knows which of its buildings a room

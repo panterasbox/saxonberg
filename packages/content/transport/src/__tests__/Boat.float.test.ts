@@ -1,5 +1,5 @@
 /**
- * Boat — ⭐ load and swamping, and the hire (harbors B3, P18, P22).
+ * Boat — ⭐ load and swamping, and the hire.
  *
  * - her freeboard IS her capacity: loaded past it, afloat, she swamps
  *   where she lies; ashore nothing happens;

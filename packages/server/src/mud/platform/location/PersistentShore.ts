@@ -1,5 +1,5 @@
 /**
- * PersistentShore — ⭐ **a shore that is KEPT** (harbors review 1): a
+ * PersistentShore — ⭐ **a shore that is KEPT**: a
  * {@link Shore} whose state outlives the process — the kept-locale shape
  * (`PersistentLocale`) over a shore's stack, `PersistableMixin` outermost.
  *

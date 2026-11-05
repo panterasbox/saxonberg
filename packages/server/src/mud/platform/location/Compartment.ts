@@ -1,5 +1,5 @@
 /**
- * Compartment — ⭐ **a room of a ship** (harbors P20; B1, B5).
+ * Compartment — ⭐ **a room of a ship**.
  *
  * Every ship room row names this class — a kind's deck, cabin and hold
  * (`/stuff/location/ship/<kind>/<leaf>`, minted keyed by her warren) and an
@@ -11,7 +11,7 @@
  *   side (`waters: { sea: … }`, stamped by the deck itself as her warren wakes
  *   it — `onWarrenWake`) reads it as the Hesper's deck always has: `look sea`, a bucket
  *   over the side, the rod.
- * - ⭐ **No record of its own** (review 2, *persistence is the exception*):
+ * - ⭐ **No record of its own** (*persistence is the exception*):
  *   a deck or a cabin comes up from its row each time she wakes — its
  *   fixtures and her gear with it — and keeps nothing. The room that keeps
  *   a record is her HOLD (`Hold`, this class plus `Persistable`): her cargo
@@ -24,7 +24,7 @@
  *   room?* is its warren's answer, and so an interactive arriving or
  *   leaving pokes the warren's population coalescer (the witness below),
  *   which is what puts a ship of a kind to sleep whole.
- * - ⭐⭐ **A room that can flood** (B5) — `WaterPlace(Swimmable(…))`, and
+ * - ⭐⭐ **A room that can flood** — `WaterPlace(Swimmable(…))`, and
  *   every water read ASKS ITS SHIP: how deep the water stands over this
  *   room's floor is her bilge's height above her keel less this room's
  *   `floorM` (`Ship.floodDepthAt`), so her rooms flood from the lowest up by
@@ -33,7 +33,7 @@
  *
  * ⚠ **Dry is dry.** A water place with no water cited would read
  * `swimming` and fifty-odd readers of `isWaterPlace` would treat people on
- * deck as in the water (the reason B1 left this composition out). So every
+ * deck as in the water (the reason a deck first left this composition out). So every
  * read is overridden: a dry compartment says `dry`, its `depthNow()` is
  * 0 (the readers that ask *is this the water* — `depthNow() > 0`, the read
  * every water place has — hear no), has no column (`bandsNow` is always empty — a diver reaches a
@@ -87,7 +87,7 @@ export default class Compartment extends WaterPlaceMixin(
   static markupAugmenters: MarkupAugmenter[] = [floodAugmenter];
 
   /**
-   * ⭐ How high this room's floor stands above her keel, m (B5, grain) —
+   * ⭐ How high this room's floor stands above her keel, m (grain) —
    * authored on an authored ship's room; a kind's floorplan entry says it
    * for a kind's room (`floorM` there wins). `null` = ask her: her deck
    * stands at her hull's depth, any other room on her keel.
@@ -112,7 +112,7 @@ export default class Compartment extends WaterPlaceMixin(
   }
 
   /**
-   * ⭐ Stood up by her warren (the one wake hook — harbors review 2): a
+   * ⭐ Stood up by her warren (the one wake hook): a
    * room that names the sea over her side (`details: sea`) is a shore of
    * whatever sea she lies on. A kind's deck row cannot name it — a smack
    * lies on whichever sea she is on — so the room asks her as it wakes.
@@ -127,7 +127,7 @@ export default class Compartment extends WaterPlaceMixin(
   }
 
   /**
-   * ⭐ A ship alongside is seen across her way (harbors review 2, master's
+   * ⭐ A ship alongside is seen across her way (master's
    * `isSeenAcrossExit`): from the landing, `look hesper` describes her
    * DECK — the one room of hers in plain view over the side — while she is
    * afloat. Her cabin and hold are entered to be seen; a wreck is under the
@@ -241,7 +241,7 @@ export default class Compartment extends WaterPlaceMixin(
   }
 
   /**
-   * ⭐ The water in her, in words (B5): nothing when she is dry; how deep it
+   * ⭐ The water in her, in words: nothing when she is dry; how deep it
    * stands, and the sea over everything once she is on the bottom.
    */
   public floodWords(): string | null {
@@ -270,7 +270,7 @@ export default class Compartment extends WaterPlaceMixin(
   public override onContainableRemoved(thing: Stuff & Containable): void {
     super.onContainableRemoved(thing);
     this.notePopulation(thing);
-    // ⭐ Somebody left her while she settles (B5): out of the count.
+    // ⭐ Somebody left her while she settles: out of the count.
     if (MixinApi.isHasInteractive(thing as unknown as Stuff)) this.shipNow()?.noteLeft();
   }
 
@@ -282,7 +282,7 @@ export default class Compartment extends WaterPlaceMixin(
       return;
     }
     // ⭐ An authored ship's room that loaded after her warren adopted her
-    // rooms (harbors B4): somebody came aboard, so it joins her now —
+    // rooms: somebody came aboard, so it joins her now —
     // `maintain` and the bilge well find her through it.
     void this.joinShip();
   }

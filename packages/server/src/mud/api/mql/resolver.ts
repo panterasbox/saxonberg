@@ -751,7 +751,7 @@ function candidatesForAnchor(
           }
         }
       }
-      // ⭐ Each exit the VIEWER can see, as itself (harbors review 3) —
+      // ⭐ Each exit the VIEWER can see, as itself —
       // the same rule as the fast path's `candidatesForHere`, so a drilled
       // focus is no longer blind to which ways are hidden. System mode
       // (no viewer) lists every obvious exit.
@@ -1039,7 +1039,7 @@ function flatMapMembers(input: MqlMatch[]): MqlMatch[] {
 }
 
 /**
- * ⭐ **The steps between places** (harbors review 3) — element-derivable
+ * ⭐ **The steps between places** — element-derivable
  * flat-maps, reserved as chain words like `:members`:
  *
  *   - `:exits` — each prior PLACE's exits, as the viewer sees them
@@ -1134,7 +1134,7 @@ const SEEDS_EXCLUDING_PRIOR: ReadonlySet<string> = new Set([
  * anchors point back at it — stringifying one threw `Converting circular
  * structure to JSON`, and `unlock north` failed with `mql-error` at the
  * realm's one locked door (found by the lock build's drive). Since
- * harbors review 3 an exit binds as itself and every via is plain data
+ * an exit binds as itself and every via is plain data
  * (`detailPath: string[]`, `bulk: { affordance }`), but the rule stays:
  * anything Stuff-shaped contributes its `stuffId`, everything else is
  * JSON, so a future augmentation cannot reopen it.

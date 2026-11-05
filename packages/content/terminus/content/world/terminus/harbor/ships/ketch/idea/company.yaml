@@ -1,4 +1,4 @@
-# The Kittiwake's company — the house whose roster mans her (harbors A2).
+# The Kittiwake's company — the house whose roster mans her.
 #
 # ⭐ Her MASTER is a seat: the NPC rostered here keeps it by default, and
 # anybody the appointing authority puts in it holds it beside them —
@@ -6,12 +6,12 @@
 # her helm in the drive (her voyages are laid by hand this build). Whoever
 # holds the seat answers for her at the harbor office: her dues are theirs
 # to pay (`pay office`). Whoever holds a majority of this company's table
-# appoints (harbors review 1).
+# appoints.
 class: /platform/idea/PersistentBusiness
 data:
   name: "the Kittiwake's company"
   # ⭐ She is owned by this company, and this company by its cap table
-  # (harbors review 1): the Greywater Line owns her outright. Whoever holds a MAJORITY of the table
+  #: the Greywater Line owns her outright. Whoever holds a MAJORITY of the table
   # appoints her master (`kind: owners`) — an organization holder through
   # its own authority. Her register entry names this company as her owner;
   # `read register` at the harbor office shows the table beside it, and

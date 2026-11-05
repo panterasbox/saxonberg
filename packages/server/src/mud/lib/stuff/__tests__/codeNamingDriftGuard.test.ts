@@ -228,7 +228,7 @@ const MANIFEST: ReadonlyArray<{ site: string; classification: string }> = [
     site: "lib/stuff/Staged.ts::loadClassByPath",
     classification: "transitive-safe",
   },
-  // ⭐ A plan's rooms (harbors review 3): the class of each row under the
+  // ⭐ A plan's rooms: the class of each row under the
   // plan's extent is resolved only to CHECK it is a place, before anything
   // is cloned — the row's own `class:` gate already passed it.
   {

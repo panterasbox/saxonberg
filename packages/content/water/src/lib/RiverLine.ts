@@ -468,7 +468,7 @@ function widthAt(nodes: readonly LineNodeInput[], km: number): number | null {
  * finalizing mix. The river is the same river for everyone, every time it
  * compiles.
  *
- * ⚠ The mix is not decoration (harbors drive, 2026-10-31). Bare FNV-1a has
+ * ⚠ The mix is not decoration. Bare FNV-1a has
  * no avalanche on its LAST character, and the varying part here is always
  * last (`bendIndex`): `'snag|0'` … `'snag|9'` differ by one multiply of a
  * small delta, which moves the top byte by under 4 %. Every bend on a

@@ -8,7 +8,7 @@
  * (never through MQL — it is not in the room). A real craft has the hail
  * delivered to everyone aboard her; seeded traffic answers in kind.
  *
- * ⭐ A place that keeps a watch on the water answers FIRST (harbors P8):
+ * ⭐ A place that keeps a watch on the water answers FIRST:
  * the craft's frame names what answers a hail near her
  * (`Frame.hailables` — a harbor office inside the bar), and a word one of
  * them answers to (`hail office`) is that place's to answer, by its own
@@ -45,7 +45,7 @@ export default class HailController extends CommandController<HailModel> {
     if (frame === null || asked === '') {
       return this.decline(context, 'Hail whom? Name a sail in sight, or the harbor office.', 'no-contact');
     }
-    // ⭐ A place that keeps a watch on the water answers first (harbors P8):
+    // ⭐ A place that keeps a watch on the water answers first:
     // `hail office` raises the harbor office inside the bar.
     const pos = craft.whereAtS(WorldClockApi.getNow().rawValue());
     const places = pos !== null ? await frame.hailables(pos) : [];

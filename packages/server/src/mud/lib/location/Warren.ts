@@ -134,7 +134,7 @@ export abstract class Warren extends Idea {
    * `null` defers to the location graph. Two warrens answer: a ship's
    * rooms are her warren's members, and a keyed room of a ship KIND has no
    * row of its own for an `extent` prefix to cover, so *which ship is this
-   * room?* is answered by the room's warren, never its path (harbors P3);
+   * room?* is answered by the room's warren, never its path;
    * a holding's rooms are keyed clones of shared rows, so the holding that
    * minted them says which of its buildings each is part of (paint review,
    * holding.md § Identity).
@@ -147,8 +147,8 @@ export abstract class Warren extends Idea {
   }
 
   /**
-   * The key this warren minted a member under, or `null` (harbors review
-   * 2). A floorplan's room is one of many off its row, told apart only by
+   * The key this warren minted a member under, or `null`.
+   * A floorplan's room is one of many off its row, told apart only by
    * the key its warren holds it under — so a room that keeps no record of
    * its own still has no address its ROW can name, and a placement must
    * not name the row.

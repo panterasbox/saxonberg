@@ -30,7 +30,7 @@ const read = (rel: string): { class?: string; data?: Record<string, unknown> } =
   };
 
 const HINKLEY = "world/terminus/hinkley-hills";
-/** The house plan's rooms (harbors review 3), by leaf. */
+/** The house plan's rooms, by leaf. */
 const rooms: Record<string, { class?: string; data?: Record<string, unknown> }> = Object.fromEntries(
   ["yard", "indoors/hall", "indoors/kitchen", "indoors/living", "indoors/bedroom", "indoors/bathroom", "garden"].map(
     (rel) => [rel.slice(rel.lastIndexOf("/") + 1), read(`${HINKLEY}/house/${rel}.yaml`)],
@@ -118,7 +118,7 @@ describe("one lot ships already sold", () => {
     expect(Number(holder.data?.defaultCapacity)).toBeGreaterThanOrEqual(1);
   });
 
-  it("the house is a PLAN over its own rows, authored on the programme (harbors review 3; no blueprint row)", () => {
+  it("the house is a PLAN over its own rows, authored on the programme (no blueprint row)", () => {
     const programme = read(`${HINKLEY}/idea/house-programme.yaml`);
     expect(programme.data?.blueprint).toBeUndefined();
     expect(programme.data?.extent).toBe(`/${HINKLEY}/house`);
@@ -126,7 +126,7 @@ describe("one lot ships already sold", () => {
     expect(Object.keys(rooms)).toHaveLength(7);
   });
 
-  it("⭐ its one building is AUTHORED over the indoor rooms; the yard and garden are open ground (harbors review, 2026-11-03)", () => {
+  it("⭐ its one building is AUTHORED over the indoor rooms; the yard and garden are open ground", () => {
     const programme = read(`${HINKLEY}/idea/house-programme.yaml`);
     expect(programme.data?.buildings).toEqual([`/${HINKLEY}/idea/house-building`]);
     const building = read(`${HINKLEY}/idea/house-building.yaml`);

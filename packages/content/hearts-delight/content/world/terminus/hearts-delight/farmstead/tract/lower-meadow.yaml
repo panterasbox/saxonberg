@@ -14,7 +14,7 @@ data:
   legumeFraction: 0.3
   longDescription: |
     Flat wet ground running down from the yard, the grass dark and rich where the water stands in winter.
-  # ⭐ The farmstead's plan (harbors review 3): its ways, an ordinary place.
+  # ⭐ The farmstead's plan: its ways, an ordinary place.
   # Its share of the holding's open ground.
   share: 0.45
   exits:

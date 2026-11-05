@@ -1,5 +1,5 @@
 /**
- * Aboard a ship of a KIND (harbors review 1): `route`, `locate` and the
+ * Aboard a ship of a KIND: `route`, `locate` and the
  * weather's lean ask the ROOM which ship it is part of, never its row —
  * a smack's deck is keyed `(deck row, <serial>/deck)` and the row is every
  * smack's.
@@ -248,7 +248,7 @@ function reset(): void {
   StuffApi.clearAll();
 }
 
-describe('aboard a ship of a kind — the room is asked, never its row (harbors review 1)', () => {
+describe('aboard a ship of a kind — the room is asked, never its row', () => {
   let ship: Ship;
   let deck: Stuff & Container;
 
@@ -272,7 +272,7 @@ describe('aboard a ship of a kind — the room is asked, never its row (harbors 
     await mint('z9');
     ship = await mint('k1');
     deck = (await ship.watchRoom())!;
-    // A deck keeps no record (review 2): her warren holds it under her key.
+    // A deck keeps no record: her warren holds it under her key.
     expect((deck as unknown as { getWarren(): { mintedKeyOf(s: unknown): string | null } }).getWarren().mintedKeyOf(deck)).toBe('k1/deck');
     // ⛔ Nothing may ask a path read with this room's row: break loudly.
     const craftAt = ExpanseApi.craftAt;

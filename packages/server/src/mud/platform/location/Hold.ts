@@ -24,7 +24,7 @@ import { PersistableMixin } from '../../lib/persistence/Persistable';
 
 export default class Hold extends PersistableMixin(Compartment) {
   /**
-   * ⭐ Stood up by her warren, never alone by its key (harbors review 2):
+   * ⭐ Stood up by her warren, never alone by its key:
    * her ship stands her rooms up with her.
    *
    * @hook

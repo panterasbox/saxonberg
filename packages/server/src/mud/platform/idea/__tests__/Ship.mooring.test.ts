@@ -23,7 +23,7 @@ import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Container } from '../../../lib/spatial/Container';
 
 /**
- * ⭐ The way aboard is named for her (harbors P4–P6): a ship made fast at a
+ * ⭐ The way aboard is named for her : a ship made fast at a
  * landing puts a `BerthExit` on it and her lines' ends round its bollards;
  * casting off takes both away; lifting her last line off unmoors her; and a
  * restart puts it all back from the two facts she keeps.
@@ -55,7 +55,7 @@ function bollardOn(room: Stuff & Container): Bollard {
 const KNOTS = { warmed: async () => ({ label: 'made fast with a clove hitch', strength: 0.6 }) };
 
 /**
- * ⭐ A line of hers (review 1): a real rope flaked down on her BITTS — a
+ * ⭐ A line of hers: a real rope flaked down on her BITTS — a
  * rope kept at her bitts is one of her mooring lines; one loose on deck is not.
  */
 function lineOn(room: Stuff & Container, length = 30): Rope {
@@ -256,7 +256,7 @@ describe('a ship made fast (harbors P4–P6)', () => {
       destinationPath: '/somewhere/else',
     });
     expect(await ashore.resolveDestination()).toBe(quay);
-    // ⭐ The gangway's lock is hers, read by both faces (P9) — and leaving never refuses.
+    // ⭐ The gangway's lock is hers, read by both faces — and leaving never refuses.
     ashore.lock();
     expect(ship.isGangwayLocked()).toBe(true);
     expect((quay.getExit('hesper') as BerthExit).isLocked()).toBe(true);

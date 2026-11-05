@@ -589,18 +589,18 @@ export default class Watercourse extends LineFrameMixin(NamedMixin(Idea)) {
     return warren ? ((await warren.stopAt(pos.course, pos.km, side)) as Stuff) : null;
   }
 
-  /** ⭐ The water over the bar now (harbors P10): the channel at the mouth, the tide in it. */
+  /** ⭐ The water over the bar now: the channel at the mouth, the tide in it. */
   public override async barWater(nowS: number): Promise<BarWater | null> {
     return (await this.liveCatalogue())?.barWaterAt(this.key, nowS) ?? null;
   }
 
   /**
-   * ⭐ What answers a hail from `pos` (harbors P8): the places this river
+   * ⭐ What answers a hail from `pos`: the places this river
    * names on its line, within the signal channel's range of her, whose
    * class keeps a watch on the water — the harbor office inside the bar.
    */
   /**
-   * ⭐ A craft went down on this river (harbors B5): the water keeps a stop
+   * ⭐ A craft went down on this river: the water keeps a stop
    * over her — the river's own stop at her position, whose floor is the
    * bed — with a way into her and her deck's way back up to it.
    */

@@ -15,7 +15,7 @@ data:
   frameSite: { frame: /stuff/idea/Watercourse/kestrel, cite: "confluence-12,left", span: 0.15, name: woodyard }
   props:
     - /world/terminus/woodyard/thing/rick
-    # ⭐ What the steamer's lines are made fast round when she comes in to wood up (harbors P6).
+    # ⭐ What the steamer's lines are made fast round when she comes in to wood up.
     - /platform/thing/bollard
   cast:
     - /world/terminus/woodyard/agent/woodhawk

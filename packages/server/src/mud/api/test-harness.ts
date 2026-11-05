@@ -124,7 +124,7 @@ export class TestHarnessApi {
   }
 
   /**
-   * ⭐ Stage a ship (harbors P25) — the staged twin of sailing her there:
+   * ⭐ Stage a ship — the staged twin of sailing her there:
    * `at` puts her lying at a sea's node (`{node}`) or at a citation on a
    * frame (`{frame, cite}`), cast off from any berth and with no course.
    * Her rooms and everyone in them go with her (they are hers). Named by

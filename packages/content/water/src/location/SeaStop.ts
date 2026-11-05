@@ -1,5 +1,5 @@
 /**
- * SeaStop — ⭐ **the sea over a ship that went down** (harbors P20, B5).
+ * SeaStop — ⭐ **the sea over a ship that went down**.
  *
  * The sea's version of a river's stop (`ReachStop`): one room at a fixed
  * place on the chart, persisted by `(row, key)` with the key its position,

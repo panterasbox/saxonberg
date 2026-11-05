@@ -1,6 +1,5 @@
 /**
- * ⭐ The harbor's posted criteria, applied over its berth book (harbors P7,
- * P8, P10, P11; review 2 — the record is the book's, the harbor keeps none):
+ * ⭐ The harbor's posted criteria, applied over its berth book (the record is the book's, the harbor keeps none):
  * a hail is answered by the criteria IN ORDER — the office open, the water
  * over the bar at the tide against her draft, a quay with room by her
  * length, dues owed — and the first that fails sends her to the roads,

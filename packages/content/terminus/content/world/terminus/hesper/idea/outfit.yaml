@@ -9,7 +9,7 @@ class: /platform/idea/PersistentBusiness
 data:
   name: "the Hesper's company"
   # ⭐ She is owned by this company, and this company by its cap table
-  # (harbors review 1): the Greywater Line owns her outright. Whoever holds a MAJORITY of the table
+  #: the Greywater Line owns her outright. Whoever holds a MAJORITY of the table
   # appoints her master (`kind: owners`) — an organization holder through
   # its own authority. Her register entry names this company as her owner;
   # `read register` at the harbor office shows the table beside it, and
@@ -23,7 +23,7 @@ data:
       - holder: { kind: organization, path: /world/terminus/harbor/line/idea/office, name: the Greywater Line }
         units: 64
   positions:
-    # ⭐ Her master (harbors P12): whoever holds this seat takes her helm
+    # ⭐ Her master: whoever holds this seat takes her helm
     # and answers for her at the harbor office. Nobody is rostered — the
     # line lets her by charter (her hold's book), and a charterer is her
     # master until she next berths; the line may appoint one.

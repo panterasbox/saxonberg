@@ -1,11 +1,11 @@
-# The shed's hire book (harbors review 1) — what Fenn's boats lets by the
+# The shed's hire book — what Fenn's boats lets by the
 # day and who has which boat out until when. ⭐ A let is its own book, not
 # the counter's: the counter sells goods; the book affords `rent`, takes the
 # day's money (its house lists it as a venue) and names, on its page, a
 # boat kept out past her day. Only the house's own boats lying here on the
 # shingle are let.
 #
-# ⭐ Day rates are GRAIN (P28): a canoe under an hour of the outfitter's
+# ⭐ Day rates are GRAIN: a canoe under an hour of the outfitter's
 # wage (4 an hour), a rowboat a little over — a day's outing is cheap.
 class: /platform/thing/HireBook
 data:

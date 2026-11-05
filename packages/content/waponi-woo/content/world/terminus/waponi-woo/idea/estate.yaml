@@ -36,7 +36,7 @@ data:
       wageRate: 3
       headcount: 1
       purchases: true
-    # ⭐ The island's harbormaster (harbors A3, P26): the jetty is the
+    # ⭐ The island's harbormaster: the jetty is the
     # estate's, and whoever holds this seat on shift answers a ship's hail
     # by the posted criteria (`idea/harbor.yaml`). The owner keeps it; the
     # estate may appoint a player beside him.

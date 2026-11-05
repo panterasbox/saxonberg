@@ -45,7 +45,7 @@ class TestShip extends Ship {
   override async aboard(): Promise<Stuff[]> { return [listener]; }
   override async watchRoom(): Promise<(Stuff & Container) | null> { return deck; }
   override async cargoKg(): Promise<number> { return 0; }
-  // ⭐ A line aboard to make fast with (harbors P5): a course for a landing asks.
+  // ⭐ A line aboard to make fast with: a course for a landing asks.
   override async linesAboard(): Promise<Rope[]> { return [{} as Rope]; }
 }
 

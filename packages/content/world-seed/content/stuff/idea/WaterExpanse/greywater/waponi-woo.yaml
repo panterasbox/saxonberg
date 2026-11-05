@@ -10,7 +10,7 @@ data:
   alternateNames: [waponi, woo, "waponi woo", island]
   kind: place
   destination: /world/terminus/waponi-woo/location/landing
-  # ⭐ The station a ship lying here hails (harbors A3, review 1): the
+  # ⭐ The station a ship lying here hails: the
   # estate store keeps the island's harbor book — `hail office`.
   hail: /world/terminus/waponi-woo/location/store
   focus: { rho: 444480, theta: 180, radius: 1852 }

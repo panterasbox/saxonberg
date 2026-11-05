@@ -237,10 +237,10 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     // becomes. Resolved live at the cast and the blow.
     'breaksTo', 'strikes',
     'line', 'bunker', 'river', 'ferry', 'service',
-    // ⭐ (harbors A3) A charter book's `payTo` — the venue its days are
+    // ⭐ A charter book's `payTo` — the venue its days are
     // paid into; a rowless one is a charter whose bill settles nowhere.
     'payTo',
-    // ⭐ (harbors B2) A government's `shipRegister` — the register row it
+    // ⭐ A government's `shipRegister` — the register row it
     // keeps; a rowless one is a polity whose yard sells a ship into nothing.
     'shipRegister',
   ] as const) {
@@ -252,14 +252,14 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
   // rows too.)
   // ⭐ (W12) A timetabled service's `landings` — a rowless one is a boat
   // that leaves from nowhere.
-  // ⭐ (harbors A1) A harbor's `exempt` ships — an authored ship's row; a
+  // ⭐ A harbor's `exempt` ships — an authored ship's row; a
   // rowless one exempts nobody and every city craft pays dues.
-  // ⭐ (harbors A3) A charter book's `ships` — the ships a line's desk lets;
+  // ⭐ A charter book's `ships` — the ships a line's desk lets;
   // a rowless one is a charter for a ship that is not there.
   for (const f of ['endpoints', 'featured', 'horizon', 'landings', 'exempt', 'ships'] as const) {
     if (Array.isArray(data[f])) for (const v of data[f] as unknown[]) push(f, v);
   }
-  // ⭐ (harbors A1) A harbor's `quays[].place` — a rowless one is a berth
+  // ⭐ A harbor's `quays[].place` — a rowless one is a berth
   // the harbormaster gives that no ship can ever reach.
   if (Array.isArray(data.quays)) {
     for (const q of data.quays as Array<Record<string, unknown>>) push('quays', q?.place);
@@ -856,7 +856,7 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
       }
     }
   }
-  // ⭐ (harbors review 1) The hulls on a yard's hull book: each names the
+  // ⭐ The hulls on a yard's hull book: each names the
   // ship kind row she is built to.
   const hulls = data.hulls;
   if (Array.isArray(hulls)) {
@@ -915,7 +915,7 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
   ] as const) {
     push(scalar, data[scalar]);
   }
-  // ⭐ The buildings a holding's plan names (harbors review, 2026-11-03) —
+  // ⭐ The buildings a holding's plan names —
   // Building rows on the programme row itself (no blueprint row), each
   // minted per copy; the main one first.
   if (Array.isArray(data.buildings)) {
@@ -975,7 +975,7 @@ const IGNORED_PATH_FIELDS: readonly string[] = [
   // that is not a live Container — so a dangling vault serves NOTHING
   // rather than everything, failing closed exactly like the extents above.
   '_vaultPaths',
-  // ⭐ (harbors B2) A register's `registerOwner` / `registerPrefix` name
+  // ⭐ A register's `registerOwner` / `registerPrefix` name
   // DOCUMENT-tree branches (`/platform`, `/platform/ships/<gov>`), checked by
   // `DocumentApi.saveToRegister` — never template rows, so there is no row
   // for them to dangle from.

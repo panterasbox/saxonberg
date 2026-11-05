@@ -1,5 +1,5 @@
 /**
- * ⭐ `buy` speaks ONE protocol (harbors review 1): the thing bound is
+ * ⭐ `buy` speaks ONE protocol: the thing bound is
  * anything composing `ForSaleMixin`, the seller here that offers the word
  * gets the whole sale, and the controller says what it returns. No
  * `instanceof Stock` — a new way of selling is a new implementer.

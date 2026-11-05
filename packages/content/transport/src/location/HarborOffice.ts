@@ -1,5 +1,5 @@
 /**
- * HarborOffice — ⭐ **the room a hail reaches** (harbors P8, P11): the
+ * HarborOffice — ⭐ **the room a hail reaches**: the
  * harbor's office on its quay, where the harbormaster keeps the book.
  *
  * A `Locale` sited by the river (`frameSite` authored `landing: false` —
@@ -8,7 +8,7 @@
  * answer is its harbor's (`Harbor.answerHail` — the NPC's routine, by the
  * posted criteria, written in the harbor's berth book). A player holding the seat on shift is told as well.
  *
- * ⭐ And where a ship's dues are paid (`Payable`, P13): `pay office` pays
+ * ⭐ And where a ship's dues are paid (`Payable`): `pay office` pays
  * the bills its harbor reads off its book for you — the book on the desk answers the
  * same (`pay book`). The office is the word a payer uses, so it answers.
  */
@@ -41,7 +41,7 @@ export default class HarborOffice extends PayableMixin(HailableMixin(FrameSitedM
     return h instanceof Harbor ? h : null;
   }
 
-  /** ⭐ What `payer` owes at this office (P13) — the harbor's to say. */
+  /** ⭐ What `payer` owes at this office — the harbor's to say. */
   public override async billsFor(payer: Stuff): Promise<Bill[]> {
     const harbor = await this.liveHarbor();
     return harbor === null ? [] : harbor.billsFor(payer, WorldClockApi.getNow().rawValue());

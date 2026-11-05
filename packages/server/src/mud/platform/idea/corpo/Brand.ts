@@ -38,7 +38,7 @@ export interface BrandDescriptor {
   /** Owning Corpo `key`, or `''` for an independent (no corpo mark). */
   owner: string;
   /**
-   * ⭐ A polity's mark (harbors P16): the government key whose colors this
+   * ⭐ A polity's mark: the government key whose colors this
    * is — a flag. `''` for a trade brand. `owner` is unchanged: a
    * government's brand is carried by no corpo.
    */
@@ -63,7 +63,7 @@ export default class Brand extends NamedMixin(Idea) {
   public key: string = "";
   /** Owning Corpo `key`, or `''` = independent (no corpo mark). */
   public owner: string = "";
-  /** The government whose colors this is (`''` — a trade brand). Harbors P16. */
+  /** The government whose colors this is (`''` — a trade brand). */
   public government: string = "";
   /** Honest product category (e.g. `'vodka'`, `'gin'`, `'whiskey'`). */
   public category: string = "";

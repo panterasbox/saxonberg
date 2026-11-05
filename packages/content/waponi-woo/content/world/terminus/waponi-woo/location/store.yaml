@@ -1,6 +1,6 @@
 # The estate store — where the estate sells its sugar and molasses and
 # buys cane off the smallholders (sugar D18). ⭐ And the island's harbor
-# office (harbors A3, P26): a ship lying off hails it (`hail office`), the
+# office: a ship lying off hails it (`hail office`), the
 # estate's harbormaster answers by the island's posted criteria, and her
 # dues and bills are paid here (`pay office`, or at the berth book).
 class: /system/transport/location/HarborOffice

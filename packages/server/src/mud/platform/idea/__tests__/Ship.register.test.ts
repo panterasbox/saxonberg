@@ -1,13 +1,13 @@
 /**
- * Ship — ⭐ her register, her owners, her flag, her gangway (harbors B2),
+ * Ship — ⭐ her register, her owners, her flag, her gangway,
  * over synthetic rows under `/test/**` and the platform's own branches.
  *
  * - `commission` names a ship of a kind, mints HER company — a kept
  *   business whose cap table is her buyer's, all sixty-four units, and whose
- *   authority is that table (review 1) — enters her in the register as that
+ *   authority is that table — enters her in the register as that
  *   company's, keys her (gangway locked), makes her buyer master, and
  *   brings her alongside; only her master takes the helm;
- * - ⭐ she knows her register (review 1): her entry is read off it under
+ * - ⭐ she knows her register: her entry is read off it under
  *   her registered name, never searched for;
  * - ⭐ the landing has a roll of who lies at it (a `berth-roll` document): she writes her line as she
  *   makes fast and casts off, and after a restart the landing's first use

@@ -1,9 +1,8 @@
 /**
- * Harbor — ⭐ **a port's posted criteria, and their application** (harbors
- * P7). One singleton per port (`/world/terminus/harbor/idea/harbor`); a
+ * Harbor — ⭐ **a port's posted criteria, and their application**. One singleton per port (`/world/terminus/harbor/idea/harbor`); a
  * second port is a second row.
  *
- * - **The book is not here** (review 2: *the berth book keeps the harbor's
+ * - **The book is not here** (*the berth book keeps the harbor's
  *   record*). It is the `HarborBook` on the office desk this row names
  *   (`book:`, followed forward — never searched for): who has been given
  *   which quay and since when, the debts, the hails. The harbor holds no
@@ -62,7 +61,7 @@ export interface HarborQuaySpec {
   place: string;
   /** How much ship lies along it, m — ships fit end to end. */
   lengthM: number;
-  /** How deep the water lies at the berth, m — a mud berth (P20); `null` when nobody says. */
+  /** How deep the water lies at the berth, m — a mud berth; `null` when nobody says. */
   berthDepthM?: number | null;
   /**
    * The deepest draft the harbormaster puts alongside it, m (grain): a
@@ -77,7 +76,7 @@ export interface HarborSeat {
   positionKey: string;
 }
 
-/** The posted rates (P28, grain). */
+/** The posted rates (grain). */
 export interface HarborRates {
   /** Minor units per meter of her length per world's day alongside. */
   duesPerMeterPerDay: number;
@@ -191,7 +190,7 @@ export default class Harbor extends SingletonMixin(Idea) {
     return (await this.roadsName()).toLowerCase().replace(/^the\s+/, '') === w;
   }
 
-  /** ⭐ How deep the water lies at a quay's berth, m (P20), or `null`. */
+  /** ⭐ How deep the water lies at a quay's berth, m, or `null`. */
   public berthDepthOf(place: string): number | null {
     return this.quaySpec(place)?.berthDepthM ?? null;
   }
@@ -199,7 +198,7 @@ export default class Harbor extends SingletonMixin(Idea) {
   /* ───────────────────────── the office ───────────────────────── */
 
   /**
-   * ⭐ Is the office open (P11)? When anybody holding the harbormaster's
+   * ⭐ Is the office open? When anybody holding the harbormaster's
    * seat is on shift: a rostered hand by the roster's window, an appointed
    * one by their own record.
    */
@@ -257,7 +256,7 @@ export default class Harbor extends SingletonMixin(Idea) {
   /* ───────────────────────── the criteria ───────────────────────── */
 
   /**
-   * ⭐ A ship hails the office (P7, P8): a berth at a named quay, or the
+   * ⭐ A ship hails the office: a berth at a named quay, or the
    * roads and the criterion that sent her there — applied in order: the
    * office open, the water over the bar at the tide, a quay with room by
    * her length, dues owed. A quay given is written in the book.
@@ -310,7 +309,7 @@ export default class Harbor extends SingletonMixin(Idea) {
   }
 
   /**
-   * ⭐ Give `ship` the quay `place` (P7, P11) — the harbormaster's act,
+   * ⭐ Give `ship` the quay `place` — the harbormaster's act,
    * whoever holds the seat: a quay the criteria would refuse is refused,
    * citing the criterion. Returns the refusal, or `null` when written.
    */
@@ -335,7 +334,7 @@ export default class Harbor extends SingletonMixin(Idea) {
   }
 
   /**
-   * ⭐ May `ship` come alongside `place` now (P7)? The city's own craft
+   * ⭐ May `ship` come alongside `place` now? The city's own craft
    * (`exempt`) always; anyone else only at the quay the office gave her —
    * a ship that never hailed is told to.
    */
@@ -354,7 +353,7 @@ export default class Harbor extends SingletonMixin(Idea) {
   }
 
   /**
-   * ⭐ May she leave (P13)? Not while she owes — her dues to the book and
+   * ⭐ May she leave? Not while she owes — her dues to the book and
    * any bill she carries (a charter's days) — and the refusal says how much.
    * ⛔ The SHIP is held, never the people: nothing here is asked of anyone
    * going ashore.
@@ -371,7 +370,7 @@ export default class Harbor extends SingletonMixin(Idea) {
 
   /**
    * She has cast off: the berth is free. Her line of the book closes — or,
-   * when she leaves owing, stays as a debt that holds no room (P7: dues
+   * when she leaves owing, stays as a debt that holds no room (dues
    * owed is a posted criterion of her next hail).
    */
   public async release(ship: Stuff, nowS: number): Promise<void> {
@@ -383,7 +382,7 @@ export default class Harbor extends SingletonMixin(Idea) {
   }
 
   /**
-   * ⭐ What she owes in dues now (P7, P28): for every day alongside since
+   * ⭐ What she owes in dues now: for every day alongside since
    * her dues were paid — a day begun is a day owed — her length at the
    * posted rate, in whole minor units. The city's own craft owe nothing.
    */
@@ -417,10 +416,10 @@ export default class Harbor extends SingletonMixin(Idea) {
     (await this.liveBook()).stampPaid(handleOf(ship), nowS);
   }
 
-  /* ───────────────────────── paying at the office (P13) ───────────────────────── */
+  /* ───────────────────────── paying at the office ───────────────────────── */
 
   /**
-   * ⭐ What `payer` owes at this office now (P13): for every ship in the
+   * ⭐ What `payer` owes at this office now: for every ship in the
    * book they answer for (`Ship.answersFor` — her master), her dues to the
    * harbor works first, then each bill she carries, in the order billed.
    */
@@ -464,11 +463,11 @@ export default class Harbor extends SingletonMixin(Idea) {
     throw new Error(`Harbor.onPaid: not a bill this book wrote (${bill.key})`);
   }
 
-  /* ───────────────────────── the harbormaster's call (P11) ───────────────────────── */
+  /* ───────────────────────── the harbormaster's call ───────────────────────── */
 
   /**
    * ⭐ Does `who` keep this harbor now — hold the seat AND be on shift
-   * (P11)? Only a keeper on shift may give a berth (`berth`).
+   * Only a keeper on shift may give a berth (`berth`).
    */
   public keptBy(who: Stuff): boolean {
     const seat = this.seat;
@@ -494,7 +493,7 @@ export default class Harbor extends SingletonMixin(Idea) {
   }
 
   /**
-   * ⭐ The keeper gives `ship` the quay `place` (P8, P11) — the NPC's own
+   * ⭐ The keeper gives `ship` the quay `place` — the NPC's own
    * call made by whoever keeps the office, and no other: a quay the posted
    * criteria would refuse is refused, citing the criterion. Those aboard
    * her are told. Returns the refusal, or `null` when written.
@@ -532,7 +531,7 @@ export default class Harbor extends SingletonMixin(Idea) {
   }
 
   /**
-   * ⭐ The keeper sends `ship` to the roads (P8, P11): a berth given her
+   * ⭐ The keeper sends `ship` to the roads: a berth given her
    * and not yet taken up is taken back — never one she is made fast at.
    * Those aboard her are told. Returns the refusal, or `null`.
    */
@@ -553,7 +552,7 @@ export default class Harbor extends SingletonMixin(Idea) {
   }
 
   /**
-   * The ship a handle names, standing (harbors B1): an authored ship's row,
+   * The ship a handle names, standing: an authored ship's row,
    * or a kind's minted identity `<row>/<serial>` stood up from her record.
    */
   private async shipOf(handle: string): Promise<Ship | null> {
@@ -564,7 +563,7 @@ export default class Harbor extends SingletonMixin(Idea) {
 
   /**
    * ⭐ Tell whoever holds the seat on shift and is a player that `ship` is
-   * hailing, and what the office answered (P8, P11) — the NPC's routine
+   * hailing, and what the office answered — the NPC's routine
    * answers, and a player holder is told and may give another quay within
    * the criteria.
    */
@@ -679,7 +678,7 @@ export default class Harbor extends SingletonMixin(Idea) {
 
   /**
    * The word a master lays a course for the quay by: on the chart, the
-   * node it lies behind (A3 — the island's quay is `course waponi woo`);
+   * node it lies behind (the island's quay is `course waponi woo`);
    * on a river, the quay's own last word.
    */
   private async courseWord(place: string): Promise<string> {

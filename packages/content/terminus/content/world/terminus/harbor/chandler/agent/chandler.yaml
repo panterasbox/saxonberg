@@ -1,4 +1,4 @@
-# Marta Hobb, ship chandler (harbors B4) — keeps the chandler's at the
+# Marta Hobb, ship chandler — keeps the chandler's at the
 # corner of the Town Quay on the roster's day; sells what a ship uses up.
 class: /platform/agent/Cast
 extends: /stuff/agent/costume/student

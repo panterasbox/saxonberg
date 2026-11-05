@@ -5,7 +5,7 @@
  * The `detailPath` augmentation lives here so the resolver can attach
  * attribution without depending on subsystem files.
  *
- * ⭐ There is no `exit` augmentation (harbors review 3): a direction
+ * ⭐ There is no `exit` augmentation: a direction
  * binds the Exit itself as the match's `stuff`, so a via is only ever
  * plain data.
  *

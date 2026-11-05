@@ -21,7 +21,7 @@ args:
     required: true
     scope: ["reachable", "online"]
     requires: any
-  # ⚠ OPTIONAL since harbors A2: absent is meaningful only at a recipient
+  # ⚠ OPTIONAL: absent is meaningful only at a recipient
   # that keeps your bills (`Payable`); anywhere else the controller asks
   # how much.
   - name: amount

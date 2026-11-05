@@ -151,7 +151,7 @@ describe('PerceptionApi.canReach', () => {
   });
 
   /*
-   * ⭐ A direction binds the WAY itself (harbors review 3): `open north`
+   * ⭐ A direction binds the WAY itself: `open north`
    * and `go north` hold the exit, so the exit is within reach — and the
    * room you stand in is not something you reach.
    */

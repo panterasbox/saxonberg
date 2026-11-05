@@ -1,5 +1,5 @@
 /**
- * Ship — ⭐ flooding, settling, sinking and the wreck (harbors B5, P20),
+ * Ship — ⭐ flooding, settling, sinking and the wreck,
  * over synthetic rows under `/test/**`.
  *
  * - her rooms flood from the lowest up, by `floorM`, and a dry room reads

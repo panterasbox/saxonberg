@@ -1,4 +1,4 @@
-# The Fish Quay (harbors A1) — the short berth upstream of the Town Quay,
+# The Fish Quay — the short berth upstream of the Town Quay,
 # twenty-five meters of timber staging where the smacks lie. A HarborQuay of
 # the same book.
 class: /system/transport/location/HarborQuay
@@ -32,7 +32,7 @@ data:
     east:
       destination: /world/terminus/harbor/town-quay
       media: [ground]
-    # ⭐ Pell's yard and its fitting-out quay (harbors B2).
+    # ⭐ Pell's yard and its fitting-out quay.
     west:
       destination: /world/terminus/harbor/yard/quay
       media: [ground]

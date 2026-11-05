@@ -1,6 +1,6 @@
 /**
  * BilgeWell — ⭐ **the well in a ship's bottom where her bilge water
- * gathers, and the pump set in it** (harbors P19, B4).
+ * gathers, and the pump set in it**.
  *
  * A ship's hull weeps as its seams go (her `Durable` seams, worn once her coat
  * is gone), and what comes in lies in her bilge: `Ship.bilgeL`, reconciled
@@ -17,7 +17,7 @@
  *
  * So `pump well` aboard is the shipped verb, one stroke a spell, and the
  * level falls by what each stroke throws out while the seams keep letting
- * it back in between. Working it is seamanship (P24): the hand at the
+ * it back in between. Working it is seamanship: the hand at the
  * brake is credited by the lift.
  *
  * Which ship: the room it stands in is one of her rooms, and her warren
@@ -118,7 +118,7 @@ export default class BilgeWell extends BilgeWellBase implements LiftSource, Pump
 
   /**
    * ⭐ A stroke throws `litres` out of her bilge (`ship.pumpOut`). The hand
-   * at the brake is credited with seamanship (P24).
+   * at the brake is credited with seamanship.
    */
   public async liftInto(litres: number, by?: Stuff): Promise<number> {
     const ship = this.shipOf();

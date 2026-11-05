@@ -1,4 +1,4 @@
-# Kittiwake as ONE thing — her Structure (harbors A2, one of the line's
+# Kittiwake as ONE thing — her Structure (one of the line's
 # two regulars). A ketch of twenty meters drawing 1.8 m — the bar takes her at all but the bottom of a spring ebb.
 #
 # She starts lying off the bar, unmoored, waiting on the office: one hail and one course bring her in. Her
@@ -20,7 +20,7 @@ data:
   mastheadHeightM: 17
   house: /world/terminus/harbor/ships/ketch/idea/company
   # ⭐ The register she is entered in, and the name she is entered under
-  # (harbors P14, review 1): she knows her register — her owners and her
+  #: she knows her register — her owners and her
   # flag are read off her own entry there, never searched for.
   shipRegister: /platform/idea/ShipRegister/terminus-city
   registeredName: Kittiwake
@@ -28,6 +28,6 @@ data:
   expansePosition: { latDeg: 42.001, lonDeg: -8.468 }
   speedKn: 6
   hull: { draftM: 1.8, beamM: 5, lengthM: 20 }
-  # The gangway (P9): no keyway, never bolted — the line's ships are open.
+  # The gangway: no keyway, never bolted — the line's ships are open.
   gangwayKeyway: ""
   gangwayLocked: false

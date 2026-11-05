@@ -759,7 +759,7 @@ export class StuffApi {
    * reached by their own durable handle (`row#key`), never by the bare
    * row: a bare path naming a row that only has keyed instances live is a
    * caller error and THROWS rather than handing back somebody's room or
-   * a bare clone. (The harbors drive found it twice: a ship's room is a
+   * a bare clone. (The drive found it twice: a ship's room is a
    * `Compartment` — not `Singleton`, because a kind's row is every
    * smack's — and every landing on an authored ship's deck by path minted
    * another deck; since a deck keeps no record it is the warren-member
@@ -773,7 +773,7 @@ export class StuffApi {
     if (MixinApi.hasMixin(cls, Mixins.Singleton)) {
       return this.singleton<T>(path, context);
     }
-    // ⭐ A warren member is the same case (harbors drive, 2026-11-03): an
+    // ⭐ A warren member is the same case: an
     // authored ship's deck is a plain `Compartment` since review 2 (only
     // her hold keeps a record), and a landing on it by its row's path —
     // a login's `startLocation`, a `goto` — cloned a SECOND deck every

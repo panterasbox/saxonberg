@@ -1,6 +1,6 @@
 /**
  * `buy rowboat` at the put-in — ⭐ a boat is an ordinary good that is
- * already there (harbors review 1). Too big for any shelf, she lies on the
+ * already there. Too big for any shelf, she lies on the
  * shingle, the house's; the counter prices her (`prices`, no line), and a
  * sale settles, transfers her title and leaves her where she lies — her
  * bow line in her. Finite: a boat sold is not the house's to sell again,
@@ -73,7 +73,7 @@ function rejection(ctx: CommandContext): string | null {
   return (ctx.getNotes().find((n) => n.kind === 'controller-rejected') as { reason?: string } | undefined)?.reason ?? null;
 }
 
-describe('buy — a boat sold where she lies (harbors review 1)', () => {
+describe('buy — a boat sold where she lies', () => {
   let settle: MockInstance<typeof EmploymentApi.settleSale>;
   let owners: Map<Rowboat, ChattelOwner | null>;
 

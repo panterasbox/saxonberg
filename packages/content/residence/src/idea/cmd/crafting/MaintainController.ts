@@ -79,7 +79,7 @@ interface UpkeepWords {
   kit: string;
   work: string;
   witnessed: string;
-  /** The Discipline the work exercises (harbors P24); none for a house yet. */
+  /** The Discipline the work exercises; none for a house yet. */
   discipline?: string;
 }
 
@@ -186,7 +186,7 @@ export default class MaintainController extends CommandController {
       )
       .send();
 
-    // ⭐ The fabric names the Discipline the work exercises (harbors P24):
+    // ⭐ The fabric names the Discipline the work exercises:
     // caulking a hull is seamanship; keeping a house is nobody's yet.
     if (words.discipline && MixinApi.isAdvancing(actor)) {
       await actor.creditDeed({
@@ -207,7 +207,7 @@ export default class MaintainController extends CommandController {
   ): Promise<Fabric | null> {
     if (named !== null && named !== room) return kept(named) ? named : null;
     if (!room) return null;
-    // A ship's room: her warren says she is the ship (harbors P3).
+    // A ship's room: her warren says she is the ship.
     const own = room.isPlace() ? (room as unknown as Place).structureNow() : null;
     if (own instanceof Ship) return own;
     // A holding's room: the holding knows its house (its own, or the

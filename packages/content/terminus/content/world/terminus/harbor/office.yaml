@@ -1,4 +1,4 @@
-# The harbor office (harbors A1) — the room a hail reaches. ⭐ A HarborOffice:
+# The harbor office — the room a hail reaches. ⭐ A HarborOffice:
 # a ship at the bar hails it (`hail office`) and the harbormaster answers by
 # the harbor's posted criteria — a berth at a named quay, or the roads and
 # why. Its frameSite places it by the river so the hail can find it, and
@@ -22,7 +22,7 @@ data:
   frameSite: { frame: /stuff/idea/Watercourse/kestrel, cite: "estuary-0.55,left", landing: false }
   props:
     - /world/terminus/harbor/thing/berth-book
-    # ⭐ The city's register of ships (harbors P14): `read register`.
+    # ⭐ The city's register of ships: `read register`.
     - /world/terminus/harbor/thing/register
   cast:
     - /world/terminus/harbor/agent/harbormaster

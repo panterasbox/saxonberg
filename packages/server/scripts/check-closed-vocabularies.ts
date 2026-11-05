@@ -156,7 +156,7 @@ export const CLOSED_BY_DESIGN: Readonly<Record<string, string>> = {
     'holder\'s consent — the institutions slate\'s one transferability ' +
     'question (consent-of-others, or none-needed). Each term is a branch ' +
     'of the move itself (`CapTable.refusalOf`), so a third term is new ' +
-    'transfer code, never a row (harbors review 1, 2026-11-02).',
+    'transfer code, never a row.',
 };
 
 interface Vocabulary {

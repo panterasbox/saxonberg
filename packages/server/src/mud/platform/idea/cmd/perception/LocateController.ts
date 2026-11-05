@@ -78,7 +78,7 @@ export default class LocateController extends CommandController<LocateModel> {
       beside = MixinApi.isMovingPlace(at) ? at.alongsideCraft() : null;
       at = MixinApi.isContainable(at) ? (at.getContainer() as Stuff | null) : null;
     }
-    // ⭐ The place is asked (harbors review 1): a ship of a kind's room is
+    // ⭐ The place is asked: a ship of a kind's room is
     // keyed `(room row, <serial>/<leaf>)` and its row is every smack's, so
     // only the room's warren can say which ship it is.
     const craft =
@@ -99,7 +99,7 @@ export default class LocateController extends CommandController<LocateModel> {
 
   /**
    * ⭐ Where the ship `target` is aboard lies, when she is not at sea
-   * (harbors review 1): made fast at a landing, its name; else under way.
+   *: made fast at a landing, its name; else under way.
    * `null` ashore. One answer for an authored ship and a ship of a kind —
    * the room is asked which ship it is, never its row. Her rooms are on no
    * map (a kind's are kinds), so this line is what tells you where the

@@ -70,7 +70,7 @@ export class ExpanseApi {
   }
 
   /**
-   * ⭐ The craft a durable handle names, standing (harbors B1, review 1):
+   * ⭐ The craft a durable handle names, standing:
    * the live one filed at it when she is, else stood up — an authored
    * ship's row through `StuffApi.singleton`; a ship of a kind's minted
    * identity (`<kind row>/<serial>`) cloned from her kind under it and

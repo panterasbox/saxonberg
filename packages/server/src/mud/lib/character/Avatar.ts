@@ -1369,7 +1369,7 @@ export default abstract class Avatar extends AvatarBase {
       // ⭐ The accounts are the record; the wallet app is re-cloned every
       // login, so it links again whatever this person banks with — after
       // a server restart it held none, and nothing they bought anywhere
-      // could be paid for (harbors B6, found by the drive's restart).
+      // could be paid for (found by the drive's restart).
       const me = this.getIdentityPath();
       if (me && !this.isGuest) {
         const pay = wallet.ensureCredential("payment");

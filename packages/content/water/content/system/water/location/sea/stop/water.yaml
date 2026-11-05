@@ -1,4 +1,4 @@
-# The sea over a ship that went down (harbors B5) — a stop on the chart,
+# The sea over a ship that went down — a stop on the chart,
 # persisted by (row, key) with the key its position, with the sea's whole
 # depth under it: a column derived from the depth, a wreck on its bed.
 # Minted by the sea's warren when a ship sinks (`SeaWarren.stopOver`).

@@ -50,7 +50,7 @@ const data = (path: string) => rowAt(path).data as Record<string, unknown>;
 describe('the bank', () => {
   it("⭐ is a quay whose own river feature cites the confluence — no edge object — and casts the fisher", () => {
     const bankRow = rowAt('/world/terminus/wharfside/bank');
-    // ⭐ A quay of the harbor's book since harbors A1 (P7): the harbor works keeps it.
+    // ⭐ A quay of the harbor's book: the harbor works keeps it.
     expect(bankRow.class).toBe('/system/transport/location/HarborQuay');
     const bank = data('/world/terminus/wharfside/bank') as {
       props: Array<string | { template: string }>;

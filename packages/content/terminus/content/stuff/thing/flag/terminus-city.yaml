@@ -1,4 +1,4 @@
-# A Terminus ensign (harbors P16) — the city's colors as cloth. On a ship's
+# A Terminus ensign — the city's colors as cloth. On a ship's
 # flagstaff it is the flag she flies; struck (`get flag`), she flies none.
 class: /platform/thing/Flag
 data:

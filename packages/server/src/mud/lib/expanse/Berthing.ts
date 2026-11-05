@@ -1,6 +1,6 @@
 /**
  * BerthingMixin — ⭐ **berthing at a landing somebody keeps a book for**
- * (harbors P7; named for the act, not a keeper — review 1): a harbor quay,
+ * (named for the act, not a keeper): a harbor quay,
  * where a ship comes alongside only when the harbormaster has given her
  * the berth, and leaves only once she is cleared.
  *
@@ -14,7 +14,7 @@
  * ⛔ The harbor detains the SHIP, never the people: nothing here is asked
  * when somebody goes ashore or comes aboard.
  *
- * ⛔ Nor is it how a hail is answered (review 1): who answers for a berth
+ * ⛔ Nor is it how a hail is answered: who answers for a berth
  * is the HAILABLE side's — a sea node names the station a ship lying at it
  * hails (`ExpanseNode.hail`, as a chart lists a port's signal station),
  * and a river's line names its offices as places on it.

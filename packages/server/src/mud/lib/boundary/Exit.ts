@@ -235,7 +235,7 @@ const EXIT_MEDIUM_VERB: Readonly<Record<string, string>> = {
 };
 
 /**
- * ⭐ An exit is a thing you can NAME and LOOK AT (harbors review 3): MQL
+ * ⭐ An exit is a thing you can NAME and LOOK AT: MQL
  * binds a direction to the exit itself, scored by its own name (its
  * direction) and its authored keywords (`Perceptible` — `gangway` on a
  * ship's berth way), and it describes itself (`Visible` — an authored
@@ -1053,7 +1053,7 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
    */
   /**
    * ⭐ A way flooded at both ends is a swim, whatever it was authored as
-   * (harbors drive 2026-11-04). A sunk ship's companionway is a dry
+   *. A sunk ship's companionway is a dry
    * stair by its row, and under the sea it is neither walkable (over your
    * head) nor — before this — swimmable, so the diver could reach her deck
    * and nothing below it. The place is the water (swim.yaml): a water

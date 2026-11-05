@@ -1,6 +1,6 @@
 # The farmhouse — a farm is a HOME, and its tenant's wardrobe (the door to
 # the circle they were granted) stands in its bedroom: the generic bedroom,
-# as a room of the farmstead programme (harbors review 3).
+# as a room of the farmstead programme.
 extends: /stuff/location/room/bedroom
 data:
   # What it is made of (construction.md: walls and roof) — a timber

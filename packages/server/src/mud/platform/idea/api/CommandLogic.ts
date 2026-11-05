@@ -490,8 +490,8 @@ function scopeTries(yamlScopes: readonly string[], giver: Stuff): string[] {
  * ⭐ Does a candidate satisfy every `requires:` term — by the SAME rule the
  * field validator applies (`MqlApi.effectiveTarget`: the thing itself, or
  * the door hung in a way)? So `open north` finds the way admissible in the
- * scope walk exactly as the validator will accept it (harbors review 3 —
- * an exit is a candidate in its own right).
+ * scope walk exactly as the validator will accept it (an
+ * exit is a candidate in its own right).
  */
 function admitsAll(terms: readonly RequirementTerm[]): (s: Stuff) => boolean {
   return (s) =>
@@ -516,7 +516,7 @@ async function walkScopes(
     if (got.isSet) isSet = true;
     if (got.stuff.length > 0 && !firstRaw) firstRaw = got;
     // ⭐ Nothing of the kind survived the name tiers: ask again with the
-    // kind applied BEFORE they cut (harbors drive, 2026-11-03). `unlock
+    // kind applied BEFORE they cut. `unlock
     // petrel` on the quay named the ship outright and cut her gangway,
     // which answers to her name only by keyword and is the one thing
     // there that locks. What the first answer held still counts as

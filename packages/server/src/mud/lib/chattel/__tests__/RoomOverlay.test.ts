@@ -201,7 +201,7 @@ describe("the room overlay", () => {
     });
   });
 
-  it("⭐ a room that goes dormant by DESTRUCT keeps the good's title — the next overlay lays it down (harbors drive)", async () => {
+  it("⭐ a room that goes dormant by DESTRUCT keeps the good's title — the next overlay lays it down", async () => {
     const alice = person(ALICE_PATH);
     const r = room();
     const c = chair();

@@ -48,7 +48,7 @@ export default class ColumnExit extends DeferredDestinationExit {
   /**
    * The surface itself, as it was handed over or last stood up (runtime):
    * a keyed stop's handle (`row#key`) is its name, not a way to find it —
-   * the live ref is (harbors review 1).
+   * the live ref is.
    */
   private _surface: (Stuff & Container) | null = null;
 
@@ -124,8 +124,8 @@ export default class ColumnExit extends DeferredDestinationExit {
   }
 
   /**
-   * ⭐ The surface, stood up when it is not standing: a keyed stop (harbors
-   * B5 — a wreck's deck leads up to the stop over her) by its record, any
+   * ⭐ The surface, stood up when it is not standing: a keyed stop (a
+   * wreck's deck leads up to the stop over her) by its record, any
    * other surface as the singleton its row is.
    */
   private async standSurface(): Promise<Stuff & Container> {

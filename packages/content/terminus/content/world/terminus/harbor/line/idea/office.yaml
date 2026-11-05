@@ -1,6 +1,6 @@
-# The Greywater Line's office (harbors A2) — the shipping line's house on
+# The Greywater Line's office — the shipping line's house on
 # the Town Quay, trading from its desk under the awning. The Kittiwake and
-# the Corrigan are the line's regulars; the Hesper is chartered here (A3).
+# the Corrigan are the line's regulars; the Hesper is chartered here.
 # Its mark is the line's Corpo and Brand (`/stuff/idea/corpo/{Corpo,Brand}/
 # greywater-line`); a `/corpo/greywater-line` pack is a later carve-out.
 class: /platform/idea/Business

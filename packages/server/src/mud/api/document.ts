@@ -109,7 +109,7 @@ const MAP_TRANSPORT_CALLERS = SecurityPolicies.FromModule(
 
 /**
  * ⚠⚠ **The berth transport — the ship herself, writing her own line, and
- * nothing else** (harbors review 1). A landing's roll of the ships lying
+ * nothing else**. A landing's roll of the ships lying
  * at it is the landing's, but each line on it is one ship's word about
  * herself — so the caller must be a voyaging craft and the craft it is
  * writing for (`saveToRegister`'s relational shape). It takes no flag:

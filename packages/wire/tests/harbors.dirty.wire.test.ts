@@ -258,7 +258,7 @@ suite('A1 — the port', () => {
     expect(quay, quay).toMatch(/Town Quay/);
     expect(quay, quay).toMatch(/Alongside: the Hesper/);
     expect(quay, quay).toMatch(/line from the Hesper/i);
-    // ⭐ (review 3) An exit is a candidate in its own right and describes
+    // ⭐ An exit is a candidate in its own right and describes
     // itself. ⚠ (drive 2026-11-03) Since the paint merge the SHIP is a
     // candidate on the quay she lies at, so the way is CALLED her gangway
     // and `look hesper` is HER — before, the two tied by name and the look
@@ -380,7 +380,7 @@ suite('A1 — the port', () => {
       expectNote(refused, 'controller-rejected', { reason: 'course-refused' });
       expect(squash(await refused.said())).toMatch(/She has no lines to make fast/);
     } finally {
-      // Her lines back AT HER BITTS whatever happened (review 1: a rope
+      // Her lines back AT HER BITTS whatever happened (a rope
       // loose on her deck is not one of her lines): step 10 makes fast with them.
       expectOk(await f.cmd('put mooring line on bitts'));
       expectOk(await f.cmd('put mooring line on bitts'));
@@ -592,7 +592,7 @@ suite('B1 — owning a ship', () => {
     expectOk(await owner.cmd('go east'));
     expectOk(await owner.cmd('go south'));
     const reg = await say(owner, 'read register');
-    // ⭐ The register keeps her title — her company — and the company's table beside it (review 1).
+    // ⭐ The register keeps her title — her company — and the company's table beside it.
     expect(reg, reg).toMatch(new RegExp(`The ${NAME1} \\(smack\\), under the flag of the City of Terminus: owned by the ${NAME1}'s company, held [^.]*64/64`));
     expectOk(await owner.cmd('go north'));
     expectOk(await owner.cmd('go west'));
@@ -606,7 +606,7 @@ suite('B1 — owning a ship', () => {
     expect(said, said).toMatch(new RegExp(`named ${NAME1} already\\. Another name`));
     expect(said, said).toMatch(new RegExp(`as the ${NAME2}, all sixty-four shares in your name`));
     // ⭐ The yard's hull book had two hulls on the stocks: both are sold, and
-    // the yard sells no third (review 1 — no faucet).
+    // the yard sells no third (no faucet).
     const book = await say(second, 'look hull book');
     expect(book, book).toMatch(/Every hull in it is sold/);
     expect(book, book).toMatch(new RegExp(`Sold off the far stocks: the smack ${NAME2}`));
@@ -802,7 +802,7 @@ suite('B2 — owning a boat', () => {
   it('17. (instant · staged — a chop pinned) a rowboat bought, her bow line in her; loaded she rides lower; overloaded in a chop, she swamps', async () => {
     await inOfficeHours();
     const buyer = await session(SECOND, PUT_IN);
-    // ⭐ The house's rowboat, lying on the shingle (review 1): sold where she
+    // ⭐ The house's rowboat, lying on the shingle: sold where she
     // lies — the same boat before and after, hers now.
     const before = await idsHere(buyer, 'rowboat');
     expect(before.length, 'no rowboat of the house\'s on the shingle').toBeGreaterThan(0);

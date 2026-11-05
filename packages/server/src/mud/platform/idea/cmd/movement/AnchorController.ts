@@ -36,7 +36,7 @@ export default class AnchorController extends CommandController<CommandModel> {
     if (craft === null) {
       return this.decline(context, 'You are not aboard anything that sails.', 'not-aboard');
     }
-    // ⭐ Only her master takes the helm (harbors P12).
+    // ⭐ Only her master takes the helm.
     if (!craft.mayBeSteeredBy(giver)) {
       return this.decline(context, 'Only her master takes the helm — charter her, or be appointed to command her.', 'not-her-master');
     }

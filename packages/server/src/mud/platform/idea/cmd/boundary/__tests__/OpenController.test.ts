@@ -267,7 +267,7 @@ describe('OpenController / CloseController / doors integration', () => {
   });
 
   it('open north resolves via direction and opens the exit door', async () => {
-    // The direction binds the EXIT itself (harbors review 3); the door
+    // The direction binds the EXIT itself; the door
     // hung in it is reached through MqlApi.effectiveTarget.
     const open = makeStuff(() => new OpenController());
     await openCmd(open, avatar, locA, 'north');

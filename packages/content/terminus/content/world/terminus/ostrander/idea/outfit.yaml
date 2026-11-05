@@ -5,7 +5,7 @@ class: /platform/idea/PersistentBusiness
 data:
   name: "the Ostrander's company"
   # ⭐ She is owned by this company, and this company by its cap table
-  # (harbors review 1): the city owns her outright — all sixty-four in the municipal budget's name. Whoever holds a MAJORITY of the table
+  #: the city owns her outright — all sixty-four in the municipal budget's name. Whoever holds a MAJORITY of the table
   # appoints her master (`kind: owners`) — an organization holder through
   # its own authority. Her register entry names this company as her owner;
   # `read register` at the harbor office shows the table beside it, and

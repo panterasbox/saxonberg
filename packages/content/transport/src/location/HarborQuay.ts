@@ -1,5 +1,5 @@
 /**
- * HarborQuay — ⭐ **a quay the harbor keeps a book for** (harbors P7): a
+ * HarborQuay — ⭐ **a quay the harbor keeps a book for**: a
  * public waterfront (`Quay`) where a ship comes alongside only at the
  * berth the harbormaster gave her, and is in the harbor's book while she
  * lies there.
@@ -60,7 +60,7 @@ export default class HarborQuay extends BerthingMixin(Quay) {
     await (await this.liveHarbor())?.release(ship, nowS);
   }
 
-  /** ⭐ The berth's depth is the harbor's posted fact (P20) — read while the harbor is loaded. */
+  /** ⭐ The berth's depth is the harbor's posted fact — read while the harbor is loaded. */
   public override berthDepthM(): number | null {
     if (this.harbor === null) return null;
     const h = StuffApi.findByTemplatePath<Stuff>(this.harbor);

@@ -1,5 +1,5 @@
 /**
- * SeaStop — ⭐ the sea over a ship that went down (harbors B5, P20): a
+ * SeaStop — ⭐ the sea over a ship that went down: a
  * stop at her position with the sea's depth under it, the way into her on
  * its bed band (wired when the bed buds), and her deck's way back up.
  */

@@ -24,7 +24,7 @@
  * is a path being taken, never a scan; the same name under another flag is
  * another prefix and is another ship.
  *
- * ## ⭐ The register keeps title, not shares (review 1)
+ * ## ⭐ The register keeps title, not shares
  *
  * A ship is owned by **her company** — a business whose cap table
  * (`CapTableMixin`) holds her sixty-fourths. The register records WHICH
@@ -36,7 +36,7 @@
  *
  * ## ⭐ Reached by reference, never searched
  *
- * Nothing walks every register (review 1 — the retired `ShipRegisterApi`
+ * Nothing walks every register (the retired `ShipRegisterApi`
  * did, and that was the reverse question). A **ship** names the register
  * she is entered in and the name she is entered under (`Ship.shipRegister`,
  * `Ship.registeredName`), so her owners and her flag are one keyed read
@@ -54,7 +54,7 @@
  * tag is something anyone who can write a document can apply, so every read
  * re-checks the path lies under this register's prefix.
  *
- * See [docs/subsystems/ship.md] (B6).
+ * See [docs/subsystems/ship.md].
  */
 
 import { Idea } from '../../lib/stuff/Idea';
@@ -180,7 +180,7 @@ export default class ShipRegister extends RegistrarMixin(Idea) {
   /* ───────────── filing ───────────── */
 
   /**
-   * ⭐ Enter a ship (P14): refused in words when the name is taken here or
+   * ⭐ Enter a ship: refused in words when the name is taken here or
    * files nowhere. The ship herself calls it, about herself — and she
    * knows whether she is in a register already (her own `shipRegister`),
    * so this book never searches itself for her handle.

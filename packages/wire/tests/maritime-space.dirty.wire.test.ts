@@ -280,7 +280,7 @@ suite('4 · 5 · aboard, a course, the reckoning', () => {
     me.close();
     me = await Session.open('founder', { startLocation: MOUTH, wizard: true });
     await aboardFrom(me);
-    // ⭐ Only her master takes the helm (harbors P12): the founder holds the
+    // ⭐ Only her master takes the helm: the founder holds the
     // office that appoints her company, and appoints himself to command her.
     // (Not asserted: a re-run finds him already appointed.)
     await me.cmd(`appoint me to master at ${OUTFIT}`);

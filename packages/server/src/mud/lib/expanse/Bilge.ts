@@ -1,5 +1,5 @@
 /**
- * BilgeMixin — ⭐ **the water a hull holds** (harbors review 1).
+ * BilgeMixin — ⭐ **the water a hull holds**.
  *
  * A ship and a boat both take water through their hulls, and before this
  * each kept its own `bilgeL`/`bilgeStamp` and its own integrator. What they

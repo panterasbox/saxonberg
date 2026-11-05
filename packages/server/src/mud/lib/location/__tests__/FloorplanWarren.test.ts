@@ -1,6 +1,6 @@
 /**
  * FloorplanWarren — the floorplan and the keyed rooms lifted to the
- * kernel (harbors P1), over SYNTHETIC fixtures under `/test/**`
+ * kernel, over SYNTHETIC fixtures under `/test/**`
  * (lint:test-content: kernel tests never name /world/).
  *
  * What a house and a ship share: the whole-warren wake over
@@ -79,7 +79,7 @@ function installStore(): void {
   for (const row of KERNEL_CONTENT_ROWS) {
     content.push({ _id: `d-${++idCounter}`, ...row });
   }
-  // ⭐ The plan's rows (harbors review 3): ordinary places under its extent.
+  // ⭐ The plan's rows: ordinary places under its extent.
   // The plan itself is the warren's own fields (no blueprint row).
   // The zone a copy's rooms stand in (resolved from their keys).
   add('/test/fp', '/platform/idea/location/CartesianZone', { name: 'test vessels' });
@@ -270,7 +270,7 @@ describe('FloorplanWarren (harbors P1)', () => {
     expect(cell(w.roomForLeaf('bench'))).toEqual([0, 0, 1]);
   });
 
-  it('⭐⭐ a plan\'s buildings are AUTHORED on its owner: each one\'s rooms are the rooms under its extent, never how they connect (harbors review, 2026-11-03)', async () => {
+  it('⭐⭐ a plan\'s buildings are AUTHORED on its owner: each one\'s rooms are the rooms under its extent, never how they connect', async () => {
     const row = (path: string, data: Record<string, unknown>, cls = '/platform/location/PersistentLocation') =>
       col('content').push({ _id: `b-${path}`, path, class: cls, data });
     // The plan is its OWNER's fields (a programme row's) — no blueprint row.

@@ -453,13 +453,13 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) implements Fra
   }
 
   /**
-   * ⭐ What answers a hail from a chart position (harbors P8): every node in
+   * ⭐ What answers a hail from a chart position: every node in
    * signal range that is a river's mouth hands the hail up the river (its
    * line names the harbor office inside the bar), and a node's landing that
    * keeps a watch answers itself. Loaded by the hail.
    */
   /**
-   * ⭐ How deep the sea is at a chart position (harbors B5).
+   * ⭐ How deep the sea is at a chart position.
    * @hook Override on a sea that knows its bottom (the water pack's).
    *   Default: not known.
    */
@@ -469,7 +469,7 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) implements Fra
   }
 
   /**
-   * ⭐ The water kept over a craft that went down here (harbors B5).
+   * ⭐ The water kept over a craft that went down here.
    * @hook Override on a sea that keeps a surface over a wreck (the water
    *   pack's). Default: none.
    */
@@ -503,7 +503,7 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) implements Fra
         const place = await StuffApi.singleton<Stuff>(dest).catch(() => null);
         if (place !== null && MixinApi.isHailable(place)) add([place]);
       }
-      // ⭐ The station the chart names for the node (A3, review 1 — the
+      // ⭐ The station the chart names for the node (the
       // island's office answers for its quay): followed forward, loaded
       // only when it is named.
       const station = node.getHail();
@@ -547,7 +547,7 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) implements Fra
       const node = arrived.data?.node ? await this.node(arrived.data.node) : null;
       const at = node?.getExpansePosition() ?? null;
       if (at !== null) {
-        // ⭐ The landing behind the node (harbors P5): what she comes alongside.
+        // ⭐ The landing behind the node: what she comes alongside.
         const landing = node!.getDestination();
         return {
           told,

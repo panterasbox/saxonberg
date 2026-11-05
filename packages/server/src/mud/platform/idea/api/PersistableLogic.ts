@@ -140,7 +140,7 @@ function optedOutOfPersistence(host: Stuff): boolean {
 /**
  * The live instance of `(scope, key)`, or null.
  *
- * ⭐ A LOOKUP, never a scan (harbors review 2): a keyed host is filed under
+ * ⭐ A LOOKUP, never a scan: a keyed host is filed under
  * its pair the moment it is given its key (`KeyedHosts`, written by
  * `Persistable.setPersistenceKey`). It used to loop over
  * `StuffApi.findAllByTemplatePath(scope)` — every live instance of the row.
@@ -168,7 +168,7 @@ function liveKeyed(scope: string, key: string): Stuff | null {
  */
 function assertUniqueKey(scope: string, key: string, host: Stuff): void {
   const row = host.getTemplatePath() ?? scope;
-  // ⭐ The pair's index, never a scan of the row (harbors review 2).
+  // ⭐ The pair's index, never a scan of the row.
   for (const other of KeyedHosts.all(row, key)) {
     if (other.stuffId === host.stuffId) continue;
     throw new Error(
@@ -231,7 +231,7 @@ function capturePlacement(host: Stuff): HostPlacement | null {
   if (MixinApi.isWarrenMember(anchor)) {
     // ⚠ Only a warren that is its row's ONE record lands by that row's
     // path. A KEYED warren (an authored ship's — one `ShipWarren/authored`
-    // row, a warren per ship, keyed by her path; harbors B6) shares its
+    // row, a warren per ship, keyed by her path) shares its
     // row with its siblings, so its path names none of them: the room is
     // anchored by its own address below.
     const w = anchor.getWarren();
@@ -239,7 +239,7 @@ function capturePlacement(host: Stuff): HostPlacement | null {
     const warren = keyed ? null : w?.getTemplatePath();
     if (warren) return { startLocation: warren, ...nested };
     // ⚠ A room a keyed warren MINTED that keeps no record of its own (a
-    // smack's deck — harbors review 2): its row is every smack's deck, so
+    // smack's deck): its row is every smack's deck, so
     // the row names none of them. Record the key it was stood up under,
     // exactly as a keyed room's record would.
     const minted = w?.mintedKeyOf(anchor) ?? null;
@@ -976,7 +976,7 @@ async function cloneHost(scope: string, key?: string): Promise<Stuff | null> {
     const nested = await StuffApi.clone<Stuff>(scope);
     if (nested && MixinApi.isPersistable(nested)) {
       // ⭐ A room a warren owns is stood up BY its warren, never alone
-      // (harbors review 2): minted here it would stand outside the
+      //: minted here it would stand outside the
       // warren, and the warren's next wake would mint a second copy under
       // the same key. The shell is let go unkeyed and unrestored; a key an
       // institution covers (a holding's room, a dorm's unit) goes through
@@ -1068,7 +1068,7 @@ async function captureImpl(host: Stuff, key?: string): Promise<void> {
   const skipped = [...skippedOwnedGoods];
   skippedOwnedGoods.clear();
   if (skipped.length > 0) await flushSkippedOwnedGoods(skipped);
-  // ⭐ One write at a time per record (harbors B6): two captures of a host
+  // ⭐ One write at a time per record: two captures of a host
   // that has no record yet both found none and both INSERTED, and the
   // second died on the unique index — a ship's first commissioning capture
   // and the fire-and-forget one her mooring kicks off at seed raced, so
@@ -1087,7 +1087,7 @@ async function captureImpl(host: Stuff, key?: string): Promise<void> {
   });
   // ⭐ The records this host owns follow it (tracts build D26): a tract's
   // fields are written with the tract, each under its own key. Each goes
-  // through its own record's write queue (harbors B6).
+  // through its own record's write queue.
   for (const dependent of dependents) {
     if (!dependent.isDestroyed()) await captureImpl(dependent);
   }

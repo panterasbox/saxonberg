@@ -1,6 +1,6 @@
 /**
- * HarborBook — ⭐ **the berth book on the harbor office's desk** (harbors
- * P11; review 2: *the book keeps the harbor's record*): who has been given
+ * HarborBook — ⭐ **the berth book on the harbor office's desk** (*the
+ * book keeps the harbor's record*): who has been given
  * which quay and since when, who left owing, and what each ship hailing the
  * office was told. `look book` reads today's page.
  *
@@ -15,7 +15,7 @@
  *   (`leftAtS`): it holds no room, and its days stop there. Dues are stamped
  *   paid forward on the line (`paidThroughS`), so a ship nobody has loaded
  *   since she made fast still owes every day begun.
- * - **`hails`** — the last answer given each ship (A2): what lets the
+ * - **`hails`** — the last answer given each ship: what lets the
  *   harbormaster name a ship lying in the roads (`berth corrigan at
  *   town-quay`), and what the page shows of her.
  * - An assignment she never takes up, and a hail, lapse after twelve hours
@@ -26,7 +26,7 @@
  * which restores its record — the same call its harbor makes (`book:`).
  * It is where the harbormaster's acts are afforded (`berth <ship> at
  * <quay>`, `berth <ship> roads` — the verb refuses anyone not keeping the
- * harbor on shift) and what dues are paid at (`Payable`, P13: `pay book`;
+ * harbor on shift) and what dues are paid at (`Payable`: `pay book`;
  * the office answers `pay office` with the same bills).
  */
 
@@ -69,7 +69,7 @@ export interface BerthRecord {
 export type HarborCriterion = 'closed' | 'bar' | 'no-room' | 'dues' | 'keeper';
 
 /**
- * ⭐ The last hail a ship made and what she was told (A2) — what lets the
+ * ⭐ The last hail a ship made and what she was told — what lets the
  * harbormaster name a ship lying in the roads and what the book's page
  * shows of her. It lapses as an assignment does.
  */
@@ -95,7 +95,7 @@ const HOUR_S = 3_600;
 const ASSIGNMENT_HOLDS_S = 12 * HOUR_S;
 
 export default class HarborBook extends PersistableMixin(PayableMixin(Good)) {
-  /** ⭐ The harbormaster's call is made at the book (P11). */
+  /** ⭐ The harbormaster's call is made at the book. */
   static commandContributions: CommandContributions = {
     peers: ['system/transport/cmd/harbor/berth.yaml'],
   };
@@ -224,7 +224,7 @@ export default class HarborBook extends PersistableMixin(PayableMixin(Good)) {
     return [...this.lines.map((r) => ({ ship: r.ship, name: r.name })), ...this.hails.map((h) => ({ ship: h.ship, name: h.name }))];
   }
 
-  /* ───────────────────────── paying at the book (P13) ───────────────────────── */
+  /* ───────────────────────── paying at the book ───────────────────────── */
 
   /** ⭐ What `payer` owes at this book — its harbor's rules, read over this book. */
   public override async billsFor(payer: Stuff): Promise<Bill[]> {
@@ -253,7 +253,7 @@ export default class HarborBook extends PersistableMixin(PayableMixin(Good)) {
       const owed = harbor.duesOwedIn(this, r.ship, nowS);
       return owed > 0 ? `${r.name}: alongside ${quay}, ${owed} in dues owing.` : `${r.name}: alongside ${quay}, dues paid.`;
     });
-    // ⭐ Who was sent to the roads, and why (A2) — the harbormaster names them from here.
+    // ⭐ Who was sent to the roads, and why — the harbormaster names them from here.
     for (const h of this.roadsHails(nowS)) lines.push(`${h.name}: sent to the roads — ${h.words}`);
     return lines;
   }

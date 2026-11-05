@@ -92,7 +92,7 @@ function seedDomain(): void {
   add(DormWarren.PROGRAMME_PATH, '/system/residence/idea/HoldingWarren', {
     extent: DormRoom.SCOPE,
     entrance: DormRoom.SCOPE,
-    // ⭐ Its one building, authored (harbors review, 2026-11-03).
+    // ⭐ Its one building, authored.
     buildings: ['/test/dorm-building'],
     upkeepTerm: 'institution-all',
   });

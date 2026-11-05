@@ -262,7 +262,7 @@ function riverLandings(rows: ReadonlyMap<string, TemplateRow>): Set<string> {
 }
 
 /**
- * ⭐ Every ship's entrance (harbors P4) — read as DATA, by field name: a
+ * ⭐ Every ship's entrance — read as DATA, by field name: a
  * row with an `entrance` and a frame to be on (`expanse` or `line`) is a
  * craft, and her deck is boarded by a way NAMED FOR HER that the ship puts
  * on whatever landing she is made fast at (`BerthExit`) — a code-resolved

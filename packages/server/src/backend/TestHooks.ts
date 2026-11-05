@@ -376,7 +376,7 @@ export class TestHooks {
   }
 
   /**
-   * TEST-ONLY: stage a ship (harbors P25) — put her lying somewhere the
+   * TEST-ONLY: stage a ship — put her lying somewhere the
    * drive needs her, never sailed there. Same three gates as the clock;
    * the staging itself is `TestHarnessApi.stageShip`'s, the one
    * implementation the `testharness ship` command calls too.
@@ -538,8 +538,8 @@ export class TestHooks {
         throw new Error(`'${templatePath}' is not a thing that can be held`);
       }
       // ⭐ A thing you get into (a boat, a vessel with a way in) is never
-      // carried — it is handed where the character stands (harbors drive,
-      // 2026-11-04: a holed rowboat for the bail step).
+      // carried — it is handed where the character stands (a
+      // holed rowboat for the bail step).
       const into =
         MixinApi.isExitable(thing) && MixinApi.isContainable(body)
           ? body.getContainer()

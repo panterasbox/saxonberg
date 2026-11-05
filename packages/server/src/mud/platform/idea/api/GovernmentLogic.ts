@@ -77,7 +77,7 @@ async function shipAboard(scope: Stuff): Promise<Ship | null> {
 }
 
 /**
- * ⭐ The law aboard a ship (P16): her flag state's — the register she is
+ * ⭐ The law aboard a ship: her flag state's — the register she is
  * entered in, never the colors she flies — and, in harbor (made fast at a
  * landing, or on a river within reach of one), the port's before it. At
  * sea, the flag state's alone; a stateless ship at sea is under nobody's.
@@ -257,7 +257,7 @@ export class GovernmentLogic extends ApiLogic {
   public async subjectTo(
     scope: Stuff & Container
   ): Promise<GovernmentDescriptor[]> {
-    // ⭐⭐ Aboard a ship is asked FIRST (harbors P16, Risk 5): her rooms
+    // ⭐⭐ Aboard a ship is asked FIRST: her rooms
     // stand in her own zone, which no address covers, so the address walk
     // would say "no government" — and so would an unaddressed cellar. The
     // question is *is this a ship*, never *is the chain empty*.

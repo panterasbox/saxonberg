@@ -17,7 +17,7 @@
  *  - **Bucket machines** *carry* the fluid up in a container — a bailer,
  *    a shadoof, a bucket chain, a noria. No seal, no pressure, **no
  *    ceiling at any depth**. `bail` is the bucket over any
- *    {@link LiftSource} (harbors review 1) and consults no pressure.
+ *    {@link LiftSource} and consults no pressure.
  *  - **Displacement machines** *push* the fluid through a pipe — a
  *    suction pump, a force pump, a furnace's bellows. They have a seal,
  *    and **only the ones that PULL have the wall**: the atmosphere can push
@@ -138,7 +138,7 @@ export interface LiftSource {
   /**
    * Raise up to `litres` into the draw point. Returns litres moved.
    * `by` is whoever worked the handle, when a hand did (a ship's bilge
-   * well credits the pumping to them — harbors P24); a source that does
+   * well credits the pumping to them); a source that does
    * not care ignores it.
    */
   liftInto(litres: number, by?: Stuff): Promise<number>;
@@ -146,13 +146,13 @@ export interface LiftSource {
   liftScope(): (Stuff & Container) | null;
   /**
    * Where what came up GOES, in words, when it is not the source's own
-   * draw point (harbors B4 — a bilge pump throws the water over the
+   * draw point (a bilge pump throws the water over the
    * side). `what` is the fluid's name, capitalized. Absent: the pump says
    * it runs into the source.
    */
   liftedWords?(what: string): Mml;
   /**
-   * ⭐ Family A's hooks (harbors review 1): `bail` is the BUCKET over any
+   * ⭐ Family A's hooks: `bail` is the BUCKET over any
    * lift source — a boat's bilge, a ship's well, a village well, a bore —
    * and the verb reads the source and the tool, nothing else. These two
    * let the source say what is its own.

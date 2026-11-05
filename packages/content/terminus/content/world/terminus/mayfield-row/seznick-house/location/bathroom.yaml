@@ -1,5 +1,5 @@
 # A let unit's bathroom (Mayfield Row) — the generic bathroom, all
-# built-ins, as a room of the Seznick unit plan (harbors review 3).
+# built-ins, as a room of the Seznick unit plan.
 extends: /stuff/location/room/bathroom
 data:
   # What it is made of (construction.md: walls and roof), like the house's

@@ -188,7 +188,7 @@ export default class RouteController extends CommandController<RouteModel> {
         );
       }
     }
-    // ⭐ Aboard a ship the plan starts where she LIES (harbors review 1).
+    // ⭐ Aboard a ship the plan starts where she LIES.
     // Her rooms are on no map that could be planned from: a ship of a
     // kind's are kinds (keyed by her serial, absent from the graph by
     // construction), and a way off any ship goes where she is moored NOW
@@ -215,7 +215,7 @@ export default class RouteController extends CommandController<RouteModel> {
       }
     }
     // Asked after the ship: a ship's plain room keeps no record and has no
-    // handle of its own (harbors review 2), and aboard, she is the origin.
+    // handle of its own, and aboard, she is the origin.
     if (origin.length === 0) {
       return this.declineWith(
         context,
@@ -870,7 +870,7 @@ export default class RouteController extends CommandController<RouteModel> {
 
   /**
    * The ship whose room the actor stands in — the ROOM is asked
-   * (`Place.structure()`, harbors review 1): a ship of a kind's room is
+   * (`Place.structure()`): a ship of a kind's room is
    * keyed by her serial and its row is every ship of the kind's. `null`
    * ashore, or in a structure that is no ship.
    */

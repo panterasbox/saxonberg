@@ -421,7 +421,7 @@ describe('⭐ still water and moving water are different water (river W14)', () 
   });
 });
 
-describe('⭐ a way flooded at both ends is a swim (harbors drive 2026-11-04)', () => {
+describe('⭐ a way flooded at both ends is a swim', () => {
   /** Two rooms joined by a way authored as a dry stair (no media). */
   async function stair(from: Stuff, to: Stuff): Promise<Exit> {
     return makeStuff(() => new Exit({ direction: 'down', source: from as never, destination: to as never }));

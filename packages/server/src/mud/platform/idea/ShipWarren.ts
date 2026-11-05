@@ -1,12 +1,11 @@
 /**
- * ShipWarren — ⭐ **a ship's rooms, as a warren one level down** (harbors
- * P1, P2, P3).
+ * ShipWarren — ⭐ **a ship's rooms, as a warren one level down**.
  *
  * A `Warren` is a class and a `Ship` is a `Structure`, so a ship cannot BE
  * one; she OWNS one, minted keyed `(this row, her key)` the first time she
  * stands (`Ship.standWarren`). Everything a house's warren does, hers
  * does — her kind's PLAN (her kind row's own `extent` over its room rows
- * and its `entrance`, harbors review 3 and 2026-11-03) is copied keyed
+ * and its `entrance`) is copied keyed
  * `(room row, <serial>/<leaf>)`, its ways wired, she sleeps whole (`FloorplanWarren`) — and what differs is said
  * here. (Her hull is HERS, not her rooms': a `Durable` fabric under a
  * coat, as a house's is — `Ship`.)
@@ -23,7 +22,7 @@
  *   (`Compartment.onWarrenWake`, the one wake hook);
  * - **when she sleeps** — the population witness of her rooms asks her
  *   (`Ship.sleepIfEmpty`): nobody interactive aboard, not under way;
- * - ⭐ **only her hold keeps a record** (review 2, *persistence is the
+ * - ⭐ **only her hold keeps a record** (*persistence is the
  *   exception*): her deck and cabin come up from their rows each wake, so
  *   when she sleeps whatever is loose in them is stowed in her hold, and
  *   the row gear she was short of then is kept short ({@link stow},
@@ -35,7 +34,7 @@
  * are served — and it takes her resident rooms under her `extent` as
  * members instead of minting any ({@link adoptResident}).
  *
- * ⭐ **The plan is the ship's** (harbors review, 2026-11-03): a warren row
+ * ⭐ **The plan is the ship's**: a warren row
  * names nothing; a ship of a kind hands her warren her own row's
  * `extent` and `entrance` ({@link planOf}). The ship owns the plan, as a
  * holding's programme row owns its own. One kind of
@@ -68,7 +67,7 @@ export default class ShipWarren extends FloorplanWarren {
 
   /**
    * ⭐ The row gear each plain room was SHORT of when she slept, by room
-   * leaf then by row (review 2): a line taken ashore, a flag carried off.
+   * leaf then by row: a line taken ashore, a flag carried off.
    * A plain room lays its row's gear down afresh every wake, so without
    * this a rope taken off her came back each time she woke — a faucet.
    * Applied and cleared at the next wake ({@link fitOut}).
@@ -151,14 +150,14 @@ export default class ShipWarren extends FloorplanWarren {
   }
 
   /**
-   * ⭐ Her plain rooms are stood up from their rows (review 2): note what
+   * ⭐ Her plain rooms are stood up from their rows: note what
    * each row laid down — her gear — and take back off what she was short
    * of when she slept, so gear carried off her stays gone.
    */
   private fitOut(shortOf: Record<string, Record<string, number>>): void {
     for (const { leaf, room } of this.plainRooms()) {
       if (this.laid.has(leaf)) continue;
-      // ⭐ What her gear holds is gear too (harbors drive, 2026-11-04): the
+      // ⭐ What her gear holds is gear too: the
       // dinghy's oars, bow line and pump came up with the dinghy, and
       // counting only the room's own contents stowed them in her hold at
       // every sleep — two sleeps, two sets of oars below.
@@ -187,7 +186,7 @@ export default class ShipWarren extends FloorplanWarren {
   }
 
   /**
-   * ⭐ She is going to sleep (review 2): her plain rooms will come up from
+   * ⭐ She is going to sleep: her plain rooms will come up from
    * their rows, so what is loose in them that is not their row's gear —
    * a crate left on deck, a flag of yours, a line you bought — is stowed in
    * her hold, along with what lies in her gear (stones in the dinghy). The

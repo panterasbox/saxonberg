@@ -47,7 +47,7 @@ data:
     # are the precedent): a starting condition, not a supply. What
     # restocks it is the trade that makes it.
     - { template: /stuff/thing/items/dry-log, count: 3 }
-  # ⭐ The house's plan (harbors review 3): its ways, an ordinary place.
+  # ⭐ The house's plan: its ways, an ordinary place.
   exits:
     west:
       destination: /world/terminus/hinkley-hills/house/indoors/hall

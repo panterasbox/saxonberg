@@ -1,5 +1,5 @@
 /**
- * HailableMixin — ⭐ **a place that answers a hail** (harbors P8): a harbor
+ * HailableMixin — ⭐ **a place that answers a hail**: a harbor
  * office a ship at the bar can raise on the signal channel, flags by day
  * and a lamp by night, at a range that does not care how high you stand.
  *

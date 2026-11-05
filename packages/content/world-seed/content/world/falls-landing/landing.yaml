@@ -14,7 +14,7 @@ data:
   waters:
     river: "kestrel:falls+0.4"
   frameSite: { frame: /stuff/idea/Watercourse/kestrel, cite: "falls+0.3,left", span: 0.2, name: landing }
-  # ⭐ What the steamer's lines are made fast round (harbors P6).
+  # ⭐ What the steamer's lines are made fast round.
   props:
     - /platform/thing/bollard
   details:

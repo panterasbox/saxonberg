@@ -78,8 +78,7 @@ export default class ExpanseNode extends SphericalCoordinatesMixin(
   protected river: string | null = null;
 
   /**
-   * ⭐ The station a ship lying at this node hails, by path (harbors A3,
-   * review 1) — as a chart lists a port's signal station: the island's
+   * ⭐ The station a ship lying at this node hails, by path — as a chart lists a port's signal station: the island's
    * harbor office answers for the quay behind its node. `null`: nobody
    * here keeps a watch (the place behind it may still answer for itself).
    */

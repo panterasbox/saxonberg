@@ -1,5 +1,5 @@
 /**
- * `pay <it>` at something that keeps your bills (harbors A2, P13): a
+ * `pay <it>` at something that keeps your bills: a
  * `Payable` recipient is paid what IT says you owe — each bill settled to
  * the venue it names through `EmploymentApi.settleSale` as the payer, in
  * order — and the first bill that cannot be paid stops the rest. The payer

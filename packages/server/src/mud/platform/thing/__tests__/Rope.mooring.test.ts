@@ -1,5 +1,5 @@
 /**
- * ⭐⭐ The end across (harbors P6, review 1 — cordage's rope, no mooring
+ * ⭐⭐ The end across (cordage's rope, no mooring
  * protocol): a STRUCTURE ties the free end of a rope lying in one of its
  * rooms round a fixture in another. The rope stays aboard and its end lies
  * on the quay tied round the bollard; `untie` that end on the quay (it comes

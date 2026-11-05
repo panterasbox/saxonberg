@@ -1,7 +1,7 @@
 /**
  * `transfer <n> shares of <ship> …` — ⭐ a ship's shares change hands with
- * the money in ONE act, or not at all (harbors B2, P15) — on HER COMPANY'S
- * cap table (review 1): the register names her owning company, and the
+ * the money in ONE act, or not at all — on HER COMPANY'S
+ * cap table: the register names her owning company, and the
  * units move there. Driven as the dispatcher would (a real controller
  * Stuff), over a real register and a kept company on an in-memory store;
  * the money primitive is stubbed.

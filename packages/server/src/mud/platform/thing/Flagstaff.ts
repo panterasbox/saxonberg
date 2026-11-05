@@ -1,5 +1,5 @@
 /**
- * Flagstaff — ⭐ **where a ship's colors are flown** (harbors P16).
+ * Flagstaff — ⭐ **where a ship's colors are flown**.
  *
  * A fixed fixture that takes ONE flag `on` it — `put flag on flagstaff`,
  * `get flag` to strike it. What is on her entrance room's flagstaff is the

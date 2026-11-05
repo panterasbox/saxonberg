@@ -55,18 +55,18 @@ export interface WeatherPinReport {
 }
 
 /**
- * Where a staged ship is put (harbors P25): a node of a sea by its path —
+ * Where a staged ship is put: a node of a sea by its path —
  * she lies at it — or a citation on a frame (`{frame, cite}`: the river's
  * `estuary-1.2`, the chart's `lat,lon` or a node path).
  */
 export type ShipStagePlace = { node: string } | { frame: string; cite: string };
 
-/** How a ship is staged (harbors P25; B5 adds `settling`). */
+/** How a ship is staged. */
 export interface ShipStageSpec {
   /** Where she lies — a sea's node or a citation on a frame. */
   at?: ShipStagePlace;
   /**
-   * ⭐ The band her hull READS once staged (B4): `sound · weathered · worn ·
+   * ⭐ The band her hull READS once staged: `sound · weathered · worn ·
    * shabby · dilapidated` — after any `sleptDays`, which she weathered
    * into it through.
    */
@@ -74,13 +74,13 @@ export interface ShipStageSpec {
   /** Litres in her bilge, as staged (before any `sleptDays` fill it further). */
   bilgeL?: number;
   /**
-   * ⭐ Game-days she has lain unattended (B4): her bilge has filled over
+   * ⭐ Game-days she has lain unattended: her bilge has filled over
    * them at every band her hull weathered through. With `hull`, the hull
    * reads that band now; without, she has aged that long too.
    */
   sleptDays?: number;
   /**
-   * ⭐ Her bilge to her deck, and the water decides (B5): in deep water her
+   * ⭐ Her bilge to her deck, and the water decides: in deep water her
    * settling window opens — everyone aboard is told, and has their acts —
    * and with nobody aboard she goes down at once; at a mud berth she settles
    * onto the bottom. Applied after the rest of the spec.
@@ -231,9 +231,9 @@ export class TestHarnessLogic extends ApiLogic {
   @CallSecurity(TestHarnessApiCallers)
   public async stageShip(handle: string, spec: ShipStageSpec): Promise<ShipStageReport> {
     // ⭐ A ship is named by her handle — her identity: minted
-    // `<kind>/<serial>` for a ship of a kind (harbors review 1), her row for
+    // `<kind>/<serial>` for a ship of a kind, her row for
     // an authored ship — and stood up if she sleeps.
-    // ⭐ B6: or by her NAME in a register (no leading `/`) — a drive knows
+    // ⭐ Or by her NAME in a register (no leading `/`) — a drive knows
     // the name it gave her at `buy`, never the serial she was minted with.
     // The name is read in ONE register — the government's the spec names
     // (Terminus by default), reached from that government.
@@ -282,7 +282,7 @@ export class TestHarnessLogic extends ApiLogic {
   }
 
   /**
-   * ⭐ Her hull, her bilge and her sleep (B4): the bilge is first brought up
+   * ⭐ Her hull, her bilge and her sleep: the bilge is first brought up
    * to now as she stood; the hull is put in its band; then the bilge's stamp
    * is moved back `sleptDays`, so the next read fills her over every band
    * her hull's line passed through on the way to where it is now. (With no
@@ -308,7 +308,7 @@ export class TestHarnessLogic extends ApiLogic {
       throw new Error(`testharness ship: bilge wants litres (got ${spec.bilgeL})`);
     }
     if (spec.hull !== undefined && sleptS > 0) {
-      // ⭐ (harbors drive, 2026-11-04) Her hull was staged in its band NOW,
+      // ⭐ Her hull was staged in its band NOW,
       // so the line read backwards from now is SOUNDER the further back it
       // goes — a 60-day sleep "through every band" leaked like a sound hull
       // and her well was dry. Staged hull and staged sleep mean: she lay

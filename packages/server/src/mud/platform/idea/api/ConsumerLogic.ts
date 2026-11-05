@@ -305,8 +305,8 @@ export class ConsumerLogic extends ApiLogic {
       ConsumerLogic,
       ProducerLogic
     );
-    // ⭐ A settling ship counts the acts of the people aboard her (harbors
-    // B5, P20): she listens only while she settles and counts only givers
+    // ⭐ A settling ship counts the acts of the people aboard her:
+    // she listens only while she settles and counts only givers
     // standing in her own rooms. Re-asserted with her class once it is
     // loaded — a DYNAMIC import, because a static one pulls the ship's
     // module graph (her warren) in mid-evaluation of the warren base. Both

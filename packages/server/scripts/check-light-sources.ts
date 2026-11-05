@@ -206,7 +206,7 @@ export const SKYLIT_INTERIORS: readonly string[] = [
   '/stuff/location/room/bedroom', // a window with a catch that sticks
   '/stuff/location/room/living', // a window taking up most of one wall
   '/stuff/location/room/bathroom', // a small frosted window, high up
-  // ⭐ Blueprint rooms that extend the three above (harbors review 3) —
+  // ⭐ Blueprint rooms that extend the three above —
   // the same window, inherited.
   '/world/terminus/hinkley-hills/house/indoors/bedroom', // the generic bedroom's window
   '/world/terminus/hinkley-hills/house/indoors/living', // the generic living room's window

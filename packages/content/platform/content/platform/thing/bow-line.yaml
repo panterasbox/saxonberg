@@ -6,7 +6,7 @@
 # quick to paddle: the boat comes along beside them as they go (lining).
 # ⭐ A ROPE (cordage D3, re-classed in place — the owner): a lifeline in all
 # but length, because a rope's use is where its ends are tied.
-# ⭐ The PLATFORM's (harbors B3, moved from trade-diving): every boat kind
+# ⭐ The PLATFORM's (moved from trade-diving): every boat kind
 # row props one, and a boat pack may not name a trade it does not depend
 # on — the mooring line's move, for the same reason.
 class: /platform/thing/Rope

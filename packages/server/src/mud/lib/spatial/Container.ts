@@ -305,7 +305,7 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
             // ⭐ A persistable host's destruct is its dormancy: its record
             // keeps its contents and an owned good rides its owner's
             // estate, naming this host — so the good's title must outlive
-            // this instance (harbors drive, 2026-11-04).
+            // this instance.
             if (
               MixinApi.isPersistable(host) &&
               MixinApi.isChattel(item) &&

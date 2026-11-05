@@ -46,7 +46,7 @@ args:
   # while making the counter addressable when it matters (`buy torch from
   # second counter`), which a controller-side default never was.
   #
-  # ⭐ The query is the OFFER protocol (`ForSaleMixin`, harbors review 1),
+  # ⭐ The query is the OFFER protocol (`ForSaleMixin`),
   # not a class: one arg finds a house counter, a standalone consignment
   # shelf, the yard's hull book — anything that has something for sale —
   # and the controller hands the sale to whichever seller here offers the

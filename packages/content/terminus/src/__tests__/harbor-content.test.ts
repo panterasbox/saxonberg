@@ -1,5 +1,5 @@
 /**
- * The Port of Terminus's rows (harbors A1), read off the files: the quays
+ * The Port of Terminus's rows, read off the files: the quays
  * stand on the Kestrel's line inside the bar and the river names them; every
  * quay in the harbor's book is a HarborQuay pointing back at it and props the
  * bollards a ship's lines go round; the office is sited by the river with no
@@ -123,7 +123,7 @@ describe('the line’s regulars (harbors A2)', () => {
       expect(rowAt(`${SHIPS}/${kind}`).class).toBe('/platform/idea/location/CartesianZone');
       const deck = data(d.entrance) as { props: Array<string | { template: string; count?: number; as?: string; on?: string }>; exits: Record<string, { kind?: string }> };
       expect(deck.props).toContain(`${SHIPS}/${kind}/thing/helm`);
-      // ⭐ Her lines are kept AT her bitts (review 1) — that is what makes a rope one of hers.
+      // ⭐ Her lines are kept AT her bitts — that is what makes a rope one of hers.
       expect(deck.props).toContainEqual({ template: '/platform/thing/bitts', as: 'bitts' });
       expect(deck.props).toContainEqual({ template: '/platform/thing/mooring-line', count: 2, on: 'bitts' });
       expect(deck.exits.ashore?.kind).toBe('/platform/idea/exits/ashore');
@@ -168,7 +168,7 @@ describe('the line’s regulars (harbors A2)', () => {
       hulls: Array<{ slot: string; kind: string; priceMinor: number }>;
     };
     expect(book.quay).toBe('/world/terminus/harbor/yard/quay');
-    // ≈ a season of a hand's wages (P28): 90 days × ~56 a shift.
+    // ≈ a season of a hand's wages: 90 days × ~56 a shift.
     expect(book.hulls).toEqual([
       { slot: 'the near stocks', kind: '/stuff/idea/Ship/smack', priceMinor: 5000 },
       { slot: 'the far stocks', kind: '/stuff/idea/Ship/smack', priceMinor: 5000 },
@@ -179,7 +179,7 @@ describe('the line’s regulars (harbors A2)', () => {
     expect(harbor.quays.map((q) => q.place)).toContain('/world/terminus/harbor/yard/quay');
     // The smack's company is kept, appointed by whoever holds a majority of
     // its sixty-four units, and held by nobody until a buyer founds it
-    // (review 1); she flies the city's colors.
+    //; she flies the city's colors.
     expect(rowAt('/stuff/idea/Business/ship-company').class).toBe('/platform/idea/PersistentBusiness');
     expect(data('/stuff/idea/Business/ship-company')).toMatchObject({
       appointingAuthority: { kind: 'owners' },
@@ -214,7 +214,7 @@ describe('the line’s regulars (harbors A2)', () => {
       });
     }
     expect((data(entry('ostrander').owner) as { capTable: { rows: Array<{ holder: { path: string } }> } }).capTable.rows[0]!.holder.path).toBe('/world/terminus/budget');
-    // ⭐ Each ship knows her register and the name she is entered under (review 1) — nothing searches for her.
+    // ⭐ Each ship knows her register and the name she is entered under — nothing searches for her.
     for (const [slug, ship] of [['hesper', '/world/terminus/hesper/structure'], ['kittiwake', `${SHIPS}/ketch/structure`], ['corrigan', `${SHIPS}/coaster/structure`], ['ostrander', '/world/terminus/ostrander/structure']] as const) {
       const row = data(ship) as { shipRegister: string; registeredName: string };
       expect(row.shipRegister).toBe('/platform/idea/ShipRegister/terminus-city');

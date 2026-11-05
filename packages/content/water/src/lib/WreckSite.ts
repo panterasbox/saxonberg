@@ -1,6 +1,5 @@
 /**
- * WreckSiteMixin — ⭐ **the water over a ship that went down** (harbors P20,
- * B5).
+ * WreckSiteMixin — ⭐ **the water over a ship that went down**.
  *
  * A ship that sinks keeps her rooms — the wreck IS the ship, at the bottom
  * where she went down, cargo in her hold and title intact. What the water

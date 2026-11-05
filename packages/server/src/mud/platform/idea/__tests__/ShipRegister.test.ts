@@ -1,5 +1,5 @@
 /**
- * ShipRegister — ⭐ a government's book of ships (harbors B2, P14; review 1).
+ * ShipRegister — ⭐ a government's book of ships.
  *
  * - a name is unique in its register (article and case do not make a new
  *   name); the same name under another flag is another ship;
@@ -7,7 +7,7 @@
  *   her) — and no shares: an entry with no owner is a caller error;
  * - ⚠ the read verifies the PATH, not the kind tag — a `kind: 'ship'`
  *   document on somebody's home branch is not in any register;
- * - ⭐ a ship knows her register (review 1 — no Api searches the
+ * - ⭐ a ship knows her register (no Api searches the
  *   registers): her entry and flag are read off her OWN register under
  *   the name she was entered as; her owners are her company's table
  *   (CapTable.test, Ship.register.test);

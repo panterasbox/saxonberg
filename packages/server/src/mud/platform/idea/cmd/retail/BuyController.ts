@@ -1,7 +1,7 @@
 /**
  * BuyController — `buy <thing>`.
  *
- * ⭐ `buy` speaks ONE protocol (`ForSaleMixin`, harbors review 1): the thing
+ * ⭐ `buy` speaks ONE protocol (`ForSaleMixin`): the thing
  * in front of you that has something for sale. The view binds it; the
  * controller asks it which seller standing here offers the word, hands that
  * seller the whole sale, and says what it returns. Every implementer owns

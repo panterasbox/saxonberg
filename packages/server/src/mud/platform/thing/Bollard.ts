@@ -1,5 +1,5 @@
 /**
- * Bollard — ⭐ **what a line is made fast round** (harbors P6, review 1).
+ * Bollard — ⭐ **what a line is made fast round**.
  *
  * A post of iron or oak set into a quay, a ring-bolt in a rock, a pair of
  * bitts on a deck: a fixed good. A ship coming alongside makes her lines

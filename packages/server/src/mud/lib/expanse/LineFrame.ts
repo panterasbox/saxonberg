@@ -95,7 +95,7 @@ export interface PassagePlan {
   stop: { km: number; atS: number; reason: PassageStopReason; words: string; landing?: string } | null;
 }
 
-/** The water over a river's bar at an instant (harbors P10). */
+/** The water over a river's bar at an instant. */
 export interface BarWater {
   /** The channel's depth at the mouth now, the tide's level in it, m. */
   depthM: number;
@@ -143,7 +143,7 @@ export interface LineFrame extends Frame {
    */
   wakeAt(pos: LinePositionRecord, speedMps: number): Promise<void>;
   /**
-   * ⭐ The water over the bar now (harbors P10): how deep the channel is at
+   * ⭐ The water over the bar now: how deep the channel is at
    * the river's mouth, the tide's level in it, and the tide — what a ship's
    * draft is read against before she comes in. `null` for a river with no
    * mouth on the sea, or before the line is compiled.
@@ -200,8 +200,8 @@ export function LineFrameMixin<TBase extends MixinConstructor<{ getTemplatePath(
     }
 
     /**
-     * ⭐ The craft on this river that have loaded or got under way (harbors
-     * P4) — a river keeps its ships as the sea does, so a landing being used
+     * ⭐ The craft on this river that have loaded or got under way —
+     * a river keeps its ships as the sea does, so a landing being used
      * can ask which of them lies made fast at it. Runtime live refs.
      */
     private craftSet: Set<Craft> = new Set();
@@ -338,7 +338,7 @@ export function LineFrameMixin<TBase extends MixinConstructor<{ getTemplatePath(
       return [];
     }
 
-    /** ⭐ The depth under a line position is the river's own read (harbors B5). */
+    /** ⭐ The depth under a line position is the river's own read. */
     async depthUnder(pos: FramePos, nowS: number): Promise<number | null> {
       return pos.frame === 'line' ? this.depthAt(pos.at, nowS) : null;
     }

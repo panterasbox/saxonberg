@@ -400,7 +400,7 @@ export class BankingApi {
 
   /**
    * Every account id `ownerKey` holds, its primary first — what a wallet
-   * minted fresh at login links again (harbors B6: the wallet app is
+   * minted fresh at login links again (the wallet app is
    * re-cloned each login, so after a restart it held no account at all).
    */
   public static async accountIdsOf(ownerKey: string): Promise<string[]> {

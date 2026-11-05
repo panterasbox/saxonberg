@@ -9,8 +9,8 @@
  * position — so a canoe beached on a bar, or a sword on the bed, is there
  * after a restart, once.
  *
- * ⭐ A ship that sinks on the river lies here (harbors B5,
- * `WreckSiteMixin`): the stop's floor is the bed, so the way into her is on
+ * ⭐ A ship that sinks on the river lies here
+ * (`WreckSiteMixin`): the stop's floor is the bed, so the way into her is on
  * the stop itself, and her deck's `up` comes back to it.
  */
 
@@ -63,7 +63,7 @@ export default class ReachStop extends WreckSiteMixin(MovingPlaceMixin(
     await super.onRestored();
     const warren = await StuffApi.singleton<ReachWarren>(WARREN_PATH).catch(() => null);
     if (warren) await warren.adoptStop(this);
-    // ⭐ A wreck on this bed (harbors B5): its ways go back on.
+    // ⭐ A wreck on this bed: its ways go back on.
     await this.wireWrecks();
   }
 

@@ -3,7 +3,7 @@
 # down from the pass comes nearest the water. The outfitter's shed stands
 # on it.
 #
-# ⭐ KEPT (harbors review 1): the house's boats are sold where they lie, so
+# ⭐ KEPT: the house's boats are sold where they lie, so
 # the shingle is a record — a sold boat is not laid down again at the next
 # restart (`PersistentShore`; no bollards here, so nothing re-ties twice).
 class: /platform/location/PersistentShore
@@ -34,7 +34,7 @@ data:
     # ⭐ The outfitter's boats, upturned on the shingle — kind rows of the
     # transport pack (zone null for life), so any of them can go in the river.
     # The house's: sold where they lie over the counter, let by the day from
-    # the hire book (harbors review 1).
+    # the hire book.
     - { template: /system/transport/thing/canoe, count: 3 }
     - /system/transport/thing/punt
     - /system/transport/thing/rowboat

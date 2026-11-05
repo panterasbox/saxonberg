@@ -16,7 +16,7 @@ validators:
 args:
   - name: target
     type: object
-    # ⭐ Ways only (harbors review 3): an exit is a candidate in its own
+    # ⭐ Ways only: an exit is a candidate in its own
     # right, so the scope names WAYS and the word can only mean one — `go
     # hesper` is the way named for her, never a line from her lying on the
     # quay or the thing in focus. A vessel standing here is entered by its

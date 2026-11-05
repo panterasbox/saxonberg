@@ -176,7 +176,7 @@ export interface Marked {
    */
   deviceFor(viewer: Stuff): string | null;
   /**
-   * @hook ⭐ Bring the marks up to date before they are read (harbors B2):
+   * @hook ⭐ Bring the marks up to date before they are read:
    * a surface whose words are DERIVED from a record elsewhere — a ship
    * register's page — reads the record here, so `getMarkText()` stays a
    * sync read. Default: nothing (authored marks are what they are).

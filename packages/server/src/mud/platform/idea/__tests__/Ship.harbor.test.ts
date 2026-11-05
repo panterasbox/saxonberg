@@ -28,7 +28,7 @@ import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Container } from '../../../lib/spatial/Container';
 
 /**
- * ⭐ A ship and the harbor, by the kernel's protocols only (harbors P7, P10):
+ * ⭐ A ship and the harbor, by the kernel's protocols only:
  * a kept berth (`Berthing`) is asked to admit her before her course for
  * it is laid and to clear her before she leaves it, is told when she makes
  * fast and when she casts off; and the bar's window is her draft against
@@ -93,7 +93,7 @@ function bollardOn(room: Stuff & Container): Bollard {
 const KNOTS = { warmed: async () => ({ label: 'made fast with a clove hitch', strength: 0.6 }) };
 
 /**
- * ⭐ A line of hers (review 1): a real rope flaked down on her BITTS — a
+ * ⭐ A line of hers: a real rope flaked down on her BITTS — a
  * rope kept at her bitts is one of her mooring lines; one loose on deck is not.
  */
 function lineOn(room: Stuff & Container, length = 30): Rope {

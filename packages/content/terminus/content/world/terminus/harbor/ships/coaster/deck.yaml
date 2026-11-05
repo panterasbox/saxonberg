@@ -1,6 +1,6 @@
-# Corrigan's deck — the entrance (harbors A2). The helm affords
+# Corrigan's deck — the entrance. The helm affords
 # `course`/`anchor`/`hail`; her two mooring lines are what she makes fast
-# with alongside a quay (P6); the deck is a shore of the sea under her.
+# with alongside a quay; the deck is a shore of the sea under her.
 class: /platform/location/Compartment
 data:
   shortDescription: Corrigan's deck
@@ -14,11 +14,11 @@ data:
     - /world/terminus/harbor/ships/coaster/thing/helm
     - /system/water/thing/lead-line
     - /stuff/thing/instrument/hand-compass
-    # ⭐ Her mooring lines (P6): alongside, each goes ashore round a bollard.
-    # ⭐ Her bitts (review 1): the lines kept AT them are her mooring lines.
+    # ⭐ Her mooring lines: alongside, each goes ashore round a bollard.
+    # ⭐ Her bitts: the lines kept AT them are her mooring lines.
     - { template: /platform/thing/bitts, as: bitts }
     - { template: /platform/thing/mooring-line, count: 2, on: bitts }
-    # ⭐ Her pump well and the rod to sound it (harbors P19): `pump well`,
+    # ⭐ Her pump well and the rod to sound it: `pump well`,
     # `measure bilge`.
     - /stuff/thing/bilge-well
     - /platform/thing/sounding-rod
@@ -27,7 +27,7 @@ data:
   exits:
     down:
       destination: /world/terminus/harbor/ships/coaster/hold
-    # ⭐ Ashore is wherever she is made fast (P4), worked out when taken;
+    # ⭐ Ashore is wherever she is made fast, worked out when taken;
     # the destination is only her usual berth. The way back aboard is hers.
     ashore:
       kind: /platform/idea/exits/ashore

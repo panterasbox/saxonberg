@@ -1,6 +1,6 @@
 /**
  * FloorplanWarren — **a set of rooms authored as one plan, stood up and
- * put to sleep whole** (harbors P1, the lift holding.md promised when the
+ * put to sleep whole** (the lift holding.md promised when the
  * second consumer arrived).
  *
  * The residence ladder's `HoldingWarren` was the first body of this: a
@@ -22,7 +22,7 @@
  *    keyed doors their keyway), and the address a woken room is stamped
  *    with (`addressFor`). A room that must finish itself against its
  *    warren does so in its own `WarrenMember.onWarrenWake` — the ONE wake
- *    hook (harbors review 2).
+ *    hook.
  *
  * ⭐⭐ **The plan is ordinary authored content, on its OWNER** (harbors
  * review 3; 2026-11-03). The plan is an `extent` holding the kind's rooms
@@ -104,7 +104,7 @@ export abstract class FloorplanWarren extends FloorplanBase {
   /**
    * ⭐ The plan's buildings, the main one first: each a Building row whose
    * own `extent` (inside the plan's) holds that building's rooms and whose
-   * `entrance` is its way in (harbors review, 2026-11-03). AUTHORED, never
+   * `entrance` is its way in. AUTHORED, never
    * derived from how the rooms connect — ground no building's extent
    * covers (a yard, a tract) is nobody's building.
    */
@@ -266,7 +266,7 @@ export abstract class FloorplanWarren extends FloorplanBase {
    * in a row beyond, in plan order; a cell two ways disagree about
    * keeps its first room.
    *
-   * ⚠ A plan's room row authors NO `coords:` (harbors review 3): a row's
+   * ⚠ A plan's room row authors NO `coords:`: a row's
    * cell registers on its ZONE's grid, and every copy of a row stands in
    * one zone — every Hinkley yard would claim one square of the lots'
    * grid. The ways already say where each room is. Derived, never stored.
@@ -350,7 +350,7 @@ export abstract class FloorplanWarren extends FloorplanBase {
    * grid, since its coordinate IS its identity), restore-or-seed it under
    * `key` when it keeps a record, and file it by key. The one keyed mint
    * every floorplan shares — a plan's copy and a mine's carve alike
-   * (harbors review 3). Persistence is the exception: a plain room comes
+   *. Persistence is the exception: a plain room comes
    * up from its row and keeps nothing.
    */
   protected async mintKeyed(
@@ -510,7 +510,7 @@ export abstract class FloorplanWarren extends FloorplanBase {
 
   /**
    * ⭐ The records this warren owns: every room it stood up that keeps a
-   * record of its own (harbors review 2). So ONE capture of the warren
+   * record of its own. So ONE capture of the warren
    * writes its own record and then each room's; `markForRevert` marks
    * them all; `revert` deletes them.
    *

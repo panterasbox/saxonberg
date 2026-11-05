@@ -1,5 +1,5 @@
 /**
- * Flag — ⭐ **a government's colors, as a thing** (harbors P16).
+ * Flag — ⭐ **a government's colors, as a thing**.
  *
  * A branded good whose brand is a polity's mark (`Brand.government`): run
  * up a ship's flagstaff (`put flag on flagstaff`), it is the colors she

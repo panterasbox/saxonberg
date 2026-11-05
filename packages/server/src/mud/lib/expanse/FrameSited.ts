@@ -22,13 +22,13 @@
  *   room, and two banks loading in one boot cascade collided on the exit
  *   row (the drive found the estuary reach with no way into the water).
  *
- * - **Ships lie at it** (harbors P4): the first use also asks the frame's
+ * - **Ships lie at it**: the first use also asks the frame's
  *   craft whether any lies made fast here (her way aboard goes back on the
  *   place), and stands up the ships the frame names that are not loaded —
  *   each puts her own way back when she loads. Its `look` reads who is
  *   alongside from those ways: *Alongside: the Hesper.* — never a thing in
  *   the room.
- * - ⭐ **It has a roll of who lies at it** (Risk 6, review 1): a
+ * - ⭐ **It has a roll of who lies at it**: a
  *   `berth-roll` document keyed by its path, on which each ship writes her
  *   own line as she makes fast and strikes it as she leaves
  *   (`DocumentApi.saveBerth` — only she holds the pen). A landing is not a
@@ -65,7 +65,7 @@ export interface FrameSiteRecord {
   name?: string;
   /**
    * `false` for a place sited by the water that no craft comes alongside —
-   * the harbor office above its quays (harbors P8): the frame knows where
+   * the harbor office above its quays: the frame knows where
    * it stands (a hail reaches it) and offers no landing there. Default: a landing.
    */
   landing?: boolean;
@@ -92,7 +92,7 @@ export function FrameSitedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBa
       frameSite: { persistent: true, authorable: true },
     };
 
-    /** ⭐ Who lies alongside, read off the ways aboard them (harbors P4). */
+    /** ⭐ Who lies alongside, read off the ways aboard them. */
     static markupAugmenters: MarkupAugmenter[] = [alongsideAugmenter];
 
     /** `null` for a place on no frame — honest, not missing. */
@@ -155,7 +155,7 @@ export function FrameSitedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBa
     }
 
     /**
-     * ⭐ The ships that lie made fast here get their ways back (harbors P4):
+     * ⭐ The ships that lie made fast here get their ways back:
      * the frame's loaded craft are asked; the ships attached to the frame
      * that are not standing are stood up, and each re-wires itself as it loads.
      */
@@ -168,15 +168,15 @@ export function FrameSitedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBa
       for (const p of await NavigationApi.attachedTo(path, 'craft')) {
         void StuffApi.singleton<Stuff>(p).catch(() => null);
       }
-      // ⭐ A ship of a KIND is attached to nothing authored (B1): this
-      // landing keeps who lies at it (Risk 6), so used after a restart it
+      // ⭐ A ship of a KIND is attached to nothing authored: this
+      // landing keeps who lies at it, so used after a restart it
       // stands her up, and she re-wires her way as she loads. A ship on the
       // roll who stands up is asked to answer it — one not made fast here (a
       // stale line) strikes herself off; one who does not stand up is kept.
       const here = (this as unknown as Stuff).getTemplatePath();
       if (!here) return;
       for (const handle of await this.lyingHere()) {
-        // A ship is filed at her handle — her identity (review 1).
+        // A ship is filed at her handle — her identity.
         if (StuffApi.findByIdentityPath(handle).some((s) => !s.isDestroyed())) continue;
         const ship = await ExpanseApi.standUpCraft(handle);
         if (ship === null) {
@@ -204,7 +204,7 @@ export function FrameSitedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBa
 
 /**
  * ⭐ *Alongside: the Hesper, the Kittiwake.* — derived from the ways aboard
- * the ships made fast here (harbors P5), so it is true the moment one casts
+ * the ships made fast here, so it is true the moment one casts
  * off. A place with none passes its text through.
  */
 function alongsideAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
@@ -218,7 +218,7 @@ function alongsideAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
   }
   if (names.length === 0) return text;
   // ⚠ The names only: each way describes ITSELF (`look hesper` binds the
-  // way — harbors review 3), so the landing does not repeat it.
+  // way), so the landing does not repeat it.
   const line = `Alongside: ${names.join(', ')}.`;
   return text && text.length > 0 ? `${text}\n\n${line}` : line;
 }

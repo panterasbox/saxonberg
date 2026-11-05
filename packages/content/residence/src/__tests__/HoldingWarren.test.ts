@@ -155,7 +155,7 @@ function seedDomain(): void {
     entrance: ROOM_D,
   });
   // The plan's own zone (its rows author cells), and the lots' zone —
-  // a copy's rooms stand in the lots', by their keys (B54).
+  // a copy's rooms stand in the lots', by their keys.
   add('/world/prog-test/house', '/platform/idea/location/CartesianZone', { name: 'the house', cellSize: 6 });
   add(PARENT, '/platform/idea/location/CartesianZone', { name: 'the lots', cellSize: 4 });
   add(ROOM_A, '/platform/location/PersistentLocation', {
@@ -380,7 +380,7 @@ describe('the residential programme (D16)', () => {
 
   it('⭐⭐ lays its rooms out in its OWN frame, from its plan (B53)', async () => {
     // Every place but the void has coordinates. A holding's rooms take
-    // theirs from their plan rows (harbors review 3): the hall at
+    // theirs from their plan rows: the hall at
     // (0,0,0), the bedroom north of it.
     seedLot();
     await bootRegistries();
@@ -516,7 +516,7 @@ describe('the residential programme (D16)', () => {
     clock.mockRestore();
   });
 
-  it('⭐ a holding has the buildings its programme NAMES; ground under none is no building (harbors review, 2026-11-03)', async () => {
+  it('⭐ a holding has the buildings its programme NAMES; ground under none is no building', async () => {
     seedLot();
     await bootRegistries();
     const w = await institution();

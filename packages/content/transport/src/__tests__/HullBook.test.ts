@@ -1,6 +1,6 @@
 /**
  * `buy smack` at the yard — ⭐ a ship is TITLE sold off a finite hull book
- * (harbors review 1). The book asks her buyer for a NAME the register does
+ *. The book asks her buyer for a NAME the register does
  * not have (asked again while it does), and only then takes the money,
  * mints her by a fresh serial and commissions her; the slot is sold and
  * stays sold; a sold-out yard refuses.
@@ -63,7 +63,7 @@ function reason(out: SaleOutcome): string | null {
   return out.ok ? null : ((out.note as { reason?: string }).reason ?? null);
 }
 
-describe('buy smack — the yard\'s hull book (harbors review 1)', () => {
+describe('buy smack — the yard\'s hull book', () => {
   let settle: MockInstance<typeof EmploymentApi.settleSale>;
   let commission: MockInstance<Ship['commission']>;
   let clone: MockInstance<typeof StuffApi.clone>;

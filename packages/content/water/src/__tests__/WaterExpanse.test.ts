@@ -181,7 +181,7 @@ describe('the sea as a water a deck cites, and the sea fishery', () => {
     expect(read?.draw).toBeNull();
   });
 
-  it('⭐ the lead sounds the sea under a keyed deck\'s ship — the deck is asked, never its row (harbors review 1)', async () => {
+  it('⭐ the lead sounds the sea under a keyed deck\'s ship — the deck is asked, never its row', async () => {
     band('bank', (b) => {
       b.setExtent(belt(50, 51));
       b.setDepthM(12);

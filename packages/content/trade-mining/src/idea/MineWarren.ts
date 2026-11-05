@@ -11,7 +11,7 @@
  * static mine is a mine that does not grow, which is a coherent thing to
  * be rather than a degraded one.
  *
- * ## Why `FloorplanWarren` (harbors review 3 — the planned base swap)
+ * ## Why `FloorplanWarren` (the planned base swap)
  *
  * `Warren.occupantsOf` is abstract — a warren cannot be written without
  * declaring which tier it is — and a mine's members are ROOMS. This header
@@ -309,7 +309,7 @@ export default class MineWarren extends MineWarrenBase {
     holder: string | null,
   ): Promise<MemberStuff> {
     const key = this.memberKeyOf(cell);
-    // ⭐ The base's keyed mint (harbors review 3). The coordinate IS the
+    // ⭐ The base's keyed mint. The coordinate IS the
     // identity — the persistence key, the survey address and the MQL atom
     // are one fact with three faces — so the cell is placed on the grid
     // before the record comes back.

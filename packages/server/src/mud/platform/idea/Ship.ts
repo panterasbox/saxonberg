@@ -86,7 +86,7 @@ export interface ShipHull {
   beamM: number;
   lengthM: number;
   /**
-   * ⭐ The depth of her hull, keel to deck, m (harbors P2) — what she can
+   * ⭐ The depth of her hull, keel to deck, m — what she can
    * take aboard before she goes down. Absent for a ship nobody measured.
    */
   depthM?: number;
@@ -98,11 +98,11 @@ const RHO = 1000;
 /** The position key of the seat that sees further (maritime D13). */
 const LOOKOUT_POSITION = 'lookout';
 
-/** The position key of the seat that commands her (harbors P12). */
+/** The position key of the seat that commands her. */
 const MASTER_POSITION = 'master';
 
 /**
- * ⭐ A bill she carries until it is paid (harbors P13) — a charter's days
+ * ⭐ A bill she carries until it is paid — a charter's days
  * owed to her line, written when the charter ends; paid at a harbor
  * office's book with `pay office`.
  */
@@ -121,7 +121,7 @@ export interface ShipBill {
 }
 
 /**
- * ⭐ A voyage charter (harbors P23): the charterer is her master until she
+ * ⭐ A voyage charter: the charterer is her master until she
  * next berths at a kept quay, and pays the line for the world's days it
  * lasted, at the book's rate.
  */
@@ -138,12 +138,12 @@ export interface ShipCharter {
 
 const DAY_S = 86_400;
 
-/** The kind row of the way aboard a ship, named for her (harbors P4). */
+/** The kind row of the way aboard a ship, named for her. */
 const BERTH_EXIT_KIND = '/platform/idea/exits/berth';
 
 /**
  * ⭐ A mooring line must reach from her rail to the bollard and back again
- * (harbors P6, grain): twice her height out of the water, never less than
+ * (grain): twice her height out of the water, never less than
  * this, m.
  */
 const MIN_LINE_M = 2;
@@ -152,12 +152,12 @@ const MIN_LINE_M = 2;
 const MOORING_KNOT = 'clove-hitch';
 
 /**
- * ⭐ The water a master keeps under her keel crossing a bar (harbors P10,
- * grain): her draft and this much again, m, or she waits for the flood.
+ * ⭐ The water a master keeps under her keel crossing a bar
+ * (grain): her draft and this much again, m, or she waits for the flood.
  */
 const UNDER_KEEL_M = 0.5;
 
-/** What the bar says to her draft now (harbors P10). */
+/** What the bar says to her draft now. */
 export interface BarClearance {
   /** Water over the bar less her draft and the margin under her keel, m — negative: she cannot cross. */
   clearanceM: number;
@@ -171,7 +171,7 @@ export interface BarClearance {
 
 /**
  * ⭐ How far her seams have opened, by her hull's condition — the floors,
- * highest first (harbors P19; the five bands the leak is tuned in, grain).
+ * highest first (the five bands the leak is tuned in, grain).
  * The WORD anyone reads is her `Durable` condition's, a house's word.
  */
 const SEAM_BANDS: Array<[number, string]> = [
@@ -189,14 +189,14 @@ function seamBandFor(condition: number): string {
 }
 
 /**
- * ⭐ What a hull lets in by how far her seams have opened (harbors P19,
- * grain): litres a second per meter of her length, each a setting
+ * ⭐ What a hull lets in by how far her seams have opened
+ * (grain): litres a second per meter of her length, each a setting
  * (`ship.leak.<band>`). A sound hull is tight; a worn one weeps at every
  * seam.
  */
 const LEAK_LPS_PER_M: Record<string, number> = {
   sound: 0,
-  // ⭐ Retuned at B5 against *nothing fails over a weekend away* (the
+  // ⭐ Retuned against *nothing fails over a weekend away* (the
   // arithmetic is in `platform/content/settings/ship.yaml`).
   weathered: 0.0005,
   worn: 0.004,
@@ -213,16 +213,16 @@ const BLOCK = 0.7;
 /** ⭐ Pumped down to this much water over her keel, a ship settled on a drying berth floats again, m (grain). */
 const REFLOAT_BILGE_M = 0.15;
 
-/** ⭐ Acts each person aboard has once she is settling (P20, grain). */
+/** ⭐ Acts each person aboard has once she is settling (grain). */
 const SETTLING_ACTS = 6;
 
-/** ⭐ Real seconds the settling window stays open at most (P20, grain). */
+/** ⭐ Real seconds the settling window stays open at most (grain). */
 const SETTLING_REAL_S = 600;
 
 /** One bilge pump's throughput, L/s — what a sounding tells an expert she out-runs. */
 const ONE_PUMP_LPS = 0.6;
 
-/** The bilge she has as it stands now (harbors P19), for a reading. */
+/** The bilge she has as it stands now, for a reading. */
 export interface BilgeState {
   /** Litres in her bilge. */
   litres: number;
@@ -263,7 +263,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
     registeredName: { persistent: true, authorable: true },
   };
 
-  // ── her hull's outside (paint review; harbors B4) ───────────────
+  // ── her hull's outside ───────────────
   // A hull takes coats — tar, paint — and the weather works on them
   // WHEREVER SHE IS, not from a landing: at sea most of all. Under the
   // coat is her FABRIC — her seams, their oakum and pitch — a `Durable`
@@ -291,7 +291,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
   }
 
   /**
-   * ⭐ Reconcile on read (harbors B4): her bilge is brought up to now over
+   * ⭐ Reconcile on read: her bilge is brought up to now over
    * her hull's line as it stood — so the leak is integrated band by band,
    * and the bilge's stamp never falls behind the hull's — then the weather
    * since the last read. The first read of a fresh hull is kept at once:
@@ -323,7 +323,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
   }
 
   /**
-   * ⭐ Her hull's line, read WITHOUT reconciling (harbors B4): where her
+   * ⭐ Her hull's line, read WITHOUT reconciling: where her
    * seams stood at the last read and how fast they are going now — only
    * while her coat is gone. A leak integrates over it, band by band.
    */
@@ -336,7 +336,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
   }
 
   /**
-   * ⭐ Put her hull at `condition`, read as of `stampS` (harbors P25 — the
+   * ⭐ Put her hull at `condition`, read as of `stampS` (the
    * staged twin of a hull that weathered there). A test world's staging
    * only; the game moves a hull by the weather and `maintain`.
    */
@@ -353,7 +353,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
 
   /** The place her outside meets the air: her deck. */
   public override weatherScope(): Stuff | null {
-    // HER deck, asked of her (harbors review 2) — a ship of a kind's deck
+    // HER deck, asked of her — a ship of a kind's deck
     // row is every smack's.
     return this.watchRoomNow();
   }
@@ -447,18 +447,18 @@ export default class Ship extends BilgeMixin(PersistableMixin(
   public setAground(v: boolean): void { this.aground = v === true; }
   public setHoled(v: boolean): void {
     // ⭐ The water that came in before the hole (or before it was patched)
-    // came in at the old rate: integrate up to now first (P19).
+    // came in at the old rate: integrate up to now first.
     this.integrateBilge(WorldClockApi.getNow().rawValue());
     this.holed = v === true;
   }
 
-  /* ───────────── the hull clock and the bilge (harbors P19, B4) ───────────── */
+  /* ───────────── the hull clock and the bilge ───────────── */
 
-  // ⭐ Her bilge's litres and stamp are `BilgeMixin`'s (review 1 — the
+  // ⭐ Her bilge's litres and stamp are `BilgeMixin`'s (the
   // boat's and hers are one substrate); where it comes in is hers below.
 
   /**
-   * ⭐ How far her seams have opened (P19) — `sound · weathered · worn ·
+   * ⭐ How far her seams have opened — `sound · weathered · worn ·
    * shabby · dilapidated`, the five the leak is tuned in. Read live, so
    * `maintain` aboard makes her tight at once.
    */
@@ -466,7 +466,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
     return seamBandFor(this.getCondition());
   }
 
-  /** ⭐ What is coming in now, L/s (P19): her band's rate by her length, and a hole's. */
+  /** ⭐ What is coming in now, L/s: her band's rate by her length, and a hole's. */
   public async leakLps(): Promise<number> {
     return this.leakLpsFor(await this.hullBand());
   }
@@ -504,7 +504,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
   }
 
   /**
-   * ⭐ Bring her bilge up to now (P19): the leak integrated over her shell's
+   * ⭐ Bring her bilge up to now: the leak integrated over her shell's
    * LINE since the bilge's stamp — band by band, never sampled, so a long
    * absence fills her at every rate she weathered through. Her warren asks
    * this before it reconciles or restores her shell (`ShipWarren`), so the
@@ -559,7 +559,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
   }
 
   /**
-   * ⭐ Pump her (P19): up to `litres` out of her bilge and over the side —
+   * ⭐ Pump her: up to `litres` out of her bilge and over the side —
    * the bilge well's lift. Returns what came out; refuses nothing (an
    * empty bilge gives nothing back).
    */
@@ -573,13 +573,13 @@ export default class Ship extends BilgeMixin(PersistableMixin(
   }
 
   /**
-   * ⭐ Stage her bilge (harbors P25): `litres` in her as of `stampS` — the
+   * ⭐ Stage her bilge: `litres` in her as of `stampS` — the
    * staged twin of a bilge that filled there. A test world's staging only.
    */
   @CallSecurity(SecurityPolicies.FromModule('/platform/idea/api/TestHarnessLogic#TestHarnessLogic'))
   public stageBilge(litres: number, stampS: number): void {
     this.resetBilge(litres, stampS);
-    // ⭐ The water decides, not the staging (harbors drive, 2026-11-04): a
+    // ⭐ The water decides, not the staging: a
     // settled ship staged down near her floors is still ON the mud until
     // she is read — `noteFlood` floats her when her draft clears the
     // bottom. Resetting `settled` here meant step 16's pumping could never
@@ -587,7 +587,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
     this.persistMooring();
   }
 
-  /** ⭐ Her bilge now (P19), reconciled — what a sounding reads. */
+  /** ⭐ Her bilge now, reconciled — what a sounding reads. */
   public async bilgeState(): Promise<BilgeState> {
     await this.reconcileBilge();
     const band = await this.hullBand();
@@ -601,7 +601,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
   }
 
   /**
-   * ⭐ Her bilge in words (P19), as a sounding finds it — banded by the
+   * ⭐ Her bilge in words, as a sounding finds it — banded by the
    * reader's seamanship: everybody hears how deep and whether it is
    * rising; a novice how fast; an expert whether one pump would gain on
    * it. Never a number (the reading adds the bracketed figure).
@@ -640,17 +640,17 @@ export default class Ship extends BilgeMixin(PersistableMixin(
     return `${level} ${rate} ${pump}`;
   }
 
-  /* ───────────── flooding, settling, sinking, the wreck (harbors P20, B5) ───────────── */
+  /* ───────────── flooding, settling, sinking, the wreck ───────────── */
 
   /**
-   * ⭐ She is settling (P20): the water is at her deck and she will not float
+   * ⭐ She is settling: the water is at her deck and she will not float
    * much longer. `null` while she floats. `sinceRealMs` is the WALL clock —
    * the backstop is real seconds, whatever the world's pace.
    */
   protected settling: { sinceS: number; sinceRealMs: number } | null = null;
-  /** ⭐ On the bottom of a berth too shallow to take her (P20): settled, not sunk — pumpable. */
+  /** ⭐ On the bottom of a berth too shallow to take her: settled, not sunk — pumpable. */
   protected settled = false;
-  /** ⭐ Gone down (P20): when, and the depth of water she lies in. Her rooms are the wreck. */
+  /** ⭐ Gone down: when, and the depth of water she lies in. Her rooms are the wreck. */
   protected wreck: { atS: number; depthM: number } | null = null;
 
   /** Runtime: acts each person aboard has made since she began to settle, by stuffId. */
@@ -676,7 +676,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
   }
 
   /**
-   * ⭐ The water's height above her keel, m (P20): her bilge spread over her
+   * ⭐ The water's height above her keel, m: her bilge spread over her
    * hull's box (`L × B × 0.7`); sunk, the sea's whole depth over her.
    */
   public floodHeightM(): number {
@@ -704,7 +704,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
   }
 
   /**
-   * ⭐ How deep the water stands over a room's floor, m (P20) — her rooms
+   * ⭐ How deep the water stands over a room's floor, m — her rooms
    * flood from the lowest up by this arithmetic alone. ≤ 0 is dry.
    */
   public floodDepthAt(room: Stuff, ownFloorM: number | null = null): number {
@@ -712,7 +712,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
   }
 
   /**
-   * ⭐ How deep the water is under her where she lies, m (P20): a kept
+   * ⭐ How deep the water is under her where she lies, m: a kept
    * berth's own depth (a mud berth, the harbor's fact), else her frame's
    * read of the bottom; `null` when nobody can say.
    */
@@ -736,7 +736,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
   }
 
   /**
-   * ⭐ Where the water in her has got to, decided (P20). Asked after every
+   * ⭐ Where the water in her has got to, decided. Asked after every
    * bilge reconcile, every stroke of the pump, at stand-up and when her
    * flood watch comes due. Nothing is rolled: the bilge and the depth
    * under her decide.
@@ -786,7 +786,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
   }
 
   /**
-   * ⭐ Her flood watch (P20): one game-time call when the water will reach
+   * ⭐ Her flood watch: one game-time call when the water will reach
    * her deck at the leak she has now — or at her shell's next band, when
    * that comes first and the leak changes. A watch that fires early just
    * arms the next one; nothing is sampled.
@@ -828,7 +828,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
   }
 
   /**
-   * ⭐ She begins to settle (P20): everyone aboard is told once, and the
+   * ⭐ She begins to settle: everyone aboard is told once, and the
    * window opens — **per person**, sized in acts (*no window shall be
    * shorter than the act that answers it*): each person aboard, or who
    * comes aboard while she settles, has `ship.settlingActs` commands of
@@ -901,7 +901,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
   }
 
   /**
-   * ⭐ One command dispatched, somewhere (P20): counted only when its giver
+   * ⭐ One command dispatched, somewhere: counted only when its giver
    * stands in one of her rooms. Anybody else's command is nothing to her.
    */
   public async countAct(p: CommandDispatchedPayload): Promise<void> {
@@ -919,7 +919,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
   }
 
   /**
-   * ⭐ Has her window closed? (P20) — everyone still aboard has used their
+   * ⭐ Has her window closed? — everyone still aboard has used their
    * acts, nobody is aboard, or the backstop's real seconds are gone.
    */
   public async checkSettling(nowRealMs: number = Date.now()): Promise<boolean> {
@@ -948,7 +948,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
   }
 
   /**
-   * ⭐ She goes down (P20). Where she lies, with everything in her: her
+   * ⭐ She goes down. Where she lies, with everything in her: her
    * rooms are the wreck, at the bottom's depth; whoever is still aboard is
    * in a room under the sea; her title, her register entry and her cargo
    * are untouched. The water keeps a surface over her and a way down to
@@ -1014,7 +1014,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
   }
 
   /**
-   * ⭐ Credit those handling her with seamanship (P24): whoever aboard may
+   * ⭐ Credit those handling her with seamanship: whoever aboard may
    * take her helm — her master, her charterer — for mooring, casting off,
    * and bringing her to the node she was laid for.
    */
@@ -1074,9 +1074,9 @@ export default class Ship extends BilgeMixin(PersistableMixin(
     return deck;
   }
 
-  /* ───────────── who answers for her, and what she owes (harbors P12, P13) ───────────── */
+  /* ───────────── who answers for her, and what she owes ───────────── */
 
-  /** ⭐ What she has been billed and not yet paid (P13), in the order billed. */
+  /** ⭐ What she has been billed and not yet paid, in the order billed. */
   protected owed: ShipBill[] = [];
 
   /** Her unpaid bills, copies. */
@@ -1084,7 +1084,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
     return this.owed.map((b) => ({ ...b }));
   }
 
-  /** ⭐ Bill her (P13): carried until it is paid at a harbor office. */
+  /** ⭐ Bill her: carried until it is paid at a harbor office. */
   public owe(bill: ShipBill): void {
     const amountMinor = Math.ceil(Number(bill.amountMinor));
     if (!Number.isFinite(amountMinor) || amountMinor <= 0 || typeof bill.to !== 'string' || bill.to === '') {
@@ -1111,11 +1111,11 @@ export default class Ship extends BilgeMixin(PersistableMixin(
   }
 
   /**
-   * ⭐ Does `who` answer for her (P12, P13, P23) — the one whose business
+   * ⭐ Does `who` answer for her — the one whose business
    * her dues and bills are? Whoever holds her company's `master` seat, her
    * charterer while the charter runs, and a charterer whose days she still
    * carries unpaid (the charter ended as she berthed; clearing her is still
-   * theirs), and her managing owner (review 1) — a player who holds a
+   * theirs), and her managing owner — a player who holds a
    * majority of her company's units.
    */
   public answersFor(who: Stuff): boolean {
@@ -1125,7 +1125,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
   }
 
   /**
-   * ⭐ May `who` take her helm (P12)? Her charterer while the charter runs,
+   * ⭐ May `who` take her helm? Her charterer while the charter runs,
    * or whoever holds her company's `master` seat — nobody else. (Crews and
    * mates at the helm are a later seam: more seats read here.)
    */
@@ -1140,12 +1140,12 @@ export default class Ship extends BilgeMixin(PersistableMixin(
     return who.getEmployment(house)?.positionKey === MASTER_POSITION;
   }
 
-  /* ───────────── her register, her owners, her flag (harbors P12, P14, P16) ───────────── */
+  /* ───────────── her register, her owners, her flag ───────────── */
 
   /**
    * ⭐ The register she is entered in — a `ShipRegister` row path, `null`
    * when she is in none (stateless). Set as she is commissioned; an
-   * authored ship's row names it. ⭐ She knows her register (review 1):
+   * authored ship's row names it. ⭐ She knows her register:
    * nothing searches the registers for her handle.
    */
   protected shipRegister: string | null = null;
@@ -1170,7 +1170,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
   }
 
   /**
-   * ⭐ Her entry in her register (P14) — one keyed read under the name she
+   * ⭐ Her entry in her register — one keyed read under the name she
    * was entered as, checked to be HER (the entry names her handle). `null`
    * when she is stateless.
    */
@@ -1188,7 +1188,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
     return entry;
   }
 
-  /** ⭐ Her flag state (P16) — the government whose register she is entered in, or `null` (stateless). */
+  /** ⭐ Her flag state — the government whose register she is entered in, or `null` (stateless). */
   public async flagState(): Promise<string | null> {
     const entry = await this.registerEntry();
     if (entry === null) return null;
@@ -1196,7 +1196,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
   }
 
   /**
-   * ⭐ Her company (review 1) — the business that owns her, whose cap table
+   * ⭐ Her company — the business that owns her, whose cap table
    * holds her units (her sixty-fourths). A ship of a kind's is minted under
    * her serial at her commissioning and kept with her; an authored ship's
    * is her `house:` row. `null` when she has none yet (a hull not
@@ -1222,7 +1222,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
     return null;
   }
 
-  /** ⭐ Her managing owner (P12, review 1): whoever holds a MAJORITY of her company's units — `null` when nobody does. */
+  /** ⭐ Her managing owner: whoever holds a MAJORITY of her company's units — `null` when nobody does. */
   public async managingOwner(): Promise<UnitHolder | null> {
     return (await this.company())?.majorityHolder() ?? null;
   }
@@ -1252,7 +1252,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
   }
 
   /**
-   * ⭐ The flag she flies (P16): the flag on her entrance room's flagstaff,
+   * ⭐ The flag she flies: the flag on her entrance room's flagstaff,
    * or `null`. Only a claim — her flag STATE is her register's, and false
    * colors are found out by reading it.
    */
@@ -1286,7 +1286,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
   static markupAugmenters: MarkupAugmenter[] = [flagAugmenter];
 
   /**
-   * ⭐ Commission her (P17, review 1): a ship of a kind just bought, keyed
+   * ⭐ Commission her: a ship of a kind just bought, keyed
    * by her serial, is named, given her own company — `buyer` its founder,
    * holding the whole of its table (all sixty-four units) — entered in
    * `register` (the register the yard's government keeps) as that
@@ -1338,7 +1338,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
     await this.refreshOwners();
     const units = company.totalUnits();
 
-    // ⭐ Her gangway is a door with a key (P9): locked, the key with her owner.
+    // ⭐ Her gangway is a door with a key: locked, the key with her owner.
     const keyway = BoundaryApi.mintKeyway();
     this.gangwayKeyway = keyway;
     this.gangwayLocked = true;
@@ -1377,7 +1377,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
   }
 
   /**
-   * ⭐ Her own company (P2, review 1): a `PersistentBusiness` minted from
+   * ⭐ Her own company: a `PersistentBusiness` minted from
    * her kind's seed row (`house:`) at `<seed>/<serial>` — the drilling
    * outfit's precedent — whose appointing authority is its OWN cap table
    * (`kind: owners`). KEPT, keyed `(seed, serial)`: at her commissioning
@@ -1433,14 +1433,14 @@ export default class Ship extends BilgeMixin(PersistableMixin(
 
   /**
    * ⭐ Tell a landing she lies made fast at it (`alongside`), or has left
-   * it (harbors Risk 6, review 1): a landing keeps who lies at it, and on
+   * it: a landing keeps who lies at it, and on
    * its first use after a restart stands those ships up again so their
    * ways aboard come back. A landing sited on no frame has no first use to
    * do that with — said for a ship of a kind, whom nothing else stands up.
    */
   /**
-   * ⭐ Her line on `landingPath`'s berth roll is brought up to the truth
-   * (harbors Risk 6, review 1): she is on it while she is made fast there,
+   * ⭐ Her line on `landingPath`'s berth roll is brought up to the truth:
+   * she is on it while she is made fast there,
    * struck off it when she is not. Only she writes it, and the store reads
    * where she lies off her — she cannot write a false line. Said, never
    * thrown: a roll that cannot be written costs her nothing but the
@@ -1460,9 +1460,9 @@ export default class Ship extends BilgeMixin(PersistableMixin(
     await this.fileBerth(landingPath);
   }
 
-  /* ───────────── the charter (harbors P23) ───────────── */
+  /* ───────────── the charter ───────────── */
 
-  /** ⭐ The charter running now, or `null` (P23). */
+  /** ⭐ The charter running now, or `null`. */
   protected charter: ShipCharter | null = null;
 
   /** The charter running now, a copy — `null` when she is not chartered. */
@@ -1477,7 +1477,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
   }
 
   /**
-   * ⭐ Charter her to `who` at `ratePerDay`, the days paid to `payTo` (P23)
+   * ⭐ Charter her to `who` at `ratePerDay`, the days paid to `payTo`
    * — or why not, in words: she has a charterer already, or a master of
    * her own is aboard on shift (she is not the line's to let while she is
    * commanded). Written on her and kept.
@@ -1493,7 +1493,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
         ? `${this.getPresentation()} is yours already, until she next berths.`
         : `${this.getPresentation()} is under charter to somebody else until she next berths.`;
     }
-    // (A sunken ship is refused here too once she can sink — harbors B5.)
+    // (A sunken ship is refused here too once she can sink.)
     if (await this.masterAboardOnShift()) {
       return `Her master is aboard and on watch; she is not to be chartered while her own master has her.`;
     }
@@ -1519,7 +1519,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
   }
 
   /**
-   * ⭐ The charter ends as she makes fast at a kept quay (P23): the world's
+   * ⭐ The charter ends as she makes fast at a kept quay: the world's
    * days it lasted — a day begun is a day owed — at its rate are billed to
    * her, owed by the charterer, paid at the harbor office. Returns what the
    * charterer is told, or `''` when she was not chartered.
@@ -1556,7 +1556,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
     return words;
   }
 
-  /* ───────────── made fast: the berth and her lines (harbors P4–P6) ───────────── */
+  /* ───────────── made fast: the berth and her lines ───────────── */
 
   /**
    * ⭐ The landing she is made fast at, by path — `null` when she is not.
@@ -1565,9 +1565,9 @@ export default class Ship extends BilgeMixin(PersistableMixin(
   protected berth: string | null = null;
   /** Held to the landing by her own lines. */
   protected moored = false;
-  /** Her gangway's keyway (P9) — `''` opens for nobody. */
+  /** Her gangway's keyway — `''` opens for nobody. */
   protected gangwayKeyway = '';
-  /** Her gangway's bolt (P9) — `false` refuses nobody. */
+  /** Her gangway's bolt — `false` refuses nobody. */
   protected gangwayLocked = false;
 
   /**
@@ -1614,7 +1614,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
   }
 
   /**
-   * ⭐ The lines aboard her that will hold her (P6, review 1): every ROPE on
+   * ⭐ The lines aboard her that will hold her: every ROPE on
    * her deck kept AT her bitts — flaked down `on` a {@link Bollard} there,
    * or tied round one — and long enough to reach. A rope lying loose on her
    * deck is not one of her lines: nobody made it ready (lens 2 — an author's
@@ -1635,7 +1635,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
   }
 
   /**
-   * ⭐ Her lines fast now (review 1 — moored is a READ over her ropes): the
+   * ⭐ Her lines fast now (moored is a READ over her ropes): the
    * ropes she made fast across whose end is still round a bollard she made
    * it fast round. A rope knows; she only remembers which ones she tied.
    */
@@ -1646,7 +1646,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
 
   /**
    * ⭐ Why a course for `target` cannot end alongside, asked before it is
-   * laid (P5) — so the refusal is instant and the voyage never starts.
+   * laid — so the refusal is instant and the voyage never starts.
    * `null` when it can, or when the course is for no landing at all.
    */
   public async mooringRefusal(target: string | null): Promise<string | null> {
@@ -1656,8 +1656,8 @@ export default class Ship extends BilgeMixin(PersistableMixin(
   }
 
   /**
-   * ⭐ Why she may not take a course for the landing `landing` now (harbors
-   * P5, P7), asked before it is laid so the refusal is instant: no line to
+   * ⭐ Why she may not take a course for the landing `landing` now,
+   * asked before it is laid so the refusal is instant: no line to
    * make fast with; the berth she lies at has not cleared her; the berth
    * she is coming to has not admitted her (a harbor quay is given by the
    * harbormaster). `null` when she may go.
@@ -1677,7 +1677,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
   }
 
   /**
-   * ⭐ She has come up to a node whose landing she may make fast at (A3):
+   * ⭐ She has come up to a node whose landing she may make fast at:
    * a kept quay asks its keeper first — not given the berth, she lies off
    * and is told why (hail, then `course` it again); otherwise she makes
    * fast. The words for whoever is aboard.
@@ -1699,7 +1699,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
   }
 
   /**
-   * ⭐ What the bar of `river` says to her draft now (harbors P10): the
+   * ⭐ What the bar of `river` says to her draft now: the
    * water over it (the tide's level in it) against her draft as she floats
    * and the margin a master keeps under her keel. Nothing rolled — only the
    * clock and her lading change the answer. `null` when the river has no
@@ -1719,7 +1719,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
   }
 
   /**
-   * ⭐ The bar's refusal in a pilot's words (harbors P10) — what is over it,
+   * ⭐ The bar's refusal in a pilot's words — what is over it,
    * what she wants, and when the flood is — or `null` when she can cross now.
    */
   public async barRefusal(river: Stuff & LineFrame, nowS: number): Promise<string | null> {
@@ -1741,7 +1741,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
   }
 
   /**
-   * ⭐ She comes alongside `landingPath` and makes fast (P5, P6): each line
+   * ⭐ She comes alongside `landingPath` and makes fast: each line
    * aboard goes ashore round a bollard there, and a way aboard named for
    * her goes on the landing. With no line, or no bollard ashore, she lies
    * off unmoored — said in the words returned.
@@ -1762,14 +1762,14 @@ export default class Ship extends BilgeMixin(PersistableMixin(
     if (this.isOfKind() && !MixinApi.isFrameSited(landing)) {
       console.warn(`Ship: ${this.getDurableHandle()} lies at '${landingPath}', which is sited on no frame — after a restart nothing stands her up there`);
     }
-    // ⭐ A kept berth (a harbor quay): her time alongside starts in its book (P7),
-    // and a charter ends there (P23) — its days billed to her.
+    // ⭐ A kept berth (a harbor quay): her time alongside starts in its book,
+    // and a charter ends there — its days billed to her.
     let ended = '';
     if (MixinApi.isBerthing(landing)) {
       await landing.madeFast(this as unknown as Stuff, WorldClockApi.getNow().rawValue());
       ended = this.endCharter();
     }
-    // ⭐ Bringing her alongside and making fast is seamanship (P24) — for
+    // ⭐ Bringing her alongside and making fast is seamanship — for
     // whoever aboard has her helm.
     await this.creditHands('standard');
     const made = fast === 1
@@ -1779,7 +1779,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
   }
 
   /**
-   * ⭐ Cast off (P5): her lines are brought in from aboard and the way
+   * ⭐ Cast off: her lines are brought in from aboard and the way
    * aboard her comes off the landing. Any course from a moored ship does
    * this first.
    */
@@ -1792,12 +1792,12 @@ export default class Ship extends BilgeMixin(PersistableMixin(
     this.berth = null;
     this.persistMooring();
     await this.fileBerth(was);
-    // ⭐ The berth is free in its keeper's book (P7).
+    // ⭐ The berth is free in its keeper's book.
     if (keeper !== null) await keeper.release(this as unknown as Stuff, WorldClockApi.getNow().rawValue());
   }
 
   /**
-   * ⭐ One of her lines was let go (P6, review 1) — untied off its bollard
+   * ⭐ One of her lines was let go — untied off its bollard
    * on the quay (cordage's `untie`), or cast off aboard. With her last line
    * off she is no longer moored: the way aboard comes off the landing and
    * everyone aboard is told. Her own bringing them in (sailing, sleeping,
@@ -1812,7 +1812,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
     this.berth = null;
     this.persistMooring();
     void this.fileBerth(was);
-    // Adrift, she no longer holds the berth she was given (P7).
+    // Adrift, she no longer holds the berth she was given.
     void this.berthingAt(was)
       .then((keeper) => keeper?.release(this as unknown as Stuff, WorldClockApi.getNow().rawValue()))
       .catch((err) => console.warn('Ship: the berth was not released:', err));
@@ -1900,7 +1900,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
   }
 
   /**
-   * ⭐ Put her mooring back as it was (P4, P6): the landing she is made
+   * ⭐ Put her mooring back as it was: the landing she is made
    * fast at is stood up, her way aboard goes on it, and the lines that were
    * aboard go round its bollards again — a line's end is runtime and does not
    * outlive the process, and which lines were fast is not kept (every line
@@ -1929,7 +1929,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
       }
     }
     await this.installBerth(landing);
-    // ⭐ A kept berth knows she lies there (P7) — the book's entry stands as it was.
+    // ⭐ A kept berth knows she lies there — the book's entry stands as it was.
     if (MixinApi.isBerthing(landing)) await landing.madeFast(this as unknown as Stuff, WorldClockApi.getNow().rawValue());
   }
 
@@ -1938,7 +1938,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
     if (this.isMoored() && this.berth === place.getTemplatePath()) await this.rewireBerth();
   }
 
-  /** ⭐ Loaded from her record: she lies where she was made fast (P4). */
+  /** ⭐ Loaded from her record: she lies where she was made fast. */
   override async onRestored(): Promise<void> {
     await super.onRestored();
     await this.standKind();
@@ -1946,7 +1946,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
     await this.afterStanding();
   }
 
-  /** ⭐ First stood up (no record yet): an authored mooring is made (P4). */
+  /** ⭐ First stood up (no record yet): an authored mooring is made. */
   override async seedBornWith(): Promise<void> {
     await super.seedBornWith();
     await this.standKind();
@@ -1957,10 +1957,10 @@ export default class Ship extends BilgeMixin(PersistableMixin(
   /**
    * ⭐ A ship of a kind stood up (minted, or woken from sleep): her rooms
    * stand with her, and her frame keeps her among its craft — nothing
-   * authored attaches a kind's ship to a sea (P3).
+   * authored attaches a kind's ship to a sea.
    */
   private async standKind(): Promise<void> {
-    // ⭐ An authored ship's warren stands with her too (B4): her hull's clock
+    // ⭐ An authored ship's warren stands with her too: her hull's clock
     // is its shell, and her rooms that stand now join it.
     if (!this.isOfKind()) {
       await this.standWarren();
@@ -2017,14 +2017,14 @@ export default class Ship extends BilgeMixin(PersistableMixin(
     super.onDestruct();
   }
 
-  /* ───────────── her rooms: the warren, the handle, sleep (harbors P1–P3, B1) ───────────── */
+  /* ───────────── her rooms: the warren, the handle, sleep ───────────── */
 
   /**
    * ⭐ The warren her rooms are minted by — a `ShipWarren` row
    * (`/stuff/idea/ShipWarren/smack`), authored on a ship KIND. `null` for
    * an authored ship (the Hesper), whose warren adopts her own rows.
-   * ⭐ The PLAN it copies is hers, not the warren's (harbors review,
-   * 2026-11-03): her kind row's own `extent` and `entrance`, exactly as an
+   * ⭐ The PLAN it copies is hers, not the warren's:
+   * her kind row's own `extent` and `entrance`, exactly as an
    * authored ship's row names them — the warren reads them off her
    * (`ShipWarren.planOf`). No blueprint row.
    */
@@ -2055,7 +2055,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
 
   /**
    * ⭐ She is going to sleep and will be gone when this settles, or `null`
-   * (harbors drive, 2026-11-04). A sleep awaits her capture, so somebody
+   *. A sleep awaits her capture, so somebody
    * could come up her gangway between her deciding to sleep and her rooms
    * coming down — and found themselves nowhere, in a destroyed deck. A way
    * aboard waits this out and stands her up again.
@@ -2066,7 +2066,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
 
   /**
    * ⭐ A ship of a KIND — minted under her own identity
-   * `<kind row>/<serial>` (harbors review 1) — rather than an authored
+   * `<kind row>/<serial>` — rather than an authored
    * one-row ship.
    */
   public isOfKind(): boolean {
@@ -2089,7 +2089,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
   }
 
   /**
-   * ⭐ Her durable handle (P2, P3, review 1): her identity — minted
+   * ⭐ Her durable handle: her identity — minted
    * `<kind row>/<serial>` for a ship of a kind, her own row for an
    * authored ship (one row IS one ship). Never `row#key`: a ship is not a
    * keyed room; she is a minted identity, found by
@@ -2101,7 +2101,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
   }
 
   /**
-   * ⭐ Her warren, standing (P1): keyed `(warren row, her key)` through the
+   * ⭐ Her warren, standing: keyed `(warren row, her key)` through the
    * spine's resolve-first stand-up — her serial for a kind, her row for an
    * authored ship — and woken (a kind's rooms minted; an authored ship's
    * resident rooms adopted). `null`, loudly, when it will not stand.
@@ -2133,7 +2133,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
     return this._warrenPending;
   }
 
-  /** The member rooms that are resident now — her warren's (P3). */
+  /** The member rooms that are resident now — her warren's. */
   private async liveMembers(): Promise<(Stuff & Container)[]> {
     const w = await this.standWarren();
     if (w === null) return [];
@@ -2149,7 +2149,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
   public async sleepIfEmpty(): Promise<void> {
     if (!this.isOfKind() || this.getCourse() !== null || this._sleeping) return;
     // ⭐ Aboard is anywhere in her rooms — sitting in her dinghy on deck is
-    // aboard (harbors drive, 2026-11-04: the owner got into the dinghy to
+    // aboard (the owner got into the dinghy to
     // launch it, she counted nobody on deck, slept, and stowed the stones
     // he had loaded into it in her hold).
     const anyoneIn = (xs: readonly Stuff[], depth: number): boolean =>
@@ -2161,8 +2161,8 @@ export default class Ship extends BilgeMixin(PersistableMixin(
   }
 
   /**
-   * ⭐ Sleep whole (P1, D16's rule for a holding): what is loose on her
-   * plain rooms is stowed in her hold (review 2), and she is captured —
+   * ⭐ Sleep whole (D16's rule for a holding): what is loose on her
+   * plain rooms is stowed in her hold, and she is captured —
    * her record, then her warren's and her hold's, her dependents — then the warren comes down with her
    * rooms and she with it. Made fast, she stays made fast — `moored` and
    * `berth` are kept, her lines' ends ashore come in unannounced (an end is
@@ -2182,10 +2182,10 @@ export default class Ship extends BilgeMixin(PersistableMixin(
     await this.bringLinesIn();
     this.berthExit = null; // left standing on the landing, hers by handle
     const w = this._warren !== null && !this._warren.isDestroyed() ? this._warren : null;
-    // ⭐ Only her hold keeps a record (review 2): what is loose on deck and
+    // ⭐ Only her hold keeps a record: what is loose on deck and
     // in the cabin is stowed below before she is captured.
     w?.stow();
-    // ⭐ One capture (review 2): her warren is her dependent and her hold
+    // ⭐ One capture: her warren is her dependent and her hold
     // its, so saving her saves them.
     await PersistableApi.capture(this as unknown as Stuff);
     this._warren = null;
@@ -2194,7 +2194,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
   }
 
   /**
-   * ⭐ The records she owns (review 2): her warren, standing — whose own
+   * ⭐ The records she owns: her warren, standing — whose own
    * dependents are her rooms that keep a record (her hold). One capture of
    * her writes all three; marking her for revert marks all three.
    *
@@ -2204,7 +2204,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
     const out: (Stuff & Persistable)[] = [];
     const w = this._warren;
     if (w !== null && !w.isDestroyed()) out.push(w as unknown as Stuff & Persistable);
-    // ⭐ Her minted company (review 1): its table is kept with her.
+    // ⭐ Her minted company: its table is kept with her.
     const house = this.house ?? '';
     const serial = this.serial() ?? '';
     if (this.isOfKind() && serial !== '' && house.endsWith(`/${serial}`)) {
@@ -2231,7 +2231,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
 
   /** The entrance — the deck the watch is kept on. */
   override async watchRoom(): Promise<(Stuff & Container) | null> {
-    // ⭐ A ship of a kind: her deck is her warren's entry room, keyed (P2).
+    // ⭐ A ship of a kind: her deck is her warren's entry room, keyed.
     if (this.isOfKind()) return (await this.standWarren())?.entryRoom() ?? null;
     const entrance = this.getEntrance();
     if (!entrance) return null;
@@ -2282,21 +2282,21 @@ export default class Ship extends BilgeMixin(PersistableMixin(
     if (this.settled) return { refused: 'She has settled onto the mud with the water in her. Pump her out first.' };
     if (this.settling !== null) return { refused: 'She is settling under you; she will answer no helm.' };
     if (this.holed) return { refused: 'She is holed and taking water; she goes nowhere until she is patched.' };
-    // ⭐ A course that ends alongside needs a line to make fast with (P5),
+    // ⭐ A course that ends alongside needs a line to make fast with,
     // a kept berth she leaves must clear her and one she comes to admit her
-    // (P7) — all asked before the course is laid: the refusal is instant.
+    // — all asked before the course is laid: the refusal is instant.
     // ⭐ A course across the chart for a node is laid from beyond hail of its
     // harbor: the keeper is asked at the arrival (`arriveAlongside`), not now
-    // (A3 — the island's quay); a river's landing is asked before she moves.
+    // (the island's quay); a river's landing is asked before she moves.
     const toward = req.toward ?? null;
     const refused = await this.courseRefusal(toward ? await this.landingFor(toward) : null, { admit: this.getLine() !== null });
     if (refused !== null) return { refused };
     this.weighedKg = await this.cargoKg();
     const started = await super.steer(req);
-    // ⭐ Under way from a berth: her lines come in and the way aboard goes (P5).
+    // ⭐ Under way from a berth: her lines come in and the way aboard goes.
     if (!('refused' in started) && this.moored) {
       await this.castOff();
-      await this.creditHands('easy'); // casting off is seamanship (P24)
+      await this.creditHands('easy'); // casting off is seamanship
     }
     return started;
   }
@@ -2308,14 +2308,14 @@ export default class Ship extends BilgeMixin(PersistableMixin(
   override async onStop(stop: CraftStop): Promise<string> {
     if (stop.reason === 'aground') this.aground = true;
     if (stop.reason === 'holed') this.holed = true;
-    // ⭐ At a landing she makes fast (P5): her lines go ashore round its bollards.
+    // ⭐ At a landing she makes fast: her lines go ashore round its bollards.
     if (stop.reason === 'landing' && stop.landing) {
       return `${stop.words} ${await this.comeAlongside(stop.landing)}`.trim();
     }
     if (stop.reason === 'arrived' && stop.landing) {
       return `${stop.words} ${await this.arriveAlongside(stop.landing)}`.trim();
     }
-    // ⭐ The node she was laid for, raised (P24): seamanship to whoever has her helm.
+    // ⭐ The node she was laid for, raised: seamanship to whoever has her helm.
     if (stop.reason === 'arrived') await this.creditHands('standard');
     if (stop.reason === 'mouth') {
       const frame = await this.liveFrame();
@@ -2327,7 +2327,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
           this.placeAt({ frame: 'chart', at }, WorldClockApi.getNow().rawValue(), sea.expanse);
           (await this.liveFrame())?.adopt(this as never);
           const out = `${stop.words} She is out over the bar, and lies at ${node!.getPresentation()}. The next course is the sea's.`;
-          // ⭐ The node's landing is where she lies (P5): she makes fast there.
+          // ⭐ The node's landing is where she lies: she makes fast there.
           const landing = (node as ExpanseNode).getDestination();
           return landing ? `${out} ${await this.comeAlongside(landing)}` : out;
         }
@@ -2341,7 +2341,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
    * she leaves the chart for the river's line, at its mouth.
    */
   public async enterRiver(line: string, course: string, mouthKm: number, across: number): Promise<void> {
-    // ⭐ Made fast at the node's landing, she casts off first (harbors P5).
+    // ⭐ Made fast at the node's landing, she casts off first.
     if (this.moored) await this.castOff();
     this.placeAt({ frame: 'line', at: { course, km: mouthKm, across } }, WorldClockApi.getNow().rawValue(), line);
   }
@@ -2375,7 +2375,7 @@ function idOf(who: Stuff): string {
 
 /**
  * ⭐ *She flies the colors of the City of Terminus.* — derived from the flag
- * on her flagstaff (P16), so it is true the moment the flag is struck or
+ * on her flagstaff, so it is true the moment the flag is struck or
  * changed. Says nothing of her register: colors are a claim.
  */
 function flagAugmenter(text: string, host: Stuff, _viewer: Stuff): string {

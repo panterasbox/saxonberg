@@ -13,7 +13,7 @@
  * shelf would drop consigned items on a server bounce.
  *
  * ⭐ A consignment shelf is one implementer of `buy`'s offer protocol
- * (`ForSaleMixin`, harbors review 1): it offers what it holds a live
+ * (`ForSaleMixin`): it offers what it holds a live
  * listing for, and sells it at the consignor's ask — settle, split the
  * remainder to the consignor, transfer the title. `Stock` (which composes
  * this) adds its own shelf goods on top.

@@ -1,5 +1,5 @@
 /**
- * CharterBook — ⭐ **where a ship is chartered** (harbors P23): the book a
+ * CharterBook — ⭐ **where a ship is chartered**: the book a
  * ship's company keeps aboard her, or the line keeps at its desk, in which
  * a voyage charter is written. It affords `charter` to whoever stands at it.
  *
@@ -26,7 +26,7 @@ import { MixinApi } from '../../api/mixin';
 import Ship from '../idea/Ship';
 
 export default class CharterBook extends Good {
-  /** ⭐ The charter is written at the book (P23). */
+  /** ⭐ The charter is written at the book. */
   static commandContributions: CommandContributions = {
     peers: ['platform/cmd/work/charter.yaml'],
   };
@@ -72,7 +72,7 @@ export default class CharterBook extends Good {
   }
 
   /**
-   * ⭐ The ship `word` names at this book (P23) — or the refusal in words.
+   * ⭐ The ship `word` names at this book — or the refusal in words.
    * Aboard, the ship it is in (a word, if given, must name her); at a desk,
    * the listed ship the word names, or the only one listed.
    */

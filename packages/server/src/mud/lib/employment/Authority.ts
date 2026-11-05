@@ -35,7 +35,7 @@
  * accountable person, never an "author tier"), never an appointing
  * authority in its own right. Five kinds, each with a consumer.
  *
- * ⭐ `owners` (harbors review 1, the institutions slate's cap table) is
+ * ⭐ `owners` (the institutions slate's cap table) is
  * *whoever holds a majority of this organization's table appoints*: a
  * player holding more than half the units — an identity match, so a sole
  * owner appoints themself — or an organization holding them, whose OWN

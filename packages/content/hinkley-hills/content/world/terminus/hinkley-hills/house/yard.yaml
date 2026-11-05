@@ -2,7 +2,7 @@
 # Hinkley holding (residences D16/D17): cloned per lot by the lot's
 # HoldingWarren and keyed `(this row, <lotExtent>/yard)`, so title and
 # durable state share one identity and `templatePath` always resolves to
-# THIS row. It lives under the `lots` zone (P8): a clone's zone resolves
+# THIS row. It lives under the `lots` zone: a clone's zone resolves
 # from the ROW's ancestry, and the yard is reached by the lane's
 # non-cardinal `lot-N` gate — admissible only across the zone boundary.
 #
@@ -46,7 +46,7 @@ data:
     Somebody dug a bed here and framed it in boards, and then either ran out of time or ran out of reasons. It is good soil under the grass; the rest of the lot is still lot.
 
     Along the fence, gone wild from whoever had the lot before: a stand of something blue-flowered and stringy, and a low rosette of broad leaves that bruise dark when you brush past them.
-  # ⭐ Plan ways (harbors review 3): the house door north is a KEYED
+  # ⭐ Plan ways: the house door north is a KEYED
   # door, locked to each holding's keyway at mint; the way back out the
   # gate is the plat's (per lot). Each copy's ways lead within that copy.
   props:

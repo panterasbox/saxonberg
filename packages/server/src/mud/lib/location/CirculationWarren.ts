@@ -618,8 +618,8 @@ export abstract class CirculationWarren extends Warren {
   /**
    * The dormancy capture: the holding captures itself. A programme-shaped
    * holding captures WHOLE because its rooms that keep a record are its
-   * `dependentPersistables` (D16's sleeps-and-wakes-whole; harbors review
-   * 2 retired the duck-typed `captureAll`).
+   * `dependentPersistables` (D16's sleeps-and-wakes-whole; the
+   * duck-typed `captureAll` is retired).
    */
   protected async captureHoldingForDormancy(
     key: string,

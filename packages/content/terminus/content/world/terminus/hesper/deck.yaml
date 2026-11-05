@@ -22,7 +22,7 @@ data:
     - /world/terminus/hesper/thing/helm
     - /world/terminus/hesper/thing/rigging
     - /world/terminus/hesper/thing/pump
-    # ⭐ Sounding the well (harbors P19): `measure bilge`.
+    # ⭐ Sounding the well: `measure bilge`.
     - /platform/thing/sounding-rod
     - /system/water/thing/lead-line
     - /stuff/thing/instrument/sextant
@@ -31,9 +31,9 @@ data:
     - /trade/fishing/thing/worm
     - /system/transport/thing/dinghy
     - /world/terminus/hesper/thing/sea-chest
-    # ⭐ Her mooring lines (harbors P6): coming alongside, each goes ashore
+    # ⭐ Her mooring lines: coming alongside, each goes ashore
     # round a bollard; with none aboard she cannot make fast.
-    # ⭐ Her bitts (review 1): the lines kept AT them are her mooring lines.
+    # ⭐ Her bitts: the lines kept AT them are her mooring lines.
     - { template: /platform/thing/bitts, as: bitts }
     - { template: /platform/thing/mooring-line, count: 2, on: bitts }
   cast:
@@ -42,7 +42,7 @@ data:
   exits:
     down:
       destination: /world/terminus/hesper/hold
-    # ⭐ Ashore is wherever she is made fast (harbors P4), worked out when
+    # ⭐ Ashore is wherever she is made fast, worked out when
     # taken; the destination is only her usual berth. One way by rows: the
     # way back aboard is hers, named for her, put on the landing she lies at.
     ashore:

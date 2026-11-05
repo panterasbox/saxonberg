@@ -232,7 +232,7 @@ export default class WaterExpanse extends WaterSourceMixin(Expanse) {
 
   /**
    * A deck's craft position on THIS sea, else the place's nearest landing.
-   * ⭐ The deck is asked (`Place.structureNow`, harbors review 1): a keyed
+   * ⭐ The deck is asked (`Place.structureNow`): a keyed
    * deck's ship is its warren's, an authored deck's its attachment — two
    * smacks' decks share a row, so nothing keyed by path could tell them.
    */
@@ -297,13 +297,13 @@ export default class WaterExpanse extends WaterSourceMixin(Expanse) {
     return (await this.waterBandAt(pos))?.getDepthM() ?? this.depthM;
   }
 
-  /** ⭐ The bottom under a chart position (harbors B5) — what a sinking ship settles onto. */
+  /** ⭐ The bottom under a chart position — what a sinking ship settles onto. */
   public override async depthUnder(pos: FramePos, _nowS: number): Promise<number | null> {
     return pos.frame === 'chart' ? this.depthAt(pos.at) : null;
   }
 
   /**
-   * ⭐ A craft went down on this sea (harbors B5): the sea's warren keeps a
+   * ⭐ A craft went down on this sea: the sea's warren keeps a
    * stop over her, with a column from the depth and a way into her on its
    * bed.
    */

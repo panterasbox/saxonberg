@@ -29,7 +29,7 @@ import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Container } from '../../../lib/spatial/Container';
 
 /**
- * ⭐ The charter and the master's helm (harbors P12, P23): only her master
+ * ⭐ The charter and the master's helm: only her master
  * — whoever holds her company's `master` seat — or her charterer takes her
  * helm; a charter is refused while her own master is aboard on shift or
  * somebody else has her; it ends as she makes fast at a KEPT quay, its
@@ -96,7 +96,7 @@ function bollardOn(room: Stuff & Container): Bollard {
 const KNOTS = { warmed: async () => ({ label: 'made fast with a clove hitch', strength: 0.6 }) };
 
 /**
- * ⭐ A line of hers (review 1): a real rope flaked down on her BITTS — a
+ * ⭐ A line of hers: a real rope flaked down on her BITTS — a
  * rope kept at her bitts is one of her mooring lines; one loose on deck is not.
  */
 function lineOn(room: Stuff & Container, length = 30): Rope {

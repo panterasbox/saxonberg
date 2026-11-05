@@ -472,7 +472,7 @@ export async function unpinWeather(scope: string): Promise<WeatherPinResult> {
 /** Where a staged ship is put: a sea's node by path, or a citation on a frame. */
 export type ShipStagePlace = { node: string } | { frame: string; cite: string };
 
-/** How a ship is staged (harbors P25; B5 adds the settling). */
+/** How a ship is staged. */
 export interface ShipStageSpec {
   /** Where she lies — a sea's node or a citation on a frame. */
   at?: ShipStagePlace;
@@ -482,7 +482,7 @@ export interface ShipStageSpec {
   bilgeL?: number;
   /** Game-days she has lain unattended: her bilge fills over every band her hull passed through. */
   sleptDays?: number;
-  /** ⭐ B5: her bilge to her deck and her settling window opened (with nobody aboard she goes at once). */
+  /** ⭐ Her bilge to her deck and her settling window opened (with nobody aboard she goes at once). */
   settling?: boolean;
 }
 
@@ -494,13 +494,13 @@ export interface ShipStageResult {
 }
 
 /**
- * ⭐ Stage a ship — the staged twin of sailing her there (harbors P25).
+ * ⭐ Stage a ship — the staged twin of sailing her there.
  *
  * Posts to `/auth/test-ship`: the ship named by her row path (or a ship of
  * a kind by her handle) is put lying at `spec.at` (a sea's node, or a
  * citation on a frame), cast off from any berth and with no course; and/or
  * her hull put in a band (`hull`), her bilge at `bilgeL` litres, and her
- * left `sleptDays` unattended (B4). Her rooms and everyone in them go with
+ * left `sleptDays` unattended. Her rooms and everyone in them go with
  * her.
  * Only in a world this run owns (the route is test-only).
  *

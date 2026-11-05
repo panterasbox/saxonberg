@@ -123,7 +123,7 @@ const WARREN_PATH = '/system/water/idea/ReachWarren';
 const WAVE_SHARE = 0.6;
 
 /**
- * ⭐ What a hole in her lets in, L/s (harbors P21, grain; `boat.leak.holed`):
+ * ⭐ What a hole in her lets in, L/s (grain; `boat.leak.holed`):
  * less than one person bailing moves — so bailing keeps a holed boat up,
  * and stopping lets her fill.
  */
@@ -264,7 +264,7 @@ export default class Boat extends BoatBase implements LiftSource {
     return 1000 * this.hull.lengthM * this.hull.beamM * 0.7;
   }
 
-  /* ───────────── the leak and the bilge (harbors P21, B5) ───────────── */
+  /* ───────────── the leak and the bilge ───────────── */
 
   /** Is she in water now — a water place holding water? */
   public isAfloat(): boolean {
@@ -273,7 +273,7 @@ export default class Boat extends BoatBase implements LiftSource {
   }
 
   /**
-   * ⭐ What comes in through her hull now, L/s (P21) — from her STATE, never
+   * ⭐ What comes in through her hull now, L/s — from her STATE, never
    * the calendar: every hole stove in her (an integrity flaw, from a
    * grounding's blow), and a hull that no longer holds water (a crack; a
    * coat that has opened). Nothing comes in ashore.
@@ -307,7 +307,7 @@ export default class Boat extends BoatBase implements LiftSource {
     return this.bilgeAtStamp();
   }
 
-  /* ───────────── bailing her: a LiftSource (harbors review 1) ───────────── */
+  /* ───────────── bailing her: a LiftSource ───────────── */
 
   /** How far below her gunwale the water in her stands, m — a reach over the side. */
   public standingDepthM(): number {
@@ -371,7 +371,7 @@ export default class Boat extends BoatBase implements LiftSource {
   }
 
   /**
-   * ⭐ Her flood watch (P21): one game-time call when the water in her will
+   * ⭐ Her flood watch: one game-time call when the water in her will
    * have taken her freeboard at the leak she has now. Nothing is sampled;
    * a bailed boat re-arms it.
    */
@@ -399,7 +399,7 @@ export default class Boat extends BoatBase implements LiftSource {
   }
 
   /**
-   * ⭐ She goes down (P21): the water in her has taken the last of her
+   * ⭐ She goes down: the water in her has taken the last of her
    * freeboard. Whoever sits in her is in the water beside her; she goes to
    * the bottom with everything else in her. A water with no bottom to send
    * her to (a stop you stand in) keeps her where she lies, swamped.
@@ -497,7 +497,7 @@ export default class Boat extends BoatBase implements LiftSource {
   }
 
   /**
-   * ⭐ What a look says of her (harbors P22, P18): how low her load has her
+   * ⭐ What a look says of her: how low her load has her
    * riding — the freeboard IS her capacity — and that she is out on hire.
    */
   public describeBoat(): string[] {
@@ -512,7 +512,7 @@ export default class Boat extends BoatBase implements LiftSource {
       else if (share < 0.67) out.push('She is riding low with what is in her.');
       else if (share < 0.9) out.push('She sits lower in the water with what is in her.');
     }
-    // ⭐ The water in her (P21), in words.
+    // ⭐ The water in her, in words.
     const water = this.bilgeNowL();
     const room = this.freeboardWithM(0) * this.waterplaneKgPerM();
     if (water >= 1 && room > 0) {
@@ -528,7 +528,7 @@ export default class Boat extends BoatBase implements LiftSource {
   }
 
   /**
-   * ⭐ Does she still float (harbors P22)? Asked whenever her load changes
+   * ⭐ Does she still float? Asked whenever her load changes
    * and whenever she is put into water. Ashore — on a bank, a landing, a
    * deck — she floats on nothing and nothing happens. Afloat, loaded past
    * her freeboard, she swamps where she lies; otherwise the water's own
@@ -543,7 +543,7 @@ export default class Boat extends BoatBase implements LiftSource {
     if (room === null || !MixinApi.isWaterPlace(room) || room.depthNow() <= 0) return false;
     const freeboard = this.freeboardNowM();
     if (freeboard <= 0) {
-      // ⭐ Filled through her hull (P21): she goes down; loaded past it, she swamps.
+      // ⭐ Filled through her hull: she goes down; loaded past it, she swamps.
       if (this.bilgeNowL() > 0 && this.freeboardWithM(0) > 0) return this.goDown();
       this.capsize('She is loaded past her freeboard.');
       return true;
@@ -583,11 +583,11 @@ export default class Boat extends BoatBase implements LiftSource {
   }
 
   /**
-   * ⭐ Put down somewhere (harbors P18, P22): on the landing she was let
+   * ⭐ Put down somewhere: on the landing she was let
    * from, her hire is over; into water, she must float.
    */
   public override onMoved(from: (Stuff & Container) | null, to: (Stuff & Container) | null): void {
-    // ⭐ The water that came in came in where she WAS (P21): afloat there,
+    // ⭐ The water that came in came in where she WAS: afloat there,
     // the leak ran; ashore it did not. Brought up to now before she counts
     // as wherever she is now.
     const wasAfloat = from !== null && MixinApi.isWaterPlace(from) && from.depthNow() > 0;

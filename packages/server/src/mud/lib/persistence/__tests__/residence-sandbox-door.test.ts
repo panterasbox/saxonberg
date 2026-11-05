@@ -107,7 +107,7 @@ describe('every residence reaches its tenant’s sandbox door', () => {
   /**
    * Programmes = any HOLDING row authoring a plan (its own `extent`, no
    * blueprint row). Discovered, never listed. ⚠ A plan alone is no home
-   * (harbors P1, the lift): a ship kind names one too, and a ship is not a
+   * (the lift): a ship kind names one too, and a ship is not a
    * residence — no circle is granted aboard her.
    */
   const programmes = [...rows.values()].filter(

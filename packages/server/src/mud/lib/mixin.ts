@@ -349,17 +349,17 @@ export const Mixins = {
   MovingWater: 'MovingWaterMixin',
   SmallCraft: 'SmallCraftMixin',
   TetherEnd: 'TetherEndMixin',
-  // ⭐ The water a hull holds — a ship's, a boat's (harbors review 1).
+  // ⭐ The water a hull holds — a ship's, a boat's.
   Bilge: 'BilgeMixin',
-  // A landing somebody keeps a book for — a harbor quay (harbors P7).
+  // A landing somebody keeps a book for — a harbor quay.
   Berthing: 'BerthingMixin',
-  // A place that answers a hail — a harbor office (harbors P8).
+  // A place that answers a hail — a harbor office.
   Hailable: 'HailableMixin',
-  // A thing that says what you owe — a harbor office's book (harbors P13).
+  // A thing that says what you owe — a harbor office's book.
   Payable: 'PayableMixin',
-  // A thing let by the day — a hired boat (harbors P18).
+  // A thing let by the day — a hired boat.
   Hirable: 'HirableMixin',
-  // A thing with something for sale — `buy`'s one protocol (harbors review 1).
+  // A thing with something for sale — `buy`'s one protocol.
   ForSale: 'ForSaleMixin',
   Ringable: 'RingableMixin',
   MovingZone: 'MovingZoneMixin',
@@ -690,7 +690,7 @@ export const Mixins = {
   Business: 'BusinessMixin',
   // ⭐ A table of owners and their units — who holds a business, and so
   // who appoints its managing position (the institutions slate's cap
-  // table; ships are its first consumer, harbors review 1).
+  // table; ships are its first consumer).
   CapTable: 'CapTableMixin',
   // ⭐ `EmployedMixin` also carries "who answers for you"
   // (`institutionPath`) — the standing party that fields an actor, which

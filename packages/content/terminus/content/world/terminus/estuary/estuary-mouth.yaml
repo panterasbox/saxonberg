@@ -34,7 +34,7 @@ data:
   # a player who fills one on a dry week and one on a wet one has the whole
   # lesson side by side without anybody explaining it.
   props:
-    # ⭐ What a ship lying at the bar makes her lines fast round (harbors P6):
+    # ⭐ What a ship lying at the bar makes her lines fast round:
     # the Hesper lies here, and her way aboard is named for her.
     - { template: /platform/thing/bollard, count: 2 }
     # ⭐ A sailing dinghy drawn up on the shingle (the river build, D20).
@@ -57,7 +57,7 @@ data:
       media: [water]
       # A swim out over the bar, short; every corridor edge carries a budget.
       edgeMinutes: 2
-    # ⭐ The Port of Terminus (harbors A1): the harbor's quays lie inside the
+    # ⭐ The Port of Terminus: the harbor's quays lie inside the
     # bar on this bank, and the made path runs on round to them.
     south:
       destination: /world/terminus/harbor/town-quay

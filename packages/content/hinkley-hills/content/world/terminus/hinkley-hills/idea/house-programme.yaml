@@ -3,7 +3,7 @@
 # (`scope = this row, key = the lot's parcel extent`). `owner-all` (D5): a
 # Hinkley owner owes the whole shell.
 #
-# ⭐ Its PLAN is its own (harbors review 3; 2026-11-03 — no blueprint row):
+# ⭐ Its PLAN is its own (no blueprint row):
 # the house every sold lot gets, authored as an ordinary place under
 # `house/` — the yard you come in by (with its garden west), the house door
 # north of it (a keyed door, LOCKED to the lot's keyway: the key `title
