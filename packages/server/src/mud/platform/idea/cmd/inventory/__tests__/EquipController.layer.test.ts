@@ -1,5 +1,5 @@
 /**
- * EquipController — the ladder refusal.
+ * WearController — the ladder refusal.
  *
  * ⚠ Narrow on purpose: a low band may not go OUTSIDE a high one (a
  * shirt over plate), and **shirt-vs-coat is not refused** — both are
@@ -9,7 +9,9 @@
 
 import "../../../../../../test-bootstrap";
 import { describe, it, expect, afterEach } from 'vitest';
-import EquipController from '../EquipController';
+import WearController from '../WearController';
+import EquipSetController from '../EquipSetController';
+import EquipSetsController from '../EquipSetsController';
 import { WearableMixin } from '../../../../../lib/slot/Wearable';
 import { SlottableMixin } from '../../../../../lib/slot/Slottable';
 import { WardrobeMixin } from '../../../../../lib/slot/Wardrobe';
@@ -144,9 +146,9 @@ function context(body: Wearer, location: Place): CommandContext {
 
 /** Dispatch, then let the dressing steps land. */
 async function equipVia(
-  ...args: Parameters<EquipController['execute']>
+  ...args: Parameters<WearController['execute']>
 ): Promise<void> {
-  await makeStuff(() => new EquipController()).execute(...args);
+  await makeStuff(() => new WearController()).execute(...args);
   await settle();
 }
 
@@ -158,18 +160,18 @@ async function equipVia(
  * "You put on a pair of stout leather boots" — and nothing on the feet).
  */
 async function equipLikeDispatch(
-  ...args: Parameters<EquipController['execute']>
+  ...args: Parameters<WearController['execute']>
 ): Promise<void> {
-  const controller = makeStuff(() => new EquipController());
+  const controller = makeStuff(() => new WearController());
   await controller.execute(...args);
   await StuffApi.destruct(controller);
   await settle();
 }
 
-function model(target: TestGarment): Parameters<EquipController['execute']>[0] {
+function model(target: TestGarment): Parameters<WearController['execute']>[0] {
   return {
     target: { stuff: target as never, raw: target.getPrimaryKeyword() ?? '' },
-  } as ModelData as unknown as Parameters<EquipController['execute']>[0];
+  } as ModelData as unknown as Parameters<WearController['execute']>[0];
 }
 
 describe('the ladder refusal', () => {
@@ -213,7 +215,7 @@ describe('the ladder refusal', () => {
     ContainmentApi.move(shirt, body);
     ContainmentApi.move(coat, body);
     await equipLikeDispatch(
-      {} as ModelData as unknown as Parameters<EquipController['execute']>[0],
+      {} as ModelData as unknown as Parameters<WearController['execute']>[0],
       context(body, location),
     );
     expect(body.getOccupants('torso').has(shirt)).toBe(true);
@@ -378,7 +380,11 @@ describe('the wardrobe stanza — getting dressed is one command', () => {
     model: Record<string, unknown>,
   ): Promise<ReturnType<typeof context>> {
     const ctx = context(body, location);
-    await equipVia(model as never, ctx);
+    const sub = (model as { subcommand?: string }).subcommand;
+    await makeStuff(() =>
+      sub === 'sets' ? new EquipSetsController() : new EquipSetController(),
+    ).execute(model as never, ctx);
+    await settle();
     return ctx;
   }
 

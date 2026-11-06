@@ -4,7 +4,7 @@
 # and the player should not have to work that out any more than they
 # should have had to work out the way in.
 #
-# ⚠ `remove` / `doff` / `unwield` stay their own verbs, with their own
+# ⚠ `remove` / `unwield` stay their own verbs, with their own
 # narrow `requires:`. This one strips the lot.
 verbs: [unequip]
 controller: /platform/idea/cmd/inventory/UnequipController

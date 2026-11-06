@@ -13,7 +13,7 @@
 # refusal at a time. `equip` puts things on innermost-first so nobody has
 # to work it out.
 #
-# ⭐ It shares `EquipController` with `wear`/`wield`: the gates and the
+# ⭐ It shares `EquipControllerBase` with `wear`/`wield`: the gates and the
 # timing are one implementation, and only the GRAMMAR differs.
 verbs: [equip]
 controller: /platform/idea/cmd/inventory/EquipController
@@ -61,6 +61,7 @@ options:
 fallthrough: true
 subcommands:
   set:
+    controller: /platform/idea/cmd/inventory/EquipSetController
     description: "Put on a saved set (`--save` to record what you have on)"
     args:
       - name: name
@@ -71,4 +72,5 @@ subcommands:
         type: boolean
         description: "Save what you are wearing right now under <name>"
   sets:
+    controller: /platform/idea/cmd/inventory/EquipSetsController
     description: "List your saved sets"

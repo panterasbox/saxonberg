@@ -100,6 +100,12 @@ export interface Attired {
    * *form sets the band, wear-order breaks ties inside a band*.
    */
   wornStack(): readonly (Stuff & Slottable & Wearable)[];
+  /**
+   * ⭐ How long this garment takes to get onto (or off) this body. DERIVED
+   * from mass — the `clo` doctrine: a linen shirt weighs nothing and goes on
+   * in seconds; a mail hauberk weighs ten kilos and takes minutes.
+   */
+  donDurationMs(item: Stuff): number;
 
   /**
    * The covering over one body part, **outermost-first** — every worn
@@ -574,6 +580,13 @@ export function AttiredMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /** The dressed-impression line (see {@link Impression}). */
     static markupAugmenters: MarkupAugmenter[] = [impressionAugmenter];
+
+    public donDurationMs(item: Stuff): number {
+      const base = Math.max(0, dial(AppSettingKeys.equipBaseMs, 4000));
+      const perKg = Math.max(0, dial(AppSettingKeys.equipMsPerKg, 14000));
+      const kg = MixinApi.isTangible(item) ? item.getMass().rawValue() : 0;
+      return Math.max(base, Math.round(base + kg * perKg));
+    }
 
     /**
      * Worn occupants, outermost-first. Walks the live slot map (whose
