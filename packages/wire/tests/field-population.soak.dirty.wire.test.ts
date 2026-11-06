@@ -449,19 +449,19 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — the home field in spring', () => 
     // the far side.
     let filled = false;
     for (let i = 0; i < 14 && !filled; i++) {
-      const { r, said: s } = await work(p, 'plant wheat at the gate end');
+      const { r, said: s } = await work(p, 'plant wheat --at "the gate end"');
       if (refusedFor(r) === 'part-sown') filled = true;
       else expect(refusedFor(r), s).toBeNull();
     }
     expect(filled, 'the gate end was sown full').toBe(true);
-    const middle = await work(p, 'plant wheat at the middle');
+    const middle = await work(p, 'plant wheat --at "the middle"');
     expect(refusedFor(middle.r), middle.said).toBeNull();
     // The far side until it is full; anything left goes into the middle,
     // so no seed is carried when the label is tied (a carried sack of seed
     // wheat answers to `wheat` first).
     let part = 'the far side';
     for (let i = 0; i < 20 && /sack of seed wheat/i.test(await read(p, 'inventory')); i++) {
-      const { r, said: s } = await work(p, `plant wheat at ${part}`);
+      const { r, said: s } = await work(p, `plant wheat --at "${part}"`);
       if (refusedFor(r) === 'part-sown' && part === 'the far side') {
         part = 'the middle';
         continue;
@@ -770,7 +770,7 @@ suite.skipIf(!isOwnedTestWorld())('Stage C — care by field, and the hand', () 
       for (let i = 0; i < 40 && (await p.query('me:i:wheat')).length === 0; i++) {
         await daylight();
         await drink();
-        const { r, said } = await work(p, `harvest wheat at ${part}`);
+        const { r, said } = await work(p, `harvest wheat --at "${part}"`);
         expect(refusedFor(r), said).toBeNull();
       }
       expect((await p.query('me:i:wheat')).length, `a sack from ${part}`).toBeGreaterThan(0);

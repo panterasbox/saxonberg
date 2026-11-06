@@ -241,7 +241,7 @@ suite.skipIf(!isOwnedTestWorld())('the valley farmstead — tracts and fields', 
       said = (await act(p, 'plow at the wheat field')).said + ' ' + (await read(p, 'look at the wheat field'));
     }
     expect(said, 'the wheat field is ploughed').toMatch(/ploughed for the season/i);
-    const sown = await act(p, 'plant wheat at the wheat field');
+    const sown = await act(p, 'plant wheat --at "the wheat field"');
     expect(refusedFor(sown.r), sown.said).toBeNull();
     expect(await read(p, 'look')).toMatch(/stand of wheat grows/i);
     const moved = await refused(p, 'mark wheat field as half', 'crop-stands');

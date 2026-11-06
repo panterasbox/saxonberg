@@ -138,7 +138,7 @@ suite('⭐ the fuel yard — the coppice is ready, and it is hazel', () => {
     expect(stools).toHaveLength(6);
   }, 60_000);
 
-  it('3. `harvest panel with billhook` → eight lengths of cordwood, made of hazel; the panel says when it is ready again', async () => {
+  it('3. `harvest panel --with billhook` → eight lengths of cordwood, made of hazel; the panel says when it is ready again', async () => {
     // ⚠ Bare hands refuse: the stool names its tool, and the billhook is
     // on the ground, not in reach of the view's `[capability.cutting]`
     // default… except that `reachable` includes the room, so it binds.
@@ -162,10 +162,10 @@ suite('⭐ the fuel yard — the coppice is ready, and it is hazel', () => {
   it('…and the second stool refuses NOTHING RIPE while the first regrows — the rotation is real', async () => {
     // Every stool was cut by the pick (`harvest panel` takes the first
     // ripe one; each stool is its own plant). Cut the rest.
-    for (let i = 0; i < 5; i += 1) expectOk(await c.cmd('harvest panel with billhook'));
+    for (let i = 0; i < 5; i += 1) expectOk(await c.cmd('harvest panel --with billhook'));
     const lengths = await c.query('me:i:[keyword.cordwood]');
     expect(lengths).toHaveLength(48);
-    const again = await c.cmd('harvest panel with billhook');
+    const again = await c.cmd('harvest panel --with billhook');
     expectNote(again, 'controller-rejected', { reason: 'nothing-ripe' });
   }, 180_000);
 
@@ -304,7 +304,7 @@ suite('⭐⭐ the Hanging Wood — a place that is a stand', () => {
     expect(standCount(said, 'Oak')).toBe(4);
     expect(standCount(said, 'Ash')).toBe(4);
     expect(await f.prose('look panel')).toMatch(/The stools are ready to cut\./);
-    expectOk(await f.cmd('harvest panel with axe'));
+    expectOk(await f.cmd('harvest panel --with axe'));
     const lengths = await f.query('me:i:[keyword.cordwood]');
     expect(lengths).toHaveLength(8);
     expect(await f.prose('look panel')).toMatch(/cut to the stool and regrowing/);

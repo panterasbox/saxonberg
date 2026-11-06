@@ -57,12 +57,21 @@ import { AppApi } from "../../api/app";
 import { AddressApi } from "../../api/address";
 import { BiomeApi } from "../../api/biome";
 import { WeatherApi } from "../../api/weather";
+import { ParcelApi } from "../../api/parcel";
+import { AccessApi } from "../../api/access";
+import { EmploymentApi } from "../../api/employment";
+import { PersistableApi } from "../../api/persistable";
+import { ContainmentApi } from "../../api/containment";
+import { LandUses } from "../parcel/LandUse";
 import { AppSettingKeys } from "../config/AppSettings";
 import { TemplatePaths } from "../paths";
 import { Quantity } from "../quantity";
 import type { Reserved } from "../reserve/Reserved";
 import type { Stuff } from "../stuff/Stuff";
-import type { Growing } from "./Growing";
+import type { Growing, HarvestRefusal } from "./Growing";
+import type { Plantable, PlantBegin, PlantDone, PlantRefusal, ZonedAgainst } from "./Plantable";
+import type { ActDone, ActPlan } from "../craft/ActPlan";
+import type { Tooled } from "../craft/Tool";
 import type { Container } from "../spatial/Container";
 import type Locality from "../../platform/idea/Locality";
 
@@ -173,8 +182,162 @@ export type PartResolution =
       line: string;
     };
 
+/** ⭐ `sow`: broadcast `seed` over this ground (controllers-are-io D11). */
+export interface SowRequest {
+  by: Stuff;
+  seed: Stuff & Plantable;
+  /** `--at <part>`: which part of a divided field. */
+  part: (Stuff & Soil) | null;
+  /** A seed drill within reach: rows, at its own share of the rate. */
+  drill: (Stuff & Tooled) | null;
+}
+
+/** Felt cost of one cast, percentage points of a fresh body (D5). */
+const SOW_FELT_COST = 5;
+
+/**
+ * The identity of a piece of ground for the parcel registry: the persistence
+ * KEY when it has one (a plotted field is cloned per lot and shares its
+ * template path), else the template path.
+ */
+function groundPath(ground: Stuff): string {
+  // ⚠ Only an EXPLICIT key — an establishing context's per-instance key
+  // (a lot's parcel extent). A keyless host stashes a scope-derived owner
+  // there, which is no path at all, so the parcel registry would answer
+  // *nobody's ground* and a stranger could sow the university's field.
+  const keyed =
+    MixinApi.isPersistable(ground) && ground.isPersistenceKeyExplicit()
+      ? ground.getPersistenceKey()
+      : null;
+  return keyed ?? ground.getTemplatePath() ?? "";
+}
+
+/**
+ * ⭐ **Who may sow** (cover build D6): whoever holds the ground's parcel, or a
+ * hand on shift for a business that works it — the IceSheet precedent. Ground
+ * no parcel covers is not policed (*measure nothing, police nothing*).
+ */
+async function maySow(by: Stuff, ground: Stuff): Promise<boolean> {
+  const covering = await ParcelApi.coveringParcelOf(groundPath(ground));
+  if (!covering) return true;
+  const extent = covering.getExtent();
+  const held = await AccessApi.heldExtents(by);
+  if (held.some((e) => extent === e || extent.startsWith(`${e}/`))) return true;
+  if (!MixinApi.isEmployed(by)) return false;
+  return EmploymentApi.operatorsAt(ground).some((b) =>
+    by.isOnShiftFor(b.getOrganizationPath()),
+  );
+}
+
+/**
+ * The square metres a piece of ground covers: the host's own figure when it
+ * answers `soilCatchmentAreaM2` (a field's area IS the sky it catches), else
+ * unbounded — ground that never said how big it is is never "full".
+ */
+function groundAreaM2(ground: Stuff & Soil): number {
+  const m2 = ground.soilCatchmentAreaM2();
+  return m2 > 0 ? m2 : Number.POSITIVE_INFINITY;
+}
+
+/**
+ * The sowing landed. Re-checks that the sower still stands on the ground and
+ * still holds the seed, then spends the seed, creates or widens the crop,
+ * settles whose it is, and captures.
+ */
+async function landSowing(
+  req: SowRequest,
+  ground: Stuff & Soil & Container,
+  crop: Stuff & Growing,
+  fresh: boolean,
+  area: number,
+  rate: number,
+): Promise<ActDone<PlantDone, PlantRefusal>> {
+  const { by, seed, part } = req;
+  const discard = async (): Promise<void> => {
+    if (fresh && !crop.isDestroyed()) await StuffApi.destruct(crop);
+  };
+  if (by.isDestroyed() || seed.isDestroyed() || crop.isDestroyed()) {
+    await discard();
+    return { ok: false, reason: "walked-off", facts: {} };
+  }
+  const here = MixinApi.isContainable(by) ? by.getContainer() : null;
+  if ((here as Stuff | null) !== (ground as Stuff)) {
+    await discard();
+    return { ok: false, reason: "walked-off", facts: {} };
+  }
+  await seed.spendSeed(area * rate);
+  ground.reconcileSoil();
+  if (fresh) {
+    crop.setSownAreaM2(area);
+    // ⭐ Rooted in the part it was sown into, by key, BEFORE the move —
+    // so it never reads the whole field's soil, even for a moment.
+    if (part) crop.setGroundPart(part.soilPartKey());
+    if (MixinApi.isContainable(crop)) ContainmentApi.move(crop, ground);
+  } else {
+    crop.addSownAreaM2(area);
+  }
+  try {
+    await ground.ensureCropTitle();
+  } catch (err) {
+    console.warn("Soil: settling the crop title failed:", err);
+  }
+  try {
+    await PersistableApi.captureHostOf(crop);
+    await PersistableApi.captureHostOf(ground);
+  } catch (err) {
+    console.warn("Soil: capture after sowing failed:", err);
+  }
+  try {
+    if (MixinApi.isAdvancing(by)) {
+      await by.creditDeed({
+        discipline: crop.getDiscipline(),
+        difficulty: "trivial",
+        outcome: "success",
+      });
+    }
+  } catch (err) {
+    console.warn("Soil: recording the deed failed:", err);
+  }
+  return {
+    ok: true,
+    facts: {
+      kind: "sown",
+      crop,
+      part,
+      phrase: crop.cropAreaPhrase(groundAreaM2(part ?? ground)),
+    },
+  };
+}
+
 /** The public surface soil offers — the ground's own state. */
 export interface Soil {
+  /**
+   * ⭐ **Broadcast a seed over this ground** (cover build D4). One act covers
+   * `husbandry.sowHandM2` (a strip across the field), or less when the seed
+   * or the ground runs out; seed is spent at the crop's own rate, so a third
+   * of a field's seed sows a third of it. The first act creates the crop; a
+   * later act of the same kind widens it. ⭐ On a divided field the cast goes
+   * into the PART named, and fills that part up to its own area. Choosing
+   * where is the player's job; the game never picks for them.
+   */
+  sowPlanFor(
+    req: SowRequest,
+  ): Promise<ActPlan<PlantBegin, PlantDone, PlantRefusal> | PlantRefusal>;
+  /**
+   * ⭐ Which stand a harvest of `stand` means on this ground, given the part
+   * named: the ground decides whether one must be named, and says so.
+   */
+  harvestPartFor(req: {
+    stand: Stuff & Growing;
+    part: (Stuff & Soil) | null;
+  }): { ok: true; stand: Stuff & Growing } | HarvestRefusal;
+  /**
+   * ⭐ The parcel's verdict on cultivating at `site`, or null: a site on a
+   * use that admits no cultivation. ⚠ UNPARCELLED GROUND IS NOT POLICED —
+   * `landUseOf` is total and answers `wild` for ground nobody has claimed,
+   * but "nobody has zoned this" is not "this is zoned against you".
+   */
+  cultivationZoningAt(site: Stuff): Promise<ZonedAgainst | null>;
   // ---------- the soil window ----------
 
   /** Reconcile the soil over elapsed game-time. Sync, read-triggered. */
@@ -451,6 +614,138 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
     /** See {@link Soil.soilDrawFactor}. */
     public soilDrawFactor(_fromS: number, _toS: number): number {
       return this.soilWarmth();
+    }
+
+    /** See {@link Soil.cultivationZoningAt}. */
+    public async cultivationZoningAt(site: Stuff): Promise<ZonedAgainst | null> {
+      const where = groundPath(site);
+      const covering = await ParcelApi.coveringParcelOf(where);
+      const use = ParcelApi.landUseOf(where);
+      if (!covering || LandUses.permitsAnyCultivation(use)) return null;
+      return {
+        summary: LandUses.summaryOf(use),
+        // ⭐ The record names the USE, as the sentence does.
+        detail: `${where} is zoned ${use} and admits no cultivation`,
+      };
+    }
+
+    /** See {@link Soil.harvestPartFor}. */
+    public harvestPartFor(req: {
+      stand: Stuff & Growing;
+      part: (Stuff & Soil) | null;
+    }): { ok: true; stand: Stuff & Growing } | HarvestRefusal {
+      const r = this.resolvePartFor(req.part);
+      if (!r.ok) {
+        return { ok: false, reason: r.reason, facts: { line: r.line, detail: r.line } };
+      }
+      if (!r.part) return { ok: true, stand: req.stand };
+      const there = req.stand.standIn(r.part);
+      if (!there) {
+        return {
+          ok: false,
+          reason: "nothing-sown-there",
+          facts: {
+            part: r.part,
+            detail: `no ${req.stand.getPresentation()} rooted in ${r.part.getPresentation()}`,
+          },
+        };
+      }
+      return { ok: true, stand: there };
+    }
+
+    /** See {@link Soil.sowPlanFor}. */
+    public async sowPlanFor(
+      req: SowRequest,
+    ): Promise<ActPlan<PlantBegin, PlantDone, PlantRefusal> | PlantRefusal> {
+      const self = this as unknown as Stuff & Soil;
+      if (!MixinApi.isContainer(self)) {
+        return { ok: false, reason: "no-ground", facts: {} };
+      }
+      const ground: Stuff & Soil & Container = self;
+      const { by, seed, drill } = req;
+      const growsInto = seed.getGrowsIntoPath();
+      if (!growsInto) return { ok: false, reason: "seed-names-no-plant", facts: { seed } };
+      // Whose ground it is outranks what state it is in: a stranger is told
+      // it is not theirs, never that it wants ploughing or that another
+      // crop stands on it.
+      const zoned = await this.cultivationZoningAt(ground);
+      if (zoned) {
+        return { ok: false, reason: "land-use-forbids-cultivation", facts: { zoned } };
+      }
+      if (!(await maySow(by, ground))) return { ok: false, reason: "not-held", facts: {} };
+      // Which part of the ground — the GROUND decides whether one must be
+      // named, and says so in its own words.
+      const resolved = this.resolvePartFor(req.part);
+      if (!resolved.ok) {
+        return { ok: false, reason: resolved.reason, facts: { line: resolved.line } };
+      }
+      const part = resolved.part;
+      // What already stands here decides what may be added to it — the
+      // holder's question, once it is theirs.
+      const standing = this.rootedAreaCrop(part);
+      if (standing && standing.getTemplatePath() !== growsInto) {
+        // ⭐ Another row may still be this crop: the bench's stands are
+        // `extends:` rows over one wheat. Ask the crop the seed makes.
+        const made = await StuffApi.clone<Stuff>(growsInto);
+        const same = MixinApi.isGrowing(made) && standing.isSameKindAs(made);
+        await StuffApi.destruct(made);
+        if (!same) {
+          return { ok: false, reason: "other-crop-stands", facts: { standing } };
+        }
+      }
+      const refusal = this.sowingRefusal();
+      if (refusal) {
+        return { ok: false, reason: "ground-refuses-sowing", facts: { line: refusal } };
+      }
+      // The crop row's seed rate. Read off the crop already standing, or
+      // off a fresh clone that becomes the crop (and is discarded on a
+      // refusal) — no row is read twice.
+      let fresh: (Stuff & Growing) | null = null;
+      let crop: Stuff & Growing;
+      if (standing) {
+        crop = standing;
+      } else {
+        const made = await StuffApi.clone<Stuff>(growsInto);
+        if (!MixinApi.isGrowing(made)) {
+          await StuffApi.destruct(made);
+          return { ok: false, reason: "seed-names-no-plant", facts: { seed } };
+        }
+        fresh = made;
+        crop = made;
+      }
+      const rate = seed.sowingRateFor(crop, drill);
+      if (!(rate > 0)) {
+        if (fresh) await StuffApi.destruct(fresh);
+        return { ok: false, reason: "not-broadcast", facts: { seed } };
+      }
+      const groundM2 = groundAreaM2(part ?? ground);
+      const free = Math.max(0, groundM2 - (standing ? standing.getSownAreaM2() : 0));
+      const pass =
+        drill && drill.getSwathM2() > 0
+          ? drill.getSwathM2()
+          : dial(AppSettingKeys.husbandrySowHandM2, 400);
+      const area = Math.min(pass, seed.seedMassKg() / rate, free);
+      if (!(area >= 1)) {
+        if (fresh) await StuffApi.destruct(fresh);
+        return free >= 1
+          ? { ok: false, reason: "too-little-seed", facts: { seed } }
+          : part
+            ? { ok: false, reason: "part-sown", facts: { part } }
+            : { ok: false, reason: "ground-full", facts: {} };
+      }
+      const durationMs = Math.round(3000 + area * 10);
+      return {
+        ok: true,
+        durationMs,
+        effortW: MixinApi.isExerting(by)
+          ? by.wattsForFeltCost(SOW_FELT_COST, durationMs / 1000)
+          : 0,
+        facts: { seed, part, drill },
+        onComplete: () => landSowing({ ...req, part }, ground, crop, fresh !== null, area, rate),
+        onAbort: () => {
+          if (fresh && !fresh.isDestroyed()) void StuffApi.destruct(fresh);
+        },
+      };
     }
 
     /** See {@link Soil.sowingRefusal}. */

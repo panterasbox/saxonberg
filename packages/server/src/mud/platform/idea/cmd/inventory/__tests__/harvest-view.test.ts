@@ -50,22 +50,31 @@ function args(view = VIEW): ArgSpec[] {
   return doc.args ?? [];
 }
 
+/** An option of a view, by its long name (controllers-are-io D9). */
+function option(name: string, view = VIEW): (ArgSpec & { field?: string; scope?: string[] }) | undefined {
+  const doc = YAML.parse(readFileSync(view, 'utf8')) as {
+    options?: Record<string, ArgSpec & { field?: string; scope?: string[] }>;
+  };
+  return doc.options?.[name];
+}
+
 interface PatchSpec extends ArgSpec {
   greedy?: boolean;
   scope?: string[];
 }
 
 describe('harvest.yaml — the tool is an ARGUMENT', () => {
-  it('declares an optional `tool` arg found by capability, gated on ToolMixin', () => {
-    const tool = args().find((a) => a.name === 'tool');
+  it('`--with` lands on `tool`, found by capability, gated on ToolMixin', () => {
+    const tool = option('with');
     expect(tool).toBeDefined();
     expect(tool!.type).toBe('object');
-    expect(tool!.required).toBe(false);
+    expect(tool!.field).toBe('tool');
     expect(tool!.default).toBe(
       'reachable:[capability.reaping],reachable:[capability.cutting]',
     );
-    expect(tool!.prepositions).toEqual(['with', 'using']);
     expect([tool!.requires].flat()).toEqual(['ToolMixin']);
+    // D9: no old form kept — the preposition pile is gone.
+    expect(args().find((a) => a.name === 'tool')).toBeUndefined();
   });
 
   it('…and the instrument every trade ships composes that mixin', () => {
@@ -86,6 +95,21 @@ describe('`at <patch>` — which part of a divided field (field population D5)',
   for (const [verb, view] of [
     ['harvest', VIEW],
     ['plant', PLANT_VIEW],
+  ] as const) {
+    it(`${verb}.yaml: \`--at\` lands on \`part\`, gated on SoilMixin, no positional kept`, () => {
+      const at = option('at', view);
+      expect(at).toBeDefined();
+      expect(at!.type).toBe('object');
+      expect(at!.field).toBe('part');
+      expect(at!.scope).toEqual(['here', 'peers', 'person']);
+      expect([at!.requires].flat()).toEqual(['SoilMixin']);
+      expect(args(view).find((a) => a.name === 'part')).toBeUndefined();
+    });
+    it(`${verb}.yaml still loads`, () => {
+      expect(() => CommandDefinition.fromYaml(readFileSync(view, 'utf8'), view)).not.toThrow();
+    });
+  }
+  for (const [verb, view] of [
     // Field population W4 (D6/D7): the stem and the labeled plant.
     ['sample', SAMPLE_VIEW],
     ['label', LABEL_VIEW],

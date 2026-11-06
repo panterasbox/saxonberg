@@ -15,6 +15,7 @@ import "../../../../../../test-bootstrap";
 import { AdvancementMixin } from '../../../../../lib/advancement/Advancement';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import HarvestController from '../HarvestController';
+import HarvestWordedController from '../HarvestWordedController';
 import Plant from '../../../../thing/Plant';
 import Crop from '../../../../thing/Crop';
 import type { Crafted } from '../../../../../lib/craft/Crafted';
@@ -700,5 +701,57 @@ describe('harvest <plant>', () => {
     expect(noteReasons(ctx)).not.toContain('needs-tool');
     expect(plant.isDestroyed()).toBe(true);
     expect(deeds[0]!.discipline).toBe('horticulture');
+  });
+
+  describe('⭐⭐ the plant decides; the controller words (controllers-are-io D11)', () => {
+    it('the plant answers a reason with no words on it', () => {
+      const { giver, bed } = scene();
+      const plant = ripe(bed);
+      forceStage(plant, 'seedling');
+      const answer = plant.harvestPlanFor({ by: giver, typed: 'carrots', part: null, tool: null });
+      expect(answer.ok).toBe(false);
+      if (!answer.ok) expect(answer.reason).toBe('not-mature');
+    });
+
+    it('naming the ground asks what grows in it', () => {
+      const { giver, bed } = scene();
+      const answer = bed.harvestPlanFor({ by: giver, typed: 'bed', part: null, tool: null });
+      expect(answer.ok).toBe(false);
+      if (!answer.ok) expect(answer.reason).toBe('nothing-growing');
+    });
+
+    it("the maker's mark is the PERSON, never the lineage (the before-record's 10c)", async () => {
+      const { giver, room, bed } = scene();
+      const plant = ripe(bed);
+      const ctrl = makeStuff(() => new HarvestController());
+      await ctrl.execute(model(one(plant, 'carrots')), makeContext(giver, room));
+      const crop = crafted(giver.getContents().find((s) => s instanceof Crop));
+      expect(crop.getMaker()).toBe(giver.getIdentityPath());
+    });
+
+    it('⭐ the doctrine test: an alternate controller makes the same state in other words', async () => {
+      const a = scene();
+      const b = scene();
+      const pa = ripe(a.bed, 0.7);
+      const pb = ripe(b.bed, 0.7);
+      await makeStuff(() => new HarvestController()).execute(
+        model(one(pa, 'carrots')),
+        makeContext(a.giver, a.room),
+      );
+      await makeStuff(() => new HarvestWordedController()).execute(
+        model(one(pb, 'carrots')),
+        makeContext(b.giver, b.room),
+      );
+      const ca = crafted(a.giver.getContents().find((s) => s instanceof Crop));
+      const cb = crafted(b.giver.getContents().find((s) => s instanceof Crop));
+      expect(pb.isDestroyed()).toBe(pa.isDestroyed());
+      expect(cb.getGrade().getBand()).toBe(ca.getGrade().getBand());
+      expect(b.bed.occupiedSlotCount()).toBe(a.bed.occupiedSlotCount());
+      // …and every word is its own.
+      const refused = { ok: false, reason: 'not-mature', facts: { detail: 'x', subject: pa, stageWord: 'young' } } as const;
+      expect(HarvestWordedController.refusalWords(refused)).not.toEqual(
+        HarvestController.refusalWords(refused),
+      );
+    });
   });
 });

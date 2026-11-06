@@ -99,12 +99,13 @@ export abstract class EngagedActController<
     context: CommandContext,
     prose: Composed,
     reason: string,
+    detail: string = reason,
   ): void {
     MessageApi.scene(context.commandGiver)
       .topic(ACT_TOPIC)
       .toSelf(prose)
       .send();
-    context.note({ kind: 'controller-rejected', reason, detail: reason });
+    context.note({ kind: 'controller-rejected', reason, detail });
   }
 
   /**
@@ -134,20 +135,23 @@ export abstract class EngagedActController<
    * ⭐ The plan overload (D4): engage a plan an OBJECT handed back — its
    * duration and its watts are the act's (D5), its words the controller's.
    * The effect lands at completion; what it returns is worded by `words`.
+   *
+   * ⭐ A zero-length plan runs NOW, inside the command frame, and a refusal
+   * it returns declines the command — `ManualBuildController.engagePlan`'s
+   * rule, the same for the same reason. Await it: that frame is the promise.
    */
   protected engageAct<B, F, X extends AnyActRefusal>(
     context: CommandContext,
     plan: ActPlan<B, F, X>,
     words: ActWords<B, F, X>,
-  ): void;
+  ): Promise<void>;
   protected engageAct<B, F, X extends AnyActRefusal>(
     context: CommandContext,
     opts: EngagedStepOptions | ActPlan<B, F, X>,
     words?: ActWords<B, F, X>,
-  ): void {
+  ): void | Promise<void> {
     if ('ok' in opts) {
-      this.engageActPlan(context, opts, words!);
-      return;
+      return this.engageActPlan(context, opts, words!);
     }
     const giver = context.commandGiver;
     const durationS = opts.durationMs / 1000;
@@ -205,12 +209,27 @@ export abstract class EngagedActController<
   }
 
   /** The plan overload's body: watts are the plan's, the words are `words`. */
-  private engageActPlan<B, F, X extends AnyActRefusal>(
+  private async engageActPlan<B, F, X extends AnyActRefusal>(
     context: CommandContext,
     plan: ActPlan<B, F, X>,
     words: ActWords<B, F, X>,
-  ): void {
+  ): Promise<void> {
     const giver = context.commandGiver;
+    if (plan.durationMs <= 0) {
+      const out = await plan.onComplete();
+      if (!out.ok) {
+        this.decline(context, words.onRefused(out), out.reason);
+        return;
+      }
+      if (giver.isDestroyed()) return;
+      const done = words.onDone?.(out.facts) ?? null;
+      if (done === null || (!done.self && !done.peers)) return;
+      const scene = MessageApi.scene(giver).topic(ACT_TOPIC);
+      if (done.self) scene.toSelf(done.self);
+      if (done.peers) scene.toPeers(done.peers);
+      scene.send();
+      return;
+    }
     const durationS = plan.durationMs / 1000;
     if (MixinApi.isExerting(giver) && !giver.canExert(plan.effortW, durationS)) {
       this.decline(context, Mml.fromMarkup(giver.exhaustionRefusal()), 'too-tired');

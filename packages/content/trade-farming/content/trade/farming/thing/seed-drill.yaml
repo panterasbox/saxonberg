@@ -12,7 +12,7 @@
 # seed-to-yield ratio of a drilled field is twice a broadcast one's. That
 # is how a drill changed agriculture, and nothing here says so.
 #
-# The same verb as a hand broadcast (`plant wheat at <field>`): a better
+# The same verb as a hand broadcast (`plant wheat --at <field>`): a better
 # tool, not a new act. Stamped `industrial`, which is when drills became
 # common on farms.
 class: /platform/thing/Tool

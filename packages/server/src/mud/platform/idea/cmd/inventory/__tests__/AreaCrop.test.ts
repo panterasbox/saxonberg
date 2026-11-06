@@ -855,7 +855,7 @@ describe('the area crop', () => {
       expect(second.every((c) => gradeOf(c) === 'exceptional')).toBe(true);
     });
 
-    it('⭐ `harvest wheat at the top end` cuts the stand there, not the labeled plant standing in it', async () => {
+    it('⭐ `harvest wheat --at top-end` cuts the stand there, not the labeled plant standing in it', async () => {
       const { giver, field, parts } = dividedScene([['top-end', 100], ['lane-end', 100]]);
       const top = parts[0] as TestPart;
       const stand = standAt(field, top, 0.9);

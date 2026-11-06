@@ -414,13 +414,13 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
     // ⭐ The home field is three fields (field population D15) and every
     // act on its crop names one (R2): the gate end until it is full, then
     // the middle with what is left.
-    const first = await doing(p, 'plant wheat at the gate end');
+    const first = await doing(p, 'plant wheat --at "the gate end"');
     // ⭐ The seed drill stands in the home field (field population D22):
     // `sow` takes it down the field, the coulters laying the seed in rows.
     expect(first).toMatch(/coulters laying the seed|seed goes into the ground/i);
     let part = 'the gate end';
     for (let i = 0; i < 20 && /sack of seed wheat/i.test(await read(p, 'inventory')); i++) {
-      const { r, said } = await work(p, `plant wheat at ${part}`);
+      const { r, said } = await work(p, `plant wheat --at "${part}"`);
       if (refusedFor(r) === 'part-sown' && part === 'the gate end') {
         part = 'the middle';
         continue;
@@ -493,7 +493,7 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
     await act(p, 'drop seed');
     // ⭐ The bench is three fields: the cut names one (field population R2).
     for (let i = 0; i < 10 && (await p.query('me:i:wheat')).length === 0; i++) {
-      await work(p, 'harvest wheat at the lane end');
+      await work(p, 'harvest wheat --at "the lane end"');
     }
     const held = await p.query('me:i:wheat');
     expect(held.length, 'the stranger holds the sheaf').toBeGreaterThan(0);
@@ -510,12 +510,12 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
     await daylight();
     // ⭐ Every cut names its field (field population R2): the gate end to
     // the stubble, then the middle.
-    const first = await working(p, 'harvest wheat at the gate end');
+    const first = await working(p, 'harvest wheat --at "the gate end"');
     expect(first).toMatch(/cut a swath of/i);
     expect(await read(p, 'look')).toMatch(/part of it is cut/i);
     // Bare-handed: a smaller swath — not enough yet to make up a sack.
     await act(p, 'drop sickle');
-    const bare = await working(p, 'harvest wheat at the gate end');
+    const bare = await working(p, 'harvest wheat --at "the gate end"');
     expect(bare).toMatch(/pull it by hand|not yet enough to make up a load|cut a swath/i);
     await doing(p, 'get sickle');
     // The take is the university's, not the labourer's.
@@ -533,7 +533,7 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
     for (let i = 0; i < 20 && parts.length > 0; i++) {
       await daylight();
       await drink(); // ~1.8 game-hours of scything a cut (drive 12)
-      const { r, said } = await work(p, `harvest wheat at ${parts[0]}`);
+      const { r, said } = await work(p, `harvest wheat --at "${parts[0]}"`);
       // A field cut out is a field done: on to the next.
       if (
         refusedFor(r) === 'nothing-sown-there' ||
