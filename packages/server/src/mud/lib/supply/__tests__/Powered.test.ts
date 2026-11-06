@@ -63,7 +63,7 @@ describe("WaterPoweredMixin", () => {
 describe("NameTakingMixin", () => {
   it("defaults to nobody, on anything named", () => {
     const mute = makeStuff(() => new Mute());
-    expect(MixinApi.isNameTaking(mute)).toBe(true);
+    if (!MixinApi.isNameTaking(mute)) throw new Error("not name-taking");
     expect(mute.canBeNamedBy("anyone")).toBe(false);
   });
 

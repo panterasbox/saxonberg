@@ -12,6 +12,7 @@
  */
 
 import { PoweredMixin } from '../../supply/Powered';
+import type { Stuff } from '../../stuff/Stuff';
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Good from '../../stuff/Good';
@@ -46,13 +47,13 @@ function FakePoweredMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
   return class FakePoweredMixin extends PoweredMixin(Base) {
     static _mixinName = 'FakePoweredMixin';
     public cutAtS: number | null = null;
-    override isPowered(): boolean {
+    isPowered(): boolean {
       return this.cutAtS === null;
     }
-    override availablePowerW(): number {
+    availablePowerW(): number {
       return 1000;
     }
-    override poweredTrajectory(fromS: number, toS: number): Piecewise {
+    poweredTrajectory(fromS: number, toS: number): Piecewise {
       if (this.cutAtS === null || this.cutAtS <= fromS) {
         const v = this.cutAtS === null ? 1 : 0;
         return new Piecewise([
