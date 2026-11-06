@@ -67,8 +67,9 @@ sits on no committee, and anything a drive needs is seated honestly
 ## Cross-references
 
 - [agency-slate](./agency-slate.md) — the grant this is built on
-- `docs/plans/wizard-axis-cleanup-plan.md` § *Deferred seams* (until the
-  sweep retires it; then access.md § *The committee*)
+- [access.md § The committee](../../subsystems/access.md) — the attach
+  point: `isCommitteeMember` / `subjectIsOwnerMember` with no backstop arm
+  (the wizard-axis cleanup, MR !525, deleted it; access.md § History)
 - [governance.md](../../subsystems/governance.md) — the seats and the
   founder default for offices, which this leaves alone
 - [measurement.md](../../measurement.md) § Tier C — office structure and

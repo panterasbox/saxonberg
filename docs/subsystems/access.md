@@ -710,3 +710,19 @@ invents a fallback; (2) `isAuthor` is not needed once title is universal
 `requiresCoreAccess` did not survive — deleted with both consumers
 reassigned; (5) the acceptance test for "core is gone" is `lint:untitled` plus
 the absence of the word from the source.
+
+- **The wizard-axis cleanup** (MR !525, `1f59c2704`…`09ce75c27`, 2026-11-05).
+  The axis became *authoring TypeScript and nothing else*, asked in two
+  places — `AccessApi.sourceWriteRefusal` (a code-file write, which folded
+  eight verbatim copies) and `eval`. Reading opened; `reload` took title
+  (`TreeAction 'reload'`); the code-naming gates, `isAgentOf`, the
+  command-running spell and the founder committee backstop were deleted;
+  `isWizard = wizards ∪ isArchwizard`; the settings keys took tiers
+  (app-settings.md § The tiers); the test harness lost its every-group mode
+  (`committees:` / `offices:`, testing.md). ⭐ Its drive found the dorm
+  intake dead twice over — the views' wizard validator refused Katie's own
+  dispatch, and behind it she afforded the desk verbs to `peers` only, so
+  the dispatch was `unknown-verb`. `lint:wizard-axis` holds the line. The
+  decision numbers cited in code comments (`wizard-axis D13`…) are the
+  build plan's, retired at the sweep; read them with
+  `git show 09ce75c27:docs/plans/wizard-axis-cleanup-plan.md`.

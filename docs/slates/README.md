@@ -35,9 +35,9 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**410 slates.** 143 greenfield · 115 continuations · 70 waves · 82 tails.
+**411 slates.** 142 greenfield · 116 continuations · 71 waves · 82 tails.
 
-## ⭐ Greenfield — nothing shipped yet (143)
+## ⭐ Greenfield — nothing shipped yet (142)
 
 Pick from here for a clean cycle with no existing substrate to
 respect.
@@ -182,13 +182,12 @@ respect.
 | [wheelwright](./builds/wheelwright-slate.md) | `trade-wheelwright` · the wheel as an assembly with a role (`running gear`) · wood by grain · the dish … |
 | [wholesale-market](./builds/wholesale-market-slate.md) | the wholesale market as a place (its archetype, its hours, its layout, trade-only access) · relationships under the spot trade (standing orders, regard, family history) · ⭐ allocation instead of auction (the Crane melon) · grade judged on the spot … |
 | [wiki-content](./builds/wiki-content-slate.md) | pages shipped by the pack that adds the thing · `wiki-starter` for cross-cutting concepts and guides · `/finalize` graduating the player-facing version into the pack's pages · the demo-first content pass, an agent per pack, reviewed in batches … |
-| [wizard-axis-cleanup](./builds/wizard-axis-cleanup-slate.md) | W0 `lint:wizard-axis` allowlist · W1 the `isAgentOf` wizard short-circuit + the four lease/provision views' `requiresWizard` (a dorms-agent / ownership validator that says what it means, and the Katie `dispatch provision` live drive — absorbed from wizard-duty-slate 2026-09-21) + the `execScript` verdict + the `practice` verdict · W2 the code-door folds (reload/git/cms/studio/Template/Document) · W3 `AppSettingKeys` B/C tier tags + Tier C routed to an office + the tier-totality check … |
 | [wizard-duty](./builds/wizard-duty-slate.md) | break-glass declared-purpose logging for reads and impersonation (the conspicuous record — `wizard-bar-slate` leans on it from here) · `su` as an agency consumer · the duty text in the wizard grant (the safe harbor's TEXT is wizard-bar-slate's) · subject notification on record access … |
 | [wizardry](./builds/wizardry-slate.md) | ⭐ the **curriculum** → wizardry-curriculum-slate (§ 8a) · the seven Discipline rows + the noun extractor (rubric § 10) · the conferral logic · the band's disclosure rule … |
 | [wizardry-curriculum](./builds/wizardry-curriculum-slate.md) | the kind-of-content intake · the eight topics of W101 as lessons · the exemplar set (one per kind) · the detail-density mirror … |
 | [worlds](./builds/worlds-slate.md) | bodies as biomes under a space root · re-parenting today's world under a home-planet biome · the radius inheritable, gravity derived from mass and radius · the celestial profile on the planet biome … |
 
-## ⭐ Continuations — substrate shipped, a build's worth remains (115)
+## ⭐ Continuations — substrate shipped, a build's worth remains (116)
 
 The subsystem doc is the reference for what already ships; these
 are the named remainders.
@@ -309,9 +308,10 @@ are the named remainders.
 | [towns](./builds/towns-slate.md) | Rejection Act I + the inert `stocks:` table · Heart's Delight's support half (the Cannery Row town — the tower, the co-op, the pack + seasonal employment, Halloran's founding, Hendy's yard, the eight farms) · Hinkley facades / neighbours / the Death Man + `knock` + a rule for D22 · Rejection's support half (the Rest, the Tallow, the Institute, the print shop, the infirmary, the sharpening shop, a burial ground) … |
 | [underwater](./builds/underwater-slate.md) | the craft size rule (§ The craft size rule) · carrying a person (→ carrying-a-person-slate) · sealants, sponges, insulation · the tank, the submersible and domes (LEAN) … |
 | [venue-and-supply](./builds/venue-and-supply-slate.md) | V6 producer `yields` (the `needs` vocabulary now admits `cultivation` and `lightLux`) · V5 `lint:supply` · V4 the five support archetypes (only the depot ships) · V2 the uniform `kind: office` sweep (16 `entity` rows remain) … |
+| [wizard-axis-cleanup](./builds/wizard-axis-cleanup-slate.md) | W4 ⭐ **spoilers in code** |
 | [zoning](./builds/zoning-slate.md) | the emission/nuisance model over `signalAt` (minus the water relation) · the cap at the boundary · the LULU host problem · nonconforming use … |
 
-## Waves — rides another build (70)
+## Waves — rides another build (71)
 
 | slate | left |
 |---|---|
@@ -339,6 +339,7 @@ are the named remainders.
 | [display-manifestation](./tails/display-manifestation-slate.md) | driver policy off the closed `pairing` enum and onto `AccessApi.can` · the network / channel / guide addressing layer · multiple simultaneous sources per screen · one shared wire shape for display projection (video push / card push / prose-read stay three mechanisms) |
 | [distance-perception](./tails/distance-perception-slate.md) | vista references (a `Detail` resolving a remote Stuff) · the bounded one-hop peek (`look <exit>` / `--peek`) · what buys privileged multi-hop reach, and its tiers · the danger-sense exit annotation |
 | [dorm-warren](./tails/dorm-warren-slate.md) | the bounded mixin-field editor + the dorm tier filter · the CMS-inspectable lesson rung · the roommate NPC half (the two expression-slots, the soul/roots field sources, its trait tracking) · hand-authored custom prose (+ the absorbed prose-on-owned-items seam: a `PROSE_FIELDS` allowlist over the spine, on a good) … |
+| [executive-warrant](./builds/executive-warrant-slate.md) | the warrant object (one named extent · a stated reason · an expiry) · the request and its record in the governance record … |
 | [fast-travel](./tails/fast-travel-slate.md) | wayfinding (published schedules + route maps as Readables — the `scheduled`/`cycle` advance modes and the Terminus hub shipped) · terminals that WEAR · the maintenance round the self-governing Authority now owes · disruption events / rerouting / sabotage (beyond a cut or closed line) … |
 | [field-substrate](./tails/field-substrate-slate.md) | the water table (adit boundary + oxide/sulfide, one field two systems) · foraging stock as the first DERIVED field · the seeded × derived composition seam · a home for the pin walk (`stepOutwardForPin`, now copied three times) … |
 | [forums](./tails/forums-slate.md) | the ephemeral bill lifecycle + archive cascade + the governance trigger · notifications over aether (`world.forum.*` frames + the offline digest) · the latent collection-watch abstraction · the subscription query/pagination model … |
@@ -480,6 +481,7 @@ tail in `tails/`. These need moving or re-stamping.
 
 | slate | size | folder |
 |---|---|---|
+| [executive-warrant](./builds/executive-warrant-slate.md) | a wave | `builds/` |
 | [room-condition-design-pack](./builds/room-condition-design-pack.md) | a wave | `builds/` |
 | [row-composition](./builds/row-composition-slate.md) | a wave | `builds/` |
 
