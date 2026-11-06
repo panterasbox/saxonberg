@@ -263,13 +263,13 @@ export default class Compartment extends HaulOutMixin(WaterPlaceMixin(
    * arriving or leaving pokes her warren, whose reconcile is what puts her
    * to sleep whole. A no-op before her warren has adopted the room.
    */
-  public override onContainableAdded(thing: Stuff & Containable): void {
-    super.onContainableAdded(thing);
+  public override onContainableAdded(thing: Stuff & Containable, from?: Stuff | null): void {
+    super.onContainableAdded(thing, from);
     this.notePopulation(thing);
   }
 
-  public override onContainableRemoved(thing: Stuff & Containable): void {
-    super.onContainableRemoved(thing);
+  public override onContainableRemoved(thing: Stuff & Containable, to?: Stuff | null): void {
+    super.onContainableRemoved(thing, to);
     this.notePopulation(thing);
     // ⭐ Somebody left her while she settles: out of the count.
     if (MixinApi.isHasInteractive(thing as unknown as Stuff)) this.shipNow()?.noteLeft();

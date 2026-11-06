@@ -754,4 +754,20 @@ describe('harvest <plant>', () => {
       );
     });
   });
+
+  describe('⭐ the slot a plant takes (put)', () => {
+    it('a plant fits the plant slot of ground with soil in it', () => {
+      const { bed } = scene();
+      expect(bed.openSlotFor(makePlant())).toBe(PLANT_SLOT);
+      expect(bed.openSlotFor(makePlant(), 'on')).toBeNull();
+    });
+
+    it('seatInSlot: contents first, then the slot', () => {
+      const { bed } = scene();
+      const plant = makePlant();
+      bed.seatInSlot(plant, PLANT_SLOT);
+      expect(plant.getContainer()).toBe(bed);
+      expect(bed.getPlants()).toContain(plant);
+    });
+  });
 });

@@ -33,6 +33,10 @@ import { GRADE_BANDS } from '../craft/Grade';
 import type { Durable } from '../material/Durable';
 import type { Branded } from '../corpo/Branded';
 import { MixinApi } from '../../api/mixin';
+import { ContainmentApi } from '../../api/containment';
+import type { Containable } from '../spatial/Containable';
+import type { Container } from '../spatial/Container';
+import { PlacementOffers } from '../spatial/PlacementOffers';
 import { PerceptionApi } from '../../api/perception';
 import type { MarkupAugmenter } from '../../api/mml';
 import {
@@ -132,6 +136,18 @@ export interface Slotted {
   isSlotFull(slot: string): boolean;
 
   canOccupy(candidate: Stuff & Slottable, slot: string): boolean;
+  /**
+   * ⭐ The open slot `item` fits, when `word` (the typed preposition, if any)
+   * can mean a slot, or null: *a slot is more specific than a container*. A
+   * BODY never answers — `wear` and `wield` own body slots, and `put shirt in
+   * bob` must never dress somebody.
+   */
+  openSlotFor(item: Stuff, word?: string): string | null;
+  /**
+   * ⭐ Seat `item`: contents FIRST, then the slot — the slot is occupancy, and
+   * containment is where the part physically is. The host must be a Container.
+   */
+  seatInSlot(item: Stuff & Containable & Slottable, slot: string): void;
   /** Why `candidate` may not occupy `slot`, in the host's words, or `null`. */
   canOccupyReason(candidate: Stuff & Slottable, slot: string): string | null;
 
@@ -339,6 +355,22 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
      */
     public canOccupyReason(_candidate: Stuff & Slottable, _slot: string): string | null {
       return null;
+    }
+
+    public openSlotFor(item: Stuff, word?: string): string | null {
+      const host = this as unknown as Stuff & Slotted;
+      if (MixinApi.isVitals(host) || !MixinApi.isSlottable(item)) return null;
+      if (!PlacementOffers.of(host).admitsSlot(word)) return null;
+      for (const name of this.getSlotNames()) {
+        if (this.isSlotFull(name)) continue;
+        if (this.canOccupy(item, name)) return name;
+      }
+      return null;
+    }
+
+    public seatInSlot(item: Stuff & Containable & Slottable, slot: string): void {
+      ContainmentApi.move(item, this as unknown as Stuff & Container);
+      this.occupy(item, slot);
     }
 
     public canOccupy(candidate: Stuff & Slottable, slot: string): boolean {

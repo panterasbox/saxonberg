@@ -861,8 +861,8 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
      * clock (D8c) — the boil arm credits it from here, never from before
      * it went in.
      */
-    public onContainableAdded(thing: Stuff & Containable): void {
-      (Base.prototype as { onContainableAdded?: (t: unknown) => void }).onContainableAdded?.call(this, thing);
+    public onContainableAdded(thing: Stuff & Containable, from?: Stuff | null): void {
+      (Base.prototype as { onContainableAdded?: (t: unknown, f?: unknown) => void }).onContainableAdded?.call(this, thing, from);
       const self = this as unknown as Stuff;
       if (!MixinApi.isSoilable(thing) || !MixinApi.isBulkable(self) || !self.hasInteriorBulk()) return;
       const now = this.thermalNowSeconds();
@@ -870,8 +870,8 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /** …and out of it, the clock stops. */
-    public onContainableRemoved(thing: Stuff & Containable): void {
-      (Base.prototype as { onContainableRemoved?: (t: unknown) => void }).onContainableRemoved?.call(this, thing);
+    public onContainableRemoved(thing: Stuff & Containable, to?: Stuff | null): void {
+      (Base.prototype as { onContainableRemoved?: (t: unknown, f?: unknown) => void }).onContainableRemoved?.call(this, thing, to);
       if (MixinApi.isSoilable(thing) && thing.getBathHold() !== null) thing.leaveBath();
     }
 

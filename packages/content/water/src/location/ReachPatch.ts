@@ -141,8 +141,8 @@ export default class ReachPatch extends ReachPlaceBase {
    * thing that sinks — a stone, a sword, not a body standing — goes to the
    * stop at this km whatever the depth.
    */
-  public override onContainableAdded(thing: Stuff & Containable): void {
-    super.onContainableAdded(thing);
+  public override onContainableAdded(thing: Stuff & Containable, from?: Stuff | null): void {
+    super.onContainableAdded(thing, from);
     if (thing.isAgent() || !this.sinks(thing)) return;
     const floor = this.getFloor();
     const borne = floor !== null && MixinApi.isFloor(floor) && floor.supportIsSlotted() && floor.bears(0);

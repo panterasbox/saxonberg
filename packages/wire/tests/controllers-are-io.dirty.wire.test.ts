@@ -71,11 +71,10 @@ declareFile({
 /* ───────────────────────── the record ───────────────────────── */
 
 /**
- * ⭐ The casting command for step 15. Today a scroll fires from `read`;
- * after W5 it is `recite` — change this one constant (and re-record
- * nothing: the state must match).
+ * ⭐ The casting command for step 15: a scroll fires from `recite` and
+ * never from `read` (W5).
  */
-const CAST_COMMAND = 'read';
+const CAST_COMMAND = 'recite';
 
 const RECORD = process.env.CAIO_RECORD === '1';
 const BASELINE_PATH = new URL('./controllers-are-io.baseline.json', import.meta.url);
@@ -349,13 +348,20 @@ suite('11. put into a container, onto a surface, into a slot, into a feeder', ()
   const holder: Record<string, string> = {};
   beforeAll(async () => {
     s = await stager(uniqueHandle('caio-putter'), SQUARE);
-    for (const [k, tpl] of [
+    const fixtures: [string, string, Record<string, unknown>?][] = [
       ['crate', '/trade/farming/thing/crate'],
       ['table', '/stuff/thing/fixture/table'],
-      ['pot', '/trade/farming/thing/pot/small'],
+      // ⭐ With soil: a plant fits a slot by the root room it would get, and
+      // an empty pot has none (11c's first record, an unclaimed slot).
+      [
+        'pot',
+        '/trade/farming/thing/pot/small',
+        { interiorMaterial: '/stuff/idea/material/bulk/potting-soil', interiorAmount: 0.5 },
+      ],
       ['saucer', '/stuff/thing/vessel/saucer'],
-    ] as const) {
-      id[k] = await hand(s, tpl);
+    ];
+    for (const [k, tpl, fields] of fixtures) {
+      id[k] = await hand(s, tpl, fields);
       holder[id[k]!] = k;
       expectOk(await s.cmd(`drop #${id[k]}`));
     }

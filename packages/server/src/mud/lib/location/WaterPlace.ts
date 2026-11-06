@@ -783,8 +783,8 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
      * A load change — a thing dropped or taken — reconciles who the floor
      * bears; in open water, what sinks goes down.
      */
-    public onContainableAdded(thing: Stuff & Containable): void {
-      (Base.prototype as { onContainableAdded?: (t: unknown) => void }).onContainableAdded?.call(this, thing);
+    public onContainableAdded(thing: Stuff & Containable, from?: Stuff | null): void {
+      (Base.prototype as { onContainableAdded?: (t: unknown, f?: unknown) => void }).onContainableAdded?.call(this, thing, from);
       // ⭐ The way down exists the moment anybody is in the water — walked
       // in, swum in, or restored here after a restart (the browser walk:
       // `swim down` found no `down`, and a diver restored at the surface
@@ -851,8 +851,8 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
       }
     }
 
-    public onContainableRemoved(thing: Stuff & Containable): void {
-      (Base.prototype as { onContainableRemoved?: (t: unknown) => void }).onContainableRemoved?.call(this, thing);
+    public onContainableRemoved(thing: Stuff & Containable, to?: Stuff | null): void {
+      (Base.prototype as { onContainableRemoved?: (t: unknown, f?: unknown) => void }).onContainableRemoved?.call(this, thing, to);
       this._arrivals.delete(thing.stuffId);
       this.waterFloor()?.reconcileSupport();
     }

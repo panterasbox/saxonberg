@@ -40,6 +40,7 @@ import { SecurityPolicies } from '../security/SecurityPolicies';
 import { ExecutionContextApi } from '../../api/execution-context';
 import { MixinApi } from '../../api/mixin';
 import { ContainmentApi } from '../../api/containment';
+import { PlacementOffers, type PlacementChoice } from './PlacementOffers';
 import { MqlApi } from '../../api/mql';
 import type { CommandGiver } from '../command/CommandGiver';
 import { StuffApi } from '../../api/stuff';
@@ -102,10 +103,15 @@ export interface Container {
   canAddContainable?(thing: Stuff & Containable): VetoResult;
   /** Optional pre-remove veto. */
   canRemoveContainable?(thing: Stuff & Containable): VetoResult;
-  /** Fired after the Containable has been added. */
-  onContainableAdded?(thing: Stuff & Containable): void;
-  /** Fired after the Containable has been removed. */
-  onContainableRemoved?(thing: Stuff & Containable): void;
+  /** Fired after the Containable has been added; `from` is where it was. */
+  onContainableAdded?(thing: Stuff & Containable, from?: Stuff | null): void;
+  /** Fired after the Containable has been removed; `to` is where it went. */
+  onContainableRemoved?(thing: Stuff & Containable, to?: Stuff | null): void;
+  /**
+   * ⭐ What `word` means on this host (`PlacementOffers`): the interior, or
+   * a member of a placing host. No word: its only offer, or which of them.
+   */
+  placementFor(word: string | undefined): PlacementChoice;
 }
 
 /**
@@ -125,6 +131,11 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
   class ContainerMixin extends Base {
     // Mixin marker for detection by MixinApi
     static _mixinName = 'ContainerMixin';
+
+    /** See {@link Container.placementFor}. */
+    public placementFor(word: string | undefined): PlacementChoice {
+      return PlacementOffers.of(this as unknown as Stuff).choose(word);
+    }
 
     /**
      * Residency veto: a non-empty container stays resident — its cold

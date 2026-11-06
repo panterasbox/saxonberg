@@ -207,8 +207,8 @@ export default class Band extends BandBase {
    * to the bed, or up to the surface (D9). A neutral thing, and anything
    * that acts for itself, stays.
    */
-  public onContainableAdded(thing: Stuff & Containable): void {
-    super.onContainableAdded(thing);
+  public onContainableAdded(thing: Stuff & Containable, from?: Stuff | null): void {
+    super.onContainableAdded(thing, from);
     if (this.band === 'bed' || this.sinks(thing) || !this.floats(thing)) return;
     void Promise.resolve().then(() => this.floatUp(thing));
   }
