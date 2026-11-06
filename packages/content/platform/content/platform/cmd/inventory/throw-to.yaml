@@ -1,0 +1,40 @@
+verbs: [throw]
+category: inventory
+controller: /platform/idea/cmd/inventory/ThrowToController
+description: "Toss something to someone, to be caught"
+help: |
+  ⭐ `throw <thing> to <someone>` is a toss meant to be caught, not an
+  attack — the end of a line to a swimmer going under, from the quay to
+  the water below. Not everything can be tossed to someone; what can't,
+  you throw AT them or hand over.
+examples:
+  - cmd: throw line to Mara
+    note: A toss to be caught — a lifeline to someone in the water
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: item
+    type: object
+    required: true
+    # Deliberately WIDER than `inventory` — a rock on the ground must
+    # RESOLVE so `mustBeHeld` can answer "pick it up first" instead of
+    # the parser claiming there is no rock. Narrowing this to
+    # `inventory` silently deletes the teaching refusal; pinned by
+    # `api/__tests__/command-binder-throw.test.ts`.
+    scope: "reachable"
+    # Mass is what makes a thing throwable — and it is the ½mv² input.
+    requires: TangibleMixin
+    validators:
+      # …but you must be HOLDING it. Picking a rock up is a public act,
+      # and that tell is worth making somebody pay for.
+      - /lib/command/validators/mustBeHeld
+  # ⭐ A name, not a bound object: the THING finds who, within its own reach
+  # (a line reaches the water below a quay, which `reachable` cannot see).
+  - name: recipient
+    type: string
+    required: true
+    prepositions: [to]
+    # ⭐ D17: this shape and `throw-at.yaml` are provably disjoint — the slot
+    # binds only with its preposition, and the two prepositions do not meet.
+    prepositionRequired: true
