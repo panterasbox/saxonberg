@@ -1367,10 +1367,10 @@ suite.skipIf(!isOwnedTestWorld())('17–18. what survives a restart', () => {
   const opts = { wizard: true, committees: [TERMINUS, LOUNGE] };
   const readBusiness = `((b) => ({ call: b.getCall(), roster: b.getRosterSlots ? b.getRosterSlots().length : null }))(StuffApi.findByTemplatePath('${BUSINESS}'))`;
   const readBody = `({ meal: self.getLastMealLabel(), full: self.getLastMealLabel() !== null && self.digestionPools !== undefined, buoyancy: Math.round(self.getNetBuoyancyN()), at: self.getContainer().getTemplatePath() })`;
-  let peg = '';
   let before: { business: unknown; good: unknown; body: { meal: string | null; buoyancy: number; at: string } };
-  const readGood = (id: string): string =>
-    `((g) => ({ owner: g.getOwner ? g.getOwner() : null, maker: g.getMaker ? g.getMaker() === self.getIdentityPath() : null, title: g.getChattelId ? !!g.getChattelId() : null, tpl: g.getTemplatePath() }))(${byId(id)})`;
+  // ⚠ By kind, in hand: a stuffId is one process's, and a restart mints anew.
+  const readGood =
+    `((g) => ({ owner: g.getOwner ? g.getOwner() : null, maker: g.getMaker ? g.getMaker() === self.getIdentityPath() : null, title: g.getChattelId ? !!g.getChattelId() : null, tpl: g.getTemplatePath() }))(self.getContents().find(c => /carpentry\\/thing\\/peg/.test(c.getTemplatePath())))`;
 
   it('18a. a new character has the default aliases; `l` runs look; `alias unset l` removes it; no second word', async () => {
     const s = await Session.open(fresh, { startLocation: SQUARE, ...opts });
@@ -1398,7 +1398,6 @@ suite.skipIf(!isOwnedTestWorld())('17–18. what survives a restart', () => {
     const hook = await hand(s, '/trade/forestry/thing/billhook');
     const blank = await hand(s, '/trade/carpentry/thing/riven-blank');
     expectOk((await act(s, `carve peg from #${blank} --with #${hook}`)).r);
-    peg = await ev<string>(s, `self.getContents().find(c => /carpentry\\/thing\\/peg/.test(c.getTemplatePath())).stuffId`);
     const rations = await hand(s, '/world/terminus/general-store/thing/rations');
     const ate = await s.cmd(`eat #${rations}`);
     expectOk(ate);
@@ -1412,7 +1411,7 @@ suite.skipIf(!isOwnedTestWorld())('17–18. what survives a restart', () => {
     await w.drainProse();
     before = {
       business: await ev(w, readBusiness, LOUNGE),
-      good: await ev(w, readGood(peg)),
+      good: await ev(w, readGood),
       body: await ev(w, readBody),
     };
     expect((before.body as unknown as { full: boolean }).full, 'mid-digestion').toBe(true);
@@ -1437,13 +1436,13 @@ suite.skipIf(!isOwnedTestWorld())('17–18. what survives a restart', () => {
     await w.drainProse();
     const business = await ev(w, readBusiness, LOUNGE);
     expect(business, 'the call roster').toEqual(before.business);
-    expect(await ev(w, readGood(peg)), 'the title and the maker').toEqual(before.good);
+    expect(await ev(w, readGood), 'the title and the maker').toEqual(before.good);
     const after = await ev<typeof before.body & { full: boolean }>(w, readBody);
     expect(after.meal, 'the meal still down').toBe(before.body.meal);
     expect(after.full, 'mid-digestion').toBe(true);
     expect(after.at, 'still in the water').toBe(before.body.at);
     expect(after.buoyancy, 'the same load in the same water').toBe(before.body.buoyancy);
-    const look = await w.prose(`look #${peg}`);
+    const look = await w.prose('look me:i:peg');
     expect(look, 'a player reads the title').toMatch(/Owned by/);
 
     const n = await Session.open(fresh, opts);

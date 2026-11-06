@@ -247,7 +247,11 @@ export class ChattelLogic extends ApiLogic {
         if (reg) await reg.stamp(this.ensureId(good, reg), owner);
       }
     }
-    if (MixinApi.isStackable(item)) return;
+    // ⚠ A STACK has no place; a lone good that happens to stack (a carved peg)
+    // was stamped above and does: left at the default `storage`, its owner's
+    // capture skipped it and the next restore put it in a store, not the hand
+    // (found by the drive, step 17).
+    if (isFungibleStack(item)) return;
     if (!good.getChattelId()) return; // unstamped: nothing owns it
     const owner = await this.resolveOwner(item);
     if (owner?.kind !== "player") return;
@@ -358,7 +362,7 @@ export class ChattelLogic extends ApiLogic {
    * `chattel` row's by-room index, and a live owner's estate.
    */
   private async applyPlace(item: Stuff, place: string): Promise<void> {
-    if (MixinApi.isStackable(item)) return; // a fungible stack has no place
+    if (isFungibleStack(item)) return; // a fungible stack has no place
     if (!MixinApi.isChattel(item)) return;
     const good = item as Stuff & Chattel;
     good._setPlace(place);

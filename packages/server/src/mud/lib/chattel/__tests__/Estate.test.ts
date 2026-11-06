@@ -181,6 +181,7 @@ describe("owner-based persistence — place", () => {
   it("a stack carries no place — a fungible stack has nowhere to be kept", async () => {
     const stack = makeTorch();
     vi.spyOn(MixinApi, "isStackable").mockImplementation((o) => o === stack);
+    (stack as unknown as { getQuantity(): number }).getQuantity = () => 3;
     await stack.setChattelPlace(ROOM_ID);
     expect(stack.getPlace()).toBe(ESTATE_STORAGE);
   });
