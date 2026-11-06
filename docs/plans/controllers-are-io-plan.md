@@ -1443,6 +1443,32 @@ Acceptance: every subcommand does what it did; `help <noun>` lists
 them; `shelf consign` and `house appoint` work; `fight defend` =
 `defend`; the gate's ceiling lowered to `title`'s two. Commit.
 
+✅ **W7 done** (15 commits, `20cd29752`…`126d54ce9`). Ten nouns are a
+`<Noun>ControllerBase` + one controller per subcommand; bare forms
+route to `WikiRead`/`ChatPost`/`ForumRead`/`TuneIn`/`SoulList`/
+`PartyShow`/`GroupList`/`FightStatus`/`JobBrowse` (bare `pack` only
+ever printed usage). `FightGambitController` takes 11 words (the
+twelfth, `defend`, routes to `DefendController` — so `fight defend`
+now runs `defend`'s cover-up line). Institution sweep: `house
+appoint|dismiss|draw`, `job apply|quit|fulfill`, new nouns `shelf
+consign|reclaim`, `rack check|reclaim` (the CheckRack reclaim defect
+fixed: `rack reclaim` binds a `HeldGoodsMixin` rack); the flat views
+(with `hire`, `handoff`, `unconsign`) deleted; brains (`farms`,
+`delves`, `consigns`, `cellars`), Dave's dispatch, 25 wire files
+swept. Decided: ⚠ **the controller census could not see
+`*ControllerBase.ts`** — `controllerFiles()` now reads them and the
+ceilings were re-pinned by that delta (caller audit: every added token
+sits in one of the four pre-existing bases), so a split into bases
+cannot read as a burn-down; `house` and `job` are every character's
+(on `Persona` — `job fulfill` must travel away from any board; the
+validators still refuse); the job board is a view arg `on <board>`
+defaulting to the board in reach, `requires: any` + `boardOf` refusing
+(W8 adds `class:JobBoard` to `CLASS_REQUIREMENTS`);
+`HouseControllerBase`, `HeldGoodsControllerBase`, `JobControllerBase`,
+`FightControllerBase` fold duplicate derivations. Ceilings:
+institution-verbs 11 → 2; subcommand pairs → 46; one-word → 62;
+controller-functions → 259.
+
 ### W8 — bank, wallet, title, clock (last; reconcile with water-supply)
 
 Before starting: `git merge-tree` against `origin/reqs/water-supply`
