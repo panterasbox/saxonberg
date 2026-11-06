@@ -1,0 +1,270 @@
+{
+  "note": "controllers-are-io drive: the before-record of steps 10-15 (plan D13). Written by CAIO_RECORD=1; compared on every other run. Do not hand-edit.",
+  "acts": {
+    "10a.plant": {
+      "status": "ok",
+      "notes": [],
+      "duration": null,
+      "state": {
+        "plant": "/trade/farming/thing/plant/turnip",
+        "stage": "seedling",
+        "seedGone": true
+      }
+    },
+    "10b.harvest-unready": {
+      "status": "declined",
+      "notes": [
+        {
+          "kind": "controller-rejected",
+          "reason": "not-mature"
+        }
+      ],
+      "duration": null,
+      "state": {
+        "stillGrowing": true
+      }
+    },
+    "10c.harvest": {
+      "status": "ok",
+      "notes": [],
+      "duration": null,
+      "state": {
+        "crops": [
+          {
+            "crop": "/trade/farming/thing/crop/turnip",
+            "grade": "poor",
+            "maker": "/platform/agent/PrimaryAvatar"
+          }
+        ],
+        "potEmpty": true
+      }
+    },
+    "11a.put-in-container": {
+      "status": "ok",
+      "notes": [],
+      "duration": null,
+      "state": {
+        "gone": false,
+        "in": "crate",
+        "placement": null
+      }
+    },
+    "11b.put-on-surface": {
+      "status": "ok",
+      "notes": [],
+      "duration": null,
+      "state": {
+        "gone": false,
+        "in": "/world/terminus/market/square",
+        "placement": "on"
+      }
+    },
+    "11c.put-in-slot": {
+      "status": "ok",
+      "notes": [],
+      "duration": null,
+      "state": {
+        "gone": false,
+        "in": "pot",
+        "placement": null,
+        "slotted": [
+          [
+            "plant",
+            false
+          ]
+        ]
+      }
+    },
+    "11d.put-in-feeder": {
+      "status": "ok",
+      "notes": [],
+      "duration": null,
+      "state": {
+        "gone": false,
+        "in": "saucer",
+        "placement": null,
+        "filledByMe": true
+      }
+    },
+    "12a.order-drink": {
+      "status": "declined",
+      "notes": [
+        {
+          "kind": "controller-rejected",
+          "reason": "insufficient-input"
+        }
+      ],
+      "duration": null,
+      "state": {
+        "prompts": 0,
+        "paid": 0,
+        "carried": []
+      }
+    },
+    "12b.order-treatment": {
+      "status": "ok",
+      "notes": [],
+      "duration": null,
+      "state": {
+        "prompts": 0,
+        "paid": 12,
+        "wounds": [
+          {
+            "type": "avulsion",
+            "dressed": true,
+            "bleeding": false
+          }
+        ]
+      }
+    },
+    "12c.order-wash": {
+      "status": "ok",
+      "notes": [],
+      "duration": null,
+      "state": {
+        "prompts": 2,
+        "paid": -17
+      }
+    },
+    "12d.order-bath": {
+      "status": "ok",
+      "notes": [
+        {
+          "kind": "engagement-started"
+        }
+      ],
+      "duration": 12000,
+      "state": {
+        "prompts": 0,
+        "paid": 3
+      }
+    },
+    "12e.order-repair": {
+      "status": "declined",
+      "notes": [
+        {
+          "kind": "controller-rejected",
+          "reason": "nothing-to-repair"
+        }
+      ],
+      "duration": null,
+      "state": {
+        "prompts": 0,
+        "paid": 0
+      }
+    },
+    "12f.order-burial": {
+      "status": "ok",
+      "notes": [],
+      "duration": null,
+      "state": {
+        "prompts": 0,
+        "paid": 20
+      }
+    },
+    "12g.order-transfusion": {
+      "status": "ok",
+      "notes": [
+        {
+          "kind": "engagement-started"
+        }
+      ],
+      "duration": 45000,
+      "state": {
+        "prompts": 0,
+        "paid": 0
+      }
+    },
+    "13a.treat-wound": {
+      "status": "ok",
+      "notes": [],
+      "duration": null,
+      "state": {
+        "wounds": [
+          {
+            "type": "avulsion",
+            "dressed": true,
+            "bleeding": false
+          }
+        ],
+        "bandageSpent": true
+      }
+    },
+    "13b.treat-affliction": {
+      "status": "ok",
+      "notes": [],
+      "duration": null,
+      "state": {
+        "afflictions": []
+      }
+    },
+    "14a.throw-to": {
+      "status": "ok",
+      "notes": [],
+      "duration": null,
+      "state": {
+        "fastToAnn": true,
+        "line": {
+          "gone": false,
+          "in": "/platform/agent/PrimaryAvatar",
+          "placement": null
+        }
+      }
+    },
+    "14b.throw-away": {
+      "status": "ok",
+      "notes": [],
+      "duration": null,
+      "state": {
+        "gone": false,
+        "in": "/world/terminus/market/square",
+        "placement": null
+      }
+    },
+    "14c.throw-at": {
+      "status": "ok",
+      "notes": [],
+      "duration": null,
+      "state": {
+        "prompts": 0,
+        "ball": {
+          "gone": false,
+          "in": "/platform/agent/PrimaryAvatar",
+          "placement": null
+        },
+        "annTraumas": [
+          "fracture"
+        ]
+      }
+    },
+    "15a.read-page": {
+      "status": "ok",
+      "notes": [],
+      "duration": null,
+      "state": {
+        "gone": false,
+        "in": "/platform/agent/PrimaryAvatar",
+        "placement": null
+      }
+    },
+    "15b.read-display": {
+      "status": "ok",
+      "notes": [],
+      "duration": null,
+      "state": {}
+    },
+    "15c.cast-scroll": {
+      "status": "error",
+      "notes": [
+        {
+          "kind": "controller-error"
+        }
+      ],
+      "duration": null,
+      "state": {
+        "prompts": 2,
+        "scroll": "gone"
+      }
+    }
+  }
+}
