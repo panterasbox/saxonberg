@@ -40,8 +40,8 @@ import { pathToFileURL } from "url";
 import ts from "typescript";
 import { controllerFiles, parseTs, ratchet } from "./pack-roots";
 
-export const CONTROLLER_DECISIONS_CEILING = 1294; // W7: −1, appoint's and dismiss's duplicated `houseIRun` became one base method, after +9 for the four shipped `*ControllerBase.ts` modules the enumerator could not see.
-export const DURATION_DECLS_CEILING = 114; // W7: +1 — the four shipped `*ControllerBase.ts` modules, invisible until the enumerator read the suffix (a measurement correction, not growth).
+export const CONTROLLER_DECISIONS_CEILING = 1284; // W4: words and cut decisions moved. // W7: −1, appoint's and dismiss's duplicated `houseIRun` became one base method, after +9 for the four shipped `*ControllerBase.ts` modules the enumerator could not see.
+export const DURATION_DECLS_CEILING = 107; // W4: boil and the cuts' durations moved. // W7: +1 — the four shipped `*ControllerBase.ts` modules, invisible until the enumerator read the suffix (a measurement correction, not growth).
 
 export type DecisionKind = "math" | "arithmetic" | "threshold" | "constant" | "act-literal";
 
