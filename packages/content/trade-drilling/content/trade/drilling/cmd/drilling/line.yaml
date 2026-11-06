@@ -11,7 +11,7 @@ help: |
   soft wet ground until the hole is lined, and the refusal names the
   remedy — so nobody is stuck, only delayed and poorer.
 
-  ⚠ A liner is timber and leather. `make liner` takes two of timber.
+  ⚠ A liner is timber and leather. `carve liner` takes two of timber.
 examples:
   - cmd: line
     note: Run the liner you are carrying down the hole

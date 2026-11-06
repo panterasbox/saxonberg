@@ -32,10 +32,7 @@ export default class KneadController extends ManualBuildController<KneadModel> {
       return;
     }
     const plan = MixinApi.isKneadVessel(vessel)
-      ? await vessel.kneadPlanFor({
-          actor: context.commandGiver,
-          commandText: context.commandText,
-        })
+      ? await vessel.kneadPlanFor({ actor: context.commandGiver })
       : null;
     if (plan === null) {
       this.declineStep(

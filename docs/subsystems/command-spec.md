@@ -153,7 +153,7 @@ recipe-side requirement and a working, never a verb source (see
 **Where a verb's spec lives follows the same rule: with the pack whose
 content affords it.** The platform pack ships the verbs any trade's
 instrument can confer (`pour`, `stir`, `heat`, `repair`, `salvage`,
-`wash`, `make`) and the commerce pair (`retail/menu`, `retail/order`);
+`wash`) and the commerce pair (`retail/menu`, `retail/order`);
 a trade's own steps ship in the trade's capability pack — hospitality's
 `muddle`/`strain`/`garnish`/`mix`/`serve`, cooking's
 `cook`/`plate`, smithing's `forge`/`hammer`/`quench`/`sharpen` — as
@@ -168,8 +168,10 @@ became statics. Appliance mixins with real behavior (the furnace →
 `heat`/`ignite`/`douse`/`pump`) declare statics the same way. A commerce
 object (a `CommerceMenu`) affords only its commerce verbs
 (`menu`/`order`) — the menu is for ordering, not making.
-Knowledge-driven verbs with no instrument (`make`) are innate on
-`Avatar`. See [crafting.md § The offer](./crafting.md) for the table
+A verb with no instrument at all is innate on `Avatar` — `do`, the
+shell's runner for a named script, is one (it was `make` under crafting
+and never made anything; see [scripting.md](./scripting.md)). See
+[crafting.md § The offer](./crafting.md) for the table
 and the parameterized specs (rate / control / technique).
 
 ### Aside: spec, parser, and the model

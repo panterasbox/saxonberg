@@ -52,7 +52,7 @@ function actingAuthor(): Stuff | null {
 /**
  * True when `path` lies in `actor`'s own `/home/<self>/` branch — keyed on
  * the durable-path basename, so an owner owns exactly the subtree the
- * runtime banks under their name (a player's recorded recipe-scripts, a
+ * runtime banks under their name (a player's saved scripts, a
  * future dorm's customization).
  *
  * Consumes the shared self-home rule via `ParcelApi.selfHomeOwnerOf` (the

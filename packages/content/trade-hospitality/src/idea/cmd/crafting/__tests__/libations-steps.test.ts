@@ -186,6 +186,5 @@ describe('muddle', () => {
     expect(shaker.getBuildMethod()).toBeNull();
     await completeStep(6000);
     expect(shaker.getBuildMethod()).toBe('muddled');
-    expect(shaker.getCommandSources()).toContain('muddle');
   });
 });

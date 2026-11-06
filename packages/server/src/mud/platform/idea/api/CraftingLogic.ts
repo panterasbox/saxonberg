@@ -21,7 +21,7 @@ import {
   CookingAttempt,
   type CookingMethod,
 } from '../../../lib/butchery/Texture';
-import { RecipeKnowledge } from '../../../lib/script/RecipeKnowledge';
+import { RecipeKnowledge } from '../../../lib/craft/RecipeKnowledge';
 import { Competence } from '../../../lib/advancement/Competence';
 import type { Organization } from '../../../lib/employment/Organization';
 import { MessageApi } from '../../../api/message';
@@ -2499,9 +2499,26 @@ function proportionBands(d: number): number {
 async function recordCraftEvidence(
   maker: Stuff | null,
   recipe: Recipe,
-): Promise<void> {
+): Promise<boolean> {
+  if (!maker) return false;
+  // ⭐ The can-make DEED — "your own first execution is always the deed".
+  // Crafting's own record (controllers-are-io D18): it used to be minted
+  // by the script system, in the same call that auto-transcribed a
+  // recipe-script, and only by the hand verbs that called it — so knead,
+  // carve, fit and every one-shot taught nothing. Recorded for every
+  // recipe, ladder or not: a deed of a row nobody gates on costs nothing
+  // and is still true.
+  let learned = false;
+  const recipeId = recipe.getRecipeId();
+  if (recipeId && MixinApi.isPersona(maker)) {
+    const key = RecipeKnowledge.madeKey(recipeId);
+    if (!(await maker.hasDone(key))) {
+      await maker.recordChronicleOnce(key, RecipeKnowledge.madeEntry(recipe.getName()));
+      learned = true;
+    }
+  }
   const discipline = recipe.getDiscipline();
-  if (!discipline || !maker) return;
+  if (!discipline) return learned;
   const difficulty: Difficulty = (DIFFICULTIES as readonly string[]).includes(
     recipe.getDifficulty(),
   )
@@ -2513,9 +2530,9 @@ async function recordCraftEvidence(
     difficulty,
     outcome: 'success',
   });
-  if (!MixinApi.isContainable(maker)) return;
+  if (!MixinApi.isContainable(maker)) return learned;
   const location = maker.getContainer();
-  if (!location || !MixinApi.isContainer(location)) return;
+  if (!location || !MixinApi.isContainer(location)) return learned;
   for (const witness of location.getContents()) {
     if (witness === maker) continue;
     if (!MixinApi.isCommandGiver(witness)) continue;
@@ -2526,6 +2543,7 @@ async function recordCraftEvidence(
       RecipeKnowledge.knownEntry(recipe.getName()),
     );
   }
+  return learned;
 }
 
 /** The authored bill on a row, read off its template (no clone). */
@@ -2799,7 +2817,11 @@ async function mintFromBuildImpl(req: BuildMintRequest): Promise<CraftOutcome> {
   const makerPath = liveMaker?.getIdentityPath() ?? req.makerPath ?? '';
   const makerStuff =
     liveMaker ??
-    (makerPath ? (StuffApi.findByTemplatePath<Stuff>(makerPath) ?? null) : null);
+    // ⚠⚠ By IDENTITY, never lineage: every player Avatar shares one
+    // templatePath, so a lineage lookup credited a hand build to whichever
+    // Avatar that row resolved to (antipatterns.md § Keying a PERSON on
+    // `getTemplatePath()`).
+    (makerPath ? (StuffApi.findByIdentityPath<Stuff>(makerPath)[0] ?? null) : null);
 
   if (req.workpiece) {
     const minted = await mintWorkpiece(
@@ -3122,8 +3144,8 @@ async function mintWorkpiece(
       craftedAt: WorldClockApi.getNow().rawValue(),
     });
     StuffApi.destruct(workpiece);
-    await recordCraftEvidence(makerStuff, recipe);
-    return { ok: true, output, grade, recipeId: recipe.getRecipeId() };
+    const learned = await recordCraftEvidence(makerStuff, recipe);
+    return { ok: true, output, grade, recipeId: recipe.getRecipeId(), learned };
   }
 
   // The generic worked lump (an off-spec build still yields *a* thing):
@@ -3311,8 +3333,8 @@ async function mintVessel(
     });
   }
 
-  if (recipe) await recordCraftEvidence(makerStuff, recipe);
-  return { ok: true, output: vessel, grade, recipeId };
+  const learned = recipe ? await recordCraftEvidence(makerStuff, recipe) : false;
+  return { ok: true, output: vessel, grade, recipeId, learned };
 }
 
 /** The craft-resolve algorithm. See {@link CraftingApi.craft}. */
@@ -3684,7 +3706,7 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
 
   // The evidence tail: advancement deed + watch-=-claim for witnesses
   // (a no-op for recipes authoring no discipline — every bar row).
-  await recordCraftEvidence(maker, recipe);
+  const learned = await recordCraftEvidence(maker, recipe);
 
   // ⭐⭐ Land it. A vessel claimed from the pool is already where it
   // belongs (the glass is on the bar), so the Api does not move it unless
@@ -3695,7 +3717,7 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
     req.landing ?? (application === 'tangible' ? 'hands' : 'none'),
   );
 
-  return { ok: true, output, grade, recipeId: recipe.getRecipeId() };
+  return { ok: true, output, grade, recipeId: recipe.getRecipeId(), learned };
 }
 
 /**

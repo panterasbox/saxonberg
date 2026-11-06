@@ -255,12 +255,11 @@ suite('⭐⭐ the Hanging Wood — a place that is a stand', () => {
     /*
      * ⚠ FINDING (pre-existing, the metal chain's): the timber-set RECIPE
      * exists and this timber satisfies its slot (`wood`, ungraded reads
-     * fair — pinned in wood-vocabulary.test.ts), but no by-hand path
-     * mints a tangible recipe with no vessel and no anvil: `make timber
-     * set` answers *"work it by hand first"* and there is nothing to
-     * work it with. The mine has always BOUGHT its sets. So what is
-     * driven is the carry and the mine's own act; the set-from-timber is
-     * the sawing build's seam.
+     * fair — pinned in wood-vocabulary.test.ts), and it is `carve`-shaped
+     * (one wood slot, `cutting`, no heat), so `carve set` should make one —
+     * not driven here. (`make timber set` was the wrong verb: `make` only
+     * replayed scripts and is `do` now.) The mine has always BOUGHT its
+     * sets, so what is driven is the carry and the mine's own act.
      */
     await walk(f, ['south', 'south', 'southwest', 'south', 'south', 'south', 'west']);
     const here = await f.queryOne('here', ['displayName']);

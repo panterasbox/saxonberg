@@ -3,9 +3,9 @@
  *
  * The smithing one-shot: the earned shorthand over the same craft-resolve
  * the by-hand path performs. Maker = the giver (`makerMode: 'self'`);
- * **deed-gated** on the `RecipeKnowledge` can-make deed (the MakeController
- * gate — reading the recipe is a claim, only the first faithful hand build
- * earns the shorthand; `order` stays ungated). `with <metal>` steers the
+ * **deed-gated** on the `RecipeKnowledge` can-make deed (the shared
+ * `CraftController` gate — reading the recipe is a claim, only making it
+ * once earns the shorthand; `order` stays ungated). `with <metal>` steers the
  * stock pick exactly as the bar's `with <brand>`.
  *
  * ⚠⚠ **Cast iron is invisible to the gather, and that is correct** — its

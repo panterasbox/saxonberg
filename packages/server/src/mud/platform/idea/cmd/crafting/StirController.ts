@@ -51,7 +51,6 @@ export default class StirController extends ManualBuildController<StirModel> {
     if (vessel && MixinApi.isCompounding(vessel)) {
       const plan = await vessel.kneadPlanFor({
         actor: giver,
-        commandText: context.commandText,
         verb,
       });
       if (plan === null) {
@@ -91,14 +90,12 @@ export default class StirController extends ManualBuildController<StirModel> {
     }
 
     const built: Stuff & Builds = vessel;
-    const commandText = context.commandText;
     this.engageStep(context, {
       durationMs: this.paceMs(STIR_MS, vessel, ["shaker", "mixing-glass", "pot"]),
       effortW: 150,
       beginSelf: Mml.compose`You begin to ${verb} ${Mml.thing(vessel)}.`,
       onComplete: () => {
         built.setBuildMethod(method);
-        built.recordCommand(commandText);
         MessageApi.scene(giver)
           .topic(TOPIC)
           .toSelf(Mml.compose`You ${verb} ${Mml.thing(built)} well.`)

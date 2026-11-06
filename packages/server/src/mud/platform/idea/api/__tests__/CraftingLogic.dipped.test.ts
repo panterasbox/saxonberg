@@ -186,7 +186,7 @@ describe('one recipe, two feedstocks', () => {
 
     const result = await craftAs(chandler, {
       recipeRef: 'candle',
-      // ⭐ `make` is `'self'`: you are the one dipping it. The recipe is
+      // ⭐ The maker is `'self'`: you are the one dipping it. The recipe is
       // ungated (no discipline, no difficulty), which is what lets a
       // player with no trade make a candle at all.
       makerMode: 'self',
@@ -202,7 +202,7 @@ describe('one recipe, two feedstocks', () => {
 
     const result = await craftAs(chandler, {
       recipeRef: 'candle',
-      // ⭐ `make` is `'self'`: you are the one dipping it. The recipe is
+      // ⭐ The maker is `'self'`: you are the one dipping it. The recipe is
       // ungated (no discipline, no difficulty), which is what lets a
       // player with no trade make a candle at all.
       makerMode: 'self',
@@ -235,7 +235,7 @@ describe('one recipe, two feedstocks', () => {
 
     const result = await craftAs(chandler, {
       recipeRef: 'candle',
-      // ⭐ `make` is `'self'`: you are the one dipping it. The recipe is
+      // ⭐ The maker is `'self'`: you are the one dipping it. The recipe is
       // ungated (no discipline, no difficulty), which is what lets a
       // player with no trade make a candle at all.
       makerMode: 'self',

@@ -6,9 +6,8 @@
  * which reverse-matches it to a recipe and mints the formed, stamped good
  * — **consuming the workpiece** (its Material + mass flow onto the
  * output). An off-spec build still yields *a* thing (the generic worked
- * lump). The first faithful hand build mints the can-make deed +
- * transcribes the personal recipe-script (the StrainController capture
- * tail, verbatim).
+ * lump). The first making of a recipe mints the can-make deed
+ * (`CraftingLogic.recordCraftEvidence`), and the scene says so.
  *
  * ⭐⭐ **And on an UN-worked hot piece it is a heat treatment**, which is
  * what quenching actually is. Heat a bar and drop it in the tub without
@@ -41,7 +40,6 @@ import { Mml } from '@saxonberg/server/mud/api/mml';
 import { CraftingApi } from '@saxonberg/server/mud/api/crafting';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { ExecutionContextApi } from '@saxonberg/server/mud/api/execution-context';
-import { ScriptApi } from '@saxonberg/server/mud/api/script';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import type { Alloyed } from '@saxonberg/server/mud/lib/material/Alloyed';
@@ -137,11 +135,9 @@ export default class QuenchController extends ManualBuildController<QuenchModel>
     }
 
     const makerPath =
-      (ExecutionContextApi.getActingAuthor() as Stuff | null)?.getTemplatePath() ??
+      (ExecutionContextApi.getActingAuthor() as Stuff | null)?.getIdentityPath() ??
       '';
     const built: Stuff & Builds = workpiece;
-    const builder = giver;
-    const commandText = context.commandText;
 
     // The anvil paces the terminal quench too. Quench is deliberately
     // not GATED on an anvil — pacing must not add a gate; rate 1 absent.
@@ -153,8 +149,6 @@ export default class QuenchController extends ManualBuildController<QuenchModel>
       beginPeers: Mml.compose`${Mml.actor(giver)} quenches ${Mml.thing(workpiece)} in a burst of steam.`,
       onComplete: () => {
         void (async (): Promise<void> => {
-          built.recordCommand(commandText);
-          const sources = built.getCommandSources();
           const outcome = await CraftingApi.mintFromBuild({
             workpiece: built,
             contributions: [...built.getContributions()],
@@ -178,26 +172,18 @@ export default class QuenchController extends ManualBuildController<QuenchModel>
             .toPeers(Mml.compose`${Mml.actor(giver)} draws ${Mml.thing(output)} from the tub.`)
             .send();
 
-          // The knowledge ladder + demonstration capture — the first
-          // faithful hand build mints the deed + the personal script
-          // (StrainController's tail, the same act).
-          if (recipeId.length > 0 && sources.length > 0) {
+          // ⭐ The knowledge ladder: crafting itself records the first
+          // making (the can-make deed) and says so on the outcome — no
+          // script is written behind the player's back.
+          if (outcome.learned === true && recipeId.length > 0) {
             const view = await CraftingApi.lookupRecipe(recipeId);
             const name = view?.name ?? recipeId;
-            const path = await ScriptApi.captureManualBuild(
-              builder,
-              recipeId,
-              name,
-              sources,
-            );
-            if (path !== null) {
-              MessageApi.scene(giver)
-                .topic(TOPIC)
-                .toSelf(
-                  Mml.compose`You've worked out how to forge ${name} — the craft is yours now (try \`forge ${recipeId}\`).`,
-                )
-                .send();
-            }
+            MessageApi.scene(giver)
+              .topic(TOPIC)
+              .toSelf(
+                Mml.compose`You've worked out how to forge ${name} — the craft is yours now (try \`forge ${recipeId}\`).`,
+              )
+              .send();
           }
         })().catch((err: unknown) => {
           console.error('QuenchController: mint failed', err);

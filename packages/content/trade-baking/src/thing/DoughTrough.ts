@@ -90,7 +90,6 @@ export default class DoughTrough extends KneadVesselMixin(ManualBuildMixin(Vat))
     // Captured now — the mint runs later, at engaged-completion, where no
     // command frame exists.
     const makerPath = giver.getIdentityPath() ?? '';
-    const commandText = req.commandText;
     return {
       ok: true,
       durationMs: KNEAD_MS,
@@ -101,7 +100,6 @@ export default class DoughTrough extends KneadVesselMixin(ManualBuildMixin(Vat))
           // ⭐ The method word. An OPEN string on the build — nothing
           // switches on it, and that is what keeps `knead` a method.
           this.setBuildMethod('kneaded');
-          this.recordCommand(commandText);
           const outcome = await CraftingApi.mintFromBuild({
             vessel: this as unknown as Stuff,
             contributions: [...this.getContributions()],

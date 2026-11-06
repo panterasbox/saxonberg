@@ -2851,8 +2851,8 @@ ride the **instrument** that does the work: the pot confers
 `hammer`/`quench`/`forge`/`repair`/`salvage`, the whetstone `sharpen`,
 the furnace `heat`/`ignite`/`douse`/`pump`. The surface then follows
 capital wherever it physically sits (reachable heat + a pot IS a
-kitchen — no venue flag, no menu required), and a knowledge-driven verb
-with no instrument (`make`) is innate on `Avatar`. Patient-side marker
+kitchen — no venue flag, no menu required), and a verb with no
+instrument at all (`do`, the script runner) is innate on `Avatar`. Patient-side marker
 interfaces (`Cookable`, `Forgeable`) are the same mistake from the other
 side: eligibility is matter (Material tags + edibility) + instrument
 capabilities, and interfaces exist only for real state or behavior.

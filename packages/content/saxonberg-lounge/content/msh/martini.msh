@@ -1,10 +1,10 @@
 # Gin Martini — stirred, up.
 #
-# The base gin is the $brand parameter: `make martini with Crowsfoot`
-# pours that gin; bare `make martini` uses the house pour. This is the
-# same `def <name> ($brand) { … }` shape the demonstration-capture
-# Transcriber emits from a hand build — authored here by hand to show the
-# *authored-as-content* source (the second of the three authoring paths).
+# The base gin is the $brand parameter: `do martini with Crowsfoot`
+# pours that gin; bare `do martini` uses the house pour. A script is a
+# shortcut over the steps a player can type by hand, never a way to craft:
+# each step still meets its own verb's gates. Authored here by hand to
+# show the *authored-as-content* source (see scripting.md).
 def martini ($brand) {
   pour $brand into mixing glass
   pour vermouth into mixing glass

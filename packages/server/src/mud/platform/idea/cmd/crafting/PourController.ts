@@ -124,9 +124,6 @@ export default class PourController extends ManualBuildController<PourModel> {
       litres: servingL,
       mode: "lenient",
     });
-    // Captured for the demonstration-capture trail (empty for a scripted
-    // dispatch — only a hand-typed build accumulates a transcript).
-    const commandText = context.commandText;
 
     this.engageStep(context, {
       durationMs: this.paceMs(POUR_MS, vessel, ["shaker", "mixing-glass", "pot"]),
@@ -162,7 +159,6 @@ export default class PourController extends ManualBuildController<PourModel> {
           pathogenLoads,
           makeup: sourceMakeup,
         });
-        vessel.recordCommand(commandText);
         MessageApi.scene(giver)
           .topic(TOPIC)
           .toSelf(Mml.compose`You pour ${Mml.thing(bottle)} into ${Mml.thing(vessel)}.`)
@@ -189,7 +185,6 @@ export default class PourController extends ManualBuildController<PourModel> {
     const giver = context.commandGiver;
     const material = ingredient.getMaterial()!;
     const build = vessel;
-    const commandText = context.commandText;
     this.engageStep(context, {
       durationMs: this.paceMs(POUR_MS, vessel, ["shaker", "mixing-glass", "pot"]),
       effortW: 150,
@@ -218,7 +213,6 @@ export default class PourController extends ManualBuildController<PourModel> {
             ? ingredient.getMicrobialLoad()
             : 0,
         });
-        build.recordCommand(commandText);
         MessageApi.scene(giver)
           .topic(TOPIC)
           .toSelf(Mml.compose`You add ${Mml.thing(ingredient)} to ${Mml.thing(vessel)}.`)

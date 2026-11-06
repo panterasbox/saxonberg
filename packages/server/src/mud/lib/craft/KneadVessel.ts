@@ -28,8 +28,6 @@ const KNEADING = ['platform/cmd/crafting/knead.yaml'];
 export interface KneadRequest {
   /** Who is kneading. */
   actor: Stuff;
-  /** The command text, for a vessel that records it. */
-  commandText: string;
   /**
    * The word the act was asked by — `knead`, or `stir` for a slurry, a
    * powder or a liquid — for the vessel's narration. Absent = `knead`.

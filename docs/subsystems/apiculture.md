@@ -16,8 +16,9 @@ not own. Both of those are the subsystem's reason to exist.
 
 - **Pack:** `trade-apiculture`, root `/trade/apiculture`.
 - **Verbs it ships:** one — `rob`.
-- **Verbs it borrows:** `open`, `put`, `split`, `handle`, `ignite`, `make`,
-  `consign`. All the platform's or ranching's.
+- **Verbs it borrows:** `open`, `put`, `split`, `handle`, `ignite`,
+  `consign`. All the platform's or ranching's. (⚠ Not `make` — see § the
+  comb: the honey recipes have no verb yet.)
 - **Discipline:** `apiculture` (ISCED-F 0811).
 
 ## ⭐ What the taps build changed here (2026-10-01)
@@ -211,6 +212,15 @@ away and get the honey out of it afterwards, two ways.
 
 Neither is better. Which you want depends on what you are selling, and
 nothing in the code branches on the tool: two recipes over one input.
+
+⚠⚠ **No shipped verb reaches either recipe** (the scripting-decouple
+census, 2026-10-18). They were written for `make`, which was never a
+crafting verb: it replayed a player's script (now `do`, ungated and with
+no crafting meaning). The two rows also have identical slots, so a single
+verb that resolved by input could not tell them apart. Extraction needs
+its own act on the comb (a `press`/`spin` at the extractor); until then
+honey ends at the comb. Recorded in
+[script-runner-decouple-findings-slate](../slates/tails/script-runner-decouple-findings-slate.md).
 ⚠ The slot's `category` is a Material **tag**, so both name `honey` (what
 the comb is made of) and `kind: item` vs `kind: bulk` is what keeps a jar
 of honey out of a comb slot.
