@@ -1471,3 +1471,18 @@ loads back a body being unloaded. The hours a venue sits unwatched are still
 not paid: a venue nobody visits makes no sales either. **Walked after**: away
 a day → *"You're not on shift"*, nothing paid for the absence; three game hours
 worked, then logged out → **12 zorkmids** (3 h × 4).
+
+#### After the paper merge (2026-11-05)
+
+Merged master (paper) at cd5f6e5a3. `Sealable` composes: `canOpen` asks
+first, then `open()` breaks a seal. `lint:water-posture` caught paper's two
+new premises citing no water: the Gazette takes the city intake, and the
+paper mill takes `none` (its vat is filled from the race). Two follow-ons:
+
+- **A burst soaks what lies on the floor.** Paper made "paper fails wet" a
+  material rule (`Integrity`, `wetStrength`), and our burst pipe wetted
+  nothing. `PipeRun.leakOntoFloor` now soaks every loose, wettable,
+  non-agent thing in the room (`wet(1)`), whether or not the floor keeps a
+  bulk record. A letter goes to pulp; a towel is soaked through and stays.
+- **The ditch's records are documents**, by paper's rule — the turn book and
+  filed water rights, when built: `irrigation-slate.md` § 12.

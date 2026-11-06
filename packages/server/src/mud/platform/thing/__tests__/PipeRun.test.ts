@@ -17,6 +17,8 @@ import Material from '../../../lib/material/Material';
 import { StuffApi } from '../../../api/stuff';
 import { WorldClockApi } from '../../../api/worldclock';
 import { ContainmentApi } from '../../../api/containment';
+import { ScheduleApi } from '../../../api/schedule';
+import Good from '../../../lib/stuff/Good';
 import { Quantity } from '../../../lib/quantity';
 import { Piecewise } from '../../../lib/Trajectory';
 import '../../idea/WorldClockRegistry';
@@ -165,6 +167,38 @@ describe('⭐⭐ frost: lead bulges, iron cracks, and the thaw leaks', () => {
     r.reconcileFrost(now);
     expect(r.stateWords()).toBe('burst, and has run out across the floor');
     void spilled;
+  });
+
+  it('⭐ what lies on the floor is soaked — paper gives way, cloth does not (paper merge)', async () => {
+    vi.spyOn(ScheduleApi, 'schedule').mockImplementation(((_ms: number, fn: () => void) => {
+      fn();
+      return {} as never;
+    }) as typeof ScheduleApi.schedule);
+    const paper = mat('/stuff/idea/material/_pipe/paper', []);
+    paper.setWetStrength(0.1);
+    const linen = mat('/stuff/idea/material/_pipe/linen', []);
+    const r = run(lead);
+    const rm = room(frostNight);
+    ContainmentApi.move(r, rm);
+    vi.spyOn(rm as never, 'getFloor' as never).mockReturnValue(null as never);
+    const goodOf = (m: Material): Good => {
+      const g = makeStuff(() => {
+        const x = new Good();
+        x.setMaterial(m);
+        return x;
+      });
+      ContainmentApi.move(g as never, rm as never);
+      return g;
+    };
+    const letter = goodOf(paper);
+    const towel = goodOf(linen);
+    r.reconcileFrost(now);
+    now += 18 * 3600;
+    r.reconcileFrost(now);
+    await new Promise((res) => setTimeout(res, 0));
+    expect(letter.isDestroyed()).toBe(true);
+    expect(towel.isDestroyed()).toBe(false);
+    expect(towel.getWetnessBand()).toBe('soaked');
   });
 });
 

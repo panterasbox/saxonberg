@@ -244,6 +244,18 @@ export default class PipeRun extends PipeRunBase {
   private leakOntoFloor(room: Stuff): void {
     this.leaked = true;
     const floor = MixinApi.isAdornable(room) ? room.getFloor() : null;
+    // ⭐ What lies on the floor lies in the water, soaked through — and a
+    // thing whose material is weak wet gives way (paper: a letter on a
+    // flooded kitchen floor goes to pulp; `Integrity` decides, not this).
+    // The water runs out whether or not the floor keeps a record of it.
+    // Somebody standing in it steps out of it: agents are not soaked here.
+    if (MixinApi.isContainer(room)) {
+      for (const thing of room.getLooseContents()) {
+        if (thing === (this as unknown as Stuff) || thing === floor) continue;
+        if (thing.isAgent() || !MixinApi.isWet(thing)) continue;
+        thing.wet(1);
+      }
+    }
     if (floor === null) return;
     const slot = BulkableApi.slotFor(floor, undefined);
     const water = StuffApi.findByTemplatePath<Material>(WATER_PATH) ?? null;

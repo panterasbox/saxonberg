@@ -167,3 +167,26 @@ week the ditch rider closes the junior gates by name, and Avila's well starts to
 3. **The consumptive fraction** — per crop and method.
 4. **The turn** — as a schedule document the ditch boss authors, or a calendar entry.
 5. **Flood recession** — the freshet-following strategy, which needs no build.
+
+## 12. The ditch's records are documents (from the paper merge, 2026-11-05)
+
+Paper shipped the rule that settles where an irrigation district's
+records live: **an institution's records are documents; the book on the
+desk is their page** (`RegisterBook` reads a register's branch on every
+read — [paper.md](../../subsystems/paper.md); the harbor's berth book
+follows it too). So when these are built:
+
+- **The turn book** — the Ditch Company's turn list as the rider keeps it:
+  who took which turn, for how long, and what the rider shut in a dry year.
+  Today the turns are the company's roster slots (data) and each gate's own
+  work log (state). The company's record of them is a document under its
+  register, and a `RegisterBook` at the headgate is the page the rider
+  writes and a farmer reads.
+- **Water rights** (filed rights, the drive's step 17, deferred): the
+  appropriation record — priority date, amount, point of diversion — is a
+  document filed with whoever keeps the register (the polity, or the
+  company for its shares). A **certificate** a farmer holds is paper: a
+  frozen rung of that record, evidence of what was filed that day, and it
+  goes stale when the record changes.
+- ⚠ A person's own notes (a farmer's tally of their turns) are the other
+  half of the rule: handwriting on a leaf, with no document behind it.
