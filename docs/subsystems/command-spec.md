@@ -1622,13 +1622,13 @@ to inherit from). The shipped nouns:
 | `shelf` | `consign` · `reclaim` | a store's consignment shelf |
 | `rack` | `check` · `reclaim` | a house's check rack |
 | `store` | `deposit` · `withdraw` · `receipts` | the store book |
-| `title` *(W8)* | `transfer` · `subdivide` | the parcel registry |
+| `title` | `transfer` · `subdivide` · `buy` · `publish` · `offline` | the parcel registry |
 
 ⚠ The edges, decided: `buy` / `sell` / `order` / `rent` / `charter` are
 acts on a good; `pay` / `tip` / `collect` are acts with a recipient; a
 fee-paying act (`assay`, `pilot`, `embody`) is an act; the herd verbs are
 acts on animals. `lint:institution-verbs` counts the flat views that
-still write a book (title's two until W8).
+still write a book: none, and the gate holds it there.
 
 ⭐ **A subcommand word is scoped by its noun.** `reclaim` under `shelf`
 and under `rack` is one act over two books (`HeldGoodsControllerBase.

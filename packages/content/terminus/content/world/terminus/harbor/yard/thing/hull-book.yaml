@@ -9,7 +9,7 @@
 # ⭐ Priced at about a SEASON of a hand's wages (grain): the harbor
 # works pays 4 an hour, ~56 a fourteen-hour shift, and a season is ninety
 # days — ~5,040, set at 5,000. A ship is capital, bought in shares if one
-# purse will not reach (`transfer … shares`).
+# purse will not reach (`title transfer … shares`).
 class: /system/transport/thing/HullBook
 data:
   shortDescription: hull book

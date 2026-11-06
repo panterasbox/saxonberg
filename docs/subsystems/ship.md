@@ -260,10 +260,10 @@ consumer ([employment.md § The owners authority](./employment.md)).
 - `Ship.company()`, `managingOwner()` (a holder of **more than half** the
   units, else nobody), `shareHolders()`, and `refreshOwners()` (cached for
   the synchronous `answersFor`).
-- **`transfer <n> shares of <ship> from <holder> for <price>`** is run by
+- **`title transfer <n> shares of <ship> from <holder> for <price>`** is run by
   the **buyer**: the holder confirms, and `CapTable.sellUnits` claims the
   units, settles the money and gives the units back if the money fails.
-  **`transfer <n> shares of <ship> to <person>`** is the holder's gift
+  **`title transfer <n> shares of <ship> to <person>`** is the holder's gift
   (`giveUnits`). The verb finds her through the register kept by the
   government whose law runs where the act is done (a bill of sale is
   lodged under her flag), then `standUpCraft`, then `company()`, checked
@@ -547,7 +547,7 @@ file's header.
   `lib/stuff/Place.ts` (`structure`, `structureNow`, `craftHere`);
   `api/expanse.ts` (`standUpCraft`); `platform/idea/api/TestHarnessLogic.ts` (`stageShip`);
   controllers `cmd/work/CharterController`, `cmd/retail/RentController`,
-  `cmd/device/BailController`, `cmd/system/TransferController` (the shares
+  `cmd/device/BailController`, `cmd/civics/TitleTransferController` (the shares
   form), `cmd/system/TestHarnessController` (`ship`), the `course`/`anchor`
   helm gate, `cmd/perception/LocateController`.
 - Transport pack: `src/thing/{HullBook,Boat}.ts`; tests `HullBook.test`,

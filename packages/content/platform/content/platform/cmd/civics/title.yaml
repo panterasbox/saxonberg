@@ -1,5 +1,10 @@
 verbs: [title]
-controller: /platform/idea/cmd/civics/TitleController
+category: civics
+# ⭐ One controller per subcommand (controllers-are-io W8, D9: a transaction
+# with an institution's book is a subcommand of its noun). The plat-book half
+# — bare `title`, `list`, `buy` — is the residence pack's, whose classes it
+# reads; the parcel half stays the kernel's.
+controller: /system/residence/idea/cmd/civics/TitleHoldingsController
 description: "Ground you hold, and ground for sale"
 help: |
   Title is who holds a piece of ground. It is recorded by the city
@@ -28,6 +33,15 @@ help: |
   who took it down, and the authors of every room that pointed in are
   told their content just lost a destination.
 
+  `title subdivide <name>` carves a titled child parcel out of the parcel
+  you own here; `title transfer <parcel> to <player>` hands a title to
+  someone else, who must accept. Both are refused unless you hold the
+  ground, and the refusal is the authority's, not the verb's.
+
+  ⭐ A ship's title is sixty-four shares in her register, so her shares
+  change hands the same way: `title transfer 16 shares of gull from alice
+  for 40` buys them, `title transfer 8 shares of gull to bob` gives them.
+
 examples:
   - cmd: title
     note: What ground do I hold?
@@ -39,12 +53,26 @@ validators:
   - /lib/command/validators/requiresAnimate
 subcommands:
   list:
+    controller: /system/residence/idea/cmd/civics/TitleListController
     description: "The lots on offer here"
     help: |
       The plat book: unsold lots, their size and their zoning, with the
       price. Only the Registry keeps one, so this answers there and
       nowhere else.
+    args:
+      # ⭐ WHICH DESK, declared rather than hunted for (the `stake` shape):
+      # the venue is the desk, never a room constant. `requires:` carries
+      # the refusal phrase only; the kind is the controller's (a kernel
+      # requirement cannot name a pack class).
+      - name: desk
+        type: object
+        required: false
+        prepositions: [at]
+        default: "reachable:[class.DeedDesk]"
+        scope: ["here", "peers", "person"]
+        requires: [TangibleMixin]
   buy:
+    controller: /system/residence/idea/cmd/civics/TitleBuyController
     description: "Buy a lot outright"
     help: |
       Funds are checked, the money moves, and the Registry writes the
@@ -60,10 +88,18 @@ subcommands:
         type: string
         required: true
         greedy: true
+      - name: desk
+        type: object
+        required: false
+        prepositions: [at]
+        default: "reachable:[class.DeedDesk]"
+        scope: ["here", "peers", "person"]
+        requires: [TangibleMixin]
     examples:
       - cmd: title buy lot 2
         note: The whole transaction, in one act
   publish:
+    controller: /platform/idea/cmd/civics/TitlePublishController
     description: "Declare the content on ground you hold open"
     help: |
       Exits into the extent stop refusing. Use it when the place is
@@ -81,6 +117,7 @@ subcommands:
       - cmd: title publish /world/terminus/market
         note: Open it — exits into it stop refusing
   offline:
+    controller: /platform/idea/cmd/civics/TitleOfflineController
     description: "Take the content on ground you hold down"
     help: |
       Anyone standing inside is moved out to a marker naming the place
@@ -96,3 +133,87 @@ subcommands:
     examples:
       - cmd: title offline /world/terminus/market
         note: Take it dark — the people inside are moved out first
+  transfer:
+    controller: /platform/idea/cmd/civics/TitleTransferController
+    description: "Transfer a parcel's title, or a ship's shares, to another player (with their consent)"
+    help: |
+      Hand the title to a parcel you own to another player. Name the parcel by
+      its path, then `to` and the player. Because a title carries liability, the
+      recipient must accept — you can't push a title onto someone, so they have
+      to be online to say yes.
+
+      Title-only: no payment changes hands (selling is a later feature). The
+      handoff is recorded permanently in the chain-of-title log, so a parcel's
+      former owners stay on the record — a transfer is never a silent overwrite.
+
+      `--group <name>` transfers to a managed GROUP instead of a player — a
+      governance act (provisioning a studio cell, chartering shared space).
+      A group can't say yes, so there is no consent leg: your authority over
+      the parcel is the whole gate, and the chain-of-title records the act.
+
+      ⭐ **A ship's shares.** A ship's title is sixty-four shares in her
+      register. To BUY shares, name them, their holder and your price:
+      `title transfer 16 shares of gull from alice for 40` — Alice is asked,
+      and on her yes your money and her shares move together, or nothing
+      moves. To GIVE shares you hold, `title transfer 16 shares of gull to
+      bob` — Bob must accept. Only a holder's shares can change hands, and
+      the register shows every owner (`read register` at the harbor office).
+    examples:
+      - cmd: title transfer /world/lounge to alice
+        note: Offer the lounge title to Alice (she must accept)
+      - cmd: title transfer 16 shares of gull from alice for 40
+        note: Buy 16 of the Gull's shares from Alice for 40 — her yes moves the money and the shares together
+      - cmd: title transfer 8 shares of gull to bob
+        note: Give 8 of your shares in the Gull to Bob (he must accept)
+    args:
+      # ⭐ Greedy: a parcel is a path, but shares are a PHRASE (`16 shares of
+      # the gull`) — the prepositions below are what it stops at.
+      - name: parcel
+        type: string
+        required: true
+        greedy: true
+      - name: recipient
+        type: object
+        required: false
+        greedy: true
+        scope: "online"
+        prepositions: [to]
+        requires: class:Agent
+      # ⭐ Shares bought: whose shares — a holder, online, who is
+      # asked; and the price you pay them.
+      - name: holder
+        type: object
+        required: false
+        greedy: true
+        scope: "online"
+        prepositions: [from]
+        requires: class:Agent
+      - name: price
+        type: string
+        required: false
+        greedy: true
+        prepositions: [for]
+    options:
+      group:
+        type: string
+        description: "Transfer to a managed GROUP by name (a governance act — no consent leg; the governor's act is the acceptance)"
+  subdivide:
+    controller: /platform/idea/cmd/civics/TitleSubdivideController
+    description: "Carve a titled sub-parcel out of the parcel you own here"
+    help: |
+      Subdivide the parcel you're standing in, minting a titled child area you
+      own. Name the new area; it becomes a folder zone beneath the parent, with
+      a fresh title record in the parcels registry inheriting the parent's
+      owner. Only the parent parcel's owner may subdivide it.
+
+      Real-property title lives in the gated parcels registry, kept separate
+      from the content it gates — so subdividing changes ownership scope, never
+      the content itself. (Spatial carve-outs — owning a sub-region of a grid —
+      are a later addition; 0a mints folder-zone parcels.)
+    examples:
+      - cmd: title subdivide east-wing
+        note: Carve "east-wing" out of the parcel you own here
+    args:
+      - name: name
+        type: string
+        required: true

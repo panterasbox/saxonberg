@@ -1,5 +1,5 @@
 /**
- * SubdivideController / TransferController — the parcel-title verbs
+ * TitleSubdivideController / TitleTransferController — the parcel-title verbs
  * (property 0a). Driven as the dispatcher would (a real controller Stuff
  * whose `execute` runs), with the heavy substrate mocked: `ParcelApi`
  * (title store), `AccessApi.canMutateZone` (the owner gate), `TemplateApi`
@@ -11,8 +11,8 @@
 import "../../../../../../test-bootstrap";
 import { seedKernelContentStore } from '../../../../../../mud/lib/security/__tests__/test-setup';
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import SubdivideController from "../SubdivideController";
-import TransferController from "../TransferController";
+import TitleSubdivideController from "../TitleSubdivideController";
+import TitleTransferController from "../TitleTransferController";
 import Avatar from "../../../../agent/PrimaryAvatar";
 import { ParcelApi } from "../../../../../api/parcel";
 import { AccessApi } from "../../../../../api/access";
@@ -81,7 +81,7 @@ function rejectionReason(ctx: CommandContext): string | null {
 }
 
 async function runController(
-  controller: SubdivideController | TransferController,
+  controller: TitleSubdivideController | TitleTransferController,
   giver: Avatar,
   model: CommandModel,
   ctx: CommandContext,
@@ -94,7 +94,7 @@ async function runController(
 
 const LOUNGE_OWNER: ParcelOwner = { kind: "group", name: "lounge" };
 
-describe("SubdivideController", () => {
+describe("TitleSubdivideController", () => {
   beforeEach(() => {
     seedKernelContentStore();
   });
@@ -134,7 +134,7 @@ describe("SubdivideController", () => {
     const giver = makeAvatar("dave");
     const ctx = makeContext(giver, "subdivide");
     await runController(
-      makeStuff(() => new SubdivideController()),
+      makeStuff(() => new TitleSubdivideController()),
       giver,
       { name: "East Wing" } as CommandModel,
       ctx,
@@ -159,7 +159,7 @@ describe("SubdivideController", () => {
     const giver = makeAvatar("stranger");
     const ctx = makeContext(giver, "subdivide");
     await runController(
-      makeStuff(() => new SubdivideController()),
+      makeStuff(() => new TitleSubdivideController()),
       giver,
       { name: "East Wing" } as CommandModel,
       ctx,
@@ -175,7 +175,7 @@ describe("SubdivideController", () => {
     const giver = makeAvatar("dave");
     const ctx = makeContext(giver, "subdivide");
     await runController(
-      makeStuff(() => new SubdivideController()),
+      makeStuff(() => new TitleSubdivideController()),
       giver,
       {} as CommandModel,
       ctx,
@@ -184,7 +184,7 @@ describe("SubdivideController", () => {
   });
 });
 
-describe("TransferController", () => {
+describe("TitleTransferController", () => {
   beforeEach(() => {
     StuffApi.clearAll();
     vi.spyOn(ParcelApi, "coveringParcelOf").mockResolvedValue(
@@ -225,7 +225,7 @@ describe("TransferController", () => {
     const receiver = onlineReceiver("alice");
     const ctx = makeContext(giver, "transfer");
     await runController(
-      makeStuff(() => new TransferController()),
+      makeStuff(() => new TitleTransferController()),
       giver,
       recipientModel(receiver),
       ctx,
@@ -247,7 +247,7 @@ describe("TransferController", () => {
     const receiver = onlineReceiver("alice");
     const ctx = makeContext(giver, "transfer");
     await runController(
-      makeStuff(() => new TransferController()),
+      makeStuff(() => new TitleTransferController()),
       giver,
       recipientModel(receiver),
       ctx,
@@ -267,7 +267,7 @@ describe("TransferController", () => {
     const receiver = onlineReceiver("alice");
     const ctx = makeContext(giver, "transfer");
     await runController(
-      makeStuff(() => new TransferController()),
+      makeStuff(() => new TitleTransferController()),
       giver,
       recipientModel(receiver),
       ctx,

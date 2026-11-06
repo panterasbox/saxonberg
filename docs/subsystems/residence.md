@@ -393,9 +393,12 @@ somebody authored.
 
 ⭐ **The second-instance test still holds**: a new subdivision is a row
 naming its `parentExtent` — nothing else is written — and a second
-desk names its books — no code. ⚠ The kernel still meets the pack's
-classes by SHAPE (the `DeedDesk`/plat-book duck types in
-`TitleController.ts`), never by import.
+desk names its books — no code. ⭐ The `title` controllers that read a
+book (`TitleHoldingsController`, `TitleListController`, `TitleBuyController`
+over `TitleBookControllerBase`) are the pack's own, so they name `PlatBook`,
+`DeedDesk` and `PlatWarren` directly; the desk is a declared arg on the view
+(`at <desk>`, default `reachable:[class.DeedDesk]`). The kernel's duck types
+for these classes are gone (controllers-are-io W8).
 
 ⚠ Three test fixtures had to learn the roster exists, and every one of
 them failed **silently and empty** rather than loudly — which is the

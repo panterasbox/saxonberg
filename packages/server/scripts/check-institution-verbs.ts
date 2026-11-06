@@ -57,7 +57,7 @@ import {
   stripComments,
 } from "./pack-roots";
 
-export const INSTITUTION_VERBS_CEILING = 2; // W7: 11 → 2 — `house`, `job`, `shelf`, `rack` took nine; title's `transfer`/`subdivide` are W8's.
+export const INSTITUTION_VERBS_CEILING = 0; // W7: 11 → 2 (`house`, `job`, `shelf`, `rack`); W8: 2 → 0 (`title transfer`, `title subdivide`).
 
 /** Arg names that name a book. */
 const BOOK_ARGS = new Set(["book", "shelf", "rack", "organization", "registry", "register", "ledger"]);

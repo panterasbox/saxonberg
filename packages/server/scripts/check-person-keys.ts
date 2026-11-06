@@ -13,7 +13,7 @@
  * being owned by everybody: `StakeController` passed
  * `{ kind: 'player', templatePath: giver.getTemplatePath() }` into the
  * parcel register, while every kernel site writing that same field
- * (`TitleController`, `TransferController`, `ChattelLogic`,
+ * (`TitleBuyController`, `TitleTransferController`, `ChattelLogic`,
  * `EmploymentLogic`) passes an identity path. The field's meaning was
  * never in doubt; one pack simply never got the sweep.
  *

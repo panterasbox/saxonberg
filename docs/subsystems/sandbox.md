@@ -184,7 +184,7 @@ Audit notes that changed the provisional classification:
   the offline `tools/illustrate.ts` CLI; no circle path should reach it.
 - **`contacts`** has no collection — mixin state; it travels as a
   fork/merge slice (Decision Q), not through this table.
-- `subdivide` carries only `requiresAnimate` and writes both `domain`
+- `title subdivide` carries only `requiresAnimate` and writes both `domain`
   and `parcels` — the REFUSE row on `parcels` is what contains it
   in-circle.
 
@@ -655,7 +655,7 @@ name. `CircleAvatar` was considered and rejected for a subtler reason:
   ambient circle context, so the copy is circle-born. Player surface:
   the `clone` verb's instance-source branch (`--instance` forces the
   live seed, `--fresh` forces template-fresh, `--count <n>` caps at
-  20). Zero new verbs — `transfer --group` (the consent-leg collapse
+  20). Zero new verbs — `title transfer --group` (the consent-leg collapse
   for group recipients) and `eval --parcel` are the only other verb
   touches.
 - **Jurisdiction-targeted eval (Decision K)**: `eval [--parcel <path>]`
@@ -917,7 +917,7 @@ circle — symmetric rollback (the boundary binds host and guest alike),
 access-controlled by your parcel's grant surface (`revokeUse` exits a
 guest mid-visit, above). **The group cell** is a circle whose parcel is
 group-titled under `/studio/<groupId>` — provisioned by a governance
-act (`subdivide` + `transfer --group` over the group-owned `/studio`
+act (`title subdivide` + `title transfer --group` over the group-owned `/studio`
 parcel), never self-serve: personal space is a right (character
 creation is the grant), group space is a grant. This is where
 committee/team content stages before publication.

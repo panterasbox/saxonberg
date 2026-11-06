@@ -5088,8 +5088,8 @@ kernel sweep never reached: **every mining claim in the game was owned
 by every player.** `StakeController` passed
 `{ kind: 'player', templatePath: giver.getTemplatePath() }` into
 `ParcelApi.subdivide`, while every kernel site writing that same
-`ParcelOwner.templatePath` field — `TitleController`,
-`TransferController`, `ChattelLogic`, `EmploymentLogic` — passes an
+`ParcelOwner.templatePath` field — `TitleBuyController`,
+`TitleTransferController`, `ChattelLogic`, `EmploymentLogic` — passes an
 identity path. The field's meaning was never in doubt; one pack simply
 had not been swept. Invisible to the suite for the usual reason: the
 stake fixtures author distinct owner paths per avatar.

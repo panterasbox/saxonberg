@@ -1,6 +1,8 @@
 /**
- * TransferController — the `transfer <parcel> to <player>` verb (the
- * `system` category). Moves a parcel title to another player under
+ * TitleTransferController — `title transfer <parcel> to <player>` (the flat
+ * `transfer` verb until controllers-are-io W8 — the parcel registry's book
+ * is the title's, and a ship's title is shares in her register, so both
+ * forms stay one subcommand). Moves a parcel title to another player under
  * **bilateral consent** (the receiver must accept, because a title carries
  * liability).
  *
@@ -19,12 +21,12 @@
  * (`CapTableMixin`): the verb finds her in the register, the register
  * names her owning company, and the units move on THAT table.
  *
- *   - `transfer <n> shares of <ship> from <holder> for <price>` — run by
+ *   - `title transfer <n> shares of <ship> from <holder> for <price>` — run by
  *     the BUYER (the money primitive pays from the acting principal, so the
  *     buyer is the one who acts); the holder confirms on their own
  *     Interactive; on yes the table's one sale act moves the units and the
  *     money together, or neither (`CapTable.sellUnits`).
- *   - `transfer <n> shares of <ship> to <person>` — a GIFT by the holder:
+ *   - `title transfer <n> shares of <ship> to <person>` — a GIFT by the holder:
  *     title only, the receiver's consent, the parcel flow's shape.
  *
  * Under the table's `consent` term every other holder is asked too, and
@@ -38,8 +40,8 @@
  * entered under; nothing walks every register looking for her name.
  */
 
-import { CommandController } from "../../../../lib/command/CommandController";
-import type { CommandContext, CommandModel } from "../../../../api/command";
+import { TitleControllerBase, type TitleModel } from "./TitleControllerBase";
+import type { CommandContext } from "../../../../api/command";
 import type { MqlOneResult } from "../../../../api/mql";
 import { MessageApi } from "../../../../api/message";
 import { Mml } from "../../../../api/mml";
@@ -49,7 +51,6 @@ import { PlayerApi } from "../../../../api/player";
 import { PromptApi } from "../../../../api/prompt";
 import { MixinApi } from "../../../../api/mixin";
 import { StuffApi } from "../../../../api/stuff";
-import { Zone } from "../../../../lib/zone/Zone";
 import type { Stuff } from "../../../../lib/stuff/Stuff";
 import { GovernmentApi } from "../../../../api/government";
 import { BankingApi, Money } from "../../../../api/banking";
@@ -63,7 +64,7 @@ const TOPIC = "shell.result";
 /** `16 shares of the gull` — the register's form of the verb. */
 const SHARES_PHRASE = /^(\d+)\s+shares?\s+(?:of|in)\s+(.+)$/i;
 
-interface TransferModel extends CommandModel {
+interface TransferModel extends TitleModel {
   parcel?: string;
   recipient?: MqlOneResult | string;
   /** Shares bought: whose they are. */
@@ -74,7 +75,7 @@ interface TransferModel extends CommandModel {
   group?: string;
 }
 
-export default class TransferController extends CommandController<TransferModel> {
+export default class TitleTransferController extends TitleControllerBase<TransferModel> {
   async execute(model: TransferModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver as Stuff;
 
@@ -354,7 +355,7 @@ export default class TransferController extends CommandController<TransferModel>
       // ⚠ The company the register names is the title: a ship whose own
       // company is another is not to be traded through this entry.
       if (table !== null && table.getIdentityPath() !== entry.owner) {
-        console.warn(`TransferController: the ${entry.name}'s register names '${entry.owner}', her company is '${table.getIdentityPath()}'`);
+        console.warn(`TitleTransferController: the ${entry.name}'s register names '${entry.owner}', her company is '${table.getIdentityPath()}'`);
         return { entry, ship, table: null };
       }
       return { entry, ship, table };
@@ -379,29 +380,5 @@ export default class TransferController extends CommandController<TransferModel>
     } catch {
       // decoration
     }
-  }
-
-  /** Resolve a zone Stuff from its templatePath, or null. */
-  private async resolveZone(path: string): Promise<Zone | null> {
-    if (!path) return null;
-    try {
-      const z = await StuffApi.singleton<Stuff>(path);
-      return z instanceof Zone ? z : null;
-    } catch {
-      return null;
-    }
-  }
-
-  private send(context: CommandContext, body: Mml): void {
-    MessageApi.scene(context.commandGiver).topic(TOPIC).toSelf(body).send();
-  }
-
-  private fail(
-    context: CommandContext,
-    detail: string,
-    reason: string,
-  ): void {
-    this.send(context, Mml.fromMarkup(`\n${detail}\n`));
-    context.note({ kind: "controller-rejected", reason, detail });
   }
 }

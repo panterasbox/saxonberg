@@ -1,5 +1,5 @@
 /**
- * `transfer <n> shares of <ship> …` — ⭐ a ship's shares change hands with
+ * `title transfer <n> shares of <ship> …` — ⭐ a ship's shares change hands with
  * the money in ONE act, or not at all — on HER COMPANY'S
  * cap table: the register names her owning company, and the
  * units move there. Driven as the dispatcher would (a real controller
@@ -17,7 +17,7 @@
 
 import '../../../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import TransferController from '../TransferController';
+import TitleTransferController from '../TitleTransferController';
 import ShipRegister, { SHIP_ENTRY_KIND } from '../../../ShipRegister';
 import Ship from '../../../Ship';
 import PersistentBusiness from '../../../PersistentBusiness';
@@ -125,14 +125,14 @@ async function run(giver: Avatar, model: Record<string, unknown>): Promise<Comma
   const ctx = makeContext(giver);
   await withRootContext(null, 'transfer-shares.test', () => {
     ExecutionContextApi.tagActingAuthor(giver);
-    return makeStuff(() => new TransferController()).execute(model as unknown as CommandModel as never, ctx);
+    return makeStuff(() => new TitleTransferController()).execute(model as unknown as CommandModel as never, ctx);
   });
   return ctx;
 }
 
 const who = (s: Avatar, raw: string): MqlOneResult => ({ stuff: s as never, raw });
 
-describe('transfer … shares — money and shares together, or neither (harbors B2, review 1)', () => {
+describe('title transfer … shares — money and shares together, or neither (harbors B2, review 1)', () => {
   let reg: ShipRegister;
   let company: PersistentBusiness;
 

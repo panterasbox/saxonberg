@@ -463,7 +463,7 @@ async function idsHere(s: Session, kw: string): Promise<string[]> {
   return rows.map((r) => String((r as { stuffId?: unknown }).stuffId ?? '')).filter((x) => x !== '');
 }
 
-/** A player's own name, as others see it (what `give … to` and `transfer … from` bind). */
+/** A player's own name, as others see it (what `give … to` and `title transfer … from` bind). */
 async function nameOf(s: Session): Promise<string> {
   const me = await s.query('me', { fields: ['displayName'] });
   return String((me[0] as { displayName?: unknown } | undefined)?.displayName ?? '');
@@ -579,7 +579,7 @@ suite('B1 — owning a ship', () => {
     second = await session(SECOND, SHED);
     // ⭐ Strangers know each other by description only: a key handed and
     // shares sold name their party, so the two buyers meet first (run 3:
-    // `transfer … from <name>` bound nobody — they had never met).
+    // `title transfer … from <name>` bound nobody — they had never met).
     expectOk(await owner.cmd('introduce'));
     expectOk(await second.cmd('introduce'));
     ownerName = await nameOf(owner);
@@ -675,7 +675,7 @@ suite('B1 — owning a ship', () => {
   }, 600_000);
 
   it('13. (instant · player) 16 shares sold to the second player at a price both accept: the money and the shares move together; the register shows both owners', async () => {
-    const { r, said } = await withPrompts(second, `transfer 16 shares of ${NAME1} from "${ownerName}" for 400`, ['yes'], owner);
+    const { r, said } = await withPrompts(second, `title transfer 16 shares of ${NAME1} from "${ownerName}" for 400`, ['yes'], owner);
     expect(r.status, said).toBe('ok');
     expect(said, said).toMatch(new RegExp(`You buy 16 of the ${NAME1}'s shares from .* for [^.]*400`));
     // At the office: both owners on her company's table, beside her register entry.
@@ -686,7 +686,7 @@ suite('B1 — owning a ship', () => {
     expect(reg, reg).toMatch(new RegExp(`The ${NAME1} \\(smack\\)[^.]*48/64`));
     expect(reg, reg).toMatch(new RegExp(`The ${NAME1} \\(smack\\)[^.]*16/64`));
     // Nobody but a shareholder sells: the second player has no shares in hers to sell twice over.
-    const none = await withPrompts(owner, `transfer 16 shares of ${NAME2} from "${ownerName}" for 1`, []);
+    const none = await withPrompts(owner, `title transfer 16 shares of ${NAME2} from "${ownerName}" for 1`, []);
     expect(none.r.status, none.said).not.toBe('ok');
   }, 600_000);
 });

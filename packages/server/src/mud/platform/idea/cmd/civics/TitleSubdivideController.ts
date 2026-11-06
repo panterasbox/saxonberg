@@ -1,6 +1,7 @@
 /**
- * SubdivideController — the `subdivide <name>` verb (the `system`
- * category). Carves a titled child parcel out of the parcel governing the
+ * TitleSubdivideController — `title subdivide <name>` (the flat `subdivide`
+ * verb until controllers-are-io W8 — the parcel registry's book is the
+ * title's). Carves a titled child parcel out of the parcel governing the
  * giver's current location.
  *
  * Flow: resolve the giver's governing parcel (longest-prefix over parcel
@@ -16,24 +17,19 @@
  * event is derived from execution context inside the Api, never here.
  */
 
-import { CommandController } from "../../../../lib/command/CommandController";
-import type { CommandContext, CommandModel } from "../../../../api/command";
-import { MessageApi } from "../../../../api/message";
+import { TitleControllerBase, type TitleModel } from "./TitleControllerBase";
+import type { CommandContext } from "../../../../api/command";
 import { Mml } from "../../../../api/mml";
 import { AccessApi } from "../../../../api/access";
 import { ParcelApi } from "../../../../api/parcel";
-import { StuffApi } from "../../../../api/stuff";
 import { TemplateApi } from "../../../../api/template";
-import { Zone } from "../../../../lib/zone/Zone";
 import type { Stuff } from "../../../../lib/stuff/Stuff";
 
-const TOPIC = "shell.result";
-
-interface SubdivideModel extends CommandModel {
+interface SubdivideModel extends TitleModel {
   name?: string;
 }
 
-export default class SubdivideController extends CommandController<SubdivideModel> {
+export default class TitleSubdivideController extends TitleControllerBase<SubdivideModel> {
   async execute(
     model: SubdivideModel,
     context: CommandContext,
@@ -100,34 +96,10 @@ export default class SubdivideController extends CommandController<SubdivideMode
     );
   }
 
-  /** Resolve a zone Stuff from its templatePath, or null. */
-  private async resolveZone(path: string): Promise<Zone | null> {
-    if (!path) return null;
-    try {
-      const z = await StuffApi.singleton<Stuff>(path);
-      return z instanceof Zone ? z : null;
-    } catch {
-      return null;
-    }
-  }
-
   private slug(name: string): string {
     return name
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-+|-+$/g, "");
-  }
-
-  private send(context: CommandContext, body: Mml): void {
-    MessageApi.scene(context.commandGiver).topic(TOPIC).toSelf(body).send();
-  }
-
-  private fail(
-    context: CommandContext,
-    detail: string,
-    reason: string,
-  ): void {
-    this.send(context, Mml.fromMarkup(`\n${detail}\n`));
-    context.note({ kind: "controller-rejected", reason, detail });
   }
 }

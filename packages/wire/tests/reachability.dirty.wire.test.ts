@@ -456,13 +456,13 @@ suite('1–8. the verbs that shipped and could not be said', () => {
     // verb bound, reached its controller, and `AccessApi.can` said no —
     // which is the honest answer. `command-rejected` would mean the game
     // never heard the word.
-    // ⚠ `subdivide <name>` — ONE string arg, and it carves the parcel you
+    // ⚠ `title subdivide <name>` — ONE string arg, and it carves the parcel you
     // are STANDING IN. The drive's first two runs typed a path and an
     // `as` clause and earned `shape-fall-through`, which is the parser
     // saying the shape is wrong rather than the word being unknown. The
-    // view's own example is `subdivide east-wing`.
-    const onGroundNotHeld = await act(other, 'subdivide wire-slice');
-    expectUnderstood(onGroundNotHeld, 'subdivide');
+    // view's own example is `title subdivide east-wing`.
+    const onGroundNotHeld = await act(other, 'title subdivide wire-slice');
+    expectUnderstood(onGroundNotHeld, 'title subdivide');
     const notes = onGroundNotHeld.notes as Array<{ kind?: string }>;
     expect(
       notes.some(
@@ -472,8 +472,8 @@ suite('1–8. the verbs that shipped and could not be said', () => {
         'CONTROLLER on authority, not by the parser on grammar',
     ).toBe(true);
 
-    const xfer = await act(other, 'transfer wire-slice to nobody');
-    expectUnderstood(xfer, 'transfer');
+    const xfer = await act(other, 'title transfer wire-slice to nobody');
+    expectUnderstood(xfer, 'title transfer');
   }, 300_000);
 
   it('⛔⛔ 7. `swim` is STILL unknown — the water design owns how you get in', async () => {

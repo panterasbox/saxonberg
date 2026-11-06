@@ -15,7 +15,7 @@ data:
   # appoints her master (`kind: owners`) — an organization holder through
   # its own authority. Her register entry names this company as her owner;
   # `read register` at the harbor office shows the table beside it, and
-  # `transfer <n> shares of <her> …` moves its units.
+  # `title transfer <n> shares of <her> …` moves its units.
   appointingAuthority:
     kind: owners
   capTable:
