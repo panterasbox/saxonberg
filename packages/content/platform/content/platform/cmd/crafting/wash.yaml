@@ -1,4 +1,5 @@
 verbs: [wash]
+category: crafting
 controller: /platform/idea/cmd/crafting/WashController
 description: "Wash something at water — a glass, a shirt, a floor — or your own hands"
 help: |
@@ -92,4 +93,4 @@ args:
 options:
   hard:
     type: boolean
-    description: "Scrub it — three washes' worth with a brush, half that by hand
+    description: "Scrub it — three washes' worth with a brush, half that by hand"
