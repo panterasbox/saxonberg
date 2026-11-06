@@ -1098,7 +1098,7 @@ export class CommandLogic extends ApiLogic {
     if (subcommand) {
       const sub = command.getSubcommand(subcommand)!;
       const r = bindPositionals(positionals, sub.args ?? [], parsed, expand, expandDefault);
-      if ('error' in r) return r;
+      if (r.error !== undefined) return r;
       Object.assign(fields, r.bound);
       prep = r.prep;
     } else if (fallthroughActive) {
@@ -1136,7 +1136,7 @@ export class CommandLogic extends ApiLogic {
         expand,
         expandDefault
       );
-      if ('error' in r) return r;
+      if (r.error !== undefined) return r;
       Object.assign(fields, r.bound);
       prep = r.prep;
     } else if (command.hasSubcommands()) {
@@ -1152,7 +1152,7 @@ export class CommandLogic extends ApiLogic {
     } else {
       // Flat verb — single bind against the top-level args.
       const r = bindPositionals(positionals, command.args, parsed, expand, expandDefault);
-      if ('error' in r) return r;
+      if (r.error !== undefined) return r;
       Object.assign(fields, r.bound);
       prep = r.prep;
     }
@@ -2011,7 +2011,7 @@ export class CommandLogic extends ApiLogic {
       subcommand,
     );
     const validated = this.runValidators(resolved.resolved, context, preloads);
-    if ('result' in validated) return validated;
+    if (validated.result !== undefined) return validated;
     return resolved;
   }
 

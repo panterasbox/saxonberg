@@ -23,7 +23,7 @@ import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
-import type { Alias } from '../../../../lib/shell/Alias';
+import type { Alias, AliasEntry } from '../../../../lib/shell/Alias';
 
 type AliasHost = Stuff & Alias;
 
