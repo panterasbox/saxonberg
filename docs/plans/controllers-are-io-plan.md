@@ -1308,6 +1308,28 @@ Acceptance: `OnCall` composes on `Business` only and `MadeFrom` on
 shape in the table converted or demoted; `help dip` lists who answers.
 Commit.
 
+✅ **W3a done** (`c5ecf5889` files, `1e5cd95dc` splits, `294b7af70`
+markers/dead names, `6d9ac965f` protocols, `6dfd02011`). mixin-files
+12 → 0; mixin-clusters 44 → 40; duck-typing → 560, undefined-name
+probes 7 → 0 (deleted `onConnectionDetached`/`onLinkRestored`/
+`getVentilated`; wired `setHandling` — a swarm takes its colony's
+temperament; retired loose grazing in Tract/Field, which read a method
+no animal defines). Decided: `LiftSourceMixin` hosts are Well,
+BilgeWell, Wellhead, Boat (Pumping CONSUMES the lift protocol);
+`PumpableMixin` composes at Pump's class, not inside `PumpingMixin`'s
+factory (nesting collapsed ElectricPump to `never`); `pump.yaml`
+requires `PumpableMixin|PumpSourceMixin` (one slot); Staged's minting
+walk became `Template._stageEntries`. ⚠ Not done — handed on:
+Powered/WaterPowered/NameTaking → W3b (Sawmill's `isPowered()` means
+"runs on water", Conduit has no `generationW`); Diggable/CutPlanner
+demotions and `cut.yaml`'s `any` → W4 (a kernel verb cannot name a pack
+mixin/class); `tap`/`teleport` stay `any` with reasons; TitleController's
+PlatBook/DeedDesk probe (pack classes) → W8; Ore's `getGrade` is a metal
+fraction, not a quality band — stays a finding; DraftController's
+herdbook probe stays a finding (the book should be a declared arg).
+Lesson: a kernel controller cannot narrow on a pack class — the fix is
+moving the verb into its pack, not a predicate.
+
 ### W4 — the outcome convention, the cuts, `boil`, `scrub`, `affords`
 
 Goal: one shape, words on the controller; the seven cut verbs through
