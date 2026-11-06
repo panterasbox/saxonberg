@@ -1383,6 +1383,36 @@ disinfected by the pot's own reconcile; `wash floor --hard` scrubs;
 the cut wire steps (ceramics/forestry/carcass-chain) unchanged in
 outcome. Commit.
 
+✅ **W4 done** (`70254af27`…`cc452edd4`, ten commits; `369f38645` fixes
+a `wash.yaml` that shipped unloadable, `eaab3ffa5` holds docs/tests and
+`f9bfcd34d` the affords code). `grep "line: Mml"` empty on Act types.
+Cuts plan themselves on Bole, Billet, Corpse, Sheet, IceSheet, Rope,
+SugarLoaf. `boil` and `scrub` are gone: a bandage in a pot on the boil
+is disinfected by the pot's reconcile (at the boil only);
+`holdAtHeatFor(K, bath)` — entry time on the occupant, set by new
+`ThermalMixin.onContainableAdded/Removed`. Decided: `ActPlan<B,F,X>`
+gains `facts: B` for the begin words; ⭐ **word methods are static** —
+`onDone`/`onRefused` run after the controller is destructed, so Carve,
+Paint, Dip, Shape, Knead, Stir, Hammer would have gone silent at
+completion and no test could see it (the dispatcher is skipped);
+`lint:completion-this` now reads them. `CutPlanner` stays a protocol
+(`CutPlannerMixin`): a kernel verb reaching a pack tool needs a
+kernel-declared shape. `cut.yaml`/`dig.yaml` stay `any` (cloth composes
+no `CuttableMixin`; `dig clay` binds a raw word). The nurse brain drops
+a dressing into a pot on the boil and waits; with none she dresses with
+what she has (she used to retry `boil` forever). `affords` opted in
+only by `wind`, `adjust`, `blow` (refusal *You can't wind the rock.*);
+the other nine are readings in the slate. ⚠ **For the owner's eye:**
+reason unions are closed in the KERNEL protocol file even for pack
+hosts (the plan's text), so a new reason on a kernel verb is a kernel
+edit and ice/glass sentences live in kernel controllers — awkward
+beside "a second cuttable needs no kernel edit". Not converted:
+Rope's `tie`/`untie`, `SugarLoaf.clay`, `LiftSource`'s bucket, retail/
+Reading/SocialLogic `line:` shapes; Mould/Gather keep a mid-act scene,
+Ship/Rope scenes to other parties. Finding: 11 classes compose
+`SwitchableMixin`, 3 name the view. Ceilings: decisions → 1284,
+durations → 107, functions → 252, mutations → 343.
+
 ### W5 — the kernel acts onto their objects
 
 Goal: drive 6, 10–16. Decisions: D5, D10, D11, D12.
