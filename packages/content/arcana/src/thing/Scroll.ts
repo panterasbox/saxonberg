@@ -58,8 +58,8 @@ export default class Scroll extends ScrollBase {
   /** ⭐ What the kind affords: the class's own, beside `MarkedMixin`'s `read`. */
   static commandContributions: CommandContributions = {
     self: [],
-    inventory: ['system/arcana/cmd/magic/recite.yaml'],
+    inventory: [],
     peers: ['system/arcana/cmd/magic/recite.yaml'],
-    environment: [],
+    environment: ['system/arcana/cmd/magic/recite.yaml'],
   };
 }

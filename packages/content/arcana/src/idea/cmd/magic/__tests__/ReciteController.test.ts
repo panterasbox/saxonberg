@@ -58,6 +58,17 @@ function scroll(): Scroll {
   return s;
 }
 
+describe('who a scroll offers `recite` to', () => {
+  // ⚠ `inventory` flows IN to a container's occupants, so a scroll naming only
+  // that bucket offered the verb to nobody holding it: `recite` answered
+  // *I don't understand* for the life of the verb (the drive, step 15).
+  it('⭐ the hand that holds it (environment) and whoever stands beside it (peers)', () => {
+    const view = 'system/arcana/cmd/magic/recite.yaml';
+    expect(Scroll.commandContributions.environment).toContain(view);
+    expect(Scroll.commandContributions.peers).toContain(view);
+  });
+});
+
 describe('recite', () => {
   it('⭐ fires the working, says it, and spends the scroll', async () => {
     const s = scroll();
