@@ -1,5 +1,5 @@
 /**
- * CarveController — `carve <part> [on <target>] [from <stock>] [with <edge>]`.
+ * CarveController — `carve <part> [on <target>] [from <stock>] [--with <edge>] [--of <thing>] [--for <metal>]`.
  *
  * ⭐⭐ **Promoted to the platform (ceramics D14), and dumb.** `carve` is one
  * act — cutting away to a form with an edge — and two things can be carved:
@@ -70,10 +70,10 @@ interface CarveModel extends CommandModel {
   stock?: MqlOneResult;
   /** The edge the view's default bound, or the one named `with`. */
   knife?: MqlOneResult;
-  /** ⭐ What a pattern is carved OF (`carve pattern of sword`). */
+  /** ⭐ What a pattern is carved OF (`--of sword`). */
   of?: MqlOneResult;
-  /** The metal a pattern is cut FOR, a word (`… for bronze`). */
-  for?: MqlOneResult;
+  /** The metal a pattern is cut FOR, a word (`--for bronze`). */
+  for?: string;
 }
 
 export default class CarveController extends ManualBuildController<CarveModel> {
@@ -107,7 +107,7 @@ export default class CarveController extends ManualBuildController<CarveModel> {
         word,
         knife: model.knife?.stuff ?? null,
         ...(model.of ? { of: model.of.stuff ?? null } : {}),
-        forWord: (model.for?.raw ?? '').trim().toLowerCase(),
+        forWord: (model.for ?? '').trim().toLowerCase(),
       });
       if (plan !== null) {
         if (!plan.ok) {
@@ -185,7 +185,7 @@ export default class CarveController extends ManualBuildController<CarveModel> {
       return;
     }
 
-    // `carve peg on board` and `carve peg from board` are one carving.
+    // A named target that plans nothing is still what they named.
     const stock = model.stock?.stuff ?? target;
 
     const outcome = await CraftingApi.craft({

@@ -5,7 +5,7 @@ description: "Cut away to a form with an edge — a part from wood, a foot on a 
 help: |
   `carve haft` shapes a pick haft out of the best piece of wood in reach
   that will do. `carve peg from the blank` names the piece. `carve handle
-  with the billhook` names the edge.
+  --with billhook` names the edge.
 
   ⭐ What you can carve is every part that is one piece of wood and an
   edge: a haft, a handle, a peg, a dowel, a leg, a rail, a mallet. Say
@@ -28,7 +28,7 @@ help: |
   cuts one in. Too soft and it smears; bone-dry and it cracks. The pot
   says which.
 
-  ⭐ **A founder's pattern** — `carve pattern of sword from board for
+  ⭐ **A founder's pattern** — `carve pattern from board --of sword --for
   bronze` cuts a wooden copy of the sword a shade OVERSIZE, by exactly
   what bronze shrinks as it cools, so a cast from it comes out true. Cut
   it from SEASONED wood: green wood shrinks as it dries, and a pattern
@@ -40,11 +40,11 @@ examples:
     note: Shape a pick haft from wood in reach
   - cmd: carve peg from the blank
     note: Name the piece to carve it from
-  - cmd: carve handle with the billhook
+  - cmd: carve handle --with billhook
     note: Name the edge
   - cmd: carve foot on mug
     note: Turn a foot on a leather-hard pot
-  - cmd: carve pattern of sword from board for bronze
+  - cmd: carve pattern from board --of sword --for bronze
     note: Cut a founder's pattern, oversize for bronze's shrink
   - cmd: carve riser on flask
     note: Cut a riser into a rammed sand mould
@@ -66,24 +66,14 @@ args:
     scope: ["reachable"]
     requires: any
   # ⭐ WHAT TO CARVE IT ON — a thing that plans its own carving (a
-  # leather-hard pot). `requires: any`: the controller asks it to plan.
+  # leather-hard pot, a sand mould, a board's pattern).
   - name: target
     type: object
     required: false
     greedy: true
     prepositions: [on, into]
     scope: ["reachable"]
-    requires: any
-  # ⭐ (ceramics D23) WHAT A PATTERN IS OF — `carve pattern of sword from
-  # board`: the board plans a pattern of the sword's shape. `requires: any`
-  # — anything with a shape can be copied.
-  - name: of
-    type: object
-    required: false
-    greedy: true
-    prepositions: [of]
-    scope: ["reachable"]
-    requires: any
+    requires: CarvableMixin
   # The piece to carve it from, when you want a particular one.
   - name: stock
     type: object
@@ -92,26 +82,25 @@ args:
     prepositions: [from, out]
     scope: ["reachable"]
     requires: TangibleMixin
-  # ⭐ `for` is declared AFTER `stock`: a greedy arg stops only at a LATER
-  # declared preposition, so with `for` first, `carve pattern of sword
-  # from board for pewter` (the documented order) bound `stock` = "board
-  # for pewter", `for` came up empty, and the pattern was cut for steel
-  # (the ceramics drive, run 23).
-  # …and the METAL it is cut for — a word, read off `raw` (`for bronze`):
-  # the pattern is cut oversize by that metal's shrinkage, so it casts true.
-  - name: for
-    type: object
-    required: false
-    greedy: true
-    prepositions: [for]
-    scope: ["reachable"]
-    requires: any
+options:
   # ⭐ WHICH EDGE — declared, not hunted for (`lint:controller-resolution`).
-  - name: knife
+  with:
     type: object
-    required: false
-    greedy: true
-    prepositions: [with, using]
+    field: knife
     default: "reachable:[capability.cutting]"
     scope: ["reachable"]
     requires: [ToolMixin]
+    description: "The edge to carve with"
+  # ⭐ (ceramics D23) WHAT A PATTERN IS OF — `--of sword`: the board plans a
+  # pattern of the sword's shape. `requires: any` — anything with a shape can
+  # be copied.
+  of:
+    type: object
+    scope: ["reachable"]
+    requires: any
+    description: "What a pattern is a copy of"
+  # …and the METAL it is cut for — a word (`--for bronze`): the pattern is cut
+  # oversize by that metal's shrinkage, so it casts true.
+  for:
+    type: string
+    description: "The metal a pattern is cut for"

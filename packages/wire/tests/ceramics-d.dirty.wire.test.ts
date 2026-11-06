@@ -1023,7 +1023,7 @@ suite('⭐⭐ 34 — patterns and bells', () => {
     for (const x of ['coal', 'ingot', 'crystals']) await caster.cmd(`drop ${x}`);
     await caster.drainProse();
     await doing(caster, 'get board');
-    const carved = await act(caster, 'carve pattern of sword from board for pewter', '1 hour');
+    const carved = await act(caster, 'carve pattern from board --of sword --for pewter', '1 hour');
     // STATE: the opening line scribes; the pattern is read off the board.
     expect(carved, `carve pattern: ${carved}`).toMatch(/pattern|shavings|scribe|carve/i);
     expect(await examine(caster, 'pattern'), 'the pattern').toMatch(/pattern of an arming sword/i);

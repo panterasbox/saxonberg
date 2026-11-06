@@ -32,7 +32,7 @@ export interface CarveRequest {
   /** The edge the binder bound, or `null`. */
   knife: Stuff | null;
   /**
-   * ⭐ What the carving is OF (ceramics D23): `carve pattern of sword` — the
+   * ⭐ What the carving is OF (ceramics D23): `carve pattern --of sword` — the
    * thing a pattern copies the shape of. Absent for every other carving.
    */
   of?: Stuff | null;

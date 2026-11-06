@@ -68,7 +68,7 @@ const CARVINGS: Readonly<Record<string, { line: string; keep: number }>> = {
   foot: { line: 'a turned foot', keep: 0.95 },
   trim: { line: 'a trimmed wall', keep: 0.95 },
   // ⭐ `design`, not `pattern`: a pattern is the founder's shape to cast from
-  // (`carve pattern of <thing> from <board>`) — one word, one thing.
+  // (`carve pattern from <board> --of <thing>`) — one word, one thing.
   design: { line: 'a design cut into it', keep: 0.98 },
 };
 

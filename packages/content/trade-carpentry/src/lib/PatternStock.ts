@@ -1,6 +1,6 @@
 /**
  * PatternStockMixin — ⭐ wood a founder's pattern can be carved from
- * (ceramics D23). `carve pattern of <thing> from <board> [for <metal>]`:
+ * (ceramics D23). `carve pattern from <board> --of <thing> [--for <metal>]`:
  * the STOCK plans the carving — the controller is dumb — and what comes out
  * is a {@link Pattern} carrying the thing's impression cut OVERSIZE by the
  * metal's own shrinkage, so a cast from it shrinks back to true.
