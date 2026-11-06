@@ -1,5 +1,9 @@
 verbs: [fight]
-controller: /platform/idea/cmd/combat/FightController
+# ⭐ One controller per subcommand (controllers-are-io D9). Bare `fight`
+# reads the fight, so the verb-level controller is the status read's; the
+# gambit words are ONE act (`FightGambitController` queues the word); and
+# `fight defend` is `defend`'s own controller — the same act.
+controller: /platform/idea/cmd/combat/FightStatusController
 description: "Act inside a fight — read it, throw a gambit, talk it down, or yield"
 help: |
   `fight` is your handle on a fight already under way (start one with
@@ -35,32 +39,46 @@ examples:
     note: Concede the fight
 subcommands:
   status:
+    controller: /platform/idea/cmd/combat/FightStatusController
     description: "Read your current fight (same as bare `fight`)"
   strike:
+    controller: /platform/idea/cmd/combat/FightGambitController
     description: "Gambit — press the attack"
   feint:
+    controller: /platform/idea/cmd/combat/FightGambitController
     description: "Gambit — bait a patient defender into cracking their guard"
   close:
+    controller: /platform/idea/cmd/combat/FightGambitController
     description: "Step inside a longer weapon's reach (an alias for `advance`)"
   advance:
+    controller: /platform/idea/cmd/combat/FightGambitController
     description: "Buy one band of distance, inward — contested by a composed reach-holder"
   withdraw:
+    controller: /platform/idea/cmd/combat/FightGambitController
     description: "Open one band of distance from ONE threat; the room caps how far"
   disarm:
+    controller: /platform/idea/cmd/combat/FightGambitController
     description: "Gambit — knock your opponent's weapon away"
   subdue:
+    controller: /platform/idea/cmd/combat/FightGambitController
     description: "Gambit — lock your opponent up"
   shove:
+    controller: /platform/idea/cmd/combat/FightGambitController
     description: "Gambit — put your opponent on the ground"
   bash:
+    controller: /platform/idea/cmd/combat/FightGambitController
     description: "Gambit — slam a wielded shield to stagger a foe (shield only)"
   sweep:
+    controller: /platform/idea/cmd/combat/FightGambitController
     description: "Gambit — a hafted weapon's low sweep that takes the legs (hafted only)"
   entangle:
+    controller: /platform/idea/cmd/combat/FightGambitController
     description: "Gambit — wrap a whip's lash around a foe to bind them up (whip only)"
   defend:
-    description: "Cover up and recover poise instead of attacking"
+    controller: /platform/idea/cmd/combat/DefendController
+    description: "Cover up and recover poise instead of attacking (the same act as bare `defend`)"
   break:
+    controller: /platform/idea/cmd/combat/FightBreakController
     description: "Offer a mutual stand-down — end the fight with no victor"
     help: |
       `fight break` is how you back down without losing. You cover up and
@@ -72,6 +90,7 @@ subcommands:
       - cmd: fight break
         note: Offer to end the fight then and there
   rush:
+    controller: /platform/idea/cmd/combat/FightRushController
     description: "Throw a foe you've locked up out through an exit (subdue first)"
     help: |
       The bum's rush: once you've `subdue`d a foe (locked them up), `fight
@@ -86,6 +105,7 @@ subcommands:
         type: string
         required: true
   switch:
+    controller: /platform/idea/cmd/combat/FightSwitchController
     description: "Switch to a carried weapon — a vulnerable beat (guard down, can't strike)"
     help: |
       Change armament mid-fight. For a few beats your hands are full and
@@ -100,8 +120,9 @@ subcommands:
         type: object
         required: true
         scope: ["inventory", "reachable"]
-        requires: VitalsMixin
+        requires: WieldableMixin
   draw:
+    controller: /platform/idea/cmd/combat/FightDrawController
     description: "Draw a sidearm fast — the answer to being disarmed"
     help: |
       Draw a sheathed sidearm (or a carried backup) in a single fast beat.
@@ -111,6 +132,7 @@ subcommands:
       - cmd: fight draw
         note: Fast-draw a backup after being disarmed
   finish:
+    controller: /platform/idea/cmd/combat/FightFinishController
     description: "Give the word — order a held killing stroke delivered (captain-only)"
     help: |
       Under a formation that reserves the kill decision for the captain
@@ -118,6 +140,7 @@ subcommands:
       the captain gives the word. `fight finish` is that word. Withhold it
       and the moment passes — the fallen is spared.
   yield:
+    controller: /platform/idea/cmd/combat/FightYieldController
     description: "Concede the fight"
 validators:
   - /lib/command/validators/requiresEmbodied
