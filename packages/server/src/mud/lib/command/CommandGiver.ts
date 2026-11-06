@@ -173,6 +173,11 @@ function isAssembled(r: AssembleResult): r is AssembleSuccess {
   return !('error' in r);
 }
 
+/** Do two assembled lines say the same thing, slot for slot? */
+function sameBinding(a: CommandModel, b: CommandModel): boolean {
+  return JSON.stringify(a) === JSON.stringify(b);
+}
+
 /** True when `thing` sits (at any depth) inside `holder`. */
 function isWithin(thing: Stuff, holder: Stuff): boolean {
   let at: Stuff | null = MixinApi.isContainable(thing) ? thing.getContainer() : null;
@@ -1549,6 +1554,17 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         { scopeSource: a.source },
       );
       if (!isAssembled(built)) return false;
+      // ⭐ Another source of the SAME view whose line binds exactly as the
+      // refused one did is the same act on the same things, not another
+      // offer: the typed word won its slot (D2 (c)), so `harvest #pot` has no
+      // second answer in the plant inside it.
+      if (a.command === settled.command) {
+        const plain = CommandApi.assemble(parsed, a.command, {
+          commandGiver: settled.commandGiver,
+          location: settled.location,
+        });
+        if (isAssembled(plain) && sameBinding(plain.model, built.model)) return false;
+      }
       // No `interactive`: a cardinality prompt refuses instead of asking.
       const probe = CommandApi.createCommandContext({
         commandGiver: settled.commandGiver,

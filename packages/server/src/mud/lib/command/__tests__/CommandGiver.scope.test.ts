@@ -247,6 +247,13 @@ describe('verb@source at the dispatcher', () => {
       expect(proved).toEqual([far]);
     });
 
+    it('⭐ a typed word that keeps its slot is no second offer (`harvest #pot`, the plant inside it)', async () => {
+      rejectWhen = (t) => t === near;
+      const ctx = await dispatch(`windish #${near.stuffId}`, [offer(near, wind), offer(far, wind)]);
+      expect(targetOf(runs[0]!)).toBe(near);
+      expect(ctx.getNotes().some((n) => n.kind === 'other-offer')).toBe(false);
+    });
+
     it('a line that succeeds offers nothing', async () => {
       const ctx = await dispatch('windish wheat', [offer(near, wind), offer(far, wind)]);
       expect(ctx.getNotes().some((n) => n.kind === 'other-offer')).toBe(false);
