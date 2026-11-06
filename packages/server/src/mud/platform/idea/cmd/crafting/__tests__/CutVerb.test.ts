@@ -17,12 +17,12 @@ import { ContainmentApi } from '../../../../../api/containment';
 import { MessageApi } from '../../../../../api/message';
 import {
   CuttableMixin,
-  CutPlannerMixin,
   type CutAnswer,
   type CutAnswerFor,
   type CutBegin,
   type CutRequest,
 } from '../../../../../lib/craft/Cuttable';
+import { CutPlannerMixin } from '../../../../../lib/craft/CutPlanner';
 import type { CommandContext } from '../../../../../api/command';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
 import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';

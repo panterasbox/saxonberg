@@ -33,8 +33,8 @@ import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
+import { CutPlannerMixin } from '@saxonberg/server/mud/lib/craft/CutPlanner';
 import {
-  CutPlannerMixin,
   type CutAnswerFor,
   type CutDone,
   type CutRefusal,
