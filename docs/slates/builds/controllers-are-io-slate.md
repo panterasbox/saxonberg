@@ -444,9 +444,9 @@ the work siblings hold stays out.
 | 2/5 | the `reel` undo: fishing's `reel` returns to its pre-silk shape, and silk gets its own `unwind` in sericulture, ending the sericulture → fishing dependency | command-taxonomy item 7 |
 | 4 | ⛔ OUT: the authoring verbs become subcommands of their trees. Wizard-axis holds them. | command-taxonomy item 8 |
 | 4 | ⭐ **`make` is NOT the script runner.** `fix/script-runner-decouple` (10-18, unmerged, 1,338 commits behind, smithy drive owed) moves it to the shell's `do`. This build redoes that work on master, using the branch as reference, and retires the branch. | that branch; pottery/brickmaking § forming |
-| 2 | `drive` vs `drift`: under one view, one word, mining's view is `drift` and the movement `drive` is conferred on vehicles. The collision count hides this pair today because the movement view is marked unreachable. | affordance-verb § drive vs drift |
+| 2 | `drive` vs `drift`: already split on master (`3e915f1d3`); what remains is the rename under one view, one word | affordance-verb § drive vs drift |
 | 2 | `shadowed-by:` on a shadowed view replaces the `KNOWN_COLLISIONS` list in the linter | affordance-verb § KNOWN_COLLISIONS carrier |
-| 2 | the capability-keyed affordance table: a tool's instance data confers its verb family, with no class static. This is the stated end state for instrument verbs. | affordances-tools-confer (owner, MR !153) |
+| 2 | ~~the capability-keyed affordance table~~ ⛔ **not built: it was built and then reversed twice** (`b7f48eea0` → `ff9fd938b` → `85c7d47c5`, *one record of verb affordances*). command-routing.md § *There is ONE record* forbids it. My recall of it as "the end state" was stale. | the planner's grounding |
 | 1 | bare verb shapes become protocol mixins (`Workable`, `Diggable`, `Splittable`, `Pumpable`, `Tappable`, `Cuttable`; about 18 `typeof x.method` controllers), each passing the earned test (more than one kind of host); a one-host protocol is a property of its host | verb-interfaces § Bare verb shapes, § 1 |
 | 1 | a protocol mixin is presented as the verb it serves (`_mixinKind = 'protocol'`; the card says *answers: turn · dip*; Studio; `help turn` lists who answers) | verb-interfaces § 2 |
 | 1 | `requires: affords`, probed against a dozen real verbs | verb-interfaces § Open |

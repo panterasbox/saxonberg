@@ -4,111 +4,220 @@ Executes [controllers-are-io-requirements.md](../requirements/controllers-are-io
 (kind **refactor/sweep**, lead end **kernel**; the first consumers are the
 kernel's own verbs named there). Seeding slate:
 [controllers-are-io-slate.md](../slates/builds/controllers-are-io-slate.md)
-(the doctrine, the 2026-11-05 scan, the decisions, the reuse ledger).
+(the doctrine, the 2026-11-05 scan, the decisions, the reuse ledger, and
+the 2026-11-06 plan-review decisions + the *folded in* table).
 
-What the build does, in one paragraph: it adds `verb@source` to the
-command line and a reply that names the other offer; it installs seven
-census-then-ratchet gates (one per link of the chain); it makes the act
-convention one shape with the words on the controller; it moves the
-rules, durations and state changes of `harvest`, `plant`, `put`, `order`,
-`treat`, `throw`, `read`, `tan` and `pour` onto their objects; it splits
-twelve switch controllers into per-subcommand controllers under the
-agreed noun rule and decides the fight pairs; and it splits the five
-dated mixins and mints the markers the duck-typing census earned.
+What the build does, in one paragraph: it fixes the shape of the whole
+command chain. Gates first (a schema gate for every view, then a census
+gate per link). Then `verb@source` and the reply that names the other
+offer; scripts that fail closed; `--strict`/`--loose`; where a verb
+looks first. Then the mixins: five dated splits onto honest hosts, every
+mixin in a file named for it, bare verb shapes become protocol mixins
+presented as the verbs they serve, the markers the duck census earned.
+Then one act convention with the words on the controller, and the
+kernel acts (`harvest`, `plant`, `put`, `order`, `treat`, `throw` in
+three shapes, `read`/`recite`, `tan`, `pour`) onto their objects. Then
+**one view, one word**: `do` replaces `make`, `reel` is fishing's and
+silk is `unwind`, `drift` is the miner's, 65 multi-word views keep one
+word and a handful of shortcuts become default player aliases, every
+view carries its `category:`. Then the subcommand rule as
+command-taxonomy wrote it — institution transactions under their noun —
+with the twelve switch controllers split per subcommand. The
+water-supply nouns last. **Breaking is accepted** (owner, 2026-11-06).
 
-Branch `reqs/controllers-are-io` (build-2), off master `4b20f2ce5`.
+Branch `reqs/controllers-are-io` (build-2), off master `4b20f2ce5`;
+⚠ the worktree at `b3cb1e3ee` is 20 commits behind `origin/master`
+(`6c0182abd`) — merge master before W0. Revised 2026-11-06 twice after
+the owner's plan review (requirements `11113877d`, `b3cb1e3ee`).
 
 ---
 
 ## Fault lines
 
 Every place this build cuts something in two or moves a boundary. One
-row per cut. Names marked *(grain)* are the plan's pick and the owner may
-rename them at review without re-planning.
+row per cut. *(grain)* marks a name the owner may change at review
+without re-planning.
 
-### Mixin splits (D6)
+### Mixin splits (D6) — each half on its honest hosts, no composite
 
-| old mixin (keeps its name as the composition) | new halves | who loses what |
+| old mixin | what stays under the old name | what is carved out | hosts after | who moves |
+|---|---|---|---|---|
+| `OrganizationMixin` (`lib/employment/Organization.ts`) | the chart: `positions`, `rosterSlots`, `appointingAuthority`, `proprietorPath`, `parentOrganization`, `startsShiftOnHire`, `name`, every roster/hire/shift method (incl. client-surface's `showShiftStatus`) | **`OnCallMixin`** (`lib/employment/OnCall.ts`): `call`, `getCall`/`setCall`/`callFor`, `_lastCalled`, `_callTicket`, the four private helpers | Organization: `platform/idea/Organization` + `Business`; OnCall: **`BusinessMixin` only** (all 37 authored `call:` rows are `class: /platform/idea/Business`) | `CraftingLogic.houseOf` (:373-380) narrows `isBusiness` not `isOrganization`; `:3835` already holds a Business |
+| `WaterPlaceMixin` (`lib/location/WaterPlace.ts`) | the water: `water`, `column`, `tide`, every level/band/medium/arrival method, descend/ascend | **`HaulOutMixin`** (`lib/location/HaulOut.ts`): `pullOut`, `loadNamed`, `deliverOut`, `isHelpless`, `pullerStation`, `PULL_OUT_REAL_S` | both on all seven water places (⚠ co-use split only — every host is honestly both) | `PullController` :49-56, `Line.ts:426` narrow `isHaulOut` |
+| `MetabolicMixin` (`lib/metabolism/Metabolic.ts`) | digestion: the seven persisted fields, every reconcile/ingest/toxin method, `vomit.yaml` | **`EatingMixin`** (`lib/metabolism/Eating.ts`): `eat`, `claimUtensil`, `leaveCrumbs`, `EatOutcome`, `eat.yaml` (typed over `Metabolic`; `eat` calls `this.canIngest`) | both on `Creature` only | `EatController` :42 narrows `isEating` |
+| `LoadBearingMixin` (`lib/encumbrance/LoadBearing.ts`, no fields) | the burden: `getBorneBurden`, `getCarryCapacity`, `getStrainCeiling`, `getLoadRatio`, `wouldExceedCeiling`, `subscribableFields` | **`BuoyantMixin`** (`lib/encumbrance/Buoyant.ts`): `getDisplacedVolumeM3`, `getNetBuoyancyN`, `NEUTRAL_DENSITY_KG_M3`, `G` (LoadBearing imports the constant) | both on `Creature` only | `Respiration.ts:1225`, `WaterPlace.ts:745` narrow `isBuoyant` |
+| `ChattelMixin` (`lib/chattel/Chattel.ts`) | the title: `_chattelId`, `_place`, stamp/transfer/owner/custody, `markupAugmenters`, `onDestruct`; `requires: [ChattelMixin]` and `FromMixin("ChattelMixin")` stay | **`MadeFromMixin`** (`lib/chattel/MadeFrom.ts`): `_madeFromOwner`, `_madeByProcess`, `recordMadeFrom`, `getMadeFromOwner`, `recordMadeBy`, `isMadeByProcess` | Chattel: `Good`, `Vessel`, `KeptAnimal`, `Livestock`; MadeFrom: **`Good`, `Vessel` only** | `api/stuff.ts:522-527`, `Mould.ts:1168-1170`, `ChattelLogic.derivedTitle` :307-311 (today un-narrowed — reached for animals) and `ownerOfInputs` :344-350 narrow `isMadeFrom` |
+
+The test (Slotted → Attired, `lib/slot/Attired.ts:10-23`, `slot.md:26-57`):
+who composes it, plus which imports leave with the carved half, beside
+co-use. The precedent kept `Slotted`'s name on the occupancy half and
+carved `Attired`; this plan does the same — the original idea keeps the
+name, the later-added idea leaves. No composite, no content change
+(`requires:` names only the title half, which keeps its name).
+
+### Mixin file moves (D7b) — one gate, twelve moves
+
+| factory | from | to |
 |---|---|---|
-| `OrganizationMixin` (`lib/employment/Organization.ts`) | `StaffedMixin` (the chart: `positions`, `rosterSlots`, `appointingAuthority`, `proprietorPath`, `parentOrganization`, `startsShiftOnHire`, `name`, every roster/hire/shift method incl. client-surface's `showShiftStatus`) + `OnCallMixin` (`call`, `getCall`/`setCall`/`callFor`, `_lastCalled`, `_callTicket`, the four private helpers) | nobody: `OrganizationMixin = OnCallMixin(StaffedMixin(Base))` keeps `_mixinName='OrganizationMixin'`, so `isOrganization`, `FromMixin('OrganizationMixin')` (EmploymentLogic :71,:83,:457,:672; Employed.ts:173) and all 37 authored `call:` rows stand |
-| `WaterPlaceMixin` (`lib/location/WaterPlace.ts`) | `WaterStateMixin` (`water`, `column`, `tide`, every level/band/medium/arrival method, the descend/ascend contributions) + `HaulOutMixin` (`pullOut`, `loadNamed`, `deliverOut`, `isHelpless`, `pullerStation`, `PULL_OUT_REAL_S`) | nobody: composite keeps the name; `isWaterPlace` keeps returning the composite type |
-| `MetabolicMixin` (`lib/metabolism/Metabolic.ts`) | `DigestingMixin` (all seven persisted fields, every reconcile/ingest/toxin method, `vomit.yaml`) + `EatingMixin` (`eat`, `claimUtensil`, `leaveCrumbs`, `EatOutcome`, `eat.yaml`; typed to compose over `Digesting` because `eat` calls `this.canIngest`) | nobody; `EatController` keeps calling `eat` |
-| `LoadBearingMixin` (`lib/encumbrance/LoadBearing.ts`, no fields) | `CarryingMixin` (`getBorneBurden`, `getCarryCapacity`, `getStrainCeiling`, `getLoadRatio`, `wouldExceedCeiling`, `subscribableFields`) + `BuoyantMixin` (`getDisplacedVolumeM3`, `getNetBuoyancyN`, `NEUTRAL_DENSITY_KG_M3`, `G`) | nobody; `Carrying` imports the density constant from `Buoyant.ts` for its in-water correction |
-| `ChattelMixin` (`lib/chattel/Chattel.ts`) | `ChattelTitleMixin` (`_chattelId`, `_place`, stamp/transfer/owner/custody, `markupAugmenters`, `onDestruct`) + `MadeFromMixin` (`_madeFromOwner`, `_madeByProcess`, `recordMadeFrom`, `getMadeFromOwner`, `recordMadeBy`, `isMadeByProcess`) | nobody; `requires: [ChattelMixin]` (consign.yaml:34, check.yaml:29) and `FromMixin("ChattelMixin")` (ChattelLogic:51) stand |
+| `HeldGoodsMixin`, `ConsignmentShelfMixin` | `lib/retail/Consignment.ts` | `lib/retail/HeldGoods.ts`, `lib/retail/ConsignmentShelf.ts` |
+| `SeatedDrivableMixin` | `lib/slot/Drivable.ts` | `lib/slot/SeatedDrivable.ts` (no production composer — `Coach.ts:13` declines it; the move is cheap, the deletion is a finding for the conveyance owner) |
+| `PropsMixin`, `CostumedMixin` | `lib/stuff/Staged.ts` | `lib/stuff/Props.ts`, `lib/stuff/Costumed.ts` |
+| `CutleryMixin` | `lib/bulk/Utensil.ts` | `lib/bulk/Cutlery.ts` |
+| `ToolMixin` (28 importers) | `lib/craft/Tooled.ts` | `lib/craft/Tool.ts` |
+| `DisguiseBearingMixin` | `lib/disguise/Disguise.ts` | `lib/disguise/DisguiseBearing.ts` |
+| `RegistrarMixin` | `lib/document/Register.ts` | `lib/document/Registrar.ts` |
+| `ReservedMixin` (62 importers) | `lib/reserve.ts` | `lib/reserve/Reserved.ts` (a subsystem folder) |
+| `LoungeMixin` | `world/lounge/LoungeMixin.ts` | `world/lounge/Lounge.ts` (the concrete class is `world/lounge/location/Lounge.ts`, another directory) |
+| `OpenWorkingMixin` | `trade-quarrying/src/lib/Working.ts` | `trade-quarrying/src/lib/OpenWorking.ts` |
+| `Throttleable` | fixed on `reqs/water-supply` | whichever merges second keeps one copy |
 
-### Controller splits (D9, D10)
+### Protocol conversions (D8) — bare shapes → protocol mixins, `_mixinKind = 'protocol'`
+
+| shape | hosts (kinds) | verdict | the view's `requires:` after |
+|---|---|---|---|
+| `Splittable` (`lib/ground/Workable.ts:187`) | Hive, dairy Wheel, quarry Block — 3 packs | **earned** → `SplittableMixin` | `split.yaml`: `SplittableMixin` (was `any`) |
+| `Pumpable` (`lib/pump/Pumpable.ts:108`) | `PumpingMixin`, `BurnerMixin`, diving `AirPump` — 3 | **earned** → `PumpableMixin` (a lamp's `no-bellows` refusal becomes the mixin's default) | `pump.yaml`: `PumpableMixin` |
+| `Cuttable` (`lib/craft/Cuttable.ts:45`) | Rope, SugarLoaf, IceSheet + the cuts sweep (Bole, Billet, Sheet, Corpse) | **earned** → `CuttableMixin` | `cut.yaml`: `CuttableMixin`; the seven cut controllers ask `cutPlan` |
+| `PumpSource` (bare; `pumpFitted`) | Well, BilgeWell, Wellhead, water Conduit — 4 | **earned** → `PumpSourceMixin` | `pump.yaml` source slot |
+| `LiftSource` (bare; Bail's four methods) | Well, BilgeWell, Wellhead, Boat, Pumping — 5 | **earned** → `LiftSourceMixin` | `bail.yaml` |
+| `TravelNode` (`lib/travel/TravelNode.ts:90`; no `isTravelNode`) | the tpa pack's nodes + the kernel's own fork | **earned** → `TravelNodeMixin` | `teleport.yaml` |
+| `Diggable` (`Workable.ts:171`) | `OpenWorkingMixin` only | **not earned** → a property of `OpenWorkingMixin`; `dig.yaml` requires `OpenWorkingMixin` | — |
+| `CutPlanner` (`Cuttable.ts:50`) | tailoring `CuttingTool` only | **not earned** → `CuttingTool`'s own method; `cut`'s tool slot requires `ToolMixin` + the `cutting` capability | — |
+| `Tappable` (`lib/husbandry/Tappable.ts:45`) | `ProducingMixin` only | **already covered** → the bare interface is deleted; `TapController.ts:63`'s `maxSpiles` probe becomes `instanceof SapStandard` | `tap.yaml`: `ProducingMixin` |
+| `Reelable` (fishing `src/lib/Reelable.ts`) | Cocoons only | **dies with the `reel` undo** | — |
+| `Workable` itself | the ground protocol (`dig`/`split`/`hew`); its `WorkPlan` vocabulary | kept; its `kind`/`prose`/`cost` plan vocabulary converges on `ActPlan` (D4) | — |
+
+Plus the eleven remaining target-narrowing `typeof` probes in
+controllers (§ Grounding → *typeof probes*), each replaced by the
+predicate the table names.
+
+### Controller splits (D10, D11)
 
 | old | new files (`platform/idea/cmd/<cat>/`) and view changes |
 |---|---|
-| `system/WikiController.ts` (1062 l, 17 arms) | `WikiControllerBase` + one controller per subcommand (`WikiReadController` … `WikiListController`); `wiki.yaml` gains `controller:` per subcommand; the fallthrough bare `wiki <page>` routes to `WikiReadController` |
+| `system/WikiController.ts` (1062 l, 17 arms) | `WikiControllerBase` + one controller per subcommand; `wiki.yaml` gains `controller:` per subcommand; the fallthrough bare `wiki <page>` routes to `WikiReadController` |
 | `social/PartyController.ts` (15 arms) | `PartyControllerBase` + 15 |
 | `social/ChatController.ts` (13) | `ChatControllerBase` + 12 + `ChatPostController` (the fallthrough post) |
-| `social/ForumController.ts` (11) | `ForumControllerBase` + 11 (bare `forum <board>` → `ForumViewController`) |
-| `author/PackController.ts` (8) | `PackControllerBase` + 7 (pin/unpin one controller with a flag → two) |
+| `social/ForumController.ts` (11) | `ForumControllerBase` + 11 (bare `forum <board>` → `ForumReadController`) |
+| `author/PackController.ts` (8) | `PackControllerBase` + 7 (pin/unpin → two) |
 | `social/GroupController.ts` (8) | `GroupControllerBase` + 8 |
 | `social/SoulController.ts` (8) | `SoulControllerBase` + 7 (disable/enable → two) |
-| `banking/BankController.ts` (8) — **last, W6** | per-subcommand over the existing `BankingControllerBase` |
-| `work/JobController.ts` (5) | `JobControllerBase` + 5; the board becomes a view arg with a default (it is self-resolved today, :92-98) |
-| `inventory/EquipController.ts` (`set`/`sets` + flat) | `EquipSetController`, `EquipSetsController`; the flat path stays `EquipController` |
-| `stream/TuneController.ts` (4 + bare) | `TuneControllerBase` + 4 + `TuneInController` (the bare form) |
-| `civics/TitleController.ts` (4) — **last, W6** | per-subcommand + `TitleControllerBase`; `subdivide`/`transfer` move under it |
-| `combat/FightController.ts` (19) | `FightGambitController` (the twelve gambit words are ONE act, `queueGambit(name)`) + `FightStatusController`, `FightBreakController`, `FightRushController`, `FightSwitchController`, `FightDrawController`, `FightFinishController`, `FightYieldController` |
-| `inventory/ThrowController.ts` (3 acts) | `TossController` (`toss <item> to <person>`), `ThrowController` (pitch: `throw <item>`), `HurlController` (`hurl <item> at <target>`, the consent gate) |
-| `perception/ReadController.ts` (read + cast) | `ReadController` (reads only) + `magic/ReciteController` (`recite <scroll>` casts) |
-| `trade-tanning` `TanController.ts` (lay-in + lift) | `TanController` lays in only; the lift becomes the hide's own rule on removal from the pit (`get hide from pit`, which the controller's docstring already promised) |
-| `bulk/PourController.ts` + `crafting/PourController.ts` | ONE `bulk/PourController.ts` over `PourTargetMixin`; `crafting/pour.yaml` retired; `KNOWN_COLLISIONS` drops `pour` |
+| `banking/BankController.ts` (8) — **W8, last** | per-subcommand over the existing `BankingControllerBase` |
+| `work/JobController.ts` (5 + the moved `apply`/`quit`/`fulfill`) | `JobControllerBase` + 8; the board becomes a subcommand arg with a default (self-resolved today, :92-98) |
+| `inventory/EquipController.ts` (`set`/`sets` + flat; named by `equip`, `wear`, `wield`) | `EquipControllerBase` + `EquipController`, `WearController`, `WieldController`, `EquipSetController`, `EquipSetsController` |
+| `inventory/UnequipController.ts` (named by `remove`, `unequip`, `unwield`) | `UnequipControllerBase` + `RemoveController`, `UnequipController`, `UnwieldController` |
+| `movement/DescendController.ts` (named by `ascend`, `descend`) | `AscendController` + `DescendController` over one base |
+| `social/ProfileController.ts` (named by `profile`, `score`) | `ProfileController` + `ScoreController` |
+| `stream/TuneController.ts` (4 + bare) | `TuneControllerBase` + 4 + `TuneInController` |
+| `civics/TitleController.ts` (4) — **W8** | per-subcommand + `TitleControllerBase`; `subdivide`/`transfer` move under it |
+| `combat/FightController.ts` (19) | `FightGambitController` (twelve gambit words are ONE act, `queueGambit(name)`) + `FightStatusController`, `FightBreakController`, `FightRushController`, `FightSwitchController`, `FightDrawController`, `FightFinishController`, `FightYieldController`; `fight defend` routes to `combat/DefendController` |
+| `inventory/ThrowController.ts` (3 acts, one word) | three views of `throw`, provably disjoint (D17): `throw-to.yaml` → `ThrowToController` (catch), `throw.yaml` → `ThrowController` (pitch), `throw-at.yaml` → `ThrowAtController` (attack); `hurl`/`lob`/`heave` deleted |
+| `perception/ReadController.ts` (read + cast) | `ReadController` (reads only) + `magic/ReciteController` (`recite <scroll>`) |
+| `crafting/MakeController.ts` + `make.yaml` | **deleted**; `shell/DoController.ts` + `do.yaml` (the decouple branch, redone on master — D18) |
+| `trade-fishing` `ReelController.ts` (fishing + silk) | the pre-silk `ReelController` (fishing only, `args: []`); `trade-sericulture` `UnwindController` + `unwind.yaml` over `Cocoons.planReel`/`completeReel` (renamed `planUnwind`/`completeUnwind`); `Reelable.ts`, `reel-unified.test.ts` and the `package.json` dependency on fishing deleted (D19) |
+| `trade-mining` `DriveController.ts` + `cmd/mining/drive.yaml` (`verbs: [drift]`) | renamed `DriftController.ts` + `drift.yaml` + row; `acts.test.ts` :433-436, :449-451, :489-492 follow (D20; the verb split itself is already on master, `3e915f1d3`) |
+| `trade-tanning` `TanController.ts` (lay-in + lift) | `TanController` lays in only; the lift is the hide's own rule on removal from the pit (`get hide from pit`) |
+| `bulk/PourController.ts` + `crafting/PourController.ts` | ONE `bulk/PourController.ts` over `PourTargetMixin`; `crafting/pour.yaml` retired; `verbs: [pour]`; `KNOWN_COLLISIONS` drops `pour` |
+| `crafting/ScrubController.ts` + `scrub.yaml` | **deleted**; `wash <x> --hard` (the `brush` slot moves into `wash.yaml`; `effort()` reads the option) |
+| `crafting/HeatController.ts`'s `boilInPot` arm (:144-196) + the `boil` word | **deleted**; immersion takes the liquid's heat in the vessel's own reconcile (D8c) |
+| the seven cut controllers (saw, rive, fell's cross-cut, butcher, scribe/snap/groze, groove/scrape) | each becomes I/O over `target.cutPlan(req)` on `CuttableMixin` (Bole, Billet, Corpse, Sheet, IceSheet); the line: the cut's decision moves, nothing else in those packs is burned down |
 
 ### Rules moved (D4, D5, D11)
 
 | from (controller) | to (object method) |
 |---|---|
-| Harvest: `bandFor` :453, the count :308, difficulty :359, tool gate :242-258, unready arms :263-290, the swath duration `3000+swathM2*60`/cost 6 :433-434, nitrogen pro-rata :592, carry-or-drop :572-574, the mint loop :543-558, `landSwath` :482, the label/stand selection :139-194 | `GrowingMixin.harvestPlanFor(req)` (`lib/husbandry/Growing.ts`), `SoilMixin.harvestPartFor(req)` (`lib/husbandry/Soil.ts`), the tool's `getSwathM2` (already) |
-| Plant: pot-path checks :96-249, broadcast rate/area :407-431, duration `3000+area*10`/cost 5 :445-446, seed spend :564-567, `maySow` :486, `landUseRefusal` :517, `landSowing` :534 | `CultivableMixin.plantPlanFor(req)` (`lib/husbandry/Cultivable.ts`), `SoilMixin.sowPlanFor(req)`, `PlantableMixin` (the seed's own rate) |
-| Put: `offersFor` :435-473, preposition→placement matching :143-197, `openSlotFor` :412-420 | `PlacingMixin.placementFor(word)`, `SlottedMixin.openSlotFor(item)`, `ContainerMixin.canAddContainable` (already); the move stays `ContainmentApi.move` |
-| Order: the six service arms :238-483, `runDurativeService` :310-346, bath `12000` :695, `reachableTariffs` :717, `resolveSubject` :755, `findGrave` :766, `resolveAttendantPoint` :779, `resolveWindowIssuer` :735, `CLINIC_*` :56-65 | `PricedOfferMixin.orderPlanFor(req)` (default refusal) overridden by `Tariff` (dispatching to `Tub`, `Garment`, `DonationBank`, `Postmortem`, the condition logic) and `CommerceMenu`; the subject becomes a view arg; the two-houses case becomes `onExcess: prompt` on `counter` |
-| Treat: `pickWound` :71, `difficultyFor` :84, `outcomeFor` :119, `BAND_SCORE` :110, `tendInfection` :607-641 (incl. the field write `infection.pathogenLoad` :636), `resolveTreatment` :513 (an `MqlApi.resolveMany('reachable')` walk), `TREAT_FLUID_LITRES` :54 | `VitalsMixin.treatmentPlanFor(req)` (`lib/vitals/Vitals.ts`) — the patient decides the wound, the difficulty and the outcome; the remedy answers through what it already is (`isDressing` → `getDressingQuality`; `isBulkable` → the interior; else hands) |
-| Throw: the catch arm → already `Tossable.tossTo`; the attack delivery :153-293 (`IMPACT_SITES`, caustic energy, shatter) | `Combatant.deliverThrown(item, target)` (`lib/combat/Combatant.ts`, beside `resolveThrown`/`mayDeliverTo`); the item's `impactVerdict`/`sufferImpact` already its own |
-| Read: `fireAnyWorking` :222 (the scroll cast) | `ReciteController` → `Arcane.dischargeAt` (already on the object); `Read` never casts |
-| Tan: `lift` :177-230 (`becomeLeather`, `consumeBark`, the penalty band, the deed) | `TanningMixin.onLiftedFrom(pit, by)` (`trade-tanning/src/lib/Tanning.ts`), fired from `Tanpit`'s removal hook |
-| Pour (crafting): `POUR_MS=3000` :40, `effortW 150` :131, the serving size :118-126, `addIngredient` :77-91; Pour (bulk): `WATCH_EFFORT_W=60` :271, the credit rules :122-183 | `PourTargetMixin.receivePour(req)` on `ManualBuildMixin` (pace, contribution) and `BulkableMixin` (transfer; the mould watch reads `Mould.getPourDurationS`, already the mould's) |
-| every `ActPlan` consumer: `beginSelf`/`beginPeers` on the plan, `line: Mml` on `ActRefusal`/`ActOutcome` (25 implementers, 12 controllers) | the words move to the controller: `engagePlan(context, plan, words)`; the object returns `reason` + facts |
+| Harvest: `bandFor` :453, count :308, difficulty :359, tool gate :242-258, unready arms :263-290, the swath duration `3000+swathM2*60`/cost 6 :433-434, nitrogen pro-rata :592, carry-or-drop :572-574, the mint loop :543-558, `landSwath` :482, label/stand selection :139-194 | `GrowingMixin.harvestPlanFor(req)`, `SoilMixin.harvestPartFor(req)`; the tool's `getSwathM2` (already) |
+| Plant: pot-path checks :96-249, broadcast rate/area :407-431, duration `3000+area*10`/cost 5 :445-446, seed spend :564-567, `maySow` :486, `landUseRefusal` :517, `landSowing` :534 | `CultivableMixin.plantPlanFor(req)`, `SoilMixin.sowPlanFor(req)`, `PlantableMixin` (the seed's rate) |
+| Put: `offersFor` :435-473, preposition→placement :143-197, `openSlotFor` :412-420 | `PlacingMixin.placementFor(word)`, `SlottedMixin.openSlotFor(item)`, `ContainerMixin.canAddContainable` (already); the move stays `ContainmentApi.move` |
+| Order: the six service arms :238-483, `runDurativeService` :310-346, bath `12000` :695, `reachableTariffs` :717, `resolveSubject` :755, `findGrave` :766, `resolveAttendantPoint` :779, `resolveWindowIssuer` :735, `CLINIC_*` :56-65 | `PricedOfferMixin.orderPlanFor(req)` (default refusal) overridden by `Tariff` and `CommerceMenu`; the subject becomes a view arg; two houses → `onExcess: prompt` on `counter` |
+| Treat: `pickWound` :71, `difficultyFor` :84, `outcomeFor` :119, `BAND_SCORE` :110, `tendInfection` :607-641 (incl. the field write :636), `resolveTreatment` :513, `TREAT_FLUID_LITRES` :54 | `VitalsMixin.treatmentPlanFor(req)` — the patient decides; the remedy answers through what it is |
+| Throw: the attack delivery :153-293 (`IMPACT_SITES`, caustic energy, shatter) | `Combatant.deliverThrown(item, target)`; the catch is already `Tossable.tossTo` |
+| Read: `fireAnyWorking` :222 | `ReciteController` → `Arcane.dischargeAt` (already); `read` never casts |
+| Tan: `lift` :177-230 | `TanningMixin.onLiftedFrom(pit, by)`, fired from `Tanpit`'s removal hook |
+| Pour (crafting): `POUR_MS`, `effortW 150`, serving size, `addIngredient`; Pour (bulk): `WATCH_EFFORT_W`, the credit rules | `PourTargetMixin.receivePour(req)` on `ManualBuildMixin` and `BulkableMixin` |
+| Heat: `boilInPot` (`DISINFECT_HOLD_S`, the ≥ boil check) | the vessel's thermal reconcile stamps each Soilable occupant's time at the bath's temperature (D8c) |
+| Scrub: `effort()` 3/1.5 | `wash --hard` → `WashController.effort()` reads the option; the brush is `wash`'s slot |
+| the seven cut controllers: `instanceof Bole/Billet/Sheet/Corpse/IceSheet` arms | `CuttableMixin.cutPlan(req)` on each |
+| every `ActPlan` consumer: `beginSelf`/`beginPeers` on the plan, `line: Mml` on the refusal/outcome (25 implementers, 12 controllers) | the words move to the controller: `engagePlan(context, plan, words)`; the object returns `reason` + facts |
+| the recording/capture tails (`recordCommand`, `captureManualBuild`) at `PourController :165,:221`, `HeatController :119`, smithing `HammerController :167`, `QuenchController :156-157,:187`, hospitality `MuddleController :66`, `StrainController :86-87,:122`, cooking `PlateController :80-81,:107`, baking `DoughTrough.ts:104`; `Transcriber.ts`; `ScriptLogic` :342,:643 | **deleted** (the decouple, D18): every craft mints the can-make deed in `CraftingLogic.recordCraftEvidence`; `RecipeKnowledge` moves to `lib/craft/` |
 
-### Verbs and subcommand words added, aliased or renamed (D8, D9, D10)
+### Verbs, words and categories (D9, D16–D20)
 
 | word | change | why |
 |---|---|---|
-| `toss <item> to <person>` | new verb (catch) | throw split; `Tossable` already names the act |
-| `hurl <item> at <target>` | `hurl` leaves `throw`'s alias list and becomes the attack | throw split |
-| `throw <item>` | keeps `lob`, `heave` as aliases; a typed `to`/`at` tail gets a teaching refusal naming `toss`/`hurl` | an act split cannot keep the old form silently |
+| `do <name> [with <arg>]` | new shell verb (`shell/do.yaml`, innate on `Avatar`); `make` **deleted** — "`make` stops being anything until a trade earns it" | the script runner never made anything; the decouple branch, redone |
+| `reel` | back to the pre-silk view (`args: []`, fishing only) | one verb, one act |
+| `unwind <cocoons> [with <basin>] --count N` | new `trade-sericulture` verb afforded by `ReelingTool`; the `reels` brain and the silk wire test follow | silk's act is its own |
+| `drift` | mining's file and controller renamed to the word; `drive` stays the vehicle's | one view, one word (the split is already on master) |
+| `throw X to Y` · `throw X` · `throw X at Y` | one word, three disjoint views, three controllers; `hurl`, `lob`, `heave` deleted | the shapes cannot be confused (D17) |
 | `recite <scroll>` | new verb (cast from a scroll) | read split |
-| `staff appoint \| dismiss \| apply \| quit` *(grain)* | new noun; the four flat views stay as alias views routed to the same controllers | the business seat is a noun you operate |
-| `wallet draw` — W6 | `draw` moves under `wallet`, old `draw` kept as an alias view | money noun; water-supply holds `wallet` |
-| `title subdivide \| transfer` — W6 | move under `title`, old words kept as alias views | parcel noun; water-supply holds `title` |
-| `fight defend` | routes to `DefendController` (same beat, `queueGambit('defend')`) | the one true duplicate found |
-| `fight close` → `fight crowd`; `fight disarm` → `fight wrest`; `fight sweep` → `fight trip`; `fight switch` → `fight swap`; `fight draw` → `fight ready`; `fight status` → `fight report` *(grain)* | subcommand renamed | the body verb keeps the common word (door, trap, floor, device, money, status); the fight takes the jargon |
-| `wiki read`/`forum read` → `view`; `wiki move` → `wiki rename`; `party show`/`group show`/`soul show` → `view`; `chat make`/`forum make`/`group make`/`soul make` → `create`; `chat who` → `chat members`; `tune who` → `tune viewers`; `party transfer` → `party cede`; `forum reply` → `forum respond`; `group add`/`remove` → `group admit`/`expel`; `soul search` → `soul lookup`; `pack status` → `pack state`; `pack provision` → `pack fill`; `bank open` → `bank join` (W6) *(all grain)* | subcommand renamed | one word, one act; the physical verb keeps the word |
-| `wiki edit`, `forum edit`, `soul edit` vs shell `edit` | **not touched** | wizard-axis moves the shell verb under its tree (command-taxonomy item 8); the pair dissolves when it lands — the gate counts it until then |
-| `title buy` vs `buy`, `bank transfer` vs `transfer`-alias, `stall rent` vs `rent`, the sibling-held nouns (`settings get`, `git status`, `errors clear`, `testharness clock|ship`, `cockpit`, `player`) and the pack nouns | **counted, not resolved** | outside this build's kernel scope or in a sibling's hands |
-| `pour` / `add` | one view, `verbs: [pour, add]` | rung 1 |
+| `house appoint \| dismiss \| draw` *(grain: which noun)* | the roster and the operating account are the business's books (`house.yaml` already holds `book`, `pnl`, `payroll`, `roster`); the flat `appoint`, `dismiss`, `draw` views **deleted** | an institution transaction is a subcommand of its noun |
+| `job apply \| quit \| fulfill` | the applicant's side of the same roster book and the contract board; the flat views **deleted** | same rule |
+| `shelf consign \| reclaim` · `rack check \| reclaim` | the shelf's and the rack's books; the flat `consign`, `reclaim`, `check` views **deleted**; (⚠ fixes in passing: `reclaim` from a `CheckRack` is refused at shape today, `reclaim.yaml` requires `ConsignmentShelfMixin`) | same rule; `reclaim` under two nouns is noun-scoped |
+| `title transfer \| subdivide` — W8 | the parcel registry's book; the flat views **deleted** | same rule; water-supply holds `title` |
+| `wallet` — W8 | stays as is (`use`/`beneficiary`/`freeze`); `draw` goes to `house`, not `wallet`, because it debits the business's account | the book decides the noun |
+| `buy`, `sell`, `order`, `rent`, `charter`, `pay`, `tip`, `collect`, `assay`, `pilot`, the herd verbs | **stay bare** | acts on a good or a person whose bookkeeping follows (command-taxonomy item 1 decides `buy`) |
+| `fight defend` | routes to `combat/DefendController` | the one same-act subcommand found |
+| `chat/forum/group/soul/subject make` | **kept** | with `make` gone as a verb there is no collision; across five nouns the word is one act (create a record) — one word, one act holds |
+| `wiki read`, `bank open`, `party show`, `chat who`, `fight close/disarm/sweep/switch/draw/status`, … | **kept** | a subcommand word is scoped by its noun |
+| the 77 extra words on 65 multi-word views | each deleted or minted as a default player alias (table below) | one view, one word |
+| `pour` | `verbs: [pour]`; `add` deleted | rung 1 |
+| `scrub` | deleted; `wash --hard` | a manner of wash |
+| `boil` | deleted; `heat` | a temperature, not an act |
+| `category:` | on every view, equal to its directory; `help` lists by category; `help` alone lists the categories | command-taxonomy item 2 |
+| `--strict` / `--loose` | reserved per-invocation options (force `onFiltered: error` / `take`); `reload --strict` renamed `reload --force` (wizard-axis holds `ReloadController` — whichever merges second) | explicit-targeting |
+| `--async` / `--sync` | already stripped for a command line; the bare multi-statement script line gains it | async-commands |
 
-### Outcome wording that changes
+### Default player aliases minted (D16)
 
-Only where the convention rewrote it (listed in the MR): every refusal
-and completion line of the twelve `ActPlan` controllers (shape, knead,
-carve, cut, dip, paint, stir, coil, impress, turn, twist, fit's pasteOn
-arm) moves from the object to the controller **verbatim** — same words,
-new owner. The moved kernel verbs keep their words. New words appear only
-on the new verbs (`toss`, `hurl`, `recite`, the renamed subcommands) and
-on the three new dispatcher sentences (the other offer, source not found,
-source affords nothing).
+The criterion: **a one- or two-character MUD-standard shortcut for a verb
+a player types many times a session**, and nothing else. A synonym is
+not a shortcut; the verb is the word `help` teaches. `alias unset`
+tombstones any of them, persisted.
+
+| alias | verb | declared on |
+|---|---|---|
+| `l` | `look` | `perception/look.yaml` (client-surface holds `look`: the two-line edit — `verbs: [look]`, `defaultAliases: [l]` — is made by whichever merges second) |
+| `i` | `inventory` | `inventory/inventory.yaml` (`inv` deleted) |
+| `h`, `?` | `help` | `system/help.yaml` |
+| `'` | `say` | `social/say.yaml` |
+| `n` `s` `e` `w` `ne` `nw` `se` `sw` `u` `d` + long forms | `go <dir>` | already on `MobileMixin.defaultAliases` (`lib/spatial/Mobile.ts:300`) — unchanged |
+| `stop` | `cancel` | already on `EngagedMixin` (`lib/activity/Engaged.ts:122`) — unchanged |
+
+Deleted: `quaff`, `gov`, `bath`, `melt`, `gob`, `boil`, `mold`, `add`,
+`mend`, `scrap`, `infuse`, `shake`, `churn`, `extinguish`, `snuff`,
+`burn`, `kindle`, `work`, `fuel`, `toggle`, `tighten`, `hire`, `offices`,
+`beat`, `take`, `hand`, `pick`, `inv`, `sow`, `place`, `doff`,
+`transplant`, `muck`, `rip`, `hurl`, `lob`, `heave`, `lash`,
+`administer`, `nurse`, `bind`, `dress`, `unstitch`, `surface`, `jump`,
+`dive`, `tp`, `examine`, `exa`, `scan`, `reveal`, `float`, `purchase`,
+`unconsign`, `tell`, `finger`, `re`, `me`, `converse`, `handoff`, `jobs`,
+`salt`, `drill`, `plow`, `angle`, `venesect`, `surgery`, `grind`, `hone`;
+and `lease`/`unlease` on duncan-hall's `provision`/`unprovision`
+(wizard-axis holds those files; whichever merges second). Where the
+extra word was the commoner English the view keeps **that** word and the
+file is renamed: `light` (not `ignite`); the build lists any other such
+pick in the MR.
+
+### Resolution (D21–D23)
+
+| what | from | to |
+|---|---|---|
+| where a verb looks first | every object arg on `reachable` = person ∪ here ∪ peers, person first (281 args) | no new seed, no flag: a **world act** declares `scope: [here, peers, person]`; an in-hand act keeps `reachable`; the binder compares **tiers across tries** (one-resolution § 3 row 11) so a whole-name hit later still beats a partial earlier. Audit rule in D21; `cut`, `saw`, `fell`, `dig`, `split`, `hew`, `harvest`, `mow`, `plough`, `scrape`, `groove`, `strew`, `sweep`, `repair`, `paint`, `wash` (the floor) go room-first |
+| the scorer's name tiers (100/60/50/40, `bareName`) | `scope-walk.ts` :417-473 | collapse into keyword tiers; `NamedMixin.getKeywords()` folds the name and its bare form; the six drive findings keep their outcomes by keyword data (the table in one-resolution § 4) |
+| synthesized candidates | detail ids (`pushDetails` :368-394), bulk materials (`pushBulkMaterials` :339-361) | derived `getKeywords()` overrides on `DetailedMixin` and `BulkableMixin`; MQL reads only Perceptible |
+| hand-rolled listing filters | `LookController :211-220`, `SenseController :152-161`, `Container :386-397` | MQL predicates `:loose`, `:worn`, `:carried` delegating to `getLooseContents` / `Slotted.getAllOccupants`; `:visible` adopted |
+| a disabled affordance row | `reason: string` (prose) | `+ validator`, `+ missing: <mixin>` (structured) |
+| a script that would prompt | hangs or falls to a default | refuses, naming the input |
 
 ### Ordering against siblings
 
 | sibling | overlap | this plan |
 |---|---|---|
-| `reqs/water-supply` (build-1, 72 commits) | `BankController`, `WalletController`, `TitleController`, `ClockController`, `BankingControllerBase`, `check-reachability.ts`, `lib/employment/{Employed,Position,Roster,ShiftSchedule}.ts` | `bank`, `wallet`, `title`, `clock` are **W6, last**; never waited on; whichever merges second reconciles (the split is additive — per-subcommand files beside their base) |
-| `build/client-surface` (build-3) | `CommandGiver._runChain` (the "Ring what?" prompt, +54 l), `CommandLogic.objectCandidates`, `command.ts` (`AssembleError.missing`), `Organization.ts` (+`showShiftStatus`), `ChatController.ts` (+4), `LookController.ts` | W1 edits `_runChain` in the same region: merge by hand, both features keep (scope filter runs BEFORE the askable probe); `showShiftStatus` lands in `StaffedMixin`; `look` excluded |
-| `reqs/wizard-axis-cleanup` (build-4) | shell verbs, `reserve`/`treasury`, `BankingControllerBase`, the domain-local `Lease`/`Unlease`/`Provision` controllers | excluded from regrouping; the gates count them; `edit`-pairs left |
+| `reqs/water-supply` (build-1) | `Bank`/`Wallet`/`Title`/`Clock`/`BankingControllerBase`, `check-reachability.ts`, employment `Employed`/`Position`/`Roster`/`ShiftSchedule`; `drink.yaml` (`quaff`), `open.yaml`, `fill.yaml`; `Throttleable`'s file | `bank`, `wallet`, `title`, `clock` are **W8, last**; never waited on; whichever merges second reconciles. `drink.yaml`'s word and `Throttleable`'s file: one-line reconciles |
+| `build/client-surface` (build-3) | `_runChain` (the "Ring what?" prompt), `CommandLogic.objectCandidates`, `AssembleError.missing`, `Organization.ts` (+`showShiftStatus`), `ChatController.ts`, `LookController.ts`, `look.yaml` | W1 edits `_runChain` in the same region (scope filter first, then the chain, then the askable probe); `showShiftStatus` stays in `OrganizationMixin` (the chart); `look.yaml`'s one word + `l` alias by whichever merges second |
+| `reqs/wizard-axis-cleanup` (build-4) | shell verbs, `reserve`/`treasury`, `ReloadController` (`--strict`), the domain-local `Lease`/`Unlease`/`Provision` controllers and views | authoring verbs OUT; `reload --strict` → `--force` and the `lease`/`unlease` words on duncan-hall by whichever merges second |
+| `origin/fix/script-runner-decouple` | the `do` work, 1,338 commits behind | used as reference only; redone on master in W6; the branch is retired in the MR |
 
 ---
 
@@ -116,8 +225,8 @@ source affords nothing).
 
 Facts verified this cycle by opening the files (paths under
 `packages/server/src/mud/` unless given in full; `V/` =
-`packages/content/platform/content/platform/cmd/`). What the surveys
-claimed and the files contradicted is marked ⚠.
+`packages/content/platform/content/platform/cmd/`). ⚠ marks where a
+survey or slate claim and the file disagreed.
 
 ### The command line and the dispatcher
 
@@ -127,518 +236,400 @@ claimed and the files contradicted is marked ⚠.
   verb is `rawTokens[0].value` (:213-219, :315-318). `'` is a literal
   character (header :6-8); `"` is the only quoting form. `format()`
   (`formatCommand` :264, `quoteIfNeeded` :284, `NEEDS_QUOTING_RE =
-  /[\s"\\|]/` :278) re-emits `rawTokens` — the round-trip property is
-  `parse(format(parse(t))) === parse(t)`. `ParsedCommand` is `{verb,
+  /[\s"\\|]/` :278) re-emits `rawTokens`. `ParsedCommand` is `{verb,
   rawTokens, source, start, emotePrefixed?}` (`api/command-line.ts`
   :51-67).
-- **`@` is reserved nowhere.** No hit for `'@'` in `api/mql/*.ts`,
-  `CommandLineLogic.ts`, `api/command.ts`, `CommandLogic.ts` or
-  `lib/command/*.ts`; `docs/mql-grammar.md` mentions `@` once, as
-  "No named groups (`@@group`)" (:863). Alias bodies use `$@` and `$1..$9`
-  (`ShellLogic.ts` :170-176) — `$`-prefixed, unrelated.
+- **`@` is reserved nowhere** (no hit in `api/mql/*.ts`,
+  `CommandLineLogic.ts`, `api/command.ts`, `CommandLogic.ts`,
+  `lib/command/*.ts`; `mql-grammar.md` :863 only as `@@group`). Alias
+  bodies use `$@` (`ShellLogic.ts` :170-176) — `$`-prefixed.
 - **Dispatch order.** `lib/command/CommandGiver.ts` `executeCommand`
-  (:650-830): input-mode prefix (:690) → `parser.parse` (`parsers/msh.ts`
-  :57-77 wraps `parsePipeline`) → `ShellApi.expandAliases` (:773-783,
-  verb-position only) → `_runChain(parsed, outer)` (:794). `_runChain`
-  (:1001-1203): `matches = getAffordances().filter(hasVerb)` (:1008);
-  unknown verb (:1082); per match `CommandApi.assemble` (:1067); a shape
-  error `continue`s (:1090); bind/unknown-subcommand stop the chain
-  (:1091-1108); a fresh attempt ctx carries `commandSource:
-  affordance.source` (:1113-1127); resolve → preload → validators; a
-  FIELD validator refusal falls through and the first refusal stands if
-  nobody claims (:1163-1178); `_executeOne` (:1183); all-shape →
+  (:650-830): input-mode prefix → `parser.parse` (`parsers/msh.ts`
+  :57-77) → `ShellApi.expandAliases` (:773-783) → `_runChain` (:794).
+  `_runChain` (:1001-1203): `matches = getAffordances().filter(hasVerb)`
+  (:1008); unknown verb (:1082); per match `assemble` (:1067); shape →
+  `continue` (:1090); bind/unknown-subcommand stop (:1091-1108); attempt
+  ctx with `commandSource` (:1113-1127); a FIELD validator refusal falls
+  through, the first stands (:1163-1178); all-shape →
   `shape-fall-through` (:1195-1199). `_executeOne` (:1215-1280) picks
   `controllerForSubcommand(sub) ?? resolvedController` (:1223-1226).
-- **Affordances.** `getAffordances()` (:441-452) walks the recency stack
-  newest-first and resolves `'self'` to the giver; `Affordance = {command,
-  source: Stuff, bucket}` (:296-302); `RecencyBucket = self | inventory |
-  environment | peers` (:278). Pushers: `CommandLogic.ts` :3663-3746
-  (the containment orchestration), `lib/magic/Caster.ts:215` and
-  `lib/advancement/Advancement.ts:456` (a catalogue pushed on bucket
-  `self`), shadows (:3763), hosted updates (:3838). Attribution is
-  documented at `docs/subsystems/command-routing.md` :578-640.
-- **A second match loop.** `lib/script/Interpreter.ts` `bindCommand`
-  (:605-675) re-implements the match: `parsePipeline` →
-  `actor.getAffordances().filter(hasVerb)` → `assemble` → shape
-  `continue`. It is synchronous, inside a generator (:302). Any change to
-  what "matches" means must land in BOTH places or be shared.
-- **Alias expansion.** `platform/idea/api/ShellLogic.ts` `expandAliases`
-  (:88-113): `\verb` bypass (`stripBypassPrefix` :153-168 rebuilds the
-  command via `format` + `parsePipeline`); `expandOnce` (:198+) replaces
-  `rawTokens[0]` from the alias body; `expansion.expandedText =
-  format(result)`. `CardLogic.ts` :118-120 also calls it.
-- **Cardinality.** `CommandLogic.applyCardinalityPolicy` (:1274-1360):
-  for `type: object` — 0 → `[]`, 1 → it, a set → `too-many`, a count →
-  top, policy `top`/`error`/`prompt`; `prompt` with no
-  `context.interactive` degrades to an `ambiguous` `validator-failed`
-  note (:1324-1325); otherwise `promptMqlObject`. `MqlApi.resolveOne` /
-  `resolveMany` (`api/mql.ts` :97, :110) are **synchronous**. `me` is a
-  seed (`mql-grammar.md` :36, :134); `all X` is the quantity prefix
-  (:685); `#<id>` is a seed (:244).
-- **Note kinds.** `packages/types/src/index.ts` `Note` union :874-903 has
-  **29** members (⚠ `response-envelope.md` :111 still says 16).
-  `CommandRejectedNote.reason` is the closed union at :565-583
-  (`shape-fall-through` :577). The dispatcher proses `command-rejected`,
-  `mql-error`, `validator-failed`, `controller-error` only
-  (`CommandGiver.ts` `proseForFrameworkNote` ~:90-130;
-  `response-envelope.md` :470-478); controller notes are never prosed by
-  it. Kind versioning is append-only and per-kind-frozen
-  (`response-envelope.md` :193-198). No kind carries an "alternative".
-- **Help.** `lib/command/CommandDefinition.ts` `getHelpText` (:456-527)
-  renders a `Subcommands:` block (:489-506); `HelpCatalogue.ts` :430-447
-  makes one topic per verb from it. `hasVerb` (:364) is
-  case-insensitive; `controllerForSubcommand` (:345-350) prefers the
-  subcommand's own `controller:`.
-- **Per-subcommand controllers** are first-class: `command.schema.json`
-  :163 (`$defs.subcommand.properties.controller`), `command-spec.md`
-  :1475-1540 (the `analyze` exemplar). Shipped: `V/shell/cockpit.yaml`
-  (six subcommand controllers), `V/banking/house.yaml` (five entries, two
-  classes), `V/system/trace.yaml` (two). ⚠ The slate's "cockpit ×7" is six
-  subcommand-level plus the verb-level one. **A subcommand controller
-  does not receive a parent-bound arg**: `CommandLogic.ts` :1037-1042
-  binds the subcommand's own `args` only; verb options, `payload:` and
-  verb-level validators carry (:1098-1104, :2955-2975, :1820-1843). So a
-  noun's bound object is re-resolved per subcommand through a shared base
-  (`banking/BankingControllerBase.ts` `resolveBank` :73-83 is the shape).
-- **`args` XOR `subcommands`** unless `fallthrough: true`
-  (`command-spec.md` :1541-1583; `chat`, `forum`, `tune`, `wiki`, `equip`
-  use it).
-- **A domain-local alternate controller.** Views are `command-view`
-  documents served store-first (`CommandLogic.preloadAll` :693-733;
-  `reload(docPath)` :676-689; `viewKeyOf` :141-143). A runtime write goes
-  through `DocumentApi.save` → `DocumentLogic.saveImpl` (:599-647): a
-  changed `controller:` is wizard code trust (:610-624), then
-  `CommandApi.validateCommandView` and `CommandApi.reload` (:646) — live,
-  no restart. A controller must be a class on disk named by a template
-  row (`command-spec.md` :1941-1956; 374 `*Controller.yaml` rows ship);
-  affordance comes only from class statics (`command-routing.md`
-  :391-450). ⚠ `world-seed` ships no `src/`; the domain-local exemplar is
-  now `packages/content/terminus` (`content/world/terminus/university-avenue/idea/cmd/BlowController.yaml`
-  → `src/university-avenue/idea/cmd/BlowController.ts`, afforded by
-  `src/university-avenue/thing/Whistle.ts:36`).
+  **Unconsumed positionals are a shape error** (`CommandLogic.ts:2847`
+  `'too many arguments'`); a missing required positional is a shape
+  error (:2600-2606); a declared preposition is **consumed when present,
+  never demanded** (`bindPositionals` :2570-2590) — there is no
+  "required preposition" key in `command.schema.json` (only
+  `prepositions` :262-268).
+- **Affordances.** `getAffordances()` (:441-452) newest-first,
+  `'self'` → the giver; `Affordance = {command, source, bucket}`
+  (:296-302); `RecencyBucket = self | inventory | environment | peers`
+  (:278). Pushers: `CommandLogic.ts` :3663-3746, `Caster.ts:215`,
+  `Advancement.ts:456` (catalogues on `self`), shadows :3763, hosted
+  updates :3838. `command-routing.md` :578-640 documents attribution.
+- **A second match loop**: `lib/script/Interpreter.ts` `bindCommand`
+  (:605-675), synchronous, inside a generator (:302); scripts never see
+  alias expansion (`expandAliases` callers: `CommandGiver.ts:773`,
+  `CardLogic.ts:118`).
+- **Aliases.** `ShellLogic.expandAliases` (:88-113); `stripBypassPrefix`
+  (:153-168); `expandOnce` replaces `rawTokens[0]`; the defaults tier:
+  `lib/shell/Alias.ts` `collectDefaultAliases` (:154-190) unions
+  `static defaultAliases` over `MixinApi.queryMixins(host.constructor)`
+  and throws on a duplicate; lookup session → persistent → tombstone →
+  defaults (:255-284); `removeAlias` writes the tombstone (:393-405).
+  Shipped defaults: `Mobile.ts:300` (the directions), `Engaged.ts:122`
+  (`stop`). ⚠ The defaults walk reads the **host's** mixin chain — a
+  pack cannot add a layer to a player's `Shell`, so a pack verb's default
+  alias has no home there (D16 decides one).
+- **Cardinality.** `CommandLogic.applyCardinalityPolicy` (:1274-1360);
+  `prompt` with no `context.interactive` → an `ambiguous`
+  `validator-failed` (:1324-1325). `MqlApi.resolveOne`/`resolveMany`
+  (`api/mql.ts` :97, :110) are synchronous; `me`, `#<id>`, `all X` are
+  MQL's own.
+- **`--async`/`--sync`** are already stripped by `assemble`
+  (`CommandLogic.ts` :958-961, :1010-1017; `reservedAsync` :1109;
+  `CommandGiver.ts` :1184-1189). ⚠ The bare multi-statement script line
+  (`CommandGiver.ts` :839-853) awaits `ScriptApi.runAst` synchronously
+  with no flag.
+- **`onFiltered: take|warn|error`** shipped (`OnFilteredPolicy`
+  `api/command.ts:607`; applied `CommandLogic.ts` :555-562; schema :289,
+  :401); ⚠ zero views use it; there is no reserved `--strict` — the only
+  `--strict` is `ReloadController`'s own (:10, :103, :116).
+- **Prompts** live on the Interactive (`Interactive.ts` `promptConfirm`
+  :373, `promptCompose` :387), not on `PromptApi` (⚠ the
+  script-interaction slate is stale there); 20 files read
+  `context.interactive`; `_dispatchBound` (`CommandGiver.ts:1301`)
+  passes no interactive.
+- **Note kinds**: `packages/types/src/index.ts` `Note` union :874-903
+  (29 members; ⚠ `response-envelope.md:111` says 16);
+  `CommandRejectedNote.reason` :565-583; the dispatcher proses
+  `command-rejected`, `mql-error`, `validator-failed`, `controller-error`
+  only (`proseForFrameworkNote`; `response-envelope.md` :470-478).
+  `AffordanceEntry` :1503-1553 (`reason?: string`); the disabled row is
+  built at `CommandLogic.ts` :2258-2264 from `note.detail` only (the
+  `validator` name is dropped :2236-2239).
+- **Help.** `CommandDefinition.getHelpText` (:456-527) renders
+  `Subcommands:` (:489-506); `HelpCatalogue.ts` :429-447 one topic per
+  verb (`keywords: [...def.verbs, 'command']` :440, `relations: []`
+  :442); mixin topics :460-476 from `Mixins`; nothing groups by category
+  (⚠ `category:` is on **0 of 371 views**).
+- **Per-subcommand controllers** are first-class (`command.schema.json`
+  :163; `command-spec.md` :1475-1540; `cockpit` ×6, `house` ×5, `trace`
+  ×2). A subcommand controller **does not** receive a parent-bound arg
+  (`CommandLogic.ts` :1037-1042); `args` XOR `subcommands` unless
+  `fallthrough: true` (`command.schema.json` :52-59, :102-125) — so no
+  inheritance exists; `store.yaml` repeats the book per subcommand.
+- **A runtime alternate controller**: views are `command-view`
+  documents (`CommandLogic.preloadAll` :693-733; `reload` :676-689); a
+  runtime write via `DocumentApi.save` → `DocumentLogic.saveImpl`
+  (:599-647; a changed `controller:` is wizard code trust :610-624;
+  `CommandApi.validateCommandView` :626; `reload` :646). A controller is
+  a class on disk named by a row (`command-spec.md` :1941-1956); the
+  domain-local exemplar is `packages/content/terminus` (⚠ not
+  `world-seed`, which ships no `src/`).
 
-### The acts: `ActPlan` and its consumers
+### The acts: `ActPlan`, its consumers, the outcome shapes, durations
 
-- `lib/craft/ActPlan.ts` (53 l): `ActRefusal {ok:false, reason, line:
-  Mml}` (:24-28), `ActPlan {ok:true, durationMs, effortW, beginSelf: Mml,
-  beginPeers?, onComplete, onAbort?}` (:31-46), `ActOutcome {ok:true,
-  line: Mml, peers?}` (:49-53). Packs import it as
-  `@saxonberg/server/mud/lib/craft/ActPlan` through the server's
-  `exports` map (`packages/server/package.json` :7 `"./mud/lib/*"`).
-- `platform/idea/cmd/crafting/ManualBuildController.ts` (252 l; ⚠ not
-  under `lib/craft/`): `engageStep(context, {durationMs, effortW,
-  beginSelf, beginPeers?, onComplete, onAbort?})` (:69-126; `canExert`
-  :73-79; a non-Engaged giver completes at once :80-83; `ManualBuildStep`
-  + `SchedulerApi.start` :84-92); `engagePlan(context, plan)` (:141-171;
-  zero duration runs now :142-145; a late refusal is prose only :162);
-  `paceMs` (:228-241); `declineStep` (:244-251).
-- `lib/command/EngagedActController.ts` (172 l): `engageAct(context,
-  {durationMs, beginSelf, beginPeers?, cost (felt %), onComplete,
-  onAbort?})` (:114-171) converts `cost` to watts via
-  `giver.wattsForFeltCost` (:122). ⚠ There is no `engageStep` or
-  `engageAround` on it; `engageAround` is `LocomotionLogic`'s.
-- Effort reaches `exert` from the scheduler:
-  `platform/idea/SchedulerRegistry.ts` `emitExertion` (:512-522) calls
-  `actor.exert({durationS, powerW: e.effortW})` at completion and
-  pro-rata on terminate (:535, :559, :572).
-- **Planned consumers** (all forward `durationMs`/`effortW` untouched
-  through `engagePlan`, and send `plan.line` on refusal):
-  `ShapeController` (:51-71), `KneadController` (:35-52),
-  `CarveController` (:101-113, `turnDown` :200-207), `CutController`
-  (:58-86), `DipController` (:82-93), `PaintController` (:62-72),
-  `StirController` knead arm (:52-69), `inventory/CoilController`
-  (:25-30), `trade-cordage` `TwistController` (:30-39). **Instant**
-  (`ActOutcome|ActRefusal`): `ImpressController` (:45-54),
-  `device/TurnController` (:38-51), `StirController` hand-worked arm
-  (:112-136, folds `out.line` into its own sentence). ⚠ `fit` and
-  `strike` do NOT use `ActPlan` (`FitController` :68-72 reads
-  `Faced.pasteOn`'s `{ok, line: string}`; `trade-smithing`
-  `HammerController` :117-131 gets a bare `Promise<Mml>` from
-  `StrikingDie.strikeWith`).
-- **Protocol mixins** (`lib/craft/`, every default returns `null`):
-  `KneadVessel.ts` :43/:56, `Carvable.ts` :48/:61, `Shapeable.ts`
-  :40/:53, `Forming.ts` :89/:117 (+ `refuseBeyond` :66, `resolveForming`
-  :189 building `line:` at :194/:201/:214), `DipBath.ts` :51/:64,
-  `Impressible.ts` :29/:42 (default refusal with `line:` :46),
-  `Turnable.ts` :21/:34 (:38), `HandWorked.ts` :28/:41; `Cuttable.ts` is
-  interfaces only (:46, :52 — duck-typed in `CutController` :35);
-  `StrikingDie.ts` :27/:35 is not `ActPlan`.
-- **Implementers that build `line:`** (the sites W3 rewrites): kernel
-  `lib/material/Compounding.ts` (:200; :209, :276), `Greenware.ts` (:192,
-  :252; nine sites :208-310), `Faced.ts` (:405; :411-456),
-  `lib/mould/Mould.ts` (:784, :856; :790-881), `platform/thing/GlazeTub.ts`
-  (:62; :74-112), `ScrewPress.ts` (:76; :84-139), `Rope.ts` (:894,
-  :1032); packs `trade-ceramics` `Wheel.ts:41`, `BrickTable.ts:61` (:97),
-  `TemperPit.ts:78` (:92-129); `trade-quarrying` `Clay.ts:491`
-  (:466-503); `trade-glass` `Blowpipe.ts:62` (:72), `Melt.ts:68`
-  (:75-94), `Gather.ts:155` (:159); `trade-chandlery` `DipPot.ts:68`
-  (:102); `trade-papermaking` `PulpVat.ts:82` (:87-108); `trade-baking`
-  `DoughTrough.ts:81` (:86); `trade-carpentry` `lib/PatternStock.ts:71`
-  (:79-128); `trade-tailoring` `CuttingTool.ts:76` (:80); `trade-cordage`
-  `RopeJack.ts:154`; `trade-dairying` `Churn.ts:58` (:85-86);
-  `trade-sugar` `SugarLoaf.ts:152`; `water` `IceSheet.ts:354`.
-- **Outcome shapes today.** 112 `*Outcome`/`*Result` declarations
-  (non-test); `ok: false` at 1,064 sites in 263 files. The dominant shape
-  is `{ok, reason, line: string}` (`Tearable.ts:21`, `Tieable.ts:25`,
-  `Sealable.ts:44`, `Line.ts:86`, `Book.ts:60`, …); `Pullable.ts:34` and
-  `Tossable.ts:24` use `self: Mml`; `ForSale.ts:48` carries a `Note`;
-  `Metabolic.ts:427` (`EatOutcome`) has no line. `lib/ground/Workable.ts`
-  is a second plan vocabulary (`WorkPlan` :82-103 discriminates on
-  `kind`, carries `prose: string` and `cost`).
-- **Durations in kernel controllers** (the constants that move or are
-  counted): `HeatController` :32/:34/:36, crafting `PourController`
-  :40 (`POUR_MS`), `WashController` :45, `SteepController` :37,
-  `RepairController` :32, `StirController` :30/:32, `BatheController`
-  :28/:30, `device/BailController` :48-53, `FireController` :49,
-  `BrushController` :16, `SweepController` :23, `RentController` :33,
-  bulk `PourController` :271 (`WATCH_EFFORT_W`); `engageAct` sites with
-  inline math: `HarvestController` :432-434, `PlantController` :444-446,
-  `BailController` :172-174; `OrderController.runDurativeService`
-  :310-330 and `SteepController` :100-104 build a `ManualBuildStep`
-  directly.
+(Unchanged from the first plan; verified again.) `lib/craft/ActPlan.ts`
+(53 l) :24-28 / :31-46 / :49-53. `ManualBuildController.ts` (⚠ at
+`platform/idea/cmd/crafting/`): `engageStep` :69-126, `engagePlan`
+:141-171, `paceMs` :228, `declineStep` :244. `EngagedActController.ts`
+`engageAct` :114-171 (⚠ no `engageStep`/`engageAround`). Effort reaches
+`exert` from `SchedulerRegistry.emitExertion` :512-522. Nine protocol
+mixins in `lib/craft/` with a `null` default; 25 implementers build
+`line:` (kernel `Compounding.ts`, `Greenware.ts`, `Faced.ts`, `Mould.ts`,
+`GlazeTub.ts`, `ScrewPress.ts`, `Rope.ts`; packs ceramics `Wheel`,
+`BrickTable`, `TemperPit`; quarrying `Clay`; glass `Blowpipe`, `Melt`,
+`Gather`; chandlery `DipPot`; papermaking `PulpVat`; baking
+`DoughTrough`; carpentry `PatternStock`; tailoring `CuttingTool`; cordage
+`RopeJack`; dairying `Churn`; sugar `SugarLoaf`; water `IceSheet`);
+twelve consuming controllers (Shape, Knead, Carve, Cut, Dip, Paint, Stir,
+Coil, cordage Twist; Impress, Turn, Stir's hand arm). ⚠ `fit` and
+`strike` are not `ActPlan`. 112 `*Outcome`/`*Result` declarations; `ok:
+false` at 1,064 sites; `Workable.ts` :82-145 is a second plan vocabulary
+(`kind`/`prose`/`cost`). Kernel duration constants: `HeatController`
+:32-36, crafting `PourController :40`, `WashController :45`,
+`SteepController :37`, `RepairController :32`, `StirController :30-32`,
+`BatheController :28-30`, `BailController :48-53`, `FireController :49`,
+`BrushController :16`, `SweepController :23`, `RentController :33`, bulk
+`PourController :271`; `engageAct` sites `HarvestController :432-434`,
+`PlantController :444-446`, `BailController :172-174`.
 
 ### The kernel controllers in scope
 
-(Surveyed in full by file; the per-line inventory is in § Fault lines →
-*Rules moved*. Here: what each is, and what already exists on the object.)
-
-- **Harvest** `inventory/HarvestController.ts` (651 l, `EngagedActController`);
-  view `V/inventory/harvest.yaml` `verbs: [harvest, pick]`, args
-  `target` (`Visible`, `Growing|Cultivable`), `part` (`SoilMixin`, `at`),
-  `tool` (`with`/`using`, default the reaping/cutting capabilities).
-  ~19 mutations, 5 module functions (`dial` :68, `bandFor` :453,
-  `nowSeconds` :466, `landSwath` :482, `standingPhrase` :645), a label
-  match on `.raw.toLowerCase()` (:139-147) and a `getPlants()` walk
-  (:191-194). ⚠ `Growing.ts`, `Soil.ts`, `Cultivable.ts` carry **no**
-  plan/complete method today; they carry the per-step reads the controller
-  composes (`Growing.ts` `isPolycarp` :1045, `getFruitSetCount` :1079,
-  `settleCycle` :1090, `isAreaCrop` :1117, `takeSwath` :1148,
-  `settleRatoon` :1164, `growsByFieldRule` :1192, `getHarvestTemplatePath`
-  :1226, `getNutrientDraw` :1237, `ripeSibling` :1581, `isHarvestable`
-  :1598, `transplantDifficulty` :1655; `Soil.ts` `sowingRefusal` :457,
-  `ensureCropTitle` :462, `resolvePartFor` :516, `rootedAreaCrop` :536,
-  `drawNutrient` :1322; `Cultivable.ts` (⚠ at `lib/husbandry/`, not
-  `lib/smallholding/`) `hasSoil` :325, `getPlants` :371, `occupy` :391,
-  `vacate` :407). Tests `inventory/__tests__/HarvestVerb.test.ts`,
-  `AreaCrop.test.ts` (:503), `harvest-view.test.ts`; wire
-  `forestry.dirty` (:147-169, asserts `nothing-ripe`), `clinical-medicine`
-  :223, `cover.soak` (sow/harvest).
-- **Plant** `inventory/PlantController.ts` (617 l); view `plant.yaml`
-  `verbs: [plant, sow]`, args `seed` (`Plantable`), `part`, `pot`
-  (`Cultivable|Soil`), `drill`. ~21 mutations, 6 module functions
-  (`maySow` :486 walks `EmploymentApi.operatorsAt`). Tests
-  `PlantVerbs.test.ts` :207, `AreaCrop.test.ts` :618,
-  `DormHouseplant.test.ts`; wire `forestry` :316, `field-population`,
-  `cover`/`tracts`.
-- **Put** `inventory/PutController.ts` (490 l); view `put.yaml` `verbs:
-  [put, place]`, `item` (inventory, `Containable`), `target` (peers,
-  `in/into/on/onto/from`, `Container|Placing`). Six mutations; the
-  preposition→placement matching and slot search are the controller's;
-  `Surfaced` is not consulted (`on` is a `Placing` member). Dead imports
-  `ChattelApi`/`Chattel` (:69, :71). Test `PutController.test.ts`; wire
-  `placement.dirty` (:145-378) and ~36 others.
-- **Order** `retail/OrderController.ts` (859 l, `CraftController`); view
-  `order.yaml`: `cocktail` (string, greedy), `brand`, `counter` (default
-  `reachable:[class.Tariff]`), `menu`. **Six** service kinds
-  (`platform/thing/Tariff.ts` :93-102: repair, treatment, burial,
-  transfusion, wash, bath — ⚠ the requirements and help text say five)
-  plus the menu path. Four `MqlApi`/room-walk self-resolutions (:717-788).
-  Tests `OrderRepair.test.ts`, `OrderTransfusion.test.ts`; wire
-  `cooking` :102, `consequence` :192, `repair` :375+, `cleanliness`
-  :632-657; transfusion is not driven (`blood-economy` :110).
-- **Treat** `medical/TreatController.ts` (687 l); view `treat.yaml`
-  `verbs: [treat, bind, dress]`, `target` (`$focus`, `Vitals`), `with`
-  (`any`), `for` (string). The outcome math and the infection tending are
-  the controller's; `resolveTreatment` :513 walks `reachable`. Object
-  methods already there: `Vitals.applyTreatment` :601, `stabilize` :424,
-  `relieve` :591. Test `TreatController.test.ts`; wire `recovery`,
-  `injury`, `clinical-medicine` :148, `consequence` :323.
-- **Throw** `inventory/ThrowController.ts` (366 l); view `throw.yaml`
-  `verbs: [throw, hurl, lob, heave]`, `item` (`Tangible`, `mustBeHeld`),
-  `target` (`at`), `recipient` (string, `to`). Three acts: catch
-  (`Tossable.tossTo`, `lib/spatial/Tossable.ts:39`; `Line.ts:205`
-  overrides), pitch (`move` into the room :144), attack (consent
-  `CombatApi.splashSetFor` :103 + `Combatant.mayDeliverTo` :104 →
-  `CombatLogic.ts:300`; `initiateCombat` :118; `Combatant.resolveThrown`
-  :559 → `CombatLogic.ts:270`; the delivery :153-293 is the
-  controller's). No controller unit test (`api/__tests__/command-binder-throw.test.ts`
-  binds only); wire: `rubber` :655 (`throw vitriol at`), soak files only
-  for `throw … to`.
-- **Read** `perception/ReadController.ts` (298 l); view `read.yaml`,
-  `target` (`$focus`, greedy, `Marked|Display`), `page` (number). Arms:
-  display → `Display.readScreen` (:243); page → `instanceof Book`
-  (:100) → `openTo`; marks → `Marked.deviceFor/refreshMarks/readFor/teach`
-  (`lib/description/Marked.ts` :182/:190/:205/:198); scroll cast
-  `fireAnyWorking` :222 → `Arcane.getCarriedSpellPath` (:165),
-  `requiresMark` (:231), `dischargeAt` (:245), `Consumable.consume`.
-  No controller test; wire `paper` :292-392 (`read notebook page 3`,
-  `read screen`), `logistics` :168, `maritime-space` :144.
-- **Fight** `combat/FightController.ts` (355 l); view `fight.yaml`, 19
-  subcommands, no top-level args; every arm is one `Combatant` call
-  (`offerBreak` :115, `bumRush` :151, `orderCoup` :172,
-  `beginWeaponSwitch` :203, `drawSidearm` :226, `queueGambit` :247,
-  `yieldFight` :284). No mutations, no durations. ⚠ `fight.yaml:103`
-  (`switch`'s weapon arg) requires `VitalsMixin`. Pairs with top-level
-  views: `device/disarm` (trap), `device/switch`, `banking/draw`,
-  `combat/defend` (`DefendController` :46 queues the same gambit),
-  `inventory/sweep`, `boundary/close`, `social/status`. Wire `identity`
-  :223 (`fight strike`).
-- **Tan** `packages/content/trade-tanning/src/idea/cmd/tanning/TanController.ts`
-  (260 l); view `…/content/trade/tanning/cmd/tanning/tan.yaml`, `hide`
-  (`TanningMixin`), `pit` (objects, default `reachable:[mixin.ContainerMixin]`).
-  The lift arm (`hide.isTanned()` :94 → `lift` :177) calls
-  `Tanning.becomeLeather` (:329), `Tanpit.consumeBark` (:122),
-  `tanPenaltyBands` (:351). `findPit` narrows `instanceof Tanpit`
-  (:235-250). ⚠ The docstring (:26-27) promises `get hide from pit` does
-  the conversion; nothing but `TanController` calls `becomeLeather`.
-  Test `tanning.test.ts` (objects only); wire `carcass-chain` :985.
-- **Pour, bulk** `bulk/PourController.ts` (310 l); view `V/bulk/pour.yaml`
-  `verbs: [pour]`, `source`/`target` (`mustHaveBulkSlot`), options
-  `amount`, `exact`. `BulkableApi.transfer` :94, `afterPouredOutBy` :97 /
-  `afterPouredInBy` :116 (`Bulkable.ts` :491/:497; `Mould.ts:756`
-  overrides); the credit rules :122-183; the mould watch
-  (`Mould.getPourDurationS`, `WATCH_EFFORT_W=60` :271, `watchThePour`
-  :277). **Pour, crafting** `crafting/PourController.ts` (230 l,
-  `ManualBuildController`); view `V/crafting/pour.yaml` `verbs: [pour,
-  add]`, `spirit` (`any`), `vessel` (default
-  `reachable:[mixin.ManualBuildMixin]`). `POUR_MS=3000` :40, `effortW
-  150` :131; header :18-22 says the two views are told apart by the
-  target (a build vessel is not Bulkable).
+(Unchanged; the per-line inventory is § Fault lines → *Rules moved*.)
+Harvest 651 l (`Growing.ts`/`Soil.ts`/`Cultivable.ts` carry **no**
+plan/complete methods; ⚠ `Cultivable.ts` is `lib/husbandry/`); Plant
+617 l; Put 490 l (dead imports :69,:71); Order 859 l (**six** services,
+`Tariff.ts:93-102`); Treat 687 l; Throw 366 l (`Tossable.tossTo`
+`lib/spatial/Tossable.ts:39`; `Combatant.mayDeliverTo` :610,
+`resolveThrown` :559); Read 298 l (`fireAnyWorking` :222); Fight 355 l
+(every arm one `Combatant` call; ⚠ `fight.yaml:103` requires
+`VitalsMixin` on a weapon slot); Tan 260 l (`lift` :177; docstring
+:26-27 promises `get hide from pit`); bulk Pour 310 l + crafting Pour
+230 l. Tests and wire files as in the first plan.
 
 ### The twelve switch controllers
 
-None of the twelve views gives a subcommand its own `controller:`.
-Line counts / arms / the shared preamble each arm needs:
+Wiki 1062/17 · Party 341/15 · Chat 501/13 · Forum 561/11 · Pack 378/8 ·
+Group 321/8 · Soul 359/8 · Bank 408/8 (`BankingControllerBase.resolveBank`
+:73-83) · Job 745/5 (`MqlApi.resolveOne('reachable:[class.JobBoard]')`
+:92-98) · Equip 902 (if-chain) · Tune 426/4 · Title 685/4. None gives a
+subcommand its own `controller:`. Four controllers are named by views of
+different verbs: `EquipController` (equip/wear/wield),
+`UnequipController` (remove/unequip/unwield), `DescendController`
+(ascend/descend), `ProfileController` (profile/score).
 
-| controller | lines | arms | preamble that every subcommand re-resolves |
-|---|---|---|---|
-| `system/WikiController.ts` | 1062 | 17 (`switch` :84-126) | none; `registry()` :906; `requirePage` :840 shared by 7 arms |
-| `social/PartyController.ts` | 341 | 15 (:49-82) | `isPartyMember(giver)` :43-47 |
-| `social/ChatController.ts` | 501 | 13 (:47-85, bare post :87) | none |
-| `social/ForumController.ts` | 561 | 11 (:95-124) | `resolveForums` :71-92 (`mixin-missing ForumsMixin`) |
-| `author/PackController.ts` | 378 | 8 (:59-78) | none |
-| `social/GroupController.ts` | 321 | 8 (:49-72) | `isAvatarStuff` :44-47; `findGroupByName` :300 shared by 6 |
-| `social/SoulController.ts` | 359 | 8 (:56-75) | `holdsCatalogue` :84 (`AccessApi.canAtPath` :88) |
-| `banking/BankController.ts` | 408 | 8 (:51-83) | `resolveBank` (`BankingControllerBase` :73-83) |
-| `work/JobController.ts` | 745 | 5 (:99-118) | `MqlApi.resolveOne('reachable:[class.JobBoard]')` :92-98 |
-| `inventory/EquipController.ts` | 902 | `set`/`sets` + flat (:191-199) | `isAttired` :181-189 |
-| `stream/TuneController.ts` | 426 | 4 + bare (:93-111) | `parseTarget` :125 shared by 5 |
-| `civics/TitleController.ts` | 685 | 4 (:130-141) | `atDeedDesk` :463 per arm |
+### One word, one view — the census
 
-Help already lists subcommands (`getHelpText` :489-506).
+371 views; **65 carry more than one word, 77 extra words** (listed in
+§ Fault lines; script `/home/bobalu/.claude/jobs/2eb60486/tmp/planner/fable/verbs.mjs`).
+Schema payloads carry `verbs: cmd.verbs` (`CommandLogic.ts:1981`;
+client `websocket.ts:969`); `AffordancesController.ts:33` and
+`HelpCatalogue.ts:433,440` read `getPrimaryVerb`/`verbs`; `hasVerb`
+(`CommandDefinition.ts:364`) matches any entry. `SCRIPT_BUILTINS`
+(`lib/script/builtins.ts:28-37`): `set if each while def wait every
+when` — claimed on every line (`check-verb-collisions.ts` :120-131).
+Subcommands named like a builtin: `reserve/equip/alias/settings/var set`
+(5); `make` is not a builtin.
 
-### The overlap census (re-measured)
+### `make`, `do`, `reel`, `drift` (the folded-in verbs)
 
-52 subcommand/top-level pairs across 28 words and 371 views (script:
-`/home/bobalu/.claude/jobs/2eb60486/tmp/planner/explore-sub/census.mjs`;
-⚠ the slate said 50). **One true duplicate**: `fight defend` =
-`combat/defend`. Same act, different operand: `title buy` / `retail/buy`,
-`stall rent` / `retail/rent`. Every other pair is a homonym. The pairs
-inside this build's nouns are listed in § Fault lines.
+- `make` on master: `V/crafting/make.yaml` (`recipe` string, `brand`
+  `with`), `MakeController extends CraftController` (`requireDeed` :36 →
+  `ScriptApi.invoke` :39), innate on `Avatar.ts:333`; `scripting.md`
+  :51, :259-263, :315, :329-346, :367-368, :400-404; `command-spec.md`
+  :154-156, :171-172; `CLAUDE.md` :189, :846.
+- `origin/fix/script-runner-decouple`: 5 commits, 55 files
+  (+539/−761), merge-base `dbf173126`, 1,338 behind. Its `do.yaml`
+  (`shell/`; `verbs: [do]`; `name` string required, `arg` string `with`;
+  animate + conscious) and `DoController.ts` (48 l: `ScriptApi.invoke`;
+  miss → `unknown-script`; ungated by design); `make` deleted; `Avatar`
+  swaps the view; `captureManualBuild` (`api/script.ts:160`,
+  `ScriptLogic` :342, :643) and `Transcriber.ts` removed;
+  `RecipeKnowledge` → `lib/craft/`; `CraftingLogic.recordCraftEvidence`;
+  the capture tails removed from Boil/Craft/Heat/Pour/Stir, baking
+  Knead, cooking Cook/Plate, hospitality Mix/Muddle/Serve/Strain,
+  smithing Forge/Hammer/Quench; prose in drilling `line.yaml`, rejection
+  `claims-office`/`store-counter`, apiculture README, the lounge
+  `martini.msh`; docs. ⚠ Stale: baking `KneadController` is gone (knead
+  is kernel `crafting/KneadController` + `DoughTrough.ts:104`);
+  `BoilController` was deleted (`d22c2a429`); `CraftingLogic`,
+  `api/crafting.ts`, Heat/Pour/Stir, `ManualBuild.ts` diverged. The
+  capture sites on master today: `PourController :165,:221`,
+  `HeatController :119`, `HammerController :167`, `MuddleController :66`,
+  `StrainController :86-87,:122`, `QuenchController :156-157,:187`,
+  `PlateController :80-81,:107`, `DoughTrough.ts:104`.
+- `reel`: fishing `reel.yaml` (target `any` not greedy :27, tool
+  objects greedy default `reachable:[capability.reeling]` :35-40,
+  `--count` :43-44); pre-silk (`ae5b5fc53^`): `args: []`, "Take line
+  in". `ReelController` (`ManualBuildController`; `reelableOf` :112-118
+  `reelable === true` + `typeof planReel/completeReel`); fishing
+  `src/lib/Reelable.ts`; `reel-unified.test.ts`. Sericulture:
+  `Cocoons.ts:39` imports `Reelable` from `@saxonberg/content-trade-fishing`,
+  :106 implements, :225/:231/:296; `ReelingTool.ts:18-24` affords the
+  fishing view key; `reels` brain :158 `forceCommand('reel cocoons --count
+  …')`; `package.json` depends on fishing (⚠ `pack.yaml` does not);
+  `src/__tests__/reel.test.ts`; wire `silk.dirty` :372, :384, :406.
+- `drift`: ⚠ the split is **already on master** (`3e915f1d3`,
+  2026-10-09): mining `cmd/mining/drive.yaml` `verbs: [drift]` :18 (file
+  and `DriveController.ts:43` still named `drive`); platform
+  `movement/drive.yaml` `verbs: [drive]` with **no `unreachable:`**
+  (⚠ the slate's "marked unreachable" is false); `Drivable.ts:105-110`
+  affords it; `acts.test.ts` :433-436, :448-475, :477-516 assert one
+  claimant each and that Drivable **has** the static (:514-515).
 
-### The gates (re-measured, all exit 0 today)
+### Institution ledger verbs (the census)
 
-- `scripts/pack-roots.ts` exports `packSources` :42, `packOfClassPath`
-  :66, `classFileOf` :86, `composesMixin` :123, `extendsAny` :201,
-  `classPathOfFile` :300, `packSrcFiles(srcDir)` :351 (every `.ts` under
-  a pack `src/`), `declaredMixins` :401, `isTemplateRelPath` :567 (false
-  when `cmd` is in the path — so `idea/cmd/*Controller.yaml` rows are not
-  `templateRows`), `walkYamlFiles` :611, `templateRows` :637,
-  `effectiveRow` :683, `fieldMetaEntries` :862. ⚠ There is **no shared
-  `controllerFiles()`**; every gate rolls its own walk.
-- `check-verb-collisions.ts`: own `commandViews` :43-70; `KNOWN_COLLISIONS`
-  :93-99 — `lease`/`unlease` SAFE, and `pour: "platform: bulk/pour.yaml
-  vs crafting/pour.yaml — undiagnosed."` (:98); header :25/:78 still says
-  "nine"; ratchets both ways (a healed row left listed fails). 371 views,
-  3 known.
-- `check-instrument-args.ts`: walk :288-311 hard-codes
-  `src/mud/platform/idea/cmd/**` and `<pack>/src/idea/cmd/**` — **this is
-  why the ten domain-local controllers are skipped**: they live at
-  `packages/content/terminus/src/{market,mayfield-row,university-avenue}/idea/cmd/`
-  and `packages/content/eternal-university/src/duncan-hall/idea/cmd/`
-  (ten `.ts`; rows under each pack's `content/world/terminus/**/idea/cmd/`).
-  Their bases `terminus/src/lib/LettingController.ts`,
-  `eternal-university/src/lib/HallController.ts`,
-  `trade-ice/src/lib/IceActController.ts` are skipped too.
-  `BESPOKE_RESOLUTION_CEILING = 1` :182; shapes `FOR_WALK` :227,
-  `CHAIN_WALK` :231, `SPREAD_WALK` :249 (cannot cross a parenthesized
-  cast — `BlowController.ts:92`, `TallyController.ts:105` would be
-  missed), `ALIAS_DECL` :276; `TYPE_TEST` :224; `SURROUNDINGS` :189-205.
-  375 controllers, 1 finding. No test, no fixture.
-- `check-reachability.ts`: `commandViewFiles` :325, `scanSourceLiterals`
-  :356 (walks every pack `src/`); ceilings `PHRASE_SHAPE 6` :837,
-  `ARTICLE_SHAPE 114` :866, `UNNAMEABLE_GOOD 68` :893, `UNCONFERRED 0`
-  :906, `UNDECLARED_ROW 0` :927; test + `scripts/__fixtures__/reachability/`.
-- `check-completion-this.ts`: `COMPLETION_THIS_CEILING = 0` :39 (fails
-  above and below); walks all of `src/mud` and every pack `src/`
-  (:74, :93-103) — sees the ten.
-- `check-object-verbs.ts`: `api/` only (`API_ROOT` :39); holds zero with
-  no constant (:409); `EXEMPT_APIS` :48 (57).
-- `check-controller-rows.ts`: every absolute `controller:` must name a row
-  with `class:`; literal 0 (:106, :116); 373 refs.
-- `check-arg-kinds.ts`: object args must declare `requires:` naming a
-  declared mixin or `any`; 435 args (326 mixin, 109 `any`).
-- `check-mixin-names.ts`: unique literal `_mixinName` (:131-137); a kernel
-  name must be in `Mixins` (:139-140); `requires:`/`default:` tokens must
-  be declared (:92-111). `Mixins` is `lib/mixin.ts:277` (Chattel :413,
-  WaterPlace :472, LoadBearing :526, Metabolic :532, Organization :690,
-  Crafted :659); `MixinRefusals` :897.
-- `check-act-effort.ts`: TS-AST over every literal with `effortW` +
-  `durationMs`; 51 checked, 31 unchecked (`plan.effortW` cannot be
-  evaluated).
+Flat views whose controller writes a book (method, line): `pay`
+(`BankingApi.settle`/`settleSale`), `draw` (`payDraw` :56), `tip`
+(`settle` :70/`transfer` :131), `appoint`/`dismiss`/`apply`/`quit`
+(roster `.appoint`/`.dismiss`/`.quitJob`), `consign` (`recordListing`
+:255), `reclaim` (`removeHolding` :87), `check` (`recordHolding` :104),
+`buy` (`ForSale.sell` :58 → `settleSale`), `sell` (`Stock.buyFrom` :39),
+`order`, `rent`, `fulfill` (`ContractApi.fulfill`), `transfer`
+(`ParcelApi.transfer`), `subdivide` (`ParcelApi.subdivide`), `embody`
+(`issueNote` :791), mining `stake`, `assay` (fee), water `pilot` (fee),
+duncan-hall `provision`/`unprovision`, mayfield `lease`/`unlease`
+(parcel). One level down: `charter` (`Ship.charterTo` :1488), the herd
+verbs (`HerdRegistry`). `collect` writes none. `store.yaml` is the
+model (`StoreBook.ts:16-24` affords; `StoreController` :44-48;
+`book` repeated per subcommand). ⚠ Counting "the controller writes a
+book" over-counts (`assay`, `pilot`, `embody` pay a fee); the gate
+counts **the view's operand is the book** (a `book`/`shelf`/`rack`/
+`organization`/`registry` arg).
 
-### The controller census (heuristic, re-derived)
+### Protocols, probes, presentation, resolution (the folded-in link-1/3 items)
 
-385 controller files = kernel 264 + packs 111 + domain-local 10
-(script and CSV: `/home/bobalu/.claude/jobs/2eb60486/tmp/planner/explore-gates/`
-`census.py`, `controller-census.csv`; regexes recorded there). Kernel /
-packs / world / all: **mutations** 217 / 208 / 15 / 440 (StuffApi
-destruct·clone·create 54, `ContainmentApi.move` 80, `BulkableApi.*` 59,
-foreign `.setX(` 211, foreign field writes 36); **module functions** 142 /
-129 / 4 / 275; **decision tokens** 784 / 547 / 14 / 1,345; **duration
-declarations** 20 / 40 / 0 / 60; **self-resolution** 352 / 52 / 10 / 414
-(`StuffApi.find*` 24, `MqlApi.resolve*` 23, typed surroundings walks 13,
-`.raw` 218, `toLowerCase` 125); **duck probes** 65 / 95 / 5 / 165.
-⚠ Every one of these is a regex count (lint-family.md § *four ways a
-census lies*, 1): the gates' own classifiers in W0 are the numbers of
-record, and this build publishes those, not these.
+- Bare shapes and their hosts: § Fault lines → *Protocol conversions*
+  (`Workable.ts` :147-189; `Pumpable.ts:108`; `Tappable.ts:45` ⚠ at
+  `lib/husbandry/`; `Cuttable.ts` :45-53; `Producing.ts:204` implements
+  Tappable; `TapActController.ts:95-102` already narrows `isProducing`).
+- **The `typeof` probes that narrow a target** (27 controllers in all;
+  the ones a predicate must replace): `CutController :31,:35`;
+  `PumpController :53,:61`; `BailController :65-68` (LiftSource);
+  `DigController :91-92`; `SplitController :60-61`; `SampleController
+  :226` (`sampleFace`: mining `Working.ts:492`, ground `Strata.ts:107`);
+  `SurveyController :341` (`lanesAt`, a catalogue); `TeleportController
+  :513` (TravelNode); `HitchController :202` (`canHitch` → `isHaulable`
+  exists); `TitleController :120,:478` (+ `constructor.name ===
+  'DeedDesk'` :477); `ShootController :259` (`getCalibre`,
+  `Projectile.ts:39`); forestry `TapController :63`; fishing
+  `ReelController :116`; farming `FieldWorkController :84-85`
+  (`isImprovable` covers one); mining `AssayController :417`
+  (`getGrade` — ⚠ `Ore` is `SampledMixin(StackableMixin(Good))`, not
+  Graded), `StakeController :303`, `ShoreController :129`,
+  `DriveController :71` (MineWarren, n/a); ranching `BreedController :59`
+  (`isOrganism` exists), `HandleController :43-44` (`isHandling`
+  exists), `DraftController :386`; smithing `HammerController :208`;
+  smelting `SmeltController :971`; dyeing/textiles
+  `competenceBandFor` ×3 (`isAdvancing` exists). `PutController :245`
+  probes an optional hook on a narrowed Container (fine).
+- The cuts: `SawController` (427 l; `instanceof Sawmill` :134, `Bole`
+  :175/:287/:351), `RiveController` (384; `Bole || Billet` :134),
+  `FellController` (558; the cross-cut arm `instanceof Bole` :157),
+  `ButcherController` (671; `instanceof Corpse` :301/:379), glass
+  `Scribe`/`Snap`/`Groze` (`instanceof Sheet` :24/:34/:39), ice
+  `GrooveController` (⚠ `mark` is now `groove`)/`ScrapeController` over
+  `IceActController.ts:46` (`floor instanceof IceSheet`). ⚠ **None calls
+  `cutPlan`**; `IceSheet` implements `Cuttable` by class (:94, :354).
+  `shear` is a tap, not a cut.
+- `boil`: `heat.yaml:7` `verbs: [heat, boil]`; `HeatController`
+  `boilInPot` :144-196 (`DISINFECT_HOLD_S` :36; `holdAtHeat(WATER_BOIL_K,
+  300, {wet: true})` :188 — nothing checks the pot holds water, the
+  target is never moved in). `Soilable.holdAtHeat` :532-542 →
+  `recordHeat` :544-556 **keeps the hottest single hold, never sums**,
+  and re-runs `killOver` every call. `Thermal.reconcilePhaseImpl` :2251
+  has a boil arm (`boilHeldSeconds` :2384-2414, `purifyIfHeld` :2492/:2625)
+  for the **liquid only**; `enclosingBath` :585-593 sets a body in a pot
+  to the bath's temperature. ⚠ No reconcile stamps the vessel's
+  Soilable contents.
+- `scrub`: `ScrubController` (23 l) extends `WashController` and
+  overrides `effort()` (3 / 1.5) and `act()`; `WashController`
+  `durationMs: WASH_MS * effort` :149/:196, `effortW: effort > 1 ? 350 :
+  200`; `scrub.yaml` has a `brush` slot `wash.yaml` lacks.
+- `_mixinKind` appears in no code. The card's chips come from
+  `CommandLogic.ts` :2137-2143 (`composition: string[]`, types
+  :2264-2269; client `CardBodies.tsx` :574-617 "Interfaces"); Studio's
+  palette `StudioLogic.listMixins` :791-830 (names only;
+  `MixinPaletteEntry.kind: 'mixin'|'base'` types :4605;
+  `scanExportSources` :384-424 already regexes `_mixinName` :400;
+  `describeClass` :597/:616); help mixin topics `HelpCatalogue.ts`
+  :460-476, relations :612-640. ⚠ Nothing at runtime maps a mixin to its
+  composers (`composesMixin` is `scripts/pack-roots.ts:123`, script-only).
+- Resolution: `scope-walk.ts` `scoreCandidate` :417-473 keeps every
+  tier (100 :430, 70 :438, 60 :441-447, 50 :449, 40 :458-462, 25, 10n,
+  5n); `bareName` :478-483; `scoreCandidates` :495-533, `NAME_TIER = 40`
+  :536. ⚠ `NamedMixin` has **no** `getKeywords`; `Perceptible.getKeywords`
+  :154-156 returns authored keywords only; `Exit.getKeywords` is done
+  (`Exit.ts:299-307`). `pushDetails` :368-394 and `pushBulkMaterials`
+  :339-361 still synthesize candidates. Predicates registry
+  `api/mql/predicates.ts:124-130` (living/online/mine/here/visible);
+  `getLooseContents` `Container.ts:515` (guard :524-528);
+  `Slotted.getAllOccupants` :129/:292; the three verbatim filter copies
+  `LookController :211-220`, `SenseController :152-161`, `Container
+  :386-397`.
+- Object-taxonomy: `signatureFromParts` `lib/studio/Blueprint.ts:192-198`
+  (`sort().join`), `findBySignature` `BlueprintCatalogue.ts:75`;
+  collisions `AudibleMixin(Tool)` ×4 (medicine Splint, PrescriptionPad,
+  Syringe; smithing Whetstone), SurgicalKit/SutureKit.
+- Call security: `FromMixin` `SecurityPolicies.ts:411` (marker check
+  :423-424); 32 `FromMixin(` sites; 30 `where: (caller` sites; no
+  `SelfSubject`/`FromIdentity`/`Audited`; `FireLogic.ts:29` has a local
+  `selfSubject`.
+- Mixin file naming: the twelve (§ Fault lines) verified at
+  `Consignment.ts:71/:187`, `Drivable.ts:200`, `Staged.ts:363/:534`,
+  `Utensil.ts:70`, `Tooled.ts:86`, `Disguise.ts:51`, `Register.ts:74`,
+  `reserve.ts:229`, `LoungeMixin.ts:67`, quarrying `Working.ts:223`; a
+  sweep of all 281 factories found no other; `check-mixin-names.ts` has
+  no file-name check.
+- The capability-keyed affordance table: built `b7f48eea0`
+  (2026-07-30), **reversed** by `ff9fd938b` and `85c7d47c5` ("one record
+  of verb affordances", 2026-08-30). Today: the `[capability.X]` atom
+  (`resolver.ts` :1646, :1725-1760), `Tool.capabilities`
+  (`Tooled.ts:105`, `getCapabilities` :173, `hasCapability` :193),
+  `CapabilitySpec` (`ToolCapability.ts:49-57`; header :20-37 "names no
+  verbs"); `command-routing.md` :391-469 forbids the instance record
+  with five reasons; `crafting.md` :455-466; `antipatterns.md:2836`.
+  ⚠ Stale docstring `Tooled.ts:101` still advertises `verbs?`.
 
-### Duck typing (AST, re-derived)
+### The gates and the census (re-measured; all exit 0 today)
 
-302 probed names / 622 sites across 1,973 files (`duck.mjs`,
-`duck-probes.csv`, `duck-report.txt` in the same scratch dir). ⚠ The
-slate's "25 names / 61 sites declared by nothing" does not reproduce:
-**15 names / 24 sites are declared by no class and no interface**, and
-of those only five are method probes on a name nobody defines —
-`beforeRestore` (`lib/location/FloorplanWarren.ts:370`), `setHandling`
-(`trade-apiculture/src/lib/Colony.ts:630`), `grazingDemandPerGameDay`
-(`trade-farming/src/location/Tract.ts:967`), `getFixedInPlace`
-(`trade-mining/.../AssayController.ts:467`), `getVentilated`
-(`trade-mining/src/lib/Working.ts:908`). The rest are data-key `'x' in`
-checks on the archetype record (`lib/archetype/Archetype.ts` :377-612:
-`heatK`, `bulkSource`, `seating`, `presence`, `lightLux`, `vesselKind`),
-a validator-module shape (`CommandLogic.ts` :1219/:1230 `preload`) and the
-thenable test (`then`/`catch`). The marker candidates:
-- `availablePowerW` — classes `energy/src/lib/GridPowered.ts:139`,
-  `trade-carpentry/src/thing/Sawmill.ts:154`,
-  `trade-milling/src/thing/GristMill.ts:101`, kernel
-  `lib/craft/Comminuting.ts:303`; the bare interface
-  `lib/supply/Powered.ts:26`; probes `lib/pump/Pumping.ts:469`,
-  `water/.../PowerReading.ts:83` → **four unrelated definers** ✓.
-- `getReachRef` / `generationW` — classes `water/src/thing/Conduit.ts:232`,
-  `ControlStructure.ts:142` (+ `:232`); probe-local interfaces in
-  `Sawmill.ts:44-45`, `GristMill.ts:43-44`, `WatercourseCatalogue.ts:303`,
-  `PowerReading.ts:62-63`; probes `Sawmill:169-170`, `GristMill:114-128`,
-  `WatercourseCatalogue:1169`, `PowerReading:75-76` → two definers in one
-  pack, probed from **two other packs** that declare no dependency ✓ (P4).
-- `canBeNamedBy` — `lib/description/Named.ts:161/308`,
-  `lib/craft/Crafted.ts:187`, `lib/craft/Assembled.ts:328`; read through
-  casts at `Named.ts:310` and `Crafted.ts:189` → three definers ✓.
-- `getGrade` — eight definers but `GradedMixin` (`lib/craft/Graded.ts:59`)
-  and `isGraded` exist → non-use, not a missing marker.
-- `getSampling` — one mixin (`lib/instrument/Sampled.ts:111`) → a
-  predicate, not a marker. `getCellSize` — one chain
-  (`platform/idea/location/CartesianZone.ts:48` ← `ReachZone`, `SeaZone`)
-  → `instanceof CartesianZone`, not a marker.
-- Predicate-exists non-use: `getContainer` ×8 (`isContainer`),
-  `getQuantity` ×5 (`isStackable`), `getContents` ×2, `getHandling` ×2
-  (`isHandling`), `'organization' in` ×7 (`isOrganization`), `tool` ×2,
-  `store` ×1. `getMass` ×3 has no predicate (`Tangible`, `Creature`,
-  `Coin`, `Rope` define it).
-
-### Mixin persistence and composition (what makes the splits safe)
-
-- Capture writes one slice per layer keyed by that layer's own
-  `_mixinName` (`api/mixin.ts` :920-1000, key :939-945); **restore merges
-  every `{fields}` slice by field name and ignores the key**
-  (`PersistableLogic.ts` :746-762, over `getAllPersistentFields`
-  :853-900). Only `hydrateSlice` layers restore by key (:847-852); none of
-  the five declares one. So old snapshots restore after a split; new
-  snapshots file the moved fields under the new layer's name.
-- The composition exemplar: `lib/material/Alloyed.ts` :69-82 —
-  `class AlloyedMixin extends TemperedMixin(CompositionMixin(Base)) {
-  static _mixinName = 'AlloyedMixin' }` with an explicit
-  `AlloyedClass<TBase>` return type (:76-80 says why: TypeScript
-  inference collapses on a deep chain) and `interface Alloyed extends
-  Composition, Tempered` (:67). `FromMixin` walks the caller's chain for
-  an own `_mixinName` (`SecurityPolicies.ts` :399-433), so the composite
-  must keep the old name static.
-- Hosts: `OrganizationMixin` — `platform/idea/Organization.ts:35`,
-  `platform/idea/Business.ts:397`; `WaterPlaceMixin` —
-  `platform/location/Pool.ts:26`, `Compartment.ts:78`, water pack
-  `Band.ts:59`, `SeaStop.ts:42`, `SeaPatch.ts:36`, `ReachStop.ts:40`,
-  `ReachPatch.ts:60`; `MetabolicMixin` — `lib/creature/Creature.ts:182`;
-  `LoadBearingMixin` — `Creature.ts:153`; `ChattelMixin` —
-  `lib/stuff/Good.ts:74`, `Vessel.ts:81`, `lib/creature/KeptAnimal.ts:113`,
-  `trade-ranching/src/agent/Livestock.ts:99`.
-- Cluster bridges: `eat` → `this.canIngest` (`Metabolic.ts:579`) and
-  `BulkableApi.ingestSolid` (:591, :612); `WaterPlace.pullOut` →
-  `isLoadBearing(puller).getStrainCeiling()` (:642) and `canRise` →
-  `getNetBuoyancyN` (:753); `Chattel`'s made-from is consumed only by
-  `ChattelLogic.derivedTitle` (:307-325) and `ownerOfInputs` (:333-353).
-  ⚠ `Chattel`'s made-from fields are **not persisted** (read once, on
-  arrival — `Chattel.ts:290`, :303); the persisted maker is
-  `CraftedMixin.maker` (`lib/craft/Crafted.ts` :153-161).
+(As in the first plan.) `pack-roots.ts` has no shared controller
+enumerator; `check-instrument-args.ts` :288-311 misses the ten
+domain-local controllers at `<pack>/src/<locality>/idea/cmd/` and the
+`src/lib/*Controller.ts` bases; `KNOWN_COLLISIONS` :93-99 holds
+`lease`/`unlease`/`pour` (⚠ not `drive`); `check-reachability.ts`
+ceilings 6/114/68/0/0; `check-completion-this.ts` 0 both ways;
+`check-controller-rows.ts` 373 refs; `check-arg-kinds.ts` 435 object
+args. Heuristic census over 385 controllers: mutations 440, module
+functions 275, decisions 1,345, duration decls 60, self-resolution 414,
+duck probes 165 (kernel / packs / world split in the first plan's
+table); 52 subcommand/flat-verb pairs (28 words) — one same-act
+(`fight defend`); AST duck census 302 names/622 sites, **five**
+method probes on a name nobody defines (`beforeRestore`,
+`setHandling`, `grazingDemandPerGameDay`, `getFixedInPlace`,
+`getVentilated`).
 
 ### The wire harness
 
-`packages/wire`: `Session.open(handle, {wizard?, startLocation, parcels})`
-(`src/harness/session.ts` :288) over `/auth/test-login`; `cmd(text)` →
-`{status, notes, text, said()}` (:85-105, :620); `query`/`queryOne`
-(:712/:795); `awaitActivity` (:811), `awaitPrompt`/`answerPrompt`
-(:841/:860). Assertions `expectOk`, `expectRefused`, `expectNote(r, kind,
-{reason})` (`assertions.ts` :31-41). Staging endpoints in
-`src/harness/world.ts`: `/auth/test-clock` (:178-212), `/auth/test-hand`
-(:315-328, clones a template into the hands), `/auth/test-weather`,
-`/auth/test-ship`; ⚠ there is no `/auth/test-stage`. `WIRE_PORT` default
-2012 (`boot.ts:37`; this worktree uses 2013). No wire test snapshots an
-envelope today; `.wire/result.json` records per-test state only.
-Exemplars: `ceramics-a.dirty.wire.test.ts` `act()` :135-157 (engagement
-→ clock → `awaitActivity`), `forestry.dirty.wire.test.ts` :168-169
-(`expectNote(…, 'controller-rejected', {reason: 'nothing-ripe'})`).
+`packages/wire` `Session.open` :288, `cmd` :620 → `{status, notes,
+text, said()}`, `query`/`queryOne`, `awaitActivity` :811,
+`awaitPrompt`/`answerPrompt`; `expectNote(r, kind, {reason})`; staging
+`/auth/test-clock`, `/auth/test-hand` :315-328, `/auth/test-weather`,
+`/auth/test-ship` (⚠ no `/auth/test-stage`); `WIRE_PORT` 2012 default
+(this worktree 2013); no test snapshots an envelope.
 
 ### What does NOT exist (so the build does not go looking)
 
-- No `lint:controller-resolution`, `-mutations`, `-decisions`,
-  `-functions`, `-duck-typing`, `-mixin-clusters`, `-subcommand-words`.
-- No shared controller enumerator in `pack-roots.ts`.
-- No plan/complete methods on `Growing`, `Soil`, `Cultivable`, `Vitals`,
-  `Tariff`, `Placing`; no `orderPlanFor`, `treatmentPlanFor`,
-  `harvestPlanFor`, `receivePour` anywhere.
-- No note kind carrying an alternative; no `scope` on `ParsedCommand`.
-- No `toss`, `hurl`, `recite`, `staff` view. (`hurl` is an alias of
-  `throw`.)
-- No pack-level `testOnly`; `testOnly:` is a view key only
-  (`CommandLogic.admitsView` :137-139).
+No `lint:command-views`, `-one-word`, `-mixin-files`,
+`-institution-verbs`, `-duck-typing`, `-controller-*`, `-mixin-clusters`,
+`-subcommand-words`; no shared controller enumerator; no
+plan/complete methods on `Growing`/`Soil`/`Cultivable`/`Vitals`/
+`Tariff`/`Placing`; no `orderPlanFor`/`treatmentPlanFor`/
+`harvestPlanFor`/`receivePour`/`cutPlan` on the sweep's targets; no
+note kind carrying an alternative; no `scope` on `ParsedCommand`; no
+`do`, `unwind`, `recite`, `drift.yaml`; no `category:` on any view; no
+`prepositionRequired`; no `_mixinKind`; no `isTravelNode`,
+`isPumpable`, `isSplittable`, `isCuttable`; no `NamedMixin.getKeywords`;
+no `:loose`/`:worn`/`:carried` predicates; no reserved `--strict`; no
+`SelfSubject`; no `OnCallMixin`, `MadeFromMixin`, `HaulOutMixin`,
+`EatingMixin`, `BuoyantMixin`.
 
 ---
 
 ## ⭐⭐ New substrate
 
-Each cites its ledger row (the slate's *Reuse ledger for the plan*) or
-says *genuinely new* and what was searched.
+Each cites the slate's reuse-ledger row, a folded-in source, or says
+*genuinely new* and what was searched.
 
-| kind | name | ledger row / status |
+| kind | name | ledger / source |
 |---|---|---|
-| field | `ParsedCommand.scope?: string` | ledger "`@` in the command line" — generalizes the tokenizer; no new type |
-| note kind | `other-offer { verb, source: StuffRef, scopedForm }` | ledger "telling the player the other offer exists" — generalizes the note kinds; a new kind because kinds are per-kind-frozen |
-| note reasons | `command-rejected.reason` += `source-not-found`, `source-affords-nothing` | same row |
-| method | `CommandGiver.matchAffordances(parsed)` | ledger "narrowing the affordances to one source" — generalizes `_runChain`; shared with `Interpreter.bindCommand` (it exists twice today) |
-| assemble option | `CommandApi.assemble(…, {scopeSource})` | same row; the binder's `default:` machinery, per invocation |
-| mixins (split halves) | `StaffedMixin`, `OnCallMixin`, `WaterStateMixin`, `HaulOutMixin`, `DigestingMixin`, `EatingMixin`, `CarryingMixin`, `BuoyantMixin`, `ChattelTitleMixin`, `MadeFromMixin` | ledger "a split mixin keeping its old name" — the `Alloyed` composition shape; ten `Mixins` entries |
-| protocol mixins (markers) | `PoweredMixin` (from the bare `lib/supply/Powered.ts` interface), `WaterPoweredMixin` (`getReachRef`, `generationW`), `NameTakingMixin` (`canBeNamedBy`) | ledger "a registered marker mixin" — each has ≥2 unrelated definers and a by-name probe (§ Grounding → Duck typing) |
-| protocol mixin | `PourTargetMixin` (`receivePour(req)`), hosts `BulkableMixin` and `ManualBuildMixin` | ledger "`pour` as one act" — rung 1; earned by two unrelated hosts |
-| type change | `ActRefusal`/`ActPlan`/`ActOutcome` lose `line`/`beginSelf`/`beginPeers`; `ActOutcome<F>` carries facts; a reason union per act | ledger "an act's plan, refusal, outcome" — generalizes; same file `lib/craft/ActPlan.ts` (moving it is a sweep, not this build) |
-| classes | ~75 per-subcommand controllers + 10 noun bases; `FightGambitController` + 7; `TossController`, `HurlController`, `ReciteController`; `HarvestWordedController` (the doctrine exemplar); the `staff` controllers | ledger "a subcommand with its own controller" (cockpit/house/trace shape) and "an alternate controller for one verb" |
-| rows | one `<Name>Controller.yaml` per new controller in `packages/content/platform/content/platform/idea/cmd/<cat>/` | `lint:controller-rows` requires them |
-| gates | `check-duck-typing.ts`, `check-controller-resolution.ts` (absorbs `check-instrument-args.ts`), `check-controller-mutations.ts`, `check-controller-decisions.ts`, `check-controller-functions.ts`, `check-mixin-clusters.ts`, `check-subcommand-words.ts`; `pack-roots.controllerFiles()` | ledger "count-only-falls gates" — the `object-verbs`/`instrument-args` pattern |
-| wire | `packages/wire/tests/controllers-are-io.dirty.wire.test.ts` + the committed baseline JSON | ledger "the before/after record" |
-| Api / hook / registry / document kind | **none** | — |
+| field | `ParsedCommand.scope?: string` | ledger "`@` in the command line" |
+| note kind | `other-offer { verb, source: StuffRef, scopedForm }` | ledger "telling the player the other offer exists" — a new kind because kinds are per-kind-frozen |
+| note reasons | `command-rejected.reason` += `source-not-found`, `source-affords-nothing`, `needs-input` (script-interaction: the missing input named in `detail`) | same row; script-interaction slate |
+| method | `CommandGiver.matchAffordances(parsed)` | ledger "narrowing the affordances to one source"; shared with `Interpreter.bindCommand` |
+| assemble options | `{scopeSource}`; the reserved `--strict`/`--loose` beside `reservedAsync` | ledger; explicit-targeting (`onFiltered` shipped, the override is its stated tail) |
+| view keys | `category:` (required, = directory); `defaultAliases: [{name, description?}]`; `prepositionRequired: true` on a positional | command-taxonomy item 2; the shell-alias defaults tier re-homed (D16); *genuinely new* — searched `command.schema.json`, `bindPositionals` :2560-2847 |
+| mixins (carved halves) | `OnCallMixin`, `HaulOutMixin`, `EatingMixin`, `BuoyantMixin`, `MadeFromMixin` | ledger "a split mixin"; the Attired precedent — five `Mixins` entries; the five originals keep their names |
+| protocol mixins | `SplittableMixin`, `PumpableMixin`, `CuttableMixin`, `PumpSourceMixin`, `LiftSourceMixin`, `TravelNodeMixin` (from bare shapes); `PoweredMixin`, `WaterPoweredMixin`, `NameTakingMixin` (from the duck census); `PourTargetMixin` (rung 1 for `pour`) | verb-interfaces § bare shapes (each ≥2 kinds of host); ledger "a registered marker mixin"; ledger "`pour` as one act" |
+| mixin static | `static _mixinKind = 'protocol'` on every protocol mixin; `composition` becomes `{name, kind}[]`; `MixinPaletteEntry.kind` gains `'protocol'` | verb-interfaces § 2 |
+| MQL predicates | `:loose`, `:worn`, `:carried` | mql-predicate-parity |
+| methods on existing mixins | `NamedMixin.getKeywords` (name + bare form), `DetailedMixin.getKeywords` (detail ids), `BulkableMixin.getKeywords` (held material), `PricedOfferMixin.orderPlanFor`, `VitalsMixin.treatmentPlanFor`, `GrowingMixin.harvestPlanFor`, `SoilMixin.sowPlanFor`/`harvestPartFor`, `CultivableMixin.plantPlanFor`, `PlacingMixin.placementFor`, `SlottedMixin.openSlotFor`, `Combatant.deliverThrown`, `TanningMixin.onLiftedFrom`, `Cocoons.planUnwind`/`completeUnwind`, `Soilable.holdAtHeatFor(K, enteredAtS)` (D8c) | one-resolution §§ 4–5; the kernel acts |
+| type change | `ActRefusal`/`ActPlan`/`ActOutcome` lose `line`/`beginSelf`/`beginPeers`; facts + a reason union per act; `Workable`'s `WorkPlan` converges on it | ledger "an act's plan, refusal, outcome" |
+| `AffordanceEntry` | `+ validator?`, `+ missing?: string` on a disabled row | affordance-suggestion |
+| security | `SecurityPolicies.SelfSubject(argIndex)` (the hoist of the 30 `where: (caller…` self-subject clauses) | call-security-pass; `FireLogic.ts:29` is the local precedent |
+| studio | the blueprint signature folds the afforded view set | object-taxonomy |
+| classes | ~80 per-subcommand controllers + 10 noun bases; `FightGambitController` + 7; `ThrowToController`, `ThrowAtController`, `ReciteController`, `DoController`, sericulture `UnwindController`; `WearController`, `WieldController`, `RemoveController`, `UnwieldController`, `AscendController`, `ScoreController` (+ bases); `HarvestWordedController` (the doctrine exemplar) | ledger "a subcommand with its own controller"; the decouple branch |
+| rows | one `<Name>Controller.yaml` per new controller | `lint:controller-rows` |
+| gates | `check-command-views.ts` (schema), `check-one-word.ts`, `check-mixin-files.ts`, `check-institution-verbs.ts`, `check-duck-typing.ts`, `check-controller-resolution.ts` (absorbs `instrument-args`), `check-controller-mutations.ts`, `check-controller-decisions.ts`, `check-controller-functions.ts`, `check-mixin-clusters.ts`, `check-subcommand-words.ts`; `check-verb-collisions.ts` learns disjoint shapes; `pack-roots.controllerFiles()` | ledger "count-only-falls gates"; command-taxonomy items 3, 5; the disjointness rule *genuinely new* |
+| wire | `controllers-are-io.dirty.wire.test.ts` + the committed baseline JSON | ledger "the before/after record" |
+| Api / hook / registry / document kind | **none** (`onContainableRemoved` exists; `RecipeKnowledge` moves, not minted) | — |
 
-Searched and rejected: a `RemedyMixin` for `treat` (one host, Dressing —
-a property wearing a verb's clothes); a `ServiceMixin` for `order`
-(`PricedOfferMixin` is already the provider shape, so it gains a method);
-a central act registry (⛔ rejected by the owner, verb-interfaces slate).
+Searched and rejected: a `RemedyMixin` for `treat` (one host); a
+`ServiceMixin` for `order` (`PricedOfferMixin` is the provider); a
+`DiggableMixin`, `CutPlannerMixin`, `ReelableMixin` (one host each — a
+property of its host); a `StaffMixin`/`staff` noun (the business's books
+already have a noun, `house`); the capability-keyed affordance table
+(§ Requirements disagreement 1); a central act registry (⛔ owner).
 
 ---
 
@@ -646,678 +637,735 @@ a central act registry (⛔ rejected by the owner, verb-interfaces slate).
 
 ### D1 — `@` splits in the tokenizer; `format()` re-emits it; aliases carry it
 
-- `CommandLineLogic.parsePipelineImpl` (:305-325): after `classify`, if
-  `rawTokens[0]` is a word whose value has `@` at an index **greater than
-  0**, then `verb = value.slice(0, i)` and `scope = value.slice(i + 1)`
-  (the first `@`; MQL has no `@`). The raw token is left intact, so
-  `formatCommand` (:264) already round-trips byte-for-byte. `format()`
-  must also handle a synthesized command whose token 0 lacks the `@`
-  (after alias expansion): when `cmd.scope` is set and token 0 contains
-  no `@`, emit `${token0}@${quoteIfNeeded(scope)}` — `parsePipeline`
-  re-splits it. The round-trip property is unchanged and gets a test.
-- A token whose `@` is at index 0 (`@bob hi`) is not split (unknown verb,
-  as today). The split touches **only the verb token**; `say hi @bob`
-  has `@` in token 2 and is never looked at — this is the whole guarantee,
-  and it is a tokenizer unit test (`say hi @bob`, `say@me hi @bob`,
-  `@bob hi`, `wind@"pocket watch"`, `pour@me:flask into glass`).
-- Multi-word scopes are quoted with `"`: `wind@"pocket watch"`. ⚠ The
-  requirements' `wind@'pocket watch'` uses `'`, which the tokenizer treats
-  as a literal (apostrophes in chat); see *Requirements disagreement*.
-- **Aliases.** `ShellLogic.expandAliases` (:88-113) looks up `parsed.verb`
-  (now bare) and rebuilds the command; the invocation's `scope` is copied
-  onto the result after `expandRecursive` and after `stripBypassPrefix`
-  (an alias body may carry its own `@`; the invocation's scope wins —
-  `w@watch` with `w → wind $@` yields `wind@watch`). `\wind@watch` bypasses
-  the alias and keeps the scope.
-- The input echo (`_emitInputEcho`) and `CardLogic` need nothing: both go
-  through `format`.
+`CommandLineLogic.parsePipelineImpl` (:305-325): after `classify`, if
+`rawTokens[0]` is a word with `@` at an index > 0, `verb` = the part
+before the first `@`, `scope` = the rest; the raw token is untouched so
+`formatCommand` (:264) round-trips. `format()` of a synthesized command
+whose token 0 lacks `@` but whose `scope` is set emits
+`${token0}@${quoteIfNeeded(scope)}`. A leading `@` is not a split. Only
+the verb token is ever looked at — `say hi @bob` is untouched (a
+tokenizer test for the five forms). Multi-word scopes are quoted with
+`"` (`wind@"pocket watch"`). `ShellLogic.expandAliases` (:88-113) copies
+the invocation's `scope` onto the result after `expandRecursive` and
+`stripBypassPrefix`; the invocation's scope wins over one in an alias
+body.
 
-### D2 — source-filter semantics, the source fills its slot, cardinality, batch
+### D2 — source filter, the source fills its slot, cardinality, batch
 
-- **Resolution.** In `CommandGiver.matchAffordances(parsed)` (new, shared
-  with `Interpreter.bindCommand`): if `parsed.scope` is set, resolve it
-  with `MqlApi.resolveMany(scope, ctx)` using the same `MqlContext` the
-  binder builds for a `scope: [reachable]` object arg (a bare word walks
-  reach; `me`, `here`, `#id`, chains and `all` are MQL's own). Sync.
-- **Which affordances count as "from" a source `s`:** `a.source === s`,
-  **or** `s === giver && a.bucket === 'self'` (a catalogue pushed on the
-  giver's `self` bucket — spells, the advancement catalogue — is the
-  giver's own; `cast@me` means your casting). A mixin's contributions are
-  its host's, so "the object's own" and "its mixins'" are one thing. A
-  room's `environment`/`inventory` contributions are the room's
-  (`here@…` works). Shadow sources are their own Stuff and are not `me`.
-- **Zero matches** → `command-rejected { reason: 'source-not-found',
-  detail: scope }`, prosed by the dispatcher ("You see no 'nonsense' to
-  do that with."). **Matches but none affords the verb** →
-  `command-rejected { reason: 'source-affords-nothing' }` ("The pocket
-  watch offers no `say`."). Both fail closed and loud (P3).
-- **Several match.** Feed them to `CommandApi.applyCardinalityPolicy`
-  (ledger) with spec `{type: 'object', onExcess: 'prompt'}`, `fname:
-  'source'` and the `how` the binder derives from the desugared query
-  (`isSet`, `quantity`; the derivation is factored out of the resolve
-  sites in `CommandLogic` ~:1480-1580 into one logic method). An
-  interactive giver is asked "which watch?"; a script or NPC gets the
-  `cardinality:ambiguous` refusal and never waits (Q5). A scope that
-  declared plurality (`all watches`, `3 watches`) returns the set →
-  **batch**: `_runChain` runs the chain once per source in order, each
-  with its own attempt ctx (`commandSource` = that source), and folds
-  every attempt's notes onto the outer ctx, which becomes the one
-  envelope. Scenes are each controller's own, as today.
-- ⭐ **The source fills the slot it fits.** `CommandApi.assemble(parsed,
-  command, {…, scopeSource})`: for the **first** positional object arg
-  whose `requires:` the source satisfies — (a) if the line typed nothing
-  for it, the source is bound to it (as a per-invocation `default:
-  "#<stuffId>"`, the binder's own mechanism); (b) if the line typed a
-  word for it and the source is among that word's matches, the source
-  wins the slot (the scope resolves the ambiguity in its favor); (c) if
-  the typed word matches things and not the source, typed words win and
-  bind normally. This is what makes `wind@me:watch` wind the carried
-  watch (the view's `target` is required, `wind.yaml:13-17`),
-  `wind@all watches` wind each, and `pour@me:flask into glass` pour from
-  the flask. `say@me hello` and `set@watch 4:00` have no object slot and
-  are unaffected. Lens 1: the thing you scoped to is the thing you mean —
-  derivable, one rule. ⚠ This is the decision the owner may not expect;
-  without it drive steps 1–3 cannot pass as written.
-- An unscoped command is byte-identical to today: `scope === undefined`
-  short-circuits every branch above.
+In `CommandGiver.matchAffordances(parsed)` (shared with
+`Interpreter.bindCommand`): resolve the scope with
+`MqlApi.resolveMany(scope, ctx)` using the binder's own `MqlContext`
+for a `scope: [reachable]` arg (sync). An affordance is *from* `s`
+when `a.source === s`, or `s === giver && a.bucket === 'self'` (a
+catalogue pushed on the giver's self bucket is the giver's own —
+`cast@me`). Zero matches → `command-rejected: source-not-found`; matches
+but none affords the verb → `source-affords-nothing`; both prosed by the
+dispatcher. Several matches → `applyCardinalityPolicy` with `{type:
+'object', onExcess: 'prompt'}` and the binder's `how` (`isSet`,
+`quantity`, factored out of the resolve sites); a script or NPC gets the
+`ambiguous` refusal and never waits; a scope that declared plurality
+(`all watches`) is a **batch**: `_runChain` runs once per source, each
+its own attempt ctx, the notes folded onto the outer ctx (one envelope).
+⭐ **The source fills the slot it fits** (`assemble(…, {scopeSource})`):
+for the first positional object arg whose `requires:` the source
+satisfies — (a) nothing typed → the source is bound (a per-invocation
+`default: "#<id>"`); (b) a typed word that matches the source → the
+source wins the slot; (c) a typed word that does not → typed words win.
+`wind@me:watch` winds the carried watch (`wind.yaml:13-17` requires a
+target); `say@me hello` has no slot and is unaffected. Unscoped commands
+are byte-identical to today. (Stands — owner, 2026-11-06.)
 
-### D3 — the other offer: one new note, worded by the dispatcher
+### D3 — the other offer
 
-- **Detection.** In `_runChain`, after the chain settles on a refusal —
-  a field `validator-failed` that stood (`firstRefused`) or a
-  `controller-rejected` note on the claiming attempt — probe every
-  remaining match for the same verb whose `source` differs from the one
-  that answered: `assemble` (with `scopeSource` = that source, so the
-  source fills its slot), `resolveModel` with `interactive` stripped (a
-  prompt can never fire from a probe; an ambiguity counts as "would not
-  take"), `preloadValidatorDeps`, `runValidators`. The first that passes
-  is the other offer. Bounded by the handful of same-verb affordances;
-  runs only on refusals.
-- **The note.** `other-offer { verb, source: StuffRef, scopedForm }`
-  (new kind in `packages/types/src/index.ts`, appended to the `Note`
-  union; `docs/subsystems/response-envelope.md` gains its row and the
-  count becomes 30). Emitted on the claiming ctx; **prosed by the
-  dispatcher** in `proseForFrameworkNote` — it is a dispatcher fact, not
-  a controller's: *"The wheat on the far bed also answers `harvest` —
-  `harvest@here:2nd wheat`."* The controller's own refusal words are
-  untouched (lens 2: the controller owns its wording, the dispatcher owns
-  the chain's).
-- **The scoped form** is derived by one rule, never authored: `me` when
-  the source is the giver; `me:<handle>` when the giver's container chain
-  holds it; `here:<handle>` when the location holds it; `<handle>`
-  otherwise — `handle` being the presentation's handle form
-  (`presentation.md`). When that form resolves to more than one thing,
-  the ordinal of this source in the resolved order is prefixed
-  (`2nd wheat`), which the binder's natural-language layer already reads
-  (`mql-grammar.md` :665). The generator proves its own form by resolving
-  it once.
-- "Would have taken the line" is a **binder** fact (its view binds your
-  words); the note says *also answers*, not *would have succeeded* — the
-  controller is never run speculatively.
+After the chain settles on a refusal (a standing field `validator-failed`
+or a `controller-rejected` on the claiming attempt), probe every
+remaining same-verb affordance from a different source: `assemble` with
+that source as `scopeSource`, `resolveModel` with `interactive`
+stripped, preloads, validators. The first that passes is the other
+offer: `other-offer { verb, source, scopedForm }`, prosed by the
+dispatcher (*"The wheat on the far bed also answers `harvest` —
+`harvest@here:2nd wheat`."*). The scoped form is derived by one rule
+(`me` / `me:<handle>` / `here:<handle>` / `<handle>`, with the ordinal
+when still ambiguous — the binder's own natural-language layer) and
+proved by resolving it once. "Also answers" is a binder fact; the
+controller is never run speculatively.
 
 ### D4 — one outcome convention; the words come off the object
 
-`lib/craft/ActPlan.ts` becomes:
-
-```ts
-export interface ActRefusal<R extends string = string> { ok: false; reason: R; facts?: Readonly<Record<string, unknown>> }
-export interface ActPlan<F = unknown> { ok: true; durationMs: number; effortW: number;
-  onComplete: () => ActDone<F> | Promise<ActDone<F>>; onAbort?: (reason: AbortReason) => void }
-export type ActDone<F = unknown> = ActOutcome<F> | ActRefusal;
-export interface ActOutcome<F = unknown> { ok: true; facts: F }
-```
-
-- No `Mml`, no `line`, no `beginSelf`/`beginPeers`. Each protocol file
-  declares its reason union beside its request type (`type CarveRefusal =
-  'too-hard' | 'no-stock' | …`) and its facts type; a controller's wording
-  is a `switch` over the union with an exhaustiveness `never` arm, so an
-  unmapped reason fails `tsc`, not the player.
-- `ManualBuildController.engagePlan(context, plan, words)` takes the
-  controller's words: `{ beginSelf: Mml, beginPeers?: Mml, onRefused:
-  (r: ActRefusal) => Mml, onDone?: (facts) => { self: Mml, peers?: Mml } }`.
-  The late-refusal path (:162) sends `words.onRefused(out)`. `declineStep`
-  and `turnDown` take a reason and the controller's own line, as now.
-- `engageAct` (`EngagedActController`) gains the same `plan` overload so
-  Harvest/Plant can hand an `ActPlan` straight through; `cost` (felt %)
-  stays for the ground verbs that still use it. The object computes
-  `effortW` with `actor.wattsForFeltCost(cost, durationS)` where it used
-  to pass a cost (Harvest's 6, Plant's 5), so the body spends the same.
-- Credit: an outcome's facts may carry `credit?: {discipline,
-  difficulty}`; `engagePlan`/the controller records the deed. (The
-  `Workable` vocabulary is **not** converted here — deferred, see
-  § Deferred seams.)
-- Every implementer in § Grounding → *Implementers that build `line:`*
-  is rewritten: each `line:` becomes a `reason` from the file's union
-  (facts where the sentence used a number — the hand, the mass, the
-  count); each consuming controller gains the `switch` with the verbatim
-  former words. Pack implementers compile against the kernel type and
-  must change in the same wave; every touched pack's vitest runs.
+`lib/craft/ActPlan.ts` becomes `ActRefusal<R> {ok:false, reason: R,
+facts?}`, `ActPlan<F> {ok:true, durationMs, effortW, onComplete: () =>
+ActDone<F>, onAbort?}`, `ActOutcome<F> {ok:true, facts: F}`. No `Mml`
+anywhere. Each protocol file declares its reason union and facts type; a
+controller's wording is an exhaustive `switch` (a `never` arm).
+`ManualBuildController.engagePlan(context, plan, words: {beginSelf,
+beginPeers?, onRefused, onDone?})`; `EngagedActController.engageAct`
+gains the plan overload. `Workable`'s `WorkPlan`/`WorkRefusal`
+(`kind`/`prose`/`cost`) converge on the same shape (`dig`/`split`/`hew`
+and the tap verbs word their own prose) — this closes the "second plan
+vocabulary". `fit`'s `pasteOn` and `StrikingDie.strikeWith` take the
+shape too. Every implementer in § Grounding rewrites `line:` →
+`reason`; every consuming controller gains the `switch` with the former
+words verbatim. Credit rides the outcome's facts (`credit?`).
 
 ### D5 — durations and effort move with the act
 
-For the verbs in scope: Harvest and Plant's inline durations and costs,
-Order's `12000` bath and the transfusion duration, crafting Pour's
-`POUR_MS`/`150` and bulk Pour's `WATCH_EFFORT_W` move into the objects'
-plans (D11, D12). `lint:controller-decisions` counts the rest (the 52
-constants) and they fall with the pack burn-down. Acceptance: the drive
-record's `engagement-started.duration` per step is equal before and
+Harvest/Plant's inline durations and felt costs, Order's bath and
+transfusion, crafting Pour's `POUR_MS`/`150`, bulk Pour's watch effort,
+`WASH_MS × effort` (now `--hard`), move into the objects' plans; the
+object converts a felt cost with `actor.wattsForFeltCost`. The remaining
+constants are counted by `lint:controller-decisions`. Acceptance: the
+baseline's `engagement-started.duration` per step is equal before and
 after.
 
-### D6 — the five mixin splits (the host table is in § Host placement)
+### D6 — the five splits, each half on its honest hosts
 
-Names and contents are in § Fault lines. Rules the build follows for each:
+§ Fault lines gives the table. Rules: the original idea keeps the name
+and the file; the later-added idea leaves to a new file named for it;
+no composite; the carved half composes on its honest hosts only
+(`OnCall` → `BusinessMixin`; `MadeFrom` → `Good`, `Vessel`; `HaulOut`,
+`Eating`, `Buoyant` → the same hosts as their originals, because every
+host is honestly both); every `isX`/`FromMixin`/`findByMixin` site that
+reads a carved member narrows on the new predicate (the sites are
+listed in the table); `Mixins` gains five names; persisted field names
+unchanged (restore is key-agnostic, `PersistableLogic.ts` :746-762). A
+unit test per split: capture a host, materialize a fresh one, read every
+persisted field back; and the Attired-style invariant (*a government is
+Organization and NOT OnCall; a cow is Chattel and NOT MadeFrom*).
+`lint:mixin-clusters` 45 → 40.
 
-1. Two new files beside the old (`lib/employment/Staffed.ts` +
-   `OnCall.ts`; `lib/location/WaterState.ts` + `HaulOut.ts`;
-   `lib/metabolism/Digesting.ts` + `Eating.ts`;
-   `lib/encumbrance/Carrying.ts` + `Buoyant.ts`;
-   `lib/chattel/ChattelTitle.ts` + `MadeFrom.ts`), each a proper mixin
-   (`_mixinName`, interface, IS/IS-NOT docstring, `fieldMeta` for the
-   fields it carries, `commandContributions` for the views it affords).
-2. The old file keeps its factory and interface and becomes the
-   composition (`Alloyed.ts` :69-82 shape, with the explicit return type):
-   `interface Organization extends Staffed, OnCall`;
-   `OrganizationMixin = class extends OnCallMixin(StaffedMixin(Base)) {
-   static _mixinName = 'OrganizationMixin' }`. `isX`, `FromMixin`,
-   `findByMixin`, `requires:` and every content row keep working; no
-   content moves.
-3. Persisted field names are unchanged; a split only changes the capture
-   slice's key, and restore is key-agnostic (§ Grounding). A unit test per
-   split captures a host, materializes a fresh one, and reads every
-   persisted field back equal.
-4. `Mixins` gains the ten names; `MixinRefusals` only where a view's
-   `requires:` names a half (none planned).
-5. `EatingMixin`'s base type is `MixinConstructor<Stuff & Digesting>`
-   (`eat` calls `this.canIngest`); `CarryingMixin` imports
-   `NEUTRAL_DENSITY_KG_M3` from `Buoyant.ts`; `HaulOutMixin` keeps its
-   `MixinApi.isLoadBearing(puller)` read (a cross-mixin read through the
-   predicate — not a bridge).
-6. `Organization`'s third cluster (`name`, `getName`, `setName`,
-   `presentationPhrase`) rides `StaffedMixin` — the chart carries the
-   organization's name. ⚠ Judgment, not a split: the requirements name
-   two ideas.
+### D7 — markers (D7a) and mixin files (D7b)
 
-### D7 — markers: three minted, five fixed, the rest replaced
-
-- **Mint** (≥2 unrelated definers + a by-name probe): `PoweredMixin`
-  (`lib/supply/Powered.ts` — the existing bare interface becomes the
-  protocol mixin; hosts `GridPoweredMixin`, `ComminutingMixin`, `Sawmill`,
-  `GristMill`; probes at `lib/pump/Pumping.ts:469` and
-  `water/.../PowerReading.ts:83` become `MixinApi.isPowered`);
-  `WaterPoweredMixin` (`lib/supply/WaterPowered.ts`: `getReachRef(): string
-  | null`, `generationW(): number`; hosts `water` `Conduit`,
-  `ControlStructure`; the probe-local `PowerTake`/`Generator` interfaces in
+- **D7a.** Mint `PoweredMixin` (from the bare `lib/supply/Powered.ts`;
+  hosts `GridPoweredMixin`, `ComminutingMixin`, `Sawmill`, `GristMill`),
+  `WaterPoweredMixin` (`getReachRef`, `generationW`; hosts water
+  `Conduit`, `ControlStructure`; the probe-local interfaces in
   `Sawmill.ts`, `GristMill.ts`, `WatercourseCatalogue.ts`,
-  `PowerReading.ts` are deleted and replaced by `isWaterPowered`);
-  `NameTakingMixin` (`lib/description/NameTaking.ts`: `canBeNamedBy`;
-  composed by `Named`, `Crafted`, `Assembled`; the casts at `Named.ts:310`,
-  `Crafted.ts:189` become `isNameTaking`). Each is presented as the verb
-  or question it serves (verb-interfaces § 2) — a one-line docstring,
-  nothing more this build.
-- **Fix the five dead names** (⛔ `?.()` on a name nobody defines):
-  `beforeRestore` (`FloorplanWarren.ts:370`), `setHandling`
-  (`Colony.ts:630`), `grazingDemandPerGameDay` (`Tract.ts:967`),
-  `getFixedInPlace` (`AssayController.ts:467` — `Containable` has
-  `fixedInPlace`), `getVentilated` (`Working.ts:908`). Each is either
-  wired to the method that exists or deleted with its dead branch; the
-  build records which, per site, in the W2 commit.
-- **Type, don't probe:** the archetype record's `'x' in` keys get an
-  interface (`Archetype.ts` :377-612); the validator module shape
-  (`CommandLogic.ts` :1219/:1230) gets a type; the thenable tests
-  (`then`/`catch`) are the gate's one allowlisted idiom.
-- **Replace where a predicate exists:** `getContainer` ×8, `getQuantity`
-  ×5, `getContents` ×2, `getHandling` ×2, `'organization' in` ×7, `tool`,
-  `store`; `getGrade` → `isGraded` (a definer that does not compose
-  `GradedMixin` is a finding, recorded, not papered); `getSampling` →
-  `isSampled` (add the predicate if absent); `getCellSize` →
-  `instanceof CartesianZone` (a kernel class, importable by packs).
-  `getMass` stays a finding (four unrelated definers, no mixin — a
-  `MassiveMixin` is a question for the mass gate's owner, not this build).
+  `PowerReading.ts` deleted), `NameTakingMixin` (`canBeNamedBy`; hosts
+  `Named`, `Crafted`, `Assembled`). Fix the five dead names (wire or
+  delete, recorded per site). Type the archetype record and the
+  validator-module shape; allowlist the thenable idiom. Replace the
+  probes a predicate already covers (`getContainer` ×8, `getQuantity`
+  ×5, `getContents`, `getHandling`, `'organization' in` ×7, `tool`,
+  `store`; `getGrade` → `isGraded` — ⚠ `Ore` must compose `GradedMixin`
+  or the probe stays a finding; `getSampling` → `isSampled`;
+  `getCellSize` → `instanceof CartesianZone`). `getMass` stays a finding.
+- **D7b.** `lint:mixin-files`: a factory `FooMixin` lives in `Foo.ts`
+  (kernel `lib/**`, `world/**`, every pack `src/lib/**`); ceiling = the
+  W0 census (12 on master; 11 if water-supply's `Throttleable` lands
+  first) → 0 at W3. The twelve moves are in § Fault lines; importers
+  (`ToolMixin` 28, `ReservedMixin` 62) are mechanical re-paths; B4 — grep
+  content for any template `class:` that names a moved file (none
+  expected: mixins are never instanced).
 
-### D8 — seven gates, census then ratchet, every controller file counted
+### D8 — bare verb shapes → protocol mixins; presentation; the cuts; `boil`; `scrub`; `affords`
 
-- `pack-roots.controllerFiles()` (new): kernel
-  `src/mud/platform/idea/cmd/**/*Controller.ts` + every file
-  `packSrcFiles(srcDir)` returns whose name ends `Controller.ts` (this
-  reaches `src/<locality>/idea/cmd/` and `src/lib/*Controller.ts`).
-  `check-instrument-args.ts` and `check-completion-this.ts` are refitted
-  onto it (completion-this already saw the ten; its count must not move).
-- Each gate: a ceiling constant = its own W0 census; fails above, logs
-  below; `--advisory` prints the full table; a test under
-  `scripts/__tests__/` with fixtures asserting a **positive** finding
-  (lint-family.md lesson 3), and the invariant *at or below the ceiling,
-  above zero* (lesson 2). `docs/lint-family.md` gets one entry per gate.
-  The family picks them up with no list edit.
+- **D8a. The earned test, applied** (§ Fault lines → *Protocol
+  conversions*): six conversions (`Splittable`, `Pumpable`, `Cuttable`,
+  `PumpSource`, `LiftSource`, `TravelNode`), three demotions
+  (`Diggable`, `CutPlanner`, `Reelable`), one deletion (`Tappable` — it
+  is `Producing`). Every conversion: `_mixinName`, `_mixinKind =
+  'protocol'`, the method with a refusing default, the IS/IS-NOT
+  docstring, a `Mixins` entry, `MixinApi.isX`; the view's `requires:`
+  names it (each moves an `any` off `lint:arg-kinds`); the controller
+  narrows on the predicate. The eleven other target-narrowing `typeof`
+  probes: `SampleController :226` → `SampledFaceMixin`? no — one chain
+  (`Working`/`Strata`) → a kernel method on `GroundMixin`;
+  `SurveyController :341` (a catalogue, not a target) → typed import;
+  `TitleController :120/:478` → `isPlatBook`/`instanceof DeedDesk`;
+  `ShootController :259` → `isProjectile`; `FieldWorkController :84-85`
+  → `isImprovable` + `instanceof Tract`; `AssayController :417` →
+  `isGraded` (after `Ore` composes it); `StakeController :303` →
+  `instanceof ClaimsRegister`; `BreedController :59` → `isOrganism`;
+  `HandleController :43-44` → `isHandling` + `instanceof`;
+  `DraftController :386` → `instanceof Herdbook`; `HammerController :208`
+  → `instanceof Bloom`; `SmeltController :971` → `instanceof Ore`; the
+  three `competenceBandFor` → `isAdvancing`. `MineWarren` probes stay
+  (not a Stuff target).
+- **D8b. Presentation.** `composition` → `{name, kind}[]`
+  (`CommandLogic.ts` :2137-2143; types :2264-2269; `CardBodies.tsx`
+  renders protocol chips as *answers: turn · dip* beside the noun
+  chips); Studio's palette gains `kind: 'protocol'` via the export scan
+  (`scanExportSources` :384-424 regexes `_mixinKind` as it does
+  `_mixinName`); `help <verb>` lists *answers:* — the view's `requires:`
+  mixins and, under each, the classes that compose it, read **lazily**
+  from `StudioLogic`'s export scan (runtime, cached; load on use, no
+  build artifact and no boot entry). `help turn` lists who answers
+  `turn`. Drive 25.
+- **D8c. The cuts sweep and `boil`.** `CuttableMixin.cutPlan(req)` on
+  `Bole`, `Billet`, `Corpse`, glass `Sheet`, `IceSheet` (by mixin now),
+  `Rope`, `SugarLoaf`; the seven cut controllers become I/O over it
+  (their `instanceof` arms move into each host's `cutPlan`). **The line:**
+  only the cut's decision moves; those packs' other mutations/decisions
+  are the pack burn-down's. `boil`: the vessel's thermal reconcile, in
+  its boil arm (`Thermal.ts` ~:2603-2625), stamps each Soilable occupant
+  with a new `Soilable.holdAtHeatFor(K, enteredAtS)` that keeps a
+  **per-occupant clock since entry** and kills **once, incrementally**
+  (⚠ `recordHeat` :544-556 replaces rather than sums, and `holdAtHeat`
+  re-kills on every call — both traps named by the survey); `boilInPot`
+  retires; the `boil` word is deleted; the water build's purification
+  (`purifyIfHeld`) is untouched. `scrub` → `wash <x> --hard` (the
+  `cut.yaml` boolean-option precedent :62-73); `ScrubController` and
+  `scrub.yaml` deleted; the `brush` slot joins `wash.yaml`.
+- **D8d. `requires: affords`.** Built as a slot predicate: the candidate
+  itself contributes this view (its class statics, conferred ones
+  included, via `queryMixins` + `commandContributions`), opted into per
+  slot. The probe against twelve verbs is recorded in the W4 commit:
+  `wind`, `adjust`, `pump`, `turn`, `dip`, `carve` (on), `strain`,
+  `serve`, `stir`, `tap`, `blow`, `switch` — with the four edges
+  (affording ≠ target; placement; conferred; two roles) answered per
+  verb. Kept beside the protocol mixin, never instead of it.
 
-| gate | counts | noise control | ceiling |
-|---|---|---|---|
-| `lint:duck-typing` (`check-duck-typing.ts`) over all of `src/mud` + pack `src/` | by TS-AST: `?.(name)`, `typeof x.name === 'function'`, `'name' in x` on a non-literal, `as unknown as {…}` casts; each probed name classified against declared class/interface members — **undefined** (zero after W2, hard), **one chain**, **≥2 definers** | the thenable idiom allowlisted; data-record `'x' in` on a typed record not counted | undefined = 5 → 0; probes = W0 count |
-| `lint:controller-resolution` (absorbs `instrument-args`) | instrument-args' four walk shapes (cast gap fixed) + `StuffApi.find*(` / `MqlApi.resolve*(` inside a controller + `.raw` **followed by a string method or regex test** + `toLowerCase()`/`replace(/^the\s+/`/`.includes(` on a model string + `constructor.name` | `.raw` in a `note(`/`Mml`/scene line is a refusal's words, not resolution; the 90 %-noise estimate came from bare `.raw`/`.includes` and both are excluded | W0 count per shape (the one `instrument-args` finding is one of them) |
-| `lint:controller-mutations` | `StuffApi.(destruct\|clone\|create)(`, `ContainmentApi.move(`, `BulkableApi.*(`, `.setX(` on a receiver other than `this`/`ctx`/`context`/`model`, a field write `x.y =` whose receiver is not one of those or a controller-local literal | comments and strings stripped; `ctx.note`/`context.note` never counted | W0 count (heuristic today 440) |
-| `lint:controller-decisions` | `Math.*(`, numeric literals ≥ 2 in arithmetic, comparisons against a literal, `const UPPER =` of a number/array/object, duration declarations (`_MS`/`_S`/`durationMs`/`effortW` literals) | string constants (`TOPIC`) excluded; a literal in a `note(`/`Mml` line excluded | W0 count (heuristic 1,345; durations 60) |
-| `lint:controller-functions` | module-level `function`/`const f = (` declarations in a controller file | none needed | W0 count (heuristic 275) |
-| `lint:mixin-clusters` | per mixin factory: connected components of members over `this.` references (a field merged with its accessors), components of ≥2 members; mixins with ≥2 such components | module-private helpers that take `this` as a parameter are edges | W0 count (slate: 45) → 40 after W2 |
-| `lint:subcommand-words` | every `subcommands:` key (and subcommand alias) that is also a `verbs:` entry of any view, across every pack | sibling-held views are counted like any other — the gate is realm-wide | W0 = 52 → the W5/W6 remainder |
+### D9 — the subcommand rule as command-taxonomy wrote it
 
-### D9 — the subcommand rule, applied
+*An act on the world is a bare verb; a transaction with an institution's
+book is a subcommand of the institution's noun.* The census
+(§ Grounding) and the decisions are in § Fault lines → *Verbs*. Edge
+cases decided: `buy`/`sell`/`order`/`rent`/`charter` are acts on a good
+(the slate's item 1); `pay`/`tip`/`collect` are acts with a recipient;
+fee-paying acts (`assay`, `pilot`, `embody`) are acts; the herd verbs
+are acts on animals; `consign`/`reclaim`/`check` are the shelf's and the
+rack's books; `appoint`/`dismiss`/`draw` are the house's; `apply`/
+`quit`/`fulfill` are the job board's; `transfer`/`subdivide` are the
+title's (W8). A subcommand binds its own book (`args` XOR `subcommands`;
+no inheritance — the shipped `store` shape). Subcommand words are scoped
+by their noun; `make` is kept under its five nouns (one act: create a
+record; the verb `make` is gone); `fight defend` routes to
+`DefendController`. The twelve switch controllers → per-subcommand
+controllers over a base per noun. Fight: one `FightGambitController`
+for the twelve gambit words (one act, `queueGambit(name)`) + seven.
+`fight.yaml:103`'s `VitalsMixin` on a weapon slot → `WieldableMixin` (a
+one-line finding). Options replace preposition piles with **no** old
+form kept: `carve X from Y` + `--with`/`--of`/`--for`; `plant X in Y` +
+`--with`/`--at`; `harvest X` + `--with`/`--at`; `treat X` + `--with`/
+`--for`. `lint:institution-verbs`: a flat view whose operand is a book
+→ ceiling = the W0 census → 0 at W7 (W8 for `title`).
 
-- **Per-subcommand controllers** for the twelve (§ Fault lines). Each
-  noun gets a base (`<Noun>ControllerBase extends CommandController`)
-  holding the preamble as a method (`resolveWiki`, `requireMember`,
-  `resolveForums`, `requireCatalogue`, `resolveBoard`, …) and the few
-  helpers two or more arms share; everything an arm alone used goes into
-  that arm's controller. Views: each subcommand gets `controller:`; the
-  verb-level `controller:` is dropped where every subcommand has one and
-  kept pointing at the bare-form controller where `fallthrough: true`
-  (`chat`, `forum`, `tune`, `wiki`, `equip`). Where a preamble resolved
-  the noun by hand (Job's board), it becomes a subcommand arg with a
-  `default:` (`requires: any` with `[class.JobBoard]`, as `charter`/`berth`
-  do). One row per controller.
-- **Fight.** The twelve gambit words are one act (`Combatant.queueGambit(name)`)
-  → one `FightGambitController` named by twelve subcommands; `status`,
-  `break`, `rush`, `switch`, `draw`, `finish`, `yield` get their own.
-  `defend` routes to `combat/DefendController` (the one true duplicate:
-  same beat). The six renamed words are grain. `fight.yaml:103`'s
-  `VitalsMixin` on a weapon slot is corrected to `WieldableMixin` in
-  passing (a finding, one line).
-- **Flat verbs that move under a noun** this build: `appoint`/`dismiss`/
-  `apply`/`quit` → `staff <sub>` (grain; the noun a seat is operated
-  through); `draw` → `wallet draw` and `subdivide`/`transfer` → `title …`
-  in W6. `tip`/`collect` stay flat (a jar is a thing you put money in);
-  `pay` stays flat (a recipient, an act). The old top-level words stay as
-  **alias views** — the old view file keeps its `verbs:`, loses its body
-  and points `controller:` at the new per-subcommand controller with the
-  same args — so a saved `appoint bob` runs unchanged (ledger "old
-  top-level word kept working").
-- **Which pairs are decided** and how is the § Fault lines table. The
-  rule for renames: the physical/common verb keeps the word; the
-  subcommand takes a word of its own. Renamed subcommand words are **not**
-  aliased (that would re-create the pair); a saved script naming one is a
-  break this build accepts, see *Requirements disagreement* 4.
-- `carve` **gains options**: `--with <knife>`, `--of <material>`,
-  `--for <purpose>` beside its one natural preposition (`carve X from
-  Y`); the old preposition forms keep binding (the view declares both;
-  `help carve` shows the option form first). Other kernel bench verbs in
-  scope with ≥4 prepositions (`plant`, `harvest`, `treat`): `plant` and
-  `harvest` gain `--with`/`--at`/`--in` beside their first preposition;
-  `treat` gains `--with`/`--for`. Nothing a player typed changes meaning.
+### D10 — `throw`'s three shapes, `recite`, tan's lift
 
-### D10 — three real splits: throw, tan's lift, read's cast
+`throw.yaml` (`item`), `throw-to.yaml` (`item`, `recipient` with
+`prepositions: [to]`, `prepositionRequired: true`), `throw-at.yaml`
+(`item`, `target` with `[at]`, required). Each its own controller
+(`ThrowController` pitch; `ThrowToController` → `Tossable.tossTo`;
+`ThrowAtController` → `mayDeliverTo`, `initiateCombat`,
+`Combatant.deliverThrown`). `recite <scroll>` (`magic/`, afforded by the
+scroll's class on `inventory`/`peers`, `requires: [ArcaneMixin,
+MarkedMixin]`); `read` never casts. Tan: `TanningMixin.onLiftedFrom(pit,
+by)` from `Tanpit`'s containable-removed hook, the remover threaded from
+`ContainmentApi.move`'s custody derivation if the hook lacks it.
 
-- **Throw** → `toss <item> to <person>` (catch; `TossController` over
-  `Tossable.tossTo`, afforded by `TossableMixin` on `inventory` — the
-  line in your hands), `throw <item>` (pitch; `lob`/`heave` aliases;
-  afforded as today), `hurl <item> at <target>` (attack; `HurlController`;
-  the consent gate `mayDeliverTo` and `initiateCombat` stay where they
-  are on `Combatant`; the delivery moves to `Combatant.deliverThrown`).
-  `throw X to Y` / `throw X at Y` keep binding (optional `to`/`at` slots)
-  and **refuse with a teaching line** naming the new word (the refusal is
-  the progression UI). Collision ladder: three words, no shared shape, no
-  dispatcher trick needed.
-- **Tan's lift** → no new word. The hide becomes leather when it leaves
-  the pit: `TanningMixin.onLiftedFrom(pit, by)` (bark, penalty band,
-  `becomeLeather`, the deed), fired from `Tanpit`'s containable-removed
-  hook with the remover from the move's custody. `tan` lays in only;
-  `get hide from pit` is the lift — exactly what the controller's
-  docstring promised (:26-27). ⚠ Risk: the removal hook must carry the
-  actor; if `onContainableRemoved` does not, the build threads the mover
-  through `ContainmentApi.move`'s existing custody derivation (it already
-  knows who moved what) rather than adding a verb.
-- **Read's cast** → `recite <scroll>` (`magic/ReciteController`, `magic`
-  category) afforded by the scroll's own class (the Arcane +
-  Marked + Consumable thing) on `inventory`/`peers`; `read` never casts.
-  `cast <spell>` is untouched.
+### D11 — `order`, `treat`, `put`, `harvest`/`plant` protocols
 
-### D11 — the type dispatchers become protocols on the model
+As in the first plan: `PricedOfferMixin.orderPlanFor(req)` (`Tariff`,
+`CommerceMenu` override; the subject a view arg; `onExcess: prompt` on
+`counter` retires the two-houses scan); `VitalsMixin.treatmentPlanFor`
+(the patient decides; the remedy answers through `isDressing` /
+`isBulkable` / hands); `PlacingMixin.placementFor(word)`,
+`SlottedMixin.openSlotFor`, `ContainmentApi.move` the one primitive,
+`Feeder`'s note on its own hook; `GrowingMixin.harvestPlanFor`,
+`SoilMixin.sowPlanFor`/`harvestPartFor`, `CultivableMixin.plantPlanFor`.
+`HarvestController`'s wording is three overridable methods;
+`HarvestWordedController` overrides them (drive 16).
 
-- **`order`**: `PricedOfferMixin.orderPlanFor(req: {actor, kind, subject?,
-  brand?, hand}) : ActPlan | ActRefusal` with a refusing default;
-  `Tariff` overrides and dispatches by kind to the house's objects
-  (`Tub.drawFrom`, `Hygienic.bathe`, `Garment.launderBy`,
-  `DonationBank.transfuseInto`, `Postmortem.interIn`,
-  `ConditionApi.treatWorstResolvable`, `CraftingApi.repair`) — each a
-  call the controller makes today, now made by the provider;
-  `CommerceMenu` overrides for the menu. The view: `service` (string, the
-  first word), `subject` (object, optional, `for`, `requires: any` — a
-  corpse, a garment, an item to repair), `brand`, `counter` (as today
-  but `onExcess: prompt`, which retires the two-houses scan), `menu`.
-  The controller words the quote, confirms the price (`promptConfirm` is
-  I/O), engages the plan, words the outcome.
-- **`treat`**: `VitalsMixin.treatmentPlanFor(req: {by, with?, named?}) :
-  ActPlan | ActRefusal` — the patient picks the wound (bleeding first),
-  the difficulty, the outcome band, applies the dressing / takes the
-  fluid / tends the infection, and returns facts (site, outcome,
-  `credit`). The remedy answers through what it is (`isDressing` →
-  `getDressingQuality`; `isBulkable` → the interior litres; neither →
-  hands and the actor's `cleanTier`). The `for` word resolves against the
-  condition catalogue inside Vitals (it is the body's own vocabulary).
-- **`put`**: `PlacingMixin.placementFor(word?: string)` (which placement
-  a preposition names; the offers list), `SlottedMixin.openSlotFor(item)`,
-  `ContainerMixin.canAddContainable` (exists); the controller asks the
-  target which mode the words name and calls `ContainmentApi.move(item,
-  target, placement)` — the one movement primitive (an Api that
-  orchestrates is allowed; it is not a rule). `Feeder.noteFilledBy`
-  becomes `Feeder`'s own `onContainableAdded` consequence.
-- **`harvest` / `plant`**: `GrowingMixin.harvestPlanFor({actor, tool,
-  part})`, `SoilMixin.harvestPartFor` / `sowPlanFor({actor, seed, drill,
-  part})`, `CultivableMixin.plantPlanFor({actor, seed})` — each returns an
-  `ActPlan` whose `onComplete` does what `landSwath`/`landSowing` do
-  today (mint, stamp, grade, draw nitrogen, settle, title) and returns
-  facts (count, mass, grade, the standing phrase's ratio). `HarvestController`
-  becomes: read the model → ask the plant (or the bed, for a part) → word
-  the refusal or the beginning → `engageAct(plan, words)` → word the
-  facts. Its wording is three overridable methods (`wordRefusal`,
-  `wordBegin`, `wordDone`) — which is what `HarvestWordedController`
-  overrides for drive step 16.
+### D12 — `pour` unified
 
-### D12 — `pour` unified (rung 1), `KNOWN_COLLISIONS` drops a row
+`PourTargetMixin.receivePour(req)` on `BulkableMixin` and
+`ManualBuildMixin`; one view `V/bulk/pour.yaml` `verbs: [pour]`,
+`target: PourTargetMixin`; `crafting/pour.yaml` and `crafting/PourController.ts`
+deleted; `ManualBuildMixin`'s contributions name the bulk view;
+`KNOWN_COLLISIONS` :98 removed (the gate fails if left).
 
-`PourTargetMixin` (`lib/bulk/PourTarget.ts`): `receivePour(req: {actor,
-source, measure?, exact?}) : ActPlan | ActRefusal` with a refusing
-default. `BulkableMixin` composes it (transfer, the after-hooks, the
-credit rules, the mould watch as a plan with `Mould.getPourDurationS` and
-the watch's effort); `ManualBuildMixin` composes it (the graded-bottle
-contribution and the discrete-ingredient path, paced by `paceMs` on the
-vessel, `POUR_MS`/`150` now the vessel's). One view `V/bulk/pour.yaml`
-`verbs: [pour, add]`, `source` (`requires: any`), `target`
-(`into`/`in`/`to`, `requires: PourTargetMixin`), options `amount`,
-`exact`; `crafting/pour.yaml` is deleted and `ManualBuildMixin`'s
-contributions name the bulk view. `check-verb-collisions.ts` :98 is
-removed (the gate fails if it is left), and its header's "nine" becomes
-"two". `lint:arg-kinds` admits `PourTargetMixin` once it is in `Mixins`.
+### D13 — the before/after record; D14 — drive 16; D15 — who proses what
 
-### D13 — the before/after record, captured before W1
+Unchanged from the first plan: W0's wire file records steps 10–15
+(`{status, notes[{kind, reason}], duration, state}`, no prose) to a
+committed baseline and compares thereafter; `HarvestWordedController`
+is installed at runtime by a wizard `DocumentApi.save` of the `harvest`
+view, harvests, then restores (`.dirty`); the dispatcher proses its own
+notes and nothing of a controller's.
 
-W0 lands `packages/wire/tests/controllers-are-io.dirty.wire.test.ts`
-with drive steps 10–15 as named checkpoints and a recorder that writes,
-per step, `{status, notes: [{kind, reason}], duration:
-engagement-started.duration, state: <mql-query facts>}` — no prose — to
-`packages/wire/tests/__fixtures__/controllers-are-io/baseline.json` when
-`CAIO_RECORD=1`, and **compares** against it otherwise. The baseline is
-committed in W0 (a record of reasons, durations and state, not a content
-golden). Every later wave runs the file; a diff is a finding. Step 10's
-growth is `staged` (the plant's stage set with `eval`, not the clock).
+### D16 — one view, one word; default player aliases; where a pack declares them
 
-### D14 — drive step 16, the doctrine test, in a `.dirty` wire file
+- **The rule.** `verbs:` is a one-element list; a controller is named
+  by views of one verb; `hasVerb` stays (one element). `lint:one-word`
+  (a) multi-word views, (b) controllers across verbs, (c) a default
+  alias declared twice or equal to any verb or builtin — all 0 at W6.
+  The census: 65 views / 77 words / 4 controllers (§ Grounding).
+- **Which word stays:** the plain English a player says; the file is
+  renamed when the alias was the commoner word (`light`). The table is
+  § Fault lines; the MR lists every per-view pick.
+- **The alias criterion:** a one- or two-character MUD-standard
+  shortcut for a verb typed many times a session (`l`, `i`, `h`, `?`,
+  `'`; the directions and `stop` already ship). Nothing else: a synonym
+  is deleted, the verb is the word `help` teaches.
+- ⭐ **Where a default alias is declared: on the view.**
+  `defaultAliases:` on the view (`look.yaml: defaultAliases: [{name:
+  l}]`), and the defaults tier (`collectDefaultAliases`, `Alias.ts
+  :154-190`) gains a second source: the views the giver can reach
+  (`getAffordances()`), read lazily at lookup. Why this and not the
+  alternatives: (1) a pack ships views and nothing else a player's
+  `Shell` composes — a `static defaultAliases` on a pack mixin has no
+  kernel-legal host (the walk reads the **host's** chain); (2) the alias
+  belongs beside the word it abbreviates, in the one record a person
+  reasons about (the owner's own argument against a second vocabulary);
+  (3) an alias reaches a player only while the verb does (load on use —
+  the view is already loaded when afforded; no boot entry, no central
+  list); (4) `alias unset` tombstones by name as today, persisted;
+  `alias list` marks the source as the view. The two shipped mixin
+  statics (`Mobile`, `Engaged`) stay — they abbreviate `go <dir>` and
+  `cancel`, bodies not extra words. A duplicate name across reachable
+  views is a static gate failure (`lint:one-word` (c)), since reach is
+  dynamic. `help`'s keywords become the verb + its default aliases;
+  the schema payload keeps `verbs` (one element); scripts use real
+  verbs (they never saw aliases).
+- `lint:verb-collisions`' `BUILTIN_CLAIMS` keep every line's first
+  word honest; a default alias may not equal a builtin.
 
-`HarvestWordedController` (`platform/idea/cmd/inventory/`, `@internal`,
-documented in `command-spec.md` as *the* alternate-controller exemplar)
-extends `HarvestController` and overrides only the three wording
-methods. Its row ships in the platform pack. The drive: a wizard session
-`eval`s `DocumentApi.save('/platform/cmd/inventory/harvest',
-'command-view', {…controller: '/platform/idea/cmd/inventory/HarvestWordedController'})`
-(wizard code trust, live via `CommandApi.reload`), harvests the twin of
-step 10's plant, asserts state and `engagement-started.duration` equal
-to step 10's record and the prose different, then restores the view
-(`DIRTY_REASON`: a shared view is rewritten).
+### D17 — `throw`'s shapes are provably disjoint; the collisions gate proves it
 
-### D15 — what the dispatcher owns, what the controller owns (restated for the build)
+`prepositionRequired: true` on a positional: the slot binds only when
+its preposition is present (else a shape error naming it). Two views of
+one word are **disjoint** when, for every pair, either their required
+positional counts differ, or at some positional index both declare
+`prepositionRequired` with non-intersecting `prepositions:` sets.
+`check-verb-collisions.ts` accepts same-word views that are pairwise
+disjoint and fails otherwise; `KNOWN_COLLISIONS` shrinks to
+`lease`/`unlease` (gone when wizard-axis drops those words), then the
+constant is deleted — so `shadowed-by:` is **not** built: a disjoint pair
+is proved, not adjudicated, and a non-disjoint pair is a failure, not a
+row (§ Deferred seams records the carrier as unneeded). `_runChain`
+routing, verified against `bindPositionals`: `throw ball to ann` fails
+`throw.yaml` with `too many arguments` (:2847) and `throw-at.yaml` on
+the missing `at` (prepositionRequired) and binds `throw-to.yaml`;
+`throw ball` fails the two-slot views on the missing required slot and
+binds `throw.yaml`; `throw ball ann` fails all three → the all-shape
+note now lists each shape's `getUsage()` (*"throw <item> · throw <item>
+to <person> · throw <item> at <target>"*) — the player's error for a
+malformed throw.
 
-The dispatcher proses: `command-rejected` (incl. the two new reasons),
-`other-offer`, `mql-error`, `validator-failed`, `controller-error`. A
-controller proses everything after its `execute` began. A moved act's
-refusal is a `controller-rejected { reason }` note **plus** the
-controller's own line — the reason string is the act's closed union
-member, unchanged across the move (acceptance: same refusal reason).
+### D18 — `do` replaces `make` (the decouple, redone on master)
+
+`shell/do.yaml` + `DoController` + row as the branch wrote them
+(`ScriptApi.invoke(name, args)`; `unknown-script`; ungated); `make.yaml`,
+`MakeController.ts`/`.yaml` deleted; `Avatar.ts:333` swaps the view;
+`captureManualBuild` (`api/script.ts:160`, `ScriptLogic` :342/:643),
+`Transcriber.ts` (+ test) deleted; `RecipeKnowledge.ts` → `lib/craft/`;
+`CraftingLogic.recordCraftEvidence` mints the can-make deed on every
+craft; the capture/record tails removed at the nine master sites
+(§ Grounding); `ManualBuild.recordCommand`/`getCommandSources` removed;
+prose and docs (`scripting.md` P8/P9 retired, `crafting.md` takes the
+ladder, `command-spec.md` :154-172, `CLAUDE.md` :189/:846, apiculture/
+assembly/forestry). `make` stops being anything until a trade earns it.
+The branch's findings slate lands too. The branch is retired in the MR.
+Drive 19.
+
+### D19 — `reel` is fishing's; silk is `unwind`
+
+Fishing's `reel.yaml` and `ReelController` return to the pre-silk shape
+(`args: []`; `ae5b5fc53^`); `Reelable.ts`, `reel-unified.test.ts` and
+sericulture's `package.json` dependency on fishing deleted; sericulture
+ships `cmd/sericulture/unwind.yaml` (`cocoons` object `CocoonsMixin`?
+— the Cocoons class; `tool` objects `with` default
+`reachable:[capability.reeling]`; `--count`) + `UnwindController`
+(`ManualBuildController` over `Cocoons.planUnwind`/`completeUnwind`,
+the renamed methods), afforded by `ReelingTool` (its contribution key
+changes to the sericulture view); the `reels` brain and the silk wire
+test say `unwind`; `sericulture.md` § the reel and `fishing.md`'s note.
+Drive 20.
+
+### D20 — `drift`
+
+Rename mining's `drive.yaml` → `drift.yaml`, `DriveController` →
+`DriftController` + row; `acts.test.ts` follows (the verb split is
+already on master; the slate's "marked unreachable" is corrected in
+the sweep). Drive 21.
+
+### D21 — where a verb looks first (scope order)
+
+No new seed (MQL grammar stays small), no new flag: **the view's scope
+list order is the dial**, and the binder compares **tiers across tries**
+(one-resolution § 3 row 11: a whole-name hit in a later try beats a
+partial in an earlier; a tie goes to the earlier try, which is what
+drill-first means) — so `go.yaml`'s private order returns to the shared
+one. `reachable` stays person-first (the in-hand default: `eat`, `drop`,
+`wield`, `give`, `wear`). A **world act** declares `scope: [here, peers,
+person]`. The audit rule: a verb whose target is, in the common case,
+underfoot or standing (a fixture, the ground, a plant, a block, a floor)
+is a world act. The W2 commit lists all 281 `reachable` args with the
+verdict; the seed list is in § Fault lines → *Resolution*. Drive 23
+(`cut ice` cuts the block underfoot while a smaller one is carried).
+
+### D22 — names are not special; MQL reads only Perceptible; the predicates
+
+Collapse the name tiers: `NamedMixin.getKeywords()` folds the name and
+its bare form; `scoreCandidate` scores keywords only (*a keyword IS the
+phrase · every word a whole word of a keyword · every word begins a
+keyword word · partials*); `bareName` goes; `namesEveryWord` uses
+`startsAWord` (row 5). The six drive findings keep their outcomes by the
+keyword data one-resolution § 4's table names (a content pass, listed
+in the W2 commit, each asserted by the test that found it). Detail ids
+→ `DetailedMixin.getKeywords`; the held material → `BulkableMixin.getKeywords`
+(`via.detailPath`/`via.bulk` stay as facts on the match); recognition
+tokens already come from the object's face. `:loose`, `:worn`,
+`:carried` predicates delegating to `getLooseContents` (guard kept) and
+`Slotted.getAllOccupants`; `:visible` adopted; the three verbatim
+copies deleted. `mql-grammar.md` gains the three predicates.
+
+### D23 — `--strict`/`--loose`; scripts fail closed; `--async` on a bare script line; the disabled row
+
+`--strict`/`--loose` reserved per invocation beside `reservedAsync`
+(force `onFiltered: error` / `take`); `reload --strict` → `--force`.
+Drive 23's second half. Scripts: a prompt with no `interactive` →
+`command-rejected { reason: 'needs-input', detail: '<verb> needs
+<input> when run from a script' }` at the seam that would prompt (the
+cardinality policy, `promptForObject`, `promptConfirm`/`promptCompose`
+callers — 20 files) — one guard in `CommandContext.requireInteractive(
+what)` that every caller uses; NPC dispatch routes the same refusal to
+`DiagnosticApi`. `verb@source` relies on it (D2). The bare
+multi-statement script line (`CommandGiver.ts` :839-853) honours a
+leading `--async` by detaching `runAst` the way `_executeOne` does.
+`AffordanceEntry` disabled rows gain `validator` and `missing` (the
+`requires:` mixin the synthesized check found absent). Drive 24, 25.
+
+### D24 — `category:` on every view
+
+Required by the schema gate; equal to the view's `cmd/<category>/`
+directory (a gate that they agree, so the directory stays the
+convention and the field the data); `help` with no argument lists the
+categories, `help <category>` lists its verbs, `HelpCatalogue` groups
+command topics by it. Drive 22.
+
+### D25 — the folded-in link-1 decisions: `FromMixin`, the signature
+
+- **`FromMixin` as the marker — not blessed.** A pack class can declare
+  any `_mixinName`; the owner's posture is *less permissive until there
+  are content developers*. The plan re-anchors the widens on
+  `FromTemplate`/`FromClass` where the host set is enumerable, keeps
+  `FromMixin` only where the self-subject `where` bounds the spoof, and
+  hoists the 30 self-subject clauses into `SecurityPolicies.SelfSubject(argIndex)`
+  (`FireLogic.ts:29` generalized). The audit rail, `audit_events`,
+  `FromIdentity` and the full pass are **not** this build
+  (§ Requirements disagreement 3).
+- **The blueprint signature is verb-aware:** `signatureFromParts` folds
+  the class's afforded view set (its `commandContributions` union); the
+  collapse census re-run; the two collision groups (medicine ×4,
+  SurgicalKit/SutureKit) separate or are recorded as true duplicates.
+
+### D26 — the gates
+
+As in the first plan's table (seven census gates, shared
+`controllerFiles()`, positive fixtures, ceilings = each gate's own W0
+census), plus: **`lint:command-views`** (every view under every pack's
+`cmd/**` validates against `command.schema.json` through
+`CommandApi.validateCommandView`, plus `category` = directory — zero,
+built first, because a sweep of views broke the platform install once);
+`lint:one-word` (D16); `lint:mixin-files` (D7b); `lint:institution-verbs`
+(D9); `lint:subcommand-words` counting only different-act pairs both
+reachable flat (controller identity excludes same-act routes; 46 on the
+census) — informational after the owner's noun-scoping ruling, the
+builtin line hard; `lint:verb-collisions` learns disjoint shapes (D17).
+`lint:instrument-args` is absorbed into `lint:controller-resolution`.
 
 ---
 
 ## ⭐⭐ Host placement
 
-Two tests for every row: no guard re-narrows the host set; and an honest
-default does not answer "no" on most hosts. Findings the rule produces
-are written down here, not coded around.
-
 | new mixin / field | host(s) | what composing it claims | finding |
 |---|---|---|---|
-| `StaffedMixin` | `platform/idea/Organization` (:35), `Business` (:397) via the composite | every organization has a chart and a roster | — |
-| `OnCallMixin` | same, via the composite | every organization answers *who is called for this* | ⚠ **honest-default finding**: `call` is authored on 37 business rows and on no government or publisher; on a non-business `Organization` the default answers "nobody". Kept on the composite because the requirement is that nothing already built loses what it composes; the honest host is `BusinessMixin`. → mixin-slate |
-| `WaterStateMixin` | the seven water places | every water place has water, a column and a tide | — |
-| `HaulOutMixin` | the seven water places via the composite | from every water place somebody can be pulled out onto the bank or deck | every host answers yes (Pool, Compartment, a band, a reach) |
-| `DigestingMixin`, `EatingMixin` | `Creature` (:182) | every creature digests and can eat | — (as today) |
-| `CarryingMixin`, `BuoyantMixin` | `Creature` (:153) | every creature bears a load and displaces water | — (as today; `Respiration.ts:1232` and `WaterPlace.ts:753` read buoyancy) |
-| `ChattelTitleMixin` | `Good`, `Vessel`, `KeptAnimal`, `Livestock` via the composite | every one can be owned and titled | — |
-| `MadeFromMixin` | same, via the composite | every one may carry its inputs' owner onto itself | ⚠ **finding**: an animal is not made from inputs (ranching writes SERVED only); on `KeptAnimal`/`Livestock` the default answers "no". Kept on the composite for the same reason; the honest hosts are `Good` and `Vessel`. → mixin-slate |
-| `PoweredMixin` | `GridPoweredMixin`, `ComminutingMixin`, `Sawmill`, `GristMill` | each can say how much power it can draw now | the four already define it |
-| `WaterPoweredMixin` | `Conduit`, `ControlStructure` (water pack) | each takes power from a reach | pack hosts compose a kernel protocol — the P4 shape |
-| `NameTakingMixin` | `NamedMixin`, `CraftedMixin`, `AssembledMixin` | each can say who may name it | the three already define it |
-| `PourTargetMixin` | `BulkableMixin`, `ManualBuildMixin` | a bulk holder and a build vessel can each receive a pour | two unrelated hosts, earned |
-| `ParsedCommand.scope` | the parsed command (a value, not a Stuff) | — | — |
-| `orderPlanFor` | `PricedOfferMixin` (default refuses), `Tariff`, `CommerceMenu` | a priced offer may answer an order | a `PricedOffer` that is neither refuses honestly |
-| `treatmentPlanFor` | `VitalsMixin` | a body can be treated | — |
-| `harvestPlanFor` / `plantPlanFor` / `sowPlanFor` | `GrowingMixin` / `CultivableMixin` / `SoilMixin` | a plant can be harvested, a pot planted, a bed sown | the views already require these |
-| `placementFor` / `openSlotFor` | `PlacingMixin` / `SlottedMixin` | — | — |
-| `onLiftedFrom` | `TanningMixin` (trade-tanning) | a hide knows what leaving the pit means | pack-local |
-| `HarvestWordedController` | a controller row, not a host | — | — |
+| `OnCallMixin` | `BusinessMixin` only | every business answers *who is called* | the 37 `call:` rows are all businesses; a government answers nobody — honest |
+| `HaulOutMixin` | the seven water places | from every water place somebody can be pulled out | every host yes; a co-use split |
+| `EatingMixin`, `BuoyantMixin` | `Creature` | every creature eats; every creature displaces water | as today |
+| `MadeFromMixin` | `Good`, `Vessel` | a made thing may carry its inputs' owner | an animal is not made (ranching writes SERVED only) — it no longer composes it |
+| `SplittableMixin` | Hive, Wheel, Block | each can be split in two | the three already implement it |
+| `PumpableMixin` | `PumpingMixin`, `BurnerMixin`, `AirPump` | each can be pumped | ⚠ every burner answers `pump` with `no-bellows` today — the refusing default makes the honest "no" explicit; a lamp composes Burner for its flame, not its bellows (a follow-on may narrow to `Firebox`; recorded) |
+| `CuttableMixin` | Rope, SugarLoaf, IceSheet, Bole, Billet, Corpse, Sheet | each plans its own cut | the sweep's hosts |
+| `PumpSourceMixin`, `LiftSourceMixin` | Well, BilgeWell, Wellhead, Conduit / + Boat, Pumping | a source a pump pulls from / a load a lift raises | the hosts already define the methods |
+| `TravelNodeMixin` | the tpa nodes + the kernel fork | a place a ride can leave from | the fasttravel shape, named |
+| `PoweredMixin`, `WaterPoweredMixin`, `NameTakingMixin` | as D7a | — | the definers already define them |
+| `PourTargetMixin` | `BulkableMixin`, `ManualBuildMixin` | can receive a pour | earned |
+| `orderPlanFor` / `treatmentPlanFor` / `harvestPlanFor` / `sowPlanFor` / `plantPlanFor` / `placementFor` / `openSlotFor` | `PricedOffer` / `Vitals` / `Growing` / `Soil` / `Cultivable` / `Placing` / `Slotted` | — | the views already require these |
+| `getKeywords` overrides | `Named`, `Detailed`, `Bulkable` | the object says what it answers to | one-resolution § 5 |
+| `holdAtHeatFor` | `Soilable` | a soilable thing in a bath is held at its heat | the vessel calls it for its occupants |
+| `_mixinKind = 'protocol'` | every protocol mixin | presented as the verb it serves | — |
+| `defaultAliases:` / `category:` / `prepositionRequired:` | the view | — | — |
 
 ---
 
 ## Convention conformance
 
-- `props:`/`cast:`: no content rows change designation; the new rows are
-  controller rows (`class:` + `data: {}`). Locations: none added. The
-  `<root>/<branch>/` pattern: every new controller at
-  `/platform/idea/cmd/<category>/<Name>Controller`, every new mixin under
-  `lib/<subsystem>/`, no new category (`magic` holds `recite`; `staff`
-  views under `employment/`). Persistence per content: no row changes
-  staged/live; a split moves no field's persistence (P6).
-- Module scope declares; lifecycles initialize: the new mixins and
-  controllers add no module-scope statements; `check-module-scope`
-  unchanged. The import boundary (`lint:imports`): mixins import nothing
-  outside `src/mud`; the gates are `scripts/`, outside the boundary.
-- Verbs on objects: no new `XApi.verb(host, …)`; `lint:object-verbs`
-  stays at zero. The one orchestrating Api call kept is
-  `ContainmentApi.move` (the one movement primitive).
-- No new module category, no free helper: the new scripts are gates; the
-  per-noun bases are controllers; the outcome types are value types in an
-  existing `lib/craft/` file.
-- P3 refuse/skip/throw: every new dispatcher path is a note + prose
-  (`source-not-found`, `source-affords-nothing`, a cardinality refusal
-  for a script) — nothing degrades to "top" silently. P4 no duck typing:
-  three markers minted, five dead names fixed, and a gate holds the
-  count. P5 the mixin decides: every moved rule is a method on the
-  object that owns the state; the controller reads, calls, words. P7
-  load on use: no boot entry; the markers are composed, the plans are
-  called. P8 names: classes named for what they are (`Carrying`, not
-  `LoadBearingHalf`); the common word stays with the body verb at every
-  pair; one verb per act (`toss`/`throw`/`hurl`, `recite`).
-- **Lint gates this build must pass**: the whole family
-  (`pnpm -C packages/server lint:family`), with particular attention to
-  `lint:mixin-names` (ten + four new names), `lint:arg-kinds`
-  (`PourTargetMixin` in `requires:`), `lint:controller-rows` (~90 new
-  rows), `lint:reachability` arm A (every new view named by a static —
-  `toss`, `hurl`, `recite`, `staff`, the alias views), `lint:verb-collisions`
-  (the `pour` row removed; no new pair), `lint:completion-this` (zero,
-  both ways), `lint:act-effort` (the moved durations evaluate),
-  `lint:self-contributions`, and the seven new gates at or below their
-  ceilings.
+- `props:`/`cast:`: no row changes designation; new rows are controller
+  rows. Locations: none. The `<root>/<branch>/` pattern: kernel
+  controllers at `/platform/idea/cmd/<category>/`, mixins under
+  `lib/<subsystem>/` (and `lib/reserve/` becomes one), pack verbs under
+  their pack (`trade/sericulture/cmd/sericulture/unwind`, `trade/mining/
+  cmd/mining/drift`). Persistence per content: no row changes staged/
+  live; a split moves no field's persistence (P6).
+- Module scope declares (no new module-scope statements; the gates are
+  `scripts/`); the import boundary holds (mixins import nothing outside
+  `src/mud`; sericulture drops a cross-pack import; carpentry/milling
+  drop their probe-local water interfaces for a kernel protocol — P4).
+- Verbs on objects (`lint:object-verbs` stays 0); `ContainmentApi.move`
+  is the one orchestrating call kept.
+- No new module category, no free helper: the per-noun bases are
+  controllers; outcome types are value types in `lib/craft/ActPlan.ts`;
+  `SelfSubject` is a `SecurityPolicies` static.
+- P3: every new dispatcher path is a note + prose; scripts fail closed
+  naming the input. P4: duck typing gated, six shapes become protocols,
+  five dead names fixed. P5: every moved rule is a method on the object
+  that owns the state. P7: no boot entry — the markers are composed, the
+  plans called, the default aliases and `help`'s *answers* read lazily.
+  P8: classes named for what they are; the original idea keeps a split
+  mixin's name; one view one word; the common word stays with the body
+  verb; a subcommand word is scoped by its noun.
+- **Lint gates this build must pass**: the whole family, with
+  `lint:mixin-names` (14 new names), `lint:arg-kinds` (every converted
+  protocol in `requires:`), `lint:controller-rows` (~100 new rows),
+  `lint:reachability` arm A (`do`, `unwind`, `drift`, `recite`, the
+  three `throw`s, the subcommand nouns; every deleted flat view's
+  affording static updated), `lint:verb-collisions` (two rows, then
+  none; the `throw` trio proved disjoint), `lint:completion-this` (0 both
+  ways), `lint:act-effort`, `lint:self-contributions`, and the twelve new
+  gates at or below their ceilings.
 
 ---
 
 ## Waves
 
-Each wave is independently landable and ends at one commit
-(`build(controllers-are-io W<n>): …`). Mid-build verification is
-`pnpm test:near` + every touched pack's vitest + `lint:family`; the full
-suite runs at code-complete and at `/finalize` only.
+Each wave lands independently and ends at one commit
+(`build(controllers-are-io W<n>): …`). Before W0: merge `origin/master`
+(the worktree is 20 commits behind). Mid-build verification is
+`pnpm test:near` + every touched pack's vitest + `lint:family`; the
+full suite runs at code-complete and at `/finalize` only.
 
-### W0 — the gates and the baseline
+### W0 — the schema gate, the census gates, the baseline
 
-Goal: every link has its count before anything moves, and the drive's
-before-record exists. Decisions: D8, D13.
-- `scripts/pack-roots.ts`: `controllerFiles()`; refit
-  `check-instrument-args.ts` and `check-completion-this.ts` onto it (the
-  latter's count must stay 0; the former becomes
-  `check-controller-resolution.ts` and `lint:instrument-args` is
-  removed from `package.json` — the family is derived).
-- The seven gates (D8 table), each with its test + fixture asserting a
-  positive finding, ceilings = their own census. `docs/lint-family.md`:
-  seven entries; the `verb-collisions` header's stale "nine".
-- `packages/wire/tests/controllers-are-io.dirty.wire.test.ts`: steps
-  10–15 with the recorder; run once with `CAIO_RECORD=1` against a
-  booted world (`WIRE_PORT=2013`), commit the baseline JSON.
-Acceptance: `lint:family` green with the seven new gates listed by
-`--list`; each new gate's fixture test fails when its fixture violation
-is removed; the baseline JSON is committed and the file passes against
-it. Commit.
+Goal: every view validates; every link has its count; the drive's
+before-record exists. Decisions: D13, D26.
+- `lint:command-views` **first** (schema + `category` = directory; it
+  will fail until W6 adds `category:` — ship it with `category` as a
+  warning line and flip it to required in W6, so the schema half gates
+  from day one).
+- `pack-roots.controllerFiles()`; `check-instrument-args.ts` →
+  `check-controller-resolution.ts`; `check-completion-this.ts` refitted
+  (its count must stay 0).
+- The census gates: `duck-typing`, `controller-mutations`,
+  `controller-decisions`, `controller-functions`, `mixin-clusters`,
+  `subcommand-words`, `one-word`, `mixin-files`, `institution-verbs`;
+  `verb-collisions` learns disjointness (no view uses it yet; the test
+  pins it with a fixture). Each: ceiling = its own census, a
+  positive-fixture test, a `docs/lint-family.md` entry.
+- `controllers-are-io.dirty.wire.test.ts` with steps 10–15 recorded
+  (`CAIO_RECORD=1`, `WIRE_PORT=2013`) and the baseline JSON committed.
+Acceptance: `lint:family --list` shows the twelve; each fixture test
+fails when its violation is removed; the baseline passes against
+itself. Commit.
 
-### W1 — `verb@source` and the other offer
+### W1 — the command line and the dispatcher
 
-Goal: drive steps 1–5 and 18 (the alias case). Decisions: D1, D2, D3, D15.
-Files: `api/command-line.ts` (`scope`), `CommandLineLogic.ts` (split,
-`format`), `ShellLogic.ts` (carry), `CommandGiver.ts`
-(`matchAffordances`, `_runChain`: scope filter → cardinality → batch;
-the other-offer probe; prose), `lib/script/Interpreter.ts`
-(`bindCommand` → `matchAffordances`), `api/command.ts` +
-`CommandLogic.ts` (`assemble` `scopeSource`; the `how` derivation
-factored), `packages/types/src/index.ts` (`other-offer`, two reasons),
-`docs/subsystems/command-parsing.md` (the `@` form), `command-routing.md`
-(the scope filter, the other offer), `response-envelope.md` (the kind),
-`mql-grammar.md` (one line: the scope is an MQL expression),
-`shell-alias.md` (carry). ⚠ `_runChain` is also edited by
-client-surface (the "Ring what?" prompt); the scope filter is applied
-to `matches` before anything else so the two changes compose.
-Tests: tokenizer (the five forms + round-trip), `CommandGiver` unit tests
-(scope filter, self bucket, source-fills-slot (a)(b)(c), batch, the
-non-interactive refusal, the other-offer probe never prompts),
-`Interpreter` (a scoped verb in a script), wire steps 1–5, 18.
-Acceptance: an unscoped command is byte-identical (the W0 baseline file
-passes unchanged); steps 1–5 pass; `say hi @bob` is untouched. Commit.
+Goal: drive 1–5, 23 (second half), 24, 25 (the greyed-out reason).
+Decisions: D1, D2, D3, D15, D23.
+Files: `api/command-line.ts`, `CommandLineLogic.ts`, `ShellLogic.ts`,
+`CommandGiver.ts` (`matchAffordances`, `_runChain`: scope → cardinality
+→ batch → the other-offer probe → the all-shapes usage line; the bare
+script line's `--async`; `requireInteractive`), `Interpreter.ts`,
+`api/command.ts` + `CommandLogic.ts` (`scopeSource`, `prepositionRequired`,
+the reserved `--strict`/`--loose`, the `how` derivation factored, the
+disabled row's `validator`/`missing`), `packages/types` (`other-offer`,
+three reasons, `AffordanceEntry`), `ReloadController` (`--force`), the
+20 `context.interactive` sites, `DiagnosticApi` for NPCs; docs
+`command-parsing.md`, `command-routing.md`, `command-spec.md`
+(`prepositionRequired`, `--strict`, the usage line),
+`response-envelope.md` (30 kinds), `scripting.md` (fail closed),
+`shell-alias.md`. ⚠ `_runChain` is also client-surface's (merge by
+hand; scope filter first).
+Tests: tokenizer forms + round-trip; dispatcher scope semantics (every
+D2 branch, the non-interactive refusal, batch); the probe never prompts;
+`prepositionRequired` binding; a script that would prompt names its
+input; wire 1–5, 23b, 24, 25b.
+Acceptance: an unscoped command is byte-identical (the baseline passes);
+`say hi @bob` untouched. Commit.
 
-### W2 — the five splits and the markers
+### W2 — resolution: where a verb looks, what a name is, the predicates
 
-Goal: drive step 17; `lint:duck-typing` undefined = 0;
-`lint:mixin-clusters` 45 → 40. Decisions: D6, D7.
-Files: the ten new mixin files + the five old (compositions); `lib/mixin.ts`
-(`Mixins`); `lib/supply/Powered.ts` → mixin, `lib/supply/WaterPowered.ts`,
-`lib/description/NameTaking.ts`; the hosts named in D7; the five dead
-names; the predicate replacements; `docs/subsystems/mixins.md` (the
-composition-of-halves shape), `employment.md`, `underwater.md`,
-`metabolism.md`, `encumbrance.md`, `chattel.md`, `energy.md` (the
-markers). ⚠ Merge note: client-surface adds `showShiftStatus` to
-`Organization.ts`; it belongs in `StaffedMixin`.
-Tests: per split, capture → materialize round-trip reading every
-persisted field (`PersistableApi`), plus the existing suites of each host
-unchanged; `lint:mixin-names`; wire step 17 as `staged` (the four states
-captured and re-materialized through `eval`, read back by player verbs).
-Acceptance: all five composites keep their `_mixinName`; every
-`requires:`/`FromMixin`/`findByMixin` site unchanged; ceilings lowered in
-the two gates' constants. Commit.
+Goal: drive 23 (first half). Decisions: D21, D22.
+Files: `CommandLogic.walkScopes` (tiers across tries), `go.yaml` (back
+to the shared order), the audited views (`scope: [here, peers,
+person]` on the world acts — the list in the commit), `scope-walk.ts`
+(the collapse; `startsAWord` in `namesEveryWord`), `resolver.ts`
+(`pushDetails`/`pushBulkMaterials` retired), `Named.ts`, `Detailed.ts`,
+`Bulkable.ts` (`getKeywords`), the content pass (the six findings'
+keyword data), `api/mql/predicates.ts` (`:loose`, `:worn`, `:carried`),
+`LookController :211-220` (⚠ client-surface holds `look` — the
+predicate lands, the copy's deletion is whichever merges second),
+`SenseController`, `Container.ts`; docs `mql.md`, `mql-grammar.md`,
+`command-spec.md` § scope, `one-resolution-rule-slate` (§§ 3–5 marked
+done), `perception.md` (the guard stays).
+Tests: each of the six findings' tests pass on keyword data; the
+cross-try tier test; the three predicates; wire 23a.
+Acceptance: `look clay` at the pit looks at the lumps; `cut ice` cuts
+the block underfoot; `go hesper` after `look first line` goes. Commit.
 
-### W3 — the outcome convention
+### W3 — the mixins: splits, files, markers, protocols, presentation, security
 
-Goal: one shape, words on the controller, durations where they already
-were. Decisions: D4, D5 (the type half).
-Files: `lib/craft/ActPlan.ts`; `ManualBuildController.engagePlan` (+
-words), `EngagedActController.engageAct` (plan overload); the nine
-protocol files' reason unions; every implementer in § Grounding →
-*Implementers*; the twelve consuming controllers (verbatim words into a
-`switch`); `FitController`'s `pasteOn` arm and `StrikingDie.strikeWith`
-onto the same shape (so the "not ActPlan" exceptions close);
-`docs/subsystems/crafting.md` § the act protocols,
-`command-spec.md` § *Resolution outcomes*. Packs touched: ceramics,
-quarrying, glass, chandlery, papermaking, baking, carpentry, tailoring,
-cordage, dairying, sugar, water, smithing — each pack's vitest runs.
-Acceptance: `tsc` green with every reason mapped (the `never` arm); the
-ceramics/cordage/glass wire files unchanged in outcome; `lint:act-effort`
-unchanged or better; `grep -rn "line: Mml" lib/craft lib/material
-lib/mould platform/thing packages/content/*/src` returns nothing.
+Goal: drive 17, 25 (the card and `help dip`); `lint:mixin-clusters` 45
+→ 40; `lint:mixin-files` → 0; `lint:duck-typing` undefined → 0.
+Decisions: D6, D7, D8a, D8b, D25.
+Files: the five carved mixins + their originals; the twelve file moves;
+`lib/supply/Powered.ts` (mixin), `WaterPowered.ts`, `NameTaking.ts`;
+the six protocol conversions and three demotions (`Workable.ts`,
+`Pumpable.ts`, `Cuttable.ts`, `Tappable.ts` deleted, `TravelNode.ts`,
+Bail's `LiftSource`, `PumpSource`), their hosts, the `typeof` probe
+sites (D8a's list), the views' `requires:`; `lib/mixin.ts` (`Mixins`);
+`_mixinKind` on every protocol mixin; `CommandLogic.ts` :2137-2143 +
+types + `CardBodies.tsx` (*answers:*); `StudioLogic` (`kind:
+'protocol'`); `HelpCatalogue` (*answers:* on command topics, lazy);
+`SecurityPolicies.SelfSubject` + the 30 sites + the re-anchored widens;
+`Blueprint.signatureFromParts`; docs `mixins.md` (the split test, the
+file rule, `_mixinKind`), `employment.md`, `underwater.md`,
+`metabolism.md`, `encumbrance.md`, `chattel.md`, `energy.md`,
+`pump.md`, `fasttravel.md`, `studio.md`, `help.md`, `call-security.md`.
+⚠ `Organization.ts` is also client-surface's (`showShiftStatus` stays
+in it); `Throttleable` is water-supply's.
+Tests: per split a capture/materialize round-trip + the NOT-invariant;
+every host suite unchanged; `lint:mixin-names`; the card's chips; wire
+17 (`staged`), 25a.
+Acceptance: `OnCall` composes on `Business` only and `MadeFrom` on
+`Good`/`Vessel` only; every moved file imported by path; every bare
+shape in the table converted or demoted; `help dip` lists who answers.
 Commit.
 
-### W4 — the kernel acts onto their objects
+### W4 — the outcome convention, the cuts, `boil`, `scrub`, `affords`
 
-Goal: drive steps 6, 10–16; `lint:controller-{mutations,decisions,
-functions,resolution}` lowered by the kernel verbs' share. Decisions:
-D5, D10, D11, D12, D14.
-Files: `Growing.ts`, `Soil.ts`, `Cultivable.ts`, `Plantable` +
-`HarvestController`, `PlantController` (+ `HarvestWordedController` and
-its row); `Placing.ts`, `Slotted.ts`, `Feeder` + `PutController`;
-`PricedOffer.ts`, `Tariff.ts`, `CommerceMenu.ts` + `OrderController` +
-`order.yaml`; `Vitals.ts` + `TreatController` + `treat.yaml`;
-`Combatant.ts` + `ThrowController` → `TossController`/`HurlController`
-+ `toss.yaml`/`hurl.yaml`/`throw.yaml` + the affording statics
-(`Tossable`, the self bucket for `hurl`); `ReadController` +
-`magic/ReciteController` + `recite.yaml` + the scroll's static;
-`trade-tanning` `Tanning.ts`, `Tanpit.ts`, `TanController.ts`, `tan.yaml`;
-`lib/bulk/PourTarget.ts`, `Bulkable.ts`, `ManualBuild.ts`,
-`bulk/PourController.ts`, delete `crafting/PourController.ts` +
-`crafting/pour.yaml`, `check-verb-collisions.ts` :98; the rows; docs:
-`husbandry.md`, `smallholding.md`, `spatial.md`, `retail.md`, `harm.md`,
-`ranged.md`, `magic-items.md`, `bulk.md`, `crafting.md`, `command-spec.md`
-(the alternate-controller section).
-Tests: each moved rule's unit test moves with it (the plan/outcome
-tested on the object; the controller tested for wording only); new
-controller tests for toss/hurl/recite/pour; the W0 baseline file passes
-unchanged for steps 10–15; the `carcass-chain` wire file's tan steps
-updated to `get hide from pit`.
-Acceptance: the baseline comparison is equal in state, reasons and
-durations; step 16 ends in the same state with different words; the
-four controller gates' ceilings lowered; `pour` is one view and the
-collisions gate passes with two rows. Commit.
+Goal: one shape, words on the controller; the seven cut verbs through
+`cutPlan`. Decisions: D4, D5 (type half), D8c, D8d.
+Files: `ActPlan.ts`; `ManualBuildController.engagePlan` + words;
+`EngagedActController.engageAct` (plan overload); `Workable.ts`'s
+vocabulary; the nine protocol files' reason unions; every implementer
+and the twelve consuming controllers; `FitController`'s `pasteOn`,
+`StrikingDie.strikeWith`; `CuttableMixin.cutPlan` on Bole, Billet,
+Corpse, Sheet, IceSheet + `SawController`, `RiveController`,
+`FellController` (cross-cut arm), `ButcherController`, glass
+`Scribe`/`Snap`/`Groze`, ice `Groove`/`Scrape`, `IceActController`;
+`Soilable.holdAtHeatFor` + `Thermal.ts`'s boil arm + `HeatController`
+(`boilInPot` gone, `boil` word gone); `WashController` `--hard` +
+`wash.yaml`'s brush slot, `ScrubController`/`scrub.yaml` deleted;
+`requires: affords` in the binder + the twelve-verb probe record; docs
+`crafting.md` § act protocols + the cuts, `cleanliness.md` (the bath's
+heat), `thermal.md`, `command-spec.md` (`affords`), `verb-interfaces-slate`
+(items marked done). Packs touched: ceramics, quarrying, glass,
+chandlery, papermaking, baking, carpentry, tailoring, cordage, dairying,
+sugar, water, smithing, forestry, cooking, ice — each pack's vitest.
+Acceptance: `tsc` green with every reason mapped; `grep "line: Mml"`
+over the implementers returns nothing; a bandage in a boiling pot is
+disinfected by the pot's own reconcile; `wash floor --hard` scrubs;
+the cut wire steps (ceramics/forestry/carcass-chain) unchanged in
+outcome. Commit.
 
-### W5 — the subcommand rule, applied (all but the water-supply nouns)
+### W5 — the kernel acts onto their objects
 
-Goal: drive steps 7–9; `lint:subcommand-words` lowered. Decisions: D9.
-Files: the ten switch controllers (not bank/title) → bases +
-per-subcommand controllers + rows; their views (`controller:` per
-subcommand, the renames, `fight`'s split); `staff.yaml` + controllers +
-the four alias views (`appoint`, `dismiss`, `apply`, `quit`) + `Persona.ts`
-(:135-190, afford `staff` beside the aliases); `carve.yaml`,
-`plant.yaml`, `harvest.yaml`, `treat.yaml` options; `help` needs nothing;
-docs: `command-spec.md` § *Choosing between them* (the rule as decided),
+Goal: drive 6, 10–16. Decisions: D5, D10, D11, D12.
+Files: as the first plan's W4 (`Growing`/`Soil`/`Cultivable`/`Plantable`
++ Harvest/Plant + `HarvestWordedController`; `Placing`/`Slotted`/
+`Feeder` + Put; `PricedOffer`/`Tariff`/`CommerceMenu` + Order;
+`Vitals` + Treat; `Combatant.deliverThrown` + the three `throw` views/
+controllers; `ReadController` + `magic/ReciteController`; tanning
+`Tanning`/`Tanpit`/`TanController`; `PourTarget.ts`, `Bulkable`,
+`ManualBuild`, one `PourController`, `check-verb-collisions.ts` :98);
+the options on `carve`/`plant`/`harvest`/`treat` (old forms gone); rows;
+docs (`husbandry.md`, `smallholding.md`, `spatial.md`, `retail.md`,
+`harm.md`, `ranged.md`, `magic-items.md`, `bulk.md`, `crafting.md`,
+`command-spec.md` § alternate controllers).
+Acceptance: the W0 baseline comparison equal in state, reasons and
+durations; step 16 same state, different words; `pour` one view, the
+collisions gate at two rows; the `throw` trio routes per D17. Commit.
+
+### W6 — one view, one word: `do`, `reel`/`unwind`, `drift`, the sweep, categories
+
+Goal: drive 18–22; `lint:one-word` → 0; `lint:command-views`'
+`category` half flips to required. Decisions: D16, D18, D19, D20, D24.
+Files: the 65 views (one word each; `defaultAliases:` on `inventory`,
+`help`, `say` — and `look` by whichever merges second); the four
+shared controllers split by verb (Equip/Unequip/Descend/Profile);
+`Alias.ts` `collectDefaultAliases` (the view source); `HelpCatalogue`
+(keywords = verb + default aliases; grouping by category; `help`
+alone); every view's `category:`; `shell/do.yaml` + `DoController` +
+row, `make` deleted, `Avatar.ts`, the decouple's kernel/pack/prose/doc
+changes (D18 list); fishing `reel.yaml`/`ReelController` restored,
+`Reelable.ts`/`reel-unified.test.ts` deleted; sericulture `unwind.yaml`
++ `UnwindController` + row, `Cocoons`, `ReelingTool`, the `reels`
+brain, `package.json`, `reel.test.ts` → `unwind.test.ts`; mining
+`drift.yaml` + `DriftController` + row + `acts.test.ts`; wire `silk`,
+`crafting`, `food-safety`, `forestry`; docs `shell-alias.md` (the view
+source), `help.md`, `command-spec.md` (one word; `category:`;
+`defaultAliases:`), `scripting.md`, `crafting.md`, `sericulture.md`,
+`fishing.md`, `mining.md`, `CLAUDE.md`'s verb lists (by the sweep).
+Acceptance: no view with two words; no controller across verbs; `l`
+looks and `alias unset l` survives a restart (`staged`); `do martini`
+makes the drink and `make martini` is no command; `reel` fishes and
+`unwind cocoons` reels silk; `drift` cuts, `drive` drives; `help` lists
+by category. Commit.
+
+### W7 — the subcommand rule: the switch controllers, the institution sweep, fight
+
+Goal: drive 7–9, 22 (the institution half); `lint:institution-verbs`
+lowered to the W8 remainder; `lint:subcommand-words` builtin line held.
+Decisions: D9.
+Files: the ten switch controllers (not Bank/Title) → bases +
+per-subcommand controllers + rows; their views; `FightGambitController`
++ seven, `fight.yaml` (`defend` → `DefendController`; the `:103`
+fix); `house.yaml` + `HouseAppoint/Dismiss/DrawController` (over the
+house base), `job.yaml` + `JobApply/Quit/FulfillController`; `shelf.yaml`
++ `ShelfConsign/ReclaimController`, `rack.yaml` + `RackCheck/ReclaimController`
+(the `CheckRack` reclaim defect fixed in passing); the flat `appoint`,
+`dismiss`, `apply`, `quit`, `draw`, `fulfill`, `consign`, `reclaim`,
+`check` views and controllers **deleted**; their affording statics
+re-pointed (`Persona.ts` :135-190, `TipJar`, `StoreBook`-style on the
+shelf/rack classes, `CredentialWalletUpdate`); docs `command-spec.md`
+§ the rule as written, `employment.md`, `retail.md`, `contract.md`,
 `chat.md`, `forums.md`, `party.md`, `wiki.md`, `emotes.md`,
-`content-packs.md`, `combat.md` (the renamed words), `employment.md`
-(`staff`).
-Tests: the existing controller tests re-pointed at the per-subcommand
-classes; a binder test per renamed word; wire steps 7–9 (each noun's
-subcommands, `help <noun>`, each alias view, `fight defend` = `defend`,
-`carve` with options = the old chain).
-Acceptance: every subcommand does what it did; every old top-level word
-that moved still runs; the overlap gate's ceiling lowered to the
-remainder and the remainder listed in the MR. Commit.
+`content-packs.md`, `combat.md`.
+Acceptance: every subcommand does what it did; `help <noun>` lists
+them; `shelf consign` and `house appoint` work; `fight defend` =
+`defend`; the gate's ceiling lowered to `title`'s two. Commit.
 
-### W6 — bank, wallet, title, clock (last; reconcile with water-supply)
+### W8 — bank, wallet, title, clock (last; reconcile with water-supply)
 
-Goal: the four water-supply-held nouns. Decisions: D9 (the W6 rows).
-Before starting: `git fetch` and `git merge-tree` against
-`origin/reqs/water-supply` for `BankController.ts`, `WalletController.ts`,
-`TitleController.ts`, `ClockController.ts`, `BankingControllerBase.ts`;
-if water-supply has merged, merge master first; if not, build on this
-branch and note in the MR that whichever merges second reconciles.
-Files: `BankController` → per-subcommand over `BankingControllerBase`
-(`bank open` → `bank join`); `wallet.yaml` + `WalletDrawController`
-(`draw` alias view); `title.yaml` + `TitleSubdivideController`/
-`TitleTransferController` (alias views) + `TitleControllerBase`;
-`clock` is only counted. Rows, docs (`banking.md`, `parcel.md`).
-Acceptance: the four nouns' subcommands and alias views pass the
-step-7 checks; the overlap ceiling lowered again. Commit.
+Before starting: `git merge-tree` against `origin/reqs/water-supply`
+for the five files; merge master first if water-supply has landed.
+Files: `BankController` → per-subcommand over `BankingControllerBase`;
+`title.yaml` + `TitleSubdivide/TransferController` + `TitleControllerBase`,
+the flat `transfer`/`subdivide` deleted; `wallet` unchanged; `clock`
+unchanged (its `on`/`off` already conform). Rows, docs (`banking.md`,
+`parcel.md`). Whichever merges second reconciles.
+Acceptance: the four nouns pass the step-7 checks; `lint:institution-verbs`
+at 0. Commit.
 
-### W7 — the drive, the record, the MR
+### W9 — the drive, the record, the MR
 
-Run the whole blocking drive (the wire file, all 18 steps) once against
-a standing world; append the drive record below; open the MR READY with
-the list of outcome wordings that changed (D4) and the overlap
-remainder (D9); then the full suite once, alongside review.
+The whole blocking drive (steps 1–25) once against a standing world;
+the record appended; the MR READY with: the outcome wordings that
+changed, every per-view word pick, the scope-order audit, the twelve
+`affords` probes, the `FromMixin` re-anchoring list, the retired branch;
+then the full suite alongside review.
 
 ---
 
 ## Reachability wiring
 
-The five links for each new capability — verb · affordance · data · load
-· arg gate — each of which fails closed and silent.
-
-| capability | verb (view) | affordance (static) | data (row) | load | arg gate (`requires:`) |
+| capability | verb (view) | affordance (static) | data (row) | load | arg gate |
 |---|---|---|---|---|---|
-| `verb@source` | none — the command line | n/a | n/a | n/a | the source fills only a slot whose `requires:` it satisfies (D2) |
-| `toss` | `V/inventory/toss.yaml` | `TossableMixin.commandContributions.inventory` (new static; `Line` composes it) | `TossController.yaml` | on use | `item: TossableMixin`, `recipient: object, AgentMixin` |
-| `hurl` | `V/inventory/hurl.yaml` | the same `self` list `throw` rides (`Persona`/`Avatar`) | `HurlController.yaml` | on use | `item: TangibleMixin, mustBeHeld`; `target: VisibleMixin` |
-| `recite` | `V/magic/recite.yaml` | the scroll class's `inventory`/`peers` (the thing that is Arcane + Marked + Consumable; the build names the class) | `ReciteController.yaml` | on use | `target: [ArcaneMixin, MarkedMixin]` |
-| `staff …` | `V/employment/staff.yaml` + the four alias views | `PersonaMixin.commandContributions.self` (:135-190) | one row per subcommand controller | on use | as the old views |
-| per-subcommand controllers (W5/W6) | the existing views, `controller:` per subcommand | unchanged | one row each (`lint:controller-rows`) | on use | each subcommand's own `args` |
-| `pour` unified | `V/bulk/pour.yaml` `[pour, add]` | `BulkableMixin` (already) + `ManualBuildMixin` (re-pointed from `crafting/pour.yaml`) | `bulk/PourController.yaml` (exists); `crafting/PourController.yaml` deleted | on use | `target: PourTargetMixin` — in `Mixins`, so `lint:arg-kinds` admits it |
-| `HarvestWordedController` | the `harvest` view, re-pointed at runtime by the drive | unchanged (`Plant`, `Cultivable`, `Panel`) | `HarvestWordedController.yaml` | on use | unchanged |
-| the markers | none | none | none | composed by their hosts | `isPowered`/`isWaterPowered`/`isNameTaking` replace the probes |
-| the split halves | `eat.yaml`/`vomit.yaml`, `descend.yaml`/`ascend.yaml` move to the half that owns them | the composite unions both halves' statics (`queryMixins`) | none | — | none |
+| `verb@source`, `--strict`/`--loose`, `--async` | the command line | n/a | n/a | n/a | the source fills only a slot whose `requires:` it satisfies |
+| `throw` ×3 | `inventory/throw.yaml`, `throw-to.yaml`, `throw-at.yaml` | the same `self` list `throw` rides today | three rows | on use | `item: Tangible, mustBeHeld`; `recipient: Agent` (`to`, required); `target: Visible` (`at`, required) |
+| `recite` | `magic/recite.yaml` | the scroll class, `inventory`/`peers` | row | on use | `[ArcaneMixin, MarkedMixin]` |
+| `do` | `shell/do.yaml` | `Avatar.commandContributions.self` (swapped from `make`) | row | on use | `name: string` |
+| `unwind` | sericulture `cmd/sericulture/unwind.yaml` | `ReelingTool` (`environment`/`peers`; key changed) | row | on use | `cocoons: Cocoons`' mixin (the build names it), `tool: ToolMixin` |
+| `drift` | mining `cmd/mining/drift.yaml` | as today (`MiningActController`'s host) | renamed row | on use | as today |
+| `house appoint\|dismiss\|draw`, `job apply\|quit\|fulfill`, `shelf consign\|reclaim`, `rack check\|reclaim`, `title transfer\|subdivide` | the noun views' new subcommands | the deleted flat views' statics re-pointed at the noun view (`Persona`, `TipJar`→n/a, `StoreBook`-style on the shelf/rack classes, `CredentialWalletUpdate`) | one row per controller | on use | each subcommand's own `args` (the book bound per subcommand) |
+| per-subcommand controllers | existing views, `controller:` per subcommand | unchanged | one row each | on use | as today |
+| `pour` | `bulk/pour.yaml` `[pour]` | `Bulkable` + `ManualBuild` (re-pointed) | existing row | on use | `target: PourTargetMixin` |
+| the protocol conversions | the existing views | unchanged | none | composed | `requires:` names the mixin (off `any`) |
+| default aliases | none | the view's `defaultAliases:`, read from `getAffordances()` lazily | none | on use | n/a |
+| `category:` | every view | n/a | n/a | n/a | the schema gate |
+| `HarvestWordedController` | the `harvest` view re-pointed at runtime by the drive | unchanged | row | on use | unchanged |
 
 ---
 
@@ -1325,47 +1373,48 @@ The five links for each new capability — verb · affordance · data · load
 
 | criterion (requirements § Acceptance) | wave(s) |
 |---|---|
-| every blocking-drive step passes against a live world | W7 (steps 1–5, 18: W1; 17: W2; 6, 10–16: W4; 7–9: W5/W6) |
-| for every kernel verb moved: same state, same refusal reason, same duration | W0 baseline + W4 comparison; D15 keeps reason strings |
-| `verb@source` works for every verb with no per-verb change | W1 (the command line; no view touched) |
-| no word in the command surface means two acts | W5/W6 for the kernel nouns and fight; the gate ratchets the remainder (see *Requirements disagreement* 4) |
-| nothing a player typed or saved stops working | alias views (W5/W6), scope-free commands byte-identical (W1); the two accepted breaks are named (throw's `to`/`at` → a teaching refusal; renamed subcommand words) |
-| an alternate controller produces identical state | W4 (`HarvestWordedController`, step 16) |
-| every defect class counted, lower than the scan, cannot rise | W0 (the gates) + W2/W4/W5 (the lowerings) |
+| every blocking-drive step passes (1–25) | W9; by step: 1–5 W1 · 6 W5 · 7–9 W7/W8 · 10–16 W5 · 17 W3 · 18 W6 · 19 W6 · 20 W6 · 21 W6 · 22 W6+W7 · 23 W2+W1 · 24 W1 · 25 W3+W1 |
+| every moved kernel verb: same state, reason, duration | W0 baseline + W5 comparison; D15 |
+| `verb@source` for every verb, no per-verb change | W1 |
+| no view answers to more than one word; no controller to more than one verb | W6 (`lint:one-word` 0) |
+| breaking accepted: nothing kept binding | W5–W8 (no alias views, no old forms) |
+| an alternate controller produces identical state | W5 (drive 16) |
+| every defect class counted, lower than the scan, cannot rise | W0 (the gates) + W3/W5/W6/W7 (the lowerings) |
+| the folded-in items (reel, drift, ledger nouns, category, scope order, `--strict`, scripts, `--async`, the disabled row, protocols presented, mixin files) | W6 · W6 · W7/W8 · W6 · W2 · W1 · W1 · W1 · W1 · W3 · W3 |
 
 ---
 
 ## Test & gate strategy
 
-- **Unit**: tokenizer forms and round-trip; dispatcher scope semantics
-  (every D2 branch, including the non-interactive degrade and the batch);
-  the other-offer probe (never prompts, finds the second source); per
-  split a capture/materialize round-trip; each moved rule's test moves to
-  the object; each new controller a wording test only; each gate a
-  positive fixture + the invariant test.
-- **Wire (the drive IS the file)**: `controllers-are-io.dirty.wire.test.ts`.
-  Paces: steps 1–9, 11–16, 18 **instant**; step 10 **staged** (growth
-  set with `eval`, the harvest driven by player verbs); step 17
-  **staged** (the four states captured and re-materialized through
-  `eval`, read back by player verbs — the same path a restart takes;
-  there is no restart endpoint). No **short** step needs the clock past
-  an hour; **no soak drive**. Dirty because step 16 rewrites a shared
-  view (restored) and the baseline consumes seeds.
-  Pairs the plan names: steps 1–3 — two `Watch` clones
-  (`/auth/test-hand` for the carried one, `clone` for the one on the
-  table); step 5 — two wheat plants in one bed, one `isHarvestable`, one
-  not, both answering `wheat` (the unripe one answers first by scope
-  order; the reply names `harvest@here:2nd wheat`); step 6 — a graded
-  bottle, a jug, a glass and a shaker; step 14 — a line (`Tossable`), a
-  ball, a buddy session; step 15 — a notebook, a wall display, a scroll.
-- **Every checkpoint fails once on purpose** before the record is
-  trusted (B2): the record helper is run against a deliberately wrong
-  baseline.
-- **Browser walk** once at code-complete (B3):
-  `e2e/tests/controllers-are-io-walk.spec.ts` — type `wind@`, see the
-  other-offer line, `help bank`, `fight report`.
-- **Gates**: the whole family at every wave; the seven new gates'
-  ceilings are lowered in the wave that earns it, never raised.
+- **Unit**: tokenizer; dispatcher (D2's branches, batch, the probe, the
+  fail-closed guard, `prepositionRequired`, the reserved options); the
+  cross-try tier; the six scorer findings on keyword data; the three
+  predicates; per split a capture/materialize round-trip + the NOT
+  invariant; each converted protocol's refusing default; each moved
+  rule's test moves to the object; each new controller a wording test;
+  each gate a positive fixture + the invariant (at or below the ceiling,
+  above zero where a ratchet).
+- **Wire (the drive IS the file)** `controllers-are-io.dirty.wire.test.ts`,
+  steps 1–25. Paces: all **instant** except 10 and 17 (**staged**: the
+  plant's stage set by `eval`; the four states captured and
+  re-materialized through `eval`, read back by player verbs — the same
+  path a restart takes), 18 (**staged** for the restart half: the
+  tombstone captured/materialized), 19 (**short**: the martini over its
+  real time, under a game day). **No soak drive.** Dirty: step 16
+  rewrites a shared view (restored); steps 19–22 consume stock. Pairs
+  the plan names: 1–3 two `Watch` clones; 5 a ripe and an unripe wheat
+  in one bed; 6 a graded bottle, a jug, a glass, a shaker; 14 a line, a
+  ball, a buddy session; 15 a notebook, a wall display, a scroll; 19
+  Dave's Bar; 20 a fishing reach + the Hearts Delight reeling basin; 21
+  a drift + a cart; 22 the lounge store + a consignment shelf; 23 two
+  ice blocks; 25 a dip pot.
+- **Every checkpoint fails once on purpose** (B2); **browser walk**
+  once at code-complete (B3): `e2e/tests/controllers-are-io-walk.spec.ts`
+  — type `wind@`, see the other-offer line, `help` by category, the dip
+  pot's card, `alias unset l`.
+- **Gates**: the whole family at every wave; the twelve new gates'
+  ceilings lowered in the wave that earns it, never raised; the schema
+  gate from W0 on.
 - `pnpm test` runs twice: at code-complete alongside review, and at
   `/finalize`.
 
@@ -1373,67 +1422,79 @@ The five links for each new capability — verb · affordance · data · load
 
 ## Risks & opens
 
-1. **`_runChain` conflicts with client-surface.** Both builds edit the
-   same function. The merge is by hand; the plan's ordering (scope filter
-   first, then the chain, then the askable prompt) composes. Whichever
-   merges second reconciles.
-2. **The source-fills-its-slot rule (D2)** is the one semantic the
-   requirements implied but did not state. If the owner wants
-   `wind@me:watch watch` instead, the rule shrinks to (b)/(c) and steps
-   1–3 are retyped — a view change, not a re-plan.
-3. **The other-offer probe runs the binder twice on a refusal.** Cheap,
-   but a validator with side effects (none known; validators are
-   documented pure) would fire twice. The probe strips `interactive` so
-   no prompt can fire.
-4. **Tan's lift on removal** needs the remover at the hook. If
-   `onContainableRemoved` carries no actor, the build threads custody
-   from `ContainmentApi.move` (it derives custody already) — a kernel
-   hook signature change the MR must call out.
-5. **The `line:` sweep touches 13 packs.** Mechanical but wide; each
-   pack's vitest runs; a pack whose test asserts a refusal's prose (not
-   its reason) needs that assertion moved to the controller test.
-6. **`WaterPoweredMixin` makes two pack things compose a kernel
-   protocol** and deletes four probe-local interfaces in three other
-   packs. The pack rung check (`content-packs.md`) must still pass:
-   the mixin lives in the kernel, so no new pack dependency is declared.
-7. **Renamed subcommand words** are grain; expect review to rename some.
-   A rename is a view edit plus its test, minutes each.
-8. **Heuristic census numbers** in § Grounding are not the gates'
-   numbers; W0 publishes the classifiers' own counts and the MR cites
-   those.
-9. **Chattel title on restart** — drive 17's "made-by good" is a
-   `Crafted.maker` fact plus a chattel title; made-from is read-once by
-   design and is not expected to survive (it never did).
+1. **`_runChain` and `look` are client-surface's too**; `Organization.ts`
+   as well. Merge by hand; whichever merges second reconciles.
+2. **The source-fills-its-slot rule (D2)** stands; if it surprises in
+   review it shrinks to (b)/(c) — a view change.
+3. **The other-offer probe runs the binder twice on a refusal**;
+   validators are pure; `interactive` stripped.
+4. **Tan's lift needs the remover at the hook**; else custody from the
+   move (a kernel hook signature change the MR names).
+5. **The `line:` sweep touches 13 packs**; a pack test asserting prose
+   moves its assertion to the controller.
+6. **`boil`'s fold** is real thermal work (a per-occupant clock, a kill
+   applied once); the two traps are named in D8c. If the reconcile
+   cannot carry it cleanly, `heat … in pot` stays one more build and the
+   `boil` word still goes — say so in the MR.
+7. **The five `set` subcommands** (`reserve`, `equip`, `alias`,
+   `settings`, `var`) share their word with the `set` builtin. The
+   owner's noun-scoping ruling says keep; the builtin claims a line's
+   first word only. The gate's builtin line holds them at 5 and the
+   question is asked once, here.
+8. **The decouple redo** lands against files that diverged by 1,338
+   commits; the branch is a reference, not a merge.
+9. **`PumpableMixin` on every burner** makes a lamp answer `pump` with
+   a refusing default — honest today (it does), narrower later
+   (`Firebox` only) as a follow-on.
+10. **The scope-order audit** is 281 args by one rule; the room-first
+    set may want review (listed in the W2 commit).
+11. **`help`'s *answers:* reads `StudioLogic`'s export scan at runtime**
+    (lazy, cached). If that proves too heavy for a help topic, the
+    fallback is the mixin's own topic listing composers from the same
+    scan — still no boot entry.
+12. **Heuristic census numbers** in § Grounding are not the gates'; W0
+    publishes the classifiers' own.
 
-What the build should stop and ask about: nothing in this plan; a
-compliant path exists for every fork named above.
+What the build should stop and ask about: nothing; a compliant path
+exists for every fork named.
 
 ---
 
 ## Deferred seams
 
-Each leaves as a slate entry, never as a plan section.
-
-- `look`'s six class-specific arms → onto their objects after
-  client-surface merges — **one-resolution-rule-slate** § 2 (already
-  there).
-- The pack burn-down (Smelt, Fell, Saw, Butcher, Mow, Mill, Spin, Dye,
-  Draft, Operate…) under the ratchets — **controllers-are-io-slate**
-  keeps the scan list as its *Left*.
-- `Workable`'s second plan vocabulary (`kind`/`prose`/`cost`) onto
-  `ActPlan`; `Cuttable` as a protocol mixin — **verb-interfaces-slate**.
-- `OnCallMixin` → `BusinessMixin` only; `MadeFromMixin` → `Good`/`Vessel`
-  only; the other 40 split-cluster mixins as the gate's ranked census;
-  `getMass`'s four definers — **mixin-slate**.
+- `look`'s six arms → their objects after client-surface merges —
+  **one-resolution-rule-slate** § 2.
+- The pack burn-down (Smelt, Fell beyond the cross-cut, Saw beyond the
+  cut, Butcher beyond the cut, Mow, Mill, Spin, Dye, Draft, Operate…) —
+  **controllers-are-io-slate** keeps the scan list.
+- `PumpableMixin` narrowed to `Firebox`; `SeatedDrivableMixin`'s
+  deletion; `getMass`'s four definers; the other 40 split-cluster mixins
+  (the gate's ranked census) — **mixin-slate**.
 - The printer's forme, the herd, Katie's and Walter's nouns; the
-  workspace trees (item 8) after wizard-axis; `title buy` over `ForSale`
-  (rung 1); the `edit` pairs after wizard-axis —
+  workspace trees after wizard-axis; `title buy` over `ForSale`; the
+  five `set` subcommands if the owner rules otherwise —
   **command-taxonomy-slate**.
-- `shadowed-by:` on the view as the carrier for the two remaining
-  `KNOWN_COLLISIONS` rows — **affordance-verb-slate** (already there).
-- `@name` mentions inside a message tail — **chat slate**.
-- `engagement-completed` carrying what changed (the facts an
-  `ActOutcome` now has) — **response-envelope** follow-on.
+- `shadowed-by:` — **not needed**: the disjointness proof replaces
+  adjudication and `KNOWN_COLLISIONS` empties — **affordance-verb-slate**
+  (recorded as closed).
+- The audit rail (`@Audited`, `audit_events`), `FromIdentity`, pack gate
+  participants, interface admission — **call-security-pass-slate**
+  (the decision and the hoist landed here).
+- Scope-modality's per-modality permeability, transparent containers,
+  the feasibility validator — **scope-modality-slate** (only `eat`'s
+  `canReach` lands here).
+- Object-taxonomy's mint, subtraction, the `/stuff` committee —
+  **object-taxonomy-slate** (the signature and census landed here).
+- Affordance-suggestion's `narrow()`, relational axis, history, ranking
+  — **affordance-suggestion-slate**.
+- Async-commands' per-actor cap and generic cancel —
+  **async-commands-slate**.
+- `@name` mentions in a message tail — **chat slate**.
+- `engagement-completed` carrying the outcome's facts —
+  **response-envelope** follow-on.
+- The decouple branch's findings (stranded recipes, heat-tie shadowing,
+  a `record` macro, rows whose class doesn't exist) — its own findings
+  slate, landed with W6.
 
 ---
 
@@ -1441,62 +1502,102 @@ Each leaves as a slate entry, never as a plan section.
 
 Stated, not absorbed:
 
-1. **`wind@'pocket watch'`** — the command line treats `'` as a literal
-   character (chat apostrophes; `CommandLineLogic.ts` :6-8). The quoted
-   form is `wind@"pocket watch"`. The example should change, not the
-   tokenizer.
-2. **`order`'s "five services"** — there are six (`Tariff.ts` :93-102;
-   transfusion is the sixth). The plan moves all six.
-3. **Drive 17's "made-by good"** — the persisted maker is
-   `CraftedMixin.maker`; `Chattel`'s made-from is read once on arrival and
-   never persisted. The step checks the chattel TITLE and the crafted
-   maker survive; it cannot check made-from, which never survived.
-4. **"No word in the command surface means two acts"** cannot reach zero
-   in this build: 52 pairs exist, most in views this build does not own
-   (sibling-held nouns, pack nouns) or that dissolve when wizard-axis
-   lands (`edit`). The plan resolves the pairs inside the kernel nouns it
-   splits and fight, and the gate ratchets the rest — which is the
-   acceptance line's other sentence ("lower, and cannot rise"). And a
-   renamed subcommand word is a break for a saved script that named it;
-   the requirements promise aliases only where the act is the same.
-5. **`throw … to` / `throw … at`** cannot keep working silently once the
-   acts are split; the plan gives them a teaching refusal naming `toss`
-   and `hurl`. If the owner wants them to run, the throw view keeps the
-   arms and routes — the smush the build is removing.
+1. **The capability-keyed affordance table** ("a tool's own data says
+   which verbs it offers"; slate row *affordances-tools-confer, MR
+   !153*). This design was built (`b7f48eea0`) and **reversed twice**
+   (`ff9fd938b`, `85c7d47c5` "one record of verb affordances"):
+   `command-routing.md` :391-469 forbids an instance verb record with
+   five reasons, `crafting.md` :455-466 and `ToolCapability.ts` :20-37
+   say a capability names no verbs, and the object-taxonomy slate
+   records the verdict. The slate row describes a July end state as
+   current. The plan does **not** build it. Either the row is reworded
+   (*capability = requirement + working; verbs stay on the instrument
+   class*) or the owner overturns `command-routing.md` § ONE record
+   explicitly — a product decision, not this plan's.
+2. **Scope-modality** is premature by its own trigger (*"document now;
+   build when pulled"*; Q2, where modality is declared, is open; no
+   `modality` key exists). The plan ships only `canReach` on `eat.yaml`
+   and leaves the slate.
+3. **Call-security-pass** is a build of its own (the audit rail, a new
+   collection). The plan takes the decision (`FromMixin` not blessed;
+   re-anchor where enumerable) and the `SelfSubject` hoist, and leaves
+   the rest.
+4. **`drive`/`drift` is already split on master** (`3e915f1d3`); the
+   slate's "the movement view is marked unreachable" is false. What
+   remains is the rename.
+5. **`--async`/`--sync` already ship for a typed command**; only the
+   bare multi-statement script line lacks the flag. Drive 24's second
+   sentence is mostly already true.
+6. **`make` under five nouns is kept** — with `make` gone as a verb the
+   meta-verb premise is gone, and across the nouns the word is one act.
+   The requirements' "renamed only where it conflicts with a meta verb"
+   finds no such case; the five `set` subcommands are the honest
+   candidates (Risks 7).
+7. **`WaterPlaceMixin`'s halves are true of every host** — the split is
+   by co-use only; no host narrows. (The requirement's "a garden bed
+   stops carrying body physics" names no mixin this build splits —
+   `LoadBearing` and `Metabolic` compose on `Creature` only; the plan
+   reads it as the general rule, which `OnCall` and `MadeFrom` satisfy.)
+8. **`store`/`shelf` already conform or need a noun view**: `store`
+   exists; `shelf` and `rack` are new noun views this plan adds (drive
+   22 names `shelf consign`).
 
 ---
 
 ## Critical files
 
 Read first, in this order:
-- `docs/requirements/controllers-are-io-requirements.md`;
-  `docs/slates/builds/controllers-are-io-slate.md` (the ledger).
+- `docs/requirements/controllers-are-io-requirements.md` (at
+  `b3cb1e3ee` or later); `docs/slates/builds/controllers-are-io-slate.md`
+  (the ledger, § *Decided at plan review*, § *Folded in*).
 - `packages/server/src/mud/platform/idea/api/CommandLineLogic.ts`;
-  `packages/server/src/mud/api/command-line.ts`;
-  `packages/server/src/mud/lib/command/CommandGiver.ts` (:441-452,
-  :650-830, :1001-1280); `packages/server/src/mud/lib/script/Interpreter.ts`
-  (:605-675); `packages/server/src/mud/platform/idea/api/ShellLogic.ts`
-  (:88-260); `packages/server/src/mud/platform/idea/api/CommandLogic.ts`
-  (:1274-1360 cardinality; :968-1104 subcommand binding);
-  `packages/types/src/index.ts` (:565-583, :874-903).
-- `packages/server/src/mud/lib/craft/ActPlan.ts`;
-  `packages/server/src/mud/platform/idea/cmd/crafting/ManualBuildController.ts`;
-  `packages/server/src/mud/lib/command/EngagedActController.ts`;
-  `packages/server/src/mud/lib/material/Alloyed.ts` (:67-82).
-- The five mixins and their hosts (§ Grounding → *Mixin persistence*).
-- The nine kernel controllers and `TanController`, both `pour` pairs
-  (§ Grounding → *The kernel controllers in scope*).
-- `packages/server/scripts/pack-roots.ts`,
-  `check-instrument-args.ts`, `check-verb-collisions.ts`,
-  `check-reachability.ts`, `check-completion-this.ts`,
-  `scripts/__tests__/check-reachability.test.ts` (the fixture shape);
-  `docs/lint-family.md` § *four ways a census lies*.
+  `api/command-line.ts`; `lib/command/CommandGiver.ts` (:441-452,
+  :650-830, :839-853, :1001-1280); `lib/script/Interpreter.ts`
+  (:605-675); `platform/idea/api/ShellLogic.ts` (:88-260);
+  `lib/shell/Alias.ts` (:139-192, :255-284, :393-405);
+  `platform/idea/api/CommandLogic.ts` (:503-562 walkScopes/onFiltered;
+  :946-1109 assemble; :1274-1360 cardinality; :2137-2264 affordances;
+  :2560-2847 bindPositionals); `packages/types/src/index.ts`
+  (:565-583, :874-903, :1503-1553); `lib/script/builtins.ts`.
+- `lib/craft/ActPlan.ts`; `platform/idea/cmd/crafting/ManualBuildController.ts`;
+  `lib/command/EngagedActController.ts`; `lib/ground/Workable.ts`;
+  `lib/pump/Pumpable.ts`; `lib/craft/Cuttable.ts`; `lib/slot/Attired.ts`
+  (:1-60) + `docs/subsystems/slot.md` (:26-57); `lib/material/Alloyed.ts`
+  (:67-82).
+- The five mixins and their hosts; the twelve mixin files; the nine
+  kernel controllers, `TanController`, both `pour`s, the seven cut
+  controllers; `HeatController` + `lib/cleanliness/Soilable.ts`
+  (:532-556) + `lib/thermal/Thermal.ts` (:2384-2414, :2603-2625);
+  `WashController`/`ScrubController`.
+- `origin/fix/script-runner-decouple` (reference: `git diff
+  origin/master...origin/fix/script-runner-decouple`); fishing
+  `reel.yaml`/`ReelController.ts`/`src/lib/Reelable.ts`; sericulture
+  `Cocoons.ts`, `ReelingTool.ts`, `behavior/reels.ts`; mining
+  `cmd/mining/drive.yaml`, `__tests__/acts.test.ts`.
+- `api/mql/scope-walk.ts` (:293-394, :417-536), `resolver.ts`
+  (:1646-1760, :1825-1835), `api/mql/predicates.ts`; `lib/description/Named.ts`.
+- `platform/idea/api/StudioLogic.ts` (:384-424, :597-616, :791-830);
+  `platform/idea/HelpCatalogue.ts` (:429-476, :612-640);
+  `lib/security/SecurityPolicies.ts` (:399-433); `lib/studio/Blueprint.ts`
+  (:192-206).
+- `packages/server/scripts/pack-roots.ts`, `check-instrument-args.ts`,
+  `check-verb-collisions.ts` (+ its test), `check-reachability.ts` (+
+  fixtures), `check-mixin-names.ts`; `docs/lint-family.md` § *four ways
+  a census lies*.
 - `packages/wire/src/harness/{session,world,assertions}.ts`;
   `packages/wire/tests/forestry.dirty.wire.test.ts`,
-  `ceramics-a.dirty.wire.test.ts`.
-- `docs/subsystems/command-spec.md` (:80-175, :1409-1584, :1941-1956),
-  `command-routing.md` (:578-640), `mixins.md` (:152-182, :412-442),
-  `response-envelope.md`, `testing.md` (:60-116, :879-960).
+  `ceramics-a.dirty.wire.test.ts`, `silk.dirty.wire.test.ts`.
+- `docs/subsystems/command-spec.md` (:80-175, :320-360, :1409-1584,
+  :1941-1956), `command-routing.md` (:391-469, :578-640), `mixins.md`
+  (:152-182, :412-442), `shell-alias.md`, `scripting.md`,
+  `response-envelope.md`, `testing.md` (:60-116, :879-960);
+  `docs/slates/builds/command-taxonomy-slate.md`,
+  `verb-interfaces-slate.md`, `one-resolution-rule-slate.md` (§§ 3–5),
+  `docs/slates/tails/affordance-verb-slate.md` (§ the ladder),
+  `explicit-targeting-slate.md`, `mql-predicate-parity-slate.md`,
+  `script-interaction-slate.md`, `async-commands-slate.md`,
+  `affordance-suggestion-slate.md`, `object-taxonomy-slate.md`,
+  `docs/slates/builds/call-security-pass-slate.md`.
 
 ## Drive record
 

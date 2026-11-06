@@ -114,8 +114,7 @@ Everything else is moving logic to homes that already exist.
 - **Interfaces say what they are.**
   - The five mixins that a later build made into two ideas are split:
     organization, water place, metabolism, load-bearing and chattel. Each
-    half lands on the things it is honestly true of, so a garden bed
-    stops carrying body physics.
+    half lands on the things it is honestly true of.
   - Every mixin lives in a file named for it.
   - Every verb's contract with its target is a declared protocol, earned
     by more than one kind of thing answering the verb. A player sees each
@@ -137,7 +136,6 @@ Everything else is moving logic to homes that already exist.
     - a world act looks around you before it looks in your hands;
     - an in-hand act looks on your person first;
     - `--strict` and `--loose` settle how literally a target is read.
-  - **A tool's own data says which verbs it offers.**
   - **Scripts:**
     - a script that meets a question nobody can answer fails and names
       the missing input;
