@@ -1,11 +1,11 @@
 verbs: [tan]
 category: tanning
 controller: /trade/tanning/idea/cmd/tanning/TanController
-description: "Lay a hide into a tanpit, or lift a finished one out"
+description: "Lay a hide into a tanpit, or check on one"
 help: |
   `tan <hide>` — lay a green skin into a tanpit, and `tan` it again to
-  see how it is coming on. When it is through, `tan` lifts it out as
-  leather; so does `get <hide> from <pit>`.
+  see how it is coming on. When it is through, `get <hide> from <pit>`
+  lifts it out as leather.
 
   ⭐ **The work is not the act, it is the waiting and the judging.** A
   skin is in the pit for weeks. What the pit does to it depends on two
