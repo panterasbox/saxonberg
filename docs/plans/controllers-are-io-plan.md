@@ -1481,6 +1481,27 @@ unchanged (its `on`/`off` already conform). Rows, docs (`banking.md`,
 Acceptance: the four nouns pass the step-7 checks; `lint:institution-verbs`
 at 0. Commit.
 
+✅ **W8 done** (`2ddfb4a85`, `ebc202c60`, `2b5ef4c00`, `1e780767f`,
+`350bde0ed`, `33c6cc819`). `bank` = eight controllers over
+`BankControllerBase` (bare → balance). `title`: `transfer`/`subdivide`
+are subcommands, flat views gone; `TitlePublish/Offline/Transfer/
+Subdivide` in kernel `civics/`; ⭐ bare `title`, `list`, `buy` moved to
+the **residence pack** (`TitleBookControllerBase`), which retires the
+PlatBook/DeedDesk duck types — a kernel controller needing a pack class
+belongs in the pack; bare `title` now needs that pack. Decided: ship
+shares stay in `title transfer` (a ship's title is shares in her
+register); the desk is `at <desk>`, greedy, `TangibleMixin`, kind
+checked in the controller (the `stake` shape — a kernel `class:` entry
+can't name a pack class); `class:JobBoard` added to
+`CLASS_REQUIREMENTS` and every `board` arg requires it. Finding, not
+changed: `WalletController` still has a three-arm switch (plan: wallet
+as is). Ceilings: institution-verbs → 0; controller-functions → 258;
+self-resolution → 117; duck → 556; subcommand pairs → 44. ⚠ Binder
+paths `desk`, `class:JobBoard`, `title transfer` unverified until W9.
+Water-supply overlap, for whichever merges second: its `declineScene`
+hunk now belongs in `BankControllerBase`; its `getLotWaterSource`/
+`citeWaterSource` hunk in `TitleBuyController`.
+
 ### W9 — the drive, the record, the MR
 
 The whole blocking drive (steps 1–25) once against a standing world;
