@@ -255,9 +255,14 @@ describe('verb@source at the dispatcher', () => {
     });
 
     it('⚠ an act that ended its giver still gets its context back, with no probe', async () => {
-      vi.spyOn(giver() as never as { isDestroyed(): boolean }, 'isDestroyed').mockReturnValue(true);
+      const running = vi.spyOn(giver() as never as { isDestroyed(): boolean }, 'isDestroyed');
+      running.mockReturnValue(false);
+      vi.spyOn(giver(), '_executeOne').mockImplementation(async () => {
+        running.mockReturnValue(true);
+      });
       const probe = vi.spyOn(giver() as never as { _otherOffer(): unknown }, '_otherOffer');
       const ctx = await dispatch('windish wheat', [offer(near, wind)]);
+      running.mockReturnValue(false);
       expect(ctx).toBeDefined();
       expect(probe).not.toHaveBeenCalled();
     });
