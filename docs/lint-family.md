@@ -315,6 +315,13 @@ classifier has a positive fixture beside its test (lie 3).
 (⚠ which is what reaches the ten domain-local controllers at
 `<pack>/src/<locality>/idea/cmd/` — `lint:instrument-args` read only
 `src/idea/cmd/`) and `src/lib/**/*Controller.ts` bases. 390 modules.
+⚠ A noun's shared `*ControllerBase.ts` qualifies too (W7): the four
+shipped bases (`BankingControllerBase`, `RecordControllerBase`,
+`LocomotionControllerBase`, `SingleSenseControllerBase`) were invisible
+to the census until then, so the W7 re-pin below is a measurement
+correction (+5 functions, +2 mutations, +9 decisions incl. +1 duration,
++3 self-resolution) and not growth — and a switch controller split into a
+base plus one controller per subcommand keeps every count equal.
 `lint:controller-resolution`, `lint:completion-this` and the three
 controller census gates read it; `commandViewFiles()`/`commandViews()`
 are its view-side twins (moved out of `check-verb-collisions`).
@@ -323,10 +330,10 @@ are its view-side twins (moved out of `check-verb-collisions`).
 |---|---|---|---|
 | ⭐ `lint:command-views` | every view validates against `command.schema.json` (compiled as `CommandLogic` compiles it — ajv, `allErrors`, `strict: false` — plus the `opens_card` ∈ `CARD_IDS` rule); and `category:` = its `cmd/<category>/` dir | schema **0, hard**; category 361 + 10 in no category dir, **warning** (`CATEGORY_REQUIRED` flips at W6) | — / W6 |
 | `lint:duck-typing` | AST: `typeof x.m === "function"`, `x.m?.()`, `"m" in x` over all mud code (the thenable `then`/`catch` and V8 `getFileName` excluded); ⛔ sub-count: a method probe on a name no class member or object-literal member defines | **628**; undefined **7** (`setHandling`, `grazingDemandPerGameDay`, `getFixedInPlace`, `getVentilated`, `onConnectionDetached` ×2, `onLinkRestored`) | W3 |
-| `lint:controller-mutations` | AST: a mutator-shaped call (`set*`, `add*`, `record*`, … or the slate's bare `soil`/`recordHeat`) on a receiver that is not `this`, an `*Api`, or the envelope | **359** | W5 |
-| `lint:controller-decisions` | AST: `Math.*`, arithmetic (`* / % ** -`), numeric thresholds, UPPER_SNAKE numeric consts; ⭐ sub-count: duration/effort consts (`*_MS`, `*_W`, …) and `durationMs:`/`effortW:` literals (D5) | **1286**; durations **113** | W5 |
-| `lint:controller-functions` | AST: top-level `function` / arrow `const` in a controller module | **273** | W5 |
-| `lint:controller-resolution` | the instrument hunt (absorbed `lint:instrument-args`) + self-resolution: `MqlApi.*`, `StuffApi.find*`/`singleton`, `.getContents()` in a controller | hunts **4**; self **117** | W2 |
+| `lint:controller-mutations` | AST: a mutator-shaped call (`set*`, `add*`, `record*`, … or the slate's bare `soil`/`recordHeat`) on a receiver that is not `this`, an `*Api`, or the envelope | **359** (W7 re-measure with bases: 361) | W5 |
+| `lint:controller-decisions` | AST: `Math.*`, arithmetic (`* / % ** -`), numeric thresholds, UPPER_SNAKE numeric consts; ⭐ sub-count: duration/effort consts (`*_MS`, `*_W`, …) and `durationMs:`/`effortW:` literals (D5) | **1286**; durations **113** (W7 re-measure with bases: 1295; 114) | W5 |
+| `lint:controller-functions` | AST: top-level `function` / arrow `const` in a controller module | **273** (W7 re-measure with bases: 278) | W5 |
+| `lint:controller-resolution` | the instrument hunt (absorbed `lint:instrument-args`) + self-resolution: `MqlApi.*`, `StuffApi.find*`/`singleton`, `.getContents()` in a controller | hunts **4**; self **117** (W7 re-measure with bases: 120) | W2 |
 | `lint:mixin-clusters` | a mixin factory's class whose co-use graph (`this.X` reads; a field and its accessors folded to one node by stem) has ≥ 2 components of ≥ 2 nodes | **44** (sees all five D6 splits) | W3 |
 | `lint:mixin-files` | `export function FooMixin` not in `Foo.ts` (kernel `lib/**`, `world/**`, pack `src/lib/**`) | **12** (the plan's twelve moves) | W3 |
 | `lint:one-word` | (a) a view with > 1 `verbs:` entry; (b) a controller named by views of different verbs; (c) a `defaultAliases:` name declared twice / equal to a verb / a builtin | (a) **65** views, 77 extra words; (b) **4** (Equip, Unequip, Descend, Profile); (c) **0** | W6 |
@@ -1286,7 +1293,7 @@ composes `FloorMixin` carries **both** `ground` and `floor` in its own
 
 ⚠⚠ Clause (d) is not tidiness, and it found three shipped rows on its first
 run. The MQL scope walk pools a thing's own `getKeywords()`, and
-`pushDetails` gives a detail the pool `[<its id>]` and **never** its authored
+`DetailedMixin.getKeywords` folds in a detail by its id `[<its id>]` and **never** its authored
 keyword list — so a floor's `details.floor.keywords: [ground]` is dead text.
 `weeping-floor` authored `[flagstones, wet]` and was therefore a floor
 nothing could sit on or look at. `FloorMixin` unions both words onto the

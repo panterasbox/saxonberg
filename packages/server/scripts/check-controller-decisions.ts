@@ -40,8 +40,8 @@ import { pathToFileURL } from "url";
 import ts from "typescript";
 import { controllerFiles, parseTs, ratchet } from "./pack-roots";
 
-export const CONTROLLER_DECISIONS_CEILING = 1286;
-export const DURATION_DECLS_CEILING = 113;
+export const CONTROLLER_DECISIONS_CEILING = 1295; // W7: +9 — the four shipped `*ControllerBase.ts` modules, invisible until the enumerator read the suffix (a measurement correction, not growth).
+export const DURATION_DECLS_CEILING = 114; // W7: +1 — the four shipped `*ControllerBase.ts` modules, invisible until the enumerator read the suffix (a measurement correction, not growth).
 
 export type DecisionKind = "math" | "arithmetic" | "threshold" | "constant" | "act-literal";
 

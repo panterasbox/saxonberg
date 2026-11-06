@@ -213,7 +213,7 @@ export const BESPOKE_RESOLUTION_CEILING = 4;
  * ⭐ Self-resolution — the census-then-ratchet half (controllers-are-io
  * W0). Pinned at this gate's own W0 count; may fall, never rise.
  */
-export const SELF_RESOLUTION_CEILING = 117;
+export const SELF_RESOLUTION_CEILING = 120; // W7: +3 — the four shipped `*ControllerBase.ts` modules, invisible until the enumerator read the suffix (a measurement correction, not growth).
 
 /** A controller resolving its own target: the MQL facade, a store find, a contents walk. */
 const SELF_RESOLUTION =

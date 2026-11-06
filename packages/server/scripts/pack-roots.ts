@@ -394,8 +394,13 @@ export interface ControllerFile {
  *   5. every pack's `src/lib/**\/*Controller.ts` — a pack's own bases
  *      (`IceActController`, `HallController`, `LettingController`).
  *
- * A file qualifies by its NAME (`*Controller.ts`) inside one of those
- * homes; `__tests__` and `node_modules` are never walked.
+ * A file qualifies by its NAME (`*Controller.ts`, or `*ControllerBase.ts`
+ * — a noun's shared base, `BankingControllerBase`, `WikiControllerBase`)
+ * inside one of those homes; `__tests__` and `node_modules` are never
+ * walked. ⚠ The base suffix was missed until controllers-are-io W7: the
+ * four shipped bases' helpers were invisible to every controller census,
+ * and a switch controller split into a base + one controller per
+ * subcommand would have looked like a burn-down it was not.
  */
 export function controllerFiles(
   contentDir: string = CONTENT,
@@ -405,7 +410,7 @@ export function controllerFiles(
   const seen = new Set<string>();
   const repo = join(mudDir, "..", "..", "..", "..");
   const push = (file: string, owner: string): void => {
-    if (seen.has(file) || !file.endsWith("Controller.ts")) return;
+    if (seen.has(file) || !/Controller(?:Base)?\.ts$/.test(file)) return;
     seen.add(file);
     out.push({ file, owner, rel: relative(repo, file) });
   };

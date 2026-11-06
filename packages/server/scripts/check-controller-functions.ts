@@ -26,7 +26,7 @@ import { pathToFileURL } from "url";
 import ts from "typescript";
 import { controllerFiles, parseTs, ratchet } from "./pack-roots";
 
-export const CONTROLLER_FUNCTIONS_CEILING = 273;
+export const CONTROLLER_FUNCTIONS_CEILING = 278; // W7: +5 — the four shipped `*ControllerBase.ts` modules, invisible until the enumerator read the suffix (a measurement correction, not growth).
 
 /** The names of the module-level functions in one controller module. */
 export function moduleFunctions(sf: ts.SourceFile): Array<{ name: string; line: number }> {
