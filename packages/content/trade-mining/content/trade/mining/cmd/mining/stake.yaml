@@ -43,5 +43,5 @@ args:
     required: false
     prepositions: [at]
     default: "reachable:[class.ClaimsRegister]"
-    scope: ["reachable"]
+    scope: ["here", "peers", "person"]
     requires: [TangibleMixin]

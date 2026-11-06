@@ -33,5 +33,5 @@ args:
     greedy: true
     prepositions: [on, onto]
     default: "reachable:[mixin.TurnableMixin]"
-    scope: ["reachable"]
+    scope: ["here", "peers", "person"]
     requires: [PlacingMixin]

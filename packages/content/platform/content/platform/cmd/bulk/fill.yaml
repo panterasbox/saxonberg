@@ -27,7 +27,7 @@ args:
   - name: source
     type: object
     required: true
-    scope: "reachable"
+    scope: ["here", "peers", "person"]
     prepositions: [from]
     requires: VisibleMixin
     validators:

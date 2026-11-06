@@ -131,8 +131,8 @@ column is the ground's business, cutting it is the trade's.
 ## Reading a floor
 
 ⚠⚠ **`floor` and `ground` are keywords on the CLASS, not on the row.** The
-MQL scope walk pools a thing's own `getKeywords()`, and `pushDetails` gives
-a detail the pool `[<its id>]` and **never** its authored `keywords:`. So a
+MQL scope walk pools a thing's own `getKeywords()`, and `DetailedMixin.getKeywords` folds
+in a detail by its id `[<its id>]` and **never** its authored `keywords:`. So a
 floor row's `details.floor.keywords: [ground]` is dead text — and attaching
 a floor row to all 139 Locations would have fixed `look floor` while leaving
 bare `sit` broken. `FloorMixin.getKeywords()` unions both words;

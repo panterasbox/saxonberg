@@ -553,11 +553,15 @@ function perceivedKeywordsImpl(viewer: Stuff, target: Stuff): string[] {
     // is the whole of disguise (found live: `look cat` found nothing the
     // moment she had a name).
     if (!MixinApi.isPersona(target) && MixinApi.isPerceptible(target)) {
-      return [...new Set([...perceived, ...target.getKeywords()])];
+      return [...new Set([...perceived, ...target.getKeywords(viewer)])];
     }
     return perceived;
   }
-  return MixinApi.isPerceptible(target) ? target.getKeywords() : [];
+  // ⭐ A thing answers to its own keyword face for `viewer` — its name
+  // among them (`NamedMixin`), its details as `viewer` may address them.
+  if (MixinApi.isPerceptible(target)) return target.getKeywords(viewer);
+  if (MixinApi.isNamed(target)) return target.getKeywords(viewer);
+  return [];
 }
 
 /** The `learnIdentity` face — see the object surface (Stuff/BeliefStore). */

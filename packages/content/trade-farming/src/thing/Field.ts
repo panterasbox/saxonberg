@@ -385,8 +385,11 @@ export default class Field extends FieldBase {
     const stem = spec.name.trim().replace(/^the\s+/i, '') || spec.key.replace(/-/g, ' ');
     this.setShortDescription(stem);
     this.setRegister('definite');
+    // ⚠ The AUTHORED list, not `getKeywords()`: that one also folds in
+    // what is DERIVED (detail ids, what the soil holds), which must not be
+    // baked into the stored keywords on every wake.
     this.setKeywords([
-      ...this.getKeywords(),
+      ...this.keywords,
       stem,
       ...stem.split(/\s+/),
       spec.key,
@@ -530,14 +533,13 @@ export default class Field extends FieldBase {
 
   /**
    * ⭐ **Whether the mouth is standing here**: the herds whose moves wrote
-   * themselves onto this field, plus this field's share of whatever grazes
-   * loose in its tract (D34). ⚠ A pure read of authored demand.
+   * themselves onto this field. ⚠ A pure read of authored demand. (Loose
+   * grazing in the tract was retired at controllers-are-io D7a — it read a
+   * method no animal defines.)
    */
   public override swardGrazingDemandPerGameDay(): number {
     let demand = 0;
     for (const e of Object.values(this.grazers)) demand += e.demandKgPerDay;
-    const tract = this.getTract();
-    if (tract) demand += tract.looseGrazingShareOf(this);
     return demand;
   }
 

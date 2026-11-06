@@ -33,5 +33,5 @@ args:
     greedy: true
     prepositions: [to, at]
     default: "reachable:[mixin.ConsignmentShelfMixin]"
-    scope: [reachable]
+    scope: ["here", "peers", "person"]
     requires: [ConsignmentShelfMixin]

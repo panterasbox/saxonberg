@@ -14,8 +14,8 @@
  * - **`ground` and `floor` as keywords, by construction.** ⚠⚠ This is the
  *   one that mends the defect that opened the cycle, and it has to be here
  *   rather than on a row. The MQL scope walk pools a thing's own
- *   `perceivedKeywordsFor` → `getKeywords()`, and `pushDetails` gives a
- *   detail the pool `[id]` and **nothing from its authored `keywords:`**.
+ *   `perceivedKeywordsFor` → `getKeywords()`, and `DetailedMixin.getKeywords`
+ *   folds in a detail by its id `[id]` and **nothing from its authored `keywords:`**.
  *   So `default-floor`'s detail listing `ground` was dead text, and
  *   attaching that row to every room in the game would still have left
  *   bare `sit` broken. The union is on the class, where a row cannot
@@ -1128,8 +1128,8 @@ export function FloorMixin<
      * consulted, so this is the only place the words can live where a row
      * cannot forget them.
      */
-    public getKeywords(): string[] {
-      const own = super.getKeywords();
+    public getKeywords(viewer?: Stuff): string[] {
+      const own = super.getKeywords(viewer);
       const seen = new Set(own.map((k: string) => k.toLowerCase()));
       const out = [...own];
       for (const word of FLOOR_KEYWORDS) {

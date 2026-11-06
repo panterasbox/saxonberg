@@ -29,7 +29,7 @@ args:
     greedy: true
     prepositions: [in, at]
     default: "reachable:[mixin.BulkableMixin],reachable:[mixin.ShoreMixin]"
-    scope: ["reachable"]
+    scope: ["here", "peers", "person"]
     requires: any
     # Something named must hold water — a shore citing none (a ship's dry
     # cabin) is no bath, and the verb is not offered on it.

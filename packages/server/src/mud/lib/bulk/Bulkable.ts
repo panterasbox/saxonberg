@@ -43,7 +43,10 @@
  */
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
+import { Mixins } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
+import type { Perceptible } from '../description/Perceptible';
+import { BlendIdentity } from '../craft/BlendIdentity';
 import type { CommandContributions } from '../../api/command';
 import { Quantity } from '../quantity';
 import { QuantityMarshaller } from '../../platform/idea/persistence/QuantityMarshaller';
@@ -463,6 +466,16 @@ export interface Bulkable {
   getBulk(affordance?: BulkAffordance): BulkSlot;
 
   /**
+   * ⭐ What the substance held in `affordance` answers to — the blend's
+   * words (its recipe's, else its Material's) and its name; `[]` for an
+   * empty or absent slot. Folded into {@link Bulkable}'s `getKeywords()`
+   * (derived, never stored): `drink coffee` binds the cup because the cup
+   * says it answers to `coffee` while it holds some (one-resolution slate
+   * § 5 row 2). MQL attributes such a match to the slot (`via.bulk`).
+   */
+  getHeldKeywords(affordance: BulkAffordance): string[];
+
+  /**
    * What `viewer` sees in a slot — the per-viewer contents phrase, or
    * `null` when there is nothing to report. The one viewer-aware read
    * on the substrate; see the implementation for why identification is
@@ -552,8 +565,44 @@ function assertVolume(q: Quantity<'L'>, field: string): void {
 export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
   Base: TBase,
 ) {
+  // Whether the composition beneath answers to words (decided once per
+  // class, lazily — the factory runs at import).
+  let inherits: boolean | undefined;
   return class BulkableMixin extends Base {
     static _mixinName = 'BulkableMixin';
+
+    /** The authored keywords, then what each slot holds — see {@link Bulkable.getHeldKeywords}. */
+    getKeywords(viewer?: Stuff): string[] {
+      inherits ??= MixinApi.hasMixin(Base, Mixins.Perceptible) || MixinApi.hasMixin(Base, Mixins.Named);
+      const out = inherits
+        ? (Base.prototype as unknown as Perceptible).getKeywords.call(this, viewer)
+        : [];
+      const seen = new Set(out);
+      for (const affordance of ['interior', 'surface'] as const) {
+        for (const word of this.getHeldKeywords(affordance)) {
+          if (!seen.has(word)) {
+            seen.add(word);
+            out.push(word);
+          }
+        }
+      }
+      return out;
+    }
+
+    /** See {@link Bulkable.getHeldKeywords}. */
+    public getHeldKeywords(affordance: BulkAffordance): string[] {
+      const has = affordance === 'interior' ? this.hasInteriorBulk() : this.hasSurfaceBulk();
+      if (!has) return [];
+      const slot = this.getBulk(affordance);
+      if (slot.isEmpty()) return [];
+      const material = slot.getMaterial();
+      if (material === null) return [];
+      // A blend's per-instance payload names the held substance (`look
+      // stew` on the plated dish); an un-blended slot reads its Material.
+      const payload = slot.getPayload();
+      const words = [...BlendIdentity.keywordsOf(payload, material), BlendIdentity.nameOf(payload, material)];
+      return [...new Set(words.map((w) => w.toLowerCase().trim()).filter((w) => w.length > 0))];
+    }
 
     /**
      * The bulk verbs are **carried by the holder** (the

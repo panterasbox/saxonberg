@@ -32,5 +32,5 @@ args:
     # declared; a scythe on the ground is picked up first. (`reachable` for a
     # day widened every hand tool to the room. Naming one still reaches it.)
     default: "me:i:[capability.whetstone]"
-    scope: ["reachable"]
+    scope: ["here", "peers", "person"]
     requires: [ToolMixin]

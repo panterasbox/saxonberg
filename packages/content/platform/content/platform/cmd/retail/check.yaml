@@ -35,5 +35,5 @@ args:
     required: false
     prepositions: [from]
     default: "reachable:[mixin.HeldGoodsMixin] - reachable:[mixin.ConsignmentShelfMixin]"
-    scope: [reachable]
+    scope: ["here", "peers", "person"]
     requires: [HeldGoodsMixin]

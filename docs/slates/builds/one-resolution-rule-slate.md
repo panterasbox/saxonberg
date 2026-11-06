@@ -2,6 +2,16 @@
 
 > **Status:** PARTIAL — opened 2026-11-03 (user, during the harbors MR review !511); applied
 > in !511 to exits and directions only (an exit is a candidate, no `via.exit`, § 5 row 14).
+> **Done (controllers-are-io W2, 2026-11-06):** § 3 rows 5, 11, 12 (`startsAWord` in the cut —
+> folded into the keyword tiers; tiers compared across scope tries, `go.yaml`'s private order
+> already retired by harbors; a literal is one phrase against keywords) · § 4 (the name tiers
+> collapsed into keyword tiers; `bareName` gone; `NamedMixin.getKeywords`; the six findings on
+> keyword data) · § 5 rows 1, 2, 5, 6, 7 (detail ids and the held substance are the object's own
+> derived `getKeywords()`; `pushDetails`/`pushBulkMaterials` retired; `via.detailPath`/`via.bulk`
+> are facets of the one candidate; the slow path and chain steps build the same candidate, so § 5
+> row 4's two-answers gap closed except `[keyword.x]` and a mid-chain literal, which still read the
+> viewer-blind face). Still open below: § 3 row 9's slow path and the implicit tract candidate
+> (§ 5 row 3).
 > **Left:** `look` renders what MQL bound and nothing else — the `via.exit` gap closed in MQL, the
 > class-specific appends moved onto their objects · the binder's cross-scope tiering (which retires
 > `go.yaml`'s private scope order) · a `defaulted` fact on a bound result (which retires `buy`'s
@@ -135,14 +145,14 @@ that put 25–26 here is real: the augmenter pipeline is SYNC and an owner or a 
 | 2 | a candidate's own leading article dropped before the exact-name compare (`bareName`) | `scope-walk.ts` `scoreCandidate` | general | ✅ documented (field population pass 4) |
 | 3 | the tier cascade: name IS the query 100 · a KEYWORD is the query 70 · every word a whole word of the name 60 · word-starts 50/40 · keyword 25 · partials | `scoreCandidate` / `scoreCandidates` | general, each tier cites the drive that found it | ✅ — note the deliberate order **a thing NAMED by the word (100) outranks a keyword (70), and a keyword outranks a name merely containing the word (60)**; this is what makes the way `hesper` (name, 100) beat her deck (keyword) |
 | 4 | the whole-phrase cut (a partial never rides along with a whole match) | `scoreCandidates` | general | ✅ |
-| 5 | ⚠ `namesEveryWord` uses `includes` (MID-word) while `scoreCandidate` bans mid-word matches | `scope-walk.ts` | inconsistency | fix: `startsAWord` in both |
+| 5 | ⚠ `namesEveryWord` uses `includes` (MID-word) while `scoreCandidate` bans mid-word matches | `scope-walk.ts` | inconsistency | fix: `startsAWord` in both — ✅ **done W2**: one keyword scorer, "every word begins a keyword word" IS the cut |
 | 6 | a direction binds `(location, via: { exit })` — the exit is never itself a candidate | `candidatesForHere`, `candidatesForAnchor` | a shape choice every exit verb reads | ⚠ the root of § 2 row 4 and the harbors swap: `look` cannot show an exit. Fix: the exit is the candidate (`stuff: exit`); `go`/`open`/`lock`/`climb` already read through `effectiveTarget` (row 8) or `via.exit` and move to the exit itself |
 | 7 | ⚠ the slow path (`candidatesForAnchor`) lists `getObviousExits()`; the fast path lists `obviousExitsFor(viewer)` | `resolver.ts` vs `scope-walk.ts` | inconsistency — the slow path is viewer-blind to hidden exits | fix: `obviousExitsFor(viewer)` in both |
 | 8 | `effectiveTarget(result, predicate)`: the bound stuff → its exit's door → the exit | `MqlLogic` | ⭐ an MQL-hosted usability carve-out | ✅ principled (one question: *what, reachable that way, satisfies the predicate*), documented, used by every device verb — **not by `look`**, which is how row 6 stayed hidden |
 | 9 | the tract rule: a loaded `Place` across an exit that answers `isSeenAcrossExit()` is a `here` candidate by its own name | `candidatesForHere` (tracts D30) | ⭐ MQL-hosted carve-out, opt-in by hook | ✅ principled and uniform for the FAST path; ⚠ absent from `candidatesForAnchor` (the slow path), so a drilled focus never sees across — make both paths share one neighborhood builder |
 | 10 | `here` dropped when a later try is `reachable` | `CommandLogic.scopeTries` | general binder rule | ✅ documented (ceramics clay pit) |
-| 11 | ⚠ the FIRST scope try with an admissible match wins, at any tier | `CommandLogic.walkScopes` | general, but it lets a 10-point partial in the focus beat a 100-point name in the room | **the defect behind § 1 row 2**: compare tiers across tries (a drilled focus still wins a tie — that is what drill-first means), and retire `go.yaml`'s private order |
-| 12 | ⚠ a quoted literal is an exact compare of the lowercased NAME only — no `bareName`, no keywords | `resolveLiteralSeed` | inconsistency with rows 2–3 | fix: the literal is one word for the scorer's 100 tier (`bareName`) and the keyword tier |
+| 11 | ⚠ the FIRST scope try with an admissible match wins, at any tier | `CommandLogic.walkScopes` | general, but it lets a 10-point partial in the focus beat a 100-point name in the room | **the defect behind § 1 row 2**: compare tiers across tries (a drilled focus still wins a tie — that is what drill-first means), and retire `go.yaml`'s private order — ✅ **done W2** (`MqlMany.tiers`, `walkScopes`); `go.yaml`'s order was already retired by harbors review 3 (`here:exits`, shared by the seven locomotion views) |
+| 12 | ⚠ a quoted literal is an exact compare of the lowercased NAME only — no `bareName`, no keywords | `resolveLiteralSeed` | inconsistency with rows 2–3 | fix: the literal is one word for the scorer's 100 tier (`bareName`) and the keyword tier — ✅ **done W2**: a literal binds what has the phrase as a keyword (a name is one) |
 | 13 | seed words (`inventory` `online` `world` `peers` `reachable` `person` `horizon`) and chain words (`members`) shadow an object so named; `[keyword.x]` is the escape | `resolveKeywordSeed`, `flatMapMembers` | general, documented | ✅ |
 | 14 | `:members` expands a `Warren` only (`instanceof`) | `flatMapMembers` | class-specific, but a NAMED operator | ✅ |
 | 15 | peers: fixtures count; one level into an OPEN container | `candidatesForPeers` | general, agrees with `canReach` | ✅ |
@@ -187,7 +197,17 @@ every exit verb and every described object.
 
 ---
 
-## 4. The scorer's NAME tiers — ⭐ DECIDED: the name is not special (user, 2026-11-03)
+## 4. The scorer's NAME tiers — ⭐ DECIDED: the name is not special (user, 2026-11-03) — ✅ BUILT (controllers-are-io W2)
+
+> **As built:** tiers 100 a keyword IS the phrase · 60 every word a whole word of a keyword · 40
+> every word begins a keyword word · 10 × n partials (`scope-walk.ts`, `TIER_*`). The table's
+> keyword data, row by row: the patch keeps `top end`; the STAND answers to `top end wheat`
+> (`Plant.getKeywords` leads its own words with its patch's name — carrying bare `top end` would
+> tie the patch); the clay pit already carried no bare `clay`; the keepnet already `keepnet`,
+> `keep-net`, `net-bag`; the latex cups gained bare `latex` (so bare `latex` keeps naming the
+> cups, not prompting); the implant and the brick table needed nothing. `scope-walk.score.test.ts`
+> asserts each on the rows' own keywords. ⚠ The hesper note below stands: the berth way, the line
+> and the deck can tie on `look hesper`, which prompts.
 
 *Appended during harbors review 3; nothing above is cut.*
 
@@ -239,13 +259,13 @@ for exits and directions only (`Exit.getKeywords`: authored ∪ direction ∪ sh
 
 | # | What MQL synthesizes | Where | In `mql-grammar.md`? | Judged against the rule |
 |---|---|---|---|---|
-| 1 | **Detail candidates** — one candidate per detail id, `name: id, keywords: [id]`, on the HOST with `via.detailPath` | `pushDetails` (`scope-walk.ts`), `candidatesForAnchor`, `detailExtensionCandidates` / `directCandidate` (`resolver.ts`) | ✅ documented (`:keyword` detail-extension; `here:bookcase:book`) | ⚠ documented grammar, but the words are built by MQL from detail ids, not read from a Perceptible face. Conforming shape: a detail answers through the host's (or the detail's own) `getKeywords()` — the host's Detailed mixin contributes its ids as derived keywords, named there |
-| 2 | **Bulk-material candidates** — a holder answers to its slot's MATERIAL name and keywords (`drink coffee` binds the cup), with `via.bulk` | `pushBulkMaterials` (`scope-walk.ts`, via `BlendIdentity`) | ⚠ only `:b` is touched (§ bracket text); the material-keyword path is not | ⛔ synthesized words — the holder never said it answers to `coffee`. Conforming: `Bulkable.getKeywords()` folds in the held material's words (derived, named on the mixin) |
+| 1 ✅ W2 | **Detail candidates** — one candidate per detail id, `name: id, keywords: [id]`, on the HOST with `via.detailPath` | `pushDetails` (`scope-walk.ts`), `candidatesForAnchor`, `detailExtensionCandidates` / `directCandidate` (`resolver.ts`) | ✅ documented (`:keyword` detail-extension; `here:bookcase:book`) | ⚠ documented grammar, but the words are built by MQL from detail ids, not read from a Perceptible face. Conforming shape: a detail answers through the host's (or the detail's own) `getKeywords()` — the host's Detailed mixin contributes its ids as derived keywords, named there |
+| 2 ✅ W2 | **Bulk-material candidates** — a holder answers to its slot's MATERIAL name and keywords (`drink coffee` binds the cup), with `via.bulk` | `pushBulkMaterials` (`scope-walk.ts`, via `BlendIdentity`) | ⚠ only `:b` is touched (§ bracket text); the material-keyword path is not | ⛔ synthesized words — the holder never said it answers to `coffee`. Conforming: `Bulkable.getKeywords()` folds in the held material's words (derived, named on the mixin) |
 | 3 | **The tract candidate** — a loaded place across an exit answering `isSeenAcrossExit()` joins `here` by its own name | `candidatesForHere` (tracts D30) | ❌ not documented | ⚠ a synthesized CANDIDATE (not a word): the words are the place's own. Opt-in by hook, so it is the object saying so — but the pool membership is MQL's. With `:exits:…:to` (harbors review 3) the same place is NAMEABLE by grammar; the build decides whether the implicit candidate stays (§ 3 row 9) |
 | 4 | **Recognition-relative names and keywords** — a person answers only to what the viewer perceives (`describeFor(viewer)`, tokens of the `distinguishing` form); authored keywords dropped for a persona | `pushDirect` → `RecognitionLogic.perceivedKeywordsImpl` | ❌ not in the grammar (belief.md / presentation.md own it) | ⚠ synthesized words (tokenized prose), but on the object's own face (`perceivedKeywordsFor` is a Stuff method). Conforming once named on the class as derived; ⚠ and the SLOW path + chain steps read the viewer-blind `getPresentation`/`getKeywords` instead (`nameOf`/`keywordsOf`) — two answers to *what does this answer to* |
-| 5 | **The candidate's name** is `getPresentation()` / `describeFor`, not `getName()` — an unnamed thing's name is its rendered short description | `nameOf`, `pushDirect` | ❌ | ⚠ the name read is a projection, not the Perceptible field. Moot under § 4's decision (the name becomes keywords) |
-| 6 | **Article handling** — the query's leading article stripped; the candidate NAME's article dropped before the 100 compare (`bareName`) | `desugar.ts`; `scoreCandidate` | ✅ query side (§ Article stripping); ❌ candidate side | ⚠ `bareName` is name-tier machinery — under § 4 the bare form is a keyword `NamedMixin` contributes |
-| 7 | **Quoted literal** — exact compare of the lowercased NAME only (no keywords, no `bareName`) | `resolveLiteralSeed`, `filterByLiteral` | ✅ (literals) | ⚠ inconsistent with the scorer (§ 3 row 12); under § 4 a literal is one phrase against keywords |
+| 5 ✅ W2 | **The candidate's name** is `getPresentation()` / `describeFor`, not `getName()` — an unnamed thing's name is its rendered short description | `nameOf`, `pushDirect` | ❌ | ⚠ the name read is a projection, not the Perceptible field. Moot under § 4's decision (the name becomes keywords) |
+| 6 ✅ W2 | **Article handling** — the query's leading article stripped; the candidate NAME's article dropped before the 100 compare (`bareName`) | `desugar.ts`; `scoreCandidate` | ✅ query side (§ Article stripping); ❌ candidate side | ⚠ `bareName` is name-tier machinery — under § 4 the bare form is a keyword `NamedMixin` contributes |
+| 7 ✅ W2 | **Quoted literal** — exact compare of the lowercased NAME only (no keywords, no `bareName`) | `resolveLiteralSeed`, `filterByLiteral` | ✅ (literals) | ⚠ inconsistent with the scorer (§ 3 row 12); under § 4 a literal is one phrase against keywords |
 | 8 | **`effectiveTarget`** — the bound thing, else the door hung in a bound way | `MqlLogic.effectiveTarget` | ✅ (harbors review 3, § Direction tokens) | ✅ not a word or candidate — a documented resolution rule over what was bound. The boundary slate retires the door rung (the side and its boundary become one candidate) |
 | 9 | **Pronoun memory** — `it`/`them`/`him`/`her`/`$$` replay a stored result | `pronoun-memory.ts`, `matchesFromStash` | ✅ (§ Pronouns) | ✅ grammar over results, not words |
 | 10 | **Seed and chain words** shadow objects so named (`inventory`, `world`, `peers`, `reachable`, `person`, `horizon`, `online`; `members`, `exits`, `to`, `from`) | `resolveKeywordSeed`, `applyColon` | ✅ (§ Reserved keywords) | ✅ documented grammar; `[keyword.x]` is the escape |

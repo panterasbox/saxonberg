@@ -95,7 +95,7 @@ one does.
 ⚠⚠ **A floor's `ground` / `floor` keywords are on the CLASS, not the row.**
 `FloorMixin.getKeywords()` unions them. This is not belt-and-braces
 tidiness: the MQL scope walk pools a thing's own `getKeywords()`, and
-`pushDetails` gives a detail the pool `[<its id>]` and **never its authored
+`DetailedMixin.getKeywords` folds in a detail by its id `[<its id>]` and **never its authored
 `keywords:`** — so `default-floor`'s `details.floor.keywords` was dead text,
 and attaching that row to all 184 Locations would have fixed `look floor`
 and left bare `sit` broken. `lint:ground` clause (d) also holds every floor

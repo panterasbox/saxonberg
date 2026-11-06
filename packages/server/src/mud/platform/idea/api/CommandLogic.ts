@@ -525,6 +525,13 @@ async function walkScopes(
   let firstRaw: MqlMany | null = null;
   let isSet = false;
   const discarded: Stuff[] = [];
+  // ⭐ TIERS ACROSS TRIES (one-resolution § 3 row 11): every try is asked,
+  // and the best keyword tier wins — a whole-name hit in a later try beats
+  // a partial in an earlier one, and a TIE goes to the earlier try (that
+  // is what drill-first means). The first try with any admissible match
+  // used to win at any tier, so a word that merely began some name in the
+  // focus beat the thing named outright in the room.
+  let best: { result: MqlMany; tier: number; discardedUpTo: number } | null = null;
   for (const scope of tries) {
     let got = await scopedMany(raw, giver, scope, field, context);
     if (got.isSet) isSet = true;
@@ -545,17 +552,27 @@ async function walkScopes(
     const keep = got.stuff.map((_, i) => i).filter((i) => admissible(got.stuff[i]!));
     const kept = keep.map((i) => got.stuff[i]!);
     for (const s of got.stuff) if (!kept.includes(s)) discarded.push(s);
-    if (kept.length > 0) {
-      const result: MqlMany = { ...got, stuff: kept };
-      if (got.vias) result.vias = keep.map((i) => got.vias![i]);
-      return { result, discarded };
-    }
+    if (kept.length === 0) continue;
+    // A set (a seed, a pronoun, a path) is asked for whole: top tier.
+    const tier = got.isSet ? TOP_TIER : Math.max(...keep.map((i) => got.tiers?.[i] ?? TOP_TIER));
+    if (best && tier <= best.tier) continue;
+    const result: MqlMany = { ...got, stuff: kept };
+    if (got.vias) result.vias = keep.map((i) => got.vias![i]);
+    if (got.tiers) result.tiers = keep.map((i) => got.tiers![i]!);
+    best = { result, tier, discardedUpTo: discarded.length };
+    // Nothing later can beat the top tier, and a tie goes to this try.
+    if (tier >= TOP_TIER) break;
   }
+  // What the tries AFTER the winner threw away was never in the running.
+  if (best) return { result: best.result, discarded: discarded.slice(0, best.discardedUpTo) };
   if (firstRaw) return { result: firstRaw, discarded: [] };
   // ⭐ An EMPTY set is still a set (`look horizon` from an interior is
   // "you see nothing there", not "you don't see any 'horizon'").
   return { result: isSet ? { stuff: [], isSet: true } : { stuff: [] }, discarded };
 }
+
+/** The highest keyword tier a match can reach (`MqlMany.tiers`). */
+const TOP_TIER = 3;
 
 /**
  * Apply a slot's {@link OnFilteredPolicy} to what {@link walkScopes}

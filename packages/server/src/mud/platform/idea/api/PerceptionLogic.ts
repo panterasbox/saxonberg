@@ -597,7 +597,13 @@ export class PerceptionLogic extends ApiLogic {
     const out: VisibleContents = { worn: [], held: [], carried: [], shut: false };
     if (!MixinApi.isContainer(target)) return out;
     if (MixinApi.isSealable(target) && !target.isOpen()) return { ...out, shut: true };
-    const seen = (s: Stuff): boolean => !MixinApi.isConcealable(s) || !s.isConcealed();
+    // ⭐ Concealed things stay concealed — FROM THIS VIEWER: one who has
+    // found the hidden dagger, or whose eye is sharp enough, sees it (the
+    // `perceives` rule, and so MQL's `:visible`). A bare `isConcealed()`
+    // hid a discovered thing again the moment it sat in a listing — and
+    // the room listing reads through here since `look` became one query.
+    const seen = (s: Stuff): boolean =>
+      !MixinApi.isConcealable(s) || !s.isConcealed() || perceivesImpl(viewer, s);
     const own = viewer.stuffId === target.stuffId;
     // A PERSON is an agent with slots; a rack is slotted and wears
     // nothing, so it lists like any container.

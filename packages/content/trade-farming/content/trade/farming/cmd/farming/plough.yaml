@@ -46,6 +46,6 @@ args:
     type: object
     required: false
     greedy: true
-    scope: ["reachable"]
+    scope: ["here", "peers", "person"]
     prepositions: [at]
     requires: SoilMixin

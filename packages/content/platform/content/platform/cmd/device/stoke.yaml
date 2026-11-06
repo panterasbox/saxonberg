@@ -46,7 +46,7 @@ args:
     required: false
     greedy: true
     prepositions: [into, in, on, with]
-    scope: "reachable"
+    scope: ["here", "peers", "person"]
     default: "reachable:[mixin.BurnerMixin]"
     requires: BurnerMixin
     validators:

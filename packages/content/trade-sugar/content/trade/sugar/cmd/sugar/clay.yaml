@@ -17,7 +17,7 @@ args:
   - name: loaf
     type: object
     required: true
-    scope: ["reachable"]
+    scope: ["here", "peers", "person"]
     requires: [PercolatingMixin]
   - name: clay
     type: object

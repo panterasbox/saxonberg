@@ -47,8 +47,10 @@ import {
   candidatesForPeers,
   candidatesForPerson,
   candidatesForReachable,
-  scoreCandidate,
+  candidateFor,
+  matchCandidate,
   scoreCandidates,
+  TIER_PHRASE,
   type ScopeCandidate,
 } from './scope-walk';
 import type {
@@ -529,20 +531,16 @@ function candidatesToMatches(pool: ScopeCandidate[]): MqlMatch[] {
 }
 
 function resolveLiteralSeed(value: string, ctx: MqlContext): MqlMatch[] {
-  // A literal is an exact-name search that preserves whitespace.
-  // Treat it as a single keyword that scoring runs against the full
-  // candidate name.
+  // A literal is one phrase that preserves whitespace: it binds what has
+  // that phrase as a keyword outright (the top tier) — the same list the
+  // scorer reads, so a quoted name and a bare one find the same thing
+  // (one-resolution slate § 3 row 12).
   const lit = value.toLowerCase();
   const candidates = candidatesForScope(ctx.scope, ctx);
   const out: MqlMatch[] = [];
   for (const c of candidates) {
-    const nameLower = c.name.toLowerCase();
-    if (nameLower === lit) {
-      // Exact match — top score.
-      const m: MqlMatch = { stuff: c.stuff, score: 100 };
-      if (c.via) m.via = c.via;
-      out.push(m);
-    }
+    const m = matchCandidate(c, [lit]);
+    if (m && m.score >= TIER_PHRASE) out.push(m);
   }
   return out;
 }
@@ -646,12 +644,11 @@ function candidatesFromQuery(
  * scope-as-MQL slow path. Emits one candidate per addressable
  * keyword in the anchor's neighborhood:
  *
- *   - The anchor itself: name + keywords (or the detail tip name if
- *     `via.detailPath` is set).
- *   - Detail names at the current via depth (top-level when no via,
- *     child-of-tip when via set).
+ *   - The anchor itself: its keywords for the viewer, its top-level
+ *     details among them (or the detail tip name if `via.detailPath`
+ *     is set, with the tip's child details).
  *   - When **no via** AND the stuff is a `Container`: include its
- *     contents (each item plus its own details).
+ *     contents.
  *   - When **no via** AND the stuff is `Exitable`: include doors and
  *     each exit the viewer can see (the exit itself).
  *
@@ -677,89 +674,39 @@ function candidatesForAnchor(
 
   if (insideDetail) {
     const tip = path[path.length - 1]!;
-    const c: ScopeCandidate = {
-      stuff,
-      name: tip,
-      keywords: [tip.toLowerCase()],
-      via,
-    };
-    out.push(c);
-  } else {
-    out.push({
-      stuff,
-      name: nameOf(stuff),
-      keywords: keywordsOf(stuff),
-    });
+    out.push({ stuff, keywords: [tip.toLowerCase()], via });
+    // Child detail names at the current via depth — the detail tree is
+    // the grammar's (`here:bookcase:book`), not a word on the host.
+    if (MixinApi.isDetailed(stuff)) {
+      for (const id of stuff.getDetailIds(tip, viewer ?? undefined) ?? []) {
+        out.push({
+          stuff,
+          keywords: [id.toLowerCase()],
+          via: { ...via, detailPath: [...path, id] },
+        });
+      }
+    }
+    return out;
   }
 
-  // Detail names at the current via depth.
-  if (MixinApi.isDetailed(stuff)) {
-    const parent = insideDetail ? path[path.length - 1] : undefined;
-    const ids = stuff.getDetailIds(parent, viewer ?? undefined) ?? [];
-    for (const id of ids) {
-      const childPath = insideDetail ? [...path, id] : [id];
-      out.push({
-        stuff,
-        name: id,
-        keywords: [id.toLowerCase()],
-        via: { ...via, detailPath: childPath },
-      });
-    }
+  // The anchor itself — its top-level details are its own keywords.
+  out.push(candidateFor(stuff, viewer));
+  if (MixinApi.isContainer(stuff)) {
+    for (const item of stuff.getContents()) out.push(candidateFor(item, viewer));
   }
-
-  // Stuff containment context only when not inside a detail tree.
-  if (!insideDetail) {
-    if (MixinApi.isContainer(stuff)) {
-      for (const item of stuff.getContents()) {
-        out.push({
-          stuff: item,
-          name: nameOf(item),
-          keywords: keywordsOf(item),
-        });
-        if (MixinApi.isDetailed(item)) {
-          const ids = item.getDetailIds(undefined, viewer ?? undefined) ?? [];
-          for (const id of ids) {
-            out.push({
-              stuff: item,
-              name: id,
-              keywords: [id.toLowerCase()],
-              via: { detailPath: [id] },
-            });
-          }
-        }
-      }
+  if (MixinApi.isExitable(stuff)) {
+    const seenDoors = new Set<string>();
+    for (const door of stuff.getExitDoors()) {
+      if (seenDoors.has(door.stuffId)) continue;
+      seenDoors.add(door.stuffId);
+      out.push(candidateFor(door, viewer));
     }
-    if (MixinApi.isExitable(stuff)) {
-      const seenDoors = new Set<string>();
-      for (const door of stuff.getExitDoors()) {
-        if (seenDoors.has(door.stuffId)) continue;
-        seenDoors.add(door.stuffId);
-        out.push({
-          stuff: door,
-          name: nameOf(door),
-          keywords: keywordsOf(door),
-        });
-        if (MixinApi.isDetailed(door)) {
-          const ids = door.getDetailIds(undefined, viewer ?? undefined) ?? [];
-          for (const id of ids) {
-            out.push({
-              stuff: door,
-              name: id,
-              keywords: [id.toLowerCase()],
-              via: { detailPath: [id] },
-            });
-          }
-        }
-      }
-      // ⭐ Each exit the VIEWER can see, as itself —
-      // the same rule as the fast path's `candidatesForHere`, so a drilled
-      // focus is no longer blind to which ways are hidden. System mode
-      // (no viewer) lists every obvious exit.
-      const exits = viewer === null ? stuff.getObviousExits() : stuff.obviousExitsFor(viewer);
-      for (const exit of exits) {
-        out.push({ stuff: exit, name: nameOf(exit), keywords: keywordsOf(exit) });
-      }
-    }
+    // ⭐ Each exit the VIEWER can see, as itself —
+    // the same rule as the fast path's `candidatesForHere`, so a drilled
+    // focus is no longer blind to which ways are hidden. System mode
+    // (no viewer) lists every obvious exit.
+    const exits = viewer === null ? stuff.getObviousExits() : stuff.obviousExitsFor(viewer);
+    for (const exit of exits) out.push(candidateFor(exit, viewer));
   }
 
   return out;
@@ -809,13 +756,7 @@ function candidatesForScopePart(
     );
   }
   if (lower === 'me') {
-    return [
-      {
-        stuff: requireGiver(ctx, "the 'me' scope"),
-        name: 'me',
-        keywords: ['me'],
-      },
-    ];
+    return [{ stuff: requireGiver(ctx, "the 'me' scope"), keywords: ['me'] }];
   }
   if (part.startsWith('/')) {
     // Same rule as the path seed: glob-free means the row and every
@@ -1448,94 +1389,50 @@ function filterByKeywords(
   if (words.length === 0) return input;
   const out: MqlMatch[] = [];
   for (const m of input) {
-    const direct = directCandidate(m);
-    const detailCandidates = detailExtensionCandidates(m, viewer);
-
     // Pick the best candidate by RAW score (not max-with-prior) — the
     // prior match's score is locked in regardless, but the candidate
-    // selection has to choose between siblings, so an exact 100 on a
-    // child detail must outrank a substring 50 on the parent detail's
-    // name.
-    let bestRaw = 0;
-    let bestVia: MqlMatchVia | undefined = undefined;
-    let matched = false;
-    for (const c of [direct, ...detailCandidates]) {
-      const score = scoreCandidate(c, words);
-      if (score === 0) continue;
-      if (!matched || score > bestRaw) {
-        bestRaw = score;
-        bestVia = c.via;
-        matched = true;
-      }
+    // selection has to choose between siblings, so an exact hit on a
+    // child detail must outrank a prefix on the parent detail's name.
+    let best: MqlMatch | null = null;
+    for (const c of chainCandidates(m, viewer)) {
+      const got = matchCandidate(c, words);
+      if (got && (!best || got.score > best.score)) best = got;
     }
-    if (matched) {
-      // ⭐ The keyword's own score, not `max(prior, keyword)`: a scope
-      // seed (`reachable`, `inventory`, `peers`) stamps every candidate
-      // 100, so the max was ALWAYS 100 and every `scope:word` query tied
-      // — the `top` policy fell to pool order (inventory before the
-      // room), and `haul net` with a keepnet in hand hauled the keepnet
-      // however the scorer ranked them. The fishing drive found it.
-      const next: MqlMatch = {
-        stuff: m.stuff,
-        score: bestRaw,
-      };
-      if (bestVia) next.via = bestVia;
-      out.push(next);
-    }
+    // ⭐ The keyword's own score, not `max(prior, keyword)`: a scope
+    // seed (`reachable`, `inventory`, `peers`) stamps every candidate
+    // 100, so the max was ALWAYS 100 and every `scope:word` query tied
+    // — the `top` policy fell to pool order (inventory before the
+    // room), and `haul net` with a keepnet in hand hauled the keepnet
+    // however the scorer ranked them. The fishing drive found it.
+    if (best) out.push(best);
   }
   return out;
 }
 
 /**
- * Build the direct (non-extension) candidate for a prior match. When
- * the prior carries `via.detailPath`, the candidate addresses the tip
- * detail by name; otherwise it addresses the host stuff with its own
- * keywords + display name.
+ * The candidates a prior match offers a mid-chain `:keyword`. With no
+ * via, the host itself — its keywords for `viewer`, its top-level details
+ * among them (attributed as `via.detailPath` when one is what matched).
+ * With `via.detailPath` set, the tip detail by its name and the tip's
+ * child details, each extending the path.
  */
-function directCandidate(m: MqlMatch): ScopeCandidate {
+function chainCandidates(m: MqlMatch, viewer: Stuff | null): ScopeCandidate[] {
   const path = m.via?.detailPath;
-  if (path && path.length > 0) {
-    const tip = path[path.length - 1]!;
-    const c: ScopeCandidate = {
-      stuff: m.stuff,
-      name: tip,
-      keywords: [tip.toLowerCase()],
-    };
-    if (m.via) c.via = m.via;
-    return c;
+  if (!path || path.length === 0) {
+    const c = candidateFor(m.stuff, viewer);
+    if (m.via) c.via = { ...m.via, ...c.via };
+    return [c];
   }
-  const c: ScopeCandidate = {
-    stuff: m.stuff,
-    name: nameOf(m.stuff),
-    keywords: keywordsOf(m.stuff),
-  };
-  if (m.via) c.via = m.via;
-  return c;
-}
-
-/**
- * Build sub-candidates for the host's details at the current via
- * depth. With no via, top-level detail names; with `via.detailPath`
- * set, the children of the path's tip. Each sub-candidate is the
- * same Stuff with `via.detailPath` extended by the detail's name.
- */
-function detailExtensionCandidates(
-  m: MqlMatch,
-  viewer: Stuff | null,
-): ScopeCandidate[] {
-  if (!MixinApi.isDetailed(m.stuff)) return [];
-  const currentPath = m.via?.detailPath ?? [];
-  const parent = currentPath[currentPath.length - 1];
-  const ids = m.stuff.getDetailIds(parent, viewer ?? undefined) ?? [];
-  const out: ScopeCandidate[] = [];
-  for (const id of ids) {
-    const lower = id.toLowerCase();
-    out.push({
-      stuff: m.stuff,
-      name: id,
-      keywords: [lower],
-      via: { ...m.via, detailPath: [...currentPath, id] },
-    });
+  const tip = path[path.length - 1]!;
+  const out: ScopeCandidate[] = [{ stuff: m.stuff, keywords: [tip.toLowerCase()], via: m.via! }];
+  if (MixinApi.isDetailed(m.stuff)) {
+    for (const id of m.stuff.getDetailIds(tip, viewer ?? undefined) ?? []) {
+      out.push({
+        stuff: m.stuff,
+        keywords: [id.toLowerCase()],
+        via: { ...m.via, detailPath: [...path, id] },
+      });
+    }
   }
   return out;
 }
@@ -1781,14 +1678,9 @@ function matchesTemplate(stuff: Stuff, pattern: string): boolean {
 }
 
 function filterByLiteral(input: MqlMatch[], literal: string): MqlMatch[] {
+  // One phrase against the keywords, as the literal seed reads it.
   const lit = literal.toLowerCase();
-  const out: MqlMatch[] = [];
-  for (const m of input) {
-    if (nameOf(m.stuff).toLowerCase() === lit) {
-      out.push(m);
-    }
-  }
-  return out;
+  return input.filter((m) => keywordsOf(m.stuff).includes(lit));
 }
 
 function applyOrdinal(input: MqlMatch[], index: number): MqlMatch[] {
@@ -1831,7 +1723,9 @@ function nameOf(stuff: Stuff): string {
 }
 
 function keywordsOf(stuff: Stuff): string[] {
-  return MixinApi.isPerceptible(stuff) ? stuff.getKeywords() : [];
+  if (MixinApi.isPerceptible(stuff)) return stuff.getKeywords();
+  if (MixinApi.isNamed(stuff)) return stuff.getKeywords();
+  return [];
 }
 
 function allOnlineCommandGivers(): Stuff[] {

@@ -27,7 +27,7 @@ args:
     required: false
     prepositions: [at, in]
     default: "reachable:[mixin.BurnerMixin]"
-    scope: ["reachable"]
+    scope: ["here", "peers", "person"]
     requires: [BurnerMixin]
 validators:
   - /lib/command/validators/requiresAnimate

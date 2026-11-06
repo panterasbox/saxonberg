@@ -29,7 +29,7 @@ import type {
   CommandContext,
   CommandModel,
   } from '../../../../api/command';
-import type { MqlOneResult } from '../../../../api/mql';
+import { MqlApi, type MqlOneResult } from '../../../../api/mql';
 import InventoryController from '../inventory/InventoryController';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import { MixinApi } from '../../../../api/mixin';
@@ -64,6 +64,14 @@ interface LookModel extends CommandModel {
 
 /** `look` names this many things inline before it summarises (the `Mml.list` block threshold). */
 const LOOK_INLINE = 4;
+
+/**
+ * The room's listing as the viewer sees it — its contents, perceived
+ * (honest fog: a concealed thing the actor hasn't discovered is absent
+ * from their world), never the room's structure (an adornment routes
+ * through its host), never the viewer. The same query `sense` reads.
+ */
+const ROOM_LISTING = 'here:i:visible:[not mixin.AdornmentMixin] - me';
 
 export default class LookController extends CommandController<LookModel> {
   execute(model: LookModel, context: CommandContext): void | Promise<void> {
@@ -208,17 +216,10 @@ export default class LookController extends CommandController<LookModel> {
     // structure, not loose contents, and route through their host's
     // description rather than the occupant list. The actor never
     // lists themselves.
-    const visibleContents = location
-      .getContents()
-      .filter((item) => {
-        if (item.stuffId === actor.stuffId) return false;
-        if (MixinApi.isAdornment(item)) return false;
-        if (!MixinApi.isVisible(item)) return false;
-        // Honest fog: a concealed thing the actor hasn't discovered /
-        // can't yet perceive is absent from the actor's world.
-        if (!PerceptionApi.perceives(actor, item)) return false;
-        return true;
-      });
+    const visibleContents = MqlApi.resolveMany(ROOM_LISTING, {
+      commandGiver: actor,
+      scope: 'here',
+    }).stuff;
 
     if (
       !hasVisible &&

@@ -236,11 +236,14 @@ describe('a tract divided into fields', () => {
     expect(p.getBed()).toBe(top);
     expect(f.cropOn(top)).toBe(p);
     expect(top.cropsOn()).toEqual([p]);
-    expect(p.getKeywords()).toEqual(expect.arrayContaining(['wheat', 'top end', 'top-end']));
+    // The field's name QUALIFIES the stand's own words (`top end wheat`) —
+    // a bare `top end` would tie the field itself (one-resolution § 4).
+    expect(p.getKeywords()).toEqual(expect.arrayContaining(['wheat', 'top end wheat', 'top-end wheat']));
+    expect(p.getKeywords()).not.toContain('top end');
     // An unbound crop roots in the whole tract and keeps its own words.
     const loose = crop(f, 100, '');
     expect(loose.getBed()).toBe(f);
-    expect(loose.getKeywords()).not.toContain('top end');
+    expect(loose.getKeywords()).not.toContain('top end wheat');
   });
 
   it('a key naming no field falls back to the whole tract (R8)', async () => {

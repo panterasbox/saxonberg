@@ -616,8 +616,10 @@ the inspection card is a FIELD PROJECTION rather than a query, so the
 rule has to be callable without MQL. See
 [architecture.md § MQL is a VIEW over the model](../architecture.md) —
 *anything expressible in MQL must also be expressible by function
-call.* A `:loose` predicate is welcome as one line that calls this;
-it may not replace it.
+call.* The `:loose` predicate (controllers-are-io W2) is one line that
+calls this; it does not replace it — the three callers resolve their
+visible set by one MQL query and still hand it here, which keeps the
+guard below ([perception.md § The room listing](./perception.md)).
 
 ⚠ One clause of it is filed as a question rather than defended: the
 `ids.has(host)` guard is set-relative and fires only when the caller

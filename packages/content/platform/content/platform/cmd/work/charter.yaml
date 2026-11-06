@@ -52,5 +52,5 @@ args:
     greedy: true
     prepositions: [at, from, in]
     default: "reachable:[class.CharterBook]"
-    scope: ["reachable"]
+    scope: ["here", "peers", "person"]
     requires: [VisibleMixin]

@@ -32,7 +32,7 @@ above:
 ```
 flower                    a flower (in the giver's reachable scope)
 the second rose           the 2nd rose match (1-based)
-'lyon's mane'             literal name match (whitespace preserved)
+'lyon's mane'             literal keyword match (whitespace preserved)
 me                        the command-giver
 here                      the giver's current location
 peers                     everything in the room except the giver
@@ -86,7 +86,7 @@ These identifiers have reserved meanings and aren't free for use as
 keywords:
 
 - **Pronouns:** `me`, `here`, `it`, `them`, `him`, `her`
-- **Predicates:** `living`, `online`, `mine`, `here`, `visible`
+- **Predicates:** `living`, `online`, `mine`, `here`, `visible`, `loose`, `worn`, `carried`
 - **Boolean ops** (inside `[…]`): `and`, `or`, `not`
 - **Existence** (inside `[…]`): `has`
 - **Transforms:** `i`, `e` (one-letter chain pivots — inventory,
@@ -130,7 +130,7 @@ seed yields a list of Stuff (possibly empty).
 | Seed | Yields |
 |---|---|
 | `bareword` | keyword search in the field's declared scope (default) |
-| `'literal name'` | exact name/keyword match (whitespace preserved) |
+| `'literal name'` | a keyword that IS the phrase (whitespace preserved) — a name is a keyword |
 | `me` | the command-giver |
 | `here` | the giver's current location |
 | `peers` | the location's contents minus the giver, each with its details |
@@ -346,12 +346,19 @@ A reserved predicate name keeps members where the predicate holds:
 | `online` | object is connected |
 | `mine` | object is yours — stamped to you as chattel, or standing on an extent you hold title to. ⚠ Not things you *wrote* (authorship is not ownership) and not things your *group* holds; `mine` is first person singular. ⭐ It says **what** is yours, never **where** it is. |
 | `here` | object is in (or is) the giver's location |
-| `visible` | object is perceivable to the giver |
+| `visible` | object presents to the eye (composes Visible) and the giver perceives it — concealed-and-undiscovered things are not; the scope says *where* |
+| `loose` | object is its holder's own loose contents — not placed on or in something else there (the back-bar's bottles), not a crop standing over the ground |
+| `worn` | object occupies one of its holder's slots (a coat on a person, a coupe in a rack) |
+| `carried` | object is held as contents and occupies none of its holder's slots — `worn` and `carried` partition a holder |
 
 ```
 peers:living              only Mobile peers
 peers:online              only connected peers
 me:i:visible              visible items in inventory
+me:i:worn                 what you are wearing (and holding)
+me:i:carried              what is in your pockets and pack
+here:i:visible:loose:[not mixin.AdornmentMixin] - me
+                          the room as `look` lists it
 ```
 
 Unknown barewords in chain position fall back to the keyword filter —
@@ -559,8 +566,9 @@ want.
 > or its negation (`[not keyword.X]`) instead.
 
 > **Bareword vs `[keyword.X]` are not the same.** A bareword chain
-> step (`peers:rose`) runs the fuzzy scored matcher (exact name >
-> substring > keyword AND-narrow > partial), so it pulls in `rose`,
+> step (`peers:rose`) runs the scored matcher over KEYWORDS (a keyword
+> is the phrase > every word a whole word of one > every word begins one
+> > partial; a name is one of the keywords), so it pulls in `rose`,
 > `rosehip`, `rosie`, etc. `[keyword.X]` is the strict boolean —
 > only Stuff that has the exact keyword `X` in its keyword list.
 > Pick the one that matches your intent: bareword for player-style

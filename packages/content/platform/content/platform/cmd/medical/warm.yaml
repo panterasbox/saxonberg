@@ -27,5 +27,5 @@ args:
     required: false
     prepositions: [by, at, over]
     default: "reachable:[mixin.CombustibleMixin]"
-    scope: ["reachable"]
+    scope: ["here", "peers", "person"]
     requires: [CombustibleMixin]

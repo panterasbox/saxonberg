@@ -35,7 +35,7 @@ args:
     type: object
     required: false
     default: "reachable:[mixin.GroundPointMixin]"
-    scope: ["reachable"]
+    scope: ["here", "peers", "person"]
     requires: [GroundPointMixin]
   - name: rig
     type: object
@@ -43,7 +43,7 @@ args:
     prepositions: [at, with, using]
     greedy: true
     default: "reachable:[capability.derrick]"
-    scope: ["reachable"]
+    scope: ["here", "peers", "person"]
     requires: [ToolMixin]
   - name: liner
     type: object

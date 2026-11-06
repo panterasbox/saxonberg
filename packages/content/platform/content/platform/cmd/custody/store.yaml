@@ -46,7 +46,7 @@ subcommands:
         greedy: true
         prepositions: [at, in]
         default: "reachable:[mixin.StoreBookMixin]"
-        scope: [reachable]
+        scope: ["here", "peers", "person"]
         requires: [StoreBookMixin]
   deposit:
     description: "Leave something in the store's keeping, on a receipt"
@@ -64,7 +64,7 @@ subcommands:
         greedy: true
         prepositions: [in, at, with]
         default: "reachable:[mixin.StoreBookMixin]"
-        scope: [reachable]
+        scope: ["here", "peers", "person"]
         requires: [StoreBookMixin]
   withdraw:
     description: "Take goods back out against your receipt"
@@ -81,5 +81,5 @@ subcommands:
         greedy: true
         prepositions: [from, at]
         default: "reachable:[mixin.StoreBookMixin]"
-        scope: [reachable]
+        scope: ["here", "peers", "person"]
         requires: [StoreBookMixin]

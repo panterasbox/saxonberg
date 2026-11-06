@@ -34,7 +34,7 @@ args:
     required: false
     prepositions: [on, at, with]
     default: "reachable:[capability.spinning]"
-    scope: ["reachable"]
+    scope: ["here", "peers", "person"]
     requires: [ToolMixin]
 options:
   count:

@@ -478,3 +478,392 @@ builds, and the gates this build installs are what they will run under:
   row-composition-slate and legibility-slate. This build's mixin splits
   name hosts by class and change no row's shape, so that refactor is not
   pre-empted.
+
+---
+
+## Scope-order audit (W2)
+
+*controllers-are-io D21, built 2026-11-06.* Every object arg whose `scope:`
+names `reachable` (361 rows, counting a subcommand that reuses an anchored
+arg once per subcommand; 289 of them `reachable`-first), each with a
+verdict. **The rule:** a verb whose target is, in the common case, underfoot
+or standing — a fixture, the ground, a plant, a block, a floor, a counter, a
+furnace — is a **world act** and declares `["here", "peers", "person"]`
+(`["$focus", "here", "peers", "person"]` where it drilled first: `cut`). An
+act on what you hold keeps `reachable`, which is person-first. No new seed,
+no flag: the order is the dial, and the binder compares keyword tiers across
+tries, so the order only decides a TIE.
+
+**Room-first: 106 rows (98 view args).** ⚠ For review (plan risk 10): the
+judgment calls are `bathe water`, `douse`/`light` (kept — a carried lamp and
+a wall sconce are equally common), `butcher vessel` (kept), `close`/`open`
+(kept), `shoot`/`throw target` (room — you never aim at your own pack), the
+posture verbs (`sit`/`stand`/… on `["$focus", "reachable"]`, kept: a chair
+is standing, but a tie with a carried thing named `chair` does not arise).
+`scrape`, `groove`, `hew`, `mow`, `plough` were on the plan's seed list, but
+their TARGET is a string (the patch, the face) — their only object arg is
+the tool, which keeps `reachable`.
+
+| view | sub | arg | scope before | verdict | why |
+|---|---|---|---|---|---|
+| `adjust.yaml` |  | `target` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `apiculture/rob.yaml` |  | `target` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `baking/bake.yaml` |  | `oven` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `blow.yaml` |  | `target` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `bulk/feed.yaml` |  | `part` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `bulk/feed.yaml` |  | `target` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `bulk/fill.yaml` |  | `source` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `bulk/water.yaml` |  | `part` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `bulk/water.yaml` |  | `target` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `carpentry/saw.yaml` |  | `log` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `combat/shoot.yaml` |  | `target` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `cordage/twist.yaml` |  | `jack` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `crafting/bathe.yaml` |  | `water` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `crafting/butcher.yaml` |  | `block` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `crafting/butcher.yaml` |  | `body` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `crafting/cut.yaml` |  | `target` | `[$focus,reachable]` | **room-first** | world act — underfoot or standing |
+| `crafting/dip.yaml` |  | `bath` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `crafting/hammer.yaml` |  | `anvil` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `crafting/maintain.yaml` |  | `target` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `crafting/paint.yaml` |  | `target` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `crafting/quench.yaml` |  | `anvil` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `crafting/repair.yaml` |  | `item` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `crafting/scrub.yaml` |  | `target` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `crafting/sharpen.yaml` |  | `stone` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `crafting/wash.yaml` |  | `target` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `custody/store.yaml` | deposit | `book` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `custody/store.yaml` | receipts | `book` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `custody/store.yaml` | withdraw | `book` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `device/bail.yaml` |  | `target` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `device/cover.yaml` |  | `fire` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `device/draught.yaml` |  | `fire` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `device/draught.yaml` | banked | `fire` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `device/draught.yaml` | half | `fire` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `device/draught.yaml` | low | `fire` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `device/draught.yaml` | open | `fire` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `device/draught.yaml` | wide | `fire` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `device/fire.yaml` |  | `kiln` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `device/lift.yaml` |  | `device` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `device/pump.yaml` |  | `target` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `device/stoke.yaml` |  | `burner` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `device/turn.yaml` |  | `target` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `device/turn.yaml` | back | `target` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `drilling/bore.yaml` |  | `hole` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `drilling/bore.yaml` |  | `rig` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `drilling/line.yaml` |  | `hole` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `drilling/line.yaml` |  | `rig` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `dyeing/dye.yaml` |  | `bath` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `energy/sever.yaml` |  | `line` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `farming/mow.yaml` |  | `part` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `farming/plough.yaml` |  | `part` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `farming/unmark.yaml` |  | `field` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `fishing/fish.yaml` |  | `shore` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `fishing/lay.yaml` |  | `shore` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `fishing/release.yaml` |  | `shore` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `forestry/fell.yaml` |  | `target` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `forestry/rive.yaml` |  | `target` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `forestry/tap.yaml` |  | `target` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `fuel/char.yaml` |  | `clamp` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `glass/flatten.yaml` |  | `furnace` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `glass/glaze.yaml` |  | `window` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `glass/reheat.yaml` |  | `furnace` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `ground/dig.yaml` |  | `target` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `ground/split.yaml` |  | `target` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `harbor/berth.yaml` |  | `book` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `haulage/ship.yaml` |  | `desk` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `inventory/dispose.yaml` |  | `heap` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `inventory/dispose.yaml` |  | `midden` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `inventory/harvest.yaml` |  | `part` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `inventory/harvest.yaml` |  | `target` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `inventory/label.yaml` |  | `part` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `inventory/plant.yaml` |  | `part` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `inventory/plant.yaml` |  | `pot` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `inventory/sample.yaml` |  | `part` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `inventory/sweep.yaml` |  | `target` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `inventory/throw.yaml` |  | `target` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `medical/donate.yaml` |  | `window` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `medical/issue.yaml` |  | `window` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `medical/warm.yaml` |  | `source` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `milling/mill.yaml` |  | `mill` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `mining/assay.yaml` |  | `bench` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `mining/stake.yaml` |  | `register` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `papermaking/couch.yaml` |  | `post` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `perception/survey.yaml` |  | `target` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `printing/print.yaml` |  | `on` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `retail/buy.yaml` |  | `counter` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `retail/check.yaml` |  | `rack` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `retail/consign.yaml` |  | `shelf` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `retail/menu.yaml` |  | `counter` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `retail/menu.yaml` |  | `menu` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `retail/menu.yaml` |  | `target` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `retail/order.yaml` |  | `counter` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `retail/order.yaml` |  | `menu` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `retail/reclaim.yaml` |  | `shelf` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `retail/rent.yaml` |  | `boat` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `retail/rent.yaml` |  | `book` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `retail/sell.yaml` |  | `counter` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `smelting/smelt.yaml` |  | `furnace` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `sugar/clay.yaml` |  | `loaf` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `sugar/skim.yaml` |  | `copper` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `sugar/temper.yaml` |  | `copper` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `tally.yaml` |  | `target` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `tanning/tan.yaml` |  | `pit` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `textiles/spin.yaml` |  | `wheel` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `textiles/weave.yaml` |  | `loom` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `wind.yaml` |  | `target` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `work/charter.yaml` |  | `book` | `[reachable]` | **room-first** | world act — underfoot or standing |
+| `author/destruct.yaml` |  | `target` | `[reachable]` | keep | in-hand act |
+| `author/goto.yaml` |  | `target` | `[online,/stuff/**,/platform/**,reachable]` | keep | a person, here or online |
+| `banking/bank.yaml` | transfer | `recipient` | `[reachable,online]` | keep | a person, here or online |
+| `banking/house.yaml` | payroll | `worker` | `[reachable,online]` | keep | a person, here or online |
+| `banking/house.yaml` | price | `thing` | `[reachable]` | keep | in-hand act |
+| `banking/pay.yaml` |  | `recipient` | `[reachable,online]` | keep | a person, here or online |
+| `boundary/close.yaml` |  | `target` | `[reachable]` | keep | in-hand act |
+| `boundary/lock.yaml` |  | `target` | `[reachable]` | keep | in-hand act |
+| `boundary/open.yaml` |  | `target` | `[reachable]` | keep | in-hand act |
+| `boundary/unlock.yaml` |  | `target` | `[reachable]` | keep | in-hand act |
+| `bulk/drink.yaml` |  | `target` | `[reachable]` | keep | in-hand act |
+| `bulk/eat.yaml` |  | `target` | `[reachable]` | keep | in-hand act |
+| `bulk/eat.yaml` |  | `with` | `[reachable]` | keep | instrument in hand |
+| `bulk/feed.yaml` |  | `source` | `[reachable]` | keep | in-hand act |
+| `bulk/fill.yaml` |  | `target` | `[reachable]` | keep | in-hand act |
+| `bulk/pour.yaml` |  | `source` | `[reachable]` | keep | in-hand act |
+| `bulk/pour.yaml` |  | `target` | `[reachable]` | keep | in-hand act |
+| `bulk/sip.yaml` |  | `target` | `[reachable]` | keep | in-hand act |
+| `bulk/spill.yaml` |  | `target` | `[reachable]` | keep | in-hand act |
+| `bulk/water.yaml` |  | `source` | `[reachable]` | keep | in-hand act |
+| `carpentry/saw.yaml` |  | `saw` | `[reachable]` | keep | instrument in hand |
+| `combat/attack.yaml` |  | `target` | `[$focus,reachable]` | keep | a person or animal — never carried |
+| `combat/defend.yaml` |  | `target` | `[$focus,reachable]` | keep | drill-first inspection / body act |
+| `combat/fight.yaml` | switch | `target` | `[inventory,reachable]` | keep | a person or animal — never carried |
+| `combat/intervene.yaml` |  | `target` | `[$focus,reachable]` | keep | drill-first inspection / body act |
+| `combat/shoot.yaml` |  | `launcher` | `[reachable]` | keep | in-hand act |
+| `crafting/bathe.yaml` |  | `cleanser` | `[reachable]` | keep | in-hand act |
+| `crafting/butcher.yaml` |  | `blade` | `[reachable]` | keep | in-hand act |
+| `crafting/butcher.yaml` |  | `tools` | `[reachable]` | keep | instrument in hand |
+| `crafting/butcher.yaml` |  | `vessel` | `[reachable]` | keep | in-hand act |
+| `crafting/carve.yaml` |  | `for` | `[reachable]` | keep | in-hand act |
+| `crafting/carve.yaml` |  | `knife` | `[reachable]` | keep | instrument in hand |
+| `crafting/carve.yaml` |  | `of` | `[reachable]` | keep | in-hand act |
+| `crafting/carve.yaml` |  | `stock` | `[reachable]` | keep | in-hand act |
+| `crafting/carve.yaml` |  | `target` | `[reachable]` | keep | in-hand act |
+| `crafting/carve.yaml` |  | `thing` | `[reachable]` | keep | in-hand act |
+| `crafting/cure.yaml` |  | `target` | `[reachable]` | keep | in-hand act |
+| `crafting/cut.yaml` |  | `tools` | `[reachable]` | keep | instrument in hand |
+| `crafting/dip.yaml` |  | `target` | `[reachable]` | keep | in-hand act |
+| `crafting/dry.yaml` |  | `cloth` | `[reachable]` | keep | in-hand act |
+| `crafting/dry.yaml` |  | `rack` | `[reachable]` | keep | in-hand act |
+| `crafting/dry.yaml` |  | `target` | `[reachable]` | keep | in-hand act |
+| `crafting/fit.yaml` |  | `thing` | `[reachable]` | keep | in-hand act |
+| `crafting/fit.yaml` |  | `tool` | `[reachable]` | keep | instrument in hand |
+| `crafting/fit.yaml` |  | `whole` | `[reachable]` | keep | in-hand act |
+| `crafting/garnish.yaml` |  | `garnish` | `[reachable]` | keep | in-hand act |
+| `crafting/garnish.yaml` |  | `glass` | `[reachable]` | keep | in-hand act |
+| `crafting/hammer.yaml` |  | `striker` | `[reachable]` | keep | instrument in hand |
+| `crafting/hammer.yaml` |  | `target` | `[reachable]` | keep | in-hand act |
+| `crafting/heat.yaml` |  | `pot` | `[reachable]` | keep | instrument in hand |
+| `crafting/heat.yaml` |  | `target` | `[reachable]` | keep | in-hand act |
+| `crafting/impress.yaml` |  | `medium` | `[reachable]` | keep | in-hand act |
+| `crafting/impress.yaml` |  | `pattern` | `[reachable]` | keep | in-hand act |
+| `crafting/knead.yaml` |  | `vessel` | `[reachable]` | keep | in-hand act |
+| `crafting/maintain.yaml` |  | `kit` | `[reachable]` | keep | instrument in hand |
+| `crafting/muddle.yaml` |  | `muddler` | `[reachable]` | keep | instrument in hand |
+| `crafting/muddle.yaml` |  | `vessel` | `[reachable]` | keep | in-hand act |
+| `crafting/paint.yaml` |  | `brush` | `[reachable]` | keep | instrument in hand |
+| `crafting/paint.yaml` |  | `pot` | `[reachable]` | keep | in-hand act |
+| `crafting/plate.yaml` |  | `dish` | `[reachable]` | keep | in-hand act |
+| `crafting/plate.yaml` |  | `vessel` | `[reachable]` | keep | in-hand act |
+| `crafting/pour.yaml` |  | `spirit` | `[reachable]` | keep | in-hand act |
+| `crafting/pour.yaml` |  | `vessel` | `[reachable]` | keep | in-hand act |
+| `crafting/quench.yaml` |  | `target` | `[reachable]` | keep | in-hand act |
+| `crafting/repair.yaml` |  | `kit` | `[reachable]` | keep | instrument in hand |
+| `crafting/salvage.yaml` |  | `item` | `[reachable]` | keep | in-hand act |
+| `crafting/scrub.yaml` |  | `brush` | `[reachable]` | keep | instrument in hand |
+| `crafting/scrub.yaml` |  | `cleanser` | `[reachable]` | keep | in-hand act |
+| `crafting/scrub.yaml` |  | `water` | `[reachable]` | keep | in-hand act |
+| `crafting/serve.yaml` |  | `patron` | `[reachable]` | keep | a person or animal — never carried |
+| `crafting/shape.yaml` |  | `instrument` | `[reachable]` | keep | instrument in hand |
+| `crafting/shape.yaml` |  | `material` | `[reachable]` | keep | in-hand act |
+| `crafting/sharpen.yaml` |  | `blade` | `[reachable]` | keep | in-hand act |
+| `crafting/smoke.yaml` |  | `target` | `[reachable]` | keep | in-hand act |
+| `crafting/splice.yaml` |  | `other` | `[reachable]` | keep | in-hand act |
+| `crafting/splice.yaml` |  | `target` | `[reachable]` | keep | in-hand act |
+| `crafting/steep.yaml` |  | `solute` | `[inventory,reachable]` | keep | in-hand (inventory first) |
+| `crafting/steep.yaml` |  | `vessel` | `[inventory,reachable]` | keep | in-hand (inventory first) |
+| `crafting/stir.yaml` |  | `vessel` | `[reachable]` | keep | in-hand act |
+| `crafting/strain.yaml` |  | `glass` | `[reachable]` | keep | in-hand act |
+| `crafting/strain.yaml` |  | `vessel` | `[reachable]` | keep | in-hand act |
+| `crafting/wash.yaml` |  | `cleanser` | `[reachable]` | keep | in-hand act |
+| `crafting/wash.yaml` |  | `water` | `[reachable]` | keep | in-hand act |
+| `device/arm.yaml` |  | `target` | `[$focus,reachable]` | keep | drill-first inspection / body act |
+| `device/bail.yaml` |  | `tool` | `[reachable]` | keep | instrument in hand |
+| `device/bail.yaml` |  | `vessel` | `[inventory,reachable]` | keep | in-hand (inventory first) |
+| `device/disarm.yaml` |  | `target` | `[$focus,reachable]` | keep | drill-first inspection / body act |
+| `device/douse.yaml` |  | `target` | `[reachable]` | keep | in-hand act |
+| `device/fold.yaml` |  | `target` | `[reachable]` | keep | in-hand act |
+| `device/ignite.yaml` |  | `target` | `[reachable]` | keep | in-hand act |
+| `device/stoke.yaml` |  | `fuel` | `[reachable]` | keep | in-hand act |
+| `device/switch.yaml` |  | `target` | `[reachable]` | keep | in-hand act |
+| `device/unfold.yaml` |  | `target` | `[reachable]` | keep | in-hand act |
+| `drilling/line.yaml` |  | `liner` | `[inventory,reachable]` | keep | in-hand (inventory first) |
+| `dyeing/dye.yaml` |  | `target` | `[inventory,reachable]` | keep | in-hand (inventory first) |
+| `dyeing/mordant.yaml` |  | `target` | `[inventory,reachable]` | keep | in-hand (inventory first) |
+| `employment/appoint.yaml` |  | `target` | `[reachable,online]` | keep | a person or animal — never carried |
+| `employment/dismiss.yaml` |  | `target` | `[reachable,online]` | keep | a person or animal — never carried |
+| `farming/mow.yaml` |  | `tool` | `[reachable]` | keep | instrument in hand |
+| `farming/plough.yaml` |  | `tool` | `[reachable]` | keep | instrument in hand |
+| `forestry/fell.yaml` |  | `axe` | `[reachable]` | keep | instrument in hand |
+| `forestry/rive.yaml` |  | `froe` | `[reachable]` | keep | instrument in hand |
+| `forestry/tap.yaml` |  | `tool` | `[reachable]` | keep | instrument in hand |
+| `forestry/tap.yaml` |  | `vessel` | `[inventory,reachable]` | keep | in-hand (inventory first) |
+| `glass/crack.yaml` |  | `pipe` | `[reachable]` | keep | instrument in hand |
+| `glass/flatten.yaml` |  | `cylinder` | `[reachable]` | keep | in-hand act |
+| `glass/glaze.yaml` |  | `pane` | `[reachable]` | keep | in-hand act |
+| `glass/groze.yaml` |  | `pliers` | `[reachable]` | keep | instrument in hand |
+| `glass/groze.yaml` |  | `sheet` | `[reachable]` | keep | in-hand act |
+| `glass/reheat.yaml` |  | `pipe` | `[reachable]` | keep | instrument in hand |
+| `glass/scribe.yaml` |  | `sheet` | `[reachable]` | keep | in-hand act |
+| `glass/scribe.yaml` |  | `wheel` | `[reachable]` | keep | instrument in hand |
+| `glass/snap.yaml` |  | `sheet` | `[reachable]` | keep | in-hand act |
+| `ground/dig.yaml` |  | `tool` | `[reachable]` | keep | instrument in hand |
+| `ground/ditch.yaml` |  | `tool` | `[reachable]` | keep | instrument in hand |
+| `ground/grub.yaml` |  | `tool` | `[reachable]` | keep | instrument in hand |
+| `ground/lime.yaml` |  | `agent` | `[reachable]` | keep | in-hand act |
+| `ground/split.yaml` |  | `tool` | `[reachable]` | keep | instrument in hand |
+| `haulage/ship.yaml` |  | `goods` | `[$focus,reachable]` | keep | drill-first inspection / body act |
+| `ice/groove.yaml` |  | `tool` | `[reachable]` | keep | instrument in hand |
+| `ice/scrape.yaml` |  | `tool` | `[reachable]` | keep | instrument in hand |
+| `inventory/brush.yaml` |  | `target` | `[reachable]` | keep | in-hand act |
+| `inventory/brush.yaml` |  | `tool` | `[reachable]` | keep | instrument in hand |
+| `inventory/coil.yaml` |  | `target` | `[$focus,reachable]` | keep | drill-first inspection / body act |
+| `inventory/equip.yaml` |  | `target` | `[inventory,reachable]` | keep | in-hand (inventory first) |
+| `inventory/harvest.yaml` |  | `tool` | `[reachable]` | keep | instrument in hand |
+| `inventory/inventory.yaml` |  | `target` | `[$focus,reachable]` | keep | drill-first inspection / body act |
+| `inventory/label.yaml` |  | `target` | `[reachable]` | keep | in-hand act |
+| `inventory/offer.yaml` |  | `food` | `[inventory,reachable]` | keep | in-hand (inventory first) |
+| `inventory/offer.yaml` |  | `recipient` | `[reachable]` | keep | a person or animal — never carried |
+| `inventory/plant.yaml` |  | `drill` | `[reachable]` | keep | instrument in hand |
+| `inventory/plant.yaml` |  | `seed` | `[reachable]` | keep | in-hand act |
+| `inventory/pull.yaml` |  | `target` | `[reachable]` | keep | in-hand act |
+| `inventory/repot.yaml` |  | `plant` | `[reachable]` | keep | in-hand act |
+| `inventory/repot.yaml` |  | `pot` | `[reachable]` | keep | in-hand act |
+| `inventory/sample.yaml` |  | `subject` | `[$focus,reachable]` | keep | drill-first inspection / body act |
+| `inventory/seal.yaml` |  | `thing` | `[inventory,reachable]` | keep | in-hand (inventory first) |
+| `inventory/sweep.yaml` |  | `tool` | `[reachable]` | keep | instrument in hand |
+| `inventory/tear.yaml` |  | `thing` | `[inventory,reachable]` | keep | in-hand (inventory first) |
+| `inventory/throw.yaml` |  | `item` | `[reachable]` | keep | in-hand act |
+| `inventory/tie.yaml` |  | `load` | `[reachable]` | keep | in-hand act |
+| `inventory/untie.yaml` |  | `target` | `[$focus,reachable]` | keep | drill-first inspection / body act |
+| `inventory/write.yaml` |  | `medium` | `[inventory,reachable]` | keep | in-hand (inventory first) |
+| `inventory/write.yaml` |  | `surface` | `[inventory,reachable]` | keep | in-hand (inventory first) |
+| `magic/cast.yaml` |  | `target` | `[$focus,reachable]` | keep | drill-first inspection / body act |
+| `magic/recharge.yaml` |  | `target` | `[reachable]` | keep | in-hand act |
+| `magic/study.yaml` |  | `target` | `[reachable]` | keep | in-hand act |
+| `magic/zap.yaml` |  | `item` | `[reachable]` | keep | in-hand act |
+| `magic/zap.yaml` |  | `target` | `[reachable]` | keep | in-hand act |
+| `medical/bleed.yaml` |  | `donor` | `[reachable]` | keep | a person or animal — never carried |
+| `medical/bleed.yaml` |  | `vessel` | `[inventory,reachable]` | keep | in-hand (inventory first) |
+| `medical/bleed.yaml` |  | `with` | `[reachable]` | keep | instrument in hand |
+| `medical/cool.yaml` |  | `patient` | `[reachable]` | keep | a person or animal — never carried |
+| `medical/cool.yaml` |  | `water` | `[reachable]` | keep | in-hand act |
+| `medical/donate.yaml` |  | `bag` | `[inventory,reachable]` | keep | in-hand (inventory first) |
+| `medical/dose.yaml` |  | `patient` | `[reachable]` | keep | a person or animal — never carried |
+| `medical/dose.yaml` |  | `prescription` | `[inventory,reachable]` | keep | in-hand (inventory first) |
+| `medical/dose.yaml` |  | `with` | `[inventory,reachable]` | keep | in-hand (inventory first) |
+| `medical/issue.yaml` |  | `recipient` | `[reachable]` | keep | a person or animal — never carried |
+| `medical/operate.yaml` |  | `kit` | `[reachable]` | keep | instrument in hand |
+| `medical/operate.yaml` |  | `patient` | `[reachable]` | keep | a person or animal — never carried |
+| `medical/prescribe.yaml` |  | `pad` | `[reachable]` | keep | instrument in hand |
+| `medical/prescribe.yaml` |  | `patient` | `[reachable]` | keep | a person or animal — never carried |
+| `medical/rinse.yaml` |  | `patient` | `[reachable]` | keep | a person or animal — never carried |
+| `medical/rinse.yaml` |  | `water` | `[reachable]` | keep | in-hand act |
+| `medical/set.yaml` |  | `patient` | `[reachable]` | keep | a person or animal — never carried |
+| `medical/set.yaml` |  | `splint` | `[reachable]` | keep | instrument in hand |
+| `medical/suture.yaml` |  | `patient` | `[reachable]` | keep | a person or animal — never carried |
+| `medical/suture.yaml` |  | `with` | `[reachable]` | keep | instrument in hand |
+| `medical/tend.yaml` |  | `patient` | `[reachable]` | keep | a person or animal — never carried |
+| `medical/test.yaml` |  | `patient` | `[reachable]` | keep | a person or animal — never carried |
+| `medical/test.yaml` |  | `with` | `[reachable]` | keep | instrument in hand |
+| `medical/transfuse.yaml` |  | `patient` | `[reachable]` | keep | a person or animal — never carried |
+| `medical/transfuse.yaml` |  | `syringe` | `[reachable]` | keep | instrument in hand |
+| `medical/transfuse.yaml` |  | `vessel` | `[inventory,reachable]` | keep | in-hand (inventory first) |
+| `medical/treat.yaml` |  | `target` | `[$focus,reachable]` | keep | a person or animal — never carried |
+| `medical/treat.yaml` |  | `with` | `[inventory,reachable]` | keep | in-hand (inventory first) |
+| `medical/undress.yaml` |  | `target` | `[$focus,reachable]` | keep | a person or animal — never carried |
+| `medical/warm.yaml` |  | `patient` | `[reachable]` | keep | a person or animal — never carried |
+| `milling/mill.yaml` |  | `grain` | `[reachable]` | keep | in-hand act |
+| `mining/assay.yaml` |  | `samples` | `[reachable]` | keep | in-hand act |
+| `mining/drain.yaml` |  | `vessel` | `[reachable]` | keep | in-hand act |
+| `mining/hew.yaml` |  | `tool` | `[reachable]` | keep | instrument in hand |
+| `mining/shore.yaml` |  | `timber` | `[reachable]` | keep | instrument in hand |
+| `movement/belay.yaml` |  | `person` | `[reachable]` | keep | in-hand act |
+| `movement/belay.yaml` |  | `rope` | `[reachable]` | keep | in-hand act |
+| `movement/drive.yaml` |  | `target` | `[$focus,reachable]` | keep | drill-first inspection / body act |
+| `movement/hitch.yaml` |  | `mount` | `[reachable]` | keep | in-hand act |
+| `movement/hitch.yaml` |  | `target` | `[$focus,reachable]` | keep | drill-first inspection / body act |
+| `movement/mount.yaml` |  | `target` | `[$focus,reachable]` | keep | drill-first inspection / body act |
+| `movement/ride.yaml` |  | `target` | `[$focus,reachable]` | keep | drill-first inspection / body act |
+| `movement/teleport.yaml` |  | `destination` | `[reachable,here,peers]` | keep | in-hand act |
+| `movement/unhitch.yaml` |  | `target` | `[$focus,reachable]` | keep | drill-first inspection / body act |
+| `papermaking/couch.yaml` |  | `mould` | `[inventory,reachable]` | keep | in-hand (inventory first) |
+| `perception/analyze.yaml` |  | `subject` | `[$focus,reachable,horizon]` | keep | drill-first inspection / body act |
+| `perception/analyze.yaml` |  | `tool` | `[reachable]` | keep | instrument in hand |
+| `perception/assess.yaml` |  | `target` | `[$focus,reachable]` | keep | a person or animal — never carried |
+| `perception/feel.yaml` |  | `target` | `[$focus,reachable]` | keep | drill-first inspection / body act |
+| `perception/focus.yaml` |  | `fragment` | `[$focus,reachable]` | keep | drill-first inspection / body act |
+| `perception/listen.yaml` |  | `target` | `[$focus,reachable]` | keep | drill-first inspection / body act |
+| `perception/look.yaml` |  | `target` | `[$focus,reachable]` | keep | drill-first inspection / body act |
+| `perception/measure.yaml` |  | `subject` | `[$focus,reachable,horizon]` | keep | drill-first inspection / body act |
+| `perception/measure.yaml` |  | `tool` | `[reachable]` | keep | instrument in hand |
+| `perception/query.yaml` |  | `set` | `[reachable]` | keep | in-hand act |
+| `perception/read.yaml` |  | `target` | `[$focus,reachable]` | keep | drill-first inspection / body act |
+| `perception/readings.yaml` |  | `tool` | `[reachable]` | keep | instrument in hand |
+| `perception/ring.yaml` |  | `target` | `[reachable]` | keep | in-hand act |
+| `perception/scry.yaml` |  | `with` | `[reachable]` | keep | in-hand act |
+| `perception/search.yaml` |  | `target` | `[$focus,reachable]` | keep | drill-first inspection / body act |
+| `perception/sense.yaml` |  | `target` | `[$focus,reachable]` | keep | drill-first inspection / body act |
+| `perception/show.yaml` |  | `screen` | `[inventory,reachable]` | keep | in-hand (inventory first) |
+| `perception/smell.yaml` |  | `target` | `[$focus,reachable]` | keep | drill-first inspection / body act |
+| `perception/taste.yaml` |  | `target` | `[$focus,reachable]` | keep | drill-first inspection / body act |
+| `perception/weigh.yaml` |  | `target` | `[reachable]` | keep | in-hand act |
+| `posture/kneel.yaml` |  | `target` | `[$focus,reachable]` | keep | drill-first inspection / body act |
+| `posture/lie.yaml` |  | `target` | `[$focus,reachable]` | keep | drill-first inspection / body act |
+| `posture/sit.yaml` |  | `target` | `[$focus,reachable]` | keep | drill-first inspection / body act |
+| `posture/stand.yaml` |  | `target` | `[$focus,reachable]` | keep | drill-first inspection / body act |
+| `printing/compose.yaml` |  | `forme` | `[inventory,reachable]` | keep | in-hand (inventory first) |
+| `printing/copy.yaml` |  | `from` | `[inventory,reachable]` | keep | in-hand (inventory first) |
+| `printing/distribute.yaml` |  | `forme` | `[inventory,reachable]` | keep | in-hand (inventory first) |
+| `printing/proof.yaml` |  | `forme` | `[inventory,reachable]` | keep | in-hand (inventory first) |
+| `ranching/breed.yaml` |  | `target` | `[reachable]` | keep | a person or animal — never carried |
+| `ranching/gather.yaml` |  | `target` | `[reachable]` | keep | a person or animal — never carried |
+| `ranching/handle.yaml` |  | `target` | `[reachable]` | keep | a person or animal — never carried |
+| `ranching/milk.yaml` |  | `target` | `[reachable]` | keep | a person or animal — never carried |
+| `ranching/milk.yaml` |  | `vessel` | `[inventory,reachable]` | keep | in-hand (inventory first) |
+| `ranching/return.yaml` |  | `target` | `[reachable]` | keep | a person or animal — never carried |
+| `ranching/shear.yaml` |  | `target` | `[reachable]` | keep | a person or animal — never carried |
+| `ranching/slaughter.yaml` |  | `target` | `[reachable]` | keep | a person or animal — never carried |
+| `sericulture/unwind.yaml` |  | `cocoons` | `[inventory,reachable]` | keep | in-hand (inventory first) |
+| `sericulture/unwind.yaml` |  | `tool` | `[reachable]` | keep | instrument in hand |
+| `shell/find.yaml` |  | `query` | `[$focus,reachable]` | keep | drill-first inspection / body act |
+| `social/introduce.yaml` |  | `subject` | `[reachable]` | keep | a person or animal — never carried |
+| `social/name.yaml` |  | `target` | `[reachable]` | keep | in-hand act |
+| `social/party.yaml` | assign | `target` | `[reachable,online]` | keep | a person or animal — never carried |
+| `social/party.yaml` | enlist | `target` | `[reachable]` | keep | a person or animal — never carried |
+| `social/pet.yaml` |  | `target` | `[reachable]` | keep | a person or animal — never carried |
+| `social/pilot.yaml` |  | `pilot` | `[$focus,reachable]` | keep | drill-first inspection / body act |
+| `social/profile.yaml` |  | `target` | `[reachable,online]` | keep | a person or animal — never carried |
+| `social/stay.yaml` |  | `target` | `[reachable]` | keep | a person or animal — never carried |
+| `social/talk.yaml` |  | `target` | `[$focus,reachable]` | keep | a person or animal — never carried |
+| `sugar/clay.yaml` |  | `clay` | `[reachable]` | keep | in-hand act |
+| `sugar/skim.yaml` |  | `pail` | `[reachable]` | keep | in-hand act |
+| `sugar/temper.yaml` |  | `lime` | `[reachable]` | keep | in-hand act |
+| `system/trace.yaml` | address | `location` | `[reachable]` | keep | in-hand act |
+| `tailoring/alter.yaml` |  | `garment` | `[inventory,reachable]` | keep | in-hand (inventory first) |
+| `tailoring/alter.yaml` |  | `kit` | `[reachable]` | keep | instrument in hand |
+| `tailoring/sew.yaml` |  | `kit` | `[reachable]` | keep | instrument in hand |
+| `tailoring/sew.yaml` |  | `pieces` | `[inventory,reachable]` | keep | in-hand (inventory first) |
+| `tanning/tan.yaml` |  | `hide` | `[reachable]` | keep | in-hand act |
+| `textiles/scutch.yaml` |  | `board` | `[reachable]` | keep | instrument in hand |
+| `textiles/scutch.yaml` |  | `source` | `[inventory,reachable]` | keep | in-hand (inventory first) |
+| `textiles/spin.yaml` |  | `stock` | `[inventory,reachable]` | keep | in-hand (inventory first) |
+| `textiles/weave.yaml` |  | `yarn` | `[inventory,reachable]` | keep | in-hand (inventory first) |

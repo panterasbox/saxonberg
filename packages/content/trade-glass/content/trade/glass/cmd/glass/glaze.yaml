@@ -19,5 +19,5 @@ args:
     type: object
     required: true
     prepositions: [in, into]
-    scope: ["reachable"]
+    scope: ["here", "peers", "person"]
     requires: any

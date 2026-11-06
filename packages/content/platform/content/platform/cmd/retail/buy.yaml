@@ -66,5 +66,5 @@ args:
     greedy: true
     prepositions: [from]
     default: "reachable:[mixin.ForSaleMixin]"
-    scope: [reachable]
+    scope: ["here", "peers", "person"]
     requires: [ForSaleMixin]

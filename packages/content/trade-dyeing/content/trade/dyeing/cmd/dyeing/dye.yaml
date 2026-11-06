@@ -41,5 +41,5 @@ args:
     required: false
     prepositions: [in, at]
     default: "reachable:[mixin.BulkableMixin]"
-    scope: ["reachable"]
+    scope: ["here", "peers", "person"]
     requires: [BulkableMixin]

@@ -32,7 +32,7 @@ args:
   - name: target
     type: object
     required: true
-    scope: [reachable]
+    scope: ["here", "peers", "person"]
     requires: any
     validators:
       - /lib/command/validators/canReach

@@ -61,5 +61,5 @@ args:
     greedy: true
     prepositions: [at, in, on]
     default: "reachable:[mixin.BurnerMixin]"
-    scope: ["reachable"]
+    scope: ["here", "peers", "person"]
     requires: [BurnerMixin]

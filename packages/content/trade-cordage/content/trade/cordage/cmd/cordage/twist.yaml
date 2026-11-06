@@ -33,7 +33,7 @@ args:
     prepositions: [on, at, with]
     greedy: true
     default: "reachable:[capability.ropelaying]"
-    scope: ["reachable"]
+    scope: ["here", "peers", "person"]
     requires: [ToolMixin]
 options:
   yarns:

@@ -123,5 +123,5 @@ args:
     greedy: true
     prepositions: [at, with, on]
     default: "reachable:[mixin.ComminutingMixin]"
-    scope: ["reachable"]
+    scope: ["here", "peers", "person"]
     requires: [ComminutingMixin]

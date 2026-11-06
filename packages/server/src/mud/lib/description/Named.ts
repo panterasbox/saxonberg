@@ -107,6 +107,10 @@
 
 import type { Stuff } from '../stuff/Stuff';
 import type { MixinConstructor, FieldMeta } from '../mixin';
+import { Mixins } from '../mixin';
+import { MixinApi } from '../../api/mixin';
+import { GrammarApi } from '../../api/grammar';
+import type { Perceptible } from './Perceptible';
 import { ShadowChangedEvent } from '../events/ShadowChangedEvent';
 import {
   MqlSubscriptionApi,
@@ -159,11 +163,39 @@ export interface Named {
    * re-made, the person an animal has chosen. Default: nobody.
    */
   canBeNamedBy(handPath: string, by?: Stuff | null): boolean;
+
+  /**
+   * ⭐ **A name is a keyword** (one-resolution slate § 4 — *the name is not
+   * special*): what this answers to is whatever the composition beneath
+   * says (`Perceptible`'s authored keywords, a detail id…), then the name
+   * and its bare form without a leading article (`the One Ring` answers
+   * to `one ring`). Derived, never stored — rename it and it answers to
+   * the new name at once. MQL scores this list and nothing else.
+   */
+  getKeywords(viewer?: Stuff): string[];
 }
 
 export function NamedMixin<TBase extends MixinConstructor>(Base: TBase) {
+  // Whether the composition beneath already answers to words — decided once
+  // per class, from the class, never by probing an instance (lazily: the
+  // factory runs at import, before the mixin registry is guaranteed warm).
+  let inherits: boolean | undefined;
   return class NamedMixin extends Base {
     static _mixinName = 'NamedMixin';
+
+    /** See {@link Named.getKeywords}. */
+    getKeywords(viewer?: Stuff): string[] {
+      inherits ??= MixinApi.hasMixin(Base, Mixins.Perceptible) || MixinApi.hasMixin(Base, Mixins.Detailed) || MixinApi.hasMixin(Base, Mixins.Bulkable);
+      const out = inherits
+        ? (Base.prototype as unknown as Perceptible).getKeywords.call(this, viewer)
+        : [];
+      const name = this.getName().toLowerCase().trim();
+      if (!name) return out;
+      const space = name.indexOf(' ');
+      const bare = space > 0 && GrammarApi.ARTICLES.has(name.slice(0, space)) ? name.slice(space + 1) : name;
+      for (const word of [name, bare]) if (!out.includes(word)) out.push(word);
+      return out;
+    }
 
     /**
      * Persistent fields. `alternateNames` is an array of plain

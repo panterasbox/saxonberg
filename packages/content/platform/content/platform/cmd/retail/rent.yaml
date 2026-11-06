@@ -37,7 +37,7 @@ args:
     type: object
     required: true
     greedy: true
-    scope: ["reachable"]
+    scope: ["here", "peers", "person"]
     requires: [SmallCraftMixin]
   # ⭐ HOW LONG — `for 2 days`, `for a day`. Optional: a day.
   # ⚠ `greedy: true` — "2 days" is two tokens and one span.
@@ -57,5 +57,5 @@ args:
     greedy: true
     prepositions: [at]
     default: "reachable:[class.HireBook]"
-    scope: [reachable]
+    scope: ["here", "peers", "person"]
     requires: [VisibleMixin]

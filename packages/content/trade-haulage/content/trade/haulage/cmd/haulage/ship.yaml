@@ -67,7 +67,7 @@ args:
     required: false
     prepositions: [at]
     default: "reachable:[mixin.ShipmentDeskMixin]"
-    scope: [reachable]
+    scope: ["here", "peers", "person"]
     requires: [ShipmentDeskMixin]
 options:
   worth:

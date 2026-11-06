@@ -68,7 +68,7 @@ args:
   - name: body
     type: object
     required: true
-    scope: "reachable"
+    scope: ["here", "peers", "person"]
     requires: any
     validators:
       - /lib/command/validators/canReach
@@ -89,7 +89,7 @@ args:
     required: false
     prepositions: [on, at]
     default: "reachable:[mixin.PlacingMixin and mixin.ContaminableMixin]"
-    scope: ["reachable"]
+    scope: ["here", "peers", "person"]
     requires: [PlacingMixin]
   # ⭐⭐ WHICH CUT, as a WORD rather than a thing in reach — a cut is
   # something you ask for, and the carcass is the only object involved.

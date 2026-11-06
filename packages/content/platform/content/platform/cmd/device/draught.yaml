@@ -47,7 +47,7 @@ args: &fire
     type: object
     required: false
     prepositions: [on, at, in]
-    scope: "reachable"
+    scope: ["here", "peers", "person"]
     default: "reachable:[mixin.BurnerMixin]"
     requires: BurnerMixin
     validators:

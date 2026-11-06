@@ -82,5 +82,5 @@ args:
     greedy: true
     prepositions: [at, on, with]
     default: "reachable:[capability.assay-scale]"
-    scope: ["reachable"]
+    scope: ["here", "peers", "person"]
     requires: [ToolMixin]

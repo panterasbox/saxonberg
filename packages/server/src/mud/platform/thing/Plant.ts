@@ -155,15 +155,19 @@ export default class Plant extends PlantBase {
   }
 
   /**
-   * ⭐ **A stand answers to the name of the part it stands in** (field
-   * population D13): a crop rooted in a field's top end also answers to
-   * *top end* and *top-end*, so `look top end wheat` binds that stand and
-   * no other. Derived from the part it is bound to (the part's own name
-   * and key — the kernel's parts protocol), never authored: a renamed
-   * part renames the words, and a plant bound to nothing keeps its own.
+   * ⭐ **A stand answers to the name of the part it stands in, as a
+   * qualifier** (field population D13): a crop rooted in a field's top end
+   * also answers to *top end wheat* and *top-end wheat* — every one of its
+   * own words led by the part's — so `look top end wheat` binds that stand
+   * and no other, while `look top end` is the PATCH, whose keyword is the
+   * phrase outright (one-resolution slate § 4: with the name tiers gone,
+   * a stand carrying bare *top end* would tie the patch and ask which).
+   * Derived from the part it is bound to (the part's own name and key —
+   * the kernel's parts protocol), never authored: a renamed part renames
+   * the words, and a plant bound to nothing keeps its own.
    */
-  public override getKeywords(): string[] {
-    const own = super.getKeywords();
+  public override getKeywords(viewer?: Stuff): string[] {
+    const own = super.getKeywords(viewer);
     const key = this.getGroundPart();
     // ⭐ Only a STAND answers to its patch's name. A labeled individual
     // standing in the same patch answers to its label (field population
@@ -173,7 +177,8 @@ export default class Plant extends PlantBase {
     const part = this.getBed();
     if (!part || part.soilPartKey() !== key) return own;
     const stem = part.presentationPhrase().bare().toLowerCase();
-    return [...new Set([...own, stem, key])];
+    const led = own.flatMap((w) => [`${stem} ${w}`, `${key} ${w}`]);
+    return [...new Set([...own, ...led])];
   }
 
   /**

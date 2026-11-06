@@ -32,5 +32,5 @@ args:
     greedy: true
     prepositions: [on, with]
     default: "reachable:[mixin.ToolMixin]"
-    scope: ["reachable"]
+    scope: ["here", "peers", "person"]
     requires: [ToolMixin]

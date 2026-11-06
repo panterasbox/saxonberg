@@ -14,7 +14,7 @@ args:
   - name: copper
     type: object
     required: true
-    scope: ["reachable"]
+    scope: ["here", "peers", "person"]
     requires: [BulkableMixin]
   - name: lime
     type: object

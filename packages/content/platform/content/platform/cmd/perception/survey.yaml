@@ -28,7 +28,7 @@ args:
   - name: target
     type: object
     required: false
-    scope: ["reachable"]
+    scope: ["here", "peers", "person"]
     requires: any
 examples:
   - cmd: survey

@@ -57,7 +57,7 @@ args:
     # fell through to "no known command shape". Found by live-driving;
     # no controller test can catch it, because controller tests skip the
     # binder entirely.
-    scope: "reachable"
+    scope: ["here", "peers", "person"]
     prepositions: [at]
     requires: VisibleMixin
   # ⭐ `to <who>` — a toss meant to be caught (underwater review). A name,

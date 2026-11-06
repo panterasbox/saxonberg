@@ -93,8 +93,12 @@ import type Exit from '../boundary/Exit';
 import type { ActRefusal } from '../craft/ActPlan';
 import { Mml } from '../../api/mml';
 
+// ⭐ `NamedMixin` OUTSIDE `PerceptibleMixin`: a name is one of the words a
+// thing answers to (`Named.getKeywords` folds it onto what lies beneath),
+// so `paint hesper` reaches the ship by her name through the one list MQL
+// scores (one-resolution slate § 4).
 export default class Structure extends DetailedMixin(
-  VisibleMixin(PerceptibleMixin(NamedMixin(Idea))),
+  VisibleMixin(NamedMixin(PerceptibleMixin(Idea))),
 ) {
   static fieldMeta: FieldMeta = {
     extent: { persistent: true, authorable: true },

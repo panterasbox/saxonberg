@@ -103,7 +103,7 @@ args:
     required: false
     prepositions: [in, into, from]
     default: "reachable:[mixin.DipBathMixin]"
-    scope: ["reachable"]
+    scope: ["here", "peers", "person"]
     requires: [DipBathMixin]
   # …and the face said after the bath (`dip crock in bucket inside`).
   - name: side

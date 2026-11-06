@@ -27,7 +27,7 @@ args:
   - name: target
     type: object
     required: true
-    scope: "reachable"
+    scope: ["here", "peers", "person"]
     requires: any
     # ⚠⚠ `greedy` — found by DRIVING it: `pump village well` answered
     # *"That doesn't match any known command shape"*, because without it

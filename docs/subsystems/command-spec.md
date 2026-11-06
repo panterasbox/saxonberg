@@ -918,17 +918,38 @@ Only meaningful for `type: object` / `type: objects`.
 
 Accepts `string | string[]`. The runtime always sees an array (a bare
 string is normalised to a singleton). Each entry runs through
-`ShellApi.expandVariables`, then the dispatcher tries them in order
-— **first non-empty result wins**.
+`ShellApi.expandVariables`, then the dispatcher tries them in order.
+
+⭐⭐ **The best keyword TIER wins, across tries; a tie goes to the earlier
+try** (controllers-are-io D21, one-resolution § 3 row 11 —
+`CommandLogic.walkScopes`). Every try is asked (stopping early only at the
+top tier, which nothing later can beat), and each kept match carries its
+tier (`MqlMany.tiers`: a keyword IS the phrase · every word a whole word of
+one · every word begins one · a partial). So a whole-name hit in a later
+try beats a word that merely begins some name in the focus, and when two
+tries answer equally the earlier one is meant — which is what drill-first
+means. Until W2 the first try with any admissible match won at any tier.
 
 Patterns:
 
 ```yaml
 scope: "inventory"           # surgical — drop, don't drill
 scope: "peers"               # surgical — get, don't pick up the room
-scope: "reachable"           # broad — everything in arm's reach
+scope: "reachable"           # in-hand act — person first: eat, drop, wield, give
+scope: ["here", "peers", "person"]   # WORLD act — room first: cut, dig, fell, paint
 scope: ["$focus", "reachable"]   # drill-first-then-broad — look, examine
 ```
+
+⭐ **The scope list's ORDER is the dial for where a verb looks first** —
+no new seed, no flag. `reachable` is person-first (on a tie your own
+gear beats the floor's), which is right for an act on what you hold. A
+**world act** — a verb whose target is, in the common case, underfoot or
+standing (a fixture, the ground, a plant, a block, a floor, a counter, a
+furnace) — declares `["here", "peers", "person"]` (with `$focus` first
+when it drills), so `cut ice` standing over a block cuts the block
+underfoot while a smaller one is carried. The audit of every
+`reachable` arg, with its verdict, is
+[controllers-are-io-slate.md § Scope-order audit (W2)](../slates/builds/controllers-are-io-slate.md).
 
 When `scope:` is omitted, the dispatcher defaults to `['$focus']` —
 the drill chain IS the scope. The resolver's empty-scope fallback to

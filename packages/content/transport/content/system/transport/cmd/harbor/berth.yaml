@@ -47,5 +47,5 @@ args:
     greedy: true
     prepositions: [in]
     default: "reachable:[class.HarborBook]"
-    scope: ["reachable"]
+    scope: ["here", "peers", "person"]
     requires: [PayableMixin]

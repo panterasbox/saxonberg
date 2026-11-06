@@ -30,7 +30,7 @@ args:
     required: false
     prepositions: [at, in]
     default: "reachable:[class.CharcoalPit]"
-    scope: ["reachable"]
+    scope: ["here", "peers", "person"]
     requires: [BurnerMixin]
   - name: draught
     type: number

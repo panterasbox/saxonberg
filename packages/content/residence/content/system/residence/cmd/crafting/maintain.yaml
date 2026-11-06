@@ -41,7 +41,7 @@ args:
   - name: target
     type: object
     required: false
-    scope: ["reachable"]
+    scope: ["here", "peers", "person"]
     requires: any
   # ⭐ WHICH TOOL, declared rather than hunted for. The default asks
   # `[capability.upkeep]` — *the thing that can do this job* — rather than

@@ -33,5 +33,5 @@ args:
     required: false
     prepositions: [at, in]
     default: "reachable:[mixin.ShoreMixin]"
-    scope: ["reachable"]
+    scope: ["here", "peers", "person"]
     requires: any

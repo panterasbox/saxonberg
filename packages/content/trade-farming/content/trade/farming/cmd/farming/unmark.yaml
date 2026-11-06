@@ -19,5 +19,5 @@ args:
     type: object
     required: true
     greedy: true
-    scope: ["reachable"]
+    scope: ["here", "peers", "person"]
     requires: SoilMixin

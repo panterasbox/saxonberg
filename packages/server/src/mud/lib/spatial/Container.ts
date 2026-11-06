@@ -40,7 +40,8 @@ import { SecurityPolicies } from '../security/SecurityPolicies';
 import { ExecutionContextApi } from '../../api/execution-context';
 import { MixinApi } from '../../api/mixin';
 import { ContainmentApi } from '../../api/containment';
-import { PerceptionApi } from '../../api/perception';
+import { MqlApi } from '../../api/mql';
+import type { CommandGiver } from '../command/CommandGiver';
 import { StuffApi } from '../../api/stuff';
 import type { CommandContributions } from '../../api/command';
 import { AppApi } from '../../api/app';
@@ -119,25 +120,6 @@ const CalledFromSetContainer = SecurityPolicies.Custom(() => {
   const callerFrame = stack[stack.length - 1];
   return callerFrame?.method === 'setContainer';
 }, 'CalledFromSetContainer');
-
-/**
- * The ids of everything currently occupying a slot on `host` — empty
- * when the host is not `Slotted` at all (a chest holds things and wears
- * nothing). The `contents` projection subtracts these so the worn half
- * and the carried half stay disjoint.
- */
-function wornOccupantIds(host: Stuff): ReadonlySet<string> {
-  if (!MixinApi.isSlotted(host)) return EMPTY_IDS;
-  const ids = new Set<string>();
-  for (const occupants of host.getAllOccupants().values()) {
-    for (const occupant of occupants) {
-      ids.add((occupant as unknown as Stuff).stuffId);
-    }
-  }
-  return ids;
-}
-
-const EMPTY_IDS: ReadonlySet<string> = new Set<string>();
 
 export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
   class ContainerMixin extends Base {
@@ -377,24 +359,19 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
         dependsOnFields: ['contents', 'placement'],
         read: (stuff, viewer) => {
           const host = stuff as Stuff & Container;
-          // ⭐ `contents` and `worn` are a PARTITION of one set. Wearing
-          // something never takes it out of the wearer's contents — the
-          // `wear` verb only claims slots — so without this clause a
-          // shirt would render in both projections. Skipping children
-          // that currently occupy a slot ON THIS HOST is what makes
-          // "worn vs carried" mean anything.
-          const wornHere = wornOccupantIds(host);
-          const visible = host.getContents().filter(
-            (child) =>
-              child.stuffId !== viewer.stuffId &&
-              !wornHere.has(child.stuffId) &&
-              !MixinApi.isAdornment(child) &&
-              MixinApi.isVisible(child) &&
-              // Honest fog on the wire: a concealed-undiscovered child never
-              // enters the client projection. `perceives` short-circuits
-              // true for un-concealed children (the common path).
-              PerceptionApi.perceives(viewer, child),
-          );
+          // ⭐ The listing's rule, said in MQL — the one `look` and `sense`
+          // use, plus `:carried`: `contents` and `worn` are a PARTITION of
+          // one set (wearing something never takes it out of the wearer's
+          // contents), so a shirt renders in one projection, not both.
+          // `:i` is what the viewer may see inside (a stranger's pockets
+          // and a shut chest are not), `:visible` the honest fog — a
+          // concealed-undiscovered child never enters the projection.
+          const visible = MqlApi.resolveMany(
+            `#${host.stuffId}:i:visible:carried:[not mixin.AdornmentMixin] - me`,
+            // The card's viewer is a character (a CommandGiver); the static
+            // type at this seam is only `Stuff & Sensor`.
+            { commandGiver: viewer as unknown as Stuff & CommandGiver, scope: 'here' },
+          ).stuff;
           // Placed items (the back-bar's bottles) render under their host,
           // not as loose contents — the same rule `look`/`sense` use, so the
           // inspection card agrees.

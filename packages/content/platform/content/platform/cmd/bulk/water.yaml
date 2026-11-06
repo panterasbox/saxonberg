@@ -31,7 +31,7 @@ args:
   - name: target
     type: object
     required: true
-    scope: "reachable"
+    scope: ["here", "peers", "person"]
     # A plant, a bed or pot, a field or a tract (field population D18).
     requires: [VisibleMixin, GrowingMixin|SoilMixin]
   # ⭐ WHICH PART — `at <field>` on a tract marked into fields (field population D5).
@@ -43,7 +43,7 @@ args:
     type: object
     required: false
     greedy: true
-    scope: ["reachable"]
+    scope: ["here", "peers", "person"]
     prepositions: [at]
     requires: SoilMixin
   # ⭐ WHAT WITH — DECLARED, not hunted for (`lint:controller-resolution`).

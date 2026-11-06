@@ -44,7 +44,7 @@ args:
   - name: target
     type: object
     required: true
-    scope: ["reachable"]
+    scope: ["here", "peers", "person"]
     requires: any
   # ⭐ Every reachable bulk vessel is a candidate; the controller takes the
   # first whose liquid lays a coat (a bucket of water says so).

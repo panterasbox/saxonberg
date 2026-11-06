@@ -4,7 +4,10 @@
 class: /platform/thing/Receptacle
 data:
   shortDescription: latex cup
-  keywords: [cup, "latex cup", "tapping cup", tin]
+  # ⭐ Bare `latex` too: the name is not special (one-resolution § 4), so
+  # `get latex` reaches the cups by this keyword, not by their name — the
+  # coagulating pan answers only to "latex pan" and falls a tier below.
+  keywords: [cup, "latex cup", latex, "tapping cup", tin]
   register: indefinite
   longDescription: |
     A small tin cup on a loop of wire, its inside skinned white with old dried latex.

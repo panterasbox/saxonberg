@@ -40,7 +40,7 @@ args:
     type: object
     required: true
     greedy: true
-    scope: ["reachable"]
+    scope: ["here", "peers", "person"]
     requires: TangibleMixin
   # What to rive a billet INTO — a recipe word. Optional: with one answer
   # installed there is nothing to choose.

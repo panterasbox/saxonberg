@@ -59,6 +59,7 @@ import { SealableMixin } from '../../lib/spatial/Sealable';
 import { LockableMixin } from '../../lib/boundary/Lockable';
 import type Exit from '../../lib/boundary/Exit';
 import type { FieldMeta } from '../../lib/mixin';
+import type { Stuff } from '../../lib/stuff/Stuff';
 import type {
   Conduit,
   LightConduit,
@@ -171,8 +172,8 @@ export default class Door extends DoorBase {
    * authored keywords; this override folds them in, and MQL reads them
    * only through this Perceptible interface.
    */
-  override getKeywords(): string[] {
-    const base = super.getKeywords();
+  override getKeywords(viewer?: Stuff): string[] {
+    const base = super.getKeywords(viewer);
     const nameTokens = this.shortDescription
       .toLowerCase()
       .split(/\s+/)

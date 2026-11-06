@@ -33,7 +33,7 @@ args:
     required: false
     prepositions: [on, at, with]
     default: "reachable:[capability.weaving]"
-    scope: ["reachable"]
+    scope: ["here", "peers", "person"]
     requires: [ToolMixin]
 options:
   close:

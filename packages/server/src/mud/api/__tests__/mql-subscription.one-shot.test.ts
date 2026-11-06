@@ -140,6 +140,8 @@ describe('MqlSubscriptionApi — one-shot query (Wave 4)', () => {
       const t = await StuffApi.create(() => {
         const thing = new Good();
         thing.setShortDescription(`thing ${i}`);
+        // What a thing answers to is its keywords (the name is not special).
+        thing.setKeywords(['thing']);
         return thing;
       });
       ContainmentApi.move(t, location);
