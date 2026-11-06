@@ -1,5 +1,7 @@
 verbs: [forum]
-controller: /platform/idea/cmd/social/ForumController
+# ⭐ One controller per subcommand (controllers-are-io D9); the fallthrough
+# bare `forum <board>` reads, so the verb-level controller is the read's.
+controller: /platform/idea/cmd/social/ForumReadController
 description: "Read and post on forum boards (list / make / on / post / reply / edit / read / vote / promote / follow)"
 help: |
   Forums are the game's persistent, asynchronous discussion boards —
@@ -25,11 +27,13 @@ validators:
 fallthrough: true
 subcommands:
   list:
+    controller: /platform/idea/cmd/social/ForumListController
     description: "List boards visible to you"
     help: |
       Show every board you're allowed to see, across all subjects.
       Your starting point for finding a board's name.
   make:
+    controller: /platform/idea/cmd/social/ForumMakeController
     description: "Create a subject + board (you become the owner)"
     help: |
       Spin up a new board and the subject that owns it in one step,
@@ -62,6 +66,7 @@ subcommands:
         required: false
         greedy: true
   on:
+    controller: /platform/idea/cmd/social/ForumOnController
     description: "Attach a board to an existing subject you own"
     help: |
       Add another board to a subject you already own — e.g. give a
@@ -76,6 +81,7 @@ subcommands:
         type: string
         required: true
   post:
+    controller: /platform/idea/cmd/social/ForumPostController
     description: "Start a thread on a board"
     help: |
       Open a new thread on a board. Type the body inline, or leave it
@@ -101,6 +107,7 @@ subcommands:
         required: false
         greedy: true
   reply:
+    controller: /platform/idea/cmd/social/ForumReplyController
     description: "Reply (open board) or attach a typed claim (ordered: --pro/--con/--rebut)"
     help: |
       Respond to an entry. On a feed board this is a plain reply. On
@@ -132,6 +139,7 @@ subcommands:
         required: false
         greedy: true
   edit:
+    controller: /platform/idea/cmd/social/ForumEditController
     description: "Edit a body in place (author or board owner); keeps a lossless trail"
     help: |
       Revise an entry you wrote (or any entry, if you own the board).
@@ -147,6 +155,7 @@ subcommands:
         required: false
         greedy: true
   read:
+    controller: /platform/idea/cmd/social/ForumReadController
     description: "Read a board's thread-list, or a thread's tree"
     help: |
       With just a board, list its threads; add a thread to read the
@@ -166,6 +175,7 @@ subcommands:
         type: string
         required: false
   vote:
+    controller: /platform/idea/cmd/social/ForumVoteController
     description: "Up/down vote an entry (toggles off if you repeat the same direction)"
     help: |
       Cast an up or down vote on an entry. Voting the same direction
@@ -178,6 +188,7 @@ subcommands:
         type: string
         required: true
   mature:
+    controller: /platform/idea/cmd/social/ForumMatureController
     description: "Mark an ordered forum matured (owner only); hands it to the deferred vote layer"
     help: |
       Owner-only: declare an ordered board's debate settled enough to
@@ -188,6 +199,7 @@ subcommands:
         type: string
         required: true
   promote:
+    controller: /platform/idea/cmd/social/ForumPromoteController
     description: "Promote a thread into a thread-subject with its own chat"
     help: |
       Lift a hot thread into its own subject — giving it a dedicated
@@ -204,6 +216,7 @@ subcommands:
         type: string
         required: true
   follow:
+    controller: /platform/idea/cmd/social/ForumFollowController
     description: "Follow a subject (tunes you into all its lit surfaces)"
     help: |
       Subscribe to a subject so its boards and chats light up for you —
