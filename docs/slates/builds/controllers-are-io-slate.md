@@ -426,3 +426,42 @@ these claims were verified at the scan except where marked *(verify)*.
   whether the syntaxes conflict, and these do not. The collision gate
   learns to accept views whose shapes are disjoint. `toss` and `hurl` go.
 - **The scoped source fills the slot it fits** (plan D2) stands.
+
+### ⭐⭐⭐ Folded in at plan review: the adjacent design this build owns (2026-11-06)
+
+The owner, after the first plan: *"there's a lot of other adjacent shit
+we've talked about in the last few months you're missing."* Every item
+below is already decided or slated elsewhere. This build absorbs them,
+under the rule that a build takes more rather than splitting scope. Only
+the work siblings hold stays out.
+
+| link | item | source |
+|---|---|---|
+| 4 syntax | ⭐ **the rule, as command-taxonomy wrote it:** *an act on the world is a bare verb; a transaction with an institution's book is a subcommand of the institution's noun* (which covers `store deposit\|withdraw` and `shelf consign\|reclaim`). It supersedes the "noun you operate" wording here. There are no aliases: nothing is legacy. | command-taxonomy § The rule; items 1, 3, 4 |
+| 4 | `category:` on every view, and `help` groups by it | command-taxonomy item 2 |
+| 4 | ⭐ **a gate validating every view against `command.schema.json`, built FIRST**, because a sweep of views has already broken the platform pack's install once | command-taxonomy item 5 |
+| 3 | scope order follows where the object lives: a world act looks in the room first, an in-hand act looks on your person first | command-taxonomy item 6 |
+| 2/5 | the `reel` undo: fishing's `reel` returns to its pre-silk shape, and silk gets its own `unwind` in sericulture, ending the sericulture → fishing dependency | command-taxonomy item 7 |
+| 4 | ⛔ OUT: the authoring verbs become subcommands of their trees. Wizard-axis holds them. | command-taxonomy item 8 |
+| 4 | ⭐ **`make` is NOT the script runner.** `fix/script-runner-decouple` (10-18, unmerged, 1,338 commits behind, smithy drive owed) moves it to the shell's `do`. This build redoes that work on master, using the branch as reference, and retires the branch. | that branch; pottery/brickmaking § forming |
+| 2 | `drive` vs `drift`: under one view, one word, mining's view is `drift` and the movement `drive` is conferred on vehicles. The collision count hides this pair today because the movement view is marked unreachable. | affordance-verb § drive vs drift |
+| 2 | `shadowed-by:` on a shadowed view replaces the `KNOWN_COLLISIONS` list in the linter | affordance-verb § KNOWN_COLLISIONS carrier |
+| 2 | the capability-keyed affordance table: a tool's instance data confers its verb family, with no class static. This is the stated end state for instrument verbs. | affordances-tools-confer (owner, MR !153) |
+| 1 | bare verb shapes become protocol mixins (`Workable`, `Diggable`, `Splittable`, `Pumpable`, `Tappable`, `Cuttable`; about 18 `typeof x.method` controllers), each passing the earned test (more than one kind of host); a one-host protocol is a property of its host | verb-interfaces § Bare verb shapes, § 1 |
+| 1 | a protocol mixin is presented as the verb it serves (`_mixinKind = 'protocol'`; the card says *answers: turn · dip*; Studio; `help turn` lists who answers) | verb-interfaces § 2 |
+| 1 | `requires: affords`, probed against a dozen real verbs | verb-interfaces § Open |
+| 7 | the cuts sweep (seven cut verbs through one protocol); `boil` folded into heating; `scrub` as a manner of `wash`; the single-target audit | verb-interfaces |
+| 1 | ⭐ **the mixin-split test is WHO COMPOSES IT plus the IMPORT LIST** (the Slotted → Attired precedent), beside co-use. With breaking accepted, a split puts each half on its honest host instead of keeping a composite (`OnCall` → `Business`, `MadeFrom` → `Good`/`Vessel`). | slotted-split; plan P2 findings |
+| 1 | ⭐ **mixin file naming:** 12 mixins live in a file not named for them (build-1's census, MR !520; `Throttleable` already fixed there). A gate holds the count, and the sweep moves each mixin to its own file. The 12: `HeldGoods` and `ConsignmentShelf` (`lib/retail/Consignment.ts`), `SeatedDrivable` (`lib/slot/Drivable.ts`), `Props` and `Costumed` (`lib/stuff/Staged.ts`), `Cutlery` (`lib/bulk/Utensil.ts`), `Tool` (`lib/craft/Tooled.ts`), `DisguiseBearing` (`lib/disguise/Disguise.ts`), `Registrar` (`lib/document/Register.ts`), `Reserved` (`lib/reserve.ts`, no subsystem folder), `Lounge` (`world/lounge/LoungeMixin.ts`, the banned suffix), and `OpenWorking` (`trade-quarrying/src/lib/Working.ts`). | build-1 hand-off |
+| 3 | the reserved `--strict` / `--loose` option per invocation (options settle ambiguity) | explicit-targeting |
+| 3 | the hand-rolled listing filters become MQL predicates delegating to methods | mql-predicate-parity |
+| 3 | modality as a per-verb scope axis | scope-modality |
+| 3 | names are not special in the scorer; MQL reads only what is perceptible | one-resolution-rule §§ 4–5 |
+| scripts | fail closed when a controller would prompt with no `interactive`, naming the missing input. `verb@source` relies on this. | script-interaction |
+| scripts | the line-level `--async` / `--sync` prefix | async-commands |
+| 1 | the "bless `FromMixin` as the marker" question | call-security-pass |
+| 1 | the composition signature becomes verb-aware | object-taxonomy |
+| 2 | a structured reason on a disabled affordance row | affordance-suggestion |
+
+Still OUT, held by siblings: `look` (client-surface) and the authoring
+verbs and trees (wizard-axis).

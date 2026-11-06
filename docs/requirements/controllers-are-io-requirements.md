@@ -111,12 +111,38 @@ Everything else is moving logic to homes that already exist.
 - **Breaking is accepted** (owner, 2026-11-06). Old command forms,
   saved scripts and player aliases that name a moved, renamed or deleted
   word may stop working. Nothing keeps an old form binding.
-- **Interfaces say what they are.** The five mixins that a later build
-  made into two ideas are split: organization, water place, metabolism,
-  load-bearing and chattel. Anything already built keeps everything it
-  composes. Protocols probed by name gain a declared marker when two or
-  more unrelated things implement them. Names that nothing defines are
-  fixed.
+- **Interfaces say what they are.**
+  - The five mixins that a later build made into two ideas are split:
+    organization, water place, metabolism, load-bearing and chattel. Each
+    half lands on the things it is honestly true of, so a garden bed
+    stops carrying body physics.
+  - Every mixin lives in a file named for it.
+  - Every verb's contract with its target is a declared protocol, earned
+    by more than one kind of thing answering the verb. A player sees each
+    one as the verb it serves: a card reads *answers: turn · dip*, and
+    `help turn` lists what answers `turn`. A protocol with one possible
+    host becomes a property of that host.
+  - A probe by name with nothing behind it is fixed.
+- **The scripting verb is `do`, not `make`.** The shell runs a script with
+  `do martini`. `make` stops being anything until a trade earns it.
+- **The adjacent design this build absorbs** is listed with its sources
+  in the slate (§ Folded in at plan review). At product level it is:
+  - **`reel`** is fishing's again, and silk is `unwind`.
+  - **`drift`** is the miner's word, and `drive` is for vehicles.
+  - **Ledger transactions** are subcommands of their institution
+    (`store deposit`, `shelf consign`).
+  - **Every command carries a category**, and `help` lists commands by
+    category.
+  - **Where a command looks first:**
+    - a world act looks around you before it looks in your hands;
+    - an in-hand act looks on your person first;
+    - `--strict` and `--loose` settle how literally a target is read.
+  - **A tool's own data says which verbs it offers.**
+  - **Scripts:**
+    - a script that meets a question nobody can answer fails and names
+      the missing input;
+    - a typed line can run in the background (`--async`).
+  - **A disabled offer says why.**
 - **Every defect class at every link has a count that can only fall.**
   The pack burn-down then proceeds trade by trade without anyone having to
   remember where it stands.
@@ -184,9 +210,11 @@ carried watch.
 
 ### Which form a command takes
 
-1. **A noun you operate takes subcommands, and each subcommand is its own
-   act.** Examples are a bank, a wallet, a party, a chat, a wiki, a clock,
-   a business seat, a title, a forme and a herd.
+1. **An act on the world is a bare verb. A transaction with an
+   institution's book is a subcommand of the institution's noun**
+   (command-taxonomy's rule). Examples of an institution are a bank, a
+   wallet, a store, a shelf, a party, a chat, a wiki, a clock, a business
+   seat, a title, a forme and a herd. Each subcommand is its own act.
 2. **An English verb on a physical thing stays flat**: `open door`, never
    `door open`. Un- and dis- pairs stay flat.
 3. **Options carry manner, instrument and source** where prepositions
@@ -195,8 +223,7 @@ carried watch.
 4. **A subcommand word is scoped by its noun.** `wiki read`, `bank open`
    and `party show` keep their words, because the noun in front says
    which thing is meant, just as `@` does. A subcommand is renamed only
-   where it conflicts with a meta verb (`make` is the script runner, so
-   `chat make` becomes `chat create`). A subcommand that is the same act
+   where it conflicts with a meta verb. A subcommand that is the same act
    as an existing verb routes to that verb (`fight defend` is `defend`).
 5. **One view, one word.** A command answers to exactly one word. A view
    that claimed several words keeps one. Each extra word is either
@@ -219,8 +246,10 @@ it. The controller only schedules it. Lens 2 decided this.
 ### When to split a mixin, when to mint a marker
 
 - **Split** when the clusters share nothing and either no caller uses
-  both or the verbs fall inside one cluster. The old name stays as the
-  composition of the parts, so no content moves.
+  both or the verbs fall inside one cluster. Also split when most of a
+  mixin's composers are things its second idea is false of; what the
+  imports pull in is the other tell. Each half goes on its honest hosts.
+  No composite is kept for the old name's sake.
 - **Mint a marker** when two or more unrelated things implement a
   protocol that something probes by name. Where a check already exists,
   use it instead.
@@ -314,6 +343,27 @@ exists, or stages one with wizard tools.
     default alias (e.g. `l` for `look`) runs its verb. `alias unset l`
     removes it, and it stays removed across a restart. No command answers
     to a second word.
+
+19. *(short, player)* At Dave's Bar, `do martini` runs the banked
+    script, and the drink is made over its real time. `make martini`
+    answers that there is no such command.
+20. *(instant, player)* At a fishing reach, `reel` lands a hooked fish.
+    At the reeling basin, `unwind cocoons` reels silk into a skein. Each
+    `help` page reads one trade.
+21. *(instant, player)* In a drift, `drift` cuts forward. On a cart,
+    `drive` takes it through an exit.
+22. *(instant, player)* `store deposit` and `shelf consign` work, and
+    `help` lists commands grouped by category.
+23. *(instant, player)* Standing over a block of ice while carrying a
+    smaller one, `cut ice` cuts the block underfoot. `cut ice --strict`
+    with two candidates refuses and names both.
+24. *(instant, staged)* A script runs a command that would ask a question
+    no one is there to answer. It fails at once, naming the missing input.
+    A typed `--async` line runs in the background while the player keeps
+    typing.
+25. *(instant, player)* The card for a dip pot reads *answers: dip*.
+    `help dip` lists what answers `dip`. An offer that is greyed out says
+    why.
 
 No new places are added, so there is no light step.
 
