@@ -33,7 +33,7 @@
           {
             "crop": "/trade/farming/thing/crop/turnip",
             "grade": "poor",
-            "maker": "/platform/agent/PrimaryAvatar"
+            "madeByMe": true
           }
         ],
         "potEmpty": true
@@ -70,7 +70,7 @@
         "slotted": [
           [
             "plant",
-            false
+            true
           ]
         ]
       }
@@ -122,8 +122,8 @@
       "notes": [],
       "duration": null,
       "state": {
-        "prompts": 2,
-        "paid": -17
+        "prompts": 1,
+        "paid": 3
       }
     },
     "12d.order-bath": {
@@ -254,15 +254,11 @@
       "state": {}
     },
     "15c.cast-scroll": {
-      "status": "error",
-      "notes": [
-        {
-          "kind": "controller-error"
-        }
-      ],
+      "status": "ok",
+      "notes": [],
       "duration": null,
       "state": {
-        "prompts": 2,
+        "prompts": 1,
         "scroll": "gone"
       }
     }
