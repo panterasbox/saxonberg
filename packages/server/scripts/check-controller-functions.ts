@@ -26,7 +26,7 @@ import { pathToFileURL } from "url";
 import ts from "typescript";
 import { controllerFiles, parseTs, ratchet } from "./pack-roots";
 
-export const CONTROLLER_FUNCTIONS_CEILING = 274;
+export const CONTROLLER_FUNCTIONS_CEILING = 273;
 
 /** The names of the module-level functions in one controller module. */
 export function moduleFunctions(sf: ts.SourceFile): Array<{ name: string; line: number }> {

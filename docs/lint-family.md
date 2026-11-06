@@ -325,7 +325,7 @@ are its view-side twins (moved out of `check-verb-collisions`).
 | `lint:duck-typing` | AST: `typeof x.m === "function"`, `x.m?.()`, `"m" in x` over all mud code (the thenable `then`/`catch` and V8 `getFileName` excluded); ⛔ sub-count: a method probe on a name no class member or object-literal member defines | **628**; undefined **7** (`setHandling`, `grazingDemandPerGameDay`, `getFixedInPlace`, `getVentilated`, `onConnectionDetached` ×2, `onLinkRestored`) | W3 |
 | `lint:controller-mutations` | AST: a mutator-shaped call (`set*`, `add*`, `record*`, … or the slate's bare `soil`/`recordHeat`) on a receiver that is not `this`, an `*Api`, or the envelope | **359** | W5 |
 | `lint:controller-decisions` | AST: `Math.*`, arithmetic (`* / % ** -`), numeric thresholds, UPPER_SNAKE numeric consts; ⭐ sub-count: duration/effort consts (`*_MS`, `*_W`, …) and `durationMs:`/`effortW:` literals (D5) | **1286**; durations **113** | W5 |
-| `lint:controller-functions` | AST: top-level `function` / arrow `const` in a controller module | **274** | W5 |
+| `lint:controller-functions` | AST: top-level `function` / arrow `const` in a controller module | **273** | W5 |
 | `lint:controller-resolution` | the instrument hunt (absorbed `lint:instrument-args`) + self-resolution: `MqlApi.*`, `StuffApi.find*`/`singleton`, `.getContents()` in a controller | hunts **4**; self **117** | W2 |
 | `lint:mixin-clusters` | a mixin factory's class whose co-use graph (`this.X` reads; a field and its accessors folded to one node by stem) has ≥ 2 components of ≥ 2 nodes | **44** (sees all five D6 splits) | W3 |
 | `lint:mixin-files` | `export function FooMixin` not in `Foo.ts` (kernel `lib/**`, `world/**`, pack `src/lib/**`) | **12** (the plan's twelve moves) | W3 |
