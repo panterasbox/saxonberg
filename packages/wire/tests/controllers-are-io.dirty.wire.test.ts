@@ -202,9 +202,10 @@ async function park(s: Session): Promise<void> {
   const i = open.indexOf(s);
   if (i >= 0) open.splice(i, 1);
   if (s.isOpen()) {
-    await s
-      .cmd(`eval --parcel ${TERMINUS} JSON.stringify((ContainmentApi.move(self, StuffApi.findByTemplatePath('${PARKING}')), 1))`)
-      .catch(() => undefined);
+    // ⚠ `goto`, never a move from `eval`: a soiled body's restamp runs outside
+    // the eval's frame, the sandbox boundary refuses it, and that unhandled
+    // rejection killed the world.
+    await s.cmd(`goto ${PARKING}`).catch(() => undefined);
   }
   s.close();
 }
@@ -1315,11 +1316,15 @@ suite('24. a script has nobody to ask; `--async` frees the line', () => {
   }, 180_000);
 
   it('24b. a typed `--async` line runs behind the player', async () => {
-    const s = await stager(uniqueHandle('caio-scripter'), SQUARE);
+    // ⭐ Two pours of 3s each: a typed line holds the prompt through them. A bare
+    // `wait` would not tell the two apart, since a wait detaches of its own accord
+    // (B2 found this checkpoint blind).
+    const s = await stager(uniqueHandle('caio-scripter'), BAR);
+    await hand(s, '/trade/distilling/thing/gin');
     const t0 = Date.now();
-    const line = await s.cmd('--async wait 60; say done now');
+    const line = await s.cmd('--async pour gin into shaker; pour gin into shaker; say done now');
     expectOk(line);
-    expect(Date.now() - t0, 'the line came back at once').toBeLessThan(3_000);
+    expect(Date.now() - t0, 'the line came back at once').toBeLessThan(2_500);
     const mid = await s.cmd('say meanwhile');
     expectOk(mid);
     expect(await mid.said()).not.toMatch(/done now/);
