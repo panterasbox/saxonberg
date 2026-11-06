@@ -1,0 +1,18 @@
+id: trade-papermaking
+version: 0.1.0
+root: /trade/papermaking
+description: >-
+  The papermaker's trade — ⭐ **paper is rag beaten to pulp, lifted on a
+  wire, pressed and dried.** Clean linen rags bought at the mill door go
+  under a water-driven stamper (`switch on stamper`) and come out as pulp in
+  the vat; the vatman dips the mould (`dip mould in vat`), couches the wet
+  sheet onto the post (`couch mould`), the post goes under the press
+  (`turn press`) and the sheets dry on the lines in the loft (`dry sheet`).
+  Sized in a tub of thin glue (`dip sheet in size tub`), it takes ink; left
+  unsized it drinks it. ⭐⭐ The sheet's color is the WATER's: the vat reads
+  the river it stands on, and iron in the water makes brown paper — nobody
+  authors a brown sheet. A second mill is rows.
+requires:
+  # A trade is placeless: its mechanism is held by the Ministry of Trade.
+  title:
+    - { extent: /trade/papermaking, holder: { organization: /compact/trade } }

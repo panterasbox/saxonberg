@@ -69,15 +69,18 @@ export default class FoldController extends CommandController<FoldModel> {
       return;
     }
 
-    if (foldable.isFolded()) {
+    // ⭐ The thing says whether it folds again (a sheet folds
+    // three times — folio, quarto, octavo — a chair once).
+    const refusal = foldable.foldRefusal();
+    if (refusal !== null) {
       MessageApi.scene(commandGiver)
         .topic('act.deed')
-        .toSelf(Mml.compose`It is already folded.`)
+        .toSelf(Mml.text(refusal.line))
         .send();
       context.note({
         kind: 'controller-rejected',
-        reason: 'already-folded',
-        detail: 'already folded',
+        reason: refusal.reason,
+        detail: refusal.line,
       });
       return;
     }

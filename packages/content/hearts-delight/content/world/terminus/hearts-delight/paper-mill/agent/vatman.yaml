@@ -1,0 +1,33 @@
+# The vatman (paper W2) — dips and lifts at the vat all day, and buys the
+# rags that come to the door. Knows paper by the light through it.
+class: /platform/agent/Cast
+extends: /stuff/agent/costume/student
+data:
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  name: Abel Ferrin
+  keywords: [abel, ferrin, vatman, papermaker]
+  alternateNames: ["abel", "ferrin"]
+  pronouns: he
+  shortDescription: vatman with soaked sleeves
+  register: definite
+  longDescription: >-
+    A broad, slow man with his sleeves rolled past the elbow and his forearms
+    pink from the warm vat, who holds every sheet up to the window before he
+    will let it go to the post.
+  archetype: farmer
+  prologue:
+    - "Makes paper at the Delight fall, and has since the stamper was new."
+    - "Will not buy a rag that smells of paint."
+  competence:
+    - { discipline: papermaking, asserting: proficient }
+  dispositions:
+    - { disposition: diligence, valence: 60 }
+  behaviors:
+    - brain: /lib/behavior/idles
+      trigger: candidate
+      config:
+        pool:
+          - { kind: free, value: "holds a sheet up to the window and squints through it." }
+          - { kind: free, value: "stirs the vat with the long paddle." }
+          - { kind: free, value: "listens to the stamper's beat, counting under his breath." }

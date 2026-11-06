@@ -29,5 +29,10 @@ data:
   markForm: inked
   censusKey: spellbook
   materialTags: [paper, board]
+  # ⭐ Paper: it burns, and the working goes with the pages.
+  _materialPath: /stuff/idea/material/organic/paper
+  charMaterialPath: /stuff/idea/material/organic/ash
+  reserves:
+    fuel: { capacityValue: 100, currentValue: 100, unit: "%", theme: combustion, floorEffect: null }
   regionTarget: 2
   selfIdentifying: false

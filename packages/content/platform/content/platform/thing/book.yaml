@@ -1,0 +1,24 @@
+# A blank notebook (paper build) — sixteen leaves of sized paper between
+# pasteboard covers, glued at the spine. What is written in it lives on its
+# leaves, each passage in the hand that wrote it; whoever holds it reads and
+# writes. Binding it from folded sheets (`fit notebook`) is deferred; this row
+# is the finished thing a stationer sells.
+class: /platform/thing/Book
+data:
+  shortDescription: notebook
+  keywords: [notebook, book, journal]
+  register: indefinite
+  longDescription: A plain notebook, its boards covered in grey paper.
+  _materialPath: /stuff/idea/material/organic/paper
+  mass: 0.15
+  pageCount: 16
+  roomPerPage: 600
+  sizedLeaves: true
+  charMaterialPath: /stuff/idea/material/organic/ash
+  reserves:
+    fuel:
+      capacityValue: 100
+      currentValue: 100
+      unit: "%"
+      theme: combustion
+      floorEffect: null

@@ -1,0 +1,17 @@
+# Iron-gall ink — galls steeped to tannin, copperas and gum
+# arabic: purple-grey wet, darkening to black on the page. The pen's ink.
+class: /platform/idea/material/Material
+data:
+  name: iron-gall ink
+  keywords: [ink, "iron-gall ink", "iron gall ink", "writing ink"]
+  appearance: a thin purple-black ink
+  density: 1050
+  specificHeat: 4000
+  thermalConductivity: 0.55
+  meltingPoint: 271
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: [liquid, ink, organic, once-living]
+  composition: []
+  biologicalSource: null

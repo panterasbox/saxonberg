@@ -60,6 +60,8 @@ requires:
     # municipality's like the rest of the built city — the office SELLS
     # ground, it does not own the ground it sells.
     - { extent: /world/terminus/realty, parentParcel: /world/terminus, holder: { group: terminus }, landUse: commercial, feeder: terminus-main:avenue }
+    # ⭐ The Gazette's house (paper W5): its print shop on Mayfield Row.
+    - { extent: /world/terminus/gazette, parentParcel: /world/terminus, holder: { group: terminus }, landUse: commercial, feeder: terminus-main:avenue }
     # ⭐ The two corridors (logistics D18/D20): a road corridor is
     # SUBDIVIDED AS ITS OWN PARCEL, so the road across somebody's flats
     # is the road's ground and not theirs — which is what makes

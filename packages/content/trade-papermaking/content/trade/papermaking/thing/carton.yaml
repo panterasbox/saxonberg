@@ -1,0 +1,13 @@
+# A carton — a box of pasteboard: a fifth of a crate's weight and
+# none of its strength in the wet. Soaked, it gives way and spills.
+class: /trade/papermaking/thing/Packet
+data:
+  shortDescription: carton
+  keywords: [carton, box, "paper box", cardboard]
+  register: indefinite
+  longDescription: A box of grey pasteboard, its seams glued and its flaps folded in.
+  _materialPath: /stuff/idea/material/organic/board
+  mass: 0.4
+  charMaterialPath: /stuff/idea/material/organic/ash
+  reserves:
+    fuel: { capacityValue: 100, currentValue: 100, unit: "%", theme: combustion, floorEffect: null }

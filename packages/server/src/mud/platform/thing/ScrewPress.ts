@@ -25,6 +25,7 @@ import type { ActOutcome, ActRefusal } from '../../lib/craft/ActPlan';
 import { PersistableApi } from '../../api/persistable';
 import { MixinApi } from '../../api/mixin';
 import { Mml } from '../../api/mml';
+import Sheet from './Sheet';
 
 // ⭐ It is TURNED (`TurnableMixin`), which is also what affords `turn`.
 export default class ScrewPress extends TurnableMixin(PlacingMixin(Good)) {
@@ -102,6 +103,11 @@ export default class ScrewPress extends TurnableMixin(PlacingMixin(Good)) {
     // (the die's precedent) — a turn made since the room's last save came
     // back from a restart undone (the ceramics drive, 35).
     await PersistableApi.captureHostOf(this as unknown as Stuff).catch(() => undefined);
+    // ⭐ A post of wet sheets on the bed gives up its water (paper W2): a
+    // sheet pressed before it dries lies flat; one dried unpressed cockles.
+    const posted = this.getPlaced('on').filter((s): s is Sheet => s instanceof Sheet);
+    let squeezed = 0;
+    for (const sheet of posted) if (sheet.pressOut()) squeezed += sheet.getQuantity();
     const released: Stuff[] = [];
     for (const m of moulds) {
       if (!MixinApi.isMould(m)) continue;
@@ -114,6 +120,13 @@ export default class ScrewPress extends TurnableMixin(PlacingMixin(Good)) {
         : this.turns > this.maxTurns / 2
           ? 'hard down'
           : 'snug';
+    if (squeezed > 0) {
+      return {
+        ok: true,
+        line: Mml.compose`You heave the bar round and the platen bears down on the post, ${tight}; water runs from ${squeezed === 1 ? 'the sheet' : `${squeezed} sheets`} and away down the bed.`,
+        peers: Mml.compose`${Mml.actor(actor)} turns ${Mml.thing(self)} down on a post of paper.`,
+      };
+    }
     if (released.length > 0) {
       return {
         ok: true,

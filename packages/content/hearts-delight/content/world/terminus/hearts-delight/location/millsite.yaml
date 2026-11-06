@@ -52,6 +52,11 @@ data:
       destination: /world/terminus/hearts-delight/location/mill-house
       media: [ground]
       edgeMinutes: 1
+    # ⭐ East, the paper mill (paper W2): the same race, a third wheel's worth.
+    east:
+      destination: /world/terminus/hearts-delight/paper-mill/location/vat-house
+      media: [ground]
+      edgeMinutes: 1
   props:
     - /world/terminus/hearts-delight/thing/millrace
   details:

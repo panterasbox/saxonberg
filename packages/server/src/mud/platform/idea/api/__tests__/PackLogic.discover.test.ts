@@ -125,7 +125,8 @@ describe('the shipped packs (real discovery, no install)', () => {
     // `waponi-woo` (built in parallel; the sum, whatever git says).
     // ⭐ 70 → 71: the cordage build adds `trade-cordage`.
     // ⭐ 71 → 72: the paint build adds `trade-painting`.
-    expect(ids).toHaveLength(72);
+    // ⭐ 72 → 74: the paper build adds `trade-papermaking` and `trade-printing`.
+    expect(ids).toHaveLength(74);
     // The colorman's trade orders after the trades whose oil, lime and
     // glue stock it buys.
     expect(ids.indexOf('trade-painting')).toBeGreaterThan(ids.indexOf('trade-chandlery'));

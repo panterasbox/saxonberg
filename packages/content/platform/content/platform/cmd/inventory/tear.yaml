@@ -1,0 +1,38 @@
+# ⭐ Tear a thing — a sheet into halves, a page out of a book, a
+# shirt into rags. Afforded by `TearableMixin`; each thing says what tearing
+# it makes and what is lost (a torn sheet's halves each keep the half of the
+# words they held, bound to nothing).
+verbs: [tear, rip]
+controller: /platform/idea/cmd/inventory/TearController
+description: "Tear something — a sheet in two, a page out of a book, a shirt into rags"
+help: |
+  `tear <thing>` tears it. A sheet of paper tears in two, and each half
+  keeps the half of the writing that was on it — a torn page is little
+  paper. A paper bag or a carton torn open spills what it held. An old
+  shirt tears into rags (not while you are wearing it).
+
+  `tear <book> page <n>` tears one page out of a book. The book keeps a
+  stub and a gap where it was; the page is a loose sheet now, with its
+  words on it.
+examples:
+  - cmd: tear letter
+    note: Tear a sheet in two
+  - cmd: tear notebook page 3
+    note: Tear a page out of a book
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: thing
+    type: object
+    required: true
+    greedy: true
+    scope: ["inventory", "reachable"]
+    requires: [TearableMixin]
+  # A positional number's validators see the raw string — the controller
+  # parses it (`lift`'s precedent).
+  - name: page
+    type: number
+    required: false
+    prepositions: [page]

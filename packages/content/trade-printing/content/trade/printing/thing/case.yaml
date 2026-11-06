@@ -1,0 +1,62 @@
+# A case of type — a long-primer fount in an upper and lower
+# case. ⭐ Type is capital: setting a page takes sorts out of it until the
+# forme is distributed.
+class: /trade/printing/thing/TypeCase
+data:
+  shortDescription: case of type
+  keywords: [case, type, "type case", fount, sorts, "case of type"]
+  register: indefinite
+  longDescription: A shallow wooden case of many small boxes, each full of lead sorts of one letter.
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 25
+  fixedInPlace: true
+  font:
+    e: 1200
+    t: 900
+    a: 800
+    o: 800
+    i: 700
+    n: 700
+    s: 650
+    h: 600
+    r: 600
+    d: 450
+    l: 400
+    u: 300
+    c: 300
+    m: 250
+    w: 220
+    f: 220
+    g: 200
+    y: 200
+    p: 200
+    b: 160
+    v: 110
+    k: 80
+    j: 30
+    x: 30
+    q: 30
+    z: 20
+    "0": 80
+    "1": 80
+    "2": 80
+    "3": 80
+    "4": 80
+    "5": 80
+    "6": 80
+    "7": 80
+    "8": 80
+    "9": 80
+    ".": 300
+    ",": 300
+    ":": 80
+    ";": 60
+    "-": 120
+    "'": 80
+    '"': 80
+    "?": 40
+    "!": 40
+    "(": 40
+    ")": 40
+    "&": 20
+    "%": 20

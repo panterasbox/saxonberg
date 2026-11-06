@@ -1,0 +1,4 @@
+# The Gazette's case of type — named by its forme.
+class: /trade/printing/thing/TypeCase
+extends: /trade/printing/thing/case
+data: {}

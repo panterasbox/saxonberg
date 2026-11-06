@@ -21,6 +21,10 @@ help: |
   you read a scroll, you do not read *at* a flask — so when the
   working needs a mark it simply asks you which one, and a scroll
   is never spent on a question you did not answer.
+
+  A book reads at the page it lies open at; `read <book> page <n>` opens
+  it at another. A printed sheet reads whatever was printed on it, and
+  whoever holds the paper reads it — that is what paper is.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
@@ -28,6 +32,16 @@ args:
   - name: target
     type: object
     required: true
+    # ⭐ Greedy, bounded by `page <n>`: a name is many words (`read city
+    # directory page 3`, `read torn-out page`). `page` ends it only before
+    # a number.
+    greedy: true
     scope: ["$focus", "reachable"]
     updates_focus: extend
-    requires: [VisibleMixin, MarkedMixin]
+    requires: [VisibleMixin, MarkedMixin|DisplayMixin]
+  # ⭐ A book reads at a page: `read notebook page 3` opens it
+  # there. A positional number reaches the controller raw; it parses.
+  - name: page
+    type: number
+    required: false
+    prepositions: [page]
