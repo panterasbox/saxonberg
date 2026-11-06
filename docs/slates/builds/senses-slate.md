@@ -373,7 +373,7 @@ perceives. Consequences, all emergent:
    masking is a trade (rosewater, lavender, musk — a still the distilling
    pack already ships). Was the demand there first? Now it is.
 5. **Dirt identities as rows** — the odour identities shipped as FREE
-   TEXT on the dirt rows. `non-visual-senses-slate` decides the aroma
+   TEXT on the dirt rows. `vocabularies-to-rows-slate` decides the aroma
    vocabulary becomes rows; dirt's identities should join it then, not
    become a second list.
 

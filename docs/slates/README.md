@@ -35,9 +35,9 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**411 slates.** 142 greenfield · 116 continuations · 71 waves · 82 tails.
+**411 slates.** 143 greenfield · 115 continuations · 71 waves · 82 tails.
 
-## ⭐ Greenfield — nothing shipped yet (142)
+## ⭐ Greenfield — nothing shipped yet (143)
 
 Pick from here for a clean cycle with no existing substrate to
 respect.
@@ -176,6 +176,7 @@ respect.
 | [unobserved-economy](./builds/unobserved-economy-slate.md) | whether the realm's NPC trade runs while unobserved at all · if it does, how it is computed without loading the places it moves between (⭐ against the location graph's record, not live content) · what a player arriving after a gap sees at a counter, a job board, the cash-and-carry and the Gazette · the faucet question the guild slate already raised. |
 | [verb-interfaces](./builds/verb-interfaces-slate.md) | `boil` folded into heating (immersion takes the liquid's heat) · `scrub` as a manner of `wash` · `strew`'s wider uses · an audit of every verb for single-target narrowness … |
 | [visual-arts](./builds/visual-arts-slate.md) | the piece as the artist's own digitized work (image and video) · how a player contributes media, and its moderation · the piece attached to a physical object · exhibition: hanging, lighting, the gallery, the show … |
+| [vocabularies-to-rows](./builds/vocabularies-to-rows-slate.md) | `AROMAS` to rows, plus `Material.smells` and the smell reading on the instrumentation ladder · `MATURATION_MECHANISMS` split (the word becomes a row, the reconcile stays closed) · `RECIPE_MEDIA` derived from the material · `DISPLAY_KINDS` and `DISPLAY_PAIRINGS` read and declared … |
 | [warranty](./builds/warranty-slate.md) | the representation/assertion primitive · post-delivery clause verification on contract.md · the remedy ladder (rescission · replacement … |
 | [waste](./builds/waste-slate.md) | whether waste must be COLLECTED and moved before it is destroyed · transformation on the way (composting, rotting, salvage) · who does the collecting · abandoned things' ownership … |
 | [wellbeing](./builds/wellbeing-slate.md) | the TASTE PROFILE (born, learned, aversive, aging) · PLEASURE from taste × internal state × recent eating × expectation, separate from satisfaction · DISCOMFORT as the baseline from shipped physiology · afterglow and hedonic adaptation … |
@@ -187,7 +188,7 @@ respect.
 | [wizardry-curriculum](./builds/wizardry-curriculum-slate.md) | the kind-of-content intake · the eight topics of W101 as lessons · the exemplar set (one per kind) · the detail-density mirror … |
 | [worlds](./builds/worlds-slate.md) | bodies as biomes under a space root · re-parenting today's world under a home-planet biome · the radius inheritable, gravity derived from mass and radius · the celestial profile on the planet biome … |
 
-## ⭐ Continuations — substrate shipped, a build's worth remains (116)
+## ⭐ Continuations — substrate shipped, a build's worth remains (115)
 
 The subsystem doc is the reference for what already ships; these
 are the named remainders.
@@ -267,7 +268,6 @@ are the named remainders.
 | [multilocation](./builds/multilocation-slate.md) | the procedural-spatial Warren family (the dungeon, the desert) — including the generic multi-role/cardinality catalog a heterogeneous graph needs (today's base ships one elastic role + a host, not a data-driven catalog), spatial `attachmentFor`, generation-driven routing, per-run host teardown · the summoned-graph host (v1 only handles the persistent-room case) · the lounge's preference-vector matchmaking (`admitArrival` ships least-full only; no `seedMember` flavor hook exists yet) — owned by `lounge-slate.md` · an active drain for a room pending merge (today's `reconcile` is a passive occupancy-watch + timed reap; a new arrival can still land in a room whose reap timer is already running) |
 | [narration](./builds/narration-slate.md) | the authored narration fragment on `ActSignature` · the platform-owned band-blind frame at `self.*` · the acts-never-axes readable record · ⚠ the keep-or-withdraw call on the shipped `traits` verb and `score` self-digest … |
 | [navigable-water](./builds/navigable-water-slate.md) | ⭐⭐⭐ **a reach's own character** (gradient, bed, obstruction — the Deliverance gap) · craft occupying a river passage (the Kestrel is still not sailable) · the two-tier ocean/venue title and the holder's duty (§ 5) · the berth, stations and davits (§ 7a) … |
-| [non-visual-senses](./builds/non-visual-senses-slate.md) | `Material.smells` (the substance half, which does not exist) · the aroma vocabulary moved to **rows** · the reading moved onto `instrumentation.md`'s ladder · whether smell TRAVELS … |
 | [npc-behavior](./builds/npc-behavior-slate.md) | ⭐⭐ **a Cast earning a chronicle deed by ACTING** — the gap MR !316 left visible: a `canMake` refusal reads the *seeded* band for an NPC exactly as it reads a player's, so an NPC with no authored claim is refused identically — but **nothing lets an NPC earn its way up**, because the by-hand verbs are the only path to a deed and no brain drives them (`forceCommand` from a brain act is the seam). The consequence is sharp: `Competence.seedRunFor` reaches `expert` and **nothing reaches `formidable`**, so the top rung is unoccupied by construction and an authored realm's best practitioner is as good as an author can write rather than as good as a life can get · the upper rungs of the ladder — intent-match, the code-tier `scripted-behavior` brain, the LLM brain · the `addressed` and `given` triggers · the `guards` brain + the block-substrate seam … |
 | [onboarding](./builds/onboarding-slate.md) | the `onboarded` flag + lounge-exit routing · Dr. Limen (seat, model-backed brain, the reply contract) + the onboarding-progress flags and their subscription · scoped personal authoring (the dorm customization on-ramp) · the wayfinding signs … |
 | [one-resolution-rule](./builds/one-resolution-rule-slate.md) | `look` renders what MQL bound and nothing else — the `via.exit` gap closed in MQL, the class-specific appends moved onto their objects · the binder's cross-scope tiering (which retires `go.yaml`'s private scope order) · a `defaulted` fact on a bound result (which retires `buy`'s raw-text sniff) · ⭐ one listing protocol + one scorer for words that name an ENTRY in a record (eleven hand-rolled matchers today) … |
