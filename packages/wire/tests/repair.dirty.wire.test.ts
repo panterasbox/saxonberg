@@ -388,7 +388,7 @@ suite('⭐⭐ drive 5 — the paid mend is the smith\'s work (AC 5, 6)', () => {
     await evalOn(SMITHY, 'miners-pick', "(this.wearLine('head', 0.3), this.getCondition())");
     await say(mender, 'get miners-pick');
     await say(mender, 'look'); // the arrival look brings the house current
-    const said = await orderAnswering(mender, 'order repair miners-pick', true);
+    const said = await orderAnswering(mender, 'order repair for miners-pick', true);
     if (!/looks it over/i.test(said)) {
       // What the roster thinks of her, for the record of a failure.
       const state = await evalOn(
@@ -455,7 +455,7 @@ suite('⭐⭐ drive 6 — the tinker on his round (AC 8, 9)', () => {
       // The examine reads his description (a grinding wheel on his back),
       // not his job noun — present is what is asserted.
       expect(here, `the smelter at three: ${here}`).toMatch(/grinding wheel/i);
-      const said = await orderAnswering(at, 'order repair miners-pick', true);
+      const said = await orderAnswering(at, 'order repair for miners-pick', true);
       expect(said, `tinker: ${said}`).toMatch(/haft has failed/i);
       expect(said).toMatch(/head is worn/i);
       const pick = await examine(at, 'miners-pick');
@@ -485,7 +485,7 @@ suite('⭐⭐ drives 7–8 — the cobbler, and her second seat (AC 10)', () => 
       await evalOn(COBBLER, 'boots', "(this.ensureParts(), this.wearLine('sole', 0.5), this.getCondition())");
       await say(at, 'get boots');
       await say(at, 'look');
-      const said = await orderAnswering(at, 'order repair boots', true);
+      const said = await orderAnswering(at, 'order repair for boots', true);
       expect(said, `cobbler: ${said}`).toMatch(/sole is worn/i);
       expect(said).toMatch(/sound/i);
       const boots = await examine(at, 'boots');
@@ -504,7 +504,7 @@ suite('⭐⭐ drives 7–8 — the cobbler, and her second seat (AC 10)', () => 
     const at = await goTo(wearer, COBBLER);
     try {
       await say(at, 'look');
-      const said = await say(at, 'order repair boots');
+      const said = await say(at, 'order repair for boots');
       expect(said, `off shift: ${said}`).toMatch(/nobody here to do the work/i);
     } finally {
       at.close();
@@ -544,7 +544,7 @@ suite('⭐⭐ drives 7–8 — the cobbler, and her second seat (AC 10)', () => 
         );
         console.log(`[repair drive] the cobbler's floor: ${floor}`);
         await say(customer, 'get boots');
-        const said = await orderAnswering(customer, 'order repair boots', true);
+        const said = await orderAnswering(customer, 'order repair for boots', true);
         expect(said, `the player's mend: ${said}`).toMatch(/serviceable|sound/i);
         const boots = await examine(customer, 'boots');
         expect(boots, `mended by the player: ${boots}`).toMatch(/mended by/i);

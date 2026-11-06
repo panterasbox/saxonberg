@@ -636,14 +636,14 @@ suite('⭐⭐ drive 18 — the laundress at her band, and the house that pays (A
     const s = await goTo(cookHandle, LAVOIR);
     // eslint-disable-next-line no-console -- the drive's own record
     console.log(`  [drive] at the lavoir: ${await examine(s, 'here')}`);
-    const done = await sayYes(s, 'order wash apron');
-    expect(done, `order wash apron: ${done}`).toMatch(/brings .* back/i);
+    const done = await sayYes(s, 'order wash for apron');
+    expect(done, `order wash for apron: ${done}`).toMatch(/brings .* back/i);
     s.close();
   }, 300_000);
 
   it('⭐⭐ the bath attendant boils a wool coat and felts it — and the house answers for it', async () => {
     const s = await goTo(cookHandle, BATHS);
-    const done = await sayYes(s, 'order wash jumper');
+    const done = await sayYes(s, 'order wash for jumper');
     expect(done, `the attendant's wash: ${done}`).toMatch(/felted|shrunk/i);
     const after = await s.listen(3_000);
     expect(`${done} ${after}`, 'the house answers').toMatch(/house (pays|owes)/i);

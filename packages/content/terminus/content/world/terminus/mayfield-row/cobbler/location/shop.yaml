@@ -2,7 +2,7 @@
 #
 # ⭐ A city trade with a door on the street, not a tinker's stop: the
 # cobbler does here what the tinker does on the road, for one kind of
-# thing, better. `order repair boots` at the slate; `sew sole` at the
+# thing, better. `order repair for boots` at the slate; `sew sole` at the
 # bench to make what a re-soling wants.
 class: /platform/location/Locale
 data:

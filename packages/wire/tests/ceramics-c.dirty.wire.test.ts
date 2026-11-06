@@ -1036,7 +1036,7 @@ suite('⭐ 23 — breakage and mending', () => {
     // ⚠ The tinker QUOTES and waits for a yes (the paid mend's prompt), and
     // the order's reply only comes once it is answered: answer it while the
     // order is still pending (run 38 awaited the reply first and timed out).
-    const pending = run(potter, `order repair #${cracked2.stuffId}`);
+    const pending = run(potter, `order repair for #${cracked2.stuffId}`);
     const answer = await potter.awaitPrompt(30_000).catch(() => null);
     if (answer) {
       const id = (answer as { payload?: { promptId?: string }; promptId?: string }).payload?.promptId ??

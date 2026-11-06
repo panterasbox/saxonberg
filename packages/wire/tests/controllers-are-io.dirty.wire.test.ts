@@ -505,7 +505,7 @@ suite('12. order a drink, then each of the six services', () => {
     await order('12c.order-wash', LAVOIR, async (p) => {
       // A garment of her trade's (the house washes a `Garment`), brought in.
       const apron = await hand(p, '/trade/tailoring/thing/apron');
-      return `order wash #${apron}`;
+      return `order wash for #${apron}`;
     });
   }, 300_000);
 
@@ -516,14 +516,14 @@ suite('12. order a drink, then each of the six services', () => {
   it('12e. repair — the cobbler', async () => {
     await order('12e.order-repair', COBBLER, async (p) => {
       const knife = await hand(p, '/stuff/thing/arms/belt-knife');
-      return `order repair #${knife}`;
+      return `order repair for #${knife}`;
     });
   }, 300_000);
 
   it('12f. burial — the undertaker', async () => {
     await order('12f.order-burial', NECROPOLIS, async (p) => {
       const body = await hand(p, '/stuff/thing/Corpse');
-      return `order burial #${body}`;
+      return `order burial for #${body}`;
     });
   }, 300_000);
 
