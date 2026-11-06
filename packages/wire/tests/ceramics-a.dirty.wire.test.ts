@@ -448,11 +448,13 @@ suite('⭐ 3 — knead it', () => {
       stuffId: await hand(digger, CLAY, { weatheredDays: 40, _materialPath: ALLUVIAL, quantity: 3 }),
     };
     expect(heap?.stuffId, 'the weathered lumps in hand').toBeDefined();
-    // The pit thawed: 200 L of water and no ice, set by a runner holding the
-    // Delight's title. ⚠ No ';' anywhere — the shell splits a line on it.
+    // The pit thawed: 200 L of water and no ice, set by a runner SEATED on
+    // the Delight's committee — never by buying the parcel (`parcels:` sells
+    // it to a test character, and every later drive then finds no
+    // committee there). ⚠ No ';' anywhere — the shell splits a line on it.
     const thaw = await Session.open(uniqueHandle('pit-thaw'), {
       wizard: true,
-      parcels: ['/world/terminus/hearts-delight'],
+      committees: ['/world/terminus/hearts-delight'],
       startLocation: TEMPER,
     });
     try {

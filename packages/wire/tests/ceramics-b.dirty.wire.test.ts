@@ -565,14 +565,16 @@ suite('⭐ 14 — the keeper does it', () => {
     // ⚠ The roster tick runs only for a LOADED business: visit the
     // glasshouse first (D20), wear the kiln, then go.
     // ⛔ STAGED (soak-harness census): the six firings and the keeper's two days live in ceramics-b.soak.dirty; here the state is set directly.
-    // The kiln is worn by eval (a wizard under Rejection's parcel), in
+    // The kiln is worn by eval (a wizard SEATED on Rejection's committee —
+    // never buying the parcel, which would leave no committee for the
+    // drives after this one), in
     // working hours, and the keeper is given ONE beat of its relining brain.
     await toHour(9, 15);
     at = GLASSHOUSE;
     k?.close();
     k = await Session.open(handle, {
       wizard: true,
-      parcels: ['/world/terminus/rejection'],
+      committees: ['/world/terminus/rejection'],
       startLocation: GLASSHOUSE,
     });
     await k.drainProse();
