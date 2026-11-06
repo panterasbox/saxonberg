@@ -36,7 +36,6 @@ import type { CocoonSeed, CocoonSeedable, HeftBand } from '../lib/Rearing';
 import type Strain from '../idea/Strain';
 import type EggLot from './EggLot';
 import type RawSilk from './RawSilk';
-import type { Reelable } from '@saxonberg/content-trade-fishing/src/lib/Reelable';
 import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tooled';
 import type { WorkPrognosis, WorkResult } from '@saxonberg/server/mud/lib/ground/Workable';
 import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
@@ -103,7 +102,7 @@ function heftAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
 
 const CocoonsBase = ThermalMixin(StackableMixin(CraftedMixin(Good)));
 
-export default class Cocoons extends CocoonsBase implements CocoonSeedable, Reelable {
+export default class Cocoons extends CocoonsBase implements CocoonSeedable {
   // ⚠ TS re-surface of the inner `GradedMixin`'s members (the documented
   // `Crafted.ts` cast quirk — `TextileStock` carries the same block).
   declare getGradeBand: () => string;
@@ -219,16 +218,15 @@ export default class Cocoons extends CocoonsBase implements CocoonSeedable, Reel
     return this.heftBand === 'heavy' ? 'fine' : this.heftBand === 'light' ? 'poor' : 'fair';
   }
 
-  // ---------- the reel ----------
-
-  /** ⭐ The shape fishing's `reel` narrows on (D6). */
-  public readonly reelable = true as const;
+  // ---------- the reel (`unwind`) ----------
 
   /**
    * What one reeling would be, or why not — in the cocoons' own words. No
-   * side effects.
+   * side effects. ⭐ The plan half of sericulture's `unwind` (its own verb:
+   * `reel` is fishing's, and silk borrowed it until controllers-are-io
+   * D19).
    */
-  public async planReel(
+  public async planUnwind(
     by: Stuff,
     tool: (Stuff & Tooled) | null,
     count: number | null,
@@ -293,7 +291,7 @@ export default class Cocoons extends CocoonsBase implements CocoonSeedable, Reel
    * pupae are made, and the skein carries the reeler's mark and how even
    * their hands kept it.
    */
-  public async completeReel(
+  public async completeUnwind(
     by: Stuff,
     _tool: (Stuff & Tooled) | null,
     token: unknown,

@@ -5,7 +5,7 @@
  * In one sentence: *walk up to the silk house and read a tray in words;
  * buy leaf there and eggs, a tray, a reel and a brush in town; set a lot
  * on a tray and feed it; watch the house take its crop off, stifle it and
- * set it on the counter; buy cocoons and reel them at the mill's basin and
+ * set it on the counter; buy cocoons and `unwind` them at the mill's basin and
  * over a pot at home; throw the raw silk; buy the mill's silk cloth at the
  * general store — woven by its reeler, out of the house's cocoons — boil it
  * white in a copper, and dye it; see fishing's `reel` unchanged.*
@@ -359,9 +359,9 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐⭐ 16. the house takes its crop off, s
   }, 4_200_000);
 });
 
-/* ───────────── 8–9. reel, and throw ───────────── */
+/* ───────────── 8–9. unwind, and throw ───────────── */
 
-suite.skipIf(!isOwnedTestWorld())('⭐⭐ 8–9. reel at the basin, reel over a pot, throw the silk', () => {
+suite.skipIf(!isOwnedTestWorld())('⭐⭐ 8–9. unwind at the basin, unwind over a pot, throw the silk', () => {
   it('⭐⭐ AC 7 — at the mill basin: a skein of raw silk, its fineness in words; pupae left', async () => {
     const s = await at(MILL);
     try {
@@ -369,7 +369,7 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ 8–9. reel at the basin, reel over a 
       await say(s, 'stoke charcoal into brazier');
       const lit = await say(s, 'light brazier');
       expect(refusedFor(lit) ?? 'ok', 'the brazier under the basin lights').toMatch(/ok|already/);
-      const started = await say(s, 'reel cocoons --count 6 with basin');
+      const started = await say(s, 'unwind cocoons --count 6 with basin');
       expect(refusedFor(started), 'the basin reels stifled cocoons over a lit fire').toBeNull();
       await settle(s, started);
       const kit = await names(s, 'me:i');
@@ -381,7 +381,7 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ 8–9. reel at the basin, reel over a 
       // A second reeling at the same basin and count: skeins reeled alike
       // stack (filament count and evenness are stack identity), and `spin`
       // wants two in one stack.
-      const again = await say(s, 'reel cocoons --count 6 with basin');
+      const again = await say(s, 'unwind cocoons --count 6 with basin');
       expect(refusedFor(again), 'a second reeling at the basin').toBeNull();
       await settle(s, again);
       // ⭐ AC 8 — throw the two alike skeins here, at the mill's wheel,
@@ -403,7 +403,7 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ 8–9. reel at the basin, reel over a 
       await say(s, 'stoke log into oven');
       const lit = await say(s, 'light oven');
       expect(refusedFor(lit) ?? 'ok', 'the cookhouse oven lights').toMatch(/ok|already/);
-      const started = await say(s, 'reel cocoons --count 10 with reel');
+      const started = await say(s, 'unwind cocoons --count 10 with reel');
       expect(refusedFor(started), 'a hand reel over a lit oven reels').toBeNull();
       await settle(s, started);
       const kit = await names(s, 'me:i');

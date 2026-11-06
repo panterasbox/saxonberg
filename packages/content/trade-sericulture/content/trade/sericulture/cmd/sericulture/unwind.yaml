@@ -1,0 +1,51 @@
+# ⭐ `unwind` — reel silk off stifled cocoons into a skein.
+#
+# Silk borrowed fishing's `reel` (one view, two instruments, a duck-typed
+# `Reelable` shape) until controllers-are-io D19: one view, one word, and
+# the word is the act's. Fishing keeps `reel`; winding a thread off
+# cocoons is this trade's own act, afforded by the reel it is wound onto
+# (`ReelingTool` — a hand reel, a reeling basin), never by the cocoons.
+verbs: [unwind]
+controller: /trade/sericulture/idea/cmd/sericulture/UnwindController
+description: "Reel silk off stifled cocoons"
+help: |
+  `unwind cocoons` winds a thread off a stack of stifled cocoons in hot
+  water and onto a reel: one skein of raw silk, and a handful of pupae.
+
+  `--count` is how many cocoons go to the thread — fewer is finer, slower
+  and harder to keep even; more is quicker and coarser. Bare, the best
+  reel within reach does the work; name one with `with`.
+examples:
+  - cmd: unwind cocoons --count 6
+    note: Reel a fine thread off a stack of stifled cocoons
+  - cmd: unwind cocoons with the basin
+    note: Name the reel explicitly
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+args:
+  # ⭐ What to unwind. `requires: StackableMixin` is the kind the binder
+  # can check (a cocoon is always a stack); the controller narrows to the
+  # pack's own `Cocoons` class and refuses anything else in its words.
+  # ⚠ NOT greedy: a multi-word target is quotable, and greedy would
+  # swallow the `with <reel>` clause.
+  - name: cocoons
+    type: object
+    required: true
+    scope: [inventory, reachable]
+    requires: StackableMixin
+  # ⭐ WHICH REEL — declared, not hunted for (`lint:controller-resolution`): bare,
+  # the binder hands over every reachable thing offering `reeling` and the
+  # controller takes the best-rated, so the mill's basin beats a hand reel.
+  - name: tool
+    type: objects
+    required: false
+    greedy: true
+    prepositions: [on, at, with]
+    default: "reachable:[capability.reeling]"
+    scope: ["reachable"]
+    requires: [ToolMixin]
+options:
+  count:
+    type: number
+    description: "How many cocoons to a thread — fewer is finer"

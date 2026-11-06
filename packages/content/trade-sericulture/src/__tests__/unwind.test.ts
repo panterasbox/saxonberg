@@ -145,7 +145,7 @@ describe('reeling silk', () => {
     // ⚠ One stack at a time — two of the same state would MERGE on the
     // move into the reeler's hands, and the second would be a husk.
     const once = async (c: Cocoons, tool: Tool | null) => {
-      const p = await c.planReel(reeler, tool, 8);
+      const p = await c.planUnwind(reeler, tool, 8);
       StuffApi.destruct(c as unknown as Stuff);
       return p;
     };
@@ -156,15 +156,15 @@ describe('reeling silk', () => {
   });
 
   it('…and wants hot water — no fire, no reeling', async () => {
-    expect(await stack(60).planReel(reeler, reel(1), 8)).toMatchObject({ kind: 'refusal', reason: 'no-heat' });
+    expect(await stack(60).planUnwind(reeler, reel(1), 8)).toMatchObject({ kind: 'refusal', reason: 'no-heat' });
   });
 
   it('fewer cocoons to the thread is slower; a faster reel is quicker', async () => {
     lightAFire();
     const c = stack(60);
-    const at8 = await c.planReel(reeler, reel(1), 8);
-    const at4 = await c.planReel(reeler, reel(1), 4);
-    const basin = await c.planReel(reeler, reel(2, 'fine'), 8);
+    const at8 = await c.planUnwind(reeler, reel(1), 8);
+    const at4 = await c.planUnwind(reeler, reel(1), 4);
+    const basin = await c.planUnwind(reeler, reel(2, 'fine'), 8);
     expect(at8.kind === 'plan' && at4.kind === 'plan' && basin.kind === 'plan').toBe(true);
     if (at8.kind !== 'plan' || at4.kind !== 'plan' || basin.kind !== 'plan') return;
     expect(at4.durationMs).toBeGreaterThan(at8.durationMs);
@@ -177,9 +177,9 @@ describe('reeling silk', () => {
     band('competent');
     const c = stack(60);
     const r = reel(1);
-    const plan = await c.planReel(reeler, r, 6);
+    const plan = await c.planUnwind(reeler, r, 6);
     if (plan.kind !== 'plan') throw new Error('expected a plan');
-    const result = await c.completeReel(reeler, r, plan.token);
+    const result = await c.completeUnwind(reeler, r, plan.token);
     expect(c.getQuantity()).toBe(20);
     const skein = made.find((m) => m instanceof RawSilk) as RawSilk;
     expect(skein.getFilamentCount()).toBe(6);
@@ -195,18 +195,18 @@ describe('reeling silk', () => {
     const made = stubMints();
     band('untrained');
     const pot = stack(60);
-    const p1 = await pot.planReel(reeler, reel(1), 4);
+    const p1 = await pot.planUnwind(reeler, reel(1), 4);
     if (p1.kind !== 'plan') throw new Error();
-    await pot.completeReel(reeler, reel(1), p1.token);
+    await pot.completeUnwind(reeler, reel(1), p1.token);
     StuffApi.destruct(pot as unknown as Stuff);
     vi.restoreAllMocks();
     vi.spyOn(reeler, 'getIdentityPath').mockReturnValue('/platform/agent/Avatar/reeler');
     const made2 = stubMints();
     band('proficient' as CompetenceBandName);
     const basin = stack(60);
-    const p2 = await basin.planReel(reeler, reel(2, 'fine'), 8);
+    const p2 = await basin.planUnwind(reeler, reel(2, 'fine'), 8);
     if (p2.kind !== 'plan') throw new Error();
-    await basin.completeReel(reeler, reel(2, 'fine'), p2.token);
+    await basin.completeUnwind(reeler, reel(2, 'fine'), p2.token);
     const novice = made.find((m) => m instanceof RawSilk) as RawSilk;
     const master = made2.find((m) => m instanceof RawSilk) as RawSilk;
     expect(master.getEvenness()).toBeGreaterThan(novice.getEvenness());
@@ -229,7 +229,7 @@ describe('reeling silk', () => {
     const offered = JSON.stringify(
       (Cocoons as unknown as { commandContributions?: unknown }).commandContributions ?? {},
     );
-    expect(offered).not.toMatch(/reel\.yaml/);
+    expect(offered).not.toMatch(/unwind\.yaml/);
     const s = makeStuff(() => new RawSilk());
     expect(s.getYarnCount()).toBe(0);
   });
@@ -249,10 +249,10 @@ describe('reeling silk', () => {
     const before = total();
     expect(before).toBeGreaterThanOrEqual(40);
     const first = live()[0]!;
-    const plan = await first.planReel(reeler, reel(1), 8);
+    const plan = await first.planUnwind(reeler, reel(1), 8);
     expect(plan.kind).toBe('plan');
     if (plan.kind !== 'plan') return;
-    await first.completeReel(reeler, reel(1), plan.token);
+    await first.completeUnwind(reeler, reel(1), plan.token);
     expect(total()).toBe(before - 40);
   });
 });
