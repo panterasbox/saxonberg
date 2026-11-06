@@ -17,6 +17,7 @@ import Place from '../../../../../lib/stuff/Place';
 import { ContainableMixin } from '../../../../../lib/spatial/Containable';
 import { ContainerMixin } from '../../../../../lib/spatial/Container';
 import { NamedMixin } from '../../../../../lib/description/Named';
+import { ThrownLanding } from '../../../../../lib/material/ThrownLanding';
 import ThrowController from '../ThrowController';
 import ThrowToController from '../ThrowToController';
 import ThrowAtController from '../ThrowAtController';
@@ -129,5 +130,24 @@ describe('throw at', () => {
       context(giver),
     );
     expect(notes.map((n) => n.reason)).toEqual(['self-target']);
+  });
+});
+
+describe('what becomes of the thing', () => {
+  it('a thing with no strength of its own shatters; the landing ends it', async () => {
+    const { room, rock } = scene();
+    const post = makeStuff(() => new Rock());
+    ContainmentApi.move(post, room);
+    const out = await new ThrownLanding(rock, post, {
+      profile: { energyJ: 50 },
+      shares: [],
+      spilled: 0,
+    }).land();
+    expect(out.arrived).toBe('shattered');
+    if (out.arrived !== 'shattered') return;
+    // Not until the words for the shattering have been said.
+    expect(rock.isDestroyed()).toBe(false);
+    expect(await out.spatter()).toEqual([]);
+    expect(rock.isDestroyed()).toBe(true);
   });
 });

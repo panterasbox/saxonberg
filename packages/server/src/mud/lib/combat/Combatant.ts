@@ -40,7 +40,7 @@ import { LETHALITIES, STOP_CONDITIONS } from "./CombatTerms";
 import { StuffApi } from "../../api/stuff";
 import { BulkableApi } from "../../api/bulk";
 import { ConditionApi } from "../../api/condition";
-import type { ThrownOutcome } from "../material/Tangible";
+import { ThrownLanding, type ThrownOutcome } from "../material/ThrownLanding";
 import { MixinApi } from "../../api/mixin";
 import { CompetenceBand } from "../advancement/CompetenceBand";
 import type { MoraleBand } from "./Morale";
@@ -72,7 +72,7 @@ export interface Combatant {
    * ⭐ Deliver `item` at `target` (controllers-are-io D10): the arrival (the
    * delivery profile, one injury through `inflict`). A thing has mass and it
    * arrives; that is true of a rock, a chair and a flask alike. What then
-   * becomes of the thing is its own (`Tangible.landThrown`).
+   * becomes of the thing is its own (`ThrownLanding`).
    */
   deliverThrown(item: Stuff, target: Stuff): Promise<ThrownOutcome>;
   // The combatant face (G1) — forwards into CombatLogic.
@@ -606,8 +606,8 @@ export function CombatantMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (spec !== null) ConditionApi.inflict(target, spec);
 
       // ⭐ What becomes of the thing is the thing's: no dynamics here.
-      if (!plan.profile.canShatter() || !MixinApi.isTangible(item)) return { arrived: "hit" };
-      return item.landThrown(target, plan);
+      if (!plan.profile.canShatter()) return { arrived: "hit" };
+      return new ThrownLanding(item, target, plan).land();
     }
 
     public resolveThrown(
