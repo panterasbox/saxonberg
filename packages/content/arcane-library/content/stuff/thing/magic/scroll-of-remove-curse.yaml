@@ -2,7 +2,7 @@
 # can be allowed to exist at all.
 #
 # Same shape as the identify scroll in every respect (D34: it affords
-# `read` and nothing else; the verb keys on the visible KIND, the effect
+# `read`, `recite` and nothing else; the verb keys on the visible KIND, the effect
 # on the hidden CLASS). What differs is only which working it carries.
 #
 # `regionTarget: 2` against identify's 4 — recourse should be findable
@@ -15,7 +15,7 @@ data:
   register: indefinite
   longDescription: >
     A short strip of vellum, the lettering pressed rather than inked and
-    laid out in a spiral that reads inward. Read it upon a thing that
+    laid out in a spiral that reads inward. Recite it upon a thing that
     will not let go.
   markText: >-
     a spiral of pressed characters reading inward, patient and

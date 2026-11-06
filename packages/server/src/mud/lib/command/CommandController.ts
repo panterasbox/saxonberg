@@ -121,7 +121,7 @@ export abstract class CommandController<
    * given", and reaching past it is how `read` grew an `at` clause:
    * a preposition on a verb where aiming means nothing, invented
    * because the prompt substrate went unused. `zap wand at troll` is
-   * fine — pointing a wand IS directional. `read scroll at flask` was
+   * fine — pointing a wand IS directional. `recite scroll at flask` was
    * not, and the difference is whether the ACT is aimed.
    */
   protected async promptForObject(

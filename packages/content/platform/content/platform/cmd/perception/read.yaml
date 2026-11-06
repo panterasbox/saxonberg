@@ -14,14 +14,8 @@ help: |
   script, so today this is the easy half — but it is a separate
   half, and a spellbook's comprehension floor lives in it.
 
-  Reading a scroll is also how a scroll's working fires. There is no
-  separate verb for that, deliberately: if there were, the verb
-  showing up in your list would tell you what you were holding.
-
-  Some workings need something to act on. Reading is not aimed —
-  you read a scroll, you do not read *at* a flask — so when the
-  working needs a mark it simply asks you which one, and a scroll
-  is never spent on a question you did not answer.
+  Reading a scroll tells you what it says and sets nothing off.
+  Saying it aloud is `recite`.
 
   A book reads at the page it lies open at; `read <book> page <n>` opens
   it at another. A printed sheet reads whatever was printed on it, and
