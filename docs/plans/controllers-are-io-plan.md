@@ -1254,6 +1254,31 @@ cross-try tier test; the three predicates; wire 23a.
 Acceptance: `look clay` at the pit looks at the lumps; `cut ice` cuts
 the block underfoot; `go hesper` after `look first line` goes. Commit.
 
+✅ **W2 done** (`90e690d88`; `541018078`/`042f9d1f2` net to nothing —
+a sibling commit's stale index had recorded W2 reverted and was reset
+away). 98 view args went room-first (`["here","peers","person"]`; `cut`
+`["$focus","here","peers","person"]`); the full verdict table is in the
+slate § *Scope-order audit (W2)*. `go.yaml` already shared the order
+(harbors review 3) — premise stale. `scrape`/`groove`/`hew`/`mow`/
+`plough` stay `reachable` (their target is a string; the only object
+is the tool). Scorer: keyword tiers 100/60/40/10n; `bareName`,
+`NAME_TIER`, `namesEveryWord` and the candidate's `name` gone;
+`pushDetails`/`pushBulkMaterials` retired (`candidateFor` builds every
+candidate). Decided: `Structure` composes `NamedMixin` outside
+`Perceptible` (a ship's name is a keyword); Named/Detailed/Bulkable stay
+unconstrained and decide per class lazily; `getKeywords(viewer?)`
+threads the viewer (hidden details stay hidden); `:visible` dropped its
+same-room check (it emptied `me:i:visible`); `visibleContentsOf` hides
+a concealed thing only from who doesn't perceive it; `configureField`
+stores the authored list. LookController's copy WAS switched (11 → 4
+lines; build-3 may conflict). ⚠ Behavior: where the name tier alone
+separated two answers they now tie and prompt (a door keyworded with
+its exit's direction; maybe `look hesper` on the quay); inventory items
+answer to detail ids; the Container card follows `:i`, so a stranger's
+pockets and a shut chest no longer list. Sweep later: the
+`setKeywords([...getKeywords(), …])` sites (Ship, LineEnd, Rope,
+TextileStock, Weave, Fell, Draft) can now store derived words.
+
 ### W3 — the mixins: splits, files, markers, protocols, presentation, security
 
 Goal: drive 17, 25 (the card and `help dip`); `lint:mixin-clusters` 45
