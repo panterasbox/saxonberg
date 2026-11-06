@@ -181,3 +181,145 @@ census-then-ratchet gate:
 Measured so far (2026-11-05): the in-flight builds' controllers barely
 overlap the heavy list (build-4 wizard-axis: shell/author verbs; build-1
 water-supply: `fill`/`drink`/`open`; build-3 client-surface: `look`).
+
+### ⭐⭐ The scan — results (2026-11-05, master 4b20f2ce5)
+
+Seven censuses, run read-only. Each count comes from a heuristic script,
+and what that script misses is noted. The scripts lived in the job's
+scratch directory and are not kept: re-derive them when the gates are
+written.
+
+**Link 1: mixin cohesion.** 280 mixins, of which **45 have two or more
+disconnected clusters**. A cluster is a set of members linked through
+`this.`, with each field merged with its own accessors. Most second
+clusters are dated: **a later build added a feature to an existing
+host**, and the feature's verbs fall inside one cluster.
+
+| mixin | the clusters | the build that added the second |
+|---|---|---|
+| `Organization` | roster and positions · the call | agent-coordination |
+| `WaterPlace` | water and tide · pull-out rescue | river review D22 |
+| `Metabolic` | digestion · eating as an act | cleanliness |
+| `LoadBearing` | burden · buoyancy | underwater |
+| `Chattel` | title · made-from and made-by | potash |
+| `Display` | content · pairing and control | — |
+| `Bonded` | bond · feeding by hand · hunger | — |
+| `Marked` | text · writing device · hands | paper |
+| `Mobile` | arrival messaging · engaged mode (no caller uses both) | — |
+| `Business` | four clusters, and no caller uses two of them | — |
+
+`Atmospheric` has seven clusters. `Persistable` and `Advancement` have three.
+`Comminuting` is probably one idea split by the heuristic.
+
+**Link 1: duck-typed protocols.** There are **940 probe sites across 404
+names** (`?.(`, `typeof … === 'function'`, `'x' in`, shape casts).
+Of these, **702 are protocol-shaped**. Of the method-shaped probes,
+**222 sites across 152 names** have no `MixinApi.isX` behind them.
+**25 names (61 sites) are declared by nothing at all**, which is the
+`?.()` on a name nobody defines (`heatK`, `bulkSource`, `lightLux`,
+`vesselKind`, `getVentilated`, …). At least 40 sites probe a name whose
+predicate already exists (`getContainer` ×27, `getContents`, `getQuantity`,
+`getMass`), so those are non-use, not a missing marker. A separate block of
+155 sites probes Stuff-base members (`stuffId` ×57), and one `isStuff`
+guard would cover them. The genuinely missing markers are:
+- power and grid (`generationW`, `getReachRef`, `availablePowerW`);
+- zone geometry (`getCellSize`);
+- `getGrade`, `getSampling`, `canBeNamedBy` (four definers).
+
+⚠ **No gate counts duck typing.** The rule is prose only.
+
+**Link 2: collisions.** There are 371 views and 445 words. **Only 3 words
+are claimed by two views**: `lease` and `unlease` (two localities, never
+in reach together) and `pour`, where bulk and crafting are the same act
+with different instruments, which is rung 1, unify. The ratchet holds.
+Dispatch order is **newest affordance first**:
+- a shape error falls through to the next view;
+- a field-validator refusal also falls through, but the first refusal
+  stands if no view takes the line;
+- nobody is told that a collision happened.
+
+⚠ `lint-family.md` still names the nine pairs from before the cut. The
+open ambiguity has moved into **subcommand names**: 50 subcommand words
+are also top-level verbs (`fight disarm` vs `disarm`, `bank transfer` vs
+`transfer`).
+
+**Link 3: self-targeting.** ⚠ **`lint:controller-resolution` does not
+exist.** It was proposed in one-resolution-rule § 176 and never built.
+The live `lint:instrument-args` reads 1, but about **34 controllers
+self-resolve**: 16 hunt the player's own target (about 26 sites) and 18
+hunt an implied instrument. ⚠ Both gates skip the 10 domain-local
+`world/**` controllers. Three shapes:
+- MQL called on player text inside the controller, because the view
+  declared the arg `type: string` (Job ×4, Order, Journey, Print, Query);
+- private word scorers, about seven distinct rules (Route's six-rung
+  scorer, Hail, Call, Butcher, Harvest, Fit, Equip sets);
+- fixed `reachable:[class.X]` hunts that belong in a view `default:`
+  (TipJar ×2, JobBoard, Pilot, Comms ×3, Treat).
+
+Also seen: duck-typed room walks (Title's `constructor.name === 'DeedDesk'`,
+Draft's `getHerdId?`).
+
+**Link 4: syntax.** Of 371 views:
+- 43 use subcommands;
+- **69 declare options**, and the parser already supports `--name`,
+  `short:` and a stop token;
+- 131 use `greedy`. Of their 201 greedy args, **124 exist only so that
+  an object name can be several words**. That is a binder concern, not
+  free text.
+
+The heaviest views are all bench verbs, where each tool role takes its
+own preposition: `carve` has 8, `butcher` and `plant` 7, `fit` 7, `write`
+6. Subcommands cluster in the social and system views. Physical verbs are
+flat, even in un-/dis- pairs on one operand. Families that could take
+subcommands:
+- **Nouns you operate:** the business seat (appoint/dismiss/quit/apply/tip/collect
+  beside `clock`), money (`draw`/`pay` beside `bank`/`wallet`/`treasury`),
+  Katie's three, Walter's two, parcel (`subdivide`/`transfer` beside
+  `title`), the printer's forme (compose/proof/print/distribute), the herd,
+  and the workspace tree (item 8).
+- **English verbs on a thing:** door, slots, rope, burner, trap, fold.
+
+**Link 5: smushed controllers.** There are **38 subcommand dispatchers**
+(a `switch(sub)` or an `if` chain). Their arms share nothing but a
+preamble, so they split mechanically: per-subcommand `controller:` already
+works, and `cockpit` routes 7 controllers that way. The largest are Wiki
+(17 arms, 1,063 lines), Party 15, Chat 13, Forum 11, Pack, Bank, Group,
+Soul and Fight 8 each. There are also **14 dispatchers on type or kind**,
+and most of those are ONE act on different objects, so they want a
+protocol on the model rather than a split: Order's five services, Treat,
+Rive, Print, Smelt, Put, Look's six append arms, Feed/Water,
+Harvest/Label, Saw. ⭐ **Only Throw** (catch / pitch / attack), **Tan**
+(an already-tanned hide is *lifted*) **and Read's spell tail** are
+genuinely different acts hiding behind one verb.
+
+**Links 6–7: mutations and decisions.** The census covered 375
+controllers.
+- **155 mutate directly, with 589 calls**: 235 through a mechanism Api,
+  308 through setter-shaped calls, and 46 as field writes on another
+  object.
+- **1,011 decision tokens** (arithmetic, `Math.*`, thresholds,
+  constants, tables). 36 controllers carry ten or more.
+- **97 controllers hold 269 module-level functions**, the hidden shape
+  the doctrine bans. The worst are Smelt 22 and Assay 12.
+- ⭐ **The packs have 30% of the controllers and half of both counts.**
+
+The worst controllers hold a whole physical model:
+- Smelt: a=22, d=76, 17 kinetics constants, 1,037 lines.
+- Fell: 32 and 27.
+- Harvest and Plant in the kernel.
+- Saw, Butcher, Mow (hay chemistry), Treat, Operate (writes
+  `wound.severity` directly), Mill, Spin, Dye, Draft.
+
+There are **52 duration constants across 44 controllers**, plus inline
+duration math. Outcomes:
+- `{ ok, reason }` unions are already the norm on the object side: 1,045
+  sites and 80 `*Outcome`/`*Result` types, with no shared type.
+- `ActPlan`/`ActRefusal`/`ActOutcome` reach 10 controllers. They put the
+  **duration on the object**, which settles the slate's open question in
+  the object's favor. ⚠ But they also put **the words on the object**
+  (`line: Mml`), which contradicts "an act returns an outcome the
+  controller words".
+
+The heavy targets are clear of every in-flight sibling: water-supply
+touches none of the top 20, and client-surface and wizard-axis touch only
+two false positives.
