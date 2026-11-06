@@ -314,7 +314,9 @@ function formatToken(t: RawToken): string {
   }
 }
 
-const NEEDS_QUOTING_RE = /[\s"\\|]/;
+// A leading `'` is the say shortcut on a line's first token, so a word that
+// really starts with one is quoted to stay a word.
+const NEEDS_QUOTING_RE = /^'|[\s"\\|]/;
 
 function quoteIfNeeded(value: string): string {
   if (value === '') return '""';

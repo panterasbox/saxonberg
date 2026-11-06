@@ -1431,6 +1431,39 @@ Acceptance: the W0 baseline comparison equal in state, reasons and
 durations; step 16 same state, different words; `pour` one view, the
 collisions gate at two rows; the `throw` trio routes per D17. Commit.
 
+✅ **W5 done** (`3392a4529`…`5d273c0d4`, twelve commits; `KNOWN_COLLISIONS`
+is deleted outright). The object decides harvest, plant, put, order,
+treat, throw, tan, pour; `HarvestWordedController` + a unit doctrine
+test; the throw trio; `recite` lives in the **arcana pack** beside
+`cast`/`zap` (where `Scroll` is). `turn`/carve's target/shape's material
+now name `TurnableMixin`/`CarvableMixin`/`ShapeableMixin`. Defects:
+10c maker is `getIdentityPath()` (wire records `madeByMe`); ⚠ 11c was
+the FIXTURE — a plant takes a slot by the root room it would get, and
+the pot had no soil, so an empty pot stays loose on purpose; 12c a real
+money faucet: `shrunk` is no longer a ruin (hot water takes 3% off a
+cut; wool still felts and is covered) — expect paid +3; 15c `read`'s
+tail asked a consumed scroll to `teach`. Left: 12g a transfusion
+collects at completion, outside the command frame, so `paid: 0`
+(pre-existing, same bug the bath's comment names; kept equal to the
+baseline — finding); 12c's `prompts: 2` for one confirm unexplained.
+Decided: `order repair for sword` (the subject is `for`: a bare subject
+after a greedy phrase can't bind); ⚠ `counter` is `type: objects` and
+the controller prompts only when two boards take the word — D11's
+literal `onExcess: prompt` would have prompted on every ward order,
+breaking baseline 12b/12g (requirements over plan); hook signature
+`onContainableAdded(thing, from?)`/`onContainableRemoved(thing, to?)`
+so an NPC's fill or lift counts; ground refusals keep the ground's own
+markup in `facts.line` (a pack's tract owns that sentence); mid-act and
+hook scenes stay on the object (the mould's watch, the tan lift);
+`tan` on a tanned hide refuses `already-tanned`. New value objects, both
+*genuinely new*: `lib/spatial/PlacementOffers.ts` (Container and Placing
+compose in either order and must answer the same),
+`lib/material/ThrownLanding.ts` (`lint:combat-dynamics` bars it from
+`lib/combat`; on `Tangible` it was an import cycle). Ceilings:
+mutations → 318, decisions → 1176, durations → 100, functions → 232,
+self-resolution → 111, article-shape → 111. Baselines 10c, 11c, 12c,
+15c re-record in W9.
+
 ### W6 — one view, one word: `do`, `reel`/`unwind`, `drift`, the sweep, categories
 
 Goal: drive 18–22; `lint:one-word` → 0; `lint:command-views`'
