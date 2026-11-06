@@ -1179,6 +1179,21 @@ lease, provision). Decided: **D17 compares positional RANGES**
 `controllerFiles()`, `commandViews()`, a shared `ratchet()` (fails above
 AND below the ceiling).
 
+✅ **W0 wire done** (`40084fc11`): `controllers-are-io.dirty.wire.test.ts`
++ `controllers-are-io.baseline.json` — 22 acts over steps 10–15,
+recorded against a clean `git archive` of `4ac98389b` (a world booted
+from the live worktree loaded W1 mid-edit). One clock (11:00) and clear
+sky for the file; staging by test-hand + `eval --parcel`; `#id`
+references; the "ball" is a horn spoon (musket balls stack); repair
+from the cobbler (the tinker walks a round). ⚠ **Pre-existing defects
+now IN the baseline — W5 fixes each and re-records that act with a
+reason:** 15c `read` on a scroll → `controller-error` (`reading
+'replace'`); 11c `put plant in pot` lands as containment, slot not
+claimed; 10c the crop's maker is `/platform/agent/PrimaryAvatar` (lineage,
+not person — `getIdentityPath`); 12c the wash order leaves the customer
++17 (`paid: -17`); 12a Dave's/the lounge bar has no stock on a fresh
+world (the drink refused — content, not code; record as is).
+
 ### W1 — the command line and the dispatcher
 
 Goal: drive 1–5, 23 (second half), 24, 25 (the greyed-out reason).
