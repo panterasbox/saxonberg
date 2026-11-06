@@ -11,6 +11,7 @@
  * promise delivered rather than asserted.
  */
 
+import { PoweredMixin } from '../../supply/Powered';
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Good from '../../stuff/Good';
@@ -41,17 +42,17 @@ const INDOOR = '/stuff/idea/biome/_cc/indoor';
 const INSULATION = '/stuff/idea/material/_cc/panel';
 
 /** A test supply: powered unless a cut is scheduled; publishes the trajectory. */
-function FakePoweredMixin<TBase extends MixinConstructor>(Base: TBase) {
-  return class FakePoweredMixin extends Base {
+function FakePoweredMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
+  return class FakePoweredMixin extends PoweredMixin(Base) {
     static _mixinName = 'FakePoweredMixin';
     public cutAtS: number | null = null;
-    isPowered(): boolean {
+    override isPowered(): boolean {
       return this.cutAtS === null;
     }
-    availablePowerW(): number {
+    override availablePowerW(): number {
       return 1000;
     }
-    poweredTrajectory(fromS: number, toS: number): Piecewise {
+    override poweredTrajectory(fromS: number, toS: number): Piecewise {
       if (this.cutAtS === null || this.cutAtS <= fromS) {
         const v = this.cutAtS === null ? 1 : 0;
         return new Piecewise([
