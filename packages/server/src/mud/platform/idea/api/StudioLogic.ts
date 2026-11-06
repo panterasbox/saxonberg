@@ -915,7 +915,24 @@ export class StudioLogic extends ApiLogic {
     }
 
     const mixinNames = [...new Set(input.mixinNames ?? [])].sort();
-    const signature = Blueprint.signatureFromParts(input.baseClass, mixinNames);
+    // ⭐ A blueprint naming a class dedups against that class's derived row,
+    // so it folds the views the class affords (D25). A class that does not
+    // resolve is a composition by name — the caller's choice, not an error.
+    let views: string[] = [];
+    if (input.classPath) {
+      try {
+        views = Blueprint.ownViewsOf(
+          (await StuffApi.loadClassByPath(input.classPath)) as AnyConstructor
+        );
+      } catch {
+        views = [];
+      }
+    }
+    const signature = Blueprint.signatureFromParts(
+      input.baseClass,
+      mixinNames,
+      views
+    );
     const catalogue = await this.requireCatalogue();
 
     // Dedup on signature: a collision reuses the existing durable id (stable

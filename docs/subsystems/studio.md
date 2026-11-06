@@ -136,9 +136,24 @@ A **blueprint** is a named, canonical *kind* you instantiate from — the
 reusable molecule over the mixin particles. `Blueprint` is a reference-data
 `Document` (`blueprints` collection, the `Recipe` precedent — never cloned),
 keyed on two durable ids: a **`blueprintId`** (the record key, stable across
-rename) and a **`signature`** (`<baseClass>|<sorted mixin _mixinNames>` —
+rename) and a **`signature`** (`<baseClass>|<sorted mixin _mixinNames>`, and
+`|<sorted views>` when the class declares `commandContributions` of its own —
 the structural dedup key). `name` is a mutable display label, **never a
-key**. `kind` is `composition` (a bare recomposable mixin stack) or
+key**.
+
+⭐ **The signature is verb-aware** (controllers-are-io D25, object-taxonomy
+§ 3): `commandContributions` is the one record of what an object affords, so a
+whetstone and a suture kit — both `AudibleMixin(Tool)` — are two kinds, and the
+Studio's *exact match* no longer offers one for the other. Only the views the
+CLASS declares fold in (`Blueprint.ownViewsOf`): a mixin's are implied by its
+name, so a curated pure composition still lands on the key of a class that
+only composes it. Census, 1,111 classes named by a row: signatures 407 → 459,
+collision groups 101 → 93; the medicine ×4 and SurgicalKit/SutureKit groups
+separate. ⚠ What still collides differs in code, not in composition (the 234
+bare `CommandController`s, the 76 bare `Idea`s, `Reading` rows) — a signature
+reads structure, not method bodies; five groups share even their views
+(`PrimaryAvatar`/`SandboxAvatar`, `AssayBench`/`AssayKit`, `Board`/`Blank`,
+`Bailer`/`Derrick`, `Press`/`Printer`), recorded as true structural duplicates. `kind` is `composition` (a bare recomposable mixin stack) or
 `concrete` (a logic-bearing class pointing at its `classPath`).
 
 - **`BlueprintCatalogue`** (`/platform/idea/BlueprintCatalogue`) is the boot-warmed

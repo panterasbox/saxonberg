@@ -38,6 +38,7 @@
  */
 
 import { Document } from '../persistence/Document';
+import type { CommandContributions } from '../../api/command';
 import { MixinApi, type AnyConstructor } from '../../api/mixin';
 import type { BlueprintKind } from '@saxonberg/types';
 import type { FieldMeta } from '../mixin';
@@ -184,30 +185,80 @@ export class Blueprint extends Document {
   }
 
   /**
-   * The structural signature for a base + mixin set: `<baseClass>|<sorted,
-   * deduped mixin names>`. The dedup key both the seeder's derive step and
-   * `publishBlueprint` compute — a curated entry's parts and a derived
-   * class's introspected parts collide here when structurally identical.
+   * The structural signature for a base + mixin set + the views the class
+   * itself affords: `<baseClass>|<sorted, deduped mixin names>` and, when it
+   * affords any, `|<sorted, deduped view paths>`. The dedup key both the
+   * seeder's derive step and `publishBlueprint` compute — a curated entry's
+   * parts and a derived class's introspected parts collide here when
+   * structurally identical.
+   *
+   * ⭐⭐ **Verb-aware** (controllers-are-io D25). `commandContributions` is
+   * the one record of what an object affords (command-routing.md), so two
+   * things that do different things are not structurally identical: a
+   * whetstone and a suture kit are both `AudibleMixin(Tool)`, and until this
+   * folded the views the Studio's *exact match* told an author building one
+   * that they had built the other. ⚠ Only the views the CLASS declares
+   * ({@link ownViewsOf}): a mixin's are implied by its name, so a curated
+   * pure composition (mixin names and no class) still lands on the same key
+   * as a class that only composes them.
    */
   static signatureFromParts(
     baseClass: string,
-    mixinNames: readonly string[]
+    mixinNames: readonly string[],
+    views: readonly string[] = []
   ): string {
     const mixins = [...new Set(mixinNames)].sort().join(',');
-    return `${baseClass}|${mixins}`;
+    const parts = `${baseClass}|${mixins}`;
+    if (views.length === 0) return parts;
+    return `${parts}|${[...new Set(views)].sort().join(',')}`;
   }
 
   /**
    * The structural signature of a live backing-class constructor:
-   * `<baseClassName>|<queryMixins(ctor).map(_mixinName).sort()>`. The base is
-   * the nearest non-mixin prototype-chain ancestor (the class the mixins were
-   * applied over — `Idea` for `class Coin extends StackableMixin(Idea)`).
+   * `<baseClassName>|<queryMixins(ctor).map(_mixinName).sort()>`, then its
+   * {@link ownViewsOf}. The base is the nearest non-mixin prototype-chain
+   * ancestor (the class the mixins were applied over — `Idea` for
+   * `class Coin extends StackableMixin(Idea)`).
    */
   static signatureOf(ctor: AnyConstructor): string {
     return Blueprint.signatureFromParts(
       Blueprint.baseClassOf(ctor),
-      Blueprint.mixinNamesOf(ctor)
+      Blueprint.mixinNamesOf(ctor),
+      Blueprint.ownViewsOf(ctor)
     );
+  }
+
+  /**
+   * The views the class chain's NON-mixin classes declare in their
+   * `commandContributions`, in every bucket — what this class affords beyond
+   * what its mixin names already say (deduped + sorted).
+   *
+   * ⚠ A raw read of the statics rather than `CommandApi.collectContributions`:
+   * that resolves each view to a definition (and a static on a class SHADOWS
+   * the one under it, so the walk reads each level's OWN). A signature must
+   * not depend on which views happen to have loaded.
+   *
+   * @internal for the blueprint catalogue's and the studio's signature
+   * sites; an author asking what a class affords reaches `CommandApi`.
+   */
+  static ownViewsOf(ctor: AnyConstructor): string[] {
+    const views = new Set<string>();
+    let cur: unknown = ctor;
+    while (typeof cur === 'function' && cur !== Function.prototype) {
+      const isMixin = Object.prototype.hasOwnProperty.call(cur, '_mixinName');
+      if (
+        !isMixin &&
+        Object.prototype.hasOwnProperty.call(cur, 'commandContributions')
+      ) {
+        const declared = (cur as { commandContributions?: CommandContributions })
+          .commandContributions;
+        for (const bucket of Object.values(declared ?? {})) {
+          for (const view of bucket ?? []) views.add(view);
+        }
+      }
+      cur = Object.getPrototypeOf(cur);
+    }
+    return [...views].sort();
   }
 
   /**
