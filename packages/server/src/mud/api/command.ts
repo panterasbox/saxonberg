@@ -1062,6 +1062,12 @@ export interface PositionalDefinition extends FieldDefinition {
  * capability wants extracting into a mixin (`PlantableMixin` is the
  * worked example).
  *
+ * ⭐ One word is not a mixin: **`affords`** (controllers-are-io D8d, opted
+ * into per slot) — the candidate itself contributes this view, by its class
+ * or an ACTIVE mixin. An AND-term of its own, kept beside the protocol mixin
+ * and never instead of it: the mixin says what the thing IS, `affords` that
+ * this thing is the one offering the verb.
+ *
  * @see MixinRefusals — where the player-facing sentence comes from.
  */
 export type MixinRequirement = 'any' | string | string[];

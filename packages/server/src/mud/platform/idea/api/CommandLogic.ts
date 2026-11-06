@@ -3283,6 +3283,40 @@ const CLASS_REQUIREMENTS: Record<
   },
 };
 
+/** The `requires:` word for {@link affordsView}. */
+const AFFORDS_TERM = 'affords';
+
+/**
+ * ⭐ **Does this candidate itself contribute `view`?** (controllers-are-io
+ * D8d) — its class's `commandContributions` or an ACTIVE mixin's, so a gated
+ * mixin no augment confers offers nothing, in any bucket: which bucket a
+ * verb reached the actor through is where the actor stands, not what the
+ * candidate is. The slot opts in with `requires: [affords]`, for a verb
+ * whose target must be the thing offering it — `wind` the clock that offers
+ * `wind`, never a second clock-shaped thing beside it.
+ */
+function affordsView(s: Stuff, view: CommandDefinition): boolean {
+  const active = new Set<unknown>(MixinApi.getActiveMixins(s));
+  const composed = new Set<unknown>(
+    MixinApi.queryMixins(s.constructor as { prototype: unknown } & ((...args: unknown[]) => unknown)),
+  );
+  // ⚠ OWN statics, walked down the chain: a static is inherited, so reading
+  // the concrete class alone would see a gated mixin's contribution through
+  // it however inactive that mixin is.
+  for (let c: unknown = s.constructor; typeof c === 'function'; c = Object.getPrototypeOf(c)) {
+    if (composed.has(c) && !active.has(c)) continue;
+    if (!Object.prototype.hasOwnProperty.call(c, 'commandContributions')) continue;
+    const contributed = getContributions(c);
+    if (!contributed) continue;
+    for (const bucket of ['self', 'inventory', 'environment', 'peers'] as const) {
+      for (const fname of contributed[bucket] ?? []) {
+        if (CommandApi.getCommand(fname)?.filePath === view.filePath) return true;
+      }
+    }
+  }
+  return false;
+}
+
 /**
  * Parse a `requires:` declaration into its AND-terms.
  *
@@ -3320,6 +3354,7 @@ const CLASS_REQUIREMENTS: Record<
 async function parseRequirement(
   requires: MixinRequirement,
   where: string,
+  view?: CommandDefinition,
 ): Promise<RequirementTerm[]> {
   if (requires === 'any') return [];
   const entries = Array.isArray(requires) ? requires : [requires];
@@ -3331,6 +3366,24 @@ async function parseRequirement(
       .filter((n) => n.length > 0);
     if (names.length === 0) {
       throw new Error(`${where}: empty \`requires\` entry`);
+    }
+
+    // ⭐ `affords` (controllers-are-io D8d): the candidate itself contributes
+    // THIS view. An AND-term of its own, never an alternate of a mixin: it
+    // stands beside the protocol mixin, not instead of it.
+    if (names.includes(AFFORDS_TERM)) {
+      if (names.length > 1) {
+        throw new Error(`${where}: \`${AFFORDS_TERM}\` cannot be an alternate — list it as its own term`);
+      }
+      if (view === undefined) {
+        throw new Error(`${where}: \`${AFFORDS_TERM}\` needs the view it is declared on`);
+      }
+      terms.push({
+        test: (s) => affordsView(s, view),
+        refusal: `You can't ${view.getPrimaryVerb()} {}.`,
+        wants: AFFORDS_TERM,
+      });
+      continue;
     }
 
     if (names.length === 1 && names[0]!.startsWith('class:')) {
@@ -3405,8 +3458,9 @@ async function parseRequirement(
 async function requirementValidator(
   requires: MixinRequirement,
   where: string,
+  view?: CommandDefinition,
 ): Promise<FieldValidator | null> {
-  const terms = await parseRequirement(requires, where);
+  const terms = await parseRequirement(requires, where, view);
   if (terms.length === 0) return null;
 
   const fails = (s: Stuff, term: RequirementTerm): boolean => !term.test(s);
@@ -3499,8 +3553,8 @@ async function resolveCommandValidators(
       // `talk dave` — falls through to the next scope instead of
       // shadowing the barkeep. The validator stays as the post-bind
       // check for a field bound by structured input.
-      target._requirementTerms = await parseRequirement(target.requires, where);
-      const synthesized = await requirementValidator(target.requires, where);
+      target._requirementTerms = await parseRequirement(target.requires, where, cmd);
+      const synthesized = await requirementValidator(target.requires, where, cmd);
       if (synthesized) fns.push(synthesized);
     }
     for (const spec of target.validators ?? []) {

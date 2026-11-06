@@ -452,7 +452,7 @@ export class CommandDefinition {
       for (const part of Array.isArray(r) ? r : [r]) {
         for (const name of part.split('|')) {
           const n = name.trim();
-          if (n.length > 0 && n !== 'any') out.add(n);
+          if (n.length > 0 && n !== 'any' && n !== 'affords') out.add(n);
         }
       }
     };

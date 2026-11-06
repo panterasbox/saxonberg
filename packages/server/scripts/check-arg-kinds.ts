@@ -208,6 +208,9 @@ function recordField(
     const entries = Array.isArray(requires) ? requires : [requires];
     for (const entry of entries) {
       for (const n of entry.split("|").map((s) => s.trim()).filter(Boolean)) {
+        // ⭐ Not a mixin: the slot predicate "the candidate contributes this
+        // view" (`CommandLogic.parseRequirement`, controllers-are-io D8d).
+        if (n === "affords") continue;
         if (n.startsWith("class:")) {
           if (!SANCTIONED_CLASSES.has(n.slice("class:".length))) unknown.push(n);
           continue;
