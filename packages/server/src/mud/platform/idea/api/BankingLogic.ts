@@ -67,14 +67,10 @@ const BankingApiCallers = SecurityPolicies.FromModule("/api/banking#BankingApi",
 /** The F4 bank face (Bank hosts) forwards here as the branch. */
 const BankCallers = SecurityPolicies.AnyOf(
   BankingApiCallers,
-  SecurityPolicies.FromMixin("BankMixin", {
-    // Compare by stuffId — the caller may surface as the raw target
-    // while the argument is the proxy (or vice versa).
-    where: (caller, _target, _method, args) =>
-      (caller as { stuffId?: string }).stuffId !== undefined &&
-      (caller as { stuffId?: string }).stuffId ===
-        (args[0] as { stuffId?: string } | undefined)?.stuffId,
-  }),
+  SecurityPolicies.AllOf(
+    SecurityPolicies.FromModule("/platform/thing/BankCounter", { includeSubclasses: true }),
+    SecurityPolicies.SelfSubject(0),
+  ),
 );
 
 /**

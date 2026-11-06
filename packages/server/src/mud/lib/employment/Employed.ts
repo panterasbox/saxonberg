@@ -67,7 +67,7 @@
  * there will be a second composer to justify it.
  */
 
-import { Mixins, type MixinConstructor, type FieldMeta } from '../mixin';
+import { type MixinConstructor, type FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import { CallSecurity, Final, Unshadowable } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
@@ -170,8 +170,15 @@ function recordKey(record: StoredEmployment): string {
  * organization's live instance).
  */
 const ByEmployingOrganization = SecurityPolicies.AnyOf(
-  SecurityPolicies.FromMixin(Mixins.Organization, {
-    where: (caller, _target, method, args) => {
+  // ⚠ By module, not the mixin marker (controllers-are-io D25): the key is
+  // read off the caller's own `getIdentityPath`, so a class merely declaring
+  // the marker could answer with a real employer's path.
+  SecurityPolicies.AllOf(
+    SecurityPolicies.AnyOf(
+      SecurityPolicies.FromModule('/platform/idea/Business', { includeSubclasses: true }),
+      SecurityPolicies.FromModule('/platform/idea/Organization', { includeSubclasses: true }),
+    ),
+    SecurityPolicies.Custom((caller, _target, method, args) => {
       // The IDENTITY path — the record key a minted organization (a
       // player's stall, D15) writes under; the template path for every
       // content row, since identity falls back to it.
@@ -179,11 +186,11 @@ const ByEmployingOrganization = SecurityPolicies.AnyOf(
       if (!path) return false;
       const keyed =
         method === '_upsertEmployment'
-          ? recordKey((args[0] ?? {}) as StoredEmployment)
-          : (args[0] as string | undefined);
+          ? recordKey((args?.[0] ?? {}) as StoredEmployment)
+          : (args?.[0] as string | undefined);
       return keyed === path;
-    },
-  }),
+    }, 'WritesItsOwnRecord'),
+  ),
   SecurityPolicies.FromTemplate('/platform/idea/api/employment'),
 );
 

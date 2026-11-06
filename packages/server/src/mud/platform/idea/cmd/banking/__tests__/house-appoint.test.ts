@@ -17,8 +17,7 @@ import "../../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import HouseAppointController from '../HouseAppointController';
 import mustHoldAppointingAuthority from '../../../../../lib/command/validators/mustHoldAppointingAuthority';
-import { OrganizationMixin } from '../../../../../lib/employment/Organization';
-import { Idea } from '../../../../../lib/stuff/Idea';
+import OrganizationRow from '../../../Organization';
 import Avatar from '../../../../agent/PrimaryAvatar';
 import { StuffApi } from '../../../../../api/stuff';
 import { EmploymentApi } from '../../../../../api/employment';
@@ -37,7 +36,7 @@ import {
 } from '../../../../../lib/security/__tests__/test-setup';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
 
-class OrganizationEntity extends OrganizationMixin(Idea) {
+class OrganizationEntity extends OrganizationRow {
   static _mixinName = 'OrganizationEntity';
 }
 

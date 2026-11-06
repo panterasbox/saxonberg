@@ -22,6 +22,8 @@ import type { Stuff } from "../stuff/Stuff";
 import { CallSecurity, Final, Unshadowable } from "../security/decorators";
 import { SecurityPolicies } from "../security/SecurityPolicies";
 import { StuffApi } from "../../api/stuff";
+import { MixinApi } from "../../api/mixin";
+import type { Containable } from "../spatial/Containable";
 // eslint-disable-next-line no-restricted-imports -- the F1 object face (carved off Chattel.ts with its import): a made good's recordMadeFrom() forwards into the chattel logic singleton exactly as the api/chattel facade does (the Combustible/Energized precedent)
 import { ChattelLogic } from "../../platform/idea/api/ChattelLogic";
 import type { ChattelOwner } from "./ChattelRecord";
@@ -82,7 +84,20 @@ export function MadeFromMixin<TBase extends MixinConstructor<Stuff>>(
     // ⚠ A declared maker titles a fresh good, so only a process mint may
     // declare one — a mould setting its cast (a firing hands the mould
     // its owner through `castInto`).
-    @CallSecurity(SecurityPolicies.FromMixin(Mixins.Mould))
+    // ⭐ And only of a thing not yet placed anywhere (controllers-are-io
+    // D25): a class merely declaring the mould marker can name the maker
+    // of what it just minted, never of a good already in the world.
+    @CallSecurity(
+      SecurityPolicies.AllOf(
+        SecurityPolicies.FromMixin(Mixins.Mould),
+        SecurityPolicies.Custom(
+          (_caller, target) =>
+            !MixinApi.isContainable(target as Stuff) ||
+            (target as Stuff & Containable).getContainer() === null,
+          'TheCastIsUnplaced',
+        ),
+      ),
+    )
     public recordMadeBy(owner: ChattelOwner | null): void {
       this._madeFromOwner = owner;
       this._madeByProcess = true;

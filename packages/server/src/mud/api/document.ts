@@ -117,14 +117,17 @@ const MAP_TRANSPORT_CALLERS = SecurityPolicies.FromModule(
  * whether she lies there is READ off her, so even she cannot write a
  * false line.
  */
-const BERTH_TRANSPORT_CALLERS = SecurityPolicies.FromMixin(
-  Mixins.Voyaging,
-  { where: (caller, _target, _method, args) => caller === args[0] },
+const BERTH_TRANSPORT_CALLERS = SecurityPolicies.AllOf(
+  SecurityPolicies.FromModule("/platform/idea/Ship", { includeSubclasses: true }),
+  SecurityPolicies.SelfSubject(0),
 );
 
-const REGISTER_TRANSPORT_CALLERS = SecurityPolicies.FromMixin(
-  Mixins.Registrar,
-  { where: (caller, _target, _method, args) => caller === args[0] },
+// ⚠ The marker, deliberately: registrars are six rows' classes across five
+// packs (kernel code may not name a pack class), and the self-subject bounds
+// it — a register files only under itself (controllers-are-io D25).
+const REGISTER_TRANSPORT_CALLERS = SecurityPolicies.AllOf(
+  SecurityPolicies.FromMixin(Mixins.Registrar),
+  SecurityPolicies.SelfSubject(0),
 );
 
 const LOGIC_PATH = "/platform/idea/api/document";

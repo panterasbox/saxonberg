@@ -48,14 +48,10 @@ const ChattelApiCallers = SecurityPolicies.FromModule("/api/chattel#ChattelApi")
 /** The F1 object face: a chattel-bearing good forwards its own title ops. */
 const ChattelCallers = SecurityPolicies.AnyOf(
   ChattelApiCallers,
-  SecurityPolicies.FromMixin("ChattelMixin", {
-    // Compare by stuffId — the caller may surface as the raw target
-    // while the argument is the proxy (or vice versa).
-    where: (caller, _target, _method, args) =>
-      (caller as { stuffId?: string }).stuffId !== undefined &&
-      (caller as { stuffId?: string }).stuffId ===
-        (args[0] as { stuffId?: string } | undefined)?.stuffId,
-  }),
+  SecurityPolicies.AllOf(
+    SecurityPolicies.FromMixin("ChattelMixin"),
+    SecurityPolicies.SelfSubject(0),
+  ),
 );
 
 /** The owner key a person or a house is titled by (Chattel's own rule). */

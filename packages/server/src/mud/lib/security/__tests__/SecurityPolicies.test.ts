@@ -58,6 +58,49 @@ describe('SecurityPolicies', () => {
     });
   });
 
+  describe('SelfSubject', () => {
+    const me = { stuffId: 'me' };
+    const you = { stuffId: 'you' };
+    it('admits the caller only when it IS the subject at the index', () => {
+      const p = SecurityPolicies.SelfSubject(1);
+      expect(p.allows(me, null, 'm', [you, me])).toBe(true);
+      expect(p.allows(me, null, 'm', [me, you])).toBe(false);
+    });
+    it('defaults to the first argument and compares by stuffId', () => {
+      const p = SecurityPolicies.SelfSubject();
+      // A proxy and its raw target are different objects with one id.
+      expect(p.allows({ stuffId: 'me' }, null, 'm', [me])).toBe(true);
+    });
+    it('denies a caller with no stuffId, null, and a missing argument', () => {
+      const p = SecurityPolicies.SelfSubject();
+      expect(p.allows({}, null, 'm', [{}])).toBe(false);
+      expect(p.allows(null, null, 'm', [me])).toBe(false);
+      expect(p.allows(me, null, 'm', [])).toBe(false);
+    });
+  });
+
+  describe('AllOf — short-circuit', () => {
+    it('never asks a later policy about a caller an earlier one refused', () => {
+      const asked: string[] = [];
+      const p = SecurityPolicies.AllOf(
+        SecurityPolicies.Custom(() => false, 'no'),
+        SecurityPolicies.Custom(() => {
+          asked.push('second');
+          throw new Error('a relational half read a caller nobody vetted');
+        }, 'second'),
+      );
+      expect(p.allows(null, null, 'm')).toBe(false);
+      expect(asked).toEqual([]);
+    });
+    it('continues past an async pass and stops at an async refusal', async () => {
+      const yes = SecurityPolicies.Custom(async () => true, 'yes');
+      const no = SecurityPolicies.Custom(async () => false, 'no');
+      await expect(SecurityPolicies.AllOf(yes, yes).allows(null, null, 'm')).resolves.toBe(true);
+      await expect(SecurityPolicies.AllOf(yes, no).allows(null, null, 'm')).resolves.toBe(false);
+      await expect(SecurityPolicies.AllOf(no, yes).allows(null, null, 'm')).resolves.toBe(false);
+    });
+  });
+
   describe('AllOf', () => {
     it('requires every policy to allow', () => {
       const p = SecurityPolicies.AllOf(
