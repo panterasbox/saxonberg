@@ -360,6 +360,9 @@ export class ForumsLogic extends ApiLogic {
   /** See {@link ForumsApi.getEntry}. */
   @CallSecurity(ForumsApiCallers)
   public async getEntry(id: string): Promise<Entry | null> {
+    // A word a player typed that is no entry id names no entry (`forum reply
+    // xyz` died in the driver's ObjectId with a controller-error).
+    if (!/^[0-9a-f]{24}$/i.test(id)) return null;
     return Entry.findById(id);
   }
 
