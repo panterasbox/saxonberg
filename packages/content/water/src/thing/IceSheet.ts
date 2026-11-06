@@ -49,7 +49,7 @@ import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
-import type { CutRequest, Cuttable } from '@saxonberg/server/mud/lib/craft/Cuttable';
+import { CuttableMixin, type CutRequest, type Cuttable } from '@saxonberg/server/mud/lib/craft/Cuttable';
 import type { ActPlan, ActRefusal } from '@saxonberg/server/mud/lib/craft/ActPlan';
 import WatercourseCatalogue, { OPEN_WATER_BELOW_M, type IceRecord, type IceHistory } from '../idea/WatercourseCatalogue';
 
@@ -89,7 +89,7 @@ interface SweepTool {
   hasCapability?(kind: string): boolean;
 }
 
-const IceSheetBase = PersistableMixin(WaterSurface);
+const IceSheetBase = CuttableMixin(PersistableMixin(WaterSurface));
 
 export default class IceSheet extends IceSheetBase implements Cuttable {
   static fieldMeta: FieldMeta = {

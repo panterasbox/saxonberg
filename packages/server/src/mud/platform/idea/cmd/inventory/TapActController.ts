@@ -8,7 +8,7 @@
  * — each is a subclass naming one `tapKey()` and nothing else. The
  * controller cannot name a yield, a Discipline or a duration even if it
  * wanted to: all three come back from the host through the
- * {@link Tappable} protocol, which is what lets a kernel verb earn a
+ * {@link Producing} take protocol, which is what lets a kernel verb earn a
  * trade's competence without knowing the trade exists.
  *
  * ⚠ **The god-verb guard:** *if a new tap needs THIS FILE to branch on
@@ -40,7 +40,7 @@ import type { MqlOneResult } from '../../../../api/mql';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Tooled } from '../../../../lib/craft/Tool';
 import type { Bulkable } from '../../../../lib/bulk/Bulkable';
-import type { Tappable } from '../../../../lib/husbandry/Tappable';
+import type { Producing } from '../../../../lib/husbandry/Producing';
 import type { WorkPlan } from '../../../../lib/ground/Workable';
 import { MixinApi } from '../../../../api/mixin';
 import { MessageApi } from '../../../../api/message';
@@ -95,7 +95,7 @@ export abstract class TapActController<
   protected async subjectOf(
     model: M,
     _giver: Stuff,
-  ): Promise<(Stuff & Tappable) | null> {
+  ): Promise<(Stuff & Producing) | null> {
     const bound = model.target?.stuff ?? null;
     if (bound === null) return null;
     return MixinApi.isProducing(bound) ? bound : null;
@@ -203,7 +203,7 @@ export abstract class TapActController<
  */
 async function land(
   context: CommandContext,
-  subject: Stuff & Tappable,
+  subject: Stuff & Producing,
   key: string,
   tool: (Stuff & Tooled) | null,
   vessel: (Stuff & Bulkable) | null,

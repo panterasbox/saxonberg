@@ -61,7 +61,7 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import type { VetoResult } from '@saxonberg/server/mud/lib/errors';
 import type { Pumping } from '@saxonberg/server/mud/lib/pump/Pumping';
-import type { PumpSource } from '@saxonberg/server/mud/lib/pump/Pumpable';
+import { PumpSourceMixin, type PumpSource } from '@saxonberg/server/mud/lib/pump/PumpSource';
 import type { SupplyServing } from '@saxonberg/server/mud/lib/supply/SupplyState';
 import { AppApi } from '@saxonberg/server/mud/api/app';
 import { AppSettingKeys } from '@saxonberg/server/mud/lib/config/AppSettings';
@@ -111,7 +111,9 @@ export interface ConduitReading {
 // (`props: [intake-pump]`), and vetoes everything else. The claim is true —
 // a conduit's pump is part of the conduit — and the water pack still ships
 // no mover and no verb: the pump is the energy pack's appliance.
-const ConduitBase = StagedMixin(ContainerMixin(SwitchableMixin(Thing)));
+const ConduitBase = PumpSourceMixin(
+  StagedMixin(ContainerMixin(SwitchableMixin(Thing))),
+);
 
 export default class Conduit
   extends ConduitBase

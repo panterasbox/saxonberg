@@ -10,11 +10,11 @@
  * in words, naming the tool.
  *
  * That is the `TravelNode` seam one subsystem over — *the capability is the
- * kernel's and only the implementation is the pack's* — and it is why
- * there is no `Diggables.of()` static holder beside it. `class TravelNodes`
- * is an empty husk today: its only caller inlined the narrowing, and
- * `lint:lib-statics` sits at a ceiling that may fall and never rise. So
- * each controller carries a module-private narrowing instead.
+ * kernel's and only the implementation is the pack's*. ⭐ The split shape
+ * earned a protocol mixin at controllers-are-io D8a (`./Splittable`, three
+ * implementers in three packs) and `split` asks `MixinApi.isSplittable`;
+ * `Diggable` has one host and stays a shape here, narrowed by the `dig`
+ * controller, until `dig` moves to the pack that owns it.
  *
  * ## ⭐ Two phases, because the act takes game time
  *
@@ -173,18 +173,3 @@ export interface Diggable extends Workable {
   readonly diggable: true;
 }
 
-/**
- * ⭐ **A thing too big or too aggregated to use, and dividing it.**
- *
- * Named because the pattern already had a second member before this build:
- * `fell bole` cross-cuts a felled trunk a length at a time under a verb
- * that means something else, as its own view admits (*"Fell a standard with
- * an axe, or cross-cut a felled one"*). A `Stackable` is the third
- * candidate. So the mandate is deliberately wider than stone:
- *
- * > **divide an oversized or aggregated thing into usable units.**
- */
-export interface Splittable extends Workable {
-  /** Marker: this shape is split rather than dug. Never read for truth. */
-  readonly splittable: true;
-}

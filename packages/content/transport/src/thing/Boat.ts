@@ -61,7 +61,11 @@ import type { MarkupAugmenter } from '@saxonberg/server/mud/api/mml';
 import { SchedulerApi } from '@saxonberg/server/mud/api/scheduler';
 import { FacedMixin, type Faced } from '@saxonberg/server/mud/lib/material/Faced';
 import { BilgeMixin, type Bilge } from '@saxonberg/server/mud/lib/expanse/Bilge';
-import type { LiftSource, BucketLanding } from '@saxonberg/server/mud/lib/pump/Pumpable';
+import {
+  LiftSourceMixin,
+  type LiftSource,
+  type BucketLanding,
+} from '@saxonberg/server/mud/lib/pump/LiftSource';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { AppApi } from '@saxonberg/server/mud/api/app';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
@@ -149,7 +153,7 @@ const boatAugmenter: MarkupAugmenter = (text, host, _viewer, opts) => {
 };
 
 
-export default class Boat extends BoatBase implements LiftSource {
+export default class Boat extends LiftSourceMixin(BoatBase) implements LiftSource {
   static commandContributions: CommandContributions = {
     inventory: FROM_INSIDE,
     // ⭐ Whoever is in the water beside her can right her (D22): `pull`, the

@@ -43,7 +43,6 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tool';
 import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
-import type { Shore } from '@saxonberg/server/mud/lib/location/Shore';
 import type { WaterRead } from '@saxonberg/server/mud/lib/location/WaterSource';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MessageApi } from '@saxonberg/server/mud/api/message';

@@ -171,10 +171,53 @@ cared-about`). A protocol mixin costs one class layer and buys all three.
 ⚠ It must not break TypeScript: a deep composition chain has collapsed
 inference before (`Atmospheric`) — a protocol mixin is thin, but check.
 
-The shipped bare shapes predate the rule — `Workable` / `Diggable` /
-`Splittable`, `Pumpable`, `Tappable`, `Cuttable` (and `Reelable`, which
-the reel undo removes) — and are swept by
-[verb-interfaces-slate.md](../slates/builds/verb-interfaces-slate.md).
+⭐ **A protocol mixin says so: `static _mixinKind = 'protocol'`**
+(controllers-are-io D8a), beside its `_mixinName`, so a presentation
+surface (the card's chips, Studio's palette, `help <verb>`'s *answers:*) can
+show it as the verb it serves rather than as a noun. The kernel's:
+`PumpableMixin`, `LiftSourceMixin`, `PumpSourceMixin` (`lib/pump/`),
+`SplittableMixin` (`lib/ground/`), `CuttableMixin` (`lib/craft/`),
+`TravelNodeMixin` (`lib/travel/`), each with a `MixinApi.isX`.
+
+The bare shapes the sweep (controllers-are-io D8a) disposed of: the six
+above **converted** (each had three implementers, or a kernel verb and a
+pack network); `Tappable` **deleted** — its one implementer was
+`ProducingMixin`, so the take is `Producing`'s own surface; `Reelable`
+died with the `reel` undo. ⚠ Still bare, recorded: `Workable` itself (the
+ground vocabulary, converging on `ActPlan`), `Diggable` (one host, the
+quarry's `OpenWorkingMixin`, but asked by a KERNEL verb's room/floor ladder
+— demoting it needs `dig` to move to the pack), and `CutPlanner` (a
+tailor's shears; the kernel `cut` asks a pack tool, so the demotion waits
+on the cloth owning its own cut, W4's cuts sweep).
+
+### ⭐ The split test — when one mixin is two
+
+A mixin is two when its members fall into two clusters that never touch
+(`lint:mixin-clusters` counts them), and **the test is who composes it and
+which imports leave**, beside co-use (the Slotted → Attired precedent,
+[slot.md](./slot.md)). The original idea keeps the name and the file; the
+later-added idea leaves to a new file named for it; no composite; the
+carved half composes only on its honest hosts; every reader narrows on the
+new predicate; persisted field names do not change (restore is
+key-agnostic). controllers-are-io D6 made five:
+
+| original (keeps name) | carved | hosts of the carved half | why |
+|---|---|---|---|
+| `OrganizationMixin` | `OnCallMixin` | the concrete Business only | a government calls nobody |
+| `WaterPlaceMixin` | `HaulOutMixin` | all seven water places | co-use split; its own imports |
+| `MetabolicMixin` | `EatingMixin` | `Creature` | eating is how food reaches digestion |
+| `LoadBearingMixin` | `BuoyantMixin` | `Creature` | the water's question, not the burden's |
+| `ChattelMixin` | `MadeFromMixin` | `Good`, `Vessel` only | an animal is a chattel nobody made |
+
+### ⭐ The file rule — a factory `FooMixin` lives in `Foo.ts`
+
+One factory, one file, named for it, without the suffix — in the kernel's
+`lib/**` and `world/**` and every pack's `src/lib/**`.
+`lint:mixin-files` holds it at 0 (controllers-are-io D7b moved the twelve
+that broke it: `Tooled.ts` → `Tool.ts`, `reserve.ts` →
+`reserve/Reserved.ts`, the two-factory `Consignment.ts` → `HeldGoods.ts` +
+`ConsignmentShelf.ts`, `Staged.ts`'s `PropsMixin`/`CostumedMixin` →
+`Props.ts`/`Costumed.ts`, and the rest).
 
 Five conventions. Skip any of them and other subsystems silently treat
 the mixin as if it weren't there.

@@ -29,7 +29,7 @@ import { Mml } from '../../../../../api/mml';
 import type { MqlOneResult } from '../../../../../api/mql';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
 import type { Container } from '../../../../../lib/spatial/Container';
-import type { LiftSource, BucketLanding } from '../../../../../lib/pump/Pumpable';
+import { LiftSourceMixin, type LiftSource, type BucketLanding } from '../../../../../lib/pump/LiftSource';
 
 const FakeAvatarBase = CommandGiverMixin(NamedMixin(MobileMixin(ContainerMixin(SensorMixin(ContainableMixin(Idea))))));
 class FakeAvatar extends FakeAvatarBase {
@@ -37,7 +37,7 @@ class FakeAvatar extends FakeAvatarBase {
 }
 
 /** A lift source the test controls: water `depthM` down, `standingL` of it. */
-class TestSource extends Good implements LiftSource {
+class TestSource extends LiftSourceMixin(Good) implements LiftSource {
   public depthM = 0.4;
   public standingL = 100;
   public lifted: number[] = [];

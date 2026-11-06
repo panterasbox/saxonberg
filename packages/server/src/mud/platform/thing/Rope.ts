@@ -60,7 +60,7 @@ import type { TossOutcome } from '../../lib/spatial/Tossable';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Container } from '../../lib/spatial/Container';
 import type { FieldMeta } from '../../lib/mixin';
-import type { CutRequest } from '../../lib/craft/Cuttable';
+import { CuttableMixin, type CutRequest } from '../../lib/craft/Cuttable';
 import type { ActPlan, ActRefusal } from '../../lib/craft/ActPlan';
 import type { CompetenceBandName } from '../../lib/advancement/CompetenceBand';
 import type { MarkupAugmenter } from '../../api/mml';
@@ -204,7 +204,9 @@ const ropeAugmenter: MarkupAugmenter = (text, host, _viewer, opts) => {
   return text && text.length > 0 ? `${text}\n\n${all}` : all;
 };
 
-export default class Rope extends SpliceableMixin(TieableMixin(ClimbableMixin(GradedMixin(Line)))) {
+export default class Rope extends CuttableMixin(
+  SpliceableMixin(TieableMixin(ClimbableMixin(GradedMixin(Line)))),
+) {
   static commandContributions: CommandContributions = {
     self: [],
     environment: HELD,

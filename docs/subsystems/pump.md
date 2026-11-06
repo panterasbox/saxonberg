@@ -55,16 +55,23 @@ row, help text or reading names the air. The why is a law somebody has
 to discover (the inquiry slate's first case), and a force pump on the
 same well simply works.
 
-## The shapes (`lib/pump/`)
+## The protocols (`lib/pump/`)
 
-Declared shapes, the `lib/ground/Workable.ts` category — a controller
-narrows by shape; nothing composes them.
+⭐ **Protocol mixins** (`_mixinKind = 'protocol'`, controllers-are-io D8a) —
+each host COMPOSES one and overrides its refusing defaults; `pump` and
+`bail` narrow on `MixinApi.isPumpable` / `isPumpSource` / `isLiftSource`,
+and the views say `requires: PumpableMixin|PumpSourceMixin` /
+`LiftSourceMixin`. (They shipped as bare shapes narrowed by `typeof`.)
 
-| shape | answered by | says |
-|---|---|---|
-| `Pumpable` (`planPump` → plan \| refusal, `completePump`) | `PumpingMixin`, **`BurnerMixin`** | *a person can work this with their hands* |
-| `LiftSource` (`standingDepthM`, `standingMaterial`, `standingAvailableL`, `receivableL`, `liftInto`, `liftScope`; optional `liftedWords`, `bucketRefusal`, `bucketLanded`) | `platform/thing/Well`, `platform/thing/BilgeWell`, drilling's `Wellhead`, transport's `Boat` | *a fluid stands this far below my draw point* — ⚠ adds no field anywhere |
-| `PumpSource` (`pumpFitted`) | `Well`, `Wellhead`, water's `Conduit` | *a pump is SET in me* — how a pump tells set from carried |
+| protocol | file | composed by | says |
+|---|---|---|---|
+| `PumpableMixin` (`planPump` → plan \| refusal, `completePump`) | `Pumpable.ts` | `platform/thing/Pump` (under `PumpingMixin`), **`BurnerMixin`**, diving's `AirPump` | *a person can work this with their hands* |
+| `LiftSourceMixin` (`standingDepthM`, `standingMaterial`, `standingAvailableL`, `receivableL`, `liftInto`, `liftScope`; optional `liftedWords`, `bucketRefusal`, `bucketLanded`) | `LiftSource.ts` | `platform/thing/Well`, `platform/thing/BilgeWell`, drilling's `Wellhead`, transport's `Boat` | *a fluid stands this far below my draw point* — ⚠ adds no field anywhere |
+| `PumpSourceMixin` (`pumpFitted`) | `PumpSource.ts` | `Well`, `BilgeWell`, `Wellhead`, water's `Conduit` | *a pump is SET in me* — how a pump tells set from carried |
+
+⚠ `PumpableMixin` sits INSIDE `PumpingMixin` at `Pump`'s composition, not
+nested in the factory: nesting it collapsed `ElectricPump`'s deep stack to
+`never`.
 
 ⭐ **A furnace is not a pump.** Its bellows speaks the protocol (an
 INSTANT act, `durationMs: 0`, the toggle) with the three refusals and two

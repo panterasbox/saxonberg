@@ -27,8 +27,9 @@ interface CutModel extends CommandModel {
   generous?: boolean;
 }
 
-function isCuttable(x: unknown): x is Stuff & Cuttable {
-  return x !== null && typeof (x as { cutPlan?: unknown }).cutPlan === 'function';
+/** The cut protocol's predicate (`CuttableMixin`). */
+function isCuttable(x: Stuff | null): x is Stuff & Cuttable {
+  return x !== null && MixinApi.isCuttable(x);
 }
 
 function isPlanner(x: unknown): x is Stuff & CutPlanner {

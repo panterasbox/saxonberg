@@ -88,7 +88,6 @@ import type { Bulkable, BulkSlot } from '../bulk/Bulkable';
 import { Contamination } from '../material/Contaminable';
 import { Freshness } from '../material/Freshness';
 import { HARM_DEFAULTS } from '../../platform/idea/Condition';
-import type { Tappable } from './Tappable';
 import type {
   WorkDifficulty,
   WorkPrognosis,
@@ -144,17 +143,41 @@ export interface TapTake {
 
 /** The public surface a producing animal offers. */
 /**
- * ⭐ **`Producing` IS `Tappable`** — `ProducingMixin` implements both
+ * ⭐ **The take is `Producing`'s own** — `ProducingMixin` implements both
  * halves by default (a cow, a hive and a sap tree get the whole act for
- * free), so the interface says so rather than leaving every caller to
- * assert it.
+ * free). ⚠ There used to be a bare `Tappable` shape beside it with exactly
+ * one implementer, this mixin; controllers-are-io D8a deleted it — the
+ * take protocol IS `Producing`, and the verbs narrow on `isProducing`.
  *
- * ⚠ Without this `extends`, `MixinApi.isProducing()` narrowed to
- * `Stuff & Producing` and each of the three call sites then wrote
- * `as unknown as Stuff & Tappable` to get the half it already had — a
- * cast standing in for a declaration. Found in the pre-merge sweep.
+ * ⭐⭐ A SIBLING of `Workable`, not a subtype: `planWork(by, tool, what)` has
+ * no vessel slot, and *claiming a lactating animal is worked ground* is a
+ * host-placement lie. What the two share is the RESULT vocabulary (a plan
+ * or a refusal, a duration, a cost, prose, and the credit the host asks
+ * for), imported unchanged. ⚠ `key` is the tap being drawn (`milk`,
+ * `honey`, `sap`), not the verb.
  */
-export interface Producing extends Tappable {
+export interface Producing {
+  /**
+   * What this take would be, or why not. ⭐ **No side effects** — the
+   * refusal is where the object says what it is for, and planning it
+   * must not cost anything.
+   */
+  planTap(
+    by: Stuff,
+    key: string,
+    tool: (Stuff & Tooled) | null,
+    vessel: (Stuff & Bulkable) | null,
+    what: string | null,
+  ): Promise<WorkPrognosis>;
+  /** Land the take. Mints, pours, decrements, and names its credit. */
+  completeTap(
+    by: Stuff,
+    key: string,
+    tool: (Stuff & Tooled) | null,
+    vessel: (Stuff & Bulkable) | null,
+    token: unknown,
+  ): Promise<WorkResult>;
+
   /** Reconcile every tap over elapsed game-time. Sync, read-triggered. */
   reconcileProduction(): void;
   /** Refresh the air at this producer's place before a window is read. */
@@ -201,8 +224,7 @@ export interface Producing extends Tappable {
 export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
   Base: TBase,
 ) {
-  return class ProducingMixin extends Base implements Producing, Tappable {
-    public readonly tappable = true as const;
+  return class ProducingMixin extends Base implements Producing {
 
     static _mixinName: string = Mixins.Producing;
 

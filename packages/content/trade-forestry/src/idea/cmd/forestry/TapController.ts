@@ -25,7 +25,8 @@ import { TapActController } from '@saxonberg/server/mud/platform/idea/cmd/invent
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import type { Tappable } from '@saxonberg/server/mud/lib/husbandry/Tappable';
+import type { Producing } from '@saxonberg/server/mud/lib/husbandry/Producing';
+import SapStandard from '../../../thing/SapStandard';
 import { STAND_MIXIN } from '../../../lib/Stand';
 
 export default class TapController extends TapActController {
@@ -53,17 +54,15 @@ export default class TapController extends TapActController {
   protected override async subjectOf(
     model: Parameters<TapActController['execute']>[0],
     _giver: Stuff,
-  ): Promise<(Stuff & Tappable) | null> {
+  ): Promise<(Stuff & Producing) | null> {
     const bound = model.target?.stuff ?? null;
     if (bound === null) return null;
     if (!MixinApi.isProducing(bound)) return null;
     // ⭐ It must be a TREE, not merely a producer. A hive standing in a
     // sugarbush composes `ProducingMixin` too, and `tap hive` must not
     // half-work — the hive's verb is `rob`.
-    if (typeof (bound as unknown as { maxSpiles?(): number }).maxSpiles !== 'function') {
-      return null;
-    }
-    return bound as unknown as Stuff & Tappable;
+    if (!(bound instanceof SapStandard)) return null;
+    return bound;
   }
 
   /**

@@ -40,7 +40,7 @@ import {
 } from '../../../../../api/command';
 import type { MqlOneResult } from '../../../../../api/mql';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
-import type { Pumpable, PumpPrognosis, PumpResult } from '../../../../../lib/pump/Pumpable';
+import { PumpableMixin, type Pumpable, type PumpPrognosis, type PumpResult } from '../../../../../lib/pump/Pumpable';
 import { Mml } from '../../../../../api/mml';
 import type { BuildStepOptions } from '../../crafting/ManualBuildController';
 
@@ -61,7 +61,7 @@ class TestForge extends BurnerMixin(ThermalMixin(Good)) {
 }
 
 /** A pump the test controls — the protocol, not the physics (W0 owns that). */
-class FakePump extends Good implements Pumpable {
+class FakePump extends PumpableMixin(Good) implements Pumpable {
   async planPump(): Promise<PumpPrognosis> {
     return {
       kind: 'plan',

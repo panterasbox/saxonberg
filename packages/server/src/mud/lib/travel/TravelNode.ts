@@ -29,13 +29,15 @@
  * for the same reason `analyze soil`'s lives in `trade-farming`, which
  * makes the shape the ONLY thing crossing between packs.
  *
- * Optional by construction — a thing either answers the question or it
- * is not a travel node, and {@link asTravelNode} checks rather than the
- * type system.
+ * ⭐ A **protocol mixin** since controllers-are-io D8a
+ * ({@link TravelNodeMixin}, `_mixinKind = 'protocol'`): a node COMPOSES it
+ * and the verb asks `MixinApi.isTravelNode` — it used to probe `ride` and
+ * `renderDepartures` by `typeof`. The kernel still names no pack's class.
  */
 
 import type { Stuff } from '../stuff/Stuff';
 import type { Sensor } from '../message/Sensor';
+import type { MixinConstructor } from '../mixin';
 
 /** What the traveller asked for. */
 export interface TravelRideSpec {
@@ -104,8 +106,30 @@ export interface TravelNode {
   publishedStops?(): Promise<PublishedStop[]>;
 }
 
-/** Thin static holder — the shape's one operation. */
-export class TravelNodes {
-  private constructor() {}
+/**
+ * ⭐ **`TravelNodeMixin` — the travel-network protocol, as a mixin.**
+ *
+ * IS: a stop on some travel network — it shows its board to whoever stands
+ * at it and takes them where they named. IS NOT: the kernel's own ways to
+ * move (free movement in an extent you hold, the anchored spell), which
+ * need no network at all and are not nodes.
+ *
+ * ⚠ The defaults REFUSE: a node that composes this and answers nothing has
+ * no board and goes nowhere, in words.
+ */
+export function TravelNodeMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
+  return class TravelNodeMixin extends Base implements TravelNode {
+    static _mixinName: string = 'TravelNodeMixin';
+    static _mixinKind = 'protocol' as const;
 
+    /** @hook The departures board; the default: no board. */
+    public async renderDepartures(_viewer: Stuff & Sensor): Promise<string> {
+      return 'There is no departures board here.';
+    }
+
+    /** @hook Take a traveller to a stop; the default goes nowhere. */
+    public async ride(_traveller: Stuff, _spec: TravelRideSpec): Promise<TravelRideOutcome> {
+      return { ok: false, refusal: 'This goes nowhere.', reason: 'not-a-travel-node' };
+    }
+  };
 }

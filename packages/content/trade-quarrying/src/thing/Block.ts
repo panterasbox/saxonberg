@@ -32,10 +32,10 @@ import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tool';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import type { MarkupAugmenter } from '@saxonberg/server/mud/api/mml';
 import type {
-  Splittable,
   WorkPrognosis,
   WorkResult,
 } from '@saxonberg/server/mud/lib/ground/Workable';
+import { SplittableMixin, type Splittable } from '@saxonberg/server/mud/lib/ground/Splittable';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { GrammarApi } from '@saxonberg/server/mud/api/grammar';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -67,7 +67,7 @@ const REFERENCE_MPA = 100;
 /** The Discipline splitting stone credits. */
 const QUARRYING = 'quarrying';
 
-const BlockBase = Good;
+const BlockBase = SplittableMixin(Good);
 
 /** *"eight pieces in it yet"* / *"one piece left"* — appended on `look`. */
 function piecesAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
@@ -108,9 +108,6 @@ export default class Block extends BlockBase implements Splittable {
 
   /** Carryable pieces still in it. */
   public piecesLeft = BLOCK_PIECES;
-
-  /** The declared shape's marker. */
-  public readonly splittable = true as const;
 
   public getPiecesLeft(): number {
     return this.piecesLeft;

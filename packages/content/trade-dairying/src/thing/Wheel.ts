@@ -25,10 +25,10 @@ import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tool';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import { Mml, type MarkupAugmenter } from '@saxonberg/server/mud/api/mml';
 import type {
-  Splittable,
   WorkPrognosis,
   WorkResult,
 } from '@saxonberg/server/mud/lib/ground/Workable';
+import { SplittableMixin, type Splittable } from '@saxonberg/server/mud/lib/ground/Splittable';
 import type Material from '@saxonberg/server/mud/lib/material/Material';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -62,7 +62,7 @@ function madeFromAugmenter(
   return text && text.length > 0 ? `${text}\n\n${line}` : line;
 }
 
-const WheelBase = RipeningMixin(Provision);
+const WheelBase = SplittableMixin(RipeningMixin(Provision));
 
 export default class Wheel extends WheelBase implements Splittable {
   /**
@@ -87,9 +87,6 @@ export default class Wheel extends WheelBase implements Splittable {
   public wedgesPerWheel = DEFAULT_WEDGES;
   /** Wedges still in it; `-1` = uncut (the whole of `wedgesPerWheel`). */
   public wedgesLeft = -1;
-
-  /** The declared shape's marker. */
-  public readonly splittable = true as const;
 
   public getWedgesPerWheel(): number {
     return this.wedgesPerWheel;

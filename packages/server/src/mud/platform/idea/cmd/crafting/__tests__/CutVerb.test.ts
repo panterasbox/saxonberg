@@ -14,7 +14,7 @@ import Place from '../../../../../lib/stuff/Place';
 import { StuffApi } from '../../../../../api/stuff';
 import { ContainmentApi } from '../../../../../api/containment';
 import { Mml } from '../../../../../api/mml';
-import type { CutRequest } from '../../../../../lib/craft/Cuttable';
+import { CuttableMixin, type CutRequest } from '../../../../../lib/craft/Cuttable';
 import type { CommandContext } from '../../../../../api/command';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
 import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
@@ -22,7 +22,7 @@ import { TestActor, makeContext, ref, many } from './branch-fixtures';
 
 let made: string[] = [];
 
-class Block extends Good {
+class Block extends CuttableMixin(Good) {
   public async cutPlan(req: CutRequest) {
     if (req.tools.length === 0) {
       return { ok: false as const, reason: 'no-saw', line: Mml.compose`You need a saw.` };
@@ -118,7 +118,10 @@ describe('one cut — the planner decides', () => {
         made.push('hole');
       },
     }));
-    vi.spyOn(room, 'getFloor').mockReturnValue({ cutPlan: floorPlan } as never);
+    class Floor extends CuttableMixin(Good) {}
+    const floor = makeStuff(() => new Floor());
+    vi.spyOn(floor, 'cutPlan').mockImplementation(floorPlan as never);
+    vi.spyOn(room, 'getFloor').mockReturnValue(floor as never);
     const ctx = await run({ target: ref(null, 'hole'), tools: many() });
     expect(rejected(ctx)).toBeNull();
     expect(floorPlan).toHaveBeenCalledWith(expect.objectContaining({ raw: 'hole' }));

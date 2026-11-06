@@ -16,7 +16,7 @@ import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import type Material from '@saxonberg/server/mud/lib/material/Material';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
-import type { Cuttable, CutRequest } from '@saxonberg/server/mud/lib/craft/Cuttable';
+import { CuttableMixin, type Cuttable, type CutRequest } from '@saxonberg/server/mud/lib/craft/Cuttable';
 import type { ActPlan, ActRefusal } from '@saxonberg/server/mud/lib/craft/ActPlan';
 import { Grade, type GradeBand } from '@saxonberg/server/mud/lib/craft/Grade';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
@@ -56,7 +56,7 @@ const MOLASSES = '/trade/sugar/idea/material/molasses';
 /** The share of a loaf's mass the claying water carries out as molasses. */
 const CLAY_WASHES = 0.12;
 
-export default class SugarLoaf extends PercolatingMixin(Provision) implements Cuttable {
+export default class SugarLoaf extends CuttableMixin(PercolatingMixin(Provision)) implements Cuttable {
   static markupAugmenters: MarkupAugmenter[] = [loafAugmenter];
 
   /**

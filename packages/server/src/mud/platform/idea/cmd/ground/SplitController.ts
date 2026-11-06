@@ -20,7 +20,9 @@
 
 import { WorkedActController, type WorkedActModel } from './WorkedActController';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
-import type { Splittable, Workable } from '../../../../lib/ground/Workable';
+import type { Workable } from '../../../../lib/ground/Workable';
+import type { Splittable } from '../../../../lib/ground/Splittable';
+import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
 
 export default class SplitController extends WorkedActController {
@@ -52,12 +54,7 @@ export default class SplitController extends WorkedActController {
   }
 }
 
-/** Narrow to the declared {@link Splittable} shape. See `DigController`. */
+/** Narrow on the split protocol's predicate. */
 function asSplittable(stuff: Stuff | null): (Stuff & Splittable) | null {
-  if (stuff === null) return null;
-  const candidate = stuff as unknown as Partial<Splittable>;
-  if (candidate.splittable !== true) return null;
-  if (typeof candidate.planWork !== 'function') return null;
-  if (typeof candidate.completeWork !== 'function') return null;
-  return stuff as Stuff & Splittable;
+  return stuff !== null && MixinApi.isSplittable(stuff) ? stuff : null;
 }

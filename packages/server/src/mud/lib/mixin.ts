@@ -694,6 +694,14 @@ export const Mixins = {
   // sinking rule asks (an air bag lashed to an anchor).
   Buoy: 'BuoyMixin',
   Hauler: 'HaulerMixin',
+  // ⭐ Protocol mixins (`_mixinKind = 'protocol'`, controllers-are-io D8a):
+  // the shapes a platform verb talks to, each earned by three implementers.
+  Pumpable: 'PumpableMixin',
+  Splittable: 'SplittableMixin',
+  TravelNode: 'TravelNodeMixin',
+  Cuttable: 'CuttableMixin',
+  LiftSource: 'LiftSourceMixin',
+  PumpSource: 'PumpSourceMixin',
   // Employment — the org chart (positions + holders + the appointing
   // authority), the Business that trades on top of it, and an actor's
   // employment relationships (an on-shift Position confers its duties via
@@ -1097,6 +1105,12 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   DrivableMixin: "you can't drive {}",
   HaulableMixin: "{} isn't something you can hitch",
   PullableMixin: "{} isn't on a line you can pull",
+  // ⭐ The protocol mixins (controllers-are-io D8a) — each refusal names
+  // the verb the thing does not answer.
+  PumpableMixin: "{} has nothing on it to pump",
+  PumpSourceMixin: "{} has no pump set in it",
+  LiftSourceMixin: "{} has nothing standing in it to bail",
+  SplittableMixin: "{} does not come apart like that",
   TossableMixin: "{} isn't something anybody catches",
   TieableMixin: "{} has no end to tie",
   SpliceableMixin: "{} isn't something you splice",

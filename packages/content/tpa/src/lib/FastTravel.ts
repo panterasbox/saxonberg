@@ -59,9 +59,10 @@ import {
   SUPPLY_STATE_GLOSS,
   type SupplyState,
 } from "@saxonberg/server/mud/lib/supply/SupplyState";
-import type {
-  TravelRideOutcome,
-  TravelRideSpec,
+import {
+  TravelNodeMixin,
+  type TravelRideOutcome,
+  type TravelRideSpec,
 } from "@saxonberg/server/mud/lib/travel/TravelNode";
 import type { CommandGiver } from "@saxonberg/server/mud/lib/command/CommandGiver";
 import type { Charged } from "@saxonberg/server/mud/lib/magic/Charged";
@@ -195,7 +196,9 @@ function formatCron(p: CronPattern): string {
 export function FastTravelMixin<TBase extends MixinConstructor<Stuff>>(
   Base: TBase,
 ) {
-  return class FastTravelMixin extends Base implements FastTravel {
+  // ⭐ Composes the kernel's travel PROTOCOL (`TravelNodeMixin`): a TPA node
+  // is what `teleport` talks to, and this overrides the refusing defaults.
+  return class FastTravelMixin extends TravelNodeMixin(Base) implements FastTravel {
     static _mixinName = FAST_TRAVEL_MIXIN;
 
     /** `routes` is authored content applied once at hydrate (Phase 2). */

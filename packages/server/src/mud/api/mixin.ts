@@ -45,6 +45,7 @@ import type { Gendered } from '../lib/character/Gendered';
 import type { Persona } from '../lib/character/Persona';
 import type { Dispositioned } from '../lib/trait/Dispositioned';
 import type { Advancing } from '../lib/advancement/Advancement';
+import type { Sampled } from '../lib/instrument/Sampled';
 import type { Visible } from '../lib/description/Visible';
 import type { Perceptible } from '../lib/description/Perceptible';
 import type { Detailed } from '../lib/description/Detailed';
@@ -266,6 +267,12 @@ import type { DonationBank } from '../lib/commerce/DonationBank';
 import type { Business } from '../platform/idea/Business';
 import type { Organization } from '../lib/employment/Organization';
 import type { OnCall } from '../lib/employment/OnCall';
+import type { Pumpable } from '../lib/pump/Pumpable';
+import type { Splittable } from '../lib/ground/Splittable';
+import type { TravelNode } from '../lib/travel/TravelNode';
+import type { Cuttable } from '../lib/craft/Cuttable';
+import type { LiftSource } from '../lib/pump/LiftSource';
+import type { PumpSource } from '../lib/pump/PumpSource';
 import type { CapTable } from '../lib/employment/CapTable';
 import type { Publisher } from '../lib/press/Publisher';
 import type { Registrar } from '../lib/document/Registrar';
@@ -1161,6 +1168,14 @@ export class MixinApi {
 
   public static isDispositioned(obj: Stuff): obj is Stuff & Dispositioned {
     return this.hasMixin(obj, Mixins.Dispositioned);
+  }
+
+  /**
+   * A SAMPLE — a lot that says where it was taken, by whom and when
+   * (`SampledMixin`).
+   */
+  public static isSampled(obj: Stuff): obj is Stuff & Sampled {
+    return this.hasMixin(obj, Mixins.Sampled);
   }
 
   public static isAdvancing(obj: Stuff): obj is Stuff & Advancing {
@@ -2369,6 +2384,36 @@ export class MixinApi {
    */
   public static isOnCall(obj: Stuff): obj is Stuff & OnCall {
     return this.hasMixin(obj, Mixins.OnCall);
+  }
+
+  /** ⭐ Plans its own cut — `cut` (`CuttableMixin`, a protocol). */
+  public static isCuttable(obj: Stuff): obj is Stuff & Cuttable {
+    return this.hasMixin(obj, Mixins.Cuttable);
+  }
+
+  /** ⭐ A stop on some travel network — `teleport` (`TravelNodeMixin`, a protocol). */
+  public static isTravelNode(obj: Stuff): obj is Stuff & TravelNode {
+    return this.hasMixin(obj, Mixins.TravelNode);
+  }
+
+  /** ⭐ Comes apart a piece per act — `split` (`SplittableMixin`, a protocol). */
+  public static isSplittable(obj: Stuff): obj is Stuff & Splittable {
+    return this.hasMixin(obj, Mixins.Splittable);
+  }
+
+  /** ⭐ Answers `pump` — a pump's handle, a bellows (`PumpableMixin`, a protocol). */
+  public static isPumpable(obj: Stuff): obj is Stuff & Pumpable {
+    return this.hasMixin(obj, Mixins.Pumpable);
+  }
+
+  /** ⭐ A draw point with fluid standing below it (`LiftSourceMixin`, a protocol). */
+  public static isLiftSource(obj: Stuff): obj is Stuff & LiftSource {
+    return this.hasMixin(obj, Mixins.LiftSource);
+  }
+
+  /** ⭐ Something a pump is SET IN (`PumpSourceMixin`, a protocol). */
+  public static isPumpSource(obj: Stuff): obj is Stuff & PumpSource {
+    return this.hasMixin(obj, Mixins.PumpSource);
   }
 
   /** A standalone employing Business (the `BusinessMixin` marker). */

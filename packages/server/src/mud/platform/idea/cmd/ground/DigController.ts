@@ -75,14 +75,9 @@ export default class DigController extends WorkedActController {
 /**
  * Narrow to the declared {@link Diggable} shape.
  *
- * ⚠ **Module-private, and NOT a `Diggables.of()` static beside the
- * interface.** `lint:lib-statics` counts every public static on an exported
- * `lib/` class against a ceiling that may fall and never rise; and the
- * precedent such a holder would have cited is a husk —
- * `class TravelNodes` has a private constructor and no members, because
- * `TeleportController` says *"inlined from `TravelNodes` when this file
- * turned out to be its only caller."* The live pattern is the local
- * narrowing, so this is the live pattern.
+ * ⚠ Still a shape probe (a recorded finding, controllers-are-io D8a): the
+ * one host is the quarry pack's `OpenWorkingMixin`, which a kernel verb
+ * cannot name; the demotion waits on `dig` moving to that pack.
  */
 function asDiggable(stuff: Stuff | null): (Stuff & Diggable) | null {
   if (stuff === null) return null;

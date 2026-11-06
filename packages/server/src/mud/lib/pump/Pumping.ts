@@ -43,13 +43,8 @@ import type { VetoResult } from '../errors';
 import type { Durable } from '../material/Durable';
 import type { Powered } from '../supply/Powered';
 import type Material from '../material/Material';
-import type {
-  LiftSource,
-  PumpSource,
-  Pumpable,
-  PumpPrognosis,
-  PumpResult,
-} from './Pumpable';
+import type { Pumpable, PumpPrognosis, PumpResult } from './Pumpable';
+import type { LiftSource } from './LiftSource';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import { BiomeApi } from '../../api/biome';
@@ -205,9 +200,8 @@ export function PumpingMixin<TBase extends MixinConstructor>(Base: TBase) {
       // ⭐ A pump in a pack, a crate or on a floor is CARRIED, not set. A
       // source is a host that holds a pump as its pump — the one method
       // every source answers (`PumpSource`), read by shape.
-      const h = host as unknown as Partial<PumpSource>;
-      return typeof h.pumpFitted === 'function'
-        ? (host as Stuff & Container)
+      return MixinApi.isPumpSource(host) && MixinApi.isContainer(host)
+        ? host
         : null;
     }
 
@@ -215,11 +209,7 @@ export function PumpingMixin<TBase extends MixinConstructor>(Base: TBase) {
     public liftSource(): (Stuff & LiftSource) | null {
       const host = this.sourceOf();
       if (!host) return null;
-      const h = host as unknown as Partial<LiftSource>;
-      return typeof h.standingDepthM === 'function' &&
-        typeof h.liftInto === 'function'
-        ? (host as unknown as Stuff & LiftSource)
-        : null;
+      return MixinApi.isLiftSource(host) ? host : null;
     }
 
     // ---------- ⭐ the seal ----------

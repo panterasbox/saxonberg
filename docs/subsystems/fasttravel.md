@@ -53,8 +53,12 @@ and structurally the kernel's. Three things moved:
    left naming a pack's view.
 
    So the verb is kernel and the network is a pack's, meeting over the
-   **`TravelNode` shape** (`lib/travel/TravelNode.ts`) — plain data in,
-   plain data out, never an import. Water's `SupplyReporting` is the
+   **`TravelNode` protocol** (`lib/travel/TravelNode.ts`) — plain data in,
+   plain data out, never an import. ⭐ Since controllers-are-io D8a it is
+   a protocol mixin: the tpa pack's `FastTravelMixin` composes
+   `TravelNodeMixin` (`_mixinKind = 'protocol'`, refusing defaults) and
+   `teleport` asks `MixinApi.isTravelNode` instead of probing `ride` and
+   `renderDepartures`. Water's `SupplyReporting` is the
    same seam — a waterworks is read by the shape it answers, and the
    asker never names its class.
 

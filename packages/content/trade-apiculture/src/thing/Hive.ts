@@ -35,6 +35,7 @@ import { HandlingMixin } from '@saxonberg/server/mud/lib/husbandry/Handling';
 import { ProducingMixin } from '@saxonberg/server/mud/lib/husbandry/Producing';
 import type { TapTake } from '@saxonberg/server/mud/lib/husbandry/Producing';
 import type { WorkDifficulty } from '@saxonberg/server/mud/lib/ground/Workable';
+import { SplittableMixin, type Splittable } from '@saxonberg/server/mud/lib/ground/Splittable';
 import type {
   TapClosedReason,
   TapSpec,
@@ -54,7 +55,6 @@ import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import type { EnclosureDefaults, RoofSpec } from '@saxonberg/server/mud/lib/spatial/Enclosed';
 import type { VetoResult } from '@saxonberg/server/mud/lib/errors';
 import type {
-  Splittable,
   WorkPrognosis,
   WorkResult,
 } from '@saxonberg/server/mud/lib/ground/Workable';
@@ -78,7 +78,7 @@ import HiveBox from './HiveBox';
  *  - `HandledMixin` and `HandlingMixin` side by side, never nested —
  *    nesting factories collapses TypeScript's inference through the chain.
  */
-const HiveBase = HandledMixin(
+const HiveBase = SplittableMixin(HandledMixin(
   HandlingMixin(
     ProducingMixin(
       ColonyMixin(
@@ -86,7 +86,7 @@ const HiveBase = HandledMixin(
       ),
     ),
   ),
-);
+));
 
 /**
  * The topic every scene this trade sends rides on — an act somebody
@@ -666,24 +666,13 @@ export default class Hive extends HiveBase implements Splittable {
 
   // ---------- splitting ----------
 
-  /**
-   * ⭐⭐ **A split is the platform's `split`, and it rides with no
-   * registration at all.**
-   *
-   * `Splittable`'s mandate is *divide an oversized or aggregated thing
-   * into usable units*, and a strong colony is exactly that: too much of
-   * it in one box, and making two is what a beekeeper does with it
-   * instead of losing half to the woods. `SplitController` duck-types
-   * the shape, so this is three methods and no wiring — which is the
-   * `Verbable` pattern doing its job rather than a `handle`-style
-   * collision to resolve.
-   *
-   * ⚠ It is the only acquisition that costs you something you already
-   * have (AC 1's third cost): the parent goes back to 60 % and the
-   * daughter has no queen until she raises one.
-   */
-  public readonly splittable = true as const;
-
+  // ⭐⭐ A split is the platform's `split`: `Splittable`'s mandate is *divide
+  // an oversized or aggregated thing into usable units*, and a strong colony
+  // is exactly that — too much of it in one box. The hive composes
+  // `SplittableMixin` (controllers-are-io D8a; it used to duck-type a
+  // marker). ⚠ The only acquisition that costs something you already have:
+  // the parent goes back to 60 % and the daughter has no queen until she
+  // raises one.
   public async planWork(
     by: Stuff,
     tool: (Stuff & Tooled) | null,

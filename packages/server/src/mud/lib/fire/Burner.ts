@@ -47,6 +47,7 @@ import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { CommandContributions } from '../../api/command';
 import type { MarkupAugmenter } from '../../api/mml';
 import { Mml } from '../../api/mml';
+import { PumpableMixin } from '../pump/Pumpable';
 import type { Pumpable, PumpPrognosis, PumpResult } from '../pump/Pumpable';
 import type { Stuff } from '../stuff/Stuff';
 import type { Thermal } from '../thermal/Thermal';
@@ -394,7 +395,9 @@ const BANKED_LOOK_THRESHOLD = 0.1;
 export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
   Base: TBase,
 ) {
-  class BurnerMixin extends Base implements Burner {
+  // ⭐ Composes the pump PROTOCOL (`PumpableMixin`): a furnace's bellows
+  // answers `pump`, and a lamp's honest `no-bellows` is this override.
+  class BurnerMixin extends PumpableMixin(Base) implements Burner {
     static _mixinName = 'BurnerMixin';
 
     static markupAugmenters: MarkupAugmenter[] = [burnerAugmenter];
