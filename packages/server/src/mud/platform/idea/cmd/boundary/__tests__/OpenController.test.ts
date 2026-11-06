@@ -48,7 +48,8 @@ import {
   seedKernelContentStore,
 } from '../../../../../lib/security/__tests__/test-setup';
 import { Idea } from "../../../../../lib/stuff/Idea";
-import { SealableMixin, ThrottleableMixin } from '../../../../../lib/spatial/Sealable';
+import { SealableMixin } from '../../../../../lib/spatial/Sealable';
+import { ThrottleableMixin } from '../../../../../lib/spatial/Throttleable';
 import { CommandLineApi } from '../../../../../api/command-line';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';

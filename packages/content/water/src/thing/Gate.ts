@@ -20,7 +20,8 @@
  * names {@link PersistentGate}.
  */
 
-import { ThrottleableMixin, SealableMixin } from '@saxonberg/server/mud/lib/spatial/Sealable';
+import { SealableMixin } from '@saxonberg/server/mud/lib/spatial/Sealable';
+import { ThrottleableMixin } from '@saxonberg/server/mud/lib/spatial/Throttleable';
 import { LockableMixin } from '@saxonberg/server/mud/lib/boundary/Lockable';
 import { ShiftSchedule } from '@saxonberg/server/mud/lib/employment/ShiftSchedule';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';

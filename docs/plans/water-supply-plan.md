@@ -1486,3 +1486,16 @@ paper mill takes `none` (its vat is filled from the race). Two follow-ons:
   bulk record. A letter goes to pulp; a towel is soaked through and stays.
 - **The ditch's records are documents**, by paper's rule — the turn book and
   filed water rights, when built: `irrigation-slate.md` § 12.
+
+#### `ThrottleableMixin` moved to its own module (review, 2026-11-05)
+
+W3 put `ThrottleableMixin`, `Throttleable` and `WorkRecord` in
+`lib/spatial/Sealable.ts` (the plan said so; nothing said why). A mixin's file
+is named for it, so they moved to **`lib/spatial/Throttleable.ts`**; the
+`canOpen` hook stays on `Sealable` (every sealable has it). The references
+above (§ W3, the host table) name the old home. A census of the tree found
+twelve more mixins not in their own module — `HeldGoodsMixin`,
+`ConsignmentShelfMixin`, `SeatedDrivableMixin`, `PropsMixin`, `CostumedMixin`,
+`CutleryMixin`, `ToolMixin`, `DisguiseBearingMixin`, `RegistrarMixin`,
+`ReservedMixin`, `LoungeMixin`, trade-quarrying's `OpenWorkingMixin`. All
+predate this build, so they are left for a sweep.

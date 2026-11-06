@@ -63,7 +63,7 @@ import { Quantity } from "../quantity";
 import type { Reserved } from "../reserve";
 import type { Stuff } from "../stuff/Stuff";
 import type { Growing } from "./Growing";
-import type { Throttleable } from "../spatial/Sealable";
+import type { Throttleable } from "../spatial/Throttleable";
 import type { Container } from "../spatial/Container";
 import type Locality from "../../platform/idea/Locality";
 
