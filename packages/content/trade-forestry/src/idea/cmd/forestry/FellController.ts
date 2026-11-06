@@ -67,7 +67,8 @@ import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { GrammarApi } from '@saxonberg/server/mud/api/grammar';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { STAND_MIXIN, type Stand, type StandSpecies } from '../../../lib/Stand';
-import Bole, { BOLE_M3, BOLE_LENGTHS } from '../../../thing/Bole';
+import Bole, { BOLE_M3, BOLE_LENGTHS, CROSSCUT_MS } from '../../../thing/Bole';
+import type { CrosscutRefusal, CutAnswerFor } from '@saxonberg/server/mud/lib/craft/Cuttable';
 
 export const FORESTRY_TOPIC = 'act.deed';
 
@@ -75,8 +76,6 @@ export const FORESTRY_TOPIC = 'act.deed';
 export const FELL_MS = 30_000;
 /** Endurance points a felling costs. */
 export const FELL_COST = 10;
-/** Game-ms one cross-cut takes. */
-export const CROSSCUT_MS = 15_000;
 /** Endurance points a cross-cut costs. */
 export const CROSSCUT_COST = 5;
 /** Logs off the crown of a standard. */
@@ -114,7 +113,6 @@ const ENDURANCE = 'endurance';
 const FELLING = 'felling';
 
 const BOLE_PATH = '/trade/forestry/thing/bole';
-const TIMBER_PATH = '/trade/forestry/thing/timber';
 const LOG_PATH = '/trade/forestry/thing/log';
 const FELLED_TREE_PATH = '/trade/forestry/thing/felled-tree';
 const BRASH_PATH = '/trade/forestry/thing/brash';
@@ -153,10 +151,17 @@ export default class FellController extends ManualBuildController<FellModel> {
 
     const named = model.target?.stuff ?? null;
 
-    // (a) A bole on the floor — cross-cut it.
-    if (named && named instanceof Bole) {
-      this.crosscut(context, named);
-      return;
+    // (a) A bole on the floor — cross-cut it. ⭐ The bole's own cut
+    // (`CuttableMixin.cutPlan`, verb `crosscut` — controllers-are-io D8c);
+    // a thing that has no cross-cut of its own (`not-cuttable`) is asked
+    // the felling's other questions below.
+    if (named && MixinApi.isCuttable(named)) {
+      const out = await named.cutPlan({ verb: 'crosscut', actor: giver, tools: [axe], raw: null, length: null, options: {} });
+      if (out.verb !== 'crosscut') throw new Error(`FellController: asked 'crosscut', answered '${out.verb}'`);
+      if (out.ok || out.reason !== 'not-cuttable') {
+        await this.crosscut(context, out, named);
+        return;
+      }
     }
 
     // (b) A planted tree — fell it where it stands.
@@ -215,23 +220,53 @@ export default class FellController extends ManualBuildController<FellModel> {
     });
   }
 
-  /** `fell bole` — one length off the trunk per engagement. */
-  private crosscut(context: CommandContext, bole: Bole): void {
+  /** `fell bole` — one length off the trunk per engagement; the words are this verb's. */
+  private async crosscut(context: CommandContext, out: CutAnswerFor<'crosscut'>, bole: Stuff): Promise<void> {
     const giver = context.commandGiver;
-    if (bole.getLengthsLeft() <= 0) {
-      this.decline(context, 'bole-spent', Mml.compose`There is nothing left in ${Mml.thing(bole)} but the butt.`);
+    if (!out.ok) {
+      this.decline(context, out.reason, FellController.crosscutRefusal(out, bole));
       return;
     }
     this.spend(giver, CROSSCUT_COST);
-    this.engageStep(context, {
-      durationMs: CROSSCUT_MS,
-      effortW: 500,
-      beginSelf: Mml.compose`You start cross-cutting ${Mml.thing(bole)}.`,
-      beginPeers: Mml.compose`${Mml.actor(giver)} starts cross-cutting ${Mml.thing(bole)}.`,
-      onComplete: () => {
-        void takeLength(context, bole);
+    await this.engagePlan(context, out, {
+      beginSelf: (f) => Mml.compose`You start cross-cutting ${Mml.thing(f.bole)}.`,
+      beginPeers: (f) => Mml.compose`${Mml.actor(giver)} starts cross-cutting ${Mml.thing(f.bole)}.`,
+      onRefused: (r) => FellController.crosscutRefusal(r, bole),
+      onDone: (f) => {
+        switch (f.kind) {
+          case 'gone':
+            return null;
+          case 'last':
+            return {
+              self: Mml.compose`You cut the last length off ${f.boleName}. What is left is a knotted butt and a heap of brash, and the wood can have it back.`,
+              peers: Mml.compose`${Mml.actor(giver)} cuts the last length off ${f.boleName}.`,
+            };
+          case 'length':
+            return {
+              self: Mml.compose`You cut ${Mml.thing(f.timber)} off ${Mml.thing(f.bole)}. ${f.left === 1 ? 'One length left in it.' : `${GrammarApi.cap(GrammarApi.inWords(f.left))} lengths in it yet.`}`,
+              peers: Mml.compose`${Mml.actor(giver)} cuts a length off ${Mml.thing(f.bole)}.`,
+            };
+          default: {
+            const never: never = f;
+            return never;
+          }
+        }
       },
     });
+  }
+
+  /** ⭐ Every reason a bole refuses its cross-cut (D4). */
+  private static crosscutRefusal(r: CrosscutRefusal, bole: Stuff): ReturnType<typeof Mml.compose> {
+    switch (r.reason) {
+      case 'not-cuttable':
+        return Mml.compose`${Mml.thing(bole)} is not a tree.`;
+      case 'bole-spent':
+        return Mml.compose`There is nothing left in ${Mml.thing(bole)} but the butt.`;
+      default: {
+        const never: never = r;
+        return never;
+      }
+    }
   }
 
   /** `fell <planted tree>` — a standard in a panel, felled where it stands. */
@@ -453,43 +488,6 @@ async function fellStandard(
     )
     .send();
   await credit(giver, 'standard');
-}
-
-/** One length of timber off the bole; the butt and brash at the end. */
-async function takeLength(context: CommandContext, bole: Bole): Promise<void> {
-  const giver = context.commandGiver;
-  if (giver.isDestroyed() || bole.isDestroyed()) return;
-  const room = bole.getContainer();
-  const wood = bole.getMaterial();
-  const timber = await StuffApi.clone<Stuff & Containable>(TIMBER_PATH, undefined, {
-    madeFrom: bole,
-  });
-  if (wood && MixinApi.isTangible(timber)) timber.setMaterial(wood);
-  if (MixinApi.isContainer(giver)) ContainmentApi.move(timber, giver);
-  else if (room) ContainmentApi.move(timber, room);
-
-  const left = bole.takeLength();
-  if (left <= 0) {
-    MessageApi.scene(giver)
-      .topic(FORESTRY_TOPIC)
-      .toSelf(
-        Mml.compose`You cut the last length off ${Mml.thing(bole)}. What is left is a knotted butt and a heap of brash, and the wood can have it back.`,
-      )
-      .toPeers(Mml.compose`${Mml.actor(giver)} cuts the last length off ${Mml.thing(bole)}.`)
-      .send();
-    await StuffApi.destruct(bole);
-  } else {
-    MessageApi.scene(giver)
-      .topic(FORESTRY_TOPIC)
-      .toSelf(
-        Mml.compose`You cut ${Mml.thing(timber)} off ${Mml.thing(bole)}. ${left === 1 ? 'One length left in it.' : `${GrammarApi.cap(GrammarApi.inWords(left))} lengths in it yet.`}`,
-      )
-      .toPeers(Mml.compose`${Mml.actor(giver)} cuts a length off ${Mml.thing(bole)}.`)
-      .send();
-  }
-  if (room) await capture(room);
-  await capture(giver);
-  await credit(giver, 'easy');
 }
 
 /** A planted standard, felled where it stands — the product sized by the tree. */

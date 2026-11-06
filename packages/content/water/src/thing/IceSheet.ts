@@ -41,16 +41,25 @@ import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { WeatherApi } from '@saxonberg/server/mud/api/weather';
-import { Mml } from '@saxonberg/server/mud/api/mml';
-import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { EmploymentApi } from '@saxonberg/server/mud/api/employment';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
-import { CuttableMixin, type CutRequest, type Cuttable } from '@saxonberg/server/mud/lib/craft/Cuttable';
-import type { ActPlan, ActRefusal } from '@saxonberg/server/mud/lib/craft/ActPlan';
+import {
+  CuttableMixin,
+  type CutAnswer,
+  type CutDone,
+  type CutRefusal,
+  type CutRequest,
+  type Cuttable,
+  type GrooveDone,
+  type GrooveRefusal,
+  type ScrapeDone,
+  type ScrapeRefusal,
+} from '@saxonberg/server/mud/lib/craft/Cuttable';
+import type { ActDone } from '@saxonberg/server/mud/lib/craft/ActPlan';
 import WatercourseCatalogue, { OPEN_WATER_BELOW_M, type IceRecord, type IceHistory } from '../idea/WatercourseCatalogue';
 
 /** What a patch of the sheet has been through. */
@@ -86,7 +95,6 @@ interface SweepTool {
   getSweepM2?(): number;
   getGridM?(): number;
   getDraught?(): string;
-  hasCapability?(kind: string): boolean;
 }
 
 const IceSheetBase = CuttableMixin(PersistableMixin(WaterSurface));
@@ -278,31 +286,29 @@ export default class IceSheet extends IceSheetBase implements Cuttable {
   // ─────────────────────────── the acts ───────────────────────────
 
   /** `scrape`: clear snow off an area of the field (or of a named patch). */
-  public scrapePatch(actor: Stuff, tool: Stuff, raw: string | null): { ok: boolean; line: string } {
-    const refusal = this.actRefusal(actor);
-    if (refusal) return { ok: false, line: refusal };
+  public scrapePatch(actor: Stuff, tool: Stuff, raw: string | null): ActDone<ScrapeDone, ScrapeRefusal> {
+    if (!this.supports(actor)) return { ok: false, reason: 'not-on-ice' };
     const from = this.patchByWord(raw ?? 'field');
     if (from === null || from.kind === 'cut' || from.kind === 'hole' || from.kind === 'broken') {
-      return { ok: false, line: 'There is no snowy ice there to scrape.' };
+      return { ok: false, reason: 'no-snowy-ice' };
     }
     const fromIce = this.iceOf(from);
     if (fromIce === null || fromIce.thicknessM <= OPEN_BELOW_M) {
-      return { ok: false, line: 'That is open water.' };
+      return { ok: false, reason: 'open' };
     }
     const area = Math.min(from.areaM2, (tool as unknown as SweepTool).getSweepM2?.() ?? 4);
-    if (!(area > 0)) return { ok: false, line: 'There is nothing left there to scrape.' };
+    if (!(area > 0)) return { ok: false, reason: 'nothing-left' };
     this.split(from, 'scraped', area, { bareFromS: nowS() });
     void this.captureSelf();
-    return { ok: true, line: `You scrape the snow off a patch of the ice, about ${Math.round(area)} square metres of it, down to the black.` };
+    return { ok: true, facts: { areaM2: area } };
   }
 
   /** `groove`: score a grid across scraped (or field) ice. */
-  public markPatch(actor: Stuff, tool: Stuff, raw: string | null): { ok: boolean; line: string } {
-    const refusal = this.actRefusal(actor);
-    if (refusal) return { ok: false, line: refusal };
+  public markPatch(actor: Stuff, tool: Stuff, raw: string | null): ActDone<GrooveDone, GrooveRefusal> {
+    if (!this.supports(actor)) return { ok: false, reason: 'not-on-ice' };
     const t = tool as unknown as SweepTool;
     if (t.getDraught?.() === 'horse' && !this.hasDraftAnimal()) {
-      return { ok: false, line: 'An ice plough wants a horse in the traces, and there is none out here.' };
+      return { ok: false, reason: 'no-horse' };
     }
     // ⭐ One grid on a sheet (the review): a new mark REPLACES a standing
     // one — its area goes back to the ice it was scored on, then the new
@@ -311,24 +317,24 @@ export default class IceSheet extends IceSheetBase implements Cuttable {
     // mark leaves the grid standing (the pre-merge audit — a bad word wiped
     // the crew's grid): the log is put back as it was.
     const before = this.log.map((p) => ({ ...p }));
-    const refuse = (line: string): { ok: boolean; line: string } => {
+    const refuse = (reason: 'no-clear-ice' | 'open'): GrooveRefusal => {
       this.log = before;
-      return { ok: false, line };
+      return { ok: false, reason };
     };
     for (const old of this.log.filter((p) => p.kind === 'marked' && p.areaM2 > 0)) this.unmark(old);
     // A bare `groove` takes the scraped patch, else the field; a NAMED patch
     // is that patch or a refusal (`mark banana` is not the field).
     const from = raw === null ? (this.patchByWord('scraped') ?? this.patchByWord('field')) : this.patchByWord(raw);
     if (from === null || !(from.kind === 'scraped' || from.kind === 'field')) {
-      return refuse('There is no clear ice there to mark.');
+      return refuse('no-clear-ice');
     }
     const fromIce = this.iceOf(from);
-    if (fromIce === null || fromIce.thicknessM <= OPEN_BELOW_M) return refuse('That is open water.');
+    if (fromIce === null || fromIce.thicknessM <= OPEN_BELOW_M) return refuse('open');
     const grid = t.getGridM?.() ?? 0.3;
     const area = Math.min(from.areaM2, t.getDraught?.() === 'horse' ? 100 : 20);
     this.split(from, 'marked', area, { gridM: grid, bareFromS: from.bareFromS });
     void this.captureSelf();
-    return { ok: true, line: `You score a grid across the ice, the lines ${Math.round(grid * 100)} centimetres apart.` };
+    return { ok: true, facts: { gridCm: Math.round(grid * 100) } };
   }
 
   /** A marked patch goes back to the ice it was scored on: scraped (its bare clock kept) or field. */
@@ -347,76 +353,75 @@ export default class IceSheet extends IceSheetBase implements Cuttable {
   }
 
   /**
-   * ⭐ The cut plan (the kernel `cut`, D16): a block off the marked grid,
-   * or a hole for a line (`cut hole`). Needs an ice saw, a body ON the
-   * ice, and ice there to cut.
+   * ⭐ The cut plan: the kernel `cut` (D16) — a block off the marked grid,
+   * or a hole for a line (`cut hole`); it needs an ice saw, a body ON the
+   * ice, and ice there to cut. And the ice trade's `groove` and `scrape`
+   * (controllers-are-io D8c) — instant acts, a zero-length plan that lands
+   * at once; the sheet decides each, the trade-ice controllers word it.
    */
-  public async cutPlan(req: CutRequest): Promise<ActPlan | ActRefusal> {
-    const refuse = (reason: string, words: string): ActRefusal => ({
-      ok: false,
-      reason,
-      line: Mml.compose`${words}`,
-    });
-    const saw = req.tools.find((t) => {
-      const h = t as unknown as SweepTool;
-      return typeof h.hasCapability === 'function' && h.hasCapability('ice-sawing');
-    });
-    if (!saw) return refuse('no-ice-saw', 'You need an ice saw to cut ice.');
-    const actorRefusal = this.actRefusal(req.actor);
-    if (actorRefusal) return refuse('not-on-ice', actorRefusal);
+  public override async cutPlan(req: CutRequest): Promise<CutAnswer> {
+    if (req.verb === 'groove' || req.verb === 'scrape') return this.workPlan(req.verb, req);
+    if (req.verb !== 'cut') return { ok: false, verb: req.verb, reason: 'not-cuttable' } as CutAnswer;
+    const refuse = (r: CutRefusal): CutAnswer => ({ ...r, verb: 'cut' });
+    const saw = req.tools.find((t) => MixinApi.isTool(t) && t.hasCapability('ice-sawing'));
+    if (!saw) return refuse({ ok: false, reason: 'no-ice-saw' });
+    if (!this.supports(req.actor)) return refuse({ ok: false, reason: 'not-on-ice' });
     const hole = (req.raw ?? '').trim().toLowerCase() === 'hole';
     const patch = hole ? this.patchByWord('field') : this.patchByWord(req.raw ?? 'marked');
-    if (patch === null) {
-      return refuse(hole ? 'no-ice' : 'no-grid', hole ? 'There is no ice here to cut through.' : 'Mark a grid on the ice first, then cut along it.');
-    }
-    if (!hole && patch.kind !== 'marked') return refuse('no-grid', 'Mark a grid on the ice first, then cut along it.');
+    if (patch === null) return refuse({ ok: false, reason: hole ? 'no-ice' : 'no-grid' });
+    if (!hole && patch.kind !== 'marked') return refuse({ ok: false, reason: 'no-grid' });
     const ice = this.iceOf(patch);
-    if (ice === null || ice.thicknessM <= OPEN_BELOW_M) return refuse('open', 'That is open water.');
+    if (ice === null || ice.thicknessM <= OPEN_BELOW_M) return refuse({ ok: false, reason: 'open' });
     const actor = req.actor;
     return {
       ok: true,
+      verb: 'cut',
       durationMs: hole ? 60_000 : 120_000,
       effortW: 500,
-      beginSelf: hole
-        ? Mml.compose`You set the saw to the ice and begin cutting a hole.`
-        : Mml.compose`You set the ice saw into the grid line and begin to cut.`,
-      beginPeers: Mml.compose`${Mml.actor(actor)} saws at the ice.`,
-      onComplete: () => {
-        void this.finishCut(actor, hole, patch.id);
-      },
+      facts: { kind: 'ice', hole },
+      onComplete: () => this.finishCut(actor, hole, patch.id),
+    };
+  }
+
+  /** `groove` / `scrape`: the one tool the controller chose, worked at once. */
+  private workPlan(verb: 'groove' | 'scrape', req: CutRequest): CutAnswer {
+    const tool = req.tools[0];
+    if (!this.supports(req.actor)) return { ok: false, verb, reason: 'not-on-ice' };
+    if (tool === undefined) return { ok: false, verb, reason: 'not-cuttable' };
+    const actor = req.actor;
+    const raw = req.raw;
+    if (verb === 'groove') {
+      return {
+        ok: true,
+        verb,
+        durationMs: 0,
+        effortW: 0,
+        facts: undefined,
+        onComplete: () => this.markPatch(actor, tool, raw),
+      };
+    }
+    return {
+      ok: true,
+      verb,
+      durationMs: 0,
+      effortW: 0,
+      facts: undefined,
+      onComplete: () => this.scrapePatch(actor, tool, raw),
     };
   }
 
   /**
-   * The cut's end, said: the plan owns its completion (tailoring's
-   * `finishCut` precedent) — a cut that lands a block in silence leaves its
-   * cutter waiting on a saw that has already stopped (the live walk).
+   * The cut's end: the plan owns its completion (tailoring's `finishCut`
+   * precedent) — the cut controller words what it came to.
    */
-  private async finishCut(actor: Stuff, hole: boolean, patchId: string): Promise<void> {
+  private async finishCut(actor: Stuff, hole: boolean, patchId: string): Promise<ActDone<CutDone, CutRefusal>> {
     if (hole) {
       await this.cutHole(actor);
-      MessageApi.scene(actor)
-        .topic('act.deed')
-        .toSelf(Mml.compose`The saw breaks through, and black water wells up into the hole.`)
-        .toPeers(Mml.compose`${Mml.actor(actor)} saws a hole through the ice.`)
-        .send();
-      return;
+      return { ok: true, facts: { kind: 'ice-hole' } };
     }
     const block = await this.cutBlock(actor, patchId);
-    if (block === null) {
-      MessageApi.scene(actor)
-        .topic('act.deed')
-        .toSelf(Mml.compose`The saw comes through, but there is no block to lift — the ice there will not give one.`)
-        .send();
-      return;
-    }
-    const kg = MixinApi.isTangible(block) ? block.getMass().rawValue() : 0;
-    const heft = kg > 0 ? ` — about ${Math.round(kg)} kilograms of it —` : '';
-    MessageApi.scene(actor)
-      .topic('act.deed')
-      .toSelf(Mml.compose`The saw comes through the last line, and you lever ${block.getPresentation()}${heft} up out of the water onto the ice.`)
-      .toPeers(Mml.compose`${Mml.actor(actor)} levers ${block.getPresentation()} up out of the water.`)
-      .send();
+    const kg = block !== null && MixinApi.isTangible(block) ? block.getMass().rawValue() : 0;
+    return { ok: true, facts: { kind: 'ice-block', block, kg } };
   }
 
   /** A block off a marked patch: thickness × grid², at the patch's grade. */
@@ -628,12 +633,6 @@ export default class IceSheet extends IceSheetBase implements Cuttable {
     // ⭐ The WATER says where sunk things go, never the ice.
     const room = this.room();
     if (room !== null && MixinApi.isWaterPlace(room)) room.sinkWhatSinks();
-  }
-
-  /** Why an actor cannot work the ice from where they are, or `null`. */
-  private actRefusal(actor: Stuff): string | null {
-    if (!this.supports(actor)) return 'You cannot work the ice from the water.';
-    return null;
   }
 
   private hasDraftAnimal(): boolean {
