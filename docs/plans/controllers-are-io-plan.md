@@ -1159,6 +1159,26 @@ Acceptance: `lint:family --list` shows the twelve; each fixture test
 fails when its violation is removed; the baseline passes against
 itself. Commit.
 
+✅ **W0 gates done** (`a9ba1db95`). Ceilings at HEAD: command-views
+schema 0 (hard), category 361 + 10 domain-local views with no category
+dir (warning, `CATEGORY_REQUIRED` flips in W6); duck-typing 628,
+undefined-name probes 7 (not 5: `beforeRestore` IS defined by
+MineWarren; `onConnectionDetached` ×2 and `onLinkRestored` are declared
+optional on `HasInteractive` and implemented by nobody);
+controller-mutations 359; controller-decisions 1286 (durations 113);
+controller-functions 274; controller-resolution hunts 4 (1 → 4 is the
+wider census: Unprovision, Unlease, the kernel `CommandController`
+base), self-resolution 117; mixin-clusters 44 (accessor pairs folded by
+stem, else 77); mixin-files 12; one-word 65/77 · 4 · 0; subcommand-words
+pairs 47, builtin **6** (`treasury set` is the sixth); institution-verbs
+11 (reads the operand OR the book-writing call — half of D9's verbs take
+the book implicitly; four acts allowlisted with reasons: stake, stall,
+lease, provision). Decided: **D17 compares positional RANGES**
+(`[required, total]`), because the literal required-count rule passed
+`pour`'s two views, which one line binds both of. `pack-roots.ts` gained
+`controllerFiles()`, `commandViews()`, a shared `ratchet()` (fails above
+AND below the ceiling).
+
 ### W1 — the command line and the dispatcher
 
 Goal: drive 1–5, 23 (second half), 24, 25 (the greyed-out reason).
