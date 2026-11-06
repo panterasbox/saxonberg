@@ -1,0 +1,17 @@
+# The city directory on the Gazette's counter — a PRINTED book:
+# its leaves are bound to the Gazette's edition of the directory, laid down
+# when it is made (`edition:`). Anybody can read it; it is chained to the
+# counter, so a page torn out is the way its words leave the shop — and the
+# torn page is still the Gazette's paper, whoever tore it.
+class: /platform/thing/Book
+extends: /platform/thing/book
+data:
+  shortDescription: city directory
+  keywords: [directory, "city directory", "terminus directory"]
+  register: definite
+  longDescription: >-
+    A fat directory in grey boards, chained to the counter by a hole bored
+    through its spine. THE TERMINUS DIRECTORY is stamped on the cover.
+  fixedInPlace: true
+  mass: 1.2
+  edition: /world/terminus/editions/terminus-directory

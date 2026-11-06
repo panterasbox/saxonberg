@@ -54,14 +54,15 @@ args:
     greedy: true
     scope: ["reachable"]
     requires: any
-  # What it is fitted TO. Only an assembly can take a part.
+  # What it is fitted TO. Only an assembly can take a part — ⭐ or a good's
+  # FACE a label (a sheet) is pasted onto.
   - name: whole
     type: object
     required: false
     greedy: true
     prepositions: [to, on, in, into, onto]
     scope: ["reachable"]
-    requires: AssembledMixin
+    requires: AssembledMixin|FacedMixin
   # ⭐ WHICH TOOL — declared, not hunted for (`lint:instrument-args`). Bare,
   # the binder hands over every reachable tool; the joint decides which
   # capability it wants.
@@ -72,4 +73,5 @@ args:
     prepositions: [with, using]
     default: "reachable:[mixin.ToolMixin]"
     scope: ["reachable"]
-    requires: [ToolMixin]
+    # ⭐ …or the POT a label is pasted from.
+    requires: [ToolMixin|BulkableMixin]

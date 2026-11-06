@@ -1,0 +1,16 @@
+# The size tub — warm thin glue. `dip sheet in size tub` lays a
+# coat of size on it; dried, the sheet takes ink. The platform's dip bath
+# (a glaze tub's mechanism) with size in it.
+class: /platform/thing/GlazeTub
+data:
+  shortDescription: size tub
+  keywords: [tub, "size tub", size, sizing]
+  register: indefinite
+  longDescription: A shallow copper-bound tub of warm amber size, steaming faintly.
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 25
+  fixedInPlace: true
+  interiorBulk: true
+  interiorCapacity: 40
+  interiorMaterial: /trade/papermaking/idea/material/size
+  interiorAmount: 30

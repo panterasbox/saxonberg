@@ -2647,11 +2647,16 @@ function bindPositionals(
       // preposition (boundary lookahead). Scan forward for a token
       // that matches one of those, and slice up to it.
       const laterPreps = collectLaterPrepositions(args, ai);
+      // ⭐ A preposition that opens only NUMBER fields (`read notebook page 3`)
+      // ends the span only when a number follows it: otherwise it is part
+      // of the name (`read torn-out page`, `read me:i:'directory page'`).
+      const numericPreps = collectNumericOnlyPrepositions(args, ai);
       let stopAt = positionals.length;
       if (laterPreps.size > 0) {
         for (let k = pi; k < positionals.length; k++) {
           const tk = positionals[k]!.value.toLowerCase();
           if (laterPreps.has(tk)) {
+            if (numericPreps.has(tk) && !isNumericToken(positionals[k + 1]?.value)) continue;
             stopAt = k;
             break;
           }
@@ -2867,6 +2872,29 @@ function makeExpander(giver: Stuff): (text: string) => string {
  */
 function makeDefaultExpander(giver: Stuff): (text: string) => string {
   return (text) => ShellApi.expandVariables(text, giver);
+}
+
+/**
+ * The later prepositions that open ONLY `number` fields — `page` on `read`.
+ * Such a word ends a greedy name only when a number follows it.
+ */
+function collectNumericOnlyPrepositions(
+  args: PositionalDefinition[],
+  fromIdx: number
+): Set<string> {
+  const numeric = new Set<string>();
+  const other = new Set<string>();
+  for (let i = fromIdx + 1; i < args.length; i++) {
+    const def = args[i]!;
+    for (const p of def.prepositions ?? []) (def.type === 'number' ? numeric : other).add(p.toLowerCase());
+  }
+  for (const p of other) numeric.delete(p);
+  return numeric;
+}
+
+/** A token that reads as a number (`3`, `-2`, `0.5`). */
+function isNumericToken(value: string | undefined): boolean {
+  return value !== undefined && /^-?\d+(\.\d+)?$/.test(value.trim());
 }
 
 /** Collect every later positional's declared prepositions into one

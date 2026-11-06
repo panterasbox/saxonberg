@@ -1,0 +1,17 @@
+# Printing ink — lampblack ground into boiled linseed oil: a
+# stiff black paste the press's balls beat onto the forme.
+class: /platform/idea/material/Material
+data:
+  name: printing ink
+  keywords: [ink, "printing ink", "press ink"]
+  appearance: a stiff glossy black paste
+  density: 1100
+  specificHeat: 2000
+  thermalConductivity: 0.2
+  meltingPoint: 250
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: [liquid, ink, oil]
+  composition: []
+  biologicalSource: null

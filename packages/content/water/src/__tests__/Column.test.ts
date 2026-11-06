@@ -141,7 +141,7 @@ class Lump extends Good {}
 function lump(densityKgM3: number): Lump {
   const l = makeStuff(() => new Lump());
   l.setMass(Quantity.of(5, 'kg'));
-  vi.spyOn(l, 'getMaterial').mockReturnValue({ getDensity: () => Quantity.of(densityKgM3, 'kg/m³') } as never);
+  vi.spyOn(l, 'getMaterial').mockReturnValue({ getDensity: () => Quantity.of(densityKgM3, 'kg/m³'), getWetStrength: () => null, getSoddenTemplate: () => '' } as never);
   return l;
 }
 

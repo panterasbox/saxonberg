@@ -41,11 +41,14 @@ import { MagicApi } from '../../../../api/magic';
 import { Mml } from '../../../../api/mml';
 import type { Arcane } from '../../../../lib/magic/Arcane';
 import type { Charged } from '../../../../lib/magic/Charged';
+import Book from '../../../thing/Book';
 
 const TOPIC = 'sense.survey';
 
 interface ReadModel extends CommandModel {
   target: MqlOneResult;
+  /** A book's page; raw from the binder, parsed here. */
+  page?: string | number;
 }
 
 export default class ReadController extends CommandController<ReadModel> {
@@ -67,6 +70,18 @@ export default class ReadController extends CommandController<ReadModel> {
       return;
     }
 
+    // ⭐ One `read`, two faces: a SCREEN is read off what it
+    // shows, live; a written thing (below) by its marks.
+    if (!MixinApi.isMarked(target) && MixinApi.isDisplay(target)) {
+      // A lit screen is its own light: no light gate here.
+      const shown = await target.readScreen(giver);
+      MessageApi.scene(giver)
+        .topic(TOPIC)
+        .toSelf(shown === null ? Mml.compose`${Mml.thing(target)} is dark.` : Mml.compose`${Mml.thing(target)} reads: ${shown}`)
+        .send();
+      return;
+    }
+
     if (!MixinApi.isMarked(target)) {
       MessageApi.scene(giver)
         .topic(TOPIC)
@@ -80,7 +95,23 @@ export default class ReadController extends CommandController<ReadModel> {
       return;
     }
 
-    // ⭐ Marks derived from a record (a register's page) are read now.
+    // ⭐ A book opens at the page named.
+    if (model.page !== undefined && model.page !== '') {
+      if (!(target instanceof Book)) {
+        MessageApi.scene(giver).topic(TOPIC).toSelf(Mml.compose`${Mml.thing(target)} has no pages to turn to.`).send();
+        context.note({ kind: 'controller-rejected', reason: 'not-a-book', detail: 'only a book has pages' });
+        return;
+      }
+      const opened = target.openTo(Number(model.page));
+      if (!opened.ok) {
+        MessageApi.scene(giver).topic(TOPIC).toSelf(Mml.text(opened.line)).send();
+        context.note({ kind: 'controller-rejected', reason: opened.reason, detail: opened.line });
+        return;
+      }
+    }
+
+    // ⭐ Marks derived from a record (a register's page, a printed sheet's
+    // edition) are read now, so the text below is a sync read.
     await target.refreshMarks(giver);
 
     // ── Perceive ──
@@ -154,8 +185,9 @@ export default class ReadController extends CommandController<ReadModel> {
       return;
     }
 
-    const text = target.getMarkText();
-    // ⭐ The writing, and whose mark it bears — both, as the reader knows it.
+    // ⭐ The writing as THIS reader reads it — the hands named as they know
+    // the writers — and whose mark it bears.
+    const text = target.readFor(giver);
     const body =
       text.length > 0 && device !== null
         ? Mml.compose`${Mml.thing(target)} reads: ${text} It bears ${device}.`
@@ -168,23 +200,13 @@ export default class ReadController extends CommandController<ReadModel> {
 
     // ── …and whatever reading it sets off ──
     await this.fireAnyWorking(target, context);
-    await this.takeAnyChart(target, context);
-  }
-
-  /**
-   * ⭐ A chart writes what it shows into the reader's map (maritime D15)
-   * — at the same seam a scroll's working fires, after the text has
-   * landed. It is still a reading: the marks show first.
-   */
-  private async takeAnyChart(target: Stuff, context: CommandContext): Promise<void> {
-    if (!MixinApi.isCharted(target)) return;
-    const giver = context.commandGiver;
-    const n = await target.writeClaimsFor(giver);
-    if (n === 0) return;
-    MessageApi.scene(giver)
-      .topic(TOPIC)
-      .toSelf(Mml.compose`You take in what the chart shows and carry it in your head now — \`map\` will show it.`)
-      .send();
+    // ⭐ What reading writes into the reader: a chart's places
+    // into the map, a printed recipe's known-of into the chronicle. The
+    // marks show first; the thing read decides what it teaches.
+    const taught = await target.teach(giver);
+    if (taught !== null) {
+      MessageApi.scene(giver).topic(TOPIC).toSelf(Mml.text(taught)).send();
+    }
   }
 
   /**

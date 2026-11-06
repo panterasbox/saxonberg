@@ -107,6 +107,12 @@ export interface Wet {
    * the rain-exposure fan-out and the electricity co-immersion path.
    */
   wet(delta: number): void;
+  /**
+   * @hook ⭐ After water is pushed onto this thing (paper: `Integrity` gives
+   * way when its material is weak wet and the thing is soaked through).
+   * Default: nothing.
+   */
+  afterWetted(): void;
   /** Reconcile the elapsed drain (sync, presence-frozen). */
   reconcileWetness(): void;
 
@@ -224,7 +230,11 @@ export function WetMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       // segment nets accrual against the drying that happened in between.
       if (!this._reconcilingWet) this.reconcileWetness();
       this._saturation = clamp01(this._saturation + delta);
+      this.afterWetted();
     }
+
+    /** @hook See {@link Wet.afterWetted}. */
+    public afterWetted(): void {}
 
     // ---------- reconcile-on-read (the lazy drain) ----------
 

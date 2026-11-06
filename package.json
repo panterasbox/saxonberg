@@ -57,6 +57,8 @@
     "@saxonberg/content-trade-mining": "workspace:*",
     "@saxonberg/content-trade-plumbing": "workspace:*",
     "@saxonberg/content-trade-painting": "workspace:*",
+    "@saxonberg/content-trade-papermaking": "workspace:*",
+    "@saxonberg/content-trade-printing": "workspace:*",
     "@saxonberg/content-trade-potash": "workspace:*",
     "@saxonberg/content-trade-ranching": "workspace:*",
     "@saxonberg/content-trade-quarrying": "workspace:*",

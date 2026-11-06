@@ -14,6 +14,7 @@ data:
     each page ruled into a ship's name, her kind, her port and her owners'
     sixty-fourths.
   _materialPath: /stuff/idea/material/textile/linen
-  government: terminus-city
+  registerPrefix: /platform/ships/terminus-city
+  registerTitle: the register of ships of the City of Terminus
   markForm: inked
   mass: 4

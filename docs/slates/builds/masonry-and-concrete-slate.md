@@ -5,8 +5,8 @@
 > (quarrying's limekiln, ships); **the masonry Discipline**, shipping in the
 > ceramics build (*"masonry, which relines here and is W7's next"*) with one firing
 > rule (limestone → quicklime, gypsum → plaster); **lime mortar, repointing, the
-> bricklayer and the hard-mortar spall** ([brickmaking-slate](./brickmaking-slate.md)
-> § 7, routed to [repair](./repair-slate.md) W7); hydraulic lime named as *"the next
+> bricklayer and the hard-mortar spall** ([brickmaking-slate](../tails/brickmaking-slate.md)
+> § 7, routed to [repair](../tails/repair-slate.md) W7); hydraulic lime named as *"the next
 > rung"*; a `concrete` material row with no chemistry; and rgo-unification's one line
 > *"cement is `burn-lime` + clay — rows"*, which misses the chemistry.
 > **Left:** ⭐ the two set chemistries (carbonation, hydration) · the binder ladder
@@ -47,7 +47,7 @@ island becomes Roman concrete's source; its ash is an export.
 
 - ⭐ **Pouring into formwork is [mould.md](../../subsystems/mould.md)'s rule** — *the
   container decides the shape of what sets in it*; hydration is a new set process on
-  the [moulding slate](./moulding-slate.md)'s list.
+  the [moulding slate](../tails/moulding-slate.md)'s list.
 - ⭐ **Curing** — hydration consumes water, so concrete that **dries too fast is
   weak**; the wetness model derives it: keep it damp for days.
 - **Aggregate** — sand and gravel from quarrying, the cheapest part.
@@ -88,7 +88,7 @@ sideways thrust**, and there are few ways to do it:
 - ⭐⭐ **The flying buttress is why Gothic walls became windows** — carry the vault's
   thrust outward over the aisle and the wall no longer bears it, so the wall can be mostly
   glass. The buttress makes the stained-glass window possible: masonry,
-  [glass](../../subsystems/glass.md) and [paint](./paint-slate.md) in one structure.
+  [glass](../../subsystems/glass.md) and [paint](../tails/paint-slate.md) in one structure.
 - ⭐⭐ **The thrust derives from shipped state** — water pressure grows with depth and the
   total push on a dam with **the square of the depth**, so **the load rises as the
   reservoir fills**, read from the `StorageNode`'s level — and why a dam is thicker at
@@ -213,7 +213,7 @@ sideways thrust**, and there are few ways to do it:
 | ceramics | masonry's Discipline; clinker under its firing rule |
 | metallurgy | rebar |
 | decomposition | frost spall; carbonation reaching the rebar |
-| [paint](./paint-slate.md) | limewash on masonry |
+| [paint](../tails/paint-slate.md) | limewash on masonry |
 
 ## 7. Open — for the plan
 

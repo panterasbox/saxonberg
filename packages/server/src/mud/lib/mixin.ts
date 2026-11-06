@@ -328,6 +328,7 @@ export const Mixins = {
   Lockable: 'LockableMixin',
   // Binary folded/unfolded — a folding chair refuses its posture slots.
   Foldable: 'FoldableMixin',
+  Tearable: 'TearableMixin',
   // Displays game-time — a pocket watch, a clock tower, a sundial.
   Timekeeping: 'TimekeepingMixin',
   // The windable/drifting clockwork inside a mechanical timepiece.
@@ -969,6 +970,7 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   LockableMixin: "{} doesn't lock",
   SwitchableMixin: "{} doesn't switch on and off",
   FoldableMixin: "{} doesn't fold",
+  TearableMixin: "{} won't tear",
   HazardMixin: "{} isn't a trap",
 
   // Fire & heat. ⚠ `CombustibleMixin`'s phrase carries the whole

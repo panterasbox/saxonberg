@@ -1,0 +1,17 @@
+# The post press (paper W2) — a standing screw press with a felt on its bed:
+# the vatman couches sheets onto it one on another (`couch mould`), and a
+# turn of the bar squeezes the whole post (`turn press`).
+class: /platform/thing/ScrewPress
+data:
+  shortDescription: press
+  keywords: [press, "post press", "screw press", felt, post]
+  register: definite
+  longDescription: >-
+    A standing press of oak with an iron screw and a long bar through it, a
+    thick woollen felt laid on its bed for the wet sheets.
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 200
+  fixedInPlace: true
+  placements: [on]
+  newtonsPerTurn: 2000
+  maxTurns: 6

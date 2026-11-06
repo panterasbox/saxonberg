@@ -1,0 +1,19 @@
+# Clean rags — squares of old linen, what an old shirt is when it
+# is torn up and what the paper mill buys by the bundle to beat into pulp.
+# Not the colorman's paint rags (a row of their own, oily, unwanted at the
+# mill): these are clean.
+class: /platform/thing/Rag
+data:
+  shortDescription: rag
+  keywords: [rag, rags, cloth, "clean rag"]
+  register: indefinite
+  longDescription: A square of old linen, worn soft and clean.
+  _materialPath: /stuff/idea/material/textile/linen
+  mass: 0.05
+  reserves:
+    fuel:
+      capacityValue: 100
+      currentValue: 100
+      unit: "%"
+      theme: combustion
+      floorEffect: null

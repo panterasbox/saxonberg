@@ -1,0 +1,46 @@
+# The rag counter — the mill door, where the rags come in. It
+# BUYS clean rags (`sell rags`) and nothing else: a paint rag is another
+# row, and the house's line does not take it.
+class: /trade/shopkeeping/thing/Stock
+data:
+  shortDescription: rag counter
+  keywords: [counter, "rag counter", door, scales]
+  register: definite
+  longDescription: "A half-door with a shelf across it and a hanging scale, a bale of sorted rags stacked behind."
+  discipline: scrum
+  attendDurationMs: 0
+  staffingPolicy: self-service
+  serverPositionKeys: []
+  mass: 20
+  fixedInPlace: true
+  businessPath: /world/terminus/hearts-delight/paper-mill/idea/business
+  stockLines:
+    - { itemTemplatePath: /stuff/thing/rag, par: 40, buys: true }
+    - { itemTemplatePath: /trade/papermaking/thing/paper-mould, par: 1 }
+    # ⭐ What the mill makes of paper: bags, cartons, labels.
+    - { itemTemplatePath: /trade/papermaking/thing/bag, par: 6 }
+    - { itemTemplatePath: /trade/papermaking/thing/carton, par: 3 }
+    - { itemTemplatePath: /trade/papermaking/thing/label, par: 10 }
+    - { itemTemplatePath: /trade/papermaking/thing/pot-of-paste, par: 3 }
+    # ⭐ Stationery, sold where paper is made: writing paper by the sheet and
+    # the ream, envelopes, a plain notebook, and the ink and pen to write
+    # with (the printing trade's).
+    - { itemTemplatePath: /platform/thing/sheet, par: 12 }
+    - { itemTemplatePath: /platform/thing/ream, par: 1 }
+    - { itemTemplatePath: /platform/thing/envelope, par: 6 }
+    - { itemTemplatePath: /platform/thing/book, par: 3 }
+    - { itemTemplatePath: /trade/printing/thing/ink-pot, par: 4 }
+    - { itemTemplatePath: /trade/printing/thing/pen, par: 4 }
+  prices:
+    /trade/papermaking/thing/bag: 1
+    /trade/papermaking/thing/carton: 3
+    /trade/papermaking/thing/label: 1
+    /trade/papermaking/thing/pot-of-paste: 2
+    /platform/thing/sheet: 1
+    /platform/thing/ream: 60
+    /platform/thing/envelope: 1
+    /platform/thing/book: 6
+    /trade/printing/thing/ink-pot: 2
+    /trade/printing/thing/pen: 1
+    /stuff/thing/rag: 1
+    /trade/papermaking/thing/paper-mould: 8

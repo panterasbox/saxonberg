@@ -33,6 +33,7 @@ import { fileURLToPath } from "url";
 import { CallSecurity } from "../lib/security/decorators";
 import { Mixins } from '../lib/mixin';
 import type { Registrar } from '../lib/document/Register';
+import type { DocumentPages, EditionRequest } from '../lib/document/Edition';
 import type { Berthed } from '../platform/idea/BerthExit';
 import { SecurityPolicies } from "../lib/security/SecurityPolicies";
 import { SecurityApi } from './security';
@@ -274,6 +275,39 @@ export class DocumentApi {
     data: Record<string, unknown>,
   ): Promise<void> {
     return logic().saveAsBusiness(business, path, kind, data);
+  }
+
+  /**
+   * ⭐ A stored document rendered as PAGES — what a sheet, a
+   * book or a screen shows of it. Exhaustive over the closed kind table;
+   * `null` for a kind that does not read as a page (a script, a map).
+   * A read, ungated like {@link DocumentApi.read}.
+   */
+  static pagesOf(path: string): Promise<DocumentPages | null> {
+    return logic().pagesOf(path);
+  }
+
+  /**
+   * ⭐ The document a reader may CALL UP by a word — to show on a
+   * screen, to set in type, to print: the newest standing release whose
+   * headline or publisher answers to it, else a paper of the reader's own.
+   * `null` when nothing answers.
+   */
+  static callUp(reader: Stuff, word: string): Promise<{ path: string; title: string } | null> {
+    return logic().callUp(reader, word);
+  }
+
+  /**
+   * ⚠⚠ **The edition transport** — freeze the pages of a
+   * printing as a `kind: 'edition'` document at
+   * `<source>/editions/<hash>`, owned by the source's owner, and return
+   * its path. Idempotent: the same pages freeze to the same edition. No
+   * caller-supplied owner or path; no caller allowlist (its callers are
+   * the kernel's stores and the printing pack — `saveAsBusiness`'s
+   * reason). Throws on a source that names nothing.
+   */
+  static freezeEdition(req: EditionRequest): Promise<string> {
+    return logic().freezeEdition(req);
   }
 
   /**

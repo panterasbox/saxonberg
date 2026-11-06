@@ -1,0 +1,36 @@
+# ⭐ Run copies off: on the press, a forme's text AS SET;
+# on a printer, a document as it stands. Either way the copies are bound to
+# an edition and say what it said today. The covenant may keep the
+# instrument idle.
+verbs: [print]
+controller: ../../idea/cmd/printing/PrintController
+description: "Print copies — a forme on the press, a document on a printer"
+help: |
+  `print <forme> [n]` on the press pulls n copies of what is set in the
+  forme, misprints and all. `print <document> [n] on <printer>` prints a
+  document as it stands now. `print <ledger> on <printer>` prints an
+  extract of a ledger's page. Paper comes from the press (`put ream in
+  press`) or your hands; the press wants printing ink in reach.
+
+  A printed copy keeps what the document said on the day it was printed:
+  edit it or withdraw it, and every copy still reads as it did.
+examples:
+  - cmd: print forme 20
+  - cmd: print prices 2 on printer
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: what
+    type: string
+    required: true
+    greedy: true
+  - name: on
+    type: objects
+    required: false
+    greedy: true
+    prepositions: [on, with]
+    default: "reachable:[mixin.ToolMixin]"
+    scope: ["reachable"]
+    requires: [ToolMixin]

@@ -35,9 +35,9 @@ materials-response all shipped, which made the name actively misleading.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**410 slates.** 148 greenfield · 114 continuations · 68 waves · 80 tails.
+**410 slates.** 143 greenfield · 115 continuations · 70 waves · 82 tails.
 
-## ⭐ Greenfield — nothing shipped yet (148)
+## ⭐ Greenfield — nothing shipped yet (143)
 
 Pick from here for a clean cycle with no existing substrate to
 respect.
@@ -57,7 +57,6 @@ respect.
 | [bestiary](./builds/bestiary-slate.md) | sentience split from personhood · ⭐ the encounter stage and creatures reading your acts · fantasy creatures as bindings (what is held · what pays … |
 | [branch-policy](./builds/branch-policy-slate.md) | the `policy` kind + the `writers` allowlist · the longest-prefix resolve at `DocumentApi.save` · the narrows-never-widens invariant · nearest-wins + self-amendment … |
 | [breath-control](./builds/breath-control-slate.md) | the one-phase rule and what ends a hold · lung contents (the gas, not just its volume) · `inhale [from X]` · `exhale`/`blow` as one act aimed at a target, with force and shape … |
-| [brickmaking](./builds/brickmaking-slate.md) | `/trade/ceramics` (brick first, pottery later) · the Delight valley brickfield (pit, weathering ground, temper pit, moulding shed, hacks, clamp ground) · winning in autumn on the ground protocol · weathering as a freeze-thaw count … |
 | [broadcast-ready](./builds/broadcast-ready-slate.md) | the stream's phases (offline · starting · live · standby … |
 | [budget](./builds/budget-slate.md) | the authored journal → generated export → runtime reads architecture · the chart of accounts by office · the runtime as a producer of cost data (inference) · where the books live and who may read them … |
 | [call-security-pass](./builds/call-security-pass-slate.md) | the `@Audited` permit-and-watch rail (+ the one `audit_events` collection, raised deliberately) · re-gating the ~35 ungated-and-sealed mutators · the `FromMixin`-marker question (bless as the openness mechanism or re-anchor on `FromTemplate`/`FromClass`) · hoisting the copy-pasted self-subject `where` into `SecurityPolicies.SelfSubject(argIndex)` … |
@@ -130,7 +129,6 @@ respect.
 | [matter-model-overlaps](./builds/matter-model-overlaps-slate.md) | all seven overlaps below — each is a design decision, not a mechanical merge. |
 | [mind](./builds/mind-slate.md) | the equanimity Reserve + the stress equilibrium (the deferred `traits-stress` build named in trait.md) · the start/stop axis on `AbortReason` · emotes as evidence about the ACTOR (rate · range … |
 | [mirror](./builds/mirror-slate.md) | the inbound assertion channel · what is admissible (the INTRINSIC/SOCIAL firewall — condition, never character) · claim, corroboration and decay · the density threshold … |
-| [moulding](./builds/moulding-slate.md) | ✅ five rulings (§ 0) and ✅ the mechanism examined (§ 0a, 2026-10-18) · the mould as an ENVELOPE (conductivity, permeability, absorbency, survival) · a shape that is an authored cast row or an |
 | [mountain](./builds/mountain-slate.md) | the horizon feature split out of `Structure` · the mountain as rising ground (elevation bands on the zone, the biome by altitude) · mountain weather (lapse rate, orographic rain, rain shadow) · the body at height (thin air, cold, altitude sickness) … |
 | [newbie-wilds](./builds/newbie-wilds-slate.md) | the area zone + room map (threshold · crossroads hub · shared hunting woods · the wolfshead's lair … |
 | [notification](./builds/notification-slate.md) | the subject-keyed event · the substrate-owned prose templates (not a second bus) · the durable subscription (`PathTrie` routing) · derive-on-read delivery + the cursor/dismissal read state … |
@@ -146,7 +144,6 @@ respect.
 | [place-surfaces](./builds/place-surfaces-slate.md) | placement rows for the **wall** and **ceiling**, derived from rubber's exposure · the room itself as the host of its own surfaces · MQL `via.surface` · `mountsOn` on things … |
 | [plastics](./builds/plastics-slate.md) | the mould as capital and the toolmaker · thermoset and thermoplastic, derived · by-product feedstocks (coal tar and wood spirit, later crude) · Bakelite displacing ebonite as the first consumer … |
 | [polymers](./builds/polymers-slate.md) | the pack broadened to `/trade/polymers` (a build-side rename sweep) · crosslinking as the polymer family's one law · the natural polymers — rubber, gutta-percha, shellac, casein plastic — gathered, set and moulded · the synthetic half → plastics-slate |
-| [pottery](./builds/pottery-slate.md) | `ceramic` split by DERIVATION (clay × firing temperature, the brick rule) and the 21 rows re-pointed · forming as `shape` (unified with glass) on the wheel, by hand and in moulds, competence deciding walls, largest form and grade · leather-hard trimming as `carve`, handles and spouts as assembly parts on `fit` · bisque and glaze firings, kiln rungs, atmosphere from the draught, thermal shock, natural ash glaze, saggars, grog … |
 | [presence-hollowing](./builds/presence-hollowing-slate.md) | presence-vs-hollow as a physical state on an agent · who perceives it (ESP · the attuned reader dial · sacred instruments) … |
 | [prison](./builds/prison-slate.md) | `PrisonMixin` (a locality you cannot leave — the boundary + the custody book, and nothing else) · the three enforcement tiers in content · cells as provisioned shelters on the residence spine · interior law as the prison's own jurisdiction (no `securityLevel`) … |
 | [privacy](./builds/privacy-slate.md) | the privacy surface and its flagging lint · spoiler privilege earned by publication · the install-and-eval trail · the operator residual … |
@@ -155,15 +152,13 @@ respect.
 | [real-world-anchors](./builds/real-world-anchors-slate.md) | a Wikidata anchor on reality-shaped rows · the relation kind (is · models · contrasts) and its note on how we differ … |
 | [reconcile-chains](./builds/reconcile-chains-slate.md) | `restamp` on `Freshness` · `Contaminable` · `Maturing` (store the driver at last reconcile, integrate along `Decay.toward` as `ThermalDose` does) · the **step problem** — `Coolbox` and any supply-driven host store *when supply last changed and to what*, so the trajectory is closed-form … |
 | [record-integrity](./builds/record-integrity-slate.md) | event-source `positions` → `position_events` · `prevHash` chaining with canonical serialization + the single-writer append discipline · the Merkle checkpoint · anchoring via `GitApi` to third-party hosts … |
-| [repair](./builds/repair-slate.md) | ✅ three rulings so far (§ 0: *a bad repair is possible*; *the mixin composes on the FAMILIES*; *seats are AUTHORED only* — the owner, 2026-10-16) · the per-part gate on the maker's discipline · the failure mode, deterministic · the paid service performed by a person … |
 | [resilience](./builds/resilience-slate.md) | Tier 1 code-trust auditing (eval payloads, source-tree writes, the hot-reload ledger) · the Api tier's default-open (`HotReloadApi`, `SourceTreeApi`; the four `gateSourceWrite` copies) · per-call time budgets (`RenderBudget` generalized; eval's post-await CPU loop) · input reaching dangerous constructs (+ the object quota) … |
-| [rgo-unification](./builds/rgo-unification-slate.md) | ⭐ `ProducingMixin` (the tap) promoted out of `trade-ranching`'s pack lib into the kernel · a home for the pin walk (`stepOutwardForPin`, copied 3×) · the **sweetener vocabulary** decided once across sugar, honey and maple · and — **held deliberately** — the derived-field interface, which waits for foraging to be **DESIGNED** (not built — § below) |
+| [rgo-unification](./builds/rgo-unification-slate.md) | the gap scan · ⭐ the pass itself — every RGO's mixins read side by side, deciding where they CONVERGE and where they rightly DIVERGE (§ *The sequence, decided 2026-11-05*) · its known inputs: `ProducingMixin` (the tap) out of `trade-ranching`'s pack lib · a home for the pin walk … |
 | [roads](./builds/roads-slate.md) | the circulation library (way kinds and the road exit kind as parent rows in the commons) · draft as running gear × surface · the season deciding the road (mud, frost, the sledge) · building a road as changing its surface (the ladder to asphalt) … |
 | [running-water](./builds/running-water-slate.md) | the service connection · fixtures (tap, sink, bath, water closet, the boiler, the roof cistern) and their mode (runs or opens) · the plumber and lead · frozen and burst pipes … |
 | [sanitation-and-pollution](./builds/sanitation-and-pollution-slate.md) | bodily waste for every body, and its sinks (the privy that fouls the well) · air pollution — the zoning slate's emission model, smog, acid rain · the night-soil loop · the externality economics (nuisance, Coase, Pigou, the cap) … |
 | [saxonberg-city](./builds/saxonberg-city-slate.md) | the Locality + parcel spine · the residential district and its launch stock (six units) · the four leasable storefront shells · the second Compact grant (waits on the stewardship cascade) … |
 | [scarcity](./builds/scarcity-slate.md) | the four-channel per-parcel meter (the whole near-term build) · the CPU entitlement coefficients + the capacity door · the retention schedule as a polity question · the token/egress appropriation + its ceiling … |
-| [sericulture](./builds/sericulture-slate.md) | all of it: the mulberry, the worm, the rearing, the stifling decision, reeling, throwing, degumming, wild silk, the disease, the venue and its climate. |
 | [site-conditions](./builds/site-conditions-slate.md) | eyes and ears as parts serving `vision` and `hearing` · the vision profile reading the capacity · the shade's faint perception as fixed-impaired senses · two lungs … |
 | [size](./builds/size-slate.md) | sizes as real measures, derived where they can be · a body's envelope (stature × posture, girth, plus what it carries, worn and mounted) · exits with a clearance and defaults by kind · refusals that say what would work, never auto-posture … |
 | [sleep](./builds/sleep-slate.md) | the wake reconcile (state at logout + time away) across every body clock · rest quality from bed, how kept, what you wore, the room's heat · what a night soils · pyjamas as a consequence, never a chore … |
@@ -193,7 +188,7 @@ respect.
 | [wizardry-curriculum](./builds/wizardry-curriculum-slate.md) | the kind-of-content intake · the eight topics of W101 as lessons · the exemplar set (one per kind) · the detail-density mirror … |
 | [worlds](./builds/worlds-slate.md) | bodies as biomes under a space root · re-parenting today's world under a home-planet biome · the radius inheritable, gravity derived from mass and radius · the celestial profile on the planet biome … |
 
-## ⭐ Continuations — substrate shipped, a build's worth remains (114)
+## ⭐ Continuations — substrate shipped, a build's worth remains (115)
 
 The subsystem doc is the reference for what already ships; these
 are the named remainders.
@@ -286,6 +281,7 @@ are the named remainders.
 | [policing](./builds/policing-slate.md) | Terminus as Peelers + the Tiebout spread of policing modes · the police bundle and the department roster (constable · sergeant · inspector … |
 | [power-utility](./builds/power-utility-slate.md) | ⭐ **street lighting's missing goods leg** (see § below — the first demand case, and it is already live and calibrated) · the supply reference on `Energized` fixtures · outage propagation + directional network failure over exit edges · gas as the second conduit commodity … |
 | [press](./builds/press-slate.md) | the newsroom roster (publisher → editor-in-chief → editor → reporter, layered on the shipped organization substrate) · bylines · subscription / push distribution (the aether as delivery) · the credibility track record and whether a correction repairs standing … |
+| [printing](./builds/printing-slate.md) | printing's labor in time (the fixed-vs-marginal curve made felt) · what a printed page LOOKS like in a game made of text · images (woodcut, engraving, the poster) · type founding … |
 | [property](./builds/property-slate.md) | the compute economy (Phase 1 — predicted heartbeat budget, measured degradation, cost-owner attribution; `allowance` is inert) · dormancy-as-reclamation for insolvency / over-deficit · governance allocation (Phase 2 — fiscal cycle, commons subsidy, frontier/center curve, over-subscription) · tenancy economics (Phase 3 — rent as a recurring charge, sublet, valuation + resale) … |
 | [provenance](./builds/provenance-slate.md) | the generalized path-ownership resolver over both namespaces (Layer A — leaf templates + code modules, declared splits — not the same thing as parcel/zone ownership, which stops at land) · the dependency DAG (Layer C) · the contributor-set / team split behind `authorOf`'s derivation seam (+ the richer explicit `release` action) · versioned law (an amendment as branch/edit/merge) … |
 | [psychology](./builds/psychology-slate.md) | the scoped disclosure grant · the therapist's file object · the psychology vocation + its Discipline · privilege and the conflict class … |
@@ -315,7 +311,7 @@ are the named remainders.
 | [venue-and-supply](./builds/venue-and-supply-slate.md) | V6 producer `yields` (the `needs` vocabulary now admits `cultivation` and `lightLux`) · V5 `lint:supply` · V4 the five support archetypes (only the depot ships) · V2 the uniform `kind: office` sweep (16 `entity` rows remain) … |
 | [zoning](./builds/zoning-slate.md) | the emission/nuisance model over `signalAt` (minus the water relation) · the cap at the boundary · the LULU host problem · nonconforming use … |
 
-## Waves — rides another build (68)
+## Waves — rides another build (70)
 
 | slate | left |
 |---|---|
@@ -325,6 +321,7 @@ are the named remainders.
 | [argument-map](./tails/argument-map-slate.md) | claim dedup / canonicalization · integrity-grade map-summarization · automated convergence-detection (+ the anti-railroad floor) · mass-scale moderation of claim quality … |
 | [augmentation](./tails/augmentation-slate.md) | the medical install/remove procedure · the char-gen augment loadout · translation, prosthetic, sensor, motor and cognitive augments (only the baseline `AetherImplant`/cranial-slot form ships) · the failure and hacking modes … |
 | [blood](./tails/blood-slate.md) | the blood.md § Deferred list — contamination/screening of a unit · Rh (a second axis) · player operation of the window · the Titmuss paid-donor lever … |
+| [brickmaking](./tails/brickmaking-slate.md) | the per-brick tax and its size effect (§ 3) · W7 reading a brick's grade as the wall's upkeep bill (§ 5, Open 3) · the Scotch and Hoffmann kiln rungs (§ 5) · roof tiles, drain tiles and chimney pots as consumers (§ 6) … |
 | [bulkable](./tails/bulkable-slate.md) | mixing/solutions · the `sealed` gas level + the phase→closure map (granular → `open`) · universal reception on surfaces + the auto-compose wiring · regenerating sources … |
 | [butchery](./tails/butchery-slate.md) | dry-aging on the hook · trimming as its own verb · species-adjusted `partArea` · horn, glue and gelatin — three sinkless products with named buyers … |
 | [chambered-vessels](./tails/chambered-vessels-slate.md) | `ChamberedMixin` (`lib/spatial/`) — the chamber declaration, the `postRegister` mint, the destruct cascade, the **no-loose-contents** invariant, the part flag · ⭐ **a describer that speaks a host's declared parts AS parts** (the whole UX question) · ⚠ **part-transparency** in `scope-walk` + `PerceptionApi.canReach` together, bounded at one level · slots-vs-contents for where a chamber sits |
@@ -367,6 +364,7 @@ are the named remainders.
 | [preservation](./tails/preservation-slate.md) | the acidity term `f_pH` (pickling as a `MaturationProfile` row + one read; ⚠ inherits the fermentation/spoilage `Vat` collision — absorbed from food-safety 2026-09-21) · the sealing decision (binary until a consumer wants a hurdle multiplier, never a flora model) · the agricultural year (winter stores) · the trade geography spoilage creates … |
 | [recognition](./tails/recognition-slate.md) | player-set nicknames (`name X as Y`) · memory decay · voice/scent recognition · algorithmic salient-feature generation (author-tunable per-species templates) … |
 | [rendering](./tails/rendering-slate.md) | **soap** (needs lye + a hygiene mechanism; `dairy-slate` owns hygiene-as-criterion) · **horn** — cut deliberately, with its buyers named (combs, cups, lantern panes, buttons; it is the pre-plastic thermoplastic, so an epoch ladder rather than a row) · **glue and gelatin from bone** — nothing demands them · **kibble** as the INDUSTRIAL rung of the dog loaf (an extruder, keeping, fortification) … |
+| [repair](./tails/repair-slate.md) | **building upkeep by layer** (§ 0 — materials in hand, by that layer's trade, at the hand's band; re-grounded against the paint build's `Faced` + `Durable` model) · **a working cast into a part** (§ 0, § 6 — where a working lives when its shell is a thing of parts; `recharge` reaches the whole today) · **the upkeep census** (§ 7) |
 | [residence-ladder-design-pack](./tails/residence-ladder-design-pack.md) | `propertyCondition` as a derived aggregate over room condition · Durable wear · spoilage — and its reconciliation with the shipped calendar shell clock · the smallholding + farm/ranch rungs' ascent gates … |
 | [room-condition-design-pack](./builds/room-condition-design-pack.md) | the attributed `(actor, target, extent)` deposit/clear events, both directions, and where they land (Part 1, Q6 — ⚠ clears credit a `domestic-services` deed to the actor today; deposits are unattributed except the blood sample) · tidiness from placement + `tidy` (Q3) · the `Resists.factor` immunity wire — *a clean home is immunity* (Part 5, after disease) · `restQuality` gaining room temperature (Part 3, absorbed from hearth-and-larder) … |
 | [row-composition](./builds/row-composition-slate.md) | ⭐⭐ fix `/stuff/agent/costume/student`, a modelling error that is cheap now and entrenches with every child (a wave, not gated on anything) · decide whether a row may be **abstract** (owed since 2026-09-24, deferred to a build that has since shipped) · ⏸ **a composition primitive — named value snippets a row includes — is PREMATURE and the data says so: three duplicated prose strings in the whole tree** · the three missing `inherit:` members (removal, deep object merge, and the prose case that is probably not an inheritance problem) |
@@ -388,7 +386,7 @@ are the named remainders.
 | [wizard-bar](./tails/wizard-bar-slate.md) | the safe-harbor standard text (⭐ the product) · admit (exam + archwizard flip) · the public roster · the hearing process … |
 | [youtube-relay](./tails/youtube-relay-slate.md) | outbound `liveChatMessages.insert` · the quota accountant + coalescing and drop policy · per-player `youtube.force-ssl` OAuth · the `GoogleProfile` token extension + `google-reauth` |
 
-## Tails — small and opportunistic (80)
+## Tails — small and opportunistic (82)
 
 | slate | left |
 |---|---|
@@ -438,12 +436,14 @@ are the named remainders.
 | [message-rendering](./tails/message-rendering-slate.md) | the rest of the bounded layout vocabulary — `<box>`, `<rule>`, `<indent>`, `<columns>`/`<col>`, the `align` attribute — and the authoring-freedom gate (system/content free, a player in chat gated) that none of them have; the richer **channel-admin-authored** stylesheet (custom semantic tags + a constrained presentational palette, as channel config) and its distribution to clients — distinct from the reader-side per-channel color that already shipped; the generic-class MML hook those custom tags would need. |
 | [metabolism](./tails/metabolism-slate.md) | the wider deficiency roster (iron, the B group, calcium — scurvy SHIPPED with nutrition-and-fitness as the pattern: a reserve key + a route + a condition row) · `alcohol-tolerance` as a CONSUMER (the `bac` bands widened by the stock; the stock ships) · nutrient-ledger storage shape · real-nutrition-data pipeline … |
 | [mixin](./tails/mixin-slate.md) | `Invisible` (perception override) · `Sleeping`/`Resting` (sensory cutoff, command-gating, species circadian variance) · `Writable` · `Pushable`/`Pullable`/`Liftable` … |
+| [moulding](./tails/moulding-slate.md) | `dry` (and bake) as a set process · the sand's re-tempering · lime blowing in the fired brick · dies as authority — the mint's coin dies, the seal matrix, the hallmark punch, standard weights cast from the master, counterfeit as the polity's (§ 8) … |
 | [multi-currency](./tails/multi-currency-slate.md) | whether a second currency needs its own cash/coinage · a combined cross-currency account statement · the changer's spread/fee home |
 | [numeric-dial-sweep](./tails/numeric-dial-sweep-slate.md) | the kernel read · the census gate · the sweep to zero. |
 | [nutrition-and-fitness](./tails/nutrition-and-fitness-slate.md) | the `pace` device (the sustained-work exemplar; the gym's second slot) · the real-world bridge (Part 5 — a seam only) · the menu as a choice (Part 7) · a `{{ body }}` prompt word … |
 | [object-taxonomy](./tails/object-taxonomy-slate.md) | the signature's verb-awareness · the collapse census · blueprint-as-`gen:`-output · the non-wizard composition mint + its namespace lint … |
 | [pack-boundary](./tails/pack-boundary-slate.md) | the two populations written down (`content-packs.md`) · ⭐ the |
-| [potash](./tails/potash-slate.md) | the heap at scale — the burn at the clamp's open draught (`burn`, an alias of `char`), yield and strength from the fuel, rain spoiling open ash · the leach with derived lye strength, the egg test, caustic lye with lime · the boil as the third `evaporative` profile, the pot cake, pearl ash · the ash-burner at Hanging Wood and the ashery at Wharfside, the ash-man … |
+| [potash](./tails/potash-slate.md) | rain spoiling open ash · bracken and straw as feedstock · spent ash on a field (waits on soil's potassium reserve) · the open sinks — bucking, the dye vat, fertilizer, saltpetre … |
+| [pottery](./tails/pottery-slate.md) | the climbing kiln rung (§ 4) · the fuel's ash glazing the ware by itself (§ 4) · saggars (§ 4) · kintsugi (§ 6) … |
 | [prompt-stack](./tails/prompt-stack-slate.md) | Tier 2 kinds `numeric` / `multiChoice` / `password` · Tier 3 `paginated` + `quiz` · the open questions below (choice-list scaling, confirm/choice unification, author test-prompt overrides, quiz design) |
 | [reactions](./tails/reactions-slate.md) | the analytics event-stream tap (Wave 3) · the emote-flood salvage (Future direction, below) · reactability for act-kinds beyond the shipped `speech.vocal`/`act.emote`/`speech.channel`/`act.combat` set (e.g. system notices) |
 | [records-as-documents](./tails/records-as-documents-slate.md) | `ReachWarren`'s persisted `stops` index — derive it or file it · the census question (a gate, or not) |

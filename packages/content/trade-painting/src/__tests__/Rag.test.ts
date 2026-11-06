@@ -6,7 +6,7 @@
  */
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import Rag from '../thing/Rag';
+import Rag from '@saxonberg/server/mud/platform/thing/Rag';
 import Material from '@saxonberg/server/mud/lib/material/Material';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';

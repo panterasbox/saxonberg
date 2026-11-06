@@ -8,10 +8,14 @@
 # with room by her length, in the order listed → dues owed → else the roads.
 class: /system/transport/idea/Harbor
 data:
-  # ⭐ The record is the BOOK's: the berth book on the office
-  # desk keeps who lies where, the debts and the hails; this row keeps
-  # only the posted rules.
+  # ⭐ The berth book on the office desk keeps who lies where, the debts and
+  # the hails; this row keeps only the posted rules.
   book: /world/terminus/harbor/thing/berth-book
+  # ⭐ The berth book's record is FILED here, by this harbor:
+  # burn the book and the debts stand; the next book reads them again.
+  registerOwner: /world/terminus/harbor
+  registerPrefix: /world/terminus/harbor/berths
+  registerKind: berth-book
   office: /world/terminus/harbor/office
   seat:
     business: /world/terminus/wharfside/idea/harbor-works

@@ -1,0 +1,20 @@
+# An envelope (paper build) — a folded paper sleeve with a gummed flap. Put a
+# folded letter in it, close it and `seal` it; whoever opens it breaks the
+# seal, and anyone who looks at it afterwards can see that it was opened.
+class: /platform/thing/Envelope
+data:
+  shortDescription: envelope
+  keywords: [envelope, sleeve]
+  register: indefinite
+  longDescription: A paper envelope with a gummed flap.
+  _materialPath: /stuff/idea/material/organic/paper
+  mass: 0.004
+  open: true
+  charMaterialPath: /stuff/idea/material/organic/ash
+  reserves:
+    fuel:
+      capacityValue: 100
+      currentValue: 100
+      unit: "%"
+      theme: combustion
+      floorEffect: null

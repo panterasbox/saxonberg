@@ -90,6 +90,15 @@ requires:
       holder: { organization: /world/terminus/hearts-delight/brickfield/idea/brickmaster }
       landUse: industrial
       powerBand: off-grid
+    # ⭐ The paper mill (paper W2) — at the fall, on the grist mill's race,
+    # titled to its own outfit. Industrial, off the gas. No piped water: the
+    # vat is filled from the race, a natural source (water-supply).
+    - extent: /world/terminus/hearts-delight/paper-mill
+      waterSource: none
+      parentParcel: /world/terminus/hearts-delight
+      holder: { organization: /world/terminus/hearts-delight/paper-mill/idea/business }
+      landUse: industrial
+      powerBand: off-grid
     - extent: /world/terminus/hearts-delight/brickfield/location/potters-shop
       waterSource: none
       parentParcel: /world/terminus/hearts-delight/brickfield
