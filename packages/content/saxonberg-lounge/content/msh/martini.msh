@@ -6,8 +6,8 @@
 # each step still meets its own verb's gates. Authored here by hand to
 # show the *authored-as-content* source (see scripting.md).
 def martini ($brand) {
-  pour $brand into mixing glass
-  pour vermouth into mixing glass
-  stir mixing glass
-  strain mixing glass into glass
+  pour $brand into "mixing glass"
+  pour vermouth into "mixing glass"
+  stir "mixing glass"
+  strain "mixing glass" into glass
 }

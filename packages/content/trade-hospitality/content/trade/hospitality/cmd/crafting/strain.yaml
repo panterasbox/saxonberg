@@ -29,4 +29,8 @@ args:
     required: false
     scope: "reachable"
     prepositions: [into, in]
-    requires: ManualBuildMixin
+    # ⭐ What a drink is strained INTO is any vessel, not a build: a coupe holds
+    # the drink and nothing is built in it. (This slot asked for
+    # `ManualBuildMixin`, so no typed strain ever bound a glass; the unit test
+    # hands the controller its model and never met the binder.)
+    requires: BulkableMixin
