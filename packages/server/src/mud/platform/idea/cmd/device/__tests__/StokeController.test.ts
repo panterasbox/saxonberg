@@ -15,7 +15,7 @@
 import '../../../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import StokeController from '../StokeController';
-import IgniteController from '../IgniteController';
+import LightController from '../LightController';
 import Forge from '../../../../thing/Forge';
 import Lamp from '../../../../thing/Lamp';
 import Good from '../../../../../lib/stuff/Good';
@@ -240,7 +240,7 @@ describe('StokeController', () => {
     ).toBe(true);
   });
 
-  it('⭐ refuses a sodden log — the same formula `ignite` already used', async () => {
+  it('⭐ refuses a sodden log — the same formula `light` already used', async () => {
     const wet = lump({ name: 'oak', mjPerKg: 16, kg: 6, wetness: 1 });
     const c = await stoke(wet as unknown as Stuff, forge as unknown as Stuff);
     expect(forge.fuelRemaining()).toBe(0);
@@ -287,8 +287,8 @@ describe('StokeController', () => {
       forge as unknown as Stuff,
     );
     const igniteOnce = async (): Promise<boolean> => {
-      const c = ctx('ignite');
-      await makeStuff(() => new IgniteController()).execute(
+      const c = ctx('light');
+      await makeStuff(() => new LightController()).execute(
         { target: one(forge, 'forge') } as CommandModel,
         c,
       );

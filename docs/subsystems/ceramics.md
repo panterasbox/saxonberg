@@ -376,7 +376,7 @@ the step that would move it).
   bricks are burnt; burnt bricks in hand → `put bricks in counter`; a cold
   clamp's burnt bricks → `get bricks from clamp`; bone-dry bricks in hand →
   `put bricks in clamp` (damp ones go back); a clamp charged to `batch`
-  (40) → `stoke coal`, `ignite clamp`, `fire clamp for 3 days`; else fetch
+  (40) → `stoke coal`, `light clamp`, `fire clamp for 3 days`; else fetch
   bone-dry bricks from the hacks. ⭐ The setter's own band sets the channel
   share (`BrickClamp.onFireStart` reads who fires it).
 - **`pots`** — a lit kiln is left, and doused when its load is done;

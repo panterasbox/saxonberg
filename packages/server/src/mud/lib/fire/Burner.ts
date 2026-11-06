@@ -433,14 +433,14 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
       // holding, and all three would have died at the affordance link
       // in exactly the same silence.
       environment: [
-        'platform/cmd/device/ignite.yaml',
+        'platform/cmd/device/light.yaml',
         'platform/cmd/device/douse.yaml',
         'platform/cmd/device/stoke.yaml',
         'platform/cmd/device/draught.yaml',
         'platform/cmd/device/cover.yaml',
       ],
       peers: [
-        'platform/cmd/device/ignite.yaml',
+        'platform/cmd/device/light.yaml',
         'platform/cmd/device/douse.yaml',
         'platform/cmd/device/stoke.yaml',
         'platform/cmd/device/draught.yaml',
@@ -1558,7 +1558,7 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
 
     // -------- the combustion face (forwards into FireLogic) --------
 
-    /** Light the furnace (the `ignite` verb's appliance arm). Sealed —
+    /** Light the furnace (the `light` verb's appliance arm). Sealed —
      * the combustion driver is the one writer of lit state. */
     @Final
     @Unshadowable

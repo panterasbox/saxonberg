@@ -151,7 +151,7 @@ function held(): Smoker {
 /**
  * …and one that is actually going.
  *
- * ⚠ It has to be FUELLED first — `ignite` refuses `not-flammable` on an
+ * ⚠ It has to be FUELLED first — `light` refuses `not-flammable` on an
  * empty burner, which is right and is also the one thing about a smoker
  * a beekeeper actually forgets. The ROW authors this reserve.
  */

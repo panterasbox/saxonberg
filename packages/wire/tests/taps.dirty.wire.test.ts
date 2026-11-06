@@ -480,7 +480,7 @@ suite('⭐ 1. the kit, and ⚠⚠ what the till said about it', () => {
     // ⚠⚠ And a LIGHT, because the wood is pitch dark half the time and
     // the tell of an unlit place is every object reading *"something"* —
     // which cost drive run 1 five checkpoints and run 8 the whole kit.
-    await say(k, 'ignite jar');
+    await say(k, 'light jar');
   }, 300_000);
 
 });

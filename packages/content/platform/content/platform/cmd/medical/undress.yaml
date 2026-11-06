@@ -1,4 +1,4 @@
-verbs: [undress, unstitch]
+verbs: [undress]
 controller: /platform/idea/cmd/medical/UndressController
 description: "Remove a wound's dressing or stitches"
 help: |

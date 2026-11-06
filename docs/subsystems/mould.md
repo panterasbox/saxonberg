@@ -202,7 +202,7 @@ EVERY vessel: `BulkableMixin.canReceiveAtK(pourK)` → `holds` · `melts` ·
 `burns` (its `meltingPoint`, then its `autoignitionTemperature`). On
 `melts` or `burns` the pour goes to the floor (the shipped puddle path) and
 the receiver is gone — melted into its material's `brokenTemplate` where it
-stood, or burning (through its own `ignite` when it is fuel; else it chars
+stood, or burning (through its own `light` when it is fuel; else it chars
 away). Status `melted` / `burned`, and the pour verb says what happened to
 the vessel. Lead melts a tin cup; bronze burns the chandler's pine soap
 frame; pewter into a bronze cup holds. Interior pours only — a floor is

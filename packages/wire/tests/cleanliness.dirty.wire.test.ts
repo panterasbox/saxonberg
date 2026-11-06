@@ -533,7 +533,7 @@ suite('⭐ drive 11 — sulfur burnt in a shut room sours the air (AC 11)', () =
     const s = await goTo(fumesHandle, CELLAR);
     for (let i = 0; i < 6; i++) await s.cmd('practice awareness hard success');
     for (let i = 0; i < 4; i++) await say(s, 'stoke sulfur into brazier');
-    await say(s, 'ignite brazier');
+    await say(s, 'light brazier');
     await advance('30 minutes');
     const air = await say(s, 'analyze atmosphere');
     expect(air, `the cellar air: ${air}`).toMatch(/sulfur|sulphur|dioxide|acrid/i);
@@ -548,7 +548,7 @@ suite('⭐⭐ drive 12 — the cookhouse kept: crumbs, the window, the flue (AC 
     await cloneHere(COOKHOUSE, '/stuff/thing/items/dry-log').catch(() => {});
     await say(s, 'get log');
     await say(s, 'stoke log into oven');
-    const lit = await s.cmd('ignite oven');
+    const lit = await s.cmd('light oven');
     await lit.said();
     // Three meals: one stew off the kitchen (it has the roots for one),
     // and two of the rations bought at the store.
@@ -611,7 +611,7 @@ suite('⭐ drive 15 — the byre fouls with its herd, and is mucked out (AC 17)'
     const s = await goTo(cookHandle, BYRE);
     const floor = await examine(s, 'floor');
     expect(floor, `the byre floor: ${floor}`).toMatch(/manure|dung|filthy|soiled/i);
-    await act(s, 'muck with broom');
+    await act(s, 'sweep with broom');
     const heap = await mine(s, 'muck');
     expect(heap, `the heap: ${heap}`).toMatch(/muck|manure|dung/i);
     s.close();

@@ -246,7 +246,7 @@ describe("verb affordances come from class statics, and only from there", () => 
   // declared its verbs under `peers` only, which is the whole story for
   // a forge, an oven and a kiln — none of them is ever picked up, and a
   // furnace standing in a room IS your sibling. The envelope build gave
-  // a carriable light the same mixin, and `ignite`/`douse` would have
+  // a carriable light the same mixin, and `light`/`douse` would have
   // died at the affordance link the moment it left the floor: `light
   // lantern` answering "you don't see any 'lantern' here" with the
   // lamp in the player's hand, while every controller test stayed
@@ -255,10 +255,10 @@ describe("verb affordances come from class statics, and only from there", () => 
   // ⚠ The tell to remember: **you are your lamp's CONTAINER, not its
   // peer**, so only `environment` reaches you. `ChargedMixin` (the mana
   // wand you hold) has declared both buckets since it shipped.
-  it("⭐ a FURNACE affords ignite/douse both carried and from the floor", async () => {
+  it("⭐ a FURNACE affords light/douse both carried and from the floor", async () => {
     const { BurnerMixin } = await import("../../fire/Burner");
     class Lantern extends BurnerMixin(ContainableMixin(Idea)) {}
-    CommandApi.getCommand("platform/cmd/device/ignite.yaml");
+    CommandApi.getCommand("platform/cmd/device/light.yaml");
 
     const room = makeStuff(() => new Room());
     const player = makeStuff(() => new Player());
@@ -267,12 +267,12 @@ describe("verb affordances come from class statics, and only from there", () => 
 
     // On the floor beside you: a peer, which is how a forge works.
     ContainmentApi.move(lantern as never, room);
-    expect(affords(player, "ignite")).toBe(true);
+    expect(affords(player, "light")).toBe(true);
     expect(affords(player, "douse")).toBe(true);
 
     // ⭐ And in your hand, which is what `peers` alone could not do.
     ContainmentApi.move(lantern as never, player);
-    expect(affords(player, "ignite")).toBe(true);
+    expect(affords(player, "light")).toBe(true);
     expect(affords(player, "douse")).toBe(true);
   });
 

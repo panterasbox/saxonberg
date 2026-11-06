@@ -1,4 +1,4 @@
-verbs: [dose, administer]
+verbs: [dose]
 controller: /platform/idea/cmd/medical/DoseController
 description: "Give a body an antidote or administer a prescribed active from a vial"
 help: |
@@ -33,7 +33,7 @@ args:
   # ⭐ D9 — the prescription slip(s) the giver holds. The BINDER resolves
   # every reachable slip; the controller keeps the one that `isFor` this
   # patient + active (the 5-rights match — state no predicate can ask).
-  # Auto-bound (a default), so `administer patient with vial` needs no
+  # Auto-bound (a default), so `dose patient with vial` needs no
   # naming; only controlled actives read it.
   - name: prescription
     type: objects

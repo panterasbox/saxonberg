@@ -2,8 +2,8 @@
  * ManualBuildMixin — the **vessel-as-buffer** for a step-by-step craft.
  *
  * A build vessel (the cocktail shaker / mixing glass) accumulates graded
- * contributions across the manual-build verbs (`pour` / `add`), records
- * how it was worked (`stir` → stirred, `shake` → shaken), and at the
+ * contributions across the manual-build verbs (`pour`), records
+ * how it was worked (`stir`, as the tool names it), and at the
  * terminal step (`strain`) hands the accumulated buffer to
  * `CraftingApi.mintFromBuild`, which reverse-matches it to a recipe and
  * mints the graded, maker's-marked drink — reusing the **one** quality
@@ -35,7 +35,7 @@ import { MixinApi } from "../../api/mixin";
 import { Grade } from "./Grade";
 import type { Technique } from "./Technique";
 
-/** How the build was worked — recorded by `stir` / `shake` / `muddle`. */
+/** How the build was worked — recorded by `stir` / `muddle`. */
 export type BuildMethod = Technique;
 
 /** One banked ingredient: its recipe category, measure, and input grade. */

@@ -227,8 +227,8 @@ suite('the depot at Wharfside', () => {
 
 suite('the labor market is visible', () => {
   it('answers the backhaul read', async () => {
-    expectOk(await p.cmd('jobs'));
-    const back = await p.cmd('jobs --origin here');
+    expectOk(await p.cmd('job'));
+    const back = await p.cmd('job --origin here');
     expectOk(back);
     expect(await back.said()).toMatch(
       /wanting carriage|nothing wants moving|board is bare|go back empty|Posted work/i
@@ -248,7 +248,7 @@ suite('the labor market is visible', () => {
      * keeper was structurally unable to order anything at all.
      */
     const keeper = await p.cmd(
-      'jobs --origin /world/terminus/counting-houses/cash-and-carry'
+      'job --origin /world/terminus/counting-houses/cash-and-carry'
     );
     expectOk(keeper);
     const said = await keeper.said();
@@ -280,6 +280,6 @@ suite('the goods yards', () => {
      * posts to a producer floor's board. The hand walks its own goods to
      * the counter. This proves the board answers at all.
      */
-    expectOk(await p.cmd('jobs'));
+    expectOk(await p.cmd('job'));
   });
 });

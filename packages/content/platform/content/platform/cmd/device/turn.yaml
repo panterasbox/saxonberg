@@ -1,4 +1,4 @@
-verbs: [turn, tighten]
+verbs: [turn]
 controller: /platform/idea/cmd/device/TurnController
 # Bare `turn press` runs the top-level args; `turn back press` the subcommand.
 fallthrough: true

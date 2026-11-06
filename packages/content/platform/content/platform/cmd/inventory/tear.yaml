@@ -2,7 +2,7 @@
 # shirt into rags. Afforded by `TearableMixin`; each thing says what tearing
 # it makes and what is lost (a torn sheet's halves each keep the half of the
 # words they held, bound to nothing).
-verbs: [tear, rip]
+verbs: [tear]
 controller: /platform/idea/cmd/inventory/TearController
 description: "Tear something — a sheet in two, a page out of a book, a shirt into rags"
 help: |

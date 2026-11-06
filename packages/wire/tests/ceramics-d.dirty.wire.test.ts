@@ -516,8 +516,8 @@ suite('⭐ 26 — slip cast: gypsum to plaster, plaster to a mould, slip to a cu
     await doing(caster, 'put gypsum in oven');
     await doing(caster, 'get charcoal');
     await doing(caster, 'stoke charcoal into oven');
-    const lit = await say(caster, 'ignite oven');
-    expect(lit, `ignite oven: ${lit}`).toMatch(/catch|light|burn|alight/i);
+    const lit = await say(caster, 'light oven');
+    expect(lit, `light oven: ${lit}`).toMatch(/catch|light|burn|alight/i);
     // A lump heats through slowly and plaster wants a long low heat: an hour
     // was spent warming the stone (run 11 came out gypsum). Four.
     await act(caster, 'fire oven for 4 hours', '4 hours');
@@ -917,7 +917,7 @@ suite('⭐⭐ 32 — crystallize', () => {
       await doing(caster, 'get 1 coal');
       await doing(caster, 'stoke coal into hearth');
     }
-    await doing(caster, 'ignite hearth');
+    await doing(caster, 'light hearth');
     let read = first;
     for (let day = 0; day < 6 && !(read.crop > 4); day++) {
       await act(caster, 'fire hearth for 12 hours', '12 hours', 1);

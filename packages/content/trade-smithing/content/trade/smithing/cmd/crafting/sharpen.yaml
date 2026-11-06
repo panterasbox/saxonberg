@@ -1,4 +1,4 @@
-verbs: [sharpen, hone]
+verbs: [sharpen]
 controller: /trade/smithing/idea/cmd/crafting/SharpenController
 description: "Sharpen a blade with your whetstone"
 help: |

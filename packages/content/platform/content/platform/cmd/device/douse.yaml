@@ -1,9 +1,9 @@
-verbs: [douse, extinguish, snuff]
+verbs: [douse]
 controller: /platform/idea/cmd/device/DouseController
 description: "Put out a fire"
 help: |
   Put out a fire — douse a burning thing within reach (`douse fire`,
-  `extinguish torch`, `snuff candle`). The water soaks it as it goes
+  `douse torch`, `douse candle`). The water soaks it as it goes
   out, so it won't relight until it dries.
 
   Something that isn't burning is left alone.

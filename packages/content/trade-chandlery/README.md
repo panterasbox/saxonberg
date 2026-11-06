@@ -24,7 +24,7 @@ craft verb (`do <name>` runs a player's own *script*, never an authored
 catalogue recipe) — every trade in the tree ships its own craft verb for
 that, and this one is no exception. Recorded in the plan.
 
-⭐⭐⭐ **`melt` was a second verb for one build, and is an ALIAS now.** The
+⭐⭐⭐ **`melt` was a second verb for one build, and is gone now (D16: `dip`).** The
 argument for it was that the pot has to be filled before anything can be
 dipped out of it, and that beeswax arrives as a *cake* where rendered
 tallow arrives liquid in a crock and is simply `pour`ed in. The asymmetry

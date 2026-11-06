@@ -3344,7 +3344,7 @@ function affordsView(s: Stuff, view: CommandDefinition): boolean {
  *
  * An alternation reports its FIRST member's phrase: the alternation
  * exists because the members are the same idea from two directions
- * (`ignite` takes a Combustible or a Burner; "won't burn" is true of
+ * (`light` takes a Combustible or a Burner; "won't burn" is true of
  * failing both), so listing every branch's sentence would be worse copy,
  * not more information.
  *

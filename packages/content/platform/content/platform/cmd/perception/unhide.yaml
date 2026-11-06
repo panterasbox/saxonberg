@@ -1,4 +1,4 @@
-verbs: [unhide, reveal]
+verbs: [unhide]
 controller: /platform/idea/cmd/perception/UnhideController
 description: "Step back into the open from hiding"
 help: |

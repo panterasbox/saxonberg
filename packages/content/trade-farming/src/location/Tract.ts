@@ -224,7 +224,7 @@ export default class Tract extends TractBase {
   static commandContributions = {
     // `inventory`: a location's occupants hear it (`self` is a giver's).
     inventory: [
-      'trade/farming/cmd/farming/plough.yaml',
+      'trade/farming/cmd/farming/plow.yaml',
       // ⭐ A tract affords SOWING to whoever stands in it (cover build):
       // the platform view, named here the way `plough` is. A bed affords
       // it through `CultivableMixin`; ground with no slot had nothing.

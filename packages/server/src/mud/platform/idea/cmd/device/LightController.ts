@@ -1,5 +1,5 @@
 /**
- * IgniteController — `ignite <thing>` / `light` / `kindle`.
+ * LightController — `light <thing>` / `light` / `kindle`.
  *
  * Sets fire to any Combustible in reach. The controller narrows the target
  * with `MixinApi.isCombustible` and routes the actual ignition through the
@@ -17,23 +17,23 @@ import { FireApi } from '../../../../api/fire';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Combustible } from '../../../../lib/fire/Combustible';
 
-interface IgniteModel extends CommandModel {
+interface LightModel extends CommandModel {
   target?: MqlOneResult;
 }
 
-export default class IgniteController extends CommandController<IgniteModel> {
-  async execute(model: IgniteModel, context: CommandContext): Promise<void> {
+export default class LightController extends CommandController<LightModel> {
+  async execute(model: LightModel, context: CommandContext): Promise<void> {
     const { commandGiver } = context;
     const target = model.target;
     if (target === undefined) {
       MessageApi.scene(commandGiver)
         .topic('act.deed')
-        .toSelf(Mml.compose`Ignite what?`)
+        .toSelf(Mml.compose`Light what?`)
         .send();
       context.note({
         kind: 'controller-rejected',
         reason: 'missing-target',
-        detail: 'ignite what?',
+        detail: 'light what?',
       });
       return;
     }

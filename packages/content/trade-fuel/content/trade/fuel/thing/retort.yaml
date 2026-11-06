@@ -4,7 +4,7 @@
 # stoke the firebox under it, light it and `fire` it: the charge cooks,
 # and what leaves goes up the pipe to whatever is standing on the head.
 #
-# ⭐ It affords NOTHING new. `fire`, `stoke`, `draught`, `cover`, `ignite`
+# ⭐ It affords NOTHING new. `fire`, `stoke`, `draught`, `cover`, `light`
 # and `douse` all reach it through `BurnerMixin`, and which recipe fires
 # is decided by what is in the chamber — wood gives charcoal and tar,
 # coal gives coke and tar and gas. A third feedstock is a third recipe

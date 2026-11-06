@@ -191,8 +191,7 @@ describe('⭐⭐ the material decides — the verb only holds the heat', () => {
       .map((d) => d.verbs)
       .flat();
     expect(verbs).toContain('fire');
-    expect(verbs).toContain('burn');
-    for (const v of ['ignite', 'douse', 'pump', 'heat']) {
+    for (const v of ['light', 'douse', 'pump', 'heat']) {
       expect(verbs, v).toContain(v);
     }
   });

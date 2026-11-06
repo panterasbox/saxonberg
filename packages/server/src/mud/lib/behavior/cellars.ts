@@ -416,7 +416,7 @@ export const brain = class {
     // 1–2. Charge the pot and light it. A still that will not take the
     // charge, or will not light, ends the leg here.
     await hand.forceCommand(`pour ${charge} into ${stillKey}`);
-    await hand.forceCommand(`ignite ${stillKey}`);
+    await hand.forceCommand(`light ${stillKey}`);
 
     const still = this.fractionatingIn(home);
     if (!still) {

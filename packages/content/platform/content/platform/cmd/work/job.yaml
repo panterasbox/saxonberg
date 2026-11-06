@@ -1,4 +1,4 @@
-verbs: [job, jobs]
+verbs: [job]
 # ⭐ One controller per subcommand (controllers-are-io W7, D9). Bare `job`
 # browses, so the verb-level controller is the browse's — and `fallthrough`
 # with a top-level `board` arg is how the bare form binds its board (the
@@ -7,8 +7,7 @@ controller: /platform/idea/cmd/work/JobBrowseController
 description: "The job board and the roster from the applicant's side — browse / post / claim / complete / abandon / fulfill / apply / quit"
 help: |
   The job board — posted work with the reward held in escrow: the money
-  is locked when the gig goes up, so the stakes are real. Bare `job` (or
-  `jobs`) lists what's open on this board.
+  is locked when the gig goes up, so the stakes are real. Bare `job` lists what's open on this board.
 
   Post work with `job post <what has to be true> for <reward>` — either
   `deliver <thing> to <place>` or `supply <n> <kind> to <place>` — funded
@@ -25,7 +24,7 @@ help: |
   `job abandon [id]` walks away: the escrow reverts, and the issuer
   remembers.
 
-  `jobs --origin here` asks a different question: not what hangs on this
+  `job --origin here` asks a different question: not what hangs on this
   board, but what wants moving OUT of where you are standing. That is the
   backhaul — a wagon going home empty has done half the work for all the
   cost, and you cannot solve your own: you need somebody else's cargo

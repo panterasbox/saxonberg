@@ -1,4 +1,4 @@
-verbs: [query, scan]
+verbs: [query]
 controller: /platform/idea/cmd/perception/QueryController
 description: "List whatever a query names — the horizon, the people here, all the brass"
 help: |
@@ -12,14 +12,14 @@ help: |
     query bob:i        what Bob wears and holds (never his pockets)
     query me:i         everything you have
 
-  `scan` is the same act in the world's own words: `scan horizon`,
-  `scan peers`. `inventory` is the same list of what something holds,
+  `query horizon`, `query peers` read the world the same way. `inventory`
+  is the same list of what something holds,
   grouped as a ledger: worn, held, carried.
 
   Options change how the list is SHOWN, never what is in it — narrowing
   is the query's own: `brass:{2}`, `all coins`, `me:i:[keyword.knife]`.
 examples:
-  - cmd: scan horizon
+  - cmd: query horizon
     note: What is in view beyond your room
   - cmd: query all brass
     note: Every brass thing in reach, listed

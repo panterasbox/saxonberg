@@ -1,7 +1,7 @@
 /**
  * ⭐⭐ **A flame needs air** — ONE gate (ceramics R3), `FireLogic
  * .mediumBurns`, read from BOTH ignition paths: the deliberate strike
- * (`ignite`) and the heat threshold (`tryAutoignite`, which is how a log
+ * (`light`) and the heat threshold (`tryAutoignite`, which is how a log
  * in a clamp would catch).
  *
  * The chamber-air arm: a thing whose immediate container is a `Burner`

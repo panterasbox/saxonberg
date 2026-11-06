@@ -1,4 +1,4 @@
-verbs: [fish, angle]
+verbs: [fish]
 controller: /trade/fishing/idea/cmd/fishing/FishController
 description: "Cast a line and wait"
 help: |

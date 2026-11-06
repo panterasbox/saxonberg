@@ -1,4 +1,4 @@
-verbs: [talk, converse]
+verbs: [talk]
 controller: /platform/idea/cmd/social/TalkController
 description: "Approach someone and strike up a conversation"
 help: |
@@ -8,13 +8,11 @@ help: |
   reply choices.
 
   Not everyone has something to say. Idle scenery folk will brush you
-  off. Look someone over (`examine`) for a hint that they're ready to
+  off. Look someone over (`look`) for a hint that they're ready to
   talk.
 examples:
   - cmd: talk to the barkeep
     note: Begin a conversation with the barkeep
-  - cmd: converse barkeep
-    note: Same thing — `converse` is an alias
 validators:
   - /lib/command/validators/requiresAnimate
 args:

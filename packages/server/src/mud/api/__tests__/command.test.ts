@@ -42,21 +42,20 @@ describe('CommandApi', () => {
       expect(CommandApi.getCommand('nonexistent.yaml')).toBeNull();
     });
 
-    it('parses verb aliases as a list', () => {
+    it('one word, and its default aliases as a list (D16)', () => {
       const command = CommandApi.getCommand('platform/cmd/perception/look.yaml');
-      expect(command?.verbs).toContain('look');
-      expect(command?.verbs).toContain('l');
+      expect(command?.verbs).toEqual(['look']);
+      expect(command?.defaultAliases.map((a) => a.name)).toEqual(['l']);
     });
   });
 
   describe('CommandDefinition.hasVerb()', () => {
-    it('matches case-insensitively across every alias', () => {
+    it('matches case-insensitively, and only the word', () => {
       const cmd = CommandApi.getCommand('platform/cmd/perception/look.yaml')!;
       expect(cmd.hasVerb('look')).toBe(true);
       expect(cmd.hasVerb('LOOK')).toBe(true);
       expect(cmd.hasVerb('Look')).toBe(true);
-      expect(cmd.hasVerb('l')).toBe(true);
-      expect(cmd.hasVerb('L')).toBe(true);
+      expect(cmd.hasVerb('l')).toBe(false);
     });
 
     it('returns false for an unrelated verb', () => {

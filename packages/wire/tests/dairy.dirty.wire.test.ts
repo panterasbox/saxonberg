@@ -497,7 +497,7 @@ suite('7–9 (afternoon). the pan has separated; skim off; churn the cream cool'
     await advance('2 hours');
     const t = await kelvinOf(k, 'churn');
     note(`cream in the churn at ${t} K`);
-    const churned = await doing(k, 'churn churn');
+    const churned = await doing(k, 'stir churn');
     expect(churned).toMatch(/come|butter|thump/i);
     expect(churned).not.toMatch(/will not come|greasy/i);
   });
@@ -759,16 +759,16 @@ suite('20. butter fries roots at the cookhouse, as a fat', () => {
     // ⚠ Fuel first: `stoke log into oven` (the view's own help says
     // `stoke hearth with charcoal`, which binds the charcoal as the fire).
     await doing(k, 'stoke log into oven');
-    await act(k, 'ignite oven');
+    await act(k, 'light oven');
     // ⚠ `add`, not `pour`: two views claim `pour`, and into a pot the BULK
     // one wins — the butter went into the pot's interior, the build never
     // saw it, and the two roots matched ROASTED roots (run 14). `add` is
     // the build step's own word (a standard measure, 0.06 L).
-    const fat = await doing(k, 'add butter-crock to pot');
+    const fat = await doing(k, 'pour butter-crock to pot');
     note(`butter into the pot → ${fat}`);
     await doing(k, 'drop butter-crock');
-    await doing(k, 'add roots to pot');
-    await doing(k, 'add roots to pot');
+    await doing(k, 'pour roots to pot');
+    await doing(k, 'pour roots to pot');
     await doing(k, 'heat pot');
     const plated = await doing(k, 'plate pot into dish');
     note(`plate → ${plated}`);
@@ -944,7 +944,7 @@ suite('19a. the smelt fills the crucible; the smelter pours the mould', () => {
     await goTo(SMELTER);
     await doing(k, 'stoke charcoal into furnace');
     await doing(k, 'stoke charcoal into furnace');
-    await doing(k, 'ignite furnace');
+    await doing(k, 'light furnace');
     await act(k, 'pump bellows');
     // ⚠ Preheat: 0.17 kg of copper tapped into a COLD crucible sets on
     // contact — run 29 poured nothing straight after the tap. A smelter

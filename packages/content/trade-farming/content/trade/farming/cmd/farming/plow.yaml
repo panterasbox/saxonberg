@@ -1,6 +1,6 @@
-verbs: [plough, plow]
+verbs: [plow]
 controller: /trade/farming/idea/cmd/farming/PloughController
-description: "Turn ground over with a plough"
+description: "Turn ground over with a plow"
 help: |
   Set the share in and open a furrow.
 

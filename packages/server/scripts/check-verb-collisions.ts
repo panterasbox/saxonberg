@@ -114,10 +114,7 @@ export function disjointShapes(a: Claim, b: Claim): boolean {
 
 /**
  * ⚠ The nine collisions that shipped before this gate existed, each with
- * what is known about it. **Only `lease`/`unlease` is understood to be
- * safe** — those are domain-local verbs in two different localities
- * (Duncan Hall, Mayfield Row), never afforded to the same person at the
- * same time. The rest are live questions.
+ * what is known about it. Every row is a live question.
  *
  * ⭐ To remove a row: decide whether the two really are one verb (fold
  * them into one view with subcommands) or two (rename one), then delete
@@ -129,10 +126,6 @@ export function disjointShapes(a: Claim, b: Claim): boolean {
  * unify → generativity → accessibility, in that order).
  */
 const KNOWN_COLLISIONS: Record<string, string> = {
-  lease:
-    "domain-local, two different localities (duncan-hall provision / " +
-    "mayfield-row lease) — never afforded together. SAFE.",
-  unlease: "as `lease` — the same two localities. SAFE.",
   pour: "platform: bulk/pour.yaml vs crafting/pour.yaml — undiagnosed.",
 };
 

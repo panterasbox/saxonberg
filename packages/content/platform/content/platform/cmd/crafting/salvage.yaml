@@ -1,4 +1,4 @@
-verbs: [salvage, scrap]
+verbs: [salvage]
 controller: /platform/idea/cmd/crafting/SalvageController
 description: "Break an item down into raw materials (lossy)"
 help: |

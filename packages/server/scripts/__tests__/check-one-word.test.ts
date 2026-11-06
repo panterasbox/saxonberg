@@ -66,9 +66,8 @@ describe("(c) default aliases", () => {
 });
 
 describe("⭐ the live tree", () => {
-  it("at or below the ceilings, above zero", () => {
+  it("at or below the ceilings", () => {
     const r = census();
-    expect(r.multiWord.length).toBeGreaterThan(0);
     expect(r.multiWord.length).toBeLessThanOrEqual(MULTI_WORD_VIEWS_CEILING);
     expect(r.acrossVerbs.length).toBeLessThanOrEqual(CONTROLLERS_ACROSS_VERBS_CEILING);
     expect(r.badAliases).toEqual([]);

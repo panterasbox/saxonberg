@@ -1,6 +1,6 @@
 # Anaesthesia — the surgical sleep (clinical-medicine D10). A prescribed,
 # administered active that takes a patient UNDER so a surgeon can operate
-# without them thrashing. Injected past digestion by `dose`/`administer`;
+# without them thrashing. Injected past digestion by `dose`;
 # the burden reads as a stage against the bands, and at stage 2 the
 # `sedation` effect makes the body read `unconscious`.
 #

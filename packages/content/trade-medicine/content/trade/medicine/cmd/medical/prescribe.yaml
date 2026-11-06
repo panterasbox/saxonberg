@@ -4,7 +4,7 @@ description: "Write a prescription for a controlled active (a doctor's power)"
 help: |
   `prescribe <someone> <remedy> [<doses>]` — with a prescription pad —
   writes a slip authorizing a controlled active (an anaesthetic, an
-  antibiotic) for one patient. A nurse then `administer`s it. Prescribing
+  antibiotic) for one patient. A nurse then `dose`s it. Prescribing
   is the doctor's power (`competent` in medicine); folk remedies and
   saline need no prescription.
 validators:

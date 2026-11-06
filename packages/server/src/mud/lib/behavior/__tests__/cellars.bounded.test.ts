@@ -34,7 +34,7 @@ describe('the cellars brain — bounded, literal, home in finally', () => {
       // light, and pour a measured step at a time into whichever vessel
       // the hand's own nose says this is.
       '`pour ${charge} into ${stillKey}`',
-      '`ignite ${stillKey}`',
+      '`light ${stillKey}`',
       '`pour ${stillKey} into ${target} --amount ${stepL}L`',
     ]) {
       expect(SRC).toContain(verb);

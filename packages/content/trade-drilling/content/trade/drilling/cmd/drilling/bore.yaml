@@ -1,4 +1,4 @@
-verbs: [bore, drill]
+verbs: [bore]
 controller: /trade/drilling/idea/cmd/drilling/BoreController
 description: "Site a hole on your own ground, or work the beam on one"
 help: |
@@ -28,8 +28,6 @@ help: |
 examples:
   - cmd: bore
     note: Site a rig on ground you have staked, or take a stroke
-  - cmd: drill
-    note: The same verb
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious

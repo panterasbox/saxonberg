@@ -1,4 +1,4 @@
-verbs: [bleed, venesect]
+verbs: [bleed]
 controller: /trade/medicine/idea/cmd/medical/BleedController
 description: "Draw a unit of blood into a vessel (needs a syringe)"
 help: |

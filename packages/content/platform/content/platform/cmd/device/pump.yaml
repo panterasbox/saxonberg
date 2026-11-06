@@ -1,9 +1,9 @@
-verbs: [pump, work]
+verbs: [pump]
 controller: /platform/idea/cmd/device/PumpController
 description: "Work a pump by hand — a well's handle or a furnace's bellows"
 help: |
   Work something by hand that moves a fluid — `pump well`, `pump
-  wellhead`, `pump forge` (or `work bellows`).
+  wellhead`, `pump forge`.
 
   At a well or a wellhead, a spell at the handle raises what stands below
   into the trough, and it is honest work: the deeper the water, the

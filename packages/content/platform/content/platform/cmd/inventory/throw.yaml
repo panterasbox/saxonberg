@@ -1,4 +1,4 @@
-verbs: [throw, hurl, lob, heave]
+verbs: [throw]
 controller: /platform/idea/cmd/inventory/ThrowController
 description: "Throw something you're carrying — away, or at someone"
 help: |
@@ -26,8 +26,6 @@ examples:
     note: Pitch it away — no target, no fight
   - cmd: throw flask at the wolf
     note: Deliver a contact potion across the gap
-  - cmd: hurl the bottle at the bandit
-    note: An alias for the same verb
   - cmd: throw line to Mara
     note: A toss to be caught — a lifeline to someone in the water
 validators:

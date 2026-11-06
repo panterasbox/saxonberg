@@ -1,8 +1,8 @@
-verbs: [treat, bind, dress]
+verbs: [treat]
 controller: /platform/idea/cmd/medical/TreatController
 description: "Treat what is wrong — a dressing, water, or your own hands"
 help: |
-  `treat` (also `bind` or `dress`) treats what is wrong with a body. With
+  `treat` treats what is wrong with a body. With
   no target you treat yourself; name someone to treat them.
 
   ⭐ **What you treat it WITH matters.** Different things want different
@@ -38,7 +38,7 @@ help: |
 examples:
   - cmd: treat
     note: Treat your own worst wound with whatever is to hand
-  - cmd: bind the guard
+  - cmd: treat the guard
     note: Dress a wound on someone else
   - cmd: treat the smith with my waterskin
     note: Get fluid onto a burn — a bandage would do nothing for it

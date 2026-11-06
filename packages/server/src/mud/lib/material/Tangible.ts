@@ -167,7 +167,7 @@ export interface Tangible {
    * water this piece holds raises its ignition threshold by. Surface
    * wetness (a log left in the rain) and the matter's own water (a turf
    * cut from a bog) add. Mass-independent: the fuel mass cancels between
-   * the water-boil energy and the thermal capacity. `stoke`, `ignite`, a
+   * the water-boil energy and the thermal capacity. `stoke`, `light`, a
    * pour and a firing chamber all read this.
    */
   getWetIgnitionPenaltyK(): number;

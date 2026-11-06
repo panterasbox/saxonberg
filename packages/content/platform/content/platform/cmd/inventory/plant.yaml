@@ -1,4 +1,4 @@
-verbs: [plant, sow]
+verbs: [plant]
 controller: /platform/idea/cmd/inventory/PlantController
 description: "Plant a seed in a pot of soil, or sow a field"
 help: |
@@ -8,25 +8,25 @@ help: |
 
   From then on it lives on its own clock: it drinks, it wants light, and
   its roots want room. `look` at it to see how it's doing, and `water`
-  it when the soil goes dry. `sow` is an alias for the same verb.
+  it when the soil goes dry.
 
-  On a FIELD you broadcast instead: stand in it and `sow wheat`. Each
+  On a FIELD you broadcast instead: stand in it and `plant wheat`. Each
   cast covers a stretch of ground and spends the seed in proportion, so
   a sack that would sow a third of the field sows a third of it, and you
   sow again until the seed or the ground runs out. The field must be
   ploughed for the season first, and it must be yours to sow — or you
   must be on shift for whoever works it.
 
-  On ground marked into fields, say which: `sow wheat at the gate end`
+  On ground marked into fields, say which: `plant wheat at the gate end`
   fills that field, cast by cast, until it is sown edge to edge.
 examples:
   - cmd: plant the seed in the small pot
     note: Start a plant growing
-  - cmd: sow lily seed into pot
+  - cmd: plant lily seed into pot
     note: Same thing, either preposition
-  - cmd: sow wheat
+  - cmd: plant wheat
     note: Broadcast seed over the field you are standing in
-  - cmd: sow wheat at the gate end
+  - cmd: plant wheat at the gate end
     note: On ground marked into fields, name the field
 validators:
   - /lib/command/validators/requiresAnimate

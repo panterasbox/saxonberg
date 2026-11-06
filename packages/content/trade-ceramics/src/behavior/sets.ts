@@ -11,7 +11,7 @@
  * clamp yields fewer clinkers, deterministically, with no code here.
  *
  * Every step is the LITERAL verb through `forceCommand` — `get 40 bricks`,
- * `put bricks in clamp`, `stoke coal into clamp`, `ignite clamp`, `fire
+ * `put bricks in clamp`, `stoke coal into clamp`, `light clamp`, `fire
  * clamp for 3 days`, `get bricks from clamp`, `put bricks in counter`.
  * Nothing here mints, nothing teleports, and a player's bricks are never
  * his to set.
@@ -148,7 +148,7 @@ export const brain = class {
         if (!coal) return; // no coal: the clamp waits for the fuel trade
         await s.forceCommand('stoke coal into clamp');
       }
-      await s.forceCommand('ignite clamp');
+      await s.forceCommand('light clamp');
       if (clamp.isLit()) await s.forceCommand(`fire clamp for ${burn}`);
       return;
     }

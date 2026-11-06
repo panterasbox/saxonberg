@@ -6,7 +6,7 @@ help: |
   still acoustic — it reaches nearby rooms within earshot, not the
   whole world — so reach for it to get the attention of people one
   or two rooms over. For room-only speech use `say`; for anywhere
-  use `tell` or a channel.
+  use `dm` or a channel.
 
   Add `--to <someone>` to mark the shout as aimed at a person.
   Everyone in range still hears it; the line just notes who it's

@@ -429,7 +429,7 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — the home field in spring', () => 
     for (const field of ['the gate end', 'the middle', 'the far side']) {
       let said = '';
       for (let i = 0; i < 5 && !/ploughed for the season/i.test(said); i++) {
-        said = (await work(p, `plough at ${field}`)).said + ' ' + (await read(p, `look at ${field}`));
+        said = (await work(p, `plow at ${field}`)).said + ' ' + (await read(p, `look at ${field}`));
       }
       expect(said, field).toMatch(/ploughed for the season/i);
     }
@@ -437,24 +437,24 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — the home field in spring', () => 
     // then read the field, not the tract. Back to the room.
     await read(p, 'look here');
     // ⭐ Every act on a divided field names its field (R2).
-    await refused(p, 'sow wheat', 'part-unnamed');
+    await refused(p, 'plant wheat', 'part-unnamed');
     // The gate end until it is full, a little in the middle, the rest on
     // the far side.
     let filled = false;
     for (let i = 0; i < 14 && !filled; i++) {
-      const { r, said: s } = await work(p, 'sow wheat at the gate end');
+      const { r, said: s } = await work(p, 'plant wheat at the gate end');
       if (refusedFor(r) === 'part-sown') filled = true;
       else expect(refusedFor(r), s).toBeNull();
     }
     expect(filled, 'the gate end was sown full').toBe(true);
-    const middle = await work(p, 'sow wheat at the middle');
+    const middle = await work(p, 'plant wheat at the middle');
     expect(refusedFor(middle.r), middle.said).toBeNull();
     // The far side until it is full; anything left goes into the middle,
     // so no seed is carried when the label is tied (a carried sack of seed
     // wheat answers to `wheat` first).
     let part = 'the far side';
     for (let i = 0; i < 20 && /sack of seed wheat/i.test(await read(p, 'inventory')); i++) {
-      const { r, said: s } = await work(p, `sow wheat at ${part}`);
+      const { r, said: s } = await work(p, `plant wheat at ${part}`);
       if (refusedFor(r) === 'part-sown' && part === 'the far side') {
         part = 'the middle';
         continue;

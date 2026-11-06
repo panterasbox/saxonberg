@@ -1,4 +1,4 @@
-verbs: [get, take]
+verbs: [get]
 controller: /platform/idea/cmd/inventory/GetController
 description: "Pick up objects from your location"
 help: |

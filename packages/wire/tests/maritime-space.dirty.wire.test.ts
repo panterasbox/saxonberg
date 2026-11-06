@@ -111,7 +111,7 @@ async function sail(s: Session, hours: string): Promise<string> {
 async function horizonUntil(s: Session, want: RegExp, tries = 9): Promise<string> {
   let said = '';
   for (let i = 0; i < tries; i++) {
-    said = await look(s, 'scan horizon');
+    said = await look(s, 'query horizon');
     if (want.test(said)) return said;
     // A sea or a sky nobody had read yet answers "not yet" once and starts
     // its read — give that a moment of real time before spending game time.
@@ -232,7 +232,7 @@ suite('23 · 24 · the horizon ashore', () => {
     }
     const inside = await Session.open(LANDSMAN, { startLocation: MILL });
     try {
-      expect(await look(inside, 'scan horizon')).toMatch(/You see nothing there/);
+      expect(await look(inside, 'query horizon')).toMatch(/You see nothing there/);
     } finally {
       inside.close();
     }
@@ -376,7 +376,7 @@ suite('27 · 28 · 29 · 30 · looking at many things', () => {
     expect(second).not.toMatch(/You see .*chart.*chart/);
     // `scan` is the same act in the world's words, and `query --ledger`
     // groups a holder's things as `inventory` does.
-    expect(await look(me, 'scan all greywater')).toMatch(/You see .*chart.*chart/);
+    expect(await look(me, 'query all greywater')).toMatch(/You see .*chart.*chart/);
     expect(squash(await me.prose('query --ledger me:i'))).toMatch(/You are (wearing|holding|carrying): /);
   }
 });
@@ -492,7 +492,7 @@ suite('6 · 7 · 8 · finding out where you are', () => {
 
 suite('19 · 20 · 25 · sight at sea', () => {
   it('19 · `scan horizon` at the Rock shows the light; `look horizon:light` reads it; `hail` it', async () => {
-    const said = await look(me, 'scan horizon');
+    const said = await look(me, 'query horizon');
     expect(said).toMatch(/You can see the light on Gannet Rock/);
     expect(await look(me, 'look horizon:light')).toMatch(/white tower on a black rock/);
     const r = await me.cmd('hail light');
@@ -503,7 +503,7 @@ suite('19 · 20 · 25 · sight at sea', () => {
   it('19 · ⭐ somebody below decks sees nothing of it', async () => {
     const s = await Session.open(LANDSMAN, { startLocation: HOLD });
     try {
-      expect(await look(s, 'scan horizon')).toMatch(/You see nothing there/);
+      expect(await look(s, 'query horizon')).toMatch(/You see nothing there/);
     } finally {
       s.close();
     }
@@ -519,7 +519,7 @@ suite('19 · 20 · 25 · sight at sea', () => {
     expectOk(await me.cmd('course open sea'));
     for (let i = 0; i < 24; i++) {
       await sail(me, '10 minutes');
-      if (!LIGHT.test(await look(me, 'scan horizon'))) break;
+      if (!LIGHT.test(await look(me, 'query horizon'))) break;
     }
     expectOk(await me.cmd('anchor'));
     const w = await me.cmd('watch horizon');
@@ -556,7 +556,7 @@ suite('19 · 20 · 25 · sight at sea', () => {
     let seen = '';
     for (let i = 0; i < 24 && !LIGHT.test(seen); i++) {
       await sail(me, '10 minutes');
-      seen = await look(me, 'scan horizon');
+      seen = await look(me, 'query horizon');
     }
     expect(seen).toMatch(LIGHT);
     // `horizon:light`, explicitly: `measure` tries `$focus` first, and the focus

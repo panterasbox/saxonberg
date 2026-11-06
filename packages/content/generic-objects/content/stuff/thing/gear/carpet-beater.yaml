@@ -1,5 +1,5 @@
 # A carpet beater — a loop of plaited cane on a handle (cleanliness, B46).
-# `beat rug`: a rug hung over a line and beaten gives up what a floor
+# `brush rug`: a rug hung over a line and beaten gives up what a floor
 # gathers.
 class: /platform/thing/SweepingTool
 data:

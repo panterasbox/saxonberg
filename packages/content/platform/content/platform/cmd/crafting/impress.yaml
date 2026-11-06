@@ -1,4 +1,4 @@
-verbs: [impress, mold]
+verbs: [impress]
 controller: /platform/idea/cmd/crafting/ImpressController
 description: "Press a hard shape into something soft"
 help: |
@@ -11,8 +11,6 @@ help: |
     and it will not take it.
   - a mould's soft medium — a sand flask, a wax block — takes the shape of
     the whole thing pressed into it (the founder's work).
-
-  `mold` is the same act.
 examples:
   - cmd: impress stamp on jug
     note: Mark a leather-hard pot as yours

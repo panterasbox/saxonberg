@@ -226,7 +226,7 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ the wash ferments, and new-make become
 
   it('the still is lit and charged from the vat', async () => {
     await say(k, 'stoke log into still');
-    const lit = await say(k, 'ignite still');
+    const lit = await say(k, 'light still');
     expect(refusedFor(lit)).not.toBe('no-fuel');
     const poured = await say(k, 'pour vat into still');
     expect(refusedFor(poured)).not.toMatch(/bulk|slot|cannot-pour/i);

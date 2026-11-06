@@ -109,13 +109,13 @@ suite('the smithy — the knowledge ladder is real', () => {
     // somebody fills); Berta lights it when she is on shift (`stokes`),
     // and a smith who comes in first lays the smithy's charcoal herself.
     // Either order is honest, so both are allowed.
-    const lit = await s.cmd('ignite forge');
+    const lit = await s.cmd('light forge');
     const litReasons = lit.notes.map((n) => (n as { reason?: string }).reason);
     if (lit.status !== 'ok' && !litReasons.includes('already-burning')) {
       expect(litReasons, 'a cold forge refuses for want of fuel').toContain('no-fuel');
       await s.cmd('get 1 charcoal');
       await s.cmd('stoke charcoal into forge');
-      expectOkOr(await s.cmd('ignite forge'), 'already-burning');
+      expectOkOr(await s.cmd('light forge'), 'already-burning');
     }
     expectOkOr(await s.cmd('pump forge'), 'already-burning', 'not-lit');
 

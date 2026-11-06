@@ -11,7 +11,7 @@ data:
   # ⭐ A still ships COLD, and now says so. `BurnerMixin.lit` defaults
   # TRUE, so this row shipped "lit" against its own prose ("the firebox
   # swept and ready", "bright with polishing") and against its own class
-  # docstring ("lit with `ignite`"). Nothing observable depended on it —
+  # docstring ("lit with `light`"). Nothing observable depended on it —
   # the row carries no fuel reserve, and every consumer of `isLit()` also
   # asks `fuelRemaining() > 0` — which is exactly why it went unnoticed
   # for the whole of the distilling build's life. Found by

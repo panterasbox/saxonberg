@@ -1,5 +1,5 @@
 # A stoppered vial of grey-draught — the clinic's anaesthetic stock (D10).
-# `administer` reads the `active` matter; a controlled active, so a nurse
+# `dose` reads the `active` matter; a controlled active, so a nurse
 # needs a prescription (or a doctor's licence).
 class: /platform/thing/Receptacle
 data:

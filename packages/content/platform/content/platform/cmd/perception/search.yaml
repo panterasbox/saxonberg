@@ -13,7 +13,7 @@ help: |
   you can be caught out mid-rummage, and being interrupted finds
   nothing. How much you turn up depends on how sharp your eye is.
 
-  For a quick once-over that doesn't tie up your hands, use `examine`.
+  For a quick once-over that doesn't tie up your hands, use `look`.
 examples:
   - cmd: search
     note: Go over your whole surroundings

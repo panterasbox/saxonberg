@@ -1,4 +1,4 @@
-verbs: [repair, mend]
+verbs: [repair]
 controller: /platform/idea/cmd/crafting/RepairController
 description: "Repair a worn or broken durable good"
 help: |

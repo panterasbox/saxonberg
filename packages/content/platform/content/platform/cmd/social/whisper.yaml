@@ -8,7 +8,7 @@ help: |
   aside while staying in the same space.
 
   Whisper is acoustic and short-reach — both of you must be in the
-  same room. For private messages at any distance, use `tell`.
+  same room. For private messages at any distance, use `dm`.
 examples:
   - cmd: whisper bob meet me outside
     note: Say something only Bob can hear

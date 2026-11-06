@@ -189,8 +189,8 @@ suite('⭐⭐ 1–2. a fire is its fuel, its air and its vessel', () => {
   }, 120_000);
 
   it('⭐⭐ drive 2 — an unstoked forge refuses to light BY NAME', async () => {
-    const lit = await say(h, 'ignite forge');
-    understood(lit, 'ignite forge');
+    const lit = await say(h, 'light forge');
+    understood(lit, 'light forge');
     // ⭐ `no-fuel`, not `not-flammable`: a forge with an empty bed is a
     // fire waiting for somebody, and the refusal has to say which or the
     // player has no way to find out what lifts it.
@@ -200,8 +200,8 @@ suite('⭐⭐ 1–2. a fire is its fuel, its air and its vessel', () => {
   it('⭐⭐⭐ drive 3–4 — `stoke` exists, is afforded, and the fire runs', async () => {
     const fed = await say(h, 'stoke charcoal into forge');
     understood(fed, 'stoke charcoal into forge');
-    const lit = await say(h, 'ignite forge');
-    understood(lit, 'ignite forge');
+    const lit = await say(h, 'light forge');
+    understood(lit, 'light forge');
     expect(
       refusedFor(lit),
       'a stoked forge must light — this is the act no fire in the game could accept',
@@ -269,8 +269,8 @@ suite('⭐⭐⭐ 9. a fire in a sealed cellar warns you, then smothers', () => {
     // demonstrator. The prop is what makes the lesson land in a session.
     const fed = await say(c, 'stoke log into brazier');
     understood(fed, 'stoke log into brazier');
-    const lit = await say(c, 'ignite brazier');
-    understood(lit, 'ignite brazier');
+    const lit = await say(c, 'light brazier');
+    understood(lit, 'light brazier');
     expect(refusedFor(lit)).not.toBe('no-fuel');
 
     // ⭐⭐ The free read, which did not exist before this build: the row
@@ -319,8 +319,8 @@ suite('⭐⭐⭐ 10–19. the clamp, then the retort — and the three products'
   it('⭐⭐ drive 11 — the retort is HERE, it fires shut, and the condenser fills', async () => {
     const stoked = await say(f, 'stoke charcoal into retort');
     understood(stoked, 'stoke charcoal into retort');
-    const lit = await say(f, 'ignite retort');
-    understood(lit, 'ignite retort');
+    const lit = await say(f, 'light retort');
+    understood(lit, 'light retort');
 
     // ⚠ The reachability link the plan flagged as most likely to die
     // silently: a Placement member naming no row makes `place` refuse in
@@ -408,8 +408,8 @@ suite('⭐⭐⭐ 20–25. the third damp, the lamp, and the gas you can carry ou
     understood(got, 'get safety lamp');
     expect(refusedFor(got), 'no safety lamp at the lamp station').toBeNull();
 
-    const lit = await say(m, 'ignite lamp');
-    understood(lit, 'ignite lamp');
+    const lit = await say(m, 'light lamp');
+    understood(lit, 'light lamp');
     // It ships with oil in it, or it is an ornament.
     expect(refusedFor(lit)).not.toBe('no-fuel');
   }, 240_000);
@@ -505,7 +505,7 @@ suite('⚠⚠ 28. every shipped flow still completes', () => {
     // row was raised by 1/0.6 — and a room lit only by a fire is the
     // case to check first.
     await say(r, 'stoke charcoal into forge');
-    await say(r, 'ignite forge');
+    await say(r, 'light forge');
     const looked = await r.prose('look');
     expect(looked.length, 'the smithy came back empty — it has gone dark')
       .toBeGreaterThan(40);

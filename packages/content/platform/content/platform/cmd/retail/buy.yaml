@@ -1,4 +1,4 @@
-verbs: [buy, purchase]
+verbs: [buy]
 controller: /platform/idea/cmd/retail/BuyController
 description: "Buy something offered for sale here"
 help: |

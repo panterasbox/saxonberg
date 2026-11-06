@@ -1,4 +1,4 @@
-verbs: [drink, quaff]
+verbs: [drink]
 controller: /platform/idea/cmd/bulk/DrinkController
 description: "Drink from a holder — all of it, or a measured amount"
 help: |
@@ -16,7 +16,7 @@ help: |
   draught is half the effect, and a threshold draught does nothing
   at all below its minimum.
 
-  `quaff` is the same verb. A potion is a liquid like any other —
+  A potion is a liquid like any other —
   it goes down through the same door as ale, and the measure is
   real: dose response is continuous, so half a graded draught is
   half the effect, and a threshold draught does nothing at all

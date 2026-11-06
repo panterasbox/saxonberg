@@ -13,7 +13,7 @@
  * water the wrong field and an expert cannot. Then ONE watering (a can
  * is one can) to the lowest read below `waterAt` — `fill can from
  * <from>` at the configured water room, then `water <crop> at <part>` —
- * and one feeding (`feed <crop> at <part> with sack`) likewise; `pick
+ * and one feeding (`feed <crop> at <part> with sack`) likewise; `harvest
  * <ground>` for each ripe occupant of a bed (bounded — the ground-target
  * resolves its ripest plant, so the beat never fights keyword
  * ambiguity); then carry the take to the market stall, `wallet use
@@ -194,7 +194,7 @@ export const brain = class {
       // and by a no-progress guard (a pick that declines must not grind).
       let remaining = ripeCount(ground);
       while (remaining > 0 && picked < batch) {
-        await hand.forceCommand(`pick ${kw}`);
+        await hand.forceCommand(`harvest ${kw}`);
         picked += 1;
         const now = ripeCount(ground);
         if (now >= remaining) break; // declined — stop, next beat retries
@@ -364,7 +364,7 @@ async function fillCan(
   }
 }
 
-/** Ripe, growing occupants of a ground — what `pick <ground>` will find. */
+/** Ripe, growing occupants of a ground — what `harvest <ground>` will find. */
 function ripeCount(ground: Stuff & Cultivable & Soil): number {
   return (ground.getPlants() as Stuff[]).filter(
     (p) => MixinApi.isGrowing(p) && p.isHarvestable(),

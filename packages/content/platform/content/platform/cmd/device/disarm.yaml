@@ -5,7 +5,7 @@ help: |
   Defuse a trap — a spike pit, a poisoned dart, a snare — that you've
   already spotted. Name the thing (`disarm the pit`). You have to have
   *found* it first: you can't defuse what you can't see, so give a
-  suspicious spot a `search` or an `examine` before you reach for it.
+  suspicious spot a `search` or a `look` before you reach for it.
 
   Disarming takes a few careful moments and ties up your hands; a sharp
   eye makes it surer. You can be caught out mid-work, and an interrupted

@@ -1,7 +1,7 @@
 /**
  * A body's own ignition point (review R2-B1): the material's autoignition
  * raised by the water the piece holds — the fire system's one wetness
- * formula — so a pour and a firing chamber agree with `ignite` about a
+ * formula — so a pour and a firing chamber agree with `light` about a
  * soaked board.
  */
 

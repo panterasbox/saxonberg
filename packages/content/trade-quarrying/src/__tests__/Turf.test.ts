@@ -102,7 +102,7 @@ describe('⭐⭐ the shipped peat row carries a fuel column', () => {
   it('⚠⚠ it is tagged `fuel` — and it was NOT, which is why this test exists', () => {
     // The ground build authored this row for the moor's floor and gave it no
     // combustion fields at all. A turf on that row would not have lit, and
-    // `ignite` would have refused for a reason nobody could find: the
+    // `light` would have refused for a reason nobody could find: the
     // material's autoignition point was zero, which reads as *non-flammable*.
     expect(d.tags).toContain('fuel');
     expect(Number(d.autoignitionTemperature)).toBeGreaterThan(0);

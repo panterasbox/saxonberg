@@ -1,5 +1,5 @@
 # The woodshed — the SPREAD + wet-resist demonstrator. A stack of dry oak logs
-# and one rain-soaked log. Light one (`ignite log`); the presence-gated fire
+# and one rain-soaked log. Light one (`light log`); the presence-gated fire
 # tick spreads it to the dry neighbours over a few beats, but the wet log
 # resists until it dries. Placed declaratively via `props:`.
 class: /platform/location/Locale

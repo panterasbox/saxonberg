@@ -347,7 +347,7 @@ describe('the farms beat — tend, pick, sell, home', () => {
           );
           return;
         }
-        if (verb === 'pick') {
+        if (verb === 'harvest') {
           const target = reach(rest.join(' '));
           await asPrincipal(who, () =>
             makeStuff(() => new HarvestController()).execute(
@@ -421,7 +421,7 @@ describe('the farms beat — tend, pick, sell, home', () => {
 
     // The ripe tree was picked THROUGH THE GROUND (one pick, the whole
     // set) and survives with its window closed.
-    expect(lines.filter((l) => l === 'pick bed').length).toBeGreaterThan(0);
+    expect(lines.filter((l) => l === 'harvest bed').length).toBeGreaterThan(0);
     expect(tree.isDestroyed()).toBe(false);
     expect(tree.isHarvestable()).toBe(false);
 
@@ -449,7 +449,7 @@ describe('the farms beat — tend, pick, sell, home', () => {
     );
     await farms.act(beatCtx());
     expect(lines.filter((l) => l.startsWith('water')).length).toBe(0);
-    expect(lines.filter((l) => l.startsWith('pick')).length).toBe(0);
+    expect(lines.filter((l) => l.startsWith('harvest')).length).toBe(0);
     expect(lines.filter((l) => l.startsWith('consign')).length).toBe(0);
     expect(farmer.getContainer()).toBe(grove);
   });

@@ -1,4 +1,4 @@
-verbs: [harvest, pick]
+verbs: [harvest]
 controller: /platform/idea/cmd/inventory/HarvestController
 description: "Take the crop off a mature plant, or pick ripe fruit"
 help: |
@@ -8,11 +8,11 @@ help: |
   An ANNUAL — a row of carrots — is spent by it: a harvest ends the
   plant, so there is nothing left in the bed afterwards but a free place
   and poorer soil. A FRUITING plant — a cherry tree, a mint bed — bears
-  in cycles instead: when the fruit has ripened, `pick` takes the whole
+  in cycles instead: when the fruit has ripened, `harvest` takes the whole
   set and the plant keeps its place, flowers again, and fills the next
   crop in its own time. Nothing ripe means nothing to pick.
 
-  Naming the ground works too: `pick the bed` takes from whatever is
+  Naming the ground works too: `harvest the bed` takes from whatever is
   ripe in it.
 
   The crop's quality is read off the plant's WORST stretch, not its
@@ -36,10 +36,10 @@ help: |
 examples:
   - cmd: harvest the carrots
     note: Take the crop; an annual plant is spent
-  - cmd: pick the cherry tree
+  - cmd: harvest the cherry tree
     note: A ripe tree gives its whole set and keeps its place
-  - cmd: pick the bed
-    note: Naming the ground picks its ripest plant
+  - cmd: harvest the bed
+    note: Naming the ground takes its ripest plant
   - cmd: harvest wheat with sickle
     note: Cut a swath of a field crop
   - cmd: harvest wheat at the gate end with sickle

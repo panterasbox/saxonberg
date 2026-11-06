@@ -1,10 +1,8 @@
-verbs: [fire, burn]
+verbs: [fire]
 controller: /platform/idea/cmd/device/FireController
 description: "Hold a loaded chamber at heat, and see what the heat makes of what is in it"
 help: |
   `fire the kiln` holds a lit chamber at heat for as long as you tend it.
-  `burn the kiln` is the same act — a lime-burner *burns* lime, and the two
-  words mean one thing.
 
   ⭐⭐ **The heat decides, not the verb.** Everything in the chamber banks
   heat-work for as long as it is hot — how hot, and for how long — and
@@ -14,7 +12,7 @@ help: |
   a piece comes out *burnt to the skin, raw at the heart*. Nothing here
   knows the words: a material that heat changes says so on its own row.
 
-  ⚠ **`fire` is not `ignite`.** *Fire the kiln* ambiguously means *light
+  ⚠ **`fire` is not `light`.** *Fire the kiln* ambiguously means *light
   it*, which is a different act with its own verb — so the chamber has to
   be lit first, and it says so if it is not.
 
@@ -62,7 +60,7 @@ args:
     prepositions: [for]
 # ⭐ The air, set as the firing begins — the draught ladder's words. An
 # OPTION, never a positional arg, so it can never swallow the kiln: `fire
-# kiln`, `burn kiln` and `fire in retort` bind exactly as before. The
+# kiln` and `fire in retort` bind exactly as before. The
 # in-burn adjustment stays the `draught` verb.
 options:
   draught:

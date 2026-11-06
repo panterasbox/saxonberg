@@ -164,7 +164,7 @@ suite('the other hurdle, and a proper cook', () => {
     // ⚠ The hearth may already be lit — `cooking.dirty` runs before this
     // file and works the same cookhouse. The requirement is that the
     // hearth IS lit, not that this test lit it.
-    expectOkOr(await cook.cmd('ignite oven'), 'already-burning');
+    expectOkOr(await cook.cmd('light oven'), 'already-burning');
     const seared = await cook.cmd('cook seared-cut');
     expect(await seared.said()).toMatch(/you cook|haven't learned|work it by hand/i);
   }, 120_000);

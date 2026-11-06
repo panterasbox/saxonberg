@@ -1,4 +1,4 @@
-verbs: [office, offices]
+verbs: [office]
 controller: /platform/idea/cmd/governance/OfficeController
 description: "Inspect government offices; the founder hands seats off"
 help: |
@@ -11,7 +11,7 @@ help: |
   until it is explicitly handed off; vacating a seat reverts it to the
   founder.
 
-  `offices` (or `office list`) shows the public roster — every office, its
+  `office list` shows the public roster — every office, its
   branch and origin, and who currently holds it. The roster is public:
   governance is transparent by constitutional design.
 

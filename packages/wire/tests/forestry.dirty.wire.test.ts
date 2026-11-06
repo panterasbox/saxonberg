@@ -282,14 +282,14 @@ suite('⭐⭐ the Hanging Wood — a place that is a stand', () => {
 
   it('9. a log from the same tree LIGHTS beside a fire — the smelter’s furnace affords it', async () => {
     // Back up for a log (the crown's are on the ride floor), then to the
-    // smelter: `ignite` is afforded by a fire appliance, and a Firewood
+    // smelter: `light` is afforded by a fire appliance, and a Firewood
     // reads its ignition off its Material, which the mint stamped oak.
     await walk(f, ['east', 'north', 'north', 'north', 'north', 'north', 'north']);
     expectOk(await f.cmd('get log'));
     await walk(f, ['south', 'south', 'southwest', 'south', 'northeast', 'east']);
     const here = await f.queryOne('here', ['displayName']);
     expect(String((here as { displayName?: string })?.displayName)).toMatch(/smelter/i);
-    const lit = await f.cmd('ignite log');
+    const lit = await f.cmd('light log');
     expectOkOr(lit, 'already-burning');
   }, 240_000);
 

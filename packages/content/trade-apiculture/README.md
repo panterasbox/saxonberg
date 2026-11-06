@@ -25,7 +25,7 @@ leaves behind is a fruit set on trees it does not own.
 ## What it does NOT ship
 
 Everything else is the platform's: you `open` a hive, `put` a nucleus or a
-super in it, `split` a strong colony, `handle` it to read it, `ignite` a
+super in it, `split` a strong colony, `handle` it to read it, `light` a
 smoker. Honey out of comb has two recipes (`crush-comb`, `spin-comb`) and,
 ⚠ as yet, no verb that runs them — they were written for `make`, which only
 ever replayed scripts (see docs/subsystems/apiculture.md).

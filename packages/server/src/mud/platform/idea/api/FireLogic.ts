@@ -82,7 +82,7 @@ const FireCallers = SecurityPolicies.AnyOf(
  * Lives at `/platform/idea/api/fire` (a stateless `Stuff` singleton, no backing
  * `Template`); `FireApi`'s public statics forward here via
  * `StuffApi.singletonSync`. The **single external writer** of a
- * `Combustible`'s Burning state — deliberate ignition (`ignite`), the
+ * `Combustible`'s Burning state — deliberate ignition (`light`), the
  * heat-threshold autoignition the spread check drives (`tryAutoignite`), the
  * three extinguishers (`douse` / smother / fuel-starvation via `advance`), and
  * the per-object `advance` the presence-gated fire tick fans out. Holds NO
@@ -105,7 +105,7 @@ export class FireLogic extends ApiLogic {
   /**
    * Put one fire's exhaust for `kgBurnt` of fuel into a scope's medium —
    * the `Burner` face of {@link emitExhaustInto}. A burner's own tick
-   * forwards here the way its `ignite`/`douse` do.
+   * forwards here the way its `light`/`douse` do.
    */
   @CallSecurity(FireExhaustCallers)
   public emitExhaust(
@@ -132,7 +132,7 @@ export class FireLogic extends ApiLogic {
    * the rain and the matter's OWN water (a turf cut out of a bog is
    * nearly all water) raise the ignition threshold in exactly the same
    * way, so they add. That is what makes `stoke`'s *"It is too sodden to
-   * catch."* and `ignite`'s shipped refusal the same sentence about the
+   * catch."* and `light`'s shipped refusal the same sentence about the
    * same number, with no peat-specific branch anywhere.
    */
   @CallSecurity(FireReadCallers)
@@ -242,7 +242,7 @@ function fireNowSeconds(): number {
 }
 
 /**
- * Deliberate ignition (the `ignite` verb): a hand-flame lights a flammable,
+ * Deliberate ignition (the `light` verb): a hand-flame lights a flammable,
  * dry-enough object. Rejects a non-flammable object, one already aflame, a
  * spent one, or one too wet for a sustained hand-flame to dry (the water
  * penalty exceeds the manual-drying headroom). The oxygen leg is a Phase-5
