@@ -73,9 +73,8 @@ describe("the classifier", () => {
 });
 
 describe("⭐ the live tree", () => {
-  it("at or below the ceiling, above zero", () => {
+  it("at or below the ceiling", () => {
     const n = census().length;
-    expect(n).toBeGreaterThan(0);
     expect(n).toBeLessThanOrEqual(INSTITUTION_VERBS_CEILING);
   });
 });

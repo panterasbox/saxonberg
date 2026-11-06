@@ -145,7 +145,9 @@ describe('WaterPlace → HaulOut', () => {
     class Water extends PersistableMixin(
       HaulOutMixin(
         WaterPlaceMixin(
-          SwimmableMixin(ShoreMixin(ContainerMixin(Idea))) as never,
+          SwimmableMixin(ShoreMixin(ContainerMixin(Idea))) as unknown as Parameters<
+            typeof WaterPlaceMixin
+          >[0],
         ),
       ),
     ) {}

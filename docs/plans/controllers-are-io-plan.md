@@ -1476,6 +1476,29 @@ unre-driven — W9 confirms it. ⚠ CLAUDE.md (sweep): :189 `def`/`make` →
 Remaining W6: the 65-view sweep, the four controller splits, categories,
 default aliases.
 
+✅ **W6b done** (`f03ab3ca3`, `e278cd81c`, `03da7cbbf`, `c3563fdd6`).
+One word per view; the four controllers split (`SwimVerticalControllerBase`
+is the plan's unnamed base); `defaultAliases:` read from reachable
+views, `alias list` shows `[view: look]`; bare `help` lists categories
+and `help <category>` its verbs (fallthrough verb → category → concept →
+collection → api); `category:` on all 362 views, `CATEGORY_REQUIRED`
+true; one-word 0/0/0. Per-view picks are the MR's list. Decided: `plow`
+not `plough` (American English over the plan's list; `PloughController`
+keeps its shipped name); where a deleted word chose a behavior the
+OBJECT chooses now — `stir` reads the vessel's technique (shaker →
+shaken), `descend` is `dive`, `lie` floats (+ an `adrift` arm),
+`sweep` is `muck out`; domain-local categories in `command-spec.md`
+(device: adjust/blow/tally/wind; retail: stall; crafting: remodel;
+civics: lease/unlease/provision/unprovision), and `category` is required
+by the GATE not the schema (inline test views). `'hello` never reached
+`say` (one token) — `splitSayShortcut` handles a leading `'` on a
+line's first token. `donDurationMs` → `AttiredMixin`. ⚠ **For the
+owner's eye (lens 3a):** players now type `stir shaker` and `stir churn`.
+⚠ W9 confirms the wire edits: `pour X to pot` for `add`, `descend` for
+`dive`, `dip` for bare `gob`/`melt`. CLAUDE.md (sweep): :826 `[alias
+hire]`, `job fulfill`; :834-843 the `examine`/`pick`/`grind`/`melt`
+alias paragraph is false now.
+
 ### W7 — the subcommand rule: the switch controllers, the institution sweep, fight
 
 Goal: drive 7–9, 22 (the institution half); `lint:institution-verbs`
