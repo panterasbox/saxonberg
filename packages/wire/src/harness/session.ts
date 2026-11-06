@@ -973,10 +973,11 @@ export class Session {
     return !this.closed && this.ws.readyState === WebSocket.OPEN;
   }
 
-  close(): void {
+  /** Close the socket; `4000` is the client's deliberate sign-out (it saves the body). */
+  close(code?: number): void {
     if (this.closed) return;
     this.closed = true;
-    this.ws.close();
+    this.ws.close(code);
   }
 }
 
