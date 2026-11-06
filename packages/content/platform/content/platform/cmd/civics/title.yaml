@@ -67,6 +67,7 @@ subcommands:
       - name: desk
         type: object
         required: false
+        greedy: true
         prepositions: [at]
         default: "reachable:[class.DeedDesk]"
         scope: ["here", "peers", "person"]
@@ -91,6 +92,7 @@ subcommands:
       - name: desk
         type: object
         required: false
+        greedy: true
         prepositions: [at]
         default: "reachable:[class.DeedDesk]"
         scope: ["here", "peers", "person"]
