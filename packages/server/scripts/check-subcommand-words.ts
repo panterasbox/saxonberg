@@ -29,7 +29,7 @@ import { pathToFileURL } from "url";
 import { CONTENT, commandViews, controllerPathOf, ratchet } from "./pack-roots";
 import { SCRIPT_BUILTINS } from "../src/mud/lib/script/builtins";
 
-export const DIFFERENT_ACT_PAIRS_CEILING = 46; // W7: `fight defend` routes to DefendController.
+export const DIFFERENT_ACT_PAIRS_CEILING = 44; // W8: −2, the flat `transfer` is gone (`bank transfer`, `party transfer`). // W7: `fight defend` routes to DefendController.
 export const BUILTIN_SUBCOMMANDS_CEILING = 6;
 
 export interface SubcommandReport {

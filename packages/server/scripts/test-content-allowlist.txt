@@ -78,12 +78,12 @@ packages/server/src/mud/platform/idea/cmd/banking/__tests__/house-draw.test.ts
 packages/server/src/mud/platform/idea/cmd/charactergen/__tests__/EmbodyController.chronicle.test.ts
 packages/server/src/mud/platform/idea/cmd/charactergen/__tests__/EmbodyController.commit.test.ts
 packages/server/src/mud/platform/idea/cmd/civics/__tests__/GovernmentController.test.ts
+packages/server/src/mud/platform/idea/cmd/civics/__tests__/ParcelVerbs.test.ts
 packages/server/src/mud/platform/idea/cmd/device/__tests__/ArmController.test.ts
 packages/server/src/mud/platform/idea/cmd/employment/__tests__/tips.test.ts
 packages/server/src/mud/platform/idea/cmd/retail/__tests__/BuyController.test.ts
 packages/server/src/mud/platform/idea/cmd/retail/__tests__/Consignment.test.ts
 packages/server/src/mud/platform/idea/cmd/system/__tests__/CommitteeController.test.ts
 packages/server/src/mud/platform/idea/cmd/system/__tests__/ConfigController.test.ts
-packages/server/src/mud/platform/idea/cmd/system/__tests__/ParcelVerbs.test.ts
 packages/server/src/mud/platform/idea/cmd/work/__tests__/work-verbs.test.ts
 packages/server/src/mud/platform/thing/corpo/__tests__/corpo-organizations.test.ts
