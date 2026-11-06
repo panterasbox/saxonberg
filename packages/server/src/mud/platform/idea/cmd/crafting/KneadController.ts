@@ -97,7 +97,7 @@ export default class KneadController<
           }
         }
       },
-      onRefused: (r) => this.kneadRefusalWords(r, vessel),
+      onRefused: (r) => KneadController.kneadRefusalWords(r, vessel),
       onDone: (f) => {
         switch (f.kind) {
           case 'compounded':
@@ -122,7 +122,7 @@ export default class KneadController<
     };
   }
 
-  private kneadRefusalWords(r: KneadRefusal, vessel: Stuff): Composed {
+  private static kneadRefusalWords(r: KneadRefusal, vessel: Stuff): Composed {
     switch (r.reason) {
       case 'empty':
         return r.facts.wants === 'clay'

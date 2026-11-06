@@ -111,20 +111,20 @@ export default class CarveController extends ManualBuildController<CarveModel> {
       });
       if (plan !== null) {
         if (!plan.ok) {
-          this.turnDown(context, plan.reason, this.refusalWords(plan, named));
+          this.turnDown(context, plan.reason, CarveController.refusalWords(plan, named));
           return;
         }
         await this.engagePlan(context, plan, {
-          beginSelf: (f) => this.beginWords(f, named),
+          beginSelf: (f) => CarveController.beginWords(f, named),
           beginPeers: (f) =>
             f.kind === 'trim'
               ? Mml.compose`${Mml.actor(giver)} pares at ${Mml.thing(named)}.`
               : f.kind === 'riser'
                 ? Mml.compose`${Mml.actor(giver)} cuts into ${Mml.thing(named)}.`
                 : Mml.compose`${Mml.actor(giver)} measures and carves at ${Mml.thing(named)}.`,
-          onRefused: (r) => this.refusalWords(r, named),
+          onRefused: (r) => CarveController.refusalWords(r, named),
           onDone: (f) => {
-            const self = this.doneWords(f, named);
+            const self = CarveController.doneWords(f, named);
             return self === null ? null : { self };
           },
         });
@@ -215,7 +215,7 @@ export default class CarveController extends ManualBuildController<CarveModel> {
   }
 
   /** ⭐ The words for a refused carving (D4) — every reason, exhaustively. */
-  private refusalWords(r: CarveRefusal, thing: Stuff): Composed {
+  private static refusalWords(r: CarveRefusal, thing: Stuff): Composed {
     switch (r.reason) {
       case 'not-carvable':
         switch (r.facts.carves) {
@@ -289,7 +289,7 @@ export default class CarveController extends ManualBuildController<CarveModel> {
   }
 
   /** The words a carving begins on. */
-  private beginWords(f: CarveBegin, thing: Stuff): Composed {
+  private static beginWords(f: CarveBegin, thing: Stuff): Composed {
     switch (f.kind) {
       case 'trim':
         return Mml.compose`You set ${Mml.thing(thing)} upside down and pare at it with ${Mml.thing(f.knife)}.`;
@@ -305,7 +305,7 @@ export default class CarveController extends ManualBuildController<CarveModel> {
   }
 
   /** The words a carving lands on (`null` — nothing said). */
-  private doneWords(f: CarveDone, thing: Stuff): Composed | null {
+  private static doneWords(f: CarveDone, thing: Stuff): Composed | null {
     switch (f.kind) {
       case 'trimmed':
         return Mml.compose`The shavings curl away. ${Mml.thing(thing)} has ${f.feature} now.`;

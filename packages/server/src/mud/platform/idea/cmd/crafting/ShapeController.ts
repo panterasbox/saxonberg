@@ -115,17 +115,17 @@ export default class ShapeController extends ManualBuildController<ShapeModel> {
           }
         }
       },
-      onRefused: (r) => this.refusalWords(r),
-      onDone: (f) => this.doneWords(f, actor),
+      onRefused: (r) => ShapeController.refusalWords(r),
+      onDone: (f) => ShapeController.doneWords(f, actor),
     };
   }
 
-  private refusalWords(r: ShapeRefusal): Composed {
+  private static refusalWords(r: ShapeRefusal): Composed {
     switch (r.reason) {
       case 'no-form':
-        return Mml.compose`Shape it into what? ${this.choices(r.facts.named)}`;
+        return Mml.compose`Shape it into what? ${ShapeController.choices(r.facts.named)}`;
       case 'unknown-form':
-        return Mml.compose`You don't know a form called '${r.facts.form}'. ${this.choices(r.facts.named)}`;
+        return Mml.compose`You don't know a form called '${r.facts.form}'. ${ShapeController.choices(r.facts.named)}`;
       case 'bad-capacity':
         return r.facts.noun === null
           ? Mml.compose`How much should it hold? Say it in pints, quarts, gallons or litres.`
@@ -155,7 +155,7 @@ export default class ShapeController extends ManualBuildController<ShapeModel> {
     }
   }
 
-  private doneWords(f: ShapeFacts, actor: Stuff): { self?: Composed | null; peers?: Composed | null } | null {
+  private static doneWords(f: ShapeFacts, actor: Stuff): { self?: Composed | null; peers?: Composed | null } | null {
     switch (f.kind) {
       case 'thrown':
         return {
@@ -200,7 +200,7 @@ export default class ShapeController extends ManualBuildController<ShapeModel> {
   }
 
   /** The forms an instrument knows, and the classes any hand can name. */
-  private choices(named: readonly string[]): string {
+  private static choices(named: readonly string[]): string {
     const list = named.length > 0 ? `This will make a ${named.join(', a ')}; or ` : '';
     return `${list}say an open vessel, a closed vessel, a flat piece, a block or a cone, and how much it holds.`;
   }

@@ -92,26 +92,26 @@ export default class DipController extends ManualBuildController<DipModel> {
     }
 
     if (!answer.ok) {
-      this.declineStep(context, this.refusalWords(answer), answer.reason);
+      this.declineStep(context, DipController.refusalWords(answer), answer.reason);
       return;
     }
     // ⚠ A zero-length plan runs NOW, inside the command frame (the
     // chandler's candle) — `engagePlan` keeps that rule for every act.
     await this.engagePlan(context, answer, {
-      beginSelf: (f) => this.beginWords(f),
+      beginSelf: (f) => DipController.beginWords(f),
       beginPeers: (f) =>
         f.kind === 'coat'
           ? Mml.compose`${Mml.actor(giver)} dips ${Mml.thing(f.target)} into ${Mml.thing(f.bath)}.`
           : f.kind === 'sheet'
             ? Mml.compose`${Mml.actor(giver)} dips a mould into ${Mml.thing(f.bath)} and lifts it, streaming.`
             : null,
-      onRefused: (r) => this.refusalWords(r),
-      onDone: (f) => this.doneWords(f, giver),
+      onRefused: (r) => DipController.refusalWords(r),
+      onDone: (f) => DipController.doneWords(f, giver),
     });
   }
 
   /** ⭐ The words for a refused dip (D4) — every reason, exhaustively. */
-  private refusalWords(r: DipRefusal): Composed {
+  private static refusalWords(r: DipRefusal): Composed {
     switch (r.reason) {
       case 'not-faced':
         return Mml.compose`${Mml.thing(r.facts.target)} has nothing a coat could lie on.`;
@@ -147,7 +147,7 @@ export default class DipController extends ManualBuildController<DipModel> {
   }
 
   /** The words a dip begins on. */
-  private beginWords(f: DipBegin): Composed {
+  private static beginWords(f: DipBegin): Composed {
     switch (f.kind) {
       case 'coat':
         return Mml.compose`You lower ${Mml.thing(f.target)} into ${Mml.thing(f.bath)} and draw it out slowly, letting it drain.`;
@@ -165,7 +165,7 @@ export default class DipController extends ManualBuildController<DipModel> {
   }
 
   /** The words a dip lands on. */
-  private doneWords(f: DipDone, giver: Stuff): { self?: Composed; peers?: Composed } | null {
+  private static doneWords(f: DipDone, giver: Stuff): { self?: Composed; peers?: Composed } | null {
     switch (f.kind) {
       case 'coated': {
         const where =

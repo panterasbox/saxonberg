@@ -70,14 +70,14 @@ export default class PaintController extends ManualBuildController<PaintModel> {
       if (tried.ok) answer = tried;
     }
     if (!answer.ok) {
-      this.declineStep(context, this.refusalWords(answer, target), answer.reason);
+      this.declineStep(context, PaintController.refusalWords(answer, target), answer.reason);
       return;
     }
     await this.engagePlan(context, answer, {
       beginSelf: (f) =>
         Mml.compose`You load the brush from ${Mml.thing(f.source)} and start laying the coat on ${Mml.thing(target)}.`,
       beginPeers: () => Mml.compose`${Mml.actor(giver)} starts painting ${Mml.thing(target)}.`,
-      onRefused: (r) => this.refusalWords(r, target),
+      onRefused: (r) => PaintController.refusalWords(r, target),
       onDone: (f) =>
         f.kind === 'gone'
           ? null
@@ -89,7 +89,7 @@ export default class PaintController extends ManualBuildController<PaintModel> {
   }
 
   /** ⭐ The words for a refused coat (D4) — every reason, exhaustively. */
-  private refusalWords(r: CoatRefusal, target: Stuff): Composed {
+  private static refusalWords(r: CoatRefusal, target: Stuff): Composed {
     switch (r.reason) {
       case 'no-landing':
         return Mml.compose`You cannot reach the outside of ${Mml.thing(target)} from here.`;

@@ -125,7 +125,7 @@ export default class HammerController extends ManualBuildController<HammerModel>
           if (MixinApi.isDurable(striker)) striker.wear(undefined, 'shock');
           void die.strikeWith(target, HAMMER_BLOW_J, giver).then((out) => {
             if (giver.isDestroyed()) return;
-            MessageApi.scene(giver).topic(TOPIC).toSelf(this.strikeWords(out, target)).send();
+            MessageApi.scene(giver).topic(TOPIC).toSelf(HammerController.strikeWords(out, target)).send();
           });
         },
       });
@@ -187,7 +187,7 @@ export default class HammerController extends ManualBuildController<HammerModel>
   }
 
   /** ⭐ The words for what a strike on a die came to (D4) — every reason. */
-  private strikeWords(out: StrikeOutcome | StrikeRefusal, blank: Stuff): ReturnType<typeof Mml.compose> {
+  private static strikeWords(out: StrikeOutcome | StrikeRefusal, blank: Stuff): ReturnType<typeof Mml.compose> {
     if (out.ok) {
       return Mml.compose`The die bites. ${Mml.thing(out.facts.token)} comes up off it with the device sharp on its face.`;
     }

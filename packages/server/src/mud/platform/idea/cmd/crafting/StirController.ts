@@ -138,7 +138,7 @@ export default class StirController extends KneadController<StirModel> {
           .toSelf(
             out === null
               ? Mml.compose`You ${verb} ${Mml.thing(vessel)}, but there is nothing in it to work.`
-              : Mml.compose`You ${verb} ${Mml.thing(vessel)} hard. ${this.handWorkWords(out.facts)}`,
+              : Mml.compose`You ${verb} ${Mml.thing(vessel)} hard. ${StirController.handWorkWords(out.facts)}`,
           )
           .toPeers(Mml.compose`${Mml.actor(giver)} ${verb}s ${Mml.thing(vessel)}.`)
           .send();
@@ -147,7 +147,7 @@ export default class StirController extends KneadController<StirModel> {
   }
 
   /** ⭐ What working a charge by hand came to, in words (D4) — exhaustively. */
-  private handWorkWords(facts: HandWorkFacts): string {
+  private static handWorkWords(facts: HandWorkFacts): string {
     switch (facts.result) {
       case "came":
         return "The sound changes: it thumps instead of sloshing. The butter has come.";

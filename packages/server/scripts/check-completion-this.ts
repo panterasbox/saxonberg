@@ -50,7 +50,7 @@ function stripComments(src: string): string {
     .replace(/\/\/[^\n]*/g, "");
 }
 
-/** The `onComplete:` closures in one module that mention `this.`. */
+/** The completion-time closures (`onComplete:`, a plan's `onRefused`/`onDone`) that mention `this.`. */
 export function scanCompletionThis(src: string, file: string): CompletionThisFinding[] {
   const code = stripComments(src);
   const out: CompletionThisFinding[] = [];
@@ -65,6 +65,27 @@ export function scanCompletionThis(src: string, file: string): CompletionThisFin
     }
     const body = code.slice((m.index ?? 0) + m[0].length, i);
     if (/\bthis\./.test(body)) {
+      out.push({ file, line: code.slice(0, m.index).split("\n").length });
+    }
+  }
+  // ⭐ A plan's `words` land at completion too (controllers-are-io D4): an
+  // `onRefused`/`onDone` that reaches `this` says nothing, just as silently.
+  // The whole arrow body is read, expression or block.
+  const wordsRe = /\b(?:onRefused|onDone):\s*(?:async\s*)?\([^)]*\)\s*=>\s*/g;
+  for (const m of code.matchAll(wordsRe)) {
+    const start = (m.index ?? 0) + m[0].length;
+    let i = start;
+    let depth = 0;
+    while (i < code.length) {
+      const c = code[i];
+      if (c === "(" || c === "{" || c === "[") depth++;
+      else if (c === ")" || c === "}" || c === "]") {
+        if (depth === 0) break;
+        depth--;
+      } else if (c === "," && depth === 0) break;
+      i++;
+    }
+    if (/\bthis\./.test(code.slice(start, i))) {
       out.push({ file, line: code.slice(0, m.index).split("\n").length });
     }
   }
