@@ -281,7 +281,7 @@ material's own lump.
 
 `pourDurationS > 0` (the **bell pit**, six game hours): the metal still goes
 in at once — it would freeze in the crucible otherwise — and the founder's
-day is the WATCH: `PourController` holds the pourer's attention on a
+day is the WATCH: `MouldMixin.watchThePour` holds the pourer's attention on a
 sealed-down `ManualBuildStep` for that long, and the mould's discipline is
 credited (`hard`) when the watch is kept. Every other pour is unchanged.
 

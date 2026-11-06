@@ -258,11 +258,10 @@ glassblower's `shape bottle` binds as it always did.
   blank a founder's pattern (`PatternStockMixin`) — and says itself why
   not. When it has nothing to say (`null`) the controller runs the generic
   carving-RECIPE path (one item of wood, an edge, no heat) with that thing
-  as the stock, so `carve peg on board` and `carve peg from board` are one
-  carving. The controller knows no pattern (B103);
-  `CarvableMixin` affords the platform view. Every shipped
-  form (`carve haft`, `carve peg from the blank`, `carve handle with the
-  billhook`) binds as before.
+  as the stock. The controller knows no pattern (B103);
+  `CarvableMixin` affords the platform view. The forms are `carve haft`,
+  `carve peg from the blank`, and options for the rest: `carve handle --with
+  billhook`, `carve pattern from board --of sword --for bronze` (D9).
 - **`impress`**, new: `impress <pattern> on|in|into <medium>`.
   The MEDIUM (`ImpressibleMixin`) answers `takeImpression` — a leather-hard pot takes
   the device the pattern's face bears (`MarkedMixin.takeDeviceFrom` — a
@@ -1192,6 +1191,12 @@ to ann` cannot bind `throw-at`, and `throw ball at ann` cannot bind
 shows it bare: `throw <item> to <recipient>` (`[to <recipient>]` when
 optional).
 
+⭐ `throw` is the case it was written for. `throw.yaml`, `throw-to.yaml` and
+`throw-at.yaml` are three views of one word and three controllers, because a pitch,
+a catch and an attack are three acts: the word is shared, and the shapes prove
+which act a line means. `lint:verb-collisions` compares positional ranges and then
+the required prepositions, so no list adjudicates them.
+
 ### ⭐ When every shape fails — the usage line
 
 When no view of the verb fits the line (every `assemble` a shape
@@ -2111,6 +2116,26 @@ feature mixin and ensure every avatar composes it.
 when the giver has X" example: it lives on `FocusedMixin`, so an NPC scripted
 without `FocusedMixin` simply doesn't see `focus` on its recency
 stack.
+
+## ⭐⭐ Alternate controllers — the same act in other words
+
+A controller that only does input and output can be swapped without touching the
+world (D14). Re-point the view's `controller:` at another class and every state
+change, reason and duration is what it was, because the object decided them. The
+exemplar is `HarvestWordedController`:
+
+```typescript
+export default class HarvestWordedController extends HarvestController {
+  static override refusalWords(r: HarvestRefusal): Composed { /* … */ }
+  static override beginWords(f: HarvestBegin, giver: Stuff) { /* … */ }
+  static override doneWords(f: HarvestDone, giver: Stuff) { /* … */ }
+}
+```
+
+⚠ **Word methods are `static`, and read off the instance's class before the act
+engages** (`const words = this.constructor as typeof HarvestController`). They run
+at completion, after the dispatcher destructed the controller, and a destroyed Stuff
+answers a method call with a silent no-op. `lint:completion-this` reads the closures.
 
 ## Controller template row
 

@@ -127,8 +127,9 @@ export default class Tanpit extends CraftVessel {
    */
   public override onContainableRemoved(thing: Stuff & Containable, to?: Stuff | null): void {
     super.onContainableRemoved(thing, to);
-    if (!MixinApi.isActive(thing, 'TanningMixin')) return;
-    const by = to && to.isAgent() ? to : null;
+    // Nowhere is no lift: the pit's teardown, not somebody's hand or floor.
+    if (!to || !MixinApi.isActive(thing, 'TanningMixin')) return;
+    const by = to.isAgent() ? to : null;
     void (thing as unknown as Tanning).onLiftedFrom(this, by).catch((err: unknown) => {
       console.error('Tanpit: lifting a hide failed:', err);
     });

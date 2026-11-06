@@ -700,3 +700,25 @@ to selling goods (`f91ad08c7`), `buy` became one offer protocol
 `sellerFor`), a ship became title off the yard's `HullBook` (`af492d81d`),
 and a boat became a priced good sold where it lies on a kept
 `PersistentShore` (`0b7c75e60`).
+
+## ⭐⭐ The board decides (controllers-are-io D11)
+
+`PricedOfferMixin.orderPlanFor(req)` refuses by default (a shelf prices and takes
+no orders); `Tariff` does the six services and `CommerceMenu` the drink. Each
+answers an `ActPlan` or a reason, and `order` words it. A quote's facts come back
+before any money moves, so the question to the customer stays the controller's.
+The durations are the board's: a transfusion's `TRANSFUSE_DURATION_S`, a bath's
+12 s.
+
+`order repair for sword`: **the subject is a view arg**, `for`, and no longer the
+tail of the phrase. `counter` binds every reachable tariff; the controller narrows
+to those that take the word (`offersOrder`) and asks only when two do, through
+the binder's own cardinality policy. That retired the two-houses scan without a
+prompt on every order in a ward with two boards.
+
+⚠ `shrunk` is no ruin: hot water takes 3% off a cut, and counting it made every
+hot wash of plain linen pay the customer the house's cover (a 3 wash against a 20
+cover).
+
+⚠ Still open, and recorded by the same step: a transfusion collects at completion,
+outside the command frame, where the bath's comment says there is no acting payer.

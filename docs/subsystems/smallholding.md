@@ -731,3 +731,17 @@ crops still grow in beds and pots. The arable field crop is the
 See [soil.md](./soil.md) for the field, the ledger, ground character and
 the survey ladder, and [ranching.md](./ranching.md) for what eats it.
 
+## ⭐ Sowing asks the ground (controllers-are-io D11)
+
+`SoilMixin.sowPlanFor(req)` is the broadcast: whose ground it is (the zoning,
+then who may sow, in that order, so a stranger is told it is not theirs before
+being told it wants plowing), which part (`resolvePartFor`), what already stands
+there, and the cast itself at `3000 + area * 10` ms and a felt cost of 5.
+`SoilMixin.harvestPartFor(req)` is the same question for a stand on a divided
+field, and `cultivationZoningAt(site)` the parcel's verdict for both shapes.
+`sowingRefusal()` stays the ground's own sentence: a pack's tract says why it
+wants plowing, and the kernel words nothing of it.
+
+`plant wheat --at "the gate end" --with drill` and `harvest wheat --at "the gate
+end" --with sickle`: which part and which tool are options, and a name of several
+words is quoted. No preposition form is kept.

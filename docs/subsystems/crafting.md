@@ -1045,7 +1045,7 @@ against it at the mint; reset by `clearBuild`).
   lump** — a re-meltable `/stuff/thing/Casting`, `recipeId ''`, no mark).
 - **Cooking** — the pot is the vessel (`CookPot` — `ManualBuild` +
   `Tool(pot)` + `Crafted`, itself a smithing recipe output): the
-  existing `pour`/`add` verb grew a **discrete-ingredient branch** (a
+  existing `pour` verb grew a **discrete-ingredient branch** (a
   Material-bearing Tangible added to a build vessel is consumed at
   completion and banked as an item-contribution) → `stir` (unchanged)
   → `heat [<pot>]` (the same HeatController) → `plate [<pot>] into
@@ -1891,7 +1891,7 @@ the feed was dropped. It folds the source payload through
   **`HandWorkedMixin`**, `workByHand(method)` → an `ActOutcome` or `null`,
   `lib/craft/HandWorked.ts` since the ceramics review) works its own charge
   and says what came of it. ⚠ Why not a build
-  vessel: a `pour` into a build vessel BANKS the matter as a contribution
+  vessel: a `pour` into a build vessel (`ManualBuildMixin.receivePour`) BANKS the matter as a contribution
   and drains the source, so cream poured into a build-vessel churn would
   vanish. `HandWorkedMixin` confers the view (a static on its class).
 - **`heat`'s placing arm** — a Thermal, Containable, non-build vessel (a

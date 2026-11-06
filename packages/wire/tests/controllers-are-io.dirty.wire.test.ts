@@ -334,7 +334,7 @@ suite('10. plant a seed in a bed, grow it (staged), harvest', () => {
     const { r } = await act(s, `harvest #${pot}`);
     const state = await ev<Record<string, unknown>>(
       s,
-      `({ crops: self.getContents().filter(c => /\\/crop\\//.test(c.getTemplatePath() ?? '')).map(c => ({ crop: c.getTemplatePath(), grade: c.getGradeBand ? c.getGradeBand() : null, maker: c.getMaker ? c.getMaker() : null })), potEmpty: !${plantIn()} })`,
+      `({ crops: self.getContents().filter(c => /\\/crop\\//.test(c.getTemplatePath() ?? '')).map(c => ({ crop: c.getTemplatePath(), grade: c.getGradeBand ? c.getGradeBand() : null, madeByMe: c.getMaker ? c.getMaker() === self.getIdentityPath() : null })), potEmpty: !${plantIn()} })`,
     );
     check('10c.harvest', r, state);
   }, 120_000);

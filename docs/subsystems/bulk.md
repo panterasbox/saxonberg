@@ -642,6 +642,14 @@ Thermometer-carries-`measure` pattern): `BulkableMixin` contributes them
 in the `inventory` / `peers` / `environment` buckets, so they light up
 whenever a Bulkable is reachable — not minted from a bespoke verb mixin.
 
+⭐⭐ **`pour` is one act** (controllers-are-io D12): one view, `target:
+PourTargetMixin`, one controller. `BulkableMixin.receivePour` is a thin direction
+over `transfer` and holds what the pour credits (the rack, the cut, the mould's
+fill); `ManualBuildMixin.receivePour` banks a serving or an ingredient. A pot or a
+trough composes both: a graded bottle is a serving, an ungraded jug is an ordinary
+pour into the holder beneath, and `PourTargetMixin`'s default hands the question
+down rather than shadowing it. `KNOWN_COLLISIONS` went with `pour`, its last row.
+
 | Verb | Shape | Amount |
 |---|---|---|
 | `fill X from Y` | fill to capacity | measure = X's remaining headroom |

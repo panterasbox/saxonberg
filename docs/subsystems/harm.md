@@ -492,7 +492,7 @@ Each condition now declares what relieves it — a `Condition` row through
 ⚠ **A mismatch is refused with prose that names what the wound wants**,
 rather than silently doing the wrong thing. *That refusal is the
 teaching*: you learn a burn needs fluid by being told a bandage does
-nothing for it. `treat <target> with <item>` chooses explicitly.
+nothing for it. `treat <target> --with <item>` chooses explicitly.
 
 ⭐ Fluid is **drunk**, through the shipped `Metabolic.ingest` path, so
 water is a real supply that runs out — a medic with an empty skin has
@@ -892,3 +892,12 @@ there, with the bleeder recorded on the stain; at
 way and stains nothing. Dressings that stay on the wound and are changed
 when soaked are [dressings-slate](../slates/tails/dressings-slate.md).
 
+## ⭐⭐ The patient decides (controllers-are-io D11)
+
+`VitalsMixin.treatmentPlanFor(req)` holds what `treat` used to: the worst
+condition this remedy can relieve, the interior gate, the graded outcome, the
+tending, the `--for` judgment loop and the fluid dose. The remedy answers through
+what it is (`isDressing`, a Bulkable with something in it, or bare hands);
+`TreatController` words `TreatmentReason` and `TreatmentDone`, and holds the
+mismatch vocabulary. `treat X --with bandage --for salmonellosis`: no preposition
+form is kept.

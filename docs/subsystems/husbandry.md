@@ -781,7 +781,7 @@ frozen.
 ---
 ## ⭐ The set-count latch, and pollination (apiculture, 2026-09-30)
 
-`HarvestController` used to re-read `fruitSetCount` off the profile at
+The harvest used to re-read `fruitSetCount` off the profile at
 pick time, so **nothing recorded what a flowering episode actually set**.
 The polycarp branch of `updateFlowering()` now latches two persistent
 fields at the set moment:
@@ -962,3 +962,31 @@ definite phrase), filling the can at `config.water` (`room` + `from`).
 She is a novice by assertion, so two fields a little apart can fool
 her; a student who reads better sees where she watered wrong. ⚠ A
 successful act leaves no `[dispatch]` line — read the effect.
+
+## ⭐⭐ The plant decides; the controller words (controllers-are-io D11)
+
+`harvest` and `plant` are input and output. `GrowingMixin.harvestPlanFor(req)`
+holds which stand was meant (the label rule, the ripe sibling), the tool gate,
+the unready refusals, the grade, the mint and the bed's debit;
+`CultivableMixin.harvestPlanFor` is naming the ground, which picks the plant and
+asks it. A pick is an `ActPlan` of `durationMs: 0`, which runs inside the command
+frame, so the maker derives from who acts; a swath is `3000 + swathM2 * 60` ms at
+a felt cost of 6, converted through the body (`wattsForFeltCost`). A pot's
+`CultivableMixin.plantPlanFor` presses the seed in and claims the slot, contents
+first. `PlantableMixin` answers the seed's rate (`sowingRateFor`, a drill's share
+of it) and spends itself (`spendSeed`).
+
+⭐ The reasons are closed unions (`HarvestReason`, `PlantReason`), and
+`HarvestController`'s words are three `static` methods (`refusalWords`,
+`beginWords`, `doneWords`) read off the instance's class before the act engages,
+because the controller is destructed when `execute` returns.
+`HarvestWordedController` overrides all three and is the doctrine's exemplar: the
+same harvest in other words. See
+[command-spec.md § Alternate controllers](./command-spec.md#-alternate-controllers--the-same-act-in-other-words).
+
+⚠ A crop's maker is the person, `getIdentityPath()`: every player body shares a
+lineage path, and a crop marked with it was marked by nobody.
+
+⚠ `put plant in pot` takes the slot by the root room it would get
+(`Plant.fitsSlot`). An empty pot has none, so the plant goes in loose: true of the
+world, and what the first record of that step caught.

@@ -31,7 +31,7 @@ owns the postmortem clock and the eviction opinion, and burial ends both.
 Composed on `Creature`, so "every creature can be buried" — honest,
 including for a hanging carcass.
 
-Sold as `order burial <body>` off a necropolis `Tariff`. ⭐ The price is
+Sold as `order burial for <body>` off a necropolis `Tariff`. ⭐ The price is
 the dearest of the three services on purpose: the ground is finite, the
 digging is real work, and a price that made burying somebody trivial
 would make the grave a bin.

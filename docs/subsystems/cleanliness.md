@@ -242,7 +242,7 @@ hygienic one.
 
 ## People — somebody is paid for it
 
-- **`order wash <garment>`** — the hand (`CraftingApi.fulfillingHand`,
+- **`order wash for <garment>`** — the hand (`CraftingApi.fulfillingHand`,
   restricted to the tariff's own house and the row's
   `serviceDisciplines`) reads the garment at HER band
   (`Garment.describeForLaundress`), names a price (`Tariff.quoteFor`),
