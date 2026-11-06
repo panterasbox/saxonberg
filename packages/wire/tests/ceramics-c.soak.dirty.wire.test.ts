@@ -122,7 +122,7 @@ async function say(s: Session, line: string): Promise<string> {
 async function advance(duration: string): Promise<void> {
   // Lived time: in day-long jumps, the drive's people fed between them.
   await advanceLiving(duration, sessions);
-  const probe = await Session.open('founder', { startLocation: SHOP, wizard: true }).catch(() => null);
+  const probe = await Session.open('founder', { startLocation: SHOP }).catch(() => null);
   try {
     const until = Date.now() + 600_000;
     while (probe && Date.now() < until) {
@@ -174,14 +174,14 @@ async function held(s: Session): Promise<string> {
 async function goTo(s: Session, where: string): Promise<Session> {
   const handle = s.handle;
   s.close();
-  const next = await Session.open(handle, { startLocation: where, wizard: true });
+  const next = await Session.open(handle, { startLocation: where });
   sessions.push(next);
   await next.drainProse();
   return next;
 }
 
 async function mint(where: string, path: string, count = 1): Promise<void> {
-  const gov = await Session.open('founder', { startLocation: where, wizard: true });
+  const gov = await Session.open('founder', { startLocation: where });
   try {
     expectOk(await gov.cmd(`clone ${path} --here${count > 1 ? ` --count ${count}` : ''}`));
     await gov.drainProse();
@@ -192,7 +192,7 @@ async function mint(where: string, path: string, count = 1): Promise<void> {
 
 async function funded(tag: string, where: string): Promise<Session> {
   const handle = uniqueHandle(tag);
-  const bank = await Session.open(handle, { startLocation: BANK_HALL, wizard: true });
+  const bank = await Session.open(handle, { startLocation: BANK_HALL });
   expectOk(await bank.cmd('bank open'));
   bank.close();
   const gov = await Session.open('founder', { startLocation: BANK_HALL });
@@ -201,7 +201,7 @@ async function funded(tag: string, where: string): Promise<Session> {
   } finally {
     gov.close();
   }
-  const s = await Session.open(handle, { startLocation: where, wizard: true });
+  const s = await Session.open(handle, { startLocation: where });
   sessions.push(s);
   await s.drainProse();
   return s;

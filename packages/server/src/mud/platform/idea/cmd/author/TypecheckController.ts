@@ -16,6 +16,9 @@ export default class TypecheckController extends ReloadController {
   ): Promise<void> {
     const path = this.resolveTarget(model, context);
     if (path === null) return;
+    // The same title gate as `reload` (wizard-axis D4): a verdict on the
+    // file you are about to reload.
+    if (await this.refusedTitle(model, context, path)) return;
     const checked = await this.check(context, path);
     if (checked === null) return;
     this.tell(context, `\n${this.verdict(checked)}\n`);

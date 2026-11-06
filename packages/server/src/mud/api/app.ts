@@ -28,6 +28,7 @@
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
 import { AppLogic } from "../platform/idea/api/AppLogic";
+import type { SettingTier } from "../lib/config/AppSettings";
 import { fileURLToPath } from "url";
 import { SecurityApi } from './security';
 
@@ -121,6 +122,32 @@ export class AppApi {
    */
   static async setSetting(key: string, value: string): Promise<void> {
     return logic().setSetting(key, value);
+  }
+
+  /**
+   * A key's entrenchment tier (measurement.md § Layer 3, wizard-axis D9):
+   * `B` (the Prime Minister's `config`) or `C:<office>` (a political dial
+   * set through that seat's own verb). An unregistered key — the open
+   * namespace — is `B`.
+   */
+  static tierOf(key: string): SettingTier {
+    return logic().tierOf(key);
+  }
+
+  /**
+   * The office that sets a Tier C key (`minister-of-finance`,
+   * `central-bank-governor`), or `null` for a Tier B key.
+   */
+  static seatFor(key: string): string | null {
+    return logic().seatFor(key);
+  }
+
+  /**
+   * Who sets `key`, in words a refusal can show: *"the Minister of
+   * Finance's — `treasury set`"*, *"the Prime Minister's — `config`"*.
+   */
+  static whoSets(key: string): string {
+    return logic().whoSets(key);
   }
 }
 

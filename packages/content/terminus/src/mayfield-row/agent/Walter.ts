@@ -9,14 +9,14 @@
  * field on a row — a row that writes `commandContributions:` into its
  * `data` block is writing to an instance property nothing reads, and
  * the verbs it means to hang are simply unreachable, silently. So the
- * operator escape hatch lives here.
+ * raw desk verbs live here.
  *
  * `peers`, not `environment`: Walter is a person standing in the lobby
  * with you, so the affordance goes SIDEWAYS to whoever shares the room
- * — the same bucket Katie's desk verbs use. Both views carry
- * `requiresWizard`, so only an operator ever SEES the raw verbs; the
- * real Mayfield-Holdings-agency check lives at the controllers'
- * `execute()`, and the player's path is the dialogue.
+ * — the same bucket Katie's desk verbs use. The views carry no
+ * credential check: the controllers' `execute()` admits a seat (the
+ * agency's staff or the building's committee) and refuses anyone else
+ * with the seat named, and the player's path is the dialogue.
  *
  * His authority is a JOB, never a seat: he holds the `agent` position at
  * Mayfield Holdings (`mayfield-row/idea/agency`, an Organization whose
@@ -33,7 +33,13 @@ import type { CommandContributions } from "@saxonberg/server/mud/api/command";
 
 export default class Walter extends CastMixin(StagedMixin(NPC)) {
   static commandContributions: CommandContributions = {
-    self: [],
+    // ⭐ SELF too: the desk's own dialogue `dispatch`es these verbs AS him, and a
+    // verb nobody affords to the dispatcher is `unknown-verb` — the intake
+    // was dead on that alone (wizard-axis drive, 2026-11-05).
+    self: [
+      "world/terminus/mayfield-row/cmd/lease.yaml",
+      "world/terminus/mayfield-row/cmd/unlease.yaml",
+    ],
     peers: [
       "world/terminus/mayfield-row/cmd/lease.yaml",
       "world/terminus/mayfield-row/cmd/unlease.yaml",

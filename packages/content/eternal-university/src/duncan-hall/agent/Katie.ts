@@ -4,7 +4,7 @@
  * A troll super who greets every new tenant on day one and finds them a room
  * — her clipboard IS the dorm manifest (the `DormWarren`), so when she "finds
  * you a room" the building buds a node. She fronts provisioning in the world
- * (`talk to Katie`), so a player never types the raw operator verb.
+ * (`talk to Katie`), so a player never needs to type the raw verb.
  *
  * She is almost entirely **content** (name + species + dispositions + an
  * intake dialogue tree in her seed). Her authority is content too, and — the
@@ -23,7 +23,7 @@
  *     self-issued credential.
  *
  * So the class carries no bespoke authority code — only the composition needed
- * to accept a declarative loadout (`StagedMixin`) and the operator-verb
+ * to accept a declarative loadout (`StagedMixin`) and the desk-verb
  * affordance (content affords its own commands). The full character (the
  * murder on-ramp, the clearing-hand, the ambient maintenance routine, the
  * code-switch enforcement beats) is deferred to the EU narrative build — see
@@ -37,16 +37,21 @@ import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 
 export default class Katie extends CastMixin(StagedMixin(NPC)) {
   /**
-   * The operator escape hatch for the dorm landlord verbs. Katie IS the
-   * front desk, so she affords `provision`/`unprovision` to co-located
-   * operators — the raw manual surface behind the diegetic dialogue path.
-   * Both views carry `requiresWizard`, so only an operator (wizard) sees
-   * them; the real dorms-owner authorization lives at the controllers'
-   * `execute()`. This keeps the dorm verbs' affordance in the content
+   * The raw desk verbs behind the diegetic dialogue path. Katie IS the
+   * front desk, so she affords `provision`/`unprovision` to whoever stands
+   * at it; the views carry no credential check, and the controllers'
+   * `execute()` admits a seat (the college's staff or the hall's
+   * committee) and refuses anyone else with the seat named. This keeps the dorm verbs' affordance in the content
    * namespace — the core `AuthorMixin` no longer references Duncan Hall.
    */
   static commandContributions: CommandContributions = {
-    self: [],
+    // ⭐ SELF too: her own dialogue `dispatch`es these verbs AS her, and a
+    // verb nobody affords to the dispatcher is `unknown-verb` — the intake
+    // was dead on that alone (wizard-axis drive, 2026-11-05).
+    self: [
+      'world/terminus/eternal/duncan-hall/cmd/provision.yaml',
+      'world/terminus/eternal/duncan-hall/cmd/unprovision.yaml',
+    ],
     peers: [
       'world/terminus/eternal/duncan-hall/cmd/provision.yaml',
       'world/terminus/eternal/duncan-hall/cmd/unprovision.yaml',

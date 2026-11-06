@@ -219,7 +219,6 @@ suite('4 — client state FORKS through the circle door', () => {
      */
     const fen = await Session.open(uniqueHandle('avfam-fen'), {
       startLocation: DORM,
-      wizard: true,
     });
     try {
       await fen.cmd('cockpit mode build');

@@ -65,11 +65,9 @@ const AVENUE = '/world/terminus/counting-houses/avenue-block';
 const open: Session[] = [];
 const squash = (s: string): string => s.replace(/\s+/g, ' ').trim();
 
-async function at(where: string, tag: string, wizard = true): Promise<Session> {
-  const s = await Session.open(uniqueHandle(`cold-${tag}`), {
-    startLocation: where,
-    ...(wizard ? { wizard: true } : {}),
-  });
+/** A plain player at `where` — nothing here types code or needs a seat. */
+async function at(where: string, tag: string): Promise<Session> {
+  const s = await Session.open(uniqueHandle(`cold-${tag}`), { startLocation: where });
   open.push(s);
   return s;
 }

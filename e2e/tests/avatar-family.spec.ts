@@ -41,9 +41,12 @@ test.describe('the Avatar family, in a browser', () => {
   test('⭐⭐ a shade is still a person: it talks, and it cannot spend', async ({
     browser,
   }) => {
+    // eval --parcel /world/lounge — seated on its committee, not a
+    // credential (wizard-axis D13).
     const { page, close } = await openWorldAs(browser, 'avfam-ghost', {
       startLocation: START,
       wizard: true,
+      committees: [PARCEL],
     });
     const consoleErrors: string[] = [];
     page.on('console', (m) => {

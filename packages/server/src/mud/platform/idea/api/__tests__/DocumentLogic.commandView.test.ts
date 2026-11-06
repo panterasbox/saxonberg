@@ -1,9 +1,9 @@
 /**
- * The command-view code-naming gate (content-packs wave 2, D8): a
- * non-wizard may edit a view's prose but not its `controller:` or its
- * validator / `requires` SET (any change — a validator is a gate); a
- * wizard may; a malformed view is refused at the chokepoint; a saved
- * command view calls `CommandApi.reload` (go-live without a restart).
+ * Command-view saves: title over the path decides every field, the
+ * `controller:` and the validator set included — a view that NAMES code is
+ * content (wizard-axis D5; the content-packs wave-2 code-naming gate is
+ * gone). A malformed view is refused at the chokepoint; a saved command
+ * view calls `CommandApi.reload` (go-live without a restart).
  */
 
 import '../../../../../test-bootstrap';
@@ -62,52 +62,45 @@ beforeEach(() => {
 afterEach(() => vi.restoreAllMocks());
 
 describe('command-view saves', () => {
-  it('a non-wizard cosmetic edit (help text) is admitted and goes live', async () => {
-    vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(false);
+  // ⛔ A view that NAMES code is content (wizard-axis D5): title over the
+  // path decides every save; the wizard axis is never asked.
+  it('a title holder\'s cosmetic edit (help text) is admitted and goes live', async () => {
     await runAs(() => DocumentApi.save(PATH, 'command-view', { ...LOOK, help: 'v2' }));
     expect((rows[0]!.data as { help: string }).help).toBe('v2');
     expect(reload).toHaveBeenCalledWith(PATH);
   });
 
-  it('a non-wizard changing controller is refused', async () => {
-    vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(false);
+  it('a title holder changing controller is admitted — no wizard asked', async () => {
+    const wiz = vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(false);
+    await runAs(() => DocumentApi.save(PATH, 'command-view', { ...LOOK, controller: '/platform/idea/cmd/system/PingController' }));
+    expect((rows[0]!.data as { controller: string }).controller).toBe('/platform/idea/cmd/system/PingController');
+    expect(reload).toHaveBeenCalledWith(PATH);
+    expect(wiz).not.toHaveBeenCalled();
+  });
+
+  it('a title holder changing the validator set is admitted', async () => {
+    await runAs(() => DocumentApi.save(PATH, 'command-view', { ...LOOK, validators: [] }));
+    expect(reload).toHaveBeenCalledWith(PATH);
+  });
+
+  it('a non-holder changing controller is refused on title', async () => {
+    vi.spyOn(AccessApi, 'canAtPath').mockResolvedValue(false);
+    vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(true);
     await expect(
       runAs(() => DocumentApi.save(PATH, 'command-view', { ...LOOK, controller: '/platform/idea/cmd/system/PingController' })),
-    ).rejects.toThrow(/wizard code trust/);
+    ).rejects.toThrow();
     expect((rows[0]!.data as { controller: string }).controller).toBe(LOOK.controller);
     expect(reload).not.toHaveBeenCalled();
   });
 
-  it('a non-wizard changing the validator set (even removing one) is refused', async () => {
-    vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(false);
-    await expect(
-      runAs(() => DocumentApi.save(PATH, 'command-view', { ...LOOK, validators: [] })),
-    ).rejects.toThrow(/wizard code trust/);
-  });
-
-  it('a non-wizard minting a NEW view that names a controller is refused', async () => {
-    vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(false);
-    await expect(
-      runAs(() => DocumentApi.save('/platform/cmd/system/zap', 'command-view', { verbs: ['zap'], controller: '/platform/idea/cmd/system/PingController', description: 'x' })),
-    ).rejects.toThrow(/wizard code trust/);
-  });
-
-  it('a wizard changing controller is admitted', async () => {
-    vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(true);
-    await runAs(() => DocumentApi.save(PATH, 'command-view', { ...LOOK, controller: '/platform/idea/cmd/system/PingController' }));
-    expect((rows[0]!.data as { controller: string }).controller).toBe('/platform/idea/cmd/system/PingController');
-    expect(reload).toHaveBeenCalledWith(PATH);
-  });
-
   it('a malformed view is refused at the chokepoint', async () => {
-    vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(true);
     await expect(
       runAs(() => DocumentApi.save(PATH, 'command-view', { description: 'no verbs' })),
     ).rejects.toThrow(/does not conform/);
     expect(reload).not.toHaveBeenCalled();
   });
 
-  it('another kind never consults the wizard gate or reload', async () => {
+  it('another kind never consults the wizard axis or reload', async () => {
     const wiz = vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(false);
     await runAs(() => DocumentApi.save('/emotes/grin', 'emote', { verb: 'grin' }));
     expect(wiz).not.toHaveBeenCalled();

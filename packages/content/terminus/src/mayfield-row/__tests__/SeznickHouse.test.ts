@@ -509,6 +509,21 @@ describe('Seznick House — the lease loop', () => {
     expect(reasons(no)).toContain('not-authorized');
   });
 
+  it('⭐ a wizard with no seat is refused, and the refusal names the seat (wizard-axis D1)', async () => {
+    // Letting a room is a SEAT's act. The axis is authoring TypeScript;
+    // it confers no title, so a wizard on no committee and in no position
+    // is a stranger at this desk.
+    await building();
+    vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(true);
+    const wizard = makeAvatar('wizard-no-seat');
+    const t = makeAvatar('t-wizard');
+    const ctx = await run(makeStuff(() => new LeaseController()), wizard, t, 'lease');
+    expect(reasons(ctx)).toContain('not-authorized');
+    const said = JSON.stringify(ctx.getNotes());
+    expect(said).toContain("letting agency's staff");
+    expect(said).toContain("building's committee");
+  });
+
   it('a random principal is refused; capacity refuses at the cap', async () => {
     await building(); // the house ledger must be standing
     const nobody = makeAvatar('nobody');
@@ -553,7 +568,7 @@ describe('Seznick House — the lease loop', () => {
    * were unreachable — silently, with every other test still green. This
    * is the test that would have caught it.
    */
-  it('⭐ Walter affords the operator verbs — from his CLASS, sideways to the room', () => {
+  it('⭐ Walter affords the desk verbs — from his CLASS, sideways to the room', () => {
     const verbs = CommandApi.collectContributions(Walter, 'peers')
       .map((d) => d.verbs)
       .flat();

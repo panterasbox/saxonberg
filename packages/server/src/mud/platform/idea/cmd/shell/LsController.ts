@@ -82,22 +82,9 @@ export default class LsController extends CommandController<LsModel> {
       throw err;
     }
 
-    // Source / mirror mode: slice walk on the resolved zone.
-    // Content-tree reads are public (no gate). `pickTree` returns
-    // 'content' under mirror mode for reads (the read-side collapses
-    // mirror to content), so the gate has to consult `getTreeMode()`
-    // directly to catch the mirror case.
-    const treeMode = giver.getTreeMode();
-    if (treeMode === 'source' || treeMode === 'mirror') {
-      const sliceResource = await AccessApi.resolveSourceFolderZone(basePath);
-      if (!(await AccessApi.can(giver, 'read', sliceResource))) {
-        return this.fail(
-          context,
-          "you don't have permission to read that source slice",
-          'access-denied',
-        );
-      }
-    }
+    // Source reads are OPEN (wizard-axis D14): reading is not authoring,
+    // and no title is needed to read the world's code. Hiding a spoiler in
+    // code is the reveal model's job (wizard-axis-cleanup-slate W4).
 
     const lines: string[] = [];
     if (tree === 'content') {

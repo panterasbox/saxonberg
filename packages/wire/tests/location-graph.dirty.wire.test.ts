@@ -89,18 +89,21 @@ beforeAll(async () => {
   // this build one mistyped destination anywhere in content was a boot
   // crash wrapped as "failed to clone".
   /*
-   * ⚠⚠ **`founder`, not a fresh wizard handle.** `eval --parcel <X>`
-   * is gated on TITLE at `X`, not on the code-trust axis — a wizard
-   * with no holdings is refused with *"sandbox boundary denied ...
-   * jurisdiction /world/terminus"*, which is what the first run of this
-   * drive found in four steps at once. The founder holds the realm by
-   * default, so they are the only session that can evaluate inside it.
+   * ⚠⚠ **A SEAT, not the wizard axis.** `eval --parcel <X>` is gated
+   * on TITLE at `X`, not on the code-trust axis — a wizard with no
+   * holdings is refused with *"sandbox boundary denied ... jurisdiction
+   * /world/terminus"*, which is what the first run of this drive found
+   * in four steps at once. The founder holds every office but sits on
+   * no committee (wizard-axis D13), so it is seated on the two it
+   * evaluates under — Terminus's and the lounge's — and `title publish
+   * /world/terminus` asks the same seat.
    * ⭐ That the two axes are genuinely independent is the point of the
    * access model; this drive is a small live proof of it.
    */
   wizard = await Session.open('founder', {
     startLocation: CROSSING,
     wizard: true,
+    committees: ['/world/terminus', '/world/lounge'],
   });
 }, 180_000);
 
@@ -334,7 +337,7 @@ suite('⭐⭐ 11 — taking content down is honest', () => {
   }, 120_000);
 
   it('⭐ the holder reads the flag: already-open content says so', async () => {
-    // The founder holds the realm. Shipped content is published, so
+    // The founder, seated on Terminus's committee. Shipped content is published, so
     // this is the `no-change` path — which proves the authority check
     // PASSED and the flag was read, without darkening anything.
     const out = await wizard.cmd('title publish /world/terminus');

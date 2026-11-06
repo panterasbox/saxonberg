@@ -128,10 +128,24 @@ const GOODS_YARD = '/world/terminus/goods-yards/yard';
 const open: Session[] = [];
 const squash = (s: string): string => s.replace(/\s+/g, ' ').trim();
 
-async function at(where: string, tag: string, wizard = false): Promise<Session> {
+/**
+ * The committees a SEATED drive session sits on: `goto` and `clone` ask
+ * the destination's / the row's title, and this drive walks Terminus
+ * (+ Hearthworks, Duncan Hall) and clones Terminus's lanterns and rations
+ * and the transport pack's coach and horse. A seat, not a credential —
+ * no session here types code, so none is a wizard (wizard-axis D13).
+ */
+const SEATS = [
+  '/world/terminus',
+  '/world/terminus/hearthworks',
+  '/world/terminus/eternal/duncan-hall',
+  '/system/transport',
+];
+
+async function at(where: string, tag: string, seated = false): Promise<Session> {
   const s = await Session.open(uniqueHandle(`narrow-${tag}`), {
     startLocation: where,
-    ...(wizard ? { wizard: true } : {}),
+    ...(seated ? { committees: SEATS } : {}),
   });
   open.push(s);
   return s;
@@ -237,10 +251,10 @@ let walker: Session;
 let farmer: Session;
 
 beforeAll(async () => {
-  // ⚠ Both sessions are wizards, and `goto` is why: it gates on
+  // ⚠ Both sessions are SEATED, and `goto` is why: it gates on
   // `AccessApi.can(giver, 'goto', dest)`, which resolves the
   // destination zone's parcel title. This drive walks between four
-  // localities, which is a wizard's business and not a walker's.
+  // localities, so it sits on their committees (`SEATS`).
   founder = await at(STREET, 'founder', true);
   walker = await at(STREET, 'walker', true);
   farmer = await at(YARD, 'farmer');
@@ -475,8 +489,8 @@ suite('C — the coach', () => {
 
   it('⚠ nobody places a coach, so the drive stands one up', async () => {
     // `passenger-conveyance.yaml` says it outright: no coach line ships
-    // one. This is a founder cloning a row that exists, not a wizard
-    // inventing content.
+    // one. This is a seated session cloning a row that exists, not
+    // anyone inventing content.
     // ⚠⚠ **`--here`, explicitly.** Without it the clone runs the
     // precedence chain and falls back to the GIVER — and an
     // `ExitableVessel` may not live in an Avatar's inventory (the

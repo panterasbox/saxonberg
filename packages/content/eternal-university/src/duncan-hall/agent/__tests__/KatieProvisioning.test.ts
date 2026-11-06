@@ -3,11 +3,11 @@
  *
  * The security-critical additions: an NPC dialogue `dispatch`es `provision`
  * AS THE NPC (forced), so authorization MUST live in the controller's
- * `execute()` (a forced command bypasses the `requiresWizard` validator).
- * `isDormsAgent` is that boundary — a wizard OR an agent of the dorms owner
- * (a member of the `duncan-hall` group). Katie enrolls herself into that
- * group at `onCreate`, keyed by her templatePath (NPCs have no playerId);
- * a random principal is not a member and is refused.
+ * `execute()` (a forced command runs the view's validators too, so the
+ * view carries none). `mayProvision` is
+ * that boundary — staff of the college (Katie's `hall-manager` position)
+ * OR a member of the hall's committee; no credential arm. A random
+ * principal, wizard or not, is refused with the seat named.
  */
 
 import "@saxonberg/server/test-bootstrap";
@@ -179,8 +179,8 @@ describe('Katie — the dorms-agent authorization boundary', () => {
     expect(MixinApi.hasMixin(katie, Mixins.Staged)).toBe(true);
   });
 
-  it('affords the operator provision/unprovision surface as content (not a core mixin)', () => {
-    // The raw operator verbs are afforded by Katie herself — she is the
+  it('affords the desk provision/unprovision surface as content (not a core mixin)', () => {
+    // The raw desk verbs are afforded by Katie herself — she is the
     // front desk. Content commands are afforded by content, referenced by
     // their `world/`-prefixed view key, and those keys resolve to real
     // definitions (the domain-local `getCommand` branch).
@@ -220,6 +220,30 @@ describe('Katie — the dorms-agent authorization boundary', () => {
     stranger.setPlayerId('stranger');
     expect(college.employs(stranger)).toBe(false);
     expect(await CompactApi.isCommitteeMember(stranger, HALL_EXTENT)).toBe(false);
+  });
+
+  it('⭐ a wizard with no seat is refused at the desk, and told whose act it is (wizard-axis D1)', async () => {
+    seedDormsParcel();
+    await bootWithAccess();
+    vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(true);
+    const wizard = makeStuffAtPath(() => new Avatar(), '/platform/agent/Avatar/wizard-no-seat');
+    wizard.setPlayerId('wizard-no-seat');
+    const tenant = makeStuffAtPath(() => new Avatar(), '/platform/agent/Avatar/tenant');
+    tenant.setPlayerId('tenant');
+    const ctx = CommandApi.createCommandContext({
+      commandGiver: wizard as never,
+      location: null as never,
+      commandText: 'provision tenant',
+      executionId: 'test',
+      commandId: 'test',
+      verb: 'provision',
+      command: { verbs: ['provision'] } as never,
+    });
+    const ctrl = makeStuffAtPath(() => new ProvisionController(), "/world/terminus/eternal/duncan-hall/idea/cmd/ProvisionController");
+    await ctrl.execute({ player: { stuff: tenant } } as never, ctx);
+    const notes = ctx.getNotes();
+    expect(notes.map((n) => (n as { reason?: string }).reason)).toContain('not-authorized');
+    expect(JSON.stringify(notes)).toContain("hall's committee");
   });
 });
 

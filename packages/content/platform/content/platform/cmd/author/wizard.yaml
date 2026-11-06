@@ -2,14 +2,15 @@ verbs: [wizard]
 controller: /platform/idea/cmd/author/WizardController
 description: "Confer or revoke wizard (code-trust) status (archwizard-only)"
 help: |
-  Manage who holds wizard status — the code-trust capability that lets a
-  player write TypeScript, run `eval`/`reload`, and set the executable
-  code-naming fields on a content template. Everyone else who authors is
-  a protowizard: content, not code.
+  Manage who holds wizard status — the capability to AUTHOR TypeScript:
+  write a code file into the source tree, type code into `eval`. It
+  confers no title and no office; running code, reloading it, reading it
+  and naming it from a row are open to anyone who holds the path.
 
   `wizard grant <player>` adds someone to the `wizards` group; `wizard
   revoke <player>` removes them. This verb is restricted to archwizards —
-  if you aren't one, the game won't let you run it.
+  the `archwizards` group and the Prime Minister, each of whom is a wizard
+  too.
 validators:
   - /lib/command/validators/requiresArchwizard
 subcommands:
@@ -32,7 +33,7 @@ subcommands:
     description: "Revoke wizard status from a player"
     help: |
       Remove a player from the `wizards` group, dropping their code
-      trust. They keep any content-author (protowizard) access.
+      authoring. They keep every title and seat they hold.
     examples:
       - cmd: wizard revoke alice
         note: Revoke Alice's wizard status

@@ -18,8 +18,8 @@ import { MessageApi } from "../../../../../api/message";
 import { Mml } from "../../../../../api/mml";
 import { PersistenceManager } from "../../../../../../backend/PersistenceManager";
 import { makeStuff } from "../../../../../lib/security/__tests__/test-setup";
-import requiresWizard from "../../../../../lib/command/validators/requiresWizard";
-import { AccessApi } from "../../../../../api/access";
+import requiresPrimeMinister from "../../../../../lib/command/validators/requiresPrimeMinister";
+import { CompactApi } from "../../../../../api/compact";
 import type { CommandContext, CommandModel } from "../../../../../api/command";
 import { AuthorMixin } from "../../../../../lib/shell/Author";
 import { Idea } from "../../../../../lib/stuff/Idea";
@@ -117,6 +117,24 @@ describe("ConfigController", () => {
     expect(note).not.toHaveBeenCalled();
   });
 
+  it("⭐ refuses a Tier C key, naming the seat and its verb (wizard-axis D11)", async () => {
+    const before = AppApi.setting(AppSettingKeys.bankingSalesTaxRate);
+    await run({ key: AppSettingKeys.bankingSalesTaxRate, value: "0.1" });
+    expect(AppApi.setting(AppSettingKeys.bankingSalesTaxRate)).toBe(before);
+    expect(note).toHaveBeenCalledWith(
+      expect.objectContaining({ kind: "controller-rejected", reason: "tier-c" }),
+    );
+    const said = output.join("\n");
+    expect(said).toContain("Minister of Finance");
+    expect(said).toContain("treasury set");
+  });
+
+  it("the listing marks a Tier C key with its seat", async () => {
+    await AppApi.setSetting(AppSettingKeys.bankingWithdrawalDailyCap, "500");
+    await run({});
+    expect(output.join("\n")).toContain("banking.withdrawalDailyCap = 500  [C: central-bank-governor]");
+  });
+
   it("sets an unregistered key (open namespace) with a soft prose note, status ok", async () => {
     await run({ key: "motd", value: "hello world" });
     expect(AppApi.setting("motd")).toBe("hello world");
@@ -128,29 +146,21 @@ describe("ConfigController", () => {
   });
 });
 
-describe("config verb — wizard gate", () => {
-  it("config.yaml gates the verb with the requiresWizard validator", () => {
+describe("config verb — the Prime Minister's (wizard-axis D12)", () => {
+  it("config.yaml gates the verb with requiresPrimeMinister, never the wizard axis", () => {
     const path = fileURLToPath(
       new URL("../../../../../../../../content/platform/content/platform/cmd/system/config.yaml", import.meta.url),
     );
     const view = YAML.parse(readFileSync(path, "utf-8"));
     expect(view.verbs).toContain("config");
-    expect(view.validators).toContain(
-      "/lib/command/validators/requiresWizard",
-    );
+    expect(view.validators).toEqual(["/lib/command/validators/requiresPrimeMinister"]);
   });
 
-  it("requiresWizard rejects a non-wizard and allows a wizard", () => {
+  it("a seatless wizard is refused, naming the Prime Minister", async () => {
     const ctx = { verb: "config", commandGiver: {} } as unknown as CommandContext;
-    // allowed=false → a denial string; allowed=true → undefined (pass).
-    expect(requiresWizard(ctx, false)).toMatch(/permission/);
-    expect(requiresWizard(ctx, true)).toBeUndefined();
-  });
-
-  it("the gate's preload reads AccessApi.isWizard", async () => {
-    const ctx = { commandGiver: {} } as unknown as CommandContext;
-    vi.spyOn(AccessApi, "isWizard").mockResolvedValue(true as never);
-    await expect(requiresWizard.preload!(ctx)).resolves.toBe(true);
+    vi.spyOn(CompactApi, "holdsOffice").mockResolvedValue(false as never);
+    expect(await requiresPrimeMinister.preload!(ctx)).toBe(false);
+    expect(requiresPrimeMinister(ctx, false)).toMatch(/Prime Minister/);
     vi.restoreAllMocks();
   });
 });

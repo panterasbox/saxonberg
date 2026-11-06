@@ -4,13 +4,16 @@
  *
  * Three forms, dispatched on the subcommand:
  *   - `list` (default) — structured diagnostics matching the filters,
- *     newest-first. Author-tier (the verb is AuthorMixin-afforded and
- *     `requiresAuthor`-gated); non-wizards never see TS-source `compile`
- *     rows (the redaction lives in `DiagnosticApi.list`).
- *   - `raw` — the raw console ring (`DiagnosticApi.rawTail`). Wizard-only,
- *     enforced here (the ring can carry engine internals).
+ *     newest-first. Compile rows are open to anyone (reading source is
+ *     open — wizard-axis D14); a row with a path is readable by whoever
+ *     holds it (the redaction lives in `DiagnosticApi.list`).
+ *   - `raw` — the raw console ring (`DiagnosticApi.rawTail`). The Prime
+ *     Minister's, enforced here (wizard-axis D19): the ring is the box's
+ *     console and carries other players' command lines — what it protects
+ *     is their privacy, not code trust.
  *   - `clear <path>` — drop a path's diagnostics (`DiagnosticApi.clear`
- *     returns `-1` when the actor is neither a wizard nor the author).
+ *     returns `-1` when the actor neither holds title there nor authored
+ *     it).
  *
  * Read-only output rides the message pipeline (`MessageApi.scene`); the
  * gates surface as `controller-rejected` notes.
@@ -19,7 +22,7 @@
 import { CommandController } from '../../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import { MessageApi } from '../../../../api/message';
-import { AccessApi } from '../../../../api/access';
+import { CompactApi } from '../../../../api/compact';
 import { Mml } from '../../../../api/mml';
 import { DiagnosticApi } from '../../../../api/diagnostics';
 import type {
@@ -87,11 +90,12 @@ export default class ErrorsController extends CommandController<ErrorsModel> {
     context: CommandContext
   ): Promise<void> {
     const actor = context.commandGiver;
-    if (!(await AccessApi.isWizard(actor))) {
+    if (!(await CompactApi.holdsOffice(actor, 'prime-minister'))) {
       context.note({
         kind: 'controller-rejected',
-        reason: 'wizard-only',
-        detail: 'errors raw is wizard-only (the console ring may carry internals)',
+        reason: 'pm-only',
+        detail:
+          "errors raw is the Prime Minister's: the console ring carries other players' lines",
       });
       return;
     }

@@ -349,7 +349,11 @@ describe('StudioLogic.publishBlueprint — trust + attribution', () => {
 describe('StudioLogic.scaffoldClass', () => {
   it('composes a source module with resolved imports + the extends clause', async () => {
     stubAuthorGateOpen();
-    vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(true); // wizard → no draft
+    // A wizard holding title over the target → the one write predicate
+    // admits the `.ts` → no draft.
+    vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(true);
+    vi.spyOn(AccessApi, 'resolveSourceFolderZone').mockResolvedValue(null);
+    vi.spyOn(AccessApi, 'can').mockResolvedValue(true);
 
     const out = await StudioApi.scaffoldClass({
       name: 'ScaffoldCoin',
@@ -432,6 +436,19 @@ describe('StudioLogic.scaffoldClass', () => {
     expect(out.source).toContain(
       'export class MultiThing extends NamedMixin(VisibleMixin(Idea)) {}'
     );
+  });
+
+  it('⭐ hands a wizard WITHOUT title over the target the draft too — the axis confers no title', async () => {
+    stubAuthorGateOpen();
+    vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(true);
+    vi.spyOn(AccessApi, 'resolveSourceFolderZone').mockResolvedValue(null);
+    vi.spyOn(AccessApi, 'can').mockResolvedValue(false);
+    const out = await StudioApi.scaffoldClass({
+      name: 'DraftThing',
+      baseClass: 'Idea',
+      mixinNames: [],
+    });
+    expect(out.draftPath).toBe('/home/alice/drafts/DraftThing.ts');
   });
 
   it('hands a non-wizard the reserved /home/<self>/drafts path (not persisted)', async () => {

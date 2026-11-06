@@ -190,24 +190,17 @@ function sourceAbs(cmsPath: string): string {
 }
 
 /**
- * Source-tree write gate — `isWizard(actor)` AND `can(actor, 'write',
- * resolveSourceFolderZone(path))`. Verbatim from `CmsLogic.gateSourceWrite`
- * (which mirrors `WriteController._gateSourceWrite`). Returns null on allow,
- * a human-readable reason on deny — the caller surfaces it as a graceful
- * `denied` disposition rather than throwing.
+ * Source-tree write gate — the one predicate,
+ * `AccessApi.sourceWriteRefusal` (a class is a `.ts`: the wizard axis and
+ * title). Returns null on allow, a human-readable reason on deny — the
+ * caller surfaces it as a graceful `denied` disposition rather than
+ * throwing.
  */
 async function gateSourceWrite(
   actor: Stuff | null,
   sourceLogical: string
 ): Promise<string | null> {
-  if (!(await AccessApi.isWizard(actor))) {
-    return 'you must be a wizard to publish a class';
-  }
-  const resource = await AccessApi.resolveSourceFolderZone(sourceLogical);
-  if (!(await AccessApi.can(actor, 'write', resource))) {
-    return "you don't have permission to write to that source slice";
-  }
-  return null;
+  return AccessApi.sourceWriteRefusal(actor, sourceLogical, 'write');
 }
 
 // ---- scaffold: import resolution + source composition --------------------
@@ -937,9 +930,10 @@ export class StudioLogic extends ApiLogic {
     const targetPath = `/platform/${branch}/${name}.ts`;
 
     const result: ScaffoldResult = { source, targetPath };
-    // A non-wizard cannot commit; hand back the reserved draft-branch path.
-    // v1 does NOT persist — `_persistDraft` is the dormant seam.
-    if (!(await AccessApi.isWizard(actor))) {
+    // Whoever the one write predicate would refuse cannot commit; hand back
+    // the reserved draft-branch path. v1 does NOT persist — `_persistDraft`
+    // is the dormant seam.
+    if ((await gateSourceWrite(actor, SOURCE_ROOT_DISPLAY + targetPath)) !== null) {
       const draftPath = `/home/${selfIdOf(actor)}/drafts/${name}.ts`;
       result.draftPath = draftPath;
       this._persistDraft(draftPath, source);
@@ -952,8 +946,8 @@ export class StudioLogic extends ApiLogic {
   public async commitClass(
     input: CommitClassInput
   ): Promise<ClassCommitResult> {
-    // Act #3 — committing a new class is a SOURCE write, wizard-gated. A
-    // non-wizard gets a graceful `denied` disposition (the banner warned
+    // Act #3 — committing a new class is a SOURCE write (a `.ts`: the one
+    // write predicate). A refused actor gets a graceful `denied` disposition (the banner warned
     // before save), NOT a throw.
     const actor = actingActor();
     const targetPath = (input.targetPath ?? '').trim();

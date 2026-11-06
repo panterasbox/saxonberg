@@ -8,13 +8,11 @@ help: |
   cleared), and the slot is freed so the next provision can reuse it. A live
   occupant is moved out to the corridor first.
 
-  Authorized for the dorms' owner and its agents (Katie fronts move-out in
-  the world) or an operator.
+  Authorized for the college's staff (Katie fronts move-out in the world)
+  or a member of the hall's committee — a seat, never a credential.
 examples:
   - cmd: unprovision alice
     note: End Alice's dorm lease and free the slot
-validators:
-  - /lib/command/validators/requiresWizard
 args:
   - name: player
     type: object

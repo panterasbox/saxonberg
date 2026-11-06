@@ -99,7 +99,7 @@ let startDoy = -1;
  */
 async function goto(path: string): Promise<void> {
   k.close();
-  k = await Session.open(handle, { startLocation: path, wizard: true });
+  k = await Session.open(handle, { startLocation: path });
   await k.drainProse();
 }
 
@@ -171,7 +171,7 @@ const startsOnDayZero = (): boolean => startDoy === 0;
 
 beforeAll(async () => {
   handle = uniqueHandle('climber');
-  k = await Session.open(handle, { startLocation: WHARFSIDE, wizard: true });
+  k = await Session.open(handle, { startLocation: WHARFSIDE });
   founder = await Session.open('founder', { startLocation: WHARFSIDE });
   // ⭐ Noon. Run 3 read "Shapes and edges, no more" at every outdoor
   // stand: a fresh world's clock starts at midnight, and the perception

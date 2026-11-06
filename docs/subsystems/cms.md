@@ -10,8 +10,9 @@ This is the **first build** of the CMS / authoring tools
 ([cms-slate.md](../slates/builds/cms-slate.md), Wave 1) — the "start with
 the code editor" front half, built against the backend that already exists
 (`SourceTreeApi`, `TemplateApi`, `HotReloadApi`, `AccessApi`). It is
-**wizard-tier**: the surface is for people who can already write source
-and edit templates. The lease model, content editors, versioning, git, the
+for **authors**: what each act may touch is decided per path by title,
+and only writing a code file asks for the wizard axis (the wizard-axis
+cleanup, 2026-11-05; it shipped wizard-tier). The lease model, content editors, versioning, git, the
 LSP, and the law==code review gate are **deferred** — see *Deferral
 boundary* below.
 
@@ -143,7 +144,7 @@ the access model.
 
 **The WS split.** This build adds **no new WebSocket message**. CMS data is
 REST-only; the CMS tab opens no socket. The author→save→live loop still
-works live: a wizard with the **game tab** open observes a content
+works live: an author with the **game tab** open observes a content
 save's effect there because the go-live step mutates the live world that
 tab already renders via its existing MQL subscriptions. A CMS-tab WS channel
 (live tree/file deltas, cross-tab "someone edited X", SharedWorker
@@ -180,17 +181,17 @@ author).
 ## Gating
 
 Server-authoritative, on the **context-derived** actor (never a passed
-value — see *§ `CmsApi` / `CmsLogic`*). Source (engine TS) is
-wizard-only; content is **per-path** — there is no author tier
-(content-packs wave 3; [access.md](./access.md)). Writes mirror
-`WriteController` verbatim:
+value — see *§ `CmsApi` / `CmsLogic`*). Reading source is **open**;
+writing it asks the one source-write predicate every source-tree writer
+asks (`AccessApi.sourceWriteRefusal`); content is **per-path** — there
+is no author tier (content-packs wave 3; [access.md](./access.md)):
 
 | Op | Gate (subject = `getActingAuthor()`) |
 |---|---|
-| Source read / list / stat | **`isWizard`** |
+| Source read / list / stat | **open** — any signed-in avatar (reading code is not authoring it; the backend is sandboxed to the mud root) |
 | Content read / stat | **`canRead(actor, path)`** — the actor's own `/home/<key>` subtree, **or** `AccessApi.canAtPath(actor, 'read', path)` (title over the covering extent — a held parcel, or the seat-held platform for the executive's head and staff), **or** a path whose covering zone's `protection` field is `anyone` (the wiki floor) |
 | Content list | the listing is **pruned** to the entries `canRead` admits — a child the actor cannot read is not shown, so a non-holder's tree is `/wiki` and their home, the founder's is `/obj`, `/cmd`, … |
-| Source write | `isWizard` **and** `can('write', resolveSourceFolderZone(path))` |
+| Source write | `AccessApi.sourceWriteRefusal(actor, path)` — a code file (`.ts`, `.js`, …): `isWizard` **and** `can('write', resolveSourceFolderZone(path))`; anything else (a pack's content YAML): title only |
 | Content write | live Zone → `canMutateZone(zone)`; else `can('write', liveAtPath)` |
 
 A `null` (unattributable) context fails every gate closed. Denials surface
@@ -200,7 +201,8 @@ silent no-op.
 `/auth/status` carries a top-level **`isWizard`** boolean (read via
 `AccessApi.isWizard` for the session avatar) so the client can hide the
 CMS launcher for non-wizards. This is a **non-authoritative UX hint** —
-the REST gates remain the authority.
+the REST gates remain the authority, and the `cms` verb itself carries no
+validator, so anyone may open the card.
 
 ## Save go-live (template vs source)
 
@@ -319,11 +321,11 @@ a door. See [sandbox.md](./sandbox.md).
 
 ## ⭐ The CMS is a CARD now
 
-`cms` is a verb (`content/platform/cmd/author/cms.yaml`, `requiresWizard`) and it
+`cms` is a verb (`content/platform/cmd/author/cms.yaml`, no validator) and it
 opens a `client`-source card. The **server** owns the card's existence,
 identity, lifetime and pinned-ness; only the BODY is the client's,
 because the explorer, the tree and Monaco all speak the `/api/cms/*`
-routes — which is where what a wizard may see and write is actually
+routes — which is where what an author may see and write is actually
 decided. A controller that answered that would be a second
 authorization surface for one question.
 

@@ -18,7 +18,7 @@
  * named refusal) AND a state change or the words that prove one.
  *
  * ⚠ Game time: a watch is shortened with `config expanse.watchGameHours`
- * (a wizard dial) and the passage itself is skipped with the test-only
+ * (the Prime Minister's dial — the founder's) and the passage itself is skipped with the test-only
  * clock route; the voyage's position is DERIVED, so a watch after a jump
  * reports everything the craft crossed in it.
  *
@@ -169,7 +169,7 @@ beforeAll(async () => {
   } finally {
     mate.close();
   }
-  me = await Session.open('founder', { startLocation: MOUTH, wizard: true });
+  me = await Session.open('founder', { startLocation: MOUTH });
   expectOk(await me.cmd('config expanse.watchGameHours 0.02'));
   await daylight(me);
 }, 180_000);
@@ -278,7 +278,7 @@ suite('2 · 3 · the wade, the small water', () => {
 suite('4 · 5 · aboard, a course, the reckoning', () => {
   it('4 · aboard the Hesper, `course` reads the plot; a course over the bar gets her under way', async () => {
     me.close();
-    me = await Session.open('founder', { startLocation: MOUTH, wizard: true });
+    me = await Session.open('founder', { startLocation: MOUTH });
     await aboardFrom(me);
     // ⭐ Only her master takes the helm: the founder holds the
     // office that appoints her company, and appoints himself to command her.
@@ -633,12 +633,14 @@ suite('16 · 21 · roads refuse honestly; the pilot', () => {
  */
 suite('31 – 39 · the shore as a place, and drawing water', () => {
   // ⭐ As the founder: `clone` is gated on held extents, and a wizard
-  // flag confers none (the drive's first run, 2026-10-12). The founder's
-  // body walks off the Hesper here — this suite runs last.
+  // flag confers none (the drive's first run, 2026-10-12). The general
+  // store's waterskin is Terminus's, so the founder is SEATED on its
+  // committee (wizard-axis D13). The founder's body walks off the Hesper
+  // here — this suite runs last.
   let w: Session;
   async function at(where: string): Promise<void> {
     me.close();
-    me = await Session.open('founder', { startLocation: where, wizard: true });
+    me = await Session.open('founder', { startLocation: where, committees: ['/world/terminus'] });
     w = me;
     await daylight(w);
   }

@@ -87,20 +87,9 @@ export default class CatController extends CommandController<CatModel> {
       return this.fail(context, 'no target');
     }
 
-    // Source/mirror mode: slice walk. Content-tree reads stay public.
-    // (`pickTree` collapses mirror → content for reads, so consult
-    // `getTreeMode()` to catch the mirror case.)
-    const treeMode = giver.getTreeMode();
-    if (treeMode === 'source' || treeMode === 'mirror') {
-      const sliceResource = await AccessApi.resolveSourceFolderZone(target);
-      if (!(await AccessApi.can(giver, 'read', sliceResource))) {
-        return this.fail(
-          context,
-          "you don't have permission to read that source slice",
-          'access-denied',
-        );
-      }
-    }
+    // Source reads are OPEN (wizard-axis D14): reading is not authoring,
+    // and no title is needed to read the world's code. Hiding a spoiler in
+    // code is the reveal model's job (wizard-axis-cleanup-slate W4).
 
     if (tree === 'content') {
       return this.catTemplate(context, target);

@@ -78,10 +78,9 @@ const NOT_FOUND =
 
 const open: Session[] = [];
 
-async function at(where: string, tag: string, wizard = false): Promise<Session> {
+async function at(where: string, tag: string): Promise<Session> {
   const s = await Session.open(uniqueHandle(`instr-${tag}`), {
     startLocation: where,
-    ...(wizard ? { wizard: true } : {}),
   });
   open.push(s);
   return s;
@@ -108,10 +107,9 @@ async function say(s: Session, text: string): Promise<string> {
 }
 
 /**
- * Practise a Discipline up. `practice` is the SHIPPED wizard-gated
- * competence harness (`author/practice.yaml`) — an existing check, not a
- * new one, and the plan's D18 route for a drive that needs a trained
- * reader.
+ * Practise a Discipline up. `practice` is the SHIPPED competence harness
+ * (`author/practice.yaml`) — open to any session in a test world, and the
+ * plan's D18 route for a drive that needs a trained reader.
  */
 async function trainUp(s: Session, discipline: string, times: number): Promise<void> {
   for (let i = 0; i < times; i += 1) {
@@ -124,9 +122,9 @@ let adept: Session;
 let outdoors: Session;
 
 beforeAll(async () => {
-  novice = await at(LOBBY, 'novice', true);
-  adept = await at(LOBBY, 'adept', true);
-  outdoors = await at(CROSSING, 'outdoors', true);
+  novice = await at(LOBBY, 'novice');
+  adept = await at(LOBBY, 'adept');
+  outdoors = await at(CROSSING, 'outdoors');
   // ⭐ The trained reader is trained by the shipped harness, and the
   // untrained one is left alone. That difference is the whole of B and C.
   await trainUp(adept, 'awareness', 40);
@@ -155,7 +153,7 @@ suite('A1–A3 · the free read, the refusal, and the instrument', () => {
     // The verb EXISTS for everybody — that is the doctrine lift. An
     // unafforded verb can only answer *unknown command*, and an unknown
     // command cannot say what would work.
-    const bare = await at(DORM, 'bare', true);
+    const bare = await at(DORM, 'bare');
     const r = await bare.cmd('measure light');
     const said = plain(await r.said());
     expect(said).not.toMatch(NOT_FOUND);
@@ -238,7 +236,7 @@ suite('D9–D11 · the reads that could not work before', () => {
     // It used to answer: the verb was afforded by any instrument and
     // each channel hunted for its own class, so a thermometer in hand
     // lit up `measure light` and then died on a different sentence.
-    const s = await at(LOBBY, 'wrongtool', true);
+    const s = await at(LOBBY, 'wrongtool');
     expectOk(await s.cmd('get thermometer'));
     const said = await say(s, 'measure light');
     expect(said).not.toMatch(NOT_FOUND);
@@ -252,10 +250,10 @@ suite('D9–D11 · the reads that could not work before', () => {
   it('⭐⭐ D10 — a SUNDIAL exists, and `measure shadow` reads', async () => {
     // Both the class and the check shipped; nothing in the world was
     // ever one, so this was refused for everybody forever.
-    const s = await at(LOBBY, 'dial', true);
+    const s = await at(LOBBY, 'dial');
     expectOk(await s.cmd('get sundial'));
     s.close();
-    const out = await at(CROSSING, 'dial2', true);
+    const out = await at(CROSSING, 'dial2');
     const said = await say(out, 'measure shadow');
     expect(said).not.toMatch(NOT_FOUND);
     // Out of doors with no dial, the refusal still NAMES the dial.
@@ -364,7 +362,7 @@ suite('⚠⚠ the article defect — `greedy: true`, driven', () => {
     // affordance chain and dies as an unknown shape with the controller
     // never reached. Ground found it on `look at the ground`; this is
     // the same defect in the place this build would have shipped it.
-    const s = await at(LOBBY, 'article', true);
+    const s = await at(LOBBY, 'article');
     expectOk(await s.cmd('get hygrometer'));
     const said = await say(s, 'measure humidity the hygrometer');
     expect(said).not.toMatch(/known command shape|too many arguments/i);
@@ -386,7 +384,7 @@ suite('⚠⚠ the article defect — `greedy: true`, driven', () => {
     // nothing in reach that could read that"* until the binder stopped
     // `return`ing on a greedy field that consumed nothing. The commonest
     // sentence the verb has, silently missing its tool.
-    const s = await at(LOBBY, 'bareform', true);
+    const s = await at(LOBBY, 'bareform');
     expectOk(await s.cmd('get gravimeter'));
     const said = await say(s, 'measure gravity');
     expect(said).not.toMatch(NOT_FOUND);
@@ -399,7 +397,7 @@ suite('⚠⚠ the article defect — `greedy: true`, driven', () => {
 
 suite('G16–G18 · the free read at a face, and what it is FOR', () => {
   it('⭐⭐ G16 — `analyze grade` at a face answers in WORDS, not a number', async () => {
-    const s = await at(FACE, 'face', true);
+    const s = await at(FACE, 'face');
     const said = await say(s, 'analyze grade');
     expect(said).not.toMatch(NOT_FOUND);
     // ⚠ Qualitative, and that is what makes the bench worth the walk.
@@ -409,7 +407,7 @@ suite('G16–G18 · the free read at a face, and what it is FOR', () => {
   });
 
   it('⭐ G17 — and `measure grade` refuses NAMING the bench', async () => {
-    const s = await at(FACE, 'face2', true);
+    const s = await at(FACE, 'face2');
     const said = await say(s, 'measure grade');
     expect(said).not.toMatch(NOT_FOUND);
     expect(said).toMatch(/assay bench|`assay`/i);
@@ -417,7 +415,7 @@ suite('G16–G18 · the free read at a face, and what it is FOR', () => {
   });
 
   it('⭐⭐ G18 — `sample` at a face yields a real lump you are carrying', async () => {
-    const s = await at(FACE, 'sampler', true);
+    const s = await at(FACE, 'sampler');
     const r = await s.cmd('sample the north face');
     const said = plain(await r.said());
     expect(said).not.toMatch(NOT_FOUND);
@@ -433,7 +431,7 @@ suite('G16–G18 · the free read at a face, and what it is FOR', () => {
 
 suite('H19–H23 · the bench', () => {
   it('⚠⚠ H19 — `assay` in the field with no bench REFUSES, naming the want', async () => {
-    const s = await at(FACE, 'nobench', true);
+    const s = await at(FACE, 'nobench');
     await s.cmd('sample the north face');
     expectOk(await s.cmd('get ore'));
     const said = await say(s, 'assay the ore');
@@ -447,7 +445,7 @@ suite('H19–H23 · the bench', () => {
   });
 
   it('⭐⭐ H20 — the bench is in the room, matching prose that was already there', async () => {
-    const s = await at(SHED, 'bench', true);
+    const s = await at(SHED, 'bench');
     const said = await say(s, 'look');
     expect(said).not.toMatch(NOT_FOUND);
     expect(said.toLowerCase()).toMatch(/bench/);
@@ -461,7 +459,7 @@ suite('H19–H23 · the bench', () => {
       // shed, hands it over, and then does nothing at all until the
       // world clock finishes the fire.
       const hand = uniqueHandle('instr-roundtrip');
-      let p = await Session.open(hand, { startLocation: FACE, wizard: true });
+      let p = await Session.open(hand, { startLocation: FACE });
       open.push(p);
       const took = await p.cmd('sample the north face');
       expect(plain(await took.said()), 'the face yielded nothing').toMatch(
@@ -479,7 +477,7 @@ suite('H19–H23 · the bench', () => {
 
       // The walk. A different room, a different session — the sample is
       // in the character's own hands and travels with them.
-      p = await Session.open(hand, { startLocation: SHED, wizard: true });
+      p = await Session.open(hand, { startLocation: SHED });
       open.push(p);
       const handed = await p.cmd('assay the ore at the bench');
       const said = plain(await handed.said());
@@ -513,7 +511,7 @@ suite('H19–H23 · the bench', () => {
   it('⭐⭐⭐ H22 — the batch is AMORTIZED, and the verb says so in hours', async () => {
     // Read off the shipped row rather than described: eight samples cost
     // far less than eight trips, which is the whole economics.
-    const s = await at(SHED, 'amort', true);
+    const s = await at(SHED, 'amort');
     const said = await say(s, 'readings grade');
     expect(said).not.toMatch(NOT_FOUND);
     expect(said).toMatch(/at .*bench|a sample can be read here/i);
@@ -524,7 +522,7 @@ suite('H19–H23 · the bench', () => {
 
 suite('N37 · the second bench is ROWS', () => {
   it('⭐⭐⭐ N37 — a bench in another locality, owned by somebody else, works', async () => {
-    const s = await at(YARDS, 'second', true);
+    const s = await at(YARDS, 'second');
     const said = await say(s, 'look');
     expect(said).not.toMatch(NOT_FOUND);
     expect(said.toLowerCase()).toMatch(/bench/);
@@ -540,7 +538,7 @@ suite('N37 · the second bench is ROWS', () => {
 
 suite('F15 · an ore face offers the FULL ladder', () => {
   it('⭐⭐ F15 — eye, hand tool and a bench you can carry a sample to', async () => {
-    const s = await at(SHED, 'ladder', true);
+    const s = await at(SHED, 'ladder');
     const said = await say(s, 'readings grade');
     expect(said).not.toMatch(NOT_FOUND);
     expect(said).toMatch(/by eye/i);

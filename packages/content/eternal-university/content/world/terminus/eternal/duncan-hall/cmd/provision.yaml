@@ -8,15 +8,14 @@ help: |
   named player. The room, its floor, and its door reconstitute lazily the
   first time someone walks up to them — nothing is built in advance.
 
-  Authorized for the dorms' owner and its agents (Katie, the live-in super,
-  fronts this in the world) or an operator. The tenant reaches their room by
+  Authorized for the college's staff (Katie, the live-in super, fronts this
+  in the world) or a member of the hall's committee — a seat, never a
+  credential. The tenant reaches their room by
   walking: up the stairwell to their floor's corridor, then through their own
   door — it opens for its tenant and no one else.
 examples:
   - cmd: provision alice
     note: Lease Alice the next free dorm room
-validators:
-  - /lib/command/validators/requiresWizard
 options:
   theme:
     short: t

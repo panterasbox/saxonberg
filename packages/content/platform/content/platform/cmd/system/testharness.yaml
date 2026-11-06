@@ -49,7 +49,6 @@ examples:
   - cmd: testharness ship /world/terminus/hesper/structure hull worn slept 0.25
     note: Stage her hull worn, six hours' water in her bilge
 validators:
-  - /lib/command/validators/requiresWizard
   - /lib/command/validators/requiresTestWorld
 options:
   at:

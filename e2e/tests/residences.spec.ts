@@ -216,8 +216,11 @@ test.describe.serial('the apartment loop', () => {
     browser,
   }) => {
     test.setTimeout(180_000);
+    // The founder sits on no committee (wizard-axis D18): letting a room is
+    // a seat's act, so the session is seated on the building's committee.
     const { page, close } = await openWorldAsFounder(browser, {
       startLocation: LOBBY,
+      committees: ['/world/terminus/mayfield-row/seznick-house'],
     });
     try {
       // The manager is at his board, and he opens (the player's path to

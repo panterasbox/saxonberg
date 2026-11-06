@@ -22,11 +22,11 @@ registered — during early boot, and in any test that does not stand one
 up. Five predicates (`can`, `canMutateZone`, `isWizard`, `isStreamer`,
 `isArchwizard`) used to answer **`true`** in that window, undocumented.
 
-**A missing authority is not a grant.** `isWizard` is the code-trust
-axis — it gates `eval`, `reload`, source-tree writes and the executable
-code-naming fields on a content template — so an unanswerable question
-resolving to *yes* made the most dangerous door in the system the one
-that opened when the lock was missing.
+**A missing authority is not a grant.** `isWizard` is the axis for
+authoring TypeScript — it gates `eval` and writing a code file into the
+source tree — so an unanswerable question resolving to *yes* made the
+most dangerous door in the system the one that opened when the lock was
+missing.
 
 ⚠ The cost is real, and it is why it was written the other way: a test
 that exercises a gated path must now stand up a Registry or stub the
@@ -45,9 +45,9 @@ extent** — never a tier. There is no author tier (content-packs wave 3
 deleted `AccessApi.isAuthor`, the `requiresAuthor` validator and the MQL
 permission snapshot): an *author* is anybody, and what they may do is
 answered per resource by the title that covers it. Beside title stand
-two **account axes** that are not about content at all — code trust
-(`wizards`, conferred by `archwizards`) and the livestream control
-plane (`streamers`).
+two **account axes** that are not about content at all — authoring
+TypeScript (`wizards`, conferred by `archwizards`) and the livestream
+control plane (`streamers`).
 
 The substrate ships these predicates:
 
@@ -111,25 +111,25 @@ The substrate ships these predicates:
    because the tempting fix — "let a grant-holder move around what they
    lease" — quietly makes a lease into title, and the whole point of the
    grant vocabulary is that it is *not*.
-4. **`AccessApi.isWizard(subject)`** — orthogonal wizard axis, the
-   **code-trust capability**. True iff `subject` is in `'wizards'`.
-   Determines who can write TypeScript source, run `eval`, `reload`
-   modules, AND set the executable code-naming fields
-   (`class` / `behaviors[].brain`) on a content template (see *The
-   code-trust lockdown* below). Doesn't matter
-   what slices you own; the question is whether you have escape
-   capability. A content author who is *not* a wizard is a
-   **protowizard** (content-write access without code trust — an
-   ⭐⭐ **and the role a CONTENT GENERATOR takes**: code that writes
-   content rows is a protowizard, not a wizard — it may create things and
-   may never change what a thing IS, because `class:` /
-   `behaviors[].brain` are the code-trust axis and are
-   closed to it. `canAtPath` then gates it **by parcel title** exactly
-   like a human author, which makes **its budget the extent it holds**
-   rather than an invented quota, and **the titleholder the author of
-   record** for whatever is generated under them. See
+4. **`AccessApi.isWizard(subject)`** — orthogonal wizard axis:
+   **authoring TypeScript, and nothing else** (owner, 2026-11-05). True
+   iff `subject` is in `'wizards'` or is an archwizard (D17 — and the
+   Prime Minister is an archwizard, so PM ⇒ archwizard ⇒ wizard,
+   derived). It is asked in exactly two places: `sourceWriteRefusal`
+   (writing a code file — see *The code-trust lockdown* below) and
+   `eval` (typing code). **Running** code, **reloading** it, **reading**
+   it, and **naming** it from content (`class:`, `behaviors[].brain`, a
+   command view's `controller:`/validators) are not the axis — each is
+   decided by title, an office, or nothing. ⛔ A new `isWizard` check
+   anywhere else is wrong by shape; `lint:wizard-axis`
+   (`scripts/check-wizard-axis.ts` over `scripts/wizard-axis-allowlist.txt`)
+   lists every file that names the axis, and the list only shrinks.
+   ⭐⭐ **A CONTENT GENERATOR is just an author**: code that writes
+   content rows is gated by `canAtPath` **by parcel title** exactly like
+   a human author, which makes **its budget the extent it holds** rather
+   than an invented quota, and **the titleholder the author of record**
+   for whatever is generated under them. See
    [content-generation-slate](../slates/builds/content-generation-slate.md).
-   unstored complement, not a group).
 5. **`AccessApi.isStreamer(subject)`** — orthogonal streamer axis.
    True iff `subject` is in `'streamers'`. Gates the livestream
    control plane (the `stream` verb; later scene / lower-third /
@@ -150,7 +150,10 @@ The substrate ships these predicates:
 Whoever holds the `prime-minister` office **is a wizard and an
 archwizard, derived on every check and never stored**
 (`AccessRegistry.holdsPrimeMinister`, consulted after the group caches
-by both `isWizard` and `isArchwizard`). This is the top of the code-trust
+by both `isWizard` and `isArchwizard`). ⭐ **An archwizard is a wizard** (wizard-axis D17):
+`isWizard = wizards ∪ isArchwizard` and `isArchwizard = archwizards ∪
+the Prime Minister`, so the chain PM ⇒ archwizard ⇒ wizard is derived,
+never a second membership to keep in step. This is the top of the code-trust
 chain the balance slate settled (2026-08-04) — **PM → archwizards →
 wizards**, the PM seated by the polity: code trust is a *job assignment*,
 grantable and revocable by the executive the polity chose, which is what
@@ -210,7 +213,7 @@ executive.
 
 1. Mint `'wizards'` Group if absent (no FolderZone stamp — it's a
    tag-like group whose only role is gating the `isWizard`
-   code-trust axis), then add any playerIds from the
+   axis — authoring TypeScript), then add any playerIds from the
    `WIZARD_PLAYER_IDS` env var (additive + idempotent).
 2. Mint `'streamers'` Group if absent (no FolderZone stamp —
    tag-like, gates the `isStreamer` axis), then add any playerIds
@@ -247,14 +250,18 @@ covering owner via `ParcelApi.ownerOf(path)` — rung 1 a parcel, rung 2
 the self-home, otherwise `null` and a denial — then the same `can()`
 dispatch of that owner. No zone step, no state default. `TreeAction` is
 the closed vocabulary `'write-document' | 'write-template' |
-'write-source' | 'install' | 'read' | 'broadcast' | 'teleport'`:
+'write-source' | 'install' | 'read' | 'broadcast' | 'teleport' |
+'clone' | 'reload'`:
 `write-document` is the document store's gate
 ([document-store.md](./document-store.md)) and the soul committee's
 (`soul` writes under `/expression`); `write-template` the template
 store's; `install` is `pack` (`requiresPackInstaller` — holding
 `/compact/executive`); `read` the CMS per-path read
 ([cms.md](./cms.md)) and the pack-maintainer diagnostics read;
-`broadcast` the `broadcast --at` gate; `teleport` names the hop.
+`broadcast` the `broadcast --at` gate; `teleport` names the hop;
+`clone` the `clone` verb's title over the kind; `reload` the
+`reload`/`typecheck` title over the target's class/template path (the
+wizard-axis cleanup, 2026-11-05 — the same question `clone` asks).
 See **[parcel.md](./parcel.md)** for the registry, `grant`, the
 `ownerOf` chain, the sparse hierarchy, and the `subdivide` / `transfer`
 verbs.
@@ -304,52 +311,67 @@ external code's only reachable surface is the Api facade.
 ## The code-trust lockdown
 
 In a Node + proxy-security stack, anyone who can author a line of
-TypeScript can subvert the whole security apparatus — so that power
-is the **wizard** capability and nothing else.
+TypeScript can subvert the whole security apparatus — so **authoring
+TypeScript** is the **wizard** capability, and the wizard capability is
+that and nothing else (owner, 2026-11-05).
 
-## ⚠⚠ The justification below is WRONG for `class`, and mislabelled for `brain`
+⭐⭐ **One write predicate.** `AccessApi.sourceWriteRefusal(actor,
+sourceLogical, action = 'write' | 'rm' | 'mkdir')` returns `null` or a
+reason a refusal can show. A **code file** (`.ts` `.tsx` `.mts` `.cts`
+`.js` `.mjs` `.cjs`) asks for `isWizard` **and** title over its slice
+(`can(actor, action, resolveSourceFolderZone(path))`); **anything else**
+in the source tree — a pack's content YAML, a doc, a directory — asks
+for title only, because writing content is not authoring code. A null
+actor is refused. Every writer of the source tree asks it and nothing
+else: the shell's `write -s` / `rm` / `mv` / `cp` / `mkdir`, the CMS
+source write, the studio (`commitClass` and the scaffold — a refused
+target yields the draft path), and `git publish` / `revert` per touched
+file. The four verbatim *"mirror, don't share"* copies of the check that
+preceded it are gone.
 
-> **Reviewer, 2026-10-02:** *"naming a class isn't code trust.
-> publishing a class is. the act of publishing means 'you can use this'
-> there's no 'only x templates may use my code' — it's an open source
-> project."*
+What is **not** the axis, each decided by title, an office, or nothing:
 
-This section used to argue that *"several of a template's fields resolve
-to executable code, so 'can write content' silently grants 'can run
-code'"*. That premise does not survive contact with the implementation,
-and the rule it justifies should be re-decided rather than quietly kept:
+- **Running** code — cloning a row, firing a brain, dispatching a verb.
+- **Reloading** it — `reload` / `typecheck` ask `canAtPath(giver,
+  'reload', path)` over the target's class/template path, the question
+  `clone` asks (see the matrix below).
+- **Reading** it — `cat` / `ls` / `grep`, `cp`'s source endpoint, the
+  CMS source browse and `git status/diff/log` are open to any signed-in
+  avatar. (Spoilers in code are deferred to wizard-axis-cleanup-slate
+  W4.)
+- **Naming** it from content — a template's `class:` and
+  `behaviors[].brain`, a command view's `controller:` and validators.
+  That is content, decided by title over the row's path like any other
+  field. What bounds `class:` is `lint:instanceable` (not under `/lib/`,
+  resolves to a real module + export, sits under a branch segment —
+  *publishing* a class is what says "you may use this"); what bounds
+  `brain:` is the brain module category (only a brain module exports
+  `brain`, and `CmsLogic.validateBehaviorPaths` refuses an unresolvable
+  one at save).
 
-1. ⛔ **The gate refuses a class that five hundred other rows already
-   name.** On a create `existing` is null, so *any* `classPath` is a
-   violation — it never asks whether the class is novel. So it is not
-   protecting a decision about bringing code into play.
-2. ⛔ **`extends` reaches the identical outcome.** A protowizard makes a
-   class-less child of a row naming `Coin` and gets an instance of
-   `Coin` — same constructor, same `onCreate`, same mixins. The gate adds
-   a hop, not a boundary.
-3. ⛔ **The "you may use this" declaration already exists, and it is
-   STRUCTURAL.** `lint:instanceable` states it at build time and
-   author-independently: not under `/lib/`, resolves to a real module +
-   export, sits under a branch segment. That *is* publishing-for-content.
-   A per-author gate on top is redundant with a rule already enforced.
+⚠ **History — the code-naming gate, deleted 2026-11-05.** Until the
+wizard-axis cleanup, `TemplateLogic.enforceCodeFieldGate` made `class`
+and `behaviors[].brain` wizard-only-writable at the `saveTemplate`
+chokepoint (a *delta rule* over `CodeNamingFields.FIELDS`, with a
+folder carve-out, a `cp`/`mv` tightening and a drift-guard test), and
+`DocumentLogic` ran the same arm over a command view's `controller:` and
+validators (`codeFieldsChanged`). A non-wizard author was called a
+**protowizard**. The reviewer's ruling (2026-10-02) undid its premise:
+*"naming a class isn't code trust. publishing a class is."* The gate
+refused a class five hundred rows already named, `extends` reached the
+identical instance with no gate at all, and `lint:instanceable` already
+stated the publish structurally — so all it enforced was who could be
+author-of-record for a row that *states* a class. The gate, its field
+list, its drift guard and its closure tests were deleted; the title
+gates beside them are unchanged, and the word *protowizard* retired
+with them.
 
-So what the `class` arm actually does is stop a non-wizard being
-author-of-record for a row that *states* a class. That is bookkeeping,
-and it lives in a method named for something it is not doing.
-
-⭐ **`behaviors[].brain` survives the argument, under a different name.**
-Not because a brain is untrusted — it is published, and the reviewer's
-rule applies — but because it is data the engine runs **by itself, on a
-timer, with no player act**. That is a question about autonomy and
-shared-world resource (and the resource half already has a ratchet,
-`lint:idle-cadence`), not about code provenance.
-
-⚠ **And one real code-trust case neither arm names.** `EvalScript.code`
-is `persistent` but not `authorable`, so the applier *would* write it
-from a row's `data`. Its row says *"the code is the one thing that is
-never authored here"* — a comment, not a rule. Inert without a wizard to
-`run` it, so not urgent; but **data that CONTAINS source** is what the
-gate should have been about, and nothing enforces it.
+⚠ **One real code-trust case is still unnamed.** `EvalScript.code` is
+`persistent` but not `authorable`, so the applier *would* write it from
+a row's `data`. Its row says *"the code is the one thing that is never
+authored here"* — a comment, not a rule. Inert without a wizard to `run`
+it, so not urgent; but **data that CONTAINS source** is the one thing a
+content gate could honestly be about, and nothing enforces it.
 
 ## ⭐⭐ The distinction the rule was groping for: a row is a RECORD, cloning is EXECUTION
 
@@ -386,110 +408,14 @@ rule. ⛔ And whatever goes inside it is a seat, a title or an
 **Status: a non-issue today** (the reviewer's call) — nothing shipped
 wants it. Recorded so that the first class that does want it is not
 written as a hand-rolled check in a controller, and so that the
-false justification above stops being taught.
+deleted code-naming gate's justification stops being taught.
 
----
-
-The original framing, kept because the mechanism below is what actually
-ships today: a content template is *data*, but two of its fields name a
-module export, and the gate treats writing one as a code-trust act.
-
-**The wizard / protowizard partition.** A **protowizard** is the
-unstored complement of a wizard: any actor with content-write access
-(`can(…, 'write', …)`) who is **not** in `'wizards'`. There is no
-`protowizard` group or flag — "can edit content, can't write code"
-falls out of the existing content gate plus the code-field gate below.
-
-**The direct gated set.** Two template fields name a module export
-directly and are **wizard-only-writable**:
-
-- `class`
-- `behaviors[].brain`
-
-⭐ There were three. `hydratorClass` **retired 2026-10-01 WITH THE FIELD**,
-not by exemption: a row cannot name its applier any more — a row with
-`data` has it applied, full stop — so there is nothing for the gate to
-refuse and nothing carved out of it. The surface shrank; the lockdown did
-not weaken.
-
-(`CodeNamingFields.FIELDS` is the single source of truth.) The gate
-lives at the **universal `TemplateApi.saveTemplate` chokepoint**
-(`TemplateLogic.enforceCodeFieldGate`), through which both the
-in-world `edit -c` verb (`write` until the underwater review) and the REST CMS funnel. The actor is derived
-from the execution context (`ExecutionContextApi.getActingAuthor` —
-never caller-supplied; the *gated-api-actor-from-context* rule). The
-allow ladder:
-
-1. no attributable Avatar author (system / bootstrap / forced /
-   cross-actor / pre-Avatar login + char-gen + guest provisioning) →
-   **ALLOW** (the provisioning invariant);
-2. a wizard → **ALLOW**;
-3. else (a protowizard) → the **delta rule**: reject any write that
-   *introduces or changes* a direct field — `class` inequality vs. the
-   existing doc, or an incoming `behaviors[].brain` multiset that is not
-   a subset of the existing one. A pure cosmetic edit (same class, brain
-   set unchanged-or-reduced) passes — the protowizard authoring path.
-
-**The transitive set closes by construction.** The reference fields
-(`adornments[].template`, `exits[].destination`, `exits[].door`,
-`props[]`, `cast[]`, `container`, `warren`, `startLocation`,
-`routes[].to`/`.warren`, **and `extends`**) get **no per-field gate**:
-each names *another template*, which must itself have passed the
-`class` gate, so a reference can only ever instantiate a
-wizard-vetted-or-protowizard-safe class. (Proven in
-`TemplateLogic.transitiveClosure.test.ts`.)
-
-⭐⭐ **`extends` is in that set, and it is what makes the refusal's own
-advice actionable.** The error text has always said *"protowizards
-author by cloning/customizing wizard-made templates"* — describing a
-mechanism that did not exist. It does now: a **class-less child** (a
-row with `extends` + `data` and no code-naming field at all) passes the
-delta rule with no new clause, because there is nothing for the rule to
-refuse. Retargeting `extends` is likewise a content edit: the new
-parent is a vetted row too.
-
-⚠ The delta baseline is the **raw** row (`existing.own.*`), not the
-effective one. Otherwise a protowizard editing a class-less child would
-be refused for "changing" a class the row never stated — the gate
-reading its own inheritance as a violation.
-
-**The structural carve-out (D4).** A `mkdir`-shaped write — a
-Zone/folder `class` with no behaviors and the standard (or absent)
-hydrator — is exempt: a folder class is engine code by construction,
-carries no author-chosen executable strategy, and is constrained by
-the folder/leaf invariant. So a protowizard can still create
-organizational sub-zones.
-
-**The `cp`/`mv` tightening (D5).** `cp`/`mv` content copy an existing
-template's **raw** `class`/`hydrator`/`extends`/`behaviors` into a
-*new* path (no existing doc at dst), so the delta rule makes them
-**wizard-only** for class-bearing leaves — and, symmetrically, leaves a
-copy of a **class-less child** open to a protowizard, since the copy
-states no class either. (The raw copy is also what keeps a copied child
-a child rather than silently forking it away from its parent.)
-Protowizards author by cloning/customizing
-wizard-made templates and editing cosmetic `data`; they never type a
-class or brain freehand. (The v2 relaxation — letting protowizards
-*pick among* a wizard-vetted catalog of safe classes/brains — is
-deferred.)
-
-**The one bypass, independently gated (D6).** Every *authoring*
-template write funnels through `saveTemplate` except `PackLogic`
-(content-pack import, which writes `PersistApi.save` directly). The
-`pack` verb is `requiresWizard`-gated, so a non-wizard can never reach
-that path. Avatar persist-back no longer writes the `domain` collection at
-all — it captures runtime state into the separate `holder_snapshots` store
-via the self-persistence spine, which drift-guards fields to declared
-`fieldMeta`'s persistent entries (never an author-named `class`/`brain`
-string) and reconstitutes items only through the gated `StuffApi.clone` — so
-it cannot forge a code-naming field. See
-[persistence.md § The self-persistence spine](./persistence.md#the-self-persistence-spine-persistable).
-
-**The drift-guard.** `codeNamingDriftGuard.test.ts` enumerates every
-module-resolving call site under `mud/` (`resolveExport` /
-`resolveExportSync` / `loadClassByPath` + non-literal dynamic
-`import()`) and asserts the set equals a classified manifest, so a new
-field that resolves a module export can't silently escape the gate.
+**Content-pack import** writes `PersistApi.save` directly rather than
+through `saveTemplate`; the `pack` verb is gated by
+`requiresPackInstaller` (title over `/compact/executive`). Avatar
+persist-back does not write the `domain` collection at all — it captures
+runtime state into `holder_snapshots` through the self-persistence spine
+(see [persistence.md § The self-persistence spine](./persistence.md#the-self-persistence-spine-persistable)).
 
 ## Where the gate lives — validator vs controller body
 
@@ -506,9 +432,10 @@ cases:
   group the platform declares; `broadcast` is `broadcast --at <extent>`,
   title over the extent named — both checked in the controller body
   because the extent is part of the model.)
-- **`requiresWizard`** — `isWizard(giver)`. The code-trust gate;
-  used by `eval`, `reload`, `config`, `practice`, and the
-  banking operator verbs.
+- **`requiresWizard`** — `isWizard(giver)`. Authoring TypeScript;
+  carried by `eval` (typing code) and, until a later wave moves it,
+  `config`. `reload`, `typecheck`, `git`, `cms`, `studio`, `practice`,
+  the letting views and the banking operator verbs no longer carry it.
 - **`requiresStreamer`** — `isStreamer(giver)`. Used by `stream`.
 - **`requiresArchwizard`** — `isArchwizard(giver)`. Used by
   `wizard grant/revoke`.
@@ -540,20 +467,23 @@ tree mode, etc.) we revisit.
 | `SoulController` | `canAtPath(giver, 'write-document', '/expression/emotes/<verb>')` — the soul committee's title ([emotes.md](./emotes.md)). |
 | `BroadcastController` | `canAtPath(giver, 'broadcast', extent)` for `--at <extent>`; a non-holder's refusal lists `heldExtents(giver)`. |
 | `PackController` | `requiresPackInstaller` (validator) — `canAtPath(giver, 'install', '/compact/executive')`. |
-| `EvalController` | `requiresWizard` (validator) — `isWizard(giver)`; no slice (eval is TS execution). |
+| `EvalController` | `requiresWizard` (validator) — `isWizard(giver)`; no slice (typing code is authoring TypeScript — one of the two places the axis is asked). |
 | `StreamController` | `requiresStreamer` (validator) — `isStreamer(giver)`; no slice (livestream control plane). |
 | `WizardController` | `requiresArchwizard` (validator) — `isArchwizard(giver)`; calls the narrow-entry `setWizardMembership` (wizard grant/revoke). |
 | `CloneController` | `canAtPath(giver, 'clone', path)` — the KIND's own title, by longest prefix. Untitled fails closed. ⚠⚠ It used to walk a live REPRESENTATIVE's zone (whichever copy came first), so whether you could clone a flask depended on where some flask was standing — the first copy a town's props minted put the kind under that town's title for everybody, by load order (the ceramics drives, 2026-10-21; the assembly drive had dodged it). The row-with-no-instance hole (`zoneOf(null)` refused everybody; `/system/transport/thing/coach`) is closed by the same question. |
-| `ReloadController` | `requiresWizard` (validator) — `isWizard(giver)`; no slice. |
+| `ReloadController` / `TypecheckController` | `canAtPath(giver, 'reload', path)` over the target's class/template path — the question `clone` asks; refusal `access-denied` listing `heldExtents(giver)`. |
 | `WriteController` content | Zone target: `canMutateZone(giver, target)`. Else: `can(giver, 'write', target)`. |
-| `WriteController` source/mirror | `isWizard(giver)` AND `can(giver, 'write', resolveSourceFolderZone(path))`. |
+| `WriteController` source/mirror | `sourceWriteRefusal(giver, path)` — a code file: wizard AND title over the slice; anything else: title only. |
 | `MkdirController` content | `can(giver, 'mkdir', parent)` flat — sub-zone creation is a member-level op. |
-| `MkdirController` source | wizard + slice. |
+| `MkdirController` source | `sourceWriteRefusal(giver, path, 'mkdir')` — a directory is not code: title only. |
 | `RmController` content | Zone target: `canMutateZone(giver, target)`. Else: `can(giver, 'rm', target)`. |
-| `RmController` source | wizard + slice. |
-| `CpController` | Source endpoint: READ rules (slice walk only). Dest endpoint: WRITE rules per tree mode. |
-| `MvController` | Both endpoints WRITE rules — `mv` REMOVES source after write. |
-| `LsController` / `CatController` / `GrepController` | source/mirror mode: `can(giver, 'read', resolveSourceFolderZone(path))`. Content-tree reads are public. |
+| `RmController` source | `sourceWriteRefusal(giver, path, 'rm')`. |
+| `CpController` | Source endpoint: open (reading is not gated). Dest endpoint: WRITE rules per tree mode (`sourceWriteRefusal` in source mode). |
+| `MvController` | Both endpoints WRITE rules (`sourceWriteRefusal` in source mode) — `mv` REMOVES source after write. |
+| `LsController` / `CatController` / `GrepController` | **no access check** — source and content reads are open to anyone. |
+| `GitController` | `status` / `diff` / `log`: any signed-in avatar. `publish` / `revert`: `sourceWriteRefusal` per touched file. |
+| `CmsController` / `StudioController` | no validator; the REST/Logic surface gates each act (browse open; source write via `sourceWriteRefusal`; template writes by title). |
+| `ErrorsController` | `list`: open (compile rows included); `clear`: title over the path or author-of-path; `raw`: the Prime Minister (`CompactApi.holdsOffice(actor, 'prime-minister')`, reason `pm-only`) — the console ring carries other players' command lines. |
 | `PwdController` / `CdController` | **no access check** in any mode (state queries on the actor, not file reads). |
 
 ## Subject = current command giver
@@ -612,7 +542,7 @@ zone ownership):
 
 | Group | Owner | Purpose |
 |---|---|---|
-| `'wizards'` | `'system'` | Code-trust (TS-escape) capability. Members can `eval`, `reload`, write source, and set the code-naming fields on a content template. Env-seeded from `WIZARD_PLAYER_IDS`. |
+| `'wizards'` | `'system'` | Authoring TypeScript, and nothing else. Members can `eval` and write a code file into the source tree (`sourceWriteRefusal`, with title). Every archwizard is a wizard by derivation. Env-seeded from `WIZARD_PLAYER_IDS`. |
 | `'streamers'` | `'system'` | Livestream control plane. Members can run the `stream` verb. Seeded from `STREAMER_PLAYER_IDS`. See [livestream.md](./livestream.md). |
 | `'archwizards'` | `'system'` | Wizard-conferral capability (the `wizard grant/revoke` verb). Seeded from `ARCHWIZARD_PLAYER_IDS`. |
 
@@ -683,22 +613,21 @@ or because they're their own conversation:
 - **`getResponsibleAvatar` / `ByResponsibleAvatar` /
   `ByActingAvatar`** — retired from the call-security roadmap.
 - **Spoiler SEE/KNOW read gating** — own slate.
-- **Read gating beyond source/mirror workspace verbs.**
-  Content-tree reads stay public.
+- **Read gating.** Source and content reads are both open (the
+  wizard-axis cleanup dropped the source-read slice walk); spoilers in
+  code are wizard-axis-cleanup-slate W4.
 - **Tier vocabulary** (`'player' | 'builder' | 'wizard' |
   'owner'` from the slate). Authority is group membership at
   the zone-walked owner.
 - **Admin-override entries for other Document collections**
   (`forceDeleteGroup`, `forceDisbandChannel`, `forceEditEmote`).
 - **Per-action filtering on grants.**
-- **The v2 wizard-curated class/brain catalog.** v1 makes the
-  direct code-naming fields *wizard-only-writable* (a protowizard
-  cannot set them at all — they author by cloning/customizing
-  wizard-made templates). The relaxation that lets protowizards
-  *pick among* a wizard-vetted set of safe classes/brains is a
-  later build. (The bare "class-allowlist gap" this section used to
-  flag — a lounge member writing `class: /lib/eval/EvalScript` and
-  cloning it — is **closed** by *The code-trust lockdown* above.)
+- ~~**The v2 wizard-curated class/brain catalog.**~~ Moot: the
+  code-naming gate it would have relaxed was deleted 2026-11-05 (see
+  *The code-trust lockdown*). The "class-allowlist gap" it once
+  flagged — a row writing `class: /lib/eval/EvalScript` — is closed by
+  `lint:instanceable` (nothing instances `/lib/`), not by an author
+  gate.
 
 ## Nearest title decides — there is no override
 
@@ -723,8 +652,9 @@ the platform's roots, a corpo over `/corpo/<key>`). A player-held
 subdivision has none; an untitled path has none. Reads live on
 **`CompactApi`** (the single meta-institution facade — `api/compact.ts`):
 `committeeOf(path)`, `isCommitteeMember` (group membership, or the
-organization's staff/authority, or the founder via the Art. XI
-pool-of-one backstop — mirroring the office founder default),
+organization's staff/authority — ⛔ and nothing else: the founder sits
+on no committee; the Art. XI pool-of-one backstop that used to live here
+misread the JURY rule and was deleted by the wizard-axis cleanup, D18),
 `committeeMembersOf`, and the chat seam
 (`committeeChannelOf` / idempotent `ensureCommitteeChannel` — a bound
 channel whose audience IS the committee group; chat.md). Surfaced by
@@ -780,3 +710,19 @@ invents a fallback; (2) `isAuthor` is not needed once title is universal
 `requiresCoreAccess` did not survive — deleted with both consumers
 reassigned; (5) the acceptance test for "core is gone" is `lint:untitled` plus
 the absence of the word from the source.
+
+- **The wizard-axis cleanup** (MR !525, `1f59c2704`…`09ce75c27`, 2026-11-05).
+  The axis became *authoring TypeScript and nothing else*, asked in two
+  places — `AccessApi.sourceWriteRefusal` (a code-file write, which folded
+  eight verbatim copies) and `eval`. Reading opened; `reload` took title
+  (`TreeAction 'reload'`); the code-naming gates, `isAgentOf`, the
+  command-running spell and the founder committee backstop were deleted;
+  `isWizard = wizards ∪ isArchwizard`; the settings keys took tiers
+  (app-settings.md § The tiers); the test harness lost its every-group mode
+  (`committees:` / `offices:`, testing.md). ⭐ Its drive found the dorm
+  intake dead twice over — the views' wizard validator refused Katie's own
+  dispatch, and behind it she afforded the desk verbs to `peers` only, so
+  the dispatch was `unknown-verb`. `lint:wizard-axis` holds the line. The
+  decision numbers cited in code comments (`wizard-axis D13`…) are the
+  build plan's, retired at the sweep; read them with
+  `git show 09ce75c27:docs/plans/wizard-axis-cleanup-plan.md`.

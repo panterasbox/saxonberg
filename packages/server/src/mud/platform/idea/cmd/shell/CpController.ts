@@ -88,33 +88,12 @@ export default class CpController extends CommandController<CpModel> {
       return;
     }
 
-    // Source-tree cp. Source endpoint = read; dest endpoint = write
-    // (wizard + slice walk).
+    // Source-tree cp. The source endpoint is a read, and source reads are
+    // open (wizard-axis D14); the destination asks the one write predicate.
     const srcLogical = SourceTreeApi.joinLogical(cwd, model.src, { home });
     const dstLogical = SourceTreeApi.joinLogical(cwd, model.dst, { home });
-    const srcSlice = await AccessApi.resolveSourceFolderZone(srcLogical);
-    if (!(await AccessApi.can(giver, 'read', srcSlice))) {
-      return this.fail(
-        context,
-        "you don't have permission to read that source",
-        'access-denied',
-      );
-    }
-    if (!(await AccessApi.isWizard(giver))) {
-      return this.fail(
-        context,
-        "you don't have permission to write source",
-        'access-denied',
-      );
-    }
-    const dstSlice = await AccessApi.resolveSourceFolderZone(dstLogical);
-    if (!(await AccessApi.can(giver, 'write', dstSlice))) {
-      return this.fail(
-        context,
-        "you don't have permission to write to that source slice",
-        'access-denied',
-      );
-    }
+    const refusal = await AccessApi.sourceWriteRefusal(giver, dstLogical, 'write');
+    if (refusal) return this.fail(context, refusal, 'access-denied');
 
     let absSrc: string, absDst: string;
     try {

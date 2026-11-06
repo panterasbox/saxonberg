@@ -1,13 +1,22 @@
 /**
- * ConfigController — the developer surface for application settings.
+ * ConfigController — the Prime Minister's knob board for the world's
+ * Tier B settings (wizard-axis D12).
  *
  * `config`                  → list every setting (known + ad-hoc).
  * `config <key>`            → show one.
  * `config <key> <value>`    → set one (persist + refresh cache).
  *
  * Cross-cutting concerns the framework handles, not us:
- *   - the `requiresWizard` validator (in `config.yaml`) gates the verb;
- *     no access check belongs here.
+ *   - the `requiresPrimeMinister` validator (in `config.yaml`) gates the
+ *     verb; setting a dial is not authoring TypeScript, so it is the
+ *     executive's, never a wizard's.
+ *
+ * ⭐ A **Tier C** key (a tax, a levy, a capital control —
+ * `AppApi.seatFor` names its seat) is refused here with `tier-c`, naming
+ * the seat and its verb (`treasury set`, `reserve set`): a political dial
+ * is set through the office that answers for it, and lands in that
+ * officer's chronicle. Reads and the listing are unchanged; the listing
+ * marks a C key with its seat.
  *
  * The namespace is open: a set to a key outside the `AppSettingKeys`
  * vocabulary still succeeds and round-trips — it just earns a soft prose
@@ -49,7 +58,8 @@ export default class ConfigController extends CommandController<ConfigModel> {
     for (const k of keys) {
       // '*' flags an ad-hoc key (not a known setting); ' ' a blessed one.
       const marker = KNOWN_KEYS.has(k) ? " " : "*";
-      lines.push(`  ${marker} ${k} = ${all[k]}`);
+      const seat = AppApi.seatFor(k);
+      lines.push(`  ${marker} ${k} = ${all[k]}${seat ? `  [C: ${seat}]` : ""}`);
     }
     lines.push("");
     this.send(context, Mml.fromMarkup(lines.join("\n")));
@@ -64,6 +74,12 @@ export default class ConfigController extends CommandController<ConfigModel> {
     value: string,
     context: CommandContext,
   ): Promise<void> {
+    if (AppApi.seatFor(key) !== null) {
+      const detail = `\`${key}\` is a Tier C dial: ${AppApi.whoSets(key)}.`;
+      this.send(context, Mml.fromMarkup(`\n${detail}\n`));
+      context.note({ kind: "controller-rejected", reason: "tier-c", detail });
+      return;
+    }
     await AppApi.setSetting(key, value);
     const lines = ["", `${key} set to ${value}.`];
     if (!KNOWN_KEYS.has(key)) {

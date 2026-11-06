@@ -184,11 +184,12 @@ async function atTheLip(handle: string): Promise<Session> {
 }
 
 async function setDial(key: string, value: string): Promise<void> {
-  const wiz = await Session.open('founder', { startLocation: WALK, wizard: true });
+  // `config` is the Prime Minister's — a founder office (wizard-axis D13).
+  const pm = await Session.open('founder', { startLocation: WALK });
   try {
-    expectOk(await wiz.cmd(`config ${key} ${value}`));
+    expectOk(await pm.cmd(`config ${key} ${value}`));
   } finally {
-    wiz.close();
+    pm.close();
   }
 }
 

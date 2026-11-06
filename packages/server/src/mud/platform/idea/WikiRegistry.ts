@@ -793,11 +793,10 @@ export default class WikiRegistry extends WikiRegistryBase {
   ): Promise<boolean> {
     const actor = this.actor();
     if (actor === null) return false;
-    // Before every rung, the wizard one included — see `actingGuest`.
+    // Before every rung — see `actingGuest`.
     if (this.actingGuest()) return false;
-    // A wizard clears every rung — the code-trust axis subsumes content
-    // authority, and a wizard could edit the row directly regardless.
-    if (await AccessApi.isWizard(actor)) return true;
+    // ⛔ No wizard rung (wizard-axis D6): the axis is authoring
+    // TypeScript and confers no content authority. Title decides.
     if (required === 'anyone') {
       // The open floor: any signed-in player. Not a group, because
       // there is no "all players" group and a parcel has one owner.

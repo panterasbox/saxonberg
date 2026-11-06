@@ -236,6 +236,27 @@ describe("AccessRegistry — archwizard axis + wizard conferral", () => {
     expect(await AccessApi.isArchwizard(makeAvatar("rando"))).toBe(false);
   });
 
+  it("⭐ an archwizard is a wizard, never stored (wizard-axis D17); a plain wizard is not an archwizard", async () => {
+    installInMemoryStore();
+    await bootRegistry();
+
+    const reg = await GroupApi.registry();
+    const arch = await reg.managed().findByName("archwizards");
+    arch!.addMember("/platform/agent/Avatar/boss");
+    await arch!.save();
+    if (arch!._id) reg.managed().fireChange(arch!._id);
+    const wiz = await reg.managed().findByName("wizards");
+    wiz!.addMember("/platform/agent/Avatar/plain");
+    await wiz!.save();
+    if (wiz!._id) reg.managed().fireChange(wiz!._id);
+
+    // boss is in `archwizards` only — and is a wizard by derivation.
+    expect(await AccessApi.isWizard(makeAvatar("boss"))).toBe(true);
+    // plain is in `wizards` only — the axis confers no conferral.
+    expect(await AccessApi.isWizard(makeAvatar("plain"))).toBe(true);
+    expect(await AccessApi.isArchwizard(makeAvatar("plain"))).toBe(false);
+  });
+
   it("seeds archwizards from ARCHWIZARD_PLAYER_IDS", async () => {
     process.env[ARCH_ENV] = "boss1, boss2";
     installInMemoryStore();

@@ -65,7 +65,6 @@ import {
   type RangeState,
 } from '../../../lib/combat/RangeBand';
 import { SpeciesApi } from '../../../api/species';
-import { AccessApi } from '../../../api/access';
 import { CommandApi } from '../../../api/command';
 import { ZoneApi } from '../../../api/zone';
 import { BiomeApi } from '../../../api/biome';
@@ -1307,8 +1306,6 @@ async function executeOne(
     case 'offset-ambient':
       return execHeldWorking(ctx, spell, { realizes: 'offset-ambient', deltaK: effect.deltaK },
         effect.deltaK > 0 ? 'A warmth settles over your skin and stays.' : 'A coolness settles over your skin and stays.');
-    case 'script':
-      return execScript(ctx.actor, effect.source);
   }
 }
 
@@ -2130,19 +2127,6 @@ async function execEmitField(
     pokeReconcile(holder);
   }
   return 'A mote of cold light kindles and holds.';
-}
-
-async function execScript(caster: Stuff, source: string): Promise<string> {
-  // The exotic 5% — code-trust gated (the one non-diegetic gate).
-  if (!(await AccessApi.isWizard(caster))) {
-    return 'That working answers only to those who shape the world itself.';
-  }
-  if (!MixinApi.isCommandGiver(caster)) return 'No voice to speak it with.';
-  for (const line of source.split(/[;\n]/)) {
-    const text = line.trim();
-    if (text.length > 0) await caster.forceCommand(text);
-  }
-  return 'The scripted working runs.';
 }
 
 // ─────────────────────────── helpers ───────────────────────────

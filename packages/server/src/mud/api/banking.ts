@@ -13,9 +13,9 @@
  * This Api is a thin forwarding shell: the logic lives in the
  * hot-reloadable {@link BankingLogic} singleton at `/platform/idea/api/banking`,
  * reached synchronously via `StuffApi.singletonSync`. `dest /platform/idea/api/banking`
- * reloads it. The central-bank mint/drain/float ops are
- * operator/developer-gated at the *verb* layer (`AccessApi.isWizard`),
- * not here; this surface is the mechanism, the verbs are the policy.
+ * reloads it. The central-bank mint/drain/float ops are gated at the
+ * *verb* layer on the Governor's seat (`requiresGovernor`), not here; this
+ * surface is the mechanism, the verbs are the policy.
  */
 
 import { Money } from "../lib/banking/Money";

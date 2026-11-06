@@ -56,24 +56,9 @@ export default class GrepController extends CommandController<GrepModel> {
     const home = giver.getHome();
     const cwd = giver.getCwd(tree);
 
-    // Source/mirror mode: gate the read against the resolved slice.
-    // Content-tree reads stay public. mirror collapses to content
-    // via `pickTree`, so consult `getTreeMode()` to catch it.
-    const treeMode = giver.getTreeMode();
-    if (treeMode === 'source' || treeMode === 'mirror') {
-      const baseLogical = model.path
-        ? SourceTreeApi.joinLogical(cwd, model.path, { home })
-        : cwd;
-      const sliceResource =
-        await AccessApi.resolveSourceFolderZone(baseLogical);
-      if (!(await AccessApi.can(giver, 'read', sliceResource))) {
-        return this.fail(
-          context,
-          "you don't have permission to read that source slice",
-          'access-denied',
-        );
-      }
-    }
+    // Source reads are OPEN (wizard-axis D14): reading is not authoring,
+    // and no title is needed to read the world's code. Hiding a spoiler in
+    // code is the reveal model's job (wizard-axis-cleanup-slate W4).
 
     const lines: string[] = [];
     if (tree === 'content') {

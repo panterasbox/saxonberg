@@ -144,10 +144,11 @@ verb must be afforded to that NPC) and every YAML validator still runs.
 ⚠ **This matters more than a documentation nit**, because content was
 authored against the false claim: a verb whose authorization was moved to
 `execute()` *on the belief that the YAML gate would be skipped* still has
-its YAML gate, and will refuse the NPC. **`provision` is exactly this
-shape** — it carries verb-level `requiresWizard`, Katie is deliberately not
-a wizard (`KatieProvisioning.test` asserts `isWizard(katie) === false`), and
-her intake dialogue dispatches it. See [residence.md](./residence.md).
+its YAML gate, and will refuse the NPC. **`provision` was exactly this
+shape** — it carried verb-level `requiresWizard`, Katie is deliberately not
+a wizard, and her intake dialogue dispatches it; the wizard-axis cleanup
+(2026-11-05) deleted the validator, and the seat check at `execute()` is
+the only gate. See [residence.md](./residence.md).
 
 ⭐ **Controller-level authorization is still right**, just for the ordinary
 reason rather than the stated one: **defence in depth.** A controller should
