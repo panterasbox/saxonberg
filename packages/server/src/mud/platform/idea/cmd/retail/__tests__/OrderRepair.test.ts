@@ -248,6 +248,13 @@ describe('⭐ the board decides (controllers-are-io D11)', () => {
     expect(other.offersOrder('repair')).toBe(false);
     expect(t.offersOrder('repair')).toBe(true);
     const context = ctx(giver, true);
+    vi.spyOn(CraftingApi, 'fulfillingHand').mockResolvedValue(berta);
+    vi.spyOn(t, 'canSettle').mockReturnValue(true);
+    vi.spyOn(CraftingApi, 'diagnose').mockResolvedValue({
+      ok: true, item: pick, hand: berta, faults: [fault({})],
+    } as DiagnoseOutcome);
+    vi.spyOn(CraftingApi, 'repair').mockResolvedValue({ ok: true, mended: [] } as never);
+    vi.spyOn(t, 'collectMinor').mockResolvedValue({ paid: false, note: null });
     await makeStuff(() => new OrderController()).execute(
       {
         counter: { stuff: [other, t], raw: '' },

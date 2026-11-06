@@ -11,7 +11,7 @@
  *
  * ⚠ Deterministic: no roll decides who she treats or how well. Her skill
  * is her medicine band; the supply is real (the cabinet's dressings run
- * out). The graded diagnosis (`treat … for`) is NOT here — that is
+ * out). The graded diagnosis (`treat … --for`) is NOT here — that is
  * medic-judgment's; this brain never guesses a condition.
  */
 

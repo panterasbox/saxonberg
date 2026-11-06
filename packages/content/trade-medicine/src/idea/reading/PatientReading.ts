@@ -16,7 +16,7 @@
  *
  * ⚠⚠ **The candidate list is unranked ON PURPOSE.** Handing back a
  * best guess would make the medic a reader of the engine's answer, and
- * `treat <target> for <condition>` would be a rubber stamp. Ambiguity is
+ * `treat <target> --for <condition>` would be a rubber stamp. Ambiguity is
  * what makes the choice a choice — and the difficulty of the graded deed
  * is *how many candidates shared the observed signs*, which is a
  * measurement of the world rather than a tag.
