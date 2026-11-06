@@ -3,8 +3,7 @@
 The drilling trade, a **capability pack**: everything that answers *how
 does a bore work*, and nothing that answers *what is under this hill*.
 
-- **The acts** — `bore` (alias `drill`), `bail`, `line`, `hire`,
-  `dismiss` — as `content/trade/drilling/cmd/drilling/` views with their
+- **The acts** — `bore` (alias `drill`), `bail`, `line` — as `content/trade/drilling/cmd/drilling/` views with their
   controllers in `src/idea/cmd/drilling/`. ⚠ None carries a deed gate:
   sinking a hole is labour, and the owner's skill is exercised at the
   **siting**, not at the beam.

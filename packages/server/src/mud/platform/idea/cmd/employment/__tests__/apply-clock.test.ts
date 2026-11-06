@@ -13,7 +13,7 @@
 
 import '../../../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import ApplyController from '../ApplyController';
+import JobApplyController from '../../work/JobApplyController';
 import ClockController from '../ClockController';
 import BusinessEntity from '../../../Business';
 import { ContractApi } from '../../../../../api/contract';
@@ -115,7 +115,7 @@ async function apply(
   const c = ctx(room, 'apply');
   await withRootContext(null, 'apply.test', () => {
     ExecutionContextApi.tagActingAuthor(alice as never);
-    return makeStuff(() => new ApplyController()).execute(model as never, c);
+    return makeStuff(() => new JobApplyController()).execute(model as never, c);
   });
   return c;
 }

@@ -20,7 +20,7 @@
  * house`, and `consign <fruit> --ask <n>` per item, bounded by the
  * stall's cap headroom (the shelf's authored `listingCapOverride` when
  * present — the A6 seam — else the global dial). Every Nth beat,
- * `draw <n>` — the proprietor's residual made visible.
+ * `house draw <n>` — the proprietor's residual made visible.
  *
  * ⭐ **Nothing here is unavailable to a player.** Every act is a forced
  * literal verb; the hand trades as its outfit through the house card
@@ -271,7 +271,7 @@ export const brain = class {
           const kw = keywordOf(good);
           if (!kw) continue;
           const ask = askFor(ctx.config, good);
-          await hand.forceCommand(`consign ${kw} --ask ${ask}`);
+          await hand.forceCommand(`shelf consign ${kw} --ask ${ask}`);
         }
       } finally {
         hand.teleport(home as Stuff & Container);
@@ -287,7 +287,7 @@ export const brain = class {
     ctx.state.beats = beats;
     if (drawEvery > 0 && beats % drawEvery === 0) {
       const amount = positiveInt(ctx.config.drawAmount, DEFAULT_DRAW_AMOUNT);
-      await hand.forceCommand(`draw ${amount}`);
+      await hand.forceCommand(`house draw ${amount}`);
     }
   }
 } satisfies BrainStatics;

@@ -158,32 +158,27 @@ export function PersonaMixin<TBase extends MixinConstructor>(Base: TBase) {
         // holding title over a subdivision) — a public read like the two
         // above; the one mutation (channel ensure) is idempotent.
         'platform/cmd/system/committee.yaml',
-        // The `appoint` verb (employment) — fill a position on an
-        // organization's chart. Universal for the same reason `office` is:
-        // the gate is the authority, not the affordance. The
+        // ⭐⭐ The `house` noun (banking) — the house app's reads and its
+        // books' transactions: `house appoint` / `house dismiss` fill and
+        // empty a chart, `house draw` takes the proprietor's draw
+        // (controllers-are-io W7, D9 — the flat `appoint`, `dismiss` and
+        // `draw` verbs until then). Universal for the reason `office` is:
+        // the gate is the authority, not the affordance — the
         // `mustHoldAppointingAuthority` FIELD validator on the
-        // organization argument does the refusing — a verb-level one
-        // cannot, because the authority belongs to the organization the
-        // argument names and `CommandContext` carries no bound model.
-        'platform/cmd/employment/appoint.yaml',
-        // ⭐⭐ The `dismiss` verb (employment) — the EMPLOYER's half of
-        // `quit`, universal for exactly the reasons `appoint` is: same
-        // field validator, same authority, same derivation when the house
-        // is omitted. ⚠ Without this line the verb answers `unknown-verb`
-        // for everybody forever while its controller tests stay green —
-        // which is what it did on its first drive run. *A verb nothing
-        // confers is a verb nobody has*, and the affordance is the one
-        // reachability link no controller test can see.
-        'platform/cmd/employment/dismiss.yaml',
-        // The `quit` verb (employment) — leave a position you hold. Universal
-        // for the same reason: it is your own seat, and the controller
-        // refuses when you hold none.
-        'platform/cmd/employment/quit.yaml',
-        // ⭐ The `apply` verb (employment) — ask for a job that is going
-        // where you stand. Universal for the same reason: asking is a
-        // person's own act, and the ORGANIZATION is what refuses (with a
-        // number, and with what lifts it). The player moves first.
-        'platform/cmd/employment/apply.yaml',
+        // organization argument, the seat `resolveHouse` reads, the
+        // proprietorship a draw is resolved from. ⚠ *A verb nothing
+        // confers is a verb nobody has*: `dismiss` answered `unknown-verb`
+        // for everybody on its first drive run, with its controller tests
+        // green, because nothing afforded it.
+        'platform/cmd/banking/house.yaml',
+        // ⭐ The `job` noun (work) — the job board's book and the
+        // worker's side of a house's roster: `job apply` / `job quit`,
+        // and `job fulfill` at the drop, away from any board (the flat
+        // `apply`, `quit` and `fulfill` verbs until W7). Universal
+        // because asking for work and leaving it are a person's own acts
+        // and the ORGANIZATION is what refuses; the board subcommands bind
+        // the board in reach and refuse where there is none.
+        'platform/cmd/work/job.yaml',
         // The `clock` verb (employment) — start and end a shift at a
         // house that employs you. Universal, and the controller refuses
         // when you hold no job there or are not on their premises. A

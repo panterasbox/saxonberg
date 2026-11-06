@@ -16,11 +16,11 @@
 import "../../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import BuyController from "../../retail/BuyController";
-import ConsignController from "../../retail/ConsignController";
-import ReclaimController from "../../retail/ReclaimController";
+import ShelfConsignController from "../../retail/ShelfConsignController";
+import ShelfReclaimController from "../../retail/ShelfReclaimController";
 import WalletController from "../WalletController";
 import HouseController from "../HouseController";
-import QuitController from "../../employment/QuitController";
+import JobQuitController from "../../work/JobQuitController";
 import { PlayerApi } from "../../../../../api/player";
 import StockBase from "../../../../../lib/retail/Stock";
 import { Vessel } from "../../../../../lib/stuff/Vessel";
@@ -360,7 +360,7 @@ describe("the house account in the wallet (D6)", () => {
 
     await walletUse(mara, loc, "house");
     const q = ctx(mara, loc, null, "quit");
-    await asOwner(mara, () => makeStuff(() => new QuitController()).execute({}, q));
+    await asOwner(mara, () => makeStuff(() => new JobQuitController()).execute({}, q));
     expect(rejections(q)).toEqual([]);
     expect(mara.getEmployment(BAR_BIZ)?.status).toBe("quit");
     const cred = await asOwner(mara, async () => BankingApi.activeCredential());
@@ -377,7 +377,7 @@ describe("the house account in the wallet (D6)", () => {
     expect(rejections(await walletUse(mara, loc, "house"))).toEqual(["not-staff"]);
   });
 
-  it("consign as the house: the business is the consignor and a resale splits to its account", async () => {
+  it("shelf consign as the house: the business is the consignor and a resale splits to its account", async () => {
     const hand = await fundedGiver("/platform/agent/Avatar/hand", 0);
     ContainmentApi.move(hand as never, loc as never);
     const { biz, account } = await makeBarBusiness("", 0);
@@ -392,9 +392,9 @@ describe("the house account in the wallet (D6)", () => {
     ContainmentApi.move(torch, hand as never);
 
     await walletUse(hand, loc, "house");
-    const c = ctx(hand, loc, shelf, "consign torch");
+    const c = ctx(hand, loc, shelf, "shelf consign torch");
     await asOwner(hand, () =>
-      makeStuff(() => new ConsignController()).execute(
+      makeStuff(() => new ShelfConsignController()).execute(
         // ⚠ Skips the BINDER: the shelf is a declared arg in `consign.yaml`.
         { thing: { stuff: torch as never, raw: "torch" }, ask: "20", shelf: { stuff: shelf as never, raw: "shelf" } },
         c,
@@ -426,7 +426,7 @@ describe("the house account in the wallet (D6)", () => {
    * as the house — takes it back. A stranger cannot; nor can the hand
    * trading personally, because the crate is not THEIRS.
    */
-  it("reclaim as the house: the outfit's hand takes back what the outfit consigned; a stranger is refused", async () => {
+  it("shelf reclaim as the house: the outfit's hand takes back what the outfit consigned; a stranger is refused", async () => {
     const hand = await fundedGiver("/platform/agent/Avatar/hand", 0);
     ContainmentApi.move(hand as never, loc as never);
     const { biz } = await makeBarBusiness("", 0);
@@ -443,9 +443,9 @@ describe("the house account in the wallet (D6)", () => {
 
     await walletUse(hand, loc, "house");
     await asOwner(hand, () =>
-      makeStuff(() => new ConsignController()).execute(
+      makeStuff(() => new ShelfConsignController()).execute(
         { thing: { stuff: torch as never, raw: "torch" }, ask: "20", shelf: { stuff: shelf as never, raw: "shelf" } },
-        ctx(hand, loc, shelf, "consign torch"),
+        ctx(hand, loc, shelf, "shelf consign torch"),
       ),
     );
     expect(torch.getContainer()).toBe(shelf);
@@ -454,9 +454,9 @@ describe("the house account in the wallet (D6)", () => {
     // A stranger: not theirs.
     const pat = await fundedGiver("/platform/agent/Avatar/pat", 0);
     ContainmentApi.move(pat as never, loc as never);
-    const no = ctx(pat, loc, shelf, "reclaim torch");
+    const no = ctx(pat, loc, shelf, "shelf reclaim torch");
     await asOwner(pat, () =>
-      makeStuff(() => new ReclaimController()).execute(
+      makeStuff(() => new ShelfReclaimController()).execute(
         { thing: "torch", shelf: { stuff: shelf as never, raw: "shelf" } },
         no,
       ),
@@ -465,9 +465,9 @@ describe("the house account in the wallet (D6)", () => {
     expect(torch.getContainer()).toBe(shelf);
 
     // The outfit's own hand, as the house: taken back, title unchanged.
-    const ok = ctx(hand, loc, shelf, "reclaim torch");
+    const ok = ctx(hand, loc, shelf, "shelf reclaim torch");
     await asOwner(hand, () =>
-      makeStuff(() => new ReclaimController()).execute(
+      makeStuff(() => new ShelfReclaimController()).execute(
         { thing: "torch", shelf: { stuff: shelf as never, raw: "shelf" } },
         ok,
       ),

@@ -370,7 +370,7 @@ function fieldCondition(looked: string, part: string): number {
 /** Back onto the labourer's seat and on shift — a season away costs it. */
 async function onShift(): Promise<void> {
   await goTo(YARD);
-  await act(p, 'apply for labourer');
+  await act(p, 'job apply for labourer');
   await goTo(HOME_FIELD);
   await act(p, 'clock on');
 }
@@ -426,7 +426,7 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — the home field in spring', () => 
     // one-word query is not name-ranked (W2's scorer rule).
     await doing(p, 'buy compost sack');
     await goTo(YARD);
-    await doing(p, 'apply for labourer');
+    await doing(p, 'job apply for labourer');
     await goTo(HOME_FIELD);
     await act(p, 'clock on');
     // The home field is wanted for the plough (the cover drive's step 13).

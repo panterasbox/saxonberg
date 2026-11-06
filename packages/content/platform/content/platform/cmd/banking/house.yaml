@@ -1,6 +1,6 @@
 verbs: [house]
 controller: /platform/idea/cmd/banking/HouseController
-description: "The house app — book / pnl / payroll / par / price / roster / stock / freight / traffic"
+description: "The house app — book / pnl / payroll / roster / appoint / dismiss / draw / par / price / stock / freight / traffic"
 opens_card: stock
 help: |
   The house app, for whoever keeps the house: a position held there or
@@ -23,6 +23,12 @@ help: |
   own ask for that good's kind on the counter it stands on — a
   `stocking` line moves off it with the shelf; a supplier's good the
   house never priced asks the supplier's price plus the Schedule's margin.
+
+  ⭐ The house's other two books are worked here too (controllers-are-io
+  D9 — *a transaction with an institution's book is a subcommand of its
+  noun*): `house appoint <person> [to <position>] [at <organization>]`
+  and `house dismiss <person>` write the roster, and `house draw
+  <amount>` takes the proprietor's draw from the operating account.
 
   The app runs on a SCREEN: the house tablet in your hand, a screen in
   sight you may drive, or — with an active attunement — one anywhere
@@ -47,6 +53,139 @@ subcommands:
       - name: amount
         type: string
         required: true
+  # ⭐⭐ The roster's and the operating account's transactions
+  # (controllers-are-io W7, D9) — the flat `appoint`, `dismiss` and `draw`
+  # verbs until then. Each stanza binds what it needs; nothing inherits.
+  appoint:
+    description: Put somebody in a job — on a chart, or on the beam in front of you
+    controller: /platform/idea/cmd/banking/HouseAppointController
+    help: |
+      Put somebody in a job. `house appoint <person> to <position> at
+      <organization>` fills a position on an organization's chart —
+      the Communications Director of a press office, the registrar at
+      a city registry, a bartender at a bar.
+
+      You need the organization's **appointing authority** to do it.
+      That is whatever the organization says it is: its proprietor,
+      the holder of a named office, the holder of a government seat,
+      or the committee that holds title over its ground. If the
+      authority is an office and the office changes hands, so does
+      this — the staff follows the seat, with nobody's job touched.
+
+      Holding the authority lets you *fill* a position. It does not
+      let you do the position's work: a president appoints a press
+      secretary, they do not become one.
+
+      ⭐ **At a house you run, say just `house appoint <person>`.**
+      Leave the position and the organization off and both are worked
+      out: the organization is the one whose appointing authority you
+      hold here, and the position is its only one. A bore crew is
+      taken on at the bore, out of whoever has walked up to it, and
+      this is that.
+
+      ⚠ `house appoint` reaches anybody standing in front of you, online or
+      not. Somebody who wants the job themselves does not need you at
+      all: `job apply for <position> at <organization>` and `clock on`.
+
+      Name the organization by its path, e.g. `/compact/press`. To
+      appoint yourself, say `me`.
+    examples:
+    - cmd: house appoint me to communications-director at /compact/press
+      note: Appoint yourself — the founder's first act on a fresh world
+    - cmd: house appoint alice to communications-director at /compact/press
+      note: Fill the Compact press office's one position
+    - cmd: house appoint the roustabout
+      note: Sign on whoever is standing here, at the house you run
+    validators:
+    - /lib/command/validators/requiresConscious
+    args:
+    - name: target
+      type: object
+      required: true
+      scope:
+      - reachable
+      - online
+      requires: class:Agent
+      onExcess: prompt
+    - name: position
+      type: string
+      required: false
+      prepositions:
+      - to
+    - name: organization
+      type: string
+      required: false
+      prepositions:
+      - at
+      validators:
+      - /lib/command/validators/mustHoldAppointingAuthority
+  dismiss:
+    description: Take somebody off a house's books
+    controller: /platform/idea/cmd/banking/HouseDismissController
+    help: |
+      `house dismiss <person>` takes somebody off the books of a house you
+      have the appointing authority over, and settles what they are
+      owed up to the moment they go.
+
+      ⭐ **The employer's half of `job quit`.** `job quit` is the worker's
+      word and has always shipped; this is the other side of it, and
+      until now nothing in the game could let anybody go — not a bar,
+      not a smithy, not a ranch. The capability was always there on
+      the house (`house dismiss` has been a method on every organization);
+      what was missing was a way to say it.
+
+      At a house you run, `house dismiss <person>` is enough. Name the house
+      with `at <path>` when you hold the authority over more than one.
+
+      ⚠ **Nothing will tell you when to.** A well declines along a
+      curve, a season turns, trade falls off — and no notice fires for
+      any of it. You read the figures, you do the arithmetic, and you
+      decide. That decision is the content.
+
+      Their history is kept. A dismissal is a record, not an erasure.
+    examples:
+    - cmd: house dismiss the roustabout
+      note: Settle up and let a hand go at the house you run
+    - cmd: house dismiss alice at /compact/press
+      note: Name the house when you hold authority over several
+    validators:
+    - /lib/command/validators/requiresConscious
+    args:
+    - name: target
+      type: object
+      required: true
+      scope:
+      - reachable
+      - online
+      requires: class:Agent
+      onExcess: prompt
+    - name: organization
+      type: string
+      required: false
+      prepositions:
+      - at
+      validators:
+      - /lib/command/validators/mustHoldAppointingAuthority
+  draw:
+    description: Draw money from your business into your own account
+    controller: /platform/idea/cmd/banking/HouseDrawController
+    help: |
+      The proprietor's draw — move money from your business's account to your
+      personal one: `house draw 100`. The owner's take-home is its own named
+      movement, distinct from a wage (that distinction is what a future tax
+      table will read). Solvency-checked: an insolvent business pays no draw.
+
+      Only a proprietor can draw, and only from their own business — the
+      business is resolved from who you are, not from anything you type.
+    validators:
+    - /lib/command/validators/requiresConscious
+    - /lib/command/validators/requiresEmbodied
+    args:
+    - name: amount
+      type: number
+      required: true
+      validators:
+      - /lib/command/validators/mustBeNumber
   # ⭐ The SHOPKEEPER's three (trades-and-labor D4). Stanzas on this
   # shipped view with the trade's controller behind them — the
   # `house freight` shape. Every business has books, a payroll and a

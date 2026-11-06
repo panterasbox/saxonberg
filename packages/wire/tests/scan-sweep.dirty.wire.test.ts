@@ -145,7 +145,7 @@ suite('2. a house that advertises is NOT booted, and its opening shows on the fi
         if (!/HELP WANTED/.test(seen)) await advanceWorldClock('2 hours');
       }
       expect(seen, seen).toMatch(/HELP WANTED/);
-      expectOk(await s.cmd('apply'));
+      expectOk(await s.cmd('job apply'));
     } finally {
       s.close();
     }
@@ -157,7 +157,7 @@ suite('2. a house that advertises is NOT booted, and its opening shows on the fi
       await daylight(farm);
       const seen = await look(farm);
       expect(seen, seen).toMatch(/HELP WANTED/);
-      const r = await farm.cmd('apply');
+      const r = await farm.cmd('job apply');
       expectOk(r);
       expect(squash(await farm.prose('job'))).toMatch(/./);
     } finally {

@@ -1,7 +1,7 @@
 /**
  * CheckRack — the weapons-check rack: a **persistable** container fixture
  * that takes a patron's arms into custody (their owner-stamps stay put)
- * against a claim ticket, and hands them back on `reclaim`. Custody, never
+ * against a claim ticket, and hands them back on `rack reclaim`. Custody, never
  * title — the bar-fight build's coat-check-with-teeth.
  *
  * It composes the shared **`HeldGoodsMixin`** — the custody base (the coat
@@ -47,12 +47,10 @@ export default class CheckRack extends CheckRackBase {
   static commandContributions: CommandContributions = {
     self: [],
     peers: [
-      "platform/cmd/retail/check.yaml",
-      "platform/cmd/retail/reclaim.yaml",
+      "platform/cmd/retail/rack.yaml",
     ],
     environment: [
-      "platform/cmd/retail/check.yaml",
-      "platform/cmd/retail/reclaim.yaml",
+      "platform/cmd/retail/rack.yaml",
     ],
   };
 }

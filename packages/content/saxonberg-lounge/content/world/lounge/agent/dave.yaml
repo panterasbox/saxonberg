@@ -148,11 +148,11 @@ data:
                   - { fact: "position:/world/lounge/idea/business", op: eq, value: false }
                 to: work
               - { line: "Just passing through.", to: done }
-          # Dave hires — the `dispatch` effect runs `appoint` AS DAVE: he
+          # Dave hires — the `dispatch` effect runs `house appoint` AS DAVE: he
           # holds the bar's appointing authority (the entity edge in
           # idea/business.yaml), so the validator passes for him and for
           # nobody else. The keeper seat is what `wallet use house` and
-          # `house stock` read; `quit` is the way out. No wizard anywhere.
+          # `house stock` read; `job quit` is the way out. No wizard anywhere.
           work:
             beat: >-
               *sets the glass down* I could use a keeper. Somebody to read
@@ -163,7 +163,7 @@ data:
               - line: "I'll take it."
                 to: hired
                 effects:
-                  - { verb: dispatch, command: "appoint $player to keeper at /world/lounge/idea/business" }
+                  - { verb: dispatch, command: "house appoint $player to keeper at /world/lounge/idea/business" }
                   - { verb: regard, delta: 3 }
               - { line: "Not for me, thanks.", to: done }
           hired:

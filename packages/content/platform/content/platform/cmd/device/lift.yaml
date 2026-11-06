@@ -19,7 +19,7 @@ args:
   # ⚠ No `mustBeNumber` here: a POSITIONAL `type: number` arg reaches
   # its validators as the raw string (the coercion runs for options), so
   # the validator refuses every honest `lift 60` — the drive found it.
-  # The controller parses and refuses (`bad-load`). (`draw <amount>`
+  # The controller parses and refuses (`bad-load`). (`house draw <amount>`
   # carries the same validator and has never been driven.)
   - name: load
     type: number

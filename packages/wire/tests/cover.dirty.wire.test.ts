@@ -382,7 +382,7 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
     await refused(p, 'sow wheat', 'not-held');
     await doing(p, 'go yard');
     // Hired: the labourer's seat.
-    await doing(p, 'apply for labourer');
+    await doing(p, 'job apply for labourer');
   }, 600_000);
 
   it('3. on shift, the herd goes to the paddock and the field is ploughed for the season — once', async () => {
@@ -662,7 +662,7 @@ suite.skipIf(!isOwnedTestWorld())('Stage B — grazing', () => {
     // field pitch dark here).
     await daylight();
     await goTo(YARD);
-    await act(p, 'apply for labourer');
+    await act(p, 'job apply for labourer');
     await act(p, 'clock on');
     await doing(p, 'go field');
     // ⭐ A herd grazes a FIELD (tracts build D34): the stubble of the gate end.

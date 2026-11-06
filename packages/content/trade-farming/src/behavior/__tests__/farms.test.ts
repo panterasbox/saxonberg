@@ -18,7 +18,7 @@ import { brain as farms } from '../farms';
 import type { BrainContext } from '@saxonberg/server/mud/lib/behavior/brain';
 import WaterController from '@saxonberg/server/mud/platform/idea/cmd/bulk/WaterController';
 import HarvestController from '@saxonberg/server/mud/platform/idea/cmd/inventory/HarvestController';
-import ConsignController from '@saxonberg/server/mud/platform/idea/cmd/retail/ConsignController';
+import ShelfConsignController from '@saxonberg/server/mud/platform/idea/cmd/retail/ShelfConsignController';
 import WalletController from '@saxonberg/server/mud/platform/idea/cmd/banking/WalletController';
 import StockBase from '@saxonberg/server/mud/lib/retail/Stock';
 
@@ -322,7 +322,10 @@ describe('the farms beat — tend, pick, sell, home', () => {
         lines.push(text);
         const who = giver as unknown as Farmer;
         const here = who.getContainer() as Place;
-        const [verb, ...rest] = text.split(' ');
+        const [noun, ...words] = text.split(' ');
+        // ⭐ A noun's subcommand (`shelf consign`, `house draw` — controllers-are-io
+        // W7) dispatches here like the flat verb it replaced.
+        const [verb, ...rest] = noun === 'shelf' || noun === 'house' ? words : [noun, ...words];
         const reach = (kw: string): Stuff | null =>
           ((here.getContents() as Stuff[]).find(
             (c) => MixinApi.isPerceptible(c) && c.hasKeyword(kw),
@@ -367,7 +370,7 @@ describe('the farms beat — tend, pick, sell, home', () => {
           const kw = rest[0]!;
           const ask = rest[rest.length - 1]!;
           await asPrincipal(who, () =>
-            makeStuff(() => new ConsignController()).execute(
+            makeStuff(() => new ShelfConsignController()).execute(
               // ⚠ `shelf` is BOUND BY THE VIEW since `consign` declared it
               // (`retail/consign.yaml` § shelf, defaulting through MQL).
               // A hand-built model skips the binder, so the test has to

@@ -74,7 +74,7 @@ packages/server/src/mud/platform/idea/api/__tests__/StudioLogic.test.ts
 packages/server/src/mud/platform/idea/api/__tests__/comp-bases.integration.test.ts
 packages/server/src/mud/platform/idea/api/__tests__/employment.ensureOperator.test.ts
 packages/server/src/mud/platform/idea/cmd/banking/__tests__/BankingControllers.test.ts
-packages/server/src/mud/platform/idea/cmd/banking/__tests__/DrawController.test.ts
+packages/server/src/mud/platform/idea/cmd/banking/__tests__/house-draw.test.ts
 packages/server/src/mud/platform/idea/cmd/charactergen/__tests__/EmbodyController.chronicle.test.ts
 packages/server/src/mud/platform/idea/cmd/charactergen/__tests__/EmbodyController.commit.test.ts
 packages/server/src/mud/platform/idea/cmd/civics/__tests__/GovernmentController.test.ts

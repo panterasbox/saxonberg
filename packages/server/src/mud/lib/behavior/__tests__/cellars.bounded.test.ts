@@ -22,7 +22,7 @@ describe('the cellars brain — bounded, literal, home in finally', () => {
       '`fill ${vk} from vat`',
       '`close ${vk}`',
       "'wallet use house'",
-      '`consign ${vk} --ask ${ask}`',
+      '`shelf consign ${vk} --ask ${ask}`',
       '`order ${which}`',
       '`pour bucket into vat`',
       '`pour jar into vat`',

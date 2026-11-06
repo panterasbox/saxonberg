@@ -217,7 +217,7 @@ beforeAll(async () => {
   expectOk(await gov.cmd(`reserve override 200 to ${SAILOR} "wire: harbors funding"`));
   // ⭐ The Hesper's master seat is held by nobody (a drive before may have
   // appointed the founder): the line lets her by charter here.
-  await gov.cmd(`dismiss me at ${HESPER_CO}`);
+  await gov.cmd(`house dismiss me at ${HESPER_CO}`);
   gov.close();
   s.close();
   // The office keeps the harbormaster's hours, six till eight.
@@ -289,7 +289,7 @@ suite('A1 — the port', () => {
   it('3. (short · staged) a regular alongside the same quay — two ways, each named for its ship; a third, too long for what is left, is sent to the roads and says so', async () => {
     // The Kittiwake's helm: the founder holds the office that appoints her company.
     let f = await founderAt(KETCH_DECK);
-    await f.cmd(`appoint me to master at ${KETCH_CO}`);
+    await f.cmd(`house appoint me to master at ${KETCH_CO}`);
     await stageShip(KETCH, { at: { node: BAR } });
     const given = await hailUntil(f, /Berth at/);
     expect(given, given).toMatch(/Berth at the Town Quay/);
@@ -304,7 +304,7 @@ suite('A1 — the port', () => {
     // The Corrigan (35 m): 70 − 30 − 20 leaves 20 m on the Town Quay, and the
     // Fish Quay is 25 — sent to the roads by room, once the bar would take her.
     f = await founderAt(COASTER_DECK);
-    await f.cmd(`appoint me to master at ${COASTER_CO}`);
+    await f.cmd(`house appoint me to master at ${COASTER_CO}`);
     await stageShip(COASTER, { at: { node: BAR } });
     const sent = await hailUntil(f, /no berth long enough|Berth at/);
     expect(sent, sent).toMatch(/There is no berth long enough for her — she is 35 m\. Lie in the roads/);

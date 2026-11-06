@@ -8,9 +8,9 @@
 
 import "../../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import CheckController from "../CheckController";
+import RackCheckController from "../RackCheckController";
 import BuyController from "../BuyController";
-import ReclaimController from "../ReclaimController";
+import RackReclaimController from "../RackReclaimController";
 import { Vessel } from "../../../../../lib/stuff/Vessel";
 import { DetailedMixin } from "../../../../../lib/description/Detailed";
 import { PersistableMixin } from "../../../../../lib/persistence/Persistable";
@@ -142,11 +142,11 @@ describe("CheckRack — custody-not-title over the consignment substrate", () =>
     return { loc, rack, patron };
   }
 
-  it("check moves custody to the rack, keeps the owner-stamp, hands a ticket", async () => {
+  it("rack check moves custody to the rack, keeps the owner-stamp, hands a ticket", async () => {
     const { loc, rack, patron } = scene();
     const knife = weapon(patron);
     await asOwner(patron, () =>
-      makeStuff(() => new CheckController()).execute(
+      makeStuff(() => new RackCheckController()).execute(
         { thing: { stuff: knife as never, raw: "knife" }, rack: { stuff: rack as never, raw: "rack" } },
         ctx(patron, loc, rack, "check"),
       ),
@@ -172,7 +172,7 @@ describe("CheckRack — custody-not-title over the consignment substrate", () =>
     const { loc, rack, patron } = scene();
     const knife = weapon(patron);
     await asOwner(patron, () =>
-      makeStuff(() => new CheckController()).execute(
+      makeStuff(() => new RackCheckController()).execute(
         { thing: { stuff: knife as never, raw: "knife" }, rack: { stuff: rack as never, raw: "rack" } },
         ctx(patron, loc, rack, "check"),
       ),
@@ -201,11 +201,11 @@ describe("CheckRack — custody-not-title over the consignment substrate", () =>
     expect(MixinApi.isHeldGoodsShelf(rack as never)).toBe(true);
   });
 
-  it("reclaim returns the weapon to its owner; a non-owner is refused", async () => {
+  it("rack reclaim returns the weapon to its owner; a non-owner is refused", async () => {
     const { loc, rack, patron } = scene();
     const knife = weapon(patron);
     await asOwner(patron, () =>
-      makeStuff(() => new CheckController()).execute(
+      makeStuff(() => new RackCheckController()).execute(
         { thing: { stuff: knife as never, raw: "knife" }, rack: { stuff: rack as never, raw: "rack" } },
         ctx(patron, loc, rack, "check"),
       ),
@@ -217,18 +217,18 @@ describe("CheckRack — custody-not-title over the consignment substrate", () =>
     );
     ContainmentApi.move(stranger as never, loc as never);
     await asOwner(stranger, () =>
-      makeStuff(() => new ReclaimController()).execute(
-        { thing: "knife", shelf: { stuff: rack as never, raw: "shelf" } },
-        ctx(stranger, loc, rack, "reclaim"),
+      makeStuff(() => new RackReclaimController()).execute(
+        { thing: "knife", rack: { stuff: rack as never, raw: "rack" } },
+        ctx(stranger, loc, rack, "rack reclaim"),
       ),
     );
     expect(knife.getContainer()).toBe(rack); // stayed on the rack
 
     // The owner reclaims it — ownership unchanged.
     await asOwner(patron, () =>
-      makeStuff(() => new ReclaimController()).execute(
-        { thing: "knife", shelf: { stuff: rack as never, raw: "shelf" } },
-        ctx(patron, loc, rack, "reclaim"),
+      makeStuff(() => new RackReclaimController()).execute(
+        { thing: "knife", rack: { stuff: rack as never, raw: "rack" } },
+        ctx(patron, loc, rack, "rack reclaim"),
       ),
     );
     expect(knife.getContainer()).toBe(patron);
@@ -248,7 +248,7 @@ describe("CheckRack — custody-not-title over the consignment substrate", () =>
     const c = ctx(patron, loc, rack, "check");
     (c as unknown as { note: unknown }).note = note;
     await asOwner(patron, () =>
-      makeStuff(() => new CheckController()).execute(
+      makeStuff(() => new RackCheckController()).execute(
         { thing: { stuff: shield as never, raw: "shield" }, rack: { stuff: rack as never, raw: "rack" } },
         c,
       ),

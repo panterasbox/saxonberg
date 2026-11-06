@@ -13,8 +13,8 @@
 import "../../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import BuyController from "../BuyController";
-import ConsignController from "../ConsignController";
-import ReclaimController from "../ReclaimController";
+import ShelfConsignController from "../ShelfConsignController";
+import ShelfReclaimController from "../ShelfReclaimController";
 import { Vessel } from "../../../../../lib/stuff/Vessel";
 import { DetailedMixin } from "../../../../../lib/description/Detailed";
 import { PersistableMixin } from "../../../../../lib/persistence/Persistable";
@@ -203,7 +203,7 @@ describe("Consignment — sell loop over real ownership", () => {
 
     // Alice consigns the torch for 8.
     await asOwner(alice, () =>
-      makeStuff(() => new ConsignController()).execute(
+      makeStuff(() => new ShelfConsignController()).execute(
         { thing: { stuff: torch as never, raw: "torch" }, ask: "8" , shelf: { stuff: shelf as never, raw: "shelf" } },
         ctx(alice, loc, shelf, "consign"),
       ),
@@ -264,7 +264,7 @@ describe("Consignment — sell loop over real ownership", () => {
     async function consign(who: TestGiver, loc: Place, shelf: ConsignmentShelf, item: Stuff, raw: string) {
       const c = ctx(who, loc, shelf, "consign");
       await asOwner(who, () =>
-        makeStuff(() => new ConsignController()).execute(
+        makeStuff(() => new ShelfConsignController()).execute(
           { thing: { stuff: item as never, raw }, ask: "4", shelf: { stuff: shelf as never, raw: "shelf" } },
           c,
         ),
@@ -339,7 +339,7 @@ describe("Consignment — sell loop over real ownership", () => {
     });
   });
 
-  it("consign without a bank account nudges; nothing moves", async () => {
+  it("shelf consign without a bank account nudges; nothing moves", async () => {
     const loc = makeStuff(() => new Place());
     const shelf = makeStuffAtPath(() => new ConsignmentShelf(), SHELF);
     ContainmentApi.move(shelf as never, loc as never);
@@ -349,7 +349,7 @@ describe("Consignment — sell loop over real ownership", () => {
     await asOwner(broke, () => torch.stampChattel(broke));
 
     await asOwner(broke, () =>
-      makeStuff(() => new ConsignController()).execute(
+      makeStuff(() => new ShelfConsignController()).execute(
         { thing: { stuff: torch as never, raw: "torch" }, ask: "8" , shelf: { stuff: shelf as never, raw: "shelf" } },
         ctx(broke, loc, shelf, "consign"),
       ),
@@ -384,10 +384,10 @@ describe("Consignment — sell loop over real ownership", () => {
     await asOwner(alice, () => t2.stampChattel(alice));
 
     await asOwner(alice, () =>
-      makeStuff(() => new ConsignController()).execute({ thing: { stuff: t1 as never, raw: "torch" }, ask: "8" , shelf: { stuff: shelf as never, raw: "shelf" } }, ctx(alice, loc, shelf, "consign")),
+      makeStuff(() => new ShelfConsignController()).execute({ thing: { stuff: t1 as never, raw: "torch" }, ask: "8" , shelf: { stuff: shelf as never, raw: "shelf" } }, ctx(alice, loc, shelf, "consign")),
     );
     await asOwner(alice, () =>
-      makeStuff(() => new ConsignController()).execute({ thing: { stuff: t2 as never, raw: "lantern" }, ask: "9" , shelf: { stuff: shelf as never, raw: "shelf" } }, ctx(alice, loc, shelf, "consign")),
+      makeStuff(() => new ShelfConsignController()).execute({ thing: { stuff: t2 as never, raw: "lantern" }, ask: "9" , shelf: { stuff: shelf as never, raw: "shelf" } }, ctx(alice, loc, shelf, "consign")),
     );
     // Only the first listing took (cap = 1).
     expect(shelf.activeListingCount("/platform/agent/Avatar/alice")).toBe(1);
@@ -423,7 +423,7 @@ describe("Consignment — sell loop over real ownership", () => {
     // would have resolved it from.
     for (const [i, kw] of ["torch", "lantern", "whetstone"].entries()) {
       await asOwner(alice, () =>
-        makeStuff(() => new ConsignController()).execute(
+        makeStuff(() => new ShelfConsignController()).execute(
           {
             thing: { stuff: goods[i] as never, raw: kw },
             ask: "5",
@@ -458,7 +458,7 @@ describe("Consignment — sell loop over real ownership", () => {
     await asOwner(alice, () => extra2.stampChattel(alice));
     for (const [i, kw] of ["candle", "taper"].entries()) {
       await asOwner(alice, () =>
-        makeStuff(() => new ConsignController()).execute(
+        makeStuff(() => new ShelfConsignController()).execute(
           {
             thing: { stuff: [extra, extra2][i] as never, raw: kw },
             ask: "5",
@@ -471,7 +471,7 @@ describe("Consignment — sell loop over real ownership", () => {
     expect(plain.activeListingCount("/platform/agent/Avatar/alice")).toBe(1);
   });
 
-  it("reclaim returns an unsold listing; ownership never changed", async () => {
+  it("shelf reclaim returns an unsold listing; ownership never changed", async () => {
     const loc = makeStuff(() => new Place());
     const shelf = makeStuffAtPath(() => new ConsignmentShelf(), SHELF);
     ContainmentApi.move(shelf as never, loc as never);
@@ -481,12 +481,12 @@ describe("Consignment — sell loop over real ownership", () => {
     await asOwner(alice, () => torch.stampChattel(alice));
 
     await asOwner(alice, () =>
-      makeStuff(() => new ConsignController()).execute({ thing: { stuff: torch as never, raw: "torch" }, ask: "8" , shelf: { stuff: shelf as never, raw: "shelf" } }, ctx(alice, loc, shelf, "consign")),
+      makeStuff(() => new ShelfConsignController()).execute({ thing: { stuff: torch as never, raw: "torch" }, ask: "8" , shelf: { stuff: shelf as never, raw: "shelf" } }, ctx(alice, loc, shelf, "consign")),
     );
     expect(torch.getContainer()).toBe(shelf);
 
     await asOwner(alice, () =>
-      makeStuff(() => new ReclaimController()).execute({ thing: "torch", shelf: { stuff: shelf as never, raw: "shelf" } }, ctx(alice, loc, shelf, "reclaim")),
+      makeStuff(() => new ShelfReclaimController()).execute({ thing: "torch", shelf: { stuff: shelf as never, raw: "shelf" } }, ctx(alice, loc, shelf, "reclaim")),
     );
     expect(torch.getContainer()).toBe(alice); // custody back
     expect((await torch.chattelOwner())).toEqual({ kind: "player", templatePath: "/platform/agent/Avatar/alice" });
@@ -529,7 +529,7 @@ describe("Consignment — sell loop over real ownership", () => {
     const bale = ownedBale(alice, 5);
 
     await asOwner(alice, () =>
-      makeStuff(() => new ConsignController()).execute(
+      makeStuff(() => new ShelfConsignController()).execute(
         { thing: { stuff: bale as never, raw: "bale" }, ask: "7" , shelf: { stuff: shelf as never, raw: "shelf" } },
         ctx(alice, loc, shelf, "consign"),
       ),
@@ -567,7 +567,7 @@ describe("Consignment — sell loop over real ownership", () => {
     // new reason a merge can be refused.)
 
     await asOwner(alice, () =>
-      makeStuff(() => new ConsignController()).execute(
+      makeStuff(() => new ShelfConsignController()).execute(
         { thing: { stuff: bale as never, raw: "bale" }, ask: "7" , shelf: { stuff: shelf as never, raw: "shelf" } },
         ctx(alice, loc, shelf, "consign"),
       ),
@@ -611,7 +611,7 @@ describe("Consignment — sell loop over real ownership", () => {
     const bale = ownedBale(broke as unknown as Stuff, 4);
 
     await asOwner(broke as unknown as Stuff, () =>
-      makeStuff(() => new ConsignController()).execute(
+      makeStuff(() => new ShelfConsignController()).execute(
         { thing: { stuff: bale as never, raw: "bale" }, ask: "9" , shelf: { stuff: shelf as never, raw: "shelf" } },
         ctx(broke, loc, shelf, "consign"),
       ),
@@ -663,7 +663,7 @@ describe("Consignment — sell loop over real ownership", () => {
     // Alice leaves the torch on the shop's terms at 8 — her PRICE.
     const consignCtx = ctx(alice, loc, counter as never, "consign");
     await asOwner(alice, () =>
-      makeStuff(() => new ConsignController()).execute(
+      makeStuff(() => new ShelfConsignController()).execute(
         { thing: { stuff: torch as never, raw: "torch" }, ask: "8", shelf: { stuff: counter as never, raw: "counter" } },
         consignCtx,
       ),

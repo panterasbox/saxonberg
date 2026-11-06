@@ -337,7 +337,7 @@ export const brain = class {
       await hand.forceCommand('wallet use house');
       for (const vessel of filled) {
         const ask = askFor(ctx.config, vessel);
-        await hand.forceCommand(`consign ${vk} --ask ${ask}`);
+        await hand.forceCommand(`shelf consign ${vk} --ask ${ask}`);
       }
     } finally {
       hand.teleport(home);
@@ -518,7 +518,7 @@ export const brain = class {
       await hand.forceCommand('wallet use house');
       for (const vessel of filled) {
         const ask = askFor(ctx.config, vessel);
-        await hand.forceCommand(`consign ${vk} --ask ${ask}`);
+        await hand.forceCommand(`shelf consign ${vk} --ask ${ask}`);
       }
     } finally {
       hand.teleport(home);

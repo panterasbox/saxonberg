@@ -28,7 +28,7 @@ import { pathToFileURL } from "url";
 import { CONTENT, commandViews, controllerPathOf, ratchet } from "./pack-roots";
 import { SCRIPT_BUILTINS } from "../src/mud/lib/script/builtins";
 
-export const MULTI_WORD_VIEWS_CEILING = 65;
+export const MULTI_WORD_VIEWS_CEILING = 62; // W7: `appoint`/`hire`, `fulfill`/`handoff`, `reclaim`/`unconsign` deleted with the flat views.
 export const CONTROLLERS_ACROSS_VERBS_CEILING = 4;
 export const BAD_DEFAULT_ALIASES_CEILING = 0;
 

@@ -148,7 +148,7 @@ describe("Dave's Bar — the player path to the keeper seat", () => {
     expect(ask?.guard).toEqual([{ fact: "position:/world/lounge/idea/business", op: "eq", value: false }]);
     const take = tree.nodes[ask!.to!]!.choices!.find((c) => c.effects?.some((e) => e.verb === "dispatch"));
     const dispatch = take!.effects!.find((e) => e.verb === "dispatch")!;
-    expect(dispatch.command).toBe("appoint $player to keeper at /world/lounge/idea/business");
+    expect(dispatch.command).toBe("house appoint $player to keeper at /world/lounge/idea/business");
   });
 });
 

@@ -41,7 +41,7 @@
  * ⭐ Census, then ratchet: the ceiling is this gate's census — D9's eleven
  * (`appoint`/`dismiss`/`draw` → `house`; `apply`/`quit`/`fulfill` → `job`;
  * `consign`/`reclaim` → `shelf`, `check` → `rack`; `transfer`/`subdivide`
- * → `title`) — driven to 0 at W7 (W8 for `title`).
+ * → `title`) — driven to title's two at W7 and to 0 at W8.
  */
 
 import { existsSync, readFileSync } from "fs";
@@ -57,7 +57,7 @@ import {
   stripComments,
 } from "./pack-roots";
 
-export const INSTITUTION_VERBS_CEILING = 11;
+export const INSTITUTION_VERBS_CEILING = 2; // W7: 11 → 2 — `house`, `job`, `shelf`, `rack` took nine; title's `transfer`/`subdivide` are W8's.
 
 /** Arg names that name a book. */
 const BOOK_ARGS = new Set(["book", "shelf", "rack", "organization", "registry", "register", "ledger"]);

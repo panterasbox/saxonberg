@@ -791,7 +791,7 @@ suite('16–19. the wheel ripens on the rack; it splits into wedges; a wedge sel
     await say(k, 'up');
     await k.drainProse();
     await goTo(CREAMERY);
-    const listed = await doing(k, 'consign wedge --ask 12');
+    const listed = await doing(k, 'shelf consign wedge --ask 12');
     note(`consign wedge → ${listed}`);
     const shelf = await read(k, 'look shelf');
     expect(shelf).toMatch(/wedge|cheese/i);

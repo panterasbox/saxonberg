@@ -38,8 +38,8 @@ describe('the farms beat is bounded and literal', () => {
     expect(SRC).toContain('`feed ${kw} at ${part} with sack`');
     expect(SRC).toContain('`pick ${kw}`');
     expect(SRC).toContain("'wallet use house'");
-    expect(SRC).toContain('`consign ${kw} --ask ${ask}`');
-    expect(SRC).toContain('`draw ${amount}`');
+    expect(SRC).toContain('`shelf consign ${kw} --ask ${ask}`');
+    expect(SRC).toContain('`house draw ${amount}`');
   });
 
   it('never issues a bare or counted `get` — picks land in the hand', () => {

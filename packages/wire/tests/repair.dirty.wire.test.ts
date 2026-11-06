@@ -516,7 +516,7 @@ suite('⭐⭐ drives 7–8 — the cobbler, and her second seat (AC 10)', () => 
     const first = await newPlayer('cobbler', COBBLER);
     const handle = first.handle;
     await practise(first, 'leatherwork', 3);
-    const applied = await say(first, 'apply for cobbler');
+    const applied = await say(first, 'job apply for cobbler');
     console.log(`[repair drive] apply → ${applied}`);
     expect(applied, `apply: ${applied}`).toMatch(/cobbler/i);
     first.close();
@@ -610,7 +610,7 @@ suite('⭐ drive 10 — a stranger reads what was done to a botched pick (AC 4)'
   it('consigned, it reads mended; with appraisal, by an unpractised hand', async () => {
     mender.close();
     mender = await goTo(pickHandle, STORE);
-    const put = await say(mender, 'consign miners-pick --ask 6');
+    const put = await say(mender, 'shelf consign miners-pick --ask 6');
     expect(put, `consign: ${put}`).not.toMatch(/can'?t|cannot/i);
     const stranger = await newPlayer('stranger', STORE);
     try {
@@ -629,7 +629,7 @@ suite('⭐ drive 10 — a stranger reads what was done to a botched pick (AC 4)'
     // held the pick at the counter, mends and all, and the world did not
     // place it). That is retail's defect, recorded in the plan's drive
     // record; drive 12 proves the MENDS survive, in the owner's hands.
-    const back = await say(mender, 'reclaim miners-pick');
+    const back = await say(mender, 'shelf reclaim miners-pick');
     expect(back, `reclaim: ${back}`).not.toMatch(/can'?t|cannot|isn'?t/i);
   }, 600_000);
 });

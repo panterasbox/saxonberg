@@ -951,7 +951,7 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage B, Waponi Woo and the 
     await toWorkMorning(0);
     boiler.close();
     boiler = await goTo(boilerHandle, '/world/terminus/counting-houses/cash-and-carry');
-    const listed = await say(boiler, 'consign sack --ask 8');
+    const listed = await say(boiler, 'shelf consign sack --ask 8');
     expect(listed, `consign sack: ${listed}`).toMatch(/consign|list|ask/i);
     expect(await say(boiler, 'inventory'), 'the sack stayed in hand').not.toMatch(/sack of sugar/i);
     expect(

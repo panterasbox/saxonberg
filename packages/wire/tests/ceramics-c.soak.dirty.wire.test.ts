@@ -1082,7 +1082,7 @@ suite('⭐ 25 — the stall', () => {
     await say(potter, 'get "plant pot" from kiln').catch(() => '');
     expect(await held(potter)).toMatch(/plant pot|pot/i);
     potter = await goTo(potter, SQUARE);
-    const consigned = await say(potter, 'consign "plant pot" --ask 3');
+    const consigned = await say(potter, 'shelf consign "plant pot" --ask 3');
     expect(consigned).toMatch(/consign|stall|ask|for sale/i);
     // ⚠ Not `stall:i`: a consigned piece is a line on the stall's stock, not
     // a thing in it, and the read listed nothing (run 37). What the buyer

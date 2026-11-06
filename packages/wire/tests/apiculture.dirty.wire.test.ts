@@ -540,7 +540,7 @@ suite('⭐ honey goes on the shelf people already buy from', () => {
     // from is standing in the room the hive's keeper walks back into.
     const shelf = await k.query('here:i:shelf', { fields: ['displayName'] });
     expect(shelf.length, "Quist's shelf is in the yard").toBeGreaterThan(0);
-    const bought = await say(k, 'consign jar');
+    const bought = await say(k, 'shelf consign jar');
     // ⚠ Either outcome is honest — a jar has to be carried to be
     // consigned, and whether `rob` produced one is the clock's answer.
     // What this reads is that the verb is AFFORDED where the shelf is.

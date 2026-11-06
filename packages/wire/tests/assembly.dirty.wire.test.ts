@@ -468,7 +468,7 @@ suite('⭐⭐ the proficient cooper (drive 6, 7, 8, 11, 17, 22; AC 6, 14, 23, 24
     });
     try {
       await gauger.cmd('get glowcap');
-      expectOk(await gauger.cmd(`appoint me to gauger at ${REGISTRY}`));
+      expectOk(await gauger.cmd(`house appoint me to gauger at ${REGISTRY}`));
       const record = await say(gauger, 'measure capacity cask');
       expect(record, `gauger gauges: ${record}`).toMatch(/of record/i);
       expect(record).not.toMatch(/not of record/i);

@@ -283,7 +283,7 @@ suite('4 · 5 · aboard, a course, the reckoning', () => {
     // ⭐ Only her master takes the helm: the founder holds the
     // office that appoints her company, and appoints himself to command her.
     // (Not asserted: a re-run finds him already appointed.)
-    await me.cmd(`appoint me to master at ${OUTFIT}`);
+    await me.cmd(`house appoint me to master at ${OUTFIT}`);
     const plot = squash(await me.prose('course'));
     expect(plot).toMatch(/not under way/);
     expect(plot).toMatch(/by reckoning/);
@@ -538,7 +538,7 @@ suite('19 · 20 · 25 · sight at sea', () => {
     const quiet = squash(await me.listen(35_000));
     expect(quiet).not.toMatch(LIGHT);
     // ⭐ By what she IS, not her name: nobody aboard has been introduced.
-    expectOk(await me.cmd(`appoint deckhand to lookout at ${OUTFIT}`));
+    expectOk(await me.cmd(`house appoint deckhand to lookout at ${OUTFIT}`));
     // She rides the agents' one deliberation beat (20 s by day, two
     // minutes by night): take up the watch on one, call on the next.
     let called = '';

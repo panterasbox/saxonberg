@@ -1396,7 +1396,7 @@ suite('⭐⭐ AC12 — three jobs, and one of them is takeable today', () => {
 
   it('⭐⭐⭐ the CHANDLER\'s seat is takeable with no Discipline at all', async () => {
     await walk(k, ['northeast']);
-    const out = await say(k, 'apply chandler');
+    const out = await say(k, 'job apply chandler');
     const reason = refusedFor(out);
     const said = await out.said();
     // ⭐ The seat the pack deliberately left ungated: dipping a wick in
@@ -1411,7 +1411,7 @@ suite('⭐⭐ AC12 — three jobs, and one of them is takeable today', () => {
 
   it('⚠ and the TANNER\'s refuses — which is the progression UI', async () => {
     await walk(k, ['southwest', 'south']);
-    const out = await say(k, 'apply tanner');
+    const out = await say(k, 'job apply tanner');
     const said = await out.said();
     const reason = refusedFor(out);
     // ⭐⭐ The refusal has to be SAYABLE: the verb exists, the sign is

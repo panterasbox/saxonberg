@@ -668,10 +668,10 @@ suite('9–14. a good`s name is a PHRASE', () => {
     await k.drainProse();
     const baker = k;
     expectOk(await act(baker, 'buy dog loaf'));
-    const consigned = await act(baker, 'consign dog loaf');
+    const consigned = await act(baker, 'shelf consign dog loaf');
     expect(refusedFor(consigned)).not.toBe('unknown-verb');
     if (refusedFor(consigned) === null) {
-      const back = await act(baker, 'reclaim dog loaf');
+      const back = await act(baker, 'shelf reclaim dog loaf');
       expect(refusedFor(back)).not.toBe('unknown-verb');
       if (refusedFor(back) === null) {
         expect(await carried(baker), 'the loaf came back').toMatch(/loaf|bread/i);
