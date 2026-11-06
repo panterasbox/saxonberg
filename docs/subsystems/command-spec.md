@@ -1179,7 +1179,7 @@ args:
   - name: fuel
     requires: CombustibleMixin|BurnerMixin     # `|` inside an entry is OR
   - name: victim
-    requires: class:Agent                       # the one class escape
+    requires: class:Agent                       # the closed class escape (Agent, JobBoard)
   - name: thing
     requires: any                               # deliberately unconstrained
 ```

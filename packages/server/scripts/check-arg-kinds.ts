@@ -140,7 +140,7 @@ function refusalFor(name: string): string | undefined {
  * reported) rather than silently — and adding one at all is a design
  * conversation, per that map's own note.
  */
-const SANCTIONED_CLASSES = new Set(["Agent"]);
+const SANCTIONED_CLASSES = new Set(["Agent", "JobBoard"]);
 
 interface FieldRecord {
   file: string;

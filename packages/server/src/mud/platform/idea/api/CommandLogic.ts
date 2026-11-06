@@ -3253,11 +3253,14 @@ interface RequirementTerm {
  * inter-stuff rules — because they are the type hierarchy itself rather
  * than a capability bolted onto it.
  *
- * Exactly one is in use: `class:Agent`, the "is this a person" gate
- * behind `whisper`, `dm`, `give`, `introduce` and sixteen more. A
- * second entry is a design conversation, not a map edit — the pull
- * toward "just add the class" is the pull that made `plant` refuse with
- * `instanceof Seed`, and the answer there was a mixin.
+ * Two are in use: `class:Agent`, the "is this a person" gate behind
+ * `whisper`, `dm`, `give`, `introduce` and sixteen more; and
+ * `class:JobBoard`, `job`'s `board` arg (controllers-are-io W8): the board
+ * is a kernel class composing no capability of its own, and it is an
+ * institution's book, not a capability, so no mixin would say anything
+ * the class does not. Another entry is a design conversation, not a map
+ * edit — the pull toward "just add the class" is the pull that made
+ * `plant` refuse with `instanceof Seed`, and the answer there was a mixin.
  *
  * Loaded by **dynamic import at spec-load**, not a top-level import:
  * `Agent` composes command mixins, so importing the class here would
@@ -3272,6 +3275,11 @@ const CLASS_REQUIREMENTS: Record<
     module: '../../../lib/stuff/Agent',
     export: 'Agent',
     refusal: "{} isn't a person",
+  },
+  JobBoard: {
+    module: '../../thing/JobBoard',
+    export: 'default',
+    refusal: "{} isn't a job board",
   },
 };
 
@@ -3307,7 +3315,7 @@ const CLASS_REQUIREMENTS: Record<
  * not more information.
  *
  * One entry may instead be `class:<Name>` — see
- * {@link CLASS_REQUIREMENTS}, which is closed and has one member.
+ * {@link CLASS_REQUIREMENTS}, which is closed.
  */
 async function parseRequirement(
   requires: MixinRequirement,

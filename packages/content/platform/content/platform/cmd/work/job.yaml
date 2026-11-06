@@ -49,7 +49,7 @@ args:
     prepositions: [on]
     default: "reachable:[class.JobBoard]"
     scope: ["here", "peers", "person"]
-    requires: any
+    requires: class:JobBoard
 options:
   origin:
     short: o
@@ -132,7 +132,7 @@ subcommands:
         prepositions: [on]
         default: "reachable:[class.JobBoard]"
         scope: ["here", "peers", "person"]
-        requires: any
+        requires: class:JobBoard
     options:
       bounty:
         short: b
@@ -163,7 +163,7 @@ subcommands:
         prepositions: [on]
         default: "reachable:[class.JobBoard]"
         scope: ["here", "peers", "person"]
-        requires: any
+        requires: class:JobBoard
   complete:
     description: "Turn a gig in — the engine verifies, escrow pays out"
     controller: /platform/idea/cmd/work/JobCompleteController
@@ -183,7 +183,7 @@ subcommands:
         prepositions: [on]
         default: "reachable:[class.JobBoard]"
         scope: ["here", "peers", "person"]
-        requires: any
+        requires: class:JobBoard
   abandon:
     description: "Walk away from a claim (escrow reverts; it's remembered)"
     controller: /platform/idea/cmd/work/JobAbandonController
@@ -198,7 +198,7 @@ subcommands:
         prepositions: [on]
         default: "reachable:[class.JobBoard]"
         scope: ["here", "peers", "person"]
-        requires: any
+        requires: class:JobBoard
   # ⭐⭐ The flat `fulfill`, `apply` and `quit` verbs until controllers-are-io
   # W7 (D9): the contract board's book and the applicant's side of a
   # house's roster. None binds a board — the drop, and the house, are where

@@ -11,8 +11,7 @@
  *
  * ⭐ The board is an ARGUMENT (`board`, `on <board>`, defaulting to the one
  * in reach), bound by the view and never hunted for here —
- * {@link JobControllerBase.boardOf} reads it and refuses when it is not a
- * job board. Every actor is context-derived inside the gated logic; the
+ * {@link JobControllerBase.boardOf} reads it and refuses when there is none. Every actor is context-derived inside the gated logic; the
  * controllers pass no principal. Gig ids accept a unique prefix of the
  * full contract id (the browse shows the short form).
  */
@@ -61,9 +60,9 @@ export abstract class JobControllerBase<
   T extends CommandModel = JobModel,
 > extends CommandController<T> {
   /**
-   * The bound board, or a `no-board` refusal. ⚠ The arg is `requires:
-   * any` — a `type: object` arg must name a capability mixin and the
-   * board has none — so the KIND is checked here, the one place it can be.
+   * The bound board, or a `no-board` refusal when the view's default found
+   * none in reach. The KIND is the view's (`requires: class:JobBoard`); the
+   * `instanceof` here narrows the type.
    */
   protected boardOf(
     board: MqlOneResult | undefined,
