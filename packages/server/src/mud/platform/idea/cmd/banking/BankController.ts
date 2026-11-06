@@ -3,7 +3,7 @@
  * branch operations. Bare `bank` reads your balance; the subcommands are
  * `open`, `deposit <coins>`, `withdraw <amount>`, `transfer <amount> to
  * <who>`, `balance`, `statement [count]`. One controller, one verb — the
- * `ChatController`/subcommand precedent, not a verb-per-action.
+ * subcommand precedent, not a verb-per-action.
  *
  * Accounts resolve by identity + branch context (no number typed); the actor
  * is the context-derived author throughout.

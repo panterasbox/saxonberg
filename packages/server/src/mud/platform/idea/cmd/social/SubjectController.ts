@@ -11,7 +11,7 @@
  *   - `list` — subjects visible to you (open always; ref-backed to
  *     members), each with its lit surfaces.
  *
- * Dispatch-on-subcommand, the `ChatController` precedent.
+ * Dispatch-on-subcommand in one controller.
  */
 
 import { CommandController } from '../../../../lib/command/CommandController';
