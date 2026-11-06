@@ -299,7 +299,7 @@ spoilage activation energy and water activity (it got `null` before).
 `flesh`'s own authored comment had already said why: *"Flesh rots. This is
 what makes a corpse a clock as well as evidence."* `lint:perishable`
 accordingly accepts `PostmortemMixin` beside `GrowingMixin` — a body rots
-on its own clock, which `ConsignController` already treated as the same
+on its own clock, which `ShelfConsignController` (then `ConsignController`) already treated as the same
 law.
 
 Giving the corpse its own class also says the truer thing: a corpse is a

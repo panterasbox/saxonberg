@@ -723,7 +723,7 @@ The twelve kinds and their counterparty rules are the table in
   (the deficit model): a worker's wage is owed regardless; an owner
   pocketing from an insolvent business is exactly the wedge the
   distinct kind exists to expose. Surfaced as the wallet-afforded
-  `draw <amount>` verb (business resolved *from* the acting proprietor
+  `house draw <amount>` verb (business resolved *from* the acting proprietor
   via `EmploymentApi.businessOfProprietor` — no parameter to spoof).
 
 **The two-layer discipline (kind vs category).** `kind` is the

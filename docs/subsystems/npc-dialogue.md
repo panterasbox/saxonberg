@@ -87,7 +87,7 @@ interface DialogueGuard { fact: GuardFact; op: GuardOp; value: string|number|boo
 - **Domain effect verbs** (genuinely extensible — no reopening the format): a
   domain registers a handler in the **`DialogueEffectRegistry`**
   (`lib/npc/DialogueEffects.ts`, `{validate?, apply}`), and both
-  `validate`/`apply` here delegate to it — so the generic dialogue substrate
+  `validate`/`job apply` here delegate to it — so the generic dialogue substrate
   never imports the domain (consumer → substrate). Banking's **`bank-circle`**
   (enrol the interlocutor into a corpo's Circle) is the first, registered from
   `lib/banking/BankDialogueEffect.ts` at boot.
@@ -108,7 +108,7 @@ account, an employer hires you — without a bare player-facing verb. `$player`
 in the command renders to the interlocutor **by identity** — `#<stuffId>`, the
 viewer-free MQL seed — never by name: the NPC names people by what it
 *recognizes*, and a stranger it has not been introduced to is "a human" to it
-(Dave's `appoint $player …` found "no such person" until this); `applyEffects` narrows the NPC to a
+(Dave's `house appoint $player …` found "no such person" until this); `applyEffects` narrows the NPC to a
 `CommandGiver` and calls `CommandApi.forceCommand(npc, text)` from the
 detached loop's context.
 

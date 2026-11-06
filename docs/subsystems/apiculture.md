@@ -17,7 +17,7 @@ not own. Both of those are the subsystem's reason to exist.
 - **Pack:** `trade-apiculture`, root `/trade/apiculture`.
 - **Verbs it ships:** one — `rob`.
 - **Verbs it borrows:** `open`, `put`, `split`, `handle`, `ignite`,
-  `consign`. All the platform's or ranching's. (⚠ Not `make` — see § the
+  `shelf consign`. All the platform's or ranching's. (⚠ Not `make` — see § the
   comb: the honey recipes have no verb yet.)
 - **Discipline:** `apiculture` (ISCED-F 0811).
 

@@ -118,7 +118,7 @@ but its end is re-minted only by untying and tying again.
   hemp line, hemp yarn, rigging knives, bow lines; she buys no rope back).
   ⭐ She takes the jack's wheel for whoever lays (the `turns` brain), and
   the ropewalk has an open **wheel-hand** seat (headcount 1) a player can
-  `apply` for. The walk is open to the sky (a room's light is spread over
+  `job apply` for. The walk is open to the sky (a room's light is spread over
   its extent squared) and addressed in Terminus.
 - **The Sunken Delve**: a timber post at corridor-2's lip; the pit is climbed.
 - **Hemp** (`trade-farming`): *Cannabis sativa*, one species; the fiber

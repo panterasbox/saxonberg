@@ -416,8 +416,8 @@ Trade verbs: `ring` (a signal bell). ⭐ Since cordage, `tug` and `tie`
 (`lash` is its word — a line's end or an air bag to a load) are KERNEL
 verbs afforded by the kernel `LineEnd` and the `Tieable` protocol
 ([cordage.md](cordage.md)).
-Reused: `wear`/`remove`, `pump`, `drop`, `get`, `read`, `buy`, `consign`,
-`appoint`/`apply`/`clock`, `job`/`fulfill`, `analyze water`, `cast`/`zap`,
+Reused: `wear`/`remove`, `pump`, `drop`, `get`, `read`, `buy`, `shelf consign`,
+`house appoint`/`job apply`/`clock`, `job`/`job fulfill`, `analyze water`, `cast`/`zap`,
 `climb`.
 
 **The gear** (`content/trade/diving/thing/`):
@@ -444,7 +444,7 @@ Reused: `wear`/`remove`, `pump`, `drop`, `get`, `read`, `buy`, `consign`,
   and `TakesFish`: under the surface it **draws from the reach's fishery**
   (the most plentiful species above 15 % of capacity) and mints the
   fishing pack's fish; a fished-out water has nothing to spear. The
-  fishmonger stays a consignment shelf: the sale is `consign`.
+  fishmonger stays a consignment shelf: the sale is `shelf consign`.
 - **Air bag** and **air barrel** (`AirBag` = `BuoyMixin(BulkableMixin(Good))`)
   — `tie`/`lash` to a load: lift is `liters × 200 / (1 + d/10) − bag mass`
   per bag (a vessel's liters are compressed ×200); when the bags lift more

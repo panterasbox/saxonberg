@@ -215,7 +215,7 @@ proof that did not exist:
 | the claim | what was actually asserted |
 |---|---|
 | *"repeated orders are not answered by the same person every time"* | that six orders were each **answered** — never that two different people answered |
-| *"one candidate among several — not all, not none"* | that a player could `apply` and `clock on` — the checkpoint never ordered anything |
+| *"one candidate among several — not all, not none"* | that a player could `job apply` and `clock on` — the checkpoint never ordered anything |
 | the acceptance table cited **"drive 9"** | there is no checkpoint 9; the file runs 1–8 and 10–15 |
 
 ⚠ **Why this is worse than a missing test.** A missing checkpoint is visibly

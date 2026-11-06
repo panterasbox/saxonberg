@@ -5589,7 +5589,7 @@ MessageApi.scene(actor).topic('sense.survey')
 `toSelf` body; a wire test asserts the envelope. Both read the wire. The
 trades-and-labor build's help-wanted sign passed nine unit tests and a
 14/14 wire drive and rendered nothing in a browser; a DOM search for
-`HELP WANTED` came back empty while `apply` in the same room refused with
+`HELP WANTED` came back empty while `job apply` in the same room refused with
 both numbers, proving the read was fine and only the render was missing.
 
 ⭐ It also reads better split: a card on a wall is something you NOTICE,

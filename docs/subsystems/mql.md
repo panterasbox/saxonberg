@@ -506,7 +506,7 @@ keywords (`NamedMixin.getKeywords` folds the name and its bare form, so
 - **partials — 10 × the words that begin one** (a fallback only)
 
 ⚠ A word matches where a keyword WORD begins, never mid-word (ceramics
-run 28: `consign "plant pot"` once sold the aether imPLANT). The
+run 28: `shelf consign "plant pot"` once sold the aether imPLANT). The
 whole-phrase cut and the tier cascade are one rule now: the highest tier
 present cuts every tier below it, and anything at 40+ answers every word.
 `scoreTier(score)` (3 · 2 · 1 · 0) is what the binder compares ACROSS

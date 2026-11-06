@@ -27,7 +27,7 @@ no controller, no Api**.
 | `pour vat into hoop`, `get stone`, `put stone on hoop`, wait, `get wheel` | the curd **drains and sets** in the hoop's shape; pressed, it is drier and keeps longer | `Hoop` = a kernel `Mould` (`mould.md`); the curds' `drainSetting` |
 | `cure wheel` | salt binds water — the hard wheel's second hurdle; the same wheel comes back, still what it was made from | trade-cooking's `cure`, which finds dairying's `salt-wheel` recipe by its item slot |
 | `put wheel on rack` (the cheese room) | the wheel **ripens** by its own temperature: young · coming on · ripe · (soft) over · (too warm) dead | `Wheel` = `RipeningMixin(Provision)` (`maturation.md` § the discrete twin) |
-| `split wheel`, `consign wedge` | wedges carrying the wheel's state, sold on the co-op shelf | `Splittable`; `retail.md` |
+| `split wheel`, `shelf consign wedge` | wedges carrying the wheel's state, sold on the co-op shelf | `Splittable`; `retail.md` |
 
 ## Heat, and its cost
 

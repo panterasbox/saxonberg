@@ -644,7 +644,7 @@ input dries up on a quiet night is a demo that only works while somebody
 is watching, so the mine ships an NPC crew: the `delves` brain
 (`trade-mining/src/behavior/delves.ts`) works a face, carries the take to
 the assay shed and consigns it — shore if the ground says so, hew the
-best reachable face, `wallet use house`, `consign` each lot bounded by
+best reachable face, `wallet use house`, `shelf consign` each lot bounded by
 the shelf's headroom. ⭐⭐ **Nothing the brain does is unavailable to a
 player**: every act is a forced literal verb, so the hand is subject to
 exactly the rules a person is — bad ground refuses it, a worked-out face

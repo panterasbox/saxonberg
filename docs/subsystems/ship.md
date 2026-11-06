@@ -273,7 +273,7 @@ consumer ([employment.md § The owners authority](./employment.md)).
 
 **The master** is the company's `master` seat. The buyer of a smack holds
 all three roles: owner, managing owner, master. Whoever holds a majority
-appoints her master with the shipped `appoint`. **`Ship.mayBeSteeredBy`**
+appoints her master with the shipped `house appoint`. **`Ship.mayBeSteeredBy`**
 (a `Voyaging` hook; a boat answers anyone) is her charterer while the
 charter runs, or whoever holds her `master` seat. `course` and `anchor`
 refuse others: *"Only her master takes the helm — charter her, or be

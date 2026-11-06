@@ -37,7 +37,7 @@ taxonomy. The ten categories: `perception`, `social`, `movement`,
 `charactergen`. (Later builds added more — see CLAUDE.md's category
 roster; the magic build added `magic` for `cast`/`spells`, the casting
 core's verb surface, and the work-contracts build added `work` for the
-labor market — the board-afforded `job` + the travelling `fulfill`, see
+labor market — the board-afforded `job` + the travelling `job fulfill`, see
 [contract.md](./contract.md).) The category prefix is **load-bearing and uniform** — it
 appears in the YAML `controller:` field (`perception/LookController`),
 the seed `class:` path (`/platform/idea/cmd/perception/LookController`), and
@@ -778,7 +778,7 @@ phrase today. The question a view has to answer is which rung it is on.
 **Rung 1 — the syntax already says where the name ends.** A greedy field
 whose every later field declares a `prepositions:` boundary. The
 load-time invariant (`validateArgOrdering`) permits greedy before other
-args only in this case, and it is the common one: `buy`/`reclaim` stop at
+args only in this case, and it is the common one: `buy`/`shelf reclaim` stop at
 `from`, `bake` at `at`/`in`/`on`, `ship` at `to`, `order` at `from`.
 Nothing is ambiguous, so nothing needs quoting — `buy dog loaf` just
 works. **Reach for this first.**
@@ -1587,9 +1587,10 @@ controllerName =
 
 Load-time validation requires either a verb-level controller OR
 every subcommand declaring its own — failing both is a load error.
-Existing subcommanded verbs (`settings`, `alias`, `var`, `help`,
+Some subcommanded verbs (`settings`, `alias`, `var`, `help`,
 `player`) leave the per-subcommand field unset and continue to share
-their verb-level controller.
+their verb-level controller — variations on one theme, below; an
+institution's noun never does (§ The subcommand rule).
 
 When to reach for per-subcommand controllers vs. branch on
 `model.subcommand` in a single controller:
@@ -1605,6 +1606,54 @@ When to reach for per-subcommand controllers vs. branch on
 The choice is a content-shape question, not a framework question
 — both patterns are first-class.
 
+### ⭐⭐ The subcommand rule (controllers-are-io D9)
+
+*An act on the world is a bare verb; a transaction with an institution's
+book is a subcommand of the institution's noun.* `store` is the model:
+`store deposit` / `withdraw` / `receipts` are three entries in one book,
+and **every subcommand binds the book as its own operand** — nothing is
+inherited from the noun (`args` XOR `subcommands`, so there is nowhere
+to inherit from). The shipped nouns:
+
+| noun | subcommands that write its book | the book |
+|---|---|---|
+| `house` | `appoint` · `dismiss` · `draw` (beside `book` / `pnl` / `payroll` / `roster`) | the roster, the operating account |
+| `job` | `post` · `claim` · `complete` · `abandon` · `fulfill` · `apply` · `quit` | the contract board (`on <board>`, the one in reach), and the applicant's side of the roster |
+| `shelf` | `consign` · `reclaim` | a store's consignment shelf |
+| `rack` | `check` · `reclaim` | a house's check rack |
+| `store` | `deposit` · `withdraw` · `receipts` | the store book |
+| `title` *(W8)* | `transfer` · `subdivide` | the parcel registry |
+
+⚠ The edges, decided: `buy` / `sell` / `order` / `rent` / `charter` are
+acts on a good; `pay` / `tip` / `collect` are acts with a recipient; a
+fee-paying act (`assay`, `pilot`, `embody`) is an act; the herd verbs are
+acts on animals. `lint:institution-verbs` counts the flat views that
+still write a book (title's two until W8).
+
+⭐ **A subcommand word is scoped by its noun.** `reclaim` under `shelf`
+and under `rack` is one act over two books (`HeldGoodsControllerBase.
+reclaimFrom`), each stanza binding its own; `wiki read`, `fight draw` and
+the five nouns' `make` are their noun's word, not the global verb's.
+`fight defend` is the one subcommand that IS another view's act, and
+it names that view's controller (`combat/DefendController`).
+
+**One controller per subcommand, over a base per noun.** The switch
+controllers (`wiki`, `party`, `chat`, `forum`, `pack`, `group`, `soul`,
+`job`, `tune`, `fight`) are each `<Noun>ControllerBase` — the shared
+reads and words as **protected methods**, never module functions
+(`lint:controller-functions`) — plus `<Noun><Sub>Controller` per
+subcommand, each with its row (`lint:controller-rows`). The verb-level
+`controller:` is whatever the bare form runs (`SoulListController`,
+`JobBrowseController`, `ChatPostController` for the fallthrough post,
+`WikiReadController` for bare `wiki <page>`, `TuneInController`); a noun
+with no bare form (`pack`) names none. The gating a switch did once
+before dispatch moves onto the base and every subcommand calls it
+(`SoulControllerBase.refuseUnlessCommittee`); a `FromModule` gate that
+named the switch controller names the base with `includeSubclasses`
+(the wiki registry's). ⚠ A controller test now instantiates the
+subcommand's controller and must bind what the view binds (the board,
+the shelf) — it skips the binder.
+
 ### `fallthrough: true` — subcommands AND bare positionals
 
 By default a YAML may declare EITHER `args:` OR `subcommands:` —
@@ -1617,7 +1666,7 @@ flag, which the schema enforces alongside both fields:
 
 ```yaml
 verbs: [chat]
-controller: ChatController
+controller: ChatPostController   # the fallthrough post (one controller per subcommand)
 description: "Post to a channel, or manage channel membership"
 fallthrough: true
 subcommands:

@@ -3,7 +3,7 @@
 The first **retailer** business (retail slate S1), and the proving
 consumer of the [chattel possession core](./chattel.md). A shop where you
 `buy` goods off a bounded, self-restocking shelf (and **own** them, not
-just carry them) and `consign` your own goods for another player to buy.
+just carry them) and `shelf consign` your own goods for another player to buy.
 It rides *real* ownership; its consignment loop (custody-vs-ownership) is
 what forces the ownership design honest.
 
@@ -343,12 +343,21 @@ sells ONE piece off a stocked heap at the piece price, and a counter must
 be one of its house's `operatingLocations` (`lint:shopfronts`). The fish stall (`market/thing/fish-stall.yaml`) is a second
 consignment counter with no lines of its own — self-service, capacity 40.
 
-## Consignment — custody-vs-ownership (`consign` / `reclaim`)
+## Consignment — custody-vs-ownership (`shelf consign` / `shelf reclaim`)
+
+> ⭐ **The shelf and the rack are books, so their transactions are their
+> nouns' subcommands** (controllers-are-io W7, D9): `shelf consign` /
+> `shelf reclaim` and `rack check` / `rack reclaim`, each stanza binding
+> its own book (`shelf` → `ConsignmentShelfMixin`, `rack` →
+> `HeldGoodsMixin`), the four controllers over `HeldGoodsControllerBase`.
+> The flat `consign`, `reclaim` (and `unconsign`) and `check` are gone.
+> ⚠ Fixed in passing: the flat `reclaim` required a consignment shelf, so
+> a checked weapon could not be reclaimed through the view at all.
 
 The store's brokerage layer over real ownership. With the stamp,
 consignment needs no bespoke ownership pointer:
 
-- **`consign <thing> --ask <coin>`** moves **custody** to the shop's
+- **`shelf consign <thing> --ask <coin>`** moves **custody** to the shop's
   `ConsignmentShelf` while your **owner-stamp stays put**. A
   `ConsignmentListing` (`{ listingId, itemChattelId, consignorKey,
   askMinor }`) is a brokerage record — ask price + payout target — **not**
@@ -369,7 +378,7 @@ consignment needs no bespoke ownership pointer:
   conservation holds (`reconcile().balanced`). The consignor need not be
   online — payout rides `primaryAccountIdOf`, a pure DB read.
   `commission = ask × retail.consignment.commissionRate`.
-- **`reclaim <thing>`** returns custody of an unsold listing — **no
+- **`shelf reclaim <thing>`** returns custody of an unsold listing — **no
   chattel op** (ownership never left you). It authorizes on
   `item.chattelOwner()`, not on possessing any ticket — so a non-owner
   reclaiming someone else's goods is refused (custody without title is
@@ -387,18 +396,19 @@ per-consignor cap, `buy` — so a `ConsignmentListing extends HeldGood`
 with an `askMinor`. The `ConsignmentShelf` public surface is unchanged;
 the sale controllers don't know the base exists.
 
-**The check rack (`check` — the bar-fight build)** composes **only the
+**The check rack (`rack check` — the bar-fight build)** composes **only the
 base**. `CheckRack` (`trade-hospitality/src/thing/CheckRack.ts` — a
 cloakroom is the publican's) = `Persistable +
-HeldGoodsMixin + FixtureMixin`, affording `check` + `reclaim`, never
-`consign`/`buy` — a checked weapon is a plain held good (no ask, no
+HeldGoodsMixin + FixtureMixin`, affording `rack check` + `rack reclaim` (the `rack` noun), never
+`shelf consign`/`buy` — a checked weapon is a plain held good (no ask, no
 listing), so there was never a "not-for-sale" flag to add: a coat check
-is the base without the marketplace. `check <weapon>` (gated on
+is the base without the marketplace. `rack check <weapon>` (gated on
 `CombatApi.isWeapon` — a shield is armor, refused) records a holding and
 mints a diegetic `Ticket` (the owner-stamp, not the ticket, is the
 reclaim authority — a lost ticket never traps your weapon). `buy` finds
 no consignment shelf at a rack, so a checked weapon simply isn't
-buyable; `reclaim` narrows on `HeldGoodsShelf`, so it serves both a store
+buyable; `shelf reclaim` and `rack reclaim` are one act over `HeldGoodsShelf`
+(`HeldGoodsControllerBase.reclaimFrom`), each binding its own book, so it serves both a store
 shelf and a check rack. The lounge's rack rides `FixtureMixin`'s `seatIn`
 self-seat into the Warren host (the TPA-terminal precedent), so it stands
 on the combat-free lounge side of the door to Dave's Bar.
@@ -444,8 +454,8 @@ names the HOST shelf (`{ stock, shelf, ask: {censusKey: minor},
 defaultAsk?, batch? }`). The annex names the host; the distributor names
 nobody. The hand holds a `purchases` position, carries the house card,
 and each beat `get`s up to `batch` goods, teleports to the counter,
-`wallet use house`, `consign <kw> --ask <n>` — as the business
-(`ConsignController` accepts an `organization` owner the giver buys for;
+`wallet use house`, `shelf consign <kw> --ask <n>` — as the business
+(`ShelfConsignController` accepts an `organization` owner the giver buys for;
 the listing's `consignorKey` is the outfit's path, and "each consignor's
 account rises on resale" is the shipped split leg). The floor itself
 stands at par because the outfit's Stock NAMES its lines (`stockLines`,
@@ -498,7 +508,7 @@ coinage-clean ladder (2..10) against the 20-credit stipend. **Independent**
   supplier's PRICE (owed at sale), the shop sets its own ask and keeps the
   margin, and a `buy` posts twice (the sale, then the shop's `terms` leg to
   its supplier). The cash-and-carry says `purchasing: terms`; so does every
-  rented stall. `reclaim` admits the house an actor buys for, so a
+  rented stall. `shelf reclaim` admits the house an actor buys for, so a
   supplier's hand takes an unpaid crate back.
 - **`from: { supplier }` / `pricing`**: a supplied line is bought by the
   keeper's `stocks` beat and never cloned by `reset()`. `pricing: stocking`
@@ -517,7 +527,7 @@ coinage-clean ladder (2..10) against the 20-credit stipend. **Independent**
   Alice at four zorkmids* / *the shop asks two zorkmids*.
 - **The per-shelf cap**: `listingCapOverride` on a wholesale shelf (the
   cash-and-carry authors 120; the produce stalls 200) — and the
-  `consigns` brain honors the shelf's own cap, as `consign` does.
+  `consigns` brain honors the shelf's own cap, as `shelf consign` does.
 - **A player shop is a rented stall** — `stall rent` / `stall give-up`
   on the market square (`MarketStalls`, the terminus pack): a counter
   keyed to the **pitch** it stands on, a house re-minted from the
