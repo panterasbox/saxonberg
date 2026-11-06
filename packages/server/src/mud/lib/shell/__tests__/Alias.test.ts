@@ -11,7 +11,8 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Idea } from '../../stuff/Idea';
 import Place from '../../stuff/Place';
 import { AliasMixin, type DefaultAliasEntry } from '../Alias';
-import { CommandGiverMixin } from '../../command/CommandGiver';
+import { CommandGiverMixin, type Affordance } from '../../command/CommandGiver';
+import { CommandDefinition } from '../../command/CommandDefinition';
 import { ContainableMixin } from '../../spatial/Containable';
 import { ContainerMixin } from '../../spatial/Container';
 import { SensorMixin } from '../../message/Sensor';
@@ -457,6 +458,74 @@ class PipelineHost extends PipelineHostBase {
     this.received.push(frame as MessageFrame);
   }
 }
+
+describe('⭐ the view source (D16): a default alias is declared on the view', () => {
+  const view = (verb: string, alias: string): Affordance['command'] =>
+    CommandDefinition.fromYaml(
+      `verbs: [${verb}]\ndefaultAliases: [{name: "${alias}", description: d}]\ncontroller: x\ndescription: d\n`,
+      '<test>',
+    );
+  class ViewHost extends PipelineHost {
+    afforded: Affordance['command'][] = [];
+    override getAffordances(): Affordance[] {
+      return this.afforded.map((command) => ({
+        command,
+        source: this as never,
+        bucket: 'self' as const,
+      }));
+    }
+  }
+
+  it('reaches the giver while the view is afforded, and names the view', () => {
+    const host = makeStuff(() => new ViewHost());
+    host.afforded = [view('look', 'l')];
+    expect(host.getAlias('l')).toMatchObject({
+      name: 'l',
+      body: 'look',
+      source: 'default',
+      view: 'look',
+      description: 'd',
+    });
+    expect(host.getAliases().get('l')?.view).toBe('look');
+    // Load on use: no view afforded, no alias.
+    host.afforded = [];
+    expect(host.getAlias('l')).toBeUndefined();
+  });
+
+  it('`alias unset` tombstones it, in the store that persists', () => {
+    const host = makeStuff(() => new ViewHost());
+    host.afforded = [view('look', 'l')];
+    expect(host.removeAlias('l', host)).toBe(true);
+    expect(host.listOverrides().persistent).toEqual({ l: null });
+    expect(host.getAlias('l')).toBeUndefined();
+  });
+
+  it('one view afforded twice is one alias; two views claiming a name throw', () => {
+    const host = makeStuff(() => new ViewHost());
+    const look = view('look', 'l');
+    host.afforded = [look, look];
+    expect(host.getAlias('l')?.body).toBe('look');
+    host.afforded = [look, view('lick', 'l')];
+    expect(() => host.getAlias('l')).toThrow(/declared by both/);
+  });
+
+  it("`'hello there` expands to `say hello there` (the lexer's one sigil)", () => {
+    const host = makeStuff(() => new ViewHost());
+    host.afforded = [view('say', "'")];
+    const parsed = CommandLineApi.parsePipeline("'hello there").commands[0]!;
+    const out = ShellApi.expandAliases(parsed, host);
+    expect(out.parsed.verb).toBe('say');
+    expect(CommandLineApi.format(out.parsed)).toBe('say hello there');
+    expect(out.expansion?.aliasName).toBe("'");
+  });
+
+  it('`?` is a verb token too', () => {
+    const host = makeStuff(() => new ViewHost());
+    host.afforded = [view('help', '?')];
+    const parsed = CommandLineApi.parsePipeline('? look').commands[0]!;
+    expect(CommandLineApi.format(ShellApi.expandAliases(parsed, host).parsed)).toBe('help look');
+  });
+});
 
 describe('AliasMixin — pipeline integration', () => {
   let giver: PipelineHost;

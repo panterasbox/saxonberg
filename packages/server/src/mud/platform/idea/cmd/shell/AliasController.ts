@@ -87,7 +87,7 @@ export default class AliasController extends CommandController<AliasModel> {
       const entry = resolved.get(n)!;
       const marker = entry.source === 'default' ? ' ' : '*';
       lines.push(
-        `  ${marker} ${n.padEnd(nameWidth)} = ${entry.body}    [${entry.source}]`,
+        `  ${marker} ${n.padEnd(nameWidth)} = ${entry.body}    [${this.sourceOf(entry)}]`,
       );
     }
     if (tombstones.length > 0) {
@@ -112,7 +112,7 @@ export default class AliasController extends CommandController<AliasModel> {
     if (!entry) return this.fail(context, `no such alias: ${name}`, 'no-such-alias');
     this.send(
       context,
-      Mml.fromMarkup(`\n${entry.name} = ${entry.body}    [${entry.source}]\n`),
+      Mml.fromMarkup(`\n${entry.name} = ${entry.body}    [${this.sourceOf(entry)}]\n`),
     );
     return;
   }
@@ -169,7 +169,7 @@ export default class AliasController extends CommandController<AliasModel> {
       '',
       entry.name,
       `  body:        ${entry.body}`,
-      `  source:      ${entry.source}`,
+      `  source:      ${this.sourceOf(entry)}`,
     ];
     if (entry.description) {
       lines.push(`  description: ${entry.description}`);
@@ -177,6 +177,11 @@ export default class AliasController extends CommandController<AliasModel> {
     lines.push('');
     this.send(context, Mml.fromMarkup(lines.join('\n')));
     return;
+  }
+
+  /** Which tier produced this entry — a view default names its verb (D16). */
+  private sourceOf(entry: AliasEntry): string {
+    return entry.view !== undefined ? `view: ${entry.view}` : entry.source;
   }
 
   private fail(

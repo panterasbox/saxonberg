@@ -29,6 +29,7 @@ import type { CardId } from '@saxonberg/types';
 import { SourceTreeApi } from '../../api/source-tree';
 import type {
   CommandView,
+  ViewDefaultAlias,
   SubcommandDefinition,
   OptionDefinition,
   PositionalDefinition,
@@ -62,6 +63,12 @@ function resolveController(rawController: string, specFilePath: string): string 
  */
 export class CommandDefinition {
   public readonly verbs: string[];
+  /**
+   * ⭐ Default player aliases declared on this view (D16): a shortcut for
+   * this verb, reached while the view is afforded. Read by the alias
+   * defaults tier and `help`'s keywords.
+   */
+  public readonly defaultAliases: readonly ViewDefaultAlias[];
   /**
    * Verb-level controller template name. May be undefined when the
    * verb declares subcommands and every subcommand carries its own
@@ -125,41 +132,21 @@ export class CommandDefinition {
   public readonly filePath: string;
 
   /**
-   * ⭐ The verb's **category** — the directory its spec lives in.
-   *
-   * Derived rather than declared, because it already is: a spec at
-   * `mud/cmd/<category>/<verb>.yaml` states its category by where it
-   * sits, and a second `category:` key in the YAML would be a fact
-   * expressible two ways and therefore a fact two authors can disagree
-   * about.
-   *
-   * The affordance radial reads this and nothing else does. Geometry
-   * is fixed per category and must never reflow to fit the verbs a
-   * particular object happens to afford — muscle memory across objects
-   * is the entire point of a radial, and a menu that rearranges itself
-   * has none.
-   *
-   * ⚠ A **domain-local** verb (`world/<sphere>/<locality>/cmd/…`, or an
-   * industry's `trade/<industry>/cmd/…`) reports `'domain'`. Its category is its content, not one of the
-   * core ones, and forcing it into `perception` or `device` would put
-   * a locality's private verb in a slot the player's muscle memory has
-   * assigned to something else.
+   * ⭐ The verb's **category** — `category:` on the view (D24), which
+   * `lint:command-views` holds equal to the view's `cmd/<category>/`
+   * directory (a domain-local view, in no category directory, names the
+   * category the verb would have in the platform taxonomy). `help` groups
+   * by it; the affordance radial slots by it — geometry is fixed per
+   * category and must never reflow to fit the verbs a particular object
+   * happens to afford, because muscle memory across objects is the entire
+   * point of a radial.
    */
-  public get category(): string {
-    const parts = this.filePath.replace(/\\/g, '/').split('/');
-    // Every view lives under a `cmd` dir of its tree: the engine's
-    // `platform/cmd/<category>/<verb>.yaml` names its category as the
-    // segment after `cmd`; a locality's / industry's `<…>/cmd/<verb>.yaml`
-    // has none — it reports `local`.
-    const dirs = parts.slice(0, -1);
-    const at = dirs.lastIndexOf('cmd');
-    if (at >= 0 && at === dirs.length - 1) return 'local';
-    const dir = parts[parts.length - 2];
-    return dir && dir !== 'cmd' ? dir : 'system';
-  }
+  public readonly category: string;
 
   private constructor(view: CommandView, filePath: string) {
     this.verbs = view.verbs || [];
+    this.defaultAliases = view.defaultAliases ?? [];
+    this.category = view.category ?? CommandDefinition.categoryFromPath(filePath);
     this.controller = view.controller;
     this.description = view.description || '';
     this.help = view.help;
@@ -182,6 +169,20 @@ export class CommandDefinition {
 
     this.normaliseShape();
     this.validate();
+  }
+
+  /**
+   * The category an inline view (a test's, an unsaved author draft's) reads
+   * from its path. Every shipped view declares `category:`; the lint gate
+   * holds that.
+   */
+  private static categoryFromPath(filePath: string): string {
+    const parts = filePath.replace(/\\/g, '/').split('/');
+    const dirs = parts.slice(0, -1);
+    const at = dirs.lastIndexOf('cmd');
+    if (at >= 0 && at === dirs.length - 1) return 'local';
+    const dir = parts[parts.length - 2];
+    return dir && dir !== 'cmd' ? dir : 'system';
   }
 
   /**
@@ -492,9 +493,8 @@ export class CommandDefinition {
     lines.push(`${this.getPrimaryVerb().toUpperCase()}: ${this.description}`);
     lines.push('');
 
-    if (this.verbs.length > 1) {
-      // Primary verb is the header; list only the alternates.
-      lines.push(`Aliases: ${this.verbs.slice(1).join(', ')}`);
+    if (this.defaultAliases.length > 0) {
+      lines.push(`Aliases: ${this.defaultAliases.map((a) => a.name).join(', ')}`);
       lines.push('');
     }
 

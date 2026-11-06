@@ -1,4 +1,5 @@
-verbs: [look, l, examine, exa]
+verbs: [look]
+defaultAliases: [{name: l}]
 controller: /platform/idea/cmd/perception/LookController
 # ⭐ ONE card, because `look` opens one. Bare `look` is about the room
 # and `look <thing>` is about the thing, and those are the same card
@@ -17,7 +18,7 @@ help: |
   A close look into a container peers in for anything half-hidden —
   you may notice something a passing glance would miss. To go over a
   whole place thoroughly (ties up your hands, takes time), use
-  `search`. `examine` is the same command by another name.
+  `search`.
 
   `look at` (or `look in`) reads the same as plain `look` — the
   preposition is optional. Use `--peek` to read something without
@@ -31,7 +32,7 @@ args:
   # ⭐ ONE thing (maritime revision 2′): *what is this like?* A name that
   # matches several asks which (`onExcess: prompt`); a SET (`look horizon`,
   # `look all brass`) is refused in words that point at `query` — listing
-  # a set is `query`'s (alias `scan`). Revision 2 made this plural, and
+  # a set is `query`'s. Revision 2 made this plural, and
   # the engine had to guess which job you meant.
   - name: target
     type: object

@@ -1018,7 +1018,7 @@ export interface PositionalDefinition extends FieldDefinition {
  *   - a list — `[VisibleMixin, ContainableMixin]`, meaning **all of
  *     them**. Any single entry may itself be an alternation written
  *     with `|` — `CombustibleMixin|BurnerMixin` means *either*, which
- *     is what `ignite` needs.
+ *     is what `light` needs.
  *
  * ### Why this and not a validator
  *
@@ -1221,8 +1221,18 @@ export interface SubcommandDefinition {
  * command-shape preconditions (animacy, future mobility / vocal
  * checks).
  */
+/** One entry of a view's `defaultAliases:` — a shortcut for the view's verb. */
+export interface ViewDefaultAlias {
+  name: string;
+  description?: string;
+}
+
 export interface CommandView {
   verbs: string[];
+  /** The verb's category (`cmd/<category>/`; {@link CommandDefinition.category}). */
+  category?: string;
+  /** Default player aliases for this verb (D16). */
+  defaultAliases?: ViewDefaultAlias[];
   /**
    * Verb-level controller template name. Optional only when every
    * subcommand declares its own `controller:` (Option E — the verb

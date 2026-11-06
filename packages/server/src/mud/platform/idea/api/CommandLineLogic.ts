@@ -340,6 +340,30 @@ function escapeForDoubleQuote(value: string): string {
   return out;
 }
 
+/**
+ * ⭐ `'hello there` — the one sigil: a leading `'` on a line's first token is
+ * a token of its own, so the default alias `'` (`say`, D16) is reached with
+ * or without the space, the way every MUD has always done it. Only a token
+ * that STARTED `'` as typed: `"'hi"` is a quoted word. Anywhere else `'` is
+ * an apostrophe, literal.
+ */
+function splitSayShortcut(tokens: Lexeme[]): Lexeme[] {
+  const first = tokens[0];
+  if (first?.kind !== 'token' || first.raw.length < 2 || !first.raw.startsWith("'")) {
+    return tokens;
+  }
+  return [
+    { kind: 'token', value: "'", raw: "'", pos: first.pos },
+    {
+      kind: 'token',
+      value: first.value.slice(1),
+      raw: first.raw.slice(1),
+      pos: first.pos + 1,
+    },
+    ...tokens.slice(1),
+  ];
+}
+
 /** Parse text into a `ParsedPipeline`. See {@link CommandLineApi.parsePipeline}. */
 function parsePipelineImpl(input: string): ParsedPipeline {
   const lexemes = lex(input);
@@ -351,7 +375,7 @@ function parsePipelineImpl(input: string): ParsedPipeline {
   }
 
   const commands: ParsedCommand[] = nonEmpty.map((c) => {
-    const rawTokens = classify(c.tokens);
+    const rawTokens = classify(splitSayShortcut(c.tokens));
     const verbToken = rawTokens[0];
     const head =
       verbToken && verbToken.kind === 'word' ? verbToken.value : '';

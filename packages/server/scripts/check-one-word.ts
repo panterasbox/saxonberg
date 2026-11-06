@@ -9,8 +9,7 @@
  * player meets are **default player aliases** (`defaultAliases:` on the
  * view, D16), each removable by `alias unset`.
  *
- * Three counts, each a ceiling = this gate's own W0 census, driven to 0
- * at W6:
+ * Three counts, each a ceiling, all driven to 0 at W6 and held there:
  *
  *   (a) **multi-word views** — a view whose `verbs:` has more than one
  *       entry (the extra words are listed);
@@ -19,8 +18,7 @@
  *       primary verbs differ;
  *   (c) **bad default aliases** — a `defaultAliases: [{name, description?}]`
  *       name declared twice, or equal to any view's verb or a script
- *       builtin (`lib/script/builtins.ts`). No view declares the key yet
- *       (W1 adds it to the schema), so this is 0 and stays 0.
+ *       builtin (`lib/script/builtins.ts`).
  */
 
 import { resolve } from "path";
@@ -28,8 +26,8 @@ import { pathToFileURL } from "url";
 import { CONTENT, commandViews, controllerPathOf, ratchet } from "./pack-roots";
 import { SCRIPT_BUILTINS } from "../src/mud/lib/script/builtins";
 
-export const MULTI_WORD_VIEWS_CEILING = 62; // W7: `appoint`/`hire`, `fulfill`/`handoff`, `reclaim`/`unconsign` deleted with the flat views.
-export const CONTROLLERS_ACROSS_VERBS_CEILING = 4;
+export const MULTI_WORD_VIEWS_CEILING = 0; // W6: every view answers to one word.
+export const CONTROLLERS_ACROSS_VERBS_CEILING = 0;
 export const BAD_DEFAULT_ALIASES_CEILING = 0;
 
 export interface OneWordReport {
