@@ -213,7 +213,7 @@ export const BESPOKE_RESOLUTION_CEILING = 4;
  * ⭐ Self-resolution — the census-then-ratchet half (controllers-are-io
  * W0). Pinned at this gate's own W0 count; may fall, never rise.
  */
-export const SELF_RESOLUTION_CEILING = 118; // W7: −2, the job board is a view arg; consign's and reclaim's duplicated `activeHouse` became one base method, after +3 for the four shipped `*ControllerBase.ts` modules the enumerator could not see.
+export const SELF_RESOLUTION_CEILING = 117; // W8: −1, the deed desk is a view arg. // W7: −2, the job board is a view arg; consign's and reclaim's duplicated `activeHouse` became one base method, after +3 for the four shipped `*ControllerBase.ts` modules the enumerator could not see.
 
 /** A controller resolving its own target: the MQL facade, a store find, a contents walk. */
 const SELF_RESOLUTION =

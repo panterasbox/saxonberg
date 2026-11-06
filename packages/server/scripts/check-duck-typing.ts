@@ -61,7 +61,7 @@ import ts from "typescript";
 import { CONTENT, MUD, mudSourceFiles, parseTs, ratchet } from "./pack-roots";
 
 /** All probes (method + member), kernel and packs. */
-export const DUCK_PROBE_CEILING = 560;
+export const DUCK_PROBE_CEILING = 556; // W8: −4, the plat book and the deed desk are named by the pack that owns them.
 /** Method probes on a name nobody in the corpus defines. */
 export const UNDEFINED_PROBE_CEILING = 0;
 
