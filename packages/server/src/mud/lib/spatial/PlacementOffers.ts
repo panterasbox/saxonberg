@@ -38,10 +38,10 @@ export type PlacementChoice =
     };
 
 export class PlacementOffers {
-  private constructor(private readonly offers: readonly PlacementOffer[]) {}
+  private readonly offers: readonly PlacementOffer[];
 
   /** The offers `host` makes. */
-  static of(host: Stuff): PlacementOffers {
+  constructor(host: Stuff) {
     const offers: PlacementOffer[] = [];
     // ⭐⭐ **One question, asked once.** *Is this an actor, whose insides
     // are its own?* is the `Agent` branch, and `MixinApi.isOpenContainer`
@@ -63,7 +63,7 @@ export class PlacementOffers {
         offers.push({ kind: 'placement', name, words: words.length > 0 ? words : [name] });
       }
     }
-    return new PlacementOffers(offers);
+    this.offers = offers;
   }
 
   /**

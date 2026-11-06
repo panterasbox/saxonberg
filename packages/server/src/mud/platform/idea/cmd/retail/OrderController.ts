@@ -95,10 +95,13 @@ export default class OrderController extends ManualBuildController<OrderModel> {
     if (!plan.ok) {
       // A quote already named, and then they cannot pay it.
       if (plan.facts.quote) OrderController.sayQuote(giver, plan.facts.quote);
-      MessageApi.scene(giver)
-        .topic(OrderController.topicOf(plan))
-        .toSelf(OrderController.refusalWords(plan))
-        .send();
+      // A drink's refusal is the deed's topic; a service's, the service's.
+      const drinks = plan.facts.stage === 'make' || plan.reason === 'unattended' || plan.reason === 'not-on-menu';
+      if (drinks) {
+        MessageApi.scene(giver).topic(TOPIC).toSelf(OrderController.refusalWords(plan)).send();
+      } else {
+        MessageApi.scene(giver).topic(SERVICE_TOPIC).toSelf(OrderController.refusalWords(plan)).send();
+      }
       context.note({
         kind: 'controller-rejected',
         reason: plan.reason,
@@ -152,12 +155,6 @@ export default class OrderController extends ManualBuildController<OrderModel> {
 
   private static escaped(line: string): Composed {
     return Mml.fromMarkup(Mml.escape(line));
-  }
-
-  /** A drink's refusal is the deed's topic; a service's, the service's. */
-  private static topicOf(r: OrderRefusal): string {
-    const drinks = r.facts.stage === 'make' || r.reason === 'unattended' || r.reason === 'not-on-menu';
-    return drinks ? TOPIC : SERVICE_TOPIC;
   }
 
   /** "Bet looks it over. The head is worn — 5 zorkmids. …" */

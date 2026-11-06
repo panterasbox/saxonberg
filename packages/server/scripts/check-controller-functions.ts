@@ -26,7 +26,7 @@ import { pathToFileURL } from "url";
 import ts from "typescript";
 import { controllerFiles, parseTs, ratchet } from "./pack-roots";
 
-export const CONTROLLER_FUNCTIONS_CEILING = 252; // W4: the cut controllers' helpers moved to their hosts. // W8: −1, `isPlatBook` is an instanceof now. // W7: the ten switch controllers' module functions became methods (−19), after +5 for the four shipped `*ControllerBase.ts` modules the enumerator could not see.
+export const CONTROLLER_FUNCTIONS_CEILING = 232; // W5: the kernel acts moved onto their objects
 
 /** The names of the module-level functions in one controller module. */
 export function moduleFunctions(sf: ts.SourceFile): Array<{ name: string; line: number }> {

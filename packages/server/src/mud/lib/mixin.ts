@@ -1091,6 +1091,7 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   ShapeableMixin: "{} won't take a shape in your hands",
   CarvableMixin: "{} isn't something you could carve",
   PourTargetMixin: "you can't pour anything into {}",
+  ArcaneMixin: "there is nothing bound into {}",
   ImpressibleMixin: "{} is not soft enough to take an impression",
   TurnableMixin: "{} has nothing to turn",
   HandWorkedMixin: "{} isn't something you work by hand",

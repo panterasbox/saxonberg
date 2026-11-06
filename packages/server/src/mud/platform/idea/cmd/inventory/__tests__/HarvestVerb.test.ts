@@ -749,9 +749,9 @@ describe('harvest <plant>', () => {
       expect(b.bed.occupiedSlotCount()).toBe(a.bed.occupiedSlotCount());
       // …and every word is its own.
       const refused = { ok: false, reason: 'not-mature', facts: { detail: 'x', subject: pa, stageWord: 'young' } } as const;
-      expect(HarvestWordedController.refusalWords(refused)).not.toEqual(
-        HarvestController.refusalWords(refused),
-      );
+      const words = (c: unknown): unknown =>
+        (c as { refusalWords(r: unknown): unknown }).refusalWords(refused);
+      expect(words(HarvestWordedController)).not.toEqual(words(HarvestController));
     });
   });
 

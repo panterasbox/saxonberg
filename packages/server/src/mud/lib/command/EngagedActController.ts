@@ -215,19 +215,21 @@ export abstract class EngagedActController<
     words: ActWords<B, F, X>,
   ): Promise<void> {
     const giver = context.commandGiver;
+    const sayDone = (facts: F): void => {
+      const done = words.onDone?.(facts) ?? null;
+      if (done === null || (!done.self && !done.peers)) return;
+      const scene = MessageApi.scene(giver).topic(ACT_TOPIC);
+      if (done.self) scene.toSelf(done.self);
+      if (done.peers) scene.toPeers(done.peers);
+      scene.send();
+    };
     if (plan.durationMs <= 0) {
       const out = await plan.onComplete();
       if (!out.ok) {
         this.decline(context, words.onRefused(out), out.reason);
         return;
       }
-      if (giver.isDestroyed()) return;
-      const done = words.onDone?.(out.facts) ?? null;
-      if (done === null || (!done.self && !done.peers)) return;
-      const scene = MessageApi.scene(giver).topic(ACT_TOPIC);
-      if (done.self) scene.toSelf(done.self);
-      if (done.peers) scene.toPeers(done.peers);
-      scene.send();
+      if (!giver.isDestroyed()) sayDone(out.facts);
       return;
     }
     const durationS = plan.durationMs / 1000;
@@ -246,12 +248,7 @@ export abstract class EngagedActController<
             MessageApi.scene(giver).topic(ACT_TOPIC).toSelf(words.onRefused(out)).send();
             return;
           }
-          const done = words.onDone?.(out.facts) ?? null;
-          if (done === null || (!done.self && !done.peers)) return;
-          const scene = MessageApi.scene(giver).topic(ACT_TOPIC);
-          if (done.self) scene.toSelf(done.self);
-          if (done.peers) scene.toPeers(done.peers);
-          scene.send();
+          sayDone(out.facts);
         })
         .catch((err: unknown) => {
           console.error('EngagedActController: a planned act failed at completion', err);

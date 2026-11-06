@@ -329,8 +329,10 @@ The three are provably disjoint (D17): `to` and `at` are `prepositionRequired`, 
 a line binds exactly one, and `lint:verb-collisions` proves it from the shapes.
 `throw ball ann` binds none and the all-shapes usage line answers it.
 ⭐ `Combatant.deliverThrown(item, target)` owns the arrival (the wound through
-`inflict`, the vessel's breakage by its own material); its `spatter` continuation
-runs the contents' landing, so the thrower reads *it shatters* before what that did.
+`inflict`), and what becomes of the thing is the thing's: `Tangible.landThrown`
+breaks it by its own material, and its `spatter` continuation runs the contents'
+landing, so the thrower reads *it shatters* before what that did. (`lint:combat-dynamics`
+keeps the vessel's physics out of `lib/combat/`.)
 
 **A potion only acts if its `route` is `contact`.** Throwing an `oral`
 draught wastes the flask — which is the rule that kills the

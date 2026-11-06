@@ -16,7 +16,6 @@ import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { ImpressFacts, ImpressRefusal } from '../../../../lib/craft/Impressible';
-import CarveController from './CarveController';
 
 type Composed = ReturnType<typeof Mml.compose>;
 
@@ -71,7 +70,7 @@ export default class ImpressController extends ManualBuildController<ImpressMode
       case 'fired':
       case 'too-soft':
       case 'too-dry':
-        return CarveController.greenWords(r, medium);
+        return ImpressController.greenWords(r, medium);
       case 'not-markable':
         return Mml.compose`There is nowhere on ${Mml.thing(medium)} a mark would mean anything.`;
       case 'no-mark':

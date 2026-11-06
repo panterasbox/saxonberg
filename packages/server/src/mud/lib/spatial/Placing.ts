@@ -252,7 +252,7 @@ export function PlacingMixin<TBase extends MixinConstructor>(Base: TBase) {
     public placements: string[] = ['on'];
 
     placementFor(word: string | undefined): PlacementChoice {
-      return PlacementOffers.of(this as unknown as Stuff).choose(word);
+      return new PlacementOffers(this as unknown as Stuff).choose(word);
     }
 
     getPlacements(): readonly string[] {

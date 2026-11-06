@@ -254,7 +254,7 @@ export function ManualBuildMixin<TBase extends MixinConstructor>(Base: TBase) {
           if (result.applied <= POUR_EPS) {
             return { ok: false, reason: "source-empty", facts: { source, target } };
           }
-          target.addContribution({
+          this.addContribution({
             // The material's authored tags are the vocabulary a recipe slot
             // matches on — never a keyword or the display name.
             tags: material ? [...material.getTags()] : [],
@@ -288,7 +288,7 @@ export function ManualBuildMixin<TBase extends MixinConstructor>(Base: TBase) {
             return { ok: false, reason: "ingredient-gone", facts: { source: ingredient, target } };
           }
           const count = MixinApi.isStackable(ingredient) ? ingredient.getQuantity() : 1;
-          target.addContribution({
+          this.addContribution({
             measureL: 0,
             gradeBand: MixinApi.isGraded(ingredient) ? ingredient.getGradeBand() : "fair",
             kind: "item",

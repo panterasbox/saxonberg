@@ -17,6 +17,7 @@
  * Not referenced by any YAML — a base class only.
  */
 
+import type { CarveRefusal } from "../../../../lib/craft/Carvable";
 import { CraftController } from "./CraftController";
 import type { CommandContext, CommandModel } from "../../../../api/command";
 import type { MqlManyResult } from "../../../../api/mql";
@@ -124,6 +125,30 @@ export abstract class ManualBuildController<
       reason: "start-rejected",
       detail: !result.ok && result.reason === "start-rejected" ? result.error.message : "",
     });
+  }
+
+  /**
+   * ⭐ The words for green ware at the wrong moment — `carve`'s and `impress`'s, whose
+   * targets refuse with the same four reasons.
+   */
+  protected static greenWords(
+    r: Extract<CarveRefusal, { reason: 'ruined' | 'fired' | 'too-soft' | 'too-dry' }>,
+    thing: Stuff,
+  ): Composed {
+    switch (r.reason) {
+      case 'ruined':
+        return Mml.compose`${Mml.thing(thing)} is ruined. It is still clay, though — put it back in a temper pit and tread it in again.`;
+      case 'fired':
+        return Mml.compose`${Mml.thing(thing)} has been fired hard. Nothing will ${r.facts.act} it now.`;
+      case 'too-soft':
+        return Mml.compose`${Mml.thing(thing)} is too soft to ${r.facts.act} — it would smear. Let it firm up to leather-hard.`;
+      case 'too-dry':
+        return Mml.compose`${Mml.thing(thing)} is bone-dry — it would crack. That is done at leather-hard.`;
+      default: {
+        const never: never = r;
+        return never;
+      }
+    }
   }
 
   /**

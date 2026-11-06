@@ -360,7 +360,7 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
     public openSlotFor(item: Stuff, word?: string): string | null {
       const host = this as unknown as Stuff & Slotted;
       if (MixinApi.isVitals(host) || !MixinApi.isSlottable(item)) return null;
-      if (!PlacementOffers.of(host).admitsSlot(word)) return null;
+      if (!new PlacementOffers(host).admitsSlot(word)) return null;
       for (const name of this.getSlotNames()) {
         if (this.isSlotFull(name)) continue;
         if (this.canOccupy(item, name)) return name;

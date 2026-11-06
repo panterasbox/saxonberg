@@ -95,7 +95,7 @@ export default class HarvestController extends EngagedActController<HarvestModel
   }
 
   /** What a refused harvest says. */
-  static refusalWords(r: HarvestRefusal): Composed {
+  protected static refusalWords(r: HarvestRefusal): Composed {
     const { subject, part, line, stageWord } = r.facts;
     const it: Stuff = subject ?? part!;
     switch (r.reason) {
@@ -133,7 +133,7 @@ export default class HarvestController extends EngagedActController<HarvestModel
   }
 
   /** What a swath's begin says. */
-  static beginWords(f: HarvestBegin, giver: Stuff): { self: Composed; peers: Composed } {
+  protected static beginWords(f: HarvestBegin, giver: Stuff): { self: Composed; peers: Composed } {
     return {
       self: f.tool
         ? Mml.compose`You bend to ${f.presentation} with ${Mml.thing(f.tool)} and cut.`
@@ -143,7 +143,7 @@ export default class HarvestController extends EngagedActController<HarvestModel
   }
 
   /** What a landed harvest says. */
-  static doneWords(f: HarvestDone, giver: Stuff): { self: Composed; peers: Composed } {
+  protected static doneWords(f: HarvestDone, giver: Stuff): { self: Composed; peers: Composed } {
     switch (f.kind) {
       case 'pick':
         return {

@@ -134,7 +134,7 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /** See {@link Container.placementFor}. */
     public placementFor(word: string | undefined): PlacementChoice {
-      return PlacementOffers.of(this as unknown as Stuff).choose(word);
+      return new PlacementOffers(this as unknown as Stuff).choose(word);
     }
 
     /**

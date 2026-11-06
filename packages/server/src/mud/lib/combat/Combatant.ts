@@ -40,7 +40,7 @@ import { LETHALITIES, STOP_CONDITIONS } from "./CombatTerms";
 import { StuffApi } from "../../api/stuff";
 import { BulkableApi } from "../../api/bulk";
 import { ConditionApi } from "../../api/condition";
-import { ContainmentApi } from "../../api/containment";
+import type { ThrownOutcome } from "../material/Tangible";
 import { MixinApi } from "../../api/mixin";
 import { CompetenceBand } from "../advancement/CompetenceBand";
 import type { MoraleBand } from "./Morale";
@@ -66,31 +66,13 @@ import { CombatLogic } from "../../platform/idea/api/CombatLogic";
  */
 const IMPACT_SITES = ["body.torso", "body.head", "body.arm.right"] as const;
 
-/** A spatter the shattered vessel left on somebody. */
-export type ThrownSpatter =
-  /** What a contact potion's effect reported, in its own words. */
-  | { kind: "report"; line: string }
-  /** A caustic spatter, beginning to eat. */
-  | { kind: "corrosion"; material: string; victim: Stuff };
-
-/**
- * What came of a throw at something (`Combatant.deliverThrown`).
- * `spatter` runs the contents' landing: the thrower reads *it shatters* first,
- * and what that did to whom after it, so the landing is the caller's to start.
- */
-export type ThrownOutcome =
-  | { arrived: "wide" }
-  | { arrived: "hit" }
-  | { arrived: "survived"; flawed: boolean }
-  | { arrived: "shattered"; spatter: () => Promise<readonly ThrownSpatter[]> };
-
 /** Public method surface for CombatantMixin. */
 export interface Combatant {
   /**
    * ⭐ Deliver `item` at `target` (controllers-are-io D10): the arrival (the
-   * delivery profile, one injury through `inflict`), whether the vessel breaks
-   * by ITS OWN material, and the contents' landing. A thing has mass and it
-   * arrives; that is true of a rock, a chair and a flask alike.
+   * delivery profile, one injury through `inflict`). A thing has mass and it
+   * arrives; that is true of a rock, a chair and a flask alike. What then
+   * becomes of the thing is its own (`Tangible.landThrown`).
    */
   deliverThrown(item: Stuff, target: Stuff): Promise<ThrownOutcome>;
   // The combatant face (G1) — forwards into CombatLogic.
@@ -602,7 +584,8 @@ export function CombatantMixin<TBase extends MixinConstructor>(Base: TBase) {
       // the inert floor rather than inventing a weight.
       const vessel = MixinApi.isTangible(item) ? item.getMaterial() : null;
       const massKg = MixinApi.isTangible(item) ? item.getMass().rawValue() : 0;
-      const plan = this.resolveThrown(
+      const plan = combatLogic().resolveThrown(
+        this as unknown as Stuff,
         target,
         {
           litres,
@@ -622,64 +605,9 @@ export function CombatantMixin<TBase extends MixinConstructor>(Base: TBase) {
       const spec = site === null ? null : plan.profile.toInflictSpec(site);
       if (spec !== null) ConditionApi.inflict(target, spec);
 
-      if (!plan.profile.canShatter()) return { arrived: "hit" };
-      // ⭐ (ceramics M5) Whether it breaks is the ONE breakage act: the throw's
-      // joules against its own strength and what it struck — a stoneware jug
-      // hurled at a wall breaks; one landing in hay does not.
-      if (MixinApi.isIntegrity(item)) {
-        const struck = MixinApi.isTangible(target) ? target.getMaterial() : null;
-        const flawedBefore = item.getFlaws().length;
-        const impact = { energyJ: plan.profile.energyJ, surface: struck, cause: "throw" as const };
-        if (item.impactVerdict(impact) !== "break") {
-          // It survives the arrival (perhaps cracked); it lands by the target.
-          const landing = MixinApi.isContainable(target) ? target.getContainer() : null;
-          if (landing !== null && MixinApi.isContainer(landing)) {
-            ContainmentApi.move(item as never, landing as never);
-          }
-          await item.sufferImpact(impact);
-          return { arrived: "survived", flawed: item.getFlaws().length > flawedBefore };
-        }
-      }
-      return {
-        arrived: "shattered",
-        spatter: async () => {
-          const out: ThrownSpatter[] = [];
-          for (const share of plan.shares) {
-            if (share.litres <= 0 || material === null) continue;
-            if (MixinApi.isPotable(material)) {
-              // ORIGIN is the victim: a contact payload acts at the point of
-              // impact, not from the hand that threw it. Without this the
-              // effect would measure its reach from the thrower and refuse
-              // across the gap it just crossed.
-              const reports = await material.dischargeInto(share.victim, share.litres, {
-                origin: share.victim,
-              });
-              for (const line of reports) out.push({ kind: "report", line });
-              continue;
-            }
-            // ⭐ A caustic vial that shatters on a body burns it — the
-            // substance-contact corrosion seam, delivered through the one
-            // injury door. A mundane splash answers `false` and nothing fires.
-            const burned = material.corrodeOnContact(share.victim, {
-              energy: Math.min(4, 1 + share.litres),
-            });
-            if (burned) {
-              out.push({ kind: "corrosion", material: material.getName(), victim: share.victim });
-            }
-          }
-          // Whatever is left pools on the real floor, through the shipped
-          // spill path — the same one `pour` uses.
-          if (plan.spilled > 0 && slot !== null) {
-            const floor = BulkableApi.floorSurfaceNear(target);
-            if (floor !== null) {
-              BulkableApi.transfer(slot, floor, { kind: "quantity", litres: plan.spilled } as never);
-            }
-          }
-          // The vessel is gone — it broke.
-          await StuffApi.destruct(item);
-          return out;
-        },
-      };
+      // ⭐ What becomes of the thing is the thing's: no dynamics here.
+      if (!plan.profile.canShatter() || !MixinApi.isTangible(item)) return { arrived: "hit" };
+      return item.landThrown(target, plan);
     }
 
     public resolveThrown(

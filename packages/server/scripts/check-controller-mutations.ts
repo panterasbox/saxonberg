@@ -35,7 +35,7 @@ import { pathToFileURL } from "url";
 import ts from "typescript";
 import { controllerFiles, parseTs, ratchet } from "./pack-roots";
 
-export const CONTROLLER_MUTATIONS_CEILING = 343; // W4: the cuts' mutations moved to their hosts. // W7: +2 — the four shipped `*ControllerBase.ts` modules, invisible until the enumerator read the suffix (a measurement correction, not growth).
+export const CONTROLLER_MUTATIONS_CEILING = 318; // W5: the kernel acts moved onto their objects
 
 /** Mutator-shaped method names: one of these prefixes, then an uppercase letter. */
 const MUTATOR =

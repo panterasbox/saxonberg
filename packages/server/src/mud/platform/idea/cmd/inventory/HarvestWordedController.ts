@@ -19,18 +19,18 @@ import HarvestController from './HarvestController';
 type Composed = ReturnType<typeof Mml.compose>;
 
 export default class HarvestWordedController extends HarvestController {
-  static override refusalWords(r: HarvestRefusal): Composed {
+  protected static override refusalWords(r: HarvestRefusal): Composed {
     return Mml.compose`The harvest will not go that way (${r.reason}).`;
   }
 
-  static override beginWords(f: HarvestBegin, giver: Stuff): { self: Composed; peers: Composed } {
+  protected static override beginWords(f: HarvestBegin, giver: Stuff): { self: Composed; peers: Composed } {
     return {
       self: Mml.compose`You set to ${f.presentation}, working down the row.`,
       peers: Mml.compose`${Mml.actor(giver)} sets to ${f.presentation}.`,
     };
   }
 
-  static override doneWords(f: HarvestDone, giver: Stuff): { self: Composed; peers: Composed } {
+  protected static override doneWords(f: HarvestDone, giver: Stuff): { self: Composed; peers: Composed } {
     const n = f.kind === 'swath' ? f.crops.length : f.kind === 'pick' ? f.count : 1;
     return {
       self: Mml.compose`The harvest comes in from ${f.presentation}: ${String(n)} to the good.`,

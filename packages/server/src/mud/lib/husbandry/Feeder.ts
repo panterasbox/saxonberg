@@ -149,8 +149,9 @@ export function FeederMixin<TBase extends MixinConstructor<Stuff>>(
      * rule, and no verb has to remember it (controllers-are-io D11).
      */
     public onContainableAdded(thing: Stuff & Containable, from?: Stuff | null): void {
-      (Base.prototype as { onContainableAdded?: (t: unknown, f?: unknown) => void })
-        .onContainableAdded?.call(this, thing, from);
+      const beneath = (Base.prototype as { onContainableAdded?: (t: unknown, f?: unknown) => void })
+        .onContainableAdded;
+      if (beneath) beneath.call(this, thing, from);
       if (from && from.isAgent() && MixinApi.isTangible(thing) && thing.isEdible()) {
         this.noteFilledBy(from);
       }
