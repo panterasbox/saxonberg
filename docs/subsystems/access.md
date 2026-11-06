@@ -464,7 +464,7 @@ tree mode, etc.) we revisit.
 | `DestructController` | Zone target: `canMutateZone(giver, target)`. Else non-force: `can(giver, 'destruct', target)`; force: `can(giver, 'force-destruct', target)`. |
 | `TeleportController` (the **tpa pack**'s) | `heldExtents(giver)` — from and to both inside ONE held extent, which makes the hop free (D11). No other-subject arm: relocating an object moved to `goto --subject` (TPA reform P13). |
 | `GotoController` | non-force: `can(giver, 'goto', dest)`; force: `can(giver, 'force-goto', dest)`. With `--subject`: `can(giver, 'teleport'`/`'force-teleport', subject)` — the authority is over the OBJECT, not the destination. |
-| `SoulController` | `canAtPath(giver, 'write-document', '/expression/emotes/<verb>')` — the soul committee's title ([emotes.md](./emotes.md)). |
+| the mutating `soul` controllers (`SoulControllerBase.refuseUnlessCommittee`) | `canAtPath(giver, 'write-document', '/expression/emotes/<verb>')` — the soul committee's title ([emotes.md](./emotes.md)). |
 | `BroadcastController` | `canAtPath(giver, 'broadcast', extent)` for `--at <extent>`; a non-holder's refusal lists `heldExtents(giver)`. |
 | `PackController` | `requiresPackInstaller` (validator) — `canAtPath(giver, 'install', '/compact/executive')`. |
 | `EvalController` | `requiresWizard` (validator) — `isWizard(giver)`; no slice (typing code is authoring TypeScript — one of the two places the axis is asked). |

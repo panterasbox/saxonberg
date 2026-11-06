@@ -1,5 +1,5 @@
 /**
- * SoulController — the author face over the emote catalogue: `soul
+ * The `soul` controllers (one per subcommand) — the author face over the emote catalogue: `soul
  * search <term>` renders what `SoulApi.search` finds; `soul edit <verb>
  * searchTerms <list>` patches `searchTerms` (the field that replaced
  * `aliases`); `soul show` prints `search terms:`.
@@ -7,7 +7,12 @@
 
 import '../../../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import SoulController from '../SoulController';
+import SoulDisableController from '../SoulDisableController';
+import SoulEditController from '../SoulEditController';
+import SoulEnableController from '../SoulEnableController';
+import SoulListController from '../SoulListController';
+import SoulSearchController from '../SoulSearchController';
+import SoulShowController from '../SoulShowController';
 import { SoulApi } from '../../../../../api/soul';
 import { MessageApi } from '../../../../../api/message';
 import { AccessApi } from '../../../../../api/access';
@@ -64,10 +69,10 @@ beforeEach(() => {
 });
 afterEach(() => vi.restoreAllMocks());
 
-describe('SoulController', () => {
+describe('soul — one controller per subcommand', () => {
   it('soul search <term> lists what the catalogue search finds', async () => {
     const search = vi.spyOn(SoulApi, 'search').mockResolvedValue([emote('greet', ['hi'])]);
-    await makeStuff(() => new SoulController()).execute({ subcommand: 'search', verb: 'hi' } as never, ctx());
+    await makeStuff(() => new SoulSearchController()).execute({ subcommand: 'search', verb: 'hi' } as never, ctx());
     expect(search).toHaveBeenCalledWith('hi');
     expect(captured).toContain("'hi' finds (1)");
     expect(captured).toContain('greet');
@@ -75,13 +80,13 @@ describe('SoulController', () => {
 
   it('soul search reports an empty result honestly', async () => {
     vi.spyOn(SoulApi, 'search').mockResolvedValue([]);
-    await makeStuff(() => new SoulController()).execute({ subcommand: 'search', verb: 'zzz' } as never, ctx());
+    await makeStuff(() => new SoulSearchController()).execute({ subcommand: 'search', verb: 'zzz' } as never, ctx());
     expect(captured).toContain("No emote matches 'zzz'");
   });
 
   it('soul edit <verb> searchTerms <list> patches searchTerms', async () => {
     const edit = vi.spyOn(SoulApi, 'edit').mockResolvedValue(emote('greet', ['hi', 'hello']));
-    await makeStuff(() => new SoulController()).execute(
+    await makeStuff(() => new SoulEditController()).execute(
       { subcommand: 'edit', verb: 'greet', field: 'searchTerms', value: '[hi, hello]' } as never,
       ctx(),
     );
@@ -91,7 +96,7 @@ describe('SoulController', () => {
 
   it('soul edit rejects the retired aliases field', async () => {
     const c = ctx();
-    await makeStuff(() => new SoulController()).execute(
+    await makeStuff(() => new SoulEditController()).execute(
       { subcommand: 'edit', verb: 'greet', field: 'aliases', value: '[hi]' } as never,
       c,
     );
@@ -100,24 +105,24 @@ describe('SoulController', () => {
 
   it('a committee member disables and enables; a non-member is refused the mutations; anyone lists', async () => {
     const set = vi.spyOn(SoulApi, 'setDisabled').mockResolvedValue(true);
-    await makeStuff(() => new SoulController()).execute({ subcommand: 'disable', verb: 'wave' } as never, ctx());
+    await makeStuff(() => new SoulDisableController()).execute({ subcommand: 'disable', verb: 'wave' } as never, ctx());
     expect(set).toHaveBeenCalledWith('wave', true);
     expect(captured).toContain("Disabled emote 'wave'");
-    await makeStuff(() => new SoulController()).execute({ subcommand: 'enable', verb: 'wave' } as never, ctx());
+    await makeStuff(() => new SoulEnableController()).execute({ subcommand: 'enable', verb: 'wave' } as never, ctx());
     expect(set).toHaveBeenLastCalledWith('wave', false);
 
     const c = ctxAs('nobody');
-    await makeStuff(() => new SoulController()).execute({ subcommand: 'disable', verb: 'nod' } as never, c);
+    await makeStuff(() => new SoulDisableController()).execute({ subcommand: 'disable', verb: 'nod' } as never, c);
     expect(c.note).toHaveBeenCalledWith(expect.objectContaining({ reason: 'not-soul-committee' }));
     expect(captured).toContain('soul committee holds the emote catalogue');
     expect(set).toHaveBeenCalledTimes(2);
     const c2 = ctxAs('nobody');
-    await makeStuff(() => new SoulController()).execute({ subcommand: 'edit', verb: 'nod', field: 'emoji', value: '👋' } as never, c2);
+    await makeStuff(() => new SoulEditController()).execute({ subcommand: 'edit', verb: 'nod', field: 'emoji', value: '👋' } as never, c2);
     expect(c2.note).toHaveBeenCalledWith(expect.objectContaining({ reason: 'not-soul-committee' }));
 
     vi.spyOn(SoulApi, 'all').mockResolvedValue([emote('greet')]);
     const c3 = ctxAs('nobody');
-    await makeStuff(() => new SoulController()).execute({ subcommand: 'list' } as never, c3);
+    await makeStuff(() => new SoulListController()).execute({ subcommand: 'list' } as never, c3);
     expect(c3.note).not.toHaveBeenCalled();
     expect(captured).toContain('Catalog (1)');
   });
@@ -126,13 +131,13 @@ describe('SoulController', () => {
     const e = emote('greet', ['hi', 'hello']);
     e.disabled = true;
     vi.spyOn(SoulApi, 'resolveAny').mockResolvedValue(e);
-    await makeStuff(() => new SoulController()).execute({ subcommand: 'show', verb: 'greet' } as never, ctx());
+    await makeStuff(() => new SoulShowController()).execute({ subcommand: 'show', verb: 'greet' } as never, ctx());
     expect(captured).toContain('(disabled)');
   });
 
   it('soul show prints the search terms', async () => {
     vi.spyOn(SoulApi, 'resolveAny').mockResolvedValue(emote('greet', ['hi', 'hello']));
-    await makeStuff(() => new SoulController()).execute({ subcommand: 'show', verb: 'greet' } as never, ctx());
+    await makeStuff(() => new SoulShowController()).execute({ subcommand: 'show', verb: 'greet' } as never, ctx());
     expect(captured).toContain('search terms: hi, hello');
     expect(captured).not.toContain('aliases');
   });
