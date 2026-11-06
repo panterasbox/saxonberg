@@ -7,7 +7,7 @@
  *
  * ⭐ The minting walk — class resolution, the `Behaved` designation gate,
  * singletons, `count:`, placement keys — is ONE static,
- * `Template.stageEntries`, beside the `by-entry` merge that reads the same
+ * `Template._stageEntries`, beside the `by-entry` merge that reads the same
  * entries; the cast half calls it with `'cast'`.
  */
 
@@ -93,7 +93,7 @@ export function PropsMixin<
       if (!Array.isArray(specs)) return;
       if (this._propsStaged) return;
       const { Template } = await import('./Template');
-      await Template.stageEntries(
+      await Template._stageEntries(
         this as unknown as Stuff & Container,
         specs,
         'props',

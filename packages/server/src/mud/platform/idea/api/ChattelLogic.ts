@@ -305,10 +305,14 @@ export class ChattelLogic extends ApiLogic {
    * made from nobody's materials with nobody there — as it always was.
    */
   private derivedTitle(item: Stuff, to: Stuff | null): ChattelOwner | null {
-    const good = item as Stuff & Chattel;
-    const made = good.getMadeFromOwner();
-    if (made) return made;
-    if (good.isMadeByProcess()) return null;
+    // ⭐ Only a MADE thing has inputs to inherit a title from — an animal
+    // arriving is never "made" (controllers-are-io D6: narrowed, where it
+    // used to reach every chattel).
+    if (MixinApi.isMadeFrom(item)) {
+      const made = item.getMadeFromOwner();
+      if (made) return made;
+      if (item.isMadeByProcess()) return null;
+    }
     if (to !== null && to.isAgent()) return ownerKeyOf(to);
     if (ExecutionContextApi.getCommandStack().length > 0) {
       const actor = ExecutionContextApi.getActingAuthor() as Stuff | null;
@@ -347,7 +351,11 @@ export class ChattelLogic extends ApiLogic {
       // A good made a moment ago is not titled until it lands — what it
       // was itself made from stands in for it (a press's residue cake is
       // made from what its output was).
-      const owner = id ? reg.ownerOf(id) : good.getMadeFromOwner();
+      const owner = id
+        ? reg.ownerOf(id)
+        : MixinApi.isMadeFrom(input)
+          ? input.getMadeFromOwner()
+          : null;
       if (!owner || owner.kind === "group") continue;
       agreed = agreed.with(owner);
     }

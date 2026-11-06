@@ -104,7 +104,7 @@ export function CostumedMixin<TBase extends MixinConstructor<Stuff>>(
       const paths: string[] = [];
       const seenKeys = new Set<string>();
       for (const spec of specs) {
-        const path = Template.entryTemplate(spec);
+        const path = Template._entryTemplate(spec);
         if (path === null) continue;
         if ((spec as { count?: unknown })?.count !== undefined) {
           throw new Error(

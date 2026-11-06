@@ -61,6 +61,15 @@ see [spatial.md](./spatial.md) for the move's full sequence. A hand
 `stampChattel` remains only where title is a decision, not a derivation
 (a sale, a consignment, naming an animal).
 
+⭐ **The made-from half is `MadeFromMixin`'s** (controllers-are-io D6,
+`lib/chattel/MadeFrom.ts`): `recordMadeFrom` / `getMadeFromOwner` /
+`recordMadeBy` / `isMadeByProcess` compose on **`Good` and `Vessel`
+only** — a made thing may carry its inputs' owner, and an animal is not
+made (ranching writes SERVED). The title half keeps `ChattelMixin`, its
+file and every `requires: [ChattelMixin]`; the derived title and
+`ownerOfInputs` narrow on `MixinApi.isMadeFrom`, so an arriving animal no
+longer reads a made-from slot it never had.
+
 #### ⭐⭐ Who acted, when it happens later — and the communal oven (potash build)
 
 Two cases the rungs above could not answer, both found by the potash drive

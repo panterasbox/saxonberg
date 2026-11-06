@@ -501,9 +501,10 @@ export abstract class Template extends Document {
    * The template path one designation-list entry (`props:` · `cast:` ·
    * `costume:`) names, whichever form it is written in — a bare path or
    * `{ template, … }` — or `null` for an empty one. The entry's IDENTITY
-   * (for the `by-entry` merge) is `entryKey`'s, beside it.
+   * (for the `by-entry` merge) is `entryKey`'s, beside it. `_`-prefixed:
+   * a framework seam of the designation appliers, never author surface.
    */
-  static entryTemplate(entry: unknown): string | null {
+  static _entryTemplate(entry: unknown): string | null {
     if (typeof entry === 'string') return entry.length > 0 ? entry : null;
     const t = (entry as { template?: unknown } | null)?.template;
     return typeof t === 'string' && t.length > 0 ? t : null;
@@ -511,14 +512,15 @@ export abstract class Template extends Document {
 
   /**
    * @internal The shared minting walk of `props:` and `cast:` (the props
-   * half's `PropsMixin.applyProps`, the troupe's `StagedMixin.applyCast`). Class resolution goes through
+   * half's `PropsMixin.applyProps`, the troupe's `StagedMixin.applyCast`).
+   * `_`-prefixed: a framework seam of those appliers, never author surface. Class resolution goes through
    * `StuffApi.loadClassByPath` — the existing public class-loading
    * Api surface — which is also where the designation gate sits:
    * the class is checked against `Mixins.Behaved` BEFORE anything is
    * cloned, so a mis-filed entry never leaves a half-minted NPC
    * behind.
    */
-  static async stageEntries(
+  static async _stageEntries(
     host: Stuff & Container,
     specs: readonly PropSpec[],
     kind: 'props' | 'cast',
@@ -534,7 +536,7 @@ export abstract class Template extends Document {
     // rule cannot say which one a child is replacing.
     const seenKeys = new Set<string>();
     for (const spec of specs) {
-      const path = Template.entryTemplate(spec);
+      const path = Template._entryTemplate(spec);
       if (path === null) continue;
       const placement =
         typeof spec === 'string' ? null : placementKeyOf(spec, path);

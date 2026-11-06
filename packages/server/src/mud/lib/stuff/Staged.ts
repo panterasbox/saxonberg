@@ -140,7 +140,7 @@ export interface Staged extends Propped {
  * `never` (re-measured at controllers-are-io). Over an `NPC` (the loadout
  * classes, `CastMixin(StagedMixin(NPC))`) its `applyProps` simply
  * overrides the props half's: one field, one once-flag, one walk
- * (`Template.stageEntries`).
+ * (`Template._stageEntries`).
  */
 export function StagedMixin<
   TBase extends MixinConstructor<Stuff & Container>,
@@ -163,7 +163,7 @@ export function StagedMixin<
       if (!Array.isArray(specs)) return;
       if (this._propsStaged) return;
       const { Template } = await import('./Template');
-      await Template.stageEntries(
+      await Template._stageEntries(
         this as unknown as Stuff & Container,
         specs,
         'props',
@@ -181,7 +181,7 @@ export function StagedMixin<
       if (!Array.isArray(specs)) return;
       if (this._castStaged) return;
       const { Template } = await import('./Template');
-      await Template.stageEntries(
+      await Template._stageEntries(
         this as unknown as Stuff & Container,
         specs,
         'cast',

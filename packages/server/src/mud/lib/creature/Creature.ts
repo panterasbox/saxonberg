@@ -53,6 +53,8 @@ import { MixinApi } from '../../api/mixin';
 import { ReservedMixin, Reserve } from '../reserve/Reserved';
 import { LoadBearingMixin } from '../encumbrance/LoadBearing';
 import { MetabolicMixin } from '../metabolism/Metabolic';
+import { EatingMixin } from '../metabolism/Eating';
+import { BuoyantMixin } from '../encumbrance/Buoyant';
 import { ThermalMixin } from '../thermal/Thermal';
 import { ThermalRegulationMixin } from '../thermal/ThermalRegulation';
 import { ExertingMixin } from '../exertion/Exerting';
@@ -150,6 +152,8 @@ import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
 // (Soilable), so it sits outside both — and clothing knows nothing of dirt.
 const CreatureBase = HygieneMixin(PostmortemMixin(
   ConcealableMixin(
+  // ⭐ Buoyancy beside the burden (controllers-are-io D6 co-use split).
+  BuoyantMixin(
   LoadBearingMixin(
     ContainerMixin(
     ContainableMixin(
@@ -179,6 +183,8 @@ const CreatureBase = HygieneMixin(PostmortemMixin(
           ThermalRegulationMixin(
             ThermalMixin(
               RespirationMixin(
+                // ⭐ The act of eating, carved off digestion (controllers-are-io D6).
+                EatingMixin(
                 MetabolicMixin(
                   // ⭐ Dirt by kind, per body part (cleanliness D4): every
                   // body that wears things can be dirty where it was
@@ -214,7 +220,7 @@ const CreatureBase = HygieneMixin(PostmortemMixin(
                       )
                     )
                   )
-                )
+                ))
               )
             )
           )
@@ -224,7 +230,7 @@ const CreatureBase = HygieneMixin(PostmortemMixin(
       )
     )
   )
-  )
+  ))
   )
 ));
 

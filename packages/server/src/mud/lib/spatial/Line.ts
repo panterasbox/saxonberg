@@ -423,7 +423,7 @@ export default class Line extends PullableMixin(TossableMixin(GoodBase)) {
     // ⭐ Out of the water, the water gives them up (river D22, review): its
     // hold on them — a strainer, a jammed foot — lets go, as it does for a
     // hand. A line and a hand land the same way.
-    if (out && MixinApi.isWaterPlace(where)) where.deliverOut(diver, next);
+    if (out && MixinApi.isHaulOut(where)) where.deliverOut(diver, next);
     else ContainmentApi.move(diver, next);
     for (const bag of bags) ContainmentApi.move(bag as never, next);
     this._end?.followLoad();

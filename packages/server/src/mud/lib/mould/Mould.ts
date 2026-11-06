@@ -1165,7 +1165,7 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
           cast.addFlaw('shrinkage', true, nowS);
         }
       }
-      if (MixinApi.isChattel(cast)) {
+      if (MixinApi.isMadeFrom(cast)) {
         cast.recordMadeBy(pool.madeBy !== undefined ? pool.madeBy : (pool.payload?.contentsOwner ?? null));
       }
 

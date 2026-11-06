@@ -332,7 +332,7 @@ from the moment they take hold of it — that is what makes a dry hole
 expensive. A press office's appointee starts nothing by being appointed.
 Both are true and they are not the same claim.
 
-It lives on the **chart**, beside `positions` / `rosterSlots` / `call`,
+It lives on the **chart**, beside `positions` / `rosterSlots`,
 because it is a claim about *this house's hiring* — not a trade
 mechanism. Any house that hires hands who cannot clock themselves on can
 set it.
@@ -693,6 +693,16 @@ rule.
 ⚠ The method is **`callFor(request)`**, not `call(request)` — `call` is the
 authored field and a field and a method cannot share a name. The field is
 the rule; the method is the act.
+
+⭐ **The call is `OnCallMixin`'s, not the chart's** (controllers-are-io D6,
+`lib/employment/OnCall.ts`). It shipped on `OrganizationMixin`, which
+claimed *every organization answers who comes over* — and a government, a
+registry or a press office answers nobody; all 37 authored `call:` rows are
+businesses. So the chart keeps its name and file, and `OnCallMixin`
+composes on the concrete Business only (`MixinApi.isOnCall`); the maker
+resolution narrows its house on `isBusiness`. A watch that one day has two
+clerks to choose between composes `OnCallMixin` without becoming a
+Business. The persisted field is still `call`.
 
 ### Being called breaks off what you were doing
 

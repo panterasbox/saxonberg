@@ -115,6 +115,8 @@ import type { Reserved } from '../lib/reserve/Reserved';
 import type { Producing } from '../lib/husbandry/Producing';
 import type { LoadBearing } from '../lib/encumbrance/LoadBearing';
 import type { Metabolic } from '../lib/metabolism/Metabolic';
+import type { Eating } from '../lib/metabolism/Eating';
+import type { Buoyant } from '../lib/encumbrance/Buoyant';
 import type { Exerting } from '../lib/exertion/Exerting';
 import type { Thermal } from '../lib/thermal/Thermal';
 import type { Launcher } from '../lib/combat/Launcher';
@@ -192,6 +194,7 @@ import type { Floor } from '../lib/ground/Floor';
 import type { GroundSource } from '../lib/ground/GroundSource';
 import type { Shore } from '../lib/location/Shore';
 import type { WaterPlace } from '../lib/location/WaterPlace';
+import type { HaulOut } from '../lib/location/HaulOut';
 import type { WaterColumn } from '../lib/location/WaterColumn';
 import type { Pullable } from '../lib/spatial/Pullable';
 import type { Tossable } from '../lib/spatial/Tossable';
@@ -209,6 +212,7 @@ import type { Spawner } from '../lib/stuff/Spawner';
 import type { Spawned } from '../lib/stuff/Spawned';
 import type { Stackable } from '../lib/stuff/Stackable';
 import type { Chattel } from '../lib/chattel/Chattel';
+import type { MadeFrom } from '../lib/chattel/MadeFrom';
 import type { Estate } from '../lib/chattel/Estate';
 import type { Resettable } from '../lib/residency/Resettable';
 import type { ConsignmentShelf } from '../lib/retail/ConsignmentShelf';
@@ -261,6 +265,7 @@ import type { PricedOffer } from '../lib/commerce/PricedOffer';
 import type { DonationBank } from '../lib/commerce/DonationBank';
 import type { Business } from '../platform/idea/Business';
 import type { Organization } from '../lib/employment/Organization';
+import type { OnCall } from '../lib/employment/OnCall';
 import type { CapTable } from '../lib/employment/CapTable';
 import type { Publisher } from '../lib/press/Publisher';
 import type { Registrar } from '../lib/document/Registrar';
@@ -1523,6 +1528,16 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.LoadBearing);
   }
 
+  /** ⭐ A body the water can float or sink (`BuoyantMixin`). */
+  public static isBuoyant(obj: Stuff): obj is Stuff & Buoyant {
+    return this.hasMixin(obj, Mixins.Buoyant);
+  }
+
+  /** ⭐ A body that eats (`EatingMixin`) — what the `eat` verb asks. */
+  public static isEating(obj: Stuff): obj is Stuff & Eating {
+    return this.hasMixin(obj, Mixins.Eating);
+  }
+
   public static isMetabolic(obj: Stuff): obj is Stuff & Metabolic {
     return this.hasMixin(obj, Mixins.Metabolic);
   }
@@ -1966,6 +1981,14 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.WaterPlace);
   }
 
+  /**
+   * ⭐ A water you can get something out of by hand (`HaulOutMixin`) —
+   * what `pull` asks and a line's landing uses.
+   */
+  public static isHaulOut(obj: Stuff): obj is Stuff & HaulOut {
+    return this.hasMixin(obj, Mixins.HaulOut);
+  }
+
   /** The Idea that grows a column under a deep water (the water pack's). */
   public static isWaterColumn(obj: Stuff): obj is Stuff & WaterColumn {
     return this.hasMixin(obj, Mixins.WaterColumn);
@@ -2035,6 +2058,14 @@ export class MixinApi {
 
   public static isStackable(obj: Stuff): obj is Stuff & Stackable {
     return this.hasMixin(obj, Mixins.Stackable);
+  }
+
+  /**
+   * ⭐ A made good that knows whose its inputs were (`MadeFromMixin`) —
+   * `Good` and `Vessel`; never an animal.
+   */
+  public static isMadeFrom(obj: Stuff): obj is Stuff & MadeFrom {
+    return this.hasMixin(obj, Mixins.MadeFrom);
   }
 
   /** A movable good carrying a durable per-instance chattel identity. */
@@ -2330,6 +2361,14 @@ export class MixinApi {
    */
   public static isCapTable(obj: Stuff): obj is Stuff & CapTable {
     return this.hasMixin(obj, Mixins.CapTable);
+  }
+
+  /**
+   * A house with a call rule — *who among the able comes over*
+   * (`OnCallMixin`). Every Business is one; a government is not.
+   */
+  public static isOnCall(obj: Stuff): obj is Stuff & OnCall {
+    return this.hasMixin(obj, Mixins.OnCall);
   }
 
   /** A standalone employing Business (the `BusinessMixin` marker). */

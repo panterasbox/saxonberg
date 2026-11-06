@@ -280,7 +280,10 @@ Each refusal is in the words of the thing that failed.
 
 ## ⭐ Buoyancy, weight and load in the water
 
-`LoadBearing.getDisplacedVolumeM3(depthM)` sums the body (mass over its
+⭐ The displacement half is `BuoyantMixin`'s (`lib/encumbrance/Buoyant.ts`,
+carved off `LoadBearing` at controllers-are-io D6 — every creature composes
+both; the breath model and `canRise` narrow on `MixinApi.isBuoyant`).
+`Buoyant.getDisplacedVolumeM3(depthM)` sums the body (mass over its
 body density), **the air in its lungs squeezed by the water over it**
 (`getLungAirL() / (1 + depth/10)` — exhale and you sink, inhale and you
 float), and every carried and worn thing by its material.
@@ -356,6 +359,11 @@ NPCs keep the physics. The general disconnection rule is
 physiology-slate's.
 
 ## Rescue
+
+⭐ Getting something out of a water by hand — `pullOut`, `loadNamed`,
+`deliverOut` — is `HaulOutMixin`'s (`lib/location/HaulOut.ts`), carved off
+`WaterPlaceMixin` at controllers-are-io D6. Every water place composes both
+(a co-use split); `pull` and a line's landing narrow on `MixinApi.isHaulOut`.
 
 - **A line.** `throw <line> to <person>` puts the free end in their hands
   and holds a body in the water up while it is held. `pull line` brings

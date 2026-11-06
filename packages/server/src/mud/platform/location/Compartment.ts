@@ -49,6 +49,7 @@ import Location from './Location';
 import { ShoreMixin } from '../../lib/location/Shore';
 import { SwimmableMixin } from '../../lib/locomotion/Swimmable';
 import { WaterPlaceMixin, type WaterState } from '../../lib/location/WaterPlace';
+import { HaulOutMixin } from '../../lib/location/HaulOut';
 import { WarrenMemberMixin } from '../../lib/location/WarrenMember';
 import { MixinApi } from '../../api/mixin';
 import { AppApi } from '../../api/app';
@@ -75,9 +76,9 @@ const floodAugmenter: MarkupAugmenter = (text, host, _viewer, opts) => {
   return text && text.length > 0 ? `${text}\n\n${line}` : line;
 };
 
-export default class Compartment extends WaterPlaceMixin(
+export default class Compartment extends HaulOutMixin(WaterPlaceMixin(
   SwimmableMixin(ShoreMixin(WarrenMemberMixin(Location))),
-) {
+)) {
   static fieldMeta: FieldMeta = {
     floorM: { persistent: true, authorable: true },
   };

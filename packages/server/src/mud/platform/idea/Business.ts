@@ -43,6 +43,7 @@ import {
 import { ParLine, type ParLineData } from '../../lib/employment/ParLine';
 import type { ContractRecord } from '../../lib/employment/ContractRecord';
 import { PublisherMixin } from '../../lib/press/Publisher';
+import { OnCallMixin, type OnCall } from '../../lib/employment/OnCall';
 
 /**
  * The trading half of the surface — what a Business adds to the chart
@@ -144,7 +145,7 @@ export interface BusinessTrade {
  * declares its own half — the chart half arrives on the base, which the
  * factory's constraint requires.
  */
-export interface Business extends Organization, BusinessTrade {}
+export interface Business extends Organization, BusinessTrade, OnCall {}
 
 /**
  * ⚠ The base must already carry {@link OrganizationMixin} — a Business is
@@ -394,7 +395,7 @@ export function BusinessMixin<
  * class into a recursive base type).
  */
 class BusinessEntity extends BusinessMixin(
-  PublisherMixin(OrganizationMixin(Idea)),
+  OnCallMixin(PublisherMixin(OrganizationMixin(Idea))),
 ) {
   /** Singleton refusal (mirrors the catalogue singletons). */
   public canDestruct(): VetoResult {

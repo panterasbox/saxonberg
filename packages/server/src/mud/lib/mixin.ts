@@ -411,6 +411,9 @@ export const Mixins = {
   // unspoofable ownership is stamped against (the parcel-title twin).
   // Composed at the Thing tier; refused on fungible stacks (Stackable).
   Chattel: 'ChattelMixin',
+  // ⭐ Whose a MADE thing is, from what it was made of — carved off the
+  // title at controllers-are-io: a good is made, a cow is not.
+  MadeFrom: 'MadeFromMixin',
   // Estate — owner-based persistence: the goods a principal holds title to,
   // wherever they sit. The counterpart to the Container slice's skip rule.
   Estate: 'EstateMixin',
@@ -470,6 +473,9 @@ export const Mixins = {
   // `Pool` and the water pack's column bands; never on a bank or a quay,
   // which are BESIDE water.
   WaterPlace: 'WaterPlaceMixin',
+  // ⭐ Getting something out of a water by hand (`pull`) — carved off the
+  // water at controllers-are-io; every water place composes both.
+  HaulOut: 'HaulOutMixin',
   // *This Idea grows the column under a deep water* — the seam the water
   // pack's `ColumnWarren` implements (the WaterSource shape).
   WaterColumn: 'WaterColumnMixin',
@@ -524,12 +530,17 @@ export const Mixins = {
   // see it. Pairing decides who drives it. See docs/subsystems/display.md.
   Display: 'DisplayMixin',
   LoadBearing: 'LoadBearingMixin',
+  // ⭐ What the water makes of a body (displacement, net buoyancy) —
+  // carved off the burden at controllers-are-io.
+  Buoyant: 'BuoyantMixin',
   BeliefStore: 'BeliefStoreMixin',
   Disguisable: 'DisguisableMixin',
   DisguiseBearing: 'DisguiseBearingMixin',
   Status: 'StatusMixin',
   Identifiable: 'IdentifiableMixin',
   Metabolic: 'MetabolicMixin',
+  // ⭐ The act of eating (`eat`), carved off digestion at controllers-are-io.
+  Eating: 'EatingMixin',
   NutritionLabel: 'NutritionLabelMixin',
   // The derived taste reading, projected through the taster's own
   // competence in the discipline that MADE the thing.
@@ -689,6 +700,10 @@ export const Mixins = {
   // augments). A ministry is an organization that does not trade.
   Organization: 'OrganizationMixin',
   Business: 'BusinessMixin',
+  // ⭐ *Who comes over* — the house's call rule (`call: regulars | rota`),
+  // carved off the chart at controllers-are-io: a business answers it, a
+  // government does not.
+  OnCall: 'OnCallMixin',
   // ⭐ A table of owners and their units — who holds a business, and so
   // who appoints its managing position (the institutions slate's cap
   // table; ships are its first consumer).

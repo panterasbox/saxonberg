@@ -23,7 +23,7 @@ import {
 } from '../../../lib/butchery/Texture';
 import { RecipeKnowledge } from '../../../lib/craft/RecipeKnowledge';
 import { Competence } from '../../../lib/advancement/Competence';
-import type { Organization } from '../../../lib/employment/Organization';
+import type { Business } from '../Business';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
 import {
@@ -369,12 +369,16 @@ function presentFulfillers(giver: Stuff, discipline?: string): Stuff[] {
   return [];
 }
 
-/** The house a fulfilling candidate is on shift for, or null. */
-function houseOf(candidate: Stuff): (Stuff & Organization) | null {
+/**
+ * The house a fulfilling candidate is on shift for, or null. ⭐ Narrowed on
+ * `isBusiness`, not `isOrganization`: the call rule (`OnCallMixin`) is a
+ * business's, and an organization that does not trade calls nobody.
+ */
+function houseOf(candidate: Stuff): (Stuff & Business) | null {
   if (!MixinApi.isEmployed(candidate)) return null;
   for (const e of candidate.getActiveEmployments()) {
     const org = StuffApi.findByTemplatePath(e.organizationPath);
-    if (org && MixinApi.isOrganization(org)) return org;
+    if (org && MixinApi.isBusiness(org)) return org;
   }
   return null;
 }
@@ -435,7 +439,7 @@ async function resolveMaker(
   if (houses.size > 1) {
     return { ok: false, reason: 'ambiguous-house' };
   }
-  const house = [...houses][0] as unknown as Stuff & Organization;
+  const house = [...houses][0] as unknown as Stuff & Business;
   const verdict = house.callFor({ patron: giver, candidates: able });
   if (!verdict.ok) {
     return {

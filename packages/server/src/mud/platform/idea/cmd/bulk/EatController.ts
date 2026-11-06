@@ -39,18 +39,17 @@ export default class EatController extends CommandController<EatModel> {
       context.note({ kind: "empty-result", field: "target", query: model.target.raw });
       return;
     }
-    if (!MixinApi.isMetabolic(giver)) {
+    if (!MixinApi.isEating(giver)) {
       return this.decline(context, Mml.compose`You can't eat.`, "not-an-eater");
     }
-    // ⭐ The ACT is the eater's (`Metabolic.eat`): the edibility, the
+    // ⭐ The ACT is the eater's (`Eating.eat`): the edibility, the
     // portion, the dish arm, the utensil, the crumbs. This verb only reads
     // the request and words what happened.
     const outcome = await giver.eat(target, model.with?.stuff ?? []);
     if (!outcome.ok) {
       if (outcome.reason === "airway") {
         // The body's own words for why (under the water, you would breathe it in).
-        const airway = giver.canIngest();
-        return this.decline(context, Mml.compose`${airway.ok ? "You can't eat that." : airway.line}`, "airway");
+        return this.decline(context, Mml.compose`${outcome.line}`, "airway");
       }
       return outcome.reason === "too-full"
         ? this.decline(context, Mml.compose`You're too full to eat ${Mml.thing(target)}.`, "too-full")

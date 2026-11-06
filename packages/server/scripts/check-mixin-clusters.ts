@@ -45,7 +45,7 @@ import { pathToFileURL } from "url";
 import ts from "typescript";
 import { CONTENT, MUD, mudSourceFiles, parseTs, ratchet } from "./pack-roots";
 
-export const MIXIN_CLUSTERS_CEILING = 44;
+export const MIXIN_CLUSTERS_CEILING = 40;
 
 function memberName(m: ts.ClassElement): string | null {
   if (ts.isConstructorDeclaration(m) || ts.isClassStaticBlockDeclaration(m)) return null;

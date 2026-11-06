@@ -37,6 +37,7 @@ import type { MqlManyResult, MqlOneResult } from "../../../../../api/mql";
 import { METABOLIC_DEFAULTS } from "../../../../../lib/metabolism/Metabolic";
 import { UTENSIL_KINDS } from "../../../../../lib/bulk/Cutlery";
 import { MetabolicMixin } from "../../../../../lib/metabolism/Metabolic";
+import { EatingMixin } from "../../../../../lib/metabolism/Eating";
 import { Idea } from "../../../../../lib/stuff/Idea";
 import { existsSync } from "fs";
 import { join } from "path";
@@ -239,19 +240,19 @@ describe("eating with cutlery (AC11a)", () => {
 });
 
 describe('⚠⚠ the verbs are actually AFFORDED (the binder, not the controller)', () => {
-  it('a body with a digestion buffer offers `eat` and `vomit`', () => {
+  it('a body that eats offers `eat`; one with a digestion buffer offers `vomit`', () => {
     // ⭐ This is the assertion whose absence let both verbs ship
     // unreachable: every other test in the suite instantiates
     // `EatController` directly, which skips the binder entirely. A live
     // drive typed `eat stew` at a bowl of stew and the world answered
     // "I don't understand 'eat'".
-    const contributed = (
-      MetabolicMixin(Idea) as unknown as {
-        commandContributions?: { self?: string[] };
-      }
-    ).commandContributions?.self;
-    expect(contributed).toContain('platform/cmd/bulk/eat.yaml');
-    expect(contributed).toContain('platform/cmd/bulk/vomit.yaml');
+    const selfOf = (cls: unknown): string[] | undefined =>
+      (cls as { commandContributions?: { self?: string[] } })
+        .commandContributions?.self;
+    // ⭐ `eat` is the eater's (EatingMixin), `vomit` digestion's
+    // (MetabolicMixin) — controllers-are-io D6.
+    expect(selfOf(EatingMixin(Idea))).toContain('platform/cmd/bulk/eat.yaml');
+    expect(selfOf(MetabolicMixin(Idea))).toContain('platform/cmd/bulk/vomit.yaml');
   });
 
   it('…and the shipped views those names point at exist', () => {

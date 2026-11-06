@@ -21,11 +21,12 @@ import Locale from './Locale';
 import { ShoreMixin } from '../../lib/location/Shore';
 import { SwimmableMixin } from '../../lib/locomotion/Swimmable';
 import { WaterPlaceMixin } from '../../lib/location/WaterPlace';
+import { HaulOutMixin } from '../../lib/location/HaulOut';
 import { TemplatePaths } from '../../lib/paths';
 
-export default class Pool extends WaterPlaceMixin(
+export default class Pool extends HaulOutMixin(WaterPlaceMixin(
   SwimmableMixin(ShoreMixin(Locale)),
-) {
+)) {
   constructor() {
     super();
     // ⭐ A pool's floor is the water's surface unless its row names one
