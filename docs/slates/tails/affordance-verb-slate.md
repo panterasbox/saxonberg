@@ -252,7 +252,7 @@ mixin-slate hints at `Hangable`, `Hideable`, etc. For v1: ship
 `in` (Container) and `on` (Surfaced); other prepositions earn
 their own mixins when content needs them.
 
-### Q3. Source-scope sigil
+### Q3. Source-scope sigil — ✅ SETTLED `verb@source` (controllers-are-io, 2026-11-05)
 
 `::` (EotL) vs `:` / `@` / `.`. Must not collide with MQL tokens (`:` is
 already a quantity selector). *Lean `::`.* Naming + parse decision; settle

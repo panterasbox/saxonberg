@@ -323,3 +323,46 @@ duration math. Outcomes:
 The heavy targets are clear of every in-flight sibling: water-supply
 touches none of the top 20, and client-surface and wizard-axis touch only
 two false positives.
+
+### ⭐⭐ Decided after the scan (2026-11-05)
+
+- **Scope: kernel first, and the packs as follow-on builds** (owner). This
+  build delivers:
+  - every link's census-then-ratchet gate;
+  - source-scoped invocation;
+  - the outcome type and the duration move;
+  - the subcommand rule, applied to the 38 switch controllers;
+  - the worst kernel offenders (Harvest, Plant, Put, Look, Order, Treat);
+  - the clearly dated mixin splits.
+
+  The pack burn-down (Smelt, Fell, Saw, Butcher, Mow, …) follows trade by
+  trade under the ratchets.
+- ⭐ **Source-scoped invocation is `verb@source`** (owner). It settles
+  affordance-verb Q3. Examples: `set@watch 4:00`, `wind@'pocket watch'`,
+  `pour@me:flask into glass`, `wind@all watches`.
+
+  `::` was rejected for two reasons:
+  - `:` is MQL's chain operator, so `here:bookcase:watch::set 4:00`
+    is unreadable;
+  - source-first breaks the verb being the first token, and the dispatcher,
+    alias expansion, `help`, completion and `def` all key on that.
+
+  `@` is in neither MQL's token table nor the shell's reserved set. Chat
+  mentions (slated) are `@name` inside a message tail, never glued to the
+  verb word. Q4 and Q5 stand as leaned: the scoped form is always optional,
+  several matches go through the cardinality prompt, a non-interactive giver
+  gets an error, and batch use is the declared cardinality many.
+
+  Rejected alternatives:
+  - `source.verb`: `.` appears in barewords and numbers;
+  - a reserved `--via` option: too verbose, and `--from`/`--source` are
+    taken by 11 views;
+  - `>`, `!` and `^`.
+- **Decided by lens 2** (an alternate controller must get identical
+  behavior and must be free to word it its own way):
+  - durations move onto the object, as `ActPlan` already does;
+  - the object returns a reason code and data, and the controller writes
+    the words, so `line: Mml` comes out of `ActRefusal`/`ActOutcome`.
+- **Decided by one verb per act:** the type dispatchers become protocols
+  on the model. Only Throw, Tan's lift and Read's spell tail split into
+  separate acts.
