@@ -16,6 +16,7 @@
 
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Container } from '../../lib/spatial/Container';
+import { GrammarApi } from '../grammar';
 import { MixinApi } from '../mixin';
 import { PerceptionApi } from '../perception';
 import Place from '../../lib/stuff/Place';
@@ -337,8 +338,11 @@ function pushDirect(
  * before you look at anything. `null` is system mode.
  */
 export function candidateFor(stuff: Stuff, viewer: Stuff | null): ScopeCandidate {
-  const keywords = (viewer ? stuff.perceivedKeywordsFor(viewer) : ownKeywords(stuff, undefined))
+  const said = (viewer ? stuff.perceivedKeywordsFor(viewer) : ownKeywords(stuff, undefined))
     .map((k) => k.toLowerCase());
+  // ⭐ What answers to a word answers to its plural: `all watches`, `get all
+  // swords` (the grammar's own examples, and the drive's `wind@"all watches"`).
+  const keywords = [...new Set([...said, ...said.map((k) => GrammarApi.pluralize(stuff, k))])];
   const facets: ScopeFacet[] = [];
   if (MixinApi.isDetailed(stuff)) {
     // Top-level details only — nested details are reached through the

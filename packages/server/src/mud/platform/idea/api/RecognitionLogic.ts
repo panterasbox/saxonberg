@@ -544,9 +544,14 @@ function perceivedKeywordsImpl(viewer: Stuff, target: Stuff): string[] {
     // form) even though the prose (`describe`) drops them, so `look vest`
     // resolves a stranger the roll-call prose names only "a crossing
     // guard". Status is not a targeting handle, so `withStatus` stays off.
-    const perceived = GrammarApi.tokenize(
-      describeCore(viewer, target, 'distinguishing'),
-    );
+    // ⭐ The whole phrase beside its words: tokenizing splits on punctuation,
+    // so somebody known as `mary-jane` or `o'brien` must also answer to all
+    // of it (found by the drive: `throw ball at mary-jane` found nobody once
+    // the scorer read keywords alone).
+    const phrase = describeCore(viewer, target, 'distinguishing');
+    const perceived = [
+      ...new Set([phrase.toLowerCase().trim(), ...GrammarApi.tokenize(phrase)]),
+    ];
     // ⭐ An ANIMAL keeps its authored keywords too: a named cat is still a
     // cat, and `pet cat` must reach Mouse. A person does not — what you
     // may target somebody by is exactly what you perceive them as, which

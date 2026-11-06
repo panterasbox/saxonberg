@@ -24,6 +24,7 @@ import { SensorMixin } from '../../message/Sensor';
 import { ContainableMixin } from '../../spatial/Containable';
 import { Idea } from '../../stuff/Idea';
 import { StuffApi } from '../../../api/stuff';
+import { candidateFor } from '../../../api/mql/scope-walk';
 import { makeStuffAtPath } from '../../security/__tests__/test-setup';
 
 class Stranger extends BeliefStoreMixin(
@@ -45,6 +46,19 @@ class Person extends PersonaMixin(
 let n = 0;
 beforeEach(() => StuffApi.clearAll());
 afterEach(() => StuffApi.clearAll());
+
+describe('what you may name somebody by', () => {
+  it('⭐ a whole name answers, whatever punctuation is in it (`mary-jane`)', () => {
+    const viewer = makeStuffAtPath(() => new Stranger(), `/v/${n++}`);
+    const mary = makeStuffAtPath(() => new Animal(), `/stuff/agent/cat-${n++}`);
+    mary.setName('Mary-Jane');
+    mary.setShortDescription('thin cat');
+    const words = mary.perceivedKeywordsFor(viewer);
+    expect(words).toContain('mary-jane');
+    expect(words).toContain('mary');
+    expect(candidateFor(mary, viewer).keywords).toContain('mary-janes');
+  });
+});
 
 describe('a stranger reading a name', () => {
   it('⭐ sees a named ANIMAL by its name', () => {
