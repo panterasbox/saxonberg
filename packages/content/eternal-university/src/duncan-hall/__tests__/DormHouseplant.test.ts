@@ -636,7 +636,7 @@ describe('the dorm houseplant — content and placement', () => {
 
     // `water` the plant. ⚠ The source is what the binder would bind for
     // bare `water` — the carried vessels (`water.yaml`'s `me:i` default);
-    // a controller test skips the binder (`lint:instrument-args`).
+    // a controller test skips the binder (`lint:controller-resolution`).
     const ctx = ctxFor(tenant, 'water');
     await run(
       makeStuff(() => new WaterController()),

@@ -31,47 +31,85 @@
  *
  * ⚠ Aliases count. `verbs: [job, jobs]` claims both, and a second view
  * claiming `jobs` would shadow just as silently as one claiming `job`.
+ *
+ * ⭐⭐ **Disjoint shapes pass (controllers-are-io D17).** Two views of one
+ * word whose shapes no command line can bind both (`disjointShapes`) are
+ * not a collision: the dispatcher's per-view bind proves which one a line
+ * means. A non-disjoint pair fails unless it is in `KNOWN_COLLISIONS` —
+ * which therefore only shrinks.
  */
 
-import { existsSync, readFileSync, readdirSync, statSync } from "fs";
-import { join, sep } from "path";
+import { readFileSync } from "fs";
 import YAML from "yaml";
-import { CONTENT } from "./pack-roots";
+import { CONTENT, commandViewFiles } from "./pack-roots";
 import { SCRIPT_BUILTINS } from "../src/mud/lib/script/builtins";
-
-/** Every `cmd/**\/*.yaml` that is a command VIEW (not a controller row). */
-function commandViews(root: string): string[] {
-  const out: string[] = [];
-  const walk = (dir: string): void => {
-    let entries: string[];
-    try {
-      entries = readdirSync(dir);
-    } catch {
-      return;
-    }
-    for (const entry of entries) {
-      const full = join(dir, entry);
-      if (statSync(full).isDirectory()) {
-        walk(full);
-        continue;
-      }
-      if (!entry.endsWith(".yaml")) continue;
-      // ⚠ A `cmd` dir is views UNLESS its parent is `idea` — that is the
-      // shipped path rule (`<root>/idea/cmd/**` holds CONTROLLERS, whose
-      // rows carry `class:` and no `verbs:`).
-      const parts = full.split(sep);
-      const cmdAt = parts.lastIndexOf("cmd");
-      if (cmdAt < 1 || parts[cmdAt - 1] === "idea") continue;
-      out.push(full);
-    }
-  };
-  walk(root);
-  return out;
-}
 
 interface Claim {
   verb: string;
   file: string;
+  /** The view's top-level positional args — its SHAPE, for D17's disjointness. */
+  args?: PositionalShape[];
+  /** A view with subcommands has one shape per subcommand; never proved disjoint. */
+  hasSubcommands?: boolean;
+}
+
+/** The parts of a positional arg D17's disjointness reads. */
+export interface PositionalShape {
+  required?: boolean;
+  greedy?: boolean;
+  multiple?: boolean;
+  prepositions?: string[];
+  prepositionRequired?: boolean;
+}
+
+/** Whether a positional binds REQUIRED — `CommandDefinition`'s own rule. */
+function isRequired(a: PositionalShape): boolean {
+  return a.required === true || (a.greedy === true && a.required !== false);
+}
+
+/**
+ * ⭐⭐ D17 — two views of one word are **disjoint** when no command line can
+ * bind both: their required positional counts differ, or at some positional
+ * index both declare `prepositionRequired: true` with non-intersecting
+ * `prepositions:` (the slot binds only when its own preposition is present,
+ * so the two shapes demand different words at the same place).
+ *
+ * ⚠ The count arm compares the RANGE of positionals each view can bind
+ * (`[required, total]`, unbounded when an arg is greedy or multiple), not
+ * the bare required count — the literal reading passed `pour`'s two views
+ * (one required + an optional `into`, against two required), which
+ * `pour gin into glass` binds both of.
+ *
+ * `throw X` · `throw X to Y` · `throw X at Y` is the case it was written
+ * for: one word, three views, provably three shapes — so no shadowing to
+ * adjudicate, and no `KNOWN_COLLISIONS` row. A view with subcommands is
+ * never proved disjoint (its shapes are per subcommand).
+ */
+export function disjointShapes(a: Claim, b: Claim): boolean {
+  if (a.hasSubcommands || b.hasSubcommands) return false;
+  const aa = a.args ?? [];
+  const bb = b.args ?? [];
+  // ⚠ "Required counts differ" read as the RANGE each view can bind, not
+  // the bare required count: an optional slot makes `pour gin into glass`
+  // bind a one-required view and a two-required view alike, so differing
+  // required counts prove nothing when the ranges overlap.
+  const range = (xs: PositionalShape[]): [number, number] => [
+    xs.filter(isRequired).length,
+    xs.some((x) => x.greedy === true || x.multiple === true)
+      ? Infinity
+      : xs.length,
+  ];
+  const [aMin, aMax] = range(aa);
+  const [bMin, bMax] = range(bb);
+  if (aMax < bMin || bMax < aMin) return true;
+  for (let i = 0; i < Math.min(aa.length, bb.length); i++) {
+    const x = aa[i]!;
+    const y = bb[i]!;
+    if (x.prepositionRequired !== true || y.prepositionRequired !== true) continue;
+    const xs = new Set((x.prepositions ?? []).map((p) => p.toLowerCase()));
+    if (!(y.prepositions ?? []).some((p) => xs.has(p.toLowerCase()))) return true;
+  }
+  return false;
 }
 
 /**
@@ -101,17 +139,20 @@ const KNOWN_COLLISIONS: Record<string, string> = {
 export function claimsIn(files: string[]): Claim[] {
   const out: Claim[] = [];
   for (const file of files) {
-    let doc: { verbs?: unknown } | null = null;
+    type ViewDoc = { verbs?: unknown; args?: unknown; subcommands?: unknown };
+    let doc: ViewDoc | null = null;
     try {
-      doc = YAML.parse(readFileSync(file, "utf-8")) as { verbs?: unknown };
+      doc = YAML.parse(readFileSync(file, "utf-8")) as ViewDoc | null;
     } catch {
       continue;
     }
     const verbs = doc?.verbs;
     if (!Array.isArray(verbs)) continue;
+    const args = Array.isArray(doc?.args) ? (doc!.args as PositionalShape[]) : [];
+    const hasSubcommands = !!doc?.subcommands && typeof doc.subcommands === "object";
     for (const v of verbs) {
       if (typeof v === "string" && v.trim()) {
-        out.push({ verb: v.trim().toLowerCase(), file });
+        out.push({ verb: v.trim().toLowerCase(), file, args, hasSubcommands });
       }
     }
   }
@@ -131,17 +172,25 @@ const BUILTIN_CLAIMS: Claim[] = SCRIPT_BUILTINS.map((verb) => ({
   file: `<lib/script/builtins.ts: the '${verb}' builtin>`,
 }));
 
-/** Verbs claimed by more than one view, with the files that claim them. */
+/**
+ * Verbs claimed by more than one view, with the files that claim them —
+ * ⭐ minus the words whose views are pairwise DISJOINT (D17): a builtin
+ * claim is never disjoint (it takes the line before dispatch).
+ */
 export function collisionsIn(claims: Claim[]): Map<string, string[]> {
-  const byVerb = new Map<string, string[]>();
+  const byVerb = new Map<string, Claim[]>();
   for (const c of [...BUILTIN_CLAIMS, ...claims]) {
     const list = byVerb.get(c.verb) ?? [];
-    if (!list.includes(c.file)) list.push(c.file);
+    if (!list.some((x) => x.file === c.file)) list.push(c);
     byVerb.set(c.verb, list);
   }
   const bad = new Map<string, string[]>();
-  for (const [verb, files] of byVerb) {
-    if (files.length > 1) bad.set(verb, files);
+  for (const [verb, list] of byVerb) {
+    if (list.length < 2) continue;
+    const builtin = list.some((c) => BUILTIN_CLAIMS.includes(c));
+    const disjoint =
+      !builtin && list.every((a, i) => list.every((b, j) => j <= i || disjointShapes(a, b)));
+    if (!disjoint) bad.set(verb, list.map((c) => c.file));
   }
   return bad;
 }
@@ -149,17 +198,11 @@ export function collisionsIn(claims: Claim[]): Map<string, string[]> {
 /**
  * Every command view across every shipped pack — ⚠ **every** pack, not
  * just the capability ones. A content-only pack (a locality) ships
- * domain-local verbs and can collide exactly as hard.
+ * domain-local verbs and can collide exactly as hard. (The walk is
+ * `pack-roots.commandViewFiles`, shared with the view gates.)
  */
 export function allViews(contentDir: string = CONTENT): string[] {
-  if (!existsSync(contentDir)) return [];
-  const out: string[] = [];
-  for (const pack of readdirSync(contentDir).sort()) {
-    const content = join(contentDir, pack, "content");
-    if (!existsSync(content)) continue;
-    out.push(...commandViews(content));
-  }
-  return out;
+  return commandViewFiles(contentDir);
 }
 
 function main(): void {

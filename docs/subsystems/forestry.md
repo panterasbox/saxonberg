@@ -189,7 +189,7 @@ real YAML through the binder.
 controller reads `model.axe?.stuff` — a billhook → `wrong-tool` (*"It
 will take a stool off at the ankle, and it will not take an oak."*),
 none → `no-axe`. The felling axe row offers `felling`; `lint:capabilities`
-wants every kind consumed and `lint:instrument-args` holds the hunt at
+wants every kind consumed and `lint:controller-resolution` holds the hunt at
 zero. The stand is `giver.getContainer()` narrowed by `isActive(room,
 STAND_MIXIN)` — the mining trade's `workingOf` shape.
 

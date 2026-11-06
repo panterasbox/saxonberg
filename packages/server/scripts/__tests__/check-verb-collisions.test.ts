@@ -14,6 +14,33 @@ import { tmpdir } from "os";
 import { join } from "path";
 import { claimsIn, collisionsIn, allViews } from "../check-verb-collisions";
 
+/** A throwaway tree of full view bodies: `<pack>/content/platform/cmd/x/v<i>.yaml`. */
+function shapes(bodies: string[]): string {
+  const root = mkdtempSync(join(tmpdir(), "shapes-"));
+  const dir = join(root, "p", "content", "platform", "cmd", "x");
+  mkdirSync(dir, { recursive: true });
+  for (const [i, body] of bodies.entries()) writeFileSync(join(dir, `v${i}.yaml`), body);
+  return root;
+}
+
+const THROW = `verbs: [throw]
+controller: /x/Throw
+args:
+  - { name: item, type: object, required: true }
+`;
+const THROW_TO = `verbs: [throw]
+controller: /x/ThrowTo
+args:
+  - { name: item, type: object, required: true }
+  - { name: to, type: object, required: true, prepositions: [to], prepositionRequired: true }
+`;
+const THROW_AT = `verbs: [throw]
+controller: /x/ThrowAt
+args:
+  - { name: item, type: object, required: true }
+  - { name: at, type: object, required: true, prepositions: [at], prepositionRequired: true }
+`;
+
 /** A throwaway content tree: `<pack>/content/<where>/<verb>.yaml`. */
 function tree(views: Array<{ pack: string; where: string; verbs: string[] }>): string {
   const root = mkdtempSync(join(tmpdir(), "verbs-"));
@@ -99,6 +126,54 @@ describe("the collision itself", () => {
       { pack: "p", where: "platform/cmd/y", verbs: ["stop"] },
     ]);
     expect(collisionsIn(claimsIn(allViews(root))).size).toBe(0);
+  });
+});
+
+describe("⭐⭐ D17 — disjoint shapes are not a collision", () => {
+  it("`throw X` · `throw X to Y` · `throw X at Y` — three views, one word, PASS", () => {
+    const bad = collisionsIn(claimsIn(allViews(shapes([THROW, THROW_TO, THROW_AT]))));
+    expect(bad.has("throw")).toBe(false);
+  });
+
+  it("⚠ the same two-slot shapes WITHOUT prepositionRequired collide", () => {
+    // Remove the violation's proof and the gate must fire: `throw ball ann`
+    // binds both two-slot views when neither preposition is required.
+    const loose = (body: string): string => body.replace(", prepositionRequired: true", "");
+    const bad = collisionsIn(claimsIn(allViews(shapes([THROW, loose(THROW_TO), loose(THROW_AT)]))));
+    expect(bad.has("throw")).toBe(true);
+  });
+
+  it("⚠ intersecting required prepositions are not disjoint", () => {
+    const both = THROW_AT.replace("prepositions: [at]", "prepositions: [at, to]");
+    const bad = collisionsIn(claimsIn(allViews(shapes([THROW_TO, both]))));
+    expect(bad.has("throw")).toBe(true);
+  });
+
+  it("⚠ differing REQUIRED counts with overlapping ranges collide (`pour`)", () => {
+    // One required + an optional slot binds two words just as a
+    // two-required view does: `pour gin into glass` binds both.
+    const one = `verbs: [pour]
+controller: /x/A
+args:
+  - { name: spirit, type: object, required: true }
+  - { name: vessel, type: object, required: false, prepositions: [into] }
+`;
+    const two = `verbs: [pour]
+controller: /x/B
+args:
+  - { name: source, type: object, required: true }
+  - { name: target, type: object, required: true, prepositions: [into] }
+`;
+    expect(collisionsIn(claimsIn(allViews(shapes([one, two])))).has("pour")).toBe(true);
+  });
+
+  it("a view with subcommands is never proved disjoint", () => {
+    const subs = `verbs: [throw]
+controller: /x/S
+subcommands:
+  far: { args: [] }
+`;
+    expect(collisionsIn(claimsIn(allViews(shapes([THROW_TO, subs])))).has("throw")).toBe(true);
   });
 });
 

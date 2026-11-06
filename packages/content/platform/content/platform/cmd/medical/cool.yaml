@@ -23,7 +23,7 @@ args:
     requires: VitalsMixin
   # Bare, the binder hands over every reachable vessel and the controller
   # takes the first holding water — a question about the CONTENTS, which no
-  # predicate can ask (`lint:instrument-args`). Mirrors `rinse` / `wash`.
+  # predicate can ask (`lint:controller-resolution`). Mirrors `rinse` / `wash`.
   - name: water
     type: object
     required: false

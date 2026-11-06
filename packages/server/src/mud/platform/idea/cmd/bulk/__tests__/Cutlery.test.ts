@@ -130,7 +130,7 @@ const one = (stuff: Stuff | null, raw: string): MqlOneResult =>
  * piece of cutlery, held gear first. ⚠ A controller test SKIPS the
  * binder, so the walk that used to live in `EatController` is
  * reproduced here, once, as the fixture; the controller only narrows
- * (`lint:instrument-args`).
+ * (`lint:controller-resolution`).
  */
 const cutleryReachableBy = (eater: Stuff, loc: Stuff): MqlManyResult => {
   const stuff: Stuff[] = [];

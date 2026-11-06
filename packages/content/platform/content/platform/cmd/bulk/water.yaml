@@ -46,7 +46,7 @@ args:
     scope: ["reachable"]
     prepositions: [at]
     requires: SoilMixin
-  # ⭐ WHAT WITH — DECLARED, not hunted for (`lint:instrument-args`).
+  # ⭐ WHAT WITH — DECLARED, not hunted for (`lint:controller-resolution`).
   # Bare, the binder hands over every vessel you are CARRYING and the
   # controller takes the first with water in it — a question about the
   # contents, which no predicate asks. `water the lily with the bucket`

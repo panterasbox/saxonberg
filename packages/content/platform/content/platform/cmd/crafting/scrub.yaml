@@ -26,7 +26,7 @@ args:
     required: false
     scope: "reachable"
     requires: SoilableMixin
-  # ⭐ WHAT IN — DECLARED, not hunted for (`lint:instrument-args`). A
+  # ⭐ WHAT IN — DECLARED, not hunted for (`lint:controller-resolution`). A
   # vessel of water, or the water a shore is beside — `wash shirt in
   # river`. The controller's narrowing (water or brine) is the check, and
   # a frozen water is refused unless there is a hole in it.
@@ -49,7 +49,7 @@ args:
     prepositions: [with]
     scope: ["reachable"]
     requires: any
-  # ⭐ WHAT WITH — the brush, DECLARED (`lint:instrument-args`): a
+  # ⭐ WHAT WITH — the brush, DECLARED (`lint:controller-resolution`): a
   # scrubbing brush in hand or reach scrubs at the full rate; bare hands
   # at half (`scrub floor using brush with soap`).
   - name: brush

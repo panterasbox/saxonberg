@@ -24,7 +24,7 @@ args:
   - name: load
     type: number
     required: true
-  # ⭐ WHICH DEVICE — DECLARED, not hunted for (`lint:instrument-args`).
+  # ⭐ WHICH DEVICE — DECLARED, not hunted for (`lint:controller-resolution`).
   # Bare, the binder hands over every reachable thing offering `load`;
   # a thing that is not a tool is refused before the controller runs.
   - name: device

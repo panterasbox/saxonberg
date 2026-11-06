@@ -70,7 +70,7 @@ args:
     scope: ["reachable"]
     prepositions: [at]
     requires: SoilMixin
-  # ⭐ WHICH TOOL — DECLARED, not hunted for (`lint:instrument-args`).
+  # ⭐ WHICH TOOL — DECLARED, not hunted for (`lint:controller-resolution`).
   # Only a plant that names a `harvestTool` reads it (a coppice stool
   # is cut with a billhook; a carrot is pulled by hand and ignores
   # whatever bound). A field crop is cut with whatever reaps (a sickle,

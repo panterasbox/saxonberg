@@ -235,7 +235,7 @@ export default class DyeController extends ManualBuildController<DyeModel> {
    * The bath — a NARROWING over what the binder bound, not a search.
    * `dye.yaml` declares `bath` with a `[mixin.BulkableMixin]` default, so
    * bare `dye` arrives with every reachable vessel and the only question
-   * left is what is IN it (`lint:instrument-args`). A NAMED bath is taken
+   * left is what is IN it (`lint:controller-resolution`). A NAMED bath is taken
    * as named, so the decline below can say what is wrong with it.
    */
   private findBath(bound: MqlManyResult | undefined): Stuff | null {

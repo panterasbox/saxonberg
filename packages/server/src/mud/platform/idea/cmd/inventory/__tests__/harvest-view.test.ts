@@ -3,7 +3,7 @@
  * `verb-gates.test.ts` shape (a controller test cannot see the binder).
  *
  * The forestry build added a `tool` arg: DECLARED (`default:` on the
- * `[capability.cutting]` atom, never hunted for — `lint:instrument-args`)
+ * `[capability.cutting]` atom, never hunted for — `lint:controller-resolution`)
  * and gated on `ToolMixin`, which every shipped instrument composes
  * through `Tool`. A plant that names no `harvestTool` ignores it; a
  * coppice stool refuses without it. The `target` gate is unchanged.

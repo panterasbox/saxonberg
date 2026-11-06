@@ -5,7 +5,7 @@
  * finds the one you can dig with. Until this atom existed MQL had only
  * the first kind of question, so every verb that needed *the thing that
  * can do job Y* hand-rolled a walk over the room and the inventory
- * instead of declaring an arg — the census `lint:instrument-args` holds.
+ * instead of declaring an arg — the census `lint:controller-resolution` holds.
  *
  * ⚠ A capability is a mixin FIELD, not a `PropertiedMixin` property, so
  * `[prop.digging]` reads different storage and will never see it. The

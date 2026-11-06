@@ -53,7 +53,7 @@ args:
     required: false
     scope: [reachable]
     requires: any
-  # ⭐ WHICH AUGER — DECLARED, not hunted for (`lint:instrument-args`).
+  # ⭐ WHICH AUGER — DECLARED, not hunted for (`lint:controller-resolution`).
   # Bare, the binder hands over the first reachable thing offering
   # `boring`; an axe bound by name is refused in words by the tree.
   - name: tool

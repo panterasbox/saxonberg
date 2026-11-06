@@ -544,7 +544,7 @@ is a number nobody sees. It now picks the best rate, held-first on ties,
 so no equal-rung arrangement moves.
 
 ⭐⭐ **And it no longer walks.** `findCapability` was the reachability
-hunt `lint:instrument-args` exists to remove, hoisted into the base so
+hunt `lint:controller-resolution` exists to remove, hoisted into the base so
 that 24 step controllers hunted through one method the census could not
 see. Each step's view now **declares** its instrument as a plural arg —
 `weave.yaml`: `loom`, `default: "reachable:[capability.weaving]"`,

@@ -22,10 +22,10 @@
  * engaging, or call a module function / a `static`.
  */
 
-import { readdirSync, readFileSync, statSync } from "fs";
-import { join, relative, resolve } from "path";
+import { readFileSync } from "fs";
+import { resolve } from "path";
 import { pathToFileURL } from "url";
-import { MUD, SERVER_SRC, packSources, packSrcFiles } from "./pack-roots";
+import { controllerFiles } from "./pack-roots";
 
 /**
  * Pinned at the census (2026-10-17, the cleanliness build): the shipped
@@ -71,35 +71,16 @@ export function scanCompletionThis(src: string, file: string): CompletionThisFin
   return out;
 }
 
-function controllerFiles(dir: string): string[] {
-  const out: string[] = [];
-  for (const entry of readdirSync(dir)) {
-    const full = join(dir, entry);
-    if (statSync(full).isDirectory()) {
-      if (entry === "__tests__" || entry === "node_modules") continue;
-      out.push(...controllerFiles(full));
-    } else if (entry.endsWith("Controller.ts")) {
-      out.push(full);
-    }
-  }
-  return out;
-}
-
+/**
+ * Every controller module — `pack-roots.controllerFiles()`, the enumerator
+ * the controller gates share (controllers-are-io W0): the kernel's
+ * `platform/idea/cmd/**` and `lib/**` bases, every pack's `src/**\/idea/cmd/**`
+ * (the domain-local ones included) and `src/lib/**` bases.
+ */
 export function collectLiveFindings(): CompletionThisFinding[] {
   const out: CompletionThisFinding[] = [];
-  for (const file of controllerFiles(MUD)) {
-    out.push(...scanCompletionThis(readFileSync(file, "utf8"), "src/" + relative(SERVER_SRC, file)));
-  }
-  for (const pack of packSources()) {
-    for (const file of packSrcFiles(pack.srcDir)) {
-      if (!file.endsWith("Controller.ts")) continue;
-      out.push(
-        ...scanCompletionThis(
-          readFileSync(file, "utf8"),
-          `packages/content/${pack.id}/src/${relative(pack.srcDir, file)}`,
-        ),
-      );
-    }
+  for (const c of controllerFiles()) {
+    out.push(...scanCompletionThis(readFileSync(c.file, "utf8"), c.rel));
   }
   return out;
 }

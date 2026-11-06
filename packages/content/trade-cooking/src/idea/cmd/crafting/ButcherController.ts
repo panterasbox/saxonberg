@@ -632,7 +632,7 @@ export default class ButcherController extends CraftController<ButcherModel> {
    * default; the gate is then the CONSTRUCTION, not the class: a clasp
    * knife off the general store's shelf opens a carcass exactly as the
    * kitchen's boning knife does, because both are an edge — and no
-   * predicate reads a form (`lint:instrument-args`).
+   * predicate reads a form (`lint:controller-resolution`).
    */
   private findBlade(bound: MqlManyResult | undefined): Stuff | null {
     for (const candidate of bound?.stuff ?? []) {

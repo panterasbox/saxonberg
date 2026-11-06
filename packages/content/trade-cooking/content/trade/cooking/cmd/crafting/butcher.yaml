@@ -73,7 +73,7 @@ args:
     validators:
       - /lib/command/validators/canReach
   # ⭐ WHICH BLADE and WHICH BLOCK — DECLARED, not hunted for
-  # (`lint:instrument-args`). A blade is a CONSTRUCTION (`bladed`), not a
+  # (`lint:controller-resolution`). A blade is a CONSTRUCTION (`bladed`), not a
   # capability, so the binder hands over every constructed thing in reach
   # and the controller reads the form; the block is what is both surfaced
   # and able to carry what a carcass leaves on it.
@@ -98,7 +98,7 @@ args:
     type: string
     required: false
     prepositions: [for]
-  # ⭐ WHICH TOOLS — declared, not hunted for (`lint:instrument-args`).
+  # ⭐ WHICH TOOLS — declared, not hunted for (`lint:controller-resolution`).
   # The controller reads `hasCapability('saw')` / `('cleaver')` across the
   # bound set, so the open vocabulary means a later pack's band saw
   # answers with no kernel edit.

@@ -42,7 +42,7 @@ args:
     scope: ["reachable"]
     requires: any
   # ⭐ WHAT shapes it — the wheel, the brick table, the blowpipe. Declared
-  # with a default (`lint:instrument-args`); the controller asks each bound
+  # with a default (`lint:controller-resolution`); the controller asks each bound
   # tool whether it plans the shape, and hands are the fallback.
   - name: instrument
     type: objects

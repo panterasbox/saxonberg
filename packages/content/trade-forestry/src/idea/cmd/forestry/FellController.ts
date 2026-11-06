@@ -31,7 +31,7 @@
  * The view's `default: "reachable:[capability.felling]"` binds the first
  * reachable thing offering `felling`; the controller reads
  * `model.axe?.stuff`, checks the capability (a bound billhook →
- * `wrong-tool`, in words), and null → `no-axe`. `lint:instrument-args`
+ * `wrong-tool`, in words), and null → `no-axe`. `lint:controller-resolution`
  * holds the hunt at zero. The stand is found as the giver's container
  * narrowed by `MixinApi.isActive(room, STAND_MIXIN)` — the mining
  * trade's `workingOf` shape, and no kernel list.

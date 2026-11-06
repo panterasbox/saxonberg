@@ -387,8 +387,10 @@ every candidate, and it asks each:
 
 Asking an object you already hold for its own contents is a different
 thing and is always fine (`pit.getContents()` for the charge in the
-clamp). Enforced by `pnpm lint:instrument-args`, **at zero**: no shipped
-controller hunts for an instrument.
+clamp). Enforced by `pnpm lint:controller-resolution` (which absorbed
+`lint:instrument-args` in controllers-are-io W0), ceiling **4** — the
+widened census that reaches the domain-local controllers and the
+`*Controller.ts` bases found three hunts the old reader never saw.
 
 ⚠⚠ **Nor through a helper.** The widest instance of this was not in any
 controller's `execute` — it was `findCapability(giver, kind)` on the
@@ -4599,7 +4601,7 @@ FOR**, which comes first:
 
 | you are | use |
 |---|---|
-| a **controller** resolving what the verb acts WITH or ON — an instrument, a vessel, a bath, a book | ⭐ **not a walk at all**: declare it on the VIEW (`default: "reachable:[capability.X]"`, plural when the controller must pick) and narrow the BOUND set — [§ Hunting for an Instrument Instead of Declaring It](#hunting-for-an-instrument-instead-of-declaring-it), `lint:instrument-args` |
+| a **controller** resolving what the verb acts WITH or ON — an instrument, a vessel, a bath, a book | ⭐ **not a walk at all**: declare it on the VIEW (`default: "reachable:[capability.X]"`, plural when the controller must pick) and narrow the BOUND set — [§ Hunting for an Instrument Instead of Declaring It](#hunting-for-an-instrument-instead-of-declaring-it), `lint:controller-resolution` |
 | a **controller** building a PROMPT POOL, or reading the surroundings to EXPLAIN a refusal (`forge`'s cast pig) | `this.reachableMarks(giver)` — inherited from `CommandController` |
 | anything else (a brain, a logic singleton) | `ContainmentApi.reachableFrom(actor)` + narrow, or a `reachable:[…]` query when a VIEWER is involved |
 

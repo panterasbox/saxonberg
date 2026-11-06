@@ -2082,7 +2082,7 @@ export function AtmosphericMixin<
      * Lives here rather than in the controller for two reasons, and the
      * second is the one that matters: a controller walking a room's
      * contents to work out what is burning in it is a controller
-     * re-deriving what the room already knows (`lint:instrument-args`
+     * re-deriving what the room already knows (`lint:controller-resolution`
      * fails it by shape, and is right to), and a second copy of that
      * walk is a room whose stated reason could disagree with its own
      * temperature.

@@ -182,7 +182,7 @@ export abstract class ManualBuildController<
    * `findCapability(giver, cap)`: a walk over the actor's kit and the
    * room, hoisted into this base class so that fourteen controllers
    * across six packs hunted for their instrument through one method
-   * `lint:instrument-args` could not see. See that gate's header.
+   * `lint:controller-resolution` could not see. See that gate's header.
    *
    * ⚠⚠ **Best by rate, not first found, and the difference was a bug in
    * every trade.** First-found with held kit scanned first picked a

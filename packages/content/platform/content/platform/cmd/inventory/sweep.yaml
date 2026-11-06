@@ -33,7 +33,7 @@ args:
     greedy: true
     scope: "reachable"
     requires: any
-  # ⭐ WHAT WITH — DECLARED (`lint:instrument-args`): a broom for a floor,
+  # ⭐ WHAT WITH — DECLARED (`lint:controller-resolution`): a broom for a floor,
   # a flue brush for a chimney; bare hands work, slowly.
   - name: tool
     type: objects

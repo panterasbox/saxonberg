@@ -125,7 +125,7 @@ export abstract class SoilReading extends Reading {
    * `[capability.<x>]`, so the BINDER resolves it — this only confirms
    * the thing it handed back offers what this particular act needs.
    * It used to walk the giver's contents itself, which meant no player
-   * could ever say WHICH spade (`lint:instrument-args`).
+   * could ever say WHICH spade (`lint:controller-resolution`).
    */
   /**
    * The spot on the ground the actor is standing on, in zone cells.

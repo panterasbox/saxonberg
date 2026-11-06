@@ -123,7 +123,7 @@ export abstract class GroundWorkController<
    * `[capability.<x>]`, so the BINDER resolves it — this only confirms the
    * thing it handed back offers what this particular act needs. Walking the
    * giver's contents here instead would mean no player could ever say WHICH
-   * spade (`lint:instrument-args`).
+   * spade (`lint:controller-resolution`).
    */
   protected toolOf(bound: Stuff | null | undefined, capability: string): Stuff | null {
     if (!bound || !MixinApi.isTool(bound)) return null;

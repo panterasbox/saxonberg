@@ -1,6 +1,25 @@
 /**
- * check-instrument-args — ⭐⭐ **an instrument is an ARGUMENT, not a
- * search.**
+ * check-controller-resolution (`lint:controller-resolution`) — ⭐⭐ **a
+ * controller's targets are ARGUMENTS, not searches.**
+ *
+ * Two counts over every controller module (`pack-roots.controllerFiles()`
+ * — the kernel's, every pack's, the domain-local ones at
+ * `<pack>/src/<locality>/idea/cmd/`, and the `*Controller.ts` bases):
+ *
+ *   1. **Instrument hunts** — the original `lint:instrument-args` rule,
+ *      absorbed whole (controllers-are-io W0, D26): a walk over the
+ *      actor's surroundings narrowed by a type test. Everything below this
+ *      header up to `SELF_RESOLUTION` is that gate, unchanged in what it
+ *      asserts.
+ *   2. **Self-resolution** (census, then ratchet) — a controller resolving
+ *      its own target instead of reading a view arg: a call to `MqlApi.*`,
+ *      `StuffApi.find*` / `StuffApi.singleton`, or `.getContents()`
+ *      anywhere in a controller. ⚠ A shape census — `getContents()` on an
+ *      object the controller was handed (the sanctioned ask-the-owner rung)
+ *      counts the same; it is the burn-down's candidate list. W2's
+ *      resolution work lowers it.
+ *
+ * ## Instrument hunts — an instrument is an ARGUMENT, not a search
  *
  * ## The defect
  *
@@ -73,15 +92,13 @@
  * Each one is a view that wants an arg.
  */
 
-import { readFileSync, readdirSync, statSync, existsSync } from 'fs';
-import { join, relative, resolve, dirname } from 'path';
-import { fileURLToPath } from 'url';
+import { readFileSync } from 'fs';
+import { relative, resolve, dirname } from 'path';
+import { fileURLToPath, pathToFileURL } from 'url';
+import { controllerFiles, ratchet } from './pack-roots';
 
 const SERVER_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const REPO_ROOT = resolve(SERVER_ROOT, '../..');
-const CONTENT = join(REPO_ROOT, 'packages/content');
-const MUD = join(SERVER_ROOT, 'src', 'mud');
-const SKIP = new Set(['node_modules', '.git', 'dist', 'build', 'coverage']);
 
 /**
  * ⭐⭐⭐ **Zero, and the ratchet is closed.** No shipped controller hunts
@@ -179,7 +196,40 @@ const SKIP = new Set(['node_modules', '.git', 'dist', 'build', 'coverage']);
  * arg in this build is DECLARED (`tan`'s pit, `grind`'s stones, `dip`'s
  * pot), which is what kept it there.
  */
-const BESPOKE_RESOLUTION_CEILING = 1;
+/*
+ * ⚠ 1 → 4 (controllers-are-io W0) is the CENSUS widening, not the
+ * population growing: the gate read only `src/idea/cmd/` in each pack, and
+ * the shared `controllerFiles()` reaches the domain-local controllers and
+ * the `*Controller.ts` bases it never saw (docs/lint-family.md § Four ways
+ * a census lies — a census is only as honest as what it reads). The three
+ * it found: `UnprovisionController` (duncan-hall) and `UnleaseController`
+ * (mayfield-row) walk the room for occupants by type, and the kernel base
+ * `CommandController` spreads the giver's contents into a candidate list.
+ * The fourth is the one it already held (`AssayController`).
+ */
+export const BESPOKE_RESOLUTION_CEILING = 4;
+
+/**
+ * ⭐ Self-resolution — the census-then-ratchet half (controllers-are-io
+ * W0). Pinned at this gate's own W0 count; may fall, never rise.
+ */
+export const SELF_RESOLUTION_CEILING = 117;
+
+/** A controller resolving its own target: the MQL facade, a store find, a contents walk. */
+const SELF_RESOLUTION =
+  /\bMqlApi\.[A-Za-z]\w*\s*\(|\bStuffApi\.(?:find\w*|singleton)\s*\(|\.getContents\(\)/g;
+
+/** Every self-resolution site in one (comment-stripped) controller module. */
+export function selfResolutionsIn(src: string): Array<{ line: number; text: string }> {
+  const out: Array<{ line: number; text: string }> = [];
+  const lines = stripComments(src).split('\n');
+  for (let i = 0; i < lines.length; i += 1) {
+    for (const m of lines[i]!.matchAll(SELF_RESOLUTION)) {
+      out.push({ line: i + 1, text: m[0] });
+    }
+  }
+  return out;
+}
 
 /**
  * Receivers that mean *the actor, or the world around them*. A walk over
@@ -285,31 +335,6 @@ interface Finding {
   text: string;
 }
 
-function walk(dir: string): string[] {
-  const out: string[] = [];
-  if (!existsSync(dir)) return out;
-  for (const entry of readdirSync(dir)) {
-    if (SKIP.has(entry)) continue;
-    const full = join(dir, entry);
-    if (statSync(full).isDirectory()) out.push(...walk(full));
-    else if (entry.endsWith('Controller.ts') && !full.includes('__tests__')) {
-      out.push(full);
-    }
-  }
-  return out;
-}
-
-/** Every shipped command controller — the kernel's and every pack's. */
-function controllerFiles(): string[] {
-  const out = walk(join(MUD, 'platform', 'idea', 'cmd'));
-  if (existsSync(CONTENT)) {
-    for (const pack of readdirSync(CONTENT)) {
-      out.push(...walk(join(CONTENT, pack, 'src', 'idea', 'cmd')));
-    }
-  }
-  return out;
-}
-
 /**
  * Strip comments so a doc block describing the defect is not the defect.
  *
@@ -382,12 +407,11 @@ function tailIdentifier(expr: string): string {
   return ids && ids.length > 0 ? ids[ids.length - 1]! : '';
 }
 
-function main(): void {
-  const files = controllerFiles();
+/** The instrument hunts in one controller module's source. */
+export function instrumentHuntsIn(source: string, file: string): Finding[] {
   const findings: Finding[] = [];
-
-  for (const file of files) {
-    const src = stripComments(readFileSync(file, 'utf8'));
+  {
+    const src = stripComments(source);
     const lines = src.split('\n');
     for (let i = 0; i < lines.length; i += 1) {
       const line = lines[i]!;
@@ -459,22 +483,34 @@ function main(): void {
       if (!isSearch) continue;
 
       findings.push({
-        file: relative(REPO_ROOT, file),
+        file,
         line: i + 1,
         text: lines[i]!.trim().slice(0, 96),
       });
     }
   }
+  return findings;
+}
+
+function main(): void {
+  const files = controllerFiles();
+  const findings: Finding[] = [];
+  const selves: string[] = [];
+  for (const c of files) {
+    const source = readFileSync(c.file, 'utf8');
+    findings.push(...instrumentHuntsIn(source, relative(REPO_ROOT, c.file)));
+    for (const r of selfResolutionsIn(source)) selves.push(`${c.rel}:${r.line}  ${r.text}`);
+  }
 
   console.log(
-    `check-instrument-args: ${files.length} controller(s) scanned; ` +
+    `check-controller-resolution: ${files.length} controller(s) scanned; ` +
       `${findings.length} bespoke instrument resolution(s) ` +
       `(ceiling ${BESPOKE_RESOLUTION_CEILING}).`,
   );
 
   if (findings.length > BESPOKE_RESOLUTION_CEILING) {
     console.error(
-      `\ncheck-instrument-args: ✗ ${findings.length} controller(s) hunt ` +
+      `\ncheck-controller-resolution: ✗ ${findings.length} controller(s) hunt ` +
         `for an instrument instead of reading it off the model, above the ` +
         `ceiling of ${BESPOKE_RESOLUTION_CEILING}.\n\n` +
         `⭐ Declare it on the VIEW and let the binder resolve it:\n\n` +
@@ -496,11 +532,23 @@ function main(): void {
 
   if (findings.length < BESPOKE_RESOLUTION_CEILING) {
     console.log(
-      `check-instrument-args: ⭐ below the ceiling — lower ` +
+      `check-controller-resolution: ⭐ below the ceiling — lower ` +
         `BESPOKE_RESOLUTION_CEILING to ${findings.length}.`,
     );
   }
-  console.log('check-instrument-args: ✔');
+  const ok = ratchet(
+    'check-controller-resolution',
+    'self-resolution sites (MqlApi.* / StuffApi.find*|singleton / .getContents())',
+    selves.length,
+    SELF_RESOLUTION_CEILING,
+    selves,
+    '⭐ Declare the target on the VIEW (an object arg with a default) and read\n' +
+      '  it off the bound args; resolution belongs to the binder.',
+  );
+  if (!ok) process.exit(1);
+  console.log('check-controller-resolution: ✔');
 }
 
-main();
+if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
+  main();
+}

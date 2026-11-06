@@ -337,7 +337,7 @@ export default class WaterController extends CommandController<WaterModel> {
    * The vessel to water from. `water.yaml` declares `source` with a
    * `me:i:[mixin.BulkableMixin]` default, so bare `water` arrives with
    * every carried vessel and the only question left is what is IN it —
-   * contents, which no predicate asks (`lint:instrument-args`). A NAMED
+   * contents, which no predicate asks (`lint:controller-resolution`). A NAMED
    * vessel is taken as named, so "it is empty" can be said about it.
    */
   private waterSource(bound: MqlManyResult | undefined): Stuff | null {

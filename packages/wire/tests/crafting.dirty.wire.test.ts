@@ -144,7 +144,7 @@ suite('the smithy — the knowledge ladder is real', () => {
      * just picked by the same walk. The earlier note here blamed a decoy
      * ingot; the real refusal on `hammer ingot` was the arg's own
      * `requires: DurableMixin`, which no Ingot satisfies. The view now
-     * declares the workpiece (`lint:instrument-args`) and requires what
+     * declares the workpiece (`lint:controller-resolution`) and requires what
      * the controller actually reads, so naming it works and bare works.
      */
     const hammering = await s.cmd('hammer ingot');

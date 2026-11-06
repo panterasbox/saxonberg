@@ -26,7 +26,7 @@ args:
     greedy: true
     scope: ["inventory"]
     requires: any
-  # ⭐ The jack — DECLARED, never hunted (`lint:instrument-args`).
+  # ⭐ The jack — DECLARED, never hunted (`lint:controller-resolution`).
   - name: jack
     type: object
     required: false

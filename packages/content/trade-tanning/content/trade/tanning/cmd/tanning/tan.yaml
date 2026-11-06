@@ -33,7 +33,7 @@ args:
     requires: TanningMixin
     validators:
       - /lib/command/validators/canReach
-  # ⭐ WHICH PIT — declared, not hunted for (`lint:instrument-args`). The
+  # ⭐ WHICH PIT — declared, not hunted for (`lint:controller-resolution`). The
   # binder hands over every reachable container and the controller reads
   # the class; with no pit named it falls back to the one the hide is
   # already standing in, which is what makes `tan hide` read as "check on

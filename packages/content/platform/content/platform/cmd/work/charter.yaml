@@ -39,7 +39,7 @@ args:
     required: false
     greedy: true
   # ⭐ The book the charter is written in — declared, not hunted for: the
-  # one in front of you (`lint:instrument-args`), defaulted so absent
+  # one in front of you (`lint:controller-resolution`), defaulted so absent
   # means that book (optional only because it follows the optional ship —
   # the dry rack's shape); greedy, so `at the book` binds.
   # ⚠ `requires:` is a knowingly-accepted SUPERSET (menu.yaml's shape): a

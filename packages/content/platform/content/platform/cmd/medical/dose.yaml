@@ -22,7 +22,7 @@ args:
     requires: VitalsMixin
   # Bare default: every reachable vessel; the controller keeps the first
   # whose matter names an `antidote:<toxin>` tag — the CONTENTS, which no
-  # predicate can ask (`lint:instrument-args`).
+  # predicate can ask (`lint:controller-resolution`).
   - name: with
     type: object
     required: false

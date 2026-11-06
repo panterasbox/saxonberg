@@ -24,7 +24,7 @@ args:
   - name: face
     type: string
     required: false
-  # ⭐ WHICH TOOL, declared rather than hunted for (`lint:instrument-args`).
+  # ⭐ WHICH TOOL, declared rather than hunted for (`lint:controller-resolution`).
   # `[capability.winning]` — *the thing that can win stone* — which is what
   # the pick has claimed since it shipped and what nothing checked.
   - name: tool

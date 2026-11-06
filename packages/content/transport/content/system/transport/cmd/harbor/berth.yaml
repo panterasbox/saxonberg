@@ -38,7 +38,7 @@ args:
     greedy: true
     prepositions: [at]
   # ⭐ The book the call is written in — declared, not hunted for: the one
-  # on the desk in front of you (`lint:instrument-args`). Required WITH a
+  # on the desk in front of you (`lint:controller-resolution`). Required WITH a
   # default, so absent means that book (not an optional slot a trailing
   # word could fall into); greedy, so `in the book` binds.
   - name: book

@@ -21,7 +21,7 @@ validators:
   - /lib/command/validators/requiresConscious
   - /lib/command/validators/requiresEmbodied
 args:
-  # ⭐ WHAT IN — DECLARED (`lint:instrument-args`): a tub, or the water a
+  # ⭐ WHAT IN — DECLARED (`lint:controller-resolution`): a tub, or the water a
   # shore is beside. Too small a vessel is refused in words.
   - name: water
     type: objects

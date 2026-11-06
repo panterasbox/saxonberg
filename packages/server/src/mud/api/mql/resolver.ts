@@ -1731,7 +1731,7 @@ function matchesClass(stuff: Stuff, className: string): boolean {
  * do job Y*, and until this landed the only vocabulary MQL had was
  * *kinds of thing* — so every such verb hand-rolled a walk over the
  * room and the inventory instead of declaring an arg
- * (`lint:instrument-args`, whose census this atom exists to let fall).
+ * (`lint:controller-resolution`, whose census this atom exists to let fall).
  *
  * ⚠ A capability is a **mixin field**, not a `PropertiedMixin` property,
  * so `[prop.digging]` cannot reach it and never could — the two
