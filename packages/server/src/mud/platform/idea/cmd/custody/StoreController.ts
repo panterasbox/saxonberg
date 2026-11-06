@@ -1,7 +1,7 @@
 /**
  * StoreController — the `store` verb: dispatch-on-subcommand over a
  * store's book (storage-and-ice D6; one noun since the review, the
- * `BankController` precedent). Bare `store` lists your receipts here;
+ * `bank` precedent). Bare `store` lists your receipts here;
  * `store deposit <thing>` and `store withdraw [<n>] <good>` are the two
  * entries a keeper writes.
  *

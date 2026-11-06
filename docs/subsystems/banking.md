@@ -221,9 +221,12 @@ bare `bank` → balance; `bank open` / `deposit <coins>` / `withdraw <amount>`
 for an existing holder it **doubles as the wallet re-link**: the payment
 credential is session-durable (a returning login's implant is
 re-provisioned bare — see [credential.md](./credential.md)), so re-opening
-re-links the held account onto the fresh credential instead of refusing. One `BankController` dispatcher
-extends `BankingControllerBase` (`resolveBank` — the affording counter, else
-the room scan; the crafting "agent performs, venue owns state" resolution).
+re-links the held account onto the fresh credential instead of refusing. Each
+subcommand is a controller of its own (`Bank<Sub>Controller`; bare `bank` routes
+to `BankBalanceController`) over `BankControllerBase`, which extends
+`BankingControllerBase` (`resolveBank` — the affording counter, else the room
+scan; the crafting "agent performs, venue owns state" resolution) and refuses
+`no-bank-here` before any subcommand runs.
 The branch is authored as **city content**:
 `world-seed/content/world/terminus/eternal/university-avenue/{bank,bank-counter,npc/teller}.yaml`,
 one cell north of the arrival plaza (reachable from the born-with University
@@ -396,7 +399,7 @@ two consumers are derive-on-read with no backfill:
   - `reserve supply` (governor-gated) renders one block per registered
     currency from the **complete** read.
 - **The account statement** (player-facing) — `bank statement [count]`, a
-  `BankController` subcommand beside `balance`: a derive-on-read scan of the
+  `bank` subcommand beside `balance` (`BankStatementController`): a derive-on-read scan of the
   caller's own ledger at the branch they're standing in (`entriesFor(accountId)`
   — the substrate reader `profitAndLoss` also rides), rendered newest-first
   with a per-line running balance accumulated over the *full* history, the
