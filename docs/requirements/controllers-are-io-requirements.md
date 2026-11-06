@@ -162,6 +162,17 @@ Everything else is moving logic to homes that already exist.
 - **Chat mentions (`@name` in a message).** These go to the chat
   slate. This build only ensures that `@` glued to a verb never touches
   message text.
+- **The rest of the mixin work** (owner, 2026-11-06, *"later"*). This
+  covers extracting interfaces from complicated classes, and narrowing
+  the mixins and classes that exist today. It goes to the
+  [mixin slate](../slates/tails/mixin-slate.md) and
+  [base-class-narrowing](../slates/builds/base-class-narrowing-slate.md),
+  under the gates this build installs.
+- **Template inheritance done right.** This is the big template refactor,
+  and it may move where mixin composition is declared. It goes to its own
+  build ([row-composition](../slates/builds/row-composition-slate.md) and
+  [legibility](../slates/builds/legibility-slate.md)). This build's splits
+  name hosts by class and change no row's shape.
 - **Renaming shipped British identifiers.** Nowhere, deliberately: that
   is a separate sweep.
 

@@ -465,3 +465,16 @@ the work siblings hold stays out.
 
 Still OUT, held by siblings: `look` (client-surface) and the authoring
 verbs and trees (wizard-axis).
+
+### Scope closed (owner, 2026-11-06)
+
+The plan was approved as it stands. Two items were named as LATER
+builds, and the gates this build installs are what they will run under:
+- **More mixin work:** extracting interfaces from complicated classes,
+  and narrowing the mixins and classes that exist today. This goes to
+  mixin-slate and base-class-narrowing.
+- **Template inheritance done right:** the big template refactor, which
+  may move where composition is declared. It goes to
+  row-composition-slate and legibility-slate. This build's mixin splits
+  name hosts by class and change no row's shape, so that refactor is not
+  pre-empted.
