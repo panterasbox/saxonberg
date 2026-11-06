@@ -366,3 +366,29 @@ two false positives.
 - **Decided by one verb per act:** the type dispatchers become protocols
   on the model. Only Throw, Tan's lift and Read's spell tail split into
   separate acts.
+
+### Reuse ledger for the plan
+
+Every concept the build needs, what already does it, and whether the build
+reuses it or generalizes it. The plan must account for every row. All of
+these claims were verified at the scan except where marked *(verify)*.
+
+| concept | what already does it | reuse / generalize |
+|---|---|---|
+| several sources match `verb@source` | `CommandApi.applyCardinalityPolicy` (cardinality, `onExcess`, `onShortage`, no-Interactive degrade) | reuse |
+| resolving the source | `MqlApi.resolveOne` / `resolveMany`, the `@` side an ordinary expression | reuse; no new seed |
+| narrowing the affordances to one source | affordance attribution (`affordances` verb; command-routing § Affordance attribution); `CommandGiver.getAffordances` / `_runChain` | generalize: filter the chain by source before dispatch |
+| telling the player the other offer exists | `_runChain` field-refusal fall-through; the `shape-fall-through` note kind; response-envelope note kinds | generalize: one note carrying the alternative's scoped form |
+| `@` in the command line | `api/command-line.ts` tokenizer (`RawToken`, `format()` round-trip) | generalize: split the verb word at its first `@`; `format()` must round-trip |
+| a subcommand with its own controller | per-subcommand `controller:` (`cockpit` ×7, `house` ×6, `trace` ×2) | reuse |
+| old top-level word kept working | view `verbs:`/aliases; player aliases (shell-alias) | reuse |
+| options in place of prepositions | `options:` per view and per subcommand, `--name`/`short:`/`--` in the tokenizer | reuse |
+| an act's plan, refusal, outcome | `lib/craft/ActPlan.ts` (`ActPlan`/`ActRefusal`/`ActOutcome`, ten controllers); 80 ad hoc `*Outcome`/`*Result` types; `{ok, reason}` at 1,045 sites | generalize: one convention; **drop `line: Mml`**, reasons a closed set per act |
+| an act's duration and effort | `ActPlan.durationMs` / `effortW`; `engageStep` | reuse; move the 52 controller constants |
+| an act as an object method | the cleanliness precedents (`Metabolic.eat`, `Floor.sweepInto`, `Tub.drawFrom`) | reuse the shape |
+| a registered marker mixin | the ceramics planner markers; the `Mixins` registry; `MixinApi.isX` | reuse; ≥40 duck sites just use an existing `isX` |
+| a split mixin keeping its old name | mixin composition order (mixins.md); `lint:mixin-names` | reuse: old factory = composition of the two |
+| count-only-falls gates | `lint:object-verbs` (the pattern); `lint:verb-collisions` + `KNOWN_COLLISIONS`; `lint:instrument-args` (`BESPOKE_RESOLUTION_CEILING`); `lint:reachability`; `lint:completion-this`; `scripts/pack-roots.ts` | generalize `instrument-args` into the never-built `controller-resolution`; ⚠ the readers must cover the 10 `world/**` controllers they skip today |
+| an alternate controller for one verb (drive 16) | domain-local view + controller path resolution (command-spec § Domain-local commands) | reuse *(verify that a wizard can install one in a live world)* |
+| the before/after record (drive 10–15) | the wire harness (`packages/wire`) | reuse: a record captured before W1 |
+| `pour` as one act | bulk `pour` (`Bulkable`) and crafting `pour` (`ManualBuild`, `DoughTrough`) | unify behind one protocol — collision ladder rung 1 |
