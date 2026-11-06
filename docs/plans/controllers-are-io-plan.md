@@ -1204,6 +1204,21 @@ input; wire 1–5, 23b, 24, 25b.
 Acceptance: an unscoped command is byte-identical (the baseline passes);
 `say hi @bob` untouched. Commit.
 
+✅ **W1 done** (`5ea55fd79`). `_runChain` is ① scope filter
+(`matchAffordances`, `_pickSources`, `_runBatch`) → ② the unchanged
+loop (+`scopeSource`, `filterPolicy`) → ③ `_otherOffer`. Decided:
+⚠ **the scoped form is MQL's own grammar — `me:i:watch`,
+`here:i:wheat:[2]`** — not the plan's `me:watch` / `here:2nd wheat`,
+which name a FEATURE (`:` after a seed) and only desugar ordinals at a
+query's head; the drive writes `wind@me:i:watch`. A cardinality prompt
+with no Interactive gives `needs-input` (D23 over D2's `ambiguous`);
+the probe skips the giver's own `self` verbs; an explicit set
+(`@inventory`) batches as `all` does; `wiki purge` from a script now
+fails closed; Pack's staff offer stays optional (a scripted install
+skips it); Buy passes `ask: null` so the seller's refusal stands.
+Open: batch under `--async` (each detached attempt fires its own
+envelope) — documented, not solved. duck-typing 628 → 627.
+
 ### W2 — resolution: where a verb looks, what a name is, the predicates
 
 Goal: drive 23 (first half). Decisions: D21, D22.
