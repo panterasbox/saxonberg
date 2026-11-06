@@ -12,7 +12,8 @@
  * recipe: one item, an edge).
  *
  * The composer implements `carvePlanFor` — an {@link ActPlan}, an
- * {@link ActRefusal}, or `null` when this thing has nothing to say (the
+ * {@link ActRefusal} (facts and a reason; the controller words them,
+ * controllers-are-io D4), or `null` when this thing has nothing to say (the
  * default). And the thing affords `carve`: in your hands or at your feet.
  */
 
@@ -42,10 +43,54 @@ export interface CarveRequest {
   forWord?: string;
 }
 
+/** What a carving is for, when a refusal says what it needs. */
+export type CarvingKind = 'trim' | 'riser' | 'pattern';
+
+/**
+ * ⭐ Every reason a thing refuses its carving — `CarveController` words
+ * each (controllers-are-io D4); the carved thing itself is the controller's
+ * own target, so the facts carry only what it is not.
+ */
+export type CarveRefusal =
+  /** The word is not one this thing carves; `carves` says what it does. */
+  | ActRefusal<'not-carvable', { carves: CarvingKind }>
+  | ActRefusal<'no-edge', { carves: CarvingKind }>
+  // green ware at the wrong moment (shared with `impress`)
+  | ActRefusal<'ruined'>
+  | ActRefusal<'fired', { act: 'trim' | 'stamp' }>
+  | ActRefusal<'too-soft', { act: 'trim' | 'stamp' }>
+  | ActRefusal<'too-dry', { act: 'trim' | 'stamp' }>
+  // a mould's riser
+  | ActRefusal<'no-cavity'>
+  | ActRefusal<'has-riser'>
+  // a founder's pattern
+  | ActRefusal<'self-target'>
+  | ActRefusal<'green-stock'>
+  | ActRefusal<'no-shape', { of: Stuff }>
+  | ActRefusal<'no-metal', { of: Stuff }>
+  | ActRefusal<'too-small', { of: Stuff }>;
+
+/** What a carving's begin words need. */
+export type CarveBegin =
+  | { kind: 'trim'; knife: Stuff }
+  | { kind: 'riser' }
+  | { kind: 'pattern'; of: Stuff; metalName: string };
+
+/** What a carving came to. */
+export type CarveDone =
+  /** A feature worked into a green piece (`a turned foot`). */
+  | { kind: 'trimmed'; feature: string }
+  | { kind: 'riser' }
+  | { kind: 'pattern'; pattern: Stuff; formDescription: string; metalName: string }
+  /** The thing or the carver was gone when the step landed (nothing said). */
+  | { kind: 'gone' };
+
+export type CarvePlan = ActPlan<CarveBegin, CarveDone, CarveRefusal>;
+
 /** A thing that plans being carved. */
 export interface Carvable {
   /** The plan, a refusal, or `null` when this thing has nothing to say. */
-  carvePlanFor(req: CarveRequest): Promise<ActPlan | ActRefusal | null>;
+  carvePlanFor(req: CarveRequest): Promise<CarvePlan | CarveRefusal | null>;
 }
 
 export function CarvableMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
@@ -59,7 +104,7 @@ export function CarvableMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase
     };
 
     /** @hook The carving this thing plans — `null` when it has nothing to say. */
-    public async carvePlanFor(_req: CarveRequest): Promise<ActPlan | ActRefusal | null> {
+    public async carvePlanFor(_req: CarveRequest): Promise<CarvePlan | CarveRefusal | null> {
       return null;
     }
   };

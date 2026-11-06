@@ -60,8 +60,8 @@ import type { TossOutcome } from '../../lib/spatial/Tossable';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Container } from '../../lib/spatial/Container';
 import type { FieldMeta } from '../../lib/mixin';
-import { CuttableMixin, type CutRequest } from '../../lib/craft/Cuttable';
-import type { ActPlan, ActRefusal } from '../../lib/craft/ActPlan';
+import { CuttableMixin, type CutAnswer, type CutDone, type CutRefusal, type CutRequest } from '../../lib/craft/Cuttable';
+import type { ActDone, ActPlan, ActRefusal } from '../../lib/craft/ActPlan';
 import type { CompetenceBandName } from '../../lib/advancement/CompetenceBand';
 import type { MarkupAugmenter } from '../../api/mml';
 import type { FaceName, CoatLayer } from '../../lib/material/Faced';
@@ -193,6 +193,11 @@ function meters(n: number): string {
   const r = Math.round(n * 10) / 10;
   return `${r} ${r === 1 ? 'meter' : 'meters'}`;
 }
+
+/** ⭐ Every reason `coil` is refused — `CoilController` words each. */
+export type CoilRefusal = ActRefusal<'tied'> | ActRefusal<'coiled'>;
+/** A coil: nothing to begin with; it lands coiled, or not (the rope was tied or gone). */
+export type CoilPlan = ActPlan<undefined, { coiled: boolean }, never>;
 
 /** ⭐ What a look says of a rope: length, fiber, thickness, what it holds, wear. */
 const ropeAugmenter: MarkupAugmenter = (text, host, _viewer, opts) => {
@@ -893,50 +898,37 @@ export default class Rope extends CuttableMixin(
    * free end — two ropes whose lengths sum; wear, marks, fiber and coat go
    * to both, and a knot goes with the end it was on.
    */
-  public async cutPlan(req: CutRequest): Promise<ActPlan | ActRefusal> {
-    const self = this as unknown as Stuff;
+  public override async cutPlan(req: CutRequest): Promise<CutAnswer> {
+    if (req.verb !== 'cut') return { ok: false, verb: req.verb, reason: 'not-cuttable' } as CutAnswer;
+    const refuse = (r: CutRefusal): CutAnswer => ({ ...r, verb: 'cut' });
     const knife = req.tools.find((t) => MixinApi.isTool(t) && t.hasCapability('cutting'));
-    if (!knife) {
-      return { ok: false, reason: 'no-knife', line: Mml.compose`You need a knife to cut ${Mml.thing(self)}.` };
-    }
-    if (this.isTied()) {
-      return { ok: false, reason: 'tied', line: Mml.compose`${Mml.thing(self)} is tied; untie it before you cut it.` };
-    }
-    if (req.length === null) {
-      return { ok: false, reason: 'no-length', line: Mml.compose`Cut it where? \`cut rope at 10 m\` cuts ten meters off the end.` };
-    }
+    if (!knife) return refuse({ ok: false, reason: 'no-knife' });
+    if (this.isTied()) return refuse({ ok: false, reason: 'tied' });
+    if (req.length === null) return refuse({ ok: false, reason: 'no-length' });
     const take = parseMeters(req.length);
-    if (take === null) {
-      return { ok: false, reason: 'bad-length', line: Mml.compose`"${req.length}" is not a length — say it in meters, like \`at 10 m\`.` };
-    }
-    if (take >= this.lengthM) {
-      return {
-        ok: false,
-        reason: 'too-long',
-        line: Mml.compose`${Mml.thing(self)} is only ${meters(this.lengthM)} long.`,
-      };
-    }
+    if (take === null) return refuse({ ok: false, reason: 'bad-length', facts: { length: req.length } });
+    if (take >= this.lengthM) return refuse({ ok: false, reason: 'too-long', facts: { lengthM: this.lengthM } });
     const actor = req.actor;
     return {
       ok: true,
+      verb: 'cut',
       durationMs: 5_000,
       effortW: 60,
-      beginSelf: Mml.compose`You measure off ${meters(take)} of ${Mml.thing(self)} and set the knife to it.`,
-      beginPeers: Mml.compose`${Mml.actor(actor)} cuts a length off a rope.`,
+      facts: { kind: 'rope', rope: this as unknown as Stuff, takeM: take },
       onComplete: () => this.cutOff(actor, take),
     };
   }
 
   /** The cut lands: the piece goes to the cutter's hands. */
-  private async cutOff(actor: Stuff, take: number): Promise<void | ActRefusal> {
+  private async cutOff(actor: Stuff, take: number): Promise<ActDone<CutDone, CutRefusal>> {
     const self = this as unknown as Stuff;
     if (self.isDestroyed() || this.isTied() || !(take < this.lengthM)) {
-      return { ok: false, reason: 'changed', line: Mml.compose`The rope is not as it was; you leave it uncut.` };
+      return { ok: false, reason: 'changed' };
     }
     const row = this.getTemplatePath() ?? ROPE_ROW;
     const piece = await StuffApi.clone<Rope>(row).catch(() => null);
     if (piece === null || !(piece instanceof Rope)) {
-      return { ok: false, reason: 'no-piece', line: Mml.compose`The knife slips; nothing comes away.` };
+      return { ok: false, reason: 'no-piece' };
     }
     const material = this.getMaterial();
     if (material) piece.setMaterial(material);
@@ -953,11 +945,7 @@ export default class Rope extends CuttableMixin(
     this.coiledDown = false;
     const into = MixinApi.isContainer(actor) ? actor : (this.getContainer() as Stuff | null);
     if (into !== null && MixinApi.isContainer(into)) ContainmentApi.move(piece as unknown as Stuff & Line, into);
-    MessageApi.scene(actor)
-      .topic('act.deed')
-      .toSelf(Mml.compose`The knife goes through; you have ${meters(take)} of rope in your hand and ${meters(this.lengthM)} left.`)
-      .send();
-    return undefined;
+    return { ok: true, facts: { kind: 'rope', takeM: take, leftM: this.lengthM } };
   }
 
   /** Copy what a rope has been through — fiber stage, marks, chafe, rot. */
@@ -1031,24 +1019,19 @@ export default class Rope extends CuttableMixin(
   }
 
   /** ⭐ `coil rope` (D10): a moment for every two meters, then it throws clean. */
-  public coilPlan(actor: Stuff): ActPlan | ActRefusal {
+  public coilPlan(_actor: Stuff): CoilPlan | CoilRefusal {
     const self = this as unknown as Stuff;
-    if (this.isTied()) {
-      return { ok: false, reason: 'tied', line: Mml.compose`${Mml.thing(self)} is tied; you cannot coil it down.` };
-    }
-    if (this.coiledDown) {
-      return { ok: false, reason: 'coiled', line: Mml.compose`${Mml.thing(self)} is already coiled.` };
-    }
+    if (this.isTied()) return { ok: false, reason: 'tied' };
+    if (this.coiledDown) return { ok: false, reason: 'coiled' };
     return {
       ok: true,
       durationMs: Math.max(2_000, this.lengthM * 500),
       effortW: 60,
-      beginSelf: Mml.compose`You start coiling ${Mml.thing(self)} down, turn over turn.`,
-      beginPeers: Mml.compose`${Mml.actor(actor)} coils a rope.`,
+      facts: undefined,
       onComplete: () => {
-        if (self.isDestroyed() || this.isTied()) return;
+        if (self.isDestroyed() || this.isTied()) return { ok: true, facts: { coiled: false } };
         this.coiledDown = true;
-        MessageApi.scene(actor).topic('act.deed').toSelf(Mml.compose`${Mml.thing(self)} lies in a neat coil.`).send();
+        return { ok: true, facts: { coiled: true } };
       },
     };
   }

@@ -700,6 +700,7 @@ export const Mixins = {
   Splittable: 'SplittableMixin',
   TravelNode: 'TravelNodeMixin',
   Cuttable: 'CuttableMixin',
+  CutPlanner: 'CutPlannerMixin',
   LiftSource: 'LiftSourceMixin',
   PumpSource: 'PumpSourceMixin',
   // Employment — the org chart (positions + holders + the appointing
@@ -993,7 +994,7 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   HazardMixin: "{} isn't a trap",
 
   // Fire & heat. ⚠ `CombustibleMixin`'s phrase carries the whole
-  // `CombustibleMixin|BurnerMixin` alternation `ignite` declares — an
+  // `CombustibleMixin|BurnerMixin` alternation `light` declares — an
   // alternation reports its FIRST member's phrase, and "won't burn" is
   // the true sentence for both halves.
   CombustibleMixin: "{} won't burn",

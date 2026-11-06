@@ -32,6 +32,7 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
+import type { StrikeOutcome, StrikeRefusal } from '@saxonberg/server/mud/lib/craft/StrikingDie';
 
 const TOPIC = 'act.deed';
 const HAMMER_MS = 5000;
@@ -122,9 +123,9 @@ export default class HammerController extends ManualBuildController<HammerModel>
         beginPeers: Mml.compose`${Mml.actor(giver)} strikes ${Mml.thing(target)} on ${Mml.thing(die)}.`,
         onComplete: () => {
           if (MixinApi.isDurable(striker)) striker.wear(undefined, 'shock');
-          void die.strikeWith(target, HAMMER_BLOW_J, giver).then((line) => {
+          void die.strikeWith(target, HAMMER_BLOW_J, giver).then((out) => {
             if (giver.isDestroyed()) return;
-            MessageApi.scene(giver).topic(TOPIC).toSelf(line).send();
+            MessageApi.scene(giver).topic(TOPIC).toSelf(this.strikeWords(out, target)).send();
           });
         },
       });
@@ -183,6 +184,25 @@ export default class HammerController extends ManualBuildController<HammerModel>
           .send();
       },
     });
+  }
+
+  /** ⭐ The words for what a strike on a die came to (D4) — every reason. */
+  private strikeWords(out: StrikeOutcome | StrikeRefusal, blank: Stuff): ReturnType<typeof Mml.compose> {
+    if (out.ok) {
+      return Mml.compose`The die bites. ${Mml.thing(out.facts.token)} comes up off it with the device sharp on its face.`;
+    }
+    switch (out.reason) {
+      case 'not-a-blank':
+        return Mml.compose`Nothing comes of it — ${Mml.thing(blank)} is no blank for this die.`;
+      case 'not-metal':
+        return Mml.compose`${Mml.thing(blank)} is not metal; it only bruises.`;
+      case 'too-hard':
+        return Mml.compose`The hammer rings off ${Mml.thing(blank)} and the device barely shows on it. It is too hard to strike cold — heat it, or strike harder.`;
+      default: {
+        const never: never = out;
+        return never;
+      }
+    }
   }
 }
 

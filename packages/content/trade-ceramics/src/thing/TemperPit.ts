@@ -26,14 +26,14 @@ import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { KneadRequest } from '@saxonberg/server/mud/lib/craft/KneadVessel';
-import type { ActPlan, ActRefusal } from '@saxonberg/server/mud/lib/craft/ActPlan';
+import type { KneadFacts, KneadPlan, KneadRefusal } from '@saxonberg/server/mud/lib/craft/KneadVessel';
+import type { ActDone } from '@saxonberg/server/mud/lib/craft/ActPlan';
 import { CompoundingMixin } from '@saxonberg/server/mud/lib/material/Compounding';
 import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
 import { BulkableMixin } from '@saxonberg/server/mud/lib/bulk/Bulkable';
 import { ThermalMixin } from '@saxonberg/server/mud/lib/thermal/Thermal';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { AppApi } from '@saxonberg/server/mud/api/app';
-import { Mml } from '@saxonberg/server/mud/api/mml';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import Clay from '@saxonberg/content-trade-quarrying/src/thing/Clay';
 import Grog from './Grog';
@@ -75,8 +75,7 @@ export default class TemperPit extends TemperPitBase {
     return this.getBulkAmount('interior').rawValue();
   }
 
-  public override async kneadPlanFor(req: KneadRequest): Promise<ActPlan | ActRefusal> {
-    const self = this as unknown as Stuff;
+  public override async kneadPlanFor(req: KneadRequest): Promise<KneadPlan | KneadRefusal> {
     // ⭐ Load on use: the pit's water froze IN the pit, and a thaw since is
     // brought current by the read that needs it — the ice goes back to
     // water before anything is weighed.
@@ -85,20 +84,8 @@ export default class TemperPit extends TemperPitBase {
     }
     const pieces = this.getContents().filter((c) => MixinApi.isTangible(c)) as Stuff[];
     const ice = pieces.find((p) => MixinApi.isTangible(p) && p.getMaterial()?.hasTag('frozen') === true);
-    if (ice !== undefined) {
-      return {
-        ok: false,
-        reason: 'frozen',
-        line: Mml.compose`${Mml.thing(self)} is frozen: ${Mml.thing(ice)} is set in it. Nothing treads until it thaws.`,
-      };
-    }
-    if (pieces.length === 0) {
-      return {
-        ok: false,
-        reason: 'empty',
-        line: Mml.compose`${Mml.thing(self)} has no clay in it. Put the clay and whatever you mean to temper it with in first.`,
-      };
-    }
+    if (ice !== undefined) return { ok: false, reason: 'frozen', facts: { ice } };
+    if (pieces.length === 0) return { ok: false, reason: 'empty', facts: { wants: 'clay' } };
     // ⭐ Only what treading can work in: plastic clay — green ware included,
     // ruined or not, which is how a slumped or burst piece is RECLAIMED
     // (B99) — and loose granular openers (sand, grog, breeze). A fired pot,
@@ -112,23 +99,11 @@ export default class TemperPit extends TemperPitBase {
       const mat = MixinApi.isTangible(p) ? p.getMaterial() : null;
       return mat === null || !(mat.hasTag('plastic') || mat.hasTag('granular'));
     });
-    if (hard !== undefined) {
-      return {
-        ok: false,
-        reason: 'not-treadable',
-        line: Mml.compose`${Mml.thing(hard)} will not tread into clay. Take it out — what is fired must be broken and ground to grog first.`,
-      };
-    }
+    if (hard !== undefined) return { ok: false, reason: 'not-treadable', facts: { hard } };
     // Clay is trodden, never stirred (B101).
     const wrong = this.workRefusal(req.verb);
     if (wrong !== null) return wrong;
-    if (!(this.waterLitres() > 0)) {
-      return {
-        ok: false,
-        reason: 'no-water',
-        line: Mml.compose`The clay in ${Mml.thing(self)} is dry. It wants water before it will come to the window.`,
-      };
-    }
+    if (!(this.waterLitres() > 0)) return { ok: false, reason: 'no-water' };
     const giver = req.actor;
     const minutes = dial('ceramics.temper.minutes', 20);
     return {
@@ -138,11 +113,8 @@ export default class TemperPit extends TemperPitBase {
       // front, and 450 W for twenty minutes was ~120 % of a full reserve
       // (the ceramics drive). 360 W costs about half of it.
       effortW: 360,
-      beginSelf: Mml.compose`You wet the clay in ${Mml.thing(self)} and get in, treading it and turning it over with the spade.`,
-      beginPeers: Mml.compose`${Mml.actor(giver)} treads the clay in ${Mml.thing(self)}.`,
-      onComplete: () => {
-        void this.temper(giver);
-      },
+      facts: { kind: 'tread' },
+      onComplete: () => this.temper(giver),
     };
   }
 
@@ -152,7 +124,7 @@ export default class TemperPit extends TemperPitBase {
    * tempered clay, wet it to the window, and put back what the tread did not
    * take up.
    */
-  private async temper(giver: Stuff): Promise<void> {
+  private async temper(giver: Stuff): Promise<ActDone<KneadFacts, KneadRefusal>> {
     const waterMat = this.getBulkMaterial('interior');
     const waterL = this.waterLitres();
     const payload = this.getBulkPayload('interior');
@@ -171,7 +143,7 @@ export default class TemperPit extends TemperPitBase {
     this.setBulkMaterial('interior', null);
     let out: Awaited<ReturnType<TemperPit['compound']>> | null = null;
     try {
-      out = await this.compound(giver, 'knead');
+      out = await this.compound(giver);
     } finally {
       // ⚠ The water goes back whatever happened to the compounding.
       const usedL =
@@ -184,7 +156,8 @@ export default class TemperPit extends TemperPitBase {
         if (payload !== null) this.setBulkPayload('interior', payload);
       }
     }
-    if (!out.ok || out.product === null) return;
+    const done = this.landed(out, 'knead');
+    if (!out.ok || out.product === null) return done;
     const clay = out.product;
     if (clay instanceof Clay) {
       if (weighed > 0) clay.setWeatheredDays(weathered / weighed);
@@ -194,5 +167,6 @@ export default class TemperPit extends TemperPitBase {
     if (!giver.isDestroyed() && MixinApi.isAdvancing(giver) && this.discipline !== '') {
       await giver.creditDeed({ discipline: this.discipline, difficulty: 'standard', outcome: 'success' });
     }
+    return done;
   }
 }

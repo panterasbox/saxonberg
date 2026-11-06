@@ -27,14 +27,11 @@ import type { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
 import type { Containable } from "@saxonberg/server/mud/lib/spatial/Containable";
 import type { Engaged } from "@saxonberg/server/mud/lib/activity/Engaged";
 import { DipBathMixin } from "@saxonberg/server/mud/lib/craft/DipBath";
-import type { DipRequest } from "@saxonberg/server/mud/lib/craft/DipBath";
-import type { ActPlan, ActRefusal } from "@saxonberg/server/mud/lib/craft/ActPlan";
+import type { DipPlan, DipRefusal, DipRequest } from "@saxonberg/server/mud/lib/craft/DipBath";
 import { MixinApi } from "@saxonberg/server/mud/api/mixin";
 import { ContainmentApi } from "@saxonberg/server/mud/api/containment";
 import { SchedulerApi } from "@saxonberg/server/mud/api/scheduler";
-import { MessageApi } from "@saxonberg/server/mud/api/message";
-import { Mml } from "@saxonberg/server/mud/api/mml";
-import Gather, { GLASSWORK_TOPIC } from "./Gather";
+import Gather from "./Gather";
 import Blowpipe from "./Blowpipe";
 import { HotWorkWatch } from "../lib/HotWork";
 
@@ -65,40 +62,25 @@ export default class Melt extends MeltBase {
    * empty blowpipe in the glassblower's hands (a bare `gob`). From the
    * moment it is lifted it COOLS: the hot-work watch is the window.
    */
-  public override async dipPlanFor(req: DipRequest): Promise<ActPlan | ActRefusal | null> {
+  public override async dipPlanFor(req: DipRequest): Promise<DipPlan | DipRefusal | null> {
     const actor = req.actor;
     const target = req.target;
+    const self = this as unknown as Stuff;
     if (target !== null && !(target instanceof Blowpipe)) {
-      return {
-        ok: false,
-        reason: "not-a-pipe",
-        line: Mml.compose`You gather hot glass on a blowpipe, not on ${Mml.thing(target)}.`,
-      };
+      return { ok: false, reason: "not-a-pipe", facts: { target } };
     }
     const pipe = target ?? emptyPipeOf(actor);
     if (pipe === null || pipe.getContents().some((c) => c instanceof Gather)) {
-      return {
-        ok: false,
-        reason: "no-pipe",
-        line: Mml.compose`You need an empty blowpipe in hand — the one you have is already carrying a gather.`,
-      };
+      return { ok: false, reason: "no-pipe" };
     }
-    if (!this.isFluid()) {
-      return {
-        ok: false,
-        reason: "melt-cold",
-        line: Mml.compose`${Mml.thing(this as unknown as Stuff)} has stiffened — there is no gathering from it cold. Work the bellows and fire it again.`,
-      };
-    }
-    if (!MixinApi.isEngaged(actor)) {
-      return { ok: false, reason: "cannot-engage", line: Mml.compose`You cannot give this your attention just now.` };
-    }
+    if (!this.isFluid()) return { ok: false, reason: "melt-cold", facts: { bath: self } };
+    if (!MixinApi.isEngaged(actor)) return { ok: false, reason: "cannot-engage" };
     return {
       ok: true,
       durationMs: 0,
       effortW: 0,
-      beginSelf: Mml.compose`You lower the pipe into ${Mml.thing(this as unknown as Stuff)}.`,
-      onComplete: async (): Promise<void> => {
+      facts: { kind: "gather", bath: self },
+      onComplete: async () => {
         const gatherKg = dial("glass.hotwork.gatherKg", 0.4);
         const meltK = this.getTemperature().rawValue();
         const makeup = this.takeGather(gatherKg);
@@ -111,11 +93,7 @@ export default class Melt extends MeltBase {
         SchedulerApi.start(
           new HotWorkWatch({ actor: actor as unknown as Stuff & Engaged, pipe: pipe as unknown as Stuff, gather }),
         );
-        MessageApi.scene(actor)
-          .topic(GLASSWORK_TOPIC)
-          .toSelf(Mml.compose`You lower the pipe into ${Mml.thing(this as unknown as Stuff)} and turn up a glowing gather. Work it while it is hot.`)
-          .toPeers(Mml.compose`${Mml.actor(actor)} gathers a blob of hot glass on a blowpipe.`)
-          .send();
+        return { ok: true as const, facts: { kind: "gather" as const, bath: self } };
       },
     };
   }

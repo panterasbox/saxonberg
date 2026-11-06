@@ -13,7 +13,6 @@ import { MoistureMixin } from '../Moisture';
 import { CompositionMixin } from '../Composition';
 import { GreenwareMixin } from '../Greenware';
 import type { ActRefusal } from '../../craft/ActPlan';
-import { Mml } from '../../../api/mml';
 import { Quantity } from '../../quantity';
 import { WorldClockApi } from '../../../api/worldclock';
 import { MaterialApi } from '../../../api/material';
@@ -30,10 +29,10 @@ import '../../../platform/idea/WorldClockRegistry';
 class HostWithActs extends ThermalMixin(CompositionMixin(Good)) {
   static _mixinName = 'GreenwareTestHostWithActs';
   public async carvePlanFor(): Promise<ActRefusal> {
-    return { ok: false, reason: 'host-carve', line: Mml.compose`the host's own carve` };
+    return { ok: false, reason: 'host-carve' };
   }
   public async takeImpression(): Promise<ActRefusal> {
-    return { ok: false, reason: 'host-impress', line: Mml.compose`the host's own impression` };
+    return { ok: false, reason: 'host-impress' };
   }
 }
 class ClayMould extends GreenwareMixin(MoistureMixin(HostWithActs)) {
@@ -225,7 +224,7 @@ describe('⭐⭐ green ends at firing (R2)', () => {
     });
     const req = { actor: m, word: 'trim', knife: null, commandText: 'carve trim on it' } as never;
     // Green: green ware's own carve (too soft to trim).
-    expect((await m.carvePlanFor(req)).ok === false && (await m.carvePlanFor(req) as ActRefusal).reason).toBe('too-soft');
+    expect(((await m.carvePlanFor(req)) as ActRefusal).reason).toBe('too-soft');
     // Fired (no longer plastic clay): the host's own acts.
     m.setMaterial(terracotta);
     expect(((await m.carvePlanFor(req)) as ActRefusal).reason).toBe('host-carve');

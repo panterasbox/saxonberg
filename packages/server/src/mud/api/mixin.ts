@@ -270,7 +270,7 @@ import type { OnCall } from '../lib/employment/OnCall';
 import type { Pumpable } from '../lib/pump/Pumpable';
 import type { Splittable } from '../lib/ground/Splittable';
 import type { TravelNode } from '../lib/travel/TravelNode';
-import type { Cuttable } from '../lib/craft/Cuttable';
+import type { CutPlanner, Cuttable } from '../lib/craft/Cuttable';
 import type { LiftSource } from '../lib/pump/LiftSource';
 import type { PumpSource } from '../lib/pump/PumpSource';
 import type { CapTable } from '../lib/employment/CapTable';
@@ -2396,6 +2396,11 @@ export class MixinApi {
   /** ⭐ Plans its own cut — `cut` (`CuttableMixin`, a protocol). */
   public static isCuttable(obj: Stuff): obj is Stuff & Cuttable {
     return this.hasMixin(obj, Mixins.Cuttable);
+  }
+
+  /** ⭐ Plans the cut of a thing it knows — `cut` (`CutPlannerMixin`, a protocol). */
+  public static isCutPlanner(obj: Stuff): obj is Stuff & CutPlanner {
+    return this.hasMixin(obj, Mixins.CutPlanner);
   }
 
   /** ⭐ A stop on some travel network — `teleport` (`TravelNodeMixin`, a protocol). */

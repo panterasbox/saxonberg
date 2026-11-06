@@ -42,6 +42,8 @@ import type {
 } from '../../../../api/command';
 import type { MqlOneResult } from '../../../../api/mql';
 import type { Recipe } from '../../../../lib/craft/Recipe';
+import type { Stuff } from '../../../../lib/stuff/Stuff';
+import type { CarveBegin, CarveDone, CarveRefusal } from '../../../../lib/craft/Carvable';
 import RecipeCatalogue from '../../RecipeCatalogue';
 import { CraftingApi } from '../../../../api/crafting';
 import { MixinApi } from '../../../../api/mixin';
@@ -50,6 +52,8 @@ import { Mml } from '../../../../api/mml';
 import { StuffApi } from '../../../../api/stuff';
 
 const TOPIC = 'act.deed';
+
+type Composed = ReturnType<typeof Mml.compose>;
 const RECIPE_CATALOGUE = '/platform/idea/RecipeCatalogue';
 
 /** The capability a carving asks for — an edge. */
@@ -107,10 +111,23 @@ export default class CarveController extends ManualBuildController<CarveModel> {
       });
       if (plan !== null) {
         if (!plan.ok) {
-          this.turnDown(context, plan.reason, plan.line);
+          this.turnDown(context, plan.reason, this.refusalWords(plan, named));
           return;
         }
-        await this.engagePlan(context, plan);
+        await this.engagePlan(context, plan, {
+          beginSelf: (f) => this.beginWords(f, named),
+          beginPeers: (f) =>
+            f.kind === 'trim'
+              ? Mml.compose`${Mml.actor(giver)} pares at ${Mml.thing(named)}.`
+              : f.kind === 'riser'
+                ? Mml.compose`${Mml.actor(giver)} cuts into ${Mml.thing(named)}.`
+                : Mml.compose`${Mml.actor(giver)} measures and carves at ${Mml.thing(named)}.`,
+          onRefused: (r) => this.refusalWords(r, named),
+          onDone: (f) => {
+            const self = this.doneWords(f, named);
+            return self === null ? null : { self };
+          },
+        });
         return;
       }
     }
@@ -195,6 +212,114 @@ export default class CarveController extends ManualBuildController<CarveModel> {
         Mml.compose`${Mml.actor(giver)} whittles away at a piece of wood and holds up ${Mml.thing(output)}.`,
       )
       .send();
+  }
+
+  /** ⭐ The words for a refused carving (D4) — every reason, exhaustively. */
+  private refusalWords(r: CarveRefusal, thing: Stuff): Composed {
+    switch (r.reason) {
+      case 'not-carvable':
+        switch (r.facts.carves) {
+          case 'trim':
+            return Mml.compose`You can trim ${Mml.thing(thing)}, turn a foot on it, or cut a design into it.`;
+          case 'riser':
+            return Mml.compose`The only thing to cut in ${Mml.thing(thing)} is a riser.`;
+          case 'pattern':
+            return Mml.compose`From ${Mml.thing(thing)} you can carve a pattern of something — say \`carve pattern of <thing>\`.`;
+        }
+        break;
+      case 'no-edge':
+        switch (r.facts.carves) {
+          case 'trim':
+            return Mml.compose`You need an edge to trim with — any knife will do.`;
+          case 'riser':
+            return Mml.compose`You need an edge to cut a riser — any knife will do.`;
+          case 'pattern':
+            return Mml.compose`You have no edge to carve with. Anything that offers a cutting edge will do.`;
+        }
+        break;
+      case 'ruined':
+      case 'fired':
+      case 'too-soft':
+      case 'too-dry':
+        return CarveController.greenWords(r, thing);
+      case 'no-cavity':
+        return Mml.compose`There is no cavity in ${Mml.thing(thing)} to feed — press a pattern into it first.`;
+      case 'has-riser':
+        return Mml.compose`${Mml.thing(thing)} has a riser already.`;
+      case 'self-target':
+        return Mml.compose`You cannot carve a pattern of the wood you are carving it from.`;
+      case 'green-stock':
+        return Mml.compose`${Mml.thing(thing)} is still green. Wood moves as it dries; a pattern cut from it won't hold its size. Let it season first.`;
+      case 'no-shape':
+        return Mml.compose`${Mml.thing(r.facts.of)} has no shape a pattern could copy.`;
+      case 'no-metal':
+        return Mml.compose`Cut for which metal? A pattern is cut oversize by what the metal shrinks — say \`carve pattern of ${Mml.thing(r.facts.of)} for bronze\`.`;
+      case 'too-small':
+        return Mml.compose`${Mml.thing(thing)} is too small to carve a pattern of ${Mml.thing(r.facts.of)} from.`;
+      default: {
+        const never: never = r;
+        return never;
+      }
+    }
+    throw new TypeError(`CarveController: no words for '${r.reason}'`);
+  }
+
+  /**
+   * ⭐ The words for green ware at the wrong moment — shared with `impress`
+   * (`ImpressController`), whose medium refuses with the same four reasons.
+   */
+  static greenWords(
+    r: Extract<CarveRefusal, { reason: 'ruined' | 'fired' | 'too-soft' | 'too-dry' }>,
+    thing: Stuff,
+  ): Composed {
+    switch (r.reason) {
+      case 'ruined':
+        return Mml.compose`${Mml.thing(thing)} is ruined. It is still clay, though — put it back in a temper pit and tread it in again.`;
+      case 'fired':
+        return Mml.compose`${Mml.thing(thing)} has been fired hard. Nothing will ${r.facts.act} it now.`;
+      case 'too-soft':
+        return Mml.compose`${Mml.thing(thing)} is too soft to ${r.facts.act} — it would smear. Let it firm up to leather-hard.`;
+      case 'too-dry':
+        return Mml.compose`${Mml.thing(thing)} is bone-dry — it would crack. That is done at leather-hard.`;
+      default: {
+        const never: never = r;
+        return never;
+      }
+    }
+  }
+
+  /** The words a carving begins on. */
+  private beginWords(f: CarveBegin, thing: Stuff): Composed {
+    switch (f.kind) {
+      case 'trim':
+        return Mml.compose`You set ${Mml.thing(thing)} upside down and pare at it with ${Mml.thing(f.knife)}.`;
+      case 'riser':
+        return Mml.compose`You cut a channel down into ${Mml.thing(thing)} and hollow a riser above the cavity.`;
+      case 'pattern':
+        return Mml.compose`You lay ${Mml.thing(f.of)} on ${Mml.thing(thing)}, scribe round it with a shrink rule for ${f.metalName}, and begin to carve.`;
+      default: {
+        const never: never = f;
+        return never;
+      }
+    }
+  }
+
+  /** The words a carving lands on (`null` — nothing said). */
+  private doneWords(f: CarveDone, thing: Stuff): Composed | null {
+    switch (f.kind) {
+      case 'trimmed':
+        return Mml.compose`The shavings curl away. ${Mml.thing(thing)} has ${f.feature} now.`;
+      case 'riser':
+        return Mml.compose`${Mml.thing(thing)} has a riser now: the last of the metal will have somewhere to feed from.`;
+      case 'pattern':
+        return Mml.compose`You blow the last shavings off ${Mml.thing(f.pattern)}: the shape of ${f.formDescription}, a shade fat all over — by what ${f.metalName} will shrink as it cools.`;
+      case 'gone':
+        return null;
+      default: {
+        const never: never = f;
+        return never;
+      }
+    }
   }
 
   private turnDown(

@@ -9,14 +9,11 @@
 import Tool from "@saxonberg/server/mud/platform/thing/Tool";
 import { ContainerMixin } from "@saxonberg/server/mud/lib/spatial/Container";
 import type { CommandContributions } from "@saxonberg/server/mud/api/command";
-import type { ShapeRequest } from "@saxonberg/server/mud/lib/craft/Shapeable";
-import type { ActPlan, ActRefusal } from "@saxonberg/server/mud/lib/craft/ActPlan";
-import { MessageApi } from "@saxonberg/server/mud/api/message";
+import type { ShapePlan, ShapeRefusal, ShapeRequest } from "@saxonberg/server/mud/lib/craft/Shapeable";
 import { FormingMixin } from "@saxonberg/server/mud/lib/craft/Forming";
 import type { FormClass } from "@saxonberg/server/mud/lib/craft/FormSpec";
 import type { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
-import { Mml } from "@saxonberg/server/mud/api/mml";
-import Gather, { GLASSWORK_TOPIC, GLASSWORK_TYPE } from "./Gather";
+import Gather, { GLASSWORK_TYPE } from "./Gather";
 
 /** Working a gather into its form, game-ms — and the effort of it. */
 const SHAPE_MS = 10_000;
@@ -59,7 +56,7 @@ export default class Blowpipe extends FormingMixin(ContainerMixin(Tool)) {
    * (a bottle, a cylinder for a pane), the blow and the jacks in one move.
    * `null` with no gather on it: the shape is not this pipe's business.
    */
-  public override async shapePlanFor(req: ShapeRequest): Promise<ActPlan | ActRefusal | null> {
+  public override async shapePlanFor(req: ShapeRequest): Promise<ShapePlan | ShapeRefusal | null> {
     const target = await this.resolveForming(req);
     if (target === null || !("mass" in target)) return target;
     const gather = target.mass;
@@ -69,27 +66,23 @@ export default class Blowpipe extends FormingMixin(ContainerMixin(Tool)) {
     const actor = req.actor;
     if (!gather.isWorkable()) {
       void gather.loseToCullet(actor, "It has already set hard.");
-      return { ok: false, reason: "set-hard", line: Mml.compose`It has set hard.` };
+      return { ok: false, reason: "set-hard" };
     }
     return {
       ok: true,
       durationMs: SHAPE_MS,
       effortW: SHAPE_W,
-      beginSelf: Mml.compose`You put the pipe to your lips and your tools to the glass, working it toward a ${Mml.fromMarkup(form)}.`,
-      beginPeers: Mml.compose`${Mml.actor(actor)} works a gather of hot glass.`,
-      onComplete: () => {
-        if (gather.isDestroyed()) return;
+      facts: { kind: "blow", form },
+      onComplete: async () => {
+        if (gather.isDestroyed()) return { ok: true, facts: { kind: "lost" } };
         // ⭐ Re-validate at the commit point: if it cooled past working
-        // during the step, the piece is lost.
+        // during the step, the piece is lost (the loss narrates itself).
         if (!gather.isWorkable()) {
           void gather.loseToCullet(actor, "It set before you were done.");
-          return;
+          return { ok: true, facts: { kind: "lost" } };
         }
         gather.takeForm(key, target.product, target.hand.grade);
-        MessageApi.scene(actor)
-          .topic(GLASSWORK_TOPIC)
-          .toSelf(Mml.compose`The glass takes the form of a ${Mml.fromMarkup(form)}. Crack it off while it holds.`)
-          .send();
+        return { ok: true, facts: { kind: "blown", form } };
       },
     };
   }

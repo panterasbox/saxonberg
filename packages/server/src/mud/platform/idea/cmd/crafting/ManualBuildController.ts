@@ -23,7 +23,8 @@ import type { MqlManyResult } from "../../../../api/mql";
 import type { AbortReason } from "@saxonberg/types";
 import type { Stuff } from "../../../../lib/stuff/Stuff";
 import type { Tooled } from "../../../../lib/craft/Tool";
-import type { ActPlan } from "../../../../lib/craft/ActPlan";
+import type { ActDone, ActPlan, AnyActRefusal } from "../../../../lib/craft/ActPlan";
+import type { ActWords } from "../../../../lib/command/EngagedActController";
 import { MixinApi } from "../../../../api/mixin";
 import { MessageApi } from "../../../../api/message";
 import { Mml } from "../../../../api/mml";
@@ -129,6 +130,8 @@ export abstract class ManualBuildController<
    * ⭐ Engage a plan an object handed back (`ActPlan` — `knead`, `shape`,
    * `carve`, `cut`, `dip`, `stir` on a compounding vessel): the ONE
    * engage-a-plan routine, so every act protocol is run the same way.
+   * ⭐ The object answered facts; `words` is this controller's wording of
+   * them (controllers-are-io D4) — begin, a late refusal, and the landing.
    *
    *  - A zero-length plan runs NOW, inside the command frame: an act that
    *    is a craft resolved from the actor's reach (the chandler's candle)
@@ -138,18 +141,40 @@ export abstract class ManualBuildController<
    *    completion returns (the world changed under the step) is told to
    *    the actor when it lands.
    */
-  protected async engagePlan(context: CommandContext, plan: ActPlan): Promise<void> {
+  protected async engagePlan<B, F, X extends AnyActRefusal>(
+    context: CommandContext,
+    plan: ActPlan<B, F, X>,
+    words: ActWords<B, F, X>,
+  ): Promise<void> {
+    const giver = context.commandGiver;
+    const say = (out: ActDone<F, X>): void => {
+      if (giver.isDestroyed()) return;
+      if (!out.ok) {
+        MessageApi.scene(giver).topic(STEP_TOPIC).toSelf(words.onRefused(out)).send();
+        return;
+      }
+      const done = words.onDone?.(out.facts) ?? null;
+      if (done === null || (!done.self && !done.peers)) return;
+      const scene = MessageApi.scene(giver).topic(STEP_TOPIC);
+      if (done.self) scene.toSelf(done.self);
+      if (done.peers) scene.toPeers(done.peers);
+      scene.send();
+    };
     if (plan.durationMs <= 0) {
       const out = await plan.onComplete();
-      if (out && !out.ok) this.declineStep(context, out.line, out.reason);
+      if (!out.ok) {
+        this.declineStep(context, words.onRefused(out), out.reason);
+        return;
+      }
+      say(out);
       return;
     }
-    const giver = context.commandGiver;
+    const peers = words.beginPeers?.(plan.facts) ?? null;
     this.engageStep(context, {
       durationMs: plan.durationMs,
       effortW: plan.effortW,
-      beginSelf: plan.beginSelf,
-      beginPeers: plan.beginPeers,
+      beginSelf: words.beginSelf(plan.facts),
+      ...(peers ? { beginPeers: peers } : {}),
       onComplete: () => {
         // ⚠ The scheduler's completion is synchronous, so an async plan's
         // throw would land after its root returned — an unhandled
@@ -157,11 +182,7 @@ export abstract class ManualBuildController<
         // says a sync one (silent-write-census slate: async completions).
         Promise.resolve()
           .then(() => plan.onComplete())
-          .then((out) => {
-            if (out && !out.ok && !giver.isDestroyed()) {
-              MessageApi.scene(giver).topic(STEP_TOPIC).toSelf(out.line).send();
-            }
-          })
+          .then(say)
           .catch((err: unknown) => {
             console.error('ManualBuildController: a planned act failed at completion', err);
           });

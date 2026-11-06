@@ -1,7 +1,7 @@
 /**
  * The two widened arms of the kitchen's work verbs (dairy D5, D6): `heat`
  * SETS a plain vessel on the lit fire in reach so its contents really
- * warm, and `churn` works a vessel that is `HandWorkedMixin` — while the
+ * warm, and `stir` works a vessel that is `HandWorkedMixin` — while the
  * build arms of both are exactly as they were.
  */
 
@@ -34,9 +34,8 @@ import { ContainableMixin } from '../../../../../lib/spatial/Containable';
 import { ManualBuildMixin } from '../../../../../lib/craft/ManualBuild';
 import { ToolMixin } from '../../../../../lib/craft/Tool';
 import { BulkableMixin } from '../../../../../lib/bulk/Bulkable';
-import { HandWorkedMixin } from '../../../../../lib/craft/HandWorked';
+import { HandWorkedMixin, type HandWorkFacts } from '../../../../../lib/craft/HandWorked';
 import type { ActOutcome } from '../../../../../lib/craft/ActPlan';
-import { Mml } from '../../../../../api/mml';
 import Place from '../../../../../lib/stuff/Place';
 import { ContainmentApi } from '../../../../../api/containment';
 import { MixinApi } from '../../../../../api/mixin';
@@ -72,7 +71,7 @@ const heatCmd = CommandDefinition.fromYaml(
   '<test>',
 );
 const stirCmd = CommandDefinition.fromYaml(
-  'verbs: [stir, shake, churn]\ncontroller: x\ndescription: d\n',
+  'verbs: [stir]\ncontroller: x\ndescription: d\n',
   '<test>',
 );
 
@@ -226,23 +225,23 @@ describe('⭐ churn — the hand-worked arm (dairy D5)', () => {
     await stand('hearth');
     const calls: string[] = [];
     class TestChurn extends HandWorkedMixin(BulkableMixin(Good)) {
-      override workByHand(method: string): ActOutcome | null {
-        calls.push(method);
-        return { ok: true, line: Mml.compose`It breaks.` };
+      override workByHand(): ActOutcome<HandWorkFacts> | null {
+        calls.push('worked');
+        return { ok: true, facts: { result: 'came' } };
       }
     }
     const churn = makeStuff(() => new TestChurn());
     await ContainmentApi.move(churn as never, room as never);
-    const ctx = await run(() => new StirController(), 'churn', 'vessel', churn);
+    const ctx = await run(() => new StirController(), 'stir', 'vessel', churn);
     expect(refusal(ctx)).toBeNull();
-    expect(calls).toEqual(['churned']);
+    expect(calls).toEqual(['worked']);
   });
 
   it('a vessel that is neither a build nor hand-worked is refused', async () => {
     await stand('hearth');
     const v = vat();
     await ContainmentApi.move(v as never, room as never);
-    const ctx = await run(() => new StirController(), 'churn', 'vessel', v);
+    const ctx = await run(() => new StirController(), 'stir', 'vessel', v);
     expect(refusal(ctx)).toBe('no-vessel');
   });
 });

@@ -129,7 +129,8 @@ describe('the temper pit', () => {
     expect(plan.ok).toBe(false);
     if (!plan.ok) {
       expect(plan.reason).toBe('not-treadable');
-      expect(String(plan.line)).toMatch(/grog/);
+      // ⭐ Refused BY NAME: the facts carry the piece; `knead` words it (D4).
+      if (plan.reason === 'not-treadable') expect(plan.facts.hard).toBeDefined();
     }
   });
 

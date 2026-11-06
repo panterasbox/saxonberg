@@ -80,10 +80,9 @@ import { Grade } from '../craft/Grade';
 import { Impression } from './Impression';
 import type { ImpressionData } from './Impression';
 import { ImpressibleMixin } from '../craft/Impressible';
-import type { Impressible } from '../craft/Impressible';
+import type { Impressible, ImpressOutcome, ImpressRefusal } from '../craft/Impressible';
 import { CarvableMixin } from '../craft/Carvable';
-import type { Carvable, CarveRequest } from '../craft/Carvable';
-import type { ActOutcome, ActPlan, ActRefusal } from '../craft/ActPlan';
+import type { Carvable, CarvePlan, CarveRefusal, CarveRequest } from '../craft/Carvable';
 
 /** What a pool hands a mould when it sets. */
 export interface SetPool {
@@ -781,59 +780,25 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
      * it, a wax block, a plaster case whose slurry has not yet cured. The
      * medium answers; the verb is dumb.
      */
-    public async takeImpression(pattern: Stuff, _actor: Stuff): Promise<ActOutcome | ActRefusal> {
+    public async takeImpression(pattern: Stuff, _actor: Stuff): Promise<ImpressOutcome | ImpressRefusal> {
       const self = this as unknown as Stuff;
-      if (!this.impressible) {
-        return {
-          ok: false,
-          reason: 'not-impressible',
-          line: Mml.compose`${Mml.thing(self)} is cut to its own shape. Nothing presses into it.`,
-        };
-      }
+      if (!this.impressible) return { ok: false, reason: 'not-impressible', facts: { why: 'cut-to-shape' } };
       if (this.impression !== null) {
         const held = this.getImpression();
-        return {
-          ok: false,
-          reason: 'already-impressed',
-          line: Mml.compose`${Mml.thing(self)} already holds the impression of ${held?.getFormDescription() ?? 'something'}.`,
-        };
+        return { ok: false, reason: 'already-impressed', facts: { held: held?.getFormDescription() ?? 'something' } };
       }
       const pooled = MixinApi.isBulkable(self) && self.getBulkAmount('interior').rawValue() > 0;
       const curing = pooled && MixinApi.isBulkable(self) && (self.getBulkMaterial('interior')?.getKinetics()?.poolSet() ?? null) !== null;
-      if ((pooled && !curing) || this.holdsCast()) {
-        return {
-          ok: false,
-          reason: 'occupied',
-          line: Mml.compose`${Mml.thing(self)} is full. Empty it first.`,
-        };
-      }
+      if ((pooled && !curing) || this.holdsCast()) return { ok: false, reason: 'occupied' };
       const shape = MixinApi.isTangible(pattern) ? pattern.leaveImpression(mouldNowSeconds() ?? 0) : null;
       const imp = shape !== null ? new Impression(shape) : null;
-      if (imp === null) {
-        return {
-          ok: false,
-          reason: 'no-shape',
-          line: Mml.compose`${Mml.thing(pattern)} leaves no shape a mould could hold.`,
-        };
-      }
+      if (imp === null) return { ok: false, reason: 'no-shape' };
       const cap = MixinApi.isBulkable(self) ? (self.getBulkCapacity('interior')?.rawValue() ?? 0) : 0;
-      if (cap > 0 && imp.getVolumeL() > cap) {
-        return {
-          ok: false,
-          reason: 'too-big',
-          line: Mml.compose`${Mml.thing(pattern)} is too big for ${Mml.thing(self)}.`,
-        };
-      }
+      if (cap > 0 && imp.getVolumeL() > cap) return { ok: false, reason: 'too-big' };
       // ⭐ Draft (S15): a shape with something standing out of it will not
       // draw out of a one-piece rigid mould — only one broken to release it,
       // or one of two halves.
-      if (imp.hasUndercut() && this.reusable && !this.isTwoPiece()) {
-        return {
-          ok: false,
-          reason: 'undercut',
-          line: Mml.compose`${Mml.thing(pattern)} would not draw out of ${Mml.thing(self)} — something stands out of it. A mould of two halves would take it, or a sand mould you break.`,
-        };
-      }
+      if (imp.hasUndercut() && this.reusable && !this.isTwoPiece()) return { ok: false, reason: 'undercut' };
       this.impression = imp.toData();
       this.riser = false;
       // Rammed green sand is damp — damp enough to hold the shape.
@@ -842,10 +807,7 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         const now = self.getWetness();
         if (want > now) self.wet(want - now);
       }
-      return {
-        ok: true,
-        line: Mml.compose`You press ${Mml.thing(pattern)} into ${Mml.thing(self)} and draw it out clean. It holds the shape of ${imp.getFormDescription()} now.`,
-      };
+      return { ok: true, facts: { kind: 'impressed', form: imp.getFormDescription() } };
     }
 
     /**
@@ -853,50 +815,31 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
      * into a rammed mould, so the last metal to freeze is fed and the cast
      * comes out sound. Any edge does it.
      */
-    public async carvePlanFor(req: CarveRequest): Promise<ActPlan | ActRefusal> {
+    public async carvePlanFor(req: CarveRequest): Promise<CarvePlan | CarveRefusal | null> {
       const self = this as unknown as Stuff;
       const word = req.word.trim().toLowerCase();
       if (word !== 'riser' && word !== 'runner' && word !== 'gate') {
-        return {
-          ok: false,
-          reason: 'not-carvable',
-          line: Mml.compose`The only thing to cut in ${Mml.thing(self)} is a riser.`,
-        };
+        return { ok: false, reason: 'not-carvable', facts: { carves: 'riser' } };
       }
-      if (!this.impressible || this.impression === null) {
-        return {
-          ok: false,
-          reason: 'no-cavity',
-          line: Mml.compose`There is no cavity in ${Mml.thing(self)} to feed — press a pattern into it first.`,
-        };
-      }
-      if (this.riser) {
-        return { ok: false, reason: 'has-riser', line: Mml.compose`${Mml.thing(self)} has a riser already.` };
-      }
+      if (!this.impressible || this.impression === null) return { ok: false, reason: 'no-cavity' };
+      if (this.riser) return { ok: false, reason: 'has-riser' };
       const knife = req.knife;
       if (knife === null || !MixinApi.isTool(knife) || !knife.hasCapability(CUTTING)) {
-        return {
-          ok: false,
-          reason: 'no-edge',
-          line: Mml.compose`You need an edge to cut a riser — any knife will do.`,
-        };
+        return { ok: false, reason: 'no-edge', facts: { carves: 'riser' } };
       }
       const actor = req.actor;
       return {
         ok: true,
         durationMs: 2 * 60 * 1000,
         effortW: 80,
-        beginSelf: Mml.compose`You cut a channel down into ${Mml.thing(self)} and hollow a riser above the cavity.`,
-        beginPeers: Mml.compose`${Mml.actor(actor)} cuts into ${Mml.thing(self)}.`,
+        facts: { kind: 'riser' },
         onComplete: () => {
-          if (self.isDestroyed()) return;
-          this.riser = true;
-          if (!actor.isDestroyed()) {
-            MessageApi.scene(actor)
-              .topic('act.deed')
-              .toSelf(Mml.compose`${Mml.thing(self)} has a riser now: the last of the metal will have somewhere to feed from.`)
-              .send();
+          if (self.isDestroyed() || actor.isDestroyed()) {
+            if (!self.isDestroyed()) this.riser = true;
+            return { ok: true, facts: { kind: 'gone' } };
           }
+          this.riser = true;
+          return { ok: true, facts: { kind: 'riser' } };
         },
       };
     }

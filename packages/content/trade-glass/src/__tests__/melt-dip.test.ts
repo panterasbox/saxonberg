@@ -63,7 +63,7 @@ describe("⭐ the melt is a dip bath — a gather", () => {
 
   it("a bare dip finds the empty pipe in hand and plans the gather", async () => {
     const { actor } = blower(true);
-    const plan = (await melt(1300).dipPlanFor({ actor, target: null, faces: null, raw: null })) as ActPlan;
+    const plan = (await melt(1300).dipPlanFor({ actor, target: null, faces: null, raw: null })) as unknown as ActPlan;
     expect(plan.ok).toBe(true);
     expect(plan.durationMs).toBe(0);
   });

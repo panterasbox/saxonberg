@@ -24,8 +24,8 @@ import type { MixinConstructor } from '@saxonberg/server/mud/lib/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type Material from '@saxonberg/server/mud/lib/material/Material';
 import { CarvableMixin } from '@saxonberg/server/mud/lib/craft/Carvable';
-import type { CarveRequest } from '@saxonberg/server/mud/lib/craft/Carvable';
-import type { ActPlan, ActRefusal } from '@saxonberg/server/mud/lib/craft/ActPlan';
+import type { CarveDone, CarvePlan, CarveRefusal, CarveRequest } from '@saxonberg/server/mud/lib/craft/Carvable';
+import type { ActDone } from '@saxonberg/server/mud/lib/craft/ActPlan';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
@@ -34,8 +34,6 @@ import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
-import { MessageApi } from '@saxonberg/server/mud/api/message';
-import { Mml } from '@saxonberg/server/mud/api/mml';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { Grade } from '@saxonberg/server/mud/lib/craft/Grade';
 import Pattern from '../thing/Pattern';
@@ -68,50 +66,28 @@ export function PatternStockMixin<TBase extends MixinConstructor<Stuff>>(Base: T
      * `null` for any word but a pattern: that carving is not this stock's
      * to plan (the recipe path's).
      */
-    public async carvePlanFor(req: CarveRequest): Promise<ActPlan | ActRefusal | null> {
+    public async carvePlanFor(req: CarveRequest): Promise<CarvePlan | CarveRefusal | null> {
       const self = this as unknown as Stuff;
       if (!/^pattern/.test(req.word.trim().toLowerCase())) return null;
       const of = req.of ?? null;
-      if (of === null) {
-        return {
-          ok: false,
-          reason: 'not-carvable',
-          line: Mml.compose`From ${Mml.thing(self)} you can carve a pattern of something — say \`carve pattern of <thing>\`.`,
-        };
-      }
-      if (of === self) {
-        return { ok: false, reason: 'self-target', line: Mml.compose`You cannot carve a pattern of the wood you are carving it from.` };
-      }
+      if (of === null) return { ok: false, reason: 'not-carvable', facts: { carves: 'pattern' } };
+      if (of === self) return { ok: false, reason: 'self-target' };
       // ⭐ Green wood moves as it dries: a pattern cut from it shrinks after
       // it is cut, and the cast comes out short by exactly what it lost.
-      if (MixinApi.isSeasoning(self) && self.isGreen()) {
-        return {
-          ok: false,
-          reason: 'green-stock',
-          line: Mml.compose`${Mml.thing(self)} is still green. Wood moves as it dries; a pattern cut from it won't hold its size. Let it season first.`,
-        };
-      }
+      if (MixinApi.isSeasoning(self) && self.isGreen()) return { ok: false, reason: 'green-stock' };
       const knife = req.knife;
       if (knife === null || !MixinApi.isTool(knife) || !knife.hasCapability(CUTTING)) {
-        return {
-          ok: false,
-          reason: 'no-edge',
-          line: Mml.compose`You have no edge to carve with. Anything that offers a cutting edge will do.`,
-        };
+        return { ok: false, reason: 'no-edge', facts: { carves: 'pattern' } };
       }
       const shape = MixinApi.isTangible(of) ? of.leaveImpression(WorldClockApi.getNow().rawValue()) : null;
       if (shape === null) {
-        return { ok: false, reason: 'no-shape', line: Mml.compose`${Mml.thing(of)} has no shape a pattern could copy.` };
+        return { ok: false, reason: 'no-shape', facts: { of } };
       }
       const own = MixinApi.isTangible(of) ? of.getMaterial() : null;
       const metal =
         this.metalNamed(req.forWord ?? '') ?? (own !== null && own.hasTag('metal') ? own : null);
       if (metal === null) {
-        return {
-          ok: false,
-          reason: 'no-metal',
-          line: Mml.compose`Cut for which metal? A pattern is cut oversize by what the metal shrinks — say \`carve pattern of ${Mml.thing(of)} for bronze\`.`,
-        };
+        return { ok: false, reason: 'no-metal', facts: { of } };
       }
       const allowance = metal.castShrinkage();
       const grow = Math.pow(1 + allowance, 3);
@@ -122,11 +98,7 @@ export function PatternStockMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         ? self.getMass().rawValue()
         : 0;
       if (!(woodDensity > 0) || patternKg > stockKg) {
-        return {
-          ok: false,
-          reason: 'too-small',
-          line: Mml.compose`${Mml.thing(self)} is too small to carve a pattern of ${Mml.thing(of)} from.`,
-        };
+        return { ok: false, reason: 'too-small', facts: { of } };
       }
       const actor = req.actor;
       const metalName = metal.getName();
@@ -134,12 +106,11 @@ export function PatternStockMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         ok: true,
         durationMs: PATTERN_MS,
         effortW: 150,
-        beginSelf: Mml.compose`You lay ${Mml.thing(of)} on ${Mml.thing(self)}, scribe round it with a shrink rule for ${metalName}, and begin to carve.`,
-        beginPeers: Mml.compose`${Mml.actor(actor)} measures and carves at ${Mml.thing(self)}.`,
+        facts: { kind: 'pattern', of, metalName },
         // ⭐ Returned, not launched: a throw here reaches the engagement's
         // guarded root and is reported, never an unhandled rejection.
-        onComplete: async () => {
-          if (self.isDestroyed() || actor.isDestroyed()) return;
+        onComplete: async (): Promise<ActDone<CarveDone, CarveRefusal>> => {
+          if (self.isDestroyed() || actor.isDestroyed()) return { ok: true, facts: { kind: 'gone' } };
           // Where it lands, checked before anything is minted or spent.
           if (!MixinApi.isContainer(actor)) {
             throw new TypeError('PatternStock: the carver cannot hold the pattern');
@@ -184,13 +155,10 @@ export function PatternStockMixin<TBase extends MixinConstructor<Stuff>>(Base: T
           if (MixinApi.isAdvancing(actor)) {
             await actor.creditDeed({ discipline: 'carpentry', difficulty: 'standard', outcome: 'success' });
           }
-          if (!MixinApi.isSensor(actor)) return;
-          MessageApi.scene(actor)
-            .topic('act.deed')
-            .toSelf(
-              Mml.compose`You blow the last shavings off ${Mml.thing(pattern)}: the shape of ${shape.formDescription}, a shade fat all over — by what ${metalName} will shrink as it cools.`,
-            )
-            .send();
+          return {
+            ok: true,
+            facts: { kind: 'pattern', pattern, formDescription: shape.formDescription, metalName },
+          };
         },
       };
     }

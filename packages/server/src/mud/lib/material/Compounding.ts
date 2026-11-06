@@ -45,11 +45,9 @@ import { MixinApi } from '../../api/mixin';
 import { CraftingApi } from '../../api/crafting';
 import { Freshness } from './Freshness';
 import { Contamination } from './Contaminable';
-import type { ActPlan, ActRefusal } from '../craft/ActPlan';
+import type { ActDone } from '../craft/ActPlan';
 import { KneadVesselMixin } from '../craft/KneadVessel';
-import type { KneadRequest, KneadVessel } from '../craft/KneadVessel';
-import { Mml } from '../../api/mml';
-import { MessageApi } from '../../api/message';
+import type { KneadFacts, KneadPlan, KneadRefusal, KneadRequest, KneadVessel } from '../craft/KneadVessel';
 
 /** Milling a compound by hand — a quarter of a game-hour, both hands in it. */
 const KNEAD_MS = 15 * 60 * 1000;
@@ -95,13 +93,16 @@ export interface Compounding extends KneadVessel {
    */
   workVerb(): 'knead' | 'stir';
   /** The refusal for working it with the wrong verb, or `null` when `verb` is the work. */
-  workRefusal(verb: string | undefined): ActRefusal | null;
+  workRefusal(verb: string | undefined): KneadRefusal | null;
   /**
    * ⭐ Compound what is in the vessel into ONE product through the one
-   * mint (`CraftingApi.mintFromBuild({ charge })`), and tell `by` what came
-   * of it — the end of a `knead` or a `stir`.
+   * mint (`CraftingApi.mintFromBuild({ charge })`) — the end of a `knead`
+   * or a `stir`. What came of it is the outcome; the words are the
+   * controller's ({@link Compounding.landed}).
    */
-  compound(by: Stuff, verb: string): Promise<CompoundOutcome>;
+  compound(by: Stuff): Promise<CompoundOutcome>;
+  /** What a compounding outcome lands as, for the `verb` that worked it. */
+  landed(out: CompoundOutcome, verb: string): ActDone<KneadFacts, KneadRefusal>;
   /**
    * @hook What the product IS made of, beyond its material — read off the
    * charge BEFORE the mint consumes it, written onto a bulk product's
@@ -197,18 +198,12 @@ export function CompoundingMixin<TBase extends MixinConstructor<Stuff>>(Base: TB
      * following the state of the matter. The narration reads the outcome;
      * the mint is {@link compound}'s.
      */
-    public async kneadPlanFor(req: KneadRequest): Promise<ActPlan | ActRefusal> {
+    public async kneadPlanFor(req: KneadRequest): Promise<KneadPlan | KneadRefusal> {
       const self = this as unknown as Stuff & Container;
       const any = self.getContents().some((c) => MixinApi.isTangible(c)) ||
         (MixinApi.isBulkable(self) && self.hasInteriorBulk() &&
           self.getBulkAmount('interior').rawValue() > 0);
-      if (!any) {
-        return {
-          ok: false,
-          reason: 'empty',
-          line: Mml.compose`${Mml.thing(self)} is empty. Put what you mean to mix into it first.`,
-        };
-      }
+      if (!any) return { ok: false, reason: 'empty', facts: { wants: 'anything' } };
       // ⭐ The matter decides the work (B101): stirring clay was a two-minute
       // shortcut past a quarter-hour of kneading.
       const wrong = this.workRefusal(req.verb);
@@ -219,18 +214,15 @@ export function CompoundingMixin<TBase extends MixinConstructor<Stuff>>(Base: TB
         ok: true,
         durationMs: verb === 'knead' ? KNEAD_MS : STIR_MS,
         effortW: verb === 'knead' ? 380 : 150,
-        beginSelf:
-          verb === 'knead'
-            ? Mml.compose`You set your hands to what is in ${Mml.thing(self)}, folding it over and over on itself.`
-            : Mml.compose`You begin to ${verb} ${Mml.thing(self)}, working what is in it together.`,
-        beginPeers:
-          verb === 'knead'
-            ? Mml.compose`${Mml.actor(giver)} works at ${Mml.thing(self)} with both hands.`
-            : Mml.compose`${Mml.actor(giver)} ${verb}s ${Mml.thing(self)}.`,
-        onComplete: () => {
-          void this.compound(giver, verb);
-        },
+        facts: { kind: 'compound', verb },
+        onComplete: async () => this.landed(await this.compound(giver), verb),
       };
+    }
+
+    public landed(out: CompoundOutcome, verb: string): ActDone<KneadFacts, KneadRefusal> {
+      if (out.ok) return { ok: true, facts: { kind: 'compounded', product: out.product } };
+      if (out.reason === 'empty') return { ok: false, reason: 'came-empty', facts: { verb } };
+      return { ok: false, reason: out.reason };
     }
 
     public workVerb(): 'knead' | 'stir' {
@@ -266,18 +258,10 @@ export function CompoundingMixin<TBase extends MixinConstructor<Stuff>>(Base: TB
       return held !== null && held.hasTag('liquid') ? slot.getMassKg() * held.waterShare() : 0;
     }
 
-    public workRefusal(verb: string | undefined): ActRefusal | null {
+    public workRefusal(verb: string | undefined): KneadRefusal | null {
       const work = this.workVerb();
       if (verb === undefined || verb === work) return null;
-      const self = this as unknown as Stuff;
-      return {
-        ok: false,
-        reason: 'wrong-work',
-        line:
-          work === 'knead'
-            ? Mml.compose`What is in ${Mml.thing(self)} is a stiff mass — it will not stir. Knead it.`
-            : Mml.compose`There is nothing in ${Mml.thing(self)} to knead — it is loose or liquid. Stir it.`,
-      };
+      return { ok: false, reason: 'wrong-work', facts: { work } };
     }
 
     /**
@@ -301,7 +285,7 @@ export function CompoundingMixin<TBase extends MixinConstructor<Stuff>>(Base: TB
       return null;
     }
 
-    public async compound(by: Stuff, verb: string): Promise<CompoundOutcome> {
+    public async compound(by: Stuff): Promise<CompoundOutcome> {
       const self = this as unknown as Stuff;
       const charge = this.chargeContributions();
       const inputs = charge.length;
@@ -339,38 +323,8 @@ export function CompoundingMixin<TBase extends MixinConstructor<Stuff>>(Base: TB
                 : 'mint-failed',
         };
       }
-      narrate(by, self, out, verb);
       return out;
     }
   }
   return CompoundingMixin;
-}
-
-/**
- * Say what compounding came to — the end of a `knead` or a `stir` (both
- * end at {@link Compounding.compound}).
- */
-function narrate(giver: Stuff, vessel: Stuff, out: CompoundOutcome, verb: string): void {
-  if (giver.isDestroyed()) return;
-  const scene = MessageApi.scene(giver).topic('act.deed');
-  if (out.ok) {
-    scene
-      .toSelf(
-        out.product !== null
-          ? Mml.compose`It comes together into one even mass: ${Mml.thing(out.product)}.`
-          : Mml.compose`What is in ${Mml.thing(vessel)} comes together, even all through.`,
-      )
-      .toPeers(Mml.compose`${Mml.actor(giver)} finishes working ${Mml.thing(vessel)}.`)
-      .send();
-    return;
-  }
-  scene
-    .toSelf(
-      out.reason === 'empty'
-        ? Mml.compose`You ${verb} ${Mml.thing(vessel)}, but there is nothing in it.`
-        : out.reason === 'already-compounded'
-          ? Mml.compose`It is already one even mass. There is nothing to work in.`
-          : Mml.compose`It will not come together — and that is a fault in the books, not in your hands.`,
-    )
-    .send();
 }

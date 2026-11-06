@@ -28,7 +28,7 @@ import type { Container } from "@saxonberg/server/mud/lib/spatial/Container";
 import type { CompetenceBandName } from "@saxonberg/server/mud/lib/advancement/CompetenceBand";
 import { Grade } from "@saxonberg/server/mud/lib/craft/Grade";
 import type { Formable, FormingHand } from "@saxonberg/server/mud/lib/craft/Forming";
-import type { ActRefusal } from "@saxonberg/server/mud/lib/craft/ActPlan";
+import type { BeyondHandRefusal } from "@saxonberg/server/mud/lib/craft/Shapeable";
 import type { Containable } from "@saxonberg/server/mud/lib/spatial/Containable";
 
 /**
@@ -152,12 +152,8 @@ export default class Gather extends GatherBase implements Formable {
     };
   }
 
-  public refuseBeyond(hand: FormingHand): ActRefusal {
-    return {
-      ok: false,
-      reason: "beyond-your-hand",
-      line: Mml.compose`That is more glass than you can blow yet — a ${hand.band} glassblower blows a vessel of up to ${String(hand.maxL)} liters.`,
-    };
+  public refuseBeyond(hand: FormingHand): BeyondHandRefusal {
+    return { ok: false, reason: "beyond-your-hand", facts: { band: hand.band, maxL: hand.maxL, maker: "glassblower" } };
   }
 
   /**
