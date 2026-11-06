@@ -1551,3 +1551,15 @@ this MR after a design conversation (the owner took the recommendations):
   arg binds anything carried; the controller narrows).
 - **Content**: `/stuff/thing/gear/sprinkler` (generic-objects); trade-rubber's
   `hose` is a `WaterHose`; both on the general store's counter.
+- **Walked live** (Hinkley lot-2, after the commit above): bought the hose and
+  the sprinkler at the general store; `drop sprinkler`, `tie hose to
+  standpipe`, `tie hose to sprinkler`, `open sprinkler` — the look tells each
+  coupling and *"it is throwing water round"*. ⚠ **Found walking it:** the
+  sprinkler settled only when a soil beside it was read, and nobody reads an
+  empty bed, so the District tank read as if it had never run. **Fixed:** the
+  tap knows the hoses screwed onto it and settles their sprinklers on its own
+  settle. Re-walked: an hour open took 1.3 m³ more from the tank than an hour
+  shut (the arithmetic: 1.2). After a restart the hose lay uncoupled and
+  damp from the spray, as documented. ⚠ Also found: nothing afforded `tie` or
+  `water` to the hose, or `open` to the sprinkler — the static
+  `commandContributions` were added before the walk.

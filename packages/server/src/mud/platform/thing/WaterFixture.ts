@@ -77,6 +77,7 @@ import { WorldClockApi } from '../../api/worldclock';
 import { AppSettingKeys } from '../../lib/config/AppSettings';
 import { WaterHardness } from '../../lib/cleanliness/WaterHardness';
 import PipeRun from './PipeRun';
+import type WaterHose from './WaterHose';
 import Street from '../location/Street';
 import WaterStore from './WaterStore';
 import '../../lib/supply/WaterChemistry';
@@ -335,6 +336,34 @@ export default class WaterFixture
     const premises = this.resolvePremisesPath();
     this._landUse = premises === null ? '' : ParcelApi.landUseOf(premises);
     this._share = await this._supply.shareFor(this.shortageRank()).catch(() => 1);
+    await this.settleHoses();
+  }
+
+  /** Hoses screwed onto this outlet — runtime, as their couplings are. */
+  private _hoses = new Set<WaterHose>();
+
+  /** A hose's own act: it is screwed onto this outlet, or off it. */
+  public coupleHose(hose: WaterHose, on: boolean): void {
+    if (on) this._hoses.add(hose);
+    else this._hoses.delete(hose);
+  }
+
+  /**
+   * ⭐ A sprinkler on a hose from here draws on this outlet's supply: bring
+   * it current whenever this outlet is (a draw, a fill, `analyze water`), so
+   * the supply never reads as if it had not run (the live walk: a tank read
+   * full under a sprinkler nobody's bed had asked about).
+   */
+  private async settleHoses(): Promise<void> {
+    if (this._hoses.size === 0) return;
+    const nowS = WorldClockApi.getNow().rawValue();
+    for (const hose of [...this._hoses]) {
+      if ((hose as unknown as Stuff).isDestroyed() || hose.getOutlet() !== (this as unknown as WaterFixture)) {
+        this._hoses.delete(hose);
+        continue;
+      }
+      await hose.getSprinkler()?.settleIrrigation(nowS);
+    }
   }
 
   /**

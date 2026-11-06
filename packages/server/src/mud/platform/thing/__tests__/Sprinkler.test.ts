@@ -157,6 +157,27 @@ describe('⭐⭐ rain in a circle', () => {
   });
 });
 
+describe('⭐ the tap asks too', () => {
+  it('a settle at the tap brings the sprinkler on its hose current — the tank never reads as if it had not run', async () => {
+    const tap = makeStuff(() => new WaterFixture());
+    vi.spyOn(tap, 'ensureSupply').mockImplementation(async function (this: WaterFixture) {
+      await (this as unknown as { settleHoses(): Promise<void> }).settleHoses();
+    });
+    const sprinkler = makeStuff(() => new Sprinkler());
+    const settle = vi.spyOn(sprinkler, 'settleIrrigation').mockResolvedValue(undefined);
+    const hose = makeStuff(() => new WaterHose());
+    const by = makeStuff(() => new Idea());
+    await hose.tieTo(by, tap, null);
+    await hose.tieTo(by, sprinkler, null);
+    await tap.ensureSupply();
+    expect(settle).toHaveBeenCalledWith(now);
+    await hose.untieBy(by);
+    settle.mockClear();
+    await tap.ensureSupply();
+    expect(settle).not.toHaveBeenCalled();
+  });
+});
+
 describe('⭐ the hose couples a tap and a sprinkler', () => {
   it('screws onto each, then lies down where you stand; unscrewed, it lets both go', async () => {
     const garden = moist(() => new Garden());

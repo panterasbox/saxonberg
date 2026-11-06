@@ -35,6 +35,7 @@ import { MixinApi } from '../../api/mixin';
 import type { FieldMeta } from '../../lib/mixin';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { MarkupAugmenter } from '../../api/mml';
+import type { CommandContributions } from '../../api/command';
 import type WaterFixture from './WaterFixture';
 import type WaterHose from './WaterHose';
 
@@ -64,6 +65,11 @@ const SprinklerBase = IrrigatingMixin(ThrottleableMixin(SealableMixin(Good)));
 
 export default class Sprinkler extends SprinklerBase {
   static markupAugmenters: MarkupAugmenter[] = [sprinklerAugmenter];
+
+  /** ⭐ It is opened and shut where it stands, by an amount (`open sprinkler to a quarter`). */
+  static commandContributions: CommandContributions = {
+    peers: ['platform/cmd/boundary/open.yaml', 'platform/cmd/boundary/close.yaml'],
+  };
 
   static fieldMeta: FieldMeta = {
     nozzleMm: { persistent: true, authorable: true },

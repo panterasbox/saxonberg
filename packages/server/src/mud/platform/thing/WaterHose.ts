@@ -21,6 +21,7 @@ import { ContainmentApi } from '../../api/containment';
 import type { FieldMeta } from '../../lib/mixin';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { MarkupAugmenter } from '../../api/mml';
+import type { CommandContributions } from '../../api/command';
 import WaterFixture from './WaterFixture';
 import Sprinkler from './Sprinkler';
 
@@ -43,6 +44,16 @@ const WaterHoseBase = TieableMixin(Good);
 
 export default class WaterHose extends WaterHoseBase {
   static markupAugmenters: MarkupAugmenter[] = [hoseAugmenter];
+
+  /**
+   * ⭐ Carried, a hose couples (`tie`) and waters (`water`, like the can);
+   * lying coupled, it is uncoupled where it lies (`untie`). An affordance is
+   * a static on the class — a row cannot confer a verb.
+   */
+  static commandContributions: CommandContributions = {
+    environment: ['platform/cmd/inventory/tie.yaml', 'platform/cmd/bulk/water.yaml'],
+    peers: ['platform/cmd/inventory/untie.yaml'],
+  };
 
   static fieldMeta: FieldMeta = {
     lengthM: { persistent: true, authorable: true },
@@ -81,6 +92,7 @@ export default class WaterHose extends WaterHoseBase {
         return { ok: false, reason: 'end-taken', line: `The hose is already on ${this.getOutlet()!.getPresentation()}.` };
       }
       this._outlet = load;
+      load.coupleHose(this, true);
       this.layDownIfCoupled(by);
       return { ok: true, line: `You screw the hose onto ${what}.`, peers: `screws a hose onto ${what}.` };
     }
@@ -106,6 +118,7 @@ export default class WaterHose extends WaterHoseBase {
       return { ok: false, reason: 'not-tied', line: 'The hose is not coupled to anything.' };
     }
     this.getSprinkler()?.setHose(null);
+    this.getOutlet()?.coupleHose(this, false);
     this._sprinkler = null;
     this._outlet = null;
     return { ok: true, line: 'You unscrew the hose at both ends.', peers: 'unscrews a hose.' };

@@ -161,7 +161,12 @@ sprinklers are core to farming). What the rain reaches, it reaches.
   irrigator integrates on its own clock, so two grounds asking count it once.
   The soil's sync reconcile kicks the settle in the background. That also
   closed the review's finding that authored inlets were integrated only when
-  someone surveyed.
+  someone surveyed. ⭐ **The tap asks too:** a hose screwed onto an outlet
+  registers with it, so any settle at the tap (a draw, a fill,
+  `analyze water`) brings the sprinkler at the far end current first, and
+  its supply never reads as if it had not run. Walked: an hour open took
+  1.3 m³ more from the District tank than an hour shut (the arithmetic says
+  1.2: 0.33 L/s at 18 m of head).
 - **`WaterHose`** (kernel `platform/thing/WaterHose.ts`; trade-rubber's
   `hose` row). Its use is where its two ends are coupled:
   - `tie hose to tap` and `tie hose to sprinkler` screw on each end. Coupled
