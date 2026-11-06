@@ -1,4 +1,5 @@
 verbs: [office]
+category: governance
 controller: /platform/idea/cmd/governance/OfficeController
 description: "Inspect government offices; the founder hands seats off"
 help: |

@@ -1,4 +1,5 @@
 verbs: [order]
+category: retail
 controller: /platform/idea/cmd/retail/OrderController
 description: "Order from a menu, or buy a service off a tariff"
 help: |

@@ -1,4 +1,5 @@
 verbs: [tune]
+category: stream
 # ⭐ One controller per subcommand (controllers-are-io D9); the verb-level
 # controller is the fallthrough's — bare `tune`, `tune <target>` and
 # `tune <target> <message>`.

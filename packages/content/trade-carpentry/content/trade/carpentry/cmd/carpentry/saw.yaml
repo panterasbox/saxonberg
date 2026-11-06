@@ -1,4 +1,5 @@
 verbs: [saw]
+category: carpentry
 controller: /trade/carpentry/idea/cmd/carpentry/SawController
 description: "Saw a log into boards — through-sawn, or quartered"
 help: |

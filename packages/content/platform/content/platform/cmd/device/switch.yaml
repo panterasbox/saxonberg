@@ -1,4 +1,5 @@
 verbs: [switch]
+category: device
 controller: /platform/idea/cmd/device/SwitchController
 description: "Switch a device on or off"
 help: |

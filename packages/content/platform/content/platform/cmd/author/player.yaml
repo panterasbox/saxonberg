@@ -8,6 +8,7 @@
 # which would have made `me set name …` the shape of a bodily-sounding
 # word. A subcommand is something you operate; that is the tell.
 verbs: [player]
+category: author
 controller: /platform/idea/cmd/author/PlayerController
 description: "Manage your player character settings"
 help: |

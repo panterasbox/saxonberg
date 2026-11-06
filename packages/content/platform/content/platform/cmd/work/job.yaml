@@ -1,4 +1,5 @@
 verbs: [job]
+category: work
 # ⭐ One controller per subcommand (controllers-are-io W7, D9). Bare `job`
 # browses, so the verb-level controller is the browse's — and `fallthrough`
 # with a top-level `board` arg is how the bare form binds its board (the

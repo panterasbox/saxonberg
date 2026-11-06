@@ -1,4 +1,5 @@
 verbs: [ditch]
+category: ground
 controller: /platform/idea/cmd/ground/DitchController
 description: "Cut a drain along the fall of the ground"
 help: |

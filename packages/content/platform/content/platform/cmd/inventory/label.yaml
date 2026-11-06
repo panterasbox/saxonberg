@@ -1,4 +1,5 @@
 verbs: [label]
+category: inventory
 controller: /platform/idea/cmd/inventory/LabelController
 description: "Write your own name on something"
 help: |

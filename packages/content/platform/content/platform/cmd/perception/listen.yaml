@@ -1,4 +1,5 @@
 verbs: [listen]
+category: perception
 controller: /platform/idea/cmd/perception/ListenController
 description: "Listen to your surroundings or a specific source"
 help: |

@@ -5,6 +5,7 @@
 # tailor's shears; ice is cut off a marked grid with an ice saw. A second
 # cuttable thing is a class that answers the protocol, never a second verb.
 verbs: [cut]
+category: crafting
 controller: /platform/idea/cmd/crafting/CutController
 description: "Cut something — cloth to a pattern, ice off the grid"
 help: |

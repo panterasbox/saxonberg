@@ -1,4 +1,5 @@
 verbs: [query]
+category: perception
 controller: /platform/idea/cmd/perception/QueryController
 description: "List whatever a query names — the horizon, the people here, all the brass"
 help: |

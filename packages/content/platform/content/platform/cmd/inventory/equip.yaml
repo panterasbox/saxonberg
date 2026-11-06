@@ -16,6 +16,7 @@
 # ⭐ It shares `EquipControllerBase` with `wear`/`wield`: the gates and the
 # timing are one implementation, and only the GRAMMAR differs.
 verbs: [equip]
+category: inventory
 controller: /platform/idea/cmd/inventory/EquipController
 description: "Put your whole kit on, in the right order"
 help: |

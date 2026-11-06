@@ -1,4 +1,5 @@
 verbs: [feed]
+category: bulk
 controller: /platform/idea/cmd/bulk/FeedController
 description: "Work compost into a bed's or a field's soil"
 help: |

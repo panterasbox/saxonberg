@@ -1,4 +1,5 @@
 verbs: [close]
+category: boundary
 controller: /platform/idea/cmd/boundary/CloseController
 description: "Close a door (by direction or by name)"
 help: |

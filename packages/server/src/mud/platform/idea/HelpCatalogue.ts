@@ -172,6 +172,8 @@ export default class HelpCatalogue extends HelpCatalogueBase {
    * filled on first READ, never at boot (controllers-are-io D8b).
    */
   private requiredMixins: Map<string, string[]> = new Map();
+  /** Command topic id → its verb's `category:` (D24). */
+  private commandCategory: Map<string, string> = new Map();
   /** command topic id → the topic with its *answers:* section, once read. */
   private answered: Map<string, HelpTopic> = new Map();
   /** One-shot guard so the degrade warning logs exactly once. */
@@ -264,6 +266,28 @@ export default class HelpCatalogue extends HelpCatalogueBase {
       .map(toIndexEntry);
   }
 
+  /**
+   * ⭐ The verb categories with their counts, alphabetical (D24): what bare
+   * `help` lists, and `help <category>` drills into.
+   */
+  public commandCategories(): { category: string; count: number }[] {
+    this.ensureWarm();
+    const counts = new Map<string, number>();
+    for (const category of this.commandCategory.values()) {
+      counts.set(category, (counts.get(category) ?? 0) + 1);
+    }
+    return [...counts.entries()]
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([category, count]) => ({ category, count }));
+  }
+
+  /** The verbs of one category, in the command index's own order. */
+  public listCommandCategory(category: string): HelpIndexEntry[] {
+    return this.listByKind("command").filter(
+      (e) => this.commandCategory.get(e.id) === category,
+    );
+  }
+
   public search(q: string): HelpSearchGroup[] {
     this.ensureWarm();
     const needle = q.trim().toLowerCase();
@@ -302,7 +326,7 @@ export default class HelpCatalogue extends HelpCatalogueBase {
     const lower = verb.toLowerCase();
     const direct = this.topics!.get(`command.${lower}`);
     if (direct) return this.withAnswers(direct);
-    // Alias scan: a command's keywords carry all its verbs.
+    // Alias scan: a command's keywords carry its default aliases.
     for (const id of this.byKind.get("command") ?? []) {
       const t = this.topics!.get(id);
       if (t && t.keywords.includes(lower)) return this.withAnswers(t);
@@ -475,16 +499,20 @@ export default class HelpCatalogue extends HelpCatalogueBase {
   private projectCommands(defs: CommandDefinition[]): HelpTopic[] {
     const out: HelpTopic[] = [];
     this.requiredMixins = new Map();
+    this.commandCategory = new Map();
     for (const def of defs) {
       const verb = def.getPrimaryVerb();
       if (!verb) continue;
       this.requiredMixins.set(`command.${verb}`, def.getRequiredMixins());
+      this.commandCategory.set(`command.${verb}`, def.category);
       out.push({
         id: `command.${verb}`,
         kind: "command",
         title: verb,
         summary: def.description ?? "",
-        keywords: [...def.verbs, "command"].map((k) => k.toLowerCase()),
+        keywords: [verb, ...def.defaultAliases.map((a) => a.name), "command"].map((k) =>
+          k.toLowerCase(),
+        ),
         body: def.getHelpText(),
         relations: [],
         spoiler: false,

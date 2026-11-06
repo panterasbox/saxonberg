@@ -1,4 +1,5 @@
 verbs: [grub]
+category: ground
 controller: /platform/idea/cmd/ground/GrubController
 description: "Grub out rough ground — thorn, root and stone — until it will take a crop"
 help: |

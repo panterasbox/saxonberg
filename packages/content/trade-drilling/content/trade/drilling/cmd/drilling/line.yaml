@@ -1,4 +1,5 @@
 verbs: [line]
+category: drilling
 controller: /trade/drilling/idea/cmd/drilling/LineController
 description: "Run tube down the hole so it will hold"
 help: |

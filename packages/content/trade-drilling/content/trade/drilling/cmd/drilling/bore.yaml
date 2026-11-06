@@ -1,4 +1,5 @@
 verbs: [bore]
+category: drilling
 controller: /trade/drilling/idea/cmd/drilling/BoreController
 description: "Site a hole on your own ground, or work the beam on one"
 help: |

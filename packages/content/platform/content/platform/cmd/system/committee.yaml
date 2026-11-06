@@ -1,4 +1,5 @@
 verbs: [committee]
+category: system
 controller: /platform/idea/cmd/system/CommitteeController
 description: "Who administers this subdivision — the committee of record"
 help: |

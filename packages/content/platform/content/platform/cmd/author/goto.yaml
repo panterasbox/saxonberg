@@ -5,6 +5,7 @@
 # object is author tooling and belongs in the author category; `teleport`
 # is a content pack's diegetic verb and must be absent when the pack is.
 verbs: [goto]
+category: author
 controller: /platform/idea/cmd/author/GotoController
 description: "Move yourself (or --subject something) to <target>'s location"
 help: |

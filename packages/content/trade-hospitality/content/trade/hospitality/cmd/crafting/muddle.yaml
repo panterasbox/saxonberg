@@ -1,4 +1,5 @@
 verbs: [muddle]
+category: crafting
 controller: /trade/hospitality/idea/cmd/crafting/MuddleController
 description: "Muddle the solids in a build in progress"
 help: |

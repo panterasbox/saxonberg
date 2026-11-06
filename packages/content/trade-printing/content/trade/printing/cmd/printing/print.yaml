@@ -3,6 +3,7 @@
 # an edition and say what it said today. The covenant may keep the
 # instrument idle.
 verbs: [print]
+category: printing
 controller: ../../idea/cmd/printing/PrintController
 description: "Print copies — a forme on the press, a document on a printer"
 help: |

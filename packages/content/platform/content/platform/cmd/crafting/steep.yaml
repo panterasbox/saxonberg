@@ -1,4 +1,5 @@
 verbs: [steep]
+category: crafting
 controller: /platform/idea/cmd/crafting/SteepController
 description: "Steep a solute in a solvent to draw an infusion"
 help: |

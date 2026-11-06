@@ -1,4 +1,5 @@
 verbs: [pour]
+category: crafting
 controller: /platform/idea/cmd/crafting/PourController
 description: "Pour a serving of a spirit into a shaker (a manual build step)"
 help: |

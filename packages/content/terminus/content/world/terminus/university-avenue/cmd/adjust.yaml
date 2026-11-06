@@ -1,4 +1,5 @@
 verbs: [adjust]
+category: device
 controller: ../idea/cmd/AdjustController
 description: "Adjust a mechanical timepiece to a time"
 help: |

@@ -4,6 +4,7 @@
 # the store it goes to, an account to be paid into, and a house that can
 # pay. The bid is DERIVED from the house's ask, never authored.
 verbs: [sell]
+category: retail
 controller: /platform/idea/cmd/retail/SellController
 description: "Sell a good to a house that buys it"
 help: |

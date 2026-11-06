@@ -1,4 +1,5 @@
 verbs: [smelt]
+category: smelting
 controller: /trade/smelting/idea/cmd/smelting/SmeltController
 description: "Reduce a charge of ore to metal"
 help: |

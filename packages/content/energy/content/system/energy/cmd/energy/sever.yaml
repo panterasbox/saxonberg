@@ -1,4 +1,5 @@
 verbs: [sever]
+category: energy
 controller: /system/energy/idea/cmd/energy/SeverController
 description: "Cut the distribution line at a pole or manhole"
 help: |

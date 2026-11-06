@@ -1,4 +1,5 @@
 verbs: [arm]
+category: device
 controller: /platform/idea/cmd/device/ArmController
 description: "Set and conceal a carried trap where you stand"
 help: |

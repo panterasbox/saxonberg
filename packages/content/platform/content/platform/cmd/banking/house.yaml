@@ -1,4 +1,5 @@
 verbs: [house]
+category: banking
 controller: /platform/idea/cmd/banking/HouseController
 description: "The house app — book / pnl / payroll / roster / appoint / dismiss / draw / par / price / stock / freight / traffic"
 opens_card: stock

@@ -27,6 +27,8 @@ function fakeDef(
   return {
     verbs,
     description,
+    defaultAliases: verbs.slice(1).map((name) => ({ name })),
+    category: verbs[0] === "look" ? "perception" : "inventory",
     getPrimaryVerb: () => verbs[0] ?? "",
     getHelpText: () => helpText,
     getRequiredMixins: () => requires,
@@ -228,6 +230,16 @@ describe("HelpCatalogue", () => {
     const command = cats.find((c) => c.kind === "command");
     expect(command?.count).toBe(2);
     expect(cats.some((c) => c.kind === "mixin")).toBe(true);
+  });
+
+  it("⭐ groups command topics by the view's category (D24)", async () => {
+    const cat = await warmed();
+    expect(cat.commandCategories()).toEqual([
+      { category: "inventory", count: 1 },
+      { category: "perception", count: 1 },
+    ]);
+    expect(cat.listCommandCategory("perception").map((e) => e.title)).toEqual(["look"]);
+    expect(cat.listCommandCategory("nope")).toEqual([]);
   });
 
   it("degrades when author-surface is absent (one warning, no api topics)", async () => {

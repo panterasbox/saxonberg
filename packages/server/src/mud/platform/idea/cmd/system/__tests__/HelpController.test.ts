@@ -69,6 +69,14 @@ describe("HelpController", () => {
         { kind: "mixin", title: "Mixins", count: 90 },
       ],
     });
+    vi.spyOn(HelpApi, "commandCategories").mockReturnValue([
+      { category: "perception", count: 23 },
+    ]);
+    vi.spyOn(HelpApi, "commandCategory").mockImplementation((name: string) =>
+      name === "perception"
+        ? [{ id: "command.look", kind: "command", title: "look", summary: "Look around", keywords: [] }]
+        : null
+    );
     vi.spyOn(HelpApi, "commandTopic").mockImplementation((verb: string) =>
       verb === "look" ? topic("command.look", "LOOK: Look around\n\nSyntax:\n  look [item]") : null
     );
@@ -128,6 +136,18 @@ describe("HelpController", () => {
     expect(out.topic).toBe("shell.result");
     expect(out.body).toContain("Commands");
     expect(out.body).toContain("90"); // mixin count from the index
+  });
+
+  it("⭐ bare `help` lists the verb categories (D24)", async () => {
+    const out = await run({});
+    expect(out.body).toContain("perception");
+    expect(out.body).toContain("23");
+  });
+
+  it("⭐ `help <category>` lists its verbs (D24)", async () => {
+    const out = await run({ topic: "perception" });
+    expect(out.body).toContain("look");
+    expect(out.body).toContain("Look around");
   });
 
   it("fallthrough `help look` renders the command topic", async () => {

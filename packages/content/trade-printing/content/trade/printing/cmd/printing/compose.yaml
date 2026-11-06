@@ -2,6 +2,7 @@
 # letter. Refused naming the first glyph the case runs short of. The
 # compositor's errors are theirs, and nobody announces them.
 verbs: [compose]
+category: printing
 controller: ../../idea/cmd/printing/ComposeController
 description: "Set a document in type, in a forme"
 help: |

@@ -1,4 +1,5 @@
 verbs: [tan]
+category: tanning
 controller: /trade/tanning/idea/cmd/tanning/TanController
 description: "Lay a hide into a tanpit, or lift a finished one out"
 help: |

@@ -18,6 +18,7 @@
 # Taking a thing apart is `salvage` — the shipped verb, whose yield the
 # joint's reversibility decides. Tightening a slack joint is `repair`.
 verbs: [fit]
+category: crafting
 controller: /platform/idea/cmd/crafting/FitController
 description: "Fit a part to a thing made of parts, or raise one from its parts"
 help: |

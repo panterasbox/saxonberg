@@ -1,4 +1,5 @@
 verbs: [pour]
+category: bulk
 controller: /platform/idea/cmd/bulk/PourController
 description: "Pour liquid from one holder into another"
 help: |

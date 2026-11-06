@@ -12,6 +12,7 @@
 # Its own `haulage` category, on the metal chain's precedent: a trade's
 # own acts get their own category.
 verbs: [ship]
+category: haulage
 controller: /trade/haulage/idea/cmd/haulage/ShipController
 description: "Hand goods to the carrier for carriage, and take the bill of lading."
 help: |

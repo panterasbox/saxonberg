@@ -1,4 +1,5 @@
 verbs: [sharpen]
+category: crafting
 controller: /trade/smithing/idea/cmd/crafting/SharpenController
 description: "Sharpen a blade with your whetstone"
 help: |

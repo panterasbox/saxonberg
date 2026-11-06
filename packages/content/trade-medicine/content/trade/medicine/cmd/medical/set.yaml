@@ -3,6 +3,7 @@
 # shadowed by) the interpreter's `set`. The wound's mismatch line already
 # points here: *"It wants setting, with a splint."*
 verbs: [splint]
+category: medical
 controller: /trade/medicine/idea/cmd/medical/SetController
 description: "Splint a broken bone"
 help: |

@@ -10,6 +10,7 @@
 # (`Boat.commandContributions.inventory`), a wellhead's derrick and the
 # driller's bailer to whoever stands at the rig.
 verbs: [bail]
+category: device
 controller: /platform/idea/cmd/device/BailController
 description: "Bail something out a bucketful at a time — a boat taking water, a bore"
 help: |

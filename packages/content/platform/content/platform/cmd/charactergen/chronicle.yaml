@@ -1,4 +1,5 @@
 verbs: [chronicle]
+category: charactergen
 controller: /platform/idea/cmd/charactergen/ChronicleController
 description: "Read a chronicle — a life on the record, or a body's losses."
 help: |

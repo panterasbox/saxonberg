@@ -1,4 +1,5 @@
 verbs: [scutch]
+category: textiles
 controller: /trade/textiles/idea/cmd/textiles/ScutchController
 description: "Beat the woody boon out of retted flax"
 help: |

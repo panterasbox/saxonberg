@@ -9,6 +9,7 @@
 # precisely because a refusal is the progression UI — if something lifts
 # a limit, the limit has to be visible for anybody to go and lift it.
 verbs: [readings]
+category: perception
 description: "What this world can tell you, and how you could find it out"
 help: |
   List every reading channel this world ships, and for each one the

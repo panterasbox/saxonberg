@@ -3,6 +3,7 @@
 # set only when you're at a node (FastTravelMixin.commandContributions).
 # Arrival-capable nodes only — the controller refuses a departures-only node.
 verbs: [register]
+category: movement
 controller: /system/tpa/idea/cmd/movement/RegisterController
 description: "Register the Teleport Authority terminal here onto your travel credential."
 help: |

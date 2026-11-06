@@ -1,4 +1,5 @@
 verbs: [plate]
+category: crafting
 controller: /trade/cooking/idea/cmd/crafting/PlateController
 description: "Plate a finished build onto a dish (the cooking finish)"
 help: |

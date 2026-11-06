@@ -1,4 +1,5 @@
 verbs: [alter]
+category: tailoring
 controller: /trade/tailoring/idea/cmd/tailoring/AlterController
 description: "Let a garment out or take it in to a body"
 help: |

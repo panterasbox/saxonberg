@@ -1,4 +1,5 @@
 verbs: [government]
+category: civics
 controller: /platform/idea/cmd/civics/GovernmentController
 description: "The governments over this place, and your residency"
 help: |

@@ -1,4 +1,5 @@
 verbs: [stir]
+category: crafting
 controller: /platform/idea/cmd/crafting/StirController
 description: "Work a build in progress or a charge — the vessel decides how"
 help: |

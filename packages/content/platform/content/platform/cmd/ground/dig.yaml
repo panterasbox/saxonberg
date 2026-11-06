@@ -1,4 +1,5 @@
 verbs: [dig]
+category: ground
 controller: /platform/idea/cmd/ground/DigController
 description: "Turn the ground over and see what comes up"
 help: |

@@ -3,6 +3,7 @@
 # one, the way in is `swim` (underwater review: "down into it" was swim's
 # act under a second name, and a dry bank has no up).
 verbs: [descend]
+category: movement
 controller: /platform/idea/cmd/movement/DescendController
 description: "Swim down through the water, toward the bottom."
 help: |

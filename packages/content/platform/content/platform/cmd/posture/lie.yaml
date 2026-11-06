@@ -1,5 +1,6 @@
 # Floating is lying down when the floor is water (underwater review).
 verbs: [lie]
+category: posture
 controller: /platform/idea/cmd/posture/LieController
 description: "Lie down on something. With no argument, lie on the ground."
 help: |

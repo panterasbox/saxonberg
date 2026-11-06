@@ -1,4 +1,5 @@
 verbs: [lime]
+category: ground
 controller: /platform/idea/cmd/ground/LimeController
 description: "Spread marl or lime on sour ground"
 help: |

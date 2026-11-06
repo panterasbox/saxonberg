@@ -9,6 +9,7 @@
 # From a quay it is in, off the edge; in the water, `swim down` is down
 # (underwater review).
 verbs: [swim]
+category: movement
 controller: /platform/idea/cmd/movement/SwimController
 description: "Swim through a named exit (must be Swimmable-enabled)."
 help: |

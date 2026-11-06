@@ -9,6 +9,7 @@
 # is just commands, and each command still meets its own gates exactly as
 # if you typed it (2026-10-18).
 verbs: [do]
+category: shell
 controller: /platform/idea/cmd/shell/DoController
 description: "Run a script you have written, by name"
 help: |

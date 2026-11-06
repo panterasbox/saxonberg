@@ -1,4 +1,5 @@
 verbs: [score]
+category: social
 controller: /platform/idea/cmd/social/ScoreController
 description: "Your own identity card and standing."
 help: |

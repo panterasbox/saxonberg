@@ -1,4 +1,5 @@
 verbs: [strain]
+category: crafting
 controller: /trade/hospitality/idea/cmd/crafting/StrainController
 description: "Strain a finished build into a glass (the terminal step)"
 help: |

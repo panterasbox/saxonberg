@@ -1,4 +1,5 @@
 verbs: [dm]
+category: social
 controller: /platform/idea/cmd/social/DmController
 description: "Send a direct message (dm) to one or more people. Multi-target DMs create an ad-hoc channel under the hood."
 help: |

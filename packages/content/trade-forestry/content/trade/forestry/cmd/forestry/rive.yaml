@@ -1,4 +1,5 @@
 verbs: [rive]
+category: forestry
 controller: /trade/forestry/idea/cmd/forestry/RiveController
 description: "Split wood along its grain with a froe — a bole into billets, a billet into staves or blanks"
 help: |

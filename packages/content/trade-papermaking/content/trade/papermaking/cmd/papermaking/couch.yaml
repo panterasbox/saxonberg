@@ -2,6 +2,7 @@
 # it down, so the wet sheet lets go of the wire and lies on the felt. The
 # mould affords it; the post is the press's bed unless you name another.
 verbs: [couch]
+category: papermaking
 controller: ../../idea/cmd/papermaking/CouchController
 description: "Couch the wet sheet off a paper mould onto the post"
 help: |

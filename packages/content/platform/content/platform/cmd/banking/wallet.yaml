@@ -1,4 +1,5 @@
 verbs: [wallet]
+category: banking
 controller: /platform/idea/cmd/banking/WalletController
 description: "Your payment wallet — show / use / freeze"
 help: |

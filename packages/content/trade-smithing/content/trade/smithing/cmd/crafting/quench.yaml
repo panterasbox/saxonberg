@@ -1,4 +1,5 @@
 verbs: [quench]
+category: crafting
 controller: /trade/smithing/idea/cmd/crafting/QuenchController
 description: "Quench the workpiece — the smithing finish"
 help: |

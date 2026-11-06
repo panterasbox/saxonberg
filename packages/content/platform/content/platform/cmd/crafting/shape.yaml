@@ -1,4 +1,5 @@
 verbs: [shape]
+category: crafting
 controller: /platform/idea/cmd/crafting/ShapeController
 description: "Form a soft material into a shape — clay on a wheel or in a mould, glass on a pipe"
 help: |

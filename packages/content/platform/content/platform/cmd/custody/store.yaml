@@ -6,6 +6,7 @@
 # storage-and-ice review — custody had been two bare verbs, `deposit` and
 # `withdraw`, beside `bank deposit` / `bank withdraw`).
 verbs: [store]
+category: custody
 controller: /platform/idea/cmd/custody/StoreController
 description: "Keep goods in a store — deposit / withdraw / receipts"
 help: |

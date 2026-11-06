@@ -1,4 +1,5 @@
 verbs: [tend]
+category: medical
 controller: /platform/idea/cmd/medical/TendController
 description: "Sit with a wounded body to speed its recovery"
 help: |

@@ -1,4 +1,5 @@
 verbs: [pack]
+category: author
 # ⭐ One controller per subcommand (controllers-are-io D9). No verb-level
 # controller: bare `pack` names no subcommand, and the framework answers
 # it (`missing-subcommand`) as it answers bare `analyze`.

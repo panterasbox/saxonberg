@@ -11,6 +11,7 @@
 # GRAMMAR, not the act, and duplicating a controller to express that
 # would be duplicating the covering ladder.
 verbs: [wear]
+category: inventory
 controller: /platform/idea/cmd/inventory/WearController
 description: "Put on a wearable item from your inventory"
 help: |

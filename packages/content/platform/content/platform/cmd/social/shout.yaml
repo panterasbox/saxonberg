@@ -1,4 +1,5 @@
 verbs: [shout]
+category: social
 controller: /platform/idea/cmd/social/ShoutController
 description: "Shout — loud, multi-room acoustic reach"
 help: |

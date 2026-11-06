@@ -1,4 +1,5 @@
 verbs: [repot]
+category: inventory
 controller: /platform/idea/cmd/inventory/RepotController
 description: "Move a growing plant into another pot"
 help: |

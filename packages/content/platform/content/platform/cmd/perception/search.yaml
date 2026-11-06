@@ -1,4 +1,5 @@
 verbs: [search]
+category: perception
 controller: /platform/idea/cmd/perception/SearchController
 description: "Search for what's concealed here, or inside something"
 help: |

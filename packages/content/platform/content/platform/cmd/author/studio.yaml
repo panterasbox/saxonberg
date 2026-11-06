@@ -1,4 +1,5 @@
 verbs: [studio]
+category: author
 controller: /platform/idea/cmd/author/StudioController
 opens_card: studio
 description: "Open the composer — blueprints, templates and the mixin inspector"

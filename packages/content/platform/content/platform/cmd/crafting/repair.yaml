@@ -1,4 +1,5 @@
 verbs: [repair]
+category: crafting
 controller: /platform/idea/cmd/crafting/RepairController
 description: "Repair a worn or broken durable good"
 help: |

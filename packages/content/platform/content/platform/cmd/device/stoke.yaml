@@ -7,6 +7,7 @@
 # drives carry a `DIRTY_REASON` ending *"no refuel verb exists for any
 # burner"*.
 verbs: [stoke]
+category: device
 controller: /platform/idea/cmd/device/StokeController
 description: "Put fuel in a fire"
 help: |

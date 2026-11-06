@@ -1,4 +1,5 @@
 verbs: [flatten]
+category: glass
 controller: /trade/glass/idea/cmd/glass/FlattenController
 description: "Open a scored glass cylinder flat into a pane at the furnace"
 help: |

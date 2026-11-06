@@ -1,4 +1,5 @@
 verbs: [donate]
+category: medical
 controller: /trade/medicine/idea/cmd/medical/DonateController
 description: "Give a bag of blood to a blood window"
 help: |

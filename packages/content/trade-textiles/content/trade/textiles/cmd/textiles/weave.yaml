@@ -1,4 +1,5 @@
 verbs: [weave]
+category: textiles
 controller: /trade/textiles/idea/cmd/textiles/WeaveController
 description: "Set a web on the loom and cut cloth off it"
 help: |

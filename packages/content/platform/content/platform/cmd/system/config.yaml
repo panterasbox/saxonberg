@@ -1,4 +1,5 @@
 verbs: [config]
+category: system
 controller: /platform/idea/cmd/system/ConfigController
 description: "View or set the world's settings (the Prime Minister's)"
 help: |

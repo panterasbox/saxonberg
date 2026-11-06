@@ -1,4 +1,5 @@
 verbs: [stake]
+category: mining
 controller: /trade/mining/idea/cmd/mining/StakeController
 description: "Stake a mining claim on the ground you are standing over"
 help: |

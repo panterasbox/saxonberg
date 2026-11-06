@@ -6,6 +6,7 @@
 # the kitchen drops its alias rather than the infirmary dropping a verb
 # somebody is bleeding behind.
 verbs: [butcher]
+category: crafting
 controller: /trade/cooking/idea/cmd/crafting/ButcherController
 description: "Take a dead animal apart for meat"
 help: |

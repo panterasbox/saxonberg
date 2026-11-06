@@ -1,4 +1,5 @@
 verbs: [water]
+category: bulk
 controller: /platform/idea/cmd/bulk/WaterController
 description: "Water a growing plant, or the ground it grows in"
 help: |

@@ -3,6 +3,7 @@
 # taut and you hold them — round a post if there is one, which multiplies
 # what your hands can hold, never past what the rope will.
 verbs: [belay]
+category: movement
 controller: /platform/idea/cmd/movement/BelayController
 description: "Hold a rope for a climber — or `belay off`"
 help: |

@@ -1,4 +1,5 @@
 verbs: [suture]
+category: medical
 controller: /trade/medicine/idea/cmd/medical/SutureController
 description: "Close a laceration with stitches (needs a suture kit)"
 help: |

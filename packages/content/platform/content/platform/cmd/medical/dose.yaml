@@ -1,4 +1,5 @@
 verbs: [dose]
+category: medical
 controller: /platform/idea/cmd/medical/DoseController
 description: "Give a body an antidote or administer a prescribed active from a vial"
 help: |

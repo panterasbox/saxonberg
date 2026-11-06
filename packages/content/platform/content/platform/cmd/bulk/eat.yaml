@@ -1,4 +1,5 @@
 verbs: [eat]
+category: bulk
 controller: /platform/idea/cmd/bulk/EatController
 description: "Eat an edible item, or a meal out of the dish it came in"
 help: |

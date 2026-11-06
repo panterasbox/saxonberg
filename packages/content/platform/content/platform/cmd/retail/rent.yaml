@@ -9,6 +9,7 @@
 # what it lets and for how much a day, and it writes down who has which
 # boat out until when.
 verbs: [rent]
+category: retail
 controller: /platform/idea/cmd/retail/RentController
 description: "Take a boat out by the day from whoever lets them here"
 help: |

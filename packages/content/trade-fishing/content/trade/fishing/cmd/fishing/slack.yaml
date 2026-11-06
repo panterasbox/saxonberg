@@ -1,4 +1,5 @@
 verbs: [slack]
+category: fishing
 controller: /trade/fishing/idea/cmd/fishing/SlackController
 description: "Give line"
 help: |

@@ -1,4 +1,5 @@
 verbs: [cool]
+category: medical
 controller: /platform/idea/cmd/medical/CoolController
 description: "Cool a burn (or a body running too hot) with water"
 help: |

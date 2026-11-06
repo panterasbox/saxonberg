@@ -1,4 +1,5 @@
 verbs: [sneak]
+category: movement
 controller: /platform/idea/cmd/movement/SneakController
 description: "Move carefully and quietly through an exit."
 help: |

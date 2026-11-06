@@ -10,6 +10,7 @@
 # yourself — it is how you leave a door open for everyone ELSE. The old
 # keyed-exit model had no way to express that at all.
 verbs: [unlock]
+category: boundary
 controller: /platform/idea/cmd/boundary/UnlockController
 description: "Unlock a door (by direction or by name)"
 help: |

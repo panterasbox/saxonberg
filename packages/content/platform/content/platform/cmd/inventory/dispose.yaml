@@ -1,4 +1,5 @@
 verbs: [dispose]
+category: inventory
 controller: /platform/idea/cmd/inventory/DisposeController
 description: "Throw sweepings or muck on the midden"
 help: |

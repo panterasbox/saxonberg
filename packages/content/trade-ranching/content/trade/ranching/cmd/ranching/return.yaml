@@ -1,4 +1,5 @@
 verbs: [return]
+category: ranching
 controller: /trade/ranching/idea/cmd/ranching/ReturnController
 description: "Turn a drafted head back in with the rest, and write it up"
 help: |

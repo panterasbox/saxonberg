@@ -1,4 +1,5 @@
 verbs: [temper]
+category: sugar
 controller: /trade/sugar/idea/cmd/sugar/TemperController
 description: "Temper a sugar liquor with lime so it will grain"
 help: |

@@ -1,4 +1,5 @@
 verbs: [carve]
+category: crafting
 controller: /platform/idea/cmd/crafting/CarveController
 description: "Cut away to a form with an edge — a part from wood, a foot on a pot"
 help: |

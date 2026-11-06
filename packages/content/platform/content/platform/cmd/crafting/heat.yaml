@@ -6,6 +6,7 @@
 # pot's own reconcile). `boil` was a temperature, not an act; it was an
 # alias of this verb from 2026-10-19 and is gone, not kept.
 verbs: [heat]
+category: crafting
 controller: /platform/idea/cmd/crafting/HeatController
 description: "Work a build in the fire (a manual step, both branches)"
 help: |

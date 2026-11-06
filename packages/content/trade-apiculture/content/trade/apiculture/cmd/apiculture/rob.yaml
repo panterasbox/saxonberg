@@ -1,4 +1,5 @@
 verbs: [rob]
+category: apiculture
 controller: /trade/apiculture/idea/cmd/apiculture/RobController
 description: "Take capped comb out of a hive"
 help: |

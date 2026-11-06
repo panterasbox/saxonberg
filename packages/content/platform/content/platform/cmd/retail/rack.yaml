@@ -3,6 +3,7 @@
 # `reclaim` bound only a consignment shelf, so a checked weapon could not
 # be reclaimed through the view at all — `rack reclaim` binds the rack.
 verbs: [rack]
+category: retail
 description: "A house's check rack — check / reclaim"
 help: |
   Some houses do not allow arms inside; they keep a check rack at the

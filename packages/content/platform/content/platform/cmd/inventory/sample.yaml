@@ -10,6 +10,7 @@
 # is where a player learns that, so every refusal names WHAT KIND of
 # thing they pointed at and why it cannot be sampled.
 verbs: [sample]
+category: inventory
 description: "Take a piece of something, and note where it came from"
 help: |
   Take a piece of a thing, or of the ground in front of you, and

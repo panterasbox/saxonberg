@@ -1,4 +1,5 @@
 verbs: [knead]
+category: crafting
 controller: /platform/idea/cmd/crafting/KneadController
 description: "Work a plastic mass by hand until it comes together"
 help: |

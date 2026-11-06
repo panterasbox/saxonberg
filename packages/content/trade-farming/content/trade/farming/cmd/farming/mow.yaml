@@ -1,4 +1,5 @@
 verbs: [mow]
+category: farming
 controller: /trade/farming/idea/cmd/farming/MowController
 description: "Cut the standing grass for hay"
 help: |

@@ -1,4 +1,5 @@
 verbs: [wind]
+category: device
 controller: ../idea/cmd/WindController
 description: "Wind a mechanical timepiece's mainspring back to full"
 help: |

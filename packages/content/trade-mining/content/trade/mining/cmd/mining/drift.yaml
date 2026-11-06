@@ -16,6 +16,7 @@
 # pack's own test predicted would happen: *"if that changes, `drift`
 # becomes primary — one line."*
 verbs: [drift]
+category: mining
 controller: /trade/mining/idea/cmd/mining/DriftController
 description: "Drive a heading in a direction"
 help: |

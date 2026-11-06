@@ -1,4 +1,5 @@
 verbs: [rinse]
+category: medical
 controller: /platform/idea/cmd/medical/RinseController
 description: "Wash a caustic off a body before it eats any further"
 help: |

@@ -1,4 +1,5 @@
 verbs: [sweep]
+category: inventory
 controller: /platform/idea/cmd/inventory/SweepController
 description: "Sweep a floor clean — or a hearth's grate, or its flue"
 help: |

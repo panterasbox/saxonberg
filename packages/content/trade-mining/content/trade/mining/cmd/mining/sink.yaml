@@ -1,4 +1,5 @@
 verbs: [sink]
+category: mining
 controller: /trade/mining/idea/cmd/mining/SinkController
 description: "Sink a winze — drive a working downward"
 help: |

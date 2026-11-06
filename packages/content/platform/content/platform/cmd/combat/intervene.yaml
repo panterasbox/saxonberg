@@ -1,4 +1,5 @@
 verbs: [intervene]
+category: combat
 controller: /platform/idea/cmd/combat/InterveneController
 description: "Stay a killing stroke — stop a coup in progress"
 help: |

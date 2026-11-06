@@ -1,4 +1,5 @@
 verbs: [sip]
+category: bulk
 controller: /platform/idea/cmd/bulk/SipController
 description: "Take a small sip from a holder"
 help: |

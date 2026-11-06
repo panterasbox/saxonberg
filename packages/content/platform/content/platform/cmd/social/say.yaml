@@ -1,4 +1,5 @@
 verbs: [say]
+category: social
 defaultAliases: [{name: "'"}]
 controller: /platform/idea/cmd/social/SayController
 description: "Say something to everyone in your location"

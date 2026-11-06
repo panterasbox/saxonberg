@@ -1,4 +1,5 @@
 verbs: [party]
+category: social
 # ⭐ One controller per subcommand (controllers-are-io D9); bare `party`
 # shows, so the verb-level controller is the show's.
 controller: /platform/idea/cmd/social/PartyShowController

@@ -1,4 +1,5 @@
 verbs: [impress]
+category: crafting
 controller: /platform/idea/cmd/crafting/ImpressController
 description: "Press a hard shape into something soft"
 help: |

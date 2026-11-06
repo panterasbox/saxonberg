@@ -4,6 +4,7 @@
 # controller resolves the affording clerk as the command source. The card is an
 # instrument, not a fare — no money changes hands.
 verbs: [procure]
+category: tpa
 description: "Procure a fresh Teleport Authority travel card from the clerk (free)."
 controller: /system/tpa/idea/cmd/tpa/ProcureCardController
 # An optional trailing word so `procure card` parses (the noun is flavour —

@@ -1,4 +1,5 @@
 verbs: [plant]
+category: inventory
 controller: /platform/idea/cmd/inventory/PlantController
 description: "Plant a seed in a pot of soil, or sow a field"
 help: |

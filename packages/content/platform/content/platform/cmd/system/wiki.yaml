@@ -1,4 +1,5 @@
 verbs: [wiki]
+category: system
 # ⭐ One controller per subcommand (controllers-are-io D9); bare `wiki
 # <page>` (the fallthrough) reads, so the verb-level controller is the read's.
 controller: /platform/idea/cmd/system/WikiReadController

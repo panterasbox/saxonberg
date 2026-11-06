@@ -3,6 +3,7 @@
 # Its own verb so `requires: WieldableMixin` stays narrow — `wield coat`
 # refuses. Shares `EquipController`; see wear.yaml for why.
 verbs: [wield]
+category: inventory
 controller: /platform/idea/cmd/inventory/WieldController
 description: "Wield a weapon or held item from your inventory"
 help: |

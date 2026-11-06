@@ -1,4 +1,5 @@
 verbs: [operate]
+category: medical
 controller: /trade/medicine/idea/cmd/medical/OperateController
 description: "Emergency field surgery — stop an internal bleed before it kills"
 help: |

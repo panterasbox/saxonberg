@@ -1,4 +1,5 @@
 verbs: [drink]
+category: bulk
 controller: /platform/idea/cmd/bulk/DrinkController
 description: "Drink from a holder — all of it, or a measured amount"
 help: |

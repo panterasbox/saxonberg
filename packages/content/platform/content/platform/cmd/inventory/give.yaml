@@ -1,4 +1,5 @@
 verbs: [give]
+category: inventory
 controller: /platform/idea/cmd/inventory/GiveController
 description: "Give an item from your inventory to another actor"
 help: |

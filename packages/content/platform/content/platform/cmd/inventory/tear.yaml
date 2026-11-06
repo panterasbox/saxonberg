@@ -3,6 +3,7 @@
 # it makes and what is lost (a torn sheet's halves each keep the half of the
 # words they held, bound to nothing).
 verbs: [tear]
+category: inventory
 controller: /platform/idea/cmd/inventory/TearController
 description: "Tear something — a sheet in two, a page out of a book, a shirt into rags"
 help: |

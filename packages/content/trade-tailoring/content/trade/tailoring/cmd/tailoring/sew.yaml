@@ -1,4 +1,5 @@
 verbs: [sew]
+category: tailoring
 controller: /trade/tailoring/idea/cmd/tailoring/SewController
 description: "Put cut pieces together into a garment"
 help: |

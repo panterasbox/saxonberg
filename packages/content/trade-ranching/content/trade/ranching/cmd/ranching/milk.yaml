@@ -1,4 +1,5 @@
 verbs: [milk]
+category: ranching
 controller: /trade/ranching/idea/cmd/ranching/MilkController
 description: "Milk a beast out"
 help: |

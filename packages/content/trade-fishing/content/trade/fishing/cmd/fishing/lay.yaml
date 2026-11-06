@@ -4,6 +4,7 @@
 # `lint:verb-collisions` now knows the builtins; the drive found this one
 # by typing `set pot` and getting silence.
 verbs: [lay]
+category: fishing
 controller: /trade/fishing/idea/cmd/fishing/LayController
 description: "Lay a pot or a net in the water"
 help: |

@@ -5,6 +5,7 @@
 # — until she next berths at a kept quay, when the world's days it lasted
 # are billed to her, paid at the harbor office.
 verbs: [charter]
+category: work
 controller: /platform/idea/cmd/work/CharterController
 description: "Charter a ship for a voyage — her helm is yours until she next berths"
 help: |

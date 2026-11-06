@@ -1,4 +1,5 @@
 verbs: [forum]
+category: social
 # ⭐ One controller per subcommand (controllers-are-io D9); the fallthrough
 # bare `forum <board>` reads, so the verb-level controller is the read's.
 controller: /platform/idea/cmd/social/ForumReadController

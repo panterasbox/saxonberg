@@ -1,4 +1,5 @@
 verbs: [throw]
+category: inventory
 controller: /platform/idea/cmd/inventory/ThrowController
 description: "Throw something you're carrying — away, or at someone"
 help: |

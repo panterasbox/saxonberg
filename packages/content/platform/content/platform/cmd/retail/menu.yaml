@@ -1,4 +1,5 @@
 verbs: [menu]
+category: retail
 controller: /platform/idea/cmd/retail/MenuController
 description: "Read the menu of cocktails on offer here"
 help: |

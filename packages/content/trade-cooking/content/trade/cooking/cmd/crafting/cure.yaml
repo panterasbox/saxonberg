@@ -1,4 +1,5 @@
 verbs: [cure]
+category: crafting
 controller: /trade/cooking/idea/cmd/crafting/CureController
 description: "Pack a cut down in salt so it keeps"
 help: |

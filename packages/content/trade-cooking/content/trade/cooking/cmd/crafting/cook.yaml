@@ -1,4 +1,5 @@
 verbs: [cook]
+category: crafting
 controller: /trade/cooking/idea/cmd/crafting/CookController
 description: "Cook a dish at the hearth"
 help: |

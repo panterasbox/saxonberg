@@ -1,4 +1,5 @@
 verbs: [react]
+category: social
 controller: /platform/idea/cmd/social/ReactController
 description: >
   React to something someone just said or did. A reaction is an emote

@@ -23,13 +23,12 @@
  *    the world (its module graph is the runtime), so the gate compiles the
  *    SAME schema file with the SAME options — the schema file is the one
  *    copy; the compile is two lines.
- * 2. **Category (WARNING until W6).** `category:` equals the view's
- *    `cmd/<category>/` directory (D24). No view carries `category:` yet,
- *    so this half reports a count and does not fail. W6 flips
- *    `CATEGORY_REQUIRED` and the half gates from then on. ⚠ The ten
- *    domain-local views (`world/<sphere>/<locality>/cmd/<verb>.yaml`) sit
- *    in NO category directory; they are reported on their own line,
- *    because "equal to its directory" has nothing to agree with there.
+ * 2. **Category (HARD, zero since W6).** `category:` equals the view's
+ *    `cmd/<category>/` directory (D24). ⚠ The domain-local views
+ *    (`world/<sphere>/<locality>/cmd/<verb>.yaml`) sit in NO category
+ *    directory, so "equal to its directory" has nothing to agree with
+ *    there: they must declare a category some directory-sited view is in
+ *    (command-spec.md § category).
  */
 
 import { readFileSync } from "fs";
@@ -44,11 +43,8 @@ import { allViews } from "./check-verb-collisions";
 const HERE = dirname(fileURLToPath(import.meta.url));
 const SCHEMA = join(HERE, "..", "src", "mud", "lib", "command", "command.schema.json");
 
-/**
- * ⭐ The one switch W6 flips: `false` reports category disagreements as a
- * warning count; `true` fails on any.
- */
-export const CATEGORY_REQUIRED = false;
+/** W6 flipped this (D24): a category disagreement fails the gate. */
+export const CATEGORY_REQUIRED = true;
 
 let validator: ValidateFunction | null = null;
 
@@ -96,13 +92,14 @@ export interface ViewsReport {
   schema: ViewFinding[];
   /** `category:` missing or not equal to its directory. */
   category: ViewFinding[];
-  /** Views in no `cmd/<category>/` directory. */
+  /** Views in no `cmd/<category>/` directory that name no real category. */
   noCategoryDir: ViewFinding[];
 }
 
 export function run(contentDir: string = CONTENT): ViewsReport {
   const files = allViews(contentDir);
   const report: ViewsReport = { views: files.length, schema: [], category: [], noCategoryDir: [] };
+  const known = new Set(files.map(categoryDirOf).filter((d): d is string => d !== null));
   for (const file of files) {
     const rel = relative(contentDir, file);
     let doc: unknown;
@@ -117,7 +114,15 @@ export function run(contentDir: string = CONTENT): ViewsReport {
     const dir = categoryDirOf(file);
     const declared = (doc as { category?: unknown } | null)?.category;
     if (dir === null) {
-      report.noCategoryDir.push({ file: rel, detail: "in no cmd/<category>/ directory" });
+      if (typeof declared !== "string" || !known.has(declared)) {
+        report.noCategoryDir.push({
+          file: rel,
+          detail:
+            declared === undefined
+              ? "no category:, and in no cmd/<category>/ directory"
+              : `category: '${String(declared)}' is no view's directory`,
+        });
+      }
     } else if (declared !== dir) {
       report.category.push({
         file: rel,
@@ -135,8 +140,8 @@ function main(): void {
   const r = run();
   console.log(
     `check-command-views: ${r.views} view(s); schema ${r.schema.length} failure(s) (must be 0); ` +
-      `category ${r.category.length} disagreement(s) + ${r.noCategoryDir.length} in no category ` +
-      `directory (${CATEGORY_REQUIRED ? "REQUIRED" : "warning until W6"}).`,
+      `category ${r.category.length} disagreement(s) + ${r.noCategoryDir.length} domain-local ` +
+      `with no real category (${CATEGORY_REQUIRED ? "REQUIRED" : "warning"}).`,
   );
   let failed = false;
   if (r.schema.length > 0) {

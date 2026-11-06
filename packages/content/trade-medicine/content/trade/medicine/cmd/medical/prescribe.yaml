@@ -1,4 +1,5 @@
 verbs: [prescribe]
+category: medical
 controller: /trade/medicine/idea/cmd/medical/PrescribeController
 description: "Write a prescription for a controlled active (a doctor's power)"
 help: |

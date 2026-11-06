@@ -1,4 +1,5 @@
 verbs: [clay]
+category: sugar
 controller: /trade/sugar/idea/cmd/sugar/ClayController
 description: "Clay a sugar loaf so it washes white from the head"
 help: |

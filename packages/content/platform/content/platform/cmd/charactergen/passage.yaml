@@ -1,4 +1,5 @@
 verbs: [passage]
+category: charactergen
 controller: /platform/idea/cmd/charactergen/PassageController
 description: "Leave the between, and take a body again."
 help: |

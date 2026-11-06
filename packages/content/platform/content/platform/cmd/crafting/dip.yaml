@@ -28,6 +28,7 @@
 # softens, slumps and goes clear* and then *a candle builds up on the
 # wick* — two sentences for one act.
 verbs: [dip]
+category: crafting
 controller: /platform/idea/cmd/crafting/DipController
 description: "Dip a thing in a bath and draw it out with the bath on it — a candle, a glaze"
 help: |

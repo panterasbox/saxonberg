@@ -1,5 +1,6 @@
 # The precise act: put ONE held thing up. `unequip` strips the lot.
 verbs: [unwield]
+category: inventory
 controller: /platform/idea/cmd/inventory/UnwieldController
 description: "Stop wielding a held item"
 help: |

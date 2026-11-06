@@ -1,4 +1,5 @@
 verbs: [buy]
+category: retail
 controller: /platform/idea/cmd/retail/BuyController
 description: "Buy something offered for sale here"
 help: |

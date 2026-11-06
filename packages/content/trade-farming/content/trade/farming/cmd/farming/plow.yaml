@@ -1,4 +1,5 @@
 verbs: [plow]
+category: farming
 controller: /trade/farming/idea/cmd/farming/PloughController
 description: "Turn ground over with a plow"
 help: |

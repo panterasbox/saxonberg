@@ -1,4 +1,5 @@
 verbs: [shore]
+category: mining
 controller: /trade/mining/idea/cmd/mining/ShoreController
 description: "Set timber in a working"
 help: |

@@ -1,4 +1,5 @@
 verbs: [light]
+category: device
 controller: /platform/idea/cmd/device/LightController
 description: "Set fire to something flammable"
 help: |

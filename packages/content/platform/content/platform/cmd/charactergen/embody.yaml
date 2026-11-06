@@ -1,4 +1,5 @@
 verbs: [embody]
+category: charactergen
 controller: /platform/idea/cmd/charactergen/EmbodyController
 description: "Take a body — the first embodiment (`reembody` is the shade's). Field-named subcommands: embody <field> <value> (species / sex / name / pronouns / aspiration / confirm). Bare `embody` re-emits the current draft state."
 help: |

@@ -1,4 +1,5 @@
 verbs: [bathe]
+category: crafting
 controller: /platform/idea/cmd/crafting/BatheController
 description: "Get into water and wash all of you — a tub, a river, a pool"
 help: |

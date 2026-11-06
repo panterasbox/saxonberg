@@ -4,6 +4,7 @@
 # and `reclaim` verbs until then. Each subcommand binds its own shelf;
 # nothing inherits.
 verbs: [shelf]
+category: retail
 description: "A store's consignment shelf — consign / reclaim"
 help: |
   A store's consignment shelf sells what you own on your behalf: `shelf

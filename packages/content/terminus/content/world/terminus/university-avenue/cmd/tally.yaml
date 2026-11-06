@@ -1,4 +1,5 @@
 verbs: [tally]
+category: device
 controller: ../idea/cmd/TallyController
 description: "Add a mark to a tally log"
 help: |

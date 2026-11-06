@@ -2,6 +2,7 @@
 # bootstrap D15: a player shop is a rented market stall). Afforded by the
 # square's produce stalls to whoever stands in the square.
 verbs: [stall]
+category: retail
 controller: /world/terminus/market/idea/cmd/StallController
 description: "Rent a market stall of your own, or give it up"
 help: |

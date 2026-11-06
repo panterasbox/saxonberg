@@ -1,4 +1,5 @@
 verbs: [split]
+category: ground
 controller: /platform/idea/cmd/ground/SplitController
 description: "Divide an oversized or aggregated thing into usable units"
 help: |

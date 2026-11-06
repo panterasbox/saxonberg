@@ -1,4 +1,5 @@
 verbs: [douse]
+category: device
 controller: /platform/idea/cmd/device/DouseController
 description: "Put out a fire"
 help: |

@@ -1,4 +1,5 @@
 verbs: [look]
+category: perception
 defaultAliases: [{name: l}]
 controller: /platform/idea/cmd/perception/LookController
 # ⭐ ONE card, because `look` opens one. Bare `look` is about the room

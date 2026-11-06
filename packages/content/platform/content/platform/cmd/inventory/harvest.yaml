@@ -1,4 +1,5 @@
 verbs: [harvest]
+category: inventory
 controller: /platform/idea/cmd/inventory/HarvestController
 description: "Take the crop off a mature plant, or pick ripe fruit"
 help: |

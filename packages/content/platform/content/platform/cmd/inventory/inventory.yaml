@@ -1,4 +1,5 @@
 verbs: [inventory]
+category: inventory
 defaultAliases: [{name: i}]
 controller: /platform/idea/cmd/inventory/InventoryController
 description: "List what you — or a person, or an open container — hold"

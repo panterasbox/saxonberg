@@ -1,4 +1,5 @@
 verbs: [prompt]
+category: system
 description: "Manage active prompts. v1 subcommands: cancel (cancels every pending prompt on this connection)."
 help: |
   Manages the prompts the game asks you — the choice, confirm, and

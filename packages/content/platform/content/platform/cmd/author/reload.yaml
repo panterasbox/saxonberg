@@ -1,4 +1,5 @@
 verbs: [reload]
+category: author
 controller: /platform/idea/cmd/author/ReloadController
 description: "Hot-reload a template or runtime instance, then type-check it"
 help: |

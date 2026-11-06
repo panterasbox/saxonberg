@@ -1,4 +1,5 @@
 verbs: [bake]
+category: baking
 controller: /trade/baking/idea/cmd/baking/BakeController
 description: "Put a proofed dough into the oven"
 help: |

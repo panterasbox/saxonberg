@@ -1,4 +1,5 @@
 verbs: [call]
+category: social
 controller: /platform/idea/cmd/social/CallController
 description: "Call an animal — a noise, not a command aimed at something"
 help: |

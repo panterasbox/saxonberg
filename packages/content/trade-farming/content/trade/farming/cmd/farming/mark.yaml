@@ -1,4 +1,5 @@
 verbs: [mark]
+category: farming
 controller: /trade/farming/idea/cmd/farming/MarkController
 description: "Mark a field on the open ground you stand in"
 help: |

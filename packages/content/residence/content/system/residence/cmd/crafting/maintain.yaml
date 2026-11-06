@@ -1,4 +1,5 @@
 verbs: [maintain]
+category: crafting
 controller: /system/residence/idea/cmd/crafting/MaintainController
 description: "Keep the fabric of a building sound"
 help: |

@@ -1,4 +1,5 @@
 verbs: [help]
+category: system
 defaultAliases: [{name: h}, {name: "?"}]
 controller: /platform/idea/cmd/system/HelpController
 opens_card: help

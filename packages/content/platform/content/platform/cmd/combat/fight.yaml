@@ -1,4 +1,5 @@
 verbs: [fight]
+category: combat
 # ⭐ One controller per subcommand (controllers-are-io D9). Bare `fight`
 # reads the fight, so the verb-level controller is the status read's; the
 # gambit words are ONE act (`FightGambitController` queues the word); and

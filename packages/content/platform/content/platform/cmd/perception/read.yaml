@@ -1,4 +1,5 @@
 verbs: [read]
+category: perception
 controller: /platform/idea/cmd/perception/ReadController
 description: "Take in the marks on a written thing and decode them"
 help: |

@@ -12,6 +12,7 @@
 # pedagogically rich half and the thing lens 1 cares about. (One view,
 # one word — D16.)
 verbs: [mill]
+category: milling
 controller: /trade/milling/idea/cmd/milling/MillController
 description: "Grind grain or malt, and choose how much of it you keep"
 help: |

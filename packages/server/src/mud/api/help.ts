@@ -95,6 +95,30 @@ export class HelpApi {
     return { kind, topics };
   }
 
+  /** The verb categories with counts — bare `help` (D24). */
+  static commandCategories(): { category: string; count: number }[] {
+    return catalogue()?.commandCategories() ?? [];
+  }
+
+  /**
+   * The verbs of one category (`help <category>`), or `null` when no verb
+   * is in a category of that name.
+   */
+  static commandCategory(
+    category: string,
+    viewer: HelpViewer = FLOOR,
+  ): HelpIndexEntry[] | null {
+    const cat = catalogue();
+    if (!cat) return null;
+    const entries = cat.listCommandCategory(category.toLowerCase());
+    if (entries.length === 0) return null;
+    return HelpApi.applyFilter(
+      entries,
+      (e) => cat.getTopic(e.id)?.spoiler ?? false,
+      viewer,
+    );
+  }
+
   /** A single full topic by id (body + relations), or `null`. */
   static fullTopic(id: string, viewer: HelpViewer = FLOOR): HelpTopic | null {
     const cat = catalogue();

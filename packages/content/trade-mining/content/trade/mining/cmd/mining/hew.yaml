@@ -1,4 +1,5 @@
 verbs: [hew]
+category: mining
 controller: /trade/mining/idea/cmd/mining/HewController
 description: "Win ore from a face"
 help: |

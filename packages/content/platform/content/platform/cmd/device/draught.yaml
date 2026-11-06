@@ -10,6 +10,7 @@
 # collier's charring band. The trade kept its word and its band; the
 # dial turned out to be the kernel's.
 verbs: [draught]
+category: device
 controller: /platform/idea/cmd/device/DraughtController
 description: "Set how much air a fire draws"
 help: |

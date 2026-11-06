@@ -1,4 +1,5 @@
 verbs: [treat]
+category: medical
 controller: /platform/idea/cmd/medical/TreatController
 description: "Treat what is wrong — a dressing, water, or your own hands"
 help: |

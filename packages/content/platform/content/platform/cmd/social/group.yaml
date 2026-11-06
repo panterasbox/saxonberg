@@ -1,4 +1,5 @@
 verbs: [group]
+category: social
 # ⭐ One controller per subcommand (controllers-are-io D9); bare `group`
 # lists, so the verb-level controller is the list's.
 controller: /platform/idea/cmd/social/GroupListController

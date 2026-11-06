@@ -7,6 +7,7 @@
 # Conferred by the instrument (`SweepingTool` — a clothes brush, a carpet
 # beater, a broom); a floor is SWEPT, not brushed.
 verbs: [brush]
+category: inventory
 controller: /platform/idea/cmd/inventory/BrushController
 description: "Brush the loose dirt out of something"
 help: |

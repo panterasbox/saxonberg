@@ -1,4 +1,5 @@
 verbs: [tap]
+category: forestry
 controller: /trade/forestry/idea/cmd/forestry/TapController
 description: "Set a spile in a sap tree, or draw what has run"
 help: |

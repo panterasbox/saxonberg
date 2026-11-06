@@ -4,6 +4,7 @@
 # means (`TieableMixin`) and says why not in its own words. What a rope is
 # FOR is where its ends are tied.
 verbs: [tie]
+category: inventory
 controller: /platform/idea/cmd/inventory/TieController
 description: "Tie something fast — a rope to a post or a person, a line's end to a load"
 help: |

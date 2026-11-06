@@ -1,4 +1,5 @@
 verbs: [chat]
+category: social
 # ⭐ One controller per subcommand (controllers-are-io D9); the fallthrough
 # bare post (`chat <channel> <message>`) is the verb-level controller.
 controller: /platform/idea/cmd/social/ChatPostController

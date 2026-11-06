@@ -1,4 +1,5 @@
 verbs: [git]
+category: system
 controller: /platform/idea/cmd/system/GitController
 opens_card: git
 description: "In-runtime version control: status / diff / log / publish / revert engine source edits"

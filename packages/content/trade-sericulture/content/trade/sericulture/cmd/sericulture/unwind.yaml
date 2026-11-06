@@ -6,6 +6,7 @@
 # cocoons is this trade's own act, afforded by the reel it is wound onto
 # (`ReelingTool` — a hand reel, a reeling basin), never by the cocoons.
 verbs: [unwind]
+category: sericulture
 controller: /trade/sericulture/idea/cmd/sericulture/UnwindController
 description: "Reel silk off stifled cocoons"
 help: |

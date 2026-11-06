@@ -1,4 +1,5 @@
 verbs: [reheat]
+category: glass
 controller: /trade/glass/idea/cmd/glass/ReheatController
 description: "Return the gather to the glory hole to re-open the window"
 help: |

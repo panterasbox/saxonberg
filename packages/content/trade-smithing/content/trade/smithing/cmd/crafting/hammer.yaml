@@ -1,4 +1,5 @@
 verbs: [hammer]
+category: crafting
 controller: /trade/smithing/idea/cmd/crafting/HammerController
 description: "Hammer a heated workpiece at the anvil (the forming step)"
 help: |

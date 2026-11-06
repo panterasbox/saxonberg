@@ -1,4 +1,5 @@
 verbs: [scribe]
+category: glass
 controller: /trade/glass/idea/cmd/glass/ScribeController
 description: "Score a line in flat glass for snapping or flattening"
 help: |

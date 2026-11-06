@@ -1,4 +1,5 @@
 verbs: [spin]
+category: textiles
 controller: /trade/textiles/idea/cmd/textiles/SpinController
 description: "Draw fibre into yarn at a chosen count"
 help: |

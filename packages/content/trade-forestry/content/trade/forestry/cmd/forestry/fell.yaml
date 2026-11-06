@@ -1,4 +1,5 @@
 verbs: [fell]
+category: forestry
 controller: /trade/forestry/idea/cmd/forestry/FellController
 description: "Fell a standard with an axe, or cross-cut a felled one"
 help: |

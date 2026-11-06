@@ -7,6 +7,7 @@
 # ⚠ `remove` / `unwield` stay their own verbs, with their own
 # narrow `requires:`. This one strips the lot.
 verbs: [unequip]
+category: inventory
 controller: /platform/idea/cmd/inventory/UnequipController
 description: "Take off and put up your kit"
 help: |

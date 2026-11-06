@@ -1,4 +1,5 @@
 verbs: [watch]
+category: stream
 controller: /platform/idea/cmd/stream/WatchController
 description: "Put a livestream's video in the focal embed, or keep a watch on the horizon"
 help: |

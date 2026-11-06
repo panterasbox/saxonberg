@@ -1,4 +1,5 @@
 verbs: [blow]
+category: device
 controller: ../idea/cmd/BlowController
 description: "Blow a whistle"
 help: |

@@ -4,6 +4,7 @@
 # the roads. ⭐ The keeper's authority is the NPC's and no more: a quay the
 # posted criteria would refuse is refused, citing the criterion.
 verbs: [berth]
+category: harbor
 controller: /system/transport/idea/cmd/harbor/BerthController
 description: "Give a ship a quay, or send her to the roads — the harbormaster's call"
 help: |

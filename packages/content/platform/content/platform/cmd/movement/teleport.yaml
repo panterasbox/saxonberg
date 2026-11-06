@@ -17,6 +17,7 @@
 # ⚠ To relocate an OBJECT, use `goto --subject`. One verb meaning two
 # unrelated things depending on who typed it was the wrong shape.
 verbs: [teleport]
+category: movement
 controller: /platform/idea/cmd/movement/TeleportController
 description: "Teleport — free inside your own extent, by a travel network, or by the working."
 help: |
