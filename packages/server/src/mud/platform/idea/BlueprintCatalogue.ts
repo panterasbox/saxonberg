@@ -161,8 +161,8 @@ export default class BlueprintCatalogue extends BlueprintCatalogueBase {
         console.warn(`BlueprintCatalogue: skipping ${doc.getPath()}: ${(err as Error).message}`);
         continue;
       }
-      const { baseClass, mixinNames, views } = await curatedParts(entry);
-      const signature = Blueprint.signatureFromParts(baseClass, mixinNames, views);
+      const { baseClass, mixinNames, cls } = await curatedParts(entry);
+      const signature = Blueprint.signatureFromParts(baseClass, mixinNames, cls);
       const bySig = bySignature.get(signature);
       const derivedRow = bySig ? cache.get(bySig) : undefined;
       const drifted = cache.get(entry.blueprintId);
@@ -250,10 +250,10 @@ function applyCurated(bp: Blueprint, entry: CuratedBlueprintData): void {
  */
 async function curatedParts(
   entry: CuratedBlueprintData,
-): Promise<{ baseClass: string; mixinNames: string[]; views: string[] }> {
+): Promise<{ baseClass: string; mixinNames: string[]; cls?: AnyConstructor }> {
   let baseClass = entry.baseClass;
   let mixinNames = [...new Set(entry.mixinNames ?? [])].sort();
-  let views: string[] = [];
+  let cls: AnyConstructor | undefined;
   if (entry.classPath && mixinNames.length === 0) {
     try {
       const ctor = (await StuffApi.loadClassByPath(entry.classPath)) as AnyConstructor;
@@ -261,7 +261,7 @@ async function curatedParts(
       mixinNames = Blueprint.mixinNamesOf(ctor);
       // ⭐ The class's own views — or a curated entry on a class that
       // affords a verb would never find the row its class derived.
-      views = Blueprint.ownViewsOf(ctor);
+      cls = ctor;
     } catch (err) {
       console.warn(
         `BlueprintCatalogue: curated '${entry.blueprintId}' classPath ` +
@@ -269,7 +269,7 @@ async function curatedParts(
       );
     }
   }
-  return { baseClass, mixinNames, views };
+  return { baseClass, mixinNames, cls };
 }
 
 /**

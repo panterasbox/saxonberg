@@ -145,7 +145,7 @@ key**.
 § 3): `commandContributions` is the one record of what an object affords, so a
 whetstone and a suture kit — both `AudibleMixin(Tool)` — are two kinds, and the
 Studio's *exact match* no longer offers one for the other. Only the views the
-CLASS declares fold in (`Blueprint.ownViewsOf`): a mixin's are implied by its
+CLASS declares fold in (the class handed to `signatureFromParts`): a mixin's are implied by its
 name, so a curated pure composition still lands on the key of a class that
 only composes it. Census, 1,111 classes named by a row: signatures 407 → 459,
 collision groups 101 → 93; the medicine ×4 and SurgicalKit/SutureKit groups

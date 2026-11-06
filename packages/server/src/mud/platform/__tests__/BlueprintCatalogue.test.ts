@@ -192,7 +192,7 @@ describe('BlueprintCatalogue.warm — the curated overlay', () => {
     );
     // …and a subclass inherits what its class declared.
     class FineHone extends Hone {}
-    expect(Blueprint.ownViewsOf(FineHone)).toEqual(['x/cmd/sharpen.yaml']);
+    expect(Blueprint.signatureOf(FineHone)).toContain('x/cmd/sharpen.yaml');
   });
 
   it('returns null for unknown id / signature before warm', () => {

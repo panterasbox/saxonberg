@@ -918,20 +918,18 @@ export class StudioLogic extends ApiLogic {
     // ⭐ A blueprint naming a class dedups against that class's derived row,
     // so it folds the views the class affords (D25). A class that does not
     // resolve is a composition by name — the caller's choice, not an error.
-    let views: string[] = [];
+    let cls: AnyConstructor | undefined;
     if (input.classPath) {
       try {
-        views = Blueprint.ownViewsOf(
-          (await StuffApi.loadClassByPath(input.classPath)) as AnyConstructor
-        );
+        cls = (await StuffApi.loadClassByPath(input.classPath)) as AnyConstructor;
       } catch {
-        views = [];
+        cls = undefined;
       }
     }
     const signature = Blueprint.signatureFromParts(
       input.baseClass,
       mixinNames,
-      views
+      cls
     );
     const catalogue = await this.requireCatalogue();
 

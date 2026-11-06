@@ -137,9 +137,10 @@ sources from a locality's own treasury when it has one.
 ## The pump build (2026-10-09) — the first mechanical consumer
 
 `ElectricPump = GridPowered(Switchable(Pump))` is the energy pack's third
-appliance, and the `Powered` shape's first consumer that does mechanical
-work: the kernel pump reads `availablePowerW` / `poweredTrajectory`
-structurally, so a prime mover is simply a `Powered` implementer. It
+appliance, and `PoweredMixin`'s first consumer that does mechanical
+work: the kernel pump narrows on `MixinApi.isPowered` and reads
+`availablePowerW` / `poweredTrajectory`, so a prime mover is simply a
+`PoweredMixin` composer. It
 affords `switch` itself; turning it reconciles its packing's running wear
 first. The Wharfside intake's pump asks ~98 kW of a 60 kW industrial band
 and is left overdrawn on purpose — see [pump.md](./pump.md).

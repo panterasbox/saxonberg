@@ -186,8 +186,8 @@ export class Blueprint extends Document {
 
   /**
    * The structural signature for a base + mixin set + the views the class
-   * itself affords: `<baseClass>|<sorted, deduped mixin names>` and, when it
-   * affords any, `|<sorted, deduped view paths>`. The dedup key both the
+   * `cls` itself affords: `<baseClass>|<sorted, deduped mixin names>` and,
+   * when it names a class that affords any, `|<sorted, deduped view paths>`. The dedup key both the
    * seeder's derive step and `publishBlueprint` compute — a curated entry's
    * parts and a derived class's introspected parts collide here when
    * structurally identical.
@@ -205,12 +205,13 @@ export class Blueprint extends Document {
   static signatureFromParts(
     baseClass: string,
     mixinNames: readonly string[],
-    views: readonly string[] = []
+    cls?: AnyConstructor
   ): string {
     const mixins = [...new Set(mixinNames)].sort().join(',');
     const parts = `${baseClass}|${mixins}`;
+    const views = cls ? Blueprint.ownViewsOf(cls) : [];
     if (views.length === 0) return parts;
-    return `${parts}|${[...new Set(views)].sort().join(',')}`;
+    return `${parts}|${views.join(',')}`;
   }
 
   /**
@@ -224,7 +225,7 @@ export class Blueprint extends Document {
     return Blueprint.signatureFromParts(
       Blueprint.baseClassOf(ctor),
       Blueprint.mixinNamesOf(ctor),
-      Blueprint.ownViewsOf(ctor)
+      ctor
     );
   }
 
@@ -236,12 +237,10 @@ export class Blueprint extends Document {
    * ⚠ A raw read of the statics rather than `CommandApi.collectContributions`:
    * that resolves each view to a definition (and a static on a class SHADOWS
    * the one under it, so the walk reads each level's OWN). A signature must
-   * not depend on which views happen to have loaded.
-   *
-   * @internal for the blueprint catalogue's and the studio's signature
-   * sites; an author asking what a class affords reaches `CommandApi`.
+   * not depend on which views happen to have loaded. An author asking what a
+   * class affords reaches `CommandApi`.
    */
-  static ownViewsOf(ctor: AnyConstructor): string[] {
+  private static ownViewsOf(ctor: AnyConstructor): string[] {
     const views = new Set<string>();
     let cur: unknown = ctor;
     while (typeof cur === 'function' && cur !== Function.prototype) {
