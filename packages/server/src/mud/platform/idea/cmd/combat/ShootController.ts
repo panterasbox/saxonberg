@@ -45,6 +45,7 @@ import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Combatant } from '../../../../lib/combat/Combatant';
 import type { Launcher } from '../../../../lib/combat/Launcher';
 import type Material from '../../../../lib/material/Material';
+import Projectile from '../../../thing/equipment/Projectile';
 
 const TOPIC = 'act.combat';
 
@@ -253,12 +254,7 @@ export default class ShootController extends CommandController<ShootModel> {
   }
 
   private calibreOf(item: Stuff): number | undefined {
-    const withCalibre = item as unknown as {
-      getCalibre?: () => { rawValue(): number };
-    };
-    return typeof withCalibre.getCalibre === 'function'
-      ? withCalibre.getCalibre().rawValue()
-      : undefined;
+    return item instanceof Projectile ? item.getCalibre().rawValue() : undefined;
   }
 
   private materialOf(item: Stuff): Material | null {

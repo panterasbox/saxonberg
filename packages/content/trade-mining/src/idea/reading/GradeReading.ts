@@ -133,9 +133,7 @@ export default class GradeReading extends SurveyReading {
     };
     if (typeof lump.getGrade !== 'function') return null;
     const truth = lump.getGrade() * 100;
-    const stamp = (
-      sample as unknown as { getSampling?(): { at: string } | null }
-    ).getSampling?.();
+    const stamp = MixinApi.isSampled(sample) ? sample.getSampling() : null;
     const { centre, halfWidth } = this.observe(
       truth,
       band,
@@ -176,8 +174,8 @@ export default class GradeReading extends SurveyReading {
   ): Promise<{ grade: number; where: string } | null> {
     const lump = subject as unknown as { getGrade?(): number } | null;
     if (lump && typeof lump.getGrade === 'function') {
-      const stamped = (subject as unknown as { getSampling?(): { at: string } | null })
-        .getSampling?.();
+      const stamped =
+        subject !== null && MixinApi.isSampled(subject) ? subject.getSampling() : null;
       return { grade: lump.getGrade(), where: stamped?.at ?? whereOf(giver) };
     }
     const place = this.placeOf(giver);

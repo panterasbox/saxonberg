@@ -138,9 +138,7 @@ export default class WaterReading extends Reading {
       return;
     }
 
-    const scope = (
-      giver as Stuff & { getContainer?: () => unknown }
-    ).getContainer?.();
+    const scope = MixinApi.isContainable(giver) ? giver.getContainer() : null;
     if (!scope || !MixinApi.isContainer(scope as Stuff)) {
       ctx.note({
         kind: 'controller-rejected',
@@ -154,8 +152,8 @@ export default class WaterReading extends Reading {
       return;
     }
 
-    if (MixinApi.isShore(scope as Stuff)) {
-      const pick = await (scope as Stuff & Shore).waterRefFor();
+    if (MixinApi.isShore(scope)) {
+      const pick = await scope.waterRefFor();
       if (!('refusal' in pick)) {
         await this.reachReport(giver, pick.ref, pick.read, scope as Stuff);
         return;

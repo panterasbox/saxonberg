@@ -504,10 +504,9 @@ async function mint<T>(row: string, by: Stuff): Promise<T | null> {
 }
 
 async function competenceOf(by: Stuff): Promise<CompetenceBandName> {
-  const actor = by as unknown as { competenceBandFor?(key: string): Promise<CompetenceBandName> };
-  if (typeof actor.competenceBandFor !== 'function') return 'untrained';
+  if (!MixinApi.isAdvancing(by)) return 'untrained';
   try {
-    return await actor.competenceBandFor('textiles');
+    return await by.competenceBandFor('textiles');
   } catch {
     return 'untrained';
   }

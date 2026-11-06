@@ -108,8 +108,7 @@ function isFungibleStack(item: Stuff): boolean {
   // refusal is the conservative answer, and something that claims to be
   // fungible without saying how many is exactly the case not to mint an
   // id for.
-  const n = (item as unknown as { getQuantity?(): number }).getQuantity?.();
-  return typeof n === 'number' ? n > 1 : true;
+  return MixinApi.isStackable(item) ? item.getQuantity() > 1 : true;
 }
 
 let registryRef: ChattelRegistry | null = null;

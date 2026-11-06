@@ -54,6 +54,7 @@ import { DISCOVERY } from '@saxonberg/server/mud/lib/belief/BeliefStore';
 import type Material from '@saxonberg/server/mud/lib/material/Material';
 import Deposit from '@saxonberg/content-ground/src/idea/Deposit';
 import type { GroundSample } from '@saxonberg/content-ground/src/idea/Deposit';
+import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
 
 /** The Discipline every geological read is banded by, and credits. */
 export const GEOLOGY = 'geology';
@@ -136,9 +137,8 @@ export abstract class SurveyReading extends Reading {
     const coords = (place as unknown as {
       getCoordinates?(): [number, number, number];
     }).getCoordinates?.() ?? [0, 0, 0];
-    const cellSize = (place as unknown as {
-      getZone?(): { getCellSize?(): number } | null;
-    }).getZone?.()?.getCellSize?.() ?? 1;
+    const zone = (place as unknown as { getZone?(): unknown }).getZone?.() ?? null;
+    const cellSize = zone instanceof CartesianZone ? zone.getCellSize() : 1;
     return [coords[0] * cellSize, coords[1] * cellSize, coords[2] * cellSize];
   }
 

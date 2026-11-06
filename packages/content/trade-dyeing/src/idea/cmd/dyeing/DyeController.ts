@@ -300,12 +300,9 @@ function fibreOf(target: Stuff): Material | null {
 }
 
 async function competenceOf(giver: Stuff): Promise<CompetenceBandName> {
-  const asActor = giver as unknown as {
-    competenceBandFor?(key: string): Promise<CompetenceBandName>;
-  };
-  if (typeof asActor.competenceBandFor !== 'function') return 'untrained';
+  if (!MixinApi.isAdvancing(giver)) return 'untrained';
   try {
-    return await asActor.competenceBandFor('dyeing');
+    return await giver.competenceBandFor('dyeing');
   } catch {
     return 'untrained';
   }

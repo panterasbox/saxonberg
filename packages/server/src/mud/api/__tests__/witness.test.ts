@@ -276,21 +276,13 @@ describe('Traversal Witness hooks (Mobile.traverse)', () => {
 describe('HasInteractive Witness hooks (ConnectionApi)', () => {
   class HookableHolder extends HasInteractiveMixin(Idea) {
     public attaches: Interactive[] = [];
-    public detaches = 0;
     public linkdead = 0;
-    public restored = 0;
 
     onConnectionAttached?(conn: Interactive): void {
       this.attaches.push(conn);
     }
-    onConnectionDetached?(): void {
-      this.detaches++;
-    }
     onLinkdead?(): void {
       this.linkdead++;
-    }
-    onLinkRestored?(): void {
-      this.restored++;
     }
   }
 
@@ -299,25 +291,23 @@ describe('HasInteractive Witness hooks (ConnectionApi)', () => {
     StuffApi.clearAll();
   });
 
-  it('fires onConnectionAttached and onLinkRestored on first attach', async () => {
+  it('fires onConnectionAttached on first attach', async () => {
     const holder = makeStuff(() => new HookableHolder());
     const interactive = await StuffApi.create(
       () => new Interactive('sock-1', 'sess-1', { _id: 'u1' } as never)
     );
     interactive.transferTo(holder);
     expect(holder.attaches).toEqual([interactive]);
-    expect(holder.restored).toBe(1);
     expect(holder.linkdead).toBe(0);
   });
 
-  it('fires onConnectionDetached and onLinkdead on last detach', async () => {
+  it('fires onLinkdead on last detach', async () => {
     const holder = makeStuff(() => new HookableHolder());
     const interactive = await StuffApi.create(
       () => new Interactive('sock-1', 'sess-1', { _id: 'u1' } as never)
     );
     interactive.transferTo(holder);
     interactive.detach();
-    expect(holder.detaches).toBe(1);
     expect(holder.linkdead).toBe(1);
   });
 });

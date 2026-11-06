@@ -206,9 +206,7 @@ export default class ChemistryReading extends Reading {
       // stored flag. At `competent` and above the assayer says what the
       // reading is really about.
       if (CompetenceBand.atOrAbove(band, 'competent') && state !== 'fresh') {
-        const stamp = (
-          sample as unknown as { getSampling?(): { on: number } | null }
-        ).getSampling?.();
+        const stamp = MixinApi.isSampled(sample) ? sample.getSampling() : null;
         const hours = stamp
           ? Math.max(
               0,

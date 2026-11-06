@@ -67,7 +67,7 @@ export default class GridReading extends Reading {
 
   /** The premises you stand in, and its locality's derived epoch. */
   private async reportHere(giver: Stuff): Promise<void> {
-    const scope = (giver as Stuff & { getContainer?: () => unknown }).getContainer?.();
+    const scope = MixinApi.isContainable(giver) ? giver.getContainer() : null;
     if (!scope || !MixinApi.isContainer(scope as Stuff)) {
       MessageApi.scene(giver)
         .topic(TOPIC)

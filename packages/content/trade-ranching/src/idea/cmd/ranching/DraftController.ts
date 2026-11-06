@@ -37,6 +37,7 @@ import HerdRegistry, {
 import { HeadSeed } from '../../../lib/HeadSeed';
 import type Livestock from '../../../agent/Livestock';
 import { GrammarApi } from '@saxonberg/server/mud/api/grammar';
+import Herdbook from '../../../thing/Herdbook';
 
 export const RANCHING_TOPIC = 'act.deed';
 
@@ -379,12 +380,8 @@ export default class DraftController extends CommandController<DraftModel> {
       // head carries one too (it knows which herd it came out of), so a
       // cow standing in the yard would answer for the register. The book
       // is the thing that also knows the TALLY.
-      const shape = item as unknown as {
-        getHerdId?(): string;
-        getTally?(): number;
-      };
-      if (typeof shape.getTally !== 'function') continue;
-      const id = shape.getHerdId?.();
+      if (!(item instanceof Herdbook)) continue;
+      const id = item.getHerdId();
       if (typeof id === 'string' && id.length > 0) return id;
     }
     return null;

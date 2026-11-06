@@ -77,6 +77,7 @@ import {
   CompetenceBand,
   type CompetenceBandName,
 } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
+import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
 
 /** The mixin's marker, and the string `MixinApi.isActive` narrows on. */
 export const OPEN_WORKING_MIXIN = 'OpenWorkingMixin';
@@ -329,9 +330,9 @@ export function OpenWorkingMixin<
     private runM(): number {
       if (this.faceRunM > 0) return this.faceRunM;
       const zone = (
-        this as unknown as { getZone(): { getCellSize?(): number } | null }
+        this as unknown as { getZone(): unknown }
       ).getZone();
-      return zone?.getCellSize?.() ?? DEFAULT_FACE_RUN_M;
+      return zone instanceof CartesianZone ? zone.getCellSize() : DEFAULT_FACE_RUN_M;
     }
 
     /** The column, as bands with tops filled in. */
@@ -672,10 +673,8 @@ export function OpenWorkingMixin<
         (self as unknown as {
           getCoordinates?(): [number, number, number];
         }).getCoordinates?.() ?? [0, 0, 0];
-      const cellSize =
-        (self as unknown as {
-          getZone?(): { getCellSize?(): number } | null;
-        }).getZone?.()?.getCellSize?.() ?? 1;
+      const zone = (self as unknown as { getZone?(): unknown }).getZone?.() ?? null;
+      const cellSize = zone instanceof CartesianZone ? zone.getCellSize() : 1;
       const midZ = (face.topZ + face.toZ) / 2;
       // The covering Locality's address is the seed (the SurveyReading
       // convention), but a failure to resolve it must never cost the work

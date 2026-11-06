@@ -25,6 +25,7 @@ import { MixinApi } from "@saxonberg/server/mud/api/mixin";
 import type { CommandContext } from '@saxonberg/server/mud/api/command';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
+import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
 
 /** ⭐ The instrument is bound by the view, never hunted for here. */
 interface MeasureDipModel extends CommandModel {
@@ -58,9 +59,8 @@ export default class DipReading extends SurveyReading {
 
     const coords = (place as unknown as { getCoordinates?(): [number, number, number] })
       .getCoordinates?.() ?? [0, 0, 0];
-    const cellSize =
-      (place as unknown as { getZone?(): { getCellSize?(): number } | null }).getZone?.()
-        ?.getCellSize?.() ?? 1;
+    const zone = (place as unknown as { getZone?(): unknown }).getZone?.() ?? null;
+    const cellSize = zone instanceof CartesianZone ? zone.getCellSize() : 1;
     const at: [number, number, number] = [
       coords[0] * cellSize,
       coords[1] * cellSize,

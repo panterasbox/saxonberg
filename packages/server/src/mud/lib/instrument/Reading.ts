@@ -850,9 +850,9 @@ export default abstract class Reading extends ReadingBase {
 
   /** The place the actor is standing in, or `null`. */
   protected placeOf(actor: Stuff): (Stuff & Container) | null {
-    const room = (
-      actor as unknown as { getContainer?(): Stuff | null }
-    ).getContainer?.();
+    const room = MixinApi.isContainable(actor)
+      ? (actor.getContainer() as unknown as Stuff | null)
+      : null;
     return room && MixinApi.isContainer(room) ? (room as Stuff & Container) : null;
   }
 

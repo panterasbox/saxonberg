@@ -21,7 +21,7 @@ import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { RANCHING_TOPIC } from './DraftController';
-import type { HandleReport } from '../../../lib/Handled';
+import { HANDLED_MIXIN, type HandleReport } from '../../../lib/Handled';
 import type Livestock from '../../../agent/Livestock';
 
 /** The Discipline handling stock credits. */
@@ -38,10 +38,13 @@ export default class HandleController extends CommandController<HandleModel> {
   async execute(model: HandleModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     const target = model.target?.stuff as Handleable | undefined;
+    // ⭐ Narrowed, never probed (controllers-are-io D7a): an animal you
+    // can work with HAS a temperament (the kernel's `HandlingMixin`) and
+    // owns the act (`HandledMixin`, this pack's).
     if (
       !target ||
-      typeof target.getHandling !== 'function' ||
-      typeof target.workedOver !== 'function'
+      !MixinApi.isHandling(target) ||
+      !MixinApi.hasMixin(target, HANDLED_MIXIN)
     ) {
       this.decline(context, Mml.compose`That is not an animal you can work with.`, 'not-handleable');
       return;

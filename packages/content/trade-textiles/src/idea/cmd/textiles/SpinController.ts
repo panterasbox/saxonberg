@@ -272,12 +272,9 @@ function isSpinnable(stock: Stuff): boolean {
 }
 
 async function competenceOf(giver: Stuff): Promise<CompetenceBandName> {
-  const asActor = giver as unknown as {
-    competenceBandFor?(key: string): Promise<CompetenceBandName>;
-  };
-  if (typeof asActor.competenceBandFor !== 'function') return 'untrained';
+  if (!MixinApi.isAdvancing(giver)) return 'untrained';
   try {
-    return await asActor.competenceBandFor('textiles');
+    return await giver.competenceBandFor('textiles');
   } catch {
     return 'untrained';
   }

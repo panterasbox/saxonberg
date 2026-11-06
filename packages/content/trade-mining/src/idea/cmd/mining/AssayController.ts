@@ -340,11 +340,7 @@ async function finishAssay(
         const paper = (await StuffApi.clone(RECORD_ROW, undefined, {
           madeFrom: sample,
         })) as unknown as ReadingRecord;
-        const stamp = (
-          sample as unknown as {
-            getSampling?(): { at: string; by: string; on: number } | null;
-          }
-        ).getSampling?.() ?? null;
+        const stamp = MixinApi.isSampled(sample) ? sample.getSampling() : null;
         const said = reading
           ? await runBench(reading, sample, scale)
           : { prose: 'Nothing this bench can read.', value: null, unit: '' };
@@ -461,12 +457,13 @@ function benchBand(scale: Stuff & Tooled): CompetenceBandName {
   return 'proficient';
 }
 
-/** Non-carryable — the shipped `fixedInPlace` predicate. */
+/**
+ * Non-carryable — the shipped `fixedInPlace` predicate, asked of a
+ * Containable (controllers-are-io D7a: this probed a `getFixedInPlace`
+ * nobody defines, so a fixed scale always read as carryable).
+ */
 function isFixed(thing: Stuff): boolean {
-  return (
-    (thing as unknown as { getFixedInPlace?(): boolean }).getFixedInPlace?.() ===
-    true
-  );
+  return MixinApi.isContainable(thing) && thing.isFixedInPlace();
 }
 
 function identityOf(stuff: Stuff): string {

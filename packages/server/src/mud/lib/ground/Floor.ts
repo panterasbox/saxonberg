@@ -82,6 +82,7 @@ import {
   type GroundKind,
   type GroundMaterialClass,
 } from './GroundKind';
+import CartesianZone from '../../platform/idea/location/CartesianZone';
 
 const FLOOR_MIXIN = 'FloorMixin';
 
@@ -374,7 +375,7 @@ export type FloorThing = Stuff &
 interface FloorHost {
   getFloorSpec?(): { material?: string; onGrade?: boolean; worked?: boolean } | null;
   floorDefaults?(onGrade: boolean): { worked: boolean; materialPath: string };
-  getZone?(): { lookupField<T>(field: string): Promise<T | null>; getCellSize?(): number } | null;
+  getZone?(): { lookupField<T>(field: string): Promise<T | null> } | null;
   getCoordinates?(): [number, number, number];
   getAddress?(): string | null;
 }
@@ -727,7 +728,7 @@ export function FloorMixin<
     private async groundBeneath(host: FloorHost): Promise<string | null> {
       const zone = host.getZone?.() ?? null;
       const cell = host.getCoordinates?.() ?? [0, 0, 0];
-      const size = zone?.getCellSize?.() ?? 1;
+      const size = zone instanceof CartesianZone ? zone.getCellSize() : 1;
       const spot: readonly [number, number] = [cell[0] * size, cell[1] * size];
       const zM = cell[2] * size;
       const address = await this.addressOf(host);

@@ -29,7 +29,7 @@ import type { ImprovementCost } from '@saxonberg/server/mud/lib/ground/Improvabl
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { AddressApi } from '@saxonberg/server/mud/api/address';
 import GroundCharacter, { type GroundSample } from '@saxonberg/content-ground/src/idea/GroundCharacter';
-import type Tract from '../../../location/Tract';
+import Tract from '../../../location/Tract';
 import type Field from '../../../thing/Field';
 import type { Soil } from '@saxonberg/server/mud/lib/husbandry/Soil';
 
@@ -80,12 +80,9 @@ export abstract class FieldWorkController<
   protected async fieldOf(giver: Stuff): Promise<FieldReading | null> {
     const room = (giver as unknown as { getContainer(): Stuff | null }).getContainer();
     if (!room || !MixinApi.isContainer(room)) return null;
-    const candidate = room as unknown as Partial<Tract> & Stuff & Container;
-    if (typeof candidate.getGroundSpot !== 'function') return null;
-    if (typeof (candidate as unknown as { progressOn?: unknown }).progressOn !== 'function') {
-      return null;
-    }
-    const tract = candidate as Tract & Stuff & Container;
+    // ⭐ A tract, asked by class (controllers-are-io D8a), never probed.
+    if (!(room instanceof Tract)) return null;
+    const tract = room;
     const locality = await AddressApi.resolveLocalityFor(room as Stuff & Container);
     const seed = GroundCharacter.seedFor(locality?.getAddress() ?? '');
     const model = await this.characterAt(room as Stuff & Container);

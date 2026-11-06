@@ -962,10 +962,8 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
      * catches once it IS put down.
      */
     protected watershedScope(): (Stuff & Container) | null {
-      const self = this as unknown as Stuff & {
-        getContainer?: () => unknown;
-      };
-      const container = self.getContainer?.() ?? null;
+      const self = this as unknown as Stuff;
+      const container = MixinApi.isContainable(self) ? self.getContainer() : null;
       if (container === null || !MixinApi.isContainer(container as Stuff)) {
         return null;
       }

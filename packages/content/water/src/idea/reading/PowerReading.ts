@@ -148,9 +148,7 @@ export default class PowerReading extends Reading {
   /** What is available where you stand, if the ground drains anywhere. */
   private async reportHere(ctx: CommandContext): Promise<void> {
     const giver = ctx.commandGiver;
-    const scope = (
-      giver as Stuff & { getContainer?: () => unknown }
-    ).getContainer?.();
+    const scope = MixinApi.isContainable(giver) ? giver.getContainer() : null;
     if (!scope || !MixinApi.isContainer(scope as Stuff)) {
       ctx.note({
         kind: 'controller-rejected',

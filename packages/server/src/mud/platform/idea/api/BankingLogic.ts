@@ -196,7 +196,7 @@ function isCashLike(stuff: unknown): stuff is Stuff & Stackable & CashLike {
   return (
     typeof s?.getCurrency === "function" &&
     typeof s?.getDenomination === "function" &&
-    typeof s?.getQuantity === "function"
+    MixinApi.isStackable(stuff as Stuff)
   );
 }
 
@@ -1921,9 +1921,9 @@ function liveCoinOf(currency: string): {
   for (const coin of StuffApi.findAllByTemplatePath(COIN_PATH)) {
     if (!isCashLike(coin)) continue;
     if (coin.getCurrency() !== currency) continue;
-    const container = (
-      coin as unknown as { getContainer?(): Stuff | null }
-    ).getContainer?.();
+    const container = MixinApi.isContainable(coin)
+      ? (coin.getContainer() as unknown as Stuff | null)
+      : null;
     if (container && MixinApi.isBank(container)) vault += Currency.stackValue(coin.getCurrency(), coin.getDenomination(), coin.getQuantity());
     else circulating += Currency.stackValue(coin.getCurrency(), coin.getDenomination(), coin.getQuantity());
   }

@@ -76,6 +76,7 @@ describe('ChemistryReading — the bench, and the spoiled sample', () => {
   function asPerishableMatter(): void {
     vi.spyOn(MixinApi, 'isTangible').mockReturnValue(true as never);
     vi.spyOn(MixinApi, 'isFresh').mockReturnValue(true as never);
+    vi.spyOn(MixinApi, 'isSampled').mockReturnValue(true as never);
   }
 
   it('⭐ a fresh sample reads its composition and says nothing about a journey', async () => {

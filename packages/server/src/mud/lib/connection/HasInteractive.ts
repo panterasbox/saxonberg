@@ -46,10 +46,14 @@ import { GoogleProfile } from '../identity/GoogleProfile';
  * Public shape provided by HasInteractiveMixin.
  *
  * Witness hooks (optional methods) — fire from `ConnectionApi`:
- *   - `onConnectionAttached(conn)` / `onConnectionDetached()` —
- *     per-connection events, fire on every transfer/detach.
- *   - `onLinkdead()` / `onLinkRestored()` — presence transitions,
- *     fire only when the connection count crosses 0/1.
+ *   - `onConnectionAttached(conn)` — per-connection, on every transfer;
+ *   - `onLinkdead()` — the presence transition, when the connection
+ *     count drops to 0.
+ *
+ * ⚠ `onConnectionDetached()` / `onLinkRestored()` were declared here and
+ * implemented by NOBODY (controllers-are-io D7a, `lint:duck-typing`'s dead
+ * names): deleted rather than kept as branches that could never run. A
+ * holder that needs one adds it with its first implementer.
  */
 export interface HasInteractive {
   /**
@@ -78,12 +82,8 @@ export interface HasInteractive {
 
   /** Per-connection notification fired after attach. */
   onConnectionAttached?(conn: Interactive): void;
-  /** Per-connection notification fired after detach. */
-  onConnectionDetached?(): void;
   /** Fired when the connection count drops to zero. */
   onLinkdead?(): void;
-  /** Fired when the connection count rises from zero to one. */
-  onLinkRestored?(): void;
 
   /**
    * Resolve the display portrait URL for this connected identity.
