@@ -30,6 +30,8 @@ import type { Chambered } from '../lib/spatial/Chambered';
 import type { Coolbox } from '../lib/thermal/Coolbox';
 import type { ClimateControl } from '../lib/thermal/ClimateControl';
 import type { Powered } from '../lib/supply/Powered';
+import type { WaterPowered } from '../lib/supply/WaterPowered';
+import type { NameTaking } from '../lib/description/NameTaking';
 import type { Mobile } from '../lib/spatial/Mobile';
 import type { Sensor } from '../lib/message/Sensor';
 import type { Vocal } from '../lib/message/Vocal';
@@ -2401,6 +2403,21 @@ export class MixinApi {
   /** ⭐ Plans the cut of a thing it knows — `cut` (`CutPlannerMixin`, a protocol). */
   public static isCutPlanner(obj: Stuff): obj is Stuff & CutPlanner {
     return this.hasMixin(obj, Mixins.CutPlanner);
+  }
+
+  /** Draws a supply that can be on or off (`PoweredMixin`). */
+  public static isPowered(obj: Stuff): obj is Stuff & Powered {
+    return this.hasMixin(obj, Mixins.Powered);
+  }
+
+  /** Turns a reach's flow into watts (`WaterPoweredMixin`). */
+  public static isWaterPowered(obj: Stuff): obj is Stuff & WaterPowered {
+    return this.hasMixin(obj, Mixins.WaterPowered);
+  }
+
+  /** Decides who may give it its name (`NameTakingMixin`). */
+  public static isNameTaking(obj: Stuff): obj is Stuff & NameTaking {
+    return this.hasMixin(obj, Mixins.NameTaking);
   }
 
   /** ⭐ A stop on some travel network — `teleport` (`TravelNodeMixin`, a protocol). */

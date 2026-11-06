@@ -194,6 +194,22 @@ compose it ([help.md](./help.md), [studio.md](./studio.md)). ⚠ The marker is
 read as an OWN static — a mixin composed over a protocol inherits the static
 and must not read as one.
 
+⭐ **Three markers are not protocols** (D7a) — no verb calls them, so they carry
+no `_mixinKind`; they exist because a reader across a pack line must narrow on
+something. `PoweredMixin` (`lib/supply/`): draws a supply — `GridPowered`,
+`Comminuting`, `Sawmill`. ⚠ `Sawmill.isPowered()` meant *runs on water*, a fact
+about the rung; it is `runsOnWater()` now, so the word has one meaning.
+`WaterPoweredMixin` (`lib/supply/`): turns a reach's flow into watts —
+`ControlStructure` only. ⚠ NOT `Conduit`: it has a `getReachRef` and no
+generation, and a mill walking its room for a power take would have picked the
+conduit and read 0 W beside a turning wheel — the plan's second host, dropped
+on that finding. One host earns it because its readers (the mills) cannot
+import it. `NameTakingMixin` (`lib/description/`): who may write a name —
+`Named`, `Crafted`, `Assembled`, `Bonded`, each saying
+`super.canBeNamedBy(h, by) || <rule>`. ⚠ It composes more than once on one
+class by design (the rules stack in any order), and each layer hands to what is
+beneath; the one prototype look lives in it.
+
 The bare shapes the sweep (controllers-are-io D8a) disposed of: the six
 above **converted** (each had three implementers, or a kernel verb and a
 pack network); `Tappable` **deleted** — its one implementer was

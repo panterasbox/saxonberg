@@ -70,7 +70,9 @@ drive). It runs on the first real read (the dusk settle, or `analyze grid`).
   (`ElectricLight`, the `ColdStore`/`ColdRoom`; never on `Thing`/
   `LightSource`/`BurnerMixin`). Resolves its premises' band + feeder once;
   `isPowered()` is sync. ⭐ **It implements the kernel `Powered` shape**
-  (`isPowered` · `availablePowerW` · `poweredTrajectory`) structurally, so
+  (`isPowered` · `availablePowerW` · `poweredTrajectory`) by composing
+  `PoweredMixin` (controllers-are-io D7a; the mills compose it too, and every
+  reader narrows on `MixinApi.isPowered`), so
   `ClimateControlMixin` (kernel) drives off it without the kernel importing
   the pack. A host that is not Containable (a `ColdRoom` Location) is metered
   against ITSELF (`resolveRoomPath` returns its own path).

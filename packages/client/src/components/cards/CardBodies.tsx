@@ -345,6 +345,7 @@ const PLUMBING: ReadonlySet<string> = new Set([
   "Forkable",
   "Shadowable",
   "ClientState",
+  "NameTaking",
 ]);
 
 /**

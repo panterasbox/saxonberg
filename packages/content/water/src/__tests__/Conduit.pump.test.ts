@@ -8,6 +8,7 @@
  * not care. And the bill reads through the fitted pump.
  */
 
+import { PoweredMixin } from '@saxonberg/server/mud/lib/supply/Powered';
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -30,9 +31,10 @@ function main(headM: number): Conduit {
   });
 }
 
-/** A pump on a fake supply — the Powered shape, read structurally. */
+/** A pump on a fake supply — it composes the protocol; the answers are stubbed. */
+const PumpOnSupply = PoweredMixin(Pump);
 function poweredPump(watts: number, on = true): Pump {
-  const p = makeStuff(() => new Pump());
+  const p = makeStuff(() => new PumpOnSupply()) as unknown as Pump;
   p.setLiftM(30);
   p.setThroughputLps(1200);
   const leather = makeStuff(() => new Tool());

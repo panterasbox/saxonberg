@@ -29,21 +29,17 @@
 
 import Good from '@saxonberg/server/mud/platform/thing/Good';
 import { ToolMixin } from '@saxonberg/server/mud/lib/craft/Tool';
+import { PoweredMixin } from '@saxonberg/server/mud/lib/supply/Powered';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
+import type { WaterPowered } from '@saxonberg/server/mud/lib/supply/WaterPowered';
 
 /** The drainage catalogue, by path — never by import. */
 const WATERCOURSE_CATALOGUE = '/system/water/idea/WatercourseCatalogue';
-
-/** A room sibling that turns a flow into watts. */
-interface PowerTake {
-  generationW(flowM3S: number): number;
-  getReachRef(): string;
-}
 
 /** The catalogue's reading surface, duck-typed. */
 interface FlowSource {
@@ -52,7 +48,7 @@ interface FlowSource {
 
 // ⚠ Not Chambered: a pit saw is a blade and has no loft. The mill that
 // does is `LoftedSawmill`, which composes it on top of this.
-const SawmillBase = ToolMixin(Good);
+const SawmillBase = PoweredMixin(ToolMixin(Good));
 
 export default class Sawmill extends SawmillBase {
   static fieldMeta: FieldMeta = {
@@ -113,8 +109,12 @@ export default class Sawmill extends SawmillBase {
     this._sawing = on === true;
   }
 
-  /** Does this rung run on water (true) or on hands (false)? */
-  public isPowered(): boolean {
+  /**
+   * Does this rung run on water (true) or on hands (false)? ⚠ A fact about
+   * the rung, not the river: it was `isPowered()` until PoweredMixin gave that
+   * word its meaning, *power is reaching it now* (a dry race answers false).
+   */
+  public runsOnWater(): boolean {
     return this.kgPerHourPerKw > 0;
   }
 
@@ -159,24 +159,18 @@ export default class Sawmill extends SawmillBase {
   }
 
   /** The room sibling that makes the power, if there is one. */
-  private powerTake(): PowerTake | null {
+  private powerTake(): (Stuff & WaterPowered) | null {
     const self = this as unknown as Stuff;
     const room = MixinApi.isContainable(self) ? self.getContainer() : null;
     if (room === null || !MixinApi.isContainer(room)) return null;
     for (const occ of room.getContents()) {
-      const duck = occ as unknown as Partial<PowerTake>;
-      if (
-        typeof duck.generationW === 'function' &&
-        typeof duck.getReachRef === 'function'
-      ) {
-        return duck as PowerTake;
-      }
+      if (MixinApi.isWaterPowered(occ)) return occ;
     }
     return null;
   }
 
   /** Re-read the flow at most once per six game-hours. */
-  private async refreshPower(take: PowerTake): Promise<void> {
+  private async refreshPower(take: WaterPowered): Promise<void> {
     if (this._refreshing) return;
     const nowS = WorldClockApi.getNow().rawValue();
     // The weather field itself is memoised per six-game-hour segment, so

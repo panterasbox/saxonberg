@@ -2401,21 +2401,15 @@ function envelopeNowSeconds(): number | null {
 
 /**
  * ⭐ The supply trajectory of a scope that draws one (a `Powered` host), or
- * `null` for a plain room. A **structural probe** — the kernel envelope
- * cannot import the energy pack, and a pack's `GridPoweredMixin` implements
- * `Powered` structurally — so the one legitimate cross is a method check.
+ * `null` for a plain room. The kernel envelope cannot import the energy
+ * pack; `PoweredMixin` is the kernel protocol its `GridPoweredMixin` composes.
  */
 function poweredTrajectoryOf(
   host: Stuff,
   fromS: number,
   toS: number,
 ): Piecewise | null {
-  const h = host as unknown as {
-    poweredTrajectory?: (fromS: number, toS: number) => Piecewise;
-  };
-  return typeof h.poweredTrajectory === 'function'
-    ? h.poweredTrajectory(fromS, toS)
-    : null;
+  return MixinApi.isPowered(host) ? host.poweredTrajectory(fromS, toS) : null;
 }
 
 /** Numeric AppSetting read with a seeded-literal fallback (pre-warm safe). */

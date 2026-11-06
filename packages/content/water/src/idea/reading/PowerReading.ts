@@ -43,6 +43,7 @@ import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tool';
 import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import type { WaterPowered } from '@saxonberg/server/mud/lib/supply/WaterPowered';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { AddressApi } from '@saxonberg/server/mud/api/address';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -57,25 +58,14 @@ interface AnalyzePowerModel extends CommandModel {
   target?: MqlOneResult;
 }
 
-/** Anything that turns a flow into watts. */
-interface Generator {
-  generationW(flowM3S: number): number;
-  getReachRef(): string;
-  getHeadM(): number;
-}
-
 /** Anything that mechanical power drives. */
 interface Driven {
   availablePowerW(): number;
   throughputNow(): number;
 }
 
-function asGenerator(target: Stuff): Generator | null {
-  const duck = target as unknown as Partial<Generator>;
-  return typeof duck.generationW === 'function' &&
-    typeof duck.getReachRef === 'function'
-    ? (duck as Generator)
-    : null;
+function asGenerator(target: Stuff): WaterPowered | null {
+  return MixinApi.isWaterPowered(target) ? target : null;
 }
 
 function asDriven(target: Stuff): Driven | null {
@@ -210,7 +200,7 @@ export default class PowerReading extends Reading {
   /** A weir, a dam, an aqueduct house: what it is making right now. */
   private async reportGenerator(
     target: Stuff,
-    generator: Generator,
+    generator: WaterPowered,
     ctx: CommandContext,
   ): Promise<void> {
     const giver = ctx.commandGiver;

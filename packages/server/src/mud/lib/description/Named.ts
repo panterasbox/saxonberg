@@ -107,6 +107,7 @@
 
 import type { Stuff } from '../stuff/Stuff';
 import type { MixinConstructor, FieldMeta } from '../mixin';
+import { NameTakingMixin } from './NameTaking';
 import { Mixins } from '../mixin';
 import { MixinApi } from '../../api/mixin';
 import { GrammarApi } from '../../api/grammar';
@@ -180,7 +181,7 @@ export function NamedMixin<TBase extends MixinConstructor>(Base: TBase) {
   // per class, from the class, never by probing an instance (lazily: the
   // factory runs at import, before the mixin registry is guaranteed warm).
   let inherits: boolean | undefined;
-  return class NamedMixin extends Base {
+  return class NamedMixin extends NameTakingMixin(Base) {
     static _mixinName = 'NamedMixin';
 
     /** See {@link Named.getKeywords}. */
@@ -329,19 +330,6 @@ export function NamedMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     hasAlternateName(value: string): boolean {
       return this.alternateNames.some((a) => a.value === value);
-    }
-
-    /**
-     * @hook Who may give this its name. Default: nobody — unless a mixin
-     * composed INSIDE this one answers (the mixin-super idiom: `Crafted` sits
-     * under `Named` on a `Tool`, and its maker rule must still be heard).
-     * Override with `super.canBeNamedBy(h, by) || <your rule>`.
-     */
-    canBeNamedBy(handPath: string, by?: Stuff | null): boolean {
-      const inner = (Base.prototype as {
-        canBeNamedBy?: (h: string, b?: Stuff | null) => boolean;
-      }).canBeNamedBy;
-      return typeof inner === 'function' ? inner.call(this, handPath, by) === true : false;
     }
   };
 }

@@ -701,6 +701,11 @@ export const Mixins = {
   TravelNode: 'TravelNodeMixin',
   Cuttable: 'CuttableMixin',
   CutPlanner: 'CutPlannerMixin',
+  // Markers a pack's reader narrows on (controllers-are-io D7a): the supply
+  // a thing draws, the generator that makes it, who may write a name.
+  Powered: 'PoweredMixin',
+  WaterPowered: 'WaterPoweredMixin',
+  NameTaking: 'NameTakingMixin',
   LiftSource: 'LiftSourceMixin',
   PumpSource: 'PumpSourceMixin',
   // Employment — the org chart (positions + holders + the appointing

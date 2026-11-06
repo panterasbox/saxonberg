@@ -222,7 +222,7 @@ export default class SawController extends ManualBuildController<SawModel> {
       quarter,
     };
 
-    if (saw.isPowered()) {
+    if (saw.runsOnWater()) {
       // ⭐⭐ THE SAWMILL HOLDS NOTHING OF YOURS. The game clock carries
       // the cut, so the sawyer may walk out, and the boards are on the
       // mill floor when they come back.
