@@ -1,6 +1,7 @@
 /**
- * TuneController — the `tune` verb wiring, driven as the dispatcher would:
- * a real controller Stuff whose `execute` forwards to a mocked `StreamApi`
+ * The `tune` controllers (one per subcommand over TuneControllerBase; the
+ * fallthrough is TuneInController), driven as the dispatcher would: a real
+ * controller Stuff whose `execute` forwards to a mocked `StreamApi`
  * (the controller under test is the MVC dispatch + reject-and-point copy,
  * not the relay). Proves tune-in / post / list / who / history / off and
  * the parse + resolve rejections. The relay + resolver themselves are
@@ -9,7 +10,12 @@
 
 import "../../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import TuneController from '../TuneController';
+import TuneInController from '../TuneInController';
+import TuneListController from '../TuneListController';
+import TuneOffController from '../TuneOffController';
+import TuneHistoryController from '../TuneHistoryController';
+import TuneWhoController from '../TuneWhoController';
+import type { TuneControllerBase } from '../TuneControllerBase';
 import Avatar from '../../../../agent/PrimaryAvatar';
 import { StreamApi } from '../../../../../api/stream';
 import { MessageApi } from '../../../../../api/message';
@@ -53,6 +59,14 @@ function makeContext(giver: Avatar): CommandContext {
   });
 }
 
+/** The controller `tune.yaml` routes to: a subcommand's own, else the fallthrough's. */
+const CONTROLLERS: Record<string, () => TuneControllerBase> = {
+  list: () => new TuneListController(),
+  off: () => new TuneOffController(),
+  history: () => new TuneHistoryController(),
+  who: () => new TuneWhoController(),
+};
+
 async function run(
   giver: Avatar,
   model: CommandModel,
@@ -60,7 +74,10 @@ async function run(
 ): Promise<void> {
   await withRootContext(null, 'tune.test', () => {
     ExecutionContextApi.tagActingAuthor(giver);
-    return makeStuff(() => new TuneController()).execute(model as never, ctx);
+    return makeStuff(
+      CONTROLLERS[(model as { subcommand?: string }).subcommand ?? ''] ??
+        (() => new TuneInController()),
+    ).execute(model as never, ctx);
   });
 }
 
@@ -76,7 +93,7 @@ function noRejection(ctx: CommandContext): boolean {
   return !ctx.getNotes().some((n) => n.kind === 'controller-rejected');
 }
 
-describe('TuneController', () => {
+describe('tune — one controller per subcommand', () => {
   beforeEach(() => {
     vi.spyOn(MessageApi, 'scene').mockReturnValue({
       topic: () => ({ toSelf: () => ({ send: () => undefined }) }),
