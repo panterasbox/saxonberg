@@ -64,10 +64,15 @@ import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable'
 import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tool';
 import { Mml, type MarkupAugmenter } from '@saxonberg/server/mud/api/mml';
 import type {
+  DigBegin,
+  DigDone,
+  DigRefusal,
+  DigWon,
   Diggable,
-  WorkPrognosis,
-  WorkResult,
+  WorkLanding,
+  WorkPlan,
 } from '@saxonberg/server/mud/lib/ground/Workable';
+import type { ActDone } from '@saxonberg/server/mud/lib/craft/ActPlan';
 import type Material from '@saxonberg/server/mud/lib/material/Material';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
@@ -154,16 +159,13 @@ export interface ExposedFace extends Band {
   capacity: number;
 }
 
-/** What `planWork` hands back to `completeWork` — the band, by path. */
-interface DigToken {
-  hostPath: string;
-  floor: boolean;
-  /** The player named the band (`dig clay`): what they asked for stays at hand. */
-  named?: boolean;
-}
+/** A swing's landing: what came up, or the face changed under it. */
+export type DigLanded = ActDone<DigDone & WorkLanding, DigRefusal>;
 
 /** The public surface an open working adds. */
 export interface OpenWorking extends Strata, Diggable {
+  /** Land a planned swing: the band (by path) the plan resolved. */
+  completeWork(by: Stuff, hostPath: string, floor: boolean, named: boolean): Promise<DigLanded>;
   /** How far below the collar the floor has been taken, in metres. */
   getFloorDepthM(): number;
   /** Every band the wall currently exposes, top-down. */
@@ -417,23 +419,16 @@ export function OpenWorkingMixin<
     }
 
     // ───────────────────────── the Diggable shape ─────────────────────────
-
-    public readonly diggable = true as const;
+    // ⭐ A property of this mixin (controllers-are-io D8a): `dig` narrows on
+    // its name. ⭐ Reasons and facts only — `dig` says the words (D4).
 
     public async planWork(
       by: Stuff,
       tool: (Stuff & Tooled) | null,
       what: string | null,
-    ): Promise<WorkPrognosis> {
+    ): Promise<WorkPlan<DigBegin, DigDone, DigRefusal> | DigRefusal> {
       const asked = what?.trim().toLowerCase() ?? '';
-      if (UPWARD_WORDS.includes(asked)) {
-        return {
-          kind: 'refusal',
-          reason: 'no-face-above',
-          prose:
-            'There is no face above you. The ground stops at the surface, and there is nothing over your head but sky.',
-        };
-      }
+      if (UPWARD_WORDS.includes(asked)) return { ok: false, reason: 'no-face-above' };
 
       const face = await this.faceOf(what);
       if (face === null) {
@@ -442,31 +437,15 @@ export function OpenWorkingMixin<
         // *lesson*; a word that names nothing at all is a *mistake*.
         const buriedBand = await this.buriedBandFor(asked);
         if (buriedBand !== null) {
-          return {
-            kind: 'refusal',
-            reason: 'under-overburden',
-            prose: `The ${nameOfBand(buriedBand)} is under your feet yet. The floor has to come down to it — strip what is over it first.`,
-          };
+          return { ok: false, reason: 'under-overburden', facts: { band: nameOfBand(buriedBand) } };
         }
-        return {
-          kind: 'refusal',
-          reason: 'no-such-face',
-          prose: asked
-            ? `There is no ${asked} in this ground. Look at the wall and see what is in it.`
-            : 'There is no face here to work.',
-        };
+        return { ok: false, reason: 'no-such-face', facts: { asked } };
       }
 
       // ⭐⭐ The overburden gate. Asking for rock while the floor is still
-      // in earth and nothing is uncovered refuses in words that say what to
-      // do about it — the lesson, not a wall.
+      // in earth and nothing is uncovered refuses — the lesson, not a wall.
       if (!face.earth && (await this.isBuried())) {
-        return {
-          kind: 'refusal',
-          reason: 'under-overburden',
-          prose:
-            'There is drift over this ground yet. Take a spade to that before you look for stone under it.',
-        };
+        return { ok: false, reason: 'under-overburden', facts: { band: null } };
       }
 
       // ⭐⭐ **The tool is the constraint, and the GROUND names it.** One
@@ -476,113 +455,84 @@ export function OpenWorkingMixin<
       const wanted = face.earth ? DIGGING : WINNING;
       if (tool === null || !tool.hasCapability(wanted)) {
         // ⚠⚠ **Bare-handed and WRONG-TOOL are different refusals**, and the
-        // live browser drive is what proved it. One branch served both, so
-        // standing at an earth face with empty hands read *"A pick will not
-        // shift drift"* — naming a tool the player had never picked up, in
-        // the first sentence a new quarryman ever sees.
-        //
-        // ⭐ The wire checkpoint passed throughout: it asserts the `reason`
-        // (`no-spade`), and the sentence does go on to mention a spade. Only
-        // a reader notices the opening clause is false. That is the whole
-        // argument for walking a build in a browser.
-        const barehanded = tool === null;
-        // ⚠ Name the tool in hand: the default binds the FIRST tool you
-        // carry, and "a pick" was said of a test egg (the potash drive).
-        const held = tool?.getPresentation() ?? '';
-        const Held = held.charAt(0).toUpperCase() + held.slice(1);
+        // live browser drive is what proved it: the facts carry the tool in
+        // hand (`held`, `null` bare-handed) so the words never name a tool
+        // the player never picked up. ⚠ Name the tool in hand: the default
+        // binds the FIRST tool you carry (the potash drive's test egg).
+        const held = tool?.getPresentation() ?? null;
         return {
-          kind: 'refusal',
+          ok: false,
           reason: face.earth ? 'no-spade' : 'no-pick',
-          prose: face.earth
-            ? barehanded
-              ? `You will not shift ${nameOfFace(face)} with your hands — take a spade to it.`
-              : `${Held} will not shift ${nameOfFace(face)} — take a spade to it.`
-            : barehanded
-              ? `You would want a pick. That is ${nameOfFace(face)}, and it wants winning — not bare hands.`
-              : `You would want a pick. That is ${nameOfFace(face)}, and it wants winning — not ${held}.`,
+          facts: { face: nameOfFace(face), held },
         };
       }
 
       if (this.remainingIn(face) <= 0) {
-        return {
-          kind: 'refusal',
-          reason: 'worked-out',
-          prose: `This face is worked out. There is no ${nameOfFace(face)} left in it that anybody could reach from here.`,
-        };
+        return { ok: false, reason: 'worked-out', facts: { face: nameOfFace(face) } };
       }
 
       if (face.floor) {
         const stop = await this.floorStop();
         if (stop > 0 && this.getFloorDepthM() + LIFT_M > stop) {
-          return {
-            kind: 'refusal',
-            reason: 'at-the-water',
-            prose:
-              'The floor is standing in water. Anything below this wants pumping, and nobody here has a pump.',
-          };
+          return { ok: false, reason: 'at-the-water' };
         }
       }
 
       const hardness = face.host?.getHardness().rawValue() ?? REFERENCE_MPA;
+      const durationMs = Math.max(1_000, Math.round(ACT_MS * (hardness / REFERENCE_MPA)));
+      const hostPath = face.hostPath;
+      const floor = face.floor;
+      const named = asked !== '';
       return {
-        kind: 'plan',
-        durationMs: Math.max(
-          1_000,
-          Math.round(ACT_MS * (hardness / REFERENCE_MPA)),
-        ),
-        cost: ACT_COST,
-        beginSelf: face.earth
-          ? `You set into the ${nameOfFace(face)}, cutting and casting back.`
-          : `You set the point of it into the ${nameOfFace(face)} and start working a block free.`,
-        // ⭐ Named, as the room sees them: a bare "Somebody" read in full
-        // daylight to everyone at the pit (ceramics browser walk).
-        beginPeers: (face.earth
-          ? Mml.compose`${Mml.actor(by)} starts stripping the face.`
-          : Mml.compose`${Mml.actor(by)} starts working stone out of the face.`
-        ).toString(),
-        token: { hostPath: face.hostPath, floor: face.floor, named: asked !== '' } satisfies DigToken,
+        ok: true,
+        durationMs,
+        // ⭐ The felt cost, through this body (D5).
+        effortW: MixinApi.isExerting(by) ? by.wattsForFeltCost(ACT_COST, durationMs / 1000) : 0,
+        facts: { face: nameOfFace(face), earth: face.earth },
+        // ⭐ The band rides the closure, by path, so nothing is re-resolved
+        // and two swings cannot silently work the same thing.
+        onComplete: () => this.completeWork(by, hostPath, floor, named),
       };
     }
 
     public async completeWork(
       by: Stuff,
-      _tool: (Stuff & Tooled) | null,
-      token: unknown,
-    ): Promise<WorkResult> {
-      const tok = token as DigToken;
+      hostPath: string,
+      floor: boolean,
+      named: boolean,
+    ): Promise<DigLanded> {
       const faces = await this.exposedBands();
-      const face = faces.find((f) => f.hostPath === tok.hostPath) ?? null;
-      if (face === null) {
-        return { self: 'The face has changed under you. Look again.' };
-      }
+      const face = faces.find((f) => f.hostPath === hostPath) ?? null;
+      if (face === null) return { ok: false, reason: 'face-changed' };
 
       this.recordWon(face.hostPath);
-      if (tok.floor) this.deepen();
+      if (floor) this.deepen();
 
-      const won = await this.mintWinnings(face, by, tok.named === true);
-      const tail = this.remainingIn(face) <= 0 ? ' That is the last of this face.' : '';
+      const won = await this.mintWinnings(face, by, named);
       return {
-        self: won === null
-          ? `You work a load of ${nameOfFace(face)} free.${tail}`
-          : `${won}${tail}`,
-        peers: null,
-        // ⭐ (cleanliness D6) Earth muddies; rock dusts.
-        soils: face.earth
-          ? [
-              { kind: 'mud', amount: 0.2, where: 'hands' },
-              { kind: 'mud', amount: 0.15, where: 'feet' },
-            ]
-          : [{ kind: 'dust', amount: 0.15, where: 'hands' }],
-        credit: {
-          discipline: QUARRYING,
-          // ⭐ Difficulty is the ROCK's, read at the moment of the act: a
-          // granite face is a hard check and drift is a trivial one, which
-          // is the estimator's own anti-grind property rather than a guard.
-          difficulty: face.earth
-            ? 'easy'
-            : (face.host?.getHardness().rawValue() ?? 0) >= 150
-              ? 'hard'
-              : 'standard',
+        ok: true,
+        facts: {
+          face: nameOfFace(face),
+          won,
+          last: this.remainingIn(face) <= 0,
+          // ⭐ (cleanliness D6) Earth muddies; rock dusts.
+          soils: face.earth
+            ? [
+                { kind: 'mud', amount: 0.2, where: 'hands' },
+                { kind: 'mud', amount: 0.15, where: 'feet' },
+              ]
+            : [{ kind: 'dust', amount: 0.15, where: 'hands' }],
+          credit: {
+            discipline: QUARRYING,
+            // ⭐ Difficulty is the ROCK's, read at the moment of the act: a
+            // granite face is a hard check and drift is a trivial one, which
+            // is the estimator's own anti-grind property rather than a guard.
+            difficulty: face.earth
+              ? 'easy'
+              : (face.host?.getHardness().rawValue() ?? 0) >= 150
+                ? 'hard'
+                : 'standard',
+          },
         },
       };
     }
@@ -614,7 +564,7 @@ export function OpenWorkingMixin<
       face: ExposedFace,
       by: Stuff,
       named = false,
-    ): Promise<string | null> {
+    ): Promise<DigWon> {
       const wins = face.wins ?? (face.earth ? DEFAULT_EARTH_ROW : DEFAULT_ROCK_ROW);
       if (wins.includes('/idea/material/')) {
         return this.fillBulk(face, wins, by);
@@ -626,7 +576,7 @@ export function OpenWorkingMixin<
         // ⚠ A missing row is a content gap, not a reason to lose the work:
         // the ledger is banked either way and the log carries the fault.
         console.error(`OpenWorking: won row '${wins}' did not resolve`);
-        return null;
+        return { kind: 'load' };
       }
       // Restamp the material so ONE block row serves every rock in the game.
       if (face.host !== null && MixinApi.isTangible(thing)) {
@@ -650,11 +600,7 @@ export function OpenWorkingMixin<
       if (MixinApi.isContainable(thing) && MixinApi.isContainer(where)) {
         await ContainmentApi.move(thing as Stuff & Containable, where as Stuff & Container);
       }
-      const heaped =
-        where !== (this as unknown as Stuff)
-          ? 'and it goes to the tip'
-          : 'and it lies where it fell';
-      return `You work ${called} free, ${heaped}.`;
+      return { kind: 'thing', called, toTip: where !== (this as unknown as Stuff) };
     }
 
     /**
@@ -707,21 +653,21 @@ export function OpenWorkingMixin<
       face: ExposedFace,
       materialPath: string,
       by: Stuff,
-    ): Promise<string | null> {
+    ): Promise<DigWon> {
       const material = await resolveMaterial(materialPath);
-      if (material === null) return null;
+      if (material === null) return { kind: 'load' };
       const vessel = MixinApi.isContainer(by)
         ? by.getContents().find((c) => MixinApi.isBulkable(c)) ?? null
         : null;
       if (vessel === null || !MixinApi.isBulkable(vessel)) {
         // ⚠ Not a refusal: the work was done. The band is banked and the
         // player is told plainly why they have nothing to show for it.
-        return `You break ${nameOfFace(face)} loose and it runs away between your fingers. You want something to carry it in.`;
+        return { kind: 'spilled' };
       }
       vessel.setBulkMaterial('interior', material);
       const before = vessel.getBulkAmount('interior').rawValue();
       vessel.setBulkAmount('interior', Quantity.of(before + BULK_PER_UNIT_L, 'L'));
-      return `You break ${nameOfFace(face)} loose and shovel it into ${vessel.getPresentation()}.`;
+      return { kind: 'shoveled', into: vessel.getPresentation() };
     }
 
     /**

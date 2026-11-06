@@ -27,7 +27,8 @@ import {
 } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tool';
-import type { WorkPlan, WorkRefusal } from '@saxonberg/server/mud/lib/ground/Workable';
+import type { SplitBegin, SplitDone, SplitRefusal, WorkLanding, WorkPlan } from '@saxonberg/server/mud/lib/ground/Workable';
+import SplitController from '@saxonberg/server/mud/platform/idea/cmd/ground/SplitController';
 
 const GRANITE = '/stuff/idea/material/rock/granite';
 
@@ -88,6 +89,21 @@ beforeEach(() => {
   }) as never);
 });
 
+
+type Plan = WorkPlan<SplitBegin, SplitDone, SplitRefusal>;
+
+/** ⭐ The split verb's own words (controllers-are-io D4), off the prototype. */
+function splitWords() {
+  return (SplitController.prototype as unknown as {
+    workWords(giver: Stuff, subject: Stuff): {
+      onRefused(out: SplitRefusal): { toString(): string };
+      onDone(d: SplitDone & WorkLanding): { self?: { toString(): string } | null };
+    };
+  }).workWords(actor as unknown as Stuff, actor as unknown as Stuff);
+}
+const say = (out: SplitRefusal): string => splitWords().onRefused(out).toString();
+const doneLine = (d: SplitDone & WorkLanding): string => String(splitWords().onDone(d).self ?? '');
+
 describe('a block of stone', () => {
   it('⭐⭐ weighs more than any body can lift — and that is a MASS, not a flag', () => {
     // Half a cubic metre of granite. `get block` refuses on the carry-weight
@@ -99,29 +115,30 @@ describe('a block of stone', () => {
   it('bare-handed, splitting refuses and the BLOCK names the tool', () => {
     const b = block();
     return b.planWork(actor, null, null).then((out) => {
-      const refusal = out as WorkRefusal;
-      expect(refusal.kind).toBe('refusal');
+      const refusal = out as SplitRefusal;
+      expect(refusal.ok).toBe(false);
       expect(refusal.reason).toBe('no-striker');
-      expect(refusal.prose).toMatch(/something to strike it with/i);
+      expect(say(refusal)).toMatch(/something to strike it with/i);
     });
   });
 
   it('⭐ a split takes ONE piece and the mass follows the count', async () => {
     const b = block();
     const before = b.getMass().rawValue();
-    const plan = (await b.planWork(actor, sledge(), null)) as WorkPlan;
-    expect(plan.kind).toBe('plan');
-    const result = await b.completeWork(actor, sledge(), plan.token);
+    const plan = (await b.planWork(actor, sledge(), null)) as Plan;
+    expect(plan.ok).toBe(true);
+    const result = await plan.onComplete();
+    if (!result.ok) throw new Error(result.reason);
     expect(b.getPiecesLeft()).toBe(BLOCK_PIECES - 1);
     expect(b.getMass().rawValue()).toBeCloseTo(before - PIECE_MASS_KG, 6);
-    expect(result.self).toMatch(/piece comes away/i);
-    expect(result.credit?.discipline).toBe('quarrying');
+    expect(doneLine(result.facts)).toMatch(/piece comes away/i);
+    expect(result.facts.credit?.discipline).toBe('quarrying');
   });
 
   it('…and the piece is CARRYABLE and made of the block’s own stone', async () => {
     const b = block();
-    const plan = (await b.planWork(actor, sledge(), null)) as WorkPlan;
-    await b.completeWork(actor, sledge(), plan.token);
+    const plan = (await b.planWork(actor, sledge(), null)) as Plan;
+    await plan.onComplete();
     const piece = room
       .getContents()
       .find((c) => c.getPresentation().includes('piece'));
@@ -133,9 +150,9 @@ describe('a block of stone', () => {
 
   it('a spent block refuses, and says there is only rubble left', async () => {
     const b = block(0);
-    const out = (await b.planWork(actor, sledge(), null)) as WorkRefusal;
+    const out = (await b.planWork(actor, sledge(), null)) as SplitRefusal;
     expect(out.reason).toBe('block-spent');
-    expect(out.prose).toMatch(/rubble/);
+    expect(say(out)).toMatch(/rubble/);
   });
 
   it('the pace is the STONE — a soft block splits faster than granite', async () => {
@@ -148,8 +165,8 @@ describe('a block of stone', () => {
     chalky.setName('chalk');
     chalky.hardness = Quantity.of(20, 'MPa');
     soft.setMaterial(chalky);
-    const a = (await hard.planWork(actor, sledge(), null)) as WorkPlan;
-    const c = (await soft.planWork(actor, sledge(), null)) as WorkPlan;
+    const a = (await hard.planWork(actor, sledge(), null)) as Plan;
+    const c = (await soft.planWork(actor, sledge(), null)) as Plan;
     expect(a.durationMs).toBeGreaterThan(c.durationMs);
   });
 });

@@ -6,7 +6,7 @@
 import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Tooled } from '../craft/Tool';
-import type { Workable, WorkPrognosis, WorkResult } from './Workable';
+import type { SplitBegin, SplitDone, SplitRefusal, SplitWorkable, WorkPlan } from './Workable';
 
 /**
  * ⭐ **A thing too big or too aggregated to use, and dividing it.**
@@ -19,7 +19,7 @@ import type { Workable, WorkPrognosis, WorkResult } from './Workable';
  *
  * > **divide an oversized or aggregated thing into usable units.**
  */
-export type Splittable = Workable;
+export type Splittable = SplitWorkable;
 
 /**
  * ⭐ **`SplittableMixin` — the split protocol, as a mixin.** It shipped as a
@@ -32,7 +32,8 @@ export type Splittable = Workable;
  * the working's own), nor a stack you count off (`Stackable` splits by
  * number, with no act).
  *
- * ⚠ The default REFUSES in the thing's words; a host overrides both halves.
+ * ⚠ The default REFUSES (`not-splittable`, worded by `split`); a host
+ * overrides `planWork`, and its plan's completion lands the piece.
  */
 export function SplittableMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
   return class SplittableMixin extends Base implements Splittable {
@@ -44,23 +45,8 @@ export function SplittableMixin<TBase extends MixinConstructor<Stuff>>(Base: TBa
       _by: Stuff,
       _tool: (Stuff & Tooled) | null,
       _what: string | null,
-    ): Promise<WorkPrognosis> {
-      return {
-        kind: 'refusal',
-        reason: 'not-splittable',
-        prose: `${(this as unknown as Stuff).getPresentation()} does not come apart like that.`,
-      };
-    }
-
-    /** @hook Land the planned piece; never reached without a plan. */
-    public async completeWork(
-      _by: Stuff,
-      _tool: (Stuff & Tooled) | null,
-      _token: unknown,
-    ): Promise<WorkResult> {
-      throw new Error(
-        `SplittableMixin.completeWork: ${(this as unknown as Stuff).stuffId} planned no piece to land`,
-      );
+    ): Promise<WorkPlan<SplitBegin, SplitDone, SplitRefusal> | SplitRefusal> {
+      return { ok: false, reason: 'not-splittable' };
     }
   };
 }

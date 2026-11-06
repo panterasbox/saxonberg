@@ -41,7 +41,7 @@ import {
 } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tool';
-import type { WorkPlan, WorkRefusal } from '@saxonberg/server/mud/lib/ground/Workable';
+import type { DigBegin, DigDone, DigRefusal, WorkPlan } from '@saxonberg/server/mud/lib/ground/Workable';
 import { IMPROVEMENT_JOBS } from '@saxonberg/server/mud/lib/ground/Improvable';
 
 const ZONE = '/world/fx-moor/moor';
@@ -150,8 +150,8 @@ describe('a peat bank is worked with a spade', () => {
     const faces = await bank.exposedBands();
     expect(faces).toHaveLength(1);
     expect(faces[0]!.earth).toBe(true);
-    const plan = (await bank.planWork(actor, spade(), null)) as WorkPlan;
-    expect(plan.kind).toBe('plan');
+    const plan = (await bank.planWork(actor, spade(), null)) as WorkPlan<DigBegin, DigDone, DigRefusal>;
+    expect(plan.ok).toBe(true);
   });
 
   it('the water is at the BOTTOM of the peat — the floor stops there', async () => {
@@ -159,7 +159,7 @@ describe('a peat bank is worked with a spade', () => {
     // peat is there. So there is nothing under a moss worth the swing.
     expect(await bank.floorStop()).toBeCloseTo(2.5, 6);
     const spent = makeBank({ floorDepthM: 2.4 });
-    const out = (await spent.planWork(actor, spade(), null)) as WorkRefusal;
+    const out = (await spent.planWork(actor, spade(), null)) as DigRefusal;
     expect(out.reason).toBe('at-the-water');
   });
 

@@ -44,7 +44,9 @@ import {
 } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tool';
-import type { WorkPlan, WorkRefusal } from '@saxonberg/server/mud/lib/ground/Workable';
+import type { DigBegin, DigDone, DigRefusal, WorkLanding, WorkPlan } from '@saxonberg/server/mud/lib/ground/Workable';
+import type { ActDone } from '@saxonberg/server/mud/lib/craft/ActPlan';
+import DigController from '@saxonberg/server/mud/platform/idea/cmd/ground/DigController';
 
 const ZONE = '/world/fx-quarry/quarry';
 const DEPOSIT = '/world/fx-quarry/idea/deposit/fx';
@@ -159,6 +161,31 @@ beforeEach(() => {
     makeStuff(() => new Good())) as never);
 });
 
+
+type Plan = WorkPlan<DigBegin, DigDone, DigRefusal>;
+
+/**
+ * ⭐ The dig verb's own words for what the ground answered (controllers-are-io
+ * D4: the ground answers reasons and facts, `DigController` writes them). ⚠
+ * `workWords` builds closures that never touch the controller, so asking it
+ * off the prototype is the real wording, with no dispatch.
+ */
+function digWords() {
+  return (DigController.prototype as unknown as {
+    workWords(giver: Stuff): {
+      onRefused(out: DigRefusal): { toString(): string };
+      onDone(d: DigDone & WorkLanding): { self?: { toString(): string } | null };
+    };
+  }).workWords(actor as unknown as Stuff);
+}
+const say = (out: DigRefusal): string => digWords().onRefused(out).toString();
+function landed(out: ActDone<DigDone & WorkLanding, DigRefusal>): DigDone & WorkLanding {
+  if (!out.ok) throw new Error(`refused: ${out.reason}`);
+  return out.facts;
+}
+const doneLine = (out: ActDone<DigDone & WorkLanding, DigRefusal>): string =>
+  String(digWords().onDone(landed(out)).self ?? '');
+
 describe('the wall is a section through the ground', () => {
   it('⭐⭐ at a fresh collar only the DRIFT is open — overburden is the gate', async () => {
     const pit = working();
@@ -172,27 +199,27 @@ describe('the wall is a section through the ground', () => {
 
   it('…and asking for stone under it refuses in words that say what to dig', async () => {
     const pit = working();
-    const out = (await pit.planWork(actor, pick(), 'granite')) as WorkRefusal;
-    expect(out.kind).toBe('refusal');
+    const out = (await pit.planWork(actor, pick(), 'granite')) as DigRefusal;
+    expect(out.ok).toBe(false);
     expect(out.reason).toBe('under-overburden');
     // ⭐ The lesson, not a wall: it names the thing to do next.
-    expect(out.prose.toLowerCase()).toMatch(/floor has to come down|drift/);
+    expect(say(out).toLowerCase()).toMatch(/floor has to come down|drift/);
   });
 
   it('⚠ a word that names nothing in the column is a DIFFERENT refusal', async () => {
     // Two absences that must not share a sentence: a band that exists and is
     // buried is a lesson; a word that names nothing is a mistake.
     const pit = working();
-    const out = (await pit.planWork(actor, spade(), 'gold')) as WorkRefusal;
+    const out = (await pit.planWork(actor, spade(), 'gold')) as DigRefusal;
     expect(out.reason).toBe('no-such-face');
   });
 
   it('⚠⚠ there is NO FACE ABOVE YOU — the collar rule, stated', async () => {
     const pit = working({ floorDepthM: 3 });
     for (const word of ['up', 'above', 'sky']) {
-      const out = (await pit.planWork(actor, pick(), word)) as WorkRefusal;
+      const out = (await pit.planWork(actor, pick(), word)) as DigRefusal;
       expect(out.reason, word).toBe('no-face-above');
-      expect(out.prose).toMatch(/nothing over your head but sky/);
+      expect(say(out)).toMatch(/nothing over your head but sky/);
     }
   });
 });
@@ -200,40 +227,40 @@ describe('the wall is a section through the ground', () => {
 describe('⭐⭐ the tool is the constraint, and the GROUND names it', () => {
   it('bare-handed refuses, naming what you want', async () => {
     const pit = working();
-    const out = (await pit.planWork(actor, null, null)) as WorkRefusal;
+    const out = (await pit.planWork(actor, null, null)) as DigRefusal;
     expect(out.reason).toBe('no-spade');
-    expect(out.prose).toMatch(/take a spade to it/i);
+    expect(say(out)).toMatch(/take a spade to it/i);
     // ⚠⚠ **And it must not name a tool you never had.** This assertion is
     // the one the live browser drive added: for one build the bare-handed
     // and wrong-tool cases shared a sentence, so empty hands read *"A pick
     // will not shift drift"*. The check above passed the whole time — the
     // sentence does end with "take a spade to it" — which is exactly how a
     // vacuous assertion looks from the inside.
-    expect(out.prose).not.toMatch(/pick/i);
-    expect(out.prose).toMatch(/your hands/i);
+    expect(say(out)).not.toMatch(/pick/i);
+    expect(say(out)).toMatch(/your hands/i);
   });
 
   it('⚠ bare-handed at ROCK does not say "not shovelling" either', async () => {
     // The mirror of the case above, on the other limb of the same branch.
     const pit = working({ floorDepthM: 2.5 });
-    const out = (await pit.planWork(actor, null, 'granite')) as WorkRefusal;
+    const out = (await pit.planWork(actor, null, 'granite')) as DigRefusal;
     expect(out.reason).toBe('no-pick');
-    expect(out.prose).toMatch(/would want a pick/i);
-    expect(out.prose).not.toMatch(/shovelling/i);
+    expect(say(out)).toMatch(/would want a pick/i);
+    expect(say(out)).not.toMatch(/shovelling/i);
   });
 
   it('a PICK will not shift drift', async () => {
     const pit = working();
-    const out = (await pit.planWork(actor, pick(), null)) as WorkRefusal;
+    const out = (await pit.planWork(actor, pick(), null)) as DigRefusal;
     expect(out.reason).toBe('no-spade');
-    expect(out.prose).toMatch(/pick will not shift/i);
+    expect(say(out)).toMatch(/pick will not shift/i);
   });
 
   it('⚠ the wrong tool is named as ITSELF — a test egg is not "a pick" (potash drive)', async () => {
     const pit = working();
-    const out = (await pit.planWork(actor, tool('test egg', 'flotation'), null)) as WorkRefusal;
+    const out = (await pit.planWork(actor, tool('test egg', 'flotation'), null)) as DigRefusal;
     expect(out.reason).toBe('no-spade');
-    expect(out.prose).toMatch(/^A test egg will not shift/);
+    expect(say(out)).toMatch(/^A test egg will not shift/);
   });
 
   it('…and a SPADE will not win granite — one verb, and the refusal teaches', async () => {
@@ -242,19 +269,19 @@ describe('⭐⭐ the tool is the constraint, and the GROUND names it', () => {
     // the actual constraint instead of a vocabulary item.
     const pit = working({ floorDepthM: 2.5 });
     expect(await pit.isBuried()).toBe(false);
-    const out = (await pit.planWork(actor, spade(), 'granite')) as WorkRefusal;
+    const out = (await pit.planWork(actor, spade(), 'granite')) as DigRefusal;
     expect(out.reason).toBe('no-pick');
-    expect(out.prose).toMatch(/would want a pick/i);
+    expect(say(out)).toMatch(/would want a pick/i);
     // The same face, with the right tool, plans.
-    const ok = (await pit.planWork(actor, pick(), 'granite')) as WorkPlan;
-    expect(ok.kind).toBe('plan');
+    const ok = (await pit.planWork(actor, pick(), 'granite')) as Plan;
+    expect(ok.ok).toBe(true);
   });
 
   it('the pace is the ROCK — granite is slower than drift', async () => {
     const shallow = working();
     const deep = working({ floorDepthM: 2.5 });
-    const soft = (await shallow.planWork(actor, spade(), null)) as WorkPlan;
-    const hard = (await deep.planWork(actor, pick(), 'granite')) as WorkPlan;
+    const soft = (await shallow.planWork(actor, spade(), null)) as Plan;
+    const hard = (await deep.planWork(actor, pick(), 'granite')) as Plan;
     expect(hard.durationMs).toBeGreaterThan(soft.durationMs * 5);
   });
 });
@@ -262,11 +289,11 @@ describe('⭐⭐ the tool is the constraint, and the GROUND names it', () => {
 describe('the floor drops, and the wall opens', () => {
   it('⭐ working the FLOOR deepens it a lift at a time and exposes more', async () => {
     const pit = working();
-    const plan = (await pit.planWork(actor, spade(), null)) as WorkPlan;
-    await pit.completeWork(actor, spade(), plan.token);
+    const plan = (await pit.planWork(actor, spade(), null)) as Plan;
+    await plan.onComplete();
     expect(pit.getFloorDepthM()).toBeCloseTo(LIFT_M, 10);
     // Two lifts down through a one-metre drift and the clay is open.
-    await pit.completeWork(actor, spade(), plan.token);
+    await plan.onComplete();
     const hosts = (await pit.exposedBands()).map((f) => f.hostPath);
     expect(hosts).toContain(CLAY);
   });
@@ -274,9 +301,9 @@ describe('the floor drops, and the wall opens', () => {
   it('…and working a WALL band retreats it without deepening anything', async () => {
     const pit = working({ floorDepthM: 2.5 });
     const before = pit.getFloorDepthM();
-    const plan = (await pit.planWork(actor, spade(), 'drift')) as WorkPlan;
-    expect(plan.kind).toBe('plan');
-    await pit.completeWork(actor, spade(), plan.token);
+    const plan = (await pit.planWork(actor, spade(), 'drift')) as Plan;
+    expect(plan.ok).toBe(true);
+    await plan.onComplete();
     expect(pit.getFloorDepthM()).toBe(before);
     expect(pit.wonByBand[DRIFT]).toBe(1);
   });
@@ -284,9 +311,9 @@ describe('the floor drops, and the wall opens', () => {
   it('⚠ the floor stops at the WATER, and says so', async () => {
     // Below the water is the mining slate's — a pit that fills, and a pump.
     const pit = working({ floorDepthM: 11.75, waterTable: -12 });
-    const out = (await pit.planWork(actor, pick(), null)) as WorkRefusal;
+    const out = (await pit.planWork(actor, pick(), null)) as DigRefusal;
     expect(out.reason).toBe('at-the-water');
-    expect(out.prose).toMatch(/pumping/);
+    expect(say(out)).toMatch(/pumping/);
   });
 });
 
@@ -310,9 +337,9 @@ describe('⭐⭐ depletion: the number is correct, and the LEDGER is authorable'
     });
     const granite = (await pit.exposedBands()).find((f) => f.hostPath === GRANITE)!;
     expect(pit.remainingIn(granite)).toBe(0);
-    const out = (await pit.planWork(actor, pick(), 'granite')) as WorkRefusal;
+    const out = (await pit.planWork(actor, pick(), 'granite')) as DigRefusal;
     expect(out.reason).toBe('worked-out');
-    expect(out.prose).toMatch(/worked out/);
+    expect(say(out)).toMatch(/worked out/);
   });
 
   it('the capacity scales with the pit’s own run, not with the game’s', async () => {
@@ -329,19 +356,19 @@ describe('⭐⭐ depletion: the number is correct, and the LEDGER is authorable'
 describe('the credit, and what it is FOR', () => {
   it('⭐⭐ the WORKING names the Discipline — which is how a platform verb earns a trade’s', async () => {
     const pit = working({ floorDepthM: 2.5 });
-    const plan = (await pit.planWork(actor, pick(), 'granite')) as WorkPlan;
-    const result = await pit.completeWork(actor, pick(), plan.token);
-    expect(result.credit?.discipline).toBe('quarrying');
+    const plan = (await pit.planWork(actor, pick(), 'granite')) as Plan;
+    const result = await plan.onComplete();
+    expect(landed(result).credit?.discipline).toBe('quarrying');
     // Difficulty is the ROCK's, read at the moment of the act.
-    expect(result.credit?.difficulty).toBe('hard');
+    expect(landed(result).credit?.difficulty).toBe('hard');
   });
 
   it('…and turning over drift is an EASY deed, on the same verb', async () => {
     const pit = working();
-    const plan = (await pit.planWork(actor, spade(), null)) as WorkPlan;
-    const result = await pit.completeWork(actor, spade(), plan.token);
-    expect(result.credit?.discipline).toBe('quarrying');
-    expect(result.credit?.difficulty).toBe('easy');
+    const plan = (await pit.planWork(actor, spade(), null)) as Plan;
+    const result = await plan.onComplete();
+    expect(landed(result).credit?.discipline).toBe('quarrying');
+    expect(landed(result).credit?.difficulty).toBe('easy');
   });
 });
 
@@ -359,10 +386,10 @@ describe('⭐ the line that says what you won', () => {
       await StuffApi.destruct(t);
     }) as never);
     const pit = working();
-    const plan = (await pit.planWork(actor, spade(), null)) as WorkPlan;
-    const result = await pit.completeWork(actor, spade(), plan.token);
-    expect(result.self).toMatch(/You work a load of spoil free/);
-    expect(result.self).not.toMatch(/undefined/);
+    const plan = (await pit.planWork(actor, spade(), null)) as Plan;
+    const result = await plan.onComplete();
+    expect(doneLine(result)).toMatch(/You work a load of spoil free/);
+    expect(doneLine(result)).not.toMatch(/undefined/);
   });
 });
 
@@ -380,9 +407,9 @@ describe('⭐ the tip takes what you strip, not what you asked for', () => {
     vi.spyOn(ContainmentApi, 'move').mockImplementation((async (_t: Stuff, to: Stuff) => {
       moved.push(to);
     }) as never);
-    const plan = (await pit.planWork(actor, spade(), named)) as WorkPlan;
-    const out = await pit.completeWork(actor, spade(), plan.token);
-    return { pit, tip: moved[0] ?? (null as never), result: out.self };
+    const plan = (await pit.planWork(actor, spade(), named)) as Plan;
+    const out = await plan.onComplete();
+    return { pit, tip: moved[0] ?? (null as never), result: doneLine(out) };
   }
 
   it('a bare `dig` sends what it strips to the tip', async () => {
@@ -402,9 +429,7 @@ describe('the shape the kernel talks to', () => {
   it('a working answers `Diggable`, and composes the mixin under its own name', () => {
     const pit = working();
     expect(MixinApi.isActive(pit as unknown as Stuff, OPEN_WORKING_MIXIN)).toBe(true);
-    expect((pit as unknown as { diggable: boolean }).diggable).toBe(true);
     expect(typeof pit.planWork).toBe('function');
-    expect(typeof pit.completeWork).toBe('function');
   });
 
   it('⚠⚠ and it affords NO verb of THIS TRADE — the pack ships none', () => {
@@ -476,9 +501,9 @@ describe('a won load remembers its assay (glass W3)', () => {
 
   it('stamps the deposit’s iron grade onto the Alloyed won sand', async () => {
     const pit = working({ floorDepthM: 3 }); // sand exposed as a wall band
-    const plan = (await pit.planWork(actor, spade(), 'sand')) as WorkPlan;
-    expect(plan.kind).toBe('plan');
-    await pit.completeWork(actor, spade(), plan.token);
+    const plan = (await pit.planWork(actor, spade(), 'sand')) as Plan;
+    expect(plan.ok).toBe(true);
+    await plan.onComplete();
     expect(lastWon).not.toBeNull();
     const won = lastWon as unknown as { fractionOf(p: string): number };
     // The deposit's own figure at this face — the sand carries the iron
@@ -489,8 +514,8 @@ describe('a won load remembers its assay (glass W3)', () => {
   it('stamps nothing when the ground carries no iron (grade 0)', async () => {
     column.setZones([{ toZ: -6, mineral: IRON, meanGrade: 0, spread: 0 }]);
     const pit = working({ floorDepthM: 3 });
-    const plan = (await pit.planWork(actor, spade(), 'sand')) as WorkPlan;
-    await pit.completeWork(actor, spade(), plan.token);
+    const plan = (await pit.planWork(actor, spade(), 'sand')) as Plan;
+    await plan.onComplete();
     expect(lastWon).not.toBeNull();
     const won = lastWon as unknown as { getMakeup(): readonly unknown[] };
     expect(won.getMakeup()).toHaveLength(0);

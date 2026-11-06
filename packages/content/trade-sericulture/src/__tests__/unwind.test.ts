@@ -149,14 +149,14 @@ describe('reeling silk', () => {
       StuffApi.destruct(c as unknown as Stuff);
       return p;
     };
-    expect(await once(stack(60, { stifled: false }), r)).toMatchObject({ kind: 'refusal', reason: 'not-stifled' });
-    expect(await once(stack(60, { pierced: true }), r)).toMatchObject({ kind: 'refusal', reason: 'pierced' });
+    expect(await once(stack(60, { stifled: false }), r)).toMatchObject({ ok: false, reason: 'not-stifled' });
+    expect(await once(stack(60, { pierced: true }), r)).toMatchObject({ ok: false, reason: 'pierced' });
     expect(await once(stack(10), r)).toMatchObject({ reason: 'too-few' });
     expect(await once(stack(60), null)).toMatchObject({ reason: 'no-reel' });
   });
 
   it('…and wants hot water — no fire, no reeling', async () => {
-    expect(await stack(60).planUnwind(reeler, reel(1), 8)).toMatchObject({ kind: 'refusal', reason: 'no-heat' });
+    expect(await stack(60).planUnwind(reeler, reel(1), 8)).toMatchObject({ ok: false, reason: 'no-heat' });
   });
 
   it('fewer cocoons to the thread is slower; a faster reel is quicker', async () => {
@@ -165,8 +165,8 @@ describe('reeling silk', () => {
     const at8 = await c.planUnwind(reeler, reel(1), 8);
     const at4 = await c.planUnwind(reeler, reel(1), 4);
     const basin = await c.planUnwind(reeler, reel(2, 'fine'), 8);
-    expect(at8.kind === 'plan' && at4.kind === 'plan' && basin.kind === 'plan').toBe(true);
-    if (at8.kind !== 'plan' || at4.kind !== 'plan' || basin.kind !== 'plan') return;
+    expect(at8.ok && at4.ok && basin.ok).toBe(true);
+    if (!at8.ok || !at4.ok || !basin.ok) return;
     expect(at4.durationMs).toBeGreaterThan(at8.durationMs);
     expect(basin.durationMs).toBeLessThan(at8.durationMs);
   });
@@ -178,16 +178,17 @@ describe('reeling silk', () => {
     const c = stack(60);
     const r = reel(1);
     const plan = await c.planUnwind(reeler, r, 6);
-    if (plan.kind !== 'plan') throw new Error('expected a plan');
-    const result = await c.completeUnwind(reeler, r, plan.token);
+    if (!plan.ok) throw new Error('expected a plan');
+    const result = await plan.onComplete();
+    if (!result.ok) throw new Error(result.reason);
     expect(c.getQuantity()).toBe(20);
     const skein = made.find((m) => m instanceof RawSilk) as RawSilk;
     expect(skein.getFilamentCount()).toBe(6);
     expect(skein.getMaker()).toBe('/platform/agent/Avatar/reeler');
     expect(skein.getYarnCount()).toBe(0);
     expect(made.some((m) => m.getTemplatePath() === '/trade/sericulture/thing/pupae')).toBe(true);
-    expect(result.self).toMatch(/6 cocoons to it/);
-    expect(result.credit).toEqual({ discipline: 'textiles', difficulty: 'standard' });
+    expect(result.facts.skein?.threadLine()).toMatch(/6 cocoons to it/);
+    expect(result.facts.credit).toEqual({ discipline: 'textiles', difficulty: 'standard' });
   });
 
   it('⭐ evenness: a master at a basin is even; a novice at a pot with a fine thread is not', async () => {
@@ -196,8 +197,8 @@ describe('reeling silk', () => {
     band('untrained');
     const pot = stack(60);
     const p1 = await pot.planUnwind(reeler, reel(1), 4);
-    if (p1.kind !== 'plan') throw new Error();
-    await pot.completeUnwind(reeler, reel(1), p1.token);
+    if (!p1.ok) throw new Error();
+    await p1.onComplete();
     StuffApi.destruct(pot as unknown as Stuff);
     vi.restoreAllMocks();
     vi.spyOn(reeler, 'getIdentityPath').mockReturnValue('/platform/agent/Avatar/reeler');
@@ -205,8 +206,8 @@ describe('reeling silk', () => {
     band('proficient' as CompetenceBandName);
     const basin = stack(60);
     const p2 = await basin.planUnwind(reeler, reel(2, 'fine'), 8);
-    if (p2.kind !== 'plan') throw new Error();
-    await basin.completeUnwind(reeler, reel(2, 'fine'), p2.token);
+    if (!p2.ok) throw new Error();
+    await p2.onComplete();
     const novice = made.find((m) => m instanceof RawSilk) as RawSilk;
     const master = made2.find((m) => m instanceof RawSilk) as RawSilk;
     expect(master.getEvenness()).toBeGreaterThan(novice.getEvenness());
@@ -250,9 +251,9 @@ describe('reeling silk', () => {
     expect(before).toBeGreaterThanOrEqual(40);
     const first = live()[0]!;
     const plan = await first.planUnwind(reeler, reel(1), 8);
-    expect(plan.kind).toBe('plan');
-    if (plan.kind !== 'plan') return;
-    await first.completeUnwind(reeler, reel(1), plan.token);
+    expect(plan.ok).toBe(true);
+    if (!plan.ok) return;
+    await plan.onComplete();
     expect(total()).toBe(before - 40);
   });
 });

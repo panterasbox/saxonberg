@@ -108,6 +108,34 @@ afterEach(() => {
 });
 
 describe('wash', () => {
+  // ⭐ `--hard` is a manner of washing (controllers-are-io D8c): more time in
+  // it, read off the step's own engagement. `wash` is 3000 ms; `--hard` by
+  // hand is half of three washes' worth, with a brush the whole of it.
+  it('⭐ --hard scrubs: longer than a wash, longer again with a brush', async () => {
+    const durationOf = async (extra: object): Promise<number | undefined> => {
+      const coupe = makeUsedCoupe();
+      ContainmentApi.move(coupe, room);
+      const water = makeWaterSource();
+      ContainmentApi.move(water, room);
+      const spy = vi.spyOn(SchedulerApi, 'start');
+      const ctx = makeContext(actor, room, 'wash coupe');
+      await executeAs(actor, () =>
+        makeStuff(() => new WashController()).execute(
+          { target: many(coupe), water: many(water), ...extra } as never,
+          ctx,
+        ),
+      );
+      const d = (spy.mock.calls.at(-1)?.[0] as unknown as { duration?: number } | undefined)?.duration;
+      spy.mockRestore();
+      await completeStep(10_000);
+      return d;
+    };
+    expect(await durationOf({})).toBe(3000);
+    expect(await durationOf({ hard: true })).toBe(4500);
+    const brush = makeStuff(() => new Good());
+    expect(await durationOf({ hard: true, brush: many(brush) })).toBe(9000);
+  });
+
   it('refuses with no water in reach, and never touches the glass', async () => {
     const coupe = makeUsedCoupe();
     ContainmentApi.move(coupe, room);

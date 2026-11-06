@@ -32,9 +32,13 @@ import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tool';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import type { MarkupAugmenter } from '@saxonberg/server/mud/api/mml';
 import type {
-  WorkPrognosis,
-  WorkResult,
+  SplitBegin,
+  SplitDone,
+  SplitRefusal,
+  WorkLanding,
+  WorkPlan,
 } from '@saxonberg/server/mud/lib/ground/Workable';
+import type { ActDone } from '@saxonberg/server/mud/lib/craft/ActPlan';
 import { SplittableMixin, type Splittable } from '@saxonberg/server/mud/lib/ground/Splittable';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { GrammarApi } from '@saxonberg/server/mud/api/grammar';
@@ -133,44 +137,28 @@ export default class Block extends BlockBase implements Splittable {
 
   // ───────────────────────── the Splittable shape ─────────────────────────
 
-  public async planWork(
-    _by: Stuff,
+  public override async planWork(
+    by: Stuff,
     tool: (Stuff & Tooled) | null,
     _what: string | null,
-  ): Promise<WorkPrognosis> {
-    if (this.piecesLeft <= 0) {
-      return {
-        kind: 'refusal',
-        reason: 'block-spent',
-        prose: 'There is nothing left in it worth splitting — only rubble.',
-      };
-    }
+  ): Promise<WorkPlan<SplitBegin, SplitDone, SplitRefusal> | SplitRefusal> {
+    if (this.piecesLeft <= 0) return { ok: false, reason: 'block-spent' };
     // ⭐ The TOOL, named by the thing rather than by the verb: a block wants
     // something to strike and wedge with, and it says so.
-    if (tool === null || !tool.hasCapability(STRIKING)) {
-      return {
-        kind: 'refusal',
-        reason: 'no-striker',
-        prose:
-          'Not with your hands. You want something to strike it with — a sledge, or the back of a pick.',
-      };
-    }
+    if (tool === null || !tool.hasCapability(STRIKING)) return { ok: false, reason: 'no-striker' };
     const hardness = this.hardnessMPa();
+    const durationMs = Math.max(1_000, Math.round(SPLIT_MS * (hardness / REFERENCE_MPA)));
     return {
-      kind: 'plan',
-      durationMs: Math.max(1_000, Math.round(SPLIT_MS * (hardness / REFERENCE_MPA))),
-      cost: 5,
-      beginSelf: 'You set the wedge, find the grain, and start working a piece off it.',
-      beginPeers: 'Somebody starts splitting a block of stone.',
-      token: null,
+      ok: true,
+      durationMs,
+      effortW: MixinApi.isExerting(by) ? by.wattsForFeltCost(5, durationMs / 1000) : 0,
+      facts: { kind: 'stone' },
+      onComplete: () => this.completeSplit(),
     };
   }
 
-  public async completeWork(
-    _by: Stuff,
-    _tool: (Stuff & Tooled) | null,
-    _token: unknown,
-  ): Promise<WorkResult> {
+  /** A piece comes off, onto the floor beside the block. */
+  private async completeSplit(): Promise<ActDone<SplitDone & WorkLanding, SplitRefusal>> {
     const left = this.takePiece();
     let piece: Stuff | null = null;
     try {
@@ -195,19 +183,16 @@ export default class Block extends BlockBase implements Splittable {
         ContainmentApi.move(piece as Stuff & Containable, where as Stuff & Container);
       }
     }
-    const tail =
-      left <= 0
-        ? ' That is the last of it; what is left would not build anything.'
-        : '';
     return {
-      self:
-        piece === null
-          ? `A piece comes away.${tail}`
-          : `A piece comes away clean — ${piece.getPresentation()}.${tail}`,
-      peers: null,
-      // ⭐ (cleanliness D6) Stone dust on the hands.
-      soils: [{ kind: 'dust', amount: 0.1, where: 'hands' }],
-      credit: { discipline: QUARRYING, difficulty: 'easy' },
+      ok: true,
+      facts: {
+        kind: 'stone',
+        piece: piece === null ? null : piece.getPresentation(),
+        last: left <= 0,
+        // ⭐ (cleanliness D6) Stone dust on the hands.
+        soils: [{ kind: 'dust', amount: 0.1, where: 'hands' }],
+        credit: { discipline: QUARRYING, difficulty: 'easy' },
+      },
     };
   }
 

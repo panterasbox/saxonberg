@@ -21,7 +21,7 @@
  *     identically. That parity is deliberate.
  */
 
-import { TapActController } from '@saxonberg/server/mud/platform/idea/cmd/inventory/TapActController';
+import { TapActController, type TapWords } from '@saxonberg/server/mud/platform/idea/cmd/inventory/TapActController';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
@@ -93,6 +93,43 @@ export default class TapController extends TapActController {
 
   protected override nothingHereReason(): string {
     return 'not-a-sap-tree';
+  }
+
+  /**
+   * ⭐ The tree's own voice (D4), and ⚠ **not one of its sentences contains
+   * a digit or the word *tap*.** The noun `tap` is bound on nine bar
+   * fixtures, so a sugaring refusal that said "the tap" could read as being
+   * about a beer engine; it says *spile* and *stem*, which is what a sugarer
+   * says anyway.
+   */
+  protected override tapWords(giver: Stuff, subject: Stuff & Producing): TapWords {
+    const base = super.tapWords(giver, subject);
+    return {
+      ...base,
+      // The vessel is whatever the tapper brought (a pail, a latex cup),
+      // so the line names none. A spile being set is the kernel's words.
+      beginSelf: (b) =>
+        b.setting === null
+          ? Mml.compose`You hold it under the cut and let it run.`
+          : base.beginSelf(b),
+      onRefused: (out) => {
+        switch (out.reason) {
+          case 'season-before-season':
+            return Mml.compose`The sap is not up. Nothing will run until the days lengthen.`;
+          case 'season-after-season':
+            return Mml.compose`Bud break. The run is over for the year.`;
+          case 'season-cold':
+            return Mml.compose`It is too cold; nothing is moving in the wood.`;
+          case 'season-warm':
+            // ⚠ Not "the run is finished": the window is a BAND, and a stove
+            // house that cools reopens it — the drive's step 10 is exactly
+            // that lesson. Found driving the rubber build in a browser.
+            return Mml.compose`It has gone too warm; nothing will run until it cools.`;
+          default:
+            return base.onRefused(out);
+        }
+      },
+    };
   }
 }
 

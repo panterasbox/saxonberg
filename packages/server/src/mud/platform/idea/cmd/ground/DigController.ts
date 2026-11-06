@@ -24,20 +24,40 @@
  * ⭐ A bare word that binds nothing (`dig clay`) is passed through as the
  * player's own word, because a band in the column is not a bindable object.
  * The `fell.yaml` shape.
+ *
+ * ⭐ The ground answers reasons and facts; the words are here
+ * (controllers-are-io D4) — what the ground refused for, what came up.
  */
 
-import { WorkedActController, type WorkedActModel } from './WorkedActController';
+import { WorkedActController, type WorkedActModel, type WorkWords } from './WorkedActController';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Container } from '../../../../lib/spatial/Container';
-import type { Diggable, Workable } from '../../../../lib/ground/Workable';
+import type {
+  DigBegin,
+  DigDone,
+  DigRefusal,
+  DigWon,
+  Diggable,
+} from '../../../../lib/ground/Workable';
 import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
 
-export default class DigController extends WorkedActController {
+type Composed = ReturnType<typeof Mml.compose>;
+
+/**
+ * ⭐ The one host of the `dig` shape, BY NAME: the quarry pack's open
+ * working (a quarry face, a turbary). ⚠ Not a kernel marker — `Diggable`
+ * has one host and is a property of it (controllers-are-io D8a); a pack
+ * mixin's name is federated at discovery, so naming it imports nothing. A
+ * second host (the topsoil's `Soil`) is the day this earns a protocol mixin.
+ */
+const DIGGABLE_HOST = 'OpenWorkingMixin';
+
+export default class DigController extends WorkedActController<DigBegin, DigDone, DigRefusal> {
   protected async subjectOf(
     model: WorkedActModel,
     giver: Stuff,
-  ): Promise<Workable | null> {
+  ): Promise<(Stuff & Diggable) | null> {
     const bound = model.target?.stuff ?? null;
     const asBound = asDiggable(bound);
     if (asBound !== null) return asBound;
@@ -70,20 +90,83 @@ export default class DigController extends WorkedActController {
   protected nothingHereReason(): string {
     return 'nothing-to-dig';
   }
+
+  protected workWords(giver: Stuff): WorkWords<DigBegin, DigDone, DigRefusal> {
+    return {
+      beginSelf: (b) =>
+        b.earth
+          ? Mml.compose`You set into the ${b.face}, cutting and casting back.`
+          : Mml.compose`You set the point of it into the ${b.face} and start working a block free.`,
+      // ⭐ Named, as the room sees them: a bare "Somebody" read in full
+      // daylight to everyone at the pit (ceramics browser walk).
+      beginPeers: (b) =>
+        b.earth
+          ? Mml.compose`${Mml.actor(giver)} starts stripping the face.`
+          : Mml.compose`${Mml.actor(giver)} starts working stone out of the face.`,
+      onRefused: digRefusal,
+      onDone: (d) => ({ self: Mml.compose`${wonLine(d.face, d.won)}${d.last ? ' That is the last of this face.' : ''}` }),
+    };
+  }
 }
 
-/**
- * Narrow to the declared {@link Diggable} shape.
- *
- * ⚠ Still a shape probe (a recorded finding, controllers-are-io D8a): the
- * one host is the quarry pack's `OpenWorkingMixin`, which a kernel verb
- * cannot name; the demotion waits on `dig` moving to that pack.
- */
+/** ⭐ The words for a refused dig — every reason, exhaustively. */
+function digRefusal(out: DigRefusal): Composed {
+  switch (out.reason) {
+    case 'no-face-above':
+      return Mml.compose`There is no face above you. The ground stops at the surface, and there is nothing over your head but sky.`;
+    case 'under-overburden':
+      return out.facts.band !== null
+        ? Mml.compose`The ${out.facts.band} is under your feet yet. The floor has to come down to it — strip what is over it first.`
+        : Mml.compose`There is drift over this ground yet. Take a spade to that before you look for stone under it.`;
+    case 'no-such-face':
+      return out.facts.asked
+        ? Mml.compose`There is no ${out.facts.asked} in this ground. Look at the wall and see what is in it.`
+        : Mml.compose`There is no face here to work.`;
+    case 'no-spade': {
+      // ⚠⚠ Bare-handed and WRONG-TOOL are different sentences (the browser
+      // walk): "A pick will not shift drift" named a tool never picked up.
+      const held = out.facts.held;
+      return held === null
+        ? Mml.compose`You will not shift ${out.facts.face} with your hands — take a spade to it.`
+        : Mml.compose`${held.charAt(0).toUpperCase() + held.slice(1)} will not shift ${out.facts.face} — take a spade to it.`;
+    }
+    case 'no-pick':
+      return out.facts.held === null
+        ? Mml.compose`You would want a pick. That is ${out.facts.face}, and it wants winning — not bare hands.`
+        : Mml.compose`You would want a pick. That is ${out.facts.face}, and it wants winning — not ${out.facts.held}.`;
+    case 'worked-out':
+      return Mml.compose`This face is worked out. There is no ${out.facts.face} left in it that anybody could reach from here.`;
+    case 'at-the-water':
+      return Mml.compose`The floor is standing in water. Anything below this wants pumping, and nobody here has a pump.`;
+    case 'face-changed':
+      return Mml.compose`The face has changed under you. Look again.`;
+    default: {
+      const never: never = out;
+      return never;
+    }
+  }
+}
+
+/** What came up, in words. */
+function wonLine(face: string, won: DigWon): string {
+  switch (won.kind) {
+    case 'load':
+      return `You work a load of ${face} free.`;
+    case 'thing':
+      return `You work ${won.called} free, ${won.toTip ? 'and it goes to the tip' : 'and it lies where it fell'}.`;
+    case 'spilled':
+      return `You break ${face} loose and it runs away between your fingers. You want something to carry it in.`;
+    case 'shoveled':
+      return `You break ${face} loose and shovel it into ${won.into}.`;
+    default: {
+      const never: never = won;
+      return never;
+    }
+  }
+}
+
+/** Narrow to the `dig` shape's one host, by its mixin's name. */
 function asDiggable(stuff: Stuff | null): (Stuff & Diggable) | null {
-  if (stuff === null) return null;
-  const candidate = stuff as unknown as Partial<Diggable>;
-  if (candidate.diggable !== true) return null;
-  if (typeof candidate.planWork !== 'function') return null;
-  if (typeof candidate.completeWork !== 'function') return null;
+  if (stuff === null || !MixinApi.hasMixin(stuff, DIGGABLE_HOST)) return null;
   return stuff as Stuff & Diggable;
 }

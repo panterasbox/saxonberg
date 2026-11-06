@@ -37,7 +37,8 @@ import type Strain from '../idea/Strain';
 import type EggLot from './EggLot';
 import type RawSilk from './RawSilk';
 import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tool';
-import type { WorkPrognosis, WorkResult } from '@saxonberg/server/mud/lib/ground/Workable';
+import type { WorkLanding, WorkPlan } from '@saxonberg/server/mud/lib/ground/Workable';
+import type { ActDone, ActRefusal } from '@saxonberg/server/mud/lib/craft/ActPlan';
 import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
 import { CompetenceBand } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
 
@@ -101,6 +102,27 @@ function heftAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
 }
 
 const CocoonsBase = ThermalMixin(StackableMixin(CraftedMixin(Good)));
+
+/** Watts a reeling costs: bent over a basin, working a fine thread. */
+const REEL_EFFORT_W = 150;
+
+/** ⭐ Every reason a reeling is refused — `UnwindController` words each. */
+export type UnwindRefusal =
+  | ActRefusal<'pierced'>
+  | ActRefusal<'not-stifled'>
+  | ActRefusal<'too-few'>
+  | ActRefusal<'no-reel'>
+  | ActRefusal<'no-heat'>;
+
+/** What the reeling's begin words need: how many filaments go in the thread. */
+export interface UnwindBegin {
+  count: number;
+}
+
+/** What its done words need: the skein (`null` — a row that did not resolve). */
+export interface UnwindDone {
+  skein: RawSilk | null;
+}
 
 export default class Cocoons extends CocoonsBase implements CocoonSeedable {
   // ⚠ TS re-surface of the inner `GradedMixin`'s members (the documented
@@ -230,40 +252,41 @@ export default class Cocoons extends CocoonsBase implements CocoonSeedable {
     by: Stuff,
     tool: (Stuff & Tooled) | null,
     count: number | null,
-  ): Promise<WorkPrognosis> {
+  ): Promise<WorkPlan<UnwindBegin, UnwindDone, UnwindRefusal> | UnwindRefusal> {
     this.reconcileCocoons();
     if (this.pierced) {
-      return refusal('pierced', 'There is nothing to reel off a pierced cocoon — the thread is cut. It will spin.');
+      return { ok: false, reason: 'pierced' };
     }
     if (!this.stifled) {
-      return refusal('not-stifled', 'The moths are still alive in them. Stifle them first, or they will break the thread as you reel.');
+      return { ok: false, reason: 'not-stifled' };
     }
     const charge = dial('sericulture.reel.charge', REEL_CHARGE);
     if (this.reelPool().reduce((n, c) => n + c.getQuantity(), 0) < charge) {
       // ⭐ The refusal says what lifts it (the browser walk bought ten and
       // was told only "not enough").
-      return refusal('too-few', 'There are not enough cocoons there to keep a thread going — a reeling takes about forty.');
+      return { ok: false, reason: 'too-few' };
     }
     if (!tool || !tool.hasCapability('reeling')) {
-      return refusal('no-reel', 'You want a reel to wind the thread onto.');
+      return { ok: false, reason: 'no-reel' };
     }
     const heat = Math.max(
       this.reachableHeatK(),
       MixinApi.isThermal(by) ? by.reachableHeatK() : 0,
     );
     if (heat < dial('sericulture.reel.waterK', REEL_WATER_K)) {
-      return refusal('no-heat', 'They want hot water to loosen the gum, and there is no fire here.');
+      return { ok: false, reason: 'no-heat' };
     }
     const n = Math.max(3, Math.min(20, Math.round(count ?? DEFAULT_COUNT)));
     const base = dial('sericulture.reel.baseMs', REEL_BASE_MS);
     const durationMs = Math.round((base / Math.max(0.1, tool.capabilityRate('reeling'))) * (DEFAULT_COUNT / n));
+    const control = tool.capabilityControl('reeling');
     return {
-      kind: 'plan',
+      ok: true,
       durationMs,
-      cost: 0,
-      beginSelf: `You drop a handful of cocoons into the hot water, find the ends with a twig, and gather ${n} of them into one thread.`,
-      beginPeers: 'Somebody bends over a basin, reeling silk off cocoons.',
-      token: { count: n, charge, control: tool.capabilityControl('reeling') },
+      // Standing over a basin, not heaving: the reeler's figure, the act's (D5).
+      effortW: REEL_EFFORT_W,
+      facts: { count: n },
+      onComplete: () => this.completeUnwind(by, n, charge, control),
     };
   }
 
@@ -291,12 +314,12 @@ export default class Cocoons extends CocoonsBase implements CocoonSeedable {
    * pupae are made, and the skein carries the reeler's mark and how even
    * their hands kept it.
    */
-  public async completeUnwind(
+  private async completeUnwind(
     by: Stuff,
-    _tool: (Stuff & Tooled) | null,
-    token: unknown,
-  ): Promise<WorkResult> {
-    const t = token as { count: number; charge: number; control: string | null };
+    count: number,
+    charge: number,
+    control: string | null,
+  ): Promise<ActDone<UnwindDone & WorkLanding, UnwindRefusal>> {
     const band = await competenceOf(by);
     const evenness = Math.max(
       0,
@@ -304,15 +327,15 @@ export default class Cocoons extends CocoonsBase implements CocoonSeedable {
         1,
         0.45 +
           0.12 * CompetenceBand.rank(band) +
-          (t.control === 'fine' ? 0.2 : 0) -
-          0.04 * Math.max(0, 8 - t.count),
+          (control === 'fine' ? 0.2 : 0) -
+          0.04 * Math.max(0, 8 - count),
       ),
     );
     const pool = this.reelPool();
     const cocoonBand = pool.reduce((b, c) => lowerBand(b, c.getGradeBand()), this.getGradeBand());
     const skein = await mint<RawSilk>(RAW_SILK_ROW, by);
     if (skein) {
-      skein.setFilamentCount(t.count);
+      skein.setFilamentCount(count);
       skein.setEvenness(evenness);
       skein.setMaker(by.getIdentityPath() ?? '');
       skein.setGradeBand(lowerBand(cocoonBand, evennessBand(evenness)));
@@ -322,7 +345,7 @@ export default class Cocoons extends CocoonsBase implements CocoonSeedable {
     // this method runs on may be one the debit destroys (found by the
     // drive: the pupae never arrived). The skein's grade was read above,
     // weakest cocoon first: it is no better than the worst that went in.
-    let need = t.charge;
+    let need = charge;
     for (const c of pool) {
       if (need <= 0) break;
       const take = Math.min(need, c.getQuantity());
@@ -331,11 +354,12 @@ export default class Cocoons extends CocoonsBase implements CocoonSeedable {
       else c.setQuantity(c.getQuantity() - take);
     }
 
-    const line = skein ? skein.threadLine() : '';
     return {
-      self: `You wind off a skein of raw silk. ${line} You fish the pupae out of the water.`,
-      peers: 'Somebody lifts a skein of raw silk off the reel.',
-      credit: { discipline: 'textiles', difficulty: t.count < 6 ? 'hard' : 'standard' },
+      ok: true,
+      facts: {
+        skein,
+        credit: { discipline: 'textiles', difficulty: count < 6 ? 'hard' : 'standard' },
+      },
     };
   }
 
@@ -481,10 +505,6 @@ export default class Cocoons extends CocoonsBase implements CocoonSeedable {
       ? 'Something stirs inside; the moths will be out within the day.'
       : `Something stirs inside; the moths will come in about ${GrammarApi.inWords(left)} days.`;
   }
-}
-
-function refusal(reason: string, prose: string): WorkPrognosis {
-  return { kind: 'refusal', reason, prose };
 }
 
 /** Clone a row into `by`'s hands — the one clone path. */

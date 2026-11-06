@@ -5,8 +5,10 @@
  *
  * ⭐⭐ **It knows nothing about stone, peat, clay or worms**, and that is
  * the whole design. It speaks the {@link Workable} protocol and nothing
- * else: the thing being worked prices its own pace, refuses in its own
- * words, mints its own product and names the Discipline it wants credited.
+ * else: the thing being worked prices its own pace, refuses for its own
+ * reasons, mints its own product and names the Discipline it wants
+ * credited. ⭐ The WORDS are the verb's (controllers-are-io D4): each
+ * subclass says its act's reasons and facts ({@link workWords}).
  * Take every content pack away and both verbs still work — they refuse,
  * naming the tool.
  *
@@ -25,16 +27,14 @@
  */
 
 import { GroundWorkController } from './GroundWorkController';
+import type { ActWords } from '../../../../lib/command/EngagedActController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { MqlOneResult } from '../../../../api/mql';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Tooled } from '../../../../lib/craft/Tool';
-import type {
-  WorkPlan,
-  Workable,
-} from '../../../../lib/ground/Workable';
+import type { AnyActRefusal } from '../../../../lib/craft/ActPlan';
+import type { WorkLanding, WorkPlan, Workable } from '../../../../lib/ground/Workable';
 import { MixinApi } from '../../../../api/mixin';
-import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
 
 /** The topic both acts narrate on. */
@@ -45,7 +45,13 @@ export interface WorkedActModel extends CommandModel {
   tool?: MqlOneResult;
 }
 
+/** A worked act's words: its begin, its refusals, its landing. */
+export type WorkWords<B, F, X extends AnyActRefusal> = ActWords<B, F & WorkLanding, X>;
+
 export abstract class WorkedActController<
+  B,
+  F,
+  X extends AnyActRefusal,
   M extends WorkedActModel = WorkedActModel,
 > extends GroundWorkController<M> {
   /**
@@ -56,13 +62,23 @@ export abstract class WorkedActController<
   protected abstract subjectOf(
     model: M,
     giver: Stuff,
-  ): Promise<Workable | null>;
+  ): Promise<(Stuff & Workable<B, F, X>) | null>;
 
   /** What to say when nothing answers. */
   protected abstract nothingHere(model: M): ReturnType<typeof Mml.compose>;
 
   /** The reason filed when nothing answers. */
   protected abstract nothingHereReason(): string;
+
+  /**
+   * ⭐ This verb's words for its act (D4) — every reason, exhaustively.
+   * ⚠⚠ Built at execute, as closures that never call back into the
+   * controller: it is destructed the moment `execute` returns, and a
+   * completion calling `this.<method>` on it is a SILENT no-op (the dig
+   * drive found the shape — the swing played its scene and nothing was
+   * minted).
+   */
+  protected abstract workWords(giver: Stuff, subject: Stuff): WorkWords<B, F, X>;
 
   async execute(model: M, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
@@ -80,47 +96,17 @@ export abstract class WorkedActController<
     // the working dug its floor, and the floor was at the water.
     const bound = model.target?.stuff ?? null;
     const here = MixinApi.isContainable(giver) ? giver.getContainer() : null;
-    const boundIsWorked =
-      bound !== null && (subject as unknown) === bound && (bound as unknown) !== here;
+    const boundIsWorked = bound !== null && subject === bound && (bound as unknown) !== here;
     const what = boundIsWorked ? null : (model.target?.raw ?? null);
 
-    const prognosis = await subject.planWork(giver, tool, what);
-    if (prognosis.kind === 'refusal') {
-      // ⭐ The ground's own sentence, passed through untouched. The verb
-      // does not know enough to improve on it and must not try.
-      this.decline(
-        context,
-        Mml.fromMarkup(prognosis.prose),
-        prognosis.reason,
-      );
+    const words = this.workWords(giver, subject);
+    const plan = await subject.planWork(giver, tool, what);
+    if (!plan.ok) {
+      // ⭐ The ground's reason, in this verb's words.
+      this.decline(context, words.onRefused(plan), plan.reason);
       return;
     }
-
-    const plan: WorkPlan = prognosis;
-    this.engageAct(context, {
-      durationMs: plan.durationMs,
-      cost: plan.cost,
-      beginSelf: Mml.fromMarkup(plan.beginSelf),
-      ...(plan.beginPeers
-        ? { beginPeers: Mml.fromMarkup(plan.beginPeers) }
-        : {}),
-      onComplete: () => {
-        // ⚠⚠ **A MODULE function, never `this.<method>`** — and the live drive
-        // is what proved it. A controller is one ephemeral clone per
-        // execution and the dispatcher destructs it in a `finally` the moment
-        // `execute` returns, while an engagement is still pending. A
-        // completion calling back into it runs on a destroyed Stuff and the
-        // proxy answers with a **silent no-op**: the swing plays its scene,
-        // nothing is minted, and the floor never drops.
-        //
-        // ⭐ The first drive run said *"You set into the drift, cutting and
-        // casting back."* and then reported `floorDepthM` still 0 — a verb
-        // that looked like it worked. The smelt records the same lesson
-        // (*"the mining acts shipped that bug and a live drive found it"*),
-        // which is why `runCharge` is a module function too.
-        void land(context, subject, tool, plan);
-      },
-    });
+    this.engageAct(context, landing(giver, plan), words);
   }
 
   /**
@@ -140,42 +126,38 @@ export abstract class WorkedActController<
 }
 
 /**
- * The swing landed: let the subject do the work, narrate what it says, and
- * credit the Discipline **it** named.
+ * ⭐ The plan, with the landing the ground asked for: what the work put on
+ * the worker, and the Discipline **it** named.
  *
- * ⚠⚠ A module function over captured locals, because the controller that
- * started this is already destructed. See the comment at the call site.
+ * ⚠⚠ A module function over captured locals — never `this.<method>` —
+ * because the controller that started this is already destructed when the
+ * swing lands (the live drive proved it: a completion on a destroyed Stuff
+ * is a silent no-op).
  *
- * ⚠ And the ACTOR may be gone too — a player can log out mid-swing.
- * ⭐ The work still lands, because the ground does not stop being worked
- * because somebody left; only the telling of it needs a listener. Narrating
- * to a departed actor renders `undefined` into the scene composer and throws
- * an unhandled rejection that takes the process down.
+ * ⚠ And the ACTOR may be gone too — a player can log out mid-swing. ⭐ The
+ * work still lands, because the ground does not stop being worked because
+ * somebody left; only the telling (and the crediting) needs a listener.
  */
-async function land(
-  context: CommandContext,
-  subject: Workable,
-  tool: (Stuff & Tooled) | null,
-  plan: WorkPlan,
-): Promise<void> {
-  const giver = context.commandGiver;
-  const result = await subject.completeWork(giver, tool, plan.token);
-  if (giver.isDestroyed()) return;
-  if (result.soils && result.soils.length > 0 && MixinApi.isHygienic(giver)) {
-    giver.soilFrom(result.soils);
-  }
-  const scene = MessageApi.scene(giver)
-    .topic(WORK_TOPIC)
-    .toSelf(Mml.fromMarkup(result.self));
-  if (result.peers) scene.toPeers(Mml.fromMarkup(result.peers));
-  scene.send();
-
-  const credit = result.credit;
-  if (credit && MixinApi.isAdvancing(giver)) {
-    await giver.creditDeed({
-      discipline: credit.discipline,
-      difficulty: credit.difficulty,
-      outcome: 'success',
-    });
-  }
+function landing<B, F, X extends AnyActRefusal>(
+  giver: Stuff,
+  plan: WorkPlan<B, F, X>,
+): WorkPlan<B, F, X> {
+  return {
+    ...plan,
+    onComplete: async () => {
+      const out = await plan.onComplete();
+      if (!out.ok || giver.isDestroyed()) return out;
+      const soils = out.facts.soils;
+      if (soils && soils.length > 0 && MixinApi.isHygienic(giver)) giver.soilFrom(soils);
+      const credit = out.facts.credit;
+      if (credit && MixinApi.isAdvancing(giver)) {
+        await giver.creditDeed({
+          discipline: credit.discipline,
+          difficulty: credit.difficulty,
+          outcome: 'success',
+        });
+      }
+      return out;
+    },
+  };
 }

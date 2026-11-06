@@ -56,8 +56,8 @@ import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import type { MarkupAugmenter } from '@saxonberg/server/mud/api/mml';
 import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tool';
 import type { Bulkable } from '@saxonberg/server/mud/lib/bulk/Bulkable';
-import type { WorkDifficulty, WorkPrognosis } from '@saxonberg/server/mud/lib/ground/Workable';
-import type { TapClosedReason } from '@saxonberg/server/mud/platform/idea/species/Species';
+import type { WorkDifficulty } from '@saxonberg/server/mud/lib/ground/Workable';
+import type { TapLanded, TapPlan, TapRefusal } from '@saxonberg/server/mud/lib/husbandry/Producing';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 
 /** The Discipline a tap credits — the same one `fell` and `plant` do. */
@@ -128,43 +128,6 @@ export default class SapStandard extends SapStandardBase {
   }
 
   /**
-   * ⚠ The tree's own refusals, and **not one of them contains a digit
-   * or the word *tap*.** The noun `tap` is bound on nine bar fixtures,
-   * so a sugaring refusal that said "the tap" could read as being about
-   * a beer engine; it says *spile* and *stem*, which is what a sugarer
-   * says anyway.
-   */
-  public override tapRefusal(key: string, reason: TapClosedReason): string {
-    switch (reason) {
-      case 'before-season':
-        return 'The sap is not up. Nothing will run until the days lengthen.';
-      case 'after-season':
-        return 'Bud break. The run is over for the year.';
-      case 'cold':
-        return 'It is too cold; nothing is moving in the wood.';
-      case 'warm':
-        // ⚠ Not "the run is finished": the window is a BAND, and a stove
-        // house that cools reopens it — the drive's step 10 is exactly
-        // that lesson. Found driving the rubber build in a browser.
-        return 'It has gone too warm; nothing will run until it cools.';
-      default:
-        return super.tapRefusal(key, reason);
-    }
-  }
-
-  public override tapEmptyPhrase(_key: string): string {
-    return this.spiles > 0
-      ? 'Nothing has run into it yet. Give it time.'
-      : 'There is no spile in it. Nothing can run out of a whole stem.';
-  }
-
-  public override tapBeginPhrase(_key: string): string {
-    // The vessel is whatever the tapper brought (a pail, a latex cup),
-    // so the line names none.
-    return 'You hold it under the cut and let it run.';
-  }
-
-  /**
    * ⭐⭐ **One verb, two phases.** Set a spile when there is none and
    * the stem will take one; draw what has run when there is.
    *
@@ -179,7 +142,7 @@ export default class SapStandard extends SapStandardBase {
     tool: (Stuff & Tooled) | null,
     vessel: (Stuff & Bulkable) | null,
     what: string | null,
-  ): Promise<WorkPrognosis> {
+  ): Promise<TapPlan | TapRefusal> {
     // ⚠ The SEASON first, whichever phase this is: there is no sense
     // boring a hole into a stem that will not run for three months, and
     // the sentence a player wants is about the season rather than about
@@ -194,9 +157,9 @@ export default class SapStandard extends SapStandardBase {
     const window = this.tapWindow(key);
     if (!window.open && window.reason !== null) {
       return {
-        kind: 'refusal',
+        ok: false,
         reason: `season-${window.reason}`,
-        prose: this.tapRefusal(key, window.reason),
+        facts: { key, season: window.reason },
       };
     }
 
@@ -211,94 +174,48 @@ export default class SapStandard extends SapStandardBase {
     // works' Hevea carry their two cuts and said they were too slender).
     // Holding a spile, you mean to set another: that IS the girth lesson.
     if (this.spiles > 0 && this.spiles >= this.maxSpiles() && !findSpile(by)) {
-      return {
-        kind: 'refusal',
-        reason: 'empty',
-        prose: this.tapEmptyPhrase(key),
-      };
+      return { ok: false, reason: 'empty', facts: { key, spiled: this.spiles > 0 } };
     }
 
     // Nothing has run — so this is the setting phase.
     if (this.spiles >= this.maxSpiles()) {
-      return {
-        kind: 'refusal',
-        reason: 'girth',
-        prose:
-          this.maxSpiles() === 0
-            ? 'The stem is too slender to take a spile at all. Leave it to grow.'
-            : 'The stem will not take another spile at this girth.',
-      };
+      return { ok: false, reason: 'girth', facts: { none: this.maxSpiles() === 0 } };
     }
     // ⭐ The tool the TAP names (paint D17): an auger bores a maple, a blade
     // cuts the face of a pine. Default `boring` — every row before it.
     const instrument = this.taps().find((t) => t.key === key)?.instrument ?? 'boring';
     const bores = instrument === 'boring';
     if (!tool || !tool.hasCapability(instrument)) {
-      return {
-        kind: 'refusal',
-        reason: 'no-tool',
-        prose: bores
-          ? 'You would need an auger to bore the hole.'
-          : 'You would need a blade to cut a face through the bark.',
-      };
+      return { ok: false, reason: 'no-tool', facts: { bores } };
     }
-    const spile = findSpile(by);
-    if (!spile) {
-      return {
-        kind: 'refusal',
-        reason: 'no-spile',
-        prose: 'You have no spile to drive into it.',
-      };
-    }
+    if (!findSpile(by)) return { ok: false, reason: 'no-spile' };
     return {
-      kind: 'plan',
+      ok: true,
       durationMs: SET_SPILE_MS,
-      cost: SET_SPILE_COST,
-      beginSelf: bores
-        ? 'You set the auger against the trunk and start to bore, cranking slowly so the bit does not bind.'
-        : 'You set the blade to the trunk and cut a long face through the bark, down to the pale wet wood.',
-      beginPeers: null,
-      token: { phase: 'set', spilePath: spile.getTemplatePath(), bores },
+      effortW: MixinApi.isExerting(by) ? by.wattsForFeltCost(SET_SPILE_COST, SET_SPILE_MS / 1000) : 0,
+      facts: { key, setting: { bores } },
+      onComplete: () => this.setSpile(by, key, bores),
     };
   }
 
   /**
-   * Land it. A draw is the mixin's; a SET consumes the spile and leaves
-   * it in the tree.
+   * Land a SET: it consumes the spile and leaves it in the tree. (A draw is
+   * the mixin's own `completeTap`.)
    *
    * ⚠ Re-checks the girth at completion. The interval is real game time
    * and somebody else could have set the second spile while this one was
    * being bored — which is the sort of thing that only happens when two
    * players share a sugarbush, and is exactly why the check is here.
    */
-  public override async completeTap(
-    by: Stuff,
-    key: string,
-    tool: (Stuff & Tooled) | null,
-    vessel: (Stuff & Bulkable) | null,
-    token: unknown,
-  ): Promise<{ self: string; peers?: string | null; credit?: { discipline: string; difficulty: WorkDifficulty } | null }> {
-    const phase = (token as { phase?: string } | null)?.phase;
-    if (phase !== 'set') {
-      return super.completeTap(by, key, tool, vessel, token);
-    }
-    if (this.spiles >= this.maxSpiles()) {
-      return { self: 'Somebody has been here before you. Nothing came of it.' };
-    }
+  private async setSpile(by: Stuff, key: string, bores: boolean): Promise<TapLanded> {
+    if (this.spiles >= this.maxSpiles()) return { ok: false, reason: 'beaten-to-it' };
     const spile = findSpile(by);
-    if (!spile) return { self: 'Nothing came of it.' };
+    if (!spile) return { ok: false, reason: 'nothing-came' };
     // ⭐ The spile is CONSUMED and stays in the tree. That is what makes
     // over-tapping a decision with a cost rather than a free action.
     StuffApi.destruct(spile);
     this.spiles = this.spiles + 1;
-    const bored = (token as { bores?: boolean } | null)?.bores !== false;
-    return {
-      self: bored
-        ? 'The bit breaks through into the wet wood and you drive the spile home with the heel of your hand. It beads, and then it drips.'
-        : 'You set the cup under the face and press it into the bark. Resin beads along the cut, clear and slow.',
-      peers: null,
-      credit: this.tapCredit(key),
-    };
+    return { ok: true, facts: { kind: 'set', key, bores, credit: this.tapCredit(key) } };
   }
 }
 

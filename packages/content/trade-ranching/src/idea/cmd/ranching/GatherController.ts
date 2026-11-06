@@ -19,10 +19,10 @@
  * two.
  */
 
-import { TapActController } from '@saxonberg/server/mud/platform/idea/cmd/inventory/TapActController';
+import { LivestockTapController } from '../../../lib/LivestockTapController';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 
-export default class GatherController extends TapActController {
+export default class GatherController extends LivestockTapController {
   protected tapKey(): string {
     return 'eggs';
   }
