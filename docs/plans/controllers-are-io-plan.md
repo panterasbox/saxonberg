@@ -1330,6 +1330,32 @@ herdbook probe stays a finding (the book should be a declared arg).
 Lesson: a kernel controller cannot narrow on a pack class — the fix is
 moving the verb into its pack, not a predicate.
 
+✅ **W3b done** (`c8948bb45`, `70296c1cc`, `2bd793dfc`, `167df71fc`,
+`9d90d9e1c`, `47f564ba0`, `e1aeb6ed8`). Card chip *answers: dip*,
+Studio `kind: 'protocol'`, `help <verb>` *answers:* read lazily
+(`answerersOf`: `DipBathMixin` → DipPot, GlazeTub, Melt, PaintPot,
+PulpVat). `_mixinKind` on eight lib/craft mixins (+Cuttable = the
+plan's nine; `FormingMixin` holds authored state, excluded).
+`CompositionEntry` carries `verbs?` from views' `requires:` — ⚠ a
+protocol no view names (`turn`, `carve`, `shape`: `requires: any`)
+reads its mixin name and `help turn` lists nothing, until those views
+name their protocols. D25: `SelfSubject` hoisted; `AllOf` now
+short-circuits in order (kernel-wide). ⚠ **For the owner's eye:** only
+gates where money or a record is decided by the caller's own answer
+were re-anchored (Bank → BankCounter, Organization ×3, Voyaging ×2, via
+`FromModule(includeSubclasses)` — no import cycle); enumerable hosts
+NotifyPolicy ×3, SubjectSubscriber ×3, HasInteractive, PartyMember,
+Caster, Employed, Combatant ×2 stay marker + SelfSubject (D25's "bounds
+the spoof"; re-anchoring cost 191 fixture failures, which is not itself
+a reason — the bound is). Signature: 407 → 459 signatures, groups
+101 → 93; medicine and SurgicalKit/SutureKit separate; true duplicates
+recorded: PrimaryAvatar/SandboxAvatar, AssayBench/AssayKit, Board/Blank,
+Bailer/Derrick, Press/Printer. `WaterPoweredMixin` hosts ControlStructure
+only (Conduit generates nothing — a mill would read 0 W); `Sawmill.isPowered`
+→ `runsOnWater`; Powered/NameTaking carry no `_mixinKind` (no verb calls
+Powered; *answers: name* would lie). `asDriven`, `getReachRef?` stay
+duck findings. duck → 548.
+
 ### W4 — the outcome convention, the cuts, `boil`, `scrub`, `affords`
 
 Goal: one shape, words on the controller; the seven cut verbs through
