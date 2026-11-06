@@ -1,5 +1,5 @@
 # The lavoir itself — the arches, the trough, the boards (cleanliness D27).
-# Free to anyone: the trough and the boards afford `wash` and `scrub`. The
+# Free to anyone: the trough and the boards afford `wash` (and `wash --hard`). The
 # laundress's slate prices what she does for you.
 class: /platform/location/PersistentLocale
 data:

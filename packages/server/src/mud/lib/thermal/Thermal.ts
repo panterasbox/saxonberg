@@ -857,6 +857,25 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /**
+     * ⭐ A thing that goes into a liquid-holding vessel starts its bath
+     * clock (D8c) — the boil arm credits it from here, never from before
+     * it went in.
+     */
+    public onContainableAdded(thing: Stuff & Containable): void {
+      (Base.prototype as { onContainableAdded?: (t: unknown) => void }).onContainableAdded?.call(this, thing);
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isSoilable(thing) || !MixinApi.isBulkable(self) || !self.hasInteriorBulk()) return;
+      const now = this.thermalNowSeconds();
+      if (now !== null) thing.enterBath(now);
+    }
+
+    /** …and out of it, the clock stops. */
+    public onContainableRemoved(thing: Stuff & Containable): void {
+      (Base.prototype as { onContainableRemoved?: (t: unknown) => void }).onContainableRemoved?.call(this, thing);
+      if (MixinApi.isSoilable(thing) && thing.getBathHold() !== null) thing.leaveBath();
+    }
+
+    /**
      * Reconcile this object's phase (was the host's `reconcilePhase` —
      * the OO sweep): the solid→liquid latent-heat plateau and the
      * vessel freeze/boil transitions, keyed on real Material
@@ -2414,6 +2433,21 @@ function boilHeldSeconds(
 }
 
 /**
+ * ⭐ **What is IN the boiling liquid is held at the boil** (controllers-are-io
+ * D8c): a bandage, a cloth, a tool dropped into a pot on the boil takes the
+ * liquid's heat for as long as it is in it — the vessel's own reconcile
+ * credits each Soilable occupant's clock (`holdAtHeatFor`), so boiling a
+ * thing clean is no verb's business: it is what a pot of boiling water
+ * does to what is in it. (`boil` was a temperature, not an act.)
+ */
+function holdOccupantsAtBoil(v: Stuff & Bulkable & Thermal, bp: number): void {
+  if (!MixinApi.isContainer(v)) return;
+  for (const c of v.getContents() as Stuff[]) {
+    if (!c.isDestroyed() && MixinApi.isSoilable(c)) c.holdAtHeatFor(bp, v);
+  }
+}
+
+/**
  * ⭐⭐ The heat spent on steam this read (sugar D2). Over a lit fire it is
  * the fire's delivered power at the boil — `(T_fire − bp) · C / τ`, the
  * same coupling that warmed the pot — times the seconds spent there. An
@@ -2623,6 +2657,7 @@ function reconcileBulkPhase(
         }
         v.setContentsTemperature(bp); // the plateau
         purifyIfHeld(v, aff, mat, held?.heldS ?? null);
+        holdOccupantsAtBoil(v, bp);
         concentrateIfReached(v, aff, mat);
         return;
       }

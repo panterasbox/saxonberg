@@ -1,7 +1,7 @@
 /**
  * WashController — `wash <things> [in <water>] [with <cleanser>]`, and bare
- * `wash` (your own hands). `scrub` is the same act, harder
- * ({@link ScrubController}).
+ * `wash` (your own hands). `wash … --hard` scrubs — the same act with more
+ * time in it (controllers-are-io D8c: `scrub` was a manner, not a verb).
  *
  * ⭐⭐ **The mixin is the authority; this controller is dumb**
  * (cleanliness D10). It binds the targets, settles the water and reads what
@@ -41,7 +41,7 @@ import type {
 } from "../../../../lib/cleanliness/Soilable";
 
 const TOPIC = "act.deed";
-/** One plain wash, real milliseconds; a scrub is three of them. */
+/** One plain wash, real milliseconds; a hard one (`--hard`) is three of them. */
 export const WASH_MS = 3000;
 /** Water nobody has measured: a basin at a cool room's warmth. */
 const UNKNOWN_WATER_K = 285;
@@ -52,8 +52,10 @@ export interface WashModel extends CommandModel {
   target?: MqlManyResult;
   water?: MqlManyResult;
   cleanser?: MqlManyResult;
-  /** `scrub … using <brush>` — the scrubbing instrument (scrub only). */
+  /** `wash … using <brush>` — the scrubbing instrument (it tells only on `--hard`). */
   brush?: MqlManyResult;
+  /** ⭐ `--hard` — scrub it: a manner of washing, not a second verb (D8c). */
+  hard?: boolean;
 }
 
 /** The water a wash is done in, read once. */
@@ -64,15 +66,21 @@ export interface WashWater {
 }
 
 export default class WashController extends ManualBuildController<WashModel> {
-  /** How hard this act works the thing: `1` a wash, `3` a scrub. */
-  protected effort(model?: WashModel): number {
-    void model;
-    return 1;
+  /**
+   * How hard this act works the thing: `1` a wash; `--hard` three washes'
+   * worth with a brush, half that with bare hands (cleanliness D10 — time
+   * is the wash's third contribution, so a scrub is a wash with more of it).
+   */
+  private effort(model?: WashModel): number {
+    if (model?.hard !== true) return 1;
+    return (model.brush?.stuff ?? []).length > 0 ? 3 : 1.5;
   }
 
-  /** The verb's own word for the act, in the scenes. */
-  protected act(): { self: string; peers: string } {
-    return { self: "wash", peers: "washes" };
+  /** The act's own word, in the scenes — a hard wash is a scrub. */
+  private act(): { self: string; peers: string } {
+    return this.currentModel?.hard === true
+      ? { self: "scrub", peers: "scrubs" }
+      : { self: "wash", peers: "washes" };
   }
 
   /** The model of the act in flight (the effort reads its brush). */

@@ -1,4 +1,4 @@
-verbs: [sweep, muck]
+verbs: [sweep]
 controller: /platform/idea/cmd/inventory/SweepController
 description: "Sweep a floor clean — or a hearth's grate, or its flue"
 help: |
@@ -9,7 +9,7 @@ help: |
 
   ⭐ How a floor is kept depends on what it is: earth is strewn with fresh
   rushes or sawdust and the old swept out; paving and boards are SCRUBBED
-  (`scrub floor`) and swept only of what lies on them. `muck out` the byre
+  (`wash floor --hard`) and swept only of what lies on them. `muck out` the byre
   and the dung goes to the field.
 
   `sweep hearth` rakes the ash out of its grate — the lye-maker's ash. With

@@ -93,11 +93,22 @@ function findDressing(room: Stuff & Container): (Stuff & Dressing) | null {
   return null;
 }
 
-/** A pot in the ward a bandage could be boiled in. */
-function hasPot(room: Stuff & Container): boolean {
-  return room
-    .getContents()
-    .some((c) => MixinApi.isTool(c) && c.hasCapability('pot'));
+/**
+ * ⭐ A pot in the ward ON THE BOIL — holding a liquid at its boiling point
+ * (controllers-are-io D8c: a thing in a boiling pot is held at the boil by
+ * the pot itself; there is no `boil` verb to run). A cold or a dry pot
+ * boils nothing.
+ */
+function potOnTheBoil(room: Stuff & Container): (Stuff & Container) | null {
+  for (const c of room.getContents()) {
+    if (!MixinApi.isTool(c) || !c.hasCapability('pot')) continue;
+    if (!MixinApi.isContainer(c) || !MixinApi.isBulkable(c) || !MixinApi.isThermal(c)) continue;
+    if (!c.hasInteriorBulk() || !(c.getBulkAmount('interior').rawValue() > 0)) continue;
+    const mat = c.getBulkMaterial('interior');
+    const bp = mat?.boilingPointAt(0) ?? 0;
+    if (bp > 0 && c.getTemperature().rawValue() >= bp - 0.5) return c as Stuff & Container;
+  }
+  return null;
 }
 
 /** The word a forced command names a thing by. */
@@ -193,22 +204,26 @@ export const brain = class NursesBrain {
     const wound = dressableWound(patient);
     const dressing = wound ? findDressing(room as Stuff & Container) : null;
     // ⭐ Boil it first (cleanliness D14) — a competent nurse will not put a
-    // raw bandage on a wound when there is a pot in the ward; a novice
-    // does not know to. The boil is the player's own verb, and it takes
-    // its time: she dresses the wound on the next beat.
+    // raw bandage on a wound when there is a pot on the boil in the ward; a
+    // novice does not know to. She drops it in and the POT does the rest
+    // (D8c): she dresses the wound once it has come up disinfected. With no
+    // pot on the boil she dresses with what she has.
+    const pot = potOnTheBoil(room as Stuff & Container);
     if (
       wound &&
       dressing &&
+      pot !== null &&
       CompetenceBand.atOrAbove(band, 'competent') &&
       MixinApi.isSoilable(dressing as unknown as Stuff) &&
       CLEAN_TIERS.indexOf((dressing as unknown as Stuff & Soilable).cleanTier()) <
-        CLEAN_TIERS.indexOf('disinfected') &&
-      hasPot(room as Stuff & Container)
+        CLEAN_TIERS.indexOf('disinfected')
     ) {
+      const d = dressing as unknown as Stuff;
+      if (MixinApi.isContainable(d) && d.getContainer() === pot) return; // it is boiling; she waits on it
       const kw = keywordOf(dressing as unknown as Stuff);
       const giver = host as unknown as Partial<CommandGiver>;
       if (kw && typeof giver.forceCommand === 'function') {
-        await giver.forceCommand(`boil ${kw} in pot`);
+        await giver.forceCommand(`put ${kw} in pot`);
         return;
       }
     }

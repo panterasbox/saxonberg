@@ -489,7 +489,7 @@ suite('⭐⭐ drive 5, 7, 9 — blood cold and hot, grease and soap, a wet shirt
     await act(cook, 'wash apron');
     expect(await mine(cook, 'apron'), 'water alone').toMatch(/greas/i);
     // Grease in cold water wants work as well as soap: a scrub.
-    await act(cook, 'scrub apron with soap using brush');
+    await act(cook, 'wash apron with soap using brush --hard');
     expect(await mine(cook, 'apron'), 'scrubbed with soap').not.toMatch(/greas/i);
   }, 300_000);
 
@@ -621,8 +621,10 @@ suite('⭐ drive 15 — the byre fouls with its herd, and is mucked out (AC 17)'
 suite('⭐⭐ drive 16 — the ward: a boiled bandage, a kit in the flame (AC 18)', () => {
   it('a bandage boiled in the ward pot; the surgeon’s kit held in the coals', async () => {
     const s = await goTo(cookHandle, WARD);
-    const boiled = await act(s, 'boil bandage in pot');
-    expect(boiled, `boil bandage: ${boiled}`).toMatch(/boil|pot/i);
+    // ⭐ No `boil` verb (controllers-are-io D8c): the bandage goes IN the
+    // pot, and a pot on the boil holds it at the boil itself.
+    const boiled = await act(s, 'put bandage in pot');
+    expect(boiled, `put bandage in pot: ${boiled}`).toMatch(/pot/i);
     const flamed = await act(s, 'heat kit');
     expect(flamed, `heat the kit: ${flamed}`).toMatch(/flame/i);
     s.close();

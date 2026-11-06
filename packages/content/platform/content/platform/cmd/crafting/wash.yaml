@@ -27,12 +27,18 @@ help: |
   medic washes between patients. Hands stay clean until something
   dirties them.
 
-  `scrub` is the same act, harder and slower.
+  `wash <thing> --hard` scrubs it: three times as long and much more
+  effort, and it shifts what a quick wash leaves — baked-on grease, a
+  grimed pane, a stained board, the floor of a busy shop. A scrubbing
+  brush in hand or reach scrubs at the full rate; bare hands at half
+  (`wash floor --hard using brush with soap`).
 examples:
   - cmd: wash shirt in basin with soap
     note: Wash a shirt with soap in the basin
   - cmd: wash
     note: Wash your hands at the water in reach
+  - cmd: wash board in basin with soap --hard
+    note: Scrub a chopping board with soap
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
@@ -68,6 +74,22 @@ args:
     type: objects
     required: false
     greedy: true
-    prepositions: [with, using]
+    prepositions: [with]
     scope: ["reachable"]
     requires: any
+  # ⭐ WHAT WITH — the brush, DECLARED (`lint:controller-resolution`): a
+  # scrubbing brush in hand or reach scrubs at the full rate on `--hard`;
+  # bare hands at half (`wash floor --hard using brush with soap`). It was
+  # `scrub`'s slot until `scrub` became this verb's `--hard` (D8c).
+  - name: brush
+    type: objects
+    required: false
+    greedy: true
+    prepositions: [using]
+    default: "me:i:[capability.scrubbing],reachable:[capability.scrubbing]"
+    scope: ["reachable"]
+    requires: [ToolMixin]
+options:
+  hard:
+    type: boolean
+    description: "Scrub it — three washes' worth with a brush, half that by hand

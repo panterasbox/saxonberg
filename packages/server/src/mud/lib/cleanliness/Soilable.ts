@@ -119,6 +119,24 @@ export interface HeatStamp {
 }
 
 /**
+ * ⭐ A thing's own clock in a bath (controllers-are-io D8c): when it went
+ * in, how far its time at the bath's heat has been credited, and how long
+ * it has been held there since it went in. The vessel's reconcile credits
+ * it ({@link Soilable.holdAtHeatFor}); the bath's own boil clock is the
+ * LIQUID's and says nothing about when a bandage was dropped into it.
+ */
+export interface BathHold {
+  enteredAtS: number;
+  creditedToS: number;
+  heldS: number;
+}
+
+/** The bath a thing is held in — a vessel whose temperature has a history. */
+export interface HeatBath {
+  temperatureTrajectory(fromS: number, toS: number): { secondsAtOrAbove(k: number): number };
+}
+
+/**
  * One cleanser in a wash: its row, and the material it is made of (whose
  * `corrosiveTo` is what a lye or a vitriol BURNS — derived, never
  * authored on the cleanser).
@@ -217,6 +235,21 @@ export interface Soilable {
    * why spores survive one and not the other.
    */
   holdAtHeat(tempK: number, holdS: number, opts: { wet: boolean }): void;
+  /** ⭐ It went into a bath at `atS` — its bath clock starts. */
+  enterBath(atS: number): void;
+  /** It came out of the bath — its bath clock stops. */
+  leaveBath(): void;
+  /** Its clock in the bath it is in, or `null`. */
+  getBathHold(): BathHold | null;
+  /**
+   * ⭐ HELD in `bath` at `tempK` since it went in (D8c) — called by the
+   * vessel's own reconcile while it boils. Credits only the seconds since
+   * the last credit (the bath's trajectory at or above `tempK`), kills
+   * ONCE over that increment, and stamps the heat with the whole time held
+   * since entry — so a bandage in a pot on the boil is disinfected by the
+   * pot, read after read, with no act of anybody's.
+   */
+  holdAtHeatFor(tempK: number, bath: HeatBath): void;
   /**
    * ⭐ Brush it — or beat it — dry (cleanliness, review B46): each kind
    * gives up its `brushLifts` share, scaled by the effort (a beater on a
@@ -305,6 +338,7 @@ export function SoilableMixin<TBase extends MixinConstructor<Stuff>>(
       stains: { persistent: true, runtimeState: true, spoiler: 2 },
       washes: { persistent: true, runtimeState: true },
       heat: { persistent: true, runtimeState: true },
+      bath: { persistent: true, runtimeState: true },
     };
 
     static markupAugmenters: MarkupAugmenter[] = [soilAugmenter];
@@ -317,6 +351,8 @@ export function SoilableMixin<TBase extends MixinConstructor<Stuff>>(
     /** Site → the last wash there. */
     public washes: Record<string, WashStamp> = {};
     public heat: HeatStamp | null = null;
+    /** Its clock in the bath it is in (D8c), or `null` out of one. */
+    public bath: BathHold | null = null;
 
     // ---------- the writer ----------
 
@@ -538,6 +574,47 @@ export function SoilableMixin<TBase extends MixinConstructor<Stuff>>(
         self.setPathogenLoads(
           Contamination.killOver(self.getPathogenLoads(), tempK, holdS, opts.wet ? 0.99 : 0.3),
         );
+      }
+    }
+
+    public enterBath(atS: number): void {
+      this.bath = { enteredAtS: atS, creditedToS: atS, heldS: 0 };
+    }
+
+    public leaveBath(): void {
+      this.bath = null;
+    }
+
+    public getBathHold(): BathHold | null {
+      return this.bath ? { ...this.bath } : null;
+    }
+
+    public holdAtHeatFor(tempK: number, bath: HeatBath): void {
+      const now = nowS();
+      const hold = this.bath;
+      // ⚠ In a bath with no entry on record (restored into it): the clock
+      // starts now — never credited with time nobody saw it spend there.
+      if (hold === null) {
+        this.enterBath(now);
+        return;
+      }
+      if (!(now > hold.creditedToS)) return;
+      // ⚠ Half a kelvin of slack, as the liquid's own boil clock: the
+      // plateau clamps the contents AT the boiling point.
+      const secs = bath.temperatureTrajectory(hold.creditedToS, now).secondsAtOrAbove(tempK - 0.5);
+      const heldS = hold.heldS + Math.max(0, secs);
+      this.bath = { ...hold, creditedToS: now, heldS };
+      if (!(secs > 0)) return;
+      // A thing boiled in water comes out of it wet (B56).
+      this.wetBy(1);
+      // ⭐ The stamp is the WHOLE hold since entry — `recordHeat` keeps the
+      // longest at a heat, so it grows read by read and is never summed.
+      this.recordHeat(tempK, heldS);
+      // ⭐ The kill runs ONCE, over the increment only — a hold re-killed
+      // from zero every read would count the same minute many times.
+      const self = this as unknown as Stuff;
+      if (MixinApi.isContaminable(self)) {
+        self.setPathogenLoads(Contamination.killOver(self.getPathogenLoads(), tempK, secs, 0.99));
       }
     }
 
