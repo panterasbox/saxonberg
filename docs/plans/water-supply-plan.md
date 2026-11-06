@@ -1524,3 +1524,30 @@ listing rule without bringing that back. Now:
   because it is unheated, which the frost already reads.
 - **The lens line** (lens 2's floor): *the ordinary case authors nothing it
   doesn't mean.*
+
+#### Sprinklers (review, 2026-11-06)
+
+The owner: sprinklers are core to farming, unlike interior plumbing. Built in
+this MR after a design conversation (the owner took the recommendations):
+
+- **Rain in a circle** — what the rain reaches, a sprinkler reaches: a
+  field's ground and the beds beside it by their sky, never a pot (the
+  shipped rain rule: a houseplant is furniture). ⚠ I first told the owner a
+  pot outdoors would be watered; the rain rule says no, and the build follows
+  the rule.
+- **`Irrigating`** kernel protocol; **`Sprinkler`** and **`WaterHose`**
+  kernel goods; `WaterFixture.pressureNow()`; `Soil.landedOpenSeconds`
+  public; the soil's sync reconcile kicks a background water settle (also
+  closing W7's gap: inlets only integrated when somebody surveyed), and
+  `settleInlets` claims its window before awaiting.
+- **Deviations from the recommendations, and why:**
+  - The hose is **not a `Line`**: a line's free end is runtime and is thrown
+    and tugged; a hose is coupled at both ends and lies there. Same `tie`
+    through `Tieable`.
+  - On a **divided tract** a sprinkler waters the whole tract by area: a
+    field cannot hold a thing yet (slate § 13).
+  - The **bench's** authored valve stays; rebuilding it on a ram is slated.
+- **`water`** takes a carried hose coupled to a tap as its source (the view's
+  arg binds anything carried; the controller narrows).
+- **Content**: `/stuff/thing/gear/sprinkler` (generic-objects); trade-rubber's
+  `hose` is a `WaterHose`; both on the general store's counter.

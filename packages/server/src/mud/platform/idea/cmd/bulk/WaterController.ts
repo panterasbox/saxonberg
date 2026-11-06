@@ -40,6 +40,7 @@ import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Growing } from '../../../../lib/husbandry/Growing';
 import type { Soil } from '../../../../lib/husbandry/Soil';
 import Plant from '../../../thing/Plant';
+import WaterHose from '../../../thing/WaterHose';
 import { CraftingApi } from '../../../../api/crafting';
 
 const TOPIC = 'act.deed';
@@ -105,7 +106,7 @@ export default class WaterController extends CommandController<WaterModel> {
 
     // The source: the named one, else the first carried holder with
     // water in it — a NARROWING over what the binder bound.
-    const source = this.waterSource(model.source);
+    const source = await this.waterSource(model.source);
     if (!source) {
       MessageApi.scene(giver)
         .topic(TOPIC)
@@ -379,17 +380,33 @@ export default class WaterController extends CommandController<WaterModel> {
    * contents, which no predicate asks (`lint:instrument-args`). A NAMED
    * vessel is taken as named, so "it is empty" can be said about it.
    */
-  private waterSource(bound: MqlManyResult | undefined): Stuff | null {
+  private async waterSource(bound: MqlManyResult | undefined): Promise<Stuff | null> {
     const carried = bound?.stuff ?? [];
     if (carried.length === 0) return null;
-    if (bound?.prep !== undefined) return carried[0]!;
+    if (bound?.prep !== undefined) return this.throughHose(carried[0]!);
     for (const item of carried) {
+      // ⭐ A hose coupled to a tap waters from the tap.
+      if (item instanceof WaterHose) {
+        const outlet = await this.throughHose(item);
+        if (outlet !== null && !BulkableApi.slotFor(outlet, undefined)?.isEmpty()) return outlet;
+        continue;
+      }
+      if (!MixinApi.isBulkable(item)) continue;
       const slot = BulkableApi.slotFor(item, undefined);
       if (!slot || slot.isEmpty()) continue;
       const tags = slot.getMaterial()?.getTags() ?? [];
       if (tags.includes(WATER_TAG)) return item;
     }
     return null;
+  }
+
+  /** A hose stands for the tap it is coupled to (settled, so its water is current); anything else for itself. */
+  private async throughHose(item: Stuff): Promise<Stuff | null> {
+    if (!(item instanceof WaterHose)) return item;
+    const outlet = item.getOutlet();
+    if (outlet === null) return null;
+    await outlet.settleBulk('interior');
+    return outlet;
   }
 }
 

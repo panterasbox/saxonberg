@@ -287,6 +287,12 @@ data:
     # the day it merged. ⭐ A price with no par is a shop that has decided
     # what it charges for something it never has.
     - { itemTemplatePath: /trade/cooking/thing/cleaver, par: 2 }
+    # ⭐ The garden's watering, past the can (water supply, the review): a
+    # rubber hose to run from the yard standpipe, and a sprinkler to throw
+    # it round a bed. The Hinkley lots are the demand — a standpipe in
+    # every yard, beds that dry out, and a buyer who owns them.
+    - { itemTemplatePath: /trade/rubber/thing/hose, par: 2 }
+    - { itemTemplatePath: /stuff/thing/gear/sprinkler, par: 2 }
     - { itemTemplatePath: /trade/cooking/thing/meat-saw, par: 2 }
     # The two feeding vessels. A hopper is what a kept bird eats from —
     # the mine canary is `feedingStyle: [hopper]` and the realm had no
@@ -417,6 +423,8 @@ data:
     - { itemTemplatePath: /trade/apiculture/thing/bellows, par: 2 }
     - { itemTemplatePath: /trade/tailoring/thing/cushion, par: 2 }
   prices:
+    /trade/rubber/thing/hose: 9
+    /stuff/thing/gear/sprinkler: 6
     /trade/chandlery/thing/soap-bar: 3
     /trade/fuel/thing/washing-soda: 2
     /stuff/thing/gear/scrub-brush: 2

@@ -135,6 +135,53 @@ term (salt is physiological drought). A ponded bed drowns roots.
 keeps a lone, recovering body. `collarM` stands a hillside well above its
 zone.
 
+## Sprinklers and hoses — rain in a circle
+
+⭐⭐ **A sprinkler is rain in a circle** (the review, 2026-11-06:
+sprinklers are core to farming). What the rain reaches, it reaches.
+
+- **`Sprinkler`** (kernel `platform/thing/Sprinkler.ts` =
+  `IrrigatingMixin(ThrottleableMixin(SealableMixin(Good)))`, row
+  `/stuff/thing/gear/sprinkler`) is a good you set down and `open`, by an
+  amount like a gate.
+  - **Flow and throw are the tap's head:** an orifice, `Cd·A·√(2gh)`
+    (`nozzleMm`), thrown half its head round, up to `maxThrowM`. Twenty
+    metres of main throws eight metres; a three-metre tank dribbles; a ditch
+    drives nothing.
+  - **It draws the tap's supply** at its rank's share, through
+    `WaterFixture.pressureNow()`.
+  - **What lands is the weather's** (`Soil.landedOpenSeconds`, the overhead
+    inlet's own law).
+  - **What it reaches:** the ground it stands on over the circle it throws,
+    and the beds beside it by the sky each catches. Never a pot, which
+    catches no rain. What the soil can't take stands on it, and whatever is
+    in the spray gets wet.
+- **`Irrigating`** (kernel protocol, `lib/husbandry/Irrigating.ts`): the soil
+  asks what stands on it, or beside it, to bring its water current. The
+  irrigator integrates on its own clock, so two grounds asking count it once.
+  The soil's sync reconcile kicks the settle in the background. That also
+  closed the review's finding that authored inlets were integrated only when
+  someone surveyed.
+- **`WaterHose`** (kernel `platform/thing/WaterHose.ts`; trade-rubber's
+  `hose` row). Its use is where its two ends are coupled:
+  - `tie hose to tap` and `tie hose to sprinkler` screw on each end. Coupled
+    at both ends, it is laid down where you stand.
+  - Carried and coupled at the tap only, it is a hose in your hand you can
+    `water` a bed from.
+  - Not a `Line`: a rope and a hose are different things. Its couplings are
+    runtime, as a line's end is.
+- **The ladder:** the can (a pot, by hand) → the hose by hand (a bed) → a
+  sprinkler (a garden, a small field, unattended, a circle, the weather's
+  share) → several sprinklers or the ditch's furrow by turn (a big field:
+  pressure, settings, the rota). The general store stocks the hose and the
+  sprinkler.
+- ⚠ **Open** (irrigation slate § 13):
+  - On a tract divided into fields, a sprinkler waters the whole tract, its
+    fields by area. Setting it on one field needs fields that hold things.
+  - The hose's couplings do not survive a restart.
+  - The leather hose.
+  - The bench's authored sprinkler-valve as a placed sprinkler on a ram.
+
 ## Staged or live
 
 Staged or live is the content's choice (D30). Each stateful kind ships

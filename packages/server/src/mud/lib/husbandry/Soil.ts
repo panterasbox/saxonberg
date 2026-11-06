@@ -64,6 +64,7 @@ import type { Reserved } from "../reserve";
 import type { Stuff } from "../stuff/Stuff";
 import type { Growing } from "./Growing";
 import type { Throttleable } from "../spatial/Throttleable";
+import type { Irrigating } from "./Irrigating";
 import type { Container } from "../spatial/Container";
 import type Locality from "../../platform/idea/Locality";
 
@@ -312,6 +313,12 @@ export interface Soil {
    * stamp — unresolved never reads as dry.
    */
   settleInlets(nowS: number): Promise<void>;
+  /**
+   * ⭐ The open seconds of a throttled spray over `[fromS, toS]`, each hour
+   * weighted by the share that LANDS in this ground's weather (wind drift,
+   * heat) — what an overhead inlet and a sprinkler standing here both read.
+   */
+  landedOpenSeconds(spray: Stuff & Throttleable, fromS: number, toS: number): Promise<number>;
   /** Litres standing on this ground — what the soil could not take in. */
   getPondedL(): number;
   /** Stand `litres` of water on this ground — a flood, or the drive's staging. */
@@ -556,6 +563,10 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
       return landed;
     }
 
+    public landedOpenSeconds(spray: Stuff & Throttleable, fromS: number, toS: number): Promise<number> {
+      return this.overheadLandedS(spray, fromS, toS);
+    }
+
     public soilAcceptsPonding(): boolean {
       return true;
     }
@@ -612,6 +623,9 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
     }
 
     public async settleInlets(nowS: number): Promise<void> {
+      // ⭐ What stands on this ground, or beside it, and waters it (a
+      // sprinkler — rain in a circle) brings its own water current first.
+      for (const irrigator of this.irrigatorsNear()) await irrigator.settleIrrigation(nowS);
       if (this.inlets.length === 0) return;
       if (this.inletClockStamp === null) {
         this.inletClockStamp = nowS;
@@ -619,12 +633,18 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
       }
       const from = this.inletClockStamp;
       if (!(nowS > from)) return;
+      // ⚠ Claim the window before anything awaits: a background settle and a
+      // survey's settle read concurrently must not both integrate it.
+      this.inletClockStamp = nowS;
       let litres = 0;
       let salt = 0;
       for (const inlet of this.inlets) {
         const gate = await StuffApi.singleton<Stuff>(inlet.gate).catch(() => null);
-        // ⚠ Unresolved: hold the stamp; the backlog waits.
-        if (gate === null || !MixinApi.isThrottleable(gate)) return;
+        // ⚠ Unresolved: give the window back; the backlog waits.
+        if (gate === null || !MixinApi.isThrottleable(gate)) {
+          if (this.inletClockStamp === nowS) this.inletClockStamp = from;
+          return;
+        }
         // ⭐ Its rota's turns first: a turn nobody watched still watered the
         // field (the browser walk — Furtado's turn reached no field).
         await gate.settleOpening(nowS);
@@ -642,7 +662,6 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
         // ppt is g/kg ≈ g/L, so kg = L × ppt / 1000.
         salt += (lent * (inlet.salinityPpt ?? 0.3)) / 1000;
       }
-      this.inletClockStamp = nowS;
       if (!(litres > 0)) return;
       // ⭐ A ground made of parts keeps its soil in them (a tract's fields):
       // the water and its salt go to the parts by area, as every other
@@ -665,6 +684,39 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
         return;
       }
       this.takeInletWater(litres, salt);
+    }
+
+    /**
+     * The irrigators that water this ground: those standing ON it (its own
+     * contents, when it is a place) and, for a ground that catches sky and
+     * stands in a place (a bed), those standing BESIDE it — read locally,
+     * never a search.
+     */
+    private irrigatorsNear(): (Stuff & Irrigating)[] {
+      const self = this as unknown as Stuff;
+      const here: Stuff[] = MixinApi.isContainer(self) ? [...(self.getContents() as Stuff[])] : [];
+      const container = MixinApi.isContainable(self) ? (self.getContainer() as Stuff | null) : null;
+      if (container !== null && MixinApi.isContainer(container) && this.soilCatchmentAreaM2() > 0) {
+        here.push(...(container.getContents() as Stuff[]));
+      }
+      return here.filter((s): s is Stuff & Irrigating => s !== self && MixinApi.isIrrigating(s));
+    }
+
+    /**
+     * ⭐ Bring the water let onto this ground current in the background —
+     * from the SYNC reconcile, so a crop read after a night of a turnout's
+     * turn or a sprinkler's run sees it on the next read (the review found
+     * inlets integrated only when somebody surveyed). One at a time.
+     */
+    private kickWaterSettle(nowS: number): void {
+      if (this._settlingWater) return;
+      if (this.inlets.length === 0 && this.irrigatorsNear().length === 0) return;
+      this._settlingWater = true;
+      void this.settleInlets(nowS)
+        .catch(() => undefined)
+        .finally(() => {
+          this._settlingWater = false;
+        });
     }
 
     /** Whole ground: take what the soil holds, pond the rest, keep the salt. */
@@ -988,6 +1040,9 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
     /** True while an aggregate read asks this ground's own remainder term. */
     private _soilOwnTerm = false;
 
+    /** True while a background water settle runs (`kickWaterSettle`). */
+    private _settlingWater = false;
+
     /**
      * Integrate the soil over elapsed game-time: drain moisture by the
      * **summed** demand of whatever is drinking, scaled by warmth.
@@ -1001,6 +1056,7 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
       if (this._reconcilingSoil) return;
       const nowS = this.soilNowSeconds();
       if (nowS === null) return;
+      this.kickWaterSettle(nowS);
 
       // ⭐ A ground made of parts reconciles each part on its own stamp
       // (field population D3); a divided field holds no reserve of its

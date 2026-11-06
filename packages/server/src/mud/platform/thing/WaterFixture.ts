@@ -461,6 +461,23 @@ export default class WaterFixture
     return depth;
   }
 
+  /**
+   * ⭐ What a hose coupled to this outlet is fed with, as last settled: the
+   * head the water stands at above it, its rank's share in a shortage, and
+   * what the supply can give — or `null` when nothing flows under pressure
+   * (a natural source has no head; an unplumbed or dry one gives nothing).
+   * A sprinkler throws by it (water supply, the review).
+   */
+  public pressureNow(): { headM: number; share: number; availableL: number } | null {
+    if (this.natural) return null;
+    const supply = this.supplyNow();
+    if (supply === null || this.supplyStateNow() !== null) return null;
+    const head = this._headM;
+    if (head === null || !(head > 0)) return null;
+    const share = this._share > 0 && this._share < 1 ? this._share : 1;
+    return { headM: head, share, availableL: supply.availableL() };
+  }
+
   /** Is the head so low a draw gives only a trickle? */
   public runsWeak(): boolean {
     if (this.supplyNow() === null) return false;

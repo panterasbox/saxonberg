@@ -190,3 +190,29 @@ follows it too). So when these are built:
   goes stale when the record changes.
 - ⚠ A person's own notes (a farmer's tally of their turns) are the other
   half of the rule: handwriting on a leaf, with no document behind it.
+
+## 13. Sprinklers — what shipped, and what is left (water supply review, 2026-11-06)
+
+Shipped in water supply: the `Sprinkler` good (rain in a circle, flow and
+throw from the tap's head, the weather's share), the `WaterHose` coupled with
+`tie`, the hose as a hand source for `water`, and both stocked at the general
+store ([water-supply.md](../../subsystems/water-supply.md) § Sprinklers and
+hoses). Left:
+
+1. **Setting a sprinkler on ONE field.** On a tract divided into fields it
+   waters the whole tract, its fields by area — option (a)'s white lie. The
+   fix is fields that hold things (`put sprinkler on lane end`), so a big
+   field becomes several settings and moving it is the work. A
+   `trade-farming` change.
+2. **Couplings that survive a restart.** A hose's ends are runtime (a line's
+   are too); a restart leaves it lying, uncoupled. Persisting them wants a
+   local reference to the tap and the sprinkler that is not a shared
+   template path (a Hinkley lot's standpipe row is every lot's).
+3. **The leather hose** — the epoch before vulcanized rubber (riveted
+   leather, the fire brigade's). A row on the same class.
+4. **The bench's sprinkler-valve** as a placed sprinkler on a ram's line —
+   wants a ram (a `Pumpable` driven by the ditch's own fall) and a standpipe
+   it feeds.
+5. **Many sprinklers on one supply** share its head honestly only through
+   the shortage rank; a supply's pressure falling as more outlets open is
+   the network model's (`SupplyState`), not here.
