@@ -1,11 +1,12 @@
 # Verb interfaces — no single-use verbs
 
-> **Status: UNBUILT · opened 2026-10-18 (user, during the cleanliness MR review !380).**
-> **Left:** `boil` folded into heating (immersion takes the liquid's heat) ·
-> `scrub` as a manner of `wash` · `strew`'s wider uses · an audit of every
-> verb for single-target narrowness · ⭐ the protocol-mixin cost (earned by
-> a shared verb, presented as the verb it serves) and the three
-> single-host ceramics protocols · the `requires: affords` edges.
+> **Status: PARTLY BUILT · opened 2026-10-18 (user, during the cleanliness MR review !380).**
+> **Done by controllers-are-io W4:** `boil` folded into heating, at the boil
+> only (a dye bath or a warm bath still stamps nothing) · `scrub` as `wash
+> --hard` · the cuts sweep, less `shear` (a tap) · `requires: affords` and its
+> probe ([the record](./controllers-are-io-slate.md)).
+> **Left:** `strew`'s wider uses · an audit of every verb for single-target
+> narrowness · immersion below the boil.
 > **Size:** a build.
 
 ## The note (user, 2026-10-18)
@@ -34,6 +35,10 @@ a carpet beater — `capability: brushing` — and a broom, worse); a floor is
 swept, not brushed.
 
 ## `boil` — a temperature, not an act
+
+✅ **Built (controllers-are-io W4), at the boil only.** The occupant's clock is
+`Soilable.holdAtHeatFor`, and the `boil` word is deleted rather than kept as an
+alias. The text below is the design it came from.
 
 Shipped by the water build (`5a8bf4a27`) as *hold a vessel at a rolling
 boil* — purifying water, a build step a recipe can require — and extended
@@ -238,7 +243,10 @@ mixins*): each of `Workable` / `Diggable` / `Splittable` / `Pumpable` /
 `Tappable` / `Cuttable` must pass the earned test as it converts. A shape
 with one host is a verb question first.
 
-### Open: `requires: affords`
+### ✅ Ruled: `requires: affords`
+
+Built and probed by controllers-are-io W4; the rulings are in
+[the probe record](./controllers-are-io-slate.md). The questions as first asked:
 
 The owner was *"okay with it, I guess"*, but not sure the test holds every
 time. A slot that declares `requires: affords` admits only a thing that

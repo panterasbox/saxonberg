@@ -165,7 +165,7 @@ seeds (arcana's shape), named from that pack's own classes by the
 name only its own views, **the kernel can never name a trade's verb** —
 which is why `Whetstone` moved out of `/platform/thing/` when verbs
 became statics. Appliance mixins with real behavior (the furnace →
-`heat`/`ignite`/`douse`/`pump`) declare statics the same way. A commerce
+`heat`/`light`/`douse`/`pump`) declare statics the same way. A commerce
 object (a `CommerceMenu`) affords only its commerce verbs
 (`menu`/`order`) — the menu is for ordering, not making.
 A verb with no instrument at all is innate on `Avatar` — `do`, the
@@ -197,7 +197,7 @@ the spec is shaped to make it cheap when someone wants it.
 
 When two trades turn out to perform ONE act, the collision ladder's rung 2
 applies: unify behind an interface. `dip` moved from `trade-chandlery` to
-`platform/cmd/crafting/dip.yaml` (aliases `melt`, `gob`) with a dumb
+`platform/cmd/crafting/dip.yaml` with a dumb
 `DipController`: every bound bath — anything composing `DipBathMixin`
 (`lib/craft/DipBath.ts`, the protocol and the mixin in one file), bound by
 that mixin — is asked `dipPlanFor(req)` (the target rides the request),
@@ -263,7 +263,7 @@ glassblower's `shape bottle` binds as it always did.
   `CarvableMixin` affords the platform view. Every shipped
   form (`carve haft`, `carve peg from the blank`, `carve handle with the
   billhook`) binds as before.
-- **`impress`** (alias `mold`), new: `impress <pattern> on|in|into <medium>`.
+- **`impress`**, new: `impress <pattern> on|in|into <medium>`.
   The MEDIUM (`ImpressibleMixin`) answers `takeImpression` — a leather-hard pot takes
   the device the pattern's face bears (`MarkedMixin.takeDeviceFrom` — a
   tool that bears none leaves a dent); moulding's media take a whole impression (W7). A press is a
@@ -276,13 +276,15 @@ glassblower's `shape bottle` binds as it always did.
 
 ## YAML view — top-level shape
 
-Every YAML declares one `CommandView`. Required keys: `verbs`,
+Every YAML declares one `CommandView`. Required keys: `verbs`, `category`,
 `controller`, `description`. After that, pick exactly one of `args`
 (flat verb) or `subcommands` (subcommanded verb) — having both is a
 load-time error. `options` is optional at every level.
 
 ```yaml
-verbs: [look, l]              # primary verb first; rest are aliases
+verbs: [look]                 # ONE word (lint:one-word)
+category: perception          # = the cmd/<category>/ directory (lint:command-views)
+defaultAliases: [{name: l}]   # optional; see below
 controller: perception/LookController  # category/Name; resolves to /platform/idea/cmd/perception/LookController
 description: "Examine your surroundings or an object"
 help: |                       # optional; multi-line player-facing prose
@@ -308,6 +310,45 @@ options:                      # optional; verb-scoped
 
 A zero-arg verb (e.g. `inventory`, `ping`) has neither `args` nor
 `subcommands` — that's fine.
+
+### ⭐⭐ One view, one word (controllers-are-io D16)
+
+`verbs:` is a one-element list and a controller is named by the views of one
+verb — `lint:one-word`, three counts, all zero. A synonym is a second
+vocabulary for one act: the player learns a word `help` never teaches, a
+script works with one and an alias table with the other, and every collision
+check has twice the surface. Which word: the plain English a player says;
+where the file's word was the rarer one, the file moves (`light`, not
+`ignite`; `plow`, not `plough` — American English).
+
+⚠ When a word used to choose a behavior (`shake` vs `stir`, `dive` vs `swim`),
+the behavior moves to what it is ABOUT: the vessel names its own working (the
+tool is what knows — `Technique`), and `descend` goes down. A word split across
+controllers is a base plus one controller per verb (`EquipControllerBase` →
+`EquipController`, `WearController`, `WieldController`), and `context.verb`
+decides nothing.
+
+### `defaultAliases:` — a shortcut, declared on the view
+
+`defaultAliases: [{name, description?}]` beside `verbs:`. The criterion is
+narrow on purpose: a one- or two-character MUD-standard shortcut for a verb
+typed many times a session (`l`, `i`, `h`, `?`, `'`), and nothing else. Reached
+only while the view is afforded; `alias unset` tombstones it, persisted; scripts
+use real verbs. See [shell-alias.md](./shell-alias.md).
+
+### `category:` (D24)
+
+Required on every shipped view: the verb's category, equal to its
+`cmd/<category>/` directory (`lint:command-views`), so the directory stays the
+convention and the field the data. `help` groups by it and the affordance
+radial slots by it.
+
+A **domain-local** view (`world/<sphere>/<locality>/cmd/<verb>.yaml`) sits in no
+category directory; it names **the category the verb would have in the platform
+taxonomy**, which must be a directory some view sits in. Today: `adjust` `blow`
+`tally` `wind` → `device` (operating a built mechanism); `stall` → `retail`;
+`remodel` → `crafting` (`paint`'s); `lease` `unlease` `provision` `unprovision`
+→ `civics` (tenure over titled property, beside `title`).
 
 > ⭐⭐ **The collision doctrine is a TRANSPARENCY rule, not only a
 > tidiness one** ([lens #62](../lenses/62-transparency.md), 2026-09-30).
@@ -515,6 +556,12 @@ the dispatcher has no definition, so the verb is unknown and never in
 boot logs one line naming them. Pair it with the
 `requiresTestWorld` validator so the gate sits in the view's own data
 too.
+
+### A manner is an option — `wash --hard`
+
+`scrub` was `wash` with more time in it, so it is `wash <x> --hard` (the
+`cut.yaml` boolean-option precedent): `--hard` reads as three washes' worth
+with a brush, half that by hand, and the `brush` slot is `wash`'s.
 
 ## Help content — `description` / `help` / `examples`
 
@@ -1043,7 +1090,7 @@ asking HOW the query asked, which rides on the MQL result
 for one revision to let a plural `look` tell an ambiguous name from a set
 it was asked for — the engine guessing which of two jobs one verb was
 doing. The fix was to give the jobs two verbs: `look` takes one thing,
-`query` (alias `scan`) lists a set.
+`query` lists a set.
 
 #### `onShortage` — when there are fewer matches than required
 
@@ -1305,6 +1352,17 @@ verb says no.
 ⚠ **A wrong declaration is worse than a missing one.** Over-reporting
 offers a verb that then declines with a reason; **under-reporting hides
 a verb that would have worked**, and the player cannot discover it.
+
+##### ⭐ `requires: [affords]` — the candidate offers this verb (controllers-are-io D8d)
+
+One word is not a mixin: `affords` admits a candidate that itself contributes
+this view, by its class or an ACTIVE mixin, in any bucket (the scope decides
+reach). It is an AND-term, opted into per slot; `affords|XMixin` throws at
+spec-load. Use it for a single-host verb with no protocol to name (`wind`,
+`adjust`, `blow`). ⛔ Never on a tool verb's target: the strainer affords
+`strain`, and you strain the drink. A refusal reads *You can't wind the rock.*
+The verb-by-verb record:
+[controllers-are-io-slate.md](../slates/builds/controllers-are-io-slate.md).
 
 ##### `requires: any` — declared, not omitted
 

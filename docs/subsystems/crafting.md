@@ -474,7 +474,7 @@ used to be a single list copied verbatim onto two rows:
 | hospitality `mix`, `serve`, `garnish` | the STATION — whole-drink acts at the bar | `/trade/hospitality/thing/BarStation` (back-bar, well) |
 | hospitality `muddle` | the MUDDLER | `/trade/hospitality/thing/Muddler` |
 | cooking `cook`, `plate`, platform `heat` | the POT | `/trade/cooking/thing/CookPot` |
-| platform `heat` (alias `boil`) on a plain vessel | the FURNACE — you set it on a lit fire | `BurnerMixin` (oven, kiln, forge) |
+| platform `heat` on a plain vessel | the FURNACE — you set it on a lit fire | `BurnerMixin` (oven, kiln, forge) |
 | smithing `hammer`, `quench`, `forge` + platform `repair`, `salvage` | the ANVIL | `/trade/smithing/thing/Anvil` |
 | platform `repair`, `salvage` | mending capital | `/platform/thing/MendingTool` (sewing kit, sewing machine) |
 | platform `cut` (planned by the target or the tool — § One `cut`) | the SHEARS — and the bench is the same class, faster; the ICE SAW | `/trade/tailoring/thing/CuttingTool` (shears, cutting table) · `/trade/ice/thing/IceSaw` |
@@ -519,14 +519,46 @@ deleted. The controller is dumb and asks two sides in order:
    `CuttingTool` plans any cloth, because the bolt is the weaver's and
    the pattern the tailor's.
 
-A plan is an engaged step — an `ActPlan` (`lib/craft/ActPlan.ts`, the one
-vocabulary every crafting act protocol answers in): `durationMs`,
-`effortW`, `beginSelf`/`beginPeers`, `onComplete` — so **the planner owns its completion
-message and its mint**; an `ActRefusal` is declined in the planner's
-words. Tailoring's three options (`--for`, `--tight`, `--generous`) ride
-the request as an option bag. A second cuttable good (a saddler's hide)
-answers either side with no kernel edit, and the instrument affords the
-verb (`CuttingTool`, `IceSaw`).
+⚠ `CutPlanner` is a kernel protocol mixin (`CutPlannerMixin`), though only
+`CuttingTool` composes it, because a kernel verb reaching a pack's tool
+needs a kernel-declared shape. `cut.yaml`'s target stays `requires: any`:
+cloth is cut by the tool's planner and composes no `CuttableMixin`.
+
+### ⭐⭐ One act convention — the object answers, the controller words (controllers-are-io D4)
+
+`lib/craft/ActPlan.ts` carries no `Mml`. An act answers with a reason and
+the facts:
+
+- `ActRefusal<R, X>` — `{ok: false, reason, facts?}`;
+- `ActOutcome<F>` — `{ok: true, facts}`;
+- `ActPlan<B, F, X>` — `{ok: true, durationMs, effortW, facts, onComplete,
+  onAbort?}`: `facts` is what the begin words need, and `onComplete` lands
+  as an outcome or a late refusal. How long and how hard are the act's.
+
+Each protocol file declares a CLOSED reason union and facts types. The
+controller words them in an exhaustive `switch` with a `never` arm, so the
+compiler is the census of what a verb can say, and an alternate controller
+can word everything differently while changing nothing in the world.
+`ManualBuildController.engagePlan(context, plan, words)` and the
+`EngagedActController.engageAct(context, plan, words)` overload run a plan;
+`words` is `{beginSelf, beginPeers?, onRefused, onDone?}`.
+
+⚠ **The cost, and it is real:** a kernel verb's words are the kernel
+controller's, so a pack host's reasons sit in the kernel's union and its
+sentences in the kernel controller. A new reason for `dip` is a kernel edit,
+or the pack ships its own controller. "A second cuttable thing needs no
+kernel edit" still holds when it reuses reasons.
+
+### ⭐ The cuts plan themselves (controllers-are-io D8c)
+
+The trade cuts ask the same protocol: `cutPlan({verb, …})`, with one entry
+per verb in `CutAnswers` (`cut`, `saw`, `rive`, `crosscut`, `butcher`,
+`scribe`, `snap`, `groze`, `groove`, `scrape`). The answer carries its `verb`
+back and the asking controller narrows on it. Hosts: `Bole`, `Billet`,
+`Corpse`, glass `Sheet`, `IceSheet`, `Rope`, `SugarLoaf`. **The line:** only the
+cut's decision moved. Instrument checks (the saw, the froe, the knife) stay on
+the controller, and so does the saw's timing, because a sawmill's pace is the
+instrument's. `shear` is a tap, not a cut.
 
 ### ⚠⚠ The tool ladder ranks on RATE, and used to rank on luck
 
@@ -584,7 +616,7 @@ not making; camp cooking works because reachable heat + a pot IS a
 kitchen).
 
 **Where a crafting verb lives** — with the pack whose content affords
-it: `heat` (alias `boil`), `pour`, `stir`/`shake`, `repair`, `salvage`,
+it: `heat`, `pour`, `stir`/`shake`, `repair`, `salvage`,
 `wash` are platform (a pot and a shaker both pour and stir; a furnace
 heats; a basin washes; mending is any trade's); `menu`/`order` are platform
 **retail** (a menu is commerce, any venue); `muddle`, `strain`,
@@ -595,7 +627,7 @@ are `trade-smithing`'s — each a capability pack with its controllers in
 and the cook-pot row are cooking's too (the bundle collects the
 trade's instruments).
 
-`BurnerMixin` statically confers `heat` (with `ignite`/`douse`/`pump`)
+`BurnerMixin` statically confers `heat` (with `light`/`douse`/`pump`)
 — an appliance mixin, not a `Tooled` host. (⚠ There is no generic
 `make`: the verb of that name only ever replayed a player's script, and it
 is the shell's `do` now — see § The knowledge ladder.) Capability entries are
@@ -1738,7 +1770,7 @@ pieces that attach at the same place and should land together:
   sits beside), [command-routing](./command-routing.md) /
   [command-spec](./command-spec.md), [mixins](./mixins.md),
   [call-security](./call-security.md), [watershed](./watershed.md) (boiling is a
-  temperature: `boil` is an alias of `heat`, a wet recipe is
+  temperature: there is no `boil` verb, a wet recipe is
   `requiresHeatK` + `medium: water`, and `purifiedByBoiling` fires in the
   thermal phase engine once contents are held at the boil).
 - **Seeding slates:** `docs/slates/tails/crafting-slate.md`,
@@ -1878,7 +1910,7 @@ the feed was dropped. It folds the source payload through
 `Recipe.soils` (and `WorkResult.soils`; a tap's is derived — cleanliness B49) name what a
 making deposits and where; the maker lands it (`Hygiene.soilFrom`). A
 Soilable tool short of *sanitised* — and a dirty hand — inoculates the
-perishable inputs before the working's kill. `boil <cloth> in <pot>` and
+perishable inputs before the working's kill. A pot on the boil (what is in it) and
 `heat <instrument>` stamp the heat the clean tiers read. See [cleanliness.md](./cleanliness.md).
 
 ## History — storage-and-ice (MR !378, 2026-10-18)

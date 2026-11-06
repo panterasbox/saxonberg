@@ -104,7 +104,7 @@ least `washedShare(site)` wet — the whole of a shirt, a rug or a floor (a
 mopped floor is slick until it dries, `Floor` ≥ 0.3), a hand's surface
 share of a body (`Creature.washedShare` over `Attired.surfaceShareOf`:
 washing your hands leaves you dry; a bath soaks you). A thing boiled in a
-pot (`holdAtHeat(…, {wet})`) comes out wet. A WADE wets the body by the
+pot (`holdAtHeatFor`, below) comes out wet. A WADE wets the body by the
 share under water, each layer under it whole (`Attired.immerse`). And a
 **towel** (`platform/thing/Cloth`, held, confers `dry`) takes it off:
 `dry me with towel` → `Wet.soakUp`, the water moved by mass into the
@@ -133,16 +133,26 @@ wool back.
 | `disinfected` | a boil held (≥ 373 K, 300 s), and no pathogen survives |
 | `sterile` | a dry heat or a flame ≥ 433 K for 60 s |
 
-Writers of the heat stamp: `boil <cloth> in <pot>` and `heat <instrument>`
-(held in the flame), each also running the shipped kill law
-(`Contamination.killOver`; spores survive a boil). Readers:
+Writers of the heat stamp: ⭐ **the bath** — a thing IN a vessel whose liquid
+is on the boil is held there by the vessel's own thermal reconcile
+(`Soilable.holdAtHeatFor`, controllers-are-io D8c; no verb, and the word
+`boil` is gone: `put bandage in pot`, with the pot on the fire) — and `heat
+<instrument>` (held in the flame). Each runs the shipped kill law
+(`Contamination.killOver`; spores survive a boil). The occupant keeps its own
+clock from when it went in (`enterBath`/`leaveBath`, from the vessel's
+containment hooks): five minutes of a pot's boil before the bandage went in
+count for nothing. ⚠ Each read credits only the seconds since the last one and
+kills once over those, while the stamp holds the whole time since entry;
+`holdAtHeat` re-kills per call and is for a single act. ⚠ At the boil only: a
+warm bath stamps nothing. Readers:
 
 - **the clinic** — a dressing's quality IS its tier (raw 0.3, washed 0.6,
   sanitised 0.8, boiled 1); `applyTreatment` seeds sepsis from the WORST of
   the hands, the dressing short of disinfected and the instrument short of
   sterile (surgery) or disinfected (a suture needle); surgery seeds
-  whatever the wound's type (B23). A competent nurse boils a raw bandage
-  first.
+  whatever the wound's type (B23). A competent nurse drops a raw bandage
+  into a pot on the boil and waits on it; with no pot on the boil she
+  dresses with what she has.
 - **the kitchen** — a board, knife or hand short of sanitised inoculates
   the food it touches with `staph-aureus` BEFORE the working's kill (B24):
   a stew boiled long enough is safe, a salad cut on a dirty board is not.

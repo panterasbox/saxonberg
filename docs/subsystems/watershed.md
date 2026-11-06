@@ -1022,12 +1022,12 @@ pay for treatment — discoverable, never sensed.
 Only a **supply** can be `fouled`: a sewer carrying filth is a sewer
 working.
 
-### Boiling is a temperature — `boil` is an alias of `heat`
+### Boiling is a temperature — there is no `boil`
 
 ⭐⭐ **Retired as a verb 2026-10-19.** Boiling is heating something to its
 boiling point; it does not need a verb of its own, and having one taught
-the opposite of the cooking lesson. `boil` now rides `heat`'s view as an
-alias: `heat pail` (or `boil pail`) sets the vessel on the lit fire in
+the opposite of the cooking lesson. It rode `heat`'s view as an alias until
+controllers-are-io deleted the word: `heat pail` sets the vessel on the lit fire in
 reach, and the **phase engine** does the rest
 ([thermal.md](./thermal.md) § the boil plateau):
 

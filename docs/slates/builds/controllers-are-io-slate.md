@@ -867,3 +867,49 @@ the tool, which keeps `reachable`.
 | `textiles/scutch.yaml` |  | `source` | `[inventory,reachable]` | keep | in-hand (inventory first) |
 | `textiles/spin.yaml` |  | `stock` | `[inventory,reachable]` | keep | in-hand (inventory first) |
 | `textiles/weave.yaml` |  | `yarn` | `[inventory,reachable]` | keep | in-hand (inventory first) |
+
+## `requires: affords` — the twelve-verb probe (W4)
+
+Built as a slot predicate (`CommandLogic.parseRequirement`, D8d): the
+candidate itself contributes this view, read from the class chain's own
+`commandContributions` and skipping any gated mixin that is not active. An
+AND-term only; `affords|XMixin` throws at spec-load. The method: every view's
+slots and every class naming the view were read; the term is tested against
+real views in `command-requires-affords.test.ts` and terminus'
+`affords-views.test.ts`. ⚠ Only `wind`, `adjust` and `blow` were opted in, so
+the other nine verdicts are readings, not runs.
+
+The four edges, as ruled:
+
+- **Placement: "contributes the view at all", any bucket.** Scope decides
+  reach. Measured: `Whistle` contributes `environment` only and `Watch`
+  `inventory` + `environment`, so a per-bucket read would refuse a held
+  whistle the scope had already admitted.
+- **Conferred: counted, through `getActiveMixins`.** It covers augment-gated
+  mixins the class COMPOSES. ⚠ A mixin the class does not compose at all is
+  not read; no verb here needs one. None of the twelve is conferred today
+  (the gated mixins are `Aether` and `Caster`).
+- **Affording ≠ target, and two roles: `affords` cannot see either.** Both
+  are the reason it is per slot. Five of the twelve are wrong on their target.
+
+| verb | who contributes it | the slot | affording = target? | placement | conferred | two roles | verdict |
+|---|---|---|---|---|---|---|---|
+| `wind` | `Watch` | `target` (`any`) | yes | inventory + environment; `any` bucket holds | no | no | ⭐ **opted in** |
+| `adjust` | `Watch` | `target` (`any`) | yes | same | no | no | ⭐ **opted in** |
+| `blow` | `Whistle` | `target` (`any`) | yes | environment only, and a held whistle still binds | no | no | ⭐ **opted in** |
+| `pump` | `Pump`, `Burner`, `AirPump`, `Well`, `BilgeWell`, `Wellhead` | `target` (`PumpableMixin\|PumpSourceMixin`) | yes | no issue | no | no | not needed: the protocol already says it |
+| `turn` | `TurnableMixin`, `RopeJack` | `target` (`any`) | yes | no issue | no | no | not needed: the slot should name `TurnableMixin` |
+| `stir` | `CompoundingMixin`, `HandWorkedMixin`, `ManualBuildMixin` | `vessel` (`any`) | yes | no issue | no | no | a fair candidate: three mixins and no one protocol; not opted in, an alternation also fits |
+| `dip` | `DipBathMixin`, `DipPot`, `Blowpipe` | `bath` (`DipBathMixin`); `target` (`any`) | ⛔ no on `target`: a wick affords nothing, and the pipe affords `dip` without being a bath | no issue | no | ⚠ pipe and bath | no: the mixin on `bath` is the exact test |
+| `carve` (on) | `CarvableMixin`, `Board`, `Blank` | `target` (`any`), `stock` (`TangibleMixin`) | yes on `target`; ⛔ no on `knife` | no issue | no | ⚠ yes: a board is carved FROM and a pot ON, and both afford it | no: the planner decides, as the slate guessed |
+| `strain` | `Strainer` | `vessel`, `glass` (`ManualBuildMixin`) | ⛔ no: the strainer affords it, the drink is strained | no issue | no | no | no |
+| `serve` | `BarStation` | `patron` (`class:Agent`) | ⛔ no: the station affords it, a person is served | no issue | no | no | no |
+| `tap` | `Stand`, `SapStandard` | `target` (`any`) | ⚠ half: a `Stand` (a location) affords it and the tree inside is tapped | ⚠ `Stand` contributes `inventory`, its occupants' bucket | no | ⚠ place and tree | no: it would admit the wood itself |
+| `switch` | `ManaLamp`, `ElectricPump`, `Stamper` | `target` (`SwitchableMixin`) | yes | no issue | no | no | ⛔ no: 11 classes compose `SwitchableMixin` and only those 3 name the view, so `affords` would refuse the rest. ⚠ A finding for the owner: nothing here established how `SconceLamp` and the others afford `switch` |
+
+⭐ **The ruling.** `affords` fits a verb whose one thing offers it and has no
+protocol of its own to name: the single-host verbs. It says less than a
+protocol mixin everywhere one exists, and it is wrong for every tool verb. It
+stays beside the mixin, never instead of it. ⚠ What it costs: an opted-in slot's
+refusal is the binder's (*You can't wind the rock.*), where the controller said
+*You can't wind that.*; those controllers' own arms stay as the type narrowing.
