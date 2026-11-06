@@ -29,7 +29,7 @@ import { Idea } from "../../stuff/Idea";
 import { ContainerMixin } from "../../spatial/Container";
 import { ContainableMixin } from "../../spatial/Containable";
 import { CommandGiverMixin } from "../CommandGiver";
-import { ToolMixin } from "../../craft/Tooled";
+import { ToolMixin } from "../../craft/Tool";
 import { MobileMixin } from "../../spatial/Mobile";
 import { PosedMixin } from "../../character/Posed";
 import { FoldableMixin } from "../../slot/Foldable";

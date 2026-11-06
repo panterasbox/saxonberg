@@ -94,7 +94,7 @@ import { MqlApi } from '../../api/mql';
 import type { MqlOneResult } from '../../api/mql';
 import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
-import type { Tooled } from '../craft/Tooled';
+import type { Tooled } from '../craft/Tool';
 import type { Durable } from '../material/Durable';
 import { Quantity } from '../quantity';
 import type { Unit } from '../quantity';

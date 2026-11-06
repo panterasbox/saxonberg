@@ -35,8 +35,8 @@ import type { CommandContributions } from "../../api/command";
 import type { Stuff } from "../stuff/Stuff";
 import { Quantity } from "../quantity";
 import type { Unit } from "../quantity";
-import type { Reserved } from "../reserve";
-import { Reserve } from "../reserve";
+import type { Reserved } from "../reserve/Reserved";
+import { Reserve } from "../reserve/Reserved";
 import type { Vitals } from "../vitals/Vitals";
 import type { Organism } from "../species/Organism";
 import type { Posed } from "../character/Posed";
@@ -62,7 +62,7 @@ import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
 import { BulkableApi } from '../../api/bulk';
 import { Freshness } from '../material/Freshness';
-import { UTENSIL_KINDS, type UtensilKind } from '../bulk/Utensil';
+import { UTENSIL_KINDS, type UtensilKind } from '../bulk/Cutlery';
 
 /* ─────────────────────────── toxin model (types) ─────────────────────────── */
 //

@@ -111,7 +111,7 @@ import type Material from '../../../lib/material/Material';
 import UnboundedReceptacle from '../../thing/UnboundedReceptacle';
 import type { FacultyView } from '../../../lib/magic/Caster';
 import { MANA_RESERVE_KEY, OVERCHANNEL_STRAIN_PATH } from '../../../lib/magic/Caster';
-import type { Reserved } from '../../../lib/reserve';
+import type { Reserved } from '../../../lib/reserve/Reserved';
 import type { Container } from '../../../lib/spatial/Container';
 import type { Combatant } from '../../../lib/combat/Combatant';
 import type { GenerationNow } from '../../../lib/identification/Appearance';

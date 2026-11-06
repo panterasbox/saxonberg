@@ -22,7 +22,7 @@ import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Creature } from '../../creature/Creature';
 import Material from '../../material/Material';
-import { BIOLOGICAL_RESERVE_KEYS, Reserve } from '../../reserve';
+import { BIOLOGICAL_RESERVE_KEYS, Reserve } from '../../reserve/Reserved';
 import { METABOLIC_DEFAULTS } from '../Metabolic';
 import { StuffApi } from '../../../api/stuff';
 import { AppApi } from '../../../api/app';

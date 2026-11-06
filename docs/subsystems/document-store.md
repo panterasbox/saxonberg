@@ -233,7 +233,7 @@ Same shape, same installer, same stated reasons, different store.
 ### ⭐⭐ The register transport — a shape, not a name
 
 *"Who keeps this register?"* has a mechanical answer as well as a design
-one, and it is `Registrar` (`lib/document/Register.ts`).
+one, and it is `Registrar` (`lib/document/Registrar.ts`).
 
 A register needs a write the ordinary gate cannot give it: `save` admits
 the **branch owner**, and the whole point of a register is that the

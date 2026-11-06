@@ -39,7 +39,7 @@ import { Idea } from '../../../../lib/stuff/Idea';
 import { NamedMixin } from '../../../../lib/description/Named';
 import { VisibleMixin } from '../../../../lib/description/Visible';
 import { DetailedMixin } from '../../../../lib/description/Detailed';
-import { ReservedMixin } from '../../../../lib/reserve';
+import { ReservedMixin } from '../../../../lib/reserve/Reserved';
 import {
   makeStuffAtPath,
 } from '../../../../lib/security/__tests__/test-setup';

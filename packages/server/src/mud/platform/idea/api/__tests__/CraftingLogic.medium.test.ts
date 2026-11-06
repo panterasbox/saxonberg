@@ -38,7 +38,7 @@ import Oven from '../../../thing/Oven';
 import CraftVessel from '../../../thing/CraftVessel';
 import GradedReceptacle from '../../../thing/GradedReceptacle';
 import RecipeCatalogue from '../../RecipeCatalogue';
-import { Reserve } from '../../../../lib/reserve';
+import { Reserve } from '../../../../lib/reserve/Reserved';
 import { Idea } from '../../../../lib/stuff/Idea';
 import { ContainerMixin } from '../../../../lib/spatial/Container';
 import { ThermalMixin } from '../../../../lib/thermal/Thermal';

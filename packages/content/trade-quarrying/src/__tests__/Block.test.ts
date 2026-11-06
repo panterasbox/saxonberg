@@ -26,7 +26,7 @@ import {
   makeStuffAtPath,
 } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tooled';
+import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tool';
 import type { WorkPlan, WorkRefusal } from '@saxonberg/server/mud/lib/ground/Workable';
 
 const GRANITE = '/stuff/idea/material/rock/granite';

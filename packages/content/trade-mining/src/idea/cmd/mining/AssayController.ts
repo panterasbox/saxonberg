@@ -34,7 +34,7 @@ import type { MqlManyResult, MqlOneResult } from '@saxonberg/server/mud/api/mql'
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
-import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tooled';
+import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tool';
 import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
 import type Reading from '@saxonberg/server/mud/lib/instrument/Reading';
 import type ReadingRecord from '@saxonberg/server/mud/platform/thing/ReadingRecord';

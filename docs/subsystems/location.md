@@ -416,7 +416,7 @@ mirrors it):**
 | `location/Bar.ts` | Singleton external-neighbor shell (Dave's Bar); self-stocks crafting content via `props:` (the hospitality trade's back-bar + stations by reference, the venue's bottles `onto` it, plus the menu) and its troupe via `cast:` (Dave and the lounge cast). |
 | `thing/LoungeTerminal.ts` | The TPA node (a `TpaTerminal`, a Thing) — the pack's boot entry. |
 | `idea/LoungeWarren.ts` | Concrete singleton **`RoomWarren`** — the lounge *policy* (its members are rooms). The elastic *two-tier* consumers (`DormWarren`, `BuildingWarren`, `PlatWarren`) are `CirculationWarren`s whose members are themselves warrens — see [holding.md](./holding.md). |
-| `LoungeMixin.ts` | `LoungeMixin` — lounge-room behavior + the home for future room functionality (a locality's mixin has no branch; it stays at the root, with `paths.ts`). |
+| `Lounge.ts` | `LoungeMixin` — lounge-room behavior + the home for future room functionality (a locality's mixin has no branch; it stays at the root, with `paths.ts`). |
 
 The composition-only classes the lounge used to carry (`Menu`,
 `CraftVessel`, `GradedReceptacle`, `NeonSign`, `CocktailShaker`,

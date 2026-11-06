@@ -35,7 +35,7 @@ import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { AccountabilityApi } from '@saxonberg/server/mud/api/accountability';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
-import { Reserve } from '@saxonberg/server/mud/lib/reserve';
+import { Reserve } from '@saxonberg/server/mud/lib/reserve/Reserved';
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
 import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
 import { ContainableMixin } from '@saxonberg/server/mud/lib/spatial/Containable';

@@ -49,7 +49,7 @@
 
 import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
-import type { Reserved } from '../reserve';
+import type { Reserved } from '../reserve/Reserved';
 import type { LocomotionMode } from '../../platform/idea/LocomotionMode';
 import { Quantity } from '../quantity';
 import { AppApi } from '../../api/app';

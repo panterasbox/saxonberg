@@ -28,7 +28,7 @@ import { GroundWorkController } from './GroundWorkController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { MqlOneResult } from '../../../../api/mql';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
-import type { Tooled } from '../../../../lib/craft/Tooled';
+import type { Tooled } from '../../../../lib/craft/Tool';
 import type {
   WorkPlan,
   Workable,

@@ -13,7 +13,7 @@
 
 import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
 import { PlacingMixin } from '@saxonberg/server/mud/lib/spatial/Placing';
-import { ToolMixin } from '@saxonberg/server/mud/lib/craft/Tooled';
+import { ToolMixin } from '@saxonberg/server/mud/lib/craft/Tool';
 
 const TapBase = PlacingMixin(ToolMixin(Thing));
 

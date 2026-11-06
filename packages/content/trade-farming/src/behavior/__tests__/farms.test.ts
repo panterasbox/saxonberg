@@ -33,7 +33,7 @@ import PaymentCard from '@saxonberg/server/mud/platform/thing/PaymentCard';
 import ChattelRegistry from '@saxonberg/server/mud/platform/idea/ChattelRegistry';
 import BusinessEntity from '@saxonberg/server/mud/platform/idea/Business';
 import Material from '@saxonberg/server/mud/lib/material/Material';
-import { Reserve, ReservedMixin } from '@saxonberg/server/mud/lib/reserve';
+import { Reserve, ReservedMixin } from '@saxonberg/server/mud/lib/reserve/Reserved';
 import { SoilMixin } from '@saxonberg/server/mud/lib/husbandry/Soil';
 import { AdvancementMixin } from '@saxonberg/server/mud/lib/advancement/Advancement';
 import {

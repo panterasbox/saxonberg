@@ -10,7 +10,7 @@ along when their host moves.
 |---|---|---|
 | `Mountable` | `lib/slot/Mountable.ts` | Single mount slot occupant can ride |
 | `Drivable` | `lib/slot/Drivable.ts` | Has a controller slot (driver position) |
-| `SeatedDrivableMixin` | `lib/slot/Drivable.ts` | Sibling override — controller slot lives on a Containable seat |
+| `SeatedDrivableMixin` | `lib/slot/SeatedDrivable.ts` | Sibling override — controller slot lives on a Containable seat |
 | `SlotRef` | `lib/slot/Drivable.ts` | Internal `(host, slotName)` pair; not inter-Stuff contract |
 
 Both compose on `Stuff & Slotted`. `SeatedDrivableMixin` composes

@@ -22,7 +22,7 @@ import type { CommandContext, CommandModel } from "../../../../api/command";
 import type { MqlManyResult } from "../../../../api/mql";
 import type { AbortReason } from "@saxonberg/types";
 import type { Stuff } from "../../../../lib/stuff/Stuff";
-import type { Tooled } from "../../../../lib/craft/Tooled";
+import type { Tooled } from "../../../../lib/craft/Tool";
 import type { ActPlan } from "../../../../lib/craft/ActPlan";
 import { MixinApi } from "../../../../api/mixin";
 import { MessageApi } from "../../../../api/message";

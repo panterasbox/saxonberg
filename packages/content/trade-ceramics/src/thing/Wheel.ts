@@ -6,7 +6,7 @@
  */
 
 import Good from '@saxonberg/server/mud/lib/stuff/Good';
-import { ToolMixin } from '@saxonberg/server/mud/lib/craft/Tooled';
+import { ToolMixin } from '@saxonberg/server/mud/lib/craft/Tool';
 import { DurableMixin } from '@saxonberg/server/mud/lib/material/Durable';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { ShapeRequest } from '@saxonberg/server/mud/lib/craft/Shapeable';

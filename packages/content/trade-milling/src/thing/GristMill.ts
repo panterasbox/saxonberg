@@ -26,7 +26,7 @@
  */
 
 import Good from '@saxonberg/server/mud/lib/stuff/Good';
-import { ToolMixin } from '@saxonberg/server/mud/lib/craft/Tooled';
+import { ToolMixin } from '@saxonberg/server/mud/lib/craft/Tool';
 import { ComminutingMixin } from '@saxonberg/server/mud/lib/craft/Comminuting';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';

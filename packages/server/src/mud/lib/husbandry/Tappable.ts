@@ -31,7 +31,7 @@
  */
 
 import type { Stuff } from '../stuff/Stuff';
-import type { Tooled } from '../craft/Tooled';
+import type { Tooled } from '../craft/Tool';
 import type { Bulkable } from '../bulk/Bulkable';
 import type { WorkPrognosis, WorkResult } from '../ground/Workable';
 

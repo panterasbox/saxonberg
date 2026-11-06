@@ -532,7 +532,7 @@ when they write a farm where the wood used to be, not a verb.
 | `packages/content/rejection/content/world/terminus/rejection/hanging-wood{.yaml,/}` | the venue: zone, treeline, ride, oak-clearing, hazel-cant, `thing/panel-{north,west}` |
 | `packages/server/src/mud/lib/husbandry/Growing.ts` | `harvestTool`, `discipline` |
 | `packages/server/src/mud/platform/thing/Plant.ts` | `standardMaterialPath` |
-| `packages/server/src/mud/lib/craft/Tooled.ts` | `epoch` |
+| `packages/server/src/mud/lib/craft/Tool.ts` | `epoch` |
 | `packages/server/src/mud/api/grammar.ts` | `GrammarApi.inWords` |
 | `packages/wire/tests/forestry.dirty.wire.test.ts` | the drive |
 

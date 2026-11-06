@@ -91,7 +91,7 @@ import { OrganismMixin } from '../../lib/species/Organism';
 import { SlottedMixin } from '../../lib/slot/Slotted';
 import { BodyPlanSlotsMixin } from '../../lib/slot/BodyPlanSlots';
 import { AttiredMixin } from '../../lib/slot/Attired';
-import { ReservedMixin } from '../../lib/reserve';
+import { ReservedMixin } from '../../lib/reserve/Reserved';
 import { VitalsMixin } from '../../lib/vitals/Vitals';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
 import { ContainerMixin } from '../../lib/spatial/Container';

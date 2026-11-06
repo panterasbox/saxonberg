@@ -54,7 +54,7 @@ import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import type { MarkupAugmenter } from '@saxonberg/server/mud/api/mml';
-import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tooled';
+import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tool';
 import type { Bulkable } from '@saxonberg/server/mud/lib/bulk/Bulkable';
 import type { WorkDifficulty, WorkPrognosis } from '@saxonberg/server/mud/lib/ground/Workable';
 import type { TapClosedReason } from '@saxonberg/server/mud/platform/idea/species/Species';

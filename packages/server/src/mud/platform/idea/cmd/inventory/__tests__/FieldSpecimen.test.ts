@@ -23,7 +23,7 @@ import FeedController from '../../bulk/FeedController';
 import Receptacle from '../../../../thing/Receptacle';
 import Plant from '../../../../thing/Plant';
 import Material from '../../../../../lib/material/Material';
-import { Reserve, ReservedMixin } from '../../../../../lib/reserve';
+import { Reserve, ReservedMixin } from '../../../../../lib/reserve/Reserved';
 import {
   SoilMixin,
   SOIL_MOISTURE_RESERVE_KEY,

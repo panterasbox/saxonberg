@@ -15,7 +15,7 @@ import type { Publisher } from "../../../lib/press/Publisher";
 import type { Business } from "../Business";
 import { RELEASE_DOCUMENT_KIND } from "../../../lib/press/Release";
 import { CommandApi } from "../../../api/command";
-import type { Registrar } from '../../../lib/document/Register';
+import type { Registrar } from '../../../lib/document/Registrar';
 import type { Berthed } from '../BerthExit';
 import {
   DECLARED_DOCUMENT_KINDS,

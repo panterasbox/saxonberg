@@ -11,7 +11,7 @@
 import Good from '../../lib/stuff/Good';
 import { ContainerMixin } from '../../lib/spatial/Container';
 import { SealableMixin } from '../../lib/spatial/Sealable';
-import { ReservedMixin } from '../../lib/reserve';
+import { ReservedMixin } from '../../lib/reserve/Reserved';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
 import { CombustibleMixin } from '../../lib/fire/Combustible';
 import { TearableMixin, type TearOutcome } from '../../lib/material/Tearable';

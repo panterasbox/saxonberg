@@ -16,7 +16,7 @@ import WateringCan from '../../../../thing/WateringCan';
 import Plant from '../../../../thing/Plant';
 import PlantPot, { PLANT_SLOT } from '../../../../thing/PlantPot';
 import Material from '../../../../../lib/material/Material';
-import { Reserve, ReservedMixin } from '../../../../../lib/reserve';
+import { Reserve, ReservedMixin } from '../../../../../lib/reserve/Reserved';
 import { SoilMixin } from '../../../../../lib/husbandry/Soil';
 import { Mixins } from '../../../../../lib/mixin';
 import { readFileSync } from 'fs';

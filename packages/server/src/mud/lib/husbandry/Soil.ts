@@ -60,7 +60,7 @@ import { WeatherApi } from "../../api/weather";
 import { AppSettingKeys } from "../config/AppSettings";
 import { TemplatePaths } from "../paths";
 import { Quantity } from "../quantity";
-import type { Reserved } from "../reserve";
+import type { Reserved } from "../reserve/Reserved";
 import type { Stuff } from "../stuff/Stuff";
 import type { Growing } from "./Growing";
 import type { Container } from "../spatial/Container";

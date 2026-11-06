@@ -26,7 +26,7 @@ import { dirname, join } from 'path';
 import YAML from 'yaml';
 import GristMill from '../thing/GristMill';
 import { ComminutingMixin } from '@saxonberg/server/mud/lib/craft/Comminuting';
-import { ToolMixin } from '@saxonberg/server/mud/lib/craft/Tooled';
+import { ToolMixin } from '@saxonberg/server/mud/lib/craft/Tool';
 import MillController from '../idea/cmd/milling/MillController';
 import Material from '@saxonberg/server/mud/lib/material/Material';
 import Sack from '@saxonberg/server/mud/platform/thing/Sack';

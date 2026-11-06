@@ -38,7 +38,7 @@ import { EngagedActController } from '../../../../lib/command/EngagedActControll
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { MqlOneResult } from '../../../../api/mql';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
-import type { Tooled } from '../../../../lib/craft/Tooled';
+import type { Tooled } from '../../../../lib/craft/Tool';
 import type { Bulkable } from '../../../../lib/bulk/Bulkable';
 import type { Tappable } from '../../../../lib/husbandry/Tappable';
 import type { WorkPlan } from '../../../../lib/ground/Workable';

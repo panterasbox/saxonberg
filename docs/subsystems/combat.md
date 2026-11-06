@@ -80,7 +80,7 @@ one per combatant, that evaporates at session end and **never touches the
   (`{open, expiresAtTick}`) — the combatant reads `open` for a bounded
   number of ticks, then, unexploited, the window lapses.
 - Defensive/reactive play (a **defend** beat) **restores** poise, capped by
-  the `endurance` reserve ([metabolism](./metabolism.md) / `lib/reserve.ts`)
+  the `endurance` reserve ([metabolism](./metabolism.md) / `lib/reserve/Reserved.ts`)
   — a gassed fighter can't buy it back.
 
 ⭐⭐ **Poise stays combat-scoped — rejected, not merely undone.** The

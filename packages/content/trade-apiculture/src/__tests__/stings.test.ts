@@ -37,7 +37,7 @@ import Species from '@saxonberg/server/mud/platform/idea/species/Species';
 import BodyPlan from '@saxonberg/server/mud/platform/idea/species/BodyPlan';
 import Smoker from '../thing/Smoker';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
-import { Reserve } from '@saxonberg/server/mud/lib/reserve';
+import { Reserve } from '@saxonberg/server/mud/lib/reserve/Reserved';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';

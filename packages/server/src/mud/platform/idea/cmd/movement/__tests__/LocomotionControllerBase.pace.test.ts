@@ -21,7 +21,7 @@ import { SensorMixin } from '../../../../../lib/message/Sensor';
 import { ContainableMixin } from '../../../../../lib/spatial/Containable';
 import { NamedMixin } from '../../../../../lib/description/Named';
 import { MobileMixin } from '../../../../../lib/spatial/Mobile';
-import { ReservedMixin, Reserve } from '../../../../../lib/reserve';
+import { ReservedMixin, Reserve } from '../../../../../lib/reserve/Reserved';
 import { ExertingMixin } from '../../../../../lib/exertion/Exerting';
 import type Interactive from '../../../Interactive';
 import type Place from '../../../../../lib/stuff/Place';

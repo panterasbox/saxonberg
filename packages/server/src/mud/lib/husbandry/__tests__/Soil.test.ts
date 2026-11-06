@@ -18,7 +18,7 @@
 import '../../../../test-bootstrap';
 import { describe, it, expect } from 'vitest';
 import { Idea } from '../../stuff/Idea';
-import { ReservedMixin, Reserve } from '../../reserve';
+import { ReservedMixin, Reserve } from '../../reserve/Reserved';
 import { SoilMixin, SOIL_MOISTURE_RESERVE_KEY, SOIL_NITROGEN_RESERVE_KEY, SOIL_ORGANIC_MATTER_RESERVE_KEY, SOIL_RESERVE_THEME } from '../Soil';
 import { MixinApi } from '../../../api/mixin';
 import { Quantity } from '../../quantity';

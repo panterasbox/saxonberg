@@ -36,7 +36,7 @@ import type { Trauma } from '@saxonberg/server/mud/platform/idea/Condition';
 import { TRAUMA_BEHAVIOR } from '@saxonberg/server/mud/platform/idea/Condition';
 import type { Difficulty } from '@saxonberg/server/mud/lib/advancement/ActSignature';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tooled';
+import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tool';
 
 const TOPIC = 'sense.reading';
 const FORENSICS = 'forensics';

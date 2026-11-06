@@ -44,7 +44,7 @@ import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { LightSourceMixin } from '@saxonberg/server/mud/lib/perception/LightSource';
 import { ThermalMixin } from '@saxonberg/server/mud/lib/thermal/Thermal';
 import { BurnerMixin } from '@saxonberg/server/mud/lib/fire/Burner';
-import { ToolMixin } from '@saxonberg/server/mud/lib/craft/Tooled';
+import { ToolMixin } from '@saxonberg/server/mud/lib/craft/Tool';
 import { BulkableMixin } from '@saxonberg/server/mud/lib/bulk/Bulkable';
 import { CraftedMixin } from '@saxonberg/server/mud/lib/craft/Crafted';
 import { FractionatingMixin } from '@saxonberg/server/mud/lib/fractionation/Fractionating';

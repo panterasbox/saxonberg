@@ -57,7 +57,7 @@ import { Grade, type GradeBand } from '../../../../lib/craft/Grade';
 import { Quantity } from '../../../../lib/quantity';
 import type { Growing } from '../../../../lib/husbandry/Growing';
 import type { Soil } from '../../../../lib/husbandry/Soil';
-import type { Tooled } from '../../../../lib/craft/Tooled';
+import type { Tooled } from '../../../../lib/craft/Tool';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Containable } from '../../../../lib/spatial/Containable';
 import type { Container } from '../../../../lib/spatial/Container';

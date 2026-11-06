@@ -23,7 +23,7 @@ import { CompetenceBand, type CompetenceBandName } from '@saxonberg/server/mud/l
 import type { CommandContext } from '@saxonberg/server/mud/api/command';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type Place from '@saxonberg/server/mud/lib/stuff/Place';
-import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tooled';
+import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tool';
 import type { Positioned } from '@saxonberg/server/mud/lib/expanse/Positioned';
 import type { Voyaging } from '@saxonberg/server/mud/lib/expanse/Voyaging';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';

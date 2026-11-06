@@ -16,7 +16,7 @@
 import '../../../test-bootstrap';
 import { describe, it, expect, beforeEach } from 'vitest';
 import Good from '../../lib/stuff/Good';
-import { ToolMixin } from '../../lib/craft/Tooled';
+import { ToolMixin } from '../../lib/craft/Tool';
 import { NamedMixin } from '../../lib/description/Named';
 import { PerceptibleMixin } from '../../lib/description/Perceptible';
 import { VisibleMixin } from '../../lib/description/Visible';

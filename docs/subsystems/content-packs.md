@@ -1450,7 +1450,7 @@ a manifest declares which, so the script still says).
   rows, sorted by branch), `content/stuff/idea/lounge.yaml`,
   `content/msh/`, `content/settings/lounge.yaml` (`root: /world/lounge`);
   source under `src/mud/world/lounge/{location,thing,idea}/` + the
-  locality-root `LoungeMixin.ts` / `paths.ts`.
+  locality-root `Lounge.ts` / `paths.ts`.
 - `packages/content/hearthworks/` — the venue pack:
   `content/world/terminus/hearthworks.yaml` (the CartesianZone — a Room's coords
   resolve against it, so the venue's zone row ships WITH the venue) +

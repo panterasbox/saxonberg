@@ -28,7 +28,7 @@
 
 import Locale from '@saxonberg/server/mud/platform/location/Locale';
 import { PersistableMixin } from '@saxonberg/server/mud/lib/persistence/Persistable';
-import { OpenWorkingMixin } from '../lib/Working';
+import { OpenWorkingMixin } from '../lib/OpenWorking';
 
 const OpenWorkingBase = PersistableMixin(
   OpenWorkingMixin(Locale),

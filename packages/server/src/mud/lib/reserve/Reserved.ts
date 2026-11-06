@@ -52,9 +52,9 @@
  * domain method, and adds a row here.
  */
 
-import type { MixinConstructor, FieldMeta } from './mixin';
-import { Quantity } from './quantity';
-import type { Unit } from './quantity';
+import type { MixinConstructor, FieldMeta } from '../mixin';
+import { Quantity } from '../quantity';
+import type { Unit } from '../quantity';
 
 // ---------- value shape ----------
 

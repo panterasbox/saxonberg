@@ -26,7 +26,7 @@
 import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import { MixinApi } from '../../api/mixin';
-import type { Disguise } from './Disguise';
+import type { Disguise } from './DisguiseBearing';
 
 /** Wearer-side surface. */
 export interface Disguisable {

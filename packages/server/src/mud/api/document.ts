@@ -32,7 +32,7 @@ import { DocumentLogic } from "../platform/idea/api/DocumentLogic";
 import { fileURLToPath } from "url";
 import { CallSecurity } from "../lib/security/decorators";
 import { Mixins } from '../lib/mixin';
-import type { Registrar } from '../lib/document/Register';
+import type { Registrar } from '../lib/document/Registrar';
 import type { DocumentPages, EditionRequest } from '../lib/document/Edition';
 import type { Berthed } from '../platform/idea/BerthExit';
 import { SecurityPolicies } from "../lib/security/SecurityPolicies";

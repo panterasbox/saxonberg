@@ -15,7 +15,7 @@ import { Vessel } from "../../../../../lib/stuff/Vessel";
 import { DetailedMixin } from "../../../../../lib/description/Detailed";
 import { PersistableMixin } from "../../../../../lib/persistence/Persistable";
 import { FixtureMixin } from "../../../../../lib/stuff/Fixture";
-import { HeldGoodsMixin } from "../../../../../lib/retail/Consignment";
+import { HeldGoodsMixin } from "../../../../../lib/retail/HeldGoods";
 import Ticket from "../../../../thing/Ticket";
 import Weapon from "../../../../thing/equipment/Weapon";
 import Shield from "../../../../thing/equipment/Shield";

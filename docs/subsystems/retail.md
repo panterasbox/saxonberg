@@ -404,7 +404,7 @@ self-seat into the Warren host (the TPA-terminal precedent), so it stands
 on the combat-free lounge side of the door to Dave's Bar.
 
 The `ConsignmentShelf` (`trade-shopkeeping/src/thing/ConsignmentShelf.ts`;
-its mixin and surfaces stay in `lib/retail/Consignment.ts`) composes
+its mixin and surfaces stay in `lib/retail/HeldGoods.ts` (the rack half) and `lib/retail/ConsignmentShelf.ts`) composes
 `Persistable`, which is **load-bearing, not incidental**: it captures the
 consigned goods + their `_chattelId`s into a durable record, so a consigned
 player-owned good survives a relog while in the shop's custody (a transient

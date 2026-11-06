@@ -88,7 +88,7 @@ import {
 import { WarrenMemberMixin } from '@saxonberg/server/mud/lib/location/WarrenMember';
 import { SoilMixin } from '@saxonberg/server/mud/lib/husbandry/Soil';
 import type { Soil } from '@saxonberg/server/mud/lib/husbandry/Soil';
-import { ReservedMixin } from '@saxonberg/server/mud/lib/reserve';
+import { ReservedMixin } from '@saxonberg/server/mud/lib/reserve/Reserved';
 import {
   ImprovableMixin,
   IMPROVEMENT_DONE_AT,

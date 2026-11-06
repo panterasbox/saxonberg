@@ -36,7 +36,7 @@ import type { Containable } from "../../../../lib/spatial/Containable";
 import type { Chattel } from '../../../../lib/chattel/Chattel';
 import type { Wieldable } from '../../../../lib/slot/Wieldable';
 import type { MqlOneResult } from '../../../../api/mql';
-import type { RackStuff } from '../../../../lib/retail/Consignment';
+import type { RackStuff } from '../../../../lib/retail/HeldGoods';
 
 const TOPIC = "act.deed";
 

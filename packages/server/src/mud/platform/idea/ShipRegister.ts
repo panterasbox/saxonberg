@@ -58,7 +58,7 @@
  */
 
 import { Idea } from '../../lib/stuff/Idea';
-import { RegistrarMixin, type Registrar } from '../../lib/document/Register';
+import { RegistrarMixin, type Registrar } from '../../lib/document/Registrar';
 import { DocumentApi } from '../../api/document';
 import { WorldClockApi } from '../../api/worldclock';
 import { CallSecurity } from '../../lib/security/decorators';

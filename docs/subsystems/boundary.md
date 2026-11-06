@@ -1084,7 +1084,7 @@ idempotent action verbs — differing **only** by name. The one genuinely
 shared piece, the guarded boolean, is factored into `BistateMixin`
 (`lib/Bistate.ts`, at the `lib/` root because the concept spans
 spatial / boundary / slot with no single subsystem home — the
-`lib/reserve.ts` precedent). Each toggle mixin is then a thin naming
+`lib/reserve/Reserved.ts` precedent). Each toggle mixin is then a thin naming
 layer: `class SwitchableMixin extends BistateMixin(Base)` casting `this`
 to the internal `BistateInternal` (`getState()` / `setState(value,
 label)`) shape.

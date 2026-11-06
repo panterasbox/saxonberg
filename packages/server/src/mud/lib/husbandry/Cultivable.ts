@@ -57,12 +57,13 @@
  * See [docs/subsystems/husbandry.md].
  */
 
-import type { PropSpec, Staged } from "../stuff/Staged";
+import type { PropSpec } from "../stuff/Props";
+import type { Staged } from "../stuff/Staged";
 import type { CommandContributions } from "../../api/command";
 import type { MixinConstructor, FieldMeta } from "../mixin";
 import { MixinApi } from "../../api/mixin";
 import type { Soil } from "./Soil";
-import type { Reserved } from "../reserve";
+import type { Reserved } from "../reserve/Reserved";
 import type { Slotted } from "../slot/Slotted";
 import type { Slottable } from "../slot/Slottable";
 import type { Bulkable } from "../bulk/Bulkable";

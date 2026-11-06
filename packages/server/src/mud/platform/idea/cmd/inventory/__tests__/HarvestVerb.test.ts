@@ -21,7 +21,7 @@ import type { Crafted } from '../../../../../lib/craft/Crafted';
 import GardenBed from '../../../../thing/GardenBed';
 import Tool from '../../../../thing/Tool';
 import Material from '../../../../../lib/material/Material';
-import { Reserve } from '../../../../../lib/reserve';
+import { Reserve } from '../../../../../lib/reserve/Reserved';
 import { type GrowthProfileData } from '../../../../../lib/husbandry/Growing';
 import {
   PLANT_SLOT,

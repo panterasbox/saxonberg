@@ -18,7 +18,7 @@ import type { MqlManyResult, MqlOneResult } from "../../../../api/mql";
 import { MessageApi } from "../../../../api/message";
 import { MixinApi } from "../../../../api/mixin";
 import { Mml } from "../../../../api/mml";
-import { UTENSIL_PHRASE } from "../../../../lib/bulk/Utensil";
+import { UTENSIL_PHRASE } from "../../../../lib/bulk/Cutlery";
 
 const TOPIC = "act.deed";
 

@@ -70,7 +70,7 @@
 
 import type { Stuff } from '../stuff/Stuff';
 import type { SoilSpec } from '../cleanliness/SoilSpec';
-import type { Tooled } from '../craft/Tooled';
+import type { Tooled } from '../craft/Tool';
 
 /** How hard a deed the work counts as, when the ground credits one. */
 export type WorkDifficulty = 'trivial' | 'easy' | 'standard' | 'hard';

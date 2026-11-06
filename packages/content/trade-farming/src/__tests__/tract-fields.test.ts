@@ -43,11 +43,11 @@ import {
   installV1QuantityMarshallers,
   installV1QuantityTagTables,
 } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
-import { Reserve } from '@saxonberg/server/mud/lib/reserve';
+import { Reserve } from '@saxonberg/server/mud/lib/reserve/Reserved';
 import GroundCharacter from '@saxonberg/content-ground/src/idea/GroundCharacter';
 import type { GrowthProfileData } from '@saxonberg/server/mud/lib/husbandry/Growing';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import type { Reserved } from '@saxonberg/server/mud/lib/reserve';
+import type { Reserved } from '@saxonberg/server/mud/lib/reserve/Reserved';
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
 import { AdvancementMixin } from '@saxonberg/server/mud/lib/advancement/Advancement';
 import { PersonaMixin } from '@saxonberg/server/mud/lib/character/Persona';

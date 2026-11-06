@@ -18,7 +18,7 @@ import ReclaimController from "../ReclaimController";
 import { Vessel } from "../../../../../lib/stuff/Vessel";
 import { DetailedMixin } from "../../../../../lib/description/Detailed";
 import { PersistableMixin } from "../../../../../lib/persistence/Persistable";
-import { ConsignmentShelfMixin } from "../../../../../lib/retail/Consignment";
+import { ConsignmentShelfMixin } from "../../../../../lib/retail/ConsignmentShelf";
 import StockBase from "../../../../../lib/retail/Stock";
 import Good from "../../../../../lib/stuff/Good";
 import { StackableMixin } from "../../../../../lib/stuff/Stackable";

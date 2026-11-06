@@ -22,7 +22,7 @@ import { basename, join, relative, resolve } from "path";
 import { pathToFileURL } from "url";
 import { CONTENT, MUD, mudSourceFiles, packSources, ratchet, stripComments } from "./pack-roots";
 
-export const MIXIN_FILES_CEILING = 12;
+export const MIXIN_FILES_CEILING = 0;
 
 const FACTORY = /^export\s+function\s+([A-Za-z_$][\w$]*)Mixin\s*[<(]/gm;
 

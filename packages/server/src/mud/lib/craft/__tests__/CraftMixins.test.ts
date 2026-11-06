@@ -2,7 +2,7 @@ import "../../../../test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import { Idea } from '../../stuff/Idea';
 import { GradedMixin } from '../Graded';
-import { ToolMixin } from '../Tooled';
+import { ToolMixin } from '../Tool';
 import { EPOCHS } from '../Epoch';
 import { DurableMixin } from '../../material/Durable';
 import { CraftedMixin } from '../Crafted';

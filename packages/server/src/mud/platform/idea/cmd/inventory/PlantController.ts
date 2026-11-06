@@ -39,7 +39,7 @@ import { EmploymentApi } from '../../../../api/employment';
 import { AppSettingKeys } from '../../../../lib/config/AppSettings';
 import { Quantity } from '../../../../lib/quantity';
 import { PLANT_SLOT } from '../../../../lib/husbandry/Cultivable';
-import type { Tooled } from '../../../../lib/craft/Tooled';
+import type { Tooled } from '../../../../lib/craft/Tool';
 import type { Soil } from '../../../../lib/husbandry/Soil';
 import type { Plantable } from '../../../../lib/husbandry/Plantable';
 import type { Growing } from '../../../../lib/husbandry/Growing';

@@ -26,7 +26,7 @@ import Seed from '../../../../thing/Seed';
 import Tool from '../../../../thing/Tool';
 import PlantableCrop from '../../../../thing/PlantableCrop';
 import Material from '../../../../../lib/material/Material';
-import { Reserve, ReservedMixin } from '../../../../../lib/reserve';
+import { Reserve, ReservedMixin } from '../../../../../lib/reserve/Reserved';
 import { SoilMixin } from '../../../../../lib/husbandry/Soil';
 import { type GrowthProfileData } from '../../../../../lib/husbandry/Growing';
 import {

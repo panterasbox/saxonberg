@@ -31,7 +31,7 @@
 import Good from "../../lib/stuff/Good";
 import { ThermalMixin } from "../../lib/thermal/Thermal";
 import { OrganismMixin } from "../../lib/species/Organism";
-import { Reserve, ReservedMixin } from "../../lib/reserve";
+import { Reserve, ReservedMixin } from "../../lib/reserve/Reserved";
 import {
   SOIL_MOISTURE_RESERVE_KEY,
   SOIL_NITROGEN_RESERVE_KEY,

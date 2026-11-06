@@ -40,7 +40,7 @@ import { MarkedMixin, type Passage } from '../../lib/description/Marked';
 import { AssembledMixin } from '../../lib/craft/Assembled';
 import { CraftedMixin } from '../../lib/craft/Crafted';
 import { DurableMixin } from '../../lib/material/Durable';
-import { ReservedMixin } from '../../lib/reserve';
+import { ReservedMixin } from '../../lib/reserve/Reserved';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
 import { CombustibleMixin } from '../../lib/fire/Combustible';
 import { TearableMixin, type TearOutcome } from '../../lib/material/Tearable';

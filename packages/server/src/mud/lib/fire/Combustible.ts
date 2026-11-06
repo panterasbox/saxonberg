@@ -29,7 +29,7 @@
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Thermal } from '../thermal/Thermal';
-import type { Reserved } from '../reserve';
+import type { Reserved } from '../reserve/Reserved';
 import { Quantity } from '../quantity';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';

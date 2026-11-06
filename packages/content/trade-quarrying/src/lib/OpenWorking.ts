@@ -61,7 +61,7 @@ import type { MixinConstructor, FieldMeta } from '@saxonberg/server/mud/lib/mixi
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
-import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tooled';
+import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tool';
 import { Mml, type MarkupAugmenter } from '@saxonberg/server/mud/api/mml';
 import type {
   Diggable,

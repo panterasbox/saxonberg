@@ -33,7 +33,7 @@ import Footlocker from '../thing/Footlocker';
 import Plant from '@saxonberg/server/mud/platform/thing/Plant';
 import PlantPot, { PLANT_SLOT } from '@saxonberg/server/mud/platform/thing/PlantPot';
 import { SOIL_MOISTURE_RESERVE_KEY } from '@saxonberg/server/mud/lib/husbandry/Cultivable';
-import { Reserve } from '@saxonberg/server/mud/lib/reserve';
+import { Reserve } from '@saxonberg/server/mud/lib/reserve/Reserved';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import Seed from '@saxonberg/server/mud/platform/thing/Seed';
 import WateringCan from '@saxonberg/server/mud/platform/thing/WateringCan';

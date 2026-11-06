@@ -42,7 +42,7 @@ import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import Biome from '@saxonberg/server/mud/lib/biome/Biome';
-import { Reserve } from '@saxonberg/server/mud/lib/reserve';
+import { Reserve } from '@saxonberg/server/mud/lib/reserve/Reserved';
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { StoredDocument } from '@saxonberg/server/mud/lib/document/StoredDocument';

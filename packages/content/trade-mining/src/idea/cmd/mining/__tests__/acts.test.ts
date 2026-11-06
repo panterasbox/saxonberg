@@ -41,7 +41,7 @@ import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { ExertingMixin } from '@saxonberg/server/mud/lib/exertion/Exerting';
-import { Reserve, ReservedMixin } from '@saxonberg/server/mud/lib/reserve';
+import { Reserve, ReservedMixin } from '@saxonberg/server/mud/lib/reserve/Reserved';
 import {
   makeStuff,
   makeStuffAtPath,

@@ -24,7 +24,7 @@ import { StuffApi } from "../../api/stuff";
 import { WorldClockApi } from "../../api/worldclock";
 import WorldClockRegistry from "../idea/WorldClockRegistry";
 import { TemplatePaths } from "../../lib/paths";
-import { Reserve } from "../../lib/reserve";
+import { Reserve } from "../../lib/reserve/Reserved";
 import { Quantity } from "../../lib/quantity";
 import { THERMAL_DEFAULTS } from "../../lib/thermal/Thermal";
 import {

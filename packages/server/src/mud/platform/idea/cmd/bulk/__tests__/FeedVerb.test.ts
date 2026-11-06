@@ -20,7 +20,7 @@ import Plant from '../../../../thing/Plant';
 import GardenBed from '../../../../thing/GardenBed';
 import PlantPot from '../../../../thing/PlantPot';
 import Material from '../../../../../lib/material/Material';
-import { Reserve, ReservedMixin } from '../../../../../lib/reserve';
+import { Reserve, ReservedMixin } from '../../../../../lib/reserve/Reserved';
 import { type GrowthProfileData } from '../../../../../lib/husbandry/Growing';
 import {
   PLANT_SLOT,

@@ -26,7 +26,7 @@ import Firebox from '../../../../lib/fire/Firebox';
 import { ContainerMixin } from '../../../../lib/spatial/Container';
 import Material from '../../../../lib/material/Material';
 import { ThermalMixin } from '../../../../lib/thermal/Thermal';
-import { ReservedMixin, Reserve } from '../../../../lib/reserve';
+import { ReservedMixin, Reserve } from '../../../../lib/reserve/Reserved';
 import { CombustibleMixin } from '../../../../lib/fire/Combustible';
 import { ContainmentApi } from '../../../../api/containment';
 import { StuffApi } from '../../../../api/stuff';

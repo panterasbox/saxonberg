@@ -45,7 +45,7 @@
 import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
 import { VisibleMixin } from '@saxonberg/server/mud/lib/description/Visible';
 import { AdornmentMixin } from '@saxonberg/server/mud/lib/boundary/Adornment';
-import { ReservedMixin } from '@saxonberg/server/mud/lib/reserve';
+import { ReservedMixin } from '@saxonberg/server/mud/lib/reserve/Reserved';
 import { SoilMixin } from '@saxonberg/server/mud/lib/husbandry/Soil';
 import type { Growing } from '@saxonberg/server/mud/lib/husbandry/Growing';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
@@ -67,7 +67,7 @@ import {
 } from '../lib/CharacteredSoil';
 import { SwardMixin, SWARD_RESIDUAL_FRACTION, SWARD_RESERVE_KEY } from '../lib/Sward';
 import { PersistableMixin } from '@saxonberg/server/mud/lib/persistence/Persistable';
-import { Reserve } from '@saxonberg/server/mud/lib/reserve';
+import { Reserve } from '@saxonberg/server/mud/lib/reserve/Reserved';
 import {
   SOIL_MOISTURE_RESERVE_KEY,
   SOIL_NITROGEN_RESERVE_KEY,

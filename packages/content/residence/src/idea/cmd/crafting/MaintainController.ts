@@ -40,7 +40,7 @@ import type {
 } from "@saxonberg/server/mud/api/command";
 import type { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
 import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
-import type { Tooled } from "@saxonberg/server/mud/lib/craft/Tooled";
+import type { Tooled } from "@saxonberg/server/mud/lib/craft/Tool";
 import type { Durable } from "@saxonberg/server/mud/lib/material/Durable";
 import { MessageApi } from "@saxonberg/server/mud/api/message";
 import { MixinApi } from "@saxonberg/server/mud/api/mixin";

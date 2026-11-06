@@ -56,7 +56,7 @@ import { StackableApi } from '../../../api/stackable';
 import type RecipeCatalogue from '../RecipeCatalogue';
 import type { BulkSlot, BulkPayload } from '../../../lib/bulk/Bulkable';
 import type { CompositionEntry } from '../../../lib/material/Material';
-import type { Tooled } from '../../../lib/craft/Tooled';
+import type { Tooled } from '../../../lib/craft/Tool';
 import type { PricedOffer } from '../../../lib/commerce/PricedOffer';
 import type { PartLine, JointState, Assembled, Bill } from '../../../lib/craft/Assembled';
 import type { Durable, MendRecord } from '../../../lib/material/Durable';

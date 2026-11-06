@@ -6,7 +6,7 @@
 import '../../../../test-bootstrap';
 import { describe, it, expect, afterEach } from 'vitest';
 import Good from '../../stuff/Good';
-import { ToolMixin } from '../Tooled';
+import { ToolMixin } from '../Tool';
 import { StuffApi } from '../../../api/stuff';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import type { Stuff } from '../../stuff/Stuff';

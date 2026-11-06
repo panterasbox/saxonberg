@@ -2500,7 +2500,7 @@ filename is that concept's name; every other export is a supporting
 member of that concept. A type/constant is never itself the reason a
 module exists — unless the concept genuinely *is* a value object /
 vocabulary / registry, in which case the module is named for it
-(`Light.ts`, `quantity.ts`, `reserve.ts`, `paths.ts`,
+(`Light.ts`, `quantity.ts`, `reserve/Reserved.ts`, `paths.ts`,
 `lib/mixin.ts`'s `Mixins`), the fourth `lib/` category in
 [architecture.md](./architecture.md).
 
@@ -2762,7 +2762,7 @@ can't know whether a raw read is fresh. The **contract surface** is the
 owner's domain reader, which bundles whatever reconcile-on-read the
 owner needs and is what the author-facing docs surface
 (`callable == visible`). The full instance → owner → reader index lives
-in the reserve landscape table at the top of `lib/reserve.ts`; a new
+in the reserve landscape table at the top of `lib/reserve/Reserved.ts`; a new
 authored reserve ("charge", "essence") installs in its owning mixin,
 fronts itself with a reader, and adds a row there. Same-host sibling
 drains (Vitals' limp cost, LoadBearing's traversal drain spending

@@ -45,7 +45,7 @@ import type { Organization } from "../../../../lib/employment/Organization";
 import { StuffApi } from "../../../../api/stuff";
 import type { Chattel } from '../../../../lib/chattel/Chattel';
 import type { MqlOneResult } from '../../../../api/mql';
-import type { ShelfStuff } from "../../../../lib/retail/Consignment";
+import type { ShelfStuff } from "../../../../lib/retail/ConsignmentShelf";
 import { Freshness } from "../../../../lib/material/Freshness";
 
 const TOPIC = "act.deed";

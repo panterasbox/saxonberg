@@ -10,7 +10,7 @@ import Provision from '@saxonberg/server/mud/platform/thing/Provision';
 import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
 import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
-import { ToolMixin } from '@saxonberg/server/mud/lib/craft/Tooled';
+import { ToolMixin } from '@saxonberg/server/mud/lib/craft/Tool';
 import { ConstructedMixin } from '@saxonberg/server/mud/lib/material/Constructed';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
@@ -19,7 +19,7 @@ import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { makeStuff } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import type Material from '@saxonberg/server/mud/lib/material/Material';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tooled';
+import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tool';
 import { MAT } from './rows';
 import { standUp, tearDown, at, DAY } from './world';
 

@@ -35,7 +35,7 @@ import { Vessel } from '../stuff/Vessel';
 import type { Container } from '../spatial/Container';
 import type { Slotted, SlotSpec } from '../slot/Slotted';
 import type { Tangible } from '../material/Tangible';
-import type { Reserved } from '../reserve';
+import type { Reserved } from '../reserve/Reserved';
 import type { Vitals, ConditionBand } from '../vitals/Vitals';
 import { MixinApi } from '../../api/mixin';
 import { AppApi } from '../../api/app';

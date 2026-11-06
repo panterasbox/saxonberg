@@ -31,7 +31,7 @@
 import '../../../../../../test-bootstrap';
 import { describe, it, expect, afterEach } from 'vitest';
 import { ManualBuildController } from '../ManualBuildController';
-import { ToolMixin } from '../../../../../lib/craft/Tooled';
+import { ToolMixin } from '../../../../../lib/craft/Tool';
 import { ContainableMixin } from '../../../../../lib/spatial/Containable';
 import Good from '../../../../../lib/stuff/Good';
 import { StuffApi } from '../../../../../api/stuff';

@@ -34,7 +34,7 @@ import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { ConditionApi } from '@saxonberg/server/mud/api/condition';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
-import { Reserve, ReservedMixin } from '@saxonberg/server/mud/lib/reserve';
+import { Reserve, ReservedMixin } from '@saxonberg/server/mud/lib/reserve/Reserved';
 import { VitalsMixin } from '@saxonberg/server/mud/lib/vitals/Vitals';
 import {
   makeStuff,

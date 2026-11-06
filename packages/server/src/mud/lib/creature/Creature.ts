@@ -50,7 +50,7 @@ import { SoilableMixin, WHOLE_SITE } from '../cleanliness/Soilable';
 import { HygieneMixin } from '../cleanliness/Hygiene';
 import type { Stuff } from '../stuff/Stuff';
 import { MixinApi } from '../../api/mixin';
-import { ReservedMixin, Reserve } from '../reserve';
+import { ReservedMixin, Reserve } from '../reserve/Reserved';
 import { LoadBearingMixin } from '../encumbrance/LoadBearing';
 import { MetabolicMixin } from '../metabolism/Metabolic';
 import { ThermalMixin } from '../thermal/Thermal';

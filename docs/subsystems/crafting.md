@@ -131,7 +131,7 @@ the Hydrator; per-field invariants ride accessor pairs.
   Composed by tools, **weapons, and armor alike** (durability is not
   "tool"); narrow via `MixinApi.isDurable`. Its fast-cycling sibling is
   **`KeenMixin`** (`lib/material/Keen.ts`) — the edge axis, on `Weapon`.
-- **`ToolMixin`** (`Tooled.ts`) — the crafting **capabilities** layer:
+- **`ToolMixin`** (`Tool.ts`) — the crafting **capabilities** layer:
   `capabilities: string[]` a recipe requires by kind. A `Tool` composes
   `ToolMixin(DurableMixin(…))` — a tool is a durable good that *also* offers
   capabilities; the durability lives on `DurableMixin`, not here.
@@ -1509,7 +1509,7 @@ is out of scope for v1.
 
 ### Cutlery — it reads, it never gates
 
-`lib/bulk/Utensil.ts` is a small enumerated kernel vocabulary (`spoon` ·
+`lib/bulk/Cutlery.ts` is a small enumerated kernel vocabulary (`spoon` ·
 `fork` · `table-knife`, in preference order). `eat` claims the first clean
 one in reach — held kit before the table — dirties it, and says so; with
 nothing to hand you eat with your fingers. ⚠ **Same act, same nutrition,

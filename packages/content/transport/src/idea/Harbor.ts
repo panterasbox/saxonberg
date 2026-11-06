@@ -39,7 +39,7 @@
 
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
 import { SingletonMixin } from '@saxonberg/server/mud/lib/stuff/Singleton';
-import { RegistrarMixin, type Registrar } from '@saxonberg/server/mud/lib/document/Register';
+import { RegistrarMixin, type Registrar } from '@saxonberg/server/mud/lib/document/Registrar';
 import { CallSecurity } from '@saxonberg/server/mud/lib/security/decorators';
 import { SecurityPolicies } from '@saxonberg/server/mud/lib/security/SecurityPolicies';
 import { DocumentApi } from '@saxonberg/server/mud/api/document';

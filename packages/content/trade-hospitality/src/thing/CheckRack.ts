@@ -19,7 +19,7 @@ import Holder from "@saxonberg/server/mud/lib/stuff/Holder";
 import { ContainerMixin } from "@saxonberg/server/mud/lib/spatial/Container";
 import { PersistableMixin } from "@saxonberg/server/mud/lib/persistence/Persistable";
 import { FixtureMixin } from "@saxonberg/server/mud/lib/stuff/Fixture";
-import { HeldGoodsMixin } from "@saxonberg/server/mud/lib/retail/Consignment";
+import { HeldGoodsMixin } from "@saxonberg/server/mud/lib/retail/HeldGoods";
 import type { CommandContributions } from "@saxonberg/server/mud/api/command";
 import type { FieldMeta } from "@saxonberg/server/mud/lib/mixin";
 

@@ -23,7 +23,7 @@ import { fileURLToPath } from 'url';
 import YAML from 'yaml';
 import Turf from '../thing/Turf';
 import Material from '@saxonberg/server/mud/platform/idea/material/Material';
-import { Reserve } from '@saxonberg/server/mud/lib/reserve';
+import { Reserve } from '@saxonberg/server/mud/lib/reserve/Reserved';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';

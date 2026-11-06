@@ -36,7 +36,7 @@ import type { CocoonSeed, CocoonSeedable, HeftBand } from '../lib/Rearing';
 import type Strain from '../idea/Strain';
 import type EggLot from './EggLot';
 import type RawSilk from './RawSilk';
-import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tooled';
+import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tool';
 import type { WorkPrognosis, WorkResult } from '@saxonberg/server/mud/lib/ground/Workable';
 import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
 import { CompetenceBand } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';

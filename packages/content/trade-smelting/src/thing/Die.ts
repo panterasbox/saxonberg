@@ -18,7 +18,7 @@ import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { CraftedMixin } from '@saxonberg/server/mud/lib/craft/Crafted';
 import { MarkedMixin } from '@saxonberg/server/mud/lib/description/Marked';
 import { DurableMixin } from '@saxonberg/server/mud/lib/material/Durable';
-import { ToolMixin } from '@saxonberg/server/mud/lib/craft/Tooled';
+import { ToolMixin } from '@saxonberg/server/mud/lib/craft/Tool';
 import { StrikingDieMixin } from '@saxonberg/server/mud/lib/craft/StrikingDie';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';

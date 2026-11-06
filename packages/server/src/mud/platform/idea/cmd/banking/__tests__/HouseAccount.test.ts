@@ -26,7 +26,7 @@ import StockBase from "../../../../../lib/retail/Stock";
 import { Vessel } from "../../../../../lib/stuff/Vessel";
 import { DetailedMixin } from "../../../../../lib/description/Detailed";
 import { PersistableMixin } from "../../../../../lib/persistence/Persistable";
-import { ConsignmentShelfMixin } from "../../../../../lib/retail/Consignment";
+import { ConsignmentShelfMixin } from "../../../../../lib/retail/ConsignmentShelf";
 import Good from "../../../../../lib/stuff/Good";
 import Coin from "../../../../thing/Coin";
 import BankCounter from "../../../../thing/BankCounter";

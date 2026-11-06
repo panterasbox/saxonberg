@@ -25,7 +25,7 @@
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import OpenWorkingLocation from '../location/OpenWorking';
-import { LIFT_M, OPEN_WORKING_MIXIN, type OpenWorking } from '../lib/Working';
+import { LIFT_M, OPEN_WORKING_MIXIN, type OpenWorking } from '../lib/OpenWorking';
 import Deposit from '@saxonberg/content-ground/src/idea/Deposit';
 import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
 import Material from '@saxonberg/server/mud/platform/idea/material/Material';
@@ -43,7 +43,7 @@ import {
   makeStuffAtPath,
 } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tooled';
+import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tool';
 import type { WorkPlan, WorkRefusal } from '@saxonberg/server/mud/lib/ground/Workable';
 
 const ZONE = '/world/fx-quarry/quarry';
