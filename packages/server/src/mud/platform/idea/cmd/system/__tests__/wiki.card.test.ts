@@ -17,7 +17,7 @@
 
 import "../../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import WikiController from '../WikiController';
+import { wikiControllerFor } from './wiki-controllers';
 import WikiRegistry from '../../../WikiRegistry';
 import WikiRenderer from '../../../WikiRenderer';
 import WikiNamespaceZone from '../../../WikiNamespaceZone';
@@ -69,7 +69,7 @@ function lastPage(): WikiPageFrame {
 }
 
 async function run(model: Partial<CommandModel>): Promise<void> {
-  const ctrl = makeStuff(() => new WikiController());
+  const ctrl = makeStuff(() => wikiControllerFor((model as { subcommand?: string }).subcommand));
   const ctx = CommandApi.createCommandContext({
     commandGiver: giver as never,
     location: null,

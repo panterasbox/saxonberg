@@ -115,7 +115,10 @@ const WIKI_ROOT = '/wiki';
  * is how the registry reaches the renderer for its own reads.)
  */
 const RenderCallers = SecurityPolicies.AnyOf(
-  SecurityPolicies.FromModule('/platform/idea/cmd/system/WikiController'),
+  SecurityPolicies.FromModule(
+    '/platform/idea/cmd/system/WikiControllerBase#WikiControllerBase',
+    { includeSubclasses: true },
+  ), // the `wiki` controllers: one per subcommand over the base (W7)
   SecurityPolicies.FromTemplate('/platform/idea/WikiRegistry'),
 );
 

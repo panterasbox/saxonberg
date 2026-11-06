@@ -16,7 +16,7 @@
 
 import "../../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import WikiController from '../WikiController';
+import { wikiControllerFor } from './wiki-controllers';
 import WikiRegistry from '../../../WikiRegistry';
 import WikiRenderer from '../../../WikiRenderer';
 import WikiNamespaceZone from '../../../WikiNamespaceZone';
@@ -52,7 +52,7 @@ async function run(
   interactive?: unknown,
 ): Promise<{ body: string; notes: readonly Note[] }> {
   sent = [];
-  const ctrl = makeStuff(() => new WikiController());
+  const ctrl = makeStuff(() => wikiControllerFor((model as { subcommand?: string }).subcommand));
   const ctx = CommandApi.createCommandContext({
     commandGiver: giver as never,
     location: null,
@@ -211,7 +211,7 @@ describe('⭐ compare-and-swap on rev (34)', () => {
   it('the conflict escalates the dispatch status to declined', async () => {
     await seedArticle();
     await run({ subcommand: 'edit', page: 'oak', body: 'x', rev: '1' });
-    const ctrl = makeStuff(() => new WikiController());
+    const ctrl = makeStuff(() => wikiControllerFor('edit'));
     const ctx = CommandApi.createCommandContext({
       commandGiver: giver as never,
       location: null,

@@ -1,5 +1,5 @@
 /**
- * WikiController — the `wiki` verb end to end, against a working store.
+ * The `wiki` controllers — the verb end to end, against a working store.
  *
  * The registry suite proves the model; this proves the **verb**: that
  * the subcommands reach the right mutations, that refusals arrive as
@@ -8,7 +8,7 @@
  * per-reader pipeline.
  *
  * ⭐ It also proves the chokepoint from the other side. The registry's
- * mutators are gated `FromModule('/platform/idea/cmd/system/WikiController')`;
+ * mutators are gated `FromModule('/platform/idea/cmd/system/WikiControllerBase#WikiControllerBase', { includeSubclasses: true })`;
  * the registry suite asserts that everything ELSE is refused, and this
  * suite asserts the controller itself gets through. Neither claim is
  * worth much without the other.
@@ -16,7 +16,7 @@
 
 import "../../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import WikiController from '../WikiController';
+import { wikiControllerFor } from './wiki-controllers';
 import WikiRegistry from '../../../WikiRegistry';
 import WikiRenderer from '../../../WikiRenderer';
 import WikiNamespaceZone from '../../../WikiNamespaceZone';
@@ -52,7 +52,7 @@ async function run(
   interactive?: unknown,
 ): Promise<{ body: string; notes: readonly Note[] }> {
   sent = [];
-  const ctrl = makeStuff(() => new WikiController());
+  const ctrl = makeStuff(() => wikiControllerFor((model as { subcommand?: string }).subcommand));
   const ctx = CommandApi.createCommandContext({
     commandGiver: giver as never,
     location: null,
@@ -487,15 +487,14 @@ describe('list', () => {
 });
 
 describe('the envelope contract', () => {
-  it('an unknown subcommand is a named rejection', async () => {
-    const { notes } = await run({ subcommand: 'frobnicate' });
-    expect(reasons(notes)).toContain('unknown-subcommand');
-  });
+  // An unknown subcommand never reaches a controller: `CommandApi.assemble`
+  // rejects it (`unknown-subcommand`) before one is cloned (command-spec.md
+  // § Unknown subcommand), so there is no controller arm left to test.
 
   it('every refusal returns void and rides a note', async () => {
     // Controllers return `void`; the outcome is the envelope's. A
     // `{success:false}` return would be invisible to the dispatcher.
-    const ctrl = makeStuff(() => new WikiController());
+    const ctrl = makeStuff(() => wikiControllerFor('read'));
     const ctx = CommandApi.createCommandContext({
       commandGiver: giver as never,
       location: null,
@@ -507,14 +506,14 @@ describe('the envelope contract', () => {
     });
     const result = await ExecutionContextApi.runRoot(null, 'x', async () => {
       ExecutionContextApi.tagActingAuthor(giver);
-      return ctrl.execute({ subcommand: 'nope' } as never, ctx);
+      return ctrl.execute({ subcommand: 'read' } as never, ctx);
     });
     expect(result).toBeUndefined();
     expect(ctx.getNotes().length).toBeGreaterThan(0);
   });
 
   it('a rejection escalates the dispatch status to `declined`', async () => {
-    const ctrl = makeStuff(() => new WikiController());
+    const ctrl = makeStuff(() => wikiControllerFor('read'));
     const ctx = CommandApi.createCommandContext({
       commandGiver: giver as never,
       location: null,
@@ -526,7 +525,7 @@ describe('the envelope contract', () => {
     });
     await ExecutionContextApi.runRoot(null, 'x', async () => {
       ExecutionContextApi.tagActingAuthor(giver);
-      await ctrl.execute({ subcommand: 'nope' } as never, ctx);
+      await ctrl.execute({ subcommand: 'read' } as never, ctx);
     });
     expect(ctx.getStatus()).toBe('declined');
   });

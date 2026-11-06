@@ -3,7 +3,7 @@
  *
  * A singleton `Idea` at `/platform/idea/WikiRegistry`, the shipped
  * `AccessRegistry` shape: state has one home (this Stuff), one calling
- * surface (`WikiController`), and one structurally-enforced path
+ * surface (the `wiki` controllers, over `WikiControllerBase`), and one structurally-enforced path
  * between them. Every mutator carries
  * `@CallSecurity(WikiControllerOnly)`, so code that grabs the instance
  * via `StuffApi.findByTemplatePath` gets a reference and a
@@ -64,14 +64,17 @@ import { Sections } from '../../lib/wiki/Section';
 const WikiRegistryBase = Idea;
 
 /**
- * The one legitimate caller. String form (matching
+ * The one legitimate caller: the `wiki` verb — one controller per
+ * subcommand, every one a `WikiControllerBase` (controllers-are-io W7),
+ * so the gate admits the base's subclasses. String form (matching
  * `AccessApi.setWizardMembership`) because `pnpm lint:gates` validates
  * concrete `FromModule` strings against a real module + export — the
  * class form is invisible to that lint, so it would be an unchecked
  * gate.
  */
 const WikiControllerOnly = SecurityPolicies.FromModule(
-  '/platform/idea/cmd/system/WikiController',
+  '/platform/idea/cmd/system/WikiControllerBase#WikiControllerBase',
+  { includeSubclasses: true },
 );
 
 /**
@@ -79,7 +82,7 @@ const WikiControllerOnly = SecurityPolicies.FromModule(
  * content installer — which submits a pack's `wiki` kind AS the pack
  * (`asInstaller: <packId>`; the pack is the author of what it ships).
  * The installer option is reachable only through this gate, and
- * `WikiController` never sets it.
+ * the `wiki` verb never sets it.
  */
 const WikiWriters = SecurityPolicies.AnyOf(
   WikiControllerOnly,
@@ -460,7 +463,7 @@ export default class WikiRegistry extends WikiRegistryBase {
      * The content installer submitting a pack's page AS the pack: skips
      * the namespace protection walk (there is no acting player at boot)
      * and stamps `pack:<id>` as the author. Reachable only through the
-     * `PackLogic` gate; `WikiController` never sets it.
+     * `PackLogic` gate; the `wiki` verb never sets it.
      */
     asInstaller?: string;
   }): Promise<WikiPage> {
