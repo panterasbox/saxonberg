@@ -101,8 +101,16 @@ Everything else is moving logic to homes that already exist.
   The controller reads input and writes words.
 - **One act per verb.** A verb that hid several acts is split, and a verb
   that was one act on several kinds of object stays one verb. `throw`
-  splits into catch, pitch and attack. Reading a scroll to cast it splits
-  from reading. `tan`'s lift is its own act.
+  keeps its word in three shapes, each its own act: `throw X to Y` is a
+  catch, `throw X` is a pitch, and `throw X at Y` is an attack. Reading a
+  scroll to cast it splits from reading. `tan`'s lift is its own act.
+- ⭐ **One view, one word** (owner, 2026-11-06). No command answers to
+  more than one word. Every extra word a view claims today is deleted or
+  becomes a **default player alias**. A default alias is part of each
+  player's own alias set, and the player can remove it.
+- **Breaking is accepted** (owner, 2026-11-06). Old command forms,
+  saved scripts and player aliases that name a moved, renamed or deleted
+  word may stop working. Nothing keeps an old form binding.
 - **Interfaces say what they are.** The five mixins that a later build
   made into two ideas are split: organization, water place, metabolism,
   load-bearing and chattel. Anything already built keeps everything it
@@ -152,17 +160,18 @@ verbs gain it with no pack change. A second scoped verb needs zero code.
 - **`fight`'s subcommands** (`disarm`, `sweep`, `switch`, `draw`,
   `defend`, `close`) are also top-level verbs. Each pair is decided as one
   act or two (see Surface decisions).
-- **Scripts and aliases** players have saved that name a subcommand
-  word, or a verb that moves under a noun. The old top-level word stays
-  as an alias wherever it is the same act, so nothing a player typed
-  yesterday breaks.
+- **Scripts and aliases** players have saved that name a moved or
+  deleted word. These break, deliberately (see Goals).
 
 ## Surface decisions
 
 ### Source-scoped invocation is `verb@source`
 
-The forms are `set@watch 4:00`, `wind@'pocket watch'`,
-`pour@me:flask into glass` and `wind@all watches`.
+The forms are `set@watch 4:00`, `wind@"pocket watch"`,
+`pour@me:flask into glass` and `wind@all watches`. On the command line, a
+single quote is a literal apostrophe. When the scoped thing fits one of
+the verb's object slots, it fills that slot, so `wind@me:watch` winds the
+carried watch.
 
 - The verb comes first because aliases, `help`, completion and scripts
   all start from the first word.
@@ -183,9 +192,18 @@ The forms are `set@watch 4:00`, `wind@'pocket watch'`,
 3. **Options carry manner, instrument and source** where prepositions
    pile up. A bench verb keeps one or two natural prepositions
    (`carve X from Y`) and takes the rest as `--with`, `--into`, `--on`.
-4. **One word, one act.** A subcommand word that is also a top-level
-   verb is the same act, with one form aliasing the other, or else it is
-   renamed.
+4. **A subcommand word is scoped by its noun.** `wiki read`, `bank open`
+   and `party show` keep their words, because the noun in front says
+   which thing is meant, just as `@` does. A subcommand is renamed only
+   where it conflicts with a meta verb (`make` is the script runner, so
+   `chat make` becomes `chat create`). A subcommand that is the same act
+   as an existing verb routes to that verb (`fight defend` is `defend`).
+5. **One view, one word.** A command answers to exactly one word. A view
+   that claimed several words keeps one. Each extra word is either
+   dropped or kept as a default player alias, which a player can remove.
+6. **One verb, several shapes, is allowed** when the shapes cannot be
+   confused, each shape being its own act (`throw … to` / `throw` /
+   `throw … at`).
 
 ### Who says it
 
@@ -263,39 +281,39 @@ exists, or stages one with wizard tools.
    needed.
 7. *(instant, player)* For each regrouped noun (`bank`, `party`, `chat`,
    `wiki`, `job`, `title`, …): every subcommand still does what it did, and
-   `help <noun>` lists its subcommands. Each old top-level word that moved
-   under a noun still works as an alias.
+   `help <noun>` lists its subcommands.
 8. *(instant, player)* In a fight, `disarm` and `fight disarm` are one act
    with one result. The same holds for the other overlapping pairs the plan
    resolves the same way. A pair resolved as two acts answers to its new
    name.
 9. *(instant, player)* `carve` at the bench, written with its options,
-   makes the same piece the old preposition chain made. The old form still
-   works.
+   makes the same piece the old preposition chain made.
 10. *(short, player)* Plant a seed in a bed, let it grow (staged forward),
     and harvest it. **The yield, grade, refusals and timing match the
     pre-build record.** The plan captures that record before W1.
 11. *(instant, player)* `put` into a container, onto a surface, into a
     slot, and into a feeder: each lands as before.
-12. *(instant, player)* `order` a drink, then `order` each service (a
-    bath, a repair, a wash, a transfusion): each is served as before.
+12. *(instant, player)* `order` a drink, then `order` each of the six
+    services: each is served as before.
 13. *(instant, player)* `treat` a wound with a dressing, and an affliction
     with a remedy: same outcome as before.
-14. *(instant, player)* `throw` a ball **to** a person, who catches it;
-    **away**, so it lands; **at** a target, which is an attack, with the
-    consent gate where it applies. Each is its own act.
+14. *(instant, player)* `throw ball to Ann`, and Ann catches it. `throw
+    ball`, and it lands. `throw ball at the target`, and it is an attack,
+    with the consent gate where it applies. Each is its own act.
 15. *(instant, player)* `read` a page, `read` a display, and cast from a
-    scroll. Reading never casts. Casting is its own command and reads as
-    before.
+    scroll with its own command. Reading never casts.
 16. *(instant, staged)* **The doctrine test.** A wizard installs an
     alternate controller for `harvest` that only words differently, and
     harvests with it. **The world ends in the same state as step 10, the
     words differ, and the duration is the same.**
-17. *(instant, staged)* A business's call roster, a made-by good, a
-    buoyant load in a water place, and a body mid-digestion **survive a
-    restart** after the mixin splits and read back the same.
-18. *(instant, player)* A player alias and a saved script that use old
-    top-level words that have moved still run.
+17. *(instant, staged)* After the mixin splits, these **survive a
+    restart** and read back the same: a business's call roster, a good's
+    title and its crafted maker, a buoyant load in a water place, and a
+    body mid-digestion.
+18. *(instant, player)* A new character has the default aliases. A minted
+    default alias (e.g. `l` for `look`) runs its verb. `alias unset l`
+    removes it, and it stays removed across a restart. No command answers
+    to a second word.
 
 No new places are added, so there is no light step.
 
@@ -311,8 +329,11 @@ None. Nothing in this build waits on the clock.
   and the same duration.** The words may only change where the outcome
   convention rewrote them, and those are listed in the MR.
 - `verb@source` works for every verb in the game with no per-verb change.
-- No word in the command surface means two acts.
-- Nothing a player typed or saved before the build stops working.
+- No view answers to more than one word. Every alias left in the game
+  is a default player alias a player can remove.
+- Within the kernel, no two flat verbs and subcommands that a player can
+  reach share a word for two different acts. Elsewhere, the count falls
+  and cannot rise.
 - An alternate controller for a moved verb, written by an author,
   produces identical state.
 - For each defect class (duck typing, self-resolution, controller

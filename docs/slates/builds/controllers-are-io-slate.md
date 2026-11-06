@@ -392,3 +392,37 @@ these claims were verified at the scan except where marked *(verify)*.
 | an alternate controller for one verb (drive 16) | domain-local view + controller path resolution (command-spec § Domain-local commands) | reuse *(verify that a wizard can install one in a live world)* |
 | the before/after record (drive 10–15) | the wire harness (`packages/wire`) | reuse: a record captured before W1 |
 | `pour` as one act | bulk `pour` (`Bulkable`) and crafting `pour` (`ManualBuild`, `DoughTrough`) | unify behind one protocol — collision ladder rung 1 |
+
+### ⭐⭐⭐ Decided at plan review (2026-11-06, owner)
+
+> *"I don't care about breaking tests or breaking players' data. Now is
+> the time to break shit. I really don't like global aliases for verbs. I
+> don't really think any controller should be claiming more than one verb
+> ever at this point, and what few aliases we do mint we mint as default
+> player aliases that a player can remove if they want."*
+
+- **Breaking is accepted.** Saved scripts, player aliases and old
+  command forms may stop working. There are no compatibility alias views
+  and no "old form still binds".
+- ⭐ **One view, one word.** No view's `verbs:` lists more than one word,
+  and no controller answers more than one verb. About 65 views carry
+  several words today. Each extra word is either deleted or minted as a
+  **default player alias**: the shell-alias defaults tier,
+  `static defaultAliases`, which a player removes with `alias unset` (a
+  persisted tombstone). The machinery already exists. What has to be
+  decided is where a PACK declares its default aliases, under load on
+  use and with no central list.
+- **Subcommand words are scoped by their noun** (my correction of the
+  rule-4 overreach). `wiki read`, `bank open` and `party show` keep their
+  words: the noun in front scopes them as `@` does, and reading a wiki
+  page is reading. A subcommand is renamed only where it conflicts with a
+  meta verb (`make` is the script runner, so `chat make` and the others
+  become `create`). A subcommand that is the same act as an existing verb
+  routes to it (`fight defend` → `defend`). The overlap gate counts only
+  pairs that are truly different acts and are both reachable flat.
+- **`throw` keeps its word in three shapes.** `throw X to Y` (catch),
+  `throw X` (pitch) and `throw X at Y` (attack) are three views of one
+  verb, each with its own controller. The collision ladder's test is
+  whether the syntaxes conflict, and these do not. The collision gate
+  learns to accept views whose shapes are disjoint. `toss` and `hurl` go.
+- **The scoped source fills the slot it fits** (plan D2) stands.
