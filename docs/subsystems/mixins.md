@@ -177,7 +177,22 @@ surface (the card's chips, Studio's palette, `help <verb>`'s *answers:*) can
 show it as the verb it serves rather than as a noun. The kernel's:
 `PumpableMixin`, `LiftSourceMixin`, `PumpSourceMixin` (`lib/pump/`),
 `SplittableMixin` (`lib/ground/`), `CuttableMixin` (`lib/craft/`),
-`TravelNodeMixin` (`lib/travel/`), each with a `MixinApi.isX`.
+`TravelNodeMixin` (`lib/travel/`), each with a `MixinApi.isX`; and the
+craft protocols with a null-or-refusing default (`lib/craft/`): `DipBathMixin`
+(`dip`), `CarvableMixin`, `ShapeableMixin`, `KneadVesselMixin`,
+`TurnableMixin`, `ImpressibleMixin`, `HandWorkedMixin`, `StrikingDieMixin`.
+⚠ `FormingMixin` is NOT one — it carries authored state (`forms`,
+`formTemplates`) beside its `shapePlanFor`, so it is a fact about the
+instrument as well as a verb's protocol.
+
+**How it is presented** (D8b): the affordance resolver's `composition` is
+`{ name, kind, verbs? }[]` — a protocol carries the verbs whose views
+`requires:` it (`CommandApi.verbsRequiring`) and the card reads *answers: dip*
+beside the noun chips; Studio's palette offers it as `kind: 'protocol'`; and
+`help <verb>` lists, under each protocol its view requires, the classes that
+compose it ([help.md](./help.md), [studio.md](./studio.md)). ⚠ The marker is
+read as an OWN static — a mixin composed over a protocol inherits the static
+and must not read as one.
 
 The bare shapes the sweep (controllers-are-io D8a) disposed of: the six
 above **converted** (each had three implementers, or a kernel verb and a

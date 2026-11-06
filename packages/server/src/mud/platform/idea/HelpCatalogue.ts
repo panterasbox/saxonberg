@@ -29,6 +29,7 @@ import type {
 import { Idea } from "../../lib/stuff/Idea";
 import { Mixins } from "../../lib/mixin";
 import { CommandApi } from "../../api/command";
+import { StudioApi } from "../../api/studio";
 import { Mml } from "../../api/mml";
 import type { CommandDefinition } from "../../lib/command/CommandDefinition";
 import type { VetoResult } from "../../lib/errors";
@@ -165,6 +166,14 @@ export default class HelpCatalogue extends HelpCatalogueBase {
   private topics: Map<string, HelpTopic> | null = null;
   /** kind → topic ids, sorted by title. */
   private byKind: Map<HelpKind, string[]> = new Map();
+  /**
+   * command topic id → the mixins its view's slots `requires:` — kept at
+   * warm (a cheap read of the definition) so the *answers:* section can be
+   * filled on first READ, never at boot (controllers-are-io D8b).
+   */
+  private requiredMixins: Map<string, string[]> = new Map();
+  /** command topic id → the topic with its *answers:* section, once read. */
+  private answered: Map<string, HelpTopic> = new Map();
   /** One-shot guard so the degrade warning logs exactly once. */
   private warnedMissingSurface = false;
   /** Same, for the schema docs. */
@@ -214,6 +223,7 @@ export default class HelpCatalogue extends HelpCatalogueBase {
   public invalidate(): void {
     this.topics = null;
     this.byKind = new Map();
+    this.answered = new Map();
   }
 
   /** Re-run the projectors from disk + the live command roster. */
@@ -225,7 +235,8 @@ export default class HelpCatalogue extends HelpCatalogueBase {
 
   public getTopic(id: string): HelpTopic | null {
     this.ensureWarm();
-    return this.topics!.get(id) ?? null;
+    const topic = this.topics!.get(id);
+    return topic ? this.withAnswers(topic) : null;
   }
 
   public indexSlice(): HelpIndexEntry[] {
@@ -290,13 +301,46 @@ export default class HelpCatalogue extends HelpCatalogueBase {
     this.ensureWarm();
     const lower = verb.toLowerCase();
     const direct = this.topics!.get(`command.${lower}`);
-    if (direct) return direct;
+    if (direct) return this.withAnswers(direct);
     // Alias scan: a command's keywords carry all its verbs.
     for (const id of this.byKind.get("command") ?? []) {
       const t = this.topics!.get(id);
-      if (t && t.keywords.includes(lower)) return t;
+      if (t && t.keywords.includes(lower)) return this.withAnswers(t);
     }
     return null;
+  }
+
+  /**
+   * ⭐ A command topic with its **answers:** section — the verb protocols
+   * its view's slots `requires:`, and under each the classes that compose
+   * it (controllers-are-io D8b; `help dip` lists the dip pot, the glaze
+   * tub, the melt). Read LAZILY from Studio's source scan on the first read
+   * of the topic and cached until the index is invalidated: no boot entry,
+   * no build artifact. A verb whose slots name no protocol is returned
+   * unchanged.
+   */
+  private withAnswers(topic: HelpTopic): HelpTopic {
+    if (topic.kind !== "command") return topic;
+    const cached = this.answered.get(topic.id);
+    if (cached) return cached;
+    const required = this.requiredMixins.get(topic.id) ?? [];
+    const answerers =
+      required.length === 0 ? [] : StudioApi.answerersOf(required);
+    let out = topic;
+    if (answerers.length > 0) {
+      const lines = ["", "", "answers:"];
+      for (const { mixin, composers } of answerers) {
+        lines.push(
+          `  ${mixin} — ${composers.length > 0 ? composers.join(", ") : "(nothing composes it yet)"}`,
+        );
+      }
+      out = {
+        ...topic,
+        body: topic.body + Mml.compose`${lines.join("\n")}`.toString(),
+      };
+    }
+    this.answered.set(topic.id, out);
+    return out;
   }
 
   /** Resolve a collection topic by name (`bank_ledger` or the full id). */
@@ -423,15 +467,18 @@ export default class HelpCatalogue extends HelpCatalogueBase {
     }
 
     this.topics = topics;
+    this.answered = new Map();
     this.buildIndexes();
   }
 
   /** One `HelpTopic` per command, preserving `getHelpText()` verbatim. */
   private projectCommands(defs: CommandDefinition[]): HelpTopic[] {
     const out: HelpTopic[] = [];
+    this.requiredMixins = new Map();
     for (const def of defs) {
       const verb = def.getPrimaryVerb();
       if (!verb) continue;
+      this.requiredMixins.set(`command.${verb}`, def.getRequiredMixins());
       out.push({
         id: `command.${verb}`,
         kind: "command",

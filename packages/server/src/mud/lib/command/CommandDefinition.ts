@@ -34,6 +34,7 @@ import type {
   PositionalDefinition,
   CommandValidator,
   ExampleDefinition,
+  MixinRequirement,
 } from '../../api/command';
 import { CommandApi, SUBCOMMAND_FIELD } from '../../api/command';
 
@@ -431,6 +432,38 @@ export class CommandDefinition {
     }
     if (this.hasSubcommands()) names.add(SUBCOMMAND_FIELD);
     return names;
+  }
+
+  /**
+   * Every mixin name a slot of this view `requires:` — positional args,
+   * verb options, payload, and every subcommand's args and options — with
+   * an alternation (`PumpableMixin|PumpSourceMixin`) and an all-of list
+   * both flattened, and `any` dropped. Deduped, declaration order.
+   *
+   * ⭐ This is the view's half of *who answers this verb*
+   * (controllers-are-io D8b): a protocol mixin a slot requires is what the
+   * verb asks its object for, so `help <verb>` lists it with the classes
+   * that compose it, and a card names the verb beside the protocol chip.
+   */
+  getRequiredMixins(): string[] {
+    const out = new Set<string>();
+    const take = (r: MixinRequirement | undefined): void => {
+      if (r === undefined) return;
+      for (const part of Array.isArray(r) ? r : [r]) {
+        for (const name of part.split('|')) {
+          const n = name.trim();
+          if (n.length > 0 && n !== 'any') out.add(n);
+        }
+      }
+    };
+    for (const a of this.args) take(a.requires);
+    for (const o of Object.values(this.verbOptions)) take(o.requires);
+    for (const o of Object.values(this.payload)) take(o.requires);
+    for (const sub of Object.values(this.subcommands)) {
+      for (const a of sub.args ?? []) take(a.requires);
+      for (const o of Object.values(sub.options ?? {})) take(o.requires);
+    }
+    return [...out];
   }
 
   /**

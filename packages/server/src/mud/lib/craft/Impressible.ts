@@ -32,6 +32,7 @@ export interface Impressible {
 export function ImpressibleMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
   return class ImpressibleMixin extends Base implements Impressible {
     static _mixinName = 'ImpressibleMixin';
+    static _mixinKind = 'protocol' as const;
 
     static commandContributions: CommandContributions = {
       environment: IMPRESSING,

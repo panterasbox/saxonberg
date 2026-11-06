@@ -44,6 +44,7 @@ export interface KneadVessel {
 export function KneadVesselMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
   return class KneadVesselMixin extends Base implements KneadVessel {
     static _mixinName = 'KneadVesselMixin';
+    static _mixinKind = 'protocol' as const;
 
     static commandContributions: CommandContributions = {
       environment: KNEADING,

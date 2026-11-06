@@ -30,6 +30,7 @@ export interface StrikingDie {
 export function StrikingDieMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
   return class StrikingDieMixin extends Base implements StrikingDie {
     static _mixinName = 'StrikingDieMixin';
+    static _mixinKind = 'protocol' as const;
 
     /** @hook What striking `blank` on this die came to. */
     public async strikeWith(blank: Stuff, _blowJ: number, _by: Stuff): Promise<Mml> {

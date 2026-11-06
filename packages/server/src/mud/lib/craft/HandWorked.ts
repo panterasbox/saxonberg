@@ -31,6 +31,7 @@ export interface HandWorked {
 export function HandWorkedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
   return class HandWorkedMixin extends Base implements HandWorked {
     static _mixinName = 'HandWorkedMixin';
+    static _mixinKind = 'protocol' as const;
 
     static commandContributions: CommandContributions = {
       environment: WORKING,

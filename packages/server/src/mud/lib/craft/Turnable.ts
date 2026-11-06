@@ -24,6 +24,7 @@ export interface Turnable {
 export function TurnableMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
   return class TurnableMixin extends Base implements Turnable {
     static _mixinName = 'TurnableMixin';
+    static _mixinKind = 'protocol' as const;
 
     static commandContributions: CommandContributions = {
       environment: TURNING,

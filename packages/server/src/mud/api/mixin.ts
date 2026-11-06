@@ -376,6 +376,13 @@ interface MixinClass {
    * kernel map.
    */
   _mixinRefusal?: string;
+  /**
+   * `'protocol'` on a verb protocol mixin — the method a verb calls, with
+   * a refusing default (docs/subsystems/mixins.md § protocol mixins).
+   * Absent on every other mixin. Read only by presentation surfaces (the
+   * card's chips, Studio's palette, `help <verb>`).
+   */
+  _mixinKind?: 'protocol';
   name?: string;
   /** The unified field-metadata static. Was four parallel statics. */
   fieldMeta?: FieldMeta;

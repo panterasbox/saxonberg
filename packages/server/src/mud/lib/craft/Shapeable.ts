@@ -43,6 +43,7 @@ export interface Shapeable {
 export function ShapeableMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
   return class ShapeableMixin extends Base implements Shapeable {
     static _mixinName = 'ShapeableMixin';
+    static _mixinKind = 'protocol' as const;
 
     static commandContributions: CommandContributions = {
       environment: SHAPING,

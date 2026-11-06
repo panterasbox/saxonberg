@@ -80,6 +80,7 @@ import {
   type ModelData,
   type CommandModel,
   type AffordanceResolution,
+  type CompositionEntry,
   type FieldValidator,
   type CommandValidator,
   type ValidatorPreloads,
@@ -695,6 +696,12 @@ export class CommandLogic extends ApiLogic {
   @CallSecurity(CommandApiCallers)
   public allDefinitions(): CommandDefinition[] {
     return [...commands.values()];
+  }
+
+  /** See {@link CommandApi.verbsRequiring}. */
+  @CallSecurity(CommandApiCallers)
+  public verbsRequiring(mixinName: string): string[] {
+    return verbsRequiringImpl(mixinName);
   }
 
   /** See {@link CommandApi.invalidate}. */
@@ -2133,6 +2140,17 @@ export class CommandLogic extends ApiLogic {
 
 /* ─────────────────── Affordance resolution ─────────────────── */
 
+/** See {@link CommandApi.verbsRequiring}. */
+function verbsRequiringImpl(mixinName: string): string[] {
+  const verbs = new Set<string>();
+  for (const def of commands.values()) {
+    if (!def.getRequiredMixins().includes(mixinName)) continue;
+    const verb = def.getPrimaryVerb();
+    if (verb) verbs.add(verb);
+  }
+  return [...verbs].sort();
+}
+
 /**
  * Execution/command id stamped on a resolution probe's context.
  *
@@ -2199,15 +2217,29 @@ async function resolveAffordancesImpl(
   // twice by `getActiveMixins`, and the live drive showed
   // `TangibleMixin` twice on an aether implant. A menu grouping by
   // composition would have painted the group twice.
-  const composition = identified
-    ? [
-        ...new Set(
-          MixinApi.getActiveMixins(target)
-            .map((m) => m._mixinName ?? m.name)
-            .filter((n): n is string => !!n),
-        ),
-      ]
-    : [];
+  //
+  // ⭐ Each entry carries its KIND (controllers-are-io D8b): a protocol
+  // mixin is the verb it serves, so it carries the verbs whose views
+  // require it and the card reads *answers: dip* rather than a noun chip.
+  const composition: CompositionEntry[] = [];
+  if (identified) {
+    const named = new Set<string>();
+    for (const m of MixinApi.getActiveMixins(target)) {
+      const name = m._mixinName ?? m.name;
+      if (!name || named.has(name)) continue;
+      named.add(name);
+      // ⚠ OWN property: a static is inherited down the class chain, so a
+      // mixin composed over a protocol would read as one.
+      const isProtocol =
+        Object.prototype.hasOwnProperty.call(m, '_mixinKind') &&
+        m._mixinKind === 'protocol';
+      composition.push(
+        isProtocol
+          ? { name, kind: 'protocol', verbs: verbsRequiringImpl(name) }
+          : { name, kind: 'mixin' },
+      );
+    }
+  }
 
   const seen = new Set<string>();
   const entries: AffordanceEntry[] = [];

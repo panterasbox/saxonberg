@@ -90,8 +90,21 @@ gate closed.
 | `listBlueprints()` / `getBlueprint(id)` | none | browse the catalogue (ungated reads over the singleton) |
 | `publishBlueprint(input)` | the document gate on the `/blueprints` mint branch (platform-held — a `SecurityError` from `DocumentApi.save` is the denial) | **act #2** — name/publish a composition of approved classes |
 | `listMixins()` | none | the palette vocabulary — `{ mixins, bases }`: the flat pickable list (each mixin carrying a one-line `summary` — the first sentence of its concept doc comment, from the source scan; always available, degrades to absent when undocumented) + each base class with its implied (`_mixinName`) mixin set for composition pre-seeding |
+| `answerersOf(mixinNames)` | none | ⭐ **who answers a verb** (controllers-are-io D8b): for each named mixin that is a verb protocol (`_mixinKind = 'protocol'`), the classes that compose it — directly, through a mixin that nests it (`BurnerMixin` over `PumpableMixin`), or by extending a composer — across the kernel AND every registered pack `src/`. Read from the same source scan, lazily, cached on the singleton; `help <verb>`'s *answers:* reads it |
 | `scaffoldClass(input)` | none | **inert source string** composing mixins over a base (open to all authors); when the target is one `AccessApi.sourceWriteRefusal` would refuse the actor, the result carries the `/home/<self>/drafts/<Name>.ts` draft path |
 | `commitClass(input)` | `AccessApi.sourceWriteRefusal` — a `.ts` file, so the wizard axis + `can('write', zone)` | **act #3** — write the new class source + reload |
+
+⭐ **A verb protocol is presented as the verb it serves** (controllers-are-io
+D8b). The source scan regexes `_mixinKind = 'protocol'` beside each
+`_mixinName`, so `listMixins` offers such an entry as `kind: 'protocol'` with
+`verbs` — the primary verbs of the views whose slots `requires:` it
+(`CommandApi.verbsRequiring`; `DipBathMixin` → `dip`) — and the composer
+labels the chip *answers dip*. It is composed like any other mixin; only its
+presentation differs. ⚠ The composition graph (`answerersOf`) is read from
+SOURCE TEXT — `class X extends <expr>`, same-file `const XBase = …`
+bindings and import aliases (the `composesMixin` lesson in
+`scripts/pack-roots.ts`) — so a class assembled at runtime is invisible to
+it, exactly as it is to the lint family.
 
 `createTemplate` is the server side of act #1 (the CMS content-write path only
 *updates* an existing template — "creating templates is out of scope"). It is

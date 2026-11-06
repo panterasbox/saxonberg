@@ -2290,6 +2290,27 @@ export interface ReactionExpandResultEnvelope {
 }
 
 /**
+ * One mixin in a subject's active composition, as the card's chip row
+ * presents it (controllers-are-io D8b).
+ */
+export interface CompositionEntry {
+  /** The mixin's `_mixinName` (`DipBathMixin`). */
+  name: string;
+  /**
+   * `protocol` — a verb protocol (`_mixinKind = 'protocol'`): the thing
+   * ANSWERS a verb, so the chip names the verb. `mixin` — everything else,
+   * a fact about what the thing is.
+   */
+  kind: 'mixin' | 'protocol';
+  /**
+   * For a protocol: the verbs whose views `requires:` it — the words the
+   * chip reads (*answers: dip*). Empty when no view names it yet (its
+   * verb's slot is `requires: any`); the chip then reads the mixin's name.
+   */
+  verbs?: string[];
+}
+
+/**
  * Result of an {@link AffordanceResolveMessage}: what this viewer can
  * do with this object, at this instant.
  *
@@ -2310,8 +2331,13 @@ export interface AffordanceResultEnvelope {
    * group without a second round trip. **Active**, not declared:
    * augments, implants, species innates and on-shift conferral all
    * change it at runtime.
+   *
+   * ⭐ Each entry says what KIND of mixin it is (controllers-are-io D8b): a
+   * `protocol` mixin (`_mixinKind = 'protocol'`) is presented as the verb
+   * it serves — the card reads *answers: dip* — and a `mixin` as a noun
+   * chip.
    */
-  composition: string[];
+  composition: CompositionEntry[];
   /**
    * What the subject IS, to this viewer — the centre chip's middle
    * term (*"cast-iron anvil · thing · 6 mixins"*).
@@ -4651,8 +4677,15 @@ export interface MixinPaletteEntry {
   /**
    * `mixin` — a class-factory mixin (`FooMixin`), applied over the base.
    * `base` — an instantiable base class (`Idea`/`Thing`/…) the mixins wrap.
+   * `protocol` — a verb protocol mixin (`_mixinKind = 'protocol'`): composing
+   * it makes the class ANSWER a verb (controllers-are-io D8b).
    */
-  kind: 'mixin' | 'base';
+  kind: 'mixin' | 'base' | 'protocol';
+  /**
+   * For a `protocol`: the verbs whose views `requires:` it (`['dip']`).
+   * Absent for a noun mixin or a base.
+   */
+  verbs?: string[];
   /**
    * A one-line summary — the first sentence of the mixin's TSDoc doc
    * comment (or its companion interface's), from the server source scan.

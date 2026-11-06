@@ -23,6 +23,7 @@ import type {
   Status,
   AffordanceEntry,
   AffordanceState,
+  CompositionEntry,
 } from '@saxonberg/types';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
@@ -418,10 +419,10 @@ export type ModelData = Record<string, FieldValue | undefined>;
  */
 export interface AffordanceResolution {
   verbs: AffordanceEntry[];
-  composition: string[];
+  composition: CompositionEntry[];
 }
 
-export type { AffordanceEntry, AffordanceState };
+export type { AffordanceEntry, AffordanceState, CompositionEntry };
 
 export type CommandModel = ModelData & {
   /**
@@ -1451,6 +1452,17 @@ export class CommandApi {
    */
   static allDefinitions(): CommandDefinition[] {
     return logic().allDefinitions();
+  }
+
+  /**
+   * The primary verbs of every loaded view a slot of which `requires:` the
+   * named mixin (`DipBathMixin` → `['dip']`), sorted. The verb side of a
+   * protocol mixin (controllers-are-io D8b): what a card's *answers:* chip
+   * and Studio's palette say the protocol serves. Empty when no view names
+   * it (a `requires: any` slot narrowed in its controller).
+   */
+  static verbsRequiring(mixinName: string): string[] {
+    return logic().verbsRequiring(mixinName);
   }
 
   /**

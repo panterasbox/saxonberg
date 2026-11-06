@@ -39,6 +39,7 @@ import React from "react";
 import styled from "styled-components";
 import type {
   CardId,
+  CompositionEntry,
   HelpTopic,
   PresenceStatus,
   ReleaseRow,
@@ -359,15 +360,42 @@ export function chipLabel(mixin: string): string {
   return mixin.endsWith("Mixin") ? mixin.slice(0, -"Mixin".length) : mixin;
 }
 
-/** The chips, most-interesting first. */
+/**
+ * The NOUN chips, most-interesting first. A protocol mixin is not among
+ * them — it is the verb it serves, and {@link answeredVerbs} names it.
+ */
 export function orderComposition(
-  composition: readonly string[],
+  composition: readonly CompositionEntry[],
 ): string[] {
-  const labelled = composition.map(chipLabel);
+  const labelled = composition
+    .filter((c) => c.kind !== "protocol")
+    .map((c) => chipLabel(c.name));
   return [
     ...labelled.filter((m) => !PLUMBING.has(m)),
     ...labelled.filter((m) => PLUMBING.has(m)),
   ];
+}
+
+/**
+ * ⭐ The verbs this subject ANSWERS — one word per verb its protocol
+ * mixins serve (controllers-are-io D8b): a dip pot reads *answers: dip*.
+ *
+ * A protocol mixin is a method a verb calls, not a fact about what the
+ * thing is, so a noun chip (`DipBath`) would teach the wrong thing. ⚠ A
+ * protocol no view names yet (its verb's slot is `requires: any`) carries
+ * no verbs and falls back to its own name, rather than vanishing — the
+ * server's answer is true, and hiding part of it is not the client's call.
+ */
+export function answeredVerbs(
+  composition: readonly CompositionEntry[],
+): string[] {
+  const out = new Set<string>();
+  for (const c of composition) {
+    if (c.kind !== "protocol") continue;
+    if (c.verbs && c.verbs.length > 0) for (const v of c.verbs) out.add(v);
+    else out.add(chipLabel(c.name));
+  }
+  return [...out];
 }
 
 /**
@@ -593,6 +621,7 @@ function Composition({ stuffId }: { stuffId?: string }): React.ReactElement | nu
   }, [stuffId, answer]);
   if (!answer || answer.composition.length === 0) return null;
   const ordered = orderComposition(answer.composition);
+  const answers = answeredVerbs(answer.composition);
   /*
    * ⚠ Collapsed by default, and at the FOOT of the card.
    *
@@ -614,6 +643,16 @@ function Composition({ stuffId }: { stuffId?: string }): React.ReactElement | nu
       */}
       <Label>Interfaces</Label>
       <Chips data-testid="card-composition">
+        {/*
+          ⭐ The protocols first, as the verbs they serve, beside the noun
+          chips — and outside the collapse: what a thing ANSWERS is the
+          most useful line on the row.
+        */}
+        {answers.length > 0 && (
+          <Chip data-testid="card-answers">
+            answers: {answers.join(" · ")}
+          </Chip>
+        )}
         {shown.map((m) => (
           <Chip key={m}>{m}</Chip>
         ))}

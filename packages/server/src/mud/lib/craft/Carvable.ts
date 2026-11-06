@@ -51,6 +51,7 @@ export interface Carvable {
 export function CarvableMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
   return class CarvableMixin extends Base implements Carvable {
     static _mixinName = 'CarvableMixin';
+    static _mixinKind = 'protocol' as const;
 
     static commandContributions: CommandContributions = {
       environment: CARVING,

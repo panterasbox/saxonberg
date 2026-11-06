@@ -81,6 +81,18 @@ shape). `getHelpText()` renders it *below* the synthesized syntax, so the
 command topic's body carries the authored prose without a second source,
 and authored prose never restates what the syntax line already says.
 
+⭐ **`help <verb>` lists who ANSWERS it** (controllers-are-io D8b). A command
+topic whose view's slots `requires:` a verb protocol (`_mixinKind =
+'protocol'`, [mixins.md](./mixins.md)) gains an *answers:* section — each
+protocol, and under it the classes that compose it (`help dip`: `DipBathMixin
+— DipPot, GlazeTub, Melt, PaintPot, PulpVat`), from `StudioApi.answerersOf`.
+It is filled on the topic's **first read** and cached until the index is
+rebuilt: the warm keeps only each view's required-mixin list
+(`CommandDefinition.getRequiredMixins`), so the source scan never runs at
+boot and no build artifact exists. ⚠ A verb whose object slot is `requires:
+any` (narrowed in its controller — `turn`, `carve`) lists nothing until its
+view names the protocol; a noun mixin a slot requires is not an answer.
+
 ### API projector — first-class mixins, graded kinds, complete roster
 
 Reads the enriched `author-surface.json` (below) and the `Mixins`

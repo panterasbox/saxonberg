@@ -54,6 +54,7 @@ export interface DipBath {
 export function DipBathMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
   return class DipBathMixin extends Base implements DipBath {
     static _mixinName = 'DipBathMixin';
+    static _mixinKind = 'protocol' as const;
 
     static commandContributions: CommandContributions = {
       environment: DIPPING,
