@@ -3,7 +3,7 @@
 Per-character working position in the **content** and **source**
 stores plus the navigation / I/O verb suite. Substrate for on-server
 authoring — players and developers share the same capability
-surface; only permissions (a future landing) gate authority.
+surface; only title gates authority (see *Who may do what* below).
 
 The two trees:
 
@@ -88,6 +88,20 @@ form, mutually exclusive at the call site.
 | `rm` | `<path>?`, `--mql`, `-c`, `-s`, `-r` | No `-f` v1 — folder/leaf is a hard correctness invariant, not a bypassable policy. |
 | `cp` | `<src>`, `<dst>`, `--mql`, `-c`, `-s` | Same-tree v1; cross-tree copy is a follow-up. |
 | `mv` | `<src>`, `<dst>`, `--mql`, `-c`, `-s` | Content: clone-then-delete. Source: `fs.rename`. |
+
+### Who may do what
+
+**Reading is open** in both trees: `ls` / `cat` / `grep` and `cp`'s
+source endpoint ask nothing (the wizard-axis cleanup, 2026-11-05, dropped
+the source-read slice walk — reading code is not authoring it). **Every
+source-tree write** — `edit -s`, `rm`, `mv`, `cp`'s destination, `mkdir`
+— asks the one predicate `AccessApi.sourceWriteRefusal(giver, path,
+action)`: a code file (`.ts` `.tsx` `.mts` `.cts` `.js` `.mjs` `.cjs`)
+needs the wizard axis **and** title over its slice; anything else (a
+pack's content YAML, a doc, a directory) needs title only. Content-tree
+writes are title over the template (`can` / `canMutateZone`), and
+`--class` on a content write is content like any other field. The full
+matrix is [access.md § Verb-controller gates](./access.md).
 
 ## `pickWorkspaceTree(giver, flags)`
 

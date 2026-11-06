@@ -1,5 +1,5 @@
 /**
- * PracticeController — the developer harness that fabricates one Transcript
+ * PracticeController — the test-world harness that fabricates one Transcript
  * deed. Asserts: a valid invocation records a deed and echoes the resulting
  * band; defaults fill difficulty/outcome; bad difficulty/outcome rejects
  * (a `controller-rejected` note, no row written).
@@ -25,6 +25,9 @@ import {
   makeStuffAtPath,
 } from "../../../../../lib/security/__tests__/test-setup";
 import type { CommandContext, CommandModel } from "../../../../../api/command";
+import { readFileSync } from "fs";
+import { fileURLToPath } from "url";
+import YAML from "yaml";
 
 let store: Map<string, Record<string, unknown>>;
 let idCounter = 0;
@@ -137,5 +140,18 @@ describe("PracticeController", () => {
       expect.objectContaining({ kind: "controller-rejected" })
     );
     expect(store.size).toBe(0);
+  });
+});
+
+describe("practice is a test-world verb (wizard-axis D8)", () => {
+  it("the shipped view is testOnly + requiresTestWorld, and asks for no credential", () => {
+    const path = fileURLToPath(
+      new URL("../../../../../../../../content/platform/content/platform/cmd/system/practice.yaml", import.meta.url),
+    );
+    const view = YAML.parse(readFileSync(path, "utf-8"));
+    expect(view.verbs).toContain("practice");
+    expect(view.testOnly).toBe(true);
+    expect(view.validators).toEqual(["/lib/command/validators/requiresTestWorld"]);
+    expect(view.controller).toBe("/platform/idea/cmd/system/PracticeController");
   });
 });

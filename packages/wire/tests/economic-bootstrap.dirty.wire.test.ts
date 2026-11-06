@@ -111,23 +111,35 @@ let aName = '';
 let startLocationBefore = '';
 
 beforeAll(async () => {
-  founder = await Session.open('founder', { startLocation: HALL });
-  wizard = await Session.open(uniqueHandle('eb-wizard'), { startLocation: HALL, wizard: true });
+  // The founder holds every office (`config` is the Prime Minister's,
+  // `reserve` the Governor's, `treasury` the Minister of Finance's) and
+  // sits on NO committee: `appoint … at` the Counting-Houses asks the
+  // committee over /corpo/goodkin (its appointing authority) and a Terminus
+  // business the Terminus committee, so it is seated on both (wizard-axis D13).
+
+  founder = await Session.open('founder', { startLocation: HALL, committees: ['/world/terminus', '/corpo/goodkin'] });
+  // The wizard types code (`eval --parcel /world/terminus`) and `goto`s
+  // inside Terminus: the wizard axis plus a seat on that committee.
+  wizard = await Session.open(uniqueHandle('eb-wizard'), {
+    startLocation: HALL,
+    wizard: true,
+    committees: ['/world/terminus'],
+  });
   // A newcomer arrives where the lounge's setting says; for the drive
   // they arrive in the banking hall, so the wage step can bank them.
   // Restored in afterAll.
-  const said = await wizard.prose('config defaultStartLocation');
+  const said = await founder.prose('config defaultStartLocation');
   startLocationBefore = said.match(/=\s*(\S+)/)?.[1] ?? '/world/lounge/idea/warren';
-  expectOk(await wizard.cmd(`config defaultStartLocation ${HALL}`));
+  expectOk(await founder.cmd(`config defaultStartLocation ${HALL}`));
 });
 
 afterAll(async () => {
-  if (startLocationBefore) await wizard.cmd(`config defaultStartLocation ${startLocationBefore}`);
+  if (startLocationBefore) await founder.cmd(`config defaultStartLocation ${startLocationBefore}`);
   // The estate clocks and the edition window, back to the shipped Schedule.
-  await wizard.cmd('config press.indexEditionGameHours 6');
-  await wizard.cmd('config estate.dormantAfterDays 30');
-  await wizard.cmd('config estate.escheatAfterDays 180');
-  await wizard.cmd('config employment.absenceVacatesAfterDays 14');
+  await founder.cmd('config press.indexEditionGameHours 6');
+  await founder.cmd('config estate.dormantAfterDays 30');
+  await founder.cmd('config estate.escheatAfterDays 180');
+  await founder.cmd('config employment.absenceVacatesAfterDays 14');
   a?.close();
   wizard?.close();
   founder?.close();
@@ -253,10 +265,12 @@ describe('4. the reserve', () => {
     expectRefused(await founder.cmd('reserve issue 5'));
   });
 
-  it('the Governor writes a reserve row and no other', async () => {
+  it("the Governor writes a reserve row and no other seat's dial", async () => {
     const before = await founder.prose('reserve set reserve.haircut 0.25');
     expect(before).toMatch(/now reads `reserve.haircut = 0.25`/);
-    expectNote(await founder.cmd('reserve set treasury.arrivalPrincipal 99'), 'controller-rejected', { reason: 'not-a-reserve-row' });
+    // The Arrival Note's principal is the fisc's (wizard-axis D11): the
+    // Governor's verb refuses it and names the Minister's.
+    expectNote(await founder.cmd('reserve set treasury.arrivalPrincipal 99'), 'controller-rejected', { reason: 'wrong-seat' });
     expectOk(await founder.cmd('reserve set reserve.haircut 0.20'));
   });
 });
@@ -422,12 +436,12 @@ describe('9. a borrower stops trading', () => {
     expectOk(await wizard.cmd('goto /world/terminus/market/square'));
     expect(await wizard.prose(`look ${stem}`)).toMatch(/crate of oranges/);
     // The horizon collapsed to now; the next read of the book reveals it.
-    expectOk(await wizard.cmd('config reserve.defaultHorizonGameDays 0'));
+    expectOk(await founder.cmd('config reserve.defaultHorizonGameDays 0'));
     await a.prose('house book');
     expect(await until(async () => !/crate of oranges/.test(await wizard.prose(`look ${stem}`)), 30_000)).toBe(true);
     // The horizon back FIRST: the dashboard's read reconciles every open
     // loan, and at zero it would default the general store's too.
-    expectOk(await wizard.cmd('config reserve.defaultHorizonGameDays 30'));
+    expectOk(await founder.cmd('config reserve.defaultHorizonGameDays 30'));
     // The officer's dashboard: the rate is no longer zero.
     const board = await founder.prose('reserve');
     expect(board).toMatch(/default rate on window paper: (?!zero)/);
@@ -455,8 +469,8 @@ describe('10. a player goes dormant', () => {
     expect(before).toMatch(/^\d+$/);
     // The clocks, shortened to seconds; the newcomer logs out — the
     // capture on the way out is the row the clocks read.
-    expectOk(await wizard.cmd(`config estate.dormantAfterDays ${SECONDS_IN_DAYS(3)}`));
-    expectOk(await wizard.cmd(`config employment.absenceVacatesAfterDays ${SECONDS_IN_DAYS(3)}`));
+    expectOk(await founder.cmd(`config estate.dormantAfterDays ${SECONDS_IN_DAYS(3)}`));
+    expectOk(await founder.cmd(`config employment.absenceVacatesAfterDays ${SECONDS_IN_DAYS(3)}`));
     a.close();
     await sleep(8_000);
     // The stall: the operator brought current on a customer's approach
@@ -474,7 +488,7 @@ describe('10. a player goes dormant', () => {
     // claim is that the freeze took nothing.
     expect(balanceOf(await a.prose('bank'))).toBe(before);
     expect(await founder.prose('house roster')).not.toMatch(new RegExp(`teller: ${aName}`));
-    expectOk(await wizard.cmd(`config employment.absenceVacatesAfterDays 14`));
+    expectOk(await founder.cmd(`config employment.absenceVacatesAfterDays 14`));
   }, 120_000);
 });
 
@@ -485,7 +499,7 @@ describe('11. a player escheats', () => {
     expect(heldBefore).toBeGreaterThan(0);
     const book0 = await founder.prose('treasury');
     const unclaimed = (s: string) => Number(s.match(/unclaimed[^\d]*(\d+)/i)?.[1] ?? NaN);
-    expectOk(await wizard.cmd(`config estate.escheatAfterDays ${SECONDS_IN_DAYS(3)}`));
+    expectOk(await founder.cmd(`config estate.escheatAfterDays ${SECONDS_IN_DAYS(3)}`));
     a.close();
     await sleep(8_000);
     // The next touch: a customer approaches the stall — the operator is
@@ -497,8 +511,8 @@ describe('11. a player escheats', () => {
     // The unclaimed row is the last act of the passing; wait for it.
     expect(await until(async () => unclaimed(await founder.prose('treasury')) >= unclaimed(book0) + heldBefore, 60_000)).toBe(true);
     // The return: the treasury pays what it held; the balance is theirs again.
-    expectOk(await wizard.cmd(`config estate.escheatAfterDays 180`));
-    expectOk(await wizard.cmd(`config estate.dormantAfterDays 30`));
+    expectOk(await founder.cmd(`config estate.escheatAfterDays 180`));
+    expectOk(await founder.cmd(`config estate.dormantAfterDays 30`));
     a = await Session.open(aHandle, { startLocation: HALL });
     expect(await until(async () => Number((await a.prose('bank')).match(/balance is (\d+)/)?.[1] ?? 0) >= heldBefore, 30_000)).toBe(true);
     expect(await a.prose('wallet')).not.toMatch(/unclaimed/);
@@ -509,7 +523,7 @@ describe('12. the Gazette prints the index', () => {
   it('⭐ the editor prints the basket in words; buy out a shelf and the next edition\'s number moves', async () => {
     const AVENUE = '/world/terminus/counting-houses/avenue-block';
     // The edition window shortened so a second edition may follow the first.
-    expectOk(await wizard.cmd('config press.indexEditionGameHours 0.001'));
+    expectOk(await founder.cmd('config press.indexEditionGameHours 0.001'));
     await fire(AVENUE, 'hesper', '/lib/behavior/prints');
     expect(await until(async () => /Prices: the basket stands at/.test(await wizard.prose('press')), 30_000)).toBe(true);
     const first = (await wizard.prose('press')).match(/Prices: the basket stands at [^\n]+/)?.[0] ?? '';

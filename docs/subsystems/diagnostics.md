@@ -3,7 +3,7 @@
 The **author-diagnostics** subsystem is the feedback surface for people
 authoring content: it surfaces errors in the content they wrote —
 compile-time TypeScript errors, runtime throws in a brain / script /
-controller, and (for wizards) the raw server console — in a searchable
+controller, and (for the Prime Minister) the raw server console — in a searchable
 store read from both the in-game shell and the CMS.
 
 The problem it solves: a content author working through the CMS browser
@@ -113,7 +113,9 @@ statement in `main()`** (so the boot baseline is captured). It wraps
 `console.log/info/warn/error` into a bounded in-memory ring and **passes
 through** to the original console (terminal output unchanged). The ring is
 **raw and unattributed** — engine internals, third-party chatter — and is
-**wizard-read-only** (via `DiagnosticApi.rawTail` / `errors raw`). It
+**readable by the Prime Minister only** (via `DiagnosticApi.rawTail` /
+`errors raw`) — a privacy rule, not code trust: the ring carries other
+players' command lines. It
 writes only to the ring, never the `diagnostics` collection; instrumented
 seams keep their `console.warn` for terminal visibility, so they appear in
 the ring too (an accepted overlap — the ring is a terminal mirror; the
@@ -194,9 +196,9 @@ never a passed value):
 
 | Op | Gate |
 |---|---|
-| `list` (structured) | **per row** — the within-your-extent pattern: a row is yours to read when its `path` is under an extent you hold (`AccessApi.heldExtents`), or its channel is `pack.<id>` and you maintain that pack (`PackApi.maintainersOf` — a member of the maintainers group, or staff/head of the maintaining organization); `compile` rows (no path) read on the wizard axis alone, and non-wizards never see them. `mine` bypasses the filter (the author is the context actor) |
-| `rawTail` (console ring) | `isWizard` (enforced in `ErrorsController`) |
-| `clear(path)` | `isWizard`, or the provenance author of the path — else `-1` |
+| `list` (structured) | **per row** — the within-your-extent pattern: a row is yours to read when its `path` is under an extent you hold (`AccessApi.heldExtents`), or its channel is `pack.<id>` and you maintain that pack (`PackApi.maintainersOf` — a member of the maintainers group, or staff/head of the maintaining organization); `compile` rows (no path) are open to any signed-in avatar — they are a read of source, and reading source is open (the wizard-axis cleanup, 2026-11-05; spoilers in code are wizard-axis-cleanup-slate W4). `mine` bypasses the filter (the author is the context actor) |
+| `rawTail` (console ring) | the Prime Minister — `CompactApi.holdsOffice(actor, 'prime-minister')`, refusal reason `pm-only` (enforced in `ErrorsController`). Privacy, not code trust: the ring carries other players' command lines |
+| `clear(path)` | title over the path (`AccessApi.canAtPath(subject, 'write-document', path)`), or the provenance author of the path — else `-1`. Clearing deletes rows, so it keeps a gate; deleting a diagnostic is not authoring code |
 | producer writes | the `DiagnosticApi` facade → `DiagnosticLogic` `FromModule` gate |
 
 There is **no author tier** (content-packs wave 3; [access.md](./access.md)):
@@ -221,10 +223,10 @@ reach a guarded `runRoot` uncaught — command-controller throws (via the
 ## Reader A — the `errors` verb
 
 `content/platform/cmd/system/errors.yaml` + `ErrorsController` (category `system`,
-AuthorMixin-afforded, author-or-wizard gated in the controller).
+AuthorMixin-afforded, no validator; the per-op gates above).
 Subcommands: `list` (default) —
 `--channel` / `--severity` / `--source` / `--mine` / `--limit` filters and
-a greedy `path` prefix arg; `raw` — the wizard-only console ring
+a greedy `path` prefix arg; `raw` — the Prime Minister's console ring
 (`--grep`); `clear <path>`. Live tailing is the mudlog author-push plus
 the per-author `compile.subscribe` List setting on `AuthorMixin` (default
 `['$cwd', 'global']`; mutation awaits a future `errors subscribe`
@@ -269,8 +271,10 @@ Three shifts from the plan/requirements were load-bearing:
   the feature live showed a wizard (who edits engine source/TS — exactly
   who needs compile diagnostics) was locked out by `requiresAuthor`; the
   verb dropped the validator. Wave 3 replaced "author or wizard" with the
-  per-row extent filter above: `compile` rows stay on the wizard axis,
-  everything else is read by whoever holds the row's path.
+  per-row extent filter above: `compile` rows stayed on the wizard axis,
+  everything else is read by whoever holds the row's path. The wizard-axis
+  cleanup (2026-11-05) then opened `compile` rows to everyone, moved
+  `errors raw` to the Prime Minister (privacy) and `clear` to title.
 - **The `errors` verb renders plain escaped text, not an MML list.** The
   nested `Mml.unorderedList`/`compose` round-trip through `fromMarkup`
   dropped the list body (only the count rendered); switched to a plain

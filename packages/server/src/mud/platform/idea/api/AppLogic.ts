@@ -5,7 +5,15 @@
 import { ApiLogic } from '../../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../../lib/security/decorators';
 import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
-import { AppSettings, AppSettingFallbacks } from '../../../lib/config/AppSettings';
+import {
+  AppSettings,
+  AppSettingFallbacks,
+  AppSettingKeys,
+  AppSettingTiers,
+  SettingTierVerbs,
+  type SettingTier,
+} from '../../../lib/config/AppSettings';
+import { Office } from '../../../lib/governance/Office';
 
 const AppApiCallers = SecurityPolicies.FromModule('/api/app#AppApi');
 
@@ -26,8 +34,42 @@ const AppApiCallers = SecurityPolicies.FromModule('/api/app#AppApi');
  *
  * @internal
  */
+/** Dotted key → tier, built once on first read (load on use). */
+let tierByKey: Map<string, SettingTier> | null = null;
+function tierIndex(): Map<string, SettingTier> {
+  if (tierByKey) return tierByKey;
+  const out = new Map<string, SettingTier>();
+  for (const [prop, key] of Object.entries(AppSettingKeys)) {
+    out.set(key, AppSettingTiers[prop as keyof typeof AppSettingKeys]);
+  }
+  tierByKey = out;
+  return out;
+}
+
 @Unshadowable
 export class AppLogic extends ApiLogic {
+  /** See {@link AppApi.tierOf}. */
+  @CallSecurity(AppApiCallers)
+  public tierOf(key: string): SettingTier {
+    return tierIndex().get(key) ?? 'B';
+  }
+
+  /** See {@link AppApi.whoSets}. */
+  @CallSecurity(AppApiCallers)
+  public whoSets(key: string): string {
+    const tier = tierIndex().get(key) ?? 'B';
+    if (tier === 'B') return "the Prime Minister's — `config`";
+    const office = Office.byKey(tier.slice(2));
+    return `the ${office?.getDisplayName() ?? tier.slice(2)}'s — \`${SettingTierVerbs[tier]}\``;
+  }
+
+  /** See {@link AppApi.seatFor}. */
+  @CallSecurity(AppApiCallers)
+  public seatFor(key: string): string | null {
+    const tier = tierIndex().get(key) ?? 'B';
+    return tier.startsWith('C:') ? tier.slice(2) : null;
+  }
+
   /** See {@link AppApi.setting}. */
   @CallSecurity(AppApiCallers)
   public setting(key: string): string {

@@ -86,19 +86,20 @@ gate closed.
 |---|---|---|
 | `describeClass(classPath, contextPath?)` | none (a read; reads are ungated since wave 3) | effective mixin set + authorable field list joined to type shape + effective value/source |
 | `describeMixin(name)` | none | one mixin for the composer's inspector card — its FULL multi-paragraph concept comment + the authorable fields it contributes (name + type shape) + its runtime-state field names (all from the source scan) + optional HelpApi enrichment (typed relations + conferred method names, degrading to empty when the help artifact is absent) |
-| `createTemplate(input)` | the write gate at the target path (`CmsApi.write`'s rules; + the code-field gate on the `class` set) | **act #1** — save a NEW content template at a fresh path (CREATE-only; updates go through `CmsApi.write`) |
+| `createTemplate(input)` | the write gate at the target path (`CmsApi.write`'s rules — title; naming a `class` is content) | **act #1** — save a NEW content template at a fresh path (CREATE-only; updates go through `CmsApi.write`) |
 | `listBlueprints()` / `getBlueprint(id)` | none | browse the catalogue (ungated reads over the singleton) |
 | `publishBlueprint(input)` | the document gate on the `/blueprints` mint branch (platform-held — a `SecurityError` from `DocumentApi.save` is the denial) | **act #2** — name/publish a composition of approved classes |
 | `listMixins()` | none | the palette vocabulary — `{ mixins, bases }`: the flat pickable list (each mixin carrying a one-line `summary` — the first sentence of its concept doc comment, from the source scan; always available, degrades to absent when undocumented) + each base class with its implied (`_mixinName`) mixin set for composition pre-seeding |
-| `scaffoldClass(input)` | none | **inert source string** composing mixins over a base (open to all authors) |
-| `commitClass(input)` | `isWizard` + `can('write', zone)` | **act #3** — write the new class source + reload |
+| `scaffoldClass(input)` | none | **inert source string** composing mixins over a base (open to all authors); when the target is one `AccessApi.sourceWriteRefusal` would refuse the actor, the result carries the `/home/<self>/drafts/<Name>.ts` draft path |
+| `commitClass(input)` | `AccessApi.sourceWriteRefusal` — a `.ts` file, so the wizard axis + `can('write', zone)` | **act #3** — write the new class source + reload |
 
 `createTemplate` is the server side of act #1 (the CMS content-write path only
 *updates* an existing template — "creating templates is out of scope"). It is
-author-tier to call; the wizard-lockdown code-field gate inside
-`TemplateApi.saveTemplate` still applies to the `class` value being set and, on
-refusal, is surfaced as a graceful `denied` disposition (never a 500). An
-existing path is likewise a `denied`, not an overwrite. REST:
+author-tier to call; naming a `class` is content, gated by title like any
+other field (the code-naming gate inside `TemplateApi.saveTemplate` was deleted
+by the wizard-axis cleanup, 2026-11-05). A title refusal is surfaced as a
+graceful `denied` disposition (never a 500). An existing path is likewise a
+`denied`, not an overwrite. REST:
 `POST /api/studio/template` (CSRF, `requireAuth`).
 
 `describeClass` reads effective values through a live representative
@@ -195,11 +196,10 @@ are three creation acts, and only one needs a wizard:
    (`publishBlueprint`) — author-tier (a pointer to trusted code is not
    untrusted code).
 3. **A new code module / novel composition** (`scaffoldClass` →
-   `commitClass`) — **wizard-gated source write**, because a new backing
-   class *is* a new `class` value and naming a class confers code-trust (the
-   shipped wizard-lockdown, [access.md](./access.md)). This build is the
-   sanctioned bridge across that content→code boundary, not a relaxation of
-   it.
+   `commitClass`) — **wizard-gated source write**, because committing it
+   *authors TypeScript*, and that is what the wizard axis is
+   (`AccessApi.sourceWriteRefusal`, [access.md](./access.md)). Naming the
+   class afterwards from a row is content; only writing it is code.
 
 The composer's **base can be any approved class**, not only the 8 fundamental
 roots: "Author a new kind from this →" on a concrete blueprint makes that
@@ -258,8 +258,8 @@ authorization semantics — the server re-gates every write and returns a
   `Quantity<…>` / the reference-picker, which browses in-scope content templates
   via `cmsClient.listTree`, degrading to a text input for catalogue-data ref
   types). Save calls `createTemplate` and surfaces the DISPOSITION inline
-  (committed → offer "open in Files"; denied → the message, e.g. the
-  wizard-lockdown refusal).
+  (committed → offer "open in Files"; denied → the message, e.g. a title
+  refusal).
 - **`ComposerView`** — the wizard, code-tier surface (act #3). A left column
   composes a base class (a `<select>` over the palette bases, or an
   any-approved-class base carried in from a blueprint) + an ordered,
@@ -316,8 +316,8 @@ warns a non-wizard before a commit the server will decline.
 - [templates.md](./templates.md) — the Hydrator two-phase `setX`/`applyX`
   dispatch (property vs instruction fields).
 - [mixins.md](./mixins.md) — the `Mixins` registry, `_mixinName`, `MixinApi`.
-- [access.md](./access.md) — the wizard-lockdown (`class`/
-  `behaviors[].brain` code-naming gate), `isWizard`, `canAtPath`.
+- [access.md](./access.md) — the wizard axis (authoring TypeScript),
+  `sourceWriteRefusal`, `isWizard`, `canAtPath`.
 - [provenance.md](./provenance.md) — the authoring ledger, `getActingAuthor`,
   the `recordAuthoring` gate (broadened to accept the studio transport).
 
@@ -361,7 +361,7 @@ Three design→implementation shifts are worth recording:
 
 ## ⭐ The Studio is a CARD
 
-`studio` is a verb (the platform pack's `content/platform/cmd/author/studio.yaml`, `requiresWizard`)
+`studio` is a verb (the platform pack's `content/platform/cmd/author/studio.yaml`, no validator)
 opening a `client`-source card. The catalogue, the template form and the
 class composer speak the Studio REST routes; the server owns the card's
 existence, identity, lifetime and pinned-ness.
@@ -377,26 +377,23 @@ the guard says *the sandbox build ships no verbs*, not *the word is
 reserved forever* — and the composer is the one this subsystem doc is
 named after.
 
-## Open — a protowizard cannot reach the template form
+## Closed — any author can reach the template form
 
-⭐ **The gap, found by the hydration build (2026-10-02).** The Studio's
-template create requires a `classPath`, and the code-field gate refuses
-`class` on a create for every non-wizard — so a protowizard, who is
-exactly the person the Studio is for, cannot use it at all.
+⭐ **The gap, found by the hydration build (2026-10-02):** the Studio's
+template create requires a `classPath`, and the code-field gate refused
+`class` on a create for every non-wizard — so the authors the Studio is
+for could not use it at all. **The wizard-axis cleanup (2026-11-05)
+closed it by deleting that gate**: naming a class is not code trust —
+*publishing* one is, and publishing is what the open-source project
+already did (`lint:instanceable` states it structurally). A create is
+now gated by title over the target path, like any other content write.
 
-Letting one through needs an **`extends` / "based on"** field on
-`CreateTemplateInput`: name a PARENT ROW instead of a class, and the
-child inherits the class by `extends:` resolution without ever naming
-code. Small, real, and content-authoring-shaped.
-
-⚠ And the justification the refusal was resting on is **wrong**:
-*naming* a class is not code trust — *publishing* one is, and publishing
-is what the open-source project already did. What may genuinely be
-privileged is **cloning** a row, because that EXECUTES the class's
-initialization; that is the class's own decision and belongs in the
-class, with nothing to do with the template or with hydration.
-⛔ Whatever lands there is a seat, a title or an `AccessApi.can` — never
-a new `isWizard` check. See
-[access.md § The code-trust lockdown](./access.md).
+Still open and still content-authoring-shaped: an **`extends` / "based
+on"** field on `CreateTemplateInput`, naming a PARENT ROW instead of a
+class, so a child can inherit the class by `extends:` resolution — a
+convenience now, not a way around a gate. And if cloning a particular
+class should ever be privileged, that is the class's own decision at
+instancing — ⛔ a seat, a title or an `AccessApi.can`, never a new
+`isWizard` check. See [access.md § The code-trust lockdown](./access.md).
 
 See [card-surface.md](./card-surface.md).

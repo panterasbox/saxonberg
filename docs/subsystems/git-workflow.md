@@ -85,21 +85,24 @@ The repo root (where `.git` lives) is `path.dirname(SourceTreeApi.getSandboxRoot
 (the sandbox root is the `packages/` dir itself), memoised process-wide. A
 path **outside `packages/`** (`docs/`, `deploy/`, root config) has *no*
 source-logical form → the write gate resolves no title for it
-(`ownerOf` → `null`, which fails closed) → **denied for a normal wizard**. That is intentional (git is never
-a bypass), and it means a wizard editing `docs/` through the source tree
-**cannot `publish` it** — a real, documented constraint.
+(`ownerOf` → `null`, which fails closed) → **denied** to anyone who does
+not hold it. That is intentional (git is never a bypass), and it means an
+author editing `docs/` through the source tree **cannot `publish` it** — a
+real, documented constraint.
 
 ## The security spine — permission-scoped operations
 
 The governing invariant: **git can never touch a file a direct source
 write couldn't.** Every operation resolves to an *affected-path set*, and
-each path must pass the **same gate `_writeSource` uses** —
-`AccessApi.isWizard(actor)` **and** `AccessApi.can(actor, 'write',
-resolveSourceFolderZone(path))`. That gate is mirrored **verbatim** as a
-module-private `gateSourceWrite` in `GitLogic` (a deliberate copy of
-`CmsLogic.gateSourceWrite` / `WriteController._gateSourceWrite`, not a
-shared extraction — the lowest-blast-radius choice; a shared
-`AccessApi.canWriteSource` is a noted follow-up).
+each path must pass the **same gate every source-tree writer asks** —
+`AccessApi.sourceWriteRefusal(actor, path)`: a code file (`.ts`, `.js`, …)
+asks for the wizard axis **and** title over its slice
+(`can(actor, 'write', resolveSourceFolderZone(path))`); anything else (a
+pack's content YAML) asks for title only. `GitLogic`'s module-private
+`gateSourceWrite` is a one-line forward to it. (It used to be one of four
+verbatim *"mirror, don't share"* copies — `CmsLogic`, `WriteController`,
+the studio — which the wizard-axis cleanup, 2026-11-05, collapsed into the
+one predicate. See [access.md § The code-trust lockdown](./access.md).)
 
 The acting principal is **derived from the execution context**
 (`ExecutionContextApi.getActingAuthor`) — **never a caller-supplied
@@ -108,8 +111,8 @@ every gate closed.
 
 | Op | Affected-path set | Rule |
 |---|---|---|
-| `status` / `diff` / `log` | (read) | `isWizard`, no path gate |
-| **`publish`** | the **dirty set** (staged ∪ unstaged ∪ untracked) | stage **only** the writable paths; commit those; leave the rest dirty for their owner → **per-owner slicing falls out for free** |
+| `status` / `diff` / `log` | (read) | **open** — any signed-in avatar (a `null` actor fails closed); no path gate. Reading code is not the wizard axis. |
+| **`publish`** | the **dirty set** (staged ∪ unstaged ∪ untracked) | stage **only** the writable paths; commit those; leave the rest dirty for their owner → **per-owner slicing falls out for free**. `--dry-run` computes the same split, returns `committedPaths` / `skippedPaths` with `dryRun: true`, and touches nothing — no stage, no commit, no push. |
 | **`revert <sha>`** | the paths in that commit's diff (`diff-tree`) | require **all** writable; **any** out-of-scope path **rejects** the whole revert (no partial revert) |
 
 Non-path-scopable history rewrites (`reset` / force-push) are **out of
@@ -145,11 +148,14 @@ Both are thin over the one gated `GitApi`; both derive the actor from
 context and hold no authz beyond their entry gate.
 
 - **The `git` verb** — `content/platform/cmd/system/git.yaml` + `GitController`
-  (category `system`, AuthorMixin-afforded, gated by the YAML
-  `requiresWizard` validator). Subcommands `status` (default) / `diff` /
-  `log` / `publish -m <msg>` / `revert <sha>`; reads render through
-  `MessageApi.scene`, failures surface as `controller-rejected` notes. The
-  verb is afforded to every operator surface but a non-wizard can't run it.
+  (category `system`, AuthorMixin-afforded, **no validator** — the
+  per-path gate in `GitLogic` is the authority). Subcommands `status`
+  (default) / `diff` / `log` / `publish -m <msg> [--dry-run]` /
+  `revert <sha>`; reads render through `MessageApi.scene`, failures
+  surface as `controller-rejected` notes. `git publish --dry-run` reports
+  what would be committed and what left dirty, and changes nothing — the
+  way to see your slice before you publish it. (The `--dry-run` flag is
+  the verb's; the REST panel does not expose it.)
 - **The CMS git panel** — `GitRoutes` (a **sibling** of `CmsRoutes`; the
   git ops don't fit the `backend/path/body` shape) exposes
   `GET /api/git/{status,diff,log,csrf}` + CSRF-protected

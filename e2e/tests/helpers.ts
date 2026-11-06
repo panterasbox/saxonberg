@@ -82,10 +82,15 @@ export async function mintSession(
      * singleton room) so co-location tests bypass the elastic lounge
      * Warren. Only meaningful with `withCharacter`. */
     startLocation?: string;
-    /** Confer wizard (code-trust) on the provisioned character — the
-     * `clone`/`eval`/`goto` axis. Test-auth only; the server adds the
-     * character to the managed `wizards` group. */
+    /** Confer the wizard AXIS on the provisioned character — authoring
+     * TypeScript (`eval`, a `.ts` write) and nothing else; it confers no
+     * title (wizard-axis D13). */
     wizard?: boolean;
+    /** Seat the character on the committee over each extent
+     * (`<extent>[:owner]`) — the authority to stage inside a locality. */
+    committees?: string[];
+    /** Seat the character in each office (the seat moves). */
+    offices?: string[];
   } = {}
 ): Promise<{ state: SessionState; handle: string }> {
   const handle = opts.handle ?? uniqueHandle('user');
@@ -101,6 +106,8 @@ export async function mintSession(
             ? { startLocation: opts.startLocation }
             : {}),
           ...(opts.wizard ? { wizard: true } : {}),
+          ...(opts.committees?.length ? { committees: opts.committees } : {}),
+          ...(opts.offices?.length ? { offices: opts.offices } : {}),
         },
         headers: TEST_AUTH_TOKEN ? { 'x-test-auth': TEST_AUTH_TOKEN } : {},
       });
@@ -237,6 +244,8 @@ export async function openWorldAs(
   opts: {
     startLocation?: string;
     wizard?: boolean;
+    committees?: string[];
+    offices?: string[];
     /** Reuse a handle already minted by `mintSession` (the seat-then-enter
      *  flow: a character must EXIST before the founder can seat it). */
     handle?: string;
@@ -258,6 +267,8 @@ export async function openWorldAs(
     withCharacter: true,
     startLocation: opts.startLocation,
     wizard: opts.wizard,
+    committees: opts.committees,
+    offices: opts.offices,
   });
   const { context, page } = await enterWorld(
     browser,
@@ -316,26 +327,32 @@ export async function sendUntil(
  * founder session is an all-offices session, and a spec that wanted the
  * Governorship quietly gets the Prime Ministership too.
  *
- * The right shape is: the founder seats an ordinary character in the one
- * office the spec needs, and that character acts. It is blocked on the
- * `office assign` defect below, not on a decision.
+ * The right shape is: seat an ordinary character in the one office the
+ * spec needs — `openWorldAs(browser, 'gov', { offices:
+ * ['central-bank-governor'] })` — and that character acts (wizard-axis D13;
+ * the `office assign` defect below is why the seat is staged, not typed).
+ *
+ * ⛔ The founder sits on NO committee (wizard-axis D18): a spec where the
+ * founder acts inside a locality passes `committees` for it.
  */
 export async function openWorldAsFounder(
   browser: Browser,
-  opts: { startLocation?: string } = {}
+  opts: { startLocation?: string; committees?: string[] } = {}
 ) {
   const { state } = await mintSession({
     handle: 'founder',
     withCharacter: true,
     startLocation: opts.startLocation,
+    committees: opts.committees,
   });
   const { context, page } = await enterWorld(browser, state);
   return { page, context, close: () => context.close() };
 }
 
 /*
- * ⚠ There is deliberately NO `seatAsGovernor` helper — and its absence
- * is why the founder is doing jobs that belong to officeholders.
+ * ⚠ There is still no `seatAsGovernor` helper: the `offices` option on
+ * `openWorldAs` / `mintSession` IS that helper now (a staged seat). What
+ * follows is why the seat has to be staged rather than typed.
  *
  * The obvious shape — the founder seats an ordinary character with
  * `office assign <them> central-bank-governor`, and that character does

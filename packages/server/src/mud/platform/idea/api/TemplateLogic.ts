@@ -21,10 +21,6 @@ import { Mixins } from '../../../lib/mixin';
 import { TemplateError } from '../../../lib/stuff/TemplateError';
 import { ReservedTemplatePrefixes } from '../../../lib/paths';
 import { ProvenanceApi } from '../../../api/provenance';
-import { AccessApi } from '../../../api/access';
-import { ExecutionContextApi } from '../../../api/execution-context';
-import { CodeNamingFields } from '../../../lib/stuff/CodeNamingFields';
-import Avatar from '../../../lib/character/Avatar';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import TemplateApplier from '../TemplateApplier';
 
@@ -102,12 +98,11 @@ export class TemplateLogic extends ApiLogic {
       }
     }
 
-    // Code-trust lockdown: a non-wizard author (a protowizard) may not
-    // introduce or change a direct code-naming field
-    // (`class` / `behaviors[].brain`). The actor is derived from the
-    // execution context (never caller-supplied); the `existing` doc is
-    // the diff baseline. See access.md § The code-trust lockdown.
-    await this.enforceCodeFieldGate(classPath, data, existing);
+    // ⛔ No code-naming gate (wizard-axis D5, owner 2026-11-05): a row that
+    // NAMES code — `class:`, `behaviors[].brain` — is content, decided by
+    // title like any other field. What bounds `class:` is
+    // `lint:instanceable`; what bounds `brain:` is the brain module
+    // category (only a brain module exports `brain`).
 
     // The folder/leaf subclass follows the EFFECTIVE class — a child
     // that states none is the folder (or leaf) its parent is.
@@ -132,130 +127,6 @@ export class TemplateLogic extends ApiLogic {
     // / system save, forced, non-avatar principal) records nothing.
     await ProvenanceApi.recordAuthoring({ path });
     return tpl._id!;
-  }
-
-  /**
-   * The code-field gate (wizard-authority). Enforces that a non-wizard
-   * content author cannot set or change any **direct code-naming field**
-   * — `class` or any `behaviors[].brain` — on a
-   * content template, since each resolves to executable code at clone /
-   * hydrate / behavior-fire time. The transitive reference fields close
-   * by construction (every referenced template passed this same gate).
-   *
-   * Allow ladder (gated-api-actor-from-context rule):
-   *  1. no attributable Avatar author (system / bootstrap / forced /
-   *     cross-actor / pre-Avatar login + char-gen + guest provisioning)
-   *     → ALLOW;
-   *  2. a wizard (`AccessApi.isWizard`) → ALLOW;
-   *  3. else (a protowizard) → enforce the delta rule below.
-   *
-   * The delta rule rejects a write that **introduces or changes** a
-   * code-naming field vs. the `existing` doc: `class`
-   * inequality, or an incoming brain multiset that is not a subset of
-   * the existing one. A pure cosmetic edit (same class, brain set
-   * unchanged-or-reduced) passes — the protowizard authoring path.
-   *
-   * Structural carve-out (D4): a `mkdir`-shaped write — a Zone/folder
-   * `class` with no behaviors —
-   * is exempt. A folder class is engine code by construction, carries no
-   * author-chosen executable strategy, and is constrained by the
-   * folder/leaf invariant. The carve-out admits *any* `isFolderClass`
-   * value (broader than the single `FolderZone` that `mkdir` emits); the
-   * no-behaviors clause keeps it from smuggling an
-   * executable strategy. It is not a code-execution escape (every folder
-   * class is wizard-authored engine code), though it does let a
-   * protowizard turn a leaf template into a folder — a content-integrity
-   * edge gated by ordinary content-write access, not a code-trust one.
-   *
-   * Placement (D6): this gate is enforced at `saveTemplate`, the *authoring*
-   * chokepoint where the acting author and the in-world/CMS intent live —
-   * deliberately, not at the universal `DomainHook.aroundSave` where the
-   * folder/leaf invariant sits. The trade-off: a future path that mutates a
-   * `Template` and calls `tpl.save()` directly would bypass *this* gate while
-   * still tripping folder/leaf validation, and the drift-guard watches
-   * resolver call-sites, not template-write sites. No protowizard-reachable
-   * path does that today (the only non-`saveTemplate` authoring writer,
-   * `PackLogic`, is wizard-gated at the `pack` verb); if one is ever added,
-   * the gate moves to `aroundSave` beside `validateFolderLeafSave`.
-   */
-  // ⚠⚠ **This gate's name is a claim its `class` arm cannot support, and
-  // the claim is recorded as wrong rather than quietly kept.**
-  //
-  // Reviewer, 2026-10-02: *"naming a class isn't code trust. PUBLISHING a
-  // class is. the act of publishing means 'you can use this' — there's no
-  // 'only x templates may use my code', it's an open source project."*
-  // Three things in this file and its neighbours agree:
-  //
-  //   1. ⛔ on a create `existing` is null, so ANY `classPath` violates —
-  //      the gate refuses a class five hundred rows already name, so it
-  //      is not guarding a decision to bring code into play;
-  //   2. ⛔ a protowizard reaches the identical instance through
-  //      `extends` (a class-less child of a row naming that class) — same
-  //      constructor, same `onCreate`, same mixins. A hop, not a boundary;
-  //   3. ⛔ `lint:instanceable` ALREADY declares which classes content may
-  //      name, structurally and author-independently (not `/lib/`,
-  //      resolves, under a branch segment). That is
-  //      publishing-for-content; a per-author gate on top is redundant.
-  //
-  // What the `class` arm actually does is stop a non-wizard being
-  // author-of-record for a row that STATES a class — bookkeeping.
-  //
-  // ⭐ `behaviors[].brain` survives, under a different name: a brain is
-  // data the engine runs BY ITSELF, on a timer, with no player act. That
-  // is autonomy and shared-world resource, not code provenance.
-  //
-  // ⭐⭐ And the distinction the gate was groping for lives elsewhere
-  // entirely: **a row is a RECORD; CLONING is execution.** Authoring is
-  // inert — cloning is what runs the class's initialization. If instancing
-  // a class should be privileged, that is the CLASS's question, asked of
-  // whoever is instancing, and neither the row's business nor hydration's.
-  // ⚠ It is also not a call-security question: inside the clone pipeline
-  // the caller is always `StuffApi` by design, so `@CallSecurity` answers
-  // *which code*, where the question is *which person* — `AccessApi`'s
-  // axis. See access.md § The code-trust lockdown for the shape (a static
-  // veto seam, the `canDestruct` pattern) and for why it is a non-issue
-  // today.
-  private async enforceCodeFieldGate(
-    classPath: string | undefined,
-    data: Record<string, unknown>,
-    existing: Template | null,
-  ): Promise<void> {
-    const actor = ExecutionContextApi.getActingAuthor();
-    if (!(actor instanceof Avatar)) return; // provisioning / system → allow
-    if (await AccessApi.isWizard(actor)) return; // code trust → allow
-
-    // ⭐ The baseline is the RAW row, never the effective one. A
-    // protowizard editing a class-less child must not be refused for
-    // "changing" a class the row never stated.
-    const incomingBrains = CodeNamingFields.extractBrains(data);
-    const existingBrains = CodeNamingFields.extractBrains(existing?.own.data);
-
-    // A structural folder scaffold (mkdir / lounge seed) carries no
-    // author-chosen executable strategy — exempt its class. Requiring no
-    // behaviors prevents smuggling a brain in under a folder class.
-    // ⭐ The `hydratorClass` arm went with the field (2026-10-01), not
-    // with an exemption: there is no applier for a scaffold to smuggle.
-    const folderScaffold =
-      incomingBrains.length === 0 &&
-      classPath !== undefined &&
-      (await ZoneApi.isFolderClass(classPath));
-
-    const violations: string[] = [];
-
-    if (classPath !== (existing?.own.class ?? undefined) && !folderScaffold) {
-      violations.push('class');
-    }
-    if (!CodeNamingFields.isMultisetSubset(incomingBrains, existingBrains)) {
-      violations.push('behaviors[].brain');
-    }
-
-    if (violations.length > 0) {
-      throw new TemplateError(
-        `only a wizard may set executable code-naming field(s) ` +
-          `[${violations.join(', ')}] on a content template; protowizards ` +
-          `author by cloning/customizing wizard-made templates`,
-      );
-    }
   }
 
   /** See {@link TemplateApi.distinctClasses}. */

@@ -21,6 +21,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import WikiRenderer from '../idea/WikiRenderer';
 import { Idea } from '../../lib/stuff/Idea';
 import { AccessApi } from '../../api/access';
+import { StuffApi } from '../../api/stuff';
 import { AppApi } from '../../api/app';
 import { PlayerApi } from '../../api/player';
 import { ShellApi } from '../../api/shell';
@@ -52,13 +53,23 @@ async function asReader<T>(who: Stuff | null, fn: () => Promise<T>): Promise<T> 
 }
 
 /**
+ * Stand the `/wiki` root zone up for the renderer's level-3 rung (it is
+ * loaded on use through `StuffApi.singleton`).
+ */
+function standWikiRoot(): void {
+  vi.spyOn(StuffApi, 'singleton').mockImplementation((async (p: string) =>
+    p === '/wiki' ? wikiRoot : null) as never);
+}
+
+/**
  * Pin the capability ladder to `ceiling` for every actor. The ladder
- * itself (wizard → zone-mutator → zone-reader → 0) is asserted
+ * itself (root-owner → zone-mutator → zone-reader → 0) is asserted
  * separately in its own describe block.
  */
 function pinCeiling(ceiling: 0 | 1 | 2 | 3): void {
-  vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(ceiling >= 3);
-  vi.spyOn(AccessApi, 'canMutateZone').mockResolvedValue(ceiling >= 2);
+  standWikiRoot();
+  vi.spyOn(AccessApi, 'canMutateZone').mockImplementation((async (_a: unknown, z: unknown) =>
+    z === wikiRoot ? ceiling >= 3 : ceiling >= 2) as never);
   vi.spyOn(AccessApi, 'can').mockResolvedValue(ceiling >= 1);
 }
 
@@ -72,6 +83,7 @@ function pinAppetite(appetite: number): void {
 let renderer: WikiRenderer;
 let reader: Stuff;
 let zone: Stuff;
+let wikiRoot: Stuff;
 
 /**
  * `render` / `redactSource` are gated to the controller + the registry
@@ -93,6 +105,7 @@ beforeEach(() => {
   renderer = makeStuff(() => new WikiRenderer());
   reader = principal();
   zone = principal();
+  wikiRoot = principal();
 });
 
 /** Render with a zone in play, so the ladder's zone rungs are reachable. */
@@ -316,9 +329,20 @@ describe('the MAXIMUM rule (59, 60)', () => {
 });
 
 describe('the capability ladder', () => {
-  it('a wizard reaches 3', async () => {
-    vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(true);
+  it('the owner role on the /wiki root reaches 3 (wizard-axis D6)', async () => {
+    standWikiRoot();
+    vi.spyOn(AccessApi, 'canMutateZone').mockImplementation((async (_a: unknown, z: unknown) =>
+      z === wikiRoot) as never);
     expect(await renderer.ceilingFor(reader, zone)).toBe(3);
+  });
+
+  it('⭐ a wizard with no wiki title reads like anyone else — the axis is not a reading privilege', async () => {
+    standWikiRoot();
+    vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(true);
+    vi.spyOn(AccessApi, 'canMutateZone').mockResolvedValue(false);
+    vi.spyOn(AccessApi, 'can').mockResolvedValue(false);
+    vi.spyOn(PlayerApi, 'isAvatarStuff').mockReturnValue(true);
+    expect(await renderer.ceilingFor(principal(), zone)).toBe(1);
   });
 
   it('a namespace mutator reaches 2', async () => {
@@ -418,8 +442,10 @@ describe('the capability ladder', () => {
     expect(await renderer.ceilingFor(reader, undefined)).toBe(0);
   });
 
-  it('a wizard does not need a zone', async () => {
-    vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(true);
+  it('a root owner does not need a namespace zone', async () => {
+    standWikiRoot();
+    vi.spyOn(AccessApi, 'canMutateZone').mockImplementation((async (_a: unknown, z: unknown) =>
+      z === wikiRoot) as never);
     expect(await renderer.ceilingFor(reader, undefined)).toBe(3);
   });
 });

@@ -82,7 +82,9 @@ async function say(s: Session, cmd: string): Promise<string> {
 }
 
 beforeAll(async () => {
-  wiz = await Session.open(uniqueHandle('hyd-wiz'), { wizard: true });
+  // ⭐ An author, not a wizard: `cat` is every character's (the workspace
+  // verbs) and reading is open (wizard-axis D14) — nothing here types code.
+  wiz = await Session.open(uniqueHandle('hyd-wiz'));
   open.push(wiz);
 });
 

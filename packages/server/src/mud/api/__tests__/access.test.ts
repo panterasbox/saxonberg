@@ -169,3 +169,44 @@ describe('AccessLogic singleton encapsulation', () => {
     expect(() => logic.can(null, 'destruct', null)).toThrow(SecurityError);
   });
 });
+
+describe('AccessApi.sourceWriteRefusal — the ONE source-write predicate (wizard-axis D2/D3)', () => {
+  const someone = {} as never;
+  afterEach(() => vi.restoreAllMocks());
+
+  function stub(wizard: boolean, title: boolean): void {
+    vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(wizard);
+    vi.spyOn(AccessApi, 'resolveSourceFolderZone').mockResolvedValue(null);
+    vi.spyOn(AccessApi, 'can').mockResolvedValue(title);
+  }
+
+  it('a .ts refuses a non-wizard who holds title — authoring code asks for the axis', async () => {
+    stub(false, true);
+    expect(await AccessApi.sourceWriteRefusal(someone, '/server/src/mud/lib/x/Y.ts')).toMatch(/wizard axis/);
+  });
+
+  it('a .yaml admits a non-wizard who holds title — content is not code', async () => {
+    stub(false, true);
+    expect(await AccessApi.sourceWriteRefusal(someone, '/content/lounge/content/x.yaml')).toBeNull();
+  });
+
+  it('both refuse a wizard without title — the axis confers no title', async () => {
+    stub(true, false);
+    expect(await AccessApi.sourceWriteRefusal(someone, '/server/src/mud/lib/x/Y.ts')).toMatch(/no title/);
+    expect(await AccessApi.sourceWriteRefusal(someone, '/content/lounge/content/x.yaml')).toMatch(/no title/);
+  });
+
+  it('every script extension counts as code; a directory does not', async () => {
+    stub(false, true);
+    for (const ext of ['ts', 'tsx', 'mts', 'cts', 'js', 'mjs', 'cjs']) {
+      expect(await AccessApi.sourceWriteRefusal(someone, `/server/a.${ext}`), ext).not.toBeNull();
+    }
+    expect(await AccessApi.sourceWriteRefusal(someone, '/server/src/mud/lib/x', 'mkdir')).toBeNull();
+  });
+
+  it('a null actor is refused before anything is asked', async () => {
+    const wiz = vi.spyOn(AccessApi, 'isWizard');
+    expect(await AccessApi.sourceWriteRefusal(null, '/server/a.yaml')).not.toBeNull();
+    expect(wiz).not.toHaveBeenCalled();
+  });
+});

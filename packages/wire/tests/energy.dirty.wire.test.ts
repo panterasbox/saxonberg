@@ -82,10 +82,9 @@ const HINKLEY = '/world/terminus/hinkley-hills/location/lane';
 const open: Session[] = [];
 const squash = (s: string): string => s.replace(/\s+/g, ' ').trim();
 
-async function at(where: string, tag: string, wizard = false): Promise<Session> {
+async function at(where: string, tag: string): Promise<Session> {
   const s = await Session.open(uniqueHandle(`energy-${tag}`), {
     startLocation: where,
-    ...(wizard ? { wizard: true } : {}),
   });
   open.push(s);
   return s;
@@ -192,8 +191,8 @@ suite("⭐⭐ Terminus is electric — the grid reaches a home, a cut darkens it
   let avenue: Session;
 
   beforeAll(async () => {
-    lobby = await at(LOBBY, 'lobby', true);
-    avenue = await at(AVENUE, 'avenue', true);
+    lobby = await at(LOBBY, 'lobby');
+    avenue = await at(AVENUE, 'avenue');
   }, 180_000);
 
   it("⭐ drive 4+9 — the lobby reads ELECTRIC, its feeder live", async () => {

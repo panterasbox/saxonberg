@@ -137,9 +137,13 @@ async function session(handle: string, at: string, opts: { parcels?: string[] } 
   return s;
 }
 
-/** As the founder (a wizard), run a staging `eval` standing at `where`. */
+/**
+ * As the founder (a wizard), run a staging `eval` standing at `where`. The
+ * founder sits on no committee by default, so it is seated on the one over
+ * `parcel` — what `eval --parcel` asks (wizard-axis D13).
+ */
 async function founderEval(where: string, parcel: string, on: string, code: string): Promise<string> {
-  const gov = await Session.open('founder', { startLocation: where, wizard: true });
+  const gov = await Session.open('founder', { startLocation: where, wizard: true, committees: [parcel] });
   try {
     const r = await gov.cmd(`eval --parcel ${parcel} --on ${on} ${code}`);
     const said = squash(await r.said());
@@ -167,7 +171,8 @@ async function funded(prefix: string, amount = 400): Promise<string> {
 }
 
 async function setDial(key: string, value: string): Promise<void> {
-  const wiz = await Session.open('founder', { startLocation: SHOP, wizard: true });
+  // `config` is the Prime Minister's — the founder's by default.
+  const wiz = await Session.open('founder', { startLocation: SHOP });
   try {
     expectOk(await wiz.cmd(`config ${key} ${value}`));
   } finally {

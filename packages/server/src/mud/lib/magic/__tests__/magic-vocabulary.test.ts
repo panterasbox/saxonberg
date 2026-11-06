@@ -47,7 +47,6 @@ describe("MagicEffects.validate — the closed union", () => {
       { kind: "sense", sense: "detect-magic" },
       { kind: "cloak", disguise: "a veiled figure" },
       { kind: "emit-field", field: "light", locus: "/stuff/thing/magic/glowlight-mote" },
-      { kind: "script", source: "say hello" },
       // The twelfth member (TPA reform W3). `to` is optional — a CAST
       // takes the mark you named; an ITEM carries its own survey.
       { kind: "relocate" },
@@ -58,12 +57,17 @@ describe("MagicEffects.validate — the closed union", () => {
       { kind: "offset-ambient", deltaK: 12 },
     ];
     for (const s of samples) expect(() => MagicEffects.validate(s)).not.toThrow();
-    expect(EFFECT_KINDS).toHaveLength(14);
+    expect(EFFECT_KINDS).toHaveLength(13);
   });
 
   it("makes an unbacked effect unrepresentable — the governing invariant", () => {
     expect(() =>
       MagicEffects.validate({ kind: "gain-levels", amount: 5 }),
+    ).toThrow(/unknown kind/);
+    // The command-running spell is gone (wizard-axis D7): running
+    // commands is no working, and no row ever named it.
+    expect(() =>
+      MagicEffects.validate({ kind: "script", source: "say hello" }),
     ).toThrow(/unknown kind/);
     // transform is deliberately absent (no backing Api — polymorph's build)
     expect(() =>

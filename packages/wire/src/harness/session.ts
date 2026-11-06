@@ -183,13 +183,26 @@ export const plain = (s: string): string =>
 
 /** POST the test-auth seam and return the session cookie header. */
 /**
- * What a test login may ask for. `parcels` — exact parcel extents the
- * character is made TITLE HOLDER of (a transfer; one it already holds is
- * kept), so a drive can stage with `eval --parcel <it>`.
+ * What a test login may ask for (wizard-axis D13 — the harness tells the
+ * truth; authority is a SEAT, as it is for a content author):
+ *
+ * - `wizard` — the wizard AXIS only: authoring TypeScript (`eval`, a `.ts`
+ *   write). ⛔ It confers no title and sits on no committee.
+ * - `committees` — `['<extent>[:owner]', …]`: seat the character on the
+ *   committee over each extent (`:owner` for the owner role). What a
+ *   session that stages inside a locality needs — `eval --parcel`, `goto`,
+ *   `clone` there, `appoint` at its businesses.
+ * - `offices` — `['prime-minister' | 'minister-of-finance' | …]`: seat the
+ *   character in each office. One holder per office: the seat MOVES from
+ *   whoever held it (the founder, by default).
+ * - `parcels` — exact parcel extents the character is made TITLE HOLDER
+ *   of (a transfer; one it already holds is kept).
  */
 export interface SessionOptions {
   startLocation?: string;
   wizard?: boolean;
+  committees?: string[];
+  offices?: string[];
   parcels?: string[];
 }
 
@@ -216,6 +229,8 @@ async function login(
       ...(opts.startLocation ? { startLocation: opts.startLocation } : {}),
       ...(opts.wizard ? { wizard: true } : {}),
       ...(opts.parcels?.length ? { parcels: opts.parcels } : {}),
+      ...(opts.committees?.length ? { committees: opts.committees } : {}),
+      ...(opts.offices?.length ? { offices: opts.offices } : {}),
     }),
   });
   let res: Response | null = null;

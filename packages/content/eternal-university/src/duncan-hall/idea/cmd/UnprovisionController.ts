@@ -56,7 +56,7 @@ export default class UnprovisionController extends HallController<UnprovisionMod
     if (!owner || !(await UnprovisionController.mayProvision(actor))) {
       return this.fail(
         context,
-        "You're not authorized to end Duncan Hall dorm leases.",
+        "Only the college's staff or a member of the hall's committee may end Duncan Hall's leases.",
         'not-authorized',
       );
     }

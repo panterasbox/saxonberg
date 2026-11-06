@@ -362,8 +362,9 @@ a recomputation and loses nothing.
 Lane 2's real craft verbs don't exist on this branch, so the loop is made
 exercisable standalone:
 
-- **`practice <discipline> [difficulty] [outcome]`** (`cmd/author/`,
-  wizard-gated via `requiresWizard` + AuthorMixin visibility) — the
+- **`practice <discipline> [difficulty] [outcome]`** (`cmd/system/`, a
+  **test-world verb** — `testOnly` + `requiresTestWorld`, the `testharness`
+  shape; absent from any played world, whatever the credential) — the
   harness that fabricates one `deed`, standing in for real practice.
 - **`competence [<subject>]`** (`cmd/charactergen/`, the `chronicle`-verb
   shape) — the **bands-only** view; afforded by `AdvancementMixin`'s

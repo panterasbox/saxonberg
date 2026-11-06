@@ -233,9 +233,14 @@ async function examine(s: Session, keyword: string): Promise<string> {
     .join('\n');
 }
 
-/** Into the ROOM, by the founder, who holds the title. */
+/**
+ * Into the ROOM, by the founder. `clone` asks the KIND's title: the
+ * `/trade`/`/stuff` kinds are the Minister of Trade's (a founder office);
+ * the glowcap jar is Rejection's, so the founder is seated on Rejection's
+ * committee — seated, not a credential (wizard-axis D13).
+ */
 async function cloneHere(where: string, path: string, count = 1): Promise<void> {
-  const f = await Session.open('founder', { startLocation: where, wizard: true });
+  const f = await Session.open('founder', { startLocation: where, committees: ['/world/terminus/rejection'] });
   try {
     expectOk(await f.cmd(`clone ${path} --here${count > 1 ? ` --count ${count}` : ''}`));
   } finally {
@@ -247,7 +252,7 @@ const LIT = new Set<string>();
 
 /** The same person, standing somewhere else (inventory travels), with a light. */
 async function goTo(handle: string, where: string): Promise<Session> {
-  const s = await Session.open(handle, { startLocation: where, wizard: true });
+  const s = await Session.open(handle, { startLocation: where });
   if (!LIT.has(handle)) {
     LIT.add(handle);
     await cloneHere(where, GLOWCAP);
@@ -260,7 +265,7 @@ async function goTo(handle: string, where: string): Promise<Session> {
 /** A funded player, standing at `where`. */
 async function newPlayer(tag: string, where: string): Promise<Session> {
   const handle = uniqueHandle(tag);
-  const bank = await Session.open(handle, { startLocation: BANK_HALL, wizard: true });
+  const bank = await Session.open(handle, { startLocation: BANK_HALL });
   expectOk(await bank.cmd('bank open'));
   const gov = await Session.open('founder', { startLocation: BANK_HALL });
   try {
@@ -294,7 +299,7 @@ async function buy(s: Session, item: string): Promise<void> {
  */
 async function advance(duration: string): Promise<{ before: number; after: number }> {
   const r = await advanceWorldClock(duration);
-  const probe = await Session.open('founder', { startLocation: BANK_HALL, wizard: true }).catch(() => null);
+  const probe = await Session.open('founder', { startLocation: BANK_HALL }).catch(() => null);
   try {
     const until = Date.now() + 600_000;
     while (probe && Date.now() < until) {
@@ -745,7 +750,7 @@ suite('⭐⭐⭐ drive 23 — a stain, a band and a kept floor survive a restart
       stdio: 'ignore',
     });
     process.env.WIRE_SERVER_URL = await bootOwnedWorld();
-    const s = await Session.open(cookHandle, { startLocation: COOKHOUSE, wizard: true });
+    const s = await Session.open(cookHandle, { startLocation: COOKHOUSE });
     try {
       // ⭐ Where it was LEFT: drive 9 hung the washed shirt on the
       // cookhouse's drying rack, so it is the kept place that must give it

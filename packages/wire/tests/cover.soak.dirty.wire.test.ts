@@ -240,7 +240,9 @@ async function goTo(where: string): Promise<void> {
 
 /** As the founder, run a setup `eval` in `where` under `parcel`'s title. */
 async function founderEval(where: string, parcel: string, code: string): Promise<string> {
-  const gov = await Session.open('founder', { startLocation: where, wizard: true });
+  // `eval --parcel` asks the parcel's committee: seated, not a credential
+  // (wizard-axis D13).
+  const gov = await Session.open('founder', { startLocation: where, wizard: true, committees: [parcel] });
   try {
     const r = await gov.cmd(`eval --parcel ${parcel} ${code}`);
     const said = await r.said();
@@ -529,7 +531,9 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
     await goTo(SMALLHOLDING);
     expect(await read(p, 'look')).toMatch(/stools are tired/i);
     // The holder's work: grub, plough, replant from cut cane.
-    const gov = await Session.open('founder', { startLocation: SMALLHOLDING, wizard: true });
+    // The Okafors' piece is Waponi Woo's: the founder works it seated on
+    // that committee (wizard-axis D13).
+    const gov = await Session.open('founder', { startLocation: SMALLHOLDING, committees: ['/world/terminus/waponi-woo'] });
     try {
       // The Okafors' spade and plough are at the piece. A bundle off the
       // old stools first, by hand — what the new planting is laid from.

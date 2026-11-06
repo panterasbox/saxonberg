@@ -247,7 +247,6 @@ function reset(): void {
    * dependency is declared where a reader can see it.
    */
   vi.spyOn(AccessApi, 'can').mockResolvedValue(true);
-  vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(true);
   // ⭐ The dorms-staff check is `HallController.mayProvision` (economic
   // bootstrap D8): staff of the college, or the hall's committee. Stub
   // the committee arm — the question being asked, not a wizard bit.
@@ -334,7 +333,7 @@ describe('shell personalization — move-in theme + local remodel', () => {
   it('move-in: `provision --theme` seals the style; it survives reap', async () => {
     await bootRegistries();
     const w = await warren();
-    const op = makeAvatar('op'); // a dorms agent (isWizard-open in the harness)
+    const op = makeAvatar('op'); // on the hall's committee (stubbed above)
     const tenant = makeAvatar('tenant');
 
     const ctx = ctxFor(op, 'provision');

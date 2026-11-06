@@ -36,8 +36,8 @@ declareFile({
 const WARD = '/world/terminus/infirmary/ward';
 const CORRIDOR_1 = '/world/newbie-wilds/delve/corridor-1';
 
-let doctor: Session; // wizard, competent in medicine
-let nurse: Session; // wizard, competent in nursing
+let doctor: Session; // a plain player, competent in medicine
+let nurse: Session; // a plain player, competent in nursing
 let patient: Session; // plain
 
 /** True when the world understood the verb (any answer but "unknown verb"). */
@@ -55,11 +55,9 @@ async function practise(s: Session, discipline: string, n: number): Promise<void
 beforeAll(async () => {
   doctor = await Session.open(uniqueHandle('clinicdoc'), {
     startLocation: WARD,
-    wizard: true,
   });
   nurse = await Session.open(uniqueHandle('clinicrn'), {
     startLocation: WARD,
-    wizard: true,
   });
   patient = await Session.open(uniqueHandle('clinicpt'), {
     startLocation: WARD,

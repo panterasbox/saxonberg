@@ -258,8 +258,10 @@ otherwise pass review, so it is pinned by test.
 Every board group has **no members** and every `chief-executive` position
 is **unfilled**. Nobody works for these companies yet; that is a fact
 about the companies, not a gap in the model — the same empty state the
-Compact's press office ships in. The founder passes by the Art. XI
-pool-of-one backstop, so a cold box can still staff them.
+Compact's press office ships in. ⛔ The founder sits on no board
+(wizard-axis D18 deleted the committee backstop): on a cold box the
+Registrar of Corporations — the founder by default, the board group's
+OWNER — seats members with the `group` verb, and they appoint.
 
 ⚠ **A corpo organization is NOT a Business.** The holding company banks
 nothing; its **subsidiaries** trade — the Goodkin branch today, a Veshko

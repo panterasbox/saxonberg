@@ -177,7 +177,10 @@ describe("CompactApi — the committee reads", () => {
     await expect(CompactApi.isCommitteeMember(eve, "/obj/x")).resolves.toBe(false);
   });
 
-  it("isCommitteeMember: the founder backstop (Art. XI pool-of-one)", async () => {
+  it("⛔ isCommitteeMember: the founder, seated on no committee, is NOT a member (wizard-axis D18)", async () => {
+    // Nobody sits on every committee — not the founder. The founder
+    // DEFAULTS the platform offices; that seats them on no committee
+    // (Art. XI's pool of one is the jury rule, not this one).
     vi.spyOn(GroupApi, "isMember").mockResolvedValue(false);
     makeStuffAtPath(
       () => new FakeFounderRegistry(),
@@ -187,7 +190,7 @@ describe("CompactApi — the committee reads", () => {
     const founder = makeAvatar("founder");
     await expect(
       CompactApi.isCommitteeMember(founder, "/world/terminus/registry")
-    ).resolves.toBe(true);
+    ).resolves.toBe(false);
     CompactApi._resetOfficeRegistryRefForReload();
   });
 

@@ -124,10 +124,10 @@ async function assertItIsDark(s: Session): Promise<void> {
   }
 }
 
-async function at(where: string, tag: string, wizard = false): Promise<Session> {
+async function at(where: string, tag: string, committees: string[] = []): Promise<Session> {
   const s = await Session.open(uniqueHandle(`env-${tag}`), {
     startLocation: where,
-    ...(wizard ? { wizard: true } : {}),
+    ...(committees.length ? { committees } : {}),
   });
   open.push(s);
   return s;
@@ -320,7 +320,9 @@ suite('⭐ a lantern you light, and that runs out', () => {
     // ⭐ The sealed cellar is a 3 m cell — 9 m², pitch black, a metre of
     // granite and no lamp in it. 220 lumens there is 24 lux, which is
     // two rungs up from nothing, and it is also what a lantern is FOR.
-    me = await at(CELLAR, 'lamp', true);
+    // `clone` of the general store's lantern row: seated on Terminus's
+    // committee, not a credential (wizard-axis D13).
+    me = await at(CELLAR, 'lamp', ['/world/terminus']);
   }, 180_000);
 
   it('⭐ step 4 — light it and the dark lifts; douse it and it comes back', async () => {
@@ -408,7 +410,7 @@ suite('⭐⭐ the room holds a state different from outside, at a cost', () => {
   let smith: Session;
 
   beforeAll(async () => {
-    cook = await at(SHOP, 'cook', true);
+    cook = await at(SHOP, 'cook');
     cellar = await at(CELLAR, 'cellar');
     smith = await at(SMITHY, 'smith');
   }, 180_000);
