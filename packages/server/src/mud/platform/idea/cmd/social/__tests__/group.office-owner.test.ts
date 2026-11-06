@@ -3,7 +3,7 @@
  * at the unit level: an office-owned `ops-committee` committee is
  * minted as a pack's `requires.groups` would mint it; the founder — the
  * default Prime Minister, no handoff row — drives `group add
- * ops-committee <member>` through GroupController and succeeds; the
+ * ops-committee <member>` through GroupAddController and succeeds; the
  * member is now on the committee; a stranger is not; a simulated
  * `office assign prime-minister <other>` flips who can add, and the
  * Group document is never rewritten by the handoff.
@@ -16,7 +16,8 @@
 
 import '../../../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import GroupController from '../GroupController';
+import GroupAddController from '../GroupAddController';
+import GroupShowController from '../GroupShowController';
 import { GroupApi } from '../../../../../api/group';
 import { CompactApi } from '../../../../../api/compact';
 import { MessageApi } from '../../../../../api/message';
@@ -94,7 +95,7 @@ function ctxFor(giver: Avatar): CommandContext {
 
 async function groupAdd(giver: Avatar, target: Avatar): Promise<boolean> {
   notes = [];
-  const ctrl = makeStuff(() => new GroupController());
+  const ctrl = makeStuff(() => new GroupAddController());
   await ctrl.execute(
     { subcommand: 'add', name: 'ops-committee', target: { stuff: target } } as unknown as CommandModel,
     ctxFor(giver),
@@ -196,7 +197,7 @@ describe('the appointment ceremony', () => {
       return b as never;
     });
     const anyone = makeAvatar('anyone');
-    const ctrl = makeStuff(() => new GroupController());
+    const ctrl = makeStuff(() => new GroupShowController());
     await ctrl.execute(
       { subcommand: 'show', name: 'ops-committee' } as unknown as CommandModel,
       ctxFor(anyone),
