@@ -173,9 +173,17 @@ function isAssembled(r: AssembleResult): r is AssembleSuccess {
   return !('error' in r);
 }
 
-/** Do two assembled lines say the same thing, slot for slot? */
+/** Do two resolved lines bind the same things, slot for slot? */
 function sameBinding(a: CommandModel, b: CommandModel): boolean {
-  return JSON.stringify(a) === JSON.stringify(b);
+  const ids = (v: unknown): unknown => {
+    const stuff = (v as { stuff?: unknown } | null | undefined)?.stuff;
+    if (Array.isArray(stuff)) return stuff.map((s: Stuff) => s.stuffId);
+    if (stuff instanceof Object) return (stuff as Stuff).stuffId;
+    return v;
+  };
+  const line = (m: CommandModel): string =>
+    JSON.stringify(Object.entries(m).map(([k, v]) => [k, ids(v)]).sort());
+  return line(a) === line(b);
 }
 
 /** True when `thing` sits (at any depth) inside `holder`. */
@@ -1428,6 +1436,10 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         await this._executeOne(command, resolved.resolved, attempt, {
           async: effectiveAsync,
         });
+        // ⚠ The act may have ended the giver (a login handing off to its
+        // body): a destroyed Stuff answers every call with nothing, and the
+        // dispatch still needs its context back.
+        if ((this as unknown as Stuff).isDestroyed()) return attempt;
         return this._otherOffer(parsed, allMatches, attempt);
       }
       if (firstRefused) return this._otherOffer(parsed, allMatches, firstRefused);
@@ -1554,17 +1566,6 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         { scopeSource: a.source },
       );
       if (!isAssembled(built)) return false;
-      // ⭐ Another source of the SAME view whose line binds exactly as the
-      // refused one did is the same act on the same things, not another
-      // offer: the typed word won its slot (D2 (c)), so `harvest #pot` has no
-      // second answer in the plant inside it.
-      if (a.command === settled.command) {
-        const plain = CommandApi.assemble(parsed, a.command, {
-          commandGiver: settled.commandGiver,
-          location: settled.location,
-        });
-        if (isAssembled(plain) && sameBinding(plain.model, built.model)) return false;
-      }
       // No `interactive`: a cardinality prompt refuses instead of asking.
       const probe = CommandApi.createCommandContext({
         commandGiver: settled.commandGiver,
@@ -1580,6 +1581,20 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         speculative: true,
       });
       if (resolved.result !== undefined) return false;
+      // ⭐ Another source of the SAME view whose line binds the same things is
+      // the same act, not another offer: `harvest #pot` has no second answer in
+      // the plant inside it, and `harvest turnip`'s first answer is no offer of
+      // itself. Compared as bound, so a word two things answer to still can.
+      if (a.command === settled.command) {
+        const plain = CommandApi.assemble(parsed, a.command, {
+          commandGiver: settled.commandGiver,
+          location: settled.location,
+        });
+        if (isAssembled(plain)) {
+          const line = await CommandApi.resolveModel(plain.model, probe, plain.prep, { speculative: true });
+          if (line.result === undefined && sameBinding(line.resolved, resolved.resolved)) return false;
+        }
+      }
       const sub = (resolved.resolved as { subcommand?: unknown }).subcommand;
       const preloads = await CommandApi.preloadValidatorDeps(
         a.command,

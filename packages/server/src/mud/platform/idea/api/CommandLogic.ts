@@ -101,6 +101,7 @@ import {
   type ResolveModelOptions,
 } from '../../../api/command';
 import type { OnFilteredPolicy } from '../../../api/command';
+import { GrammarApi } from '../../../api/grammar';
 import { MessageApi } from '../../../api/message';
 
 const CommandApiCallers = SecurityPolicies.AnyOf(
@@ -570,6 +571,23 @@ async function walkScopes(
   // ⭐ An EMPTY set is still a set (`look horizon` from an interior is
   // "you see nothing there", not "you don't see any 'horizon'").
   return { result: isSet ? { stuff: [], isSet: true } : { stuff: [] }, discarded };
+}
+
+/** Everything a name could mean across every try, for `--strict`. */
+async function strictCandidates(
+  raw: string,
+  giver: Stuff & CommandGiver,
+  tries: readonly string[],
+  field: string,
+  context: CommandContext,
+  admissible: (s: Stuff) => boolean,
+): Promise<Stuff[]> {
+  const out = new Set<Stuff>();
+  for (const scope of tries) {
+    const got = await scopedMany(raw, giver, scope, field, context);
+    for (const s of got.stuff) if (admissible(s)) out.add(s);
+  }
+  return [...out];
 }
 
 /** The highest keyword tier a match can reach (`MqlMany.tiers`). */
@@ -1646,6 +1664,20 @@ export class CommandLogic extends ApiLogic {
             detail: err instanceof Error ? err.message : String(err),
           });
           return { result: 'failed' };
+        }
+        // ⭐ `--strict`: read the name literally. A second thing it could mean
+        // is a question, not a preference the scope order may settle.
+        if (context.filterPolicy === 'error' && !isSet && !quantity && stuff.length > 0) {
+          const named = await strictCandidates(raw, giver, tries, fname, context, admissible);
+          if (named.length > 1) {
+            context.note({
+              kind: 'validator-failed',
+              field: fname,
+              validator: 'cardinality:ambiguous',
+              detail: `'${raw}' could be ${GrammarApi.joinList(named.map((s) => s.describeFor(giver)))} — say which.`,
+            });
+            return { result: 'failed' };
+          }
         }
         // Apply cardinality / onExcess policy.
         const filtered = await this.applyCardinalityPolicy(def, stuff, fname, context, {

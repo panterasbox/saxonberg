@@ -254,6 +254,36 @@ describe('verb@source at the dispatcher', () => {
       expect(ctx.getNotes().some((n) => n.kind === 'other-offer')).toBe(false);
     });
 
+    it('⚠ an act that ended its giver still gets its context back, with no probe', async () => {
+      vi.spyOn(giver() as never as { isDestroyed(): boolean }, 'isDestroyed').mockReturnValue(true);
+      const probe = vi.spyOn(giver() as never as { _otherOffer(): unknown }, '_otherOffer');
+      const ctx = await dispatch('windish wheat', [offer(near, wind)]);
+      expect(ctx).toBeDefined();
+      expect(probe).not.toHaveBeenCalled();
+    });
+
+    it('⭐ the word bound the refused thing: that thing is no offer of itself, the other is', async () => {
+      rejectWhen = (t) => t === near;
+      const room = makeStuff(() => new TestThing()) as unknown as Stuff;
+      ContainmentApi.move(room as never, world.location as never);
+      const ctx = await dispatch('windish wheat', [offer(room, wind), offer(near, wind), offer(far, wind)]);
+      const offered = ctx.getNotes().find((n) => n.kind === 'other-offer') as
+        | Extract<Note, { kind: 'other-offer' }>
+        | undefined;
+      expect(offered?.source.stuffId).toBe(far.stuffId);
+    });
+
+    it('⭐ `--strict` on a name two things answer to refuses, naming both', async () => {
+      const ctx = await dispatch('windish wheat --strict', [offer(near, wind)]);
+      expect(runs).toHaveLength(0);
+      const refused = ctx.getNotes().find((n) => n.kind === 'validator-failed') as
+        | { validator?: string; detail?: string }
+        | undefined;
+      expect(refused?.validator).toBe('cardinality:ambiguous');
+      expect(refused?.detail).toMatch(/green wheat/);
+      expect(refused?.detail).toMatch(/ripe wheat/);
+    });
+
     it('a line that succeeds offers nothing', async () => {
       const ctx = await dispatch('windish wheat', [offer(near, wind), offer(far, wind)]);
       expect(ctx.getNotes().some((n) => n.kind === 'other-offer')).toBe(false);
