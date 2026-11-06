@@ -89,7 +89,7 @@ plugs into it.
 
 > ⛔⛔ **This vocabulary types bad news richly and good news not at all**
 > (found 2026-09-30, [lens #63 · Feedback](../lenses/63-feedback.md)).
-> **16 of the 29 `Note` kinds are failures, partials or declines, and each
+> **16 of the 30 `Note` kinds are failures, partials or declines, and each
 > carries a `reason` or a `detail`** — because
 > [#31](../lenses/31-action.md)'s doctrine demanded that a refusal say what
 > would lift it. **Nothing ever demanded the same of success:**
@@ -107,8 +107,9 @@ plugs into it.
 
 Notes are the structured failure / partial-success / informational
 signal in `outcome.notes`. They carry no prose — body text fires
-through `Scene.send` on the parallel `MessageFrame` channel. The 16
-kinds form one closed discriminated union:
+through `Scene.send` on the parallel `MessageFrame` channel. The 30
+kinds form one closed discriminated union (`Note` in
+`packages/types/src/index.ts` is the count of record):
 
 **Glob / quantity** (emitted by `StackableApi.applyQuantity`,
 forwarded by controllers via `ctx.note`):
@@ -143,7 +144,18 @@ forwarded by controllers via `ctx.note`):
 **Pre-controller dispatcher-emitted** (from `CommandGiverMixin._runChain` and `_executeOne`):
 
 - `command-rejected { reason, detail? }` — pre-match failure;
-  `reason` is one of `'parse-failed' | 'unknown-verb' | 'shape-fall-through' | 'bind-failed' | 'missing-subcommand'`.
+  `reason` is one of `'parse-failed' | 'unknown-verb' | 'shape-fall-through' | 'bind-failed' | 'missing-subcommand' | 'unknown-subcommand' | 'source-not-found' | 'source-affords-nothing' | 'needs-input'`.
+  ⭐ `shape-fall-through`'s `detail` is every matching view's
+  `getUsage()` joined ` · ` (*"throw <item> · throw <item> to <person>
+  · throw <item> at <target>"*) — the player's answer to a malformed
+  line. `needs-input`'s `detail` names what a script could not be
+  asked: *"wind needs a choice of source ('watch' could be any of 2)
+  when run from a script"*.
+- `other-offer { verb, source, scopedForm }` — ⭐ **the other offer**
+  (controllers-are-io D3): the line was refused, and the binder proved
+  that a DIFFERENT source here would take it. Prosed by the dispatcher —
+  *"The ripe wheat also answers `harvest` — `harvest@here:i:wheat:[2]`."*
+  Informational; no escalation.
 - `mql-error { field, stage, detail }` — MQL threw during resolve;
   `stage` is `'desugar' | 'lex' | 'parse' | 'resolve'`.
 - `registry-scan { field, scanned, indexed, shape }` — ⭐ **the receipt
@@ -229,6 +241,7 @@ internally in `api/command.ts` (`autoEscalationFor`):
 | `locomotion-gate-failed`       | `declined`     |
 | `slot-occupied`                | `declined`     |
 | `command-rejected`             | `declined`     |
+| `other-offer`                  | *(none)*       |
 | `mql-error`                    | `declined`     |
 | `registry-scan`                | *(none)*       |
 | `validator-failed`             | `declined`     |
@@ -424,7 +437,7 @@ ignore it; consumers (the client) use it for gap detection.
 ## Pre-controller failure paths
 
 The dispatcher emits structured notes for every failure path before
-the controller's `execute()` runs. The five `command-rejected`
+the controller's `execute()` runs. The `command-rejected`
 reasons:
 
 | Reason                | Emitted at                               | Outer or attempt ctx |
@@ -434,6 +447,10 @@ reasons:
 | `shape-fall-through`  | `_runChain` after every match's `assemble` returned a shape error | outer                |
 | `bind-failed`         | `_runChain` on assemble's bind error     | outer                |
 | `missing-subcommand`  | `_executeOne` when subcommand was needed but absent | per-attempt          |
+| `unknown-subcommand`  | `_runChain` on assemble's unknown-subcommand error | outer          |
+| `source-not-found`    | `matchAffordances` — the `@` scope resolved to nothing (or a prompt chose none) | outer |
+| `source-affords-nothing` | `matchAffordances` — the scope named things, none affording the verb | outer |
+| `needs-input`         | `CommandContext.requireInteractive` — any prompt seam with no Interactive (a script, an NPC) | whichever ctx was prompting |
 
 Plus two pre-execute kinds from the resolve / validate pipeline
 (`resolveModel` for MQL, `runValidators` for sync validator checks,
@@ -471,9 +488,11 @@ the dispatcher walks `claimingCtx.getNotes()` and for each note
 calls a module-private `proseForFrameworkNote(note)` helper (in
 `lib/command/CommandGiver.ts`) to map it to its player-facing
 prose. Auto-prosed kinds today are `command-rejected`,
-`mql-error`, `validator-failed`, and `controller-error` —
-exactly the kinds the dispatcher / validator / MQL framework
+`other-offer`, `mql-error`, `validator-failed`, and `controller-error`
+— exactly the kinds the dispatcher / validator / MQL framework
 emit without a controller getting a chance to fire prose itself.
+⭐ **The dispatcher proses its own notes and nothing of a
+controller's** (controllers-are-io D15).
 Controller-side notes (anything a controller puts on `ctx` after
 its `execute()` started running — `controller-rejected` for
 domain refusals, `mixin-missing`, `locomotion-gate-failed`,

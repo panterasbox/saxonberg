@@ -752,6 +752,58 @@ single-quote-as-literal convention, and `format()` round-trip, see
 
 ## Stage 3 — Matching
 
+### ⭐⭐ `verb@source` — the scope filter, first (controllers-are-io D2)
+
+`_runChain` runs in three parts, in order: ① the scope filter, ② the
+chain (below), ③ the other offer. ① and the verb filter live in
+`CommandGiver.matchAffordances(parsed)`, which the script binder
+(`Interpreter.bindCommand`) shares, so a typed line and a scripted one
+are read one way.
+
+- **Unscoped** (no `@` on the verb token): `matches` is today's verb
+  filter, byte-identical.
+- **Scoped**: the scope resolves as MQL with the binder's own context
+  (`scope: 'reachable'` — `me`, `here`, `#id` anchor; a bare name
+  searches what the giver can reach). An affordance is FROM a source
+  `s` when `a.source === s`, or `s` is the giver and `a.bucket ===
+  'self'` (`cast@me`). Nothing resolved → `command-rejected:
+  source-not-found`; resolved, none affording the verb →
+  `source-affords-nothing`; both prosed by the dispatcher.
+- **Several affording sources**: a set or a count named on purpose
+  (`@inventory`, `@"all watches"`, `@"2 watches"`) is a **batch** —
+  `_runChain` once per source, each its own attempt ctx, every note
+  folded onto the outer ctx (one envelope; an `--async` attempt fires
+  its own late one). A NAME matching several goes through
+  `applyCardinalityPolicy({type: 'object', onExcess: 'prompt'})`: the
+  player is asked; a script or NPC is refused `needs-input` and never
+  waits.
+- ⭐ **The source fills the slot it fits** (`assemble(…, {scopeSource})`):
+  the first positional object slot whose `requires:` the source
+  satisfies — nothing typed there → the source is bound (`#<id>`); a
+  typed word that matches the source → the source wins the slot; a
+  typed word that does not → the typed words win. A view with no such
+  slot (`say@me hello`) binds as unscoped.
+
+### ⭐ ③ The other offer (D3)
+
+When the chain settles on a refusal — a field's `validator-failed` or
+a `controller-rejected` on the claiming attempt — `_otherOffer` probes
+every remaining same-verb affordance from a DIFFERENT source (not the
+giver's own `self` verbs) with the binder alone: `assemble` with that
+source as `scopeSource`, `resolveModel(…, {speculative: true})` (no
+focus, no pronoun memory) on a ctx with **no Interactive** (nothing
+prompts), preloads, validators. **The controller is never run.** The
+first that passes becomes an `other-offer {verb, source, scopedForm}`
+note, prosed: *"The ripe wheat also answers `harvest` —
+`harvest@here:i:wheat:[2]`."* The scoped form is derived by one rule —
+`me` · `me:i:<handle>` · `here` · `here:i:<handle>` · `<handle>`, with
+MQL's `:[n]` index when ambiguous — and **proved by resolving it once**
+(`#<id>` when nothing worded proves out). ⚠ MQL's contents operator is
+`:i`, and the natural ordinal (`2nd wheat`) only desugars at a query's
+head, so the index is the formal `:[n]`.
+
+### The chain
+
 `_runChain` filters the giver's affordances (`getAffordances()`) to
 those whose command verb (case-insensitive) matches the parsed verb —
 keeping each match paired with its affording `source` for
@@ -967,7 +1019,7 @@ knobs. Decision matrix:
 | `object`  | 0 | n/a | pass through (stuff=null) |
 | `object`  | 1 | n/a | pass through |
 | `object`  | >1 | `top` (default) | first match wins |
-| `object`  | >1 | `error` | `controller-rejected:ambiguous`, null |
+| `object`  | >1 | `error` | `validator-failed` `cardinality:ambiguous`, null |
 | `object`  | >1 | `prompt` | await `PromptApi.mqlObject`; player picks |
 | `objects` | <min | `error` (only v1 value) | `controller-rejected:insufficient`, null |
 | `objects` | >max | `truncate` | cut to max |
@@ -976,8 +1028,11 @@ knobs. Decision matrix:
 | `objects` | in-range | n/a | pass through |
 
 The `prompt` paths require an Interactive on the context.
-NPC / scripted dispatch (no Interactive) falls back to the
-`error` branch — there's nobody to ask. Player cancellation
+⭐ NPC / scripted dispatch (no Interactive) **fails closed**:
+`CommandContext.requireInteractive(what)` notes `command-rejected
+{reason: 'needs-input', detail: '<verb> needs a choice of <field>
+(…) when run from a script'}` and the resolve fails (D23) — never a
+silent pick. Player cancellation
 propagates as `PromptCancelledError` from
 `applyCardinalityPolicy`; the dispatcher (`_runChain`)
 catches it and emits
@@ -1635,7 +1690,7 @@ could fill. Each survivor gets a `CommandContext`, an async
 | State | When |
 |---|---|
 | `enabled` | Every evaluable validator passed |
-| `disabled` | One failed — carries its reason **verbatim** |
+| `disabled` | One failed — carries its reason **verbatim**, the `validator` that refused, and `missing` — the `requires:` mixin the target was found without, when that is why |
 | `pending-operand` | Passed, but a second object field is unbound |
 
 Reasons are the validator's own return value, unmodified. A validator's

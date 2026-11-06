@@ -640,6 +640,13 @@ function renderArgs(args: PositionalDefinition[] | undefined): string {
   if (!args || args.length === 0) return '';
   return args
     .map((def) => {
+      // A `prepositionRequired` slot shows its preposition bare, as part
+      // of the shape: `to <person>`, or `[to <person>]` when optional.
+      if (def.prepositionRequired && def.prepositions && def.prepositions.length > 0) {
+        const phrase = `${def.prepositions.join('|')} ${def.greedy ? `<${def.name}...>` : `<${def.name}>`}`;
+        const required = def.required === true || (def.greedy === true && def.required !== false);
+        return required ? phrase : `[${phrase}]`;
+      }
       const core = def.greedy
         ? `<${def.name}...>`
         : def.required
@@ -671,6 +678,12 @@ function validateArgOrdering(
     if (!def.name) {
       throw new Error(
         `arg at ${label}[${i}] is missing required \`name\` field (${filePath})`
+      );
+    }
+    if (def.prepositionRequired && !(def.prepositions && def.prepositions.length > 0)) {
+      throw new Error(
+        `arg "${def.name}" at ${label}[${i}] declares \`prepositionRequired\` ` +
+          `but lists no \`prepositions:\` (${filePath})`
       );
     }
 
@@ -854,7 +867,7 @@ function validateCardinality(
 }
 
 /**
- * `--async` / `--sync` are reserved framework flags (parsed ahead of
+ * `--async` / `--sync` / `--strict` / `--loose` are reserved framework flags (parsed ahead of
  * per-command option binding — see `CommandLogic.assemble`). A command
  * that declared an option, option-`field`, or positional named `async`
  * or `sync` would have that token silently swallowed by the reserved-flag
@@ -862,11 +875,13 @@ function validateCardinality(
  * so the collision surfaces at boot, not as a mystery at dispatch.
  */
 function validateReservedFlagNames(def: CommandDefinition): void {
-  const RESERVED = new Set(['async', 'sync']);
+  // ⭐ `--strict` / `--loose` (the per-invocation `onFiltered` override,
+  // controllers-are-io D23) are reserved the same way.
+  const RESERVED = new Set(['async', 'sync', 'strict', 'loose']);
   const check = (name: string | undefined, where: string): void => {
     if (name !== undefined && RESERVED.has(name)) {
       throw new Error(
-        `name "${name}" is a reserved framework flag (--async / --sync) and cannot be used as ${where} in ${def.filePath}`
+        `name "${name}" is a reserved framework flag (--async / --sync / --strict / --loose) and cannot be used as ${where} in ${def.filePath}`
       );
     }
   };

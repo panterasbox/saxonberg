@@ -204,6 +204,7 @@ export default class WikiController extends CommandController<WikiModel> {
     const refusal = await registry.refusalToCreate(namespace);
     if (refusal !== null) return this.fail(context, refusal, 'wiki-denied');
     const body = await this.resolveBody(model, context, 'Write the article:');
+    if (body === null) return; // needs-input, noted
     const page = await registry.createPage({
       namespace,
       slug: name,
@@ -293,6 +294,8 @@ export default class WikiController extends CommandController<WikiModel> {
       current,
     );
     if (body === null) {
+      // A script with no `--body`: needs-input, already noted.
+      if (!context.interactive) return;
       // The author opened the editor and cancelled out of it.
       return this.fail(context, 'Edit cancelled.', 'edit-cancelled');
     }
@@ -344,6 +347,7 @@ export default class WikiController extends CommandController<WikiModel> {
     // that does not exist yet is exactly when preview is most useful.
     const hit = ref ? await registry.resolve(ref) : null;
     const body = await this.resolveBody(model, context, 'Preview what?');
+    if (body === null) return; // needs-input, noted
     if (!body) return this.fail(context, 'nothing to preview', 'body-required');
     const rendered = hit
       ? await this.renderBody(body, hit.page, model)
@@ -594,18 +598,17 @@ export default class WikiController extends CommandController<WikiModel> {
     if (!ref) return this.fail(context, 'which page?', 'page-required');
     const hit = await registry.resolve(ref, { includeDeleted: true });
     if (!hit) return this.fail(context, `No page '${ref}'.`, 'no-such-page');
-    // Irreversible and destructive: confirm when there is somebody to
-    // ask. A scripted caller (no Interactive) proceeds — it has already
-    // cleared the moderator gate, and a prompt it cannot answer would
-    // hang rather than protect.
-    if (context.interactive) {
-      const ok = await context.interactive.promptConfirm(
-        `Purge '${hit.page.getTitle()}' and every revision of it? This cannot be undone.`,
-        'no',
-      ).catch(() => false);
-      if (!ok) {
-        return this.fail(context, 'Purge cancelled.', 'purge-cancelled');
-      }
+    // Irreversible and destructive: confirm. ⭐ A scripted caller (no
+    // Interactive) fails CLOSED (D23) — `needs-input` — rather than
+    // purging on a question nobody answered.
+    const asker = context.requireInteractive('a yes to purge');
+    if (!asker) return;
+    const ok = await asker.promptConfirm(
+      `Purge '${hit.page.getTitle()}' and every revision of it? This cannot be undone.`,
+      'no',
+    ).catch(() => false);
+    if (!ok) {
+      return this.fail(context, 'Purge cancelled.', 'purge-cancelled');
     }
     const removed = await registry.purgePage(hit.page);
     this.send(
@@ -869,23 +872,15 @@ export default class WikiController extends CommandController<WikiModel> {
     context: CommandContext,
     label: string,
     current?: string,
-  ): Promise<string>;
-  private async resolveBody(
-    model: WikiModel,
-    context: CommandContext,
-    label: string,
-    current: string,
-  ): Promise<string | null>;
-  private async resolveBody(
-    model: WikiModel,
-    context: CommandContext,
-    label: string,
-    current?: string,
   ): Promise<string | null> {
     if (typeof model.body === 'string') return model.body;
-    if (context.interactive) {
+    // ⭐ Fail closed (D23): a script names its body with `--body`, or is
+    // refused `needs-input` — `null` — never handed an empty article.
+    const asker = context.requireInteractive('a body (`--body`)');
+    if (!asker) return null;
+    {
       try {
-        const composed = await context.interactive.promptCompose(label, {
+        const composed = await asker.promptCompose(label, {
           placeholder: 'Wiki markdown — ⌘/Ctrl+Enter to submit',
           // ⚠ The editor opens on what is THERE. Without this, `wiki
           // edit` is `wiki retype`: an empty box whose contents
@@ -900,7 +895,6 @@ export default class WikiController extends CommandController<WikiModel> {
         return current === undefined ? '' : null;
       }
     }
-    return current === undefined ? '' : null;
   }
 
   private async registry(): Promise<WikiRegistry> {

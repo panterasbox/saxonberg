@@ -62,12 +62,20 @@ const fault = (over: Partial<Fault>): Fault => ({
 });
 
 function ctx(giver: Stuff, answer: boolean | null): CommandContext {
+  const interactive =
+    answer === null ? undefined : { promptConfirm: vi.fn(async () => answer) };
+  const note = (n: { kind: string; reason?: string }) => notes.push(n);
   return {
     commandGiver: giver,
     location: null,
-    note: (n: { kind: string; reason?: string }) => notes.push(n),
-    interactive:
-      answer === null ? undefined : { promptConfirm: vi.fn(async () => answer) },
+    note,
+    interactive,
+    // The real guard's shape (D23): nobody to ask → `needs-input`.
+    requireInteractive: (what: string) => {
+      if (interactive) return interactive;
+      note({ kind: 'command-rejected', reason: 'needs-input', detail: `order needs ${what} when run from a script` } as never);
+      return null;
+    },
   } as unknown as CommandContext;
 }
 
@@ -179,6 +187,8 @@ describe('order repair — the paid mend', () => {
     vi.spyOn(t, 'canSettle').mockReturnValue(true);
     await order(t, giver, null);
     expect(repair).not.toHaveBeenCalled();
+    // ⭐ Fails CLOSED and names the answer it needed (D23).
+    expect(notes.some((n) => n.reason === 'needs-input')).toBe(true);
     vi.spyOn(t, 'canSettle').mockReturnValue(false);
     await order(t, giver, true);
     expect(repair).not.toHaveBeenCalled();

@@ -168,7 +168,7 @@ export class Coroutine {
 
       if (effect.kind === "dispatch") {
         const before = this.engagementIds();
-        const ctx = await this.dispatch(effect.command, effect.model, effect.prep);
+        const ctx = await this.dispatch(effect.command, effect.model, effect.prep, effect.source);
         if (this.isCancelled()) return;
         for (const note of ctx.getNotes()) this.interp.recordNote(note);
         // The await-engaged pacing rule: if the command started a timed

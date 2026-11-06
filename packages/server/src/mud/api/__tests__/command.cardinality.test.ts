@@ -27,6 +27,11 @@ function makeContextStub(): CommandContext & {
     note(n: { kind: string; [k: string]: unknown }) {
       notes.push(n);
     },
+    // The real guard's shape (D23): nobody to ask → `needs-input`.
+    requireInteractive(what: string) {
+      notes.push({ kind: 'command-rejected', reason: 'needs-input', detail: `that needs ${what} when run from a script` });
+      return null;
+    },
     notes,
   } as unknown as CommandContext & {
     notes: Array<{ kind: string; [k: string]: unknown }>;
@@ -249,10 +254,9 @@ describe('CommandApi.applyCardinalityPolicy — object', () => {
     expect(out).toEqual([]);
   });
 
-  it('prompt policy without an Interactive emits ambiguous and returns null', async () => {
-    // No `context.interactive` is set in the stub — there's no
-    // way to push a disambiguation prompt, so the policy degrades
-    // to an ambiguity error (the equivalent of `onExcess: 'error'`).
+  it('prompt policy without an Interactive fails closed `needs-input` and returns null', async () => {
+    // No `context.interactive` is set in the stub — nobody can answer,
+    // so the policy fails CLOSED (controllers-are-io D23).
     const ctx = makeContextStub();
     const a = makeStuffStub('a');
     const b = makeStuffStub('b');
@@ -264,7 +268,7 @@ describe('CommandApi.applyCardinalityPolicy — object', () => {
     );
     expect(out).toBeNull();
     expect(ctx.notes).toContainEqual(
-      expect.objectContaining({ kind: 'validator-failed', validator: 'cardinality:ambiguous' }),
+      expect.objectContaining({ kind: 'command-rejected', reason: 'needs-input' }),
     );
   });
 });
@@ -345,8 +349,7 @@ describe('CommandApi.applyCardinalityPolicy — objects', () => {
     ).toEqual([a, b, c]);
 
     // got 4 — over; default onExcess for `max set` is 'prompt',
-    // but we have no Interactive on the stub context, so the policy
-    // degrades to too-many.
+    // and with no Interactive on the stub context it fails closed.
     const ctxOver = makeContextStub();
     expect(
       await CommandApi.applyCardinalityPolicy(
@@ -357,7 +360,7 @@ describe('CommandApi.applyCardinalityPolicy — objects', () => {
       ),
     ).toBeNull();
     expect(ctxOver.notes).toContainEqual(
-      expect.objectContaining({ kind: 'validator-failed', validator: 'cardinality:too-many' }),
+      expect.objectContaining({ kind: 'command-rejected', reason: 'needs-input' }),
     );
 
     // got 2 — under; insufficient error.

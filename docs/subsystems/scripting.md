@@ -363,6 +363,31 @@ player's own session `def` or a script saved in their home `scripts/`).
   *philosophy of isolation*, different *runtime* — and the reason both
   live in `lib/script/`.
 
+## ⭐⭐ Scripts fail CLOSED (controllers-are-io D23)
+
+A script has nobody to answer a question. Every seam that would prompt
+— the cardinality policy (`onExcess: prompt`), `promptForObject`, a
+controller's confirm / compose / choice — asks one guard,
+`CommandContext.requireInteractive(what)`, which returns the Interactive
+or notes `command-rejected { reason: 'needs-input', detail: '<verb>
+needs <what> when run from a script' }` and returns `null`. The command
+stops; it never waits, and it never gets a silent default (`order`'s
+paid mend no longer answers *no*, `wiki purge` no longer proceeds
+unconfirmed). ⚠ A prompt reads the COMMAND's Interactive
+(`context.interactive`), never one the giver happens to hold — a script
+run by a connected player has none. An NPC's `needs-input` also goes
+to `DiagnosticApi` (the author's to fix).
+
+The script binder shares the dispatcher's matcher
+(`CommandGiver.matchAffordances`), so `verb@source` binds in a script
+exactly as typed: one source → that source's views; a plural scope →
+one dispatch per source; a NAME matching several → `needs-input`.
+
+⭐ **A leading `--async` on a multi-statement line** (`--async wait 5;
+say done`) detaches the run the way `_executeOne` detaches a controller
+body: the input chain frees at once and the detached run fires the one
+late envelope when the script settles. `--sync` is accepted and strips.
+
 ## File map
 
 | Concern | File |

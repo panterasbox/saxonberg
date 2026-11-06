@@ -49,6 +49,7 @@ let sent: string[];
 /** Drive one `wiki` invocation and collect what it emitted. */
 async function run(
   model: Partial<CommandModel>,
+  interactive?: unknown,
 ): Promise<{ body: string; notes: readonly Note[] }> {
   sent = [];
   const ctrl = makeStuff(() => new WikiController());
@@ -60,6 +61,7 @@ async function run(
     commandId: 'c',
     verb: 'wiki',
     command: { verbs: ['wiki'] } as unknown as CommandDefinition,
+    ...(interactive !== undefined ? { interactive: interactive as never } : {}),
   });
   await ExecutionContextApi.runRoot(null, 'wiki.cmd', async () => {
     ExecutionContextApi.tagActingAuthor(giver);
@@ -67,6 +69,9 @@ async function run(
   });
   return { body: sent.join(''), notes: ctx.getNotes() };
 }
+
+/** An Interactive that says yes to every confirm. */
+const CONFIRM = { promptConfirm: async () => true };
 
 /** The reasons on any `controller-rejected` notes emitted. */
 function reasons(notes: readonly Note[]): string[] {
@@ -426,13 +431,19 @@ describe('move, delete, undelete, protect', () => {
 });
 
 describe('purge', () => {
-  it('destroys page and revisions when there is nobody to confirm', async () => {
-    // No `interactive` on the context — a scripted caller has already
-    // cleared the moderator gate, and a prompt it cannot answer would
-    // hang rather than protect.
+  it('⭐ a scripted purge (nobody to confirm) fails CLOSED and destroys nothing', async () => {
+    await run({ subcommand: 'create', page: 'oak', body: 'v1' });
+    const { notes } = await run({ subcommand: 'purge', page: 'oak' });
+    expect(
+      notes.some((n) => n.kind === 'command-rejected' && n.reason === 'needs-input'),
+    ).toBe(true);
+    expect(db.all(Collections.Wiki)).toHaveLength(1);
+  });
+
+  it('destroys page and revisions once confirmed', async () => {
     await run({ subcommand: 'create', page: 'oak', body: 'v1' });
     await run({ subcommand: 'edit', page: 'oak', body: 'v2' });
-    const { body } = await run({ subcommand: 'purge', page: 'oak' });
+    const { body } = await run({ subcommand: 'purge', page: 'oak' }, CONFIRM);
     expect(body).toContain('2 revisions');
     expect(db.all(Collections.Wiki)).toHaveLength(0);
     // The tombstone survives: the act is recorded, the content is gone.
@@ -445,7 +456,7 @@ describe('purge', () => {
   it('refuses a non-moderator', async () => {
     vi.spyOn(AccessApi, 'canMutateZone').mockResolvedValue(false);
     await run({ subcommand: 'create', page: 'oak', body: '' });
-    const { notes } = await run({ subcommand: 'purge', page: 'oak' });
+    const { notes } = await run({ subcommand: 'purge', page: 'oak' }, CONFIRM);
     expect(reasons(notes)).toContain('wiki-denied');
     expect(db.all(Collections.Wiki)).toHaveLength(1);
   });

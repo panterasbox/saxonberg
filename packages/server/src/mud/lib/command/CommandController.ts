@@ -129,8 +129,11 @@ export abstract class CommandController<
     label: string,
     candidates: Stuff[],
   ): Promise<Stuff | null> {
-    const interactive = context.interactive;
-    if (!interactive || candidates.length === 0) return null;
+    if (candidates.length === 0) return null;
+    // ⭐ Fail closed (D23): with nobody to ask, `needs-input` is noted
+    // and the caller gets its quiet abort.
+    const interactive = context.requireInteractive(`an object (${label})`);
+    if (!interactive) return null;
     try {
       return await interactive.promptMqlObject(label, candidates);
     } catch {

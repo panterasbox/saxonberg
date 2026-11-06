@@ -206,6 +206,7 @@ export default class ForumController extends CommandController<ForumModel> {
     if (!handle) return this.fail(context, 'board required', 'board-required');
     // Body: inline-greedy / fields side-channel / interactive compose prompt.
     const body = await this.resolveBody(model, context, 'Compose your post:');
+    if (body === null) return; // needs-input, noted (a script has no editor)
     if (!body) return this.fail(context, 'body required', 'body-required');
     const view = await ForumsApi.resolveBoardByHandle(handle);
     if (!view) return this.fail(context, `No board '${handle}'.`, 'no-such-board');
@@ -248,6 +249,7 @@ export default class ForumController extends CommandController<ForumModel> {
         );
       }
       const body = await this.resolveBody(model, context, 'Compose your claim:');
+      if (body === null) return; // needs-input, noted (a script has no editor)
       if (!body) return this.fail(context, 'body required', 'body-required');
       try {
         const entry = await actor.attachClaim(parent, relation, body);
@@ -267,6 +269,7 @@ export default class ForumController extends CommandController<ForumModel> {
       );
     }
     const body = await this.resolveBody(model, context, 'Compose your reply:');
+    if (body === null) return; // needs-input, noted (a script has no editor)
     if (!body) return this.fail(context, 'body required', 'body-required');
     try {
       const entry = await actor.replyToEntry(parent, body);
@@ -294,6 +297,7 @@ export default class ForumController extends CommandController<ForumModel> {
       return this.fail(context, 'Only the author or board owner may edit.', 'not-author');
     }
     const body = await this.resolveBody(model, context, 'Edit the body:');
+    if (body === null) return; // needs-input, noted (a script has no editor)
     if (!body) return this.fail(context, 'body required', 'body-required');
     try {
       await actor.editEntryBody(entry, body);
@@ -472,21 +476,22 @@ export default class ForumController extends CommandController<ForumModel> {
     model: ForumModel,
     context: CommandContext,
     label: string,
-  ): Promise<string> {
+  ): Promise<string | null> {
     const inline = (model.body ?? '').trim();
     if (inline) return inline;
-    if (context.interactive) {
-      try {
-        const composed = await context.interactive.promptCompose(label, {
-          placeholder: 'Markdown — ⌘/Ctrl+Enter to submit',
-          allowEditorEscalation: true,
-        });
-        return composed.trim();
-      } catch {
-        return '';
-      }
+    // ⭐ Fail closed: a script names its body inline, or is refused
+    // `needs-input` — `null` — never handed an empty post.
+    const asker = context.requireInteractive('a body');
+    if (!asker) return null;
+    try {
+      const composed = await asker.promptCompose(label, {
+        placeholder: 'Markdown — ⌘/Ctrl+Enter to submit',
+        allowEditorEscalation: true,
+      });
+      return composed.trim();
+    } catch {
+      return '';
     }
-    return '';
   }
 
   private async boardViewFor(boardId: string) {

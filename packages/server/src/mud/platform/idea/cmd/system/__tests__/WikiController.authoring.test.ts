@@ -506,8 +506,15 @@ describe('⭐ preview is the SAME pipeline (36)', () => {
   });
 
   it('refuses an empty preview', async () => {
-    const { notes } = await run({ subcommand: 'preview' });
+    const { notes } = await run({ subcommand: 'preview', body: '' });
     expect(reasons(notes)).toContain('body-required');
+  });
+
+  it('⭐ a scripted preview with no body fails closed `needs-input` (D23)', async () => {
+    const { notes } = await run({ subcommand: 'preview' });
+    expect(
+      notes.some((n) => n.kind === 'command-rejected' && n.reason === 'needs-input'),
+    ).toBe(true);
   });
 
   it('labels itself so it is never mistaken for the saved page', async () => {

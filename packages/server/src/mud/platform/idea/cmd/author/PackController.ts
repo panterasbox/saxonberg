@@ -25,7 +25,6 @@ import type { CommandContext, CommandModel } from '../../../../api/command';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
 import { PackApi } from '../../../../api/pack';
-import { MixinApi } from '../../../../api/mixin';
 import type {
   PackDiffReport,
   PackDryRunReport,
@@ -131,7 +130,9 @@ export default class PackController extends CommandController<PackModel> {
 
   private async offerToStaff(packId: string, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
-    const interactive = MixinApi.isHasInteractive(giver) ? [...giver.getInteractives()][0] : undefined;
+    // The command's own Interactive (D23): a scripted install leaves the
+    // pack unstaffed rather than asking a question nobody typed.
+    const interactive = context.interactive;
     if (!interactive) return;
     let answer: string;
     try {

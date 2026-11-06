@@ -577,8 +577,41 @@ export interface CommandRejectedNote {
     | 'shape-fall-through'
     | 'bind-failed'
     | 'missing-subcommand'
-    | 'unknown-subcommand';
+    | 'unknown-subcommand'
+    /**
+     * `verb@source` named nothing: the scope after the `@` resolved to
+     * no object the giver can reach.
+     */
+    | 'source-not-found'
+    /**
+     * `verb@source` named something, and nothing it named affords the
+     * verb — *"the watch does not answer `drink`"*.
+     */
+    | 'source-affords-nothing'
+    /**
+     * The command needed an answer — a choice, a confirmation, a body —
+     * and nobody is there to give one (a script line, an NPC). A script
+     * fails CLOSED: `detail` names the input it would have asked for.
+     */
+    | 'needs-input';
   detail?: string;
+}
+
+/**
+ * ⭐ **The other offer** — the line was refused, and a different source
+ * here would have taken it. The dispatcher proves it with the binder
+ * alone (assemble, resolve, validators — the controller is never run
+ * speculatively) and says so: *"The wheat on the far bed also answers
+ * `harvest` — `harvest@here:2nd wheat`."*
+ */
+export interface OtherOfferNote {
+  kind: 'other-offer';
+  /** The verb as typed. */
+  verb: string;
+  /** The source that would have taken the line. */
+  source: StuffRef;
+  /** The `@` form that names it, proved by resolving it once. */
+  scopedForm: string;
 }
 
 export interface MqlErrorNote {
@@ -885,6 +918,7 @@ export type Note =
   | PaceBrokenNote
   | SlotOccupiedNote
   | CommandRejectedNote
+  | OtherOfferNote
   | MqlErrorNote
   | RegistryScanNote
   | ValidatorFailedNote
@@ -1512,6 +1546,17 @@ export interface AffordanceEntry {
    * the player would have been shown had they typed the verb.
    */
   reason?: string;
+  /**
+   * Which validator refused, on `disabled` — the note's own name
+   * (`field`, `verb`, `subcommand:<name>`, …).
+   */
+  validator?: string;
+  /**
+   * The `requires:` mixin the bound target was found WITHOUT, on
+   * `disabled`, when that is why — so a client can say what is missing
+   * rather than only that something is.
+   */
+  missing?: string;
   /**
    * The field still needing a value, on `pending-operand` — so the
    * client can open the right prompt rather than guessing.

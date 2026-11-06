@@ -60,9 +60,9 @@ let note: ReturnType<typeof vi.fn>;
 let told: string[];
 let promptTextFn: ReturnType<typeof vi.fn>;
 
-function ctxFor(actor: Idea): CommandContext {
+function ctxFor(actor: Idea, interactive?: Interactive): CommandContext {
   note = vi.fn();
-  return { commandGiver: actor as never, note } as unknown as CommandContext;
+  return { commandGiver: actor as never, note, interactive } as unknown as CommandContext;
 }
 
 /** A giver with an Interactive attached (the prompt needs one). */
@@ -75,7 +75,8 @@ async function runAs(model: PackArgs): Promise<void> {
   } as unknown as Interactive;
   actor.addInteractive(interactive);
   const ctrl = makeStuff(() => new PackController());
-  await ctrl.execute(model, ctxFor(actor as unknown as Idea));
+  // ⭐ The COMMAND's Interactive is what a prompt asks (D23).
+  await ctrl.execute(model, ctxFor(actor as unknown as Idea, interactive));
 }
 
 async function run(model: PackArgs): Promise<void> {

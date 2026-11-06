@@ -487,6 +487,17 @@ A player overrides the verb default per invocation with the reserved
 framework flags **`--async`** / **`--sync`**, recognized on any verb
 (you declare nothing). The names `async` and `sync` are therefore
 reserved: using either as an option or arg name is a load-time error.
+
+⭐ **`--strict` / `--loose`** are reserved the same way (D23): on any
+verb, `--strict` forces every slot's `onFiltered:` to `error` (a match
+discarded for the wrong kind refuses the line) and `--loose` forces
+`take`, for that one invocation. `strict` and `loose` are reserved
+names too. (`reload --strict` became `reload --force`.)
+
+⭐ **`verb@source`** needs nothing from the view either: `wind@me:i:watch`
+keeps only what the watch affords and the watch fills the first object
+slot whose `requires:` it satisfies. See
+[command-routing.md § `verb@source`](./command-routing.md).
 `async` is *not* the engagement framework — a durative in-world action
 with slots / cancel / abort uses `SchedulerApi` (see
 [activity.md](./activity.md)), for which `async` is a no-op.
@@ -1085,8 +1096,41 @@ also serve as **termination boundaries** for an earlier greedy field.
 That's how `give the red flower to bob` knows to stop the greedy
 `gift` at `to`.
 
-Prepositions are always optional — declaring `prepositions: [to]`
+Prepositions are optional by default — declaring `prepositions: [to]`
 means "consume `to` if it appears here," not "require `to`."
+
+### ⭐ `prepositionRequired:` — the slot binds only behind its preposition
+
+```yaml
+args:
+  - name: item
+    type: object
+    required: true
+  - name: recipient
+    type: object
+    required: true
+    prepositions: [to]
+    prepositionRequired: true
+```
+
+`prepositionRequired: true` makes the preposition part of the SHAPE
+(controllers-are-io D17): the slot binds only when one of its
+`prepositions:` is present. Absent, a required slot is a **shape error
+naming the preposition** (*"missing 'to' before recipient"*), so the
+chain tries the next view of the verb; an optional one stays unbound.
+It is what makes two views of one word provably disjoint — `throw ball
+to ann` cannot bind `throw-at`, and `throw ball at ann` cannot bind
+`throw-to`. A load-time error without `prepositions:`. The usage line
+shows it bare: `throw <item> to <recipient>` (`[to <recipient>]` when
+optional).
+
+### ⭐ When every shape fails — the usage line
+
+When no view of the verb fits the line (every `assemble` a shape
+error), the dispatcher's `shape-fall-through` note carries **every
+matching view's `getUsage()`** joined ` · ` — *"throw <item> · throw
+<item> to <person> · throw <item> at <target>"* — which is the player's
+error for a malformed line. Write `name:`s that read well there.
 
 ### `validators:` — per-field gates
 

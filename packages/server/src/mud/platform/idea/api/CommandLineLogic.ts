@@ -270,7 +270,33 @@ function classify(tokens: Lexeme[]): RawToken[] {
 }
 
 function formatCommand(cmd: ParsedCommand): string {
-  return cmd.rawTokens.map(formatToken).join(' ');
+  const tokens = cmd.rawTokens.map(formatToken);
+  const head = cmd.rawTokens[0];
+  // ⭐ `verb@source`: a token 0 that already carries this scope is
+  // emitted verbatim (round-trip). A synthesized command — an alias
+  // expansion — whose token 0 lacks it re-emits `verb@scope`, the
+  // scope quoted when it needs to be (`wind@"pocket watch"`).
+  if (cmd.scope !== undefined && head?.kind === 'word' && tokens.length > 0) {
+    const split = splitVerbScope(head.value);
+    if (split.scope !== cmd.scope) {
+      tokens[0] = `${quoteIfNeeded(split.verb)}@${quoteIfNeeded(cmd.scope)}`;
+    }
+  }
+  return tokens.join(' ');
+}
+
+/**
+ * Split a verb token at its first `@`. A leading `@` is not a split (an
+ * `@`-word is a word); an `@` at index > 0 is: `wind@me:watch` →
+ * `{verb: 'wind', scope: 'me:watch'}`. An empty scope (`wind@`) is no
+ * scope.
+ */
+function splitVerbScope(value: string): { verb: string; scope?: string } {
+  const at = value.indexOf('@');
+  if (at <= 0) return { verb: value };
+  const scope = value.slice(at + 1);
+  if (scope.length === 0) return { verb: value.slice(0, at) };
+  return { verb: value.slice(0, at), scope };
 }
 
 function formatToken(t: RawToken): string {
@@ -327,14 +353,19 @@ function parsePipelineImpl(input: string): ParsedPipeline {
   const commands: ParsedCommand[] = nonEmpty.map((c) => {
     const rawTokens = classify(c.tokens);
     const verbToken = rawTokens[0];
-    const verb =
+    const head =
       verbToken && verbToken.kind === 'word' ? verbToken.value : '';
-    return {
+    // ⭐ `verb@source` — only the verb token is ever split; the raw
+    // token stays as typed so `format()` round-trips.
+    const { verb, scope } = splitVerbScope(head);
+    const cmd: ParsedCommand = {
       verb,
       rawTokens,
       source: c.source,
       start: c.start,
     };
+    if (scope !== undefined) cmd.scope = scope;
+    return cmd;
   });
 
   return { commands, raw: input };

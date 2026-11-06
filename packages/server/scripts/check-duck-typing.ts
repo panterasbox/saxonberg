@@ -61,7 +61,7 @@ import ts from "typescript";
 import { CONTENT, MUD, mudSourceFiles, parseTs, ratchet } from "./pack-roots";
 
 /** All probes (method + member), kernel and packs. */
-export const DUCK_PROBE_CEILING = 628;
+export const DUCK_PROBE_CEILING = 627;
 /** Method probes on a name nobody in the corpus defines. */
 export const UNDEFINED_PROBE_CEILING = 7;
 

@@ -539,13 +539,13 @@ export default class OrderController extends CraftController<OrderModel> {
     if (cannotPay) {
       return { ok: false, reason: 'cannot-pay', detail: cannotPay };
     }
-    // No interactive (a scripted caller) answers no: money is never taken
-    // on a question nobody was asked.
-    const yes = context.interactive
-      ? await context.interactive
-          .promptConfirm(`Have it done for ${money(quote.total)}?`, 'no')
-          .catch(() => false)
-      : false;
+    // ⭐ No interactive (a script, an NPC) fails CLOSED: money is never
+    // taken on a question nobody was asked, and the refusal says so.
+    const asker = context.requireInteractive(`a yes to pay ${money(quote.total)}`);
+    if (!asker) return { ok: false, reason: 'needs-input', detail: 'Nobody was there to say yes.' };
+    const yes = await asker
+      .promptConfirm(`Have it done for ${money(quote.total)}?`, 'no')
+      .catch(() => false);
     if (!yes) return { ok: true, declined: true, detail: 'You keep your coin, and it stays as it is.' };
     const outcome = await CraftingApi.repair({ item, hand });
     if (!outcome.ok) {
@@ -600,11 +600,11 @@ export default class OrderController extends CraftController<OrderModel> {
     if (cannotPay) {
       return { ok: false, reason: 'cannot-pay', detail: cannotPay };
     }
-    const yes = context.interactive
-      ? await context.interactive
-          .promptConfirm(`Have it washed for ${money(quote.total)}?`, 'no')
-          .catch(() => false)
-      : false;
+    const asker = context.requireInteractive(`a yes to pay ${money(quote.total)}`);
+    if (!asker) return { ok: false, reason: 'needs-input', detail: 'Nobody was there to say yes.' };
+    const yes = await asker
+      .promptConfirm(`Have it washed for ${money(quote.total)}?`, 'no')
+      .catch(() => false);
     if (!yes) return { ok: true, declined: true, detail: 'You keep your coin, and your washing.' };
     const { outcome, ruined } = await item.launderBy(policy, {
       hand,

@@ -267,6 +267,10 @@
           },
           "description": "Optional list of leading prepositions the matcher consumes (e.g. `[at]` for `look at`, `[to]` for `give X to Y`)."
         },
+        "prepositionRequired": {
+          "type": "boolean",
+          "description": "The slot binds ONLY when one of its `prepositions:` is present. Absent, a required slot is a shape error naming the preposition (the chain tries the next view); an optional one stays unbound. Requires `prepositions:`."
+        },
         "cardinality": {
           "$ref": "#/$defs/cardinality"
         },

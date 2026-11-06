@@ -233,6 +233,27 @@ describe('ShellApi.expandAliases', () => {
     expect(out.expansion?.expandedText).toBe('look book');
   });
 
+  it('⭐ `verb@source` survives the alias: `l@me:book` → `look@me:book`', () => {
+    host.setAlias('l', 'look', { actor: host });
+    const out = ShellApi.expandAliases(parse('l@me:book closely'), host);
+    expect(out.parsed.verb).toBe('look');
+    expect(out.parsed.scope).toBe('me:book');
+    expect(out.expansion?.expandedText).toBe('look@me:book closely');
+  });
+
+  it("⭐ the invocation's scope wins over one in the alias body", () => {
+    host.setAlias('ww', 'wind@me:watch', { actor: host });
+    expect(ShellApi.expandAliases(parse('ww@here'), host).parsed.scope).toBe('here');
+    // With none typed, the body's own stands.
+    expect(ShellApi.expandAliases(parse('ww'), host).parsed.scope).toBe('me:watch');
+  });
+
+  it('the bypass prefix keeps the scope: `\\look@me`', () => {
+    const out = ShellApi.expandAliases(parse('\\look@me'), host);
+    expect(out.parsed.verb).toBe('look');
+    expect(out.parsed.scope).toBe('me');
+  });
+
   it('consume case with $1', () => {
     host.setAlias('gn', 'say goodnight $1', { actor: host });
     const out = ShellApi.expandAliases(parse('gn bob'), host);

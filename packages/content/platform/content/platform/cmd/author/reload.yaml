@@ -14,7 +14,7 @@ help: |
   The live code never checks types, so after the swap the file is
   type-checked in the background and you are told the verdict a few
   seconds later. The check covers that file only — not the files that
-  import it. `--no-check` skips it; `--strict` checks first and
+  import it. `--no-check` skips it; `--force` checks first and
   refuses to swap code with type errors in. `typecheck` checks without
   reloading.
 args:
@@ -31,7 +31,7 @@ options:
     type: boolean
     field: noCheck
     description: "Swap only; skip the type-check"
-  strict:
+  force:
     type: boolean
-    field: strict
+    field: force
     description: "Type-check first; refuse to reload on type errors"

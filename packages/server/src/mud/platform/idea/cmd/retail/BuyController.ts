@@ -54,7 +54,8 @@ export default class BuyController extends CommandController<BuyModel> {
     // either way, not one the player named.)
     const named = !!model.counter?.raw && !/^reachable:/.test(model.counter.raw);
     const seller = named ? bound : bound.sellerFor(model.thing);
-    const interactive = MixinApi.isHasInteractive(giver) ? [...giver.getInteractives()][0] : undefined;
+    // ⭐ The command's own Interactive: a script never prompts (D23).
+    const interactive = context.interactive;
     const out = await seller.sell({
       buyer: giver,
       word: model.thing,
