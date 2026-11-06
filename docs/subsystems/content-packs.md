@@ -841,7 +841,9 @@ serially and bulk-writing after, which is a change to the hook contract.
 
 ### Runtime — the `pack` verb
 
-`platform/idea/cmd/author/PackController.ts` + the platform pack's
+`platform/idea/cmd/author/Pack<Sub>Controller.ts` — one controller per
+subcommand over `PackControllerBase` (controllers-are-io D9; bare `pack`
+is the framework's `missing-subcommand`) — + the platform pack's
 `content/platform/cmd/author/pack.yaml` (declarative `subcommands:` + `options:`;
 afforded on `AuthorMixin`'s operator surface, **authorized by
 `requiresPackInstaller`** — `AccessApi.canAtPath(giver, 'install',
@@ -1478,7 +1480,8 @@ a manifest declares which, so the script still says).
   table, the pure planner + the applier, the record, the three-way
   machine, the flat-key check, `requires-kernel`, the ops surface, the
   re-hydrate tail.
-- `mud/platform/idea/cmd/author/PackController.ts` + the platform pack's
+- `mud/platform/idea/cmd/author/Pack{Status,Install,Sync,Provision,Diff,Resolve,Pin,Unpin}Controller.ts`
+  over `PackControllerBase.ts` + the platform pack's
   `content/platform/cmd/author/pack.yaml` — the `pack` verb suite;
   `lib/command/validators/requiresPackInstaller.ts` — its gate (title
   over `/compact/executive`).

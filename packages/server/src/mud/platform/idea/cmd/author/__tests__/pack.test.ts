@@ -1,15 +1,24 @@
 /**
- * PackController — the `pack` verb's dispatch-on-subcommand wrapper over
- * PackApi: routing per subcommand, the two controller-enforced rules
- * (`install` without `--dry-run` is rejected; `--keep` without `--pin`
- * does not exist), the three-body diff rendering, and usage on an
- * unknown subcommand. PackApi is stubbed; authorization is declarative
+ * The `pack` controllers (one per subcommand, over PackControllerBase) —
+ * thin wrappers over PackApi: routing per subcommand, the two
+ * controller-enforced rules (`install` without `--dry-run` is rejected;
+ * `--keep` without `--pin` does not exist), the three-body diff rendering.
+ * An unknown subcommand is the framework's (`unknown-subcommand`, before
+ * any controller is cloned). PackApi is stubbed; authorization is declarative
  * (`requiresPackInstaller` in pack.yaml) and tested with the validator.
  */
 
 import '../../../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import PackController from '../PackController';
+import PackStatusController from '../PackStatusController';
+import PackInstallController from '../PackInstallController';
+import PackSyncController from '../PackSyncController';
+import PackProvisionController from '../PackProvisionController';
+import PackDiffController from '../PackDiffController';
+import PackResolveController from '../PackResolveController';
+import PackPinController from '../PackPinController';
+import PackUnpinController from '../PackUnpinController';
+import type { PackControllerBase } from '../PackControllerBase';
 import { PackApi } from '../../../../../api/pack';
 import Avatar from '../../../../agent/PrimaryAvatar';
 import type Interactive from '../../../Interactive';
@@ -18,6 +27,24 @@ import { Idea } from '../../../../../lib/stuff/Idea';
 import { makeStuff, makeStuffAtPath } from '../../../../../lib/security/__tests__/test-setup';
 import type { CommandContext, CommandModel } from '../../../../../api/command';
 import type { PackReconcileResult } from '../../../../../api/pack';
+
+/** The controller `pack.yaml` names for a subcommand. */
+const CONTROLLERS: Record<string, () => PackControllerBase> = {
+  status: () => new PackStatusController(),
+  install: () => new PackInstallController(),
+  sync: () => new PackSyncController(),
+  provision: () => new PackProvisionController(),
+  diff: () => new PackDiffController(),
+  resolve: () => new PackResolveController(),
+  pin: () => new PackPinController(),
+  unpin: () => new PackUnpinController(),
+};
+
+function controllerFor(model: { subcommand?: string }): PackControllerBase {
+  const make = CONTROLLERS[model.subcommand ?? ''];
+  if (!make) throw new Error(`no pack controller for '${model.subcommand}'`);
+  return makeStuff(make);
+}
 
 interface PackArgs extends CommandModel {
   subcommand?: string;
@@ -74,14 +101,14 @@ async function runAs(model: PackArgs): Promise<void> {
     promptText: promptTextFn,
   } as unknown as Interactive;
   actor.addInteractive(interactive);
-  const ctrl = makeStuff(() => new PackController());
+  const ctrl = controllerFor(model);
   // ⭐ The COMMAND's Interactive is what a prompt asks (D23).
   await ctrl.execute(model, ctxFor(actor as unknown as Idea, interactive));
 }
 
 async function run(model: PackArgs): Promise<void> {
   const actor = makeStuffAtPath(() => new Idea(), '/platform/agent/Avatar/dev');
-  const ctrl = makeStuff(() => new PackController());
+  const ctrl = controllerFor(model);
   await ctrl.execute(model, ctxFor(actor));
 }
 
@@ -107,7 +134,7 @@ afterEach(() => vi.restoreAllMocks());
 const rejected = (reason: string) =>
   expect(note).toHaveBeenCalledWith(expect.objectContaining({ kind: 'controller-rejected', reason }));
 
-describe('PackController routing', () => {
+describe('pack — one controller per subcommand', () => {
   it('status lists the template rows under no pack (listed, never deleted)', async () => {
     vi.spyOn(PackApi, 'status').mockResolvedValue([
       { packId: 'p', discovered: true, manifestVersion: '0.1.0', rung: 'data', code: null, dependsOn: [], record: null, maintainers: null, titleConflicts: [] },
@@ -289,14 +316,6 @@ describe('PackController routing', () => {
     await run({ subcommand: 'unpin', packId: 'p', path: '/obj/x' });
     expect(unpin).toHaveBeenCalledWith('p', '/obj/x');
     expect(note).not.toHaveBeenCalled();
-  });
-
-  it('an unknown subcommand → usage, controller-rejected, nothing called', async () => {
-    const sync = vi.spyOn(PackApi, 'sync').mockResolvedValue(OK);
-    await run({ subcommand: 'frob' });
-    expect(sync).not.toHaveBeenCalled();
-    rejected('unknown-subcommand');
-    expect(told.join('\n')).toContain('usage:');
   });
 
   it('a sync failure emits controller-rejected', async () => {

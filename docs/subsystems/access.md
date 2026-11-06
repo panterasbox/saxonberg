@@ -466,7 +466,7 @@ tree mode, etc.) we revisit.
 | `GotoController` | non-force: `can(giver, 'goto', dest)`; force: `can(giver, 'force-goto', dest)`. With `--subject`: `can(giver, 'teleport'`/`'force-teleport', subject)` — the authority is over the OBJECT, not the destination. |
 | the mutating `soul` controllers (`SoulControllerBase.refuseUnlessCommittee`) | `canAtPath(giver, 'write-document', '/expression/emotes/<verb>')` — the soul committee's title ([emotes.md](./emotes.md)). |
 | `BroadcastController` | `canAtPath(giver, 'broadcast', extent)` for `--at <extent>`; a non-holder's refusal lists `heldExtents(giver)`. |
-| `PackController` | `requiresPackInstaller` (validator) — `canAtPath(giver, 'install', '/compact/executive')`. |
+| the `pack` controllers | `requiresPackInstaller` (validator) — `canAtPath(giver, 'install', '/compact/executive')`. |
 | `EvalController` | `requiresWizard` (validator) — `isWizard(giver)`; no slice (typing code is authoring TypeScript — one of the two places the axis is asked). |
 | `StreamController` | `requiresStreamer` (validator) — `isStreamer(giver)`; no slice (livestream control plane). |
 | `WizardController` | `requiresArchwizard` (validator) — `isArchwizard(giver)`; calls the narrow-entry `setWizardMembership` (wizard grant/revoke). |
