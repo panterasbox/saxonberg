@@ -32,6 +32,13 @@ import type { PathogenLoads } from '../material/Contaminable';
 import type { MixinConstructor } from "../mixin";
 import type { Stuff } from "../stuff/Stuff";
 import { MixinApi } from "../../api/mixin";
+import { BulkableApi } from "../../api/bulk";
+import { MaterialApi } from "../../api/material";
+import { StuffApi } from "../../api/stuff";
+import { Contamination } from "../material/Contaminable";
+import { Freshness } from "../material/Freshness";
+import type Material from "../material/Material";
+import { PourTargetMixin, type PourAnswer, type PourRequest } from "../bulk/PourTarget";
 import { Grade } from "./Grade";
 import type { Technique } from "./Technique";
 
@@ -155,9 +162,151 @@ export interface Builds {
   clearBuild(): void;
 }
 
+/** One pour's base time, ms; a good instrument paces it. */
+const POUR_MS = 3000;
+/** What pouring a measure or adding an ingredient costs, W. */
+const POUR_EFFORT_W = 150;
+const POUR_EPS = 1e-9;
+
+/** ⭐ The pour's pace: the vessel's best work-rate at what it builds. */
+function pourPaceMs(vessel: Stuff): number {
+  if (!MixinApi.isTool(vessel)) return POUR_MS;
+  let best: number | null = null;
+  for (const kind of ["shaker", "mixing-glass", "pot"]) {
+    if (!vessel.hasCapability(kind)) continue;
+    const rate = vessel.capabilityRate(kind);
+    best = best === null ? rate : Math.max(best, rate);
+  }
+  return Math.round(POUR_MS / (best ?? 1));
+}
+
 export function ManualBuildMixin<TBase extends MixinConstructor>(Base: TBase) {
-  return class ManualBuildMixin extends Base implements Builds {
+  return class ManualBuildMixin extends PourTargetMixin(Base) implements Builds {
     static _mixinName = "ManualBuildMixin";
+
+    /**
+     * ⭐ `pour` into a build: one serving of what is poured (ceramics re-plan
+     * R1-D4) — the material's own `servingKg` at its density, gin 60 ml, dry
+     * vermouth 10 ml, bitters 2 ml — so the jigger is the row's and a new spirit
+     * needs no code. `--amount` measures instead. A discrete ingredient goes in
+     * whole (the cooking `add`). On a build vessel that is also a holder (a cook
+     * pot, a trough), a plain jug of something ungraded is an ordinary pour.
+     */
+    public async receivePour(req: PourRequest): Promise<PourAnswer> {
+      const target = this as unknown as Stuff & Builds;
+      const { source } = req;
+      if (MixinApi.isBulkable(source) && MixinApi.isGraded(source)) {
+        return this.servingPlan(req);
+      }
+      if (MixinApi.isBulkable(source) && MixinApi.isBulkable(target) && BulkableApi.slotFor(source, req.sourceVia)) {
+        return super.receivePour(req);
+      }
+      if (
+        MixinApi.isTangible(source) &&
+        source.getMaterial() !== null &&
+        !MixinApi.isTool(source) &&
+        // ⭐ Matter, not mark (farming A4's rule, found again by the dairy
+        // drive): a `Provision` is Crafted — it carries a maker. A crafted
+        // thing is an ingredient when it is FOOD; a finished tool or good is
+        // not.
+        (!MixinApi.isCrafted(source) || source.getMaterial()!.getEdibility())
+      ) {
+        return this.ingredientPlan(source);
+      }
+      return { ok: false, reason: "not-a-holder", facts: { source, target } };
+    }
+
+    /** Debit one measure off the bottle at completion, and bank it. */
+    private async servingPlan(req: PourRequest): Promise<PourAnswer> {
+      const target = this as unknown as Stuff & Builds;
+      const { source } = req;
+      const slot = BulkableApi.slotFor(source, req.sourceVia);
+      if (!slot) return { ok: false, reason: "nothing-in-source", facts: { source, target } };
+      const gradeBand = MixinApi.isGraded(source) ? source.getGradeBand() : "fair";
+      // The onComplete is sync, but a Material singleton may need a load first.
+      const mpath = slot.getMaterialPath();
+      const material = mpath ? await StuffApi.singleton<Material>(mpath) : null;
+      // One serving of what is in the bottle, unless the hand measures (a row
+      // with no density measures as water). An empty bottle pours nothing.
+      const density = material?.getDensity().rawValue() ?? 0;
+      const servingL = material
+        ? (MaterialApi.servingKgOf(material) / (density > 0 ? density : 1000)) * 1000
+        : 0;
+      const measure = BulkableApi.amountFromOption(req.amount, {
+        kind: "measure",
+        litres: servingL,
+        mode: "lenient",
+      });
+      return {
+        ok: true,
+        durationMs: pourPaceMs(target),
+        effortW: POUR_EFFORT_W,
+        facts: { kind: "serving", source, target },
+        onComplete: () => {
+          // ⚠ Read the spoilage BEFORE the draw — a full drain clears the
+          // source's payload, and the gauge rides the payload.
+          const freshnessLoad = new Freshness(slot).load();
+          const pathogenLoads = new Contamination(slot).loads();
+          // ⭐ …and what the source was MADE OF, for the same reason: a blend
+          // poured from a blend must arrive at the mint knowing its ingredients.
+          const sourceMakeup = slot.getPayload()?.makeup;
+          const result = BulkableApi.transfer(slot, null, measure);
+          if (result.applied <= POUR_EPS) {
+            return { ok: false, reason: "source-empty", facts: { source, target } };
+          }
+          target.addContribution({
+            // The material's authored tags are the vocabulary a recipe slot
+            // matches on — never a keyword or the display name.
+            tags: material ? [...material.getTags()] : [],
+            measureL: result.applied,
+            gradeBand,
+            materialPath: material?.getTemplatePath() ?? undefined,
+            freshnessLoad,
+            pathogenLoads,
+            makeup: sourceMakeup,
+          });
+          return { ok: true, facts: { kind: "banked", source, target, notes: [] } };
+        },
+      };
+    }
+
+    /**
+     * The discrete ingredient, at completion: consumed whole (chattel released
+     * by the shipped path) and banked as an item-contribution (category by
+     * tags, grade or `fair`, a stack's stack as its count).
+     */
+    private ingredientPlan(ingredient: Stuff): PourAnswer {
+      const target = this as unknown as Stuff & Builds;
+      const material = MixinApi.isTangible(ingredient) ? ingredient.getMaterial() : null;
+      return {
+        ok: true,
+        durationMs: pourPaceMs(target),
+        effortW: POUR_EFFORT_W,
+        facts: { kind: "ingredient", source: ingredient, target },
+        onComplete: () => {
+          if (ingredient.isDestroyed() || !MixinApi.isTangible(ingredient) || !material) {
+            return { ok: false, reason: "ingredient-gone", facts: { source: ingredient, target } };
+          }
+          const count = MixinApi.isStackable(ingredient) ? ingredient.getQuantity() : 1;
+          target.addContribution({
+            measureL: 0,
+            gradeBand: MixinApi.isGraded(ingredient) ? ingredient.getGradeBand() : "fair",
+            kind: "item",
+            count,
+            // Every unit's mass — `getMass()` is one unit's.
+            massKg: ingredient.getMass().rawValue() * count,
+            tags: [...material.getTags()],
+            materialPath: material.getTemplatePath() ?? undefined,
+            pathogenLoads: MixinApi.isContaminable(ingredient) ? ingredient.getPathogenLoads() : {},
+            freshnessLoad: MixinApi.isFresh(ingredient) ? ingredient.getMicrobialLoad() : 0,
+          });
+          // The words name it, and go first: the destruct is the last thing.
+          const out = { ok: true as const, facts: { kind: "added" as const, source: ingredient, target, notes: [] } };
+          void StuffApi.destruct(ingredient);
+          return out;
+        },
+      };
+    }
 
     /**
      * ⭐ The build buffer is what `pour` banks into and `stir` works on,
@@ -169,11 +318,11 @@ export function ManualBuildMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     static commandContributions: CommandContributions = {
       environment: [
-        "platform/cmd/crafting/pour.yaml",
+        "platform/cmd/bulk/pour.yaml",
         "platform/cmd/crafting/stir.yaml",
       ],
       peers: [
-        "platform/cmd/crafting/pour.yaml",
+        "platform/cmd/bulk/pour.yaml",
         "platform/cmd/crafting/stir.yaml",
       ],
     };

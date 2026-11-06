@@ -179,12 +179,11 @@ subcommands:
 
 describe("⭐ the live tree", () => {
   it("every claim in the real content tree is accounted for", () => {
-    // The gate's own subject. This does not assert a count — the roster
-    // is the script's `KNOWN_COLLISIONS`, and duplicating it here would
-    // be two copies of one sentence.
+    // The gate's own subject: no word in the tree has two bindable views.
     const claims = claimsIn(allViews());
     expect(claims.length).toBeGreaterThan(100);
     expect(claims.every((c) => c.verb === c.verb.toLowerCase())).toBe(true);
+    expect([...collisionsIn(claims).keys()]).toEqual([]);
   });
 
   it("⚠⚠ `watch` is claimed ONCE — the shadowing is gone", () => {

@@ -158,6 +158,7 @@ import type { KneadVessel } from '../lib/craft/KneadVessel';
 import type { Shapeable } from '../lib/craft/Shapeable';
 import type { Forming } from '../lib/craft/Forming';
 import type { Carvable } from '../lib/craft/Carvable';
+import type { PourTarget } from '../lib/bulk/PourTarget';
 import type { Impressible } from '../lib/craft/Impressible';
 import type { Turnable } from '../lib/craft/Turnable';
 import type { HandWorked } from '../lib/craft/HandWorked';
@@ -1849,6 +1850,10 @@ export class MixinApi {
 
   public static isCarvable(obj: Stuff): obj is Stuff & Carvable {
     return this.hasMixin(obj, Mixins.Carvable);
+  }
+
+  public static isPourTarget(obj: Stuff): obj is Stuff & PourTarget {
+    return this.hasMixin(obj, Mixins.PourTarget);
   }
 
   public static isImpressible(obj: Stuff): obj is Stuff & Impressible {

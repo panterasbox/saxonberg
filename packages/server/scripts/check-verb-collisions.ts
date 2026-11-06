@@ -27,7 +27,7 @@
  * reason, and anything not on the list fails. The list is a to-do, not
  * an amnesty — ⚠ and it has NOT been diagnosed. The census measured
  * which verbs are claimed twice; which of those actually shadow (and in
- * which direction) is a question each row still owes an answer to.
+ * which direction) was a question each row owed an answer to.
  *
  * ⚠ Aliases count. `verbs: [job, jobs]` claims both, and a second view
  * claiming `jobs` would shadow just as silently as one claiming `job`.
@@ -35,8 +35,8 @@
  * ⭐⭐ **Disjoint shapes pass (controllers-are-io D17).** Two views of one
  * word whose shapes no command line can bind both (`disjointShapes`) are
  * not a collision: the dispatcher's per-view bind proves which one a line
- * means. A non-disjoint pair fails unless it is in `KNOWN_COLLISIONS` —
- * which therefore only shrinks.
+ * means. A non-disjoint pair fails. (`KNOWN_COLLISIONS` shrank to nothing
+ * when `pour` became one act, and went with its last row.)
  */
 
 import { readFileSync } from "fs";
@@ -82,7 +82,7 @@ function isRequired(a: PositionalShape): boolean {
  *
  * `throw X` · `throw X to Y` · `throw X at Y` is the case it was written
  * for: one word, three views, provably three shapes — so no shadowing to
- * adjudicate, and no `KNOWN_COLLISIONS` row. A view with subcommands is
+ * adjudicate. A view with subcommands is
  * never proved disjoint (its shapes are per subcommand).
  */
 export function disjointShapes(a: Claim, b: Claim): boolean {
@@ -111,23 +111,6 @@ export function disjointShapes(a: Claim, b: Claim): boolean {
   }
   return false;
 }
-
-/**
- * ⚠ The nine collisions that shipped before this gate existed, each with
- * what is known about it. Every row is a live question.
- *
- * ⭐ To remove a row: decide whether the two really are one verb (fold
- * them into one view with subcommands) or two (rename one), then delete
- * the line. Never add a row to make a new build pass.
- *
- * ⭐⭐ Which one yields, when both are bodily acts the argument cannot
- * separate: `docs/subsystems/command-spec.md § When both are bodily acts
- * — which trade keeps the word` (first-come is never the basis; decide by
- * unify → generativity → accessibility, in that order).
- */
-const KNOWN_COLLISIONS: Record<string, string> = {
-  pour: "platform: bulk/pour.yaml vs crafting/pour.yaml — undiagnosed.",
-};
 
 export function claimsIn(files: string[]): Claim[] {
   const out: Claim[] = [];
@@ -201,42 +184,23 @@ export function allViews(contentDir: string = CONTENT): string[] {
 function main(): void {
   const files = allViews();
   const collisions = collisionsIn(claimsIn(files));
-  const fresh = [...collisions].filter(([verb]) => !(verb in KNOWN_COLLISIONS));
-  const healed = Object.keys(KNOWN_COLLISIONS).filter(
-    (verb) => !collisions.has(verb),
-  );
-
-  if (fresh.length === 0 && healed.length === 0) {
-    console.info(
-      `check-verb-collisions: ok — ${files.length} command view(s); ` +
-        `${collisions.size} known collision(s), no new ones.`,
-    );
+  if (collisions.size === 0) {
+    console.info(`check-verb-collisions: ok — ${files.length} command view(s), no collision.`);
     return;
   }
-
-  if (healed.length > 0) {
-    // ⭐ The ratchet's other direction: a fixed collision must leave the
-    // list, or the list stops meaning anything.
-    console.error(
-      `check-verb-collisions: ${healed.length} collision(s) are FIXED — ` +
-        `delete them from KNOWN_COLLISIONS: ${healed.join(", ")}\n`,
-    );
-  }
-
-  for (const [verb, claimed] of fresh) {
+  for (const [verb, claimed] of collisions) {
     console.error(`  ⚠ NEW: '${verb}' is claimed by ${claimed.length} views:`);
     for (const f of claimed) console.error(`      ${f.replace(CONTENT, "…")}`);
   }
-  if (fresh.length > 0) {
-    console.error(
-      "\n⚠⚠ Two views claiming one verb do not merge — one SHADOWS the\n" +
-        "  other, silently, and the loser becomes unreachable by its own\n" +
-        "  name. The consequence build did this to the livestream `watch`\n" +
-        "  for every character alive, and nothing failed.\n\n" +
-        "  The fix is one view with subcommands, or a different verb —\n" +
-        "  never a new line in KNOWN_COLLISIONS.",
-    );
-  }
+  console.error(
+    "\n⚠⚠ Two views claiming one verb do not merge — one SHADOWS the\n" +
+      "  other, silently, and the loser becomes unreachable by its own\n" +
+      "  name. The consequence build did this to the livestream `watch`\n" +
+      "  for every character alive, and nothing failed.\n\n" +
+      "  The fix is one view with subcommands, a different verb, or shapes\n" +
+      "  no line can bind both (`prepositionRequired`, D17). There is no\n" +
+      "  list to add a line to: `pour` was the last, and it is one act now.",
+  );
   process.exitCode = 1;
 }
 

@@ -52,6 +52,8 @@ import { Quantity } from '../quantity';
 import { QuantityMarshaller } from '../../platform/idea/persistence/QuantityMarshaller';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
+import type { Difficulty } from '../advancement/ActSignature';
+import { PourTargetMixin, type PourAnswer, type PourDone, type PourNote, type PourRequest } from './PourTarget';
 import { BulkableApi } from '../../api/bulk';
 import { MaterialApi } from '../../api/material';
 import { AppSettingKeys } from '../config/AppSettings';
@@ -568,8 +570,108 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
   // Whether the composition beneath answers to words (decided once per
   // class, lazily — the factory runs at import).
   let inherits: boolean | undefined;
-  return class BulkableMixin extends Base {
+  return class BulkableMixin extends PourTargetMixin(Base) {
     static _mixinName = 'BulkableMixin';
+
+    /**
+     * ⭐ `pour` into a holder: a thin direction over `BulkableApi.transfer`,
+     * which owns the material-compatibility check, the overflow clamp and the
+     * open-vessel drain-through; what the pour credits is here because it is
+     * the same act whichever controller words it. Instant: `durationMs: 0`.
+     */
+    public receivePour(req: PourRequest): PourAnswer {
+      const target = this as unknown as Stuff;
+      const { by, source } = req;
+      const fromSlot = BulkableApi.slotFor(source, req.sourceVia);
+      if (fromSlot === null) {
+        return { ok: false, reason: 'nothing-in-source', facts: { source, target } };
+      }
+      const toSlot = BulkableApi.slotFor(target, req.targetVia);
+      if (toSlot === null) {
+        return { ok: false, reason: 'not-a-holder', facts: { source, target } };
+      }
+      return {
+        ok: true,
+        durationMs: 0,
+        effortW: 0,
+        facts: { kind: 'now' },
+        onComplete: async () => {
+          const amount = BulkableApi.amountFromOption(req.amount, { kind: 'all' }, req.exact === true);
+          // What the mould is made of, read BEFORE the pour: a mould the pour
+          // consumes is gone by the time the line is written.
+          const waxMould =
+            MixinApi.isMould(target) && MixinApi.isTangible(target) && target.getMaterial()?.hasTag('wax') === true;
+          const result = BulkableApi.transfer(fromSlot, toSlot, amount);
+          const notes: PourNote[] = [...result.notes];
+          const done = (kind: PourDone['kind']): { ok: true; facts: PourDone } => ({
+            ok: true,
+            facts: { kind, source, target, notes },
+          });
+          if (result.applied > 0 && MixinApi.isBulkable(source)) {
+            source.afterPouredOutBy(by, result.applied);
+          }
+          // ⭐⭐ (ceramics S13) The receiver did not survive the pour: its
+          // melting or ignition point is below the metal's heat.
+          if (result.status === 'melted') return done('melted');
+          if (result.status === 'burned') return done('burned');
+          if (result.applied > 0 && MixinApi.isBulkable(target) && !target.isDestroyed()) {
+            target.afterPouredInBy(by, result.applied);
+          }
+          const credit = async (discipline: string, difficulty: Difficulty): Promise<void> => {
+            try {
+              if (MixinApi.isAdvancing(by)) await by.creditDeed({ discipline, difficulty, outcome: 'success' });
+            } catch (err) {
+              console.warn('Bulkable: recording the deed failed:', err);
+            }
+          };
+          if (result.applied > 0) {
+            // The rack credit (fermentation W7/D9): drawing off a FINISHED
+            // batch is the craft's timing act.
+            if (MixinApi.isMaturing(source)) {
+              const phase = source.getMaturationPhase();
+              if (phase === 'finished' || phase === 'turned') await credit('fermenting', 'easy');
+            }
+            // ⭐ The cut's credit: drawing from a RUNNING fractionating host is
+            // the distiller's timing act, and the schedule names the Discipline.
+            if (MixinApi.isFractionating(source)) {
+              const schedule = source.isRunning() ? source.getRunSchedule() : null;
+              const discipline = schedule?.getDiscipline() ?? '';
+              if (discipline) await credit(discipline, 'easy');
+            }
+            // ⭐ The mould's credit (dairy D22): filling a mould IS the act, so
+            // a row that names a Discipline credits it at the fill; a mould
+            // whose pour is a DAY credits when the watch is kept (ceramics D26).
+            if (MixinApi.isMould(target)) {
+              if (target.getPourDurationS() > 0) {
+                const started = target.watchThePour(by);
+                if (started) notes.push(started);
+              } else {
+                const discipline = target.getMouldDiscipline();
+                if (discipline) await credit(discipline, 'standard');
+              }
+            }
+          }
+          // ⭐⭐ Escape: a GAS into something that will not hold it. Not a
+          // puddle and not silence — it is in the air of the room now.
+          if (result.status === 'escaped') return done('escaped');
+          // Drain-through: an open destination didn't retain the liquid.
+          if (result.status === 'drained') return done('drained');
+          if (result.applied <= 0) {
+            if (result.notes.some((n) => n.kind === 'target-declined' && n.reason === 'material-mismatch')) {
+              return done('mismatch');
+            }
+            if (result.notes.some((n) => n.kind === 'quantity-clamped-rejected')) return done('too-much');
+            // ⚠ A lenient pour into a brim-full vessel also moves nothing — and
+            // "nothing to pour" blamed the full flask in your hand.
+            return done(fromSlot.available() > 0 && toSlot.remaining() <= 0 ? 'full' : 'nothing');
+          }
+          // ⭐ The pour consumed its mould — lost wax, or a sand mould broken
+          // away from what set in it.
+          if (target.isDestroyed()) return done(waxMould ? 'lost-wax' : 'mould-broken');
+          return done('poured');
+        },
+      };
+    }
 
     /** The authored keywords, then what each slot holds — see {@link Bulkable.getHeldKeywords}. */
     getKeywords(viewer?: Stuff): string[] {

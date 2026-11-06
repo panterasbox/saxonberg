@@ -45,7 +45,7 @@ const KNEAD_MS = 10 * 60 * 1000;
  * silently — a mistake this codebase has already paid for once.
  */
 const BAKING = [
-  'platform/cmd/crafting/pour.yaml',
+  'platform/cmd/bulk/pour.yaml',
   'trade/baking/cmd/baking/bake.yaml',
 ];
 

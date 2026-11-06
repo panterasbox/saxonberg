@@ -1,7 +1,7 @@
 verbs: [pour]
 category: bulk
 controller: /platform/idea/cmd/bulk/PourController
-description: "Pour liquid from one holder into another"
+description: "Pour from one holder into another, or into a build"
 help: |
   Moves liquid from one holder into another. Name the source
   first, then the destination with `into`:
@@ -13,11 +13,22 @@ help: |
   combine, and pouring into an open vessel that's already full can
   spill through. To fill something completely instead, use `fill`;
   to dump everything on the ground, use `spill`.
+
+  ⭐ What you are building takes it differently. Pour into a shaker or a
+  mixing glass, or just `pour vermouth` to add to the build you're working
+  at, and a pour is one serving of whatever you pour: a measure of gin, a
+  splash of dry vermouth, a dash of bitters. Pour twice for two; `--amount`
+  measures it yourself. Each pour banks a graded ingredient into the build,
+  and a drink comes out right when its parts are in the recipe's proportion.
+  Finish with `stir` and `strain into <glass>`. Pouring into a build takes a
+  moment and keeps your hands busy. Food goes in the same way, whole.
 examples:
   - cmd: pour the jug into the cup
     note: Move liquid between two holders
   - cmd: pour jug into pot --amount 2cups
     note: Pour a measured amount
+  - cmd: pour gin into shaker
+    note: One serving of gin, banked into the build
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresEmbodied
@@ -33,14 +44,16 @@ args:
     type: object
     required: true
     scope: "reachable"
+    # What is poured need not hold bulk: an ingredient goes into a build
+    # whole. The TARGET says what it will take, in its own words.
     requires: VisibleMixin
-    validators:
-      - /lib/command/validators/mustHaveBulkSlot
   - name: target
     type: object
-    required: true
+    required: false
     scope: "reachable"
-    prepositions: [into, in]
-    requires: VisibleMixin
-    validators:
-      - /lib/command/validators/mustHaveBulkSlot
+    prepositions: [into, in, to]
+    # ⭐ Bare `pour` works the build you are at — DECLARED, so the binder
+    # resolves it (held first) instead of the controller walking for it
+    # (`lint:controller-resolution`).
+    default: "reachable:[mixin.ManualBuildMixin]"
+    requires: PourTargetMixin

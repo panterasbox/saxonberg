@@ -1,310 +1,188 @@
 /**
- * PourController — `pour X into Y`, `pour N unit M into Y`.
+ * PourController — `pour <source> [into <target>] [--amount 2cups] [--exact]`.
  *
- * Pours liquid from holder X (a vessel by name, or a material reached
- * by keyword / `:b`) into holder Y. The amount is the measure hint on
- * the source field (`pour 2 cups water` → 2 cups; `pour water:{99 cups}`
- * → strict 99 cups) or, absent one, the whole source clamped to Y's
- * headroom. Thin direction over `BulkableApi.transfer`, which owns the
- * material-compatibility check, the overflow clamp, and the
- * open-vessel drain-through cascade.
+ * ⭐⭐ **One act, one view** (controllers-are-io D12). The TARGET says what being
+ * poured into means (`PourTargetMixin.receivePour`): a holder of bulk takes the
+ * liquid, a build vessel banks a serving or an ingredient. This file words what
+ * comes back.
  */
 
-import { CommandController } from '../../../../lib/command/CommandController';
+import { ManualBuildController } from '../crafting/ManualBuildController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { MqlOneResult } from '../../../../api/mql';
-import { BulkableApi } from '../../../../api/bulk';
 import { MixinApi } from '../../../../api/mixin';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
-import { SchedulerApi } from '../../../../api/scheduler';
-import { ManualBuildStep } from '../../../../lib/craft/ManualBuildStep';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
+import type { PourBegin, PourDone, PourRefusal } from '../../../../lib/bulk/PourTarget';
 
 const TOPIC = 'act.deed';
 
+type Composed = ReturnType<typeof Mml.compose>;
+
 interface PourModel extends CommandModel {
   source: MqlOneResult;
-  target: MqlOneResult;
-  /** `--amount 2cups` — how much to move. Absent ⇒ as much as fits. */
+  target?: MqlOneResult;
+  /** `--amount 2cups` — how much to move. Absent ⇒ as much as fits, or one serving. */
   amount?: string;
   /** `--exact` — take the full measure or none of it. */
   exact?: boolean;
 }
 
-export default class PourController extends CommandController<PourModel> {
+export default class PourController extends ManualBuildController<PourModel> {
   async execute(model: PourModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
-    const source = model.source.stuff;
-    const target = model.target.stuff;
-
+    const source = model.source?.stuff ?? null;
     if (!source) {
       MessageApi.scene(giver)
         .topic(TOPIC)
-        .toSelf(Mml.compose`You don't see any '${model.source.raw}' to pour.`)
+        .toSelf(Mml.compose`You don't see any '${model.source?.raw ?? '?'}' to pour.`)
         .send();
-      context.note({ kind: 'empty-result', field: 'source', query: model.source.raw });
+      context.note({ kind: 'empty-result', field: 'source', query: model.source?.raw ?? '' });
       return;
     }
+    const target = model.target?.stuff ?? null;
     if (!target) {
-      MessageApi.scene(giver)
-        .topic(TOPIC)
-        .toSelf(Mml.compose`You don't see any '${model.target.raw}' to pour into.`)
-        .send();
-      context.note({ kind: 'empty-result', field: 'target', query: model.target.raw });
-      return;
-    }
-
-    const fromSlot = BulkableApi.slotFor(source, model.source.via);
-    const toSlot = BulkableApi.slotFor(target, model.target.via);
-    if (fromSlot === null) {
-      MessageApi.scene(giver)
-        .topic(TOPIC)
-        .toSelf(Mml.compose`There's nothing to pour out of ${Mml.thing(source)}.`)
-        .send();
-      context.note({
-        kind: 'controller-rejected',
-        reason: 'not-a-holder',
-        detail: 'source has no bulk slot',
-      });
-      return;
-    }
-    if (toSlot === null) {
-      MessageApi.scene(giver)
-        .topic(TOPIC)
-        .toSelf(Mml.compose`You can't pour anything into ${Mml.thing(target)}.`)
-        .send();
-      context.note({
-        kind: 'controller-rejected',
-        reason: 'not-a-holder',
-        detail: 'target has no bulk slot',
-      });
-      return;
-    }
-
-    const amount = BulkableApi.amountFromOption(
-      model.amount,
-      { kind: 'all' },
-      model.exact === true,
-    );
-    // What the mould is made of, read BEFORE the pour: a mould the pour
-    // consumes is gone by the time the line is written.
-    const waxMould =
-      MixinApi.isMould(target) && MixinApi.isTangible(target) && target.getMaterial()?.hasTag('wax') === true;
-    const result = BulkableApi.transfer(fromSlot, toSlot, amount);
-    for (const note of result.notes) context.note(note);
-    if (result.applied > 0 && MixinApi.isBulkable(source)) {
-      source.afterPouredOutBy(giver, result.applied);
-    }
-
-    // ⭐⭐ (ceramics S13) The receiver did not survive the pour: its melting
-    // or ignition point is below the metal's heat. The pour is on the
-    // floor now, and the sentence says what happened to the vessel.
-    if (result.status === 'melted' || result.status === 'burned') {
-      const line =
-        result.status === 'melted'
-          ? Mml.compose`${Mml.thing(target)} slumps and runs as the pour hits it — it has melted — and everything goes across the floor.`
-          : Mml.compose`${Mml.thing(target)} smokes, chars and catches as the pour hits it — it is burning — and the metal runs out across the floor.`;
-      MessageApi.scene(giver)
-        .topic(TOPIC)
-        .toSelf(line)
-        .toPeers(Mml.compose`${Mml.actor(giver)} pours into ${Mml.thing(target)}, and it gives way under the heat.`)
-        .send();
-      return;
-    }
-    if (result.applied > 0 && MixinApi.isBulkable(target) && !target.isDestroyed()) {
-      target.afterPouredInBy(giver, result.applied);
-    }
-
-    // The rack credit (fermentation W7/D9): drawing off a FINISHED
-    // batch is the craft's timing act — credit `fermenting` at the
-    // deed (the WaterController shape; no credit for an idle pour).
-    if (result.applied > 0 && MixinApi.isMaturing(source)) {
-      const phase = source.getMaturationPhase();
-      if (phase === 'finished' || phase === 'turned') {
-        try {
-          if (MixinApi.isAdvancing(giver))
-            await giver.creditDeed({
-            discipline: 'fermenting',
-            difficulty: 'easy',
-            outcome: 'success',
-          });
-        } catch (err) {
-          console.warn('PourController: recording the deed failed:', err);
-        }
+      const raw = model.target?.raw ?? '';
+      if (raw.trim() === '' || raw.startsWith('reachable:')) {
+        this.declineStep(
+          context,
+          Mml.compose`Pour it into what? Name something that will take it, or stand at a build.`,
+          'no-vessel',
+        );
+        return;
       }
-    }
-
-    // ⭐ The cut's credit, the same shape one block up: drawing from a
-    // RUNNING fractionating host is the distiller's timing act, and the
-    // schedule names which Discipline it exercises — so a schedule any
-    // pack ships credits its own trade with no controller edit.
-    if (result.applied > 0 && MixinApi.isFractionating(source)) {
-      const schedule = source.isRunning() ? source.getRunSchedule() : null;
-      const discipline = schedule?.getDiscipline() ?? '';
-      if (discipline) {
-        try {
-          if (MixinApi.isAdvancing(giver))
-            await giver.creditDeed({
-              discipline,
-              difficulty: 'easy',
-              outcome: 'success',
-            });
-        } catch (err) {
-          console.warn('PourController: recording the deed failed:', err);
-        }
-      }
-    }
-
-    // ⭐ The mould's credit (dairy D22): filling a mould IS the act — there
-    // is no recipe and no deed to gate — so a mould row that names a
-    // Discipline credits it here, at the fill (a hoop → dairying, an ingot
-    // mould → smelting; an ice pan names none).
-    // ⭐ (ceramics D26) A mould whose pour is a DAY — the bell pit: the
-    // metal goes in at once (it would freeze in the crucible otherwise),
-    // and the founder's day is the watch over the cooling pit. The credit
-    // lands when the watch is kept, not at the fill.
-    if (result.applied > 0 && MixinApi.isMould(target) && target.getPourDurationS() > 0) {
-      watchThePour(context, target, target.getPourDurationS());
-    } else if (result.applied > 0 && MixinApi.isMould(target)) {
-      const discipline = target.getMouldDiscipline();
-      if (discipline) {
-        try {
-          if (MixinApi.isAdvancing(giver))
-            await giver.creditDeed({
-              discipline,
-              difficulty: 'standard',
-              outcome: 'success',
-            });
-        } catch (err) {
-          console.warn('PourController: recording the deed failed:', err);
-        }
-      }
-    }
-
-    // ⭐⭐ Escape: a GAS into something that will not hold it. Not a
-    // puddle and not silence — it is in the air of the room now, and the
-    // sentence has to say so, because in a shut room that is dangerous.
-    if (result.status === 'escaped') {
       MessageApi.scene(giver)
         .topic(TOPIC)
-        .toSelf(
-          Mml.compose`It will not stay in ${Mml.thing(target)} — it is gone into the air.`,
-        )
-        .toPeers(
-          Mml.compose`${Mml.actor(giver)} loses a charge of gas into the air.`,
-        )
+        .toSelf(Mml.compose`You don't see any '${raw}' to pour into.`)
         .send();
+      context.note({ kind: 'empty-result', field: 'target', query: raw });
       return;
     }
-
-    // Drain-through: an open destination didn't retain the liquid.
-    if (result.status === 'drained') {
-      MessageApi.scene(giver)
-        .topic(TOPIC)
-        .toSelf(
-          Mml.compose`The liquid runs straight through ${Mml.thing(target)} and pools on the floor.`,
-        )
-        .toPeers(
-          Mml.compose`${Mml.actor(giver)} pours liquid through ${Mml.thing(target)}; it pools on the floor.`,
-        )
-        .send();
+    if (!MixinApi.isPourTarget(target)) {
+      this.declineStep(context, Mml.compose`You can't pour anything into ${Mml.thing(target)}.`, 'not-a-holder');
       return;
     }
-
-    if (result.applied <= 0) {
-      // Distinguish material mismatch from strict over-pour from empty.
-      const mismatch = result.notes.some(
-        (n) => n.kind === 'target-declined' && n.reason === 'material-mismatch',
-      );
-      const rejected = result.notes.some(
-        (n) => n.kind === 'quantity-clamped-rejected',
-      );
-      // ⚠ A lenient pour into a brim-full vessel also moves nothing — and
-      // "nothing to pour" blamed the full flask in your hand (the potash
-      // drive's kettle, filled by one pail of water).
-      const full = fromSlot.available() > 0 && toSlot.remaining() <= 0;
-      const line = mismatch
-        ? Mml.compose`That won't mix with what's already in ${Mml.thing(target)}.`
-        : rejected
-          ? Mml.compose`That's more than will fit in ${Mml.thing(target)}.`
-          : full
-            ? Mml.compose`${Mml.thing(target)} is already full.`
-            : Mml.compose`There's nothing to pour.`;
-      MessageApi.scene(giver).topic(TOPIC).toSelf(line).send();
+    const plan = await target.receivePour({
+      by: giver,
+      source,
+      ...(model.source.via ? { sourceVia: model.source.via } : {}),
+      ...(model.target?.via ? { targetVia: model.target.via } : {}),
+      ...(model.amount !== undefined ? { amount: model.amount } : {}),
+      ...(model.exact === true ? { exact: true } : {}),
+    });
+    if (!plan.ok) {
+      this.declineStep(context, PourController.refusalWords(plan), plan.reason);
       return;
     }
-
-    // ⭐ The pour consumed its mould — lost wax (the metal melts the wax out
-    // and takes its place), or a sand mould broken away from what set in
-    // it. Say so rather than naming a thing that is no longer there.
-    if (target.isDestroyed()) {
-      MessageApi.scene(giver)
-        .topic(TOPIC)
-        .toSelf(
-          waxMould
-            ? Mml.compose`You pour from ${Mml.thing(source)}. The wax runs out as the metal takes its place.`
-            : Mml.compose`You pour from ${Mml.thing(source)}. It sets, and the mould is broken away from it.`,
-        )
-        .toPeers(
-          waxMould
-            ? Mml.compose`${Mml.actor(giver)} pours, and wax runs smoking out of the mould.`
-            : Mml.compose`${Mml.actor(giver)} pours, and breaks the mould away from the casting.`,
-        )
-        .send();
-      return;
-    }
-
-    // Success (possibly a lenient partial — the clamp note is already
-    // forwarded; the prose stays the same).
-    MessageApi.scene(giver)
-      .topic(TOPIC)
-      .toSelf(Mml.compose`You pour from ${Mml.thing(source)} into ${Mml.thing(target)}.`)
-      .toPeers(
-        Mml.compose`${Mml.actor(giver)} pours from ${Mml.thing(source)} into ${Mml.thing(target)}.`,
-      )
-      .send();
+    await this.engagePlan(context, plan, {
+      beginSelf: (f) => PourController.beginSelf(f),
+      beginPeers: (f) => PourController.beginPeers(f, giver),
+      onRefused: (r) => PourController.refusalWords(r),
+      onDone: (f) => {
+        for (const note of f.notes) context.note(note);
+        return PourController.doneWords(f, giver);
+      },
+    });
   }
-}
 
-/** The founder's watch over a slow pour's cooling — sealed down, on the attention. */
-const WATCH_EFFORT_W = 60;
-
-/**
- * ⚠ A MODULE function, not a method: the watch completes after the
- * controller has been destructed in its dispatch `finally`.
- */
-function watchThePour(context: CommandContext, mould: Stuff, durationS: number): void {
-  const giver = context.commandGiver;
-  const credit = (): void => {
-    if (giver.isDestroyed() || mould.isDestroyed()) return;
-    const discipline = MixinApi.isMould(mould) ? mould.getMouldDiscipline() : '';
-    if (discipline && MixinApi.isAdvancing(giver)) {
-      void giver
-        .creditDeed({ discipline, difficulty: 'hard', outcome: 'success' })
-        .catch((err: unknown) => console.warn('PourController: recording the deed failed:', err));
+  private static refusalWords(r: PourRefusal): Composed {
+    const { source, target } = r.facts;
+    switch (r.reason) {
+      case 'not-a-pour-target':
+        return Mml.compose`You can't pour anything into ${Mml.thing(target)}.`;
+      case 'nothing-in-source':
+        return Mml.compose`There's nothing to pour out of ${Mml.thing(source)}.`;
+      case 'not-a-holder':
+        return Mml.compose`You can't pour a measure from ${Mml.thing(source)}.`;
+      case 'source-empty':
+        return Mml.compose`${Mml.thing(source)} is empty — nothing pours.`;
+      case 'ingredient-gone':
+        return Mml.compose`It is gone before you can add it.`;
+      default: {
+        const unworded: never = r.reason;
+        throw new Error(`PourController: no words for '${String(unworded)}'`);
+      }
     }
-    MessageApi.scene(giver)
-      .topic(TOPIC)
-      .toSelf(Mml.compose`The day is out. ${Mml.thing(mould)} has gone quiet and cool enough to dig the cast out of.`)
-      .send();
-  };
-  if (!MixinApi.isEngaged(giver)) {
-    credit();
-    return;
   }
-  const step = new ManualBuildStep({
-    actor: giver,
-    slots: ['attention'],
-    durationMs: durationS * 1000,
-    effortW: WATCH_EFFORT_W,
-    onComplete: credit,
-  });
-  const started = SchedulerApi.start(step);
-  if (started.ok && started.status !== 'completed-sync') context.note(started.note);
-  MessageApi.scene(giver)
-    .topic(TOPIC)
-    .toSelf(Mml.compose`The metal goes down into ${Mml.thing(mould)} in a long bright rope. Now it has to cool, and you settle in to watch it the day through.`)
-    .toPeers(Mml.compose`${Mml.actor(giver)} settles in to watch over ${Mml.thing(mould)}.`)
-    .send();
+
+  private static beginSelf(f: PourBegin): Composed {
+    if (f.kind === 'serving') {
+      return Mml.compose`You start pouring ${Mml.thing(f.source)} into ${Mml.thing(f.target)}.`;
+    }
+    if (f.kind === 'ingredient') {
+      return Mml.compose`You start adding ${Mml.thing(f.source)} to ${Mml.thing(f.target)}.`;
+    }
+    return Mml.compose``;
+  }
+
+  private static beginPeers(f: PourBegin, giver: Stuff): Composed | null {
+    if (f.kind === 'serving') {
+      return Mml.compose`${Mml.actor(giver)} starts pouring ${Mml.thing(f.source)} into ${Mml.thing(f.target)}.`;
+    }
+    if (f.kind === 'ingredient') {
+      return Mml.compose`${Mml.actor(giver)} adds ${Mml.thing(f.source)} to ${Mml.thing(f.target)}.`;
+    }
+    return null;
+  }
+
+  private static doneWords(f: PourDone, giver: Stuff): { self: Composed; peers?: Composed | null } {
+    const { source, target } = f;
+    switch (f.kind) {
+      case 'melted':
+        return {
+          self: Mml.compose`${Mml.thing(target)} slumps and runs as the pour hits it — it has melted — and everything goes across the floor.`,
+          peers: Mml.compose`${Mml.actor(giver)} pours into ${Mml.thing(target)}, and it gives way under the heat.`,
+        };
+      case 'burned':
+        return {
+          self: Mml.compose`${Mml.thing(target)} smokes, chars and catches as the pour hits it — it is burning — and the metal runs out across the floor.`,
+          peers: Mml.compose`${Mml.actor(giver)} pours into ${Mml.thing(target)}, and it gives way under the heat.`,
+        };
+      case 'escaped':
+        return {
+          self: Mml.compose`It will not stay in ${Mml.thing(target)} — it is gone into the air.`,
+          peers: Mml.compose`${Mml.actor(giver)} loses a charge of gas into the air.`,
+        };
+      case 'drained':
+        return {
+          self: Mml.compose`The liquid runs straight through ${Mml.thing(target)} and pools on the floor.`,
+          peers: Mml.compose`${Mml.actor(giver)} pours liquid through ${Mml.thing(target)}; it pools on the floor.`,
+        };
+      case 'mismatch':
+        return { self: Mml.compose`That won't mix with what's already in ${Mml.thing(target)}.` };
+      case 'too-much':
+        return { self: Mml.compose`That's more than will fit in ${Mml.thing(target)}.` };
+      case 'full':
+        return { self: Mml.compose`${Mml.thing(target)} is already full.` };
+      case 'nothing':
+        return { self: Mml.compose`There's nothing to pour.` };
+      case 'lost-wax':
+        return {
+          self: Mml.compose`You pour from ${Mml.thing(source)}. The wax runs out as the metal takes its place.`,
+          peers: Mml.compose`${Mml.actor(giver)} pours, and wax runs smoking out of the mould.`,
+        };
+      case 'mould-broken':
+        return {
+          self: Mml.compose`You pour from ${Mml.thing(source)}. It sets, and the mould is broken away from it.`,
+          peers: Mml.compose`${Mml.actor(giver)} pours, and breaks the mould away from the casting.`,
+        };
+      case 'poured':
+        return {
+          self: Mml.compose`You pour from ${Mml.thing(source)} into ${Mml.thing(target)}.`,
+          peers: Mml.compose`${Mml.actor(giver)} pours from ${Mml.thing(source)} into ${Mml.thing(target)}.`,
+        };
+      case 'banked':
+        return {
+          self: Mml.compose`You pour ${Mml.thing(source)} into ${Mml.thing(target)}.`,
+          peers: Mml.compose`${Mml.actor(giver)} pours ${Mml.thing(source)} into ${Mml.thing(target)}.`,
+        };
+      case 'added':
+        return { self: Mml.compose`You add ${Mml.thing(source)} to ${Mml.thing(target)}.` };
+      default: {
+        const unworded: never = f.kind;
+        throw new Error(`PourController: no words for '${String(unworded)}'`);
+      }
+    }
+  }
 }

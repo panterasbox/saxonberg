@@ -776,6 +776,7 @@ export const Mixins = {
   Shapeable: 'ShapeableMixin',
   // "I plan being carved" — green ware, a mould's riser, pattern stock.
   Carvable: 'CarvableMixin',
+  PourTarget: 'PourTargetMixin',
   // "A pattern pressed into me leaves something" — green ware, a sand flask.
   Impressible: 'ImpressibleMixin',
   // "I am worked by turning" — a screw press.
@@ -1089,6 +1090,7 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   KneadVesselMixin: "{} isn't something you could knead in",
   ShapeableMixin: "{} won't take a shape in your hands",
   CarvableMixin: "{} isn't something you could carve",
+  PourTargetMixin: "you can't pour anything into {}",
   ImpressibleMixin: "{} is not soft enough to take an impression",
   TurnableMixin: "{} has nothing to turn",
   HandWorkedMixin: "{} isn't something you work by hand",

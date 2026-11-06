@@ -375,7 +375,7 @@ describe('the venue menus', () => {
     // `ManualBuildMixin` declares them for every vessel that buffers one
     // — the shaker, the mixing glass, the cook pot.
     const build = ManualBuildMixin(Good).commandContributions;
-    expect(build.peers).toContain('platform/cmd/crafting/pour.yaml');
+    expect(build.peers).toContain('platform/cmd/bulk/pour.yaml');
     expect(build.peers).toContain('platform/cmd/crafting/stir.yaml');
     expect(build.peers).not.toContain('trade/hospitality/cmd/crafting/mix.yaml');
 

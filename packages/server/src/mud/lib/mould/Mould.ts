@@ -77,6 +77,9 @@ import { DetachedError } from '../errors';
 import { TemplatePaths } from '../paths';
 import { AppSettingKeys } from '../config/AppSettings';
 import { Grade } from '../craft/Grade';
+import { SchedulerApi } from '../../api/scheduler';
+import type { EngagementStartedNote } from '@saxonberg/types';
+import { ManualBuildStep } from '../craft/ManualBuildStep';
 import { Impression } from './Impression';
 import type { ImpressionData } from './Impression';
 import { ImpressibleMixin } from '../craft/Impressible';
@@ -123,6 +126,12 @@ export interface ReceivedPour {
 }
 
 /** Public shape contributed by MouldMixin. */
+/** The founder's watch over a slow pour's cooling — sealed down, on the attention. */
+const POUR_WATCH_EFFORT_W = 60;
+
+/** The note a watch's engagement files. */
+type StartedNote = EngagementStartedNote;
+
 export interface Mould extends Carvable, Impressible {
   /** The template a set pool of `material` becomes in this mould. */
   castTemplateFor(material: Material): string;
@@ -163,6 +172,12 @@ export interface Mould extends Carvable, Impressible {
   getPourSuperheatK(): number;
   /** Seconds a pour into this takes (`0` = instant; a bell pit, a day). */
   getPourDurationS(): number;
+  /**
+   * ⭐ (ceramics D26) The founder's watch over a slow pour's cooling: the metal
+   * went in at once, the day is the watch, and the credit lands when it is kept.
+   * Answers the note its engagement filed, if it took one.
+   */
+  watchThePour(by: Stuff): StartedNote | null;
   /**
    * ⭐ Shape-and-release (ceramics S16): a plastic charge in a `press`
    * mould whose load beats its stiffness takes the shape and leaves the
@@ -411,6 +426,42 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     }
     public getPourDurationS(): number {
       return this.pourDurationS;
+    }
+    /** See {@link Mould.watchThePour}. */
+    public watchThePour(by: Stuff): StartedNote | null {
+      const mould = this as unknown as Stuff;
+      const credit = (): void => {
+        if (by.isDestroyed() || mould.isDestroyed()) return;
+        const discipline = this.getMouldDiscipline();
+        if (discipline && MixinApi.isAdvancing(by)) {
+          void by
+            .creditDeed({ discipline, difficulty: 'hard', outcome: 'success' })
+            .catch((err: unknown) => console.warn('Mould: recording the deed failed:', err));
+        }
+        MessageApi.scene(by)
+          .topic('act.deed')
+          .toSelf(Mml.compose`The day is out. ${Mml.thing(mould)} has gone quiet and cool enough to dig the cast out of.`)
+          .send();
+      };
+      if (!MixinApi.isEngaged(by)) {
+        credit();
+        return null;
+      }
+      const started = SchedulerApi.start(
+        new ManualBuildStep({
+          actor: by,
+          slots: ['attention'],
+          durationMs: this.pourDurationS * 1000,
+          effortW: POUR_WATCH_EFFORT_W,
+          onComplete: credit,
+        }),
+      );
+      MessageApi.scene(by)
+        .topic('act.deed')
+        .toSelf(Mml.compose`The metal goes down into ${Mml.thing(mould)} in a long bright rope. Now it has to cool, and you settle in to watch it the day through.`)
+        .toPeers(Mml.compose`${Mml.actor(by)} settles in to watch over ${Mml.thing(mould)}.`)
+        .send();
+      return started.ok && started.status !== 'completed-sync' ? started.note : null;
     }
     setPourDurationS(value: number): void {
       this.pourDurationS = Number.isFinite(value) && value > 0 ? value : 0;
