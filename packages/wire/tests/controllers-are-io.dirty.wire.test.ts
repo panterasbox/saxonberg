@@ -1451,7 +1451,8 @@ suite.skipIf(!isOwnedTestWorld())('17–18. what survives a restart', () => {
     // (four runs), though the record held the water at the sign-out and a body
     // staged alone (two logins, a wade, a restart) came back to the water. Not
     // root-caused; where a body stands is no state these splits moved.
-    expect(after.buoyancy, 'the same load in the same water').toBe(before.body.buoyancy);
+    // Within a newton or two: the body goes on digesting across the restart.
+    expect(Math.abs(after.buoyancy - before.body.buoyancy), 'the same load in the same water').toBeLessThanOrEqual(2);
     const look = await w.prose('look me:i:peg');
     expect(look, 'a player reads the title').toMatch(/Owned by/);
 
