@@ -1324,6 +1324,25 @@ makes the drink and `make martini` is no command; `reel` fishes and
 `unwind cocoons` reels silk; `drift` cuts, `drive` drives; `help` lists
 by category. Commit.
 
+✅ **W6a done early** (`831bff42b` `do`, `ea2589880` reel/unwind,
+`c5d830d4a` drift) — file-disjoint from W1–W3, so it ran beside them.
+Decided: `unwind`'s `cocoons` arg `requires: StackableMixin` and the
+controller narrows `instanceof Cocoons` (no one-consumer mixin minted);
+`KneadRequest.commandText` removed (only the capture read it); the
+hand-build maker resolves by `getIdentityPath()` (the branch's fix —
+template path credited the wrong Avatar); `CraftSuccess.learned` (the
+branch's shape) lets Strain/Quench/Plate say a recipe was learned.
+Surprises: two real bugs fixed in passing — `sink`'s help pointed at
+`drive`, and wire `metal-chain` typed `drive south` (the vehicle's
+verb); `conveyance.md` claimed nothing affords `drive`. The crafting
+wire file's smithy "lay your own fuel" step came from the branch
+unre-driven — W9 confirms it. ⚠ CLAUDE.md (sweep): :189 `def`/`make` →
+`def`/`do`; :846 drop `make`, `do` under shell; :830/:852 mining
+`hew`/`drift`/…; the findings slate
+`tails/script-runner-decouple-findings-slate.md` wants a README row.
+Remaining W6: the 65-view sweep, the four controller splits, categories,
+default aliases.
+
 ### W7 — the subcommand rule: the switch controllers, the institution sweep, fight
 
 Goal: drive 7–9, 22 (the institution half); `lint:institution-verbs`
