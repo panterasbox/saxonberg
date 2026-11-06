@@ -180,23 +180,20 @@ has walked out from under you, and a body that is mounted can always try
 to stop being — exactly as a body that is sitting can always try to
 `stand`. It sits beside `lie`/`sit`/`stand`/`kneel`, which were
 themselves afforded by nothing until a browser walk found them.
-⛔⛔ **And `drive` is still afforded by nothing, deliberately** —
-`DrivableMixin` has no static, and the reachability sweep's attempt to
-give it one is the most instructive thing that happened in that build.
-`trade/mining/cmd/mining/drive.yaml` also claims `drive` (driving a
-drift); the two views have the **same arity**, so `requires:` cannot
-separate them at shape and only affordance ORDER would decide which one a
-miner gets. `trade-mining`'s own acts test asserts that `Drivable.ts`
-carries no contributions static for exactly that reason, and spells out
-the remedy: *"if that changes, `drift` becomes primary — one line."*
-
-⭐ Conferring one side of an undiagnosed collision IS adjudicating it, and
-the verb-collision ladder's first rule is that first-come is not one of
-the seven solutions. So the view carries
-`unreachable: awaiting:affordance-verb-slate` and the pair waits for
-somebody who owns both sides. ⚠ The sweep conferred it, the full suite
-refused it, and that tripwire caught a mistake eleven thousand other
-tests did not.
+⭐ **`drive` is afforded by `DrivableMixin`** (`environment` + `peers` —
+a vehicle you are aboard is your container), and the collision that held
+it back is adjudicated, not deferred. The mining view used to claim
+`drive` too (driving a drift) at the **same arity**, so `requires:` could
+not separate them at shape and only affordance ORDER would have decided
+which one a miner got; the reachability sweep conferred one side, the
+full suite refused it, and the sweep reverted rather than adjudicate by
+first-come. The ladder (`command-spec.md § When both are bodily acts`)
+then resolved it, rungs 2 and 3 agreeing: the vehicle is the generative
+primitive and keeps the plain word, and the miner's verb is `drift`, the
+trade's term of art (`trade/mining/cmd/mining/drift.yaml`,
+`DriftController` — the file and class renamed to match in
+controllers-are-io D20). `trade-mining`'s acts test asserts one claimant
+each.
 
 `mount horse` finds the horse's mountSlot; `mount back` resolves
 `back` as a Detail keyword via the § 5.5 Detail-targeted pathway.

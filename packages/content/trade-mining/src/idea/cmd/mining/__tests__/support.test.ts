@@ -20,7 +20,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import ShoreController from '../ShoreController';
 import HewController from '../HewController';
 import Tool from '@saxonberg/server/mud/platform/thing/Tool';
-import DriveController from '../DriveController';
+import DriftController from '../DriftController';
 import TimberSet from '../../../../thing/TimberSet';
 import MineWarren from '../../../MineWarren';
 import Deposit from '@saxonberg/content-ground/src/idea/Deposit';
@@ -254,7 +254,7 @@ describe('ground support', () => {
     ContainmentApi.move(actor as unknown as Stuff & Containable, here as unknown as Stuff & Container);
 
     expect((await here.stabilityAt()).state).toBe('bad');
-    expect(rejected(await run(DriveController as never, { direction: 'up' }, here as unknown as Stuff, 'drive up')))
+    expect(rejected(await run(DriftController as never, { direction: 'up' }, here as unknown as Stuff, 'drift up')))
       .toBe('bad-ground');
 
     ContainmentApi.move(timber() as unknown as Stuff & Containable, actor as unknown as Stuff & Container);
@@ -264,7 +264,7 @@ describe('ground support', () => {
     await run(ShoreController as never, {}, here as unknown as Stuff, 'shore');
     await settle(60000);
     expect((await here.stabilityAt()).state).not.toBe('bad');
-    expect(rejected(await run(DriveController as never, { direction: 'up' }, here as unknown as Stuff, 'drive up')))
+    expect(rejected(await run(DriftController as never, { direction: 'up' }, here as unknown as Stuff, 'drift up')))
       .toBeNull();
   });
 

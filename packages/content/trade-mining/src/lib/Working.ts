@@ -296,7 +296,7 @@ export function WorkingMixin<TBase extends MixinConstructor<Stuff & Container>>(
      * thing that makes them exist.**
      *
      * ⚠ A row's `commandContributions:` is dead silently — the affordance
-     * is a STATIC ON A CLASS. Without this block `hew`, `drive`, `sink`,
+     * is a STATIC ON A CLASS. Without this block `hew`, `drift`, `sink`,
      * `raise` and `shore` parse as nothing at all: *"I don't understand
      * 'hew'."* Found by driving, in the tutorial drift, where every one
      * of them was supposed to be taught.
@@ -316,7 +316,7 @@ export function WorkingMixin<TBase extends MixinConstructor<Stuff & Container>>(
       // `inventory`: a location's occupants hear it (`self` is a giver's).
       inventory: [
         'trade/mining/cmd/mining/hew.yaml',
-        'trade/mining/cmd/mining/drive.yaml',
+        'trade/mining/cmd/mining/drift.yaml',
         'trade/mining/cmd/mining/sink.yaml',
         'trade/mining/cmd/mining/raise.yaml',
         'trade/mining/cmd/mining/shore.yaml',

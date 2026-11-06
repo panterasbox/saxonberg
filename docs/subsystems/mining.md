@@ -304,7 +304,7 @@ fired, and an attentive player is never hurt.
 The five acts are **engagements over game time**, paced by the face's
 hardness (`paceForGround`) and costing endurance — the cap on a shift is
 the body, the clock and the lamp, not a dial. `hew` takes ore from a face
-of the room you stand in; `drive` · `sink` · `raise` mint **exactly one
+of the room you stand in; `drift` · `sink` · `raise` mint **exactly one
 cell** (10 m at Rejection — a length of drift, several shifts of work),
 which is why there is no per-heading cap to set: the durable limit on how
 much mine you can hold is the timber market, because Held needs shoring.

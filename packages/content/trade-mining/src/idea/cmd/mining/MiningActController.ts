@@ -1,6 +1,6 @@
 /**
  * MiningActController — the shared base for the mine's four labour acts
- * (`hew`, `drive`/`drift`, `sink`, `raise`).
+ * (`hew`, `drift`, `sink`, `raise`).
  *
  * Holds exactly what they share: **standing in a working**, **engaging
  * the actor's hands over game time**, and **refusing on bad ground with

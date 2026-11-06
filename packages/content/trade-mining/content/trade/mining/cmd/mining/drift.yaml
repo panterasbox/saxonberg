@@ -16,7 +16,7 @@
 # pack's own test predicted would happen: *"if that changes, `drift`
 # becomes primary — one line."*
 verbs: [drift]
-controller: /trade/mining/idea/cmd/mining/DriveController
+controller: /trade/mining/idea/cmd/mining/DriftController
 description: "Drive a heading in a direction"
 help: |
   `drift north` cuts a new working in that direction.

@@ -1,6 +1,6 @@
 /**
- * DriveController — `drive <direction>` / `drift <direction>`, the act
- * that makes a mine bigger.
+ * DriftController — `drift <direction>`, the act that makes a mine bigger:
+ * driving a heading (a drift) through the ground.
  *
  * The carve price is the ground: **hardness × the volume you are moving**,
  * so a slate heading is roughly half a granite one and the deposit's own
@@ -10,13 +10,11 @@
  * ({@link MiningActController.groundPermits}), because neglect costs you
  * access to your ore and never your life.
  *
- * ⚠ **The verb collides with the shipped vehicle `drive`**, which takes
- * the same arity — and `requires:` is not a shape criterion, so the two
- * are separated by affordance order alone. Nothing in the repo affords
- * the movement view today, and the two shipped `pour` views prove
- * coexistence is intended; `drift` is declared as a full alias so a
- * miner always has an unambiguous word. A tripwire test asserts the
- * chain still reaches here with a `Drivable` in the room.
+ * ⚠ The word is `drift`, the miner's term of art. The view used to claim
+ * `drive` too, colliding with the vehicle's `drive` at the same arity; the
+ * vehicle keeps the plain word (`drift.yaml`'s header has the ladder), and
+ * since controllers-are-io D20 the file, the class and the row say `drift`
+ * as well.
  */
 
 import { MiningActController, MINING_TOPIC } from './MiningActController';
@@ -36,12 +34,12 @@ const DRIVE_MS = 40000;
 /** Metabolic watts of driving a heading: (750 − 300) × 40 s / 1500 = the old 12 %. */
 const DRIVE_EFFORT_W = 750;
 
-interface DriveModel extends CommandModel {
+interface DriftModel extends CommandModel {
   direction?: string;
 }
 
-export default class DriveController extends MiningActController<DriveModel> {
-  async execute(model: DriveModel, context: CommandContext): Promise<void> {
+export default class DriftController extends MiningActController<DriftModel> {
+  async execute(model: DriftModel, context: CommandContext): Promise<void> {
     await this.driveIn(context, model.direction ?? '');
   }
 
