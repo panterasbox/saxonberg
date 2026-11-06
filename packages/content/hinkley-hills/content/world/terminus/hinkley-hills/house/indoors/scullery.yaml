@@ -4,6 +4,9 @@
 # pipe that freezes: the kitchen's run sits behind the range and does not.
 class: /platform/location/PersistentLocation
 data:
+  # ⭐ A lead pipe bare on the board wall (water-supply W4) — the one that
+  # freezes, because the room is never heated.
+  plumbing: lead
   ambientSource: sky
   ambientOpening: window
   shortDescription: scullery
@@ -22,9 +25,6 @@ data:
       description: |
         A small square window over the sink, its sill grey with damp and its glass furred with frost on a cold morning.
   props:
-    # ⭐ The pipe that brings water into this room (water-supply D10) —
-    # exposed on the wall, as the prose says.
-    - /stuff/thing/fixture/lead-run
     - /stuff/thing/fixture/basin
   # ⭐ The house's plan: its ways, an ordinary place.
   exits:

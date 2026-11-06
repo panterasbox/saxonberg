@@ -64,8 +64,21 @@ first read.
 **A room has water because a pipe brings it**: a supply-reading fixture
 needs a sound `PipeRun` in its room. The exemptions are `natural`,
 `suppliedBy`, a `Street` (a public outlet's pipe is under the street), and a
-`WaterStore` supply standing in the same room. `lint:water-plumbed`
-(ceiling 0) is the census.
+`WaterStore` supply standing in the same room.
+
+⭐⭐ **A tap implies its pipe; nobody props one.** Plumbing is a layer of
+the room's fabric, said once on the place by `PlumbedMixin`
+(`lib/supply/Plumbed.ts`, composed on every `Place`): `plumbing: lead`,
+`plumbing: none` (not plumbed — waiting for a plumber), or nothing at all,
+which is the default (`plumbing.defaultRun`, `iron`). A plumbed room with no
+run in it stands up the run its word names
+(`/stuff/thing/fixture/<word>-run`) the first time a fixture needs one, and
+keeps it. A run an author or a plumber put in the room is the room's run.
+Not `Enclosed` (a pipe bounds nothing); not a `Structure` (a structure is
+never made of anything, and a lone hut or a ship is plumbed with no
+building). `lint:water-plumbed` keeps it true: every word names a run row,
+and no room props a pre-laid run by hand (the review found sixteen rooms
+forced to, 2026-11-06).
 
 `PipeRun` (kernel) = `AdornmentMixin(AssembledMixin(DurableMixin(ThermalMixin(BulkableMixin(Good)))))`.
 It is out of the room's loose listing (part of the room's structure, not

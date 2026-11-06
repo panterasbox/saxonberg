@@ -96,8 +96,6 @@ data:
     - /trade/medicine/thing/blood-bag
     - /trade/medicine/thing/saline-bag
     - /trade/medicine/thing/grey-draught-vial
-    # ⭐ The pipe that brings water into this room (water-supply D10).
-    - /stuff/thing/fixture/iron-run
   cast:
     - /world/terminus/infirmary/agent/physician
     - /world/terminus/infirmary/agent/nurse

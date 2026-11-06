@@ -1612,6 +1612,13 @@ export const AppSettingKeys = {
    * decides*.
    */
   enclosureDefaultMaterial: "enclosure.defaultMaterial",
+  /**
+   * ⭐ Plumbing — the run a plumbed place stands up when its row says
+   * nothing (water-supply review): a word naming
+   * `/stuff/thing/fixture/<word>-run`. A tap implies its pipe; the author
+   * writes `plumbing:` only to say something else.
+   */
+  plumbingDefaultRun: "plumbing.defaultRun",
   /** Enclosure — how thick it is, in metres, when unauthored. */
   enclosureDefaultThicknessM: "enclosure.defaultThicknessM",
   /**

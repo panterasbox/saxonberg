@@ -1499,3 +1499,28 @@ twelve more mixins not in their own module — `HeldGoodsMixin`,
 `CutleryMixin`, `ToolMixin`, `DisguiseBearingMixin`, `RegistrarMixin`,
 `ReservedMixin`, `LoungeMixin`, trade-quarrying's `OpenWorkingMixin`. All
 predate this build, so they are left for a sweep.
+
+#### A tap implies its pipe (review, 2026-11-06)
+
+The owner caught it: W4 had every room with a tap prop a pipe object, and
+`lint:water-plumbed` forced that on sixteen rooms (the generic bathroom,
+kitchen and bar among them, so every venue built from them inherited one).
+The requirements had said plumbing is *"one more layer of a room's fabric,
+beside its walls and roof"*; the owner had objected on 11-02 to pipes
+"everywhere"; and W4 swapped D29's concealing placements for the adornment
+listing rule without bringing that back. Now:
+
+- **`PlumbedMixin`** (kernel, `lib/supply/Plumbed.ts`, on `Place`):
+  `plumbing: <word> | none`, default `plumbing.defaultRun` = `iron`. The room
+  stands up `/stuff/thing/fixture/<word>-run` the first time a fixture needs
+  it (`WaterFixture.ensureSupply` → `room.plumbingRun()`), once, even with two
+  taps reading at once. A run already in the room is its run.
+- **Content**: the 14 pre-laid run props are gone; the generic bathroom, the
+  Hinkley bathroom and the scullery say `plumbing: lead`. The plumber's runs
+  (Hinkley kitchen and service) stay as the jobs they are.
+- **`lint:water-plumbed` rewritten**: every `plumbing:` word names a run row,
+  the default does too, and no room props a pre-laid run (a ratchet at zero).
+- **Not here**: the `exposed:` flag floated in review — the scullery freezes
+  because it is unheated, which the frost already reads.
+- **The lens line** (lens 2's floor): *the ordinary case authors nothing it
+  doesn't mean.*

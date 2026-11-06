@@ -188,10 +188,10 @@ describe("the kitchen — BUNDLE (D12)", () => {
       // populated before anything that could rest on it), and a bounded
       // prop is a starting condition rather than a supply.
       { template: "/stuff/thing/items/dry-log", count: 3 },
-      // The pipe that brings water into the room (water-supply D10): a
-      // basin reads its premises' supply only through a sound run.
-      "/stuff/thing/fixture/iron-run",
     ]);
+    // ⭐ No pipe in the props: a tap implies its pipe, and the room stands
+    // up the default run the first time the basin is read (`Plumbed`).
+    expect(read("kitchen").data?.plumbing).toBeUndefined();
   });
 
   it("the larder's lid is load-bearing — seeded OPEN so the gather walk reaches it", () => {
@@ -234,9 +234,9 @@ describe("the bathroom — PRESENCE (D13)", () => {
       // …and a towel on its rail (cleanliness): a bath you cannot dry off
       // from leaves you wet.
       "/stuff/thing/gear/towel",
-      // …and the lead run that brings its water in (water-supply D10).
-      "/stuff/thing/fixture/lead-run",
     ]);
+    // …and its water comes in by lead, said once on the room (`Plumbed`).
+    expect(read("bathroom").data?.plumbing).toBe("lead");
   });
 
   it("the toilet does nothing, deliberately — prose, no capability", () => {

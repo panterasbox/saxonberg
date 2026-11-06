@@ -26,8 +26,6 @@ data:
     - /stuff/thing/fixture/copper
     - /trade/chandlery/thing/soap-bar
     - /trade/chandlery/thing/lye-flask
-    # ⭐ The pipe that brings water into this room (water-supply D10).
-    - /stuff/thing/fixture/iron-run
   details:
     doorway:
       keywords: [doorway, door]

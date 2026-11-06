@@ -318,10 +318,15 @@ export default class WaterFixture
     // source is its own pipe (a hydrant on the district main), a public
     // outlet on a street has its pipe under the street, and a store
     // standing in the same room feeds the tap beside it.
-    if (this.needsRun(this._supply) && this.soundRun() === null) {
-      this._resolution = 'unplumbed';
-      this._headM = null;
-      return;
+    // ⭐ A tap implies its pipe: a plumbed room with no run in it yet stands
+    // its own up here, once (`Plumbed`) — no author props one.
+    if (this.needsRun(this._supply)) {
+      if (this.runOf() === null) await this.standUpRun();
+      if (this.soundRun() === null) {
+        this._resolution = 'unplumbed';
+        this._headM = null;
+        return;
+      }
     }
     this._resolution = 'supply';
     this._headM = await this.resolveHead(this._supply);
@@ -370,6 +375,12 @@ export default class WaterFixture
       if (f instanceof PipeRun && f.getRunKind() === 'room') return f;
     }
     return null;
+  }
+
+  /** Have this fixture's room stand up the run its plumbing names (`Plumbed`). */
+  private async standUpRun(): Promise<void> {
+    const room = this.roomOf();
+    if (room !== null && MixinApi.isPlumbed(room)) await room.plumbingRun();
   }
 
   /** The room's run when it carries water, after its frost is read. */

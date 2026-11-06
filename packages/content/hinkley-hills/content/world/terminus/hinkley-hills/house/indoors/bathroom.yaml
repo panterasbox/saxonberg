@@ -9,6 +9,8 @@
 # second hot-water house is one more row, no code.
 class: /platform/location/PersistentLocation
 data:
+  # ⭐ The house's pipe is lead (water-supply): soft acid water takes it up.
+  plumbing: lead
   # What it is made of (rubber's construction: walls and roof).
   enclosure: { material: /stuff/idea/material/ceramic/brick, thicknessM: 0.23 }
   roof: { material: /stuff/idea/material/rock/slate, thicknessM: 0.01 }
@@ -30,8 +32,6 @@ data:
     - /stuff/thing/fixture/bath-tap
     - /stuff/thing/gear/towel
     - /stuff/thing/fixture/copper
-    # ⭐ The pipe that brings water into this room (water-supply D10).
-    - /stuff/thing/fixture/lead-run
   details:
     window:
       keywords: [window, glass, light]

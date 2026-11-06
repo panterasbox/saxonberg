@@ -322,6 +322,7 @@ export const Mixins = {
   // ⭐ Opens BY AN AMOUNT and logs who set it — a headgate, a turnout
   // (water-supply D12). Composed on a Sealable host.
   Throttleable: 'ThrottleableMixin',
+  Plumbed: 'PlumbedMixin',
   // Binary on/off — a lamppost, a beacon, a machine.
   Switchable: 'SwitchableMixin',
   // Binary locked/unlocked — composed onto Door beneath Sealable.
@@ -957,6 +958,7 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   // Boundaries & mechanisms.
   SealableMixin: "{} doesn't open and close",
   ThrottleableMixin: "{} opens or shuts — it has no setting between",
+  PlumbedMixin: "{} is not a place water can be piped into",
   BulkableMixin: "{} doesn't hold liquid to read",
   AdornmentMixin: "{} doesn't hang or mount there",
   // ⭐ Not "isn't a floor" — the useful information is that the thing

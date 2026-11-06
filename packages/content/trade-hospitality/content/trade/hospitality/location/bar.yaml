@@ -59,5 +59,3 @@ data:
     - /trade/hospitality/thing/glass-rack
     # Seating.
     - { template: /trade/hospitality/thing/stool, count: 6 }
-    # ⭐ The pipe that brings water into this room (water-supply D10).
-    - /stuff/thing/fixture/iron-run

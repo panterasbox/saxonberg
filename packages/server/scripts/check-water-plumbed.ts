@@ -1,19 +1,23 @@
 /**
- * check-water-plumbed — ⭐⭐ **a room with a tap in it has a pipe in it**
- * (water-supply D10, AC 1/4).
+ * check-water-plumbed — ⭐⭐ **a room's plumbing word names a real pipe, and
+ * nobody props one by hand** (water-supply; rewritten at review, 2026-11-06).
  *
- * Since the water-supply build a fixture gives water only through a sound
- * `PipeRun` in its room: the supply alone is not water. So the moment that
- * rule landed, every bar, ward, bathhouse and dorm room that props a tap and
- * no run would have gone `unplumbed` — every bar in the realm dry in one
- * missed line. This gate is the census: every location row whose `props:`
- * (its own, and what it inherits by `extends:`) hold a supply-reading
- * `WaterFixture` row must prop a `PipeRun` row too.
+ * A tap implies its pipe: a plumbed place (`PlumbedMixin`) stands up the run
+ * its `plumbing:` word names — `/stuff/thing/fixture/<word>-run` — the first
+ * time a fixture needs it, and the default word (`plumbing.defaultRun`) when
+ * its row says nothing. So the ordinary room authors nothing. This gate keeps
+ * that true, three ways:
  *
- * Exempt, by the fixture's own rule: a `natural` fixture (it IS a source), a
- * fixture `suppliedBy` a named source (a hydrant on a main is its own pipe),
- * and a fixture on a `Street` (a public outlet's pipe is under the street).
- * A ratchet at zero.
+ *   1. every authored `plumbing:` is `none` or a word whose run row exists;
+ *   2. the default word in the platform settings names a run row too;
+ *   3. ⭐ no room props a PRE-LAID run (`/stuff/thing/fixture/*-run`) — the
+ *      pattern this replaced, where every room with a tap had to carry a pipe
+ *      object and a gate forced it on sixteen rooms. A plumber's job (a run
+ *      with a bill, laid with `fit`, under `/trade/plumbing/`) is not that and
+ *      stays allowed. A ratchet at zero.
+ *
+ * A misspelled word fails HERE, at the content check — never as a room that
+ * quietly reads unplumbed.
  */
 
 import { readFileSync, readdirSync, statSync, existsSync } from 'fs';
@@ -76,14 +80,6 @@ function classOf(all: Map<string, Row>, path: string, seen = new Set<string>()):
   return r.class ?? (r.extends ? classOf(all, r.extends, seen) : '');
 }
 
-function field(all: Map<string, Row>, path: string, key: string, seen = new Set<string>()): unknown {
-  const r = all.get(path);
-  if (!r || seen.has(path)) return undefined;
-  seen.add(path);
-  if (key in r.data) return r.data[key];
-  return r.extends ? field(all, r.extends, key, seen) : undefined;
-}
-
 /** A row's props, its own and its parents' (`by-entry` inheritance). */
 function propsOf(all: Map<string, Row>, path: string, seen = new Set<string>()): string[] {
   const r = all.get(path);
@@ -97,36 +93,52 @@ function propsOf(all: Map<string, Row>, path: string, seen = new Set<string>()):
   return [...own, ...(r.extends ? propsOf(all, r.extends, seen) : [])];
 }
 
-const FIXTURE_CLASSES = new Set(['/platform/thing/WaterFixture', '/platform/thing/Copper']);
 const RUN_CLASS = '/platform/thing/PipeRun';
-const STREET_CLASS = '/platform/location/Street';
+const RUN_ROW = (word: string): string => `/stuff/thing/fixture/${word}-run`;
+const PRELAID = /^\/stuff\/thing\/fixture\/[a-z0-9-]+-run$/;
+
+/** The shipped default word, read from the platform pack's settings. */
+function defaultRunWord(): string | null {
+  const f = join(CONTENT, 'platform/content/settings/water.yaml');
+  if (!existsSync(f)) return null;
+  const doc = YAML.parse(readFileSync(f, 'utf8')) as { settings?: { key?: string; value?: unknown }[] };
+  const row = (doc?.settings ?? []).find((r) => r?.key === 'plumbing.defaultRun');
+  return typeof row?.value === 'string' ? row.value : null;
+}
 
 function main(): void {
   const all = rows();
   const findings: string[] = [];
+  const isRun = (path: string): boolean => classOf(all, path) === RUN_CLASS;
   for (const [path, row] of all) {
+    const word = row.data.plumbing;
+    if (word !== undefined) {
+      if (typeof word !== 'string' || word.trim() === '') {
+        findings.push(`${relative(REPO_ROOT, row.file)}: plumbing must be a run word or 'none', got ${JSON.stringify(word)}`);
+      } else if (word !== 'none' && !isRun(RUN_ROW(word))) {
+        findings.push(`${relative(REPO_ROOT, row.file)}: plumbing: ${word} names no run (${RUN_ROW(word)})`);
+      }
+    }
     if (!/\/location\//.test(path) && !(row.class ?? '').includes('/location/')) continue;
-    if (classOf(all, path) === STREET_CLASS) continue;
-    const props = propsOf(all, path);
-    const needs = props.filter((p) => {
-      if (!FIXTURE_CLASSES.has(classOf(all, p))) return false;
-      if (field(all, p, 'natural') === true) return false;
-      const by = field(all, p, 'suppliedBy');
-      return !(typeof by === 'string' && by !== '');
-    });
-    if (needs.length === 0) continue;
-    if (props.some((p) => classOf(all, p) === RUN_CLASS)) continue;
-    findings.push(`${relative(REPO_ROOT, row.file)}: props ${needs.join(', ')} and no pipe run`);
+    for (const p of propsOf(all, path)) {
+      if (PRELAID.test(p) && isRun(p)) {
+        findings.push(`${relative(REPO_ROOT, row.file)}: props the pre-laid run ${p} — a tap implies its pipe; say \`plumbing: <word>\` instead`);
+      }
+    }
+  }
+  const def = defaultRunWord();
+  if (def === null || !isRun(RUN_ROW(def))) {
+    findings.push(`platform settings: plumbing.defaultRun (${JSON.stringify(def)}) names no run row`);
   }
   const n = findings.length;
   // eslint-disable-next-line no-console -- the gate's own report
-  console.log(`check-water-plumbed: ${n} room(s) with a tap and no pipe (ceiling ${WATER_PLUMBED_CEILING}).`);
+  console.log(`check-water-plumbed: ${n} plumbing finding(s) (ceiling ${WATER_PLUMBED_CEILING}).`);
   if (n > WATER_PLUMBED_CEILING) {
     for (const f of findings) console.error(`  ✗ ${f}`);
     console.error(
-      'check-water-plumbed: FAIL — a fixture gives water only through a sound PipeRun in its room ' +
-        '(water-supply D10). Prop /stuff/thing/fixture/lead-run (a house) or iron-run (a trade or a ' +
-        'public building), or mark the fixture natural / suppliedBy if that is what it is.',
+      'check-water-plumbed: FAIL — a room says its pipe with one word (`plumbing: lead`, `none`) or ' +
+        'nothing at all (the default); the word must name /stuff/thing/fixture/<word>-run, and no room ' +
+        'props a pre-laid run by hand.',
     );
     process.exit(1);
   }

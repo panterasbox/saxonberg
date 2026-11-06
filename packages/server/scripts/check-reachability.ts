@@ -716,6 +716,22 @@ export function collectFaucets(
         return;
       }
       if (node && typeof node === "object") {
+        // ⭐ A place's `plumbing:` WORD reaches its run row — the room stands
+        // up `/stuff/thing/fixture/<word>-run` the first time a tap needs it
+        // (`PlumbedMixin`) — and so does the shipped default word
+        // (`plumbing.defaultRun`). A word, not a path, so the leaf walk
+        // below cannot see it.
+        const rec = node as Record<string, unknown>;
+        const word =
+          typeof rec.plumbing === "string"
+            ? rec.plumbing
+            : rec.key === "plumbing.defaultRun" && typeof rec.value === "string"
+              ? rec.value
+              : null;
+        if (word !== null && word !== "none") {
+          const run = `/stuff/thing/fixture/${word}-run`;
+          if (!named.has(run)) named.set(run, { field: "plumbing", file });
+        }
         for (const [k, v] of Object.entries(node as Record<string, unknown>)) {
           // A zone's `stocks:` is a key→count MAP, not a path field.
           if (k === "stocks" && v && typeof v === "object" && !Array.isArray(v)) {

@@ -36,8 +36,6 @@ data:
     # ⭐ The slate and the attendant where the work is (found by the
     # drive): a paid service is done by a hand in the room with the tubs.
     - /world/terminus/market/bathhouse/thing/tariff
-    # ⭐ The pipe that brings water into this room (water-supply D10).
-    - /stuff/thing/fixture/iron-run
   cast:
     - /world/terminus/market/bathhouse/agent/attendant
   details:

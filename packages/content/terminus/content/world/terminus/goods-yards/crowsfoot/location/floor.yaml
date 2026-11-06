@@ -167,7 +167,5 @@ data:
     # layer is unreachable at Crowsfoot: the smoke would be in the
     # spirit and nobody could smell it.
     - /trade/distilling/thing/nosing-glass
-    # ⭐ The pipe that brings water into this room (water-supply D10).
-    - /stuff/thing/fixture/iron-run
   cast:
     - /world/terminus/goods-yards/crowsfoot/agent/hand

@@ -59,8 +59,6 @@ data:
     - /stuff/thing/vessel/watering-can
     - template: /trade/farming/thing/pot/starter
       on: /world/terminus/eternal/duncan-hall/thing/desk
-    # ⭐ The pipe that brings water into this room (water-supply D10).
-    - /stuff/thing/fixture/iron-run
   details:
     window:
       keywords: [window, glass, light]

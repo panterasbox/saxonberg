@@ -67,6 +67,8 @@ class FakeSupply extends Good {
 }
 
 function water(): Material {
+  const made = StuffApi.findByTemplatePath<Material>('/stuff/idea/material/bulk/water');
+  if (made) return made;
   return makeStuffAtPath(() => {
     const m = new Material();
     m.setName('water');
@@ -207,6 +209,8 @@ describe('⭐⭐ a fixture reads its PREMISES', () => {
       .spyOn(ParcelApi, 'waterOf')
       .mockReturnValue({ source: MAIN, parcel: null });
     const bar = room('/test/place/bar');
+    // ⭐ A room that says it is NOT plumbed — waiting for a plumber.
+    bar.setPlumbing('none');
     const t = tap();
     ContainmentApi.move(t, bar);
     // ⭐⭐ No pipe in the room: the supply alone is not water (D10).
@@ -220,6 +224,94 @@ describe('⭐⭐ a fixture reads its PREMISES', () => {
     await t.settleBulk('interior');
     expect(t.supplyStateNow()).toBeNull();
     expect(t.getBulkAvailable('interior')).toBe(Infinity);
+  });
+
+  describe('⭐⭐ a tap implies its pipe (`Plumbed` — the review: no author props one)', () => {
+    const cloneRun = () =>
+      vi.spyOn(StuffApi, 'clone').mockImplementation((async () => makeStuff(() => new PipeRun())) as never);
+
+    it('a room that says nothing stands up the default run, once, and runs', async () => {
+      mainAt();
+      vi.spyOn(ParcelApi, 'waterOf').mockReturnValue({ source: MAIN, parcel: null });
+      const clone = cloneRun();
+      const bar = room('/test/place/bar');
+      const t = tap();
+      ContainmentApi.move(t, bar);
+      await t.settleBulk('interior');
+      expect(clone).toHaveBeenCalledWith('/stuff/thing/fixture/iron-run');
+      expect(t.supplyStateNow()).toBeNull();
+      expect(t.runOf()).not.toBeNull();
+      await t.settleBulk('interior');
+      expect(clone).toHaveBeenCalledTimes(1); // the room keeps its pipe
+    });
+
+    it('`plumbing: lead` stands up the lead run', async () => {
+      mainAt();
+      vi.spyOn(ParcelApi, 'waterOf').mockReturnValue({ source: MAIN, parcel: null });
+      const clone = cloneRun();
+      const house = room('/test/place/house/bathroom');
+      house.setPlumbing('lead');
+      const t = tap();
+      ContainmentApi.move(t, house);
+      await t.settleBulk('interior');
+      expect(clone).toHaveBeenCalledWith('/stuff/thing/fixture/lead-run');
+    });
+
+    it('`plumbing: none` stands up nothing, and the tap says no pipe brings water', async () => {
+      mainAt();
+      vi.spyOn(ParcelApi, 'waterOf').mockReturnValue({ source: MAIN, parcel: null });
+      const clone = cloneRun();
+      const kitchen = room('/test/place/house/kitchen');
+      kitchen.setPlumbing('none');
+      const t = tap();
+      ContainmentApi.move(t, kitchen);
+      await t.settleBulk('interior');
+      expect(clone).not.toHaveBeenCalled();
+      expect(t.supplyStateNow()).toBe('unplumbed');
+      expect(t.bulkWhyEmpty('interior')).toBe('Nothing comes out — no pipe brings water into this room.');
+    });
+
+    it('a run already in the room is its pipe — none is stood up beside it', async () => {
+      mainAt();
+      vi.spyOn(ParcelApi, 'waterOf').mockReturnValue({ source: MAIN, parcel: null });
+      const clone = cloneRun();
+      const yard = room('/test/place/yard');
+      ContainmentApi.move(makeStuff(() => new PipeRun()), yard);
+      const t = tap();
+      ContainmentApi.move(t, yard);
+      await t.settleBulk('interior');
+      expect(clone).not.toHaveBeenCalled();
+      expect(t.supplyStateNow()).toBeNull();
+    });
+
+    it('two taps in one room read at once make ONE pipe', async () => {
+      mainAt();
+      vi.spyOn(ParcelApi, 'waterOf').mockReturnValue({ source: MAIN, parcel: null });
+      const clone = cloneRun();
+      const baths = room('/test/place/baths');
+      const a = tap();
+      const b = tap();
+      ContainmentApi.move(a, baths);
+      ContainmentApi.move(b, baths);
+      await Promise.all([a.settleBulk('interior'), b.settleBulk('interior')]);
+      expect(clone).toHaveBeenCalledTimes(1);
+      expect(a.supplyStateNow()).toBeNull();
+      expect(b.supplyStateNow()).toBeNull();
+    });
+
+    it('a word with no run row reads unplumbed and says so in the log, never invents a pipe', async () => {
+      mainAt();
+      vi.spyOn(ParcelApi, 'waterOf').mockReturnValue({ source: MAIN, parcel: null });
+      vi.spyOn(StuffApi, 'clone').mockRejectedValue(new Error('no template'));
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+      const r = room('/test/place/odd');
+      r.setPlumbing('leed');
+      const t = tap();
+      ContainmentApi.move(t, r);
+      await t.settleBulk('interior');
+      expect(t.supplyStateNow()).toBe('unplumbed');
+      expect(warn.mock.calls.flat().join(' ')).toMatch(/leed-run/);
+    });
   });
 
   it('⭐ a keyed holding room answers by its persistence key, not its row', async () => {
