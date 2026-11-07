@@ -15,6 +15,7 @@ class: /platform/idea/species/Species
 data:
   binomial: Bos taurus
   commonNames: ["cow", "cattle", "heifer", "bull", "calf", "ox", "beast"]
+  maleNames: [bull, ox]
   _bodyPlanPath: /stuff/idea/species/BodyPlan/quadruped
   _parentCladePath: /stuff/idea/species/animalia
   _defaultMaterialPath: /stuff/idea/material/tissue/flesh

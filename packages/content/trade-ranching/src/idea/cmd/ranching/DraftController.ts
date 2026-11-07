@@ -144,7 +144,6 @@ export default class DraftController extends CommandController<DraftModel> {
     animal.bindToHerd(herd.herdId, index);
     const species = await this.speciesOf(herd.speciesPath);
     animal.setSpecies(species);
-    this.nameAfterSpecies(animal, species);
     animal.setLifecycleState('alive');
     // ⭐ (dairy D12) The seed always said which sex a head was, and nothing
     // applied it — every drafted head was sexless. A species with no sex
@@ -155,6 +154,7 @@ export default class DraftController extends CommandController<DraftModel> {
     } catch {
       /* the species keeps no sexes; the head stays unrecorded */
     }
+    this.nameAfterSpecies(animal, species, sample.sex);
     animal.setAge(sample.ageDays);
     animal.handling = sample.handling;
     // ⭐ The flesh it was last known at, replayed through what the herd
@@ -285,10 +285,15 @@ export default class DraftController extends CommandController<DraftModel> {
    * `bull`, `calf`, `ox`, `beast`), so nothing new is written down: the
    * generic keywords stay, the specific ones join them, and the head
    * presents as what it is rather than as what the row had to be.
+   *
+   * ⚠ A cow is not a bull: the species' `maleNames` go only to a male, or `milk
+   * bull` in a byre with a cow in it finds her. A male still answers to `cow`,
+   * because that is what the room calls him (`commonNames[0]`).
    */
-  private nameAfterSpecies(animal: Livestock, species: Species | null): void {
+  private nameAfterSpecies(animal: Livestock, species: Species | null, sex: string): void {
     if (!species) return;
-    const names = species.getCommonNames().map((n) => n.toLowerCase());
+    const notHers = sex === 'female' ? new Set(species.getMaleNames()) : new Set<string>();
+    const names = species.getCommonNames().filter((n) => !notHers.has(n)).map((n) => n.toLowerCase());
     if (names.length === 0) return;
     const self = animal as unknown as Stuff;
     if (!MixinApi.isPerceptible(self)) return;
