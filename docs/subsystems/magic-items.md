@@ -1349,8 +1349,8 @@ glass, shared by `look` and the identify effect)
 
 **Verbs** (the arcana pack's views + controllers, `arcana/cmd/magic/`) —
 `magic/zap` · `magic/recharge` · `magic/study` · `magic/cast` · `magic/spells` ·
-`perception/read` (+ `at <mark>`) · `inventory/label` · `bulk/drink`
-(+`quaff`)
+`perception/read` · `magic/recite` (a scroll, split off
+`read` by controllers-are-io W5) · `inventory/label` · `bulk/drink`
 
 **Lint** — `pnpm lint:descriptors`
 (`scripts/check-descriptor-banks.ts`), CI-gating, both directions.

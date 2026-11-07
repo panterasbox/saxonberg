@@ -666,7 +666,7 @@ path is proof enough, the template row is the fallback.
   that runs a single beat, and a live drive whose window is minutes, can
   both miss it. The test asserts the **second** beat.
 
-⭐ **The backhaul is visible.** `jobs --origin here` lists work that
+⭐ **The backhaul is visible.** `job --origin here` lists work that
 STARTS where you stand, so a hauler at the far end can see what wants
 moving back. *You cannot solve your own backhaul* — you need somebody
 else's cargo going the other way — which is a coordination problem with
@@ -751,7 +751,7 @@ catalogue's own **six-game-hour weather segment**, so a ford and
 Both are `transport` classes that copy the ford exactly
 (the async `canTraverse` re-reads as it is asked; the shipped `blocked`
 gate refuses, in the exit's own words; `conditional: true` on the kind row; physical only — a
-`tell` from behind a shut pass goes through):
+`dm` from behind a shut pass goes through):
 
 - **`SnowboundExit`** (`_closesAboveM`, default 0.5 m) reads the snow
   lying on the floor of the place it starts from (`getSnowDepthM`

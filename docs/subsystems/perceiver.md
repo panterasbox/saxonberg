@@ -70,8 +70,8 @@ Containable → Container → Engaged → Mobile → CommandGiver
 | `taste` | `self` | PerceiverMixin | `requiresTaste` |
 | `sense` | `self` | PerceiverMixin | — (gestalt) |
 
-⭐ **Beyond the room** (the maritime build's revision 1): `scan horizon`
-(`query horizon`) lists what can be seen from here that is not in the room — the `horizon`
+⭐ **Beyond the room** (the maritime build's revision 1): `query horizon`
+lists what can be seen from here that is not in the room — the `horizon`
 MQL scope, `PerceptionApi.horizonFor`; `look horizon:<it>` reads one like
 any visible thing. `watch horizon` keeps a watch (an engagement told only
 what changes). Nothing beyond the room is ever appended to a room's own
@@ -80,9 +80,9 @@ what changes). Nothing beyond the room is ever appended to a room's own
 ⭐⭐ **Looking at many things** (revision 2, amended 2′). Three verbs,
 one question each. **`look` takes ONE thing** — *what is this like?* — and
 a name matching several asks which; a set given to it (`look horizon`)
-is refused, pointed at `query`. **`query <set>`** (alias **`scan`**,
-`QueryController`) lists any set the query language can name — `query
-horizon`, `scan peers`, `query all brass`, `query bob:i` — the list is the
+is refused, pointed at `query`. **`query <set>`**
+(`QueryController`) lists any set the query language can name — `query
+horizon`, `query peers`, `query all brass`, `query bob:i` — the list is the
 content: no header, featured things first, each entry saying how it
 stands to you (a horizon thing's compass point and range). Options change
 only the rendering (`--ledger`); narrowing is the query's. **`inventory

@@ -49,8 +49,8 @@ reusable one) or breaks to release it (a consumed one).
 
 ## ⭐⭐ Impressions — anyone, anything (M9, D21)
 
-`impress <pattern> in|on <medium>` (platform, `cmd/crafting/impress.yaml`,
-alias `mold`; `ImpressController` is dumb). The MEDIUM answers through the
+`impress <pattern> in|on <medium>` (platform, `cmd/crafting/impress.yaml`;
+`ImpressController` is dumb). The MEDIUM answers through the
 `Impressible` protocol (`ImpressibleMixin`, `lib/craft/Impressible.ts` — an
 `ActOutcome` or an `ActRefusal`, at once):
 
@@ -245,7 +245,7 @@ press; it was a duck-probed `pressForceN()`), so any press a pack ships
 loads a mould the same way. `ScrewPress`
 (`platform/thing`, `PlacingMixin(Good)`, `newtonsPerTurn`, `maxTurns`,
 `turns`) is a **`TurnableMixin`** (`lib/craft/Turnable.ts`, which also affords the verb) that
-the platform verb **`turn`** (`cmd/device/turn.yaml`, alias `tighten`;
+the platform verb **`turn`** (`cmd/device/turn.yaml`;
 `turn back <press>` slackens it) asks — so a windlass can take the word
 later. A turn first banks every mould's set at the OLD load, then adds
 force, then asks each mould on the bed to `pressRelease()`.

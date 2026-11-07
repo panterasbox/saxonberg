@@ -207,7 +207,7 @@ The durable slot `(floor, position)` lives on the minted unit
 (`ParcelRecord.slotOfExtent` / `extentForSlot` — zero new field; the extent
 *is* the slot, and already the D1 key + the Warren member key).
 
-`provision <player>` (alias `lease`; the `duncan-hall` content namespace, not `system` — it hardcodes this building): compute the
+`provision <player>` (the `duncan-hall` content namespace, not `system` — it hardcodes this building): compute the
 **lowest-free slot** (`ParcelApi.childParcelsOf(dorms)` → first free
 `f<n>-r<p>` within `DormWarren.ROOMS_PER_FLOOR`, reusing gaps left by
 unprovision before a new floor) → `ParcelApi.subdivide(unitExtent, dorms,
@@ -350,7 +350,7 @@ to your floor's corridor and go through your own door; it opens for whoever
 **presents a matching key** (the sync `opensFor` scan over your implant
 keychain + carried physical key) and blocks the keyless.
 
-`unprovision <player>` (alias `unlease`; `duncan-hall` content namespace, same dorms-agent
+`unprovision <player>` (`duncan-hall` content namespace, same dorms-agent
 authorization as `provision`, so Katie fronts move-out via a `dispatch
 unprovision $player`): resolve the tenant's held unit (`heldUnitOf`, symmetric
 with `provision`) → `ParcelApi.revokeUse` → `DormWarren.dropUnit(unit,

@@ -67,7 +67,7 @@ propped its cane loose; whether a bare `Plant` keeps `harvest` is
 foraging's question, and the
 [cover slate](../slates/builds/cover-slate.md) — the owner's immediate
 follow-on — replaces the loose cane with a field crop. The panel stays for what it adds: a
-persistable cut, shared soil, a bed you can `pick`. The
+persistable cut, shared soil, a bed you can `harvest`. The
 two things the panel used to expose are settled by the forestry build:
 a grown plant IS authored (the stool row hydrates `growthStage: mature`
 and a ripe cycle — `growthStage` is persistent, and the hydrator applies
@@ -489,7 +489,8 @@ title minted in a holodeck would be a real title.
 views and both controllers shipped and no `commandContributions` static
 named either file, so the whole mechanism above was reachable only from
 code: `subdivide` answered *"I don't understand 'subdivide'."* They are
-`PersonaMixin.self`'s now, universally, on `title`'s own doctrine — *your
+`title subdivide` and `title transfer` now (controllers-are-io W8), afforded by
+`PersonaMixin.self`, universally, on `title`'s own doctrine — *your
 own holdings are a self-read, and the gate is the authority, not the
 affordance* — and `AccessApi.can` in the controllers is what refuses. See
 [parcel.md](./parcel.md).
@@ -602,7 +603,7 @@ rule that landed while it was in flight.
   both this build and the parallel apartment build decline them.
 - **Perennials.** ~~A harvest ends the plant; re-fruiting is a later
   question.~~ **Landed** (the farming build): the fruit cycle —
-  monocarp vs polycarp on the flowering latch, `pick`, ground-targeted
+  monocarp vs polycarp on the flowering latch, `harvest` (its `pick` word deleted by controllers-are-io W6), ground-targeted
   harvest — lives in
   [husbandry.md § The fruit cycle](./husbandry.md#the-fruit-cycle--monocarp-vs-polycarp).
 
@@ -722,7 +723,7 @@ field draws against the parcel's declared yard, and that newly plotted
 ground is **not plantable** until it has been cleared.
 
 ⚠ *Plantable* here is `Improvable.isPlantable` — a gate with no caller
-yet. `plant`/`sow` require a `CultivableMixin` target and a `Field`
+yet. `plant` requires a `CultivableMixin` target and a `Field`
 composes none, so a cleared field grows sward (hay, grazing) and arable
 crops still grow in beds and pots. The arable field crop is the
 [farming slate](../slates/builds/farming-slate.md)'s open item (verified

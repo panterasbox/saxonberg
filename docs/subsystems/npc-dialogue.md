@@ -303,7 +303,7 @@ follow-on relocation, not done here.
 ## Deferred seams
 
 - **Scripted `intent-dialogue` responder** + the `addressed` /
-  `handleMessage` trigger + the implant `tell` (remote) entry — slate
+  `handleMessage` trigger + the implant `dm` (remote) entry — slate
   Wave 2. The `open` seam accommodates it with no contract change. ⚠ The
   remote entry additionally needs a per-NPC `AetherImplant`: only Avatars
   carry one today (no NPC row ships it —

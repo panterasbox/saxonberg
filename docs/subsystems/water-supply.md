@@ -225,7 +225,7 @@ Each with where it goes (salvaged from the plan at the sweep, 2026-11-06):
   parts by a trade, laid with `fit`) → construction-slate.
 - **`break <padlock>`**, the ditch's padlocks as goods on hasps, the key
   board → lock-slate § 8.
-- **An NPC plumber on a gig** (the `fulfill` shape over `fit`) →
+- **An NPC plumber on a gig** (the `job fulfill` shape over `fit`) →
   freight-slate / contract.
 - **Metered billing** (`drawL` × time as a payment leg, with power) →
   power-utility-slate.

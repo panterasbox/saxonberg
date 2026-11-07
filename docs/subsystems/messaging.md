@@ -763,7 +763,7 @@ guarantee compile-time.
 ### AetherMixin — the non-acoustic sibling
 
 `AetherMixin` is the parallel capability mixin for non-acoustic
-transport — `tell` today, future channel `chat` and remote `emote`.
+transport — `dm` today, future channel `chat` and remote `emote`.
 The Aether is the in-fiction comm-network (implant network, magical
 resonance field, hybrid mesh — diegetically per zone). A character
 can compose Vocal without Aether (mute) or Aether without Vocal

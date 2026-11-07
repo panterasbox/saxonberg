@@ -98,9 +98,10 @@ ship's and a boat's hull is one kernel substrate, `lib/expanse/Bilge.ts`
 
 ## The verb
 
-`pump` / `work` — one view (`platform/cmd/device/pump.yaml`), `requires:
-any` (a furnace, a well and a wellhead share no mixin; an alternation
-would delete a check), `greedy: true` (*"pump village well"* fell through
+`pump` — one view (`platform/cmd/device/pump.yaml`), `requires:
+PumpableMixin|PumpSourceMixin` (the two protocols above; until
+controllers-are-io D8a it was `any`, because a furnace, a well and a
+wellhead shared no mixin), `greedy: true` (*"pump village well"* fell through
 the shape without it — found by driving). `PumpController` narrows:
 protocol → work it; pump source → the pump set in it, or *"Nothing is set
 in the well to work."*; anything else → *"There is nothing to pump on the chair."* A spell is an engagement on the hands with `effortW` derived from

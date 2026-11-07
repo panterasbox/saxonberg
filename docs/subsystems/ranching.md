@@ -515,8 +515,8 @@ does, so the sheepdog was butcherable.
 | **pet** | itself | the **bond** ([pets-slate](../slates/builds/pets-slate.md)) |
 
 ⚠⚠ **They overlap, which is why this is not a taxonomy.** The ox is
-livestock *and* a working animal — it ploughs all its life and is beef at
-the end — so it stays a `Livestock` and keeps `butcher`, and `plough`
+livestock *and* a working animal — it plows all its life and is beef at
+the end — so it stays a `Livestock` and keeps `butcher`, and `plow`
 reads its **mass** rather than its class. A collie is a working animal
 and, in most households, also a pet. A prize bull is livestock and
 breeding stock. Exclusive classes would need a fourth one immediately.

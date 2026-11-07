@@ -192,7 +192,8 @@ Audit notes that changed the provisional classification:
 views and both controllers shipped and no `commandContributions` static
 named either file, so the whole mechanism above was reachable only from
 code: `subdivide` answered *"I don't understand 'subdivide'."* They are
-`PersonaMixin.self`'s now, universally, on `title`'s own doctrine — *your
+`title subdivide` and `title transfer` now (controllers-are-io W8), afforded by
+`PersonaMixin.self`, universally, on `title`'s own doctrine — *your
 own holdings are a self-read, and the gate is the authority, not the
 affordance* — and `AccessApi.can` in the controllers is what refuses. See
 [parcel.md](./parcel.md).
@@ -561,7 +562,7 @@ name. `CircleAvatar` was considered and rejected for a subtler reason:
     - `Avatar.isConnected()` reports the vessel's connectivity while
       parked. Sockets live on the vessel, so the inherited answer is
       `false`, and every consumer of it — `who`, the `online` scope
-      that `dm`/`tell` resolve against, the presence roster, notify —
+      that `dm` resolves against, the presence roster, notify —
       reads that as *offline*. Stepping into your own circle made you
       unreachable to the whole world, the precise opposite of "the
       wire is unsurveillable, not unreachable."
@@ -790,7 +791,7 @@ name. `CircleAvatar` was considered and rejected for a subtler reason:
   (`onMessage`/`filterMessage`/`handleMessage` + envelope trio) cannot
   smuggle a dispatchable reference by construction.
 - **Recipient resolution to repoint at the active body** (Decision N,
-  comms are seamless): `dm`/`tell` resolves via the `online` MQL scope
+  comms are seamless): `dm` resolves via the `online` MQL scope
   → `ConnectionApi.getAllInteractives()` → holders (wire bodies are
   holders while a session lives — resolves correctly by construction);
   channel fan-out (`ChannelCatalogue.audienceFor` →
@@ -1004,7 +1005,7 @@ them are fixed on this branch.
   fails; `describeFor` then falls back to "someone" /
   "something" for every occupant. A dark room does not merely read as
   dark — nobody in it can be named, told apart, or addressed, so
-  `tell <name>` cannot resolve a target at all.
+  `dm <name>` cannot resolve a target at all.
 
   Both rooms this build adds author `ambientIntensity` directly (40 for
   the alcove, 60 for the circle floor), which is the shipped

@@ -176,7 +176,8 @@ inference before (`Atmospheric`) — a protocol mixin is thin, but check.
 surface (the card's chips, Studio's palette, `help <verb>`'s *answers:*) can
 show it as the verb it serves rather than as a noun. The kernel's:
 `PumpableMixin`, `LiftSourceMixin`, `PumpSourceMixin` (`lib/pump/`),
-`SplittableMixin` (`lib/ground/`), `CuttableMixin` (`lib/craft/`),
+`SplittableMixin` (`lib/ground/`), `CuttableMixin` and `CutPlannerMixin`
+(`lib/craft/`), `PourTargetMixin` (`lib/bulk/`, the one `pour`),
 `TravelNodeMixin` (`lib/travel/`), each with a `MixinApi.isX`; and the
 craft protocols with a null-or-refusing default (`lib/craft/`): `DipBathMixin`
 (`dip`), `CarvableMixin`, `ShapeableMixin`, `KneadVesselMixin`,
@@ -214,12 +215,14 @@ The bare shapes the sweep (controllers-are-io D8a) disposed of: the six
 above **converted** (each had three implementers, or a kernel verb and a
 pack network); `Tappable` **deleted** — its one implementer was
 `ProducingMixin`, so the take is `Producing`'s own surface; `Reelable`
-died with the `reel` undo. ⚠ Still bare, recorded: `Workable` itself (the
-ground vocabulary, converging on `ActPlan`), `Diggable` (one host, the
-quarry's `OpenWorkingMixin`, but asked by a KERNEL verb's room/floor ladder
-— demoting it needs `dig` to move to the pack), and `CutPlanner` (a
-tailor's shears; the kernel `cut` asks a pack tool, so the demotion waits
-on the cloth owning its own cut, W4's cuts sweep).
+died with the `reel` undo; `CutPlanner` became the kernel protocol
+`CutPlannerMixin` (`lib/craft/CutPlanner.ts`; one composer, tailoring's
+`CuttingTool`, but the kernel `cut` asks a pack tool, so the shape must be
+kernel-declared — [crafting.md](./crafting.md)). ⚠ Still bare, recorded:
+`Workable` itself (the ground protocol; its `WorkPlan` is now the one
+`ActPlan` shape, D4) and `Diggable` (one host, the quarry's
+`OpenWorkingMixin`, but asked by a KERNEL verb's room/floor ladder —
+demoting it needs `dig` to move to the pack).
 
 ### ⭐ The split test — when one mixin is two
 
@@ -1256,3 +1259,14 @@ contribute or whether one wins.
   `canX` / `onX` hooks declared on existing mixin interfaces; the
   rationale for why composing-a-mixin-on-a-shadow no longer
   auto-enrols every method.
+
+## History
+
+- **controllers-are-io (2026-11, `5b0a0f23c..2fa4b0e72`, MR !527).** The
+  mixin layer took the verbs' decisions off the controllers: five splits
+  (D6, the table above), twelve file moves under `lint:mixin-files` (D7b),
+  three markers (D7a), and the bare verb shapes converted to protocol
+  mixins carrying `_mixinKind = 'protocol'` (D8a), presented as
+  *answers: <verb>* on the card, in Studio and in `help <verb>` (D8b).
+  Every view that used to say `requires: any` for want of a shared mixin
+  now names its protocol, except `cut`, `dig`, `tap` and `teleport`.

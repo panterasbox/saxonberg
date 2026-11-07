@@ -1104,7 +1104,8 @@ check:
   `SwitchableMixin` and that is the whole of its on/off surface.
 - **`analyze`** gained a `water` subcommand rather than a new verb.
 - **`boil`** shipped as the one new act (W8); it has since been retired
-  to an alias of `heat` — boiling is a temperature (above).
+  to an alias of `heat` — boiling is a temperature (above) — and the
+  alias was deleted by controllers-are-io W4.
 
 ### `analyze water` — the stanza is the platform's, the controller is ours
 
@@ -1348,7 +1349,8 @@ each one is a rule rather than a detail:
   would have meant **a kernel edit per trade**. ⭐ The general rule: *a
   verb names what you DO; what it accomplishes is a property of what you
   did it to.* (Followed to its end in 2026-10: what you do is HEAT it, so
-  `boil` became `heat`'s alias and purification the phase engine's.)
+  `boil` became `heat`'s alias and purification the phase engine's; the
+  alias was deleted by controllers-are-io W4.)
 - **The pack moved from `/water` to `/system/water`**, taking `/arcana`
   and `/residence` with it, once the question *"what class of thing does
   water belong to?"* was asked. The five-axis namespace taxonomy in
