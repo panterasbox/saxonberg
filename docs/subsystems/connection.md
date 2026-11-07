@@ -913,10 +913,18 @@ dropped session until a restart (see
 
 ⚠ **Who cannot find a signed-out person.** `PlayerApi.find*` and
 `findByIdentityPath` answer for bodies in the world, exactly as they did after a
-restart: payees and beneficiaries named by name must be here; `office`, `chronicle`
-and the forums fall back to a raw id or a stored name; the CMS session has no
-avatar until the author plays. A viewer's memory of the person is kept
-(`BeliefStore.recall` exempts an Avatar identity from its liveness check).
+restart: payees and beneficiaries named by name must be here; `profile` and
+`chronicle` bind only somebody in the world, and refuse in words otherwise; `office`
+and the forums name an absent person by the name on their record
+(`PlayerApi.storedNameOf`); the CMS session has no avatar until the author plays. A
+viewer's memory of the person is kept (`BeliefStore.recall` exempts an Avatar
+identity from its liveness check).
+
+⚠ **A retired body must become garbage.** Registered is not the test: a destructed
+body held by anything long-lived still costs its whole graph. The event history
+ring held every emitting frame, so every signed-out body stayed in memory until a
+hundred more emits rolled it off; it now keeps payloads only. A census of the live
+heap by class (`Runtime.queryObjects`, destroyed included) is how this was found.
 
 ### Avatar.onDestruct
 

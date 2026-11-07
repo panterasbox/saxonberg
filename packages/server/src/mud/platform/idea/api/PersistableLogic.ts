@@ -1480,6 +1480,18 @@ export class PersistableLogic extends ApiLogic {
     return PersistableLogicRestoreDetached(entry, container, principal);
   }
 
+  /** See {@link PersistableApi.storedField}. */
+  @CallSecurity(PersistableApiCallers)
+  public async storedField(scope: string, mixin: string, field: string): Promise<unknown> {
+    for (const row of await PersistedRecord.findByScope(scope)) {
+      const slice = row.getState()[mixin];
+      if (slice === undefined || !('fields' in slice)) continue;
+      const value = (slice.fields as Record<string, unknown> | undefined)?.[field];
+      if (value !== undefined) return value;
+    }
+    return undefined;
+  }
+
   /** See {@link PersistableApi.hasRecord}. */
   @CallSecurity(PersistableApiCallers)
   public async hasRecord(scope: string, key?: string): Promise<boolean> {

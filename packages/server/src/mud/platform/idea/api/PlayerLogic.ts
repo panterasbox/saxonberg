@@ -26,6 +26,7 @@ import { ZoneApi } from '../../../api/zone';
 import { ContainmentApi } from '../../../api/containment';
 import { MixinApi } from '../../../api/mixin';
 import { PersistableApi } from '../../../api/persistable';
+import { Mixins } from '../../../lib/mixin';
 import { MessageApi } from '../../../api/message';
 import { Mml } from '../../../api/mml';
 import { GrammarApi } from '../../../api/grammar';
@@ -271,6 +272,13 @@ export class PlayerLogic extends ApiLogic {
   @CallSecurity(PlayerApiCallers)
   public isAvatarIdentityPath(identityPath: string | null | undefined): boolean {
     return isAvatarIdentityPath(identityPath);
+  }
+
+  /** See {@link PlayerApi.storedNameOf}. */
+  @CallSecurity(PlayerApiCallers)
+  public async storedNameOf(playerId: string): Promise<string | null> {
+    const name = await PersistableApi.storedField(`${AVATAR_IDENTITY_PREFIX}${playerId}`, Mixins.Named, 'name');
+    return typeof name === 'string' && name ? name : null;
   }
 
   /**

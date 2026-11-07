@@ -103,7 +103,7 @@ export default class OfficeController extends CommandController<OfficeModel> {
     }
 
     const priorNote = result.priorHolderId
-      ? `, replacing ${this.presentHolder(result.priorHolderId)}`
+      ? `, replacing ${await this.presentHolder(result.priorHolderId)}`
       : ', replacing the founder';
     this.send(
       context,
@@ -145,7 +145,7 @@ export default class OfficeController extends CommandController<OfficeModel> {
     for (const row of roster) {
       const holder = row.isFounderDefault
         ? `${row.founderLabel} (founder)`
-        : this.presentHolder(row.holderPlayerId ?? '');
+        : await this.presentHolder(row.holderPlayerId ?? '');
       lines.push(
         `  ${row.displayName}  [${row.branch}/${row.origin}]  — ${holder}`,
       );
@@ -153,11 +153,12 @@ export default class OfficeController extends CommandController<OfficeModel> {
     this.send(context, Mml.fromMarkup(`\n${lines.join('\n')}\n`));
   }
 
-  /** Present a holder by their online Avatar, else the raw playerId. */
-  private presentHolder(playerId: string): string {
+  /** Present a holder by their body if they are here, else the name on their record. */
+  private async presentHolder(playerId: string): Promise<string> {
     if (!playerId) return '(vacant)';
     const avatar = PlayerApi.findAvatarByPlayerId(playerId);
-    return avatar ? avatar.getPresentation() : playerId;
+    if (avatar) return avatar.getPresentation();
+    return (await PlayerApi.storedNameOf(playerId)) ?? 'somebody no longer on the rolls';
   }
 
   private send(context: CommandContext, body: Mml): void {
