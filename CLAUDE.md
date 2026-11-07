@@ -297,7 +297,7 @@ behavior. Read the relevant doc before editing in its area.
   - [fasttravel.md](./docs/subsystems/fasttravel.md) — the TPA teleport network, now a **utility that runs on mana**: ⭐⭐ the VERB is the kernel's and the NETWORK is the `tpa` pack's, meeting over the `TravelNode` shape (you must not need the TPA to teleport — free-in-your-extent and the anchored spell are kernel forks); FastTravelMixin nodes + `ride()`, the travel credential, the board-for-everyone, the three supplies + the arming floor + the amber band, the derived mana rate, the self-governing Authority
   - [credential.md](./docs/subsystems/credential.md) — the unified credential substrate: the wallet mixin, payment/travel/key kinds, lock/key + `presentsKey`
   - [stacks.md](./docs/subsystems/stacks.md) — fungible stacks: Stackable quantity, split/merge/applyQuantity, the MQL quantity surface
-  - [response-envelope.md](./docs/subsystems/response-envelope.md) — DispatchResponseEnvelope, 16 Note kinds, Status auto-escalation, CommandContext
+  - [response-envelope.md](./docs/subsystems/response-envelope.md) — DispatchResponseEnvelope, the `Note` union, Status auto-escalation, CommandContext
   - [activity.md](./docs/subsystems/activity.md) — the engagement framework: SchedulerApi, EngagedMixin slots, the AbortReason vocabulary
   - [behavior.md](./docs/subsystems/behavior.md) — NPC behavior: BehavedMixin data-specs, brains as modules, witness/`candidate` triggers, the ONE deliberation beat per agent + `Urgency`'s four bands × five `TaskKind`s, the NPC class
   - [npc-dialogue.md](./docs/subsystems/npc-dialogue.md) — the tree-dialogue responder: `talk`, the DialogueConversation engagement, the choice wheel, auto-introduce
