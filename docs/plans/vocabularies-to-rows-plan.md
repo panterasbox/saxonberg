@@ -1484,6 +1484,12 @@ sentence).
 
 ## Risks & opens
 
+**Owner, 2026-11-07: every question marked Q below takes its plan default.** The
+drive uses the estuary mouth and the Hearthworks cookhouse; Extras from one row
+share a palate; the taste ladder and the analyzer's odor units stand; a mouthful
+wounds `body.head`. The owner also expects mouths to become real anatomy, possibly
+as the next refactor, so keep the site in one named constant.
+
 Questions for the owner are marked **Q**. The build does not stop on a
 risk; it stops on a Q only if it reaches a wave that cannot proceed without
 the answer, and none of these does.
