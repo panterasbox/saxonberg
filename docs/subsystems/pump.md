@@ -81,9 +81,9 @@ pinned by `PumpController.test.ts` — the controller had no test before).
 ## ⭐ The bucket — `bail` (harbors review 1)
 
 Family A has a verb: **`bail` is the bucket over ANY `LiftSource`**
-(`platform/cmd/device/bail.yaml`, `BailController`, `requires: any`,
-narrowed by the shape like `pump`). There is no bail protocol: the
-controller reads the SOURCE and the TOOL. A spell is the handling plus the
+(`platform/cmd/device/bail.yaml`, `BailController`, the source slot
+`requires: LiftSourceMixin` — the protocol above, controllers-are-io D8a).
+The controller reads the SOURCE and the TOOL. A spell is the handling plus the
 rope down and back (`20 s + 0.4 s/m` of `standingDepthM`, endurance
 `4 + 0.2/m` — the boat's shipped 20 s and the bore's 30 s at 25 m, one
 rule); a bucketful is the tool's (a vessel's capacity; a bailing tool

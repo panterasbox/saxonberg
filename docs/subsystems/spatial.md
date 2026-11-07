@@ -515,7 +515,7 @@ unchanged (a mug moving from one desk to another in the same room), so
 nothing would restamp — and a member that encloses means the thing's
 ambient scope just changed.
 
-`place` throws `ContainmentError` on programmatic-contract violations
+`move` to a placing destination throws `ContainmentError` on programmatic-contract violations
 (no environment; `canPlace` vetoes). User-input failures are handled
 upstream by `put`, which reads the veto's `reason` into prose.
 

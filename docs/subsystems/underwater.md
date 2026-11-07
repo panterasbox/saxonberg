@@ -20,7 +20,7 @@ This doc is the source of truth for:
   `LocomotionLogic.engageHost` and `overYourHead`, `Exit.crossingRealS` /
   `Exit.wiresItsOwnInverse`, the timed crossing in
   `platform/idea/cmd/movement/LocomotionControllerBase.ts`,
-  `DescendController`, the water branches of `SwimController` and
+  `AscendController` + `DescendController` (over `SwimVerticalControllerBase`), the water branches of `SwimController` and
   `LieController`, `lib/spatial/{Pullable,Tossable}.ts`, `BuoyMixin`;
 - the water pack — `packages/content/water/src/location/Band.ts`,
   `idea/ColumnWarren.ts`, `idea/exits/ColumnExit.ts`, `lib/AirPocket.ts`,
@@ -592,7 +592,7 @@ breath burn (respiration.md).
   `lib/spatial/{Pullable,Tossable}.ts`, `lib/stuff/Place.ts`
   (`groundRefusal`), `lib/boundary/Exit.ts` (`crossingRealS`,
   `wiresItsOwnInverse`), `platform/idea/api/LocomotionLogic.ts`,
-  `platform/idea/cmd/movement/{LocomotionControllerBase,DescendController,SwimController}.ts`,
+  `platform/idea/cmd/movement/{LocomotionControllerBase,SwimVerticalControllerBase,AscendController,DescendController,SwimController}.ts`,
   `platform/idea/cmd/posture/LieController.ts`,
   `platform/idea/cmd/inventory/{PullController,WriteOnController}.ts`;
   views `platform/cmd/movement/{descend,ascend,swim}.yaml`.
