@@ -1002,7 +1002,7 @@ Checked at plan time against the current tree, not recalled.
 - **One view, one word** — no synonym verbs, no `spit`, no `sniff`/`lick`;
   `taste` is the small mouthful, `eat` the meal.
 - **P3 refuse/skip/throw** — a bare `taste` is refused by the binder's
-  `missing:` text and an inert solid by `mustBeTastable`'s own line; a
+  controller, in words and an inert solid by `mustBeTastable`'s own line; a
   sub-threshold note is skipped; an unknown aroma word throws at the
   setter, fails the lint, and records a diagnostic at the nose; `setTastes`
   throws on an unknown word instead of filtering; a caustic mouthful lands
@@ -1423,7 +1423,7 @@ each fails closed and silent.
 | capability | verb | affordance | data | load | arg gate |
 |---|---|---|---|---|---|
 | `smell` (bare, target, `me`) | shipped `smell.yaml` | shipped on the body (perception category) | aroma rows; `Species.olfactoryProfile`; D1 sources | words load with the material/species/dirt row that names them (async setter); `Aroma.resolve` kicks on a miss | `requiresSmell`; target `requires: any` (anything emits or does not) |
-| `taste <thing>` | shipped verb, view rewritten | shipped on the body | `Material.tastes` amounts; aroma rows; `corrosiveTo` on the caustics | as above; `TasteModality` row's class now `TasteModality` (the row exists; `PerceptionLogic.preloadModalities` walks `MODALITY_NAMES` which already names `taste`) | `requiresTaste` + **`mustBeTastable`** (three arms, D15); **`required: true` with a `missing:` refusal** (the `assay` lesson) |
+| `taste <thing>` | shipped verb, view rewritten | shipped on the body | `Material.tastes` amounts; aroma rows; `corrosiveTo` on the caustics | as above; `TasteModality` row's class now `TasteModality` (the row exists; `PerceptionLogic.preloadModalities` walks `MODALITY_NAMES` which already names `taste`) | `requiresTaste` + **`mustBeTastable`** (three arms, D15); **`required: true` with a the controller refusal** (the `assay` lesson) |
 | `analyze aroma` / `measure aroma` / `readings aroma` | shipped flat verbs | shipped | `aroma.yaml` row | `ReadingCatalogue` warms by `/idea/reading/` infix (shipped mechanism; no new boot) | `subject` greedy; `tool` narrowed by `gas-analysis` |
 | `eat` liking line | shipped | shipped | `Species.palate`, `TASTE_HEDONICS`, aroma `liking` | with the rows | unchanged |
 | a pack's new word (`pine tar extends tar`) | — | — | the row at `/stuff/idea/aroma/pine tar` in the pack's own content, `requires` base-library | loads when a material of that pack names it | `lint:aromas` refuses a word named across a missing dependency |
