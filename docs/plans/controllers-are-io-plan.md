@@ -1876,4 +1876,131 @@ Read first, in this order:
 
 ## Drive record
 
-*(appended at build time)*
+File: `packages/wire/tests/controllers-are-io.dirty.wire.test.ts`, 25 steps, 64 checkpoints + 1 todo.
+World: `WIRE_PORT=2013`, DB `saxonberg_build2`. Warm reboot ~2.5 min, cold ~6.5.
+Last full file run, at ee8a9644d on the standing world, 991 s: **63 of 64 green, 1 todo (21c).** The one red is
+20a: no fish took in 40 ticks. A bite is the fish's own draw, and 20a was green in the runs before it. The loop now
+allows 60, as `fishing` does; that change was not re-run. Note 20a proves `reel` is understood and a fish lands, not
+that `reel` is what landed it: a small fish lands itself.
+
+| step | pace | result | what it found |
+|---|---|---|---|
+| 1 `wind@me:i:watch` | instant | green | |
+| 2 `wind@watch` asks which | instant | green | helper bug: a raced `awaitPrompt` stole the next command's prompt |
+| 3 script errors; `wind@"all watches"` | instant | green | **plural never bound** (`all watches` found nothing) |
+| 4 `say@me`; `wind@nonsense` | instant | green | |
+| 5 other offer | instant | green | **false offers**: `harvest #pot` offered the plant inside; a word offered the thing it had bound |
+| 6 pour, jug and build | instant | green | |
+| 7 every noun, every subcommand | instant | green | **`forum reply/edit xyz` controller-error** (pre-existing); first `help` of a world can time out and answer no-topic |
+| 7 title/job binder paths | instant | green | `title` `at <desk>` default + named, `title transfer`, `class:JobBoard` all bind; both refuse away from a desk/board |
+| 8 `fight defend`=`defend`; disarm two acts | instant | green | `fight disarm` is the gambit, `disarm` the trap: two acts by the plan's own table |
+| 9 carve with options | instant | green | old chain now `mql-error`, by design |
+| 10–15 record | instant, 10 staged | green | see baseline |
+| 16 alternate controller | instant | green | installed through the CMS (`eval`'s acting author is the script and may not save a document); /platform title taken and handed back |
+| 17 restart | real restart | green, one open | **a lone stamped stackable (carved peg) was left in `storage`**, not the hand (pre-existing) |
+| 18 aliases | instant + real restart | green | `l`, `alias unset l` stays gone across a restart; `examine`, `bind`, `dress`, `grind` unknown-verb |
+| 19 `do martini` | short | green | **`strain … into coupe` never bound** (`glass` required ManualBuildMixin, pre-existing); `make` unknown-verb |
+| 20 `reel`, `unwind` | ~2 min | green | a fish landed; a skein reeled |
+| 21 `drift`, `drive` | instant | PARTIAL | **`drive north` was refused by its own slot** (pre-existing, fixed). See open items |
+| 22 `store`, `shelf`, `help` | instant | green | |
+| 23 `cut ice` | instant | green | **`--strict` never refused two candidates** (fixed) |
+| 24 script fails closed; `--async` | instant | green, 24b blind | see B2 |
+| 25 answers: dip; greyed offer | instant | green | |
+
+Plan staged 17/18 by capture + materialize. Replaced by a REAL restart: `eval` under a parcel jurisdiction may
+not materialize a body (the sandbox boundary refuses the setters), and warm boot is 2.5 min. Precedent:
+ceramics-d 35.
+
+## Baseline
+
+Compared FIRST against the committed record. Before any re-record, differences outside the four expected were
+all traced: 10b (false other-offer, fixed), 12g (the same; reads equal once the world is not saturated), 13a/b
+(the drive's text: `treat --with`, W5's form), 14c (`mary-jane`-shaped names, fixed), 15c (`recite` unreachable,
+fixed). After the fixes the other 18 acts compare EQUAL.
+
+Re-recorded with `CAIO_RECORD=1`, and `git diff` shows only these four:
+
+- **10c**: `maker: /platform/agent/PrimaryAvatar` → `madeByMe: true` (the W5 identity fix).
+- **11c**: slot `plant` occupied `false` → `true` (the fixture now has soil).
+- **12c**: `paid: -17` → `3` (the money faucet closed); `prompts: 2` → `1`.
+- **15c**: `error` + `controller-error`, scroll `gone` → `ok`, no notes; `prompts: 2` → `1`. The scroll stays
+  `gone`.
+
+`prompts` was a helper miscount: it counted a prompt's settling frame. That is W5's "12c prompts 2 unexplained".
+
+## B2 — checkpoints proven to fail
+
+Representative, by mutating one input per checkpoint in a throwaway copy (`.wire/b2.py`, deleted). RED as they
+should be: 1, 2, 3, 4, 5, 6b, 7 (bank), 8, 9, 10c, 11a, 13a, 14b, 15c, 16, 19, 20b, 22a, 22b, 22c, 23, 24a, 25,
+18a. The baseline compare is proven by 10c, 11a, 13a, 14b, 15c.
+Not mutated: 6a, 7's other nouns (same loop as bank), 7 binder paths, 10a/b, 11b–d, 12a–g, 13b, 14a/c, 15a/b,
+17, 18b, 20a, 21a.
+
+Two findings:
+- **24b is BLIND.** With `--async` removed it still passes, in both forms tried (`wait`, then durative pours): a
+  typed multi-statement line returns at once either way. The detach is proved by unit test only.
+- **21b is weak to a wrong word**: `drive nosuchway` also reaches the mode gate. It does discriminate the defect
+  it was written for (the old `requires: DrivableMixin` answers `validator-failed`, seen in a probe).
+
+## Open
+
+- **21: no shipped vehicle seats a driver.** Coach's `driver:1` is an adornment slot, the barge has no such slot,
+  the wagon no slots at all; `mount` seats only a draft animal; the `drive` mode's exit gate refused every exit
+  tried. The verb binds a way and refuses. `journey` is what moves a vehicle. `it.todo('21c')`.
+- **21a: `drift` cuts only in a keyed warren room**, and nothing a player or an eval can stand in reaches one
+  (`warren.carve` from `eval` killed the server). The drive proves the verb's chain to the ground's own refusal
+  (`no-warren`); the cut itself is trade-mining's unit test.
+- **17: where the body stands.** In this staging (craft, eat, two logins, wade) the body read back the FIRST
+  login's room after the in-test restart, though the record held the water at sign-out, and an isolated
+  two-login-wade-restart returned to the water. Not root-caused; time-boxed out. The checkpoint no longer asserts
+  it.
+
+## Notes for the record
+
+- A closed session's body LINGERS, and a walker greets every player in a room one at a time, each line rendered
+  per sensor with a light walk. Thirty bodies in the square pegged the world at a full core. Pre-existing; the
+  drive parks its bodies with `goto`. Sibling drive files still leave theirs.
+- A `move` of a soiled body from `eval` raised an unhandled rejection that KILLED the server (sandbox boundary on
+  a restamp outside the eval's frame).
+- In a script `#` opens a comment: `def x { pour #id into #id }` is an empty body that succeeds.
+
+## Sibling wire files
+
+One run on one cold world, server code at 4c1b463ce. Harbor's fix (ee8a9644d) came after it started, and no second
+cold run was made, by the coordinator's cap, so every fix from this triage is UNCONFIRMED by a sibling file.
+`/finalize` re-runs these. An earlier cold run, without the bounded offer, died of a 4 GB heap 22 minutes in; this
+one stayed near 1 GB. The bound may be why; that was not proven. Counts are at the time of triage.
+
+**(a) This build's, fixed:** `look hesper` tying the ship with her way and her line (6485d380c) · a refused
+`repair jerkin` held 48 s and NPC refusals paid the same probe (the bounded offer) · a stranger's worn word tying
+the thing in hand, `dry shirt`, `order wash for jumper` (81e1ec7c7).
+
+**(b) The sibling's own staging, fixed:** cleanliness picks the bandage up before `put` · food-safety `dry treated`
+and the sear's `never made one` · crafting's four smithy checkpoints marked `it.fails`/`skip` again (W6a removed
+them undriven; see (c)).
+
+**(c) Unknown or pre-existing, NOT fixed, none blocks hand-back:**
+
+| file | checkpoint | one-line reason |
+|---|---|---|
+| crafting | `forge knife` + 3 downstream | hand build teaches nothing: after `hammer` the piece is build-empty and `quench` heat-treats. Same finding at 4ac98389b |
+| harbors | 19 of 24 | first failure `singleton … berth-book found 2` (fixed ee8a9644d, unconfirmed); the rest read as its cascade (`go ashore`/`go hesper` have no way when no ship berthed). Not proven: re-run |
+| dairy | 24 goat's milk into the vat | `look vat` read another batch; unread past that |
+| dairy | 22–23 stranger drinks raw | `get 1 pail` then `drink` found the pail empty; which pail it took was not traced |
+| dairy | 4 `milk bull` | bound a dried-off cow, not the calf: possibly a W2 tie, not proven |
+| dairy | 19a copper | `smelt` `no-fuel`, 8 kg of the 16 wanted, by the file's own four baskets |
+| food-safety | cut count | `butcher` prose empty at read; the sentence says `p…` where the file wants `cuts`. Not traced further |
+| food-safety | `wash boning` | validator refused the target. A later probe in that room got a table knife from `get boning knife`, so the knife may have been gone; not proven |
+| forestry | 8 `get set` | `too-heavy-to-lift` after `drop timber` |
+| forestry | 12, 13 | `too-tired`, and its follow-on |
+| reachability | 1 `walk out` | `exit-mode` gate on `out`. Could be a real regression in binding a way; not traced |
+| reachability | 7 `swim` STILL unknown | `swim` is afforded by `Shore.ts`, which this build did not touch, so the checkpoint looks stale; not checked on master |
+| scan-sweep | Hesper's deck `job apply` | `ambiguous-opening`, a refusal the old `ApplyController` also had; why two openings here was not traced |
+| silk | keeper by name | query did not list Ines Vale; not traced |
+| silk | `look tray` | bound a card of eggs: possibly a W2 tie, not proven |
+| cleanliness | not re-run | its 5 failures fed (a) and (b); its restart step exceeded the 420 s boot budget on a loaded box |
+
+Not finished: `underwater` reported nothing in 25 minutes and was stopped by PID at the cap. `farming` and
+`metal-chain` were green. Sibling totals at the stop: 113 passed, 39 failed (19 of them harbors), plus crafting's
+marked four counted among the failed because that run predated re-marking them.
+
