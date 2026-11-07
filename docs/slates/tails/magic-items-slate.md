@@ -1,5 +1,7 @@
 # Magic items slate (working doc) — NetHack's consumables + the BUC axis
 
+> ⭐ **2026-11-07 → [spellbook-slate](../builds/spellbook-slate.md)** is now the catalog: the walk over every shipped system, how effects are realized (physics first, getter shadows where magic breaks physics), combat and the item-firing taxonomy. This slate's list stays as a source.
+
 > **Status: PARTIAL** — the substrate landed whole (2026-08-05): effect
 > context, the three item classes (`Focus` cut), the charge economy, BUC
 > (incl. multi-target `scope`), identification, the fade/defective-copy
