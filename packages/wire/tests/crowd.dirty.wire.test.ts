@@ -8,7 +8,7 @@
  */
 
 import { describe as suite, it, expect } from 'vitest';
-import { declareFile, runCrowd, CROWD_SIZE, Session, uniqueHandle, hand, expectOk } from '../src/harness';
+import { declareFile, runCrowd, CROWD_SIZE, Session, uniqueHandle, hand } from '../src/harness';
 
 declareFile({
   file: 'crowd.dirty.wire.test.ts',
@@ -29,12 +29,40 @@ suite(`a crowd of ${CROWD_SIZE} in the square`, () => {
 });
 
 /**
+ * ⚠ The square's greeters are hands on errands and are often out, so the crowd's
+ * own count can pass having greeted nobody. This one has somebody behind a bar.
+ */
+suite('somebody who stays put', () => {
+  it('greets each of three arrivals once', async () => {
+    const BAR = '/world/lounge/location/bar';
+    const opts = { startLocation: '/world/lounge/location/lounge', wizard: true, committees: ['/world/lounge'] };
+    const heard: string[] = [];
+    const sessions: Session[] = [];
+    for (let i = 0; i < 3; i++) {
+      const s = await Session.open(uniqueHandle(`crowd-regular${i}`), opts);
+      sessions.push(s);
+      await s.cmd(`goto ${BAR}`);
+      heard.push(await s.listen(6_000, { sinceDrain: true }));
+    }
+    for (const said of heard) {
+      const greeted = said.split('\n').filter((l) => l.includes(' says to you'));
+      expect(greeted.length, `greeted on arrival: ${said.slice(0, 300)}`).toBeGreaterThan(0);
+      const bySpeaker = new Set(greeted.map((l) => l.slice(0, l.indexOf(' says to you'))));
+      expect(bySpeaker.size, `once by each: ${greeted.join(' | ')}`).toBe(greeted.length);
+    }
+    for (const s of sessions) s.close();
+  }, 180_000);
+});
+
+/**
  * ⭐⭐ Signed out, the body leaves the world; dropped, it stays (owner, D30). Both
  * read from a second person standing in the room.
  */
 suite('who is still standing there', () => {
   const ROOM = '/world/terminus/counting-houses/avenue-block';
-  const nameIn = (prose: string, name: string): boolean => prose.toLowerCase().includes(name.toLowerCase());
+  /** Is this body standing where `witness` is? Asked by id: a stranger reads as "a human". */
+  const standing = async (witness: Session, stuffId: string): Promise<boolean> =>
+    (await witness.query('here:i', { fields: 'ref' })).some((r) => r.stuffId === stuffId);
 
   it('signing out takes the body and what it carried, and logging in brings both back once', async () => {
     const witness = await Session.open(uniqueHandle('crowd-witness'), { startLocation: ROOM, wizard: true, committees: ['/world/terminus'] });
@@ -44,19 +72,19 @@ suite('who is still standing there', () => {
     const rag = await hand(leaver, '/stuff/thing/rag');
     expect(rag).toBeTruthy();
     expect(await leaver.prose('inventory')).toMatch(/rag/i);
-    const me = await leaver.queryOne('me', ['name']);
-    const name = String((me as { name?: unknown } | null)?.name ?? '');
-    expect(name, 'the body has a name a witness can look for').not.toBe('');
-    expect(nameIn(await witness.prose('look'), name), 'seen while playing').toBe(true);
+    const body = (await leaver.queryOne('me', 'ref'))?.stuffId ?? '';
+    expect(await standing(witness, body), 'seen while playing').toBe(true);
 
     leaver.close();
-    await expect.poll(async () => nameIn(await witness.prose('look'), name), { timeout: 20_000, interval: 1_000 }).toBe(false);
+    await expect.poll(() => standing(witness, body), { timeout: 20_000, interval: 1_000 }).toBe(false);
     expect(await witness.prose('look'), 'nothing it carried fell on the floor').not.toMatch(/\brag\b/i);
 
     const back = await Session.open(handle);
     const carried = await back.prose('inventory');
     expect(carried.match(/\brag\b/gi)?.length ?? 0, `the rag, once: ${carried}`).toBe(1);
-    expect(nameIn(await witness.prose('look'), name), 'back where it stood').toBe(true);
+    const returned = (await back.queryOne('me', 'ref'))?.stuffId ?? '';
+    expect(returned, 'a return is a fresh body').not.toBe(body);
+    expect(await standing(witness, returned), 'back where it stood').toBe(true);
     back.close();
     witness.close();
   }, 180_000);
@@ -65,13 +93,12 @@ suite('who is still standing there', () => {
     const witness = await Session.open(uniqueHandle('crowd-witness'), { startLocation: ROOM });
     const handle = uniqueHandle('crowd-dropper');
     const dropper = await Session.open(handle, { startLocation: ROOM });
-    const me = await dropper.queryOne('me', ['name']);
-    const name = String((me as { name?: unknown } | null)?.name ?? '');
+    const body = (await dropper.queryOne('me', 'ref'))?.stuffId ?? '';
     dropper.drop();
     await new Promise((r) => setTimeout(r, 8_000));
-    expect(nameIn(await witness.prose('look'), name), 'still standing there').toBe(true);
+    expect(await standing(witness, body), 'still standing there').toBe(true);
     const back = await Session.open(handle);
-    expectOk(await back.cmd('look'));
+    expect((await back.queryOne('me', 'ref'))?.stuffId, 'the same body').toBe(body);
     back.close();
     witness.close();
   }, 180_000);

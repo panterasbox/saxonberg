@@ -52,6 +52,7 @@ import {
 } from '../../api/execution-context';
 import { MqlApi, MqlPermissionError } from '../../api/mql';
 import { StuffApi } from '../../api/stuff';
+import { ScheduleApi } from '../../api/schedule';
 import { PerceptionApi } from '../../api/perception';
 import { EventApi } from '../../api/event';
 import { ShellApi } from '../../api/shell';
@@ -240,6 +241,8 @@ function resolveByQuery(
 
 /** How long one drain may run before it gives the loop back. */
 const DRAIN_SLICE_MS = 20;
+/** How long a backlogged drain rests, as a multiple of the slice it just ran. */
+const DRAIN_REST_FACTOR = 2;
 
 export default class MqlSubscriptionRegistry extends Idea {
   /**
@@ -826,7 +829,8 @@ export default class MqlSubscriptionRegistry extends Idea {
    * dirties every card in the room, and each card asks the same light.
    */
   private drainDirty(): void {
-    const deadline = Date.now() + DRAIN_SLICE_MS;
+    const started = Date.now();
+    const deadline = started + DRAIN_SLICE_MS;
     const slice: SubscriptionState[] = [];
     const release = PerceptionApi.holdLightSteady();
     try {
@@ -841,7 +845,13 @@ export default class MqlSubscriptionRegistry extends Idea {
       release();
     }
     if (this.dirty.size > 0) {
-      setImmediate(() => this.drainDirty());
+      // A backlog waits twice what the slice took: cards get a third of the
+      // loop at most, and everybody typing gets the rest.
+      ScheduleApi.schedule(
+        (Date.now() - started) * DRAIN_REST_FACTOR,
+        () => this.drainDirty(),
+        { propagateAttribution: false },
+      );
     } else {
       this.scheduled = false;
     }

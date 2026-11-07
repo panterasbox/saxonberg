@@ -96,6 +96,15 @@ drive and a soak drive. The finding behind it, the enforcement and the lane →
   repeat comments on the open one. State, log and results live in the soak worktree's `.soak/`
   (gitignored). Every threshold and path is an env override (`tools/soak --help`).
 
+### A finished session signs out
+
+`session.close()` is the client's deliberate leave: the body is saved and leaves
+the world (controllers-are-io D30), so a finished checkpoint costs the rest of the
+run nothing. `session.drop()` loses the connection without signing out, and the
+body stays linkdead for the rest of the run: use it only in a test about exactly
+that. ⚠ Each dropped or crashed session leaves a body. A run that crashes leaves
+all of them, and a world with thirty live cards on one room answers in seconds.
+
 ### Staging — what a blocking drive uses instead of the clock
 
 Every span step has a **staged twin**: set the state with wizard tools, check everything around it
