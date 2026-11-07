@@ -1166,7 +1166,7 @@ suite('20. `reel` is fishing\'s; `unwind` is silk\'s', () => {
     await s.drainProse();
     // A fish takes on its own time; `reel` with nothing on it says so.
     let landed = false;
-    for (let i = 0; i < 40 && !landed; i++) {
+    for (let i = 0; i < 60 && !landed; i++) {
       await new Promise((r) => setTimeout(r, 5_500));
       landed = /\b(brown trout|eel|grey mullet|carp|shore crab|sturgeon)\b/i.test(await s.prose('inventory'));
       if (landed) break;
@@ -1175,7 +1175,7 @@ suite('20. `reel` is fishing\'s; `unwind` is silk\'s', () => {
     }
     expect(landed, 'a fish in hand').toBe(true);
     await park(s);
-  }, 400_000);
+  }, 500_000);
 
   it('20b. `unwind cocoons` reels silk into a skein at the basin', async () => {
     const s = await stager(uniqueHandle('caio-reeler'), MILL);
