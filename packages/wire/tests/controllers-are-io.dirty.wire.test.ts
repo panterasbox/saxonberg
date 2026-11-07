@@ -1225,12 +1225,6 @@ suite('21. `drift` is the miner\'s; `drive` is the vehicle\'s', () => {
     expect(await r.said(), 'the slot took the way').not.toMatch(/can't drive north/);
     await park(s);
   }, 180_000);
-
-  // ⚠ RED by content, for a person to judge: no shipped vehicle seats a driver.
-  // The coach's `driver:1` is an adornment slot, the barge has none, the wagon
-  // no slots at all; `mount` seats only a draft animal; and the `drive` mode's
-  // exit gate refuses every exit. `journey` is what moves a vehicle today.
-  it.todo('21c. on a cart, `drive` takes it through an exit');
 });
 
 suite('22. the institution nouns', () => {

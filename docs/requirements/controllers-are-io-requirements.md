@@ -359,8 +359,11 @@ exists, or stages one with wizard tools.
 20. *(instant, player)* At a fishing reach, `reel` lands a hooked fish.
     At the reeling basin, `unwind cocoons` reels silk into a skein. Each
     `help` page reads one trade.
-21. *(instant, player)* In a drift, `drift` cuts forward. On a cart,
-    `drive` takes it through an exit.
+21. *(instant, player)* In a drift, `drift` cuts forward: the verb reaches
+    the ground's own refusal, and the cut itself is trade-mining's unit test.
+    `drive north` binds the way and refuses because nothing is being driven.
+    (A vehicle that seats a driver is the logistics slate's; no shipped
+    vehicle has one.)
 22. *(instant, player)* `store deposit` and `shelf consign` work, and
     `help` lists commands grouped by category.
 23. *(instant, player)* Standing over a block of ice while carrying a

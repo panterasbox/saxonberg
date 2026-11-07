@@ -352,3 +352,9 @@ arg `requires: A|B` **deletes a check** rather than adding a branch — see
 [command-spec.md](../../subsystems/command-spec.md) and the shipped
 `harvest.yaml`, whose `GrowingMixin|CultivableMixin` is a *widening of one act's
 subject*, not two acts sharing a verb.
+
+### ⚠ The radial needs its own build (owner, 2026-11-07)
+
+Its three rows per side, the verb order, and `requires: any` verbs offered with
+no check of `scope` (`belay`, `climb`, `drive` on a pot) are one design problem,
+and controllers-are-io touched only the sort (the subject's verbs first).
