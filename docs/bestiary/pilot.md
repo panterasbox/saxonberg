@@ -70,7 +70,8 @@ the widest possible (western) audience … think network TV in prime time"*:
 11. **The dragon's breath families.** Fire, acid and gas are honest chemistry. Lightning works by
     contact only, and cold has no chemistry. Cut those two, or price them as bindings?
 12. **The goblin pick** (lens 1). The base pack ships goblins as a *people*, with no monster of the
-    same name, and their behavior comes from circumstance, never from an evil nature. Overrule it if
+    same name, and their behavior comes from circumstance, never from an evil nature. That's our pack's
+    taste, not a rule for anyone else's (§ 14a). Overrule it if
     you want the classic dungeon goblin as well, under another path.
 
 ### Facts to verify before anything ships
@@ -2793,7 +2794,12 @@ should give it another name (see *People and it*).
     Letter 210 describes his orcs in exactly such terms. Wizards of the Coast publicly moved away
     from fixed racial alignment in 2020, and its 2024 rules say *species*. The goblin carries a
     second, specific hazard: **goblins drawn as hook-nosed, gold-counting money-lenders reproduce an
-    antisemitic caricature.** Never write that.
+    antisemitic caricature.** Our base pack won't write that.
+  - ⚠ **This is our base pack's taste, never platform law** (the owner, 11-07): *"not everything is
+    something else, some things just are, and each running game community will derive from that
+    culture of their own."* The engine never denies content, each realm's polity governs its own, and
+    the host is a separate actor with its own legal floor. See
+    [bestiary-slate](../slates/builds/bestiary-slate.md) § 14a.
   - **How a realm handles it, picked:** ⭐ **the base pack ships `goblin` as a person species only,
     with no monster row of the same name.** **Lens 1 chose it.** A goblin who raids *because the
     market is closed* teaches something derivable (raid-or-trade, the reivers). A goblin who raids
