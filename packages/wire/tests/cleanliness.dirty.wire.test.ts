@@ -623,6 +623,7 @@ suite('⭐⭐ drive 16 — the ward: a boiled bandage, a kit in the flame (AC 18
     const s = await goTo(cookHandle, WARD);
     // ⭐ No `boil` verb (controllers-are-io D8c): the bandage goes IN the
     // pot, and a pot on the boil holds it at the boil itself.
+    await act(s, 'get bandage');
     const boiled = await act(s, 'put bandage in pot');
     expect(boiled, `put bandage in pot: ${boiled}`).toMatch(/pot/i);
     const flamed = await act(s, 'heat kit');

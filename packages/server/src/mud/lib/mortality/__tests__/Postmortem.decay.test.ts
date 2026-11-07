@@ -252,7 +252,7 @@ describe('⭐ the decay band is legible — and targetable', () => {
     const viewer = makeStuff(() => new Creature());
     // `perceivedKeywords` tokenizes the distinguishing form — this is what
     // makes `butcher stale` reach the body a player is looking at.
-    expect(c.perceivedKeywordsFor(viewer)).toContain('stale');
+    expect(c.perceivedKeywordsFor(viewer).join(' ')).toMatch(/\bstale\b/);
   });
 
   it('⚠ a LIVING creature says nothing — every creature is Postmortem', () => {

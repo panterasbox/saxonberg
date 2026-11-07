@@ -544,13 +544,23 @@ function perceivedKeywordsImpl(viewer: Stuff, target: Stuff): string[] {
     // form) even though the prose (`describe`) drops them, so `look vest`
     // resolves a stranger the roll-call prose names only "a crossing
     // guard". Status is not a targeting handle, so `withStatus` stays off.
-    // ⭐ The whole phrase beside its words: tokenizing splits on punctuation,
-    // so somebody known as `mary-jane` or `o'brien` must also answer to all
-    // of it (found by the drive: `throw ball at mary-jane` found nobody once
-    // the scorer read keywords alone).
-    const phrase = describeCore(viewer, target, 'distinguishing');
+    // ⭐ What you may call somebody is the WHOLE of what you perceive them as,
+    // as phrases and never loose words: the scorer already answers a single word
+    // of a phrase, one tier down. So `mary-jane` and `o'brien` answer whole (the
+    // tokenizer splits on punctuation), `mary` and `vest` still find them, and
+    // the jumper in your hand outranks the stranger who is wearing one (the
+    // drive: `order wash for jumper` bound a person).
+    const plain = describeCore(viewer, target, 'concise');
+    const worn = describeCore(viewer, target, 'distinguishing');
     const perceived = [
-      ...new Set([phrase.toLowerCase().trim(), ...GrammarApi.tokenize(phrase)]),
+      ...new Set(
+        [
+          plain.toLowerCase().trim(),
+          worn.toLowerCase().trim(),
+          GrammarApi.tokenize(plain).join(' '),
+          GrammarApi.tokenize(worn).join(' '),
+        ].filter((k) => k.length > 0),
+      ),
     ];
     // ⭐ An ANIMAL keeps its authored keywords too: a named cat is still a
     // cat, and `pet cat` must reach Mouse. A person does not — what you
