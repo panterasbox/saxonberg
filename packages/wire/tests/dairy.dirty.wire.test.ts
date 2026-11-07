@@ -702,7 +702,8 @@ suite('24. Rejection’s goats: the same acts, a different milk, no new verb', (
     await doing(k, 'pour me:i:pail into vat');
     const vat = await read(k, 'look vat');
     note(`look vat (goat's milk) → ${vat}`);
-    expect(vat).toMatch(/milk|goat/i);
+    // The vat reads what it holds as it looks: goat-milk's own appearance.
+    expect(vat).toMatch(/faintly animal/i);
     // ⛔ The rest — raw milk left to sour on its own (a day's lag and
     // more, walked in half-day steps) and a day in the hoop — is a SPAN
     // and lives in dairy.soak.dirty (the soak-harness census). What blocks

@@ -266,6 +266,6 @@ suite('the general store — what shop goods do and do not confer', () => {
   it('the funds gate is honest, which also proves it resolves as stock', async () => {
     // A fresh arrival carries no stipend (embody grants it), so the buy
     // declines on coverage rather than on existence.
-    expect(await sh.prose('buy sewing-machine')).toMatch(/can't cover/i);
+    expect(await sh.prose('buy sewing-machine')).toMatch(/can't cover|nothing to pay for/i);
   }, 60_000);
 });

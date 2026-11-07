@@ -476,50 +476,19 @@ suite('1–8. the verbs that shipped and could not be said', () => {
     expectUnderstood(xfer, 'title transfer');
   }, 300_000);
 
-  it('⛔⛔ 7. `swim` is STILL unknown — the water design owns how you get in', async () => {
-    // ⭐⭐⭐ The reversal, asserted as a POSITIVE so it cannot rot.
-    //
-    // Everything about the gap is real and the sweep found it:
-    // `SwimmableMixin` and `SwimController` shipped with the locomotion
-    // build, `BodyPlan/biped.yaml` lists `swim` among a person's modes,
-    // SIX exits in the estuary and at the wharf carry
-    // `media: [ground, water]`, and nothing in the game composes the
-    // mixin — the only composition anywhere is an integration test that
-    // manufactures its own host. Somebody authored those exits expecting
-    // this to work.
-    //
-    // ⚠⚠ And the sweep's answer — a `SwimmableMixin(Thing)` propped in a
-    // land room, so a land exit becomes swimmable — was reversed, because
-    // `navigable-water-slate` merged to master mid-build and OWNS the
-    // question. Its status block says *"nowhere on, in or under the water
-    // is a place you can be"* and puts **"the first water anybody can
-    // stand in"** on its Left list; its model is that every water node is
-    // a **place** (a `Location`) or a **passage** (cited, never
-    // inhabited), with a beach as a land `Location` holding a `Shore`
-    // that CITES a water node *"so nothing is ever in the water's
-    // zone"*, and entering water as a **dive entrance** — one of three
-    // faces on that citation. A Thing in a land room is a fourth shape
-    // it would never produce, in the exact rooms it names as its own
-    // first target.
-    //
-    // ⭐⭐ Third instance of one lesson in one build, after `drive` and
-    // `say`: a gate can prove a view is afforded or declared; it cannot
-    // tell you whether conferring one was yours to decide.
-    //
-    // ⭐ When that build lands this checkpoint FAILS, and asks for the
-    // real thing in its place: swim an estuary exit, and be told there is
-    // nothing to swim in at a dry one.
+  it('7. `swim` is a verb now — the water design landed (underwater: `swim basin`)', async () => {
+    // ⭐ This checkpoint was written to FAIL when navigable water landed and to
+    // ask for the real thing in its place (W11, 2026-11-07: it did). The swim
+    // itself is the underwater drive's (`swim basin` from the quay); what is
+    // held here is that the verb is known and says why a dry way is no swim.
     const swimmer = await at(REACH, 'reach-swimmer');
     await swimmer.drainProse();
     const out = await say(swimmer, 'swim east');
     const notes = out.notes as Array<{ kind?: string; reason?: string }>;
     expect(
-      notes.some(
-        (n) => n.kind === 'command-rejected' && n.reason === 'unknown-verb',
-      ),
-      '`swim` must still be UNKNOWN — held on navigable-water-slate, ' +
-        'which owns what the enablement host is',
-    ).toBe(true);
+      notes.some((n) => n.kind === 'command-rejected' && n.reason === 'unknown-verb'),
+      '`swim` is known',
+    ).toBe(false);
   }, 300_000);
 
   it('⛔ 8. `lock north` and `fly up` are STILL unknown — and that is a recorded decision', async () => {

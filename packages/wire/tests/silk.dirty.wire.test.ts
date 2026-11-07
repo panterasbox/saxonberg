@@ -53,6 +53,7 @@ import {
   engagementIdOf,
   isOwnedTestWorld,
   advanceWorldClock,
+  worldClockNow,
 } from '../src/harness';
 
 /**
@@ -198,7 +199,12 @@ suite.skipIf(!isOwnedTestWorld())('⭐ 0. the clock to morning — the house and
     // ⭐ Found by the first run: every seat in this chain is on shift
     // 05–19, so at game-time 0 the loft and the basin are EMPTY — no hand,
     // no reeler, nothing to drive. The cast are offstage, which is right.
-    await advance('10 hours');
+    // ⚠ To ten, not by ten hours: the file runs on a world another file left at
+    // any hour (W11: step 1's keeper was offstage after harbors, and read as a defect).
+    const now = await worldClockNow();
+    const into = ((now % 86_400) + 86_400) % 86_400;
+    const wait = into < 36_000 ? 36_000 - into : 86_400 - into + 36_000;
+    await advance(`${Math.max(1, Math.ceil(wait / 60))} minutes`);
   }, 300_000);
 });
 
