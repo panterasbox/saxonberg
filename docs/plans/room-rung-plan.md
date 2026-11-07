@@ -47,7 +47,30 @@ exists so the work survives a compaction; it retires at the next sweep.
   persisted TEMPLATE rows — check that the pack installer re-syncs a row's
   `class` from content on boot before relying on it.
 
-## The open question to settle FIRST (with the owner)
+## ⭐ Decided (owner, 2026-11-07): option 2 — rooms are one side
+
+Option 1 (a `RoomMixin` on each axis) only moves the problem: a mixin that
+does nothing of its own is shorthand for other mixins, and it lands on the
+same broad hosts. So:
+
+- **`Room extends Location`** — an interior, one of many laid out to a plan
+  (a generic bathroom row minted per unit; a holding's rooms per lot). A
+  one-of-a-kind room (the ward, the baths) is a `Room` too: a class without
+  the singleton guard backs one-of-a-kind rows (`Locale`'s own header).
+- **`PersistentRoom extends PersistentLocation`** — a kept interior.
+  `PersistentLocation` keeps its name as the general kept place.
+- **`PlumbedMixin` composes on those two and nowhere else.** The per-room
+  `plumbing: <word>` returns; a tap implies its pipe; the parcel `pipe:` is
+  reverted.
+- **It earns a class, not just a field:** a room answers its own
+  construction defaults — walls and a roof unless the row says otherwise
+  (`enclosureDefaults()` / `roofDefaults()`, the hooks `Enclosed` gives
+  classes).
+- ⚠ To confirm in W1: the platform pack's class paths
+  (`/platform/location/Room`, `PersistentRoom`); whether `DormRoom` (Duncan)
+  becomes a `PersistentRoom` subclass; and which rows are interiors.
+
+## The open question to settle FIRST (with the owner) — ANSWERED above
 
 How does "room" enter a two-axis taxonomy without a stacked name?
 
