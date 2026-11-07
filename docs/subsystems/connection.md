@@ -887,8 +887,9 @@ later is a drop, and closing one of several tabs does nothing to the body.
   entering it, and a save landing in that gap destructed the body it was about to
   hand the socket to (found by the dairy drive's `goTo`). `play` re-loads by player
   id, so a roster drawn before the destruct still lands.
-- **Signing out is not an escape.** While `signOutHold` names a reason the body
-  stays and asks again: `fighting` (bounded by `combat.maxBeats`), `dying` (the
+- **Signing out is not an escape, and a command finishes.** While `signOutHold`
+  names a reason the body stays and asks again: `acting` (a command still running
+  finishes on the body that gave it), `fighting` (bounded by `combat.maxBeats`), `dying` (the
   clock runs regardless), `in-water` (the water holds it, underwater D11),
   `carried` (somebody's arms record no place to come back to), `parked` (it
   keeps its residency veto; `onLinkdead` returns before any of this).

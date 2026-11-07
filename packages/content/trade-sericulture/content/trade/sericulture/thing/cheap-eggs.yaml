@@ -6,7 +6,7 @@ class: /trade/sericulture/thing/EggLot
 extends: /trade/sericulture/thing/egg-lot
 data:
   shortDescription: card of silkworm eggs
-  keywords: [eggs, "egg lot", lot, card, seed, silkworm, cheap, "silkworm eggs", "card of silkworm eggs"]
+  keywords: [eggs, "egg lot", lot, card, seed, cheap, "silkworm eggs", "card of silkworm eggs"]
   _strainPath: /trade/sericulture/idea/strain/valley-gold
   laidWhere: off somebody's tray down the valley
   wintered: true

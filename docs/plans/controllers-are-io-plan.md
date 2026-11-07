@@ -1139,6 +1139,14 @@ drive record. ⚠ `pnpm bench` is the *test suite's* bench and does not
 apply; its ±6 % floor is irrelevant here because the before/after is
 100×, not 6 %.
 
+⚠ **Corrected by the W10 run (2026-11-07).** The two profiles above were of a
+world of LINKDEAD bodies, so "live-card subscriptions: not evidenced" was a
+fact about the sample. With thirty CONNECTED bodies the crowd could not form at
+all (login 17 timed out), and the profile named three things this section did
+not: thirty place cards re-resolving thirty rows per arrival (N² per body that
+moves), a card's prose rendered with no hold, and a `shell.control` frame per
+verb per mover per person, which no client reads. See § Drive record.
+
 **What holds it:** the greeting **count** is deterministic and gates in
 the blocking wire run. The **timing** bound is honest only on an idle box
 (cleanliness's restart exceeded a 420 s budget on a loaded one), so it
