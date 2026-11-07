@@ -142,7 +142,7 @@ async function say(s: Session, text: string): Promise<CommandResult> {
     // a stuck session is recovered rather than cascaded.
     if (/still in flight/.test(String(err))) {
       k.close();
-      k = await Session.open(handle, { startLocation: FLOOR, wizard: true });
+      k = await Session.open(handle, { startLocation: FLOOR });
       return await k.cmd(text);
     }
     if (!/raised a PROMPT/.test(String(err))) throw err;
@@ -238,7 +238,7 @@ async function waitForDaylight(s: Session): Promise<void> {
 
 beforeAll(async () => {
   handle = uniqueHandle('blender');
-  k = await Session.open(handle, { startLocation: BANK_HALL, wizard: true });
+  k = await Session.open(handle, { startLocation: BANK_HALL });
   expectOk(await k.cmd('bank open'));
   const gov = await Session.open('founder', { startLocation: BANK_HALL });
   try {
@@ -255,7 +255,7 @@ beforeAll(async () => {
   expect(bal, 'the account must be funded before the drive starts').toBeTruthy();
   expect(Number(bal![1])).toBeGreaterThan(30);
   k.close();
-  k = await Session.open(handle, { startLocation: FLOOR, wizard: true });
+  k = await Session.open(handle, { startLocation: FLOOR });
   await waitForDaylight(k);
 }, 300_000);
 

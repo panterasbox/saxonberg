@@ -73,11 +73,6 @@ export function AuthorMixin<TBase extends MixinConstructor>(Base: TBase) {
         'platform/cmd/author/destruct.yaml',
         'platform/cmd/author/eval.yaml',
 
-        // Advancement developer harness — fabricate Transcript deeds so
-        // the derive-on-read Competence loop + band conferrals are
-        // exercisable without lane-2's real craft verbs. Wizard-gated
-        // (requiresWizard) on top of this AuthorMixin visibility.
-        'platform/cmd/author/practice.yaml',
         // Soul authoring — emote catalog mint / edit / delete / show /
         // list. Gated identically to the rest of the AuthorMixin suite:
         // non-authors don't see the verb in their recency stack.
@@ -102,11 +97,9 @@ export function AuthorMixin<TBase extends MixinConstructor>(Base: TBase) {
         // ordinary player could not ask for. It is contributed by
         // `ShelledCharacter` now, and its publishing SUBCOMMANDS carry
         // `requiresPublisher` for themselves.
-        // Banking operator surface — the central-bank faucet (mint subsidy),
-        // wage payment, and the P&L read. Afforded on the operator command
-        // surface like the rest of this suite; each carries
-        // `requiresWizard`, so a non-author sees nothing (no employment
-        // relationship yet — operator == wizard in v1).
+        // Banking surface — the reserve (the Governor's: `requiresGovernor`),
+        // the Treasury (the Minister of Finance's, below) and the house P&L
+        // (a venue's seat). Each is gated on a SEAT; none asks the wizard.
         'platform/cmd/banking/reserve.yaml',
         // The Treasury's surface (economic bootstrap D9) — the Minister of
         // Finance's book and appropriation; `requiresFinanceMinister`
@@ -123,20 +116,13 @@ export function AuthorMixin<TBase extends MixinConstructor>(Base: TBase) {
         'platform/cmd/author/pack.yaml',
         // The app-settings surface — `config [key [value]]`.
         //
-        // ⚠⚠ **Afforded here under protest: its GATE is on the wrong
-        // axis.** `config.yaml` carries `requiresWizard`, and what it
-        // actually reaches is 361 BALANCE DIALS — `freshness.muMaxPerHour`,
-        // `combat.*`, `response.*`. None of that is TypeScript access, and
-        // `requiresWizard` is the code-trust axis and nothing else. There
-        // is simply no authority modelled for "who may retune the world",
-        // and *a missing authority is not a grant* (access.md) — so the
-        // gate defaulted to the nearest strong thing to hand, which is the
-        // anti-pattern, not the answer. **The seat is missing and wants
-        // building; do not read this line as an endorsement.**
-        //
-        // Contributed anyway because the alternative is worse: the verb
-        // was reachable by NOBODY (below), and an unreachable verb hides
-        // the gate question entirely.
+        // ⭐ Gated on the Prime Minister's seat (`requiresPrimeMinister`,
+        // wizard-axis D12): retuning the world's Tier B dials is the chief
+        // executive's act, not authoring TypeScript. Tier C keys (taxes,
+        // levies, capital controls) are refused inside, naming the seat
+        // and verb that set them (`treasury set`, `reserve set`). It used
+        // to carry the wizard validator — the nearest strong thing to
+        // hand, which a missing authority is not.
         //
         // ⚠⚠ It was afforded NOWHERE until a live drive tried to type
         // it: view shipped, controller shipped, `ConfigController.test`
@@ -150,26 +136,28 @@ export function AuthorMixin<TBase extends MixinConstructor>(Base: TBase) {
         // Author-diagnostics reader — `errors list/raw/clear` over the
         // diagnostics store (compile / runtime / console). Afforded here;
         // what you see is what you hold (`DiagnosticApi.list` filters to
-        // your extents and the packs you maintain). The finer gates (raw
-        // → wizard, clear → author-of-path) are enforced in the
-        // controller / DiagnosticApi.
+        // your extents and the packs you maintain; compile rows are open).
+        // The finer gates (raw → the Prime Minister, clear → title or
+        // author-of-path) are enforced in the controller / DiagnosticApi.
         'platform/cmd/system/errors.yaml',
         // In-runtime VCS — `git status/diff/log/publish/revert` over the
-        // engine source tree. Afforded on the operator command surface
-        // like the rest of this suite; `git.yaml` carries `requiresWizard`
-        // (it version-controls engine TS), so a non-wizard sees it but
-        // can't run it. The per-affected-path `can('write')` refinement
-        // stays in `GitLogic`.
+        // source tree. Reading is open; `publish`/`revert` ask the one
+        // source-write predicate per touched file in `GitLogic` (a `.ts`:
+        // the wizard axis and title; content: title).
         'platform/cmd/system/git.yaml',
         // Test-world staging — `testharness clock|weather`. Afforded on the
         // operator surface beside `git`; the view is `testOnly`, so outside
         // a test world the loader withholds it and this key resolves to
         // nothing (the verb is unknown there, by design).
         'platform/cmd/system/testharness.yaml',
-        // The authoring CARDS. Afforded on the operator command surface
-        // like the rest of this suite; each carries `requiresWizard`
-        // (they edit engine content), so a non-wizard sees the verb but
-        // cannot run it — the parser floor, not a hidden verb.
+        // Test-world competence staging — `practice` fabricates one
+        // Transcript deed. Fabricating a record is not something anybody
+        // may do in a played world, credential or not, so it is a
+        // test-world verb (`testOnly`) like `testharness`, not a wizard's.
+        'platform/cmd/system/practice.yaml',
+        // The authoring CARDS. Opening one asks for nothing: what you can
+        // read is open, and what you can write is decided per path by the
+        // CMS routes (title; a `.ts` also asks for the wizard axis).
         'platform/cmd/author/cms.yaml',
         'platform/cmd/author/studio.yaml',
       ],

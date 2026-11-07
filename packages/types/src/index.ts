@@ -4188,6 +4188,9 @@ export interface GitPublishResult {
   pushed: boolean;
   branch: string;
   detail: string;
+  /** True when this was `--dry-run`: the split was reported and nothing
+   *  was staged, committed or pushed. */
+  dryRun?: boolean;
 }
 
 /** Result of `revert` — an additive revert commit (or a no-op). */

@@ -543,12 +543,12 @@ describe('permissions (19, 20, 21)', () => {
     expect(await registry.protectionFor(page)).toBe('moderators');
   });
 
-  it('a wizard clears every rung', async () => {
+  it('⭐ a wizard with no title clears no rung (wizard-axis D6)', async () => {
     vi.spyOn(zone, 'lookupField').mockResolvedValue(
       'moderators' as unknown as never,
     );
     pinAccess({ wizard: true, avatar: false, editor: false, moderator: false });
-    await expect(create('oak')).resolves.toBeInstanceOf(WikiPage);
+    await expect(create('oak')).rejects.toThrow();
   });
 
   it('a namespace with no seeded zone fails CLOSED above the floor', async () => {

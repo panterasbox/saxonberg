@@ -310,8 +310,8 @@ A thin gated forwarding shell over a hot-reloadable logic singleton at
   is the release window's rebuild input.
 - `DocumentApi.save(path, kind, data)` → find-or-create. **Access-gated**,
   **owner-stamped from context**, **provenance-recorded** (below). For
-  `kind: 'command-view'` it also runs the **code-naming gate** and the
-  schema check, and reloads the view (below).
+  `kind: 'command-view'` it also runs the schema check and reloads the
+  view (below).
 - `DocumentApi.delete(path)` → the same gate as `save`; no provenance row
   (a deletion is not authorship); returns whether a row existed. The
   emote catalogue's `delete` rides it.
@@ -349,20 +349,21 @@ wave 2, D11), with one base case on top:
    author-minted emote or blueprint lands on the platform's own
    `/emotes/` / `/blueprints/` branch for the same reason.
 
-### The command-view code gate
+### The command-view save
 
-A `kind: 'command-view'` save names TypeScript: its `controller:` (at
-the verb or any subcommand) and every validator / `requires` reference
-are code references. A save that changes any of them — **the set, not a
-subset**: a validator is a gate, and removing one widens dispatch just
-as adding one narrows it — requires `AccessApi.isWizard` (the code-trust
-axis, [access.md](./access.md)); so does a new view naming a controller.
-A cosmetic edit (help text, descriptions) is content authoring. Every
-command-view save is validated against the command schema at the
-chokepoint and then `CommandApi.reload(path)` puts it live — the CMS
-edits `look.yaml`'s help and `help look` changes without a restart. The
-installer never sees this gate (it writes through `PersistApi`,
-bootstrap-exempt like templates).
+A `kind: 'command-view'` save names TypeScript — its `controller:` (at
+the verb or any subcommand) and every validator / `requires` reference —
+but **naming code is content**: the save is gated by title over the
+path like any other document, and nothing asks the wizard axis. (Until
+the wizard-axis cleanup, 2026-11-05, a save that changed that set ran a
+code-naming gate, `codeFieldsChanged`, requiring `AccessApi.isWizard`;
+it was deleted with the template gate — see [access.md § The code-trust
+lockdown](./access.md). A validator is still a gate, which is why
+a view's validators are its titleholder's to change and nobody else's.) Every command-view save is validated against the command schema
+at the chokepoint and then `CommandApi.reload(path)` puts it live — the
+CMS edits `look.yaml`'s help and `help look` changes without a restart.
+The installer writes through `PersistApi`, bootstrap-exempt like
+templates.
 
 ### Provenance
 

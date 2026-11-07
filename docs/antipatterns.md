@@ -6333,3 +6333,29 @@ document kind (MR !511): one per landing at `/platform/berths<landing
 path>`, each ship writing her own line through `DocumentApi.saveBerth`,
 the lying/gone fact read off her. The whole-repo scan this rule prompted:
 [records-as-documents slate](./slates/tails/records-as-documents-slate.md).
+
+## ⛔⛔⛔ A wizard check that stands in for authority
+
+```ts
+// WRONG — the credential to hand, because no seat was modelled
+if (!(await AccessApi.isWizard(giver))) return refuse('operators only');
+
+// RIGHT — the seat the act belongs to, refused in its own words
+if (!(await AccessApi.canAtPath(giver, 'reload', path))) return refuse(`${verb} needs title over ${path}`);
+//   …or an office: `requiresPrimeMinister`, `requiresGovernor`, a position at an organization
+```
+
+**The wizard axis is AUTHORING TypeScript and nothing else** (owner,
+2026-11-05): writing a code file (`AccessApi.sourceWriteRefusal`, the one
+write predicate) and typing code into `eval`. Running code, reloading it,
+reading it, naming it from a row, letting a room, setting a dial, seeing a
+spoiler — none of those is the axis. Every leak the cleanup removed was
+added by someone with a reason: the gate was in the way, no authority
+existed for the act, and `isWizard` was the strongest thing to hand. ⭐
+**The finding, every time, is that the SEAT is missing** — build the seat
+(a committee, an office, a position) and gate on it. And nobody sits on
+every committee, not the founder, not the PM: a hole in a seat is a
+regulated, temporary warrant
+([executive-warrant-slate](./slates/builds/executive-warrant-slate.md)),
+never a backstop. `lint:wizard-axis` fails on a new site; see access.md
+§ The two account axes.

@@ -164,7 +164,7 @@ becomes a tagged `PrincipalRef`:
 | `entity` | templatePath match — the shipped proprietor edge | no |
 | `office` | `CompactApi.holdsOffice` | **yes — founder default** |
 | `seat` | `GovernmentApi.holdsSeat` | no |
-| `committee` | `CompactApi.isCommitteeMember` | **yes — pool-of-one backstop** |
+| `committee` | `CompactApi.isCommitteeMember` | **no** — the founder sits on no committee (wizard-axis D18); an organization-held extent resolves through the organization's chart, so the executive's committee passes its PM |
 | `owners` | the majority holder of an organization's cap table | only if the majority holder's own authority does |
 
 ⭐ **Staff follows the seat.** Because the authority *is* the office, a
@@ -180,9 +180,13 @@ closed with no registry, and the `committee` arm narrows with
 `PlayerApi.isAvatarStuff` before the playerId-keyed group read.
 
 ⚠ **The *founder passes* column is load-bearing, not trivia.** Only
-`office` and `committee` carry the Art. XI default, so **an authority the
-founder cannot satisfy is one nobody can satisfy on a cold box** until a
-human edits a group by hand. (The former `AccessApi.isAuthor` fallback —
+`office` carries the founder default, so **an authority the founder
+cannot satisfy is one nobody can satisfy on a cold box** until somebody is
+seated — and a group-held committee is seated by its group's OWNER (an
+office — the PM, the Registrar — the founder by default) with the
+`group` verb: a seat, never a credential. ⛔ The `committee` row used to
+say *yes* through an Art. XI pool-of-one backstop; it misread the jury
+rule and was deleted (wizard-axis cleanup, 2026-11-05). (The former `AccessApi.isAuthor` fallback —
 an always-empty `core` group — is gone since content packs wave 3; the
 operator override is the PM seat, below.)
 

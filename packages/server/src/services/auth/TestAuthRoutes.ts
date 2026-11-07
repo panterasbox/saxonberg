@@ -61,6 +61,8 @@ export class TestAuthRoutes {
             startLocation?: unknown;
             wizard?: unknown;
             parcels?: unknown;
+            committees?: unknown;
+            offices?: unknown;
           }
         | undefined;
       const handle = String(body?.handle ?? 'default');
@@ -74,7 +76,8 @@ export class TestAuthRoutes {
         typeof body?.startLocation === 'string'
           ? body.startLocation
           : undefined;
-      // Opt-in wizard conferral for wizard-path E2E (clone/eval/goto).
+      // Opt-in wizard axis — authoring TypeScript (eval, a .ts write), and
+      // nothing else: it confers NO title (wizard-axis D13).
       const wizard = body?.wizard === true;
       // ⭐ Title to stage in: `eval --parcel <it>` as its holder could
       // (TestHooks.#grantParcels — a transfer, not a bypass).
@@ -89,6 +92,24 @@ export class TestAuthRoutes {
         res
           .status(400)
           .json({ error: 'parcels must be an array of /-rooted paths' });
+        return;
+      }
+
+      // ⭐ Authority is a SEAT: the committees over these extents
+      // (`<extent>[:owner]`) and these offices (wizard-axis D13).
+      const committees = body?.committees;
+      const offices = body?.offices;
+      const isStrings = (v: unknown, rooted: boolean): boolean =>
+        Array.isArray(v) &&
+        v.every((x) => typeof x === 'string' && (!rooted || x.startsWith('/')));
+      if (committees !== undefined && !isStrings(committees, true)) {
+        res.status(400).json({
+          error: 'committees must be an array of /-rooted extents (`:owner` to own)',
+        });
+        return;
+      }
+      if (offices !== undefined && !isStrings(offices, false)) {
+        res.status(400).json({ error: 'offices must be an array of office keys' });
         return;
       }
 
@@ -121,7 +142,9 @@ export class TestAuthRoutes {
         withCharacter,
         startLocation,
         wizard,
-        (parcels as string[] | undefined) ?? []
+        (parcels as string[] | undefined) ?? [],
+        (committees as string[] | undefined) ?? [],
+        (offices as string[] | undefined) ?? []
       );
     });
 

@@ -114,22 +114,10 @@ export default class RmController extends CommandController<RmModel> {
       return;
     }
 
-    // Source-tree: wizard + slice walk both required.
-    if (!(await AccessApi.isWizard(giver))) {
-      return this.fail(
-        context,
-        "you don't have permission to remove source",
-        'access-denied',
-      );
-    }
-    const sliceResource = await AccessApi.resolveSourceFolderZone(target);
-    if (!(await AccessApi.can(giver, 'rm', sliceResource))) {
-      return this.fail(
-        context,
-        "you don't have permission to remove from that source slice",
-        'access-denied',
-      );
-    }
+    // Source-tree: the one write predicate (a code file asks for the
+    // wizard axis and title; anything else, title).
+    const refusal = await AccessApi.sourceWriteRefusal(giver, target, 'rm');
+    if (refusal) return this.fail(context, refusal, 'access-denied');
 
     // `target` is already a display path (`/server/...`) for both
     // input shapes — re-resolve it back to an absolute OS path

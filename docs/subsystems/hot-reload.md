@@ -116,6 +116,14 @@ errors, and `typecheck` checks without swapping): see
 itself never checks, because pack sync, the scheduler and the clone path
 reload modules too.
 
+⭐ **Who may reload is title, not the wizard axis** (the wizard-axis
+cleanup, 2026-11-05). Reloading runs code that is already published; it
+authors nothing. `reload` and `typecheck` carry no `requiresWizard`; each
+asks `AccessApi.canAtPath(giver, 'reload', path)` over the target's
+class/template path — the question `clone` asks of a kind — and a refusal
+is `access-denied` listing the extents the giver holds. See
+[access.md § The code-trust lockdown](./access.md).
+
 ## Integration
 
 ### `StuffApi.clone` (the only HMR-aware site)
@@ -337,8 +345,8 @@ the just-constructed instance (which was constructed from the
 class that was registered at that moment), so direct instance
 dispatch is fine.
 
-`SchedulerApi.reloadActivity(type)` rounds out the surface as a
-wizard convenience: it resolves the activity class's source path
+`SchedulerApi.reloadActivity(type)` rounds out the surface as an
+author convenience: it resolves the activity class's source path
 via `ModuleApi.lookup`, strips the `#exportName` suffix, and calls
 `HotReloadApi.reload`. Intended for use via the `eval` verb until
 a dedicated reload verb ships.
@@ -368,12 +376,13 @@ a dedicated reload verb ships.
   `dispatchOnComplete` forces `onAbort('thrown')` so timers and
   slot state get cleared, and the engagement degrades cleanly.
 
-**Future: drain-and-reload wizard verb.** Composes
+**Future: drain-and-reload verb.** Composes
 `SchedulerApi.cancelByType(actor, type)` (per actor) +
 `SchedulerApi.reloadActivity(type)` for the case where new code
 can't safely resume from old engagement state. The infrastructure
 exists in v1; the verb is a small future addition tied to the
-wizard subsystem's `'hotreload'` `AbortReason` augmentation.
+`'hotreload'` `AbortReason` augmentation (gated like `reload`, by
+title — not the wizard axis).
 
 See [activity.md § The Scheduler — Lifecycle dispatch
 (HMR-aware)](./activity.md) for the full producer-side framework.

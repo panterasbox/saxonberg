@@ -204,18 +204,18 @@ describe('DiagnosticApi.list', () => {
     );
   });
 
-  it('a nobody (holding nothing) gets [] — no error, nothing to see', async () => {
+  it('a nobody (holding nothing) sees only the compile rows — reading source is open (wizard-axis D14)', async () => {
     vi.spyOn(AccessApi, 'heldExtents').mockResolvedValue([]);
-    expect(await DiagnosticApi.list({})).toEqual([]);
+    expect((await DiagnosticApi.list({})).map((r) => r.source)).toEqual(['compile']);
   });
 
-  it('a holder sees only rows under the extents they hold', async () => {
+  it('a holder sees the runtime rows under the extents they hold', async () => {
     vi.spyOn(AccessApi, 'heldExtents').mockResolvedValue(['/mud/lib/lounge']);
-    const rows = await DiagnosticApi.list({});
+    const rows = await DiagnosticApi.list({ source: 'runtime' });
     expect(rows.map((r) => r.path)).toEqual(['/mud/lib/lounge/Bar.ts']);
   });
 
-  it('a wizard holding nothing sees the compile rows (the code-trust axis), a wizard holder sees both', async () => {
+  it('the wizard axis changes nothing a reader sees', async () => {
     vi.spyOn(AccessApi, 'heldExtents').mockResolvedValue([]);
     vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(true);
     expect((await DiagnosticApi.list({})).map((r) => r.source)).toEqual(['compile']);
@@ -234,24 +234,16 @@ describe('DiagnosticApi.list', () => {
     const registry = { managed: () => ({ findByName: async () => ({ _id: 'g-lounge' }) }) };
     vi.spyOn(GroupApi, 'registry').mockResolvedValue(registry as never);
     const member = vi.spyOn(GroupApi, 'isMember').mockResolvedValue(true);
-    expect((await DiagnosticApi.list({})).map((r) => r.channel)).toEqual(['pack.lounge']);
+    expect((await DiagnosticApi.list({ source: 'runtime' })).map((r) => r.channel)).toEqual(['pack.lounge']);
     expect(member).toHaveBeenCalledWith('/platform/agent/Avatar/alice', 'managed:g-lounge');
     member.mockResolvedValue(false);
-    expect(await DiagnosticApi.list({})).toEqual([]);
+    expect(await DiagnosticApi.list({ source: 'runtime' })).toEqual([]);
   });
 
-  it('redacts compile rows from non-wizards', async () => {
-    const rows = await DiagnosticApi.list({});
-    expect(rows.every((r) => r.source !== 'compile')).toBe(true);
-    expect(rows).toHaveLength(1);
-    // Explicitly asking for compile as a non-wizard yields nothing.
-    expect(await DiagnosticApi.list({ source: 'compile' })).toEqual([]);
-  });
-
-  it('a wizard sees compile rows too', async () => {
-    vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(true);
+  it('a non-wizard sees compile rows (no redaction — wizard-axis D14)', async () => {
     const rows = await DiagnosticApi.list({});
     expect(rows).toHaveLength(2);
+    expect(await DiagnosticApi.list({ source: 'compile' })).toHaveLength(1);
   });
 
   it('filters by channel', async () => {
@@ -281,10 +273,17 @@ describe('DiagnosticApi.clear', () => {
     expect(store).toHaveLength(1);
   });
 
-  it('lets a wizard clear anything', async () => {
-    vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(true);
+  it('lets a title holder over the path clear it', async () => {
+    vi.spyOn(AccessApi, 'canAtPath').mockResolvedValue(true);
     vi.spyOn(ProvenanceApi, 'authorOf').mockResolvedValue('/platform/agent/Avatar/bob');
     const n = await DiagnosticApi.clear('/mud/lib/lounge/Bar.ts');
     expect(n).toBe(1);
+  });
+
+  it('⭐ refuses a wizard who neither holds the path nor authored it (wizard-axis D14)', async () => {
+    vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(true);
+    vi.spyOn(AccessApi, 'canAtPath').mockResolvedValue(false);
+    vi.spyOn(ProvenanceApi, 'authorOf').mockResolvedValue('/platform/agent/Avatar/bob');
+    expect(await DiagnosticApi.clear('/mud/lib/lounge/Bar.ts')).toBe(-1);
   });
 });

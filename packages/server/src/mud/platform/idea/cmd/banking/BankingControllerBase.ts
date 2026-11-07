@@ -18,6 +18,11 @@ import { PlayerApi } from "../../../../api/player";
 import type { Business } from "../../../../api/employment";
 import type { Stuff } from "../../../../lib/stuff/Stuff";
 import type { Bank } from "../../../../lib/banking/Bank";
+import { AppApi } from "../../../../api/app";
+import { AppSettingKeys } from "../../../../lib/config/AppSettings";
+import { Office } from "../../../../lib/governance/Office";
+import { MessageApi } from "../../../../api/message";
+import { Mml } from "../../../../api/mml";
 
 export abstract class BankingControllerBase<
   T extends CommandModel = CommandModel,
@@ -44,6 +49,57 @@ export abstract class BankingControllerBase<
     const raw = err instanceof Error ? err.message : String(err);
     const bare = raw.replace(/^[A-Z][A-Za-z]*(Logic|Api)\.[a-zA-Z]+: /, '');
     return bare.charAt(0).toUpperCase() + bare.slice(1);
+  }
+
+  /**
+   * ⭐ **A seat sets its own dials, on the record** (wizard-axis D11). The
+   * one write path for a Tier C settings key: `treasury set` (the Minister
+   * of Finance) and `reserve set` (the Governor) both land here. Admits
+   * `row` iff `AppApi.seatFor(row) === seat` (or `alsoAdmits(row)` — the
+   * Governor's `reserve.*` Schedule rows); refuses any other key with
+   * `wrong-seat`, naming who does set it. On success it writes the value
+   * and records the change as the officer's DEED — *"As Minister of
+   * Finance, set `banking.salesTaxRate` to 0.1; it was 0.08."* — readable
+   * with `chronicle`.
+   */
+  protected async setSeatDial(
+    context: CommandContext,
+    rowIn: string | undefined,
+    valueIn: string | undefined,
+    seat: string,
+    alsoAdmits: (row: string) => boolean = () => false,
+  ): Promise<void> {
+    const giver = context.commandGiver;
+    const row = (rowIn ?? "").trim();
+    const value = (valueIn ?? "").trim();
+    const tell = (text: string): void => {
+      MessageApi.scene(giver).topic("act.deed").toSelf(Mml.text(text)).send();
+    };
+    const known = (Object.values(AppSettingKeys) as string[]).includes(row);
+    if (!known) {
+      tell(`No such row in the Schedule: \`${row}\`.`);
+      context.note({ kind: "controller-rejected", reason: "unknown-row", detail: row });
+      return;
+    }
+    if (AppApi.seatFor(row) !== seat && !alsoAdmits(row)) {
+      const detail = `\`${row}\` is not this seat's to set: ${AppApi.whoSets(row)}.`;
+      tell(detail);
+      context.note({ kind: "controller-rejected", reason: "wrong-seat", detail });
+      return;
+    }
+    if (!value) {
+      tell("Set it to what?");
+      context.note({ kind: "controller-rejected", reason: "bad-value", detail: row });
+      return;
+    }
+    const before = AppApi.setting(row);
+    await AppApi.setSetting(row, value);
+    const office = Office.byKey(seat)?.getDisplayName() ?? seat;
+    const text = `As ${office}, set \`${row}\` to ${value}; it was ${before || "unset"}.`;
+    if (MixinApi.isPersona(giver)) {
+      await giver.recordDeed({ text, tags: ["governance", "tier-c", row] });
+    }
+    tell(`The Schedule now reads \`${row} = ${value}\` (was \`${before || "unset"}\`). On the record.`);
   }
 
   /** The affording bank counter, else the BankMixin host present in the room. */

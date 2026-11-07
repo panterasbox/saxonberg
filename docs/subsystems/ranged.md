@@ -413,8 +413,8 @@ itself (AC 23, 24, 25, 47, and the rest of 46).
 
 ⚠ A second bootstrap blocked the drive before that one, and it is worth
 recording because it is not what anyone guesses: `goto` and `clone` do
-**not** consult `isWizard`. That axis is code-trust (eval / reload /
-source writes). They call `AccessApi.can`, which resolves untitled
+**not** consult `isWizard`. That axis is authoring TypeScript (eval /
+writing a code file), nothing else. They call `AccessApi.can`, which resolves untitled
 content to the `core` group — and `core` is minted empty, has no env
 seed, and is owned by `'system'`, so `group add` refuses everyone. A
 fresh database has nobody who can author anything.

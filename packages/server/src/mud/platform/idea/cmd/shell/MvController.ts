@@ -92,34 +92,15 @@ export default class MvController extends CommandController<MvModel> {
       return;
     }
 
-    // Source-tree mv. Both endpoints are WRITE — `mv` REMOVES source
-    // after write — so src-side slice walk must also be a write check
-    // (wizard + slice walk on src and dst).
-    if (!(await AccessApi.isWizard(giver))) {
-      return this.fail(
-        context,
-        "you don't have permission to write source",
-        'access-denied',
-      );
-    }
+    // Source-tree mv. Both endpoints are mutations — `mv` REMOVES the
+    // source after writing the destination — so each asks the one write
+    // predicate (a code file: the wizard axis and title; else title).
     const srcLogical = SourceTreeApi.joinLogical(cwd, model.src, { home });
     const dstLogical = SourceTreeApi.joinLogical(cwd, model.dst, { home });
-    const srcSlice = await AccessApi.resolveSourceFolderZone(srcLogical);
-    if (!(await AccessApi.can(giver, 'rm', srcSlice))) {
-      return this.fail(
-        context,
-        "you don't have permission to move from that source slice",
-        'access-denied',
-      );
-    }
-    const dstSlice = await AccessApi.resolveSourceFolderZone(dstLogical);
-    if (!(await AccessApi.can(giver, 'write', dstSlice))) {
-      return this.fail(
-        context,
-        "you don't have permission to move to that source slice",
-        'access-denied',
-      );
-    }
+    const refusal =
+      (await AccessApi.sourceWriteRefusal(giver, srcLogical, 'rm')) ??
+      (await AccessApi.sourceWriteRefusal(giver, dstLogical, 'write'));
+    if (refusal) return this.fail(context, refusal, 'access-denied');
 
     let absSrc: string, absDst: string;
     try {

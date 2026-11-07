@@ -109,7 +109,7 @@ async function daylight(s: Session): Promise<void> {
 let me: Session;
 
 beforeAll(async () => {
-  me = await Session.open(uniqueHandle('sweep'), { startLocation: BANK_HALL, wizard: true });
+  me = await Session.open(uniqueHandle('sweep'), { startLocation: BANK_HALL });
 }, 600_000);
 
 afterAll(() => {
@@ -195,7 +195,7 @@ suite('4. the price index covers its basket', () => {
 
 suite('5. the Kestrel at the city is fouled', () => {
   it('⭐ `analyze water` at the confluence reads the outfall', async () => {
-    const s = await Session.open(uniqueHandle('wader'), { startLocation: RIVER_BANK, wizard: true });
+    const s = await Session.open(uniqueHandle('wader'), { startLocation: RIVER_BANK });
     try {
       await daylight(s);
       const said = squash(await s.prose('analyze water'));

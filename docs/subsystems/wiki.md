@@ -230,10 +230,17 @@ Derived from identity, never stored:
 
 | level | who |
 |---|---|
-| 3 | a wizard |
+| 3 | may mutate the `/wiki` **root** zone (its `'owner'` role — the `wiki-editors` moderators) |
 | 2 | may mutate the namespace zone (its `'owner'` role) |
 | 1 | may edit in the namespace — **or is simply a player** |
 | 0 | a guest, and an unresolved principal |
+
+⭐ **Level 3 is the encyclopedia's own capability, not the wizard axis**
+(the wizard-axis cleanup, 2026-11-05): `ceilingFor` asks
+`AccessApi.canMutateZone(actor, <the /wiki root zone>)`. A wizard with no
+wiki title reads at 1 like any player, and `WikiRegistry.satisfies` no
+longer has a "a wizard clears every rung" rung — the wizard axis is
+authoring TypeScript and confers no content authority; title decides.
 
 #### ⭐ Why an ordinary player sits at 1
 
@@ -591,7 +598,7 @@ using it.
 ### ⚠ The guest floor — beneath every rung
 
 **A guest may read the wiki and may not write to it.** Checked before
-the ladder, the *wizard* rung included, because the objection is to the
+the ladder, the moderators' rung included, because the objection is to the
 **identity**, not the permission — no amount of authority makes an
 unattributable edit attributable.
 

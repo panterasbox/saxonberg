@@ -126,11 +126,14 @@ export class GitApi {
    * may write, commit them `--author`'d to the acting avatar, and push the
    * current branch. Files the actor may not write are left dirty
    * (`skippedPaths`). A push rejection (protected branch / non-fast-forward)
-   * leaves the commit durable locally (`pushed:false`, re-pushable). Write
-   * tier.
+   * leaves the commit durable locally (`pushed:false`, re-pushable).
+   * `dryRun` reports the split and touches nothing. Write tier.
    */
-  public static publish(message: string): Promise<GitPublishResult> {
-    return logic().publish(message);
+  public static publish(
+    message: string,
+    opts?: { dryRun?: boolean }
+  ): Promise<GitPublishResult> {
+    return logic().publish(message, opts);
   }
 
   /**

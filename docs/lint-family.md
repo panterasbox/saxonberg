@@ -1690,6 +1690,19 @@ configured**.
   rather than by an argument?) stays a review judgment, because no
   regex can make it — `BankingApi.accountsOf()` looks unkeyed and is
   not.
+- **`lint:wizard-axis`** — **the wizard axis is AUTHORING TypeScript and
+  nothing else** (owner, 2026-11-05). Every non-test file under the server
+  `src/` and every pack's `src/`/`content/` that names `isWizard`,
+  `requiresWizard`, `isArchwizard` or `requiresArchwizard` — in code OR
+  prose — is listed in `scripts/wizard-axis-allowlist.txt` with its count
+  and a reason from a closed set (`axis` · `subject` · `definition` · `ux`
+  · `prose`). The list only shrinks: an unlisted file, a rise, a fall and a
+  vanished file all fail (the `lint:test-content` rule, with counts).
+  ⭐ The one write predicate is `AccessApi.sourceWriteRefusal`; anything
+  else — reload, reading, letting a room, setting a dial — is decided by
+  a seat or by nothing, and a new wizard check is wrong by shape. Prose
+  counts so a stale comment saying `requiresWizard` is rewritten rather
+  than carried.
 
 ## Tests
 

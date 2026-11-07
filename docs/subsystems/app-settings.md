@@ -71,9 +71,10 @@ AppApi.setSetting(key, value): Promise    // write + persist + refresh cache
   value is present, so reads just hit the cache — no code-side fallback; an
   unseeded/unknown key reads `""`.
 - **Reads are ungated**: the internal consumers (evac, avatar-mint) are
-  engine code, not developers. **`setSetting` is reached only through the
-  developer-gated `config` verb**; the gate lives at the verb (its
-  `requiresWizard` validator), not duplicated on the Api.
+  engine code, not developers. **`setSetting` is reached only through a
+  seat's verb** — `config` (the Prime Minister's) for a Tier B key,
+  `treasury set` / `reserve set` for a Tier C one (§ The tiers); the gate
+  lives at the verb, not duplicated on the Api.
 - **`setSetting` is self-refreshing**: the cache holds the very instance it
   mutates and saves, so there is no separate re-read.
 - **No boot/seed/warm method.** `AppApi` is the home for app-level
@@ -117,8 +118,11 @@ cache (or an empty instance if nothing's been installed/set); it does
 ## The `config` verb
 
 Single-token `config`, in the `system` command category, gated by the
-`/lib/command/validators/requiresWizard` validator (the `eval`/`reload`
-precedent — operator/TS-escape tier):
+`/lib/command/validators/requiresPrimeMinister` validator — the world's
+Tier B dials are the chief executive's (wizard-axis cleanup D12, 2026-11-05:
+setting a dial is not authoring TypeScript, so the wizard validator it
+used to carry was the wrong axis). A Tier C key is refused inside with
+`tier-c`, naming its seat and verb:
 
 ```
 config                                       list every setting + current value
@@ -224,16 +228,36 @@ a code floor equal to the shipped value; an unseeded row reads as absent
 (`Number("")` is 0, which is a value, not an absence — the dial helpers
 check the text first). See [credit.md](./credit.md).
 
-## Deferred
+## The tiers — every key carries one
 
-A **`treasury set`** for the fiscal rows (economic bootstrap): the
-Governor writes `reserve.*` through `reserve set`, which refuses any
-other prefix — the independence clause — and the treasury's own rows
-(`treasury.*`, `estate.*`, `employment.absenceVacatesAfterDays`) have no
-equivalent seat-gated writer, so today they move only through the wizard
-`config` verb. The seat that spends should be able to set its own dials
-without being able to touch the rules, which is the same split one layer
-over.
+Every key in `AppSettingKeys` is tagged in **`AppSettingTiers`** (beside
+the vocabulary, `lib/config/AppSettings.ts`) with its entrenchment tier
+([measurement.md § Layer 3](../measurement.md)): `B` — set by whoever
+ships the code, through the Prime Minister's `config` — or `C:<office>`,
+a political dial the polity sets through that seat's own verb
+(`SettingTierVerbs`). ⭐ **Totality is the compiler's**: the record is a
+`Record<keyof typeof AppSettingKeys, SettingTier>`, so a key added to the
+vocabulary without a tier is a type error and the build fails — a dial is
+classified deliberately, never by silence. `AppApi.tierOf(key)`,
+`AppApi.seatFor(key)` and `AppApi.whoSets(key)` read it (an unregistered
+key, the open namespace, is `B`).
+
+| tier | keys | set by |
+|---|---|---|
+| `C:minister-of-finance` | `banking.salesTaxRate`, `banking.localTaxShare`, `banking.corpoRoyaltyRate`, `retail.consignment.commissionRate`, `treasury.arrivalPrincipal`, `treasury.openingAdvance` | `treasury set <row> <value>` |
+| `C:central-bank-governor` | `banking.withdrawalDailyCap`, `banking.withdrawalDailyCapCircle` (capital controls) | `reserve set <row> <value>` (which also writes the Schedule's `reserve.*` rows) |
+| `B` | everything else | `config <key> <value>` |
+
+Fiscal is the Minister of Finance's, monetary the Governor's; each verb
+refuses the other's keys with `wrong-seat`, naming who sets them — the
+independence clause in code. A Tier C set lands in the officer's
+**chronicle** as a deed (*"As Minister of Finance, set
+`banking.salesTaxRate` to 0.1; it was 0.08."*), the governance record
+(`BankingControllerBase.setSeatDial`). The `reserve.*` Schedule rows stay
+`B`, written by the Governor's `reserve set`, though they are arguably the
+reserve's mandate (Tier C) — an open the owner may decide.
+
+## Deferred
 
 A richer typed schema (per-setting value types, validation, migration — à
 la `SettingsSchemaEntry`); more app-wide knobs (MOTD, world feature flags,

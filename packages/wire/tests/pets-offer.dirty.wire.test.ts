@@ -80,7 +80,7 @@ beforeAll(async () => {
   // bootstrap: the reserve no longer issues coin by hand — the override
   // is the one hand-typed number, and it lands in an account, on the
   // record, with its reason). Then spent — the real economy.
-  let me = await Session.open(handle, { startLocation: BANK, wizard: true });
+  let me = await Session.open(handle, { startLocation: BANK });
   expectOk(await me.cmd('bank open'));
   const gov = await Session.open('founder', { startLocation: BANK });
   try {
@@ -89,10 +89,16 @@ beforeAll(async () => {
     gov.close();
   }
   me.close();
-  me = await Session.open(handle, { startLocation: STORE, wizard: true });
+  me = await Session.open(handle, { startLocation: STORE });
   for (let i = 0; i < 3; i++) expectOk(await me.cmd('buy rations'));
   me.close();
-  keeper = await Session.open(handle, { startLocation: LANE, wizard: true });
+  // The keeper reads and stages the cat by `eval --parcel` Hinkley Hills:
+  // the wizard axis plus a SEAT on its committee (wizard-axis D13).
+  keeper = await Session.open(handle, {
+    startLocation: LANE,
+    wizard: true,
+    committees: ['/world/terminus/hinkley-hills'],
+  });
   // ⚠ Other files' keepers stand on this lane too, linkdead, and to the
   // cat a body is a body: it will not eat off the ground with a stranger
   // over it, and an animal waiting on food does not beg. So every

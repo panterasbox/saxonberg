@@ -815,6 +815,12 @@ The genuinely political layer — the
 Everything here is *meant* to change, and a build that hardcodes one of
 these has made a political decision by accident.
 
+⭐ The settings keys that ARE Tier C are tagged in code — `AppSettingTiers`
+beside the key vocabulary, total by the compiler — and each is set only
+through its seat's verb, on the record (the fisc's through the Minister of
+Finance's `treasury set`, the capital controls through the Governor's
+`reserve set`; [app-settings.md § The tiers](./subsystems/app-settings.md)).
+
 - monetary policy — the wage rate, the reserve's mandate
 - taxes and levies
 - land use, zoning, the allowance cascade

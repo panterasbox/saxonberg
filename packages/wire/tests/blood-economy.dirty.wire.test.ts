@@ -60,7 +60,13 @@ async function beat(room: string, keyword: string, brain: string): Promise<void>
 }
 
 beforeAll(async () => {
-  wiz = await Session.open(uniqueHandle('bloodwiz'), { startLocation: WARD, wizard: true });
+  // eval on the infirmary — seated on the terminus committee, not a
+  // credential (wizard-axis D13).
+  wiz = await Session.open(uniqueHandle('bloodwiz'), {
+    startLocation: WARD,
+    wizard: true,
+    committees: ['/world/terminus'],
+  });
   patient = await Session.open(uniqueHandle('bloodpt'), { startLocation: WARD });
   // Proficient nursing so `analyze bank` reads the custody trail.
   await practise(wiz, 'nursing', 8);

@@ -49,7 +49,7 @@ export default class UnleaseController extends LettingController<UnleaseModel> {
     if (!owner || !(await UnleaseController.mayLet(actor))) {
       return this.fail(
         context,
-        "You're not authorized to end Seznick House leases.",
+        "Only the letting agency's staff or a member of the building's committee may end Seznick House leases.",
         'not-authorized',
       );
     }

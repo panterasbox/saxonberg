@@ -7,9 +7,10 @@
  * `reconcilePerpetualImpl`) — and the Governor GOVERNS BY TUNING: bare
  * `reserve` is the dashboard (the three numbers, per currency, never
  * totalled), `reserve supply` the conservation audit, `reserve set <row>
- * <value>` the Schedule's `reserve.*` rows (refuses any other prefix — the
- * independence clause in code: the treasury seat cannot reach these, and
- * `config` stays the operator's code-trust act), and `reserve override
+ * <value>` the Schedule's `reserve.*` rows and the Governor's Tier C keys
+ * (the capital controls), on the record (refuses any other key — the
+ * independence clause in code: the treasury seat cannot reach these, nor
+ * this seat the fisc's; wizard-axis D11), and `reserve override
  * <amount> to <target> "<reason>"` the ONE hand-typed number left: a mint
  * the ledger records as the officer's act with the officer's reason.
  *
@@ -113,38 +114,15 @@ export default class ReserveController extends BankingControllerBase<ReserveMode
    * is the independence clause: the seat that spends (the Minister of
    * Finance) cannot tune the rules, and the seat that tunes cannot spend.
    */
+  /**
+   * The Governor's dials: the Schedule's `reserve.*` rows and every Tier C
+   * key whose seat is the Governor (the capital controls). Any other key
+   * is refused `wrong-seat`, naming who sets it (wizard-axis D11).
+   */
   private async set(model: ReserveModel, context: CommandContext): Promise<void> {
-    const giver = context.commandGiver;
-    const row = (model.row ?? "").trim();
-    const value = (model.value ?? "").trim();
-    if (!row.startsWith(RESERVE_PREFIX)) {
-      MessageApi.scene(giver)
-        .topic(TOPIC)
-        .toSelf(Mml.compose`The Governor writes the reserve's rows and no others: \`${RESERVE_PREFIX}…\`.`)
-        .send();
-      context.note({ kind: "controller-rejected", reason: "not-a-reserve-row", detail: row });
-      return;
-    }
-    const known = Object.values(AppSettingKeys).includes(row as never);
-    if (!known) {
-      MessageApi.scene(giver)
-        .topic(TOPIC)
-        .toSelf(Mml.compose`No such row in the Schedule: \`${row}\`.`)
-        .send();
-      context.note({ kind: "controller-rejected", reason: "unknown-row", detail: row });
-      return;
-    }
-    if (!value) {
-      MessageApi.scene(giver).topic(TOPIC).toSelf(Mml.compose`Set it to what?`).send();
-      context.note({ kind: "controller-rejected", reason: "bad-value", detail: row });
-      return;
-    }
-    const before = AppApi.setting(row);
-    await AppApi.setSetting(row, value);
-    MessageApi.scene(giver)
-      .topic(TOPIC)
-      .toSelf(Mml.compose`The Schedule now reads \`${row} = ${value}\` (was \`${before || "unset"}\`).`)
-      .send();
+    await this.setSeatDial(context, model.row, model.value, "central-bank-governor", (row) =>
+      row.startsWith(RESERVE_PREFIX),
+    );
   }
 
   /**

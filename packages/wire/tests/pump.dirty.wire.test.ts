@@ -225,12 +225,12 @@ function note(line: string): void {
 beforeAll(async () => {
   handle = uniqueHandle('pumper');
   // The barometer is in Duncan Hall's lobby; nothing in the valley sells one.
-  k = await Session.open(handle, { startLocation: LOBBY, wizard: true });
+  k = await Session.open(handle, { startLocation: LOBBY });
   await say(k, 'get barometer');
   await k.drainProse();
   expect(await carried(k), 'a barometer from the lobby').toMatch(/barometer/i);
   k.close();
-  k = await Session.open(handle, { startLocation: YARD, wizard: true });
+  k = await Session.open(handle, { startLocation: YARD });
 }, 300_000);
 
 afterAll(() => {
@@ -303,7 +303,7 @@ suite('3. measure pressure at the yard, then up at Hinkley', () => {
     expect(lowKPa!).toBeLessThan(115);
 
     k.close();
-    k = await Session.open(handle, { startLocation: HINKLEY, wizard: true });
+    k = await Session.open(handle, { startLocation: HINKLEY });
     const high = await read(k, 'measure pressure');
     const highKPa = kPaOf(high);
     note(`measure pressure at Hinkley (130 m) → ${high.trim()}`);
@@ -317,7 +317,7 @@ suite('3. measure pressure at the yard, then up at Hinkley', () => {
     note(`(yard ${lowKPa} kPa vs Hinkley ${highKPa} kPa as an untrained reader saw them)`);
 
     k.close();
-    k = await Session.open(handle, { startLocation: YARD, wizard: true });
+    k = await Session.open(handle, { startLocation: YARD });
     await k.drainProse();
   });
 });
@@ -552,7 +552,7 @@ const SMITHY = '/world/terminus/hearthworks/location/smithy';
 suite('8. the intake draws real power; the aqueduct draws none', () => {
   it('⭐⭐ analyze water the intake reads the kilowatts — and says it is short of them', async () => {
     k.close();
-    k = await Session.open(handle, { startLocation: BANK, wizard: true });
+    k = await Session.open(handle, { startLocation: BANK });
     await daylight();
     const intake = await read(k, 'analyze water intake');
     note(`analyze water intake → ${intake.replace(/\s+/g, ' ').trim()}`);
@@ -582,7 +582,7 @@ suite('9. stopping the city pump is observable from a tap uphill', () => {
     expect(refusedFor(off.r), `switch off: ${JSON.stringify(off.r.notes)}`).toBeNull();
 
     k.close();
-    k = await Session.open(handle, { startLocation: SQUARE, wizard: true });
+    k = await Session.open(handle, { startLocation: SQUARE });
     const looked = await read(k, 'look standpipe');
     note(`look standpipe (pump off) → ${looked.replace(/\s+/g, ' ').trim()}`);
     expect(looked).toMatch(/Nothing comes out of it: it has been shut off\./);
@@ -594,12 +594,12 @@ suite('9. stopping the city pump is observable from a tap uphill', () => {
     expect(report).toMatch(/NOT delivering: it has been shut off \(off\)/);
 
     k.close();
-    k = await Session.open(handle, { startLocation: BANK, wizard: true });
+    k = await Session.open(handle, { startLocation: BANK });
     const on = await act(k, 'switch pump on');
     expect(refusedFor(on.r), `switch on: ${JSON.stringify(on.r.notes)}`).toBeNull();
 
     k.close();
-    k = await Session.open(handle, { startLocation: SQUARE, wizard: true });
+    k = await Session.open(handle, { startLocation: SQUARE });
     const wet = await act(k, 'fill pail from standpipe');
     note(`fill pail from standpipe (pump on) → ${wet.said.trim()}`);
     expect(wet.said).toMatch(/you fill/i);
@@ -613,7 +613,7 @@ suite('9. stopping the city pump is observable from a tap uphill', () => {
 suite('10. pump forge reads and behaves exactly as before', () => {
   it('⭐ the bellows answers in its shipped sentences', async () => {
     k.close();
-    k = await Session.open(handle, { startLocation: SMITHY, wizard: true });
+    k = await Session.open(handle, { startLocation: SMITHY });
     const { r, said } = await act(k, 'pump forge');
     note(`pump forge → ${refusedFor(r) ?? 'ok'} · ${said.trim()}`);
     expect(r.notes.find((n) => n.kind === 'command-rejected')).toBeUndefined();
@@ -637,7 +637,7 @@ suite('10. pump forge reads and behaves exactly as before', () => {
 suite('13. the Hinkley tank still runs on gravity, with no pump', () => {
   it('⭐ its fifteen metres of head still explain it', async () => {
     k.close();
-    k = await Session.open(handle, { startLocation: LANE, wizard: true });
+    k = await Session.open(handle, { startLocation: LANE });
     const tank = await read(k, 'analyze water tank');
     note(`analyze water tank (Hinkley) → ${tank.replace(/\s+/g, ' ').trim()}`);
     expect(tank).not.toMatch(/pump/i);

@@ -1,5 +1,5 @@
 /**
- * PracticeController — the developer harness that fabricates one
+ * PracticeController — the test-world harness that fabricates one
  * Transcript deed, standing in for the real (lane-2) craft verbs so the
  * advancement loop (practice → Transcript → derived band → conferred verb)
  * is exercisable on its own branch.
@@ -7,8 +7,9 @@
  * `practice <discipline> [difficulty] [outcome]`. Records a single
  * `{discipline, difficulty, outcome}` deed on the actor's own Transcript
  * via the actor's `creditDeed` (which re-evaluates conferrals), then
- * echoes the resulting competence band. Developer-gated (the yaml's
- * `requiresWizard` validator) on top of the AuthorMixin visibility.
+ * echoes the resulting competence band. A test-world verb (`testOnly` +
+ * `requiresTestWorld`, the `testharness` shape): fabricating a deed is
+ * nothing anybody may do in a played world, so no credential admits it.
  */
 
 import { CommandController } from "../../../../lib/command/CommandController";
