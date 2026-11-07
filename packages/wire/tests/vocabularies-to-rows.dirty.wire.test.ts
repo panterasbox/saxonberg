@@ -161,8 +161,9 @@ suite('smell and taste', () => {
     it('5. a keen species reads what a person cannot', async () => {
       const person = await open('person', { startLocation: LOBBY, ...WIZARD });
       const keen = await open('keen', { startLocation: LOBBY, ...WIZARD });
-      await hand(keen, ORCUS).catch(() => undefined); // only to make the row resident
-      await evalOn(keen, 'me', `this._speciesPath = "${ORCUS}"`);
+      // Enrollment can't pick a species from the harness, so the row is loaded and
+      // the body pointed at it.
+      await evalOn(keen, 'me', `return (await StuffApi.singleton("${ORCUS}"), this._speciesPath = "${ORCUS}")`);
       // A faint smell, staged at the distance a person loses it.
       await hand(person, '/trade/distilling/thing/whiskey');
       expect(await evalOn(keen, 'me', 'return this.getSpecies().getOlfactoryProfile().acuity')).toMatch(/keen/);
@@ -242,7 +243,7 @@ suite('smell and taste', () => {
     it('6. a little sulfur leads a lot of grain', async () => {
       const s = await open('sulfur', { startLocation: LOBBY, ...WIZARD });
       await hand(s, '/stuff/thing/lead-pig', { _materialPath: '/stuff/idea/material/mineral/sulfur', mass: 1 });
-      await hand(s, '/stuff/thing/cutlery/table-knife', { _materialPath: '/trade/farming/idea/material/food/barley-grain', mass: 50 });
+      await hand(s, '/trade/distribution/thing/malt-sack', { interiorMaterial: '/trade/farming/idea/material/food/barley-grain', interiorAmount: 50 });
       const line = await say(s, 'measure aroma me with gas');
       expect(line.indexOf('sulfur'), line).toBeLessThan(line.indexOf('grain'));
       expect(line.indexOf('sulfur'), line).toBeGreaterThanOrEqual(0);
@@ -286,17 +287,19 @@ suite('smell and taste', () => {
     });
 
     it('14. the word without the name; one source and it is named; dark and it is not', async () => {
-      const room = LOBBY;
-      const a = await open('hand-a', { startLocation: room, ...WIZARD });
-      const b = await open('hand-b', { startLocation: room, ...WIZARD });
-      for (const s of [a, b]) await evalOn(s, 'me', 'this.soil("manure", 1, null, "body.torso")');
-      const viewer = await open('viewer', { startLocation: room });
-      const both = await say(viewer, 'analyze aroma');
+      const viewer = await open('viewer', { startLocation: LOBBY, ...WIZARD });
+      const rag = { deposits: { '|manure': 1 } };
+      await hand(viewer, '/stuff/thing/cutlery/table-knife', rag);
+      await hand(viewer, '/trade/baking/thing/lean-loaf', rag);
+      const carrier = await open('carrier', { startLocation: LOBBY, ...WIZARD });
+      await hand(carrier, '/stuff/thing/cutlery/table-knife', rag);
+      const both = await say(wiz, 'analyze aroma');
       expect(both).toMatch(/of dung/);
       expect(both).not.toMatch(/of dung, from/);
-      expect(await say(viewer, `smell ${a.handle}`)).toMatch(/smells .* of dung/);
-      b.close();
-      await new Promise((r) => setTimeout(r, 500));
+      expect(await say(wiz, `smell ${carrier.handle}`)).toMatch(/smells .* of dung/);
+      carrier.close();
+      await new Promise((r) => setTimeout(r, 1000));
+      expect(await say(wiz, 'analyze aroma')).toMatch(new RegExp(`of dung, from ${viewer.handle}`));
     });
 
     it('17. the instrument gives a figure and the nose a word', async () => {
@@ -355,10 +358,9 @@ suite('smell and taste', () => {
       await evalOn(taster, 'me:i:whiskey', 'this.getBulk("interior").setPayload({ dissolvedAromatics: [{ type: "peat-smoke", amount: 30 }] })');
       const whisky = await say(taster, 'taste me:i:whiskey');
       expect(whisky).toMatch(/It tastes .*It smells .*of smoke/);
-      await hand(taster, '/trade/distilling/thing/whiskey', { interiorMaterial: '/stuff/idea/material/bulk/salt-water' });
-      expect(await say(taster, 'smell me:i:whiskey')).not.toMatch(/salt/);
-      expectOk(await taster.cmd('open 2.me:i:whiskey'));
-      expect(await say(taster, 'taste 2.me:i:whiskey')).toMatch(/salty/);
+      await hand(taster, '/stuff/thing/items/bowl', { interiorMaterial: '/stuff/idea/material/bulk/salt-water', interiorAmount: 0.3 });
+      expect(await say(taster, 'smell me:i:bowl')).not.toMatch(/salt/);
+      expect(await say(taster, 'taste me:i:bowl')).toMatch(/salty/);
       await hand(taster, '/stuff/thing/vessel/pail', { interiorMaterial: '/stuff/idea/material/bulk/fouled-water', interiorAmount: 5 });
       const fouled = await say(taster, 'taste me:i:pail');
       expect(fouled).toMatch(/It tastes of very little/);

@@ -190,6 +190,16 @@ describe('adaptation', () => {
     expect(body.nose(signal('tar', 9000)).dominant?.ou).toBeCloseTo(10);
   });
 
+  it('a stay says nothing about what you have just put your nose to', () => {
+    const body = nose();
+    body.onMoved(null, place('yard'));
+    now += 60 * MIN;
+    expect(body.nose(signal('tar', 900), { close: true }).dominant?.ou).toBeCloseTo(900);
+    // …but what the air has already done to this nose still counts.
+    body.nose(signal('oak', 900));
+    expect(body.nose(signal('oak', 900), { close: true }).dominant?.ou).toBeCloseTo(1);
+  });
+
   it('linkdead holds it still: neither rising nor falling', () => {
     const body = nose();
     body.onMoved(null, place('yard'));

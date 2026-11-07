@@ -187,10 +187,13 @@ export function PalateMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) 
       const scent = MixinApi.isOlfactory(self)
         ? self.nose(flavor.aromas, { close: true })
         : null;
-      // The aromas count toward liking at the strength this nose read them.
+      // ⭐ Liking reads the mouthful's own strength. A nose that has stopped
+      // noticing rot still has rot in its mouth, and everyone agrees about that.
       const notes: TasteNote[] = [
         ...tastes,
-        ...(scent?.notes ?? []).map((n) => ({ type: n.leaf, ou: n.ou })),
+        ...(scent && !scent.isEmpty()
+          ? flavor.aromas.notes.map((n) => ({ type: n.word, ou: n.ou }))
+          : []),
       ];
       const liking = this.liking(notes, opts);
       return new Savor(

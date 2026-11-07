@@ -133,7 +133,11 @@ export function OlfactoryMixin<TBase extends MixinConstructor<Stuff>>(Base: TBas
         const ownOnly = from.every(
           (s) => s.stuffId === self.stuffId && s.hops === 0 && s.carried !== true,
         );
-        const level = ownOnly ? ADAPT_MAX : this.adapt(note.word);
+        const level = ownOnly
+          ? ADAPT_MAX
+          : opts.close
+            ? this.adaptedSoFar(note.word)
+            : this.adapt(note.word);
         const ou =
           (note.ou * acuity * BAND ** this.bornSensitivity(note.word)) / BAND ** level;
         if (ou < 1) continue;
@@ -209,6 +213,19 @@ export function OlfactoryMixin<TBase extends MixinConstructor<Stuff>>(Base: TBas
       level = Math.min(ADAPT_MAX, level);
       this.adaptation[word] = { level, lastAt: now };
       return level;
+    }
+
+    /**
+     * What a nose brought right up to a thing starts from. ⚠ An hour in this room
+     * says nothing about the loaf you have just unwrapped, so a stay does not count
+     * here; only what the air has already done to this nose does.
+     */
+    private adaptedSoFar(word: string): number {
+      const rec = this.adaptation[word];
+      if (!rec) return 0;
+      const sinceS = this.placeStamp?.sinceS ?? nowS();
+      if (rec.lastAt >= sinceS) return rec.level;
+      return Math.max(0, rec.level - (sinceS - rec.lastAt) / ADAPT_STEP_S);
     }
 
     /** This reader's rank in a discipline; `0` with none, or no record. */
