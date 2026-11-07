@@ -190,23 +190,10 @@ const FISHING_WORM = '/trade/fishing/thing/worm';
 
 const open: Session[] = [];
 
-/**
- * ⚠⚠ A closed session's body LINGERS where it stood, and a walker arriving in a
- * room greets every player there one by one, each line rendered for every
- * sensor (each a light walk): thirty parked characters in the square pegged the
- * world at a full core and timed out commands all over the file. So every body
- * leaves the public rooms when its checkpoint is done.
- */
-const PARKING = '/world/terminus/hollow-mere/small-house/location/house';
+/** A finished body signs out, and signing out takes it out of the world (D30). */
 async function park(s: Session): Promise<void> {
   const i = open.indexOf(s);
   if (i >= 0) open.splice(i, 1);
-  if (s.isOpen()) {
-    // ⚠ `goto`, never a move from `eval`: a soiled body's restamp runs outside
-    // the eval's frame, the sandbox boundary refuses it, and that unhandled
-    // rejection killed the world.
-    await s.cmd(`goto ${PARKING}`).catch(() => undefined);
-  }
   s.close();
 }
 /** Park whoever a suite left standing. */
@@ -1406,7 +1393,7 @@ suite.skipIf(!isOwnedTestWorld())('17–18. what survives a restart', () => {
     // ⚠ Walked in, not logged in there: a login's start location is the test
     // hook's and never reaches the body's record.
     open.splice(open.indexOf(s), 1);
-    s.close(4000);
+    s.close();
     await new Promise((r) => setTimeout(r, 1_500));
     const w = await Session.open(body, { startLocation: SHORE, ...opts });
     open.push(w);

@@ -80,6 +80,12 @@ export interface HasInteractive {
   /** True iff no Interactives are connected. MUD-style alias for `!isConnected()`. */
   isLinkdead(): boolean;
 
+  /**
+   * Is a person behind this body, now or coming back? Connected, or a body whose
+   * session is still open while its connection is down.
+   */
+  hasLiveSession(): boolean;
+
   /** Per-connection notification fired after attach. */
   onConnectionAttached?(conn: Interactive): void;
   /** Fired when the connection count drops to zero. */
@@ -180,6 +186,10 @@ export function HasInteractiveMixin<TBase extends MixinConstructor>(Base: TBase)
 
     public isLinkdead(): boolean {
       return !this.isConnected();
+    }
+
+    public hasLiveSession(): boolean {
+      return this.isConnected();
     }
     /**
      * Empty `portraitUrl` sentinel — "no image; client renders a

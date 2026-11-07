@@ -2307,7 +2307,12 @@ async function resolveAffordancesImpl(
     });
   }
 
-  entries.sort((a, b) => a.verb.localeCompare(b.verb));
+  // The subject's verbs first, so the one a card promises is on the first screen.
+  entries.sort(
+    (a, b) =>
+      Number(a.source === 'actor') - Number(b.source === 'actor') ||
+      a.verb.localeCompare(b.verb),
+  );
   return { verbs: entries, composition };
 }
 

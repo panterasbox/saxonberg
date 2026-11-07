@@ -973,8 +973,25 @@ export class Session {
     return !this.closed && this.ws.readyState === WebSocket.OPEN;
   }
 
-  /** Close the socket; `4000` is the client's deliberate sign-out (it saves the body). */
-  close(code?: number): void {
+  /**
+   * Sign out: the client's deliberate leave (close code `4000`). The body is
+   * saved and leaves the world, and the next login materializes it from what
+   * was saved (controllers-are-io D30). ⭐ This is what a finished test means.
+   */
+  close(): void {
+    this.closeSocket(4000);
+  }
+
+  /**
+   * ⚠ Lose the connection without signing out: the body stays where it stands,
+   * linkdead, and a new socket reconnects to it. Only for a test about exactly
+   * that, because each one leaves a body in the world for the rest of the run.
+   */
+  drop(): void {
+    this.closeSocket(1000);
+  }
+
+  private closeSocket(code: number): void {
     if (this.closed) return;
     this.closed = true;
     this.ws.close(code);

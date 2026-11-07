@@ -285,9 +285,14 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
               AppApi.setting(AppSettingKeys.evacuationFallback)
             ) ?? null
           : null;
+      // ⭐⭐ A persistable host's destruct is its DORMANCY, and its record holds
+      // its contents: dropping them on the floor as well would be two of
+      // everything once it comes back (a signed-out body, D30). A person it
+      // happens to hold is nobody's contents and still steps out.
+      const dormant = MixinApi.isPersistable(host) && host.shouldPersist();
       for (const item of snapshot) {
         try {
-          if (outer !== null) {
+          if (outer !== null && (!dormant || MixinApi.isHasInteractive(item))) {
             ContainmentApi.move(item, outer);
           } else if (
             MixinApi.isHasInteractive(item) &&
