@@ -1154,6 +1154,8 @@ runs under the soak lane (`WIRE_SOAK=1`, post-merge, non-blocking) with a
 generous bound (500 ms stall, 1 s p95) and is informational in the
 blocking run. No `lint:*` can hold a runtime cost.
 
+⭐ **Moved by the owner (2026-11-07):** the timing targets (b) and (c) leave this build for [crowded-rooms-slate](../slates/builds/crowded-rooms-slate.md); (a), the count, stays and blocks.
+
 ### D28 — the greeting is the arriver's own frame; an audience is a live session
 
 `_dispatchMovement` keys on the frame's **audience tag**, which the
