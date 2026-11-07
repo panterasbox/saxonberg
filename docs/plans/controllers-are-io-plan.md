@@ -631,6 +631,16 @@ property of its host); a `StaffMixin`/`staff` noun (the business's books
 already have a noun, `house`); the capability-keyed affordance table
 (§ Requirements disagreement 1); a central act registry (⛔ owner).
 
+### W10 delta
+
+| kind | name | ledger / source |
+|---|---|---|
+| wire | `crowd.dirty.wire.test.ts` — N bodies in one place, the greeting count and the round trip | ledger "the before/after record"; *genuinely new* — searched `packages/wire/tests/` for a multi-session file (none stages more than three) |
+| method | `Avatar.hasLiveSession()` — `isConnected() \|\| (isLinkdead() && sessionActive)`; a signed-out body answers no | the `sessionActive` flag `connection.md` already keeps (reconnect vs fresh login); a method because another Stuff (`Behaved`) reads it |
+| note field | `LocomotionGateFailedNote.gate` carries the guard's own name; `mapGate`'s `default` branch deleted (it minted `exit-mode` for any name it did not know) | P3; the sibling table's `walk out` |
+| e2e | the walk spec's radial check asserts `dip` **in the viewport**, not merely enabled | D33 |
+| mixin / Api / class / hook / registry / document kind | **none** | — |
+
 ---
 
 ## Plan-level decisions
@@ -1064,6 +1074,165 @@ reachable flat (controller identity excludes same-act routes; 46 on the
 census) — informational after the owner's noun-scoping ruling, the
 builtin line hard; `lint:verb-collisions` learns disjoint shapes (D17).
 `lint:instrument-args` is absorbed into `lint:controller-resolution`.
+
+---
+
+### D27 — a crowded place is a requirement, and the measure is the greeting count and the round trip
+
+The owner: *"the game needs to be able to handle crowded rooms; this
+isn't just a test-only sort of concern."* The world stalled with ~30
+bodies in the square (`/healthz` 11–13 s on 4 of 25 samples after ~15 min).
+Both CPU profiles put the cost in one chain and nowhere else:
+
+| window | `Scene.send` | of which `canSee → walkLight` | via `greets.act` | via `idles.act` | everything else |
+|---|---|---|---|---|---|
+| 31.4 s, stalled world | 21.2 s | 19.1 s | 18.6 s | 1.7 s | < 1 s (`Mould.getContents` 0.75, Mongo writes 0.3, `record` 0.1) |
+| 21.2 s, fresh world | 7.7 s | 7.0 s | 4.5 s | 0.5 s | < 1 s |
+
+Three superlinear terms, verified by reading (`Behaved.ts:722–766, 941–949`;
+`Scene.ts:275–293`; `VisionModality.ts:88–99, 516–615`):
+
+1. **A greeting NPC that walks in greets everyone.** `_dispatchMovement`
+   greets every player in the room not in `_seenPlayers`; the host's own
+   `act.move` arrival frame (`Mobile.dispatchMovementScene` sends `toSelf`)
+   reaches its own `handleMessage` with a fresh room, so the set is empty
+   and every body is greeted. `greets.ts` documents "once per arrival" of
+   *a player*. The goods-yard hands carry `greets` beside brains that move
+   them (`consigns`), so this fires on every errand: N greetings per walk.
+2. **Each greeting is rendered once per recipient, and each render walks the
+   light.** `Scene.send` holds the light steady per *frame body*
+   (`3a22c15d6`), not across the send, so a Scene to N recipients is N walks.
+   The memo is keyed by place (`signalAt`, `:93`), so one hold across the
+   send collapses N walks to one. The walk itself scales with what the
+   place holds: leg (b′) iterates every body's held contents through the
+   proxy (self time is `proxy.get`, `findDescriptor`, `hasMixin`), so a
+   walk in a crowd costs O(bodies × inventory). Per NPC walk-in that is
+   N × N × O(N·k).
+3. **A closed session's body stays in the room forever, as a recipient and
+   an audience.** `HasInteractive.canEvict` refuses unconditionally; there
+   is no logout move. Each lingering body is one render + one
+   `RecordApi.record` insert per Scene, counts as `_hasAudience` for
+   `idles` (so a room of parked bodies is chattered at indefinitely), and
+   is counted by `_currentPlayers`.
+
+Not evidenced and therefore not planned: live-card subscriptions and MQL
+re-resolve (absent from both profiles — they already hold the light),
+departures, affordance rebuilds, the `Traversal` walk's own overhead
+(`Traversal.walk` ≈ `walkFluxAt`: the cost is the per-node fold, not the
+graph). One finding, not fixed: `MouldMixin.getContents` runs
+`reconcileSetting()` (a write) under a light walk (a read), 0.75–1.05 s in
+both profiles; it is the dip pot's, it is bounded, and it goes to the
+mould slate.
+
+**The number: N = 30 bodies in one place.** It is the crowd that pegged
+the core, it is what a festival, a muster or a market morning in the
+square looks like, and it is more than the sibling drives leave behind
+(their bodies linger; see § Drive record). Acceptance in a person's
+terms: with 30 connected bodies and the square's three greeting NPCs,
+(a) a player arriving is greeted **once** by each NPC, and an NPC walking
+in greets **nobody**; (b) `say hello` round-trips in **under 250 ms** at
+p95 over 20 commands; (c) no event-loop stall over **100 ms** across a
+60 s sample while the 30 arrive and speak. Measured by the wire file in
+W10 (the harness opens 30 sessions; a lag probe is a `setInterval` drift
+read, the same thing `/healthz` saw). Before/after both recorded in the
+drive record. ⚠ `pnpm bench` is the *test suite's* bench and does not
+apply; its ±6 % floor is irrelevant here because the before/after is
+100×, not 6 %.
+
+**What holds it:** the greeting **count** is deterministic and gates in
+the blocking wire run. The **timing** bound is honest only on an idle box
+(cleanliness's restart exceeded a 420 s budget on a loaded one), so it
+runs under the soak lane (`WIRE_SOAK=1`, post-merge, non-blocking) with a
+generous bound (500 ms stall, 1 s p95) and is informational in the
+blocking run. No `lint:*` can hold a runtime cost.
+
+### D28 — the greeting is the arriver's own frame; an audience is a live session
+
+`_dispatchMovement` keys on the frame's **audience tag**, which the
+Scene already stamps (`Scene.ts:140, 179`): an `act.move` frame tagged
+`audience:actor` is the host's own move — reseed `_seenPlayers` from the
+room and greet nobody (the `_wireBehaviors` baseline, applied again on
+every own move); a frame tagged `audience:witness` is somebody else's,
+and the occupant delta then names exactly the arriver(s), who are greeted
+if unseen. No payload, no act-registry lookup (an NPC's own move may
+carry no `commandId`). Departures keep the occupant delta. `greets.ts` is
+already correct and does not change. `_currentPlayers` / `_hasAudience`
+count a body only when `MixinApi.isHasInteractive(c) && c.hasLiveSession()`;
+a linkdead body with an active session still counts (the player is coming
+back and the record layer is keeping their frames), a signed-out one does
+not. Lens 3a: a person arriving is greeted, by name if known; a crowd
+hears one line per arrival; the shopkeeper does not greet the room when
+she comes back from the yard. The decision stays on `Behaved` (P5); the
+brain stays dumb.
+
+### D29 — `Scene.send` renders under one hold, then delivers
+
+`send()` becomes two passes: **render** every frame for every recipient
+under one `PerceptionApi.holdLightSteady()` (one walk per place per
+Scene), release, then **deliver** in the same order as today. The hold
+must never span a delivery: a delivered frame runs a brain
+(`Behaved.handleMessage` → `requestBeat` → `act`) that can light a lamp,
+and a memo that outlived it would leave a player in the dark they had
+just lit (the modality's own warning, `VisionModality.ts:116`). The
+render pass is a synchronous READ by construction (`Mml.toString(viewer)`),
+so the bracket is legal. Nested holds are already no-ops
+(`holdSteadyLight` returns `false` when held), so a Scene sent inside an
+MQL hold keeps the outer memo. `toAudible`'s gather joins the same render
+pass.
+
+### D30 — the lingering body: what it costs, and the question that is the owner's
+
+After D28–D29 a lingering body costs one Mml render and one record insert
+per Scene in its room — linear, bounded, and the same for a linkdead
+player (who must receive: `connection.md` § the record layer). What is
+NOT bounded is their number: no eviction, no logout move, so a world
+accumulates one body per login until restart. Whether a signed-out body
+should stay in the room is a design question (residence's, lens 3a/3b:
+is the character *there* when the player is not?), and W10 does not
+decide it. ⭐ **Owner's question, with the recommendation:** on
+`PlayerLoggedOut` (deliberate sign-out, not linkdead) the body withdraws
+to its own `place` (the dorm room / residence it already spawns from),
+which the residence slate owns; linkdead bodies stay where they fell.
+Until decided, W10 stops greeting and chattering at them (D28) and makes
+their per-frame cost flat (D29); it does not stop delivering frames to
+them, because for a linkdead player that delivery is the record layer's
+contract and the two cases share one code path today.
+
+### D31 — a tie is proved by `--strict`, never assumed; a gate name is never defaulted
+
+For each sibling failure the first check is D23's own tool: `<verb>
+<word> --strict` on the standing world. Two candidates named → a tie,
+and D21's order decides which the bare form should take; one candidate
+named → not a tie but a keyword or a gate defect, traced from there.
+`LocomotionControllerBase.mapGate` mints `exit-mode` for any guard name
+it does not know (`:304`), so `walk out`'s `exit-mode` may be any gate;
+the note carries the guard's raw name and the default branch goes (P3).
+
+### D32 — step 21c is dropped; the driver's seat goes to logistics
+
+No shipped vehicle seats a driver (the coach's `driver:1` is an adornment
+slot, the barge has none, the wagon no slots; `mount` seats a draft
+animal; `journey` moves a vehicle). The requirement's `drive` claim
+cannot be met on shipped content and is cut from step 21, not deferred
+inside it: the step claims `drift` to the ground's own refusal (the cut
+is trade-mining's unit test) and `drive` binding a way then refusing.
+A vehicle a person sits in and drives through an exit is a capability of
+the logistics slate (wagon/team/barge/coach are its), recorded there as
+the step's destination.
+
+### D33 — the radial puts the subject's verbs first
+
+`CommandLogic.listAffordances` sorts alphabetically (`:2310`), so on the
+dip pot `carve`, `cast`, `coil`, `belay`, `climb`, `drive` fill the three
+visible rows and `dip` — the verb the card says it answers — is below
+the fold. Order becomes `source` (`subject` before `actor`), then verb;
+the client keeps order within its available/refused split, so no client
+component changes. Geometry, quadrant assignment and the actor's verbs
+shown stay as they are (⛔ never replace navigation without asking —
+this is an ordering change only). The movement verbs enabled through
+`requires: any` (`belay`, `climb`, `drive` on a pot) are a validator
+question, not an ordering one: out of scope, recorded under § Deferred
+seams for the affordance-verb slate.
 
 ---
 
@@ -1621,6 +1790,157 @@ the record appended; the MR READY with: the outcome wordings that
 changed, every per-view word pick, the scope-order audit, the twelve
 `affords` probes, the `FromMixin` re-anchoring list, the retired branch;
 then the full suite alongside review.
+
+### W10 — the crowd, the ties, 21c, the radial (on the open MR)
+
+**Goal.** A place with thirty people in it answers at the speed of an
+empty one (D27); the sibling table's three "possibly a tie" rows are
+each proved a tie or not and fixed where this build broke them (D31);
+step 21 claims what shipped content can prove (D32); the verb a card
+promises is on the radial's first screen (D33). Decisions D27–D33. No
+new mixin, Api, class or hook (§ New substrate, W10 delta).
+
+**Fault lines — what moves, what stays.**
+
+| moves | stays |
+|---|---|
+| `_dispatchMovement` keys on the frame's subject; `_currentPlayers`/`_hasAudience` on `hasLiveSession()` (`lib/behavior/Behaved.ts:722–766, 941–955`) | `greets.ts`, `idles.ts`, the witness topic table, the beat cadence |
+| `Scene.send` → render pass under one hold, then deliver pass (`lib/message/Scene.ts:241–330`) | the per-recipient `toString(viewer)`, the frame shape, delivery order, `holdSteadyLight` itself |
+| `Avatar.hasLiveSession()` (`lib/character/Avatar.ts`, beside `sessionActive` :1167) | `HasInteractive.canEvict`, the record layer's delivery to linkdead bodies, where a signed-out body stands (D30 — the owner's) |
+| `mapGate`'s default → the guard's raw name on the note (`platform/idea/cmd/movement/LocomotionControllerBase.ts:287–305`; `LocomotionGateFailedNote` in `packages/types`) | the fourteen named gates |
+| `listAffordances` sort → `source` then verb (`platform/idea/api/CommandLogic.ts:2310`); the `source` doc comment (`packages/types/src/index.ts:1580`) | `AffordanceRadial.tsx` (order preserved through `groupIntoSlots` and the available/refused split), geometry, which verbs show |
+| requirements step 21; `it.todo('21c')` (`packages/wire/tests/controllers-are-io.dirty.wire.test.ts:1233`); one line in `docs/slates/builds/logistics-slate.md` | `21a`, `21b` |
+| the walk spec's radial check (`e2e/tests/controllers-are-io-walk.spec.ts:317–318`) | the rest of the walk |
+
+**W10a — the crowd (code).** Files: `Behaved.ts`, `Scene.ts`,
+`Avatar.ts`, docs `behavior.md` (the greeting is the arriver's frame;
+audience = live session), `messaging.md` (render then deliver; the hold
+bracket rule), `connection.md` (the lingering body's cost + the open
+question, one paragraph). Tests, beside the existing files:
+`lib/behavior/__tests__/Behaved.test.ts` — an `act.move` frame whose
+subject is the host reseeds and greets nobody; a player's arrival frame
+greets that player once; a second arrival frame for the same player
+greets nobody; a departure still fires; a signed-out body is neither
+greeted nor an audience, a linkdead-with-session body is an audience.
+`lib/message/__tests__/Scene.steady-light.test.ts` — a Scene to three
+recipients in one place walks the light **once** (count `walkLight`
+through a spy on `signalAt`), and a frame delivered during the send that
+lights a lamp is seen by the next Scene (the hold did not outlive
+delivery). Gates: `lint:family` green; `test:near` on the three dirs.
+Commit.
+
+**W10b — the crowd (measure).** `packages/wire/tests/crowd.dirty.wire.test.ts`:
+one standing world (`WIRE_PORT=2013`, DB `saxonberg_build2`, killed by
+PID at the end, never left running). Thirty sessions `goto` the square
+one at a time; per arrival, count greeting frames the arriver receives
+(`says to you`) and a watcher receives (`says to <name>`) — ≤ 1 per
+greeting NPC, exactly, blocking. Then twenty `say hello` from one body:
+p95 round trip; a `setInterval(…, 50)` drift probe in the harness
+process is not the server's loop, so the stall is read from the server
+side: `/healthz` sampled every 500 ms for 60 s (the owner's own measure)
+and reported as max and count over 100 ms. Both bounds are soak-only
+(D27); the blocking run prints them. ⭐ **Run it first at the commit
+before W10a** (the file is new and runs on any server) and record the
+before; then at W10a; both rows go in § Drive record. Park every body
+at the end (`goto` the parking house, as the drive does; never a move
+from `eval`). Commit the file + the record.
+
+**W10c — the ties.** On the same world, after W10a, each with the D31
+check first:
+
+- **dairy 4 `milk bull`** (`dairy.dirty.wire.test.ts:890`): stage the byre
+  as the file does (a dried-off cow, the drafted bull calf), then
+  `milk bull --strict`. Two named → a same-scope tie; the audit row
+  (`ranching/milk.yaml target [reachable]` keep) stands, and the bare
+  form must prefer the candidate whose own words match (a male answers
+  to `bull`, a female to `cow`) — the keyword surface of the head
+  (`OrganismMixin`, which knows sex), never the resolver. One named →
+  find which keyword the cow answered `bull` to (`look bull`, the
+  affordance card's keywords) and fix that row or that `getKeywords`.
+  Note: `Species.commonNames` is read only at `[0]` for the handle
+  (`Stuff.ts:407`), so the species list is not the leak.
+- **silk `look tray`** (`silk.dirty.wire.test.ts:306`, after `put imported
+  in tray`): `look tray --strict`. `look` is `[$focus, reachable]` (audit
+  row kept); the card is the focus after `put`, so if the card answers
+  `tray` the focus wins by design and the defect is the card's keywords
+  — `cheap-eggs.yaml:9` carries none; check `NamedMixin.getKeywords`'s
+  bare form (`Named.ts:193–197`) and `DetailedMixin`'s detail ids for a
+  `tray` token leaking from the presentation after the eggs are the
+  tray's. Fix the keyword, not the scope.
+- **reachability 1 `walk out`** (`reachability.dirty.wire.test.ts:321`):
+  not a tie — the note is a locomotion gate, and `exit-mode` is the
+  mapper's default. Land the `mapGate` change first, re-run, read the
+  raw gate name; if it is a mode gate, the defect is `walk` dispatching
+  under `movement.defaultMode` (`sneak`, which the step sets) instead of
+  its own mode — `LocomotionApi.defaultModeFor` vs the pace controller's
+  explicit mode; fix on the controller base.
+
+Corrected audit verdicts, if any, go in the slate's § Scope-order audit
+with the proof line. Then the **exit**: re-run `dairy`, `silk`,
+`reachability`, `harbors` (its fix `ee8a9644d` is unconfirmed) and
+`cleanliness` (never re-run) on one fresh world in sequence, the table
+in § Sibling wire files updated with the new counts. Not re-run:
+`crafting` (the forge finding is pre-existing, `4ac98389b`),
+`food-safety`, `forestry`, `scan-sweep`, `underwater` (their rows are
+staging or content, not this build's). Commit.
+
+**W10d — step 21.** `docs/requirements/controllers-are-io-requirements.md:362`
+becomes: *"21. (instant, player) In a drift, `drift` cuts forward — the
+verb reaches the ground's own refusal; the cut itself is trade-mining's
+unit test. `drive north` binds the way and refuses because nothing is
+being driven. (A vehicle that seats a driver is the logistics slate's;
+no shipped vehicle has one.)"* Delete `it.todo('21c')` and its comment
+(`:1226–1233`); the suite title stays. Add to
+`docs/slates/builds/logistics-slate.md` under its open items: *"a
+vehicle a person sits in and drives through an exit (`drive` binds a way
+and refuses today; controllers-are-io step 21, dropped 2026-11-07)"*.
+§ Acceptance-criteria coverage and § Requirements disagreement get one
+line each. Docs only; runs in parallel with anything. Commit.
+
+**W10e — the radial.** `CommandLogic.ts:2310`: sort by `source`
+(`subject` < `actor`) then `verb.localeCompare`; the `source` comment in
+`packages/types/src/index.ts` gains the sentence *the radial orders the
+subject's verbs first*. Test beside `CommandLogic`'s affordance tests:
+a target affording `dip` lists it before `cast`. Walk spec `:318`:
+`await expect(radial.locator('button[data-verb="dip"]')).toBeInViewport()`
+after `toBeEnabled()`, with no scroll — the quadrant is `overflow-y:
+auto` at `max-height: 23vh`, so in-viewport is the honest "visible".
+Client: no change (`CardBodies.test` stays green). Run the walk spec on
+the W10c world between sibling files (one world at a time). Add the
+`requires: any` movement-verb note to § Deferred seams. Commit.
+
+**Ordering.** W10d first (no world, no conflict). W10b-before (the
+measure at the pre-W10a commit) → W10a → W10b-after, on world 1. W10c +
+W10e on world 2, fresh, after W10a (a sibling run on the stalled world
+is what died of a 4 GB heap). One world at a time; W10d and the W10a
+unit tests overlap with any world run.
+
+**Acceptance.** (a) D27's three numbers, before and after, in the drive
+record; the greeting count blocking-green; (b) the three sibling rows
+each carry a proof line (`--strict` output or the raw gate) and the
+sibling table's counts for the five re-run files; (c) step 21 reads as
+D32 and the drive file has no todo; (d) the walk spec's `dip`-in-viewport
+passes on a fresh world; (e) `lint:family` green, `test:near` green, the
+full suite NOT re-run (it ran at code-complete; W10 is a review-round
+change).
+
+**Review questions.** P1: no new substrate beyond the delta table; the
+one method cites its flag. P2: `hasLiveSession` on `Avatar`, the host
+that owns `sessionActive`; `Behaved` narrows with `isHasInteractive`,
+which is the composition it is asking about, not a re-narrowing guard.
+P3: `mapGate`'s silent default goes; the hold's release is in `finally`;
+a signed-out body is a stated skip. P5: the greeting decision is
+`Behaved`'s, the brain unchanged. P6: nothing persisted. P7: the crowd
+file stages its own thirty; no boot entry. P8: no new names but a test
+file. P4: n/a (kernel only).
+
+**Risks.** The `--strict` check may find both dairy and silk are keyword
+leaks from W2's bare-form rule (`Named.ts:196`): then the fix is one
+line in `NamedMixin.getKeywords` and both rows close together. The
+timing bound will read differently on the owner's box and CI; it is
+soak-only for that reason. The `Scene` two-pass change touches every
+message in the game: the existing `Scene.*.test.ts` files and the
+e2e walk are the regression net, plus the crowd file's greeting count.
 
 ---
 
