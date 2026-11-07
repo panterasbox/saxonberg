@@ -677,10 +677,11 @@ player won every tie, forever**; and between two NPCs, one of them served
 every order of the bar's life while the other stood there. *Predictable
 beats arbitrary; neither is right.*
 
-`call:` is a field on **`OrganizationMixin`**, not on the trading half: a
-watch or a registry with two clerks needs a rule the day it has two, and
-putting it beside `banksAt` would make the watch a Business again to get
-one — the exact conflation the organizations build undid.
+`call:` was first put on **`OrganizationMixin`**, not on the trading half,
+on the argument that a watch or a registry with two clerks needs a rule the
+day it has two. ⚠ Superseded below: it is **`OnCallMixin`'s, on `Business`
+only** (controllers-are-io D6) — every authored `call:` row is a Business,
+and the watch that would need one does not exist yet.
 
 | policy | the house | the legs |
 |---|---|---|
