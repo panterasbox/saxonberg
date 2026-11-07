@@ -2051,8 +2051,8 @@ export class CommandLogic extends ApiLogic {
   @CallSecurity(CommandApiCallers)
   public emitSchemaDelta(
     recipient: Stuff,
-    kind: 'added' | 'removed' | 'reset',
-    payload: CommandSchemaPayload | { verb: string } | CommandSchemaPayload[]
+    kind: 'reset',
+    payload: CommandSchemaPayload[]
   ): void {
     if (!MixinApi.isSensor(recipient)) return;
     const meta: MessageFrame['meta'] = { timestamp: Date.now() };

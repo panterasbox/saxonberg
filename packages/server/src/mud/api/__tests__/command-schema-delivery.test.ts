@@ -91,7 +91,7 @@ describe('CommandGiverMixin schema-delivery', () => {
     expect(payload.some((p) => p.verbs.includes('ping'))).toBe(true);
   });
 
-  it('emits commands.added when a containable joins inventory after connection', () => {
+  it('⭐ a move sends no frame: the stack changes and the client asks when it wants to know', () => {
     const giver = makeStuff(() => new TestGiver()) as TestGiver & CommandGiver;
     giver.onConnectionAttached({} as Interactive);
     giver.received = []; // reset baseline frames
@@ -99,60 +99,11 @@ describe('CommandGiverMixin schema-delivery', () => {
     const item = makeStuff(() => new InvProvider());
     ContainmentApi.move(item, giver);
 
-    const adds = commandsFrames(giver).filter(
-      (f) => f.tags?.includes('schema:added')
-    );
-    expect(adds.length).toBeGreaterThan(0);
-  });
-
-  it('emits commands.removed when a containable leaves inventory after connection', () => {
-    const giver = makeStuff(() => new TestGiver()) as TestGiver & CommandGiver;
-    giver.onConnectionAttached({} as Interactive);
-    const item = makeStuff(() => new InvProvider());
-    ContainmentApi.move(item, giver);
-    giver.received = [];
-
+    expect(commandsFrames(giver)).toHaveLength(0);
+    expect(giver.getAffordances().some((a) => a.source === item)).toBe(true);
     ContainmentApi.move(item, null);
-
-    const removes = commandsFrames(giver).filter(
-      (f) => f.tags?.includes('schema:removed')
-    );
-    expect(removes.length).toBeGreaterThan(0);
-    const payload = removes[0]!.payload as { verb?: string };
-    expect(payload.verb).toBe('ping');
-  });
-
-  it('emits adds when a peer thing arrives in the giver\'s environment', () => {
-    const giver = makeStuff(() => new TestGiver()) as TestGiver & CommandGiver;
-    const loc = makeStuff(() => new Place());
-    ContainmentApi.move(giver, loc);
-    giver.onConnectionAttached({} as Interactive);
-    giver.received = [];
-
-    const envThing = makeStuff(() => new EnvProvider());
-    ContainmentApi.move(envThing, loc);
-
-    const adds = commandsFrames(giver).filter(
-      (f) => f.tags?.includes('schema:added')
-    );
-    expect(adds.length).toBeGreaterThan(0);
-  });
-
-  it('emits removes when a peer thing leaves the giver\'s environment', () => {
-    const giver = makeStuff(() => new TestGiver()) as TestGiver & CommandGiver;
-    const loc = makeStuff(() => new Place());
-    ContainmentApi.move(giver, loc);
-    const envThing = makeStuff(() => new EnvProvider());
-    ContainmentApi.move(envThing, loc);
-    giver.onConnectionAttached({} as Interactive);
-    giver.received = [];
-
-    ContainmentApi.move(envThing, null);
-
-    const removes = commandsFrames(giver).filter(
-      (f) => f.tags?.includes('schema:removed')
-    );
-    expect(removes.length).toBeGreaterThan(0);
+    expect(commandsFrames(giver)).toHaveLength(0);
+    expect(giver.getAffordances().some((a) => a.source === item)).toBe(false);
   });
 
   it('reset is idempotent across repeat onConnectionAttached calls', () => {

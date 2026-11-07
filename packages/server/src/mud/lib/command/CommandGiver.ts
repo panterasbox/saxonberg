@@ -22,11 +22,11 @@
  * if a subclass overrides without `super` is a missed initial reset,
  * which is recoverable when the next move triggers a delta.
  *
- * Schema-delivery emits to the client (shell.control ({added,
- * removed, reset}) gate on `_commandSchemaSubscribed`, which flips
- * once `onConnectionAttached` fires — pushes that happen during
- * hydration don't generate spurious frames to a not-yet-listening
- * client.
+ * The client gets one `shell.control` `schema:reset` when
+ * `_commandSchemaSubscribed` flips at `onConnectionAttached`. ⭐ Pushes and
+ * pops send nothing: a frame per verb per mover per person in the room went
+ * to a client that discards them, and it was half of what a crowd cost
+ * (controllers-are-io D27).
  */
 
 import type { MixinConstructor } from '../mixin';
@@ -711,18 +711,6 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         seq: this._commandSeq++,
       };
       this._commandStack.push(entry);
-
-      // Schema-delta emission. Gated so hydration-time pushes don't
-      // fire to a not-yet-connected client.
-      if (this._commandSchemaSubscribed) {
-        for (const def of defs) {
-          CommandApi.emitSchemaDelta(
-            this as unknown as Stuff,
-            'added',
-            CommandApi.getCommandSchemaPayload(def)
-          );
-        }
-      }
     }
 
     /**
@@ -734,22 +722,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       // Remove every entry sourced from `source`, across all
       // buckets. A source contributing to multiple buckets has
       // multiple entries; one detach call clears them all.
-      const removed: CommandDefinition[] = [];
-      this._commandStack = this._commandStack.filter((e) => {
-        if (e.source === source) {
-          removed.push(...e.commands);
-          return false;
-        }
-        return true;
-      });
-
-      if (removed.length > 0 && this._commandSchemaSubscribed) {
-        for (const def of removed) {
-          CommandApi.emitSchemaDelta(this as unknown as Stuff, 'removed', {
-            verb: def.getPrimaryVerb(),
-          });
-        }
-      }
+      this._commandStack = this._commandStack.filter((e) => e.source !== source);
     }
 
     /**
@@ -761,24 +734,9 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
     @Unshadowable
     resetCommandSources(reason: 'self-moved'): void {
       void reason;
-      const removed: CommandDefinition[] = [];
-      const kept: RecencyEntry[] = [];
-      for (const e of this._commandStack) {
-        if (e.bucket === 'environment' || e.bucket === 'peers') {
-          removed.push(...e.commands);
-          continue;
-        }
-        kept.push(e);
-      }
-      this._commandStack = kept;
-
-      if (this._commandSchemaSubscribed) {
-        for (const def of removed) {
-          CommandApi.emitSchemaDelta(this as unknown as Stuff, 'removed', {
-            verb: def.getPrimaryVerb(),
-          });
-        }
-      }
+      this._commandStack = this._commandStack.filter(
+        (e) => e.bucket !== 'environment' && e.bucket !== 'peers',
+      );
     }
 
     /**

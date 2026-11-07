@@ -685,20 +685,17 @@ that source contributed to.
 
 ### Schema delivery to the client
 
-Schema delivery is gated by `_commandSchemaSubscribed`, which flips
-on the first `onConnectionAttached`. Pre-subscription pushes
-(hydration, boot-time) don't fire spurious frames. After the gate
-opens:
+Schema delivery is gated by `_commandSchemaSubscribed`, which flips on the first
+`onConnectionAttached`, and emits one `shell.control` (`schema:reset`) carrying
+the full deduped payload.
 
-- Every push emits a `shell.control` (`schema:added`) frame per
-  `CommandSchemaPayload`.
-- Every pop emits a `shell.control` (`schema:removed`) with `{ verb }`.
-- The gate-open itself emits one `shell.control` (`schema:reset`) carrying
-  the full deduped payload (the client uses this as its baseline
-  schema view).
-
-The same hooks drive both the recency stack and the schema delivery
-— one signal, two consumers.
+⭐ **Pushes and pops send nothing.** They used to send a frame per verb
+(`schema:added`, `schema:removed`), so one body walking into a room of thirty
+sent thirty people a frame per verb it and its goods afford, and sent the walker
+one per verb of everything there. No client read them: the client's
+`shell.control` handler keeps only `control:clear`. It was half of a crowd's cost
+on the profile (controllers-are-io D27). A client that wants a live verb list
+asks for affordances.
 
 ## Stage 1 — Ingress
 

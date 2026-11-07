@@ -2024,8 +2024,8 @@ export class CommandApi {
    */
   static emitSchemaDelta(
     recipient: Stuff,
-    kind: 'added' | 'removed' | 'reset',
-    payload: CommandSchemaPayload | { verb: string } | CommandSchemaPayload[]
+    kind: 'reset',
+    payload: CommandSchemaPayload[]
   ): void {
     logic().emitSchemaDelta(recipient, kind, payload);
   }
