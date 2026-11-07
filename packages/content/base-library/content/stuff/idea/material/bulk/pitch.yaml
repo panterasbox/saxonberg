@@ -8,7 +8,7 @@
 # it.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: pitch, strength: 2000 }]
+  smells: [{ word: pitch, strength: 300 }]
   burning: [{ word: oil-smoke, strength: 1500 }]
   name: pitch
   keywords: [pitch]

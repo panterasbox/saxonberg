@@ -3,7 +3,7 @@
 # a field is fed with — the return leg of the nitrogen ledger.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: dung, strength: 3000 }]
+  smells: [{ word: dung, strength: 800 }]
   name: manure
   keywords: [manure, muck, dung]
   appearance: wet dark muck and straw

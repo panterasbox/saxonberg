@@ -32,6 +32,7 @@ import { MixinApi } from '../../../api/mixin';
 import { Traversal } from '../../../lib/location/Traversal';
 import type { Leg } from '../../../lib/location/Traversal';
 import { StuffApi } from '../../../api/stuff';
+import Aroma from '../Aroma';
 import { CraftingApi } from '../../../api/crafting';
 import type { Sensor } from '../../../lib/message/Sensor';
 import type { Percept } from '../../../lib/perception/Modality';
@@ -330,6 +331,7 @@ export class SmellModality extends Modality {
     if (makeup.length > 0) {
       for (const part of makeup) {
         const m = StuffApi.findByTemplatePath<Material>(part.materialPath);
+        if (!m) Aroma.loadOnUse(part.materialPath);
         this.addMaterial(m ?? null, litres * part.fraction, heat, into);
       }
     } else {

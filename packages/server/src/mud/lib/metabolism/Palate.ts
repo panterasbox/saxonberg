@@ -67,6 +67,7 @@ const DEFAULT_AROMA_CURVE: HedonicCurve = { peak: 1.5, width: 2, valence: 1 };
 export type TasteOutcome =
   | { ok: false; reason: 'airway'; line: string }
   | { ok: false; reason: 'nothing-left' }
+  | { ok: false; reason: 'closed' }
   | {
       ok: true;
       /** The size of it: a bite off the thing, a sip out of it, or a lick. */
@@ -232,8 +233,13 @@ export function PalateMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) 
       if (!MixinApi.isMetabolic(self)) return { ok: false, reason: 'nothing-left' };
       const gate = self.canIngest();
       if (!gate.ok) return { ok: false, reason: 'airway', line: gate.line };
+      // Nothing gets out of a sealed bottle, a tongue's way or a nose's.
+      if (MixinApi.isSealable(food) && !food.isOpen()) return { ok: false, reason: 'closed' };
       const modality = PerceptionApi.modalityByName('taste') as TasteModality;
       const foodName = food.getPresentation();
+      // A first read after a restart may find a word or an ingredient cold.
+      for (const note of modality.flavorOf(food).aromas.notes) Aroma.resolve(note.word);
+      await Aroma.settling();
 
       // ── a sip: whatever a vessel holds ──
       if (MixinApi.isBulkable(food) && food.hasInteriorBulk() && !food.isBulkEmpty('interior')) {

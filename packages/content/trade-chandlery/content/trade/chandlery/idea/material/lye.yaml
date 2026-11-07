@@ -4,6 +4,7 @@
 # stay outside it). In the eyes it blinds until rinsed.
 class: /platform/idea/material/OdorousMaterial
 data:
+  tastes: [{ type: bitter, amount: 5 }]
   smells: [{ word: lye, strength: 300 }]
   name: lye
   # ⚠ Not `potash` (potash build): lye is what potash is leached INTO,

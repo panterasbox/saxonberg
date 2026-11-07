@@ -44,7 +44,7 @@ const ADAPT_MAX = 2;
 /** Game-seconds per band of adaptation, up or down. */
 const ADAPT_STEP_S = 600;
 /** The widest a body's born sensitivity moves a word, in bands. */
-const BORN_SPREAD = 0.5;
+const BORN_SPREAD = 0.2;
 /** How many smells each band can pull apart. */
 const SEPARATION: Record<CompetenceBandName, number> = {
   untrained: 1,
@@ -236,7 +236,8 @@ export function OlfactoryMixin<TBase extends MixinConstructor<Stuff>>(Base: TBas
       if (!only || from.some((s) => s.hops > 0 || s.stuffId !== only.stuffId)) return null;
       if (only.stuffId === self.stuffId) return null;
       const thing = StuffApi.findById(only.stuffId);
-      if (!thing) return null;
+      // The ground is everywhere you stand: it is not a thing a smell is pinned on.
+      if (!thing || MixinApi.isFloor(thing)) return null;
       if (!MixinApi.isSensor(self) || !MixinApi.isPerception(self)) return null;
       const vision = PerceptionApi.modalityByName('vision') as VisionModality | null;
       if (!vision?.canSee(self as Stuff & Sensor & Perception, thing)) return null;

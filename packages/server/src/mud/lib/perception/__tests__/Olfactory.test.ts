@@ -93,7 +93,7 @@ describe('who detects what', () => {
     vi.spyOn(a, 'getIdentityPath').mockReturnValue('/x/a');
     vi.spyOn(b, 'getIdentityPath').mockReturnValue('/x/b');
     expect(a.bornSensitivity('tar')).not.toBe(b.bornSensitivity('tar'));
-    expect(Math.abs(a.bornSensitivity('tar'))).toBeLessThanOrEqual(0.5);
+    expect(Math.abs(a.bornSensitivity('tar'))).toBeLessThanOrEqual(0.2);
   });
 });
 

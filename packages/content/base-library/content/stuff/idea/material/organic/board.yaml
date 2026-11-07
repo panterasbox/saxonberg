@@ -3,7 +3,7 @@
 # paper, denser and much stiffer; it burns as paper does, a little slower.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: wood, strength: 10 }]
+  smells: [{ word: wood, strength: 1 }]
   burning: [{ word: wood-smoke, strength: 300 }]
   name: board
   keywords: [board, pasteboard, cardboard]

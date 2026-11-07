@@ -63,6 +63,9 @@ class TestCook extends ThermalMixin(
 
 const WATER = '/stuff/idea/material/_test/medium-water';
 const TALLOW = '/stuff/idea/material/_test/medium-tallow';
+const BRINE = '/stuff/idea/material/_test/medium-brine';
+const SAND = '/stuff/idea/material/_test/medium-sand';
+const BOTH = '/stuff/idea/material/_test/medium-both';
 const MEAT = '/stuff/idea/material/_test/medium-meat';
 const RAW_BEAN = '/stuff/idea/material/_test/medium-raw-bean';
 const SPIRIT = '/stuff/idea/material/_test/medium-spirit';
@@ -133,7 +136,7 @@ async function craftAs(
 /** A wet/fat/dry recipe over one meat item, at the demanded heat. */
 function recipeRow(
   id: string,
-  medium: '' | 'water' | 'fat',
+  medium: string,
   requiresHeatK: number,
 ): Record<string, unknown> {
   const slots: Record<string, unknown>[] = [
@@ -154,6 +157,14 @@ function recipeRow(
       minGrade: 'fair',
       kind: 'bulk',
       measureL: 0.1,
+    });
+  } else if (medium) {
+    slots.unshift({
+      slot: medium,
+      category: medium,
+      minGrade: 'fair',
+      kind: 'bulk',
+      measureL: 0.5,
     });
   }
   return {
@@ -225,6 +236,11 @@ beforeEach(async () => {
   water.setBoilingPoint(Quantity.of(373, 'K'));
   const tallow = registerMaterial(TALLOW, 'tallow', ['liquid', 'fat'], true);
   tallow.setSmokePoint(Quantity.of(478, 'K'));
+  registerMaterial(BRINE, 'brine', ['liquid', 'brine']).setBoilingPoint(Quantity.of(374, 'K'));
+  registerMaterial(SAND, 'sand', ['liquid', 'sand']);
+  const both = registerMaterial(BOTH, 'both', ['liquid', 'both']);
+  both.setBoilingPoint(Quantity.of(365, 'K'));
+  both.setSmokePoint(Quantity.of(400, 'K'));
   registerMaterial(MEAT, 'stew meat', ['meat'], true);
   // ⭐ The AC9 fixtures — a synthetic raw bean whose lectin is destroyed
   // by boiling, and a synthetic ferment whose alcohol is not. A kernel
@@ -244,6 +260,11 @@ beforeEach(async () => {
 
   store.recipes!.push(
     recipeRow('wet-simmer', 'water', 373),
+    recipeRow('brine-boil', 'brine', 374),
+    recipeRow('brine-too-hot', 'brine', 380),
+    recipeRow('sand-roast', 'sand', 700),
+    recipeRow('both-under', 'both', 360),
+    recipeRow('both-over', 'both', 380),
     recipeRow('wet-browned', 'water', 450), // impossible: water stops at 373
     recipeRow('fried-cutlet', 'fat', 440), // fine in tallow
     recipeRow('scorched-cutlet', 'fat', 500), // past tallow's smoke point
@@ -401,6 +422,33 @@ describe('the medium caps the effective heat (AC7)', () => {
       makerMode: 'self',
     });
     expect(outcome.ok).toBe(true);
+  });
+});
+
+describe('a medium is any tag, and its material sets the ceiling', () => {
+  it('⭐ brine boils a degree above water, and no hotter', async () => {
+    ContainmentApi.move(makeBottle(BRINE, 2), room);
+    expect((await craftAs(cook, { recipeRef: 'brine-boil', makerMode: 'self' })).ok).toBe(true);
+    ContainmentApi.move(makeBottle(BRINE, 2), room);
+    expect(await craftAs(cook, { recipeRef: 'brine-too-hot', makerMode: 'self' })).toMatchObject({
+      ok: false,
+      reason: 'insufficient-heat',
+    });
+  });
+
+  it('sand tabulates no limit, so the fire decides', async () => {
+    ContainmentApi.move(makeBottle(SAND, 2), room);
+    expect((await craftAs(cook, { recipeRef: 'sand-roast', makerMode: 'self' })).ok).toBe(true);
+  });
+
+  it('with both limits tabulated, the lower one is the ceiling', async () => {
+    ContainmentApi.move(makeBottle(BOTH, 2), room);
+    expect((await craftAs(cook, { recipeRef: 'both-under', makerMode: 'self' })).ok).toBe(true);
+    ContainmentApi.move(makeBottle(BOTH, 2), room);
+    expect(await craftAs(cook, { recipeRef: 'both-over', makerMode: 'self' })).toMatchObject({
+      ok: false,
+      reason: 'insufficient-heat',
+    });
   });
 });
 

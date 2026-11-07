@@ -29,6 +29,7 @@ data:
   props:
     - /world/terminus/hearts-delight/dairy/thing/dairy-book
     - /world/terminus/hearts-delight/dairy/thing/calf-register
+    - /world/terminus/hearts-delight/dairy/thing/gutter
     # ⭐ Three pails: a dairy is worked by more than one pair of hands, and
     # with ONE the first milker to carry it off left everybody else unable
     # to milk (found by the browser walk). Take one with `get 1 pail`.

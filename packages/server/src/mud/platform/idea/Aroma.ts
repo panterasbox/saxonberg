@@ -93,7 +93,7 @@ export default class Aroma extends SingletonMixin(Idea) {
 
   private static startLoading(word: string, path: string): void {
     if (Aroma.loading.has(word)) return;
-    const load = StuffApi.singleton(path)
+    const load = Aroma.ensure(word)
       .catch((err: unknown) => {
         void DiagnosticApi.record({
           path,
@@ -109,7 +109,9 @@ export default class Aroma extends SingletonMixin(Idea) {
   public static async ensure(word: string): Promise<Aroma> {
     const path = TemplatePathPrefixes.aroma + word;
     try {
-      return (await StuffApi.singleton(path)) as unknown as Aroma;
+      const row = (await StuffApi.singleton(path)) as unknown as Aroma;
+      await row.learnLineage(path);
+      return row;
     } catch (err) {
       throw new Error(`Aroma '${word}' has no row at ${path}: ${String(err)}`);
     }
@@ -144,14 +146,30 @@ export default class Aroma extends SingletonMixin(Idea) {
     return out;
   }
 
+  /**
+   * Start loading a row a smell read found cold (a dirt kind on a restored floor,
+   * an ingredient of a restored blend) and have {@link Aroma.settling} wait for it,
+   * so the first read after a restart does not lose a smell. @internal
+   */
+  public static loadOnUse(path: string): void {
+    if (Aroma.loading.has(path)) return;
+    const load = StuffApi.singleton(path)
+      .catch(() => {})
+      .finally(() => Aroma.loading.delete(path));
+    Aroma.loading.set(path, load);
+  }
+
   /** Every load a cold read started, to wait out; `null` when there are none. @internal */
   public static settling(): Promise<unknown> | null {
     return Aroma.loading.size > 0 ? Promise.all(Aroma.loading.values()) : null;
   }
 
-  public override async onCreate(context?: unknown): Promise<void> {
-    await super.onCreate(context);
-    const path = this.getTemplatePath() ?? "";
+  /**
+   * The row's `extends:` chain, root first, and each parent loaded with it. Done
+   * here because `ensure` is the one way a word loads.
+   */
+  private async learnLineage(path: string): Promise<void> {
+    if (this.lineage.length > 0) return;
     const row = await Template.findByPath(path);
     // `chain` is nearest-first and excludes this row.
     const parents = (row?.chain ?? []).map((p) => leafOf(p)).reverse();

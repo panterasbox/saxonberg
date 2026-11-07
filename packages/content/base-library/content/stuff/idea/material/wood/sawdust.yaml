@@ -11,7 +11,7 @@
 # is the shavings fire. Not food: nothing grows in it here.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: sawdust, strength: 100 }]
+  smells: [{ word: sawdust, strength: 30 }]
   burning: [{ word: wood-smoke, strength: 300 }]
   name: sawdust
   keywords: [sawdust, dust]

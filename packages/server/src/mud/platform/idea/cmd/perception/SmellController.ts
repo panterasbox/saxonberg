@@ -85,6 +85,19 @@ export default class SmellController extends SingleSenseControllerBase {
         .send();
       return;
     }
+    // ⭐ Prose a thing authored for the nose stands. Otherwise its look is not an
+    // answer: this reader smells nothing on it, and that is what they are told.
+    if (MixinApi.isVisible(target) && !target.getLongDescription().includes('channel="smell"')) {
+      MessageApi.scene(actor)
+        .topic(this.sceneTopic)
+        .toSelf(
+          target.stuffId === actor.stuffId
+            ? Mml.compose`You can't smell anything on yourself.`
+            : Mml.compose`You can't smell anything on ${Mml.thing(target)}.`,
+        )
+        .send();
+      return;
+    }
     super.senseTarget(target, context);
   }
 

@@ -41,6 +41,8 @@ export default class TasteController extends SingleSenseControllerBase {
       switch (outcome.reason) {
         case 'airway':
           return this.decline(context, Mml.compose`${outcome.line}`, 'airway');
+        case 'closed':
+          return this.decline(context, Mml.compose`You'd have to open ${Mml.thing(target)} first.`, 'closed');
         case 'nothing-left':
           return this.decline(context, Mml.compose`There's nothing to taste.`, 'nothing-left');
       }
