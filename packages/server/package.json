@@ -63,6 +63,7 @@
     "lint:get-or-create": "tsx scripts/check-get-or-create.ts",
     "lint:completion-this": "tsx scripts/check-completion-this.ts",
     "lint:command-views": "tsx scripts/check-command-views.ts",
+    "lint:contribution-keys": "tsx scripts/check-contribution-keys.ts",
     "lint:controller-resolution": "tsx scripts/check-controller-resolution.ts",
     "lint:controller-mutations": "tsx scripts/check-controller-mutations.ts",
     "lint:controller-decisions": "tsx scripts/check-controller-decisions.ts",
