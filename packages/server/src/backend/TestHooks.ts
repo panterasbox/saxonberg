@@ -346,7 +346,11 @@ export class TestHooks {
     const playerId = user.playerIds[0];
     if (!playerId) return;
     let avatar = PlayerApi.findAvatarByPlayerId(playerId);
-    if (!avatar) {
+    if (avatar) {
+      // ⚠ This login has it now, or a sign-out's save landing during the move
+      // destructs the body under the move (the dairy drive's `goTo`).
+      avatar.claimForLogin();
+    } else {
       // Not resident (evicted, or a cold server). Materializing here is
       // safe and idempotent: the avatar is keyed by its identity path,
       // so the `play` that follows finds this same instance.
