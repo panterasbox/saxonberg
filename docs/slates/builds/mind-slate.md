@@ -829,3 +829,37 @@ behavioural model without altering anyone's play.
 6. **Is the phase ever visible to the player?** Perhaps
    **retrospectively, in the chronicle** — *you can see the shape of it
    after, never during.* Possibly the most honest available compromise.
+
+## ⭐⭐ The interlock (owner conversation, 2026-11-07; NOT yet built)
+
+Talked out during the smell and taste requirements. **Owner: "one meter is
+definitely what we want"**, the equanimity Reserve, as the mental complement of
+endurance. This reconciles with [wellbeing](./wellbeing-slate.md): its discomforts
+are inputs to this meter, and "wellbeing" is the mirror saying why.
+
+Proposed, not ruled on:
+
+| input | what it does to equanimity | shape |
+|---|---|---|
+| hunger, thirst, cold, tiredness, pain, grime | throttles recovery (thirst's shipped throttle) | lasts as long as the state |
+| being untrue to yourself (CK3) | spends it | event |
+| fear, loss, a hated meal | spends it | event |
+| a good meal, a bath, company, sleep | restores it, leaves an afterglow | event, scaled by need |
+
+- **Hangry is a throttle, not a drain.** A hungry person has less margin.
+- **Copy `exertion.md`'s shape:** a word ladder, a conditioning stock that fades,
+  and ordinary strain stopping at a floor. **A break is the mental faint:** sudden,
+  from acute shock, and it passes. ⚠ Wellbeing says "no mental breaks" and this
+  slate specifies one; this is the proposed reconciliation.
+- **Mana stays separate.** Mana is what a caster spends; equanimity is how steady
+  anyone is. The live composure read takes both, and low equanimity slows mana's
+  recovery: body to mind to magic. `reserve.md`'s "endurance's mirror" wording needs
+  fixing.
+- **Town and field:** spoilage means you can't pack your favorite meal, preserved
+  food feeds you with little relief, and the field spends what town restores.
+- ⚠ **The sharpest open point:** the twin of `spent` refusing a step is "you can't
+  bring yourself to", the one place this could control a player. Keep it to starting
+  long or demanding acts, or drop the refusal.
+
+The first reader's input ships in the smell and taste build: a signed, per-person
+liking read, scaled by hunger, plus a record of what you've eaten.
