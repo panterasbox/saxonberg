@@ -24,10 +24,11 @@ settings:
   # metres is two bar — enough for three storeys.
   - key: water.mainPressureHeadM
     value: "20"
-  # ⭐ The pipe a plumbed room has when its row says nothing — a tap implies
-  # its pipe (the review: no author props a pipe in every room). Cast iron,
-  # the civic and commercial run; a house that wants lead says
-  # `plumbing: lead`. A word naming `/stuff/thing/fixture/<word>-run`.
+  # ⭐ The pipe a room's tap stands up when its premises names none — a tap
+  # implies its pipe (the review: no author props a pipe in every room).
+  # Cast iron, the civic and commercial run; a premises that runs lead says
+  # `pipe: lead` on its title claim. A word naming
+  # `/stuff/thing/fixture/<word>-run`.
   - key: plumbing.defaultRun
     value: "iron"
   # How high one storey stands — what a loft tap's outlet adds per

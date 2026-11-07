@@ -151,9 +151,10 @@ export class ParcelApi {
    * ⭐⭐ **The water read**: where the premises at `path` takes its water —
    * a supply's template path, `'none'` (declared dry), or `''` (nothing up
    * the chain says). The twin of {@link powerOf}; a tap resolves it lazily
-   * and loads the supply on use.
+   * and loads the supply on use. `pipe` is the nearest run word up the
+   * chain that carries it into the rooms — absent means the default.
    */
-  public static waterOf(path: string): { source: string; parcel: ParcelRecord | null } {
+  public static waterOf(path: string): { source: string; parcel: ParcelRecord | null; pipe?: string } {
     return logic().waterOf(path);
   }
 

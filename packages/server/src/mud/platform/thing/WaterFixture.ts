@@ -64,9 +64,11 @@ import { SwitchableMixin } from '../../lib/boundary/Switchable';
 import type { CommandContributions } from '../../api/command';
 import type { FieldMeta } from '../../lib/mixin';
 import type { Stuff } from '../../lib/stuff/Stuff';
+import type { Container } from '../../lib/spatial/Container';
 import type { BulkAffordance } from '../../lib/bulk/Bulkable';
 import type { MarkupAugmenter } from '../../api/mml';
 import { StuffApi } from '../../api/stuff';
+import { ContainmentApi } from '../../api/containment';
 import type Material from '../../lib/material/Material';
 import { MixinApi } from '../../api/mixin';
 import { ParcelApi } from '../../api/parcel';
@@ -409,7 +411,52 @@ export default class WaterFixture
   /** Have this fixture's room stand up the run its plumbing names (`Plumbed`). */
   private async standUpRun(): Promise<void> {
     const room = this.roomOf();
-    if (room !== null && MixinApi.isPlumbed(room)) await room.plumbingRun();
+    if (room === null || !MixinApi.isContainer(room)) return;
+    const pending = WaterFixture.standingUp.get(room);
+    if (pending) {
+      await pending;
+      return;
+    }
+    const work = this.cloneRunInto(room as Stuff & Container).finally(() => {
+      WaterFixture.standingUp.delete(room);
+    });
+    WaterFixture.standingUp.set(room, work);
+    await work;
+  }
+
+  /**
+   * ⭐ A tap implies its pipe (the review): stand up, in this room, the run
+   * its PREMISES says carries the water — `ParcelRecord.pipe`, inherited up
+   * the claim chain ("Seznick House with the landlord's lead"), else
+   * `plumbing.defaultRun`. No author props one. A word with no run row is a
+   * content error, said loudly: the tap reads unplumbed rather than invent
+   * a pipe.
+   */
+  private async cloneRunInto(room: Stuff & Container): Promise<void> {
+    if (this.runOf() !== null) return;
+    const premises = this.resolvePremisesPath();
+    const word = (premises !== null ? ParcelApi.waterOf(premises).pipe : undefined) ?? WaterFixture.defaultPipe();
+    const row = `/stuff/thing/fixture/${word}-run`;
+    try {
+      const run = await StuffApi.clone<Stuff>(row);
+      if (MixinApi.isContainable(run)) ContainmentApi.move(run, room);
+    } catch (err) {
+      console.warn(`WaterFixture: ${premises ?? '?'} names no run at ${row}: ${String(err)}`);
+    }
+  }
+
+  /** The runs being stood up, by room — two taps in one room make one pipe. */
+  private static standingUp = new WeakMap<Stuff, Promise<void>>();
+
+  /** The run word a premises that names none gets (`plumbing.defaultRun`). */
+  private static defaultPipe(): string {
+    try {
+      const raw = AppApi.setting(AppSettingKeys.plumbingDefaultRun);
+      if (typeof raw === 'string' && raw.trim() !== '') return raw.trim();
+    } catch {
+      // Unwarmed settings read the shipped default.
+    }
+    return 'iron';
   }
 
   /** The room's run when it carries water, after its frost is read. */

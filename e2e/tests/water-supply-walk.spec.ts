@@ -21,6 +21,7 @@ import { openWorldAs, runCommand } from './helpers';
 const SQUARE = '/world/terminus/market/square';
 const BANK = '/world/terminus/wharfside/bank';
 const HEADGATE = '/world/terminus/hearts-delight/ditch/location/headgate';
+const SEZNICK_BATH = '/world/terminus/mayfield-row/seznick-house/location/bathroom';
 const SERVER_URL = process.env.E2E_SERVER_URL ?? 'http://localhost:2010';
 
 async function transcript(page: Page): Promise<string> {
@@ -101,6 +102,21 @@ test.describe('the water-supply build, in a browser', () => {
       await hand(handle, '/system/water/thing/test-kit');
       const kit = await sayAwaiting(page, 'analyze water standpipe', /fit to drink/i);
       expect(kit).toMatch(/fit to drink/i);
+    } finally {
+      await w.close();
+    }
+  });
+
+  test('⭐ a let unit runs on the landlord\'s lead: the tap stands up its premises\' pipe', async ({ browser }) => {
+    test.setTimeout(300_000);
+    const w = await openWorldAs(browser, 'water-walk-lead', { startLocation: SEZNICK_BATH });
+    const { page } = w;
+    try {
+      // No room props a pipe: the first draw stands up the run the Mayfield
+      // Row claim's `pipe: lead` names.
+      const drew = await sayAwaiting(page, 'drink from basin', /drink|swallow|sip|nothing comes/i);
+      expect(drew, 'drink from basin').not.toMatch(NOT_UNDERSTOOD);
+      expect(await lookFor(page, 'run', /lead supply pipe/)).toMatch(/wiped joint/);
     } finally {
       await w.close();
     }

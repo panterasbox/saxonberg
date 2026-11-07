@@ -112,6 +112,7 @@ function seedParcel(entry: {
   feeder?: string;
   powerBand?: string | null;
   waterSource?: string;
+  pipe?: string;
 }): void {
   col("parcels").push({
     _id: `seed-${++idCounter}`,
@@ -126,6 +127,7 @@ function seedParcel(entry: {
     feeder: entry.feeder ?? "",
     powerBand: entry.powerBand ?? null,
     waterSource: entry.waterSource ?? "",
+    pipe: entry.pipe ?? "",
   });
 }
 
@@ -885,6 +887,27 @@ describe("ParcelApi.waterOf — the premises water citation (water-supply D1)", 
     expect(
       ParcelApi.waterOf("/world/terminus/hinkley-hills/lots/lot-1/kitchen").source,
     ).toBe("none");
+  });
+
+  it("⭐ the pipe inherits up the chain on its own — a sold lot cites its own water and takes the district's lead", async () => {
+    seedParcel({
+      extent: "/world/terminus/hinkley-hills",
+      owner: { kind: "group", name: "hinkley" },
+      waterSource: "/world/terminus/hinkley-hills/thing/district-tank",
+      pipe: "lead",
+    });
+    seedParcel({
+      extent: "/world/terminus/hinkley-hills/lots/lot-1",
+      owner: { kind: "group", name: "hinkley" },
+      parentParcel: "/world/terminus/hinkley-hills",
+      waterSource: "none",
+    });
+    await boot();
+    const read = ParcelApi.waterOf("/world/terminus/hinkley-hills/lots/lot-1/kitchen");
+    expect(read.source).toBe("none");
+    expect(read.pipe).toBe("lead");
+    // Ground whose chain names no pipe gives none — the tap's default.
+    expect(ParcelApi.waterOf("/world/nowhere").pipe).toBeUndefined();
   });
 
   it("ground nobody cites reads '' (a tap reads unplumbed)", async () => {

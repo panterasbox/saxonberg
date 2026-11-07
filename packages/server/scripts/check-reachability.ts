@@ -716,20 +716,14 @@ export function collectFaucets(
         return;
       }
       if (node && typeof node === "object") {
-        // ⭐ A place's `plumbing:` WORD reaches its run row — the room stands
-        // up `/stuff/thing/fixture/<word>-run` the first time a tap needs it
-        // (`PlumbedMixin`) — and so does the shipped default word
-        // (`plumbing.defaultRun`). A word, not a path, so the leaf walk
-        // below cannot see it.
+        // ⭐ The shipped default pipe word (`plumbing.defaultRun`) reaches its
+        // run row — a tap's room stands up `/stuff/thing/fixture/<word>-run`
+        // the first time it needs one. A word, not a path, so the leaf walk
+        // below cannot see it. (A premises' own `pipe:` word is read off the
+        // pack manifests' title claims, after this walk.)
         const rec = node as Record<string, unknown>;
-        const word =
-          typeof rec.plumbing === "string"
-            ? rec.plumbing
-            : rec.key === "plumbing.defaultRun" && typeof rec.value === "string"
-              ? rec.value
-              : null;
-        if (word !== null && word !== "none") {
-          const run = `/stuff/thing/fixture/${word}-run`;
+        if (rec.key === "plumbing.defaultRun" && typeof rec.value === "string") {
+          const run = `/stuff/thing/fixture/${rec.value}-run`;
           if (!named.has(run)) named.set(run, { field: "plumbing", file });
         }
         for (const [k, v] of Object.entries(node as Record<string, unknown>)) {
@@ -756,6 +750,26 @@ export function collectFaucets(
       if (!unknown.has(leaf)) unknown.set(leaf, { file, example: node });
     };
     visit(doc, "(root)");
+  }
+
+  // ⭐ A premises' `pipe:` word on its title claim reaches its run row (the
+  // room stands it up when a tap there first needs it).
+  if (existsSync(contentDir)) {
+    for (const pack of readdirSync(contentDir).sort()) {
+      const manifest = join(contentDir, pack, "pack.yaml");
+      if (!existsSync(manifest)) continue;
+      let doc: { requires?: { title?: { pipe?: unknown }[] } } | null = null;
+      try {
+        doc = YAML.parse(readFileSync(manifest, "utf8"));
+      } catch {
+        continue;
+      }
+      for (const t of doc?.requires?.title ?? []) {
+        if (typeof t?.pipe !== "string") continue;
+        const run = `/stuff/thing/fixture/${t.pipe}-run`;
+        if (!named.has(run)) named.set(run, { field: "pipe", file: manifest });
+      }
+    }
   }
 
   for (const [field, { file, example }] of [...unknown].sort()) {

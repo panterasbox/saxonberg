@@ -47,8 +47,21 @@ class ParcelRecord extends Document {
   reach: string;                // the reach this land fronts; '' = not on water
   feeder: string;               // the grid node metering this land; '' = no line
   powerBand: PowerBand | null;  // electric posture; null = inherit
+  waterSource: string;          // the supply its taps read; 'none' = dry; '' = inherit
+  pipe: string;                 // the run word that carries it indoors; '' = inherit
 }
 ```
+
+⭐ **`waterSource` + `pipe` are the WATER citation** (water-supply build) —
+the energy meter's twin. `ParcelApi.waterOf(path)` → `{ source, parcel,
+pipe? }`, each inherited up the chain on its own: a sold Hinkley lot cites
+its own water (`none`, until a plumber's service run cites the district
+tank) and takes the district's `pipe: lead`. The pipe word names
+`/stuff/thing/fixture/<word>-run`, the run a room's tap stands up when it
+first needs one; nothing up the chain is `plumbing.defaultRun`.
+`lint:water-posture` catches a premises that cites no water, and
+`lint:water-plumbed` a pipe word with no run row. See
+[water-supply.md](./water-supply.md).
 
 ⭐ **`feeder` + `powerBand` are the ENERGY meter** (energy build) — the same
 citation shape as `reach`, for the same reason. `ParcelApi.powerOf(path)` →

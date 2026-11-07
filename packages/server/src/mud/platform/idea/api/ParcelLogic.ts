@@ -97,7 +97,7 @@ export class ParcelLogic extends ApiLogic {
 
   /** See {@link ParcelApi.waterOf}. */
   @CallSecurity(ParcelApiCallers)
-  public waterOf(path: string): { source: string; parcel: ParcelRecord | null } {
+  public waterOf(path: string): { source: string; parcel: ParcelRecord | null; pipe?: string } {
     const reg = lookupRegistry();
     return reg ? reg.waterOf(path) : { source: "", parcel: null };
   }

@@ -54,7 +54,6 @@ import type Structure from '../structure/Structure';
 import type { Positioned } from '../expanse/Positioned';
 import type { Floor } from '../ground/Floor';
 import type { FieldMeta } from '../mixin';
-import { PlumbedMixin } from '../supply/Plumbed';
 
 /**
  * ⭐ The Place's own say in what its floor is, without authoring a floor
@@ -179,7 +178,7 @@ export interface FloorDefaults {
 // three description mixins and none of `Exitable`/`Staged`/coordinates.
 // A location is *a place you can see, name and point at*; being a place
 // you can walk BETWEEN is the next rung out.
-const PlaceBase = PlumbedMixin(AddressableMixin(
+const PlaceBase = AddressableMixin(
   AmbientLitMixin(
     AtmosphericMixin(
       AdornableMixin(
@@ -191,7 +190,7 @@ const PlaceBase = PlumbedMixin(AddressableMixin(
       ),
     ),
   ),
-));
+);
 
 export default class Place extends PlaceBase {
 // ⭐ `suppressesMagic` gained `authorable` (base-class narrowing):

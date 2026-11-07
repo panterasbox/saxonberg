@@ -190,8 +190,7 @@ describe("the kitchen — BUNDLE (D12)", () => {
       { template: "/stuff/thing/items/dry-log", count: 3 },
     ]);
     // ⭐ No pipe in the props: a tap implies its pipe, and the room stands
-    // up the default run the first time the basin is read (`Plumbed`).
-    expect(read("kitchen").data?.plumbing).toBeUndefined();
+    // up its premises' run the first time the basin is read.
   });
 
   it("the larder's lid is load-bearing — seeded OPEN so the gather walk reaches it", () => {
@@ -235,8 +234,8 @@ describe("the bathroom — PRESENCE (D13)", () => {
       // from leaves you wet.
       "/stuff/thing/gear/towel",
     ]);
-    // …and its water comes in by lead, said once on the room (`Plumbed`).
-    expect(read("bathroom").data?.plumbing).toBe("lead");
+    // …and no pipe either: what carries its water is the premises' word
+    // (`pipe:` on the title claim — the landlord's lead), never the room's.
   });
 
   it("the toilet does nothing, deliberately — prose, no capability", () => {

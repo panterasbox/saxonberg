@@ -24,8 +24,6 @@
 # panopticon would consume, not because it was overlooked.
 class: /platform/location/PersistentLocation
 data:
-  # ⭐ A house bathroom's supply is lead (water-supply): soft acid water takes it up.
-  plumbing: lead
   # ⭐ Daylight reaches this room through a real opening, and the
   # opening is named so the claim is something a player can walk up
   # to and look at. The room follows the sun: bright at noon, dark
