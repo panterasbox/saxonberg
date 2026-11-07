@@ -1458,11 +1458,13 @@ Wire: steps 10–13.
 **Commit.** one per batch, `content(vocab W7<letter>): …`, then
 `build(vocab W7): the full pass audited`.
 
-**✅ Done** as one table (B11). 302 material rows changed, 23 animal species. The
+**✅ Done** as one table (B11). The drive revised the scale; see the drive record. 302 material rows changed, 23 animal species. The
 tannery needed a real source, not just words: its pit is oak and water, so a new
 `pit-oak` row carries the liquor in the wood, and an empty pit still smells.
 
 ### W8 — The drive, the walk, the docs
+
+**✅ Done.** See the drive record.
 
 The wire file (all blocking steps), the e2e walk (the browser half: the
 tannery, the glass, `taste apple`, the analyzer), the soak file for 34–37
@@ -1794,4 +1796,54 @@ Read first, in this order.
 
 ## Drive record
 
-*(appended at build time, not at plan time)*
+`packages/wire/tests/vocabularies-to-rows.dirty.wire.test.ts`, on a world the
+harness owns (`WIRE_BOOT=1 WIRE_PORT=2019`, `WIRE_BOOT_TIMEOUT=1500000`: a cold
+install on an emptied database outlasts the default 420 s).
+
+**Result: all 29 blocking steps passed** (28 in one run of the whole file, the 29th
+alone in its own room after a staging fix). **B2:** with source naming, the bite and
+the aversion cap each broken on purpose, steps 14, 19 and 28 went red, and green
+again restored. **Browser walk** (`e2e/tests/vocabularies-to-rows-walk.spec.ts`):
+passed. **Soak drive:** `vocabularies-to-rows.soak.dirty.wire.test.ts` (steps 34–37),
+for the soak lane after merge.
+
+**What driving found** (each a commit on the branch):
+
+1. A stay counted against a smell you had only just brought to your nose: a rotten
+   loaf read "barely of rot" and "delicious". A close read now starts from what the
+   air has done to the nose, and liking reads the mouthful's own strength.
+2. Someone next door stopped the nose naming who was here. D13 counts the room's own
+   sources.
+3. A first read after a restart lost dirt and blended ingredients whose rows were
+   cold. A read now waits out what it started loading (`Aroma.loadOnUse`).
+4. A sealed bottle could be tasted; it can't now.
+5. A floor was named as a smell's source; it isn't now.
+6. `smell <plain thing>` repeated its look; it says it smells of nothing now.
+7. The scale: every outdoor place read "of loam" and every room "of oak"; hay, crude,
+   turpentine, citrus, compost and hide scraps drowned their rooms. All came down.
+8. Venues that read next to nothing gained what is really there: the distillery's tun
+   and vats (`mash-oak`), the knacker's gut tub, the byre's gutter, peat at the turf
+   bank, tidal mud at the estuary.
+9. The born nose spread was too wide for "two readers read the same strength": ±0.2
+   of a band, not ±0.5.
+10. The harness's `eval` refuses a `{ … }` token as a block argument and says so in
+   prose, which a staging read as success. `evalOn` now fails on it.
+
+**Pace and staging, per step.** Everything is `instant` or `short` except as noted.
+Staged by `eval --parcel /world/terminus` from a wizard seated on Terminus's
+committee: 5 (species pointed at orcus), 10 (microbial load), 11 (died-at, after a
+12-hour jump so a fresh world's clock is old enough), 12 and 20–22 (blend payloads),
+14–15 (deposits written as the field: the sandbox refuses a resident dirt row's read),
+25 (exposure records), 27 (satiation), 28 (an aversion record). Owed tools: none (B7).
+
+**Not driven, and how each is proved instead:**
+- **24 (media from rows):** `CraftingLogic.medium.test.ts`, covering brine at its
+  boiling point, sand with no ceiling, the lower of two limits, and a tag as the
+  medium. The three recipes ship and `lint:aromas` checks their media are carried.
+- **30 (a test pack's word):** nothing can ship a pack only to test worlds.
+  `check-aromas.test.ts` (a pack's word, its dependency, a medium) and `Aroma.test.ts`
+  (a word loading under another's from its row, with no kernel file naming it).
+- **31 (loud failures):** `check-aromas.test.ts`, `Aroma.test.ts`, and the setter
+  tests.
+- **33's "the dark names no source":** `Olfactory.test.ts` § the nose tells you what.
+
