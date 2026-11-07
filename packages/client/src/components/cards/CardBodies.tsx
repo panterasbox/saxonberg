@@ -1909,8 +1909,12 @@ function splitLabelledRuns(
     buffer = [];
   };
   for (const line of block.split('\n')) {
-    // A bare `Word:` (or `Word: value`) at the left margin heads a section.
-    const head = /^([A-Z][\w '-]*):\s*(.*)$/.exec(line);
+    // A bare `Word:` (or `Word: value`) at the left margin heads a section,
+    // and so does a lowercase `word:` alone on its line (`help dip`'s
+    // *answers:*). ⚠ Alone: `note: this` in lowercase is a sentence.
+    const head =
+      /^([A-Z][\w '-]*):\s*(.*)$/.exec(line) ??
+      /^([a-z][\w '-]*):$/.exec(line);
     if (head && !/^\s/.test(line)) {
       flush();
       out.push({ kind: 'label', text: head[1]! });

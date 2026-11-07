@@ -256,9 +256,17 @@ test.describe('controllers are IO, in a browser', () => {
       }
       await page.screenshot({ path: `${SHOTS}/06-help-crafting.png`, fullPage: true });
 
-      const dip = await sayAwaiting(page, 'help dip', /answers:/);
+      // ⚠ A topic is a CARD, not a line of scrollback.
+      await runCommand(page, 'help dip');
+      const topic = page.getByTestId('card-help-topic').last();
+      const answersBlock = topic.getByText(/DipPot/).first();
+      await expect(answersBlock, 'the topic lists who answers it').toBeVisible({ timeout: 30_000 });
+      await answersBlock.scrollIntoViewIfNeeded();
+      const dip = await topic.innerText();
+      expect(dip).toMatch(/answers/i);
       expect(dip).toMatch(/DipPot/);
       expect(dip).toMatch(/PaintPot/);
+      await page.screenshot({ path: `${SHOTS}/06b-help-dip-answers.png`, fullPage: true });
     } finally {
       await w.close();
     }
@@ -273,16 +281,13 @@ test.describe('controllers are IO, in a browser', () => {
       const table = await hand(handle, TABLE);
 
       // ── The card ──
-      await expect
-        .poll(
-          async () => {
-            await runCommand(page, `look #${pot}`);
-            const chip = page.getByTestId('card-answers').last();
-            return (await chip.isVisible()) ? chip.innerText() : '';
-          },
-          { timeout: 30_000, intervals: [1_000, 2_000] },
-        )
-        .toMatch(/answers:.*\bdip\b/);
+      // ⚠ Once: every command clears the affordance answer the chip is drawn
+      // from, so looking again and again never lets it arrive.
+      await runCommand(page, `look #${pot}`);
+      const chip = page.getByTestId('card-answers').last();
+      await expect(chip).toBeVisible({ timeout: 30_000 });
+      await expect(chip).toHaveText(/answers:.*\bdip\b/);
+      await chip.scrollIntoViewIfNeeded();
       await page.screenshot({ path: `${SHOTS}/07-dip-pot-card.png`, fullPage: true });
 
       // ── The radial opens from a named row. The square's own list is capped
@@ -309,6 +314,8 @@ test.describe('controllers are IO, in a browser', () => {
         expect(why.length, `\`${verb}\` says why: "${text}"`).toBeGreaterThan(0);
         expect(why, `\`${verb}\` says it in words`).not.toMatch(GARBLED);
       }
+      // ⭐ And the verb the card says it answers is on offer in its own radial.
+      await expect(radial.locator('button[data-verb="dip"]')).toBeEnabled();
       await page.screenshot({ path: `${SHOTS}/08-dip-pot-radial.png`, fullPage: true });
       await page.keyboard.press('Escape');
       await expect(radial).toBeHidden();
@@ -324,13 +331,18 @@ test.describe('controllers are IO, in a browser', () => {
     try {
       await hand(handle, WATCH);
 
-      expect(await sayAwaiting(page, 'alias list', /\bl = look/)).toMatch(/\bl = look \[view: look\]/);
+      // ⚠ The list is a padded table, so the columns are whitespace.
+      expect(await sayAwaiting(page, 'alias list', /\bl\s+=\s+look/)).toMatch(/\bl\s+=\s+look\s+\[view: look\]/);
 
       // ── `l` looks: bare, at the place, and with an operand ⇒ a card of its own ──
       // ⚠ The heading, not the card's body: the square's own card can list
       // somebody else's watch under *Here*.
+      // ⚠ One MORE than before: arriving already drew the square's card, so a
+      // bare "is it visible" passed before `l` had answered.
+      const squares = page.locator('h3', { hasText: /market square/i });
+      const drawn = await squares.count();
       await runCommand(page, 'l');
-      await expect(page.locator('h3', { hasText: /market square/i }).last()).toBeVisible({ timeout: 30_000 });
+      await expect(squares).toHaveCount(drawn + 1, { timeout: 30_000 });
       await runCommand(page, 'l me:i:watch');
       await expect(page.locator('h3', { hasText: /watch/i }).last()).toBeVisible({ timeout: 30_000 });
       expect(await transcript(page)).not.toMatch(/I don't understand 'l'/);
@@ -343,7 +355,7 @@ test.describe('controllers are IO, in a browser', () => {
       const gone = await sayAwaiting(page, 'l', /I don't understand 'l'/);
       expect(gone).not.toMatch(GARBLED);
       await page.screenshot({ path: `${SHOTS}/09-alias-unset.png`, fullPage: true });
-      expect((await sayAwaiting(page, 'alias list', /\bi = inventory/)), 'its neighbors stay').not.toMatch(/\bl = look/);
+      expect((await sayAwaiting(page, 'alias list', /\bi\s+=\s+inventory/)), 'its neighbors stay').not.toMatch(/\bl\s+=\s+look/);
     } finally {
       await w.close();
     }

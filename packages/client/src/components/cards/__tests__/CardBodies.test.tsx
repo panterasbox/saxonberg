@@ -844,6 +844,32 @@ describe("the help card's sections", () => {
     expect(prose.textContent).toBe("a sentence that was hard wrapped for a terminal");
   });
 
+  it("⭐ a lowercase `word:` alone on its line heads a block, one row per line", () => {
+    const { container } = render(
+      <CardBody
+        card={helpCard("answers:\n  DipBathMixin — DipPot, Melt\n  PourableMixin — Jug")}
+        onSendCommand={() => undefined}
+      />,
+    );
+    const el = container.querySelector('[data-testid="card-help-topic"]')!;
+    expect(el.querySelector('[data-help-block="prose"]')).toBeNull();
+    expect(el.querySelector('[data-help-block="pre"]')!.textContent).toBe(
+      "  DipBathMixin — DipPot, Melt\n  PourableMixin — Jug",
+    );
+  });
+
+  it("⚠ a lowercase `word: value` stays a sentence", () => {
+    const { container } = render(
+      <CardBody
+        card={helpCard("note: this is prose")}
+        onSendCommand={() => undefined}
+      />,
+    );
+    expect(container.querySelector('[data-help-block="prose"]')!.textContent).toBe(
+      "note: this is prose",
+    );
+  });
+
   it("splits `Label: value` into a heading and its value", () => {
     const { container } = render(
       <CardBody

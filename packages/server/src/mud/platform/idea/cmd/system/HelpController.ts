@@ -79,10 +79,9 @@ export default class HelpController extends CommandController<HelpModel> {
       lines.push(`  ${cat.title.padEnd(12)} ${cat.count}`);
     }
     lines.push("");
-    lines.push('Type "help <category>" to list its verbs, "help <verb>" for a');
-    lines.push('command, "help api <Type>" for the');
-    lines.push('engine surface, "help <collection>" for how the world stores');
-    lines.push('something, or "help search <word>".');
+    lines.push('Type "help <category>" to list its verbs, "help <verb>" for a command,');
+    lines.push('"help api <Type>" for the engine surface, "help <collection>" for how');
+    lines.push('the world stores something, or "help search <word>".');
     lines.push("");
     this.tellText(context, lines.join("\n"));
   }
