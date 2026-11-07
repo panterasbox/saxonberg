@@ -210,6 +210,20 @@ modifier.
 
 ---
 
+## Water let onto ground — inlets and irrigators (water supply)
+
+Besides the rain, a ground takes water two ways. **Inlets** (`inlets:` on
+the row, a gate and a method) integrate the gate's opening × capacity ×
+the method's share. **Irrigators** (`IrrigatingMixin`) are things standing
+on the ground or beside it — a sprinkler, rain in a circle — which settle
+on their own clocks when the ground asks. ⭐ The sync reconcile kicks a
+background `settleInlets`, so a crop read after a turnout's turn or a
+sprinkler's run sees the water; before it, inlets integrated only when
+somebody surveyed. `settleInlets` claims its window before it awaits, so a
+background settle and a survey's never count it twice. What the soil
+cannot take ponds; ponds drain and leach salt. See
+[water-supply.md](./water-supply.md).
+
 ## The survey ladder (D4) — four rungs, no new verb
 
 | rung | cost | reading |

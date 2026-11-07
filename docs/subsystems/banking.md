@@ -856,7 +856,15 @@ shipped branch-book property, so Goodkin's cash physics are unchanged.
   cash genesis for the Arrival Note), `advance` / `payTerms` (the ladder's
   legs), `escheat` / `reclaim` (the estate's).
 - **Vault coin is not in the audit identity**: deposited coin is backed by
-  balances; the till fills from deposits. The old till float is gone.
+  balances; the till fills from deposits. The old till float (a mint) is
+  gone. ⭐ A branch may still stock its till from its OWN reserves
+  (water supply, `floatTillImpl`): on a withdrawal the till cannot meet, it
+  draws the shortfall — rounded up to `banking.tillFloatQuantum`, the
+  central bank governor's dial — by `disburse` from the branch's own
+  account, then its corpo's treasury. Supply-neutral; a branch with no
+  reserves still refuses (AC#13). `reserve override` is ledger money with no
+  coin behind it — the case the till is designed to refuse; a walk wanting
+  cash arrives a character with the Arrival Note (`/auth/test-arrive`).
 - ⭐ **A lane's outstanding is a warmed read**: `SupplyAggregate.lanes`
   carries the per-category minted/drained sums the same post keeps;
   `laneOutstanding` never scans the ledger. `recomputeSupply` rebuilds them.

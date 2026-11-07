@@ -197,8 +197,36 @@ Delight's gates), `PersistentWaterStore` (a sold roof cistern),
 
 ## Deferred
 
-See the plan's build notes for each wave's deferrals: the loft (paint's
-storeys), the survey's plumbing line, the irrigates/rides brains, rights
-documents, rota → calendar, the bank breach, `ditch with tile`, deep
-percolation into an aquifer, the drilled bore's strike, and `dig well`
-(the cut W10 → digging-slate).
+Each with where it goes (salvaged from the plan at the sweep, 2026-11-06):
+
+- **The loft** (a tap on an upper storey reading its head) — paint's
+  storeys landed; the head rule is unit-tested, the content is not built.
+- **The survey's plumbing line** — `look run` gives the state in words today.
+- **The irrigates / rides brains** (the ditch rider riding, a farmer
+  irrigating unwatched by choice) → irrigation-slate.
+- **Water rights as documents**, the turn book → irrigation-slate § 12.
+- **Rota → calendar**, the bank breach, `ditch with tile`, deep percolation
+  into an aquifer, the drilled bore's strike → irrigation-slate.
+- **`dig well`** and every other hole (graves, pits, trenches, cellars,
+  machines, blasting, backfill) → digging-slate. `HoleMixin` is the seam.
+- **Construction proper** — a pipe run is its first worked element (made of
+  parts by a trade, laid with `fit`) → construction-slate.
+- **`break <padlock>`**, the ditch's padlocks as goods on hasps, the key
+  board → lock-slate § 8.
+- **An NPC plumber on a gig** (the `fulfill` shape over `fit`) →
+  freight-slate / contract.
+- **Metered billing** (`drawL` × time as a payment leg, with power) →
+  power-utility-slate.
+- **Sewer, WC, septic** — a drain is a service run reversed; the outfall is
+  the sink → sanitation-and-pollution-slate.
+- **Bored elm pipe** (a pipe length of wood) → forestry-slate.
+- **A powered pump on the bench** feeding a cistern; the cone of
+  depression and subsidence (`Aquifer.level`) → irrigation-slate.
+- **Sprinklers: one field of a tract, couplings across a restart, the
+  leather hose, the bench on a ram, drip** → irrigation-slate § 13.
+- **Flood crops** (`floodToleranceDays`); pots nobody sells → farming-slate.
+- **`reach:` on a title claim** (riparian derivation finds nobody: `PackLogic`
+  does not parse it) → a water-rights follow-up, one parse line and a test.
+- **Durable cuts on the grid** (`Conduit.cutLog` is the water twin) →
+  power-utility-slate.
+- **Watering ships; a ship's discharge as a load** → running-water-slate § 7.

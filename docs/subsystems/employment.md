@@ -444,6 +444,12 @@ and, per roster assignment:
 - **off→on**: stamps `onShiftSince = now`;
 - **on→off**: settles the shift wage off the captured record *before*
   clearing `onShiftSince`, then flips to off-shift;
+- ⭐ the on-test is `ShiftSchedule.covers(clock)` — the ONE reading of a
+  `ShiftEntry` (water supply): a window whose end is before its start runs
+  into the next day's small hours (a night turn `[22, 4)`), an equal-hours
+  entry covers nothing, and a season-bound window is off without the
+  house's season. The ditch gate integrates the same entries over a span
+  (`windowsBetween`), so the roster and the gate agree;
 - a `quit`/`fired` record is left alone (an explicit exit is never
   resurrected by the seed roster).
 
@@ -592,6 +598,14 @@ browser until the live drive found it. See
 - **`apply [for <position>] [at <organization>]`** — the applicant asks;
   the organization decides. ⭐ Standing is conferred by the employer.
   Every refusal names the number and what lifts it.
+- ⭐⭐ **A body leaving the world ends its shift, paid to the moment it
+  left** (water supply, the payroll gap). `Employed.leaveShifts()` runs from
+  `Avatar.onLinkdead` (sign-out or a dropped line) and from the mixin's
+  `onDestruct` (an unloaded hand). Before it, a player who clocked on and
+  logged out was paid for every hour away at `clock off` (walked: 290
+  zorkmids for minutes in the world), and an unloaded hand took its open
+  shift's wage with it. The shift ends even when the wage cannot settle;
+  hours a venue sits unwatched are not paid.
 - **`clock on` / `clock off`** — ⭐⭐ a shift is something you CHOOSE to
   start. Holding a job puts you on the chart, not on the clock.
   `beginShift` runs from exactly one place, the roster tick over authored

@@ -318,7 +318,6 @@ describe('OpenController / CloseController / doors integration', () => {
     class Gate extends ThrottleableMixin(SealableMixin(NamedMixin(ContainableMixin(Idea)))) {}
     const gate = makeStuff(() => new Gate());
     gate.setName('headgate');
-    (gate as unknown as { setKeywords(k: string[]): void }).setKeywords?.(['headgate']);
     ContainmentApi.move(gate as never, locA);
     const ctx = makeContext(avatar, locA, 'open headgate to a quarter');
     await makeStuff(() => new OpenController()).execute(

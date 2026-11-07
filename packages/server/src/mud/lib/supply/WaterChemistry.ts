@@ -34,14 +34,13 @@ export class WaterChemistry {
    * volume (pH by volume is the honest first cut).
    */
   public blendWith(litresA: number, b: WaterChemistry, litresB: number): WaterChemistry {
-    const a = this;
     const total = litresA + litresB;
-    if (!(total > 0)) return a;
+    if (!(total > 0)) return this;
     const mix = (x: number, y: number): number => (x * litresA + y * litresB) / total;
     return new WaterChemistry(
-      mix(a.pH, b.pH),
-      mix(a.hardnessDgh, b.hardnessDgh),
-      mix(a.salinityPpt, b.salinityPpt),
+      mix(this.pH, b.pH),
+      mix(this.hardnessDgh, b.hardnessDgh),
+      mix(this.salinityPpt, b.salinityPpt),
     );
   }
 

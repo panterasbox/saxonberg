@@ -85,7 +85,7 @@ export function ThrottleableMixin<TBase extends MixinConstructor<Stuff & Sealabl
       this.opening = f;
       super.setOpen(f > 0);
       curve.record(atS, f, f, 0);
-      this.workLog.push({ atS, by: by?.getIdentityPath?.() ?? '', opening: f });
+      this.workLog.push({ atS, by: by?.getIdentityPath() ?? '', opening: f });
       while (this.workLog.length > WORK_LOG_DEPTH) this.workLog.shift();
     }
 
