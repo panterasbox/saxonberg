@@ -49,10 +49,15 @@ export interface SubscriptionRecord {
   readonly lastPayload: unknown;
 }
 
+/**
+ * ⚠ What an emit leaves behind for a hundred emits more, so it names nobody:
+ * the frame that emitted it holds the acting body, and a ring of those keeps
+ * every signed-out character alive in memory after destruct. The live listener
+ * gets the frame (`ListenerContext`); the record does not.
+ */
 export interface HistoryRecord {
   payload: unknown;
   timestamp: number;
-  triggeringContext: unknown;
 }
 
 export default class EventSubscriptions extends Idea {
