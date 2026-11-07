@@ -619,7 +619,7 @@ export function OpenWorkingMixin<
         (self as unknown as {
           getCoordinates?(): [number, number, number];
         }).getCoordinates?.() ?? [0, 0, 0];
-      const zone = (self as unknown as { getZone?(): unknown }).getZone?.() ?? null;
+      const zone = self.getZone();
       const cellSize = zone instanceof CartesianZone ? zone.getCellSize() : 1;
       const midZ = (face.topZ + face.toZ) / 2;
       // The covering Locality's address is the seed (the SurveyReading

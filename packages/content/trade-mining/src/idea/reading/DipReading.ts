@@ -59,7 +59,7 @@ export default class DipReading extends SurveyReading {
 
     const coords = (place as unknown as { getCoordinates?(): [number, number, number] })
       .getCoordinates?.() ?? [0, 0, 0];
-    const zone = (place as unknown as { getZone?(): unknown }).getZone?.() ?? null;
+    const zone = place.getZone();
     const cellSize = zone instanceof CartesianZone ? zone.getCellSize() : 1;
     const at: [number, number, number] = [
       coords[0] * cellSize,

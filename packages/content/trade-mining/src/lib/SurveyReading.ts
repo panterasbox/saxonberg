@@ -137,7 +137,7 @@ export abstract class SurveyReading extends Reading {
     const coords = (place as unknown as {
       getCoordinates?(): [number, number, number];
     }).getCoordinates?.() ?? [0, 0, 0];
-    const zone = (place as unknown as { getZone?(): unknown }).getZone?.() ?? null;
+    const zone = place.getZone();
     const cellSize = zone instanceof CartesianZone ? zone.getCellSize() : 1;
     return [coords[0] * cellSize, coords[1] * cellSize, coords[2] * cellSize];
   }
