@@ -2395,3 +2395,22 @@ client tsc 0 errors; server tsc 0 errors; CardBodies.test 41 passed (before the 
 lint:family NOT finished at hand-back: 55 of 96 ok, no failure printed; log at lint-family.log (last line lint-rc=N when done).
 Ports 2013 and 5183 free. Screenshots in shots/, none in git.
 
+## W10 record
+
+## Crowd, N=30: avenue-block, then walk one by one into the square
+`pnpm wire crowd.dirty`. ms, p50/p95. "never" = the run died before that phase.
+| state | world up | logins | walk in | say, one person | say, each in turn | say, all at once | last heard | /healthz max · >100ms/samples · >500 | box load |
+|---|---|---|---|---|---|---|---|---|---|
+| BEFORE 7fd82e38c (fresh DB) | 420 s | ~33 s each; login 17 timed out at 30 s | never | never | never | never | never | never | 0.4-3.5 |
+| D28+D29+D30 | 135 s | login 19 timed out at 343 s | never | never | never | never | never | never | 2-5 |
+| + card prose, drain hold | 211 s | 14 logins in 330 s, stopped | never | never | never | never | never | not read | 2-8 |
+| + drain slices, concealment memo | 159 s | 5266/14667 | 4951/11438 | 983/2989 | 741/1090 | 3438/3452 | 3703 | 8390 · 213/340 · 85 | 2-3 |
+| + no per-verb schema frames | 178 s | 4206/23642 | 2121/4924 | 1366/2689 | 897/1447 | 3767/3776 | 4357 | 2912 · 237/324 · 51 | 4-6 |
+| + drain rests 2x its slice | 255 s | 3402/6810 | 763/1072 | 175/375 | 207/682 | 2522/3766 | 4017 | 1092 · 53/153 · 4 | 2-6 |
+| FINAL (HEAD; world not fresh) | 217 s | 5458/18153 | 2212/3485 | 311/659 | 235/427 | 3716/4002 | 4377 | 3212 · 147/231 · 43 | 5-9 |
+Empty room, same world: `say` 22/42 ms. Full square, no walkers staged (30 logged in there): 743/1202 before the rest.
+D27: (a) greeting count GREEN, blocking. (b) say p95 < 250 ms NOT MET (375 at best). (c) no stall > 100 ms NOT MET (1092 ms at best).
+
+## What remains, by the profile
+A body moving through a room with N cards on it is N re-resolves of N rows at ~10-15 ms a row; one re-resolve at N=30 is one atomic stall of a few hundred ms. A world with nobody in it already spends ~60% of a core on NPC labor.
+
