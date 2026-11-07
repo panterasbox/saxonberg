@@ -238,6 +238,9 @@ function resolveByQuery(
   return MqlApi.resolveMany(expanded, ctx).stuff;
 }
 
+/** How long one drain may run before it gives the loop back. */
+const DRAIN_SLICE_MS = 20;
+
 export default class MqlSubscriptionRegistry extends Idea {
   /**
    * engine bookkeeping that happens to be Stuff-shaped: a registry holds the framework's own index, not world state anybody stands in.
@@ -814,10 +817,37 @@ export default class MqlSubscriptionRegistry extends Idea {
     }
   }
 
+  /**
+   * ⭐⭐ Time-sliced (controllers-are-io D27): a slice of re-resolves, then back
+   * to the loop, so thirty cards over one room make a card lag and never a
+   * person wait. What is dirtied meanwhile joins the set and coalesces with what
+   * has not run yet, so a room that keeps churning does one re-resolve per
+   * subscription per pass. One light walk per place per slice: a body's walk-in
+   * dirties every card in the room, and each card asks the same light.
+   */
   private drainDirty(): void {
-    this.scheduled = false;
-    const subs = [...this.dirty];
-    this.dirty.clear();
+    const deadline = Date.now() + DRAIN_SLICE_MS;
+    const slice: SubscriptionState[] = [];
+    const release = PerceptionApi.holdLightSteady();
+    try {
+      for (const sub of this.dirty) {
+        this.dirty.delete(sub);
+        slice.length = 0;
+        slice.push(sub);
+        this.reresolveAll(slice);
+        if (Date.now() >= deadline) break;
+      }
+    } finally {
+      release();
+    }
+    if (this.dirty.size > 0) {
+      setImmediate(() => this.drainDirty());
+    } else {
+      this.scheduled = false;
+    }
+  }
+
+  private reresolveAll(subs: SubscriptionState[]): void {
     for (const sub of subs) {
       // Per-subscription root carrying the subscription's effective
       // scope (sandbox): the drain runs on whatever context marked

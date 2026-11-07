@@ -865,27 +865,59 @@ touching Application.
 
 ### What survives the disconnect
 
-The Interactive is destructed and gone. **The Avatar is not.**
+The Interactive is destructed and gone. What happens to the Avatar depends on
+how the LAST connection closed. Each close writes its own code onto the holder
+(`setLeaveIntent(intentional)`), so one tab signing out and another dropping
+later is a drop, and closing one of several tabs does nothing to the body.
 
-Nothing in the disconnect path destructs the Avatar. It stays
-registered with `PlayerApi` (and in `StuffApi.objectsById`)
-indefinitely, its location intact, ready for the user to reconnect
-and have `loadAvatarsForUser` find the same in-memory instance.
+⭐⭐ **A drop lingers; a sign-out leaves (owner, 2026-11-07).**
 
-That's load-bearing — it preserves world state across reconnects and
-is the foundation of multiplexing — but it also means the registry
-**grows monotonically** until something explicit destructs the
-Avatar. There is currently no idle eviction (see
+| the last connection | the body |
+|---|---|
+| **dropped** (a tab closed, a network failure) | stays where it stands, linkdead, registered with `PlayerApi`, and still receives frames for the record layer. The next socket reconnects to this instance; `PlayerReconnected`. |
+| **signed out** (close code 4000: sign out, switch character) | is saved and then destructed. A return is a fresh login that materializes it from the record; `PlayerLoggedIn`. |
+
+`Avatar.retireSignedOutBody` holds the order:
+
+- ⚠ **A failed save keeps the body.** It stays standing and tries again every
+  `SIGN_OUT_RECHECK_MS`; it is never destructed on an unwritten record.
+- **A login racing the save wins.** `loadAvatarsForUser` reuses the live body,
+  so the retirement re-checks after the await and stands down. `play` re-loads
+  by player id, so a roster drawn before the destruct still lands.
+- **Signing out is not an escape.** While `signOutHold` names a reason the body
+  stays and asks again: `fighting` (bounded by `combat.maxBeats`), `dying` (the
+  clock runs regardless), `in-water` (the water holds it, underwater D11),
+  `carried` (somebody's arms record no place to come back to), `parked` (it
+  keeps its residency veto; `onLinkdead` returns before any of this).
+- **What it carried goes with it.** A persistable host's destruct is its
+  dormancy (`ContainerMixin.cleanupOnDestruct`): the record holds the contents,
+  so they are destructed rather than dropped on the floor. A person it was
+  holding steps out. Goods placed in rooms stay there (their `place`, the estate).
+- **What it rode stays.** A mount or a vehicle is not its contents; the slot
+  vacates, and the record's placement anchors on the room.
+- **A shade goes too.** It persists nothing, so it comes back the way it does
+  after a restart: re-minted from the arc at the place it died. See
+  [mortality.md](./mortality.md).
+
+The character-select roster stands up every character a user has in order to
+describe them. The ones not chosen go back when the screen ends
+(`Login.onDestruct` → `retireIfSessionless`).
+
+A linkdead body is still bounded by nothing: the registry grows by one per
+dropped session until a restart (see
 [lifecycle.md § Open Design — Idle Eviction](./lifecycle.md#open-design--idle-eviction)).
 
-`Avatar.onLinkdead` emits `Events.PlayerLoggedOut`. Listeners can
-react (audit, "the adventurer fades from view" perception broadcasts
-in the future, etc.).
+⚠ **Who cannot find a signed-out person.** `PlayerApi.find*` and
+`findByIdentityPath` answer for bodies in the world, exactly as they did after a
+restart: payees and beneficiaries named by name must be here; `office`, `chronicle`
+and the forums fall back to a raw id or a stored name; the CMS session has no
+avatar until the author plays. A viewer's memory of the person is kept
+(`BeliefStore.recall` exempts an Avatar identity from its liveness check).
 
 ### Avatar.onDestruct
 
-When something DOES destruct an Avatar (test cleanup, future
-character-deletion flow), `Avatar.onDestruct` fires a final
+When something destructs an Avatar (a sign-out, a death, test cleanup),
+`Avatar.onDestruct` fires a final
 fire-and-forget `Avatar.save()`, cancels the periodic persist-back
 timer, unregisters from `PlayerApi`, and detaches every still-
 connected Interactive via `interactive.detach`. The detach loop

@@ -425,6 +425,9 @@ const ATTENTION_FLOOR = 0.4;
  * the colour of everything else, which is the whole reason it was worn
  * by people who did not want to be looked at.
  */
+/** How long a body's concealment reading stands, absent a change of clothes. */
+const CONCEALMENT_MEMO_MS = 1_000;
+
 function conspicuityOf(garment: Stuff): number {
   const density = MixinApi.isConstructed(garment)
     ? (garment.getConstruction()?.getFabric()?.weaveDensity ?? 0.5)
@@ -501,6 +504,26 @@ function sortOutermostFirst<T extends Stuff & Slottable>(
     .sort(
       (a, b) => depthOf(b as unknown as Stuff) - depthOf(a as unknown as Stuff),
     );
+}
+
+/** A body's concealment from what it wears, part by part. */
+function readConcealmentOffset(host: Stuff & Slotted & Attired): number {
+  const plan = bodyPlanOf(host);
+  if (!plan) return 0;
+  const weight = dial(
+    AppSettingKeys.stealthHideCoveringWeight,
+    COVERING_CONCEALMENT_WEIGHT,
+  );
+  let weighted = 0;
+  for (const part of plan.getBodyParts()) {
+    if (plan.isInterior(part.key)) continue;
+    const share = plan.getPartSurfaceFraction(part.key);
+    if (!(share > 0)) continue;
+    const outer = host.outermostAt(part.key);
+    if (!outer) continue;
+    weighted += share * conspicuityOf(outer as unknown as Stuff);
+  }
+  return weighted * weight;
 }
 
 export function AttiredMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -873,24 +896,31 @@ export function AttiredMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
     }
 
+    /**
+     * The last reading of {@link concealmentOffset}. ⭐ Every viewer asks it of
+     * every body in the room on every re-resolve, and each answer walked the
+     * body's parts (controllers-are-io D27: two thirds of a crowd's card
+     * refresh). It stands for a second while the same things are worn: a change
+     * of clothes shows at once, and a fade takes weeks.
+     */
+    public _concealmentMemo: { value: number; at: number; worn: string } | null = null;
+
     public concealmentOffset(this: Stuff & Slotted & Attired): number {
-      const self = this as unknown as Stuff & Slotted;
-      const plan = bodyPlanOf(self);
-      if (!plan) return 0;
-      const weight = dial(
-        AppSettingKeys.stealthHideCoveringWeight,
-        COVERING_CONCEALMENT_WEIGHT,
-      );
-      let weighted = 0;
-      for (const part of plan.getBodyParts()) {
-        if (plan.isInterior(part.key)) continue;
-        const share = plan.getPartSurfaceFraction(part.key);
-        if (!(share > 0)) continue;
-        const outer = this.outermostAt(part.key);
-        if (!outer) continue;
-        weighted += share * conspicuityOf(outer as unknown as Stuff);
+      const host = this as unknown as {
+        _concealmentMemo: { value: number; at: number; worn: string } | null;
+      };
+      const now = Date.now();
+      let worn = '';
+      for (const occupants of this.getAllOccupants().values()) {
+        for (const occ of occupants) worn += `${occ.stuffId},`;
       }
-      return weighted * weight;
+      const known = host._concealmentMemo;
+      if (known !== null && known.worn === worn && now - known.at < CONCEALMENT_MEMO_MS) {
+        return known.value;
+      }
+      const value = readConcealmentOffset(this);
+      host._concealmentMemo = { value, at: now, worn };
+      return value;
     }
 
     public attentionFactor(this: Stuff & Slotted & Attired): number {

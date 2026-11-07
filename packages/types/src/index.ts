@@ -548,7 +548,10 @@ export interface LocomotionGateFailedNote {
     | 'encumbrance'
     | 'locked'
     | 'unbuilt'
-    | 'unpublished';
+    | 'unpublished'
+    // ⭐ A guard this vocabulary has no word for reports its own raw name; it
+    // used to read as `exit-mode` whatever it was (controllers-are-io D31).
+    | (string & {});
   /** 'walk', 'climb', 'swim', etc. */
   mode: string;
 }

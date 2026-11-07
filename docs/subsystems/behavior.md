@@ -779,3 +779,13 @@ exit asks a keeper on either side, and HE decides he is on duty (on shift
 for the door's `keptBy` house) and judges by the dress code on his row;
 the refusal is his words. `remarks` is a `greets`-shaped arrival brain
 keyed by the arriver's outer garment. See [cleanliness.md](./cleanliness.md).
+
+## Who a greeting is for
+
+`_dispatchMovement` keys on the frame's audience tag. `audience:actor` is the
+host's own move: it reseeds `_seenPlayers` from the room and greets nobody, so a
+shopkeeper back from the yard does not greet the room. `audience:witness` is
+somebody else's, and the occupant delta names exactly who arrived. The room's
+audience (`_currentPlayers`, `_hasAudience`) is a body with `hasLiveSession()`: a
+linkdead player still counts (they are coming back), and a body stood up with no
+session does not.
