@@ -244,6 +244,7 @@ suite('smell and taste', () => {
       const s = await open('sulfur', { startLocation: LOBBY, ...WIZARD });
       await hand(s, '/stuff/thing/lead-pig', { _materialPath: '/stuff/idea/material/mineral/sulfur', mass: 1 });
       await hand(s, '/trade/distribution/thing/malt-sack', { interiorMaterial: '/trade/farming/idea/material/food/barley-grain', interiorAmount: 50 });
+      await s.cmd('open me:i:sack');
       const line = await say(s, 'measure aroma me with gas');
       expect(line.indexOf('sulfur'), line).toBeLessThan(line.indexOf('grain'));
       expect(line.indexOf('sulfur'), line).toBeGreaterThanOrEqual(0);
@@ -287,19 +288,15 @@ suite('smell and taste', () => {
     });
 
     it('14. the word without the name; one source and it is named; dark and it is not', async () => {
-      const viewer = await open('viewer', { startLocation: LOBBY, ...WIZARD });
-      const rag = { deposits: { '|manure': 1 } };
-      await hand(viewer, '/stuff/thing/cutlery/table-knife', rag);
-      await hand(viewer, '/trade/baking/thing/lean-loaf', rag);
-      const carrier = await open('carrier', { startLocation: LOBBY, ...WIZARD });
-      await hand(carrier, '/stuff/thing/cutlery/table-knife', rag);
+      const a = await open('hand-a', { startLocation: LOBBY, ...WIZARD });
+      const b = await open('hand-b', { startLocation: LOBBY, ...WIZARD });
+      for (const s of [a, b]) await evalOn(s, 'me', 'this.soil("manure", 1, null, "body.torso")');
       const both = await say(wiz, 'analyze aroma');
       expect(both).toMatch(/of dung/);
       expect(both).not.toMatch(/of dung, from/);
-      expect(await say(wiz, `smell ${carrier.handle}`)).toMatch(/smells .* of dung/);
-      carrier.close();
-      await new Promise((r) => setTimeout(r, 1000));
-      expect(await say(wiz, 'analyze aroma')).toMatch(new RegExp(`of dung, from ${viewer.handle}`));
+      expect(await say(wiz, `smell ${a.handle}`)).toMatch(/smells .* of dung/);
+      expectOk(await b.cmd('go south'));
+      expect(await say(wiz, 'analyze aroma')).toMatch(new RegExp(`of dung, from ${a.handle}`));
     });
 
     it('17. the instrument gives a figure and the nose a word', async () => {
@@ -436,7 +433,7 @@ suite('smell and taste', () => {
 
     it('29. two new characters are not all alike', async () => {
       const offsets = new Set<string>();
-      for (let i = 0; i < 4; i++) {
+      for (let i = 0; i < 2; i++) {
         const s = await open('born', { startLocation: LOBBY, ...WIZARD });
         offsets.add(await evalOn(s, 'me', 'return this.bornSensitivity("tar")'));
       }

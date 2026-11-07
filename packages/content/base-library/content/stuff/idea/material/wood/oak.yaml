@@ -11,7 +11,7 @@
 # felled, and `density` is what a bole is minted at.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: oak, strength: 3 }]
+  smells: [{ word: oak, strength: 2 }]
   burning: [{ word: wood-smoke, strength: 300 }]
   name: oak
   keywords: [oak]

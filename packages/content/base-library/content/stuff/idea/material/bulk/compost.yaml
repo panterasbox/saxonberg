@@ -11,7 +11,7 @@
 # the whole lesson phase 2 is after.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: compost, strength: 300 }]
+  smells: [{ word: compost, strength: 100 }]
   name: compost
   keywords: [humus, compost, muck, manure]
   appearance: crumbly black compost

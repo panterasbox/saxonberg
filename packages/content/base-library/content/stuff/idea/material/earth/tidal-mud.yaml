@@ -1,0 +1,5 @@
+# Mud the tide covers twice a day, and what it leaves there.
+extends: /stuff/idea/material/earth/loam
+data:
+  name: tidal mud
+  smells: [{ word: sea, strength: 20 }]

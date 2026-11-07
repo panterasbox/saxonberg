@@ -15,7 +15,7 @@
 # for that word and the material was authored to carry it.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: petroleum, strength: 3000 }]
+  smells: [{ word: petroleum, strength: 300 }]
   burning: [{ word: oil-smoke, strength: 800 }]
   name: crude oil
   keywords: [crude, "crude oil", oil, petroleum, rock-oil]

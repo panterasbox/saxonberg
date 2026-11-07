@@ -1,0 +1,5 @@
+# Dimethyl sulfide off seaweed and tidal mud: what a shore smells of. Salt itself has
+# no smell at all.
+class: /platform/idea/Aroma
+data:
+  threshold: 1

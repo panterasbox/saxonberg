@@ -80,14 +80,3 @@ export class TasteModality extends Modality {
     return { tastes, aromas: Smell.of(aromas) };
   }
 }
-
-/**
- * Water carries what a tongue should read: a well going salty is a state a
- * person can taste, in grams per kilogram.
- */
-declare module '../../../lib/bulk/Bulkable' {
-  interface BulkPayload {
-    /** Dissolved salt, ppt (1 ppt = 1 g/kg). Absent on anything not read for it. */
-    salinityPpt?: number;
-  }
-}
