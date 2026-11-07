@@ -35,6 +35,10 @@ exists so the work survives a compaction; it retires at the next sweep.
 - **`Locale`'s header reserves "Room"** for an interior: *"'Room' implies an
   interior and is reserved for `PersistentLocation`, the interior somebody
   furnishes."*
+- ⭐ **`PersistentLocation` keeps its name** (owner, 2026-11-07) — it is
+  NOT renamed `Room`. The header line above is not a rename instruction;
+  whatever the room rung is called, the existing four place classes stay as
+  they are.
 - **Rooms exist on BOTH sides of the Locale/Location split.** Seznick's
   bathroom is one particular place; a Hinkley house's rooms are laid out to
   a plan.
