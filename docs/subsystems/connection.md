@@ -1182,7 +1182,7 @@ in this subsystem:
 - **`Avatar.isConnected()` follows the live vessel while parked.**
   Sockets live on the vessel, so the inherited "any Interactives?"
   answer is `false`, and every consumer of it — `who`, the `online`
-  scope that `dm`/`tell` resolve against, the presence roster, notify —
+  scope that `dm` resolves against, the presence roster, notify —
   reads that as *offline*. Stepping into your own circle made you
   unreachable to the whole world.
 - **The registry slot is guarded by object identity.**
