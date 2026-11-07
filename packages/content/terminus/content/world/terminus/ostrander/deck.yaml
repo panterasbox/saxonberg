@@ -9,7 +9,7 @@
 class: /platform/location/Compartment
 data:
   shortDescription: Ostrander's deck
-  keywords: [deck, ostrander, steamer]
+  keywords: [deck, ostrander deck, steamer deck]
   register: definite
   _biomePath: /stuff/idea/biome/outdoor/baseline
   longDescription: |

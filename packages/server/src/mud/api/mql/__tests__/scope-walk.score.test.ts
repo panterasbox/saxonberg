@@ -34,6 +34,18 @@ describe('the keyword tiers', () => {
     expect([TIER_PHRASE, TIER_WORDS, TIER_PREFIX, 20, 10].map(scoreTier)).toEqual([3, 2, 1, 0, 0]);
   });
 
+  it('a ship and her deck, seen across her way: her name is hers, and the deck answers with `deck`', () => {
+    const ship = cand(['hesper', 'ketch', 'ship', 'vessel', 'the hesper']);
+    const deck = cand(['deck', 'hesper deck', 'ketch deck', 'ship deck']);
+    const way = cand(['gangway', 'hesper gangway']);
+    const pool = [ship, deck, way];
+    const bound = (...words: string[]) => scoreCandidates(pool, words).map((m) => m.stuff);
+    for (const word of ['hesper', 'ketch', 'ship']) expect(bound(word)).toEqual([ship.stuff]);
+    expect(bound('deck')).toEqual([deck.stuff]);
+    expect(bound('hesper', 'deck')).toEqual([deck.stuff]);
+    expect(bound('gangway')).toEqual([way.stuff]);
+  });
+
   it('a name is a keyword like any other — no list but the keywords is read', () => {
     // The candidate carries no name field at all; what is not a keyword
     // cannot be matched.
