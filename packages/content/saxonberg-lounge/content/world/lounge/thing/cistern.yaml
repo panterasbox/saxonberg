@@ -1,0 +1,22 @@
+# The lounge's cistern — where Dave's Bar takes its water (water-supply W1).
+#
+# ⭐ The lounge is not on any main (it is not in a city), so its premises
+# cites this: a big lead-lined tank in the back office that the house keeps
+# topped up. Staged (D30): a plain store that reverts to full with its room —
+# the lounge is a lobby between worlds, and its water is nobody's ledger.
+class: /platform/thing/SingletonWaterStore
+data:
+  shortDescription: cistern
+  keywords: [cistern, tank, water]
+  register: definite
+  longDescription: >-
+    A tall lead-lined tank on a brick stand in the corner, with a pipe out of
+    its foot that disappears through the wall toward the bar. A brass gauge
+    on the side says it is nearly full. It always says that.
+  interiorBulk: true
+  interiorMaterial: /stuff/idea/material/bulk/water
+  interiorCapacity: 4000
+  initialLevelL: 3800
+  # On its stand, up near the ceiling: the bar's taps run full off it.
+  standsM: 6
+  mass: 500

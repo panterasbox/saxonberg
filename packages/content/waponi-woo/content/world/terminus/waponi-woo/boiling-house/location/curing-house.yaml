@@ -1,6 +1,6 @@
 # The curing house — ⭐ a PersistentLocale (sugar D20): hogsheads draining
 # on their pots for days survive a restart.
-class: /platform/location/PersistentLocale
+class: /platform/location/PersistentHall
 data:
   coords: { x: 0, y: 2, z: 0 }
   shortDescription: "curing house"

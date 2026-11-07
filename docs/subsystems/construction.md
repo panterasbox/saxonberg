@@ -32,7 +32,9 @@ seeds its layer state from them: do not reshape them without telling it.
 ⭐ **The rung ladder** is row → class hook → universe. `enclosureDefaults()`
 answers the universe default (`enclosure.defaultMaterial`, granite 0.3 m);
 `roofDefaults()` answers `null` on a `Location` — **undeclared** — and a
-class that knows its own construction declares it: an `ExitableVessel`
+class that knows its own construction declares it: a ROOM (`Room`, `Hall`
+and their kept twins — roofed in its walls, `location.md` § The room rung),
+an `ExitableVessel`
 (its own material all round, or `none` for an open boat), a `Hive`, a
 `ColdStore`, a `SealedCellar` (a metre of granite over it too).
 
@@ -170,7 +172,8 @@ A place whose roof is undeclared reads the **legacy biome discriminator**
 anything else ⇒ its walls' material on five faces. ⭐ **The default is
 open**: outdoor rows are never debt. The debt is the interiors, counted by
 `lint:biome-sky` (`INTERIORS_FROM_THE_BIOME`, a falling list — 97 after the
-rubber build). At zero both `Location` defaults become `none`, the legacy
+rubber build, 37 after the room rung: a `Room`/`Hall` declares its roof as
+its walls, so every interior on the rung paid its line). At zero both `Location` defaults become `none`, the legacy
 branch goes, and `SkyExposedBiome` retires (biome-normalization-slate).
 
 ## Deferred

@@ -1,0 +1,19 @@
+# The sand bed (water-supply W5) — a long table of damp, levelled sand: pour
+# molten lead along it and it sets as a sheet.
+class: /platform/thing/Mould
+data:
+  shortDescription: sand bed
+  keywords: ["sand bed", bed, sand, casting-table]
+  register: definite
+  longDescription: >-
+    A long wooden trough of fine sand, damped and struck level with a
+    straight-edge, scarred where the last sheet was lifted off.
+  interiorBulk: true
+  interiorCapacity: 0.7
+  closure: liquidTight
+  castTemplate: /trade/plumbing/thing/lead-sheet
+  reusable: true
+  discipline: plumbing
+  fixedInPlace: true
+  _materialPath: /stuff/idea/material/wood/pine
+  mass: 120

@@ -570,7 +570,7 @@ export default class Stock extends StockBase {
     const price = this.priceFor(item.getTemplatePath() ?? "");
     if (price == null) return this.refused(Mml.compose`${Mml.thing(item)} isn't for sale.`, "not-priced", word);
     const paid = await EmploymentApi.settleSale((this as unknown as Stuff).getIdentityPath(), price, price, "a purchase");
-    if (!paid) return this.refusedBroke(item, word);
+    if (!paid) return this.refusedBroke(item, word, price);
     const owner = await this.purchaserOf(giver, paid.receipt);
     if (MixinApi.isChattel(item)) {
       await item.transferChattel(owner);
@@ -600,7 +600,7 @@ export default class Stock extends StockBase {
       price, // the whole price is the store's taxable revenue
       "a purchase",
     );
-    if (!paid) return this.refusedBroke(item, word);
+    if (!paid) return this.refusedBroke(item, word, price);
     // ⚠⚠ A price is per PIECE, and a restocked stackable sits on the shelf
     // as one heap: handing over the heap sold thirty staves for the price
     // of one (found by the assembly drive). One comes off the heap.

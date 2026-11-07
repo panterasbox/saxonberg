@@ -213,6 +213,8 @@ function seedDomain(): void {
   addSeed('/trade/farming/thing/seed/peace-lily', `${PRODUCE}trade/farming/thing/seed/peace-lily.yaml`);
   addSeed('/trade/farming/thing/seed/snake-plant', `${PRODUCE}trade/farming/thing/seed/snake-plant.yaml`);
   addSeed('/stuff/thing/vessel/watering-can', `${OBJECTS}stuff/thing/vessel/watering-can.yaml`);
+  // ⭐ The run the dorm room stands up for its basin (the default, `Plumbed`).
+  addSeed('/stuff/thing/fixture/iron-run', `${OBJECTS}stuff/thing/fixture/iron-run.yaml`);
   // ⭐ The winter coat the footlocker is born with (the climate build, D18).
   addSeed('/stuff/thing/clothes/greatcoat', `${OBJECTS}stuff/thing/clothes/greatcoat.yaml`);
   // …and its fabric form, which the real world's catalogue registers.
@@ -611,6 +613,11 @@ describe('the dorm houseplant — content and placement', () => {
     const plant = plantIn(room)!;
     const can = canIn(room)!;
     const tap = tapIn(room)!;
+    // ⚠ This suite stands up no parcel registry, so the dorm's premises
+    // cites no main and the tap would read `unplumbed` (water-supply D2) —
+    // a true answer about the test world, not about the care loop. The tap
+    // runs on its own water here; the supply is `WaterFixture`'s own suite.
+    (tap as unknown as { setNatural(v: boolean): void }).setNatural(true);
     const tenant = await makeAvatar('tenant');
     ContainmentApi.move(tenant, room as unknown as Stuff & Container);
     ContainmentApi.move(can, tenant); // carried — the verb needs it in hand

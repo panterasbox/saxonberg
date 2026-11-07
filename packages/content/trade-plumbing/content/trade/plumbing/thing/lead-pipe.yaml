@@ -1,0 +1,15 @@
+# A length of lead pipe (water-supply D10) — three metres, half-inch bore,
+# soft enough to dress round a bend by hand. What a plumber lays a run
+# with, one length at a time (`fit lead pipe to run`). ⚠ In soft, acid water
+# it leaches: the lead law reads the WATER's pH and softness.
+class: /platform/thing/Good
+data:
+  shortDescription: length of lead pipe
+  keywords: ["lead pipe", pipe, length, lead]
+  register: indefinite
+  longDescription: >-
+    Three metres of dull grey lead pipe, thick-walled and soft enough to
+    bend over a knee, with a bright scraped end where the next joint will
+    be wiped.
+  _materialPath: /stuff/idea/material/element/lead
+  mass: 9

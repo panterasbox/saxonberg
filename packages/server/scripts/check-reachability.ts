@@ -619,6 +619,9 @@ const CITATIONS: Record<string, string> = {
   exemplar: "a par line's example good — it arrives by purchase, not by minting",
   mainsRef: "the line a device is wired to",
   suppliedBy: "the main a tap is plumbed to — read live, never placed (the pump build)",
+  fillsFrom: "the supply a tank or store fills from — loaded on use, never placed (water-supply D5)",
+  connectsTo: "the main a plumber's service run connects to — loaded on use, never placed (water-supply D10)",
+  gate: "the gate a field's inlet draws on — loaded on use, placed by its own room (water-supply D15)",
   source: "a feeder's generator — read live, never placed (the case that forced this list)",
   supply: "a locality's supply point",
   shelf: "a brain's config — the fixture is propped by its room",
@@ -713,6 +716,22 @@ export function collectFaucets(
         return;
       }
       if (node && typeof node === "object") {
+        // ⭐ A place's `plumbing:` WORD reaches its run row — the room stands
+        // up `/stuff/thing/fixture/<word>-run` the first time a tap needs it
+        // (`PlumbedMixin`) — and so does the shipped default word
+        // (`plumbing.defaultRun`). A word, not a path, so the leaf walk
+        // below cannot see it.
+        const rec = node as Record<string, unknown>;
+        const word =
+          typeof rec.plumbing === "string"
+            ? rec.plumbing
+            : rec.key === "plumbing.defaultRun" && typeof rec.value === "string"
+              ? rec.value
+              : null;
+        if (word !== null && word !== "none") {
+          const run = `/stuff/thing/fixture/${word}-run`;
+          if (!named.has(run)) named.set(run, { field: "plumbing", file });
+        }
         for (const [k, v] of Object.entries(node as Record<string, unknown>)) {
           // A zone's `stocks:` is a key→count MAP, not a path field.
           if (k === "stocks" && v && typeof v === "object" && !Array.isArray(v)) {
@@ -863,7 +882,7 @@ export const PHRASE_SHAPE_CEILING = 6;
  * stale tree is opened at the wrong number.** Measure at the merge, not
  * at the branch point, and say which you did.
  */
-export const ARTICLE_SHAPE_CEILING = 114;
+export const ARTICLE_SHAPE_CEILING = 113;
 
 /**
  * ⭐ The naming ratchet — stocked goods whose printed name is a phrase

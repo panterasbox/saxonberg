@@ -5,7 +5,7 @@
 # not a PersistentLocation (that class is the furnishing archetypes' base); the
 # floor's durability lives on its persistable fixtures (the Stock), and the
 # consigned casks ride those, respawning each boot.
-class: /platform/location/Locale
+class: /platform/location/Hall
 data:
   # ⚠ `coords:` is the MEMBERSHIP operation — the only way an authored row
   # joins its zone (the oilworks sub-zone beside it).

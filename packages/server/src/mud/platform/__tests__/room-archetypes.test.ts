@@ -46,10 +46,10 @@ const read = (name: string): Seed =>
 const ARCHETYPES = ["bedroom", "kitchen", "bathroom", "living"] as const;
 
 describe("the four archetypes are template rows over ONE class (D6)", () => {
-  it("all four exist and share `/lib/location/PersistentLocation`", () => {
+  it("all four exist and share `PersistentRoom` — a kept, plumbed interior", () => {
     for (const name of ARCHETYPES) {
       const seed = read(name);
-      expect(seed.class).toBe("/platform/location/PersistentLocation");
+      expect(seed.class).toBe("/platform/location/PersistentRoom");
     }
   });
 
@@ -82,6 +82,12 @@ describe("the four archetypes are template rows over ONE class (D6)", () => {
       // the verb — it was in `environment`, which reaches only the
       // containers ABOVE a thing, and nobody carries a basin).
       "/platform/thing/WaterFixture",
+      // The pipe in the room (water-supply D10): a durable adornment that
+      // bursts, leaks and is mended — a real thing, so its own class.
+      "/platform/thing/PipeRun",
+      // The butt and the cistern hold what the roof and the bucket give
+      // them, and a tap can read one as its supply (water-supply D8).
+      "/platform/thing/WaterStore",
       "/platform/thing/Fitting", // the counter
       "/platform/thing/Thing", // the toilet — prose, no capability
       // ⭐ The one fixture that DID need a class, made explicitly (this
@@ -183,6 +189,9 @@ describe("the kitchen — BUNDLE (D12)", () => {
       // prop is a starting condition rather than a supply.
       { template: "/stuff/thing/items/dry-log", count: 3 },
     ]);
+    // ⭐ No pipe in the props: a tap implies its pipe, and the room stands
+    // up the default run the first time the basin is read (`Plumbed`).
+    expect(read("kitchen").data?.plumbing).toBeUndefined();
   });
 
   it("the larder's lid is load-bearing — seeded OPEN so the gather walk reaches it", () => {
@@ -226,6 +235,8 @@ describe("the bathroom — PRESENCE (D13)", () => {
       // from leaves you wet.
       "/stuff/thing/gear/towel",
     ]);
+    // …and its water comes in by lead, said once on the room (`Plumbed`).
+    expect(read("bathroom").data?.plumbing).toBe("lead");
   });
 
   it("the toilet does nothing, deliberately — prose, no capability", () => {

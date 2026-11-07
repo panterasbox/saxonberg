@@ -57,6 +57,7 @@ import { MixinApi } from '../../api/mixin';
 import type { MarkupAugmenter } from '../../api/mml';
 import type { CommandContributions } from '../../api/command';
 import type { Stuff } from '../stuff/Stuff';
+import type { VetoResult } from '../errors';
 import type { Durable, MendRecord } from '../material/Durable';
 import type Material from '../material/Material';
 import { Construction } from '../material/Construction';
@@ -271,6 +272,18 @@ export interface Assembled {
   ensureParts(): void;
   /** Any structural line failed, or any joint slack. */
   leaks(): boolean;
+  /**
+   * @hook May `by` fit `count` members to `part` now? (water-supply D10)
+   * The default says yes; a plumber's service run refuses its LAST length
+   * where the main it names does not serve the premises. Asked after the
+   * joints' gates, before anything is spent.
+   */
+  canTakeMembers(part: string, count: number, by: Stuff): Promise<VetoResult>;
+  /**
+   * @hook `by` has just fitted members (water-supply D10). A no-op by
+   * default; a completed service run cites its main for the premises.
+   */
+  afterMembersFitted(by: Stuff): Promise<void>;
   /** The line a blow on `channel` lands on — the best resister. */
   partAnswering(channel: Channel): PartLine | null;
   /** Wear one line's set (and fail a member when it wears through). */
@@ -888,6 +901,12 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
         maker: '',
       }));
     }
+
+    async canTakeMembers(_part: string, _count: number, _by: Stuff): Promise<VetoResult> {
+      return { ok: true };
+    }
+
+    async afterMembersFitted(_by: Stuff): Promise<void> {}
 
     leaks(): boolean {
       return (

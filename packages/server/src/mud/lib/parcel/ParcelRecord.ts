@@ -80,6 +80,8 @@ export interface TitleClaim {
   feeder?: string;
   /** The electric posture this premises declares — see {@link ParcelRecord.powerBand}. */
   powerBand?: PowerBand;
+  /** Where this premises' water comes from — see {@link ParcelRecord.waterSource}. */
+  waterSource?: string;
   /**
    * Is the content on this ground ready to be walked into? Omitted
    * means `true` — see {@link ParcelRecord.published}.
@@ -157,6 +159,7 @@ export class ParcelRecord extends Document {
     reach: { persistent: true },
     feeder: { persistent: true },
     powerBand: { persistent: true },
+    waterSource: { persistent: true },
     published: { persistent: true },
   };
 
@@ -297,6 +300,22 @@ export class ParcelRecord extends Document {
    */
   powerBand: PowerBand | null = null;
 
+  /**
+   * ⭐⭐ **Where this premises' water comes from** — the water twin of
+   * {@link feeder}: the template path of a thing that answers the kernel
+   * `WaterSupply` shape (a main, a tank, a cistern, a well), the literal
+   * `none` for a declared dry premises (the `off-grid` analogue), or `''`
+   * to **inherit** the covering parcel's.
+   *
+   * The kernel carries the string and never interprets it beyond that: a
+   * tap resolves its premises, asks the registry, and loads the supply on
+   * use. A plumber's completed service run writes it at runtime
+   * (`ParcelRegistry.citeWaterSource`).
+   *
+   * See [docs/subsystems/water-supply.md].
+   */
+  waterSource: string = "";
+
   getExtent(): string {
     return this.extent;
   }
@@ -357,6 +376,26 @@ export class ParcelRecord extends Document {
       );
     }
     this.powerBand = band as PowerBand;
+  }
+
+  /** Where this premises' water comes from: a supply path, `none`, or `''` (inherit). */
+  getWaterSource(): string {
+    return this.waterSource;
+  }
+
+  /**
+   * Cite this premises' water. `none` declares it dry; `''` restores
+   * inheritance; anything else must be an absolute template path — a
+   * relative or blank-padded citation throws naming the value.
+   */
+  setWaterSource(value: string): void {
+    const v = typeof value === "string" ? value.trim() : "";
+    if (v !== "" && v !== "none" && !v.startsWith("/")) {
+      throw new RangeError(
+        `ParcelRecord.setWaterSource: '${value}' is neither 'none', '' nor an absolute template path`,
+      );
+    }
+    this.waterSource = v;
   }
 
   getKeyway(): string {

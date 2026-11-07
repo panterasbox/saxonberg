@@ -287,6 +287,14 @@ export interface Employed {
   clockOn(organizationPath?: string): Promise<ClockResult>;
   /** End the shift and settle the wage out of the house's account. */
   clockOff(organizationPath?: string): Promise<ClockResult>;
+  /**
+   * ⭐ The body is leaving the world — its player's session ended, or an
+   * unsaved hand is being unloaded. Every shift it is on ends now and is
+   * paid to now: a shift is a body at work, and an absent body is not
+   * working (the payroll gap — a player clocked on and logged out was paid
+   * for the whole absence at `clock off`).
+   */
+  leaveShifts(): Promise<void>;
   buysFor(): Promise<BusinessStuff[]>;
   beginCovering(business: OrganizationStuff): Employment | null;
   endCovering(business: OrganizationStuff): void;
@@ -624,6 +632,26 @@ export function EmployedMixin<TBase extends MixinConstructor>(Base: TBase) {
         this as unknown as Stuff,
         organizationPath ?? '',
       );
+    }
+
+    public leaveShifts(): Promise<void> {
+      return employedLogic().leaveShifts(this as unknown as Stuff);
+    }
+
+    /**
+     * ⭐ Unloaded on shift, a hand is paid to the moment it left (the
+     * payroll gap: an unsaved hand evicted mid-shift took the shift's wage
+     * with it). The hours nobody watched while it was unloaded are not paid
+     * — a venue nobody visits makes no sales either.
+     */
+    public onDestruct(): void {
+      if (this.shiftState() === 'on-shift') {
+        void this.leaveShifts().catch((err) =>
+          console.error('Employed: the leaving settle failed', err),
+        );
+      }
+      const sup = (Base.prototype as { onDestruct?: () => void }).onDestruct;
+      if (typeof sup === 'function') sup.call(this);
     }
 
     /** Every Business this actor buys for (position `purchases: true`). */

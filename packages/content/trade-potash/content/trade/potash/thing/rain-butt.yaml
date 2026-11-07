@@ -2,7 +2,9 @@
 # with rain is stronger than one made with river water, because hard water
 # spends some of the ash's alkali on its own lime before any of it reaches
 # the lye: where your water comes from is a thing an ash-burner knows.
-class: /platform/thing/WaterFixture
+# ⭐ A rain STORE (water-supply D5): the gutter fills it from the lean-to's
+# roof. Staged (D30): its level derives from the sky.
+class: /platform/thing/WaterStore
 data:
   shortDescription: rain butt
   keywords: ["rain butt", butt, barrel, rainwater, water]
@@ -12,6 +14,10 @@ data:
     and brimming with rainwater the colour of weak tea.
   interiorBulk: true
   interiorMaterial: /stuff/idea/material/bulk/water
+  interiorCapacity: 220
+  initialLevelL: 200
+  fillsFrom: rain
+  catchmentM2: 10
   # Rain: about as soft as water comes.
   hardnessDgh: 1
   fixedInPlace: true

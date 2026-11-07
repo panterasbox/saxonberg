@@ -1,0 +1,24 @@
+# Rosa Avila (water-supply W9) — the junior irrigator on the bench: her
+# right is the youngest on the ditch, so her turns are at night and hers is
+# the turnout the rider padlocks first in a dry year.
+class: /platform/agent/Cast
+extends: /stuff/agent/costume/student
+data:
+  costume:
+    - /stuff/thing/clothes/field-jacket
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  name: Rosa Avila
+  keywords: [rosa, avila, irrigator, farmer]
+  pronouns: she
+  shortDescription: wiry irrigator with a lantern hooked on her belt
+  register: indefinite
+  longDescription: >-
+    A wiry, sunburnt woman with a lantern hooked on her belt and a shovel
+    over her shoulder, who has the look of somebody who does most of her
+    work while other people are asleep.
+  archetype: farmer
+  prologue:
+    - "Waters the bench by night, on the youngest right in the valley."
+  competence:
+    - { discipline: agriculture, asserting: competent }

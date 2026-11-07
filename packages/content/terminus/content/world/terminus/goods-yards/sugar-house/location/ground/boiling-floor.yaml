@@ -1,7 +1,7 @@
 # The boiling floor — ⭐ a PersistentLocale (sugar D20): a copper left on
 # the lit arch mid-boil is the same pan, at the same strength and the same
 # heat, after a restart. A Locale would forget it.
-class: /platform/location/PersistentLocale
+class: /platform/location/PersistentHall
 data:
   coords: { x: 0, y: 0, z: 0 }
   shortDescription: "boiling floor"

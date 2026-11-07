@@ -39,6 +39,17 @@ export default class LotGateExit extends DeferredDestinationExit {
     this.setMessageOut(`{{ mover }} goes through the ${direction} gate.`);
   }
 
+  /**
+   * ⭐ Every lot's yard is ONE shared row, keyed per holding; the plat warren
+   * wires each yard's way back out the gate itself. Verified by path, the
+   * verifier finds SOME lot's yard, sees its way back is not this gate,
+   * and blocks the lane — a buyer was locked out of their own lot after
+   * their first visit (the water-supply browser walk).
+   */
+  public override wiresItsOwnInverse(): boolean {
+    return true;
+  }
+
   /** The lot this gate fronts. */
   public getLotExtent(): string {
     return this.lotExtent;

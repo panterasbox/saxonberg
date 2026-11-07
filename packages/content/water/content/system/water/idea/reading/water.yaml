@@ -8,6 +8,10 @@ data:
   scope: [subject]
   discipline: chemistry
   instrument: ""
+  # ⭐ The test kit (water-supply D18): whether a water is FIT — fouled,
+  # leaded — is the kit's to say, never the eye's. Bare, the read gives
+  # the river; with the kit in hand, what is in it.
+  handTool: water-test
   eyeCeiling: expert
   improves: >-
     whether this water is safe, and what is wrong with it if not

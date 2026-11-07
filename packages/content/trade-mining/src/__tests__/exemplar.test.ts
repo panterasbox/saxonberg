@@ -239,15 +239,18 @@ describe('⭐⭐ a second mining town needs zero pack code', () => {
 
 describe('the venue itself', () => {
   it('the SURFACE spine is authored singletons; the UNDERGROUND spine is authored WORKINGS', () => {
-    // ⭐ `Locale` — *one row IS one place*, and the
-    // mixin SUBTRACTS, so a second `clone()` is refused. The four TYPE
-    // rows take the permissive class instead, because they are minted
-    // many times.
-    for (const n of [
-      'pithead-yard', 'claims-office', 'assay-shed', 'provisioning', 'the-dry', 'adit',
-    ]) {
+    // ⭐ One row IS one place, and the mixin SUBTRACTS, so a second
+    // `clone()` is refused: `Locale` out of doors, `Hall` — the room rung's
+    // one-particular interior — for the buildings. The four TYPE rows take
+    // the permissive class instead, because they are minted many times.
+    for (const n of ['pithead-yard', 'adit']) {
       expect(row(`content/world/terminus/rejection/location/${n}.yaml`).class).toBe(
         '/platform/location/Locale',
+      );
+    }
+    for (const n of ['claims-office', 'assay-shed', 'provisioning', 'the-dry']) {
+      expect(row(`content/world/terminus/rejection/location/${n}.yaml`).class).toBe(
+        '/platform/location/Hall',
       );
     }
     // ⚠⚠ …and the galleries are NOT plain singletons, which is the fix

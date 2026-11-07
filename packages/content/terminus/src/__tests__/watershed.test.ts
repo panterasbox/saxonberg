@@ -175,6 +175,7 @@ function conduitFrom(rel: string): Conduit {
     c.setDirection(d.direction as never);
     c.setReachRef(String(d.reachRef ?? ''));
     c.setExtent(String(d.extent ?? ''));
+    if (Array.isArray(d.extents)) c.setExtents(d.extents as string[]);
     c.setCapacityM3S(Number(d.capacityM3S ?? 0));
     c.setTreatmentFactor(Number(d.treatmentFactor ?? 0));
     c.setDischargeLoadPerSecond(Number(d.dischargeLoadPerSecond ?? 0));

@@ -126,7 +126,10 @@ describe('the shipped packs (real discovery, no install)', () => {
     // ⭐ 70 → 71: the cordage build adds `trade-cordage`.
     // ⭐ 71 → 72: the paint build adds `trade-painting`.
     // ⭐ 72 → 74: the paper build adds `trade-papermaking` and `trade-printing`.
-    expect(ids).toHaveLength(74);
+    // ⭐ 74 → 75: the water-supply build adds `trade-plumbing`.
+    expect(ids).toHaveLength(75);
+    // A house's plumbing names the trade's runs and lengths.
+    expect(ids.indexOf('hinkley-hills')).toBeGreaterThan(ids.indexOf('trade-plumbing'));
     // The colorman's trade orders after the trades whose oil, lime and
     // glue stock it buys.
     expect(ids.indexOf('trade-painting')).toBeGreaterThan(ids.indexOf('trade-chandlery'));

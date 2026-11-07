@@ -25,5 +25,11 @@ data:
   mass: 2000
   _materialPath: /stuff/idea/material/rock/slate
   depthM: 14
+  # ⭐ It draws on the shallow till under the yard (water-supply D13, R9).
+  aquifer: /stuff/idea/Aquifer/rejection-till
+  # Its head stands on the hillside, 8 m above the yard the zone is
+  # measured at: the till's water is 12 m down here — past what any
+  # suction pump can lift, while the village well's is 4 (R9).
+  collarM: 458
   interiorBulk: true
   interiorCapacity: 20

@@ -1,0 +1,23 @@
+# An UNLAID run (water-supply D10) — the pipe a kitchen never got. Its
+# lengths are recorded empty, so a plumber lays it by `fit`ting lead pipe to
+# it: two lengths, one wiped joint. An incomplete run delivers nothing; the
+# kitchen's tap reads `unplumbed` until the last length is wiped home.
+class: /platform/thing/PipeRun
+data:
+  shortDescription: kitchen pipe run
+  keywords: [run, "pipe run", "kitchen run", plumbing, pipes]
+  register: definite
+  longDescription: >-
+    A channel chased into the plaster and a hole bored through the floor
+    where the pipe comes up to the sink, held to the wall in iron
+    brackets.
+  _materialPath: /stuff/idea/material/element/lead
+  runKind: room
+  unlaid: true
+  mass: 20
+  lengthM: 6
+  bill:
+    parts:
+      - { part: pipe, template: /trade/plumbing/thing/lead-pipe, count: 2, role: structural, plural: lengths }
+    joints:
+      - { key: wiping, method: wiped, members: [pipe] }

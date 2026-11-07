@@ -252,6 +252,23 @@ async function nourishHandle(handle: string): Promise<void> {
   }
 }
 
+/**
+ * ⭐ **Arrive as a newcomer does** — the Arrival Note issued, its principal
+ * as coin in hand (`POST /auth/test-arrive`; `embody confirm` does this for
+ * a real player, and a test-login character skips char-gen). The honest way
+ * to give a drive character CASH: `reserve override` is ledger money with no
+ * coin behind it, which a branch's till is designed to refuse (AC#13).
+ *
+ * @throws if the world refuses (already issued, treasury short).
+ */
+export async function arrive(s: Session): Promise<void> {
+  const res = await postTestRoute('/auth/test-arrive', { handle: s.handle });
+  const body = (await res.json()) as { ok?: boolean; reason?: string; error?: string };
+  if (!res.ok || body.ok !== true) {
+    throw new Error(`arrive(${s.handle}) failed (${res.status}): ${body.error ?? body.reason ?? JSON.stringify(body)}`);
+  }
+}
+
 /** The commons' warmest honest garment — the coat the dorm footlocker offers. */
 export const WINTER_COAT = '/stuff/thing/clothes/greatcoat';
 
@@ -465,6 +482,22 @@ export async function pinWeather(
 /** Release a pin {@link pinWeather} set; the procedural weather returns. */
 export async function unpinWeather(scope: string): Promise<WeatherPinResult> {
   return postWeather(`unpinWeather('${scope}')`, { scope, type: null });
+}
+
+/**
+ * ⭐ Stage a state a drive cannot reach by playing — an aquifer drawn low,
+ * an outfall loaded, a ditch lined: one authored mutator (`set*`, `add*`,
+ * `pond`, `invalidateCache`) on the Stuff at `path`, outside the eval
+ * sandbox (a parcel-bound `eval` may not reach a realm-level Idea).
+ * Returns the method's result. Only in a world this run owns.
+ */
+export async function stage(path: string, method: string, ...args: unknown[]): Promise<unknown> {
+  const res = await postTestRoute('/auth/test-stage', { path, method, args });
+  const out = (await res.json()) as { result?: unknown; error?: string };
+  if (!res.ok) {
+    throw new Error(`stage('${path}', '${method}') failed (${res.status}): ${out.error ?? JSON.stringify(out)}`);
+  }
+  return out.result ?? null;
 }
 
 /* ──────────────────────── a ship ──────────────────────── */

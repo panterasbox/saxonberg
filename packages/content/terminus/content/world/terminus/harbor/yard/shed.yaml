@@ -3,7 +3,7 @@
 # once — `buy smack`, name her as she is entered in the city's register,
 # and she is brought round to the yard's quay with her gangway locked and
 # the key in your hand.
-class: /platform/location/Locale
+class: /platform/location/Hall
 data:
   shortDescription: boat shed
   keywords: [shed, "boat shed", yard, "pell's yard"]

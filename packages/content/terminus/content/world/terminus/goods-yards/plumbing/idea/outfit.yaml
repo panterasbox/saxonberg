@@ -1,0 +1,18 @@
+# The plumber's yard as a business (water-supply W5). The seat is open: a
+# player who can wipe a joint takes it. The counter sells to anybody.
+class: /platform/idea/Business
+data:
+  name: "the plumber's yard"
+  appointingAuthority:
+    kind: office
+    office: prime-minister
+  positions:
+    - key: plumber
+      noun: plumber
+      label: laying pipe for the city
+      wageRate: 4
+      headcount: 1
+  banksAt: goodkin
+  operatingLocations:
+    - /world/terminus/goods-yards/plumbing/location/yard
+    - /world/terminus/goods-yards/plumbing/thing/counter

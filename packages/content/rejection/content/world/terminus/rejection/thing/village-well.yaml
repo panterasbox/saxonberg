@@ -28,6 +28,8 @@ data:
   mass: 2000
   _materialPath: /stuff/idea/material/rock/slate
   depthM: 6
+  # ⭐ It draws on the shallow till under the yard (water-supply D13, R9).
+  aquifer: /stuff/idea/Aquifer/rejection-till
   interiorBulk: true
   interiorCapacity: 20
   props:

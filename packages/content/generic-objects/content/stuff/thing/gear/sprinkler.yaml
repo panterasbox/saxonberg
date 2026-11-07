@@ -1,0 +1,28 @@
+# The sprinkler — a brass rose on a spike, with a wheel valve and a
+# coupling for a hose (water supply, the review: sprinklers are core to
+# farming). Rain in a circle: set it down on a garden or a field, screw a
+# hose onto it and onto a tap (`tie hose to tap`, `tie hose to sprinkler`),
+# and `open` it — by an amount, like a gate.
+#
+# ⭐ The row says only what the rose IS. How much it throws and how far is
+# the tap's head: a city main drives it out to its reach, a low tank
+# dribbles it round its feet, a ditch drives nothing (a sprinkler on one
+# wants a pump). What lands is the weather's: at a calm dawn nearly all of
+# it, at a windy noon measurably less.
+class: /platform/thing/Sprinkler
+data:
+  keywords: [sprinkler, rose, "lawn sprinkler", spray]
+  shortDescription: sprinkler
+  register: indefinite
+  longDescription: >-
+    A brass rose the size of a fist on a short iron spike you push into
+    the ground, with a wheel valve under it and a threaded coupling for a
+    hose. The rose is pierced all over with fine holes, and turns on a
+    swivel when the water drives it.
+  mass: 2
+  _materialPath: /stuff/idea/material/alloy/brass
+  # The bore that decides the flow at a given head, and the furthest the
+  # rose throws however hard it is driven.
+  nozzleMm: 6
+  maxThrowM: 8
+  open: false

@@ -1583,6 +1583,15 @@ export default abstract class Avatar extends AvatarBase {
       StuffApi.destruct(this);
       return;
     }
+    // ⭐ The session ended, so the shift did (the payroll gap): paid to now,
+    // on either path — a dropped line is still the last moment this body
+    // was at work, as `markSeen` below reasons. A parked body is elsewhere,
+    // so its shift here ends too.
+    if (MixinApi.isEmployed(this) && this.shiftState() === 'on-shift') {
+      void this.leaveShifts().catch((err) =>
+        console.error(`Avatar.onLinkdead: the leaving settle failed for playerId=${this.playerId}:`, err),
+      );
+    }
     // A PARKED avatar (its player crossed into a circle) suppresses the
     // presence emit: the player didn't leave — they're elsewhere and
     // unreachable, which is what the implant-blind wire means. Presence

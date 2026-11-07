@@ -49,6 +49,9 @@ import type { MeasureChannel } from './perception/MeasureChannel';
  * (`dB`, `Hz`) are declared here so the type union doesn't churn
  * when sound lands; their math / tag-tables register at that point.
  */
+/** The miner's inch in litres a second — the Colorado statute inch. */
+const MINERS_INCH_LPS = 0.7373;
+
 export type Unit =
   // Mass / weight
   | 'kg' | 'g'
@@ -61,6 +64,11 @@ export type Unit =
   | 'm²'
   // Volume
   | 'm³'
+  // Flow (water-supply D18) — a river, a main, a right. `miner-in` is the
+  // MINER'S INCH, the unit western water rights are written in: the flow
+  // through a one-inch-square hole under a set head, fixed by statute at
+  // 0.7373 L/s (the Colorado inch). A unit is a fixed fact, never a dial.
+  | 'm³/s' | 'L/s' | 'miner-in'
   // Liquid volume (bulk substrate — `cup`/`mL` join the vitals `L`
   // below; tagless like `m³`, round-tripped via converters to `L`)
   | 'mL' | 'cup'
@@ -220,6 +228,9 @@ const unitOps: Partial<Record<Unit, UnitOps>> = {
   'J/kg': ARITHMETIC_OPS,
   clo: ARITHMETIC_OPS,
   'm/s': ARITHMETIC_OPS,
+  'm³/s': ARITHMETIC_OPS,
+  'L/s': ARITHMETIC_OPS,
+  'miner-in': ARITHMETIC_OPS,
   '%': ARITHMETIC_OPS,
   '1/m': ARITHMETIC_OPS,
   pt: ARITHMETIC_OPS,
@@ -380,6 +391,13 @@ function ensureDefaultRegistrations(): void {
   registerConverter('Pa', 'mmHg', (n) => n / 133.322368);
   registerConverter('L', 'm³', (n) => n / 1000);
   registerConverter('m³', 'L', (n) => n * 1000);
+  // Flow (water-supply D18): the miner's inch is 0.7373 L/s by statute.
+  registerConverter('L/s', 'm³/s', (n) => n / 1000);
+  registerConverter('m³/s', 'L/s', (n) => n * 1000);
+  registerConverter('miner-in', 'L/s', (n) => n * MINERS_INCH_LPS);
+  registerConverter('L/s', 'miner-in', (n) => n / MINERS_INCH_LPS);
+  registerConverter('miner-in', 'm³/s', (n) => (n * MINERS_INCH_LPS) / 1000);
+  registerConverter('m³/s', 'miner-in', (n) => (n * 1000) / MINERS_INCH_LPS);
 
   // Bulk liquid volume: `mL` and `cup` round-trip against the
   // canonical bulk-slot unit `L`. One US-customary cup is 236.5882365

@@ -1,0 +1,17 @@
+# The measuring weir below the headgate (water-supply W6, D18): a notched
+# plank crest whose flow is a function of the head on it — `analyze flow`
+# reads it, and squares it with what the gates above account for.
+class: /system/water/thing/ControlStructure
+data:
+  shortDescription: measuring weir
+  keywords: [weir, crest, notch]
+  register: definite
+  longDescription: >-
+    A plank weir across the river with a rectangular notch cut in its crest,
+    the water sliding over it in a clean sheet onto a stone apron.
+  reachRef: delight:flats
+  at: "delight:flats+0.1"
+  controlKind: weir
+  passFraction: 1
+  mass: 800
+  _materialPath: /stuff/idea/material/wood/oak

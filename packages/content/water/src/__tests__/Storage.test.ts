@@ -468,4 +468,65 @@ describe('a live control is a real reduction downstream', () => {
     makeControl({ reach: 'nowhere:at-all', pass: 0 });
     expect((await c.liveDraws(YEAR)).size).toBe(0);
   });
+
+  /** A ditch off the falls, earth or lined (water-supply D14). */
+  function addDitch(lining: 'earth' | 'lined'): void {
+    store.push({
+      _id: `ditch-${lining}`,
+      path: '/stuff/idea/Watercourse/ditch',
+      class: '/system/water/idea/Watercourse',
+      data: {
+        key: 'ditch',
+        name: 'the ditch',
+        basin: 'kestrel',
+        branchesFrom: 'kestrel:falls',
+        lining,
+        source: { kind: 'outlet' },
+        mouth: { into: 'river', course: 'kestrel', node: 'confluence' },
+        nodes: [
+          { km: 5, name: 'head', elevation: 390, catchmentKm2: 0, channelWidthM: 2 },
+          { km: 0, name: 'tail', elevation: 380, catchmentKm2: 0, channelWidthM: 1 },
+        ],
+      },
+    } as never);
+  }
+
+  it('⭐⭐ what a headgate diverts INTO a ditch is credited there (D14) — it used to vanish', async () => {
+    WeatherApi._forceTypeForTesting('storm');
+    installWorld();
+    addDitch('earth');
+    installRootBiome();
+    const c = catalogue();
+    makeControl({ reach: 'kestrel:falls', pass: 0.5, divertsTo: 'ditch:head' });
+    c.invalidateCache();
+    const draws = await c.liveDraws(YEAR + 1);
+    const river = (await c.flowAt('kestrel:falls', YEAR + 1, draws))!;
+    const head = (await c.flowAt('ditch:head', YEAR + 1, draws))!;
+    expect(head.m3s).toBeGreaterThan(0);
+    // What the river lost at the gate is what the ditch got at its head.
+    expect(head.m3s).toBeCloseTo(river.drawnM3S, 6);
+  });
+
+  it('⭐ an earth ditch loses water per km to the ground; a lined one a tenth of it', async () => {
+    const tailOf = async (lining: 'earth' | 'lined'): Promise<{ head: number; tail: number }> => {
+      StuffApi.clearAll();
+      WeatherApi._forceTypeForTesting('storm');
+      installWorld();
+      addDitch(lining);
+      installRootBiome();
+      const c = catalogue();
+      makeControl({ reach: 'kestrel:falls', pass: 0.5, divertsTo: 'ditch:head' });
+      c.invalidateCache();
+      const draws = await c.liveDraws(YEAR + 1);
+      return {
+        head: (await c.flowAt('ditch:head', YEAR + 1, draws))!.m3s,
+        tail: (await c.flowAt('ditch:tail', YEAR + 1, draws))!.m3s,
+      };
+    };
+    const earth = await tailOf('earth');
+    const lined = await tailOf('lined');
+    // 5 km at 8 %/km in earth; a tenth of that lined.
+    expect(earth.tail / earth.head).toBeCloseTo(1 - 0.08 * 5, 6);
+    expect(lined.tail / lined.head).toBeCloseTo(1 - 0.008 * 5, 6);
+  });
 });
