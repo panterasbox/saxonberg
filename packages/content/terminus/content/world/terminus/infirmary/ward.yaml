@@ -47,8 +47,11 @@ data:
     - /system/water/thing/test-kit
     # A snake plant in a glazed cachepot on the sill, and the can to water
     # it with (water-supply, the browser walk): the pot has no drainage
-    # hole, so a visitor who waters it too kindly drowns it — the one
-    # undrained pot in the game, where people stand about with nothing to do.
+    # hole, so whoever waters it too kindly drowns it. ⚠ Honestly: it is here
+    # because the walk needed somewhere to show acceptance criterion 18
+    # (an undrained pot drowns its plant), and it is still the ONLY undrained
+    # pot in the game — nothing sells one. Move the lesson to where gardeners
+    # buy pots when a trade sells them (farming slate).
     - /trade/farming/thing/pot/cachepot
     - /stuff/thing/vessel/watering-can
     - /world/terminus/infirmary/thing/dressing-cabinet
