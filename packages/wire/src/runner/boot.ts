@@ -201,7 +201,11 @@ export async function reapOwnedPort(): Promise<void> {
  * — six minutes a world — and most iterations change only a drive file.
  */
 export function keepWorld(): boolean {
-  return process.env.WIRE_KEEP_WORLD === '1';
+  // ⚠⚠ A run REUSING a standing world keeps whatever it restarts. A restart step
+  // reboots from inside the test worker; piped through that worker, the new world
+  // dies with it, exit 1 and no line in its log (its log is the pipe). Measured
+  // 2026-11-07; the silent death of a standing world that afternoon had this shape.
+  return process.env.WIRE_KEEP_WORLD === '1' || process.env.WIRE_REUSE === '1';
 }
 
 /** Where a kept world is recorded. */
