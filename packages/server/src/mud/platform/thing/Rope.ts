@@ -653,7 +653,8 @@ export default class Rope extends CuttableMixin(
       end.setShortDescription(`line from ${name}`);
       // ⚠ DERIVED (magic), named here: the end ashore answers to the words
       // of the ship it came from — written at mint, not authored.
-      end.setKeywords([...end.getKeywords(), ...name.replace(/^the\s+/i, '').toLowerCase().split(/\s+/)]);
+      // ⭐ As one phrase: her bare name is hers, and a word of this still finds it.
+      end.setKeywords([...end.getKeywords(), `line from ${name.replace(/^the\s+/i, '').toLowerCase()}`]);
       end.setLongDescription(
         `${GrammarApi.cap(`${GrammarApi.articleFor(stem)} ${stem}`)} comes ashore from ${name}, ${made.knot.label.replace(/^made fast/, `made fast round ${load.getPresentation()}`)}.`,
       );
