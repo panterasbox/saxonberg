@@ -2004,3 +2004,47 @@ Not finished: `underwater` reported nothing in 25 minutes and was stopped by PID
 `metal-chain` were green. Sibling totals at the stop: 113 passed, 39 failed (19 of them harbors), plus crafting's
 marked four counted among the failed because that run predated re-marking them.
 
+## Browser walk record
+
+Commit: 68e40de01 `build(controllers-are-io W9): the walk finds help's answers run together`
+
+## Final state per test
+Last full run (committed spec, fresh world): 4 passed, 2 failed. The 2 were re-run in the same world and passed.
+1. wind@ scoped forms: pass
+2. two offers, the other form: pass
+3. throw usage / retired make: pass
+4. help by category: pass
+5. dip pot card + radial: failed on the full run (radial stuck on "reading..." past 30s), passed on re-run
+6. default aliases: failed on the full run (5s connect wall in helpers.ts), passed on re-run
+The run before the last two spec tightenings was 6/6 green.
+
+## Open product defect: the world stalls (not fixed)
+On a standing world `/healthz` took 11-13s on 4 of 25 samples after about 15 minutes, and 3.8s after about 3 minutes.
+CPU profile, 30s window: 18.6s in greets.act -> Vocal.say -> Scene.send -> describeFor -> canSeeGate -> walkLight -> Traversal.
+20s window on the fresh world: 4.5s in greets.act, 7.0s in walkLight.
+Each greeting line renders per recipient and each render re-walks light.
+Greeting lines per arrival grew with the number of bodies minted so far, about 1 / 3 / 10 ("says to a human" x N, then "to you").
+Not this build's files: 0 commits on VisionModality, Scene, Behaved since the merge base; greets.ts last touched 2026-09-30.
+Consequence: this walk is flaky on a world that has run a few minutes. Profiles are in this directory (*.cpuprofile).
+
+## Not established
+One failed alias run showed `l me:i:watch` with no echo 30s after `l`. Whether that is a dropped command or a stall is unknown.
+Two probes failed to reach their first round on the stalled world.
+The alias test ranged from 18s to 108s.
+
+## For a person to judge
+See the report to the caller; same list.
+
+## Judgments listed
+1. Radial on the dip pot: alphabetical, three rows per side visible; carve/cast/coil and belay/climb/drive show as enabled (`requires: any`), dip is off-screen below them.
+2. Prompt reads "which source?" (the slot's field name).
+3. Other-offer line shows raw backticks and a raw id: A small clay pot also answers `harvest` — `harvest@#1kCN97myGrKgCtTnQczba`.
+4. Help prose shows raw `**` and backticks (131 of 245 platform views carry ** or a star; 245 of 249 carry one of **, star or backtick). Help text also says "mould" in `shape`.
+5. Answered question cards read "What you last saw. Re-reading is free; acting on it needs the condition back."
+6. Extra clicks on "Enter as" echo "I don't understand 'play'" in the scrollback.
+
+## Verification
+client tsc 0 errors; server tsc 0 errors; CardBodies.test 41 passed (before the final commit, same source); HelpController + HelpCatalogue tests 22 passed.
+lint:family NOT finished at hand-back: 55 of 96 ok, no failure printed; log at lint-family.log (last line lint-rc=N when done).
+Ports 2013 and 5183 free. Screenshots in shots/, none in git.
+
