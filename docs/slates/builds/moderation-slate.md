@@ -15,8 +15,9 @@
 > ([chattel.md](../../subsystems/chattel.md)), the relay ([streaming.md](../../subsystems/streaming.md)),
 > staging's recall ([staging](./staging-slate.md)).
 > **Left:** everything in § 19 (the go-live list) · the raid dial's shape · what the mod queue shows ·
-> channel domains · mod tiers · the prison conversation (→ [prison-slate](./prison-slate.md), whose
-> guardrail this slate **reverses** — § 16) · Kick's moderation events (unverified)
+> channel domains · mod tiers · rehabilitation's own conversation · the re-entry ladder (§ 9, general)
+> · Kick's moderation events (unverified). [prison-slate](./prison-slate.md) — whose guardrail this
+> slate **reverses** (§ 16) — was rewritten alongside it.
 > **Size:** a build — its go-live wave is small
 
 ## 0. The ask **[the owner, 2026-11-05]**
@@ -222,10 +223,20 @@ education platform heading for Study.com students:
 minute. Narrowed reach for newcomers exists **only as the raid dial** (Twitch's shield mode): an
 operator-switched tightening during a raid, off by default. Its exact shape is open (§ 20).
 
-## 9. Removal: where the body goes **[LEAN, uncontested]**
+## 9. Removal and re-entry: where the body goes **[DECIDED]**
 
-- **Ejected from a place** → back to the lounge, the safe space they left. They may walk back
-  unless also banned there.
+- ⭐⭐ **One re-entry ladder, for login and for eject** **[the owner — agreed 11-07]**. *"Sometimes you
+  simply can't log back into where you signed out from due to some state change … generally I
+  always fall back to the lounge but maybe there's a better, less extreme option."* The first rung
+  that **admits you now** wins: where you were → **that place's declared fallback** (a ship at sea →
+  its deck or home berth · a mine working → the pithead · a rented room → the lobby; undeclared, the
+  default is **step outward** along the place tree) → your home → **the lounge, as last resort only**.
+  Today the login fallback jumps straight to the lounge ([connection.md](../../subsystems/connection.md));
+  this ladder is general and outlives moderation. Custody pins it inside the walls
+  ([prison-slate](./prison-slate.md) § 7d).
+- **Ejected from a place** → the same ladder from that place: the bouncer puts you on the street, not
+  in the lounge. (Revises the first cut, *"back to the lounge."*) They may walk back unless also
+  banned there.
 - **Banned from a place** → *a place you cannot enter*, the inverse of the prison's *a place you
   cannot leave*; for the ban's duration, over that node and below.
 - **Plucked from the realm** → staging's **recall** (identity, not location): the body goes
@@ -360,7 +371,9 @@ Rules 3 and 5 exist because of the political audience.
 > think prison has anything to do with the crime. It has to do with our ability to rehabilitate and
 > whether the investment is worth it for the character we're talking about. Not all prisoners are
 > treated equal here."* Mortal-vessel Thesis 4 (moderation as capability state, with a designed path
-> out) is the half that survives. How the prison **presents** itself is the prison conversation's.
+> out) is the half that survives. ⭐ **The place itself — the two facilities, the confinement ladder,
+> the two systems, the state pen, the conversions — is [prison-slate](./prison-slate.md), rewritten
+> 2026-11-07.**
 
 ### 16a. ⭐⭐ The remedy criterion is the player's investment, never their power **[DECIDED]**
 
@@ -475,8 +488,8 @@ accounts (a sanction on an external id suffices first).
 - **Channel domains** — nested Subjects; which organization owns them.
 - **Targeting's spelling** — MQL or bespoke.
 - **Kick's moderation events** — verify before promising automation.
-- **The prison conversation** → [prison-slate](./prison-slate.md): presentation, rehabilitation
-  content, parole by competence, which prisons disenfranchise.
+- **Rehabilitation** — its own conversation ([prison-slate](./prison-slate.md) § 12). The prison
+  conversation itself is done (prison-slate, rewritten 11-07).
 
 ## 21. Reuse ledger (review question R2)
 
