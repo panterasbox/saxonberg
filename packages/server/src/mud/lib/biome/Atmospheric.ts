@@ -637,6 +637,17 @@ export function AtmosphericMixin<
     }
 
     /**
+     * ⭐ A roof of what this place is walled in — its authored wall layers,
+     * or the class's wall default when it authors none. What a ROOM's
+     * `roofDefaults()` answers (`Room`, `PersistentRoom`): the answer the
+     * legacy biome reading gave every interior, said by the class.
+     */
+    protected roofOverWalls(): RoofSpec {
+      const walls = this.getEnclosure();
+      return walls === null || walls === 'none' ? {} : walls;
+    }
+
+    /**
      * What a scope of this KIND is built of, when its row says nothing.
      *
      * @hook Override where the class knows its own construction — a

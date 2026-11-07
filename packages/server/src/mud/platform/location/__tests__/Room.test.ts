@@ -71,13 +71,17 @@ describe("each rung keeps its side of the split", () => {
 
 describe("⭐ a room is roofed in its walls unless its row says otherwise", () => {
   it("no walls authored: the roof is the wall default", () => {
-    expect(Room.roofOverWalls(null)).toEqual({});
-    expect(Room.roofOverWalls("none")).toEqual({});
+    const room = makeStuffAtPath(() => new Room(), "/test/room/bare");
+    expect(room.roofDefaults()).toEqual({});
+    room.setEnclosure("none");
+    expect(room.roofDefaults()).toEqual({});
   });
 
   it("walls authored: the roof is the same layers", () => {
     const brick = { material: "/stuff/idea/material/ceramic/brick", thicknessM: 0.23 };
-    expect(Room.roofOverWalls(brick)).toBe(brick);
+    const room = makeStuffAtPath(() => new PersistentRoom(), "/test/room/brick");
+    room.setEnclosure(brick);
+    expect(room.roofDefaults()).toEqual(brick);
   });
 
   it("every room class declares its roof, so none reads it off a biome", () => {

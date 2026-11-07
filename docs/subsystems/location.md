@@ -744,7 +744,8 @@ both sides of the split, one descriptor at most:
 the many behind it — is the Locale/Location split said of interiors. `Hall`
 is `SingletonMixin(Room)` exactly as `Locale` is `SingletonMixin(Location)`;
 `PersistentRoom` extends `PersistentLocation` (the kept branch has substrate
-of its own) and shares the room's roof rule (`Room.roofOverWalls`).
+of its own) and shares the room's roof rule (`roofOverWalls()`, on the
+construction mixin).
 
 What a room has, and nothing else does:
 

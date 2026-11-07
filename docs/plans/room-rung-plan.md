@@ -99,7 +99,7 @@ same broad hosts. So:
   keep their classes.
 - **W2:** the four classes; `PlumbedMixin` restored on them only (revert of
   824c8697f, `Place` kept clean); a room's roof is its walls'
-  (`Room.roofOverWalls`), matching the legacy interior answer. Pack classes
+  (`roofOverWalls()` on the construction mixin — first a `Room` static, moved off it for `lint:lib-statics`), matching the legacy interior answer. Pack classes
   rebased: `DormRoom`→`PersistentRoom`; Duncan `Corridor`, lounge `Lounge`
   →`Room`; `ColdRoom`, `HarborOffice`, `SealedCellar`, lounge `Bar`,
   `FloodedCell`→`Hall`.

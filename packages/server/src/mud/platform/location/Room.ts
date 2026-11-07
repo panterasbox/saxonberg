@@ -17,7 +17,7 @@
  *
  * - **Walls and a roof unless its row says otherwise.** An interior is
  *   built: its roof is its walls' material unless the row authors one
- *   ({@link Room.roofOverWalls}), so a room row is never undeclared and
+ *   (`roofOverWalls()`), so a room row is never undeclared and
  *   never reads its construction off its biome (`lint:biome-sky`).
  * - ⭐⭐ **Water piped into it** (`PlumbedMixin`): a tap implies its pipe,
  *   in the room's own `plumbing:` word or the universe default. A street
@@ -30,7 +30,7 @@
 
 import Location from './Location';
 import { PlumbedMixin } from '../../lib/supply/Plumbed';
-import type { EnclosurePartSpec, RoofSpec } from '../../lib/spatial/Enclosed';
+import type { RoofSpec } from '../../lib/spatial/Enclosed';
 
 export default class Room extends PlumbedMixin(Location) {
   /**
@@ -39,15 +39,6 @@ export default class Room extends PlumbedMixin(Location) {
    * (its walls' material on five faces), now the room's own.
    */
   public override roofDefaults(): RoofSpec | null {
-    return Room.roofOverWalls(this.getEnclosure());
-  }
-
-  /**
-   * The roof a room has when its row authors none: its walls' layers, or
-   * the class's wall default when the row authors no walls either.
-   * Shared by {@link PersistentRoom}, which is a room on the kept branch.
-   */
-  public static roofOverWalls(walls: EnclosurePartSpec | null): RoofSpec {
-    return walls === null || walls === 'none' ? {} : walls;
+    return this.roofOverWalls();
   }
 }

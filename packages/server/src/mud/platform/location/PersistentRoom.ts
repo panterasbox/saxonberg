@@ -7,17 +7,16 @@
  *
  * ⚠ It extends `PersistentLocation`, not `Room`, because the kept branch
  * carries substrate of its own; the room's construction rule is
- * {@link Room.roofOverWalls}, shared rather than re-stated.
+ * the construction mixin's `roofOverWalls()`, shared rather than re-stated.
  */
 
 import PersistentLocation from './PersistentLocation';
-import Room from './Room';
 import { PlumbedMixin } from '../../lib/supply/Plumbed';
 import type { RoofSpec } from '../../lib/spatial/Enclosed';
 
 export default class PersistentRoom extends PlumbedMixin(PersistentLocation) {
   /** Roofed in its walls unless the row says otherwise ({@link Room}). */
   public override roofDefaults(): RoofSpec | null {
-    return Room.roofOverWalls(this.getEnclosure());
+    return this.roofOverWalls();
   }
 }
