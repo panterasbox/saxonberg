@@ -71,6 +71,7 @@ const CHANDLERY = '/world/terminus/wharfside/chandlery/location/floor';
 const DISTILLERY = '/world/terminus/goods-yards/veshko/location/distillery';
 const COOKHOUSE = '/world/terminus/hearthworks/location/cookhouse';
 const LOBBY = '/world/terminus/eternal/duncan-hall/location/lobby';
+const STEPS = '/world/terminus/eternal/duncan-hall/location/steps';
 const ORCUS =
   '/stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/orcus';
 const WIZARD = { wizard: true, committees: ['/world/terminus'] };
@@ -289,15 +290,17 @@ suite('smell and taste', () => {
     });
 
     it('14. the word without the name; one source and it is named; dark and it is not', async () => {
-      const a = await open('hand-a', { startLocation: LOBBY, ...WIZARD });
-      const b = await open('hand-b', { startLocation: LOBBY, ...WIZARD });
+      // A room of its own: step 15's soiled body is still standing in the lobby.
+      const a = await open('hand-a', { startLocation: STEPS, ...WIZARD });
+      const b = await open('hand-b', { startLocation: STEPS, ...WIZARD });
+      const reader = await open('reader', { startLocation: STEPS, ...WIZARD });
       // ⚠ The field, not `soil()`: the sandbox refuses a resident dirt row's read.
       for (const s of [a, b]) await evalOn(s, 'me', 'this.deposits = Object.fromEntries([["|manure", 1]])');
-      const both = await say(wiz, 'analyze aroma');
+      const both = await say(reader, 'analyze aroma');
       expect(both).toMatch(/of dung/);
       expect(both).not.toMatch(/of dung, from/);
-      expectOk(await b.cmd('go south'));
-      expect(await say(wiz, 'analyze aroma')).toMatch(/of dung, from /);
+      expectOk(await b.cmd('go north'));
+      expect(await say(reader, 'analyze aroma')).toMatch(/of dung, from /);
     });
 
     it('17. the instrument gives a figure and the nose a word', async () => {
