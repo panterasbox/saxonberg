@@ -379,8 +379,8 @@ door would claim a reach the world does not have.
 
 ⚠ A class that builds its buckets **at runtime** rather than as a
 static literal is invisible to `grep static commandContributions` —
-`Tooled.getInstanceContributions`, `Behaved`, and `applyShadowDeltaImpl`
-are the three today. The shadow one matters most: a shadow must
+`Behaved` and `applyShadowDeltaImpl` are the two today (the tool's
+runtime bucket left with `InstanceContributor`, `85c7d47c5`). The shadow one matters most: a shadow must
 distribute exactly as its host would, never with a different reach.
 
 Mixins, concrete Stuff classes, and shadows all use the same shape.
@@ -1430,7 +1430,9 @@ document-store chokepoint on a CMS save.
 **Flat verb (no subcommands):**
 
 ```yaml
-verbs: [look, l]
+verbs: [look]
+defaultAliases: [{name: l}]   # a removable default player alias, not a second word
+category: perception
 controller: LookController
 description: "Examine your surroundings or an object"
 args:
@@ -1447,7 +1449,8 @@ options:
 **Subcommanded verb:**
 
 ```yaml
-verbs: [player, me]
+verbs: [player]
+category: author
 controller: PlayerController
 description: "Manage your player character settings"
 subcommands:
@@ -1916,3 +1919,21 @@ already did (`scope-walk.ts`). Before this a carp in a bowl on the floor
 could be *named* by the MQL walk and afforded nothing to name it with.
 It is a dispatch change every verb sees; `look` and `put` were the drive's
 witnesses. Detail: [fishing.md](./fishing.md).
+
+## History — controllers-are-io (MR !527, 2026-11)
+
+The dispatcher became what a controller is fed by, not a place a
+controller reaches back into. Load-bearing shifts:
+
+- **`verb@source`** split in the tokenizer (`ParsedCommand.scope`), the
+  source filter + slot fill in `CommandGiver.matchAffordances`, and the
+  other-offer probe (W1, `5ea55fd79^..0c65a4403`). The plan promised a
+  plain-English scoped form; what ships is MQL's own grammar
+  (`wind@me:i:watch`, `harvest@here:i:wheat:[2]`).
+- **Where a verb looks first** (`scope: [here, peers, person]` on world
+  acts) and **names are keywords** — the 100/60/50/40 name tiers and
+  `bareName` collapsed into keyword tiers on `NamedMixin.getKeywords()`
+  (W2, `90e690d88^..d31aa5b51`).
+- **One view, one word**, `defaultAliases:`, `category:` on every view and
+  `help` by category (W6, `831bff42b^..3f6a71578`); the switch controllers
+  split per subcommand (W7–W8, `848adc897^..76e2d22b6`).

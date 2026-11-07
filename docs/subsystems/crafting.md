@@ -139,7 +139,7 @@ the Hydrator; per-field invariants ride accessor pairs.
   substrate: a solute that gives up an extract when steeped in a solvent
   (water + herb → draught, water + leaves → tea, later spirits/oil →
   tincture/infused oil). Carries `steepsInto: string` (the extract
-  Material path) + the affordance for the **platform** `steep`/`infuse`
+  Material path) + the affordance for the **platform** `steep`
   verb, contributed OUTWARD to whoever carries the solute
   (`commandContributions.environment`). Kernel because cooking, medicine
   and distilling have no common pack ancestor; `trade-medicine`'s `Simple`
@@ -169,7 +169,7 @@ the Hydrator; per-field invariants ride accessor pairs.
   `MixinApi.isBuildVessel`) — the **vessel-as-buffer** for a step-by-step
   build (the shaker / mixing glass). A runtime-only buffer of graded
   `BuildContribution`s (`addContribution`/`getContributions`/`clearBuild`)
-  the `pour`/`add` verbs bank into and `strain` mints from. (It also used
+  the `pour` verb banks into and `strain` mints from. (It also used
   to record each step's typed command for a silent auto-transcription;
   that is gone — § The knowledge ladder.) No persistent fields — a build is
   transient.
@@ -616,7 +616,7 @@ not making; camp cooking works because reachable heat + a pot IS a
 kitchen).
 
 **Where a crafting verb lives** — with the pack whose content affords
-it: `heat`, `pour`, `stir`/`shake`, `repair`, `salvage`,
+it: `heat`, `pour`, `stir`, `repair`, `salvage`,
 `wash` are platform (a pot and a shaker both pour and stir; a furnace
 heats; a basin washes; mending is any trade's); `menu`/`order` are platform
 **retail** (a menu is commerce, any venue); `muddle`, `strain`,
@@ -628,7 +628,7 @@ and the cook-pot row are cooking's too (the bundle collects the
 trade's instruments).
 
 `BurnerMixin` statically confers `heat` (with `light`/`douse`/`pump`)
-— an appliance mixin, not a `Tooled` host. (⚠ There is no generic
+— an appliance mixin, not a `Tool` host. (⚠ There is no generic
 `make`: the verb of that name only ever replayed a player's script, and it
 is the shell's `do` now — see § The knowledge ladder.) Capability entries are
 **parameterized**: `{ kind, rate?, control?, technique? }` (a bare
@@ -763,7 +763,7 @@ the present on-shift maker.
   why there is no laundry vocation: the care loop is not an errand per
   wash.
 
-- **`cure`/`salt`**, **`dry`/`hang`**, **`smoke`** (trade-cooking) — the
+- **`cure`**, **`dry`/`hang`**, **`smoke`** (trade-cooking) — the
   **preserving acts**, one `PreserveController` base and three six-line
   subclasses that name only a recipe id and their prose. Each recipe
   authors a `cure: { moisture?, solute? }` block applied to the output's
@@ -773,7 +773,7 @@ the present on-shift maker.
   making the thing once, and a gated verb that is the ONLY way to make it
   can never be satisfied — a gate whose key does not exist is a lock, so
   these follow `order`.
-- **`butcher`/`dress`** (trade-cooking) — take a dead animal apart. Gated
+- **`butcher`** (trade-cooking) — take a dead animal apart. Gated
   on a reachable `constructionForm: 'bladed'` implement, refused on a
   sentient corpse, and the cuts carry the carcass's AGE (see
   [spoilage.md](./spoilage.md)).
@@ -800,7 +800,8 @@ block with the clock already running, which is exactly the pressure the
 cuts' age model exists to create.
 - **`muddle`** — a `ManualBuild` step like `stir`; needs a reachable
   `muddler` capability; records `BuildMethod` `'muddled'`.
-  `shake` already existed (`stir.yaml` is `verbs: [stir, shake]`); `mix`
+  `shake` already existed then (as a second word on `stir.yaml`; deleted
+  since by one view, one word — the shaker shakes when you `stir` it); `mix`
   is the resolve verb — nothing was renamed.
 
 ## ⭐ The glass pool, the technique, ice, garnish (libations D9/D10)
@@ -885,9 +886,9 @@ Resolution (`Techniques.fromTools`):
 - Among the eligible, highest **`priority`** wins — *the finishing
   instrument names the drink* (a whiskey smash is muddled, then shaken,
   so shaker and mixing-glass outrank muddler).
-- The **hand path** (`stir`/`shake`/`muddle`) names the working by verb
-  but still takes its numbers from the instrument in reach — you cannot
-  shake without a shaker. An unauthored word finishes neutral.
+- The **hand path** (`stir`/`muddle`) takes the working and its numbers
+  from the instrument in reach — `stir shaker` shakes, `stir mixing
+  glass` stirs (the tool is what knows; controllers-are-io D16). An unauthored word finishes neutral.
 
 Hospitality authors the bar's four: shaker (shaken), mixing-glass
 (stirred), muddler (muddled), bar-spoon (built).
@@ -963,16 +964,17 @@ activity substrate's first durative-verb consumer — see
 [activity.md](./activity.md)): the effect lands **at completion**, so a
 barge-in `cancel` mid-step leaves partial matter standing.
 
-- **`pour <spirit> into <vessel>`** / **`add <spirit>`** — debit **one
+- **`pour <spirit> into <vessel>`** — debit **one
   serving** of what is poured off the chosen reachable graded bottle (the
   material's `servingKg` at its density, `MaterialApi.servingKgOf` — gin
   60 ml, dry vermouth 10 ml, bitters 2 ml; `--amount 30ml` measures
   instead) to the discard sink — conservation — and bank a graded
   `BuildContribution` into the vessel's buffer. One row field is both the
   nutrition serving and the jigger, so a new spirit needs no code; three
-  pours of sweet vermouth is a negroni's measure. `add` (no vessel) finds
-  the build vessel you're working in.
-- **`stir`** / **`shake <vessel>`** — record the mix method on the build.
+  pours of sweet vermouth is a negroni's measure. (The vessel-less `add`
+  form is deleted: one view, one word.)
+- **`stir <vessel>`** — record the mix method on the build (the vessel
+  names it: a shaker shakes).
 - **`strain [<vessel>] into <glass>`** — the **terminal mint**.
 - **`garnish <glass> with <garnish>`** — the finishing flourish.
 
@@ -1885,7 +1887,8 @@ the feed was dropped. It folds the source payload through
 
 ## History — the dairy build (2026-10)
 
-- **`churn`** joins `stir`/`shake` on `stir.yaml` (method `churned`).
+- **`stir churn`** records method `churned` (the `churn` word that once
+  joined `stir.yaml` is deleted: one view, one word).
   ⭐ The view is `requires: any` now and the controller narrows to two arms:
   a build vessel records the method; a hand-worked vessel (the kernel's
   **`HandWorkedMixin`**, `workByHand(method)` → an `ActOutcome` or `null`,
@@ -1919,3 +1922,17 @@ perishable inputs before the working's kill. A pot on the boil (what is in it) a
   view over the `Cuttable`/`CutPlanner` protocol (tailoring and the ice
   sheet implement it); salvage and the off-spec lump mint
   `metal-casting` for metal and a composition-only `Casting` otherwise.
+
+## History — controllers-are-io (MR !527, 2026-11)
+
+- **The words came off the object** (W4, `70254af27^..d66b3e15d`):
+  `ActPlan` lost `beginSelf`/`beginPeers` and every `line: Mml`; an act
+  returns a closed `reason` union or facts, and the controller words them
+  (`engagePlan(context, plan, words)`). `boil` folded into `heat` and the
+  vessel's bath (D8c); `scrub` became `wash --hard`; the cuts plan
+  themselves on `CuttableMixin.cutPlan`.
+- **The script runner left crafting** (W6, D18): `make` is deleted and the
+  shell's `do` runs a named script; the craft's can-make deed is minted in
+  `CraftingLogic.recordCraftEvidence`, and `RecipeKnowledge` lives in
+  `lib/craft/`. `lib/craft/Tooled.ts` is `lib/craft/Tool.ts` (W3).
+

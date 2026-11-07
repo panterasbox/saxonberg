@@ -207,7 +207,7 @@ controller only words the refusal. The chandler's
 frame, because the craft resolves from the actor's reach); a glaze or slip
 tub (`CompoundingMixin`) lays a WET coat on the good's faces; glass's
 `Melt` turns up a gather on the pipe (the named one, else the empty pipe in
-hand — so a bare `gob` works). A dip leaves a LAYER: `dye` and `quench` are
+hand — so a bare `dip` works). A dip leaves a LAYER: `dye` and `quench` are
 their own acts. Grammar: `dip [<thing>] [inside|outside] [in
 <bath>] [inside|outside]` — the face is a bare optional word that the
 binder's lookahead skips when the next token is the bath's preposition.
@@ -219,14 +219,16 @@ vessel asks the same plan with its own word (`req.verb`).
 
 ⭐⭐ **One vocabulary for every act protocol** (`lib/craft/ActPlan.ts`,
 ceramics review 2026-10-28). A planned act answers an `ActPlan` (duration —
-`0` runs now, in the command frame — effort, the begin lines, and an
-`onComplete` that may itself return a refusal), an `ActRefusal`
-(`{ ok: false, reason, line }`), or `null` = *nothing to say*, and the
-controller asks the next candidate or words a refusal from what is there.
-An instant act (`impress`, `turn`, the hand-worked `stir`) answers an
-`ActOutcome` (`{ ok: true, line, peers? }`) or an `ActRefusal`. Every
-controller engages a plan through ONE routine,
-`ManualBuildController.engagePlan`. Each protocol is a registered marker
+`0` runs now, in the command frame — effort, the facts the begin words
+need, and an `onComplete` that may itself return a refusal), an
+`ActRefusal` (`{ ok: false, reason, facts? }`), or `null` = *nothing to
+say*, and the controller asks the next candidate or words a refusal from
+what is there. An instant act (`impress`, `turn`, the hand-worked `stir`)
+answers an `ActOutcome` (`{ ok: true, facts }`) or an `ActRefusal`.
+⭐ **No `Mml` on any of them** (controllers-are-io D4): each protocol
+declares a closed reason union, and the controller words it in an
+exhaustive `switch`. Every controller engages a plan through ONE routine,
+`ManualBuildController.engagePlan(context, plan, words)`. Each protocol is a registered marker
 mixin named for what the object IS — `DipBathMixin`, `KneadVesselMixin`,
 `ShapeableMixin` (and `FormingMixin` for an instrument), `CarvableMixin`,
 `ImpressibleMixin`, `TurnableMixin`, `HandWorkedMixin`, `StrikingDieMixin`
@@ -438,7 +440,8 @@ lacks. Work down these, in order; the order is the point.
    verb should model *one* thing, so if the two claimants are the same
    act, they are one verb: fold them behind one interface. But a shared
    word over genuinely *different* mechanics cannot be unified without
-   lying about one of them — mining's `drive` (cut a level through rock)
+   lying about one of them — mining's `drive` (cut a level through rock;
+   since controllers-are-io D20 the view and controller are `drift`)
    and a vehicle's `drive` are not one act. **The tell:** if unifying would
    need a guard that re-asks *which mechanic is this*, the models are
    distinct and one claimant must take a different word. Which one is rungs
@@ -466,7 +469,10 @@ lacks. Work down these, in order; the order is the point.
      gesture. Ranching keeps `gather`.
 
    So glass yielded **both** generic words and took its own term of art,
-   **`gob`**. The lesson generalises: a trade's hand-gesture is rarely the
+   **`gob`**. (⚠ Since reversed: once the bath planned the dip, glass's
+   gather became a `dip` and `gob` an alias of it, and one view, one word
+   deleted the alias — controllers-are-io W6. The rung still reads true.)
+   The lesson generalises: a trade's hand-gesture is rarely the
    generative primitive — the system it feeds (dip-coating, the taps
    vocabulary) is, and the system should keep the plain word.
 
@@ -769,7 +775,7 @@ sentence for the empty case, the binder must be able to reach it. See
 
 `greedy: true` consumes everything from the field's first token to
 end-of-input verbatim — whitespace runs, escapes, single-quote
-literals all preserved. Common for chat verbs (`say`, `tell`) and
+literals all preserved. Common for chat verbs (`say`, `dm`) and
 scope-shaped verbs (`focus`).
 
 ⭐⭐ **THE ARTICLE DEFECT — every object arg a player may put an article
@@ -830,7 +836,7 @@ Nothing is ambiguous, so nothing needs quoting — `buy dog loaf` just
 works. **Reach for this first.**
 
 **Rung 2 — one argument, and the rest of the line is it.** A trailing
-greedy field: `say`, `tell`, `focus`, `press post`. Dialogue and free
+greedy field: `say`, `dm`, `focus`, `press post`. Dialogue and free
 text live here. The field is last, so there is nothing to collide with.
 
 **Rung 3 — change the syntax so rung 1 applies.** A preposition or a
@@ -899,7 +905,7 @@ fed `"dog loaf"` bound the quotes along with it. The rule now:
   `get "latex cup"` / `look "rubber boots"` answered with a parser error,
   because `get` and `look` are trailing greedy object fields.
 - **a TRAILING greedy STRING field** (rung 2 — the rest of the line:
-  `say`, `tell`, `press post`) → the source slice, **verbatim, quotes and
+  `say`, `dm`, `press post`) → the source slice, **verbatim, quotes and
   all.** That is free text and the quotes are content: if you say *she
   said "no"* you want them in your speech.
 - **several tokens**, either way → the source slice. An interior quote in
@@ -1015,7 +1021,7 @@ way." The movement verbs (`go`/`walk`/`climb`/`swim`/`fly`/`ride`/
 
 Verbs that should **ignore drill entirely** declare a non-`$focus`
 fragment (`scope: 'inventory'` for `drop`, `scope: 'peers'` for
-`get`). Inspection-shaped verbs (`look`, `examine`, `read`) declare
+`get`). Inspection-shaped verbs (`look`, `read`) declare
 the drill-first-then-broad form.
 
 There's no implicit "player focus tries first" rule. The YAML is
@@ -1554,7 +1560,8 @@ each subcommand can declare its own `args:` and `options:`:
 
 
 ```yaml
-verbs: [player, me]
+verbs: [player]
+category: author
 controller: PlayerController
 description: "Manage your player character settings"
 subcommands:
@@ -1685,6 +1692,7 @@ to inherit from). The shipped nouns:
 | `shelf` | `consign` · `reclaim` | a store's consignment shelf |
 | `rack` | `check` · `reclaim` | a house's check rack |
 | `store` | `deposit` · `withdraw` · `receipts` | the store book |
+| `bank` | `open` · `deposit` · `withdraw` · `transfer` · `borrow` (beside `balance` / `statement` / `book`) | the customer's account at the bank |
 | `title` | `transfer` · `subdivide` · `buy` · `publish` · `offline` | the parcel registry |
 
 ⚠ The edges, decided: `buy` / `sell` / `order` / `rent` / `charter` are
@@ -2103,7 +2111,7 @@ Buckets:
 | `self` | Always — at host registration. Owner-issued verbs (`look`, `inventory`, `say`). |
 | `inventory` | When this thing is in the giver's inventory. A wand grants `zap`. |
 | `environment` | When this thing is in the giver's environment. A throne grants `sit`. |
-| `peers` | When this thing is a peer `CommandGiver` in the same environment. A conversational NPC grants `tell`. |
+| `peers` | When this thing is a peer `CommandGiver` in the same environment. A conversational NPC grants `talk`. |
 
 Choose the smallest concept that owns the verb. A spatial verb goes
 on a spatial mixin (`MobileMixin` declares `go.yaml`, `open.yaml`,
@@ -2275,3 +2283,15 @@ levels:
   routing.
 - [hot-reload.md](./hot-reload.md) — `StuffApi.clone` +
   `HotReloadApi`; controllers ride this for HMR.
+
+## History — controllers-are-io (MR !527, 2026-11)
+
+Every view now declares ONE verb (`lint:one-word`), a `category:`
+(`lint:command-views`) and, at most, a removable `defaultAliases:` list;
+77 extra words on 65 views were deleted or minted as the five default
+aliases (`l`, `i`, `h`, `?`, `'`) — W6, `831bff42b^..3f6a71578`. Where the
+rarer word held the file it moved (`ignite` → `light`, `plough` → `plow`);
+`make` became the shell's `do`; silk's `reel` became `unwind`; mining's
+`drive` became `drift`. Institution transactions became subcommands of
+their noun (`house appoint`, `job apply`, `shelf consign`, `rack check`,
+`bank …`, `title transfer`) — W7–W8, `848adc897^..76e2d22b6`.
