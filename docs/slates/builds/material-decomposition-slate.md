@@ -314,7 +314,8 @@ The content is mostly test cases; there is no lore yet. The tree holds anyway, o
 4. **The no-migration doctrine** — a class change for existing rows is a drop-the-database change,
    which the doctrine already allows.
 5. **The folder tree** — 199 rows sit at the top of `/stuff/idea/material/`; moving each into its
-   kind's folder is a path sweep (every reference in every pack), deferred from the build to its own
-   sweep (requirements 2026-11-07).
+   kind's folder is a path sweep (every reference in every pack), deferred from the build and
+   **recorded in [place-taxonomy-slate](./place-taxonomy-slate.md) § The material folders** — one
+   sweep with the `/location/` → `/place/` rename (owner, 2026-11-07).
 6. **The data-gap burn-down** — biological source on half the plant and animal rows, fats' heat of
    combustion, water's phase points, the residues' physics; each trade owns its rows.

@@ -52,8 +52,9 @@ re-homing of every row — plus the defects the census found.
 ## Non-goals
 
 - **Moving material rows into folders that match their kind** (199 rows sit at the top of the material
-  tree today). A path change ripples to every reference in every pack; it is its own deliberate sweep →
-  the slate's § 8 (open item 5), in the shape of the place-taxonomy path sweep.
+  tree today). A path change ripples to every reference in every pack, so it rides the place-taxonomy
+  path sweep → [place-taxonomy-slate](../slates/builds/place-taxonomy-slate.md) § The material folders
+  (owner: *"we'll do em together so it's less expensive"*).
 - **The species tree** (person, kept, aquatic) and **maturation by mechanism** → the same slate § 7, as
   the next Idea-tree pass; build-4's handed-over `MATURATION_MECHANISMS` waits there.
 - **Dead fields on other trees** (condition contagion, discipline conferrals, species minimum lifespan)
