@@ -1,5 +1,7 @@
 # Bestiary slate — what lives in the world, translated into our systems
 
+> ⭐⭐ **2026-11-07 → [the pilot](../../bestiary/pilot.md)**: twenty creatures written as real content before the model, with their gaps by theme. It is the requirements source for the organism-biology conversation. Also decided that day ([spellbook-slate](./spellbook-slate.md), mana pack Part 11): **mana = danger** (a binding's payer is a mana draw, and what cuts it is grounding by silver or doped iron), and **lore classes by relation to the field**: ordinary · adapted · bound · made · visitors. Evolution is the honest origin, and each realm writes its own myth.
+
 > **Status: UNBUILT** — designed at high level 2026-10-22 with the owner, out of the combat
 > conversation ([combat-depth](./combat-depth-slate.md)). What ships: a rich species model —
 > body plans, size, habitat, age, natural attacks with a mass-scaled profile, anatomy that
