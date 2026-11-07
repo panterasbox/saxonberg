@@ -165,6 +165,8 @@ export interface AvatarInitContext {
 // (`place`), plus its ESTATE — the stamped goods it holds title to wherever
 // they sit, which is what lets furniture stay in a room the avatar is not in.
 // `shouldPersist()` (below) gates guests out.
+type AvatarCommandGiver = import("../command/CommandGiver").CommandGiver;
+
 const AvatarBase = PersistableMixin(
   // ⭐ A played person KEEPS A MAP of the places they perceive
   // (location-graph B3). Outermost of the epistemic layers because it
@@ -1248,7 +1250,7 @@ export default abstract class Avatar extends AvatarBase {
   private sessionActive: boolean = false;
 
   /** How long a signed-out body something is holding waits before it asks again. */
-  static SIGN_OUT_RECHECK_MS = 15_000;
+  static SIGN_OUT_RECHECK_MS = 5_000;
 
   /** @see HasInteractive.hasLiveSession — a linkdead body's session stays open. */
   public override hasLiveSession(): boolean {
@@ -1637,6 +1639,20 @@ export default abstract class Avatar extends AvatarBase {
     this.save().catch(() => undefined);
   }
 
+  /** Commands this body has running; a retirement waits them out. */
+  private commandsInFlight = 0;
+
+  public override async executeCommand(
+    ...args: Parameters<AvatarCommandGiver['executeCommand']>
+  ): Promise<void> {
+    this.commandsInFlight += 1;
+    try {
+      await super.executeCommand(...args);
+    } finally {
+      this.commandsInFlight -= 1;
+    }
+  }
+
   /** Which retirement is current; a login's claim makes any in flight stale. */
   private signOutRetirement = 0;
 
@@ -1653,6 +1669,8 @@ export default abstract class Avatar extends AvatarBase {
    * these keeps the body exactly as a linkdead one until the reason resolves:
    * signing out is not an escape.
    *
+   *   - `acting` — a command still running finishes on the body that gave it: a
+   *     `buy` caught between the ledger and the hand must not land on nobody.
    *   - `fighting` — you can't rage-quit a fight; `combat.maxBeats` bounds it.
    *   - `dying` — the clock runs on, and that it does is the point of it.
    *   - `in-water` — the water holds a body at the surface until its player
@@ -1662,6 +1680,7 @@ export default abstract class Avatar extends AvatarBase {
    */
   private signOutHold(): string | null {
     if (this.parked) return 'parked';
+    if (this.commandsInFlight > 0) return 'acting';
     if (this.isDying()) return 'dying';
     if (CombatApi.sessionFor(this)) return 'fighting';
     let at: Stuff | null = this.getContainer();

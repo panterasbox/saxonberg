@@ -324,10 +324,10 @@ suite('1–8. the verbs that shipped and could not be said', () => {
     // `sneak.yaml`'s own advice had no verb to walk a single exit back.
     expectOk(await act(k, 'set movement.defaultMode sneak'));
     const before = await whereAmI(k);
-    const walked = await act(k, 'walk out');
+    const walked = await act(k, 'walk south');
     expectOk(walked);
     const after = await whereAmI(k);
-    expect(after, '`walk out` did not move anybody').not.toBe(before);
+    expect(after, '`walk south` did not move anybody').not.toBe(before);
 
     // ⭐ And the way back to walking does not require changing a setting.
     expectOk(await act(k, 'set movement.defaultMode walk'));
