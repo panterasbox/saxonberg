@@ -33,6 +33,14 @@ export abstract class ProfileControllerBase extends CommandController<ProfileMod
 
   async execute(model: ProfileModel, context: CommandContext): Promise<void> {
     const viewer = context.commandGiver;
+    // ⚠ A name that binds nobody is not "no name": it read back your own card as
+    // if it were theirs. Somebody signed out is not in the world to be asked.
+    if (model.target && model.target.stuff === null) {
+      const detail = `Nobody here or online goes by "${model.target.raw}".`;
+      MessageApi.scene(viewer).topic(TOPIC).toSelf(Mml.escape(detail)).send();
+      context.note({ kind: 'controller-rejected', reason: 'profile-no-subject', detail });
+      return;
+    }
     const target = this.subject(model, viewer);
     if (!MixinApi.isNotifyPolicy(viewer)) return;
     const card = await viewer.composeProfileCard(target);

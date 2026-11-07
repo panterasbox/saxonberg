@@ -914,7 +914,7 @@ dropped session until a restart (see
 ⚠ **Who cannot find a signed-out person.** `PlayerApi.find*` and
 `findByIdentityPath` answer for bodies in the world, exactly as they did after a
 restart: payees and beneficiaries named by name must be here; `profile` and
-`chronicle` bind only somebody in the world, and refuse in words otherwise; `office`
+`chronicle` bind only somebody in the world, and refuse in words otherwise (`profile` used to read back your own card); `office`
 and the forums name an absent person by the name on their record
 (`PlayerApi.storedNameOf`); the CMS session has no avatar until the author plays. A
 viewer's memory of the person is kept (`BeliefStore.recall` exempts an Avatar
