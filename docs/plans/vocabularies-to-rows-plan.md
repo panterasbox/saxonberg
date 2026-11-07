@@ -1001,7 +1001,7 @@ Checked at plan time against the current tree, not recalled.
   construction.
 - **One view, one word** — no synonym verbs, no `spit`, no `sniff`/`lick`;
   `taste` is the small mouthful, `eat` the meal.
-- **P3 refuse/skip/throw** — a bare `taste` is refused by the binder's
+- **P3 refuse/skip/throw** — a bare `taste` is refused by the
   controller, in words and an inert solid by `mustBeTastable`'s own line; a
   sub-threshold note is skipped; an unknown aroma word throws at the
   setter, fails the lint, and records a diagnostic at the nose; `setTastes`
