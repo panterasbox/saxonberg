@@ -1198,6 +1198,25 @@ their per-frame cost flat (D29); it does not stop delivering frames to
 them, because for a linkdead player that delivery is the record layer's
 contract and the two cases share one code path today.
 
+⭐⭐ **DECIDED by the owner (2026-11-07), overriding the recommendation above:
+"signed out bodies should get destructed. only linkdead bodies stay and they
+stay where they are."** On a deliberate sign-out (`leaveIntent`) the body is
+saved and then destructed, on the guest precedent (`Avatar.onLinkdead`); a
+return is a fresh login that materializes it from its snapshot. A bare drop
+stays linkdead, where it stands, and still receives frames. No withdrawal to
+`place`; no residence work. The build answers, and records, what this forces:
+save before destruct (a failed save must not lose the character); a re-login
+racing the destruct; what the body carries or wears, what it stands in, rides
+or is carried by; `parked` (keeps its veto); a sign-out mid-fight or dying
+(⚠ must not become an escape: such a body stays as linkdead until it resolves,
+the build's call by lens 1 unless a shipped rule already answers); character
+switch. Step 17's unexplained read-back room is re-checked under this.
+
+⭐ **The timing checks stay runnable (owner, 2026-11-07):** they are not a merge
+gate, but they exist as tests, in `crowd.soak.wire.test.ts`, run by the soak
+lane. Check what actually starts `tools/soak`; if nothing runs it on a clock,
+say so rather than claim a schedule.
+
 ### D31 — a tie is proved by `--strict`, never assumed; a gate name is never defaulted
 
 For each sibling failure the first check is D23's own tool: `<verb>
