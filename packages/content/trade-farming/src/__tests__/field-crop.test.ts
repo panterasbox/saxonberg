@@ -101,7 +101,7 @@ describe('a field holds a crop', () => {
     const f = field();
     const om = f.organicMatterFraction()!;
     expect(f.standingDryMatterKg()).toBeGreaterThan(0);
-    expect(f.sowingRefusal()).toMatch(/not been ploughed/);
+    expect(f.sowingRefusal()).toMatch(/not been plowed/);
     f.turnUnder();
     expect(f.standingDryMatterKg()).toBe(0);
     expect(f.organicMatterFraction()!).toBeGreaterThan(om);

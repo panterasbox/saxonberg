@@ -279,7 +279,7 @@ describe('a tract divided into fields', () => {
     // ⭐ The seedbed is the FIELD's since the tracts build: a marked tract
     // has nothing to say about sowing, and the field answers for itself.
     expect(f.sowingRefusal()).toBeNull();
-    expect(top.sowingRefusal()).toMatch(/not been ploughed/);
+    expect(top.sowingRefusal()).toMatch(/not been plowed/);
   });
 
   describe('look', () => {

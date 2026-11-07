@@ -341,8 +341,8 @@ export default class Field extends FieldBase {
     if (this.cropsOn().length > 0) return null;
     if (this.isSeedbedFresh()) return null;
     return this.seedbedStamp > 0
-      ? 'The seedbed has gone back to grass. Plough it again before you sow.'
-      : 'This ground has not been ploughed for a crop. Plough it first.';
+      ? 'The seedbed has gone back to grass. Plow it again before you sow.'
+      : 'This ground has not been plowed for a crop. Plow it first.';
   }
 
   /**

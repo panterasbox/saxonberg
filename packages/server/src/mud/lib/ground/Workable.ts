@@ -1,9 +1,10 @@
 /**
  * The **worked-act protocol** — *a thing you work at with a tool, a swing
- * at a time* — and the two shapes that speak it.
+ * at a time* — and the two acts that speak it (`split` over `SplittableMixin`,
+ * `dig` over the `Diggable` shape).
  *
- * ⭐⭐ **These are declared SHAPES, not mixins, and nothing in the kernel
- * composes them.** `dig` and `split` are the platform's verbs; what they
+ * ⭐⭐ **The kernel declares the protocol and composes no implementer.**
+ * `dig` and `split` are the platform's verbs; what they
  * talk to is a pack's. So the kernel declares what it will say and what it
  * expects back, and a pack's working, turbary, block or soil answers. Take
  * every pack away and both verbs still do something correct: they refuse,
