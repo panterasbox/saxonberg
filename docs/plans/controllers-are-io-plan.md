@@ -2416,3 +2416,49 @@ D27: (a) greeting count GREEN, blocking. (b) say p95 < 250 ms NOT MET (375 at be
 ## What remains, by the profile
 A body moving through a room with N cards on it is N re-resolves of N rows at ~10-15 ms a row; one re-resolve at N=30 is one atomic stall of a few hundred ms. A world with nobody in it already spends ~60% of a core on NPC labor.
 
+## W11 record
+
+Commits (all pushed): ec60eda4a look hesper · 92302b841 event ring · 23f239f1b office/forum names · da1ebcc8e crowded-rooms slate + D27 line · 45bb8f96f spawn sweep · 00a583c44 cow is not a bull · 6b7d74bd4 MERGE origin/master (water-supply) · 2c713fbf9 bystander stacks · c9976d8f6 profile refuses + log kept · cb4e2c3c8 reuse keeps restarted worlds · be6bac130 stale sibling staging.
+
+## look hesper: FIXED, W2's (D22)
+Deck rows carried `hesper` (and ketch/ship); with names as plain keywords, ship and deck (seen across her way) tied. Five deck rows now answer to `deck` and `<name> deck` phrases. Tests: scope-walk.score + terminus ship-keywords. Harbors 24/24 on the merged tree.
+
+## World deaths
+PROVEN, this build's (D30), fixed with tests:
+- Signed-out bodies never became garbage. Loop of 32 sign-outs, forced GC, live-heap census by class (Runtime.queryObjects): all 32 PrimaryAvatars plus implants, garments and Interactives retained. Heap snapshot: 31 held by the event history ring (HistoryRecord.triggeringContext.caller), 1 by a rolling 1 s timer's ALS frame. Ring is bounded (100/event name), so this was bounded but real. Ring now keeps payloads only.
+- After that fix: bodies gone, but 60 garments and 20 implants still destroyed-but-held on one NPC's recency stack (gazette editor, `peers` bucket, in avenue-block). Per body, unbounded. A destructing container now pops itself and its contents off the stacks around it. After: 1 body held (the rolling timer), 0 goods. ⚠ The unit test passes with or without the fix; the live census is the proof.
+- Interaction found in the merge: water-supply's leaveShifts ran in onDestruct, after D30's save, so the record said on-shift and a return's `clock off` would pay the whole absence. Shift now ends before the save.
+PROVEN, not this build's, fixed: spawn sweep minted magic loot into null every game day for every zone (498 scrolls of identify against regionTarget 4; registry 5060 -> 10000+ in an hour; ~70 KB heap per object). Since a270ccdca (10-15). Rows now draw only in the region their mint counts in.
+PROVEN mechanism, attribution NOT proven: silent death. A restart step in a WIRE_REUSE run without WIRE_KEEP_WORLD reboots the world piped through the test worker; when the worker dies the world exits 1 with no log line (reproduced with the server's own handlers, tmp/w11/epipe). W10's runner (sib.sh) set WIRE_REUSE alone; harbors' restart ran 09:35:08; death ~09:47 at 730 MB. Fixed: reuse keeps restarted worlds; boot keeps server.log.prev. Ruled out: SIGTERM/preflight (would log), heap OOM (node prints; RSS 730 MB), unhandled rejection (would log unless the pipe was the log, which is this mechanism). dmesg had rotated past 09:47: kernel OOM killer not checkable.
+NOT reproduced: the 4 GB heap OOM. Crowd soak then dairy on this tree (pre-fixes): survived 1223 s, heap peak 435 MB. The causes found above are each too small to reach 4 GB in 1103 s; the OOM predates the login-race fix and its log is gone. Not called load.
+
+## Siblings (fresh DB, merged tree 6b7d74bd4+, one standing world)
+harbors 24/24 · water-supply 7/7 · underwater 4/4 (377 s; not hung; the frog step takes 288 s) · dairy 37/40 · cleanliness 20/23 · reachability 21/22 · crafting 6/10 (3 skipped) · food-safety 6/9 · forestry 12/15 · scan-sweep 12/14 · silk: 6 passed before stopped (see below). Totals: 155 passed, 19 red, 3 skipped, silk partial.
+Fixed after the run (b): silk keeper (clock walked BY ten hours, not TO ten; re-run green), dairy goat vat wording, reachability 7 swim (the checkpoint said it would fail when water landed), crafting funds wording. dairy `milk bull`: (a) fixed (Species.maleNames).
+Remaining reds:
+- dairy 22-23 stranger drinks raw: `drink pail` nothing-to-drink; which pail not traced.
+- dairy 19a copper: smelt now taps 0.17 kg, then `pour crucible into mould` "nothing to pour"; not traced (was no-fuel before).
+- cleanliness 16 `heat kit`: kit absent when asked; it is in the ward's record and later in the water drive's player record. Not proven why (a load race suspected).
+- cleanliness 18 attendant "nobody here to do the work", 20 doorman absent: likely shift/clock staging, not traced.
+- food-safety: larder carcass gone, butcher empty, wash binds hands: consumed by earlier dirty files (no knife/carcass); staging, as W10.
+- forestry 8/12/13: same three as W10 (too-heavy, too-tired, follow-on); pre-existing rows.
+- scan-sweep 2 `job apply` ambiguous-opening (pre-existing, W10); 5 `analyze water` no longer says fouled to the eye: water-supply D18 (the kit says, not the eye): the assertion is stale against master's own rule.
+- silk `put leaf in tray`: still '' in the re-run. Probe: `put leaf in tray` binds a stranger's "tray of silkworm eggs" over your own rearing tray when both stand there (phrase-tier tie, room order). Not traced to the test's empty read.
+- silk AC 14: not a hang. A 150-iteration loop of buy / 2-minute jump / 20 s real wait for NPC stifling: ~50 min of wall clock by design (since 10-18). Stopped at 905 s. AC 7 (skein) and AC 8 (yarn) proven green by a live probe with 120 stifled cocoons.
+
+## profile / office / chronicle
+profile <absent name> returned the VIEWER's own card (optional target, fell back to self). Now refuses. office names an absent holder off their record (PlayerApi.storedNameOf via PersistableApi.storedField); forums' offline byline did the same through a template row minted characters lack, fixed too. chronicle never showed a raw id; it refuses.
+
+## crowd soak
+Ran once (HEAD, box load 5-8): failed on its own bound only (sayOne p95 1999 ms >= 1000), no crash. In the slate.
+
+## Merge (water-supply)
+Conflicts: repair.yaml (room-first scope + greedy), Conduit (PumpSourceMixin over SingletonMixin), check-reachability (re-pinned, fell to 110), wiki snapshot (regen; 38 water fields + maleNames), Bulkable/Soil/Door imports, BankController/TitleController stay deleted (hunks to BankControllerBase / residence TitleBuyController).
+Semantic fixes, each was raising a gate: Throttleable.workOpening + open(by)/close(by); Soil.takeStanding/barelyShows; Bulkable.drinkMeasure; Employed.takeSeatKeys; WaterSupply states its three reads (StorageNode answers all; WaterFixture/Well stop probing typeof); Employed onDestruct cluster; Census.regionOfPath @internal; moved imports.
+For the owner: scan-sweep 5 vs D18; Well is cited as a supply in docs but does not implement WaterSupply; a row citing a non-supply now throws rather than reading 'missing'.
+
+## Verification
+tsc server 0 errors · wire tsc clean on edited files · lint:family all 99 gates pass (after the merge) · server vitest 51 files / 496 tests on the touched dirs · packs: terminus 190, trade-ranching 107, water 298, residence 48, trade-distilling 10, all green. Full suite NOT run. World stopped by PID group; samplers killed; DB saxonberg_build2 left with the last run's data.
+## Unverified, for a person
+The stack fix's unit test passes either way (live census is the proof). Silk AC 14/16 not run to the end. The 4 GB OOM is unexplained. The attribution of W10's silent death. Whether scan-sweep 5 should change with D18 or D18 should say more to the eye.
+
