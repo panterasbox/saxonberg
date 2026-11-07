@@ -91,7 +91,8 @@ dirty glove's load on the bare hand; `remove gloves carefully` puts none.
 
 `Soilable.washSite(spec, site)` is the chemistry (B8 — not `wash()`, which
 is the vessel service wash). A `WashSpec` is the water's heat and
-hardness, zero or more cleansers, and the effort (a scrub is 3). Per kind:
+hardness, zero or more cleansers, and the effort (`wash --hard` is 3 with a brush, 1.5 by hand; the old
+`scrub` verb is gone, controllers-are-io D8). Per kind:
 what a cleanser's action answers to comes off, scaled by heat, effort and
 hardness (soap scums in hard water; soda softens it); blood washed hot
 SETS — in a thing that `holdsSetStains()`; skin does not (B37). A host adds what washing does to IT by override — a `Garment`
@@ -191,8 +192,8 @@ hygienic one.
   sand` for boards…), `strew`/`takeStrewn` (rushes, sawdust — a strewn
   absorbent drinks blood, grease and milk), `sweepUp` (on a strewn floor
   everything; on a scrubbed one the debris), `sweepsInto` (the heap row:
-  sweepings, the byre's muck). Verbs: `sweep`/`muck`, `strew`, `dispose`
-  (into a midden), `brush` (alias `beat`: the loose dirt out of any
+  sweepings, the byre's muck). Verbs: `sweep`, `strew`, `dispose`
+  (into a midden), `brush` (the loose dirt out of any
   thing — a coat, a cushion, a rug — dry, by each kind's `brushLifts`, B46)
   — ⭐ each conferred by what PERFORMS it
   (B43): `SweepingTool` (broom, flue brush, clothes brush, carpet beater),

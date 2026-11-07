@@ -383,13 +383,14 @@ prose** (*"the firebox swept and ready"*) and their own class docstring
 
 ## ⭐⭐ `fire` — a chamber you hold at heat; the MATERIAL decides (ceramics M1)
 
-`platform/cmd/device/fire.yaml`, `verbs: [fire, burn]`, afforded on
+`platform/cmd/device/fire.yaml`, `verbs: [fire]`, afforded on
 **`BurnerMixin.commandContributions.peers`**. Since the ceramics build (W0)
 it is **`fire [<kiln>] [--draught <word>] [for <hold>]`** and it decides
 nothing about the charge:
 
 1. `--draught wide|open|half|low|banked` (an OPTION, so it can never swallow
-   the kiln — `fire kiln`, `burn kiln` and `fire in retort` bind as before)
+   the kiln — `fire kiln` and `fire in retort` bind as before; the `burn`
+   synonym is deleted)
    sets the air;
 2. it refuses `no-charge` and `not-lit` (⚠ *unlit is COLD, not cool*);
 3. it stamps `kineticRecord.firedBy` on every body in the chamber (and one level

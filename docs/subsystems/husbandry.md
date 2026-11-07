@@ -360,7 +360,7 @@ with *nothing ripe on it yet* (`nothing-ripe`), never "still young".
 `GrowingMixin|CultivableMixin`, and a Cultivable target resolves to its
 first harvestable occupant, else its first growing one (so the refusal
 names the stage), else *nothing is growing* — the `water the pot`
-convention; `pick` is an alias on the same spec.
+convention (the `pick` alias is deleted: one view, one word).
 
 **Dials with homes, shipped OFF** (comment-documented seams on
 `GrowthProfileData`, deliberately no fields): thinning (set count vs
@@ -846,10 +846,10 @@ only the grade, and a field sown twice as thick gave twice the crop.
 
 **Seed.** A crop whose harvest is its planting stock is a
 `PlantableCrop` (`PlantableMixin(Crop)`) that names its `growsIntoPath`:
-threshed wheat and barley, and cut cane. `sow` takes the sack off the
+threshed wheat and barley, and cut cane. `plant` takes the sack off the
 harvest exactly as it takes a bought sack of seed, so *eat it or sow it*
 is a decision made with one good, and a farm's shelf is a seed seller at
-scale. A **seed drill** is a `Tool` with the `drilling` capability: `sow`
+scale. A **seed drill** is a `Tool` with the `drilling` capability: `plant`
 uses one within reach, laying the crop in rows over its `swathM2` a pass
 at its `seedFactor` share of the broadcast rate (the drill row: 0.5,
 `industrial`). Crops whose seed is a different part or a different year
@@ -871,7 +871,7 @@ is a row with a bigger number.
 goods minted by the crop row's own mass, the remainder carried on the
 plant, the last swath made up as one short good, nitrogen drawn in
 proportion, and what the harvester cannot carry left lying in the row. A
-monocarp ends at its last swath; a ratoon settles. `sow` with no pot
+monocarp ends at its last swath; a ratoon settles. `plant` with no pot
 named (or naming slotless ground) BROADCASTS: one cast covers
 `husbandry.sowHandM2` (400), spends seed at the rate, makes the crop or
 widens one of the same kind, and refuses a different one. The ground is
@@ -889,7 +889,7 @@ The ground half — fields as soil parts (the "patches" of the field-population 
 is [soil.md](soil.md) § *A soil made of parts*.
 
 **`groundPart`.** An area crop carries the key of the part it is rooted
-in (`groundPart: top-end` on a row; `setGroundPart` before `sow` moves a
+in (`groundPart: top-end` on a row; `setGroundPart` before `plant` moves a
 new stand in). `getBed()` resolves it through `soilPart(key)` — so the
 stand drinks, feeds and is drawn on in ITS field, never the tract's
 aggregate — and falls back to the whole ground when the key names no
@@ -899,14 +899,14 @@ template path OR same `harvestTemplatePath`: the bench's three
 one bed: a ripe stand at the lane end is no substitute for the middle's.
 Only an area crop answers to its field's words (`Plant.getKeywords`).
 
-**The act names its part.** `water`, `feed`, `sow`, `harvest`, `sample`
+**The act names its part.** `water`, `feed`, `plant`, `harvest`, `sample`
 and `label` take `at <field>` (optional, greedy, `SoilMixin`). The GROUND
 decides (`resolvePartFor`): one part needs no name; several refuse
 `part-unnamed` with the names; naming a part a plant does not stand in
 refuses `not-a-part-here`. `water`/`feed` state the amount (*"You tip 2 L
 …"*, *"You work 6.3 kg of compost…"*) and add *"On 1,000 square meters
 it barely shows."* under 0.1 L/m²; a bystander sees the part (*"Maud
-waters a stand of wheat at the far side."*). `sow` fills a part up to its
+waters a stand of wheat at the far side."*). `plant` fills a part up to its
 own area and refuses `part-sown` when it is full; `harvest` cuts that
 part's stand and grades it by ITS `_worstLimiting`. Area crops only — an
 individual is acted on where it stands.

@@ -223,7 +223,7 @@ record throws.
 - **One act moves units, with the money.** `sellUnits` claims the units
   synchronously, settles the price to the seller, and gives them back if
   the money does not clear; `giveUnits` is the gift. Both are gated to the
-  `transfer` verb, which takes the seller's (or receiver's) confirm and,
+  `title transfer` subcommand, which takes the seller's (or receiver's) confirm and,
   under the `consent` transfer term, every other holder's. `setCapTable`
   is the applier's alone (the `Coin` gate's shape) — nothing else lays a
   table down.
@@ -294,20 +294,21 @@ affordance.
 means *the house I am the proprietor of, and its only position* —
 resolved through `EmploymentApi.businessOfProprietor`. A house with
 several positions refuses and **names** them, because which job somebody
-was just given is not a thing to guess on their behalf. `house appoint` is an
-alias, so the word the work uses reaches the verb the chart uses.
+was just given is not a thing to guess on their behalf. (The `hire` alias
+that once let the work's word reach the chart's verb is deleted: one view,
+one word.)
 
 ⚠⚠ **The target scope is `["reachable", "online"]`, and `online`-only
 was a real defect.** It meant `house appoint` could not reach a brainless NPC
-standing in front of you — so the drilling build shipped `house appoint` and
-`house dismiss` controllers **inside a trade pack**, to call
+standing in front of you — so the drilling build shipped `appoint` and
+`dismiss` controllers **inside a trade pack**, to call
 `OrganizationMixin.appoint`/`.dismiss`, which the kernel had exposed all
 along. ⭐ *A new systemic capability appearing in a trade build is a
 symptom — look upstream.* The symptom here was two verbs; the cause was
 one arg scope and one missing view. The ladder's first rung is **unify
-behind an interface** (`grind` rides `mill`, `melt` rides `dip`), and a
-trade does not get a second verb because its workers happen not to be
-players.
+behind an interface** (one `mill` for the same stones, one `dip` for the
+pot you dip out of), and a trade does not get a second verb because its
+workers happen not to be players.
 
 ## ⭐⭐⭐ Starting work on hire — `startsShiftOnHire`
 
@@ -610,8 +611,10 @@ browser until the live drive found it. See
   Every refusal names the number and what lifts it.
 - ⭐⭐ **A body leaving the world ends its shift, paid to the moment it
   left** (water supply, the payroll gap). `Employed.leaveShifts()` runs from
-  `Avatar.onLinkdead` (sign-out or a dropped line) and from the mixin's
-  `onDestruct` (an unloaded hand). Before it, a player who clocked on and
+  `Avatar.onLinkdead` (a dropped line), from the signed-out body's
+  retirement **before its save** (controllers-are-io D30: otherwise the
+  record said on-shift and a return's `clock off` paid the whole absence),
+  and from the mixin's `onDestruct` (an unloaded hand). Before it, a player who clocked on and
   logged out was paid for every hour away at `clock off` (walked: 290
   zorkmids for minutes in the world), and an unloaded hand took its open
   shift's wage with it. The shift ends even when the wage cannot settle;
@@ -962,7 +965,7 @@ every `parLines[].supplier` must resolve to a house whose operating
 locations include a room something props a counter into.
 
 **The player path to the seat** is diegetic: Dave's tree-dialogue
-(*"Looking for work?"*) carries a `dispatch` effect that runs `appoint
+(*"Looking for work?"*) carries a `dispatch` effect that runs `house appoint
 $player to keeper at /world/lounge/idea/business` as Dave, guarded on
 `position:/world/lounge/idea/business eq false`
 ([npc-dialogue.md](./npc-dialogue.md)). No wizard anywhere in the loop.

@@ -35,7 +35,7 @@ Protocols (kernel, `lib/spatial/`): **`Tieable`** (`tieTo(by, load, knot)` /
 
 | verb | view | the thing that decides |
 |---|---|---|
-| `tie` (`lash`) `<gear> to <load> [with <knot>]` | `platform/cmd/inventory/tie.yaml` | `Tieable.tieTo` |
+| `tie` `<gear> to <load> [with <knot>]` | `platform/cmd/inventory/tie.yaml` | `Tieable.tieTo` |
 | `untie <thing>` | `platform/cmd/inventory/untie.yaml` | `Tieable.untieBy` |
 | `tug <end>` | `platform/cmd/inventory/tug.yaml` | `LineEnd.tug` |
 | `cut <rope> at <length>` | `platform/cmd/crafting/cut.yaml` | `Rope.cutPlan` (a `cutting` tool) |

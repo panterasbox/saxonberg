@@ -276,7 +276,7 @@ before they dug it. Only one of those is a public record.
 
 | verb | what it does | afforded by |
 |---|---|---|
-| `bore` (`drill`) | sites a hole and raises a rig, or swings the beam | the bailer (`environment`), the derrick (`peers`) |
+| `bore` | sites a hole and raises a rig, or swings the beam | the bailer (`environment`), the derrick (`peers`) |
 | `bail` | lifts what is standing, and clears the hole so it can go deeper | the same |
 | `line` | runs tube down so the hole will hold | the same |
 

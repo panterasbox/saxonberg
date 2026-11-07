@@ -16,7 +16,7 @@ and no `isIC` property; Help is a *mentor frequency*, Global is the
 *common band*, a player-made channel is a *private frequency*. The
 modality stamp on every chat frame is `'verbal-esp'`, so reception
 gates through the same `SensorMixin.filterMessage` modality check that
-governs `tell` — implant-less recipients miss chat without further
+governs `dm` — implant-less recipients miss chat without further
 wiring.
 
 Chat is distinct from `dm` (a single-cohort directed-speech verb that

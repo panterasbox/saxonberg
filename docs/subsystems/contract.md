@@ -199,7 +199,7 @@ poster's own environment and overridable with `job post … --from`. It is
 a courier who solves the problem their own way (walked, bought it there,
 had one at home) is paid exactly the same.
 
-⭐ What it buys is `jobs --origin <place>` — the **backhaul** read: a
+⭐ What it buys is `job --origin <place>` — the **backhaul** read: a
 hauler at the far end of a corridor asking what wants moving back. *You
 cannot solve your own backhaul*, which is a coordination problem with
 visible waste and the cleanest teachable case of why intermediaries
@@ -315,7 +315,7 @@ placement: multiple boards in multiple localities) is the physical
 discovery surface. A gig is posted *to a board* (its `templatePath` is
 the pool's visibility key — the board is the surface, not the pool).
 Content affords content: the board's own `commandContributions` afford
-the **`job`/`jobs`** verb (`environment`), first placed in the
+the **`job`** verb (`environment`; the `jobs` word is deleted), first placed in the
 **Terminus terminal hall** (a public noticeboard on the station
 concourse — where newcomers arrive needing a living;
 `world-seed/content/world/terminus/terminal/thing/job-board.yaml` + the hall's

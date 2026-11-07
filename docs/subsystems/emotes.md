@@ -2,7 +2,7 @@
 
 The emote subsystem turns expressive acts (`wave`, `smile`, `bow`,
 `cry`, free-form `:scratches his chin`) into the same per-audience
-`Scene` plumbing that powers `say` and `tell`, with one significant
+`Scene` plumbing that powers `say` and `dm`, with one significant
 difference: emotes ride the ESP modality (`emotive-esp`) and an
 authored catalog of grammar templates rather than a single fixed
 prose form. The substrate ships as part of the social-cluster build

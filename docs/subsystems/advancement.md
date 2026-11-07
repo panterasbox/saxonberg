@@ -406,7 +406,7 @@ combat build's `melee-combat` / `blades` (the bar-fight build adds
 innate-instrument exchange), and the concealment build's
 **`awareness`** (`channel: skill`, `iscedf: "0288"`) — the perception /
 attention Discipline that grades a viewer's effective perception (the
-`capacity` term), the reach of an active `search` / `examine`, and `disarm`.
+`capacity` term), the reach of an active `search` / `look`, and `disarm`.
 It carries **no `conferrals`** (`search` / `look` / `disarm` are universally
 afforded; competence only *grades* them, it doesn't gate the menu). See
 [concealment.md](./concealment.md).
@@ -541,7 +541,7 @@ nothing and correctly gets none (a hand practises their trade's
 Discipline); *mining* anchors to a real field and gets one.
 
 - **`mining`** — ISCED-F **0724** (mining and extraction). The metal
-  chain shipped `hew` / `drive` / `sink` / `shore` with **no Discipline
+  chain shipped `hew` / `drive` (now `drift`) / `sink` / `shore` with **no Discipline
   behind them**, so a hewer who had cut a hundred yards of drift read as
   untrained at cutting rock. ⚠ A **sibling** of `colliery` (0722,
   materials), not a duplicate: the collier chars **wood**, the hewer cuts

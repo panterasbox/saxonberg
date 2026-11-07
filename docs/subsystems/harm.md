@@ -539,7 +539,7 @@ command category plus `assess` in `perception`.
   `instanceof Bandage`**. The instrument (splint/suture → `ToolMixin`) and
   medicine (→ bulk/metabolism) first-aid branches are named-but-deferred
   seams — no sibling mixins in v1.
-- **`treat` / `bind` / `dress`** (`cmd/medical/`, `mustHaveDressing`
+- **`treat`** (`cmd/medical/`, `mustHaveDressing`
   validator) dresses a body's worst bleeding wound, consuming a reachable
   dressing (`StuffApi.destruct`) and calling the trauma's `resolve` (sets
   `dressed`, arrests the bleed); the dressed wound heals to clear on the

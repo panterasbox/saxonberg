@@ -221,7 +221,7 @@ wallet.
 
 ## The verbs
 
-**`teleport` / `tp`** — **the KERNEL's verb**
+**`teleport`** — **the KERNEL's verb**
 (`platform/idea/cmd/movement/TeleportController.ts`,
 `platform/cmd/movement/teleport.yaml`), afforded by `MobileMixin`
 beside `go` and `goto`. One verb, and a fork order that decides which of
