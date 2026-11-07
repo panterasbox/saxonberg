@@ -173,6 +173,9 @@ function isAssembled(r: AssembleResult): r is AssembleSuccess {
   return !('error' in r);
 }
 
+/** How many other offers a refused line may look at before it stops looking. */
+const MAX_OFFER_PROBES = 6;
+
 /** Do two resolved lines bind the same things, slot for slot? */
 function sameBinding(a: CommandModel, b: CommandModel): boolean {
   const ids = (v: unknown): unknown => {
@@ -1530,6 +1533,9 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       settled: CommandContext,
     ): Promise<CommandContext> {
       if (detachedContexts.has(settled)) return settled;
+      // ⭐ The offer is a sentence for a person: a script or an NPC has nobody
+      // to read it, and every refused beat would pay the probe.
+      if (!settled.interactive) return settled;
       const refused = settled.getNotes().some(
         (n) =>
           (n.kind === 'validator-failed' && n.field !== undefined) ||
@@ -1538,8 +1544,13 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       if (!refused) return settled;
       const giver = this as unknown as Stuff & CommandGiver;
       const tried = settled.commandSource;
+      // ⚠ Bounded, nearest first: a counter's every piece of stock offers the
+      // same verb, and probing them all held one refused `repair jerkin` for
+      // 48 seconds on a store floor (the crafting drive).
+      let probes = 0;
       for (const a of all) {
         if (a.source === tried || a.source === giver) continue;
+        if (++probes > MAX_OFFER_PROBES) break;
         if (!(await this._probeOffer(parsed, a, settled))) continue;
         const scopedForm = this._scopedFormFor(a.source);
         settled.note({
@@ -1566,6 +1577,17 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         { scopeSource: a.source },
       );
       if (!isAssembled(built)) return false;
+      // The same view, and the source took no slot: the same line. No resolve.
+      const plain =
+        a.command === settled.command
+          ? CommandApi.assemble(parsed, a.command, {
+              commandGiver: settled.commandGiver,
+              location: settled.location,
+            })
+          : null;
+      if (plain !== null && isAssembled(plain) && JSON.stringify(plain.model) === JSON.stringify(built.model)) {
+        return false;
+      }
       // No `interactive`: a cardinality prompt refuses instead of asking.
       const probe = CommandApi.createCommandContext({
         commandGiver: settled.commandGiver,
@@ -1585,15 +1607,9 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       // the same act, not another offer: `harvest #pot` has no second answer in
       // the plant inside it, and `harvest turnip`'s first answer is no offer of
       // itself. Compared as bound, so a word two things answer to still can.
-      if (a.command === settled.command) {
-        const plain = CommandApi.assemble(parsed, a.command, {
-          commandGiver: settled.commandGiver,
-          location: settled.location,
-        });
-        if (isAssembled(plain)) {
-          const line = await CommandApi.resolveModel(plain.model, probe, plain.prep, { speculative: true });
-          if (line.result === undefined && sameBinding(line.resolved, resolved.resolved)) return false;
-        }
+      if (plain !== null && isAssembled(plain)) {
+        const line = await CommandApi.resolveModel(plain.model, probe, plain.prep, { speculative: true });
+        if (line.result === undefined && sameBinding(line.resolved, resolved.resolved)) return false;
       }
       const sub = (resolved.resolved as { subcommand?: unknown }).subcommand;
       const preloads = await CommandApi.preloadValidatorDeps(

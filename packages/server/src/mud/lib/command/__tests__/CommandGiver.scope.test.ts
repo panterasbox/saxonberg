@@ -249,7 +249,7 @@ describe('verb@source at the dispatcher', () => {
 
     it('⭐ a typed word that keeps its slot is no second offer (`harvest #pot`, the plant inside it)', async () => {
       rejectWhen = (t) => t === near;
-      const ctx = await dispatch(`windish #${near.stuffId}`, [offer(near, wind), offer(far, wind)]);
+      const ctx = await dispatch(`windish #${near.stuffId}`, [offer(near, wind), offer(far, wind)], {});
       expect(targetOf(runs[0]!)).toBe(near);
       expect(ctx.getNotes().some((n) => n.kind === 'other-offer')).toBe(false);
     });
@@ -261,7 +261,7 @@ describe('verb@source at the dispatcher', () => {
         running.mockReturnValue(true);
       });
       const probe = vi.spyOn(giver() as never as { _otherOffer(): unknown }, '_otherOffer');
-      const ctx = await dispatch('windish wheat', [offer(near, wind)]);
+      const ctx = await dispatch('windish wheat', [offer(near, wind)], {});
       running.mockReturnValue(false);
       expect(ctx).toBeDefined();
       expect(probe).not.toHaveBeenCalled();
@@ -271,7 +271,7 @@ describe('verb@source at the dispatcher', () => {
       rejectWhen = (t) => t === near;
       const room = makeStuff(() => new TestThing()) as unknown as Stuff;
       ContainmentApi.move(room as never, world.location as never);
-      const ctx = await dispatch('windish wheat', [offer(room, wind), offer(near, wind), offer(far, wind)]);
+      const ctx = await dispatch('windish wheat', [offer(room, wind), offer(near, wind), offer(far, wind)], {});
       const offered = ctx.getNotes().find((n) => n.kind === 'other-offer') as
         | Extract<Note, { kind: 'other-offer' }>
         | undefined;
@@ -279,7 +279,7 @@ describe('verb@source at the dispatcher', () => {
     });
 
     it('⭐ `--strict` on a name two things answer to refuses, naming both', async () => {
-      const ctx = await dispatch('windish wheat --strict', [offer(near, wind)]);
+      const ctx = await dispatch('windish wheat --strict', [offer(near, wind)], {});
       expect(runs).toHaveLength(0);
       const refused = ctx.getNotes().find((n) => n.kind === 'validator-failed') as
         | { validator?: string; detail?: string }
@@ -289,14 +289,33 @@ describe('verb@source at the dispatcher', () => {
       expect(refused?.detail).toMatch(/ripe wheat/);
     });
 
-    it('a line that succeeds offers nothing', async () => {
+    it('⭐ nobody to read it, no probe: a script or an NPC pays nothing', async () => {
+      rejectWhen = (t) => t === near;
       const ctx = await dispatch('windish wheat', [offer(near, wind), offer(far, wind)]);
+      expect(ctx.getNotes().some((n) => n.kind === 'other-offer')).toBe(false);
+    });
+
+    it('⚠ a shop of offers: the probe stops, nearest first', async () => {
+      rejectWhen = (t) => t === near;
+      const room = Array.from({ length: 12 }, () => {
+        const s = makeStuff(() => new TestThing()) as unknown as Stuff;
+        ContainmentApi.move(s as never, world.location as never);
+        return offer(s, wind);
+      });
+      const probe = vi.spyOn(giver() as never as { _probeOffer(): Promise<boolean> }, '_probeOffer');
+      probe.mockResolvedValue(false);
+      await dispatch('windish wheat', [offer(near, wind), ...room], {});
+      expect(probe.mock.calls.length).toBeLessThanOrEqual(6);
+    });
+
+    it('a line that succeeds offers nothing', async () => {
+      const ctx = await dispatch('windish wheat', [offer(near, wind), offer(far, wind)], {});
       expect(ctx.getNotes().some((n) => n.kind === 'other-offer')).toBe(false);
     });
 
     it('no other source → no offer', async () => {
       rejectWhen = () => true;
-      const ctx = await dispatch('windish wheat', [offer(near, wind)]);
+      const ctx = await dispatch('windish wheat', [offer(near, wind)], {});
       expect(ctx.getNotes().some((n) => n.kind === 'other-offer')).toBe(false);
     });
   });

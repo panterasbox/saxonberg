@@ -153,6 +153,8 @@ suite('the smithy — the knowledge ladder is real', () => {
 
     const quenched = await s.cmd('quench ingot');
     expectOk(quenched);
+    // The learning lands at the quench's completion; the next checkpoint forges.
+    await s.awaitActivity(engagementIdOf(quenched), 240_000);
 
     /*
      * ⭐ **The by-hand build TEACHES now** (the scripting decouple,
