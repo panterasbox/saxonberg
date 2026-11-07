@@ -107,7 +107,7 @@ test.describe('the water-supply build, in a browser', () => {
     }
   });
 
-  test('⭐ a let unit runs on the landlord\'s lead: the tap stands up its premises\' pipe', async ({ browser }) => {
+  test('⭐ a let unit runs on the landlord\'s lead: the tap stands up its room\'s pipe', async ({ browser }) => {
     test.setTimeout(300_000);
     const w = await openWorldAs(browser, 'water-walk-lead', { startLocation: SEZNICK_BATH });
     const { page } = w;
