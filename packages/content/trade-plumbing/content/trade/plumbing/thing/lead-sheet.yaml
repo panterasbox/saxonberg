@@ -1,0 +1,12 @@
+# Sheet lead (water-supply W5) — cast on a sand bed, rolled thin enough to
+# line a cistern or flash a roof.
+class: /platform/thing/Good
+data:
+  shortDescription: sheet of lead
+  keywords: ["lead sheet", "sheet lead", "sheet of lead", sheet, lead]
+  register: indefinite
+  longDescription: >-
+    A flexible sheet of lead a few millimetres thick, its underside pitted
+    with the grain of the sand it was cast on.
+  _materialPath: /stuff/idea/material/element/lead
+  mass: 8

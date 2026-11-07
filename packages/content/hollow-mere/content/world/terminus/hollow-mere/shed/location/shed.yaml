@@ -1,4 +1,4 @@
-class: /platform/location/Locale
+class: /platform/location/Hall
 data:
   shortDescription: empty shed
   keywords: [shed, empty]

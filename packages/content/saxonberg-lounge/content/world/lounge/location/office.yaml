@@ -12,7 +12,7 @@
 # scope-walk list it and `go north` works — the search-reveals-hidden
 # unlock (concealment-detection Phase 3). The south exit back out is plain
 # and visible.
-class: /platform/location/Locale
+class: /platform/location/Hall
 data:
   # ⚠ `coords:` is the MEMBERSHIP operation — `setCoords` is the only way
   # an authored row joins a zone. North of the bar, matching the exit pair that already named the direction.
@@ -52,6 +52,8 @@ data:
   # costs him the floor. A venue prop by placement, not a player weapon.
   props:
     - /world/lounge/thing/office-taser
+    # ⭐ The house's water (water-supply W1): the lounge's premises cites it.
+    - /world/lounge/thing/cistern
   # One-way declared (bidirectional: false) so it does NOT auto-install a
   # second `north` on the bar that would collide with the bar's own
   # hidden north. The pair is wired explicitly: bar -> hidden north ->

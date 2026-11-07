@@ -2,7 +2,7 @@
 # so the air moves through: lines strung across it for the sheets. `dry
 # sheet on lines`. A sheet pressed in the post dries flat; one hung wet from
 # the mould cockles.
-class: /platform/location/PersistentLocale
+class: /platform/location/PersistentHall
 data:
   shortDescription: drying loft
   keywords: [loft, "drying loft", lines]

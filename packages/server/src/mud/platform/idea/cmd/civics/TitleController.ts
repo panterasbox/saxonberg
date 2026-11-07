@@ -89,6 +89,8 @@ interface PlatBookShape extends Stuff {
   getPriceMinor(): number;
   getAreaM2(): number;
   getLandUse(): LandUse;
+  /** Where a sold lot takes its water — `none`, a supply path, or `''`. */
+  getLotWaterSource(): string;
   getHolderPath(): string;
   extentFor(raw: string): string | null;
   /** Sold ∪ next-free — the GENERATIVE listing (D10; no roster). */
@@ -391,6 +393,11 @@ export default class TitleController extends CommandController<TitleModel> {
       1,
       book.getLandUse(),
     );
+    // ⭐ The lot's water posture, as the book declares it (water-supply D1):
+    // an unserviced lot reads `none` until a plumber's service run cites a
+    // main for it.
+    const lotWater = book.getLotWaterSource();
+    if (lotWater !== '') await ParcelApi.citeWaterSource(extent, lotWater);
     // …then hand the title over. Two steps, because the chain-of-title
     // log should read "subdivided, then transferred" — which is what
     // actually happened.

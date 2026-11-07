@@ -1,0 +1,29 @@
+# The plumber's firepot (water-supply, the browser walk) — the fire a
+# plumber carries to the job. A wiped joint and a mend in lead both want
+# heat (`repair` reads the hottest fire in reach), and a burst is found in
+# a cold scullery, not by the yard's hearth: before this, a plumber had no
+# way to mend a pipe anywhere but at home.
+#
+# No new class: a `Brazier` is already a flueless hearth you can carry.
+# It ships cold with a charge of charcoal in it — a starting condition,
+# not a supply; what refills it is the charcoal trade.
+class: /platform/thing/Brazier
+data:
+  shortDescription: plumber's firepot
+  keywords: [firepot, "fire pot", "plumber's firepot", pot, brazier, fire]
+  register: indefinite
+  longDescription: >
+    A squat iron pot on three short legs with a grate across its throat
+    and a bail handle to carry it by, the kind a plumber sets down on a
+    flagstone beside the work. A ladle hook is riveted to the rim.
+  _materialPath: /stuff/idea/material/alloy/cast-iron
+  mass: 6
+  lit: false
+  heatOutputW: 400
+  burnTemperatureK: 800
+  emittedIntensity: 40
+  emittedColorTemperature: 1700
+  maxBurnPowerW: 1500
+  fuelCapacityKg: 2
+  fuelBed:
+    /stuff/idea/material/organic/charcoal: 1.5

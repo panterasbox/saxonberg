@@ -44,6 +44,15 @@ import { AppSettingKeys } from '@saxonberg/server/mud/lib/config/AppSettings';
 import { BiomeApi } from '@saxonberg/server/mud/api/biome';
 import { ZoneApi } from '@saxonberg/server/mud/api/zone';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
+import { SingletonMixin } from '@saxonberg/server/mud/lib/stuff/Singleton';
+import type { SupplyReport, SupplyShares, SupplyState, WaterSupply } from '@saxonberg/server/mud/lib/supply/SupplyState';
+import type { ShiftEntry } from '@saxonberg/server/mud/lib/employment/Roster';
+import { ShiftSchedule } from '@saxonberg/server/mud/lib/employment/ShiftSchedule';
+import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
+import type { Piecewise } from '@saxonberg/server/mud/lib/Trajectory';
+import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import Conduit from './Conduit';
 
 /**
  * What shape of store it is.
@@ -67,11 +76,15 @@ export interface StorageMovement {
 }
 
 // PersistableMixin OUTERMOST — the documented host rule.
+//
+// ⭐ Singleton since the water-supply build: a premises cites the tank by
+// its row path and a tap loads it on use; the lane that props it adopts the
+// same instance.
 const StorageNodeBase = PersistableMixin(
-  SwitchableMixin(Thing),
+  SwitchableMixin(SingletonMixin(Thing)),
 );
 
-export default class StorageNode extends StorageNodeBase {
+export default class StorageNode extends StorageNodeBase implements WaterSupply {
   static fieldMeta: FieldMeta = {
     storageKind: { persistent: true, authorable: true },
     capacityM3: { persistent: true, authorable: true },
@@ -80,6 +93,13 @@ export default class StorageNode extends StorageNodeBase {
     // ⚠ THE stateful field. Everything else in this build derives; a
     // level cannot, because outflow depends on what players drew.
     levelM3: { persistent: true },
+    fillsFrom: { persistent: true, authorable: true, ref: 'identity:relation' },
+    fillRateM3S: { persistent: true, authorable: true },
+    schedule: { persistent: true, authorable: true },
+    drawM3S: { persistent: true, authorable: true },
+    shares: { persistent: true, authorable: true },
+    initialLevelM3: { persistent: true, authorable: true },
+    levelStamp: { persistent: true, runtimeState: true },
   };
 
   /** Presentation only — see {@link StorageKind}. */
@@ -102,6 +122,40 @@ export default class StorageNode extends StorageNodeBase {
 
   /** Cubic metres currently in it. */
   public levelM3 = 0;
+
+  /**
+   * ⭐ The supply it fills from (water-supply D5) — a main's path. `''` = a
+   * tank nothing fills (the shipped behavior: what is in it is all there is).
+   */
+  public fillsFrom = '';
+
+  /** How fast it fills while its fill is on and its source delivers, m³/s. */
+  public fillRateM3S = 0;
+
+  /**
+   * ⭐ The turncock's fills — the employment `ShiftEntry` shape as DATA:
+   * which days, which hours the valve to the tank is open. Empty with a
+   * `fillsFrom` = it fills whenever its source delivers.
+   */
+  public schedule: ShiftEntry[] = [];
+
+  /**
+   * The district's household draw on it, m³/s — the authored rate, **never
+   * a sum over live taps** (load-on-use: a tank does not know its taps).
+   */
+  public drawM3S = 0;
+
+  /** How it shares a shortage — a tank drawn down gives everybody less. */
+  public shares: SupplyShares = 'proportion';
+
+  /** The level a tank first stands at, m³ — authored; the level then moves. */
+  public initialLevelM3 = -1;
+
+  /** When the level was last reconciled, game s. `null` = never. */
+  public levelStamp: number | null = null;
+
+  /** The source, loaded on use. */
+  private _source: Stuff | null = null;
 
   public getStorageKind(): StorageKind {
     return this.storageKind;
@@ -216,6 +270,178 @@ export default class StorageNode extends StorageNodeBase {
    * deciding how big to build. `Infinity` at zero draw; zero when it is
    * already empty.
    */
+  public getFillsFrom(): string {
+    return this.fillsFrom;
+  }
+  public setFillsFrom(value: string): void {
+    this.fillsFrom = typeof value === 'string' ? value.trim() : '';
+    this._source = null;
+  }
+  public setFillRateM3S(value: number): void {
+    this.fillRateM3S = Number.isFinite(value) && value > 0 ? value : 0;
+  }
+  public getSchedule(): readonly ShiftEntry[] {
+    return this.schedule;
+  }
+  public setSchedule(value: ShiftEntry[] | null): void {
+    this.schedule = Array.isArray(value) ? value : [];
+  }
+  public getDrawM3S(): number {
+    return this.drawM3S;
+  }
+  public setDrawM3S(value: number): void {
+    this.drawM3S = Number.isFinite(value) && value > 0 ? value : 0;
+  }
+  public setShares(value: SupplyShares): void {
+    this.shares = value === 'priority' ? 'priority' : 'proportion';
+  }
+  public setInitialLevelM3(value: number): void {
+    this.initialLevelM3 = Number.isFinite(value) ? value : -1;
+  }
+
+  // ---------- ⭐ the level, reconciled on read (water-supply D5) ----------
+
+  /**
+   * ⭐⭐ Bring the level up to `nowS`: inflow over the schedule's on-windows
+   * while the source delivered, minus the district's draw, clamped to the
+   * tank. Integrated over the gap in hour steps (the clamp needs the
+   * order), never sampled at the read — an outage in the night shorts the
+   * morning's fill whether anybody was there or not.
+   *
+   * The source's delivery is its own record when it keeps one (a main's
+   * delivery log); a source not yet loaded counts as delivering. The first
+   * read stamps and stands the tank at its authored first level.
+   */
+  public reconcileLevel(nowS: number): void {
+    if (this.levelStamp === null) {
+      if (this.initialLevelM3 >= 0 && this.levelM3 <= 0) this.setLevelM3(this.initialLevelM3);
+      this.levelStamp = nowS;
+      return;
+    }
+    const from = this.levelStamp;
+    if (!(nowS > from)) return;
+    const windows = this.fillsFrom === '' || this.fillRateM3S <= 0
+      ? []
+      : this.schedule.length === 0
+        ? [{ fromS: from, toS: nowS }]
+        : new ShiftSchedule(this.schedule).windowsBetween(from, nowS);
+    const delivery = this.sourceDelivery(from, nowS);
+    const STEP = 3600;
+    let level = this.levelM3;
+    let w = 0;
+    for (let t = from; t < nowS; t += STEP) {
+      const end = Math.min(nowS, t + STEP);
+      let fillS = 0;
+      while (w < windows.length && windows[w]!.toS <= t) w++;
+      for (let k = w; k < windows.length && windows[k]!.fromS < end; k++) {
+        const a = Math.max(t, windows[k]!.fromS);
+        const b = Math.min(end, windows[k]!.toS);
+        if (b <= a) continue;
+        fillS += delivery === null ? b - a : this.deliveredSeconds(delivery, a, b);
+      }
+      level += fillS * this.fillRateM3S - (end - t) * this.drawM3S;
+      level = Math.max(0, Math.min(this.capacityM3, level));
+    }
+    this.levelM3 = level;
+    this.levelStamp = nowS;
+  }
+
+  /** Seconds of `[a, b)` the source delivered, off its 0/1 trajectory. */
+  private deliveredSeconds(delivery: Piecewise, a: number, b: number): number {
+    let n = 0;
+    const STEP = 600;
+    for (let t = a; t < b; t += STEP) {
+      const end = Math.min(b, t + STEP);
+      n += (end - t) * (delivery.at((t + end) / 2) >= 0.5 ? 1 : 0);
+    }
+    return n;
+  }
+
+  /** The source's delivery record over the gap, or `null` (counts as on). */
+  private sourceDelivery(fromS: number, toS: number): Piecewise | null {
+    // ⭐ A main keeps its own delivery record; the water pack reads its own
+    // class, no shape guessing.
+    const src = this._source;
+    return src instanceof Conduit ? src.deliveryTrajectory(fromS, toS) : null;
+  }
+
+  /** Load the source on use (follow the authored ref outward). */
+  private async ensureSource(): Promise<void> {
+    if (this.fillsFrom === '' || this._source !== null) return;
+    try {
+      this._source = await StuffApi.singleton(this.fillsFrom);
+    } catch {
+      this._source = null;
+    }
+  }
+
+  // ---------- ⭐ the WaterSupply a premises cites (water-supply D3) ----------
+
+  /** Why it gives nothing: empty is `dry`. */
+  public supplyStateNow(): SupplyState | null {
+    this.reconcileLevel(WorldClockApi.getNow().rawValue());
+    return this.levelM3 <= 0 ? 'dry' : null;
+  }
+
+  /**
+   * ⭐ A tank drawn low gives everybody less (D6, `proportion`): a full tank
+   * gives all; below a fifth, the share falls with the level.
+   */
+  public async shareFor(_landUse: string): Promise<number> {
+    await this.ensureSource();
+    this.reconcileLevel(WorldClockApi.getNow().rawValue());
+    if (this.capacityM3 <= 0) return 1;
+    return Math.max(0, Math.min(1, this.fullness() / 0.2));
+  }
+
+  /**
+   * The tank's water surface, m ASL: its base elevation plus how deep it
+   * stands (a tower's `elevationM` is where its floor sits — as it fills,
+   * the head rises with it).
+   */
+  public async supplyHeadM(): Promise<number | null> {
+    await this.ensureSource();
+    this.reconcileLevel(WorldClockApi.getNow().rawValue());
+    return this.elevationM + this.depthM();
+  }
+
+  /** How deep the water stands in it, m — a 4 m-deep tank shape assumed. */
+  private depthM(): number {
+    return this.fullness() * 4;
+  }
+
+  /** A draw takes litres from the level, as far as there are any. */
+  public drawL(litres: number): number {
+    this.reconcileLevel(WorldClockApi.getNow().rawValue());
+    return this.draw(Math.max(0, litres) / 1000).m3 * 1000;
+  }
+
+  public availableL(): number {
+    this.reconcileLevel(WorldClockApi.getNow().rawValue());
+    return this.levelM3 * 1000;
+  }
+
+  /** ⭐ A tank holds its main's water: its chemistry is the main's (D8). */
+  public async readWaterChemistry(): Promise<{ pH: number; hardnessDgh: number; salinityPpt: number; fouled?: boolean } | null> {
+    await this.ensureSource();
+    const src = this._source;
+    return src instanceof Conduit ? src.readWaterChemistry() : null;
+  }
+
+  public async supplyReport(nowS: number): Promise<SupplyReport> {
+    await this.ensureSource();
+    this.reconcileLevel(nowS);
+    const state = this.supplyStateNow();
+    return {
+      label: this.getPresentation(),
+      state,
+      lines: [
+        `holds ${this.levelM3.toFixed(1)} of ${this.capacityM3.toFixed(0)} m³`,
+        `its water stands at ${(this.elevationM + this.depthM()).toFixed(1)} m`,
+      ],
+    };
+  }
+
   public outageToleranceS(drawM3S: number): number {
     if (drawM3S <= 0) return Number.POSITIVE_INFINITY;
     return this.levelM3 / drawM3S;

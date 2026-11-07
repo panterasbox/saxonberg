@@ -346,6 +346,10 @@ describe("BuyController — buy that stamps", () => {
     heap.setShortDescription("stave");
     heap.setQuantity(30);
     ContainmentApi.move(heap as never, stock as never);
+    // One coin — short of the 2-coin price, so this is "can't cover".
+    await asOwner(giver, () =>
+      BankingApi.issueCash(giver as never, Money.of(1, BankingApi.compactCurrency())),
+    );
     const ctx = makeContext(giver, loc, stock);
     await asOwner(giver, () =>
       makeStuff(() => new BuyController()).execute(
@@ -359,6 +363,44 @@ describe("BuyController — buy that stamps", () => {
     expect(reason?.reason).toBe("insufficient-funds");
     const said = JSON.stringify(giver.received);
     expect(said).toMatch(/can't cover a stave/);
+    expect(said).not.toMatch(/30 staves/);
+    expect(stock.onHand(STAVE)).toBe(30);
+  });
+
+  it("⭐ a buyer with no coin and no account is told they have nothing to pay WITH, not that they are poor (the water-supply walk)", async () => {
+    const loc = makeStuff(() => new Place());
+    const giver = makeStuffAtPath(() => new TestGiver(), "/platform/agent/Avatar/nomeans");
+    ContainmentApi.move(giver as never, loc as never);
+    await makeStoreBusiness();
+    const stock = makeStuffAtPath(() => {
+      const st = new Stock();
+      st.stockLines = [{ itemTemplatePath: STAVE, par: 30 }];
+      st.setPrice(STAVE, 2);
+      st.discipline = "line";
+      st.attendDurationMs = 0;
+      st.staffingPolicy = "self-service";
+      st.serverPositionKeys = ["clerk"];
+      return st;
+    }, STORE);
+    const heap = makeStuffAtPath(() => new Stave(), STAVE);
+    heap.setKeywords(["stave"]);
+    heap.setShortDescription("stave");
+    heap.setQuantity(30);
+    ContainmentApi.move(heap as never, stock as never);
+    const ctx = makeContext(giver, loc, stock);
+    await asOwner(giver, () =>
+      makeStuff(() => new BuyController()).execute(
+        { thing: "stave", counter: { stuff: stock as never, raw: "counter" } },
+        ctx,
+      ),
+    );
+    const reason = ctx
+      .getNotes()
+      .find((n) => n.kind === "controller-rejected") as { reason?: string } | undefined;
+    expect(reason?.reason).toBe("no-means-of-payment");
+    const said = JSON.stringify(giver.received);
+    expect(said).toMatch(/nothing to pay for a stave with/);
+    expect(said).toContain("bank open");
     expect(said).not.toMatch(/30 staves/);
     expect(stock.onHand(STAVE)).toBe(30);
   });

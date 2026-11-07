@@ -22,7 +22,7 @@ requires:
   title:
     # Under the realm root (economic bootstrap D5): the title tree IS the
     # situs tree, so a dead floor here escheats up to the realm's committee.
-    - { extent: /world/terminus/rejection, parentParcel: /world/terminus, holder: { group: rejection } }
+    - { extent: /world/terminus/rejection, parentParcel: /world/terminus, holder: { group: rejection }, waterSource: none }
     # ⭐ The Kestrel road, subdivided as its own parcel under the town's
     # extent (logistics D18/D20). `wild` — "unserviced ground: PASSAGE
     # and gathering only" — because nothing between the crossroads and

@@ -1,6 +1,6 @@
 # The loading platform — the company's counter and the house's book. The
 # keeper stands here: a deposit or a withdrawal needs her on shift.
-class: /platform/location/Locale
+class: /platform/location/Hall
 data:
   shortDescription: icehouse platform
   keywords: [platform, dock, loading]

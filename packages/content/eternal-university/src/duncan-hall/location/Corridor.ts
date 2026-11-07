@@ -17,11 +17,11 @@
  *   Location (Staged → Exitable → CartesianCoordinates → Place)
  */
 
-import Location from '@saxonberg/server/mud/lib/location/Location';
+import Room from '@saxonberg/server/mud/platform/location/Room';
 import type { VetoResult } from '@saxonberg/server/mud/lib/errors';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 
-export default class Corridor extends Location {
+export default class Corridor extends Room {
   static fieldMeta: FieldMeta = {};
 
   /**

@@ -38,6 +38,10 @@ data:
   # little.
   harvestTool: reaping
   profile:
+    # ⭐ Maas–Hoffman (water-supply D15): the salt it takes without loss,
+    # dS/m, and the % lost per dS/m above it.
+    saltThresholdDsm: 6
+    saltSlopePerDsm: 7.1
     moistureHappyAt: 0.35
     moistureWiltAt: 0.08
     litresPerGameDay: 0.16

@@ -65,6 +65,8 @@ export interface RequiredTitle {
   feeder?: string;
   /** The electric posture this premises declares (energy build). */
   powerBand?: string;
+  /** Where this premises takes its water: a supply path or `none` (water-supply build). */
+  waterSource?: string;
 }
 
 export interface PackRequires {

@@ -1,0 +1,13 @@
+# The cast-iron supply in a pre-plumbed room (water-supply D10, D29) — one
+# piece, the civic and commercial default: cheap, rigid and BRITTLE, so a
+# frost cracks it where it would only bulge lead.
+class: /platform/thing/PipeRun
+data:
+  shortDescription: iron pipe run
+  keywords: [run, "pipe run", plumbing, pipes, "iron pipe", "iron run"]
+  register: definite
+  longDescription: >-
+    The iron supply pipe, black and bracketed to the wall, hub to spigot,
+    with a stopcock where it comes in.
+  _materialPath: /stuff/idea/material/alloy/cast-iron
+  lengthM: 8

@@ -162,11 +162,17 @@ data:
       destination: /world/terminus/wharfside/lavoir/location/lavoir
       media: [ground]
       edgeMinutes: 1
+    # ⭐ The pump house (water-supply W1): the city's water behind a locked
+    # door, keyed to the works keeper's seat.
+    pumphouse:
+      destination: /world/terminus/wharfside/pumphouse/location/house
+      media: [ground]
+      edgeMinutes: 1
+      door: /world/terminus/wharfside/thing/pump-house-door
   props:
     # ⭐ What a ship's lines are made fast round: the Ostrander
     # lies here, and a ship alongside puts her way aboard on the quay.
     - { template: /platform/thing/bollard, count: 2 }
-    - /world/terminus/wharfside/thing/city-intake
     - /world/terminus/wharfside/thing/city-outfall
     # ⭐⭐ The Cold Fell aqueduct and the house on its last drop — and
     # until the reachability sweep NEITHER STOOD ANYWHERE. Both rows

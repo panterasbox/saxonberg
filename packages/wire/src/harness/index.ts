@@ -35,6 +35,7 @@ export {
   toWarmSeason,
   toSeasonDay,
   nourish,
+  arrive,
   dress,
   dressFounder,
   hand,
@@ -42,6 +43,7 @@ export {
   worldClockNow,
   pinWeather,
   unpinWeather,
+  stage,
   stageShip,
 } from './world';
 export type { ShipStagePlace, ShipStageSpec, ShipStageResult } from './world';

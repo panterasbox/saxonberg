@@ -1,0 +1,15 @@
+# Flow — how much water is going over a weir (water-supply D18). The eye
+# reads a bracket off the nappe; hydrology narrows it. Read at a WEIR: a
+# structure built so the flow over it is a function of the head on it.
+class: /system/water/idea/reading/FlowReading
+data:
+  channel: flow
+  kind: fact
+  scope: [subject]
+  discipline: hydrology
+  instrument: ""
+  eyeCeiling: expert
+  improves: >-
+    how much water is passing, and whether the gates upstream account for it
+  stakes: >-
+    a junior right curtailed on a guess; a bank cut nobody found

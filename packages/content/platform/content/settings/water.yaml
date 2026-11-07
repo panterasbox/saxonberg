@@ -11,3 +11,26 @@ settings:
     value: "10"
   - key: water.column.maxDarkBands
     value: "5"
+  # ── the outlet's head (water-supply build, D4) ───────────────────
+  # Pressure is head, decided at the outlet by its own height: a tap
+  # whose water stands less than `weakHeadM` above it runs weak and
+  # gives at most `weakDrawL` a draw. The loft tap on a low tank.
+  - key: water.weakHeadM
+    value: "3"
+  - key: water.weakDrawL
+    value: "2"
+  # A PUMPED main holds its line at this much head over the ground it
+  # serves (a gravity main gives its source's own elevation). Twenty
+  # metres is two bar — enough for three storeys.
+  - key: water.mainPressureHeadM
+    value: "20"
+  # ⭐ The pipe a plumbed room has when its row says nothing — a tap implies
+  # its pipe (the review: no author props a pipe in every room). Cast iron,
+  # the civic and commercial run; a house that wants lead says
+  # `plumbing: lead`. A word naming `/stuff/thing/fixture/<word>-run`.
+  - key: plumbing.defaultRun
+    value: "iron"
+  # How high one storey stands — what a loft tap's outlet adds per
+  # storey above the ground floor.
+  - key: construction.storeyHeightM
+    value: "3"

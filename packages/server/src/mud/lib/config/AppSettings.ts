@@ -330,6 +330,13 @@ export const AppSettingKeys = {
    * docs/subsystems/banking.md.
    */
   bankingDefaultCustodianBank: "banking.defaultCustodianBank",
+  /**
+   * Banking — the round sum a branch orders into its till from its own
+   * reserves when a withdrawal finds the till short (minor units). The
+   * float is supply-neutral (a `disburse` from the branch's or its corpo's
+   * own balance); this is only its grain.
+   */
+  bankingTillFloatQuantum: "banking.tillFloatQuantum",
 
   // ── The Schedule of Parameters: the reserve's rows (the Governor's, via
   // `reserve set`) and the treasury's (economic bootstrap D4). ──
@@ -1605,6 +1612,13 @@ export const AppSettingKeys = {
    * decides*.
    */
   enclosureDefaultMaterial: "enclosure.defaultMaterial",
+  /**
+   * ⭐ Plumbing — the run a plumbed place stands up when its row says
+   * nothing (water-supply review): a word naming
+   * `/stuff/thing/fixture/<word>-run`. A tap implies its pipe; the author
+   * writes `plumbing:` only to say something else.
+   */
+  plumbingDefaultRun: "plumbing.defaultRun",
   /** Enclosure — how thick it is, in metres, when unauthored. */
   enclosureDefaultThicknessM: "enclosure.defaultThicknessM",
   /**
@@ -2305,6 +2319,19 @@ export const AppSettingKeys = {
    * so investing in treatment moves the threshold rather than the
    * river. */
   waterFouledAt: "water.fouledAt",
+  /** Water supply — below this head (m of water over the outlet) a tap runs
+   * WEAK: a draw gives at most {@link waterWeakDrawL}. The top floor of a
+   * house on a low tank. Arithmetic, not a band of feeling. */
+  waterWeakHeadM: "water.weakHeadM",
+  /** Water supply — the pressure a PUMPED main holds its line at, as metres
+   * of head over the ground it serves (a gravity main gives its source's
+   * elevation instead). Twenty metres is two bar: three storeys. */
+  waterMainPressureHeadM: "water.mainPressureHeadM",
+  /** Water supply — the most a weak tap gives in one draw, litres. */
+  waterWeakDrawL: "water.weakDrawL",
+  /** Construction — the height of one storey, metres: a tap on the loft
+   * stands this much higher than one on the ground floor per storey. */
+  constructionStoreyHeightM: "construction.storeyHeightM",
 
   /* ─────────────────────────── textiles ─────────────────────────── */
   /**
@@ -2626,6 +2653,9 @@ export const AppSettingTiers: Readonly<
   energyStormFaultRate: "B",
   bankingWithdrawalDailyCap: "C:central-bank-governor",
   bankingWithdrawalDailyCapCircle: "C:central-bank-governor",
+  // ⭐ How much coin a branch draws into its till at a time — cash policy,
+  // beside the withdrawal caps (water-supply, the bank till).
+  bankingTillFloatQuantum: "C:central-bank-governor",
   bankingCorpoRoyaltyRate: "C:minister-of-finance",
   bankingDefaultCustodianBank: "B",
   reserveMoneyPerActiveMember: "B",
@@ -3208,6 +3238,13 @@ export const AppSettingTiers: Readonly<
   potashLyeSoapFromKgPerL: "B",
   potashLyeStrongFromKgPerL: "B",
   potashLyeHardnessWastePerDgh: "B",
+  // Water supply: the outlet's head, the storey's height and the default
+  // pipe are physics and an authoring default — the code's (B).
+  plumbingDefaultRun: "B",
+  waterWeakHeadM: "B",
+  waterWeakDrawL: "B",
+  waterMainPressureHeadM: "B",
+  constructionStoreyHeightM: "B",
 };
 
 export type AppSettingKey =

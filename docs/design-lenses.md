@@ -265,9 +265,17 @@ is the schedule for the chains.
    lens.** An author assembles the basic thing out of pre-canned
    interactions the platform already affords — mixins that interoperate,
    recipes, templates, data files. If making the common case requires
-   writing a class, the substrate has failed. ⭐⭐ **But clearing it is
-   not passing: a system can make the standard instance trivially cheap
-   and still permit no bespoke one at all.**
+   writing a class, the substrate has failed. ⭐⭐⭐ **And the ordinary
+   case authors nothing it doesn't mean.** A line every author must write
+   to get the default is noise authored as content: the substrate has
+   failed just as surely as if it wanted a class. The test is whether
+   deleting the line changes anything a player could notice; if not, the
+   default should have said it. (Water supply, 2026-11-06: every room with
+   a tap had to prop a pipe, and a lint forced it on sixteen rooms. A tap
+   implies its pipe now, and a row says `plumbing:` only to say something
+   else.) ⭐⭐ **But clearing it is not passing: a system can make the
+   standard instance trivially cheap and still permit no bespoke one at
+   all.**
 2. ⭐⭐⭐ **The bespoke case, without breaking — THIS is the lens.** An
    author writes something genuinely custom and the systems still hold
    up. The best outcome is stronger than "hold up": the systems

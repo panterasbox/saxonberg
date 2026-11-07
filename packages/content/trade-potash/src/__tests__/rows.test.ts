@@ -29,7 +29,9 @@ describe('the ashery rows', () => {
 
   it('⭐ the rain butt is soft water', () => {
     const butt = row('trade/potash/thing/rain-butt.yaml');
-    expect(butt.class).toBe('/platform/thing/WaterFixture');
+    // ⭐ A rain STORE since the water-supply build: it fills from the roof.
+    expect(butt.class).toBe('/platform/thing/WaterStore');
+    expect(butt.data.fillsFrom).toBe('rain');
     expect(butt.data.hardnessDgh as number).toBeLessThan(6);
   });
 

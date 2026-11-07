@@ -37,6 +37,19 @@ data:
   # those fifteen metres ARE the pressure at the standpipe. No pump.
   elevationM: 145
   servesExtent: /world/terminus/hinkley-hills
+  # ⭐ The turncock's fills (water-supply D5): the valve from the city main
+  # is open from midnight to five, and the tank fills while the main
+  # delivers — an outage in the night shorts the morning, whether anybody
+  # was in Hinkley or not. The district then draws it down all day at its
+  # household rate (never a sum over taps). Staged (D30): the level derives
+  # from the schedule and the rate; the tank is the lane's.
+  fillsFrom: /world/terminus/wharfside/thing/city-intake
+  fillRateM3S: 0.008
+  schedule:
+    - { days: [0, 1, 2, 3, 4, 5, 6], hours: [0, 5] }
+  drawM3S: 0.0015
+  initialLevelM3: 300
+  shares: proportion
   fixedInPlace: true
   details:
     lettering:

@@ -168,4 +168,18 @@ describe('⛔ the hiring criterion vocabulary is CLOSED', () => {
     expect(p.requires).toBeUndefined();
     expect(p.serialize()).toEqual({ key: 'clerk', label: 'clerking', wageRate: 5 });
   });
+
+  it('⭐ a seat\'s keys round-trip, and a keyless entry THROWS (water-supply D19)', () => {
+    const p = Position.fromData({
+      key: 'works-keeper',
+      label: 'keeping the works',
+      wageRate: 3,
+      keys: [{ keyway: 'terminus-works', technology: 'pin-tumbler' }],
+    });
+    expect(p.keys).toEqual([{ keyway: 'terminus-works', technology: 'pin-tumbler' }]);
+    expect(Position.fromData(p.serialize()).keys).toEqual(p.keys);
+    expect(() =>
+      Position.fromData({ key: 'k', label: 'l', wageRate: 1, keys: [{ keyway: '' }] as never }),
+    ).toThrow(/no keyway/);
+  });
 });

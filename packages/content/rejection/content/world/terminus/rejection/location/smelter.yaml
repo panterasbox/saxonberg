@@ -6,7 +6,7 @@
 # out of — with a real sink at the end, because picks wear out.
 # ⭐ (ceramics W5) Persistent: its furnace's lining is worn state that must
 # survive a restart (a Locale keeps nothing).
-class: /platform/location/PersistentLocale
+class: /platform/location/PersistentHall
 data:
   shortDescription: smelter
   keywords: [smelter, furnace, works]

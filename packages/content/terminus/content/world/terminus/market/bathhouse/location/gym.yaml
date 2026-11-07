@@ -2,7 +2,7 @@
 # sweat here and wash it off next door.
 # ⚠ NOT persistent (tracts build review): nothing here is state an act
 # makes that a restart must keep. Persistence is the exception.
-class: /platform/location/Locale
+class: /platform/location/Hall
 data:
   coords: { x: 1, y: 0, z: 0 }
   # ⭐ Daylight through the high windows (the light-sources rule).

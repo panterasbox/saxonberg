@@ -173,6 +173,9 @@ importers:
       '@saxonberg/content-trade-papermaking':
         specifier: workspace:*
         version: link:packages/content/trade-papermaking
+      '@saxonberg/content-trade-plumbing':
+        specifier: workspace:*
+        version: link:packages/content/trade-plumbing
       '@saxonberg/content-trade-potash':
         specifier: workspace:*
         version: link:packages/content/trade-potash
@@ -737,6 +740,9 @@ importers:
       '@saxonberg/content-trade-farming':
         specifier: workspace:*
         version: link:../trade-farming
+      '@saxonberg/content-trade-plumbing':
+        specifier: workspace:*
+        version: link:../trade-plumbing
       '@saxonberg/content-water':
         specifier: workspace:*
         version: link:../water
@@ -874,6 +880,9 @@ importers:
       '@saxonberg/content-trade-mining':
         specifier: workspace:*
         version: link:../trade-mining
+      '@saxonberg/content-trade-plumbing':
+        specifier: workspace:*
+        version: link:../trade-plumbing
       '@saxonberg/content-trade-potash':
         specifier: workspace:*
         version: link:../trade-potash
@@ -1079,6 +1088,9 @@ importers:
       '@saxonberg/content-trade-painting':
         specifier: workspace:*
         version: link:../trade-painting
+      '@saxonberg/content-trade-plumbing':
+        specifier: workspace:*
+        version: link:../trade-plumbing
       '@saxonberg/content-trade-potash':
         specifier: workspace:*
         version: link:../trade-potash
@@ -2151,6 +2163,21 @@ importers:
       yaml:
         specifier: ^2.8.2
         version: 2.9.0
+
+  packages/content/trade-plumbing:
+    dependencies:
+      '@saxonberg/content-base-library':
+        specifier: workspace:*
+        version: link:../base-library
+      '@saxonberg/content-generic-objects':
+        specifier: workspace:*
+        version: link:../generic-objects
+      '@saxonberg/content-platform':
+        specifier: workspace:*
+        version: link:../platform
+      '@saxonberg/content-trade-smelting':
+        specifier: workspace:*
+        version: link:../trade-smelting
 
   packages/content/trade-potash:
     dependencies:

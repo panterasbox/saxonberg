@@ -1,0 +1,41 @@
+# A glazed cachepot (water-supply, the browser walk) — a pot with NO
+# drainage hole, `drained: false`, and a snake plant in it. Water it past
+# full and the water has nowhere to go: the soil waterlogs and the roots
+# drown, which is the lesson the requirements' drive (step 25) asks for.
+# No pot shipped undrained before this, so nothing in the game could teach
+# it. A snake plant because it is the houseplant that dies of exactly this.
+#
+# The plant rides `props:` — placed by a room's props it arrives planted
+# (the dorm's starter pot is the precedent).
+class: /platform/thing/PlantPot
+data:
+  shortDescription: glazed cachepot
+  keywords: [pot, cachepot, "glazed pot", "glazed cachepot", planter, glazed]
+  register: indefinite
+  longDescription: |
+    A heavy pot glazed a deep bottle green, handsome on a sill and sealed all the way round: no hole in the base, no saucer, nowhere for the water to go but the soil.
+  _materialPath: /stuff/idea/material/ceramic/stoneware
+  drained: false
+  interiorBulk: true
+  interiorCapacity: 0.8
+  interiorMaterial: /stuff/idea/material/bulk/potting-soil
+  interiorAmount: 0.8
+  reserves:
+    moisture:
+      capacityValue: 0.5
+      currentValue: 0.3
+      unit: "L"
+      theme: cultivation
+      floorEffect: wilting
+  staticSlots:
+    - name: plant
+      accepts: SlottableMixin
+      capacity: 1
+      userFacingDetail: planting
+  details:
+    planting:
+      keywords: [soil, planting, base, glaze]
+      description: Dark soil up to a finger below the glazed rim, around a stiff cluster of banded leaves.
+  props:
+    - /trade/farming/thing/plant/snake-plant
+  mass: 2

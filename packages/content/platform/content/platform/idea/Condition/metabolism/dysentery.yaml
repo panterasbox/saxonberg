@@ -1,0 +1,41 @@
+# Dysentery — the bloody flux from fouled water (water-supply D9). The dose
+# fouled river water has always carried (`toxicity: [{ type: dysentery }]`)
+# and that, until this row, joined NOTHING: a dose tag is the condition
+# row's FILE LEAF, and no `dysentery` row existed, so a town drinking below
+# its own outfall was never ill. `lint:toxin-keys` now holds the join.
+#
+# A burden law on the toxin route — the shipped route fouled water takes —
+# with the fluid loss that makes the flux kill rather than merely sicken.
+# Boiled water and rest are the answer; time clears it.
+class: /platform/idea/Condition
+data:
+  name: dysentery
+  signature:
+    - { kind: reserve, reserve: hydration, pctPerHour: -4 }
+  progression:
+    law: burden
+  resolution:
+    by: time
+  observableSigns: [feverish, cramping, wasted]
+  contagion: null
+  # ⭐ The rates are the disease's, not placeholders (the water-supply
+  # browser walk: at 2 / 0.01 / 1 a draught of fouled water left a burden
+  # of 0.17 against a first band of 3, gone in twenty minutes — nobody
+  # could ever fall ill of a fouled main). Bacillary dysentery comes on
+  # over a day or so and lasts most of a week, and one bad draught is
+  # enough:
+  #   - absorptionRate 0.01/min — one draught's 12 crosses in over ~20 h
+  #     (the onset);
+  #   - potency 25 — 12 × 25 / 70 kg ≈ 4.3 absorbed, ~3.7 at its peak:
+  #     band 1, feverish; three draughts reach band 2;
+  #   - clearanceRate 0.0005/min — ~0.7 a day: a single draught's illness
+  #     runs about five days.
+  toxinBehavior:
+    toxinType: dysentery
+    absorptionRate: 0.01
+    clearanceRate: 0.0005
+    potency: 25
+    bands:
+      - { threshold: 3, severity: 1 }
+      - { threshold: 9, severity: 2 }
+      - { threshold: 20, severity: 3 }

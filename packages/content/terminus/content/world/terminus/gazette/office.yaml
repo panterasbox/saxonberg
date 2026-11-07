@@ -2,7 +2,7 @@
 # gets a HOUSE: a shop on Mayfield Row with a press, a case, a printer and
 # the ledger of everything it has published. The editor posts; the press
 # runs it off; a printed copy says what the release said that day.
-class: /platform/location/Locale
+class: /platform/location/Hall
 data:
   shortDescription: Gazette print shop
   keywords: [gazette, shop, "print shop", office, printer]

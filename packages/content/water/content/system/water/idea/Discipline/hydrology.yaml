@@ -1,0 +1,17 @@
+# Hydrology — reading water that is moving or hidden (water-supply D18): the
+# flow over a weir, the stage on a staff, the table down an observation
+# well. Built like soil science: it changes what you can work out from a
+# reading, never what the water holds. The ditch rider's and the water
+# master's discipline.
+class: /platform/idea/Discipline
+data:
+  key: hydrology
+  channel: skill
+  label: Hydrology
+  iscedf: "0532"  # ISCED-F 2013: earth sciences
+  description: >-
+    Reading water you cannot simply look into. How much is going over a
+    weir, how high a river stands against a staff, how far down the ground's
+    water has sunk in a dry year — and whether the gates upstream account
+    for what is missing. Improves by reading; it narrows the figure, never
+    moves it.

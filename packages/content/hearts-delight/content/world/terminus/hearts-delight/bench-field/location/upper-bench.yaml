@@ -88,7 +88,13 @@ data:
   # over three-quarters of the tract — a thousand square metres in each
   # part, the headland and the rest still grass. Each roots in its own
   # field's soil by `groundPart`, and the tract reads them as ONE stand.
+  # ⭐ Above the ditch's command, so the bench is watered OVERHEAD, on
+  # pressure from the ditch head (water-supply, step 27): a spray that the
+  # wind and the noon sun take their share of.
+  inlets:
+    - { gate: /world/terminus/hearts-delight/bench-field/thing/sprinkler-valve, method: overhead }
   props:
+    - /world/terminus/hearts-delight/bench-field/thing/sprinkler-valve
     - /world/terminus/hearts-delight/bench-field/thing/standing-wheat-top-end
     - /world/terminus/hearts-delight/bench-field/thing/standing-wheat-middle
     - /world/terminus/hearts-delight/bench-field/thing/standing-wheat-lane-end

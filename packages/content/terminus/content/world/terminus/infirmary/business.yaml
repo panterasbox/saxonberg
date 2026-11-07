@@ -28,6 +28,15 @@ data:
       requires:
         discipline: nursing
         band: competent
+    # ⭐ The health officer (water-supply D18): whoever reads a town's water
+    # with the test kit and says which reach is making it ill. Vacant — a
+    # seat the polity fills, and the kit on the ward's shelf is theirs to
+    # carry. Asks chemistry, because the kit's reading bands by it.
+    - key: health-officer
+      noun: officer
+      label: keeping the city's water fit to drink
+      wageRate: 4
+      headcount: 1
   rosterSlots:
     - positionKey: physician
       assignee: /world/terminus/infirmary/agent/physician

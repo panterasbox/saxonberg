@@ -1004,3 +1004,15 @@ decision** rather than five separate content gaps. The honest mechanism — a
 crop that must be processed within hours, so the works and the field must be
 co-located, so labour concentrates — is what drove the history, and it is
 already expressible.
+
+## Pots nobody sells (from the water-supply review, 2026-11-06)
+
+No pot is sold anywhere. The dorm room's `starter` pot is the only one a
+player keeps, and the infirmary ward's glazed **cachepot** (`drained: false`,
+`trade-farming/thing/pot/cachepot`) is the only UNDRAINED pot in the game:
+it carries the overwatering lesson (water-supply acceptance criterion 18:
+an undrained pot drowns its plant, and the plant's cause line names drowning
+roots). The lesson belongs where gardeners get pots: a potter (ceramics
+fires them) or a florist selling pots and houseplants. ⚠ A stocked potted
+plant wants `clone` to apply a thing's `props:` (the walk found it does
+not), or it arrives without its plant.
