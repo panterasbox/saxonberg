@@ -140,7 +140,7 @@ describe("⭐ a Hinkley house has hot water (cleanliness)", () => {
   it("its bathroom is the house's own row, with a tub, its tap and a copper", () => {
     expect(rooms.bathroom).toBeDefined();
     const row = read(`${HINKLEY}/house/indoors/bathroom.yaml`);
-    expect(row.class).toBe("/platform/location/PersistentLocation");
+    expect(row.class).toBe("/platform/location/PersistentRoom");
     expect(row.data?.props).toEqual(
       expect.arrayContaining([
         "/stuff/thing/fixture/tub",

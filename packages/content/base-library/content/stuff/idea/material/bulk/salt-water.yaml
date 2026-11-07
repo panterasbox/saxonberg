@@ -19,7 +19,7 @@ data:
   nutrients: []
   # ~35 g of salt a liter: the toxin dose per liter drunk.
   toxicity:
-    - { type: salt, amount: 35 }
+    - { type: salt-poisoning, amount: 35 }
   # ⭐ Its pH (B109): seawater is ALKALINE, so it draws no lead from a
   # glaze (it was authored faintly acid on a 0..1 dial that nothing checked).
   ph: 8.1

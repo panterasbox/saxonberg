@@ -11,7 +11,11 @@
 # declaring `medium: water` must match an input carrying the `water` tag,
 # so a kitchen with no water source cannot boil, which is correct and
 # would otherwise be an accident.
-class: /platform/thing/WaterFixture
+# ⭐ A STORE, not a tap (water-supply D5): its water is the rain on the
+# roof above it, reconciled over any gap; draw it down and it is down until
+# the next rain. Staged (D30): a butt's level derives from the sky, and
+# whose water it is is nobody's — it reverts with its room.
+class: /platform/thing/WaterStore
 data:
   shortDescription: water butt
   # ⚠ Not `cask` or `barrel`: those are made things now (assembly), and
@@ -22,4 +26,9 @@ data:
     A broad oak barrel standing against the wall, hooped in iron and dark with damp, brim-full of cold water. A tin dipper hangs from a nail beside it.
   interiorBulk: true
   interiorMaterial: /stuff/idea/material/bulk/water
+  interiorCapacity: 200
+  initialLevelL: 180
+  fillsFrom: rain
+  # The lean-to roof that drains into it.
+  catchmentM2: 12
   mass: 60

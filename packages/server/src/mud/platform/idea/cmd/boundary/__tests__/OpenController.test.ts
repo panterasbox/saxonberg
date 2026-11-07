@@ -48,6 +48,11 @@ import {
   seedKernelContentStore,
 } from '../../../../../lib/security/__tests__/test-setup';
 import { Idea } from "../../../../../lib/stuff/Idea";
+import { SealableMixin } from '../../../../../lib/spatial/Sealable';
+import { ThrottleableMixin } from '../../../../../lib/spatial/Throttleable';
+import { CommandLineApi } from '../../../../../api/command-line';
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
 
 const FakeAvatarBase = CommandGiverMixin(
   NamedMixin(MobileMixin(ContainerMixin(SensorMixin(ContainableMixin(Idea)))))
@@ -279,5 +284,80 @@ describe('OpenController / CloseController / doors integration', () => {
     const close = makeStuff(() => new CloseController());
     await closeCmd(close, avatar, locA, 'north');
     expect(door.isOpen()).toBe(false);
+  });
+
+  const bodiesOf = (): string[] =>
+    avatar.received
+      .filter((f) => ((f as { topic?: string })?.topic ?? '') !== '')
+      .map((f) => (f as { body?: string }).body ?? '');
+
+  it('⭐ a LOCKED door does not open (water-supply D12) — unlock it first', async () => {
+    door.lock();
+    avatar.received.length = 0;
+    await openCmd(makeStuff(() => new OpenController()), avatar, locA, 'oak');
+    expect(door.isOpen()).toBe(false);
+    expect(bodiesOf().some((b) => /locked/i.test(b))).toBe(true);
+    door.unlock();
+    await openCmd(makeStuff(() => new OpenController()), avatar, locA, 'oak');
+    expect(door.isOpen()).toBe(true);
+  });
+
+  it('a setting on a door refuses: it is open or shut', async () => {
+    avatar.received.length = 0;
+    const ctx = makeContext(avatar, locA, 'open oak to half');
+    const target = buildMqlOneResult(avatar as unknown as Stuff, 'oak', 'inventory, here');
+    await makeStuff(() => new OpenController()).execute(
+      makeModel({ target, setting: 'half' } as ModelData),
+      ctx,
+    );
+    expect(door.isOpen()).toBe(false);
+    expect(bodiesOf().some((b) => /open or shut/i.test(b))).toBe(true);
+  });
+
+  it('⭐ a throttled gate opens BY AN AMOUNT, and its record says who set it', async () => {
+    class Gate extends ThrottleableMixin(SealableMixin(NamedMixin(ContainableMixin(Idea)))) {}
+    const gate = makeStuff(() => new Gate());
+    gate.setName('headgate');
+    ContainmentApi.move(gate as never, locA);
+    const ctx = makeContext(avatar, locA, 'open headgate to a quarter');
+    await makeStuff(() => new OpenController()).execute(
+      makeModel({ target: { stuff: gate, raw: 'headgate' }, setting: 'a quarter' } as ModelData),
+      ctx,
+    );
+    expect(gate.getOpening()).toBe(0.25);
+    expect(gate.isOpen()).toBe(true);
+    expect(gate.getWorkLog().at(-1)!.opening).toBe(0.25);
+    await makeStuff(() => new CloseController()).execute(
+      makeModel({ target: { stuff: gate, raw: 'headgate' } } as ModelData),
+      makeContext(avatar, locA, 'close headgate'),
+    );
+    expect(gate.getOpening()).toBe(0);
+    expect(gate.getWorkLog()).toHaveLength(2);
+  });
+
+  it('⭐⭐ `open the door with the key` never binds as a setting (owner, 2026-11-02)', () => {
+    const view = CommandDefinition.fromYaml(
+      readFileSync(
+        fileURLToPath(
+          new URL(
+            '../../../../../../../../content/platform/content/platform/cmd/boundary/open.yaml',
+            import.meta.url,
+          ),
+        ),
+        'utf8',
+      ),
+      'open.yaml',
+    );
+    const bind = (text: string): Record<string, unknown> | null => {
+      const parsed = CommandLineApi.parsePipeline(text).commands[0]!;
+      const r = CommandApi.assemble(parsed, view, {
+        commandGiver: avatar as never,
+        location: locA as never,
+      });
+      return 'model' in r ? (r.model as Record<string, unknown>) : null;
+    };
+    const withKey = bind('open the door with the key');
+    expect(withKey?.setting ?? undefined).toBeUndefined();
+    expect(bind('open the headgate to three quarters')?.setting).toBe('three quarters');
   });
 });

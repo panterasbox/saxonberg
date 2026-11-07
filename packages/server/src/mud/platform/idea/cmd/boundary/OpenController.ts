@@ -34,6 +34,7 @@ import type { Sealable } from '../../../../lib/spatial/Sealable';
 
 interface OpenModel extends CommandModel {
   target?: MqlOneResult;
+  setting?: string;
 }
 
 export default class OpenController extends CommandController<OpenModel> {
@@ -87,6 +88,57 @@ export default class OpenController extends CommandController<OpenModel> {
       return;
     }
 
+    // ⭐ The mixin decides whether this opens for this person (D12): a
+    // locked door does not, a padlocked gate does not for somebody with no
+    // key. The controller only says the refusal it is given.
+    const may = sealable.canOpen(commandGiver);
+    if (!may.ok) {
+      MessageApi.scene(commandGiver)
+        .topic('act.deed')
+        .toSelf(Mml.compose`${may.reason ?? "It won't open."}`)
+        .send();
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'cannot-open',
+        detail: may.reason ?? 'cannot open',
+      });
+      return;
+    }
+
+    // ⭐ How far (D12): a throttled gate opens BY an amount; a door is open
+    // or shut, and says so.
+    const settingRaw = (model.setting ?? '').trim();
+    if (settingRaw !== '') {
+      const thing = sealable as unknown as Stuff;
+      if (!MixinApi.isThrottleable(thing)) {
+        MessageApi.scene(commandGiver)
+          .topic('act.deed')
+          .toSelf(Mml.compose`${Mml.thing(thing)} is open or shut — there is nothing between.`)
+          .send();
+        context.note({ kind: 'controller-rejected', reason: 'no-setting', detail: 'open or shut' });
+        return;
+      }
+      const worked = thing.workOpening(settingRaw, commandGiver);
+      if (worked === null) {
+        MessageApi.scene(commandGiver)
+          .topic('act.deed')
+          .toSelf(Mml.compose`How far? A quarter, half, three quarters or full.`)
+          .send();
+        context.note({ kind: 'controller-rejected', reason: 'bad-setting', detail: settingRaw });
+        return;
+      }
+      MessageApi.scene(commandGiver)
+        .topic('act.deed')
+        .toSelf(
+          worked.shut
+            ? Mml.compose`You shut ${Mml.thing(thing)}.`
+            : Mml.compose`You set ${Mml.thing(thing)} ${worked.words}.`,
+        )
+        .toPeers(Mml.compose`${Mml.actor(commandGiver)} works ${Mml.thing(thing)}.`)
+        .send();
+      return;
+    }
+
     if (sealable.isOpen()) {
       MessageApi.scene(commandGiver)
         .topic('act.deed')
@@ -100,7 +152,7 @@ export default class OpenController extends CommandController<OpenModel> {
       return;
     }
 
-    sealable.open();
+    sealable.open(commandGiver);
 
     // Interact-hazard (a trapped chest): opening it is the touch that
     // springs it. The hazard self-resolves — armed + `trigger: interact`

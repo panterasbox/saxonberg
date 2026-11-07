@@ -166,6 +166,11 @@ export default class TitleBuyController extends TitleBookControllerBase {
       1,
       book.getLandUse(),
     );
+    // ⭐ The lot's water posture, as the book declares it (water-supply D1):
+    // an unserviced lot reads `none` until a plumber's service run cites a
+    // main for it.
+    const lotWater = book.getLotWaterSource();
+    if (lotWater !== '') await ParcelApi.citeWaterSource(extent, lotWater);
     // …then hand the title over. Two steps, because the chain-of-title
     // log should read "subdivided, then transferred" — which is what
     // actually happened.

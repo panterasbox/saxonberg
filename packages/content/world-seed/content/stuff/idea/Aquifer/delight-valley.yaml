@@ -1,0 +1,15 @@
+# The Delight valley gravels (water-supply D13) — the water under the flats
+# and the foot of the bench, a metre and a bit down when it is full. Every
+# well in the valley draws on it and the ditch's seepage feeds it. LIVE
+# (D30): a junior pumping through a dry year lowers every well in the
+# valley, and that history is the commons'. Its level is HIDDEN — the
+# observation well at the headgate is the one thing that reads it.
+class: /system/water/idea/PersistentAquifer
+data:
+  name: the Delight valley gravels
+  areaKm2: 6
+  capacityM3: 6000000
+  rechargeFraction: 0.12
+  tableM: 178.8
+  bottomM: 165
+  localityPath: /stuff/idea/Locality/hearts-delight

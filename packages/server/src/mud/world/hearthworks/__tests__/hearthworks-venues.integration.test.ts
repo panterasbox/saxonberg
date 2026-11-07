@@ -221,6 +221,9 @@ function waterButt(): WaterFixture {
   (w as unknown as { interiorBulk: boolean }).interiorBulk = true;
   (w as unknown as { interiorMaterial: string }).interiorMaterial =
     '/stuff/idea/material/bulk/water';
+  // Its own source (water-supply D2): a fixture with no premises and no
+  // supply fails closed, so the test's butt says it is the water.
+  (w as unknown as { natural: boolean }).natural = true;
   return w;
 }
 

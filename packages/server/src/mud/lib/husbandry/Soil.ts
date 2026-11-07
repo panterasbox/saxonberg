@@ -72,6 +72,8 @@ import type { Growing, HarvestRefusal } from "./Growing";
 import type { Plantable, PlantBegin, PlantDone, PlantRefusal, ZonedAgainst } from "./Plantable";
 import type { ActDone, ActPlan } from "../craft/ActPlan";
 import type { Tooled } from "../craft/Tool";
+import type { Throttleable } from "../spatial/Throttleable";
+import type { Irrigating } from "./Irrigating";
 import type { Container } from "../spatial/Container";
 import type Locality from "../../platform/idea/Locality";
 
@@ -83,6 +85,46 @@ const SECONDS_PER_GAME_DAY = 86_400;
  * 30-day segment cap, so no rain is dropped off the front of a window.
  */
 const SOIL_MAX_STEPS = 180;
+
+/** How water is let onto ground (water-supply D15). */
+export type InletMethod = 'flood' | 'furrow' | 'basin' | 'overhead';
+
+/** One inlet onto a ground: the gate, the method, its capacity, its water's salt. */
+export interface InletSpec {
+  gate: string;
+  method: InletMethod;
+  capacityLps?: number;
+  salinityPpt?: number;
+}
+
+/**
+ * The share of the water let in that the soil keeps, by method — the rest
+ * runs off the end or soaks past the roots. Flood is the oldest and the
+ * most wasteful; a banked basin keeps the most (water-supply D15).
+ */
+const INLET_EFFICIENCY: Record<InletMethod, number> = {
+  flood: 0.5,
+  furrow: 0.65,
+  basin: 0.8,
+  overhead: 0.85,
+};
+
+/**
+ * ⭐ An OVERHEAD inlet loses water in the air before it lands (water-supply
+ * D15, step 27): wind DRIFT carries the spray off the ground, and the
+ * spray EVAPORATES in the heat of an open sky — so a sprinkler at noon in
+ * a wind delivers measurably less than the same one at dawn. Derived from
+ * the weather the ground stands in, never a flat number (the browser walk
+ * found a flat 0.75 and no field using it). Grain, not law: the shares.
+ */
+const OVERHEAD_DRIFT_PER_MPS = 0.02;
+const OVERHEAD_DRIFT_CAP = 0.4;
+const OVERHEAD_EVAP_PER_K = 0.015;
+const OVERHEAD_EVAP_FROM_K = 283;
+const OVERHEAD_EVAP_CAP = 0.4;
+
+/** How fast standing water drains off or soaks away, share per game day. */
+const POND_DRAIN_PER_DAY = 0.3;
 
 /**
  * The fraction of newly-worked organic matter available as nitrogen
@@ -426,6 +468,45 @@ export interface Soil {
    */
   soilCatchmentAreaM2(): number;
   /**
+   * ⭐ Bring the water let in through this ground's INLETS up to now
+   * (water-supply D15): each inlet integrates its gate's opening over the
+   * gap, the method decides how much the soil keeps, and what the soil
+   * cannot hold stands on it (ponding). Async because the gate is loaded
+   * on use; an inlet whose gate will not resolve does not advance its
+   * stamp — unresolved never reads as dry.
+   */
+  settleInlets(nowS: number): Promise<void>;
+  /**
+   * ⭐ The open seconds of a throttled spray over `[fromS, toS]`, each hour
+   * weighted by the share that LANDS in this ground's weather (wind drift,
+   * heat) — what an overhead inlet and a sprinkler standing here both read.
+   */
+  landedOpenSeconds(spray: Stuff & Throttleable, fromS: number, toS: number): Promise<number>;
+  /** Litres standing on this ground — what the soil could not take in. */
+  getPondedL(): number;
+  /** Stand `litres` of water on this ground — a flood, or the drive's staging. */
+  pond(litres: number): void;
+  /**
+   * What a pour leaves standing, once the soil has `absorbed` what it could of
+   * `poured` litres at `salinityPpt`: it stands, and its salt stays. Returns the
+   * litres left standing, 0 when none worth saying.
+   */
+  takeStanding(poured: number, absorbed: number, salinityPpt?: number): number;
+  /** Is `litres` so little over this ground that it barely shows? */
+  barelyShows(litres: number): boolean;
+  /**
+   * @hook Does water the soil cannot take STAND on this ground? A field and
+   * a bed: yes. A pot with a drainage hole: no — it runs out of the bottom.
+   */
+  soilAcceptsPonding(): boolean;
+  /** Salt arriving in water poured onto this ground, kg. */
+  addSoilSalt(kg: number): void;
+  /**
+   * ⭐ The soil solution's salinity, dS/m — the salt irrigation water left
+   * behind, over the water the soil holds. Maas–Hoffman reads it.
+   */
+  soilSalinityDsm(): number;
+  /**
    * @hook Fraction of the standing nitrogen a millimetre of rain carries
    * past the roots. ⭐ The host answers, because only the host knows its
    * own TEXTURE: sand leaks and clay holds. That is D2's multiplication
@@ -534,6 +615,9 @@ export interface Soil {
  * inside this factory would collapse TypeScript's inference through the
  * returned class and strip the `Stuff` baseline from every consumer.
  */
+/** A pour under this many litres a square meter barely shows: a can on a thousand square meters. */
+const BARELY_SHOWS_L_PER_M2 = 0.1;
+
 export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
   Base: TBase,
 ) {
@@ -578,7 +662,256 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
       _rainSkyExposed: { persistent: true, runtimeState: true },
       _rainResolved: { persistent: true, runtimeState: true },
       _rainAbsorbedLitres: { persistent: true, runtimeState: true },
+      // ⭐ water-supply D15: the inlets (authored), their stamp, the water
+      // standing on the ground, and the salt the water has left.
+      inlets: { persistent: true, authorable: true },
+      inletClockStamp: { persistent: true, runtimeState: true },
+      pondedL: { persistent: true, runtimeState: true },
+      soilSaltKg: { persistent: true, runtimeState: true },
     };
+
+    /**
+     * ⭐ How water is let onto this ground (water-supply D15): a gate (a
+     * turnout's path, or a cistern's), the METHOD — `flood` (the whole
+     * field, 0.5 kept), `furrow` (down ploughed furrows, 0.65), `basin`
+     * (banked basins, 0.8), `overhead` (sprinkled, 0.75) — the inlet's
+     * capacity in L/s, and the water's salt.
+     */
+    public inlets: InletSpec[] = [];
+    /** When the inlets were last integrated, game s; `null` = never. */
+    public inletClockStamp: number | null = null;
+    /** Litres standing on the ground — more than the soil could take. */
+    public pondedL = 0;
+    /** Salt in the root zone, kg — what irrigation water leaves behind. */
+    public soilSaltKg = 0;
+
+    public getPondedL(): number {
+      // ⭐ A ground made of parts: what stands on its fields stands on it
+      // (the walk: 743 565 L on the meadow's field, none on `look`).
+      const parts = this.dividedInto();
+      if (parts.length === 0) return this.pondedL;
+      return this.pondedL + parts.reduce((sum, p) => sum + p.getPondedL(), 0);
+    }
+    public pond(litres: number): void {
+      if (Number.isFinite(litres) && litres > 0) this.pondedL += litres;
+    }
+    /**
+     * The share of an overhead spray that LANDS, 0..1 — what wind drift and
+     * evaporation leave (step 27). Pure: wind m/s, air K, cloud 0..1.
+     */
+    public overheadLandedShare(windMps: number, airK: number, cloud: number): number {
+      const drift = Math.min(OVERHEAD_DRIFT_CAP, OVERHEAD_DRIFT_PER_MPS * Math.max(0, windMps));
+      const sun = 1 - 0.7 * Math.min(1, Math.max(0, cloud));
+      const evap = Math.min(
+        OVERHEAD_EVAP_CAP,
+        OVERHEAD_EVAP_PER_K * Math.max(0, airK - OVERHEAD_EVAP_FROM_K) * sun,
+      );
+      return (1 - drift) * (1 - evap);
+    }
+
+    /**
+     * Open seconds of an overhead inlet's gate over `[fromS, toS]`, each
+     * hour weighted by the share that landed in that hour's weather here.
+     */
+    private async overheadLandedS(gate: Stuff & Throttleable, fromS: number, toS: number): Promise<number> {
+      const host = this as unknown as Stuff;
+      const atmo = MixinApi.isAtmospheric(host) ? host : null;
+      const site = atmo !== null ? atmo.climateSite() : null;
+      const locality = MixinApi.isContainer(host)
+        ? await AddressApi.resolveLocalityFor(host as Stuff & Container).catch(() => null)
+        : null;
+      const baseWind = atmo?.getBiome()?.getDefaultWind()?.rawValue() ?? 0;
+      const slices = Math.min(48, Math.max(1, Math.ceil((toS - fromS) / 3600)));
+      let landed = 0;
+      for (let i = 0; i < slices; i++) {
+        const a = fromS + ((toS - fromS) * i) / slices;
+        const b = fromS + ((toS - fromS) * (i + 1)) / slices;
+        const open = gate.openingTrajectory(a, b).integrate((v) => v, 4);
+        if (!(open > 0)) continue;
+        const t = Quantity.of((a + b) / 2, 's');
+        const wind = baseWind + WeatherApi.deviatedFieldFor(host, locality, 'wind', t, site).rawValue();
+        const airK = site !== null ? WeatherApi.temperatureAt(site, locality, t).rawValue() : OVERHEAD_EVAP_FROM_K;
+        const cloud = WeatherApi.weatherAt(t, locality).cloud;
+        landed += open * this.overheadLandedShare(wind, airK, cloud);
+      }
+      return landed;
+    }
+
+    public landedOpenSeconds(spray: Stuff & Throttleable, fromS: number, toS: number): Promise<number> {
+      return this.overheadLandedS(spray, fromS, toS);
+    }
+
+    public soilAcceptsPonding(): boolean {
+      return true;
+    }
+    public takeStanding(poured: number, absorbed: number, salinityPpt?: number): number {
+      const standing = poured - Math.max(0, absorbed);
+      if (standing <= 0.01) return 0;
+      this.pond(standing);
+      if (typeof salinityPpt === 'number' && salinityPpt > 0) this.addSoilSalt((standing * salinityPpt) / 1000);
+      return standing;
+    }
+    public barelyShows(litres: number): boolean {
+      const areaM2 = this.soilCatchmentAreaM2();
+      return areaM2 > 0 && litres / areaM2 < BARELY_SHOWS_L_PER_M2;
+    }
+    public addSoilSalt(kg: number): void {
+      if (Number.isFinite(kg) && kg > 0) this.soilSaltKg += kg;
+    }
+    public setInlets(value: InletSpec[] | null): void {
+      this.inlets = Array.isArray(value)
+        ? value.filter((i) => typeof i?.gate === 'string' && i.gate !== '')
+        : [];
+    }
+
+    /**
+     * ⭐ Standing water over `days` (water-supply D15): it soaks into the
+     * soil as the soil frees room, and the rest drains away by the day —
+     * and what drains past the roots carries salt with it, so a ponded
+     * field is LEACHED (the reclamation every salted valley learned).
+     */
+    private settlePond(days: number): void {
+      if (!(this.pondedL > 0) || !(days > 0)) return;
+      const took = this.creditReserve(SOIL_MOISTURE_RESERVE_KEY, this.pondedL, 'L');
+      this.pondedL -= took;
+      const drained = this.pondedL * Math.min(1, POND_DRAIN_PER_DAY * days);
+      this.pondedL -= drained;
+      if (drained > 0 && this.soilSaltKg > 0) {
+        const held = Math.max(1, this.soilHost.getReserve(SOIL_MOISTURE_RESERVE_KEY)?.current.rawValue() ?? 0);
+        this.soilSaltKg *= held / (held + drained);
+      }
+      if (this.pondedL < 0.5) this.pondedL = 0;
+    }
+
+    public soilSalinityDsm(): number {
+      // A ground made of parts reads its parts' salt, by area.
+      const parts = this.dividedInto();
+      if (parts.length > 0) {
+        return this.meanOverParts(parts, (p) => p.soilSalinityDsm(), () => this.ownSalinityDsm()) ?? 0;
+      }
+      return this.ownSalinityDsm();
+    }
+
+    /** This ground's own salt over its own water. */
+    private ownSalinityDsm(): number {
+      if (!(this.soilSaltKg > 0)) return 0;
+      const reserve = this.soilHost.getReserve(SOIL_MOISTURE_RESERVE_KEY);
+      // Salt dissolves in all the water holding it — the soil's and what
+      // stands on it.
+      const litres = Math.max(
+        1,
+        (reserve?.current.rawValue() ?? 0) + this.pondedL,
+        (reserve?.capacity.rawValue() ?? 0) * 0.25,
+      );
+      // kg/L → mg/L, and ~640 mg/L of dissolved salt is 1 dS/m.
+      return ((this.soilSaltKg / litres) * 1_000_000) / 640;
+    }
+
+    public async settleInlets(nowS: number): Promise<void> {
+      // ⭐ What stands on this ground, or beside it, and waters it (a
+      // sprinkler — rain in a circle) brings its own water current first.
+      for (const irrigator of this.irrigatorsNear()) await irrigator.settleIrrigation(nowS);
+      if (this.inlets.length === 0) return;
+      if (this.inletClockStamp === null) {
+        this.inletClockStamp = nowS;
+        return;
+      }
+      const from = this.inletClockStamp;
+      if (!(nowS > from)) return;
+      // ⚠ Claim the window before anything awaits: a background settle and a
+      // survey's settle read concurrently must not both integrate it.
+      this.inletClockStamp = nowS;
+      let litres = 0;
+      let salt = 0;
+      for (const inlet of this.inlets) {
+        const gate = await StuffApi.singleton<Stuff>(inlet.gate).catch(() => null);
+        // ⚠ Unresolved: give the window back; the backlog waits.
+        if (gate === null || !MixinApi.isThrottleable(gate)) {
+          if (this.inletClockStamp === nowS) this.inletClockStamp = from;
+          return;
+        }
+        // ⭐ Its rota's turns first: a turn nobody watched still watered the
+        // field (the browser walk — Furtado's turn reached no field).
+        await gate.settleOpening(nowS);
+        // An overhead inlet weighs each hour's open time by what the weather
+        // let land; every other method keeps its share of all of it.
+        const openS =
+          inlet.method === 'overhead'
+            ? await this.overheadLandedS(gate, from, nowS)
+            : gate.openingTrajectory(from, nowS).integrate((v) => v, 4);
+        const capLps =
+          inlet.capacityLps ??
+          (((await gate.passingCapM3S(nowS)) ?? 0) * 1000);
+        const lent = Math.max(0, openS) * capLps;
+        litres += lent * (INLET_EFFICIENCY[inlet.method] ?? 0.5);
+        // ppt is g/kg ≈ g/L, so kg = L × ppt / 1000.
+        salt += (lent * (inlet.salinityPpt ?? 0.3)) / 1000;
+      }
+      if (!(litres > 0)) return;
+      // ⭐ A ground made of parts keeps its soil in them (a tract's fields):
+      // the water and its salt go to the parts by area, as every other
+      // soil write does. The browser walk: a meadow's turnout credited the
+      // TRACT, which holds no water of its own — every litre ponded and the
+      // salt was read over one litre (813 919 dS/m).
+      const parts = this.dividedInto();
+      if (parts.length > 0) {
+        this.spreadOverParts(
+          parts,
+          litres,
+          (p, l) => {
+            p.addSoilSalt((salt * l) / litres);
+            const took = p.waterSoil(l);
+            if (l - took > 0) p.pond(l - took);
+            return took;
+          },
+          (l) => this.ownTerm(() => this.takeInletWater(l, (salt * l) / litres)),
+        );
+        return;
+      }
+      this.takeInletWater(litres, salt);
+    }
+
+    /**
+     * The irrigators that water this ground: those standing ON it (its own
+     * contents, when it is a place) and, for a ground that catches sky and
+     * stands in a place (a bed), those standing BESIDE it — read locally,
+     * never a search.
+     */
+    private irrigatorsNear(): (Stuff & Irrigating)[] {
+      const self = this as unknown as Stuff;
+      const here: Stuff[] = MixinApi.isContainer(self) ? [...(self.getContents() as Stuff[])] : [];
+      const container = MixinApi.isContainable(self) ? (self.getContainer() as Stuff | null) : null;
+      if (container !== null && MixinApi.isContainer(container) && this.soilCatchmentAreaM2() > 0) {
+        here.push(...(container.getContents() as Stuff[]));
+      }
+      return here.filter((s): s is Stuff & Irrigating => s !== self && MixinApi.isIrrigating(s));
+    }
+
+    /**
+     * ⭐ Bring the water let onto this ground current in the background —
+     * from the SYNC reconcile, so a crop read after a night of a turnout's
+     * turn or a sprinkler's run sees it on the next read (the review found
+     * inlets integrated only when somebody surveyed). One at a time.
+     */
+    private kickWaterSettle(nowS: number): void {
+      if (this._settlingWater) return;
+      if (this.inlets.length === 0 && this.irrigatorsNear().length === 0) return;
+      this._settlingWater = true;
+      void this.settleInlets(nowS)
+        .catch(() => undefined)
+        .finally(() => {
+          this._settlingWater = false;
+        });
+    }
+
+    /** Whole ground: take what the soil holds, pond the rest, keep the salt. */
+    private takeInletWater(litres: number, saltKg: number): number {
+      this.soilSaltKg += saltKg;
+      this.reconcileSoil();
+      const taken = this.creditReserve(SOIL_MOISTURE_RESERVE_KEY, litres, 'L');
+      if (litres - taken > 0) this.pondedL += litres - taken;
+      return taken;
+    }
 
     /**
      * The prerequisite surface, narrowed. TypeScript does not carry a
@@ -1024,6 +1357,9 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
     /** True while an aggregate read asks this ground's own remainder term. */
     private _soilOwnTerm = false;
 
+    /** True while a background water settle runs (`kickWaterSettle`). */
+    private _settlingWater = false;
+
     /**
      * Integrate the soil over elapsed game-time: drain moisture by the
      * **summed** demand of whatever is drinking, scaled by warmth.
@@ -1037,6 +1373,7 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
       if (this._reconcilingSoil) return;
       const nowS = this.soilNowSeconds();
       if (nowS === null) return;
+      this.kickWaterSettle(nowS);
 
       // ⭐ A ground made of parts reconciles each part on its own stamp
       // (field population D3); a divided field holds no reserve of its
@@ -1102,6 +1439,7 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
         }
         if (meanSteps > 0) this._soilMeanMoisture = meanSum / meanSteps;
         this.integrateNutrientCycle(elapsed / SECONDS_PER_GAME_DAY);
+        this.settlePond(elapsed / SECONDS_PER_GAME_DAY);
         this.soilClockStamp = nowS;
       } finally {
         this._reconcilingSoil = false;

@@ -1,0 +1,38 @@
+# The ditch bank (water-supply W6, D28) — along the foot of the bench, past
+# the two turnouts. ⭐ LIVE for one named purpose: a cut in the bank is the
+# ditch's own damage until the rider closes it.
+class: /platform/location/PersistentShore
+data:
+  shortDescription: ditch bank
+  keywords: [bank, ditch, turnouts]
+  register: definite
+  _address: terminus/hearts-delight/bench-lane
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  ambientIntensity: 40000
+  ambientColorTemperature: 5800
+  longDescription: |
+    A raised earth bank along the foot of the bench, the ditch brimming brown beside it and the flats spreading out green below. Two turnouts are set in it: a broad gate onto the Furtado flats near the head, and a narrower one further on onto the bench fields, with a heavier chain on it.
+  coords: { x: -1, y: 0, z: 0 }
+  # ⭐ The water this bank stands beside is the DITCH, not the river
+  # (water-supply, the browser walk): `analyze water` here reads the ditch
+  # at the bench, where Avila's turnout draws — downstream of what the bed
+  # loses on the way, so an earth ditch and a lined one read differently.
+  # The river is the headgate's.
+  waters:
+    ditch: delight-ditch:bench
+  details:
+    ditch:
+      keywords: [ditch, water, channel]
+      description: |
+        A cut channel the width of a cart, brown water sliding along it at a walking pace between banks of puddled earth, the grass leaning in at the edges.
+  exits:
+    east:
+      destination: /world/terminus/hearts-delight/ditch/location/headgate
+      media: [ground]
+      edgeMinutes: 8
+  props:
+    - /world/terminus/hearts-delight/ditch/thing/turnout-furtado
+    - /world/terminus/hearts-delight/ditch/thing/turnout-avila
+  cast:
+    - /world/terminus/hearts-delight/ditch/agent/furtado
+    - /world/terminus/hearts-delight/ditch/agent/avila

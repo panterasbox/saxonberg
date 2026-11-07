@@ -132,7 +132,7 @@ export default class PayController extends BankingControllerBase<PayModel> {
     } catch (err) {
       MessageApi.scene(giver)
         .topic(TOPIC)
-        .toSelf(Mml.compose`${String(err instanceof Error ? err.message : err)}`)
+        .toSelf(Mml.compose`${this.refusalWords(err)}`)
         .send();
       context.note({ kind: "controller-rejected", reason: "pay-refused", detail: model.amount });
     }

@@ -25,10 +25,11 @@
  * with no new field work.
  */
 
-import PersistentLocation from '@saxonberg/server/mud/platform/location/PersistentLocation';
+import PersistentRoom from '@saxonberg/server/mud/platform/location/PersistentRoom';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 
-// ⭐⭐ **A `DormRoom` IS a `PersistentLocation`, and that class's own
+// ⭐⭐ **A `DormRoom` IS a `PersistentLocation` (a `PersistentRoom` now — a
+// room, so plumbed: its tap implies its pipe), and that class's own
 // docstring says so** — *"That the shipped dorm room already had
 // exactly this stack is the reason to mirror it rather than re-derive:
 // `DormRoom` IS a room archetype (a bedsit — bed, desk, footlocker,
@@ -45,7 +46,7 @@ import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 //
 // Extending it keeps `SCOPE`/`ADDRESS` (which are this locality's) and
 // gains `Reserved` + `postedAs`, which a bedsit wants anyway.
-export default class DormRoom extends PersistentLocation {
+export default class DormRoom extends PersistentRoom {
   /** The shared clone-namespace path — the D1 record `scope`. */
   static readonly SCOPE = '/world/terminus/eternal/duncan-hall/location/dormroom';
 

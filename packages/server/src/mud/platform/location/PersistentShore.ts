@@ -17,6 +17,11 @@
  * record at a restart, so a kept quay would restore the ends twice (the
  * reason a landing's list of who lies at it is a `berth-roll` document,
  * not its own state). A kept shore holds no bollards.
+ *
+ * The second is the Delight ditch's bank (water-supply): it was kept
+ * already, and as a plain kept locale it could not say which water it
+ * stands beside — so `analyze water` there read the river, and no
+ * instrument in the game could read the ditch, earth or lined.
  */
 
 import Shore from './Shore';

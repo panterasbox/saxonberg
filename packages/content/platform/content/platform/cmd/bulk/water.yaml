@@ -52,7 +52,10 @@ args:
   # controller takes the first with water in it — a question about the
   # contents, which no predicate asks. `water the lily with the bucket`
   # names one; a named vessel is taken as named, so "it is empty" can be
-  # said about it.
+  # said about it. ⭐ A HOSE in your hand that is coupled to a tap is a
+  # source too (the review: the hose rung between the can and the
+  # sprinkler) — not a vessel, so the arg binds anything and the controller
+  # narrows.
   - name: source
     type: objects
     required: false
@@ -60,5 +63,5 @@ args:
     # CARRY — the default's seed is `me:i`, not `reachable`.
     scope: ["reachable"]
     prepositions: [with, from]
-    default: "me:i:[mixin.BulkableMixin]"
-    requires: [BulkableMixin]
+    default: "me:i"
+    requires: any

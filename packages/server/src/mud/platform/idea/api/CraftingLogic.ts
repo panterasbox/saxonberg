@@ -4046,8 +4046,15 @@ function instrumentFor(
   | { ok: true; instrument: (Stuff & Tooled) | null; capability: string }
   | { ok: false; reason: RepairDeclineReason; detail: string } {
   if (material?.hasTag('metal')) {
+    // ⭐ A soft metal is worked well below forge heat: lead is wiped and
+    // mended near its own melting point (600 K) and would run off a 900 K
+    // fire. The heat a mend asks is bounded by the metal it mends — the
+    // water-supply browser walk found a plumber who could mend lead only at
+    // a forge.
+    const meltK = material.getMeltingPoint().rawValue();
+    const needK = Number.isFinite(meltK) && meltK > 0 ? Math.min(heatK, meltK * 0.9) : heatK;
     const reach = MixinApi.isThermal(m.hand) ? m.hand.reachableHeatK() : 0;
-    if (reach < heatK) return { ok: false, reason: 'insufficient-heat', detail: `${heatK}` };
+    if (reach < needK) return { ok: false, reason: 'insufficient-heat', detail: `${Math.round(needK)}` };
     return {
       ok: true,
       instrument: m.tools.find((t) => t.hasCapability('anvil')) ?? null,
@@ -4939,6 +4946,10 @@ async function fitImpl(req: FitRequest): Promise<FitOutcome> {
   const stack = MixinApi.isStackable(part);
   const have = stack ? part.getQuantity() : 1;
   const k = Math.min(have, line.failed > 0 ? line.failed : 1, line.count);
+  // ⭐ The whole has its own say (water-supply D10), after the joints'
+  // gates and before anything is spent.
+  const veto = await whole.canTakeMembers(line.part, k, maker);
+  if (!veto.ok) return { ok: false, reason: 'refused-by-whole', detail: veto.reason };
   // ⭐ A SOUND member swapped out comes back to hand — a haft you are
   // replacing because you want a better one is still a haft. A failed one
   // (split, sprung) is not worth minting: it is the irreversible branch's.
@@ -4998,6 +5009,7 @@ async function fitImpl(req: FitRequest): Promise<FitOutcome> {
   if (slipMismatch && MixinApi.isIntegrity(whole)) {
     whole.addFlaw('check', true, nowGameS());
   }
+  await whole.afterMembersFitted(maker);
   // The whole is as good as its worst line (weakest link).
   if (MixinApi.isGraded(whole)) {
     const worst = whole

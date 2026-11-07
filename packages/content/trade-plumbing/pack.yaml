@@ -1,0 +1,19 @@
+id: trade-plumbing
+version: 0.1.0
+root: /trade/plumbing
+description: >-
+  Plumbing — ⭐⭐ **the pipe that brings water into a room.** The run itself
+  is the kernel's (`/platform/thing/PipeRun`): a durable thing in a room
+  that holds water, freezes, bursts and is mended. What this trade owns is
+  LAYING it — the pipe lengths, and the joints that hold them: a wiped joint
+  in lead (a plumber's craft, hot solder worked round the seam with a
+  cloth), a caulked joint in iron (oakum and lead driven home with a
+  caulking iron). A plumber lays a run by `fit`ting lengths to it; no
+  `plumb`, no `connect` — construction sits on assembly, and a magic
+  "do the plumbing" verb is not this trade.
+
+  The yard, the lead pot and the sand bed come with the plumber's supply
+  chain. A second plumber's yard is rows.
+requires:
+  title:
+    - { extent: /trade/plumbing, holder: { organization: /compact/trade } }

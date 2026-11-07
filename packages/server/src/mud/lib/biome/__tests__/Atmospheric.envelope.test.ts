@@ -336,3 +336,39 @@ describe('the room drifts toward outside', () => {
     expect(tauHours(shut)).toBeLessThan(1);
   });
 });
+
+describe('⭐⭐ the envelope sees the night (water-supply D11)', () => {
+  it('a thin-walled scullery read at noon after a −10 °C night has been below freezing', () => {
+    // Outside: −10 °C at 04:00, +8 °C at 16:00 — a winter day's curve.
+    const curve = (atS: number): number =>
+      273.15 - 1 + 9 * Math.sin(((atS / 3600 - 10) / 24) * 2 * Math.PI);
+    // It starts at noon's warmth: only the curve can take it below freezing.
+    const scullery = room({ material: OAK, thicknessM: 0.02 }, 283);
+    (scullery as unknown as { setEnvelopeOutsideCurve(c: (s: number) => number): void })
+      .setEnvelopeOutsideCurve(curve);
+    const start = WorldClockApi.getNow().rawValue();
+    env(scullery).reconcileEnvelope(); // stamps
+    advance(24 * 3600); // a whole day and its night, read once at the end
+    env(scullery).reconcileEnvelope();
+    const now = WorldClockApi.getNow().rawValue();
+    const ring = (scullery as unknown as {
+      temperatureTrajectory(a: number, b: number): { samples(n: number): Array<{ value: number }> };
+    }).temperatureTrajectory(start, now);
+    const coldest = Math.min(...ring.samples(4).map((s) => s.value));
+    expect(coldest).toBeLessThan(273.15);
+    // Without the curve the same room never leaves 283 K — the defect.
+    const blind = room({ material: OAK, thicknessM: 0.02 }, 283);
+    env(blind).reconcileEnvelope();
+    advance(24 * 3600);
+    env(blind).reconcileEnvelope();
+    expect(env(blind).envelopeTemperatureSync()!).toBeGreaterThan(282);
+  });
+
+  it('…and with no curve (an authored constant outside), the gap integrates whole as before', () => {
+    const cellar = room({ material: GRANITE, thicknessM: 1 }, 285);
+    env(cellar).reconcileEnvelope();
+    advance(20 * 3600);
+    env(cellar).reconcileEnvelope();
+    expect(env(cellar).envelopeTemperatureSync()!).toBeCloseTo(285, 3);
+  });
+});

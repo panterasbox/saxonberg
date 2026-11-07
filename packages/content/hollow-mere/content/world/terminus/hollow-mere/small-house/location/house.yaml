@@ -1,4 +1,4 @@
-class: /platform/location/Locale
+class: /platform/location/Hall
 data:
   shortDescription: small icehouse
   keywords: [house, icehouse, small]

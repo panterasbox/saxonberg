@@ -1,0 +1,25 @@
+# The Furtado turnout (water-supply W6, D21) — the senior farm's gate onto
+# the flats. LIVE (D30): its openings are the field's water. Its turns are
+# the rota's (`turnOf`, set with the company in W9).
+class: /system/water/thing/PersistentGate
+data:
+  shortDescription: Furtado turnout
+  keywords: [turnout, gate, "furtado turnout", furtado]
+  register: definite
+  longDescription: >-
+    A broad wooden gate set in the ditch bank onto the Furtado flats, its
+    board on a pin you lift by hand.
+  reachRef: delight-ditch:head
+  controlKind: headgate
+  capacityM3S: 0.12
+  open: false
+  keyway: ditch-company
+  lockTechnology: pin-tumbler
+  locked: false
+  # ⭐ Its turns are the rota's (D21): opened and shut for them, unwatched.
+  turnOf:
+    business: /world/terminus/hearts-delight/ditch/idea/company
+    positionKey: irrigator
+    assignee: /world/terminus/hearts-delight/ditch/agent/furtado
+  mass: 120
+  _materialPath: /stuff/idea/material/wood/oak

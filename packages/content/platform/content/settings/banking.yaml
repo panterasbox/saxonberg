@@ -60,5 +60,11 @@ settings:
   # banks at its authored banksAt, a worker at the payer's bank, escrow at
   # the issuer's. Only the state (treasury) banks at the CB. v1: goodkin
   # (the bank that wants the newcomer).
+  # Banking — the round sum (minor units) a branch draws into its till from
+  # its own reserves (its account, then its corpo's treasury) when a
+  # withdrawal finds the till short. Supply-neutral; never a mint.
+  - key: banking.tillFloatQuantum
+    value: 500
+
   - key: banking.defaultCustodianBank
     value: goodkin

@@ -1017,6 +1017,65 @@ async function pressureTraceFor(
  * weather is happening to.
  */
 async function outsideKFor(scope: Stuff): Promise<number> {
+  const curve = await outsideCurveFor(scope);
+  if (MixinApi.isAtmospheric(scope)) scope.setEnvelopeOutsideCurve(curve?.curve ?? null);
+  if (curve !== null) return curve.curve(WorldClockApi.getNow().rawValue());
+  return outsideScalarFor(scope);
+}
+
+/**
+ * ⭐⭐ The outside as a CURVE in game time, when it is the weather's
+ * (water-supply D11) — the climate at this place plus the weather's
+ * deviation, read at any instant — or `null` when the outside is an
+ * authored constant, a nested scope's room, or weather is off. What lets
+ * an unwatched room integrate the night it was not watched through.
+ */
+async function outsideCurveFor(
+  scope: Stuff,
+): Promise<{ curve: (atS: number) => number } | null> {
+  const enclosing = enclosingAtmosphericOf(scope);
+  if (enclosing !== null && enclosing.envelopeApplies()) {
+    if (enclosing.envelopeTemperatureLast() !== null) return null;
+  }
+  if (!WeatherApi.isActive()) return null;
+  const trace = await runChainWalk<Quantity<'K'>>(
+    scope,
+    undefined,
+    'temperature',
+    (b) => b.getDefaultTemperature(),
+    (a, k) => readDetailMap<Quantity<'K'>>(a._detailTemperatures, k),
+    (a) => a._temperature,
+  );
+  if (trace.sourcePath === ROOT_BIOME_PATH) {
+    const site = await climateSiteOf(scope);
+    const locality = await AddressApi.resolveLocalityFor(scope);
+    return {
+      curve: (atS: number) => {
+        const t = Quantity.of(atS, 's');
+        return (
+          WeatherApi.climateAt(site, t).rawValue() +
+          WeatherApi.deviatedFieldFor(scope, locality, 'temperature', t, site).rawValue()
+        );
+      },
+    };
+  }
+  const fromSky =
+    (trace.source === 'biome' || trace.source === 'biome-ancestor') &&
+    trace.sourcePath !== null &&
+    isSkyBiomePath(trace.sourcePath);
+  if (!fromSky) return null;
+  const base = trace.value.rawValue();
+  const site = await climateSiteOf(scope);
+  const locality = await AddressApi.resolveLocalityFor(scope);
+  return {
+    curve: (atS: number) =>
+      base +
+      WeatherApi.deviatedFieldFor(scope, locality, 'temperature', Quantity.of(atS, 's'), site).rawValue(),
+  };
+}
+
+/** The outside as one number — the shipped walk, for a constant outside. */
+async function outsideScalarFor(scope: Stuff): Promise<number> {
   // ⭐ F1 — the nested-envelope seam. A scope that stands INSIDE another
   // scope's air (a fridge in a shop, the coach in a coach-house) drifts
   // toward the ROOM it stands in, not toward the biome default. Before the

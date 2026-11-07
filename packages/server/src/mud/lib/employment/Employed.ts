@@ -67,6 +67,8 @@
  * there will be a second composer to justify it.
  */
 
+import type { SeatKey } from './Position';
+import { Lock } from '../lock/Lock';
 import { type MixinConstructor, type FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import { CallSecurity, Final, Unshadowable } from '../security/decorators';
@@ -291,9 +293,24 @@ export interface Employed {
    * shift is something you CHOOSE to start: holding a job puts you on
    * the chart, not on the clock. Refuses with a reason.
    */
+  /**
+   * ⭐ Take the keys a seat carries (water-supply D19): a key to each keyway it
+   * names, unless this person already holds one. Returns how many were handed
+   * over. Nothing here is a permission check: the key opens the lock, and the
+   * lock is the gate.
+   */
+  takeSeatKeys(keys: readonly SeatKey[]): Promise<number>;
   clockOn(organizationPath?: string): Promise<ClockResult>;
   /** End the shift and settle the wage out of the house's account. */
   clockOff(organizationPath?: string): Promise<ClockResult>;
+  /**
+   * ⭐ The body is leaving the world — its player's session ended, or an
+   * unsaved hand is being unloaded. Every shift it is on ends now and is
+   * paid to now: a shift is a body at work, and an absent body is not
+   * working (the payroll gap — a player clocked on and logged out was paid
+   * for the whole absence at `clock off`).
+   */
+  leaveShifts(): Promise<void>;
   buysFor(): Promise<BusinessStuff[]>;
   beginCovering(business: OrganizationStuff): Employment | null;
   endCovering(business: OrganizationStuff): void;
@@ -619,6 +636,17 @@ export function EmployedMixin<TBase extends MixinConstructor>(Base: TBase) {
         .send();
     }
 
+    public async takeSeatKeys(keys: readonly SeatKey[]): Promise<number> {
+      let handed = 0;
+      for (const k of keys) {
+        const lock = new Lock(k.keyway, k.technology);
+        if (lock.opensFor(this as unknown as Stuff)) continue;
+        await lock.issueKeyTo(this as unknown as Stuff);
+        handed++;
+      }
+      return handed;
+    }
+
     public clockOn(organizationPath?: string): Promise<ClockResult> {
       return employedLogic().clockOn(
         this as unknown as Stuff,
@@ -631,6 +659,24 @@ export function EmployedMixin<TBase extends MixinConstructor>(Base: TBase) {
         this as unknown as Stuff,
         organizationPath ?? '',
       );
+    }
+
+    public leaveShifts(): Promise<void> {
+      return employedLogic().leaveShifts(this as unknown as Stuff);
+    }
+
+    /**
+     * ⭐ Unloaded on shift, a hand is paid to the moment it left (the
+     * payroll gap: an unsaved hand evicted mid-shift took the shift's wage
+     * with it). The hours nobody watched while it was unloaded are not paid
+     * — a venue nobody visits makes no sales either.
+     */
+    public onDestruct(): void {
+      void employedLogic().leaveShifts(this as unknown as Stuff).catch((err) =>
+        console.error('Employed: the leaving settle failed', err),
+      );
+      const sup = (Base.prototype as { onDestruct?: () => void }).onDestruct;
+      if (typeof sup === 'function') sup.call(this);
     }
 
     /** Every Business this actor buys for (position `purchases: true`). */

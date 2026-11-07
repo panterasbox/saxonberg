@@ -1,0 +1,20 @@
+# The pipe flask (water-supply W5, R4) — a founder's sand flask rammed round
+# a pipe pattern and its core: pour cast iron and a hub-and-spigot length
+# of pipe comes out. Iron pipe is a FOUNDER's work, not a plumber's — so the
+# city's iron pipe comes from Rejection's foundry, where the flask stands.
+class: /platform/thing/Mould
+data:
+  shortDescription: pipe flask
+  keywords: [flask, "pipe flask", mould, mold]
+  register: indefinite
+  longDescription: >-
+    A long iron box of rammed black sand in two halves, the impression of a
+    hubbed pipe and its dry-sand core inside.
+  interiorBulk: true
+  interiorCapacity: 2.6
+  closure: liquidTight
+  castTemplate: /trade/plumbing/thing/iron-pipe
+  reusable: true
+  discipline: founding
+  _materialPath: /stuff/idea/material/alloy/cast-iron
+  mass: 60

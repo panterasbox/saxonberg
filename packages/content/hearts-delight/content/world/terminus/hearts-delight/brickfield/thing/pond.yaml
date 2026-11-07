@@ -14,3 +14,6 @@ data:
   hardnessDgh: 4
   fixedInPlace: true
   mass: 50000
+  # ⭐ This IS a source (water-supply D2): it runs on its own water, never
+  # a premises' citation.
+  natural: true

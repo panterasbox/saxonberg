@@ -31,6 +31,11 @@ data:
       destination: /world/terminus/wharfside/bank
       media: [ground]
       edgeMinutes: 3
+    # ⭐ The plumber's yard (water-supply W5).
+    plumbers:
+      destination: /world/terminus/goods-yards/plumbing/location/yard
+      media: [ground]
+      edgeMinutes: 1
     # ⚠ Each of these has its far half authored in the trade's own pack.
     # Neither pack reaches into the other's files.
     northwest:

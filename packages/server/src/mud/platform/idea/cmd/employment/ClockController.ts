@@ -25,6 +25,7 @@ import { StuffApi } from '../../../../api/stuff';
 import { EmploymentApi } from '../../../../api/employment';
 import { GrammarApi } from '../../../../api/grammar';
 import type { ClockResult } from '../../../../lib/employment/Employed';
+import type { Stuff } from '../../../../lib/stuff/Stuff';
 
 const TOPIC = 'act.deed';
 
@@ -81,9 +82,12 @@ export default class ClockController extends CommandController<ClockModel> {
         : '';
       const terms = seat?.payPhrase() ?? '';
       const rate = terms ? ` ${GrammarApi.cap(terms)}.` : '';
+      const handed = seat ? await giver.takeSeatKeys(seat.keys) : 0;
+      const keys =
+        handed === 0 ? '' : handed === 1 ? ' You are handed the key that goes with it.' : ' You are handed the keys that go with it.';
       MessageApi.scene(giver)
         .topic(TOPIC)
-        .toSelf(Mml.compose`You clock on at ${name}.${rate}${grant}`)
+        .toSelf(Mml.compose`You clock on at ${name}.${rate}${grant}${keys}`)
         .toPeers(Mml.compose`${Mml.actor(giver)} starts a shift.`)
         .send();
       return;

@@ -1,0 +1,19 @@
+# The pump-house door (water-supply W1, D19) — iron-bound and kept LOCKED.
+# The works keeper's seat carries its keyway (`terminus-works`), so whoever
+# holds that seat and clocks on is handed a key; anybody else stands outside
+# a thumping engine they cannot reach.
+class: /platform/thing/Door
+data:
+  shortDescription: pump-house door
+  keywords: [door, "pump-house door", "iron door"]
+  register: definite
+  longDescription: >
+    A narrow door of iron-bound planks, warm to the touch from the engine
+    behind it, with a heavy lock plate and a stencilled notice: WORKS — NO
+    ADMITTANCE.
+  open: false
+  locked: true
+  keyway: terminus-works
+  lockTechnology: pin-tumbler
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 45

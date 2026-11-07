@@ -40,18 +40,13 @@ import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Growing } from '../../../../lib/husbandry/Growing';
 import type { Soil } from '../../../../lib/husbandry/Soil';
 import Plant from '../../../thing/Plant';
+import WaterHose from '../../../thing/WaterHose';
 import { CraftingApi } from '../../../../api/crafting';
 
 const TOPIC = 'act.deed';
 
 /** Material tag a bulk slot must carry to count as waterable. */
 const WATER_TAG = 'liquid';
-
-/**
- * Below this many litres per square metre of the ground watered, the
- * reply adds that it barely shows — a can on a thousand square meters.
- */
-const BARELY_SHOWS_L_PER_M2 = 0.1;
 
 interface WaterModel extends CommandModel {
   target: MqlOneResult;
@@ -105,7 +100,7 @@ export default class WaterController extends CommandController<WaterModel> {
 
     // The source: the named one, else the first carried holder with
     // water in it — a NARROWING over what the binder bound.
-    const source = this.waterSource(model.source);
+    const source = await this.waterSource(model.source);
     if (!source) {
       MessageApi.scene(giver)
         .topic(TOPIC)
@@ -148,7 +143,23 @@ export default class WaterController extends CommandController<WaterModel> {
     } else {
       headroom = ground.soilMoistureHeadroomL();
     }
+    // ⭐ Full ground that holds water (a field, an undrained pot) does not
+    // refuse a pour: the water STANDS on it (water-supply D15/D16). A
+    // drained pot lets it out of its hole, and says the soil is wet through.
     if (headroom <= 0) {
+      if (ground.soilAcceptsPonding()) {
+        const litres = fromSlot.available();
+        const salt = fromSlot.getPayload()?.salinityPpt;
+        const poured = BulkableApi.transfer(fromSlot, null, { kind: 'measure', litres, mode: 'lenient' });
+        for (const note of poured.notes) context.note(note);
+        if (ground.takeStanding(poured.applied, 0, salt) > 0) {
+          MessageApi.scene(giver)
+            .topic(TOPIC)
+            .toSelf(Mml.compose`The water stands on ${Mml.thing(plant ?? ground)} — the soil cannot take any more.`)
+            .send();
+          return;
+        }
+      }
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(
@@ -169,9 +180,19 @@ export default class WaterController extends CommandController<WaterModel> {
     // slot, for the prose.
     const material = fromSlot.getMaterial();
     const payload = fromSlot.getPayload();
+    // ⭐ Ground that HOLDS water (an undrained pot, a field) takes the whole
+    // can: the soil drinks what it can and the rest stands on it. Only a
+    // drained pot is poured to its headroom (the rest would run out of the
+    // hole). The browser walk: an undrained pot drained a sliver between
+    // pours, so its headroom never reached 0 and it could not be overwatered.
+    // A plant with a root zone of its own is the exception: the pour is
+    // aimed at its pocket, and spilling the rest across the patch would
+    // water the stand the trial is measured against.
+    const holds =
+      ground.soilAcceptsPonding() && !(plant instanceof Plant && plant.hasRootZone());
     const result = BulkableApi.transfer(fromSlot, null, {
       kind: 'measure',
-      litres: Math.min(headroom, fromSlot.available()),
+      litres: holds ? fromSlot.available() : Math.min(headroom, fromSlot.available()),
       mode: 'lenient',
     });
     for (const note of result.notes) context.note(note);
@@ -194,9 +215,9 @@ export default class WaterController extends CommandController<WaterModel> {
     // precisely what changes that state.
     const difficulty =
       plant instanceof Plant ? plant.careDifficulty() : plant ? 'standard' : 'easy';
-    const absorbed = plant
-      ? plant.waterPlant(result.applied)
-      : ground.waterSoil(result.applied);
+    const soaking = Math.min(result.applied, headroom);
+    const absorbed = plant ? plant.waterPlant(soaking) : ground.waterSoil(soaking);
+    const standing = holds ? ground.takeStanding(result.applied, absorbed, payload?.salinityPpt) : 0;
 
     // Capture the GROUND, not the plant: since phase 2 the litres land in
     // the pot's (or bed's, or patch's) moisture reserve, so capturing only
@@ -240,13 +261,16 @@ export default class WaterController extends CommandController<WaterModel> {
       : part
         ? Mml.compose`You tip ${litres} of ${appearance} into the soil at ${Mml.thing(part)}.`
         : Mml.compose`You tip ${litres} of ${appearance} into the soil of ${Mml.thing(ground)}.`;
-    const drinks = plant && absorbed > 0 ? ' It drinks it in.' : '';
+    const drinks =
+      standing > 0
+        ? ' The soil cannot take it all; the rest stands on top, with nowhere to go.'
+        : plant && absorbed > 0
+          ? ' It drinks it in.'
+          : '';
     // A labeled plant's water went round its own roots, not over the ground.
-    const areaM2 =
-      plant instanceof Plant && plant.hasRootZone() ? 0 : ground.soilCatchmentAreaM2();
     const barely =
-      areaM2 > 0 && result.applied / areaM2 < BARELY_SHOWS_L_PER_M2
-        ? ` On ${areaPhrase(areaM2)} it barely shows.`
+      !(plant instanceof Plant && plant.hasRootZone()) && ground.barelyShows(result.applied)
+        ? ` On ${areaPhrase(ground.soilCatchmentAreaM2())} it barely shows.`
         : '';
     MessageApi.scene(giver)
       .topic(TOPIC)
@@ -340,17 +364,33 @@ export default class WaterController extends CommandController<WaterModel> {
    * contents, which no predicate asks (`lint:controller-resolution`). A NAMED
    * vessel is taken as named, so "it is empty" can be said about it.
    */
-  private waterSource(bound: MqlManyResult | undefined): Stuff | null {
+  private async waterSource(bound: MqlManyResult | undefined): Promise<Stuff | null> {
     const carried = bound?.stuff ?? [];
     if (carried.length === 0) return null;
-    if (bound?.prep !== undefined) return carried[0]!;
+    if (bound?.prep !== undefined) return this.throughHose(carried[0]!);
     for (const item of carried) {
+      // ⭐ A hose coupled to a tap waters from the tap.
+      if (item instanceof WaterHose) {
+        const outlet = await this.throughHose(item);
+        if (outlet !== null && !BulkableApi.slotFor(outlet, undefined)?.isEmpty()) return outlet;
+        continue;
+      }
+      if (!MixinApi.isBulkable(item)) continue;
       const slot = BulkableApi.slotFor(item, undefined);
       if (!slot || slot.isEmpty()) continue;
       const tags = slot.getMaterial()?.getTags() ?? [];
       if (tags.includes(WATER_TAG)) return item;
     }
     return null;
+  }
+
+  /** A hose stands for the tap it is coupled to (settled, so its water is current); anything else for itself. */
+  private async throughHose(item: Stuff): Promise<Stuff | null> {
+    if (!(item instanceof WaterHose)) return item;
+    const outlet = item.getOutlet();
+    if (outlet === null) return null;
+    await outlet.settleBulk('interior');
+    return outlet;
   }
 }
 

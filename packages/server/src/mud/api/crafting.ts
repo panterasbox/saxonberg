@@ -437,6 +437,12 @@ export type FitDeclineReason =
    * weather got it), `fired` (it is not clay any more).
    */
   | 'not-leather-hard'
+  /**
+   * ⭐ (water-supply D10) The whole itself said no — its own words in
+   * `detail`: a plumber's last length on a service run where no main runs
+   * past the lot.
+   */
+  | 'refused-by-whole'
   | 'insufficient-input';
 
 export interface FitReplaced {

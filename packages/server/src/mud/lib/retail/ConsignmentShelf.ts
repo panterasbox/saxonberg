@@ -237,7 +237,7 @@ export function ConsignmentShelfMixin<TBase extends MixinConstructor<Stuff>>(
         // cogs, the supplier's as sales; the ladder's rung-1 gate counts it).
         // Two posts, one command — the `remitDemoTax` precedent.
         paid = await EmploymentApi.settleSale(venuePath, termsAsk, termsAsk, "a purchase");
-        if (!paid) return this.refusedBroke(item, sale.word);
+        if (!paid) return this.refusedBroke(item, sale.word, termsAsk);
         await this.settleTerms(venuePath, consignorPrimary, listing.askMinor, item);
       } else {
         const ask = listing.askMinor;
@@ -260,7 +260,7 @@ export function ConsignmentShelfMixin<TBase extends MixinConstructor<Stuff>>(
           "a purchase",
           splits,
         );
-        if (!paid) return this.refusedBroke(item, sale.word);
+        if (!paid) return this.refusedBroke(item, sale.word, ask);
       }
       const buyer = await this.purchaserOf(giver, paid.receipt);
       if (MixinApi.isChattel(item)) {
@@ -339,12 +339,32 @@ export function ConsignmentShelfMixin<TBase extends MixinConstructor<Stuff>>(
     }
 
     /**
+     * A sale that did not settle, told by WHICH side failed — "you can't
+     * cover it" was the one line for all three, and a newcomer with no
+     * account read it as being poor (the water-supply browser walk).
+     *
      * ⚠ ONE piece: the price is per piece, and a stocked heap sits on the
      * shelf as one stack — naming the heap told a broke buyer they had
      * tried to buy all three (found by the assembly browser walk).
      */
-    protected refusedBroke(item: Stuff, word: string): SaleOutcome {
+    protected refusedBroke(item: Stuff, word: string, priceMinor: number): SaleOutcome {
       const one = item.presentationPhrase().withCount(1).render();
+      const currency = BankingApi.compactCurrency();
+      if (BankingApi.canSettle(Money.of(priceMinor, currency))) {
+        // The buyer could pay; the counter could not take it.
+        return this.refused(
+          Mml.compose`The counter can't take payment for ${one} just now.`,
+          "venue-cannot-take-payment",
+          word,
+        );
+      }
+      if (!BankingApi.canSettle(Money.of(1, currency))) {
+        return this.refused(
+          Mml.compose`You have nothing to pay for ${one} with — no coin, and no account your wallet can reach. A bank will open one (\`bank open\`).`,
+          "no-means-of-payment",
+          word,
+        );
+      }
       return this.refused(Mml.compose`You can't cover ${one} just now.`, "insufficient-funds", word);
     }
   }

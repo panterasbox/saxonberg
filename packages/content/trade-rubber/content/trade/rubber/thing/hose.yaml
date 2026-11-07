@@ -1,7 +1,9 @@
 # A length of rubber hose — cast round a mandrel in a tube mould (rubber
 # build). A hose to carry water from a pump or a tap; flexible where a
-# pipe is not.
-class: /platform/thing/Thing
+# pipe is not. ⭐ It does now (water supply, the review): screw one end onto
+# a tap and the other onto a sprinkler (`tie hose to tap`, `tie hose to
+# sprinkler`), or carry it coupled to the tap and `water` a bed from it.
+class: /platform/thing/WaterHose
 data:
   shortDescription: length of rubber hose
   keywords: [hose, "rubber hose", tube, rubber]
@@ -11,3 +13,4 @@ data:
     it too hard and straightens when you let it go.
   _materialPath: /stuff/idea/material/organic/rubber
   mass: 1.5
+  lengthM: 15

@@ -1,0 +1,16 @@
+# A length of lead pipe, drawn from a pig at the hearth (water-supply W5).
+# The pipe mould is the other road to the same length — the container
+# decides the shape of what sets in it. Either way it is a plumber's work,
+# and a bill naming this length knows whose trade mends it.
+recipeId: lead-pipe
+name: Lead Pipe
+keywords: ["lead pipe", "lead-pipe"]
+inputSlots:
+  - { slot: lead, category: metal, minGrade: poor, kind: item, count: 1 }
+toolCapabilities: []
+outputTemplate: /trade/plumbing/thing/lead-pipe
+outputMaterial: /stuff/idea/material/element/lead
+outputApplication: tangible
+requiresHeatK: 620
+difficulty: standard
+discipline: plumbing

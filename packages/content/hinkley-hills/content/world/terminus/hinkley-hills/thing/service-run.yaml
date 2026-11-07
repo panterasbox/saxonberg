@@ -1,0 +1,6 @@
+# Hinkley's service run (water-supply D10) — the trench from the lane's
+# main to a house, waiting for a plumber. Its LAST length laid cites the
+# district tank for the lot; the tank serves the district, so it does.
+extends: /trade/plumbing/thing/service-run
+data:
+  connectsTo: /world/terminus/hinkley-hills/thing/district-tank

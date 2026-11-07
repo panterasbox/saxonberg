@@ -198,6 +198,16 @@ exclusive axis, like chemical identity) is the natural split.
 | species | `nameBankKeys` | empty on 24 |
 | material | the sentinel rows | § 3 |
 
+## 7½. Handed over by the smell and taste requirements (2026-11-07)
+
+- **`OdorousMixin` ships first**, as the first capability pulled off `Material`, with
+  two thin classes this build's families replace.
+- **`MATURATION_MECHANISMS` waits for this build.** A mechanism as a class removes the
+  closed list; a pack adds one by shipping a class.
+- ⚠ **Rows need to override a mechanism's lines.** All 9 `chemical` rows share one set,
+  so aging whisky and hide glue read alike ("It has broken, and separated"). A class per
+  mechanism does not fix this by itself.
+
 ## 8. Open
 
 1. **The family list** — derived from the census by the build.

@@ -28,6 +28,7 @@ interface DrinkModel extends CommandModel {
   exact?: boolean;
 }
 
+
 export default class DrinkController extends CommandController<DrinkModel> {
   async execute(model: DrinkModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
@@ -108,9 +109,13 @@ export default class DrinkController extends CommandController<DrinkModel> {
     // the command shape-matcher rejects the phrasing before either is
     // consulted. Pre-existing and its own fix; this side is now ready
     // for it.
+    // ⭐ You finish a cup; you do not drink a water butt dry. A source fixed
+    // in place (a butt, a trough, a cistern, a tap) gives a DRAUGHT — what a
+    // person swallows at once — unless a measure says otherwise (the
+    // water-supply browser walk: one `drink from butt` took all 180 L).
     const amount = BulkableApi.amountFromOption(
       model.amount,
-      { kind: 'all' },
+      MixinApi.isBulkable(target) ? target.drinkMeasure() : { kind: 'all' },
       model.exact === true,
     );
     const result = BulkableApi.transfer(fromSlot, null, amount);

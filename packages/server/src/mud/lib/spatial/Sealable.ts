@@ -29,8 +29,9 @@
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import { BistateMixin, type BistateInternal } from '../Bistate';
-import type { MarkupAugmenter } from '../../api/mml';
+import type { VetoResult } from '../errors';
 import type { Stuff } from '../stuff/Stuff';
+import type { MarkupAugmenter } from '../../api/mml';
 import { MixinApi } from '../../api/mixin';
 
 /**
@@ -69,8 +70,16 @@ const sealAugmenter: MarkupAugmenter = (text, host, _viewer, opts) => {
 export interface Sealable {
   isOpen(): boolean;
   setOpen(value: boolean): void;
-  open(): void;
-  close(): void;
+  /** `by` is who did it, for a sealable that keeps a record (`Throttleable`). */
+  open(by?: Stuff | null): void;
+  close(by?: Stuff | null): void;
+  /**
+   * @hook May `by` open this now? (water-supply D12) The default says yes;
+   * a `Door` says no while it is locked, a `Gate` while its padlock holds
+   * against somebody with no key. The `open` verb asks it first and renders
+   * the refusal it returns — the mixin decides, the controller says it.
+   */
+  canOpen(by: Stuff): VetoResult;
   /** ⭐ The seal on it (`''` · `gum` · `wax`) — paper D11. */
   getSeal(): SealKind;
   /** ⭐ Has the seal been broken since it was set? */
@@ -160,7 +169,7 @@ export function SealableMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /** Open the sealable. Idempotent — opening an already-open one is a no-op. */
-    open(): void {
+    open(_by?: Stuff | null): void {
       // ⭐ Opening a sealed thing BREAKS the seal; closing it
       // again never mends it.
       if (!this.isOpen() && this.getSeal() !== '') this.sealBroken = true;
@@ -168,8 +177,13 @@ export function SealableMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /** Close the sealable. Idempotent — closing an already-closed one is a no-op. */
-    close(): void {
+    close(_by?: Stuff | null): void {
       (this as unknown as BistateInternal).setState(false, 'Sealable.open');
+    }
+
+    /** May `by` open this? A plain sealable always says yes. */
+    canOpen(_by: Stuff): VetoResult {
+      return { ok: true };
     }
   };
 }

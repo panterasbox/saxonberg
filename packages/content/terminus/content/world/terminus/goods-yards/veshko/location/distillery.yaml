@@ -10,7 +10,7 @@
 # `populates` set below is the placement and respawns each boot.
 # ⭐ (sugar D20) A PersistentLocale: a rum wash fermenting in its vat and
 # a charged still survive a restart.
-class: /platform/location/PersistentLocale
+class: /platform/location/PersistentHall
 data:
   # ⚠ `coords:` is the MEMBERSHIP operation — `setCoords` is the only way
   # an authored row joins a zone, so without it this floor was in no grid

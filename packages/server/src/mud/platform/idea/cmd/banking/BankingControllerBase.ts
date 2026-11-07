@@ -40,6 +40,18 @@ export abstract class BankingControllerBase<
   }
 
   /**
+   * A refusal from the banking logic, in the player's words: the logic tags
+   * its errors with the method that threw (`BankingLogic.withdraw: …`) for
+   * the log, and that tag is not for the counter (the water-supply walk
+   * read "BankingLogic.withdraw: the branch can't cover …").
+   */
+  protected refusalWords(err: unknown): string {
+    const raw = err instanceof Error ? err.message : String(err);
+    const bare = raw.replace(/^[A-Z][A-Za-z]*(Logic|Api)\.[a-zA-Z]+: /, '');
+    return bare.charAt(0).toUpperCase() + bare.slice(1);
+  }
+
+  /**
    * ⭐ **A seat sets its own dials, on the record** (wizard-axis D11). The
    * one write path for a Tier C settings key: `treasury set` (the Minister
    * of Finance) and `reserve set` (the Governor) both land here. Admits

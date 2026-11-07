@@ -16,6 +16,6 @@ requires:
       purpose: the lounge team
   title:
     - { extent: /stuff/idea/lounge, holder: { group: lounge } }
-    - { extent: /world/lounge, holder: { group: lounge } }
+    - { extent: /world/lounge, holder: { group: lounge }, waterSource: /world/lounge/thing/cistern }
 boot:
   - { template: /world/lounge/idea/business, role: producer, reason: "the bar's Business — the roster tick, Dave's appointing authority and the keeper's house account read it live; nothing else instantiates it; kept booted because its NPCs act while nobody is present (unobserved-economy-slate)" }

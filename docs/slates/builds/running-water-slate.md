@@ -200,3 +200,28 @@ the first hard frost the pipe bursts and the plumber is booked for a week.
 3. **The service connection** — a fact on the structure, the parcel, or the fixture.
 4. **The water rate** — who levies it: the works' owner, or the polity.
 5. **Siphons** — whether a pressure crossing is a `Conduit` variant or a property of one.
+
+## 7. Where the harbor meets the supply (from the harbors merge, 2026-11-05)
+
+Harbors shipped (MR !511) without touching supply, so these adjustments
+are this line's to make, not harbors':
+
+1. **Watering ships.** The Port of Terminus parcel says `waterSource: none`.
+   That was decided at the merge, by the economy lens: nothing would draw on
+   a quay standpipe yet, because a ship carries no water stores and her crew
+   is staged. When ship victualling is built (casks in the hold, a crew that
+   drinks at sea), the harbor gains a supply: one `WaterFixture` row on the
+   quay, citing the city intake, and the parcel's `waterSource` changes with
+   it. ⚠ Historically a port without a water point is wrong — watering ships
+   was a core harbor service. The `none` is because there is no demand yet,
+   not because a port has no water.
+2. **A ship's discharge is a load.** A ship pumps her bilge "over the side"
+   (`Ship.pump`) into nothing. The watershed's contamination-by-kind model
+   should take it as a load on the watercourse she lies in, like the city
+   outfall upstream of her quay: bilge water is a small oily load, sewage
+   (when a ship carries any) a fouling one. This model supersedes the "over
+   the side" no-op once a ship discharges anything that matters. Until then
+   it is a no-op on purpose, not a gap.
+3. **Two staging seams stand.** `TestHarnessApi.stage` (one authored setter
+   on one Stuff) and `stageShip` (a ship, her rooms and everyone in them)
+   do different jobs. Do not fold them together.

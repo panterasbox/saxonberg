@@ -112,6 +112,12 @@ no bank, no funds: the customer is served and nothing is taken.
 > *the first sale a venue ever makes* the one that always fails. A
 > bootstrap deadlock, invisible to any venue that has traded once.
 >
+> ⭐ **Partly answered (water supply, 2026-11-05):** the refusal now says
+> WHICH side failed — `refusedBroke` asks `BankingApi.canSettle`: the
+> buyer could pay → *the counter can't take payment*; the buyer could not
+> pay one coin → *you have nothing to pay with* (`bank open`); otherwise
+> *you can't cover it*. The cold-shop deadlock above is still unverified.
+>
 > ⚠ Reported, not fixed: it is this subsystem's, not a trade's. The live
 > evidence is the checkpoint
 > `packages/wire/tests/drilling.dirty.wire.test.ts` § *the valley's own

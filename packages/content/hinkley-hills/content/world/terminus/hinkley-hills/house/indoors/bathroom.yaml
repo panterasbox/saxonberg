@@ -7,8 +7,10 @@
 # ⭐ This is why the generic archetype stays tier-agnostic: whether a house
 # has a copper is the HOUSE's answer, made in rows like this one — a
 # second hot-water house is one more row, no code.
-class: /platform/location/PersistentLocation
+class: /platform/location/PersistentRoom
 data:
+  # ⭐ The house's pipe is lead (water-supply): soft acid water takes it up.
+  plumbing: lead
   # What it is made of (rubber's construction: walls and roof).
   enclosure: { material: /stuff/idea/material/ceramic/brick, thicknessM: 0.23 }
   roof: { material: /stuff/idea/material/rock/slate, thicknessM: 0.01 }

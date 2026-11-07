@@ -222,7 +222,17 @@ export interface WatercourseWater {
   pH?: number;
   hardnessDgh?: number;
   nitrateMgL?: number;
+  /**
+   * ⭐ Its salt, ppt (water-supply D8) — an author's override of the
+   * derived salinity (fresh upriver, brackish near the sea, sea water at
+   * it): a salt spring, an alkali creek. A tide still wins where there is
+   * one. Not flow-weighted: a seed for this course's own reaches.
+   */
+  salinityPpt?: number;
 }
+
+/** The three words the course seed flow-weights at every join. */
+export type WatercourseChemistry = Required<Pick<WatercourseWater, 'pH' | 'hardnessDgh' | 'nitrateMgL'>>;
 
 /**
  * ⭐ **Where on the world a river runs** (the climate build, D-L): the
@@ -264,6 +274,12 @@ export interface WatercourseDescriptor {
   branchesFrom: string | null;
   /** See {@link WatercourseWater}; absent = the dials' defaults. */
   water?: WatercourseWater;
+  /**
+   * ⭐ An artificial channel's lining (water-supply D14): `earth` loses a
+   * share of what it carries per km to the ground, `lined` a tenth of that.
+   * Absent = a natural channel, which gains as much as it loses.
+   */
+  lining?: 'earth' | 'lined';
   /**
    * ⭐ How deep light reaches in this water, m — the depth at which 1 %
    * of the surface light is left (underwater D6). A silty river 3, a
@@ -337,6 +353,7 @@ export default class Watercourse extends LineFrameMixin(NamedMixin(Idea)) {
     basin: { persistent: true, authorable: true },
     nodes: { persistent: true, authorable: true },
     branchesFrom: { persistent: true, authorable: true },
+    lining: { persistent: true, authorable: true },
     water: { persistent: true, authorable: true },
     site: { persistent: true, authorable: true },
     clarityM: { persistent: true, authorable: true },
@@ -355,6 +372,19 @@ export default class Watercourse extends LineFrameMixin(NamedMixin(Idea)) {
   protected basin = '';
   protected nodes: WatercourseNode[] = [];
   protected branchesFrom: string | null = null;
+
+  /**
+   * ⭐ An artificial channel's lining (water-supply D14) — `earth`, `lined`,
+   * or `null` for a natural river. See {@link WatercourseDescriptor.lining}.
+   */
+  protected lining: 'earth' | 'lined' | null = null;
+
+  public getLining(): 'earth' | 'lined' | null {
+    return this.lining;
+  }
+  public setLining(value: 'earth' | 'lined' | null): void {
+    this.lining = value === 'earth' || value === 'lined' ? value : null;
+  }
   protected water: WatercourseWater | null = null;
   protected site: WatercourseSite | null = null;
   /** How deep light reaches in this water, m (underwater D6). */

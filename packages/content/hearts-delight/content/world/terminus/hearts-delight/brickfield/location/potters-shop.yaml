@@ -7,7 +7,7 @@
 # Its own outfit (`idea/pottery`), titled to it in the pack manifest: the
 # brickfield's ground is the brickmaster's, and the shop is the potter's.
 # ⭐ Persistent: green ware drying on the boards is a week of somebody's work.
-class: /platform/location/PersistentLocale
+class: /platform/location/PersistentHall
 data:
   shortDescription: potter's shop
   keywords: [shop, "potter's shop", pottery, potter]

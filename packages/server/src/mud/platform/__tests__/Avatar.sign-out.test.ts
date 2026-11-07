@@ -54,6 +54,20 @@ describe("signing out", () => {
     expect(destruct).toHaveBeenCalledTimes(1);
   });
 
+  it("⚠ a shift ends before the save: the record must not say on-shift, or the return's clock off pays the absence", async () => {
+    const a = body("so-shift");
+    const order: string[] = [];
+    vi.spyOn(a, "leaveShifts").mockImplementation(async () => {
+      order.push("leave shifts");
+    });
+    vi.spyOn(a, "save").mockImplementation(async () => {
+      order.push("save");
+    });
+    vi.spyOn(StuffApi, "destruct").mockImplementation(() => undefined);
+    await signOut(a);
+    expect(order).toEqual(["leave shifts", "save"]);
+  });
+
   it("a bare drop stays, linkdead, with its session open", async () => {
     const a = body("so-drop");
     (a as unknown as { sessionActive: boolean }).sessionActive = true;

@@ -14,6 +14,9 @@ data:
   keywords: [trough, stone, water]
   register: indefinite
   longDescription: >-
-    A hollowed stone trough along the wall, fed by a lead pipe from somewhere uphill, with a skin of green on the waterline.
+    A hollowed stone trough along the wall, fed by a lead pipe from a spring somewhere uphill, with a skin of green on the waterline.
   interiorBulk: true
+  # ⭐ A spring-fed trough IS a source (water-supply D2): it runs on its
+  # own water, whatever the campus's premises cites.
+  natural: true
   interiorMaterial: /stuff/idea/material/bulk/water

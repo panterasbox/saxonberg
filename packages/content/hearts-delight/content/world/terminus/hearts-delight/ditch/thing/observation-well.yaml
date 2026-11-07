@@ -1,0 +1,16 @@
+# The observation well at the headgate (water-supply D13, D18) — a narrow
+# iron-cased hole that draws nothing, sunk so the ditch company can drop a
+# tape down it and read where the valley's water stands. `analyze
+# water-table` here is the ONLY reading of the aquifer's level anybody has.
+class: /system/water/thing/ObservationWell
+data:
+  shortDescription: observation well
+  keywords: ["observation well", well, casing, pipe, tube]
+  register: definite
+  longDescription: >-
+    An iron pipe a hand's breadth across standing a foot out of the bank,
+    capped with a hinged lid, a brass tape-reel chained beside it.
+  aquifer: /stuff/idea/Aquifer/delight-valley
+  collarM: 180
+  mass: 80
+  _materialPath: /stuff/idea/material/alloy/cast-iron

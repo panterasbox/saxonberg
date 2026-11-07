@@ -97,7 +97,7 @@ export default class CloseController extends CommandController<CloseModel> {
       return;
     }
 
-    sealable.close();
+    sealable.close(commandGiver);
 
     MessageApi.scene(commandGiver)
       .topic('act.deed')

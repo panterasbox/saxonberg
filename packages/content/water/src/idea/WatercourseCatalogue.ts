@@ -88,8 +88,9 @@ import {
   type ClimateSite,
 } from '@saxonberg/server/mud/lib/weather/WeatherType';
 import type { EvictionContext } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import ControlStructure from '../thing/ControlStructure';
 import type { VetoResult } from '@saxonberg/server/mud/lib/errors';
-import {
+import Watercourse, {
   WATERCOURSE_PATH_PREFIX,
   type WatercourseDescriptor,
   type WatercourseSource,
@@ -99,6 +100,7 @@ import {
   type WatercourseNode,
   type WatercourseStock,
   type WatercourseWater,
+  type WatercourseChemistry,
   type WatercourseSite,
 } from './Watercourse';
 import {
@@ -540,8 +542,11 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
         : {
             materialPath: drawn,
             temperatureK: water?.temperatureK ?? UNDER_ICE_K,
-            // ⭐ The water carries its source's hardness (cleanliness D12).
-            ...(water ? { hardnessDgh: water.hardnessDgh } : {}),
+            // ⭐ The water carries its source's hardness (cleanliness D12),
+            // and its acidity and salt (water-supply D8).
+            ...(water
+              ? { hardnessDgh: water.hardnessDgh, pH: water.pH, salinityPpt: water.salinityPpt }
+              : {}),
           },
       // ⭐ The water under the ice (storage-and-ice D15): what comes up
       // through a hole — the reach's own water, at the under-ice floor.
@@ -815,22 +820,32 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
     if (reach === undefined) return null;
     ref = reach.ref;
 
-    const natural = this.naturalFlowOf(reach, nowS);
+    // ⭐ An artificial channel (a lined or earth ditch) carries only what is
+    // let into it: no natural flow of its own, and the river's own draws
+    // upstream of its headgate are the river's, not the ditch's (D14).
+    const artificial = index.descriptors.get(reach.courseKey)?.lining !== undefined;
+    const natural = artificial
+      ? { total: 0, melt: 0, snowpackMm: 0 }
+      : this.naturalFlowOf(reach, nowS);
 
     // Every draw at or upstream of here has already been taken out of
     // the water by the time it gets here. A draw BELOW is somebody
     // else's problem and must not reduce this reading.
     let drawn = 0;
+    let credited = 0;
     for (const [at, m3s] of draws) {
-      if (m3s <= 0) continue;
-      if (at === ref) {
-        drawn += m3s;
-        continue;
-      }
-      if (index.downstream.get(at)?.has(ref) === true) drawn += m3s;
+      if (m3s === 0) continue;
+      const here = at === ref || index.downstream.get(at)?.has(ref) === true;
+      if (!here) continue;
+      if (artificial && index.reaches.get(at)?.courseKey !== reach.courseKey) continue;
+      // ⭐ A NEGATIVE entry is water a gate diverted INTO this course
+      // (water-supply D14) — credited here and below, less what the channel
+      // loses to the ground on the way.
+      if (m3s < 0) credited += -m3s * this.seepageFactor(index, at, reach);
+      else drawn += m3s;
     }
 
-    const m3s = Math.max(0, natural.total - drawn);
+    const m3s = Math.max(0, natural.total - drawn + credited);
     return {
       ref,
       m3s,
@@ -844,6 +859,57 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
         (reach.channelWidthM ?? 0) >=
           dial(AppSettingKeys.waterNavigableMinWidthM, 12),
     };
+  }
+
+  /**
+   * ⭐⭐ The weir's account (water-supply D14/D28): what the river would bring
+   * to `ref` untouched, what the GATES at and above it take by their own
+   * settings, and what everything else takes — a cut bank, an unlicensed
+   * draw. A rider reads the third number off a weir; nobody tells him.
+   */
+  public async accountAt(
+    ref: ReachRef,
+    nowS: number,
+  ): Promise<{ naturalM3S: number; gatesM3S: number; otherM3S: number } | null> {
+    const index = await this.index();
+    const reach = resolveReach(index, ref);
+    if (reach === undefined) return null;
+    const rows = await this.workRows();
+    let gates = 0;
+    let other = 0;
+    for (const path of await this.works()) {
+      const obj = StuffApi.findByTemplatePath(path);
+      const live = obj && !obj.isDestroyed() ? obj : null;
+      const w = (live ?? rowWork(rows.get(path))) as Withdrawing | null;
+      if (!w || typeof w.withdrawalM3S !== 'function') continue;
+      const at = typeof w.getReachRef === 'function' ? w.getReachRef() : '';
+      const atReach = index.reaches.get(at);
+      if (atReach === undefined) continue;
+      if (!(at === reach.ref || index.downstream.get(at)?.has(reach.ref) === true)) continue;
+      const taken = w.withdrawalM3S.call(w, this.naturalFlowOf(atReach, nowS).total);
+      if (!(taken > 0)) continue;
+      const cls = live ? (live.constructor as { name?: string }).name ?? '' : String(rows.get(path)?.class ?? '');
+      if (/Gate$/.test(cls)) gates += taken;
+      else other += taken;
+    }
+    return { naturalM3S: this.naturalFlowOf(reach, nowS).total, gatesM3S: gates, otherM3S: other };
+  }
+
+  /**
+   * ⭐ The share of water credited at `at` that is still in the channel at
+   * `to` (water-supply D14): an EARTH ditch loses `water.ditch.seepagePerKm`
+   * (dial 0.08) of its flow per km to the ground, a LINED one a tenth of
+   * that; a natural channel loses nothing here. What leaves the ditch's own
+   * mouth has run its whole length.
+   */
+  private seepageFactor(index: CompiledIndex, at: ReachRef, to: CompiledReach): number {
+    const from = index.reaches.get(at);
+    if (from === undefined) return 1;
+    const lining = index.descriptors.get(from.courseKey)?.lining;
+    if (lining === undefined) return 1;
+    const perKm = dial('water.ditch.seepagePerKm', 0.08) * (lining === 'lined' ? 0.1 : 1);
+    const km = to.courseKey === from.courseKey ? Math.max(0, from.km - to.km) : from.km;
+    return Math.max(0, 1 - perKm * km);
   }
 
   /**
@@ -969,6 +1035,10 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
     else if (reach.kmToSea <= dial('water.fishery.brackishWithinKm', 12) && reach.elevation < brackishBelowM) {
       salinityPpt = dial('water.fishery.salinity.brackish', 15);
     }
+    // ⭐ A course that SEEDS its salt (water-supply D8) — an author's
+    // override of the derivation; the tide alone outranks it.
+    const seededSalt = index.waterByCourse.get(reach.courseKey)?.salinityPpt;
+    if (tide === null && typeof seededSalt === 'number') salinityPpt = seededSalt;
 
     // Oxygen: a two-point saturation table, then turbulence — a fast
     // reach is at saturation, a still one holds less.
@@ -1008,8 +1078,8 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
     index: CompiledIndex,
     reach: CompiledReach,
     nowS: number,
-    memo: Map<ReachRef, Required<WatercourseWater>>,
-  ): Required<WatercourseWater> {
+    memo: Map<ReachRef, WatercourseChemistry>,
+  ): WatercourseChemistry {
     const done = memo.get(reach.ref);
     if (done !== undefined) return done;
     const own = seedOf(index.waterByCourse.get(reach.courseKey));
@@ -1017,7 +1087,7 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
     const preds = (index.predecessors.get(reach.ref) ?? [])
       .map((p) => index.reaches.get(p))
       .filter((p): p is CompiledReach => p !== undefined);
-    let mixed: Required<WatercourseWater> = { pH: 0, hardnessDgh: 0, nitrateMgL: 0 };
+    let mixed: WatercourseChemistry = { pH: 0, hardnessDgh: 0, nitrateMgL: 0 };
     let weight = 0;
     for (const pred of preds) {
       const w = this.naturalFlowOf(pred, nowS).total;
@@ -1154,7 +1224,16 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
     }> = [];
 
     const rows = await this.workRows();
-    for (const path of await this.works()) {
+    // ⭐ Two passes (D14): the river's works first, so what they divert is
+    // credited before a work on an artificial channel (a ditch's turnout)
+    // is asked what it takes — out of what that channel actually carries.
+    const isOnDitch = (path: string): boolean => {
+      const ref = str(rows.get(path)?.reachRef);
+      const r = resolveReach(index, ref);
+      return r !== undefined && index.descriptors.get(r.courseKey)?.lining !== undefined;
+    };
+    const ordered = (await this.works()).sort((a, b) => Number(isOnDitch(a)) - Number(isOnDitch(b)));
+    for (const path of ordered) {
       const obj = StuffApi.findByTemplatePath(path);
       // ⭐ Authored but not standing: the ROW is the record (the scan
       // sweep). An outfall nobody has visited still discharges as its row
@@ -1169,10 +1248,24 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
         const ref = typeof w.getReachRef === 'function' ? w.getReachRef() : '';
         const reach = index.reaches.get(ref);
         if (reach !== undefined) {
-          const natural = this.naturalFlowOf(reach, nowS).total;
+          const onDitch = index.descriptors.get(reach.courseKey)?.lining !== undefined;
+          const natural = onDitch
+            ? ((await this.flowAt(ref, nowS, draws))?.m3s ?? 0)
+            : this.naturalFlowOf(reach, nowS).total;
           const taken = w.withdrawalM3S.call(w, natural);
           if (Number.isFinite(taken) && taken > 0) {
             draws.set(ref, (draws.get(ref) ?? 0) + taken);
+            // ⭐ What a control diverts INTO a course is credited there
+            // (water-supply D14) — it used to vanish: the river lost it and
+            // the ditch never got it.
+            const into =
+              obj instanceof ControlStructure && !obj.isDestroyed()
+                ? obj.getDivertsTo()
+                : str(rows.get(path)?.divertsTo);
+            if (into !== '' && resolveReach(index, into) !== undefined) {
+              const to = resolveReach(index, into)!.ref;
+              draws.set(to, (draws.get(to) ?? 0) - taken);
+            }
           }
         }
       }
@@ -1859,8 +1952,17 @@ async function loadIndex(): Promise<CompiledIndex> {
   const courses = new Map<string, WatercourseDescriptor>();
 
   for (const tpl of templates) {
-    const d = descriptorOf(tpl.data as Record<string, unknown>);
+    let d = descriptorOf(tpl.data as Record<string, unknown>);
     if (d === null) continue;
+    // ⭐ A ditch's lining is WORK somebody does to it, so a loaded course's
+    // live lining wins over its row — the overlay the works already get
+    // (the browser walk: lining the Delight ditch changed nothing the
+    // catalogue read).
+    const live = StuffApi.findByTemplatePath(tpl.path);
+    if (live instanceof Watercourse && !live.isDestroyed()) {
+      const lining = live.getLining();
+      if (lining !== null) d = { ...d, lining };
+    }
     if (courses.has(d.key)) {
       problems.push(
         `two watercourses claim the key '${d.key}' — a key is an ` +
@@ -1967,7 +2069,10 @@ async function loadIndex(): Promise<CompiledIndex> {
   const downstream = compileDownstream(reaches, successors);
   assignDepths(reaches, successors);
   cascadeWildCatchments(reaches, downstream);
-  await accumulateCatchments(reaches, downstream);
+  const artificial = new Set(
+    [...courses.values()].filter((c) => c.lining !== undefined).map((c) => c.key),
+  );
+  await accumulateCatchments(reaches, downstream, artificial);
   const predecessors = new Map<ReachRef, ReachRef[]>();
   for (const [from, tos] of successors) {
     for (const to of tos) {
@@ -2187,6 +2292,16 @@ function rowWork(
   const reachRef = str(row.reachRef);
   const num = (v: unknown, d: number): number =>
     typeof v === 'number' && Number.isFinite(v) ? v : d;
+  if (cls.endsWith('/thing/Gate') || cls.endsWith('/thing/PersistentGate')) {
+    // An unloaded gate reads as its row stands: its authored opening (a
+    // live gate's own record answers once it is loaded).
+    const opening = Math.min(1, Math.max(0, num(row.opening, row.open === true ? 1 : 0)));
+    const capacity = num(row.capacityM3S, 0.1);
+    return {
+      getReachRef: () => reachRef,
+      withdrawalM3S: (natural: number) => Math.min(opening * capacity, Math.max(0, natural)),
+    };
+  }
   if (cls.endsWith('/thing/ControlStructure')) {
     const pass = Math.min(1, Math.max(0, num(row.passFraction, 1)));
     return {
@@ -2470,6 +2585,7 @@ function cascadeWildCatchments(
 async function accumulateCatchments(
   reaches: Map<ReachRef, CompiledReach>,
   downstream: Map<ReachRef, Set<ReachRef>>,
+  artificial: ReadonlySet<string> = new Set(),
 ): Promise<void> {
   const localities = await Template.findDescendants(LOCALITY_PATH_PREFIX);
   /** Reach → the largest single contribution seen, for the climate proxy. */
@@ -2483,6 +2599,9 @@ async function accumulateCatchments(
     if (own === undefined) continue;
     const path = tpl.path;
     const credit = (r: CompiledReach): void => {
+      // ⭐ An artificial channel catches no rain of its own (water-supply
+      // D14): it carries only what a gate lets into it.
+      if (artificial.has(r.courseKey)) return;
       r.catchmentKm2 += km2;
       const best = biggest.get(r.ref) ?? 0;
       if (km2 > best) {
@@ -2997,7 +3116,7 @@ function waterOf(value: unknown): WatercourseWater | undefined {
   if (value === null || typeof value !== 'object') return undefined;
   const r = value as Record<string, unknown>;
   const out: WatercourseWater = {};
-  for (const word of ['pH', 'hardnessDgh', 'nitrateMgL'] as const) {
+  for (const word of ['pH', 'hardnessDgh', 'nitrateMgL', 'salinityPpt'] as const) {
     const n = r[word];
     if (typeof n === 'number' && Number.isFinite(n)) out[word] = n;
   }
@@ -3005,7 +3124,7 @@ function waterOf(value: unknown): WatercourseWater | undefined {
 }
 
 /** The chemistry seed, every word filled from the dials where the row is silent. */
-function seedOf(water: WatercourseWater | undefined): Required<WatercourseWater> {
+function seedOf(water: WatercourseWater | undefined): WatercourseChemistry {
   return {
     pH: water?.pH ?? dial('water.chemistry.pH', 7.2),
     hardnessDgh: water?.hardnessDgh ?? dial('water.chemistry.hardnessDgh', 8),
@@ -3014,10 +3133,10 @@ function seedOf(water: WatercourseWater | undefined): Required<WatercourseWater>
 }
 
 function add(
-  a: Required<WatercourseWater>,
-  b: Required<WatercourseWater>,
+  a: WatercourseChemistry,
+  b: WatercourseChemistry,
   w: number,
-): Required<WatercourseWater> {
+): WatercourseChemistry {
   return {
     pH: a.pH + b.pH * w,
     hardnessDgh: a.hardnessDgh + b.hardnessDgh * w,
@@ -3025,7 +3144,7 @@ function add(
   };
 }
 
-function scale(a: Required<WatercourseWater>, k: number): Required<WatercourseWater> {
+function scale(a: WatercourseChemistry, k: number): WatercourseChemistry {
   return { pH: a.pH * k, hardnessDgh: a.hardnessDgh * k, nitrateMgL: a.nitrateMgL * k };
 }
 
@@ -3044,6 +3163,7 @@ function descriptorOf(
     nodes: nodesOf(data.nodes),
     branchesFrom: str(data.branchesFrom) === '' ? null : str(data.branchesFrom),
     ...(water ? { water } : {}),
+    ...(data.lining === 'earth' || data.lining === 'lined' ? { lining: data.lining } : {}),
     ...(site ? { site } : {}),
     ...(typeof data.clarityM === 'number' && data.clarityM > 0 ? { clarityM: data.clarityM } : {}),
     ...lineFieldsOf(data),

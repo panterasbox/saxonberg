@@ -55,6 +55,7 @@ import { SecurityApi } from '../mud/api/security';
 import {
   TestHarnessApi,
   type ClockJump,
+  type StageReport,
   type WeatherPinReport,
   type ShipStageSpec,
   type ShipStageReport,
@@ -67,6 +68,8 @@ import { StuffApi } from '../mud/api/stuff';
 import { MixinApi } from '../mud/api/mixin';
 import type { Stuff } from '../mud/lib/stuff/Stuff';
 import { ContainmentApi } from '../mud/api/containment';
+import { ContractApi } from '../mud/api/contract';
+import type { IssueNoteResult } from '../mud/api/contract';
 import { TRAUMA_BEHAVIOR } from '../mud/platform/idea/Condition';
 import { Quantity } from '../mud/lib/quantity';
 import { TemplatePaths } from '../mud/lib/paths';
@@ -433,6 +436,17 @@ export class TestHooks {
   }
 
   /**
+   * TEST-ONLY: call one authored mutator on the Stuff at `path` — the
+   * staging a drive needs for a state its players cannot make in time (an
+   * aquifer drawn low, an outfall loaded, a ditch lined). Same gates as
+   * the clock; the call is `TestHarnessApi.stage`'s.
+   */
+  public static async stage(path: string, method: string, args: readonly unknown[]): Promise<StageReport> {
+    TestHooks.#assertTestMode('stage');
+    return ExecutionContextApi.runRoot(TestHooks, 'stage', () => TestHarnessApi.stage(path, method, args));
+  }
+
+  /**
    * TEST-ONLY: stage a ship — put her lying somewhere the
    * drive needs her, never sailed there. Same three gates as the clock;
    * the staging itself is `TestHarnessApi.stageShip`'s, the one
@@ -554,6 +568,26 @@ export class TestHooks {
         }
       }
       return out;
+    });
+  }
+
+  /**
+   * ⭐ A test character ARRIVES as a newcomer does: the Arrival Note issued
+   * to the Treasury, its principal as coin in hand (economic bootstrap
+   * D10). `embody confirm` issues it; a test-login character skips char-gen
+   * and so arrived with nothing, and a walk staged money by `reserve
+   * override` — ledger money with no coin behind it, the one case the till
+   * is DESIGNED to refuse (AC#13). The water-supply walk read that as a dead
+   * till. Idempotent per member, refused as a value, like the real thing.
+   */
+  public static async arriveCharacter(
+    handle: string
+  ): Promise<IssueNoteResult> {
+    TestHooks.#assertTestMode('arriveCharacter');
+    return ExecutionContextApi.runRoot(TestHooks, 'arriveCharacter', async () => {
+      const avatar = PlayerApi.findAvatarByName(handle);
+      if (!avatar) throw new Error(`no resident character named '${handle}'`);
+      return ContractApi.issueNote(avatar.getIdentityPath() ?? '');
     });
   }
 

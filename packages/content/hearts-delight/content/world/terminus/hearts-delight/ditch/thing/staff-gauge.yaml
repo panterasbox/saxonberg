@@ -1,0 +1,13 @@
+# The staff gauge (water-supply W6, D18) — a painted board in the shallows
+# at the headgate; the rights on the Delight are written against it.
+class: /system/water/thing/StaffGauge
+data:
+  shortDescription: staff gauge
+  keywords: [staff, gauge, board, marks]
+  register: definite
+  longDescription: >-
+    A white-painted board standing up out of the shallows on an iron stake,
+    marked in black feet and red tenths, weed waving round its foot.
+  reachRef: delight:flats
+  mass: 15
+  _materialPath: /stuff/idea/material/wood/pine

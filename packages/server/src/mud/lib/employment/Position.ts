@@ -30,6 +30,7 @@ import { COMP_BASES } from './Compensation';
 import { Money } from '../banking/Money';
 import { BankingApi } from '../../api/banking';
 import { CompetenceBand } from '../advancement/CompetenceBand';
+import type { LockType } from '../lock/Lock';
 import type { CompetenceBandName } from '../advancement/CompetenceBand';
 
 /**
@@ -161,6 +162,23 @@ export interface PositionData {
    * mixin: authority is the position's. Absent = false.
    */
   purchases?: boolean;
+  /**
+   * ⭐ **The keys this seat carries** (water-supply D19) — the KEYWAYS a
+   * holder is issued a key to when they `clock on`: the works keeper the
+   * pump-house door's, the ditch rider the junior turnouts' padlocks'. A
+   * keyway, not a lock's path: a door is an exit on a room's row, not a
+   * thing anybody can load by path, and the keyway is the lock's identity
+   * anyway. A key is physical: a holder who quits keeps what they were
+   * handed, and recovering it is the institution's business. No permission
+   * check anywhere reads the seat — the LOCK is the gate.
+   */
+  keys?: readonly SeatKey[];
+}
+
+/** One key a seat carries: the keyway it cuts and the lock technology it fits. */
+export interface SeatKey {
+  keyway: string;
+  technology: LockType;
 }
 
 export class Position {
@@ -185,6 +203,8 @@ export class Position {
     public readonly requires?: PositionRequirementData,
     /** What one holder is CALLED, or undefined. See {@link PositionData.noun}. */
     public readonly noun?: string,
+    /** The keys a holder is issued at `clock on`. See {@link PositionData.keys}. */
+    public readonly keys: readonly SeatKey[] = [],
   ) {}
 
   /** Build a Position from an already-typed descriptor. */
@@ -200,6 +220,7 @@ export class Position {
       Position.coerceHeadcount(data.headcount),
       Position.coerceRequires(data.requires),
       data.noun,
+      Position.coerceKeys(data.keys),
     );
   }
 
@@ -236,7 +257,27 @@ export class Position {
       typeof data.noun === 'string' && data.noun.length > 0
         ? data.noun
         : undefined,
+      Position.coerceKeys(data.keys),
     );
+  }
+
+  /** The keys a seat issues, coerced; a malformed entry THROWS (a content typo is not a seat with no key). */
+  private static coerceKeys(value: unknown): readonly SeatKey[] {
+    if (value == null) return [];
+    if (!Array.isArray(value)) {
+      throw new Error(`Position.keys: expected a list of { keyway, technology }, got ${typeof value}`);
+    }
+    return value.map((k) => {
+      const raw = (k ?? {}) as Partial<SeatKey>;
+      const keyway = String(raw.keyway ?? '').trim();
+      // ⚠ The technology is carried as authored, as a door row's
+      // `lockTechnology` is — not checked against the kernel's lock list
+      // here (a second refusal site would close that vocabulary to packs;
+      // `lint:closed-vocabularies`).
+      const technology = String(raw.technology ?? 'pin-tumbler') as LockType;
+      if (keyway === '') throw new Error('Position.keys: an entry names no keyway');
+      return { keyway, technology };
+    });
   }
 
   /**
@@ -374,6 +415,7 @@ export class Position {
       ...(this.headcount != null ? { headcount: this.headcount } : {}),
       ...(this.requires ? { requires: { ...this.requires } } : {}),
       ...(this.noun ? { noun: this.noun } : {}),
+      ...(this.keys.length > 0 ? { keys: this.keys.map((k) => ({ ...k })) } : {}),
     };
   }
 }

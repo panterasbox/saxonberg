@@ -147,6 +147,21 @@ export class ParcelApi {
     return logic().powerOf(path);
   }
 
+  /**
+   * ⭐⭐ **The water read**: where the premises at `path` takes its water —
+   * a supply's template path, `'none'` (declared dry), or `''` (nothing up
+   * the chain says). The twin of {@link powerOf}; a tap resolves it lazily
+   * and loads the supply on use.
+   */
+  public static waterOf(path: string): { source: string; parcel: ParcelRecord | null } {
+    return logic().waterOf(path);
+  }
+
+  /** Every parcel row citing water source `sourcePath` — the twin of {@link parcelsOnFeeder}. */
+  public static async parcelsOnWaterSource(sourcePath: string): Promise<ParcelRecord[]> {
+    return logic().parcelsOnWaterSource(sourcePath);
+  }
+
   /** Every parcel row citing feeder node `feederRef` — the meter's twin of {@link parcelsOnReach}. */
   public static async parcelsOnFeeder(feederRef: string): Promise<ParcelRecord[]> {
     return logic().parcelsOnFeeder(feederRef);
@@ -294,6 +309,18 @@ export class ParcelApi {
     feeder: string,
   ): Promise<ParcelRecord | null> {
     return logic().citeFeeder(extent, feeder);
+  }
+
+  /**
+   * Cite where `extent` takes its water — a supply path, `'none'`, or `''`
+   * (inherit). The twin of {@link citeFeeder}; a plumber's completed service
+   * run is the act that writes it.
+   */
+  public static async citeWaterSource(
+    extent: string,
+    source: string,
+  ): Promise<ParcelRecord | null> {
+    return logic().citeWaterSource(extent, source);
   }
 
   /**

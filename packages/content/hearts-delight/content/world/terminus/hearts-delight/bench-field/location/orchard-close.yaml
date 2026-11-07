@@ -44,6 +44,10 @@ data:
   groundSpotY: 4
   # ⭐ Enough for the flock (cover build R4): twelve ewes graze it under
   # the trees, with a trough kept from the barn's rick.
+  # ⭐ Watered off the Delight ditch (water-supply D15): what the turnout
+  # lets on while it is open, by furrow.
+  inlets:
+    - { gate: /world/terminus/hearts-delight/ditch/thing/turnout-avila, method: furrow }
   areaM2: 3600
   # ⭐ One field over the whole tract (tracts build D24, D32): the grass and the herd on it are a field's.
   # Pre-marked — an author's starting state.

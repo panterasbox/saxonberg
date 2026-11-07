@@ -29,6 +29,7 @@ args:
     type: object
     required: true
     scope: "reachable"
+    greedy: true
     updates_focus: extend
     requires: LockableMixin
     validators:

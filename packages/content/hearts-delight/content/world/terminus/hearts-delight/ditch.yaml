@@ -1,0 +1,6 @@
+# The ditch (water-supply W6): the headgate on the Delight at the flats and
+# the earth ditch along the foot of the bench — its own authorship.
+class: /platform/idea/location/CartesianZone
+data:
+  name: The Delight Ditch
+  cellSize: 50.0

@@ -22,6 +22,7 @@ requires:
   title:
     # Under the realm root (economic bootstrap D5): situs walks up to terminus.
     - extent: /world/terminus/hearts-delight
+      waterSource: none
       parentParcel: /world/terminus
       holder: { group: hearts-delight }
       landUse: agricultural
@@ -66,6 +67,7 @@ requires:
     # ⭐ The co-op creamery — titled to the CO-OP, a new organization row,
     # because "the co-op" existed in the valley only as design prose.
     - extent: /world/terminus/hearts-delight/creamery
+      waterSource: none
       parentParcel: /world/terminus/hearts-delight
       holder: { organization: /world/terminus/hearts-delight/idea/creamery-coop }
       landUse: commercial
@@ -83,18 +85,22 @@ requires:
     # own outfit (the longer extent wins the walk). An industry on the
     # flats, off the gas: lamp-oil country.
     - extent: /world/terminus/hearts-delight/brickfield
+      waterSource: none
       parentParcel: /world/terminus/hearts-delight
       holder: { organization: /world/terminus/hearts-delight/brickfield/idea/brickmaster }
       landUse: industrial
       powerBand: off-grid
     # ⭐ The paper mill (paper W2) — at the fall, on the grist mill's race,
-    # titled to its own outfit. Industrial, off the gas.
+    # titled to its own outfit. Industrial, off the gas. No piped water: the
+    # vat is filled from the race, a natural source (water-supply).
     - extent: /world/terminus/hearts-delight/paper-mill
+      waterSource: none
       parentParcel: /world/terminus/hearts-delight
       holder: { organization: /world/terminus/hearts-delight/paper-mill/idea/business }
       landUse: industrial
       powerBand: off-grid
     - extent: /world/terminus/hearts-delight/brickfield/location/potters-shop
+      waterSource: none
       parentParcel: /world/terminus/hearts-delight/brickfield
       holder: { organization: /world/terminus/hearts-delight/brickfield/idea/pottery }
       landUse: industrial
