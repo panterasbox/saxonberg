@@ -1,5 +1,13 @@
 # Prison slate — confinement, the three enforcement tiers, and the guardrail
 
+> ⚠⚠ **GUARDRAIL REVERSED (2026-11-07) — read [moderation-slate](./moderation-slate.md) § 16
+> first.** The owner: *"I don't think prison has anything to do with the crime. It has to do with
+> our ability to rehabilitate and whether the investment is worth it for the character."* Prison is
+> a REMEDY chosen by investment (never standing or wealth), served by PRESENCE on the game clock,
+> with rehabilitation content that teaches a Discipline; the franchise is untouched by default and
+> only the Compact may attach disenfranchisement to a sentence. Below, the *"meta moderation —
+> face: none, ever"* tier and its guardrail are superseded; the prison conversation rewrites them.
+
 > **Status: UNBUILT** — the parcel/access exclusion machinery it inverts
 > ships, and mortality's `Incorporeal` lever is reserved for it; nothing
 > of confinement exists. Code-verified 2026-09-19: no `prison` / `gaol` /
