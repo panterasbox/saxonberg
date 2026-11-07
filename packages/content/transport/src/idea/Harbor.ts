@@ -171,6 +171,10 @@ export default class Harbor extends RegistrarMixin(SingletonMixin(Idea)) {
   public async liveBook(): Promise<HarborBook> {
     const path = this.getTemplatePath() ?? '';
     if (this.book === null) throw new Error(`Harbor ${path}: no berth book is authored (book:)`);
+    // ⚠ The book is a prop on the office desk: stand the office up FIRST, or a
+    // hail that reaches this before anyone has walked in mints a book of its own
+    // and the office's props mint the second (`singleton … found 2`, the drive).
+    if (this.office !== null) await StuffApi.singleton<Stuff>(this.office);
     const b = await StuffApi.singleton<Stuff>(this.book);
     if (!(b instanceof HarborBook)) throw new Error(`Harbor ${path}: ${this.book} is not a berth book`);
     if (b.getHarbor() !== path) throw new Error(`Harbor ${path}: the book ${this.book} is kept for ${b.getHarbor() ?? 'no harbor'}`);

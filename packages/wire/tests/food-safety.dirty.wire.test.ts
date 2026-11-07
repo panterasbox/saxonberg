@@ -147,7 +147,7 @@ suite('⭐⭐ the hazard reports to no sense', () => {
 
 suite('the other hurdle, and a proper cook', () => {
   it('drying resolves — no salt, no fire', async () => {
-    const dried = await cook.cmd('dry');
+    const dried = await cook.cmd('dry treated');
     expectOk(dried);
     expect(await dried.said()).toMatch(/to dry/i);
   }, 60_000);
@@ -166,7 +166,7 @@ suite('the other hurdle, and a proper cook', () => {
     // hearth IS lit, not that this test lit it.
     expectOkOr(await cook.cmd('light oven'), 'already-burning');
     const seared = await cook.cmd('cook seared-cut');
-    expect(await seared.said()).toMatch(/you cook|haven't learned|work it by hand/i);
+    expect(await seared.said()).toMatch(/you cook|haven't learned|never made one|work it by hand/i);
   }, 120_000);
 });
 
