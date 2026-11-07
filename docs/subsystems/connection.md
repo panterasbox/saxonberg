@@ -881,9 +881,12 @@ later is a drop, and closing one of several tabs does nothing to the body.
 
 - ⚠ **A failed save keeps the body.** It stays standing and tries again every
   `SIGN_OUT_RECHECK_MS`; it is never destructed on an unwritten record.
-- **A login racing the save wins.** `loadAvatarsForUser` reuses the live body,
-  so the retirement re-checks after the await and stands down. `play` re-loads
-  by player id, so a roster drawn before the destruct still lands.
+- **A login racing the save wins.** `loadAvatarsForUser` reuses the live body and
+  claims it (`claimForLogin`), and the retirement stands down when its save lands.
+  A session flag cannot say this: a login awaits between loading a body and
+  entering it, and a save landing in that gap destructed the body it was about to
+  hand the socket to (found by the dairy drive's `goTo`). `play` re-loads by player
+  id, so a roster drawn before the destruct still lands.
 - **Signing out is not an escape.** While `signOutHold` names a reason the body
   stays and asks again: `fighting` (bounded by `combat.maxBeats`), `dying` (the
   clock runs regardless), `in-water` (the water holds it, underwater D11),

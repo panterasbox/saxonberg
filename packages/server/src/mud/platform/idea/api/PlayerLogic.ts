@@ -541,7 +541,10 @@ export class PlayerLogic extends ApiLogic {
     for (const playerId of user.playerIds) {
       // Reuse if already in-world (multiplexing).
       let avatar = this.findAvatarByPlayerId(playerId);
-      if (!avatar) {
+      if (avatar) {
+        // A body on its way out comes back: this login has it now (D30).
+        avatar.claimForLogin();
+      } else {
         // Concurrent connections for the same user (multiplexing, or a
         // dev StrictMode double-mount) can reach here before the first
         // clone has registered. Coordinate on a per-playerId in-flight

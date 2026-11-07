@@ -89,8 +89,8 @@ describe("signing out", () => {
     a.setLeaveIntent(true);
     a.onLinkdead();
     await settle();
-    // The returning connection: reuses this very body.
-    (a as unknown as { sessionActive: boolean }).sessionActive = true;
+    // The returning login has the body in hand, and has not entered it yet.
+    a.claimForLogin();
     finish();
     await settle();
     expect(destruct).not.toHaveBeenCalled();

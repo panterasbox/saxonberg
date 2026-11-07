@@ -1637,6 +1637,9 @@ export default abstract class Avatar extends AvatarBase {
     this.save().catch(() => undefined);
   }
 
+  /** Which retirement is current; a login's claim makes any in flight stale. */
+  private signOutRetirement = 0;
+
   /** The pending re-check of a signed-out body something is still holding here. */
   private signOutRecheck: ScheduleHandle | null = null;
 
@@ -1678,20 +1681,22 @@ export default abstract class Avatar extends AvatarBase {
    *
    *   - ⚠ a save that fails leaves the body standing, linkdead, and tries again.
    *     It is never destructed on an unwritten record.
-   *   - a login that lands while the save is in flight reuses this very body,
-   *     so everything is re-checked after the await; the login wins.
+   *   - a login that lands while the save is in flight reuses this very body
+   *     and claims it ({@link claimForLogin}); the login wins.
    *
    * A body with no session at all (stood up by the character-select roster and
    * not chosen) takes the same path through {@link retireIfSessionless}.
    */
   private async retireSignedOutBody(): Promise<void> {
     this.clearSignOutRecheck();
+    const retirement = ++this.signOutRetirement;
     try {
       if (this.signOutHold() !== null) {
         this.recheckSignOutLater();
         return;
       }
       await this.save();
+      if (retirement !== this.signOutRetirement) return;
       if (this.isDestroyed() || this.hasLiveSession()) return;
       if (this.signOutHold() !== null) {
         this.recheckSignOutLater();
@@ -1705,6 +1710,18 @@ export default abstract class Avatar extends AvatarBase {
       );
       if (!this.isDestroyed()) this.recheckSignOutLater();
     }
+  }
+
+  /**
+   * A login has this body in hand: whatever retirement is under way stands down.
+   * ⚠ A session flag cannot say this: between loading a body and entering it a
+   * login awaits, and a save landing in that gap would destruct the body it is
+   * about to hand the socket to. If that login never enters, its screen's end
+   * retires the body ({@link retireIfSessionless}).
+   */
+  public claimForLogin(): void {
+    this.signOutRetirement += 1;
+    this.clearSignOutRecheck();
   }
 
   private recheckSignOutLater(): void {
