@@ -1,5 +1,7 @@
 # Capability & magic slate (working doc)
 
+> ⭐ **2026-11-07 → [spellbook-slate](./spellbook-slate.md)** is now the catalog: the walk over every shipped system, how effects are realized (physics first, getter shadows where magic breaks physics), combat and the item-firing taxonomy. This slate's list stays as a source.
+
 > **Status: PARTIAL** — the effect substrate, the casting grid as
 > Disciplines, the anatomical faculty over the Reserve axis, provenance +
 > suppression, the roster across every damage channel and the Practicum
