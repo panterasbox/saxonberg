@@ -15,6 +15,7 @@
  * simply cooked.
  */
 
+import { installAromas } from '../../../../lib/perception/__tests__/aroma-fixtures';
 import '../../../../../test-bootstrap';
 import { MixinApi } from '../../../../api/mixin';
 import { chargeHot, fuelMaterial } from '../../../../lib/fire/__tests__/burner-fuel';
@@ -295,12 +296,13 @@ describe('⭐⭐⭐ what the FIRE puts into the work (the fire build, W5)', () =
    * recipe row — and `kiln-malt-peated`, which was `kiln-malt` plus an
    * `imparts:` block plus four turves as an ITEM SLOT, is retired.
    */
-  function stokeHearthWith(mjPerKg: number, imparts: { type: string; amount: number }[]): void {
+  async function stokeHearthWith(mjPerKg: number, imparts: { type: string; amount: number }[]): Promise<void> {
     const fire = [...(room as unknown as { getContents(): unknown[] })
       .getContents()]
       .find((c) => MixinApi.isBurner(c as Stuff)) as unknown as Stuff & Burner;
     const material = fuelMaterial(mjPerKg, `w5-${imparts.length}`);
-    if (imparts.length > 0) material.setCombustionImparts(imparts);
+    installAromas(['smoke']);
+    if (imparts.length > 0) await material.setCombustionImparts(imparts);
     const path = material.getTemplatePath()!;
     (fire as unknown as { fuelBed: Record<string, number> }).fuelBed = {
       [path]: 20,
@@ -317,7 +319,7 @@ describe('⭐⭐⭐ what the FIRE puts into the work (the fire build, W5)', () =
   }
 
   it('⭐⭐ a smoky fuel puts its smoke into the output', async () => {
-    stokeHearthWith(15, [{ type: 'smoke', amount: 30 }]);
+    await stokeHearthWith(15, [{ type: 'smoke', amount: 30 }]);
     const outcome = await craftAs(cook, {
       recipeRef: 'dry-roast',
       makerMode: 'self',
@@ -328,7 +330,7 @@ describe('⭐⭐⭐ what the FIRE puts into the work (the fire build, W5)', () =
   it('⭐⭐ …and the SAME recipe over a clean fuel does not', async () => {
     // The control, and the whole argument: one recipe, two outputs,
     // decided by an act somebody performed at the firebox.
-    stokeHearthWith(16, []);
+    await stokeHearthWith(16, []);
     const outcome = await craftAs(cook, {
       recipeRef: 'dry-roast',
       makerMode: 'self',
@@ -341,7 +343,8 @@ describe('⭐⭐⭐ what the FIRE puts into the work (the fire build, W5)', () =
       .getContents()]
       .find((c) => MixinApi.isBurner(c as Stuff)) as unknown as Stuff & Burner;
     const smoky = fuelMaterial(15, 'w5-mix-smoky');
-    smoky.setCombustionImparts([{ type: 'smoke', amount: 30 }]);
+    installAromas(['smoke']);
+    await smoky.setCombustionImparts([{ type: 'smoke', amount: 30 }]);
     const clean = fuelMaterial(16, 'w5-mix-clean');
     (fire as unknown as { fuelBed: Record<string, number> }).fuelBed = {
       [smoky.getTemplatePath()!]: 10,
@@ -356,15 +359,16 @@ describe('⭐⭐⭐ what the FIRE puts into the work (the fire build, W5)', () =
     expect(smokeIn(outcome)).toBeCloseTo(15);
   });
 
-  it('⚠ a misspelt aroma on a material fails at the SETTER, not silently', () => {
+  it('⚠ a misspelt aroma on a material fails at the SETTER, not silently', async () => {
     // A fuel that quietly imparted nothing would still kiln the barley
     // and the malt would just be unpeated — the silent-wrong-answer
     // shape the recipe `imparts` validator exists for.
     const m = fuelMaterial(15, 'w5-bad');
-    expect(() => m.setCombustionImparts([{ type: 'smoak', amount: 30 }]))
-      .toThrow(/aroma/);
-    expect(() => m.setCombustionImparts([{ type: 'smoke', amount: 0 }]))
-      .toThrow(/amount/);
+    installAromas(['smoke']);
+    await expect(m.setCombustionImparts([{ type: 'smoak', amount: 30 }]))
+      .rejects.toThrow(/smoak/);
+    await expect(m.setCombustionImparts([{ type: 'smoke', amount: 0 }]))
+      .rejects.toThrow(/amount/);
   });
 });
 
@@ -518,14 +522,15 @@ describe('Recipe.fromData validates the medium word', () => {
     outputTemplate: '/obj/x',
   };
 
-  it('throws at READ on an unknown medium — never a silently uncapped fire', () => {
-    expect(() => Recipe.fromData({ ...base, medium: 'steam' })).toThrow(
+  it('throws at READ on a medium that could not be a tag', () => {
+    expect(() => Recipe.fromData({ ...base, medium: 'Steam Cloud' })).toThrow(
       /medium/,
     );
     expect(() => Recipe.fromData({ ...base, medium: 42 })).toThrow(/medium/);
   });
 
-  it('accepts the two real media, and absence', () => {
+  it('accepts any tag, and absence', () => {
+    expect(Recipe.fromData({ ...base, medium: 'brine' }).getMedium()).toBe('brine');
     expect(Recipe.fromData({ ...base, medium: 'water' }).getMedium()).toBe(
       'water',
     );

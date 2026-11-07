@@ -2,8 +2,10 @@
 # `active` tag + a `toxicity` dose of `anaesthesia` are the whole mechanism
 # (the metabolism/anaesthesia Condition carries the effect + prescription
 # gate). Fiction ours; honest mechanism.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ word: herbal, strength: 300 }]
+  tastes: [{ type: bitter, amount: 0.5 }]
   name: grey-draught
   keywords: [grey-draught, draught, anaesthetic, greywort]
   appearance: a cloudy grey infusion

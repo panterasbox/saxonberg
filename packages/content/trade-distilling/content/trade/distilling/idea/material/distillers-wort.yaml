@@ -1,8 +1,10 @@
 # Distiller's wort — the still-house's own rough grist, mashed from
 # bought malt (D7: gin opens at the process tier over bought malt).
 # Its own category so the wash profile, not the ale's, takes it.
-class: /platform/idea/material/ConsumableMaterial
+class: /platform/idea/material/OdorousConsumableMaterial
 data:
+  smells: [{ word: mash, strength: 300 }]
+  tastes: [{ type: sweet, amount: 90 }]
   name: distiller's wort
   keywords: [wort, "distiller's", distiller]
   appearance: "a rough, grey-amber wort"

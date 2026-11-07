@@ -4,8 +4,9 @@
 # `whey-starter` culture profile keys on this tag), and the milk sugar it
 # holds is what a feed restores. Backslopping: the drained whey into the
 # crock is next time's starter.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ word: whey, strength: 100 }]
   name: "whey"
   keywords: [whey]
   appearance: thin and greenish-yellow
@@ -17,7 +18,7 @@ data:
   hardness: 0
   toughness: 0
   edibility: true
-  tastes: [sour]
+  tastes: [{ type: sweet, amount: 40 }, { type: sour, amount: 6 }]
   nutrients: ["fat", "protein", "sugar", "water"]
   nutrientAmounts: { fat: 3000, protein: 9000, sugar: 48000, water: 935000 }
   spoilActivationEnergy: 60000

@@ -1237,11 +1237,11 @@ function inflictThroughStack(
   let tissueMaterial: Material | null = null;
 
   if (isBody) {
-    for (const layer of resolveCoveringStack(
-      target,
-      spec.site,
-      spec.shieldFacing ?? true
-    )) {
+    const stack =
+      spec.mechanism === 'corrosion' && spec.bare
+        ? []
+        : resolveCoveringStack(target, spec.site, spec.shieldFacing ?? true);
+    for (const layer of stack) {
       const incident = residual;
       // ⭐⭐ A layer made of PARTS answers with the part that answers the
       // blow (assembly D7): a shield of boards with a hide face meets an

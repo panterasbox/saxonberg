@@ -11,8 +11,9 @@
 # because the gum is still on it. ⚠ Not perishable: the pupa inside is
 # killed by stifling or leaves as a moth; neither is food going off on a
 # shelf.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ word: silkworm, strength: 30 }]
   name: spun silk
   keywords: [cocoon, cocoons]
   appearance: a smooth, papery cocoon

@@ -2,8 +2,9 @@
 # glued to the hurd. Tagged `retting-hemp`, not `retting`, so the pit
 # runs the hemp profile on it and never the flax one (two profiles matching
 # one material is an authoring error).
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ word: straw, strength: 15 }]
   name: hemp straw
   keywords: [hemp, straw, hemp-straw, stalks, hurds]
   appearance: tall grey-green hemp stalks

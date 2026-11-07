@@ -1,0 +1,4 @@
+# Raw meat, iron and fat.
+class: /platform/idea/Aroma
+data:
+  threshold: 1

@@ -1,0 +1,4 @@
+# Chalky and sharp, off wet quicklime.
+extends: /stuff/idea/aroma/lye
+data:
+  liking: { peak: 1.5, width: 2, valence: -1 }

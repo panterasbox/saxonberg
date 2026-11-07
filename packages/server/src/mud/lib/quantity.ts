@@ -73,7 +73,7 @@ export type Unit =
   // Sound (declared now, channel ships later)
   | 'dB' | 'Hz'
   // Chemistry / material
-  | 'mol' | 'g/mol' | 'mol/L' | 'kg/m³' | 'ppm'
+  | 'mol' | 'g/mol' | 'mol/L' | 'kg/m³' | 'ppm' | 'OU'
   // Molar energy (joules per mole) — the Arrhenius activation energy a
   // rate law reads. Spoilage tabulates one per perishable Material
   // (`Material.spoilActivationEnergy`): how steeply that food's microbial
@@ -206,6 +206,7 @@ const unitOps: Partial<Record<Unit, UnitOps>> = {
   'mol/L': ARITHMETIC_OPS,
   'kg/m³': ARITHMETIC_OPS,
   ppm: ARITHMETIC_OPS,
+  OU: ARITHMETIC_OPS,
   mg: ARITHMETIC_OPS,
   'g/dL': ARITHMETIC_OPS,
   Pa: ARITHMETIC_OPS,

@@ -19,6 +19,7 @@
 import { Idea } from "../../lib/stuff/Idea";
 import type { FieldMeta } from "../../lib/mixin";
 import { CLEANSER_ACTIONS, type CleanserAction } from "./Cleanser";
+import Aroma from "./Aroma";
 
 /**
  * What a dirt does on a surface — the three things the kernel does
@@ -52,17 +53,17 @@ export interface DirtKindDescriptor {
    * crumbs, ash, flour, dried mud. Grease, sweat and a stain take nothing
    * from a brush. 0 by default. */
   brushLifts: number;
-  /** ⭐ What it smells of, and how strongly — ppm per unit of load (B57).
+  /** ⭐ What it smells of, and how strongly — OU per unit of load (B57).
    * Sweat, dung, sour milk; `null` for a dirt with no nose (mud, ash). */
-  odour: DirtOdour | null;
+  odor: DirtOdor | null;
 }
 
-/** A dirt's smell (`DirtKind.odour`). */
-export interface DirtOdour {
-  /** The odour identity the smell walk names (*stale sweat*). */
-  identity: string;
-  /** ppm emitted per unit of load. */
-  ppmPerLoad: number;
+/** A dirt's smell (`DirtKind.odor`). */
+export interface DirtOdor {
+  /** The aroma word (`stale-sweat`). */
+  word: string;
+  /** OU emitted per unit of load. */
+  ouPerLoad: number;
 }
 
 export default class DirtKind extends Idea {
@@ -79,7 +80,7 @@ export default class DirtKind extends Idea {
   public contaminates: Record<string, number> = {};
   public waterLifts: number = 0.3;
   public brushLifts: number = 0;
-  public odour: DirtOdour | null = null;
+  public odor: DirtOdor | null = null;
 
   static fieldMeta: FieldMeta = {
     key: { persistent: true },
@@ -92,8 +93,14 @@ export default class DirtKind extends Idea {
     contaminates: { persistent: true },
     waterLifts: { persistent: true },
     brushLifts: { persistent: true },
-    odour: { persistent: true },
+    odor: { persistent: true },
   };
+
+  /** Loads the word's row, so a dirt naming a word nobody ships fails here. */
+  public async setOdor(value: DirtOdor | null): Promise<void> {
+    if (value) await Aroma.ensure(value.word);
+    this.odor = value;
+  }
 
   public getKey(): string {
     return this.key;
@@ -144,13 +151,9 @@ export default class DirtKind extends Idea {
       contaminates,
       waterLifts: unit(this.waterLifts, 0.3),
       brushLifts: unit(this.brushLifts, 0),
-      odour:
-        this.odour &&
-        typeof this.odour.identity === "string" &&
-        this.odour.identity &&
-        typeof this.odour.ppmPerLoad === "number" &&
-        this.odour.ppmPerLoad > 0
-          ? { identity: this.odour.identity, ppmPerLoad: this.odour.ppmPerLoad }
+      odor:
+        this.odor && Aroma.isWord(this.odor.word) && this.odor.ouPerLoad > 0
+          ? { word: this.odor.word, ouPerLoad: this.odor.ouPerLoad }
           : null,
     };
   }

@@ -1,8 +1,10 @@
 # Board (paper build) — pasteboard: sheets of paper glued in plies until they
 # stand stiff. A book's covers, a carton's walls. The same cellulose as
 # paper, denser and much stiffer; it burns as paper does, a little slower.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ word: wood, strength: 10 }]
+  burning: [{ word: wood-smoke, strength: 300 }]
   name: board
   keywords: [board, pasteboard, cardboard]
   appearance: stiff grey pasteboard

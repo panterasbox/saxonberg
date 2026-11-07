@@ -1,0 +1,6 @@
+# Oak boards that have stood in bark liquor for years. The liquor has gone into
+# the wood, which is why a pit smells whether or not a batch is in it.
+extends: /stuff/idea/material/wood/oak
+data:
+  name: pit-soaked oak
+  smells: [{ word: tan-liquor, strength: 400 }, { word: wet-hide, strength: 200 }]

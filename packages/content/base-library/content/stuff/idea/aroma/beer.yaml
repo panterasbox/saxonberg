@@ -1,0 +1,4 @@
+# Hops and malt with the sugar worked out.
+extends: /stuff/idea/aroma/alcohol
+data:
+  discipline: brewing

@@ -6,8 +6,9 @@
 # calcined cake is the same cake, made of this now. Its `castTemplate` is the
 # lump a counter lists, so a house that buys pearl ash buys the cake as
 # pearl ash. Its purity is the firing's — the cake's potash, concentrated.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ word: lye, strength: 10 }]
   name: pearl ash
   keywords: ["pearl ash", pearlash, potash]
   appearance: a white, faintly bluish porous salt

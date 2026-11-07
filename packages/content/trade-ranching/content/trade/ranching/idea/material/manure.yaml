@@ -1,8 +1,9 @@
 # Manure — muck out of a byre (cleanliness D20): dung and trodden straw. It
 # carries what lives in a gut, and on a midden it rots down into the compost
 # a field is fed with — the return leg of the nitrogen ledger.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ word: dung, strength: 3000 }]
   name: manure
   keywords: [manure, muck, dung]
   appearance: wet dark muck and straw

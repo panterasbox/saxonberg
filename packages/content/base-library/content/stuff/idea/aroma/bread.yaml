@@ -1,0 +1,4 @@
+# Baked crust: Maillard and yeast.
+extends: /stuff/idea/aroma/grain
+data:
+  discipline: baking

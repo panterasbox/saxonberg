@@ -6,8 +6,10 @@
 # it yet, which is said plainly rather than hidden — the demand is the
 # cooperage and shipbuilding builds', and this is the supply waiting for
 # it.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ word: pitch, strength: 2000 }]
+  burning: [{ word: oil-smoke, strength: 1500 }]
   name: pitch
   keywords: [pitch]
   # ⚠ Not "brittle": `lint:descriptors` reserves that word for the

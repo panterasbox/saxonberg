@@ -1,0 +1,4 @@
+# Feathers and droppings.
+extends: /stuff/idea/aroma/animal
+data:
+  discipline: stockmanship

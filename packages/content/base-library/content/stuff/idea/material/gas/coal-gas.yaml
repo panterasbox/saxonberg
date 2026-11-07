@@ -18,8 +18,10 @@
 #    somebody had to invent a gas mantle is that the flame alone is a
 #    disappointment, and the game now has that problem without anybody
 #    authoring it.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ word: coal-tar, strength: 800 }]
+  burning: [{ word: coal-smoke, strength: 100 }]
   name: coal gas
   keywords: ["coal gas", gas, "town gas", "illuminating gas"]
   appearance: nothing you can see

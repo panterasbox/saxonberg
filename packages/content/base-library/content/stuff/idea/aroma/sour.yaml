@@ -1,0 +1,4 @@
+# Lactic and acetic sourness.
+class: /platform/idea/Aroma
+data:
+  threshold: 1

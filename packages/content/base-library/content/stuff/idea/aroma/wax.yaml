@@ -1,0 +1,4 @@
+# A warm, sweetish wax.
+class: /platform/idea/Aroma
+data:
+  threshold: 1

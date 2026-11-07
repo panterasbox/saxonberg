@@ -1,6 +1,8 @@
 # Mahogany — dense red-brown hardwood, the island's.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ word: wood, strength: 10 }]
+  burning: [{ word: wood-smoke, strength: 300 }]
   name: mahogany
   keywords: [mahogany]
   density: 600

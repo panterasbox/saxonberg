@@ -1,0 +1,4 @@
+# Smoke off burning coal, sulfurous and tarry.
+extends: /stuff/idea/aroma/smoke
+data:
+  discipline: colliery

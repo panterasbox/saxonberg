@@ -1,7 +1,8 @@
 # Wood ash — the mineral residue when a burn goes all the way through.
 # Worth something to a farmer (potash) and nothing to a smelter.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ word: smoke, strength: 3 }]
   name: ash
   keywords: [ash]
   density: 600

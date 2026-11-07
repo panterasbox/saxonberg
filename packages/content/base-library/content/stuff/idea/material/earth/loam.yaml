@@ -10,8 +10,9 @@
 # ⚠ This is a MATERIAL, not a soil model. The four reserves, the texture
 # class, pH and tilth are `SoilMixin`'s and `GroundCharacter`'s; this row
 # says only what the stuff IS, which is all a floor needs to name it.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ word: loam, strength: 60 }]
   name: loam
   keywords: [loam, earth, soil, dirt]
   appearance: dark brown loam

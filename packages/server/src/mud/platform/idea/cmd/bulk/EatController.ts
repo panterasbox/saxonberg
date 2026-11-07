@@ -61,9 +61,10 @@ export default class EatController extends CommandController<EatModel> {
     // ⚠ A blend's appearance carries its own article ("a thick brown
     // stew…"), a material's does not — the live drive read "You eat the a
     // thick brown stew".
+    const wentDown = wentDownLine(outcome.liking?.word, outcome.hungerHelped === true);
     const self = outcome.fromDish
-      ? Mml.compose`You eat ${outcome.what}${withIt}.`
-      : Mml.compose`You eat the ${outcome.what}${withIt}.`;
+      ? Mml.compose`You eat ${outcome.what}${withIt}.${wentDown}`
+      : Mml.compose`You eat the ${outcome.what}${withIt}.${wentDown}`;
     const peers = outcome.fromDish
       ? Mml.compose`${Mml.actor(giver)} eats from ${Mml.thing(target)}${peersWith}.`
       : Mml.compose`${Mml.actor(giver)} eats ${outcome.foodName}${peersWith}.`;
@@ -77,5 +78,21 @@ export default class EatController extends CommandController<EatModel> {
   ): void {
     MessageApi.scene(context.commandGiver).topic(TOPIC).toSelf(line).send();
     context.note({ kind: "controller-rejected", reason, detail: reason });
+  }
+}
+
+/** How it went down, for this person. It feeds you either way. */
+function wentDownLine(word: string | undefined, hungerHelped: boolean): string {
+  switch (word) {
+    case 'revolting':
+      return hungerHelped ? ' It is revolting, but you are starving and it goes down.' : ' It is revolting.';
+    case 'unpleasant':
+      return hungerHelped ? ' It is unpleasant, but you are hungry and it goes down.' : ' It is unpleasant.';
+    case 'good':
+      return ' It goes down well.';
+    case 'delicious':
+      return ' It is delicious.';
+    default:
+      return '';
   }
 }

@@ -10,8 +10,9 @@
 #
 # ⚠ `waterActivity` far above the 0.60 growth floor, against kilned
 # malt's 0.45. The difference between those two numbers is the trade.
-class: /platform/idea/material/ConsumableMaterial
+class: /platform/idea/material/OdorousConsumableMaterial
 data:
+  smells: [{ word: malt, strength: 100 }]
   name: green malt
   keywords: [malt, green, "green malt", grain]
   appearance: a warm, rooty mat of chitted barley, sweet-smelling
@@ -19,7 +20,7 @@ data:
   thermalConductivity: 0.45
   specificHeat: 2400
   edibility: true
-  tastes: [sweet]
+  tastes: [{ type: sweet, amount: 60 }]
   spoilActivationEnergy: 58000
   waterActivity: 0.94
   nutrients: [carb, sugar]

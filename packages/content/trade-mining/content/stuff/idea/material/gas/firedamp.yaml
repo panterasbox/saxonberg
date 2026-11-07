@@ -31,8 +31,10 @@
 # ⚠ No `toxicity`. Methane poisons nobody; it suffocates in quantity and
 # explodes in the right mixture, and both of those are consequences of
 # facts already here.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ word: firedamp, strength: 3 }]
+  burning: [{ word: oil-smoke, strength: 3 }]
   name: firedamp
   keywords: [firedamp, damp, gas, methane, "marsh gas"]
   appearance: nothing you can see

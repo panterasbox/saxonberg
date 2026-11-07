@@ -8,7 +8,7 @@
  * `HandledMixin` as a "pure carrier" exemplar. `HandledMixin` is not one:
  * it carries `commandContributions` and confers the `handle` verb. Every
  * other near-empty mixin in the tree confers something real —
- * `Palatable` and `NutritionLabel` each carry a `markupAugmenter`,
+ * `Freshness` and `NutritionLabel` each carry a `markupAugmenter`,
  * `Singleton` enforces one-instance.
  * A mixin that is only a tag is a tag pretending to be architecture.
  *

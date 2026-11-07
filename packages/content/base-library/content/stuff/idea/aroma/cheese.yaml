@@ -1,0 +1,4 @@
+# Short-chain acids off a ripening curd.
+extends: /stuff/idea/aroma/sour
+data:
+  discipline: dairying

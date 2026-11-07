@@ -1,8 +1,10 @@
 # Glycerin — the sweet, syrupy lees of the soap boil (cleanliness D24),
 # drawn off the kettle's bottom. The apothecary's and the cosmetic
 # trade's input; the chandler sells it by the jar.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ word: sugar, strength: 3 }]
+  tastes: [{ type: sweet, amount: 600 }]
   name: glycerin
   keywords: [glycerin, glycerine, lees]
   appearance: a clear, sweet, syrupy liquid

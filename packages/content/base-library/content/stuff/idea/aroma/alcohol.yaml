@@ -1,0 +1,4 @@
+# Ethanol, sharp in the nose.
+class: /platform/idea/Aroma
+data:
+  threshold: 1

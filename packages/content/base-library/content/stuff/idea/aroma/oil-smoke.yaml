@@ -1,0 +1,4 @@
+# Smoke off burning oil and tar: greasy and black.
+extends: /stuff/idea/aroma/smoke
+data:
+  liking: { peak: 1.5, width: 2, valence: -1 }

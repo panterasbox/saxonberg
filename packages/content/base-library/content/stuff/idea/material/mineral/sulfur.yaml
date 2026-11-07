@@ -8,8 +8,10 @@
 # ⭐ `heatOfCombustion` and `autoignitionTemperature` are honest: the
 # works' oven held with the bellows (≈ 482 K) stays below 505 K, so a
 # charge of sulfur cures rubber and does not catch.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ word: sulfur, strength: 300 }]
+  burning: [{ word: sulfur, strength: 20000 }]
   name: sulfur
   keywords: [sulfur, sulphur, brimstone]
   appearance: bright yellow crystalline sulfur

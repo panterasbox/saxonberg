@@ -1,0 +1,4 @@
+# The sour, drying smell of bark liquor.
+class: /platform/idea/Aroma
+data:
+  threshold: 1

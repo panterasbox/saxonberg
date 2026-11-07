@@ -1,0 +1,4 @@
+# Vanillin, from oak's lignin; toasting and charring make more.
+class: /platform/idea/Aroma
+data:
+  threshold: 0.1

@@ -350,6 +350,9 @@ importers:
       '@saxonberg/content-arcana':
         specifier: workspace:*
         version: link:../arcana
+      '@saxonberg/content-base-library':
+        specifier: workspace:*
+        version: link:../base-library
       '@saxonberg/content-platform':
         specifier: workspace:*
         version: link:../platform
@@ -542,6 +545,9 @@ importers:
 
   packages/content/generic-objects:
     dependencies:
+      '@saxonberg/content-base-library':
+        specifier: workspace:*
+        version: link:../base-library
       '@saxonberg/content-platform':
         specifier: workspace:*
         version: link:../platform
@@ -959,6 +965,9 @@ importers:
 
   packages/content/species-and-names:
     dependencies:
+      '@saxonberg/content-base-library':
+        specifier: workspace:*
+        version: link:../base-library
       '@saxonberg/content-platform':
         specifier: workspace:*
         version: link:../platform
@@ -1945,6 +1954,9 @@ importers:
 
   packages/content/trade-medicine:
     dependencies:
+      '@saxonberg/content-base-library':
+        specifier: workspace:*
+        version: link:../base-library
       '@saxonberg/content-platform':
         specifier: workspace:*
         version: link:../platform

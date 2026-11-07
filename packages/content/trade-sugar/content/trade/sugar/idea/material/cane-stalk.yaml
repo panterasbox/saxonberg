@@ -1,7 +1,8 @@
 # Cane stalk — what the cutters bring to the mill: fibre and juice. ⭐ The
 # tag `cane` is what the crush recipe slots.
-class: /platform/idea/material/ConsumableMaterial
+class: /platform/idea/material/OdorousConsumableMaterial
 data:
+  smells: [{ word: green, strength: 20 }]
   name: sugar cane
   keywords: [cane, stalk, "sugar cane"]
   appearance: green-gold and jointed, sweet at the cut
@@ -13,7 +14,7 @@ data:
   hardness: 1
   toughness: 1
   edibility: true
-  tastes: [sweet]
+  tastes: [{ type: sweet, amount: 120 }]
   spoilActivationEnergy: 55000
   waterActivity: 0.97
   nutrients: ["sugar", "water"]

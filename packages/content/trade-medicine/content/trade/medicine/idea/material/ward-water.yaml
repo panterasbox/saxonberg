@@ -1,6 +1,8 @@
 # Ward-water — the antibiotic (D10). Steeped from wardmoss.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ word: herbal, strength: 30 }]
+  tastes: [{ type: bitter, amount: 0.05 }]
   name: ward-water
   keywords: [ward-water, draught, antibiotic, wardmoss]
   appearance: a dark green infusion

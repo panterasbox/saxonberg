@@ -11,8 +11,9 @@
 # is the whole "acid eats the breastplate AND burns the arm under it"
 # interop case: a steel layer is armour against lime and NO armour against
 # vitriol, and the covering fold reads exactly that off this one list.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ word: vitriol, strength: 3000 }]
   name: vitriol
   keywords: [vitriol, acid]
   appearance: oily, faintly fuming acid

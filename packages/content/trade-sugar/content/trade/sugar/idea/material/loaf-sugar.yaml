@@ -14,7 +14,7 @@ data:
   hardness: 2
   toughness: 0
   edibility: true
-  tastes: [sweet]
+  tastes: [{ type: sweet, amount: 1000 }]
   spoilActivationEnergy: 90000
   waterActivity: 0.4
   nutrients: ["sugar"]

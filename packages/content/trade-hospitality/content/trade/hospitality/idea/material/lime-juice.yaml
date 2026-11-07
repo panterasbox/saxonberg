@@ -1,7 +1,8 @@
 # Fresh lime juice — house-made (the `press-lime` recipe's authored output
 # material). Tag `lime-juice` is what a sour slot matches.
-class: /platform/idea/material/ConsumableMaterial
+class: /platform/idea/material/OdorousConsumableMaterial
 data:
+  smells: [{ word: citrus, strength: 300 }]
   name: lime juice
   keywords: [lime, lime-juice, juice]
   appearance: cloudy, sharp lime juice
@@ -12,7 +13,7 @@ data:
   # ⭐ The basic tastes (closed five-word set). Nothing authors what a
   # DISH tastes like — `taste` derives that from what went in, projected
   # through the taster's own palate. See docs/subsystems/crafting.md.
-  tastes: [sour]
+  tastes: [{ type: sour, amount: 55 }]
   # ⭐ Spoilage (docs/subsystems/spoilage.md): the microbial growth rate is
   # `μ_max · f_T(T) · f_aw(a_w)`. `spoilActivationEnergy` (J/mol) is how
   # steeply this food answers to warmth; `waterActivity` is how much of its

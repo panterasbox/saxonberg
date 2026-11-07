@@ -1,8 +1,10 @@
 # Wort — mashed malt sugars in water, the ale ferment's must. Boiled
 # and therefore STERILE (D14): a brewer pitches a culture or leaves the
 # vat open for wild flora and takes the lag. Sugar in g/L (D4).
-class: /platform/idea/material/ConsumableMaterial
+class: /platform/idea/material/OdorousConsumableMaterial
 data:
+  smells: [{ word: mash, strength: 300 }]
+  tastes: [{ type: sweet, amount: 90 }]
   name: wort
   keywords: [wort]
   appearance: "a sweet amber wort, still steaming faintly"

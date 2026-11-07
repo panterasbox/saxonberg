@@ -1,8 +1,10 @@
 # Naphtha vapour — what an open dish of naphtha gives off (cleanliness D22):
 # heavier than air, it pools, and at a little over one part in a hundred a
 # naked flame sets it off. A rag of naphtha by the hearth is a fire.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ word: naphtha, strength: 3000 }]
+  burning: [{ word: oil-smoke, strength: 100 }]
   name: naphtha vapour
   keywords: [vapour, naphtha, fumes]
   appearance: a shimmer of vapour over the floor

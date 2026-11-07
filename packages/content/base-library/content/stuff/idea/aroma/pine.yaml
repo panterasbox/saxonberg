@@ -1,0 +1,4 @@
+# Pine resin and its pinene.
+extends: /stuff/idea/aroma/resin
+data:
+  discipline: silviculture

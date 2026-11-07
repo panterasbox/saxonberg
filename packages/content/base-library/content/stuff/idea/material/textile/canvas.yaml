@@ -8,8 +8,9 @@
 #
 # ⚠ `cellulose`, like linen: it is a plant fibre, and the narrowed
 # vitriol list names cellulose, so acid still eats a canvas awning.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ word: straw, strength: 3 }]
   name: canvas
   keywords: [canvas, sailcloth, duck]
   appearance: striped canvas

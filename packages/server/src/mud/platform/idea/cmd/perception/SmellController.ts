@@ -1,129 +1,100 @@
 /**
- * SmellController — `smell` verb.
+ * SmellController — the `smell` verb.
  *
- * Bare form reads true field physics via
- * `(PerceptionApi.modalityByName('smell') as SmellModality).signalAt(loc)` and renders the perceived odor with
- * source attribution, gated by the viewer's
- * `Species.olfactoryProfile.acuity` threshold. Targeted form
- * (`smell <target>`) keeps the per-Detail `smell` slot read inherited
- * from `SingleSenseControllerBase`.
+ * The bare form reads the air at the giver's place and the target form reads a
+ * thing with your nose to it. This controller only words what the nose read:
+ * who detects what, and what they can name, is the body's.
  */
 
-import { SingleSenseControllerBase } from './SingleSenseControllerBase';
+import {
+  SingleSenseControllerBase,
+  type SingleSenseModel,
+} from './SingleSenseControllerBase';
 import type { SenseChannel } from '../../../../lib/description/Perceiver';
 import type { CommandContext } from '../../../../api/command';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
-import { MixinApi } from '../../../../api/mixin';
 import { MessageApi } from '../../../../api/message';
+import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
-import { SmellModality } from '../../modalities/SmellModality';
-import type { Smell } from '../../../../lib/perception/Smell';
-import type { OlfactoryProfile } from '../../species/Species';
-import type { Organism } from '../../../../lib/species/Organism';
-import { StuffApi } from '../../../../api/stuff';
+import type { SmellModality } from '../../modalities/SmellModality';
+import Aroma from '../../Aroma';
 import { PerceptionApi } from '../../../../api/perception';
-
-/**
- * Acuity → ppm threshold mapping. A viewer perceives a signal whose
- * concentration is at or above this value. `'none'` is effectively
- * `Infinity` — the viewer perceives nothing.
- */
-const ACUITY_THRESHOLDS: Record<OlfactoryProfile['acuity'], number> = {
-  keen: 1,
-  normal: 10,
-  dull: 100,
-  none: Infinity,
-};
-
-const DEFAULT_ACUITY: OlfactoryProfile['acuity'] = 'normal';
+import { Scent } from '../../../../lib/perception/Smell';
 
 export default class SmellController extends SingleSenseControllerBase {
   protected readonly senseChannel: SenseChannel = 'smell';
   protected readonly sceneTopic = 'sense.survey';
 
   /**
-   * Override the bare-form branch — read the field signal and render
-   * with attribution. Falls back to the inherited augmenter-driven
-   * prose when the actor is null-acuity or no signal surfaces.
+   * ⭐ A word a row names may not be resident yet (a restored bottle whose cask
+   * is not loaded): a first read starts the load, and this waits it out, so a
+   * cold read does not lose a smell.
    */
-  protected override senseLocation(context: CommandContext): void {
-    const actor = context.commandGiver;
-    const location = context.location;
-    if (!location) return; // defensive: placeless avatars are blocked at inbound and Login carries no sense verbs, so location is present in practice; degrade to a quiet no-op otherwise
-    const signal = (PerceptionApi.modalityByName('smell') as SmellModality).signalAt(location);
-    const threshold = actorAcuityThreshold(actor);
+  override execute(model: SingleSenseModel, context: CommandContext): void | Promise<void> {
+    const target = model.target?.stuff ?? null;
+    const signal =
+      target && target !== context.location
+        ? this.modality().emissionOf(target, { close: true })
+        : context.location
+          ? this.modality().signalAt(context.location)
+          : null;
+    for (const note of signal?.notes ?? []) Aroma.resolve(note.word);
+    const settling = Aroma.settling();
+    if (settling) return settling.then(() => super.execute(model, context));
+    return super.execute(model, context);
+  }
 
-    if (
-      signal &&
-      Number.isFinite(threshold) &&
-      signal.concentration.rawValue() >= threshold
-    ) {
-      const body = renderSmellProse(signal);
+  protected override senseLocation(context: CommandContext): void {
+    const location = context.location;
+    if (!location) return;
+    const actor = context.commandGiver;
+    const scent = MixinApi.isSensor(actor)
+      ? PerceptionApi.perceiveAt(actor, location, this.modality())
+      : null;
+    if (scent instanceof Scent && !scent.isEmpty()) {
+      const phrases = scent.notes.map((n, i) => {
+        const phrase = scent.phrases()[i]!;
+        return n.sourceName ? `${phrase} from ${n.sourceName}` : phrase;
+      });
       MessageApi.scene(actor)
         .topic(this.sceneTopic)
-        .toSelf(body)
+        .toSelf(Mml.compose`The air smells ${joinPhrases(phrases)}.`)
         .send();
       return;
     }
-
-    // No field signal (or below threshold) — fall back to the inherited
-    // augmenter-based <sense channel="smell"> prose if the room
-    // authored any; otherwise the inherited indistinct refusal fires.
+    // Nothing a nose can read: the room's own authored prose, if it has any.
     super.senseLocation(context);
   }
-  /**
-   * ⭐ A thing that gives off an odor is smelled AS that odor. The base
-   * reads the target's prose through the smell filter, and a target with
-   * no smell-tagged prose answered with its whole visual description —
-   * `smell` at a burning clamp described its courses of brick and said
-   * nothing of the coal smoke pouring off it (ceramics browser walk).
-   */
+
   protected override senseTarget(target: Stuff, context: CommandContext): void {
-    if (MixinApi.isSmellSource(target)) {
-      const identity = target.getOdorIdentity();
-      if (identity && target.getEmittedConcentration().rawValue() > 0) {
-        MessageApi.scene(context.commandGiver)
-          .topic(this.sceneTopic)
-          .toSelf(Mml.compose`${Mml.thing(target)} smells of ${identity}.`)
-          .send();
-        return;
-      }
+    const actor = context.commandGiver;
+    // A still is read for where it is in its run: its own prose says so.
+    if (MixinApi.isFractionating(target)) return super.senseTarget(target, context);
+    const scent = MixinApi.isOlfactory(actor)
+      ? actor.nose(this.modality().emissionOf(target, { close: true }), { close: true })
+      : Scent.EMPTY;
+    if (!scent.isEmpty()) {
+      const said = joinPhrases(scent.phrases());
+      MessageApi.scene(actor)
+        .topic(this.sceneTopic)
+        .toSelf(
+          target === actor
+            ? Mml.compose`You smell ${said}.`
+            : Mml.compose`${Mml.thing(target)} smells ${said}.`,
+        )
+        .send();
+      return;
     }
     super.senseTarget(target, context);
   }
+
+  private modality(): SmellModality {
+    return PerceptionApi.modalityByName('smell') as SmellModality;
+  }
 }
 
-/**
- * Resolve the actor's `OlfactoryProfile.acuity` via viewer →
- * Organism → Species → olfactoryProfile. Defaults to `'normal'` when
- * any step is null.
- */
-function actorAcuityThreshold(actor: Stuff): number {
-  if (!MixinApi.isOrganism(actor)) {
-    return ACUITY_THRESHOLDS[DEFAULT_ACUITY];
-  }
-  const species = (actor as Stuff & Organism).getSpecies();
-  if (!species) return ACUITY_THRESHOLDS[DEFAULT_ACUITY];
-  const profile = species.getOlfactoryProfile();
-  if (!profile) return ACUITY_THRESHOLDS[DEFAULT_ACUITY];
-  return ACUITY_THRESHOLDS[profile.acuity];
-}
-
-function renderSmellProse(signal: Smell): Mml {
-  if (signal.sources.length === 0) {
-    return Mml.compose`You smell ${signal.identity || 'something'}.`;
-  }
-  const names = signal.sources
-    .map((s) => {
-      const stuff = StuffApi.findById(s.stuffId);
-      return stuff
-        ? stuff.getPresentation()
-        : s.identity || 'something';
-    })
-    .slice(0, 3);
-  const list = names.join(', ');
-  if (signal.identity) {
-    return Mml.compose`You smell ${signal.identity} — from ${list}.`;
-  }
-  return Mml.compose`You smell ${list}.`;
+/** `a, b and c`. */
+function joinPhrases(words: readonly string[]): string {
+  if (words.length <= 1) return words[0] ?? '';
+  return `${words.slice(0, -1).join(', ')} and ${words[words.length - 1]}`;
 }

@@ -1,0 +1,4 @@
+# Smoke off burning turf, heavy in phenols.
+extends: /stuff/idea/aroma/smoke
+data:
+  discipline: malting

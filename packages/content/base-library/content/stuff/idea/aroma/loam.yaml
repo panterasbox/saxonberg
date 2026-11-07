@@ -1,0 +1,4 @@
+# A good soil, rich in the same geosmin.
+extends: /stuff/idea/aroma/earth
+data:
+  discipline: soil-science

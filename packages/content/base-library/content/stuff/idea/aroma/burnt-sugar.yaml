@@ -1,0 +1,5 @@
+# Sugar taken too far.
+extends: /stuff/idea/aroma/caramel
+data:
+  discipline: sugar-refining
+  liking: { peak: 1.5, width: 2, valence: -1 }

@@ -9,6 +9,7 @@
 # which fungus.
 class: /platform/idea/species/Species
 data:
+  smells: [{ word: animal, strength: 5 }]
   binomial: Subterracavia pallida
   commonNames: ["pale grazer", "grazer"]
   _bodyPlanPath: /stuff/idea/species/BodyPlan/quadruped

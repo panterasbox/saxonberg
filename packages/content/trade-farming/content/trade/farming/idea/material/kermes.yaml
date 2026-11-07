@@ -2,8 +2,9 @@
 # oak: "grains" of crimson, the dyestuff a court paid for in silver. A
 # MORDANT dye: on alum a deep crimson, on iron a claret, on tannin a brick.
 # It is an insect, not a plant, and the tag says so.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ word: animal, strength: 30 }]
   name: kermes
   keywords: [kermes, grains, "kermes grains", crimson]
   appearance: hard, round crimson kermes grains

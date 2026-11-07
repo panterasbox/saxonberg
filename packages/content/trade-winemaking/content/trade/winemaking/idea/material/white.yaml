@@ -1,6 +1,8 @@
 # White wine. Category tags `wine`, `white`.
-class: /platform/idea/material/ConsumableMaterial
+class: /platform/idea/material/OdorousConsumableMaterial
 data:
+  smells: [{ word: wine, strength: 300 }]
+  tastes: [{ type: sour, amount: 6 }, { type: sweet, amount: 3 }, { type: bitter, amount: 0.01 }]
   name: white wine
   keywords: [white, wine]
   appearance: "a pale, cold white wine"
@@ -20,5 +22,6 @@ data:
   # ⭐ Its pH (ceramics M7; B109) — the acid that draws lead from a glaze.
   ph: 3.3
   tags: ["liquid", "beverage", "drinkable", "alcoholic", "wine", "white"]
+  boilingPoint: 365
   composition: []
   biologicalSource: null

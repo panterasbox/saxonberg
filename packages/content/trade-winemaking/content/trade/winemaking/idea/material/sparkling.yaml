@@ -1,6 +1,8 @@
 # Sparkling wine — `carbonated`, so the spritz fizzes (the derived payload carries the tag).
-class: /platform/idea/material/ConsumableMaterial
+class: /platform/idea/material/OdorousConsumableMaterial
 data:
+  smells: [{ word: wine, strength: 300 }]
+  tastes: [{ type: sour, amount: 6 }, { type: sweet, amount: 3 }, { type: bitter, amount: 0.01 }]
   name: sparkling wine
   keywords: [sparkling, wine, fizz]
   appearance: "a pale sparkling wine, beading in the glass"

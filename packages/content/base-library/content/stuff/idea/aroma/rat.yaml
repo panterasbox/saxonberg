@@ -1,0 +1,4 @@
+# Rodent urine and old nest.
+extends: /stuff/idea/aroma/animal
+data:
+  liking: { peak: 1.5, width: 2, valence: -1 }

@@ -197,7 +197,7 @@ const REPO_ROOT = join(MUD, '../../../..');
  * | class | every caller | author surface? |
  * |---|---|---|
  * | `Concentration` | `DissolvedToxins`, `DissolvedAromatics`, `BulkableLogic`, `Fractionating` | no |
- * | `DissolvedAromatics` | `Recipe` (row validation), `Palatable`, `Fractionating` | no |
+ * | `DissolvedAromatics` | `Recipe` (row validation), `Fractionating` | no |
  * | `DissolvedToxins` | `BulkableLogic`, `Fractionating`, `Metabolic` | no |
  *
  * Not one is author surface. What an author actually reaches is

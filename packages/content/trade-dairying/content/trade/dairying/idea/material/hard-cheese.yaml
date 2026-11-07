@@ -3,8 +3,10 @@
 # never goes over. The press left it at about half its water, salt
 # (`cure wheel`) binds more, and a ripening rind holds spoilage off — so it
 # keeps for a season, which is why every dairying culture made it.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ word: cheese, strength: 1500 }]
+  tastes: [{ type: salty, amount: 20 }, { type: umami, amount: 6 }]
   name: "hard cheese"
   keywords: [cheese, "hard cheese"]
   appearance: pale gold, close-textured

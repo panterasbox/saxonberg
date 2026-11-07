@@ -1,0 +1,4 @@
+# Wax from the comb, faintly of honey.
+extends: /stuff/idea/aroma/wax
+data:
+  discipline: apiculture

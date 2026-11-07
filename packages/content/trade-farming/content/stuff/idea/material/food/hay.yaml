@@ -12,8 +12,9 @@
 # it self-heats and fires the barn (`SelfHeatingMixin`) — a physical
 # runaway, not a microbial clock, and the reason the two mechanisms stay
 # separate. See docs/subsystems/soil.md and docs/subsystems/spoilage.md.
-class: /platform/idea/material/ConsumableMaterial
+class: /platform/idea/material/OdorousConsumableMaterial
 data:
+  smells: [{ word: hay, strength: 100 }]
   name: hay
   keywords: [herbage, hay, fodder, forage, grass]
   appearance: dry stems and leaf, still faintly green, smelling of summer
@@ -28,7 +29,7 @@ data:
   # so the carbohydrate a body can actually get at is a fraction of a
   # root's.
   edibility: true
-  tastes: [sweet]
+  tastes: [{ type: sweet, amount: 20 }]
   # ⭐ Under the 0.60 floor nothing grows. Properly cured hay sits below
   # it by construction; that IS what "cured" means here.
   waterActivity: 0.55

@@ -12,6 +12,7 @@
 # system that needs it. A realm's own beasts belong to the realm.
 class: /platform/idea/species/Species
 data:
+  smells: [{ word: horse, strength: 15 }]
   binomial: Equus caballus major
   commonNames: ["draft horse", "carthorse", "horse", "shire"]
   _bodyPlanPath: /stuff/idea/species/BodyPlan/quadruped

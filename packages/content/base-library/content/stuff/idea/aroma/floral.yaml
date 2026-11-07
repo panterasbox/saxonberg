@@ -1,0 +1,4 @@
+# The higher-alcohol florals, phenylethanol and its relatives.
+class: /platform/idea/Aroma
+data:
+  threshold: 0.5

@@ -33,6 +33,21 @@
  */
 export class Seeded {
   /**
+   * A string folded to a 32-bit seed (FNV-1a), for a draw keyed on an identity
+   * path or a word.
+   *
+   * @internal the determinism substrate, as {@link Seeded.mix} is.
+   */
+  public static ofString(s: string): number {
+    let h = 0x811c9dc5;
+    for (let i = 0; i < s.length; i++) {
+      h ^= s.charCodeAt(i);
+      h = Math.imul(h, 0x01000193);
+    }
+    return h >>> 0;
+  }
+
+  /**
    * ⭐ **A 32-bit avalanche mix of two integers** — the murmur3 finalizer
    * over a golden-ratio-seeded fold.
    *

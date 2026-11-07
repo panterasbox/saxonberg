@@ -7,8 +7,9 @@
 # Put it in the works' mixing tub with sulfur and `knead` the tub — the
 # blend is `compounded-rubber`, its sulfur fraction what you weighed in —
 # and the cure is a heat transition on THAT row (ceramics M1).
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ word: rubber, strength: 60 }]
   name: raw rubber
   keywords: [rubber, "raw rubber", gum, caoutchouc]
   appearance: tacky, weeping raw rubber, stiff in the cold

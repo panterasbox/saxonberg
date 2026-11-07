@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@saxonberg/content-arcana": "workspace:*",
+    "@saxonberg/content-base-library": "workspace:*",
     "@saxonberg/content-platform": "workspace:*",
     "@saxonberg/server": "workspace:*",
     "@saxonberg/types": "workspace:*"

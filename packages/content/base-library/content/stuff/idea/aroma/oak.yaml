@@ -1,0 +1,4 @@
+# The oak lactones, the plain wood note.
+class: /platform/idea/Aroma
+data:
+  threshold: 0.07

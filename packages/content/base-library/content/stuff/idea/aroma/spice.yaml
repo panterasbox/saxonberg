@@ -1,0 +1,4 @@
+# Eugenol: clove and spice, from the wood and from a rye-heavy mash.
+class: /platform/idea/Aroma
+data:
+  threshold: 0.03
