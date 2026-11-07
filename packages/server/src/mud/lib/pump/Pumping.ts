@@ -449,16 +449,15 @@ export function PumpingMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /**
      * Is this pump running on its own right now? A pump with no mover never
-     * is — it runs only while somebody works it. ⭐ Feature-detects an
-     * optional switch and an optional supply on the host (the
+     * is — it runs only while somebody works it. ⭐ Asks after an
+     * optional switch (`MixinApi.isSwitchable`) and the supply on the host (the
      * `poweredTrajectoryOf` shape): an optional capability, never a
      * re-narrowing of which hosts may be pumps.
      */
     public isRunning(): boolean {
       const self = this as unknown as Stuff;
       if (!MixinApi.isPowered(self)) return false;
-      const h = this as unknown as { isOn?: () => boolean };
-      if (typeof h.isOn === 'function' && !h.isOn()) return false;
+      if (MixinApi.isSwitchable(self) && !self.isOn()) return false;
       if (this.packingFitted() === null) return false;
       return self.availablePowerW() > 0;
     }
@@ -529,8 +528,7 @@ export function PumpingMixin<TBase extends MixinConstructor>(Base: TBase) {
       this.runStamp = nowS;
       const self = this as unknown as Stuff;
       if (!MixinApi.isPowered(self)) return;
-      const h = this as unknown as { isOn?: () => boolean };
-      if (typeof h.isOn === 'function' && !h.isOn()) return;
+      if (MixinApi.isSwitchable(self) && !self.isOn()) return;
       const seconds = self.poweredTrajectory(from, nowS).integrate((v) => (v > 0.5 ? 1 : 0), 8);
       const hours = seconds / 3600;
       if (hours > 0) {

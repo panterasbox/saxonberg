@@ -710,8 +710,6 @@ export default class WaterFixture
       // The valve: anybody at the outlet can shut it or open it.
       'platform/cmd/device/switch.yaml',
       'platform/cmd/crafting/wash.yaml',
-      // ⭐ …and `scrub`, the same act harder (cleanliness D10).
-      'platform/cmd/crafting/scrub.yaml',
       // ⭐ You learn `rinse` the same way you learn `wash`: by standing
       // at water. A separate verb rather than a second `wash` stanza —
       // `wash`'s arg is a CRAFTED thing, and widening it to also accept a

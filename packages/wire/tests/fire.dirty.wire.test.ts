@@ -361,11 +361,12 @@ suite('⭐⭐⭐ 10–19. the clamp, then the retort — and the three products'
   it('⭐ drive 13 — tar boils to pitch through the shipped arrow', async () => {
     // Zero code: `purifiedByBoiling` is the arrow between two authored
     // materials, and the phase engine fires it once the tar has been held
-    // at its boil. ⭐ `boil` is an ALIAS of `heat` since 2026-10-19 — it
-    // sets the vessel on the fire; this line proves the alias still
-    // routes (the swap itself is Thermal.purify.test.ts's claim).
-    const boiled = await say(f, 'boil condenser');
-    understood(boiled, 'boil condenser');
+    // at its boil. ⭐ There is no `boil` (controllers-are-io D8c): `heat`
+    // sets the vessel on the fire and the pot holds at the boil; this line
+    // proves the verb routes (the swap itself is Thermal.purify.test.ts's
+    // claim).
+    const boiled = await say(f, 'heat condenser');
+    understood(boiled, 'heat condenser');
   }, 180_000);
 });
 
@@ -490,7 +491,7 @@ suite('⚠⚠ 28. every shipped flow still completes', () => {
     expect(looked).not.toMatch(/pitch black|cannot see/i);
   }, 240_000);
 
-  it('⭐ `douse`, `pump`, `heat` and `boil` all still reach the forge', async () => {
+  it('⭐ `douse` and `pump` still reach the forge', async () => {
     for (const line of ['pump forge', 'douse forge']) {
       const r2 = await say(r, line);
       understood(r2, line);
