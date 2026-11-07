@@ -1,17 +1,16 @@
 # Kernel vocabularies to rows: a pack never needs a kernel list edit
 
 > **Status: UNBUILT** · opened 2026-11-06 (owner, the refactor season,
-> after the wizard-axis cleanup merged as !525).
-> **Left:** `AROMAS` to rows, plus `Material.smells` and the smell reading
-> on the instrumentation ladder · `MATURATION_MECHANISMS` split (the word
-> becomes a row, the reconcile stays closed) · `RECIPE_MEDIA` derived from
-> the material · `DISPLAY_KINDS` and `DISPLAY_PAIRINGS` read and declared ·
-> how an aroma word loads on use · whether smell travels · what touch and
-> hearing get · the gate's ceiling to 0.
+> after the wizard-axis cleanup merged as !525). Requirements agreed
+> 2026-11-07: [vocabularies-to-rows](../../requirements/vocabularies-to-rows-requirements.md).
+> **Left:** one smell (source, air, nose) · aroma rows in a tree · a material's
+> own smell + the full material pass · adaptation · `analyze`/`measure aroma` ·
+> taste with strengths + the edible pass · tasting as contact · the taste
+> profile + the liking read · `RECIPE_MEDIA` derived from the material · the
+> gate's ceiling to 3.
 > **Size:** a build. Kind: refactor/sweep. Leads from: kernel. **First
-> consumers:** the whiskey styles' peat, cask and kiln rows (7 rows author
-> aromas today), the 53 maturation profiles, the 8 recipes that name a
-> cooking medium, and the cleanliness dirt odours.
+> consumers:** the full material pass (384 rows judged), the whiskey chain's
+> rows, the dirt rows, spoilage, the corpse, the 8 recipes that name a medium.
 > **Absorbs:** `non-visual-senses-slate.md` (moved here verbatim below;
 > the file is retired).
 
@@ -97,7 +96,7 @@ decision.
 ### `MATURATION_MECHANISMS` → split: the word becomes a row, the reconcile stays closed
 
 - **Shape:** `microbial · photochemical · chemical · evaporative ·
-  enzymatic`, across 53 rows (microbial 25, chemical 9, the other three
+  enzymatic`, across 37 rows (microbial 25, chemical 9, the other three
   with one row each).
 - ⭐ **One word is doing two jobs.** What the code reads:
   - **default lines per mechanism** (`MATURATION_LINES[...]`,
@@ -229,6 +228,61 @@ mechanism rows.
   ceiling.
 - A dirty room smells of its dirt in the aroma rows' words.
 - `lint:closed-vocabularies` reads 0 and holds there.
+
+---
+
+## ⭐⭐⭐ Decided at requirements (2026-11-07): this overrides the leans above
+
+The scope grew past the census, on the owner's word: *"I don't want you cutting
+scope to make it more like a refactor. If we do nothing else we're going to do
+this and get it right."* The product decisions are in the requirements doc. What
+stays here is what they don't carry.
+
+| vocabulary | outcome | where |
+|---|---|---|
+| `AROMAS` | rows, in a tree | this build |
+| `RECIPE_MEDIA` | derived from the carrying material; a medium is any tag | this build |
+| `MATURATION_MECHANISMS` | waits; a mechanism becomes a class | material-decomposition-slate |
+| `DISPLAY_KINDS`, `DISPLAY_PAIRINGS` | wait for the screens conversation | display-manifestation-slate |
+
+The check ends at **3, not 0**. None of the three is recorded as closed by nature.
+
+⚠ **The absorbed sections below are stale in two places.** They say nothing makes
+smell travel and that it would be a per-tick cost. Smell already walks through
+doors and exits, and only when someone reads it, with no tick. They also keep
+`PalatableMixin` on `ServingVessel` as a hard constraint and "smell cask reports
+nothing" as settled. The owner chose otherwise: an open cask smells, and anything
+edible can be tasted.
+
+## ⭐⭐ Reuse ledger for the plan
+
+Every row is one the plan must account for: reuse, generalize, or say why not.
+
+| concept | what does it today | this build |
+|---|---|---|
+| the air walk | `SmellModality.signalAt` over `lib/location/Traversal.ts` + `Smell` value | **reuse**: the one walk; only its accumulator's unit and dominance change. ⚠ `perception-characterization.json` pins ppm per place; re-baseline it |
+| a stored emission | `SmellSourceMixin` (Candle, BrickClamp) | **generalize**: stays the shape for things whose emission isn't their material; the identity becomes an aroma word |
+| dirt's smell | `Soilable.soilOdour()`, `DirtKind.odour` | **reuse**; words become rows, `odour` → `odor` |
+| dissolved aroma | `DissolvedAromatics`, `AromaTag`, `Concentration.blend` | **reuse** the amounts; move `isAroma`/`thresholdFor`/`render` to the rows and one nose |
+| strength words | `INTENSITIES` (log steps 1·30·300·2000·8000) | **reuse** for every read |
+| competence read | `bandFor` + `CraftingApi.blendDiscipline` in `Palatable.ts` | **generalize** to better-of-two with the aroma's own discipline |
+| species threshold | `ACUITY_THRESHOLDS` in `SmellController`, `Species.olfactoryProfile` | **move**: acuity shifts each aroma's threshold; the flat ppm thresholds retire |
+| rot | `Freshness` `FRESHNESS_PHRASE`, `senseLine` | **generalize** to a source; the look phrase stays for vision |
+| a corpse | `PostmortemMixin.getDecayStage` | **reuse** as a source |
+| fire | `combustionImparts` (peat, jute) | ⚠ **keep separate**: that is what fire puts into food. A fuel's smoke to a nose goes on the new mixin |
+| material opt-in | `RadioactiveMaterial`, `Muscle`, `PotionMaterial` pattern | **reuse**: `OdorousMixin` + `OdorousMaterial` + `OdorousConsumableMaterial`; `Muscle` composes it. Decomposition's families take it over and the two thin classes retire |
+| word to row, no boot | `DIRT_KIND_ROOT + kind` (`Soilable.ts:526`) | **reuse**: `/stuff/idea/aroma/<word>`, loaded by path. ⚠ `ReadingCatalogue`'s warm-on-first-miss is the shape NOT to copy; no new boot entry |
+| tree + inherited threshold | row `extends:` (templates.md) | **reuse** |
+| the reading ladder | `Reading` rows, `CleanlinessReading` as the eye-rung precedent; `gas-analyzer` + `atmosphere` reading | **reuse**: one `aroma` row and class |
+| taste union | `tastesOf`, `renderPalate` | **replace** the union with strengths from `BulkPayload` makeup |
+| who can be tasted | `PalatableMixin` on `ServingVessel` | ⚠ **re-host with care**: two wrong hosts paid for this answer. The question becomes "is this edible stuff", and P2 applies |
+| the dose | the eat path; controllers-are-io splits `MetabolicMixin` into Digesting + Eating (`canIngest`) | **reuse** Digesting for taste's small dose |
+| a seeded trait at birth | ABO via `Species.bloodGroups` + identity's seeded fields; parents via household-lifecycle | **reuse** the shape for the profile |
+| exposure and aversion | `disposition_events` shape; persistence spine | ⚠ **no new collection**. Plan picks spine vs existing ledger; a body with no history must read cheaply |
+| adaptation | nothing | **genuinely new**; searched senses, perception, behavior. Derive on read from exposure stamps; no tick |
+| liking | nothing | **genuinely new**; read on the body, signed, per person. A later stress build consumes it |
+| medium's ceiling | `mediumCapK`, `findMediumMaterial` in `CraftingLogic` | **reuse**, removing the word switch |
+| silent field drop | applier phase 1 drops unknown fields (storage-and-ice note) | ⚠ `smells:` on a plain `Material` must fail loudly; a lint or a read-time refusal |
 
 ---
 

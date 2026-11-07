@@ -596,6 +596,15 @@ pedagogical-seam sectioned/measured gestalt mode.
 
 ---
 
+## ⭐ Handed over by the smell and taste requirements (2026-11-07)
+
+- **What you get on arrival, and how `sense` works.** Arrival forces `sense`
+  (`Mobile.ts`), and `sense` does not read the air. The owner: it depends on where
+  the designs land and what the UX needs, and `sense` would have to change.
+- **Touch and hearing get nothing yet**, deliberately. Mouthfeel, astringency and
+  chili heat wait here as touch.
+- NPCs reacting to smell now has one nose, profiles and adaptation to read.
+
 ## What this slate does NOT cover
 
 - **The inspection-card / percept rendering** — consumed; the card slate
