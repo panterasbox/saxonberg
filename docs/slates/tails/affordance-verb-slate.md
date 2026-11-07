@@ -9,10 +9,13 @@
 > documented at [command-spec.md](../../subsystems/command-spec.md) §
 > *Domain-local commands* (the Watch worked example shipped in that
 > shape, not the `Timepiece` mixin this slate sketched).
-> **Left:** source-scoped invocation (`watch::set`, sigil unsettled — and
-> ⭐ the prefix is an **MQL string**, 2026-09-25) and its parse wiring
-> (Q3–Q5) · extra `put` prepositions (Q2) · the `Receiving` mixin (NPC
-> consent for `give`) · ⭐⭐ **the collision-resolution ladder** (below)
+> Source-scoped invocation shipped as `verb@source` (the prefix an MQL
+> string; Q3–Q5 settled) and the `drive`/`drift` collision is gone, both at
+> controllers-are-io → [command-parsing.md](../../subsystems/command-parsing.md),
+> [command-routing.md](../../subsystems/command-routing.md).
+> **Left:** extra `put` prepositions (Q2) · the `Receiving` mixin (NPC
+> consent for `give`) · the radial's own build (below) · ⭐⭐ **the
+> collision-resolution ladder** stays as doctrine (below)
 > **Size:** a tail
 
 Working slate for two sandbox-foundational verbs that exercise
@@ -123,7 +126,9 @@ omission invisible. ⭐ The rule both docstrings carry now: **the mixin is
 the gate, the concrete class in the pack that owns the verbs is the
 conferrer** — a kernel mixin may never name a locality's view.
 
-## ⛔⛔ `drive` vs `drift` — an undiagnosed collision this slate now owns (2026-10-07)
+## ✅ `drive` vs `drift` — SETTLED: mining's view is `drift` (controllers-are-io D20, 2026-11)
+
+*Kept for the reasoning; the collision is gone.*
 
 `platform/cmd/movement/drive.yaml` (take a vehicle through an exit) and
 `trade/mining/cmd/mining/drive.yaml` (drive a drift) both claim **`drive`**,
@@ -258,13 +263,13 @@ their own mixins when content needs them.
 already a quantity selector). *Lean `::`.* Naming + parse decision; settle
 at requirements.
 
-### Q4. Is source-scoping ever *required*, or always optional?
+### Q4. Is source-scoping ever *required*, or always optional? — ✅ SETTLED: optional (controllers-are-io)
 
 *Lean: always optional* — shape resolution is the default; `::` is the
 explicit override for ambiguity / scripting / clarity. An affordance never
 *demands* the scoped form.
 
-### Q5. Non-interactive giver + multi-result source
+### Q5. Non-interactive giver + multi-result source — ✅ SETTLED: a script or NPC gets the `ambiguous` refusal; a scope that declares plurality is a batch (controllers-are-io D2)
 
 An NPC or script whose `source::verb` MQL returns many: error (default) or
 apply-to-all? *Lean: error unless the invocation declares cardinality
@@ -333,13 +338,14 @@ resolve at the assemble stage → [command-routing.md](../../subsystems/command-
 ~250 shipped views are subcommanded. Right when one noun genuinely hosts
 several related acts; wrong when the acts belong to different owners.
 
-### 4 · ⭐⭐ Source-scoped invocation — `keyword::verb -opt args`
+### 4 · ⭐⭐ Source-scoped invocation — `verb@source -opt args` (shipped)
 
-**Slated here, unbuilt, and it goes in whenever something needs it.** The
+The
 prefix is ⭐ **an MQL string that resolves to one or more verb-affording
 objects**, and *the player picks which affordance runs* — so disambiguation
 becomes **explicit and diegetic** instead of a heuristic the engine has to get
-right. ⚠ Sigil still unsettled (`::` is the sketch).
+right. ✅ **Shipped as `verb@source`** (controllers-are-io D1–D3) — e.g.
+`wind@me:i:watch`; the scope is MQL's own grammar.
 
 This is the rung that makes rungs 1–3 optional: where two affordances are
 genuinely different acts that happen to share a word, the honest answer can be

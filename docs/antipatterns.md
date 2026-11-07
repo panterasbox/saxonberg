@@ -2345,7 +2345,7 @@ only when that subcommand is invoked, after the verb-level
 validators and before field validators (see
 [command-spec.md](./subsystems/command-spec.md)). The `office` verb
 is the exemplar — `assign`/`vacate` carry
-`requiresFoundingAuthority`, the bare `offices` roster stays public.
+`requiresFoundingAuthority`, the bare `office` roster stays public.
 
 ```yaml
 subcommands:
@@ -2362,6 +2362,13 @@ the gate is a subcommand validator, and the controller re-derives
 no authority.
 
 ## Controllers — don't switch-default on unknown subcommand
+
+⭐ **Since controllers-are-io (2026-11) a subcommand names its OWN
+controller** (`controller:` on the subcommand in the view, over a shared
+`<Noun>ControllerBase`) — `house appoint` → `HouseAppointController`,
+`wiki edit` → `WikiEditController`. A new subcommanded verb does not
+switch on `model.subcommand` at all. The rule below still holds for the
+few that do (`WalletController`'s three arms).
 
 A subcommanded controller's `execute()` should NOT have a
 `default:` case in its subcommand `switch` that emits
@@ -2851,7 +2858,7 @@ verbs — `menu`/`order` on the `CommerceMenu` base. The *working* verbs
 ride the **instrument** that does the work: the pot confers
 `pour`/`stir`/`heat`/`plate`/`cook`, the anvil
 `hammer`/`quench`/`forge`/`repair`/`salvage`, the whetstone `sharpen`,
-the furnace `heat`/`ignite`/`douse`/`pump`. The surface then follows
+the furnace `heat`/`light`/`douse`/`pump`. The surface then follows
 capital wherever it physically sits (reachable heat + a pot IS a
 kitchen — no venue flag, no menu required), and a verb with no
 instrument at all (`do`, the script runner) is innate on `Avatar`. Patient-side marker
@@ -6361,3 +6368,91 @@ regulated, temporary warrant
 ([executive-warrant-slate](./slates/builds/executive-warrant-slate.md)),
 never a backstop. `lint:wizard-axis` fails on a new site; see access.md
 § The two account axes.
+
+## Words on the object — an `ActPlan` that carries its own prose
+
+```ts
+// NOT ALLOWED — the object writes the sentence
+return { ok: false, line: mml`The ${this} is too green to cut.` };
+// …and the controller just prints whatever came back.
+
+// CORRECT — the object answers a reason and the facts; the controller words it
+return { ok: false, reason: 'too-green', facts: { moisture } };
+// controller: switch (refusal.reason) { case 'too-green': …; default: never }
+```
+
+An object PLANS an act (`ActPlan` / `ActRefusal` / `ActOutcome` in
+`lib/craft/ActPlan.ts`): a closed reason union and the facts per protocol,
+no `Mml` anywhere. The words live on the controller, which is the I/O
+layer — `ManualBuildController.engagePlan(context, plan, words)` takes
+`beginSelf`/`beginPeers`/`onRefused`/`onDone`, and the wording switch is
+exhaustive (a `never` arm), so a new reason fails to compile until
+somebody words it. The decision itself (durations, effort, grade, what
+is minted) stays on the object; `lint:controller-decisions` and
+`lint:controller-mutations` count what is left in controllers.
+(controllers-are-io D4/D5.)
+
+## Two words for one view
+
+```yaml
+# NOT ALLOWED — a synonym is a second verb nobody can find in help
+verbs: [look, examine, exa]
+
+# CORRECT — one word; a MUD-standard shortcut is a removable player alias
+verbs: [look]
+defaultAliases: [l]
+```
+
+A view names exactly one verb. The only other words are **default player
+aliases** — one- or two-character shortcuts for a verb typed many times
+a session (`l`, `i`, `h`, `?`, `'`) — declared on the view, owned by the
+player, removable with `alias unset`. A synonym is not a shortcut: the
+verb is the word `help` teaches. Where two acts genuinely share a word,
+the views must have **provably disjoint shapes** (`throw X to Y` ·
+`throw X` · `throw X at Y`). Enforced by `lint:one-word` and
+`lint:verb-collisions` (controllers-are-io D16/D17).
+
+## A flat verb for an institution transaction
+
+```yaml
+# NOT ALLOWED — the book is implicit and the verb floats free
+verbs: [appoint]   # whose roster?
+
+# CORRECT — the transaction is a subcommand of the noun whose book it writes
+verbs: [house]
+subcommands:
+  appoint: { controller: /platform/idea/cmd/banking/HouseAppointController, … }
+```
+
+An act that writes an institution's book (a roster, an operating account,
+a shelf's consignment list, a parcel registry) is a subcommand of that
+book's noun: `house appoint|dismiss|draw`, `job apply|quit|fulfill`,
+`shelf consign|reclaim`, `rack check|reclaim`, `bank …`, `title
+transfer|subdivide`. An act on a good or a person whose bookkeeping
+merely follows stays bare (`buy`, `sell`, `pay`, `tip`). Enforced by
+`lint:institution-verbs` (controllers-are-io D9).
+
+## A bare interface for a verb's target
+
+```ts
+// NOT ALLOWED — a shape the view cannot require and the binder cannot narrow
+export interface Pumpable { pumpBy(actor: Actor): PumpOutcome }
+if (typeof (target as any).pumpBy === 'function') …
+
+// CORRECT — a protocol mixin with a refusing default
+export function PumpableMixin<T extends MixinConstructor<Stuff>>(Base: T) {
+  class Pumpable extends Base {
+    static _mixinName = 'PumpableMixin';
+    static _mixinKind = 'protocol' as const;
+    …
+  }
+}
+```
+
+When three or more hosts answer one verb each in their own way, the verb's
+contract is a **protocol mixin** (`_mixinKind = 'protocol'`): the view's
+`requires:` names it, `MixinApi.isX` narrows to it, Studio and `help <verb>`
+list who answers it. Fewer than three implementers is a method on the one
+host. See [mixins.md § protocol mixins](./subsystems/mixins.md) and
+`lint:duck-typing` (controllers-are-io D8).
+

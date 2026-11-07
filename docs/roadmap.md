@@ -89,6 +89,21 @@ that shapes every slate.
 ---
 
 
+## ⭐ Shipped: controllers are input and output (2026-11)
+
+The command chain, end to end ([command-routing.md](./subsystems/command-routing.md),
+[command-spec.md](./subsystems/command-spec.md)): `verb@source` picks which
+offer of a verb you mean, and a refusal names the other thing that also
+answers it; a world act looks in the room first; names are keywords; one
+view answers to one word (synonyms deleted, `l`/`i`/`h`/`?`/`'` kept as
+removable player aliases); an institution transaction is a subcommand of its
+noun (`house appoint`, `job apply`, `shelf consign`, `title transfer`); every
+view has a `category:` and `help` lists by it; `do` runs a script (`make` is
+gone); the acts' rules moved onto their objects and the words stayed on the
+controller; signed-out bodies are destructed (linkdead stay). What it left:
+crowd timing → [crowded-rooms-slate](./slates/builds/crowded-rooms-slate.md),
+the radial → [affordance-verb-slate](./slates/tails/affordance-verb-slate.md).
+
 ## ⭐ Shipped: the envelope (2026-09-24)
 
 Two questions, one answer — *why can you see on the city streets at
@@ -187,7 +202,7 @@ The substrate is in place. Major shipped surfaces:
   `PerceiverMixin` (`look` /
   `scry` / `locate`), prose / liquid templating.
 - **Communications** — `Sensor` / `Vocal` / `Mobile` mixins;
-  `say` / `tell` controllers; messaging subsystem (MML, scene
+  `say` / `dm` controllers; messaging subsystem (MML, scene
   composer, movement-message settings); `MudlogApi`.
 - **Event system** — `EventApi` global pub/sub bus, Witness
   pattern, `EventRegistry` Idea bootstrapped via

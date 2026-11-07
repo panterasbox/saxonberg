@@ -326,19 +326,19 @@ base plus one controller per subcommand keeps every count equal.
 controller census gates read it; `commandViewFiles()`/`commandViews()`
 are its view-side twins (moved out of `check-verb-collisions`).
 
-| gate | what it counts | W0 ceiling | falls in |
-|---|---|---|---|
-| ⭐ `lint:command-views` | every view validates against `command.schema.json` (compiled as `CommandLogic` compiles it — ajv, `allErrors`, `strict: false` — plus the `opens_card` ∈ `CARD_IDS` rule); and `category:` = its `cmd/<category>/` dir | schema **0, hard**; category 361 + 10 in no category dir, **warning** (`CATEGORY_REQUIRED` flips at W6) | — / W6 |
-| `lint:duck-typing` | AST: `typeof x.m === "function"`, `x.m?.()`, `"m" in x` over all mud code (the thenable `then`/`catch` and V8 `getFileName` excluded); ⛔ sub-count: a method probe on a name no class member or object-literal member defines | **544**; undefined **0** | W3 |
-| `lint:controller-mutations` | AST: a mutator-shaped call (`set*`, `add*`, `record*`, … or the slate's bare `soil`/`recordHeat`) on a receiver that is not `this`, an `*Api`, or the envelope | **359** (W7 re-measure with bases: 361; unchanged by the split) | W5 |
-| `lint:controller-decisions` | AST: `Math.*`, arithmetic (`* / % ** -`), numeric thresholds, UPPER_SNAKE numeric consts; ⭐ sub-count: duration/effort consts (`*_MS`, `*_W`, …) and `durationMs:`/`effortW:` literals (D5) | **1286**; durations **113** (W7 re-measure with bases: 1295; 114; after the split 1294 — appoint's and dismiss's duplicated house derivation became one base method) | W5 |
-| `lint:controller-functions` | AST: top-level `function` / arrow `const` in a controller module | **273** (W7 re-measure with bases: 278; after the split **259** — the switch controllers' module functions became methods) | W5 |
-| `lint:controller-resolution` | the instrument hunt (absorbed `lint:instrument-args`) + self-resolution: `MqlApi.*`, `StuffApi.find*`/`singleton`, `.getContents()` in a controller | hunts **4**; self **117** (W7 re-measure with bases: 120; after **118** — the job board is a view arg, and consign's and reclaim's duplicated `activeHouse` is one base method) | W2 |
-| `lint:mixin-clusters` | a mixin factory's class whose co-use graph (`this.X` reads; a field and its accessors folded to one node by stem) has ≥ 2 components of ≥ 2 nodes | **44** (sees all five D6 splits) | W3 |
-| `lint:mixin-files` | `export function FooMixin` not in `Foo.ts` (kernel `lib/**`, `world/**`, pack `src/lib/**`) | **12** (the plan's twelve moves) | W3 |
-| `lint:one-word` | (a) a view with > 1 `verbs:` entry; (b) a controller named by views of different verbs; (c) a `defaultAliases:` name declared twice / equal to a verb / a builtin | (a) **65** views, 77 extra words (W7: 62 — `hire`, `handoff`, `unconsign` went with the flat views); (b) **4** (Equip, Unequip, Descend, Profile); (c) **0** | W6 |
-| `lint:subcommand-words` | a subcommand word that is also a flat verb with a DIFFERENT controller (informational — D9 scopes it by noun); ⛔ a subcommand word equal to a script builtin | pairs **47** (W7: 46 — `fight defend` → `DefendController`); builtin **6** (`reserve`/`treasury`/`equip`/`alias`/`settings`/`var set`) | W7 |
-| `lint:institution-verbs` | a FLAT view whose operand is a book — a book-named arg requiring a book mixin, or (the implicit operand) a controller writing a book (`.appoint`/`.dismiss`/`.quitJob`/`payDraw`/`recordListing`/`removeHolding`/`recordHolding`/`ContractApi.fulfill`/`ParcelApi.transfer`·`subdivide`); `stake`, `stall`, `lease`, `provision` named as acts with a reason | **11** — exactly D9's set (W7: **2** — `house`/`job`/`shelf`/`rack` took nine; W8: **0** — `title transfer`/`title subdivide`) | W7 / W8 |
+| gate | what it counts | W0 ceiling | falls in | at merge |
+|---|---|---|---|---|
+| ⭐ `lint:command-views` | every view validates against `command.schema.json` (compiled as `CommandLogic` compiles it — ajv, `allErrors`, `strict: false` — plus the `opens_card` ∈ `CARD_IDS` rule); and `category:` = its `cmd/<category>/` dir | schema **0, hard**; category 361 + 10 in no category dir, **warning** (`CATEGORY_REQUIRED` flips at W6) | — / W6 | schema 0; category **0, hard** (`CATEGORY_REQUIRED`) |
+| `lint:duck-typing` | AST: `typeof x.m === "function"`, `x.m?.()`, `"m" in x` over all mud code (the thenable `then`/`catch` and V8 `getFileName` excluded); ⛔ sub-count: a method probe on a name no class member or object-literal member defines | **544**; undefined **0** | W3 | **544**; undefined **0** |
+| `lint:controller-mutations` | AST: a mutator-shaped call (`set*`, `add*`, `record*`, … or the slate's bare `soil`/`recordHeat`) on a receiver that is not `this`, an `*Api`, or the envelope | **359** (W7 re-measure with bases: 361; unchanged by the split) | W5 | **318** |
+| `lint:controller-decisions` | AST: `Math.*`, arithmetic (`* / % ** -`), numeric thresholds, UPPER_SNAKE numeric consts; ⭐ sub-count: duration/effort consts (`*_MS`, `*_W`, …) and `durationMs:`/`effortW:` literals (D5) | **1286**; durations **113** (W7 re-measure with bases: 1295; 114; after the split 1294 — appoint's and dismiss's duplicated house derivation became one base method) | W5 | **1176**; durations **100** |
+| `lint:controller-functions` | AST: top-level `function` / arrow `const` in a controller module | **273** (W7 re-measure with bases: 278; after the split **259** — the switch controllers' module functions became methods) | W5 | **232** |
+| `lint:controller-resolution` | the instrument hunt (absorbed `lint:instrument-args`) + self-resolution: `MqlApi.*`, `StuffApi.find*`/`singleton`, `.getContents()` in a controller | hunts **4**; self **117** (W7 re-measure with bases: 120; after **118** — the job board is a view arg, and consign's and reclaim's duplicated `activeHouse` is one base method) | W2 | hunts **4**; self **111** |
+| `lint:mixin-clusters` | a mixin factory's class whose co-use graph (`this.X` reads; a field and its accessors folded to one node by stem) has ≥ 2 components of ≥ 2 nodes | **44** (sees all five D6 splits) | W3 | **40** |
+| `lint:mixin-files` | `export function FooMixin` not in `Foo.ts` (kernel `lib/**`, `world/**`, pack `src/lib/**`) | **12** (the plan's twelve moves) | W3 | **0** |
+| `lint:one-word` | (a) a view with > 1 `verbs:` entry; (b) a controller named by views of different verbs; (c) a `defaultAliases:` name declared twice / equal to a verb / a builtin | (a) **65** views, 77 extra words (W7: 62 — `hire`, `handoff`, `unconsign` went with the flat views); (b) **4** (Equip, Unequip, Descend, Profile); (c) **0** | W6 | (a) **0**; (b) **0**; (c) **0** |
+| `lint:subcommand-words` | a subcommand word that is also a flat verb with a DIFFERENT controller (informational — D9 scopes it by noun); ⛔ a subcommand word equal to a script builtin | pairs **47** (W7: 46 — `fight defend` → `DefendController`); builtin **6** (`reserve`/`treasury`/`equip`/`alias`/`settings`/`var set`) | W7 | pairs **42**; builtin **6** |
+| `lint:institution-verbs` | a FLAT view whose operand is a book — a book-named arg requiring a book mixin, or (the implicit operand) a controller writing a book (`.appoint`/`.dismiss`/`.quitJob`/`payDraw`/`recordListing`/`removeHolding`/`recordHolding`/`ContractApi.fulfill`/`ParcelApi.transfer`·`subdivide`); `stake`, `stall`, `lease`, `provision` named as acts with a reason | **11** — exactly D9's set (W7: **2** — `house`/`job`/`shelf`/`rack` took nine; W8: **0** — `title transfer`/`title subdivide`) | W7 / W8 | **0** |
 
 ⚠ **What the classifiers taught, the day they were written:**
 
@@ -924,15 +924,17 @@ per row** rather than a zero — and it ratchets **both ways**: a fresh
 collision fails, and a fixed one still listed also fails, because a list
 nobody prunes stops meaning anything.
 
-⚠ Only `lease`/`unlease` is understood safe (domain-local, two different
-localities, never afforded together). The other seven — `me`, `pour`,
-`hang`, `mount`, `dress`, `drive`, `butcher` — are **undiagnosed**: the
-census measured which verbs are claimed twice, not which of them actually
-shadow, or in which direction. ⭐ `dress` is the instructive one — *dress
-a wound* and *dress a carcass* are both correct English and both correct
-game, which is why "just rename one" is not automatically the answer. The
-alternatives are one view with subcommands, or a rename; **never a new
-line in the allowlist.**
+⭐ **The allowlist is gone (controllers-are-io, 2026-11).** One view, one
+word (D16) deleted the synonym words that made most rows (`me`, `dress`,
+`lease`/`unlease`, …), `pour` became one act over `PourTargetMixin`, and
+the rest were renamed or proved disjoint; `KNOWN_COLLISIONS` went with its
+last row. A fresh collision now fails unless the two views' shapes are
+**provably disjoint** (D17 — `throw X to Y` · `throw X` · `throw X at Y`
+are the exemplar). ⭐ The lesson the old list taught still stands: *dress a
+wound* and *dress a carcass* are both correct English, which is why "just
+rename one" was never automatically the answer — the alternatives are one
+view with subcommands, a rename, or disjoint shapes; **never an
+allowlist.**
 
 ### `lint:self-contributions` — a `self` verb nobody is asked for (2026-10)
 

@@ -652,7 +652,7 @@ drop them                 drops the coin set
 
 Empty queries don't update the stash — the last successful query
 stays referenced, so `look him` then `look (something else that
-fails)` then `tell him hello` still hits bob.
+fails)` then `dm him hello` still hits bob.
 
 ## Natural-language layer
 
@@ -738,7 +738,7 @@ one returns matches.
 
 Players have a per-session **focus** — the persistent search anchor.
 Bare `look` defaults to `$focus` (your current focus); inspection
-verbs (`look`, `examine`, …) extend the focus chain when they
+verbs (`look`, `search`, …) extend the focus chain when they
 resolve. Drilling deeper:
 
 ```
