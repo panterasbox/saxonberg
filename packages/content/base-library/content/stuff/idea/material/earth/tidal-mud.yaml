@@ -1,5 +1,17 @@
-# Mud the tide covers twice a day, and what it leaves there.
-extends: /stuff/idea/material/earth/sand
+# Mud the tide covers twice a day, and what it leaves there. Grain: an author's
+# numbers, between a wet sand and a loam.
+class: /platform/idea/material/OdorousMaterial
 data:
   name: tidal mud
+  keywords: [mud, silt]
+  appearance: grey, shining mud
+  density: 1700
+  thermalConductivity: 1
+  specificHeat: 1500
+  electricalConductivity: 0.1
+  waterAbsorptionCapacity: 30
+  hardness: 1
+  toughness: 1
+  edibility: false
+  tags: ["granular", "earth", "mud"]
   smells: [{ word: sea, strength: 20 }]
