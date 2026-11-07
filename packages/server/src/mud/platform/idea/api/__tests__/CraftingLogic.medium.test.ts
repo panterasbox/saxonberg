@@ -429,6 +429,9 @@ describe('a medium is any tag, and its material sets the ceiling', () => {
   it('⭐ brine boils a degree above water, and no hotter', async () => {
     ContainmentApi.move(makeBottle(BRINE, 2), room);
     expect((await craftAs(cook, { recipeRef: 'brine-boil', makerMode: 'self' })).ok).toBe(true);
+  });
+
+  it('…and a recipe wanting more than the brine can carry declines', async () => {
     ContainmentApi.move(makeBottle(BRINE, 2), room);
     expect(await craftAs(cook, { recipeRef: 'brine-too-hot', makerMode: 'self' })).toMatchObject({
       ok: false,
@@ -444,6 +447,9 @@ describe('a medium is any tag, and its material sets the ceiling', () => {
   it('with both limits tabulated, the lower one is the ceiling', async () => {
     ContainmentApi.move(makeBottle(BOTH, 2), room);
     expect((await craftAs(cook, { recipeRef: 'both-under', makerMode: 'self' })).ok).toBe(true);
+  });
+
+  it('…so a recipe between the two limits declines', async () => {
     ContainmentApi.move(makeBottle(BOTH, 2), room);
     expect(await craftAs(cook, { recipeRef: 'both-over', makerMode: 'self' })).toMatchObject({
       ok: false,
