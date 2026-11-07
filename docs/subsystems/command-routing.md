@@ -1384,10 +1384,13 @@ effects); a command needing exclusive actor access uses engagement
 
 The **`script` verb** is an ordinary command that runs its greedy `body`
 via `ScriptApi.run` through `_executeOne`, so it inherits `--async` /
-`--sync` with no special-casing. It is the *flaggable* sibling of the
-bare typed-script line (a multi-statement line with no `script` prefix,
-handled inline in `executeCommand` at the `parseResult.script` branch —
-sync, unflaggable, unchanged). Note the tokenizer splits a top-level `;`
+`--sync` with no special-casing. Its sibling, the bare typed-script line
+(a multi-statement line with no `script` prefix, handled inline in
+`executeCommand` at the `parseResult.script` branch), honors a LEADING
+`--async` / `--sync` on its first command word since controllers-are-io
+D23 — the run detaches the way `_executeOne` detaches a controller body
+and fires its one late envelope when the script settles
+([scripting.md § Scripts fail CLOSED](./scripting.md)). Note the tokenizer splits a top-level `;`
 into separate statements *before* the verb binds, so the `script` verb's
 typed body is a single statement (or a `{ }` block); a full
 multi-statement body reaches it only via the client `fields.body`

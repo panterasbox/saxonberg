@@ -494,11 +494,13 @@ from the cardinality spec) and awaits the player's pick. The
 filtered Stuff list lands on the model unchanged shape; the
 controller never sees the prompt round-trip.
 
-The `prompt` policy degrades to an ambiguity error
-(`controller-rejected { reason: 'ambiguous' | 'too-many' }`)
-when no Interactive is attached to the context — a scripted /
-NPC dispatch path has nobody to ask, so the policy falls back to
-behave like `onExcess: error`. Player cancellation propagates as
+The `prompt` policy **fails closed** when no Interactive is attached to
+the context (controllers-are-io D23): `CommandContext.requireInteractive`
+notes `command-rejected { reason: 'needs-input', detail: '<verb> needs a
+choice of <field> … when run from a script' }` and the resolve fails —
+a scripted / NPC dispatch path has nobody to ask, and it is told what it
+would have been asked rather than handed `onExcess: error`'s silent
+degrade (the pre-D23 behavior). Player cancellation propagates as
 `PromptCancelledError` from `applyCardinalityPolicy`; the
 dispatcher (`CommandGiver._runChain`) catches and emits
 `controller-rejected { reason: 'cancelled' | 'host-disconnected' }`.

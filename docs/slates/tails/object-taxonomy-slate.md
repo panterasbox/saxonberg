@@ -1,16 +1,23 @@
 # Object taxonomy slate — naming the compositions, and what a non-wizard may mint
 
-> **Status: UNBUILT, and three of its pieces already ship.** Shipped:
-> `Blueprint.signatureFromParts` (⭐ the collapse rule, already
-> order-insensitive), the `blueprints` catalogue + dedup index, the
-> Studio's three creation acts, `authorable` field metadata, and
-> `commandContributions` as **the one record of verb affordances**.
-> **Left:** the signature's verb-awareness · the collapse census ·
-> blueprint-as-`gen:`-output · the non-wizard composition mint + its
-> namespace lint · the categorical-validator classification + affordance
-> suppression · template-level subtraction · the `/stuff` naming committee
-> **Size:** ⭐ **a tail** for the signature fix + census; **a build** for
-> the mint and the subtraction.
+> **Status: PARTIAL.** Shipped: `Blueprint.signatureFromParts` (⭐ the
+> collapse rule, order-insensitive, and ⭐ **verb-aware** since
+> controllers-are-io D25 — the class's own view set folds in), the
+> collapse census run (1,111 classes: signatures 407 → 459, collision
+> groups 101 → 93; the medicine ×4 and SurgicalKit/SutureKit groups
+> separate; five true structural duplicates recorded), the `blueprints`
+> catalogue + dedup index, the Studio's three creation acts, `authorable`
+> field metadata, and `commandContributions` as **the one record of verb
+> affordances** → [studio.md § the signature](../../subsystems/studio.md),
+> [command-routing.md § ONE record](../../subsystems/command-routing.md).
+> **Left:** the census's ratchet — flag as genuinely distinct only the
+> same-signature sets carrying a member-name conflict (§ 2) ·
+> blueprint-as-`gen:`-output (§ 4) · the non-wizard composition mint + its
+> namespace lint (§ 5) · the categorical-validator classification +
+> affordance suppression (§ 7) · template-level subtraction (§ 7) · the
+> `/stuff` naming committee (§ 8)
+> **Size:** ⭐ **a tail** for the ratchet; **a build** for the mint and the
+> subtraction.
 
 **Captured 2026-10-04**, out of the wizardry-curriculum thread, when the
 curriculum question *"what do you actually have to know to make a thing"*
@@ -35,30 +42,10 @@ It decomposes into three, and **two of the three dissolve.**
 
 ## 2. ⭐⭐ Order-variance: the collapse rule is already the shipped dedup key
 
-> **User: "some things we can collapse like two subclasses with the same
-> mixin comp in different priority order. this almost always doesn't
-> manifest any functional difference and two classes can be collapsed into
-> one."**
-
-Correct, and it is already implemented. `lib/studio/Blueprint.ts`:
-
-```ts
-static signatureFromParts(baseClass: string, mixinNames: readonly string[]) {
-  const mixins = [...new Set(mixinNames)].sort().join(',');
-  return `${baseClass}|${mixins}`;
-}
-```
-
-⭐ **Set-based, sorted, deduped** — so two classes with the same mixins in
-different priority order *already* collide, and `BlueprintCatalogue`
-already indexes by it (`findBySignature`, dedup on signature, drift-safe
-on id). `signatureOf(ctor)` computes the same thing from a live
-constructor via `MixinApi.queryMixins`.
-
-**What does not exist is the census over shipped classes**, and it is one
-boot away: `rebuild()` already walks the class-source table to derive its
-147 skeletons, so *two distinct backing classes sharing one signature* is
-a report, not a research project.
+*The collapse rule is the shipped dedup key (`Blueprint.signatureFromParts`,
+set-based, sorted, deduped) and the census over shipped classes has run
+(controllers-are-io D25) → studio.md § the signature. Cut 2026-11-07.
+What remains is the ratchet:*
 
 ⚠ **The honest residual on order:** it matters only when **two mixins in
 the set declare the same member name**, because then the outer shadows the
@@ -69,37 +56,9 @@ conflict** — census-then-ratchet, per
 
 ## 3. ⚠ The defect the probe actually found: the signature is verb-blind
 
-`signatureFromParts` keys on **base + mixin set and nothing else.** But
-[command-routing.md](../../subsystems/command-routing.md) is explicit that
-`static commandContributions` is **the one record of what an object
-affords**, which is the closest thing the engine has to a record of what a
-thing *does*.
-
-Measured consequence — `AudibleMixin(Tool)` appears **six times**:
-`PrescriptionPad`, `Splint`, `SurgicalKit`, `Syringe`, `SutureKit`,
-`Whetstone`. Each is 18–37 lines and structurally identical:
-
-```ts
-const SutureKitBase = AudibleMixin(Tool);
-export default class SutureKit extends SutureKitBase {
-  static commandContributions: CommandContributions = {
-    environment: ['trade/medicine/cmd/medical/suture.yaml'],
-  };
-  public override capabilities: string[] = ['suture'];
-}
-```
-
-Six genuinely different kinds share **one signature**, `rebuild()` dedups
-them into one blueprint, and the Studio's *"exact match — use it?"* will
-tell an author building a whetstone that they have built a suture kit.
-
-> ⭐⭐⭐ **The fix is to the signature, not to the classes: include the
-> afforded verb set.** If verb affordance is the one record of what an
-> object does, two things that do different things are not structurally
-> identical, and the dedup is currently lying.
-
-⚠ Note what this is *not*: the six are **not sprawl**. They are six
-distinct workings, correctly expressed (§ 6).
+*Fixed (controllers-are-io D25): the signature folds the class's own
+afforded view set, so the whetstone and the suture kit are two kinds →
+studio.md § ⭐ The signature is verb-aware. Cut 2026-11-07.*
 
 ## 4. ⭐ Blueprint as a `gen:` output — tracked vs derived, not static vs dynamic
 
@@ -368,11 +327,11 @@ your name.
 
 ## 10. Open questions
 
-1. ⭐⭐⭐ **Make the signature verb-aware** (§ 3). Small, and the dedup is
-   lying until it is done.
-2. **Run the collapse census** (§ 2). ⭐ Lean: make it the course's first
-   real assignment — *find two classes that are the same class* needs no
-   programming and produces a merge.
+1. *Resolved: the signature is verb-aware (D25) → studio.md § the
+   signature.*
+2. *Resolved: the census ran (D25; 93 collision groups remain, five
+   recorded as true structural duplicates) → studio.md § the signature.
+   What is left is § 2's ratchet.*
 3. **Does blueprint-instancing land before the first course, or does the
    course drive the requirement?** ⭐ Lean the second: the students' own
    blocked ideas are the best census of which compositions are missing.

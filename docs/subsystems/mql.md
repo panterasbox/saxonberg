@@ -967,6 +967,14 @@ query — `here:i:visible:[not mixin.AdornmentMixin] - me` (the card adds
 (mql-predicate-parity slate). The orphan guard stays in
 `getLooseContents(items)` (see [perception.md](./perception.md)).
 
+⭐ **The discriminator for the next hand-rolled `getContents().filter`**
+(the parity slate's census, 2026-09): *if a player would ever want to ask
+it, MQL should be able to; if it is the engine talking to itself, a loop
+is fine.* A brain counting the room's player-shaped occupants
+(`Behaved.ts`) and a kiln reading its tangible charge (`FireController`)
+are the engine's own questions and stay loops; a listing a verb shows a
+player is a targeting rule and must be typeable.
+
 ```ts
 interface MqlPredicate {
   check(target: Stuff, giver: Stuff & CommandGiver): boolean;

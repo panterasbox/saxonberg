@@ -496,9 +496,12 @@ lacks. Work down these, in order; the order is the point.
      cannot, or when no plain word fits — never reach for it just to sound
      authentic.
 
-⚠ The outcome is recorded by **renaming one view**, never by a new line in
-`KNOWN_COLLISIONS` — that allowlist is the shipped-before-the-gate
-backlog, not an amnesty (`check-verb-collisions.ts`).
+⚠ The outcome is recorded by **renaming one view**, never by an
+allowlist row: `KNOWN_COLLISIONS` (the shipped-before-the-gate backlog)
+emptied when `pour` unified and the constant is deleted; since
+controllers-are-io D17 two views of one word either prove disjoint by
+shape (§ `prepositionRequired:`) or fail `lint:verb-collisions`
+(`check-verb-collisions.ts`).
 
 
 **Worked: `mark` (tracts build, 2026-10-31).** Ice's `mark` scored a
@@ -642,6 +645,19 @@ the enablement host was missing.
 
 ⚠ Declaring the key AND conferring the view with a static is also a
 failure. One of the two is a lie.
+
+⭐ **The gate and the conferrer are two decisions, and the second is the
+one that gets forgotten.** Of the fifteen dead views the reachability
+sweep opened on (2026-10-07), the timepiece verbs — `wind` and `adjust`,
+half of the domain-local exemplar bundle — had never run: `Watch.ts`
+reasoned correctly that the capability gate belongs on
+`MechanicalMovementMixin` and concluded *"so Watch contributes none"*,
+picking the gate and no conferrer, while its two siblings in the same
+directory (`Whistle`, `CrossingLog`) got it right, which is what made
+the omission invisible. The rule, carried in both docstrings: **the
+mixin is the gate; the concrete class in the pack that owns the verbs is
+the conferrer** — a kernel mixin may never name a locality's view, so a
+view a pack ships is conferred by a class in that pack.
 
 The key is inert at runtime: same verbs, same controller, same bound
 model, and it is neither an arg nor an option
@@ -1016,8 +1032,12 @@ So a verb whose target is a room-level thing (a direction, an exit) must
 `$focus` resolves to that object, and a bare-default `go north` searches
 "north" inside it, finds no exit, and fails with "you can't walk that
 way." The movement verbs (`go`/`walk`/`climb`/`swim`/`fly`/`ride`/
-`drive`, joining `mount`) therefore declare `scope: ["$focus",
-"reachable"]` explicitly — drill first, then fall back to the room.
+`drive`, joining `mount`) therefore scope to WAYS — `go.yaml` declares
+`scope: ["here:exits", "reachable:[class.ExitableVessel]"]` (harbors
+review 3; the seven locomotion views share it) — so a direction word can
+only mean a way and a focused object never swallows it. (They declared
+`["$focus", "reachable"]` before that; the drill-first form is still
+right for inspection verbs.)
 
 Verbs that should **ignore drill entirely** declare a non-`$focus`
 fragment (`scope: 'inventory'` for `drop`, `scope: 'peers'` for

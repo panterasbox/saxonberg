@@ -378,6 +378,16 @@ unconfirmed). ⚠ A prompt reads the COMMAND's Interactive
 run by a connected player has none. An NPC's `needs-input` also goes
 to `DiagnosticApi` (the author's to fix).
 
+⚠ **Why not a script-side prompt queue** (suspend the coroutine, ask the
+owner when next online, resume on the answer — the script-interaction
+slate's third way out, declined): the coroutine substrate could carry
+it, but a script that pauses for a human is no longer a script — it is
+a workflow, with a lifetime, an owner who may never return and a resume
+path that must survive a reboot. The honest shape is refusal plus the
+script passing up front what a prompt would have asked (`--body`, a
+`yes`), which also makes a script reproducible. Reopen only on a real
+content need.
+
 The script binder shares the dispatcher's matcher
 (`CommandGiver.matchAffordances`), so `verb@source` binds in a script
 exactly as typed: one source → that source's views; a plural scope →

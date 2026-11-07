@@ -11,10 +11,12 @@
 > and stated in that doc section — verified against
 > `packages/server/src/mud/lib/command/CommandGiver.ts` and
 > `packages/server/src/mud/api/command.ts` for this pass.
-> **Left:** a line-level `--async`/`--sync` prefix so a bare typed
-> multi-statement script (no `script` verb) detaches · a per-actor async
-> concurrency cap · a generic cancel-my-running-async-command verb
-> (engagement owns cancel today)
+> The line-level prefix shipped at controllers-are-io (D23, MR !527): a
+> leading `--async` on a bare multi-statement line detaches the run the
+> way `_executeOne` detaches a controller body, `--sync` strips →
+> [scripting.md § Scripts fail CLOSED](../../subsystems/scripting.md).
+> **Left:** a per-actor async concurrency cap · a generic
+> cancel-my-running-async-command verb (engagement owns cancel today)
 > **Size:** a tail
 
 See also:
@@ -36,12 +38,9 @@ See also:
 
 ## Remaining design
 
-- **A line-level `--async`/`--sync` prefix for the bare typed-script
-  line.** The `script` verb inherits the framework flags; the *bare*
-  multi-statement line (no `script` prefix, handled inline in
-  `executeCommand` at the `parseResult.script` branch,
-  `CommandGiver.ts:684`) does not — it stays the quick sync shortcut
-  with no flag handle. Whether/how to give it one is undesigned.
+- *The line-level `--async`/`--sync` prefix on the bare script line
+  shipped (controllers-are-io D23) → scripting.md § Scripts fail CLOSED,
+  `CommandGiver.ts` at the `parseResult.script` branch. Cut 2026-11-07.*
 - A per-actor async concurrency cap (see *What this slate does NOT
   cover*, below).
 - A generic cancel-my-running-async-command verb (see *What this slate

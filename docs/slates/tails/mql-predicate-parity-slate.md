@@ -1,13 +1,16 @@
 # MQL predicate parity — the targeting logic a player cannot see
 
-> **Status: DESIGNED 2026-09-28, UNBUILT** — the rule is written down
-> (`architecture.md` § *MQL is a VIEW over the model*); the gaps it
-> exposes are not closed.
-> **Left:** three predicates + one filter atom, each delegating to a
-> method that already exists or needs to · the census of hand-rolled
-> listing filters (3 verbatim copies of one 4-clause rule) · the
-> orphan-guard question against the perception pass
-> **Size:** a wave
+> **Status: PARTIAL** — the rule is written down (`architecture.md` §
+> *MQL is a VIEW over the model*). `:loose` · `:worn` · `:carried`
+> shipped and `:visible` was adopted at controllers-are-io W2 (D22, MR
+> !527); the three verbatim listing filters are one query; the orphan
+> guard question was answered *yes, until a build decides otherwise* →
+> [mql.md § Predicate registry](../../subsystems/mql.md),
+> [perception.md § The room listing is one query](../../subsystems/perception.md).
+> **Left:** the `placement.<member>` filter atom (*what is on the
+> back-bar*, as a query) · the fuel-arg candidate preference from the
+> fire build (the clamp bound over the baskets of charcoal — below)
+> **Size:** a tail
 
 > Written out of the placement build's review (MR !302). The build
 > moved `ContainmentApi.looseContents` onto `Container` as
@@ -29,30 +32,10 @@ The five shipped predicates are the template — `isLiving` is
 
 ## ⚠ The finding: one rule, three verbatim copies, invisible to the player
 
-`LookController.ts:195`, `SenseController.ts:152` and
-`Container.ts:368` (the inspection-card projection) each hand-roll the
-*same* room-listing filter. Two of them are character-for-character
-identical:
-
-```ts
-if (item.stuffId === actor.stuffId) return false;
-if (MixinApi.isAdornment(item)) return false;
-if (!MixinApi.isVisible(item)) return false;
-if (!PerceptionApi.perceives(actor, item)) return false;
-```
-
-…and the card's copy adds a fifth clause the other two do not have
-(`!wornHere.has(child.stuffId)` — worn things are a partition of
-contents, so a shirt must not render as carried). Then all three call
-`getLooseContents`.
-
-**A player cannot see, type, or reproduce any of it.** `here:i` gives
-them the raw contents; there is no query that gives them what `look`
-actually shows. That is the real cost — not the duplication.
-
-⚠ And the divergence is already live: the card subtracts worn items
-and the two prose paths do not, because the prose paths never had a
-reason to. Nobody decided that; it accreted.
+*Shipped (controllers-are-io W2): the three copies are one typeable
+query, `here:i:visible:[not mixin.AdornmentMixin] - me` (the card adds
+`:carried`) → perception.md § The room listing is one query, mql.md §
+Predicate registry. Cut 2026-11-07.*
 
 ## What to add
 
@@ -66,58 +49,22 @@ them may be the only way to reach the behaviour.**
 | `:worn` / `:carried` partition | `Slotted.getAllOccupants()` (the card's `wornOccupantIds` walk, which is already a local helper) | kills the fifth clause; makes the partition sayable both ways |
 | `:adornment` — or just use `[not mixin.AdornmentMixin]` | — | ⭐ probably nothing to add: MQL can already say this, which is evidence the gap is narrower than it looks |
 
-With those, the shipped listing is
-`here:i:visible:loose:[not mixin.AdornmentMixin]` — and the three
-copies collapse to one call each.
-
-⚠ `:visible` already exists and already does the `perceives` half, so
-**two of the four clauses are MQL-expressible today and the
-controllers hand-roll them anyway.** Worth knowing before anyone
-scopes this as a language change: a chunk of it is just adoption.
+*The `:loose` / `:worn` / `:carried` rows shipped and `:visible` was
+adopted (W2) → mql.md § Predicate registry; mql-grammar.md § predicates.
+The `placement.<member>` atom is the row still open. Cut 2026-11-07.*
 
 ## ⚠ The orphan guard — a question, not a task
 
-`getLooseContents` has two clauses and only one is a containment fact:
-
-```ts
-!(placement && ids.has(placement.host.stuffId))
-//  ^ per-element        ^ set-relative
-```
-
-The second drops an item only when its host is **also in the set**. A
-placement host is structurally always a sibling in the same contents
-list, so in a raw listing the host is always present — the guard fires
-only when perception or the worn pass has *already removed the host
-while keeping its contents*.
-
-That is not a listing rule. It is damage control for a lossy upstream
-filter, and it is the reason `:loose` cannot be a pure per-element
-predicate.
-
-⭐ **The question for the perception pass, not for MQL:** should
-anything ever hide a host and show what is on it? If no, the guard
-deletes and `:loose` is clean. If yes, the honest shape is that the
-*host* answers for its contents' visibility, not that the listing
-patches it afterwards. Either way the answer lives in
-[perception.md](../../subsystems/perception.md), not here.
-
-⚠ Removing the clause without answering this is a behaviour change
-with no test proving it safe — the placement build kept it
-deliberately and filed this.
+*Answered → perception.md § The room listing is one query, and the
+orphan guard stays: yes, a hidden host does not hide what was left on
+it, so the set-relative clause stays in `getLooseContents(items)` and
+`:loose` reads the holder's full list. Cut 2026-11-07.*
 
 ## Wider census
 
-`git grep 'getContents()\.filter'` is **5** sites outside tests. Three
-are the listing rule above. The other two are honest and should stay:
-
-- `lib/behavior/Behaved.ts:533` — *room occupants that look like
-  players* (Sensor, not Behaved). A brain's own question.
-- `platform/idea/cmd/device/FireController.ts:112` — the tangible
-  charge in a kiln.
-
-⭐ Neither is a targeting rule a player types, which is the
-discriminator: **if a player would ever want to ask it, MQL should be
-able to; if it is the engine talking to itself, a loop is fine.**
+*The three listing sites collapsed (above); the two honest loops stay.
+The discriminator graduated to mql.md § Predicate registry. Cut
+2026-11-07.*
 
 ## Non-goals
 

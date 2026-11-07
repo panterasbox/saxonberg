@@ -913,3 +913,60 @@ protocol mixin everywhere one exists, and it is wrong for every tool verb. It
 stays beside the mixin, never instead of it. ⚠ What it costs: an opted-in slot's
 refusal is the binder's (*You can't wind the rock.*), where the controller said
 *You can't wind that.*; those controllers' own arms stay as the type narrowing.
+
+## Deferred from the build — salvaged from the retired plan (2026-11-07)
+
+The plan's § Deferred seams, verbatim, so nothing it deferred depends on
+the plan surviving. Each names its destination; where the destination
+slate does not yet carry the item, this section is its record.
+
+- `look`'s six arms → their objects after client-surface merges —
+  **one-resolution-rule-slate** § 2.
+- The pack burn-down (Smelt, Fell beyond the cross-cut, Saw beyond the
+  cut, Butcher beyond the cut, Mow, Mill, Spin, Dye, Draft, Operate…) —
+  **controllers-are-io-slate** keeps the scan list.
+- `PumpableMixin` narrowed to `Firebox`; `SeatedDrivableMixin`'s
+  deletion; `getMass`'s four definers; the other 40 split-cluster mixins
+  (the gate's ranked census) — **mixin-slate**.
+- The printer's forme, the herd, Katie's and Walter's nouns; the
+  workspace trees after wizard-axis; `title buy` over `ForSale`; the
+  five `set` subcommands if the owner rules otherwise —
+  **command-taxonomy-slate**.
+- `shadowed-by:` — **not needed**: the disjointness proof replaces
+  adjudication and `KNOWN_COLLISIONS` empties — **affordance-verb-slate**
+  (recorded as closed).
+- The audit rail (`@Audited`, `audit_events`), `FromIdentity`, pack gate
+  participants, interface admission — **call-security-pass-slate**
+  (the decision and the hoist landed here).
+- Scope-modality's per-modality permeability, transparent containers,
+  the feasibility validator — **scope-modality-slate** (only `eat`'s
+  `canReach` lands here).
+- Object-taxonomy's mint, subtraction, the `/stuff` committee —
+  **object-taxonomy-slate** (the signature and census landed here).
+- Affordance-suggestion's `narrow()`, relational axis, history, ranking
+  — **affordance-suggestion-slate**.
+- Async-commands' per-actor cap and generic cancel —
+  **async-commands-slate**.
+- `@name` mentions in a message tail — **chat slate**.
+- `engagement-completed` carrying the outcome's facts —
+  **response-envelope** follow-on.
+- The decouple branch's findings (stranded recipes, heat-tie shadowing,
+  a `record` macro, rows whose class doesn't exist) — its own findings
+  slate, landed with W6.
+
+---
+
+### Known and not fixed at merge (from MR !527)
+
+- 12g: a transfusion collects outside the command frame, so `paid: 0` (pre-existing).
+- `WalletController` keeps a three-arm switch.
+- Batch under `--async`: each detached attempt fires its own envelope.
+- Not on the act shape: Rope's `tie`/`untie`, `SugarLoaf.clay`, `LiftSource`'s bucket, retail/Reading/SocialLogic `line:` shapes; Mould/Gather keep a mid-act scene.
+- `cut.yaml`, `dig.yaml`, `tap`, `teleport` stay `requires: any`.
+- Duck findings kept: Ore's `getGrade`, Draft's herdbook probe, `asDriven`, `getReachRef?`, `Buoyant`'s `getBodyDensity?.()`.
+- 11 classes compose `SwitchableMixin`, 3 name the view.
+- Reason unions are closed in the kernel protocol file even for pack hosts.
+- `FromMixin` re-anchoring stopped at money/record gates; NotifyPolicy, SubjectSubscriber, HasInteractive, PartyMember, Caster, Employed, Combatant stay marker + `SelfSubject`.
+- Weak drive checkpoints: 24b blind; 21b passes a nonsense way; step 17's read-back room unexplained.
+- Crowd timing targets: `crowded-rooms-slate`.
+
