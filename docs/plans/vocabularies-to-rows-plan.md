@@ -530,7 +530,12 @@ on every arrival, which is out of scope.
 hook) stamps `frozenAtS = now`; the next read adds `now − frozenAtS` to
 `sinceS` and to every `lastAt` and clears it, so neither rising nor
 falling happens while nobody is in the body. A restart (runtime state gone)
-reads as a fresh nose.
+reads as a fresh nose. ⚠ So does a **deliberate sign-out**: !527's D30 saves and
+destructs a signed-out body (a bare drop stays linkdead where it stands), so
+adaptation and the place stamp go with it, and only a linkdead body freezes.
+`exposures`/`aversions` must be in the save that precedes the destruct; they
+are `persistent` and the round-trip test covers it. A signed-out player also
+stops being a source in the room.
 
 **Your own smell starts adapted**: notes whose only hop-0 sources are the
 viewer's own body (`stuffId === viewer.stuffId`) read at `ADAPT_MAX`; a
@@ -687,11 +692,13 @@ word at the reader's depth merge (their OU add) — an untrained nose reads
 
 ### D13. Naming the source
 
-A `Scent` note carries `sourceName: string | null`. The controller (not
-the nose) resolves it: for `smell` bare, a note is named only when **every**
-hop-0 source of that word is one visible thing
+A `Scent` note carries `sourceName: string | null`. **The nose resolves it,
+not the controller** (the rule of an act lives with the act: !527's
+`lint:controller-decisions`, and P5). For a bare read, a note is named only
+when **every** hop-0 source of that word is one visible thing
 (`PerceptionApi.canPerceive`/`VisionModality.canSee(viewer, thing)` — the
-existing light gate) and there is exactly one; beyond hop 0, never. `smell
+existing light gate) and there is exactly one; beyond hop 0, never. The
+controller only words the `Scent`. `smell
 <thing>` reads `emissionOf(thing)` at zero distance and always names it. In
 the dark nothing is named. `smell me` is `smell <self>` through the own-smell
 adaptation (D4), so it reads low; `smell <other>` reads them at full.
@@ -730,9 +737,20 @@ floor and a knife cannot" means. (A tallow candle passes arm 1 if its row's
 tallow is `edibility: true`, as a cooking fat is; a bite of candle is a
 bite of tallow, which is honest.)
 
-**The act is the body's**: `Metabolic.taste(food): TasteOutcome` beside `eat`
-(on !527's branch: in `Eating.ts`; whichever merges second moves it, §
-Risks) — `canIngest` gate; `Flavor` via `TasteModality.flavorOf(food)`; the
+**The act is the body's, on `PalateMixin`**: `taste(food): TasteOutcome`, in
+`lib/metabolism/Palate.ts` rather than beside `eat`. It tastes with the
+tongue the mixin already owns, and it calls `canIngest` and `ingest` as
+`EatingMixin` does, so **it touches neither `Metabolic.ts`'s act surface nor
+!527's `Eating.ts`** and that collision is gone. `PalateMixin` composes over
+`MetabolicMixin` (typed to it, the `Eating` precedent) and contributes
+`taste.yaml` (`static commandContributions`, moved off `Perceiver`; `smell`
+stays there). `TasteOutcome` follows !527's D4 convention: `{ok:false, reason}`
+with a reason union (`airway` carries its `line`, the `EatOutcome` precedent),
+`{ok:true, ...facts}`, no `Mml`; the controller's wording is an exhaustive
+`switch`. A bulk mouthful goes through the same slot path as
+`SipController` (`BulkableApi.slotFor`, `isEmpty`, `new Freshness(slot).ingestPayload()`,
+`BulkableApi.transfer`), so a tap and a well answer as they do for `sip` once
+water-supply lands. The act: `canIngest` gate; `Flavor` via `TasteModality.flavorOf(food)`; the
 mouthful per the arm above; the dose through **the one path**:
 `ingest(material, TASTE_LITRES, phase, ingestPayload, hostKg = the
 mouthful's kg)` → `routeIntake`, so per-serving toxins scale by the
@@ -740,9 +758,13 @@ mouthful's mass (`MaterialApi.blendToxicity(payload, material, kg)` already
 takes it), dissolved toxins scale by litres (foreshots dose a fortieth of a
 drink), pathogens expose as they do for `eat`; then `tongue(flavor)` →
 `Savor`; the controller words it, and `TasteOutcome.burned` when the
-corrosive leg landed. A bare `taste` is refused by the binder (the required
-arg's own refusal, which the `assay` lesson says must be reachable: the
-view authors `missing: "You'd need something in reach to taste."`).
+corrosive leg landed. **A bare `taste` is refused by the controller**, in
+words: *You'd need something in reach to taste.* The arg stays `required:
+false` with no `default`. ⛔ Not a `missing:` key (the first draft's idea):
+the command schema has no such key and is `additionalProperties: false`, so
+it would fail the view, and with it the platform pack's install; and a
+required arg with no default refuses in engineer's words (`missing required
+arg`) or silently (instrumentation.md). `lint:command-views` holds this.
 
 **The caustic mouthful — one path for `taste`, `eat`, `drink` and `sip`.**
 `routeIntake` gains a **corrosive leg** beside the toxin legs: for the
@@ -865,6 +887,46 @@ construction (one cluster each, one factory per file named for it). The
 name `Palate` is now honest — it holds the tongue and what it likes, which
 is what a palate is.
 
+### D22. Build against what !527 becomes (re-read at `9f1814e12`, 2026-11-07)
+
+!527 is 1,778 files and will probably land during this build. Branch off
+master and don't wait for it (never gate on a sibling). **The day it lands:
+merge master at once, `pnpm install`, `lint:family`.** Until then write new
+code in its shape, so the merge is a rename and not a redesign:
+
+| !527 | what this build does |
+|---|---|
+| D4 one outcome convention: no `Mml` on an act, a reason union, an exhaustive `switch` in the controller | `TasteOutcome`; `Scent`/`Savor` are percepts, with no sentences on the body |
+| D5/D26 `lint:controller-decisions`, `-functions`, `-mutations` | `SmellController`, `TasteController`, `EatController` read and word: no arithmetic, no thresholds, no module functions, no mutators. Ceilings may only fall |
+| D6 `Eating.ts`/`isEating` | W5's `eat` edits land there; `taste` is on `PalateMixin`, clear of it |
+| D16 one word; D24 `category:` required; `lint:command-views` hard-fails a bad view | `taste.yaml` one word, `category: perception`, no unknown keys |
+| `ignite` → `light`; `make` → `do`; `boil`, `scrub`, `pour` views unified | the drive and walk use the post-merge word; check every verb in the walk again on the merge |
+| renames: `lib/craft/Tool`, `lib/bulk/Cutlery`, `lib/reserve/Reserved` | import from wherever master has them at the time |
+| D22 keywords only, no name tiers | aroma rows are not targets; `taste apple` and `smell <one>` resolve by keyword; assert in the drive |
+| D27 a crowded place is a requirement | `smell` recurses into every body in reach (D1, MAX_HOPS 2). It runs only when typed, never on a move. Add a `smell` timing to `crowd.soak.wire.test.ts`; if that is slow, the fix is the walk |
+| D30 signed-out bodies are destructed | D4's note; the soak's long jumps and step 32 exercise the save |
+
+### D23. Water supply (re-read at `c291df5fc`, 2026-11-07)
+
+Water is carrying what the tongue should read, and it adds one thing that
+must stay silent:
+
+- ⭐ **`salinityPpt` rides the payload** (`lib/supply/WaterChemistry.ts`), so a
+  well going salty is a state this build can tell you about. 1 ppt is 1 g/kg,
+  so `flavorOf` reads it directly as `salty`, and when a payload carries it, it
+  wins over the material row's own amount. A player can then taste a well
+  turning, with no rule written for it. pH and hardness are not read in this
+  build (a tongue would notice very acid water, but no consumer is asking).
+- ⛔ **Fouled water announces itself to no sense**: `watershed.md` says so, and
+  it is the epidemiological point of the water design (the only way to find a
+  source is to compare outcomes). `fouled-water` and `tainted-water` get no
+  `smells` and no `tastes`, and the drive asserts it. Lead from a pipe (`leaches`)
+  stays silent the same way.
+- `salt-water.yaml`: its toxicity type becomes `salt-poisoning` on that branch,
+  so a taste of it doses that. W6 adds a tag to the same row; trivial merge.
+- `lib/quantity.ts` and `lib/mixin.ts` gain entries beside ours; trivial.
+- `CraftingLogic` (13 lines, the mend cap) is clear of D17.
+
 ---
 
 ## ⭐⭐ Host placement
@@ -889,7 +951,7 @@ claims about everything else on that host.
 | `AromaReading` | a `Reading` subclass; row in the platform pack | one channel; `subjectRequires: []` (the subject may be anything that emits, including a place). |
 | `TasteModality.flavorOf` | the taste modality singleton | the contact-sense twin of `SmellModality.emissionOf`. |
 | `SmellModality.emissionOf`, `hopTau`, `OPEN_VESSEL_TAU` | the smell modality singleton | the field's physics, where `signalAt` already lives. |
-| `Metabolic.taste` | `Metabolic` (master) / `Eating` (!527) | beside `eat`; the body does the act. |
+| `PalateMixin.taste` | `PalateMixin`, composed over `MetabolicMixin` | the body does the act; true of every `Creature`. Not on `Metabolic` or `Eating` (D15). |
 | `Unit 'OU'` | `lib/quantity.ts` | one word in the closed unit vocabulary (kernel-led build; the `head` channel's reason for not adding a unit was a pack's preference, this is the kernel's one quantity). |
 
 Guard test: no new code re-narrows a host set. The only `isAdvancing` check
@@ -1133,8 +1195,11 @@ naming; `smell`, `smell <thing>`, `smell me`.
 - `lib/perception/Smell.ts` — `Scent` declared beside `Smell`: `notes:
   {word, name, ou, hops, sourceName}`, `dominant`, `phrases()`, `isEmpty`.
 - `platform/idea/modalities/SmellModality.ts` — `perceiveFor` forwards.
-- `platform/idea/cmd/perception/SmellController.ts` — bare: `PerceptionApi.perceiveAt`,
-  naming per D13, *You smell <clearly of peat smoke> …*; target:
+- `platform/idea/cmd/perception/SmellController.ts` — no module-level
+  functions and no arithmetic (`renderSmellProse` and `actorAcuityThreshold`
+  go; !527's `lint:controller-functions`, `lint:controller-decisions`). Bare:
+  `PerceptionApi.perceiveAt`, words the `Scent` with its source names (D13),
+  *You smell <clearly of peat smoke> …*; target:
   `emissionOf(target)` → `nose(signal, { self: target === actor ? actor : undefined })`;
   falls to the base's prose only when the nose reads nothing AND the
   room authored `<sense channel="smell">` prose (bespoke case kept).
@@ -1191,7 +1256,8 @@ anything edible; `Palatable` retired.
   provisional amounts the W7 pass audits; `lint:aromas`' taste arm refuses
   the old shape.
 - `lib/perception/Flavor.ts`; `platform/idea/modalities/TasteModality.ts`
-  (`flavorOf(thing)`: material tastes × makeup, dissolved aromas at full OU,
+  (`flavorOf(thing)`: material tastes × makeup, ⭐ the payload's `salinityPpt`
+  as `salty` when the payload carries it (D23), dissolved aromas at full OU,
   Odorous `strength × 1`, rot's note); the taste modality row's `class:`.
 - `lib/metabolism/Palate.ts` — `PalateMixin` (D21) with `tongue(flavor):
   Savor` (+ `liking` stub returning `indifferent` until W5), the per-taste
@@ -1200,8 +1266,9 @@ anything edible; `Palatable` retired.
 - `lib/perception/Flavor.ts` — `Flavor` and `Savor` together (decided: one
   module for the tongue's signal and its percept, the `Smell`/`Scent`
   shape).
-- `lib/metabolism/Metabolic.ts` — `taste(food): TasteOutcome` (D15, the
-  three mouthfuls), `TASTE_LITRES`, `TASTE_KG`; **`routeIntake`'s corrosive
+- `lib/metabolism/Palate.ts` — `taste(food): TasteOutcome` (D15, the three
+  mouthfuls), `TASTE_LITRES`, `TASTE_KG`; `Perceiver.ts` loses `taste.yaml`.
+- `lib/metabolism/Metabolic.ts` — **`routeIntake`'s corrosive
   leg** (D15) calling `material.corrodeOnContact(self, { site: 'body.head',
   energy, bare: true })` for the intake material and each makeup part.
 - `api/condition.ts` — `CorrosionInflictSpec.bare?: true`;
@@ -1248,9 +1315,10 @@ how it went down.
   `recordExposure`, `recordAversion`, `liking` (D6), `heritage()` returning
   null.
 - `platform/idea/species/Species.ts` — `palate: { spread?, curves? } | null`.
-- `lib/metabolism/Metabolic.ts` — `routeIntake` writes the aversion (D5);
-  `eat`/`taste` record exposure per note and return `liking` on the
-  outcome.
+- `lib/metabolism/Metabolic.ts` — `routeIntake` writes the aversion (D5).
+- `lib/metabolism/Eating.ts` (`Metabolic.eat` until !527 lands; D22) — `eat`
+  records exposure per note and returns `liking` as a fact on `EatOutcome`;
+  `taste` does the same on `TasteOutcome`.
 - `platform/idea/cmd/bulk/EatController.ts` — *You eat the stew with your
   fingers. It goes down well / It is unpleasant, but you are starving and
   it goes down* — one sentence from `liking.word` and the hunger term.
@@ -1310,7 +1378,7 @@ ten rows per batch against the returned basis lines):
 `class:`, `smells:`, `burning:`, `tastes:` (and for E `threshold`,
 `liking`, `extends`, `description`); `Edit` with exact old/new; never
 rewrite a row; a word you need that E has not shipped goes in your return
-as a request, not a row you invent; plain things (iron, glass, clean water,
+as a request, not a row you invent; ⛔ `fouled-water` and `tainted-water` author **no** smell and no taste (D23); plain things (iron, glass, clean water,
 stone, cullet) get **no** key; every strength is OU per kg at 293 K; every
 taste amount g/kg; return one line per row *(path · word · strength ·
 basis)*. The build agent runs `lint:aromas` after each batch lands and
@@ -1411,7 +1479,7 @@ setter), `Smell` (per-word arithmetic), `SmellModality.emissionOf` (one
 test per leg), `Palate.nose` (acuity, adaptation, depth, separation,
 dominance, own-smell), `Scent.phrases` (no digit), `TasteModality.flavorOf`
 (makeup blend), `Palate.tongue`/`liking` (offsets, hunger, caps, aversion
-timing, exposure cap), `Metabolic.taste` (mouthful, bites, dose),
+timing, exposure cap), `Palate.taste` (mouthful, bites, dose, the outcome's reasons),
 `AromaReading` (bracket invariant), media cap (both/one/neither), the
 spine round-trip of `exposures`/`aversions`, `check-aromas` fixtures (each
 refusal arm), `check-closed-vocabularies` (ceiling + `MIGRATING`). The gym
@@ -1436,7 +1504,7 @@ subject, no `;`.
 | 6 | instant · staged — sulfur + grain in one room | `clone` a sulfur lump and six grain sacks `--here` |
 | 7 | instant · staged — tar pot lid; tallow in an open pouch vs a sealed box | `clone` a tar pot (a `Sealable` Flask/Barrel row over `coal-tar`), `close`/`open`; `hand` tallow into a pouch, then into a sealed chest |
 | 8 | instant · staged — warm loaf vs cold; frozen carcass | `hand(s, loaf, { stampedTemperatureK: 330 })` and `{ 273 }`; `hand(s, carcass, { stampedTemperatureK: 253 })` |
-| 9 | instant · staged — lit hearth; next room; put out | `ignite`/`douse` the chandlery Hearth (`cmd/device/ignite.yaml`, `douse.yaml` on master; !527 renames `ignite` → `light`), `smell` next door |
+| 9 | instant · staged — lit hearth; next room; put out | `light`/`douse` the chandlery Hearth (`ignite` on master until !527 lands, D22), `smell` next door |
 | 10 | staged · player — rotten side of beef next door; pathogens planted on a fresh cut | `eval --on <cut> self.setMicrobialLoad(0.95)`; `eval --on <cut> self.setPathogenLoads({...})` — **nothing reports them at any band** |
 | 11 | staged · player — a corpse at each stage through a door | `eval --on <corpse> self.diedAtGameSec = <now − n×3600>` (the fishing precedent) |
 | 12 | instant · player — a stew smells of its ingredients | `cook` the shipped hearty stew in the cookhouse |
@@ -1449,7 +1517,7 @@ subject, no `;`.
 | 19 | instant · player — `taste apple`, cheese, loaf; `look` shows the bite | `hand` each |
 | 20 | instant · staged — a pinch vs a handful of salt; brine | two stews via `pour` measures into the pot; `hand` brine |
 | 21 | instant · staged — a little bitter in a sweet dish | a syrup with a measure of a bitter row |
-| 22 | instant · player — peated whisky `taste`; `smell` salt water: no salt | `hand` the shipped peated spirit; the estuary's water |
+| 22 | instant · player — peated whisky `taste`; `smell` salt water: no salt; a salty well's water tastes salty and fouled water tastes and smells of nothing (D23) | `hand` the shipped peated spirit; the estuary's water; a pail drawn with a staged `salinityPpt`; `fouled-water` |
 | 23 | staged · player — `taste <lye flask>`: *It burns.*; `analyze patient me` names a caustic wound at the head while wearing a hat; `rinse` resolves it; `drink` from the flask burns worse; a taste of foreshots doses less than a drink of them | `hand` a flask over `/trade/chandlery/idea/material/lye` and a bottle of foreshots (dissolved toxins); `analyze patient` (trade-medicine's reading) |
 | 24 | instant · staged — brine boil, wine poach, sand roast from rows; ceilings differ | `cook` each with `analyze`/`measure temperature` of the pot |
 | 25 | instant · staged — two staged profiles taste one soup; oversalted and rot bad for both | **owed tool** `@TestOnly PalateMixin.stagePalate(offsets)` via `eval` |
@@ -1495,16 +1563,13 @@ risk; it stops on a Q only if it reaches a wave that cannot proceed without
 the answer, and none of these does.
 
 1. **`build/controllers-are-io` (!527) is the collision that matters.**
-   Whichever merges second reconciles: `Metabolic.taste` moves beside `eat`
-   into `Eating.ts` (and narrows on `isEating`); every new/changed view
-   (`taste.yaml`, `aroma.yaml` is a reading row not a view) gains
-   `category:`; `check-mixin-files` wants one mixin per file (we comply);
-   `check-duck-typing` must pass on our code (it will — D3). Most exposed:
-   **W4** (`taste` on the body), **W5** (`eat`'s liking line in
-   `EatController`), **W2** (`SmellController` if that branch's
-   `check-controller-decisions` objects to the D13 naming in the controller
-   — if so, `sourceName` moves onto `Scent` and the nose takes a `canSee`
-   predicate; a half-day).
+   See D22; re-read against its branch at `9f1814e12`. With `taste` on
+   `PalateMixin` and source naming on the nose, the remaining exposure is
+   **W5** (`Eating.ts`, `EatController`) and small reconciles: `category:` on
+   changed views, `Creature`'s composition, `lib/mixin.ts`, `Soilable` (+77
+   lines, not the odor code). `check-duck-typing` must pass on our code; note
+   it counts `x.name?.()`, so chain witnesses as `Thermal` does. `CraftingLogic`:
+   its diff does not touch the medium code.
    `reqs/water-supply` touches `CraftingLogic.ts` (14 lines, the mend cap
    and `fitImpl`) and `Bulkable.ts` (pH on the payload) — no overlap with
    D17's sites. `build/client-surface` rewrites `look` — we add nothing to
@@ -1638,7 +1703,7 @@ Read first, in this order.
    (corrosion → `caustic`; the covering fold), `docs/subsystems/harm.md`,
    `packages/content/trade-chandlery/content/trade/chandlery/idea/material/lye.yaml`,
    `packages/content/platform/content/platform/cmd/medical/rinse.yaml`.
-8. `lib/metabolism/Metabolic.ts` (`eat`, `ingest`, `routeIntake`,
+8. `lib/metabolism/Metabolic.ts` (`canIngest`, `ingest`, `routeIntake`,
    `exposeToPathogens`), `platform/idea/cmd/bulk/EatController.ts`,
    `SipController.ts`.
 9. `lib/vitals/Vitals.ts:1014` (`resolvedBloodGenotype`), `lib/Seeded.ts`,
