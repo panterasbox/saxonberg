@@ -148,6 +148,43 @@ Only the Compact designates a prison; a locality designates only a lockup, withi
 The Compact may designate any extent it chooses (§ 3) — whether it must buy or lease the land
 first, or may take it, is **process**, the constitution's question.
 
+## 6a. ⭐⭐⭐ The launch prison, intake and release **[DECIDED — the owner, 11-07]**
+
+*"Our Saxonberg prison I actually think can start real small. We don't need the whole state pen, at
+least not for launch. … What we need is the confinement, and something that scales so it's never
+'full' and can always accommodate another prisoner."*
+
+- **Launch = confinement + an elastic cell block.** The residence spine's elastic warrens (the dorm is
+  the shipped exemplar) mint a member on demand, so the block is a **warren of cells** — the dorm's dark
+  twin — and is never full. The state pen (§ 7) is the later shape.
+- **Intake — stop it now, move after.** *"If you're responding to infractions in real time you need that
+  shit to stop immediately, and getting them to prison is the end state."*
+  1. **Custody begins where they stand, at once** — the moderator's act puts them in custody on the
+     spot; their verbs collapse to what custody allows (a sentence may add a mute). That instant *is*
+     detention.
+  2. **A direct move to intake — no route.** ⛔ Not the TPA: *"even with the TPA you're still pathfinding
+     and moving through rooms where shit can go wrong."* And it must be **honest magic** — *"we do try to
+     regulate it in the game's fiction … magic should actually be 'magic'."* So it is the facility's
+     **custody summons**: an arcane working anchored at an intake circle the facility holds, **specified
+     by the custody book** (*you can only summon someone the record names*), priced by physics
+     (`m·g·Δh`), drawn from the facility's own mana supply (a Compact line-item).
+     ⚠ It needs the doctrine in [mana-economy-design-pack](./mana-economy-design-pack.md) Part 11a —
+     lifting `magic.md`'s structural *a caster cannot teleport a third party* in favor of specification
+     plus composure.
+  3. **Narrated at both ends** — the room sees them taken (staging's *entrances and exits as behavior*),
+     intake sees them arrive.
+  4. **Intake** — the custody-book entry, the phone into the hock, a cell from the elastic block.
+  - Offline or never signed in: the sentence waits; the re-entry ladder's custody pin (§ 7d) puts them in
+    intake at next login. Dying or wounded: the body moves **as it is** — custody never heals.
+  - A locality's lockup is different: the watch arrests with `restrain` and walks them, fully diegetic,
+    escape possible — a delay that is content.
+- **Release — the facility gate.** Walking out into Saxonberg is the release moment (and foot traffic for
+  the demo capital). What real prisoners get: their **property** back and their **trust-account
+  balance**, sometimes **gate money** (most U.S. states, from nothing to a couple of hundred dollars —
+  California's is about $200 — sometimes a bus ticket). So: belongings out of the hock; the commissary
+  balance paid out; ⚠ **gate money open** — the lean is the bus ticket's equivalent, a **one-ride TPA
+  fare**, with cash at zero by default and the Compact free to set it.
+
 ## 7. ⭐⭐⭐ The prototype — the generic state pen **[DECIDED shape]**
 
 *"Let's start with the generic state pen. No max security, not min, right in the middle. Maybe
