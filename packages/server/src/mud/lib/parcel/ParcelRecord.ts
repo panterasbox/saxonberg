@@ -82,8 +82,6 @@ export interface TitleClaim {
   powerBand?: PowerBand;
   /** Where this premises' water comes from — see {@link ParcelRecord.waterSource}. */
   waterSource?: string;
-  /** What pipe carries it — see {@link ParcelRecord.pipe}. */
-  pipe?: string;
   /**
    * Is the content on this ground ready to be walked into? Omitted
    * means `true` — see {@link ParcelRecord.published}.
@@ -162,7 +160,6 @@ export class ParcelRecord extends Document {
     feeder: { persistent: true },
     powerBand: { persistent: true },
     waterSource: { persistent: true },
-    pipe: { persistent: true },
     published: { persistent: true },
   };
 
@@ -319,16 +316,6 @@ export class ParcelRecord extends Document {
    */
   waterSource: string = "";
 
-  /**
-   * ⭐ What pipe carries this premises' water into its rooms — a run word
-   * (`lead`, `iron`) naming `/stuff/thing/fixture/<word>-run`, or `''`
-   * (inherit; nothing up the chain = `plumbing.defaultRun`). A tap implies
-   * its pipe: the room stands up a run of this word the first time a
-   * fixture needs one (water supply, the review). "Seznick House with the
-   * landlord's lead" is a fact about the premises, never about each room.
-   */
-  pipe: string = "";
-
   getExtent(): string {
     return this.extent;
   }
@@ -409,20 +396,6 @@ export class ParcelRecord extends Document {
       );
     }
     this.waterSource = v;
-  }
-
-  /** What pipe carries this premises' water: a run word, or `''` (inherit). */
-  getPipe(): string {
-    return this.pipe;
-  }
-
-  /** Name this premises' pipe; `''` restores inheritance. A run word only. */
-  setPipe(value: string): void {
-    const v = typeof value === "string" ? value.trim() : "";
-    if (v !== "" && !/^[a-z][a-z0-9-]*$/.test(v)) {
-      throw new RangeError(`ParcelRecord.setPipe: '${value}' is not a run word`);
-    }
-    this.pipe = v;
   }
 
   getKeyway(): string {

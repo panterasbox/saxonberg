@@ -11,7 +11,7 @@
 #
 # Persistent: a rammed flask holds an impression, a plaster mould cures, a
 # press stands screwed down — state that must survive a restart.
-class: /platform/location/PersistentLocale
+class: /platform/location/PersistentHall
 data:
   shortDescription: foundry
   keywords: [foundry, "moulding floor", casting]

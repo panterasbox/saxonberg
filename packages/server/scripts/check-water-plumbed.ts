@@ -1,21 +1,27 @@
 /**
- * check-water-plumbed — ⭐⭐ **a premises' pipe word names a real pipe, and
+ * check-water-plumbed — ⭐⭐ **a room's plumbing word names a real pipe, and
  * nobody props one by hand** (water-supply; rewritten at review, 2026-11-06).
  *
- * A tap implies its pipe: the room stands up the run its PREMISES' `pipe:`
- * word names (`/stuff/thing/fixture/<word>-run`, on the title claim in a
- * pack's `pack.yaml`, inherited up the claim chain) the first time a fixture
- * needs it, and the default word (`plumbing.defaultRun`) when nothing up the
- * chain says. So no room authors anything. This gate keeps that true, three
- * ways:
+ * A tap implies its pipe: a plumbed place (`PlumbedMixin`) stands up the run
+ * its `plumbing:` word names — `/stuff/thing/fixture/<word>-run` — the first
+ * time a fixture needs it, and the default word (`plumbing.defaultRun`) when
+ * its row says nothing. So the ordinary room authors nothing. This gate keeps
+ * that true, five ways:
  *
- *   1. every claim's `pipe:` is a word whose run row exists;
+ *   1. every authored `plumbing:` is `none` or a word whose run row exists;
  *   2. the default word in the platform settings names a run row too;
  *   3. ⭐ no room props a PRE-LAID run (`/stuff/thing/fixture/*-run`) — the
  *      pattern this replaced, where every room with a tap had to carry a pipe
  *      object and a gate forced it on sixteen rooms. A plumber's job (a run
  *      with a bill, laid with `fit`, under `/trade/plumbing/`) is not that and
  *      stays allowed. A ratchet at zero.
+ *   4. ⭐⭐ `plumbing:` is said only on a ROOM — a row whose class composes
+ *      `PlumbedMixin` (`Room`, `Hall` and their kept twins). The field is
+ *      the room rung's, not every place's (review question P2);
+ *   5. ⭐ a tap that needs a pipe stands in a room — anywhere else it reads
+ *      unplumbed for ever. Exempt: a tap on a named source (`suppliedBy:`),
+ *      in a `Street` (its pipe is under the street), beside its own store,
+ *      and natural water (`natural: true` — a pond, a leat).
  *
  * A misspelled word fails HERE, at the content check — never as a room that
  * quietly reads unplumbed.
@@ -25,6 +31,7 @@ import { readFileSync, readdirSync, statSync, existsSync } from 'fs';
 import { join, resolve, dirname, relative } from 'path';
 import { fileURLToPath } from 'url';
 import YAML from 'yaml';
+import { composesMixin, extendsAny, packSources } from './pack-roots';
 
 export const WATER_PLUMBED_CEILING = 0;
 
@@ -107,28 +114,61 @@ function defaultRunWord(): string | null {
   return typeof row?.value === 'string' ? row.value : null;
 }
 
+const FIXTURE_CLASS = '/platform/thing/WaterFixture';
+const STREET_CLASS = '/platform/location/Street';
+const STORE_CLASS = '/platform/thing/WaterStore';
+
 function main(): void {
   const all = rows();
+  const sources = packSources();
+  const mixinCache = new Map<string, boolean>();
   const findings: string[] = [];
   const isRun = (path: string): boolean => classOf(all, path) === RUN_CLASS;
-  for (const pack of readdirSync(CONTENT)) {
-    const manifest = join(CONTENT, pack, 'pack.yaml');
-    if (!existsSync(manifest)) continue;
-    const doc = YAML.parse(readFileSync(manifest, 'utf8')) as {
-      requires?: { title?: { extent?: string; pipe?: unknown }[] };
-    } | null;
-    for (const t of doc?.requires?.title ?? []) {
-      if (t?.pipe === undefined) continue;
-      if (typeof t.pipe !== 'string' || !isRun(RUN_ROW(t.pipe))) {
-        findings.push(`${relative(REPO_ROOT, manifest)}: ${t.extent ?? '?'} pipe: ${JSON.stringify(t.pipe)} names no run (${RUN_ROW(String(t.pipe))})`);
+  const isRoom = (path: string): boolean => {
+    const cls = classOf(all, path);
+    return cls !== '' && composesMixin(cls, 'PlumbedMixin', sources, mixinCache);
+  };
+  const isA = (path: string, root: string): boolean => {
+    const cls = classOf(all, path);
+    return cls !== '' && extendsAny(cls, [root], 0, sources);
+  };
+  for (const [path, row] of all) {
+    const word = row.data.plumbing;
+    if (word !== undefined && !isRoom(path)) {
+      findings.push(
+        `${relative(REPO_ROOT, row.file)}: says \`plumbing:\` but its class is not a room — only a ` +
+          `Room, a Hall or their kept twins are plumbed (the field is theirs, not every place's)`,
+      );
+    }
+    if (word !== undefined) {
+      if (typeof word !== 'string' || word.trim() === '') {
+        findings.push(`${relative(REPO_ROOT, row.file)}: plumbing must be a run word or 'none', got ${JSON.stringify(word)}`);
+      } else if (word !== 'none' && !isRun(RUN_ROW(word))) {
+        findings.push(`${relative(REPO_ROOT, row.file)}: plumbing: ${word} names no run (${RUN_ROW(word)})`);
       }
     }
-  }
-  for (const [path, row] of all) {
     if (!/\/location\//.test(path) && !(row.class ?? '').includes('/location/')) continue;
-    for (const p of propsOf(all, path)) {
+    const props = propsOf(all, path);
+    // ⭐ A tap that needs a pipe stands in a room: anywhere else it reads
+    // unplumbed for ever. Not one on a named source (`suppliedBy:`), in a
+    // street (its pipe is under the street), beside its own store, or a
+    // natural water (a pond, a leat) that no pipe brought.
+    const ownStore = props.some((p) => isA(p, STORE_CLASS));
+    if (!isRoom(path) && !isA(path, STREET_CLASS) && !ownStore) {
+      for (const p of props) {
+        if (!isA(p, FIXTURE_CLASS)) continue;
+        const fixture = all.get(p);
+        if (fixture?.data.natural === true) continue;
+        if (fixture && typeof fixture.data.suppliedBy === 'string' && fixture.data.suppliedBy !== '') continue;
+        findings.push(
+          `${relative(REPO_ROOT, row.file)}: props the tap ${p}, which needs a pipe, but is not a room — ` +
+            `make it a Room or a Hall (or name the tap's source with \`suppliedBy:\`)`,
+        );
+      }
+    }
+    for (const p of props) {
       if (PRELAID.test(p) && isRun(p)) {
-        findings.push(`${relative(REPO_ROOT, row.file)}: props the pre-laid run ${p} — a tap implies its pipe; give its premises' claim \`pipe: <word>\` instead`);
+        findings.push(`${relative(REPO_ROOT, row.file)}: props the pre-laid run ${p} — a tap implies its pipe; say \`plumbing: <word>\` instead`);
       }
     }
   }
@@ -142,9 +182,9 @@ function main(): void {
   if (n > WATER_PLUMBED_CEILING) {
     for (const f of findings) console.error(`  ✗ ${f}`);
     console.error(
-      'check-water-plumbed: FAIL — a premises says its pipe with one word on its title claim ' +
-        '(`pipe: lead`) or nothing at all (the default); the word must name ' +
-        '/stuff/thing/fixture/<word>-run, and no room props a pre-laid run by hand.',
+      'check-water-plumbed: FAIL — a room says its pipe with one word (`plumbing: lead`, `none`) or ' +
+        'nothing at all (the default); the word must name /stuff/thing/fixture/<word>-run, and no room ' +
+        'props a pre-laid run by hand.',
     );
     process.exit(1);
   }

@@ -228,8 +228,9 @@ describe("general-store content integrity", () => {
     expect(zone.class).toBe("/platform/idea/location/CartesianZone");
 
     const room = load(STORE_DIR, "shop-floor.yaml");
-    // ⭐ Persistent (cleanliness D31): a kept place's floor outlives a restart.
-    expect(room.class).toBe("/platform/location/PersistentLocale");
+    // ⭐ Persistent (cleanliness D31): a kept place's floor outlives a restart;
+    // and a hall — one particular interior (the room rung).
+    expect(room.class).toBe("/platform/location/PersistentHall");
     expect(room.data?.props).toEqual([
       "/world/terminus/general-store/counter",
       "/world/terminus/general-store/consignment-shelf",

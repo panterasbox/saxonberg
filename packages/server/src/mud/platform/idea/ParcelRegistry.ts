@@ -183,24 +183,19 @@ export default class ParcelRegistry extends ParcelRegistryBase {
    * `unplumbed`, exactly as an unclaimed meter reads `off-grid`.
    */
   @CallSecurity(ParcelApiCallers)
-  public waterOf(path: string): { source: string; parcel: ParcelRecord | null; pipe?: string } {
+  public waterOf(path: string): { source: string; parcel: ParcelRecord | null } {
     const parcel = this.coveringImpl(path);
     let record: ParcelRecord | null = parcel;
-    let source = "";
-    let pipe = "";
     const seen = new Set<string>();
-    // ⭐ The source and the pipe each inherit up the chain on their own: a
-    // sold Hinkley lot cites its own (none, until serviced) and takes the
-    // district's lead.
-    while (record && (source === "" || pipe === "")) {
-      if (source === "") source = record.getWaterSource();
-      if (pipe === "") pipe = record.getPipe();
+    while (record) {
+      const source = record.getWaterSource();
+      if (source !== "") return { source, parcel };
       const parent = record.getParentParcel();
       if (parent === null || seen.has(parent)) break;
       seen.add(parent);
       record = this.coverage.exact(parent)[0] ?? null;
     }
-    return { source, parcel, ...(pipe !== "" ? { pipe } : {}) };
+    return { source: "", parcel };
   }
 
   /**
@@ -442,11 +437,6 @@ export default class ParcelRegistry extends ParcelRegistryBase {
           await existing.save();
           this.reindex(claim.extent, existing);
         }
-        const pipe = claim.pipe ?? "";
-        if (pipe !== "" && existing.getPipe() === "") {
-          existing.setPipe(pipe);
-          await existing.save();
-        }
         return { outcome: "kept", holder: current };
       }
       return { outcome: "conflict", holder: current ?? claim.holder };
@@ -461,7 +451,6 @@ export default class ParcelRegistry extends ParcelRegistryBase {
     record.setFeeder(claim.feeder ?? "");
     record.setPowerBand(claim.powerBand ?? null);
     record.setWaterSource(claim.waterSource ?? "");
-    record.setPipe(claim.pipe ?? "");
     // ⭐ A claim that says nothing about publication is LIVE content.
     // Authoring `published: false` is the draft wall.
     record.setPublished(claim.published ?? true);

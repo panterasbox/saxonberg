@@ -1,5 +1,5 @@
 # The cottage's one room (paint D20) — brick under a slate roof.
-class: /platform/location/Locale
+class: /platform/location/Hall
 data:
   coords: { x: 0, y: 0, z: 0 }
   shortDescription: "cottage"

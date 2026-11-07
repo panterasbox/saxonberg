@@ -54,7 +54,7 @@ requires:
     - { extent: /world/terminus/university-avenue, parentParcel: /world/terminus, holder: { group: terminus }, landUse: civic, feeder: terminus-main:crossing, waterSource: /world/terminus/wharfside/thing/city-intake }
     # Mayfield Row (residences D9): the municipality holds the street;
     # the private landlord holds the building the units subdivide under.
-    - { extent: /world/terminus/mayfield-row, parentParcel: /world/terminus, holder: { group: terminus }, landUse: residential, powerBand: domestic, feeder: terminus-mayfield:mayfield, waterSource: /world/terminus/wharfside/thing/city-intake, pipe: lead }
+    - { extent: /world/terminus/mayfield-row, parentParcel: /world/terminus, holder: { group: terminus }, landUse: residential, powerBand: domestic, feeder: terminus-mayfield:mayfield, waterSource: /world/terminus/wharfside/thing/city-intake }
     - { extent: /world/terminus/mayfield-row/seznick-house, parentParcel: /world/terminus/mayfield-row, holder: { group: mayfield-holdings }, landUse: residential, powerBand: domestic, feeder: terminus-mayfield:mayfield }
     # The land agents' shopfront (residences D14). Commercial, and the
     # municipality's like the rest of the built city — the office SELLS

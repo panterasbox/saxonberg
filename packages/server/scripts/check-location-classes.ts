@@ -44,6 +44,14 @@ const CONTENT = join(HERE, "..", "..", "content");
 
 const FURNISHABLE = "/platform/location/PersistentLocation";
 const MINTED = "/platform/location/Location";
+/**
+ * ⭐ The room rung's permissive class (water-supply review, 2026-11-07):
+ * an interior minted many times. Same discipline as `Location` — a row on
+ * it is a KIND, and an authored interior belongs on `Hall`. ⚠ The NAME
+ * `/platform/location/Room` once meant the singleton (see below); it came
+ * back meaning one-of-many, and this roster is what keeps that honest.
+ */
+const MINTED_ROOM = "/platform/location/Room";
 /** The kernel's own spatial-zone classes — the roots of the walk below. */
 const ZONE_ROOTS = [
   "/platform/idea/location/CartesianZone",
@@ -580,12 +588,17 @@ function ancestorsOf(path: string): string[] {
   return out;
 }
 
-/** The findings: rows on the permissive `Location`. */
+/** The findings: rows on the permissive `Location` or `Room`. */
 export function classifyMinted(rows: readonly Row[]): {
   unexpected: string[];
   missing: string[];
 } {
-  return against(rows, MINTED, MINTED_ROWS);
+  const minted = rows.filter((r) => r.cls === MINTED || r.cls === MINTED_ROOM);
+  return against(
+    minted.map((r) => ({ ...r, cls: MINTED })),
+    MINTED,
+    MINTED_ROWS,
+  );
 }
 
 function main(): void {
@@ -677,11 +690,11 @@ function main(): void {
   if (mint.unexpected.length > 0) {
     console.error(
       `\ncheck-location-classes: ${mint.unexpected.length} row(s) use the ` +
-        `PERMISSIVE ${MINTED} without being a minted KIND.\n\n` +
+        `PERMISSIVE ${MINTED} (or ${MINTED_ROOM}) without being a minted KIND.\n\n` +
         `  ⚠ If these arrived from a branch where this class was named ` +
         `Room and carried SingletonMixin, they are AUTHORED PLACES and ` +
         `the merge has silently stripped their singleton guard. They ` +
-        `want /platform/location/Locale. Only a row ` +
+        `want /platform/location/Locale (an interior: Hall). Only a row ` +
         `that describes a KIND of place, minted many times, belongs ` +
         `here — and it goes in the roster in this file:`,
     );

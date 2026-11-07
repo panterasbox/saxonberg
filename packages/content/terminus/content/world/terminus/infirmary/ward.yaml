@@ -4,7 +4,7 @@
 # store and the bank.
 # ⭐ Persistent (cleanliness D31): a kept place — its floor, its fire,
 # what is curing on its shelves — outlives a restart.
-class: /platform/location/PersistentLocale
+class: /platform/location/PersistentHall
 data:
   shortDescription: infirmary
   keywords: [infirmary]

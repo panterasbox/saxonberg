@@ -1613,10 +1613,10 @@ export const AppSettingKeys = {
    */
   enclosureDefaultMaterial: "enclosure.defaultMaterial",
   /**
-   * ⭐ Plumbing — the run a room's tap stands up when its premises names
-   * no `pipe:` (water-supply review): a word naming
-   * `/stuff/thing/fixture/<word>-run`. A tap implies its pipe; a premises
-   * says `pipe:` only to say something else.
+   * ⭐ Plumbing — the run a plumbed place stands up when its row says
+   * nothing (water-supply review): a word naming
+   * `/stuff/thing/fixture/<word>-run`. A tap implies its pipe; the author
+   * writes `plumbing:` only to say something else.
    */
   plumbingDefaultRun: "plumbing.defaultRun",
   /** Enclosure — how thick it is, in metres, when unauthored. */

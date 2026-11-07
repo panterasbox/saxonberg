@@ -70,6 +70,48 @@ same broad hosts. So:
   (`/platform/location/Room`, `PersistentRoom`); whether `DormRoom` (Duncan)
   becomes a `PersistentRoom` subclass; and which rows are interiors.
 
+## ⭐ Decided (owner, 2026-11-07): the one-particular side is `Hall`
+
+| | one of many (`Location`) | one particular (`Locale`) |
+|---|---|---|
+| plain | `Room` | `Hall` |
+| kept | `PersistentRoom` | `PersistentHall` |
+
+- *The hall and the chambers*: the medieval house's one great room and the
+  many behind it — the Locale/Location split said of interiors. `Hall` =
+  `SingletonMixin(Room)`, as `Locale` = `SingletonMixin(Location)`.
+- `Chamber` was rejected: the thing tree already owns "chamber" as a
+  vocabulary (`Chambered`, `Icebox`, the smoke chamber), and `Compartment`
+  is the ship room. Both stay. The owner: *"not perfect but it'll do."*
+- The bullet above saying a one-of-a-kind room is a plain `Room` is
+  superseded: it is a `Hall`.
+
+## Build record
+
+- **W1 census:** 99 interior rows on the four plain classes, from the
+  legacy biome list (97) and the rows declaring walls and a roof (~60).
+  Mapping preserves each row's addressing: `Locale`→`Hall`,
+  `PersistentLocale`→`PersistentHall`, `Location`→`Room`,
+  `PersistentLocation`→`PersistentRoom` (86 halls, 13 rooms). Excluded as
+  not rooms: the crossroads meadows, the delve, the moor's chamber, yards,
+  pits, the adit, the campus gate, the necropolis, the archetype venue,
+  lean-tos and awnings; ship rooms (`Compartment`/`Hold`) and mine workings
+  keep their classes.
+- **W2:** the four classes; `PlumbedMixin` restored on them only (revert of
+  824c8697f, `Place` kept clean); a room's roof is its walls'
+  (`Room.roofOverWalls`), matching the legacy interior answer. Pack classes
+  rebased: `DormRoom`→`PersistentRoom`; Duncan `Corridor`, lounge `Lounge`
+  →`Room`; `ColdRoom`, `HarborOffice`, `SealedCellar`, lounge `Bar`,
+  `FloodedCell`→`Hall`.
+- **W3:** the lavoir is open-sided under a sky biome, so as a `PersistentHall`
+  it authors `enclosure: none` + a slate roof (otherwise the room default
+  would have walled it).
+- **W4:** `lint:water-plumbed` clauses 4 (`plumbing:` only on a room — proved
+  against a yard) and 5 (a tap that needs a pipe stands in a room; natural
+  water, named sources, streets and own-store exempt). `lint:biome-sky`
+  97 → 37. `lint:locations` keeps rows on `Room` to the minted roster, like
+  `Location`. `Room.test.ts` (9).
+
 ## The open question to settle FIRST (with the owner) — ANSWERED above
 
 How does "room" enter a two-axis taxonomy without a stacked name?

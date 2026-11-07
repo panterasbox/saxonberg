@@ -2,7 +2,7 @@
  * HarborOffice — ⭐ **the room a hail reaches**: the
  * harbor's office on its quay, where the harbormaster keeps the book.
  *
- * A `Locale` sited by the river (`frameSite` authored `landing: false` —
+ * A `Hall` sited by the river (`frameSite` authored `landing: false` —
  * no craft comes alongside an office) that answers the kernel's
  * `Hailable` protocol: a ship at the bar hails it (`hail office`), and the
  * answer is its harbor's (`Harbor.answerHail` — the NPC's routine, by the
@@ -13,7 +13,7 @@
  * same (`pay book`). The office is the word a payer uses, so it answers.
  */
 
-import Locale from '@saxonberg/server/mud/platform/location/Locale';
+import Hall from '@saxonberg/server/mud/platform/location/Hall';
 import { HailableMixin } from '@saxonberg/server/mud/lib/expanse/Hailable';
 import { FrameSitedMixin } from '@saxonberg/server/mud/lib/expanse/FrameSited';
 import { PayableMixin, type Bill } from '@saxonberg/server/mud/lib/banking/Payable';
@@ -23,7 +23,7 @@ import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import Harbor from '../idea/Harbor';
 
-export default class HarborOffice extends PayableMixin(HailableMixin(FrameSitedMixin(Locale))) {
+export default class HarborOffice extends PayableMixin(HailableMixin(FrameSitedMixin(Hall))) {
   static fieldMeta: FieldMeta = {
     harbor: { persistent: true, authorable: true, ref: 'identity:relation' },
   };

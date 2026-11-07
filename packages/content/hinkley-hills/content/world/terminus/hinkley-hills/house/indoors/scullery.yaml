@@ -2,8 +2,11 @@
 # boarded rather than walled, where the copper sink and the washing go. Its
 # lead run is BARE on the outside wall, which is the honest reason it is the
 # pipe that freezes: the kitchen's run sits behind the range and does not.
-class: /platform/location/PersistentLocation
+class: /platform/location/PersistentRoom
 data:
+  # ⭐ A lead pipe bare on the board wall (water-supply W4) — the one that
+  # freezes, because the room is never heated.
+  plumbing: lead
   ambientSource: sky
   ambientOpening: window
   shortDescription: scullery

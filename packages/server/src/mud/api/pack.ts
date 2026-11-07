@@ -67,8 +67,6 @@ export interface RequiredTitle {
   powerBand?: string;
   /** Where this premises takes its water: a supply path or `none` (water-supply build). */
   waterSource?: string;
-  /** What pipe carries it into the premises' rooms: a run word (`lead`, `iron`); absent = the default. */
-  pipe?: string;
 }
 
 export interface PackRequires {

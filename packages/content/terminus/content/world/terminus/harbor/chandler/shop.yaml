@@ -3,7 +3,7 @@
 # (`maintain` aboard); the mooring line is how she is made fast; oakum and
 # pitch are what caulking uses up. Lens 6: caulking and mooring make the
 # demand, and this is the counter it is met at.
-class: /platform/location/Locale
+class: /platform/location/Hall
 data:
   shortDescription: ship chandler's
   keywords: [chandler, "ship chandler", chandlery, "chandler's", shop, "hobb's"]

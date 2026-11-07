@@ -66,23 +66,31 @@ needs a sound `PipeRun` in its room. The exemptions are `natural`,
 `suppliedBy`, a `Street` (a public outlet's pipe is under the street), and a
 `WaterStore` supply standing in the same room.
 
-⭐⭐ **A tap implies its pipe; nobody props one.** What pipe carries a
-premises' water is said ONCE, on the premises: a `pipe:` word on its title
-claim, beside `waterSource:` (`ParcelRecord.pipe`, inherited up the claim
-chain like the water, read by `ParcelApi.waterOf(path).pipe`). "Seznick
-House with the landlord's lead" — the Mayfield Row claim says `pipe: lead`;
-the Hinkley district's does, so every sold lot inherits it; nothing at all
-is the default (`plumbing.defaultRun`, `iron`). A room with a tap and no run
-in it stands up the run its premises' word names
-(`/stuff/thing/fixture/<word>-run`) the first time the tap needs one
-(`WaterFixture.standUpRun`, one per room even with two taps), and keeps it.
-A run an author or a plumber put in the room is the room's run.
-`lint:water-plumbed` keeps it true: every claim's word names a run row, and
-no room props a pre-laid run by hand. ⚠ History: the review found sixteen
-rooms forced to prop one (2026-11-06); the first fix put a `plumbing:` field
-on every `Place` (`PlumbedMixin`), which the owner struck as a field nearly
-every place would never use — the premises is where the requirements said
-it lives.
+⭐⭐ **A tap implies its pipe; nobody props one.** Plumbing is a layer of
+the room's fabric, said once on the room by `PlumbedMixin`
+(`lib/supply/Plumbed.ts`, composed on the ROOM rung — `Room`, `Hall` and
+their kept twins — and nowhere else): `plumbing: lead`,
+`plumbing: none` (not plumbed — waiting for a plumber), or nothing at all,
+which is the default (`plumbing.defaultRun`, `iron`). A plumbed room with no
+run in it stands up the run its word names
+(`/stuff/thing/fixture/<word>-run`) the first time a fixture needs one, and
+keeps it. A run an author or a plumber put in the room is the room's run.
+Not `Enclosed` (a pipe bounds nothing); not a `Structure` (a structure is
+never made of anything, and a lone hut is plumbed with no building). Not
+every `Place`: a street, a yard or a field never carries the field.
+`lint:water-plumbed` keeps it true: every word names a run row, `plumbing:`
+is said only on a room, every tap that needs a pipe stands in a room (a tap
+on a named source, in a street, beside its own store or on natural water
+needs none), and no room props a pre-laid run by hand.
+
+⚠ History (review, 2026-11-06 → 11-07): sixteen rooms were forced to prop a
+pipe; the first fix composed `PlumbedMixin` on every `Place`, which the
+owner struck as a field nearly every place would never use; the second
+moved the word onto the premises' title claim (`pipe:`), which only
+relocated the problem and lost the per-room pin. ⭐ The root cause was the
+place taxonomy, which sorted places by addressing and persistence but never
+by KIND — so the room rung was added (`location.md` § The room rung) and
+the mixin went there.
 
 `PipeRun` (kernel) = `AdornmentMixin(AssembledMixin(DurableMixin(ThermalMixin(BulkableMixin(Good)))))`.
 It is out of the room's loose listing (part of the room's structure, not

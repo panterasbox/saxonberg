@@ -493,15 +493,6 @@ function readRequires(m: Record<string, unknown>, file: string): PackRequires {
       }
       entry.waterSource = t.waterSource;
     }
-    if (t.pipe !== undefined) {
-      if (typeof t.pipe !== 'string' || !/^[a-z][a-z0-9-]*$/.test(t.pipe)) {
-        throw new Error(
-          `PackApi: manifest at ${file}: title '${t.extent}' has a malformed pipe ` +
-            `(expected a run word, such as 'lead' or 'iron')`,
-        );
-      }
-      entry.pipe = t.pipe;
-    }
     if (t.parentParcel !== undefined) {
       if (!isAbsolutePath(t.parentParcel)) {
         throw new Error(`PackApi: manifest at ${file}: title '${t.extent}' has a malformed parentParcel`);
@@ -3465,7 +3456,6 @@ async function applyRequiresFor(
     if (t.feeder !== undefined) claim.feeder = t.feeder;
     if (t.powerBand !== undefined) claim.powerBand = t.powerBand as TitleClaim['powerBand'];
     if (t.waterSource !== undefined) claim.waterSource = t.waterSource;
-    if (t.pipe !== undefined) claim.pipe = t.pipe;
     const r = await ParcelApi.grant(claim);
     switch (r.outcome) {
       case 'granted': out.titlesGranted.push(t.extent); break;

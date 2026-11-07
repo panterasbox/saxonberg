@@ -31,7 +31,7 @@
 # also makes the cardinal exit pair honest — `Location.addExit`
 # wants cardinal exits INTRA-zone, and until now one end of this door was
 # in no zone at all.
-class: /platform/location/Locale
+class: /platform/location/Hall
 data:
   coords:
     x: 0

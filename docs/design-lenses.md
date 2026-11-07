@@ -272,7 +272,7 @@ is the schedule for the chains.
    deleting the line changes anything a player could notice; if not, the
    default should have said it. (Water supply, 2026-11-06: every room with
    a tap had to prop a pipe, and a lint forced it on sixteen rooms. A tap
-   implies its pipe now, and a premises says `pipe:` only to say something
+   implies its pipe now, and a row says `plumbing:` only to say something
    else.) ⭐⭐ **But clearing it is not passing: a system can make the
    standard instance trivially cheap and still permit no bespoke one at
    all.**

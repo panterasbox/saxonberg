@@ -2,7 +2,7 @@
 # stamper on the shaft, the vat, the press, the size tub. Rags in at the
 # door, paper up the ladder to the loft. Persistent: a post of wet sheets is
 # a day's work.
-class: /platform/location/PersistentLocale
+class: /platform/location/PersistentHall
 data:
   shortDescription: paper mill
   keywords: [mill, "paper mill", "vat house", vat-house, papermill]
