@@ -153,7 +153,8 @@ export class Techniques {
 
   /**
    * The effect the reachable tools give a technique word the HAND path
-   * named (`stir` / `shake` / `muddle` record the word; the numbers still
+   * named (`stir` — the vessel's technique, a shaker shakes — and
+   * `muddle` record the word; the numbers still
    * come from the instrument — you cannot shake without a shaker). Falls
    * back to neutral when no reachable tool authors that working.
    */

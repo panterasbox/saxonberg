@@ -140,7 +140,7 @@ export function PersonaMixin<TBase extends MixinConstructor>(Base: TBase) {
         'platform/cmd/social/who.yaml',
         'platform/cmd/social/profile.yaml',
         'platform/cmd/social/score.yaml',
-        // The `office`/`offices` verb is afforded universally here — NOT
+        // The `office` verb is afforded universally here — NOT
         // on AuthorMixin — because its roster is public (governance is
         // transparent by constitutional design, Art. VII): every player
         // can see who holds which office. The privileged `assign`/`vacate`
@@ -149,7 +149,7 @@ export function PersonaMixin<TBase extends MixinConstructor>(Base: TBase) {
         // roster ungated. Homing it on AuthorMixin would wrongly hide the
         // public roster from non-authors.
         'platform/cmd/governance/office.yaml',
-        // The `government`/`gov` verb (civics — the FICTION's governments,
+        // The `government` verb (civics — the FICTION's governments,
         // a different category than the Compact's `governance`) is likewise
         // universal: the jurisdiction chain over where you stand and your
         // residency are public reads.

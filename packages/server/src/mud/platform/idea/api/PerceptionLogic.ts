@@ -1163,7 +1163,7 @@ function perceivesImpl(
  * The active-attention bonus a search of the given depth folds in on top of
  * the passive baseline (D5). `broad` = a whole-room scan (`searchBonus`);
  * `narrow` = rummaging one container/detail deeper (`+ searchDepthBonus`);
- * `glance` = the cheap instantaneous `examine` (`examineBonus`, weaker). All
+ * `glance` = the cheap instantaneous close `look` (`examineBonus`, weaker). All
  * dial-backed with seeded-literal fallbacks.
  */
 function activeBonusFor(depth: SearchDepth): number {

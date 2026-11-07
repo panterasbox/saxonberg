@@ -198,7 +198,7 @@ export interface Improvable {
    * {@link IMPROVEMENT_DONE_AT}, not exactly 1. Reversion is a fraction of
    * the work per game day, so finished work reads 0.9999 a few game
    * minutes later: "cleared" read as `>= 1` was true for an instant and
-   * then never again, and every refusal that asked it (`plough`, `grub`,
+   * then never again, and every refusal that asked it (`plow`, `grub`,
    * `ditch`, `lime`) let the job be finished over and over (cover build).
    */
   isComplete(job: ImprovementJob, cost: ImprovementCost): boolean;

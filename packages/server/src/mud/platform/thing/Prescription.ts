@@ -2,7 +2,7 @@
  * Prescription — a slip of paper authorizing a controlled active for one
  * patient (clinical-medicine D9). A slip is a slip: `PrescriptionMixin`
  * on a bare `Thing`. Cloned by `prescribe` and stamped with the patient,
- * the active and the dose count; spent by `administer`.
+ * the active and the dose count; spent by `dose`.
  */
 
 import Good from '../../lib/stuff/Good';

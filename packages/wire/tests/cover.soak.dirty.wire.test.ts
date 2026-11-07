@@ -9,7 +9,7 @@
  * and the steps are this file), against a booted world, in the order a year runs.
  *
  * ⭐⭐ **Tests build state; this uses it.** Everything here is typed the
- * way a player types it — `plough`, `sow wheat`, `harvest wheat`,
+ * way a player types it — `plow`, `sow wheat`, `harvest wheat`,
  * `move college herd to …` — and asserted on the envelope's reasons and
  * the world's own words, never on "defined".
  *

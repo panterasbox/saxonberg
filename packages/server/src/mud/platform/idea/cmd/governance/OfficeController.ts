@@ -1,10 +1,10 @@
 /**
- * OfficeController — the `office` / `offices` verb, the government-office
+ * OfficeController — the `office` verb, the government-office
  * surface (the new `governance` command category). Subcommands:
  *
  *   - `assign <player> <office>` — hand a seat to a player (founder-only).
  *   - `vacate <office>` — revert a seat to the founder (founder-only).
- *   - `list` / bare `office` / bare `offices` — the public roster.
+ *   - `list` / bare `office` — the public roster.
  *
  * Authorization: the roster is public, so the verb is afforded
  * universally with no verb-level authority validator. The mutating

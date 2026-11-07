@@ -1,5 +1,5 @@
 /**
- * QueryController — `query <set>` (alias `scan`): **list whatever a query
+ * QueryController — `query <set>`: **list whatever a query
  * names** (maritime revision 2′).
  *
  * ⭐ Three verbs, one question each. `look` answers *what is this ONE

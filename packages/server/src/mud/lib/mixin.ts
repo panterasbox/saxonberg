@@ -675,7 +675,7 @@ export const Mixins = {
   Crafted: 'CraftedMixin',
   ManualBuild: 'ManualBuildMixin',
   // A solute that gives up an extract when steeped in a solvent — the
-  // general infusion substrate (`steep`/`infuse`).
+  // general infusion substrate (`steep`).
   Steepable: 'SteepableMixin',
   Bank: 'BankMixin',
   // The unified credential holder — one keyed store of credentials-as-data,

@@ -9,7 +9,7 @@
  * melt a liquid pool would need a seam the firing path does not have.
  *
  * ⭐ It is a DIP BATH (`DipBathMixin`, ceramics review): `dip pipe in melt`
- * — or `gob`, the glassblower's word, an alias of `dip` — lowers the pipe
+ * (the glassblower's gob) lowers the pipe
  * in and turns up a gather, drawn by mass (`takeGather`). A gather is
  * taken from the pot; a cullet lump or an old bottle goes back in the pot
  * to remelt. A melt that has stiffened below its working heat refuses the
@@ -59,7 +59,7 @@ export default class Melt extends MeltBase {
    */
   /**
    * ⭐ A pipe dipped in the melt turns up a gather — the named pipe, else the
-   * empty blowpipe in the glassblower's hands (a bare `gob`). From the
+   * empty blowpipe in the glassblower's hands (a bare `dip`). From the
    * moment it is lifted it COOLS: the hot-work watch is the window.
    */
   public override async dipPlanFor(req: DipRequest): Promise<DipPlan | DipRefusal | null> {

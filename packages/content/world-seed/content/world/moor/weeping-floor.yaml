@@ -8,8 +8,8 @@ data:
   shortDescription: wet flagstones
   # ⚠⚠ This list used to be `[flagstones, wet]` — NEITHER `floor` nor
   # `ground`. The MQL scope walk pools a thing's own `getKeywords()`, and
-  # `pushDetails` gives a detail the pool `[<its id>]` and never its
-  # authored keywords, so the `details.floor.keywords` below could not help:
+  # a detail answers through its host's `DetailedMixin.getKeywords` by its
+  # id, never its authored keywords, so the `details.floor.keywords` below could not help:
   # `sit` and `look floor` both found nothing in this chamber.
   # `FloorMixin` unions both words onto every floor now, and `lint:ground`
   # clause (d) holds every floor ROW to saying them out loud as well.

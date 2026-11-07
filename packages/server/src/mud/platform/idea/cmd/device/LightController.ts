@@ -1,5 +1,5 @@
 /**
- * LightController — `light <thing>` / `light` / `kindle`.
+ * LightController — `light <thing>` / bare `light`.
  *
  * Sets fire to any Combustible in reach. The controller narrows the target
  * with `MixinApi.isCombustible` and routes the actual ignition through the

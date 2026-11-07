@@ -1,5 +1,5 @@
 /**
- * PloughController — `plough`, and ⭐⭐ **draught power is body mass.
+ * PloughController — `plow`, and ⭐⭐ **draught power is body mass.
  * There is no new mechanism** (D40).
  *
  * `DraftAnimal` is the shipped precedent and its own doc says it: carry
@@ -52,7 +52,7 @@ import type Field from '../../../thing/Field';
 /** ⭐ The instrument is bound by the view, never hunted for here. */
 interface PloughModel extends CommandModel {
   tool?: MqlOneResult;
-  /** ⭐ Which field — `plough at the gate end` (tracts build D38). */
+  /** ⭐ Which field — `plow at the gate end` (tracts build D38). */
   part?: MqlOneResult;
 }
 

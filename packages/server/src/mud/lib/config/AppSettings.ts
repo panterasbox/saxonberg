@@ -1213,7 +1213,7 @@ export const AppSettingKeys = {
   concealmentHintCutoff: "concealment.hintCutoff",
   /**
    * Detection — the smaller active-attention bonus the instantaneous
-   * `examine <target>` folds in (a cheap close look, weaker than a full
+   * close `look <target>` folds in (a cheap close look, weaker than a full
    * `search`). Read with a seeded-literal fallback.
    */
   concealmentExamineBonus: "concealment.examineBonus",

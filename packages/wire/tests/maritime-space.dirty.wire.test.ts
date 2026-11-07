@@ -68,7 +68,7 @@ const NORTH_SHORE = '/world/north/shore';
 const BROW = '/world/terminus/estuary/headland/brow';
 /** A vessel the founder may mint: `clone` is gated on held extents, and the commons' pail is no extent of the founder's. */
 const SKIN = '/world/terminus/general-store/thing/waterskin';
-/** The tower as `scan horizon` features it, and its own description. */
+/** The tower as `query horizon` features it, and its own description. */
 const FEATURED_TOWER = /You can see the terminal clock tower/;
 const TOWER_SAYS = /square brick shaft/;
 const LIGHT = /light on Gannet Rock/;
@@ -102,7 +102,7 @@ async function sail(s: Session, hours: string): Promise<string> {
 }
 
 /**
- * `scan horizon` until `want` is in view, waiting out the weather between
+ * `query horizon` until `want` is in view, waiting out the weather between
  * looks (fog and rain shorten sight). The craft must be at anchor or
  * ashore — waiting moves nothing else.
  */
@@ -491,7 +491,7 @@ suite('6 · 7 · 8 · finding out where you are', () => {
 });
 
 suite('19 · 20 · 25 · sight at sea', () => {
-  it('19 · `scan horizon` at the Rock shows the light; `look horizon:light` reads it; `hail` it', async () => {
+  it('19 · `query horizon` at the Rock shows the light; `look horizon:light` reads it; `hail` it', async () => {
     const said = await look(me, 'query horizon');
     expect(said).toMatch(/You can see the light on Gannet Rock/);
     expect(await look(me, 'look horizon:light')).toMatch(/white tower on a black rock/);

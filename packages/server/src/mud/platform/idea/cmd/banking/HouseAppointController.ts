@@ -28,7 +28,7 @@
  * one, and the trade shipped `hire`/`dismiss` controllers of its own.
  * That is a second word for an act this controller already performed —
  * and the ladder's first rung is **unify behind an interface**, the same
- * reason `grind` rides `mill` and `melt` rides `dip`. The target scope
+ * reason `grind` folded into `mill` and `melt` into `dip`. The target scope
  * widened, the position and the organization became optional, `hire`
  * became an alias, and the trade now ships no employment verbs at all.
  *

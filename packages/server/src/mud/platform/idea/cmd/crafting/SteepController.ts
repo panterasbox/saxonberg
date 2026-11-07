@@ -1,5 +1,5 @@
 /**
- * SteepController — `steep <solute> in <vessel>` / `infuse …` (the
+ * SteepController — `steep <solute> in <vessel>` (the
  * general infusion verb, moved to platform in the clinical-medicine
  * review). An engaged `hands` step: the vessel must hold a little of a
  * SOLVENT (v1 = water, i.e. a Material tagged `solvent`); the solute is

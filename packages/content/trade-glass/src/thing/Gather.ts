@@ -96,7 +96,7 @@ export default class Gather extends GatherBase implements Formable {
   // ⚠ Own-property only — the framework merges the mixin chain's own
   // fieldMeta up the prototype chain (MixinApi.getAllFieldMeta), so this
   // declares only Gather's new field. `authorable` because the row seeds
-  // `form: gather` and `gob` resets it.
+  // `form: gather` and a fresh `dip` resets it.
   static fieldMeta: FieldMeta = {
     form: { persistent: true, authorable: true },
     formProduct: { persistent: true, runtimeState: true },
@@ -117,7 +117,7 @@ export default class Gather extends GatherBase implements Formable {
 
   public setForm(value: GatherForm): void {
     this.form = value;
-    // A gather worked back (`gob`) is no longer any piece.
+    // A gather worked back (`dip`) is no longer any piece.
     if (value === "gather" || value === "bubble") {
       this.formProduct = "";
       this.formGrade = "";

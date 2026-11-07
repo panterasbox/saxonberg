@@ -1,9 +1,9 @@
 /**
  * Blowpipe — the glassmaker's iron: a `Tool` that HOLDS one gather
- * (`ContainerMixin`). It affords the hot shop (`dip`/`gob`, `shape`/`reheat`/
+ * (`ContainerMixin`). It affords the hot shop (`dip`, `shape`/`reheat`/
  * `crack`) to whoever holds it — the affordance static lands in W5 with
  * those views. The capability `blowpipe` is authored on the row and is
- * what the `gob`/`shape`/`reheat`/`crack` views bind their `pipe` arg to.
+ * what the `dip`/`shape`/`reheat`/`crack` views bind their `pipe` arg to.
  */
 
 import Tool from "@saxonberg/server/mud/platform/thing/Tool";
@@ -20,8 +20,8 @@ const SHAPE_MS = 10_000;
 const SHAPE_W = 250;
 
 const HOT_SHOP = [
-  // ⭐ The gather is the platform's `dip` (its `gob` alias): the MELT plans it
-  // (`DipBathMixin`); the pipe affords the word so a bare `gob` is heard.
+  // ⭐ The gather is the platform's `dip`: the MELT plans it
+  // (`DipBathMixin`); the pipe affords the word so a bare `dip` is heard.
   "platform/cmd/crafting/dip.yaml",
   // ⭐ The platform's `shape` (ceramics D14) is the pipe's by what it is:
   // it FORMS (`FormingMixin` affords the verb) — it plans its gather's forms

@@ -17,8 +17,8 @@
  * branches on which. If the pot has nothing to give (`insufficient-input`,
  * which is what a cold cake of wax on the bench looks like to the candle
  * recipe), it melts something down (`melt-wax`) and tries again — and the
- * outcome says so (`melted`), so the `melt` alias never silently overshoots
- * the word typed.
+ * outcome says so (`melted`), so a dip that began with a melt never
+ * silently overshoots the word typed.
  * ⚠ The decline tells the truth about which leg failed: if the player
  * NAMED a solid, a failed melt declines as the melt.
  *
@@ -44,7 +44,7 @@ import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import Candle from './Candle';
 
-/** The platform's one view — `dip` (and its alias `melt`). */
+/** The platform's one view — `dip`. */
 const DIP_VIEW = 'platform/cmd/crafting/dip.yaml';
 const RECIPE = 'candle';
 /** The step that fills the pot when what you have is a cake. */
@@ -53,8 +53,7 @@ const MELT_RECIPE = 'melt-wax';
 export default class DipPot extends DipBathMixin(CraftVessel) {
   /**
    * ⭐ The instrument affords the verb — a static on the class, never a
-   * row key: a row's `commandContributions:` is dead silently. One entry
-   * covers `dip` AND `melt`, because `melt` is an alias on that view.
+   * row key: a row's `commandContributions:` is dead silently.
    */
   static commandContributions: CommandContributions = {
     self: [],
@@ -85,7 +84,7 @@ export default class DipPot extends DipBathMixin(CraftVessel) {
             melted = true;
             outcome = await dipOnce();
           } else if (target) {
-            // They said `melt <this>`; the melt is the leg that failed.
+            // They named a solid (`dip <this>`); the melt is the leg that failed.
             outcome = melt;
           }
         }

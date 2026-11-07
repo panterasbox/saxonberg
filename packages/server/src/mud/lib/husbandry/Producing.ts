@@ -874,7 +874,7 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
       return null;
     }
 
-    /* ─────────────────── the act (Tappable) ─────────────────── */
+    /* ─────────────────── the act (the tap) ─────────────────── */
 
     /**
      * ⭐⭐ What this take would be, or why not — and **nothing happens

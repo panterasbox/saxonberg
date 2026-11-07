@@ -1,6 +1,6 @@
 /**
  * ManualBuildController — shared base for the manual cocktail-build verbs
- * (`pour`/`add`, `stir`/`shake`, `strain`, `garnish`).
+ * (`pour`, `stir`, `strain`, `garnish`).
  *
  * Holds the one thing they all share: turning a step into an **engaged
  * activity**. `engageStep` constructs a {@link ManualBuildStep}, starts

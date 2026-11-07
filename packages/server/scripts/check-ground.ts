@@ -50,8 +50,8 @@
  *   (d) ⚠⚠ every row whose `class:` composes `FloorMixin` carries **both**
  *       `ground` and `floor` in its own `keywords:`. This is not tidiness.
  *       The MQL scope walk pools a thing's own `getKeywords()`, and
- *       `pushDetails` gives a detail the pool `[<its id>]` and never its
- *       authored keyword list — so a floor's `details.floor.keywords:
+ *       a detail answers through its host's `DetailedMixin.getKeywords`
+ *       — by its id, never its authored keyword list — so a floor's `details.floor.keywords:
  *       [ground]` is dead text, and a row that forgets the words up top is
  *       a floor `sit` cannot find. `FloorMixin` unions both onto the class
  *       so the failure is impossible; this clause makes every row read

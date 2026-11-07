@@ -935,7 +935,7 @@ export interface FieldDefinition {
    *     giver's current focus with `:` as the separator. With
    *     same-anchor + via.detailPath compaction (re-resolving the
    *     same target doesn't double-add). The drill-additive default
-   *     for inspection-shaped verbs (`look`, `examine`, `read`,
+   *     for inspection-shaped verbs (`look`, `read`,
    *     `open`, `close`).
    *
    *   - `replace` — set focus to the post-desugar input fragment

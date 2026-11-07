@@ -149,7 +149,7 @@ export abstract class GroundWorkController<
    * `execute` returns — while the engagement is still pending — and a
    * method called on a destructed Stuff is a SILENT no-op. Every ground
    * act called `this.finish` from its completion, so none of `grub`,
-   * `ditch`, `lime`, `plough` or `mow` ever banked its work in a live
+   * `ditch`, `lime`, `plow` or `mow` ever banked its work in a live
    * game: the begin prose played and nothing happened (found by the cover
    * build, 2026-10-28). Class statics outlive the instance.
    *

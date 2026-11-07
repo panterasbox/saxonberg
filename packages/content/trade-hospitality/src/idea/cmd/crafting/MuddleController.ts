@@ -1,7 +1,7 @@
 /**
  * MuddleController — `muddle` (press the build's solids in the vessel).
  *
- * An engaged step like `stir` / `shake` that records the build method
+ * An engaged step like `stir` that records the build method
  * `muddled` on the vessel. It needs a reachable **muddler** (the tool
  * capability) — a mojito is not made with a spoon. No matter moves; it's
  * the working of what's already banked (the mint reads the method for

@@ -62,7 +62,7 @@
  *
  * A tract holds ONE area crop: a single `Plant` standing loose in its
  * contents with a sown area, rooted in the tract's soil by containment
- * (the kernel's `getBed()`). The rest of the tract is sward. `plough`
+ * (the kernel's `getBed()`). The rest of the tract is sward. `plow`
  * turns the sward under and stamps a SEEDBED good for one season; `sow`
  * asks the tract (`sowingRefusal`) and the tract answers from that
  * stamp. The crop is titled to the business that works the tract
@@ -200,11 +200,11 @@ const TractBase = PersistableMixin(
 
 export default class Tract extends TractBase {
   /**
-   * ⚠⚠ **`plough` is afforded HERE and nowhere else, and it would have
+   * ⚠⚠ **`plow` is afforded HERE and nowhere else, and it would have
    * gone silent without this block.**
    *
    * The improvement acts moved to the platform with `ImprovableMixin`, and
-   * `plough` went with them in the same list — but ploughing is not
+   * `plow` went with them in the same list — but ploughing is not
    * improvement, it is farming's own act on a tract, so it did not belong
    * in a kernel mixin's contributions. A verb nothing affords parses as
    * *"I don't understand 'plough'"*, and **every controller test would
@@ -226,7 +226,7 @@ export default class Tract extends TractBase {
     inventory: [
       'trade/farming/cmd/farming/plow.yaml',
       // ⭐ A tract affords SOWING to whoever stands in it (cover build):
-      // the platform view, named here the way `plough` is. A bed affords
+      // the platform view, named here the way `plow` is. A bed affords
       // it through `CultivableMixin`; ground with no slot had nothing.
       'platform/cmd/inventory/plant.yaml',
       // ⭐ And FEEDING (field population): a tract's ground — or one of

@@ -145,9 +145,8 @@ export default class MillController extends CommandController<MillModel> {
       // trade does not get a second verb because one of its inputs has no
       // dial.
       //
-      // ⭐ `grind` survives as an ALIAS on the view (the `pick`→`harvest`
-      // and `examine`→`look` precedent), so a player still reaches for
-      // the natural word for bone and gets this.
+      // ⭐ One view, one word (controllers-are-io D16): `mill the bone`
+      // is the only spelling, and it reaches this arm.
       return this.grindThrough(source, context);
     }
 
@@ -265,8 +264,7 @@ export default class MillController extends CommandController<MillModel> {
    * nothing here changes.
    *
    * ⚠ The recipe is matched from the INPUT rather than named by the
-   * player: `mill the bone` and `grind the bone` both work, and neither
-   * asks anybody to know a recipe id. That is also why this arm takes an
+   * player: `mill the bone` works, and it never asks anybody to know a recipe id. That is also why this arm takes an
    * object where the reverted `grind` verb took a string — the bone is a
    * thing in reach, not a word.
    */

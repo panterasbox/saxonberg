@@ -2,7 +2,7 @@
  * Tieable — ⭐ **a thing whose end you make fast to something** (cordage
  * D8): a rope round a post or round a person, the free end of a line made
  * fast to a load on the bed, an air bag lashed to an anchor. ONE verb,
- * `tie` (`lash` is one of its words), over a protocol the thing
+ * `tie`, over a protocol the thing
  * implements — the verb-collision ladder's first rung: tying a rope to a
  * post and lashing a bag to an anchor are the same act on different
  * things, and the thing decides what it means.

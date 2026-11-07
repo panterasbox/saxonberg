@@ -1,5 +1,5 @@
 /**
- * FieldWorkController — what `plough` and `mow` still need that the
+ * FieldWorkController — what `plow` and `mow` still need that the
  * kernel's ground base does not give them.
  *
  * ⭐⭐ **The body of this file left for the kernel.** `grub`, `ditch` and
@@ -37,7 +37,7 @@ import type { Soil } from '@saxonberg/server/mud/lib/husbandry/Soil';
  * ⭐ Re-exported so farming's own acts keep one import.
  *
  * ⚠ `FIELD_TOPIC` is the kernel's `GROUND_TOPIC` under its old name — the
- * same string, kept because `plough` and `mow` narrate on it and renaming
+ * same string, kept because `plow` and `mow` narrate on it and renaming
  * them is churn with no reader.
  */
 export const FIELD_TOPIC = GROUND_TOPIC;
@@ -91,7 +91,7 @@ export abstract class FieldWorkController<
   }
 
   /**
-   * The field a crop act lands on (`plough at the gate end`): the TRACT
+   * The field a crop act lands on (`plow at the gate end`): the TRACT
    * resolves it — the named field, the only field, or its refusal. ⭐ The
    * grass and the seedbed are a field's since the tracts build, so an act
    * on them must know which.

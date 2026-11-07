@@ -1,6 +1,6 @@
 /**
- * DipController — `dip [<thing>] [inside|outside] [in <bath>]` (alias
- * `melt`). ⭐ Dumb by construction (ceramics D14): the BATH plans the dip
+ * DipController — `dip [<thing>] [inside|outside] [in <bath>]`.
+ * ⭐ Dumb by construction (ceramics D14): the BATH plans the dip
  * (`DipBathMixin.dipPlanFor`) and this controller engages the plan it is
  * handed. It decides nothing about a pot, a candle or a glaze — it only
  * WORDS what the bath answered (facts and a reason, controllers-are-io D4).

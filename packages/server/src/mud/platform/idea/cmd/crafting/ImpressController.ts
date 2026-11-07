@@ -1,5 +1,5 @@
 /**
- * ImpressController — `impress <pattern> on|in <medium>` (alias `mold`).
+ * ImpressController — `impress <pattern> on|in <medium>`.
  *
  * ⭐ Dumb (ceramics D21): pressing a hard shape into something soft is one
  * act, and the MEDIUM answers what it makes (`ImpressibleMixin.takeImpression`)
