@@ -927,6 +927,52 @@ must stay silent:
 - `lib/quantity.ts` and `lib/mixin.ts` gain entries beside ours; trivial.
 - `CraftingLogic` (13 lines, the mend cap) is clear of D17.
 
+### Build decisions (2026-11-07)
+
+Decided while building, and what decided each. These change what the sections
+above say; where they disagree, this list is the truth.
+
+- **B1. Words are slugs.** A word is a path leaf, so `peat-smoke` reads *peat
+  smoke*. Decided by D8's shape check (a path with a space in it is not a path).
+- **B2. Waves W0-W2 and W4-W5 merged in the working tree.** W0's `SmellSource`
+  bridge would have been code written to be deleted, and the controller would
+  have been rewritten twice. ⚠ **Commit history:** a `git add` died on one
+  pathspec, so `2fe7ffd04` holds only 4 deletions and `b3845ea3f` holds W0-W7
+  under W7's message. Rewriting a pushed branch was refused, so it stands. Review
+  by the diff, not by those two messages.
+- **B3. A word with no discipline behind it is common knowledge.** With neither a
+  maker's discipline nor one on the aroma's row, everyone names the leaf (*stale
+  sweat*). Otherwise no one could ever learn it. Lens 1 chose. The plan's "untrained
+  reads the root" holds wherever a discipline exists to train.
+- **B4. A carried thing is not your own smell, but your clothes are.** `Smell`'s
+  source refs carry `carried`. D4 said so; the walk attributes to the top-level
+  thing, so the distinction had to be recorded at the source.
+- **B5. No source cap on `Smell`.** D13 needs to know a word has exactly one source
+  in the room, which a cap of 3 would falsify.
+- **B6. D6's formula flips for a repellent note.** `valence × (1 − off²)` goes
+  positive past `width` when valence is −1. A repellent curve is now monotonic:
+  worse with strength. The pleasant hump is unchanged.
+- **B7. The owed tools are not owed.** `@TestOnly` is Api-static-only and refuses an
+  instance method. `recordAversion` and `recordExposure` are already public and
+  reachable from `eval`, so the drive stages through them.
+- **B8. `takeBite` on `Tangible`, overridden by `Provision`.** Mass belongs to
+  Tangible, and importing `Provision` into `lib/` would cycle. `bites` stays on
+  Provision as planned.
+- **B9. A still reads through its own prose.** `SmellController.senseTarget` routes a
+  `Fractionating` target to the base, so the fraction's authored character survives,
+  and its augmenter calls the nose. The one routing branch in that controller.
+- **B10. The soil augmenter loses its smell line.** Same reason as D16: a nose reads
+  dirt as a source. `Creature.soilOdor`'s worn-clothes override retires too, since
+  `emissionOf` recurses into what you wear.
+- **B11. W7 authored by the build, not five subagents.** One table keeps one scale
+  across 384 rows. Lens 1: the ratio between smells is the point, and five authors
+  would not share a scale.
+- **B12. Packs gained `base-library` as a dependency** (`generic-objects`,
+  `arcane-library`, `trade-medicine`, `species-and-names`), and `lint:aromas` lets
+  `platform` name a commons word, the license `TemplatePaths.rootBiome` already takes.
+- **B13. `salinityPpt` is declared here as well as on water-supply.** An identical
+  interface member merges cleanly, so neither branch has to land first.
+
 ---
 
 ## ⭐⭐ Host placement
@@ -1112,6 +1158,8 @@ chain; `thresholdFor` through a child row inheriting its parent's threshold;
 
 **Commit.** `build(vocab W0): aroma words are rows; Smell reads odor units`.
 
+**✅ Done.** See B1, B2.
+
 ### W1 — Every source speaks through one derivation
 
 **Goal.** `SmellModality.emissionOf(thing)` composes the D1 legs; carried
@@ -1175,6 +1223,8 @@ suites pass with their words from the fuel material. `lint:family` green.
 
 **Commit.** `build(vocab W1): one emission over the kernel mixins; SmellSource retired`.
 
+**✅ Done.** See B4, B5, B10.
+
 ### W2 — The nose
 
 **Goal.** `OlfactoryMixin.nose` behind `SmellModality.perceiveFor`; species
@@ -1224,6 +1274,8 @@ little sulfur is many OU — assert it on OU, not mg/L). Wire: steps 1–6,
 
 **Commit.** `build(vocab W2): one nose on the body — acuity, adaptation, naming by competence`.
 
+**✅ Done.** See B3, B9.
+
 ### W3 — The ladder
 
 **Goal.** `analyze aroma`, `measure aroma with <gas analyzer>`, `readings aroma`.
@@ -1239,6 +1291,8 @@ is quoted off the reading; the eye rung returns the nose's deliberate read.
 Wire: steps 16–17.
 
 **Commit.** `build(vocab W3): the aroma channel on the reading ladder`.
+
+**✅ Done.**
 
 ### W4 — The tongue
 
@@ -1301,6 +1355,8 @@ a larger one by the same leg**; `rinse` resolves it. Wire: steps 18–23
 
 **Commit.** `build(vocab W4): taste has strengths; tasting is contact and costs a mouthful`.
 
+**✅ Done.** See B8.
+
 ### W5 — The person
 
 **Goal.** Born profile, exposure, aversion, liking with hunger; `eat` says
@@ -1334,6 +1390,8 @@ until then; exposure raises liking by the cap. Wire: steps 25–29, 32.
 
 **Commit.** `build(vocab W5): the palate — born, exposed, averse; liking read with hunger`.
 
+**✅ Done.** See B6, B7.
+
 ### W6 — Media derived
 
 **Goal.** `RECIPE_MEDIA` gone; the ceiling from the carrying material; the
@@ -1355,6 +1413,8 @@ neither; the brine boil's ceiling is salt water's elevated boiling point.
 Wire: step 24.
 
 **Commit.** `build(vocab W6): a recipe's medium is any tag; the gate reads 3`.
+
+**✅ Done.** The wine poach ships in `trade-winemaking`, which owns the wine; cooking doesn't depend on it.
 
 ### W7 — The full passes (content)
 
@@ -1397,6 +1457,10 @@ Wire: steps 10–13.
 
 **Commit.** one per batch, `content(vocab W7<letter>): …`, then
 `build(vocab W7): the full pass audited`.
+
+**✅ Done** as one table (B11). 302 material rows changed, 23 animal species. The
+tannery needed a real source, not just words: its pit is oak and water, so a new
+`pit-oak` row carries the liquor in the wood, and an empty pit still smells.
 
 ### W8 — The drive, the walk, the docs
 

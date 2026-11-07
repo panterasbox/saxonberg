@@ -16,7 +16,7 @@
  * synthetic grids can establish.
  *
  * So: boot every shipped place, plant an ear in each, and write down
- * the lux, the dB, the ppm and every gather arrival **with its
+ * the lux, the dB, the odor units and every gather arrival **with its
  * direction**. The golden is captured from the UNMIGRATED walks (W1)
  * and must match byte-for-byte after the migration (W3). ⚠ That means
  * anyone later "tidying" neighbour order in a modality breaks this
@@ -111,7 +111,7 @@ interface PlaceReading {
   colourTemperature?: number | null;
   db?: number | null;
   soundSources?: number;
-  ppm?: number | null;
+  ou?: number | null;
   smell?: string | null;
   /** The gather, in walk order, with the direction it was heard from. */
   gather?: Array<{ at: string; db: number; direction: string | null }>;
@@ -288,8 +288,8 @@ describe("perception characterization — every place in the realm", () => {
       reading.soundSources = heard ? heard.sources.length : 0;
 
       const smelled = smell().signalAt(loc);
-      reading.ppm = smelled ? round(smelled.concentration.rawValue()) : null;
-      reading.smell = smelled ? (smelled.identity ?? null) : null;
+      reading.ou = smelled ? round(smelled.strength.rawValue()) : null;
+      reading.smell = smelled ? smelled.dominantWord || null : null;
 
       // ⭐ The gather in WALK ORDER — not sorted. The order is the
       // behaviour being pinned, and `Scene` consumes `out` in it.
