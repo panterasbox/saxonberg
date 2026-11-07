@@ -20,6 +20,9 @@ import { PersistableApi } from "../../api/persistable";
 
 class Room extends ContainerMixin(Idea) {}
 class Goods extends ContainableMixin(Idea) {}
+class OfferedGoods extends Goods {
+  static commandContributions = { peers: ["platform/cmd/perception/look.yaml"] };
+}
 
 function body(id: string): Avatar {
   const a = makeStuff(() => new Avatar());
@@ -175,6 +178,24 @@ describe("signing out", () => {
     StuffApi.destruct(a);
     expect(room.getContents()).toHaveLength(0);
     expect(good.isDestroyed()).toBe(true);
+  });
+
+  it("⚠ a bystander's command stack lets go of what it carried, or the goods stay in memory", async () => {
+    vi.spyOn(PersistableApi, "capture").mockResolvedValue(undefined as never);
+    const room = makeStuff(() => new Room());
+    const witness = body("so-witness");
+    ContainmentApi.move(witness as never, room as never);
+    const a = body("so-carrier");
+    const good = makeStuff(() => new OfferedGoods());
+    ContainmentApi.move(good as never, a as never);
+    ContainmentApi.move(a as never, room as never);
+    const sources = (): unknown[] =>
+      (witness as unknown as { _commandStack: { source: unknown }[] })._commandStack.map((e) => e.source);
+    expect(sources()).toContain(good);
+    StuffApi.destruct(a);
+    expect(good.isDestroyed()).toBe(true);
+    expect(sources()).not.toContain(good);
+    expect(sources()).not.toContain(a);
   });
 
   it("a person it was holding steps out into the room", async () => {

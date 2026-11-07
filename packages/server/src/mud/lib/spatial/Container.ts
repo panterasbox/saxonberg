@@ -44,7 +44,7 @@ import { PlacementOffers, type PlacementChoice } from './PlacementOffers';
 import { MqlApi } from '../../api/mql';
 import type { CommandGiver } from '../command/CommandGiver';
 import { StuffApi } from '../../api/stuff';
-import type { CommandContributions } from '../../api/command';
+import { CommandApi, type CommandContributions } from '../../api/command';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
 import { ChattelApi } from '../../api/chattel';
@@ -290,6 +290,11 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
       // everything once it comes back (a signed-out body, D30). A person it
       // happens to hold is nobody's contents and still steps out.
       const dormant = MixinApi.isPersistable(host) && host.shouldPersist();
+      // ⚠ Whoever stands around this host took command sources from it and from
+      // everything it holds. Say so while it still knows what that is: found by a
+      // census of a live heap, a bystander's stack keeping every signed-out body's
+      // implant and clothes in memory (80 of them on one NPC, after 20 sign-outs).
+      if (outer !== null) CommandApi.applyContainmentDelta(host, outer, null);
       for (const item of snapshot) {
         try {
           if (outer !== null && (!dormant || MixinApi.isHasInteractive(item))) {
