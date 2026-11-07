@@ -10,6 +10,7 @@ import { installAromas } from './aroma-fixtures';
 import { soilBody } from '../../cleanliness/__tests__/soil-fixtures';
 import { seedKernelContentStore } from '../../security/__tests__/test-setup';
 import { MixinApi } from '../../../api/mixin';
+import { PerceptionApi } from '../../../api/perception';
 import { StuffApi } from '../../../api/stuff';
 import { WorldClockApi } from '../../../api/worldclock';
 import { Quantity } from '../../quantity';
@@ -146,6 +147,47 @@ describe('naming', () => {
     );
     expect(body.nose(three).notes).toHaveLength(1);
     expect(body.nose(three, { deliberate: true }).notes).toHaveLength(3);
+  });
+});
+
+describe('the nose tells you what, not where', () => {
+  /** A body that stands in a place with a thing it can or cannot see. */
+  function staged(canSee: boolean) {
+    const body = nose();
+    const thing = soilBody();
+    vi.spyOn(thing, 'getPresentation').mockReturnValue('a tar pot');
+    vi.spyOn(MixinApi, 'isSensor').mockReturnValue(true);
+    vi.spyOn(MixinApi, 'isPerception').mockReturnValue(true);
+    vi.spyOn(PerceptionApi, 'modalityByName').mockReturnValue({ canSee: () => canSee } as never);
+    return { body, thing };
+  }
+  const here = (id: string, word = 'tar', hops = 0) => ({ stuffId: id, word, ou: 500, hops });
+
+  it('names the one visible thing carrying it', () => {
+    const { body, thing } = staged(true);
+    expect(body.nose(Smell.of([here(thing.stuffId)])).dominant?.sourceName).toBe('a tar pot');
+  });
+
+  it('in the dark, the word only', () => {
+    const { body, thing } = staged(false);
+    expect(body.nose(Smell.of([here(thing.stuffId)])).dominant?.sourceName).toBeNull();
+  });
+
+  it('two things carrying it, the word only', () => {
+    const { body, thing } = staged(true);
+    const other = soilBody();
+    expect(body.nose(Smell.of([here(thing.stuffId), here(other.stuffId)])).dominant?.sourceName).toBeNull();
+  });
+
+  it('one here and one next door: the one here is named', () => {
+    const { body, thing } = staged(true);
+    const other = soilBody();
+    expect(body.nose(Smell.of([here(thing.stuffId), here(other.stuffId, 'tar', 1)])).dominant?.sourceName).toBe('a tar pot');
+  });
+
+  it('from another room, the word only', () => {
+    const { body, thing } = staged(true);
+    expect(body.nose(Smell.of([here(thing.stuffId, 'tar', 1)])).dominant?.sourceName).toBeNull();
   });
 });
 

@@ -240,17 +240,19 @@ export function OlfactoryMixin<TBase extends MixinConstructor<Stuff>>(Base: TBas
 
     /**
      * ⭐ The nose tells you what, not where: a smell is pinned on a thing only
-     * when every source of it is in this room, there is exactly one, and you
-     * can see it.
+     * when exactly one thing in this room carries it and you can see that thing.
      */
     private sourceOf(signal: Smell, word: string): string | null {
       const self = this as unknown as Stuff;
+      // Only what is in this room counts: someone who has stepped next door still
+      // reaches you faintly, and that does not stop you knowing who is here.
       const from = signal.sources.filter((s) => {
+        if (s.hops > 0) return false;
         const row = Aroma.resolve(s.word);
         return row ? row.ancestry().includes(word) || s.word === word : s.word === word;
       });
       const only = from[0];
-      if (!only || from.some((s) => s.hops > 0 || s.stuffId !== only.stuffId)) return null;
+      if (!only || from.some((s) => s.stuffId !== only.stuffId)) return null;
       if (only.stuffId === self.stuffId) return null;
       const thing = StuffApi.findById(only.stuffId);
       // The ground is everywhere you stand: it is not a thing a smell is pinned on.
