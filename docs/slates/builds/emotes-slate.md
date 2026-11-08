@@ -6,7 +6,8 @@
 > [emotes.md](../../subsystems/emotes.md); reactions shipped →
 > [reactions.md](../../subsystems/reactions.md)
 > ⭐ **Meaning (acts, manners, consent, witnesses):** [expressive-acts-slate](./expressive-acts-slate.md).
-> **Left:** the Layer-2 client render toggle (`social.emote.render`
+> **Left:** ⭐ the dispatch reversal (no bare emote verbs; `;` = catalog,
+> `:` / bare `emote` = free-form, a miss refuses — § Reversal) · the Layer-2 client render toggle (`social.emote.render`
 > honoured, per channel and per source) · ⭐ Layer 2b illustrated emotes and
 > the meme (an `illustration` per emote, hosted; the meme classification sets
 > the play frame; sent by verb only, never a picker; text art) · Layer 3 honorary / entitlement
@@ -185,6 +186,45 @@ trusting a denylist.
 ### Free-form `emote` (the "emote" emote)
 
 *Shipped: `emote.yaml` → `EmoteController`; `:` / `;` prefixes via `detectEmotePrefix` in `msh`, falling back to free-form on a catalog miss → [emotes.md § Dispatch paths](../../subsystems/emotes.md) (b), (c).*
+
+### ⭐⭐⭐ Reversal: emotes leave the verb space; the sigil decides **[DECIDED 2026-11-08 — the owner]** — UNBUILT
+
+The owner: *"I'm reconsidering … the whole emotes as their own verbs thing. I just think
+it's gonna create a little too much confusion with our actual active verb space."* And
+on why the sigil must stay meaningful: *"then 'emote pbride is my favorite emote' becomes
+inexpressible. so maybe the ; is doing something there actually."*
+
+**Retired:** dispatch path (a), the bare-verb router — `wave iffy` no longer emotes. And
+the catalog-first-then-free-form *guess* both sigils make today. A guess always leaves a
+sentence it cannot express.
+
+**The grammar — one meaning per sigil, no guessing:**
+
+| you type | you get |
+|---|---|
+| `;pbride` · `emote ;pbride` · `;pbride iffy` · `;smile evilly` | the **catalog** emote (slots bind as today) |
+| `:is taking it easy.` · `emote is taking it easy.` | **free-form**, word for word |
+| `emote pbride is my favorite emote` | free-form — *Bobalu pbride is my favorite emote.* |
+| `;pbridee` (a miss) | an honest refusal with a search hint (*no emote `pbridee` — `soul search pbri`?*), **never** a silent fall to free text |
+| `smile` (bare) | whatever the verb space says — usually `unknown-verb` |
+
+- **`;` names a word from the shared vocabulary; `:` writes your own.** Inside `emote`,
+  no sigil means free-form. `emote :text` is accepted and equals `emote text`.
+- **Why (lens 2, creative expression, and the verb-collision ladder):** every catalog
+  verb competed with real commands for its word (`bow` vs posture, `point`, `kneel`),
+  and an EotL-sized meme catalog (Layer 2b) would make every new trade verb dodge
+  hundreds of emotes. A typo'd command also stopped silently becoming an emote. And it
+  is the meme doctrine made syntax: typing `;` says *I am using a shared word*.
+- **Muscle memory** (`smile` bare) is the player's own `alias smile ;smile`. No default
+  alias set ships, since one would bring the collision back.
+- **The same sigils inside channels:** `chat gossip ;pbride`, `chat gossip :is afk`.
+  ⚠ `chat` parses neither today (a leading sigil is sent as literal text); that is the
+  deferred channel/remote-audience path (emotes.md § What's deferred), which adopts this
+  grammar when it ships.
+- **Touches when built:** the `msh` prefix hook and the router branch in
+  `CommandGiver`, `EmoteController`, the scripting parser (it routes sigil lines
+  through `detectEmotePrefix`), the prefix tests, `emotes.md § Dispatch paths`, and help
+  text. `react` and NPC `emote()` calls are unaffected; they never used the bare verb.
 
 ### NPCs emote — and the immersion gate
 
