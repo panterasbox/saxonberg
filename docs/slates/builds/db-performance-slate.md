@@ -7,7 +7,7 @@
 > that scales with the living, not with history (§ 2) · the pool and
 > per-operation latency to Atlas (§ 3) · the hot callers: payroll, bank,
 > transcripts, consignment (§ 4) · boot time (§ 5) · the unexplained 4 GB heap
-> (§ 6)
+> (§ 6) · the serial shutdown capture (§ 5)
 > **Size:** a build (§§ 1–2 could be one wave of it; § 5 is a tail)
 
 ## Why this exists
@@ -39,7 +39,8 @@ wanna know that too."*
 `StuffApi.findById(id)?.getTemplatePath() ?? id`. Every player Avatar shares
 one template path (D17 stamps lineage and identity separately), so every
 player becomes the subject `/platform/agent/PrimaryAvatar`, and a giver with
-no stamp falls back to its raw `stuffId`, minted fresh per connection. This is
+no stamp falls back to its raw `stuffId`, minted fresh per connection (every connection's `Login`, created with no
+template, adds a subject that is never removed). This is
 the antipattern CLAUDE.md names (*Keying a PERSON on `getTemplatePath()`*;
 the fix is `getIdentityPath()`), the one that once cost a shared bank account.
 
@@ -99,7 +100,12 @@ The estuary's greywater shore readings take ~50 s each at boot (pre-existing:
 the same in the 2026-11-07 log). A harness restart of a world that had been up
 47 min took ~3.5 min to shut down gracefully, and the harness kills a
 restarting world after 15 s, so an in-test restart never gets its shutdown save
-(that can hide persistence bugs). GitLab issue #127 carries it. Boot cost is mostly a test-time cost; see
+(that can hide persistence bugs). Measured later the same day: the final
+shutdown captures every host **serially**, and on a loaded world that was 172
+hosts at 1.6–2.0 s each (`find`/`update holder_snapshots` to Atlas), about 3.5
+min; only 70 snapshots landed inside a 60 s grace. Any loaded world, not only a
+test, loses state on a short shutdown: batch the captures (one `bulkWrite`), or
+run them concurrently, before raising any grace. GitLab issue #127 carries it. Boot cost is mostly a test-time cost; see
 [test-world-lifecycle-slate.md](./test-world-lifecycle-slate.md).
 
 ## 6. ? A 4 GB heap death, twice, never root-caused
