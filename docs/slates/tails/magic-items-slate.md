@@ -19,7 +19,7 @@
 > "later") · holy water (BUC-raising by `dip`, the consecration ritual; the
 > anti-hollow reaction waits on presence-hollowing-slate) · create-monster
 > / the procgen-NPC generator (shared with spawn-distribution-slate) ·
-> whether shells are craftable or only found · combat items (combat has
+> whether shells are craftable or only found (⭐ answered 2026-11-07: **craftable, as blanks**; the maker knows only by competence → [spellbook-slate](../builds/spellbook-slate.md) § 7b) · combat items (combat has
 > shipped; enchant/protection/reflection/conflict remain unauthored) · the
 > blessing economy beyond v1
 > **Size:** a wave — the catalog ships as content packs (§ Where the

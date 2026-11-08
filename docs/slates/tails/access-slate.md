@@ -348,3 +348,37 @@ This slate boils down to:
 The typed-capability-token layer, field-mask depth, the moderation
 control-plane tooling, and the full tier semantics wait for their own
 waves.
+
+## ⭐⭐ Inspection — authority over people inside your extent **[DECIDED — the owner, 2026-11-07]**
+
+Out of the size build ([size-and-carrying-requirements](../../requirements/size-and-carrying-requirements.md)
+§ Authority). Inside an extent you hold, queries reach the true state of **your content**: rooms,
+fixtures, vessels, stock, staged NPCs. **Other players are not your content.** But the owner: *"if some
+player enters my content and reports an issue I need to be able to inspect them up and down to
+troubleshoot."*
+
+- **Inspect is a seat grant**: one more power in the moderation grant set (delete, mute, eject, ban,
+  **inspect**), reaching the holding organization's extent
+  ([moderation-slate](../builds/moderation-slate.md) § 5). The committee chair holds it and grants it to
+  the members who need it.
+- ⭐ **Every inspection of a player is logged, and the inspected player can see it**: who, by which
+  seat, when. It's the privacy slate's answer to *"prevention is impossible"* (detectable, attributable,
+  costly). What an inspection shows is labeled **builder information**, never something a character
+  perceived.
+- **Sub-extents: a closed menu the parent sets when it grants** *"it depends on the law of the land … a
+  few different settings any given committee would want to select from, not anything goes"*:
+
+  | option | the parent's inspection inside the sub-extent |
+  |---|---|
+  | **retained** | full (public administration, a company's own branches) |
+  | **with notice** | allowed, with the sub-holder told (a landlord's right of entry) |
+  | **by consent** | only with the sub-holder's agreement, case by case |
+  | **relinquished** | none (it was sold) |
+
+  A jurisdiction's law **narrows which options are allowed** under it, inheriting down the title tree
+  as the custody limit does. **The log is the one thing no option turns off.**
+- ⭐ **It gives a committee a reputation** for how it uses its power, and privacy becomes one of the
+  things a locality competes on (the stewardship slate's Tiebout argument). Old MUD wizards were known as
+  snoops by rumor; here it's a record. The platform shows **facts** (each extent's option, each seat's
+  log), never a ranking of its own. A newspaper's "most private towns" is fine.
+

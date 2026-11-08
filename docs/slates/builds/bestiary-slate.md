@@ -398,6 +398,28 @@ vocabulary.**
 realm settles it — name its monsters distinctly (*stone troll*, *bridge troll*), or make its
 trolls people throughout.
 
+### 14a. ⭐⭐⭐ Culture, allegory and who decides **[DECIDED — the owner, 2026-11-07]**
+
+*"If we do something like NetHack … it's gnomish mines, not goblin. But the same theory holds: gnomes
+are a normal player humanoid race in the game. That doesn't mean they can't concentrate in communities
+and any culture these communities and their environments foster. Why not a gnometown on level 4 of the
+mines? Who's that offending? The problem is when authors are using direct allegory, which we want in
+the game and should encourage — that's when we have to be sensitive. But not everything is something
+else; some things just are, and each running game community will derive from that a culture of its
+own. … The platform shouldn't deny it. That's what governance is for."*
+
+- **A people concentrated in a place grows a culture from its environment.** That's the settlement
+  model working, not a stereotype.
+- **Allegory is welcome**, and the sensitivity it needs belongs to its **author and community**, never
+  to the engine.
+- **Three actors, three answers** (confirmed):
+  - **the engine** stays neutral. It's AGPL and anyone can run it, so no content ban lives in code;
+  - **each realm's polity** governs what its realm allows;
+  - **the host** (managed hosting) is a separate actor, with its own legal floor (conduct rule 7) and
+    its providers' terms.
+- **A base pack's choices are labeled as its taste**, never as platform law. That includes goblins as a
+  people in [the pilot](../../bestiary/pilot.md).
+
 ## 15. ⭐⭐ Keeping the tree of life honest **[DECIDED — the owner]**
 
 The owner: *"it's gonna make certain branches of the tree of life kinda crowded."* Crowding is

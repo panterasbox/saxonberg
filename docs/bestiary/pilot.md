@@ -1,4 +1,4 @@
-# Bestiary pilot — twenty creatures written as content, before the model
+# Bestiary pilot — creatures written as content, before the model
 
 > **Status: DRAFT for the owner to mark up** — 2026-11-07. Drafted by four parallel agents from one
 > brief, then reviewed. Its purpose (the owner): *"we have so little content that we're basing any of
@@ -22,6 +22,16 @@
 - **made:** golem;
 - **odd shapes:** gelatinous cube, giant spider, hydra, kappa;
 - **persons:** the bandit, written as a role.
+
+**Batch 2, the classics** (Part IV). The owner asked for *"the classics … if we were making a game for
+the widest possible (western) audience … think network TV in prime time"*:
+
+- **the slime**, adapted, and our own first monster from EotL;
+- **the giant rat**, ordinary;
+- **the ghost**, bound, a person;
+- **the dragon**, adapted, a person;
+- **the goblin**, a people;
+- **the animated dead** (skeletons and zombies), made.
 
 ## Part I — ⭐⭐ Where you fill in
 
@@ -48,6 +58,22 @@
      which touches currency rules (a leg may never cross currencies).
 7. **The realm-lore suggestions** throughout are labeled as suggestions. Each is yours to keep or cut.
 
+**Added by batch 2:**
+
+8. **Is a player shade that never takes passage a ghost?** Mortality says the shade *"is not a
+   spirit."* The ghost entry has them share the bodiless undead rung but not the cause.
+9. **The slime and the gelatinous cube as one species**, whose thickness reads the field, so the cube
+   is the slime's strong-field form. That's a suggestion.
+10. **Animating a player's corpse.** It never brings the player back, but may someone **use** a dead
+    player's body without consent? That's a lens 4 question, probably for realm law, with the engine
+    making provenance plain.
+11. **The dragon's breath families.** Fire, acid and gas are honest chemistry. Lightning works by
+    contact only, and cold has no chemistry. Cut those two, or price them as bindings?
+12. **The goblin pick** (lens 1). The base pack ships goblins as a *people*, with no monster of the
+    same name, and their behavior comes from circumstance, never from an evil nature. That's our pack's
+    taste, not a rule for anyone else's (§ 14a). Overrule it if
+    you want the classic dungeon goblin as well, under another path.
+
 ### Facts to verify before anything ships
 
 - **Bear and deer:** red deer antler growth rate (wapiti's ~2.5 cm a day used as the upper bound);
@@ -71,6 +97,18 @@
   SRD figures, recalled rather than checked against the text.
 - **Kappa:** regional names and the Tōno details.
 - **Bandit:** the Statute of Winchester's 200-foot brush clearance; the 1692 Highwaymen Act's £40.
+- **Batch 2:**
+  - *Physarum*'s streaming period and its four citations;
+  - the rats' leap and the skull-width rule, and the fatality share for rat-bite fever;
+  - Dean et al. (2018) on ectoparasites and the Black Death; the Hanoi bounty date (1902);
+  - Grose (1787); *Stambovsky v. Ackley*;
+  - the bombardier beetle's peroxide concentration, HTP decomposition temperatures, fulmar oil;
+  - the permittivities of perovskite and titanite;
+  - Mansa Musa and the Cairo gold price; the first London fire office; the goblin etymology; the
+    origin of "blackmail"; Tolkien's Letter 210;
+  - the Haitian penal-code article and Narcisse's dates;
+  - the salt-on-the-corpse custom; rigor timings;
+  - every flight number and Kleiber food figure, which the drafters derived rather than looked up.
 
 ## Part II — ⭐⭐⭐ What the model must express — the gaps, by theme
 
@@ -193,6 +231,36 @@ conversation**.
 - **Law:** outlawry (a register that strips a named person's protection); collective liability (the
   hundred pays for a robber it failed to catch).
 - **From the hunting slate:** wild populations, `track`, game law, close seasons and bounties.
+
+### Batch 2 adds
+
+- **A — anatomy:**
+  - two instances fusing into one, the reverse of a severed piece living on;
+  - **cryptobiosis**: a creature drying into an inert, carryable item that revives when wetted, keeping
+    its lineage (tardigrades and seeds want it too);
+  - **a sparse body**: a thrust passes through a ribcage and finds nothing;
+  - **skeletonization**: tissue lost share by share on the decay clock, so a zombie becomes a skeleton
+    (the decomposition slate).
+- **B — senses:** perceived but not present. A semblance that people perceive and that **instruments
+  must not read**, which is how a ghost hunt works.
+- **C — behavior:** ⭐ **an NPC community with an economy.** A warren's unmet needs drive its choice
+  between trading and raiding, depending on whether a market is open to it. That's the goblins, and the
+  Border Reivers.
+- **D — physiology:** ectoparasites as carried organisms that leave a cooling host and bite whoever is
+  near (the plague flea).
+- **E — bindings:**
+  - a binding paid from a **bystander's** reserve without consent (the poltergeist);
+  - **a binding whose lapse is itself an injury** (the dragon's peroxide, and a hazard clock on the
+    carcass that butchery must beat);
+  - ⭐ **charge flowing between goods through a conductive heap**: the hoard as a bus, with tarnish as
+    contact resistance;
+  - **a driven corpse**: the corpse stays a Thing and a binding moves it, with no agent brought back.
+    That's distinct from D's embodied undead.
+- **G — the world:** **openings with a size**, checked against the smallest gap a body can squeeze
+  through. Today an exit is open, closed or locked, never too small, so rat-proofing a cellar has
+  nowhere to land.
+- **Presentation:** **per-realm and per-viewer common names** for a species: their own name, the
+  surface word, the slur. The handle chain doesn't let a realm choose the word.
 
 ### H. ⚠ A kernel defect, verified
 
@@ -1242,6 +1310,10 @@ Anything I suggest as realm lore is labeled **(realm suggestion)**.
 
 ### Troll — suggested species path `/stuff/agent/species/troll` (a base row in a shared folklore pack; § 14)
 
+> ⚠ **This is the folklore troll, the one under the bridge** (the owner, 11-07). It is not Katie's
+> people. The playable *Homo trollius* townsfolk are a separate person species that share the common
+> name; § 14 says *"troll" is a common name, and identity is the species path.*
+
 - **Quadrant · class** — fantasy × person · **bound** (a regenerator)
 - **What it is** — The troll of **Scandinavian folklore** (Old Norse *troll*, *jötnar*; the Norwegian
   tales collected by Asbjørnsen and Moe, 1840s): big, ugly, strong, slow-witted, a cave and mountain
@@ -2063,3 +2135,848 @@ designed in a slate but unbuilt) · ❌ GAP (nowhere to land).
     tier-labeled register.
   - ❌ **collective liability** (the hundred pays): a locality as the defendant when its own
     people fail to catch a robber.
+
+---
+
+## Part IV — Batch 2: the classics
+
+### Slime — suggested species path `/stuff/agent/species/myxomorpha/lentimyxa/vulgaris` *(invented genus; sibling of the gelatinous cube's `myxomorpha`)*
+
+> This entry includes material taken from the System Reference Document 5.1 ("SRD 5.1") by
+> Wizards of the Coast LLC, available at https://dnd.wizards.com/resources/systems-reference-document.
+> The SRD 5.1 is licensed under the Creative Commons Attribution 4.0 International License,
+> https://creativecommons.org/licenses/by/4.0/legalcode. Taken: the ooze family's habit of
+> **splitting when cut** (the ochre jelly's and black pudding's *Split*) and the corrosion of what
+> strikes it. The biology below is ours.
+
+- **Quadrant · class** — fantasy · not a person · **adapted**. Sentient? Probably not in the welfare
+  sense. It has no nervous system. It is, however, smarter than it looks, which is the joke at the
+  heart of the entry.
+- **What it is** — the first monster. In EotL, the game we descend from, the newbie area's
+  *Bewitched Forest* opened with `slime`, then `leech`, then `rabid_dog`: vermin first, then animal,
+  then social menace (eotl-craft.md § Newbieland). Dragon Quest made the slime the weakest thing in
+  the world and a mascot. NetHack filled its early dungeon with blobs and jellies whose whole trick
+  is *passive*: hit an acid blob and your weapon corrodes, and hit a brown pudding with iron and it
+  divides. D&D's oozes split when slashed. **We keep the word and the two tricks; the design is
+  ours.**
+  - **The real organism** is a slime mold: *Physarum polycephalum*, a bright yellow **plasmodium**,
+    one giant cell with millions of nuclei, which creeps over rotting logs at roughly a centimeter an
+    hour, its cytoplasm streaming back and forth through its veins in a pulse of about a minute or
+    two. It is famous for things it should not be able to do. It solved a maze (Nakagaki, 2000). Laid
+    over a map of oat flakes placed as Tokyo's cities, it grew a network much like the Tokyo rail
+    system (Tero, 2010). It learns to cross a bitter barrier it first refused, and forgets
+    after a rest (habituation, Boisseau, 2016). It avoids ground it has already searched by reading
+    the slime trail it left behind, which is a memory kept outside its body (Reid, 2012). Pieces cut
+    from it live; two compatible pieces that touch fuse back into one. When it dries out it hardens
+    into a crust called a **sclerotium** and can lie dormant for years until it is wetted again.
+    Slime molds are not animals, plants or fungi. They belong to the Amoebozoa.
+  - **Ours** is that, thicker. A real plasmodium is a film: diffusion feeds only about a millimeter
+    of tissue. Our slime is a palm-to-doormat puddle **several centimeters deep** because, like the
+    gelatinous cube, it uses the place's field to pump its cytoplasm. A typical one is 1–3 kg,
+    mostly water.
+- **Where it lives** — wet leaf litter, rotten logs, cellars, the edges of springs; dark, damp and
+  still. ⭐ **Its thickness is a field meter.** In a weak field it thins to the real film and nobody
+  calls it a monster; in a mild field it is a puddle; in a strong one it is something miners give a
+  name to. **[suggestion]** Make this one species with a field-plastic form, and let the gelatinous
+  cube be what it becomes in a strong field. Then *"how deep are the slimes here?"* is the first
+  piece of danger-map literacy a player learns, and every cube was once somebody's first fight.
+- **How it behaves** — it eats bacteria, yeasts and fungal spores off rot, and it flows toward food
+  smells and damp and away from light (blue light especially) and from salt. It does not hunt and
+  does not flee. It "decides" by streaming toward the stronger gradient, and on a still night you can
+  watch it change its mind.
+- **The encounter** — it does not notice you in any way that matters. It has no eyes and no ears.
+  It feels touch, warmth and chemistry. Notice it by its **color** (egg-yolk yellow, or gray in the
+  cave forms), by a mushroom smell, by a log that is too clean, and by the **fan-shaped leading
+  edge** that tells you which way it is going. Standing still, shouting, looming and bowing mean
+  nothing to it. Light makes it pull back. Food scraps draw it. ⭐ **`assess` should be honest and
+  almost boring:** the odds are yours, the danger is low, escape is a stroll, and **the cost is the
+  only interesting number** (your boots, your blade's edge, your afternoon).
+- **If it fights** — it never commits. You do, and here is what you find out:
+  - **Hitting harder is not a plan.** It has no vital zone, no organ, no blood, no lungs and no
+    morale. A blunt blow splashes it. A **cut divides it**, and both halves crawl off. Leave them
+    and they find each other and fuse. *It does not lose hitpoints; it gets smaller.*
+  - **It is a passive hazard.** Its digestive enzymes irritate skin and soften leather and gut
+    string. Kick it in good boots and the boots pay; grab it bare-handed and your hand stings for an
+    hour. NetHack's lesson: some things punish the attacker by being touched.
+  - **The right tools are the slug-and-amoeba ones:** salt (osmotic shock draws the water out),
+    drying, and fire. Unlike the cube, a puddle a few centimeters deep *does* dry and burn, because
+    there is little water behind its surface. A handful of salt or a torch ends it in one beat.
+  - It "quits" by being too small to bother with, or by drying into a sclerotium, which is the
+    trophy.
+- **What it teaches** — ⭐ this is the newbie's honest first fight, and it is honest because it
+  **cannot kill you** and still **corrects the habit every other game teaches**:
+  1. read before you swing (the encounter is the game, and most of it happens before the fight);
+  2. there is no health bar; you watch it get smaller, so there is no bar here either;
+  3. **the right tool beats force**, and the right tool is ordinary (salt from the kitchen);
+  4. fights cost gear, and `assess` says so;
+  5. **you may simply walk past.** It eats rot. A forester may want it left alone.
+- **People and it** — children poke them with sticks. Cooks keep a salt crock by the cellar door.
+  The common name everywhere is some form of *"dog sick"* (real: *Fuligo septica*'s English name is
+  dog vomit slime mold). **[suggestion]** Newbie guides say *"salt or a torch, never a sword"*, and
+  the first time a player ignores it is the first time the guide was right.
+- **What it yields** — living slime is a water body with water's capacity (ε ≈ 80), grown in a
+  field, so it is **rich in mana per kilogram for something so humble**. It leaks fast and spoils
+  fast: a reagent solvent to use on the spot, like the cube's gel. The **sclerotium** is the
+  keepsake. Drying partitions most of the charge out with the water, so it holds little, but it
+  keeps for years and **revives when wetted** (a pet slime in a jar is a thing children do).
+  Salt-killed slime is brined and keeps a few days; burned slime is nothing.
+- **The binding** (adapted, so an organ, not a held state) — the thickness is its own work: the
+  field pumps the streaming. **Out of the field** it thins to a film and stops being a monster. It
+  does not die. That is the adapted class done honestly.
+- **What the model must express**
+  - ⚠ the clade: Amoebozoa (or a `myxomorpha` kingdom-rank Clade). race.md says new Clades are
+    "purely additive"; v1 ships four kingdoms.
+  - → A an amorphous body plan with no governing organ, capacity read from remaining mass (the
+    cube's gap, which the slime shares and makes *common* rather than exotic).
+  - → A a cut piece that lives as its own creature.
+  - ❌ **two instances fusing into one**: the reverse of the severed piece. Mass adds, one identity
+    survives, and the other is consumed. Nothing merges two creatures.
+  - ❌ **a dormant object form and back (cryptobiosis)**: a creature that dries into an inert,
+    carryable Thing and revives as the creature when wetted, keeping its lineage. Denning (→ D) is
+    a sleeping creature; this is a creature that is an *item* for a while. Tardigrades and seeds want
+    it too.
+  - ✅ `Material.corrodeOnContact` / `corrosiveTo` · ⚠ fired **when struck or kicked**, on the
+    striking item or limb (NetHack's passive). I found no seam where a strike tests the target's
+    contact chemistry against the weapon.
+  - → D osmotic/desiccant harm (salt), plus ⚠ the slime's surface-to-volume ratio deciding whether
+    drying and fire bite (a puddle yes, a cube no). This should derive from the thickness, not be
+    authored per species.
+  - → E thickness and viability reading the place's field (the danger-map rule).
+  - ⚠ senses: phototaxis (avoid light), chemotaxis, touch. ✅ light exists per place (`signalAt`).
+  - → G its slime trail as a mark left on a place that it later reads (external memory).
+  - ✅ `assess`'s cost quotient is the honest headline (bestiary § 7) · ⚠ the quotients are unbuilt.
+
+---
+
+### Giant rat — suggested species path `/stuff/agent/species/animalia/chordata/mammalia/rodentia/muridae/rattus/subterraneus` *(invented species)*
+
+> This entry includes material taken from the System Reference Document 5.1 ("SRD 5.1") by
+> Wizards of the Coast LLC, available at https://dnd.wizards.com/resources/systems-reference-document.
+> The SRD 5.1 is licensed under the Creative Commons Attribution 4.0 International License,
+> https://creativecommons.org/licenses/by/4.0/legalcode. Taken: the creature's name, the swarm of
+> rats as a single foe, and the diseased variant. The biology below is ours.
+
+- **Quadrant · class** — real-world biology, invented species · not a person · **ordinary**.
+  Sentient: yes, unquestionably (rats are among the best-studied feelers of pain and pleasure there
+  are; they emit a ~50 kHz call when tickled that Panksepp called laughter).
+- **What it is** — the cellar fight of every RPG: the innkeeper's first job, the thing in the sewer
+  under the starting town. The real rats behind it are two:
+  - the **brown rat** (*Rattus norvegicus*), the sewer and cellar rat, typically 250–500 g, about
+    20–25 cm of body and as much tail. It lives about a year in the wild and two or three in a cage;
+  - the **black rat** (*R. rattus*), the ship and roof rat, lighter, a climber, and the classic
+    plague host.
+  - The shipped `Rattus fodinae`, the delve rat in Rejection's mine (0.4 kg), is the ordinary one,
+    already in the world.
+  - ⭐ **What makes a giant one possible here — honestly, without magic.** Nothing in rodent design
+    caps size near half a kilo. The capybara is 35–65 kg, the Gambian pouched rat 1–1.5 kg (the
+    landmine-sniffing "HeroRATs"), the Flores giant rat 1–2.5 kg, and the extinct
+    *Josephoartigasia* was perhaps a tonne. Rats stay small because cats, dogs, owls and people kill
+    big ones and because small breeds fastest. **Island gigantism** is the honest route: take away
+    the predators, keep the food steady, and a rodent lineage gets bigger over thousands of years.
+    ⭐ **An undercity is an island.** Old sewers, catacombs and drowned cellars where no cat or
+    terrier goes, fed forever on a city's waste, are exactly that niche. Our giant rat is a
+    *Rattus* lineage isolated underground long enough to reach **3–6 kg, terrier-sized**, with the
+    same body plan, the same habits and the same diseases. It is not magic. (Mana does concentrate in
+    it, but mana does not make anything bigger. See *What it yields*.)
+- **Where it lives** — under old cities: sewers, catacombs, cellars that connect, warehouses on the
+  wharf. It needs water, darkness and people's waste. It is year-round, breeding in every season
+  where food holds. **[suggestion]** It is found only under cities old enough to have an undercity,
+  so it is a sign of age, the way ivy is.
+- **How it behaves** — it is nocturnal, colonial and hierarchical, a burrower and a swimmer. Rats
+  **follow walls** (thigmotaxis) and use the same runways nightly, leaving greasy **rub marks** along
+  them. ⭐ They are **neophobic**: a new object on a runway is avoided for days. That is why a
+  ratcatcher lays traps unset and pre-baits, and why poison works poorly unless it acts slowly. Rats
+  cannot vomit, which is why poison works at all. Their incisors grow throughout life and must be
+  worn down by gnawing: wood, lead pipe, mortar, soft metal. A brown rat fits through a gap about
+  the width of its skull (a giant one, a gap like a fist). Brown rats breed at about five weeks old,
+  carry for about three weeks, and drop litters of six to twelve, with a fresh mating right after.
+  A cellar never has *a* rat.
+- **The encounter** — it noticed you first, by **smell, whisker-touch and ultrasound**. A rat's
+  eyes are poor (dichromat, good in dim light); its hearing reaches far above ours. Light and noise
+  send it along the wall to the nearest hole. Standing still in the dark brings it closer. Food on
+  the floor brings the colony. Looming means nothing to an animal that is already leaving.
+  ⭐ **Cornering it** is the one act that makes a fight, and the proverb is accurate: a trapped rat
+  turns and bites, and it can leap to roughly knee height. Real safety lore: never reach into a
+  hole you cannot see into, leave it a way out, wear gloves, and **wash and treat any bite**.
+- **If it fights** — it presses only when cornered or defending pups. It wins on **tempo** (fast,
+  low, inside a sword's reach) and **the fog** (dark, and below your eye line), and loses on
+  **mass**: one kick moves it. It has no natural armor beyond fur. Its vitals are the head and the
+  chest, and it is small and fast enough that aiming is the whole difficulty. It quits the instant it
+  sees an exit. ⭐ **The fight is the easy part; the bite is the danger.** Incisors make deep,
+  narrow punctures that bleed little and **carry what is in its mouth**:
+  - **rat-bite fever** (*Streptobacillus moniliformis*): fever, rash and joint pain days later,
+    fatal in perhaps one untreated case in ten;
+  - and in the swarm (the SRD's *swarm of rats*), the poise contest is against numbers, not a
+    body. You do not win by killing rats; you win by leaving or by blocking the hole.
+- **Disease carriage — honestly, for the disease and pharma conversation** — the real reason
+  rats matter is what they carry, mostly **not by biting**:
+  - **Leptospirosis** (*Leptospira*): shed in urine into standing water and wet ground, entering
+    people through cuts and mucous membranes. It is Weil's disease, the sewer worker's and the
+    flood's disease. ⭐ This is the honest danger of a sewer quest: wading, not fighting.
+  - **Plague** (*Yersinia pestis*): the textbook chain is the black rat and its flea
+    (*Xenopsylla cheopis*). When the rats die, the fleas leave the cooling bodies and bite people.
+    ⚠ For the Black Death specifically, recent work (Dean et al., 2018) argues human fleas and lice
+    explain the speed better than rats. Say both, and say it is argued.
+  - **Seoul hantavirus** (from brown rats' droppings and urine, breathed as dust); **murine
+    typhus** (fleas again); **salmonella** (food fouled in the store); **trichinella** (rats eaten
+    by pigs, pigs eaten by people). Lassa fever is often blamed on rats but its host is a different
+    rodent (*Mastomys*).
+  - So a giant rat carries the same set at a larger dose and in a larger mouth. **[suggestion]**
+    *Diseased* is a condition on an individual (the SRD's diseased giant rat), never a separate
+    species. A colony on a flooded sewer carries leptospirosis; one in a grain store does not.
+- **People and it** — ⭐ the **ratcatcher** is a trade (Victorian London had celebrities of it), with
+  traps, ferrets and **terriers**. Victorian rat pits made a sport of it, and the record dog was
+  said to kill a hundred rats in under six minutes. The Pied Piper of Hamelin (the town record is
+  of children lost in 1284; the rats arrived in the story centuries later) is the legend. Rats don't
+  follow music, and modern ultrasonic repellers don't work either; rats get used to them. ⭐ The
+  **rat-tail bounty** is the governance lesson: French colonial Hanoi paid per tail in 1902, and
+  people cut off tails, released the rats to breed, and started farming them. A bounty measured
+  on tails buys tails. **[suggestion]** The innkeeper's cellar job is written as a contract whose
+  verifiable condition is *no sign for seven nights* (rub marks, droppings, gnawing), not a body
+  count. Then proofing the hole is the winning move, and players find that out. People have also
+  eaten rats in sieges (Paris, 1870–71), and rice-field rats are still eaten in parts of Southeast
+  Asia, which is a living food culture, not a joke.
+- **What it yields** — a small, lean carcass (edible, cooked thoroughly); a poor pelt; incisors
+  (a curio and a little store; dentine, a moderate dielectric); **tails, if a bounty is posted**.
+  ⭐ **Mana:** the giant rat is the **apex scavenger of a city's waste**, so in a city with a strong
+  field its liver, blood and brain are noticeably richer than a pig's, by biomagnification. That is
+  a reagent to an apothecary, and it comes with the diseases. A clean head shot keeps the organs
+  saleable; a gut wound fouls them.
+- **What the model must express**
+  - ✅ the species row shape (the shipped delve rat: mass, nocturnal, omnivore, vision profile,
+    lifespan) · ⚠ the giant as a sibling row (or `extends:` the delve rat), with mass scaled.
+  - ✅ the open-wound sepsis clock (harm) · → D a bite carrying a **specific** pathogen by species
+    and by individual condition (the venom-as-route theme, applied to infection).
+  - → D disease from animals, through the disease slate's `ContagionSpec` (routes, host range,
+    reservoir): urine into water (⚠ watershed's contamination by kind is a seam), dust, food.
+  - ❌ **ectoparasites as carried organisms**: fleas that live on a host's integument and **leave
+    when the host dies and cools**, then bite whoever is near. It is the plague mechanism, and the
+    integument (the brief's ⚠ outer layer) is where they would live.
+  - ❌ **apertures sized against bodies**: a hole, drain or gap with a size, and a body with the
+    minimum cross-section it can squeeze through (a rat's skull). Proofing a cellar is filling holes,
+    and today an exit is open, closed or locked, never *too small for you*.
+  - → G gnawing as damage to the world, by material hardness (doors, sacks, lead pipe, cable);
+    → G wild populations that breed (a colony grows; one rat means many).
+  - → C neophobia and bait shyness (animal learning); wall-following runways; the cornered turn
+    (a fight that ends when an exit appears).
+  - → B ultrasound as a modality range beyond human hearing.
+  - ✅ metabolism toxins for poison bait · ⚠ "cannot vomit" as a species flag that poison reads.
+  - ✅ the contract substrate (clauses over verifiable conditions) for the cellar job · → G bounties
+    (and the perverse incentive, which needs no code, only a contract that pays per tail).
+  - → C the swarm as one foe (group morale and numbers).
+
+---
+
+### Ghost — suggested path `/stuff/agent/spirit/ghost` *(the bodiless root, § 15 — a base row an author's ghosts `extends:`)*
+
+> This entry includes material taken from the System Reference Document 5.1 ("SRD 5.1") by
+> Wizards of the Coast LLC, available at https://dnd.wizards.com/resources/systems-reference-document.
+> The SRD 5.1 is licensed under the Creative Commons Attribution 4.0 International License,
+> https://creativecommons.org/licenses/by/4.0/legalcode. Taken: the creature's name, the
+> *horrifying visage*, and *possession*. Everything else is folklore and ours.
+
+- **Quadrant · class** — fantasy · **a person** (it talks, wants, bargains and can be wronged) ·
+  **bound**. ⚠ The other half of the tradition, the **residual haunting** (the Gray Lady crossing
+  the gallery every midnight and noticing no one), is **not a person at all**. It is a recording in
+  a place. The entry covers both, because players will meet both and must learn to tell them apart.
+- **What it is** — the Western ghost, a dead person who has not gone where the dead go, usually
+  because something is unfinished:
+  - **Pliny the Younger** (*Letters* 7.27, about AD 100): a house in Athens nobody would rent,
+    haunted by a chained old man. The philosopher Athenodorus took it cheap, sat writing at night,
+    followed the ghost to a spot in the courtyard, and marked it. Next day they dug there and found
+    **bones in chains**. Given a proper burial, the ghost never came back. ⭐ That story is the whole
+    genre in one page: **a wrong, a place, a sign, and a laying-to-rest.**
+  - **Hamlet's father** wants a murder avenged; **Marley** drags the chain he forged in life
+    (Dickens, 1843); **The Canterville Ghost** (Wilde, 1887) is the comedy of a ghost nobody is
+    afraid of; **M. R. James** wrote the scholarly antiquary who digs up the wrong thing.
+  - **English folk belief** as Francis Grose recorded it (1787): a ghost **cannot speak until it
+    is spoken to**. You ask it, in the proper form, what it wants. Ghosts walk to reveal a murder,
+    a hidden treasure, a wrong will, or an unburied body, and leave when it is put right.
+  - **The cold spot, the moving object, the smell of a dead man's pipe** come from later folklore
+    and Victorian spiritualism. Ectoplasm was a séance-parlor fraud (cheesecloth, photographed).
+  - ⚠ Ghost belief is living and worldwide (China's hungry ghosts, Mexico's Day of the Dead, and
+    many more). This entry writes **the Western tradition** and does not borrow others' dead.
+- **Where it lives** — **where it is anchored**: the place of the wrong, the bones, or an object
+  (a portrait, a letter, a ring). It walks a **haunt**, the rooms it knew, and rarely leaves it.
+  It appears at night, at the anniversary, in the quiet. ⭐ Under Voss Decay that is not
+  atmosphere, it is accounting: **a semblance erodes fastest under attention**, so ghosts appear
+  where few are looking, to one witness, in bad light. A room full of skeptics with lanterns is the
+  most expensive place in the world to be seen. **[suggestion]** Hauntings cluster in strong
+  fields. The famous haunted house sits on one.
+- **How it behaves** — the intelligent ghost wants one thing, and wants it with the narrowness of
+  someone who has had a very long time to think about it. It repeats. It tries to show you (it
+  points, it walks to the spot, it rearranges the room to look as it did), because **showing is
+  cheap and speaking is hard** for it. It is often not malicious, only stuck. The residual haunting
+  behaves on a schedule and does nothing else.
+- **The encounter** — ⭐ the encounter **is** the content, and it is a puzzle in three readings:
+  - **Is it a person?** Speak to it (Grose's rule). The intelligent ghost turns to you; the
+    residual walks through your question. That one act is the identification.
+  - **Is it there?** ⭐ **A semblance is a thing perceived, not a thing present.** People see it.
+    A thermometer at the cold spot reads no drop. A camera records an empty stair. The cold, the
+    smell and the figure are written into the witness, which is why arcane science says
+    *recording is the answer to semblance*. This turns ghost-hunting into honest science: the
+    instrument separates a haunting (people perceive it, the instruments read nothing) from a draft,
+    a rat in the wall, or a fraud (the instruments read something real).
+  - **What does it want?** Follow it. Mark where it stops. Ask.
+  - Running is fine (it rarely follows past its haunt). Fire does nothing. Iron, silver and salt
+    are the folk wards, and the honest version is that a ward is grounding: a silver chain or a
+    line of **wet** brine (salt in water conducts; a line of dry salt does nothing at all) cuts its
+    semblance in that place.
+- **If it fights** — it mostly cannot, and that is the point. It has **no body**: no wounds, no
+  blood, nothing to aim at, and a sword passes through what you are seeing. Its levers are **the
+  fog** (it is a Sense-domain semblance and it can make you see wrong) and **morale**: the
+  *horrifying visage* is **Dread (Destroy·Mind)**, a near-free patterning act by the specification
+  physics, which can break your nerve and send you running. ⭐ **What it can and cannot touch is
+  priced, not fiat:**
+  - Mind and Sense effects (fear, a figure, a voice, a chill) cost almost nothing in energy.
+  - **Moving matter costs real work**, `m·g·Δh`. Sliding a teacup is pennies; throwing a chair is
+    dear; lifting a person is ruinous.
+  - So a ghost that throws things must be drawing on something big. ⭐ That is the **poltergeist**
+    tradition's oddest real detail: the activity centers on **one living person** in the house
+    (usually an adolescent in the reports). Derived: the poltergeist is paying from that person's
+    reserve. The family is tired; the focus is exhausted; move the focus out and the plates stop.
+  - **Possession** (the SRD's) is a ghost driving a living body, and it must wait for the
+    compulsion-gate security build. Nothing today gates who drives a body.
+  - It disengages when its draw is spent, when its witness leaves, or when it is warded.
+- **People and it** — locals know which house, and say so cheaply. Haunted houses rent for less
+  (Pliny's did), and in New York a court once let a buyer out of a sale because the seller had
+  publicized the ghost: *Stambovsky v. Ackley* (1991), "haunted as a matter of law". Clergy lay
+  ghosts by rite; scholars lay them by research, digging in the parish register for who died and
+  how. **[suggestion]** The laying-to-rest of a famous ghost is a public event, and the realm's
+  historians and its priests disagree, entertainingly, about which of them did it.
+- **What it yields** — nothing from the ghost: no body, no gel, no ectoplasm. The rewards are the
+  ones the tradition names: **the treasure it pointed to, the murderer it named, the will it
+  corrected**, and a house that can be lived in again. Its **anchor** (the ring, the portrait) is a
+  charged object while bound and an ordinary one after.
+- **The binding** —
+  - **Held:** a dead person's **pattern** (their memory and their want, a Mind-domain state) and
+    their **semblance** (Sense), held at the anchor.
+  - **Pays:** **the place's field**, drawn at the anchor; for a poltergeist, a living person's
+    reserve. ⭐ Voss gives the counterintuitive cost curve: λ depends on what the watcher believes
+    (arcane-science's *exchange rate between a prior and a watt*). A semblance of the dead person's
+    true self is **cheap before people who knew them** and dear before strangers. That is why, in
+    every story, the dead appear to their own. **[suggestion]**
+  - **Cuts:** ⭐ **laying it to rest**: the wrong put right. Bury the bones (mortality's
+    `interIn` already puts a body in a grave and lands the burial on the deceased's own
+    chronicle), deliver the letter, name the murderer before witnesses. Also a ward (silver,
+    grounding), destroying the anchor (a crude, unkind ending that the field guide should say
+    leaves a residue), and attention (a crowd of instruments starves it).
+  - **The residual haunting** is the same physics with no person: a semblance printed on a place
+    and paid by its field, replaying. No want, so nothing to lay. A ward fades it.
+- ⭐ **The shade, and whether a ghost is one that never passed** — the shipped **shade** is a dead
+  player's bodiless state: `undead` (animate, not alive), registered, walking but never phasing, its
+  material verbs refused by `requiresEmbodied`, perceiving faintly, healed only by `reembody` or the
+  `passage` floor. Mechanically, it is very nearly the ghost: a person with no body who can talk,
+  walk a building, be refused matter, and be released. **Three honest cautions:**
+  1. mortality.md says the shade is **attuned to the aether and is not a spirit**, and that a
+     mystical reading is "a standing correction". The shade is the platform's answer to *what does
+     death cost a player*. A ghost is fiction about a binding. They can share the **rung** (the
+     bodiless, `undead`, matter-refused participant) without sharing the **cause**.
+  2. An NPC who dies today leaves a corpse, and nothing makes a shade. An NPC ghost is either an
+     authored spirit row (above) **or** a dead Cast given the shade's rung by a binding, which
+     needs the rung to stop being Avatar-only.
+  3. ⭐ **The open, delightful question for the owner:** a player shade that **never takes
+     passage** is, in plain folklore, a ghost that never passed. It is already *canon* and its
+     deeds already persist, and "a shade cannot advance" is an absence, not a rule. An underworld
+     or haunting pack could give lingering shades the ghost's tradition: a want, a haunt, a way to
+     be laid. That is the Orpheus case mortality.md already names, from the other side.
+- **What the model must express**
+  - → E the bodiless root: a person whose identity is its binding (shared with the leshy and the
+    noonwraith).
+  - → E the binding substrate · ⚠ a **cut that is a predicate over the world** (the bones are
+    buried, the letter delivered, the name spoken before witnesses). ✅ the contract substrate
+    already evaluates clauses over verifiable conditions, so the release could reuse it.
+  - ✅ `Postmortem.interIn` for the burial and the deceased's chronicle deed · ⚠ **old bones** as
+    an anchor: a corpse is runtime-only and decays, so a two-hundred-year-old skeleton is an
+    authored remains object, and burial of remains is end-of-life-slate's deferred *remains*.
+  - ✅ `undead` lifecycle, `requiresEmbodied`, the shade's faint senses · ⚠ the rung made available
+    to a non-Avatar (an NPC ghost).
+  - ❌ **perceived but not present: a semblance that people perceive and instruments do not
+    read.** Instrumentation's `Reading` rows read physical state and the perception face reads what
+    a viewer is shown; nothing yet guarantees that a camera or thermometer **ignores** a Sense
+    effect that a witness sees. It is the ghost-hunt's whole method, and arcane-science's evidentiary
+    claim.
+  - ❌ **a binding paid from a bystander's reserve**: the poltergeist draws a living person who did
+    not consent and is not the caster, by proximity. Every shipped sustained effect is caster-paid,
+    and the troll's self-payment (→ E) is the creature's own.
+  - ✅ `relocationCost = m·g·Δh` prices the thrown chair · ⚠ a creature (not a caster) spending it.
+  - ✅ Dread (Destroy·Mind) in arcane-science · ⚠ morale damage as a creature's attack (→ F/C).
+  - → E attention as Voss λ (the leshy's ⚠), extended with the **belief-dependent** λ (cheap before
+    those who knew the dead).
+  - ✅ `talk` dialogue · ⚠ Grose's rule as dialogue gating: it does not speak first.
+  - ⚠ the residual haunting as a scheduled semblance on a place with no agent (✅ the scripting
+    game-time Coroutine can schedule a scene; ⚠ making it a semblance that instruments miss is the ❌
+    above).
+  - → C possession as the compulsion-gate build (the single-principal command channel theme).
+  - ✅ concealment's per-viewer detection band for *who* can see it (mortality § Deferred already
+    proposes this for the ghost-in-the-tavern beat).
+
+---
+
+> **SRD attribution (covers the dragon, the goblin and the animated dead).** These entries include material taken from the
+> System Reference Document 5.1 ("SRD 5.1") by Wizards of the Coast LLC, available at
+> https://dnd.wizards.com/resources/systems-reference-document. The SRD 5.1 is licensed under the
+> Creative Commons Attribution 4.0 International License,
+> https://creativecommons.org/licenses/by/4.0/legalcode. Taken: the dragon's age stages, its
+> color-keyed breath families and its fearsome presence; the goblin as a small, dark-sighted
+> humanoid that slips away from a fight; the skeleton's weakness to bludgeoning and the zombie's
+> refusal to stay down. Everything else — the biology, the chemistry, the economics — is ours.
+
+### Dragon — suggested species path `/stuff/agent/species/draconomorpha/draco/thesaurarius` *(genus and epithet invented: "the treasurer")*
+
+The common name is shared (bestiary § 14). This is the **European** dragon, a person. The East
+Asian *long* is a different animal with a different story (water, weather, benevolence) and gets
+its own row if anyone writes it.
+
+- **Quadrant · class** — fantasy × **person** · **adapted** (evolved organs that use the field: one
+  for flight, one that keeps its breath from going off inside it).
+- **What it is** — the oldest monster in the Western book. *Beowulf* (Old English, c. 8th–11th c.):
+  a dragon has guarded a barrow-hoard for three hundred years. A runaway slave steals one cup, and
+  the dragon burns the Geats' hall in answer. The old king kills it and dies of it. The
+  *Völsunga saga*: Fáfnir, who became a dragon by brooding over cursed gold, is killed by Sigurd
+  from a pit dug under its path, because the belly is the soft side. The *Golden Legend* (Jacobus
+  de Voragine, c. 1260): at Silene a dragon is fed two sheep a day, then children chosen by lot,
+  until St George. Tolkien's Smaug is the modern model: intelligent, vain, a conversationalist with
+  a jeweled belly and one bare patch. He is inspiration only, and nothing below is his. NetHack
+  adds the trade: dragons leave scales, and the scales become armor.
+- ⭐ **The flight arithmetic, built on the wyvern's** (pilot, wyvern entry; same Pennycuick-style
+  scaling, my derivation, not sourced). Power needed goes as m^7/6 and power available as about
+  m^2/3, so the shortfall grows as √(m / 18 kg):
+
+  | | mass | span | stall | cruise power | laden take-off | short of flapping by |
+  |---|---|---|---|---|---|---|
+  | wyvern (pilot) | 400 kg | 13 m | ~14 m/s | ~5 kW | ~30 kW × 25 s ≈ 0.75 MJ | ~4.7× |
+  | **young dragon** | 2 t | ~22 m | ~18 m/s | ~33 kW | ~200 kW × 25 s ≈ **5 MJ** | ~10× |
+  | **ancient dragon** | 10 t | ~38 m | ~24 m/s | ~210 kW | ~1.3 MW × 25 s ≈ **32 MJ** | ~24× |
+
+  At the pilot's coupling (η ≈ 0.5, invented) and its unratified τ ≈ 1 kJ, a young dragon's
+  take-off costs **about 10,000 τ**, more than thirty casters' reserves. No keel holds that.
+  ⭐ **So a dragon cannot carry its flight budget in its body. It keeps it in a pile and sleeps on
+  it.** That is the hoard (below).
+  - ⭐ **Dragons grow all their lives.** Reptiles have indeterminate growth, and the SRD's age stages
+    (wyrmling, young, adult, ancient) are that curve. Square-cube says the cost of flight grows faster
+    than the dragon does. **The oldest dragons barely fly.** They walk, they breathe and they sit.
+    The old dragon that never leaves its mountain is not lazy. It is too heavy to afford the sky.
+- ⭐⭐ **The breath — two real animals in one throat.**
+  - The **bombardier beetle** (Brachininae) stores hydroquinones and hydrogen peroxide in one gland
+    and catalase and peroxidase enzymes in a hardened reaction chamber. When it fires, the two meet,
+    the peroxide decomposes, and a spray near **100 °C** leaves in rapid **pulses** (on the order of
+    hundreds a second), which lets the chamber survive. That is scalding, not fire.
+  - The **fulmar** (a petrel) defends its nest by spitting **stomach oil**, an energy-rich wax-ester
+    oil, at intruders.
+  - The dragon has both, scaled up. A **fuel gland** produces a fulmar-like oil. A **peroxide
+    gland** holds peroxide at rocket concentration ("high-test peroxide", 85–90%). Real HTP
+    decomposes on a catalyst into oxygen-rich steam at roughly **600–750 °C**, hot enough to light
+    kerosene with no spark. That is how Britain's Black Arrow rocket burned. In the throat, a squirt
+    of peroxide hits the catalase lining, flashes to superheated steam and oxygen, and lights the oil
+    mist the dragon is pumping out with it. The oil then burns in open air. **A dragon's breath is a
+    flamethrower, so it has a flamethrower's reach: about 15–25 m**, and a stream of burning oil that
+    sticks and keeps burning.
+  - ⭐ **What magic pays for, exactly.** No living gland can hold 85% peroxide. It decomposes on its
+    own and destroys tissue (the beetle manages perhaps a quarter of that, in a cuticle-lined sac;
+    unverified). The dragon's adapted organ **holds the peroxide stable**: a binding in the arcane
+    sense, a reactive liquid held away from equilibrium and paid for from its charge. The oil is
+    ordinary biology.
+  - ⭐ **The budget.** A liter of wax-ester oil is about 36 MJ. A 2 t endotherm burns roughly 90 MJ a
+    day (Kleiber's law, my figure). **One breath is half a day's eating**, and a full gland of eight
+    liters is four days. So a dragon cannot torch a county every night. *Beowulf*'s dragon raided
+    for a few nights and then went home. That is the honest pattern: a burst, then rest.
+  - **The SRD's other breaths, honestly** (a table for authors extending the row):
+
+    | SRD family | breath | honest chemistry | verdict |
+    |---|---|---|---|
+    | red, gold, brass | fire | the peroxide-and-oil throat above | ✅ works |
+    | black, copper | acid | the whip scorpion sprays ~85% acetic acid; ants spray formic acid | ✅ works, short range |
+    | green | poison gas | millipedes really release **hydrogen cyanide** from a gland | ✅ works; deadly in a cave, weak in wind |
+    | blue, bronze | lightning | an electric organ (the eel's 860 V) cannot arc through meters of air (~3 MV/m needed) | ⚠ contact or water only, unless a realm pays for it |
+    | white, silver | cold | no biological reaction absorbs enough heat | ❌ no honest chemistry; a realm may cut it or price it as a heat-pump binding |
+
+- **Where it lives** — in the **strongest field for a day's flight around**, because its hoard
+  charges only by residence. Mountains, old workings, barrows, a mana spring's crag. The danger map
+  is very clear: **where there is a dragon, the field is strong**, and prospectors know it. It
+  lairs in a cave it can turn around in (an ancient needs a cathedral), dry, with one way in. It is
+  endothermic (flight needs sustained power, as in birds and probably pterosaurs) and drops into
+  deep **torpor** in winter. *"Slept for three hundred years"* is legend: no body runs that long on
+  nothing. The honest version is that *nobody went near it for three hundred years*.
+- **How it behaves** — a long-lived, intelligent, solitary person with three wants: **charge, food
+  and safety**, in that order. It eats big animals: about 12 kg of meat a day at 2 t (one cow every
+  three weeks) and about 40 kg at 10 t. ⭐ That is **exactly Silene's two sheep a day**, so the
+  *Golden Legend*'s dragon was an ancient one. It does not like risk, because it expects to live for
+  centuries. It **bargains before it burns**, it holds grudges for generations, and it knows its
+  hoard piece by piece (a mana sense through the pile it lies on). It notices one cup missing.
+- **The encounter** — it notices you first: smell, hearing, and a lair built so it hears the
+  approach. It sizes you up with a person's questions: *thief, tribute, or threat?* Iron that is
+  doped and grounded, spears and a crowd all read as threat. A gift held out reads as tribute.
+  Stealth reads as thief, the worst answer. **Its size is a weapon before it moves** (the SRD's
+  frightful presence): composure falls on sight and your read fogs (✅ combat's `g(composure)`).
+  - **Talking** is the encounter. It prefers a deal: tribute, a service, a riddle game, an answer.
+    Fáfnir's lesson is that you **do not give a dragon your name**: in the saga Sigurd hides it,
+    because a dying dragon's curse needs one.
+  - **Running in the open** is the worst act: you are inside 20 m of a flamethrower that flies.
+    **Cover** is stone, not wood. **Wet wool** and a **water barrel** are real fire safety.
+    **Spreading out** means one breath cannot reach everyone, and the breath is expensive.
+- **If it fights** — *"you fight the approach"* (§ 6). Its levers are **reach** (the breath, then a
+  tail), **danger** (mass: a 2 t quadruped charges like a rhinoceros), **the fog** (dread) and
+  **escape** (it leaves upward, if it has charge).
+  - **Natural armor:** osteoderms, bone plates in the skin as on a crocodile or an ankylosaur, over
+    the back and flanks. ⭐ **The belly has none.** That is true of crocodiles, and it is why
+    crocodile *belly* leather is the luxury cut. Fáfnir's pit and Smaug's bare patch are the same
+    fact.
+  - **Vital zones:** the eye; the wing membrane (torn, it is grounded); ⭐ **the peroxide gland** at
+    the base of the throat. A grounding blade (doped iron, silver) that reaches it **cuts the
+    binding**, and the peroxide decomposes **inside** the dragon at 700 °C. That is the legend's
+    lance in the throat, and it is the bombardier beetle's chamber with no valve.
+  - ⭐ **Count the breaths.** Every breath is half a day of food. Shields, wet hides and a dispersed
+    party make it spend them.
+  - ⭐ **The burglar grounds the dragon.** Take the stones from the hoard and it cannot afford to
+    fly. In both *Beowulf* and *The Hobbit* the thief, not the hero, starts the end.
+  - **How it quits:** as a person who expects to live a long time. It breaks off when the fight
+    costs more than the quarrel, and parleys or flies. It **fights to the end at the lair**: there it
+    is cornered and the store is its life.
+- **People and it** ⭐ **— the hoard as an economy.** Why it hoards is now physics:
+  - **The stones are batteries.** Capacity is the dielectric constant, so a dragon wants
+    **titanates**: rutile (the needles in rutilated quartz), titanite, black perovskite (real
+    minerals; their exact permittivities as natural crystals should be checked). ⭐ **Diamonds
+    (ε ≈ 5.7) and rubies (≈ 10) are poor stores.** A dragon will swap you a diamond for a fist of
+    perovskite, and prospectors watch what dragons keep.
+  - **The gold is wiring.** Conduction comes from real conductivity. Silver conducts best but
+    tarnishes in cave air and copper turns green, while gold stays clean. **That is why electrical
+    connectors are gold-plated**, and it is why a dragon sleeps on gold: the coins and cups are the
+    bus that ties a thousand stones to its belly. It values metal by conductivity and cleanliness.
+    Base-metal coin is rubbish to it.
+  - **The gizzard is a socket.** Crocodiles and birds really swallow gastroliths. A dragon swallows
+    its best charged stones, carries them as its flight reserve and draws them down in the air. A
+    long flight empties the gizzard, and it goes home to the pile.
+  - ⭐ **What a hoard does to a region.**
+    - **Coin vanishes.** Coin is physical in this game, and the cash tier is separate from accounts
+      (✅ banking). A dragon taking tribute in gold coin drains a coin-using hinterland of cash.
+      Barter and credit come back, while banked trade elsewhere doesn't notice. Nothing needs
+      building: it emerges from coin being an object.
+    - **Gold gets dear** while the dragon lives. When it dies, the release collapses the price. Mansa
+      Musa's 1324 pilgrimage reportedly depressed Cairo's gold for a decade (al-ʿUmarī), so a dead
+      dragon is a market event.
+    - **It creates trades.** Stone and slate instead of thatch, firewatchers, water barrels and
+      **fire insurance**. London's first fire office followed the Great Fire of 1666. The demand
+      was there first, since towns always burned. The dragon raises the price of ignoring it.
+    - ⭐ **A dragon that takes tribute is governing** (Charles Tilly: *war making and state making as
+      organized crime*). Lens 7: if a town pays it, the terms are a **contract between persons**
+      (✅ contract substrate), and the town has to name what happens when it can't pay.
+  - **Killing one** is killing a person. The realm decides whether that is murder, war or a bounty.
+    ⭐ **And whose is the hoard?** Every stolen cup still carries its chain of title (✅ chattel). The
+    rightful owners and their heirs claim. What is untitled falls to the realm's treasure rule:
+    English treasure trove went to the Crown, while *Beowulf* buries the hoard with the king,
+    *"as useless to men as it was before."*
+  - **[suggestion]** A realm's dragon-towns keep a **Tribute Roll**, a public ledger of what the town
+    owes, because the dragon remembers better than the clerk does.
+- **What it yields** — the hardest butchery job in the game, and it has a clock. ⭐ **When a dragon
+  dies, nothing pays the binding, and the peroxide starts to go.** The carcass cooks itself from the
+  throat unless the gland is **drained or grounded within minutes**, so a dragon's death needs a
+  bomb-disposal crew. *Beowulf*'s dragon is pushed off a cliff into the sea, which is a fine way to
+  deal with it.
+  - **Osteoderm plates** make NetHack's dragon-scale armor: bone plates riveted to leather, as
+    crocodile hide armor really was in Roman Egypt.
+  - **Belly leather.**
+  - **Teeth** (dentine stores) and **bones** (stores charged over centuries).
+  - The **gizzard stones**, the best stones in the region.
+  - The **oil**, a superb lamp fuel.
+  - **Blood:** a water-rich, apex, centuries-old animal in a strong field is the **richest
+    biological reagent there is** (biomagnification, Part 11c). Siegfried bathed in it and Sigurd
+    tasted it. It is **eaten or used fresh**; it is never a battery.
+  - Damage shapes the yield. A gland kill ruins the throat and the forequarters. A pierced belly
+    ruins the luxury cut.
+- **The binding** (adapted organs) — **Held:** (1) the peroxide's stability; (2) the flight
+  surplus, mana paying mechanical work through the wing, as in the wyvern. **Pays:** its charge,
+  from **the hoard by contact** and the **gizzard stones**, which charge by residence in the lair's
+  field. **Cuts:** a grounding conductor reaching the gland (lethal), separating it from the hoard
+  (it cannot fly), harrying it into launches, and tearing the membrane.
+- **What the model must express**
+  - ⚠ plan: head + long neck + torso + two leg pairs + **wing pair** + tail, the six-limbed plan
+    → A; flight derived from wing loading and power → the wyvern's flight gaps (A, E); the stoop → F
+  - ⚠ osteoderm integument (bone ✅ material) on back and flanks, **none on the belly** (integument
+    per part), and the belly as a vital-zone choice → F
+  - ⚠ two producing organs (oil, peroxide) feeding a **mixing chamber**, and the breath as a natural
+    attack that **spends** both reserves into a ranged **splash** (✅ splash and its consent gate,
+    ✅ heat channel, ✅ fire.md combustibles that keep burning)
+  - ❌ GAP: **a binding whose lapse is itself an injury** — cut the peroxide's stabilization and
+    the reservoir decomposes *inside*, inflicting heat on the host; and at death the same lapse
+    starts a **post-mortem hazard clock** on the carcass that butchery must beat
+  - ⚠ the gizzard as a body part that **accepts items** (stones; `Slotted`/`fitsSlot` ✅) and draws
+    their charge → A (a part that is a vessel), E (charge in creatures)
+  - ❌ GAP: **charge flowing between goods by contact through a conductive heap** (the hoard as a
+    bus), where a tarnish coat raises contact resistance (faces' coats ✅ as the substrate). The mana
+    pack only charges a good by residence.
+  - → B: the mana sense (knowing its hoard piece by piece)
+  - → A: indeterminate growth on one instance (wyrmling to ancient, the flight cost rising with it)
+  - → D: winter torpor in an endotherm
+  - ✅ personhood, dialogue, the contract substrate for tribute, chattel title on the hoard, physical
+    coin with mass · → G: treasure law for untitled goods
+  - → C: dread on sight as an encounter reading (✅ composure feeds the fog; size as its source is new
+    brain content)
+
+---
+
+### Goblin — suggested species path `/stuff/agent/species/goblinoid/goblin` (a **person** species; §14)
+
+**Which goblin?** This entry writes a **people**. A realm that also wants a goblin-shaped monster
+should give it another name (see *People and it*).
+
+- **Quadrant · class** — fantasy × **person** · ordinary (no use of the field at all).
+- **What it is** — *goblin* comes from Old French *gobelin* and Medieval Latin *gobelinus*. Orderic
+  Vitalis (12th c.) names one as a spirit haunting Évreux. Its kin are the German **kobold** and the
+  English **hobgoblin**, Puck's sort: a household sprite, mischievous more than wicked. Three later
+  sources made the goblin a **people**:
+  - Christina Rossetti's *Goblin Market* (1862), whose goblins are **merchants** crying their fruit;
+  - George MacDonald's *The Princess and the Goblin* (1872), whose goblins are a nation that went
+    underground generations ago, living beside the miners;
+  - Tolkien's *Hobbit* (1937), the goblins of the Misty Mountains, clever with tunnels and machines.
+
+  D&D's SRD goblin is small, sees in the dark and slips away from a fight. NetHack fills its early
+  mines with them. ⭐ The real-world root is the best of all: miners blamed **kobolds** for ore that
+  looked like silver and poisoned them when smelted. That ore is why the metal is called **cobalt**,
+  and **nickel** is *Kupfernickel*, "copper-goblin".
+- **Biology [suggested, invented but honest]** — a small biped, about **0.9–1.1 m and 18–25 kg**
+  (the SRD's Small). Small bodies have a high metabolic rate per kilogram, so a goblin **eats nearly
+  twice what a human eats per kilo** and loses heat fast. That is one reason for living underground,
+  where caves stay at a steady 8–12 °C all year, warmer than a winter hillside. Its eyes are large
+  and rod-rich with a **tapetum lucidum**, the reflective layer that makes a cat's eyes shine (humans
+  lack one). The cost is real: dark-adapted eyes are **dazzled by bright light**. A goblin squints
+  at noon and sees well by starlight. It does not die in the sun; it **prefers dusk**. Lifespan is
+  shorter than a human's, and it matures early: a larger share of the population is young, so
+  goblin settlements grow fast and need more.
+- **Where it lives** — warrens in the margins: worked-out mine levels, karst caves, hill country
+  too poor to plow. They live **beside humans, never far**: the same hills and the same ore, and
+  often under the same mountain. Small bodies fit narrow seams. Goblins are **expert miners**: they
+  know the damps (✅ mining's firedamp and blackdamp, and the canary) and they know arsenical ore by
+  smell. That is the kobold legend told from the other side.
+- **How it behaves** — a people, so the honest answer is *it depends on the warren*. The base pattern
+  is a **band** of extended families under a boss who leads because they bring in goods, raiding or
+  trading. ⭐ **Why they raid** is economic, and history has the model. The **Anglo-Scottish Border
+  Reivers** (13th–17th c.) lived on poor upland, raided cattle as an economy, and sold protection.
+  Their payment was **"blackmail"**, rent paid in kind (*black*) as against silver (*white mail*),
+  and that is where the word comes from. Steppe historians frame nomad raiding the same way: **raid
+  when trade is refused**. A warren needs metal tools, grain, cloth and salt that a cave cannot
+  grow. **If the town's market is open to them, goblins trade. If it isn't, they raid.**
+  - The second half is Rossetti's: goblins are **merchants** with what the surface lacks: ore picked
+    from spoil heaps, cave fungi, cave-ripened cheese, blind-fish, and the knowledge of where the
+    damps lie.
+- **The encounter** — goblins notice you first, by hearing and dark-sight. They size you up as any
+  small people does with a big stranger: **how many, how armed, how far from help.** Each act means
+  something:
+  - **Light:** a bright lantern is an insult and a weapon. It dazzles, so lower it.
+  - **Weapons:** a drawn sword is a declaration of war.
+  - **Open hands:** showing empty palms and **sitting down**, which makes you smaller, opens talk.
+  - **Goods:** salt and iron are the best opening gifts.
+  - **Running:** they let you go. You weren't worth the risk.
+  - **Following them into the dark:** the classic mistake. It is their home ground, and their
+    tunnels are built for 1 m bodies, not yours.
+- **If it fights** — a goblin has no business in a fair fight, and it knows it. A 20 kg body loses
+  any footing contest against a 75 kg one. So the levers are:
+  - **numbers** and **reach** (spears and slings, the SRD's short bow);
+  - **the fog** (ambush from cover, darkness that suits *their* eyes);
+  - ⭐ **escape** (the SRD's slipping away: a goblin disengages into a hole you cannot follow).
+
+  Their natural armor is nothing; they wear what they made or took. Vital zones are a biped's.
+  **Morale is the band's**: drop the boss and the rest scatter (✅ the threat graph, → C group
+  morale). They yield and they parley. The fight goes best for whoever chose the ground, and in a
+  low tunnel a human swordsman can't swing.
+- **People and it** — ⭐ **how a town relates to them is the content.** Three postures, each a
+  realm's to choose:
+  - **Raided.** The town keeps watches and bounties, and every lost cow is a story.
+  - **Paying.** The town pays blackmail: a **contract** with the warren (✅) that keeps the cattle
+    safe, with escrow, clauses and an honest name.
+  - **Trading.** The town opens a **goblin market** on the boundary at dusk, with lanterns hooded.
+    Raids fall away, and the town gains miners, fungus and cheese.
+
+  The shift from the first to the third is what a polity can *do* (3b participation), and it is
+  derivable (lens 1).
+  - ⭐⭐ **The orc debate (bestiary § 14).** In D&D the problem was a **people defined by an inherent
+    evil nature**, written with features coded to real-world racial stereotypes. Tolkien's own
+    Letter 210 describes his orcs in exactly such terms. Wizards of the Coast publicly moved away
+    from fixed racial alignment in 2020, and its 2024 rules say *species*. The goblin carries a
+    second, specific hazard: **goblins drawn as hook-nosed, gold-counting money-lenders reproduce an
+    antisemitic caricature.** Our base pack won't write that.
+  - ⚠ **This is our base pack's taste, never platform law** (the owner, 11-07): *"not everything is
+    something else, some things just are, and each running game community will derive from that
+    culture of their own."* The engine never denies content, each realm's polity governs its own, and
+    the host is a separate actor with its own legal floor. See
+    [bestiary-slate](../slates/builds/bestiary-slate.md) § 14a.
+  - **How a realm handles it, picked:** ⭐ **the base pack ships `goblin` as a person species only,
+    with no monster row of the same name.** **Lens 1 chose it.** A goblin who raids *because the
+    market is closed* teaches something derivable (raid-or-trade, the reivers). A goblin who raids
+    because it is evil teaches nothing and leaves the town nothing to do. Our engine has no
+    alignment field, so their behavior is **circumstance, never essence**. Change the circumstance
+    and the raid stops.
+  - **The grain an author may change:** a realm may still *depict* prejudice. Villagers may call
+    goblins vermin, and the fiction may show it. The engine still says killing one is a **killing**
+    (personhood ✅). A realm that wants a monster too should name it distinctly: **[suggestion]**
+    *bogle* or *knocker* (the Cornish mine spirit) for a goblin-shaped spirit, a different row with
+    a different path.
+  - **[suggestion]** Goblins' own name for themselves is not *goblin*, which is the surface folk's
+    word. A realm can give the warren its own endonym, so the polite word and the rude one both
+    exist.
+- **What it yields** — **nothing you may take**: it is a person. What a warren yields is **trade**:
+  spoil-heap ore (including cobalt and nickel ores the surface threw away), fungi, cave cheese, the
+  damp-reader's labor and the narrow-seam miner's.
+- **What the model must express**
+  - ✅ a small biped person species (`biped` shares × `baseMass` + `stature`); personhood, dialogue
+    and the contract substrate (blackmail, a market charter); ✅ retail for a goblin market stall;
+    ✅ mining's damps
+  - ⚠ small-body physiology: mass-specific intake scaling (eats more per kilo)
+  - → B: vision as acuity, **dark-adapted eyes with a tapetum, dazzled by bright light** (✅ light.md
+    gives per-viewer illumination; acuity and glare do not exist)
+  - → C: the target-assessment brain (numbers, arms, help), ambush and disengage, the chase, group
+    morale that breaks with the boss, robbery's demand as an offer with terms
+  - ❌ GAP: **an NPC community with an economy.** A warren's unmet needs (settlement-model's needs
+    list is doctrine, not code for NPC settlements) drive its group's choice between **trade and
+    raid**, and that choice reads whether a market is open to it.
+  - ❌ GAP: **per-realm and per-viewer common names** for a species: the endonym, the surface word,
+    the slur. § 14 says a realm owns "what its people call them", but nothing in presentation's
+    handle chain lets a realm (or a speaker's prejudice) choose the word.
+  - → G: collective liability (the reivers' kin paid for each other) and outlawry
+
+---
+
+### The animated dead (skeleton, zombie) — suggested path `/stuff/agent/species/constructa/necra/skeleton` and `…/necra/zombie` (made things, off the animal tree; § 15)
+
+- **Quadrant · class** — fantasy × **not a person** · **made** (a body built from the dead and
+  bound). ⭐ **It is not the dead person.** The person is dead, and if they were a player they are a
+  **shade** elsewhere (✅ mortality). Death does not heal, and this does not undo it: the corpse
+  stays a corpse (✅ *un-reanimatable by protocol*), and **something else is moving it.**
+- **What it is** — four traditions, used differently:
+  - **European revenants.** William of Newburgh's 12th-century English dead walked out of their
+    graves. The Old Norse **draugr** (Glámr in *Grettis saga*) guards barrow treasure, so it belongs
+    next to the dragon. The *danse macabre* gives the dancing skeleton.
+  - **Greek myth:** the **Spartoi**, armed men sprung from **dragon's teeth** sown by Cadmus and by
+    Jason. Harryhausen's skeleton army (1963) is the screen image; the myth is the source.
+  - ⚠ **The Haitian *zombi*, with care.** In Haitian belief a zombi is a person a *bokor* (a sorcerer,
+    not a Vodou priest, *houngan* or *manbo*) has taken from the grave to **work without will**.
+    Scholars read it as a memory of slavery: the worst fate is to be made a slave again after death.
+    Clairvius Narcisse, recorded dead in 1962, reappeared in 1980 saying he had been made to labor on
+    a plantation. Wade Davis's tetrodotoxin explanation (*The Serpent and the Rainbow*, 1985) is
+    disputed. Haiti's penal code has treated inducing a deathlike state and burying the victim as
+    murder (I recall article 246; verify). In the lore, a zombi fed **salt** wakes to what it is and
+    walks home to its grave. ⚠ **Handling:** Vodou is a living religion. The base pack must not
+    render its rites, its spirits (*lwa*) or its priests as necromancy. We take the **structure**:
+    a body worked without will, a binder who answers for it, and salt as release. We credit it and
+    leave the rest alone.
+  - **The modern pop zombie.** Romero's *Night of the Living Dead* (1968; he said "ghouls"), and
+    later the infectious bite and the headshot. Inspiration only.
+  - The SRD adds two rules worth keeping: a **skeleton breaks under bludgeoning** and a **zombie
+    refuses to stay down**.
+- ⭐ **Why a skeleton with no muscle can move** — it can't, by itself. A walking skeleton has no
+  muscle to pull its bones and **no ligaments to hold its joints together**. Dry bones are a heap.
+  So the binding does both jobs. **Held:** the **articulation** (each bone kept in place at its
+  joint) and the **motion** (work done directly at the joints). It is the golem's binding with bone
+  for clay. Cut it and the skeleton **falls into a clatter of loose bones**, which is the classic
+  image and the honest one.
+  - **The cost is mechanical work, and that is why skeletons are cheap** (my figures; the τ is the
+    pilot's unratified unit). Walking costs a human very roughly 0.5 J of mechanical work per kg per
+    meter. A **skeleton is ~10 kg** (about 15% of the body), so it walks for **~7 W**. A **zombie
+    moves the whole 70 kg corpse for ~45 W**. At η ≈ 0.5, an hour's walk is ~50 τ for a skeleton and
+    ~330 τ for a zombie. ⭐ **A skeleton walks for a week on what a zombie spends in a day.** It is
+    light and fast and runs forever on very little. The zombie is the cheap one to *make*, because
+    any fresh corpse will do, and the dear one to *run*.
+  - **Why zombies are slow:** dead muscle **cannot contract**. With no ATP, it locks in rigor (onset
+    in hours, fading over one to three days) and then goes slack. The binding has to drag all that
+    dead weight through stiff joints. The shuffle is physics.
+- **The binding** — **Held:** articulation + motion + **one order** (Control, as for the golem).
+  **Pays:**
+  - *skeleton:* **its own bones**. Bone is a store, and bones that lay for **centuries in a strong
+    field are charged by residence**. That is why the old barrows and crypts are where skeletons
+    walk (the danger map). **[suggestion]** the Spartoi made concrete: **dragon's teeth**, dentine
+    from an apex animal, are the finest store there is, which is why a binder pays a fortune for one.
+  - *zombie:* the **water in its own fresh flesh** (ε ≈ 80, charged while it lived), leaking as it
+    dries and rots. It tops up from **the living by contact**: ⭐ **the bite is a draw**, charge
+    pulled from a water-rich body through the wound. **It does not eat you.** A dead gut digests
+    nothing, and what it swallows stays there. The pop zombie's hunger has a cause.
+
+  **Cuts:**
+  - **grounding:** a doped-iron or silver blade (→ E);
+  - **breaking the anchor:** the binder's mark, wherever it was cut. ⭐ **The headshot is real only
+    for a binder who marks the skull.** Which counter works depends on who made it, so knowledge is
+    the progression;
+  - **breaking the store** (a skeleton's bones);
+  - **leaving the field;**
+  - ⭐ **salt in a zombie's mouth**, which honors the Haitian motif with a derivable cause: brine is a
+    far better conductor than tissue, so salting wet flesh **shorts the binding to ground**. A dry
+    skeleton has no water to carry it, so salt does nothing to one. **[suggestion]** that difference
+    is why the folk remedy "only works on the fresh ones."
+- **Where it lives** — wherever a binder put it, or **where it was left running**. A binder who dies
+  doesn't stop a skeleton that pays for itself from its own bones: it keeps its last order in a
+  barrow for a century. Zombies don't last that long. **Rot loosens a zombie's joints and takes its
+  flesh**, so in a warm summer a zombie **becomes a skeleton** in weeks (and in cold storage it
+  lasts a season). The orders persist and the body changes.
+- **How it behaves** — it has no drives, only its order, carried out literally and without tiring.
+  It has no morale and no fear. It doesn't feel pain, because nothing is alive to feel it. It
+  **senses the living by their charge** (a mana sense: water-rich bodies glow in the field), not by
+  its eyes. A dead cornea clouds within hours and a dead retina sees nothing. That is why the dead
+  "find the living in the dark", and why a dry, sealed suit of armor is a better hiding place than a
+  shadow. The **draugr's** order is *guard this*. The **zombi**'s is *work this field*. The pop
+  zombie's is a feral binding with no order but the draw.
+- **The encounter** — it does not notice you in any ordinary sense. It **finds** you, by charge, at
+  short range, against its order. Standing still doesn't help, because it isn't watching. Running
+  works against a zombie, which shuffles, and **not against a skeleton**, which is light and doesn't
+  tire. Fire does little to bone and slowly cooks a zombie (a wet body burns badly; real cremation
+  needs hours at ~800–1,000 °C). Talking means nothing; the binder is the one to talk to. ⭐ **The
+  tell is what it guards:** the dead walk where there is something worth guarding.
+- **If it fights** — no fog to read: no feint, no flinch, no tell beyond its order. It is **never
+  winded**. Its levers are **endurance** (it doesn't tire, and the party does) and **numbers**.
+  - **Against a skeleton:** ⭐ **piercing goes through it.** An arrow through a ribcage finds air.
+    Edges nick bone. **Blunt weapons shatter it** (✅ materials-response; bone is hard and brittle).
+    The SRD's bludgeoning weakness follows from the material. Smash the pelvis or the spine and it
+    stops walking, while the arms still claw.
+  - **Against a zombie:** it **doesn't bleed** (no pressure; ✅ vital signs at zero) and has **no
+    vital organ**. The binding drives the bones, so cutting the heart does nothing: the SRD's
+    "refuses to stay down" follows from anatomy. What stops it is **lost structure** (hamstrings and
+    the knee, then the spine), a cut binding, or salt. A bite is a filthy wound (below).
+  - **How it quits:** it doesn't. It stops when it can't move, when its order is satisfied (the
+    intruder leaves the barrow), or when its binding is cut.
+- ⭐ **Does a zombie bite spread anything?**
+  - **What it really spreads is infection.** A rotting mouth carries an enormous bacterial load, and
+    a human bite is among the dirtiest wounds there is. Expect **wound sepsis, gas gangrene
+    (*Clostridium*) and tetanus**. Untreated, that can kill you in days. Then you are a fresh corpse,
+    which a binder can use, but **you do not rise by yourself**.
+  - **How that differs from lycanthropy:** lycanthropy is a **curse on a living body**. It lays a
+    second form on a person, who stays the person, and it lapses when lifted. A zombie bite in the
+    base row lays nothing on you. It is a wound, and its harm is the wound's.
+  - **[suggestion] a realm that wants the pop plague** writes a **"rising" condition**: latent and
+    silent in the living, it **catches the death** and holds the corpse in motion. That is
+    *vampirism*'s mechanism with the person left out: no mind, no feeding to stay whole, only the
+    draw. Its payer must still be named (the draw from the living), and grounding still cuts it.
+- **People and it** — **making the dead walk is desecration** in almost every human law, and the
+  binder answers for every harm (✅ accountability: whoever answers for an agent). ⭐ **Whose corpse
+  was it?** The corpse records whose it was (✅). Animating a **player's** body without their
+  consent is a values question, lens 4 (Part I below), and the answer probably belongs in a
+  realm's law, with the engine making the corpse's provenance plain. People bury their dead with
+  **iron and salt** (the Drawsko sickles from the vampire entry, and salt on the breast of the dead,
+  an old British custom). **[suggestion]** the custom outlived the real threat because a doped-iron
+  sickle really grounds a binding, and people kept making the cheap imitation.
+- **What it yields** — bones (charged, if they lay in a strong field: a store, ✅ bone material),
+  the store or mark the binder used (evidence: provenance of who made it), and whatever it guarded.
+  Zombie flesh is rotten and worthless. ⚠ **The remains are someone's dead.** Selling them is a
+  crime in most realms, and returning them may be a quest.
+- **What the model must express**
+  - ✅ the corpse as a Thing that never regains agency, and no merge path back into a body; the shade
+    as the dead player; vital signs at zero (no bleeding); `respires: false`; bone as a material that
+    shatters under blunt force; accountability on the binder; the corpse recording whose it was
+  - ❌ GAP: **a driven corpse.** The corpse stays a `Thing` and is *moved and fought by a binding*.
+    No agent is reanimated and the person stays dead. The nearest precedent is conveyance's
+    driver/Drivable pair; a bodiless driver is → E (a root for bodiless beings). This is distinct
+    from the pilot's D "embodied undead", which is a *person* holding their own body.
+  - → A: capacities governed by a binding rather than an organ (locomotion without muscle,
+    articulation without ligament), like the golem's inscription
+  - → E: mana paying mechanical work at η; residence charge in bone over centuries; ward conduction
+    by contact (and ⚠ salt raising wet tissue's conductivity enough to ground it, derivable from
+    brine's real conductivity); a binding left running after its binder dies
+  - ❌ GAP: **skeletonization.** A corpse loses tissue share by share on the decay clock, changing
+    its mass, its rigor state (stiff, then slack) and its joints, so **a zombie becomes a skeleton**.
+    Postmortem runs a decay clock ✅; tissue-by-tissue loss and rigor don't exist (the decomposition
+    slate, unbuilt).
+  - ❌ GAP: **a sparse body.** A thrust can pass through a ribcage and find nothing: the chance that a
+    point meets tissue depends on the part's real cross-section, which no wound reads.
+  - → B: the mana sense (finding the living by their charge); a dead eye that sees nothing
+  - → C: a made thing's single-principal command channel; morale as data (never breaks)
+  - → D: bite wound infection (disease), and the realm's optional contagious "rising" condition on
+    vampirism's catch-the-death mechanism
+
+---
