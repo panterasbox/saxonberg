@@ -6,6 +6,9 @@
 > [connection.md](../../subsystems/connection.md),
 > [streaming.md](../../subsystems/streaming.md); the stake ledger is
 > designed and unbuilt → [cooperative-slate](cooperative-slate.md)
+> ⭐ **Offerings (2026-11-08):** bounded windows, two pools (recurring rate-locked ·
+> bits discovered), founder matched-plus-one held to 1.0 — § Offerings. Launches with
+> the Twitch stream after New Year.
 > **Left:** reading patronage off Twitch, YouTube, Patreon (and later
 > Kick) · converting it to dollars **at net** — what reached the
 > commons — with the platform's cut shown · attribution by claim: a
@@ -131,6 +134,73 @@ the login *is* the proof, so no form, no ticket, no matching by name.
 - **Matched-plus-one** ships with it.
 - The firewall line item holds: standing is influence, never in-world
   currency or gameplay advantage, and the bank ledger is never touched.
+
+## ⭐⭐⭐ Offerings: rounds, two pools, the rate lock **[DECIDED — the owner, 2026-11-08]** — supersedes the always-on faucet above
+
+The ledger above credits every gift, always. The owner replaced that with **bounded
+offerings at intervals**, for the Twitch launch after New Year: *"the whole hook is that
+your twitch subs and bits can earn you standing in the game. so I need some kind of
+either initial offering terms to cover my live stream donos or … some kinda window where
+money earns you standing vs just going into the budget as income."* At-net conversion,
+held claims, reversing entries, the wording rules and the firewall all stand.
+
+- **An offering is a window.** Inside it, money earns capital standing; **outside it,
+  money is income and earns nothing**, ever, retroactively included. It is still recorded
+  as given, with the cut shown. A viewer who never links an account is just supporting
+  the stream: their gift is held, counts for nobody, and that is fine. The owner: *"the
+  risk is that no one donos until there's an offering … but that at least gives us demand
+  signals that are valuable."*
+- **A gift in the window counts even if it is claimed later.** Subscribe in January,
+  link your Twitch in March, and you share January's round.
+- **Two pools per round**, because the owner wants recurring patronage and gift subs
+  over bits (*"they build community"*), and *"if we can't guarantee a recurring dono will
+  mint the same amount of standing every month the value proposition changes"*:
+  1. **Recurring and gift subs: a posted price, rate-locked.** Each round posts X units
+     per net dollar per month. A patron who starts recurring in the round **keeps that
+     rate every month for as long as they keep giving, until 1.0.** A lapse re-enrolls
+     at the current posted price. Gift subs earn the posted price, credited to the
+     gifter (never the recipient).
+  2. **Bits and one-time gifts: a fixed pool of units**, shared at the round's close.
+     Pool units ÷ net money in is the round's **discovered price**.
+- **The next round's posted price is set from the last discovered price**, within a
+  bounded step. Demand reads off the bits pool; recurring patrons are insulated from it.
+- **The concave curve applies per patron per month**: $50 a month earns meaningfully less
+  than 10× $5 a month, but the same every month.
+- **Bounded issuance.** New rate locks open only in windows. Supply = the recurring rates
+  × their months, plus one fixed pool per round, so issuance is predictable.
+- **Honest urgency.** Windows are announced in advance and run fixed lengths. No
+  countdown pressure on stream; the calendar is the hook.
+- ⚠ **A rate lock is a promise.** An early posted price that proves generous holds until
+  1.0. That is intended: founding members get the better deal.
+- **Founder majority until 1.0** is the founding charter's matched-plus-one (term 3),
+  unchanged; its sunset at ratification (term 4) means **ratification is held at 1.0**,
+  where the owner negotiates with *"whatever constituents we have at that point."* ⚠ The
+  charter's text should say so when it is next amended.
+
+### ⭐⭐ Posted, and easy to digest **[DECIDED — the owner]**
+
+The owner: *"it's a lot more math but as long as all this stuff is posted and easy to
+digest I dont mind it it's actually somewhat I dunno honest representation of what
+democracy gets you, long contracts with lots of nooks and crannies."*
+
+Every term is published as readable content: the window dates, both prices, the pool
+size, the curve, the step bound, matched-plus-one, the sunset. Each patron's ledger
+shows their own lines in the same words. This is the standing-mint slate's rule applied
+to money: legibility is the only lever we have (Part 6). A term that is not posted does
+not exist.
+
+### Before the first round opens
+
+- ⚠⚠ **Incorporate first.** A round sells governance voice for money, so the entity
+  whose governance it is, and an operating agreement defining the units as non-economic
+  governance units ([company-and-capital.md](../../company-and-capital.md) Part 3, the
+  ladder's first rung), come before the first credited entry. An LLC takes days. A
+  lawyer reads the offering's wording once. The owner: *"this is reason why I probably
+  should incorporate when real money starts flowing in."*
+- **The livestream is the company.** The owner: *"the game isn't really the company, the
+  livestream is the company, it's just running the platform that provides the compact
+  for governance."* Capital standing is voice in Pantera's Box, through the Compact.
+- The value and risk on offer are [business-model.md](../../business-model.md).
 
 ## Recognition
 
