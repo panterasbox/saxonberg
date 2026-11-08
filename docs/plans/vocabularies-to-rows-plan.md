@@ -970,8 +970,14 @@ above say; where they disagree, this list is the truth.
 - **B12. Packs gained `base-library` as a dependency** (`generic-objects`,
   `arcane-library`, `trade-medicine`, `species-and-names`), and `lint:aromas` lets
   `platform` name a commons word, the license `TemplatePaths.rootBiome` already takes.
-- **B13. `salinityPpt` is declared here as well as on water-supply.** An identical
-  interface member merges cleanly, so neither branch has to land first.
+- **B14. An aroma is a Document, not an Idea** (owner, review of !531). A word is
+  authored metadata: nothing writes it, nothing acts on it, and MQL should not find
+  it. It became the `aroma` document kind at `/aromas/<word>`, with `parent:` as the
+  tree. `Aroma` became a value class in `lib/perception/` with a read-through cache
+  that a cold read fills on use. `/platform/idea/Aroma` and its rows are gone.
+  ⚠ `DirtKind` has the same shape and the same problem; it is a follow-up, not this MR.
+- **B13. `salinityPpt` was declared here as well as on water-supply** until water
+  landed; the duplicate is gone.
 
 ---
 

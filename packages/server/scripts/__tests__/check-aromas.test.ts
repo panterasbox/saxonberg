@@ -31,7 +31,7 @@ function pack(id: string, deps: string[] = []): void {
 beforeEach(() => {
   root = mkdtempSync(join(tmpdir(), 'aromas-'));
   pack('base-library');
-  write('base-library/content/stuff/idea/aroma/tar.yaml', 'class: /platform/idea/Aroma\n');
+  write('base-library/content/aromas/tar.yaml', 'threshold: 1\n');
 });
 afterEach(() => rmSync(root, { recursive: true, force: true }));
 
@@ -54,7 +54,7 @@ describe('lint:aromas', () => {
       'trade-x/content/stuff/idea/material/x.yaml',
       material('  smells: [{ word: tarr, strength: 10 }]'),
     );
-    expect(checkAromas(root).join()).toMatch(/'tarr', which has no row/);
+    expect(checkAromas(root).join()).toMatch(/'tarr', which has no document/);
   });
 
   it('refuses a word in a pack the namer does not depend on', () => {
@@ -73,6 +73,11 @@ describe('lint:aromas', () => {
       material('  smells: [{ word: tar, strength: 10 }]', '/platform/idea/material/Material'),
     );
     expect(checkAromas(root).join()).toMatch(/cannot hold one/);
+  });
+
+  it('refuses a parent that is not a word', () => {
+    write('base-library/content/aromas/pine-tar.yaml', 'parent: tarr\n');
+    expect(checkAromas(root).join()).toMatch(/parent names 'tarr'/);
   });
 
   it('refuses a medium nothing in reach carries, and passes one that is', () => {

@@ -60,7 +60,7 @@ import { QuantityMarshaller } from '../../platform/idea/persistence/QuantityMars
 import type { ToxinTag } from '../metabolism/Metabolic';
 import { DissolvedAromatics } from '../metabolism/DissolvedAromatics';
 import type { AromaTag } from '../metabolism/DissolvedAromatics';
-import Aroma, { type HedonicCurve } from '../../platform/idea/Aroma';
+import { Aroma, type HedonicCurve } from '../perception/Aroma';
 import type { VetoResult } from '../errors';
 import { Grade, type GradeBand } from '../craft/Grade';
 import type { EvictionContext, Stuff } from '../stuff/Stuff';

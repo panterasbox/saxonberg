@@ -3,7 +3,7 @@
  * kernel's own `TemplateApplier` — so these tests prove the rows, not a
  * hand-written copy of them.
  */
-import Aroma from '@saxonberg/server/mud/platform/idea/Aroma';
+import { Aroma } from '@saxonberg/server/mud/lib/perception/Aroma';
 import { OdorousMaterial } from '@saxonberg/server/mud/platform/idea/material/OdorousMaterial';
 import { OdorousConsumableMaterial } from '@saxonberg/server/mud/platform/idea/material/OdorousConsumableMaterial';
 import { readFileSync, existsSync, readdirSync } from 'fs';
@@ -67,10 +67,7 @@ export async function hydrate<T extends Stuff>(path: string): Promise<T> {
   const { composition: _c, electricalConductivity: _e, ...data } = row.data;
   // The words a smell names load with it; stand each up where a setter finds it.
   for (const tag of [...((data.smells as { word: string }[]) ?? []), ...((data.burning as { word: string }[]) ?? [])]) {
-    const at = `/stuff/idea/aroma/${tag.word}`;
-    if (!StuffApi.findByTemplatePath(at)) {
-      makeStuffAtPath(() => Object.assign(new Aroma(), { lineage: [tag.word] }), at);
-    }
+    if (!Aroma.resolveKnown(tag.word)) Aroma.remember(tag.word, {}, null);
   }
   await makeStuff(() => new TemplateApplier()).apply(s, data, { mode: 'mint' });
   return s;

@@ -41,7 +41,7 @@
  */
 
 import Lamp from '@saxonberg/server/mud/platform/thing/Lamp';
-import Aroma from '@saxonberg/server/mud/platform/idea/Aroma';
+import { Aroma } from '@saxonberg/server/mud/lib/perception/Aroma';
 import type Material from '@saxonberg/server/mud/lib/material/Material';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';

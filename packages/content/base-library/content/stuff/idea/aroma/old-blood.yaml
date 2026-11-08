@@ -1,5 +1,0 @@
-# Blood dried and turning.
-extends: /stuff/idea/aroma/blood
-data:
-  discipline: butchery
-  liking: { peak: 1.5, width: 2, valence: -1 }

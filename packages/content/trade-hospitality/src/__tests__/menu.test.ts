@@ -18,6 +18,7 @@
  * the sweep.
  */
 
+import { Aroma, type AromaData } from '@saxonberg/server/mud/lib/perception/Aroma';
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import { readdirSync, readFileSync, existsSync } from 'fs';
@@ -102,8 +103,6 @@ function docsOf(pack: string, dir: string): StoredDocument[] {
 /** Every template row the venue and its stock clone from — the shipped YAML. */
 function contentRows(): Row[] {
   const rows: Row[] = [
-    // The aroma words the materials name: a material's setter loads them.
-    ...yamlDir('base-library', 'stuff/idea/aroma', '/stuff/idea/aroma'),
     ...yamlDir('platform', 'platform/idea/persistence', '/platform/idea/persistence'),
     // ⚠⚠ The template applier's own row, read EXPLICITLY. It lived in
     // `platform/idea/persistence/` until 2026-10-01 and this list picked
@@ -196,6 +195,18 @@ beforeAll(async () => {
   ModuleApi.registerPackSource(DIST_SRC, '/trade/distilling');
 
   installRecordTestDb().seed(Collections.Content, contentRows());
+  // The aroma words the materials name, read from the shipped documents: a
+  // material's setter loads each one, and this test has no document store.
+  const aromaDir = join(CONTENT, 'base-library', 'content', 'aromas');
+  const pending = readdirSync(aromaDir).map((f) => ({
+    word: f.replace(/\.yaml$/, ''),
+    data: YAML.parse(readFileSync(join(aromaDir, f), 'utf8')) as AromaData,
+  }));
+  while (pending.length > 0) {
+    const i = pending.findIndex((p) => !p.data.parent || Aroma.resolveKnown(p.data.parent));
+    const [next] = pending.splice(i, 1);
+    Aroma.remember(next!.word, next!.data, next!.data.parent ? Aroma.resolveKnown(next!.data.parent) : null);
+  }
 
   vi.spyOn(DocumentApi, 'listOfKind').mockImplementation(async (kind: string) =>
     kind === 'archetype'

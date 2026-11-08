@@ -20,7 +20,7 @@
  * template resolves to one instance via `StuffApi.singleton(path)`.
  */
 
-import Aroma, { type OdorTag } from '../Aroma';
+import { Aroma, type OdorTag } from '../../../lib/perception/Aroma';
 import type { PalateProfile } from '../../../lib/metabolism/Palate';
 import { Idea } from '../../../lib/stuff/Idea';
 import { SingletonMixin } from '../../../lib/stuff/Singleton';

@@ -220,8 +220,6 @@ export const TemplatePathPrefixes = {
   // scans at boot (governments are plural authored content — never the
   // Compact's face).
   government: "/platform/idea/Government/",
-  // Aroma words — one row per word, loaded BY PATH when something names it.
-  aroma: "/stuff/idea/aroma/",
   perceptionModalities: "/platform/idea/modalities/",
   // Addressing — the Locality leaf roster lives under this prefix; the
   // AddressRegistry enumerates it to build the coverage index.

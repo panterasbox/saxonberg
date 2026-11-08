@@ -165,7 +165,7 @@ at **339, three below where the build found it.**
   `XApi.verb(host, …)`. Two enumerated lists (`EXEMPT_APIS`,
   `NON_SUBJECT_TYPES`) live in the script so a widening is a visible
   diff.
-- **`lint:aromas`** — a word a row names must resolve to a row a pack can reach. Aroma
+- **`lint:aromas`** — a word a row names must resolve to an `aroma` document a pack can reach. Aroma
   words are open, so a misspelling has no list to fail against, and the failure it would
   otherwise have is a smell silently dropped. It also refuses a smell on a material whose
   class cannot hold one, a taste with no amount, and a recipe medium nothing in reach

@@ -1,4 +1,0 @@
-# Fresh cut meat.
-extends: /stuff/idea/aroma/flesh
-data:
-  discipline: butchery

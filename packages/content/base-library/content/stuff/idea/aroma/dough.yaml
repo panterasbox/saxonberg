@@ -1,4 +1,0 @@
-# Raw dough working.
-extends: /stuff/idea/aroma/yeast
-data:
-  discipline: baking

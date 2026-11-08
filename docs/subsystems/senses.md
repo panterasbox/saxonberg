@@ -570,11 +570,15 @@ ordinary nose. A nose words it on the log ladder `1 · 30 · 300 · 2000 · 8000
 the gas analyzer prints it, so the quantity survives the epoch and only the reader
 changes.
 
-**Words are rows** at `/stuff/idea/aroma/<word>` (`Aroma`), a slug read with its
-hyphens as spaces. A row's `extends:` chain is the tree, so a pack adds a word with
-no kernel edit. A word loads when something naming it loads: the naming row's setter
-awaits `Aroma.ensure`, which also fails loudly if there is no row. `lint:aromas`
-catches the same at CI.
+**Words are documents** of kind `aroma` at `/aromas/<word>` (`lib/perception/Aroma`),
+a slug read with its hyphens as spaces. ⭐ A Document and not an Idea: a word is
+authored metadata. Nothing writes one after it loads, nothing acts on one, and
+nothing should find one with MQL. Each document's `parent:` is the tree, and a word
+takes what it leaves unstated from its parent, so a pack adds a word with no kernel
+edit (`content/aromas/<word>.yaml`). A word loads when something naming it loads: the
+naming row's setter awaits `Aroma.ensure`, which also fails loudly if there is no
+document, and a cold read starts the load that `smell`, `taste` and `analyze` wait out.
+`lint:aromas` catches the same at CI.
 
 **The source** is `SmellModality.emissionOf(thing)`, derived over the mixins a thing
 already composes. There is no stored emission and no smell mixin on things.
@@ -760,6 +764,7 @@ lib/perception/
 │   ├── VerbalESPModality.ts       (signalAt null v1)
 │   └── EmotiveESPModality.ts      (signalAt null v1)
 ├── Light.ts                       Value object + bandFor + LIGHT_BANDS + applyBandShift + compareBand + ShadowQuality
+├── Aroma.ts                       Aroma: one word, read from its `aroma` document
 ├── Smell.ts                       Smell (the signal, per word in OU) + Scent (what a nose made of it)
 ├── Flavor.ts                      Flavor (what is in a mouthful) + Savor (what a mouth made of it) + Liking
 ├── Olfactory.ts                   Mixin: the nose of a body

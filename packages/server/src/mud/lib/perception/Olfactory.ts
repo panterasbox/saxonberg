@@ -29,7 +29,7 @@ import { PerceptionApi } from '../../api/perception';
 import { Seeded } from '../Seeded';
 import { TemplatePaths } from '../paths';
 import { Scent, type ScentNote, type Smell } from './Smell';
-import Aroma from '../../platform/idea/Aroma';
+import { Aroma } from './Aroma';
 import type { VisionModality } from '../../platform/idea/modalities/VisionModality';
 import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';

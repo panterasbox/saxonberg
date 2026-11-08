@@ -1,4 +1,0 @@
-# Hydrocarbons: lamp oil and naphtha.
-extends: /stuff/idea/aroma/oil
-data:
-  liking: { peak: 1.5, width: 2, valence: -1 }

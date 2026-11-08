@@ -22,7 +22,7 @@
 
 import { Concentration, type Concentrate } from "../bulk/Concentration";
 import type { BulkPayload, BulkSlot } from "../bulk/Bulkable";
-import Aroma from "../../platform/idea/Aroma";
+import { Aroma } from "../perception/Aroma";
 
 /**
  * An aroma compound's concentration in this matter, mg per litre. `type`

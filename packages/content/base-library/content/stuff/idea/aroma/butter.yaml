@@ -1,4 +1,0 @@
-# Diacetyl: the smell of butter.
-extends: /stuff/idea/aroma/milk
-data:
-  discipline: dairying

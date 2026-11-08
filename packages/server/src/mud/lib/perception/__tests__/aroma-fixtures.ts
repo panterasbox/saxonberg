@@ -1,32 +1,29 @@
 /**
- * Stand aroma rows up where the engine loads them from: by path, the way a
- * material's setter does in play. `parents` gives the tree, root first.
+ * Stand aroma words up where the nose reads them from, with no document store
+ * behind them. `parents` gives the tree, root first; each parent is stood up too.
  */
 
-import { makeStuffAtPath } from '../../security/__tests__/test-setup';
-import Aroma from '../../../platform/idea/Aroma';
-import { TemplatePathPrefixes } from '../../paths';
+import { Aroma, type HedonicCurve } from '../Aroma';
 
 export interface AromaFixture {
   word: string;
   threshold?: number;
   parents?: string[];
   discipline?: string;
-  liking?: { peak: number; width: number; valence: number };
+  liking?: HedonicCurve;
 }
 
 export function installAromas(rows: readonly (AromaFixture | string)[]): void {
   for (const raw of rows) {
     const row = typeof raw === 'string' ? { word: raw } : raw;
-    makeStuffAtPath(
-      () =>
-        Object.assign(new Aroma(), {
-          threshold: row.threshold ?? 1,
-          discipline: row.discipline ?? '',
-          liking: row.liking ?? null,
-          lineage: [...(row.parents ?? []), row.word],
-        }),
-      TemplatePathPrefixes.aroma + row.word,
+    let parent: Aroma | null = null;
+    for (const word of row.parents ?? []) {
+      parent = Aroma.resolveKnown(word) ?? Aroma.remember(word, {}, parent);
+    }
+    Aroma.remember(
+      row.word,
+      { threshold: row.threshold, discipline: row.discipline, liking: row.liking },
+      parent,
     );
   }
 }

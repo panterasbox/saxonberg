@@ -1,7 +1,7 @@
 /**
  * check-aromas — ⭐ **a word a row names must resolve to a row.**
  *
- * Aroma words are open: any pack can ship one at `/stuff/idea/aroma/<word>`,
+ * Aroma words are open: any pack can ship one at `/aromas/<word>`,
  * which means nothing in the kernel can list them. So a misspelled word has no
  * list to fail against, and the failure it would otherwise have is the worst
  * this codebase knows: a smell silently dropped, because the runtime reads a
@@ -10,8 +10,9 @@
  *
  * It refuses, with no exemption list:
  *
- *   1. an aroma word that has no row, or whose row is in a pack the namer
- *      cannot reach through its dependencies;
+ *   1. an aroma word with no `content/aromas/<word>.yaml` document, or whose
+ *      document is in a pack the namer cannot reach through its dependencies,
+ *      or a `parent:` that is not a word either;
  *   2. `smells:` or `burning:` on a row whose class cannot hold one (a plain
  *      `Material`), because the applier would drop the key silently;
  *   3. a `tastes:` entry in the old word-list shape, or naming a word outside
@@ -37,7 +38,7 @@ import {
   walkYamlFiles,
 } from './pack-roots';
 
-const AROMA_ROOT = '/stuff/idea/aroma/';
+const AROMA_DIR = 'aromas';
 const BASIC_TASTES = new Set(['sweet', 'sour', 'salty', 'bitter', 'umami']);
 /** The kernel names these itself (rot, decay and a corpse's stale blood). */
 const KERNEL_WORDS = ['rot', 'decay', 'blood'];
@@ -114,14 +115,25 @@ export function checkAromas(
     return r;
   };
   const roots = packSources(content);
+  // Every aroma document, by word: which pack ships it and what it says.
+  const words = new Map<string, { pack: string; parent?: unknown }>();
+  for (const pack of readdirSync(content)) {
+    const dir = join(content, pack, 'content', AROMA_DIR);
+    if (!existsSync(dir)) continue;
+    for (const f of readdirSync(dir)) {
+      if (!f.endsWith('.yaml')) continue;
+      const doc = (YAML.parse(readFileSync(join(dir, f), 'utf8')) ?? {}) as { parent?: unknown };
+      words.set(f.replace(/\.yaml$/, ''), { pack, parent: doc.parent });
+    }
+  }
   const tagsByPack = new Map<string, Set<string>>();
 
   const checkWord = (pack: string, owner: string, field: string, word: unknown): void => {
-    const row = index.rows.get(AROMA_ROOT + String(word));
-    if (!row) {
-      findings.push(`${owner}: ${field} names '${String(word)}', which has no row at ${AROMA_ROOT}${String(word)}`);
-    } else if (row.pack !== 'kernel' && row.pack !== pack && !reachFor(pack).has(row.pack)) {
-      findings.push(`${owner}: ${field} names '${String(word)}', shipped by '${row.pack}', which '${pack}' does not depend on`);
+    const doc = words.get(String(word));
+    if (!doc) {
+      findings.push(`${owner}: ${field} names '${String(word)}', which has no document at content/${AROMA_DIR}/${String(word)}.yaml`);
+    } else if (doc.pack !== pack && !reachFor(pack).has(doc.pack)) {
+      findings.push(`${owner}: ${field} names '${String(word)}', shipped by '${doc.pack}', which '${pack}' does not depend on`);
     }
   };
 
@@ -172,11 +184,12 @@ export function checkAromas(
     }
   }
 
+  for (const [word, doc] of words) {
+    if (doc.parent !== undefined) checkWord(doc.pack, `/aromas/${word}`, 'parent', doc.parent);
+  }
   if (content === CONTENT) {
     for (const word of KERNEL_WORDS) {
-      if (!index.rows.has(AROMA_ROOT + word)) {
-        findings.push(`the kernel names aroma '${word}', which has no row at ${AROMA_ROOT}${word}`);
-      }
+      if (!words.has(word)) findings.push(`the kernel names aroma '${word}', which has no document`);
     }
   }
   return findings;

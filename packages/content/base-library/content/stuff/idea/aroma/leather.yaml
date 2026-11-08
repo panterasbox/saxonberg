@@ -1,4 +1,0 @@
-# Tanned skin, which keeps a little of the bark.
-extends: /stuff/idea/aroma/hide
-data:
-  discipline: leatherwork

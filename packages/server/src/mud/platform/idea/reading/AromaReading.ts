@@ -17,7 +17,7 @@ import { Mml } from '../../../api/mml';
 import { MixinApi } from '../../../api/mixin';
 import { PerceptionApi } from '../../../api/perception';
 import { Quantity } from '../../../lib/quantity';
-import Aroma from '../Aroma';
+import { Aroma } from '../../../lib/perception/Aroma';
 import type { CommandContext } from '../../../api/command';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Container } from '../../../lib/spatial/Container';

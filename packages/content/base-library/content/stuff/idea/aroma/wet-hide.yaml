@@ -1,5 +1,0 @@
-# A hide in the pit: wet hair and fat breaking down.
-extends: /stuff/idea/aroma/hide
-data:
-  discipline: leatherwork
-  liking: { peak: 1.5, width: 2, valence: -1 }

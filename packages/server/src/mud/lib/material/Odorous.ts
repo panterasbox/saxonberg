@@ -16,7 +16,7 @@
  */
 
 import type { FieldMeta, MixinConstructor } from '../mixin';
-import Aroma, { type OdorTag } from '../../platform/idea/Aroma';
+import { Aroma, type OdorTag } from '../perception/Aroma';
 
 export type { OdorTag };
 

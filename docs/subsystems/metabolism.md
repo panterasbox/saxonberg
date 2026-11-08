@@ -513,7 +513,7 @@ they drink*), with the arithmetic asserted in
 `lib/metabolism/DissolvedAromatics.ts` is the **sibling** of `DissolvedToxins`, and the
 distinction is the routing: a dissolved toxin routes to a body's burden at the ingest; a
 dissolved aromatic routes to a **nose**. A row authors a **word and a number**; the
-sentence is derived. The words are rows ([senses.md](./senses.md#one-smell-source-air-nose)),
+sentence is derived. The words are `aroma` documents ([senses.md](./senses.md#one-smell-source-air-nose)),
 and the ladder is logarithmic because real concentrations sit three to four orders of
 magnitude above threshold (a firmly peated malt's hearts are **3,750×**), which is also
 the honest shape: odor perception is compressive.

@@ -1,0 +1,4 @@
+# Flax or hemp rotting in standing water.
+parent: rot
+discipline: textiles
+liking: { peak: 1.5, width: 2, valence: -1 }

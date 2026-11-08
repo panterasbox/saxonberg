@@ -1,4 +1,0 @@
-# Freshly cut wood at its strongest.
-extends: /stuff/idea/aroma/wood
-data:
-  discipline: carpentry

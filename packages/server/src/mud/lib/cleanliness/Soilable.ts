@@ -34,7 +34,7 @@
  * "condition" (it means three things already).
  */
 
-import Aroma from '../../platform/idea/Aroma';
+import { Aroma } from '../perception/Aroma';
 import type { SmellNote } from '../perception/Smell';
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
@@ -528,7 +528,7 @@ export function SoilableMixin<TBase extends MixinConstructor<Stuff>>(
     protected dirtKind(kind: string): DirtKindDescriptor | null {
       const row = StuffApi.findByTemplatePath<DirtKind>(DIRT_KIND_ROOT + kind);
       if (row) return row.descriptor();
-      Aroma.loadOnUse(DIRT_KIND_ROOT + kind);
+      Aroma.waitFor(DIRT_KIND_ROOT + kind, StuffApi.singleton(DIRT_KIND_ROOT + kind));
       return null;
     }
 

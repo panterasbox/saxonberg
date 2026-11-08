@@ -19,7 +19,7 @@
 import { Idea } from "../../lib/stuff/Idea";
 import type { FieldMeta } from "../../lib/mixin";
 import { CLEANSER_ACTIONS, type CleanserAction } from "./Cleanser";
-import Aroma from "./Aroma";
+import { Aroma } from "../../lib/perception/Aroma";
 
 /**
  * What a dirt does on a surface — the three things the kernel does

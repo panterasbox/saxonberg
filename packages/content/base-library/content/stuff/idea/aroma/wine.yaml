@@ -1,4 +1,0 @@
-# Fruit esters and alcohol.
-extends: /stuff/idea/aroma/alcohol
-data:
-  discipline: winemaking

@@ -1,5 +1,0 @@
-# Trays of worms and their droppings.
-extends: /stuff/idea/aroma/animal
-data:
-  discipline: sericulture
-  liking: { peak: 1.5, width: 2, valence: -1 }

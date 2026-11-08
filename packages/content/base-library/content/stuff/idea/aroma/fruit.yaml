@@ -1,4 +1,0 @@
-# The fruity esters a ferment throws; ethyl hexanoate and company.
-class: /platform/idea/Aroma
-data:
-  threshold: 0.05

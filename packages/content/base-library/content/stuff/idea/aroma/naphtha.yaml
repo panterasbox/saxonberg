@@ -1,4 +1,0 @@
-# The light ends of a crude.
-extends: /stuff/idea/aroma/petroleum
-data:
-  liking: { peak: 1.5, width: 2, valence: -1 }

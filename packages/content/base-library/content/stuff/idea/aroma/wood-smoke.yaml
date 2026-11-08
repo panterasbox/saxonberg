@@ -1,4 +1,0 @@
-# Smoke off a wood fire.
-extends: /stuff/idea/aroma/smoke
-data:
-  discipline: silviculture

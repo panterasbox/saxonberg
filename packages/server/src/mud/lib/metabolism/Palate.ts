@@ -28,7 +28,7 @@ import { COMPETENCE_BANDS, CompetenceBand, type CompetenceBandName } from '../ad
 import { TASTE_HEDONICS } from '../material/Material';
 import type Material from '../material/Material';
 import { Freshness } from '../material/Freshness';
-import Aroma, { type HedonicCurve } from '../../platform/idea/Aroma';
+import { Aroma, type HedonicCurve } from '../perception/Aroma';
 import { WorldClockApi } from '../../api/worldclock';
 import { Scent } from '../perception/Smell';
 import { Savor, type Flavor, type Liking, type PalateDetails, type TasteNote } from '../perception/Flavor';

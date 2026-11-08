@@ -1,4 +1,0 @@
-# Methane has no smell; a coal seam gives its traces away.
-extends: /stuff/idea/aroma/earth
-data:
-  discipline: colliery

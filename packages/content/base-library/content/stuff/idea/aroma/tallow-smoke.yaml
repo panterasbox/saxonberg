@@ -1,4 +1,0 @@
-# Smoke off burning animal fat.
-extends: /stuff/idea/aroma/smoke
-data:
-  discipline: cooking

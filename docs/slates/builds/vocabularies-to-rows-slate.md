@@ -187,6 +187,12 @@ mechanism rows.
 
 ## Non-goals, each with its destination
 
+- ⚠ **`DirtKind` is an Idea that should be a Document** (owner, review of !531,
+  2026-11-07). The aroma words moved to the `aroma` document kind for this reason:
+  authored metadata nothing writes, nothing acts on, and MQL should not find. `DirtKind`
+  is the shape they copied, with the same problem, and other row-shaped vocabularies
+  may share it. → a follow-up sweep, deliberately not inside a content build.
+
 - **NPCs reacting to smell, smell trails, scent-tracking** →
   `senses-slate.md` § NPCs reacting to smell. They consume this build's
   rows. This build does not decide them.

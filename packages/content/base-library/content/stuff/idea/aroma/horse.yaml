@@ -1,4 +1,0 @@
-# Horse sweat and stable.
-extends: /stuff/idea/aroma/animal
-data:
-  discipline: stockmanship

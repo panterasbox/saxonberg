@@ -17,7 +17,7 @@ import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
 import type { SmellModality } from '../../modalities/SmellModality';
-import Aroma from '../../Aroma';
+import { Aroma } from '../../../../lib/perception/Aroma';
 import { PerceptionApi } from '../../../../api/perception';
 import { Scent } from '../../../../lib/perception/Smell';
 

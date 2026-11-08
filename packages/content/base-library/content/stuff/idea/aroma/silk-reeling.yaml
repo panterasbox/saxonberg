@@ -1,5 +1,0 @@
-# Cocoons stifled and boiled.
-extends: /stuff/idea/aroma/silkworm
-data:
-  discipline: sericulture
-  liking: { peak: 1.5, width: 2, valence: -1 }
