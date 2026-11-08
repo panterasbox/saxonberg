@@ -77,6 +77,46 @@ frequent ones:
 `query`'s output is in scope too: it lists what an MQL expression names,
 and it should read like the same family as `look`.
 
+## ⭐ `look` and `query` — two things a player reasons about (owner, 2026-11-08)
+
+Not settled; the brief for the build. There is no one universal answer
+here, and it is hard to reason about without real content by real authors.
+
+- **`look` is single-cardinality and prose-led:** one thing, its
+  description, its details, its status. **`query` is multi-cardinality and
+  prose-free:** what can be said about the RESULTS of an MQL expression —
+  any expression, not only an inventory — and it already has a **header
+  section** (information about the result set as a whole) beside the list,
+  shaped by its options. `query` is a "look" of sorts that deliberately
+  omits prose and details.
+- **Keep them distinct.** The failure to avoid is a player aliasing
+  `look $1; query $1:I` so the two always run together and might as well
+  be one verb — or decide that is fine. Open.
+- **Item lists on a look were removed from object inspection in favor of
+  `query`.** A ROOM's look still ends in "You also see…" (kept in !509:
+  removing it before a replacement would leave the well, the back-bar and
+  the receiving bench with no visible way to find them).
+- **Diminishing returns.** Nobody reasons about forty things; showing
+  nothing is also wrong. Candidate summaries, likely behind options:
+  - statistics derived from the set as a whole;
+  - a few **hero items** rendered in full;
+  - ⭐ **grouping by interface** — the mixin architecture already says
+    what a set of things HAS IN COMMON ("three things to sit on", "two
+    lights", "somewhere to put things"), which may be the most expressive
+    summary a room can give, and context decides which interfaces matter.
+- **Options, not verbs:** `look` grows options that select what is in the
+  output (people, a contents summary, exits with their state, brief);
+  aliases only for the frequent ones. The terminal can always take more —
+  it is an append-only buffer. A card shows what it wants at a given
+  breakpoint.
+- **Exits** are in three places today (the terminal, the inspection card,
+  the explore navigator). Probably one: the navigator where it is docked.
+  But exits now carry state (doors, locks, refusals) that may read better
+  in the terminal than on any card — look at the data before deciding.
+- **Reference content:** EotL — less expressive models than ours, but real
+  rooms by real MUD wizards. Worth a look for what authors actually put in
+  a room and what a player was shown.
+
 ## The census (to do when this slate is picked up)
 
 Find every producer that appends text to a look, sense or query result
