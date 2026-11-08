@@ -9,10 +9,14 @@
 > [display.md](../../subsystems/display.md)); the paper good
 > ([paper.md](../../subsystems/paper.md)); measured standing
 > ([renown.md](../../subsystems/renown.md)).
-> **Left:** all of it: licensing funded by the Compact · the sponsorship deal · the
-> diegetic premiere · earned emotes as the sponsor's mechanic · the sponsor's report
-> · the guardrails · who to approach first
-> **Size:** a slate first. Mostly governance and content, little engine.
+> **Left:** all of it: the four-tier offer · the blanket license across a federation
+> · the takedown desk · the work as an entity · usage counted per work · the public
+> report and its anti-gaming rules · published terms and deals as contracts ·
+> licensing funded by the Compact · the diegetic premiere · earned emotes · the
+> guardrails · who to approach first
+> **Size:** a build. Engine: the work entity, the usage count, the desk. The rest is
+> governance and content. ⭐ **Built as real business** (§ 6): the first realm is
+> `mud.panterasbox.com`.
 
 ## 0. The owner's frame
 
@@ -102,6 +106,83 @@ answer. Before then, the people who own their own rights and want reach:
   (US: published 1930 or earlier, as of 2026), and the US federal government's own
   footage for political quotables.
 
+## 6. ⭐⭐⭐ Built as real business **[DECIDED — the owner, 2026-11-08]**
+
+The owner: *"I feel like this is actually my main route to being able to use the content
+I want, maybe not at the platform level but at least in the hosts and outlets that have
+an audience significant enough to consume the content at scale … I actually want to
+build it as if we're doing real business already. like if a studio comes knocking I want
+to be able to show them 'this is what you're losing by sending this takedown notice'
+and that requires the engine actually be running."*
+
+- **The first realm doing real business is `mud.panterasbox.com`**: a real desk, a
+  real terms page, a real designated agent.
+- **Money flows both ways, by tier.** The owner: *"both are on the table."* A sponsor
+  may pay the realm (campaigns), and the realm or a federation may pay rights holders
+  (the blanket license).
+
+## 7. The offer: four tiers **[DESIGNED]**
+
+1. **Permission (free).** The rights holder lets fans keep using the work, in exchange
+   for attribution, an *official* badge, and the report. GIPHY's official-channel deal.
+2. **Official presence.** They author their own emotes and their brand exists in the
+   world, under a corpo ([corpo.md](../../subsystems/corpo.md); brand placement is its
+   own conversation, Open 4).
+3. **Campaigns (paid).** The premiere, earned emotes, lobby cards (§ 2).
+4. **The blanket license (later, the federation).** § 8.
+
+## 8. ⭐⭐ The blanket license: the music model, not GIPHY's **[DESIGNED]**
+
+The owner: *"if we do enact some sort of federation of saxonberg servers that individual
+operators can join maybe we can offer terms collectively so as to normalize across the
+brand and also afford our more modest operators the same privileges that larger
+creators get."*
+
+The model already exists: the performing-rights organizations (ASCAP, BMI) sell a bar
+and a stadium the same **blanket license** to a whole catalog, and pay rights holders
+**by measured use**. A federation of Saxonberg servers can do the same: one set of
+terms, every member server, payouts by the usage count (§ 10). ⭐ So the report is not
+only a sales pitch, it is the **basis for paying rights holders**, and it must be
+accurate, auditable and public from the start.
+
+## 9. ⭐⭐ The takedown desk: "here's what you're losing" **[DESIGNED]**
+
+- ⛔ **Comply first, every time.** Prompt removal is what keeps the DMCA § 512 safe
+  harbor. Content is never held hostage while we negotiate.
+- **The offer arrives with the removal**, never instead of it:
+
+  > *Removed: 14 emotes citing The Princess Bride (1987), realm-wide, 2026-12-03. Over
+  > the last 90 days they were used 4,212 times by 611 players and seen by 2,950. Here
+  > is the full report, and here are three ways to bring them back officially.*
+
+- **A takedown is per work:** one act disables every illustration citing it, recorded.
+  Counter-notices are supported.
+- **The desk:** the takedown intake and the designated agent, the per-work removal,
+  counter-notices, and the offer letter generated from the report.
+
+## 10. What the engine needs **[DESIGNED — product level; the plan decides hosts]**
+
+1. **A work is an entity.** A film, show, game, speech or broadcast is one record,
+   keyed **globally** so federated servers agree (Wikidata IDs: open, and they cover
+   every work). A meme emote cites a work; a work names its rights holder (a corpo).
+2. **Usage is counted per work.** Uses, unique players, reach (witnesses), reactions
+   and sentiment, per day. ⚠ **Today nothing counts emote uses durably**: reactions
+   tally in the moment and renown reads valence, but no ledger of performances exists.
+3. **The report is public** to anyone, rights holder or player. The owner: *"public is
+   better unless people try to game the numbers."* That is the measurement doctrine
+   (*the mirror shows you*), and it is the honest pitch: a studio sees what everyone
+   sees. A wiki page per work with live numbers is the natural home.
+   - **Aggregate only, with a size floor**, so a small realm cannot expose a person.
+   - **Anti-gaming:** count **unique players** ahead of raw uses; same-account acts
+     count for nothing and script-fired acts are marked
+     ([expressive-acts](./expressive-acts-slate.md) already decided both); every
+     count is auditable back to the events. A public number worth money will be gamed,
+     so gaming is designed against from the first build, not patched later.
+4. **The desk** (§ 9).
+5. **Published terms, and deals as contracts.** Our terms page; a deal is a contract
+   record ([contract.md](../../subsystems/contract.md): clauses over verifiable
+   conditions, escrow), e.g. *a premiere with at least N attendees*.
+
 ## Open
 
 1. **The deal's shape.** What a sponsor receives, for how long, and who signs for a
@@ -109,3 +190,12 @@ answer. Before then, the people who own their own rights and want reach:
 2. **Where the money goes.** A sponsor's payment to the realm's budget, the
    company's, or both, and who decides the split.
 3. **The cinema.** Its place in the city slate and the performance slate.
+4. ⭐ **Brand placement across the whole simulation**, the owner's next conversation
+   (2026-11-08): *"it's not gonna end at emotes we have a whole simulation to market."*
+   The owner's starting position: a brand that wants placement **picks a corpo to exist
+   under**, which gives it an accountability trail through the corpo's committees and
+   offices, and makes whoever runs the corpo answerable for respecting the brand (*"real
+   brands just up the stakes"*). The launch corpo catalog may grow or shrink with who
+   is being courted. **An easy Compact amendment opts a realm out of real brands
+   entirely.** The owner: *"personally I'm eager to do business with Coca-Cola but I'll
+   settle for Pepsi."* Platform level, panterasbox.com's own culture, and in between.
