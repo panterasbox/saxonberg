@@ -1270,6 +1270,15 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
         ? StuffApi.findByTemplatePath<Material>(this.interiorMaterial) ?? null
         : null;
       if (!(litres > 0) || material === null) return;
+      // ⭐ At most once a game-minute, asked BEFORE the face reads below: this
+      // runs on every read of the slot (an amount, a payload, a keyword in a
+      // scope walk), and those reads cost far more than the clock. Same answer
+      // as the `dt` check further down, which returns for the same span.
+      const checkedS = this.interiorPayload?.faceCheckedS;
+      if (checkedS !== undefined) {
+        const nowS = bulkNowSeconds();
+        if (nowS === null || nowS - checkedS < 60) return;
+      }
       // ⚠ Sparse: an exchange with nothing to do writes nothing — a glazed
       // pot of water carries no payload because of this.
       const insideFace = self.outermost('inside');
