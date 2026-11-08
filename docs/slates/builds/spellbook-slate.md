@@ -266,6 +266,51 @@ belief write (illusion) · belief deletion (amnesia) · engagement pacing (haste
 (storm) · a location-graph overlay (portals, pocket rooms, create door / wall) · conjuring a creature
 (summons, mounts). Each is a gated Api first — and is where the rule-breaking magic actually lives.
 
+## 7a. ⭐⭐ The culture of magic goods **[the owner: "I buy this"]**
+
+Speculation from the models, recorded as the design's expectation. Charge is invisible, and gems look
+like their fakes, so the culture grows out of **not being sure what you're holding**.
+
+- **Three registers of name**, on presentation's shipped forms:
+  - what the eye sees: *a silver-chased broadsword set with three red stones*, which could be rubies,
+    garnets or glass;
+  - what the room calls it: *the ruby broadsword*;
+  - the appraisal: *doped iron, damascened in silver, three rubies in plate-cut, about forty τ, low*.
+
+  The appraisal is knowledge, and it can be wrong. Before it, the rubies might be **paste**.
+- **Players talk in specs, not stones** (as with *a double-A* or *a V8*):
+  - *a forty-tau blade*, *a high-draw wand*;
+  - *flat* · *dead* · *topped off* · *live* or *hot* · ⭐ *a bleeder* (a leaky store);
+  - *fab* (fabulite) · *Venus* or *hair* (rutilated quartz) · *a stack* (a plate-cut stone) · *a leyden*
+    (a jar store);
+  - *doped* or *hot iron* against *dead iron*. Folklore's *cold iron* inverts the battery slang, a nice
+    regional marker;
+  - for the bag of holding: *a hold* · *a deep bag* · *bottomless* (always a lie) · ⭐ *"she spilled at
+    the ford"* · at customs, *"declare your holds"*.
+- ⭐⭐ **The hallmark, a real institution.** When value is invisible, markets invent attestation:
+  London's Goldsmiths' Hall has assayed and marked silver since about 1300, which is where the word comes
+  from. **An assay office stamps a charged good with its mineral, capacity and purity**, a provenance
+  mark plus a grade, on the [attestation](./attestation-slate.md) substrate. Counterfeit hallmarks are a
+  crime, and trusted versus dodgy assay offices are where a market turns into a scam.
+- **Authors will:**
+  - build supply chains, not loot tables (a gem mine, a silversmiths' quarter, an assay office, an
+    enchanters' row);
+  - write geography (a strong-field town; a dead-zone camp swearing by plain tools; recharge
+    expeditions);
+  - write scams, heirlooms (chattel's chain of title makes *"carried by three captains"* true) and law
+    (customs on holds, a ban on exporting silver, an enchanters' guild).
+
+  ⚠ They'll push for bespoke effects, which grows the roster organically. Watch the `+5 sword` instinct:
+  grade derives from materials and work.
+- **Players will:**
+  - optimize (capacity per kilogram, throughput, leak rate);
+  - specialize (gem cutter, enchanter, assayer, silversmith, recharge runner);
+  - live with fog, which makes assay and identification valuable and reputation what you trade on;
+  - settle near nodes;
+  - show off (a silver-filigree hilt is status even when flat);
+  - ⭐ **name their gear** (*Grandmother's Needle*). Pets already have naming as a promotion; items could
+    get their own handle.
+
 ## 8. Open
 
 - Clusters 5–12.

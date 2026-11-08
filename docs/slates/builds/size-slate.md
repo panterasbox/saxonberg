@@ -16,6 +16,9 @@
 > staged so only the flip is serialized
 > **Size:** a build — two, counting the carrying flip
 
+> ⭐⭐ **2026-11-07 → [size-and-carrying-requirements](../../requirements/size-and-carrying-requirements.md)**
+> carries this slate into requirements, flip included. The owner: *"I want it all now."*
+
 ## What is already measured
 
 - **Bodies** — every species' `baseMass` (kg) and `stature` (m), resolved per
