@@ -504,6 +504,42 @@ format (monospace block in MML, colored by theme tokens rather than raw ANSI cod
    ⭐ **Recommendation (lens 4 — values, with the company's floor):** (a) + (b) for
    our pack, (c) as the managed host's posture, and the public-domain film catalog
    (US: published 1930 or earlier, as of 2026 — the line moves a year every January) as the base pack's quotable classics. **The owner decides.**
+
+   **Decided (the owner, 2026-11-08):** rely on the safe harbor for what realms' players
+   upload, and give the company's own demo realm (`mud.panterasbox.com`) real assets
+   anyway, at the owner's own risk as its curator. The images live in a **private realm
+   pack** (an org repo, kept out of the public monorepo and its distribution) and a
+   realm-only S3 prefix, so a takedown deletes one object and nothing infringing is
+   distributed to self-hosters. Licensing and sponsorship, the ways rights holders come
+   in by agreement, are the [sponsorship slate](./sponsorship-slate.md).
+
+   **Other sources (2026-11-08, informed knowledge, not legal advice):**
+   - **Video games:** everything on screen is a copyrighted audiovisual work, cutscene
+     or gameplay. Publishers' content-usage policies (Nintendo, Microsoft, …) permit
+     streams and videos but not use in another commercial product. A streamer can
+     license only what is theirs (face, voice, overlay), never the game footage in the
+     same clip.
+   - **News:** a network's broadcast is its copyright; removing the logo only avoids a
+     trademark problem. The event and the facts are no one's; a prepared speech can be
+     the speaker's (the King estate v. CBS).
+   - ⭐ **Free and real: the US federal government's own cameras** (17 USC 105 — the
+     White House's own photos and briefing streams, the House and Senate floor feeds,
+     agency imagery). Traps: C-SPAN's committee footage is C-SPAN's, the press pool's
+     video is the networks', states and other countries vary (UK Parliament footage has
+     historically barred satire). **The base pack's political quotables come from
+     these.**
+
+   ⭐⭐ **A political quotable is the person's own words, cited** — who, when, which
+   event, which feed. The owner: *"I'd never want to put words in a politicians mouth,
+   they create plenty of good enough content on their own usually."* That is the
+   **grain** for our packs and our realm, not engine law (bestiary § 14a: a realm
+   governs its own content). The meme classification carries the citation, so the
+   game teaches sourcing (lens 1: is this a primary source, is the line real?) and
+   quoting is told apart from fabricating. Parody is marked as parody and plays within
+   the play frame. The legal edge is defamation, not copyright: a realistic false
+   quote is a false statement of fact, satire is protected only when nobody would read
+   it as fact (*Hustler v. Falwell*), and several states regulate manipulated media of
+   candidates near an election.
 2. **Where a directed illustration lands for its target** — inline in the transcript,
    or also as a card the target keeps. Waits on the cards-versus-terminal session
    (build-3, 2026-11-08); [card-surface.md](../../subsystems/card-surface.md)'s one
