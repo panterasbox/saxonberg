@@ -8,7 +8,8 @@
  */
 
 import "../../../../test-bootstrap";
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
+import { ShellApi } from '../../../api/shell';
 import { MobileMixin } from '../Mobile';
 import { ContainerMixin } from '../Container';
 import { ContainableMixin } from '../Containable';
@@ -47,5 +48,23 @@ describe('Mobile.autoLookOnArrival', () => {
     const mover = makeStuff(() => new CapturingMobile());
     await mover.autoLookOnArrival();
     expect(mover.forced).toEqual([{ text: 'look', forced: true }]);
+  });
+
+  afterEach(() => vi.restoreAllMocks());
+
+  it('⭐ runs the player\'s own `movement.arrivalCommand` instead, when set', async () => {
+    vi.spyOn(ShellApi, 'resolveSetting').mockImplementation(((_s: unknown, key: string) =>
+      key === 'movement.arrivalCommand' ? 'look --brief' : undefined) as never);
+    const mover = makeStuff(() => new CapturingMobile());
+    await mover.autoLookOnArrival();
+    expect(mover.forced).toEqual([{ text: 'look --brief', forced: true }]);
+  });
+
+  it('runs nothing when the setting is empty', async () => {
+    vi.spyOn(ShellApi, 'resolveSetting').mockImplementation(((_s: unknown, key: string) =>
+      key === 'movement.arrivalCommand' ? '  ' : undefined) as never);
+    const mover = makeStuff(() => new CapturingMobile());
+    await mover.autoLookOnArrival();
+    expect(mover.forced).toEqual([]);
   });
 });

@@ -342,6 +342,16 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
           '(`sneak`, `run`, `climb`, …) override per-call.',
       },
       {
+        key: 'movement.arrivalCommand',
+        type: SettingTypes.String,
+        default: 'look',
+        description:
+          'The command run for you each time you arrive somewhere — what ' +
+          'you see of a place by default. `look` (the default), anything ' +
+          'else you would type, or empty for nothing. It echoes like any ' +
+          'command you run.',
+      },
+      {
         key: 'messages.movement.departSelf',
         type: SettingTypes.String,
         default: 'You leave {{ toward }}.',
@@ -629,7 +639,14 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
         // card — so the first view of a place and every later one agree.
         // The connection that is entering, when there is one: the card
         // belongs on THAT session, not the player's first.
-        await self.forceCommand('look', interactive ? { interactive } : {});
+        // ⭐ The player's own choice (`movement.arrivalCommand`, default
+        // `look`); empty runs nothing. It is a command they chose, so it
+        // echoes like one (owner, 2026-11-08).
+        const command = (
+          ShellApi.resolveSetting<string>(self, 'movement.arrivalCommand') ?? 'look'
+        ).trim();
+        if (command.length === 0) return;
+        await self.forceCommand(command, interactive ? { interactive } : {});
       } catch {
         // Swallow — see jsdoc.
       }

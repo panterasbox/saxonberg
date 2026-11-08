@@ -407,9 +407,11 @@ export const CARDS: Readonly<Record<CardId, CardDefinition>> = {
    * inspection: the room you look at is an ordinary subject card.
    *
    * Born by `map` (the slate's command) with `NavigationApi.whereaboutsFor`
-   * as its payload; the explore arrangement names it, and after a move
-   * the mover re-runs `map` when one is up — navigation updating
-   * navigation, never a look.
+   * as its payload, or by the explore arrangement into the docked slot.
+   * ⭐ The docked slot is chrome (owner, 2026-11-08): there it is filled
+   * and kept current IN PLACE after every move (`refreshNavigator` →
+   * `touchCard`), with no command run and nothing printed. Typing `map`
+   * anywhere still reads your map out in the transcript.
    */
   map: {
     label: 'where you are',

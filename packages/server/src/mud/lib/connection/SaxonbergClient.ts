@@ -134,11 +134,13 @@ export interface SaxonbergClient extends ClientState {
   refreshDisplays(): void;
 
   /**
-   * ⭐ After a move, bring the NAVIGATOR along: every session of this body
-   * that has the `map` card up re-runs `map` (its body is where you are).
-   * A session without one gets nothing — the card is opened by the explore
-   * arrangement or by typing `map`, never by walking. Navigation updating
-   * navigation; it is not a look and opens no inspection card.
+   * ⭐ After a move (and right after an arrangement opens it), bring the
+   * NAVIGATOR along: every session of this body with the `map` card up
+   * gets its "where you are" body refreshed IN PLACE — no command runs,
+   * nothing is echoed, nothing is printed (owner, 2026-11-08: the docked
+   * slot is chrome, like the top bar, and updates implicitly; it is the
+   * SLOT that is implicit — `map` typed anywhere still reads your map out
+   * in the transcript). A session without one gets nothing.
    */
   refreshNavigator(): void;
 
@@ -644,16 +646,26 @@ export function SaxonbergClientMixin<
 
     public refreshNavigator(): void {
       const self = this as unknown as StuffRef & ClientHost;
-      if (!MixinApi.isCommandGiver(self)) return;
-      for (const interactive of self.getInteractives()) {
-        if (!interactive.listCards().some((c) => c.cardId === 'map')) continue;
-        // ⚠ Loud, not swallowed: a silent catch here hid a missing
-        // `opens_card` for a whole drive. A failed refresh leaves the card
-        // as it was, and says why in the log.
-        void self.forceCommand('map', { interactive }).catch((err: unknown) => {
-          console.warn(`refreshNavigator: map failed: ${(err as Error).message}`);
+      const sessions = [...self.getInteractives()].flatMap((interactive) => {
+        const card = interactive.listCards().find((c) => c.cardId === 'map');
+        return card ? [{ interactive, key: card.key }] : [];
+      });
+      if (sessions.length === 0) return;
+      // Lazily: the navigation Api pulls in the address / weather / civics
+      // reads, which a client-host mixin must not load at module scope.
+      void import('../../api/navigation')
+        .then(({ NavigationApi }) => NavigationApi.whereaboutsFor(self))
+        .then((where) => {
+          if (!where) return;
+          for (const { interactive, key } of sessions) {
+            interactive.touchCard(key, { payload: { kind: 'navigation', where } });
+          }
+        })
+        .catch((err: unknown) => {
+          // ⚠ Loud, not swallowed: a silent catch here once hid a broken
+          // navigator for a whole drive.
+          console.warn(`refreshNavigator: ${(err as Error).message}`);
         });
-      }
     }
 
     public refreshDisplays(): void {

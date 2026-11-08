@@ -654,6 +654,23 @@ leaves one room card, not twenty (#53/#92). Arrival forces `look`
 A new place you cannot subscribe to (not perceived) is resolved once as a
 snapshot.
 
+⭐⭐ **The docked slot is chrome, not a command's answer** (owner,
+2026-11-08). A layout's left panel (explore's navigator) is like the top
+bar: what sits there appears and stays current implicitly — the
+arrangement opens it, and the server refreshes its body in place after a
+move (`touchCard`), with no command run, nothing echoed and nothing
+printed. The rule is about the SLOT: the same card opened by typing its
+command (`map`) answers in the transcript like any command. Liveness is
+case by case — chosen where usability asks for it, never what makes a
+card a card; a card's default is a snapshot you refresh by re-running
+its command.
+
+⭐⭐ **The transcript is never rewritten** (owner, 2026-11-08). A line a
+card also shows stays in the terminal; nothing is hidden while a card
+covers it and nothing reappears when it closes. The card is the same
+answer, made clickable and refreshable. (`shell.result` `card` and `both`
+now behave alike; `terminal` still suppresses the card.)
+
 ⭐⭐ **Kept is the player's word** (owner, 2026-11-01): a room card that is
 pinned, resized off `unit`, or in the tray is KEPT. A look at a new place
 does not rebind it: the kept card gives up the role (its `card-arranged`
