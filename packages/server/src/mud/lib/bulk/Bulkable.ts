@@ -713,19 +713,33 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
       return out;
     }
 
-    /** See {@link Bulkable.getHeldKeywords}. */
+    /**
+     * See {@link Bulkable.getHeldKeywords}.
+     *
+     * ⭐ A keyword read does not reconcile: reads don't write. Every scope
+     * walk asks every vessel in reach what it answers to, and through the
+     * slot reads that brought its seepers and its faces current — a third
+     * of a crowd's allocation (controllers-are-io /finalize). What it holds
+     * is what its last reconcile left, and the read that needs the amount
+     * (`look`, a pour, a drink) brings it current.
+     */
     public getHeldKeywords(affordance: BulkAffordance): string[] {
       const has = affordance === 'interior' ? this.hasInteriorBulk() : this.hasSurfaceBulk();
       if (!has) return [];
-      const slot = this.getBulk(affordance);
-      if (slot.isEmpty()) return [];
-      const material = slot.getMaterial();
-      if (material === null) return [];
-      // A blend's per-instance payload names the held substance (`look
-      // stew` on the plated dish); an un-blended slot reads its Material.
-      const payload = slot.getPayload();
-      const words = [...BlendIdentity.keywordsOf(payload, material), BlendIdentity.nameOf(payload, material)];
-      return [...new Set(words.map((w) => w.toLowerCase().trim()).filter((w) => w.length > 0))];
+      this._peeking++;
+      try {
+        const slot = this.getBulk(affordance);
+        if (slot.isEmpty()) return [];
+        const material = slot.getMaterial();
+        if (material === null) return [];
+        // A blend's per-instance payload names the held substance (`look
+        // stew` on the plated dish); an un-blended slot reads its Material.
+        const payload = slot.getPayload();
+        const words = [...BlendIdentity.keywordsOf(payload, material), BlendIdentity.nameOf(payload, material)];
+        return [...new Set(words.map((w) => w.toLowerCase().trim()).filter((w) => w.length > 0))];
+      } finally {
+        this._peeking--;
+      }
     }
 
     /**
@@ -1179,6 +1193,9 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
     /** Reentry guard for the face exchange (it reads and writes the slot). */
     private _faceExchanging = false;
 
+    /** Reads in flight that must not write — {@link getHeldKeywords}; both reconcilers stand off. */
+    private _peeking = 0;
+
     /** When the interior last filled from empty — where an unread face clock starts. */
     private _interiorFilledAtS: number | null = null;
 
@@ -1194,7 +1211,7 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
      * answer brings the chain current.
      */
     private reconcileSeepers(): void {
-      if (this._seepersReconciling) return;
+      if (this._seepersReconciling || this._peeking > 0) return;
       const self = this as unknown as Stuff;
       this._seepersReconciling = true;
       try {
@@ -1261,7 +1278,7 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
      * a game-minute.
      */
     private reconcileFaceExchange(): void {
-      if (this._faceExchanging) return;
+      if (this._faceExchanging || this._peeking > 0) return;
       this.reconcileSeepers();
       const self = this as unknown as Stuff;
       if (!MixinApi.isFaced(self) || !this.interiorBulk) return;
