@@ -670,11 +670,17 @@ export function EmployedMixin<TBase extends MixinConstructor>(Base: TBase) {
      * payroll gap: an unsaved hand evicted mid-shift took the shift's wage
      * with it). The hours nobody watched while it was unloaded are not paid
      * — a venue nobody visits makes no sales either.
+     *
+     * The guard reads `isOnShift()`, the host's own state: `shiftState()`
+     * is the same question forwarded to the logic, which asks this
+     * predicate back (`EmploymentLogic.shiftStateOf`).
      */
     public onDestruct(): void {
-      void employedLogic().leaveShifts(this as unknown as Stuff).catch((err) =>
-        console.error('Employed: the leaving settle failed', err),
-      );
+      if (this.isOnShift()) {
+        void this.leaveShifts().catch((err) =>
+          console.error('Employed: the leaving settle failed', err),
+        );
+      }
       const sup = (Base.prototype as { onDestruct?: () => void }).onDestruct;
       if (typeof sup === 'function') sup.call(this);
     }

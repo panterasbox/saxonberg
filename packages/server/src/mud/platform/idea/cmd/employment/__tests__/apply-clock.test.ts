@@ -364,19 +364,17 @@ describe('⭐⭐ clock — a shift is something you choose to start', () => {
   });
 
   it('⭐ an unloaded body on shift settles on the way out', async () => {
-    // ⚠ The effect, not the call: the settle goes to the logic directly (a
-    // forwarder on the mixin would split it into a second co-use cluster).
     await clock('on');
     vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const leave = vi.spyOn(alice, 'leaveShifts');
     alice.onDestruct();
+    expect(leave).toHaveBeenCalledTimes(1);
     await vi.waitFor(() => expect(alice.isOnShift()).toBe(false));
   });
 
-  it('…and a body off shift leaves nothing to settle', async () => {
-    const failed = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+  it('…and a body off shift leaves nothing to settle', () => {
+    const leave = vi.spyOn(alice, 'leaveShifts');
     alice.onDestruct();
-    await new Promise((r) => setTimeout(r, 0));
-    expect(alice.isOnShift()).toBe(false);
-    expect(failed).not.toHaveBeenCalled();
+    expect(leave).not.toHaveBeenCalled();
   });
 });
