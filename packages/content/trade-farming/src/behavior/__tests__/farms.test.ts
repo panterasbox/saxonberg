@@ -318,7 +318,7 @@ describe('the farms beat — tend, pick, sell, home', () => {
     ).mockImplementation(async (text: string) => {
         const giver = farmer;
         void giver;
-        if (text === 'sense') return;
+        if (text === 'sense' || text === 'look') return; // the arrival command
         lines.push(text);
         const who = giver as unknown as Farmer;
         const here = who.getContainer() as Place;
@@ -538,7 +538,7 @@ describe('the farms beat on a FIELD — fields read at the hand\'s band', () => 
       h as unknown as { forceCommand(text: string): Promise<void> },
       'forceCommand',
     ).mockImplementation(async (text: string) => {
-      if (text === 'sense') return; // the look a teleport takes
+      if (text === 'sense' || text === 'look') return; // the arrival command a teleport runs
       lines.push(text);
       // Where the can is filled is where the hand stands to fill it.
       if (text.startsWith('fill')) lines.push(`@${(h.getContainer() as Stuff).getTemplatePath()}`);
@@ -668,7 +668,7 @@ describe('the farms beat on a FIELD — fields read at the hand\'s band', () => 
       off as unknown as { forceCommand(text: string): Promise<void> },
       'forceCommand',
     ).mockImplementation(async (t: string) => {
-      if (t !== 'sense') offLines.push(t);
+      if (t !== 'sense' && t !== 'look') offLines.push(t);
     });
     await farms.act(beat(off as unknown as FieldHand));
     expect(offLines).toEqual([]);

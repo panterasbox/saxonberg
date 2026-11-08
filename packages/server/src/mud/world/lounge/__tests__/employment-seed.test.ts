@@ -92,11 +92,12 @@ describe("Dave's Bar — Business seed integrity", () => {
     expect(doc.data.operatingLocations).toContain(BAR);
   });
 
-  it('rosters the four staff (Sloane keeps the midnight-wrap window; Mara also keeps the bar)', () => {
+  it('rosters the four staff and Dave (Sloane keeps the midnight-wrap window; Mara also keeps the bar; Dave holds the unpaid owner seat)', () => {
     const doc = loadSeed();
     const assignees = [...new Set(doc.data.rosterSlots.map((s) => s.assignee))].sort();
     expect(assignees).toEqual([
       '/world/lounge/agent/augie',
+      '/world/lounge/agent/dave',
       '/world/lounge/agent/mara',
       '/world/lounge/agent/remy',
       '/world/lounge/agent/sloane',
