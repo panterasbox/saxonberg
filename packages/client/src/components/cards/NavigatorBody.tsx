@@ -149,9 +149,11 @@ export function NavigatorBody({ where, onSendCommand, onCommandPreview }: Naviga
   // "The Lounge › the lounge" reads as a stutter: a room named for its
   // Locality is shown once.
   const bare = (n: string): string => n.toLowerCase().replace(/^the\s+/, "");
-  const crumbs = where.localities.filter(
-    (l, i) => !(i === where.localities.length - 1 && bare(l.name) === bare(where.place.name)),
-  );
+  const last = where.localities[where.localities.length - 1];
+  const merged = last !== undefined && bare(last.name) === bare(where.place.name);
+  const crumbs = merged ? where.localities.slice(0, -1) : where.localities;
+  // When they merge, the Locality's own (proper) name is the one shown.
+  const hereName = merged ? last.name : where.place.name;
 
   return (
     <Root data-testid="navigator">
@@ -168,7 +170,7 @@ export function NavigatorBody({ where, onSendCommand, onCommandPreview }: Naviga
             <span aria-hidden="true">›</span>
           </>
         ) : null}
-        <Here>{where.place.name}</Here>
+        <Here>{hereName}</Here>
       </Crumbs>
 
       <div>
