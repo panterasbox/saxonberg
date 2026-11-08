@@ -49,5 +49,5 @@ data:
     An enormous, lumbering figure two heads above the tallest in the room,
     thick-limbed and heavy-browed, slow of speech and movement, with a
     blunt, unhurried calm that strangers too easily mistake for dullness.
-  nameBankKeys: ["orcish"]
+  nameBanks: [/species-and-names/name-banks/orcish]
   facultyProfile: { depth: low, serenity: low, composure: low }

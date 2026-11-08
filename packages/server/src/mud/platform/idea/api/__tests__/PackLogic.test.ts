@@ -156,7 +156,8 @@ function writePack(
 function nameBankRows(): Row[] {
   return rows.filter((r) => r.__col === 'documents' && r.kind === 'name-bank');
 }
-const bankKey = (r: Row): string => (r.data as { key: string }).key;
+/** A bank's name: the last segment of its path, its only identity. */
+const bankKey = (r: Row): string => String(r.path).split('/').pop() ?? '';
 
 /** The `content` rows — the store also holds the `pack_installs` record. */
 function contentRows(): Row[] {
@@ -289,7 +290,7 @@ describe('PackLogic — reconcile name banks (fixture packs, the name-bank docum
 
   const HOMO = 'obj/species/animalia/homo/sapiens.yaml';
 
-  it('insert: name-bank files → stamped name-bank documents (data.key = file basename)', async () => {
+  it('insert: name-bank files → stamped name-bank documents at the pack root + name-banks/<file>', async () => {
     const root = writePack(
       'p',
       [{ rel: HOMO, class: '/platform/idea/species/Species' }],
@@ -332,13 +333,13 @@ describe('PackLogic — reconcile name banks (fixture packs, the name-bank docum
     expect(r3!.documents['name-bank']).toBe(0); // no edit → no write
   });
 
-  it('an unstamped name bank with the same key (at any path) refuses the pack — never adopted', async () => {
+  it('an unstamped name bank at the same path refuses the pack — never adopted', async () => {
     rows.push({
       _id: 'stray-nb',
-      path: '/name-banks/common',
+      path: '/p/name-banks/common',
       owner: '',
       kind: 'name-bank',
-      data: { key: 'common', given: ['Old'], surname: ['Name'] },
+      data: { given: ['Old'], surname: ['Name'] },
       __col: 'documents',
     });
     const root = writePack('p', [], [], [
@@ -349,7 +350,7 @@ describe('PackLogic — reconcile name banks (fixture packs, the name-bank docum
     expect(r!.failure?.error).toMatch(/no sourcePack stamp/);
     const banks = nameBankRows();
     expect(banks).toHaveLength(1);
-    expect(banks[0]).toMatchObject({ _id: 'stray-nb', path: '/name-banks/common' });
+    expect(banks[0]).toMatchObject({ _id: 'stray-nb', path: '/p/name-banks/common' });
     expect(banks[0]!.sourcePack).toBeUndefined();
   });
 

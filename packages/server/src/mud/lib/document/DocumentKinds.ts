@@ -65,7 +65,7 @@ export const DOCUMENT_KINDS = {
    */
   aroma: { kind: 'aroma', naturalKey: 'word', contentDir: 'aromas', ext: 'yaml', onVanish: 'delete' },
   recipe: { kind: 'recipe', naturalKey: 'recipeId', contentDir: 'recipes', ext: 'yaml', onVanish: 'delete' },
-  'name-bank': { kind: 'name-bank', naturalKey: 'key', contentDir: 'name-banks', ext: 'yaml', onVanish: 'delete' },
+  'name-bank': { kind: 'name-bank', naturalKey: null, contentDir: 'name-banks', ext: 'yaml', onVanish: 'delete' },
   blueprint: { kind: 'blueprint', naturalKey: 'blueprintId', contentDir: 'blueprints', ext: 'yaml', onVanish: 'delete' },
   'command-view': { kind: 'command-view', naturalKey: null, contentDir: 'cmd', ext: 'yaml', onVanish: 'delete' },
   /** The venue archetype — an industry's floor in capabilities (content-packs A13/A14). */

@@ -841,12 +841,11 @@ export default class Species extends SingletonMixin(
   } | null = null;
 
   /**
-   * References to one or more `NameBank` Documents by key (e.g.
-   * `['common']`, `['orcish', 'common']`). The name suggester resolves
-   * these and unions the pools. NOT the name data itself — that lives
-   * in the `name_banks` collection. See {@link NameBank}.
+   * The `name-bank` documents this species draws names from, by path
+   * (`/species-and-names/name-banks/common`). The name suggester reads
+   * them and unions the pools. See {@link NameBank}.
    */
-  protected nameBankKeys: string[] = [];
+  protected nameBanks: string[] = [];
 
   /**
    * Gated mixins this species **intrinsically confers** (activates) —
@@ -1078,7 +1077,7 @@ export default class Species extends SingletonMixin(
     olfactoryProfile: { persistent: true },
     smells: { persistent: true },
     palate: { persistent: true },
-    nameBankKeys: { persistent: true },
+    nameBanks: { persistent: true },
     sentient: { persistent: true },
     butcheryYield: { persistent: true, authorable: true },
     // ⭐ Level 0: natural history a player is MEANT to learn — the whole
@@ -1833,12 +1832,12 @@ export default class Species extends SingletonMixin(
     this.facultyProfile = Faculty.validateProfile(value);
   }
 
-  public getNameBankKeys(): readonly string[] { return this.nameBankKeys; }
-  public setNameBankKeys(value: string[]): void {
-    if (!Array.isArray(value)) {
-      throw new TypeError('Species.setNameBankKeys: must be a string array');
+  public getNameBanks(): readonly string[] { return this.nameBanks; }
+  public setNameBanks(value: string[]): void {
+    if (!Array.isArray(value) || value.some((p) => typeof p !== 'string' || !p.startsWith('/'))) {
+      throw new TypeError('Species.setNameBanks: must be a list of name-bank document paths');
     }
-    this.nameBankKeys = value;
+    this.nameBanks = value;
   }
 
   public getInnateMixins(): readonly string[] { return this.innateMixins; }
@@ -1880,7 +1879,7 @@ export default class Species extends SingletonMixin(
 
   /**
    * Suggest a fantasy name for a new member of this species. Resolves
-   * the species' `nameBankKeys` → the referenced {@link NameBank}
+   * the species' `nameBanks` → the referenced {@link NameBank}
    * pools, then phonetically *riffs* on the player's real given name
    * (when provided) by preferring a bank given-name sharing its first
    * letter — so the suggestion feels personally theirs while reading as
@@ -1891,7 +1890,7 @@ export default class Species extends SingletonMixin(
    * for additional characters (draws straight from the bank).
    */
   public async suggestName(realName?: string): Promise<SuggestedName> {
-    const pools = await SpeciesApi.resolveNamePools(this.nameBankKeys);
+    const pools = await SpeciesApi.resolveNamePools(this.nameBanks);
     const given = pickGiven(pools.given, realName);
     const surname = pick(pools.surname);
     const out: SuggestedName = { name: given };
@@ -1904,7 +1903,7 @@ export default class Species extends SingletonMixin(
    * for another option, or it's an additional character).
    */
   public async rerollName(): Promise<SuggestedName> {
-    const pools = await SpeciesApi.resolveNamePools(this.nameBankKeys);
+    const pools = await SpeciesApi.resolveNamePools(this.nameBanks);
     const given = pickGiven(pools.given, undefined);
     const surname = pick(pools.surname);
     const out: SuggestedName = { name: given };

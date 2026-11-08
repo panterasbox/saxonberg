@@ -56,5 +56,5 @@ data:
     A lean figure of unsettling beauty, skin warm-hued and faintly
     flushed, with a pair of curving horns and slow-burning ember eyes
     that carry an old, banked infernal heat.
-  nameBankKeys: ["infernal", "common"]
+  nameBanks: [/species-and-names/name-banks/infernal, /species-and-names/name-banks/common]
   facultyProfile: { depth: high, serenity: mid, composure: low }

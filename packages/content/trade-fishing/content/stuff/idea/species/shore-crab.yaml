@@ -62,4 +62,4 @@ data:
     - { cut: /stuff/thing/items/offal, units: 1 }
   longDescription: >-
     A shore crab, green-brown and sideways, with claws it holds up at you as if that settled anything.
-  nameBankKeys: []
+  nameBanks: []

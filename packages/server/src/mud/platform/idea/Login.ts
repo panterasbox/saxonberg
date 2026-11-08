@@ -143,6 +143,8 @@ export default class Login extends LoginBase {
    * only; fuzzy/homoglyph near-misses are out of scope.
    */
   static readonly GUEST_RESERVED_WORD = "Guest";
+  /** The name bank a guest's surname is drawn from. */
+  static readonly GUEST_NAME_BANK = "/species-and-names/name-banks/common";
 
   private readonly interactive: Interactive;
   private characterDraft: CharacterDraft | null = null;
@@ -225,7 +227,7 @@ export default class Login extends LoginBase {
   }> {
     let surnames: string[] = [];
     try {
-      surnames = (await SpeciesApi.resolveNamePools(["common"])).surname;
+      surnames = (await SpeciesApi.resolveNamePools([Login.GUEST_NAME_BANK])).surname;
     } catch {
       /* NameBank unavailable (e.g. no DB) — degrade to a bare "Guest" */
     }

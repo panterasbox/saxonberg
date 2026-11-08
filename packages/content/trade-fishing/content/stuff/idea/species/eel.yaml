@@ -63,4 +63,4 @@ data:
     - { cut: /stuff/thing/items/offal, units: 1 }
   longDescription: >-
     An eel, dark above and pale beneath, all muscle and no obvious beginning or end.
-  nameBankKeys: []
+  nameBanks: []
