@@ -20,12 +20,13 @@
 #
 # ⭐ In the TRADE rather than the commons, unlike the sap: sap is a fact
 # about a tree and syrup is a thing somebody made.
-class: /platform/idea/material/ConsumableMaterial
+class: /platform/idea/material/OdorousConsumableMaterial
 # ⭐ (sugar D1) The syrup is the sap boiled down: it inherits the sap's boil
 # (the latent heat, the curve, the arrows) and states only what differs —
 # including its own strength, for a jar bought rather than boiled.
 extends: /stuff/idea/material/food/maple-sap
 data:
+  smells: [{ word: caramel, strength: 200 }]
   name: maple syrup
   keywords: [maple-syrup, syrup, maple]
   appearance: clear amber, thick and slow off a spoon
@@ -37,7 +38,7 @@ data:
   hardness: 0
   toughness: 0
   edibility: true
-  tastes: [sweet]
+  tastes: [{ type: sweet, amount: 650 }]
   # Steeply answering to warmth, and it barely matters: the water
   # activity sits low enough that the rate is multiplied by almost
   # nothing. The honey argument, for the same reason.

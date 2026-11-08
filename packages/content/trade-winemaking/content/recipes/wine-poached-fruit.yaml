@@ -1,0 +1,30 @@
+# Fruit poached in wine. ⭐ The ceiling is the wine's boiling point, which sits
+# below water's because of the alcohol. It lives here because this pack ships the
+# wine; the pot and the discipline are the cook's.
+recipeId: wine-poached-fruit
+name: Wine-Poached Fruit
+keywords:
+- wine-poached-fruit
+- poached
+inputSlots:
+- slot: wine
+  category: wine
+  minGrade: poor
+  kind: bulk
+  measureL: 0.4
+- slot: fruit
+  category: fruit
+  minGrade: poor
+  kind: item
+  count: 2
+toolCapabilities:
+- pot
+outputTemplate: /stuff/thing/items/bowl
+outputAppearance: fruit poached soft in dark wine
+outputApplication: edible
+outputPortionL: 0.4
+requiresHeatK: 350
+maxHeatK: 365
+medium: wine
+difficulty: standard
+discipline: cooking

@@ -56,6 +56,14 @@ export const DOCUMENT_KINDS = {
   /** Press-owned; no pack ships one this wave. */
   release: { kind: 'release', naturalKey: null, contentDir: 'releases', ext: 'yaml', onVanish: 'delete' },
   emote: { kind: 'emote', naturalKey: 'verb', contentDir: 'emotes', ext: 'yaml', onVanish: 'delete' },
+  /**
+   * An aroma word: what a nose can read, with its threshold, the discipline that
+   * trains a nose to it, its hedonic curve and its `parent:` in the tree. Keyed by
+   * `word` across every pack (a pack's documents sit under its own root, so a path
+   * cannot name a word any pack may ship), and read by that key when something
+   * names it (`lib/perception/Aroma.ts`). Authored metadata: nothing writes one.
+   */
+  aroma: { kind: 'aroma', naturalKey: 'word', contentDir: 'aromas', ext: 'yaml', onVanish: 'delete' },
   recipe: { kind: 'recipe', naturalKey: 'recipeId', contentDir: 'recipes', ext: 'yaml', onVanish: 'delete' },
   'name-bank': { kind: 'name-bank', naturalKey: 'key', contentDir: 'name-banks', ext: 'yaml', onVanish: 'delete' },
   blueprint: { kind: 'blueprint', naturalKey: 'blueprintId', contentDir: 'blueprints', ext: 'yaml', onVanish: 'delete' },

@@ -1598,6 +1598,8 @@ export default abstract class Avatar extends AvatarBase {
     // reads present parked as present-but-unreachable, never offline.
     // (Sandbox Decision P — a suppression, no new event.)
     if (this.parked) return;
+    // Nobody is in the body, so its nose neither tires nor recovers.
+    this.freezeNose();
     // ⭐ In the water when the line went (underwater D11): the water holds
     // a disconnected body face-up at the surface, breathing, until its
     // player comes back. The water-only answer; the general rule for a

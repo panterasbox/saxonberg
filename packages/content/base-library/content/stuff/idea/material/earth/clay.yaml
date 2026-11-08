@@ -6,8 +6,9 @@
 # different material with different numbers. This one is the ground; that
 # one is the mug. The two share the keyword `clay` because both honestly
 # answer to it.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ word: wet-clay, strength: 10 }]
   name: clay
   keywords: [clay, earth]
   appearance: grey-brown clay

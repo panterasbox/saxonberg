@@ -600,6 +600,13 @@ contempt is the cover). The aesthetic that rides alongside: lean into
 genre convention hard, up to but not including cliché — ride it, then
 swerve before it goes predictable. Source: `species-expansion-slate`.
 
+### What a kind of body smells of, and how it tastes
+
+`Species.smells` is what a living body of this kind gives off ([senses.md](./senses.md#one-smell-source-air-nose)):
+OU of one kilogram, null on plants. `Species.palate` is optional: `spread` multiplies how far
+apart its people are born, and `curves` gives any word its own hedonic curve, which is how a
+realm authors a species with different tastes ([metabolism.md](./metabolism.md)).
+
 ### Why species differ without ranking
 
 The rule every species difference is judged by — the one the size pair

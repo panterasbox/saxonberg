@@ -45,5 +45,5 @@ data:
   barkKg: 100
   interiorMaterial: /stuff/idea/material/bulk/water
   interiorAmount: 2000
-  _materialPath: /stuff/idea/material/wood/oak
+  _materialPath: /trade/tanning/idea/material/pit-oak
   mass: 400

@@ -5,8 +5,10 @@
 # rearing house stands beside its mulberry walk and why a hand picks twice
 # a day in the fifth age. `silkworm-fodder` is the tag the tray reads; the
 # leaf is a plant tissue and spoils like one, a little faster.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ word: leaf, strength: 30 }]
+  tastes: [{ type: sweet, amount: 10 }, { type: bitter, amount: 0.02 }]
   name: mulberry leaf
   keywords: [mulberry, leaf, leaves]
   appearance: broad, glossy mulberry leaves

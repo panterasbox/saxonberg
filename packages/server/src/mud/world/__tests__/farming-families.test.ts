@@ -111,7 +111,8 @@ describe('trade-farming — the ten grown families resolve end to end', () => {
       const materialPath = produce!.data._materialPath as string;
       const material = byPath.get(materialPath);
       expect(material, `material row ${materialPath}`).toBeDefined();
-      expect(material!.class).toBe('/platform/idea/material/ConsumableMaterial');
+      // Plain, or with a smell of its own: both are a consumable.
+      expect(material!.class).toMatch(/^\/platform\/idea\/material\/(Odorous)?ConsumableMaterial$/);
       // Edible matter (the A4 gather predicate) tagged with its category.
       expect(material!.data.edibility).toBe(true);
       expect(material!.data.tags as string[]).toContain(key);

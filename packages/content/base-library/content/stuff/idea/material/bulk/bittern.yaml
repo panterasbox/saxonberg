@@ -22,7 +22,7 @@ data:
   edibility: false
   nutrients: []
   toxicity: []
-  tastes: [bitter, salty]
+  tastes: [{ type: salty, amount: 150 }, { type: bitter, amount: 5 }]
   tags: [liquid, bittern, conductive]
   composition: []
   biologicalSource: null

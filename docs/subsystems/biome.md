@@ -235,8 +235,7 @@ A leaf `extends Idea`. Nine persistent fields:
   propagating signal).
 - `_ambientSmellMml: string | null` — narrative prose (not
   propagating signal). Per-room ambient smell ships via
-  `SmellSourceMixin` emitters in the room rather than a typed biome
-  field.
+  what is actually in the room rather than a typed biome field.
 
 The thermal build added a `_defaultWind` field (with `_wind` /
 `_detailWinds` on `AtmosphericMixin`) — a mechanical clone of the

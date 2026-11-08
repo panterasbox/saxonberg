@@ -43,7 +43,8 @@ function row(rel: string): { data: Record<string, unknown>; class: string } {
 describe('lamp oil rows', () => {
   it('the material carries a fuel value, a density, and the market tags', () => {
     const m = row('stuff/idea/material/bulk/lamp-oil.yaml');
-    expect(m.class).toBe('/platform/idea/material/Material');
+    // Lamp oil smells, so its row names the Odorous material class.
+    expect(m.class).toBe('/platform/idea/material/OdorousMaterial');
     expect(m.data.name).toBe('lamp-oil');
     expect(m.data.density).toBe(820);
     expect(m.data.heatOfCombustion).toBe(43);

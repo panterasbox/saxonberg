@@ -1,8 +1,9 @@
 # Soap curd — soft soap grained with salt (cleanliness D24): the curd
 # floats free of the brine and, poured into a frame, sets by draining into
 # a hard bar.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ word: soap, strength: 200 }]
   name: soap curd
   keywords: [curd, soap, soap-curd]
   appearance: a pale, granular soap curd

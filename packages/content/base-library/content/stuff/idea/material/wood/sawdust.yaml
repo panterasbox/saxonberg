@@ -9,8 +9,10 @@
 # The tags are what other trades read: `granular, absorbent` is what a
 # floor can be strewn with, `sawdust` is the cleanser key, `flammable`
 # is the shavings fire. Not food: nothing grows in it here.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ word: sawdust, strength: 30 }]
+  burning: [{ word: wood-smoke, strength: 300 }]
   name: sawdust
   keywords: [sawdust, dust]
   appearance: "a pale, resinous dust of sawn wood"

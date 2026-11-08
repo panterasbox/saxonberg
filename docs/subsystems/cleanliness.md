@@ -162,12 +162,12 @@ hygienic one.
 
 - **`look`** — the band and its kinds (*soiled, muddy and greasy*); a body
   by region on the bare skin; the wet band.
-- **`smell`** — dirt with a nose has an `odour` on its row (sweat → *stale
+- **`smell`** — dirt with a nose has an `odor` on its row (sweat → *stale
   sweat*, manure → *dung*, milk → *sour milk*, blood → *old blood*, grease
-  → *rancid fat*; mud, ash, soot, flour and crumbs none). `soilOdour()`
-  derives the emission from the loads (a body adds what it wears), the
-  smell walk scents the room with it, and `smell <thing>` reads *it smells
-  of …* (*reeks* at ≥ 100 ppm) once past `cleanliness.odourNoticedPpm`.
+  → *rancid fat*; mud, ash, soot, flour and crumbs none). `soilOdor()` gives a
+  note per word from the loads, in OU, and that is one leg of the one smell model
+  ([senses.md](./senses.md#one-smell-source-air-nose)), so a body smells of what it
+  wears and a nose reads it like anything else.
 - **`analyze cleanliness <thing>`** — the reading
   ([instrumentation.md](./instrumentation.md)): where, what has set, what
   lifts it, what was done to it, how long ago — by `domestic-services`

@@ -4,8 +4,10 @@
 # on (`inputCategory`), so the moment a trough holds this, the batch can
 # start. What decides whether it DOES is the trough's cloth: covered, it
 # waits for a pitched culture; open, wild flora settle out of the air.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ word: dough, strength: 100 }]
+  tastes: [{ type: salty, amount: 10 }]
   name: dough
   keywords: [dough, paste]
   appearance: slack and pale, tacky to the touch

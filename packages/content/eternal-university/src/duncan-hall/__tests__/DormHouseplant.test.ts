@@ -19,6 +19,7 @@
  * Harness mirrors DormResidence.test.ts.
  */
 
+import { Aroma } from '@saxonberg/server/mud/lib/perception/Aroma';
 import "@saxonberg/server/test-bootstrap";
 import { KERNEL_CONTENT_ROWS } from '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
@@ -133,7 +134,8 @@ function addSeed(path: string, file: string): void {
   col('content').push({
     _id: `d-${++idCounter}`,
     path,
-    class: parsed.class as string,
+    // A child row names its parent rather than a class (an aroma under its root).
+    ...(typeof parsed.extends === 'string' ? { extends: parsed.extends } : { class: parsed.class as string }),
     data: (parsed.data as Record<string, unknown>) ?? {},
   });
 }
@@ -245,6 +247,10 @@ function seedDomain(): void {
     '/stuff/idea/material/alloy/steel',
     `${CONTENT}base-library/content/stuff/idea/material/alloy/steel.yaml`,
   );
+  // The aroma words those materials name, which load with them.
+  const earth = Aroma.remember('earth', {}, null);
+  Aroma.remember('loam', {}, earth);
+  Aroma.remember('green', {}, null);
   addSeed(
     '/stuff/idea/material/tissue/plant-tissue',
     `${CONTENT}base-library/content/stuff/idea/material/tissue/plant-tissue.yaml`,

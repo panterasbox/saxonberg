@@ -190,7 +190,6 @@ export const UNBACKED_GROUND_CLAIMS: readonly string[] = [
   '/world/terminus/delight-road/drove',               // "ground back to EARTH by generations of hooves"
   '/world/terminus/delight-road/ford',                // "SET STONES, laid flat and level"
   '/world/terminus/valley-road/towpath',              // "a made path of rammed GRAVEL"
-  '/world/terminus/estuary/estuary-mouth',            // "a mile of saltings and MUD"
 
   // ── the working city ──
   '/world/terminus/market/bakery',                    // "the floor is STONE and the stone is damp"

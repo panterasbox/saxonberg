@@ -1,23 +1,26 @@
 verbs: [taste]
 controller: /platform/idea/cmd/perception/TasteController
-description: "Taste your surroundings or a specific thing"
+description: "Put a thing to your tongue"
 help: |
-  Put it to your tongue. With no target, `taste` reports whatever
-  flavor hangs in your immediate surroundings. Name a thing to
-  taste it directly — useful for food, drink, and anything you
-  want to know more intimately than a look allows.
+  Tasting is contact and it has a cost. A small bite or sip really comes
+  out of the thing, and whatever it holds reaches you on the same path as
+  eating, in a small dose: lye burns, and a poison doses you. `taste` is
+  the small mouthful and `eat` is the meal.
 
-  `taste at` reads the same as the bare form; the preposition is
-  optional. You need a working sense of taste for any of it.
+  You read each of the five tastes and what reaches your nose from the
+  back of your mouth, and how you like it, which is yours and not the
+  food's. You need something in reach to taste, and a working sense of
+  taste.
 validators:
   - /lib/command/validators/requiresTaste
 args:
   - name: target
     type: object
     required: false
-    scope: ["$focus", "reachable"]
+    scope: ["reachable"]
     updates_focus: extend
     prepositions: [at]
-    default: "$focus"
     onExcess: prompt
     requires: any
+    validators:
+      - /lib/command/validators/mustBeTastable

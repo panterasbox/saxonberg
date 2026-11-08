@@ -186,6 +186,8 @@ export interface CorrosionInflictSpec {
   corrosiveTo: readonly string[];
   /** As `EnergyInflictSpec` — a held shield covers a facing attacker. */
   shieldFacing?: boolean;
+  /** The agent is already inside (a swallowed caustic): no covering applies. */
+  bare?: boolean;
 }
 
 /**

@@ -41,9 +41,7 @@ import {
 import type { ToxinTag } from '../../../lib/metabolism/Metabolic';
 import {
   Recipe,
-  RECIPE_MEDIA,
   type RecipeInputSlot,
-  type RecipeMedium,
 } from '../../../lib/craft/Recipe';
 import { Template } from '../../../lib/stuff/Template';
 import {
@@ -879,16 +877,18 @@ function carriesBrand(stuff: Stuff, brandKey: string): boolean {
  * its **smoke point** (past it the fat breaks down, which is a different
  * thing happening, not a hotter version of this one).
  *
- * `0` when the material tabulates none — no cap, the fire wins. Syrup's
+ * The medium is whichever material carries the recipe's tag, and the ceiling
+ * is the lower of the two limits it tabulates, so nothing here knows a medium
+ * word. `0` when it tabulates neither (sand) — no cap, the fire wins. Syrup's
  * elevated boiling point needs no special case: it rides its own row.
  */
-function mediumCapK(medium: RecipeMedium, material: Material | null): number {
+function mediumCapK(material: Material | null): number {
   if (!material) return 0;
-  const cap =
-    medium === 'fat'
-      ? material.getSmokePoint().rawValue()
-      : material.getBoilingPoint().rawValue();
-  return cap > 0 ? cap : 0;
+  const limits = [
+    material.getSmokePoint().rawValue(),
+    material.getBoilingPoint().rawValue(),
+  ].filter((k) => k > 0);
+  return limits.length > 0 ? Math.min(...limits) : 0;
 }
 
 /**
@@ -898,7 +898,7 @@ function mediumCapK(medium: RecipeMedium, material: Material | null): number {
  * at all: you cannot boil without water.
  */
 function findMediumMaterial(
-  medium: RecipeMedium,
+  medium: string,
   matched: readonly MatchedInput[],
   matchedItems: readonly MatchedItemInput[],
 ): Material | null {
@@ -911,10 +911,10 @@ function findMediumMaterial(
 
 /** Whether a medium candidate's phase ceiling clears the recipe's demand. */
 function capClears(
-  floor: { medium: RecipeMedium; minK: number },
+  floor: { medium: string; minK: number },
   material: Material,
 ): boolean {
-  const cap = mediumCapK(floor.medium, material);
+  const cap = mediumCapK(material);
   return cap === 0 || cap >= floor.minK;
 }
 
@@ -923,7 +923,7 @@ function pickCandidate(
   bottles: BottleCandidate[],
   claimed: Map<Stuff, number>,
   brandKey: string | null,
-  mediumFloor: { medium: RecipeMedium; minK: number } | null = null,
+  mediumFloor: { medium: string; minK: number } | null = null,
 ): BottleCandidate | null {
   const minGrade = Grade.of(inSlot.minGrade);
   const need = inSlot.measureL ?? 0;
@@ -2270,7 +2270,7 @@ function matchBuild(
   recipes: readonly Recipe[],
   contributions: readonly BuildContribution[],
   heatedToK = 0,
-  mediumCaps: ReadonlyMap<RecipeMedium, number> = new Map(),
+  mediumCaps: ReadonlyMap<string, number> = new Map(),
   densities: ReadonlyMap<string, number> = new Map(),
 ): BuildMatch | null {
   let best: BuildMatch | null = null;
@@ -2309,14 +2309,13 @@ function matchBuild(
  */
 async function resolveMediumCaps(
   contributions: readonly BuildContribution[],
-): Promise<Map<RecipeMedium, number>> {
-  const caps = new Map<RecipeMedium, number>();
+): Promise<Map<string, number>> {
+  const caps = new Map<string, number>();
   for (const c of contributions) {
     if (!c.materialPath) continue;
     const material = await StuffApi.singleton<Material>(c.materialPath);
-    for (const medium of RECIPE_MEDIA) {
-      if (!material.hasTag(medium)) continue;
-      const cap = mediumCapK(medium, material);
+    for (const medium of material.getTags()) {
+      const cap = mediumCapK(material);
       const seen = caps.get(medium);
       caps.set(medium, seen === undefined ? cap : Math.max(seen, cap));
     }
@@ -2755,7 +2754,7 @@ async function mintFromBuildImpl(req: BuildMintRequest): Promise<CraftOutcome> {
   const mediumCaps =
     named === null
       ? await resolveMediumCaps(contributions)
-      : new Map<RecipeMedium, number>();
+      : new Map<string, number>();
   const match =
     named === null
       ? matchBuild(
@@ -3453,7 +3452,7 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
       // ordinary way — no new reason word for "you have no water".
       return { ok: false, reason: 'insufficient-input', detail: medium };
     }
-    const cap = mediumCapK(medium, mediumMaterial);
+    const cap = mediumCapK(mediumMaterial);
     if (cap > 0 && cap < effectiveHeatK) effectiveHeatK = cap;
   }
   const requiresHeatK = recipe.getRequiresHeatK();

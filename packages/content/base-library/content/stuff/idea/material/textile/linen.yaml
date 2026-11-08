@@ -14,8 +14,9 @@
 # was historically worn undyed or bleached and wool was the coloured
 # cloth. The dyeing trade reads this tag; nothing else distinguishes a
 # plant fibre from a protein one.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  burning: [{ word: paper-smoke, strength: 300 }]
   name: linen
   keywords: [flax, linen]
   # ⚠ A material must not assert a CONSTRUCTION. Linen is the fibre;

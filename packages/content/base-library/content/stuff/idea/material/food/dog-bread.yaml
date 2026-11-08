@@ -9,8 +9,9 @@
 #
 # ⭐ The `feed` tag is what the pets chain reads, and it is what makes
 # this a *manufactured* feed rather than a scrap thrown on the ground.
-class: /platform/idea/material/ConsumableMaterial
+class: /platform/idea/material/OdorousConsumableMaterial
 data:
+  smells: [{ word: bread, strength: 60 }]
   name: dog bread
   keywords: ["dog bread", "horse bread", dogbread, loaf]
   appearance: a dense dark crumb with bits in it
@@ -58,7 +59,7 @@ data:
   waterActivity: 0.55
   edibility: true
   # Coarse and savoury, and nothing about it is sweet.
-  tastes: [umami, bitter]
+  tastes: [{ type: umami, amount: 1 }, { type: bitter, amount: 0.01 }]
   # ⚠ **No `fibre`**, and the absence is checked rather than assumed.
   # `NUTRIENT_ROUTING` in `lib/metabolism/Metabolic.ts` routes exactly
   # six tags — water, carb, sugar, fat, protein, vitamin-c — and an

@@ -508,51 +508,41 @@ they drink*), with the arithmetic asserted in
 
 ---
 
-## ⭐⭐ Aroma — the second closed vocabulary (whiskey-styles, 2026-10-05)
+## ⭐⭐ Aroma, taste and the palate
 
-`lib/metabolism/DissolvedAromatics.ts` is the **sibling** of
-`DissolvedToxins`, not a generalisation of it, and the distinction is the
-routing: a dissolved toxin routes to a body's burden at the ingest; a
-dissolved aromatic routes to a **nose**. Nothing is ever harmed by one.
+`lib/metabolism/DissolvedAromatics.ts` is the **sibling** of `DissolvedToxins`, and the
+distinction is the routing: a dissolved toxin routes to a body's burden at the ingest; a
+dissolved aromatic routes to a **nose**. A row authors a **word and a number**; the
+sentence is derived. The words are `aroma` documents ([senses.md](./senses.md#one-smell-source-air-nose)),
+and the ladder is logarithmic because real concentrations sit three to four orders of
+magnitude above threshold (a firmly peated malt's hearts are **3,750×**), which is also
+the honest shape: odor perception is compressive.
 
-`AROMAS` is a closed list of eleven words — `smoke · vanilla · oak ·
-char · fruit · floral · grain · honey · spice · solvent · sulphur` — each
-with a **detection threshold in mg/L**, on the `BASIC_TASTES` precedent:
-*the physiology's own closed list.* An odour threshold is physiology, not
-content. A row authors a **word and a number**; the sentence is derived.
+**Tastes have strengths.** `Material.tastes` carries the five closed tastes in g/kg, and
+`TASTE_THRESHOLDS` sets each one's threshold: the closed list is physiology. A blend's
+amount is its parts' amounts by mass fraction (`TasteModality.flavorOf`), so a pinch of
+salt reads barely, brine overpoweringly, and a little bitter cuts through a lot of sugar
+with no rule written for it. The ladder is its own, `1 · 3 · 10 · 30 · 100`, because taste
+runs close to linear where smell is compressive. A payload's `salinityPpt` outranks the
+row, so a well going salty can be tasted.
 
-⚠⚠ **The ladder is LOGARITHMIC, and a linear one could not have worked.**
-Odour thresholds are parts per *billion* while what a drink carries is
-parts per *million*, so real concentrations sit three to four orders of
-magnitude above threshold — a firmly peated malt's hearts are **3,750×**
-their threshold. On a 1/3/10 ladder every whisky in the game reads
-"strongly of smoke" and the gauge is pinned before the first row is
-authored. The steps are `1 · 30 · 300 · 2000 · 8000` →
-`barely · faintly · clearly · strongly · overpoweringly`, which is also
-the honest shape: odour perception really is compressive.
+**Tasting is contact and has a cost.** `PalateMixin.taste` takes a real mouthful, on the
+same path as eating: a sip out of a vessel, a bite off edible matter, or a lick of a solid
+that would do something (`mustBeTastable`). A dose scales by the mouthful, and a caustic
+burns (`routeIntake`'s corrosive leg, for every mouth, at `body.head` until mouths are real
+anatomy; it ignores coverings, because it is already inside).
 
-**Competence resolves DETAIL, never access.** Everyone smells the matter;
-`untrained`/`novice` get the dominant aroma with **no intensity word**
-(you know it is smoky, not how smoky), `competent`+ get every aroma over
-threshold with its intensity, and `proficient`+ also get the grade and
-the age statement. ⚠ A **sub-threshold** compound is invisible to
-everyone including an expert — competence does not change physics.
+**Liking is one read for all three kinds of bad,** on the body and never on the food:
+universally gross from the curve, personally gross from your own offset, badly made as the
+same curve past its peak. It is `PalateMixin.liking`: per note a curve (a hump for a
+pleasant word, monotonic for a repellent one), plus a born offset, plus exposure up to 0.3;
+then hunger; then two caps at −0.6, for a repellent note at 300 OU or more and for an
+aversion whose symptoms have arrived. Born offsets are seeded on identity and stored
+nowhere. `exposures` and `aversions` are on the spine for an Avatar and die at reboot for an
+NPC, which has no spine. `heritage()` is the seam for parents, who do not exist yet.
 
-⚠ No digit ever renders, at any band.
-
-**Where it is read.** `palateAugmenter` answers on `smell` as well as
-`taste` (flavour is mostly retronasal), while the basic tastes stay
-`taste`-only — you cannot smell salt. `look` reads neither, which is the
-Palatable host lesson and exactly what a second channel could break.
-`PalatableMixin` still composes on `ServingVessel` **and nowhere else**,
-so `smell cask` reports nothing of the contents: the way to nose a cask
-is to pour a dram into a glass, which is how it is done in the trade.
-
-⚠ **The cost, stated:** a twelfth word is a kernel edit, which rubs
-against the rule that a pack must never need one. Accepted because the
-list is physiology; a pack that genuinely needs its own aroma (a
-smokehouse wanting *tar*) is the signal to move the list to rows rather
-than add the word.
+⚠ **Liking stops at a read.** `eat` says how it went down and feeds you either way. Nothing
+imposes on it until the mind build ([mind-slate](../slates/builds/mind-slate.md)).
 
 
 ## Lead arrives (paint build, 2026-10-31)

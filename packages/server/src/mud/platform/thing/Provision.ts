@@ -13,6 +13,9 @@
  */
 
 import Good from '../../lib/stuff/Good';
+import type { Stuff } from '../../lib/stuff/Stuff';
+import type { FieldMeta } from '../../lib/mixin';
+import type { AugmentOpts, MarkupAugmenter } from '../../api/mml';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
 import { ThermalDoseMixin } from '../../lib/thermal/ThermalDose';
 import { FreshnessMixin } from '../../lib/material/Freshness';
@@ -74,6 +77,15 @@ const ProvisionBase = SampledMixin(
   ),
 );
 
+/** `look` shows the bite, the one thing tasting leaves that anyone can see. */
+function biteAugmenter(text: string, host: Stuff, _viewer: Stuff, opts?: AugmentOpts): string {
+  if (opts?.filter && !opts.filter.includes('vision')) return text;
+  const bites = host instanceof Provision ? host.getBites() : 0;
+  if (bites <= 0) return text;
+  const line = bites === 1 ? 'Someone has taken a bite of it.' : 'Someone has taken a few bites of it.';
+  return text ? `${text}\n\n${line}` : line;
+}
+
 /**
  * ⚠ TS drops an inner mixin's surface through a nested generic mixin:
  * `CraftedMixin` composes `GradedMixin` internally, and swapping the base
@@ -85,6 +97,25 @@ const ProvisionBase = SampledMixin(
 // eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging -- deliberate: the interface half only restates surface the runtime class already has (Crafted ⊃ Graded, present via the inner mixin); nothing is declared that isn't there.
 interface Provision extends Crafted {}
 // eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging -- the class half of the same merge
-class Provision extends ProvisionBase {}
+class Provision extends ProvisionBase {
+  static fieldMeta: FieldMeta = {
+    bites: { persistent: true, runtimeState: true },
+  };
+
+  /** A bite that was tasted shows on it. */
+  static markupAugmenters: MarkupAugmenter[] = [biteAugmenter];
+
+  /** How many times somebody has tasted this. */
+  public bites = 0;
+
+  public getBites(): number {
+    return this.bites;
+  }
+
+  public override async takeBite(kg: number): Promise<void> {
+    this.bites += 1;
+    await super.takeBite(kg);
+  }
+}
 
 export default Provision;

@@ -1,8 +1,9 @@
 # Lager lees — the cold strain's sediment; biologicalSource bridges to
 # S. pastorianus. The jar of this IS the lager line (D14): without the
 # cold strain — and the cold cellar — no lager ferments.
-class: /platform/idea/material/ConsumableMaterial
+class: /platform/idea/material/OdorousConsumableMaterial
 data:
+  smells: [{ word: yeast, strength: 300 }]
   name: lager lees
   keywords: [lager, lees]
   appearance: "a pale, dense cold sediment"

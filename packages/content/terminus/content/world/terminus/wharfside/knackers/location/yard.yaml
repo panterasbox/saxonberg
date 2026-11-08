@@ -38,6 +38,7 @@ data:
     - /trade/cooking/thing/butcher-block
     - /trade/cooking/thing/cook-pot
     - /world/terminus/wharfside/knackers/thing/tallow-crock
+    - /world/terminus/wharfside/knackers/thing/gut-tub
     - /trade/haulage/thing/works-board
   details:
     board:

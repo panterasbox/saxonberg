@@ -285,7 +285,7 @@ profiles, pleasure model and palate.
 
 ## ⭐ Smell and taste build (2026-11-07)
 
-[vocabularies-to-rows](../../requirements/vocabularies-to-rows-requirements.md) builds
+[the smell and taste build](../../subsystems/senses.md#one-smell-source-air-nose) (!531) builds
 § 1's taste profile (born, inherited, learned, aversive; aging stays here) and the
 liking half of § 2 (alliesthesia by hunger). It stops at reading. The meter question
 is answered in [mind-slate § The interlock](./mind-slate.md): one meter, with this

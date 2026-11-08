@@ -1,0 +1,4 @@
+# Dimethyl sulfide and the mercaptans: a dirty ferment or a sulfury low wine.
+word: sulfur
+threshold: 0.01
+liking: { peak: 1.5, width: 2, valence: -1 }

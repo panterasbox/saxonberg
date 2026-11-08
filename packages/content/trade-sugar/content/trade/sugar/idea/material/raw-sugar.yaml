@@ -1,8 +1,9 @@
 # Raw sugar — what comes off the island in a hogshead: brown, damp with
 # its own molasses, and the feedstock of every refinery. It is a SOLID;
 # dissolved in water in the copper it becomes raw liquor.
-class: /platform/idea/material/ConsumableMaterial
+class: /platform/idea/material/OdorousConsumableMaterial
 data:
+  smells: [{ word: molasses, strength: 30 }]
   name: raw sugar
   keywords: [raw-sugar, sugar, raw, muscovado]
   appearance: coarse, damp and brown, smelling of molasses
@@ -14,7 +15,7 @@ data:
   hardness: 1
   toughness: 0
   edibility: true
-  tastes: [sweet]
+  tastes: [{ type: sweet, amount: 950 }, { type: bitter, amount: 0.005 }]
   spoilActivationEnergy: 80000
   waterActivity: 0.6
   nutrients: ["sugar", "water"]

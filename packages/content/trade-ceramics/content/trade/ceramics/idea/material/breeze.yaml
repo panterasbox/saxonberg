@@ -2,8 +2,9 @@
 # the clay: it opens a fat clay so it dries without cracking, and it burns
 # INSIDE the brick in the clamp, firing it from within (ceramics S3). A
 # residue of the fuel, kneaded in at the temper pit.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  burning: [{ word: coal-smoke, strength: 30 }]
   name: breeze
   keywords: [breeze, cinders, "coal ash"]
   appearance: gritty black-grey cinders and ash

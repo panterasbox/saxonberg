@@ -1,6 +1,8 @@
 # Light rum wash — the fermented molasses, ready for the still (sugar D8).
-class: /platform/idea/material/ConsumableMaterial
+class: /platform/idea/material/OdorousConsumableMaterial
 data:
+  smells: [{ word: molasses, strength: 300 }, { word: alcohol, strength: 100 }]
+  tastes: [{ type: sweet, amount: 15 }, { type: sour, amount: 3 }]
   name: light rum wash
   keywords: [wash, rum, "light rum wash"]
   appearance: "a pale, yeasty wash smelling of burnt sugar"

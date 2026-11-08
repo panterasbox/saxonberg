@@ -1379,7 +1379,7 @@ that decides the other three.
 
 ### The MEDIUM — why boiling cannot brown, and no table says so
 
-`Recipe.medium` is `water` | `fat` | absent (dry), and it does exactly
+`Recipe.medium` is any material tag, or absent (dry), and it does exactly
 two things:
 
 1. the recipe must actually HAVE an input carrying the medium's **tag**
@@ -1399,7 +1399,7 @@ root-vegetable spine — the same two roots boiled at 373, roasted dry at
 method table anywhere. Syrup's elevated boiling point needs no special
 case: it rides its own row.
 
-An unknown medium word **throws at `Recipe.fromData`**: a typo must not
+A medium no material in reach carries **fails `lint:aromas`**: a typo must not
 silently cook a stew over an uncapped fire. The by-hand `matchBuild`
 clamps identically (`resolveMediumCaps` pre-resolves the banked media so
 the reverse-match stays synchronous), so the same meat banked with water
@@ -1519,10 +1519,11 @@ The competence read is the SYNC digest cache, and a cold cache reads as
 the floor band — honest rather than defective: an unexercised palate IS a
 novice palate. ⚠ Never a gate: every band tastes the food.
 
-⚠⚠ **It lives on `PalatableMixin` (`lib/metabolism/Palatable.ts`),
-composed on `ServingVessel`** — a vessel a made portion reaches a person
-in. It took two wrong hosts to get there, and both were defended with a
-sentence that was true:
+⭐ **That read is the person's now** (`PalateMixin`, [metabolism.md](./metabolism.md)): a
+palate lives on the taster, not the vessel. What follows is why it took three hosts.
+
+It sat on `ServingVessel` first, after two wrong hosts, both defended with a sentence
+that was true:
 
 1. **`BulkableMixin`** — which put a taste-palate augmenter on `Floor`
    (puddles), `GardenBed`, `PlantPot`, `AirTank` and `WateringCan`, made
@@ -1552,7 +1553,7 @@ CraftVessel        + VesselKind + Serviceable   a trade's working vessel
   │                                             wort/must/wash bucket,
   │                                             tallow crock, oil bottle
   │
-  └─ ServingVessel + Palatable        a made portion reaches a person IN it
+  └─ ServingVessel                    a made portion reaches a person IN it
        │                              the 9 glasses, syrup + juice bottles
        ├─ Dish     + NutritionLabel
        └─ CookPot  (trade-cooking)

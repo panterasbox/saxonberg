@@ -3,8 +3,10 @@
 # recipe declaring `medium: fat` matches its fat slot against this tag,
 # and the `smokePoint` below is the ceiling that recipe's heat is capped
 # at. That is the whole of "you can fry hotter than you can boil".
-class: /platform/idea/material/ConsumableMaterial
+class: /platform/idea/material/OdorousConsumableMaterial
 data:
+  smells: [{ word: tallow, strength: 60 }]
+  burning: [{ word: tallow-smoke, strength: 400 }]
   name: tallow
   keywords: [suet, tallow, fat, dripping]
   appearance: pale, waxy rendered tallow
@@ -40,7 +42,7 @@ data:
   # DISH tastes like — `taste` derives that from what went in, projected
   # through the taster's own palate. See docs/subsystems/crafting.md.
   # Rendered fat carries flavour more than it has one; umami is the nearest honest word.
-  tastes: [umami]
+  tastes: [{ type: umami, amount: 0.5 }]
   nutrients: [fat]
   nutrientAmounts:
     fat: 90000

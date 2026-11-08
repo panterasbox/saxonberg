@@ -17,8 +17,10 @@
 # clamp); `thermalConductivity` / `specificHeat` → thermal.
 # `biologicalSource` names the tree; the species row names its LIVING
 # material (plant tissue) — the wood is what is left when it is felled.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ word: pine, strength: 10 }]
+  burning: [{ word: pine-tar, strength: 100 }, { word: wood-smoke, strength: 300 }]
   name: pine
   keywords: [pine, deal, softwood]
   density: 510

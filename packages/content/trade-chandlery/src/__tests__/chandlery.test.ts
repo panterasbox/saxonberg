@@ -297,15 +297,8 @@ describe('the class', () => {
     ).toBeGreaterThan(0);
   });
 
-  it('⭐ is a Lamp that smells', () => {
-    const c = makeStuff(() => new Candle());
-    expect(c instanceof Lamp).toBe(true);
-    expect(MixinApi.isSmellSource(c as unknown as Stuff)).toBe(true);
-    // A lantern is not. This is the one thing a candle has that a lantern
-    // does not, and it is why a tallow candle was worth complaining about.
-    expect(MixinApi.isSmellSource(makeStuff(() => new Lamp()) as unknown as Stuff)).toBe(
-      false,
-    );
+  it('⭐ is a Lamp', () => {
+    expect(makeStuff(() => new Candle()) instanceof Lamp).toBe(true);
   });
 
   it('⚠ a candle made of nothing in particular is still a candle', () => {
@@ -315,15 +308,12 @@ describe('the class', () => {
     c.setShortDescription('candle');
     expect(c.getShortDescription()).toBe('candle');
     expect(() => c.getLongDescription()).not.toThrow();
-    // …and `adoptMaterialSmell` on it is a no-op rather than a crash.
-    expect(() => c.adoptMaterialSmell()).not.toThrow();
     // ⭐⭐ Same for the FUEL, and the fire build is why it matters: a
     // candle is a `Burner` whose fuel is itself, so a candle with an
     // empty bed is a light that can never be lit — which is exactly the
     // defect this build found on a shop counter twice. A materialless
     // candle keeps the ROW's tallow default rather than being emptied.
     expect(() => c.adoptMaterialFuel()).not.toThrow();
-    expect(c.getOdorIdentity()).toBe('');
   });
 });
 

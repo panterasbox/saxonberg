@@ -11,8 +11,10 @@
 # candles are brighter than tallow, do not stink, and do not go rancid.
 # The candle trade was transformed by a by-product of the lamp trade,
 # which is joint production paying off rather than costing.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ word: paraffin, strength: 3 }]
+  burning: [{ word: wax-smoke, strength: 100 }]
   name: paraffin wax
   keywords: [paraffin, "paraffin wax", wax, candle-wax]
   appearance: a translucent white wax that goes greasy under a thumb

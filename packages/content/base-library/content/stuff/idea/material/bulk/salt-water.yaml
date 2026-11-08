@@ -6,6 +6,7 @@
 # hydration — and enough of it makes you ill.
 class: /platform/idea/material/Material
 data:
+  tastes: [{ type: salty, amount: 35 }]
   name: salt water
   keywords: [water, brine, "salt water", saltwater, seawater, salt]
   appearance: clear brine
@@ -23,6 +24,8 @@ data:
   # ⭐ Its pH (B109): seawater is ALKALINE, so it draws no lead from a
   # glaze (it was authored faintly acid on a 0..1 dial that nothing checked).
   ph: 8.1
+  # Dissolved salt lifts the boiling point a little above water's.
+  boilingPoint: 374
   tags: [liquid, brine, conductive]
   # ⭐⭐ Crystallizing (ceramics S17). Sea water carries about 35 g of salt
   # a liter; a liter of brine holds about 316 g of it at freezing and only

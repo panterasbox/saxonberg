@@ -3,8 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "The medical trade — how a body is READ. `analyze patient`, the diagnostic surface where competence buys information and never outcomes.",
+  "description": "The medical trade \u2014 how a body is READ. `analyze patient`, the diagnostic surface where competence buys information and never outcomes.",
   "dependencies": {
+    "@saxonberg/content-base-library": "workspace:*",
     "@saxonberg/content-platform": "workspace:*",
     "@saxonberg/server": "workspace:*",
     "@saxonberg/types": "workspace:*"

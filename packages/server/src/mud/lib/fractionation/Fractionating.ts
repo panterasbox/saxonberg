@@ -75,6 +75,8 @@ import type { AnyConstructor } from '../../api/mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { MarkupAugmenter } from '../../api/mml';
 import { MixinApi } from '../../api/mixin';
+import { PerceptionApi } from '../../api/perception';
+import type { SmellModality } from '../../platform/idea/modalities/SmellModality';
 import { StuffApi } from '../../api/stuff';
 import { ExecutionContextApi } from '../../api/execution-context';
 import { WorldClockApi } from '../../api/worldclock';
@@ -83,10 +85,7 @@ import type Material from '../material/Material';
 import type { BulkAffordance, BulkPayload } from '../bulk/Bulkable';
 import type { ToxinTag } from '../metabolism/Metabolic';
 import { DissolvedToxins } from '../metabolism/DissolvedToxins';
-import {
-  DissolvedAromatics,
-  type AromaTag,
-} from '../metabolism/DissolvedAromatics';
+import type { AromaTag } from '../metabolism/DissolvedAromatics';
 import { Concentration } from '../bulk/Concentration';
 import { Grade } from '../craft/Grade';
 import FractionSchedule, { type FractionSpec } from './FractionSchedule';
@@ -138,7 +137,7 @@ export interface Fractionating {
  * The state line on a `look`, and the lagged character on `smell` /
  * `taste`.
  *
- * ⚠ The filter gate is the whole of the Palatable lesson: an augmenter
+ * ⚠ The filter gate is the lesson of every sense augmenter: an augmenter
  * that ignores `opts.filter` lands on every channel, which is how
  * `maturationAugmenter` came to read a cellar line out over a field of
  * linen. `look` gets the state and never the fraction — a glance at a
@@ -169,12 +168,20 @@ function fractionAugmenter(
     // `Fractionating`'s, so the narrowing has to say so — the host is
     // both, and widening the Fractionating interface to borrow a bulk
     // method would be the wrong fix.
-    const aroma = MixinApi.isBulkable(host)
-      ? DissolvedAromatics.render(
-          host.getBulkPayloadForDraw('interior', 0)?.dissolvedAromatics,
-          bandFor(viewer, host.getRunSchedule()?.getDiscipline() ?? ''),
-        )
-      : null;
+    const smell = PerceptionApi.modalityByName('smell') as SmellModality;
+    const scent =
+      MixinApi.isBulkable(host) && MixinApi.isOlfactory(viewer)
+        ? viewer.nose(
+            smell.emissionOfBlend(
+              host,
+              host.getBulkPayloadForDraw('interior', 0),
+              host.getRunSchedule()?.getDiscipline() ?? '',
+            ),
+            { close: true },
+          )
+        : null;
+    const aroma =
+      scent && !scent.isEmpty() ? `It smells ${scent.phrases().join(', ')}.` : null;
     if (aroma) line = line ? `${line} ${aroma}` : aroma;
   } else if (!filter) {
     const phase = host.getRunPhase();

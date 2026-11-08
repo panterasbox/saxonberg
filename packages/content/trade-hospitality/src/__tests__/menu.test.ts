@@ -18,6 +18,7 @@
  * the sweep.
  */
 
+import { Aroma, type AromaData } from '@saxonberg/server/mud/lib/perception/Aroma';
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import { readdirSync, readFileSync, existsSync } from 'fs';
@@ -117,6 +118,7 @@ function contentRows(): Row[] {
     ...yamlDir('platform', 'platform/idea/persistence/QuantityMarshaller', '/platform/idea/persistence/QuantityMarshaller'),
     ...yamlDir('platform', 'platform/idea/material', '/platform/idea/material'),
     ...yamlDir('platform', 'platform/location', '/platform/location'),
+    ...yamlDir('base-library', 'stuff/idea/material/wood', '/stuff/idea/material/wood'),
     ...yamlDir('base-library', 'stuff/idea/material/bulk', '/stuff/idea/material/bulk'),
     ...yamlDir('base-library', 'stuff/idea/material/glass', '/stuff/idea/material/glass'),
     ...yamlDir('base-library', 'stuff/idea/material/element', '/stuff/idea/material/element'),
@@ -193,6 +195,18 @@ beforeAll(async () => {
   ModuleApi.registerPackSource(DIST_SRC, '/trade/distilling');
 
   installRecordTestDb().seed(Collections.Content, contentRows());
+  // The aroma words the materials name, read from the shipped documents: a
+  // material's setter loads each one, and this test has no document store.
+  const aromaDir = join(CONTENT, 'base-library', 'content', 'aromas');
+  const pending = (readdirSync(aromaDir, { recursive: true }) as string[])
+    .filter((f) => f.endsWith('.yaml'))
+    .map((f) => YAML.parse(readFileSync(join(aromaDir, f), 'utf8')) as AromaData)
+    .map((data) => ({ word: String(data.word), data }));
+  while (pending.length > 0) {
+    const i = pending.findIndex((p) => !p.data.parent || Aroma.resolveKnown(p.data.parent));
+    const [next] = pending.splice(i, 1);
+    Aroma.remember(next!.word, next!.data, next!.data.parent ? Aroma.resolveKnown(next!.data.parent) : null);
+  }
 
   vi.spyOn(DocumentApi, 'listOfKind').mockImplementation(async (kind: string) =>
     kind === 'archetype'

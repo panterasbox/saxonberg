@@ -14,8 +14,10 @@
 # profile keys on `distillers-wort` — so sharing the tag would have a
 # grain wort fermenting on the malt schedule and both profiles claiming
 # the same matter (the double-match rule's warning case).
-class: /platform/idea/material/ConsumableMaterial
+class: /platform/idea/material/OdorousConsumableMaterial
 data:
+  smells: [{ word: mash, strength: 300 }]
+  tastes: [{ type: sweet, amount: 90 }]
   name: grain wort
   keywords: [wort, grain, "grain wort"]
   appearance: "a pale, thin wort, almost milky with starch"

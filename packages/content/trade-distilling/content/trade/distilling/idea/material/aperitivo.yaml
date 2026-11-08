@@ -2,8 +2,10 @@
 # input slot matches (aperitivo); the brand is the ROW's
 # (`_brandKey`), never the material's. Distilling's, by the generic drain
 # rule: the trade whose PROCESS makes it ships it.
-class: /platform/idea/material/ConsumableMaterial
+class: /platform/idea/material/OdorousConsumableMaterial
 data:
+  smells: [{ word: spirit, strength: 300 }, { word: herbal, strength: 300 }]
+  tastes: [{ type: sweet, amount: 100 }, { type: bitter, amount: 1 }]
   name: aperitivo
   keywords: [aperitivo]
   appearance: a bright red, bittersweet aperitivo

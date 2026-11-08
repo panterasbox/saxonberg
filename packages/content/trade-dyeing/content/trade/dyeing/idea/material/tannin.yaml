@@ -6,8 +6,9 @@
 # a colour BINDS TO, which is why the skill in this trade is
 # front-loaded: you commit to a colour family in the first bath, before
 # you can see anything at all.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ word: tannin, strength: 800 }]
   name: tannin
   keywords: [tannin]
   appearance: dark astringent tannin

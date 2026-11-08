@@ -1,6 +1,8 @@
 # Grapefruit soda — bottling's. `carbonated`: a drink built on it fizzes (the derived payload carries the tag).
-class: /platform/idea/material/ConsumableMaterial
+class: /platform/idea/material/OdorousConsumableMaterial
 data:
+  smells: [{ word: citrus, strength: 100 }]
+  tastes: [{ type: sweet, amount: 90 }, { type: sour, amount: 3 }, { type: bitter, amount: 0.02 }]
   name: grapefruit soda
   keywords: [grapefruit, grapefruit-soda, soda]
   appearance: "pink, tart, fizzing grapefruit soda"

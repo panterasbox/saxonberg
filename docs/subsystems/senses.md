@@ -227,12 +227,8 @@ export interface OlfactoryProfile {
 }
 ```
 
-No propagation walk means no math consumes the value — the field's
-job in this build is shape + place for content authors to start
-declaring per-species smell variance. When the
-`PerceptionChannel` substrate lands and smell gains a propagation
-walk, this extracts to a `lib/perception/Smell.ts` value-object
-module following the `Light.ts` precedent.
+The nose multiplies a signal by it: `keen` ×10, `normal` ×1, `dull` ×0.1, and `none`
+reads nothing. See [§ One smell](#one-smell-source-air-nose).
 
 No `hearingProfile` / `tactileProfile` / `gustatoryProfile` yet —
 those land per content demand.
@@ -432,7 +428,7 @@ times; the substrate's filter does the per-viewer per-verb work.
 thing an event leaves behind. Lighting a candle is ONE event — a single
 hearing-channel frame for the match. The *lit candle* is then state with
 multi-sense affordances (vision: the `LightSource`; touch: the `Thermal`
-surface band; smell: a `SmellSource`), and anyone who walks in afterward
+surface band; smell: a source that is simply there), and anyone who walks in afterward
 looks / smells / feels and reads those per-sense. The substrate never
 fans one event across all senses; the event is one channel, and the
 affordance it leaves is queryable per-sense for as long as it persists —
@@ -536,13 +532,6 @@ existed in three identical private copies, two of them annotating the
 v1 limitation as *"shared verbatim"* — a comment admitting the
 duplication while making another copy of it.
 
-⭐ **Dirt smells** (cleanliness B57): the smell walk's contents leg also
-reads a `Soilable`'s DERIVED odour (`soilOdour()` — each dirt row's `odour`
-× its load; a body adds what it wears) beside any `SmellSource`'s stored
-emission, so a sweat-sour body or a dung-caked boot scents the room it is
-in, and `smell <thing>` reads *it smells of stale sweat* (the soil
-augmenter gives the marks to sight and the odour to the nose).
-
 The walks share structural shape (ambient + contents-side emitters +
 fixture-side emitters + cross-boundary via Conduit + cross-exit at base
 transmissivity, depth-capped via `MAX_HOPS = 2`, cycle-guarded via a
@@ -552,9 +541,9 @@ transmissivity, depth-capped via `MAX_HOPS = 2`, cycle-guarded via a
   lumen-flux accumulator, sources → `Light` value object with lux
   intensity + flux-weighted color temperature + capped 3-entry
   source list. Door + Window participate via `LightConduit`.
-- **Smell**: ppm concentration accumulator with per-identity
-  totals, dominant identity by total concentration, capped 3-entry
-  source list. Door + Window participate via `SmellConduit`.
+- **Smell**: per-word odor units, one band fainter per hop, every source kept.
+  Door + Window participate via `SmellConduit`. See
+  [§ One smell](#one-smell-source-air-nose).
 - **Sound**: linear-amplitude accumulator (`10^(dB/10)` terms)
   converted back to dB at wrap — physically correct merge for
   incoherent sources. Two 60 dB sources sum to ~63 dB (not 120).
@@ -569,6 +558,72 @@ authored as a low-transmissivity boundary, never derived from geometric
 adjacency — a known fidelity loss (real walls leak at low levels) whose
 full fix needs adjacency from the spatial subsystem; revisit if content
 cases pile up. (Graduated from the senses slate, 2026-09-19.)
+
+### One smell: source, air, nose
+
+A smell is one event at different distances. A glass under your nose and a room
+are the same read.
+
+**The quantity is the odor unit (OU):** a source's strength as a multiple of its
+word's detection threshold, the real EN 13725 unit. 1 OU is just detectable by an
+ordinary nose. A nose words it on the log ladder `1 · 30 · 300 · 2000 · 8000` and
+the gas analyzer prints it, so the quantity survives the epoch and only the reader
+changes.
+
+**Words are documents** of kind `aroma`, keyed by `word:` across every pack (`lib/perception/Aroma`),
+a slug read with its hyphens as spaces. ⭐ A Document and not an Idea: a word is
+authored metadata. Nothing writes one after it loads, nothing acts on one, and
+nothing should find one with MQL. Each document's `parent:` is the tree, and a word
+takes what it leaves unstated from its parent, so a pack adds a word with no kernel
+edit (`content/aromas/…`, at any depth: the file's place is the author's to arrange). A word loads when something naming it loads: the
+naming row's setter awaits `Aroma.ensure`, which also fails loudly if there is no
+document, and a cold read starts the load that `smell`, `taste` and `analyze` wait out.
+`lint:aromas` catches the same at CI.
+
+**The source** is `SmellModality.emissionOf(thing)`, derived over the mixins a thing
+already composes. There is no stored emission and no smell mixin on things.
+
+| leg | from | strength |
+|---|---|---|
+| its substance | `OdorousMixin.smells` on the material | OU of one kilogram at 293 K |
+| what a vessel holds | the makeup's or material's smells; dissolved aromas | `amount ÷ threshold`, one band under the glass in a room |
+| rot | `rotNote()`, by band | 30 · 300 · 3000 |
+| dirt | `soilOdor()`, per kind | `load × ouPerLoad` |
+| a corpse | `decayNote()`, by stage | blood 30 · decay 3000 · decay 30 |
+| a living animal | `Species.smells` | OU of one kilogram |
+| a fire | `burningNotes()`: the fuel's `burning`, lit only | `× sqrt(bed kg)` |
+| the ground | the floor's material | at 100 kg |
+
+Four rules apply throughout. **Amount** is compressive (`sqrt(kg)`: 10 g and 100 kg
+are two bands apart). **Heat** doubles per 10 K, for anything with a temperature. A
+**closed** container holds in what is inside it, including what you carry. **Distance**
+is one band per hop (`hopTau`, 1/30), times a boundary's own transmissivity.
+
+⛔ Plain matter holds no smell data at all: iron, glass and clean water name a plain
+`Material`. ⛔ **Fouled and tainted water and a pipe's lead author no smell and no
+taste**: finding the source by comparing outcomes is the point of the water design
+([watershed.md](./watershed.md)).
+
+**The nose** is `OlfactoryMixin.nose(signal)`, on `Creature`, and every read goes
+through it: `smell`, `analyze aroma`, the back of the mouth, a still. It applies the
+species' acuity, a born sensitivity per word (seeded on identity, stored nowhere), and
+adaptation; drops anything under 1 OU, for everyone; and only then does competence
+apply. **Competence never changes whether or how strongly you smell something.** It
+decides how far down the tree you name it (the better of the maker's discipline and
+the row's) and how many smells you can pull apart. ⭐ A word with no discipline behind
+it at all is common knowledge, or no one could ever learn it.
+
+**The nose tells you what, not where.** Beyond the room you get the word and the
+strength. In the room a smell is pinned on a thing only when every source of it is
+here, there is exactly one, and you can see it. `smell <thing>` always knows.
+
+**Adaptation** is on the game clock. `onMoved` stamps arrival and a read reconciles, so
+staying counts whether or not anyone types `smell`, and nothing walks the air on
+arrival. A word rises or falls one band per 600 game-seconds, to two bands. Your own
+smell, clothes included, starts fully adapted; what you carry does not. ⚠ The one
+approximation: the nose tracks stays, not every room's air, so a stay in which a word
+was never read counts as time away. It is runtime state: a restart or a sign-out brings
+a fresh nose, and a linkdead body holds still.
 
 ### Touch (contact modality)
 
@@ -709,11 +764,13 @@ lib/perception/
 │   ├── VerbalESPModality.ts       (signalAt null v1)
 │   └── EmotiveESPModality.ts      (signalAt null v1)
 ├── Light.ts                       Value object + bandFor + LIGHT_BANDS + applyBandShift + compareBand + ShadowQuality
-├── Smell.ts                       Value object (ppm + identity + sources)
+├── Aroma.ts                       Aroma: one word, read from its `aroma` document
+├── Smell.ts                       Smell (the signal, per word in OU) + Scent (what a nose made of it)
+├── Flavor.ts                      Flavor (what is in a mouthful) + Savor (what a mouth made of it) + Liking
+├── Olfactory.ts                   Mixin: the nose of a body
 ├── Sound.ts                       Value object (dB + character + sources)
 ├── Touch.ts                       Value object (K + TouchBand) + bandFor
 ├── LightSource.ts                 Mixin + LightSourceObserver hook contract
-├── SmellSource.ts                 Mixin + SmellSourceObserver hook contract
 ├── SoundSource.ts                 Mixin + SoundSourceObserver hook contract
 └── (Perception.ts, AmbientLit.ts, Scryable.ts — substrate unchanged)
 
@@ -835,3 +892,6 @@ three MR-iteration rounds before the final shape; key shifts:
     player) moved to `shell.result.*` family. 22 controllers
     updated; ambient subtree uses channel-named leaves because
     ambient has no verb to name them.
+
+- **2026-11-07 (vocabularies-to-rows):** smell became one model. `SmellSourceMixin`,
+  `ppm` on smell and the flat threshold retired. See [§ One smell](#one-smell-source-air-nose).

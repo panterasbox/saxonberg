@@ -34,6 +34,8 @@
  * "condition" (it means three things already).
  */
 
+import { Aroma } from '../perception/Aroma';
+import type { SmellNote } from '../perception/Smell';
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { AugmentOpts, MarkupAugmenter } from '../../api/mml';
@@ -281,7 +283,8 @@ export interface Soilable {
    * nothing it carries smells. A body adds what it wears. The smell walk
    * reads it beside a `SmellSource`'s stored emission.
    */
-  soilOdour(): { identity: string; ppm: number } | null;
+  /** What its dirt gives a nose: one note per word, in OU. */
+  soilOdor(): SmellNote[];
 
   // Public so the applier and the persistence spine can reflect into them.
   deposits: Record<string, number>;
@@ -525,7 +528,7 @@ export function SoilableMixin<TBase extends MixinConstructor<Stuff>>(
     protected dirtKind(kind: string): DirtKindDescriptor | null {
       const row = StuffApi.findByTemplatePath<DirtKind>(DIRT_KIND_ROOT + kind);
       if (row) return row.descriptor();
-      void StuffApi.singleton(DIRT_KIND_ROOT + kind).catch(() => {});
+      Aroma.loadRow(DIRT_KIND_ROOT + kind);
       return null;
     }
 
@@ -584,25 +587,14 @@ export function SoilableMixin<TBase extends MixinConstructor<Stuff>>(
       return 1;
     }
 
-    public soilOdour(): { identity: string; ppm: number } | null {
-      const byIdentity = new Map<string, number>();
+    public soilOdor(): SmellNote[] {
+      const byWord = new Map<string, number>();
       for (const [key, load] of Object.entries(this.deposits)) {
-        const kind = splitKey(key)[1];
-        const odour = this.dirtKind(kind)?.odour ?? null;
-        if (!odour || !(load > 0)) continue;
-        byIdentity.set(odour.identity, (byIdentity.get(odour.identity) ?? 0) + load * odour.ppmPerLoad);
+        const odor = this.dirtKind(splitKey(key)[1])?.odor ?? null;
+        if (!odor || !(load > 0)) continue;
+        byWord.set(odor.word, (byWord.get(odor.word) ?? 0) + load * odor.ouPerLoad);
       }
-      let ppm = 0;
-      let identity = '';
-      let strongest = 0;
-      for (const [id, p] of byIdentity) {
-        ppm += p;
-        if (p > strongest) {
-          strongest = p;
-          identity = id;
-        }
-      }
-      return ppm > 0 ? { identity, ppm } : null;
+      return [...byWord.entries()].map(([word, ou]) => ({ word, ou }));
     }
 
     public liftedBy(kind: string, site: string = WHOLE_SITE): DirtLift {
@@ -809,17 +801,10 @@ function soilAugmenter(
   opts?: AugmentOpts,
 ): string {
   if (!MixinApi.isSoilable(host)) return text;
-  // ⭐ Each line to its sense (B57): the marks to sight, the smell to the
-  // nose — `smell shirt` reads *stale sweat*, never *greasy*; a bare
-  // `look` (no filter) reads both.
-  const sees = !opts?.filter || opts.filter.includes('vision');
-  const smells = !opts?.filter || opts.filter.includes('smell');
-  const odour = smells ? host.soilOdour() : null;
-  const smellLine =
-    odour && odour.ppm >= dialOf(AppSettingKeys.cleanlinessOdourNoticedPpm, 10)
-      ? `${odour.ppm >= 100 ? 'It reeks' : 'It smells'} of ${odour.identity}.`
-      : '';
-  const line = [sees ? host.soilLookLine(viewer) : '', smellLine].filter((l) => l).join(' ');
+  // The marks are sight's. A nose reads dirt as a source (`soilOdor`), so
+  // `smell shirt` reads *stale sweat* and never *greasy*.
+  if (opts?.filter && !opts.filter.includes('vision')) return text;
+  const line = host.soilLookLine(viewer);
   if (!line) return text;
   // ⚠ Found by the drive: this was gated on `canMakeOutMarks` — the light
   // to read FINE PRINT — so a bloodied apron in a dim cookhouse (≈4 lux at

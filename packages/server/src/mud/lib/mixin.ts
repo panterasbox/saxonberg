@@ -378,7 +378,6 @@ export const Mixins = {
   Adornment: 'AdornmentMixin',
   AmbientLit: 'AmbientLitMixin',
   LightSource: 'LightSourceMixin',
-  SmellSource: 'SmellSourceMixin',
   SoundSource: 'SoundSourceMixin',
   // Discrete-event sound push — a whistle, a bell, an alarm, a chime.
   Audible: 'AudibleMixin',
@@ -405,6 +404,8 @@ export const Mixins = {
   Dressing: 'DressingMixin',
   Reserved: 'ReservedMixin',
   Radioactive: 'RadioactiveMixin',
+  Odorous: 'OdorousMixin',
+  Olfactory: 'OlfactoryMixin',
   Muscle: 'MuscleMixin',
   Cut: 'CutMixin',
   // The form axis — a material worked into a Construction (materials-
@@ -538,7 +539,7 @@ export const Mixins = {
   NutritionLabel: 'NutritionLabelMixin',
   // The derived taste reading, projected through the taster's own
   // competence in the discipline that MADE the thing.
-  Palatable: 'PalatableMixin',
+  Palate: 'PalateMixin',
   Thermal: 'ThermalMixin',
   ThermalRegulation: 'ThermalRegulationMixin',
   // ⭐ Active cooling/heating of an Atmospheric interior toward a setpoint
@@ -900,6 +901,9 @@ export type MixinName = typeof Mixins[keyof typeof Mixins];
  * there for a constraint about to be written.
  */
 export const MixinRefusals: Partial<Record<MixinName, string>> = {
+  OdorousMixin: '{} has no smell of its own',
+  OlfactoryMixin: '{} has no nose',
+  PalateMixin: '{} has no palate',
   // ⭐ Ground, not a thing: the useful information is that the target had
   // to be a piece of ground somebody could work, which "{} is not
   // improvable" would not have said.

@@ -9,8 +9,9 @@
 # chemistry with more than one axis is farming's later business; one
 # limiting nutrient is enough to make an unfed bed yield worse, which is
 # the whole lesson phase 2 is after.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ word: compost, strength: 100 }]
   name: compost
   keywords: [humus, compost, muck, manure]
   appearance: crumbly black compost

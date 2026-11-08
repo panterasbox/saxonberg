@@ -8,6 +8,7 @@
 # one — which is how the trade actually works.
 class: /platform/idea/species/Species
 data:
+  smells: [{ word: hog, strength: 40 }]
   binomial: Sus domesticus
   commonNames: ["hog", "pig", "swine", "boar"]
   _bodyPlanPath: /stuff/idea/species/BodyPlan/quadruped

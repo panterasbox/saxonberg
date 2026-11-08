@@ -11,6 +11,7 @@
 # and nothing had to learn a second shape.
 class: /platform/idea/material/Material
 data:
+  tastes: [{ type: salty, amount: 1000 }]
   name: rock salt
   keywords: [halite, "rock salt", salt]
   appearance: glassy grey-pink rock salt

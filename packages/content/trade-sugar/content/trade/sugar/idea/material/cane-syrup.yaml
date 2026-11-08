@@ -3,6 +3,7 @@
 # strikes.
 extends: /trade/sugar/idea/material/raw-liquor
 data:
+  smells: [{ word: caramel, strength: 100 }]
   name: cane syrup
   keywords: [cane-syrup, syrup, treacle, golden]
   appearance: thick and golden, slow off a spoon
