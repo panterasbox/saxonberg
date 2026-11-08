@@ -476,7 +476,14 @@ suite('⭐ drive 4 — strew and sweep a bloodied floor (AC 12)', () => {
     await act(cook, 'sweep with broom');
     const after = await examine(cook, 'floor');
     expect(after, `the floor, swept: ${after}`).not.toMatch(/blood/i);
-    const heap = await mine(cook, 'sweepings');
+    // ⚠ Polled: the heap is minted AFTER the engagement completes (the floor
+    // writes its record, then clones the heap into the hands), so on a loaded
+    // world the first read can land before it.
+    let heap = '';
+    for (let i = 0; i < 10 && !/sweepings/i.test(heap); i++) {
+      if (i > 0) await new Promise((res) => setTimeout(res, 1_000));
+      heap = await mine(cook, 'sweepings');
+    }
     expect(heap, `the heap: ${heap}`).toMatch(/sweepings/i);
   }, 300_000);
 });
@@ -626,7 +633,11 @@ suite('⭐⭐ drive 16 — the ward: a boiled bandage, a kit in the flame (AC 18
     await act(s, 'get bandage');
     const boiled = await act(s, 'put bandage in pot');
     expect(boiled, `put bandage in pot: ${boiled}`).toMatch(/pot/i);
-    const flamed = await act(s, 'heat kit');
+    // ⚠ `surgical kit`, not `kit`: names are keywords (controllers-are-io
+    // D22), so the water-test kit this cook carries from the water drive is
+    // a kit too, and `heat` looks in the hand first. It bound that and said
+    // "Heat what?".
+    const flamed = await act(s, 'heat surgical kit');
     expect(flamed, `heat the kit: ${flamed}`).toMatch(/flame/i);
     s.close();
   }, 300_000);

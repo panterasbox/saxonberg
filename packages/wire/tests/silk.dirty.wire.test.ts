@@ -54,6 +54,7 @@ import {
   isOwnedTestWorld,
   advanceWorldClock,
   worldClockNow,
+  hand,
 } from '../src/harness';
 
 /**
@@ -509,6 +510,10 @@ suite('⭐ 19. fishing’s `reel` is unchanged', () => {
   it('⭐ AC 19 — `reel` with no line out says so, as it always did', async () => {
     const s = await at(MILL);
     try {
+      // ⭐ With a rod in hand: `reel` is fishing's alone now (controllers-are-io
+      // W6a — silk's act is `unwind`), afforded by the rod, so at the mill
+      // without one it is no verb at all. With one and no line out, it says so.
+      await hand(s, '/trade/fishing/thing/rod');
       const r = await say(s, 'reel');
       expect(refusedFor(r)).toBe('no-line');
     } finally {
