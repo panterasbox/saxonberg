@@ -1,4 +1,3 @@
 # Green and peppery.
-word: olive
-parent: oil
+parent: /base-library/aromas/oil
 discipline: cooking

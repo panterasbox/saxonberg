@@ -1,4 +1,3 @@
 # Pine resin and its pinene.
-word: pine
-parent: resin
+parent: /base-library/aromas/resin
 discipline: silviculture

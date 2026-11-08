@@ -7,7 +7,7 @@
 # `work`, so nobody can author a tender shank.
 class: /platform/idea/material/Muscle
 data:
-  smells: [{ word: raw-meat, strength: 60 }]
+  smells: [{ aroma: /base-library/aromas/raw-meat, strength: 60 }]
   name: shoulder
   keywords: [shoulder]
   work: 0.8

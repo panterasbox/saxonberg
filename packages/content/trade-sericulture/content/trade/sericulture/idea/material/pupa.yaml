@@ -3,7 +3,7 @@
 # silk is reeled. It goes off like any meat.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: silk-reeling, strength: 300 }]
+  smells: [{ aroma: /base-library/aromas/silk-reeling, strength: 300 }]
   name: silkworm pupa
   keywords: [pupa, pupae, chrysalis]
   appearance: brown, glossy silkworm pupae

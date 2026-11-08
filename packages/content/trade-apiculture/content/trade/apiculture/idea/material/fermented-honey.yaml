@@ -10,7 +10,7 @@
 # the product from the defect is that somebody meant it.
 class: /platform/idea/material/OdorousConsumableMaterial
 data:
-  smells: [{ word: honey, strength: 100 }, { word: alcohol, strength: 60 }]
+  smells: [{ aroma: /base-library/aromas/honey, strength: 100 }, { aroma: /base-library/aromas/alcohol, strength: 60 }]
   name: fermented honey
   keywords: [honey, fermented, spoiled]
   appearance: "honey gone pale and frothy, with a rim of foam at the glass"

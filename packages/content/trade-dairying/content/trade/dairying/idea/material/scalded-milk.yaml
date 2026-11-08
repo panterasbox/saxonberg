@@ -3,7 +3,7 @@
 # `yoghurt` profile keys on it.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: milk, strength: 60 }]
+  smells: [{ aroma: /base-library/aromas/milk, strength: 60 }]
   tastes: [{ type: sweet, amount: 45 }]
   name: "scalded milk"
   keywords: [milk, "scalded milk"]

@@ -4,7 +4,7 @@
 # more. Its keeping is its water, which the hoop decided.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: cheese, strength: 300 }]
+  smells: [{ aroma: /base-library/aromas/cheese, strength: 300 }]
   tastes: [{ type: salty, amount: 8 }, { type: sour, amount: 5 }]
   name: "soft cheese"
   keywords: [cheese, "soft cheese"]

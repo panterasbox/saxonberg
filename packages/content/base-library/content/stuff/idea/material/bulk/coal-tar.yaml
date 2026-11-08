@@ -17,8 +17,8 @@
 # recorded seam and not a silence.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: coal-tar, strength: 4000 }]
-  burning: [{ word: oil-smoke, strength: 1500 }]
+  smells: [{ aroma: /base-library/aromas/coal-tar, strength: 4000 }]
+  burning: [{ aroma: /base-library/aromas/oil-smoke, strength: 1500 }]
   name: coal tar
   keywords: ["coal tar", tar, "gas tar"]
   appearance: a thick black liquid that smells of creosote

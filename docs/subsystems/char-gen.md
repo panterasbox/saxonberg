@@ -474,8 +474,8 @@ the kind's portrait). char-gen reads:
 - `commonNames` — the roster keys/labels (`'human'`, `'elf'`, …).
 - `sexDeterminationSystem` — non-empty ⇒ the species is sexed ⇒ the
   `sex` field applies and offers male/female.
-- `nameBankKeys` — references to one or more `NameBank` Documents that
-  feed the name suggester.
+- `nameBanks` — the paths of one or more `name-bank` documents that
+  feed the name suggester (`/species-and-names/name-banks/common`).
 - `illustration` — the bucket-relative key for the species portrait,
   surfaced on `CharGenOption.image` (the 3:4 detail-card slot). The client
   resolves it via `MEDIA_BASE_URL`; see [media.md](./media.md).
@@ -498,12 +498,15 @@ choices, write the picks).
 `documents` row of `kind: 'name-bank'` (content-packs wave 2 collapsed the
 former `name_banks` collection) — **not** inlined on the `Species` template (a
 shared "common human" bank can back several species). It holds `given`,
-`surname`, and `style` pools. `SpeciesApi.resolveNamePools(keys)` unions the pools
-for the species' `nameBankKeys`. Banks are installed from the
+`surname`, and `style` pools. `SpeciesApi.resolveNamePools(paths)` unions the pools
+for the species' `nameBanks`. Banks are installed from the
 `@saxonberg/content-species-and-names` content pack
-(`content/name-banks/<key>.yaml`, file name = bank key) by the `PackApi`
-`name-banks` content kind — see
-[content-packs.md](./content-packs.md).
+(`content/name-banks/<name>.yaml`) by the `PackApi` `name-bank` document
+kind, stored under the pack's root — see
+[content-packs.md](./content-packs.md). ⭐ **A bank is named by its PATH**, the
+document's only identity (owner, 2026-11-08): each is read the first time a
+species names it and cached until the installer's go-live, and a path with no
+bank is recorded in `errors` and skipped rather than dropped silently.
 
 The suggester runs on `Species`: `suggestName(realName)` biases the
 pick by the player's real/account name (e.g. same initial), and

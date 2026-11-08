@@ -496,8 +496,7 @@ sessile plan is the stand-in for organisms with no agency anatomy
 - `shortDescription`, `longDescription` (from `VisibleMixin`) — the
   species' generic appearance, themed per species; subsumed the former
   `defaultDescription`
-- `nameBankKeys` — references to `NameBank` documents (`documents`
-  rows of `kind: 'name-bank'`) that feed the char-gen name suggester
+- `nameBanks` — the paths of `name-bank` documents that feed the char-gen name suggester
   (`suggestName`/`rerollName`). See [char-gen.md](./char-gen.md).
 - `_bodyPlanPath`, `_parentCladePath`, `_defaultMaterialPath` —
   cross-references to BodyPlan, Clade, Material

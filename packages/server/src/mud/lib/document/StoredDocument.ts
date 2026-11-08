@@ -31,7 +31,6 @@
 import { Document } from "../persistence/Document";
 import type { FieldMeta } from "../mixin";
 import { Collections } from '../persistence/Collections';
-import { DOCUMENT_KINDS } from './DocumentKinds';
 
 export class StoredDocument extends Document {
   static collectionName = Collections.Documents;
@@ -76,19 +75,6 @@ export class StoredDocument extends Document {
     return docs[0] ?? null;
   }
 
-  /**
-   * The one document of `kind` whose natural key is `key`: an indexed point
-   * read (`{kind, data.<naturalKey>}` is unique, partial on `kind`), never a
-   * scan. Null for a kind with no natural key.
-   *
-   * @internal reached through `DocumentApi.readByKey`, which is the surface.
-   */
-  static async findByKey(kind: string, key: string): Promise<StoredDocument | null> {
-    const spec = (DOCUMENT_KINDS as Record<string, { naturalKey: string | null }>)[kind];
-    if (!spec?.naturalKey) return null;
-    const docs = await StoredDocument.find<StoredDocument>({ kind, [`data.${spec.naturalKey}`]: key });
-    return docs[0] ?? null;
-  }
 
   /** Every document of `kind` — the warm-window rebuild's input. */
   static async findByKind(kind: string): Promise<StoredDocument[]> {

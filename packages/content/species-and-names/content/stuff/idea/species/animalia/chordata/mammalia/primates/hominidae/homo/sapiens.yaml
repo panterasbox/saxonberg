@@ -54,5 +54,5 @@ data:
   longDescription: >-
     A person of ordinary build, neither tall nor short, with the alert,
     restless look of someone still deciding what to make of themselves.
-  nameBankKeys: ["common"]
+  nameBanks: [/species-and-names/name-banks/common]
   facultyProfile: { depth: mid, serenity: mid, composure: mid }

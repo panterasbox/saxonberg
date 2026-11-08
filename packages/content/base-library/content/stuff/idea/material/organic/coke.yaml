@@ -16,7 +16,7 @@
 # `trade-smelting` edited. That is the tag vocabulary paying out.
 class: /platform/idea/material/OdorousMaterial
 data:
-  burning: [{ word: coal-smoke, strength: 30 }]
+  burning: [{ aroma: /base-library/aromas/coal-smoke, strength: 30 }]
   name: coke
   keywords: [coke]
   appearance: a grey, light, glittering clinker full of holes

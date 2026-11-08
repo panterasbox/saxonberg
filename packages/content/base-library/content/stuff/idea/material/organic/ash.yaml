@@ -2,7 +2,7 @@
 # Worth something to a farmer (potash) and nothing to a smelter.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: smoke, strength: 3 }]
+  smells: [{ aroma: /base-library/aromas/smoke, strength: 3 }]
   name: ash
   keywords: [ash]
   density: 600

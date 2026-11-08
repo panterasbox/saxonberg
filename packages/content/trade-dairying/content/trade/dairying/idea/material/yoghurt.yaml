@@ -2,7 +2,7 @@
 # acid is a hurdle: it keeps days where milk keeps a day.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: yoghurt, strength: 60 }]
+  smells: [{ aroma: /base-library/aromas/yoghurt, strength: 60 }]
   name: "yoghurt"
   keywords: [yoghurt, yogurt]
   appearance: thick, white and sharp-smelling

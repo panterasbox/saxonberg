@@ -1,4 +1,3 @@
 # Drying linseed, nutty and sharp.
-word: linseed
-parent: oil
+parent: /base-library/aromas/oil
 discipline: painting

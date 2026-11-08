@@ -1,4 +1,3 @@
 # Chalky and sharp, off wet quicklime.
-word: lime
-parent: lye
+parent: /base-library/aromas/lye
 liking: { peak: 1.5, width: 2, valence: -1 }

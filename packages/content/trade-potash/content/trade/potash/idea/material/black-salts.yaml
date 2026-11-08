@@ -4,7 +4,7 @@
 # burns the dirt out and leaves pearl ash.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: lye, strength: 100 }]
+  smells: [{ aroma: /base-library/aromas/lye, strength: 100 }]
   name: black salts
   keywords: ["black salts", salts, "crude potash", "pot ash"]
   appearance: a hard brown-black cake of crude salts

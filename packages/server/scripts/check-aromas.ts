@@ -1,19 +1,19 @@
 /**
- * check-aromas — ⭐ **a word a row names must resolve to a row.**
+ * check-aromas — ⭐ **an aroma a row names must be a document at that path.**
  *
- * Aroma words are open: any pack can ship one under `content/aromas/`, keyed by
- * its `word:`,
- * which means nothing in the kernel can list them. So a misspelled word has no
- * list to fail against, and the failure it would otherwise have is the worst
- * this codebase knows: a smell silently dropped, because the runtime reads a
- * word with no row and has nothing to say. The setters catch it at mint; this
- * catches it where the content is checked, before anything runs.
+ * Aromas are open: any pack can ship one under `content/aromas/`, stored under
+ * the pack's root (`base-library`'s `content/aromas/smoke.yaml` is
+ * `/base-library/aromas/smoke`), which means nothing in the kernel can list
+ * them. So a misspelled path has no list to fail against, and the failure it
+ * would otherwise have is the worst this codebase knows: a smell silently
+ * dropped, because the runtime reads a path with no document and has nothing to
+ * say. The setters catch it at mint; this catches it where the content is
+ * checked, before anything runs.
  *
  * It refuses, with no exemption list:
  *
- *   1. an aroma word no pack's `aroma` document carries as its `word:`, or whose
- *      document is in a pack the namer cannot reach through its dependencies,
- *      or a `parent:` that is not a word either;
+ *   1. an aroma path with no `aroma` document there, or one in a pack the namer
+ *      cannot reach through its dependencies, or a `parent:` that is neither;
  *   2. `smells:` or `burning:` on a row whose class cannot hold one (a plain
  *      `Material`), because the applier would drop the key silently;
  *   3. a `tastes:` entry in the old word-list shape, or naming a word outside
@@ -21,7 +21,7 @@
  *   4. a recipe `medium:` that no material in reach carries in its `tags`.
  *
  * ⚠ The platform pack is the kernel's own content and every world installs the
- * commons, so it may name a commons word, the license `TemplatePaths.rootBiome`
+ * commons, so it may name a commons aroma, the license `TemplatePaths.rootBiome`
  * already takes.
  */
 
@@ -40,20 +40,31 @@ import {
 } from './pack-roots';
 
 const AROMA_DIR = 'aromas';
-const WORD_SHAPE = /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/;
-const isWordShape = (w: unknown): w is string => typeof w === 'string' && WORD_SHAPE.test(w);
+const LEAF_SHAPE = /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/;
 const BASIC_TASTES = new Set(['sweet', 'sour', 'salty', 'bitter', 'umami']);
 /** The kernel names these itself (rot, decay and a corpse's stale blood). */
-const KERNEL_WORDS = ['rot', 'decay', 'blood'];
-/** Where a row's words live, and which key carries the word. */
-const WORD_FIELDS: Readonly<Record<string, string>> = {
-  smells: 'word',
-  burning: 'word',
+const KERNEL_AROMAS = [
+  '/base-library/aromas/rot',
+  '/base-library/aromas/decay',
+  '/base-library/aromas/blood',
+];
+/** Where a row's aromas live, and which key carries the path. */
+const AROMA_FIELDS: Readonly<Record<string, string>> = {
+  smells: 'aroma',
+  burning: 'aroma',
   combustionImparts: 'type',
   imparts: 'type',
   charredImparts: 'type',
   dissolvedAromatics: 'type',
 };
+
+/** A pack's document root: its manifest's `root:`, else `/<id>` (PackLogic's rule). */
+function rootOf(pack: string, content: string): string {
+  const file = join(content, pack, 'pack.yaml');
+  if (!existsSync(file)) return `/${pack}`;
+  const m = (YAML.parse(readFileSync(file, 'utf8')) ?? {}) as { id?: unknown; root?: unknown };
+  return typeof m.root === 'string' ? m.root : `/${typeof m.id === 'string' ? m.id : pack}`;
+}
 
 /** The packs `pack` can reach, itself included. */
 function reachOf(pack: string, content: string): Set<string> {
@@ -75,19 +86,19 @@ function reachOf(pack: string, content: string): Set<string> {
   return seen;
 }
 
-/** Every `{field, word}` a row's data names, at any depth. */
-function wordsIn(data: unknown, into: { field: string; word: unknown }[] = []): typeof into {
+/** Every `{field, aroma}` a row's data names, at any depth. */
+function aromasIn(data: unknown, into: { field: string; aroma: unknown }[] = []): typeof into {
   if (Array.isArray(data)) {
-    for (const item of data) wordsIn(item, into);
+    for (const item of data) aromasIn(item, into);
   } else if (data && typeof data === 'object') {
     for (const [key, value] of Object.entries(data as Record<string, unknown>)) {
-      const wordKey = WORD_FIELDS[key];
-      if (wordKey && Array.isArray(value)) {
+      const pathKey = AROMA_FIELDS[key];
+      if (pathKey && Array.isArray(value)) {
         for (const tag of value) {
-          into.push({ field: key, word: (tag as Record<string, unknown>)?.[wordKey] });
+          into.push({ field: key, aroma: (tag as Record<string, unknown>)?.[pathKey] });
         }
       } else {
-        wordsIn(value, into);
+        aromasIn(value, into);
       }
     }
   }
@@ -118,33 +129,36 @@ export function checkAromas(
     return r;
   };
   const roots = packSources(content);
-  // Every aroma document, by word: which pack ships it and what it says.
-  const words = new Map<string, { pack: string; parent?: unknown }>();
+  // Every aroma document, by the path it is stored at: which pack ships it and
+  // what it says. ⭐ Any depth under `aromas/`: the path is the identity, so a
+  // pack may arrange its aromas in directories.
+  const aromas = new Map<string, { pack: string; parent?: unknown }>();
   for (const pack of readdirSync(content)) {
     const dir = join(content, pack, 'content', AROMA_DIR);
     if (!existsSync(dir)) continue;
-    // ⭐ Any depth: a word is keyed by its `word:`, so where its file sits under
-    // `aromas/` is the author's to arrange.
+    const root = rootOf(pack, content);
     for (const file of walkYamlFiles(dir)) {
       const owner = relative(content, file);
-      const doc = (YAML.parse(readFileSync(file, 'utf8')) ?? {}) as { word?: unknown; parent?: unknown };
-      if (!isWordShape(doc.word)) {
-        findings.push(`${owner}: an aroma document needs a \`word:\` that is a lowercase slug`);
+      const rel = relative(dir, file).split(/[\\/]/).join('/').replace(/\.yaml$/, '');
+      if (!rel.split('/').every((seg) => LEAF_SHAPE.test(seg))) {
+        findings.push(`${owner}: an aroma's file and directory names are lowercase slugs (its word is the last one)`);
         continue;
       }
-      const had = words.get(doc.word);
-      if (had) findings.push(`${owner}: '${doc.word}' is also shipped by '${had.pack}'; a word is one document`);
-      words.set(doc.word, { pack, parent: doc.parent });
+      const doc = (YAML.parse(readFileSync(file, 'utf8')) ?? {}) as { word?: unknown; parent?: unknown };
+      if (doc.word !== undefined) {
+        findings.push(`${owner}: an aroma has no \`word:\`; its word is its file name and its identity is its path`);
+      }
+      aromas.set(`${root}/${AROMA_DIR}/${rel}`, { pack, parent: doc.parent });
     }
   }
   const tagsByPack = new Map<string, Set<string>>();
 
-  const checkWord = (pack: string, owner: string, field: string, word: unknown): void => {
-    const doc = words.get(String(word));
+  const checkAroma = (pack: string, owner: string, field: string, aroma: unknown): void => {
+    const doc = aromas.get(String(aroma));
     if (!doc) {
-      findings.push(`${owner}: ${field} names '${String(word)}', which has no document at content/${AROMA_DIR}/${String(word)}.yaml`);
+      findings.push(`${owner}: ${field} names '${String(aroma)}', which is not an aroma document's path`);
     } else if (doc.pack !== pack && !reachFor(pack).has(doc.pack)) {
-      findings.push(`${owner}: ${field} names '${String(word)}', shipped by '${doc.pack}', which '${pack}' does not depend on`);
+      findings.push(`${owner}: ${field} names '${String(aroma)}', shipped by '${doc.pack}', which '${pack}' does not depend on`);
     }
   };
 
@@ -152,10 +166,11 @@ export function checkAromas(
     if (row.pack === 'kernel') continue;
     const doc = effectiveDoc(row.file, row.raw, index);
     const data = (row.raw.data ?? {}) as Record<string, unknown>;
-    for (const { field, word } of wordsIn(data)) checkWord(row.pack, row.path, field, word);
+    for (const { field, aroma } of aromasIn(data)) checkAroma(row.pack, row.path, field, aroma);
 
-    const odor = data.odor as { word?: unknown } | undefined;
-    if (odor?.word !== undefined) checkWord(row.pack, row.path, 'odor', odor.word);
+    const odor = data.odor as { aroma?: unknown; word?: unknown } | undefined;
+    if (odor?.word !== undefined) findings.push(`${row.path}: odor names an aroma by \`aroma:\` and its path, not \`word:\``);
+    if (odor?.aroma !== undefined) checkAroma(row.pack, row.path, 'odor', odor.aroma);
 
     const cls = typeof doc.class === 'string' ? doc.class : '';
     const isSpecies = cls.includes('/species/');
@@ -185,7 +200,7 @@ export function checkAromas(
     const owner = relative(content, file);
     const raw = (YAML.parse(readFileSync(file, 'utf8')) ?? {}) as Record<string, unknown>;
     const body = (raw.data ?? raw) as Record<string, unknown>;
-    for (const { field, word } of wordsIn(body)) checkWord(pack, owner, field, word);
+    for (const { field, aroma } of aromasIn(body)) checkAroma(pack, owner, field, aroma);
     const medium = body.medium;
     if (typeof medium === 'string') {
       const carried = [...reachFor(pack)].some((p) => tagsByPack.get(p)?.has(medium));
@@ -195,12 +210,12 @@ export function checkAromas(
     }
   }
 
-  for (const [word, doc] of words) {
-    if (doc.parent !== undefined) checkWord(doc.pack, `/aromas/${word}`, 'parent', doc.parent);
+  for (const [path, doc] of aromas) {
+    if (doc.parent !== undefined) checkAroma(doc.pack, path, 'parent', doc.parent);
   }
   if (content === CONTENT) {
-    for (const word of KERNEL_WORDS) {
-      if (!words.has(word)) findings.push(`the kernel names aroma '${word}', which has no document`);
+    for (const path of KERNEL_AROMAS) {
+      if (!aromas.has(path)) findings.push(`the kernel names aroma '${path}', which has no document`);
     }
   }
   return findings;
@@ -209,7 +224,7 @@ export function checkAromas(
 function main(): void {
   const findings = checkAromas();
   if (findings.length === 0) {
-    console.info('check-aromas: ok — every aroma word resolves and every medium is carried.');
+    console.info('check-aromas: ok — every aroma path resolves and every medium is carried.');
     return;
   }
   for (const f of findings) console.error(`  ⚠ ${f}`);

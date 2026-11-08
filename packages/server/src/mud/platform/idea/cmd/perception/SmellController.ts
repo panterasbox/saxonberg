@@ -39,7 +39,7 @@ export default class SmellController extends SingleSenseControllerBase {
         : context.location
           ? this.modality().signalAt(context.location)
           : null;
-    for (const note of signal?.notes ?? []) Aroma.resolve(note.word);
+    for (const note of signal?.notes ?? []) Aroma.resolve(note.aroma);
     const settling = Aroma.settling();
     if (settling) return settling.then(() => super.execute(model, context));
     return super.execute(model, context);

@@ -4,8 +4,8 @@
 # is a cement.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: pine, strength: 200 }]
-  burning: [{ word: oil-smoke, strength: 1000 }]
+  smells: [{ aroma: /base-library/aromas/pine, strength: 200 }]
+  burning: [{ aroma: /base-library/aromas/oil-smoke, strength: 1000 }]
   name: rosin
   keywords: [rosin, colophony, resin]
   appearance: a glassy amber resin that smells of a hot pine wood

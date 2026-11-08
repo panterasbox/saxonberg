@@ -1,4 +1,5 @@
 import "../../../../../test-bootstrap";
+import { aromaPath } from '../../../../lib/perception/__tests__/aroma-fixtures';
 import { describe, it, expect, beforeEach, afterEach  } from 'vitest';
 import { SmellModality } from '../SmellModality';
 import { MAX_HOPS } from '../../../../lib/perception/Modality';
@@ -28,7 +29,7 @@ const smellModality = (): SmellModality =>
 /** A kilogram of something that smells of `word` at `ou`, at reference heat. */
 function emitter(word: string, ou: number): Good {
   const material = makeStuff(() => new OdorousMaterial());
-  material.smells = [{ word, strength: ou }];
+  material.smells = [{ aroma: aromaPath(word), strength: ou }];
   const thing = makeStuff(() => new Good());
   vi.spyOn(thing, 'getMaterial').mockReturnValue(material);
   vi.spyOn(thing, 'getMass').mockReturnValue(Quantity.of(1, 'kg'));
@@ -69,7 +70,7 @@ describe('SmellModality.signalAt — propagation core', () => {
     const smell = smellModality().signalAt(loc);
     expect(smell).toBeInstanceOf(Smell);
     expect(smell!.strength.rawValue()).toBe(50);
-    expect(smell!.dominantWord).toBe('garlic');
+    expect(smell!.dominantAroma).toBe(aromaPath('garlic'));
     expect(smell!.sources).toHaveLength(1);
   });
 
@@ -156,8 +157,8 @@ describe('SmellModality.signalAt — propagation core', () => {
     ContainmentApi.move(smoke, loc);
 
     const smell = smellModality().signalAt(loc);
-    expect(smell!.notes.map((n) => n.word)).toEqual(['smoke', 'garlic']);
-    expect(smell!.dominantWord).toBe('smoke');
+    expect(smell!.notes.map((n) => n.aroma)).toEqual([aromaPath('smoke'), aromaPath('garlic')]);
+    expect(smell!.dominantAroma).toBe(aromaPath('smoke'));
   });
 
   it('every source is kept, so a nose can tell when one thing is the only one', () => {

@@ -4,7 +4,7 @@
 # It is an insect, not a plant, and the tag says so.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: animal, strength: 30 }]
+  smells: [{ aroma: /base-library/aromas/animal, strength: 30 }]
   name: kermes
   keywords: [kermes, grains, "kermes grains", crimson]
   appearance: hard, round crimson kermes grains

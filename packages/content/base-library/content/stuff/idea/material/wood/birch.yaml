@@ -17,8 +17,8 @@
 # living tree and lives on the species row.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: wood, strength: 1 }]
-  burning: [{ word: wood-smoke, strength: 300 }]
+  smells: [{ aroma: /base-library/aromas/wood, strength: 1 }]
+  burning: [{ aroma: /base-library/aromas/wood-smoke, strength: 300 }]
   name: birch
   keywords: [birch]
   density: 640

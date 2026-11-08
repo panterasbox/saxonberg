@@ -58,5 +58,5 @@ data:
     A broad, heavy-shouldered figure well over the common height,
     green-grey of skin with a jutting jaw and prominent tusks, fierce-eyed
     and restless, with a keen nose that reads a room before the eyes do.
-  nameBankKeys: ["orcish"]
+  nameBanks: [/species-and-names/name-banks/orcish]
   facultyProfile: { depth: low, serenity: mid, composure: low }

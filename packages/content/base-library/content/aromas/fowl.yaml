@@ -1,4 +1,3 @@
 # Feathers and droppings.
-word: fowl
-parent: animal
+parent: /base-library/aromas/animal
 discipline: stockmanship

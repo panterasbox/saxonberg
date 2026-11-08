@@ -3,8 +3,8 @@
 # cleanser of a floor that cannot be scrubbed.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: straw, strength: 20 }]
-  burning: [{ word: straw-smoke, strength: 300 }]
+  smells: [{ aroma: /base-library/aromas/straw, strength: 20 }]
+  burning: [{ aroma: /base-library/aromas/straw-smoke, strength: 300 }]
   name: rushes
   keywords: [rushes, rush, strewing]
   appearance: dry, sweet-smelling rushes

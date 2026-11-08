@@ -1,4 +1,3 @@
 # Milled grain, dry and faint.
-word: flour
-parent: grain
+parent: /base-library/aromas/grain
 discipline: milling

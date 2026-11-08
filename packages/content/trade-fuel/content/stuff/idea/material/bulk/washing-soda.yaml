@@ -7,7 +7,7 @@
 # it gives POTASH (potash D10).
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: lye, strength: 3 }]
+  smells: [{ aroma: /base-library/aromas/lye, strength: 3 }]
   name: washing soda
   keywords: [soda, washing soda, crystals]
   appearance: white crystalline washing soda

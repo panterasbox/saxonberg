@@ -12,7 +12,7 @@
 # split. This place's own crickets and delve-rats belong to the venue.
 class: /platform/idea/species/Species
 data:
-  smells: [{ word: horse, strength: 15 }]
+  smells: [{ aroma: /base-library/aromas/horse, strength: 15 }]
   binomial: Equus caballus pumilus
   commonNames: ["pit pony", "pony", "horse"]
   _bodyPlanPath: /stuff/idea/species/BodyPlan/quadruped

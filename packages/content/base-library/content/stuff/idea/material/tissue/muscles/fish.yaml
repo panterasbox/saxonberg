@@ -10,7 +10,7 @@
 # ⚠ Texture is DERIVED from `work`, never authored on the cut.
 class: /platform/idea/material/Muscle
 data:
-  smells: [{ word: fish, strength: 300 }]
+  smells: [{ aroma: /base-library/aromas/fish, strength: 300 }]
   name: fish
   keywords: [fish]
   work: 0.02

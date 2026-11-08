@@ -196,8 +196,9 @@ export const rowsOfKind = (kind: string): Row[] =>
   documentRows().filter((r) => r.kind === kind);
 /** Name banks are the `name-bank` document kind: `data.{key,given,surname,style}`. */
 export const nameBankRows = (): Row[] => rowsOfKind('name-bank');
+/** A bank's data by its name — the last segment of its path, its only identity. */
 export const bankData = (key: string): { given: string[]; surname: string[]; style?: string } =>
-  nameBankRows().find((r) => (r.data as { key: string }).key === key)!.data as never;
+  nameBankRows().find((r) => String(r.path).endsWith(`/name-banks/${key}`))!.data as never;
 export function recordOf(packId: string): (PackInstallRecord & Row) | undefined {
   return rowsIn('pack_installs').find((r) => r.packId === packId) as
     | (PackInstallRecord & Row)

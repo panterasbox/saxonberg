@@ -31,12 +31,12 @@ data:
   closure: liquidTight
   open: true
   imparts:
-    - { type: oak, amount: 25 }
-    - { type: vanilla, amount: 3 }
+    - { type: /base-library/aromas/oak, amount: 25 }
+    - { type: /base-library/aromas/vanilla, amount: 3 }
   charredImparts:
-    - { type: vanilla, amount: 40 }
-    - { type: char, amount: 120 }
-    - { type: oak, amount: 15 }
+    - { type: /base-library/aromas/vanilla, amount: 40 }
+    - { type: /base-library/aromas/char, amount: 120 }
+    - { type: /base-library/aromas/oak, amount: 15 }
   bill:
     parts:
       - { part: stave, template: /trade/coopering/thing/stave, count: 30, role: structural, plural: staves }

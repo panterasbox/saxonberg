@@ -69,13 +69,13 @@ function isClosed(thing: Stuff): boolean {
   return MixinApi.isSealable(thing) && !thing.isOpen();
 }
 
-/** A running total per word, and whose making it came from. */
+/** A running total per aroma (a path), and whose making it came from. */
 type Notes = Map<string, { ou: number; maker?: string }>;
 
-function addNote(into: Notes, word: string, ou: number, maker?: string): void {
+function addNote(into: Notes, aroma: string, ou: number, maker?: string): void {
   if (!(ou > 0)) return;
-  const had = into.get(word);
-  into.set(word, { ou: (had?.ou ?? 0) + ou, maker: had?.maker ?? maker });
+  const had = into.get(aroma);
+  into.set(aroma, { ou: (had?.ou ?? 0) + ou, maker: had?.maker ?? maker });
 }
 
 function isSmellConduit(c: Conduit): c is SmellConduit {
@@ -174,11 +174,11 @@ export class SmellModality extends Modality {
     const carried: Notes = new Map();
     this.gather(thing, own, carried, opts.close === true, new Set());
     const sources: SmellSourceRef[] = [];
-    for (const [word, n] of own) {
-      sources.push({ stuffId: thing.stuffId, word, ou: n.ou, hops: 0, maker: n.maker });
+    for (const [aroma, n] of own) {
+      sources.push({ stuffId: thing.stuffId, aroma, ou: n.ou, hops: 0, maker: n.maker });
     }
-    for (const [word, n] of carried) {
-      sources.push({ stuffId: thing.stuffId, word, ou: n.ou, hops: 0, maker: n.maker, carried: true });
+    for (const [aroma, n] of carried) {
+      sources.push({ stuffId: thing.stuffId, aroma, ou: n.ou, hops: 0, maker: n.maker, carried: true });
     }
     return Smell.of(sources);
   }
@@ -194,7 +194,7 @@ export class SmellModality extends Modality {
       if (threshold === null || !(threshold > 0)) continue;
       notes.push({
         stuffId: host.stuffId,
-        word: tag.type,
+        aroma: tag.type,
         ou: tag.amount / threshold,
         hops: 0,
         maker: maker || undefined,
@@ -274,10 +274,10 @@ export class SmellModality extends Modality {
       // what it was.
       const decay = MixinApi.isPostmortem(thing) ? thing.decayNote() : null;
       if (decay) {
-        addNote(into, decay.word, decay.ou * amount * heat);
+        addNote(into, decay.aroma, decay.ou * amount * heat);
       } else {
         for (const tag of thing.getSpecies()?.getSmells() ?? []) {
-          addNote(into, tag.word, tag.strength * amount * heat);
+          addNote(into, tag.aroma, tag.strength * amount * heat);
         }
       }
     } else if (MixinApi.isTangible(thing)) {
@@ -286,13 +286,13 @@ export class SmellModality extends Modality {
 
     if (MixinApi.isFresh(thing)) {
       const rot = thing.rotNote();
-      if (rot) addNote(into, rot.word, rot.ou * amount * heat);
+      if (rot) addNote(into, rot.aroma, rot.ou * amount * heat);
     }
     if (MixinApi.isSoilable(thing)) {
-      for (const note of thing.soilOdor()) addNote(into, note.word, note.ou);
+      for (const note of thing.soilOdor()) addNote(into, note.aroma, note.ou);
     }
     if (MixinApi.isBurner(thing)) {
-      for (const note of thing.burningNotes()) addNote(into, note.word, note.ou);
+      for (const note of thing.burningNotes()) addNote(into, note.aroma, note.ou);
     }
     if (isClosed(thing)) return;
     if (MixinApi.isBulkable(thing)) this.addInterior(thing, heat, close, into);
@@ -313,7 +313,7 @@ export class SmellModality extends Modality {
   private addMaterial(material: Material | null, kg: number, heat: number, into: Notes): void {
     if (!material || !MixinApi.isOdorous(material)) return;
     for (const tag of material.getSmells()) {
-      addNote(into, tag.word, tag.strength * amountFactor(kg) * heat);
+      addNote(into, tag.aroma, tag.strength * amountFactor(kg) * heat);
     }
   }
 
@@ -346,6 +346,6 @@ export class SmellModality extends Modality {
       }
     }
     const rot: SmellNote | null = new Freshness(vessel.getBulk('interior')).rotNote();
-    if (rot) addNote(into, rot.word, rot.ou * amountFactor(litres) * heat);
+    if (rot) addNote(into, rot.aroma, rot.ou * amountFactor(litres) * heat);
   }
 }

@@ -4,7 +4,7 @@
 # crabs and not dead ones.
 class: /platform/idea/species/Species
 data:
-  smells: [{ word: fish, strength: 30 }]
+  smells: [{ aroma: /base-library/aromas/fish, strength: 30 }]
   binomial: Carcinus maenas
   commonNames: ["shore crab", "crab"]
   _bodyPlanPath: /stuff/idea/species/BodyPlan/crustacean
@@ -62,4 +62,4 @@ data:
     - { cut: /stuff/thing/items/offal, units: 1 }
   longDescription: >-
     A shore crab, green-brown and sideways, with claws it holds up at you as if that settled anything.
-  nameBankKeys: []
+  nameBanks: []

@@ -9,7 +9,7 @@
 # model reads is only how many litres of it a pot holds: the root ceiling.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: loam, strength: 10 }]
+  smells: [{ aroma: /base-library/aromas/loam, strength: 10 }]
   name: potting soil
   keywords: [potting, soil, dirt, compost]
   appearance: dark potting soil

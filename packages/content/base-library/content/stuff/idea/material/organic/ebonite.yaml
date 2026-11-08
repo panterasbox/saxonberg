@@ -4,7 +4,7 @@
 # an electrical age.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: rubber, strength: 30 }]
+  smells: [{ aroma: /base-library/aromas/rubber, strength: 30 }]
   name: ebonite
   keywords: [ebonite, vulcanite, "hard rubber"]
   appearance: hard glossy black ebonite that rings when tapped

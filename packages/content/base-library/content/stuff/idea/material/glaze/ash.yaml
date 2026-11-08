@@ -7,7 +7,7 @@
 # names the glaze itself, so the spec stays valid and changes nothing.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: lye, strength: 30 }]
+  smells: [{ aroma: /base-library/aromas/lye, strength: 30 }]
   name: ash glaze
   keywords: [glaze, ash]
   appearance: a runny green-brown ash glaze

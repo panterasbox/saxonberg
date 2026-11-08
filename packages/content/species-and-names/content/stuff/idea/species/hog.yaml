@@ -8,7 +8,7 @@
 # one — which is how the trade actually works.
 class: /platform/idea/species/Species
 data:
-  smells: [{ word: hog, strength: 40 }]
+  smells: [{ aroma: /base-library/aromas/hog, strength: 40 }]
   binomial: Sus domesticus
   commonNames: ["hog", "pig", "swine", "boar"]
   _bodyPlanPath: /stuff/idea/species/BodyPlan/quadruped
@@ -37,7 +37,7 @@ data:
     A heavy-shouldered hog, bristled and blunt-snouted, with the small
     unbothered eye of an animal that has never had to be clever about
     anything except food.
-  nameBankKeys: []
+  nameBanks: []
   # ⭐ A hog is a great deal of meat, and that is the whole point of one:
   # eight cuts off a clean job is far more than one sitting, which is what
   # turns preservation from a curiosity into a decision.

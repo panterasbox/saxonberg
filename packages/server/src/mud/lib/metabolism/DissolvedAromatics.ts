@@ -31,7 +31,7 @@ import { Aroma } from "../perception/Aroma";
  * would simply never smell of anything.
  */
 export interface AromaTag extends Concentrate {
-  /** The compound: an aroma word. */
+  /** The compound: an aroma, by path. */
   type: string;
   /** mg per litre of this matter. */
   amount: number;
@@ -51,12 +51,12 @@ export class DissolvedAromatics {
   /** A gauge bound to the slot whose matter it measures. */
   constructor(private readonly slot: BulkSlot) {}
 
-  /** Whether a string has the shape of an aroma word; no row is consulted. */
-  public static isAromaWord(type: unknown): type is string {
-    return Aroma.isWord(type);
+  /** Whether a string has the shape of an aroma path; no document is consulted. */
+  public static isAromaPath(type: unknown): type is string {
+    return Aroma.isAromaPath(type);
   }
 
-  /** The detection threshold for a word, or `null` if its row is not resident. */
+  /** The detection threshold for an aroma, or `null` if it is not resident. */
   public static thresholdFor(type: string): number | null {
     return Aroma.resolve(type)?.getThreshold() ?? null;
   }

@@ -2,7 +2,7 @@
 # pot boils the clearest glue from (paint D19).
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: fish, strength: 300 }]
+  smells: [{ aroma: /base-library/aromas/fish, strength: 300 }]
   name: fish skin
   keywords: ["fish skin", "fish skins", skins]
   appearance: a slither of silvery fish skins, scales still on

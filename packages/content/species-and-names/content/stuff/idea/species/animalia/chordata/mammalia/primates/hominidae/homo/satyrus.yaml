@@ -50,5 +50,5 @@ data:
     horns, and the shaggy, cloven-hoofed legs of a goat below the waist,
     carrying an easy, appetite-forward warmth that pulls a room toward the
     nearest cup.
-  nameBankKeys: ["sylvan"]
+  nameBanks: [/species-and-names/name-banks/sylvan]
   facultyProfile: { depth: mid, serenity: high, composure: low }

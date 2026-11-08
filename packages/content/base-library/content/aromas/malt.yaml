@@ -1,4 +1,3 @@
 # Toasted, sweet grain.
-word: malt
-parent: grain
+parent: /base-library/aromas/grain
 discipline: malting

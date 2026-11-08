@@ -1,4 +1,3 @@
 # Hops and malt with the sugar worked out.
-word: beer
-parent: alcohol
+parent: /base-library/aromas/alcohol
 discipline: brewing

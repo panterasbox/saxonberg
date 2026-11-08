@@ -2,7 +2,7 @@
 # once the skim is drawn. The `cream` tag is what a churn works.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: cream, strength: 100 }]
+  smells: [{ aroma: /base-library/aromas/cream, strength: 100 }]
   name: "cream"
   keywords: [cream]
   appearance: thick, rich and pale yellow

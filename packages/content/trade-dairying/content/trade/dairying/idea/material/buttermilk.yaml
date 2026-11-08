@@ -2,7 +2,7 @@
 # Sour-sweet, thin, a drink and a baker's liquid.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: yoghurt, strength: 100 }]
+  smells: [{ aroma: /base-library/aromas/yoghurt, strength: 100 }]
   name: "buttermilk"
   keywords: [buttermilk]
   appearance: thin, white and flecked

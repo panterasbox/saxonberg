@@ -5,7 +5,7 @@
 # limit: one number, the limit, carries the difference. Not a poison.
 class: /platform/idea/material/OdorousMaterial
 data:
-  burning: [{ word: straw-smoke, strength: 100 }]
+  burning: [{ aroma: /base-library/aromas/straw-smoke, strength: 100 }]
   name: flax dust
   keywords: [dust, flax]
   appearance: a fine grey haze of flax tow in the air

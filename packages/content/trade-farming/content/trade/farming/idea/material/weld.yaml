@@ -6,7 +6,7 @@
 # the world before synthetics.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: green, strength: 30 }]
+  smells: [{ aroma: /base-library/aromas/green, strength: 30 }]
   name: weld
   keywords: [luteolin, weld]
   appearance: dusty straw-yellow weld

@@ -4,8 +4,8 @@
 # rule: the trade whose PROCESS makes it ships it.
 class: /platform/idea/material/OdorousConsumableMaterial
 data:
-  smells: [{ word: spirit, strength: 500 }]
-  burning: [{ word: smoke, strength: 3 }]
+  smells: [{ aroma: /base-library/aromas/spirit, strength: 500 }]
+  burning: [{ aroma: /base-library/aromas/smoke, strength: 3 }]
   tastes: [{ type: bitter, amount: 0.01 }]
   name: whiskey
   keywords: [whiskey]

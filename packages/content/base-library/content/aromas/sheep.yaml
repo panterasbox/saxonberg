@@ -1,4 +1,3 @@
 # Lanolin and damp fleece.
-word: sheep
-parent: animal
+parent: /base-library/aromas/animal
 discipline: stockmanship

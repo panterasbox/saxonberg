@@ -14,7 +14,7 @@
 # ⚠ Lives in the COMMONS: an oak has bark whether or not anybody tans.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: tannin, strength: 100 }]
+  smells: [{ aroma: /base-library/aromas/tannin, strength: 100 }]
   name: oak bark
   keywords: [bark, "oak bark", tanbark, tan]
   # ⚠⚠ Every word of an appearance is checked against the DESCRIPTOR

@@ -1,3 +1,2 @@
 # Benzaldehyde: almond and fruit.
-word: cherry
-parent: fruit
+parent: /base-library/aromas/fruit

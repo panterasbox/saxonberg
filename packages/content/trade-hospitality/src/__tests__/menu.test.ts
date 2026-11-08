@@ -195,13 +195,16 @@ beforeAll(async () => {
   ModuleApi.registerPackSource(DIST_SRC, '/trade/distilling');
 
   installRecordTestDb().seed(Collections.Content, contentRows());
-  // The aroma words the materials name, read from the shipped documents: a
+  // The aromas the materials name, read from the shipped documents by the path
+  // each is stored at (base-library has no `root:`, so `/base-library`): a
   // material's setter loads each one, and this test has no document store.
   const aromaDir = join(CONTENT, 'base-library', 'content', 'aromas');
   const pending = (readdirSync(aromaDir, { recursive: true }) as string[])
     .filter((f) => f.endsWith('.yaml'))
-    .map((f) => YAML.parse(readFileSync(join(aromaDir, f), 'utf8')) as AromaData)
-    .map((data) => ({ word: String(data.word), data }));
+    .map((f) => ({
+      word: `/base-library/aromas/${f.replace(/\.yaml$/, '').split(/[\\/]/).join('/')}`,
+      data: YAML.parse(readFileSync(join(aromaDir, f), 'utf8')) as AromaData,
+    }));
   while (pending.length > 0) {
     const i = pending.findIndex((p) => !p.data.parent || Aroma.resolveKnown(p.data.parent));
     const [next] = pending.splice(i, 1);

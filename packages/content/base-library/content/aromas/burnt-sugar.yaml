@@ -1,5 +1,4 @@
 # Sugar taken too far.
-word: burnt-sugar
-parent: caramel
+parent: /base-library/aromas/caramel
 discipline: sugar-refining
 liking: { peak: 1.5, width: 2, valence: -1 }

@@ -13,7 +13,7 @@
 # from.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: grain, strength: 15 }]
+  smells: [{ aroma: /base-library/aromas/grain, strength: 15 }]
   tastes: [{ type: sweet, amount: 8 }]
   name: wheat grain
   keywords: [corn, wheat, grain]

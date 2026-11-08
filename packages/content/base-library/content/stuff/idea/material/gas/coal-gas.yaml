@@ -20,8 +20,8 @@
 #    authoring it.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: coal-tar, strength: 800 }]
-  burning: [{ word: coal-smoke, strength: 100 }]
+  smells: [{ aroma: /base-library/aromas/coal-tar, strength: 800 }]
+  burning: [{ aroma: /base-library/aromas/coal-smoke, strength: 100 }]
   name: coal gas
   keywords: ["coal gas", gas, "town gas", "illuminating gas"]
   appearance: nothing you can see

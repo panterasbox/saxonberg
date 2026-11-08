@@ -4,7 +4,7 @@
 # out. Stronger and crueller than plain lye; it will take the skin off.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: lye, strength: 300 }]
+  smells: [{ aroma: /base-library/aromas/lye, strength: 300 }]
   name: caustic lye
   keywords: ["caustic lye", "strong lye", lye, liquor]
   appearance: a clear, slippery liquor with a faint milky settling of lime

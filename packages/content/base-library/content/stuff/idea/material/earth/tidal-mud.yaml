@@ -14,4 +14,4 @@ data:
   toughness: 1
   edibility: false
   tags: ["granular", "earth", "mud"]
-  smells: [{ word: sea, strength: 20 }]
+  smells: [{ aroma: /base-library/aromas/sea, strength: 20 }]

@@ -12,7 +12,7 @@
 # ⚠ Not edible — you do not drink a blood unit; `transfuse` reads it.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: blood, strength: 300 }]
+  smells: [{ aroma: /base-library/aromas/blood, strength: 300 }]
   name: blood
   keywords: [blood]
   density: 1060

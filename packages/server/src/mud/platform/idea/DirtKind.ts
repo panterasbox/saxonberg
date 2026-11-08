@@ -60,8 +60,8 @@ export interface DirtKindDescriptor {
 
 /** A dirt's smell (`DirtKind.odor`). */
 export interface DirtOdor {
-  /** The aroma word (`stale-sweat`). */
-  word: string;
+  /** The aroma's path (`/base-library/aromas/stale-sweat`). */
+  aroma: string;
   /** OU emitted per unit of load. */
   ouPerLoad: number;
 }
@@ -96,9 +96,9 @@ export default class DirtKind extends Idea {
     odor: { persistent: true },
   };
 
-  /** Loads the word's row, so a dirt naming a word nobody ships fails here. */
+  /** Loads the aroma, so a dirt naming a path with no aroma fails here. */
   public async setOdor(value: DirtOdor | null): Promise<void> {
-    if (value) await Aroma.ensure(value.word);
+    if (value) await Aroma.ensure(value.aroma);
     this.odor = value;
   }
 
@@ -152,8 +152,8 @@ export default class DirtKind extends Idea {
       waterLifts: unit(this.waterLifts, 0.3),
       brushLifts: unit(this.brushLifts, 0),
       odor:
-        this.odor && Aroma.isWord(this.odor.word) && this.odor.ouPerLoad > 0
-          ? { word: this.odor.word, ouPerLoad: this.odor.ouPerLoad }
+        this.odor && Aroma.isAromaPath(this.odor.aroma) && this.odor.ouPerLoad > 0
+          ? { aroma: this.odor.aroma, ouPerLoad: this.odor.ouPerLoad }
           : null,
     };
   }

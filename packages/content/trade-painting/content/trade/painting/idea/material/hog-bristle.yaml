@@ -2,7 +2,7 @@
 # brush is made of (paint D11).
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: hog, strength: 20 }]
+  smells: [{ aroma: /base-library/aromas/hog, strength: 20 }]
   name: hog bristle
   keywords: ["hog bristle", bristle, bristles, hair]
   appearance: a bundle of stiff pale bristles, split and feathered at the tips

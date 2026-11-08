@@ -11,8 +11,8 @@
 # and the epoch step stays available to be told as the epoch step it is.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: coal-tar, strength: 5 }]
-  burning: [{ word: coal-smoke, strength: 800 }]
+  smells: [{ aroma: /base-library/aromas/coal-tar, strength: 5 }]
+  burning: [{ aroma: /base-library/aromas/coal-smoke, strength: 800 }]
   name: coal
   keywords: [coal, sea-coal]
   appearance: dull black coal

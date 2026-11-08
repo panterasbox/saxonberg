@@ -17,7 +17,7 @@
 # The warning is the point; the death is the consequence of ignoring it.
 class: /platform/idea/species/Species
 data:
-  smells: [{ word: cat, strength: 5 }]
+  smells: [{ aroma: /base-library/aromas/cat, strength: 5 }]
   binomial: Felis catus
   commonNames: ["cat", "housecat", "moggy"]
   _bodyPlanPath: /stuff/idea/species/BodyPlan/quadruped
@@ -60,4 +60,4 @@ data:
     A small cat with a thin frame and a watchful, unhurried way of
     holding itself. It looks at you for exactly as long as it wants to,
     and then looks at something else.
-  nameBankKeys: []
+  nameBanks: []

@@ -10,7 +10,7 @@
 # the lesson, against salt's nearly flat one.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: sour, strength: 3 }]
+  smells: [{ aroma: /base-library/aromas/sour, strength: 3 }]
   name: alum liquor
   keywords: [liquor, "alum liquor"]
   appearance: clear, faintly cloudy liquor

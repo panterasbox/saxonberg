@@ -1,5 +1,4 @@
 # Oak bark steeped until it is sour.
-word: tan-liquor
-parent: tannin
+parent: /base-library/aromas/tannin
 discipline: leatherwork
 liking: { peak: 1.5, width: 2, valence: -1 }

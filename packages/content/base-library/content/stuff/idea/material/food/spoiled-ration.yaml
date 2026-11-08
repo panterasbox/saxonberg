@@ -6,7 +6,7 @@
 # leaving a window to `vomit` it before it absorbs.
 class: /platform/idea/material/OdorousConsumableMaterial
 data:
-  smells: [{ word: rot, strength: 100 }]
+  smells: [{ aroma: /base-library/aromas/rot, strength: 100 }]
   name: spoiled ration
   keywords: [spoiled, ration, food]
   appearance: a greying, sour-smelling ration
