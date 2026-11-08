@@ -8,6 +8,7 @@ import '../../../../test-bootstrap';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Aroma } from '../Aroma';
 import { DocumentApi } from '../../../api/document';
+import { StuffApi } from '../../../api/stuff';
 
 function docs(rows: Record<string, Record<string, unknown>>): void {
   vi.spyOn(DocumentApi, 'readByKey').mockImplementation(async (_kind: string, word: string) => {
@@ -68,6 +69,20 @@ describe('Aroma', () => {
     await expect(Aroma.resolveOdorTags([{ word: 'Not A Word', strength: 1 }], 'x')).rejects.toThrow(/aroma word/);
     await expect(Aroma.resolveOdorTags([{ word: 'tar', strength: 0 }], 'x')).rejects.toThrow(/strength/);
     await expect(Aroma.resolveOdorTags('tar', 'x')).rejects.toThrow(/list/);
+  });
+
+  it('a row that fails to load twice is never left to reject unheard', async () => {
+    const rejected: unknown[] = [];
+    const onRejection = (reason: unknown) => rejected.push(reason);
+    process.on('unhandledRejection', onRejection);
+    vi.spyOn(StuffApi, 'singleton').mockRejectedValue(new Error('Template not found: /x/dust'));
+    Aroma.loadRow('/x/dust');
+    Aroma.loadRow('/x/dust');
+    await Aroma.settling();
+    await new Promise((r) => setTimeout(r, 10));
+    process.off('unhandledRejection', onRejection);
+    expect(rejected).toEqual([]);
+    expect(StuffApi.singleton).toHaveBeenCalledTimes(1);
   });
 
   it('reads with its hyphens as spaces', () => {

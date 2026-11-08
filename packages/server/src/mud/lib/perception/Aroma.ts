@@ -178,10 +178,12 @@ export class Aroma {
    * after a restart does not lose a smell. @internal
    */
   public static waitFor(key: string, load: Promise<unknown>): void {
+    // Caught first, whatever happens next: a load is never left to reject unheard.
+    const caught = load.catch(() => {});
     if (Aroma.loading.has(key)) return;
     Aroma.loading.set(
       key,
-      load.catch(() => {}).finally(() => Aroma.loading.delete(key)),
+      caught.finally(() => Aroma.loading.delete(key)),
     );
   }
 
@@ -190,6 +192,10 @@ export class Aroma {
    * {@link Aroma.settling} wait for it. @internal
    */
   public static loadRow(path: string): void {
+    // ⚠ Start one load per path. A second cold read must not start another:
+    // nothing would catch it, and a rejection nobody catches ends the process
+    // (found by the drive: a dirt kind with no row crashed the server).
+    if (Aroma.loading.has(path)) return;
     Aroma.waitFor(path, StuffApi.singleton(path));
   }
 
