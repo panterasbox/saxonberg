@@ -34,6 +34,7 @@ import { SlottableMixin } from '../../lib/slot/Slottable';
 import { IdentifiableMixin } from '../../lib/identification/Identifiable';
 import { BeliefStoreMixin, IDENTIFICATION } from '../../lib/belief/BeliefStore';
 import { OrganismMixin } from '../../lib/species/Organism';
+import { SplittableMixin } from '../../lib/ground/Splittable';
 import { ContainmentApi } from '../containment';
 import Clade from '../../platform/idea/species/Clade';
 import Species from '../../platform/idea/species/Species';
@@ -105,6 +106,11 @@ class Widget extends VisibleMixin(
   TangibleMixin(NamedMixin(ContainableMixin(Idea))),
 ) {}
 
+/** A thing that answers `split` — a protocol mixin in its composition. */
+class SplitBlock extends SplittableMixin(
+  VisibleMixin(TangibleMixin(NamedMixin(ContainableMixin(Idea)))),
+) {}
+
 /**
  * A thing that contributes a verb of its own — the case where the
  * affordance is a fact ABOUT THE OBJECT rather than about the viewer.
@@ -157,8 +163,30 @@ describe('resolveAffordances — the shape of the answer', () => {
     expect(Array.isArray(out!.verbs)).toBe(true);
     // Composition is the ACTIVE mixin set — what the thing is right
     // now, not what its class declared.
-    expect(out!.composition).toContain('TangibleMixin');
-    expect(out!.composition).toContain('ContainableMixin');
+    const names = out!.composition.map((c) => c.name);
+    expect(names).toContain('TangibleMixin');
+    expect(names).toContain('ContainableMixin');
+    // A noun mixin is a noun chip.
+    expect(out!.composition.find((c) => c.name === 'TangibleMixin')).toEqual({
+      name: 'TangibleMixin',
+      kind: 'mixin',
+    });
+  });
+
+  it('presents a protocol mixin as the verbs it serves (D8b)', async () => {
+    const room = makeStuff(() => new Room());
+    const viewer = makeAnimateViewer();
+    const block = makeStuff(() => new SplitBlock());
+    block.setName('a block');
+    ContainmentApi.move(viewer, room);
+    ContainmentApi.move(block, room);
+
+    const out = (await CommandApi.resolveAffordances(block, viewerOf(viewer)))!;
+    const entry = out.composition.find((c) => c.name === 'SplittableMixin');
+    expect(entry?.kind).toBe('protocol');
+    // The verbs are read off the views that `requires:` it — the same
+    // derivation `CommandApi.verbsRequiring` answers.
+    expect(entry?.verbs).toEqual(CommandApi.verbsRequiring('SplittableMixin'));
   });
 
   it('every entry carries one of the three states', async () => {
@@ -386,8 +414,9 @@ describe('⚠⚠ the spoiler gate DELETES, it does not flag', () => {
     viewer.know(IDENTIFICATION, wand.getTemplatePath()!, { typeKnown: true });
 
     const out = (await CommandApi.resolveAffordances(wand, viewerOf(viewer)))!;
-    expect(out.composition).toContain('IdentifiableMixin');
-    expect(out.composition).toContain('TangibleMixin');
+    const names = out.composition.map((c) => c.name);
+    expect(names).toContain('IdentifiableMixin');
+    expect(names).toContain('TangibleMixin');
   });
 });
 

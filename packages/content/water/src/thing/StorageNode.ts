@@ -422,6 +422,10 @@ export default class StorageNode extends StorageNodeBase implements WaterSupply 
   }
 
   /** ⭐ A tank holds its main's water: its chemistry is the main's (D8). */
+  public async readWaterHardnessDgh(): Promise<number | null> {
+    return (await this.readWaterChemistry())?.hardnessDgh ?? null;
+  }
+
   public async readWaterChemistry(): Promise<{ pH: number; hardnessDgh: number; salinityPpt: number; fouled?: boolean } | null> {
     await this.ensureSource();
     const src = this._source;

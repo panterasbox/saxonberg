@@ -40,10 +40,9 @@ import Reading from '@saxonberg/server/mud/lib/instrument/Reading';
 import { CompetenceBand, type CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tooled';
+import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tool';
 import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
-import type { Shore } from '@saxonberg/server/mud/lib/location/Shore';
 import type { WaterRead } from '@saxonberg/server/mud/lib/location/WaterSource';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
@@ -146,9 +145,7 @@ export default class WaterReading extends Reading {
       return;
     }
 
-    const scope = (
-      giver as Stuff & { getContainer?: () => unknown }
-    ).getContainer?.();
+    const scope = MixinApi.isContainable(giver) ? giver.getContainer() : null;
     if (!scope || !MixinApi.isContainer(scope as Stuff)) {
       ctx.note({
         kind: 'controller-rejected',
@@ -162,8 +159,8 @@ export default class WaterReading extends Reading {
       return;
     }
 
-    if (MixinApi.isShore(scope as Stuff)) {
-      const pick = await (scope as Stuff & Shore).waterRefFor();
+    if (MixinApi.isShore(scope)) {
+      const pick = await scope.waterRefFor();
       if (!('refusal' in pick)) {
         await this.reachReport(giver, pick.ref, pick.read, scope as Stuff, kit);
         return;

@@ -303,6 +303,8 @@ describe('GoController', () => {
     it('go <vessel-keyword> enters a sibling ExitableVessel', async () => {
       const wardrobe = await StuffApi.create(() => new ExitableVessel());
       wardrobe.setShortDescription('wardrobe');
+      // What it answers to is its keywords (the name is not special).
+      wardrobe.setKeywords(['wardrobe']);
       ContainmentApi.move(wardrobe, locA);
 
       await goCmd(controller, avatar, locA, 'wardrobe');

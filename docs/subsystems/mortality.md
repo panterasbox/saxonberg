@@ -31,7 +31,7 @@ owns the postmortem clock and the eviction opinion, and burial ends both.
 Composed on `Creature`, so "every creature can be buried" — honest,
 including for a hanging carcass.
 
-Sold as `order burial <body>` off a necropolis `Tariff`. ⭐ The price is
+Sold as `order burial for <body>` off a necropolis `Tariff`. ⭐ The price is
 the dearest of the three services on purpose: the ground is finite, the
 digging is real work, and a price that made burying somebody trivial
 would make the grave a bin.
@@ -299,7 +299,7 @@ spoilage activation energy and water activity (it got `null` before).
 `flesh`'s own authored comment had already said why: *"Flesh rots. This is
 what makes a corpse a clock as well as evidence."* `lint:perishable`
 accordingly accepts `PostmortemMixin` beside `GrowingMixin` — a body rots
-on its own clock, which `ConsignController` already treated as the same
+on its own clock, which `ShelfConsignController` (then `ConsignController`) already treated as the same
 law.
 
 Giving the corpse its own class also says the truer thing: a corpse is a
@@ -535,11 +535,11 @@ be used). It is perceptible because *being dead does not log you off* — the
 aether is the internet, and a shade is still on it. It is **not** a spirit
 field, and a mystical reading of it is a standing correction.
 
-**Transient, but it lingers like a body.** A shade does **not** override
-`onLinkdead`: a deliberate sign-out fires `PlayerLoggedOut`, a bare drop
-fires `PlayerDisconnected`, and either way the shade stays in the world
-holding the `PlayerApi` slot — so reconnecting returns you to the *same*
-shade in the *same* room, exactly as reconnecting to a living body does.
+**Transient, and it goes like a body.** A shade does **not** override
+`onLinkdead`: a bare drop fires `PlayerDisconnected` and the shade stays,
+holding the `PlayerApi` slot, so reconnecting returns you to the *same* shade in
+the *same* room. A deliberate sign-out fires `PlayerLoggedOut` and destructs it
+(owner, controllers-are-io D30; [connection.md](./connection.md)).
 
 ### Logging out as a shade
 
@@ -547,9 +547,9 @@ Three separate mechanisms have to agree, and they do:
 
 | you | what happens |
 |---|---|
-| **drop / sign out** | shade lingers, holding the registry slot |
+| **drop** | shade lingers, holding the registry slot |
 | **reconnect** | `loadAvatarsForUser` reuses the in-world shade; `embodyForSession` sees no arc on it and passes it straight through |
-| **log in after a restart** | the shade is gone (it persists nothing); the identity's snapshot carries the arc, so `embodyForSession` mints a fresh one |
+| **sign out, then log in; or log in after a restart** | the shade is gone (it persists nothing); the identity's snapshot carries the arc, so `embodyForSession` mints a fresh one at the place of death (⚠ not where the ghost had walked to) |
 
 **You are still a shade either way** — that is what makes quitting useless
 as an escape from death. And there is no living body kept in reserve to

@@ -83,17 +83,13 @@ import { BulkableApi } from '../../api/bulk';
 import { ContainmentApi } from '../../api/containment';
 import { Quantity } from '../quantity';
 import type Material from '../../platform/idea/material/Material';
-import type { Tooled } from '../craft/Tooled';
+import type { Tooled } from '../craft/Tool';
 import type { Bulkable, BulkSlot } from '../bulk/Bulkable';
 import { Contamination } from '../material/Contaminable';
 import { Freshness } from '../material/Freshness';
 import { HARM_DEFAULTS } from '../../platform/idea/Condition';
-import type { Tappable } from './Tappable';
-import type {
-  WorkDifficulty,
-  WorkPrognosis,
-  WorkResult,
-} from '../ground/Workable';
+import type { WorkDifficulty, WorkLanding, WorkPlan } from '../ground/Workable';
+import type { ActDone, ActRefusal } from '../craft/ActPlan';
 import type { GradeBand } from '../craft/Grade';
 
 const SECONDS_PER_GAME_DAY = 86_400;
@@ -142,19 +138,104 @@ export interface TapTake {
   worst: number;
 }
 
+/**
+ * ⭐ Every reason a take is refused (controllers-are-io D4) — the tap verbs
+ * word each (`TapActController`'s defaults, a pack's controller in its
+ * host's voice). ⚠ Closed here even for a sap tree's own reasons: the
+ * kernel act's words are the kernel controller's.
+ */
+export type TapRefusal =
+  | ActRefusal<'no-such-tap'>
+  /** The other sex's tap. */
+  | ActRefusal<'wrong-sex', { key: string }>
+  /** A shut window — ⭐ information, not a failure (no rejection filed). */
+  | ActRefusal<`season-${TapClosedReason}`, { key: string; season: TapClosedReason }>
+  /** Nothing standing (`driedOff` — an `expire` tap given up for the season). */
+  | ActRefusal<'nothing-standing', { key: string; driedOff: boolean }>
+  | ActRefusal<'no-vessel'>
+  | ActRefusal<'no-material'>
+  /** Something else in the vessel already (`held` — its material's name). */
+  | ActRefusal<'material-mismatch', { held: string; vessel: Stuff }>
+  /** A sap tree: every cut open and nothing run yet (`spiled` — it has one). */
+  | ActRefusal<'empty', { key: string; spiled: boolean }>
+  /** A sap tree too slender for another spile (`none` — for any). */
+  | ActRefusal<'girth', { none: boolean }>
+  /** No instrument for the cut (`bores` — an auger, else a blade). */
+  | ActRefusal<'no-tool', { bores: boolean }>
+  | ActRefusal<'no-spile'>
+  /** At completion: somebody set the last spile first. */
+  | ActRefusal<'beaten-to-it'>
+  /** At completion: nothing there to take after all. */
+  | ActRefusal<'nothing-came'>
+  /** At completion: the taker walked away, or the tapped is gone. */
+  | ActRefusal<'not-there'>;
+
+/** What a take's begin words need. */
+export interface TapBegin {
+  key: string;
+  /** Setting a spile rather than drawing (`bores` — by auger, else blade). */
+  setting: { bores: boolean } | null;
+}
+
+/** What a take's done words need. */
+export type TapDone =
+  | {
+      kind: 'drawn';
+      key: string;
+      /** Units drawn off the tap; `kept` — what the vessel held of them. */
+      drawn: number;
+      kept: number;
+      /** The things minted into the taker's hands (a mass or count take). */
+      minted: Stuff[];
+      /** A fleece long past its shearing (the host's reading). */
+      overgrown?: boolean;
+    }
+  | { kind: 'set'; key: string; bores: boolean };
+
+/** A take's plan. */
+export type TapPlan = WorkPlan<TapBegin, TapDone, TapRefusal>;
+/** A take's landing. */
+export type TapLanded = ActDone<TapDone & WorkLanding, TapRefusal>;
+
 /** The public surface a producing animal offers. */
 /**
- * ⭐ **`Producing` IS `Tappable`** — `ProducingMixin` implements both
+ * ⭐ **The take is `Producing`'s own** — `ProducingMixin` implements both
  * halves by default (a cow, a hive and a sap tree get the whole act for
- * free), so the interface says so rather than leaving every caller to
- * assert it.
+ * free). ⚠ There used to be a bare `Tappable` shape beside it with exactly
+ * one implementer, this mixin; controllers-are-io D8a deleted it — the
+ * take protocol IS `Producing`, and the verbs narrow on `isProducing`.
  *
- * ⚠ Without this `extends`, `MixinApi.isProducing()` narrowed to
- * `Stuff & Producing` and each of the three call sites then wrote
- * `as unknown as Stuff & Tappable` to get the half it already had — a
- * cast standing in for a declaration. Found in the pre-merge sweep.
+ * ⭐⭐ A SIBLING of `Workable`, not a subtype: `planWork(by, tool, what)` has
+ * no vessel slot, and *claiming a lactating animal is worked ground* is a
+ * host-placement lie. What the two share is the ONE act vocabulary
+ * (`ActPlan` — a plan or a refusal, a duration, watts, facts, and the credit
+ * the host asks for; controllers-are-io D4). ⭐ No words: the tap verbs say
+ * them, in the host's voice where a pack's controller overrides. ⚠ `key` is the tap being drawn (`milk`,
+ * `honey`, `sap`), not the verb.
  */
-export interface Producing extends Tappable {
+export interface Producing {
+  /**
+   * What this take would be, or why not. ⭐ **No side effects** — the
+   * refusal is where the object says what it is for, and planning it
+   * must not cost anything.
+   */
+  planTap(
+    by: Stuff,
+    key: string,
+    tool: (Stuff & Tooled) | null,
+    vessel: (Stuff & Bulkable) | null,
+    what: string | null,
+  ): Promise<TapPlan | TapRefusal>;
+  /**
+   * Land a draw — what a plan's completion runs. Mints, pours,
+   * decrements, and names its credit; the facts say what came of it.
+   */
+  completeTap(
+    by: Stuff,
+    key: string,
+    vessel: (Stuff & Bulkable) | null,
+  ): Promise<TapLanded>;
+
   /** Reconcile every tap over elapsed game-time. Sync, read-triggered. */
   reconcileProduction(): void;
   /** Refresh the air at this producer's place before a window is read. */
@@ -184,8 +265,6 @@ export interface Producing extends Tappable {
   productionFactor(): number;
   /** Whether a tap is open right now, and why not. */
   tapWindow(key: string): TapWindowRead;
-  /** The host's own sentence for a shut tap. No digits, ever. */
-  tapRefusal(key: string, reason: TapClosedReason): string;
   /** The `biome` window kind's hook — the host answers. */
   biomeWindowOpen(spec: TapSpec): boolean;
   /** The `look` lines: what this producer is doing, in words. */
@@ -201,8 +280,7 @@ export interface Producing extends Tappable {
 export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
   Base: TBase,
 ) {
-  return class ProducingMixin extends Base implements Producing, Tappable {
-    public readonly tappable = true as const;
+  return class ProducingMixin extends Base implements Producing {
 
     static _mixinName: string = Mixins.Producing;
 
@@ -444,33 +522,6 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
           if (range.minK >= freezeK) return { open: false, reason: 'warm' };
           return OPEN;
         }
-      }
-    }
-
-    /**
-     * ⚠ The kernel's refusals, and **not one of them contains a digit**
-     * — a shut tap is a thing you read off the world, never a number you
-     * are told. Hosts override in their own voice (a cow's dried-off is
-     * not a birch's end of run).
-     */
-    public tapRefusal(key: string, reason: TapClosedReason): string {
-      switch (reason) {
-        case 'before-season':
-          return 'it is not the season for that yet';
-        case 'after-season':
-          return 'that season is over for the year';
-        case 'cold':
-          return 'it is too cold for anything to run';
-        case 'warm':
-          return 'it is too warm; nothing is running';
-        case 'dried-off':
-          return 'there is nothing left to give this season';
-        case 'brooding':
-          return 'she is sitting tight and will not be moved';
-        case 'no-forage':
-          return 'there is nothing out there to work';
-        case 'wrong-sex':
-          return 'there is nothing of that to be had from this one';
       }
     }
 
@@ -823,7 +874,7 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
       return null;
     }
 
-    /* ─────────────────── the act (Tappable) ─────────────────── */
+    /* ─────────────────── the act (the tap) ─────────────────── */
 
     /**
      * ⭐⭐ What this take would be, or why not — and **nothing happens
@@ -832,96 +883,63 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
      * then do you need something to put it in.
      */
     public async planTap(
-      _by: Stuff,
+      by: Stuff,
       key: string,
       _tool: (Stuff & Tooled) | null,
       vessel: (Stuff & Bulkable) | null,
       _what: string | null,
-    ): Promise<WorkPrognosis> {
+    ): Promise<TapPlan | TapRefusal> {
       const tap = this.taps().find((t) => t.key === key);
-      if (!tap) {
-        return {
-          kind: 'refusal',
-          reason: 'no-such-tap',
-          prose: (this as unknown as Stuff).getPresentation() +
-            ' does not give that.',
-        };
-      }
+      if (!tap) return { ok: false, reason: 'no-such-tap' };
       // ⭐ Is this the animal that gives it, before is it the season?
       if (!this.givesTap(key)) {
-        return {
-          kind: 'refusal',
-          reason: 'wrong-sex',
-          prose: this.tapRefusal(key, 'wrong-sex'),
-        };
+        return { ok: false, reason: 'wrong-sex', facts: { key } };
       }
       await this.bringTapAirCurrent();
       const window = this.tapWindow(key);
       if (!window.open && window.reason !== null) {
         return {
-          kind: 'refusal',
+          ok: false,
           // ⭐ The reason travels as the season, so the controller can
           // tell information from refusal. None of `TapClosedReason` is
           // a failure — see its declaration.
           reason: `season-${window.reason}`,
-          prose: this.tapRefusal(key, window.reason),
+          facts: { key, season: window.reason },
         };
       }
       const standing = this.standingIn(key);
       if (standing <= STANDING_EPSILON) {
-        return {
-          kind: 'refusal',
-          reason: 'nothing-standing',
-          prose: this.tapEmptyPhrase(key),
-        };
+        return { ok: false, reason: 'nothing-standing', facts: { key, driedOff: this.isDriedOff(key) } };
       }
       // ⭐⭐ Whether a vessel is needed DERIVES from the yield shape and
       // is never a second flag: litres have to go somewhere, a count
       // and a mass do not.
       const shape = tap.yieldShape ?? 'mass';
       if (shape === 'volume') {
-        if (!vessel) {
-          return {
-            kind: 'refusal',
-            reason: 'no-vessel',
-            prose: 'You have nothing to catch it in.',
-          };
-        }
+        if (!vessel) return { ok: false, reason: 'no-vessel' };
         const material = yieldMaterial(tap);
-        if (!material) {
-          return {
-            kind: 'refusal',
-            reason: 'no-material',
-            prose: 'There is nothing to draw.',
-          };
-        }
+        if (!material) return { ok: false, reason: 'no-material' };
         const slot = BulkableApi.slotFor(vessel, undefined);
         const held = slot?.getMaterial() ?? null;
         if (slot && held && held !== material) {
-          return {
-            kind: 'refusal',
-            reason: 'material-mismatch',
-            prose:
-              'There is ' + held.getName() + ' in ' +
-              vessel.getPresentation() + ' already.',
-          };
+          return { ok: false, reason: 'material-mismatch', facts: { held: held.getName(), vessel } };
         }
       }
+      const durationMs = tap.takeMs ?? defaultTakeMs(shape);
       return {
-        kind: 'plan',
-        durationMs: tap.takeMs ?? defaultTakeMs(shape),
-        cost: TAKE_COST,
-        beginSelf: this.tapBeginPhrase(key),
-        beginPeers: null,
-        // ⚠ The token is the host's own bookkeeping. It carries the KEY
-        // so two takes in flight cannot draw the same tap by accident,
-        // and nothing outside this file reads it.
-        token: { key },
+        ok: true,
+        durationMs,
+        // ⭐ The take's felt cost, converted through this body (D5).
+        effortW: MixinApi.isExerting(by) ? by.wattsForFeltCost(TAKE_COST, durationMs / 1000) : 0,
+        facts: { key, setting: null },
+        // ⭐ The key rides the closure, so two takes in flight cannot draw
+        // the same tap by accident.
+        onComplete: () => this.completeTap(by, key, vessel),
       };
     }
 
     /**
-     * Land the take: draw it, put it somewhere, and say so.
+     * Land the take: draw it, put it somewhere, and answer what came of it.
      *
      * ⚠ Re-reads the tap at completion rather than trusting the plan's
      * numbers — the interval between planning and landing is real game
@@ -954,37 +972,28 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
     public async completeTap(
       by: Stuff,
       key: string,
-      _tool: (Stuff & Tooled) | null,
       vessel: (Stuff & Bulkable) | null,
-      _token: unknown,
-    ): Promise<WorkResult> {
+    ): Promise<TapLanded> {
       const tap = this.taps().find((t) => t.key === key);
-      if (!tap) return { self: 'Nothing came of it.' };
+      if (!tap) return { ok: false, reason: 'nothing-came' };
       const shape = tap.yieldShape ?? 'mass';
       const standing = this.standingIn(key);
-      if (standing <= STANDING_EPSILON) {
-        return { self: 'Nothing came of it.' };
-      }
+      if (standing <= STANDING_EPSILON) return { ok: false, reason: 'nothing-came' };
       const take = this.takeFrom(key);
-      if (take.units <= 0) return { self: 'Nothing came of it.' };
+      if (take.units <= 0) return { ok: false, reason: 'nothing-came' };
 
       const credit = this.tapCredit(key);
       const soilTheTaker = (): void => this.soilTheTaker(by, tap, shape);
       if (shape === 'volume') {
         const kept = await this.pourTake(tap, take.units, vessel, by);
         if (kept > 0) soilTheTaker();
-        return {
-          self: this.tapTookPhrase(key, take.units, kept),
-          peers: null,
-          credit,
-        };
+        return { ok: true, facts: { kind: 'drawn', key, drawn: take.units, kept, minted: [], credit } };
       }
       const minted = await this.mintTake(tap, take, by, shape);
       if (minted.length > 0) soilTheTaker();
       return {
-        self: this.tapTookPhrase(key, take.units, take.units, minted),
-        peers: null,
-        credit,
+        ok: true,
+        facts: { kind: 'drawn', key, drawn: take.units, kept: take.units, minted, credit },
       };
     }
 
@@ -1084,46 +1093,6 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
         made.push(thing);
       }
       return made;
-    }
-
-    /* ─────────────── the words (hosts override) ─────────────── */
-
-    /** What an empty tap says. Hosts override in their own voice. */
-    public tapEmptyPhrase(_key: string): string {
-      return 'There is nothing to take just now.';
-    }
-
-    /** What the actor reads as the take starts. */
-    public tapBeginPhrase(_key: string): string {
-      return 'You settle in to the work.';
-    }
-
-    /**
-     * What the actor reads when it lands.
-     *
-     * ⭐ `kept` vs `drawn` is the completeness the vessel decided, and
-     * the sentence says so without a number when they differ — a player
-     * who brought too small a pail should be told it overflowed, not
-     * handed a figure.
-     */
-    public tapTookPhrase(
-      _key: string,
-      drawn: number,
-      kept: number,
-      minted?: Stuff[],
-    ): string {
-      if (minted && minted.length > 0) {
-        const first = minted[0];
-        const what = first ? first.getPresentation() : 'something';
-        return minted.length > 1
-          ? `You come away with ${minted.length} of them.`
-          : `You come away with ${what}.`;
-      }
-      if (kept <= 0) return 'It runs away to nothing before you can catch it.';
-      if (kept < drawn - STANDING_EPSILON) {
-        return 'You catch what you can; the rest goes on the ground.';
-      }
-      return 'You come away with the lot.';
     }
 
     /** Open a state for each authored tap at first touch. */

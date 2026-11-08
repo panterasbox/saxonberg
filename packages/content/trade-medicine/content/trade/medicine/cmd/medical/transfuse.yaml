@@ -1,4 +1,5 @@
 verbs: [transfuse]
+category: medical
 controller: /trade/medicine/idea/cmd/medical/TransfuseController
 description: "Transfuse blood or saline from a vessel into a body (needs a syringe)"
 help: |

@@ -40,6 +40,7 @@ import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { CelestialApi } from '@saxonberg/server/mud/api/celestial';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
@@ -56,7 +57,7 @@ export default class BreedController extends CommandController<BreedModel> {
   async execute(model: BreedModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     const animal = model.target?.stuff as Livestock | undefined;
-    if (!animal || typeof animal.getLifeStage !== 'function') {
+    if (!animal || !MixinApi.isOrganism(animal)) {
       this.decline(context, Mml.compose`That is not an animal you can breed.`, 'not-breedable');
       return;
     }

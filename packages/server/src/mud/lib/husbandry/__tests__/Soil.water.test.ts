@@ -12,7 +12,7 @@
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Idea } from '../../stuff/Idea';
-import { ReservedMixin, Reserve } from '../../reserve';
+import { ReservedMixin, Reserve } from '../../reserve/Reserved';
 import { SoilMixin, SOIL_MOISTURE_RESERVE_KEY, SOIL_RESERVE_THEME } from '../Soil';
 import { SealableMixin } from '../../spatial/Sealable';
 import { ThrottleableMixin } from '../../spatial/Throttleable';

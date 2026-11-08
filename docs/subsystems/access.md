@@ -71,10 +71,11 @@ The substrate ships these predicates:
    match; for an **organization** owner, the same staff-or-authority
    test. Used by verb controllers when the target IS a Zone
    Template (transfer ownership, destruct the slice) — and by the
-   `subdivide` / `transfer` parcel verbs. ⚠ Those two verbs were
+   `title subdivide` / `title transfer` subcommands. ⚠ Those two were
    **afforded by nothing** until the reachability sweep — the predicate
    below has always worked and the verbs that call it were unsayable;
-   they are `PersonaMixin.self`'s now (see
+   they became `PersonaMixin.self`'s, and since controllers-are-io W8 they
+   are subcommands of the `title` noun (see
    [parcel.md](./parcel.md)). Resolves title the same
    way (`ParcelApi.ownerOf`); the covering parcel's owner is the
    nearest-ancestor owner the former upward walk found.
@@ -263,8 +264,8 @@ store's; `install` is `pack` (`requiresPackInstaller` — holding
 `reload`/`typecheck` title over the target's class/template path (the
 wizard-axis cleanup, 2026-11-05 — the same question `clone` asks).
 See **[parcel.md](./parcel.md)** for the registry, `grant`, the
-`ownerOf` chain, the sparse hierarchy, and the `subdivide` / `transfer`
-verbs.
+`ownerOf` chain, the sparse hierarchy, and the `title subdivide` /
+`title transfer` subcommands.
 
 The `accessGroups` flat-union multi-group ACL is a **conscious deletion to
 be re-provided** — no seed used it (byte-identical removal), and the
@@ -464,9 +465,9 @@ tree mode, etc.) we revisit.
 | `DestructController` | Zone target: `canMutateZone(giver, target)`. Else non-force: `can(giver, 'destruct', target)`; force: `can(giver, 'force-destruct', target)`. |
 | `TeleportController` (the **tpa pack**'s) | `heldExtents(giver)` — from and to both inside ONE held extent, which makes the hop free (D11). No other-subject arm: relocating an object moved to `goto --subject` (TPA reform P13). |
 | `GotoController` | non-force: `can(giver, 'goto', dest)`; force: `can(giver, 'force-goto', dest)`. With `--subject`: `can(giver, 'teleport'`/`'force-teleport', subject)` — the authority is over the OBJECT, not the destination. |
-| `SoulController` | `canAtPath(giver, 'write-document', '/expression/emotes/<verb>')` — the soul committee's title ([emotes.md](./emotes.md)). |
+| the mutating `soul` controllers (`SoulControllerBase.refuseUnlessCommittee`) | `canAtPath(giver, 'write-document', '/expression/emotes/<verb>')` — the soul committee's title ([emotes.md](./emotes.md)). |
 | `BroadcastController` | `canAtPath(giver, 'broadcast', extent)` for `--at <extent>`; a non-holder's refusal lists `heldExtents(giver)`. |
-| `PackController` | `requiresPackInstaller` (validator) — `canAtPath(giver, 'install', '/compact/executive')`. |
+| the `pack` controllers | `requiresPackInstaller` (validator) — `canAtPath(giver, 'install', '/compact/executive')`. |
 | `EvalController` | `requiresWizard` (validator) — `isWizard(giver)`; no slice (typing code is authoring TypeScript — one of the two places the axis is asked). |
 | `StreamController` | `requiresStreamer` (validator) — `isStreamer(giver)`; no slice (livestream control plane). |
 | `WizardController` | `requiresArchwizard` (validator) — `isArchwizard(giver)`; calls the narrow-entry `setWizardMembership` (wizard grant/revoke). |
@@ -671,7 +672,7 @@ a second authorization path; `can` stays the gate.
   `ManagedGroupProvider.findByName`.
 - [parcel.md](./parcel.md) — the **real-property title** substrate
   ownership resolution moved to (property phase 0a): `ParcelApi.ownerOf`,
-  the coverage index, the `subdivide` / `transfer` verbs, and the
+  the coverage index, the `title subdivide` / `title transfer` subcommands, and the
   `Zone` ownership-field removal.
 - [zone.md](./zone.md) — `Zone.lookupField` inheritance walk,
   `ZoneApi.getEnclosingZone` (the ownership fields it used to

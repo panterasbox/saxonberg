@@ -53,7 +53,7 @@ export default class CockpitTerminalController extends CommandController<Termina
       if (!card) {
         return this.fail(context, 'usage: cockpit terminal primary <card>', 'missing-arg');
       }
-      const refused = interactive.setPrimaryTerminal(card);
+      const refused = interactive.promoteTerminal(card);
       if (refused) {
         return this.fail(
           context,
@@ -87,7 +87,7 @@ export default class CockpitTerminalController extends CommandController<Termina
    * and facets the terminal carries.
    */
   private filterFor(target: string, context: CommandContext): TerminalFilter | null {
-    if (target.startsWith('#') && target.length > 1) return { channel: target.slice(1) };
+    if (target.startsWith('#') && target !== '#') return { channel: target.slice(1) };
     if (target.toLowerCase() === ALL_VIEW.toLowerCase()) return { view: ALL_VIEW };
     const giver = context.commandGiver;
     if (!MixinApi.isClientState(giver)) return null;
@@ -96,7 +96,7 @@ export default class CockpitTerminalController extends CommandController<Termina
     if (!tab) return null;
     return {
       view: tab.name,
-      ...(tab.muted.length > 0 ? { muted: [...tab.muted] } : {}),
+      ...(tab.muted.length ? { muted: [...tab.muted] } : {}),
       ...(tab.facets ? { facets: tab.facets } : {}),
     };
   }

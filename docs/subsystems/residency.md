@@ -428,7 +428,11 @@ consign ask reads); Veshko's and the infirmary's zone `stocks:` went
 with them. The spawn sweep now draws only from rows that author a
 `regionTarget` beside their `censusKey` — a row saying *I appear from
 nothing, this many to a region* (today the magic loot) — and it
-**places nothing**: a mint stays in the null environment.
+**places nothing**: a mint stays in the null environment. ⚠ So a row draws
+only in the region its mint counts in, its own path's (`Census.regionOfPath`).
+Drawn for every zone with stock, as it did until 2026-11-07, the mints counted
+nowhere it looked: each game day minted the lot again, per zone, unbounded and
+unreachable.
 Its v1 live-candidate source is retired (it made any good it saw
 respawn at the default target, a spawn nobody authored). What becomes
 of unstaged content generally is deferred design (foraging, hunting).

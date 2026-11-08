@@ -1,5 +1,5 @@
 /**
- * ProvisionController — the `provision <player>` / `lease <player>` verb
+ * ProvisionController — the `provision <player>` verb
  * (a Duncan Hall *content* verb — it lives in the content namespace
  * `world/terminus/eternal/duncan-hall/`, NOT a core command category, because it
  * hardcodes one content instance's `DormWarren`). The landlord act that grows

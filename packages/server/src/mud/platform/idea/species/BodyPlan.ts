@@ -752,8 +752,21 @@ export default class BodyPlan extends SingletonMixin(Idea) {
    * and the caller falls back to a body-wide read.
    */
   public getPartSurfaceFraction(partKey: string): number {
+    const parts = this.bodyParts;
+    if (this.surfaceFractionsOf !== parts) {
+      this.surfaceFractionsOf = parts;
+      this.surfaceFractions = this.readSurfaceFractions();
+    }
+    return this.surfaceFractions.get(partKey) ?? 0;
+  }
+
+  /** The anatomy {@link surfaceFractions} was read from: a plan's parts are its row's. */
+  private surfaceFractionsOf: unknown = null;
+  private surfaceFractions: Map<string, number> = new Map();
+
+  private readSurfaceFractions(): Map<string, number> {
+    const areas = new Map<string, number>();
     let total = 0;
-    let own = 0;
     for (const part of this.bodyParts) {
       // Exterior parts only — you cannot put a coat on a liver. (Was an
       // inline `governs?.length`; the predicate is now one method, and it
@@ -762,10 +775,12 @@ export default class BodyPlan extends SingletonMixin(Idea) {
       const area = this.partArea(part.key);
       if (!(area > 0)) continue;
       total += area;
-      if (part.key === partKey) own = area;
+      areas.set(part.key, area);
     }
-    if (!(total > 0)) return 0;
-    return own / total;
+    const out = new Map<string, number>();
+    if (!(total > 0)) return out;
+    for (const [key, area] of areas) out.set(key, area / total);
+    return out;
   }
 
   /**

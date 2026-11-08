@@ -186,7 +186,7 @@ behavior. Read the relevant doc before editing in its area.
   - [command-routing.md](./docs/subsystems/command-routing.md) — YAML view + controller MVC, dispatch chain, validators, affordance attribution + resolution, async override
   - [command-parsing.md](./docs/subsystems/command-parsing.md) — CommandLineApi tokenizer, RawToken, `format()` round-trip, `msh`
   - [command-spec.md](./docs/subsystems/command-spec.md) — author guide for verbs: YAML shape, controller refs as paths, domain-local commands, categories
-  - [scripting.md](./docs/subsystems/scripting.md) — command-native interpreter: wrap-not-replace parser, generator Interpreter, game-time Coroutine, `def`/`make`
+  - [scripting.md](./docs/subsystems/scripting.md) — command-native interpreter: wrap-not-replace parser, generator Interpreter, game-time Coroutine, `def`/`do`
   - [mql.md](./docs/subsystems/mql.md) — MQL internals: pipeline, scope-walk, predicates, `person`/`reachable` seeds, system mode
   - [mql-subscription.md](./docs/subsystems/mql-subscription.md) — live MQL subscriptions: per-Interactive registry, dep index, batched re-resolve, diffing
   - [card-surface.md](./docs/subsystems/card-surface.md) — the right column as a FEED of cards, and a LOG not an index: one birth path (a command pushes; the wire cannot name a card), pinned = the whole lifetime, live = scoped to attention (newest holds the subscription), ONE inspection card laid out by `StuffKind`, subject-bound subscriptions, one sweep, `shell.result` as a filter
@@ -217,7 +217,7 @@ behavior. Read the relevant doc before editing in its area.
   - [provenance.md](./docs/subsystems/provenance.md) — authorship ledger: `authoring_events`, context-derived author, the `recordAuthoring` gate, CreditRouting
   - [crafting.md](./docs/subsystems/crafting.md) — craft-resolve, Grade/Tool/Durable/Crafted mixins, Recipe docs, the by-hand manual build, Dave's Bar
   - [assembly.md](./docs/subsystems/assembly.md) — a made thing that KEEPS its parts: ⭐ transformation destroys identity, assembly preserves it; the bill on the kind + the parts record on the instance, `Joint` rows (reversibility decides `salvage`), localized wear and `repair`, the one verb `fit`, the families it composes on (no bill = one piece) and part state on the line, the wood column (`rive`/`saw`/`carve`, seasoning, the grain carry) and the compartment
-  - [retail.md](./docs/subsystems/retail.md) — the general store: PricedOffer, the Stock counter, consignment over chattel, `buy`/`consign`/`reclaim`, the `ForSale` offer protocol, the hire (`rent`); the kernel/pack line (the MECHANISM is kernel substrate, the class a row names is `trade-shopkeeping`'s) + `lint:counters`
+  - [retail.md](./docs/subsystems/retail.md) — the general store: PricedOffer, the Stock counter, consignment over chattel, `buy`/`shelf consign`/`shelf reclaim`, the `ForSale` offer protocol, the hire (`rent`); the kernel/pack line (the MECHANISM is kernel substrate, the class a row names is `trade-shopkeeping`'s) + `lint:counters`
   - [corpo.md](./docs/subsystems/corpo.md) — the mark substrate: Corpo/Brand data Ideas, CorpoCatalogue, BrandedMixin resolve-on-read
   - [cleanliness.md](./docs/subsystems/cleanliness.md) — dirt as STATE (`SoilableMixin`: deposits by site × kind over `DirtKind` rows, set stains, the wash and the clean tiers from the process record), the body's hygiene, the wash chemistry (cleansers named by their material), places (the floor, the heap, the midden, the flue), the people paid for it (laundress, attendant, doorman), how a player KNOWS (`look`, `smell`, `analyze cleanliness`)
   - [textiles.md](./docs/subsystems/textiles.md) — cloth and what it is FOR: purpose is which channel a garment intercepts, the covering ladder + derived `clo`, fit as two numbers and a stamp, the subtractive dye stack + fade, the soiling seam; the three-trade chain
@@ -248,7 +248,7 @@ behavior. Read the relevant doc before editing in its area.
   - [ceramics.md](./docs/subsystems/ceramics.md) — clay, the brickmaker and the potter: ⭐ firing is ONE rule (a material's kinetics on its own heat trajectory, no recipe), clay's year (won, weathered, tempered), the potter's hand (`shape`/`carve`/`fit`/`impress`), the clamp and the kiln, the maker's mark as the viewer knows it; `trade-ceramics` at `/trade/ceramics`
   - [faces.md](./docs/subsystems/faces.md) — a good has an outside and a vessel an inside, and a face carries coats: the glaze fired by heat-work, the lead leach by the contents' pH, the weeping jar that cools its water
   - [painting.md](./docs/subsystems/painting.md) — a building's outside and the coat that weathers: the landing (where a structure meets the weather), `Building` vs `Structure` (a ship's hull, a bare peak), every outside weathering on the exposure rule (`Faced.reconcileWeather`) and a building's fabric as its `Durable` condition, paint as binder + pigments, `paint`, the glued joint, lead · oily rags · turpentine, the colorman and the house painter
-  - [glass.md](./docs/subsystems/glass.md) — the glass trade: ⭐ colour is a GRADE not a choice (iron → tint by Beer–Lambert, derived never stored; cullet one-way-toward-green); the four kernel seams (`Colour` on `Light`, the firing carries its charge, the meltable-non-metal salvage, light-strike on spoilage); the hot-work window (`gob`/`shape`/`reheat`/`crack` on a cooling gather) + the cold bench (`scribe`/`snap`/`groze`/`flatten`/`glaze`); the first authored `Window` rows a pane glazes; `trade-glass` at `/trade/glass`, a second glasshouse is rows
+  - [glass.md](./docs/subsystems/glass.md) — the glass trade: ⭐ colour is a GRADE not a choice (iron → tint by Beer–Lambert, derived never stored; cullet one-way-toward-green); the four kernel seams (`Colour` on `Light`, the firing carries its charge, the meltable-non-metal salvage, light-strike on spoilage); the hot-work window (`dip`/`shape`/`reheat`/`crack` on a cooling gather) + the cold bench (`scribe`/`snap`/`groze`/`flatten`/`glaze`); the first authored `Window` rows a pane glazes; `trade-glass` at `/trade/glass`, a second glasshouse is rows
   - [rubber.md](./docs/subsystems/rubber.md) — the `trade-rubber` pack and the first technology: latex from Hevea under glass and wet-milled dandelion, caprock sulfur, the cure as DATA on the feedstock (`Crosslinking`: sulfur × heat × time → under-cured · cured · ebonite · burnt, no knowledge gate), `fire … for`, the mould decides the shape, the four corrections (wet conducts, the outer layer sheds rain, packing wears by material, acid names `once-living`), stretch, and the rubber works
   - [potash.md](./docs/subsystems/potash.md) — the ashery: ash with a strength (`alkaliShare`), brash, the hopper's derived lye and the egg, the iron pot on silk's plateau (cast at saturation), pearl ash by `calcine`, slaking and caustic lye, the ash round; ⭐ whose it is — the communal oven (a liquid carries its owner; untitled contents are the maker's)
   - [cordage.md](./docs/subsystems/cordage.md) — one rope, whose use is where its ends are tied (`Line`/`Rope`/`RopeEnd`; a hose is the other `Line`): `tie`/`untie`/`tug`/`splice`/`coil`/`cut … at`, knots as `Joint` rows dressed by `ropework`, the rope at a drop + the belay, tar as a coat, `trade-cordage`'s `twist` (a craft, real time, a crew at the wheel) and the Wharfside ropewalk
@@ -297,7 +297,7 @@ behavior. Read the relevant doc before editing in its area.
   - [fasttravel.md](./docs/subsystems/fasttravel.md) — the TPA teleport network, now a **utility that runs on mana**: ⭐⭐ the VERB is the kernel's and the NETWORK is the `tpa` pack's, meeting over the `TravelNode` shape (you must not need the TPA to teleport — free-in-your-extent and the anchored spell are kernel forks); FastTravelMixin nodes + `ride()`, the travel credential, the board-for-everyone, the three supplies + the arming floor + the amber band, the derived mana rate, the self-governing Authority
   - [credential.md](./docs/subsystems/credential.md) — the unified credential substrate: the wallet mixin, payment/travel/key kinds, lock/key + `presentsKey`
   - [stacks.md](./docs/subsystems/stacks.md) — fungible stacks: Stackable quantity, split/merge/applyQuantity, the MQL quantity surface
-  - [response-envelope.md](./docs/subsystems/response-envelope.md) — DispatchResponseEnvelope, 16 Note kinds, Status auto-escalation, CommandContext
+  - [response-envelope.md](./docs/subsystems/response-envelope.md) — DispatchResponseEnvelope, the `Note` union, Status auto-escalation, CommandContext
   - [activity.md](./docs/subsystems/activity.md) — the engagement framework: SchedulerApi, EngagedMixin slots, the AbortReason vocabulary
   - [behavior.md](./docs/subsystems/behavior.md) — NPC behavior: BehavedMixin data-specs, brains as modules, witness/`candidate` triggers, the ONE deliberation beat per agent + `Urgency`'s four bands × five `TaskKind`s, the NPC class
   - [npc-dialogue.md](./docs/subsystems/npc-dialogue.md) — the tree-dialogue responder: `talk`, the DialogueConversation engagement, the choice wheel, auto-introduce
@@ -312,7 +312,7 @@ behavior. Read the relevant doc before editing in its area.
   - [expanse.md](./docs/subsystems/expanse.md) — a region you cross by setting a course: ⭐⭐ the GRAPH is spherical (nodes are foci + a radius relative to the expanse, bands named edges drawn from them) and the CHART is lat/lon (`origin` the bridge); the voyage held by the craft as three fields, sight by curvature, seeded traffic, the Structure/Ship split, the water tier
   - [paper.md](./docs/subsystems/paper.md) — the medium: what paper adds to text in a game made of text (a thing · frozen · marked by its making · carried past the network), editions and the live screen, the sheet and the book as leaves with hands, tearing, bearer paper, the mill; printing is a placeholder (printing-slate)
   - [harbor.md](./docs/subsystems/harbor.md) — where ships are kept: the berth as a way named for her (`BerthExit`, the berth roll), the berth book + the harbormaster's `berth`, the hail, dues and `pay`, the bar's tidal window, the charter, the hire book
-  - [ship.md](./docs/subsystems/ship.md) — a Structure that moves, is owned and can sink: kinds as one plan (`ShipWarren`), minted identity, the register + flag, owners via her company's cap table (`transfer … shares`), the master, the gangway lock, the leak/bilge/`bail`, flooding and the wreck
+  - [ship.md](./docs/subsystems/ship.md) — a Structure that moves, is owned and can sink: kinds as one plan (`ShipWarren`), minted identity, the register + flag, owners via her company's cap table (`title transfer … shares`), the master, the gangway lock, the leak/bilge/`bail`, flooding and the wreck
   - [watershed.md](./docs/subsystems/watershed.md) — water that gets somewhere: zone elevation (and why `coords.z` is not it), the exact precipitation integral shared by soil and river, `Watercourse` (topology authored · direction derived · a compiled reachability set), flow + snowpack + derived navigability, the `Conduit` ladder (a sewer is the same object reversed) over the six-word `SupplyState`, storage as the build's one piece of state, rights (prior appropriation records · riparian derives), contamination by kind, and the three basins
   - [water-supply.md](./docs/subsystems/water-supply.md) — water that gets INTO a house and onto a field: the premises citation (fails closed), a tap implies its pipe (`PlumbedMixin`, on the room rung), chemistry and the kit, gates by an amount and the ditch's rota, soil inlets that pond and salt, wells on aquifers, sprinklers as rain in a circle
   - [river.md](./docs/subsystems/river.md) — the river as a LINE you are carried along: ⭐ only places are tracked (a reach patch is the water within hail, a moving place with a moving zone), one `Frame` protocol for chart and line, how anything moves is a trajectory, moving water is CHOSEN (`MovingWaterMixin`), small craft as things in water places (`paddle`), ships and the bar, ferries and the market boat, the water told by its character not its steps; ⭐ a mod imports only the mods it declares, the rest is a kernel protocol
@@ -823,38 +823,49 @@ reason.
   stays under `system`, the jargon standard's layer split; so does
   `testharness`, test-world scaffolding withheld everywhere else — see
   [testing.md § The soak lane](./docs/testing.md)), stream, tpa,
-  medical, combat, magic (`cast`/`spells` — the casting core), work (the
-  labor market — `job`/`fulfill`; `charter`), employment (`appoint` [alias `hire`]/`dismiss`/`quit`/`apply`/`clock`/`tip`/`collect`), retail (`buy`/`consign`/`reclaim`/`rent`), harbor (the transport pack's `berth`), device
+  medical, combat, magic (`cast`/`spells` — the casting core; arcana's
+  `recite`), work (the labor market — `job` with `post`/`claim`/`fulfill`/
+  `apply`/`quit`/…; `charter`), employment (`clock`/`tip`/`collect`),
+  banking (`bank`, `wallet`, `pay`, and `house` with
+  `appoint`/`dismiss`/`draw`/`par`/`stock`/…), retail
+  (`buy`/`sell`/`rent`/`menu`/`order`, `shelf consign|reclaim`,
+  `rack check|reclaim`), harbor (the transport pack's `berth`), device
   ("operating a built object or mechanism" —
   `wind`/`adjust`/`switch`/`fold`/`unfold`/`disarm`/`pump`/`bail` — one bucket over any lift source, the drilling pack's view retired; `lock`/`unlock`
   stay under `boundary`), mining (the metal chain's cutting acts —
-  `hew`/`drive`/`sink`/`raise`/`shore`/`stake`), fuel (`char`), smelting
+  `hew`/`drift`/`sink`/`raise`/`shore`/`stake`; `drive` is the
+  vehicle's), fuel (`char`), smelting
   (`smelt`), forestry (`fell` — a standard, a bole, or a planted tree;
   the coppice cut is the platform's `harvest` told its tool by the
-  plant). The concealment build added `search` (perception),
-  `sneak`/`run` (movement), and `disarm` (device); the harbors build put `transfer … shares` under system; `examine` is now a
-  `look` alias, not its own verb; the farming build made `pick` a
-  `harvest` alias (inventory). ⭐⭐ The carcass chain added two more
-  aliases and the reason is the ladder, not taste: `grind` rides `mill`
-  and `melt` rides `dip`, because each was a second verb for an act the
-  first already covers (the same stones; the pot you are about to dip out
-  of) — **the ladder's first rung is unify behind an interface**, and a
-  trade does not get a second verb because one of its inputs has no dial
-  or needs warming up. ⛔ A third, `tailor`, was reverted outright rather
+  plant), ground and custody (platform), energy, and one category per
+  trade pack (`farming`, `fishing`, `sericulture`, `glass`, …). ⭐ **Every view states its `category:`,
+  equal to its directory, and `help` lists by it** (`lint:command-views`).
+  The concealment build added `search` (perception),
+  `sneak`/`run` (movement), and `disarm` (device); parcel and ship-share
+  transfers are `title transfer` (civics). ⭐⭐ **One view, one word**
+  (controllers-are-io, 2026-11): a view names exactly one verb, and the
+  only other words are removable default player aliases on the view
+  (`defaultAliases:` — `l`, `i`, `h`, `?`, `'`; `lint:one-word`); every synonym word
+  (`examine`, `pick`, `grind`, `melt`, `hurl`, …) was deleted, and an
+  institution transaction is a subcommand of its noun (`house appoint`,
+  `job apply`, `shelf consign`, `title transfer`). The ladder's first
+  rung is still **unify behind an interface** — a trade does not get a
+  second verb because one of its inputs has no dial or needs warming
+  up. ⛔ `tailor` was reverted outright rather
   than aliased: it belonged to a discipline whose own design had already
   decided the question. ⭐ **A verb lives with the pack whose content
   affords it**: platform keeps the verbs any trade's instrument confers
-  (`pour`/`stir`/`heat`/`repair`/`salvage`/`wash`/`make`) and
-  `retail/menu`+`order`; a trade's own steps ship in its capability pack
+  (`pour`/`stir`/`heat`/`repair`/`salvage`/`wash`/`dip`) and
+  `retail/menu`+`order`, and `do` (shell) runs a script you `def`ined; a trade's own steps ship in its capability pack
   (`trade-hospitality`: `muddle`/`strain`/`garnish`/`mix`/`serve`;
   `trade-cooking`: `cook`/`plate`/`cure`/`dry`/`smoke`/`butcher`;
   `trade-smithing`:
   `forge`/`hammer`/`quench`/`sharpen`; `trade-mining`:
-  `hew`/`drive`(`drift`)/`sink`/`raise`/`shore`/`stake`; `trade-fuel`:
+  `hew`/`drift`/`sink`/`raise`/`shore`/`stake`; `trade-fuel`:
   `char`; `trade-smelting`: `smelt`; `trade-forestry`: `fell`;
-  `trade-tanning`: `tan`; `trade-chandlery`: `dip`) under `content/<root>/cmd/` +
+  `trade-tanning`: `tan`) under `content/<root>/cmd/` +
   `src/idea/cmd/`. The libations build added `wash`/`muddle`
-  (crafting), `quit` (employment), `house par`/`house stock` (banking) and
+  (crafting), `job quit` (work), `house par`/`house stock` (banking) and
   `watch … on <screen>` (stream). ⚠ The metal chain's acts are a `mining`
   CATEGORY of their own, and its survey channels are `Reading` ROWS the
   trade ships (`measure strike`/`dip`, `analyze ground`) — the platform's

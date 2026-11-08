@@ -196,6 +196,15 @@ export class PersistableApi {
   }
 
   /**
+   * One field of one mixin as it stands on `scope`'s record, with nothing loaded;
+   * `undefined` when no record carries it. The record is opaque to everybody but
+   * this Api, so a question about someone who is not here is asked through it.
+   */
+  static storedField(scope: string, mixin: string, field: string): Promise<unknown> {
+    return logic().storedField(scope, mixin, field);
+  }
+
+  /**
    * True when a record exists for `scope`. With `key`, tests the single
    * `(scope, key)` record (a multi-instance host); without, whether any
    * record is scoped to `scope` (the host's path).

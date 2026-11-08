@@ -117,7 +117,7 @@ export default class MoveController extends CommandController<MoveModel> {
   /**
    * The herd named — its name, a word of it, with or without the article
    * or a trailing "herd" — else the only herd filed. ⚠ Never found by
-   * walking the room: resolution is the binder's (lint:instrument-args).
+   * walking the room: resolution is the binder's (lint:controller-resolution).
    */
   private async pickHerd(
     registry: HerdRegistry,

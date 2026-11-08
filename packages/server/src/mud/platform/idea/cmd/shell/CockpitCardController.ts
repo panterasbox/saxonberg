@@ -144,22 +144,19 @@ export default class CockpitCardController extends CommandController<CardModel> 
   ): void {
     let at: { col: number; row: number } | undefined;
     if (action === 'move') {
-      const col = Number(model.col);
-      const row = Number(model.row);
-      const unit = (n: number): boolean => Number.isInteger(n) && n >= 0;
       if (model.col === undefined || model.row === undefined) {
         return this.fail(context, 'usage: cockpit card move <card> <col> <row>', 'missing-arg');
       }
-      if (!unit(col) || !unit(row)) {
-        return this.fail(context, 'a column and row are whole numbers from 0', 'bad-position');
-      }
-      at = { col, row };
+      at = { col: Number(model.col), row: Number(model.row) };
     }
     // ⭐ Named by what its header says, not the ref it was addressed by:
     // a card opened by a click is keyed `look #4Uans…`, and the echo
     // "card look #4Uans… in the tray" read the transport at the player.
     const name = this.cardName(context, cardId);
     const { refused, instanceId } = context.interactive!.arrangeCard(cardId, action, at);
+    if (refused === 'bad-position') {
+      return this.fail(context, 'a column and row are whole numbers from 0', refused);
+    }
     if (refused) {
       return this.fail(context, `${REFUSED[refused] ?? refused} '${cardId}'`, refused);
     }

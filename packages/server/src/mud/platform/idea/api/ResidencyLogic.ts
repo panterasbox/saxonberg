@@ -278,13 +278,22 @@ async function runSpawnSweep(): Promise<SpawnSweepReport> {
   // draw-until-decline loop that sees its own placements.
   const census = new Map<string, Map<string, number>>();
   for (const [region, bucket] of taken) census.set(region, new Map(bucket));
-  const regions = new Set<string>(taken.keys());
+  // ⚠ A row draws only in the region its mint will count in. The sweep places
+  // nothing, so a mint counts by its own template path; drawn for any other
+  // region, the census there never sees it, the region never reaches target, and
+  // every sweep mints the lot again for every zone with stock in it (measured
+  // 2026-11-07: thousands of unreachable scrolls and wands in an afternoon, with a
+  // regionTarget of 4).
+  const homes = new Map<string, string>();
+  for (const c of candidates) homes.set(c.templatePath, await Census.regionOfPath(c.templatePath));
+  const regions = new Set<string>(homes.values());
   report.regions = regions.size;
 
   for (const region of regions) {
     const { stocks, affinity, blessingOdds } = await regionStockFor(region);
     // A zone's declared count wins over the item's baseline.
     const scoped = candidates
+      .filter((c) => homes.get(c.templatePath) === region)
       .map((c) => {
         const declared = stocks[c.censusKey];
         return typeof declared === 'number'

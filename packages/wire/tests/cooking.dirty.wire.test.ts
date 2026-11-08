@@ -98,7 +98,7 @@ suite('order a stew — the medium, and the claim', () => {
     // oven; a log may already be in, so neither line is asserted.
     await cook.cmd('get log');
     await cook.cmd('stoke log into oven');
-    expectOkOr(await cook.cmd('ignite oven'), 'already-burning');
+    expectOkOr(await cook.cmd('light oven'), 'already-burning');
     const served = await cook.cmd('order stew');
     expectOk(served);
   }, 120_000);

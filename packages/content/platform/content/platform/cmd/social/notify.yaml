@@ -1,4 +1,5 @@
 verbs: [notify]
+category: social
 controller: /platform/idea/cmd/social/NotifyController
 description: "Manage your attention rules — how a group's connect / disconnect / message surfaces, and how they render in a room (keyed on any group ref, ordered by precedence)"
 help: |

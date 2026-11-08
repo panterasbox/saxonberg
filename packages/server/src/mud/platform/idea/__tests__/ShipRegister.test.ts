@@ -204,8 +204,8 @@ describe('ShipRegister — a government keeps a book of ships (harbors B2)', () 
 
   it('⚠ the write is narrow-entry: a test file (no ship) is refused, and a ship enters only herself', async () => {
     // The gate throws before the body runs (synchronously, as every narrow entry does).
-    expect(() => a.enter(entry('Gull', GULL))).toThrow(/VoyagingMixin/);
+    expect(() => a.enter(entry('Gull', GULL))).toThrow(/platform\/idea\/Ship/);
     // A ship entering ANOTHER ship is refused too.
-    expect(() => withRootContext(shipAt(TERN), 'commission', () => a.enter(entry('Gull', GULL)))).toThrow(/VoyagingMixin/);
+    expect(() => withRootContext(shipAt(TERN), 'commission', () => a.enter(entry('Gull', GULL)))).toThrow(/TheHandleIsHerOwn/);
   });
 });

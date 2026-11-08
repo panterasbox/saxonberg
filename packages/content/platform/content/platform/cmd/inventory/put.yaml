@@ -1,4 +1,5 @@
-verbs: [put, place]
+verbs: [put]
+category: inventory
 controller: /platform/idea/cmd/inventory/PutController
 description: "Place an item from your inventory in or on a target"
 help: |
@@ -8,7 +9,7 @@ help: |
 
   The target has to be here with you and has to actually accept the
   item — you can't put a thing inside something that isn't a
-  container. `place` is an alias for the same verb.
+  container.
 examples:
   - cmd: put coin in the pouch
     note: Tuck an item into a container

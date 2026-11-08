@@ -1,4 +1,5 @@
 verbs: [cancel]
+category: system
 controller: /platform/idea/cmd/system/CancelController
 description: "Cancel an in-flight activity. With no argument, cancels every activity. With a type ('reading', 'walking', ...), cancels matching activities."
 help: |

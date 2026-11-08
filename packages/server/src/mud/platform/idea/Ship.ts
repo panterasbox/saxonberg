@@ -78,7 +78,7 @@ import { CommandDispatchedEvent, type CommandDispatchedPayload } from '../../lib
 import { ScheduleApi, type ScheduleHandle } from '../../api/schedule';
 import { Quantity } from '../../lib/quantity';
 import type { FramePos } from '../../lib/expanse/Frame';
-import type { ActRefusal } from '../../lib/craft/ActPlan';
+import type { CoatReachRefusal } from '../../lib/material/Faced';
 
 /** A ship's hull (river D28): how deep she floats, how wide, how long. */
 export interface ShipHull {
@@ -381,7 +381,7 @@ export default class Ship extends BilgeMixin(PersistableMixin(
   }
 
   /** ⭐ Her hull is painted from where she lies — the quay alongside (paint D9). */
-  public override coatReachRefusal(actor: Stuff): ActRefusal | null {
+  public override coatReachRefusal(actor: Stuff): CoatReachRefusal | null {
     return this.landingRefusal(actor);
   }
 

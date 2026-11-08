@@ -1,5 +1,6 @@
 # `recover` — bring the boat you are in back aboard a ship lying close.
 verbs: [recover]
+category: movement
 controller: /system/transport/idea/cmd/movement/RecoverController
 description: "Bring your boat back aboard a ship alongside"
 help: |

@@ -51,6 +51,7 @@
  */
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
+import { NameTakingMixin } from '../description/NameTaking';
 import { Mixins } from '../mixin';
 import type { AnyConstructor } from '../../api/mixin';
 import { MixinApi } from '../../api/mixin';
@@ -580,7 +581,7 @@ function failureWordFor(host: Assembled, line: PartLine): string {
 }
 
 export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
-  return class AssembledMixin extends Base implements Assembled {
+  return class AssembledMixin extends NameTakingMixin(Base) implements Assembled {
     static _mixinName: string = 'AssembledMixin';
 
     static markupAugmenters: MarkupAugmenter[] = [assemblyAugmenter];
@@ -1170,10 +1171,7 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
     canBeNamedBy(handPath: string, by?: Stuff | null): boolean {
       // ⭐ Whatever a rule inside this one says (the maker's, ceramics W2) —
       // or the reforge rule: the hand whose mend took the name (repair D18).
-      const inner = (Base.prototype as {
-        canBeNamedBy?: (h: string, b?: Stuff | null) => boolean;
-      }).canBeNamedBy;
-      if (typeof inner === 'function' && inner.call(this, handPath, by) === true) return true;
+      if (super.canBeNamedBy(handPath, by)) return true;
       if (!handPath || this.getName()) return false;
       return this.latestNameLoss()?.by === handPath;
     }

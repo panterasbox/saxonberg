@@ -6,8 +6,8 @@
  * `sit` / `lie` / `kneel` declined in the room a new player wakes up in,
  * and the reason was NOT that rooms had no floor row — it was that the
  * word `ground` lived only in a floor's `details:` map, and the MQL scope
- * walk pools a thing's own `getKeywords()` while `pushDetails` gives a
- * detail the pool `[<its id>]` and never its authored keywords. So
+ * walk pools a thing's own `getKeywords()` while `DetailedMixin.getKeywords` folds in a
+ * detail by its id `[<its id>]` and never its authored keywords. So
  * attaching `default-floor` to all 180 Locations would have fixed
  * `look floor` and left bare `sit` broken. The union is on the class.
  */
@@ -22,6 +22,7 @@ import { Mixins } from '../../mixin';
 import { UNBOUNDED_CAPACITY } from '../../slot/Slotted';
 import { CANONICAL_GROUND_SLOT } from '../Floor';
 import { GroundSourceMixin } from '../GroundSource';
+import CartesianZone from '../../../platform/idea/location/CartesianZone';
 import { Idea } from '../../stuff/Idea';
 import { SkyExposedBiome } from '../../../platform/idea/SkyExposedBiome';
 import Biome from '../../../platform/idea/Biome';
@@ -248,11 +249,14 @@ describe('rung 3 — the ground beneath, through GroundSourceMixin', () => {
   ): Location {
     const room = makeStuff(() => new Location());
     room.setCoordinates(coords);
-    (room as unknown as { getZone(): unknown }).getZone = () => ({
+    // A CartesianZone-shaped zone: the cell size is the cartesian zone's,
+    // asked by `instanceof` (controllers-are-io D7a), never probed.
+    const zone = Object.assign(Object.create(CartesianZone.prototype), {
       getCellSize: () => cellSize,
       lookupField: async <T,>(f: string): Promise<T | null> =>
         (cited[f] as unknown as T) ?? null,
     });
+    (room as unknown as { getZone(): unknown }).getZone = () => zone;
     return room;
   }
 

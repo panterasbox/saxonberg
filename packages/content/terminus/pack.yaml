@@ -130,7 +130,7 @@ boot:
   - { template: /world/terminus/counting-houses/cash-and-carry, role: producer, reason: "the distributor's counter must be resident for the trades' hands to consign onto it and for the boot spawn sweep to have a census; kept booted because its NPCs act while nobody is present (unobserved-economy-slate)" }
   # ⭐ The one chartered bank is NOT booted (the scan sweep): the banking
   # hall loads it (the location graph attaches it from its operatingLocations),
-  # and `appoint … at` resolves it at the act.
+  # and `house appoint … at` resolves it at the act.
   # ⭐ The trade premises' producers (economic bootstrap D6): a floor's
   # Stock is the home container its trade's rows spawn into, and an
   # outfit's hand runs its brain over a live Business. Moved here WITH the

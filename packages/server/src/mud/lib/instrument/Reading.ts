@@ -94,7 +94,7 @@ import { MqlApi } from '../../api/mql';
 import type { MqlOneResult } from '../../api/mql';
 import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
-import type { Tooled } from '../craft/Tooled';
+import type { Tooled } from '../craft/Tool';
 import type { Durable } from '../material/Durable';
 import { Quantity } from '../quantity';
 import type { Unit } from '../quantity';
@@ -850,9 +850,9 @@ export default abstract class Reading extends ReadingBase {
 
   /** The place the actor is standing in, or `null`. */
   protected placeOf(actor: Stuff): (Stuff & Container) | null {
-    const room = (
-      actor as unknown as { getContainer?(): Stuff | null }
-    ).getContainer?.();
+    const room = MixinApi.isContainable(actor)
+      ? (actor.getContainer() as unknown as Stuff | null)
+      : null;
     return room && MixinApi.isContainer(room) ? (room as Stuff & Container) : null;
   }
 

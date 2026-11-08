@@ -15,6 +15,7 @@
 #
 # ⚠ There is no `journey stop`: stopping is the shipped `cancel`.
 verbs: [journey]
+category: movement
 controller: /system/transport/idea/cmd/movement/JourneyController
 description: "Take a vehicle along a lane to somewhere, or read the trip you are on."
 help: |

@@ -1,4 +1,5 @@
 verbs: [mark]
+category: farming
 controller: /trade/farming/idea/cmd/farming/MarkController
 description: "Mark a field on the open ground you stand in"
 help: |
@@ -9,8 +10,8 @@ help: |
     mark the paddock           (the rest of the unmarked ground)
 
   A field is what you plant: its soil, its grass and its history are its
-  own, and every act on its crop names it — `sow barley at the barley
-  field`. Marking a name you already have moves that field's line. You
+  own, and every act on its crop names it — `plant barley --at "the barley
+  field"`. Marking a name you already have moves that field's line. You
   cannot move a line through a standing crop, and you cannot mark more
   than the whole.
 

@@ -19,12 +19,12 @@ replaced: a candle that is always wax, whatever you dipped it in.
   one act, and the BATH plans it. This pot's `dipPlanFor` is the candle,
   and the melt that fills the pot when what you have is a cake.
 
-⚠ **One verb, and the plan said none.** `make <recipe>` runs a recipe
-*script* (a session `def` or a learned home recipe), not an authored
-catalogue recipe — every trade in the tree ships its own craft verb for
+⚠ **One verb, and the plan said none.** There is no generic
+craft verb (`do <name>` runs a player's own *script*, never an authored
+catalogue recipe) — every trade in the tree ships its own craft verb for
 that, and this one is no exception. Recorded in the plan.
 
-⭐⭐⭐ **`melt` was a second verb for one build, and is an ALIAS now.** The
+⭐⭐⭐ **`melt` was a second verb for one build, and is gone now (D16: `dip`).** The
 argument for it was that the pot has to be filled before anything can be
 dipped out of it, and that beeswax arrives as a *cake* where rendered
 tallow arrives liquid in a crock and is simply `pour`ed in. The asymmetry

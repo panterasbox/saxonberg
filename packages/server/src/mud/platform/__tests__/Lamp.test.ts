@@ -4,7 +4,7 @@
  * ⭐ The whole class is a composition decision: `BurnerMixin` over
  * `LightSourceMixin` gives a lantern a real reserve, a drain against
  * game time, reconcile-on-read so it burns down unattended, the burnout
- * edge, and `ignite`/`douse` — none of it written in `Lamp.ts`. What is
+ * edge, and `light`/`douse` — none of it written in `Lamp.ts`. What is
  * tested here is that the composition actually delivers those, and the
  * two things a row can get wrong.
  *
@@ -24,7 +24,7 @@ import { StuffApi } from "../../api/stuff";
 import { WorldClockApi } from "../../api/worldclock";
 import WorldClockRegistry from "../idea/WorldClockRegistry";
 import { TemplatePaths } from "../../lib/paths";
-import { Reserve } from "../../lib/reserve";
+import { Reserve } from "../../lib/reserve/Reserved";
 import { Quantity } from "../../lib/quantity";
 import { THERMAL_DEFAULTS } from "../../lib/thermal/Thermal";
 import {

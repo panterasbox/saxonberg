@@ -41,7 +41,7 @@ const CMD_ROOT = join(here, '..', '..', '..', '..', '..', '..', 'content', 'plat
 /**
  * The verb an example leads with, or `null`.
  *
- * Punctuation verbs bind without a space — `say` also declares `'`, so
+ * Punctuation aliases bind without a space — `say` declares `'`, so
  * `'good morning` is a valid line whose first whitespace token is
  * `'good`. Splitting on whitespace alone reports that as an unknown
  * verb, which is the check being wrong rather than the content.
@@ -91,6 +91,11 @@ function collect(): { examples: Example[]; verbs: Set<string>; options: Map<stri
     const vs = doc?.verbs;
     if (!Array.isArray(vs)) continue;
     for (const v of vs) if (typeof v === 'string') verbs.add(v);
+    // A default alias leads an example as well as the verb does (D16).
+    const aliases = ((doc?.defaultAliases as { name?: string }[] | undefined) ?? [])
+      .map((x) => x.name)
+      .filter((n): n is string => typeof n === 'string');
+    for (const n of aliases) verbs.add(n);
     const primary = String(vs[0]);
     const opts = new Set<string>(
       Object.keys((doc?.options as Record<string, unknown>) ?? {}),
@@ -107,6 +112,7 @@ function collect(): { examples: Example[]; verbs: Set<string>; options: Map<stri
       }
     }
     for (const v of vs) if (typeof v === 'string') options.set(v, opts);
+    for (const n of aliases) options.set(n, opts);
     const exs = doc?.examples;
     if (!Array.isArray(exs)) continue;
     for (const ex of exs) {

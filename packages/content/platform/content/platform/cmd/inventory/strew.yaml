@@ -1,4 +1,5 @@
 verbs: [strew]
+category: inventory
 controller: /platform/idea/cmd/inventory/StrewController
 description: "Strew rushes or sawdust over a floor"
 help: |

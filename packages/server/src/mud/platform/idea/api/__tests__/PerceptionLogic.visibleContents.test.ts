@@ -11,7 +11,13 @@ import type { Stuff } from '../../../../lib/stuff/Stuff';
  * everything; a container: everything if open, nothing if shut.
  */
 const thing = (id: string, concealed = false): Stuff =>
-  ({ stuffId: id, isConcealed: () => concealed }) as unknown as Stuff;
+  ({
+    stuffId: id,
+    isConcealed: () => concealed,
+    // A concealed thing is unseen unless THIS viewer perceives it (the
+    // `perceives` rule); these fakes are concealed past anyone's eye.
+    getConcealment: () => (concealed ? 'buried' : 'obvious'),
+  }) as unknown as Stuff;
 
 const shirt = thing('shirt');
 const sword = thing('sword');

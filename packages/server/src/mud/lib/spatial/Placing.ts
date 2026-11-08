@@ -52,6 +52,7 @@ import type { StuffPlacedGroup } from '@saxonberg/types';
 import type { Containable } from './Containable';
 import { MixinApi, type AnyConstructor } from '../../api/mixin';
 import { ContainmentApi } from '../../api/containment';
+import { PlacementOffers, type PlacementChoice } from './PlacementOffers';
 import { PerceptionApi } from '../../api/perception';
 import {
   MqlSubscriptionApi,
@@ -63,6 +64,12 @@ import {
  * Public shape provided by PlacingMixin.
  */
 export interface Placing {
+  /**
+   * ⭐ What `word` means on this host (`PlacementOffers`): a member by its
+   * primary word, else by any word it answers to, and the host's interior
+   * when it has one. No word: its only offer, or which of them.
+   */
+  placementFor(word: string | undefined): PlacementChoice;
   /**
    * The placement names this host offers, primary first. Defaults to
    * `['on']` — every host that says nothing is a surface, which is
@@ -243,6 +250,10 @@ export function PlacingMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /** The offered members, primary first. A bare host is a surface. */
     public placements: string[] = ['on'];
+
+    placementFor(word: string | undefined): PlacementChoice {
+      return new PlacementOffers(this as unknown as Stuff).choose(word);
+    }
 
     getPlacements(): readonly string[] {
       const v = this.placements;

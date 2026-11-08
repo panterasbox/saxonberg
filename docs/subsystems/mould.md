@@ -49,8 +49,8 @@ reusable one) or breaks to release it (a consumed one).
 
 ## ⭐⭐ Impressions — anyone, anything (M9, D21)
 
-`impress <pattern> in|on <medium>` (platform, `cmd/crafting/impress.yaml`,
-alias `mold`; `ImpressController` is dumb). The MEDIUM answers through the
+`impress <pattern> in|on <medium>` (platform, `cmd/crafting/impress.yaml`;
+`ImpressController` is dumb). The MEDIUM answers through the
 `Impressible` protocol (`ImpressibleMixin`, `lib/craft/Impressible.ts` — an
 `ActOutcome` or an `ActRefusal`, at once):
 
@@ -202,7 +202,7 @@ EVERY vessel: `BulkableMixin.canReceiveAtK(pourK)` → `holds` · `melts` ·
 `burns` (its `meltingPoint`, then its `autoignitionTemperature`). On
 `melts` or `burns` the pour goes to the floor (the shipped puddle path) and
 the receiver is gone — melted into its material's `brokenTemplate` where it
-stood, or burning (through its own `ignite` when it is fuel; else it chars
+stood, or burning (through its own `light` when it is fuel; else it chars
 away). Status `melted` / `burned`, and the pour verb says what happened to
 the vessel. Lead melts a tin cup; bronze burns the chandler's pine soap
 frame; pewter into a bronze cup holds. Interior pours only — a floor is
@@ -245,7 +245,7 @@ press; it was a duck-probed `pressForceN()`), so any press a pack ships
 loads a mould the same way. `ScrewPress`
 (`platform/thing`, `PlacingMixin(Good)`, `newtonsPerTurn`, `maxTurns`,
 `turns`) is a **`TurnableMixin`** (`lib/craft/Turnable.ts`, which also affords the verb) that
-the platform verb **`turn`** (`cmd/device/turn.yaml`, alias `tighten`;
+the platform verb **`turn`** (`cmd/device/turn.yaml`;
 `turn back <press>` slackens it) asks — so a windlass can take the word
 later. A turn first banks every mould's set at the OLD load, then adds
 force, then asks each mould on the bed to `pressRelease()`.
@@ -281,7 +281,7 @@ material's own lump.
 
 `pourDurationS > 0` (the **bell pit**, six game hours): the metal still goes
 in at once — it would freeze in the crucible otherwise — and the founder's
-day is the WATCH: `PourController` holds the pourer's attention on a
+day is the WATCH: `MouldMixin.watchThePour` holds the pourer's attention on a
 sealed-down `ManualBuildStep` for that long, and the mould's discipline is
 credited (`hard`) when the watch is kept. Every other pour is unchanged.
 

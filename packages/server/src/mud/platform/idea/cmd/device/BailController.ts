@@ -33,7 +33,7 @@ import { AppApi } from '../../../../api/app';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { MqlOneResult } from '../../../../api/mql';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
-import type { LiftSource, BucketLanding } from '../../../../lib/pump/Pumpable';
+import type { LiftSource, BucketLanding } from '../../../../lib/pump/LiftSource';
 
 /** ⚠ A bound arg is an `MqlOneResult`, never a `Stuff`. */
 interface BailModel extends CommandModel {
@@ -58,16 +58,9 @@ const BUCKET_L = 12;
 /** Bare hands' bucketful, L (the boat's shipped grain; `bail.handsL`). */
 const HANDS_L = 10;
 
-/** Does `x` answer the lift shape? A module-private narrowing, by shape (the pump's rule). */
+/** Does `x` answer the lift protocol? The protocol mixin's predicate. */
 function asLiftSource(x: Stuff | null): (Stuff & LiftSource) | null {
-  if (x === null) return null;
-  const s = x as unknown as Partial<LiftSource>;
-  return typeof s.standingDepthM === 'function' &&
-    typeof s.liftInto === 'function' &&
-    typeof s.receivableL === 'function' &&
-    typeof s.standingAvailableL === 'function'
-    ? (x as Stuff & LiftSource)
-    : null;
+  return x !== null && MixinApi.isLiftSource(x) ? x : null;
 }
 
 /** A numeric setting, else the shipped grain. */

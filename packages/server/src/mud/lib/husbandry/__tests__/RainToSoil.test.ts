@@ -30,7 +30,7 @@ import { SkyExposedBiome } from '../../../platform/idea/SkyExposedBiome';
 import Biome from '../../biome/Biome';
 import { AtmosphericMixin } from '../../biome/Atmospheric';
 import Place from '../../stuff/Place';
-import { Reserve } from '../../reserve';
+import { Reserve } from '../../reserve/Reserved';
 import {
   PLANT_SLOT,
   SOIL_MOISTURE_RESERVE_KEY,

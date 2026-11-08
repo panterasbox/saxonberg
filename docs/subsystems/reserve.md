@@ -9,7 +9,7 @@ same axis — they differ only in **what drains them, what replenishes
 them, and their theme**. So the engine ships the *axis* and content
 names the instances.
 
-Source: `lib/reserve.ts` — a **top-level cross-cutting substrate** (the
+Source: `lib/reserve/Reserved.ts` — a **top-level cross-cutting substrate** (the
 value shape + decomposed persistence + the biological-key constant + the
 `ReservedMixin`), sitting at `lib/` root next to `lib/quantity.ts`
 because a reserve is a neutral capacity primitive that consumers (body,

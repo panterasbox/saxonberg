@@ -8,7 +8,7 @@
  */
 
 import Good from '@saxonberg/server/mud/lib/stuff/Good';
-import { ToolMixin } from '@saxonberg/server/mud/lib/craft/Tooled';
+import { ToolMixin } from '@saxonberg/server/mud/lib/craft/Tool';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';

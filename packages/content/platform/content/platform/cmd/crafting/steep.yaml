@@ -1,8 +1,9 @@
-verbs: [steep, infuse]
+verbs: [steep]
+category: crafting
 controller: /platform/idea/cmd/crafting/SteepController
 description: "Steep a solute in a solvent to draw an infusion"
 help: |
-  `steep <solute> in <vessel>` (or `infuse`) draws a solute's active into
+  `steep <solute> in <vessel>` draws a solute's active into
   a solvent — a herb into water for a draught, a leaf for tea. The vessel
   needs a little solvent (water, today) to start; it takes a moment, and
   your hands are busy while it steeps. The general infusion verb: whatever

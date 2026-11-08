@@ -9,7 +9,7 @@
 # in the realm can actually sit in.
 #
 # ⭐ Which also makes it the seat the build's drive takes: it is the one
-# that proves `apply` works end to end without first proving a
+# that proves `job apply` works end to end without first proving a
 # Discipline. The other two prove the refusal, which is the other half of
 # the same mechanism.
 #

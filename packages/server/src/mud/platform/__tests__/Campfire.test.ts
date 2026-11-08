@@ -12,7 +12,7 @@ import type { Stuff } from "../../lib/stuff/Stuff";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import Campfire from "../thing/Campfire";
 import Material from "../../lib/material/Material";
-import { Reserve } from "../../lib/reserve";
+import { Reserve } from "../../lib/reserve/Reserved";
 import { chargeWood } from "../../lib/fire/__tests__/burner-fuel";
 import type { Burner } from "../../lib/fire/Burner";
 import { Touch } from "../../lib/perception/Touch";

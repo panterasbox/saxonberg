@@ -6,11 +6,8 @@
 # a one-shot object that went out and stayed out. Both whiskey wire
 # drives carry a `DIRTY_REASON` ending *"no refuel verb exists for any
 # burner"*.
-#
-# ⭐ `fuel` is an alias because that is what a player types, and because
-# the noun and the verb are the same word in English for exactly the
-# reason they are the same act here.
-verbs: [stoke, fuel]
+verbs: [stoke]
+category: device
 controller: /platform/idea/cmd/device/StokeController
 description: "Put fuel in a fire"
 help: |
@@ -46,7 +43,7 @@ args:
     required: false
     greedy: true
     prepositions: [into, in, on, with]
-    scope: "reachable"
+    scope: ["here", "peers", "person"]
     default: "reachable:[mixin.BurnerMixin]"
     requires: BurnerMixin
     validators:

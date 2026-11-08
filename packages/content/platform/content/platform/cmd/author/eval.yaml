@@ -1,4 +1,5 @@
 verbs: [eval]
+category: author
 controller: /platform/idea/cmd/author/EvalController
 description: "Run a code snippet against the avatar (or --on target)"
 help: |

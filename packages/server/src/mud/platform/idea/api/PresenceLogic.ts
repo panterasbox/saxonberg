@@ -37,22 +37,14 @@ const SocialApiCallers = SecurityPolicies.FromModule('/api/social#SocialApi'
 /** The F2 object faces forward here as the subject instance. */
 const PresenceSubjectCallers = SecurityPolicies.AnyOf(
   SocialApiCallers,
-  SecurityPolicies.FromMixin('HasInteractiveMixin', {
-    // Compare by stuffId — the caller may surface as the raw target
-    // while the argument is the proxy (or vice versa).
-    where: (caller, _target, _method, args) =>
-      (caller as { stuffId?: string }).stuffId !== undefined &&
-      (caller as { stuffId?: string }).stuffId ===
-        (args[0] as { stuffId?: string } | undefined)?.stuffId,
-  }),
-  SecurityPolicies.FromMixin('NotifyPolicyMixin', {
-    // Compare by stuffId — the caller may surface as the raw target
-    // while the argument is the proxy (or vice versa).
-    where: (caller, _target, _method, args) =>
-      (caller as { stuffId?: string }).stuffId !== undefined &&
-      (caller as { stuffId?: string }).stuffId ===
-        (args[0] as { stuffId?: string } | undefined)?.stuffId,
-  }),
+  SecurityPolicies.AllOf(
+    SecurityPolicies.FromMixin('HasInteractiveMixin'),
+    SecurityPolicies.SelfSubject(0),
+  ),
+  SecurityPolicies.AllOf(
+    SecurityPolicies.FromMixin('NotifyPolicyMixin'),
+    SecurityPolicies.SelfSubject(0),
+  ),
 );
 const SocialBootCallers = SecurityPolicies.AnyOf(
   SocialApiCallers,

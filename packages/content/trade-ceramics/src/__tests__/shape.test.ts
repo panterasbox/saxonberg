@@ -18,7 +18,7 @@ import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persiste
 import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import { TestActor } from '@saxonberg/server/mud/platform/idea/cmd/crafting/__tests__/branch-fixtures';
 import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
-import type { ActPlan, ActRefusal } from '@saxonberg/server/mud/lib/craft/ActPlan';
+import type { ShapePlan, ShapeRefusal } from '@saxonberg/server/mud/lib/craft/Shapeable';
 import Clay from '@saxonberg/content-trade-quarrying/src/thing/Clay';
 import Wheel from '../thing/Wheel';
 import BrickTable from '../thing/BrickTable';
@@ -89,9 +89,12 @@ async function wheelIn(shed: Place): Promise<Wheel> {
   return w;
 }
 
-async function run(plan: ActPlan | ActRefusal | null): Promise<void> {
+async function run(plan: ShapePlan | ShapeRefusal | null): Promise<void> {
   expect(plan?.ok).toBe(true);
-  if (plan?.ok) plan.onComplete();
+  if (plan?.ok) {
+    const done = await plan.onComplete();
+    expect(done.ok).toBe(true);
+  }
   for (let i = 0; i < 12; i++) await new Promise<void>((r) => setTimeout(r, 0));
 }
 
@@ -116,7 +119,10 @@ describe('the wheel and the hand', () => {
     const wheel = await wheelIn(shed);
     const plan = await wheel.shapePlanFor({ actor, material: clay, formText: 'jar holding 2 gallons', commandText: '' });
     expect(plan?.ok).toBe(false);
-    expect(String((plan as ActRefusal).line)).toMatch(/novice/);
+    // ⭐ The refusal names the band — the words are `shape`'s (D4); the facts carry it.
+    const refused = plan as ShapeRefusal;
+    expect(refused.reason).toBe('beyond-your-hand');
+    if (refused.reason === 'beyond-your-hand') expect(refused.facts.band).toBe('novice');
   });
 
   it('the wheel will not make a brick, and asks for a size it understands', async () => {
@@ -125,7 +131,7 @@ describe('the wheel and the hand', () => {
     const brick = await wheel.shapePlanFor({ actor, material: clay, formText: 'block', commandText: '' });
     expect(brick?.ok).toBe(false);
     const teapot = await wheel.shapePlanFor({ actor, material: clay, formText: 'teapot', commandText: '' });
-    expect((teapot as ActRefusal).reason).toBe('unknown-form');
+    expect((teapot as ShapeRefusal).reason).toBe('unknown-form');
   });
 
   it('the clay is consumed by mass, and the piece is captured where it landed', async () => {

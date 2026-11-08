@@ -9,7 +9,7 @@
 import "@saxonberg/server/test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Watch from '../thing/Watch';
-import { Reserve, type Reserved } from '@saxonberg/server/mud/lib/reserve';
+import { Reserve, type Reserved } from '@saxonberg/server/mud/lib/reserve/Reserved';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { Mixins } from '@saxonberg/server/mud/lib/mixin';

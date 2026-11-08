@@ -850,7 +850,7 @@ export class BulkableLogic extends ApiLogic {
 /**
  * ⭐ A receiver that could not survive a pour (ceramics S13). A melting one
  * slumps into its material's broken form where it stood; a burning one
- * catches — through its own `ignite` when it is fuel, else it chars away.
+ * catches — through its own `light` when it is fuel, else it chars away.
  * Fire-and-forget: the transfer is synchronous and the clone is not.
  */
 function loseReceiver(receiver: Stuff, how: 'melts' | 'burns'): void {

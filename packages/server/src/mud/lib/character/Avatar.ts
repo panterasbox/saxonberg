@@ -21,6 +21,7 @@ import { BankingApi } from "../../api/banking";
 import { ContainmentApi } from "../../api/containment";
 import { MixinApi } from "../../api/mixin";
 import { BiomeApi } from "../../api/biome";
+import { CombatApi } from "../../api/combat";
 import type { Containable } from "../spatial/Containable";
 import type { Container } from "../spatial/Container";
 import type { Stuff, EvictionContext } from "../stuff/Stuff";
@@ -164,6 +165,8 @@ export interface AvatarInitContext {
 // (`place`), plus its ESTATE — the stamped goods it holds title to wherever
 // they sit, which is what lets furniture stay in a room the avatar is not in.
 // `shouldPersist()` (below) gates guests out.
+type AvatarCommandGiver = import("../command/CommandGiver").CommandGiver;
+
 const AvatarBase = PersistableMixin(
   // ⭐ A played person KEEPS A MAP of the places they perceive
   // (location-graph B3). Outermost of the epistemic layers because it
@@ -324,16 +327,18 @@ export default abstract class Avatar extends AvatarBase {
       "platform/cmd/system/trace.yaml",
       "platform/cmd/social/subject.yaml",
       "platform/cmd/shell/script.yaml",
+      // `do <name>` — the named twin of `script`: run a script you wrote.
+      // (It was `make` under crafting; it never made anything.)
+      "platform/cmd/shell/do.yaml",
       // The record layer's retrieval verb. It lives on Avatar rather
       // than on a mixin because its subject IS the durable player
       // identity — `recall --scope frames` reads a store keyed on
       // `playerId`, which nothing without one has.
       "platform/cmd/shell/recall.yaml",
       "platform/cmd/stream/tune.yaml",
-      "platform/cmd/crafting/make.yaml",
-      // ⭐ `fit`'s RAISE arm is `make` for a thing made of parts, and its
-      // hand rung (a wedge, a friction fit) has no instrument — so it is
-      // the person's, like `make`. Afforded by the parts it was not: a
+      // ⭐ `fit`'s RAISE arm builds a thing made of parts, and its hand rung
+      // (a wedge, a friction fit) has no instrument — so it is the
+      // person's. Afforded by the parts it was not: a
       // pick head is a plain `Tool`, and only a class that IS made of
       // parts composes `AssembledMixin` (which still affords the
       // replace arm, `repair` and `salvage` on the assembly itself).
@@ -1168,6 +1173,7 @@ export default abstract class Avatar extends AvatarBase {
     this.sessionActive = true;
     // A returning connection cancels any pending deliberate-leave intent.
     this.leaveIntent = false;
+    this.clearSignOutRecheck();
     // ⭐ Back in control: the water lets go of a body it was holding up
     // (underwater D11). You are treading water again.
     if (MixinApi.isRespiration(this)) this.releaseHold();
@@ -1242,6 +1248,14 @@ export default abstract class Avatar extends AvatarBase {
    * `#`-private slots).
    */
   private sessionActive: boolean = false;
+
+  /** How long a signed-out body something is holding waits before it asks again. */
+  static SIGN_OUT_RECHECK_MS = 5_000;
+
+  /** @see HasInteractive.hasLiveSession — a linkdead body's session stays open. */
+  public override hasLiveSession(): boolean {
+    return this.isConnected() || this.sessionActive;
+  }
 
   /**
    * Transient flag: did the player signal a *deliberate* leave (sign out /
@@ -1556,6 +1570,7 @@ export default abstract class Avatar extends AvatarBase {
     });
 
     this.stopAutoSave();
+    this.clearSignOutRecheck();
     PlayerApi.unregisterAvatar(this);
     // Snapshot — detach() mutates the underlying set via removeInteractive.
     for (const interactive of [...this.interactives]) {
@@ -1625,11 +1640,145 @@ export default abstract class Avatar extends AvatarBase {
       this.leaveIntent = false;
       this.sessionActive = false;
       EventApi.emit(Events.PlayerLoggedOut, { playerId: this.playerId });
-    } else {
-      EventApi.emit(Events.PlayerDisconnected, { playerId: this.playerId });
+      // ⭐⭐ Signed out, the body leaves the world (owner, D30). Only a linkdead
+      // body stays, where it stands.
+      void this.retireSignedOutBody();
+      return;
     }
+    EventApi.emit(Events.PlayerDisconnected, { playerId: this.playerId });
     // Persist the stamp; a save failure must not break teardown.
     this.save().catch(() => undefined);
+  }
+
+  /** Commands this body has running; a retirement waits them out. */
+  private commandsInFlight = 0;
+
+  public override async executeCommand(
+    ...args: Parameters<AvatarCommandGiver['executeCommand']>
+  ): Promise<void> {
+    this.commandsInFlight += 1;
+    try {
+      await super.executeCommand(...args);
+    } finally {
+      this.commandsInFlight -= 1;
+    }
+  }
+
+  /** Which retirement is current; a login's claim makes any in flight stale. */
+  private signOutRetirement = 0;
+
+  /** The pending re-check of a signed-out body something is still holding here. */
+  private signOutRecheck: ScheduleHandle | null = null;
+
+  private clearSignOutRecheck(): void {
+    if (this.signOutRecheck) ScheduleApi.cancel(this.signOutRecheck);
+    this.signOutRecheck = null;
+  }
+
+  /**
+   * Why a signed-out body cannot leave yet, or `null` when it can. Each of
+   * these keeps the body exactly as a linkdead one until the reason resolves:
+   * signing out is not an escape.
+   *
+   *   - `acting` — a command still running finishes on the body that gave it: a
+   *     `buy` caught between the ledger and the hand must not land on nobody.
+   *   - `fighting` — you can't rage-quit a fight; `combat.maxBeats` bounds it.
+   *   - `dying` — the clock runs on, and that it does is the point of it.
+   *   - `in-water` — the water holds a body at the surface until its player
+   *     comes back (underwater D11), and a moving reach is no place to restore to.
+   *   - `carried` — a person in somebody's arms has no place of their own to
+   *     come back to (`capturePlacement` records none).
+   */
+  private signOutHold(): string | null {
+    if (this.parked) return 'parked';
+    if (this.commandsInFlight > 0) return 'acting';
+    if (this.isDying()) return 'dying';
+    if (CombatApi.sessionFor(this)) return 'fighting';
+    let at: Stuff | null = this.getContainer();
+    if (at === null) return null;
+    const medium = BiomeApi.mediumFor(this);
+    if (medium.immersed && medium.tag === 'water') return 'in-water';
+    for (let hops = 0; at !== null && hops < 32; hops++) {
+      if (MixinApi.isHasInteractive(at)) return 'carried';
+      at = MixinApi.isContainable(at) ? at.getContainer() : null;
+    }
+    return null;
+  }
+
+  /**
+   * Save, then destruct. A return is a fresh login that materializes the body
+   * from what was saved, so the order is the whole safety:
+   *
+   *   - ⚠ a save that fails leaves the body standing, linkdead, and tries again.
+   *     It is never destructed on an unwritten record.
+   *   - a login that lands while the save is in flight reuses this very body
+   *     and claims it ({@link claimForLogin}); the login wins.
+   *
+   * A body with no session at all (stood up by the character-select roster and
+   * not chosen) takes the same path through {@link retireIfSessionless}.
+   */
+  private async retireSignedOutBody(): Promise<void> {
+    this.clearSignOutRecheck();
+    const retirement = ++this.signOutRetirement;
+    try {
+      if (this.signOutHold() !== null) {
+        this.recheckSignOutLater();
+        return;
+      }
+      // A shift ends with the sign-out, before the save: the record must say so,
+      // or the return reads on-shift and `clock off` pays the whole absence.
+      if (MixinApi.isEmployed(this)) await this.leaveShifts();
+      await this.save();
+      if (retirement !== this.signOutRetirement) return;
+      if (this.isDestroyed() || this.hasLiveSession()) return;
+      if (this.signOutHold() !== null) {
+        this.recheckSignOutLater();
+        return;
+      }
+      StuffApi.destruct(this);
+    } catch (err) {
+      console.error(
+        `Avatar: signing out playerId=${this.playerId} failed; the body stays:`,
+        err,
+      );
+      if (!this.isDestroyed()) this.recheckSignOutLater();
+    }
+  }
+
+  /**
+   * A login has this body in hand: whatever retirement is under way stands down.
+   * ⚠ A session flag cannot say this: between loading a body and entering it a
+   * login awaits, and a save landing in that gap would destruct the body it is
+   * about to hand the socket to. If that login never enters, its screen's end
+   * retires the body ({@link retireIfSessionless}).
+   */
+  public claimForLogin(): void {
+    this.signOutRetirement += 1;
+    this.clearSignOutRecheck();
+  }
+
+  private recheckSignOutLater(): void {
+    this.signOutRecheck = ScheduleApi.schedule(
+      Avatar.SIGN_OUT_RECHECK_MS,
+      () => {
+        this.signOutRecheck = null;
+        if (this.isDestroyed() || this.hasLiveSession()) return;
+        void this.retireSignedOutBody();
+      },
+      { propagateAttribution: false },
+    );
+  }
+
+  /**
+   * Take a body nobody is playing out of the world. The character-select
+   * roster stands up every character a user has in order to describe them; the
+   * ones not chosen go back when that screen ends. A body with a session, or one
+   * already on its way out, is left alone.
+   */
+  public retireIfSessionless(): void {
+    if (this.isDestroyed() || this.hasLiveSession()) return;
+    if (this.signOutRecheck) return;
+    void this.retireSignedOutBody();
   }
 
   /** Bring this body up and hold it at the surface of the water it is in. */

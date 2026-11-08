@@ -169,7 +169,7 @@ export interface Tangible {
    * water this piece holds raises its ignition threshold by. Surface
    * wetness (a log left in the rain) and the matter's own water (a turf
    * cut from a bog) add. Mass-independent: the fuel mass cancels between
-   * the water-boil energy and the thermal capacity. `stoke`, `ignite`, a
+   * the water-boil energy and the thermal capacity. `stoke`, `light`, a
    * pour and a firing chamber all read this.
    */
   getWetIgnitionPenaltyK(): number;
@@ -201,13 +201,13 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
     static commandContributions: CommandContributions = {
       self: [],
       // OUTWARD to whoever holds it…
-      environment: ['platform/cmd/inventory/throw.yaml'],
+      environment: ['platform/cmd/inventory/throw.yaml', 'platform/cmd/inventory/throw-to.yaml', 'platform/cmd/inventory/throw-at.yaml'],
       // …and SIDEWAYS to anyone sharing the room with it, because you
       // do not have to be holding a rock for throwing it to be on the
       // table. Whether the throw picks it up first, refuses, or costs a
       // beat is the CONTROLLER's call — availability and permission are
       // different questions, and only the first lives here.
-      peers: ['platform/cmd/inventory/throw.yaml'],
+      peers: ['platform/cmd/inventory/throw.yaml', 'platform/cmd/inventory/throw-to.yaml', 'platform/cmd/inventory/throw-at.yaml'],
     };
     /**
      * Field-marshaller binding. `mass` round-trips via the kg-bound

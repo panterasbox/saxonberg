@@ -4,7 +4,7 @@
 class: /platform/location/Compartment
 data:
   shortDescription: Corrigan's deck
-  keywords: [deck, corrigan, ship]
+  keywords: [deck, corrigan deck, ship deck]
   register: definite
   _biomePath: /stuff/idea/biome/outdoor/open-water
   longDescription: |

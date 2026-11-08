@@ -1,4 +1,5 @@
 verbs: [mordant]
+category: dyeing
 controller: /trade/dyeing/idea/cmd/dyeing/MordantController
 description: "Prepare cloth in a metal bath so a colour will bind"
 help: |

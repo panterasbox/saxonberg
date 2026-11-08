@@ -22,6 +22,7 @@
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import { GradedMixin, type Graded } from './Graded';
+import { NameTakingMixin } from '../description/NameTaking';
 import { StuffApi } from '../../api/stuff';
 import type { Stuff } from '../stuff/Stuff';
 
@@ -150,7 +151,7 @@ export function CraftedMixin<TBase extends MixinConstructor>(Base: TBase) {
   // calls (the AdornableMixin-extends-SlottedMixin precedent) and don't
   // `implements Crafted` here — the `Crafted` interface is the narrowing
   // contract (MixinApi.isCrafted), satisfied structurally at runtime.
-  return class CraftedMixin extends GradedMixin(Base) {
+  return class CraftedMixin extends NameTakingMixin(GradedMixin(Base)) {
     static _mixinName = 'CraftedMixin';
 
     static fieldMeta: FieldMeta = {
@@ -186,10 +187,7 @@ export function CraftedMixin<TBase extends MixinConstructor>(Base: TBase) {
      * a mixin inside this one answers (the mixin-super idiom).
      */
     canBeNamedBy(handPath: string, by?: Stuff | null): boolean {
-      const inner = (Base.prototype as {
-        canBeNamedBy?: (h: string, b?: Stuff | null) => boolean;
-      }).canBeNamedBy;
-      if (typeof inner === 'function' && inner.call(this, handPath, by) === true) return true;
+      if (super.canBeNamedBy(handPath, by)) return true;
       if (!handPath || this.maker === '' || this.maker !== handPath) return false;
       const named = this as unknown as { getName?(): string };
       return typeof named.getName === 'function' && named.getName() === '';

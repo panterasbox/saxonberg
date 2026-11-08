@@ -44,6 +44,7 @@ import type {
   MqlQueryErrorEnvelope,
   MqlSubscriptionResultEnvelope,
   MqlSubscriptionErrorEnvelope,
+  AffordanceResultEnvelope,
   ActivityUpdateEnvelope,
   PromptEnvelope,
   Note,
@@ -299,6 +300,10 @@ export class Session {
     string,
     Pending<MqlQueryResultEnvelope>
   >();
+  private readonly pendingAffordances = new Map<
+    string,
+    Pending<AffordanceResultEnvelope>
+  >();
   private readonly activity: ActivityUpdateEnvelope[] = [];
   private readonly activityWaiters: (() => void)[] = [];
   private readonly prompts: PromptEnvelope[] = [];
@@ -317,6 +322,9 @@ export class Session {
   /** The handle this session logged in as — for failure messages. */
   public handle = '';
 
+  /** The session cookie, for a wire file that drives a REST surface as this player. */
+  public cookie = '';
+
   /**
    * Open a session and walk the roster handshake into the world.
    *
@@ -333,6 +341,7 @@ export class Session {
     const cookie = await login(handle, opts);
     const s = new Session();
     s.handle = handle;
+    s.cookie = cookie;
     s.ws = new WebSocket(WS_URL(), { headers: { cookie } });
     await new Promise<void>((resolve, reject) => {
       const timer = setTimeout(
@@ -575,6 +584,19 @@ export class Session {
         this.pendingSubscriptions.delete(id);
         clearTimeout(p.timer);
         p.resolve(frame as unknown as SubscribeOutcome);
+        continue;
+      }
+      if (type === 'affordance-result' || type === 'affordance-error') {
+        const id = typeof (frame as { requestId?: unknown }).requestId === 'string' ? (frame as unknown as { requestId: string }).requestId : '';
+        const p = this.pendingAffordances.get(id);
+        if (!p) continue;
+        this.pendingAffordances.delete(id);
+        clearTimeout(p.timer);
+        if (type === 'affordance-error') {
+          p.reject(new Error(`wire: affordance-resolve refused (${String(frame.reason)})`));
+        } else {
+          p.resolve(frame as unknown as AffordanceResultEnvelope);
+        }
         continue;
       }
       if (type === 'activity-update') {
@@ -862,6 +884,29 @@ export class Session {
   }
 
   /**
+   * What this viewer can do with a thing, right now, and what the thing
+   * is composed of: the one-shot frame an inspection card and a radial
+   * send (`affordance-resolve`). The card's *answers:* chip and a greyed
+   * offer's reason are read off this answer.
+   */
+  async affordances(stuffId: string): Promise<AffordanceResultEnvelope> {
+    const requestId = `wire-${++this.queryCounter}-${Date.now().toString(36)}`;
+    return new Promise<AffordanceResultEnvelope>((resolve, reject) => {
+      const timer = setTimeout(() => {
+        this.pendingAffordances.delete(requestId);
+        reject(new Error(`wire: no affordance-result for '${stuffId}' within ${FRAME_TIMEOUT_MS}ms`));
+      }, FRAME_TIMEOUT_MS);
+      this.pendingAffordances.set(requestId, { resolve, reject, timer });
+      this.ws.send(
+        JSON.stringify({
+          type: 'affordance-resolve',
+          payload: { type: 'affordance-resolve', requestId, stuffId },
+        })
+      );
+    });
+  }
+
+  /**
    * Open a STANDING query and return whichever answer the server gives
    * first — the result envelope, or the refusal.
    *
@@ -1026,10 +1071,28 @@ export class Session {
     return !this.closed && this.ws.readyState === WebSocket.OPEN;
   }
 
+  /**
+   * Sign out: the client's deliberate leave (close code `4000`). The body is
+   * saved and leaves the world, and the next login materializes it from what
+   * was saved (controllers-are-io D30). ⭐ This is what a finished test means.
+   */
   close(): void {
+    this.closeSocket(4000);
+  }
+
+  /**
+   * ⚠ Lose the connection without signing out: the body stays where it stands,
+   * linkdead, and a new socket reconnects to it. Only for a test about exactly
+   * that, because each one leaves a body in the world for the rest of the run.
+   */
+  drop(): void {
+    this.closeSocket(1000);
+  }
+
+  private closeSocket(code: number): void {
     if (this.closed) return;
     this.closed = true;
-    this.ws.close();
+    this.ws.close(code);
   }
 }
 

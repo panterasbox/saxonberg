@@ -1090,7 +1090,7 @@ arrangements in units`.
 > ✅ **Done** (build). `terminal` + `settings` cards; `cockpit terminal
 > <view|#channel> [--beside]` / `primary <card>`
 > (`CockpitTerminalController`); the registry's `openTerminal`,
-> `showInTerminal`, `setPrimaryTerminal`, retarget, input-mode restore;
+> `showInTerminal`, `promoteTerminal`, retarget, input-mode restore;
 > `PromptEnvelope.barId`; `channel:<name>` tags on every channel frame;
 > `play` → `explore` (with a refusal that names it); `Aether` → `Chat`.
 > Decisions B15–B20. The chat tag has no unit test (no `postToChannel`

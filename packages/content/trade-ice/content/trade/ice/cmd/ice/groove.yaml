@@ -1,4 +1,5 @@
 verbs: [groove]
+category: ice
 controller: /trade/ice/idea/cmd/ice/GrooveController
 description: "Score a grid across the ice, to cut into blocks"
 help: |

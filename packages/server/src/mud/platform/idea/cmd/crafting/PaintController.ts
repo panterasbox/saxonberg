@@ -1,7 +1,8 @@
 /**
  * PaintController — `paint <thing> [with <pot>] [using <brush>]` (paint
  * build D9). ⭐ Dumb by construction: the TARGET plans the coat
- * (`Faced.coatPlanFor`) and this controller engages the plan it is handed.
+ * (`Faced.coatPlanFor`) and this controller engages the plan it is handed,
+ * wording the facts it answers (controllers-are-io D4).
  * It picks the pot (the first bound vessel whose liquid lays a coat) and
  * checks the brush is in hand; it never decides how much paint a thing
  * takes, whether a building can be reached, or how a coat sets.
@@ -13,6 +14,9 @@ import type { MqlManyResult, MqlOneResult } from '../../../../api/mql';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
+import type { CoatRefusal } from '../../../../lib/material/Faced';
+
+type Composed = ReturnType<typeof Mml.compose>;
 
 const PAINTING = 'painting';
 
@@ -66,10 +70,46 @@ export default class PaintController extends ManualBuildController<PaintModel> {
       if (tried.ok) answer = tried;
     }
     if (!answer.ok) {
-      this.declineStep(context, answer.line, answer.reason);
+      this.declineStep(context, PaintController.refusalWords(answer, target), answer.reason);
       return;
     }
-    await this.engagePlan(context, answer);
+    await this.engagePlan(context, answer, {
+      beginSelf: (f) =>
+        Mml.compose`You load the brush from ${Mml.thing(f.source)} and start laying the coat on ${Mml.thing(target)}.`,
+      beginPeers: () => Mml.compose`${Mml.actor(giver)} starts painting ${Mml.thing(target)}.`,
+      onRefused: (r) => PaintController.refusalWords(r, target),
+      onDone: (f) =>
+        f.kind === 'gone'
+          ? null
+          : {
+              self: Mml.compose`${Mml.thing(target)} stands under a wet coat of ${f.what}. Let it set; keep the rain off it.`,
+              peers: Mml.compose`${Mml.actor(giver)} finishes a coat on ${Mml.thing(target)}.`,
+            },
+    });
+  }
+
+  /** ⭐ The words for a refused coat (D4) — every reason, exhaustively. */
+  private static refusalWords(r: CoatRefusal, target: Stuff): Composed {
+    switch (r.reason) {
+      case 'no-landing':
+        return Mml.compose`You cannot reach the outside of ${Mml.thing(target)} from here.`;
+      case 'not-paint':
+        return r.facts.why === 'empty'
+          ? Mml.compose`There is nothing in ${Mml.thing(r.facts.source)} to paint with.`
+          : Mml.compose`What is in ${Mml.thing(r.facts.source)} will not lay a coat — it runs off and leaves nothing behind.`;
+      case 'nothing-to-cover':
+        return Mml.compose`There is nothing of ${Mml.thing(target)} a brush could cover.`;
+      case 'source-too-low': {
+        const want = r.facts.litres >= 1 ? `about ${Math.round(r.facts.litres)} litres` : 'more than that';
+        return Mml.compose`There is not enough in ${Mml.thing(r.facts.source)} to give ${Mml.thing(target)} a coat — it would take ${want}.`;
+      }
+      case 'pot-ran-dry':
+        return Mml.compose`The pot runs dry before the coat is on.`;
+      default: {
+        const never: never = r;
+        return never;
+      }
+    }
   }
 
   /** Does `pot` hold a liquid that lays a coat? */

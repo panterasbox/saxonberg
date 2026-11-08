@@ -2,6 +2,7 @@
 # A rope flaked or tangled on the ground will not go far when thrown; a
 # coiled one runs out clean.
 verbs: [coil]
+category: inventory
 controller: /platform/idea/cmd/inventory/CoilController
 description: "Coil a rope down, ready to throw"
 help: |

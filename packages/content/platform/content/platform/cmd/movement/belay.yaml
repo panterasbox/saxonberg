@@ -3,6 +3,7 @@
 # taut and you hold them — round a post if there is one, which multiplies
 # what your hands can hold, never past what the rope will.
 verbs: [belay]
+category: movement
 controller: /platform/idea/cmd/movement/BelayController
 description: "Hold a rope for a climber — or `belay off`"
 help: |
@@ -26,7 +27,7 @@ args:
     requires: any
     greedy: true
   # ⭐ The rope you hold the belay with — DECLARED, never hunted
-  # (`lint:instrument-args`): `belay hal with rope`, or the rope in hand.
+  # (`lint:controller-resolution`): `belay hal with rope`, or the rope in hand.
   # ⚠ The default is the INVENTORY, not `reachable`: at the ropewalk the
   # counter's coils are reachable too, and the browser walk found the
   # default picking one off the counter — then refusing you for not

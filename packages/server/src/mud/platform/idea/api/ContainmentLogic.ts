@@ -307,8 +307,11 @@ function moveCore(
 
   // NOTIFICATION HOOKS. Single onMoved per item; per-container
   // hooks for source and destination separately.
-  if (from) callHook(from, 'onContainableRemoved', [item]);
-  if (to) callHook(to, 'onContainableAdded', [item]);
+  // ⭐ Each witness is told the other end of the move: who took it, who put
+  // it (a pit lifts a hide for the hand it went to; a feeder knows who
+  // filled it). A second argument, never a search of the frame.
+  if (from) callHook(from, 'onContainableRemoved', [item, to]);
+  if (to) callHook(to, 'onContainableAdded', [item, from]);
   callHook(item, 'onMoved', [from, to]);
 
   // Merge-on-arrival ripple (stackable substrate). Fires after the

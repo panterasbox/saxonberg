@@ -22,10 +22,10 @@
  * engaging, or call a module function / a `static`.
  */
 
-import { readdirSync, readFileSync, statSync } from "fs";
-import { join, relative, resolve } from "path";
+import { readFileSync } from "fs";
+import { resolve } from "path";
 import { pathToFileURL } from "url";
-import { MUD, SERVER_SRC, packSources, packSrcFiles } from "./pack-roots";
+import { controllerFiles } from "./pack-roots";
 
 /**
  * Pinned at the census (2026-10-17, the cleanliness build): the shipped
@@ -50,7 +50,7 @@ function stripComments(src: string): string {
     .replace(/\/\/[^\n]*/g, "");
 }
 
-/** The `onComplete:` closures in one module that mention `this.`. */
+/** The completion-time closures (`onComplete:`, a plan's `onRefused`/`onDone`) that mention `this.`. */
 export function scanCompletionThis(src: string, file: string): CompletionThisFinding[] {
   const code = stripComments(src);
   const out: CompletionThisFinding[] = [];
@@ -68,38 +68,40 @@ export function scanCompletionThis(src: string, file: string): CompletionThisFin
       out.push({ file, line: code.slice(0, m.index).split("\n").length });
     }
   }
-  return out;
-}
-
-function controllerFiles(dir: string): string[] {
-  const out: string[] = [];
-  for (const entry of readdirSync(dir)) {
-    const full = join(dir, entry);
-    if (statSync(full).isDirectory()) {
-      if (entry === "__tests__" || entry === "node_modules") continue;
-      out.push(...controllerFiles(full));
-    } else if (entry.endsWith("Controller.ts")) {
-      out.push(full);
+  // ⭐ A plan's `words` land at completion too (controllers-are-io D4): an
+  // `onRefused`/`onDone` that reaches `this` says nothing, just as silently.
+  // The whole arrow body is read, expression or block.
+  const wordsRe = /\b(?:onRefused|onDone):\s*(?:async\s*)?\([^)]*\)\s*=>\s*/g;
+  for (const m of code.matchAll(wordsRe)) {
+    const start = (m.index ?? 0) + m[0].length;
+    let i = start;
+    let depth = 0;
+    while (i < code.length) {
+      const c = code[i];
+      if (c === "(" || c === "{" || c === "[") depth++;
+      else if (c === ")" || c === "}" || c === "]") {
+        if (depth === 0) break;
+        depth--;
+      } else if (c === "," && depth === 0) break;
+      i++;
+    }
+    if (/\bthis\./.test(code.slice(start, i))) {
+      out.push({ file, line: code.slice(0, m.index).split("\n").length });
     }
   }
   return out;
 }
 
+/**
+ * Every controller module — `pack-roots.controllerFiles()`, the enumerator
+ * the controller gates share (controllers-are-io W0): the kernel's
+ * `platform/idea/cmd/**` and `lib/**` bases, every pack's `src/**\/idea/cmd/**`
+ * (the domain-local ones included) and `src/lib/**` bases.
+ */
 export function collectLiveFindings(): CompletionThisFinding[] {
   const out: CompletionThisFinding[] = [];
-  for (const file of controllerFiles(MUD)) {
-    out.push(...scanCompletionThis(readFileSync(file, "utf8"), "src/" + relative(SERVER_SRC, file)));
-  }
-  for (const pack of packSources()) {
-    for (const file of packSrcFiles(pack.srcDir)) {
-      if (!file.endsWith("Controller.ts")) continue;
-      out.push(
-        ...scanCompletionThis(
-          readFileSync(file, "utf8"),
-          `packages/content/${pack.id}/src/${relative(pack.srcDir, file)}`,
-        ),
-      );
-    }
+  for (const c of controllerFiles()) {
+    out.push(...scanCompletionThis(readFileSync(c.file, "utf8"), c.rel));
   }
   return out;
 }

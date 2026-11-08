@@ -195,7 +195,7 @@ describe('a card is born on the server, or not at all', () => {
         'mud/platform/idea/cmd/system/GitController.ts:open',
         'mud/platform/idea/cmd/system/HelpController.ts:open',
         'mud/platform/idea/cmd/system/PressController.ts:open',
-        'mud/platform/idea/cmd/system/WikiController.ts:open',
+        'mud/platform/idea/cmd/system/WikiControllerBase.ts:open',
       ].sort(),
     );
   });

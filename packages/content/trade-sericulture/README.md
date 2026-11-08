@@ -11,9 +11,10 @@ trade's one decision: what you stifle becomes silk, what you keep becomes
 seed, and the heaviest you keep raise the next generation by the
 breeder's equation, R = h²S.
 
-It ships **no verb**: `put` an egg lot, leaf and a brush in a tray; `get`
-the cocoons out; `put` them in an oven; and `reel` them — the fishing
-trade's verb, told by the instrument what it is reeling.
+It ships **one verb**: `put` an egg lot, leaf and a brush in a tray; `get`
+the cocoons out; `put` them in an oven; and `unwind` them onto a reel —
+the trade's own act (it borrowed fishing's `reel` until controllers-are-io
+D19), afforded by the reel.
 
 ## What is here
 

@@ -296,14 +296,14 @@ already did — or a carp in a bowl could be named and afforded nothing
 to name it with.
 
 **The stall** is consignment: a `Stock` with no lines and
-`staffingPolicy: self-service`; `consign <fish> --ask N`, a buyer's `buy`
-splits the ask less the market's commission, `reclaim`. The one kernel
-change: **`consign` refuses what has turned** — a `Provision` past
+`staffingPolicy: self-service`; `shelf consign <fish> --ask N`, a buyer's `buy`
+splits the ask less the market's commission, `shelf reclaim`. The one kernel
+change: **`shelf consign` refuses what has turned** — a `Provision` past
 `fresh`, or a dead body whose `Postmortem.freshnessLoad()` (the
 butchering arithmetic, answered by the carcass) is past `fresh`. A rule
 of every shelf. The fishmonger keeps the stall on the market's roster
 (committee-appointed, on a shift with an `Offstage`), replaceable through
-`appoint`; the fisher fishes the confluence bare-hooked on his own
+`house appoint`; the fisher fishes the confluence bare-hooked on his own
 cadence and **reads the water aloud from the record** (`reads-water`, an
 `engage` responder building a one-beat tree from `readFor` at the
 practised band — his lines keyed *empty / thin / holds / apex*, `{{read}}`
@@ -380,7 +380,7 @@ thirteen lines were observed by the drive. Not observed live: the carp's
 bowl after a restart (above); *eaten raw it sickens* and *a fillet keeps
 when smoked* — `butcher` is afforded only by the cookhouse block, so the
 carcass-load transfer is a unit test; the fishmonger's replacement through
-`appoint` and the sturgeon's *release* deed are unit-tested, not driven.
+`house appoint` and the sturgeon's *release* deed are unit-tested, not driven.
 
 ## Fishing from a deck (the maritime build, 2026-10)
 
@@ -401,22 +401,16 @@ underwater regime, the spear · fish-specific recipes, skin and bone ·
 the fisher's creel · a river you can fill a bowl from · a room-level
 prose contribution for a prop.
 
-## `reel` has a second instrument (silk build, 2026-10-18)
+## `reel` is this pack's alone (controllers-are-io D19)
 
-> ⚠⚠ **Known debt — to be undone.** At the silk review (MR !395) this
-> proved a false unification: `ReelController` narrows on the target to
-> choose between landing a fish and reeling silk. The undo — this view
-> and controller restored to their pre-silk shape, `Reelable` gone, silk
-> on its own verb in its own pack — is `command-taxonomy-slate.md` § The
-> work, item 7.
-
-`reel` stays ONE view, this pack's. With nothing bound it is the fishing
-act, unchanged. Bound to a target answering the `Reelable` shape
-(`src/lib/Reelable.ts` — the kernel's `WorkPrognosis`/`WorkResult`), the
-target plans, `ReelController` (now a `ManualBuildController`) engages,
-and the target completes and names the Discipline to credit — silk off a
-stack of stifled cocoons at a reeling basin ([sericulture.md](./sericulture.md)).
-A bound target that does not reel falls through to the fishing act.
+The silk build (2026-10-18, MR !395) gave `reel` a second instrument —
+bound to a target answering a `Reelable` shape, it wound silk off cocoons
+— and the review found it a false unification: the controller narrowed on
+the target to choose between landing a fish and reeling silk. It is
+undone: `reel.yaml` and `ReelController` are back to their pre-silk shape
+(`args: []`, *"Take line in"*), `Reelable` is gone, and silk winds its
+thread with its own verb, `unwind`, in its own pack
+([sericulture.md](./sericulture.md)).
 Bait from silkworm pupae is open: `BAIT_KINDS` is this pack's closed set.
 
 ## River build (2026-10-21)

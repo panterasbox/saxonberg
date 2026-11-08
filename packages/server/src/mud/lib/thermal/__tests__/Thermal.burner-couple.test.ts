@@ -23,7 +23,7 @@ import Good from "../../stuff/Good";
 import Place from "../../stuff/Place";
 import Material from "../../material/Material";
 import { ThermalMixin } from "../Thermal";
-import { ReservedMixin, Reserve } from "../../reserve";
+import { ReservedMixin, Reserve } from "../../reserve/Reserved";
 import { LightSourceMixin } from "../../perception/LightSource";
 import { ContainerMixin } from "../../spatial/Container";
 import { PlacingMixin } from "../../spatial/Placing";

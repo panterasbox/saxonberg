@@ -1,4 +1,5 @@
 verbs: [testharness]
+category: system
 controller: /platform/idea/cmd/system/TestHarnessController
 # ⛔ A TEST-WORLD verb. The view installs everywhere; the command loader
 # admits it only when SecurityApi.isTestEnvironment() (the wire runner's

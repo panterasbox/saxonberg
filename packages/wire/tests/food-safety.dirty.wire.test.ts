@@ -95,7 +95,8 @@ suite('butchering is the one source of the silent population', () => {
     const butchered = await cook.cmd('butcher carcass');
     expectOk(butchered);
     const said = await butchered.said();
-    const m = /work it down to (\d+) cuts/i.exec(said);
+    // The butchery build's sentence says `piece(s)` (W23); this said `cuts`.
+    const m = /work it down to (\d+) piece\(s\)/i.exec(said);
     expect(m, `expected a cut count — saw: ${said.slice(0, 200)}`).toBeTruthy();
     expect(Number(m![1]), 'genuinely several').toBeGreaterThanOrEqual(4);
   }, 120_000);
@@ -147,7 +148,7 @@ suite('⭐⭐ the hazard reports to no sense', () => {
 
 suite('the other hurdle, and a proper cook', () => {
   it('drying resolves — no salt, no fire', async () => {
-    const dried = await cook.cmd('dry');
+    const dried = await cook.cmd('dry treated');
     expectOk(dried);
     expect(await dried.said()).toMatch(/to dry/i);
   }, 60_000);
@@ -155,18 +156,23 @@ suite('the other hurdle, and a proper cook', () => {
   it('the sear resolves, or declines for a reason a player can act on', async () => {
     /*
      * ⭐ A decline is a PASS here, and it should be: `cook` is deed-gated
-     * on the knowledge ladder, so a cook who has never worked a sear by
-     * hand is told to work it by hand first. That is the shipped design
+     * on the knowledge ladder, so a cook who has never made a sear is
+     * told the hands have to learn it first. That is the shipped design
      * answering, not the build failing — and the preserving verbs
      * deliberately do NOT carry that gate, because their by-hand path
      * does not exist.
      */
     // ⚠ The hearth may already be lit — `cooking.dirty` runs before this
     // file and works the same cookhouse. The requirement is that the
-    // hearth IS lit, not that this test lit it.
-    expectOkOr(await cook.cmd('ignite oven'), 'already-burning');
+    // hearth IS lit, not that this test lit it. ⭐ Fuel first, as
+    // `cooking.dirty` does: on a fresh world nothing has stoked it, and an
+    // unstoked oven refuses `no-fuel`. A log may already be in, so neither
+    // line is asserted.
+    await cook.cmd('get log');
+    await cook.cmd('stoke log into oven');
+    expectOkOr(await cook.cmd('light oven'), 'already-burning');
     const seared = await cook.cmd('cook seared-cut');
-    expect(await seared.said()).toMatch(/you cook|haven't learned|work it by hand/i);
+    expect(await seared.said()).toMatch(/you cook|haven't learned|never made one|work it by hand/i);
   }, 120_000);
 });
 

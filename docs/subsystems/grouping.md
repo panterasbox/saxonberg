@@ -187,7 +187,7 @@ and developer-cache warm path to find well-known groups (`'lounge'`,
 [access.md](./access.md).
 
 The provider holds a `Map<id, Set<listener>>` for change notifications.
-The `fireChange(id)` method is called by `GroupController` after every
+The `fireChange(id)` method is called by the `group` controllers after every
 CRUD mutation (`make` / `delete` / `rename` / `add` / `remove` /
 `role`).
 
@@ -314,7 +314,7 @@ Api stays thin) — dispatching on `kind`:
 
 Consequence: handing the seat (`office assign`) hands every group the
 office owns, with **no data migration** — the Group row is never
-rewritten. `GroupController`'s four ownership gates (`delete`, `rename`,
+rewritten. The `group` controllers' four ownership gates (`delete`, `rename`,
 `role` owner-only; `add`, `remove` owner-or-admin) route through it, and
 `group show` renders an office owner as
 `the office of prime-minister (held by <holder>)`.
@@ -326,9 +326,12 @@ committee it debuted on was folded into the executive in wave 3).
 
 ## The `group` verb suite
 
-`GroupController` is the player-facing surface for the managed
-provider. The YAML lives at `content/platform/cmd/social/group.yaml`; the controller
-dispatches on the subcommand:
+The `group` controllers are the player-facing surface for the managed
+provider. The YAML lives at `content/platform/cmd/social/group.yaml`, and
+each subcommand names its own controller — `Group<Sub>Controller` over
+`GroupControllerBase` (the Avatar narrowing, `findGroupByName`,
+`ownerOrAdmin`, `describeOwner`; bare `group` is `GroupListController` —
+controllers-are-io D9):
 
 ```
 group make <name>

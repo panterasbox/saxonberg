@@ -34,12 +34,9 @@ import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { KneadVesselMixin } from '@saxonberg/server/mud/lib/craft/KneadVessel';
 import type { KneadRequest } from '@saxonberg/server/mud/lib/craft/KneadVessel';
-import type { ActPlan, ActRefusal } from '@saxonberg/server/mud/lib/craft/ActPlan';
-import { MessageApi } from '@saxonberg/server/mud/api/message';
-import { Mml } from '@saxonberg/server/mud/api/mml';
+import type { KneadPlan, KneadRefusal } from '@saxonberg/server/mud/lib/craft/KneadVessel';
 import { CraftingApi } from '@saxonberg/server/mud/api/crafting';
 
-const TOPIC = 'act.deed';
 /** Kneading is work. Ten game-minutes of it, and your hands are in it. */
 const KNEAD_MS = 10 * 60 * 1000;
 
@@ -48,7 +45,7 @@ const KNEAD_MS = 10 * 60 * 1000;
  * silently — a mistake this codebase has already paid for once.
  */
 const BAKING = [
-  'platform/cmd/crafting/pour.yaml',
+  'platform/cmd/bulk/pour.yaml',
   'trade/baking/cmd/baking/bake.yaml',
 ];
 
@@ -78,54 +75,30 @@ export default class DoughTrough extends KneadVesselMixin(ManualBuildMixin(Vat))
    * weakest-link, and carries the flour's parts into the dough's payload.
    * What happens next (the proof) is the cloth's business, not the verb's.
    */
-  public override async kneadPlanFor(req: KneadRequest): Promise<ActPlan | ActRefusal> {
-    if (this.isBuildEmpty()) {
-      return {
-        ok: false,
-        reason: 'empty-build',
-        line: Mml.compose`${Mml.thing(this as unknown as Stuff)} is empty. Put flour and water in it first.`,
-      };
-    }
+  public override async kneadPlanFor(req: KneadRequest): Promise<KneadPlan | KneadRefusal> {
+    if (this.isBuildEmpty()) return { ok: false, reason: 'empty-build' };
     const giver = req.actor;
     // Captured now — the mint runs later, at engaged-completion, where no
     // command frame exists.
     const makerPath = giver.getIdentityPath() ?? '';
-    const commandText = req.commandText;
     return {
       ok: true,
       durationMs: KNEAD_MS,
       effortW: 400,
-      beginSelf: Mml.compose`You turn ${Mml.thing(this as unknown as Stuff)} out and set to, pushing the heel of your hand through it and folding it back.`,
-      onComplete: () => {
-        void (async (): Promise<void> => {
-          // ⭐ The method word. An OPEN string on the build — nothing
-          // switches on it, and that is what keeps `knead` a method.
-          this.setBuildMethod('kneaded');
-          this.recordCommand(commandText);
-          const outcome = await CraftingApi.mintFromBuild({
-            vessel: this as unknown as Stuff,
-            contributions: [...this.getContributions()],
-            method: this.getBuildMethod(),
-            makerPath,
-          });
-          if (!outcome.ok) {
-            MessageApi.scene(giver)
-              .topic(TOPIC)
-              .toSelf(Mml.compose`It will not come together. Whatever is in there is not a dough.`)
-              .send();
-            return;
-          }
-          this.clearBuild();
-          MessageApi.scene(giver)
-            .topic(TOPIC)
-            .toSelf(
-              Mml.compose`It comes together and turns silky under your hands. You round it up and leave it in the trough.`,
-            )
-            .toPeers(Mml.compose`${Mml.actor(giver)} works a dough in ${Mml.thing(this as unknown as Stuff)}.`)
-            .send();
-        })().catch((err: unknown) => {
-          console.error('DoughTrough: mint failed', err);
+      facts: { kind: 'dough' },
+      onComplete: async () => {
+        // ⭐ The method word. An OPEN string on the build — nothing
+        // switches on it, and that is what keeps `knead` a method.
+        this.setBuildMethod('kneaded');
+        const outcome = await CraftingApi.mintFromBuild({
+          vessel: this as unknown as Stuff,
+          contributions: [...this.getContributions()],
+          method: this.getBuildMethod(),
+          makerPath,
         });
+        if (!outcome.ok) return { ok: false, reason: 'not-a-dough' };
+        this.clearBuild();
+        return { ok: true, facts: { kind: 'dough' } };
       },
     };
   }

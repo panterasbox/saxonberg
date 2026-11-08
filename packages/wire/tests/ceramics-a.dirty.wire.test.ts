@@ -608,7 +608,7 @@ suite('⭐ 7 — fire the clamp', () => {
     // ⚠ Not `clamp:i`: a clamp is cased in clay and its inside is dark, so a
     // read of it lists nothing (run 36) — what the setter SAID is the record.
     expect(set.join(' | '), 'the clamp is charged').toMatch(/put .*brick.* in .*clamp/i);
-    const lit = await say(digger, 'ignite clamp');
+    const lit = await say(digger, 'light clamp');
     expect(lit).toMatch(/catch|light|burn|alight|fire/i);
     // Fire it into the night and look from next door.
     await toHour(20, 23);

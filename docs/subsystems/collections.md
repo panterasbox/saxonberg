@@ -202,7 +202,7 @@ mixin or the API. The split is:
 | Layer | Word | Why |
 |---|---|---|
 | Model / API method / internal field / MQL token | `contents` | Universal, matches the relationship, type-agnostic |
-| Player command verb (the action of displaying self-contents) | `inventory` (`i`, `inv`) | MUD-canonical for the *self-look-at-what-I-carry* action |
+| Player command verb (the action of displaying self-contents) | `inventory` (default alias `i`) | MUD-canonical for the *self-look-at-what-I-carry* action |
 | Narration / prose | per genre | "There is a sword here." / "Bob is here." / "The ship carries 3 passengers." Per-template, not unified |
 
 So:

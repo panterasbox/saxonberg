@@ -11,6 +11,6 @@
  */
 
 import Garment from './Garment';
-import { DisguiseBearingMixin } from '../../../lib/disguise/Disguise';
+import { DisguiseBearingMixin } from '../../../lib/disguise/DisguiseBearing';
 
 export default class DisguiseGarment extends DisguiseBearingMixin(Garment) {}

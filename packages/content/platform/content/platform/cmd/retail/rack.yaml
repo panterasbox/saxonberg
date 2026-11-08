@@ -1,0 +1,76 @@
+# rack — a house's check rack, and the book it keeps (controllers-are-io
+# W7, D9). The flat `check` and `reclaim` verbs until then; ⚠ the flat
+# `reclaim` bound only a consignment shelf, so a checked weapon could not
+# be reclaimed through the view at all — `rack reclaim` binds the rack.
+verbs: [rack]
+category: retail
+description: "A house's check rack — check / reclaim"
+help: |
+  Some houses do not allow arms inside; they keep a check rack at the
+  door. `rack check <weapon>` hands it over for a ticket, and `rack
+  reclaim <weapon>` takes it back. It stays yours — no one can buy it off
+  the rack.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+subcommands:
+  check:
+    description: Check a weapon at a house's check rack
+    controller: /platform/idea/cmd/retail/RackCheckController
+    help: |
+      Hand a weapon to the house's check rack — `rack check knife`. Custody passes
+      to the house and you get a claim ticket, but the weapon stays YOURS: no
+      one can buy it off the rack, and you take it back any time with
+      `rack reclaim`. Only weapons can be checked (a shield is armor, not a
+      weapon), and the rack has to be here — you'll find one at the door of a
+      house that doesn't allow arms inside.
+    validators:
+    - /lib/command/validators/requiresEmbodied
+    args:
+    - name: thing
+      type: object
+      required: true
+      scope:
+      - inventory
+      requires:
+      - ChattelMixin
+    - name: rack
+      type: object
+      required: false
+      prepositions:
+      - from
+      default: reachable:[mixin.HeldGoodsMixin] - reachable:[mixin.ConsignmentShelfMixin]
+      scope:
+      - here
+      - peers
+      - person
+      requires:
+      - HeldGoodsMixin
+  reclaim:
+    description: Take back a weapon you checked
+    controller: /platform/idea/cmd/retail/RackReclaimController
+    help: |
+      Take back a weapon you checked at the rack — `rack reclaim knife`.
+      It was yours the whole time: the house only held it. Where more than
+      one rack is in reach, say which: `rack reclaim knife from the second
+      rack`.
+    validators:
+    - /lib/command/validators/requiresEmbodied
+    args:
+    - name: thing
+      type: string
+      required: true
+      greedy: true
+    - name: rack
+      type: object
+      required: false
+      greedy: true
+      prepositions:
+      - from
+      default: reachable:[mixin.HeldGoodsMixin] - reachable:[mixin.ConsignmentShelfMixin]
+      scope:
+      - here
+      - peers
+      - person
+      requires:
+      - HeldGoodsMixin

@@ -7,6 +7,7 @@
 # wall already HAS its plain English word, `hang`. ⚠ So the alias bought
 # nothing and shadowed something: *do not pre-emptively claim a name.*
 verbs: [hang]
+category: inventory
 controller: /platform/idea/cmd/inventory/HangController
 description: "Hang a fixture on the wall of the room you're in"
 help: |

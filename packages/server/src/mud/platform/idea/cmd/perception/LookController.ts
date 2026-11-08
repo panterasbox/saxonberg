@@ -29,7 +29,7 @@ import type {
   CommandContext,
   CommandModel,
   } from '../../../../api/command';
-import type { MqlOneResult } from '../../../../api/mql';
+import { MqlApi, type MqlOneResult } from '../../../../api/mql';
 import InventoryController from '../inventory/InventoryController';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import { MixinApi } from '../../../../api/mixin';
@@ -67,10 +67,20 @@ interface LookModel extends CommandModel {
 /** `look` names this many things inline before it summarises (the `Mml.list` block threshold). */
 const LOOK_INLINE = 4;
 
-/** A segment source for one of `look`'s own sections. */
-const lookSource = (name: string): SegmentSource => ({ kind: 'look', name });
+/**
+ * The room's listing as the viewer sees it — its contents, perceived
+ * (honest fog: a concealed thing the actor hasn't discovered is absent
+ * from their world), never the room's structure (an adornment routes
+ * through its host), never the viewer. The same query `sense` reads.
+ */
+const ROOM_LISTING = 'here:i:visible:[not mixin.AdornmentMixin] - me';
 
 export default class LookController extends CommandController<LookModel> {
+  /** A segment source for one of `look`'s own sections. */
+  private static lookSource(name: string): SegmentSource {
+    return { kind: 'look', name };
+  }
+
   execute(model: LookModel, context: CommandContext): void | Promise<void> {
     const target = model.target;
     const raw = target?.raw ?? '';
@@ -213,17 +223,10 @@ export default class LookController extends CommandController<LookModel> {
     // structure, not loose contents, and route through their host's
     // description rather than the occupant list. The actor never
     // lists themselves.
-    const visibleContents = location
-      .getContents()
-      .filter((item) => {
-        if (item.stuffId === actor.stuffId) return false;
-        if (MixinApi.isAdornment(item)) return false;
-        if (!MixinApi.isVisible(item)) return false;
-        // Honest fog: a concealed thing the actor hasn't discovered /
-        // can't yet perceive is absent from the actor's world.
-        if (!PerceptionApi.perceives(actor, item)) return false;
-        return true;
-      });
+    const visibleContents = MqlApi.resolveMany(ROOM_LISTING, {
+      commandGiver: actor,
+      scope: 'here',
+    }).stuff;
 
     if (
       !hasVisible &&
@@ -316,7 +319,7 @@ export default class LookController extends CommandController<LookModel> {
     const puddle = BulkableApi.floorPuddleSummary(location);
     if (puddle) {
       body = Mml.compose`${body}\n${puddle}`;
-      segments.push({ shape: 'state', sources: [lookSource('Floor')], text: puddle });
+      segments.push({ shape: 'state', sources: [LookController.lookSource('Floor')], text: puddle });
     }
     // ⭐⭐ The help-wanted sign (trades-and-labor D11). Derived: there is
     // no sign OBJECT and no mixin, so a venue with an open seat CANNOT
@@ -356,7 +359,7 @@ export default class LookController extends CommandController<LookModel> {
         segments.push({
           shape: 'list',
           heading: 'Obvious exits',
-          sources: [lookSource('Obvious exits')],
+          sources: [LookController.lookSource('Obvious exits')],
           text: this.render(exitsLine, actor),
           items: perceived.map((exit) => ({
             stuffId: exit.stuffId,
@@ -411,7 +414,7 @@ export default class LookController extends CommandController<LookModel> {
           segments.push({
             shape: 'list',
             heading: 'Here',
-            sources: [lookSource('Here')],
+            sources: [LookController.lookSource('Here')],
             text: this.render(Mml.compose`── Here: ${who}.`, actor),
             items: occupants.map((o) => this.personOf(o, actor)),
           });
@@ -443,7 +446,7 @@ export default class LookController extends CommandController<LookModel> {
           segments.push({
             shape: 'list',
             heading: 'You also see',
-            sources: [lookSource('You also see')],
+            sources: [LookController.lookSource('You also see')],
             text: this.render(Mml.compose`── You also see: ${seen}.`, actor),
             items: grouped.items,
           });
@@ -472,7 +475,7 @@ export default class LookController extends CommandController<LookModel> {
         ? Mml.fromMarkup(tell)
         : Mml.compose`Something here doesn't sit quite right.`;
       body = Mml.compose`${body}\n${hint}`;
-      segments.push({ shape: 'notice', sources: [lookSource('Hints')], text: this.render(hint, actor) });
+      segments.push({ shape: 'notice', sources: [LookController.lookSource('Hints')], text: this.render(hint, actor) });
     }
 
     // ⭐ The light, the tint and the notices are printed as their own
@@ -482,15 +485,15 @@ export default class LookController extends CommandController<LookModel> {
     const tintLine = this.tintLineAt(location, band);
     const cardSegments: LookSegment[] = [
       ...(bandPhrase
-        ? [{ shape: 'notice' as const, sources: [lookSource('Light')], text: bandPhrase }]
+        ? [{ shape: 'notice' as const, sources: [LookController.lookSource('Light')], text: bandPhrase }]
         : []),
       ...(tintLine
-        ? [{ shape: 'notice' as const, sources: [lookSource('Light')], text: this.render(tintLine, actor) }]
+        ? [{ shape: 'notice' as const, sources: [LookController.lookSource('Light')], text: this.render(tintLine, actor) }]
         : []),
       ...segments,
       ...notices.map((opening) => ({
         shape: 'notice' as const,
-        sources: [lookSource('Notices')],
+        sources: [LookController.lookSource('Notices')],
         text: this.render(Mml.compose`A notice here: ${opening.describe()}`, actor),
       })),
     ];
@@ -713,7 +716,7 @@ export default class LookController extends CommandController<LookModel> {
     // are here at all. Composed from what they already say about
     // themselves; nothing new is stored.
     const presence = target.isAgent() ? this.presenceLine(target) : null;
-    if (presence) section(Mml.compose`${presence}`, { shape: 'state', sources: [lookSource('Presence')] });
+    if (presence) section(Mml.compose`${presence}`, { shape: 'state', sources: [LookController.lookSource('Presence')] });
 
     // Drill-in: examining a placement host reveals what is placed on it
     // (the back-bar's bottles + tools) — the discovery path that keeps them
@@ -736,7 +739,7 @@ export default class LookController extends CommandController<LookModel> {
         section(Mml.compose`── ${heading}: ${list}.`, {
           shape: 'list',
           heading,
-          sources: [lookSource(heading)],
+          sources: [LookController.lookSource(heading)],
           items: grouped.items,
         });
       }
@@ -754,7 +757,7 @@ export default class LookController extends CommandController<LookModel> {
         section(Mml.compose`── Owned by ${holder.describeFor(actor)}.`, {
           shape: 'list',
           heading: 'Owned by',
-          sources: [lookSource('Owned by')],
+          sources: [LookController.lookSource('Owned by')],
           items: [this.itemOf(holder, actor)],
         });
       }
@@ -768,7 +771,7 @@ export default class LookController extends CommandController<LookModel> {
     // what you would see, and the line is there either way.
     if (MixinApi.isDisplay(target)) {
       const screen = (await target.readScreen(actor)) ?? Mml.compose`The screen is dark.`;
-      section(Mml.compose`── ${screen}`, { shape: 'state', sources: [lookSource('Screen')] });
+      section(Mml.compose`── ${screen}`, { shape: 'state', sources: [LookController.lookSource('Screen')] });
     }
     // ⭐ What you would NOTICE it holding (maritime revision 2) — the ONE
     // visibility rule `inventory` reads too: on a person what they wear
@@ -793,7 +796,7 @@ export default class LookController extends CommandController<LookModel> {
           {
             shape: 'list',
             heading,
-            sources: [lookSource(heading)],
+            sources: [LookController.lookSource(heading)],
             items: xs.map((c) => this.itemOf(c, actor)),
           },
         );
@@ -820,7 +823,7 @@ export default class LookController extends CommandController<LookModel> {
           const noticed = Mml.list(found.map((f) => Mml.actor(f)));
           section(Mml.compose`Looking closely, you notice ${noticed}.`, {
             shape: 'notice',
-            sources: [lookSource('Hints')],
+            sources: [LookController.lookSource('Hints')],
           });
         }
         for (const cand of PerceptionApi.hintsFor(actor, contents)) {
@@ -829,7 +832,7 @@ export default class LookController extends CommandController<LookModel> {
             : undefined;
           section(
             tell ? Mml.fromMarkup(tell) : Mml.compose`Something here almost catches your eye.`,
-            { shape: 'notice', sources: [lookSource('Hints')] },
+            { shape: 'notice', sources: [LookController.lookSource('Hints')] },
           );
         }
       }
@@ -916,12 +919,12 @@ export default class LookController extends CommandController<LookModel> {
        * ("6 bar stools") named none of them and read like a different
        * kind of thing.
        */
-      const more = members.length - 1;
+      const [, ...rest] = members;
       const one = this.itemOf(first, actor);
-      parts.push(Mml.compose`${ref(first)} +${String(more)} more`);
+      parts.push(Mml.compose`${ref(first)} +${String(rest.length)} more`);
       items.push({
         ...one,
-        label: `${one.label} +${more} more`,
+        label: `${one.label} +${rest.length} more`,
         count: members.length,
         members: members.map((m) => this.itemOf(m, actor)),
       });

@@ -32,7 +32,6 @@ export default class LieController extends CommandController<LieModel> {
   async execute(model: LieModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     const target = model.target.stuff;
-    const floatingAsked = context.verb === 'float';
     // ⭐ In moving water, lying back takes your feet off the bottom (river
     // D13; the drive found `lie` in a fast shallows lying down ON the bed):
     // standing or not, the river has you and you float.
@@ -42,7 +41,9 @@ export default class LieController extends CommandController<LieModel> {
     const carried = room !== null && MixinApi.isMovingPlace(room) && room.isUnderWay();
     const moving = target instanceof WaterSurface && room !== null && MixinApi.isWaterPlace(room) &&
       (carried || (MixinApi.isMovingWater(room) && Math.abs(room.currentFor(giver)) >= MOVING_WATER_MPS));
-    if ((target instanceof WaterSurface && (!target.supports(giver) || moving)) || floatingAsked) {
+    // ⭐ And mid-water there is no ground to name: lying down there floats.
+    const adrift = !target && room !== null && MixinApi.isWaterPlace(room) && room.depthNow() > 0;
+    if ((target instanceof WaterSurface && (!target.supports(giver) || moving)) || adrift) {
       if (!MixinApi.isRespiration(giver)) {
         return this.refuse(context, 'act.deed', 'You cannot float.', 'not-a-swimmer');
       }

@@ -147,7 +147,7 @@ describe('scrape and groove hand the act to the sheet', () => {
     });
     const ctx = ctxFor(w as unknown as Stuff, 'scrape');
     await makeStuff(() => new ScrapeController()).execute({ tool: { stuff: [scraper], raw: '' } } as never, ctx);
-    expect(rejected(ctx)).toBe('refused');
+    expect(rejected(ctx)).toBe('not-on-ice');
     expect(sheet.getLog()).toHaveLength(1);
   });
 
@@ -163,7 +163,7 @@ describe('scrape and groove hand the act to the sheet', () => {
     });
     const ctx = ctxFor(w as unknown as Stuff, 'groove');
     await makeStuff(() => new GrooveController()).execute({ tool: { stuff: [plough], raw: '' } } as never, ctx);
-    expect(rejected(ctx)).toBe('refused');
+    expect(rejected(ctx)).toBe('no-horse');
   });
 });
 

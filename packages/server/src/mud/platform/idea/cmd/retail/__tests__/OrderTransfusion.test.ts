@@ -141,7 +141,7 @@ describe('order transfusion — the body-time cost', () => {
 
     await makeStuff(() => new OrderController()).execute(
       {
-        counter: { stuff: win } as unknown as MqlOneResult,
+        counter: { stuff: [win], raw: '' },
         menu: undefined,
         cocktail: 'transfusion',
         brand: undefined,

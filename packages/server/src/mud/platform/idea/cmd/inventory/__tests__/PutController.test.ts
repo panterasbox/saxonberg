@@ -14,6 +14,8 @@
 import "../../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import PutController from '../PutController';
+import { FeederMixin } from '../../../../../lib/husbandry/Feeder';
+import { TangibleMixin } from '../../../../../lib/material/Tangible';
 import { ContainerMixin } from '../../../../../lib/spatial/Container';
 import { ContainableMixin } from '../../../../../lib/spatial/Containable';
 import { StackableMixin } from '../../../../../lib/stuff/Stackable';
@@ -860,5 +862,47 @@ describe('⭐ PutController — a count (the ceramics drive: `put 1 clay in tub`
     expect(stack.getContainer()).toBe(giver);
     const inChest = chest.getContents().filter((c) => c instanceof Coin) as Coin[];
     expect(inChest.reduce((n, c) => n + c.getQuantity(), 0)).toBe(2);
+  });
+
+  describe('⭐ the target says what the word means (controllers-are-io D11)', () => {
+    it('placementFor: a typed word, the only offer, or which of them', () => {
+      const desk = makeStuff(() => new TestDeskWithDrawer());
+      expect(desk.placementFor('in')).toMatchObject({ ok: true, offer: { kind: 'zero' } });
+      expect(desk.placementFor('on')).toMatchObject({ ok: true, offer: { kind: 'placement', name: 'on' } });
+      expect(desk.placementFor(undefined)).toMatchObject({ ok: false, reason: 'preposition-ambiguous' });
+      expect(desk.placementFor('over')).toMatchObject({ ok: false, reason: 'wrong-preposition', got: 'over' });
+      const chest = makeStuff(() => new TestChest());
+      expect(chest.placementFor(undefined)).toMatchObject({ ok: true, offer: { kind: 'zero' } });
+    });
+
+    it('a feeder hears who filled it on its own hook — any move by a person', () => {
+      class TestFeeder extends FeederMixin(ContainerMixin(ContainableMixin(NamedMixin(Idea)))) {}
+      class Scraps extends TangibleMixin(ContainableMixin(NamedMixin(Idea))) {
+        public override isEdible(): boolean {
+          return true;
+        }
+      }
+      class Keeper extends TestGiver {
+        public override isAgent(): boolean {
+          return true;
+        }
+        public override getIdentityPath(): string {
+          return '/platform/agent/Avatar/keeper';
+        }
+      }
+      const giver = makeStuff(() => new Keeper());
+      const loc = makeStuff(() => new Place());
+      ContainmentApi.move(giver, loc);
+      const bowl = makeStuff(() => new TestFeeder());
+      ContainmentApi.move(bowl, loc);
+      const food = makeStuff(() => new Scraps());
+      ContainmentApi.move(food, loc);
+      // Off the floor it is nobody's filling.
+      ContainmentApi.move(food, bowl);
+      expect(bowl.getLastFilledBy()).toBe('');
+      ContainmentApi.move(food, giver);
+      ContainmentApi.move(food, bowl);
+      expect(bowl.getLastFilledBy()).toBe('/platform/agent/Avatar/keeper');
+    });
   });
 });

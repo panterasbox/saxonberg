@@ -172,7 +172,7 @@ describe('melt-wax — a STEP of the dip, not a verb of its own', () => {
     expect(row.class).toBe('/trade/chandlery/thing/DipPot');
   });
 
-  it('⭐⭐⭐ `melt` is an ALIAS on `dip`, and ships no view of its own', () => {
+  it('⭐⭐⭐ `melt` is no verb at all: it is a step of `dip`, and ships no view', () => {
     // It shipped as a second verb for one build, on the argument that the
     // pot has to be filled before anything can be dipped out of it. The
     // asymmetry between a liquid crock and a hard cake is real; the
@@ -188,8 +188,8 @@ describe('melt-wax — a STEP of the dip, not a verb of its own', () => {
         'utf8',
       ),
     ) as { verbs: string[]; args: { name: string }[] };
-    // `gob` is glass's word for the same act (a gather out of a melt).
-    expect(dip.verbs).toEqual(['dip', 'melt', 'gob']);
+    // One view, one word: melting and gathering are steps of the dip.
+    expect(dip.verbs).toEqual(['dip']);
     // ⚠ And the thing dipped is declared FIRST. Positionals bind in
     // declared order, so with the bath ahead of it `dip the cake` hands
     // the cake to the bath — the defect the milling trade paid for with

@@ -274,7 +274,7 @@ wrong chart is wrong in one row and never reconciled. See
 | `pilot` | `Pilot` (peers) | buy told claims |
 | `measure depth` / `measure latitude` | reading rows (`sounding` / `sighting`) | the sounding; the noon sight |
 | `measure bearing` | reading row (`bearing`; the hand-bearing compass, or the eye at ±10°) | the bearing of a thing in view; a fix on a fixed one |
-| `scan horizon` | `query` (alias `scan`; a bare `horizon` names a set) | what is in view beyond the room |
+| `query horizon` | `query` (a bare `horizon` names a set) | what is in view beyond the room |
 | `watch horizon` | `watch` (the stream verb's horizon form) | keep a watch: told only what changes |
 | `swim` | `ShoreMixin` (inventory) — every place beside or in a water; the gate decides the way | a small water is a place: a `Pool` IS the water, swum in and swum INTO |
 | `go <ship>` / `go ashore` | `BerthExit` (put on the landing by the ship) / `AshoreExit` | the way aboard is named for her and exists only while she is made fast |
@@ -400,7 +400,7 @@ they have opened is her leak (five seam bands, `ship.leak.<band>`). See
 ## Perception at range (revision 1)
 
 ⭐⭐ **Pull, never push.** Nothing on the horizon is ever announced to
-anybody: somebody looks (`scan horizon`) or keeps a watch (`watch
+anybody: somebody looks (`query horizon`) or keeps a watch (`watch
 horizon`, `HorizonWatch` — an engagement on the watcher's attention that
 says only what came into or dropped out of view). Push comes only from
 emitters that announce themselves (a bell, a gun, a signal).
@@ -541,7 +541,7 @@ instead of a 9.81 literal.
   horizon`, `watch horizon` + the hired lookout's brain, `measure
   bearing`, the derived crossing delta, and fog as a weather lean.
 - **Maritime revisions 2′ and 3 (2026-10-11/12).** `look` takes one
-  thing and `query` (aliases `scan`, `inventory --ledger`'s rendering)
+  thing and `query` (then aliased `scan`, since deleted; `inventory --ledger`'s rendering)
   lists a set (`810387483`); the shore as a place and drawing water
   (`a0d5e65cb`…`e9a83bdb4`) — see [location.md](./location.md) and
   [fishing.md](./fishing.md).

@@ -17,7 +17,25 @@
         "type": "string",
         "minLength": 1
       },
-      "description": "Command verbs and aliases. The first entry is the primary verb."
+      "description": "The one word that answers to this view (a one-element list; `lint:one-word`). The first entry is the primary verb."
+    },
+    "category": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The verb's category: `help` groups by it and the affordance radial slots by it. Equal to the view's `cmd/<category>/` directory (`lint:command-views`); a domain-local view, which sits in no category directory, names the category the verb would have in the platform taxonomy (command-spec.md)."
+    },
+    "defaultAliases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "description": { "type": "string" }
+        }
+      },
+      "description": "Default player aliases for this verb: a one- or two-character MUD-standard shortcut, nothing else (D16). A giver reaches one while the view is afforded; `alias unset` tombstones it. `lint:one-word` (c) refuses a duplicate name or one equal to a verb or builtin."
     },
     "unreachable": {
       "type": "string",
@@ -266,6 +284,10 @@
             "minLength": 1
           },
           "description": "Optional list of leading prepositions the matcher consumes (e.g. `[at]` for `look at`, `[to]` for `give X to Y`)."
+        },
+        "prepositionRequired": {
+          "type": "boolean",
+          "description": "The slot binds ONLY when one of its `prepositions:` is present. Absent, a required slot is a shape error naming the preposition (the chain tries the next view); an optional one stays unbound. Requires `prepositions:`."
         },
         "cardinality": {
           "$ref": "#/$defs/cardinality"

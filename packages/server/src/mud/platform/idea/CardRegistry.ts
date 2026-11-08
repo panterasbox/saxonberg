@@ -286,6 +286,19 @@ const SWEEP_INTERVAL_MS = 30_000;
 
 const CardRegistryBase = Idea;
 
+/**
+ * A card's prose is one synchronous READ: a room's description names everything
+ * in it, and without a hold each name walked the light (controllers-are-io D27).
+ */
+function steadyProse(prose: Mml, holder: Parameters<Mml['toString']>[0]): string {
+  const release = PerceptionApi.holdLightSteady();
+  try {
+    return prose.toString(holder);
+  } finally {
+    release();
+  }
+}
+
 export default class CardRegistry extends CardRegistryBase {
   /** The ONE recurring sweep handle — retained so re-install is a no-op. */
   private sweepHandle: ScheduleHandle | null = null;
@@ -468,7 +481,7 @@ export default class CardRegistry extends CardRegistryBase {
       ...(opts.subjectId ? { subjectId: opts.subjectId } : {}),
       ...(opts.promptId ? { promptId: opts.promptId } : {}),
       ...(opts.prose && !def.noProse
-        ? { prose: opts.prose.toString(holder) }
+        ? { prose: steadyProse(opts.prose, holder) }
         : {}),
       ...(opts.segments ? { segments: opts.segments } : {}),
       live: false,
@@ -774,7 +787,7 @@ export default class CardRegistry extends CardRegistryBase {
    * Returns the refusal reason, or null.
    */
   @CallSecurity(CardApiCallers)
-  public setPrimaryTerminal(interactive: Interactive, cardRef: string): string | null {
+  public promoteTerminal(interactive: Interactive, cardRef: string): string | null {
     const next = this.findRef(interactive, cardRef);
     if (!next) return 'unknown-card';
     if (next.cardId !== 'terminal') return 'not-a-terminal';
@@ -997,6 +1010,10 @@ export default class CardRegistry extends CardRegistryBase {
    * The primary terminal cannot be closed (`primary-terminal`); the
    * `here` room card closes like any other.
    */
+  private static isCell(n: number): boolean {
+    return Number.isInteger(n) && n >= 0;
+  }
+
   @CallSecurity(CardApiCallers)
   public arrange(
     interactive: Interactive,
@@ -1058,6 +1075,11 @@ export default class CardRegistry extends CardRegistryBase {
       }
       case 'move':
       case 'place': {
+        // A position is whole cells from the origin; anything else is
+        // refused here, where the grid is, not guessed at by a caller.
+        if (at && !(CardRegistry.isCell(at.col) && CardRegistry.isCell(at.row))) {
+          return { refused: 'bad-position' };
+        }
         const target =
           at ?? state.placed ?? { col: 0, row: this.nextRow(bucket, 0) };
         if (action === 'move') {
@@ -1361,7 +1383,7 @@ export default class CardRegistry extends CardRegistryBase {
     if (opts.subjectId) state.subjectId = opts.subjectId;
     if (opts.promptId) state.promptId = opts.promptId;
     if (opts.prose && !def.noProse && holder) {
-      state.prose = opts.prose.toString(holder);
+      state.prose = steadyProse(opts.prose, holder);
     }
     if (opts.segments) state.segments = opts.segments;
 

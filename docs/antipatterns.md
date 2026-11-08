@@ -387,8 +387,10 @@ every candidate, and it asks each:
 
 Asking an object you already hold for its own contents is a different
 thing and is always fine (`pit.getContents()` for the charge in the
-clamp). Enforced by `pnpm lint:instrument-args`, **at zero**: no shipped
-controller hunts for an instrument.
+clamp). Enforced by `pnpm lint:controller-resolution` (which absorbed
+`lint:instrument-args` in controllers-are-io W0), ceiling **4** — the
+widened census that reaches the domain-local controllers and the
+`*Controller.ts` bases found three hunts the old reader never saw.
 
 ⚠⚠ **Nor through a helper.** The widest instance of this was not in any
 controller's `execute` — it was `findCapability(giver, kind)` on the
@@ -2343,7 +2345,7 @@ only when that subcommand is invoked, after the verb-level
 validators and before field validators (see
 [command-spec.md](./subsystems/command-spec.md)). The `office` verb
 is the exemplar — `assign`/`vacate` carry
-`requiresFoundingAuthority`, the bare `offices` roster stays public.
+`requiresFoundingAuthority`, the bare `office` roster stays public.
 
 ```yaml
 subcommands:
@@ -2360,6 +2362,13 @@ the gate is a subcommand validator, and the controller re-derives
 no authority.
 
 ## Controllers — don't switch-default on unknown subcommand
+
+⭐ **Since controllers-are-io (2026-11) a subcommand names its OWN
+controller** (`controller:` on the subcommand in the view, over a shared
+`<Noun>ControllerBase`) — `house appoint` → `HouseAppointController`,
+`wiki edit` → `WikiEditController`. A new subcommanded verb does not
+switch on `model.subcommand` at all. The rule below still holds for the
+few that do (`WalletController`'s three arms).
 
 A subcommanded controller's `execute()` should NOT have a
 `default:` case in its subcommand `switch` that emits
@@ -2498,7 +2507,7 @@ filename is that concept's name; every other export is a supporting
 member of that concept. A type/constant is never itself the reason a
 module exists — unless the concept genuinely *is* a value object /
 vocabulary / registry, in which case the module is named for it
-(`Light.ts`, `quantity.ts`, `reserve.ts`, `paths.ts`,
+(`Light.ts`, `quantity.ts`, `reserve/Reserved.ts`, `paths.ts`,
 `lib/mixin.ts`'s `Mixins`), the fourth `lib/` category in
 [architecture.md](./architecture.md).
 
@@ -2760,7 +2769,7 @@ can't know whether a raw read is fresh. The **contract surface** is the
 owner's domain reader, which bundles whatever reconcile-on-read the
 owner needs and is what the author-facing docs surface
 (`callable == visible`). The full instance → owner → reader index lives
-in the reserve landscape table at the top of `lib/reserve.ts`; a new
+in the reserve landscape table at the top of `lib/reserve/Reserved.ts`; a new
 authored reserve ("charge", "essence") installs in its owning mixin,
 fronts itself with a reader, and adds a row there. Same-host sibling
 drains (Vitals' limp cost, LoadBearing's traversal drain spending
@@ -2849,10 +2858,10 @@ verbs — `menu`/`order` on the `CommerceMenu` base. The *working* verbs
 ride the **instrument** that does the work: the pot confers
 `pour`/`stir`/`heat`/`plate`/`cook`, the anvil
 `hammer`/`quench`/`forge`/`repair`/`salvage`, the whetstone `sharpen`,
-the furnace `heat`/`ignite`/`douse`/`pump`. The surface then follows
+the furnace `heat`/`light`/`douse`/`pump`. The surface then follows
 capital wherever it physically sits (reachable heat + a pot IS a
-kitchen — no venue flag, no menu required), and a knowledge-driven verb
-with no instrument (`make`) is innate on `Avatar`. Patient-side marker
+kitchen — no venue flag, no menu required), and a verb with no
+instrument at all (`do`, the script runner) is innate on `Avatar`. Patient-side marker
 interfaces (`Cookable`, `Forgeable`) are the same mistake from the other
 side: eligibility is matter (Material tags + edibility) + instrument
 capabilities, and interfaces exist only for real state or behavior.
@@ -4599,7 +4608,7 @@ FOR**, which comes first:
 
 | you are | use |
 |---|---|
-| a **controller** resolving what the verb acts WITH or ON — an instrument, a vessel, a bath, a book | ⭐ **not a walk at all**: declare it on the VIEW (`default: "reachable:[capability.X]"`, plural when the controller must pick) and narrow the BOUND set — [§ Hunting for an Instrument Instead of Declaring It](#hunting-for-an-instrument-instead-of-declaring-it), `lint:instrument-args` |
+| a **controller** resolving what the verb acts WITH or ON — an instrument, a vessel, a bath, a book | ⭐ **not a walk at all**: declare it on the VIEW (`default: "reachable:[capability.X]"`, plural when the controller must pick) and narrow the BOUND set — [§ Hunting for an Instrument Instead of Declaring It](#hunting-for-an-instrument-instead-of-declaring-it), `lint:controller-resolution` |
 | a **controller** building a PROMPT POOL, or reading the surroundings to EXPLAIN a refusal (`forge`'s cast pig) | `this.reachableMarks(giver)` — inherited from `CommandController` |
 | anything else (a brain, a logic singleton) | `ContainmentApi.reachableFrom(actor)` + narrow, or a `reachable:[…]` query when a VIEWER is involved |
 
@@ -5086,8 +5095,8 @@ kernel sweep never reached: **every mining claim in the game was owned
 by every player.** `StakeController` passed
 `{ kind: 'player', templatePath: giver.getTemplatePath() }` into
 `ParcelApi.subdivide`, while every kernel site writing that same
-`ParcelOwner.templatePath` field — `TitleController`,
-`TransferController`, `ChattelLogic`, `EmploymentLogic` — passes an
+`ParcelOwner.templatePath` field — `TitleBuyController`,
+`TitleTransferController`, `ChattelLogic`, `EmploymentLogic` — passes an
 identity path. The field's meaning was never in doubt; one pack simply
 had not been swept. Invisible to the suite for the usual reason: the
 stake fixtures author distinct owner paths per avatar.
@@ -5587,7 +5596,7 @@ MessageApi.scene(actor).topic('sense.survey')
 `toSelf` body; a wire test asserts the envelope. Both read the wire. The
 trades-and-labor build's help-wanted sign passed nine unit tests and a
 14/14 wire drive and rendered nothing in a browser; a DOM search for
-`HELP WANTED` came back empty while `apply` in the same room refused with
+`HELP WANTED` came back empty while `job apply` in the same room refused with
 both numbers, proving the read was fine and only the render was missing.
 
 ⭐ It also reads better split: a card on a wall is something you NOTICE,
@@ -6359,3 +6368,91 @@ regulated, temporary warrant
 ([executive-warrant-slate](./slates/builds/executive-warrant-slate.md)),
 never a backstop. `lint:wizard-axis` fails on a new site; see access.md
 § The two account axes.
+
+## Words on the object — an `ActPlan` that carries its own prose
+
+```ts
+// NOT ALLOWED — the object writes the sentence
+return { ok: false, line: mml`The ${this} is too green to cut.` };
+// …and the controller just prints whatever came back.
+
+// CORRECT — the object answers a reason and the facts; the controller words it
+return { ok: false, reason: 'too-green', facts: { moisture } };
+// controller: switch (refusal.reason) { case 'too-green': …; default: never }
+```
+
+An object PLANS an act (`ActPlan` / `ActRefusal` / `ActOutcome` in
+`lib/craft/ActPlan.ts`): a closed reason union and the facts per protocol,
+no `Mml` anywhere. The words live on the controller, which is the I/O
+layer — `ManualBuildController.engagePlan(context, plan, words)` takes
+`beginSelf`/`beginPeers`/`onRefused`/`onDone`, and the wording switch is
+exhaustive (a `never` arm), so a new reason fails to compile until
+somebody words it. The decision itself (durations, effort, grade, what
+is minted) stays on the object; `lint:controller-decisions` and
+`lint:controller-mutations` count what is left in controllers.
+(controllers-are-io D4/D5.)
+
+## Two words for one view
+
+```yaml
+# NOT ALLOWED — a synonym is a second verb nobody can find in help
+verbs: [look, examine, exa]
+
+# CORRECT — one word; a MUD-standard shortcut is a removable player alias
+verbs: [look]
+defaultAliases: [l]
+```
+
+A view names exactly one verb. The only other words are **default player
+aliases** — one- or two-character shortcuts for a verb typed many times
+a session (`l`, `i`, `h`, `?`, `'`) — declared on the view, owned by the
+player, removable with `alias unset`. A synonym is not a shortcut: the
+verb is the word `help` teaches. Where two acts genuinely share a word,
+the views must have **provably disjoint shapes** (`throw X to Y` ·
+`throw X` · `throw X at Y`). Enforced by `lint:one-word` and
+`lint:verb-collisions` (controllers-are-io D16/D17).
+
+## A flat verb for an institution transaction
+
+```yaml
+# NOT ALLOWED — the book is implicit and the verb floats free
+verbs: [appoint]   # whose roster?
+
+# CORRECT — the transaction is a subcommand of the noun whose book it writes
+verbs: [house]
+subcommands:
+  appoint: { controller: /platform/idea/cmd/banking/HouseAppointController, … }
+```
+
+An act that writes an institution's book (a roster, an operating account,
+a shelf's consignment list, a parcel registry) is a subcommand of that
+book's noun: `house appoint|dismiss|draw`, `job apply|quit|fulfill`,
+`shelf consign|reclaim`, `rack check|reclaim`, `bank …`, `title
+transfer|subdivide`. An act on a good or a person whose bookkeeping
+merely follows stays bare (`buy`, `sell`, `pay`, `tip`). Enforced by
+`lint:institution-verbs` (controllers-are-io D9).
+
+## A bare interface for a verb's target
+
+```ts
+// NOT ALLOWED — a shape the view cannot require and the binder cannot narrow
+export interface Pumpable { pumpBy(actor: Actor): PumpOutcome }
+if (typeof (target as any).pumpBy === 'function') …
+
+// CORRECT — a protocol mixin with a refusing default
+export function PumpableMixin<T extends MixinConstructor<Stuff>>(Base: T) {
+  class Pumpable extends Base {
+    static _mixinName = 'PumpableMixin';
+    static _mixinKind = 'protocol' as const;
+    …
+  }
+}
+```
+
+When three or more hosts answer one verb each in their own way, the verb's
+contract is a **protocol mixin** (`_mixinKind = 'protocol'`): the view's
+`requires:` names it, `MixinApi.isX` narrows to it, Studio and `help <verb>`
+list who answers it. Fewer than three implementers is a method on the one
+host. See [mixins.md § protocol mixins](./subsystems/mixins.md) and
+`lint:duck-typing` (controllers-are-io D8).
+

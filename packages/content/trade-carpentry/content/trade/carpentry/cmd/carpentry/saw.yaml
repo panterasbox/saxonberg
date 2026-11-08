@@ -1,4 +1,5 @@
 verbs: [saw]
+category: carpentry
 controller: /trade/carpentry/idea/cmd/carpentry/SawController
 description: "Saw a log into boards — through-sawn, or quartered"
 help: |
@@ -45,9 +46,9 @@ args:
   - name: log
     type: object
     required: true
-    scope: ["reachable"]
+    scope: ["here", "peers", "person"]
     requires: TangibleMixin
-  # ⭐⭐ WHICH SAW, declared rather than hunted (`lint:instrument-args`).
+  # ⭐⭐ WHICH SAW, declared rather than hunted (`lint:controller-resolution`).
   # ⚠ The query is the CAPABILITY, not `[class.Sawmill]`: a pit saw and a
   # sawmill are two rows of one class today, and a second saw a realm
   # authors on any tool class is found by what it offers. `greedy` so

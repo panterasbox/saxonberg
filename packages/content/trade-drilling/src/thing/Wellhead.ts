@@ -70,7 +70,12 @@ import { Mml } from '@saxonberg/server/mud/api/mml';
 import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import type { VetoResult } from '@saxonberg/server/mud/lib/errors';
-import type { LiftSource, PumpSource, BucketLanding } from '@saxonberg/server/mud/lib/pump/Pumpable';
+import {
+  LiftSourceMixin,
+  type LiftSource,
+  type BucketLanding,
+} from '@saxonberg/server/mud/lib/pump/LiftSource';
+import { PumpSourceMixin, type PumpSource } from '@saxonberg/server/mud/lib/pump/PumpSource';
 import type { Pumping } from '@saxonberg/server/mud/lib/pump/Pumping';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import { GroundPointMixin } from '@saxonberg/content-ground/src/lib/GroundPoint';
@@ -187,7 +192,11 @@ export interface CutCost {
 
 export default class Wellhead
   extends PersistableMixin(
-    StagedMixin(ContainerMixin(BulkableMixin(GroundPointMixin(Good)))),
+    LiftSourceMixin(
+      PumpSourceMixin(
+        StagedMixin(ContainerMixin(BulkableMixin(GroundPointMixin(Good)))),
+      ),
+    ),
   )
   implements LiftSource, PumpSource
 {

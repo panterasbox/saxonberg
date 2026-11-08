@@ -204,7 +204,7 @@ describe('⭐ `committee` — a city department', () => {
   });
 
   it('⚠ the Registry stays a BUSINESS — it sells land titles', () => {
-    // `TitleController` settles land purchases into its operating account
+    // `TitleBuyController` settles land purchases into its operating account
     // via `ensureOperatorAt` → `operatingAccountOf`. A registry that takes
     // money trades, so the trading half is load-bearing here and the
     // tempting reclassification to `/platform/idea/Organization` would break `title

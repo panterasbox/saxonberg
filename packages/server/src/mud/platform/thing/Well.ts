@@ -41,7 +41,8 @@ import type { Container } from '../../lib/spatial/Container';
 import type { Containable } from '../../lib/spatial/Containable';
 import type { VetoResult } from '../../lib/errors';
 import type Material from '../../lib/material/Material';
-import type { LiftSource, PumpSource } from '../../lib/pump/Pumpable';
+import { LiftSourceMixin, type LiftSource } from '../../lib/pump/LiftSource';
+import { PumpSourceMixin, type PumpSource } from '../../lib/pump/PumpSource';
 import type { CommandContributions } from '../../api/command';
 import type { GroundWater } from '../../lib/supply/SupplyState';
 import { WorldClockApi } from '../../api/worldclock';
@@ -54,7 +55,9 @@ import type { BulkAffordance } from '../../lib/bulk/Bulkable';
 /** What stands at the bottom of a well when the row does not say. */
 const WATER_PATH = '/stuff/idea/material/bulk/water';
 
-const WellBase = StagedMixin(ContainerMixin(BulkableMixin(Thing)));
+const WellBase = LiftSourceMixin(
+  PumpSourceMixin(StagedMixin(ContainerMixin(BulkableMixin(Thing)))),
+);
 
 export default class Well extends WellBase implements LiftSource, PumpSource {
   /** Metres from the collar down to the standing water. */
@@ -186,7 +189,7 @@ export default class Well extends WellBase implements LiftSource, PumpSource {
   private async groundWater(): Promise<(Stuff & GroundWater) | null> {
     if (this.aquifer === '') return null;
     const a = await StuffApi.singleton<Stuff & GroundWater>(this.aquifer).catch(() => null);
-    if (a === null || typeof a.surfaceM !== 'function') return null;
+    if (a === null) return null;
     await a.ensureLocality();
     const nowS = WorldClockApi.getNow().rawValue();
     this._surfaceM = a.surfaceM(nowS);

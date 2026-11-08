@@ -40,9 +40,11 @@ import { SecurityPolicies } from '../security/SecurityPolicies';
 import { ExecutionContextApi } from '../../api/execution-context';
 import { MixinApi } from '../../api/mixin';
 import { ContainmentApi } from '../../api/containment';
-import { PerceptionApi } from '../../api/perception';
+import { PlacementOffers, type PlacementChoice } from './PlacementOffers';
+import { MqlApi } from '../../api/mql';
+import type { CommandGiver } from '../command/CommandGiver';
 import { StuffApi } from '../../api/stuff';
-import type { CommandContributions } from '../../api/command';
+import { CommandApi, type CommandContributions } from '../../api/command';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
 import { ChattelApi } from '../../api/chattel';
@@ -101,10 +103,15 @@ export interface Container {
   canAddContainable?(thing: Stuff & Containable): VetoResult;
   /** Optional pre-remove veto. */
   canRemoveContainable?(thing: Stuff & Containable): VetoResult;
-  /** Fired after the Containable has been added. */
-  onContainableAdded?(thing: Stuff & Containable): void;
-  /** Fired after the Containable has been removed. */
-  onContainableRemoved?(thing: Stuff & Containable): void;
+  /** Fired after the Containable has been added; `from` is where it was. */
+  onContainableAdded?(thing: Stuff & Containable, from?: Stuff | null): void;
+  /** Fired after the Containable has been removed; `to` is where it went. */
+  onContainableRemoved?(thing: Stuff & Containable, to?: Stuff | null): void;
+  /**
+   * ⭐ What `word` means on this host (`PlacementOffers`): the interior, or
+   * a member of a placing host. No word: its only offer, or which of them.
+   */
+  placementFor(word: string | undefined): PlacementChoice;
 }
 
 /**
@@ -120,29 +127,15 @@ const CalledFromSetContainer = SecurityPolicies.Custom(() => {
   return callerFrame?.method === 'setContainer';
 }, 'CalledFromSetContainer');
 
-/**
- * The ids of everything currently occupying a slot on `host` — empty
- * when the host is not `Slotted` at all (a chest holds things and wears
- * nothing). The `contents` projection subtracts these so the worn half
- * and the carried half stay disjoint.
- */
-function wornOccupantIds(host: Stuff): ReadonlySet<string> {
-  if (!MixinApi.isSlotted(host)) return EMPTY_IDS;
-  const ids = new Set<string>();
-  for (const occupants of host.getAllOccupants().values()) {
-    for (const occupant of occupants) {
-      ids.add((occupant as unknown as Stuff).stuffId);
-    }
-  }
-  return ids;
-}
-
-const EMPTY_IDS: ReadonlySet<string> = new Set<string>();
-
 export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
   class ContainerMixin extends Base {
     // Mixin marker for detection by MixinApi
     static _mixinName = 'ContainerMixin';
+
+    /** See {@link Container.placementFor}. */
+    public placementFor(word: string | undefined): PlacementChoice {
+      return new PlacementOffers(this as unknown as Stuff).choose(word);
+    }
 
     /**
      * Residency veto: a non-empty container stays resident — its cold
@@ -292,9 +285,19 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
               AppApi.setting(AppSettingKeys.evacuationFallback)
             ) ?? null
           : null;
+      // ⭐⭐ A persistable host's destruct is its DORMANCY, and its record holds
+      // its contents: dropping them on the floor as well would be two of
+      // everything once it comes back (a signed-out body, D30). A person it
+      // happens to hold is nobody's contents and still steps out.
+      const dormant = MixinApi.isPersistable(host) && host.shouldPersist();
+      // ⚠ Whoever stands around this host took command sources from it and from
+      // everything it holds. Say so while it still knows what that is: found by a
+      // census of a live heap, a bystander's stack keeping every signed-out body's
+      // implant and clothes in memory (80 of them on one NPC, after 20 sign-outs).
+      if (outer !== null) CommandApi.applyContainmentDelta(host, outer, null);
       for (const item of snapshot) {
         try {
-          if (outer !== null) {
+          if (outer !== null && (!dormant || MixinApi.isHasInteractive(item))) {
             ContainmentApi.move(item, outer);
           } else if (
             MixinApi.isHasInteractive(item) &&
@@ -377,32 +380,19 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
         dependsOnFields: ['contents', 'placement'],
         read: (stuff, viewer) => {
           const host = stuff as Stuff & Container;
-          // ⭐ `contents` and `worn` are a PARTITION of one set. Wearing
-          // something never takes it out of the wearer's contents — the
-          // `wear` verb only claims slots — so without this clause a
-          // shirt would render in both projections. Skipping children
-          // that currently occupy a slot ON THIS HOST is what makes
-          // "worn vs carried" mean anything.
-          const wornHere = wornOccupantIds(host);
-          // ⛔ Another PERSON's pockets are not in view: the one rule
-          // `look` and `inventory` read (`visibleContentsOf`) decides
-          // which children a viewer may see at all — what they hold and
-          // carry-in-view; worn stays `worn`'s projection.
-          const inView = PerceptionApi.isAnotherPerson(viewer, host)
-            ? new Set(PerceptionApi.visibleContentsOf(viewer, host).held.map((c) => c.stuffId))
-            : null;
-          const visible = host.getContents().filter(
-            (child) =>
-              child.stuffId !== viewer.stuffId &&
-              (inView === null || inView.has(child.stuffId)) &&
-              !wornHere.has(child.stuffId) &&
-              !MixinApi.isAdornment(child) &&
-              MixinApi.isVisible(child) &&
-              // Honest fog on the wire: a concealed-undiscovered child never
-              // enters the client projection. `perceives` short-circuits
-              // true for un-concealed children (the common path).
-              PerceptionApi.perceives(viewer, child),
-          );
+          // ⭐ The listing's rule, said in MQL — the one `look` and `sense`
+          // use, plus `:carried`: `contents` and `worn` are a PARTITION of
+          // one set (wearing something never takes it out of the wearer's
+          // contents), so a shirt renders in one projection, not both.
+          // `:i` is what the viewer may see inside (a stranger's pockets
+          // and a shut chest are not), `:visible` the honest fog — a
+          // concealed-undiscovered child never enters the projection.
+          const visible = MqlApi.resolveMany(
+            `#${host.stuffId}:i:visible:carried:[not mixin.AdornmentMixin] - me`,
+            // The card's viewer is a character (a CommandGiver); the static
+            // type at this seam is only `Stuff & Sensor`.
+            { commandGiver: viewer as unknown as Stuff & CommandGiver, scope: 'here' },
+          ).stuff;
           // Placed items (the back-bar's bottles) render under their host,
           // not as loose contents — the same rule `look`/`sense` use, so the
           // inspection card agrees.

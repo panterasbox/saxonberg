@@ -1,4 +1,5 @@
 verbs: [wizard]
+category: author
 controller: /platform/idea/cmd/author/WizardController
 description: "Confer or revoke wizard (code-trust) status (archwizard-only)"
 help: |

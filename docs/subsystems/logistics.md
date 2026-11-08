@@ -491,11 +491,11 @@ depot.
 | a carrier to take it, for a posted tariff | `ship <goods> to <place>` | a **freight company**: you hand over custody, get a bill of lading, and pay the rate on the board |
 | *anyone* to take it, for a price you set | `job post deliver … for <n>` | a **spot market**: escrow up front, first to satisfy it is paid |
 | *anyone* to bring you N of something | `job post supply <n> <kind> … for <n>` · `supply <n> litres\|kilos\|pieces of <category>` | the same spot market, denominated in QUANTITY — by row, or by what the house actually wants (`pieces` is the counted category, stacks included: a fungible good can only be ordered this way) |
-| somebody in a seat, ongoing | `appoint <who> to <position> at <org>` | **employment** — a wage, a roster, a chart |
+| somebody in a seat, ongoing | `house appoint <who> to <position> at <org>` | **employment** — a wage, a roster, a chart |
 
-⚠ `job` and `appoint` are the pair most often confused, and the names
+⚠ `job` and `house appoint` are the pair most often confused, and the names
 point the wrong way: *"job"* sounds like employment and *"appoint"*
-sounds ceremonial. It is the reverse — `appoint` fills a seat, `job`
+sounds ceremonial. It is the reverse — `house appoint` fills a seat, `job`
 posts piecework.
 
 ⭐ **There is no ghost logistics: every service is a payroll.** The
@@ -603,7 +603,7 @@ body. See [behavior.md](./behavior.md) § How a brain moves.
 cannot buy a producer's goods outright, and a carrier cannot list goods
 it is only carrying. Until one of those exists, a producer→distributor
 leg cannot be a posted gig without silently unpaying the producer. It is
-one mechanism — `consign`-as-another-house, or a wholesale `buy` at the
+one mechanism — `shelf consign`-as-another-house, or a wholesale `buy` at the
 works — and it belongs to whichever build wants NPC producers to stop
 walking. **It is named rather than faked**, and the walking version
 regresses nothing.
@@ -666,7 +666,7 @@ path is proof enough, the template row is the fallback.
   that runs a single beat, and a live drive whose window is minutes, can
   both miss it. The test asserts the **second** beat.
 
-⭐ **The backhaul is visible.** `jobs --origin here` lists work that
+⭐ **The backhaul is visible.** `job --origin here` lists work that
 STARTS where you stand, so a hauler at the far end can see what wants
 moving back. *You cannot solve your own backhaul* — you need somebody
 else's cargo going the other way — which is a coordination problem with
@@ -751,7 +751,7 @@ catalogue's own **six-game-hour weather segment**, so a ford and
 Both are `transport` classes that copy the ford exactly
 (the async `canTraverse` re-reads as it is asked; the shipped `blocked`
 gate refuses, in the exit's own words; `conditional: true` on the kind row; physical only — a
-`tell` from behind a shut pass goes through):
+`dm` from behind a shut pass goes through):
 
 - **`SnowboundExit`** (`_closesAboveM`, default 0.5 m) reads the snow
   lying on the floor of the place it starts from (`getSnowDepthM`

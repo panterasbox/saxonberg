@@ -34,7 +34,7 @@
 
 import ServingVessel from '@saxonberg/server/mud/platform/thing/ServingVessel';
 import { DurableMixin } from '@saxonberg/server/mud/lib/material/Durable';
-import { ToolMixin } from '@saxonberg/server/mud/lib/craft/Tooled';
+import { ToolMixin } from '@saxonberg/server/mud/lib/craft/Tool';
 import { ManualBuildMixin } from '@saxonberg/server/mud/lib/craft/ManualBuild';
 import { AssembledMixin } from '@saxonberg/server/mud/lib/craft/Assembled';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';

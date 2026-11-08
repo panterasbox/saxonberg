@@ -1,4 +1,5 @@
 verbs: [play]
+category: charactergen
 controller: /platform/idea/cmd/charactergen/PlayController
 description: "Enter the world as one of your characters (from the character-select roster)."
 help: |

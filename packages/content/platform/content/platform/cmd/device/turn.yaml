@@ -1,4 +1,5 @@
-verbs: [turn, tighten]
+verbs: [turn]
+category: device
 controller: /platform/idea/cmd/device/TurnController
 # Bare `turn press` runs the top-level args; `turn back press` the subcommand.
 fallthrough: true
@@ -25,15 +26,13 @@ validators:
   - /lib/command/validators/requiresConscious
   - /lib/command/validators/requiresEmbodied
 args: &turnable
-  # `requires: any` — the controller narrows to a thing that turns (a press,
-  # and later a windlass or a capstan: `TurnableMixin`) and says so in its
-  # own words when it does not; every other refusal is the thing's own
-  # sentence (the `pump.yaml` reasoning).
+  # A thing that turns (a press, a rope jack, and later a windlass or a
+  # capstan); every other refusal is the thing's own sentence.
   - name: target
     type: object
     required: true
-    scope: "reachable"
-    requires: any
+    scope: ["here", "peers", "person"]
+    requires: TurnableMixin
     greedy: true
     validators:
       - /lib/command/validators/canReach

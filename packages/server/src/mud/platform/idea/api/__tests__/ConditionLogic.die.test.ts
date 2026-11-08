@@ -27,7 +27,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Creature } from '../../../../lib/creature/Creature';
 import Corpse from '../../../thing/Corpse';
 import { Quantity } from '../../../../lib/quantity';
-import { Reserve } from '../../../../lib/reserve';
+import { Reserve } from '../../../../lib/reserve/Reserved';
 import { ContaminableMixin } from '../../../../lib/material/Contaminable';
 import { ContainmentApi } from '../../../../api/containment';
 import { installCorpseMintStub } from '../../../../lib/mortality/__tests__/corpse-mint-test-helpers';

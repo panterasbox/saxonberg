@@ -135,38 +135,26 @@ const CombatApiCallers = SecurityPolicies.FromModule("/api/combat#CombatApi");
 /** The G1 combatant face forwards here as the acting instance. */
 const CombatantCallers = SecurityPolicies.AnyOf(
   CombatApiCallers,
-  SecurityPolicies.FromMixin("CombatantMixin", {
-    // Compare by stuffId — the caller may surface as the raw target
-    // while the argument is the proxy (or vice versa).
-    where: (caller, _target, _method, args) =>
-      (caller as { stuffId?: string }).stuffId !== undefined &&
-      (caller as { stuffId?: string }).stuffId ===
-        (args[0] as { stuffId?: string } | undefined)?.stuffId,
-  }),
+  SecurityPolicies.AllOf(
+    SecurityPolicies.FromMixin("CombatantMixin"),
+    SecurityPolicies.SelfSubject(0),
+  ),
 );
 /** Combatant-face methods whose SUBJECT is the second argument. */
 const CombatantArg1Callers = SecurityPolicies.AnyOf(
   CombatApiCallers,
-  SecurityPolicies.FromMixin("CombatantMixin", {
-    // Compare by stuffId — the caller may surface as the raw target
-    // while the argument is the proxy (or vice versa).
-    where: (caller, _target, _method, args) =>
-      (caller as { stuffId?: string }).stuffId !== undefined &&
-      (caller as { stuffId?: string }).stuffId ===
-        (args[1] as { stuffId?: string } | undefined)?.stuffId,
-  }),
+  SecurityPolicies.AllOf(
+    SecurityPolicies.FromMixin("CombatantMixin"),
+    SecurityPolicies.SelfSubject(1),
+  ),
 );
 /** The G1 weapon face (Wieldable hosts) forwards here as the item. */
 const WieldableCallers = SecurityPolicies.AnyOf(
   CombatApiCallers,
-  SecurityPolicies.FromMixin("WieldableMixin", {
-    // Compare by stuffId — the caller may surface as the raw target
-    // while the argument is the proxy (or vice versa).
-    where: (caller, _target, _method, args) =>
-      (caller as { stuffId?: string }).stuffId !== undefined &&
-      (caller as { stuffId?: string }).stuffId ===
-        (args[0] as { stuffId?: string } | undefined)?.stuffId,
-  }),
+  SecurityPolicies.AllOf(
+    SecurityPolicies.FromMixin("WieldableMixin"),
+    SecurityPolicies.SelfSubject(0),
+  ),
 );
 
 /** Default combat brain for a non-player combatant. */

@@ -320,24 +320,16 @@ export default class RouteController extends CommandController<RouteModel> {
     pool: readonly Known[],
     asked: string,
   ): Promise<Known | null> {
-    const giver = context.commandGiver;
-    const interactive = MixinApi.isHasInteractive(giver)
-      ? [...giver.getInteractives()][0]
-      : undefined;
     // Deterministic order, so the same question lists the same way.
     const sorted = [...pool].sort(
       (a, b) => a.group.localeCompare(b.group) || a.name.localeCompare(b.name),
     );
-    if (!interactive) {
-      this.declineWith(
-        context,
-        `You know ${sorted.length} places called '${asked}'. ` +
-          `Name the one you mean: ` +
-          `${sorted.map((k) => RouteController.hint(k)).join('; ')}.`,
-        'ambiguous-place',
-      );
-      return null;
-    }
+    // ⭐ The command's own Interactive, not any the giver holds: a script
+    // run fails closed (D23) and names the places it could not choose.
+    const interactive = context.requireInteractive(
+      `which '${asked}' you mean (${sorted.map((k) => RouteController.hint(k)).join('; ')})`,
+    );
+    if (!interactive) return null;
     try {
       const picked = await interactive.promptChoice(
         `Which '${asked}' did you mean?`,

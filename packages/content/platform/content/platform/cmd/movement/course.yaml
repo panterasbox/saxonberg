@@ -7,6 +7,7 @@
 # ⛔ Not `plot` (farming's) and not `set course` (`set` is the settings
 # verb). Afforded by a `Helm`.
 verbs: [course]
+category: movement
 controller: /platform/idea/cmd/movement/CourseController
 description: "Read your course and reckoning, or lay a course"
 help: |

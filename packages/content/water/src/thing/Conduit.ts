@@ -61,7 +61,7 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import type { VetoResult } from '@saxonberg/server/mud/lib/errors';
 import type { Pumping } from '@saxonberg/server/mud/lib/pump/Pumping';
-import type { PumpSource } from '@saxonberg/server/mud/lib/pump/Pumpable';
+import { PumpSourceMixin, type PumpSource } from '@saxonberg/server/mud/lib/pump/PumpSource';
 import type { SupplyServing, SupplyShares, WaterSupply } from '@saxonberg/server/mud/lib/supply/SupplyState';
 import { TrajectoryLog, Piecewise, type Breakpoint } from '@saxonberg/server/mud/lib/Trajectory';
 import { SingletonMixin } from '@saxonberg/server/mud/lib/stuff/Singleton';
@@ -124,7 +124,9 @@ export interface ConduitReading {
 // ⭐ Singleton since the water-supply build: a premises cites a main by its
 // row path and a tap LOADS it on use (`StuffApi.singleton`); the room that
 // props it later adopts the same instance rather than minting a second.
-const ConduitBase = StagedMixin(ContainerMixin(SwitchableMixin(SingletonMixin(Thing))));
+const ConduitBase = PumpSourceMixin(
+  StagedMixin(ContainerMixin(SwitchableMixin(SingletonMixin(Thing)))),
+);
 
 export default class Conduit
   extends ConduitBase

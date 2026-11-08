@@ -17,21 +17,19 @@ import type { CommandContributions } from "@saxonberg/server/mud/api/command";
 
 export default class Stock extends StockBase {
   // A Stock counter is a consignment shelf too (libations 3a: one counter
-  // is both), so it affords the shelf's verbs — a floor hand at the
-  // cash-and-carry `consign`s onto it; the mixin's own static table is
+  // is both), so it affords the shelf's noun — a floor hand at the
+  // cash-and-carry `shelf consign`s onto it; the mixin's own static table is
   // not inherited through composition.
   static commandContributions: CommandContributions = {
     self: [],
     peers: [
       "platform/cmd/retail/buy.yaml",
-      "platform/cmd/retail/consign.yaml",
-      "platform/cmd/retail/reclaim.yaml",
+      "platform/cmd/retail/shelf.yaml",
       "platform/cmd/retail/sell.yaml",
     ],
     environment: [
       "platform/cmd/retail/buy.yaml",
-      "platform/cmd/retail/consign.yaml",
-      "platform/cmd/retail/reclaim.yaml",
+      "platform/cmd/retail/shelf.yaml",
       "platform/cmd/retail/sell.yaml",
     ],
   };

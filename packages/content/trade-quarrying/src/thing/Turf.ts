@@ -3,7 +3,7 @@
  * drying arm had to be real.
  *
  * `MoistureMixin(Firewood)`. A turf comes out of a bog nearly all water, and it
- * will not burn: an as-cut turf refuses `ignite` in the shipped words — *"It's
+ * will not burn: an as-cut turf refuses `light` in the shipped words — *"It's
  * too wet to catch."* — and a dried one lights. That refusal is **not a
  * peat-specific branch**: `Combustible.wetPenaltyK()` reads surface wetness and
  * the matter's **own** water as two terms of one formula and adds them, so the

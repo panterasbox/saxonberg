@@ -56,8 +56,8 @@ export class BlendIdentity {
    * stays here beside the module-private `recipeOf` walk it shares with
    * the other three.
    *
-   * ⚠⚠ **The MQL scope-walk calls THIS, not the Api, and must keep doing
-   * so.** `api/mql/**` is imported by nearly everything low in the graph;
+   * ⚠⚠ **`BulkableMixin.getHeldKeywords` calls THIS, not the Api, and
+   * must keep doing so** (it is the scope-walk's read of a holder). `api/mql/**` is imported by nearly everything low in the graph;
    * an edge from there into `CraftingApi` pulls `CraftingLogic`'s whole
    * import graph in behind it and closes a load-time cycle back onto the
    * mixin factories — `TypeError: ContainableMixin is not a function`,
@@ -92,7 +92,7 @@ export class BlendIdentity {
 
   /** Resolution keywords (`look stew`) — the recipe's, else the Material's. */
   /**
-   * @internal its only caller is the MQL scope-walk; inlining would have to export `BlendIdentity.recipeOf` with it, trading one static for a wider surface — not author surface.
+   * @internal its only caller is `BulkableMixin.getHeldKeywords` (what MQL reads); inlining would have to export `BlendIdentity.recipeOf` with it, trading one static for a wider surface — not author surface.
    */
   public static keywordsOf(
     payload: BulkPayload | null,

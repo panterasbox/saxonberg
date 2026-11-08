@@ -1,4 +1,5 @@
 verbs: [hitch]
+category: movement
 controller: /platform/idea/cmd/movement/HitchController
 description: "Hitch yourself (or a draft animal) to a cart to pull it"
 help: |

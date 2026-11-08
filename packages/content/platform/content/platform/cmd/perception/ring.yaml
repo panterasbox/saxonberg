@@ -1,4 +1,5 @@
 verbs: [ring]
+category: perception
 controller: /platform/idea/cmd/perception/RingController
 description: "Tap something hard and listen to it"
 help: |

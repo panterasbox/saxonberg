@@ -22,7 +22,6 @@ import { MessageApi } from "@saxonberg/server/mud/api/message";
 import { Mml } from "@saxonberg/server/mud/api/mml";
 import { CraftingApi } from "@saxonberg/server/mud/api/crafting";
 import { ExecutionContextApi } from "@saxonberg/server/mud/api/execution-context";
-import { ScriptApi } from "@saxonberg/server/mud/api/script";
 
 const TOPIC = "act.deed";
 const STRAIN_MS = 2500;
@@ -67,14 +66,10 @@ export default class StrainController extends ManualBuildController<StrainModel>
     // Capture the maker from the live command frame; the mint runs later,
     // at engaged-completion, where no command frame exists.
     const makerPath =
-      (ExecutionContextApi.getActingAuthor() as Stuff | null)?.getTemplatePath() ??
+      (ExecutionContextApi.getActingAuthor() as Stuff | null)?.getIdentityPath() ??
       "";
     const built: Stuff & Builds = vessel;
     const into = glass;
-    // The builder + this strain's command text, captured for demonstration
-    // capture (the mint + transcribe run later, outside the command frame).
-    const builder = giver;
-    const commandText = context.commandText;
 
     this.engageStep(context, {
       durationMs: this.paceMs(STRAIN_MS, vessel, ["shaker", "mixing-glass"]),
@@ -82,9 +77,6 @@ export default class StrainController extends ManualBuildController<StrainModel>
       beginSelf: Mml.compose`You begin straining ${Mml.thing(vessel)} into ${Mml.thing(glass)}.`,
       onComplete: () => {
         void (async (): Promise<void> => {
-          // Close the capture: the strain is the last step of the build.
-          built.recordCommand(commandText);
-          const sources = built.getCommandSources();
           const outcome = await CraftingApi.mintFromBuild({
             vessel: into,
             contributions: [...built.getContributions()],
@@ -106,33 +98,18 @@ export default class StrainController extends ManualBuildController<StrainModel>
             .toPeers(Mml.compose`${Mml.actor(giver)} strains out ${Mml.thing(outcome.output)}.`)
             .send();
 
-          // The chronicle knowledge ladder + demonstration capture. The
-          // FIRST faithful, hand-typed build of a recipe mints the
-          // can-make **deed** and transcribes + banks the personal
-          // recipe-script — the SAME act (learning *is* getting the
-          // script). Later builds of a recipe you can already make just
-          // yield the drink; a scripted replay records no sources. The
-          // capture runs at engaged-completion, outside the command frame
-          // — so `ScriptApi.captureManualBuild` (a framework seam) stamps
-          // the builder as the acting author the transcribe attributes to;
-          // a controller can't push/tag frames itself.
-          if (recipeId.length > 0 && sources.length > 0) {
+          // ⭐ The knowledge ladder: crafting records the first making (the
+          // can-make deed) and says so on the outcome. Nothing is written
+          // behind the player's back — a script is something you write.
+          if (outcome.learned === true && recipeId.length > 0) {
             const view = await CraftingApi.lookupRecipe(recipeId);
             const name = view?.name ?? recipeId;
-            const path = await ScriptApi.captureManualBuild(
-              builder,
-              recipeId,
-              name,
-              sources,
-            );
-            if (path !== null) {
-              MessageApi.scene(giver)
-                .topic(TOPIC)
-                .toSelf(
-                  Mml.compose`You've worked out how to make ${name} — the recipe is yours now (try \`make ${recipeId}\`).`,
-                )
-                .send();
-            }
+            MessageApi.scene(giver)
+              .topic(TOPIC)
+              .toSelf(
+                Mml.compose`You've worked out how to mix ${name} — the recipe is yours now (try \`mix ${recipeId}\`).`,
+              )
+              .send();
           }
         })().catch((err: unknown) => {
           console.error("StrainController: mint failed", err);

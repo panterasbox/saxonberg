@@ -14,7 +14,7 @@
  */
 
 import Good from "../../lib/stuff/Good";
-import { ToolMixin } from "../../lib/craft/Tooled";
+import { ToolMixin } from "../../lib/craft/Tool";
 import { ManualBuildMixin } from "../../lib/craft/ManualBuild";
 
 const CocktailShakerBase = ManualBuildMixin(ToolMixin(Good));

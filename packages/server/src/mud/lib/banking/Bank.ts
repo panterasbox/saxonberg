@@ -25,6 +25,7 @@
 
 import type { MixinConstructor, FieldMeta } from "../mixin";
 import type { Stuff } from "../stuff/Stuff";
+import { MixinApi } from "../../api/mixin";
 import type { Container } from "../spatial/Container";
 import type { Containable } from "../spatial/Containable";
 import type { CommandContributions } from "../../api/command";
@@ -100,7 +101,7 @@ function isCashLike(stuff: unknown): stuff is CashLike {
   return (
     typeof s?.getCurrency === "function" &&
     typeof s?.getDenomination === "function" &&
-    typeof s?.getQuantity === "function"
+    MixinApi.isStackable(stuff as Stuff)
   );
 }
 

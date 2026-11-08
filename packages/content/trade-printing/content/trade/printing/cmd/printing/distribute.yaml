@@ -1,5 +1,6 @@
 # ⭐ Distribute the type: every sort back in its box.
 verbs: [distribute]
+category: printing
 controller: ../../idea/cmd/printing/DistributeController
 description: "Break up a forme and put its type back in the case"
 help: |

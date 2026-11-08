@@ -46,7 +46,7 @@ suite('smell and taste, on the clock', () => {
     for (let week = 0; week < 3; week++) {
       await hand(s, '/trade/baking/thing/lean-loaf');
       await s.cmd('eat me:i:loaf');
-      await advanceLiving(s, '7 days');
+      await advanceLiving('7 days', [s]);
       await nourish(s);
     }
     expect(await read()).toBeGreaterThanOrEqual(before);

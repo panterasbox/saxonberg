@@ -11,6 +11,7 @@ data:
   smells: [{ word: hog, strength: 40 }]
   binomial: Sus domesticus
   commonNames: ["pig", "sow", "boar", "hog", "piglet", "swine"]
+  maleNames: [boar]
   # ⭐⭐ Its OWN plan: a pig is a third fat with twice a sheep's belly, and
   # `BodyPlan/swine` says so by extending quadruped's topology and
   # restating the shares. Not a dial on a sheep.

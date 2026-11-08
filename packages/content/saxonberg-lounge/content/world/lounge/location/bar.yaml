@@ -144,7 +144,7 @@ data:
     # the glass alley (where you get cut) so the treat loop is playable
     # in-world."* It was not stocked anywhere, and there is no glass
     # alley: the lounge is four rooms and none of them is one. So the
-    # canonical first-aid dressing that `treat`/`bind`/`dress` CONSUMES
+    # canonical first-aid dressing that `treat` CONSUMES
     # existed and no player could ever hold one — which means deleting it
     # would have deleted the only dressing in the realm and taken the
     # treat loop with it.

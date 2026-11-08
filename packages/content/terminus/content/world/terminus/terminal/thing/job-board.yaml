@@ -1,7 +1,7 @@
 # The station noticeboard — the labor market's discovery surface in the
 # Terminus terminal hall: posted work (reward held in escrow) waiting for
 # whoever steps off a gate needing a living. Affords the `job` verb to the
-# hall; the travel half (`fulfill`) rides the courier's own implant.
+# hall; the travel half (`job fulfill`) binds no board — the drop is wherever the courier stands.
 # Populated by the hall's `props` list. Keyworded as a NOTICEBOARD —
 # the hall's `board` detail is the split-flap departures board.
 class: /platform/thing/JobBoard

@@ -362,8 +362,8 @@ export default class Interactive extends Idea {
   }
 
   /** Make another terminal card the primary; the refusal reason, or null. */
-  public setPrimaryTerminal(cardRef: string): string | null {
-    return cardLogic().setPrimaryTerminal(this, cardRef);
+  public promoteTerminal(cardRef: string): string | null {
+    return cardLogic().promoteTerminal(this, cardRef);
   }
 
   /**

@@ -1,0 +1,39 @@
+# ⭐⭐ `drift` — and this view used to claim `drive` as well.
+#
+# `platform/cmd/movement/drive.yaml` (driving a VEHICLE) claimed the same
+# word, with the same arity, so `requires:` could not separate them at
+# shape and only affordance ORDER decided which one a miner got. The
+# reachability sweep conferred the movement view, THIS PACK'S OWN
+# TRIPWIRE caught it, and the sweep reverted rather than adjudicate a
+# collision unilaterally.
+#
+# ⭐ Adjudicated by the ladder (`command-spec.md § When both are bodily
+# acts`), rungs 2 and 3 agreeing: the vehicle is the generative primitive
+# (`DrivableMixin` is kernel substrate that every coach and cart will
+# extend; cutting a heading is one trade's gesture), and *to drift* is
+# real mining usage rather than invented jargon. So the vehicle keeps the
+# plain word and this trade keeps its term of art — which is what this
+# pack's own test predicted would happen: *"if that changes, `drift`
+# becomes primary — one line."*
+verbs: [drift]
+category: mining
+controller: /trade/mining/idea/cmd/mining/DriftController
+description: "Drive a heading in a direction"
+help: |
+  `drift north` cuts a new working in that direction.
+  What it costs is the ground: hardness times the volume you are moving,
+  so a slate heading is cheap and a granite one is not.
+
+  ⚠ It refuses on bad ground, and says which state it is refusing on. Set
+  timber with `shore` and it will let you on.
+
+  A heading you drive without through-ventilation goes bad. Plan the
+  connection.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: direction
+    type: string
+    required: true

@@ -21,7 +21,7 @@ import GardenBed from '../../platform/thing/GardenBed';
 import Receptacle from '../../platform/thing/Receptacle';
 import FeedController from '../../platform/idea/cmd/bulk/FeedController';
 import Material from '../../lib/material/Material';
-import { Reserve } from '../../lib/reserve';
+import { Reserve } from '../../lib/reserve/Reserved';
 import {
   SOIL_NITROGEN_RESERVE_KEY,
 } from '../../lib/husbandry/Cultivable';

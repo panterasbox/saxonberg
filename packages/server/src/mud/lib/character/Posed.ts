@@ -385,6 +385,9 @@ export function PosedMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /** See {@link Posed.currentRest}. */
     public currentRest(): { phrase: string; host: Stuff & Slotted } | null {
+      // Nothing recorded is nobody resting: the witness above is what
+      // remembers a rest, and the live slot read only names its host.
+      if (!this.restingOnPath) return null;
       const at = this.currentPostureBearingSlot();
       if (!at) return null;
       const posture = this.getPosture();

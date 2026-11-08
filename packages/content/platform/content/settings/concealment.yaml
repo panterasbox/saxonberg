@@ -44,7 +44,7 @@ settings:
   # the game-time the search holds the `hands` slot. hintCutoff: a concealed
   # thing within this gap of the viewer's perception surfaces a hint (`hidden`
   # hints a passive floor viewer). examineBonus: the smaller instantaneous
-  # `examine` bump. See docs/subsystems/concealment.md.
+  # `look` bump. See docs/subsystems/concealment.md.
   - key: concealment.searchBonus
     value: "4"
 

@@ -444,7 +444,7 @@ describe('the take as an act', () => {
     expect(producer.standingIn('stuff')).toBeLessThan(1);
   });
 
-  it('⚠ a host that cannot be ENGAGED takes it synchronously', async () => {
+  it('⚠ a host that cannot be ENGAGED takes it at once', async () => {
     // Correct behaviour, and worth pinning because it is what made the
     // first version of this file's "nothing yet" assertions vacuous: a
     // giver with no `EngagedMixin` has no hands to occupy, so the act
@@ -470,6 +470,7 @@ describe('the take as an act', () => {
     setNow(2 * DAY);
     const ctx = makeContext(plain as unknown as TestGiver, room);
     await controller().execute(model(one(producer, 'thing')), ctx);
+    await settle();
     expect(plain.getContents().length).toBe(1);
   });
 

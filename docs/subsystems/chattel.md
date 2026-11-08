@@ -61,6 +61,15 @@ see [spatial.md](./spatial.md) for the move's full sequence. A hand
 `stampChattel` remains only where title is a decision, not a derivation
 (a sale, a consignment, naming an animal).
 
+⭐ **The made-from half is `MadeFromMixin`'s** (controllers-are-io D6,
+`lib/chattel/MadeFrom.ts`): `recordMadeFrom` / `getMadeFromOwner` /
+`recordMadeBy` / `isMadeByProcess` compose on **`Good` and `Vessel`
+only** — a made thing may carry its inputs' owner, and an animal is not
+made (ranching writes SERVED). The title half keeps `ChattelMixin`, its
+file and every `requires: [ChattelMixin]`; the derived title and
+`ownerOfInputs` narrow on `MixinApi.isMadeFrom`, so an arriving animal no
+longer reads a made-from slot it never had.
+
 #### ⭐⭐ Who acted, when it happens later — and the communal oven (potash build)
 
 Two cases the rungs above could not answer, both found by the potash drive
@@ -227,7 +236,7 @@ identities" from ever arising, and it is why the narrowing is a
 refinement rather than a loophole. An untitled stack merges exactly as it
 always did.
 
-⚠ It is not a nicety. `consign` refused every stack, so a mill could weave
+⚠ It is not a nicety. `shelf consign` refused every stack, so a mill could weave
 cloth it could never sell: a live drive of the textile chain ended on
 `controller-rejected:fungible(bolt)`. A bolt is a stack **on purpose** —
 `canMergeWith` is narrowed to grade + form + dye stack so two dye lots
@@ -235,7 +244,7 @@ never merge — and a good whose fungibility is load-bearing was thereby
 barred from the sale layer entirely. Consigning now takes ONE unit off
 the stack and titles it: the lot on the shelf is a thing with an owner,
 the rest of the stack stays owned-by-possession in the seller's hands.
-See `ConsignController`.
+See `ShelfConsignController`.
 
 ## The trio (mirrors the parcel trio)
 
@@ -277,7 +286,7 @@ Chattel is proven independent of the shop (stamp/transfer/ownerOf, author
 fallback, survival across a container move + a persistence round-trip,
 stack refusal, GC), then consumed by the store's **buy-that-stamps** and
 its **custody-vs-ownership consignment** — see [retail.md](./retail.md).
-Consignment is the load-bearing exercise: `consign` moves *custody* to the
+Consignment is the load-bearing exercise: `shelf consign` moves *custody* to the
 shop while the owner-stamp stays put, and the sale transfers *both*.
 
 ## Deferred

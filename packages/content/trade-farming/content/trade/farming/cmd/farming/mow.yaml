@@ -1,4 +1,5 @@
 verbs: [mow]
+category: farming
 controller: /trade/farming/idea/cmd/farming/MowController
 description: "Cut the standing grass for hay"
 help: |
@@ -27,7 +28,7 @@ args:
   # `[capability.mowing]` — *the thing that can do this job* — rather than
   # `[mixin.ToolMixin]`, which would resolve any tool at all and then
   # fail this verb's own check. That atom is what let this stop being a
-  # walk (see `lint:instrument-args`).
+  # walk (see `lint:controller-resolution`).
   - name: tool
     type: object
     required: false
@@ -48,6 +49,6 @@ args:
     type: object
     required: false
     greedy: true
-    scope: ["reachable"]
+    scope: ["here", "peers", "person"]
     prepositions: [at]
     requires: SoilMixin

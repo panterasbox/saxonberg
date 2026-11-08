@@ -359,7 +359,7 @@ suite('8 — a hired player gets SOME orders', () => {
     // proved in `CallPolicy.test.ts`, where a player-shaped candidate takes
     // its tenth of thirty calls like any other. ⭐ The gap is the drive's,
     // not the mechanism's, and it is recorded in the plan's acceptance map.
-    const applied = await act(hire, 'apply for bartender');
+    const applied = await act(hire, 'job apply for bartender');
     if (applied.result.status === 'ok') {
       const clocked = await act(hire, 'clock on');
       expectOk(clocked.result);

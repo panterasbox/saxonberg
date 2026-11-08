@@ -35,7 +35,7 @@ import { WorldClockApi } from '../../api/worldclock';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
 import { Quantity } from '../quantity';
-import { Reserve, type Reserved } from '../reserve';
+import { Reserve, type Reserved } from '../reserve/Reserved';
 import { TemplatePaths, TemplatePathPrefixes } from '../paths';
 import type { CoupledConsumer } from '../metabolism/Metabolic';
 import type { Stuff } from '../stuff/Stuff';

@@ -31,6 +31,18 @@ import type { MarkupAugmenter } from '@saxonberg/server/mud/api/mml';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { GrammarApi } from '@saxonberg/server/mud/api/grammar';
 import { Final } from '@saxonberg/server/mud/lib/security/decorators';
+import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
+import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
+import {
+  CuttableMixin,
+  type CutAnswer,
+  type CutAnswerFor,
+  type CutRequest,
+} from '@saxonberg/server/mud/lib/craft/Cuttable';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
+import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
 
 /** Kilograms one cross-cut length of timber takes off the bole. */
 export const TIMBER_MASS_KG = 24;
@@ -41,7 +53,43 @@ export const BOLE_M3 = 0.9;
 /** Cross-cut lengths a standard's bole carries. */
 export const BOLE_LENGTHS = 6;
 
-const BoleBase = Good;
+/** Game-ms one cross-cut takes. */
+export const CROSSCUT_MS = 15_000;
+/** Metabolic watts of a cross-cut. */
+export const CROSSCUT_EFFORT_W = 500;
+
+/** The round timber a cross-cut takes off. */
+const TIMBER_PATH = '/trade/forestry/thing/timber';
+
+/** The billet row a bole is riven into. */
+export const BILLET_PATH = '/trade/forestry/thing/billet';
+/**
+ * Kilograms in one billet — what the billet row authors as its `mass` (a
+ * stack's mass is per unit); a test holds the two together. One length
+ * off a bole is eight of them.
+ */
+export const BILLET_KG = 3;
+/** Game-ms riving one length into billets takes. */
+export const RIVE_MS = 20_000;
+/** Metabolic watts of riving — a mallet and a froe. */
+export const RIVE_EFFORT_W = 550;
+/**
+ * ⭐ Below this `cleavability` a wood will not open along its grain at
+ * all — the fibres interlock (elm) and the froe only bruises it. An
+ * author's number, recorded (plan D17).
+ */
+export const RIVE_FLOOR = 0.3;
+/**
+ * At or above this `cleavability` a length opens clean into its full
+ * count of billets; below it the split wanders out of the piece and the
+ * yield falls in proportion — the rest goes to kindling.
+ */
+export const CLEAN_CLEAVE = 0.8;
+
+// ⭐ It plans its own cuts (`CuttableMixin`, controllers-are-io D8c): the
+// cross-cut, the froe and the saw each ask the bole what one length off it
+// comes to.
+const BoleBase = CuttableMixin(Good);
 
 /** *"six lengths in it yet"* / *"one length left"* — appended on `look`. */
 function lengthsAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
@@ -102,5 +150,153 @@ export default class Bole extends BoleBase {
     const mass = this.getMass().rawValue();
     this.setMass(Quantity.of(Math.max(0, mass - TIMBER_MASS_KG), 'kg'));
     return this.lengthsLeft;
+  }
+
+  /**
+   * ⭐ The bole's cuts (D8c) — one length off it, whichever tool takes it:
+   *
+   *  - `crosscut` (`fell bole`) — a length of round timber, to hand;
+   *  - `rive` — a length split into a stack of green billets, as many as
+   *    the wood's grain lets it open clean into; a wood whose fibres
+   *    interlock (`cleavability` under {@link RIVE_FLOOR}) will not rive;
+   *  - `saw` — the charge on the carriage (one green length of wood); the
+   *    SAW paces the cut, so the plan is driven by the verb and its
+   *    `onComplete` is the take.
+   *
+   * Every one refuses a spent bole. The instrument is the verb's to check.
+   */
+  public override async cutPlan(req: CutRequest): Promise<CutAnswer> {
+    switch (req.verb) {
+      case 'crosscut':
+        return this.crosscutPlan(req.actor);
+      case 'rive':
+        return this.rivePlan(req.actor);
+      case 'saw':
+        return this.sawPlan();
+      default:
+        return super.cutPlan(req);
+    }
+  }
+
+  private crosscutPlan(actor: Stuff): CutAnswerFor<'crosscut'> {
+    if (this.lengthsLeft <= 0) return { ok: false, verb: 'crosscut', reason: 'bole-spent' };
+    const bole = this as unknown as Stuff;
+    return {
+      ok: true,
+      verb: 'crosscut',
+      durationMs: CROSSCUT_MS,
+      effortW: CROSSCUT_EFFORT_W,
+      facts: { bole },
+      onComplete: async () => {
+        if (actor.isDestroyed() || this.isDestroyed()) return { ok: true, facts: { kind: 'gone' } };
+        const room = this.getContainer();
+        const wood = this.getMaterial();
+        const timber = await StuffApi.clone<Stuff & Containable>(TIMBER_PATH, undefined, {
+          madeFrom: bole,
+        });
+        if (wood && MixinApi.isTangible(timber)) timber.setMaterial(wood);
+        if (MixinApi.isContainer(actor)) ContainmentApi.move(timber, actor);
+        else if (room) ContainmentApi.move(timber, room);
+        const boleName = this.getPresentation();
+        const left = this.takeLength();
+        if (left <= 0) await StuffApi.destruct(bole);
+        if (room) await Bole.capture(room);
+        await Bole.capture(actor);
+        await Bole.credit(actor, 'easy');
+        return left <= 0
+          ? { ok: true, facts: { kind: 'last', boleName } }
+          : { ok: true, facts: { kind: 'length', timber, bole, left } };
+      },
+    };
+  }
+
+  private rivePlan(actor: Stuff): CutAnswerFor<'rive'> {
+    const wood = this.getMaterial();
+    if ((wood?.getCleavability() ?? 0) < RIVE_FLOOR) {
+      return {
+        ok: false,
+        verb: 'rive',
+        reason: 'will-not-rive',
+        facts: { woodName: wood?.getName() ?? 'this wood' },
+      };
+    }
+    if (this.lengthsLeft <= 0) return { ok: false, verb: 'rive', reason: 'bole-spent' };
+    const bole = this as unknown as Stuff;
+    return {
+      ok: true,
+      verb: 'rive',
+      durationMs: RIVE_MS,
+      effortW: RIVE_EFFORT_W,
+      facts: { kind: 'bole', bole },
+      onComplete: async () => {
+        // Consume first: a failure leaves the bole, not double the wood.
+        if (actor.isDestroyed() || this.isDestroyed()) return { ok: true, facts: { kind: 'gone' } };
+        const room = this.getContainer();
+        if (room === null || !MixinApi.isContainer(room)) return { ok: true, facts: { kind: 'gone' } };
+        const material = this.getMaterial();
+        const boleName = this.getPresentation();
+        const left = this.takeLength();
+        // ⭐ A straight-grained wood opens clean into the full count; one
+        // whose split wanders runs out of the piece, and the rest is kindling.
+        const full = Math.floor(TIMBER_MASS_KG / BILLET_KG);
+        const clean = Math.min(1, (material?.getCleavability() ?? 0) / CLEAN_CLEAVE);
+        const count = Math.max(1, Math.floor(full * clean));
+        const billets = await StuffApi.clone<Stuff & Containable>(BILLET_PATH, undefined, {
+          madeFrom: bole,
+        });
+        if (material && MixinApi.isTangible(billets)) billets.setMaterial(material);
+        // ⭐ A bole is green wood, and riving dries nothing.
+        if (MixinApi.isSeasoning(billets)) billets.setSeasonedFraction(0);
+        if (MixinApi.isStackable(billets)) billets.setQuantity(count);
+        const maker = actor.getIdentityPath() ?? '';
+        if (maker && MixinApi.isCrafted(billets)) billets.setMaker(maker);
+        ContainmentApi.move(billets, room as Stuff & Container);
+        if (left <= 0) await StuffApi.destruct(bole);
+        else await Bole.capture(bole);
+        await Bole.credit(actor, 'easy');
+        return { ok: true, facts: { kind: 'billets', count, wandered: count < full, left, bole, boleName } };
+      },
+    };
+  }
+
+  private sawPlan(): CutAnswerFor<'saw'> {
+    const material = this.getMaterial();
+    if (!material || !material.hasTag('wood')) return { ok: false, verb: 'saw', reason: 'not-sawable' };
+    if (this.lengthsLeft <= 0) return { ok: false, verb: 'saw', reason: 'bole-spent' };
+    return {
+      ok: true,
+      verb: 'saw',
+      // ⚠ Never engaged: the SAW paces the cut (the verb drives this plan).
+      durationMs: 0,
+      effortW: 0,
+      // A bole is green wood, lying where it fell.
+      facts: { kg: TIMBER_MASS_KG, material, seasoned: 0 },
+      onComplete: async () => {
+        const left = this.takeLength();
+        if (left <= 0) await StuffApi.destruct(this as unknown as Stuff);
+        else await Bole.capture(this as unknown as Stuff);
+        return { ok: true, facts: { left } };
+      },
+    };
+  }
+
+  /** Save a host's record now; a failure is said, never thrown into the cut. */
+  private static async capture(host: Stuff): Promise<void> {
+    try {
+      await PersistableApi.captureHostOf(host);
+    } catch (err) {
+      console.warn('Bole: capture failed:', err);
+    }
+  }
+
+  /** The deed a cut credits, in silviculture. */
+  private static async credit(actor: Stuff, difficulty: 'easy' | 'standard'): Promise<void> {
+    try {
+      if (MixinApi.isAdvancing(actor)) {
+        await actor.creditDeed({ discipline: 'silviculture', difficulty, outcome: 'success' });
+      }
+    } catch (err) {
+      console.warn('Bole: recording the deed failed:', err);
+    }
   }
 }

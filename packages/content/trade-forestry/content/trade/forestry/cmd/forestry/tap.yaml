@@ -1,4 +1,5 @@
 verbs: [tap]
+category: forestry
 controller: /trade/forestry/idea/cmd/forestry/TapController
 description: "Set a spile in a sap tree, or draw what has run"
 help: |
@@ -51,9 +52,9 @@ args:
   - name: target
     type: object
     required: false
-    scope: [reachable]
+    scope: ["here", "peers", "person"]
     requires: any
-  # ⭐ WHICH AUGER — DECLARED, not hunted for (`lint:instrument-args`).
+  # ⭐ WHICH AUGER — DECLARED, not hunted for (`lint:controller-resolution`).
   # Bare, the binder hands over the first reachable thing offering
   # `boring`; an axe bound by name is refused in words by the tree.
   - name: tool

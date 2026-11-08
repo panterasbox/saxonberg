@@ -10,6 +10,7 @@
  * actual pipeline) is in `interpreter-dispatch.test.ts`.
  */
 
+import type { Affordance, AffordanceMatch } from "../../command/CommandGiver";
 import { describe, it, expect } from "vitest";
 import { Interpreter } from "../Interpreter";
 import type {
@@ -59,6 +60,12 @@ function fakeGiver(defs: CommandDefinition[]): Stuff & CommandGiver {
       defs.map((command) => ({ command, source: giver, bucket: "self" })),
     getAvailableCommands: () => defs,
     getContainer: () => null,
+    // The dispatcher's shared matcher, unscoped (verb filter only).
+    matchAffordances: (parsed: { verb: string }): AffordanceMatch => ({
+      ok: true,
+      matches: (giver.getAffordances() as unknown as Affordance[]).filter((a) => a.command.hasVerb(parsed.verb)),
+      usage: "",
+    }),
   };
   return giver as unknown as Stuff & CommandGiver;
 }

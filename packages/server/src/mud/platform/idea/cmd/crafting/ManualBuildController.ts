@@ -1,6 +1,6 @@
 /**
  * ManualBuildController — shared base for the manual cocktail-build verbs
- * (`pour`/`add`, `stir`/`shake`, `strain`, `garnish`).
+ * (`pour`, `stir`, `strain`, `garnish`).
  *
  * Holds the one thing they all share: turning a step into an **engaged
  * activity**. `engageStep` constructs a {@link ManualBuildStep}, starts
@@ -17,13 +17,15 @@
  * Not referenced by any YAML — a base class only.
  */
 
+import type { CarveRefusal } from "../../../../lib/craft/Carvable";
 import { CraftController } from "./CraftController";
 import type { CommandContext, CommandModel } from "../../../../api/command";
 import type { MqlManyResult } from "../../../../api/mql";
 import type { AbortReason } from "@saxonberg/types";
 import type { Stuff } from "../../../../lib/stuff/Stuff";
-import type { Tooled } from "../../../../lib/craft/Tooled";
-import type { ActPlan } from "../../../../lib/craft/ActPlan";
+import type { Tooled } from "../../../../lib/craft/Tool";
+import type { ActDone, ActPlan, AnyActRefusal } from "../../../../lib/craft/ActPlan";
+import type { ActWords } from "../../../../lib/command/EngagedActController";
 import { MixinApi } from "../../../../api/mixin";
 import { MessageApi } from "../../../../api/message";
 import { Mml } from "../../../../api/mml";
@@ -126,9 +128,35 @@ export abstract class ManualBuildController<
   }
 
   /**
+   * ⭐ The words for green ware at the wrong moment — `carve`'s and `impress`'s, whose
+   * targets refuse with the same four reasons.
+   */
+  protected static greenWords(
+    r: Extract<CarveRefusal, { reason: 'ruined' | 'fired' | 'too-soft' | 'too-dry' }>,
+    thing: Stuff,
+  ): Composed {
+    switch (r.reason) {
+      case 'ruined':
+        return Mml.compose`${Mml.thing(thing)} is ruined. It is still clay, though — put it back in a temper pit and tread it in again.`;
+      case 'fired':
+        return Mml.compose`${Mml.thing(thing)} has been fired hard. Nothing will ${r.facts.act} it now.`;
+      case 'too-soft':
+        return Mml.compose`${Mml.thing(thing)} is too soft to ${r.facts.act} — it would smear. Let it firm up to leather-hard.`;
+      case 'too-dry':
+        return Mml.compose`${Mml.thing(thing)} is bone-dry — it would crack. That is done at leather-hard.`;
+      default: {
+        const never: never = r;
+        return never;
+      }
+    }
+  }
+
+  /**
    * ⭐ Engage a plan an object handed back (`ActPlan` — `knead`, `shape`,
    * `carve`, `cut`, `dip`, `stir` on a compounding vessel): the ONE
    * engage-a-plan routine, so every act protocol is run the same way.
+   * ⭐ The object answered facts; `words` is this controller's wording of
+   * them (controllers-are-io D4) — begin, a late refusal, and the landing.
    *
    *  - A zero-length plan runs NOW, inside the command frame: an act that
    *    is a craft resolved from the actor's reach (the chandler's candle)
@@ -138,18 +166,40 @@ export abstract class ManualBuildController<
    *    completion returns (the world changed under the step) is told to
    *    the actor when it lands.
    */
-  protected async engagePlan(context: CommandContext, plan: ActPlan): Promise<void> {
+  protected async engagePlan<B, F, X extends AnyActRefusal>(
+    context: CommandContext,
+    plan: ActPlan<B, F, X>,
+    words: ActWords<B, F, X>,
+  ): Promise<void> {
+    const giver = context.commandGiver;
+    const say = (out: ActDone<F, X>): void => {
+      if (giver.isDestroyed()) return;
+      if (!out.ok) {
+        MessageApi.scene(giver).topic(STEP_TOPIC).toSelf(words.onRefused(out)).send();
+        return;
+      }
+      const done = words.onDone?.(out.facts) ?? null;
+      if (done === null || (!done.self && !done.peers)) return;
+      const scene = MessageApi.scene(giver).topic(STEP_TOPIC);
+      if (done.self) scene.toSelf(done.self);
+      if (done.peers) scene.toPeers(done.peers);
+      scene.send();
+    };
     if (plan.durationMs <= 0) {
       const out = await plan.onComplete();
-      if (out && !out.ok) this.declineStep(context, out.line, out.reason);
+      if (!out.ok) {
+        this.declineStep(context, words.onRefused(out), out.reason);
+        return;
+      }
+      say(out);
       return;
     }
-    const giver = context.commandGiver;
+    const peers = words.beginPeers?.(plan.facts) ?? null;
     this.engageStep(context, {
       durationMs: plan.durationMs,
       effortW: plan.effortW,
-      beginSelf: plan.beginSelf,
-      beginPeers: plan.beginPeers,
+      beginSelf: words.beginSelf(plan.facts),
+      ...(peers ? { beginPeers: peers } : {}),
       onComplete: () => {
         // ⚠ The scheduler's completion is synchronous, so an async plan's
         // throw would land after its root returned — an unhandled
@@ -157,11 +207,7 @@ export abstract class ManualBuildController<
         // says a sync one (silent-write-census slate: async completions).
         Promise.resolve()
           .then(() => plan.onComplete())
-          .then((out) => {
-            if (out && !out.ok && !giver.isDestroyed()) {
-              MessageApi.scene(giver).topic(STEP_TOPIC).toSelf(out.line).send();
-            }
-          })
+          .then(say)
           .catch((err: unknown) => {
             console.error('ManualBuildController: a planned act failed at completion', err);
           });
@@ -182,7 +228,7 @@ export abstract class ManualBuildController<
    * `findCapability(giver, cap)`: a walk over the actor's kit and the
    * room, hoisted into this base class so that fourteen controllers
    * across six packs hunted for their instrument through one method
-   * `lint:instrument-args` could not see. See that gate's header.
+   * `lint:controller-resolution` could not see. See that gate's header.
    *
    * ⚠⚠ **Best by rate, not first found, and the difference was a bug in
    * every trade.** First-found with held kit scanned first picked a

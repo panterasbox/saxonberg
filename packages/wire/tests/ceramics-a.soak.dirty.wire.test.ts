@@ -639,7 +639,7 @@ suite('⭐ 7 — fire the clamp', () => {
     // ⚠ Not `clamp:i`: a clamp is cased in clay and its inside is dark, so a
     // read of it lists nothing (run 36) — what the setter SAID is the record.
     expect(set.join(' | '), 'the clamp is charged').toMatch(/put .*brick.* in .*clamp/i);
-    const lit = await say(digger, 'ignite clamp');
+    const lit = await say(digger, 'light clamp');
     expect(lit).toMatch(/catch|light|burn|alight|fire/i);
     // Fire it into the night and look from next door.
     await toHour(20, 23);
@@ -730,7 +730,7 @@ suite('⭐ 8 — reduce the draught: blue brick', () => {
     expect(await say(digger, `put ${second} in clamp`)).toMatch(/put .*brick.* in .*clamp/i);
     await say(digger, 'get coal');
     await say(digger, 'stoke coal into clamp');
-    await say(digger, 'ignite clamp');
+    await say(digger, 'light clamp');
     const fired = await act(digger, 'fire clamp --draught half for 3 days', '3 days');
     expect(fired).not.toMatch(/stone cold|empty|draught\?/i);
     await say(digger, 'douse clamp');
@@ -819,7 +819,7 @@ suite('⭐ 9 — measure against the statute brick', () => {
     // Burn them in the clamp ground's firing pit, on their own.
     await say(digger, 'east');
     expect(await say(digger, `put ${oversized} in pit`)).toMatch(/put .*brick.* in .*pit/i);
-    await say(digger, 'ignite pit');
+    await say(digger, 'light pit');
     await act(digger, 'fire pit for 1 day', '1 day');
     await say(digger, 'douse pit');
     await advance('12 hours');

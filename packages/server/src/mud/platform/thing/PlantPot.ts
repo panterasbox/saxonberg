@@ -32,7 +32,7 @@ import { BulkableMixin } from "../../lib/bulk/Bulkable";
 import { SlottedMixin } from "../../lib/slot/Slotted";
 import { ContainerMixin } from "../../lib/spatial/Container";
 import { StagedMixin } from "../../lib/stuff/Staged";
-import { ReservedMixin } from "../../lib/reserve";
+import { ReservedMixin } from "../../lib/reserve/Reserved";
 import { CultivableMixin } from "../../lib/husbandry/Cultivable";
 import { SoilMixin } from "../../lib/husbandry/Soil";
 import type { FieldMeta } from "../../lib/mixin";

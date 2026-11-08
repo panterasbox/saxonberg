@@ -34,7 +34,7 @@ import type {
   CommandContext,
   CommandModel,
 } from '../../../../api/command';
-import type { MqlOneResult } from '../../../../api/mql';
+import { MqlApi, type MqlOneResult } from '../../../../api/mql';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import { MixinApi } from '../../../../api/mixin';
 import { ContainmentApi } from '../../../../api/containment';
@@ -71,6 +71,13 @@ interface SenseModel extends CommandModel {
 }
 
 const SCENE_TOPIC = 'sense.survey';
+
+/**
+ * The room's listing as the viewer sees it — its contents, perceived, not
+ * the room's structure, never the viewer. Shared with `look` (one rule;
+ * the mql-predicate-parity slate's three copies, one query).
+ */
+const ROOM_LISTING = 'here:i:visible:[not mixin.AdornmentMixin] - me';
 
 export default class SenseController extends CommandController<SenseModel> {
   execute(model: SenseModel, context: CommandContext): void {
@@ -149,17 +156,13 @@ export default class SenseController extends CommandController<SenseModel> {
     const hasExits = MixinApi.isExitable(location);
     const hasName = MixinApi.isNamed(location);
 
-    const visibleContents = location
-      .getContents()
-      .filter((item) => {
-        if (item.stuffId === actor.stuffId) return false;
-        if (MixinApi.isAdornment(item)) return false;
-        if (!MixinApi.isVisible(item)) return false;
-        // Honest fog: a concealed, undiscovered/imperceptible thing is
-        // absent from the actor's world.
-        if (!PerceptionApi.perceives(actor, item)) return false;
-        return true;
-      });
+    // ⭐ What stands here as the actor sees it — the room listing's rule,
+    // said in MQL (`:visible` is the perception gate, honest fog included;
+    // an adornment is the room's structure, read through its host).
+    const visibleContents = MqlApi.resolveMany(ROOM_LISTING, {
+      commandGiver: actor,
+      scope: 'here',
+    }).stuff;
 
     if (
       !hasVisible &&

@@ -324,10 +324,10 @@ suite('1–8. the verbs that shipped and could not be said', () => {
     // `sneak.yaml`'s own advice had no verb to walk a single exit back.
     expectOk(await act(k, 'set movement.defaultMode sneak'));
     const before = await whereAmI(k);
-    const walked = await act(k, 'walk out');
+    const walked = await act(k, 'walk south');
     expectOk(walked);
     const after = await whereAmI(k);
-    expect(after, '`walk out` did not move anybody').not.toBe(before);
+    expect(after, '`walk south` did not move anybody').not.toBe(before);
 
     // ⭐ And the way back to walking does not require changing a setting.
     expectOk(await act(k, 'set movement.defaultMode walk'));
@@ -456,13 +456,13 @@ suite('1–8. the verbs that shipped and could not be said', () => {
     // verb bound, reached its controller, and `AccessApi.can` said no —
     // which is the honest answer. `command-rejected` would mean the game
     // never heard the word.
-    // ⚠ `subdivide <name>` — ONE string arg, and it carves the parcel you
+    // ⚠ `title subdivide <name>` — ONE string arg, and it carves the parcel you
     // are STANDING IN. The drive's first two runs typed a path and an
     // `as` clause and earned `shape-fall-through`, which is the parser
     // saying the shape is wrong rather than the word being unknown. The
-    // view's own example is `subdivide east-wing`.
-    const onGroundNotHeld = await act(other, 'subdivide wire-slice');
-    expectUnderstood(onGroundNotHeld, 'subdivide');
+    // view's own example is `title subdivide east-wing`.
+    const onGroundNotHeld = await act(other, 'title subdivide wire-slice');
+    expectUnderstood(onGroundNotHeld, 'title subdivide');
     const notes = onGroundNotHeld.notes as Array<{ kind?: string }>;
     expect(
       notes.some(
@@ -472,54 +472,23 @@ suite('1–8. the verbs that shipped and could not be said', () => {
         'CONTROLLER on authority, not by the parser on grammar',
     ).toBe(true);
 
-    const xfer = await act(other, 'transfer wire-slice to nobody');
-    expectUnderstood(xfer, 'transfer');
+    const xfer = await act(other, 'title transfer wire-slice to nobody');
+    expectUnderstood(xfer, 'title transfer');
   }, 300_000);
 
-  it('⛔⛔ 7. `swim` is STILL unknown — the water design owns how you get in', async () => {
-    // ⭐⭐⭐ The reversal, asserted as a POSITIVE so it cannot rot.
-    //
-    // Everything about the gap is real and the sweep found it:
-    // `SwimmableMixin` and `SwimController` shipped with the locomotion
-    // build, `BodyPlan/biped.yaml` lists `swim` among a person's modes,
-    // SIX exits in the estuary and at the wharf carry
-    // `media: [ground, water]`, and nothing in the game composes the
-    // mixin — the only composition anywhere is an integration test that
-    // manufactures its own host. Somebody authored those exits expecting
-    // this to work.
-    //
-    // ⚠⚠ And the sweep's answer — a `SwimmableMixin(Thing)` propped in a
-    // land room, so a land exit becomes swimmable — was reversed, because
-    // `navigable-water-slate` merged to master mid-build and OWNS the
-    // question. Its status block says *"nowhere on, in or under the water
-    // is a place you can be"* and puts **"the first water anybody can
-    // stand in"** on its Left list; its model is that every water node is
-    // a **place** (a `Location`) or a **passage** (cited, never
-    // inhabited), with a beach as a land `Location` holding a `Shore`
-    // that CITES a water node *"so nothing is ever in the water's
-    // zone"*, and entering water as a **dive entrance** — one of three
-    // faces on that citation. A Thing in a land room is a fourth shape
-    // it would never produce, in the exact rooms it names as its own
-    // first target.
-    //
-    // ⭐⭐ Third instance of one lesson in one build, after `drive` and
-    // `say`: a gate can prove a view is afforded or declared; it cannot
-    // tell you whether conferring one was yours to decide.
-    //
-    // ⭐ When that build lands this checkpoint FAILS, and asks for the
-    // real thing in its place: swim an estuary exit, and be told there is
-    // nothing to swim in at a dry one.
+  it('7. `swim` is a verb now — the water design landed (underwater: `swim basin`)', async () => {
+    // ⭐ This checkpoint was written to FAIL when navigable water landed and to
+    // ask for the real thing in its place (W11, 2026-11-07: it did). The swim
+    // itself is the underwater drive's (`swim basin` from the quay); what is
+    // held here is that the verb is known and says why a dry way is no swim.
     const swimmer = await at(REACH, 'reach-swimmer');
     await swimmer.drainProse();
     const out = await say(swimmer, 'swim east');
     const notes = out.notes as Array<{ kind?: string; reason?: string }>;
     expect(
-      notes.some(
-        (n) => n.kind === 'command-rejected' && n.reason === 'unknown-verb',
-      ),
-      '`swim` must still be UNKNOWN — held on navigable-water-slate, ' +
-        'which owns what the enablement host is',
-    ).toBe(true);
+      notes.some((n) => n.kind === 'command-rejected' && n.reason === 'unknown-verb'),
+      '`swim` is known',
+    ).toBe(false);
   }, 300_000);
 
   it('⛔ 8. `lock north` and `fly up` are STILL unknown — and that is a recorded decision', async () => {
@@ -668,10 +637,10 @@ suite('9–14. a good`s name is a PHRASE', () => {
     await k.drainProse();
     const baker = k;
     expectOk(await act(baker, 'buy dog loaf'));
-    const consigned = await act(baker, 'consign dog loaf');
+    const consigned = await act(baker, 'shelf consign dog loaf');
     expect(refusedFor(consigned)).not.toBe('unknown-verb');
     if (refusedFor(consigned) === null) {
-      const back = await act(baker, 'reclaim dog loaf');
+      const back = await act(baker, 'shelf reclaim dog loaf');
       expect(refusedFor(back)).not.toBe('unknown-verb');
       if (refusedFor(back) === null) {
         expect(await carried(baker), 'the loaf came back').toMatch(/loaf|bread/i);

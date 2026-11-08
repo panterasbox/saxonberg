@@ -1,9 +1,10 @@
 verbs: [cook]
+category: crafting
 controller: /trade/cooking/idea/cmd/crafting/CookController
 description: "Cook a dish at the hearth"
 help: |
   Cook a dish in one act — `cook stew`. You're the cook: you need the
-  recipe learned by hand first (work it once with `add` / `stir` /
+  recipe learned by hand first (work it once with `pour` / `stir` /
   `heat` / `plate`), reachable heat where the recipe wants it, the pot,
   and the ingredients.
 validators:

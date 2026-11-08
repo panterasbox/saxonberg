@@ -96,6 +96,15 @@ drive and a soak drive. The finding behind it, the enforcement and the lane →
   repeat comments on the open one. State, log and results live in the soak worktree's `.soak/`
   (gitignored). Every threshold and path is an env override (`tools/soak --help`).
 
+### A finished session signs out
+
+`session.close()` is the client's deliberate leave: the body is saved and leaves
+the world (controllers-are-io D30), so a finished checkpoint costs the rest of the
+run nothing. `session.drop()` loses the connection without signing out, and the
+body stays linkdead for the rest of the run: use it only in a test about exactly
+that. ⚠ Each dropped or crashed session leaves a body. A run that crashes leaves
+all of them, and a world with thirty live cards on one room answers in seconds.
+
 ### Staging — what a blocking drive uses instead of the clock
 
 Every span step has a **staged twin**: set the state with wizard tools, check everything around it
@@ -215,7 +224,7 @@ proof that did not exist:
 | the claim | what was actually asserted |
 |---|---|
 | *"repeated orders are not answered by the same person every time"* | that six orders were each **answered** — never that two different people answered |
-| *"one candidate among several — not all, not none"* | that a player could `apply` and `clock on` — the checkpoint never ordered anything |
+| *"one candidate among several — not all, not none"* | that a player could `job apply` and `clock on` — the checkpoint never ordered anything |
 | the acceptance table cited **"drive 9"** | there is no checkpoint 9; the file runs 1–8 and 10–15 |
 
 ⚠ **Why this is worse than a missing test.** A missing checkpoint is visibly

@@ -322,6 +322,8 @@ describe('dues, clearance and the bills paid at the office (A2, P13)', () => {
 
   it('⭐ the bills are her master’s: dues to the office first, then what she carries; paying stamps them off', async () => {
     harbor.setOffice('/test/port/office');
+    // The office stands before its book (liveBook loads it first).
+    fixtures.set('/test/port/office', makeStuffAtPath(() => new Idea(), '/test/port/office') as unknown as Stuff);
     const hesper = ship('/test/ships/hesper', 'the Hesper', 30, 1.2);
     hesper.setHouse('/test/ships/hesper/company');
     await harbor.madeFast(hesper as unknown as Stuff, TOWN, at(9));
@@ -347,6 +349,8 @@ describe('dues, clearance and the bills paid at the office (A2, P13)', () => {
 describe('⭐ the charterer answers for her at the office (A3, P23)', () => {
   it('a charter that ended as she berthed is the charterer’s to clear: the dues and the days, both billed to them', async () => {
     harbor.setOffice('/test/port/office');
+    // The office stands before its book (liveBook loads it first).
+    fixtures.set('/test/port/office', makeStuffAtPath(() => new Idea(), '/test/port/office') as unknown as Stuff);
     const hesper = ship('/test/ships/hesper', 'the Hesper', 30, 1.2);
     hesper.setHouse('/test/ships/hesper/company');
     await harbor.madeFast(hesper as unknown as Stuff, TOWN, at(9));

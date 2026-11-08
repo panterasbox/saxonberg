@@ -124,10 +124,13 @@ export default class Ore extends OreBase {
    * not the textbook one.
    */
   public override takeFromAbsorbed(absorbed: Stuff): void {
-    const lot = absorbed as unknown as Ore;
-    const theirs = typeof lot.getQuantity === 'function' ? lot.getQuantity() : 0;
+    // ⭐ Only a lot of ore carries an ore grade (a metal fraction — NOT
+    // `GradedMixin`'s quality band, so `isGraded` is the wrong question).
+    if (!(absorbed instanceof Ore)) return;
+    const lot = absorbed;
+    const theirs = lot.getQuantity();
     const total = this.getQuantity();
-    if (typeof lot.getGrade === 'function' && total > 0 && theirs > 0 && theirs <= total) {
+    if (total > 0 && theirs > 0 && theirs <= total) {
       this.setGrade((this.grade * (total - theirs) + lot.getGrade() * theirs) / total);
     }
     super.takeFromAbsorbed(absorbed);
@@ -142,10 +145,9 @@ export default class Ore extends OreBase {
    * scale and learn about the pile it came from.
    */
   public override onSplit(splitoff: Stuff): void {
-    const cut = splitoff as unknown as Ore;
-    if (typeof cut.setGrade === 'function') cut.setGrade(this.grade);
-    if (typeof cut.setGangueMaterialPath === 'function') {
-      cut.setGangueMaterialPath(this.gangueMaterialPath);
+    if (splitoff instanceof Ore) {
+      splitoff.setGrade(this.grade);
+      splitoff.setGangueMaterialPath(this.gangueMaterialPath);
     }
     super.onSplit(splitoff);
   }

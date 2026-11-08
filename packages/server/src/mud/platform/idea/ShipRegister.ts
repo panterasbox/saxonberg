@@ -30,8 +30,8 @@
  * (`CapTableMixin`) holds her sixty-fourths. The register records WHICH
  * company owns her (`owner`), as a land register records the titled party;
  * who holds that company, and so who appoints her master, is the
- * company's own table, and units change hands there (`transfer … shares
- * of <ship>`), never in this book. The register goes back to its job:
+ * company's own table, and units change hands there (`title transfer …
+ * shares of <ship>`), never in this book. The register goes back to its job:
  * name, flag, owner.
  *
  * ## ⭐ Reached by reference, never searched
@@ -42,7 +42,7 @@
  * `Ship.registeredName`), so her owners and her flag are one keyed read
  * of her own entry; a **government** names the register it keeps
  * (`Government.shipRegister`), which is how a yard enters a new ship, a
- * desk book reads its pages, and the `transfer` verb finds the ship whose
+ * desk book reads its pages, and `title transfer` finds the ship whose
  * owners' units change hands. Where a ship LIES is not the register's business:
  * a landing's berth roll keeps that, each ship writing her own line
  * (`DocumentApi.saveBerth`).
@@ -58,12 +58,11 @@
  */
 
 import { Idea } from '../../lib/stuff/Idea';
-import { RegistrarMixin, type Registrar } from '../../lib/document/Register';
+import { RegistrarMixin, type Registrar } from '../../lib/document/Registrar';
 import { DocumentApi } from '../../api/document';
 import { WorldClockApi } from '../../api/worldclock';
 import { CallSecurity } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
-import { Mixins } from '../../lib/mixin';
 import type { Stuff, EvictionContext } from '../../lib/stuff/Stuff';
 import type { VetoResult } from '../../lib/errors';
 import type { FieldMeta } from '../../lib/mixin';
@@ -92,16 +91,19 @@ export interface ShipEntry {
 
 /**
  * The ship herself, and only about HERSELF — a participant contract: a
- * voyaging caller whose durable handle is the one being entered. (A
- * mixin name, not `FromClass(Ship)`: the class import would close a cycle
- * through the ship back to her register.)
+ * voyaging caller whose durable handle is the one being entered. (By
+ * module, not `FromClass(Ship)`: the class import would close a cycle
+ * through the ship back to her register. Not `FromMixin`: the handle is the
+ * caller's own method, so a class merely declaring the marker could answer
+ * with another ship's — controllers-are-io D25.)
  */
-const FromTheShipItself = SecurityPolicies.FromMixin(Mixins.Voyaging, {
-  where: (caller, _target, _method, args) => {
+const FromTheShipItself = SecurityPolicies.AllOf(
+  SecurityPolicies.FromModule('/platform/idea/Ship', { includeSubclasses: true }),
+  SecurityPolicies.Custom((caller, _target, _method, args) => {
     const mine = (caller as Stuff).getDurableHandle();
-    return mine !== null && (args[0] as { key?: unknown } | undefined)?.key === mine;
-  },
-});
+    return mine !== null && (args?.[0] as { key?: unknown } | undefined)?.key === mine;
+  }, 'TheHandleIsHerOwn'),
+);
 
 export default class ShipRegister extends RegistrarMixin(Idea) {
   static fieldMeta: FieldMeta = {

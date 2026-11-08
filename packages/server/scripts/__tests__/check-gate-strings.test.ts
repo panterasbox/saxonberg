@@ -67,8 +67,8 @@ describe('check-gate-strings.templateFileOf', () => {
 
   it('mirrors the template path for everything else', () => {
     expect(
-      templateFileOf('/platform/idea/cmd/civics/TitleController', [ARCANA], MUD),
-    ).toBe(`${MUD}/platform/idea/cmd/civics/TitleController.ts`);
+      templateFileOf('/platform/idea/cmd/civics/TitlePublishController', [ARCANA], MUD),
+    ).toBe(`${MUD}/platform/idea/cmd/civics/TitlePublishController.ts`);
   });
 
   it('resolves a pack template into the pack src/', () => {

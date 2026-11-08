@@ -5,7 +5,7 @@
  */
 
 import Reading from '../../../lib/instrument/Reading';
-import type { Tooled } from '../../../lib/craft/Tooled';
+import type { Tooled } from '../../../lib/craft/Tool';
 import type { CompetenceBandName } from '../../../lib/advancement/CompetenceBand';
 import type { CommandContext, CommandModel } from '../../../api/command';
 import type { Stuff } from '../../../lib/stuff/Stuff';
@@ -30,9 +30,7 @@ export default class ShadowReading extends Reading {
     param: string,
   ): Promise<void> {
     const giver = ctx.commandGiver;
-    const scope = (giver as Stuff & {
-      getContainer?: () => unknown;
-    }).getContainer?.();
+    const scope = MixinApi.isContainable(giver) ? giver.getContainer() : null;
     if (!scope || !MixinApi.isContainer(scope as Stuff)) {
       ctx.note({
         kind: 'controller-rejected',

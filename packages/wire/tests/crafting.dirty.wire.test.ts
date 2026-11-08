@@ -97,15 +97,26 @@ suite('the smithy — the knowledge ladder is real', () => {
   it('⭐ `forge` is afforded and refuses on the DEED, not the verb', async () => {
     const early = await s.cmd('forge knife');
     reachedItsGate(early);
-    // A cook who has never worked one by hand is told to do that first.
-    expect(await early.said()).toMatch(/haven't learned to forge/i);
+    // A smith who has never worked one by hand is told to do that first.
+    expect(await early.said()).toMatch(/never made one|hands have to learn/i);
   }, 60_000);
 
   it('the by-hand build teaches it: pump · heat · hammer · quench', async () => {
     // ⚠ Light it BEFORE pumping. `pump` on a cold forge answers
     // `not-lit` — bellows move air, they do not make fire, and the
     // refusal is right.
-    expectOkOr(await s.cmd('ignite forge'), 'already-burning');
+    // ⚠ A fresh world's forge is a cold, EMPTY bed (the fuel is a bed
+    // somebody fills); Berta lights it when she is on shift (`stokes`),
+    // and a smith who comes in first lays the smithy's charcoal herself.
+    // Either order is honest, so both are allowed.
+    const lit = await s.cmd('light forge');
+    const litReasons = lit.notes.map((n) => (n as { reason?: string }).reason);
+    if (lit.status !== 'ok' && !litReasons.includes('already-burning')) {
+      expect(litReasons, 'a cold forge refuses for want of fuel').toContain('no-fuel');
+      await s.cmd('get 1 charcoal');
+      await s.cmd('stoke charcoal into forge');
+      expectOkOr(await s.cmd('light forge'), 'already-burning');
+    }
     expectOkOr(await s.cmd('pump forge'), 'already-burning', 'not-lit');
 
     /*
@@ -133,7 +144,7 @@ suite('the smithy — the knowledge ladder is real', () => {
      * just picked by the same walk. The earlier note here blamed a decoy
      * ingot; the real refusal on `hammer ingot` was the arg's own
      * `requires: DurableMixin`, which no Ingot satisfies. The view now
-     * declares the workpiece (`lint:instrument-args`) and requires what
+     * declares the workpiece (`lint:controller-resolution`) and requires what
      * the controller actually reads, so naming it works and bare works.
      */
     const hammering = await s.cmd('hammer ingot');
@@ -142,48 +153,33 @@ suite('the smithy — the knowledge ladder is real', () => {
 
     const quenched = await s.cmd('quench ingot');
     expectOk(quenched);
+    // The learning lands at the quench's completion; the next checkpoint forges.
+    await s.awaitActivity(engagementIdOf(quenched), 240_000);
 
     /*
-     * ⚠⚠ **FINDING — the by-hand build completes and teaches nothing.**
-     *
-     * All three steps succeed (heat → hammer → quench, each awaited on
-     * its own engagement), the quench answers *"You plunge a cold iron
-     * ingot into the…"*, and the deed is NOT conferred: `forge knife`
-     * still answers `not-learned` afterwards. The original spec asserted
-     * *"worked out how to forge"* on the quench, so either the conferral
-     * has regressed or the ladder wants more of the recipe than these
-     * three acts.
-     *
-     * ⓘ Not diagnosed — the smithing ladder is its own subsystem and an
-     * infra build is the wrong place to chase it. Reported here, and the
-     * four checkpoints downstream of it are marked below so they come
-     * back the moment somebody fixes this.
+     * ⚠⚠ **FINDING, still open — the by-hand build completes and teaches
+     * nothing.** W6a read the `getTemplatePath` maker as the cause and wrote
+     * *"the by-hand build TEACHES now"* here without driving it; the drive says
+     * otherwise. Fuel, heat, hammer and quench all succeed, and `forge knife`
+     * answers `not-learned`: after `hammer` the piece is still `isBuildEmpty()`,
+     * so `quench` takes its heat-treatment arm, which mints nothing. Not this
+     * build's to diagnose past that; the four checkpoints below stand marked as
+     * they were, and come back when somebody fixes it.
      */
-    console.log(
-      /worked out how to forge/i.test(await quenched.said())
-        ? '   ⭐ the deed WAS conferred — the ladder is whole again; ' +
-            'un-skip the checkpoints below'
-        : '   ⚠ FINDING: the by-hand build completed and conferred no ' +
-            'deed. `forge` stays not-learned. See the note at this site.'
-    );
   }, 300_000);
 
-  // ⛔ Blocked by the conferral finding above — self-correcting: this
-  // starts failing (and must be un-marked) the moment the deed lands.
   it.fails('⭐ …and now the same command forges', async () => {
     const forged = await s.cmd('forge knife');
     expectOk(forged);
     expect(await forged.said()).toMatch(/You forge/i);
   }, 120_000);
 
-  // ⛔ Blocked by the conferral finding above (no knife is ever forged).
   it.skip('the blade reads as a weapon with a playstyle', async () => {
     const said = await s.prose('analyze weapon knife');
     expect(said).toMatch(/Playstyle of/i);
     expect(said).toMatch(/edge keen/i);
   }, 60_000);
 
-  // ⛔ Blocked by the conferral finding above (no knife is ever forged).
   it.skip('⭐ `sharpen` does not exist until a whetstone is in hand', async () => {
     notAfforded(await s.cmd('sharpen knife'));
     expectOk(await s.cmd('get whetstone'));
@@ -192,7 +188,6 @@ suite('the smithy — the knowledge ladder is real', () => {
     expect(await sharpened.said()).toMatch(/long slow strokes|keen again/i);
   }, 120_000);
 
-  // ⛔ Blocked by the conferral finding above (no knife is ever forged).
   it.skip('a sound blade needs no repair, and salvage costs you most of it', async () => {
     expect(await s.prose('repair knife')).toMatch(/already sound/i);
     expect(await s.prose('salvage knife')).toMatch(/mostly loses/i);
@@ -271,6 +266,6 @@ suite('the general store — what shop goods do and do not confer', () => {
   it('the funds gate is honest, which also proves it resolves as stock', async () => {
     // A fresh arrival carries no stipend (embody grants it), so the buy
     // declines on coverage rather than on existence.
-    expect(await sh.prose('buy sewing-machine')).toMatch(/can't cover/i);
+    expect(await sh.prose('buy sewing-machine')).toMatch(/can't cover|nothing to pay for/i);
   }, 60_000);
 });

@@ -20,7 +20,7 @@ import { DurableMixin } from '../material/Durable';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
 import type { Stuff } from '../stuff/Stuff';
-import type { ActRefusal } from '../craft/ActPlan';
+import type { CoatReachRefusal } from '../material/Faced';
 
 export default abstract class Building extends DurableMixin(FacedMixin(StructureBase)) {
   /** A building's outside is always out in the weather, read from a landing. */
@@ -67,7 +67,7 @@ export default abstract class Building extends DurableMixin(FacedMixin(Structure
   }
 
   /** ⭐ A building is painted from where it meets the weather (paint D9). */
-  public override coatReachRefusal(actor: Stuff): ActRefusal | null {
+  public override coatReachRefusal(actor: Stuff): CoatReachRefusal | null {
     return this.landingRefusal(actor);
   }
 }

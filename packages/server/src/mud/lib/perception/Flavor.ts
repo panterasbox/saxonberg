@@ -66,6 +66,11 @@ export class Savor {
     return this.tastes.map((t) => `${this.intensityOf(t.ou)} ${t.type}`);
   }
 
+  /** Whether this palate can tell the time it had in the wood at all. */
+  public hasAged(): boolean {
+    return this.details.maturedDays > 0;
+  }
+
   /** The time in the wood as a person says it; never a figure. */
   public ageInWords(): string {
     const days = this.details.maturedDays;

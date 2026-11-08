@@ -1,8 +1,9 @@
-verbs: [tend, nurse]
+verbs: [tend]
+category: medical
 controller: /platform/idea/cmd/medical/TendController
 description: "Sit with a wounded body to speed its recovery"
 help: |
-  `tend alice` (or `nurse alice`) sits with a wounded or ill body and helps
+  `tend alice` sits with a wounded or ill body and helps
   it recover faster. It holds YOUR attention — you tend one patient at a
   time — and how much you help depends on your skill at medicine.
 

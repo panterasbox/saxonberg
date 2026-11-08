@@ -18,7 +18,7 @@ import { brain as farms } from '../farms';
 import type { BrainContext } from '@saxonberg/server/mud/lib/behavior/brain';
 import WaterController from '@saxonberg/server/mud/platform/idea/cmd/bulk/WaterController';
 import HarvestController from '@saxonberg/server/mud/platform/idea/cmd/inventory/HarvestController';
-import ConsignController from '@saxonberg/server/mud/platform/idea/cmd/retail/ConsignController';
+import ShelfConsignController from '@saxonberg/server/mud/platform/idea/cmd/retail/ShelfConsignController';
 import WalletController from '@saxonberg/server/mud/platform/idea/cmd/banking/WalletController';
 import StockBase from '@saxonberg/server/mud/lib/retail/Stock';
 
@@ -33,7 +33,7 @@ import PaymentCard from '@saxonberg/server/mud/platform/thing/PaymentCard';
 import ChattelRegistry from '@saxonberg/server/mud/platform/idea/ChattelRegistry';
 import BusinessEntity from '@saxonberg/server/mud/platform/idea/Business';
 import Material from '@saxonberg/server/mud/lib/material/Material';
-import { Reserve, ReservedMixin } from '@saxonberg/server/mud/lib/reserve';
+import { Reserve, ReservedMixin } from '@saxonberg/server/mud/lib/reserve/Reserved';
 import { SoilMixin } from '@saxonberg/server/mud/lib/husbandry/Soil';
 import { AdvancementMixin } from '@saxonberg/server/mud/lib/advancement/Advancement';
 import {
@@ -322,7 +322,10 @@ describe('the farms beat — tend, pick, sell, home', () => {
         lines.push(text);
         const who = giver as unknown as Farmer;
         const here = who.getContainer() as Place;
-        const [verb, ...rest] = text.split(' ');
+        const [noun, ...words] = text.split(' ');
+        // ⭐ A noun's subcommand (`shelf consign`, `house draw` — controllers-are-io
+        // W7) dispatches here like the flat verb it replaced.
+        const [verb, ...rest] = noun === 'shelf' || noun === 'house' ? words : [noun, ...words];
         const reach = (kw: string): Stuff | null =>
           ((here.getContents() as Stuff[]).find(
             (c) => MixinApi.isPerceptible(c) && c.hasKeyword(kw),
@@ -344,7 +347,7 @@ describe('the farms beat — tend, pick, sell, home', () => {
           );
           return;
         }
-        if (verb === 'pick') {
+        if (verb === 'harvest') {
           const target = reach(rest.join(' '));
           await asPrincipal(who, () =>
             makeStuff(() => new HarvestController()).execute(
@@ -367,7 +370,7 @@ describe('the farms beat — tend, pick, sell, home', () => {
           const kw = rest[0]!;
           const ask = rest[rest.length - 1]!;
           await asPrincipal(who, () =>
-            makeStuff(() => new ConsignController()).execute(
+            makeStuff(() => new ShelfConsignController()).execute(
               // ⚠ `shelf` is BOUND BY THE VIEW since `consign` declared it
               // (`retail/consign.yaml` § shelf, defaulting through MQL).
               // A hand-built model skips the binder, so the test has to
@@ -418,7 +421,7 @@ describe('the farms beat — tend, pick, sell, home', () => {
 
     // The ripe tree was picked THROUGH THE GROUND (one pick, the whole
     // set) and survives with its window closed.
-    expect(lines.filter((l) => l === 'pick bed').length).toBeGreaterThan(0);
+    expect(lines.filter((l) => l === 'harvest bed').length).toBeGreaterThan(0);
     expect(tree.isDestroyed()).toBe(false);
     expect(tree.isHarvestable()).toBe(false);
 
@@ -446,7 +449,7 @@ describe('the farms beat — tend, pick, sell, home', () => {
     );
     await farms.act(beatCtx());
     expect(lines.filter((l) => l.startsWith('water')).length).toBe(0);
-    expect(lines.filter((l) => l.startsWith('pick')).length).toBe(0);
+    expect(lines.filter((l) => l.startsWith('harvest')).length).toBe(0);
     expect(lines.filter((l) => l.startsWith('consign')).length).toBe(0);
     expect(farmer.getContainer()).toBe(grove);
   });

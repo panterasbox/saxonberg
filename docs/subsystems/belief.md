@@ -502,7 +502,7 @@ and only when, the two are on opposite sides.
 
 One consequence worth carrying: **an unlit room makes its occupants
 unnameable.** `canSee` fails at `pitch-black`, `describe` falls back to
-"someone" / "something" for everyone present, and `tell <name>` cannot
+"someone" / "something" for everyone present, and `dm <name>` cannot
 resolve a target at all. See [sandbox.md](./sandbox.md).
 
 ---

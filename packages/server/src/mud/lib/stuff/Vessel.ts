@@ -56,6 +56,7 @@
 
 import Holder from './Holder';
 import { ChattelMixin } from '../chattel/Chattel';
+import { MadeFromMixin } from '../chattel/MadeFrom';
 import { IntegrityMixin } from '../material/Integrity';
 import { ConcealableMixin } from '../concealment/Concealable';
 import type { FieldMeta } from '../mixin';
@@ -78,7 +79,7 @@ import type { FieldMeta } from '../mixin';
 // order among them is moot, which is what makes this a free move: the
 // composed set is identical to what `ContainerMixin(Good)` produced.
 // An article, like a good: it carries the one damage record (IntegrityMixin).
-const VesselBase = IntegrityMixin(ChattelMixin(ConcealableMixin(Holder)));
+const VesselBase = IntegrityMixin(MadeFromMixin(ChattelMixin(ConcealableMixin(Holder))));
 
 export class Vessel extends VesselBase {
   /**

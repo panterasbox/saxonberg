@@ -12,6 +12,7 @@
 # read that makes a bungled pour escape into the room. *"It will not stay
 # in a pail"* is physics, not a check this verb invented.
 verbs: [drain]
+category: mining
 controller: /trade/mining/idea/cmd/mining/DrainController
 description: "Draw the gas out of a working into a sealed vessel"
 help: |

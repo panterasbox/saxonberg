@@ -329,7 +329,7 @@ suite.skipIf(!isOwnedTestWorld())(
 
 suite('⛔⛔ 1. the still can be LIT — the defect under everything', () => {
   it('⭐⭐ an unstoked still refuses by NAME, and the name is the act', async () => {
-    const cold = await say(k, 'ignite still');
+    const cold = await say(k, 'light still');
     // ⭐ `no-fuel`, not `not-flammable`. The distinction is the whole
     // progression UI: a still with an empty firebox is a fire waiting for
     // somebody to stoke it, and the refusal has to say which or the
@@ -356,7 +356,7 @@ suite('⛔⛔ 1. the still can be LIT — the defect under everything', () => {
       ),
       '`stoke` was not understood at the still',
     ).toBeUndefined();
-    const lit = await say(k, 'ignite still');
+    const lit = await say(k, 'light still');
     expect(
       refusedFor(lit),
       'a stoked still lights: this is the assertion the whole build rests on',

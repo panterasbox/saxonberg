@@ -763,7 +763,7 @@ guarantee compile-time.
 ### AetherMixin — the non-acoustic sibling
 
 `AetherMixin` is the parallel capability mixin for non-acoustic
-transport — `tell` today, future channel `chat` and remote `emote`.
+transport — `dm` today, future channel `chat` and remote `emote`.
 The Aether is the in-fiction comm-network (implant network, magical
 resonance field, hybrid mesh — diegetically per zone). A character
 can compose Vocal without Aether (mute) or Aether without Vocal
@@ -1307,3 +1307,13 @@ viewer — so a reference passing through a list rendered viewer-blind and
 `sense`, `search`, on-surface and in-container lists named a person the
 viewer had never met. Seven sites closed by construction; no call site
 was edited. See [presentation.md](./presentation.md) (MR !255).
+
+## Render, then deliver
+
+`Scene.send` makes two passes. It **renders** every frame for every recipient
+under one `PerceptionApi.holdLightSteady()`, so a Scene to thirty people in one
+place walks the light once; it releases the hold; then it **delivers** in the
+same order. ⚠ The hold never spans a delivery: a delivered frame can run a brain
+that lights a lamp, and a memo that outlived it would leave a player in the dark
+they had just lit. Nested holds are no-ops, so a Scene sent inside an MQL hold
+keeps the outer memo.

@@ -89,7 +89,7 @@ actor-agnostic ([employment.md](../subsystems/employment.md)):
 mixin composed on `Avatar`, which is a named, deferred build-time seam
 ("runtime mixin-composition is its own deferred thing", employment.md:484-485
 — anchor re-pointed after the master merge). The *relationship* is already
-actor-agnostic — and the post-merge **`appoint` verb** now lets a player
+actor-agnostic — and the post-merge **`house appoint` verb** now lets a player
 *be appointed* to a Position (authority-gated, employment.md:225-226),
 strengthening the relationship side further; only the capability
 composition waits. So: **NPC-taught classrooms ship on today's substrate;

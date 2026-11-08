@@ -3,6 +3,7 @@
 # a cut feeder line made whole at its pole. The THING decides what splicing
 # it means (`SpliceableMixin`) and says why not in its own words.
 verbs: [splice]
+category: crafting
 controller: /platform/idea/cmd/crafting/SpliceController
 description: "Splice two ropes into one, or a cut line back together"
 help: |

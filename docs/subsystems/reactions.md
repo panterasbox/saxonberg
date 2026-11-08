@@ -183,7 +183,7 @@ dispatches an emote, so it requires Soul).
 react [--to <person>] [--msg <#>] [--remove] <emote-expression>
 ```
 
-- selector-less (`re ;smile`) → the most recent act delivered in view
+- selector-less (`react ;smile`) → the most recent act delivered in view
   (the **frictionless primary path** — low friction is load-bearing for
   adoption);
 - `--to <person>` (parser-typed `object`) → that subject's most-recent
@@ -201,8 +201,8 @@ dispatched opaquely through the existing emote path (`SoulApi.resolve` →
 `EmoteGrammarRunner.bind`, or `emoteFree` on a free-form miss) with
 `inReactionTo` set, so the controller does **not** touch the registry to
 mutate tallies. On `--remove` the controller resolves the canonical verb
-and calls `removeReaction` directly. The `re` alias completes the cheap
-surface.
+and calls `removeReaction` directly. (The `re` alias was deleted by
+controllers-are-io W6 — one view, one word.)
 
 ### Gutter → commandId (server-side)
 

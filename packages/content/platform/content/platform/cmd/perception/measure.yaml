@@ -22,6 +22,7 @@
 # The shape is `cast <spell> [at <target>]`'s, which is the shipped
 # precedent for a token resolved against a catalogue.
 verbs: [measure]
+category: perception
 description: "Read a channel of the world off an instrument"
 help: |
   Read something off an instrument. `measure` is the instrumented

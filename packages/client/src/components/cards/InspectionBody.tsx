@@ -423,7 +423,7 @@ export function InspectionBody({
   const spoke = new Set(
     segments.flatMap((s) => s.sources).filter((s) => s.kind === "mixin").map((s) => s.name),
   );
-  const composition = (answer?.composition ?? []).map((m) => m.replace(/Mixin$/, ""));
+  const composition = (answer?.composition ?? []).map((m) => m.name.replace(/Mixin$/, ""));
   // ⭐ Quiet = composed, and said nothing on this card. Perceptible and
   // Containable are no exception: a stripe with no line beside it said
   // nothing either.

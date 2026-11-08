@@ -38,6 +38,7 @@ import { Idea } from '../../stuff/Idea';
 import { ContainerMixin } from '../../spatial/Container';
 import { ContainableMixin } from '../../spatial/Containable';
 import { SensorMixin } from '../../message/Sensor';
+import { HasInteractiveMixin } from '../../connection/HasInteractive';
 import { EngagedMixin } from '../../activity/Engaged';
 import Location from '../../location/Location';
 import CartesianZone from '../../../platform/idea/location/CartesianZone';
@@ -91,7 +92,12 @@ class TestWhistle extends AudibleMixin(Good) {}
 class TestNPC extends BehavedMixin(
   EngagedMixin(SensorMixin(ContainerMixin(ContainableMixin(Idea))))
 ) {}
-class TestPlayer extends SensorMixin(ContainableMixin(Idea)) {}
+/** ⭐ A player somebody is playing: a brain's audience is a live session (D28). */
+class TestPlayer extends HasInteractiveMixin(SensorMixin(ContainableMixin(Idea))) {
+  override hasLiveSession(): boolean {
+    return true;
+  }
+}
 class RecordingEar extends SensorMixin(ContainableMixin(Idea)) {
   public received: MessageFrame[] = [];
   protected override handleMessage(frame: unknown): void {

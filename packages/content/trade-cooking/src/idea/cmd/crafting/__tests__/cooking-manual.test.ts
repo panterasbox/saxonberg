@@ -10,7 +10,7 @@
 
 import "@saxonberg/server/test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import PourController from '@saxonberg/server/mud/platform/idea/cmd/crafting/PourController';
+import PourController from '@saxonberg/server/mud/platform/idea/cmd/bulk/PourController';
 import StirController from '@saxonberg/server/mud/platform/idea/cmd/crafting/StirController';
 import HeatController from '@saxonberg/server/mud/platform/idea/cmd/crafting/HeatController';
 import PlateController from '../PlateController';
@@ -71,7 +71,7 @@ function makeDish(): CraftVessel {
 async function addIngredient(item: Stuff): Promise<void> {
   await executeAs(actor, () =>
     makeStuff(() => new PourController()).execute(
-      { spirit: ref(item, 'x'), vessel: ref(pot, 'pot') } as never,
+      { source: ref(item, 'x'), target: ref(pot, 'pot') } as never,
       makeContext(actor, room, `add ${item.getPresentation()}`),
     ),
   );
@@ -100,7 +100,7 @@ describe('the by-hand cooking path', () => {
 
     await executeAs(actor, () =>
       makeStuff(() => new PourController()).execute(
-        { spirit: ref(veg, 'veg'), vessel: ref(pot, 'pot') } as never,
+        { source: ref(veg, 'veg'), target: ref(pot, 'pot') } as never,
         makeContext(actor, room, 'add vegetables'),
       ),
     );

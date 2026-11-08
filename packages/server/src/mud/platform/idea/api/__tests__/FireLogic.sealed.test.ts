@@ -1,7 +1,7 @@
 /**
  * ⭐⭐ **A flame needs air** — ONE gate (ceramics R3), `FireLogic
  * .mediumBurns`, read from BOTH ignition paths: the deliberate strike
- * (`ignite`) and the heat threshold (`tryAutoignite`, which is how a log
+ * (`light`) and the heat threshold (`tryAutoignite`, which is how a log
  * in a clamp would catch).
  *
  * The chamber-air arm: a thing whose immediate container is a `Burner`
@@ -26,7 +26,7 @@ import Firebox from '../../../../lib/fire/Firebox';
 import { ContainerMixin } from '../../../../lib/spatial/Container';
 import Material from '../../../../lib/material/Material';
 import { ThermalMixin } from '../../../../lib/thermal/Thermal';
-import { ReservedMixin, Reserve } from '../../../../lib/reserve';
+import { ReservedMixin, Reserve } from '../../../../lib/reserve/Reserved';
 import { CombustibleMixin } from '../../../../lib/fire/Combustible';
 import { ContainmentApi } from '../../../../api/containment';
 import { StuffApi } from '../../../../api/stuff';

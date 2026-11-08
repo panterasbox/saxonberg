@@ -13,6 +13,7 @@
 # acts: this one is free and reversible, and the other costs you the
 # walking.
 verbs: [route]
+category: movement
 controller: /platform/idea/cmd/movement/RouteController
 description: "Work out a way somewhere from what you know"
 help: |

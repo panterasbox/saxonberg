@@ -2,7 +2,7 @@
  * SwitchableMixin — binary on/off state for things that can be switched.
  *
  * The Sealable of the electrical world: a lamppost, a beacon, a wall
- * switch, a machine. Global `switch`/`toggle` controllers target any
+ * switch, a machine. The global `switch` controller targets any
  * Switchable in scope rather than a specific class — the surface is the
  * same shape as open/close over Sealable.
  *

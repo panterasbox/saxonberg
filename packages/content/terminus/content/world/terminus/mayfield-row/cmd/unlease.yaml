@@ -1,4 +1,5 @@
 verbs: [unlease]
+category: civics
 controller: /world/terminus/mayfield-row/idea/cmd/UnleaseController
 description: "End a Seznick House lease and reclaim the unit"
 help: |

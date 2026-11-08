@@ -42,6 +42,7 @@ import Deposit, {
   type StructureReading,
 } from '../idea/Deposit';
 import type { MixinCtor } from './Strata';
+import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
 
 /** The mixin's marker, and the string `MixinApi.isActive` narrows on. */
 export const GROUND_QUERY_MIXIN = 'GroundQueryMixin';
@@ -188,9 +189,10 @@ export function GroundQueryMixin<TBase extends MixinConstructor>(
 function cellOf(place: Stuff): [readonly [number, number, number], number] {
   const p = place as unknown as {
     getCoordinates?(): [number, number, number];
-    getZone?(): { getCellSize?(): number } | null;
+    getZone?(): unknown;
   };
   const cell = p.getCoordinates?.() ?? [0, 0, 0];
-  const size = p.getZone?.()?.getCellSize?.() ?? 1;
+  const zone = p.getZone?.() ?? null;
+  const size = zone instanceof CartesianZone ? zone.getCellSize() : 1;
   return [cell, size];
 }

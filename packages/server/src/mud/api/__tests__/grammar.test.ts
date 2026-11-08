@@ -248,6 +248,14 @@ describe('GrammarApi.inWords — a count a player reads, never a gauge', () => {
 });
 
 describe('GrammarApi.pluralize', () => {
+  it('takes the regular endings: a watch, two watches; a berry, two berries', () => {
+    const p = makeStuff(() => new Plain());
+    expect(GrammarApi.pluralize(p, 'watch')).toBe('watches');
+    expect(GrammarApi.pluralize(p, 'glass')).toBe('glasses');
+    expect(GrammarApi.pluralize(p, 'berry')).toBe('berries');
+    expect(GrammarApi.pluralize(p, 'key')).toBe('keys');
+  });
+
   it('adds an s to a plain noun', () => {
     expect(GrammarApi.pluralize(makeStuff(() => new Plain()), 'brick')).toBe('bricks');
   });

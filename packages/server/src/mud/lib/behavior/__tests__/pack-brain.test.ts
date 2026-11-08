@@ -23,6 +23,7 @@ import { Idea } from '../../stuff/Idea';
 import { ContainerMixin } from '../../spatial/Container';
 import { ContainableMixin } from '../../spatial/Containable';
 import { SensorMixin } from '../../message/Sensor';
+import { HasInteractiveMixin } from '../../connection/HasInteractive';
 import { EngagedMixin } from '../../activity/Engaged';
 import { BehavedMixin } from '../Behaved';
 
@@ -31,7 +32,12 @@ const BRAIN = `${ROOT}/behavior/paces`;
 
 class TestRoom extends ContainerMixin(Idea) {}
 class TestNPC extends BehavedMixin(EngagedMixin(SensorMixin(ContainableMixin(Idea)))) {}
-class TestPlayer extends SensorMixin(ContainableMixin(Idea)) {}
+/** ⭐ A player somebody is playing: a brain's audience is a live session (D28). */
+class TestPlayer extends HasInteractiveMixin(SensorMixin(ContainableMixin(Idea))) {
+  override hasLiveSession(): boolean {
+    return true;
+  }
+}
 
 type NPC = TestNPC & { onCreate(c?: unknown): Promise<void>; behaviors: unknown[] };
 

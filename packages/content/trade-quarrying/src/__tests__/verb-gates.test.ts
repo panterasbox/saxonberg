@@ -101,10 +101,10 @@ describe('dig.yaml / split.yaml — the arg gates', () => {
     expect(MixinApi.hasMixin(Spade, Mixins.Tool)).toBe(true);
   });
 
-  it('`split target` is required and polymorphic; its tool is declared', () => {
+  it('`split target` is required and names the split protocol; its tool is declared', () => {
     const target = args('split.yaml').find((a) => a.name === 'target')!;
     expect(target.required).toBe(true);
-    expect(target.requires).toBe('any');
+    expect(target.requires).toBe('SplittableMixin');
     const tool = args('split.yaml').find((a) => a.name === 'tool')!;
     expect(tool.default).toBe('me:i:[mixin.ToolMixin]');
   });

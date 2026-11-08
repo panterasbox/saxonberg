@@ -67,7 +67,9 @@
  * there will be a second composer to justify it.
  */
 
-import { Mixins, type MixinConstructor, type FieldMeta } from '../mixin';
+import type { SeatKey } from './Position';
+import { Lock } from '../lock/Lock';
+import { type MixinConstructor, type FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import { CallSecurity, Final, Unshadowable } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
@@ -170,8 +172,15 @@ function recordKey(record: StoredEmployment): string {
  * organization's live instance).
  */
 const ByEmployingOrganization = SecurityPolicies.AnyOf(
-  SecurityPolicies.FromMixin(Mixins.Organization, {
-    where: (caller, _target, method, args) => {
+  // ⚠ By module, not the mixin marker (controllers-are-io D25): the key is
+  // read off the caller's own `getIdentityPath`, so a class merely declaring
+  // the marker could answer with a real employer's path.
+  SecurityPolicies.AllOf(
+    SecurityPolicies.AnyOf(
+      SecurityPolicies.FromModule('/platform/idea/Business', { includeSubclasses: true }),
+      SecurityPolicies.FromModule('/platform/idea/Organization', { includeSubclasses: true }),
+    ),
+    SecurityPolicies.Custom((caller, _target, method, args) => {
       // The IDENTITY path — the record key a minted organization (a
       // player's stall, D15) writes under; the template path for every
       // content row, since identity falls back to it.
@@ -179,11 +188,11 @@ const ByEmployingOrganization = SecurityPolicies.AnyOf(
       if (!path) return false;
       const keyed =
         method === '_upsertEmployment'
-          ? recordKey((args[0] ?? {}) as StoredEmployment)
-          : (args[0] as string | undefined);
+          ? recordKey((args?.[0] ?? {}) as StoredEmployment)
+          : (args?.[0] as string | undefined);
       return keyed === path;
-    },
-  }),
+    }, 'WritesItsOwnRecord'),
+  ),
   SecurityPolicies.FromTemplate('/platform/idea/api/employment'),
 );
 
@@ -284,6 +293,13 @@ export interface Employed {
    * shift is something you CHOOSE to start: holding a job puts you on
    * the chart, not on the clock. Refuses with a reason.
    */
+  /**
+   * ⭐ Take the keys a seat carries (water-supply D19): a key to each keyway it
+   * names, unless this person already holds one. Returns how many were handed
+   * over. Nothing here is a permission check: the key opens the lock, and the
+   * lock is the gate.
+   */
+  takeSeatKeys(keys: readonly SeatKey[]): Promise<number>;
   clockOn(organizationPath?: string): Promise<ClockResult>;
   /** End the shift and settle the wage out of the house's account. */
   clockOff(organizationPath?: string): Promise<ClockResult>;
@@ -620,6 +636,17 @@ export function EmployedMixin<TBase extends MixinConstructor>(Base: TBase) {
         .send();
     }
 
+    public async takeSeatKeys(keys: readonly SeatKey[]): Promise<number> {
+      let handed = 0;
+      for (const k of keys) {
+        const lock = new Lock(k.keyway, k.technology);
+        if (lock.opensFor(this as unknown as Stuff)) continue;
+        await lock.issueKeyTo(this as unknown as Stuff);
+        handed++;
+      }
+      return handed;
+    }
+
     public clockOn(organizationPath?: string): Promise<ClockResult> {
       return employedLogic().clockOn(
         this as unknown as Stuff,
@@ -643,9 +670,13 @@ export function EmployedMixin<TBase extends MixinConstructor>(Base: TBase) {
      * payroll gap: an unsaved hand evicted mid-shift took the shift's wage
      * with it). The hours nobody watched while it was unloaded are not paid
      * — a venue nobody visits makes no sales either.
+     *
+     * The guard reads `isOnShift()`, the host's own state: `shiftState()`
+     * is the same question forwarded to the logic, which asks this
+     * predicate back (`EmploymentLogic.shiftStateOf`).
      */
     public onDestruct(): void {
-      if (this.shiftState() === 'on-shift') {
+      if (this.isOnShift()) {
         void this.leaveShifts().catch((err) =>
           console.error('Employed: the leaving settle failed', err),
         );

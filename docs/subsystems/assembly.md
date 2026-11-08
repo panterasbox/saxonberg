@@ -388,9 +388,10 @@ branch **per part, in its own material**, weighted by each part row's
 `AssembledMixin` affords `fit`, `repair` and `salvage` in **`environment`
 + `peers`**: a held assembly grants the verbs to its holder, one on the
 floor to the room. ⭐ `fit` is **also the person's** — on `Avatar`'s
-`self`, beside `make`: the raise arm IS `make` for a thing of parts, its
-hand rung has no instrument, and a pick head is a plain `Tool` that can
-afford nothing. `Timber` adds `fit` to `peers` (staves at your feet make
+`self`: the raise arm builds a thing of parts, its hand rung has no
+instrument, and a pick head is a plain `Tool` that can afford nothing.
+(It used to say *"the raise arm IS `make`"* — `make` was never a crafting
+verb; it replayed scripts, and is `do` now.) `Timber` adds `fit` to `peers` (staves at your feet make
 `fit cask` sayable).
 
 ⚠⚠ **`self` is a command GIVER's own verbs** — read off a person, a
@@ -660,7 +661,7 @@ mended at its joint, and every bill-less mould reads *It is one piece*.
   remaining makerless assemblies, humidity in seasoning, the sawmill's
   water right, a compartment's admission cost and a person in one →
   [assembly-slate](../slates/tails/assembly-slate.md).
-- Carving as an engaged act with exertion, `carve` and `make`'s can-make
+- Carving as an engaged act with exertion, `carve`'s can-make
   gate, competence in sawing, the lathe, a store that sells an edge, and
   the clasp knife that *"whittles a peg"* and cannot →
   [carpentry-slate](../slates/builds/carpentry-slate.md).

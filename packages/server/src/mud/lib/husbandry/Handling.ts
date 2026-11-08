@@ -91,6 +91,13 @@ const HANDLING_PHRASE: Readonly<Record<HandlingBand, string>> = {
 export interface Handling {
   /** Tractability `[0, 1]`, reconciled. */
   getHandling(): number;
+  /**
+   * Set tractability outright — the authored field's setter (the applier
+   * and a restore prefer it), and how a swarm leaving a colony takes the
+   * colony's temperament with it. Clamped to `[0, 1]`; a non-number is
+   * refused loudly.
+   */
+  setHandling(value: number): void;
   /** The band — what a person watching would say. */
   handlingBand(): HandlingBand;
   /** Is it at least this tractable? The band comparison, done once. */
@@ -159,6 +166,14 @@ export function HandlingMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase
     public getHandling(): number {
       this.reconcileHandling();
       return this.handling;
+    }
+
+    public setHandling(value: number): void {
+      const v = Number(value);
+      if (!Number.isFinite(v)) {
+        throw new Error(`Handling.handling: '${String(value)}' is not a number in [0, 1]`);
+      }
+      this.handling = clamp01(v);
     }
 
     public handlingBand(): HandlingBand {

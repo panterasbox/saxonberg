@@ -1,4 +1,5 @@
 verbs: [bake]
+category: baking
 controller: /trade/baking/idea/cmd/baking/BakeController
 description: "Put a proofed dough into the oven"
 help: |
@@ -61,5 +62,5 @@ args:
     greedy: true
     prepositions: [at, in, on]
     default: "reachable:[mixin.BurnerMixin]"
-    scope: ["reachable"]
+    scope: ["here", "peers", "person"]
     requires: [BurnerMixin]

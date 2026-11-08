@@ -40,6 +40,7 @@ import type { MixinConstructor } from '@saxonberg/server/mud/lib/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import Deposit, { type Point, type GroundSample } from '../idea/Deposit';
+import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
 
 /**
  * A cell of a workings grid — integer coordinates, `z` negative down.
@@ -142,9 +143,9 @@ export function StrataMixin<TBase extends MixinConstructor<Stuff & Container>>(
      */
     public metresOf(cell: Cell): Point {
       const zone = (
-        this as unknown as { getZone(): { getCellSize?(): number } | null }
+        this as unknown as { getZone(): unknown }
       ).getZone();
-      const size = zone?.getCellSize?.() ?? 1;
+      const size = zone instanceof CartesianZone ? zone.getCellSize() : 1;
       return [cell[0] * size, cell[1] * size, cell[2] * size];
     }
 

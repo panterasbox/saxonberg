@@ -1,4 +1,6 @@
-verbs: [inventory, inv, i]
+verbs: [inventory]
+category: inventory
+defaultAliases: [{name: i}]
 controller: /platform/idea/cmd/inventory/InventoryController
 description: "List what you — or a person, or an open container — hold"
 help: |
@@ -11,7 +13,7 @@ help: |
 
   `look` tells you what a thing is like, and mentions what you would
   notice there; `inventory` is the full list. `look in <thing>` is the
-  same as `inventory <thing>`. Short on typing? `inv` and plain `i`.
+  same as `inventory <thing>`. Short on typing? Plain `i`.
 examples:
   - cmd: inventory
     note: What you wear, hold and carry

@@ -23,7 +23,7 @@
 
 import Room from '../../../platform/location/Room';
 import { WarrenMemberMixin } from '../../../lib/location/WarrenMember';
-import { LoungeMixin } from '../LoungeMixin';
+import { LoungeMixin } from '../Lounge';
 import type { FieldMeta } from '../../../lib/mixin';
 
 // ⭐ `PerceptibleMixin` — a room is addressable by keyword. ⚠ Composed

@@ -1,4 +1,5 @@
 verbs: [sit]
+category: posture
 controller: /platform/idea/cmd/posture/SitController
 description: "Sit on something. With no argument, sit on the ground."
 help: |

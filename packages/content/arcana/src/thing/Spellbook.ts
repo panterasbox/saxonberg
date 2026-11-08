@@ -59,7 +59,7 @@ import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { MarkedMixin } from '@saxonberg/server/mud/lib/description/Marked';
 import { CombustibleMixin } from '@saxonberg/server/mud/lib/fire/Combustible';
 import { ThermalMixin } from '@saxonberg/server/mud/lib/thermal/Thermal';
-import { ReservedMixin } from '@saxonberg/server/mud/lib/reserve';
+import { ReservedMixin } from '@saxonberg/server/mud/lib/reserve/Reserved';
 import { LabelledMixin } from '@saxonberg/server/mud/lib/description/Labelled';
 import { IdentifiableMixin } from '@saxonberg/server/mud/lib/identification/Identifiable';
 import { GradedMixin } from '@saxonberg/server/mud/lib/craft/Graded';

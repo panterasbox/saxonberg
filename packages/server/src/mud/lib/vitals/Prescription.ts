@@ -5,7 +5,7 @@
  * A prescription is a THING you hold and can lose (composed on
  * `platform/thing/Prescription`, never on `Thing` at large — every rock
  * would be prescribable — and never a body field). A doctor writes one
- * with `prescribe`; a nurse spends it at `administer` (`dose`'s active
+ * with `prescribe`; a nurse spends it at `dose` (its active
  * branch) when the active is prescription-only. `isFor` is the 5-rights
  * check: right patient, right drug, doses left.
  */

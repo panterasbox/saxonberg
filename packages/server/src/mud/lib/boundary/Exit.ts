@@ -296,8 +296,8 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
    * no exit-shaped name or keyword and rewrites no word, so `go n` binds
    * the north exit because the exit says it answers to `n`.
    */
-  public override getKeywords(): string[] {
-    const out = super.getKeywords();
+  public override getKeywords(viewer?: Stuff): string[] {
+    const out = super.getKeywords(viewer);
     const dir = this.direction?.toLowerCase().trim();
     if (!dir) return out;
     for (const w of [dir, ...NavigationApi.shortFormsOf(dir)]) {

@@ -274,7 +274,7 @@ suite('smell and taste', () => {
       const s = await open('fire', { startLocation: LOBBY, ...WIZARD });
       await hand(s, '/stuff/thing/Hearth');
       expect(await say(s, 'measure aroma me:i:hearth with gas')).not.toMatch(/smoke/);
-      expectOk(await s.cmd('ignite me:i:hearth'));
+      expectOk(await s.cmd('light me:i:hearth'));
       expect(await say(s, 'measure aroma me:i:hearth with gas')).toMatch(/smoke/);
       expectOk(await s.cmd('drop me:i:hearth'));
       const next = await open('fire-next', { startLocation: LOBBY });
@@ -292,6 +292,13 @@ suite('smell and taste', () => {
 
     it('14. the word without the name; one source and it is named; dark and it is not', async () => {
       // A room of its own: step 15's soiled body is still standing in the lobby.
+      // ⚠ In daylight: a source is named only when it can be SEEN, and the steps
+      // are unlit, so a world whose clock earlier files left at night reads the
+      // word and no name (the merged sibling run).
+      const { after } = await advanceWorldClock('0 seconds');
+      const tod = ((after % 86_400) + 86_400) % 86_400;
+      const toNoon = (12 * 3600 - tod + 86_400) % 86_400;
+      if (toNoon > 0) await advanceWorldClock(`${Math.ceil(toNoon / 60)} minutes`);
       const a = await open('hand-a', { startLocation: STEPS, ...WIZARD });
       const b = await open('hand-b', { startLocation: STEPS, ...WIZARD });
       const reader = await open('reader', { startLocation: STEPS, ...WIZARD });

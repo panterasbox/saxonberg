@@ -1,7 +1,8 @@
 # ⭐ Up through the water (underwater D19): a band at a time, to the
 # surface. Under ice, the only way up is the hole.
-verbs: [ascend, surface]
-controller: /platform/idea/cmd/movement/DescendController
+verbs: [ascend]
+category: movement
+controller: /platform/idea/cmd/movement/AscendController
 description: "Swim up through the water, toward the surface."
 help: |
   Swim up one band of the water toward the surface — from the bottom

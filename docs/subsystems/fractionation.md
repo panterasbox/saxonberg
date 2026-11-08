@@ -317,7 +317,7 @@ Rows, and nothing in `lib/`:
 
 1. a material for what comes off, and one for the residue;
 2. a schedule row whose `inputCategory` is a tag the charge carries;
-3. that is all — `pour`, `ignite`, `smell` and `taste` are already there,
+3. that is all — `pour`, `light`, `smell` and `taste` are already there,
    and the draw credits the schedule's own `discipline`.
 
 ⚠ One constraint: **a material tag may belong to only one matcher of a

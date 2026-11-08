@@ -1,4 +1,5 @@
 verbs: [introduce]
+category: social
 controller: /platform/idea/cmd/social/IntroduceController
 description: "Introduce yourself — or someone you know — to those nearby"
 help: |

@@ -179,10 +179,11 @@ A card is identified by the command that produced it —
 `CardLogic.normalizeKey`, three rungs:
 
 1. `ShellApi.expandAliases` — the player's own aliases.
-2. **Canonicalise the verb to `command.verbs[0]`.** ⚠ `examine` is a
-   verb SYNONYM, not an alias (`look.yaml` declares `verbs: [look, l,
-   examine, exa]`), so `expandAliases` never sees it. Without this rung
-   `examine a` and `look a` are two cards.
+2. **Canonicalise the verb to `command.verbs[0]`** — the view's one
+   word. Since controllers-are-io (one view, one word) a view declares
+   exactly one verb, so this rung only matters for a word that reached
+   the view another way (a default player alias such as `l`). It once
+   folded `examine a` into `look a`; `examine`/`exa` are deleted.
 3. `CommandLineApi.format()` — the canonical round-trip.
 
 ⭐⭐ **The key is the card's IDENTITY and its REFRESH — it is not a
@@ -1197,7 +1198,7 @@ the *union* of percepts each act has revealed, or just the
 **Choice: latest-only.** The card's `records` snapshot is replaced by
 each resolve (a `card-touched` re-resolve on a static card, a delta on
 a live one); there is no per-fact union across multiple `look` /
-`examine` / `measure` invocations. The latest-only path stays internally consistent
+`measure` invocations. The latest-only path stays internally consistent
 because the substrate re-projects the *currently-perceivable*
 field set on every re-resolve — what the card shows is what's
 true *now*, from this viewer, by the modalities currently in

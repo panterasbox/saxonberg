@@ -132,7 +132,7 @@ describe("InspectionBody", () => {
     useStore.setState({
       affordances: {
         "pint-1": {
-          composition: ["VisibleMixin", "BulkableMixin", "TangibleMixin", "PerceptibleMixin", "ThermalMixin"],
+          composition: ["VisibleMixin", "BulkableMixin", "TangibleMixin", "PerceptibleMixin", "ThermalMixin"].map((name) => ({ name, kind: "mixin" as const })),
           verbs: [
             { verb: "drink", source: "subject", state: "enabled", command: "drink #pint-1" },
             { verb: "look", source: "actor", state: "enabled", command: "look #pint-1" },

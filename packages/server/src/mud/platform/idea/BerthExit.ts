@@ -134,17 +134,27 @@ export default class BerthExit extends LockableMixin(DeferredDestinationExit) {
   /**
    * ⭐ The way is CALLED her gangway — *the Hesper's gangway* — never her
    * bare name. Its direction stays her name
-   * (`go hesper`, *Obvious exits: hesper*), and that word is still among
-   * its keywords (`Exit.getKeywords`). Decided by lens 3a (immersion):
+   * (`go hesper`, *Obvious exits: hesper*), and that word is a word of its
+   * keyword (`getKeywords`, below). Decided by lens 3a (immersion):
    * since the paint merge the ship herself is a candidate on the quay she
    * lies at (`Place.landedStructuresNow`), and with the way ALSO named
    * `hesper` the two tied at the name tier — `look hesper` prompted
    * *"which target? hesper / the Hesper"*, two choices no player could tell
    * apart. A player who looks at the Hesper means the ship; the way answers
-   * to `gangway` and to her name as a keyword, so `go` (whose scope is ways
+   * to `gangway` and to a word of its phrase, so `go` (whose scope is ways
    * only) is unchanged. Keyword data on the object, never a scorer tier
    * (one-resolution-rule slate § 4).
    */
+  public override getKeywords(viewer?: Stuff): string[] {
+    const out = super.getKeywords(viewer);
+    const dir = this.direction?.toLowerCase().trim();
+    if (!dir || !this.alongsideName()) return out;
+    // ⭐ Her bare name is HERS. A word of this phrase still finds the way (one
+    // tier down, where `go hesper` has nothing else to choose), and the ship
+    // named outright wins `look hesper` with no prompt.
+    return [...out.filter((k) => k !== dir), `${dir} gangway`];
+  }
+
   public override presentationPhrase(): NounPhrase {
     const ship = this.alongsideName();
     if (!ship) return super.presentationPhrase();

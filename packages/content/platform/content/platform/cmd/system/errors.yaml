@@ -1,4 +1,5 @@
 verbs: [errors]
+category: system
 controller: /platform/idea/cmd/system/ErrorsController
 description: "Show compile / runtime / console diagnostics from the dev tooling"
 help: |

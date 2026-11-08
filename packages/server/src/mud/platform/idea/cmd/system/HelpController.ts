@@ -2,8 +2,10 @@
  * HelpController — the in-game rulebook surface, rendered off the
  * boot-warmed help index through {@link HelpApi}.
  *
- *   - bare `help`            → landing/index (categories + counts)
+ *   - bare `help`            → landing: the verb categories + counts, then
+ *                              the rest of the rulebook's kinds
  *   - `help <verb>`          → that command's topic (bare fallthrough)
+ *   - `help <category>`      → the verbs of that category (D24)
  *   - `help verb [name]`     → legacy verb form (still works)
  *   - `help api [target]`    → api/mixin/type topic (real signature + summary)
  *   - `help <collection>`    → how the world stores that thing, and why
@@ -23,6 +25,7 @@ import { Mml } from "../../../../api/mml";
 import { HelpApi } from "../../../../api/help";
 import type {
   HelpTopic,
+  HelpIndexEntry,
   HelpIndexResult,
   HelpSearchResult,
 } from "@saxonberg/types";
@@ -64,20 +67,28 @@ export default class HelpController extends CommandController<HelpModel> {
       return;
     }
     const lines: string[] = ["", "Help — the rulebook for how the world works.", ""];
+    const verbs = HelpApi.commandCategories();
+    if (verbs.length > 0) {
+      lines.push("Verbs, by category:");
+      for (const { category, count } of verbs) {
+        lines.push(`  ${category.padEnd(12)} ${count}`);
+      }
+      lines.push("");
+    }
     for (const cat of index.categories) {
       lines.push(`  ${cat.title.padEnd(12)} ${cat.count}`);
     }
     lines.push("");
-    lines.push('Type "help <verb>" for a command, "help api <Type>" for the');
-    lines.push('engine surface, "help <collection>" for how the world stores');
-    lines.push('something, or "help search <word>".');
+    lines.push('Type "help <category>" to list its verbs, "help <verb>" for a command,');
+    lines.push('"help api <Type>" for the engine surface, "help <collection>" for how');
+    lines.push('the world stores something, or "help search <word>".');
     lines.push("");
     this.tellText(context, lines.join("\n"));
   }
 
   /**
-   * Bare `help <word>` — a verb first, then a collection, then the engine
-   * surface.
+   * Bare `help <word>` — a verb first, then a verb category, then a
+   * concept, a collection, and the engine surface.
    *
    * The order is what a player means by the word: a verb is what most
    * people are asking about, then a concept (`extraction`, `nitrogen` —
@@ -90,8 +101,13 @@ export default class HelpController extends CommandController<HelpModel> {
     // A concept (`help extraction`) sits after the verb and before the
     // collection: a rulebook word a player asks about is more often a
     // concept than a table, and a concept key cannot collide with a verb.
+    const verb = HelpApi.commandTopic(target);
+    if (!verb) {
+      const inCategory = HelpApi.commandCategory(target);
+      if (inCategory) return this.showCategory(target, inCategory, context);
+    }
     const topic =
-      HelpApi.commandTopic(target) ??
+      verb ??
       HelpApi.conceptTopic(target) ??
       HelpApi.collectionTopic(target) ??
       HelpApi.apiTopic(target);
@@ -105,6 +121,18 @@ export default class HelpController extends CommandController<HelpModel> {
       return;
     }
     this.renderTopic(topic, context);
+  }
+
+  /** `help <category>` — that category's verbs, one line each. */
+  private showCategory(
+    category: string,
+    entries: readonly HelpIndexEntry[],
+    context: CommandContext,
+  ): void {
+    const lines = ["", `${category.toLowerCase()}:`, ""];
+    for (const e of entries) lines.push(`  ${e.title.padEnd(14)} ${e.summary}`);
+    lines.push("");
+    this.tellText(context, lines.join("\n"));
   }
 
   /** Render one command topic by verb / alias. */

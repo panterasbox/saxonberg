@@ -41,6 +41,7 @@
  */
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
+import type { Stuff } from '../stuff/Stuff';
 import { Mixins } from '../mixin';
 import { MixinApi } from '../../api/mixin';
 import { GrammarApi } from '../../api/grammar';
@@ -54,7 +55,15 @@ import { ShadowChangedEvent } from '../events/ShadowChangedEvent';
  * Public shape provided by PerceptibleMixin.
  */
 export interface Perceptible {
-  getKeywords(): string[];
+  /**
+   * ⭐ **Everything this answers to, for `viewer`** — the one list MQL
+   * scores (the name is not special: one-resolution slate § 4). The
+   * authored keywords here; a composing mixin folds in what it DERIVES
+   * (`NamedMixin` the name, `DetailedMixin` the detail ids `viewer` may
+   * address, `BulkableMixin` the held substance), each named where it
+   * lives. `viewer` absent is the authoring/system read.
+   */
+  getKeywords(viewer?: Stuff): string[];
   addKeyword(keyword: string): void;
   removeKeyword(keyword: string): boolean;
   hasKeyword(keyword: string): boolean;
@@ -151,7 +160,7 @@ export function PerceptibleMixin<TBase extends MixinConstructor>(Base: TBase) {
       for (const k of value) this.addKeyword(k);
     }
 
-    getKeywords(): string[] {
+    getKeywords(_viewer?: Stuff): string[] {
       return this.keywords;
     }
 

@@ -15,7 +15,7 @@ import Forge from '../../../platform/thing/Forge';
 import { FireApi } from '../../../api/fire';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
-import { Reserve } from '../../reserve';
+import { Reserve } from '../../reserve/Reserved';
 import { chargeHot } from '../../fire/__tests__/burner-fuel';
 import type { Burner } from '../../fire/Burner';
 import { Quantity } from '../../quantity';

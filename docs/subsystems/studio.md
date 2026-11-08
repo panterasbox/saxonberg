@@ -90,8 +90,21 @@ gate closed.
 | `listBlueprints()` / `getBlueprint(id)` | none | browse the catalogue (ungated reads over the singleton) |
 | `publishBlueprint(input)` | the document gate on the `/blueprints` mint branch (platform-held — a `SecurityError` from `DocumentApi.save` is the denial) | **act #2** — name/publish a composition of approved classes |
 | `listMixins()` | none | the palette vocabulary — `{ mixins, bases }`: the flat pickable list (each mixin carrying a one-line `summary` — the first sentence of its concept doc comment, from the source scan; always available, degrades to absent when undocumented) + each base class with its implied (`_mixinName`) mixin set for composition pre-seeding |
+| `answerersOf(mixinNames)` | none | ⭐ **who answers a verb** (controllers-are-io D8b): for each named mixin that is a verb protocol (`_mixinKind = 'protocol'`), the classes that compose it — directly, through a mixin that nests it (`BurnerMixin` over `PumpableMixin`), or by extending a composer — across the kernel AND every registered pack `src/`. Read from the same source scan, lazily, cached on the singleton; `help <verb>`'s *answers:* reads it |
 | `scaffoldClass(input)` | none | **inert source string** composing mixins over a base (open to all authors); when the target is one `AccessApi.sourceWriteRefusal` would refuse the actor, the result carries the `/home/<self>/drafts/<Name>.ts` draft path |
 | `commitClass(input)` | `AccessApi.sourceWriteRefusal` — a `.ts` file, so the wizard axis + `can('write', zone)` | **act #3** — write the new class source + reload |
+
+⭐ **A verb protocol is presented as the verb it serves** (controllers-are-io
+D8b). The source scan regexes `_mixinKind = 'protocol'` beside each
+`_mixinName`, so `listMixins` offers such an entry as `kind: 'protocol'` with
+`verbs` — the primary verbs of the views whose slots `requires:` it
+(`CommandApi.verbsRequiring`; `DipBathMixin` → `dip`) — and the composer
+labels the chip *answers dip*. It is composed like any other mixin; only its
+presentation differs. ⚠ The composition graph (`answerersOf`) is read from
+SOURCE TEXT — `class X extends <expr>`, same-file `const XBase = …`
+bindings and import aliases (the `composesMixin` lesson in
+`scripts/pack-roots.ts`) — so a class assembled at runtime is invisible to
+it, exactly as it is to the lint family.
 
 `createTemplate` is the server side of act #1 (the CMS content-write path only
 *updates* an existing template — "creating templates is out of scope"). It is
@@ -123,9 +136,24 @@ A **blueprint** is a named, canonical *kind* you instantiate from — the
 reusable molecule over the mixin particles. `Blueprint` is a reference-data
 `Document` (`blueprints` collection, the `Recipe` precedent — never cloned),
 keyed on two durable ids: a **`blueprintId`** (the record key, stable across
-rename) and a **`signature`** (`<baseClass>|<sorted mixin _mixinNames>` —
+rename) and a **`signature`** (`<baseClass>|<sorted mixin _mixinNames>`, and
+`|<sorted views>` when the class declares `commandContributions` of its own —
 the structural dedup key). `name` is a mutable display label, **never a
-key**. `kind` is `composition` (a bare recomposable mixin stack) or
+key**.
+
+⭐ **The signature is verb-aware** (controllers-are-io D25, object-taxonomy
+§ 3): `commandContributions` is the one record of what an object affords, so a
+whetstone and a suture kit — both `AudibleMixin(Tool)` — are two kinds, and the
+Studio's *exact match* no longer offers one for the other. Only the views the
+CLASS declares fold in (the class handed to `signatureFromParts`): a mixin's are implied by its
+name, so a curated pure composition still lands on the key of a class that
+only composes it. Census, 1,111 classes named by a row: signatures 407 → 459,
+collision groups 101 → 93; the medicine ×4 and SurgicalKit/SutureKit groups
+separate. ⚠ What still collides differs in code, not in composition (the 234
+bare `CommandController`s, the 76 bare `Idea`s, `Reading` rows) — a signature
+reads structure, not method bodies; five groups share even their views
+(`PrimaryAvatar`/`SandboxAvatar`, `AssayBench`/`AssayKit`, `Board`/`Blank`,
+`Bailer`/`Derrick`, `Press`/`Printer`), recorded as true structural duplicates. `kind` is `composition` (a bare recomposable mixin stack) or
 `concrete` (a logic-bearing class pointing at its `classPath`).
 
 - **`BlueprintCatalogue`** (`/platform/idea/BlueprintCatalogue`) is the boot-warmed

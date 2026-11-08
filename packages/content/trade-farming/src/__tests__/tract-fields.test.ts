@@ -43,11 +43,11 @@ import {
   installV1QuantityMarshallers,
   installV1QuantityTagTables,
 } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
-import { Reserve } from '@saxonberg/server/mud/lib/reserve';
+import { Reserve } from '@saxonberg/server/mud/lib/reserve/Reserved';
 import GroundCharacter from '@saxonberg/content-ground/src/idea/GroundCharacter';
 import type { GrowthProfileData } from '@saxonberg/server/mud/lib/husbandry/Growing';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import type { Reserved } from '@saxonberg/server/mud/lib/reserve';
+import type { Reserved } from '@saxonberg/server/mud/lib/reserve/Reserved';
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
 import { AdvancementMixin } from '@saxonberg/server/mud/lib/advancement/Advancement';
 import { PersonaMixin } from '@saxonberg/server/mud/lib/character/Persona';
@@ -236,11 +236,14 @@ describe('a tract divided into fields', () => {
     expect(p.getBed()).toBe(top);
     expect(f.cropOn(top)).toBe(p);
     expect(top.cropsOn()).toEqual([p]);
-    expect(p.getKeywords()).toEqual(expect.arrayContaining(['wheat', 'top end', 'top-end']));
+    // The field's name QUALIFIES the stand's own words (`top end wheat`) —
+    // a bare `top end` would tie the field itself (one-resolution § 4).
+    expect(p.getKeywords()).toEqual(expect.arrayContaining(['wheat', 'top end wheat', 'top-end wheat']));
+    expect(p.getKeywords()).not.toContain('top end');
     // An unbound crop roots in the whole tract and keeps its own words.
     const loose = crop(f, 100, '');
     expect(loose.getBed()).toBe(f);
-    expect(loose.getKeywords()).not.toContain('top end');
+    expect(loose.getKeywords()).not.toContain('top end wheat');
   });
 
   it('a key naming no field falls back to the whole tract (R8)', async () => {
@@ -276,7 +279,7 @@ describe('a tract divided into fields', () => {
     // ⭐ The seedbed is the FIELD's since the tracts build: a marked tract
     // has nothing to say about sowing, and the field answers for itself.
     expect(f.sowingRefusal()).toBeNull();
-    expect(top.sowingRefusal()).toMatch(/not been ploughed/);
+    expect(top.sowingRefusal()).toMatch(/not been plowed/);
   });
 
   describe('look', () => {

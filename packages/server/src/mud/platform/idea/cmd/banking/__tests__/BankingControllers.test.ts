@@ -8,7 +8,11 @@
 
 import "../../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import BankController from "../BankController";
+import BankOpenController from "../BankOpenController";
+import BankBalanceController from "../BankBalanceController";
+import BankStatementController from "../BankStatementController";
+import BankDepositController from "../BankDepositController";
+import BankWithdrawController from "../BankWithdrawController";
 import BankCounter from "../../../../thing/BankCounter";
 import Coin from "../../../../thing/Coin";
 import { BankingApi } from "../../../../../api/banking";
@@ -34,6 +38,22 @@ import {
   installBankingHarness,
   teardownBankingHarness,
 } from "../../../../../lib/banking/__tests__/banking-test-harness";
+
+/** Each `bank` subcommand's controller, as the view names them (W8). */
+const BANK = {
+  open: BankOpenController,
+  balance: BankBalanceController,
+  statement: BankStatementController,
+  deposit: BankDepositController,
+  withdraw: BankWithdrawController,
+} as const;
+
+/** Run the controller the view routes `m.subcommand` to (bare = balance). */
+function bankSub(m: unknown, ctx: CommandContext): Promise<void> {
+  const sub = ((m as { subcommand?: string }).subcommand ?? "balance") as keyof typeof BANK;
+  const C = BANK[sub];
+  return makeStuff(() => new C()).execute(m as never, ctx);
+}
 
 class TestGiver extends SensorMixin(
   CommandGiverMixin(ContainerMixin(ContainableMixin(Idea)))
@@ -109,8 +129,7 @@ describe("Banking controllers — verb wiring", () => {
 
     const runBank = (m: Record<string, unknown>, verb: string) =>
       asGiver(giver, () =>
-        makeStuff(() => new BankController()).execute(
-          m as never,
+        bankSub(m as never,
           makeContext(giver, loc, verb)
         )
       );
@@ -162,8 +181,7 @@ describe("Banking controllers — verb wiring", () => {
 
     const runBank = (m: Record<string, unknown>, verb: string) =>
       asGiver(giver, () =>
-        makeStuff(() => new BankController()).execute(
-          m as never,
+        bankSub(m as never,
           makeContext(giver, loc, verb)
         )
       );
@@ -171,8 +189,7 @@ describe("Banking controllers — verb wiring", () => {
     // No account yet → statement declines with a no-account note.
     const noAcctCtx = makeContext(giver, loc, "bank");
     await asGiver(giver, () =>
-      makeStuff(() => new BankController()).execute(
-        { subcommand: "statement" } as never,
+      bankSub({ subcommand: "statement" } as never,
         noAcctCtx
       )
     );
@@ -192,15 +209,13 @@ describe("Banking controllers — verb wiring", () => {
     // `count` arg is accepted (parsed, clamped) the same way.
     const stmtCtx = makeContext(giver, loc, "bank");
     await asGiver(giver, () =>
-      makeStuff(() => new BankController()).execute(
-        { subcommand: "statement" } as never,
+      bankSub({ subcommand: "statement" } as never,
         stmtCtx
       )
     );
     const countCtx = makeContext(giver, loc, "bank");
     await asGiver(giver, () =>
-      makeStuff(() => new BankController()).execute(
-        { subcommand: "statement", count: "1" } as never,
+      bankSub({ subcommand: "statement", count: "1" } as never,
         countCtx
       )
     );
@@ -218,7 +233,7 @@ describe("Banking controllers — verb wiring", () => {
 
     const ctx = makeContext(giver, loc, "bank");
     await asGiver(giver, () =>
-      makeStuff(() => new BankController()).execute({} as never, ctx)
+      bankSub({} as never, ctx)
     );
     expect(ctx.getNotes()).toContainEqual(
       expect.objectContaining({ kind: "controller-rejected", reason: "no-bank-here" })

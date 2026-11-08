@@ -22,7 +22,7 @@
  * the binder resolves every reachable thing offering the kind, held
  * gear first; what is tested here is the one thing left to the
  * controller — which of those is best. So the fixture is a bound list
- * in binder order, not a room (`lint:instrument-args`).
+ * in binder order, not a room (`lint:controller-resolution`).
  *
  * ⚠ Ties keep binder order — held-first — so no existing arrangement
  * moves where the rungs are equal.
@@ -31,7 +31,7 @@
 import '../../../../../../test-bootstrap';
 import { describe, it, expect, afterEach } from 'vitest';
 import { ManualBuildController } from '../ManualBuildController';
-import { ToolMixin } from '../../../../../lib/craft/Tooled';
+import { ToolMixin } from '../../../../../lib/craft/Tool';
 import { ContainableMixin } from '../../../../../lib/spatial/Containable';
 import Good from '../../../../../lib/stuff/Good';
 import { StuffApi } from '../../../../../api/stuff';

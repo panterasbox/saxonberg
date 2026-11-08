@@ -1,5 +1,8 @@
 verbs: [soul]
-controller: /platform/idea/cmd/social/SoulController
+category: social
+# ⭐ One controller per subcommand (controllers-are-io D9); bare `soul`
+# lists, so the verb-level controller is the list's.
+controller: /platform/idea/cmd/social/SoulListController
 description: "The emote catalogue: list / show / search for anyone; make / edit / delete / disable / enable for the soul committee"
 help: |
   The catalogue of built-in emotes — the curated verbs like `wave`,
@@ -15,6 +18,7 @@ help: |
   Prime Minister's seat (`group add soul <player>`).
 subcommands:
   make:
+    controller: /platform/idea/cmd/social/SoulMakeController
     description: "Mint a new emote: verb, then greedy YAML/JSON grammar body"
     help: |
       Create a brand-new catalog emote. Give the verb name first,
@@ -32,6 +36,7 @@ subcommands:
         required: true
         greedy: true
   edit:
+    controller: /platform/idea/cmd/social/SoulEditController
     description: "Edit one field of an existing emote (template / grammar / searchTerms / tags / emoji / echo)"
     help: |
       Change a single field of an existing emote without redefining
@@ -54,6 +59,7 @@ subcommands:
         required: true
         greedy: true
   delete:
+    controller: /platform/idea/cmd/social/SoulDeleteController
     description: "Drop an emote from the catalog (clears Mongo + cache)"
     help: |
       Remove an emote from the catalog entirely. It's cleared from
@@ -63,6 +69,7 @@ subcommands:
         type: string
         required: true
   disable:
+    controller: /platform/idea/cmd/social/SoulDisableController
     description: "Switch an emote off: it no longer dispatches or appears in the palette (soul committee)"
     help: |
       Turn an emote off without deleting it. Performing it does nothing
@@ -73,12 +80,14 @@ subcommands:
         type: string
         required: true
   enable:
+    controller: /platform/idea/cmd/social/SoulEnableController
     description: "Switch a disabled emote back on (soul committee)"
     args:
       - name: verb
         type: string
         required: true
   show:
+    controller: /platform/idea/cmd/social/SoulShowController
     description: "Inspect one emote record (disabled ones included)"
     help: |
       Print the full record for one emote — its templates, search
@@ -89,6 +98,7 @@ subcommands:
         type: string
         required: true
   search:
+    controller: /platform/idea/cmd/social/SoulSearchController
     description: "Find emotes by verb, tag, or search term (search terms never dispatch)"
     help: |
       Every emote a word finds — by canonical verb, by tag, or by one of
@@ -99,6 +109,7 @@ subcommands:
         type: string
         required: true
   list:
+    controller: /platform/idea/cmd/social/SoulListController
     description: "List every catalog emote"
     help: |
       List every emote currently in the catalog — your index of

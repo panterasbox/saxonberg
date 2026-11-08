@@ -118,7 +118,7 @@ Two factories are provided:
 
 - **`Mml.perceiverMentionResolver(speaker)`** — matches against the
   speaker's perceivable neighborhood (same set MQL's `reachable` scope
-  walks). Used by `say` / `tell` / (future) `emote`.
+  walks). Used by `say` / `dm` / (future) `emote`.
 - **`Mml.channelMentionResolver(participants)`** — matches against an
   explicit participant set. The future chat-channel substrate will
   construct the iterable at emit time; the test suite uses it with a
@@ -290,7 +290,7 @@ speaker's perceiver mention resolver before being wrapped in
 
 ### AetherMixin — non-acoustic transport
 
-Owns `tell` (and future channel `chat` / remote `emote`). The Aether
+Owns the `dm` send (and future channel `chat` / remote `emote`). The Aether
 is the in-fiction comm-network — diegetically reflavored per campus
 zone (implant network, magical resonance field, hybrid mesh). The
 mixin codifies "this Stuff transmits and receives over the Aether";
@@ -336,7 +336,7 @@ permanent.
 
 Controllers stay thin shims that narrow the speaker to the capability
 mixin and delegate. `SayController` for `say`, `DmController` for
-`dm` (alias `tell`). Each:
+`dm`. Each:
 
 1. Checks `MixinApi.isVocal(speaker)` / `MixinApi.isAether(speaker)` —
    on miss emits a polite refusal scene + a `mixin-missing` note.

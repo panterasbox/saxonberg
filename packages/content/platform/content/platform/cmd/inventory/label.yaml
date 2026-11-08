@@ -1,4 +1,5 @@
 verbs: [label]
+category: inventory
 controller: /platform/idea/cmd/inventory/LabelController
 description: "Write your own name on something"
 help: |
@@ -56,6 +57,6 @@ args:
     type: object
     required: false
     greedy: true
-    scope: ["reachable"]
+    scope: ["here", "peers", "person"]
     prepositions: [at]
     requires: SoilMixin

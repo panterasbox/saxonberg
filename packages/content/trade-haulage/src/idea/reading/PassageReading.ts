@@ -30,7 +30,7 @@ import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { CompetenceBand } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
 import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tooled';
+import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tool';
 
 /** The discipline key both readouts read. */
 export const TEAMSTERING = 'teamstering';

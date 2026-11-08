@@ -1,4 +1,5 @@
-verbs: [unprovision, unlease]
+verbs: [unprovision]
+category: civics
 controller: /world/terminus/eternal/duncan-hall/idea/cmd/UnprovisionController
 description: "End a Duncan Hall dorm lease and reclaim the unit"
 help: |

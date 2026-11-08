@@ -35,7 +35,9 @@ import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { BulkableApi } from '@saxonberg/server/mud/api/bulk';
-import { TANNING, type TanLiquor } from '../lib/Tanning';
+import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
+import { TANNING, type TanLiquor, type Tanning } from '../lib/Tanning';
 
 /** The read a player gets off the pit — words, never a number. */
 export type PitBand = 'dry' | 'water' | 'weak' | 'good' | 'harsh';
@@ -116,6 +118,21 @@ export default class Tanpit extends CraftVessel {
       litresPerKg: litres / totalHide,
       temperatureK: this.getTemperature().rawValue(),
     };
+  }
+
+  /**
+   * ⭐ A hide coming out is the judgement, whoever's hand it was and whatever
+   * verb moved it: the hide's own rule (`TanningMixin.onLiftedFrom`). A witness
+   * hook runs inside the move and cannot be awaited, so a failure is said here.
+   */
+  public override onContainableRemoved(thing: Stuff & Containable, to?: Stuff | null): void {
+    super.onContainableRemoved(thing, to);
+    // Nowhere is no lift: the pit's teardown, not somebody's hand or floor.
+    if (!to || !MixinApi.isActive(thing, 'TanningMixin')) return;
+    const by = to.isAgent() ? to : null;
+    void (thing as unknown as Tanning).onLiftedFrom(this, by).catch((err: unknown) => {
+      console.error('Tanpit: lifting a hide failed:', err);
+    });
   }
 
   /** Take bark out of the liquor — what a finished hide costs the pit. */
