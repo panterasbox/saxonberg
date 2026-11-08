@@ -204,8 +204,18 @@ to development every week."*
 - ⛔ **No promise that pre-offering gifts count later.** That would be a backdoor
   offering with no entity behind it; retroactive credit is already ruled out.
 - **The trigger for round 1:** a regular stream schedule kept up alongside development,
-  and real demand (people asking how to earn standing is that demand). Then the LLC, the
-  business bank account, and round 1 as designed above.
+  real demand (people asking how to earn standing is that demand), and **a patronage
+  ledger that survives the nightly reset** (the demo world wipes every night). Then the
+  LLC, the business bank account, and round 1 as designed above. The owner: *"if I start
+  the livestream and people are like 'hey wheres my standing' then I'll prioritize all
+  the stuff we need to stand that up."*
+- **The ledger is keep-on-reset from its first entry.** Patronage records are real-money
+  records and are never wiped, even while the world resets; the collection's reset
+  disposition is *keep* (the record layer's policy). Standing as voice waits for world
+  persistence, which waits on resilience and the compute budget (*nothing is governed
+  yet*, above).
+- **The stream starts New Year's 2027**, the first anniversary of this iteration of the
+  project.
 - The stream also frames the instance: *"the only running instance of the platform is
   there to market the livestream or rather 'organize' is a better framing of which
   managing income and expenses as a community is part of what's on offer."*
