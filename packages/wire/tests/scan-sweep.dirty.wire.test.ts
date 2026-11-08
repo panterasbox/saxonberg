@@ -145,7 +145,11 @@ suite('2. a house that advertises is NOT booted, and its opening shows on the fi
         if (!/HELP WANTED/.test(seen)) await advanceWorldClock('2 hours');
       }
       expect(seen, seen).toMatch(/HELP WANTED/);
-      expectOk(await s.cmd('job apply'));
+      // ⚠ Named: the deck advertises the master's seat as well as the
+      // lookout's (two notices on a fresh world), and a bare `job apply`
+      // with two openings asks which (`ambiguous-opening`) — as the flat
+      // `apply` did. The seat this checkpoint is about is the lookout's.
+      expectOk(await s.cmd('job apply for lookout'));
     } finally {
       s.close();
     }

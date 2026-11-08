@@ -50,10 +50,17 @@ args:
   # another; bare, we wash your hands. ONE mixin, no alternation: every
   # washable thing composes Soilable (garments, vessels, kit, bandages,
   # floors, panes, lamps, seats).
+  #
+  # ⭐ HAND-FIRST (`reachable`), not the W2 audit's room-first: what you wash
+  # is, in the common case, what you are holding — a glass, a shirt, the
+  # knife you just butchered with — and the one world case, the floor, has a
+  # word nothing in a hand answers to. Room-first bound the table's knife
+  # over the boning knife in hand (food-safety, `wash boning`), and the tie
+  # goes to the earlier try (D21).
   - name: target
     type: objects
     required: false
-    scope: ["here", "peers", "person"]
+    scope: "reachable"
     requires: SoilableMixin
   # ⭐ WHAT IN — DECLARED, not hunted for (`lint:controller-resolution`). A
   # vessel of water, or the water a shore is beside — `wash shirt in

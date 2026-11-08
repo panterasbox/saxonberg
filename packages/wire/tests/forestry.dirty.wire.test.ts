@@ -24,6 +24,7 @@ import {
   expectOkOr,
   expectNote,
   engagementIdOf,
+  advanceWorldClock,
 } from '../src/harness';
 
 /**
@@ -109,6 +110,21 @@ async function materialOf(s: Session, query: string): Promise<MaterialSummary> {
   const rec = await s.queryOne(query, ['bulkMaterial']);
   return ((rec as { bulkMaterial?: MaterialSummary } | null)?.bulkMaterial ?? null);
 }
+
+/*
+ * ⭐ By DAY: every read below names objects, and an unlit place reads
+ * "something" (or "pitch dark"). The file used to inherit daylight from
+ * whatever ran before it on a shared world; a world left at night (a drive's
+ * clock walk) failed nine steps for the dark. Brought to noon once, before any
+ * session opens, as cleanliness does.
+ */
+beforeAll(async () => {
+  const { after } = await advanceWorldClock('0 seconds');
+  const tod = ((after % 86_400) + 86_400) % 86_400;
+  if (tod >= 9 * 3600 && tod <= 14 * 3600) return;
+  const toNoon = (12 * 3600 - tod + 86_400) % 86_400;
+  await advanceWorldClock(`${Math.ceil(toNoon / 60)} minutes`);
+}, 120_000);
 
 /* ────────────────────── 1–4: the fuel yard ────────────────────── */
 

@@ -95,7 +95,8 @@ suite('butchering is the one source of the silent population', () => {
     const butchered = await cook.cmd('butcher carcass');
     expectOk(butchered);
     const said = await butchered.said();
-    const m = /work it down to (\d+) cuts/i.exec(said);
+    // The butchery build's sentence says `piece(s)` (W23); this said `cuts`.
+    const m = /work it down to (\d+) piece\(s\)/i.exec(said);
     expect(m, `expected a cut count — saw: ${said.slice(0, 200)}`).toBeTruthy();
     expect(Number(m![1]), 'genuinely several').toBeGreaterThanOrEqual(4);
   }, 120_000);
@@ -163,7 +164,12 @@ suite('the other hurdle, and a proper cook', () => {
      */
     // ⚠ The hearth may already be lit — `cooking.dirty` runs before this
     // file and works the same cookhouse. The requirement is that the
-    // hearth IS lit, not that this test lit it.
+    // hearth IS lit, not that this test lit it. ⭐ Fuel first, as
+    // `cooking.dirty` does: on a fresh world nothing has stoked it, and an
+    // unstoked oven refuses `no-fuel`. A log may already be in, so neither
+    // line is asserted.
+    await cook.cmd('get log');
+    await cook.cmd('stoke log into oven');
     expectOkOr(await cook.cmd('light oven'), 'already-burning');
     const seared = await cook.cmd('cook seared-cut');
     expect(await seared.said()).toMatch(/you cook|haven't learned|never made one|work it by hand/i);
