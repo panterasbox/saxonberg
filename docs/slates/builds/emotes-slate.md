@@ -422,10 +422,48 @@ format (monospace block in MML, colored by theme tokens rather than raw ANSI cod
 1. **What the base pack may ship** — real film/TV clips or not, and how long. The
    owner: *"I believe there's a limit to what we can get away with here … I'd want to
    do an actual investigation here before we decide. I know yarn.co gets away with
-   hosting gifs of basically entire works."* Research in progress (2026-11-08); the
-   engine is neutral either way — a realm ships what its polity and host allow
-   ([bestiary § 14a](./bestiary-slate.md): the engine is neutral, realms govern), and the question is only the
-   company's own pack and the managed host's floor.
+   hosting gifs of basically entire works."* The engine is neutral either way — a realm
+   ships what its polity and host allow ([bestiary § 14a](./bestiary-slate.md): the
+   engine is neutral, realms govern); the question is only the company's own pack and
+   the managed host's floor. **The investigation (2026-11-08, US-centric, not legal
+   advice):**
+   - **No seconds are free.** No statute or court sets a safe length; fair use is the
+     four factors, case by case. Brevity helps factor 3, but the iconic scene is the
+     work's *heart*, which cuts the other way however short (*Richardson v. Townsquare*,
+     2d Cir. 2026: even single frames were not de minimis). *Warhol* (2023) weakens
+     "transformative" for a commercial use serving the original's purpose, and studios
+     license GIFs (GIPHY's branded channels), which is a market factor 4 counts. **No
+     court has ruled on reaction GIFs.**
+   - **Safe harbor is for USER uploads.** DMCA § 512(c) covers material stored *"at the
+     direction of a user."* A clip the company curates into its base pack is the
+     company's own publication — and an AGPL pack is *distributed* to every
+     self-hoster, so the company is a distributor, not just a host. A realm committee
+     of players is much nearer "users", but *Mavrix v. LiveJournal* (9th Cir. 2017)
+     strips the harbor when curators act as the platform's agents — so company staff
+     stay out of realm curation.
+   - **A drawn re-creation of a scene is still a derivative work** — restyling is
+     exactly what lost in *Warhol*, and an actor's face adds publicity rights. Titles
+     and short phrases are not copyrightable; a quoted *line* as text is a weak claim
+     but not automatically free.
+   - **Licensing doesn't fit.** GIPHY's API forbids caching/re-hosting without written
+     approval (breaks § 2, hosted-not-linked) and conveys no studio rights; Tenor's API
+     shut down 2026-06-30; archive clip licensing runs ~$50–350/second with minimums.
+     Yarn's footing could not be verified — treat it as unknown, not precedent.
+   - **EU/UK are friendlier to USERS:** DSM Art. 17(7) and Germany's § 51a UrhG
+     (naming memes and GIFs) and UK s30A protect pastiche/parody *uploads*, not a
+     provider's own catalog.
+
+   **Options, lowest risk first:** (a) the base pack ships no copyrighted clips —
+   original art, public-domain films, the line quoted as text with its citation;
+   (b) original house-style art that evokes a *mood*, never a recognizable scene;
+   (c) hosted realms take player/committee uploads under a full DMCA program
+   (designated agent, repeat-infringer policy, fast takedown, staff out of curation);
+   (d) GIPHY hot-linked — breaks § 2; (e) drawn scene re-creations in the base pack;
+   (f) per-clip studio licenses; (g) film GIFs in the base pack on fair use — highest:
+   no harbor, company as publisher and distributor, no precedent, a licensing market.
+   ⭐ **Recommendation (lens 4 — values, with the company's floor):** (a) + (b) for
+   our pack, (c) as the managed host's posture, and the public-domain film catalog
+   (US: published 1930 or earlier, as of 2026 — the line moves a year every January) as the base pack's quotable classics. **The owner decides.**
 2. **Where a directed illustration lands for its target** — inline in the transcript,
    or also as a card the target keeps. Waits on the cards-versus-terminal session
    (build-3, 2026-11-08); [card-surface.md](../../subsystems/card-surface.md)'s one
