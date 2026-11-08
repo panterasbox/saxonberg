@@ -14,7 +14,9 @@
 > concealment) · the push/shadow realization for owner-less behaviour
 > (invisibility — every shipped modifier went by pull) · capacity
 > reprofiling on polymorph · slot eviction on bodyplan change · the
-> polymorph choreography that wraps `setSpecies` · a haste modifier on
+> polymorph choreography that wraps `setSpecies` (⭐ 2026-11-08: these three
+> fall out of true polymorph as a same-identity swap →
+> [organism-biology-slate](../builds/organism-biology-slate.md) § 11) · a haste modifier on
 > combat's derived tempo · a BUC-reading instrument (the Detection row's
 > "later") · holy water (BUC-raising by `dip`, the consecration ritual; the
 > anti-hollow reaction waits on presence-hollowing-slate) · create-monster
