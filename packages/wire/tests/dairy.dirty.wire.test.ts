@@ -524,7 +524,7 @@ suite('5. milk left warm turns; milk in the cheese room keeps', () => {
     // Wait on the TURN (bounded): how fast warm milk goes depends on how
     // warm the room is, which is now the season's and the walls'.
     let warm = await read(k, 'smell jug');
-    for (let i = 0; i < 4 && !/sour|off|turn|taint|spoil|rank|rotten|foul/i.test(warm); i++) {
+    for (let i = 0; i < 4 && !/sour|off|turn|taint|spoil|rank|\brot|foul/i.test(warm); i++) {
       await advance('6 hours');
       warm = await read(k, 'smell jug');
     }
@@ -533,8 +533,8 @@ suite('5. milk left warm turns; milk in the cheese room keeps', () => {
     await k.drainProse();
     const cool = await read(k, 'smell butter-crock');
     note(`smell crock (the cheese room) → ${cool}`);
-    expect(warm).toMatch(/sour|off|turn|taint|spoil|rank|rotten|foul/i);
-    expect(cool).not.toMatch(/sour|off|turn|taint|spoil|rank|rotten|foul/i);
+    expect(warm).toMatch(/sour|off|turn|taint|spoil|rank|\brot|foul/i);
+    expect(cool).not.toMatch(/sour|off|turn|taint|spoil|rank|\brot|foul/i);
     await doing(k, 'get butter-crock');
     await doing(k, 'spill butter-crock');
     await say(k, 'up');
