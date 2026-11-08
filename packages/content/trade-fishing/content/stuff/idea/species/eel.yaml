@@ -3,7 +3,7 @@
 # fast upland reach, which is why the moor's mere holds none.
 class: /platform/idea/species/Species
 data:
-  smells: [{ word: fish, strength: 30 }]
+  smells: [{ aroma: /base-library/aromas/fish, strength: 30 }]
   binomial: Anguilla anguilla
   commonNames: ["eel"]
   _bodyPlanPath: /stuff/idea/species/BodyPlan/fish

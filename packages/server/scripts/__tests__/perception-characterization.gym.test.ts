@@ -153,25 +153,29 @@ function installEveryRow(): void {
 }
 
 /**
- * ⚠ The aroma words are DOCUMENTS (kind `aroma`, keyed by `word:`), which this store does not
- * hold, and a material naming a word with no document fails to hydrate, so its
- * place reads no smell at all. Every pack's words are read off disk instead,
- * parents before children, exactly what `Aroma.ensure` builds from documents.
+ * ⚠ The aromas are DOCUMENTS (kind `aroma`, named by path), which this store does not
+ * hold, and a material naming a path with no document fails to hydrate, so its
+ * place reads no smell at all. Every pack's aromas are read off disk instead, at
+ * the path each is stored at (the pack's `root:`, else `/<id>`), parents before
+ * children, exactly what `Aroma.ensure` builds from documents.
  */
 function primeAromas(): void {
   const pending: { word: string; data: AromaData }[] = [];
   for (const pack of readdirSync(CONTENT).sort()) {
     const dir = join(CONTENT, pack, "content", "aromas");
     if (!existsSync(dir)) continue;
+    const manifest = (YAML.parse(readFileSync(join(CONTENT, pack, "pack.yaml"), "utf8")) ?? {}) as { root?: string };
+    const root = manifest.root ?? `/${pack}`;
     for (const f of readdirSync(dir, { recursive: true }) as string[]) {
       if (!f.endsWith(".yaml")) continue;
       const data = (YAML.parse(readFileSync(join(dir, f), "utf8")) ?? {}) as AromaData;
-      pending.push({ word: String(data.word), data });
+      const rel = f.replace(/\.yaml$/, "").split(/[\\/]/).join("/");
+      pending.push({ word: `${root}/aromas/${rel}`, data });
     }
   }
   while (pending.length > 0) {
     const i = pending.findIndex((p) => !p.data.parent || Aroma.resolveKnown(p.data.parent));
-    if (i < 0) throw new Error(`aroma words with no parent document: ${pending.map((p) => p.word).join(", ")}`);
+    if (i < 0) throw new Error(`aromas with no parent document: ${pending.map((p) => p.word).join(", ")}`);
     const [next] = pending.splice(i, 1);
     Aroma.remember(next!.word, next!.data, next!.data.parent ? Aroma.resolveKnown(next!.data.parent) : null);
   }
@@ -316,7 +320,7 @@ describe("perception characterization — every place in the realm", () => {
 
       const smelled = smell().signalAt(loc);
       reading.ou = smelled ? round(smelled.strength.rawValue()) : null;
-      reading.smell = smelled ? smelled.dominantWord || null : null;
+      reading.smell = smelled && smelled.dominantAroma ? Aroma.wordOf(smelled.dominantAroma) : null;
 
       // ⭐ The gather in WALK ORDER — not sorted. The order is the
       // behaviour being pinned, and `Scene` consumes `out` in it.

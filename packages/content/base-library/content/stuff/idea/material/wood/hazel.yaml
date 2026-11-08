@@ -17,8 +17,8 @@
 # material (plant tissue) — the wood is what is left when it is felled.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: wood, strength: 1 }]
-  burning: [{ word: wood-smoke, strength: 300 }]
+  smells: [{ aroma: /base-library/aromas/wood, strength: 1 }]
+  burning: [{ aroma: /base-library/aromas/wood-smoke, strength: 300 }]
   name: hazel
   keywords: [hazel]
   density: 620

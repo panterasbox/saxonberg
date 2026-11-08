@@ -4,7 +4,7 @@
 # `toxicity` is read as burden per breath at unit fraction (smoke's rule).
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: sulfur, strength: 20000 }]
+  smells: [{ aroma: /base-library/aromas/sulfur, strength: 20000 }]
   name: sulfur dioxide
   keywords: [sulfur dioxide, fumes, fume]
   appearance: a sharp, choking fume

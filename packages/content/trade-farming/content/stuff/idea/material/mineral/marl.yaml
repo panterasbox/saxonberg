@@ -16,7 +16,7 @@
 # it, whether or not anybody is farming.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: earth, strength: 10 }]
+  smells: [{ aroma: /base-library/aromas/earth, strength: 10 }]
   name: marl
   keywords: [marl]
   density: 1900

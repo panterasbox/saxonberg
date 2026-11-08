@@ -8,8 +8,8 @@
 # an oil industry than the lamp.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: petroleum, strength: 100 }]
-  burning: [{ word: oil-smoke, strength: 800 }]
+  smells: [{ aroma: /base-library/aromas/petroleum, strength: 100 }]
+  burning: [{ aroma: /base-library/aromas/oil-smoke, strength: 800 }]
   name: lubricating oil
   # ⚠⚠ The word `heavy` appears NOWHERE in this row's player-facing
   # words, and a compound did not save it: `lint:descriptors` splits a

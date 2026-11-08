@@ -14,7 +14,7 @@
 # an arrow that names the material already in the pan does nothing.
 class: /platform/idea/material/OdorousConsumableMaterial
 data:
-  smells: [{ word: sugar, strength: 30 }]
+  smells: [{ aroma: /base-library/aromas/sugar, strength: 30 }]
   name: raw liquor
   keywords: [raw-liquor, liquor, sugar, syrup]
   appearance: thin and brown, a scum rising on it

@@ -1,4 +1,3 @@
 # A heavy road tar.
-word: asphalt
-parent: tar
+parent: /base-library/aromas/tar
 liking: { peak: 1.5, width: 2, valence: -1 }

@@ -2,7 +2,7 @@
 # the tag the milling recipe's slot matches.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: earth, strength: 10 }]
+  smells: [{ aroma: /base-library/aromas/earth, strength: 10 }]
   name: dandelion root
   keywords: [dandelion, "dandelion root", kok-saghyz]
   appearance: pale fleshy root threaded with white

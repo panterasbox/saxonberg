@@ -1,4 +1,3 @@
 # Wax from the comb, faintly of honey.
-word: beeswax
-parent: wax
+parent: /base-library/aromas/wax
 discipline: apiculture

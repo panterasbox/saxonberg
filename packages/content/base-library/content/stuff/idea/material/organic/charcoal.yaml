@@ -14,8 +14,8 @@
 # everyone.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: char, strength: 3 }]
-  burning: [{ word: wood-smoke, strength: 20 }]
+  smells: [{ aroma: /base-library/aromas/char, strength: 3 }]
+  burning: [{ aroma: /base-library/aromas/wood-smoke, strength: 20 }]
   name: charcoal
   keywords: [charcoal]
   # Light: the volatiles and most of the mass left as smoke.

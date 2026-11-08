@@ -588,13 +588,13 @@ export function SoilableMixin<TBase extends MixinConstructor<Stuff>>(
     }
 
     public soilOdor(): SmellNote[] {
-      const byWord = new Map<string, number>();
+      const byAroma = new Map<string, number>();
       for (const [key, load] of Object.entries(this.deposits)) {
         const odor = this.dirtKind(splitKey(key)[1])?.odor ?? null;
         if (!odor || !(load > 0)) continue;
-        byWord.set(odor.word, (byWord.get(odor.word) ?? 0) + load * odor.ouPerLoad);
+        byAroma.set(odor.aroma, (byAroma.get(odor.aroma) ?? 0) + load * odor.ouPerLoad);
       }
-      return [...byWord.entries()].map(([word, ou]) => ({ word, ou }));
+      return [...byAroma.entries()].map(([aroma, ou]) => ({ aroma, ou }));
     }
 
     public liftedBy(kind: string, site: string = WHOLE_SITE): DirtLift {

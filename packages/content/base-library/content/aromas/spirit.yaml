@@ -1,4 +1,3 @@
 # A clean strong spirit.
-word: spirit
-parent: alcohol
+parent: /base-library/aromas/alcohol
 discipline: distilling

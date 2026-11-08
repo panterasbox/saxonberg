@@ -5,8 +5,8 @@
 # convention): a room a hundredth full of it poisons at a hundredth.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: turpentine, strength: 3000 }]
-  burning: [{ word: oil-smoke, strength: 1000 }]
+  smells: [{ aroma: /base-library/aromas/turpentine, strength: 3000 }]
+  burning: [{ aroma: /base-library/aromas/oil-smoke, strength: 1000 }]
   name: turpentine vapor
   keywords: [vapor, fumes, turpentine]
   appearance: a sharp, resinous reek hanging in the air

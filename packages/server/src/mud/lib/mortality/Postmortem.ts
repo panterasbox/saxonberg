@@ -52,7 +52,7 @@ export interface Postmortem {
   /** How far decomposition has gone. `'fresh'` while alive. */
   getDecayStage(): DecayStage;
   /** What its decay gives a nose, per kilogram; `null` while it is fresh. */
-  decayNote(): { word: string; ou: number } | null;
+  decayNote(): { aroma: string; ou: number } | null;
   /**
    * ⭐ Does this body float now (river D27)? A drowned body sinks — fresh
    * flesh is denser than water — and comes up when decomposition has filled
@@ -166,7 +166,7 @@ export function PostmortemMixin<TBase extends MixinConstructor<Stuff>>(
       return DECAY_STAGES[index]!;
     }
 
-    public decayNote(): { word: string; ou: number } | null {
+    public decayNote(): { aroma: string; ou: number } | null {
       return DECAY_SMELLS[this.getDecayStage()];
     }
 

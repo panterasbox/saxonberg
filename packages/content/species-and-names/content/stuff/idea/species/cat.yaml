@@ -17,7 +17,7 @@
 # The warning is the point; the death is the consequence of ignoring it.
 class: /platform/idea/species/Species
 data:
-  smells: [{ word: cat, strength: 5 }]
+  smells: [{ aroma: /base-library/aromas/cat, strength: 5 }]
   binomial: Felis catus
   commonNames: ["cat", "housecat", "moggy"]
   _bodyPlanPath: /stuff/idea/species/BodyPlan/quadruped

@@ -10,7 +10,7 @@
 # threw it away would be throwing away its second income.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: grain, strength: 15 }]
+  smells: [{ aroma: /base-library/aromas/grain, strength: 15 }]
   tastes: [{ type: bitter, amount: 0.01 }]
   name: bran
   keywords: [bran, offal, sharps]

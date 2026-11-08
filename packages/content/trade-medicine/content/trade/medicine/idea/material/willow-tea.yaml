@@ -2,7 +2,7 @@
 # prescription-only.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: herbal, strength: 60 }]
+  smells: [{ aroma: /base-library/aromas/herbal, strength: 60 }]
   tastes: [{ type: bitter, amount: 0.2 }]
   name: willow-tea
   keywords: [willow-tea, tea, analgesic, willow]

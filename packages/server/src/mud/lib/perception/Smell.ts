@@ -16,16 +16,16 @@
 
 import { Quantity } from '../quantity';
 
-/** One word in a signal and how far past its threshold it stands. */
+/** One aroma (a path) in a signal and how far past its threshold it stands. */
 export interface SmellNote {
-  readonly word: string;
+  readonly aroma: string;
   readonly ou: number;
 }
 
-/** One thing's contribution of one word, and how many hops it came. */
+/** One thing's contribution of one aroma (a path), and how many hops it came. */
 export interface SmellSourceRef {
   readonly stuffId: string;
-  readonly word: string;
+  readonly aroma: string;
   readonly ou: number;
   readonly hops: number;
   /** Something the giver holds rather than the giver's own body and clothes. */
@@ -38,14 +38,14 @@ export class Smell {
   /** The zero-smell singleton. */
   public static readonly ZERO: Smell = new Smell([], []);
 
-  /** Build from contributions; notes are summed per word, strongest first. */
+  /** Build from contributions; notes are summed per aroma, strongest first. */
   public static of(sources: readonly SmellSourceRef[]): Smell {
     const kept = sources.filter((s) => s.ou > 0);
     if (kept.length === 0) return Smell.ZERO;
     const totals = new Map<string, number>();
-    for (const s of kept) totals.set(s.word, (totals.get(s.word) ?? 0) + s.ou);
+    for (const s of kept) totals.set(s.aroma, (totals.get(s.aroma) ?? 0) + s.ou);
     const notes = [...totals.entries()]
-      .map(([word, ou]) => ({ word, ou }))
+      .map(([aroma, ou]) => ({ aroma, ou }))
       .sort((a, b) => b.ou - a.ou);
     return new Smell(notes, kept);
   }
@@ -66,9 +66,9 @@ export class Smell {
     return Quantity.of(this.notes[0]?.ou ?? 0, 'OU');
   }
 
-  /** The word furthest past its threshold, or `''`. */
-  public get dominantWord(): string {
-    return this.notes[0]?.word ?? '';
+  /** The aroma (a path) furthest past its threshold, or `''`. */
+  public get dominantAroma(): string {
+    return this.notes[0]?.aroma ?? '';
   }
 
   public isEmpty(): boolean {
@@ -128,9 +128,9 @@ const INTENSITIES: readonly { readonly atMultiple: number; readonly word: string
 
 /** One smell as a nose read it. */
 export interface ScentNote {
-  /** The word in the tree the reader could name. */
-  readonly word: string;
-  /** That word as it reads in a sentence. */
+  /** The aroma (a path) in the tree the reader could name. */
+  readonly aroma: string;
+  /** Its word as it reads in a sentence. */
   readonly name: string;
   /** Strength after the nose: below 1 it would not be here. */
   readonly ou: number;
@@ -138,7 +138,7 @@ export interface ScentNote {
   readonly hops: number;
   /** The one visible thing carrying it, or `null`: the nose tells you what. */
   readonly sourceName: string | null;
-  /** The word as authored, before the reader's depth. */
+  /** The aroma as authored (a path), before the reader's depth. */
   readonly leaf: string;
 }
 

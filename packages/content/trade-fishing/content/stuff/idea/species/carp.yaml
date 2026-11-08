@@ -6,7 +6,7 @@
 # where a fish stops being wild.
 class: /platform/idea/species/Species
 data:
-  smells: [{ word: fish, strength: 30 }]
+  smells: [{ aroma: /base-library/aromas/fish, strength: 30 }]
   binomial: Cyprinus carpio
   commonNames: ["carp"]
   _bodyPlanPath: /stuff/idea/species/BodyPlan/fish

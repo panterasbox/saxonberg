@@ -1,4 +1,3 @@
 # Diacetyl: the smell of butter.
-word: butter
-parent: milk
+parent: /base-library/aromas/milk
 discipline: dairying

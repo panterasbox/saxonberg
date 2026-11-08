@@ -2,7 +2,7 @@
 # material). Tag `orange-juice` is what a sour slot matches.
 class: /platform/idea/material/OdorousConsumableMaterial
 data:
-  smells: [{ word: orange, strength: 200 }]
+  smells: [{ aroma: /base-library/aromas/orange, strength: 200 }]
   name: orange juice
   keywords: [orange, orange-juice, juice]
   appearance: bright fresh orange juice

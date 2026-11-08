@@ -7,7 +7,7 @@
 # leaf is a plant tissue and spoils like one, a little faster.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: leaf, strength: 30 }]
+  smells: [{ aroma: /base-library/aromas/leaf, strength: 30 }]
   tastes: [{ type: sweet, amount: 10 }, { type: bitter, amount: 0.02 }]
   name: mulberry leaf
   keywords: [mulberry, leaf, leaves]

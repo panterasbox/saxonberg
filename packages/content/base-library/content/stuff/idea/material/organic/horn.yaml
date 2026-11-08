@@ -9,7 +9,7 @@
 # electrically an insulator when dry.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: hide, strength: 20 }]
+  smells: [{ aroma: /base-library/aromas/hide, strength: 20 }]
   name: horn
   keywords: [keratin, horn]
   appearance: scraped translucent horn, amber where the light comes through

@@ -19,8 +19,8 @@
 # while it boils, which is what boiling tar down IS.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: pine-tar, strength: 4000 }]
-  burning: [{ word: oil-smoke, strength: 1500 }]
+  smells: [{ aroma: /base-library/aromas/pine-tar, strength: 4000 }]
+  burning: [{ aroma: /base-library/aromas/oil-smoke, strength: 1500 }]
   name: wood tar
   keywords: [tar, "wood tar", stockholm]
   appearance: a black, sticky, resinous liquid

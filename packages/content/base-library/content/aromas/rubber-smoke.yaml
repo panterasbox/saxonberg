@@ -1,4 +1,3 @@
 # Burning rubber: sulfur compounds and scorched hydrocarbons.
-word: rubber-smoke
-parent: smoke
+parent: /base-library/aromas/smoke
 liking: { peak: 1.5, width: 2, valence: -1 }

@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest';
+import { aromaPath } from './aroma-fixtures';
 import { Scent, Smell } from '../Smell';
 
-const ref = (word: string, ou: number, stuffId = 's') => ({ stuffId, word, ou, hops: 0 });
+const ref = (word: string, ou: number, stuffId = 's') => ({ stuffId, aroma: aromaPath(word), ou, hops: 0 });
 
 describe('Smell', () => {
   it('ZERO is empty', () => {
@@ -13,16 +14,16 @@ describe('Smell', () => {
   it('sums per word, strongest first, in odor units', () => {
     const smell = Smell.of([ref('tar', 5, 'a'), ref('smoke', 40, 'b'), ref('tar', 10, 'c')]);
     expect(smell.notes).toEqual([
-      { word: 'smoke', ou: 40 },
-      { word: 'tar', ou: 15 },
+      { aroma: aromaPath('smoke'), ou: 40 },
+      { aroma: aromaPath('tar'), ou: 15 },
     ]);
-    expect(smell.dominantWord).toBe('smoke');
+    expect(smell.dominantAroma).toBe(aromaPath('smoke'));
     expect(smell.strength.unit).toBe('OU');
   });
 
   it('add keeps every source', () => {
     const smell = Smell.of([ref('tar', 5)]).add(Smell.of([ref('tar', 5, 't')]));
-    expect(smell.notes).toEqual([{ word: 'tar', ou: 10 }]);
+    expect(smell.notes).toEqual([{ aroma: aromaPath('tar'), ou: 10 }]);
     expect(smell.sources).toHaveLength(2);
   });
 
@@ -36,7 +37,7 @@ describe('Smell', () => {
 
 describe('Scent', () => {
   const note = (ou: number) => ({
-    word: 'smoke',
+    aroma: aromaPath('smoke'),
     name: 'smoke',
     ou,
     hops: 0,

@@ -27,8 +27,8 @@ export class TasteModality extends Modality {
     const parts: { material: Material; fraction: number }[] = [];
     let payload: BulkPayload | null = null;
     const aromas: SmellSourceRef[] = [];
-    const add = (word: string, ou: number): void => {
-      if (ou > 0) aromas.push({ stuffId: thing.stuffId, word, ou, hops: 0 });
+    const add = (aroma: string, ou: number): void => {
+      if (ou > 0) aromas.push({ stuffId: thing.stuffId, aroma, ou, hops: 0 });
     };
 
     if (
@@ -45,13 +45,13 @@ export class TasteModality extends Modality {
       }
       if (parts.length === 0 && material) parts.push({ material, fraction: 1 });
       const rot = new Freshness(thing.getBulk('interior')).rotNote();
-      if (rot) add(rot.word, rot.ou);
+      if (rot) add(rot.aroma, rot.ou);
     } else if (MixinApi.isTangible(thing)) {
       const material = thing.getMaterial();
       if (material) parts.push({ material, fraction: 1 });
       if (MixinApi.isFresh(thing)) {
         const rot = thing.rotNote();
-        if (rot) add(rot.word, rot.ou);
+        if (rot) add(rot.aroma, rot.ou);
       }
     }
 
@@ -61,7 +61,7 @@ export class TasteModality extends Modality {
         amounts.set(tag.type, (amounts.get(tag.type) ?? 0) + tag.amount * fraction);
       }
       if (MixinApi.isOdorous(material)) {
-        for (const tag of material.getSmells()) add(tag.word, tag.strength * fraction);
+        for (const tag of material.getSmells()) add(tag.aroma, tag.strength * fraction);
       }
     }
     // ⭐ What a payload states about itself outranks the row: a well gone

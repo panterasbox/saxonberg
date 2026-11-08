@@ -2373,9 +2373,9 @@ async function validateCombustionImparts(value: AromaTag[]): Promise<AromaTag[]>
   }
   const out: AromaTag[] = [];
   for (const [i, tag] of value.entries()) {
-    if (!DissolvedAromatics.isAromaWord(tag?.type)) {
+    if (!DissolvedAromatics.isAromaPath(tag?.type)) {
       throw new TypeError(
-        `Material.combustionImparts[${i}]: '${tag?.type}' is not an aroma`,
+        `Material.combustionImparts[${i}]: '${tag?.type}' is not an aroma path`,
       );
     }
     if (!(tag.amount > 0)) {

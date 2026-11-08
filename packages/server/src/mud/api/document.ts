@@ -158,15 +158,6 @@ export class DocumentApi {
     return logic().list(prefix);
   }
 
-  /**
-   * The one document of `kind` whose natural key is `key` (an aroma by its
-   * word, a recipe by its id), or null: a point read, for a kind whose rows
-   * are named across packs rather than by path.
-   */
-  static readByKey(kind: string, key: string): Promise<StoredDocument | null> {
-    return logic().readByKey(kind, key);
-  }
-
   /** Every document of `kind` — e.g. every release, for a warm rebuild. */
   static listOfKind(kind: string): Promise<StoredDocument[]> {
     return logic().listOfKind(kind);

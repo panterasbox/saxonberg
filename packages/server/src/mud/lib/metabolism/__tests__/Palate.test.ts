@@ -6,7 +6,7 @@
 import '../../../../test-bootstrap';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { soilBody } from '../../cleanliness/__tests__/soil-fixtures';
-import { installAromas } from '../../perception/__tests__/aroma-fixtures';
+import { installAromas, aromaPath } from '../../perception/__tests__/aroma-fixtures';
 import { seedKernelContentStore } from '../../security/__tests__/test-setup';
 import { Smell } from '../../perception/Smell';
 import { TASTE_THRESHOLDS } from '../../material/Material';
@@ -83,7 +83,7 @@ describe('liking', () => {
   it('everyone agrees about a rotten one', () => {
     const a = mouth();
     full(a);
-    expect(a.liking([{ type: 'rot', ou: 3000 }]).word).toBe('revolting');
+    expect(a.liking([{ type: aromaPath('rot'), ou: 3000 }]).word).toBe('revolting');
   });
 
   it('two people born apart read one soup apart', () => {

@@ -3,7 +3,7 @@
 # rotted on a midden.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: earth, strength: 10 }]
+  smells: [{ aroma: /base-library/aromas/earth, strength: 10 }]
   name: sweepings
   keywords: [sweepings, muck, dirt]
   appearance: a grey heap of floor sweepings

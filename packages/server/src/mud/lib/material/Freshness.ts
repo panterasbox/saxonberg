@@ -172,11 +172,11 @@ const ROT_OU: Record<Exclude<FreshnessBand, 'fresh'>, number> = {
   rotten: 3000,
 };
 
-/** The word rot reads as; a row in the commons. */
-const ROT_WORD = 'rot';
+/** The aroma rot reads as: a document in the commons, by path. */
+const ROT_AROMA = '/base-library/aromas/rot';
 
 function rotNoteFor(band: FreshnessBand): SmellNote | null {
-  return band === 'fresh' ? null : { word: ROT_WORD, ou: ROT_OU[band] };
+  return band === 'fresh' ? null : { aroma: ROT_AROMA, ou: ROT_OU[band] };
 }
 
 /**

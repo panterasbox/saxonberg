@@ -14,7 +14,7 @@
 # wolves, not about this particular animal in this particular wood.
 class: /platform/idea/species/Species
 data:
-  smells: [{ word: dog, strength: 10 }]
+  smells: [{ aroma: /base-library/aromas/dog, strength: 10 }]
   binomial: Canis lupus
   commonNames: ["wolf", "grey wolf", "wolfshead", "beast"]
   _bodyPlanPath: /stuff/idea/species/BodyPlan/quadruped

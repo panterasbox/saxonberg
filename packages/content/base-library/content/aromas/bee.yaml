@@ -1,4 +1,3 @@
 # A hive: wax, propolis and warm honey.
-word: bee
-parent: animal
+parent: /base-library/aromas/animal
 discipline: apiculture

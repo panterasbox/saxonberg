@@ -1,4 +1,3 @@
 # Crushed grape.
-word: grape
-parent: fruit
+parent: /base-library/aromas/fruit
 discipline: winemaking

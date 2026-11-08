@@ -1,3 +1,2 @@
 # The sweetish smoke of a burning wax.
-word: wax-smoke
-parent: smoke
+parent: /base-library/aromas/smoke

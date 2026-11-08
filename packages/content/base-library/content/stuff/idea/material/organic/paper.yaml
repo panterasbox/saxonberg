@@ -8,7 +8,7 @@
 # bleeds. Neither is this row's: sizing is a COAT on the sheet.
 class: /platform/idea/material/OdorousMaterial
 data:
-  burning: [{ word: paper-smoke, strength: 300 }]
+  burning: [{ aroma: /base-library/aromas/paper-smoke, strength: 300 }]
   name: paper
   keywords: [paper]
   appearance: matte felted paper

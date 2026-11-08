@@ -6,7 +6,7 @@
 import '../../../../test-bootstrap';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Smell } from '../Smell';
-import { installAromas } from './aroma-fixtures';
+import { installAromas, aromaPath } from './aroma-fixtures';
 import { soilBody } from '../../cleanliness/__tests__/soil-fixtures';
 import { seedKernelContentStore } from '../../security/__tests__/test-setup';
 import { MixinApi } from '../../../api/mixin';
@@ -41,7 +41,7 @@ afterEach(() => {
 });
 
 const signal = (word: string, ou: number, stuffId = 'elsewhere') =>
-  Smell.of([{ stuffId, word, ou, hops: 0 }]);
+  Smell.of([{ stuffId, aroma: aromaPath(word), ou, hops: 0 }]);
 
 /** A body with no born shift, so the arithmetic reads plainly. */
 function nose() {
@@ -82,10 +82,10 @@ describe('who detects what', () => {
     const body = nose();
     withBand(body, 'malting', 'expert');
     const mixed = Smell.of([
-      { stuffId: 'a', word: 'sulfur', ou: 2000, hops: 0 },
-      { stuffId: 'b', word: 'grain', ou: 50, hops: 0 },
+      { stuffId: 'a', aroma: aromaPath('sulfur'), ou: 2000, hops: 0 },
+      { stuffId: 'b', aroma: aromaPath('grain'), ou: 50, hops: 0 },
     ]);
-    expect(body.nose(mixed).dominant?.word).toBe('sulfur');
+    expect(body.nose(mixed).dominant?.aroma).toBe(aromaPath('sulfur'));
   });
 
   it('two bodies are not born with the same nose', () => {
@@ -119,7 +119,7 @@ describe('naming', () => {
     const body = nose();
     withBand(body, 'distilling', 'competent');
     const made = Smell.of([
-      { stuffId: 'g', word: 'wet-peat-smoke', ou: 500, hops: 0, maker: 'distilling' },
+      { stuffId: 'g', aroma: aromaPath('wet-peat-smoke'), ou: 500, hops: 0, maker: 'distilling' },
     ]);
     expect(body.nose(made).dominant?.name).toBe('wet peat smoke');
   });
@@ -127,8 +127,8 @@ describe('naming', () => {
   it('two notes naming to one word merge', () => {
     const body = nose();
     const both = Smell.of([
-      { stuffId: 'a', word: 'peat-smoke', ou: 40, hops: 0 },
-      { stuffId: 'b', word: 'wet-peat-smoke', ou: 60, hops: 0 },
+      { stuffId: 'a', aroma: aromaPath('peat-smoke'), ou: 40, hops: 0 },
+      { stuffId: 'b', aroma: aromaPath('wet-peat-smoke'), ou: 60, hops: 0 },
     ]);
     const scent = body.nose(both);
     expect(scent.notes).toHaveLength(1);
@@ -140,7 +140,7 @@ describe('naming', () => {
     const three = Smell.of(
       ['tar', 'oak', 'grain'].map((word, i) => ({
         stuffId: word,
-        word,
+        aroma: aromaPath(word),
         ou: 100 - i,
         hops: 0,
       })),
@@ -161,7 +161,7 @@ describe('the nose tells you what, not where', () => {
     vi.spyOn(PerceptionApi, 'modalityByName').mockReturnValue({ canSee: () => canSee } as never);
     return { body, thing };
   }
-  const here = (id: string, word = 'tar', hops = 0) => ({ stuffId: id, word, ou: 500, hops });
+  const here = (id: string, word = 'tar', hops = 0) => ({ stuffId: id, aroma: aromaPath(word), ou: 500, hops });
 
   it('names the one visible thing carrying it', () => {
     const { body, thing } = staged(true);
@@ -254,10 +254,10 @@ describe('adaptation', () => {
 
   it('your own smell starts adapted; what you carry is not you', () => {
     const body = nose();
-    const own = Smell.of([{ stuffId: body.stuffId, word: 'sweat', ou: 1800, hops: 0 }]);
+    const own = Smell.of([{ stuffId: body.stuffId, aroma: aromaPath('sweat'), ou: 1800, hops: 0 }]);
     expect(body.nose(own).dominant?.ou).toBeCloseTo(2);
     const carried = Smell.of([
-      { stuffId: body.stuffId, word: 'tar', ou: 1800, hops: 0, carried: true },
+      { stuffId: body.stuffId, aroma: aromaPath('tar'), ou: 1800, hops: 0, carried: true },
     ]);
     expect(body.nose(carried).dominant?.ou).toBeCloseTo(1800);
   });

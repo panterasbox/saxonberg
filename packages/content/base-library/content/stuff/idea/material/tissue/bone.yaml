@@ -5,7 +5,7 @@
 # mechanism-of-injury system lands and can model it honestly.)
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: flesh, strength: 30 }]
+  smells: [{ aroma: /base-library/aromas/flesh, strength: 30 }]
   name: bone
   keywords: [bone]
   density: 1900

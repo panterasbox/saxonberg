@@ -65,8 +65,8 @@ export interface NoseOptions {
 export interface Olfactory {
   /** What this nose makes of a signal. */
   nose(signal: Smell, opts?: NoseOptions): Scent;
-  /** This body's own shift for a word, in bands, drawn from who it is. */
-  bornSensitivity(word: string): number;
+  /** This body's own shift for an aroma (a path), in bands, drawn from who it is. */
+  bornSensitivity(aroma: string): number;
   /** Nobody is in the body: its nose holds still until someone returns. */
   freezeNose(): void;
 }
@@ -84,7 +84,7 @@ export function OlfactoryMixin<TBase extends MixinConstructor<Stuff>>(Base: TBas
 
     /** When this body arrived where it stands. */
     private placeStamp: { placeId: string; sinceS: number } | null = null;
-    /** Per word: how adapted, in bands, as of the last read that found it. */
+    /** Per aroma (a path): how adapted, in bands, as of the last read that found it. */
     private adaptation: Record<string, { level: number; lastAt: number }> = {};
     /** When nobody was left in the body, or `null`. */
     private frozenAtS: number | null = null;
@@ -109,12 +109,12 @@ export function OlfactoryMixin<TBase extends MixinConstructor<Stuff>>(Base: TBas
       this.frozenAtS ??= nowS();
     }
 
-    public bornSensitivity(word: string): number {
+    public bornSensitivity(aroma: string): number {
       const self = this as unknown as Stuff;
       const seed = Seeded.ofString(self.getIdentityPath() ?? '');
-      const draw = Seeded.unit(seed, Seeded.ofString(`nose:${word}`));
+      const draw = Seeded.unit(seed, Seeded.ofString(`nose:${aroma}`));
       // Parents and a species' spread are the palate's to know.
-      const center = MixinApi.isPalate(self) ? (self.heritage()?.offsets[`nose:${word}`] ?? 0) : 0;
+      const center = MixinApi.isPalate(self) ? (self.heritage()?.offsets[`nose:${aroma}`] ?? 0) : 0;
       const spread = MixinApi.isPalate(self) ? self.palateSpread() : 1;
       return center + (draw * 2 - 1) * BORN_SPREAD * spread;
     }
@@ -129,46 +129,46 @@ export function OlfactoryMixin<TBase extends MixinConstructor<Stuff>>(Base: TBas
       const named = new Map<string, Named>();
       let best = 0;
       for (const note of signal.notes) {
-        const from = signal.sources.filter((s) => s.word === note.word);
+        const from = signal.sources.filter((s) => s.aroma === note.aroma);
         const ownOnly = from.every(
           (s) => s.stuffId === self.stuffId && s.hops === 0 && s.carried !== true,
         );
         const level = ownOnly
           ? ADAPT_MAX
           : opts.close
-            ? this.adaptedSoFar(note.word)
-            : this.adapt(note.word);
+            ? this.adaptedSoFar(note.aroma)
+            : this.adapt(note.aroma);
         const ou =
-          (note.ou * acuity * BAND ** this.bornSensitivity(note.word)) / BAND ** level;
+          (note.ou * acuity * BAND ** this.bornSensitivity(note.aroma)) / BAND ** level;
         if (ou < 1) continue;
-        const row = Aroma.resolve(note.word);
+        const row = Aroma.resolve(note.aroma);
         if (!row) continue;
         const maker = from.find((s) => s.maker)?.maker ?? '';
         const rank = Math.max(this.rankIn(maker), this.rankIn(row.disciplineOf()));
         // ⭐ With no discipline behind it at all there is nothing to train: the
         // word is common knowledge, and everyone names it.
         const depth = !maker && !row.disciplineOf() ? Infinity : rank;
-        const word = row.wordAt(depth === Infinity ? 1e9 : depth);
+        const aroma = row.aromaAt(depth === Infinity ? 1e9 : depth);
         const hops = Math.min(...from.map((s) => s.hops));
-        const had = named.get(word);
-        named.set(word, {
-          name: Aroma.phraseOf(word),
+        const had = named.get(aroma);
+        named.set(aroma, {
+          name: Aroma.phraseOf(aroma),
           ou: (had?.ou ?? 0) + ou,
           hops: Math.min(had?.hops ?? hops, hops),
-          leaf: had?.leaf ?? note.word,
+          leaf: had?.leaf ?? note.aroma,
           rank,
         });
         best = Math.max(best, rank);
       }
       const notes: ScentNote[] = [...named.entries()]
         .sort((a, b) => b[1].ou - a[1].ou)
-        .map(([word, n]) => ({
-          word,
+        .map(([aroma, n]) => ({
+          aroma,
           name: n.name,
           ou: n.ou,
           hops: n.hops,
           leaf: n.leaf,
-          sourceName: opts.close ? null : this.sourceOf(signal, word),
+          sourceName: opts.close ? null : this.sourceOf(signal, aroma),
         }));
       if (notes.length === 0) return Scent.EMPTY;
       const keep = opts.deliberate
@@ -195,12 +195,12 @@ export function OlfactoryMixin<TBase extends MixinConstructor<Stuff>>(Base: TBas
       for (const rec of Object.values(this.adaptation)) rec.lastAt += gap;
     }
 
-    /** Reconcile one word's adaptation to now, and answer it. */
-    private adapt(word: string): number {
+    /** Reconcile one aroma's adaptation to now, and answer it. */
+    private adapt(aroma: string): number {
       const now = nowS();
       const sinceS = this.placeStamp?.sinceS ?? now;
       const stay = (now - sinceS) / ADAPT_STEP_S;
-      const rec = this.adaptation[word];
+      const rec = this.adaptation[aroma];
       let level: number;
       if (!rec) {
         level = stay;
@@ -211,7 +211,7 @@ export function OlfactoryMixin<TBase extends MixinConstructor<Stuff>>(Base: TBas
         level = Math.max(0, rec.level - away) + stay;
       }
       level = Math.min(ADAPT_MAX, level);
-      this.adaptation[word] = { level, lastAt: now };
+      this.adaptation[aroma] = { level, lastAt: now };
       return level;
     }
 
@@ -220,8 +220,8 @@ export function OlfactoryMixin<TBase extends MixinConstructor<Stuff>>(Base: TBas
      * says nothing about the loaf you have just unwrapped, so a stay does not count
      * here; only what the air has already done to this nose does.
      */
-    private adaptedSoFar(word: string): number {
-      const rec = this.adaptation[word];
+    private adaptedSoFar(aroma: string): number {
+      const rec = this.adaptation[aroma];
       if (!rec) return 0;
       const sinceS = this.placeStamp?.sinceS ?? nowS();
       if (rec.lastAt >= sinceS) return rec.level;
@@ -242,14 +242,14 @@ export function OlfactoryMixin<TBase extends MixinConstructor<Stuff>>(Base: TBas
      * ⭐ The nose tells you what, not where: a smell is pinned on a thing only
      * when exactly one thing in this room carries it and you can see that thing.
      */
-    private sourceOf(signal: Smell, word: string): string | null {
+    private sourceOf(signal: Smell, aroma: string): string | null {
       const self = this as unknown as Stuff;
       // Only what is in this room counts: someone who has stepped next door still
       // reaches you faintly, and that does not stop you knowing who is here.
       const from = signal.sources.filter((s) => {
         if (s.hops > 0) return false;
-        const row = Aroma.resolve(s.word);
-        return row ? row.ancestry().includes(word) || s.word === word : s.word === word;
+        const row = Aroma.resolve(s.aroma);
+        return row ? row.ancestry().includes(aroma) || s.aroma === aroma : s.aroma === aroma;
       });
       const only = from[0];
       if (!only || from.some((s) => s.stuffId !== only.stuffId)) return null;

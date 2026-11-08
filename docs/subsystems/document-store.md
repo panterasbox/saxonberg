@@ -86,10 +86,22 @@ appropriation is that it outlives the paperwork. A capability pack
 **cannot** declare a kind — adding this one was a platform edit, and that
 is the gate working, not friction to route around.
 
-⭐ **`aroma`** (vocabularies-to-rows, 2026-11): an aroma word, keyed by `word:` across every pack (a pack's documents sit under its own root, so a path cannot name a word any pack may ship) and read by that key with `DocumentApi.readByKey`; authored
-metadata a nose reads ([senses.md](./senses.md#one-smell-source-air-nose)). It was an Idea
-for one build and moved here because nothing writes a word, nothing acts on one, and MQL
+⭐ **`aroma`** (vocabularies-to-rows, 2026-11): what a nose can read; authored
+metadata ([senses.md](./senses.md#one-smell-source-air-nose)). It was an Idea
+for one build and moved here because nothing writes one, nothing acts on one, and MQL
 should not find one. ⚠ `DirtKind` has the same shape and has not moved yet.
+
+⭐⭐ **A document's identity is its PATH** (owner, 2026-11-08). A pack's document is
+stored at `<pack root>/<contentDir>/<rel>`, so a reference names that full path
+(`/base-library/aromas/smoke`, `/species-and-names/name-banks/common`) and is read
+with `DocumentApi.read`; the path is the scoped namespace, and two packs shipping
+the same file name ship two documents. `aroma` shipped for a day keyed by a
+`naturalKey` and read by a cross-pack field lookup (`readByKey`); that was a
+second identity beside the path and is gone, as is `name-bank`'s key. The
+remaining `naturalKey` kinds (emote, recipe, blueprint, archetype) are the
+installer's flat namespaces, slated to go; a uniform secondary-key index over
+every document, separate from `data`, is a separate requirement that slate also
+carries.
 
 ## What a record is
 

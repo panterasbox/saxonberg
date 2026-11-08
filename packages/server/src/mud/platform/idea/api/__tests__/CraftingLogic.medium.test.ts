@@ -52,6 +52,9 @@ import {
   makeStuffAtPath,
 } from '../../../../lib/security/__tests__/test-setup';
 
+/** The commons aroma a smoky fuel or working carries, by path. */
+const SMOKE = '/base-library/aromas/smoke';
+
 class TestRoom extends ContainerMixin(Idea) {
   static _mixinName = 'TestRoomMedium';
 }
@@ -336,11 +339,11 @@ describe('⭐⭐⭐ what the FIRE puts into the work (the fire build, W5)', () =
     } | null;
     expect(outcome.ok).toBe(true);
     const tags = dish?.getBulkPayload('interior')?.dissolvedAromatics ?? [];
-    return tags.find((t) => t.type === 'smoke')?.amount ?? 0;
+    return tags.find((t) => t.type === SMOKE)?.amount ?? 0;
   }
 
   it('⭐⭐ a smoky fuel puts its smoke into the output', async () => {
-    await stokeHearthWith(15, [{ type: 'smoke', amount: 30 }]);
+    await stokeHearthWith(15, [{ type: SMOKE, amount: 30 }]);
     const outcome = await craftAs(cook, {
       recipeRef: 'dry-roast',
       makerMode: 'self',
@@ -365,7 +368,7 @@ describe('⭐⭐⭐ what the FIRE puts into the work (the fire build, W5)', () =
       .find((c) => MixinApi.isBurner(c as Stuff)) as unknown as Stuff & Burner;
     const smoky = fuelMaterial(15, 'w5-mix-smoky');
     installAromas(['smoke']);
-    await smoky.setCombustionImparts([{ type: 'smoke', amount: 30 }]);
+    await smoky.setCombustionImparts([{ type: SMOKE, amount: 30 }]);
     const clean = fuelMaterial(16, 'w5-mix-clean');
     (fire as unknown as { fuelBed: Record<string, number> }).fuelBed = {
       [smoky.getTemplatePath()!]: 10,
@@ -386,9 +389,9 @@ describe('⭐⭐⭐ what the FIRE puts into the work (the fire build, W5)', () =
     // shape the recipe `imparts` validator exists for.
     const m = fuelMaterial(15, 'w5-bad');
     installAromas(['smoke']);
-    await expect(m.setCombustionImparts([{ type: 'smoak', amount: 30 }]))
+    await expect(m.setCombustionImparts([{ type: '/base-library/aromas/smoak', amount: 30 }]))
       .rejects.toThrow(/smoak/);
-    await expect(m.setCombustionImparts([{ type: 'smoke', amount: 0 }]))
+    await expect(m.setCombustionImparts([{ type: SMOKE, amount: 0 }]))
       .rejects.toThrow(/amount/);
   });
 });

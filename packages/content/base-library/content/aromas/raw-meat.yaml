@@ -1,4 +1,3 @@
 # Fresh cut meat.
-word: raw-meat
-parent: flesh
+parent: /base-library/aromas/flesh
 discipline: butchery

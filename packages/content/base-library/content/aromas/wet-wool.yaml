@@ -1,4 +1,3 @@
 # Damp fleece, lanolin rising.
-word: wet-wool
-parent: sheep
+parent: /base-library/aromas/sheep
 discipline: textiles

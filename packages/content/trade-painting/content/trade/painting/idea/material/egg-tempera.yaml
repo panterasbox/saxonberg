@@ -3,7 +3,7 @@
 # the weather would ruin and a panel indoors keeps for centuries (paint D8).
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: flesh, strength: 60 }]
+  smells: [{ aroma: /base-library/aromas/flesh, strength: 60 }]
   name: egg tempera
   keywords: ["egg tempera", tempera, yolk]
   appearance: a thin golden emulsion that smells of egg

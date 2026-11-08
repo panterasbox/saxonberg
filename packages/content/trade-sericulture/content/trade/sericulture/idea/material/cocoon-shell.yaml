@@ -13,7 +13,7 @@
 # shelf.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: silkworm, strength: 30 }]
+  smells: [{ aroma: /base-library/aromas/silkworm, strength: 30 }]
   name: spun silk
   keywords: [cocoon, cocoons]
   appearance: a smooth, papery cocoon

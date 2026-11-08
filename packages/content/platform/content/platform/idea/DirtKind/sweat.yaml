@@ -8,4 +8,4 @@ data:
   waterLifts: 0.5
   # What it smells of — OU per unit of load (B57): a soiled thing's
   # odor is derived from what is on it.
-  odor: { word: stale-sweat, ouPerLoad: 400 }
+  odor: { aroma: /base-library/aromas/stale-sweat, ouPerLoad: 400 }

@@ -69,7 +69,7 @@ export default class AromaReading extends Reading {
     let body = Mml.compose``;
     for (const [i, n] of signal.notes.entries()) {
       const figure = this.bracketed(Quantity.of(n.ou, 'OU'), band, seed + i);
-      body = Mml.compose`${body}  ${Aroma.phraseOf(n.word)}: ${figure}\n`;
+      body = Mml.compose`${body}  ${Aroma.phraseOf(n.aroma)}: ${figure}\n`;
     }
     this.report(context, body);
   }
@@ -84,7 +84,7 @@ export default class AromaReading extends Reading {
           ? modality.signalAt(target as Stuff & Container)
           : null;
     const first = read();
-    for (const note of first?.notes ?? []) Aroma.resolve(note.word);
+    for (const note of first?.notes ?? []) Aroma.resolve(note.aroma);
     await Aroma.settling();
     return read() ?? Smell.ZERO;
   }

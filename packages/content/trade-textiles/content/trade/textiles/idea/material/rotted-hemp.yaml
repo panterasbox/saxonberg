@@ -2,7 +2,7 @@
 # is into the fiber itself. Grey, weak, short, and no way back.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: retting, strength: 3000 }]
+  smells: [{ aroma: /base-library/aromas/retting, strength: 3000 }]
   name: rotted hemp
   keywords: [hemp, rotted-hemp, rot, slime, ruin, rotted]
   appearance: grey slimy rotted hemp

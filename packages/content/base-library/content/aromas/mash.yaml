@@ -1,4 +1,3 @@
 # Warm wet grain and sugar.
-word: mash
-parent: grain
+parent: /base-library/aromas/grain
 discipline: malting

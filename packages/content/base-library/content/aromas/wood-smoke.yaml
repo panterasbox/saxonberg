@@ -1,4 +1,3 @@
 # Smoke off a wood fire.
-word: wood-smoke
-parent: smoke
+parent: /base-library/aromas/smoke
 discipline: silviculture

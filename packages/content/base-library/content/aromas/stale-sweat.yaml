@@ -1,4 +1,3 @@
 # Sweat left on skin and cloth for bacteria to work on.
-word: stale-sweat
-parent: sweat
+parent: /base-library/aromas/sweat
 liking: { peak: 1.5, width: 2, valence: -1 }

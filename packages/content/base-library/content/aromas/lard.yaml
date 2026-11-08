@@ -1,4 +1,3 @@
 # Rendered pig fat.
-word: lard
-parent: fat
+parent: /base-library/aromas/fat
 discipline: cooking

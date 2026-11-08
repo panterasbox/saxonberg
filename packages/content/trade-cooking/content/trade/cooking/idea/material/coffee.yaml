@@ -1,7 +1,7 @@
 # Coffee — cooking's (the brew is a hearth's). The base-library row retires in phase 5. Tag `coffee`.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: coffee, strength: 1000 }]
+  smells: [{ aroma: /base-library/aromas/coffee, strength: 1000 }]
   name: coffee
   keywords: [java, coffee, brew]
   appearance: "dark, steaming coffee"

@@ -9,7 +9,7 @@
 # and the cure is a heat transition on THAT row (ceramics M1).
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: rubber, strength: 60 }]
+  smells: [{ aroma: /base-library/aromas/rubber, strength: 60 }]
   name: raw rubber
   keywords: [rubber, "raw rubber", gum, caoutchouc]
   appearance: tacky, weeping raw rubber, stiff in the cold

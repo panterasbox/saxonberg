@@ -14,7 +14,7 @@
 # the file ships with the trade that rears it (the honeybee's precedent).
 class: /platform/idea/species/Species
 data:
-  smells: [{ word: silkworm, strength: 10 }]
+  smells: [{ aroma: /base-library/aromas/silkworm, strength: 10 }]
   binomial: Bombyx mori
   commonNames: ["silkworm", "silkworms", "silk moth"]
   _bodyPlanPath: /stuff/idea/species/BodyPlan/sessile

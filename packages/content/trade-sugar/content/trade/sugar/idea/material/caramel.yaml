@@ -2,7 +2,7 @@
 # colour for a dark rum and a bitter edge in a cake.
 extends: /trade/sugar/idea/material/raw-liquor
 data:
-  smells: [{ word: caramel, strength: 500 }]
+  smells: [{ aroma: /base-library/aromas/caramel, strength: 500 }]
   name: caramel
   keywords: [caramel, burnt-sugar]
   appearance: dark amber and smoking, smelling of burnt toffee

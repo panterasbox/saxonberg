@@ -3,7 +3,7 @@
 # every stigma pulled by hand.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: saffron, strength: 800 }]
+  smells: [{ aroma: /base-library/aromas/saffron, strength: 800 }]
   tastes: [{ type: bitter, amount: 0.1 }]
   name: saffron
   keywords: [threads, saffron]

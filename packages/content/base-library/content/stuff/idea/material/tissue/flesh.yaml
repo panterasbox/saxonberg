@@ -7,7 +7,7 @@
 # populates `biologicalSource`.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: raw-meat, strength: 60 }]
+  smells: [{ aroma: /base-library/aromas/raw-meat, strength: 60 }]
   name: flesh
   keywords: [flesh]
   density: 1060

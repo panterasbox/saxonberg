@@ -11,8 +11,8 @@
 # the tag and a cask of grain spirit would mature into malt whisky.
 class: /platform/idea/material/OdorousConsumableMaterial
 data:
-  smells: [{ word: spirit, strength: 800 }]
-  burning: [{ word: smoke, strength: 3 }]
+  smells: [{ aroma: /base-library/aromas/spirit, strength: 800 }]
+  burning: [{ aroma: /base-library/aromas/smoke, strength: 3 }]
   tastes: [{ type: bitter, amount: 0.01 }]
   name: grain spirit
   keywords: ["grain spirit", "grain new-make", grain, spirit]

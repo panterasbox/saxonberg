@@ -7,7 +7,7 @@
 # enforced by a check, it is enforced by the recipe's input not existing.
 class: /platform/idea/material/OdorousMaterial
 data:
-  smells: [{ word: dough, strength: 100 }]
+  smells: [{ aroma: /base-library/aromas/dough, strength: 100 }]
   tastes: [{ type: salty, amount: 10 }, { type: sour, amount: 1 }]
   name: proofed dough
   keywords: [dough, proofed, risen, sponge]

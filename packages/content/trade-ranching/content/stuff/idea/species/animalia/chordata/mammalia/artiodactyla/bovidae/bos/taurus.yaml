@@ -13,7 +13,7 @@
 # two species rather than by a rule about either.
 class: /platform/idea/species/Species
 data:
-  smells: [{ word: cattle, strength: 20 }]
+  smells: [{ aroma: /base-library/aromas/cattle, strength: 20 }]
   binomial: Bos taurus
   commonNames: ["cow", "cattle", "heifer", "bull", "calf", "ox", "beast"]
   _bodyPlanPath: /stuff/idea/species/BodyPlan/quadruped

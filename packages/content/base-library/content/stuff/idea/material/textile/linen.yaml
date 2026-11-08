@@ -16,7 +16,7 @@
 # plant fibre from a protein one.
 class: /platform/idea/material/OdorousMaterial
 data:
-  burning: [{ word: paper-smoke, strength: 300 }]
+  burning: [{ aroma: /base-library/aromas/paper-smoke, strength: 300 }]
   name: linen
   keywords: [flax, linen]
   # ⚠ A material must not assert a CONSTRUCTION. Linen is the fibre;
