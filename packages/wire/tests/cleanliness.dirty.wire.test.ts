@@ -619,7 +619,13 @@ suite('⭐ drive 15 — the byre fouls with its herd, and is mucked out (AC 17)'
     const floor = await examine(s, 'floor');
     expect(floor, `the byre floor: ${floor}`).toMatch(/manure|dung|filthy|soiled/i);
     await act(s, 'sweep with broom');
-    const heap = await mine(s, 'muck');
+    // ⚠ Polled, as drive 4's sweepings are: the heap is minted after the
+    // engagement completes, so the first read can land before it.
+    let heap = '';
+    for (let i = 0; i < 10 && !/muck|manure|dung/i.test(heap); i++) {
+      if (i > 0) await new Promise((res) => setTimeout(res, 1_000));
+      heap = await mine(s, 'muck');
+    }
     expect(heap, `the heap: ${heap}`).toMatch(/muck|manure|dung/i);
     s.close();
   }, 300_000);
