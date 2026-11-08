@@ -755,7 +755,10 @@ suite('20. butter fries roots at the cookhouse, as a fat', () => {
     await doing(k, 'get butter-crock');
     await goTo(COOKHOUSE);
     await untilHour(12);
-    // The cookhouse oven is cold until somebody feeds it.
+    // The cookhouse oven is cold until somebody feeds it. ⚠ Its cordwood is
+    // shared with every file that cooks there (cooking, food-safety,
+    // cleanliness each take a log), so bring one, as cleanliness does.
+    await mint(COOKHOUSE, '/stuff/thing/items/dry-log');
     await act(k, 'get log');
     // ⚠ Fuel first: `stoke log into oven` (the view's own help says
     // `stoke hearth with charcoal`, which binds the charcoal as the fire).
@@ -830,6 +833,10 @@ suite('26. a cow left unmilked dries off; back in the book she rests; then she i
     const cow = await read(k, 'look cow');
     note(`look cow (redrafted at once) → ${cow}`);
     expect(cow).toMatch(/dried off/i);
+    // Back in the book: left out, she stands in the byre beside 22–23's
+    // number 3, `milk cow` binds the first of the two — her, dry — and the
+    // stranger's pail is empty (the W10/W11 red).
+    await doing(k, 'return cow');
   });
 
   // ⛔ Four days' rest is a SPAN step: back in milk after the rest lives
