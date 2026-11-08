@@ -110,8 +110,8 @@ describe('static and live are different KINDS of answer', () => {
    *
    * A live room card tracks **its own room** — someone walks in and it
    * shows, with no refresh touched. It does **not** follow the viewer:
-   * your own movement is not a change to the room you left, it is a new
-   * card, and the old one is demoted to a snapshot.
+   * your own movement is not a change to the room you left — a look at
+   * the new room rebinds the `here` card to it (client-surface D10).
    *
    * ⚠⚠ This test used to assert the opposite — move the avatar, expect
    * the card to become the new room. That was the defect written down

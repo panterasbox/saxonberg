@@ -47,6 +47,7 @@ import { CallSecurity } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
+import { MixinApi } from '../../api/mixin';
 
 /** Where, by whom and when a piece of matter was taken. */
 export interface Sampling {
@@ -149,10 +150,7 @@ export function SampledMixin<TBase extends MixinConstructor>(Base: TBase) {
      * and is why merging cannot launder provenance.
      */
     public onMerged(absorbed: Stuff): void {
-      const lot = absorbed as unknown as SampledMixin;
-      const theirs = typeof lot.getSampling === 'function'
-        ? lot.getSampling()
-        : null;
+      const theirs = MixinApi.isSampled(absorbed) ? absorbed.getSampling() : null;
       const mine = this.getSampling();
       const same =
         (mine === null && theirs === null) ||

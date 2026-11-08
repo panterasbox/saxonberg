@@ -25,6 +25,7 @@ import {
   decomment,
   CLOSED_BY_DESIGN,
   CLOSED_VOCABULARY_CEILING,
+  MIGRATING,
 } from '../check-closed-vocabularies';
 
 /** A throwaway source tree the scanner can walk. */
@@ -46,6 +47,14 @@ describe('the ratchet invariant', () => {
     const counted = scan().filter((v) => !(v.name in CLOSED_BY_DESIGN));
     expect(counted.length).toBeLessThanOrEqual(CLOSED_VOCABULARY_CEILING);
     expect(CLOSED_VOCABULARY_CEILING).toBeGreaterThan(0);
+    // Every list that stays names where it is going, and none of those is
+    // also claimed to be closed by nature.
+    for (const v of counted) {
+      if (v.name in MIGRATING) expect(MIGRATING[v.name]).toMatch(/^docs\/slates\//);
+    }
+    for (const name of Object.keys(MIGRATING)) {
+      expect(CLOSED_BY_DESIGN).not.toHaveProperty(name);
+    }
   });
 
   it('every declared exemption carries a reason that is a claim', () => {

@@ -2,16 +2,36 @@
 #
 # ⭐⭐ A LOOKOUT is a seat, not a verb (maritime D13): whoever holds
 # `lookout` here ON SHIFT sees from the masthead, and everyone else from
-# the deck — so `appoint` makes her see further with nothing about her
+# the deck — so `house appoint` makes her see further with nothing about her
 # having changed. A hired watchman is a wage and a seat, not a second
 # player.
-class: /platform/idea/Business
+class: /platform/idea/PersistentBusiness
 data:
   name: "the Hesper's company"
+  # ⭐ She is owned by this company, and this company by its cap table
+  #: the Greywater Line owns her outright. Whoever holds a MAJORITY of the table
+  # appoints her master (`kind: owners`) — an organization holder through
+  # its own authority. Her register entry names this company as her owner;
+  # `read register` at the harbor office shows the table beside it, and
+  # `title transfer <n> shares of <her> …` moves its units.
   appointingAuthority:
-    kind: office
-    office: prime-minister
+    kind: owners
+  capTable:
+    units: 64
+    transfer: free
+    rows:
+      - holder: { kind: organization, path: /world/terminus/harbor/line/idea/office, name: the Greywater Line }
+        units: 64
   positions:
+    # ⭐ Her master: whoever holds this seat takes her helm
+    # and answers for her at the harbor office. Nobody is rostered — the
+    # line lets her by charter (her hold's book), and a charterer is her
+    # master until she next berths; the line may appoint one.
+    - key: master
+      noun: master
+      label: in command of her
+      wageRate: 5
+      headcount: 1
     - key: lookout
       noun: lookout
       label: at the masthead

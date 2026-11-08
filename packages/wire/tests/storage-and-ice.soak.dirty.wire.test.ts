@@ -106,7 +106,7 @@ let harvestPrice = Number.NaN;
 /** Re-home the drive's character at `path` (see the climate drive's note). */
 async function goto(path: string): Promise<void> {
   k.close();
-  k = await Session.open(handle, { startLocation: path, wizard: true });
+  k = await Session.open(handle, { startLocation: path });
   await k.drainProse();
 }
 
@@ -212,7 +212,13 @@ function iceKg(gauge: string): number {
 
 /** Into the ROOM, by the founder, who holds the title. */
 async function cloneHere(where: string, path: string): Promise<void> {
-  const f = await Session.open('founder', { startLocation: where, wizard: true });
+  // `clone` asks title over the KIND's path: the bole is the Minister of
+  // Trade's (the founder's office); the glowcap is Rejection's, and the
+  // founder sits on no committee by default (wizard-axis D13).
+  const f = await Session.open('founder', {
+    startLocation: where,
+    committees: ['/world/terminus/rejection'],
+  });
   try {
     expectOk(await f.cmd(`clone ${path} --here`));
   } finally {
@@ -246,7 +252,7 @@ async function counterPrice(): Promise<number> {
 beforeAll(async () => {
   handle = uniqueHandle('cutter');
   // A funded account: the counter and the fee want money.
-  const bank = await Session.open(handle, { startLocation: BANK_HALL, wizard: true });
+  const bank = await Session.open(handle, { startLocation: BANK_HALL });
   expectOk(await bank.cmd('bank open'));
   const gov = await Session.open('founder', { startLocation: BANK_HALL });
   try {
@@ -257,10 +263,10 @@ beforeAll(async () => {
   bank.close();
   // ⚠ Run 2: the founder may not `clone` fishing tackle (it is the
   // trade's title); a rod is bought, as anyone gets one.
-  const store = await Session.open(handle, { startLocation: GENERAL_STORE, wizard: true });
+  const store = await Session.open(handle, { startLocation: GENERAL_STORE });
   for (const good of ['rod', 'worm']) expectOk(await store.cmd(`buy ${good}`));
   store.close();
-  k = await Session.open(handle, { startLocation: SHORE, wizard: true });
+  k = await Session.open(handle, { startLocation: SHORE });
   // ⭐ Noon: every outdoor reading here is made in daylight.
   const sec = (await worldClockNow()) % DAY;
   const toNoon = sec <= 12 * 3600 ? 12 * 3600 - sec : DAY + 12 * 3600 - sec;
@@ -351,9 +357,9 @@ suite.skipIf(!isOwnedTestWorld())('storage-and-ice — the drive', { timeout: 90
     expect(ground, ground).toMatch(/scraped patch/i);
   });
 
-  it('⭐ 6. mark the field: the grid is scored', async () => {
-    const said = await say('mark');
-    console.info(`  mark: ${said.slice(0, 200)}`);
+  it('⭐ 6. groove the field: the grid is cut', async () => {
+    const said = await say('groove');
+    console.info(`  groove: ${said.slice(0, 200)}`);
     const ground = await k.prose('look ground');
     expect(ground, ground).toMatch(/marked grid/i);
   });
@@ -384,7 +390,7 @@ suite.skipIf(!isOwnedTestWorld())('storage-and-ice — the drive', { timeout: 90
     console.info(`  fish (hole): ${refusal(fishAgain)} — ${again.slice(0, 160)}`);
     expect(again, again).not.toMatch(/frozen|through the ice/i);
     // A second scraped patch for the reading after the cold (drive 5):
-    // `mark` took the first one for its grid.
+    // `groove` took the first one for its grid.
     await say('scrape');
     const swim = await k.cmd('swim');
     console.info(`  swim (into the channel): ${refusal(swim)} — ${(await swim.said()).slice(0, 160)}`);
@@ -451,8 +457,8 @@ suite.skipIf(!isOwnedTestWorld())('storage-and-ice — the drive', { timeout: 90
     // ⭐ The house BUYS a cutter's block (the review): back out for a
     // second block, and sell it — the bid paid into the account, the block
     // onto the stack on the house's claim.
-    // ⚠ No second `mark`: a grid survives a cut (the cut takes one block's
-    // area), and a `mark` here would grid the patch step 8 scraped for the
+    // ⚠ No second `groove`: a grid survives a cut (the cut takes one block's
+    // area), and a `groove` here would grid the patch step 8 scraped for the
     // day-11 reading.
     await goto(SHORE);
     expectOk(await k.cmd('north'));
@@ -579,7 +585,7 @@ suite.skipIf(!isOwnedTestWorld())('storage-and-ice — the drive', { timeout: 90
   });
 
   it('⭐ 14. a second character with no claim takes a block off the stack: no receipt changes', async () => {
-    const thief = await Session.open(uniqueHandle('thief'), { startLocation: HOUSE, wizard: true });
+    const thief = await Session.open(uniqueHandle('thief'), { startLocation: HOUSE });
     try {
       const r = await thief.cmd('get block from stack');
       const said = await r.said();

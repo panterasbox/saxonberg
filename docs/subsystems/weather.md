@@ -350,7 +350,8 @@ point** (water build). Weather is already a pure function of time, so a
 window can be *integrated* rather than polled: the walk visits each
 whole weather segment the window covers, prorates the two partial
 segments at the ends, and multiplies each segment's type by
-`PRECIPITATION_RATES_MM_PER_HOUR` (rain 0.3, storm 1.2, snow 0.25). It
+`PRECIPITATION_RATES_MM_PER_HOUR` (rain 1.5, storm 4, snow 0.8 mm/h —
+see [the rainfall calibration](#the-rainfall-calibration)). It
 returns a `PrecipitationIntegral` of `{liquid, frozen, coveredS}` — the
 liquid/frozen split is what lets snow accumulate rather than soak in.
 
@@ -364,6 +365,53 @@ bounded work; when the cap bites it walks the window's **tail** and says
 so in `coveredS`, which is never silently zero — an inverted or empty
 window reports `0` covered beside zero quantities, and that is a
 different statement from *"it did not rain"*.
+
+### The rainfall calibration
+
+*(cover build B42, 2026-10-30 — farming was its first consumer.)* How
+much it rains is two dials multiplied: **intensity** (the rate table)
+and **frequency** (how often `TRANSITIONS` × `SEASON_BIAS` × the anchor
+reach `rain`/`storm`/`snow`). Lens 1 decided both: each must be a number
+a student could check against the world.
+
+- **Intensity** — `rain` 1.5 mm/h (steady light-to-moderate rain; the
+  AMS calls under 2.5 light), `storm` 4 (a heavy downpour), `snow` 0.8 of
+  water (~8 mm of fresh snow an hour). A wet segment rains at that rate
+  for its whole six hours.
+- **Frequency** — an overcast sky turns to rain one time in ~9
+  (`overcast → rain` 1.2 of 10.2) and a rain spell breaks more often than
+  it persists (`rain → rain 2 · overcast 4 · storm 2 · clear 2`); the
+  season leans are gentle (`rain` spring 1.1 · summer 1.2 · fall 1.2 ·
+  winter 0.6; winter `snow` 1.5, down from 4, which at the new rate
+  buried a sea-level valley at 42° under metres a winter).
+
+Measured over three game years at an **unleaned** temperate locality
+(`terminus/hearts-delight`, site 42° · 35 m · continentality 0.5):
+
+| | before (0.3/1.2/0.25) | after |
+|---|---|---|
+| rain+storm segments | spring 20% · summer 12% · fall 12% · winter 6% | spring 6.5% · summer 5.1% · fall 5.7% · winter 1.7% |
+| snow segments, winter | 19% | 9% |
+| spring mm/day (liquid + snow) | 2.06 + 0.17 | 3.06 + 0.18 |
+| summer | 1.63 | 2.39 |
+| fall | 1.05 + 0.25 | 2.36 + 0.66 |
+| winter | 0.07 + 1.80 | 0.10 + 2.64 |
+| **year** | **1.20 + 0.56 ≈ 630 mm** | **1.98 + 0.87 ≈ 1,030 mm** |
+
+Clear, overcast and fog are still ~90% of what a player sees. The
+realm's other unleaned localities land within ~15% (`terminus/eternal`
+1,200 mm; no locality and no site 1,090 mm). ⭐ **Winter's water is
+mostly snow at 42°**, and a field takes only the liquid half
+(soil.md § winter) — the pack melts into the rivers, not the beds, so a
+field's spring reserve is spring's rain.
+
+A lean is a multiplier on frequency, so it re-tunes with the base:
+Waponi's wet tropical lean went `rain 8 · storm 3 · clear 0.5` →
+`rain 1.6 · storm 1.3 · clear 0.7` to stay ≈6.8 mm a day at its own site
+(30°, sea-coast; it was ≈5.9 before — the old lean on the new rates
+would have been ~14). `Precipitation.test.ts` and
+`WeatherLogic.phase.test.ts` pin the annual total in a 700–1,600 mm band
+and the wet share of segments under 15%.
 
 ⚠ **A scope-tier pin does not reach the integral.** The walk is keyed by
 `Locality`, so it sees a Locality-tier `WeatherPin` (every segment forced

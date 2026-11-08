@@ -46,6 +46,12 @@ import { AppApi } from '../../api/app';
 import { WorldClockApi } from '../../api/worldclock';
 import { AppSettingKeys } from '../config/AppSettings';
 import { Grade } from '../craft/Grade';
+import { ScheduleApi } from '../../api/schedule';
+
+/** Soaked past this (the `soaked` band), a weak-wet material gives way. */
+const SODDEN_AT = 0.8;
+/** A material that keeps less than this share of its strength wet is weak wet. */
+const WEAK_WET = 0.5;
 
 /**
  * A body's flaw kinds. ⭐ A casting's two faults are kinds of their own
@@ -54,7 +60,7 @@ import { Grade } from '../craft/Grade';
  * that froze last with nothing to feed it; `blowhole` is a damp mould's
  * steam through the metal (B104 — it was a baked grade and baked prose).
  */
-export type FlawKind = 'dunt' | 'crack' | 'misrun' | 'shrinkage' | 'blowhole' | 'check';
+export type FlawKind = 'dunt' | 'crack' | 'misrun' | 'shrinkage' | 'blowhole' | 'check' | 'holed';
 
 /** A flaw in a body — a dunt from a heat shock, a crack, a casting fault. */
 export interface Flaw {
@@ -105,6 +111,8 @@ const DAMAGE_PENALTY: Readonly<Partial<Record<FlawKind, number>>> = {
   dunt: 0.3,
   crack: 0.5,
   check: 0.15,
+  // ⭐ A hole stove in a hull: a boat leaks through it.
+  holed: 0.5,
 };
 
 /**
@@ -229,6 +237,7 @@ const FLAW_WORDS: Readonly<Record<FlawKind, string>> = {
     'Where it froze last it is porous, pitted with little shrinkage holes — the metal drew in and nothing fed it.',
   blowhole: 'It is honeycombed with steam holes, where a damp mould blew under the pour.',
   check: 'Fine checks run across its surface where it dried too fast.',
+  holed: 'There is a hole stove in it.',
 };
 
 /**
@@ -272,6 +281,8 @@ export function IntegrityMixin<TBase extends MixinConstructor<Stuff>>(Base: TBas
     };
 
     static fieldMeta: FieldMeta = {
+      // ⭐ Soaked through and given way (paper build): latched, then gone.
+      sodden: { persistent: true },
       // ⭐ The flaws a body carries — a dunt, a crack, a casting fault
       // (ceramics M5). Authorable so a row can ship a cracked bell.
       flaws: { persistent: true, authorable: true, runtimeState: true },
@@ -279,6 +290,44 @@ export function IntegrityMixin<TBase extends MixinConstructor<Stuff>>(Base: TBas
 
     /** See {@link Integrity.getFlaws}. */
     public flaws: Flaw[] = [];
+
+    /** Soaked through and given way; destructs on the next tick. */
+    public sodden = false;
+
+    /** Has this given way in the wet? */
+    public isSodden(): boolean {
+      return this.sodden;
+    }
+
+    /**
+     * @hook ⭐ **The material decides how a good fails in water** (paper
+     * build) — the impact rule's wet twin. A good whose material keeps
+     * little strength wet (paper, board) gives way when soaked through:
+     * latched now, destroyed on the next tick (destroying inside a push is
+     * unsafe — Combustible's burn-through shape), leaving its material's
+     * sodden residue where it was. A container's contents spill by the
+     * shipped destroyed-container rule.
+     */
+    public afterWetted(): void {
+      const self = this as unknown as Stuff;
+      if (this.sodden || !MixinApi.isWet(self) || self.getWetness() < SODDEN_AT) return;
+      const mat = this.body().getMaterial();
+      const strength = mat?.getWetStrength() ?? null;
+      if (mat === null || mat === undefined || strength === null || strength >= WEAK_WET) return;
+      this.sodden = true;
+      const residue = mat.getSoddenTemplate();
+      ScheduleApi.schedule(0, () => {
+        void (async () => {
+          if (self.isDestroyed()) return;
+          const where = MixinApi.isContainable(self) ? self.getContainer() : null;
+          if (residue !== '' && where !== null) {
+            const lump = await StuffApi.clone<Stuff>(residue, undefined, { madeFrom: [self] });
+            if (MixinApi.isContainable(lump)) ContainmentApi.move(lump, where);
+          }
+          StuffApi.destruct(self);
+        })();
+      });
+    }
 
     /** This body's matter — an article is Tangible (`Thing`'s chain). */
     private body(): Stuff & Tangible {
@@ -376,8 +425,12 @@ export function IntegrityMixin<TBase extends MixinConstructor<Stuff>>(Base: TBas
         MixinApi.isFaced(self) &&
         [...self.getCoats('outside'), ...self.getCoats('inside')].some((c) => c.state === 'set');
       const strain = integrityDial(AppSettingKeys.impactShockStrain, 0.0003);
+      // ⭐ A wall that conducts evens itself out before the strain builds
+      // (cordage D29): cast iron stands a boil that would crack a crock.
+      const kRef = integrityDial(AppSettingKeys.impactShockConductivityRef, 1.5);
+      const conducts = Math.max(1, mat.getThermalConductivity().rawValue() / kRef);
       return (
-        ((strain / alpha) * (1 + 10 * porosity)) /
+        ((strain / alpha) * conducts * (1 + 10 * porosity)) /
         Math.max(0.2, 1 - 2 * Math.min(0.4, grog)) *
         (glazed ? 0.7 : 1)
       );

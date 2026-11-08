@@ -1,6 +1,6 @@
 /**
  * TetherEndMixin — ⭐ **the end of a line in somebody's hand** (river W16):
- * a painter, a lifeline, a heaving line. Held, it says what its far end is
+ * a bow line, a lifeline, a heaving line. Held, it says what its far end is
  * made fast to — the boat a walker leads along the bank (lining), the
  * diver below — so the water can follow a boat on a line without
  * importing the mod that makes the line (the diving mod's).

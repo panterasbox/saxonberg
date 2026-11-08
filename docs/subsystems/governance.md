@@ -51,7 +51,7 @@ Three population-shaped concepts, deliberately distinct:
   prescribed by nothing, so it is never minted as an Office. Same
   substrate throughout; the pointer is the law.
 - **Chamber** ([influence.md](./influence.md)) — a population that
-  *falls out of* influence (the Producer / Capital / Consumer Houses),
+  *falls out of* influence (the Labor / Capital / Consumer Houses),
   never "filled". This build models only the Speaker **seats** of those
   houses, not the chamber populations.
 
@@ -102,7 +102,13 @@ because there is nothing to seed.
 
 The founder is the **computed default holder of every office** — the
 Art. XI pool-of-one — so nothing (least of all the live-from-boot money
-system) runs ownerless, with **no dependency on the founder having
+system) runs ownerless. ⛔ **It seats OFFICES, and seats the founder on no
+committee** (owner, 2026-11-05: *"no one should 'sit on every committee'
+not even the founder"*; the `isCommitteeMember` backstop that read it the
+other way was deleted by the wizard-axis cleanup, D18). The regulated
+form of an executive override is the warrant
+([executive-warrant-slate](../slates/builds/executive-warrant-slate.md)) —
+and the default holds with **no dependency on the founder having
 logged in**. The founder is marked by **external credential**, resolved
 through the `User` ↔ `GoogleProfile`/`TwitchProfile` link
 ([identity](../../packages/server/src/mud/lib/identity/)):
@@ -192,13 +198,13 @@ return `[]`, `holderOf` returns `unknown`, and the mutations no-op.
 
 ## The verb
 
-The `office` / `offices` verb (the new `governance` command category —
+The `office` verb (the new `governance` command category —
 controller in `platform/idea/cmd/governance/`, YAML in `cmd/governance/`),
 afforded **universally** on `lib/character/Persona.ts` (every Avatar; the
 `group`-verb precedent — NOT the operator-only `AuthorMixin`, which would
 hide the public roster from non-authors):
 
-- `offices` / `office list` — the **public** roster (any player).
+- `office list` — the **public** roster (any player).
 - `office assign <player> <office>` / `office vacate <office>` — the
   mutating subcommands, each carrying the **`requiresFoundingAuthority`
   subcommand-level validator**. A non-founder sees the verb and the roster
@@ -313,8 +319,9 @@ actually refused — an ordinary command pays nothing for the lookup.
   *generic* "requires office X" validator. ⚠ **The condition this
   deferral named has been met**: the economic bootstrap shipped the
   second office-gated verb, and with it a second hand-written twin
-  (`requiresFinanceMinister` beside `requiresGovernor`). A third copy is
-  the signal to parameterize; what stops it today is that a view's
+  (`requiresFinanceMinister` beside `requiresGovernor`). ⚠ **The third
+  copy has now shipped** — `requiresPrimeMinister`, gating `config`
+  (wizard-axis cleanup, 2026-11-05) — so the signal is met; what stops it today is that a view's
   `validators:` entry is a bare path with nowhere to put the office key,
   so the parameterized form needs a schema change, not just a factory.
 
@@ -348,10 +355,10 @@ never been observed end to end. ⭐ **This is now the highest-value thing
 to fix in governance**: two builds have had to route around it.
 
 ⚠⚠ **It is not governance's alone (2026-10-10, the climate drive).**
-`tell <name>` against a second connected session is refused the same
+`dm <name>` against a second connected session is refused the same
 way — `controller-rejected: insufficient`, zero candidates from the
 `online` scope — by the founder's display name as well as the handle.
-`dm`/`tell`, `contacts` and `wizard` all bind through `scope: "online"`,
+`dm`, `contacts` and `wizard` all bind through `scope: "online"`,
 so direct messages to another player do not work over the wire. The
 climate drive routes its comms check through a channel post instead.
 
@@ -370,7 +377,12 @@ soon as this is fixed.
 (the organization `/compact/trade` holds every `/trade/<x>` and `/stuff*`
 extent — the trade groups are gone) and `registrar-of-corporations` (owns
 each corpo's `<key>-committee` group; the committee appoints the corpo's
-business). The Governor of the Reserve reads and sets `reserve.*` only.
+business). The Governor of the Reserve sets `reserve.*` and the capital
+controls (`reserve set`); the Minister of Finance sets the fisc's dials —
+the taxes, the levies, the Arrival Note's principal, the opening advance
+(`treasury set`); each a deed on the officer's chronicle, each refusing the
+other's keys (app-settings.md § The tiers). The Prime Minister holds
+`config` — every Tier B dial (`requiresPrimeMinister`).
 Committees are title holders, players only — `lint:committees-are-players`
 holds the count at zero. See [credit.md](./credit.md).
 

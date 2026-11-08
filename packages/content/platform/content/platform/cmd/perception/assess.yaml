@@ -1,4 +1,5 @@
 verbs: [assess]
+category: perception
 controller: /platform/idea/cmd/perception/AssessController
 description: "Read a body's condition and wounds"
 help: |

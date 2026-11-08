@@ -25,7 +25,7 @@
  */
 
 import '../../../../../test-bootstrap';
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { VisionModality } from '../VisionModality';
 import Location from '../../../../lib/location/Location';
 import CartesianZone from '../../location/CartesianZone';
@@ -161,5 +161,52 @@ describe('an exit door is seen in the light of the room whose exit carries it', 
   it('a door on some OTHER room’s exit is not seen from here', () => {
     const elsewhere = makeStuff(() => new Door());
     expect(vision().canSee(viewer, elsewhere)).toBe(false);
+  });
+});
+
+/**
+ * ⭐ **What another PERSON wears is seen in the light they stand in**
+ * (#90, client-surface W0). A worn hat's container is its wearer, and the
+ * light inside a body is no light at all — so every stranger's hat read
+ * *"something"* on the card's worn list while `look` named it.
+ */
+describe('a thing on another person is seen in the light they stand in', () => {
+  let room: AmbientRoom;
+  let viewer: Viewer;
+  let wearer: Viewer;
+  let hat: Floor;
+
+  beforeEach(() => {
+    installV1QuantityTagTables();
+    buildAllModalities();
+    const zone = makeStuff(() => new CartesianZone());
+    zone.setCellSize(1);
+    room = makeStuff(() => new AmbientRoom());
+    zone.addLocation(room, 0, 0, 0);
+    room.setAmbientFlux(120);
+    viewer = makeStuff(() => new Viewer());
+    wearer = makeStuff(() => new Viewer());
+    ContainmentApi.move(viewer, room);
+    ContainmentApi.move(wearer, room);
+    hat = makeStuff(() => new Floor());
+    ContainmentApi.move(hat, wearer);
+    vi.spyOn(wearer, 'isAgent').mockReturnValue(true);
+    const realSlotted = MixinApi.isSlotted.bind(MixinApi);
+    vi.spyOn(MixinApi, 'isSlotted').mockImplementation(((x: never) =>
+      x === wearer || realSlotted(x)) as never);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    StuffApi.clearAll();
+  });
+
+  it('⭐ in a lit room the hat is seen', () => {
+    expect(vision().canSee(viewer, hat)).toBe(true);
+  });
+
+  it('⚠ and the room decides — in the dark it is not', () => {
+    room.setAmbientFlux(0);
+    expect(vision().canSee(viewer, hat)).toBe(false);
   });
 });

@@ -159,6 +159,17 @@ describe('drawing from it', () => {
     const bank = shore('/test/bank', [[['river'], 'Brown.'], [['lamps'], 'Iron.']], { river: 'kestrel:confluence' });
     expect(BulkableApi.slotFor(bank, { detailPath: ['lamps'] })?.whyEmpty()).toBe('There is no water in the lamps.');
   });
+
+  it('⭐ a place that cites NO water is no source at all — null, so `drink` and `fill` are not offered on it', async () => {
+    const cabin = shore('/test/cabin', [[['bunk'], 'A narrow bunk.']], {});
+    expect(BulkableApi.slotFor(cabin, undefined)).toBeNull();
+    const { default: anyHasBulkSlot } = await import('../../command/validators/anyHasBulkSlot');
+    expect(anyHasBulkSlot({ stuff: [cabin] } as never, 'water', {} as never)).toMatch(/holds no water/);
+    // …while a bank that cites one is a candidate, and naming a feature still says why.
+    const bank = shore('/test/bank', [[['river'], 'Brown.']], { river: 'kestrel:confluence' });
+    expect(anyHasBulkSlot({ stuff: [cabin, bank] } as never, 'water', {} as never)).toBeUndefined();
+    expect(BulkableApi.slotFor(cabin, { detailPath: ['bunk'] })?.whyEmpty()).toBe('There is no water in the bunk.');
+  });
 });
 
 describe('the host', () => {

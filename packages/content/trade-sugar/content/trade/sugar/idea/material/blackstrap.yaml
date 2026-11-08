@@ -4,6 +4,7 @@
 # lesson. It is the distiller's (dark rum).
 extends: /trade/sugar/idea/material/raw-liquor
 data:
+  smells: [{ aroma: /base-library/aromas/molasses, strength: 600 }]
   name: blackstrap
   keywords: [blackstrap, molasses, treacle]
   appearance: black, bitter and thick as tar

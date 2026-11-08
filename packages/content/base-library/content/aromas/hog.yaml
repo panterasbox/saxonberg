@@ -1,0 +1,4 @@
+# Pig, sharp with skatole.
+parent: /base-library/aromas/animal
+discipline: stockmanship
+liking: { peak: 1.5, width: 2, valence: -1 }

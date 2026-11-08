@@ -12,7 +12,7 @@ import { openWorldAs, runCommand } from './helpers';
  * state**. It also exercises the pole-trim content (`look wires` as a room
  * Detail, the buried manhole) that only exists as rows.
  *
- * ⚠ ONE wizard session that `goto`s the whole route — avatar provisioning is
+ * ⚠ ONE seated session that `goto`s the whole route — avatar provisioning is
  * ~10 s a mint on a loaded box, so minting per-assertion blows the budget; one
  * mint + sequential gotos is both faster and a more honest "walk". Reads the
  * TRANSCRIPT for readings/refusals and the CARD for `look`.
@@ -92,7 +92,7 @@ async function lookFor(
   return body;
 }
 
-/** Teleport (wizard `goto`) and wait for the room card/echo to settle. */
+/** Teleport (a seated `goto`) and wait for the room card/echo to settle. */
 async function goTo(page: Page, path: string, here: RegExp): Promise<void> {
   await sayAwaiting(page, `goto ${path}`, here);
 }
@@ -106,9 +106,16 @@ test.describe('the energy build, in a browser', () => {
     browser,
   }) => {
     test.setTimeout(240_000);
+    // `goto` asks the destination's title: seated on each committee the
+    // route crosses — a seat, not a credential (wizard-axis D13).
     const w = await openWorldAs(browser, 'energy-walk', {
       startLocation: LOBBY,
-      wizard: true,
+      committees: [
+        '/world/terminus',
+        '/world/terminus/mayfield-row/seznick-house',
+        '/world/terminus/hearts-delight',
+        '/world/terminus/hinkley-hills',
+      ],
     });
     const { page } = w;
     try {

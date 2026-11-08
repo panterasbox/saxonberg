@@ -1,11 +1,13 @@
-# The FEED slot, and the STORAGE slot for the farm archetype — the
-# winter feed budget made a place rather than a number. ⚠ It is also
-# where the hay fire lives: a stack put up wet heats, and this is what it
-# heats.
-class: /platform/thing/Thing
+# The yard's hay barn — a STORE since the cover build (W6): the campus's
+# hay goes in here and is forked out to the trough on the home field.
+class: /platform/thing/Vessel
 data:
   shortDescription: hay barn
-  keywords: [barn, hay]
+  keywords: [barn, "hay barn", rick, store]
   register: indefinite
   longDescription: >-
-    An open-sided barn with a stone floor and a roof on posts, stacked to the eaves at one end and empty at the other.
+    An open-sided barn with a stone floor and a roof on posts, a bay for
+    hay at one end and room for a cart at the other.
+  fixedInPlace: true
+  mass: 2000
+  _materialPath: /stuff/idea/material/wood/oak

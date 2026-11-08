@@ -1,18 +1,25 @@
 /**
- * The `work` verb surface — JobController (board-afforded, dispatch-on-
- * subcommand) + FulfillController (self-afforded, travels with the
- * courier), driven as the dispatcher would (actor from context) over the
- * real ContractApi/BankingApi and the shared in-memory harness. Also pins
- * the affordance split (board affords `job` to peers; the wallet update affords
- * `fulfill`) and the help text on both YAML views.
+ * The `job` noun — one controller per subcommand over `JobControllerBase`
+ * (controllers-are-io W7): bare `job` browses, `post` / `claim` /
+ * `complete` / `abandon` work the board the view binds, `fulfill` logs a
+ * delivery at the drop, driven as the dispatcher would (actor from
+ * context, the board bound as the view's `board` default binds it) over
+ * the real ContractApi/BankingApi and the shared in-memory harness. Also
+ * pins the affordance (every character is offered `job`; the board and
+ * the wallet offer nothing of it) and the help text on the view.
  */
 
 import "../../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
-import JobController from "../JobController";
-import FulfillController from "../FulfillController";
+import JobBrowseController from "../JobBrowseController";
+import JobPostController from "../JobPostController";
+import JobClaimController from "../JobClaimController";
+import JobCompleteController from "../JobCompleteController";
+import JobAbandonController from "../JobAbandonController";
+import JobFulfillController from "../JobFulfillController";
+import { PersonaMixin } from "../../../../../lib/character/Persona";
 import JobBoard from "../../../../thing/JobBoard";
 import CredentialWalletUpdate from "../../../CredentialWalletUpdate";
 import { Currency, BankingApi, Money } from "../../../../../api/banking";
@@ -168,11 +175,33 @@ describe("work verbs", () => {
     teardownBankingHarness();
   });
 
-  function job(): JobController {
-    return makeStuff(() => new JobController());
+  /**
+   * The `job` subcommand's own controller, with `board` bound as the
+   * view's default binds it (`reachable:[class.JobBoard]` from the giver)
+   * — a controller test skips the binder, so it does the binder's one job.
+   */
+  const JOB = {
+    browse: JobBrowseController,
+    post: JobPostController,
+    claim: JobClaimController,
+    complete: JobCompleteController,
+    abandon: JobAbandonController,
+  } as const;
+  function job(): { execute(model: Record<string, unknown>, c: CommandContext): Promise<void> } {
+    return {
+      execute(model, c) {
+        const sub = (model.subcommand as keyof typeof JOB | undefined) ?? "browse";
+        const stuff = MqlApi.resolveOne("reachable:[class.JobBoard]", {
+          commandGiver: c.commandGiver as never,
+          scope: "reachable",
+        }).stuff;
+        const bound = stuff ? { raw: "board", stuff } : undefined;
+        return makeStuff(() => new JOB[sub]()).execute({ board: bound, ...model } as never, c);
+      },
+    };
   }
-  function fulfill(): FulfillController {
-    return makeStuff(() => new FulfillController());
+  function fulfill(): JobFulfillController {
+    return makeStuff(() => new JobFulfillController());
   }
 
   async function postGig(
@@ -444,7 +473,7 @@ describe("work verbs", () => {
     expect(BankingApi.escrowBalanceOf(id).minor).toBe(0);
   });
 
-  it("job away from any board refuses; unknown subcommand refuses", async () => {
+  it("job away from any board refuses", async () => {
     const nowhere = makeStuffAtPath(() => new TestRoom(), "/world/test/void");
     ContainmentApi.move(courier, nowhere);
     const lost = ctx(courier);
@@ -454,13 +483,8 @@ describe("work verbs", () => {
     expect(lost.note).toHaveBeenCalledWith(
       expect.objectContaining({ reason: "no-board" }),
     );
-    const weird = ctx(poster);
-    await asGiver(poster, () =>
-      job().execute({ subcommand: "frobnicate" } as never, weird),
-    );
-    expect(weird.note).toHaveBeenCalledWith(
-      expect.objectContaining({ reason: "unknown-subcommand" }),
-    );
+    // (An unknown subcommand never reaches a controller: `CommandApi.assemble`
+    // refuses it, and every `job` subcommand has its own.)
   });
 
   it("bare fulfill refuses with no claim, and with several claims", async () => {
@@ -483,14 +507,14 @@ describe("work verbs", () => {
     );
   });
 
-  it("affordance split: the board affords job; the wallet affords fulfill", () => {
-    // A board standing in the room grants `job` SIDEWAYS to the people
-    // in it — `peers` under the directional model.
-    expect(JobBoard.commandContributions.peers).toContain("platform/cmd/work/job.yaml");
-    expect(JobBoard.commandContributions.self).not.toContain(
-      "platform/cmd/work/fulfill.yaml",
-    );
-    expect(CredentialWalletUpdate.commandContributions.self).toContain(
+  it("affordance: every character is offered `job`; the board and the wallet offer none of it", () => {
+    // ⭐ One source for one view (controllers-are-io W7): `job apply` /
+    // `quit` / `fulfill` bind no board, so the noun is a person's, and the
+    // board is the ARGUMENT the board subcommands bind.
+    const persona = (PersonaMixin as unknown as (b: new () => object) => { commandContributions: { self: string[] } })(class {});
+    expect(persona.commandContributions.self).toContain("platform/cmd/work/job.yaml");
+    expect(JobBoard.commandContributions.peers).not.toContain("platform/cmd/work/job.yaml");
+    expect(CredentialWalletUpdate.commandContributions.self).not.toContain(
       "platform/cmd/work/fulfill.yaml",
     );
     // ⭐ The board is what `job.yaml`'s `board` arg DEFAULTS to — the
@@ -502,8 +526,8 @@ describe("work verbs", () => {
     expect(found).toBe(board);
   });
 
-  it("both YAML views parse and carry help text (the help criterion)", () => {
-    for (const name of ["job", "fulfill"] as const) {
+  it("the view parses and carries help text (the help criterion)", () => {
+    for (const name of ["job"] as const) {
       const raw = readFileSync(
         fileURLToPath(new URL(`../../../../../../../../content/platform/content/platform/cmd/work/${name}.yaml`, import.meta.url)),
         "utf8",

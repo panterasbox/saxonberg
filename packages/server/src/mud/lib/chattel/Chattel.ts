@@ -24,7 +24,7 @@
  * stack's `_chattelId` stays empty and it is owned-by-possession.
  */
 
-import { Mixins, type MixinConstructor, type FieldMeta } from "../mixin";
+import type { MixinConstructor, FieldMeta } from "../mixin";
 import type { Stuff } from "../stuff/Stuff";
 import { CallSecurity, Final, Unshadowable } from "../security/decorators";
 import { SecurityPolicies } from "../security/SecurityPolicies";
@@ -91,6 +91,12 @@ export interface Chattel {
   isStamped(): boolean;
   /** Persisted by its owner rather than its host? (player-stamped only). */
   isOwnerPersisted(): boolean;
+  /**
+   * ⭐ Its room is going dormant, not away: the destruct that follows is
+   * the room's, and the title outlives it. Called only by a persistable
+   * container's destruct cascade.
+   */
+  keepTitleThroughDestruct(): void;
   /** Record where the owner keeps this good (the single write path). */
   setChattelPlace(place: string): Promise<void>;
   /**
@@ -100,23 +106,6 @@ export interface Chattel {
    * derives its title (see ChattelLogic's `derivedMinter`).
    */
   followCustody(arrival?: { fresh: boolean; to: Stuff | null }): Promise<void>;
-  /**
-   * Note who owned what this good was made from (`StuffApi.clone`'s
-   * `madeFrom`) — the title its first arrival derives. Not persisted: it
-   * is read once, on arrival, and the title it yields is what persists.
-   */
-  recordMadeFrom(inputs: readonly Stuff[]): Promise<void>;
-  /** The owner of what this was made from, when they all agree; else null. */
-  getMadeFromOwner(): ChattelOwner | null;
-  /**
-   * ⭐ A PROCESS mint declares whose its output is — a pot's cake, a
-   * mould's cast, a firing's lump — from what went into it (the
-   * communal-oven rule), and `null` means NOBODY: never whoever happened to
-   * be looking when it set. Read once, on arrival, like `recordMadeFrom`.
-   */
-  recordMadeBy(owner: ChattelOwner | null): void;
-  /** Did a process declare this good's maker (even as nobody)? */
-  isMadeByProcess(): boolean;
   /** Establish ownership — mint the durable id and title it to `owner`. */
   stampChattel(owner: Stuff): Promise<ChattelStampResult>;
   /** Transfer ownership — re-stamp to `newOwner` (chain-of-title event). */
@@ -280,35 +269,6 @@ export function ChattelMixin<TBase extends MixinConstructor<Stuff>>(
       return chattelLogic().followCustody(this as unknown as Stuff, arrival);
     }
 
-    /** See {@link Chattel.recordMadeFrom}. */
-    public _madeFromOwner: ChattelOwner | null = null;
-
-    @Final
-    @Unshadowable
-    public async recordMadeFrom(inputs: readonly Stuff[]): Promise<void> {
-      this._madeFromOwner = await chattelLogic().ownerOfInputs(this as unknown as Stuff, inputs);
-    }
-
-    public getMadeFromOwner(): ChattelOwner | null {
-      return this._madeFromOwner;
-    }
-
-    /** See {@link Chattel.recordMadeBy}. */
-    public _madeByProcess = false;
-
-    // ⚠ A declared maker titles a fresh good, so only a process mint may
-    // declare one — a mould setting its cast (a firing hands the mould
-    // its owner through `castInto`).
-    @CallSecurity(SecurityPolicies.FromMixin(Mixins.Mould))
-    public recordMadeBy(owner: ChattelOwner | null): void {
-      this._madeFromOwner = owner;
-      this._madeByProcess = true;
-    }
-
-    public isMadeByProcess(): boolean {
-      return this._madeByProcess;
-    }
-
     /**
      * See {@link Chattel.stampChattel}. Sealed — the chain-of-title
      * invariant lives in the logic singleton and no subclass or shadow
@@ -330,8 +290,34 @@ export function ChattelMixin<TBase extends MixinConstructor<Stuff>>(
       );
     }
 
+    /**
+     * Set by {@link keepTitleThroughDestruct}: this instance dies with a
+     * room going dormant, and its title (and its owner's estate entry,
+     * which names that room) must survive it so the room's next overlay
+     * lays it down again.
+     */
+    private _titleOutlivesThis = false;
+
+    /**
+     * See {@link Chattel.keepTitleThroughDestruct}. ⭐ A
+     * smack slept with a player's oakum in her hold: the hold
+     * was captured, the owned good flushed to its owner's estate, and then
+     * the hold's destruct destructed the oakum and RELEASED its title — so
+     * the estate entry named a good the registry no longer had, and the
+     * next overlay laid nothing down. Every dormant room did the same.
+     */
+    // Only the destruct cascade: `ContainerMixin.cleanupOnDestruct` is a
+    // static run inside `StuffApi.destruct`, so the frame it calls from is
+    // StuffApi's — there is no container instance to name.
+    @CallSecurity(SecurityPolicies.FromModule('/api/stuff#StuffApi'))
+    @Final
+    @Unshadowable
+    public keepTitleThroughDestruct(): void {
+      this._titleOutlivesThis = true;
+    }
+
     public onDestruct(): void {
-      const id = this._chattelId;
+      const id = this._titleOutlivesThis ? '' : this._chattelId;
       if (id) {
         void import("../../api/chattel")
           .then(({ ChattelApi }) => ChattelApi.release(id))

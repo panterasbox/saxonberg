@@ -33,7 +33,7 @@ Cross-references:
 | `ExitableVessel` | concrete class | A Vessel you can enter. `onCreate(DoorBearingMixin(ExitableMixin(AdornableMixin(AtmosphericMixin(Vessel)))))` — it composes `Adornable` itself (the fixture surface the Door→`BoundaryAnchor` retrofit needs), since the bare `Vessel` base no longer does, and ⭐ **`Atmospheric` too, since the base-class narrowing build: a thing you can go inside is a place with air** (see [biome.md](./biome.md)). Carries the authored `interiorVolume` the envelope runs on, and overrides `envelopeApplies` + `openExteriorOpenings` because a room's version of each is wrong about a vehicle. Synthesizes `'in'`/`'out'` exits. Migrates the `(vessel, environment)` Boundary anchor pair on `setDoor` / `onMoved`, and resets the weather-locality memo there — a place that goes places has a new address. |
 | `DoorBearingMixin` | mixin | Adds a `door: Door | null` field for hosts whose exits are synthesized rather than authored (`ExitableVessel`). Constrained to `Stuff & Exitable`. |
 | `Door` | concrete `Thing` subclass | `LockableMixin(SealableMixin(Boundary))`. Shared open/closed state, plus a **keyway and a bolt**, referenced by exit pairs. Implements all five conduits — `LightConduit`, `LineOfSight`, `MovementConduit`, `SmellConduit`, `SoundConduit` — all gated on `isOpen()`. `attachedTo: Set<Exit>` is the runtime back-reference. |
-| `SwitchableMixin` | mixin | Generic binary on/off toggle (`isOn()` / `setOn()`, `switchOn()` / `switchOff()`). The Sealable of the electrical world — a wall switch, a machine, the crossing `Beacon`. Driven by the `switch` / `toggle` verb (in the `device` category). Registered as `Switchable`, `MixinApi.isSwitchable`. |
+| `SwitchableMixin` | mixin | Generic binary on/off toggle (`isOn()` / `setOn()`, `switchOn()` / `switchOff()`). The Sealable of the electrical world — a wall switch, a machine, the crossing `Beacon`. Driven by the `switch` verb (in the `device` category). Registered as `Switchable`, `MixinApi.isSwitchable`. |
 | `LockableMixin` | mixin | ⭐ **A keyway AND a bolt** (`lib/boundary/Lockable.ts`), composed onto `Door` **beneath** `Sealable` and onto the three keyed Exit subclasses. The bolt is `isLocked()` / `setLocked()` / `lock()` / `unlock()`; the keyway is `getLock()` / `opensFor(mover)` over `lib/lock/Lock`. `canPass = !isLocked() || opensFor(mover)`, so a key-holder passes a locked door and `unlock` is how you let everyone else through. `getLock()` is a policy seam (the keyed family reads its warren's keyway) and `boltedByDefault()` decides the starting state. Registered as `Lockable`, `MixinApi.isLockable`. |
 | `BistateMixin` | mixin (unregistered) | The shared guarded-boolean substrate under `Sealable` (open/closed), `Switchable` (on/off), and `Foldable` (folded/unfolded). One persisted boolean + a `typeof`-boolean guard, reached via protected `getState()` / `setState(value, label)`. Lives at the `lib/` root (`lib/Bistate.ts`), NOT in `lib/boundary/`. **Deliberately carries no `_mixinName` and is not in the `Mixins` registry** — shared implementation, not a queryable capability; consumers narrow on the concrete axis (`isSealable` / `isSwitchable` / `isFoldable`), never an `isBistate`. |
 | `AdornableMixin` | mixin | Container-side surface for non-portable attached Stuff (`getFixtures()` parallel to `getContents()`). Composed onto `Location` and `ExitableVessel` (not the bare `Vessel` base — every fixture consumer narrows on `MixinApi.isAdornable` first). |
@@ -98,6 +98,20 @@ Carries:
   media (climb/swim/fly) and wheeled conveyance still require an explicit
   `media` declaration, so old content stays backcompat-safe. See
   [locomotion.md](./locomotion.md#exitmedia).
+
+⭐ **An exit is a thing you can name and look at** (harbors review 3).
+`Exit` composes `Visible` + `Perceptible` over `Concealable`, and MQL
+binds a direction to the EXIT itself — there is no `via.exit`. Its name
+is its direction (`presentationPhrase`) and its keywords are the authored
+ones plus its direction plus its short forms (`n`, `u` — `getKeywords`,
+reading `NavigationApi.shortFormsOf`) — both ⚠ **derived**, and named so
+on the methods. MQL reads an exit only through that interface; `go n`
+binds the north exit because the exit answers to `n`. It describes itself: an authored `longDescription`
+(the berth way's *"A gangway runs up to {{ ship }}'s deck."*), else
+`plainWay()` — *a way north; the oak door is closed* — which never names
+the far side (the map's evidence firewall). A verb that needs the door
+on a way reaches it through `MqlApi.effectiveTarget`; `Stuff.isExit()`
+is how a reader asks, since `Exit` sits on the locomotion import graph.
 
 ### `Exit.hidden` — subsumed into the concealment gate
 
@@ -176,6 +190,19 @@ a key check vs. a reachability check). Consumers: the dorm's `DormDoor`
 [residence.md](./residence.md) — and `obj/LotGateExit` (a sold lot's
 yard, hung on the street by `PlatWarren`; see
 [smallholding.md](./smallholding.md)).
+
+⭐ **A ship's two ways** (harbors) are `DeferredDestinationExit`s too,
+both `LockableMixin` over it: `BerthExit` (`platform/idea/BerthExit`,
+the `exits/berth` row) is the way aboard the ship herself puts on the
+landing she makes fast at, named for her (`go hesper`), and gone when
+she casts off; `AshoreExit` (on her entrance) leads to the landing she
+lies at. Both read her gangway's lock (`lock ashore`, `unlock hesper`);
+asleep, the berth way reads the lock she was left with. Both answer
+`isMapped() → false` — a way that comes and goes with a ship is never
+written to a map. There is no third derived *alongside* way (the
+`AboardExit` that maritime derived was deleted): `Exit.alongsideNow()`
+on the berth way answers her while she stands and lies at that landing.
+See [ship.md](./ship.md).
 
 `LotGateExit` is the case where the eager path is **exact** rather than a
 class name: each lot's room is minted at its own identity, so the stored
@@ -1036,11 +1063,11 @@ the noun form (`on`); only the predicate getter takes the `is` prefix.
 Reads naturally at every site: `beacon.setOn(true)`, `beacon.isOn()`,
 `data: { on: true }`.
 
-The global `switch` / `toggle` verb (`cmd/device/switch.yaml` +
+The global `switch` verb (`cmd/device/switch.yaml` +
 `platform/idea/cmd/device/SwitchController.ts` — the **`device` category**, not
 `boundary`) targets any `Switchable` in reach rather than a specific
-class: `switch beacon on`, `switch lamp off`, or `toggle lamp` to flip to
-the opposite of its current state.
+class: `switch beacon on`, `switch lamp off`, or a bare `switch lamp` to
+flip it (the `toggle` word is deleted: one view, one word).
 
 The shipped consumer is the crossing's `Beacon` (`obj/Beacon.ts`, a
 `Switchable(Propertied(Thing))` pedestrian signal — on = WALK,
@@ -1057,7 +1084,7 @@ idempotent action verbs — differing **only** by name. The one genuinely
 shared piece, the guarded boolean, is factored into `BistateMixin`
 (`lib/Bistate.ts`, at the `lib/` root because the concept spans
 spatial / boundary / slot with no single subsystem home — the
-`lib/reserve.ts` precedent). Each toggle mixin is then a thin naming
+`lib/reserve/Reserved.ts` precedent). Each toggle mixin is then a thin naming
 layer: `class SwitchableMixin extends BistateMixin(Base)` casting `this`
 to the internal `BistateInternal` (`getState()` / `setState(value,
 label)`) shape.
@@ -1118,6 +1145,11 @@ shared **`BistateMixin`** base (`lib/Bistate.ts`) was extracted in
 `17add9a5` — superseded by build-3's `lib/lock/` real `Lock`+`Key`
 model; the keyed-credential lock is the future, and this boolean is to be
 retired (not grown) at reconcile.
+
+The harbors build (MR !511) added `BerthExit`/`AshoreExit` (P4–P6), made
+both unmapped in review round 1 (`4cce826da`), and made an exit a Visible
+thing MQL binds directly (review 3); master's `AboardExit` stayed deleted
+at the paint merge (`5cfd1a5db`).
 
 ## Cross-References
 

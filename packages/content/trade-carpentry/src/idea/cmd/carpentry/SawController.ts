@@ -64,7 +64,7 @@ import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { GrammarApi } from '@saxonberg/server/mud/api/grammar';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
-import Bole, { TIMBER_MASS_KG } from '@saxonberg/content-trade-forestry/src/thing/Bole';
+import type { SawRefusal } from '@saxonberg/server/mud/lib/craft/Cuttable';
 import Sawmill from '../../../thing/Sawmill';
 
 const TOPIC = 'act.deed';
@@ -163,21 +163,26 @@ export default class SawController extends ManualBuildController<SawModel> {
     }
     const quarter = model.quarter === true;
 
-    const charge = chargeOf(log);
-    if (charge === null) {
-      this.turnDown(
-        context,
-        'not-sawable',
-        Mml.compose`${Mml.thing(log)} is not wood in the round. A felled bole, a length off one or a billet goes on a saw.`,
-      );
-      return;
+    // ⭐ The log's own cut first (`CuttableMixin.cutPlan`, verb `saw` —
+    // controllers-are-io D8c): a bole answers its charge (one green length)
+    // and the take, and refuses when it is spent. A piece with no saw cut of
+    // its own (`not-cuttable`, or not cuttable at all) is weighed as it is.
+    let charge: Charge | null = null;
+    let take: SawJob['take'] = null;
+    if (MixinApi.isCuttable(log)) {
+      const out = await log.cutPlan({ verb: 'saw', actor: giver, tools: [saw], raw: null, length: null, options: {} });
+      if (out.verb !== 'saw') throw new Error(`SawController: asked 'saw', answered '${out.verb}'`);
+      if (out.ok) {
+        charge = out.facts;
+        take = out.onComplete;
+      } else if (out.reason !== 'not-cuttable') {
+        this.turnDown(context, out.reason, SawController.refusalWords(out, log));
+        return;
+      }
     }
-    if (log instanceof Bole && log.getLengthsLeft() <= 0) {
-      this.turnDown(
-        context,
-        'bole-spent',
-        Mml.compose`There is nothing left in ${Mml.thing(log)} but the butt.`,
-      );
+    if (take === null) charge = chargeOf(log);
+    if (charge === null) {
+      this.turnDown(context, 'not-sawable', SawController.refusalWords({ ok: false, reason: 'not-sawable' }, log));
       return;
     }
 
@@ -210,13 +215,14 @@ export default class SawController extends ManualBuildController<SawModel> {
       giver,
       saw,
       log,
+      take,
       charge,
       boardPath,
       boards,
       quarter,
     };
 
-    if (saw.isPowered()) {
+    if (saw.runsOnWater()) {
       // ⭐⭐ THE SAWMILL HOLDS NOTHING OF YOURS. The game clock carries
       // the cut, so the sawyer may walk out, and the boards are on the
       // mill floor when they come back.
@@ -254,6 +260,21 @@ export default class SawController extends ManualBuildController<SawModel> {
     });
   }
 
+  /** ⭐ Every reason a log refuses the saw (D4), in this verb's words. */
+  private static refusalWords(r: SawRefusal, log: Stuff): ReturnType<typeof Mml.compose> {
+    switch (r.reason) {
+      case 'not-cuttable':
+      case 'not-sawable':
+        return Mml.compose`${Mml.thing(log)} is not wood in the round. A felled bole, a length off one or a billet goes on a saw.`;
+      case 'bole-spent':
+        return Mml.compose`There is nothing left in ${Mml.thing(log)} but the butt.`;
+      default: {
+        const never: never = r;
+        return never;
+      }
+    }
+  }
+
   private turnDown(
     context: CommandContext,
     reason: string,
@@ -269,6 +290,8 @@ interface SawJob {
   giver: Stuff;
   saw: Sawmill;
   log: Stuff;
+  /** The log's own take (a bole's length), or `null` — consumed as it is. */
+  take: (() => Promise<unknown> | unknown) | null;
   charge: Charge;
   boardPath: string;
   boards: number;
@@ -276,18 +299,15 @@ interface SawJob {
 }
 
 /**
- * What a piece of wood puts on the carriage, or `null` when it is not
- * sawable. A bole gives one length; anything else is weighed as it is
- * (one piece of a stack). Already-sawn stock is not wood in the round.
+ * What a piece of wood with no saw cut of its own puts on the carriage, or
+ * `null` when it is not sawable — weighed as it is (one piece of a stack).
+ * Already-sawn stock is not wood in the round. (A bole answers its own
+ * charge: `Bole.cutPlan`.)
  */
 function chargeOf(log: Stuff): Charge | null {
   if (!MixinApi.isTangible(log)) return null;
   const material = log.getMaterial();
   if (!material || !material.hasTag('wood')) return null;
-  if (log instanceof Bole) {
-    // A bole is green wood, lying where it fell.
-    return { kg: TIMBER_MASS_KG, material, seasoned: 0 };
-  }
   if (MixinApi.isConstructed(log) && log.getConstructionForm() === 'sawn') {
     return null;
   }
@@ -330,7 +350,7 @@ export function kerfSawdustKg(boards: number, quarter: boolean, kerfM: number): 
  * a failure leaves the log rather than doubling it).
  */
 async function finishSaw(job: SawJob): Promise<void> {
-  const { giver, saw, log, charge, boardPath, boards, quarter } = job;
+  const { giver, saw, log, take, charge, boardPath, boards, quarter } = job;
   try {
     if (saw.isDestroyed() || log.isDestroyed()) return;
     // A saw in the sawyer's own hands puts the boards at their feet, not
@@ -348,10 +368,8 @@ async function finishSaw(job: SawJob): Promise<void> {
     });
 
     // Then consume.
-    if (log instanceof Bole) {
-      const left = log.takeLength();
-      if (left <= 0) await StuffApi.destruct(log);
-      else await capture(log);
+    if (take !== null) {
+      await take();
     } else if (MixinApi.isStackable(log) && log.getQuantity() > 1) {
       log.setQuantity(log.getQuantity() - 1);
       await capture(log);

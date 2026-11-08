@@ -1,5 +1,8 @@
 verbs: [party]
-controller: /platform/idea/cmd/social/PartyController
+category: social
+# ⭐ One controller per subcommand (controllers-are-io D9); bare `party`
+# shows, so the verb-level controller is the show's.
+controller: /platform/idea/cmd/social/PartyShowController
 description: "Form and run a party — the operational unit that fights as one side"
 help: |
   A party is your operational unit: the people (and hired
@@ -16,6 +19,7 @@ validators:
   - /lib/command/validators/requiresAnimate
 subcommands:
   form:
+    controller: /platform/idea/cmd/social/PartyFormController
     description: "Found a new party (you become captain)"
     help: |
       Start a new party with you as captain. Add `--durable` to make
@@ -33,6 +37,7 @@ subcommands:
         type: string
         required: true
   invite:
+    controller: /platform/idea/cmd/social/PartyInviteController
     description: "Invite a player to your party (captain-only)"
     help: |
       Offer someone a place in your party. They accept with
@@ -45,6 +50,7 @@ subcommands:
         requires: class:Agent
         onExcess: prompt
   enlist:
+    controller: /platform/idea/cmd/social/PartyEnlistController
     description: "Take a mercenary (or willing NPC) into your party (captain-only)"
     help: |
       Bring a hireable NPC directly into your party — no invite
@@ -60,16 +66,19 @@ subcommands:
         requires: class:Agent
         onExcess: prompt
   accept:
+    controller: /platform/idea/cmd/social/PartyAcceptController
     description: "Accept a party invite"
     help: |
       Join the party you were most recently invited to. You can only
       be in one active party at a time.
   leave:
+    controller: /platform/idea/cmd/social/PartyLeaveController
     description: "Leave your active party"
     help: |
       Step out of your active party. If you were captain, leadership
       passes to another member.
   kick:
+    controller: /platform/idea/cmd/social/PartyKickController
     description: "Remove a member from your party (captain-only)"
     help: |
       Take someone out of your party. Captain-only.
@@ -81,11 +90,13 @@ subcommands:
         requires: class:Agent
         onExcess: prompt
   disband:
+    controller: /platform/idea/cmd/social/PartyDisbandController
     description: "Dissolve your party (captain-only)"
     help: |
       Break up the party entirely and drop its chat channel.
       Captain-only.
   transfer:
+    controller: /platform/idea/cmd/social/PartyTransferController
     description: "Hand leadership to another member (captain-only)"
     help: |
       Make another member the captain. You stay in the party as an
@@ -98,6 +109,7 @@ subcommands:
         requires: class:Agent
         onExcess: prompt
   side:
+    controller: /platform/idea/cmd/social/PartySideController
     description: "Set your party's combat side (captain-only)"
     help: |
       Set the alignment key your party fights under — combatants on
@@ -108,6 +120,7 @@ subcommands:
         type: string
         required: true
   adopt:
+    controller: /platform/idea/cmd/social/PartyAdoptController
     description: "Adopt a combat formation for your party (captain-only)"
     help: |
       Set the standing policy your party fights under — who holds which
@@ -125,6 +138,7 @@ subcommands:
         type: string
         required: true
   assign:
+    controller: /platform/idea/cmd/social/PartyAssignController
     description: "Assign a member a role from your formation (captain-only)"
     help: |
       Hand a member one of the adopted formation's roles (vanguard:
@@ -145,6 +159,7 @@ subcommands:
         requires: class:Agent
         onExcess: prompt
   muster:
+    controller: /platform/idea/cmd/social/PartyMusterController
     description: "Re-activate a dormant durable crew by name"
     help: |
       Bring a named crew back into being your active party. Stands
@@ -155,16 +170,19 @@ subcommands:
         type: string
         required: true
   standdown:
+    controller: /platform/idea/cmd/social/PartyStanddownController
     description: "Stand your party down (durable crews go dormant)"
     help: |
       Stand down your active party. A durable crew keeps its roster
       and goes dormant (muster it later); an ad-hoc party is simply
       left.
   list:
+    controller: /platform/idea/cmd/social/PartyListController
     description: "List your durable crews"
     help: |
       Show every durable crew whose roster lists you.
   show:
+    controller: /platform/idea/cmd/social/PartyShowController
     description: "Show your active party"
     help: |
       Show your active party's name, size, and whether you lead it.

@@ -1,8 +1,9 @@
 # Slip — clay stirred into water until it pours like cream. What a handle is
 # stuck on with at leather-hard, what a mould is filled with in slip casting
 # (ceramics W7 gives it its drain set), and the clay a glaze is suspended in.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/wet-clay, strength: 10 }]
   name: slip
   keywords: [slip, "clay slip"]
   appearance: thick, creamy liquid clay

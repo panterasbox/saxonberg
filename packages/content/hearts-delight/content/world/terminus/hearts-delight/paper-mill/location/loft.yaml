@@ -1,0 +1,33 @@
+# The drying loft (paper W2) — under the mill's roof, louvered on every side
+# so the air moves through: lines strung across it for the sheets. `dry
+# sheet on lines`. A sheet pressed in the post dries flat; one hung wet from
+# the mould cockles.
+class: /platform/location/PersistentHall
+data:
+  shortDescription: drying loft
+  keywords: [loft, "drying loft", lines]
+  register: definite
+  _address: terminus/hearts-delight/millsite/paper-mill/loft
+  _biomePath: /stuff/idea/biome/indoor/baseline
+  roof: { material: /stuff/idea/material/rock/slate, thicknessM: 0.01 }
+  ambientSource: sky
+  ambientOpening: windows
+  ambientIntensity: 8000
+  ambientColorTemperature: 5400
+  enclosure: { material: /stuff/idea/material/wood/pine, thicknessM: 0.02 }
+  longDescription: |
+    A long low loft under the slates, its walls all louvers, the air moving through it whatever the weather. Lines of cord run across it from end to end, a few sheets pegged on them like washing.
+  extent: 6
+  coords: { x: -12, y: -6, z: 5 }
+  exits:
+    down:
+      destination: /world/terminus/hearts-delight/paper-mill/location/vat-house
+      media: [ground]
+      edgeMinutes: 1
+  props:
+    - { template: /stuff/thing/fixture/clothes-line, count: 2 }
+  details:
+    windows:
+      keywords: [louvers, louvres, windows, slats, light]
+      description: |
+        Wooden louvers all round the loft, angled down against the rain, with daylight and moving air coming in between every slat.

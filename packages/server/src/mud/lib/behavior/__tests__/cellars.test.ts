@@ -17,7 +17,7 @@ import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { brain as cellars } from '../cellars';
 import type { BrainContext } from '../brain';
-import ConsignController from '../../../platform/idea/cmd/retail/ConsignController';
+import ShelfConsignController from '../../../platform/idea/cmd/retail/ShelfConsignController';
 import WalletController from '../../../platform/idea/cmd/banking/WalletController';
 import StockBase from "../../retail/Stock";
 import Vat from '../../../platform/thing/Vat';
@@ -322,12 +322,12 @@ describe('the cellars beat — rack, cork, consign, home', () => {
           );
           return;
         }
-        if (text.startsWith('consign ')) {
-          const rest = text.split(' ').slice(1);
+        if (text.startsWith('shelf consign ')) {
+          const rest = text.split(' ').slice(2);
           const kw = rest[0]!;
           const ask = rest[rest.length - 1]!;
           await asPrincipal(who, () =>
-            makeStuff(() => new ConsignController()).execute(
+            makeStuff(() => new ShelfConsignController()).execute(
               // ⚠ `shelf` is BOUND BY THE VIEW since `consign` declared
               // it; a hand-built model skips the binder and must carry
               // what the view would have put there.
@@ -381,7 +381,7 @@ describe('the cellars beat — rack, cork, consign, home', () => {
 
     expect(lines.filter((l) => l === 'fill bottle from vat').length).toBe(3);
     expect(lines).toContain('wallet use house');
-    expect(lines.filter((l) => l.startsWith('consign bottle --ask 11')).length).toBe(3);
+    expect(lines.filter((l) => l.startsWith('shelf consign bottle --ask 11')).length).toBe(3);
 
     // The listings ride the shelf AS the outfit.
     expect(shelf.activeListingCount(OUTFIT)).toBe(3);

@@ -130,10 +130,16 @@ export interface CraftSuccess {
   grade: Grade;
   /**
    * The recipe this was made from — `''` for a generic (recipe-unmatched)
-   * manual build. Demonstration capture (P8) names the transcribed
-   * recipe-script after it; the knowledge ladder (P9) gates on it.
+   * manual build. The knowledge ladder gates on it.
    */
   recipeId: string;
+  /**
+   * ⭐ True when this was the maker's FIRST making of the recipe — the act
+   * that just taught it (the can-make deed was minted here). The verb says
+   * so, and names the one-shot verb that now works. Absent/false otherwise
+   * (made before, a generic build, or a maker with no ledger).
+   */
+  learned?: boolean;
 }
 
 export interface CraftFailure {
@@ -199,8 +205,9 @@ export interface BuildMintRequest {
   /** How the build was worked (recorded; not yet quality-affecting in v1). */
   method?: BuildMethod | null;
   /**
-   * The maker's `templatePath`, **captured from `getActingAuthor` at the
-   * strain command's dispatch** (a genuine command frame) and carried
+   * The maker's **identity path** (`getIdentityPath()`, never the shared
+   * lineage `templatePath`), **captured from `getActingAuthor` at the
+   * command's dispatch** (a genuine command frame) and carried
    * because the mint runs at engaged-completion, *outside* that frame —
    * the same capture-at-dispatch / use-at-completion pattern
    * `ScheduleApi` uses for `causingCommandId`. The mint still prefers a
@@ -430,6 +437,12 @@ export type FitDeclineReason =
    * weather got it), `fired` (it is not clay any more).
    */
   | 'not-leather-hard'
+  /**
+   * ⭐ (water-supply D10) The whole itself said no — its own words in
+   * `detail`: a plumber's last length on a service run where no main runs
+   * past the lot.
+   */
+  | 'refused-by-whole'
   | 'insufficient-input';
 
 export interface FitReplaced {

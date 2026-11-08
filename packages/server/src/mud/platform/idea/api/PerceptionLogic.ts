@@ -43,7 +43,7 @@ import type {
 import { WorldClockApi } from '../../../api/worldclock';
 import type { SpatialZone } from '../../../lib/zone/SpatialZone';
 import type Place from '../../../lib/stuff/Place';
-import type Structure from '../Structure';
+import type Structure from '../../../lib/structure/Structure';
 import type { Positioned } from '../../../lib/expanse/Positioned';
 import type { Voyaging } from '../../../lib/expanse/Voyaging';
 import { Expanse, type Contact } from '../../../lib/expanse/Expanse';
@@ -278,6 +278,13 @@ export class PerceptionLogic extends ApiLogic {
               : place.resolveWeatherLocality(),
           ])
         : Promise.resolve(),
+      // ⭐ The competence digest (field population D10): a crop's read is
+      // banded by the viewer's competence through a SYNC augmenter, so
+      // the first look after login must find the digest folded. Folds
+      // once; the ledger keeps it fresh after that.
+      MixinApi.isAdvancing(actor)
+        ? actor.warmCompetenceDigest().catch(() => undefined)
+        : Promise.resolve(),
     ]);
     awarenessBandCache.set(actor.stuffId, band);
   }
@@ -308,7 +315,7 @@ export class PerceptionLogic extends ApiLogic {
   public canReach(
     actor: Stuff,
     target: Stuff,
-    opts?: { location?: Stuff | null; viaExit?: boolean },
+    opts?: { location?: Stuff | null },
   ): boolean {
     const id = target.stuffId;
     if (id === actor.stuffId) return true;
@@ -319,12 +326,6 @@ export class PerceptionLogic extends ApiLogic {
         : MixinApi.isContainable(actor)
           ? actor.getContainer()
           : null;
-
-    // The door-via-direction case: `open north` resolves to the LOCATION
-    // carrying an exit attribution, and the controller then fetches the
-    // door off that exit. Without this the commonest way to open a door
-    // is unreachable.
-    if (opts?.viaExit && location && id === location.stuffId) return true;
 
     // ⭐ ONE LEVEL into an open container, on both sides. Reach into the
     // open crate standing here, or into the open pouch you are carrying;
@@ -376,8 +377,16 @@ export class PerceptionLogic extends ApiLogic {
     // card hold that omitted it released `out-of-reach` on doors the
     // `open` verb worked on perfectly well.
     if (location && MixinApi.isExitable(location)) {
-      for (const exit of location.getObviousExits()) {
-        if (exit.getDoor()?.stuffId === id) return true;
+      // ⭐ The ways the ACTOR can see — the list MQL names them from
+      // (`obviousExitsFor`), so what you can name is what you can touch.
+      // Never the physics list (`getObviousExits`), which skips a way whose
+      // far side is not standing: the rope's way down off the Sunken
+      // Delve's lip bound, and was "you can't reach down" (harbors sibling
+      // drives, 2026-11-04).
+      for (const exit of location.obviousExitsFor(actor)) {
+        // ⭐ The way itself (a direction binds the exit)
+        // or the door hung in it.
+        if (exit.stuffId === id || exit.getDoor()?.stuffId === id) return true;
       }
     }
     // ⚠ ...and neither are fixtures. A hung sconce, a wall TV, a neon
@@ -566,7 +575,20 @@ export class PerceptionLogic extends ApiLogic {
     // EXPANSE's (its landmarks and registered craft), and ashore a named
     // zone's structures are the catalogue's again. Nothing asks the
     // registry for every craft in the world.
-    return horizonAtSea(viewer) ?? horizonOnRiver(viewer) ?? horizonAshore(viewer);
+    const atSea = horizonAtSea(viewer);
+    if (atSea !== null) return atSea;
+    // ⭐ A bank on a river sees the river AND what its horizon names (the
+    // tower over the roofs): the line's answer adds to the declaration,
+    // never replaces it (the maritime drive found the bank blind).
+    const ashore = horizonAshore(viewer);
+    const river = horizonOnRiver(viewer);
+    if (river === null) return ashore;
+    const seen = new Set(river.things.map((t) => t.stuff));
+    return {
+      things: [...river.things, ...ashore.things.filter((t) => !seen.has(t.stuff))],
+      traffic: [...river.traffic, ...ashore.traffic],
+      atSea: false,
+    };
   }
 
   /** See {@link PerceptionApi.visibleContentsOf}. */
@@ -575,11 +597,15 @@ export class PerceptionLogic extends ApiLogic {
     const out: VisibleContents = { worn: [], held: [], carried: [], shut: false };
     if (!MixinApi.isContainer(target)) return out;
     if (MixinApi.isSealable(target) && !target.isOpen()) return { ...out, shut: true };
-    const seen = (s: Stuff): boolean => !MixinApi.isConcealable(s) || !s.isConcealed();
+    // ⭐ Concealed things stay concealed — FROM THIS VIEWER: one who has
+    // found the hidden dagger, or whose eye is sharp enough, sees it (the
+    // `perceives` rule, and so MQL's `:visible`). A bare `isConcealed()`
+    // hid a discovered thing again the moment it sat in a listing — and
+    // the room listing reads through here since `look` became one query.
+    const seen = (s: Stuff): boolean =>
+      !MixinApi.isConcealable(s) || !s.isConcealed() || perceivesImpl(viewer, s);
     const own = viewer.stuffId === target.stuffId;
-    // A PERSON is an agent with slots; a rack is slotted and wears
-    // nothing, so it lists like any container.
-    const person = target.isAgent() && MixinApi.isSlotted(target);
+    const person = own || this.isAnotherPerson(viewer, target);
     const slotted = new Set<string>();
     if (person && MixinApi.isSlotted(target)) {
       for (const [slot, occupants] of target.getAllOccupants()) {
@@ -608,6 +634,14 @@ export class PerceptionLogic extends ApiLogic {
     // in view of anybody who can see into it.
     if (own || !person) out.carried.push(...loose);
     return out;
+  }
+
+  /** See {@link PerceptionApi.isAnotherPerson}. */
+  @CallSecurity(PerceptionApiCallers)
+  public isAnotherPerson(viewer: Stuff, target: Stuff): boolean {
+    // A PERSON is an agent with slots; a rack is slotted and wears
+    // nothing, so it lists like any container.
+    return viewer.stuffId !== target.stuffId && target.isAgent() && MixinApi.isSlotted(target);
   }
 
   /** See {@link PerceptionApi.glance}. */
@@ -1135,7 +1169,7 @@ function perceivesImpl(
  * The active-attention bonus a search of the given depth folds in on top of
  * the passive baseline (D5). `broad` = a whole-room scan (`searchBonus`);
  * `narrow` = rummaging one container/detail deeper (`+ searchDepthBonus`);
- * `glance` = the cheap instantaneous `examine` (`examineBonus`, weaker). All
+ * `glance` = the cheap instantaneous close `look` (`examineBonus`, weaker). All
  * dial-backed with seeded-literal fallbacks.
  */
 function activeBonusFor(depth: SearchDepth): number {
@@ -1232,8 +1266,8 @@ function craftAboard(viewer: Stuff): Craft | null {
   const root = MixinApi.isContainable(viewer) ? viewer.getRootContainer() ?? viewer : viewer;
   if (MixinApi.isVoyaging(root) && !root.isDestroyed()) return root as Craft;
   const room = roomOf(viewer);
-  const path = room?.getTemplatePath() ?? '';
-  const s = path ? NavigationApi.structureAtNow(path) : null;
+  // The room is asked: a keyed room's structure is its warren's.
+  const s = room !== null && room.isPlace() ? (room as unknown as Place).structureNow() : null;
   return s && MixinApi.isVoyaging(s) && !s.isDestroyed() ? (s as unknown as Craft) : null;
 }
 

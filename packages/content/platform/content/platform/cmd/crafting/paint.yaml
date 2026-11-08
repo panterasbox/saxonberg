@@ -1,0 +1,68 @@
+# ⭐⭐ `paint` — ONE verb, and the TARGET plans the coat (paint build D9).
+# A brush in hand affords it (the `Brush` class's static, never a row);
+# the pot is any vessel whose liquid lays a coat (`laysCoat` — an oil
+# paint, a limewash, a tempera); the thing painted decides how much it
+# takes and whether you can reach it (`Faced.coatPlanFor`): a good is its
+# skin; a BUILDING is its walls and roof, reached only where it meets the
+# weather (its landing). Making paint is `mill`/`pour`/`stir`; `dip` stays
+# the bath's.
+verbs: [paint]
+category: crafting
+controller: /platform/idea/cmd/crafting/PaintController
+description: "Brush a coat of paint onto a thing or a building"
+help: |
+  `paint <thing> with <pot>` brushes one coat of whatever is in the pot
+  onto the thing — a sign board, a chair, a panel — or, standing where a
+  building meets the weather (the street before a house, the quay a ship
+  lies alongside), onto the building itself: `paint cottage with pot`.
+
+  You need a brush in your hand. A coat takes paint in proportion to how
+  much surface there is: a board a cupful, a cottage several litres —
+  `survey <building>` says roughly how much before you start. Two coats
+  last longer than one.
+
+  ⭐ **A coat sets by its binder.** An oil paint dries by taking in the air
+  over a day or so, and warms faintly as it does; a limewash hardens by
+  drinking the air over days; an egg tempera dries in dry air. Rain on a
+  wet coat makes it run; frost cracks it. Pick a dry day.
+
+  What is in the pot is what goes on: the pigment gives the color, the
+  binder decides how it sets and how long it lasts in the weather. Some
+  pigments fade in the sun; some are poisonous to grind and to wear on
+  your hands.
+examples:
+  - cmd: paint board with pot
+    note: One coat of the pot's paint on a board you can reach
+  - cmd: paint cottage with pot
+    note: From the lane, a coat on the cottage's walls
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  # ⭐ `any`: a Faced good or a building (a structure enters the room's
+  # pool only on its landing). The target says no in words otherwise.
+  - name: target
+    type: object
+    required: true
+    scope: ["here", "peers", "person"]
+    requires: any
+  # ⭐ Every reachable bulk vessel is a candidate; the controller takes the
+  # first whose liquid lays a coat (a bucket of water says so).
+  - name: pot
+    type: objects
+    required: false
+    greedy: true
+    prepositions: [with, from]
+    default: "reachable:[mixin.BulkableMixin]"
+    scope: ["reachable"]
+    requires: [BulkableMixin]
+  # ⭐ WHICH BRUSH, declared rather than hunted for — in hand.
+  - name: brush
+    type: object
+    required: false
+    greedy: true
+    prepositions: [using]
+    default: "me:i:[capability.painting]"
+    scope: ["reachable"]
+    requires: [ToolMixin]

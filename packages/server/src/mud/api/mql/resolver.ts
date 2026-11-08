@@ -47,8 +47,10 @@ import {
   candidatesForPeers,
   candidatesForPerson,
   candidatesForReachable,
-  scoreCandidate,
+  candidateFor,
+  matchCandidate,
   scoreCandidates,
+  TIER_PHRASE,
   type ScopeCandidate,
 } from './scope-walk';
 import type {
@@ -68,7 +70,7 @@ import type {
   SublistNode,
   ValueNode,
 } from './types';
-// Loads `detailPath` and `exit` augmentations onto `MqlMatchVia`.
+// Loads the `detailPath` augmentation onto `MqlMatchVia`.
 import './via-augment';
 
 export class MqlResolveError extends Error {
@@ -188,7 +190,7 @@ function namesASet(ast: QueryNode): boolean {
     const w = el.words[0]!.toLowerCase();
     return atHead
       ? SEED_WORDS.has(w)
-      : w === 'members' || NAMED_SEED_KEYWORDS.has(w) || ELEMENT_DERIVABLE_SEEDS.has(w);
+      : w === 'members' || PLACE_STEPS.has(w) || NAMED_SEED_KEYWORDS.has(w) || ELEMENT_DERIVABLE_SEEDS.has(w);
   };
   // One referent stepped through a set (`me:i` — your contents) is a set.
   const oneReferent = (el: ChainElement): boolean =>
@@ -389,7 +391,14 @@ function resolveSeed(node: ChainElement, ctx: MqlContext): MqlMatch[] {
     }
     case 'stuffId': {
       const found = StuffApi.findById(node.id);
-      return found ? matchesFromStuff([found]) : [];
+      if (!found) return [];
+      // ⛔ A player names by id only what they perceive (client-surface
+      // D7): the card's links send `look #<id>`, and an id must not be a
+      // way to reach a concealed thing. A system query stays ungated.
+      if (ctx.commandGiver !== null && !PerceptionApi.perceives(ctx.commandGiver, found)) {
+        return [];
+      }
+      return matchesFromStuff([found]);
     }
     case 'lastResult':
       return matchesFromStash(ctx, 'last');
@@ -529,20 +538,16 @@ function candidatesToMatches(pool: ScopeCandidate[]): MqlMatch[] {
 }
 
 function resolveLiteralSeed(value: string, ctx: MqlContext): MqlMatch[] {
-  // A literal is an exact-name search that preserves whitespace.
-  // Treat it as a single keyword that scoring runs against the full
-  // candidate name.
+  // A literal is one phrase that preserves whitespace: it binds what has
+  // that phrase as a keyword outright (the top tier) — the same list the
+  // scorer reads, so a quoted name and a bare one find the same thing
+  // (one-resolution slate § 3 row 12).
   const lit = value.toLowerCase();
   const candidates = candidatesForScope(ctx.scope, ctx);
   const out: MqlMatch[] = [];
   for (const c of candidates) {
-    const nameLower = c.name.toLowerCase();
-    if (nameLower === lit) {
-      // Exact match — top score.
-      const m: MqlMatch = { stuff: c.stuff, score: 100 };
-      if (c.via) m.via = c.via;
-      out.push(m);
-    }
+    const m = matchCandidate(c, [lit]);
+    if (m && m.score >= TIER_PHRASE) out.push(m);
   }
   return out;
 }
@@ -646,14 +651,13 @@ function candidatesFromQuery(
  * scope-as-MQL slow path. Emits one candidate per addressable
  * keyword in the anchor's neighborhood:
  *
- *   - The anchor itself: name + keywords (or the detail tip name if
- *     `via.detailPath` is set).
- *   - Detail names at the current via depth (top-level when no via,
- *     child-of-tip when via set).
+ *   - The anchor itself: its keywords for the viewer, its top-level
+ *     details among them (or the detail tip name if `via.detailPath`
+ *     is set, with the tip's child details).
  *   - When **no via** AND the stuff is a `Container`: include its
- *     contents (each item plus its own details).
+ *     contents.
  *   - When **no via** AND the stuff is `Exitable`: include doors and
- *     direction candidates.
+ *     each exit the viewer can see (the exit itself).
  *
  * The "no via" gate on contents/exits matches the via-aware transform
  * rule: a candidate with via is "inside" a detail, so its
@@ -677,93 +681,39 @@ function candidatesForAnchor(
 
   if (insideDetail) {
     const tip = path[path.length - 1]!;
-    const c: ScopeCandidate = {
-      stuff,
-      name: tip,
-      keywords: [tip.toLowerCase()],
-      via,
-    };
-    out.push(c);
-  } else {
-    out.push({
-      stuff,
-      name: nameOf(stuff),
-      keywords: keywordsOf(stuff),
-    });
-  }
-
-  // Detail names at the current via depth.
-  if (MixinApi.isDetailed(stuff)) {
-    const parent = insideDetail ? path[path.length - 1] : undefined;
-    const ids = stuff.getDetailIds(parent, viewer ?? undefined) ?? [];
-    for (const id of ids) {
-      const childPath = insideDetail ? [...path, id] : [id];
-      out.push({
-        stuff,
-        name: id,
-        keywords: [id.toLowerCase()],
-        via: { ...via, detailPath: childPath },
-      });
-    }
-  }
-
-  // Stuff containment context only when not inside a detail tree.
-  if (!insideDetail) {
-    if (MixinApi.isContainer(stuff)) {
-      for (const item of stuff.getContents()) {
-        out.push({
-          stuff: item,
-          name: nameOf(item),
-          keywords: keywordsOf(item),
-        });
-        if (MixinApi.isDetailed(item)) {
-          const ids = item.getDetailIds(undefined, viewer ?? undefined) ?? [];
-          for (const id of ids) {
-            out.push({
-              stuff: item,
-              name: id,
-              keywords: [id.toLowerCase()],
-              via: { detailPath: [id] },
-            });
-          }
-        }
-      }
-    }
-    if (MixinApi.isExitable(stuff)) {
-      const seenDoors = new Set<string>();
-      for (const door of stuff.getExitDoors()) {
-        if (seenDoors.has(door.stuffId)) continue;
-        seenDoors.add(door.stuffId);
-        out.push({
-          stuff: door,
-          name: nameOf(door),
-          keywords: keywordsOf(door),
-        });
-        if (MixinApi.isDetailed(door)) {
-          const ids = door.getDetailIds(undefined, viewer ?? undefined) ?? [];
-          for (const id of ids) {
-            out.push({
-              stuff: door,
-              name: id,
-              keywords: [id.toLowerCase()],
-              via: { detailPath: [id] },
-            });
-          }
-        }
-      }
-      const seenDirs = new Set<string>();
-      for (const exit of stuff.getObviousExits()) {
-        const direction = exit.getDirection();
-        if (seenDirs.has(direction)) continue;
-        seenDirs.add(direction);
+    out.push({ stuff, keywords: [tip.toLowerCase()], via });
+    // Child detail names at the current via depth — the detail tree is
+    // the grammar's (`here:bookcase:book`), not a word on the host.
+    if (MixinApi.isDetailed(stuff)) {
+      for (const id of stuff.getDetailIds(tip, viewer ?? undefined) ?? []) {
         out.push({
           stuff,
-          name: direction,
-          keywords: [direction],
-          via: { exit },
+          keywords: [id.toLowerCase()],
+          via: { ...via, detailPath: [...path, id] },
         });
       }
     }
+    return out;
+  }
+
+  // The anchor itself — its top-level details are its own keywords.
+  out.push(candidateFor(stuff, viewer));
+  if (MixinApi.isContainer(stuff)) {
+    for (const item of stuff.getContents()) out.push(candidateFor(item, viewer));
+  }
+  if (MixinApi.isExitable(stuff)) {
+    const seenDoors = new Set<string>();
+    for (const door of stuff.getExitDoors()) {
+      if (seenDoors.has(door.stuffId)) continue;
+      seenDoors.add(door.stuffId);
+      out.push(candidateFor(door, viewer));
+    }
+    // ⭐ Each exit the VIEWER can see, as itself —
+    // the same rule as the fast path's `candidatesForHere`, so a drilled
+    // focus is no longer blind to which ways are hidden. System mode
+    // (no viewer) lists every obvious exit.
+    const exits = viewer === null ? stuff.getObviousExits() : stuff.obviousExitsFor(viewer);
+    for (const exit of exits) out.push(candidateFor(exit, viewer));
   }
 
   return out;
@@ -813,13 +763,7 @@ function candidatesForScopePart(
     );
   }
   if (lower === 'me') {
-    return [
-      {
-        stuff: requireGiver(ctx, "the 'me' scope"),
-        name: 'me',
-        keywords: ['me'],
-      },
-    ];
+    return [{ stuff: requireGiver(ctx, "the 'me' scope"), keywords: ['me'] }];
   }
   if (part.startsWith('/')) {
     // Same rule as the path seed: glob-free means the row and every
@@ -856,7 +800,9 @@ function candidatesForHereScope(ctx: MqlContext): ScopeCandidate[] {
 }
 
 function scopeKeywordSearch(words: string[], ctx: MqlContext): MqlMatch[] {
-  const candidates = candidatesForScope(ctx.scope, ctx);
+  const pool = candidatesForScope(ctx.scope, ctx);
+  const admits = ctx.admits;
+  const candidates = admits ? pool.filter((c) => admits(c.stuff)) : pool;
   return scoreCandidates(candidates, words);
 }
 
@@ -929,6 +875,9 @@ function applyColon(
         if (name === 'members') {
           return flatMapMembers(input);
         }
+        if (PLACE_STEPS.has(name)) {
+          return flatMapPlaceStep(input, name, ctx.commandGiver);
+        }
         if (ELEMENT_DERIVABLE_SEEDS.has(name)) {
           return flatMapBySeed(input, name, ctx.attention);
         }
@@ -995,8 +944,7 @@ function intersectWithSeed(
  * of the giver), then union the results.
  *
  * Each resulting match takes its `via` from the candidate (e.g.,
- * detail subcandidates carry `via.detailPath`, exit candidates carry
- * `via.exit`). Score is inherited from the prior match — same
+ * detail subcandidates carry `via.detailPath`). Score is inherited from the prior match — same
  * convention as {@link applyTransform}.
  *
  * Dedup is by `(stuffId, JSON-stringified via)` — same shape as the
@@ -1033,6 +981,46 @@ function flatMapMembers(input: MqlMatch[]): MqlMatch[] {
       if (seen.has(s.stuffId)) continue;
       seen.add(s.stuffId);
       out.push({ stuff: s, score: m.score });
+    }
+  }
+  return out;
+}
+
+/**
+ * ⭐ **The steps between places** — element-derivable
+ * flat-maps, reserved as chain words like `:members`:
+ *
+ *   - `:exits` — each prior PLACE's exits, as the viewer sees them
+ *     (`obviousExitsFor(viewer)`; system mode: every obvious exit);
+ *   - `:to` — each prior EXIT's destination, LIVE ONLY: a far place that
+ *     is not loaded contributes nothing (a query never materializes a
+ *     place — the `:members` rule). Perception still gates the verb:
+ *     `look here:exits:north:to` describes the far place only where it is
+ *     seen across;
+ *   - `:from` — each prior EXIT's source place.
+ *
+ * There is no reverse step (`:entrances`): what leads INTO a place is the
+ * location graph's question, never a scan. An object keyworded `to` is
+ * reached with `[keyword.to]`.
+ */
+const PLACE_STEPS: ReadonlySet<string> = new Set(['exits', 'to', 'from']);
+
+function flatMapPlaceStep(input: MqlMatch[], step: string, viewer: Stuff | null): MqlMatch[] {
+  const out: MqlMatch[] = [];
+  const seen = new Set<string>();
+  const push = (s: Stuff | null, score: number): void => {
+    if (!s || seen.has(s.stuffId)) return;
+    seen.add(s.stuffId);
+    out.push({ stuff: s, score });
+  };
+  for (const m of input) {
+    const x = m.stuff;
+    if (step === 'exits') {
+      if (!MixinApi.isExitable(x)) continue;
+      const exits = viewer === null ? x.getObviousExits() : x.obviousExitsFor(viewer);
+      for (const e of exits) push(e, m.score);
+    } else if (x.isExit()) {
+      push(step === 'to' ? x.peekDestination() : x.getSource(), m.score);
     }
   }
   return out;
@@ -1087,28 +1075,17 @@ const SEEDS_EXCLUDING_PRIOR: ReadonlySet<string> = new Set([
 
 /**
  * ⛔⛔ A stable dedupe key for a match's `via`, **and it may not be
- * `JSON.stringify`.**
+ * `JSON.stringify` of anything Stuff-shaped.**
  *
- * `MqlMatchVia` is an open interface every subsystem augments, and
- * `lib/boundary/Exit.ts` augments it with a LIVE `Exit` Stuff. An Exit
- * reaches its `Boundary`, whose `anchorA`/`anchorB` point back at it, so
- * stringifying one throws `Converting circular structure to JSON` and
- * the whole resolve fails with `mql-error`.
- *
- * ⚠⚠ That is a defect this chain walk shipped with, and it was
- * unreachable until the lock build conferred `lock`/`unlock`: those are
- * the first views to combine a `requires:` mixin gate with a DIRECTION
- * candidate, which is the only candidate that carries an exit. The
- * symptom was `unlock north` → `mql-error[target]` while `unlock gate`
- * worked, at the one locked door in the realm. ⭐ Found by the drive;
- * nothing else could see it, because no test had ever targeted a
- * boundary verb by direction — `OpenController`'s own test names the
- * door by keyword.
- *
- * So: identity, never serialization. Anything Stuff-shaped contributes
- * its `stuffId`; everything else is JSON, which is safe because the
- * remaining augmentations are plain data (`detailPath: string[]`,
- * `bulk: { affordance }`).
+ * `MqlMatchVia` is an open interface every subsystem augments. It once
+ * carried a LIVE `Exit` (`via.exit`), which reaches its `Boundary`, whose
+ * anchors point back at it — stringifying one threw `Converting circular
+ * structure to JSON`, and `unlock north` failed with `mql-error` at the
+ * realm's one locked door (found by the lock build's drive). Since
+ * an exit binds as itself and every via is plain data
+ * (`detailPath: string[]`, `bulk: { affordance }`), but the rule stays:
+ * anything Stuff-shaped contributes its `stuffId`, everything else is
+ * JSON, so a future augmentation cannot reopen it.
  */
 function viaKey(via: MqlMatchVia | undefined): string {
   if (!via) return '';
@@ -1419,94 +1396,50 @@ function filterByKeywords(
   if (words.length === 0) return input;
   const out: MqlMatch[] = [];
   for (const m of input) {
-    const direct = directCandidate(m);
-    const detailCandidates = detailExtensionCandidates(m, viewer);
-
     // Pick the best candidate by RAW score (not max-with-prior) — the
     // prior match's score is locked in regardless, but the candidate
-    // selection has to choose between siblings, so an exact 100 on a
-    // child detail must outrank a substring 50 on the parent detail's
-    // name.
-    let bestRaw = 0;
-    let bestVia: MqlMatchVia | undefined = undefined;
-    let matched = false;
-    for (const c of [direct, ...detailCandidates]) {
-      const score = scoreCandidate(c, words);
-      if (score === 0) continue;
-      if (!matched || score > bestRaw) {
-        bestRaw = score;
-        bestVia = c.via;
-        matched = true;
-      }
+    // selection has to choose between siblings, so an exact hit on a
+    // child detail must outrank a prefix on the parent detail's name.
+    let best: MqlMatch | null = null;
+    for (const c of chainCandidates(m, viewer)) {
+      const got = matchCandidate(c, words);
+      if (got && (!best || got.score > best.score)) best = got;
     }
-    if (matched) {
-      // ⭐ The keyword's own score, not `max(prior, keyword)`: a scope
-      // seed (`reachable`, `inventory`, `peers`) stamps every candidate
-      // 100, so the max was ALWAYS 100 and every `scope:word` query tied
-      // — the `top` policy fell to pool order (inventory before the
-      // room), and `haul net` with a keepnet in hand hauled the keepnet
-      // however the scorer ranked them. The fishing drive found it.
-      const next: MqlMatch = {
-        stuff: m.stuff,
-        score: bestRaw,
-      };
-      if (bestVia) next.via = bestVia;
-      out.push(next);
-    }
+    // ⭐ The keyword's own score, not `max(prior, keyword)`: a scope
+    // seed (`reachable`, `inventory`, `peers`) stamps every candidate
+    // 100, so the max was ALWAYS 100 and every `scope:word` query tied
+    // — the `top` policy fell to pool order (inventory before the
+    // room), and `haul net` with a keepnet in hand hauled the keepnet
+    // however the scorer ranked them. The fishing drive found it.
+    if (best) out.push(best);
   }
   return out;
 }
 
 /**
- * Build the direct (non-extension) candidate for a prior match. When
- * the prior carries `via.detailPath`, the candidate addresses the tip
- * detail by name; otherwise it addresses the host stuff with its own
- * keywords + display name.
+ * The candidates a prior match offers a mid-chain `:keyword`. With no
+ * via, the host itself — its keywords for `viewer`, its top-level details
+ * among them (attributed as `via.detailPath` when one is what matched).
+ * With `via.detailPath` set, the tip detail by its name and the tip's
+ * child details, each extending the path.
  */
-function directCandidate(m: MqlMatch): ScopeCandidate {
+function chainCandidates(m: MqlMatch, viewer: Stuff | null): ScopeCandidate[] {
   const path = m.via?.detailPath;
-  if (path && path.length > 0) {
-    const tip = path[path.length - 1]!;
-    const c: ScopeCandidate = {
-      stuff: m.stuff,
-      name: tip,
-      keywords: [tip.toLowerCase()],
-    };
-    if (m.via) c.via = m.via;
-    return c;
+  if (!path || path.length === 0) {
+    const c = candidateFor(m.stuff, viewer);
+    if (m.via) c.via = { ...m.via, ...c.via };
+    return [c];
   }
-  const c: ScopeCandidate = {
-    stuff: m.stuff,
-    name: nameOf(m.stuff),
-    keywords: keywordsOf(m.stuff),
-  };
-  if (m.via) c.via = m.via;
-  return c;
-}
-
-/**
- * Build sub-candidates for the host's details at the current via
- * depth. With no via, top-level detail names; with `via.detailPath`
- * set, the children of the path's tip. Each sub-candidate is the
- * same Stuff with `via.detailPath` extended by the detail's name.
- */
-function detailExtensionCandidates(
-  m: MqlMatch,
-  viewer: Stuff | null,
-): ScopeCandidate[] {
-  if (!MixinApi.isDetailed(m.stuff)) return [];
-  const currentPath = m.via?.detailPath ?? [];
-  const parent = currentPath[currentPath.length - 1];
-  const ids = m.stuff.getDetailIds(parent, viewer ?? undefined) ?? [];
-  const out: ScopeCandidate[] = [];
-  for (const id of ids) {
-    const lower = id.toLowerCase();
-    out.push({
-      stuff: m.stuff,
-      name: id,
-      keywords: [lower],
-      via: { ...m.via, detailPath: [...currentPath, id] },
-    });
+  const tip = path[path.length - 1]!;
+  const out: ScopeCandidate[] = [{ stuff: m.stuff, keywords: [tip.toLowerCase()], via: m.via! }];
+  if (MixinApi.isDetailed(m.stuff)) {
+    for (const id of m.stuff.getDetailIds(tip, viewer ?? undefined) ?? []) {
+      out.push({
+        stuff: m.stuff,
+        keywords: [id.toLowerCase()],
+        via: { ...m.via, detailPath: [...path, id] },
+      });
+    }
   }
   return out;
 }
@@ -1702,7 +1635,7 @@ function matchesClass(stuff: Stuff, className: string): boolean {
  * do job Y*, and until this landed the only vocabulary MQL had was
  * *kinds of thing* — so every such verb hand-rolled a walk over the
  * room and the inventory instead of declaring an arg
- * (`lint:instrument-args`, whose census this atom exists to let fall).
+ * (`lint:controller-resolution`, whose census this atom exists to let fall).
  *
  * ⚠ A capability is a **mixin field**, not a `PropertiedMixin` property,
  * so `[prop.digging]` cannot reach it and never could — the two
@@ -1752,14 +1685,9 @@ function matchesTemplate(stuff: Stuff, pattern: string): boolean {
 }
 
 function filterByLiteral(input: MqlMatch[], literal: string): MqlMatch[] {
+  // One phrase against the keywords, as the literal seed reads it.
   const lit = literal.toLowerCase();
-  const out: MqlMatch[] = [];
-  for (const m of input) {
-    if (nameOf(m.stuff).toLowerCase() === lit) {
-      out.push(m);
-    }
-  }
-  return out;
+  return input.filter((m) => keywordsOf(m.stuff).includes(lit));
 }
 
 function applyOrdinal(input: MqlMatch[], index: number): MqlMatch[] {
@@ -1802,7 +1730,9 @@ function nameOf(stuff: Stuff): string {
 }
 
 function keywordsOf(stuff: Stuff): string[] {
-  return MixinApi.isPerceptible(stuff) ? stuff.getKeywords() : [];
+  if (MixinApi.isPerceptible(stuff)) return stuff.getKeywords();
+  if (MixinApi.isNamed(stuff)) return stuff.getKeywords();
+  return [];
 }
 
 function allOnlineCommandGivers(): Stuff[] {

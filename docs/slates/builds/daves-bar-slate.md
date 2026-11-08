@@ -14,6 +14,7 @@
 > a full room · the congener / hangover tuning (appraisal shipped as the
 > palate) · glass theft remembered + the glassware leak · the dartboard
 > · the player distillery that retires Veshko's floor · numeric tuning
+> · ⭐ **the cellar** (§ *The cellar and the room* below — 2026-11-01)
 > **Size:** a build
 
 Contributing slates (Dave's Bar is where they meet):
@@ -357,3 +358,43 @@ aggregation; partly the smart-presentation work the bar forces).
   substrate (status: regular / 86'd).
 - **Numeric tuning** — prices, wages, subsidy, shift timing — to a running
   economy.
+
+## The cellar and the room (2026-11-01, from the client-surface review)
+
+The owner, walking the bar: a full par would put six bottles of each
+spirit, 48 limes and two 60-litre lines of beer on the back-bar. A real bar
+keeps **one open bottle of each spirit** out front and the rest below.
+
+- **A cellar, one `down` from the bar** — the stockroom: kegs, crates,
+  overstock bottles, and the **mana main** (the mana line runs through the
+  lounge today; it belongs in the cellar).
+- **Working stock vs. cellar stock.** The par sheet splits: the back-bar
+  holds one of each, the cellar holds the rest. The keeper puts a delivery
+  away in the cellar (the receiving bench stays the landing — an order is
+  refused when its condition already holds) and brings up a fresh bottle
+  when the open one runs dry.
+- **Kegs feed the taps** from below — the pump's *a tap that reads its
+  main* (`suppliedBy`), not bottles on a shelf.
+- Touches: the bar drives, `restocks`, the par manifest, the tap's supply.
+
+**Shipped in !509 (the room as it reads now):** people on their own
+line ("Here"), each with their status ("Remy, behind the bar" — a seat's
+`onShiftStatus`) or their seat ("Mara, seated on a bar stool"); the
+stations placed on the well and the back-bar; empty stools only in
+"a bar stool +N more"; one bartender on shift, one regular most evenings
+(`frequents`, a rota on the cast rows), Dave out front 20–21 on an
+unpaid `owner` seat and out back otherwise.
+
+**Still open from that pass:**
+- **The works board** is on the wall by the door. Hanging it as a fixture
+  would take it out of the room's contents and silently drop `job`
+  (afforded by contents) — it waits for walls as surfaces
+  ([place-surfaces](./place-surfaces-slate.md)).
+- **Offstage is not a place.** A regular coming in from out back arrives
+  by staging ("appears"), not by walking — there is no route to a room
+  that is outside the fiction. A real back room (or the cellar) the crew
+  idle in would let them walk in through a door.
+- **"bar" is ambiguous** — the room, the counter, the bar spoon and every
+  stool (stools carry `bar` as a keyword). `put shaker on bar` resolved to
+  the spoon without asking; the placement drive's step 3 fails on it.
+

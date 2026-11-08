@@ -12,7 +12,7 @@
  * via `StuffApi.singleton`).
  */
 
-import Locale from '../../../platform/location/Locale';
+import Hall from '../../../platform/location/Hall';
 import type { FieldMeta } from '../../../lib/mixin';
 
 // `StagedMixin` lets the bar stock itself declaratively from the seed's
@@ -59,6 +59,6 @@ import type { FieldMeta } from '../../../lib/mixin';
 // outright (the `Bench` precedent) is the further step and is FILED,
 // not taken: four lounge test files import it, and a locality class
 // with a name is not the same smell as a duplicated base.
-export default class Bar extends Locale {
+export default class Bar extends Hall {
   static fieldMeta: FieldMeta = {};
 }

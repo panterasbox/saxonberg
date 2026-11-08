@@ -1,8 +1,10 @@
 # Scalded milk — milk taken to near the boil in a pot (dairy D7, the
 # `scald-milk` recipe), which is what a yoghurt maker does first. The
 # `yoghurt` profile keys on it.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/milk, strength: 60 }]
+  tastes: [{ type: sweet, amount: 45 }]
   name: "scalded milk"
   keywords: [milk, "scalded milk"]
   appearance: hot-smelling, with a skin on it

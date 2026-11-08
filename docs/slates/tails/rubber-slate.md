@@ -9,7 +9,7 @@
 > **Left:** synthetic rubber and tyres
 > ([destructive-distillation-slate](../builds/destructive-distillation-slate.md))
 > · compression moulding, a pressed pan, consumed moulds
-> ([moulding-slate](../builds/moulding-slate.md)) · the stove house's
+> ([moulding-slate](./moulding-slate.md)) · the stove house's
 > stoker brain ([standing-instructions-slate](../builds/standing-instructions-slate.md))
 > · a published cure curve ([inquiry-slate](../builds/inquiry-slate.md))
 > · the consumer rows not yet authored (mat · gasket · hose)
@@ -217,7 +217,7 @@ monopoly on the only real insulator in the world. **No dominant option**,
 and it is the historically exact choice — Goodyear published and died in
 debt while others patented.
 
-It rides shipped machinery end to end: `provenance` → producer standing ·
+It rides shipped machinery end to end: `provenance` → labor standing ·
 the library as teachable goods · guilds as the natural holders of a
 mystery.
 

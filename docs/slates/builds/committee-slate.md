@@ -85,7 +85,7 @@ expected:
 
 **The seat → membership relation is already modelled.** And
 `OFFICE_APPARATUS`'s five authored seats include **three Speakers**
-(producer, capital and consumer houses), so *speaker* is established
+(labor, capital and consumer houses), so *speaker* is established
 office vocabulary rather than a new concept.
 
 ⭐ One shipped property to copy wholesale: `vacate(office)` **deletes the

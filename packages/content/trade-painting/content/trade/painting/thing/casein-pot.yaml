@@ -1,0 +1,14 @@
+# The casein glue pot (paint D12) — stir curd and milk of lime in it and it comes together as
+# casein glue.
+class: /platform/thing/CompoundingVessel
+data:
+  shortDescription: casein pot
+  keywords: [pot, "casein pot"]
+  register: indefinite
+  longDescription: A small earthenware pot with a stirring stick.
+  _materialPath: /stuff/idea/material/ceramic/earthenware
+  mass: 1
+  interiorBulk: true
+  interiorCapacity: 3
+  closure: liquidTight
+  productMaterial: /trade/painting/idea/material/casein-glue

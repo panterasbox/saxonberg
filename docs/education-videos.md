@@ -519,7 +519,7 @@ wishbook vignettes as videos; same world, pitched by wish)
    merge (MR !149); shootable today with a posted gig faked as a
    notice.
 7. **The Tuesday seminar** (teacher cert) — **PROMOTED (2026-08-06): the beachhead's payoff, not a minor cut** — the aspiring science teacher from V1 now *teaches* the chemistry she learned (the protégé loop closed), and the **endogenous-economy beat** lands here: new players genuinely need to learn the world's modeled systems, so teaching has *real in-world value* — an expert can be **paid to teach**, and that a learner *could sustain themselves teaching* is the sharpest proof the knowledge is real (anti-pointsification with a face; see [engagement & positioning](./study-com/engagement-and-positioning.md) + [beachhead](./study-com/cx-and-the-aspiring-teacher.md) §5). Teaching pays,
-   formally: command credit, producer standing, students' deeds on
+   formally: command credit, labor standing, students' deeds on
    their own transcripts. *Lenses:* fantasy, story-machine (her
    chronicle is a portfolio with receipts), endogenous-value. **Ready** — candidate to move up the interest curve given beachhead status.
 8. **The audit** (business/accounting) — the books are ledgers;

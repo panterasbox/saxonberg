@@ -1,10 +1,11 @@
 verbs: [errors]
+category: system
 controller: /platform/idea/cmd/system/ErrorsController
 description: "Show compile / runtime / console diagnostics from the dev tooling"
 help: |
   Read the author-diagnostics store: TypeScript compile errors, runtime
   throws in authored content (a brain / script / controller that blew up),
-  and — for wizards — the raw server console.
+  and — for the Prime Minister — the raw server console.
 
   `errors` (or `errors list`) shows recent diagnostics, newest first. A
   trailing path narrows to that prefix: `errors /stuff/idea/lounge`. Filter with
@@ -13,10 +14,10 @@ help: |
   diagnostics in content you authored), and `--limit <n>`.
 
   `errors raw` tails the raw console ring (`--grep <text>`, `--limit`) —
-  wizard-only, since it can carry engine internals.
+  the Prime Minister's, since it carries other players' command lines.
 
-  `errors clear <path>` drops the diagnostics for a path (wizards, or the
-  author of that path).
+  `errors clear <path>` drops the diagnostics for a path (whoever holds
+  title there, or the author of that path).
 
   Restricted to authors and wizards; others are told they lack permission.
 fallthrough: true
@@ -62,7 +63,7 @@ subcommands:
         required: false
         greedy: true
   raw:
-    description: "Tail the raw console ring (wizard-only)"
+    description: "Tail the raw console ring (the Prime Minister's)"
   clear:
     description: "Drop diagnostics for a path (wizard, or author of the path)"
     args:

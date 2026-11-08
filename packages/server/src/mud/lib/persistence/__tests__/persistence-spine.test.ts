@@ -616,6 +616,8 @@ describe("security (AC #8)", () => {
     // bootstrapper because the registry-wide read is gated on the
     // calling function and a backend class has no dispatched frame to
     // be recognized by. Still no raw record write.
+    // `storedField` (controllers-are-io W11) READS one field of a stored
+    // record — an absent office holder's name — and writes nothing.
     expect(surface.sort()).toEqual(
       [
         "capture",
@@ -631,6 +633,7 @@ describe("security (AC #8)", () => {
         "standUpKeyed",
         "forkRuntimeState",
         "mergeRuntimeState",
+        "storedField",
       ].sort(),
     );
   });
@@ -1189,5 +1192,54 @@ describe("the fixture-state slice (cleanliness D31b)", () => {
     floor.soil("crumbs", 0.4);
     await PersistableApi.captureHostOf(floor);
     expect(snapshots.some((s) => s.scope === "/world/kept3")).toBe(true);
+  });
+});
+
+/* ─────── dependents: records a host owns (tracts build D26) ─────── */
+
+class OwnedRecord extends PersistableMixin(ContainerMixin(Idea)) {
+  static fieldMeta: FieldMeta = {
+    label: { persistent: true },
+  };
+  label = "";
+  setLabel(v: string): void {
+    this.label = v;
+  }
+}
+
+class OwningRoom extends PersistableMixin(ContainerMixin(Idea)) {
+  public owned: OwnedRecord[] = [];
+  override dependentPersistables(): OwnedRecord[] {
+    return this.owned;
+  }
+}
+
+describe("dependentPersistables — records that live and die with their host", () => {
+  it("⭐ a capture of the host writes each dependent under its own key", async () => {
+    cloneFactories = {};
+    const room = makeStuffAtPath(() => new OwningRoom(), "/world/tract");
+    const field = makeStuffAtPath(() => new OwnedRecord(), "/world/field");
+    field.setLabel("the barley field");
+    field.setPersistenceKey("lot-1/bench/barley");
+    room.owned = [field];
+
+    await PersistableApi.capture(room, "lot-1/bench");
+
+    const scopes = snapshots.map((s) => `${String(s.scope)}#${String(s.owner)}`);
+    expect(scopes).toContain("/world/tract#lot-1/bench");
+    expect(scopes).toContain("/world/field#lot-1/bench/barley");
+  });
+
+  it("markForRevert reaches every dependent", () => {
+    const room = makeStuffAtPath(() => new OwningRoom(), "/world/tract2");
+    const field = makeStuffAtPath(() => new OwnedRecord(), "/world/field2");
+    room.owned = [field];
+    room.markForRevert();
+    expect(field.shouldPersist()).toBe(false);
+  });
+
+  it("a host with none walks none (the default)", () => {
+    const room = makeStuffAtPath(() => new RoomHost(), "/world/room9");
+    expect(room.dependentPersistables()).toEqual([]);
   });
 });

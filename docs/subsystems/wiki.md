@@ -54,7 +54,7 @@ none of which survive on an external host.
 | Components | `lib/wiki/components/<name>.ts`, sole export `component` |
 | Page state + mutations | `obj/WikiRegistry.ts` (`extends Idea`) |
 | Render pipeline | `obj/WikiRenderer.ts` (`extends Idea`) |
-| Verb | `cmd/system/wiki.yaml` + `platform/idea/cmd/system/WikiController.ts` |
+| Verb | `cmd/system/wiki.yaml` + one controller per subcommand, `platform/idea/cmd/system/Wiki<Sub>Controller.ts`, over `WikiControllerBase.ts` (bare `wiki <page>` → `WikiReadController`; controllers-are-io D9) |
 | Starter articles | the `wiki-starter` content pack (`packages/content/wiki-starter/content/wiki/<ns>/<slug>.md`) — the installer's `wiki` kind |
 | Client card | `client/components/WikiCard.tsx`, fed by `publication.wiki` |
 
@@ -230,10 +230,17 @@ Derived from identity, never stored:
 
 | level | who |
 |---|---|
-| 3 | a wizard |
+| 3 | may mutate the `/wiki` **root** zone (its `'owner'` role — the `wiki-editors` moderators) |
 | 2 | may mutate the namespace zone (its `'owner'` role) |
 | 1 | may edit in the namespace — **or is simply a player** |
 | 0 | a guest, and an unresolved principal |
+
+⭐ **Level 3 is the encyclopedia's own capability, not the wizard axis**
+(the wizard-axis cleanup, 2026-11-05): `ceilingFor` asks
+`AccessApi.canMutateZone(actor, <the /wiki root zone>)`. A wizard with no
+wiki title reads at 1 like any player, and `WikiRegistry.satisfies` no
+longer has a "a wizard clears every rung" rung — the wizard axis is
+authoring TypeScript and confers no content authority; title decides.
 
 #### ⭐ Why an ordinary player sits at 1
 
@@ -409,7 +416,7 @@ the page renders.
 
 > ⭐ **No component can trigger a page render**, and it is a GATE, not a
 > depth counter: `render`/`redactSource` are
-> `AnyOf(FromModule(WikiController), FromTemplate('/platform/idea/WikiRegistry'))`,
+> `AnyOf(FromModule(WikiControllerBase, includeSubclasses), FromTemplate('/platform/idea/WikiRegistry'))`,
 > and `/lib/wiki/components/*` is in neither. There is no depth at which
 > recursion becomes allowed.
 
@@ -591,7 +598,7 @@ using it.
 ### ⚠ The guest floor — beneath every rung
 
 **A guest may read the wiki and may not write to it.** Checked before
-the ladder, the *wizard* rung included, because the objection is to the
+the ladder, the moderators' rung included, because the objection is to the
 **identity**, not the permission — no amount of authority makes an
 unattributable edit attributable.
 
@@ -842,10 +849,10 @@ frontmatter (`title`, `subject`, `tags`, `related`, `spoilerLevel`)
 over a **markdown** body, the article dialect. The installer never
 writes rows: it **submits** through `createPage` / `editPage` **as the
 pack** (`asInstaller: <packId>` — the gate on exactly those two methods
-admits `PackLogic` beside `WikiController`; the revision author is
+admits `PackLogic` beside the `wiki` controllers; the revision author is
 `pack:<id>`, never `system`; the namespace protection walk is skipped
-because there is no acting player at boot; `WikiController` never sets
-the option, and a test asserts it). An edit carries the install
+because there is no acting player at boot; no `wiki` controller sets
+the option, and a test asserts it over every one). An edit carries the install
 record's baseline `rev` as the **compare-and-swap** token: a changed
 pack file over a page nobody touched is a new revision; over a page
 somebody edited it is a `WikiConflict` → a **`wiki-cas` pack conflict**

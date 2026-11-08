@@ -1,0 +1,25 @@
+# The Avila turnout (water-supply W6, D21) — the junior farm's gate onto the
+# bench. LIVE (D30). ⭐ Its padlock takes the JUNIOR key: in a dry year the
+# rider padlocks it against the junior's turns, in priority order.
+class: /system/water/thing/PersistentGate
+data:
+  shortDescription: Avila turnout
+  keywords: [turnout, gate, "avila turnout", avila]
+  register: definite
+  longDescription: >-
+    A narrow gate in the bank onto the bench fields, the board held in a
+    frame with a heavy chain and padlock through it.
+  reachRef: delight-ditch:bench
+  controlKind: headgate
+  capacityM3S: 0.08
+  open: false
+  keyway: ditch-junior
+  lockTechnology: pin-tumbler
+  locked: false
+  # ⭐ Its turns are the rota's (D21): opened and shut for them, unwatched.
+  turnOf:
+    business: /world/terminus/hearts-delight/ditch/idea/company
+    positionKey: irrigator
+    assignee: /world/terminus/hearts-delight/ditch/agent/avila
+  mass: 100
+  _materialPath: /stuff/idea/material/wood/oak

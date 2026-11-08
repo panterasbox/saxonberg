@@ -14,14 +14,13 @@
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
-import { OrganizationMixin } from '../Organization';
-import { Idea } from '../../stuff/Idea';
+import OrganizationRow from '../../../platform/idea/Organization';
 import { StuffApi } from '../../../api/stuff';
 import { EmploymentApi } from '../../../api/employment';
 import { makeStuffAtPath } from '../../security/__tests__/test-setup';
 import type { PositionData } from '../Position';
 
-class OrganizationEntity extends OrganizationMixin(Idea) {
+class OrganizationEntity extends OrganizationRow {
   static _mixinName = 'OrganizationEntity';
 }
 

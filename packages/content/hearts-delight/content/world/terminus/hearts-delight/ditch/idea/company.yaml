@@ -1,0 +1,40 @@
+# The Delight Ditch Company (water-supply W9, D21) — the farmers on the
+# ditch, organized. ⭐ Its rota IS the turn list: each irrigator's shifts
+# are when their turnout is open, and the gate reconciles those turns into
+# its own record whether anybody was there or not. The rider's seat is
+# open: whoever takes it is handed the company's key and the junior
+# padlocks' (D19), and rides the ditch in a dry year.
+class: /platform/idea/Business
+data:
+  name: "the Delight Ditch Company"
+  appointingAuthority:
+    kind: office
+    office: prime-minister
+  positions:
+    - key: ditch-rider
+      noun: rider
+      label: riding the Delight ditch
+      wageRate: 3
+      headcount: 1
+      keys:
+        - { keyway: ditch-company, technology: pin-tumbler }
+        - { keyway: ditch-junior, technology: pin-tumbler }
+    - key: irrigator
+      noun: irrigator
+      label: taking a turn on the ditch
+      wageRate: 0
+  rosterSlots:
+    # Furtado: senior, every morning before the heat.
+    - positionKey: irrigator
+      assignee: /world/terminus/hearts-delight/ditch/agent/furtado
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [4, 10] }
+    # Avila: junior, three nights a week.
+    - positionKey: irrigator
+      assignee: /world/terminus/hearts-delight/ditch/agent/avila
+      schedule:
+        - { days: [1, 3, 5], hours: [22, 4] }
+  banksAt: goodkin
+  operatingLocations:
+    - /world/terminus/hearts-delight/ditch/location/bank
+    - /world/terminus/hearts-delight/ditch/location/headgate

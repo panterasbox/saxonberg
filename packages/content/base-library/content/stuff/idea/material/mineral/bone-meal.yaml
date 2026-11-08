@@ -17,8 +17,9 @@
 # ⭐ `feed` as well, because bone meal genuinely was fed to stock — it is
 # in the dog loaf for that reason, and the tag means a row that wants it
 # as fodder needs nothing new.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/flesh, strength: 30 }]
   name: bone meal
   keywords: ["bone meal", bonemeal, meal, bone]
   appearance: a fine grey-white meal

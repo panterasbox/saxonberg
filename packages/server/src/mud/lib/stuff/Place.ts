@@ -49,6 +49,9 @@ import { TemplatePaths } from '../paths';
 import { AppApi } from '../../api/app';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
+import { NavigationApi } from '../../api/navigation';
+import type Structure from '../structure/Structure';
+import type { Positioned } from '../expanse/Positioned';
 import type { Floor } from '../ground/Floor';
 import type { FieldMeta } from '../mixin';
 
@@ -205,6 +208,37 @@ export default class Place extends PlaceBase {
   };
 
   /**
+   * ⭐⭐ The structures whose LANDING this place is — the buildings whose
+   * outside is at hand from here (paint D2): the structure beyond each
+   * exit (or the ship lying alongside it), kept when this place passes its
+   * `isLandedAt`. Over what is standing.
+   */
+  public landedStructuresNow(): Structure[] {
+    const self = this as unknown as Stuff;
+    if (!MixinApi.isExitable(self)) return [];
+    const out = new Map<string, Structure>();
+    for (const exit of self.getExits().values()) {
+      const s = Place.structureBeyond(exit.alongsideNow(), exit.peekDestination(), exit.getDestinationTemplatePath());
+      if (s !== null && !out.has(s.stuffId) && s.isLandedAt(self)) out.set(s.stuffId, s);
+    }
+    return [...out.values()];
+  }
+
+  private static structureBeyond(alongside: Structure | null | undefined, far: Stuff | null, authored: string | null): Structure | null {
+    // An exit whose far side is whatever lies alongside answers for itself —
+    // never by its authored berth.
+    if (alongside !== undefined) return alongside;
+    if (far !== null && far.isPlace()) return (far as unknown as Place).structureNow();
+    // ⚠ A way to a KEYED room not standing (a column's water band, a ship
+    // of a kind's deck) names no structure by its path — a keyed room's
+    // structure is its warren's, and only the room can say which (harbors
+    // drive 2026-11-04: every arrival on the sea bed beside a wreck threw
+    // out of the MQL scope walk). Unloaded, it lands nothing here.
+    if (!authored || authored.includes('#')) return null;
+    return NavigationApi.structureAtNow(authored);
+  }
+
+  /**
    * The ZONES scanned from this room, overriding its zone's `horizon`
    * (the `suppressesMagic` shape: the room's own value wins, then the zone
    * walk). `null` defers; `[]` is *nothing from in here* (maritime R3).
@@ -252,6 +286,72 @@ export default class Place extends PlaceBase {
    */
   public override isPlace(): boolean {
     return true;
+  }
+
+  /**
+   * ⭐ The structure this place is part of, standing — never loads
+   *.
+   *
+   * A member of a warren is answered by its warren
+   * (`Warren.structureOf` — a holding knows which of its buildings a room
+   * is part of, paint review): a ship's keyed room is keyed
+   * `(room row, <serial>/<leaf>)` and its row is every ship of that
+   * kind's, so no path can say which ship it is — the room is asked, and
+   * the room knows its warren. Otherwise the structure attached to its
+   * name in the location graph's record (`NavigationApi.structureAtNow`).
+   * A keyed room no warren claims for a structure (a dorm room) is in
+   * none: its row is not its name.
+   */
+  public structureNow(): Structure | null {
+    const own = this.warrenStructure();
+    if (own !== undefined) return own;
+    const name = this.getDurableHandle() ?? this.getTemplatePath();
+    return name ? NavigationApi.structureAtNow(name) : null;
+  }
+
+  /** {@link structureNow}, standing the attached candidates up first. */
+  public async structure(): Promise<Structure | null> {
+    const own = this.warrenStructure();
+    if (own !== undefined) return own;
+    const name = this.getDurableHandle() ?? this.getTemplatePath();
+    return name ? NavigationApi.structureAt(name) : null;
+  }
+
+  /**
+   * ⭐ The craft this place is part of, on a chart: the place itself when
+   * it has a position at sea (a patch of water), else its structure when
+   * that has one (a ship's deck). `null` ashore.
+   */
+  public async craftHere(): Promise<(Stuff & Positioned) | null> {
+    const self = this as unknown as Stuff;
+    if (MixinApi.isPositioned(self) && self.getExpansePosition() !== null) return self;
+    const s = (await this.structure()) as unknown as Stuff | null;
+    return s !== null && MixinApi.isPositioned(s) && s.getExpansePosition() !== null ? s : null;
+  }
+
+  /**
+   * The warren's answer: its structure, `null` for a keyed member it
+   * claims for none, `undefined` when the path is to be asked instead.
+   */
+  private warrenStructure(): Structure | null | undefined {
+    const self = this as unknown as Stuff;
+    if (MixinApi.isWarrenMember(self)) {
+      const s = self.getWarren()?.structureOf(self) ?? null;
+      if (s !== null && !s.isDestroyed()) return s as unknown as Structure;
+    }
+    return (this.getDurableHandle() ?? '').includes('#') ? null : undefined;
+  }
+
+  /**
+   * @hook Whether this place can be read from the places whose exits
+   * lead into it — `look upper bench` from the farmyard (tracts build
+   * D30). Default `false`: a room, a street or a water place is entered
+   * to be seen. Open ground answers `true` (a farm's tract is read from
+   * its gate). Only the place itself is offered to the viewer next door:
+   * never its exits, contents or occupants.
+   */
+  public isSeenAcrossExit(): boolean {
+    return false;
   }
 
   // `getVolume` / `getCeilingHeight` live on AtmosphericMixin (composed

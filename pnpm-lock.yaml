@@ -113,6 +113,9 @@ importers:
       '@saxonberg/content-trade-coopering':
         specifier: workspace:*
         version: link:packages/content/trade-coopering
+      '@saxonberg/content-trade-cordage':
+        specifier: workspace:*
+        version: link:packages/content/trade-cordage
       '@saxonberg/content-trade-dairying':
         specifier: workspace:*
         version: link:packages/content/trade-dairying
@@ -164,9 +167,21 @@ importers:
       '@saxonberg/content-trade-mining':
         specifier: workspace:*
         version: link:packages/content/trade-mining
+      '@saxonberg/content-trade-painting':
+        specifier: workspace:*
+        version: link:packages/content/trade-painting
+      '@saxonberg/content-trade-papermaking':
+        specifier: workspace:*
+        version: link:packages/content/trade-papermaking
+      '@saxonberg/content-trade-plumbing':
+        specifier: workspace:*
+        version: link:packages/content/trade-plumbing
       '@saxonberg/content-trade-potash':
         specifier: workspace:*
         version: link:packages/content/trade-potash
+      '@saxonberg/content-trade-printing':
+        specifier: workspace:*
+        version: link:packages/content/trade-printing
       '@saxonberg/content-trade-quarrying':
         specifier: workspace:*
         version: link:packages/content/trade-quarrying
@@ -258,6 +273,9 @@ importers:
       '@saxonberg/types':
         specifier: workspace:*
         version: link:../types
+      lucide-react:
+        specifier: 0.454.0
+        version: 0.454.0(react@18.3.1)
       monaco-editor:
         specifier: ^0.52.0
         version: 0.52.2
@@ -338,6 +356,9 @@ importers:
       '@saxonberg/content-arcana':
         specifier: workspace:*
         version: link:../arcana
+      '@saxonberg/content-base-library':
+        specifier: workspace:*
+        version: link:../base-library
       '@saxonberg/content-platform':
         specifier: workspace:*
         version: link:../platform
@@ -530,6 +551,9 @@ importers:
 
   packages/content/generic-objects:
     dependencies:
+      '@saxonberg/content-base-library':
+        specifier: workspace:*
+        version: link:../base-library
       '@saxonberg/content-platform':
         specifier: workspace:*
         version: link:../platform
@@ -635,6 +659,9 @@ importers:
       '@saxonberg/content-platform':
         specifier: workspace:*
         version: link:../platform
+      '@saxonberg/content-residence':
+        specifier: workspace:*
+        version: link:../residence
       '@saxonberg/content-terminus':
         specifier: workspace:*
         version: link:../terminus
@@ -671,6 +698,12 @@ importers:
       '@saxonberg/content-trade-milling':
         specifier: workspace:*
         version: link:../trade-milling
+      '@saxonberg/content-trade-papermaking':
+        specifier: workspace:*
+        version: link:../trade-papermaking
+      '@saxonberg/content-trade-printing':
+        specifier: workspace:*
+        version: link:../trade-printing
       '@saxonberg/content-trade-quarrying':
         specifier: workspace:*
         version: link:../trade-quarrying
@@ -710,6 +743,9 @@ importers:
       '@saxonberg/content-trade-farming':
         specifier: workspace:*
         version: link:../trade-farming
+      '@saxonberg/content-trade-plumbing':
+        specifier: workspace:*
+        version: link:../trade-plumbing
       '@saxonberg/content-water':
         specifier: workspace:*
         version: link:../water
@@ -832,6 +868,9 @@ importers:
       '@saxonberg/content-trade-drilling':
         specifier: workspace:*
         version: link:../trade-drilling
+      '@saxonberg/content-trade-farming':
+        specifier: workspace:*
+        version: link:../trade-farming
       '@saxonberg/content-trade-forestry':
         specifier: workspace:*
         version: link:../trade-forestry
@@ -844,6 +883,9 @@ importers:
       '@saxonberg/content-trade-mining':
         specifier: workspace:*
         version: link:../trade-mining
+      '@saxonberg/content-trade-plumbing':
+        specifier: workspace:*
+        version: link:../trade-plumbing
       '@saxonberg/content-trade-potash':
         specifier: workspace:*
         version: link:../trade-potash
@@ -935,6 +977,9 @@ importers:
 
   packages/content/species-and-names:
     dependencies:
+      '@saxonberg/content-base-library':
+        specifier: workspace:*
+        version: link:../base-library
       '@saxonberg/content-platform':
         specifier: workspace:*
         version: link:../platform
@@ -1004,6 +1049,9 @@ importers:
       '@saxonberg/content-trade-cooking':
         specifier: workspace:*
         version: link:../trade-cooking
+      '@saxonberg/content-trade-cordage':
+        specifier: workspace:*
+        version: link:../trade-cordage
       '@saxonberg/content-trade-distilling':
         specifier: workspace:*
         version: link:../trade-distilling
@@ -1040,9 +1088,18 @@ importers:
       '@saxonberg/content-trade-mining':
         specifier: workspace:*
         version: link:../trade-mining
+      '@saxonberg/content-trade-painting':
+        specifier: workspace:*
+        version: link:../trade-painting
+      '@saxonberg/content-trade-plumbing':
+        specifier: workspace:*
+        version: link:../trade-plumbing
       '@saxonberg/content-trade-potash':
         specifier: workspace:*
         version: link:../trade-potash
+      '@saxonberg/content-trade-printing':
+        specifier: workspace:*
+        version: link:../trade-printing
       '@saxonberg/content-trade-quarrying':
         specifier: workspace:*
         version: link:../trade-quarrying
@@ -1401,6 +1458,37 @@ importers:
         specifier: ^2.8.2
         version: 2.9.0
 
+  packages/content/trade-cordage:
+    dependencies:
+      '@saxonberg/content-base-library':
+        specifier: workspace:*
+        version: link:../base-library
+      '@saxonberg/content-generic-objects':
+        specifier: workspace:*
+        version: link:../generic-objects
+      '@saxonberg/content-platform':
+        specifier: workspace:*
+        version: link:../platform
+      '@saxonberg/content-trade-textiles':
+        specifier: workspace:*
+        version: link:../trade-textiles
+      '@saxonberg/server':
+        specifier: workspace:*
+        version: link:../../server
+      '@saxonberg/types':
+        specifier: workspace:*
+        version: link:../../types
+    devDependencies:
+      typescript:
+        specifier: ^5.4.0
+        version: 5.9.3
+      vitest:
+        specifier: ^2.0.0
+        version: 2.1.9(@types/node@20.19.28)(jsdom@25.0.1)
+      yaml:
+        specifier: ^2.8.2
+        version: 2.9.0
+
   packages/content/trade-dairying:
     dependencies:
       '@saxonberg/content-base-library':
@@ -1594,6 +1682,9 @@ importers:
       '@saxonberg/content-platform':
         specifier: workspace:*
         version: link:../platform
+      '@saxonberg/content-residence':
+        specifier: workspace:*
+        version: link:../residence
       '@saxonberg/server':
         specifier: workspace:*
         version: link:../../server
@@ -1878,6 +1969,9 @@ importers:
 
   packages/content/trade-medicine:
     dependencies:
+      '@saxonberg/content-base-library':
+        specifier: workspace:*
+        version: link:../base-library
       '@saxonberg/content-platform':
         specifier: workspace:*
         version: link:../platform
@@ -1966,6 +2060,128 @@ importers:
         specifier: ^2.8.2
         version: 2.9.0
 
+  packages/content/trade-painting:
+    dependencies:
+      '@saxonberg/content-base-library':
+        specifier: workspace:*
+        version: link:../base-library
+      '@saxonberg/content-generic-objects':
+        specifier: workspace:*
+        version: link:../generic-objects
+      '@saxonberg/content-platform':
+        specifier: workspace:*
+        version: link:../platform
+      '@saxonberg/content-trade-chandlery':
+        specifier: workspace:*
+        version: link:../trade-chandlery
+      '@saxonberg/content-trade-cooking':
+        specifier: workspace:*
+        version: link:../trade-cooking
+      '@saxonberg/content-trade-dairying':
+        specifier: workspace:*
+        version: link:../trade-dairying
+      '@saxonberg/content-trade-distilling':
+        specifier: workspace:*
+        version: link:../trade-distilling
+      '@saxonberg/content-trade-dyeing':
+        specifier: workspace:*
+        version: link:../trade-dyeing
+      '@saxonberg/content-trade-farming':
+        specifier: workspace:*
+        version: link:../trade-farming
+      '@saxonberg/content-trade-fishing':
+        specifier: workspace:*
+        version: link:../trade-fishing
+      '@saxonberg/content-trade-forestry':
+        specifier: workspace:*
+        version: link:../trade-forestry
+      '@saxonberg/content-trade-milling':
+        specifier: workspace:*
+        version: link:../trade-milling
+      '@saxonberg/content-trade-quarrying':
+        specifier: workspace:*
+        version: link:../trade-quarrying
+      '@saxonberg/content-trade-ranching':
+        specifier: workspace:*
+        version: link:../trade-ranching
+      '@saxonberg/content-trade-rubber':
+        specifier: workspace:*
+        version: link:../trade-rubber
+      '@saxonberg/content-trade-smelting':
+        specifier: workspace:*
+        version: link:../trade-smelting
+      '@saxonberg/content-trade-tanning':
+        specifier: workspace:*
+        version: link:../trade-tanning
+      '@saxonberg/content-trade-winemaking':
+        specifier: workspace:*
+        version: link:../trade-winemaking
+      '@saxonberg/server':
+        specifier: workspace:*
+        version: link:../../server
+      '@saxonberg/types':
+        specifier: workspace:*
+        version: link:../../types
+    devDependencies:
+      typescript:
+        specifier: ^5.4.0
+        version: 5.9.3
+      vitest:
+        specifier: ^2.0.0
+        version: 2.1.9(@types/node@20.19.28)(jsdom@25.0.1)
+      yaml:
+        specifier: ^2.8.2
+        version: 2.9.0
+
+  packages/content/trade-papermaking:
+    dependencies:
+      '@saxonberg/content-base-library':
+        specifier: workspace:*
+        version: link:../base-library
+      '@saxonberg/content-generic-objects':
+        specifier: workspace:*
+        version: link:../generic-objects
+      '@saxonberg/content-platform':
+        specifier: workspace:*
+        version: link:../platform
+      '@saxonberg/content-trade-painting':
+        specifier: workspace:*
+        version: link:../trade-painting
+      '@saxonberg/content-water':
+        specifier: workspace:*
+        version: link:../water
+      '@saxonberg/server':
+        specifier: workspace:*
+        version: link:../../server
+      '@saxonberg/types':
+        specifier: workspace:*
+        version: link:../../types
+    devDependencies:
+      typescript:
+        specifier: ^5.4.0
+        version: 5.9.3
+      vitest:
+        specifier: ^2.0.0
+        version: 2.1.9(@types/node@20.19.28)(jsdom@25.0.1)
+      yaml:
+        specifier: ^2.8.2
+        version: 2.9.0
+
+  packages/content/trade-plumbing:
+    dependencies:
+      '@saxonberg/content-base-library':
+        specifier: workspace:*
+        version: link:../base-library
+      '@saxonberg/content-generic-objects':
+        specifier: workspace:*
+        version: link:../generic-objects
+      '@saxonberg/content-platform':
+        specifier: workspace:*
+        version: link:../platform
+      '@saxonberg/content-trade-smelting':
+        specifier: workspace:*
+        version: link:../trade-smelting
+
   packages/content/trade-potash:
     dependencies:
       '@saxonberg/content-base-library':
@@ -1986,6 +2202,37 @@ importers:
       '@saxonberg/content-trade-quarrying':
         specifier: workspace:*
         version: link:../trade-quarrying
+      '@saxonberg/server':
+        specifier: workspace:*
+        version: link:../../server
+      '@saxonberg/types':
+        specifier: workspace:*
+        version: link:../../types
+    devDependencies:
+      typescript:
+        specifier: ^5.4.0
+        version: 5.9.3
+      vitest:
+        specifier: ^2.0.0
+        version: 2.1.9(@types/node@20.19.28)(jsdom@25.0.1)
+      yaml:
+        specifier: ^2.8.2
+        version: 2.9.0
+
+  packages/content/trade-printing:
+    dependencies:
+      '@saxonberg/content-base-library':
+        specifier: workspace:*
+        version: link:../base-library
+      '@saxonberg/content-generic-objects':
+        specifier: workspace:*
+        version: link:../generic-objects
+      '@saxonberg/content-platform':
+        specifier: workspace:*
+        version: link:../platform
+      '@saxonberg/content-trade-painting':
+        specifier: workspace:*
+        version: link:../trade-painting
       '@saxonberg/server':
         specifier: workspace:*
         version: link:../../server
@@ -2122,9 +2369,6 @@ importers:
       '@saxonberg/content-trade-farming':
         specifier: workspace:*
         version: link:../trade-farming
-      '@saxonberg/content-trade-fishing':
-        specifier: workspace:*
-        version: link:../trade-fishing
       '@saxonberg/content-trade-shopkeeping':
         specifier: workspace:*
         version: link:../trade-shopkeeping
@@ -2455,6 +2699,9 @@ importers:
       '@saxonberg/content-trade-sugar':
         specifier: workspace:*
         version: link:../trade-sugar
+      '@saxonberg/content-transport':
+        specifier: workspace:*
+        version: link:../transport
       '@saxonberg/content-water':
         specifier: workspace:*
         version: link:../water
@@ -4806,6 +5053,11 @@ packages:
 
   lru-cache@5.1.1:
     resolution: {integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==}
+
+  lucide-react@0.454.0:
+    resolution: {integrity: sha512-hw7zMDwykCLnEzgncEEjHeA6+45aeEzRYuKHuyRSOPkhko+J3ySGjGIzu+mmMfDFG1vazHepMaYFYHbTFAZAAQ==}
+    peerDependencies:
+      react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0-rc
 
   lunr@2.3.9:
     resolution: {integrity: sha512-zTU3DaZaF3Rt9rhN3uBMGQD3dD2/vFQqnvZCDv4dl5iOzq2IZQqTxu90r4E5J+nP70J3ilqVCrbho2eWaeW8Ow==}
@@ -8216,6 +8468,10 @@ snapshots:
   lru-cache@5.1.1:
     dependencies:
       yallist: 3.1.1
+
+  lucide-react@0.454.0(react@18.3.1):
+    dependencies:
+      react: 18.3.1
 
   lunr@2.3.9: {}
 

@@ -61,7 +61,7 @@ W7's drive step and acceptance criteria are carried into § W7; the rest
 is in git history at `970c9cce2`)
 (kind: **feature**, leads from **kernel**; first consumers the pick, the
 axe and the sword; the Hearthworks smith; a tinker and a cobbler; one
-heirloom). Seeded by [repair-slate](../slates/builds/repair-slate.md).
+heirloom). Seeded by [repair-slate](../slates/tails/repair-slate.md).
 The build makes a mend depend on the hand (per part, in the trade that
 made the part, derived never rolled), makes the paid mend somebody's
 work, puts two menders in the world, folds the narrow `Assembled*` twins
@@ -365,7 +365,7 @@ these files changed in dairy.
 - `docs/subsystems/mould.md` — *Reusable and consumed* says `repair`
   mends a mould; *Deferred* lists other moulded goods, dry/cure/bake as
   set processes, the consumed mould, the pool's payload onto a non-food
-  cast. The moulding slate (`docs/slates/builds/moulding-slate.md § 0`,
+  cast. The moulding slate (`docs/slates/tails/moulding-slate.md § 0`,
   owner 2026-10-16) rules *this is its own build, after repair; repair
   takes one seam now — a cast part is mended under the discipline its
   mould credits* and (§ 7) *the two-piece mould is an assembly — cope
@@ -2375,7 +2375,7 @@ Read first, in this order:
 8. `packages/server/src/mud/platform/idea/cmd/retail/OrderController.ts`, `platform/thing/Tariff.ts`, `lib/commerce/PricedOffer.ts`
 9. `packages/server/src/mud/platform/idea/api/EmploymentLogic.ts:925–1010, 1630–1730, 2030–2110`, `lib/employment/{Roster,Employed}.ts`
 10. `packages/server/src/mud/lib/stuff/{Staged,Stuff}.ts`, `lib/npc/NPC.ts`, `platform/agent/Gus.ts:1–40` (the Staged split, filed), `packages/content/terminus/src/mayfield-row/agent/Walter.ts` (the chain the tinker copies)
-10a. **The mould system**: `packages/server/src/mud/lib/mould/Mould.ts` (`carryPayload` — D1's one-line write site), `platform/thing/Mould.ts`, `packages/content/trade-dairying/src/thing/Hoop.ts`, `docs/subsystems/mould.md`, `docs/slates/builds/moulding-slate.md § 0, § 7`, `packages/content/trade-cooking/src/thing/CookPot.ts` (D4's one pack line)
+10a. **The mould system**: `packages/server/src/mud/lib/mould/Mould.ts` (`carryPayload` — D1's one-line write site), `platform/thing/Mould.ts`, `packages/content/trade-dairying/src/thing/Hoop.ts`, `docs/subsystems/mould.md`, `docs/slates/tails/moulding-slate.md § 0, § 7`, `packages/content/trade-cooking/src/thing/CookPot.ts` (D4's one pack line)
 11. `packages/server/src/mud/lib/instrument/Reading.ts`, `platform/idea/reading/PumpReading.ts`
 12. `packages/server/src/mud/platform/idea/cmd/social/NameController.ts`
 13. `packages/content/trade-smithing/src/idea/cmd/crafting/SharpenController.ts`

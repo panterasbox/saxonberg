@@ -38,15 +38,15 @@ export default class Derrick extends Tool {
    * and letting them go are the EMPLOYMENT subsystem's acts, which every
    * house in the realm needs and which the kernel already had the
    * methods for (`OrganizationMixin.appoint` / `.dismiss`). They are
-   * core verbs now — `hire` an alias on `appoint` — so they need no
-   * affordance and work at a bar and a ranch as well as at a rig. What
+   * the house's transactions now — `house appoint` / `house dismiss` — so
+   * they need no rig's affordance and work at a bar and a ranch as well as at a rig. What
    * is left here is the three acts that genuinely need a derrick
    * standing over a hole.
    */
   static commandContributions = {
     peers: [
       'trade/drilling/cmd/drilling/bore.yaml',
-      'trade/drilling/cmd/drilling/bail.yaml',
+      'platform/cmd/device/bail.yaml',
       'trade/drilling/cmd/drilling/line.yaml',
     ],
   };

@@ -26,3 +26,6 @@ data:
   exits:
     up:
       destination: /world/newbie-wilds/delve/corridor-2
+      # The scramble is walked (it never strands you); a rope hung from the
+      # post above is climbed (cordage D11).
+      media: [ground, vertical]

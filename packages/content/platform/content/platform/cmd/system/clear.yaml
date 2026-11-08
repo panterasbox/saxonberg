@@ -1,4 +1,5 @@
 verbs: [clear]
+category: system
 controller: /platform/idea/cmd/system/ClearController
 description: "Clear the terminal scrollback"
 help: |

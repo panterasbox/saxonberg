@@ -1,0 +1,18 @@
+# A mooring line — thirty meters of heavy hemp, what a ship is
+# made fast to the shore with. Coming alongside, its end goes ashore round a
+# bollard while the rope stays at her bitts; `untie` that end on the quay and
+# she is held by one line fewer.
+#
+# ⭐ A ROPE (cordage's one rope — its use is where its ends are tied): beside
+# the platform's bollard and heaving line, so any harbor's ship can carry one.
+class: /platform/thing/Rope
+data:
+  shortDescription: mooring line
+  keywords: [line, rope, "mooring line", warp, mooring]
+  register: indefinite
+  longDescription: >-
+    Thirty meters of heavy hemp line as thick as a wrist, an eye spliced in
+    one end to drop over a bollard, the rest flaked down ready to run.
+  _materialPath: /stuff/idea/material/textile/hemp
+  lengthM: 30
+  diameterMm: 24

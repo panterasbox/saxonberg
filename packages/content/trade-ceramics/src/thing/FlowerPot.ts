@@ -22,9 +22,9 @@ import { MarkedMixin } from '@saxonberg/server/mud/lib/description/Marked';
  * pot composed `Crafted` and nothing rendered it, so the consigned pot a
  * buyer took home off the stall read no maker at all (drive C, run 39).
  */
-const verdictAugmenter: MarkupAugmenter = (text: string, host: Stuff): string => {
+const verdictAugmenter: MarkupAugmenter = (text: string, host: Stuff, viewer: Stuff): string => {
   if (!MixinApi.isCrafted(host) || host.getMaker() === '') return text;
-  const verdict = host.renderVerdict();
+  const verdict = host.renderVerdict(viewer);
   return text && text.length > 0 ? `${text}\n\n${verdict}` : verdict;
 };
 

@@ -8,6 +8,23 @@ class: /platform/idea/species/Species
 data:
   binomial: Pinus sylvestris
   commonNames: ["pine", "Scots pine"]
+  # ⭐ GUM (paint D17): cut a face through the bark with a blade, set a cup,
+  # and through warm weather the oleoresin bleeds into it — a slow,
+  # summer-long run. It is cut in a still to turpentine and rosin.
+  production:
+    - key: gum
+      yieldRow: /trade/forestry/idea/material/pine-gum
+      perGameDay: 0.04
+      behaviour: accrue
+      windowDays: 12
+      yieldShape: volume
+      instrument: cutting
+      window:
+        kind: weather
+        daylightFrom: 0
+        daylightTo: 1
+        minK: 288
+        maxK: 320
   _bodyPlanPath: /stuff/idea/species/BodyPlan/sessile
   _parentCladePath: /stuff/idea/species/plantae
   # The LIVING organism's material; the wood is the material row's fact

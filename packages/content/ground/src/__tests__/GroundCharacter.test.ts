@@ -150,6 +150,26 @@ describe('the fold — pin over lean over procedural', () => {
     // Un-pinned fields still carry the LEAN, not the bare value.
     expect(pinned.drainage).toBeLessThan(bare.drainage);
   });
+
+  it('⭐ a NUDGE folds last — it scales depth and overrides N after a pin', async () => {
+    const m = await model();
+    const pinned = GroundCharacter.resolve(m, at(2, 2), SEED);
+    const nudged = GroundCharacter.resolve(m, at(2, 2), SEED, {
+      depthScale: 0.35,
+      nitrogenPct: 12,
+    });
+    // The pin still stands under the nudge: a part of authored ground is
+    // still that ground.
+    expect(nudged.texture).toBe('clay');
+    expect(nudged.nativePh).toBe(5.0);
+    expect(nudged.topsoilM).toBeCloseTo(
+      Math.max(0.01, Math.round(pinned.topsoilM * 0.35 * 100) / 100),
+      5,
+    );
+    expect(nudged.nativeNitrogenPct).toBe(12);
+    // No nudge is the shipped read, byte for byte.
+    expect(GroundCharacter.resolve(m, at(2, 2), SEED, undefined)).toEqual(pinned);
+  });
 });
 
 /**

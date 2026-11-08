@@ -1,4 +1,5 @@
 verbs: [weave]
+category: textiles
 controller: /trade/textiles/idea/cmd/textiles/WeaveController
 description: "Set a web on the loom and cut cloth off it"
 help: |
@@ -24,7 +25,7 @@ args:
     required: true
     scope: [inventory, reachable]
     requires: StackableMixin
-  # ⭐ WHICH LOOM — DECLARED, not hunted for (`lint:instrument-args`).
+  # ⭐ WHICH LOOM — DECLARED, not hunted for (`lint:controller-resolution`).
   # Bare, the binder hands over every reachable thing offering
   # `weaving` and the controller takes the best-rated; `weave the yarn on the broad
   # loom` names one.
@@ -33,7 +34,7 @@ args:
     required: false
     prepositions: [on, at, with]
     default: "reachable:[capability.weaving]"
-    scope: ["reachable"]
+    scope: ["here", "peers", "person"]
     requires: [ToolMixin]
 options:
   close:

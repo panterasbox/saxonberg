@@ -1,8 +1,10 @@
 # Plant tissue — soft cellulose-based. Living plant matter (a leaf,
 # a stem); distinct from oak (dead, processed wood). Flammable when
 # dry.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/green, strength: 10 }]
+  tastes: [{ type: sweet, amount: 10 }, { type: bitter, amount: 0.01 }]
   name: plant-tissue
   keywords: [plant-tissue]
   density: 600

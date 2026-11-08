@@ -21,13 +21,17 @@ import type { CommandDefinition } from "../../lib/command/CommandDefinition";
 function fakeDef(
   verbs: string[],
   description: string,
-  helpText: string
+  helpText: string,
+  requires: string[] = []
 ): CommandDefinition {
   return {
     verbs,
     description,
+    defaultAliases: verbs.slice(1).map((name) => ({ name })),
+    category: verbs[0] === "look" ? "perception" : "inventory",
     getPrimaryVerb: () => verbs[0] ?? "",
     getHelpText: () => helpText,
+    getRequiredMixins: () => requires,
   } as unknown as CommandDefinition;
 }
 
@@ -81,6 +85,7 @@ const SURFACE: AuthorSurface = {
   ],
   extension: [],
   types: [{ id: 900, name: "Grade", module: "lib/craft/Grade", kind: 128 }],
+  mixins: [{ name: "Container", summary: "Holds things; what is inside it is its contents." }],
 };
 
 async function warmed(): Promise<HelpCatalogue> {
@@ -112,6 +117,34 @@ describe("HelpCatalogue", () => {
     expect(topic!.keywords).toContain("l"); // alias in the typeahead corpus
   });
 
+  it("⭐ lists who ANSWERS a verb, read lazily on first read (D8b)", async () => {
+    const cat = makeStuff(() => new HelpCatalogue());
+    await cat.warm({
+      commandDefs: [
+        fakeDef(["dip"], "Dip a thing in a bath", "DIP: dip it", [
+          "DipBathMixin",
+          "VisibleMixin",
+        ]),
+        ...COMMANDS,
+      ],
+      surface: SURFACE,
+      schema: [],
+    });
+    const dip = cat.findCommandTopic("dip")!;
+    // The protocol and the classes composing it; a noun mixin the view
+    // also requires is not an answer.
+    expect(dip.body).toContain("answers:");
+    expect(dip.body).toContain("DipBathMixin");
+    expect(dip.body).toContain("GlazeTub");
+    expect(dip.body).not.toContain("VisibleMixin");
+    // Cached: the same object on the next read, by id or by verb.
+    expect(cat.getTopic("command.dip")).toBe(dip);
+    // A verb whose slots name no protocol is returned unchanged.
+    expect(cat.getTopic("command.look")!.body).toBe(
+      COMMANDS[0]!.getHelpText()
+    );
+  });
+
   it("emits a topic for EVERY Mixins registry entry (complete roster)", async () => {
     const cat = await warmed();
     for (const value of Object.values(Mixins)) {
@@ -123,6 +156,13 @@ describe("HelpCatalogue", () => {
         `missing mixin topic for ${concept}`
       ).not.toBeNull();
     }
+  });
+
+  it("⭐ a mixin topic's summary is the mixin's OWN, not its first member's (#89)", async () => {
+    const cat = await warmed();
+    expect(cat.getTopic("mixin.Container")!.summary).toBe(
+      "Holds things; what is inside it is its contents.",
+    );
   });
 
   it("degrades an undocumented mixin to a bare topic", async () => {
@@ -198,6 +238,16 @@ describe("HelpCatalogue", () => {
     const command = cats.find((c) => c.kind === "command");
     expect(command?.count).toBe(2);
     expect(cats.some((c) => c.kind === "mixin")).toBe(true);
+  });
+
+  it("⭐ groups command topics by the view's category (D24)", async () => {
+    const cat = await warmed();
+    expect(cat.commandCategories()).toEqual([
+      { category: "inventory", count: 1 },
+      { category: "perception", count: 1 },
+    ]);
+    expect(cat.listCommandCategory("perception").map((e) => e.title)).toEqual(["look"]);
+    expect(cat.listCommandCategory("nope")).toEqual([]);
   });
 
   it("degrades when author-surface is absent (one warning, no api topics)", async () => {

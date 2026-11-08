@@ -1,0 +1,391 @@
+/**
+ * Structure — the thing that says *these rooms are one building*, seen
+ * from outside.
+ *
+ * The structures slate's justification test — *something must be true of
+ * a SET of rooms that no room can decide alone* — and what a Structure
+ * owns is exactly that, and only that:
+ *
+ * - **membership** — every Location row under `extent` (a template-path
+ *   prefix: the parcel's coverage shape, so a mansion carved into
+ *   sub-zones is still one structure). Declared, never derived from
+ *   geometry. Rooms stay roots: a structure COORDINATES, it does not
+ *   contain.
+ * - **the entrance** — the way in.
+ * - **how it looks** — it is `Visible` + `Detailed` like any thing you
+ *   look at (the `Species` precedent: an Idea can be seen). Its inside is
+ *   its member rooms; there is no second, "outside" description.
+ *   `landmark` opts it in to be FEATURED on a horizon (maritime R1) —
+ *   whether it can be seen at all is derived, never authored.
+ * - **its height** — `heightM`, what a horizon reads of it as a target.
+ *
+ * ⭐⭐ **A ship is a {@link Ship}: a Structure whose position is a
+ * variable** — the subclass adds the position, the voyage, the deck and
+ * the crew (maritime review, 2026-10-13). A building carries none of it:
+ * the tower never moves, so it has no course, no fix and no snapshot. A
+ * building that stands on a sea's rock (a light) has no position of its
+ * own either — it is where its rock's node is, and the EXPANSE says so.
+ *
+ * - **which places stand on which** — `storeys`, a small tree of
+ *   relations (rubber build, 2026-10-17): each storey is an extent prefix
+ *   (membership is the longest one) and may stand `on:` another. No
+ *   storeys means one implicit storey.
+ *
+ * ⭐⭐ **It IS made of materials — but not as a Thing is** (the owner,
+ * paint requirements, 2026-10-31). A structure is an Idea, so what it is
+ * made of is a BILL: the materials it takes to erect and later to
+ * maintain (the construction slate's). What it is NOT is a container of
+ * walls: walls and roofs belong to the places (`enclosure:`, `roof:` on
+ * each member's own row) — a place decides what bounds it alone, and
+ * `lint:envelope` refuses a Structure row that authors an envelope. Its
+ * OUTSIDE is its own (the coat, the weathering and the fabric — the
+ * capability mixins the platform twin composes). A lone hut is complete
+ * with no structure; a structure with no member places (a castle on the
+ * horizon) is still a structure.
+ *
+ * ⭐⭐ **The landing** — where the structure meets the weather (paint
+ * build, 2026-10-31). A structure is not a Thing or a Location, so a
+ * player engages it from a place that touches it: *a place that does not
+ * hold its own air, with an exit into a member that is enclosed or is the
+ * structure's entrance* ({@link isLandedAt}). Derived, never authored —
+ * the street before a house, a quay with a ship alongside, a courtyard
+ * open to the sky. A closet holds air; a sailed ship's berth has nothing
+ * alongside.
+ *
+ * ⛔ **A plan is NOT a Structure**: a
+ * Structure is only ever a thing standing in the world. The plan a warren
+ * copies (an `extent` of room rows and an `entrance`) lives on whoever
+ * owns it — a holding's programme row, a ship kind's own row — and is
+ * read by `lib/location/Floorplan.ts`; there is no blueprint row.
+ *
+ * ⛔ It does not name an address (member rooms keep their own), and it is
+ * not a Parcel (a parcel is title in a gated collection; a structure is
+ * content anybody holding the ground may author).
+ *
+ * This is the BASE (`lib/`): membership, entrance, height, storeys and
+ * the landing, with no `Singleton` — so a holding can mint one building
+ * per `(scope, key)`. The platform twin (`platform/idea/Structure`) is the
+ * default building every row names: one row, one structure, and the
+ * outside's capabilities. A ruin or a monument is a class over this base
+ * that composes none of them.
+ *
+ * ⭐ A {@link Ship} extends THIS base too, because a ship
+ * KIND (`/stuff/idea/Ship/smack`) is one row many ships are cloned from,
+ * keyed `(row, serial)` — the singleton guard would refuse the second
+ * smack. An authored ship (the Hesper) is still one-row-one-ship by the
+ * way it is loaded (`StuffApi.singleton`), which is all the guard added.
+ */
+
+import { Idea } from '../stuff/Idea';
+import { NamedMixin } from '../description/Named';
+import { VisibleMixin } from '../description/Visible';
+import { PerceptibleMixin } from '../description/Perceptible';
+import { DetailedMixin } from '../description/Detailed';
+import type { FieldMeta } from '../mixin';
+import type { EvictionContext } from '../stuff/Stuff';
+import type { VetoResult } from '../errors';
+import type { StoreySpec } from '../spatial/Enclosed';
+import type { Stuff } from '../stuff/Stuff';
+import { StuffApi } from '../../api/stuff';
+import { MixinApi } from '../../api/mixin';
+import { ParcelApi } from '../../api/parcel';
+import type Exit from '../boundary/Exit';
+import type { CoatReachRefusal } from '../material/Faced';
+
+// ⭐ `NamedMixin` OUTSIDE `PerceptibleMixin`: a name is one of the words a
+// thing answers to (`Named.getKeywords` folds it onto what lies beneath),
+// so `paint hesper` reaches the ship by her name through the one list MQL
+// scores (one-resolution slate § 4).
+export default class Structure extends DetailedMixin(
+  VisibleMixin(NamedMixin(PerceptibleMixin(Idea))),
+) {
+  static fieldMeta: FieldMeta = {
+    extent: { persistent: true, authorable: true },
+    entrance: { persistent: true, authorable: true },
+    landmark: { persistent: true, authorable: true },
+    heightM: { persistent: true, authorable: true },
+    storeys: { persistent: true, authorable: true },
+  };
+
+  /** Template-path prefix: every Location row under it is a member. */
+  protected extent = '';
+  /** The member room you enter by — aboard a ship, the deck. */
+  protected entrance: string | null = null;
+  /** Featured on a horizon — opt-in emphasis, not visibility. */
+  protected landmark = false;
+  /** Its height as a TARGET, metres (a tower's top, a ship's truck). */
+  protected heightM = 0;
+  /** Which of its places stand on which — relations only. */
+  protected storeys: StoreySpec[] = [];
+
+  public getExtent(): string { return this.extent; }
+  public setExtent(value: string): void { this.extent = (value ?? '').replace(/\/+$/, ''); }
+
+  public getEntrance(): string | null { return this.entrance; }
+  public setEntrance(value: string | null): void { this.entrance = value ?? null; }
+
+  public isLandmark(): boolean { return this.landmark; }
+  public setLandmark(value: boolean): void { this.landmark = value === true; }
+
+  public getHeightM(): number { return this.heightM; }
+  public setHeightM(value: number): void { this.heightM = Number(value) || 0; }
+
+  /**
+   * The prefix its members are told by — every room at or under it is one
+   * of this structure's. The read every membership question below asks.
+   *
+   * @hook Default: its `extent`. A ship of a KIND answers `''`: her rooms
+   *   are keyed copies of her kind's plan rows, shared with every other
+   *   ship of the kind, so no path tells hers apart — her warren does
+   *   (`Warren.structureOf`).
+   */
+  protected memberExtent(): string { return this.extent; }
+
+  public getStoreys(): readonly StoreySpec[] { return this.storeys; }
+  public setStoreys(value: StoreySpec[] | null): void {
+    this.storeys = (value ?? []).map((s) => ({
+      ...s,
+      extent: (s.extent ?? '').replace(/\/+$/, ''),
+    }));
+  }
+
+  /**
+   * The storey a member place belongs to — the longest storey `extent`
+   * prefix of its path, on a segment boundary — or `null` for the
+   * implicit storey (no storeys authored, or a member under none of
+   * them, which stands on the ground).
+   */
+  public storeyOf(locationPath: string): StoreySpec | null {
+    let best: StoreySpec | null = null;
+    for (const s of this.storeys) {
+      const ext = s.extent;
+      if (ext === '') continue;
+      if (locationPath !== ext && !locationPath.startsWith(`${ext}/`)) continue;
+      if (best === null || ext.length > best.extent.length) best = s;
+    }
+    return best;
+  }
+
+  /** The storeys that stand `on:` the storey keyed `key`. */
+  public storeysStandingOn(key: string): StoreySpec[] {
+    return this.storeys.filter((s) => s.on === key);
+  }
+
+  /** The storey keyed `key`, or `null`. */
+  public storeyByKey(key: string): StoreySpec | null {
+    return this.storeys.find((s) => s.key === key) ?? null;
+  }
+
+  /**
+   * The RESIDENT member places of a storey — a sync read of the template
+   * index under its extent, never a search of the content tree. A member
+   * belongs to the storey only if that storey is its longest prefix (the
+   * loft's extent may sit inside the ground floor's).
+   */
+  public membersOf(key: string): Stuff[] {
+    const storey = this.storeyByKey(key);
+    if (storey === null || storey.extent === '') return [];
+    const out: Stuff[] = [];
+    const candidates = [
+      ...StuffApi.findAllByTemplatePath(storey.extent),
+      ...StuffApi.findByPathGlob(`${storey.extent}/**`),
+    ];
+    for (const s of candidates) {
+      if (s.isDestroyed()) continue;
+      const path = s.getTemplatePath();
+      if (!path || this.storeyOf(path)?.key !== key) continue;
+      out.push(s);
+    }
+    return out;
+  }
+
+  /**
+   * Is the room at `locationPath` one of this structure's members? The
+   * extent prefix, on a path-segment boundary.
+   */
+  public hasMember(locationPath: string): boolean {
+    const ext = this.memberExtent();
+    if (ext === '') return false;
+    return locationPath === ext || locationPath.startsWith(`${ext}/`);
+  }
+
+  /**
+   * ⭐⭐ Is `room` a LANDING of this structure — a place where it meets the
+   * weather (paint build, 2026-10-31)? One rule, read off what is
+   * standing: the room does not hold its own air, and one of its exits
+   * leads into a member that is enclosed or is this structure's entrance —
+   * or has this structure lying alongside it (a ship at a quay). A closet
+   * holds air; a neighbour's parlour is a member of another structure; a
+   * sailed ship's berth has nothing alongside. A member courtyard open to
+   * the sky passes: it is a landing of its own building.
+   *
+   * Sync over resident rooms — a non-entrance member that is not standing
+   * does not count until something stands it up (it loads with its zone,
+   * or a traverse into it does).
+   */
+  public isLandedAt(room: Stuff): boolean {
+    if (!MixinApi.isAtmospheric(room) || room.exposure().holdsAir()) return false;
+    if (!MixinApi.isExitable(room)) return false;
+    for (const exit of room.getExits().values()) {
+      if (this.landsBy(exit)) return true;
+    }
+    return false;
+  }
+
+  /** Does `exit` lead into this structure the way a landing needs? */
+  protected landsBy(exit: Exit): boolean {
+    // An exit whose far side is whatever lies alongside never lands by its
+    // authored berth (`undefined` is an ordinary exit's answer).
+    const alongside = exit.alongsideNow();
+    if (alongside !== undefined) return alongside !== null && alongside.stuffId === this.stuffId;
+    const far = exit.peekDestination();
+    if (far === null) {
+      const authored = exit.getDestinationTemplatePath();
+      return authored !== null && this.entrance !== null && authored === this.entrance && this.hasMember(authored);
+    }
+    // Is the far side one of mine? By its path, or — a holding's keyed
+    // room, which no path names — by its warren's say. ⚠ The warren hook,
+    // never `structureNow()`: that falls back to the location graph's
+    // registry, which a jurisdiction-scoped eval may not read.
+    const path = far.getIdentityPath();
+    const mine =
+      (path !== null && this.hasMember(path)) ||
+      (MixinApi.isWarrenMember(far) && far.getWarren()?.structureOf(far) === this);
+    if (!mine) return false;
+    if (this.entrance !== null && path === this.entrance) return true;
+    return MixinApi.isAtmospheric(far) && far.exposure().holdsAir();
+  }
+
+  /**
+   * The landings standing NOW: resident places one exit from a resident
+   * member that pass {@link isLandedAt}. A ship's quay is found from the
+   * quay's side (its exit answers who is alongside), not from here.
+   */
+  public landingsNow(): Stuff[] {
+    const ext = this.memberExtent();
+    if (ext === '') return [];
+    const seen = new Set<string>();
+    const out: Stuff[] = [];
+    const members = [...StuffApi.findAllByTemplatePath(ext), ...StuffApi.findByPathGlob(`${ext}/**`)];
+    for (const m of members) {
+      if (m.isDestroyed() || !MixinApi.isExitable(m)) continue;
+      for (const exit of m.getExits().values()) {
+        const far = exit.peekDestination();
+        if (far === null || seen.has(far.stuffId)) continue;
+        seen.add(far.stuffId);
+        if (this.isLandedAt(far)) out.push(far);
+      }
+    }
+    return out;
+  }
+
+  /**
+   * ⭐⭐ Has this building been SOLD — does a PERSON hold the ground under
+   * it (paint build D7)? An owned building keeps its paint and its fabric
+   * across a reboot; one nobody has bought is STAGED, and comes back as its
+   * row authored it every time the world restages (today: every boot).
+   * A pack's or an institution's building stays staged — an organization
+   * or a group holding the ground is not a sale.
+   */
+  public isTitleSold(): boolean {
+    const ext = this.memberExtent();
+    if (ext === '') return false;
+    try {
+      return ParcelApi.coveringParcelOfSync(ext)?.getOwner()?.kind === 'player';
+    } catch {
+      return false;
+    }
+  }
+
+  /** The resident members — rooms under the extent standing now. */
+  public residentMembers(): Stuff[] {
+    const ext = this.memberExtent();
+    if (ext === '') return [];
+    const seen = new Set<string>();
+    const out: Stuff[] = [];
+    for (const m of [...StuffApi.findAllByTemplatePath(ext), ...StuffApi.findByPathGlob(`${ext}/**`)]) {
+      if (m.isDestroyed() || seen.has(m.stuffId) || !MixinApi.isAtmospheric(m)) continue;
+      const path = m.getTemplatePath();
+      if (!path || !this.hasMember(path)) continue;
+      seen.add(m.stuffId);
+      out.push(m);
+    }
+    return out;
+  }
+
+  /**
+   * ⭐ How much outside there is, m² — the exterior walls and roof of every
+   * resident member (each place's own face rule). What a coat of paint is
+   * spread over, and what the survey says the job is.
+   */
+  public exteriorAreaM2(): number {
+    let a = 0;
+    for (const m of this.residentMembers()) {
+      if (MixinApi.isAtmospheric(m)) a += m.exposure().exteriorAreaM2();
+    }
+    return a;
+  }
+
+  /**
+   * Stand up the places one exit from each resident member — the landings
+   * this building's outside is read from (load on use: each exit's
+   * authored destination is the ref followed, never a search).
+   */
+  public async standUpLandings(): Promise<Stuff[]> {
+    for (const m of this.residentMembers()) {
+      if (!MixinApi.isExitable(m)) continue;
+      for (const exit of m.getExits().values()) {
+        if (exit.peekDestination() !== null) continue;
+        const dest = exit.getDestinationTemplatePath();
+        if (!dest || this.hasMember(dest)) continue;
+        await StuffApi.singleton(dest).catch(() => null);
+      }
+    }
+    return this.landingsNow();
+  }
+
+  /**
+   * The place whose air the outside meets — a standing landing, else
+   * `null` (nothing reconciles until somebody stands where it is seen).
+   */
+  public outsideScope(): Stuff | null {
+    return this.landingsNow()[0] ?? null;
+  }
+
+  /**
+   * Why `actor` cannot reach this building's OUTSIDE from where they stand
+   * — `null` on a landing (paint D9): *"You cannot reach the outside of
+   * the cottage from here."*
+   */
+  public landingRefusal(actor: Stuff): CoatReachRefusal | null {
+    const room = MixinApi.isContainable(actor) ? actor.getContainer() : null;
+    if (room !== null && this.isLandedAt(room)) return null;
+    return { ok: false, reason: 'no-landing' };
+  }
+
+  /**
+   * A rope this structure made fast ACROSS (the end of
+   * a rope lying in one of its rooms, tied round a fixture in another:
+   * `Rope.tieTo(structure, fixture, knot)`) has been let go — untied where
+   * it was round the fixture, or cast off where the rope lies.
+   *
+   * @hook Default: nothing — a structure that ties nothing out hears
+   *   nothing. A ship answers: her mooring is a read over her ropes, and
+   *   with the last one off she is adrift.
+   */
+  public onLineLetGo(line: Stuff): void {
+    void line;
+  }
+
+  /**
+   * ⭐ A structure stands as long as the zone that names it. Nothing boots
+   * it (maritime review, 2026-10-14): it loads with that zone, as a room's
+   * props load with the room — and a zone holds only its PATH, so one that
+   * residency put away under a zone still standing would silently drop
+   * off every horizon until nothing reloaded it. The zone is what goes
+   * cold; the structure goes with it.
+   */
+  public override canEvict(_context: EvictionContext): VetoResult {
+    return { ok: false, reason: 'a structure stands while the zone that names it does' };
+  }
+}

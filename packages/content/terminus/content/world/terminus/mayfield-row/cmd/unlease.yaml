@@ -1,4 +1,5 @@
 verbs: [unlease]
+category: civics
 controller: /world/terminus/mayfield-row/idea/cmd/UnleaseController
 description: "End a Seznick House lease and reclaim the unit"
 help: |
@@ -7,12 +8,11 @@ help: |
   clear, the slot frees, and the unit re-keys (the old key is dead
   metal).
 
-  Authorized for Mayfield Holdings' agents (Walter) or an operator.
+  Authorized for the letting agency's staff (Walter) or a member of the
+  building's committee — a seat, never a credential.
 examples:
   - cmd: unlease alice
     note: End Alice's lease
-validators:
-  - /lib/command/validators/requiresWizard
 args:
   - name: player
     type: object

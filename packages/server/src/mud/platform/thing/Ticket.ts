@@ -10,16 +10,17 @@
  * same anti-grief sweep that evicts a stale lease.
  */
 
-import Good from "../../lib/stuff/Good";
-import { VisibleMixin } from "../../lib/description/Visible";
+import Sheet from "./Sheet";
 import type { FieldMeta } from "../../lib/mixin";
 
-const TicketBase = VisibleMixin(Good);
-
-export default class Ticket extends TicketBase {
+/**
+ * ⭐ A ticket is paper (paper build): a `Sheet` with a number. Two tickets
+ * never stack — the rack and the number are its identity.
+ */
+export default class Ticket extends Sheet {
   static fieldMeta: FieldMeta = {
-    pointPath: { persistent: true },
-    number: { persistent: true },
+    pointPath: { persistent: true, stackIdentity: true },
+    number: { persistent: true, stackIdentity: true },
   };
 
   /** The service point this ticket claims a place at (its templatePath). */

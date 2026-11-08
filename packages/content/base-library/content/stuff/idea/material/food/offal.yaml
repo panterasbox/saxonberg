@@ -6,8 +6,9 @@
 # one that makes it interesting: offal is what you feed an animal today
 # because it will not keep until tomorrow. A higher activation energy
 # means it answers more steeply to warmth.
-class: /platform/idea/material/ConsumableMaterial
+class: /platform/idea/material/OdorousConsumableMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/offal, strength: 300 }]
   name: offal
   keywords: [offal, organ, liver, lights, pluck]
   appearance: dark wet offal
@@ -15,7 +16,7 @@ data:
   thermalConductivity: 0.47
   specificHeat: 3300
   edibility: true
-  tastes: [umami, bitter]
+  tastes: [{ type: umami, amount: 3 }, { type: bitter, amount: 0.02 }]
   # Faster than muscle: more available water, more enzyme, less structure.
   spoilActivationEnergy: 92000
   waterActivity: 0.99

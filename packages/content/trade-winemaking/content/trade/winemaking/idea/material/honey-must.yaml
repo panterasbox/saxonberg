@@ -9,8 +9,10 @@
 # ⚠ It carries `honey-must` and deliberately **not** `honey`: the double
 # match rule means a profile keyed on `honey` and one keyed on
 # `honey-must` must never both fire on one vessel.
-class: /platform/idea/material/ConsumableMaterial
+class: /platform/idea/material/OdorousConsumableMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/honey, strength: 300 }]
+  tastes: [{ type: sweet, amount: 200 }]
   name: honey must
   keywords: [must, "honey must", mead]
   appearance: "pale cloudy liquid smelling strongly of flowers"

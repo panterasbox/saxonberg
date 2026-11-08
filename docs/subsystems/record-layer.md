@@ -142,6 +142,17 @@ per-topic structured data whose consumers re-resolve on connect anyway,
 and carrying it would make the highest-volume write unbounded in row
 size.
 
+⭐ **Because `tags` is the one free-form field the row keeps, a frame
+that must be findable after a reconnect says so in a tag.** Every chat
+channel frame carries `channel:<name>` beside its `meta.channelId` and
+`payload.channelName` (client-surface D6) — `ChannelCatalogue`'s post
+for a catalogue channel, `ChatController`'s fan-out for an ad-hoc one.
+The record keeps the tag verbatim, so a backfilled line, which arrives
+with no payload, still filters into its channel's terminal card: the
+client's `framesFor` reads the tag first and the live payload's
+`channelName` second. No schema change — `player_frames.yaml` is
+untouched.
+
 Indexes: `{owner: 1, seq: -1}` serves the backfill read, the `recall`
 scan **and** the eviction delete; `{owner: 1, body: 'text'}` is the
 search index.
@@ -346,3 +357,10 @@ the wave that wrote the hatch. The hatch was written from a table rather
 than from the tree, which is the failure mode a stale hatch always is —
 it tells a reader the surface does not exist when it does. A test now
 greps the client SOURCE for the retired string.
+
+## History
+
+- **Client surface (2026-10-31)** — channel frames gained the
+  `channel:<name>` tag the record keeps, so terminal cards filtered to a
+  channel include backfilled lines. See
+  [card-surface.md § Terminal cards](./card-surface.md).

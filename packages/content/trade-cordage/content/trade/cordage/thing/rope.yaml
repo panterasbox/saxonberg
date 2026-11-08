@@ -1,0 +1,12 @@
+# A coil of rope (cordage D17) — what the ropewalk lays and sells: fifty
+# meters of three-strand hemp, coiled down. What it is FOR is where its
+# ends are tied.
+class: /platform/thing/Rope
+data:
+  shortDescription: coil of rope
+  keywords: [rope, coil, "coil of rope", line]
+  register: indefinite
+  longDescription: Three-strand hemp rope, new and hard-laid, coiled down in a neat flat coil and tied with a yarn.
+  _materialPath: /stuff/idea/material/textile/hemp
+  lengthM: 50
+  diameterMm: 12

@@ -35,7 +35,7 @@ second glasshouse is rows.
      colour of its sand, derivably, and the fired charge is gatherable
      while it is hot.
 3. **Work it hot** on a blowpipe through the **hot-work window** — the one
-   new mechanism (see § The hot-work window): `gob` a gather (`dip pipe in melt` — `gob` is an alias of the platform's `dip`; the melt is a dip bath), `shape` it
+   new mechanism (see § The hot-work window): `dip` a gather (`dip pipe in melt` — the platform's `dip`; the melt is a dip bath; the `gob` alias is deleted), `shape` it
    (bottle or cylinder), `reheat` to buy time, `crack` it off. Dawdle and
    the gather cools past working and is lost to cullet.
 4. **Work it cold** at the bench: `scribe` a line, `snap` a scored sheet,

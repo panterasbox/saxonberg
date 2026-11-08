@@ -1,6 +1,8 @@
 # Ginger beer — bottling's. `carbonated`: a drink built on it fizzes (the derived payload carries the tag).
-class: /platform/idea/material/ConsumableMaterial
+class: /platform/idea/material/OdorousConsumableMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/ginger, strength: 200 }]
+  tastes: [{ type: sweet, amount: 90 }]
   name: ginger beer
   keywords: [beer, ginger-beer, ginger]
   appearance: "cloudy, spicy ginger beer"

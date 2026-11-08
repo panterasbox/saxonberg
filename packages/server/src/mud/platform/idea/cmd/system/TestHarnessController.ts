@@ -8,14 +8,16 @@
  *   testharness weather [--at <place>]         read: the pin, and the weather here
  *   testharness weather pin <kind> [--at <place>] [--alive]
  *   testharness weather unpin [--at <place>]
+ *   testharness ship <ship> at node:<path>      stage a ship lying at a sea's node
+ *   testharness ship <ship> at <frame> <cite>   …or at a citation on a frame
  *
  * ⭐ Subcommands and options, never phrases: it is scaffolding, and the
  * owner's grammar is not natural language. A bare subcommand READS, so
  * state can be checked before and after an act.
  *
  * ⛔ It exists only in a test world: the view is `testOnly` (the loader
- * withholds it anywhere else) and carries `requiresTestWorld` +
- * `requiresWizard`. A refusal — the span rule past a day, the clock's own
+ * withholds it anywhere else) and carries `requiresTestWorld`. No
+ * credential: staging the clock is not authoring code. A refusal — the span rule past a day, the clock's own
  * parse, a weather kind that is not one — comes back in its own words.
  */
 
@@ -23,7 +25,7 @@ import { CommandController } from '../../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
-import { TestHarnessApi } from '../../../../api/test-harness';
+import { TestHarnessApi, type ShipStageSpec } from '../../../../api/test-harness';
 import { WeatherApi } from '../../../../api/weather';
 import { CelestialApi } from '../../../../api/celestial';
 import { MixinApi } from '../../../../api/mixin';
@@ -47,6 +49,8 @@ interface TestHarnessModel extends CommandModel {
   value?: string;
   at?: string;
   alive?: boolean;
+  /** `ship`'s fourth word: a frame citation after `at <frame>`. */
+  cite?: string;
 }
 
 export default class TestHarnessController extends CommandController<TestHarnessModel> {
@@ -57,11 +61,13 @@ export default class TestHarnessController extends CommandController<TestHarness
           return await this.clock(model, context);
         case 'weather':
           return await this.weather(model, context);
+        case 'ship':
+          return await this.ship(model, context);
         default:
           return this.refuse(
             context,
             TOPIC,
-            'testharness: `clock` or `weather` (see `help testharness`).',
+            'testharness: `clock`, `weather` or `ship` (see `help testharness`).',
             'test-usage',
           );
       }
@@ -158,6 +164,54 @@ export default class TestHarnessController extends CommandController<TestHarness
         'or `pin <kind>` / `unpin`.',
       'test-usage',
     );
+  }
+
+  /**
+   * `testharness ship <ship> [at node:<path> | at <frame> <cite>] [hull
+   * <band>] [bilge <L>] [slept <days>] [flag <government>]`:
+   * the ship by her row path or handle — or her registered name, read
+   * in the register `flag`'s government keeps (Terminus by default) — (the
+   * subcommand's first word, `op`), staged where
+   * and as the drive needs her. Options in any order; a frame citation
+   * (`at <frame> <cite>`) takes the rest of the line, so it goes last.
+   */
+  private async ship(model: TestHarnessModel, context: CommandContext): Promise<void> {
+    const usage =
+      'testharness ship <ship> [at node:<path> | at <frame path> <cite>] [hull <band>] [bilge <L>] [slept <days>] [flag <government>] [settling].';
+    const handle = model.op;
+    const words = [model.value ?? '', ...(model.cite ?? '').trim().split(/\s+/)].filter((w) => w !== '');
+    if (!handle || words.length === 0) return this.refuse(context, TOPIC, usage, 'test-usage');
+    const spec: ShipStageSpec = {};
+    for (let i = 0; i < words.length; ) {
+      const key = words[i]!;
+      // ⭐ A flag with no value — her bilge to her deck, the window opened.
+      if (key === 'settling') {
+        spec.settling = true;
+        i += 1;
+        continue;
+      }
+      const next = words[i + 1];
+      if (next === undefined) return this.refuse(context, TOPIC, usage, 'test-usage');
+      if (key === 'at') {
+        if (next.startsWith('node:')) {
+          spec.at = { node: next.slice('node:'.length) };
+          i += 2;
+          continue;
+        }
+        const cite = words.slice(i + 2).join(' ');
+        if (cite === '') return this.refuse(context, TOPIC, usage, 'test-usage');
+        spec.at = { frame: next, cite };
+        break;
+      }
+      if (key === 'hull') spec.hull = next;
+      else if (key === 'bilge') spec.bilgeL = Number(next);
+      else if (key === 'slept') spec.sleptDays = Number(next);
+      else if (key === 'flag') spec.flag = next;
+      else return this.refuse(context, TOPIC, usage, 'test-usage');
+      i += 2;
+    }
+    const r = await TestHarnessApi.stageShip(handle, spec);
+    this.say(context, `${r.ship} lies staged on ${r.frame}.`);
   }
 
   /** A one-token duration (`30m`, `2h`, `1d`, `90s`) in the clock's grammar. */

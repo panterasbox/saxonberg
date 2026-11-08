@@ -1,4 +1,5 @@
 verbs: [hide]
+category: perception
 controller: /platform/idea/cmd/perception/HideController
 description: "Slip out of sight — melt into cover, shadow, and stillness"
 help: |

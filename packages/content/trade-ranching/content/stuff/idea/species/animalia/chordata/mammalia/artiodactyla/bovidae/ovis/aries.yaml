@@ -16,8 +16,10 @@
 # ranches; the husbandry is the trade, the animal is a thing in the world.
 class: /platform/idea/species/Species
 data:
+  smells: [{ aroma: /base-library/aromas/sheep, strength: 20 }]
   binomial: Ovis aries
   commonNames: ["sheep", "ewe", "ram", "lamb", "hogget"]
+  maleNames: [ram]
   _bodyPlanPath: /stuff/idea/species/BodyPlan/quadruped
   _parentCladePath: /stuff/idea/species/animalia
   _defaultMaterialPath: /stuff/idea/material/tissue/flesh
@@ -41,6 +43,10 @@ data:
   # faster than cattle and why `R = h²·S / L` is learnable here.
   # ⭐ Adult liveweight in kg. A grown ewe of an unimproved hill breed.
   adultMass: 70
+  # ⭐ How it is fed (cover build D9): it grazes the field it stands on,
+  # and eats hay from a trough when the grass runs short. What it eats
+  # is its size — `0.1 × adultMass^0.75` kilograms of dry matter a day.
+  feedingStyle: [graze, trough]
   ageCurve: { weanedAt: 30, matureAt: 150, agedAt: 900, senescentAt: 1400 }
   breeding: { daylightFrom: 0, daylightTo: 0.44, gestationDays: 60, litter: 2 }
   production:
@@ -113,4 +119,4 @@ data:
     A blocky ewe with a fleece gone yellow at the tips and a startlingly
     level stare. She keeps one eye on you and both feet pointed at the
     gate.
-  nameBankKeys: []
+  nameBanks: []

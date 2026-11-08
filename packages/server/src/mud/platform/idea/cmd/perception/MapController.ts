@@ -13,9 +13,12 @@
  * would pick a winner and hide that it did, which turns a knowledge
  * model back into a truth model.
  *
- * ⚠ Renders MML to self. No card: the inspection card is laid out by
- * `StuffKind` and a map is not a Stuff, and inventing a `CardId` for it
- * is the renderer build's business (`map-slate`), not this one's.
+ * ⭐ `map` with no locality also opens the NAVIGATOR — the `map` card,
+ * where you are at zone level (map slate's zone navigation card, wave-1
+ * stub; client-surface, 2026-11-01). Its body is
+ * `NavigationApi.whereaboutsFor`, and the index frame rides as `carded`
+ * so a card-display client shows the card instead. A named locality is
+ * still the MML rendering of your map of it.
  */
 
 import { CommandController } from '../../../../lib/command/CommandController';
@@ -24,6 +27,8 @@ import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
 import { NavigationApi } from '../../../../api/navigation';
 import { WorldClockApi } from '../../../../api/worldclock';
+import { CardApi } from '../../../../api/card';
+import { MixinApi } from '../../../../api/mixin';
 import type { MapClaim, MapDocument } from '../../../../lib/location/MapClaim';
 
 const TOPIC = 'sense.survey';
@@ -60,7 +65,9 @@ export default class MapController extends CommandController<MapModel> {
       MapController.normalize(asked),
     );
 
-    if (asked.length === 0) return this.renderIndex(context, docs);
+    if (asked.length === 0) {
+      return this.renderIndex(context, docs, await this.openNavigator(context));
+    }
     if (docs.length === 0) {
       // ⭐ "You have no map of X" rather than an empty map of X: an
       // empty rendering would read as *there is nothing there*, which
@@ -83,10 +90,32 @@ export default class MapController extends CommandController<MapModel> {
       .replace(/^\/+|\/+$/g, '');
   }
 
+  /** Open (or refresh) the navigator card; its instance id, or null. */
+  private async openNavigator(context: CommandContext): Promise<string | null> {
+    const giver = context.commandGiver;
+    const where = MixinApi.isPerceiver(giver) ? await giver.whereabouts() : null;
+    if (!where) return null;
+    return CardApi.open(context, 'map', { payload: { kind: 'navigation', where } });
+  }
+
   /** The localities this player holds a map of. */
-  private renderIndex(context: CommandContext, docs: MapDocument[]): void {
+  private renderIndex(
+    context: CommandContext,
+    docs: MapDocument[],
+    carded: string | null,
+  ): void {
     const giver = context.commandGiver;
     if (docs.length === 0) {
+      // With the navigator up, having no maps yet is a fact about you,
+      // not a refused command.
+      if (carded) {
+        MessageApi.scene(giver)
+          .topic(TOPIC)
+          .meta({ carded })
+          .toSelf(Mml.fromMarkup('\nYou have no maps yet. Go somewhere and look around.\n'))
+          .send();
+        return;
+      }
       return this.declineWith(
         context,
         'You have no maps yet. Go somewhere and look around.',
@@ -104,10 +133,9 @@ export default class MapController extends CommandController<MapModel> {
         `  ${doc.locality} — ${places} place${places === 1 ? '' : 's'}`,
       );
     }
-    MessageApi.scene(giver)
-      .topic(TOPIC)
-      .toSelf(Mml.fromMarkup(`\n${lines.join('\n')}\n`))
-      .send();
+    const scene = MessageApi.scene(giver).topic(TOPIC);
+    if (carded) scene.meta({ carded });
+    scene.toSelf(Mml.fromMarkup(`\n${lines.join('\n')}\n`)).send();
   }
 
   /** One locality: the places, grouped, with their ways out. */

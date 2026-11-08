@@ -39,14 +39,10 @@ const SocialApiCallers = SecurityPolicies.FromModule("/api/social#SocialApi");
 /** The F2 viewer face (NotifyPolicy hosts) forwards here as the viewer. */
 const SocialViewerCallers = SecurityPolicies.AnyOf(
   SocialApiCallers,
-  SecurityPolicies.FromMixin("NotifyPolicyMixin", {
-    // Compare by stuffId — the caller may surface as the raw target
-    // while the argument is the proxy (or vice versa).
-    where: (caller, _target, _method, args) =>
-      (caller as { stuffId?: string }).stuffId !== undefined &&
-      (caller as { stuffId?: string }).stuffId ===
-        (args[0] as { stuffId?: string } | undefined)?.stuffId,
-  }),
+  SecurityPolicies.AllOf(
+    SecurityPolicies.FromMixin("NotifyPolicyMixin"),
+    SecurityPolicies.SelfSubject(0),
+  ),
 );
 
 /**
@@ -522,7 +518,11 @@ function wornFeatureOf(occ: Stuff): string | null {
  * activity-status affix ("…, watching the empty road").
  */
 function nameMml(_viewer: Stuff, occ: Stuff, color?: PaletteToken): Mml {
-  return Mml.actor(occ, { form: 'presence', ...(color ? { color } : {}) });
+  const name = Mml.actor(occ, { form: 'presence', ...(color ? { color } : {}) });
+  // ⭐ "Mara, seated on a bar stool" — the seat is its own link (owner,
+  // 2026-11-01). Read from the body's real posture, never authored.
+  const rest = MixinApi.isPosed(occ) ? occ.currentRest() : null;
+  return rest ? Mml.compose`${name}, ${rest.phrase} ${Mml.thing(rest.host)}` : name;
 }
 
 /**

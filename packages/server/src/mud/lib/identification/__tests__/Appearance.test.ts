@@ -31,7 +31,7 @@ import { IdentifiableMixin } from '../Identifiable';
 import { LabelledMixin } from '../../description/Labelled';
 import { StackableMixin } from '../../stuff/Stackable';
 import { ChargedMixin } from '../../magic/Charged';
-import { ReservedMixin } from '../../reserve';
+import { ReservedMixin } from '../../reserve/Reserved';
 import { VisibleMixin } from '../../description/Visible';
 import { ContainableMixin } from '../../spatial/Containable';
 import { BeliefStoreMixin, IDENTIFICATION } from '../../belief/BeliefStore';

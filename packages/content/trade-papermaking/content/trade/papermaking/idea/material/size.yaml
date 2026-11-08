@@ -1,0 +1,29 @@
+# Size — hide glue thinned in warm water: a sheet dipped in it
+# and dried takes ink on its face instead of drinking it. ⭐ A COAT on the
+# sheet (`laysCoat`), set by drying like any glue, and the coat is what
+# makes the sheet sized — `write` reads it.
+class: /platform/idea/material/OdorousMaterial
+data:
+  smells: [{ aroma: /base-library/aromas/glue, strength: 300 }]
+  name: size
+  keywords: [size, sizing, "glue size"]
+  appearance: a thin amber jelly-water
+  density: 1020
+  specificHeat: 4000
+  thermalConductivity: 0.5
+  meltingPoint: 271
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: [liquid, size, glue, organic, once-living]
+  laysCoat: true
+  coatWord: sized
+  kinetics:
+    - key: set
+      sets: drying
+      order: 0
+      # Per hour, scaled by (1 − relative humidity): a thin size film is dry
+      # to the touch in an hour or two of moving air, longer in a damp mill.
+      rate: [[273, 0.25], [283, 0.6], [293, 1.2], [303, 1.8]]
+  composition: []
+  biologicalSource: null

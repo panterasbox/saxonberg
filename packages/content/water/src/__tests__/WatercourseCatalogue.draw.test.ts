@@ -103,7 +103,7 @@ describe('the two rows answer the two remedies differently', () => {
     const t = data('tainted-water.yaml');
     expect(t.purifiedByBoiling).toBeUndefined();
     expect(t.filteredTo).toBeUndefined();
-    expect((t.toxicity as Array<{ type: string }>).map((x) => x.type)).toContain('lead-poisoning');
+    expect((t.toxicity as Array<{ type: string }>).map((x) => x.type)).toContain('lead');
     // It looks and answers like water — no sense announces it.
     expect(t.appearance).toBe('clear water');
   });

@@ -23,6 +23,7 @@
  */
 
 import "../../../../test-bootstrap";
+import { StackableMixin } from '../../stuff/Stackable';
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import ChattelRegistry from "../../../platform/idea/ChattelRegistry";
 import Good from "../../stuff/Good";
@@ -56,6 +57,7 @@ const ALICE_PATH = "/platform/agent/Avatar/alice";
 
 /** The wall light: chattel (every Thing is) that can be adorned onto a host. */
 class Sconce extends AdornmentMixin(Good) {}
+class Peg extends StackableMixin(Good) {}
 
 /** A room you can hang things in — every Location composes Adornable. */
 class Room extends PersistableMixin(
@@ -280,6 +282,18 @@ describe("a hung good", () => {
     const entry = estateEntries(ALICE_PATH).find((e) => e.chattelId === id);
     expect(entry?.place).toBe(ESTATE_INVENTORY);
     expect(entry?.mounted).toBeUndefined();
+  });
+
+  it("⭐ a lone good that stacks is in your hands like any other (a carved peg)", async () => {
+    const alice = person(ALICE_PATH);
+    const peg = makeStuffAtPath(() => new Peg(), "/stuff/thing/peg");
+    await (peg as unknown as Stuff & Chattel).stampChattel(alice);
+    ContainmentApi.move(
+      peg as unknown as Stuff & Containable,
+      alice as unknown as Stuff & Container,
+    );
+    await (peg as unknown as Stuff & Chattel).followCustody();
+    expect((peg as unknown as Stuff & Chattel).getPlace()).toBe(ESTATE_INVENTORY);
   });
 
   it("a wall takes as many as you can afford — capacity is read, never enforced", async () => {

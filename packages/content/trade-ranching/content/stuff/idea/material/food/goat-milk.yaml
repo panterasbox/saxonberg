@@ -1,8 +1,10 @@
 # Goat's milk — near the cow's in body, a little richer in fat, and with
 # the goaty edge the animal is famous for (dairy D3). The yields derive
 # from the numbers; the goat follows the cow's lactation (`hircus.yaml`).
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/goat, strength: 60 }]
+  tastes: [{ type: sweet, amount: 40 }]
   name: goat's milk
   keywords: [milk, "goat's milk", goat-milk]
   appearance: white, thin, and faintly animal

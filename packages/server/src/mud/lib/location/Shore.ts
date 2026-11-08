@@ -86,7 +86,11 @@ export interface Shore {
    * nothing except through a hole: the room's floor offering open water.
    */
   drawAt(key: string, room: Stuff): { draw: WaterDraw } | { refusal: 'frozen' | 'unread'; line: string };
-  waterSlot(via?: MqlMatchVia): SourceSlot;
+  /**
+   * The water as a source to draw from — `null` when this place cites no
+   * water at all (it is no source: a dry cabin offers no `drink`).
+   */
+  waterSlot(via?: MqlMatchVia): SourceSlot | null;
   /**
    * ⭐ The way from here into the water — `swim` with no way named
    * (underwater review): the exit whose far side IS a water place, or why
@@ -100,7 +104,6 @@ const DRAW_VERBS = [
   'platform/cmd/bulk/fill.yaml',
   'platform/cmd/bulk/drink.yaml',
   'platform/cmd/crafting/wash.yaml',
-  'platform/cmd/crafting/scrub.yaml',
   // ⭐ …and `bathe` — the whole body in the river (cleanliness D28).
   'platform/cmd/crafting/bathe.yaml',
   'platform/cmd/medical/rinse.yaml',
@@ -291,12 +294,20 @@ export function ShoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     /**
      * ⭐ The water as a source to draw from (maritime revision 3, T9′):
      * the water the player named it by (`via.detailPath` — the feature
-     * they typed), or the place's one water. ALWAYS a slot — one that
-     * cannot give is empty and says why in its own words.
+     * they typed), or the place's one water. A slot that cannot give is
+     * empty and says why in its own words (frozen, which water, not that
+     * one).
+     *
+     * ⭐ A place that cites NO water is no source at all — `null`, the
+     * answer a room gives (`mustHaveBulkSlot`): a ship's dry cabin is a
+     * shore so it can flood, and offered `drink` and `fill` from nothing
+     * until it said so here. Lens 3a: the menu may not promise water the
+     * room does not have.
      */
-    public waterSlot(via?: MqlMatchVia): SourceSlot {
+    public waterSlot(via?: MqlMatchVia): SourceSlot | null {
       const self = this as unknown as Stuff & ShoreMixin;
       const pick = this.waterFor(via?.detailPath?.at(-1));
+      if ('refusal' in pick && pick.reason === 'no-water') return null;
       if ('refusal' in pick) return new SourceSlot(self, null, pick.refusal);
       void this.refreshWater(pick.key, false);
       return new SourceSlot(self, pick.key);

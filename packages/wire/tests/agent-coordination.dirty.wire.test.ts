@@ -78,7 +78,9 @@ let hearth: Session;
 let market: Session;
 /** The newcomer who takes the bar's second seat. */
 let hire: Session;
-let wizard: Session;
+/** The founder: evals the beats (a wizard) and stocks the rail (cloning a
+ * `/trade/*` kind is the Minister of Trade's, a seat the founder holds). */
+let founder: Session;
 
 /** Wait for a read to come true — a beat takes real seconds. */
 async function until(
@@ -110,7 +112,7 @@ async function act(
 
 /** Fire one agent's DELIBERATION through the shipped seam. */
 async function beat(keyword: string, brain: string): Promise<void> {
-  await wizard.prose(
+  await founder.prose(
     `eval ${BAR} --on ${keyword} return this.fireBeat('${brain}')`,
   );
 }
@@ -123,8 +125,8 @@ async function beat(keyword: string, brain: string): Promise<void> {
  * *who the resolver picks and what the refusals say*, so the matter is put
  * on the rail directly and the coordination is driven against it.
  *
- * ⚠ Deliberately NOT used for anything the build claims: no wizard touches
- * a roster, a band, a call rule or an order.
+ * ⚠ Deliberately NOT used for anything the build claims: the founder
+ * touches no roster, band, call rule or order.
  */
 async function stockTheRail(): Promise<void> {
   for (const path of [
@@ -133,7 +135,7 @@ async function stockTheRail(): Promise<void> {
     '/trade/farming/thing/lime',
     '/trade/bottling/thing/ice-bag',
   ]) {
-    await wizard.prose(`clone ${path} --here`);
+    await founder.prose(`clone ${path} --here`);
   }
 }
 
@@ -151,15 +153,17 @@ beforeAll(async () => {
   market = await Session.open(uniqueHandle('ac-market'), {
     startLocation: MARKET,
   });
-  wizard = await Session.open(uniqueHandle('ac-wiz'), {
+  // eval on the lounge bar — seated on the lounge committee, not a
+  // credential (wizard-axis D13).
+  founder = await Session.open('founder', {
     startLocation: BAR,
-    wizard: true,
+    committees: ['/world/lounge'],
   });
   await stockTheRail();
 }, 300_000);
 
 afterAll(() => {
-  for (const s of [patron, regular, hire, hearth, market, wizard]) s?.close();
+  for (const s of [patron, regular, hire, hearth, market, founder]) s?.close();
 });
 
 suite('1 — the ordinary case still works', () => {
@@ -355,7 +359,7 @@ suite('8 — a hired player gets SOME orders', () => {
     // proved in `CallPolicy.test.ts`, where a player-shaped candidate takes
     // its tenth of thirty calls like any other. ⭐ The gap is the drive's,
     // not the mechanism's, and it is recorded in the plan's acceptance map.
-    const applied = await act(hire, 'apply for bartender');
+    const applied = await act(hire, 'job apply for bartender');
     if (applied.result.status === 'ok') {
       const clocked = await act(hire, 'clock on');
       expectOk(clocked.result);
@@ -430,7 +434,7 @@ suite('15 — the hours nobody could reach', () => {
   it('⭐ at least asserts no cover is active at the bar under the drive’s own hour', async () => {
     // The weaker live half of step 15: if the roster is doing its job, the
     // proprietor is not standing in for anybody right now.
-    const who = await wizard.prose(`eval ${BAR} --on dave return this.shiftState()`);
+    const who = await founder.prose(`eval ${BAR} --on dave return this.shiftState()`);
     expect(who.length).toBeGreaterThan(0);
   }, 120_000);
 });

@@ -1,5 +1,5 @@
 /**
- * UnhideController — `unhide` / `reveal`: leave the hidden state deliberately.
+ * UnhideController — `unhide`: leave the hidden state deliberately.
  *
  * The counterpart to `hide` — clears `HidingMixin.hiding`, so the actor's
  * `getConcealment()` falls back to its authored (usually `obvious`) band and

@@ -1,0 +1,9 @@
+# painting — the colorman's trade's settings (merge-missing).
+settings:
+  # ⭐ A swept flue's soot comes down as LAMPBLACK (paint D18): the kernel's
+  # dial, this trade's row — the `cleanliness.ashTemplate` precedent.
+  - key: cleanliness.sootTemplate
+    value: /trade/painting/thing/lampblack
+  # A paper of lampblack for every tenth of a kilo of soot.
+  - key: cleanliness.sootPerUnitKg
+    value: "0.1"

@@ -8,8 +8,9 @@
 #
 # ⭐ It rides `MaturationProfile.turnedMaterial`, exactly as vinegar does
 # off an open finished ale: the same shipped mechanism, no new one.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/retting, strength: 3000 }]
   name: rotted flax
   keywords: [flax, rotted-flax, rot, slime, ruin, rotted]
   appearance: grey slimy rotted flax

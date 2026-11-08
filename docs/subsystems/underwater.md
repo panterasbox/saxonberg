@@ -20,7 +20,7 @@ This doc is the source of truth for:
   `LocomotionLogic.engageHost` and `overYourHead`, `Exit.crossingRealS` /
   `Exit.wiresItsOwnInverse`, the timed crossing in
   `platform/idea/cmd/movement/LocomotionControllerBase.ts`,
-  `DescendController`, the water branches of `SwimController` and
+  `AscendController` + `DescendController` (over `SwimVerticalControllerBase`), the water branches of `SwimController` and
   `LieController`, `lib/spatial/{Pullable,Tossable}.ts`, `BuoyMixin`;
 - the water pack — `packages/content/water/src/location/Band.ts`,
   `idea/ColumnWarren.ts`, `idea/exits/ColumnExit.ts`, `lib/AirPocket.ts`,
@@ -80,6 +80,18 @@ Derived on read, nothing stored:
 
 An uncited `Pool` reads `swimming` (legacy deep water). ⚠ The wading depth
 is one dial for every body; the plan's per-stature factor was not built.
+
+⭐ **"Is this the water?" is `depthNow() > 0`** (harbors review 1). A
+ship's room composes `WaterPlace` so it can flood (`Compartment`: dry
+until her bilge is over its floor), so `isWaterPlace` alone no longer
+means *the water*; every reader that means it (swimming, diving,
+`descend`, `pull`, `launch`/`recover`, `Exit.leadsIntoWater`, the
+temperature and current readings, a line, a boat, an air bag, a hoist)
+asks the depth. There is no second read with a default of yes, so depth
+is real everywhere: sea and reach stops and patches stamp theirs at
+mint, and a column `Band` answers its surface's depth. A tidal place the
+ebb has drained below its floor (the strandline at low water) is not the
+water while it is `dry`. See [ship.md](./ship.md) for the flooding.
 
 ⭐ **Who is in the water is per occupant, not per room.** The place's
 floor (the water's surface `WaterSurface`, or an ice sheet) either holds
@@ -214,19 +226,20 @@ The movement base's one crossing asks it. A timed crossing:
    A completion runs outside any command, so it catches and logs — an
    unhandled rejection there takes the server down.
 
-So **`descend`, `dive` (in the water) and `swim down` are one act**, and
+So **`descend` and `swim down` are one act**, and
 none skips the time. `WaterPlace.wayDown(actor)` / `wayUp()` pick the way
 and refuse in words (*"There is no open water here to go down into"* off
 the ice; *"The water is no deeper here"*; *"You are already at the
 surface"* — the basin's own `up` is the quay wall). Going into the water
 from a shore is instant.
 
-**The verbs.** `descend` and `ascend` [`surface`] are afforded by
+**The verbs.** `descend` and `ascend` are afforded by
 `WaterPlaceMixin` (`inventory` bucket) — only a body IN a water has a
-down; a dry quay has none. Beside a water, **`swim`** [`jump`, `dive`] is
+down; a dry quay has none. Beside a water, **`swim`** is
 the way in: with no way named, `Shore.wayIntoWater()` picks the exit into
-the water (and owns the *"iced over"* refusal); in the water `dive` is
-down. Out of the water is `climb` by something climbable — the quay steps
+the water (and owns the *"iced over"* refusal). (The `surface`, `jump` and
+`dive` words were deleted by controllers-are-io W6: one view, one word.)
+Out of the water is `climb` by something climbable — the quay steps
 and the cistern's rungs are `Ladder` props; the wall beside them refuses
 (`WaterPlace.canExit` admits swimming and climbing). A shore's water
 reading says how deep it is off the edge, in words, never a number
@@ -259,7 +272,7 @@ it; `BiomeApi.mediumProps(tag)` is the record.
 | **vessels** | an open, empty vessel arriving fills from the place's water. |
 | **eating** | `Metabolic.canIngest()` refuses an immersed air-breather (*"You would take in water"*). |
 | **wash** | works in the water you are in, and says so (*"in the water round you"*). |
-| **posture** | mid-water has no ground (above). Floating is `lie` (or the word `float`) on a water surface that does not bear you — `Respiration.float()` decides, refusing a non-swimmer in words. |
+| **posture** | mid-water has no ground (above). Floating is `lie` on a water surface that does not bear you — `Respiration.float()` decides, refusing a non-swimmer in words. |
 | **sight in a fight** | `MediumRead.visibilityM` is how the combat engine reads the range cap. |
 | **weapons** | `CombatLogic` passes the medium's `drag`: swung forms are slowed hard, thrusts much less. A `Launcher` refuses unless its row says `worksUnderwater`. |
 | **senses** | `BodyPlan.portMedia(port)` / `getModalitiesIn(medium)` — a sense organ works only in its media (smell and taste are air-only by default; a shark's row says water). |
@@ -268,7 +281,10 @@ Each refusal is in the words of the thing that failed.
 
 ## ⭐ Buoyancy, weight and load in the water
 
-`LoadBearing.getDisplacedVolumeM3(depthM)` sums the body (mass over its
+⭐ The displacement half is `BuoyantMixin`'s (`lib/encumbrance/Buoyant.ts`,
+carved off `LoadBearing` at controllers-are-io D6 — every creature composes
+both; the breath model and `canRise` narrow on `MixinApi.isBuoyant`).
+`Buoyant.getDisplacedVolumeM3(depthM)` sums the body (mass over its
 body density), **the air in its lungs squeezed by the water over it**
 (`getLungAirL() / (1 + depth/10)` — exhale and you sink, inhale and you
 float), and every carried and worn thing by its material.
@@ -345,6 +361,11 @@ physiology-slate's.
 
 ## Rescue
 
+⭐ Getting something out of a water by hand — `pullOut`, `loadNamed`,
+`deliverOut` — is `HaulOutMixin`'s (`lib/location/HaulOut.ts`), carved off
+`WaterPlaceMixin` at controllers-are-io D6. Every water place composes both
+(a co-use split); `pull` and a line's landing narrow on `MixinApi.isHaulOut`.
+
 - **A line.** `throw <line> to <person>` puts the free end in their hands
   and holds a body in the water up while it is held. `pull line` brings
   whoever is on the end up **one band per pull** — hand over hand
@@ -386,23 +407,26 @@ pull) and `TossableMixin`; kernel `BuoyMixin`; the fishing pack's
 | act | verb | not |
 |---|---|---|
 | bring a line, a pot or the bell in | `pull` (no `haul` alias — haul, hauler, haulage are logistics' words, and the kernel `HaulableMixin` is a cart you hitch) | `haul` |
-| toss a line's end to somebody | `throw <thing> to <person>` (over `Tossable`; anything else is told to throw it AT someone or hand it over) | `heave` (now one of `throw`'s words) |
+| toss a line's end to somebody | `throw <thing> to <person>` (over `Tossable`; anything else is told to throw it AT someone or hand it over) | `heave` (deleted; `throw` has three disjoint shapes — to, at, bare) |
 | take a fish with a spear | `fish`, with the spear in hand or `fish using spear` (the spear is `TakesFish`; a `Rod` casts) | `spear` |
 | write on a slate | the kernel `write <words> on <thing>` over `MarkedMixin.writeOn` (`writingRoom` on the row; held or fixed; appended) | `jot` — and the shell's authoring verb became **`edit`** |
 | float | `lie` on the water | `float` as its own verb |
 | clear your ears | nothing — passive, like breathing | `equalize` |
 
-Trade verbs: `tug` (afforded by the line's end to whoever holds it),
-`ring` (a signal bell), `lash` (a line's end or an air bag to a load).
-Reused: `wear`/`remove`, `pump`, `drop`, `get`, `read`, `buy`, `consign`,
-`appoint`/`apply`/`clock`, `job`/`fulfill`, `analyze water`, `cast`/`zap`,
+Trade verbs: `ring` (a signal bell). ⭐ Since cordage, `tug` and `tie`
+(a line's end or an air bag to a load; the `lash` word is gone) are KERNEL
+verbs afforded by the kernel `LineEnd` and the `Tieable` protocol
+([cordage.md](cordage.md)).
+Reused: `wear`/`remove`, `pump`, `drop`, `get`, `read`, `buy`, `shelf consign`,
+`house appoint`/`job apply`/`clock`, `job`/`job fulfill`, `analyze water`, `cast`/`zap`,
 `climb`.
 
 **The gear** (`content/trade/diving/thing/`):
 
 - **Diving stone** and **weight belt** (a worn garment) — ballast down.
-- **Lifeline** (`Lifeline`, `kind: line`, 20 m) — the fixed end is in the
-  holder's hands; making it fast mints a **`LineEnd`** into the hands of
+- **Lifeline** — ⭐ a kernel **`Rope`** row (20 m of tarred hemp; cordage
+  D3: a rope's use is where its ends are tied) — the fixed end is in the
+  holder's hands; making it fast mints a **`RopeEnd`** into the hands of
   the person on it (holding it is being on the line, dropping it is
   letting go). Who is on a line is runtime — a line does not outlive a
   dive. A line knows people **as its holder does** (perceived keywords,
@@ -421,9 +445,9 @@ Reused: `wear`/`remove`, `pump`, `drop`, `get`, `read`, `buy`, `consign`,
   and `TakesFish`: under the surface it **draws from the reach's fishery**
   (the most plentiful species above 15 % of capacity) and mints the
   fishing pack's fish; a fished-out water has nothing to spear. The
-  fishmonger stays a consignment shelf: the sale is `consign`.
+  fishmonger stays a consignment shelf: the sale is `shelf consign`.
 - **Air bag** and **air barrel** (`AirBag` = `BuoyMixin(BulkableMixin(Good))`)
-  — `lash` to a load: lift is `liters × 200 / (1 + d/10) − bag mass`
+  — `tie` to a load: lift is `liters × 200 / (1 + d/10) − bag mass`
   per bag (a vessel's liters are compressed ×200); when the bags lift more
   than the load's mass, the pair goes up to the surface together. While
   lashed, the bag `buoys` the load, so the surface's "a dense arrival
@@ -452,7 +476,8 @@ occupants do not load gas (no bends from a bell).
 — the suit and the shipped air tank share one supply path; the **dress**
 is a two-slot garment (listed once in what you wear); the lead **boots**
 (36 kg) make you negative, so you walk the bed and cannot swim up. The
-**hose** is a `Lifeline` with `kind: hose` (25 m): its free end is the
+**hose** is diving's **`Hose`**, the other kernel `Line` (25 m; not a rope
+— cordage D2): its free end is the
 helmet's end, and the same `pull` brings the diver up. The **`AirPump`**
 on the quay speaks the kernel `Pumpable` protocol, so the verb is `pump`:
 each spell (20 s at the handles) fills the helmet on the end of a hose held
@@ -567,7 +592,7 @@ breath burn (respiration.md).
   `lib/spatial/{Pullable,Tossable}.ts`, `lib/stuff/Place.ts`
   (`groundRefusal`), `lib/boundary/Exit.ts` (`crossingRealS`,
   `wiresItsOwnInverse`), `platform/idea/api/LocomotionLogic.ts`,
-  `platform/idea/cmd/movement/{LocomotionControllerBase,DescendController,SwimController}.ts`,
+  `platform/idea/cmd/movement/{LocomotionControllerBase,SwimVerticalControllerBase,AscendController,DescendController,SwimController}.ts`,
   `platform/idea/cmd/posture/LieController.ts`,
   `platform/idea/cmd/inventory/{PullController,WriteOnController}.ts`;
   views `platform/cmd/movement/{descend,ascend,swim}.yaml`.

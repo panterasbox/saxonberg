@@ -1,7 +1,7 @@
 /**
  * TalkController — the deliberate opener for tree-bearing NPCs.
  *
- * `talk to <npc>` (alias `converse`) engages a conversational character:
+ * `talk to <npc>` engages a conversational character:
  * the controller narrows the target to a `Behaved` host, finds its
  * dialogue (`engage`-triggered) spec, resolves the brain by path (the
  * same `resolveExportSync` seam `BehavedMixin` uses), and calls the

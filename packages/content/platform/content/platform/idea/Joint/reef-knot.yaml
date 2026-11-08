@@ -1,0 +1,15 @@
+# Reef knot (cordage D7) — a knot is a JOINT: the share of the
+# rope's strength it keeps is `strength`. Right over left, left over right — a binding knot, flat and neat, that spills if one end is loaded harder than the other. Not a knot to trust a weight to.
+class: /platform/idea/Joint
+data:
+  key: reef-knot
+  label: tied in a reef knot
+  portability: hand
+  instrument: ''
+  competence: null
+  reversible: freely
+  strength: 0.45
+  structuralRecovery: 1.0
+  fastenerRecovery: 1.0
+  tightenable: true
+  failure: spilled

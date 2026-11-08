@@ -97,6 +97,14 @@ the spine (`lib/persistence/Persistable.ts`, `platform/idea/api/PersistableLogic
   marshalling a null; hydrate skips un-marshalling it) — a latent spine gap
   a full `Location` host (a null `_temperature: Quantity`) surfaced.
 
+⭐ **A keyed room is a copy of its holding's PLAN** (harbors review): the
+programme row itself authors `extent` (its rooms, authored as an ordinary
+place) and `entrance`, and each room is cloned from its row keyed `(room
+row, <holding extent>/<leaf>)` — the dorm's one-room plan keys its room
+by the unit extent itself, no leaf, so this record shape is unchanged.
+There is no blueprint row, and the plan's rooms are never stood up for
+play; see [holding.md § Plans](./holding.md).
+
 **Avatar migrated onto this** (the regression boundary): its key is its own
 `templatePath`, equal to the pre-D1 self-derived owner, so the `owner` column
 and the account-deletion cascade (`deleteAllFor('/platform/agent/Avatar/<pid>')`) are
@@ -199,7 +207,7 @@ The durable slot `(floor, position)` lives on the minted unit
 (`ParcelRecord.slotOfExtent` / `extentForSlot` — zero new field; the extent
 *is* the slot, and already the D1 key + the Warren member key).
 
-`provision <player>` (alias `lease`; the `duncan-hall` content namespace, not `system` — it hardcodes this building): compute the
+`provision <player>` (the `duncan-hall` content namespace, not `system` — it hardcodes this building): compute the
 **lowest-free slot** (`ParcelApi.childParcelsOf(dorms)` → first free
 `f<n>-r<p>` within `DormWarren.ROOMS_PER_FLOOR`, reusing gaps left by
 unprovision before a new floor) → `ParcelApi.subdivide(unitExtent, dorms,
@@ -216,22 +224,20 @@ is dead metal until a new lease re-issues one. The lease is *authority* (the
 right to a key); the **key is access** (bearer possession) — lend it, lose it,
 it just works.
 
-**Authorization** is at `execute()`. ⚠ It was placed there on the belief
-that a dialogue `dispatch`'s `forceCommand` bypasses the verb-level
-`requiresWizard` validator — **it does not**: `forced` runs the same
-validators ([npc-dialogue.md § The `dispatch` effect](./npc-dialogue.md),
-proven by experiment 2026-08-04). So Katie's `provision` dispatch is gated
-by a wizard check she cannot pass; the re-gate to the agency axis belongs to
-[wizard-axis-cleanup-slate § The inventory](../slates/builds/wizard-axis-cleanup-slate.md)
-(the *probable live defect* subsection absorbed from wizard-duty-slate).
-The `execute()` rule as written: allowed iff the actor `isWizard` (operator) **or is an agent of
-the dorms owner** — a member of the `duncan-hall` group. The agency check does
-NOT use `AccessApi.can` (it fails closed for NPCs, which have no `playerId`);
-it resolves the owner group ref and checks membership by the actor's `playerId
-?? templatePath` (`isDormsAgent` in `ProvisionController`). This is how **Katie
-fronts provisioning in the world**: `talk to Katie` → her intake dialogue
-`dispatch`es `provision $player` **as Katie**, who is authorized because she is
-a member of the `duncan-hall` group. A player never types the raw verb. See
+**Authorization** is at `execute()`, and only there:
+`HallController.mayProvision` admits a holder of a position at the college
+(`duncan-hall/idea/college` — Katie's `hall-manager`, read off the authored
+roster) **or** a member of the committee over the hall, and refuses anyone
+else with the seat named. There is **no credential arm and no view
+validator** (wizard-axis cleanup, 2026-11-05): a dialogue `dispatch`'s
+`forceCommand` runs the view's validators too
+([npc-dialogue.md § The `dispatch` effect](./npc-dialogue.md)), so the
+`requiresWizard` the views used to carry refused Katie herself — a live
+defect, gone with the validator. Letting a room is a SEAT's act; a wizard
+on no committee is a stranger at the desk. This is how **Katie fronts
+provisioning in the world**: `talk to Katie` → her intake dialogue
+`dispatch`es `provision $player` **as Katie**, who is authorized as staff. A
+player never needs to type the raw verb. See
 [npc-dialogue.md § dispatch](./npc-dialogue.md) and Katie's sheet
 ([eternal-university-drafts § Katie](../slates/builds/eternal-university-drafts-slate.md#57-katie-the-property-manager)).
 
@@ -255,11 +261,11 @@ or misauthored NPC's `dispatch provision $player` can't provision — but it now
 reads an honestly-conferred ledger.
 
 Because these are **content** verbs, their affordance is content-owned too:
-the operator escape hatch (the raw `provision`/`unprovision` surface) is
-afforded by **Katie's `commandContributions.environment`** — she *is* the
-front desk, so a co-located operator sees the verbs; both views carry
-`requiresWizard` so only an operator (wizard) sees them, and the real
-dorms-owner gate stays at `execute()`. The core `AuthorMixin` no longer
+the raw `provision`/`unprovision` desk surface is afforded by **Katie's
+`commandContributions.peers`** — she *is* the front desk, so whoever stands
+at it sees the verbs; the views carry no credential check, and the seat
+gate is at `execute()` (a player who types the verb is refused with the
+seat named — the refusal is the progression UI). The core `AuthorMixin` no longer
 references Duncan Hall at all — a content command is afforded by its content,
 never by a core mixin.
 
@@ -344,7 +350,7 @@ to your floor's corridor and go through your own door; it opens for whoever
 **presents a matching key** (the sync `opensFor` scan over your implant
 keychain + carried physical key) and blocks the keyless.
 
-`unprovision <player>` (alias `unlease`; `duncan-hall` content namespace, same dorms-agent
+`unprovision <player>` (`duncan-hall` content namespace, same dorms-agent
 authorization as `provision`, so Katie fronts move-out via a `dispatch
 unprovision $player`): resolve the tenant's held unit (`heldUnitOf`, symmetric
 with `provision`) → `ParcelApi.revokeUse` → `DormWarren.dropUnit(unit,
@@ -387,9 +393,12 @@ somebody authored.
 
 ⭐ **The second-instance test still holds**: a new subdivision is a row
 naming its `parentExtent` — nothing else is written — and a second
-desk names its books — no code. ⚠ The kernel still meets the pack's
-classes by SHAPE (the `DeedDesk`/plat-book duck types in
-`TitleController.ts`), never by import.
+desk names its books — no code. ⭐ The `title` controllers that read a
+book (`TitleHoldingsController`, `TitleListController`, `TitleBuyController`
+over `TitleBookControllerBase`) are the pack's own, so they name `PlatBook`,
+`DeedDesk` and `PlatWarren` directly; the desk is a declared arg on the view
+(`at <desk>`, default `reachable:[class.DeedDesk]`). The kernel's duck types
+for these classes are gone (controllers-are-io W8).
 
 ⚠ Three test fixtures had to learn the roster exists, and every one of
 them failed **silently and empty** rather than loudly — which is the
@@ -424,9 +433,6 @@ risk this shape carries and the reason the live drive walks these paths.
   `DormWarren.roomsPerFloor()`, with the authored default on the row. The
   capacity dial is the same mechanism for all three rungs — see
   [holding.md § Capacity](./holding.md#capacity--the-operator-dial).
-- **Finer provisioning gate** — v1 is `requiresWizard`; the `AccessApi`
-  dorms-parcel-owner gate lands once the dorms parcel carries a resolvable
-  zone resource.
 - **Quest rooms that pin floor 1** — bespoke authored rooms will later keep
   floor 1 always-present; the seam is `ensureFloor(1)` being invocable
   independent of provisioned units.

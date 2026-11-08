@@ -22,6 +22,7 @@
 import type { Stuff } from '../stuff/Stuff';
 import type { BrainContext } from './brain';
 import { MixinApi } from '../../api/mixin';
+import { StuffApi } from '../../api/stuff';
 import { NavigationApi } from '../../api/navigation';
 import { LocomotionApi } from '../../api/locomotion';
 
@@ -89,11 +90,30 @@ export class BrainMoves {
       WALK_SEARCH_BUDGET,
     );
     const plan = outcome.ok ? outcome.plans[0] : undefined;
-    if (!plan) return false;
+    if (!plan) return this.stage(place);
     for (const leg of plan.legs) {
       // ⚠ The plan is a hypothesis; the ground has the last word.
       if (!(await this.go(leg.dir)) || this.placeOf() !== leg.to) return false;
     }
+    return this.placeOf() === place;
+  }
+
+  /**
+   * ⭐ Entering or leaving the house's OFFSTAGE is staging, not travel. An
+   * offstage room is outside the fiction by definition (`OffstageMixin`:
+   * never `Exitable`, so no route reaches it), and the roster tick already
+   * moves a cast through it with the body's own `teleport` — the same
+   * move here, for a brain whose host is off shift and going somewhere.
+   * Anywhere else, no route means no move.
+   */
+  private async stage(place: string): Promise<boolean> {
+    const host = this.host;
+    if (!MixinApi.isMobile(host) || !MixinApi.isContainable(host)) return false;
+    const here = host.getContainer();
+    const dest = StuffApi.findByTemplatePath<Stuff>(place);
+    if (!here || !dest || !MixinApi.isContainer(dest)) return false;
+    if (!MixinApi.isOffstage(here) && !MixinApi.isOffstage(dest)) return false;
+    host.teleport(dest);
     return this.placeOf() === place;
   }
 

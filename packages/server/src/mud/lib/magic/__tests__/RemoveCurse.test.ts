@@ -41,7 +41,7 @@ import { SlottedMixin } from '../../slot/Slotted';
 import { SlottableMixin } from '../../slot/Slottable';
 import { BlessableMixin } from '../Blessable';
 import { ChargedMixin } from '../Charged';
-import { ReservedMixin } from '../../reserve';
+import { ReservedMixin } from '../../reserve/Reserved';
 import Good from '../../stuff/Good';
 import { Idea } from '../../stuff/Idea';
 import { Blessing } from '../Blessing';

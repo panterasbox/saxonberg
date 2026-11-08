@@ -1,6 +1,8 @@
 # Dark rum wort — molasses and water, before the yeast has had it (sugar D8).
-class: /platform/idea/material/ConsumableMaterial
+class: /platform/idea/material/OdorousConsumableMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/molasses, strength: 300 }]
+  tastes: [{ type: sweet, amount: 120 }]
   name: dark rum wort
   keywords: [wort, rum, "dark rum wort"]
   appearance: "a black, sticky-sweet wort"

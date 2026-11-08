@@ -6,10 +6,10 @@
 # walks her off the ground to a kedge; the lead tells the leadsman how much
 # water is under her; her boat is what takes a kedge out. Over the side is
 # the river wherever she is.
-class: /platform/location/Shore
+class: /platform/location/Compartment
 data:
   shortDescription: Ostrander's deck
-  keywords: [deck, ostrander, steamer]
+  keywords: [deck, ostrander deck, steamer deck]
   register: definite
   _biomePath: /stuff/idea/biome/outdoor/baseline
   longDescription: |
@@ -21,14 +21,23 @@ data:
     - /world/terminus/ostrander/thing/bunker
     - /system/water/thing/lead-line
     - /system/transport/thing/rowboat
+    # ⭐ Her mooring lines: at a landing each goes ashore round
+    # a bollard; with none aboard she cannot make fast.
+    # ⭐ Her bitts: the lines kept AT them are her mooring lines.
+    - { template: /platform/thing/bitts, as: bitts }
+    - { template: /platform/thing/mooring-line, count: 2, on: bitts }
   exits:
     west:
       destination: /world/terminus/ostrander/saloon
     down:
       destination: /world/terminus/ostrander/hold
+    # ⭐ Ashore is wherever she is made fast, worked out when
+    # taken; the destination is only her home berth. One way by rows: the
+    # way back aboard is hers, named for her, put on the landing she lies at.
     ashore:
       kind: /platform/idea/exits/ashore
       destination: /world/terminus/wharfside/bank
+      oneWay: true
     # ⭐ Over the side: the river where she is now, under way or not.
     side:
       kind: /system/water/idea/exits/overside

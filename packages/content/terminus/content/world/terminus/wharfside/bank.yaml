@@ -3,8 +3,13 @@
 # Two objects stand here and the whole watershed argument is in the
 # distance between them: the city's INTAKE, upstream, and its OUTFALL,
 # downstream. Which is which is not a label — it is where they are.
-class: /platform/location/Quay
+# ⭐ A HarborQuay: the harbor works keeps the bank, so it is
+# a quay of the Port of Terminus's book — a ship left here owes dues like one
+# left at the Town Quay. The Ostrander, the city's own river service, is
+# exempt.
+class: /system/transport/location/HarborQuay
 data:
+  harbor: /world/terminus/harbor/idea/harbor
   # ⭐⭐ The town lights this street (envelope W5) — a PROPERTY of the
   # street, not objects on it. NOTHING IS MINTED: nobody binds a street
   # lamp, and one identical fuelled object per street would be forty-one
@@ -55,12 +60,6 @@ data:
       destination: /world/terminus/estuary/lower-towpath
       media: [ground, water]
       edgeMinutes: 3
-    # ⭐ The way aboard the Ostrander when she lies at the quay (the river
-    # build) — a steamer that has sailed is not alongside, and this says so.
-    aboard:
-      kind: /platform/idea/exits/aboard
-      destination: /world/terminus/ostrander/deck
-      edgeMinutes: 1
     # ⭐ The goods yards behind the working city — the one room D11's
     # switchover cost, and the way a hauler reaches every trade floor in
     # Terminus without any of their hands ever leaving their own floor.
@@ -139,7 +138,7 @@ data:
       edgeMinutes: 7
     # ⭐ Into the river itself (underwater D23). The bank is a QUAY —
     # beside the water, never in it — and the water you go down into is
-    # the basin below it: `swim` (or `dive`, `jump`) goes in — in the
+    # the basin below it: `swim` goes in — in the
     # hard-hat suit too, which sinks you; the quay steps are the way back
     # OUT (`climb up` from the water). `down` stays the knacker's.
     # ⭐ Into the river itself — the stream past the foot of the steps
@@ -163,8 +162,17 @@ data:
       destination: /world/terminus/wharfside/lavoir/location/lavoir
       media: [ground]
       edgeMinutes: 1
+    # ⭐ The pump house (water-supply W1): the city's water behind a locked
+    # door, keyed to the works keeper's seat.
+    pumphouse:
+      destination: /world/terminus/wharfside/pumphouse/location/house
+      media: [ground]
+      edgeMinutes: 1
+      door: /world/terminus/wharfside/thing/pump-house-door
   props:
-    - /world/terminus/wharfside/thing/city-intake
+    # ⭐ What a ship's lines are made fast round: the Ostrander
+    # lies here, and a ship alongside puts her way aboard on the quay.
+    - { template: /platform/thing/bollard, count: 2 }
     - /world/terminus/wharfside/thing/city-outfall
     # ⭐⭐ The Cold Fell aqueduct and the house on its last drop — and
     # until the reachability sweep NEITHER STOOD ANYWHERE. Both rows

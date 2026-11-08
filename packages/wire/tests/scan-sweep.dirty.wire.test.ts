@@ -109,7 +109,7 @@ async function daylight(s: Session): Promise<void> {
 let me: Session;
 
 beforeAll(async () => {
-  me = await Session.open(uniqueHandle('sweep'), { startLocation: BANK_HALL, wizard: true });
+  me = await Session.open(uniqueHandle('sweep'), { startLocation: BANK_HALL });
 }, 600_000);
 
 afterAll(() => {
@@ -145,7 +145,11 @@ suite('2. a house that advertises is NOT booted, and its opening shows on the fi
         if (!/HELP WANTED/.test(seen)) await advanceWorldClock('2 hours');
       }
       expect(seen, seen).toMatch(/HELP WANTED/);
-      expectOk(await s.cmd('apply'));
+      // ⚠ Named: the deck advertises the master's seat as well as the
+      // lookout's (two notices on a fresh world), and a bare `job apply`
+      // with two openings asks which (`ambiguous-opening`) — as the flat
+      // `apply` did. The seat this checkpoint is about is the lookout's.
+      expectOk(await s.cmd('job apply for lookout'));
     } finally {
       s.close();
     }
@@ -157,7 +161,7 @@ suite('2. a house that advertises is NOT booted, and its opening shows on the fi
       await daylight(farm);
       const seen = await look(farm);
       expect(seen, seen).toMatch(/HELP WANTED/);
-      const r = await farm.cmd('apply');
+      const r = await farm.cmd('job apply');
       expectOk(r);
       expect(squash(await farm.prose('job'))).toMatch(/./);
     } finally {
@@ -195,7 +199,7 @@ suite('4. the price index covers its basket', () => {
 
 suite('5. the Kestrel at the city is fouled', () => {
   it('⭐ `analyze water` at the confluence reads the outfall', async () => {
-    const s = await Session.open(uniqueHandle('wader'), { startLocation: RIVER_BANK, wizard: true });
+    const s = await Session.open(uniqueHandle('wader'), { startLocation: RIVER_BANK });
     try {
       await daylight(s);
       const said = squash(await s.prose('analyze water'));

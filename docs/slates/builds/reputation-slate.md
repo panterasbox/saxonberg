@@ -202,7 +202,7 @@ The richest untapped surface, and it **splits across two stocks**:
 
 > **The WAGE is for what you made. The TIP is for who you were.**
 
-The employer pays for output (**producer**); the customer tips for service
+The employer pays for output (**labor**); the customer tips for service
 (**consumer**). Same job, two signals, two stocks.
 
 - ⭐⭐⭐⭐ **Tips are the purest revealed preference in the game** —
@@ -212,7 +212,7 @@ The employer pays for output (**producer**); the customer tips for service
   established *credit per patron per bucket* fix, which kills the whale
   problem and is *also true*: twenty small tips mean more than one large
   one.
-- **Being re-rostered** is producer-side repeat; **being asked for by
+- **Being re-rostered** is labor-side repeat; **being asked for by
   name** is consumer-side.
 - ⭐⭐⭐ **An employment record is the only social signal with an
   INSTITUTION'S MONEY behind it** — not self-declared, not a friend's
@@ -235,7 +235,7 @@ The employer pays for output (**producer**); the customer tips for service
 | **reactions / valence** (shipped) | ⬇ **demoted to a small term — kept as texture, not spine** |
 
 ⚠ **Keep OUT of consumer standing**: forum popularity and sales volume are
-**producer** signals. Consumer standing is **play** standing — whether
+**labor** signals. Consumer standing is **play** standing — whether
 people value your **presence**, not your **output**. Mixing them
 **collapses two of the three stocks into one.**
 

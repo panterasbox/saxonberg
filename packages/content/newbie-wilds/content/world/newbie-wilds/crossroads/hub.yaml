@@ -26,7 +26,7 @@ data:
     y: 0
     z: 0
   # ⭐⭐ **The first water in the newbie wilds**, and it is a shipped-gap
-  # fix in its own right: `treat … with water` and `wash` both need a
+  # fix in its own right: `treat … --with water` and `wash` both need a
   # source in reach, and there was not one anywhere in this sphere. It
   # also makes the lime seep's answer exist — a caustic that could not be
   # rinsed anywhere would be a consequence with no response, which is a

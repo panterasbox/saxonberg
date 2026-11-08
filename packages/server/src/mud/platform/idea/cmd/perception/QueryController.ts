@@ -1,5 +1,5 @@
 /**
- * QueryController — `query <set>` (alias `scan`): **list whatever a query
+ * QueryController — `query <set>`: **list whatever a query
  * names** (maritime revision 2′).
  *
  * ⭐ Three verbs, one question each. `look` answers *what is this ONE
@@ -29,7 +29,7 @@ import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import Place from '../../../../lib/stuff/Place';
-import Structure from '../../Structure';
+import Structure from '../../../../lib/structure/Structure';
 import InventoryController from '../inventory/InventoryController';
 
 interface QueryModel extends CommandModel {

@@ -151,6 +151,8 @@ const GOOD_HOMES: { prefix: string; dir: () => string }[] = [
   // mints life (the nucleus) belongs in a shop for the same reason.
   { prefix: "/trade/apiculture/", dir: () => APICULTURE_DIR },
   { prefix: "/trade/sericulture/", dir: () => SERICULTURE_DIR },
+  // ⭐ The cane knife (cover build) — the sugar trade's tool, sold here.
+  { prefix: "/trade/sugar/", dir: () => fileURLToPath(new URL("../../../trade-sugar/content/trade/sugar/", import.meta.url)) },
   { prefix: "/trade/glass/", dir: () => GLASS_DIR },
   { prefix: "/trade/smithing/", dir: () => SMITHING_DIR },
   { prefix: "/trade/tanning/", dir: () => TANNING_DIR },
@@ -226,8 +228,9 @@ describe("general-store content integrity", () => {
     expect(zone.class).toBe("/platform/idea/location/CartesianZone");
 
     const room = load(STORE_DIR, "shop-floor.yaml");
-    // ⭐ Persistent (cleanliness D31): a kept place's floor outlives a restart.
-    expect(room.class).toBe("/platform/location/PersistentLocale");
+    // ⭐ Persistent (cleanliness D31): a kept place's floor outlives a restart;
+    // and a hall — one particular interior (the room rung).
+    expect(room.class).toBe("/platform/location/PersistentHall");
     expect(room.data?.props).toEqual([
       "/world/terminus/general-store/counter",
       "/world/terminus/general-store/consignment-shelf",
@@ -293,6 +296,11 @@ describe("general-store content integrity", () => {
     // ration pack is one: perishable matter belongs on the class that says
     // so, not on the generic `Thing` that happened to be carrying the gauge.
     "/platform/thing/Provision",
+    // ⭐ The garden's watering past the can (water supply, the review): the
+    // rubber hose coupled with `tie`, and the sprinkler it feeds — each a
+    // Good underneath.
+    "/platform/thing/WaterHose",
+    "/platform/thing/Sprinkler",
     // ⭐ The cleansers' shelf and the soap-maker's kit (cleanliness W3) —
     // each a Good underneath: the cured bar, a flask, a lump of fuller's
     // earth or chalk, the hopper, the kettle and the frame.

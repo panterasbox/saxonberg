@@ -56,8 +56,16 @@ export const DOCUMENT_KINDS = {
   /** Press-owned; no pack ships one this wave. */
   release: { kind: 'release', naturalKey: null, contentDir: 'releases', ext: 'yaml', onVanish: 'delete' },
   emote: { kind: 'emote', naturalKey: 'verb', contentDir: 'emotes', ext: 'yaml', onVanish: 'delete' },
+  /**
+   * An aroma: what a nose can read, with its threshold, the discipline that
+   * trains a nose to it, its hedonic curve and its `parent:` in the tree. Named
+   * by its path (`/base-library/aromas/smoke`) like every document, and read by
+   * that path when something names it (`lib/perception/Aroma.ts`). Authored
+   * metadata: nothing writes one.
+   */
+  aroma: { kind: 'aroma', naturalKey: null, contentDir: 'aromas', ext: 'yaml', onVanish: 'delete' },
   recipe: { kind: 'recipe', naturalKey: 'recipeId', contentDir: 'recipes', ext: 'yaml', onVanish: 'delete' },
-  'name-bank': { kind: 'name-bank', naturalKey: 'key', contentDir: 'name-banks', ext: 'yaml', onVanish: 'delete' },
+  'name-bank': { kind: 'name-bank', naturalKey: null, contentDir: 'name-banks', ext: 'yaml', onVanish: 'delete' },
   blueprint: { kind: 'blueprint', naturalKey: 'blueprintId', contentDir: 'blueprints', ext: 'yaml', onVanish: 'delete' },
   'command-view': { kind: 'command-view', naturalKey: null, contentDir: 'cmd', ext: 'yaml', onVanish: 'delete' },
   /** The venue archetype — an industry's floor in capabilities (content-packs A13/A14). */
@@ -283,6 +291,84 @@ export const DOCUMENT_KINDS = {
    * new one writes a new path; nothing overwrites the old.
    */
   'rate-card': { kind: 'rate-card', naturalKey: null, contentDir: 'rate-cards', ext: 'yaml', onVanish: 'keep' },
+  /**
+   * ⭐ An **edition** — what a printing froze: the pages of a document AS
+   * SET on the day it was run. The document is the truth;
+   * paper is one way of showing it, and the frozen rung is this record.
+   *
+   * Path-keyed at `<source>/editions/<hash of the pages>`, so a second run
+   * of the same text finds the same edition and five hundred copies are
+   * one record. Owned by the source's owner. Written only by
+   * `DocumentApi.freezeEdition` (the press, the printer, the bearer
+   * receipt, the ledger's extract); read by every sheet bound to it, with
+   * no title check — whoever holds the paper reads it.
+   *
+   * `onVanish: 'keep'`: an edition is a record of what was printed, and
+   * the source's edit or retraction never reaches it — that is the
+   * point of paper.
+   */
+  edition: { kind: 'edition', naturalKey: null, contentDir: 'editions', ext: 'yaml', onVanish: 'keep' },
+  /**
+   * A **ship's register entry** — her name in this register, her kind, her
+   * identity, her flag, when she was entered, and the company that owns
+   * her (title only — her owners are that company's cap table).
+   *
+   * ⭐⭐ **You file; you do not hold the pen** — the herd's rule. An entry
+   * lives under the GOVERNMENT's own branch
+   * (`/platform/ships/<government key>/<name slug>`), written only by its
+   * register (`DocumentApi.saveToRegister`), so a shipowner cannot rewrite
+   * whose she is. ⭐ The slug IS the uniqueness: a register refuses a
+   * second ship of a name because the path is taken; the same name under
+   * another flag is another prefix.
+   *
+   * Pack-shipped AND runtime-written: the authored ships' entries ship in
+   * the platform pack (`content/ships/<gov>/<slug>.yaml`); a yard sale
+   * files the rest. `onVanish: 'keep'` for the water right's reason: an
+   * entry is a record of title, and no absent pack file may erase whose a
+   * ship is.
+   *
+   * The KIND is the platform's; what a legitimate entry looks like is
+   * the register's (`ShipRegister`).
+   */
+  ship: { kind: 'ship', naturalKey: null, contentDir: 'ships', ext: 'yaml', onVanish: 'keep' },
+  /**
+   * A **berth roll** — the ships a landing has lying at it, by durable
+   * handle, in the order they came. A landing
+   * reads its own roll the first time it is used after a restart and
+   * stands up every ship on it that is not loaded, so her way aboard
+   * comes back.
+   *
+   * ⭐ The reference points the right way: the landing is never asked to
+   * search a register for who lies at it — each ship writes her own line
+   * as she makes fast and strikes it as she leaves.
+   *
+   * ⭐⭐ **Only the ship holds the pen for her line, and she cannot lie
+   * with it.** The write (`DocumentApi.saveBerth`) is gated to the ship
+   * herself, and it takes no "lying / gone" flag: the store reads whether
+   * she is made fast at that landing NOW off the ship and writes that.
+   *
+   * One document per landing, at `/platform/berths<landing path>` — the
+   * landing's path keeps its slashes, so a harbor's berths are a prefix
+   * read. Owned by the landing (its path), which is whose list it is.
+   *
+   * ⚠ Runtime-written, on the `map` pattern: no pack ships one and
+   * nothing authors one by hand. `onVanish: 'keep'` for the declared
+   * kinds' reason — a night going by must not cast a ship adrift.
+   */
+  'berth-roll': { kind: 'berth-roll', naturalKey: null, contentDir: 'berth-rolls', ext: 'yaml', onVanish: 'keep' },
+  /**
+   * ⭐ A **berth book**'s record — a harbor's lines (berths given, ships
+   * alongside, debts with their dues stamped paid) and the last hail each
+   * ship was answered. The book on the office desk is where it
+   * is kept and read; the RECORD is this document, filed by the harbor
+   * itself in its own branch (`DocumentApi.saveToRegister` — *you file;
+   * you do not hold the pen*), so burning or losing the book never forgives
+   * a debt: the next book reads the record again.
+   *
+   * One document per harbor, at `<registerPrefix>/record`. Runtime-written;
+   * no pack ships one. `onVanish: 'keep'` — a debt outlives a night.
+   */
+  'berth-book': { kind: 'berth-book', naturalKey: null, contentDir: 'berth-books', ext: 'yaml', onVanish: 'keep' },
 } as const satisfies Record<string, DocumentKindSpec>;
 
 export type DeclaredDocumentKind = keyof typeof DOCUMENT_KINDS;

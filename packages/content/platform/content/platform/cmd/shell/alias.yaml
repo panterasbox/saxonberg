@@ -1,4 +1,5 @@
 verbs: [alias]
+category: shell
 controller: /platform/idea/cmd/shell/AliasController
 description: "Manage your command aliases"
 help: |

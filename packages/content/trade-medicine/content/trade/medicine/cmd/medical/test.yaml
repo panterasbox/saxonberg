@@ -1,4 +1,5 @@
 verbs: [test]
+category: medical
 controller: /trade/medicine/idea/cmd/medical/TestController
 description: "Test a body's blood type (needs a syringe)"
 help: |

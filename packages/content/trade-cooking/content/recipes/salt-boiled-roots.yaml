@@ -1,0 +1,30 @@
+# Roots boiled in brine, the way a salt-pan shore cooks them. ⭐ The ceiling is
+# the brine's own boiling point, a degree above water's: the medium is whatever
+# material carries the tag, and nothing in the kernel knows the word.
+recipeId: salt-boiled-roots
+name: Salt-Boiled Roots
+keywords:
+- salt-boiled-roots
+- salt-boiled
+inputSlots:
+- slot: brine
+  category: brine
+  minGrade: poor
+  kind: bulk
+  measureL: 0.4
+- slot: roots
+  category: vegetable
+  minGrade: poor
+  kind: item
+  count: 2
+toolCapabilities:
+- pot
+outputTemplate: /stuff/thing/items/bowl
+outputAppearance: roots boiled in brine, their skins wrinkled and white with salt
+outputApplication: edible
+outputPortionL: 0.4
+requiresHeatK: 373
+maxHeatK: 374
+medium: brine
+difficulty: trivial
+discipline: cooking

@@ -1,0 +1,26 @@
+# bilge — sounding a ship's well: how much water is in her,
+# and whether it is rising.
+#
+# ⭐ The hull's neglect read as WATER: a worn hull weeps at her seams and
+# the well fills; a sounding, and a second an hour later, say whether she
+# is gaining. Words for everybody; how fast for a novice; the height on
+# the rod (bracketed) for a competent hand; whether one pump would gain on
+# it for an expert. No eye rung — you cannot see down a bilge well.
+#
+# ⚠ `well-sounding`, not the lead line's `sounding`: a rod down a well and
+# a lead over the side are two instruments, and neither does the other's job.
+class: /platform/idea/reading/BilgeReading
+data:
+  channel: bilge
+  kind: fact
+  scope: [here]
+  discipline: seamanship
+  instrument: well-sounding
+  instrumentNoun: "a sounding rod"
+  eyeCeiling: untrained
+  improves: >-
+    whether she is making water, how fast, and whether the pump is
+    keeping up with it
+  stakes: >-
+    a ship found settled at her berth after a long absence; a hold full
+    of water and the cargo in it ruined

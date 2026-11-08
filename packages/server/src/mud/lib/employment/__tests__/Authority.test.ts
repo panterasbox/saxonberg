@@ -17,7 +17,7 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Authority, type PrincipalRef } from '../Authority';
-import { OrganizationMixin } from '../Organization';
+import OrganizationRow from '../../../platform/idea/Organization';
 import { EmployedMixin } from '../Employed';
 import { Idea } from '../../stuff/Idea';
 import Avatar from '../../../platform/agent/PrimaryAvatar';
@@ -114,7 +114,7 @@ function installInMemoryStore(): void {
 }
 
 /** A non-trading organization — the thing an authority is authored on. */
-class OrganizationEntity extends OrganizationMixin(Idea) {
+class OrganizationEntity extends OrganizationRow {
   static _mixinName = 'OrganizationEntity';
 }
 

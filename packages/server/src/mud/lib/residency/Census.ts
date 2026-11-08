@@ -123,6 +123,16 @@ export class Census {
       (MixinApi.isContainable(stuff)
         ? (stuff.getContainer()?.getTemplatePath() ?? null)
         : null) ?? stuff.getTemplatePath();
+    return Census.regionOfPath(path);
+  }
+
+  /**
+   * The region of a path. Of a row's own path, this is where a fresh mint of it
+   * counts: a mint stands nowhere, so {@link regionOf} reads its template path.
+   *
+   * @internal its only outside caller is ResidencyLogic's spawn sweep.
+   */
+  public static async regionOfPath(path: string | null | undefined): Promise<string> {
     if (!path) return UNPLACED_REGION;
     try {
       const zone = await ZoneApi.resolveZoneForPath(path);

@@ -6,8 +6,9 @@
 # touching it meets, so vitriol and the cleanser do not eat it. And its
 # water absorption is rubber's: it takes in nothing (the wet law reads it
 # impermeable), which is why rain runs off it.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/rubber, strength: 30 }]
   name: rubberized cloth
   keywords: [rubberized, "rubberized cloth", mackintosh]
   appearance: dull-shining rubberized cloth

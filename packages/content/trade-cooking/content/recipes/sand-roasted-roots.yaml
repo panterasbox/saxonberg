@@ -1,0 +1,30 @@
+# Roots buried in a pot of hot sand. ⭐ Sand has no boiling point and no smoke
+# point, so it sets no ceiling: the fire decides, which is why a sand roast takes
+# heat a boil never could.
+recipeId: sand-roasted-roots
+name: Sand-Roasted Roots
+keywords:
+- sand-roasted-roots
+- sand-roasted
+inputSlots:
+- slot: sand
+  category: sand
+  minGrade: poor
+  kind: bulk
+  measureL: 0.4
+- slot: roots
+  category: vegetable
+  minGrade: poor
+  kind: item
+  count: 2
+toolCapabilities:
+- pot
+outputTemplate: /stuff/thing/items/bowl
+outputAppearance: roots roasted in sand, sweet and blackened at the tips
+outputApplication: edible
+outputPortionL: 0.4
+requiresHeatK: 450
+maxHeatK: 560
+medium: sand
+difficulty: easy
+discipline: cooking

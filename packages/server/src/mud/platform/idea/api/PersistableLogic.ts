@@ -2,6 +2,7 @@
 // PersistableApi. Owns the persistence spine's capture/restore/compose walk.
 // (Doc comment on the class below so @internal lands on the reflection.)
 
+import { KeyedHosts } from '../../../lib/persistence/KeyedHosts';
 import { ApiLogic } from "../../../lib/stuff/ApiLogic";
 import { CallSecurity, Unshadowable } from "../../../lib/security/decorators";
 import { SecurityPolicies } from "../../../lib/security/SecurityPolicies";
@@ -139,29 +140,17 @@ function optedOutOfPersistence(host: Stuff): boolean {
 /**
  * The live instance of `(scope, key)`, or null.
  *
- * ⭐ The read half of {@link assertUniqueKey}'s scan: that function
- * throws when it finds a second one, this returns the first. Both exist
- * because a keyed host's identity IS the pair, so "is it already
- * standing up" and "would this collide" are one question asked from two
- * directions.
+ * ⭐ A LOOKUP, never a scan: a keyed host is filed under
+ * its pair the moment it is given its key (`KeyedHosts`, written by
+ * `Persistable.setPersistenceKey`). It used to loop over
+ * `StuffApi.findAllByTemplatePath(scope)` — every live instance of the row.
  *
- * ⚠ **`scope` here is a ROW.** Every caller passes a stored scope that
- * is a template path — `cloneHost` passes a captured `{ref}` (written
- * as `good.getTemplatePath()`) and `overlayOwnedGoods` passes
- * `keyed.templatePath` — which is what makes the scan see the row's
- * other instances. `StuffApi.findAllByTemplatePath` enumerates a row
- * including its identity-stamped clones, so a stamped keyed host is
- * found here; passing an identity would narrow the scan to that one
- * object and find nothing. {@link assertUniqueKey} derives the row
- * from the host for exactly that reason.
+ * ⚠ **`scope` here is a ROW** (a template path) — every caller passes a
+ * stored scope that is one: `cloneHost` a captured `{ref}` (written as
+ * `good.getTemplatePath()`), `overlayOwnedGoods` `keyed.templatePath`.
  */
 function liveKeyed(scope: string, key: string): Stuff | null {
-  for (const other of StuffApi.findAllByTemplatePath<Stuff>(scope)) {
-    if (MixinApi.isPersistable(other) && other.getPersistenceKey() === key) {
-      return other;
-    }
-  }
-  return null;
+  return KeyedHosts.find(scope, key);
 }
 
 /**
@@ -179,17 +168,16 @@ function liveKeyed(scope: string, key: string): Stuff | null {
  */
 function assertUniqueKey(scope: string, key: string, host: Stuff): void {
   const row = host.getTemplatePath() ?? scope;
-  for (const other of StuffApi.findAllByTemplatePath(row)) {
-    if ((other as unknown) === (host as unknown)) continue;
-    if (MixinApi.isPersistable(other) && other.getPersistenceKey() === key) {
-      throw new Error(
+  // ⭐ The pair's index, never a scan of the row.
+  for (const other of KeyedHosts.all(row, key)) {
+    if (other.stuffId === host.stuffId) continue;
+    throw new Error(
         `PersistableLogic: two live instances of '${row}' both keyed ` +
           `'${key}' — they would clobber one record. A persistable host must ` +
           `resolve to a unique (scope, key): a singleton derives its key from ` +
           `its scope (so it must be singleton-identifiable), a multi-instance ` +
           `host (a leased room) must supply a distinct explicit key.`,
-      );
-    }
+    );
   }
 }
 
@@ -241,8 +229,22 @@ function capturePlacement(host: Stuff): HostPlacement | null {
     if (scope && key) return { container: scope, containerKey: key, ...nested };
   }
   if (MixinApi.isWarrenMember(anchor)) {
-    const warren = anchor.getWarren()?.getTemplatePath();
+    // ⚠ Only a warren that is its row's ONE record lands by that row's
+    // path. A KEYED warren (an authored ship's — one `ShipWarren/authored`
+    // row, a warren per ship, keyed by her path) shares its
+    // row with its siblings, so its path names none of them: the room is
+    // anchored by its own address below.
+    const w = anchor.getWarren();
+    const keyed = w !== null && MixinApi.isPersistable(w) && w.isPersistenceKeyExplicit();
+    const warren = keyed ? null : w?.getTemplatePath();
     if (warren) return { startLocation: warren, ...nested };
+    // ⚠ A room a keyed warren MINTED that keeps no record of its own (a
+    // smack's deck): its row is every smack's deck, so
+    // the row names none of them. Record the key it was stood up under,
+    // exactly as a keyed room's record would.
+    const minted = w?.mintedKeyOf(anchor) ?? null;
+    const row = anchor.getIdentityPath();
+    if (minted !== null && row) return { container: row, containerKey: minted, ...nested };
   }
   const container = anchor.getIdentityPath();
   return container ? { container, ...nested } : null;
@@ -973,6 +975,24 @@ async function cloneHost(scope: string, key?: string): Promise<Stuff | null> {
     if (live) return live;
     const nested = await StuffApi.clone<Stuff>(scope);
     if (nested && MixinApi.isPersistable(nested)) {
+      // ⭐ A room a warren owns is stood up BY its warren, never alone
+      //: minted here it would stand outside the
+      // warren, and the warren's next wake would mint a second copy under
+      // the same key. The shell is let go unkeyed and unrestored; a key an
+      // institution covers (a holding's room, a dorm's unit) goes through
+      // its `admitFor` — the seam a parked character re-enters a keyed
+      // room by — whose answer must be this very pair. Anything else (a
+      // ship's hold: her ship stands her rooms up with her) is refused.
+      if (!nested.standsUpAlone()) {
+        StuffApi.destruct(nested);
+        const owned = await roomOwnedByInstitution(scope, key);
+        if (owned) return owned;
+        console.warn(
+          `PersistableLogic.standUpKeyed: '${scope}#${key}' is a room its ` +
+            `warren stands up — not minted alone`,
+        );
+        return null;
+      }
       nested.setPersistenceKey(key);
       await materializeImpl(nested, key);
     }
@@ -985,6 +1005,31 @@ async function cloneHost(scope: string, key?: string): Promise<Stuff | null> {
   // singleton host can come to life — walked to / booted, or restored as
   // a room's nested `{ ref }` — on one path, so neither can mint a second.
   return StuffApi.singleton<Stuff>(scope);
+}
+
+/**
+ * The keyed room an institution re-enters for `key` when it is exactly
+ * `(scope, key)`, else `null`. Only a key that is a PATH can lie under an
+ * institution's extent (a ship's room is keyed by her serial).
+ */
+async function roomOwnedByInstitution(
+  scope: string,
+  key: string,
+): Promise<Stuff | null> {
+  if (!key.startsWith('/')) return null;
+  const { CirculationWarren } = await import(
+    '../../../lib/location/CirculationWarren'
+  );
+  const room = await CirculationWarren.admitFor(key);
+  if (room === null) return null;
+  if (
+    MixinApi.isPersistable(room) &&
+    room.getTemplatePath() === scope &&
+    room.getPersistenceKey() === key
+  ) {
+    return room;
+  }
+  return null;
 }
 
 /* ─────────────────────────── impl entry points ──────────────────────── */
@@ -1011,23 +1056,86 @@ async function captureImpl(host: Stuff, key?: string): Promise<void> {
   // inert shell would overwrite the last good record with nothing.
   if (host.isDestroyed()) return;
   skippedOwnedGoods.clear();
-  const state = captureState(host);
-  const place = capturePlacement(host);
+  // The records this host owns, read while it stands: the write below
+  // awaits, and a host destructed meanwhile (a warren put to sleep) is
+  // inert — but what it owned must still be written.
+  const dependents = MixinApi.isPersistable(host) ? host.dependentPersistables() : [];
+  let state = captureState(host);
+  let place = capturePlacement(host);
   // The skip rule's other half: goods this host does not persist because
   // someone else holds title go to their owners' estates, now, before the
   // host's record is written and long before the host destructs.
   const skipped = [...skippedOwnedGoods];
   skippedOwnedGoods.clear();
-  if (skipped.length > 0) await flushSkippedOwnedGoods(skipped);
-  const rec =
-    (await PersistedRecord.findByScopeAndOwner(scope, owner)) ??
-    new PersistedRecord();
-  rec.scope = scope;
-  rec.owner = owner;
-  rec.state = state;
-  rec.place = place;
-  rec.writtenAt = Date.now();
-  await rec.save();
+  if (skipped.length > 0) {
+    // ⭐⭐ A good the host ITSELF owns, skipped from its contents but not yet
+    // in its estate: custody is recorded after a move, asynchronously (the
+    // title is stamped, then the place, then the estate), so a capture can
+    // land between the stamp and the estate. The snapshot above then has the
+    // good in neither slice, and a body destructed on that record (a
+    // sign-out, D30) lost what it was holding — found by the crowd file under
+    // load. Its custody record is awaited, which puts it in this estate with
+    // the place derived from where it is, and the host is snapshotted again.
+    const own = skipped.filter((g) => {
+      if (!MixinApi.isChattel(g) || !MixinApi.isEstate(host)) return false;
+      const owner = g.stampedOwner();
+      return (
+        owner?.kind === "player" &&
+        owner.templatePath === host.getIdentityPath() &&
+        host.getEstateLive(g.getChattelId()) === null
+      );
+    });
+    await flushSkippedOwnedGoods(skipped.filter((g) => !own.includes(g)));
+    if (own.length > 0) {
+      for (const good of own) {
+        if (!good.isDestroyed() && MixinApi.isChattel(good)) await good.followCustody();
+      }
+      if (!host.isDestroyed()) {
+        state = captureState(host);
+        place = capturePlacement(host);
+      }
+      skippedOwnedGoods.clear();
+    }
+  }
+  // ⭐ One write at a time per record: two captures of a host
+  // that has no record yet both found none and both INSERTED, and the
+  // second died on the unique index — a ship's first commissioning capture
+  // and the fire-and-forget one her mooring kicks off at seed raced, so
+  // `buy smack` threw E11000 and the snapshot that lost was the good one.
+  // The snapshot above is taken synchronously; only find-then-save queues.
+  await serialRecordWrite(`${scope}\u0000${owner}`, async () => {
+    const rec =
+      (await PersistedRecord.findByScopeAndOwner(scope, owner)) ??
+      new PersistedRecord();
+    rec.scope = scope;
+    rec.owner = owner;
+    rec.state = state;
+    rec.place = place;
+    rec.writtenAt = Date.now();
+    await rec.save();
+  });
+  // ⭐ The records this host owns follow it (tracts build D26): a tract's
+  // fields are written with the tract, each under its own key. Each goes
+  // through its own record's write queue.
+  for (const dependent of dependents) {
+    if (!dependent.isDestroyed()) await captureImpl(dependent);
+  }
+}
+
+/** Runtime: the in-flight record write per `(scope, owner)` — the queue {@link serialRecordWrite} keeps. */
+const recordWrites = new Map<string, Promise<void>>();
+
+/** Run `write` after any earlier write of the same record has settled (find-then-save is not atomic). */
+function serialRecordWrite(id: string, write: () => Promise<void>): Promise<void> {
+  const prior = recordWrites.get(id) ?? Promise.resolve();
+  const mine = prior.catch(() => undefined).then(write);
+  recordWrites.set(id, mine);
+  void mine
+    .finally(() => {
+      if (recordWrites.get(id) === mine) recordWrites.delete(id);
+    })
+    .catch(() => undefined);
+  return mine;
 }
 
 async function materializeImpl(host: Stuff, key?: string): Promise<void> {
@@ -1399,6 +1507,18 @@ export class PersistableLogic extends ApiLogic {
     principal: Stuff,
   ): Promise<Stuff | null> {
     return PersistableLogicRestoreDetached(entry, container, principal);
+  }
+
+  /** See {@link PersistableApi.storedField}. */
+  @CallSecurity(PersistableApiCallers)
+  public async storedField(scope: string, mixin: string, field: string): Promise<unknown> {
+    for (const row of await PersistedRecord.findByScope(scope)) {
+      const slice = row.getState()[mixin];
+      if (slice === undefined || !('fields' in slice)) continue;
+      const value = (slice.fields as Record<string, unknown> | undefined)?.[field];
+      if (value !== undefined) return value;
+    }
+    return undefined;
   }
 
   /** See {@link PersistableApi.hasRecord}. */

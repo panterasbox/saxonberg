@@ -1,4 +1,5 @@
 verbs: [hammer]
+category: crafting
 controller: /trade/smithing/idea/cmd/crafting/HammerController
 description: "Hammer a heated workpiece at the anvil (the forming step)"
 help: |
@@ -30,13 +31,13 @@ args:
     scope: "reachable"
     # ⭐ Bare `hammer` works the piece you are at — DECLARED, so the binder
     # resolves it instead of the controller walking for it
-    # (`lint:instrument-args`).
+    # (`lint:controller-resolution`).
     default: "reachable:[mixin.ManualBuildMixin]"
     # (⚠ Both branches found the `DurableMixin` gate the same week: one
     # by driving it in a browser, one by declaring this default — the
     # walk it replaces was the only reason the verb ever ran.)
     requires: AlloyedMixin
-  # ⭐ WHICH STRIKER — DECLARED, not hunted for (`lint:instrument-args`).
+  # ⭐ WHICH STRIKER — DECLARED, not hunted for (`lint:controller-resolution`).
   # Bare, the binder hands over every reachable thing offering
   # `striking` and the controller takes the best-rated (a requirement, never
   # a pacer).
@@ -47,7 +48,7 @@ args:
     default: "reachable:[capability.striking]"
     scope: ["reachable"]
     requires: [ToolMixin]
-  # ⭐ WHICH ANVIL — DECLARED, not hunted for (`lint:instrument-args`).
+  # ⭐ WHICH ANVIL — DECLARED, not hunted for (`lint:controller-resolution`).
   # Bare, the binder hands over every reachable thing offering
   # `anvil` and the controller takes the best-rated (the anvil paces the
   # work).
@@ -56,5 +57,5 @@ args:
     required: false
     prepositions: [on, at, against]
     default: "reachable:[capability.anvil]"
-    scope: ["reachable"]
+    scope: ["here", "peers", "person"]
     requires: [ToolMixin]

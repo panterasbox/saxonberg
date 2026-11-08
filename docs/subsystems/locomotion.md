@@ -182,6 +182,15 @@ free). The ford refreshed its state in `applyTraversal`, after the gate,
 so the first crossing after the river rose went through. Now the
 controller resolves, calls, and renders.
 
+⭐ **The host hears of it** (cordage D11): on an ok crossing in a mode with
+an enablement mixin, the guard carries the host the enablement walk found
+(`TraversalGuard.host`, threaded past haulage in `canTraverseExit`), and
+`traverse` calls `host.afterEnabledTraverse(actor, direction, exit)` inside
+the engagement, after the move and its witnesses. Climbable, Swimmable and
+Flyable default it to nothing; a rope at a drop takes its wear, parts or
+spills there. The belay (`BelayEngagement`, `belay <person>`) catches the
+fall a rope causes — see [cordage.md](cordage.md).
+
 ## Mode-gate cascade
 
 `canTraverseExit` runs five gates in order; first failure surfaces:

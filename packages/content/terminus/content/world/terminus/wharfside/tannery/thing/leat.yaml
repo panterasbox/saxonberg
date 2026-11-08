@@ -24,3 +24,6 @@ data:
   # dressed stone and it is not going anywhere.
   _materialPath: /stuff/idea/material/rock/granite
   mass: 900
+  # ⭐ This IS a source (water-supply D2): it runs on its own water, never
+  # a premises' citation.
+  natural: true

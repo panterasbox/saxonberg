@@ -12,8 +12,9 @@
 # sulfur in it, ebonite; held past 455 K at any point, scorched. A charge
 # standing in a mould comes out in the mould's shape (the mould seam).
 # There is no knowledge gate: anybody may try, and the window is narrow.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/rubber, strength: 60 }]
   name: compounded rubber
   keywords: [rubber, "compounded rubber", compound, stock]
   appearance: tacky, weeping compounded rubber

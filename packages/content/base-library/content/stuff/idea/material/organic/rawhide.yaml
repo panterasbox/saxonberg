@@ -21,8 +21,9 @@
 #
 # ⭐ It lives in the COMMONS: a green skin is a fact about animals, not
 # about the tanning trade. The trade is what does something with it.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/hide, strength: 800 }]
   name: rawhide
   keywords: [rawhide, hide, skin, green, pelt]
   # ⚠ No `heavy`: it is a reserved descriptor on the wand bank. See the

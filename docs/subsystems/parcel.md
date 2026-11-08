@@ -352,14 +352,14 @@ walks the coverage trie, finds `/world/terminus` by longest prefix, and
 returns the locality's committee — nobody declared "law belongs to the
 locality"; it falls out of there being no carve-out beneath it. Which
 makes a constitutional move a *parcel operation*: ⭐ **an independent
-judiciary is `subdivide /world/terminus/law` + `transfer` to the court.**
+judiciary is `title subdivide` of `/world/terminus/law` + `title transfer`
+to the court.**
 Not modelled, declared or special-cased — two calls that already exist,
 and every downstream gate follows because they all read the same trie
 (graduated from the content-packs slate, 2026-09).
 
 ⚠⚠ **Two calls that existed, and two VERBS that did not — until the
-reachability sweep.** `SubdivideController` and `TransferController` and
-both views shipped; no static named either file, so every doc sentence
+reachability sweep.** Both controllers and both views shipped; no static named either file, so every doc sentence
 like the one above described an **Api** from the player's side of a verb
 the game answered *"I don't understand"* to. The Api always worked; the
 verb was unsayable. ⭐ Both are `PersonaMixin.self` now — universal, for
@@ -520,22 +520,35 @@ A claim's group is `ensureGroup`d by name (found if present, minted
 empty otherwise) before the grant. Idempotent — a second boot is all
 `kept`.
 
-## The verbs (`system` category)
+## The verbs (`title`'s subcommands)
 
-- **`subdivide <name>`** — carves a titled child out of the parcel governing
+⭐ *A transaction with an institution's book is a subcommand of its noun*
+(controllers-are-io D9), and the parcel registry's noun is `title`. Each
+subcommand is its own controller over `TitleControllerBase` (`civics`
+category): `TitlePublishController`, `TitleOfflineController`,
+`TitleSubdivideController`, `TitleTransferController`. ⭐ Bare `title`,
+`title list` and `title buy` read a plat book and a deed desk, which are the
+**residence pack's** classes, so their controllers ship in that pack over
+the same base (`/system/residence/idea/cmd/civics/`, see
+[residence.md](./residence.md)) — and `list` and `buy` bind the desk as a
+declared arg rather than hunting for it.
+
+- **`title subdivide <name>`** — carves a titled child out of the parcel governing
   the giver's current location: resolve the governing parcel → gate to its
   owner via `AccessApi.canMutateZone` → mint the child zone via
   `TemplateApi.saveTemplate(childPath, '/platform/idea/FolderZone', …)` (the
   `MkdirController` precedent) → `ParcelApi.subdivide` writes the child row
   (owner inherited, `parentParcel` set) + a genesis event. **FolderZone-
   first** — spatial (grid sub-region) carve-outs are a deferred non-goal.
-- **`transfer <parcel> to <player>`** — moves a title under **bilateral
+- **`title transfer <parcel> to <player>`** — moves a title under **bilateral
   consent**: gate to the current owner → resolve the receiver (an online
   Avatar) → the receiver accepts via `PromptApi.confirm` on their Interactive
   (decline/timeout aborts) → `ParcelApi.transfer` appends the `transfer`
   event and updates the current-state row. Title-only — `sell` (payment-
   coupled) is deferred (it pulls in banking + Contract atomicity, which must
-  not gate the title primitive).
+  not gate the title primitive). ⭐ A ship's title is sixty-four shares in her
+  register, so `title transfer <n> shares of <ship> …` is the same subcommand
+  (see [ship.md](./ship.md)).
 
 Both derive the acting principal from execution context, never a parameter;
 both funnel through `ParcelApi`, the only legitimate caller of the Registry.
@@ -627,6 +640,13 @@ Acreage landed. See [furnishing.md](./furnishing.md) § Acreage.
   building parcel's own `area`.
 - Unmeasured land is not policed — a parcel with no declared area
   subdivides exactly as it did before these fields existed.
+- ⭐ **A holding's OPEN ground** (tracts build D27) is the workable area
+  less the footprints its own layout authors (`HoldingWarren.openGroundM2`
+  — holding.md): no farm parcel in the world has building child-parcels,
+  so a layout says what its yard and barn stand on, and a building that
+  IS a child parcel is already out of the workable area. Unmeasured land
+  has no open ground, so its tracts are nothing and `mark` refuses — every
+  claim a farm stands on declares `areaM2` (the valley claim: 64 000 m²).
 
 ## Escheat walks the title tree (economic bootstrap, 2026-09)
 

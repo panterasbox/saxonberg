@@ -1,0 +1,11 @@
+# A pen — a cut quill. Copies by hand, with ink from the pot in
+# your other hand; medieval work, admitted where the press is not.
+class: /trade/printing/thing/Pen
+data:
+  shortDescription: pen
+  keywords: [pen, quill, nib]
+  register: indefinite
+  longDescription: A goose quill cut to a fine slit nib, its barrel stained dark.
+  _materialPath: /stuff/idea/material/organic/horn
+  mass: 0.01
+  epoch: medieval

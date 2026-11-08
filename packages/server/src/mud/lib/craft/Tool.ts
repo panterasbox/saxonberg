@@ -1,0 +1,240 @@
+/**
+ * ToolMixin — a host that plays the **tool** role in a transformation: the
+ * capital side of control (`control = f(skill, tools)`).
+ *
+ * A tool is not a kind — it's a role an object plays because a recipe asks
+ * for it (see {@link ToolCapabilities}). The mixin adds the crafting
+ * **capabilities** ("shaker") a recipe requires by kind.
+ *
+ * **Tool ⊂ durable-good, not the reverse.** The wear-on-use `condition`
+ * gauge lives on {@link DurableMixin} — composed *alongside* ToolMixin on
+ * `Tool` — precisely so weapons and armor can wear out *without* being
+ * "tools" (they'd carry an inert `capabilities: []`). A crafting tool is a
+ * `Durable` host that *also* offers capabilities; the two are composed at
+ * the use site (`ToolMixin(DurableMixin(…))`), never bundled here.
+ *
+ * Composed on a `Thing` (Tangible + Visible) — see `Tool.ts`.
+ */
+
+import type { MixinConstructor, FieldMeta } from '../mixin';
+import type { Stuff } from '../stuff/Stuff';
+import { MixinApi } from '../../api/mixin';
+import { ToolCapabilities, type CapabilitySpec } from './ToolCapability';
+import { EPOCHS, type Epoch } from './Epoch';
+import type { ConferredTechnique } from './Technique';
+
+export interface Tooled {
+  getCapabilities(): readonly string[];
+  setCapabilities(value: (string | CapabilitySpec)[]): void;
+  hasCapability(cap: string): boolean;
+  /** The kind's authored work-rate, clamped 0.25–10; 1 when absent. */
+  capabilityRate(kind: string): number;
+  /** The kind's authored control band, or null. */
+  capabilityControl(kind: string): string | null;
+  /**
+   * Every working this instrument performs, across its capability
+   * entries — what `Techniques.fromTools` reads at the fill. The tool
+   * is what knows; the kernel keeps no technique table.
+   */
+  capabilityTechniques(): readonly ConferredTechnique[];
+  /**
+   * The technological epoch this instrument belongs to — one of the
+   * closed {@link EPOCHS} — or `null` when the row does not say. A
+   * stamp, not a mechanism: its reader is the land-use covenant's
+   * predicate (a parcel that admits handsaws and refuses chainsaws asks
+   * the INSTRUMENT, not the act). The setter refuses any other word, so
+   * a mis-typed row fails at hydrate.
+   */
+  getEpoch(): Epoch | null;
+  setEpoch(value: Epoch | null): void;
+  /**
+   * ⭐ Does the covenant where `place` stands admit this instrument?
+   * `null` = admitted; else the refusal, in words. A tool with no
+   * epoch stamp is admitted everywhere; a region with no covenant admits
+   * everything.
+   */
+  admittedAt(place: Stuff): Promise<string | null>;
+  /**
+   * ⭐ Square metres of ground one act with this tool works — a sickle's
+   * swath, a cane knife's, a scythe's (cover build D3). `0` = not an
+   * area tool. *Work per acre is the tool's number; yield per acre is
+   * the crop's* — so a reaper is a row with a bigger number and answers
+   * the same verb.
+   */
+  getSwathM2(): number;
+  setSwathM2(value: number): void;
+  /**
+   * ⭐ The share of a crop's broadcast seed rate this tool sows at — a
+   * seed drill lays the seed in rows at about half what a hand casts
+   * (Tull, 1701), for the same crop. `1` = not a sowing tool, or one that
+   * spends what a hand does. *Seed per acre is the tool's number; yield
+   * per acre is the ground's.*
+   */
+  getSeedFactor(): number;
+  setSeedFactor(value: number): void;
+  /**
+   * ⭐ The craft this tool's finer use draws on, or `''`: pyrometric cones
+   * are read by a POTTER's eye (a competent potter calls them by number),
+   * not by the general awareness a thermometer's dial wants. A reading
+   * that takes a hand tool reads its finer detail at the reader's band in
+   * this discipline (the ceramics drive C, run 35: the practised potter
+   * read the cones exactly as the novice did).
+   */
+  getDiscipline(): string;
+}
+
+export function ToolMixin<TBase extends MixinConstructor>(Base: TBase) {
+  return class ToolMixin extends Base implements Tooled {
+    static _mixinName = 'ToolMixin';
+
+    static fieldMeta: FieldMeta = {
+      capabilities: { persistent: true, authorable: true },
+      epoch: { persistent: true, authorable: true },
+      swathM2: { persistent: true, authorable: true },
+      seedFactor: { persistent: true, authorable: true },
+      discipline: { persistent: true, authorable: true },
+    };
+
+    /**
+     * The capabilities this tool offers — bare kind strings (shorthand
+     * for the defaulted spec) and/or parameterized entries
+     * `{ kind, verbs?, rate?, control?, placement? }`, validated for
+     * shape (the vocabulary is open). Persisted exactly as authored; normalization happens
+     * on read (`entryFor`), so seeds stay byte-stable.
+     */
+    public capabilities: (string | CapabilitySpec)[] = [];
+
+    /** The epoch stamp; `null` = unstated. */
+    public epoch: Epoch | null = null;
+
+    /** Square metres one act works; `0` = not an area tool. */
+    public swathM2 = 0;
+
+    getSwathM2(): number {
+      return this.swathM2;
+    }
+
+    setSwathM2(value: number): void {
+      const n = Number(value);
+      this.swathM2 = Number.isFinite(n) && n > 0 ? n : 0;
+    }
+
+    /** The share of the broadcast seed rate this tool sows at; `1` = a hand's. */
+    public seedFactor = 1;
+
+    getSeedFactor(): number {
+      return this.seedFactor;
+    }
+
+    setSeedFactor(value: number): void {
+      const n = Number(value);
+      // (0, 1]: a tool that sows MORE seed than a hand is no improvement
+      // anybody built, and none sows nothing.
+      this.seedFactor = Number.isFinite(n) && n > 0 ? Math.min(1, n) : 1;
+    }
+
+    /** The craft this tool's finer use draws on; `''` = none. See {@link Tooled.getDiscipline}. */
+    public discipline = '';
+
+    getDiscipline(): string {
+      return this.discipline;
+    }
+
+    getEpoch(): Epoch | null {
+      return this.epoch;
+    }
+
+    setEpoch(value: Epoch | null): void {
+      // `''` too: the hydrator hands a row's empty string straight here.
+      if (value == null || (value as string) === '') {
+        this.epoch = null;
+        return;
+      }
+      if (!(EPOCHS as readonly string[]).includes(value)) {
+        throw new RangeError(
+          `ToolMixin.setEpoch: unknown epoch '${String(value)}' — one of ${EPOCHS.join(', ')}`,
+        );
+      }
+      this.epoch = value;
+    }
+
+    async admittedAt(place: Stuff): Promise<string | null> {
+      const mine = this.epoch;
+      if (mine === null) return null;
+      const zone = place.getZone();
+      if (zone === null) return null;
+      const through = await zone.lookupField<Epoch>('admitsEpochThrough');
+      if (through === null || !(EPOCHS as readonly string[]).includes(through)) return null;
+      if (EPOCHS.indexOf(mine) <= EPOCHS.indexOf(through)) return null;
+      const self = this as unknown as Stuff;
+      return `The covenant here admits nothing later than ${through}; ${self.getPresentation()} is ${mine} work, and stays idle.`;
+    }
+
+    getCapabilities(): readonly string[] {
+      return this.capabilities.map((e) =>
+        typeof e === 'string' ? e : e.kind,
+      );
+    }
+
+    setCapabilities(value: (string | CapabilitySpec)[]): void {
+      if (!Array.isArray(value)) {
+        throw new TypeError(
+          'ToolMixin.setCapabilities: expected an array of kinds/specs',
+        );
+      }
+      for (const entry of value) {
+        ToolCapabilities.validateEntry(entry);
+      }
+      this.capabilities = value.map((e) =>
+        typeof e === 'string' ? e : { ...e },
+      );
+    }
+
+    hasCapability(cap: string): boolean {
+      // Broken is capability loss: a broken tool (the two mixins compose
+      // at the use site — ToolMixin(DurableMixin(…))) offers nothing
+      // until repaired.
+      const self = this as unknown as Stuff;
+      if (MixinApi.isDurable(self) && self.isBroken()) return false;
+      return this.entryFor(cap) !== null;
+    }
+
+    capabilityRate(kind: string): number {
+      const entry = this.entryFor(kind);
+      const rate = entry?.rate ?? 1;
+      if (!Number.isFinite(rate) || rate <= 0) return 1;
+      return Math.min(
+        ToolCapabilities.RATE_MAX,
+        Math.max(ToolCapabilities.RATE_MIN, rate),
+      );
+    }
+
+    capabilityControl(kind: string): string | null {
+      return this.entryFor(kind)?.control ?? null;
+    }
+
+    public capabilityTechniques(): readonly ConferredTechnique[] {
+      const out: ConferredTechnique[] = [];
+      for (const e of this.capabilities) {
+        if (typeof e !== 'string' && e.technique) {
+          out.push({ kind: e.kind, technique: e.technique });
+        }
+      }
+      return out;
+    }
+
+    /** The kind's normalized entry — a bare string IS the defaulted
+     * spec everywhere behavior reads it. Null when the kind is absent. */
+    private entryFor(kind: string): CapabilitySpec | null {
+      for (const e of this.capabilities) {
+        if (typeof e === 'string') {
+          if (e === kind) return { kind };
+        } else if (e.kind === kind) {
+          return e;
+        }
+      }
+      return null;
+    }
+
+  };
+}

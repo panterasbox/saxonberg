@@ -2,6 +2,7 @@
 # bootstrap D15: a player shop is a rented market stall). Afforded by the
 # square's produce stalls to whoever stands in the square.
 verbs: [stall]
+category: retail
 controller: /world/terminus/market/idea/cmd/StallController
 description: "Rent a market stall of your own, or give it up"
 help: |
@@ -13,7 +14,7 @@ help: |
   goods and all. A square with every pitch let says so and charges you
   nothing.
 
-  Your stall takes goods on SUPPLIER TERMS: a grower who `consign`s a
+  Your stall takes goods on SUPPLIER TERMS: a grower who `shelf consign`s a
   crate onto it names their price, you set the ask (`house price
   <thing> <ask>`) and keep the margin, and they are paid when it sells.
   `wallet use house` to buy for the stall; `house book` to read what it

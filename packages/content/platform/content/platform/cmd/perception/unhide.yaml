@@ -1,4 +1,5 @@
-verbs: [unhide, reveal]
+verbs: [unhide]
+category: perception
 controller: /platform/idea/cmd/perception/UnhideController
 description: "Step back into the open from hiding"
 help: |

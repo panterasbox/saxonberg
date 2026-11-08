@@ -20,7 +20,7 @@ import { Mml } from '../../api/mml';
 import type { CommandContext } from '../../api/command';
 import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
-import type { Tooled } from '../craft/Tooled';
+import type { Tooled } from '../craft/Tool';
 import type { CompetenceBandName } from '../advancement/CompetenceBand';
 import type { Quantity, Unit } from '../quantity';
 import type { MeasureChannel } from '../perception/MeasureChannel';

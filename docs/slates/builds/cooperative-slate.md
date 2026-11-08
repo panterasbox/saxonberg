@@ -2,7 +2,7 @@
 
 > **Status: PARTIAL** — the Office seats (founder default, sparse
 > handoff, the Governor gating `reserve`, the PM's seat-held title) and
-> the three-stock influence substrate (participation + producer faucets,
+> the three-stock influence substrate (participation + labor faucets,
 > conviction hold/flip/tally, **no pool**) shipped →
 > [governance.md](../../subsystems/governance.md),
 > [influence.md](../../subsystems/influence.md); the argument-map v1 shipped →
@@ -19,7 +19,7 @@
 > proposals, convergence-detection, polling, the sync floor-bot) ·
 > investiture / no-confidence as a standing target / the
 > caretaker-may-not-veto floor / the deputy · the executive institution
-> roster + the producer merit-pay bank · (identity, matter) recusal + the
+> roster + the labor merit-pay bank · (identity, matter) recusal + the
 > population ladder · abatement's open work · the in-world reserve toolkit
 > (drain / seed / bounties / appropriation) + the NPC market floor +
 > treasuries · the justice legos (advocacy, elections) with the
@@ -216,7 +216,7 @@ not the investor house. Stake, never stock.
 
 ### Three kinds of contribution
 
-*Cut 2026-09-19 — shipped: producer = engagement-only draw (`ProducerLogic`), consumer = `engagement × renown` (`ConsumerLogic`) → [influence.md](../../subsystems/influence.md) § The producer stock, [participation.md](../../subsystems/participation.md); the merit-pay exception is Art. III §7.*
+*Cut 2026-09-19 — shipped: labor = engagement-only draw (`ProducerLogic`), consumer = `engagement × renown` (`ConsumerLogic`) → [influence.md](../../subsystems/influence.md) § The labor stock, [participation.md](../../subsystems/participation.md); the merit-pay exception is Art. III §7.*
 
 ### Two markers: a stock and a flow
 
@@ -264,7 +264,7 @@ reasons are worth recording because they are load-bearing.
 
 ### The faucets are decayed accumulators with **hard rate caps**
 
-*Cut 2026-09-19 — shipped: participation one credit per `{subject, bucket}` ([participation.md](../../subsystems/participation.md)), renown log-saturated ([renown.md](../../subsystems/renown.md)), producer one credit per `{author, actor, bucket}` and “standing is a rate, not a total” ([influence.md](../../subsystems/influence.md)).*
+*Cut 2026-09-19 — shipped: participation one credit per `{subject, bucket}` ([participation.md](../../subsystems/participation.md)), renown log-saturated ([renown.md](../../subsystems/renown.md)), labor one credit per `{author, actor, bucket}` and “standing is a rate, not a total” ([influence.md](../../subsystems/influence.md)).*
 
 ### And passage is scale-invariant anyway
 
@@ -283,7 +283,7 @@ fix.**
 is *"reused, **stock-agnostic**"* — fixed cutoffs, while everything
 else in the system is a ratio. If typical standing drifts for any
 reason (bucket-width tuning, half-life changes, population effects on
-producer), bands stop discriminating and everyone reads top-tier. And
+labor), bands stop discriminating and everyone reads top-tier. And
 **bands are the only thing players ever see** (register D6 — never raw
 scalars), so this is the failure that would actually be visible. Fix:
 percentile-relative bands, or accept re-tuning as organic law.
@@ -291,12 +291,12 @@ percentile-relative bands, or accept re-tuning as organic law.
 **2. The real worry is *concentration*, not inflation.** The genuine
 growth vector: **content is durable, but engagement with it decays.**
 An author's *draw rate* scales with catalog size, and catalog
-accumulates monotonically forever. Total producer standing stays
+accumulates monotonically forever. Total labor standing stays
 capped by audience-hours — nobody engages more than 24 hours a day —
 but the **share** can concentrate arbitrarily.
 
 > **Ratios are immune to inflation and fully exposed to share.** An
-> author holding 30% of producer standing holds 30% of the make
+> author holding 30% of labor standing holds 30% of the make
 > chamber by themselves.
 
 So the metric to instrument is **the top decile's share of each
@@ -305,7 +305,7 @@ the quantitative face of § *Anti-oligarchy by construction* below —
 the qualitative argument there needs this number to be checkable.)
 
 **3. Capital is the only faucet with no natural cap.** Consumer is
-rate-capped by **hours in a day**; producer by **audience-hours**;
+rate-capped by **hours in a day**; labor by **audience-hours**;
 capital by **nothing, because money has no bucket.** That asymmetry —
 not squeamishness about money — is the principled argument for capping
 it explicitly.
@@ -348,7 +348,7 @@ Whoever owns the code that turns contribution into influence controls the
 **franchise itself** — the deepest power here, one level under "who counts the
 votes": *who measures the contribution that becomes the votes.* By nature it
 lands in the **executive** (implementation is executive), the branch
-**producers dominate** — so the two risks compound. What contains it is the
+**makers dominate** — so the two risks compound. What contains it is the
 whole anti-tyranny stack pointed at its prime target: the franchise code is
 **boxed from three sides** — the legislature sets its requirements (all three
 co-equal houses, amendment-tier), the executive only *implements*, the
@@ -363,12 +363,12 @@ irreducibly-qualitative inputs democratically** (consumer regard already is the
 players' quality judgment), and **audit the franchise code continuously** (the
 highest-stakes implementation). The aim: the implementer may *make the meter
 read what all three houses specified*, never *decide what the meter measures.*
-Producer-dominance of the *rest* of the executive is contained by its no-policy
+Labor-dominance of the *rest* of the executive is contained by its no-policy
 role + confidence + verification; the franchise code is the one place "how"
 bleeds into "what," which is why it alone earns these safeguards — and why the
 *merit* mechanisms below keep human discretion off it.
 
-### Two merit channels — renown for consumers, merit pay for producers
+### Two merit channels — renown for consumers, merit pay for makers
 
 Pure mechanism can't reward the contribution it doesn't measure. But the human
 release-valve isn't *one* lever — because the two houses earn by different
@@ -386,21 +386,21 @@ vectors, and the merit mechanism should match each:
   way to *source* this regard explicitly — recognition as a deliberate peer act,
   not only an inferred metric.)
 
-*(The producer merit-pay bank — producer influence only · minted and capped by the legislature · evaluated by competence · recusal · sub-decisive · public rationale · justiciable — is Art. III §7 of the [draft constitution](../../compact/governance/draft-constitution.md); cut here 2026-09-19. Unbuilt.)*
+*(The labor merit-pay bank — labor influence only · minted and capped by the legislature · evaluated by competence · recusal · sub-decisive · public rationale · justiciable — is Art. III §7 of the [draft constitution](../../compact/governance/draft-constitution.md); cut here 2026-09-19. Unbuilt.)*
 
-**Why the producer bank isn't a power-pump.** Minting producer influence
-redistributes power *within* the producer house (toward the meritorious) — it
-**cannot tilt producers against consumers or funders**, because passage is by
+**Why the labor bank isn't a power-pump.** Minting labor influence
+redistributes power *within* the labor house (toward the meritorious) — it
+**cannot tilt makers against consumers or funders**, because passage is by
 **co-equal chambers** counted separately, not a pooled tally. The co-equality
 already entrenched is what contains the merit pay; the only residual is
-*intra*-producer cronyism, which recusal + the cap + transparency + review
+*intra*-labor cronyism, which recusal + the cap + transparency + review
 address.
 
 So the mechanism is asymmetric by design, matching each house's nature:
-**consumer = social → renown (weight); producer = labor → merit pay (bounded
+**consumer = social → renown (weight); labor = work → merit pay (bounded
 mint); capital = dollars → neither** (the firewall axis takes no merit).
 Placement: the **bounds** are constitutional (Art. III §§6–7); the **specific
-instruments** (the renown sourcing, the producer merit-pay institution) are
+instruments** (the renown sourcing, the labor merit-pay institution) are
 legislated modules.
 
 ---
@@ -457,9 +457,9 @@ A "party" here isn't a membership org fielding candidates — it's a
 delegation market: lightweight, fluid, instantly losable. The
 three-chamber structure shapes them: because the PM must bridge ≥2
 chambers, **cross-cutting coalitions** (a "growth" vs. "stability"
-faction, each spanning producers/funders/players) are favored over
+faction, each spanning makers/funders/players) are favored over
 hostile chamber-tribes — a pure "funders' party" can't govern alone.
-That's healthy: it keeps the producer/capital/consumer cleavage from
+That's healthy: it keeps the labor/capital/consumer cleavage from
 hardening into tribal war.
 
 ### The two real dangers
@@ -829,7 +829,7 @@ the root-power floor and tamper-evidence). To traverse it you'd have to
 beat, in series:
 
 - **buy only one chamber** (capital — concave + capped) but **need 2 of 3**
-  — so persuade producers and consumers too, with "make me rich" as the
+  — so persuade makers and consumers too, with "make me rich" as the
   pitch;
 - **survive transparency** — a self-enriching bill names its own sponsor
   and beneficiary, in public, in the archive;
@@ -1331,7 +1331,7 @@ pool block entrenchment; the backstops are the **legislature amending the
 law** (checking the court *forward* — changing the standard, never
 re-judging a case), a **whole-membership referendum** for
 constitutional-grade questions, and the transparency floor under all of
-it. Bootstrap: in a tiny world the founder + early producers self-certify
+it. Bootstrap: in a tiny world the founder + early makers self-certify
 transparently, and the track-record mechanism takes over as the pool
 fills — the same population ladder as the rest of separation of powers.
 
@@ -1346,11 +1346,11 @@ fills — the same population ladder as the rest of separation of powers.
 **Open work:**
 
 - **Standing & abuse.** Who may petition to pull live content, and at what cost
-  — a vexatious-takedown harassment guard (a filing cost, the producer's
+  — a vexatious-takedown harassment guard (a filing cost, the maker's
   defense, conduct→reputation for bad-faith petitions). Pull-requests can't be
   free, or they become a cudgel.
 - **Clawback mechanics.** Un-crediting the pulled content's contribution from
-  the producer's lifetime cap/reservoir — and how that interacts with the
+  the maker's lifetime cap/reservoir — and how that interacts with the
   spend-and-regenerate stock without punishing influence already spent in good
   faith.
 - **The hole it leaves.** A dark area is a gap in the world: consumers mid-use
@@ -1703,16 +1703,16 @@ ownership + permissions (ownerGroup / accessGroups), **groups**
 ([access.md](../../subsystems/access.md)) gates who may. That one
 subdivision is the coordinate system for three things at once: **content**
 (what's authored where), **capital** (the reserve funds *localities*,
-landing in locality/individual accounts), and **influence** (producer
+landing in locality/individual accounts), and **influence** (labor
 contribution **measured per locality** and **attributed to the individual
 authors**). Capital injection and influence-award ride the
 zone/Locality/group/access stack — they mint no new structure.
 
-*(The producer metric is usage-weighted, never a count — shipped as the engagement-only `{author, actor, bucket}` faucet → [influence.md](../../subsystems/influence.md) § The producer stock; cut here 2026-09-19. Second-order quality is register D2, open.)*
+*(The labor metric is usage-weighted, never a count — shipped as the engagement-only `{author, actor, bucket}` faucet → [influence.md](../../subsystems/influence.md) § The labor stock; cut here 2026-09-19. Second-order quality is register D2, open.)*
 
 ### The consumer fault line — engaged consumption
 
-Producers measure contribution along the spatial/authorial subdivision
+Makers measure contribution along the spatial/authorial subdivision
 (zones). The consumer's contribution is **consumption itself**, measured
 on **two axes** — quantity and quality — never one alone:
 
@@ -1791,7 +1791,7 @@ you can.
 
 ## Founder control — transient lock, permanent check
 
-*Superseded — the ~51% figure by the [founding charter](../../compact/governance/founding-charter.md)'s published formula (sole producer · 0% consumer · capital matched plus one · sunsets at ratification); “codify the structure, not the founder” and natural dilution are Art. XI of the [draft constitution](../../compact/governance/draft-constitution.md); co-equality is Art. I §5.*
+*Superseded — the ~51% figure by the [founding charter](../../compact/governance/founding-charter.md)'s published formula (sole maker · 0% consumer · capital matched plus one · sunsets at ratification); “codify the structure, not the founder” and natural dilution are Art. XI of the [draft constitution](../../compact/governance/draft-constitution.md); co-equality is Art. I §5.*
 
 ---
 
@@ -1921,7 +1921,7 @@ citizen. Parked until there's a population to govern:
   Goodhart dial on reputation (determines-vs-informs — provisionally
   *informs/gate*, see [polity-decision-register.md](../../polity-decision-register.md)
   D4), second-order engagement (D2), and the remaining reputation design.
-- **The producer-contribution metric.** Usage/quality-weighted, not raw
+- **The labor-contribution metric.** Usage/quality-weighted, not raw
   count (decided, to dodge content-spam farming) — but *how* to weight
   (quality-is-a-verdict measurement, patronage signals, anti-Goodhart) is
   undesigned and overlaps the economy slate's quality model.
@@ -2008,7 +2008,7 @@ citizen. Parked until there's a population to govern:
   threshold for the ratifying convention, and precisely where the
   eternity-clause boundary is drawn.
 - *Origination — resolved: none; Art. IV §3 of the [draft constitution](../../compact/governance/draft-constitution.md).*
-- *Who adjudicates producer influence — resolved: the engine measures the engagement content draws ([influence.md](../../subsystems/influence.md) § The producer stock); the human layer is the merit-pay exception (Art. III §7), unbuilt.*
+- *Who adjudicates labor influence — resolved: the engine measures the engagement content draws ([influence.md](../../subsystems/influence.md) § The labor stock); the human layer is the merit-pay exception (Art. III §7), unbuilt.*
 - **Apportionment inside the Consumer House.** Almost certainly
   representational at scale — but that's the chamber's own bylaw, not
   constitutional, and not designable until there's a population.

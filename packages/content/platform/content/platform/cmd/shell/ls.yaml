@@ -1,4 +1,5 @@
 verbs: [ls]
+category: shell
 controller: /platform/idea/cmd/shell/LsController
 description: "List children of <path> (or cwd) in the content or source tree"
 help: |

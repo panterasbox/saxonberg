@@ -141,8 +141,18 @@ afterAll(() => {
 suite('stage D — a ship on the river', () => {
   it('25. aboard the Ostrander at the city quay; under way upstream, she makes ground against the current', async () => {
     master = await session(MASTER, QUAY);
+    // ⭐ Only her master takes the helm: the founder, who holds
+    // the office that appoints her company, puts this player in command.
+    const me = await master.query('me', { fields: ['displayName'] });
+    const name = String((me[0] as { displayName?: unknown } | undefined)?.displayName ?? '');
+    const gov = await Session.open('founder', { startLocation: BANK_HALL });
+    try {
+      expectOk(await gov.cmd(`house appoint "${name}" to master at /world/terminus/ostrander/idea/outfit`));
+    } finally {
+      gov.close();
+    }
     await morning();
-    const aboard = await master.cmd('go aboard');
+    const aboard = await master.cmd('go ostrander');
     expect(aboard.status, squash(await aboard.said())).toBe('ok');
     const deck = await look(master);
     expect(deck, deck).toMatch(/wheelhouse|stack|wheel/i);
@@ -183,11 +193,11 @@ suite('stage D — a ship on the river', () => {
     // The master has no money; the hand who does buys and carries.
     const hand = await session(s.handle, '/world/terminus/woodyard/landing');
     expectOk(await hand.cmd('buy "length of cordwood"'));
-    const aboard = await hand.cmd('go aboard');
+    const aboard = await hand.cmd('go ostrander');
     expect(aboard.status, squash(await aboard.said())).toBe('ok');
     const fed = await say(hand, 'put cordwood in bin');
     expect(fed, fed).toMatch(/put|bin/i);
-    expectOk(await master.cmd('go aboard'));
+    expectOk(await master.cmd('go ostrander'));
   }, 900_000);
 
   it('30. a course for a landing above the falls is refused before she moves', async () => {

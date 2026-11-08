@@ -10,7 +10,7 @@
 # persistable fixtures (the Stock, the racking, the counter) — the
 # consigned goods and their listings ride those, never the room; the
 # `populates` set below is the placement and respawns each boot.
-class: /platform/location/Locale
+class: /platform/location/Hall
 data:
   # ⚠ `coords:` is the MEMBERSHIP operation — `setCoords` is the only way
   # an authored row joins a zone, so without it this floor was in no grid
@@ -51,11 +51,15 @@ data:
     # a second one to the back-bar.
     - { template: /trade/hospitality/thing/house-tablet, as: tablet, on: /trade/hospitality/thing/back-bar }
     - { template: /trade/hospitality/thing/tip-jar, on: /trade/hospitality/thing/back-bar }
-    # The stations.
-    - /trade/hospitality/thing/tap
-    - /trade/hospitality/thing/ice-bin
-    - /trade/hospitality/thing/water-tap
-    - /trade/hospitality/thing/basin
-    - /trade/hospitality/thing/glass-rack
+    # The stations, where a bartender works them: the tap, the ice and the
+    # water at the well, the glasses on the back-bar. ⭐ Placed, not loose:
+    # a room lists only what stands free in it, and `look well` shows
+    # what is on the well (the place-surfaces stopgap, client-surface
+    # 2026-11-01). A placed thing is still in the room — still in reach.
+    - { template: /trade/hospitality/thing/tap, on: /trade/hospitality/thing/well }
+    - { template: /trade/hospitality/thing/ice-bin, on: /trade/hospitality/thing/well }
+    - { template: /trade/hospitality/thing/water-tap, on: /trade/hospitality/thing/well }
+    - { template: /trade/hospitality/thing/basin, on: /trade/hospitality/thing/well }
+    - { template: /trade/hospitality/thing/glass-rack, on: /trade/hospitality/thing/back-bar }
     # Seating.
     - { template: /trade/hospitality/thing/stool, count: 6 }

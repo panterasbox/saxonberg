@@ -6,9 +6,10 @@
 # in words where a way cannot be swum; ⛔ a shore or a deck is never
 # itself swimmable. (The `StillWater` thing that stood in the pool and on
 # the strand is retired: water is not an instrument you set down.)
-# `jump` and `dive` are the same act from a quay — in, off the edge; in
-# the water, `dive` is down (underwater review).
-verbs: [swim, jump, dive]
+# From a quay it is in, off the edge; in the water, `swim down` is down
+# (underwater review).
+verbs: [swim]
+category: movement
 controller: /platform/idea/cmd/movement/SwimController
 description: "Swim through a named exit (must be Swimmable-enabled)."
 help: |
@@ -22,8 +23,8 @@ help: |
 
   ⭐ `swim` with no way named takes you into the water from where you
   stand: off a quay or a strand into the water beside it, or off the
-  ice at the edge of a hole. `jump` and `dive` say the same. Once you
-  are in, `dive` (like `swim down` or `descend`) takes you down. `stand` gets you back out, if what you
+  ice at the edge of a hole. Once you
+  are in, `swim down` or `descend` takes you down. `stand` gets you back out, if what you
   climb onto will bear you.
 validators:
   - /lib/command/validators/requiresAnimate
@@ -31,7 +32,12 @@ validators:
 args:
   - name: target
     type: object
-    scope: ["$focus", "reachable"]
+    # ⭐ Ways only: an exit is a candidate in its own
+    # right, so the scope names WAYS and the word can only mean one — `go
+    # hesper` is the way named for her, never a line from her lying on the
+    # quay or the thing in focus. A vessel standing here is entered by its
+    # entry-exit (`go carriage`), tried second.
+    scope: ["here:exits", "reachable:[class.ExitableVessel]"]
     # ⭐ Optional: with no target the verb is *swim here* (go into the
     # water where you are) — the one shape nothing else claims.
     required: false

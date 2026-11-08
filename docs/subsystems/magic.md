@@ -88,9 +88,11 @@ See [fasttravel.md](./fasttravel.md) and
 Enforced **structurally**: `Effect` (`lib/magic/Effect.ts`) is a closed
 union; `MagicEffects.validate` throws on any unknown kind, and the
 `SpellCatalogue` drops a spell whose effects fail validation at warm
-time — "gain 5 levels" is unrepresentable, not merely forbidden. The
-`script` kind is the exotic-5% trapdoor, **code-trust (`isWizard`)
-gated** at execution.
+time — "gain 5 levels" is unrepresentable, not merely forbidden. ⛔ There
+is no command-running effect: the `script` kind (a spell that typed
+commands for you, gated on the wizard credential) was deleted by the
+wizard-axis cleanup (2026-11-05) — no row named it, and a spell that runs
+verbs is no working.
 
 > ⭐⭐ **`mend` is the exemplar of the invariant paying off** (recovery
 > build). A healing spell wanted NO new Effect kind: it `afflict`s an
@@ -106,7 +108,7 @@ gated** at execution.
 | Piece | Home | What it is |
 |---|---|---|
 | Grid vocabulary | `lib/magic/Grid.ts` | 5 verbs × 13 active nouns (lightning + storm graduated from frontier when their substrates shipped; time + spirit remain) + `MagicProvenance` |
-| Effect union | `lib/magic/Effect.ts` | the closed catalogue: `inject-channel` / `afflict` / `relieve` / `adjust-reserve` / `move` / `conjure` / `sense` / `cloak` / `emit-field` / `script` |
+| Effect union | `lib/magic/Effect.ts` | the closed catalogue: `inject-channel` / `afflict` / `relieve` / `adjust-reserve` / `move` / `conjure` / `sense` / `cloak` / `emit-field` / `relocate` / `confer-medium` / `offset-ambient` |
 | Resist shapes | `lib/magic/Resist.ts` | axis vocabulary + the pure fold (`mitigators subtract`, immunity = a mitigator at 1) + `stageFor` (the substrate gate) |
 | Faculty | `lib/magic/Faculty.ts` + `lib/magic/Caster.ts` | the anatomical casting faculty (below) |
 | Suppression | `lib/magic/Suppression.ts` | the anti-magic field value + match + the **sync** outward containment walk (`fieldAt`) |
@@ -176,7 +178,7 @@ sits above the spell's floor (`magic.potency.competenceFactor`).
   reconcile a raw keyed `getReserve('mana')` skips (the
   `Combustible.getFuelRemaining` pattern; `MANA_RESERVE_KEY` is
   magic-internal plumbing — see the reserve landscape table in
-  `lib/reserve.ts`).
+  `lib/reserve/Reserved.ts`).
 - **recovery** — reconcile-on-read at the **serenity**-banded rate
   (`magic.recoveryPerMinBase` × `magic.serenityFactor.<band>`), scaled
   by the same rest inputs metabolism uses (posture base ×

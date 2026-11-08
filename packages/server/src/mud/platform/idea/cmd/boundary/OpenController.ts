@@ -10,10 +10,10 @@
  *   - **Direct hit on a Sealable** — `target.stuff` is the Sealable
  *     itself (a chest, a door matched by keyword like
  *     `open oak door`).
- *   - **Direction match** — `target.stuff` is the actor's current
- *     location and `target.via.exit` is the exit the actor named.
- *     The door is fetched from `via.exit.getDoor()`. This is the
- *     canonical `open north` shape.
+ *   - **Direction match** — `target.stuff` is the EXIT the actor
+ *     named (a way is a candidate in its own right); the door hung
+ *     in it is the sealable thing. This is the canonical
+ *     `open north` shape.
  *
  * The YAML wires `canReach` so MQL queries that resolve to remote
  * Sealables fail validation before reaching the controller; the
@@ -34,6 +34,7 @@ import type { Sealable } from '../../../../lib/spatial/Sealable';
 
 interface OpenModel extends CommandModel {
   target?: MqlOneResult;
+  setting?: string;
 }
 
 export default class OpenController extends CommandController<OpenModel> {
@@ -65,10 +66,9 @@ export default class OpenController extends CommandController<OpenModel> {
       return;
     }
 
-    // Direct hit (open oak) → the door is target.stuff;
-    // direction match (open north) → the door is via.exit.getDoor().
-    // MqlApi.effectiveTarget tries both and returns the first
-    // Sealable. The arrow wrapper preserves MixinApi as `this` —
+    // Direct hit (open oak) → the door is target.stuff; a way (open
+    // north) → the door hung in it. MqlApi.effectiveTarget is that one
+    // rule. The arrow wrapper preserves MixinApi as `this` —
     // the security-gated static needs it for the internal
     // hasMixin lookup.
     const sealable = MqlApi.effectiveTarget(
@@ -88,6 +88,57 @@ export default class OpenController extends CommandController<OpenModel> {
       return;
     }
 
+    // ⭐ The mixin decides whether this opens for this person (D12): a
+    // locked door does not, a padlocked gate does not for somebody with no
+    // key. The controller only says the refusal it is given.
+    const may = sealable.canOpen(commandGiver);
+    if (!may.ok) {
+      MessageApi.scene(commandGiver)
+        .topic('act.deed')
+        .toSelf(Mml.compose`${may.reason ?? "It won't open."}`)
+        .send();
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'cannot-open',
+        detail: may.reason ?? 'cannot open',
+      });
+      return;
+    }
+
+    // ⭐ How far (D12): a throttled gate opens BY an amount; a door is open
+    // or shut, and says so.
+    const settingRaw = (model.setting ?? '').trim();
+    if (settingRaw !== '') {
+      const thing = sealable as unknown as Stuff;
+      if (!MixinApi.isThrottleable(thing)) {
+        MessageApi.scene(commandGiver)
+          .topic('act.deed')
+          .toSelf(Mml.compose`${Mml.thing(thing)} is open or shut — there is nothing between.`)
+          .send();
+        context.note({ kind: 'controller-rejected', reason: 'no-setting', detail: 'open or shut' });
+        return;
+      }
+      const worked = thing.workOpening(settingRaw, commandGiver);
+      if (worked === null) {
+        MessageApi.scene(commandGiver)
+          .topic('act.deed')
+          .toSelf(Mml.compose`How far? A quarter, half, three quarters or full.`)
+          .send();
+        context.note({ kind: 'controller-rejected', reason: 'bad-setting', detail: settingRaw });
+        return;
+      }
+      MessageApi.scene(commandGiver)
+        .topic('act.deed')
+        .toSelf(
+          worked.shut
+            ? Mml.compose`You shut ${Mml.thing(thing)}.`
+            : Mml.compose`You set ${Mml.thing(thing)} ${worked.words}.`,
+        )
+        .toPeers(Mml.compose`${Mml.actor(commandGiver)} works ${Mml.thing(thing)}.`)
+        .send();
+      return;
+    }
+
     if (sealable.isOpen()) {
       MessageApi.scene(commandGiver)
         .topic('act.deed')
@@ -101,7 +152,7 @@ export default class OpenController extends CommandController<OpenModel> {
       return;
     }
 
-    sealable.open();
+    sealable.open(commandGiver);
 
     // Interact-hazard (a trapped chest): opening it is the touch that
     // springs it. The hazard self-resolves — armed + `trigger: interact`

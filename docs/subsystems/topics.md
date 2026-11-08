@@ -46,7 +46,7 @@ because it was five facets flattened into a string:
 |---|---|
 | `system.*` vs `world.*` | `actor` |
 | `say` / `whisper` / `shout` | `address` |
-| `dm` / `tell` | `address: direct` |
+| `dm` | `address: direct` |
 | 13 × `system.shell.*` | `actor: system` + `address: direct` |
 | `*.error`, `system.log.*` | `weight: diagnostic` |
 

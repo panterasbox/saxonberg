@@ -165,10 +165,16 @@ at **339, three below where the build found it.**
   `XApi.verb(host, …)`. Two enumerated lists (`EXEMPT_APIS`,
   `NON_SUBJECT_TYPES`) live in the script so a widening is a visible
   diff.
+- **`lint:aromas`** — a word a row names must resolve to an `aroma` document a pack can reach. Aroma
+  words are open, so a misspelling has no list to fail against, and the failure it would
+  otherwise have is a smell silently dropped. It also refuses a smell on a material whose
+  class cannot hold one, a taste with no amount, and a recipe medium nothing in reach
+  carries. No exemption list.
 - ⭐⭐ **`lint:closed-vocabularies`** — **the census of kernel words
   content is not allowed to add to.** A closed list in kernel source that
   stands between a pack author and their row breaks *a pack must never
-  need a kernel list edit*, and until this gate nothing counted them.
+  need a kernel list edit*, and until this gate nothing counted them. Its `MIGRATING`
+  table names the slate each remaining list goes to; a stale entry fails.
   ⭐ **The question is not "is this list closed?" — plenty are correctly
   closed. It is: is its closure a fact about the WORLD, or a convenience
   for the implementation?** A fact about the world stays and is declared
@@ -295,6 +301,78 @@ dossier, 2026-09).
   loaded* row, which kept the hook in the loading set by itself and would
   have silently stopped the ratchet falling for the rest of the build.
   Stripping took the count 37 → 34 with no code moving.
+
+### ⭐⭐ The controllers-are-io gates — the whole command chain, counted (2026-11)
+
+The controllers-are-io build (W0) put a count on every link from a typed
+word to a changed world before any wave touched one, so each wave's
+acceptance is *this number fell*. Eleven gates, one shared enumerator, and
+one learned rule. Every ceiling is the **gate's own** W0 census — the
+plan's heuristic numbers were a different classifier's and are not cited
+(§ *Four ways a census lies*, 1). Every count-only-falls gate fails in
+**both** directions (above: the findings; below: *lower the ceiling*),
+through the one `pack-roots.ratchet()` verdict; every test asserts the
+invariant (at or below, above zero), never the number (lie 2); every
+classifier has a positive fixture beside its test (lie 3).
+
+**`pack-roots.controllerFiles()`** — the one enumerator: the kernel's
+`platform/idea/cmd/**`, `lib/**/*Controller.ts` bases and
+`world/**/idea/cmd/**`; every pack's `src/**/idea/cmd/**` at any depth
+(⚠ which is what reaches the ten domain-local controllers at
+`<pack>/src/<locality>/idea/cmd/` — `lint:instrument-args` read only
+`src/idea/cmd/`) and `src/lib/**/*Controller.ts` bases. 390 modules.
+⚠ A noun's shared `*ControllerBase.ts` qualifies too (W7): the four
+shipped bases (`BankingControllerBase`, `RecordControllerBase`,
+`LocomotionControllerBase`, `SingleSenseControllerBase`) were invisible
+to the census until then, so the W7 re-pin below is a measurement
+correction (+5 functions, +2 mutations, +9 decisions incl. +1 duration,
++3 self-resolution) and not growth — and a switch controller split into a
+base plus one controller per subcommand keeps every count equal.
+`lint:controller-resolution`, `lint:completion-this` and the three
+controller census gates read it; `commandViewFiles()`/`commandViews()`
+are its view-side twins (moved out of `check-verb-collisions`).
+
+| gate | what it counts | W0 ceiling | falls in | at merge |
+|---|---|---|---|---|
+| ⭐ `lint:command-views` | every view validates against `command.schema.json` (compiled as `CommandLogic` compiles it — ajv, `allErrors`, `strict: false` — plus the `opens_card` ∈ `CARD_IDS` rule); and `category:` = its `cmd/<category>/` dir | schema **0, hard**; category 361 + 10 in no category dir, **warning** (`CATEGORY_REQUIRED` flips at W6) | — / W6 | schema 0; category **0, hard** (`CATEGORY_REQUIRED`) |
+| `lint:contribution-keys` | every string key in a class's `static commandContributions` (a same-file `const` list, bare or spread, is read where it is declared) names a view under some pack's `content/` — `commandViews()`; a list held in an imported const is counted as unreadable | added at `/finalize` (2026-11-07): **0** of 645 keys over 364 views (the audit had deleted the retired `scrub.yaml` keys) | — | **0** |
+| `lint:duck-typing` | AST: `typeof x.m === "function"`, `x.m?.()`, `"m" in x` over all mud code (the thenable `then`/`catch` and V8 `getFileName` excluded); ⛔ sub-count: a method probe on a name no class member or object-literal member defines | **544**; undefined **0** | W3 | **539**; undefined **0** |
+| `lint:controller-mutations` | AST: a mutator-shaped call (`set*`, `add*`, `record*`, … or the slate's bare `soil`/`recordHeat`) on a receiver that is not `this`, an `*Api`, or the envelope | **359** (W7 re-measure with bases: 361; unchanged by the split) | W5 | **318** |
+| `lint:controller-decisions` | AST: `Math.*`, arithmetic (`* / % ** -`), numeric thresholds, UPPER_SNAKE numeric consts; ⭐ sub-count: duration/effort consts (`*_MS`, `*_W`, …) and `durationMs:`/`effortW:` literals (D5) | **1286**; durations **113** (W7 re-measure with bases: 1295; 114; after the split 1294 — appoint's and dismiss's duplicated house derivation became one base method) | W5 | **1176**; durations **100** |
+| `lint:controller-functions` | AST: top-level `function` / arrow `const` in a controller module | **273** (W7 re-measure with bases: 278; after the split **259** — the switch controllers' module functions became methods) | W5 | **232** |
+| `lint:controller-resolution` | the instrument hunt (absorbed `lint:instrument-args`) + self-resolution: `MqlApi.*`, `StuffApi.find*`/`singleton`, `.getContents()` in a controller | hunts **4**; self **117** (W7 re-measure with bases: 120; after **118** — the job board is a view arg, and consign's and reclaim's duplicated `activeHouse` is one base method) | W2 | hunts **4**; self **111** |
+| `lint:mixin-clusters` | a mixin factory's class whose co-use graph (`this.X` reads; a field and its accessors folded to one node by stem) has ≥ 2 components of ≥ 2 nodes | **44** (sees all five D6 splits) | W3 | **40** |
+| `lint:mixin-files` | `export function FooMixin` not in `Foo.ts` (kernel `lib/**`, `world/**`, pack `src/lib/**`) | **12** (the plan's twelve moves) | W3 | **0** |
+| `lint:one-word` | (a) a view with > 1 `verbs:` entry; (b) a controller named by views of different verbs; (c) a `defaultAliases:` name declared twice / equal to a verb / a builtin | (a) **65** views, 77 extra words (W7: 62 — `hire`, `handoff`, `unconsign` went with the flat views); (b) **4** (Equip, Unequip, Descend, Profile); (c) **0** | W6 | (a) **0**; (b) **0**; (c) **0** |
+| `lint:subcommand-words` | a subcommand word that is also a flat verb with a DIFFERENT controller (informational — D9 scopes it by noun); ⛔ a subcommand word equal to a script builtin | pairs **47** (W7: 46 — `fight defend` → `DefendController`); builtin **6** (`reserve`/`treasury`/`equip`/`alias`/`settings`/`var set`) | W7 | pairs **42**; builtin **6** |
+| `lint:institution-verbs` | a FLAT view whose operand is a book — a book-named arg requiring a book mixin, or (the implicit operand) a controller writing a book (`.appoint`/`.dismiss`/`.quitJob`/`payDraw`/`recordListing`/`removeHolding`/`recordHolding`/`ContractApi.fulfill`/`ParcelApi.transfer`·`subdivide`); `stake`, `stall`, `lease`, `provision` named as acts with a reason | **11** — exactly D9's set (W7: **2** — `house`/`job`/`shelf`/`rack` took nine; W8: **0** — `title transfer`/`title subdivide`) | W7 / W8 | **0** |
+
+⚠ **What the classifiers taught, the day they were written:**
+
+- *"The view's operand is the book"* cannot be read off half the
+  institution verbs — `appoint`, `quit`, `draw`, `fulfill`, `transfer`
+  take the book IMPLICITLY (the house you run, the job you hold). The
+  gate reads the operand where it is declared and the controller's book
+  write where it is not; a `book`-named arg that only requires
+  `VisibleMixin` (`rent`'s, `charter`'s hire book) is an act, which a
+  name-only rule would have counted.
+- The plan's fifth undefined probe, `beforeRestore`, is DEFINED —
+  `MineWarren` passes it as an options callback. The AST found two the
+  heuristic did not: `HasInteractive` declares `onConnectionDetached`/
+  `onLinkRestored` optional and nothing implements them.
+- `lint:mixin-clusters` without the accessor fold read **77**: every
+  get/set pair was an island, so any mixin with two fields was "split".
+  A co-use split is still a CANDIDATE — D6 keeps `HaulOut` on every
+  water place because every host is honestly both.
+
+**`lint:verb-collisions` learned disjoint shapes (D17).** Two views of one
+word whose shapes no line can bind both pass without a `KNOWN_COLLISIONS`
+row: their positional RANGES (`[required, total]`, unbounded on a
+greedy/multiple arg) do not overlap, or at some index both declare
+`prepositionRequired: true` with non-intersecting `prepositions:`. ⚠ The
+plan wrote *"required counts differ"*; read literally it passed `pour`'s
+two views (one required + an optional `into`, against two required) —
+which `pour gin into glass` binds both of — so the gate compares ranges.
 
 ## Content, templates & vocabulary
 
@@ -608,7 +686,18 @@ complete, documented, and spoken by nobody. `KNOWN_EXTENSION_ONLY` is
 **empty on purpose**, so the first allowlisting is a diff somebody has to
 defend.
 
-### `lint:instrument-args` — an instrument is an ARGUMENT, not a search (2026-09)
+### `lint:controller-resolution` (was `lint:instrument-args`) — an instrument is an ARGUMENT, not a search (2026-09)
+
+⭐ **Renamed and widened by controllers-are-io W0 (2026-11).** The gate
+reads every controller through the shared `pack-roots.controllerFiles()`
+and carries a second, census-then-ratchet count — **self-resolution**
+(see § *The controllers-are-io gates* below). Everything in this section
+is the instrument-hunt half, unchanged in what it asserts; its ceiling
+went **1 → 4** because the old reader walked only `<pack>/src/idea/cmd/`
+and never saw the domain-local controllers or the bases (`Unprovision`,
+`Unlease`, the kernel `CommandController`). A census widening, not a
+population rise.
+
 
 ⭐⭐ **Found in review, not by a gate — which is why it became one.** A
 controller needed the thing its verb acts *with* (the stones, the
@@ -795,7 +884,7 @@ they never *mint* them. Two directions:
      can's role is its class's affordance, not a capability. The tag
      came off, and `water`'s source became a declared arg with a `me:i`
      default while it was open (the last `for … of giver.getContents()`
-     hunt in the tree, which `lint:instrument-args` had not fired on
+     hunt in the tree, which `lint:instrument-args` (now `lint:controller-resolution`) had not fired on
      because it type-tested nothing — it read the contents).
    Ceiling **0**.
 
@@ -842,15 +931,17 @@ per row** rather than a zero — and it ratchets **both ways**: a fresh
 collision fails, and a fixed one still listed also fails, because a list
 nobody prunes stops meaning anything.
 
-⚠ Only `lease`/`unlease` is understood safe (domain-local, two different
-localities, never afforded together). The other seven — `me`, `pour`,
-`hang`, `mount`, `dress`, `drive`, `butcher` — are **undiagnosed**: the
-census measured which verbs are claimed twice, not which of them actually
-shadow, or in which direction. ⭐ `dress` is the instructive one — *dress
-a wound* and *dress a carcass* are both correct English and both correct
-game, which is why "just rename one" is not automatically the answer. The
-alternatives are one view with subcommands, or a rename; **never a new
-line in the allowlist.**
+⭐ **The allowlist is gone (controllers-are-io, 2026-11).** One view, one
+word (D16) deleted the synonym words that made most rows (`me`, `dress`,
+`lease`/`unlease`, …), `pour` became one act over `PourTargetMixin`, and
+the rest were renamed or proved disjoint; `KNOWN_COLLISIONS` went with its
+last row. A fresh collision now fails unless the two views' shapes are
+**provably disjoint** (D17 — `throw X to Y` · `throw X` · `throw X at Y`
+are the exemplar). ⭐ The lesson the old list taught still stands: *dress a
+wound* and *dress a carcass* are both correct English, which is why "just
+rename one" was never automatically the answer — the alternatives are one
+view with subcommands, a rename, or disjoint shapes; **never an
+allowlist.**
 
 ### `lint:self-contributions` — a `self` verb nobody is asked for (2026-10)
 
@@ -1211,7 +1302,7 @@ composes `FloorMixin` carries **both** `ground` and `floor` in its own
 
 ⚠⚠ Clause (d) is not tidiness, and it found three shipped rows on its first
 run. The MQL scope walk pools a thing's own `getKeywords()`, and
-`pushDetails` gives a detail the pool `[<its id>]` and **never** its authored
+`DetailedMixin.getKeywords` folds in a detail by its id `[<its id>]` and **never** its authored
 keyword list — so a floor's `details.floor.keywords: [ground]` is dead text.
 `weeping-floor` authored `[flagstones, wet]` and was therefore a floor
 nothing could sit on or look at. `FloorMixin` unions both words onto the
@@ -1690,6 +1781,19 @@ configured**.
   rather than by an argument?) stays a review judgment, because no
   regex can make it — `BankingApi.accountsOf()` looks unkeyed and is
   not.
+- **`lint:wizard-axis`** — **the wizard axis is AUTHORING TypeScript and
+  nothing else** (owner, 2026-11-05). Every non-test file under the server
+  `src/` and every pack's `src/`/`content/` that names `isWizard`,
+  `requiresWizard`, `isArchwizard` or `requiresArchwizard` — in code OR
+  prose — is listed in `scripts/wizard-axis-allowlist.txt` with its count
+  and a reason from a closed set (`axis` · `subject` · `definition` · `ux`
+  · `prose`). The list only shrinks: an unlisted file, a rise, a fall and a
+  vanished file all fail (the `lint:test-content` rule, with counts).
+  ⭐ The one write predicate is `AccessApi.sourceWriteRefusal`; anything
+  else — reload, reading, letting a room, setting a dial — is decided by
+  a seat or by nothing, and a new wizard check is wrong by shape. Prose
+  counts so a stale comment saying `requiresWizard` is rewritten rather
+  than carried.
 
 ## Tests
 

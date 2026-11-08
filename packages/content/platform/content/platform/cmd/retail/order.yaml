@@ -1,4 +1,5 @@
 verbs: [order]
+category: retail
 controller: /platform/idea/cmd/retail/OrderController
 description: "Order from a menu, or buy a service off a tariff"
 help: |
@@ -9,10 +10,10 @@ help: |
   ⭐ **Where there's a tariff instead of a menu, you buy a service** —
   something done to what you already have, rather than something made or
   sold:
-    `order repair my sword`  — a smithy makes it good again
+    `order repair for sword` — a smithy makes it good again
     `order treatment`        — a clinic sees to what is wrong with you
-    `order burial the body`  — a necropolis lays them to rest
-    `order wash my shirt`    — a laundress looks it over, names a price,
+    `order burial for body`  — a necropolis lays them to rest
+    `order wash for shirt`   — a laundress looks it over, names a price,
                                and washes it the way she knows how
     `order bath`             — a bathhouse draws you a hot one
   The tariff on the wall lists what the house does and what it costs;
@@ -39,16 +40,30 @@ args:
     type: string
     required: false
     prepositions: [with]
-  # ⭐ The tariff board of services — DECLARED, so the binder resolves it and the controller
-  # just reads it. `from` keeps the typed grammar intact while making it
-  # addressable. `requires:` is the honest kind gate: both a tariff and a
-  # menu ARE price lists, which is what `PricedOfferMixin` already names.
-  - name: counter
+  # ⭐ WHAT THE SERVICE ACTS ON — `order repair for sword`. The controller
+  # used to cut it off the tail of the phrase and resolve it itself.
+  # `requires: any`: the board that takes the order says what it will act on.
+  - name: subject
     type: object
+    required: false
+    greedy: true
+    prepositions: [for]
+    scope: ["reachable"]
+    requires: any
+  # ⭐ The tariff boards of services — DECLARED, so the binder resolves them
+  # and the controller just reads them. Every reachable board: two houses
+  # can share a room (the practice's slate and the blood window's board on
+  # one ward), the controller narrows to those that take this key, and only
+  # when two do is the customer asked which. `from` keeps the typed grammar
+  # intact while making it addressable. `requires:` is the honest kind gate:
+  # both a tariff and a menu ARE price lists, which is what
+  # `PricedOfferMixin` already names.
+  - name: counter
+    type: objects
     required: false
     prepositions: [from]
     default: "reachable:[class.Tariff]"
-    scope: [reachable]
+    scope: ["here", "peers", "person"]
     requires: [PricedOfferMixin]
   # ⭐ The recipe menu — DECLARED, so the binder resolves it and the controller
   # just reads it. `off` keeps the typed grammar intact while making it
@@ -59,5 +74,5 @@ args:
     required: false
     prepositions: [off]
     default: "reachable:[class.CommerceMenu]"
-    scope: [reachable]
+    scope: ["here", "peers", "person"]
     requires: [PricedOfferMixin]

@@ -36,7 +36,8 @@ code cannot** (§9). So:
 | the layer | **the meta** | never bare "Meta" |
 | an enfranchised human | **a member** | never "citizen" (the fiction's word) |
 | the group holding title over a subdivision | **a committee** | derived from title; players only; governance, never a job |
-| the legislature | **the Houses** — the Producer House, the Capital House, the Consumer House | each with a **Speaker** |
+| the legislature | **the Houses** — the Labor House, the Capital House, the Consumer House | each with a **Speaker** |
+| the creation kind of influence | **labor** — with capital and consumer, one of the three; its chamber is **the Labor House** | called *producer* until 2026-10-31; code identifiers still say `producer` pending a code sweep |
 | the executive's head | **the Prime Minister** | installed by confidence, removed by constructive no-confidence |
 | the humans who hold the judgment over an institution | **Ministers**; collectively **the Cabinet** | not *secretary* (modern-only; bare, it reads as staff) |
 | the body of institutions | **the Administration** | Art. V §9's word — "the executive administers" |

@@ -84,6 +84,9 @@ export class CraftingDecline {
         return detail && detail.startsWith('something about')
           ? `There is ${detail} that will not answer to repair — something in it has failed, and wants replacing. Fit a new one.`
           : `The ${detail || 'part'} has failed, and no repair will mend that. Fit a new ${detail || 'one'}.`;
+      case 'refused-by-whole':
+        // The whole's own words (water-supply D10).
+        return detail || "It won't take that.";
       case 'not-leather-hard':
         // ⭐ (ceramics W4) The window is leather-hard, and the refusal
         // says which side of it the clay is on.

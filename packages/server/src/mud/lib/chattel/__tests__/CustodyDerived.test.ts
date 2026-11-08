@@ -22,6 +22,7 @@ import type { Stuff } from "../../stuff/Stuff";
 import type { Container } from "../../spatial/Container";
 import type { Containable } from "../../spatial/Containable";
 import type { Chattel } from "../Chattel";
+import type { MadeFrom } from "../MadeFrom";
 import type { FieldMeta } from "../../mixin";
 
 class Thing1 extends Good {}
@@ -97,7 +98,7 @@ describe("custody derived by the movement primitive", () => {
     const log = good();
     await (log as unknown as Stuff & Chattel).stampChattel(bob);
     const board = good();
-    await (board as unknown as Stuff & Chattel).recordMadeFrom([log as unknown as Stuff]);
+    await (board as unknown as Stuff & MadeFrom).recordMadeFrom([log as unknown as Stuff]);
     // Alice saws Bob's log: the board is Bob's.
     await asAlice(alice, () =>
       ContainmentApi.move(board as unknown as Stuff & Containable, yard as unknown as Stuff & Container),
@@ -114,8 +115,8 @@ describe("custody derived by the movement primitive", () => {
     await (a as unknown as Stuff & Chattel).stampChattel(alice);
     await (b as unknown as Stuff & Chattel).stampChattel(bob);
     const made = good();
-    await (made as unknown as Stuff & Chattel).recordMadeFrom([a, b] as unknown as Stuff[]);
-    expect((made as unknown as Stuff & Chattel).getMadeFromOwner()).toBeNull();
+    await (made as unknown as Stuff & MadeFrom).recordMadeFrom([a, b] as unknown as Stuff[]);
+    expect((made as unknown as Stuff & MadeFrom).getMadeFromOwner()).toBeNull();
   });
 
   it("⚠ a REST boundary's acting author is not a continuation — it titles nothing by itself", async () => {

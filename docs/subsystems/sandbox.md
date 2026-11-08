@@ -184,7 +184,7 @@ Audit notes that changed the provisional classification:
   the offline `tools/illustrate.ts` CLI; no circle path should reach it.
 - **`contacts`** has no collection — mixin state; it travels as a
   fork/merge slice (Decision Q), not through this table.
-- `subdivide` carries only `requiresAnimate` and writes both `domain`
+- `title subdivide` carries only `requiresAnimate` and writes both `domain`
   and `parcels` — the REFUSE row on `parcels` is what contains it
   in-circle.
 
@@ -192,7 +192,8 @@ Audit notes that changed the provisional classification:
 views and both controllers shipped and no `commandContributions` static
 named either file, so the whole mechanism above was reachable only from
 code: `subdivide` answered *"I don't understand 'subdivide'."* They are
-`PersonaMixin.self`'s now, universally, on `title`'s own doctrine — *your
+`title subdivide` and `title transfer` now (controllers-are-io W8), afforded by
+`PersonaMixin.self`, universally, on `title`'s own doctrine — *your
 own holdings are a self-read, and the gate is the authority, not the
 affordance* — and `AccessApi.can` in the controllers is what refuses. See
 [parcel.md](./parcel.md).
@@ -561,7 +562,7 @@ name. `CircleAvatar` was considered and rejected for a subtler reason:
     - `Avatar.isConnected()` reports the vessel's connectivity while
       parked. Sockets live on the vessel, so the inherited answer is
       `false`, and every consumer of it — `who`, the `online` scope
-      that `dm`/`tell` resolve against, the presence roster, notify —
+      that `dm` resolves against, the presence roster, notify —
       reads that as *offline*. Stepping into your own circle made you
       unreachable to the whole world, the precise opposite of "the
       wire is unsurveillable, not unreachable."
@@ -655,7 +656,7 @@ name. `CircleAvatar` was considered and rejected for a subtler reason:
   ambient circle context, so the copy is circle-born. Player surface:
   the `clone` verb's instance-source branch (`--instance` forces the
   live seed, `--fresh` forces template-fresh, `--count <n>` caps at
-  20). Zero new verbs — `transfer --group` (the consent-leg collapse
+  20). Zero new verbs — `title transfer --group` (the consent-leg collapse
   for group recipients) and `eval --parcel` are the only other verb
   touches.
 - **Jurisdiction-targeted eval (Decision K)**: `eval [--parcel <path>]`
@@ -790,7 +791,7 @@ name. `CircleAvatar` was considered and rejected for a subtler reason:
   (`onMessage`/`filterMessage`/`handleMessage` + envelope trio) cannot
   smuggle a dispatchable reference by construction.
 - **Recipient resolution to repoint at the active body** (Decision N,
-  comms are seamless): `dm`/`tell` resolves via the `online` MQL scope
+  comms are seamless): `dm` resolves via the `online` MQL scope
   → `ConnectionApi.getAllInteractives()` → holders (wire bodies are
   holders while a session lives — resolves correctly by construction);
   channel fan-out (`ChannelCatalogue.audienceFor` →
@@ -917,7 +918,7 @@ circle — symmetric rollback (the boundary binds host and guest alike),
 access-controlled by your parcel's grant surface (`revokeUse` exits a
 guest mid-visit, above). **The group cell** is a circle whose parcel is
 group-titled under `/studio/<groupId>` — provisioned by a governance
-act (`subdivide` + `transfer --group` over the group-owned `/studio`
+act (`title subdivide` + `title transfer --group` over the group-owned `/studio`
 parcel), never self-serve: personal space is a right (character
 creation is the grant), group space is a grant. This is where
 committee/team content stages before publication.
@@ -1004,7 +1005,7 @@ them are fixed on this branch.
   fails; `describeFor` then falls back to "someone" /
   "something" for every occupant. A dark room does not merely read as
   dark — nobody in it can be named, told apart, or addressed, so
-  `tell <name>` cannot resolve a target at all.
+  `dm <name>` cannot resolve a target at all.
 
   Both rooms this build adds author `ambientIntensity` directly (40 for
   the alcove, 60 for the circle floor), which is the shipped

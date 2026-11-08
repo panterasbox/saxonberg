@@ -1,11 +1,13 @@
 verbs: [reload]
+category: author
 controller: /platform/idea/cmd/author/ReloadController
 description: "Hot-reload a template or runtime instance, then type-check it"
 help: |
   Pull fresh code into a live template or runtime instance without
   restarting the world. Name the target by its path, or use `--mql`
-  to pick it out with a query. This is a developer tool and
-  requires developer access.
+  to pick it out with a query. Reloading asks for title over the
+  target's path — the same question `clone` asks — and not for the
+  wizard axis: reloading code is not authoring it.
 
   Reload re-runs the object through the hot-reload state machine, so
   existing instances pick up your latest changes in place.
@@ -13,11 +15,9 @@ help: |
   The live code never checks types, so after the swap the file is
   type-checked in the background and you are told the verdict a few
   seconds later. The check covers that file only — not the files that
-  import it. `--no-check` skips it; `--strict` checks first and
+  import it. `--no-check` skips it; `--force` checks first and
   refuses to swap code with type errors in. `typecheck` checks without
   reloading.
-validators:
-  - /lib/command/validators/requiresWizard
 args:
   - name: target
     type: string
@@ -32,7 +32,7 @@ options:
     type: boolean
     field: noCheck
     description: "Swap only; skip the type-check"
-  strict:
+  force:
     type: boolean
-    field: strict
+    field: force
     description: "Type-check first; refuse to reload on type errors"

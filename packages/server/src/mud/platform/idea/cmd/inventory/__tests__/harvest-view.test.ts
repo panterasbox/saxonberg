@@ -3,10 +3,17 @@
  * `verb-gates.test.ts` shape (a controller test cannot see the binder).
  *
  * The forestry build added a `tool` arg: DECLARED (`default:` on the
- * `[capability.cutting]` atom, never hunted for — `lint:instrument-args`)
+ * `[capability.cutting]` atom, never hunted for — `lint:controller-resolution`)
  * and gated on `ToolMixin`, which every shipped instrument composes
  * through `Tool`. A plant that names no `harvestTool` ignores it; a
  * coppice stool refuses without it. The `target` gate is unchanged.
+ *
+ * Field population W3 added `at <patch>` to `harvest` and `plant`/`sow`
+ * (D5): an optional, greedy object bounded by every later arg's
+ * preposition, gated on `SoilMixin`. The views must still LOAD — the
+ * greedy-then-prepositional ordering is a load-time invariant. W4 gave
+ * `sample` and `label` the same arg (the label's greedy `text` is bounded
+ * by it).
  */
 
 import '../../../../../../test-bootstrap';
@@ -17,6 +24,7 @@ import YAML from 'yaml';
 import { MixinApi } from '../../../../../api/mixin';
 import { Mixins } from '../../../../../lib/mixin';
 import Tool from '../../../../thing/Tool';
+import { CommandDefinition } from '../../../../../lib/command/CommandDefinition';
 
 const VIEW = join(
   __dirname,
@@ -33,20 +41,40 @@ interface ArgSpec {
   prepositions?: string[];
 }
 
-function args(): ArgSpec[] {
-  const doc = YAML.parse(readFileSync(VIEW, 'utf8')) as { args?: ArgSpec[] };
+const PLANT_VIEW = join(VIEW, '..', 'plant.yaml');
+const SAMPLE_VIEW = join(VIEW, '..', 'sample.yaml');
+const LABEL_VIEW = join(VIEW, '..', 'label.yaml');
+
+function args(view = VIEW): ArgSpec[] {
+  const doc = YAML.parse(readFileSync(view, 'utf8')) as { args?: ArgSpec[] };
   return doc.args ?? [];
 }
 
+/** An option of a view, by its long name (controllers-are-io D9). */
+function option(name: string, view = VIEW): (ArgSpec & { field?: string; scope?: string[] }) | undefined {
+  const doc = YAML.parse(readFileSync(view, 'utf8')) as {
+    options?: Record<string, ArgSpec & { field?: string; scope?: string[] }>;
+  };
+  return doc.options?.[name];
+}
+
+interface PatchSpec extends ArgSpec {
+  greedy?: boolean;
+  scope?: string[];
+}
+
 describe('harvest.yaml — the tool is an ARGUMENT', () => {
-  it('declares an optional `tool` arg found by capability, gated on ToolMixin', () => {
-    const tool = args().find((a) => a.name === 'tool');
+  it('`--with` lands on `tool`, found by capability, gated on ToolMixin', () => {
+    const tool = option('with');
     expect(tool).toBeDefined();
     expect(tool!.type).toBe('object');
-    expect(tool!.required).toBe(false);
-    expect(tool!.default).toBe('reachable:[capability.cutting]');
-    expect(tool!.prepositions).toEqual(['with', 'using']);
+    expect(tool!.field).toBe('tool');
+    expect(tool!.default).toBe(
+      'reachable:[capability.reaping],reachable:[capability.cutting]',
+    );
     expect([tool!.requires].flat()).toEqual(['ToolMixin']);
+    // D9: no old form kept — the preposition pile is gone.
+    expect(args().find((a) => a.name === 'tool')).toBeUndefined();
   });
 
   it('…and the instrument every trade ships composes that mixin', () => {
@@ -61,4 +89,51 @@ describe('harvest.yaml — the tool is an ARGUMENT', () => {
       'GrowingMixin|CultivableMixin',
     ]);
   });
+});
+
+describe('`at <patch>` — which part of a divided field (field population D5)', () => {
+  for (const [verb, view] of [
+    ['harvest', VIEW],
+    ['plant', PLANT_VIEW],
+  ] as const) {
+    it(`${verb}.yaml: \`--at\` lands on \`part\`, gated on SoilMixin, no positional kept`, () => {
+      const at = option('at', view);
+      expect(at).toBeDefined();
+      expect(at!.type).toBe('object');
+      expect(at!.field).toBe('part');
+      expect(at!.scope).toEqual(['here', 'peers', 'person']);
+      expect([at!.requires].flat()).toEqual(['SoilMixin']);
+      expect(args(view).find((a) => a.name === 'part')).toBeUndefined();
+    });
+    it(`${verb}.yaml still loads`, () => {
+      expect(() => CommandDefinition.fromYaml(readFileSync(view, 'utf8'), view)).not.toThrow();
+    });
+  }
+  for (const [verb, view] of [
+    // Field population W4 (D6/D7): the stem and the labeled plant.
+    ['sample', SAMPLE_VIEW],
+    ['label', LABEL_VIEW],
+  ] as const) {
+    it(`${verb}.yaml declares an optional greedy \`patch\` object gated on SoilMixin`, () => {
+      const all = args(view) as PatchSpec[];
+      const patch = all.find((a) => a.name === 'part');
+      expect(patch).toBeDefined();
+      expect(patch!.type).toBe('object');
+      expect(patch!.required).toBe(false);
+      expect(patch!.greedy).toBe(true);
+      expect(patch!.prepositions).toEqual(['at']);
+      // A patch is ground underfoot: a world act, room first (D21).
+      expect(patch!.scope).toEqual(['here', 'peers', 'person']);
+      expect([patch!.requires].flat()).toEqual(['SoilMixin']);
+      // Every arg after it stops it with a preposition of its own.
+      const after = all.slice(all.indexOf(patch!) + 1);
+      expect(after.every((a) => (a.prepositions ?? []).length > 0)).toBe(true);
+    });
+
+    it(`${verb}.yaml still loads`, () => {
+      expect(() =>
+        CommandDefinition.fromYaml(readFileSync(view, 'utf8'), view),
+      ).not.toThrow();
+    });
+  }
 });

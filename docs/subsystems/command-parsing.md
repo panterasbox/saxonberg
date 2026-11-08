@@ -216,6 +216,8 @@ interface ParsedCommand {
   rawTokens: RawToken[];   // verb at index 0 as kind:'word'
   source: string;          // slice of original input this command came from
   start: number;           // byte offset in original input
+  emotePrefixed?: boolean;
+  scope?: string;          // `verb@source` — see below
 }
 
 interface ParsedPipeline {
@@ -227,6 +229,30 @@ interface ParsedPipeline {
 `source` and `start` carry forward the byte-offset context the
 greedy positional binder needs to slice the original input; without
 them, greedy fields would lose interior whitespace runs.
+
+## ⭐ `verb@source` — the scope on the verb token
+
+The verb token — **and only the verb token** — splits at its first `@`
+past index 0 (`parsePipelineImpl`, controllers-are-io D1): the part
+before is `verb`, the rest is `scope`.
+
+| typed | `verb` | `scope` |
+|---|---|---|
+| `wind@me:i:watch` | `wind` | `me:i:watch` |
+| `wind@"pocket watch"` | `wind` | `pocket watch` (quote a multi-word scope) |
+| `@bob hello` | `@bob` | — (a leading `@` is not a split) |
+| `wind@` | `wind` | — (an empty scope is none) |
+| `say hi @bob` | `say` | — (only the verb token is ever looked at) |
+
+The raw token is left as typed, so `format()` round-trips. A
+synthesized command whose token 0 does not carry its `scope` (an alias
+expansion, which carries the invocation's scope — see
+[shell-alias.md](./shell-alias.md)) re-emits `${verb}@${quoteIfNeeded(scope)}`.
+An unscoped line has no `scope` key at all. The scope is MQL: the
+dispatcher resolves it and filters the affordances to that source — see
+[command-routing.md § `verb@source`](./command-routing.md).
+⚠ Contents are `:i` in MQL — `me:watch` is a feature of me, the carried
+watch is `me:i:watch`.
 
 ## ⚠ A non-greedy target arg cannot be disambiguated by phrase
 

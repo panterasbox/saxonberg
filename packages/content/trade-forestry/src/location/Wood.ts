@@ -62,7 +62,7 @@
 
 import Locale from '@saxonberg/server/mud/platform/location/Locale';
 import { PersistableMixin } from '@saxonberg/server/mud/lib/persistence/Persistable';
-import { ReservedMixin, Reserve } from '@saxonberg/server/mud/lib/reserve';
+import { ReservedMixin, Reserve } from '@saxonberg/server/mud/lib/reserve/Reserved';
 import {
   SoilMixin,
   SOIL_MOISTURE_RESERVE_KEY,

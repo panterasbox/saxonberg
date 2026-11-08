@@ -1,4 +1,5 @@
 verbs: [go]
+category: movement
 controller: /platform/idea/cmd/movement/GoController
 description: "Move to a named exit or into a named vessel"
 help: |
@@ -15,7 +16,13 @@ validators:
 args:
   - name: target
     type: object
-    scope: ["$focus", "reachable"]
+    # ⭐ Ways only: an exit is a candidate in its own
+    # right, so the scope names WAYS and the word can only mean one — `go
+    # hesper` is the way named for her, never a line from her lying on the
+    # quay or the thing in focus. A vessel standing here is entered by its
+    # entry-exit (`go carriage`), tried second. This retires the private
+    # `["reachable", "$focus"]` order the Stage A drive (run 6) forced.
+    scope: ["here:exits", "reachable:[class.ExitableVessel]"]
     required: true
     validators:
       - /lib/command/validators/canReach

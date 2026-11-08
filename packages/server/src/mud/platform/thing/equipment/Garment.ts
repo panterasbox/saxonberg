@@ -49,6 +49,8 @@ import { AssembledMixin } from '../../../lib/craft/Assembled';
 import { SoilableMixin } from '../../../lib/cleanliness/Soilable';
 import type { WashCleanser, WashOutcome, WashSpec } from '../../../lib/cleanliness/Soilable';
 import { LabelledMixin } from '../../../lib/description/Labelled';
+import { TearableMixin, type TearOutcome } from '../../../lib/material/Tearable';
+import { ContainmentApi } from '../../../api/containment';
 import type Material from '../../../lib/material/Material';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import { MixinApi } from '../../../api/mixin';
@@ -70,16 +72,29 @@ import type { WashPolicy, WashSubject } from '../../../lib/cleanliness/WashPolic
 // is what a laundry mark is. Parts or one piece beneath (repair D4): a
 // welted boot is two uppers and two soles a cobbler re-soles; a shirt is
 // one piece. One class.
-const GarmentBase = LabelledMixin(SoilableMixin(WearableMixin(
+// ⭐ Tearable: an old shirt tears into rags — the mill's raw
+// stuff — mass for mass, and not while somebody is wearing it.
+const GarmentBase = TearableMixin(LabelledMixin(SoilableMixin(WearableMixin(
   SlottableMixin(
     AssembledMixin(
       CraftedMixin(DurableMixin(ConstructedMixin(DyedMixin(Good)))),
     ),
   ),
-)));
+))));
 
-/** Damage words that are a RUINED garment (a fade is only wear). */
-const LAUNDRY_RUIN = new Set(['felted', 'shrunk', 'rotted', 'burnt', 'bled']);
+/** The commons' clean rag a torn garment becomes. */
+const RAG_TEMPLATE = '/stuff/thing/rag';
+/** A rag's mass, kg — the row's. */
+const RAG_KG = 0.05;
+
+/**
+ * Damage words that are a RUINED garment. ⚠ A fade is only wear, and `shrunk`
+ * is hot water taking 3% off the cut — *"it has shrunk a little"*. It counted
+ * as a ruin until the before-record of `order wash` showed why not: every hot
+ * wash of plain linen came back "ruined", the house paid 20 on a 3 wash, and
+ * a customer could wash an apron for an income (controllers-are-io W0, 12c).
+ */
+const LAUNDRY_RUIN = new Set(['felted', 'rotted', 'burnt', 'bled']);
 
 /** The water at which wool FELTS — boiling, near enough. */
 const FELT_ABOVE_K = 363;
@@ -95,6 +110,7 @@ const SUN_DOSE_PER_HOUR = 0.012;
 const FUME_DOSE_PER_FRACTION_HOUR = 20;
 
 export default class Garment extends GarmentBase {
+
   // ── airing (cleanliness D21): the sun and the fumes ──
 
   /**
@@ -109,6 +125,28 @@ export default class Garment extends GarmentBase {
     sunYellow: { persistent: true, runtimeState: true },
     airingStamp: { persistent: true, runtimeState: true },
   };
+
+  /**
+   * ⭐ Tear it up for rags: as many clean rags as its cloth
+   * weighs, and the garment is gone. Refused while worn.
+   */
+  public override async tear(_by: Stuff, _page?: number): Promise<TearOutcome> {
+    const self = this as unknown as Stuff;
+    if (this.getOccupiedHost() !== null) {
+      return { ok: false, reason: 'worn', line: `You would have to take ${self.getPresentation()} off first.` };
+    }
+    const kg = MixinApi.isTangible(self) ? self.getMass().rawValue() : 0;
+    const n = Math.max(1, Math.floor(kg / RAG_KG));
+    const where = MixinApi.isContainable(self) ? self.getContainer() : null;
+    // ⭐ Made FROM the garment: the rags are whoever's the garment was.
+    const rags = await StuffApi.clone<Stuff>(RAG_TEMPLATE, undefined, { madeFrom: self });
+    if (MixinApi.isStackable(rags)) rags.setQuantity(n);
+    if (where !== null && MixinApi.isContainer(where) && MixinApi.isContainable(rags)) ContainmentApi.move(rags, where);
+    // The name first: a destroyed thing has none (the drive's "tear undefined").
+    const line = `You tear ${self.getPresentation()} into ${n} rag${n === 1 ? '' : 's'}.`;
+    StuffApi.destruct(self);
+    return { ok: true, line, made: [rags] };
+  }
 
   /**
    * ⭐⭐ What washing does to CLOTH (cleanliness D10) — on top of the dirt

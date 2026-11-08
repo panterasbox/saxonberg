@@ -45,7 +45,14 @@
 import React, { useEffect } from "react";
 import styled from "styled-components";
 import { useStore } from "../../store/index";
-import { tokens } from "../ui";
+import { tokens, Icon } from "../ui";
+import { KindMark } from "../cards/KindMark";
+
+/** A card key as a command argument: quoted when it has a space or a quote. */
+function quoteKey(key: string): string {
+  if (!/\s|"/.test(key)) return key;
+  return `"${key.replace(/(["\\])/g, "\\$1")}"`;
+}
 
 const Bar = styled.div`
   display: flex;
@@ -105,7 +112,50 @@ const Action = styled.div`
   font-size: ${tokens.font.micro};
 `;
 
-export function StatusBar(): JSX.Element {
+/** The tray: the cards YOU minimized (client-surface D8). */
+const Tray = styled.div`
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: ${tokens.space.xs};
+  font-family: ${tokens.font.family};
+  font-size: ${tokens.font.micro};
+`;
+
+const TrayIcon = styled.button`
+  font: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.5rem;
+  padding: 0;
+  border: 1px solid ${tokens.color.border};
+  border-radius: ${tokens.radius.sm};
+  background: transparent;
+  color: ${tokens.color.fgEmphasis};
+  cursor: pointer;
+
+  &:hover {
+    background: ${tokens.color.surfaceMuted};
+  }
+`;
+
+interface StatusBarProps {
+  /**
+   * Click-to-send a command. With it, the bar carries the tray (right);
+   * without it (char-gen), only the preview. The shelf is the top bar's.
+   */
+  onCommandClick?: (command: string) => void;
+  onCommandPreview?: (command: string | null) => void;
+}
+
+export function StatusBar({ onCommandClick, onCommandPreview }: StatusBarProps = {}): JSX.Element {
+  // ⭐ The tray: minimized cards, restored by a real command whose text
+  // the bar previews (client-surface D8). The system never puts a card
+  // here — only `cockpit card minimize` does.
+  const cards = useStore((s) => s.cards);
+  const tray = Object.values(cards).filter((c) => c.minimized && !c.closed);
   const ghostPreview = useStore((s) => s.ghostPreview);
   const ghostFlash = useStore((s) => s.ghostFlash);
   const flashGhost = useStore((s) => s.flashGhost);
@@ -138,6 +188,34 @@ export function StatusBar(): JSX.Element {
       <Action data-testid="status-bar-action">
         {previewing ? "click to send" : ""}
       </Action>
+      {onCommandClick ? (
+        <Tray data-testid="tray" aria-label="minimized cards">
+          {tray.map((c) => {
+            const cmd = `cockpit card restore ${quoteKey(c.key)}`;
+            return (
+              <TrayIcon
+                key={c.instanceId}
+                type="button"
+                data-testid="tray-card"
+                // ⭐ An ICON in the tray (the kind's mark; a plain square for
+                // a card about no one thing), the name on hover — and the
+                // click is the real `restore`, previewed.
+                title={`${c.title ?? (c.records[0]?.displayName as string | undefined) ?? c.cardId} — click to bring it back`}
+                aria-label={cmd}
+                onClick={() => onCommandClick(cmd)}
+                onMouseEnter={() => onCommandPreview?.(cmd)}
+                onMouseLeave={() => onCommandPreview?.(null)}
+              >
+                {c.subjectKind ? (
+                  <KindMark kind={c.subjectKind} size={14} />
+                ) : (
+                  <Icon name="card.tray" label="a card" size={14} decorative />
+                )}
+              </TrayIcon>
+            );
+          })}
+        </Tray>
+      ) : null}
     </Bar>
   );
 }

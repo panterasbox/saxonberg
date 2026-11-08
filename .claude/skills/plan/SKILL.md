@@ -57,8 +57,10 @@ simply doesn't happen. That is the whole reason this phase is a skill.
    should have informed.
 
 3. **Invoke the `planner` agent** with the requirements doc, the
-   grounding, and the open engineering questions. It authors the plan
-   in the shape below.
+   grounding, **the slate's reuse ledger**, and the open engineering
+   questions. It authors the plan in the shape below, and answers every
+   **P** question in [docs/review-questions.md](../../../docs/review-questions.md)
+   — the questions the owner otherwise asks at review.
 
 4. **Iterate with the user** until every implementation detail is
    acceptable. This is conversational; the plan is the artifact that
@@ -78,6 +80,11 @@ simply doesn't happen. That is the whole reason this phase is a skill.
    - ⚠ **Anything that needs the user's eye** — a decision the plan
      makes that they may not have registered, a risk they should price,
      a place the plan and the requirements disagree.
+   - ⭐ **The new substrate, listed** — every new mixin, Api, class,
+     hook, registry and document kind the plan introduces, one line each
+     with its ledger row or *genuinely new*. This is the review's
+     opening question answered before the build starts; a short list is
+     the goal.
 
    This is their last checkpoint before the build runs to the MR
    without stopping, so surface it now or it surfaces in review. Say
@@ -103,6 +110,14 @@ Facts verified this cycle, with file paths, current at plan time.
 What exists, what it does, what it does NOT do. A fact you did not
 open a file to check does not belong here.
 
+## ⭐⭐ New substrate
+
+Every new mixin, Api, class, hook, registry and document kind, each
+citing the slate's reuse-ledger row it reuses or generalizes — or the
+words *genuinely new* and what was searched to establish that. A hook
+with one implementer, or an Api with one concept in it, is a method in
+the wrong place (review question P1).
+
 ## Plan-level decisions
 
 The engineering decisions, numbered (D1, D2…) so waves and commits
@@ -113,15 +128,19 @@ can cite them. Each: the question, the choice, the reasoning.
 For every new field, mixin and class: which host carries it, and
 what composing it claims about everything else that composes that
 host. **The largest single source of post-MR rewrites in this
-repo.** The test: if a guard is needed to re-narrow the host set,
-the host is wrong.
+repo.** Two tests: if a guard is needed to re-narrow the host set,
+the host is wrong — ⭐ and if an honest default answers "no" on most
+of the hosts, the host is wrong too (review question P2; the river's
+pools that all answered "no current", the paintable mountain peak).
 
 ## Convention conformance
 
 Which current conventions this build must satisfy, checked at plan
 time, not recalled: props:/cast:, Locations-not-rooms, the
 <root>/<branch>/ path pattern, module-scope, the import boundary,
-verbs-on-objects. Name the lint gates this build must pass.
+verbs-on-objects — and the review questions P3–P8, one line each:
+refuse/skip/throw, no duck typing, the mixin decides, persistence per
+content, load on use, names. Name the lint gates this build must pass.
 
 ## Waves
 
@@ -133,10 +152,12 @@ wave independently landable.
 ## Reachability wiring
 
 For each new capability, the five links — **verb · affordance ·
-data · boot · arg gate**. Each fails closed and silent, and each has
+data · load · arg gate**. Each fails closed and silent, and each has
 cost this repo a shipped-but-dead feature: a verb nothing affords, a
-row nothing warms, a mixin nothing reaches, a `requires:` nothing
-composes.
+row nothing loads when it is used, a mixin nothing reaches, a
+`requires:` nothing composes. ⚠ *load* replaced *boot* (2026-10-14):
+the fix for a roster nothing reaches is loading on use by following an
+authored reference — never a new boot entry (review question P7).
 
 ## Acceptance-criteria coverage
 

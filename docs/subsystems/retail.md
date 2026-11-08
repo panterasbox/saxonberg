@@ -3,7 +3,7 @@
 The first **retailer** business (retail slate S1), and the proving
 consumer of the [chattel possession core](./chattel.md). A shop where you
 `buy` goods off a bounded, self-restocking shelf (and **own** them, not
-just carry them) and `consign` your own goods for another player to buy.
+just carry them) and `shelf consign` your own goods for another player to buy.
 It rides *real* ownership; its consignment loop (custody-vs-ownership) is
 what forces the ownership design honest.
 
@@ -111,6 +111,12 @@ no bank, no funds: the customer is served and nothing is taken.
 > may be unable to remit the tax on its first sale**, which would make
 > *the first sale a venue ever makes* the one that always fails. A
 > bootstrap deadlock, invisible to any venue that has traded once.
+>
+> ⭐ **Partly answered (water supply, 2026-11-05):** the refusal now says
+> WHICH side failed — `refusedBroke` asks `BankingApi.canSettle`: the
+> buyer could pay → *the counter can't take payment*; the buyer could not
+> pay one coin → *you have nothing to pay with* (`bank open`); otherwise
+> *you can't cover it*. The cold-shop deadlock above is still unverified.
 >
 > ⚠ Reported, not fixed: it is this subsystem's, not a trade's. The live
 > evidence is the checkpoint
@@ -229,12 +235,78 @@ chattel stamps a discrete instance, so a fungible stack would fall through
 the buy/consign loops (a CI-adjacent content-integrity lint enforces this
 on the seeds).
 
+## ⭐⭐ The offer protocol — `ForSaleMixin` (harbors review, 2026-11)
+
+`buy` speaks **one** protocol: `lib/retail/ForSale.ts`, a thing that has
+something for sale. The view binds `reachable:[mixin.ForSaleMixin]`
+(`requires: [ForSaleMixin]` — *"{} has nothing for sale"*); the controller
+asks the bound thing `sellerFor(word)` (this one if it `offers(word)`,
+else another `ForSale` standing here that does — a market square's stalls
+each answer for their own; a seller the player NAMED is held to), hands
+that seller the whole `sell({buyer, word, ask})`, and says what comes
+back — `{ok, self, peers}` or `{ok: false, line, note}`. **Every refusal
+is the seller's and is returned before any money moves**; the controller
+holds no branch per seller and narrows by nothing but the mixin.
+`purchaserOf(buyer, receipt)` (the wallet's business, else the buyer) is
+the one shared rule. `ask` is the buyer's prompt, `null` for a script.
+
+⭐ It was extracted from what the counter already answered
+(`counterFor`/`resolveBuy`/`bringUpFor`/`carriesLine`/`priceFor` — the
+sequence that lived in `BuyController`), and it exists because the
+harbors build had grown a THIRD and fourth product on `Stock` — ships
+minted to order and boats let by the day — behind `minted:`/`rates:`
+fields on a shop counter. The user's review: a counter sells goods; a
+ship is title; a hire is a let. Each is now its own implementer (or its
+own book, for the let — `HireBook` and `rent`, which is not a sale).
+⭐ The let has ONE record, the boat's own hire (`HirableMixin.hireTo`,
+naming the book that let her): `HireBook` keeps only its authored `rates`,
+persists nothing, and reads which boats are out — and overdue — off the
+standing boats of the kinds it lets whose hire names it (harbors review
+2).
+
+| implementer | offers | the sale |
+|---|---|---|
+| `ConsignmentShelfMixin` | a good it holds a live listing for | the consignor's ask, the remainder split to them, title **transferred**; a `termsAskFor` hook lets a counter price a terms listing itself |
+| `Stock` (composes the shelf) | a line it carries (even bare), a priced good its house keeps lying in its room, or a consigned good | the closed sign first; a shelf good (brought up to order from a store), settled in full and **stamped**; else a listing as above; else ⭐ **a good sold where it lies** — priced on the counter with NO line (`prices` only), lying loose in the counter's room, the house's (stamped to its business or to nobody), not out on hire: settled, title **transferred**, nothing moved (a boat's bow line stays in her), custody re-read in place; else *sold out* (a line, or *there is no rowboat of the house's lying here*) / *isn't for sale here* |
+| `HullBook` (`/system/transport/thing/HullBook`, the yard) | a hull it lists, by kind or slot — sold out or not | **title** off a finite, authored list (`hulls: [{slot, kind, priceMinor}]`, the farmstead pattern): the closed sign; the first hull still on the stocks (*"the yard has no hull on the stocks"*); the register over the yard; her name asked (refused while the register has it); the slot claimed synchronously, then the money (given back if it does not come); her identity minted `<kind>/<serial>`, `Ship.commission` at the book's `quay:`; the sale kept in the book's own record — no restock |
+
+⚠ Worth stays on the offer (Law 1) and every sale settles through
+`EmploymentApi.settleSale` to a venue its house operates. ⛔ It is not a
+price list — `PricedOfferMixin` is the map a menu, a tariff and a counter
+share; `ForSale` is the act. `lint:counters` is unmoved: an implementer
+outside the kernel's `platform/**` (a pack's book) is not a counter class.
+
+**Sold where it lies, and title only.** The sale where a good lies
+transfers its title (the good's own `transferChattel`) and moves nothing, then
+calls the good's `followCustody()` so the new owner's estate records
+where they keep it ([chattel.md](./chattel.md)). Such a landing is
+**kept** — `platform/location/PersistentShore` (`Persistable(Shore)`):
+it lays its `props:` down once and its record is authoritative after, so
+the boat sold does not come back at the next restart (⚠ never a quay a
+ship makes fast at; her lines re-tie from her own record). The yard's
+`HullBook` sells a ship's TITLE: the ship, her register and her company
+are [ship.md](./ship.md)'s, the harbor that keeps the yard
+[harbor.md](./harbor.md)'s.
+
+**The let — `rent`** (`platform/cmd/retail/rent.yaml`,
+`RentController`): `rent <boat> for <n> days` at a `HireBook`
+(`platform/thing/HireBook`, a fixture; its house lists it in
+`operatingLocations`, so the day's money settles there). It lets only a
+boat of the house's lying in the book's room, refuses while the house is
+closed, takes `n ×` the book's `rates` for her kind up front, and puts
+her in the hirer's CUSTODY — her title stays the house's
+(`HirableMixin.hireTo`; ⛔ not on `Good`, a class composes it when its
+kind is let). The hire ends when she is put down on the landing she was
+let from (`endHire`, from her own `onMoved`; there is no return verb).
+Overdue is a fact on the book's page, never a penalty.
+
 ## The buy loop (`buy <thing>`, stamps ownership)
 
-`BuyController` (`platform/idea/cmd/retail/`, the new `retail` command category)
-resolves the good off the present `Stock` **or** a consignment listing on
-the `ConsignmentShelf`, settles a presented `Charge` (card → cash), hands
-the good over, and transfers ownership:
+`BuyController` (`platform/idea/cmd/retail/`, the `retail` command
+category) hands the sale to the seller (above). At a counter it resolves
+the good off the present `Stock` **or** a consignment listing on the
+`ConsignmentShelf`, settles a presented `Charge` (card → cash), hands the
+good over, and transfers ownership:
 
 - **stock good** — settle the full price to the store's Business account,
   remit the demo sales tax on it, and **stamp** the buyer
@@ -256,7 +328,7 @@ as *"float-rod" isn't for sale here* — while the counter's own
 `getLong()` still listed it ("On the shelves: float-rod (11), keepnet
 (6)"). `Stock.carriesLine(keyword)` answers *does a stock LINE carry
 this word*, matched against the template **leaf** — which is exactly
-what that description prints — and `BuyController` refuses a carried
+what that description prints — and the counter refuses a carried
 line with reason `sold-out` and prose that says so. ⚠ The match is the
 leaf only: a player who types a keyword the shelf list does not print
 (`cane` for `…/thing/rod`) still falls through to `not-on-shelf`. Every
@@ -277,12 +349,21 @@ sells ONE piece off a stocked heap at the piece price, and a counter must
 be one of its house's `operatingLocations` (`lint:shopfronts`). The fish stall (`market/thing/fish-stall.yaml`) is a second
 consignment counter with no lines of its own — self-service, capacity 40.
 
-## Consignment — custody-vs-ownership (`consign` / `reclaim`)
+## Consignment — custody-vs-ownership (`shelf consign` / `shelf reclaim`)
+
+> ⭐ **The shelf and the rack are books, so their transactions are their
+> nouns' subcommands** (controllers-are-io W7, D9): `shelf consign` /
+> `shelf reclaim` and `rack check` / `rack reclaim`, each stanza binding
+> its own book (`shelf` → `ConsignmentShelfMixin`, `rack` →
+> `HeldGoodsMixin`), the four controllers over `HeldGoodsControllerBase`.
+> The flat `consign`, `reclaim` (and `unconsign`) and `check` are gone.
+> ⚠ Fixed in passing: the flat `reclaim` required a consignment shelf, so
+> a checked weapon could not be reclaimed through the view at all.
 
 The store's brokerage layer over real ownership. With the stamp,
 consignment needs no bespoke ownership pointer:
 
-- **`consign <thing> --ask <coin>`** moves **custody** to the shop's
+- **`shelf consign <thing> --ask <coin>`** moves **custody** to the shop's
   `ConsignmentShelf` while your **owner-stamp stays put**. A
   `ConsignmentListing` (`{ listingId, itemChattelId, consignorKey,
   askMinor }`) is a brokerage record — ask price + payout target — **not**
@@ -303,7 +384,7 @@ consignment needs no bespoke ownership pointer:
   conservation holds (`reconcile().balanced`). The consignor need not be
   online — payout rides `primaryAccountIdOf`, a pure DB read.
   `commission = ask × retail.consignment.commissionRate`.
-- **`reclaim <thing>`** returns custody of an unsold listing — **no
+- **`shelf reclaim <thing>`** returns custody of an unsold listing — **no
   chattel op** (ownership never left you). It authorizes on
   `item.chattelOwner()`, not on possessing any ticket — so a non-owner
   reclaiming someone else's goods is refused (custody without title is
@@ -321,24 +402,25 @@ per-consignor cap, `buy` — so a `ConsignmentListing extends HeldGood`
 with an `askMinor`. The `ConsignmentShelf` public surface is unchanged;
 the sale controllers don't know the base exists.
 
-**The check rack (`check` — the bar-fight build)** composes **only the
+**The check rack (`rack check` — the bar-fight build)** composes **only the
 base**. `CheckRack` (`trade-hospitality/src/thing/CheckRack.ts` — a
 cloakroom is the publican's) = `Persistable +
-HeldGoodsMixin + FixtureMixin`, affording `check` + `reclaim`, never
-`consign`/`buy` — a checked weapon is a plain held good (no ask, no
+HeldGoodsMixin + FixtureMixin`, affording `rack check` + `rack reclaim` (the `rack` noun), never
+`shelf consign`/`buy` — a checked weapon is a plain held good (no ask, no
 listing), so there was never a "not-for-sale" flag to add: a coat check
-is the base without the marketplace. `check <weapon>` (gated on
+is the base without the marketplace. `rack check <weapon>` (gated on
 `CombatApi.isWeapon` — a shield is armor, refused) records a holding and
 mints a diegetic `Ticket` (the owner-stamp, not the ticket, is the
 reclaim authority — a lost ticket never traps your weapon). `buy` finds
 no consignment shelf at a rack, so a checked weapon simply isn't
-buyable; `reclaim` narrows on `HeldGoodsShelf`, so it serves both a store
+buyable; `shelf reclaim` and `rack reclaim` are one act over `HeldGoodsShelf`
+(`HeldGoodsControllerBase.reclaimFrom`), each binding its own book, so it serves both a store
 shelf and a check rack. The lounge's rack rides `FixtureMixin`'s `seatIn`
 self-seat into the Warren host (the TPA-terminal precedent), so it stands
 on the combat-free lounge side of the door to Dave's Bar.
 
 The `ConsignmentShelf` (`trade-shopkeeping/src/thing/ConsignmentShelf.ts`;
-its mixin and surfaces stay in `lib/retail/Consignment.ts`) composes
+its mixin and surfaces stay in `lib/retail/HeldGoods.ts` (the rack half) and `lib/retail/ConsignmentShelf.ts`) composes
 `Persistable`, which is **load-bearing, not incidental**: it captures the
 consigned goods + their `_chattelId`s into a durable record, so a consigned
 player-owned good survives a relog while in the shop's custody (a transient
@@ -378,8 +460,8 @@ names the HOST shelf (`{ stock, shelf, ask: {censusKey: minor},
 defaultAsk?, batch? }`). The annex names the host; the distributor names
 nobody. The hand holds a `purchases` position, carries the house card,
 and each beat `get`s up to `batch` goods, teleports to the counter,
-`wallet use house`, `consign <kw> --ask <n>` — as the business
-(`ConsignController` accepts an `organization` owner the giver buys for;
+`wallet use house`, `shelf consign <kw> --ask <n>` — as the business
+(`ShelfConsignController` accepts an `organization` owner the giver buys for;
 the listing's `consignorKey` is the outfit's path, and "each consignor's
 account rises on resale" is the shipped split leg). The floor itself
 stands at par because the outfit's Stock NAMES its lines (`stockLines`,
@@ -432,7 +514,7 @@ coinage-clean ladder (2..10) against the 20-credit stipend. **Independent**
   supplier's PRICE (owed at sale), the shop sets its own ask and keeps the
   margin, and a `buy` posts twice (the sale, then the shop's `terms` leg to
   its supplier). The cash-and-carry says `purchasing: terms`; so does every
-  rented stall. `reclaim` admits the house an actor buys for, so a
+  rented stall. `shelf reclaim` admits the house an actor buys for, so a
   supplier's hand takes an unpaid crate back.
 - **`from: { supplier }` / `pricing`**: a supplied line is bought by the
   keeper's `stocks` beat and never cloned by `reset()`. `pricing: stocking`
@@ -451,7 +533,7 @@ coinage-clean ladder (2..10) against the 20-credit stipend. **Independent**
   Alice at four zorkmids* / *the shop asks two zorkmids*.
 - **The per-shelf cap**: `listingCapOverride` on a wholesale shelf (the
   cash-and-carry authors 120; the produce stalls 200) — and the
-  `consigns` brain honors the shelf's own cap, as `consign` does.
+  `consigns` brain honors the shelf's own cap, as `shelf consign` does.
 - **A player shop is a rented stall** — `stall rent` / `stall give-up`
   on the market square (`MarketStalls`, the terminus pack): a counter
   keyed to the **pitch** it stands on, a house re-minted from the
@@ -613,3 +695,36 @@ and pearl ash; the Hanging Wood glasshouse's chalked board buys pearl ash
 and black salts. The ash round is a sole trader who buys at the hearth at
 the chandlery's own bid and sells at its counter. See
 [potash.md](potash.md).
+
+## History — the harbors build (MR !511, 2026-11)
+
+The build first sold ships and day hires off `Stock` (`minted:` /
+`deliversTo` lines, `Stock.rates` / `Stock.hires`). Review round 1
+reverted that: the hire book took the let (`f3305cb19`), `Stock` went back
+to selling goods (`f91ad08c7`), `buy` became one offer protocol
+(`ForSaleMixin`, `d898a4a15`; `Stock.counterFor` generalized into
+`sellerFor`), a ship became title off the yard's `HullBook` (`af492d81d`),
+and a boat became a priced good sold where it lies on a kept
+`PersistentShore` (`0b7c75e60`).
+
+## ⭐⭐ The board decides (controllers-are-io D11)
+
+`PricedOfferMixin.orderPlanFor(req)` refuses by default (a shelf prices and takes
+no orders); `Tariff` does the six services and `CommerceMenu` the drink. Each
+answers an `ActPlan` or a reason, and `order` words it. A quote's facts come back
+before any money moves, so the question to the customer stays the controller's.
+The durations are the board's: a transfusion's `TRANSFUSE_DURATION_S`, a bath's
+12 s.
+
+`order repair for sword`: **the subject is a view arg**, `for`, and no longer the
+tail of the phrase. `counter` binds every reachable tariff; the controller narrows
+to those that take the word (`offersOrder`) and asks only when two do, through
+the binder's own cardinality policy. That retired the two-houses scan without a
+prompt on every order in a ward with two boards.
+
+⚠ `shrunk` is no ruin: hot water takes 3% off a cut, and counting it made every
+hot wash of plain linen pay the customer the house's cover (a 3 wash against a 20
+cover).
+
+⚠ Still open, and recorded by the same step: a transfusion collects at completion,
+outside the command frame, where the bath's comment says there is no acting payer.

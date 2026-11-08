@@ -24,8 +24,10 @@
  * honest about what the act is: the bees made it for themselves.
  */
 
-import { TapActController } from '@saxonberg/server/mud/platform/idea/cmd/inventory/TapActController';
+import { TapActController, type TapWords } from '@saxonberg/server/mud/platform/idea/cmd/inventory/TapActController';
 import { Mml } from '@saxonberg/server/mud/api/mml';
+import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type { Producing } from '@saxonberg/server/mud/lib/husbandry/Producing';
 
 export default class RobController extends TapActController {
   protected tapKey(): string {
@@ -34,5 +36,31 @@ export default class RobController extends TapActController {
 
   protected nothingHere(): ReturnType<typeof Mml.compose> {
     return Mml.compose`There is nothing here to rob.`;
+  }
+
+  /** ⭐ The hive's voice (D4): the flow's refusal is the season's, not the colony's. */
+  protected override tapWords(giver: Stuff, subject: Stuff & Producing): TapWords {
+    const base = super.tapWords(giver, subject);
+    return {
+      ...base,
+      beginSelf: () => Mml.compose`You smoke them down and start lifting frames.`,
+      onRefused: (out) => {
+        switch (out.reason) {
+          case 'season-no-forage':
+            return Mml.compose`Nothing is in bloom within range of them. Out of the flow there is simply nothing to take, and the refusal is the season’s rather than the colony’s.`;
+          case 'nothing-standing':
+            return Mml.compose`Nothing capped. Out of the flow there is simply nothing to take, and the refusal is the season’s rather than the colony’s.`;
+          default:
+            return base.onRefused(out);
+        }
+      },
+      onDone: (d) => {
+        if (d.kind !== 'drawn') return base.onDone?.(d) ?? null;
+        const frames = d.minted.length;
+        return {
+          self: Mml.compose`You lift out frame after frame of sealed comb and set them aside — ${String(Math.round(d.drawn * 100) / 100)} kilos of it across ${String(frames)} ${frames === 1 ? 'frame' : 'frames'}, dripping where the knife went through.`,
+        };
+      },
+    };
   }
 }

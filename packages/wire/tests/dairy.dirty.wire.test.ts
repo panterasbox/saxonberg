@@ -243,7 +243,7 @@ async function emptyPail(): Promise<void> {
 /** Move the character by reopening the session where it needs to be. */
 async function goTo(where: string): Promise<void> {
   k?.close();
-  k = await Session.open(handle, { startLocation: where, wizard: true });
+  k = await Session.open(handle, { startLocation: where });
   await k.drainProse();
 }
 
@@ -265,7 +265,9 @@ async function kelvinOf(s: Session, what: string): Promise<number> {
  * (`fromStored` denied) and the dispatch never answers.
  */
 async function mint(where: string, path: string, count = 1): Promise<void> {
-  const gov = await Session.open('founder', { startLocation: where, wizard: true });
+  // `clone` asks the KIND's title: the one kind minted here (the copper
+  // ore) is Rejection's, so the founder sits on its committee.
+  const gov = await Session.open('founder', { startLocation: where, committees: ['/world/terminus/rejection'] });
   try {
     for (let i = 0; i < count; i++) {
       const r = await gov.cmd(`clone ${path} --here`);
@@ -290,7 +292,9 @@ async function daylight(): Promise<void> {
 
 /** As the founder, run a setup `eval` in `where` under `parcel`'s title. */
 async function founderEval(where: string, parcel: string, code: string): Promise<void> {
-  const gov = await Session.open('founder', { startLocation: where, wizard: true });
+  // `eval --parcel` asks the parcel's committee: seated, not a credential
+  // (wizard-axis D13).
+  const gov = await Session.open('founder', { startLocation: where, wizard: true, committees: [parcel] });
   try {
     const r = await gov.cmd(`eval --parcel ${parcel} ${code}`);
     note(`(founder eval → ${(await r.said()).slice(0, 120)})`);
@@ -306,12 +310,12 @@ beforeAll(async () => {
   // wedge from somebody with nowhere to be paid (correctly). Opened first:
   // a wedge carried to the bank through a winter street froze and turned
   // (run 21 — the climate build's freeze reaches what you carry).
-  k = await Session.open(handle, { startLocation: BANK_HALL, wizard: true });
+  k = await Session.open(handle, { startLocation: BANK_HALL });
   await k.drainProse();
   const opened = await k.cmd('bank open');
   expect(refusedFor(opened)).toBeNull();
   k.close();
-  k = await Session.open(handle, { startLocation: BYRE, wizard: true });
+  k = await Session.open(handle, { startLocation: BYRE });
   await k.drainProse();
 }, 300_000);
 
@@ -493,7 +497,7 @@ suite('7–9 (afternoon). the pan has separated; skim off; churn the cream cool'
     await advance('2 hours');
     const t = await kelvinOf(k, 'churn');
     note(`cream in the churn at ${t} K`);
-    const churned = await doing(k, 'churn churn');
+    const churned = await doing(k, 'stir churn');
     expect(churned).toMatch(/come|butter|thump/i);
     expect(churned).not.toMatch(/will not come|greasy/i);
   });
@@ -520,7 +524,7 @@ suite('5. milk left warm turns; milk in the cheese room keeps', () => {
     // Wait on the TURN (bounded): how fast warm milk goes depends on how
     // warm the room is, which is now the season's and the walls'.
     let warm = await read(k, 'smell jug');
-    for (let i = 0; i < 4 && !/sour|off|turn|taint|spoil|rank|rotten|foul/i.test(warm); i++) {
+    for (let i = 0; i < 4 && !/sour|off|turn|taint|spoil|rank|\brot|foul/i.test(warm); i++) {
       await advance('6 hours');
       warm = await read(k, 'smell jug');
     }
@@ -529,8 +533,8 @@ suite('5. milk left warm turns; milk in the cheese room keeps', () => {
     await k.drainProse();
     const cool = await read(k, 'smell butter-crock');
     note(`smell crock (the cheese room) → ${cool}`);
-    expect(warm).toMatch(/sour|off|turn|taint|spoil|rank|rotten|foul/i);
-    expect(cool).not.toMatch(/sour|off|turn|taint|spoil|rank|rotten|foul/i);
+    expect(warm).toMatch(/sour|off|turn|taint|spoil|rank|\brot|foul/i);
+    expect(cool).not.toMatch(/sour|off|turn|taint|spoil|rank|\brot|foul/i);
     await doing(k, 'get butter-crock');
     await doing(k, 'spill butter-crock');
     await say(k, 'up');
@@ -698,7 +702,8 @@ suite('24. Rejection’s goats: the same acts, a different milk, no new verb', (
     await doing(k, 'pour me:i:pail into vat');
     const vat = await read(k, 'look vat');
     note(`look vat (goat's milk) → ${vat}`);
-    expect(vat).toMatch(/milk|goat/i);
+    // The vat reads what it holds as it looks: goat-milk's own appearance.
+    expect(vat).toMatch(/faintly animal/i);
     // ⛔ The rest — raw milk left to sour on its own (a day's lag and
     // more, walked in half-day steps) and a day in the hoop — is a SPAN
     // and lives in dairy.soak.dirty (the soak-harness census). What blocks
@@ -735,7 +740,7 @@ suite('16–19. the wheel ripens on the rack; it splits into wedges; a wedge sel
     await say(k, 'up');
     await k.drainProse();
     await goTo(CREAMERY);
-    const listed = await doing(k, 'consign wedge --ask 12');
+    const listed = await doing(k, 'shelf consign wedge --ask 12');
     note(`consign wedge → ${listed}`);
     const shelf = await read(k, 'look shelf');
     expect(shelf).toMatch(/wedge|cheese/i);
@@ -750,21 +755,24 @@ suite('20. butter fries roots at the cookhouse, as a fat', () => {
     await doing(k, 'get butter-crock');
     await goTo(COOKHOUSE);
     await untilHour(12);
-    // The cookhouse oven is cold until somebody feeds it.
+    // The cookhouse oven is cold until somebody feeds it. ⚠ Its cordwood is
+    // shared with every file that cooks there (cooking, food-safety,
+    // cleanliness each take a log), so bring one, as cleanliness does.
+    await mint(COOKHOUSE, '/stuff/thing/items/dry-log');
     await act(k, 'get log');
     // ⚠ Fuel first: `stoke log into oven` (the view's own help says
     // `stoke hearth with charcoal`, which binds the charcoal as the fire).
     await doing(k, 'stoke log into oven');
-    await act(k, 'ignite oven');
+    await act(k, 'light oven');
     // ⚠ `add`, not `pour`: two views claim `pour`, and into a pot the BULK
     // one wins — the butter went into the pot's interior, the build never
     // saw it, and the two roots matched ROASTED roots (run 14). `add` is
     // the build step's own word (a standard measure, 0.06 L).
-    const fat = await doing(k, 'add butter-crock to pot');
+    const fat = await doing(k, 'pour butter-crock to pot');
     note(`butter into the pot → ${fat}`);
     await doing(k, 'drop butter-crock');
-    await doing(k, 'add roots to pot');
-    await doing(k, 'add roots to pot');
+    await doing(k, 'pour roots to pot');
+    await doing(k, 'pour roots to pot');
     await doing(k, 'heat pot');
     const plated = await doing(k, 'plate pot into dish');
     note(`plate → ${plated}`);
@@ -825,6 +833,10 @@ suite('26. a cow left unmilked dries off; back in the book she rests; then she i
     const cow = await read(k, 'look cow');
     note(`look cow (redrafted at once) → ${cow}`);
     expect(cow).toMatch(/dried off/i);
+    // Back in the book: left out, she stands in the byre beside 22–23's
+    // number 3, `milk cow` binds the first of the two — her, dry — and the
+    // stranger's pail is empty (the W10/W11 red).
+    await doing(k, 'return cow');
   });
 
   // ⛔ Four days' rest is a SPAN step: back in milk after the rest lives
@@ -858,7 +870,7 @@ suite('22–23. an unwashed hand, raw milk, and a stranger who drinks it', () =>
       startLocation: YARD,
     });
     await stranger.drainProse();
-    await doing(stranger, 'get pail');
+    await doing(stranger, 'get 1 pail');
     const drank = await act(stranger, 'drink pail');
     expect(refusedFor(drank.r)).toBeNull();
     await advance('18 hours');
@@ -940,7 +952,7 @@ suite('19a. the smelt fills the crucible; the smelter pours the mould', () => {
     await goTo(SMELTER);
     await doing(k, 'stoke charcoal into furnace');
     await doing(k, 'stoke charcoal into furnace');
-    await doing(k, 'ignite furnace');
+    await doing(k, 'light furnace');
     await act(k, 'pump bellows');
     // ⚠ Preheat: 0.17 kg of copper tapped into a COLD crucible sets on
     // contact — run 29 poured nothing straight after the tap. A smelter

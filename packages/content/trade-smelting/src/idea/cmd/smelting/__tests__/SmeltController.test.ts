@@ -36,7 +36,7 @@ import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { SchedulerApi } from '@saxonberg/server/mud/api/scheduler';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { ExecutionContextApi } from '@saxonberg/server/mud/api/execution-context';
-import { Reserve } from '@saxonberg/server/mud/lib/reserve';
+import { Reserve } from '@saxonberg/server/mud/lib/reserve/Reserved';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { PersistApi } from '@saxonberg/server/mud/api/persist';

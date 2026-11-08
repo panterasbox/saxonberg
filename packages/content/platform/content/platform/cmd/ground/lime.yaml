@@ -1,4 +1,5 @@
 verbs: [lime]
+category: ground
 controller: /platform/idea/cmd/ground/LimeController
 description: "Spread marl or lime on sour ground"
 help: |
@@ -27,7 +28,7 @@ args:
   #
   # ⚠ `me:i` — in hand or carried: you spread what you brought. And it is a
   # declared arg rather than a walk over your pockets so a player can say
-  # WHICH sack (`lint:instrument-args`).
+  # WHICH sack (`lint:controller-resolution`).
   - name: agent
     type: object
     required: false

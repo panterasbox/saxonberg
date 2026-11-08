@@ -9,7 +9,6 @@
     "@saxonberg/content-generic-objects": "workspace:*",
     "@saxonberg/content-platform": "workspace:*",
     "@saxonberg/content-trade-farming": "workspace:*",
-    "@saxonberg/content-trade-fishing": "workspace:*",
     "@saxonberg/content-trade-shopkeeping": "workspace:*",
     "@saxonberg/content-trade-textiles": "workspace:*",
     "@saxonberg/server": "workspace:*",

@@ -14,8 +14,9 @@
 # was historically worn undyed or bleached and wool was the coloured
 # cloth. The dyeing trade reads this tag; nothing else distinguishes a
 # plant fibre from a protein one.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  burning: [{ aroma: /base-library/aromas/paper-smoke, strength: 300 }]
   name: linen
   keywords: [flax, linen]
   # ⚠ A material must not assert a CONSTRUCTION. Linen is the fibre;
@@ -39,6 +40,10 @@ data:
   waterAbsorptionCapacity: 20
   # Elasticity (% strain it springs back from; rubber build).
   elasticity: 3
+  # ⭐ It burns (paint D15): a dry cloth catches near 680 K; an oily one far
+  # lower (the rag heap that sets a shed alight).
+  heatOfCombustion: 16
+  autoignitionTemperature: 680
   edibility: false
   nutrients: []
   toxicity: []

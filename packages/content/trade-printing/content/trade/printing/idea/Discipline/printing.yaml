@@ -1,0 +1,15 @@
+# Printing (paper W5) — setting type, proofing, pulling a press; copying by hand.
+class: /platform/idea/Discipline
+data:
+  key: printing
+  channel: skill
+  label: Printing
+  iscedf: "0211"
+  description: >-
+    Setting type from the case letter by letter and line by line, reading it
+    backwards in the stick; proofing — finding the turned letter and the
+    dropped line before the run rather than after; inking even and pulling
+    clean; and putting every sort back where it lives. Copying by hand is the
+    same eye at a slower pace.
+  specializes: []
+  requires: []

@@ -57,15 +57,74 @@ import { AppApi } from "../../api/app";
 import { AddressApi } from "../../api/address";
 import { BiomeApi } from "../../api/biome";
 import { WeatherApi } from "../../api/weather";
+import { ParcelApi } from "../../api/parcel";
+import { AccessApi } from "../../api/access";
+import { EmploymentApi } from "../../api/employment";
+import { PersistableApi } from "../../api/persistable";
+import { ContainmentApi } from "../../api/containment";
+import { LandUses } from "../parcel/LandUse";
 import { AppSettingKeys } from "../config/AppSettings";
 import { TemplatePaths } from "../paths";
 import { Quantity } from "../quantity";
-import type { Reserved } from "../reserve";
+import type { Reserved } from "../reserve/Reserved";
 import type { Stuff } from "../stuff/Stuff";
+import type { Growing, HarvestRefusal } from "./Growing";
+import type { Plantable, PlantBegin, PlantDone, PlantRefusal, ZonedAgainst } from "./Plantable";
+import type { ActDone, ActPlan } from "../craft/ActPlan";
+import type { Tooled } from "../craft/Tool";
+import type { Throttleable } from "../spatial/Throttleable";
+import type { Irrigating } from "./Irrigating";
 import type { Container } from "../spatial/Container";
 import type Locality from "../../platform/idea/Locality";
 
 const SECONDS_PER_GAME_DAY = 86_400;
+
+/**
+ * The most steps one soil window is walked in — daily up to this, longer
+ * steps beyond it. Every step stays well inside the weather walk's
+ * 30-day segment cap, so no rain is dropped off the front of a window.
+ */
+const SOIL_MAX_STEPS = 180;
+
+/** How water is let onto ground (water-supply D15). */
+export type InletMethod = 'flood' | 'furrow' | 'basin' | 'overhead';
+
+/** One inlet onto a ground: the gate, the method, its capacity, its water's salt. */
+export interface InletSpec {
+  gate: string;
+  method: InletMethod;
+  capacityLps?: number;
+  salinityPpt?: number;
+}
+
+/**
+ * The share of the water let in that the soil keeps, by method — the rest
+ * runs off the end or soaks past the roots. Flood is the oldest and the
+ * most wasteful; a banked basin keeps the most (water-supply D15).
+ */
+const INLET_EFFICIENCY: Record<InletMethod, number> = {
+  flood: 0.5,
+  furrow: 0.65,
+  basin: 0.8,
+  overhead: 0.85,
+};
+
+/**
+ * ⭐ An OVERHEAD inlet loses water in the air before it lands (water-supply
+ * D15, step 27): wind DRIFT carries the spray off the ground, and the
+ * spray EVAPORATES in the heat of an open sky — so a sprinkler at noon in
+ * a wind delivers measurably less than the same one at dawn. Derived from
+ * the weather the ground stands in, never a flat number (the browser walk
+ * found a flat 0.75 and no field using it). Grain, not law: the shares.
+ */
+const OVERHEAD_DRIFT_PER_MPS = 0.02;
+const OVERHEAD_DRIFT_CAP = 0.4;
+const OVERHEAD_EVAP_PER_K = 0.015;
+const OVERHEAD_EVAP_FROM_K = 283;
+const OVERHEAD_EVAP_CAP = 0.4;
+
+/** How fast standing water drains off or soaks away, share per game day. */
+const POND_DRAIN_PER_DAY = 0.3;
 
 /**
  * The fraction of newly-worked organic matter available as nitrogen
@@ -151,8 +210,176 @@ function clamp01(x: number): number {
   return x < 0 ? 0 : x > 1 ? 1 : x;
 }
 
+/**
+ * What a ground answers when a verb names (or does not name) a part of it
+ * — *at the top end* (field population D5). `part` is `null` on one-piece
+ * ground. A refusal carries its own line: the ground decides and says
+ * why, the controller only sends it.
+ */
+export type PartResolution =
+  | { ok: true; part: (Stuff & Soil) | null }
+  | {
+      ok: false;
+      reason: "part-unnamed" | "not-a-part-here";
+      line: string;
+    };
+
+/** ⭐ `sow`: broadcast `seed` over this ground (controllers-are-io D11). */
+export interface SowRequest {
+  by: Stuff;
+  seed: Stuff & Plantable;
+  /** `--at <part>`: which part of a divided field. */
+  part: (Stuff & Soil) | null;
+  /** A seed drill within reach: rows, at its own share of the rate. */
+  drill: (Stuff & Tooled) | null;
+}
+
+/** Felt cost of one cast, percentage points of a fresh body (D5). */
+const SOW_FELT_COST = 5;
+
+/**
+ * The identity of a piece of ground for the parcel registry: the persistence
+ * KEY when it has one (a plotted field is cloned per lot and shares its
+ * template path), else the template path.
+ */
+function groundPath(ground: Stuff): string {
+  // ⚠ Only an EXPLICIT key — an establishing context's per-instance key
+  // (a lot's parcel extent). A keyless host stashes a scope-derived owner
+  // there, which is no path at all, so the parcel registry would answer
+  // *nobody's ground* and a stranger could sow the university's field.
+  const keyed =
+    MixinApi.isPersistable(ground) && ground.isPersistenceKeyExplicit()
+      ? ground.getPersistenceKey()
+      : null;
+  return keyed ?? ground.getTemplatePath() ?? "";
+}
+
+/**
+ * ⭐ **Who may sow** (cover build D6): whoever holds the ground's parcel, or a
+ * hand on shift for a business that works it — the IceSheet precedent. Ground
+ * no parcel covers is not policed (*measure nothing, police nothing*).
+ */
+async function maySow(by: Stuff, ground: Stuff): Promise<boolean> {
+  const covering = await ParcelApi.coveringParcelOf(groundPath(ground));
+  if (!covering) return true;
+  const extent = covering.getExtent();
+  const held = await AccessApi.heldExtents(by);
+  if (held.some((e) => extent === e || extent.startsWith(`${e}/`))) return true;
+  if (!MixinApi.isEmployed(by)) return false;
+  return EmploymentApi.operatorsAt(ground).some((b) =>
+    by.isOnShiftFor(b.getOrganizationPath()),
+  );
+}
+
+/**
+ * The square metres a piece of ground covers: the host's own figure when it
+ * answers `soilCatchmentAreaM2` (a field's area IS the sky it catches), else
+ * unbounded — ground that never said how big it is is never "full".
+ */
+function groundAreaM2(ground: Stuff & Soil): number {
+  const m2 = ground.soilCatchmentAreaM2();
+  return m2 > 0 ? m2 : Number.POSITIVE_INFINITY;
+}
+
+/**
+ * The sowing landed. Re-checks that the sower still stands on the ground and
+ * still holds the seed, then spends the seed, creates or widens the crop,
+ * settles whose it is, and captures.
+ */
+async function landSowing(
+  req: SowRequest,
+  ground: Stuff & Soil & Container,
+  crop: Stuff & Growing,
+  fresh: boolean,
+  area: number,
+  rate: number,
+): Promise<ActDone<PlantDone, PlantRefusal>> {
+  const { by, seed, part } = req;
+  const discard = async (): Promise<void> => {
+    if (fresh && !crop.isDestroyed()) await StuffApi.destruct(crop);
+  };
+  if (by.isDestroyed() || seed.isDestroyed() || crop.isDestroyed()) {
+    await discard();
+    return { ok: false, reason: "walked-off", facts: {} };
+  }
+  const here = MixinApi.isContainable(by) ? by.getContainer() : null;
+  if ((here as Stuff | null) !== (ground as Stuff)) {
+    await discard();
+    return { ok: false, reason: "walked-off", facts: {} };
+  }
+  await seed.spendSeed(area * rate);
+  ground.reconcileSoil();
+  if (fresh) {
+    crop.setSownAreaM2(area);
+    // ⭐ Rooted in the part it was sown into, by key, BEFORE the move —
+    // so it never reads the whole field's soil, even for a moment.
+    if (part) crop.setGroundPart(part.soilPartKey());
+    if (MixinApi.isContainable(crop)) ContainmentApi.move(crop, ground);
+  } else {
+    crop.addSownAreaM2(area);
+  }
+  try {
+    await ground.ensureCropTitle();
+  } catch (err) {
+    console.warn("Soil: settling the crop title failed:", err);
+  }
+  try {
+    await PersistableApi.captureHostOf(crop);
+    await PersistableApi.captureHostOf(ground);
+  } catch (err) {
+    console.warn("Soil: capture after sowing failed:", err);
+  }
+  try {
+    if (MixinApi.isAdvancing(by)) {
+      await by.creditDeed({
+        discipline: crop.getDiscipline(),
+        difficulty: "trivial",
+        outcome: "success",
+      });
+    }
+  } catch (err) {
+    console.warn("Soil: recording the deed failed:", err);
+  }
+  return {
+    ok: true,
+    facts: {
+      kind: "sown",
+      crop,
+      part,
+      phrase: crop.cropAreaPhrase(groundAreaM2(part ?? ground)),
+    },
+  };
+}
+
 /** The public surface soil offers — the ground's own state. */
 export interface Soil {
+  /**
+   * ⭐ **Broadcast a seed over this ground** (cover build D4). One act covers
+   * `husbandry.sowHandM2` (a strip across the field), or less when the seed
+   * or the ground runs out; seed is spent at the crop's own rate, so a third
+   * of a field's seed sows a third of it. The first act creates the crop; a
+   * later act of the same kind widens it. ⭐ On a divided field the cast goes
+   * into the PART named, and fills that part up to its own area. Choosing
+   * where is the player's job; the game never picks for them.
+   */
+  sowPlanFor(
+    req: SowRequest,
+  ): Promise<ActPlan<PlantBegin, PlantDone, PlantRefusal> | PlantRefusal>;
+  /**
+   * ⭐ Which stand a harvest of `stand` means on this ground, given the part
+   * named: the ground decides whether one must be named, and says so.
+   */
+  harvestPartFor(req: {
+    stand: Stuff & Growing;
+    part: (Stuff & Soil) | null;
+  }): { ok: true; stand: Stuff & Growing } | HarvestRefusal;
+  /**
+   * ⭐ The parcel's verdict on cultivating at `site`, or null: a site on a
+   * use that admits no cultivation. ⚠ UNPARCELLED GROUND IS NOT POLICED —
+   * `landUseOf` is total and answers `wild` for ground nobody has claimed,
+   * but "nobody has zoned this" is not "this is zoned against you".
+   */
+  cultivationZoningAt(site: Stuff): Promise<ZonedAgainst | null>;
   // ---------- the soil window ----------
 
   /** Reconcile the soil over elapsed game-time. Sync, read-triggered. */
@@ -241,12 +468,145 @@ export interface Soil {
    */
   soilCatchmentAreaM2(): number;
   /**
+   * ⭐ Bring the water let in through this ground's INLETS up to now
+   * (water-supply D15): each inlet integrates its gate's opening over the
+   * gap, the method decides how much the soil keeps, and what the soil
+   * cannot hold stands on it (ponding). Async because the gate is loaded
+   * on use; an inlet whose gate will not resolve does not advance its
+   * stamp — unresolved never reads as dry.
+   */
+  settleInlets(nowS: number): Promise<void>;
+  /**
+   * ⭐ The open seconds of a throttled spray over `[fromS, toS]`, each hour
+   * weighted by the share that LANDS in this ground's weather (wind drift,
+   * heat) — what an overhead inlet and a sprinkler standing here both read.
+   */
+  landedOpenSeconds(spray: Stuff & Throttleable, fromS: number, toS: number): Promise<number>;
+  /** Litres standing on this ground — what the soil could not take in. */
+  getPondedL(): number;
+  /** Stand `litres` of water on this ground — a flood, or the drive's staging. */
+  pond(litres: number): void;
+  /**
+   * What a pour leaves standing, once the soil has `absorbed` what it could of
+   * `poured` litres at `salinityPpt`: it stands, and its salt stays. Returns the
+   * litres left standing, 0 when none worth saying.
+   */
+  takeStanding(poured: number, absorbed: number, salinityPpt?: number): number;
+  /** Is `litres` so little over this ground that it barely shows? */
+  barelyShows(litres: number): boolean;
+  /**
+   * @hook Does water the soil cannot take STAND on this ground? A field and
+   * a bed: yes. A pot with a drainage hole: no — it runs out of the bottom.
+   */
+  soilAcceptsPonding(): boolean;
+  /** Salt arriving in water poured onto this ground, kg. */
+  addSoilSalt(kg: number): void;
+  /**
+   * ⭐ The soil solution's salinity, dS/m — the salt irrigation water left
+   * behind, over the water the soil holds. Maas–Hoffman reads it.
+   */
+  soilSalinityDsm(): number;
+  /**
    * @hook Fraction of the standing nitrogen a millimetre of rain carries
    * past the roots. ⭐ The host answers, because only the host knows its
    * own TEXTURE: sand leaks and clay holds. That is D2's multiplication
    * made concrete — the seeded character modulating a derived reserve.
    */
   soilLeachRate(): number;
+  /**
+   * @hook Why this ground refuses a SOWING right now, in words, or
+   * `null` when it may be sown (cover build D4). Default `null` — a pot
+   * or a bed is never refused by its ground. A field answers *not
+   * ploughed for the season* or *a different crop stands in it*: the
+   * seedbed is the ground's state, so the verb asks the ground.
+   */
+  sowingRefusal(): string | null;
+  /**
+   * @hook How hard the drinkers draw across the window `fromS..toS`, as a
+   * multiplier on their demand. Default: the shipped warmth read (a
+   * thermal host's last ambient). Ground that knows its season — a field
+   * — answers the window's MEAN, so a winter nobody watched does not
+   * drink like a summer (cover build).
+   */
+  soilDrawFactor(fromS: number, toS: number): number;
+  /**
+   * @hook Settle WHOSE the crop standing in this ground is, before a
+   * harvest mints from it or right after a sowing creates it (cover
+   * build D6). Default resolves at once — a pot's plant is whoever
+   * planted it. A field stamps its crop to the business that works it.
+   * ⛔ Called by the ACTS that need it (sow, harvest), never by a read.
+   */
+  ensureCropTitle(): Promise<void>;
+
+  // ---------- ⭐ a soil made of parts (field population D3) ----------
+
+  /**
+   * @hook The named parts this ground is divided into; `[]` = one piece
+   * (the default, and every pot, bed and unpatched field). When a ground
+   * HAS parts, its own reads and writes aggregate over them — so a
+   * caller that asks the whole field gets the whole field's answer, and
+   * the parts keep the soil.
+   */
+  soilParts(): readonly (Stuff & Soil)[];
+  /**
+   * @hook This ground's key as a PART of a larger ground (`top-end`);
+   * `''` for whole ground. A plant standing in the larger ground binds to
+   * its part by this key.
+   */
+  soilPartKey(): string;
+  /**
+   * @hook Topsoil depth in metres, or `null` when unmodelled (a pot has
+   * a volume, not a depth). The roots read it.
+   */
+  soilDepthM(): number | null;
+  /**
+   * @hook Square metres of THIS ground's own soil that lie between its
+   * parts — the unmarked ground of a tract (tracts build D25). Default:
+   * the catchment less every part's. Counted as one more term in every
+   * aggregate read only when it is `> 0` and the host keeps a moisture
+   * reserve of its own, so a pot, a bed and a field cut wholly into
+   * parts read exactly as before.
+   */
+  soilRemainderAreaM2(): number;
+  /**
+   * @hook The word for one of this ground's parts in a refusal — *"Which
+   * part? Name one: …"*. Default `'part'`; a tract answers `'field'`.
+   */
+  soilPartNoun(): string;
+  /** The part whose key is `key`, or `null` (an empty key is whole ground). */
+  soilPart(key: string): (Stuff & Soil) | null;
+  /**
+   * Why an act on this ground must name a part, in words, or `null` when
+   * it need not (one piece, or a single part).
+   */
+  soilPartRefusal(): string | null;
+  /**
+   * Resolve the part an act names — or, naming none, whether that is
+   * enough here. See {@link PartResolution}.
+   */
+  resolvePartFor(named: (Stuff & Soil) | null): PartResolution;
+  /**
+   * Litres this ground can still take before it is full, reconciled —
+   * summed over its parts when it has them. What `water` sizes its
+   * measure against.
+   */
+  soilMoistureHeadroomL(): number;
+  /**
+   * Points of nitrogen this ground can still take, reconciled — the
+   * area-weighted mean over its parts when it has them (the reserve is a
+   * per-cent: feeding a divided field raises every part alike). What
+   * `feed` sizes its measure against.
+   */
+  soilNutrientHeadroom(): number;
+  /**
+   * The area crop rooted in `part` of this ground — the whole ground when
+   * `part` is `null` — or `null` when nothing is sown there. ⭐ Asked of a
+   * PART itself (`water the top end`), it answers the crop rooted in that
+   * part: a part holds nothing, so it asks the ground it is fixed to.
+   * What `water`/`feed` aimed at ground reach before the soil (field
+   * population D18).
+   */
+  rootedAreaCrop(part: (Stuff & Soil) | null): (Stuff & Growing) | null;
 }
 
 /**
@@ -255,6 +615,9 @@ export interface Soil {
  * inside this factory would collapse TypeScript's inference through the
  * returned class and strip the `Stuff` baseline from every consumer.
  */
+/** A pour under this many litres a square meter barely shows: a can on a thousand square meters. */
+const BARELY_SHOWS_L_PER_M2 = 0.1;
+
 export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
   Base: TBase,
 ) {
@@ -277,20 +640,278 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
      */
     static _mixinName: string = Mixins.Soil;
 
-    /** The soil's two checkpoints travel with the ground they belong to. */
+    /**
+     * The soil's two checkpoints travel with the ground they belong to.
+     *
+     * ⭐ Every one is `runtimeState` — engine-written, never authored —
+     * and that is load-bearing for ground that is a FIXTURE (a field's
+     * patch, field population R4): a fixture's state rides its host's
+     * record only for `persistent && runtimeState` fields, so a stamp
+     * marked `persistent` alone would come back zero on a restart and the
+     * window it closed would re-open from nothing.
+     */
     static fieldMeta: FieldMeta = {
-      soilClockStamp: { persistent: true },
-      _soilMeanMoisture: { persistent: true },
+      soilClockStamp: { persistent: true, runtimeState: true },
+      _soilMeanMoisture: { persistent: true, runtimeState: true },
       // The sky edge's own checkpoint + the identity it integrates
       // against. All four persist: an unresolved ref that came back
       // resolved must not forget it across a restart, and the stamp is
       // the thing that makes the back-fill exact.
-      rainClockStamp: { persistent: true },
+      rainClockStamp: { persistent: true, runtimeState: true },
       _rainLocalityPath: { persistent: true, runtimeState: true },
       _rainSkyExposed: { persistent: true, runtimeState: true },
       _rainResolved: { persistent: true, runtimeState: true },
-      _rainAbsorbedLitres: { persistent: true },
+      _rainAbsorbedLitres: { persistent: true, runtimeState: true },
+      // ⭐ water-supply D15: the inlets (authored), their stamp, the water
+      // standing on the ground, and the salt the water has left.
+      inlets: { persistent: true, authorable: true },
+      inletClockStamp: { persistent: true, runtimeState: true },
+      pondedL: { persistent: true, runtimeState: true },
+      soilSaltKg: { persistent: true, runtimeState: true },
     };
+
+    /**
+     * ⭐ How water is let onto this ground (water-supply D15): a gate (a
+     * turnout's path, or a cistern's), the METHOD — `flood` (the whole
+     * field, 0.5 kept), `furrow` (down ploughed furrows, 0.65), `basin`
+     * (banked basins, 0.8), `overhead` (sprinkled, 0.75) — the inlet's
+     * capacity in L/s, and the water's salt.
+     */
+    public inlets: InletSpec[] = [];
+    /** When the inlets were last integrated, game s; `null` = never. */
+    public inletClockStamp: number | null = null;
+    /** Litres standing on the ground — more than the soil could take. */
+    public pondedL = 0;
+    /** Salt in the root zone, kg — what irrigation water leaves behind. */
+    public soilSaltKg = 0;
+
+    public getPondedL(): number {
+      // ⭐ A ground made of parts: what stands on its fields stands on it
+      // (the walk: 743 565 L on the meadow's field, none on `look`).
+      const parts = this.dividedInto();
+      if (parts.length === 0) return this.pondedL;
+      return this.pondedL + parts.reduce((sum, p) => sum + p.getPondedL(), 0);
+    }
+    public pond(litres: number): void {
+      if (Number.isFinite(litres) && litres > 0) this.pondedL += litres;
+    }
+    /**
+     * The share of an overhead spray that LANDS, 0..1 — what wind drift and
+     * evaporation leave (step 27). Pure: wind m/s, air K, cloud 0..1.
+     */
+    public overheadLandedShare(windMps: number, airK: number, cloud: number): number {
+      const drift = Math.min(OVERHEAD_DRIFT_CAP, OVERHEAD_DRIFT_PER_MPS * Math.max(0, windMps));
+      const sun = 1 - 0.7 * Math.min(1, Math.max(0, cloud));
+      const evap = Math.min(
+        OVERHEAD_EVAP_CAP,
+        OVERHEAD_EVAP_PER_K * Math.max(0, airK - OVERHEAD_EVAP_FROM_K) * sun,
+      );
+      return (1 - drift) * (1 - evap);
+    }
+
+    /**
+     * Open seconds of an overhead inlet's gate over `[fromS, toS]`, each
+     * hour weighted by the share that landed in that hour's weather here.
+     */
+    private async overheadLandedS(gate: Stuff & Throttleable, fromS: number, toS: number): Promise<number> {
+      const host = this as unknown as Stuff;
+      const atmo = MixinApi.isAtmospheric(host) ? host : null;
+      const site = atmo !== null ? atmo.climateSite() : null;
+      const locality = MixinApi.isContainer(host)
+        ? await AddressApi.resolveLocalityFor(host as Stuff & Container).catch(() => null)
+        : null;
+      const baseWind = atmo?.getBiome()?.getDefaultWind()?.rawValue() ?? 0;
+      const slices = Math.min(48, Math.max(1, Math.ceil((toS - fromS) / 3600)));
+      let landed = 0;
+      for (let i = 0; i < slices; i++) {
+        const a = fromS + ((toS - fromS) * i) / slices;
+        const b = fromS + ((toS - fromS) * (i + 1)) / slices;
+        const open = gate.openingTrajectory(a, b).integrate((v) => v, 4);
+        if (!(open > 0)) continue;
+        const t = Quantity.of((a + b) / 2, 's');
+        const wind = baseWind + WeatherApi.deviatedFieldFor(host, locality, 'wind', t, site).rawValue();
+        const airK = site !== null ? WeatherApi.temperatureAt(site, locality, t).rawValue() : OVERHEAD_EVAP_FROM_K;
+        const cloud = WeatherApi.weatherAt(t, locality).cloud;
+        landed += open * this.overheadLandedShare(wind, airK, cloud);
+      }
+      return landed;
+    }
+
+    public landedOpenSeconds(spray: Stuff & Throttleable, fromS: number, toS: number): Promise<number> {
+      return this.overheadLandedS(spray, fromS, toS);
+    }
+
+    public soilAcceptsPonding(): boolean {
+      return true;
+    }
+    public takeStanding(poured: number, absorbed: number, salinityPpt?: number): number {
+      const standing = poured - Math.max(0, absorbed);
+      if (standing <= 0.01) return 0;
+      this.pond(standing);
+      if (typeof salinityPpt === 'number' && salinityPpt > 0) this.addSoilSalt((standing * salinityPpt) / 1000);
+      return standing;
+    }
+    public barelyShows(litres: number): boolean {
+      const areaM2 = this.soilCatchmentAreaM2();
+      return areaM2 > 0 && litres / areaM2 < BARELY_SHOWS_L_PER_M2;
+    }
+    public addSoilSalt(kg: number): void {
+      if (Number.isFinite(kg) && kg > 0) this.soilSaltKg += kg;
+    }
+    public setInlets(value: InletSpec[] | null): void {
+      this.inlets = Array.isArray(value)
+        ? value.filter((i) => typeof i?.gate === 'string' && i.gate !== '')
+        : [];
+    }
+
+    /**
+     * ⭐ Standing water over `days` (water-supply D15): it soaks into the
+     * soil as the soil frees room, and the rest drains away by the day —
+     * and what drains past the roots carries salt with it, so a ponded
+     * field is LEACHED (the reclamation every salted valley learned).
+     */
+    private settlePond(days: number): void {
+      if (!(this.pondedL > 0) || !(days > 0)) return;
+      const took = this.creditReserve(SOIL_MOISTURE_RESERVE_KEY, this.pondedL, 'L');
+      this.pondedL -= took;
+      const drained = this.pondedL * Math.min(1, POND_DRAIN_PER_DAY * days);
+      this.pondedL -= drained;
+      if (drained > 0 && this.soilSaltKg > 0) {
+        const held = Math.max(1, this.soilHost.getReserve(SOIL_MOISTURE_RESERVE_KEY)?.current.rawValue() ?? 0);
+        this.soilSaltKg *= held / (held + drained);
+      }
+      if (this.pondedL < 0.5) this.pondedL = 0;
+    }
+
+    public soilSalinityDsm(): number {
+      // A ground made of parts reads its parts' salt, by area.
+      const parts = this.dividedInto();
+      if (parts.length > 0) {
+        return this.meanOverParts(parts, (p) => p.soilSalinityDsm(), () => this.ownSalinityDsm()) ?? 0;
+      }
+      return this.ownSalinityDsm();
+    }
+
+    /** This ground's own salt over its own water. */
+    private ownSalinityDsm(): number {
+      if (!(this.soilSaltKg > 0)) return 0;
+      const reserve = this.soilHost.getReserve(SOIL_MOISTURE_RESERVE_KEY);
+      // Salt dissolves in all the water holding it — the soil's and what
+      // stands on it.
+      const litres = Math.max(
+        1,
+        (reserve?.current.rawValue() ?? 0) + this.pondedL,
+        (reserve?.capacity.rawValue() ?? 0) * 0.25,
+      );
+      // kg/L → mg/L, and ~640 mg/L of dissolved salt is 1 dS/m.
+      return ((this.soilSaltKg / litres) * 1_000_000) / 640;
+    }
+
+    public async settleInlets(nowS: number): Promise<void> {
+      // ⭐ What stands on this ground, or beside it, and waters it (a
+      // sprinkler — rain in a circle) brings its own water current first.
+      for (const irrigator of this.irrigatorsNear()) await irrigator.settleIrrigation(nowS);
+      if (this.inlets.length === 0) return;
+      if (this.inletClockStamp === null) {
+        this.inletClockStamp = nowS;
+        return;
+      }
+      const from = this.inletClockStamp;
+      if (!(nowS > from)) return;
+      // ⚠ Claim the window before anything awaits: a background settle and a
+      // survey's settle read concurrently must not both integrate it.
+      this.inletClockStamp = nowS;
+      let litres = 0;
+      let salt = 0;
+      for (const inlet of this.inlets) {
+        const gate = await StuffApi.singleton<Stuff>(inlet.gate).catch(() => null);
+        // ⚠ Unresolved: give the window back; the backlog waits.
+        if (gate === null || !MixinApi.isThrottleable(gate)) {
+          if (this.inletClockStamp === nowS) this.inletClockStamp = from;
+          return;
+        }
+        // ⭐ Its rota's turns first: a turn nobody watched still watered the
+        // field (the browser walk — Furtado's turn reached no field).
+        await gate.settleOpening(nowS);
+        // An overhead inlet weighs each hour's open time by what the weather
+        // let land; every other method keeps its share of all of it.
+        const openS =
+          inlet.method === 'overhead'
+            ? await this.overheadLandedS(gate, from, nowS)
+            : gate.openingTrajectory(from, nowS).integrate((v) => v, 4);
+        const capLps =
+          inlet.capacityLps ??
+          (((await gate.passingCapM3S(nowS)) ?? 0) * 1000);
+        const lent = Math.max(0, openS) * capLps;
+        litres += lent * (INLET_EFFICIENCY[inlet.method] ?? 0.5);
+        // ppt is g/kg ≈ g/L, so kg = L × ppt / 1000.
+        salt += (lent * (inlet.salinityPpt ?? 0.3)) / 1000;
+      }
+      if (!(litres > 0)) return;
+      // ⭐ A ground made of parts keeps its soil in them (a tract's fields):
+      // the water and its salt go to the parts by area, as every other
+      // soil write does. The browser walk: a meadow's turnout credited the
+      // TRACT, which holds no water of its own — every litre ponded and the
+      // salt was read over one litre (813 919 dS/m).
+      const parts = this.dividedInto();
+      if (parts.length > 0) {
+        this.spreadOverParts(
+          parts,
+          litres,
+          (p, l) => {
+            p.addSoilSalt((salt * l) / litres);
+            const took = p.waterSoil(l);
+            if (l - took > 0) p.pond(l - took);
+            return took;
+          },
+          (l) => this.ownTerm(() => this.takeInletWater(l, (salt * l) / litres)),
+        );
+        return;
+      }
+      this.takeInletWater(litres, salt);
+    }
+
+    /**
+     * The irrigators that water this ground: those standing ON it (its own
+     * contents, when it is a place) and, for a ground that catches sky and
+     * stands in a place (a bed), those standing BESIDE it — read locally,
+     * never a search.
+     */
+    private irrigatorsNear(): (Stuff & Irrigating)[] {
+      const self = this as unknown as Stuff;
+      const here: Stuff[] = MixinApi.isContainer(self) ? [...(self.getContents() as Stuff[])] : [];
+      const container = MixinApi.isContainable(self) ? (self.getContainer() as Stuff | null) : null;
+      if (container !== null && MixinApi.isContainer(container) && this.soilCatchmentAreaM2() > 0) {
+        here.push(...(container.getContents() as Stuff[]));
+      }
+      return here.filter((s): s is Stuff & Irrigating => s !== self && MixinApi.isIrrigating(s));
+    }
+
+    /**
+     * ⭐ Bring the water let onto this ground current in the background —
+     * from the SYNC reconcile, so a crop read after a night of a turnout's
+     * turn or a sprinkler's run sees it on the next read (the review found
+     * inlets integrated only when somebody surveyed). One at a time.
+     */
+    private kickWaterSettle(nowS: number): void {
+      if (this._settlingWater) return;
+      if (this.inlets.length === 0 && this.irrigatorsNear().length === 0) return;
+      this._settlingWater = true;
+      void this.settleInlets(nowS)
+        .catch(() => undefined)
+        .finally(() => {
+          this._settlingWater = false;
+        });
+    }
+
+    /** Whole ground: take what the soil holds, pond the rest, keep the salt. */
+    private takeInletWater(litres: number, saltKg: number): number {
+      this.soilSaltKg += saltKg;
+      this.reconcileSoil();
+      const taken = this.creditReserve(SOIL_MOISTURE_RESERVE_KEY, litres, 'L');
+      if (litres - taken > 0) this.pondedL += litres - taken;
+      return taken;
+    }
 
     /**
      * The prerequisite surface, narrowed. TypeScript does not carry a
@@ -323,6 +944,396 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
       return 0.0006;
     }
 
+    /** See {@link Soil.soilDrawFactor}. */
+    public soilDrawFactor(_fromS: number, _toS: number): number {
+      return this.soilWarmth();
+    }
+
+    /** See {@link Soil.cultivationZoningAt}. */
+    public async cultivationZoningAt(site: Stuff): Promise<ZonedAgainst | null> {
+      const where = groundPath(site);
+      const covering = await ParcelApi.coveringParcelOf(where);
+      const use = ParcelApi.landUseOf(where);
+      if (!covering || LandUses.permitsAnyCultivation(use)) return null;
+      return {
+        summary: LandUses.summaryOf(use),
+        // ⭐ The record names the USE, as the sentence does.
+        detail: `${where} is zoned ${use} and admits no cultivation`,
+      };
+    }
+
+    /** See {@link Soil.harvestPartFor}. */
+    public harvestPartFor(req: {
+      stand: Stuff & Growing;
+      part: (Stuff & Soil) | null;
+    }): { ok: true; stand: Stuff & Growing } | HarvestRefusal {
+      const r = this.resolvePartFor(req.part);
+      if (!r.ok) {
+        return { ok: false, reason: r.reason, facts: { line: r.line, detail: r.line } };
+      }
+      if (!r.part) return { ok: true, stand: req.stand };
+      const there = req.stand.standIn(r.part);
+      if (!there) {
+        return {
+          ok: false,
+          reason: "nothing-sown-there",
+          facts: {
+            part: r.part,
+            detail: `no ${req.stand.getPresentation()} rooted in ${r.part.getPresentation()}`,
+          },
+        };
+      }
+      return { ok: true, stand: there };
+    }
+
+    /** See {@link Soil.sowPlanFor}. */
+    public async sowPlanFor(
+      req: SowRequest,
+    ): Promise<ActPlan<PlantBegin, PlantDone, PlantRefusal> | PlantRefusal> {
+      const self = this as unknown as Stuff & Soil;
+      if (!MixinApi.isContainer(self)) {
+        return { ok: false, reason: "no-ground", facts: {} };
+      }
+      const ground: Stuff & Soil & Container = self;
+      const { by, seed, drill } = req;
+      const growsInto = seed.getGrowsIntoPath();
+      if (!growsInto) return { ok: false, reason: "seed-names-no-plant", facts: { seed } };
+      // Whose ground it is outranks what state it is in: a stranger is told
+      // it is not theirs, never that it wants ploughing or that another
+      // crop stands on it.
+      const zoned = await this.cultivationZoningAt(ground);
+      if (zoned) {
+        return { ok: false, reason: "land-use-forbids-cultivation", facts: { zoned } };
+      }
+      if (!(await maySow(by, ground))) return { ok: false, reason: "not-held", facts: {} };
+      // Which part of the ground — the GROUND decides whether one must be
+      // named, and says so in its own words.
+      const resolved = this.resolvePartFor(req.part);
+      if (!resolved.ok) {
+        return { ok: false, reason: resolved.reason, facts: { line: resolved.line } };
+      }
+      const part = resolved.part;
+      // What already stands here decides what may be added to it — the
+      // holder's question, once it is theirs.
+      const standing = this.rootedAreaCrop(part);
+      if (standing && standing.getTemplatePath() !== growsInto) {
+        // ⭐ Another row may still be this crop: the bench's stands are
+        // `extends:` rows over one wheat. Ask the crop the seed makes.
+        const made = await StuffApi.clone<Stuff>(growsInto);
+        const same = MixinApi.isGrowing(made) && standing.isSameKindAs(made);
+        await StuffApi.destruct(made);
+        if (!same) {
+          return { ok: false, reason: "other-crop-stands", facts: { standing } };
+        }
+      }
+      const refusal = this.sowingRefusal();
+      if (refusal) {
+        return { ok: false, reason: "ground-refuses-sowing", facts: { line: refusal } };
+      }
+      // The crop row's seed rate. Read off the crop already standing, or
+      // off a fresh clone that becomes the crop (and is discarded on a
+      // refusal) — no row is read twice.
+      let fresh: (Stuff & Growing) | null = null;
+      let crop: Stuff & Growing;
+      if (standing) {
+        crop = standing;
+      } else {
+        const made = await StuffApi.clone<Stuff>(growsInto);
+        if (!MixinApi.isGrowing(made)) {
+          await StuffApi.destruct(made);
+          return { ok: false, reason: "seed-names-no-plant", facts: { seed } };
+        }
+        fresh = made;
+        crop = made;
+      }
+      const rate = seed.sowingRateFor(crop, drill);
+      if (!(rate > 0)) {
+        if (fresh) await StuffApi.destruct(fresh);
+        return { ok: false, reason: "not-broadcast", facts: { seed } };
+      }
+      const groundM2 = groundAreaM2(part ?? ground);
+      const free = Math.max(0, groundM2 - (standing ? standing.getSownAreaM2() : 0));
+      const pass =
+        drill && drill.getSwathM2() > 0
+          ? drill.getSwathM2()
+          : dial(AppSettingKeys.husbandrySowHandM2, 400);
+      const area = Math.min(pass, seed.seedMassKg() / rate, free);
+      if (!(area >= 1)) {
+        if (fresh) await StuffApi.destruct(fresh);
+        return free >= 1
+          ? { ok: false, reason: "too-little-seed", facts: { seed } }
+          : part
+            ? { ok: false, reason: "part-sown", facts: { part } }
+            : { ok: false, reason: "ground-full", facts: {} };
+      }
+      const durationMs = Math.round(3000 + area * 10);
+      return {
+        ok: true,
+        durationMs,
+        effortW: MixinApi.isExerting(by)
+          ? by.wattsForFeltCost(SOW_FELT_COST, durationMs / 1000)
+          : 0,
+        facts: { seed, part, drill },
+        onComplete: () => landSowing({ ...req, part }, ground, crop, fresh !== null, area, rate),
+        onAbort: () => {
+          if (fresh && !fresh.isDestroyed()) void StuffApi.destruct(fresh);
+        },
+      };
+    }
+
+    /** See {@link Soil.sowingRefusal}. */
+    public sowingRefusal(): string | null {
+      return null;
+    }
+
+    /** See {@link Soil.ensureCropTitle}. */
+    public async ensureCropTitle(): Promise<void> {
+      /* host hook */
+    }
+
+    // ---------- ⭐ a soil made of parts (field population D3) ----------
+
+    /** See {@link Soil.soilParts}. Default: one piece. */
+    public soilParts(): readonly (Stuff & Soil)[] {
+      return [];
+    }
+
+    /** See {@link Soil.soilPartKey}. Default: whole ground. */
+    public soilPartKey(): string {
+      return "";
+    }
+
+    /** See {@link Soil.soilDepthM}. Default: unmodelled. */
+    public soilDepthM(): number | null {
+      return null;
+    }
+
+    /** See {@link Soil.soilRemainderAreaM2}. */
+    public soilRemainderAreaM2(): number {
+      const parts = this.soilParts();
+      if (parts.length === 0) return 0;
+      const marked = parts.reduce(
+        (sum, p) => sum + Math.max(0, p.soilCatchmentAreaM2()),
+        0,
+      );
+      return Math.max(0, this.soilCatchmentAreaM2() - marked);
+    }
+
+    /** See {@link Soil.soilPartNoun}. */
+    public soilPartNoun(): string {
+      return "part";
+    }
+
+    /** See {@link Soil.soilPart}. */
+    public soilPart(key: string): (Stuff & Soil) | null {
+      if (!key) return null;
+      return this.soilParts().find((p) => p.soilPartKey() === key) ?? null;
+    }
+
+    /** See {@link Soil.soilPartRefusal}. */
+    public soilPartRefusal(): string | null {
+      const parts = this.soilParts();
+      if (parts.length <= 1) return null;
+      const names = parts.map((p) => p.presentationPhrase().definite());
+      const last = names.pop() ?? "";
+      const list = names.length > 0 ? `${names.join(", ")} or ${last}` : last;
+      return `Which ${this.soilPartNoun()}? Name one: ${list}.`;
+    }
+
+    /** See {@link Soil.resolvePartFor}. */
+    public resolvePartFor(named: (Stuff & Soil) | null): PartResolution {
+      const parts = this.soilParts();
+      if (named === null) {
+        const refusal = this.soilPartRefusal();
+        if (refusal !== null) {
+          return { ok: false, reason: "part-unnamed", line: refusal };
+        }
+        return { ok: true, part: parts[0] ?? null };
+      }
+      if (parts.includes(named)) return { ok: true, part: named };
+      const self = this as unknown as Stuff;
+      const what = named.presentationPhrase().definite();
+      return {
+        ok: false,
+        reason: "not-a-part-here",
+        line: `${what.charAt(0).toUpperCase()}${what.slice(1)} is not a part of ${self.presentationPhrase().definite()}.`,
+      };
+    }
+
+    /** See {@link Soil.rootedAreaCrop}. */
+    public rootedAreaCrop(
+      part: (Stuff & Soil) | null,
+    ): (Stuff & Growing) | null {
+      const self = this as unknown as Stuff & Soil;
+      const bed = part ?? self;
+      // A part is a fixture, not a container: its crops stand in the
+      // ground it is fixed to and root in it by key.
+      const holder: Stuff | null = MixinApi.isContainer(self)
+        ? self
+        : MixinApi.isAdornment(self)
+          ? self.getAdornedTo()
+          : null;
+      if (!holder || !MixinApi.isContainer(holder)) return null;
+      return (
+        (holder.getContents() as Stuff[]).find(
+          (c): c is Stuff & Growing =>
+            MixinApi.isGrowing(c) && c.isAreaCrop() && c.getBed() === bed,
+        ) ?? null
+      );
+    }
+
+    /** See {@link Soil.soilMoistureHeadroomL}. */
+    public soilMoistureHeadroomL(): number {
+      const parts = this.dividedInto();
+      if (parts.length > 0) {
+        const own = this.remainderCounts()
+          ? this.reserveHeadroom(SOIL_MOISTURE_RESERVE_KEY)
+          : 0;
+        return parts.reduce((sum, p) => sum + p.soilMoistureHeadroomL(), own);
+      }
+      return this.reserveHeadroom(SOIL_MOISTURE_RESERVE_KEY);
+    }
+
+    /** See {@link Soil.soilNutrientHeadroom}. */
+    public soilNutrientHeadroom(): number {
+      const parts = this.dividedInto();
+      if (parts.length > 0) {
+        return (
+          this.meanOverParts(
+            parts,
+            (p) => p.soilNutrientHeadroom(),
+            () => this.reserveHeadroom(SOIL_NITROGEN_RESERVE_KEY),
+          ) ?? 0
+        );
+      }
+      return this.reserveHeadroom(SOIL_NITROGEN_RESERVE_KEY);
+    }
+
+    /** A reserve's room left, after a reconcile; `0` when unauthored. */
+    private reserveHeadroom(key: string): number {
+      this.reconcileSoil();
+      const reserve = this.soilHost.getReserve(key);
+      if (!reserve) return 0;
+      return Math.max(
+        0,
+        reserve.capacity.rawValue() - reserve.current.rawValue(),
+      );
+    }
+
+    /**
+     * ⭐ Whether this ground's OWN soil is a term beside its parts — the
+     * unmarked remainder of a tract (tracts build D25): it has area left
+     * over and a moisture reserve to hold it.
+     */
+    private remainderCounts(): boolean {
+      return (
+        this.soilRemainderAreaM2() > 0 &&
+        this.soilHost.hasReserve(SOIL_MOISTURE_RESERVE_KEY)
+      );
+    }
+
+    /**
+     * The parts an aggregate read walks — none while the read is asking
+     * this ground's OWN term (the remainder), so the shipped direct body
+     * answers it.
+     */
+    private dividedInto(): readonly (Stuff & Soil)[] {
+      return this._soilOwnTerm ? [] : this.soilParts();
+    }
+
+    /** Run `read` as this ground's own term, not the aggregate. */
+    private ownTerm<T>(read: () => T): T {
+      const was = this._soilOwnTerm;
+      this._soilOwnTerm = true;
+      try {
+        return read();
+      } finally {
+        this._soilOwnTerm = was;
+      }
+    }
+
+    /**
+     * Each part's share of the whole, by the sky it catches (its area),
+     * and the remainder's share as the last entry (`0` when it does not
+     * count); equal shares over the parts when no part declares an area.
+     */
+    private partWeights(parts: readonly (Stuff & Soil)[]): {
+      parts: number[];
+      own: number;
+    } {
+      const areas = parts.map((p) => Math.max(0, p.soilCatchmentAreaM2()));
+      const own = this.remainderCounts() ? this.soilRemainderAreaM2() : 0;
+      const total = areas.reduce((a, b) => a + b, own);
+      if (!(total > 0)) {
+        return { parts: parts.map(() => 1 / parts.length), own: 0 };
+      }
+      return { parts: areas.map((a) => a / total), own: own / total };
+    }
+
+    /**
+     * The area-weighted mean of a per-part read, over the parts that
+     * answer it (`null` from a part that models nothing drops out and
+     * the rest re-weight) and the remainder's own read when it counts;
+     * `null` when none answers.
+     */
+    private meanOverParts(
+      parts: readonly (Stuff & Soil)[],
+      read: (part: Stuff & Soil) => number | null,
+      own: () => number | null,
+    ): number | null {
+      const weights = this.partWeights(parts);
+      let sum = 0;
+      let weight = 0;
+      parts.forEach((p, i) => {
+        const v = read(p);
+        if (v === null) return;
+        const w = weights.parts[i] ?? 0;
+        sum += v * w;
+        weight += w;
+      });
+      if (weights.own > 0) {
+        const v = own();
+        if (v !== null) {
+          sum += v * weights.own;
+          weight += weights.own;
+        }
+      }
+      return weight > 0 ? sum / weight : null;
+    }
+
+    /**
+     * Spread an EXTENSIVE amount (litres) over the parts — and the
+     * remainder — by area share; returns the sum each actually took.
+     */
+    private spreadOverParts(
+      parts: readonly (Stuff & Soil)[],
+      amount: number,
+      apply: (part: Stuff & Soil, share: number) => number,
+      own: (share: number) => number,
+    ): number {
+      const weights = this.partWeights(parts);
+      const taken = parts.reduce(
+        (sum, p, i) => sum + apply(p, amount * (weights.parts[i] ?? 0)),
+        0,
+      );
+      return weights.own > 0 ? taken + own(amount * weights.own) : taken;
+    }
+
+    /**
+     * Apply an INTENSIVE amount (points of a per-cent reserve) to every
+     * part alike — and to the remainder — feeding a divided field raises
+     * each part as much as it would raise the field whole; returns the
+     * area-weighted mean each took, which is what the whole ground's own
+     * reserve would have moved by.
+     */
+    private applyToParts(
+      parts: readonly (Stuff & Soil)[],
+      apply: (part: Stuff & Soil) => number,
+      own: () => number,
+    ): number {
+      return this.meanOverParts(parts, apply, own) ?? 0;
+    }
+
     // ---------- soil state: its OWN checkpoint ----------
 
     /**
@@ -343,6 +1354,12 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
     /** Reentry guard — the soil reconcile must never recurse. */
     private _reconcilingSoil = false;
 
+    /** True while an aggregate read asks this ground's own remainder term. */
+    private _soilOwnTerm = false;
+
+    /** True while a background water settle runs (`kickWaterSettle`). */
+    private _settlingWater = false;
+
     /**
      * Integrate the soil over elapsed game-time: drain moisture by the
      * **summed** demand of whatever is drinking, scaled by warmth.
@@ -356,6 +1373,20 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
       if (this._reconcilingSoil) return;
       const nowS = this.soilNowSeconds();
       if (nowS === null) return;
+      this.kickWaterSettle(nowS);
+
+      // ⭐ A ground made of parts reconciles each part on its own stamp
+      // (field population D3); a divided field holds no reserve of its
+      // own, so the shipped body below then stamps and returns.
+      const parts = this.soilParts();
+      if (parts.length > 0) {
+        this._reconcilingSoil = true;
+        try {
+          for (const part of parts) part.reconcileSoil();
+        } finally {
+          this._reconcilingSoil = false;
+        }
+      }
 
       const reserved = this.soilHost;
       if (!reserved.hasReserve(SOIL_MOISTURE_RESERVE_KEY)) {
@@ -363,62 +1394,88 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
         return;
       }
 
-      // The sky pours in BEFORE the window drains, because that is the
-      // order it physically happened in: rain fell across the window the
-      // plants were drinking through. It runs on its OWN stamp, so it is
-      // unaffected by every early return below — ground whose soil window
-      // is empty may still have a month of rain to credit.
-      this.integrateRainfall(nowS);
-
-      // First touch: seed the stamp, integrate nothing.
+      // First touch: seed the stamp, integrate nothing. The sky still
+      // gets its say — ground whose soil window is empty may have a
+      // month of rain to credit, on the rain edge's OWN stamp.
       if (this.soilClockStamp === 0) {
+        this.integrateRainfall(nowS);
         this.soilClockStamp = nowS;
         return;
       }
-      const elapsed = nowS - this.soilClockStamp;
+      const from = this.soilClockStamp;
+      const elapsed = nowS - from;
       if (elapsed <= 0) {
+        this.integrateRainfall(nowS);
         this.soilClockStamp = nowS;
         return;
       }
 
+      // ⭐⭐ **A long window is walked, not lumped** (cover build B31).
+      // Rain fell across the window the plants were drinking through, a
+      // day at a time. Integrated as one lump — all the rain poured in
+      // first, capped at the ground's capacity, then the whole window's
+      // drink taken out — a field nobody read for a season came back
+      // bone dry while the same field read monthly stayed moist. So the
+      // sky pours in, then the window drains, one step at a time; the
+      // rain edge keeps its own stamp throughout.
+      const steps = Math.min(
+        SOIL_MAX_STEPS,
+        Math.max(1, Math.ceil(elapsed / SECONDS_PER_GAME_DAY)),
+      );
       this._reconcilingSoil = true;
       try {
-        const reserve = reserved.getReserve(SOIL_MOISTURE_RESERVE_KEY);
-        const capacity = reserve ? reserve.capacity.rawValue() : 0;
-        const start = reserve ? reserve.current.rawValue() : 0;
-        const warmth = this.soilWarmth();
-        // Summed demand — more drinkers empty the ground faster, which is
-        // water competition emerging from the same source of truth the
-        // shared-soil root competition comes from. No new rule.
-        const demandPerDay = this.soilWaterDemandPerGameDay();
-        const draw =
-          demandPerDay * (elapsed / SECONDS_PER_GAME_DAY) * warmth;
-
-        if (capacity > 0 && draw > 0) {
-          const end = Math.max(0, start - draw);
-          // The mean over the window. The drain is linear in time, so the
-          // mean is the midpoint UNLESS the soil ran dry partway: then it
-          // is a triangle over the fraction of the window before empty.
-          const startF = clamp01(start / capacity);
-          const endF = clamp01(end / capacity);
-          this._soilMeanMoisture =
-            end > 0
-              ? (startF + endF) / 2
-              : draw > 0
-                ? (startF * (start / draw)) / 2
-                : startF;
-          reserved.adjustReserve(
-            SOIL_MOISTURE_RESERVE_KEY,
-            Quantity.of(-(start - end), "L"),
-          );
-        } else if (capacity > 0) {
-          this._soilMeanMoisture = clamp01(start / capacity);
+        let meanSum = 0;
+        let meanSteps = 0;
+        let at = from;
+        for (let i = 1; i <= steps; i++) {
+          const to = i === steps ? nowS : from + (elapsed * i) / steps;
+          this.integrateRainfall(to);
+          const mean = this.drainSoilBetween(at, to);
+          if (mean !== null) {
+            meanSum += mean;
+            meanSteps++;
+          }
+          at = to;
         }
+        if (meanSteps > 0) this._soilMeanMoisture = meanSum / meanSteps;
         this.integrateNutrientCycle(elapsed / SECONDS_PER_GAME_DAY);
+        this.settlePond(elapsed / SECONDS_PER_GAME_DAY);
         this.soilClockStamp = nowS;
       } finally {
         this._reconcilingSoil = false;
       }
+    }
+
+    /**
+     * Drain one step of the soil window, `[fromS, toS)`, and return the
+     * step's mean moisture fraction (null when the ground holds no water
+     * reserve). The drain is linear in time, so the mean is the midpoint
+     * UNLESS the soil ran dry partway: then it is a triangle over the
+     * fraction of the step before empty.
+     */
+    private drainSoilBetween(fromS: number, toS: number): number | null {
+      const reserved = this.soilHost;
+      const reserve = reserved.getReserve(SOIL_MOISTURE_RESERVE_KEY);
+      const capacity = reserve ? reserve.capacity.rawValue() : 0;
+      if (!(capacity > 0)) return null;
+      const start = reserve ? reserve.current.rawValue() : 0;
+      // ⭐ The draw is scaled by the step's evaporative demand — a host
+      // that knows its season answers for it (cover build).
+      const warmth = this.soilDrawFactor(fromS, toS);
+      // Summed demand — more drinkers empty the ground faster, which is
+      // water competition emerging from the same source of truth the
+      // shared-soil root competition comes from. No new rule.
+      const demandPerDay = this.soilWaterDemandPerGameDay();
+      const draw = demandPerDay * ((toS - fromS) / SECONDS_PER_GAME_DAY) * warmth;
+      const startF = clamp01(start / capacity);
+      if (!(draw > 0)) return startF;
+      const end = Math.max(0, start - draw);
+      const endF = clamp01(end / capacity);
+      reserved.adjustReserve(
+        SOIL_MOISTURE_RESERVE_KEY,
+        Quantity.of(-(start - end), "L"),
+      );
+      return end > 0 ? (startF + endF) / 2 : (startF * (start / draw)) / 2;
     }
 
     // ---------- the sky edge: rain reaches soil ----------
@@ -538,10 +1595,8 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
      * catches once it IS put down.
      */
     protected watershedScope(): (Stuff & Container) | null {
-      const self = this as unknown as Stuff & {
-        getContainer?: () => unknown;
-      };
-      const container = self.getContainer?.() ?? null;
+      const self = this as unknown as Stuff;
+      const container = MixinApi.isContainable(self) ? self.getContainer() : null;
       if (container === null || !MixinApi.isContainer(container as Stuff)) {
         return null;
       }
@@ -604,7 +1659,12 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
       // Resolved, but under a roof or with no catchment: the window
       // closes with zero rain, which is an ANSWER rather than an absence.
       if (!this._rainSkyExposed) return;
-      const areaM2 = this.soilCatchmentAreaM2();
+      // A divided ground's own soil catches only the sky over its
+      // remainder; each part catches its own (tracts build D25).
+      const areaM2 =
+        this.soilParts().length > 0
+          ? this.soilRemainderAreaM2()
+          : this.soilCatchmentAreaM2();
       if (areaM2 <= 0) return;
 
       const locality = this._rainLocalityPath === null
@@ -662,12 +1722,28 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
 
     /** Root-zone moisture `[0, 1]`, reconciled; null when unauthored. */
     public soilMoistureFraction(): number | null {
+      const parts = this.dividedInto();
+      if (parts.length > 0) {
+        return this.meanOverParts(
+          parts,
+          (p) => p.soilMoistureFraction(),
+          () => this.ownTerm(() => this.soilMoistureFraction()),
+        );
+      }
       if (!this._reconcilingSoil) this.reconcileSoil();
       return this.reserveFraction(SOIL_MOISTURE_RESERVE_KEY);
     }
 
     /** The window-mean a plant integrating the same window should read. */
     public meanSoilMoistureFraction(): number | null {
+      const parts = this.dividedInto();
+      if (parts.length > 0) {
+        return this.meanOverParts(
+          parts,
+          (p) => p.meanSoilMoistureFraction(),
+          () => this.ownTerm(() => this.meanSoilMoistureFraction()),
+        );
+      }
       const current = this.soilMoistureFraction();
       if (current === null) return null;
       return this._soilMeanMoisture < 0 ? current : this._soilMeanMoisture;
@@ -685,6 +1761,14 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
      * muck is an investment.
      */
     public nutrientFraction(): number | null {
+      const parts = this.dividedInto();
+      if (parts.length > 0) {
+        return this.meanOverParts(
+          parts,
+          (p) => p.nutrientFraction(),
+          () => this.ownTerm(() => this.nutrientFraction()),
+        );
+      }
       if (!this._reconcilingSoil) this.reconcileSoil();
       return this.reserveFraction(SOIL_NITROGEN_RESERVE_KEY);
     }
@@ -696,18 +1780,43 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
      */
     public waterSoil(litres: number): number {
       if (!Number.isFinite(litres) || litres <= 0) return 0;
+      const parts = this.dividedInto();
+      if (parts.length > 0) {
+        return this.spreadOverParts(
+          parts,
+          litres,
+          (p, l) => p.waterSoil(l),
+          (l) => this.ownTerm(() => this.waterSoil(l)),
+        );
+      }
       this.reconcileSoil();
       return this.creditReserve(SOIL_MOISTURE_RESERVE_KEY, litres, "L");
     }
 
     /** See {@link Soil.organicMatterFraction}. */
     public organicMatterFraction(): number | null {
+      const parts = this.dividedInto();
+      if (parts.length > 0) {
+        return this.meanOverParts(
+          parts,
+          (p) => p.organicMatterFraction(),
+          () => this.ownTerm(() => this.organicMatterFraction()),
+        );
+      }
       this.reconcileSoil();
       return this.reserveFraction(SOIL_ORGANIC_MATTER_RESERVE_KEY);
     }
 
     /** See {@link Soil.structureFraction}. */
     public structureFraction(): number | null {
+      const parts = this.dividedInto();
+      if (parts.length > 0) {
+        return this.meanOverParts(
+          parts,
+          (p) => p.structureFraction(),
+          () => this.ownTerm(() => this.structureFraction()),
+        );
+      }
       this.reconcileSoil();
       return this.reserveFraction(SOIL_STRUCTURE_RESERVE_KEY);
     }
@@ -715,6 +1824,14 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
     /** See {@link Soil.addOrganicMatter}. */
     public addOrganicMatter(fraction: number): number {
       if (!Number.isFinite(fraction) || fraction <= 0) return 0;
+      const parts = this.dividedInto();
+      if (parts.length > 0) {
+        return this.applyToParts(
+          parts,
+          (p) => p.addOrganicMatter(fraction),
+          () => this.ownTerm(() => this.addOrganicMatter(fraction)),
+        );
+      }
       this.reconcileSoil();
       const applied = this.creditReserve(
         SOIL_ORGANIC_MATTER_RESERVE_KEY,
@@ -736,6 +1853,14 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
     /** See {@link Soil.poach}. */
     public poach(intensity: number, poachingFactor: number): number {
       if (!Number.isFinite(intensity) || intensity <= 0) return 0;
+      const parts = this.dividedInto();
+      if (parts.length > 0) {
+        return this.applyToParts(
+          parts,
+          (p) => p.poach(intensity, poachingFactor),
+          () => this.ownTerm(() => this.poach(intensity, poachingFactor)),
+        );
+      }
       const reserved = this.soilHost;
       const structure = reserved.getReserve(SOIL_STRUCTURE_RESERVE_KEY);
       if (!structure) return 0;
@@ -758,6 +1883,14 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
     /** See {@link Soil.fixNitrogen}. */
     public fixNitrogen(fraction: number): number {
       if (!Number.isFinite(fraction) || fraction <= 0) return 0;
+      const parts = this.dividedInto();
+      if (parts.length > 0) {
+        return this.applyToParts(
+          parts,
+          (p) => p.fixNitrogen(fraction),
+          () => this.ownTerm(() => this.fixNitrogen(fraction)),
+        );
+      }
       return this.creditReserve(SOIL_NITROGEN_RESERVE_KEY, fraction, "%");
     }
 
@@ -805,12 +1938,28 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
     /** Feed the soil; returns the fraction actually absorbed. */
     public feedSoil(fraction: number): number {
       if (!Number.isFinite(fraction) || fraction <= 0) return 0;
+      const parts = this.dividedInto();
+      if (parts.length > 0) {
+        return this.applyToParts(
+          parts,
+          (p) => p.feedSoil(fraction),
+          () => this.ownTerm(() => this.feedSoil(fraction)),
+        );
+      }
       return this.creditReserve(SOIL_NITROGEN_RESERVE_KEY, fraction, "%");
     }
 
     /** Draw nutrient out — what a harvested crop exports. */
     public drawNutrient(fraction: number): number {
       if (!Number.isFinite(fraction) || fraction <= 0) return 0;
+      const parts = this.dividedInto();
+      if (parts.length > 0) {
+        return this.applyToParts(
+          parts,
+          (p) => p.drawNutrient(fraction),
+          () => this.ownTerm(() => this.drawNutrient(fraction)),
+        );
+      }
       const reserved = this.soilHost;
       const reserve = reserved.getReserve(SOIL_NITROGEN_RESERVE_KEY);
       if (!reserve) return 0;

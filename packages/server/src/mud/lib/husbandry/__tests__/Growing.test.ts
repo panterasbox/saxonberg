@@ -7,18 +7,31 @@
  */
 
 import "../../../../test-bootstrap";
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Good from '../../stuff/Good';
 import { GrowingMixin, type GrowthProfileData } from '../Growing';
+import { SoilMixin } from '../Soil';
+import { COMPETENCE_BANDS, COMPETENCE_HALF_WIDTH } from '../../advancement/CompetenceBand';
+import { ContainerMixin } from '../../spatial/Container';
+import { Idea } from '../../stuff/Idea';
+import { StuffApi } from '../../../api/stuff';
+import { ContainmentApi } from '../../../api/containment';
+import { BiomeApi } from '../../../api/biome';
 import { SOIL_MOISTURE_RESERVE_KEY } from '../Cultivable';
-import { ReservedMixin, Reserve } from '../../reserve';
+import { ReservedMixin, Reserve } from '../../reserve/Reserved';
 import { HasInteractiveMixin } from '../../connection/HasInteractive';
 import { ThermalMixin } from '../../thermal/Thermal';
 import { MixinApi } from '../../../api/mixin';
 import { WorldClockApi } from '../../../api/worldclock';
 import { Quantity, type Unit } from '../../quantity';
-import { makeStuff } from '../../security/__tests__/test-setup';
+import { makeStuff, makeStuffAtPath, stampTemplatePathForTest } from '../../security/__tests__/test-setup';
 import '../../../platform/idea/WorldClockRegistry';
+import { AdvancementMixin } from '../../advancement/Advancement';
+import { PersonaMixin } from '../../character/Persona';
+import TranscriptEntry from '../../advancement/TranscriptEntry';
+import { Competence } from '../../advancement/Competence';
+import { PersistApi } from '../../../api/persist';
+import { DerivedStandingCache } from '../../standing/DerivedStandingCache';
 
 /**
  * The mixin under test, in isolation. Since phase 2 the WATER lives in the
@@ -451,3 +464,408 @@ describe('GrowingMixin — the growth model', () => {
   });
 
 });
+
+/**
+ * ⭐ Field population (W0): the plant that stands in a PART of its ground,
+ * the read by band, and the specimen that does not grow.
+ */
+class PartSoil extends SoilMixin(ReservedMixin(Idea)) {
+  public key = '';
+  public override soilPartKey(): string {
+    return this.key;
+  }
+}
+
+/** Ground a plant stands in by containment — divided into two parts. */
+class PartedGround extends SoilMixin(ReservedMixin(ContainerMixin(Idea))) {
+  public parts: PartSoil[] = [];
+  public override soilParts(): readonly PartSoil[] {
+    return this.parts;
+  }
+}
+
+function partSoil(key: string): PartSoil {
+  return makeStuff(() => {
+    const p = new PartSoil();
+    p.key = key;
+    installMoisture(p, 100, 50);
+    return p;
+  });
+}
+
+describe('GrowingMixin — field population seams', () => {
+  beforeEach(() => {
+    WorldClockApi._resetForTesting();
+    setNow(0);
+    WorldClockApi._setNowProviderForTesting(() => now);
+    WorldClockApi.setScale(1000);
+  });
+
+  afterEach(() => {
+    WorldClockApi._resetForTesting();
+    vi.restoreAllMocks();
+  });
+
+  it('⭐ getBed resolves the part by key, and falls back to the whole ground on a missing key', () => {
+    const top = partSoil('top-end');
+    const lane = partSoil('lane-end');
+    const ground = makeStuff(() => new PartedGround());
+    ground.parts = [top, lane];
+    const plant = fixture();
+    ContainmentApi.move(plant, ground);
+    expect(plant.getBed()).toBe(ground);
+    plant.setGroundPart('lane-end');
+    expect(plant.getBed()).toBe(lane);
+    plant.setGroundPart('top-end');
+    expect(plant.getBed()).toBe(top);
+    // A patch deleted from the row never orphans the crop.
+    plant.setGroundPart('far-side');
+    expect(plant.getBed()).toBe(ground);
+  });
+
+  it('⭐ D17: a field\'s loose contents leave out the stand and keep a labeled plant', () => {
+    // The one shared rule look, the sense verbs and the inspection card
+    // read (the browser walk: the entry look and the card listed "a stand
+    // of wheat" three times over — only `look` had the rule).
+    const ground = makeStuff(() => new PartedGround());
+    const stand = fixture({ seedRateKgPerM2: 0.015, yieldKgPerM2: 0.3 });
+    stand.setSownAreaM2(500);
+    const plant = fixture();
+    ContainmentApi.move(stand, ground);
+    ContainmentApi.move(plant, ground);
+    const loose = ground.getLooseContents();
+    expect(loose).toContain(plant);
+    expect(loose).not.toContain(stand);
+  });
+
+  it('⚠ a walk that finishes at once frees the slot — moved later, the plant asks again and settles', async () => {
+    // Unplaced, the walk returns without awaiting. It used to clear the
+    // slot before it was recorded, leaving a settled promise "in flight"
+    // forever; with the move rule every later ask chained onto it without
+    // end (PlantVerbs ran out of heap).
+    const p = fixture();
+    await p.restampWarmth();
+    const ground = makeStuff(() => new PartedGround());
+    vi.spyOn(BiomeApi, 'resolveTemperatureFor').mockResolvedValue({ rawValue: () => 280 } as never);
+    ContainmentApi.move(p, ground);
+    await p.restampWarmth();
+    expect(p._lastAmbientK).toBe(280);
+  });
+
+  it('⚠ a plant moved while its warmth resolves takes the warmth of where it ENDS UP', async () => {
+    // A labeled stem is minted somewhere warm and moved straight into the
+    // field; the walk begun at the mint must not answer for the field
+    // (the drive's trial read a kitchen's 297 K all winter).
+    const warm = makeStuff(() => new PartedGround());
+    const cold = makeStuff(() => new PartedGround());
+    let release!: () => void;
+    const gate = new Promise<void>((r) => {
+      release = r;
+    });
+    vi.spyOn(BiomeApi, 'resolveTemperatureFor').mockImplementation(
+      async (env: unknown) => {
+        if (env === warm) {
+          await gate;
+          return { rawValue: () => 297 } as never;
+        }
+        return { rawValue: () => 270 } as never;
+      },
+    );
+    const p = fixture();
+    ContainmentApi.move(p, warm);
+    const first = p.restampWarmth();
+    ContainmentApi.move(p, cold);
+    const second = p.restampWarmth();
+    release();
+    await first;
+    await second;
+    expect(p._lastAmbientK).toBe(270);
+  });
+
+  it('standIn finds the crop of this kind rooted in the named part', () => {
+    const top = partSoil('top-end');
+    const lane = partSoil('lane-end');
+    const ground = makeStuff(() => new PartedGround());
+    ground.parts = [top, lane];
+    const sown = (part: string): GrowFixture => {
+      const f = fixture({ seedRateKgPerM2: 0.015, yieldKgPerM2: 0.3 });
+      f.setSownAreaM2(500);
+      f.setGroundPart(part);
+      f.setHarvestTemplatePath('/test/crop/grain');
+      ContainmentApi.move(f, ground);
+      return f;
+    };
+    const atTop = sown('top-end');
+    const atLane = sown('lane-end');
+    expect(atTop.standIn(lane)).toBe(atLane);
+    expect(atTop.standIn(top)).toBe(atTop);
+    expect(atLane.standIn(top)).toBe(atTop);
+  });
+
+  it('⭐ readLines says strictly more at each band, and never contradicts the next', () => {
+    const f = fixture();
+    f.getVigor();
+    setNow(40 * DAY); // dry — something is short
+    const reads = COMPETENCE_BANDS.map((band) => f.readLines(band));
+    for (let i = 1; i < reads.length; i++) {
+      const lower = reads[i - 1]!;
+      const higher = reads[i]!;
+      expect(higher.length).toBe(lower.length + 1);
+      // Every lower band's sentence is the start of the higher one's.
+      expect(higher.slice(0, lower.length)).toEqual(lower);
+    }
+    const expert = reads[reads.length - 1]!.join(' ');
+    expect(expert).toContain('The soil is dry there.');
+    expect(expert).not.toMatch(/\d/); // never a digit
+    // The beginner sees only the stage and the look.
+    expect(reads[0]!).toHaveLength(1);
+    expect(reads[0]![0]).not.toContain('dry');
+  });
+
+  it('the read is masked by band — a caller cannot know more than its eyes do', () => {
+    const f = fixture();
+    f.getVigor();
+    setNow(40 * DAY);
+    const novice = f.readFor('novice');
+    expect(novice.short).toBe(true);
+    expect(novice.cause).toBeNull();
+    const competent = f.readFor('competent');
+    expect(competent.cause).toBe('water');
+    expect(competent.severity).toBeNull();
+    expect(f.readFor('proficient').severity).not.toBeNull();
+  });
+
+  it('⭐ readFor with a seed keeps the truth inside the band\'s bracket, stable per seed', () => {
+    const f = fixture();
+    f.getVigor();
+    const truth = f.getSoilMoisture();
+    for (const band of COMPETENCE_BANDS) {
+      for (const seed of [1, 77, 4242, 0xdeadbeef]) {
+        const a = f.readFor(band, seed).moisture!;
+        const b = f.readFor(band, seed).moisture!;
+        expect(a).toBe(b);
+        expect(Math.abs(a - truth)).toBeLessThanOrEqual(
+          COMPETENCE_HALF_WIDTH[band] + 1e-12,
+        );
+      }
+    }
+    // Without a seed there is no figure at all.
+    expect(f.readFor('expert').moisture).toBeUndefined();
+  });
+
+  it('⭐ a specimen does not grow and keeps its stamped cause', () => {
+    const f = fixture();
+    f.getVigor();
+    f._specimen = {
+      from: 'the upper bench',
+      part: 'top-end',
+      partName: 'the top end',
+      limiting: 'nutrient',
+      roots: 'shallow',
+      severe: true,
+      next: 'water',
+    };
+    const vigor = f.getVigor();
+    const stage = f.getGrowthStage();
+    setNow(200 * DAY);
+    expect(f.getVigor()).toBe(vigor);
+    expect(f.getGrowthStage()).toBe(stage);
+    // Not what a pocket would make of it now — what it was pulled with.
+    expect(f.getLimitingFactor()).toBe('nutrient');
+    expect(f.readFor('expert').next).toBe('water');
+    expect(f.isSpecimen()).toBe(true);
+  });
+
+  it('takeSpecimen copies the growth and stamps the read; uncut, it stays a living plant', async () => {
+    const f = makeStuffAtPathOf(fixture({ seedRateKgPerM2: 0.015, yieldKgPerM2: 0.3 }));
+    f.setSownAreaM2(500);
+    f.setSpecimenNoun('stem of grain');
+    f.getVigor();
+    setNow(40 * DAY);
+    const mint = (): GrowFixture => makeStuff(() => new GrowFixture());
+    vi.spyOn(StuffApi, 'clone').mockImplementation(async () => mint() as never);
+    const cut = await f.takeSpecimen(0.05);
+    expect(cut.isSpecimen()).toBe(true);
+    expect(cut.getSownAreaM2()).toBe(0);
+    expect(cut.getGrowthStage()).toBe(f.getGrowthStage());
+    expect(cut.getSpecimen()!.limiting).toBe(f.getLimitingFactor());
+    expect(cut.getVigor()).toBeCloseTo(Math.min(1, f.getVigor() + 0.05), 6);
+    const living = await f.takeSpecimen(0, { cut: false });
+    expect(living.isSpecimen()).toBe(false);
+    expect(living.getSownAreaM2()).toBe(0);
+  });
+
+  it('⭐ a labeled stem ripens WITH its stand under moderate stress; a pot plant under the same stress stalls', async () => {
+    // Light at 0.4 of happy: under the good mark (0.6), well above death.
+    const stressed = { litresPerGameDay: 0, luxHappyAt: 1000, luxDarkAt: 0 };
+    const stand = makeStuffAtPathOf(
+      fixture({ ...stressed, seedRateKgPerM2: 0.015, yieldKgPerM2: 0.3 }),
+    );
+    stand.setSownAreaM2(500);
+    stand.luxOverride = 400;
+    const mint = (): GrowFixture => {
+      const m = makeStuff(() => new GrowFixture());
+      installMoisture(m);
+      m.luxOverride = 400;
+      return m;
+    };
+    vi.spyOn(StuffApi, 'clone').mockImplementation(async () => mint() as never);
+    const labeled = (await stand.takeSpecimen(0, { cut: false })) as GrowFixture;
+    expect(labeled.isAreaCrop()).toBe(false);
+    expect(labeled._fromStand).toBe(true);
+    // A cut specimen is not a field-rule individual — it does not grow.
+    expect(((await stand.takeSpecimen(0)) as GrowFixture)._fromStand).toBe(false);
+    const pot = fixture(stressed);
+    pot.luxOverride = 400;
+
+    for (const p of [stand, labeled, pot]) p.getVigor();
+    setNow(400 * DAY);
+    expect(stand.getLimitingFactor()).toBe('light');
+    expect(stand.getGrowthStage()).toBe('mature');
+    expect(labeled.getGrowthStage()).toBe('mature');
+    expect(labeled.getConditionBand()).not.toBe('dead');
+    // The pot rule: only a well-kept plant matures.
+    expect(pot.getGrowthStage()).toBe('seedling');
+  });
+
+  it('the specimen variation is SEEDED — the same spot gives the same stem', () => {
+    const f = fixture();
+    f.setGroundPart('top-end');
+    const a = f.specimenVariation();
+    expect(f.specimenVariation()).toBe(a);
+    expect(Math.abs(a)).toBeLessThanOrEqual(0.05);
+  });
+});
+
+/**
+ * ⭐ Field population W2 (D9/D10): the augmenter's BAND branch. A viewer
+ * whose competence digest has been warmed reads the stand at its band; a
+ * viewer that is not Advancing — or one whose digest is cold — reads the
+ * floor. The digest is real (the transcript is stubbed, the fold runs),
+ * so this proves the augmenter takes the band the look preload warmed.
+ */
+class Reader extends AdvancementMixin(PersonaMixin(Idea)) {
+  static _mixinName = 'GrowingTestReader';
+}
+
+describe('GrowingMixin — the stand reads at the viewer\'s band', () => {
+  interface Row {
+    owner: string;
+    discipline: string;
+    difficulty: string;
+    outcome: string;
+    when: number | null;
+    kind: string;
+  }
+  let rows: Row[] = [];
+
+  beforeEach(() => {
+    WorldClockApi._resetForTesting();
+    setNow(0);
+    WorldClockApi._setNowProviderForTesting(() => now);
+    WorldClockApi.setScale(1000);
+    DerivedStandingCache._clearAllForTesting();
+    rows = [];
+    // ⚠ Every competence read is the FLOOR while the store is not
+    // connected, which would make the expert half vacuous.
+    vi.spyOn(PersistApi, 'isConnected').mockReturnValue(true);
+    vi.spyOn(TranscriptEntry, 'find').mockImplementation(
+      async (query: Record<string, unknown>) =>
+        rows.filter((r) =>
+          Object.entries(query).every(
+            ([k, v]) => (r as unknown as Record<string, unknown>)[k] === v,
+          ),
+        ) as never,
+    );
+  });
+
+  afterEach(() => {
+    WorldClockApi._resetForTesting();
+    vi.restoreAllMocks();
+  });
+
+  function reader(path: string, band?: 'novice' | 'competent' | 'expert'): Reader {
+    const r = makeStuffAtPath(() => new Reader(), path);
+    if (band) {
+      const run = Competence.seedRunFor(band)!;
+      for (let i = 0; i < run.count; i++) {
+        rows.push({
+          owner: path,
+          discipline: 'horticulture',
+          difficulty: run.difficulty,
+          outcome: 'success',
+          when: null,
+          kind: 'claim',
+        });
+      }
+    }
+    return r;
+  }
+
+  function dryStand(): GrowFixture {
+    const f = fixture({ seedRateKgPerM2: 0.015, yieldKgPerM2: 0.3 });
+    f.setSownAreaM2(500);
+    f.getVigor();
+    setNow(40 * DAY); // dry — something is short, and the cause is water
+    return f;
+  }
+
+  function augment(f: GrowFixture, viewer: unknown): string {
+    const aug = (
+      f as unknown as {
+        constructor: {
+          markupAugmenters: Array<(s: string, h: unknown, v: unknown) => string>;
+        };
+      }
+    ).constructor.markupAugmenters[0]!;
+    return aug('', f, viewer);
+  }
+
+  it('⭐ an expert reads more than an untrained eye, and the untrained read is where it starts', async () => {
+    const f = dryStand();
+    const expert = reader('/test/agent/expert', 'expert');
+    await expert.warmCompetenceDigest();
+    expect(expert.competenceBandCached('horticulture')).toBe('expert');
+    const untrained = reader('/test/agent/untrained');
+    await untrained.warmCompetenceDigest();
+
+    const hi = augment(f, expert);
+    const lo = augment(f, untrained);
+    expect(hi).toBe(f.readLines('expert').join(' '));
+    expect(lo).toBe(f.readLines('untrained').join(' '));
+    // Less detail, never a different truth.
+    expect(hi.startsWith(lo)).toBe(true);
+    expect(hi.length).toBeGreaterThan(lo.length);
+    expect(hi).toContain('The soil is dry there.');
+    expect(lo).not.toContain('dry');
+    expect(hi).not.toMatch(/\d/);
+  });
+
+  it('a cold digest reads the floor — never a guess upward', () => {
+    const f = dryStand();
+    const expert = reader('/test/agent/cold-expert', 'expert');
+    // No warm: the preload has not run for this reader.
+    expect(augment(f, expert)).toBe(f.readLines('untrained').join(' '));
+  });
+
+  it('a viewer that is not Advancing reads the floor', () => {
+    const f = dryStand();
+    const stranger = makeStuff(() => new GrowFixture());
+    expect(augment(f, stranger)).toBe(f.readLines('untrained').join(' '));
+  });
+
+  it('a pot plant is not banded — every viewer reads it in full', async () => {
+    const f = fixture();
+    f.getVigor();
+    setNow(40 * DAY);
+    const untrained = reader('/test/agent/potter');
+    await untrained.warmCompetenceDigest();
+    expect(augment(f, untrained)).toContain('The soil is dry.');
+  });
+});
+
+/** Give a fixture a template path, so it has a kind to copy. */
+function makeStuffAtPathOf(f: GrowFixture): GrowFixture {
+  stampTemplatePathForTest(f, '/test/thing/plant/grain');
+  return f;
+}

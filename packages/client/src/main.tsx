@@ -5,6 +5,7 @@ import { GlobalFonts } from "./styles/GlobalFonts";
 import { GlobalReset } from "./styles/GlobalReset";
 import { applyGround } from "./lib/style/useGround";
 import { INK_THEME } from "./lib/style/themes/ink";
+import { PickStyle } from "./components/PickMode";
 
 // Paint the default ground BEFORE the first render, so the very first
 // frame already resolves `var(--sx-*)` instead of flashing whatever the
@@ -29,6 +30,8 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <GlobalFonts />
     {/* Same StrictMode caveat as GlobalFonts — see GlobalReset. */}
     <GlobalReset />
+    {/* And the pick-mode highlight — see PickMode. */}
+    <PickStyle />
     <React.StrictMode>
       <App />
     </React.StrictMode>

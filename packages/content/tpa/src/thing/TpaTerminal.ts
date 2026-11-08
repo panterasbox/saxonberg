@@ -41,7 +41,7 @@ import { ContainerMixin } from "@saxonberg/server/mud/lib/spatial/Container";
 import { ContainmentApi } from "@saxonberg/server/mud/api/containment";
 import { StuffApi } from "@saxonberg/server/mud/api/stuff";
 import { MixinApi as _MixinApi } from "@saxonberg/server/mud/api/mixin";
-import { ReservedMixin } from "@saxonberg/server/mud/lib/reserve";
+import { ReservedMixin } from "@saxonberg/server/mud/lib/reserve/Reserved";
 import { SUPPLY_STATE_GLOSS } from "@saxonberg/server/mud/lib/supply/SupplyState";
 import type { SupplyState } from "@saxonberg/server/mud/lib/supply/SupplyState";
 import type { CommandContributions } from "@saxonberg/server/mud/api/command";

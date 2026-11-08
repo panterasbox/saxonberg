@@ -152,6 +152,11 @@ YIELDS the piece (`Clay.yieldPieces`).
   refusal names the band; grade = the band less one. Below your band a pot
   is heavier, never failed. A moulded block, a tile or a handle is its row's
   own mass × `greenScale` — the hand does not change a brick.
+- `greenScale` is the pattern-maker's oversize: how much bigger the green
+  piece is cut than the fired one (`FormSpec.greenScale`), because clay
+  shrinks drying and firing — so a brick off a true mould (firebrick 1.08,
+  tile 1.06) measures to the statute, and the old pit's mould (1.6) reads
+  *off standard*.
 - **The piece** is green clay of the clay's material and composition, at its
   water, made by the actor, described by its form, its vessel capacity the
   form's; a form with `seats:` (a jug's `handle`) is born with that bill line
@@ -371,7 +376,7 @@ the step that would move it).
   bricks are burnt; burnt bricks in hand → `put bricks in counter`; a cold
   clamp's burnt bricks → `get bricks from clamp`; bone-dry bricks in hand →
   `put bricks in clamp` (damp ones go back); a clamp charged to `batch`
-  (40) → `stoke coal`, `ignite clamp`, `fire clamp for 3 days`; else fetch
+  (40) → `stoke coal`, `light clamp`, `fire clamp for 3 days`; else fetch
   bone-dry bricks from the hacks. ⭐ The setter's own band sets the channel
   share (`BrickClamp.onFireStart` reads who fires it).
 - **`pots`** — a lit kiln is left, and doused when its load is done;
@@ -415,6 +420,21 @@ anybody counts how many have gone over; a competent reader names them
 (08 · 04 · 6 — terracotta, earthenware and stoneware heat, ±15 K
 bending); a proficient one says what the ware has had. The set is SPENT
 by the read (a bent cone does not stand up again).
+
+### What the brick is for (the demand)
+
+Structures clone fully built, so nobody BUILDS with brick; the demand is
+upkeep. Today that is the furnace lining — a part line relined per firing
+([fire.md § Linings](./fire.md)), which is why the Rejection store stocks
+firebrick. The second buyer is the building envelope, and it is authored
+for: the wharfside cottage, the colorman's shop, the lavoir laundry, the
+Hinkley house and the potter's shop carry
+`enclosure: { material: /stuff/idea/material/ceramic/brick }`, so when
+repair W7's `maintain` lands there are brick walls to weather, and a wall's
+rate will read off its brick's own porosity (a soft place brick drinks rain
+and spalls; a sound one does not — [faces.md § Holding water](./faces.md)).
+Mortar, repointing and the bricklayer are W7's
+([brickmaking-slate](../slates/tails/brickmaking-slate.md) § 7).
 
 ## Settings (`settings/ceramics.yaml`)
 
@@ -468,7 +488,7 @@ retires, and these are the attach points it recorded.
 | seam | destination |
 |---|---|
 | casks, pitch-lined amphorae, tin-lined copper onto faces | `maturation.md` § a recorded target (W7's sweep writes the note; no migration) |
-| coats on building faces, the painted image, binders | [paint-slate](../slates/builds/paint-slate.md) (rides `Faced` for goods, construction layers for buildings) |
+| coats on building faces, the painted image, binders | [paint-slate](../slates/tails/paint-slate.md) (rides `Faced` for goods, construction layers for buildings) |
 | wet clothes and sweat reading `evaporativeDepressionK` | `exertion.md` / `textiles.md` deferred lists |
 | frost tilth, frost damage to brick (the count's next readers) | repair W7, `soil.md` |
 | lime mortar by cure, repointing, the spall, `maintain` | repair W7 |

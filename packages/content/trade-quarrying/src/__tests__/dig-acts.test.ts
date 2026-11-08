@@ -22,7 +22,7 @@ import DigController from '@saxonberg/server/mud/platform/idea/cmd/ground/DigCon
 import SplitController from '@saxonberg/server/mud/platform/idea/cmd/ground/SplitController';
 import OpenWorkingLocation from '../location/OpenWorking';
 import Block from '../thing/Block';
-import { LIFT_M, type OpenWorking } from '../lib/Working';
+import { LIFT_M, type OpenWorking } from '../lib/OpenWorking';
 import Deposit from '@saxonberg/content-ground/src/idea/Deposit';
 import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
 import Material from '@saxonberg/server/mud/platform/idea/material/Material';

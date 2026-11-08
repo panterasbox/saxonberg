@@ -1,0 +1,26 @@
+# Turpentine vapor — what a dish of turpentine gives off (paint D16): sharp,
+# heavy, and in a shut room enough of it dizzies and sickens. Opening the
+# door clears it (the room's air changes).
+# ⭐ `toxicity` reads as burden per breath at unit fraction (the smoke row's
+# convention): a room a hundredth full of it poisons at a hundredth.
+class: /platform/idea/material/OdorousMaterial
+data:
+  smells: [{ aroma: /base-library/aromas/turpentine, strength: 3000 }]
+  burning: [{ aroma: /base-library/aromas/oil-smoke, strength: 1000 }]
+  name: turpentine vapor
+  keywords: [vapor, fumes, turpentine]
+  appearance: a sharp, resinous reek hanging in the air
+  density: 4.7
+  boilingPoint: 300
+  thermalConductivity: 0.01
+  electricalConductivity: 1.0e-12
+  heatOfCombustion: 44
+  flammableLimit: 0.008
+  edibility: false
+  nutrients: []
+  toxicity:
+    - type: turpentine
+      amount: 40
+  tags: [gas, vapour]
+  composition: []
+  biologicalSource: null

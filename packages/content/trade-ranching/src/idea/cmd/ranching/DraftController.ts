@@ -31,10 +31,12 @@ import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import type Species from '@saxonberg/server/mud/platform/idea/species/Species';
 import HerdRegistry, {
   DEFAULT_FEMALE_FRACTION,
+  type FedWindow,
   type HerdRecord,
 } from '../../HerdRegistry';
 import { HeadSeed } from '../../../lib/HeadSeed';
 import type Livestock from '../../../agent/Livestock';
+import { GrammarApi } from '@saxonberg/server/mud/api/grammar';
 
 export const RANCHING_TOPIC = 'act.deed';
 
@@ -89,7 +91,12 @@ export default class DraftController extends CommandController<DraftModel> {
       return;
     }
 
-    const animal = await this.mint(herd, index, giver);
+    // ⭐ What the herd has eaten since this head was last looked at
+    // (cover build D10): close the open window first, so the condition
+    // the head comes out in is the condition the field left it in.
+    await registry.foldOpen(herd.herdId);
+    const fed = (await registry.read(herd.herdId))?.fed ?? [];
+    const animal = await this.mint(herd, index, giver, fed);
     if (!animal) {
       this.decline(context, Mml.compose`You cannot get a rope on it.`, 'mint-failed');
       return;
@@ -99,7 +106,7 @@ export default class DraftController extends CommandController<DraftModel> {
     MessageApi.scene(giver)
       .topic(RANCHING_TOPIC)
       .toSelf(
-        Mml.compose`You cut number ${index} out of ${herd.name} and look it over. ${animal.stockmanRead()}.`,
+        Mml.compose`You cut number ${index} out of ${herd.name} and look it over. ${GrammarApi.cap(animal.stockmanRead())}.`,
       )
       .toPeers(
         Mml.compose`${Mml.actor(giver)} cuts one out of the bunch and stands looking at it.`,
@@ -116,6 +123,7 @@ export default class DraftController extends CommandController<DraftModel> {
     herd: HerdRecord,
     index: number,
     giver: Stuff,
+    fed: readonly FedWindow[] = [],
   ): Promise<Livestock | null> {
     let animal: Livestock;
     try {
@@ -136,7 +144,6 @@ export default class DraftController extends CommandController<DraftModel> {
     animal.bindToHerd(herd.herdId, index);
     const species = await this.speciesOf(herd.speciesPath);
     animal.setSpecies(species);
-    this.nameAfterSpecies(animal, species);
     animal.setLifecycleState('alive');
     // ⭐ (dairy D12) The seed always said which sex a head was, and nothing
     // applied it — every drafted head was sexless. A species with no sex
@@ -147,13 +154,21 @@ export default class DraftController extends CommandController<DraftModel> {
     } catch {
       /* the species keeps no sexes; the head stays unrecorded */
     }
+    this.nameAfterSpecies(animal, species, sample.sex);
     animal.setAge(sample.ageDays);
     animal.handling = sample.handling;
+    // ⭐ The flesh it was last known at, replayed through what the herd
+    // was fed since (cover build D10a) — from its return when it has been
+    // out before, else from the herd's founding. Seeded, never drawn: the
+    // shy feeder is thin because its frame is low, every time.
+    const overlay = herd.overlay[String(index)];
+    const since = overlay?.fleshAt ?? herd.founded;
+    const condition = HeadSeed.replay(sample.flesh, since, fed, sample.frame);
     const flesh = animal.getReserve('flesh');
     if (flesh) {
       animal.adjustReserve(
         'flesh',
-        Quantity.of(sample.flesh - flesh.current.rawValue(), '%'),
+        Quantity.of(condition - flesh.current.rawValue(), '%'),
       );
     }
     // ⭐ (dairy, found by the drive) The head exists from the draft, so its
@@ -270,10 +285,15 @@ export default class DraftController extends CommandController<DraftModel> {
    * `bull`, `calf`, `ox`, `beast`), so nothing new is written down: the
    * generic keywords stay, the specific ones join them, and the head
    * presents as what it is rather than as what the row had to be.
+   *
+   * ⚠ A cow is not a bull: the species' `maleNames` go only to a male, or `milk
+   * bull` in a byre with a cow in it finds her. A male still answers to `cow`,
+   * because that is what the room calls him (`commonNames[0]`).
    */
-  private nameAfterSpecies(animal: Livestock, species: Species | null): void {
+  private nameAfterSpecies(animal: Livestock, species: Species | null, sex: string): void {
     if (!species) return;
-    const names = species.getCommonNames().map((n) => n.toLowerCase());
+    const notHers = sex === 'female' ? new Set(species.getMaleNames()) : new Set<string>();
+    const names = species.getCommonNames().filter((n) => !notHers.has(n)).map((n) => n.toLowerCase());
     if (names.length === 0) return;
     const self = animal as unknown as Stuff;
     if (!MixinApi.isPerceptible(self)) return;
@@ -364,6 +384,10 @@ export default class DraftController extends CommandController<DraftModel> {
       // head carries one too (it knows which herd it came out of), so a
       // cow standing in the yard would answer for the register. The book
       // is the thing that also knows the TALLY.
+      // ⚠ Still a shape probe, recorded (controllers-are-io W3a): an
+      // `instanceof Herdbook` here is a bespoke instrument hunt
+      // (`lint:controller-resolution`); the honest fix is the book as a
+      // DECLARED arg of the view, not a different probe.
       const shape = item as unknown as {
         getHerdId?(): string;
         getTally?(): number;

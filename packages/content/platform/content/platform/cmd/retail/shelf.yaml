@@ -1,0 +1,89 @@
+# shelf — a store's consignment shelf, and the book it keeps
+# (controllers-are-io W7, D9: *a transaction with an institution's book is
+# a subcommand of its noun* — `store` is the model). The flat `consign`
+# and `reclaim` verbs until then. Each subcommand binds its own shelf;
+# nothing inherits.
+verbs: [shelf]
+category: retail
+description: "A store's consignment shelf — consign / reclaim"
+help: |
+  A store's consignment shelf sells what you own on your behalf: `shelf
+  consign <thing> --ask <coin>` puts a good up, and the shop takes a
+  commission when it sells; `shelf reclaim <thing>` takes back one that
+  has not. You own it the whole time — the shelf only holds it.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+subcommands:
+  consign:
+    description: Consign a good you own for sale at a store
+    controller: /platform/idea/cmd/retail/ShelfConsignController
+    help: |
+      Put a good you own up for sale on a store's consignment shelf —
+      `shelf consign lantern --ask 12`. Custody passes to the shop, but you still
+      own it until it sells; when someone buys it the shop takes a
+      commission and the rest lands in your bank account. Take it back any
+      time it hasn't sold with `shelf reclaim`.
+
+      ⭐ **A stack goes up ONE UNIT at a time.** Consigning off a stack of
+      cloth or candles takes a single unit and leaves the rest in your hands.
+      That unit becomes a thing in its own right the moment you list it —
+      which is what lets the shelf hold it, the ledger pay you for it, and
+      you `shelf reclaim` it unsold. Put another up when it sells.
+    validators:
+    - /lib/command/validators/requiresEmbodied
+    args:
+    - name: thing
+      type: object
+      required: true
+      scope:
+      - inventory
+      requires:
+      - ChattelMixin
+    - name: shelf
+      type: object
+      required: false
+      prepositions:
+      - 'on'
+      default: reachable:[mixin.ConsignmentShelfMixin]
+      scope:
+      - here
+      - peers
+      - person
+      requires:
+      - ConsignmentShelfMixin
+    options:
+      ask:
+        short: a
+        type: string
+        description: The asking price, in coin.
+  reclaim:
+    description: Take back an unsold good you consigned
+    controller: /platform/idea/cmd/retail/ShelfReclaimController
+    help: |
+      Take back a good you consigned that hasn't sold yet — `shelf reclaim
+      lantern`. Custody returns to you; you owned it the whole time.
+
+      A two-word name works bare — `shelf reclaim dog loaf` — and quoting works
+      too (`shelf reclaim "dog loaf"`). Where more than one shelf is in reach,
+      say which: `shelf reclaim lantern from the second shelf`.
+    validators:
+    - /lib/command/validators/requiresEmbodied
+    args:
+    - name: thing
+      type: string
+      required: true
+      greedy: true
+    - name: shelf
+      type: object
+      required: false
+      greedy: true
+      prepositions:
+      - from
+      default: reachable:[mixin.ConsignmentShelfMixin]
+      scope:
+      - here
+      - peers
+      - person
+      requires:
+      - ConsignmentShelfMixin

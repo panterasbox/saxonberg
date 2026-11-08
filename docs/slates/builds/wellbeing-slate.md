@@ -282,3 +282,11 @@ mutiny are governance, deferred. Rations and the purser are lens 4. See
 **The two ends meet**: the ship's cook makes pleasure from monotony under
 constraint, the three-star chef from abundance under scrutiny — the same taste
 profiles, pleasure model and palate.
+
+## ⭐ Smell and taste build (2026-11-07)
+
+[the smell and taste build](../../subsystems/senses.md#one-smell-source-air-nose) (!531) builds
+§ 1's taste profile (born, inherited, learned, aversive; aging stays here) and the
+liking half of § 2 (alliesthesia by hunger). It stops at reading. The meter question
+is answered in [mind-slate § The interlock](./mind-slate.md): one meter, with this
+slate's discomforts as inputs.

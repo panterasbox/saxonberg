@@ -1,6 +1,7 @@
 # Coffee — cooking's (the brew is a hearth's). The base-library row retires in phase 5. Tag `coffee`.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/coffee, strength: 1000 }]
   name: coffee
   keywords: [java, coffee, brew]
   appearance: "dark, steaming coffee"
@@ -11,7 +12,7 @@ data:
   # ⭐ The basic tastes (closed five-word set). Nothing authors what a
   # DISH tastes like — `taste` derives that from what went in, projected
   # through the taster's own palate. See docs/subsystems/crafting.md.
-  tastes: [bitter]
+  tastes: [{ type: sour, amount: 1 }, { type: bitter, amount: 0.3 }]
   # ⭐ Spoilage (docs/subsystems/spoilage.md): the microbial growth rate is
   # `μ_max · f_T(T) · f_aw(a_w)`. `spoilActivationEnergy` (J/mol) is how
   # steeply this food answers to warmth; `waterActivity` is how much of its

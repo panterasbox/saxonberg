@@ -58,8 +58,10 @@ plane sailing (`cos(lat)` departure), which is what a navigator with a
 traverse table does. Persisted as its plain record.
 
 `PositionedMixin` (kernel) carries a CRAFT's chart position —
-`expansePosition` and `expanse` (the row path). Composed by `Ship` and
-the transport pack's `Boat` — never by `ExitableVessel` or `Mobile`,
+`expansePosition` and `expanse` (the row path). Composed by `Ship` (and
+by the water pack's `SeaPatch`; the transport pack's `Boat` no longer
+composes it since the river build — a boat is a thing in a water place,
+[river.md](./river.md) § Small craft) — never by `ExitableVessel` or `Mobile`,
 ⛔ never by a plain `Structure` (a building has no position of its own;
 a light is where its rock's node is), and not by `ExpanseNode`, whose
 position is the graph's. Two height hooks
@@ -272,27 +274,133 @@ wrong chart is wrong in one row and never reconciled. See
 | `pilot` | `Pilot` (peers) | buy told claims |
 | `measure depth` / `measure latitude` | reading rows (`sounding` / `sighting`) | the sounding; the noon sight |
 | `measure bearing` | reading row (`bearing`; the hand-bearing compass, or the eye at ±10°) | the bearing of a thing in view; a fix on a fixed one |
-| `scan horizon` | `query` (alias `scan`; a bare `horizon` names a set) | what is in view beyond the room |
+| `query horizon` | `query` (a bare `horizon` names a set) | what is in view beyond the room |
 | `watch horizon` | `watch` (the stream verb's horizon form) | keep a watch: told only what changes |
 | `swim` | `ShoreMixin` (inventory) — every place beside or in a water; the gate decides the way | a small water is a place: a `Pool` IS the water, swum in and swum INTO |
-| `go aboard` / `go ashore` | `AboardExit` / `AshoreExit` | the far side recomputed every traverse |
+| `go <ship>` / `go ashore` | `BerthExit` (put on the landing by the ship) / `AshoreExit` | the way aboard is named for her and exists only while she is made fast |
 
 ⛔ No `fix` verb: the four fixes are four acts that already have verbs.
 
 ## Exits
 
-`AboardExit` (on a node's landing) resolves to the entrance of whatever
-SHIP lies at that node now; `AshoreExit` (on a ship's entrance) to the
-landing of the node she lies at. Both refuse in words otherwise. Their
-lookups (which node is this landing, which craft is this deck's) run
-inside the async `canTraverse` at the moment of asking, cached after
-the first — the one gate every crossing goes through (see
-[locomotion.md](./locomotion.md)).
+⭐ **The way aboard is named for her** (harbors P4–P6). A ship that comes
+to a landing — a node's `destination` at sea (`arrived`, the stop now
+carries the node's landing), a river's landing on its line (`landing`),
+the bar's landing when she comes out of the river (`mouth`) — **makes
+fast** (`Ship.comeAlongside`): each of her lines — a rope on her deck
+kept AT her bitts (flaked down `on` a `Bollard` there, or tied round one;
+long enough to reach; a rope loose on her deck is not one) — is tied round
+a `Bollard` on the landing through **the rope's own `tieTo`** (cordage's
+end across: the rope stays aboard, its end is minted ashore round the
+bollard; only the structure the rope lies in may), and a `BerthExit` named
+for her (`go hesper`) goes on it. There is no mooring protocol (review 1):
+*moored* is a read over her ropes (`Ship.fastLines()` — which have an end
+round a bollard she made it fast round). With no line aboard a course for
+a landing is refused before it is laid (`mooringRefusal`); with no bollard
+ashore she lies off unmoored. Any course from a moored ship casts off
+first (lines in, the way gone); `untie` of her last line's end on the
+quay (cordage's act — the end comes into your hands) or of the rope at
+her bitts sets her adrift (`Structure.onLineLetGo`). She keeps two facts
+— `berth` and `moored` — and puts the rest back when she loads (`onRestored`, and `seedBornWith` for an
+authored mooring): her landing is stood up, the ends re-minted, the way
+re-installed. A landing loads the ships authored made fast at it (the
+`berth` attachment, `location-graph.md`), and a frame-sited landing's
+first use asks its frame's craft (`Frame.craft()`). Its `look` reads
+*Alongside: the Hesper.* off the ways. `AshoreExit` (on a ship's
+entrance) leads to her `getBerth()` first, then to the landing within a
+rope's throw on a river or the node's landing at sea; it refuses in
+words between nodes. Both faces read her gangway's lock (`gangwayKeyway`,
+`gangwayLocked`), and only the way aboard is gated by it.
+
+### Harbors: a kept berth, a hail, the bar (harbors A1)
+
+⭐ **The ship reaches a harbor only through two kernel protocols** — the
+kernel imports no pack:
+
+- **`Berthing`** (`lib/expanse/Berthing.ts`, `BerthingMixin` — named for
+  the act; it was `BerthKeeper` until review 1) on a landing somebody
+  keeps a book for (the transport pack's `HarborQuay`): `Ship.steer` asks
+  it through `Ship.courseRefusal(landing)` — the landing she lies at must
+  `clearance` her before she leaves, the landing she is coming to must
+  `admit` her before the course is laid (so a refusal is instant and
+  nothing moves); `comeAlongside` tells it `madeFast` (and so does a
+  restore that re-makes her mooring), `castOff` — and her last line lifted
+  off — tells it `release`. A river's public landing composes nothing and
+  keeps first-come.
+- **`Hailable`** (`lib/expanse/Hailable.ts`) on a place that keeps a watch
+  on the water (the transport pack's `HarborOffice`). `Frame.hailables(pos)`
+  names what answers near a craft: a river the places its line names within
+  `expanse.signalRangeNm` whose class composes it (read off the row's
+  class, `StuffApi.classForRef` — only an answering place is loaded); the
+  sea, through every node in range that is a river's mouth (hand the hail up
+  the river), every node landing that answers itself, and the station a
+  node's row names (`ExpanseNode.hail` — as a chart lists a port's signal
+  station: Waponi Woo's node names the estate store that keeps the
+  island's book; review 1 moved this off `Berthing`, which keeps only the
+  book's five questions and the berth's depth). `hail <word>` tries
+  these first (`hail office`, `hail harbor`), then the sails in sight.
+
+On the pack side (harbors review 2) the **record is the berth book's**: the
+`HarborBook` fixture on the office desk persists the lines (berths given,
+ships alongside, debts, dues stamped paid) and the hails, and is what
+players act on (`look book`, `pay book`, `berth … at`). The `Harbor` row
+keeps only its posted rules — quays, rates, exempt, roads, seat, office —
+and applies them in order over the book it names forward (`book:`); it
+persists nothing. A second port is rows only: a harbor row and a book.
+
+A place sited on a river that is no landing authors `frameSite.landing:
+false` — the harbor office above its quays: on the line (a hail finds it,
+a drifting swimmer passes it) and never a course.
+
+⭐ **The tide's window at the bar** (P10): `LineFrame.barWater(nowS)` is
+the water over the river's bar now — the channel's depth at the mouth with
+the tide's level in it, and the tide. `Ship.barClearance(river, nowS)` sets
+her draft as she floats plus the margin a master keeps under her keel (0.5
+m, grain) against it, and `barRefusal` says it in a pilot's words with the
+hours to the next high water. `CourseController.intoRiver` asks it before
+she goes in over the bar (`course kestrel`, or ⭐ `course <quay>` from the
+mouth's node — in over the bar and up to a landing inside it, which is how
+the port is reached); the harbor's hail cites the same number. Nothing is
+rolled. The depth itself is the water pack's: below the tide's reach a
+river node that authors `meanDepthM` is a drowned valley — the authored bed
+with the tide's level on top, not the river's normal depth over its own
+gradient (see [river.md](./river.md)).
+
+### A ship of a kind is a copy of her kind's plan (harbors review 3, 2026-11-03)
+
+A ship KIND (`/stuff/idea/Ship/smack`) owns her PLAN: her row names
+`extent` (`/stuff/location/ship/smack` — her deck, cabin and hold
+authored as an ordinary place, ordinary `exits:` between them, each
+room's own `floorM`) and `entrance` (her deck), exactly as the authored
+Hesper's row does. ⛔ There is no blueprint row — a `Structure` is only
+ever a thing standing in the world. Her warren
+(`/stuff/idea/ShipWarren/smack`) names nothing; it reads the plan off her
+(`ShipWarren.planOf`). Every smack is a copy: her rooms keyed `(room
+row, <serial>/<leaf>)`, a way inside the extent leading to the same room
+of HER copy, a way out (her `ashore`, her `side`) as authored. The plan's
+rows are never served: the location graph attaches nothing for a
+Structure row whose rooms a `warren:` mints, and a kind's membership is
+her warren's, never a path (`Structure.memberExtent` answers `''` for
+her). An AUTHORED ship (the Hesper) copies no plan: her own rows are the
+place, and they are served — her warren (`ShipWarren/authored`) adopts
+her live rooms. ⭐ Only her HOLD keeps a record (`platform/location/Hold`
+= `Persistable(Compartment)`); her deck and cabin are plain rooms the
+warren stands up again at wake, and before she sleeps `ShipWarren.stow`
+moves what is loose up top into the hold. Her register, her company's
+cap table, the charter, the bilge and going down are
+[ship.md](./ship.md)'s; the harbor's book and its rules are
+[harbor.md](./harbor.md)'s. Her hull is HERS, as a
+house's fabric is the building's (paint merged into harbors): `Ship`
+composes `Faced` (tar, paint) over `Durable` (her seams), the weather wears
+the seams at the house's rate (`structure.weather.daysToWorn`) once the
+coat is gone, `maintain` with a caulker's kit makes them sound, and how far
+they have opened is her leak (five seam bands, `ship.leak.<band>`). See
+[holding.md § Plans](./holding.md).
 
 ## Perception at range (revision 1)
 
 ⭐⭐ **Pull, never push.** Nothing on the horizon is ever announced to
-anybody: somebody looks (`scan horizon`) or keeps a watch (`watch
+anybody: somebody looks (`query horizon`) or keeps a watch (`watch
 horizon`, `HorizonWatch` — an engagement on the watcher's attention that
 says only what came into or dropped out of view). Push comes only from
 emitters that announce themselves (a bell, a gun, a signal).
@@ -364,18 +472,28 @@ instead of a 9.81 literal.
 | seam | attach point | slate |
 |---|---|---|
 | hazards firing at a boundary | `Band.hazards[]` + the boundary report | navigable-water § 3b |
-| the berth | `AboardExit.computeDestination` | navigable-water § 7a |
+| the harbor's book of berths (who may lie where, dues) | `Ship.comeAlongside` | harbors (in build) |
 | the second depth value | `GeoPosition.depthM` | underwater |
 | the tide, a water biome, latitude as a resolved value | `WaterExpanse`, the `open-water` stub | climate-and-water |
 | vector wind | `Band.lean` becomes a deviation | weather |
 | a boat adrift across a restart | the dinghy is a deck prop, not boot-listed | the vessel build |
-| cargo in a ship's hold | the rooms are singleton, non-persistable | the vessel build |
 | the logbook (*what proves the depletion*) | `chronicle` is append-only and exists | navigable-water § salvaged Q1 |
 | the place↔bulk line (a bath, a cistern, a spring) | `Shore` (beside) and `Pool` (in) are its two drawn edges | navigable-water § salvaged Q2 |
 | reversing flow, the tidal bore | — | navigable-water § 4 / salvaged Q3 |
 
 ## History
 
+- **Harbors (2026-10/11, MR !511, `14b2bfcf9`…`1116a9e2d`).** The way
+  aboard named for her (`BerthExit`/`AshoreExit`), the `Berthing` and
+  `Hailable` protocols, the bar's tide window, and the ship of a kind.
+  Review round 1 replaced the shapes the build first shipped: the
+  `MooringLine` mixin became cordage's `Tieable` + `Rope.tieTo`
+  (`88e6d3045`); `BerthKeeper` became `Berthing` and the hail moved onto
+  the node's row (`ExpanseNode.hail`, `24d31eeb6`); `ShipRegisterApi`
+  went, a ship naming her own register (`ebbb157fe`); the handle scan
+  went, a ship being a minted identity whose rooms are found through her
+  (`a2f34a285`); only the hold persists (`e6b86cfbd`); and the blueprint
+  row went, the plan living on the ship kind's own row (`a20704a98`).
 - **Maritime review — lazy, not booted (2026-10-14).** Maritime R4 had
   booted every Structure and sea and enforced it (`lint:structures-
   booted`), and kept a `StructureCatalogue` — a class scan of every
@@ -423,7 +541,7 @@ instead of a 9.81 literal.
   horizon`, `watch horizon` + the hired lookout's brain, `measure
   bearing`, the derived crossing delta, and fog as a weather lean.
 - **Maritime revisions 2′ and 3 (2026-10-11/12).** `look` takes one
-  thing and `query` (aliases `scan`, `inventory --ledger`'s rendering)
+  thing and `query` (then aliased `scan`, since deleted; `inventory --ledger`'s rendering)
   lists a set (`810387483`); the shore as a place and drawing water
   (`a0d5e65cb`…`e9a83bdb4`) — see [location.md](./location.md) and
   [fishing.md](./fishing.md).

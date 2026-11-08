@@ -95,7 +95,7 @@ Recorded briefly here so the load-bearing axioms are visible in one place;
 the cooperative slate is their authoritative source and the place they are
 argued. Changing any of these is changing *what we are building*.
 
-- **Three co-equal chambers, two-of-three passage** (producer / capital /
+- **Three co-equal chambers, two-of-three passage** (labor / capital /
   consumer). The permanent structural check against majoritarian capture
   (cooperative-slate.md:496, 528).
 - **Influence is voice, never equity.** Stake-is-not-stock: membership

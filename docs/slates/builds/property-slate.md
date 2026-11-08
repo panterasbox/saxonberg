@@ -421,7 +421,7 @@ Governing principle: **review the vocabulary (primitives), not the sentence
 ### Open threads carried forward
 
 - **Sublet rollup** (sub-parcel allowance carved-from-parent vs. direct
-  governance grant) = a **producer-house allocation policy**, not substrate.
+  governance grant) = a **labor-house allocation policy**, not substrate.
 - **Trust-domain topology:** lattice (published ⊃ custom ⊃ singleton) vs.
   arbitrary graph. Lean lattice (asymmetric trust invites exploits).
 - **What counts as "power"** for the release/activation gate — augments clearly;
@@ -494,7 +494,7 @@ published — the release gate applies regardless of author) · lazy/dormant zon
   (possession); *authoring credit* stays with the seller (`authoring_events` is
   immutable). So if the buyer later **publishes** something the seller built,
   credit-routing (`CreditRouting.resolve`) must rule author vs. owner vs. a
-  `CreditShare` split (if the buyer modified it) — the producer-influence seam.
+  `CreditShare` split (if the buyer modified it) — the labor-influence seam.
 - **Allowance-liability** follows the parcel on a furnished transfer; stays with
   the seller on an empty sale.
 
@@ -581,7 +581,7 @@ verbs split on custody/title · shops = three-layer composition · dorm = the
 implicit-default-parcel + document-doc persistence · rent = a use-grant · the
 capability-vs-relation mixin guardrail.
 
-**Still open — non-blocking (deferred):** sublet rollup (producer-house policy) ·
+**Still open — non-blocking (deferred):** sublet rollup (labor-house policy) ·
 trust-domain topology (lean lattice) · "power" definition for the release gate ·
 theft∥lending recovery/adjudication · combination exploits (governance backstop) ·
 publish-from-sold-sandbox credit routing · zone-proliferation perf · coord-region

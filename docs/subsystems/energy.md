@@ -70,7 +70,9 @@ drive). It runs on the first real read (the dusk settle, or `analyze grid`).
   (`ElectricLight`, the `ColdStore`/`ColdRoom`; never on `Thing`/
   `LightSource`/`BurnerMixin`). Resolves its premises' band + feeder once;
   `isPowered()` is sync. ⭐ **It implements the kernel `Powered` shape**
-  (`isPowered` · `availablePowerW` · `poweredTrajectory`) structurally, so
+  (`isPowered` · `availablePowerW` · `poweredTrajectory`) by composing
+  `PoweredMixin` (controllers-are-io D7a; the mills compose it too, and every
+  reader narrows on `MixinApi.isPowered`), so
   `ClimateControlMixin` (kernel) drives off it without the kernel importing
   the pack. A host that is not Containable (a `ColdRoom` Location) is metered
   against ITSELF (`resolveRoomPath` returns its own path).
@@ -89,7 +91,7 @@ drive). It runs on the first real read (the dusk settle, or `analyze grid`).
   envelope integrates — so a cut mid-outage and a splice after it warm and
   re-cool the store correctly even if nobody watched. (Source generation is
   read as-now, not logged — the cut is the state a fridge cares about.)
-- **`LineAccess`** — a pole/manhole on a node; affords `sever`/`splice`; an
+- **`LineAccess`** — a pole/manhole on a node; affords `sever` and the kernel `splice` (it answers the `Spliceable` protocol since cordage D9 — one splice for a pole and a rope); an
   overhead one faults in a storm (`onStormExposure` → `energy.stormFaultRate`),
   a buried one is storm-safe. ⭐ **A `LineAccess` is SPARSE, not one-per-street**:
   it is the physical access point where a lineman actually works the line, so
@@ -135,9 +137,10 @@ sources from a locality's own treasury when it has one.
 ## The pump build (2026-10-09) — the first mechanical consumer
 
 `ElectricPump = GridPowered(Switchable(Pump))` is the energy pack's third
-appliance, and the `Powered` shape's first consumer that does mechanical
-work: the kernel pump reads `availablePowerW` / `poweredTrajectory`
-structurally, so a prime mover is simply a `Powered` implementer. It
+appliance, and `PoweredMixin`'s first consumer that does mechanical
+work: the kernel pump narrows on `MixinApi.isPowered` and reads
+`availablePowerW` / `poweredTrajectory`, so a prime mover is simply a
+`PoweredMixin` composer. It
 affords `switch` itself; turning it reconciles its packing's running wear
 first. The Wharfside intake's pump asks ~98 kW of a 60 kW industrial band
 and is left overdrawn on purpose — see [pump.md](./pump.md).

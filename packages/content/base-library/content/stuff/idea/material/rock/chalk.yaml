@@ -16,6 +16,9 @@ data:
   nutrients: []
   toxicity: []
   tags: [rock, mineral, granular, absorbent, chalk]
+  # ⭐ A white pigment (paint D19): a weak one in oil, the body of a
+  # limewash and of gesso.
+  pigment: { transmitR: 0.95, transmitG: 0.95, transmitB: 0.92, hidingPower: 0.25, lightfastness: 1 }
   # ⭐ What it washes as (cleanliness B50): the wash reads this row,
   # loaded with the material — never a search of cleansers by tag.
   cleanser: /platform/idea/Cleanser/chalk

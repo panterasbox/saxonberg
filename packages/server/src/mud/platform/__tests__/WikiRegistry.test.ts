@@ -13,14 +13,15 @@
  * registry made calls, not that the wiki works.
  *
  * ⚠ The gate is exercised through `ProxyApi.unwrap`. Every mutator is
- * `FromModule(WikiController)`-gated, which is the point (criterion
+ * `FromModule(WikiControllerBase, includeSubclasses)`-gated, which is the point (criterion
  * 20) and also means a test cannot call one through the proxy. The
  * gate itself gets its own assertion below rather than being worked
  * around silently everywhere.
  */
 
 import "../../../test-bootstrap";
-import { readFileSync } from 'fs';
+import { readFileSync, readdirSync } from 'fs';
+import { join } from 'path';
 import { fileURLToPath } from 'url';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import WikiRegistry, { WikiDenied, WikiConflict } from '../idea/WikiRegistry';
@@ -62,7 +63,7 @@ let guest: Stuff;
 let zone: WikiNamespaceZone;
 
 /**
- * The registry's mutators are gated to `WikiController`. Tests drive
+ * The registry's mutators are gated to the `wiki` controllers (`WikiControllerBase`'s subclasses). Tests drive
  * the raw target — the gate is asserted separately, once, rather than
  * being defeated invisibly here.
  */
@@ -457,12 +458,14 @@ describe('the installer as a writer (content-packs wave 2, D9)', () => {
     ).rejects.toBeInstanceOf(WikiConflict);
   });
 
-  it('⚠ the controller never passes asInstaller — the option is the installer’s alone', () => {
-    const src = readFileSync(
-      fileURLToPath(new URL('../idea/cmd/system/WikiController.ts', import.meta.url)),
-      'utf8',
-    );
-    expect(src).not.toContain('asInstaller');
+  it('⚠ the controllers never pass asInstaller — the option is the installer’s alone', () => {
+    // One controller per subcommand over WikiControllerBase (W7): read them all.
+    const dir = fileURLToPath(new URL('../idea/cmd/system/', import.meta.url));
+    const files = readdirSync(dir).filter((f) => /^Wiki\w*Controller(Base)?\.ts$/.test(f));
+    expect(files.length).toBeGreaterThan(10);
+    for (const f of files) {
+      expect(readFileSync(join(dir, f), 'utf8')).not.toContain('asInstaller');
+    }
   });
 });
 
@@ -543,12 +546,12 @@ describe('permissions (19, 20, 21)', () => {
     expect(await registry.protectionFor(page)).toBe('moderators');
   });
 
-  it('a wizard clears every rung', async () => {
+  it('⭐ a wizard with no title clears no rung (wizard-axis D6)', async () => {
     vi.spyOn(zone, 'lookupField').mockResolvedValue(
       'moderators' as unknown as never,
     );
     pinAccess({ wizard: true, avatar: false, editor: false, moderator: false });
-    await expect(create('oak')).resolves.toBeInstanceOf(WikiPage);
+    await expect(create('oak')).rejects.toThrow();
   });
 
   it('a namespace with no seeded zone fails CLOSED above the floor', async () => {

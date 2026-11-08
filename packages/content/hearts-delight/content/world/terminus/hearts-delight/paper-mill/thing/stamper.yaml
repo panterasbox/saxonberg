@@ -1,0 +1,5 @@
+# The Delight mill's stamper — on the millrace, the grist mill's water.
+class: /trade/papermaking/thing/Stamper
+extends: /trade/papermaking/thing/stamper
+data:
+  powerFrom: /world/terminus/hearts-delight/thing/millrace

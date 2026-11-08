@@ -10,8 +10,8 @@ import { StuffApi } from '../../../api/stuff';
 import { ShellApi } from '../../../api/shell';
 import { CommandLineApi } from '../../../api/command-line';
 import type CardRegistry from '../CardRegistry';
-import type { CardOpenOptions } from '../CardRegistry';
-import type { CardCloseReason, CardId } from '@saxonberg/types';
+import type { CardOpenOptions, CardListing, CardArrangeAction } from '../CardRegistry';
+import type { CardCloseReason, CardId, CardPlacement, ArrangementCard, TerminalFilter } from '@saxonberg/types';
 import type { CommandContext } from '../../../api/command';
 import { CARDS } from '../../../lib/connection/Cards';
 
@@ -93,11 +93,8 @@ export class CardLogic extends ApiLogic {
    *
    * 1. `expandAliases` — the player's own aliases, so a personal `l`
    *    for `look` does not mint a second card.
-   * 2. ⚠ **Canonicalise the verb to `command.verbs[0]`.** `examine` is
-   *    a verb SYNONYM, not an alias — `look.yaml` declares
-   *    `verbs: [look, l, examine, exa]`, so `expandAliases` never sees
-   *    it. Without this rung `examine a` and `look a` are two cards and
-   *    acceptance criterion 3 fails.
+   * 2. **Canonicalise the verb to `command.verbs[0]`** — the view's one
+   *    word, whichever alias reached it.
    * 3. `CommandLineApi.format()` — the canonical round-trip, which is
    *    what makes `look   lamp` and `look lamp` the same key.
    *
@@ -171,23 +168,45 @@ export class CardLogic extends ApiLogic {
 
   /** See {@link Interactive.listCards}. */
   @CallSecurity(CardCallers)
-  public list(interactive: Interactive): {
-    instanceId: string;
-    cardId: CardId;
-    key: string;
-    pinned: boolean;
-    live: boolean;
-  }[] {
+  public list(interactive: Interactive): CardListing[] {
     return resolveRegistry().list(interactive);
+  }
+
+  /** See {@link Interactive.arrangeCard}. */
+  @CallSecurity(CardCallers)
+  public arrange(
+    interactive: Interactive,
+    cardRef: string,
+    action: CardArrangeAction,
+    at?: CardPlacement,
+  ): { refused: string | null; instanceId?: string } {
+    return resolveRegistry().arrange(interactive, cardRef, action, at);
   }
 
   /** See {@link Interactive.applyCardArrangement}. */
   @CallSecurity(CardCallers)
   public applyArrangement(
     interactive: Interactive,
-    cards: readonly CardId[],
+    cards: readonly ArrangementCard[],
+    primaryFilter?: TerminalFilter,
   ): { opened: number; closed: number } {
-    return resolveRegistry().applyArrangement(interactive, cards);
+    return resolveRegistry().applyArrangement(interactive, cards, primaryFilter);
+  }
+
+  /** See {@link Interactive.showInTerminal}. */
+  @CallSecurity(CardCallers)
+  public showInTerminal(
+    interactive: Interactive,
+    filter: TerminalFilter,
+    beside: boolean,
+  ): string | null {
+    return resolveRegistry().showInTerminal(interactive, filter, beside);
+  }
+
+  /** See {@link Interactive.promoteTerminal}. */
+  @CallSecurity(CardCallers)
+  public promoteTerminal(interactive: Interactive, cardRef: string): string | null {
+    return resolveRegistry().promoteTerminal(interactive, cardRef);
   }
 
   /** See {@link Interactive.notifyPromptSettled}. */

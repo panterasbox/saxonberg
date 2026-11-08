@@ -41,13 +41,23 @@ import type { Container } from '../../lib/spatial/Container';
 import type { Containable } from '../../lib/spatial/Containable';
 import type { VetoResult } from '../../lib/errors';
 import type Material from '../../lib/material/Material';
-import type { LiftSource, PumpSource } from '../../lib/pump/Pumpable';
+import { LiftSourceMixin, type LiftSource } from '../../lib/pump/LiftSource';
+import { PumpSourceMixin, type PumpSource } from '../../lib/pump/PumpSource';
 import type { CommandContributions } from '../../api/command';
+import type { GroundWater } from '../../lib/supply/SupplyState';
+import { WorldClockApi } from '../../api/worldclock';
+import { ZoneApi } from '../../api/zone';
+import { BulkableApi } from '../../api/bulk';
+import { GrammarApi } from '../../api/grammar';
+import Rope from './Rope';
+import type { BulkAffordance } from '../../lib/bulk/Bulkable';
 
 /** What stands at the bottom of a well when the row does not say. */
 const WATER_PATH = '/stuff/idea/material/bulk/water';
 
-const WellBase = StagedMixin(ContainerMixin(BulkableMixin(Thing)));
+const WellBase = LiftSourceMixin(
+  PumpSourceMixin(StagedMixin(ContainerMixin(BulkableMixin(Thing)))),
+);
 
 export default class Well extends WellBase implements LiftSource, PumpSource {
   /** Metres from the collar down to the standing water. */
@@ -56,9 +66,40 @@ export default class Well extends WellBase implements LiftSource, PumpSource {
   /** The Material standing at the bottom of the shaft. */
   protected standing = WATER_PATH;
 
+  /**
+   * ⭐ The aquifer this well draws on (water-supply D13) — a commons row's
+   * path. `''` = a LONE well: its own body of water, finite, recovering.
+   */
+  protected aquifer = '';
+
+  /**
+   * The collar's elevation, m ASL — `-1` = its room's zone elevation. A well
+   * on a hillside stands above the yard its zone is measured at (R9).
+   */
+  protected collarM = -1;
+
+  /** A lone well's body, m³ — `-1` = bottomless (the author's out). */
+  protected bodyM3 = 40;
+  /** How far below full a lone well's body stands, m³. */
+  protected drawnM3 = 0;
+  /** A lone well's recovery, m³ a game day — what seeps back in. */
+  protected rechargeM3PerDay = 4;
+  /** When the lone body was last reconciled, game s. */
+  protected bodyStamp: number | null = null;
+
+  /** The aquifer's surface as last read, m ASL, and the collar's elevation. */
+  private _surfaceM: number | null = null;
+  private _collarM: number | null = null;
+
   static fieldMeta: FieldMeta = {
     depthM: { persistent: true, authorable: true },
     standing: { persistent: true, authorable: true, ref: 'identity:constituent' },
+    aquifer: { persistent: true, authorable: true, ref: 'identity:relation' },
+    collarM: { persistent: true, authorable: true },
+    bodyM3: { persistent: true, authorable: true },
+    rechargeM3PerDay: { persistent: true, authorable: true },
+    drawnM3: { persistent: true, runtimeState: true },
+    bodyStamp: { persistent: true, runtimeState: true },
   };
 
   /** Sideways: anyone at the well can try its handle. */
@@ -102,8 +143,62 @@ export default class Well extends WellBase implements LiftSource, PumpSource {
 
   // ---------- ⭐⭐ LiftSource ----------
 
+  /**
+   * ⭐ How far down the water stands, m (water-supply D13): down to the
+   * aquifer's surface from the collar when the well cites one (as last
+   * read), else the lone body's column falling as it is drawn — and the
+   * well's own depth when it is dry. What the pump's suction is measured
+   * against.
+   */
   public standingDepthM(): number {
+    if (this.aquifer !== '' && this._surfaceM !== null && this._collarM !== null) {
+      return Math.max(0, Math.min(this.depthM, this._collarM - this._surfaceM));
+    }
+    // A lone well's water stands at its bottom, as it always has.
     return this.depthM;
+  }
+
+  public getAquifer(): string {
+    return this.aquifer;
+  }
+  public setAquifer(value: string): void {
+    this.aquifer = typeof value === 'string' ? value.trim() : '';
+  }
+  public setCollarM(value: number): void {
+    this.collarM = Number.isFinite(value) ? value : -1;
+  }
+  public setBodyM3(value: number): void {
+    this.bodyM3 = Number.isFinite(value) ? value : 40;
+  }
+  public setRechargeM3PerDay(value: number): void {
+    this.rechargeM3PerDay = Number.isFinite(value) && value >= 0 ? value : 4;
+  }
+
+  /** Bring a lone body up to `nowS`: what seeps back in since the last read. */
+  private reconcileBody(nowS: number): void {
+    if (this.bodyStamp === null) {
+      this.bodyStamp = nowS;
+      return;
+    }
+    const days = Math.max(0, nowS - this.bodyStamp) / 86_400;
+    this.bodyStamp = nowS;
+    this.drawnM3 = Math.max(0, this.drawnM3 - this.rechargeM3PerDay * days);
+  }
+
+  /** The aquifer, loaded on use (the well follows ITS reference outward). */
+  private async groundWater(): Promise<(Stuff & GroundWater) | null> {
+    if (this.aquifer === '') return null;
+    const a = await StuffApi.singleton<Stuff & GroundWater>(this.aquifer).catch(() => null);
+    if (a === null) return null;
+    await a.ensureLocality();
+    const nowS = WorldClockApi.getNow().rawValue();
+    this._surfaceM = a.surfaceM(nowS);
+    if (this._collarM === null && this.collarM >= 0) this._collarM = this.collarM;
+    if (this._collarM === null) {
+      const room = this.getContainer();
+      this._collarM = room === null ? null : await ZoneApi.elevationFor(room as Stuff).catch(() => null);
+    }
+    return a;
   }
 
   public async standingMaterial(): Promise<string | null> {
@@ -111,8 +206,35 @@ export default class Well extends WellBase implements LiftSource, PumpSource {
   }
 
   /** ⭐ A body, not a tank: the finite aquifer is a named non-goal. */
+  /**
+   * ⭐ What is left to draw, litres (water-supply D13): an aquifer's water
+   * above THIS well's bottom — a deep well outlasts a shallow one on the
+   * same water — or a lone body's.
+   */
   public async standingAvailableL(): Promise<number> {
-    return Infinity;
+    const a = await this.groundWater();
+    if (a !== null) {
+      const collar = this._collarM ?? 0;
+      const bottom = collar - this.depthM;
+      return (this._surfaceM ?? -Infinity) > bottom ? Infinity : 0;
+    }
+    if (this.aquifer !== '') return 0;
+    if (this.bodyM3 < 0) return Infinity;
+    this.reconcileBody(WorldClockApi.getNow().rawValue());
+    return Math.max(0, this.bodyM3 - this.drawnM3) * 1000;
+  }
+
+  /** Record a draw on the water this well stands in (D13). */
+  public async recordDraw(litres: number): Promise<number> {
+    if (!(litres > 0)) return 0;
+    const nowS = WorldClockApi.getNow().rawValue();
+    const a = await this.groundWater();
+    if (a !== null) return a.recordDraw(litres, nowS);
+    if (this.bodyM3 < 0) return litres;
+    this.reconcileBody(nowS);
+    const given = Math.min(litres, Math.max(0, this.bodyM3 - this.drawnM3) * 1000);
+    this.drawnM3 += given / 1000;
+    return given;
   }
 
   public receivableL(): number {
@@ -129,7 +251,9 @@ export default class Well extends WellBase implements LiftSource, PumpSource {
    */
   public async liftInto(litres: number): Promise<number> {
     const room = this.receivableL();
-    const moved = Math.min(Math.max(0, litres), room);
+    const asked = Math.min(Math.max(0, litres), room, await this.standingAvailableL());
+    // ⭐ What is lifted is taken from the ground's water (D13).
+    const moved = await this.recordDraw(asked);
     if (!(moved > 0)) return 0;
     const material = StuffApi.findByTemplatePath<Material>(this.standing);
     if (!material) return 0;
@@ -137,6 +261,60 @@ export default class Well extends WellBase implements LiftSource, PumpSource {
     if (slot.getMaterialPath() === null) slot.setMaterial(material);
     slot.setAmount(Quantity.of(slot.getAmount().rawValue() + moved, 'L'));
     return moved;
+  }
+
+  // ---------- ⭐ the bucket on a rope ----------
+
+  /** Why the last haul gave nothing, for `fill` to say — cleared by the next. */
+  private _haulRefusal: string | null = null;
+
+  /**
+   * ⭐ A bucket on a rope (water-supply, the browser walk): `fill pail from
+   * well` at a well with no pump hauls the water up — a rope tied to the
+   * vessel, or one the drawer carries, at least as long as the water stands
+   * deep. A bucket asks no suction question (pump.md: category A, any
+   * depth); the haul lifts what the vessel will hold into the trough, and
+   * `fill` pours it on. A well with a pump in it is pumped instead.
+   */
+  public override async beforeDrawInto(affordance: BulkAffordance, vessel: Stuff, by: Stuff): Promise<void> {
+    await super.beforeDrawInto(affordance, vessel, by);
+    this._haulRefusal = null;
+    if (affordance !== 'interior' || this.pumpFitted() !== null) return;
+    if (!this.getBulk('interior').isEmpty()) return;
+    const available = await this.standingAvailableL();
+    const depthM = this.standingDepthM();
+    if (!(available > 0)) {
+      this._haulRefusal = 'You let the bucket down and it comes up dry: there is no water standing in the well.';
+      return;
+    }
+    const rope = this.ropeFor(vessel, by);
+    if (rope === null) {
+      this._haulRefusal = `The water stands ${depthM.toFixed(0)} m down. A bucket wants a rope to reach it.`;
+      return;
+    }
+    if (rope.getLengthM() < depthM) {
+      this._haulRefusal =
+        `${GrammarApi.cap(rope.getPresentation())} is ${rope.getLengthM().toFixed(0)} m long; ` +
+        `the water stands ${depthM.toFixed(0)} m down.`;
+      return;
+    }
+    const want = BulkableApi.slotFor(vessel, undefined)?.remaining() ?? 0;
+    if (want > 0) await this.liftInto(Number.isFinite(want) ? want : 10);
+  }
+
+  public override bulkWhyEmpty(affordance: BulkAffordance): string | null {
+    return affordance === 'interior' && this._haulRefusal !== null
+      ? this._haulRefusal
+      : super.bulkWhyEmpty(affordance);
+  }
+
+  /** The rope a haul uses: one tied round the vessel, else one the drawer holds. */
+  private ropeFor(vessel: Stuff, by: Stuff): Rope | null {
+    const held = MixinApi.isContainer(by) ? (by.getContents() as Stuff[]) : [];
+    const here = this.getContainer();
+    const around = here !== null && MixinApi.isContainer(here) ? (here.getContents() as Stuff[]) : [];
+    const ropes = [...held, ...around].filter((c): c is Rope => c instanceof Rope && !c.isDestroyed());
+    return ropes.find((r) => r.getAnchor() === vessel) ?? ropes.find((r) => held.includes(r)) ?? null;
   }
 
   public liftScope(): (Stuff & Container) | null {

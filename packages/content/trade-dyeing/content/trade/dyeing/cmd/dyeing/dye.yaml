@@ -1,4 +1,5 @@
 verbs: [dye]
+category: dyeing
 controller: /trade/dyeing/idea/cmd/dyeing/DyeController
 description: "Work cloth down into a dye bath"
 help: |
@@ -30,7 +31,7 @@ args:
     required: true
     scope: [inventory, reachable]
     requires: DyedMixin
-  # ⭐ WHICH BATH — DECLARED, not hunted for (`lint:instrument-args`). It
+  # ⭐ WHICH BATH — DECLARED, not hunted for (`lint:controller-resolution`). It
   # was `--bath`, and an option carries no `default:`, so the fallback
   # lived as a walk. Bare, the binder hands over every reachable vessel
   # and the controller takes the first with dyestuff in it — a question
@@ -41,5 +42,5 @@ args:
     required: false
     prepositions: [in, at]
     default: "reachable:[mixin.BulkableMixin]"
-    scope: ["reachable"]
+    scope: ["here", "peers", "person"]
     requires: [BulkableMixin]

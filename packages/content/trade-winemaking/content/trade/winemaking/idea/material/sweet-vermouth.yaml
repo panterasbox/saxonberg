@@ -1,6 +1,8 @@
 # Sweet vermouth. Category tags `vermouth`, `sweet-vermouth`.
-class: /platform/idea/material/ConsumableMaterial
+class: /platform/idea/material/OdorousConsumableMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/wine, strength: 300 }, { aroma: /base-library/aromas/herbal, strength: 200 }]
+  tastes: [{ type: sweet, amount: 150 }, { type: sour, amount: 5 }, { type: bitter, amount: 0.05 }]
   name: sweet vermouth
   keywords: [sweet, vermouth]
   appearance: "ruby-red, bittersweet vermouth"

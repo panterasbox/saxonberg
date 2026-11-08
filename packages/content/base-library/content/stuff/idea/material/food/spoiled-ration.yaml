@@ -4,8 +4,9 @@
 # seed. Eating it routes the carbs to satiation AND the ptomaine dose
 # into the digestion pool, which absorbs into the burden over time —
 # leaving a window to `vomit` it before it absorbs.
-class: /platform/idea/material/ConsumableMaterial
+class: /platform/idea/material/OdorousConsumableMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/rot, strength: 100 }]
   name: spoiled ration
   keywords: [spoiled, ration, food]
   appearance: a greying, sour-smelling ration
@@ -17,7 +18,7 @@ data:
   # DISH tastes like — `taste` derives that from what went in, projected
   # through the taster's own palate. See docs/subsystems/crafting.md.
   # The sour is the spoilage. It is not a warning label — it is what the bacteria made.
-  tastes: [salty, sour]
+  tastes: [{ type: salty, amount: 20 }, { type: sour, amount: 5 }]
   # ⭐ Spoilage (docs/subsystems/spoilage.md): the microbial growth rate is
   # `μ_max · f_T(T) · f_aw(a_w)`. `spoilActivationEnergy` (J/mol) is how
   # steeply this food answers to warmth; `waterActivity` is how much of its

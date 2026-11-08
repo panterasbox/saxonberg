@@ -276,6 +276,13 @@ in the chart's or the pilot's own words. Band claims render in `map`'s
 *The waters* section and never enter a route plan. See
 [expanse.md](./expanse.md).
 
+⭐ **Maps never name a ship** (river D38 d). A way worked out against a
+moving frame — the water within hail, a ship lying alongside — is not a
+fact about the place it leaves, so the writers skip any exit whose
+`isMapped()` is false: the sea and reach patches' ways, and (harbors
+review 1) a ship's `BerthExit` and `AshoreExit`. `route` from aboard
+plans from the landing she lies at instead.
+
 ### ⭐⭐ The growth rule, and why rot is the feature
 
 An observation identical in `(kind, place, dir, toLabel, channel, where,
@@ -503,8 +510,8 @@ from a reference content already authors, pointing AT the place:
 | kind | derived from | anchored at |
 |---|---|---|
 | `house` | a business's `operatingLocations`; ⭐ and its `rosterSlots` (each assignee's cast place and each `station`, so a round with no premises stands up too) | the operated room — a fixture's room when the entry is a counter (followed through `props:` / `cast:` / a room's `warren:`, then `container:`, then `seatIn:`); the hand's home and every stop |
-| `structure` | a Structure row's `extent` | the extent |
-| `craft` | a Ship row's `expanse` | the sea |
+| `structure` | a Structure row's `extent` — ⚠ except a PLAN's: a Structure row whose rooms a `warren:` mints (a ship kind) and every building a row's `buildings:` names attach nothing (harbors; a programme row is a warren, not a structure, so its `extent` attaches nothing either) | the extent |
+| `craft` | a Ship row's `expanse` / `line`; ⭐ and its `berth` (harbors P4: a ship authored made fast at a landing loads with it and puts her way aboard on it) | the sea / the river; the landing |
 | `institution` | a row's `parentExtent`; an agent's `institution` | the extent; the room that casts the agent |
 | `fixture` | a row's `seatIn` | the seat's place |
 
@@ -525,7 +532,11 @@ computed where it is already scanned.
   last derivation, `[]` before the first — for the readers that cannot
   await (`Expanse.craft()`, the horizon).
 - **`NavigationApi.structureAt(path)`** stands up each attached structure
-  and returns the innermost; `structureAtNow` reads the live ones.
+  and returns the innermost; `structureAtNow` reads the live ones. ⚠ It
+  takes a row or an identity path and **throws** on a keyed handle
+  (`row#key`): a keyed room is asked for its structure itself
+  (`Place.structure()` / `structureNow()`, which ask its warren), never
+  looked up by a handle passed off as a path (harbors review 1).
 - **The load hook** is `LocationZone.addLocation`: a room joining its
   zone kicks a `singleton` of everything attached to it (never awaited —
   a ship standing up reaches back for its sea). `lookOutFrom` stands up

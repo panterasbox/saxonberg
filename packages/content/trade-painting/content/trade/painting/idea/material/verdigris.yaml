@@ -1,0 +1,16 @@
+# verdigris — copper corroded in vinegar: a cold blue-green, cheap and bright, that darkens in an oil and fades in the sun.
+class: /platform/idea/material/Material
+data:
+  name: verdigris
+  keywords: [verdigris, green, pigment]
+  appearance: a crumbly blue-green crust ground to powder
+  density: 1900
+  specificHeat: 800
+  thermalConductivity: 0.3
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: [granular, solid, pigment, copper-pigment]
+  pigment: { transmitR: 0.3, transmitG: 0.62, transmitB: 0.55, hidingPower: 0.6, lightfastness: 0.6 }
+  composition: []
+  biologicalSource: null

@@ -16,7 +16,7 @@
  * branch is a road off a segment.
  *
  * {@link PlatBook} is the catalogue half; the sale chokepoint
- * (`TitleController`) calls `provision` + `ensureGate` exactly as
+ * (`TitleBuyController`) calls `provision` + `ensureGate` exactly as
  * before — the designed swap seam, swapped.
  */
 
@@ -28,6 +28,7 @@ import { NavigationApi } from "@saxonberg/server/mud/api/navigation";
 import { PersistableApi } from "@saxonberg/server/mud/api/persistable";
 import Exit from "@saxonberg/server/mud/lib/boundary/Exit";
 import LotGateExit from "./LotGateExit";
+import type HoldingWarren from "./HoldingWarren";
 import type { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
 import type { Container } from "@saxonberg/server/mud/lib/spatial/Container";
 import type { Exitable } from "@saxonberg/server/mud/lib/boundary/Exitable";
@@ -193,10 +194,19 @@ export default class PlatWarren extends PlatWarrenBase {
         `PlatWarren(${this.getTemplatePath()}): no programmePath authored`,
       );
     }
-    const programme = await StuffApi.clone<MemberStuff>(this.programmePath);
+    const plan = this.getPlatPlan();
+    const leaf = leafOf(key);
+    // ⭐ One institution, several layouts: a static slot may name its own
+    // programme (tracts build D32).
+    const programmePath = plan.programmeOfSlot(leaf) ?? this.programmePath;
+    const programme = await StuffApi.clone<MemberStuff>(programmePath);
     this.addMember(programme);
     await PersistableApi.restoreOrSeed(programme, key);
-    await (programme as unknown as { wake(): Promise<void> }).wake();
+    // ⭐ The side of the road decides the mirror (D31), before the wake
+    // reads a single direction.
+    const holding = programme as unknown as HoldingWarren;
+    holding.setMirrorAxis(plan.mirrorAxisOfSlot(leaf));
+    await holding.wake();
     return programme;
   }
 
@@ -317,9 +327,14 @@ export default class PlatWarren extends PlatWarrenBase {
     }
     if (!nodeRoom) return;
     const entryEx = entry as ExitableContainer;
-    if (entryEx.getExit("south")) return;
+    // ⭐ The way out is the gate's way in, reversed (tracts build D31): a
+    // yard north of the lane goes out south, one south of it goes out
+    // north — so a mirrored house never finds its own hall in the way.
+    const gate = this.getPlatPlan().gateDirectionOfSlot(leafOf(key));
+    const out = (gate ? NavigationApi.invertDirection(gate) : null) ?? "south";
+    if (entryEx.getExit(out)) return;
     await entryEx.installExit("/platform/idea/exits/passage", {
-      direction: "south",
+      direction: out,
       source: entry,
       destination: nodeRoom as ExitableContainer,
       keepLiveDestination: true,

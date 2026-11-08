@@ -1,0 +1,38 @@
+# The smack — ⭐ a ship KIND: one row every smack is cloned
+# from, each minted under her own identity `/stuff/idea/Ship/smack/<serial>`
+# (her handle; her record is `(identity, serial)`). Whoever owns one stands
+# her up; a kind attaches to no sea.
+#
+# ⭐ Her PLAN is this row's own (no blueprint
+# row), named exactly as the authored Hesper's row names hers: `extent`
+# holds her deck, the cabin under it and the fish hold through the
+# bulkhead forward, rows of their own with ordinary `exits:` between them
+# and each room's own `floorM` (how high its floor stands above her keel);
+# `entrance` is her deck. Her warren (`warren:`) mints each smack's rooms
+# from those rows, keyed `(room row, <serial>/<leaf>)`, and points a way
+# inside the extent at the same room of HER copy. The plan's rows are
+# never served: no way leads in and nothing loads them.
+#
+# A small gaff-rigged fishing boat of nine meters, decked, one mast, a
+# cabin aft and a fish hold forward — the cheapest ship a person can own
+# (the yard sells her).
+class: /platform/idea/Ship
+data:
+  name: the smack
+  shortDescription: smack
+  register: definite
+  keywords: [smack, ship, vessel]
+  longDescription: >-
+    A stout little gaff-rigged smack, tarred black to the waterline, one
+    mast stepped well forward and a tiller over her transom.
+  # Her deck row — the face of the way aboard her; the deck itself is her
+  # warren's keyed room.
+  extent: /stuff/location/ship/smack
+  entrance: /stuff/location/ship/smack/deck
+  warren: /stuff/idea/ShipWarren/smack
+  heightM: 10
+  deckHeightM: 2
+  mastheadHeightM: 9
+  speedKn: 5
+  hull: { lengthM: 9, beamM: 3, draftM: 1.2, depthM: 1.8 }
+  house: /stuff/idea/Business/ship-company

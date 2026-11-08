@@ -172,7 +172,9 @@ const ArticlesTitle = styled.h1`
  * mount rather than sitting flush on the chrome.
  */
 const Plate = styled.div`
-  aspect-ratio: 3 / 4;
+  /* A species plate is TALL — 4:5, the illustration slate's agent shape —
+     and is shown whole, never cropped (client-surface D10). */
+  aspect-ratio: 4 / 5;
   display: grid;
   place-items: center;
   overflow: hidden;
@@ -183,7 +185,7 @@ const Plate = styled.div`
   img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
   }
 `;
 

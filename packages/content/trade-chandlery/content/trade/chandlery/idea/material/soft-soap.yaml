@@ -1,8 +1,9 @@
 # Soft soap — the boil's product (cleanliness D24): a brown jelly that
 # lifts grease and dirt, and scums in hard water. Grained with salt it
 # makes a hard bar.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/soap, strength: 300 }]
   name: soft soap
   keywords: [soap, soft soap, soft-soap, jelly]
   appearance: a soft brown jelly

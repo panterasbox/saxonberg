@@ -1,0 +1,22 @@
+# Cannabis sativa — hemp. ⭐ One plant, more than one crop (cordage D14):
+# grown tall and close for the stem it is the rope fiber, and that is the
+# row this pack grows (`plant/hemp`); grown wide and let flower it is the
+# smoking slate's (a second plant row on this species, never a second
+# species). A variety is a plant row, not a species.
+#
+# Like flax the fiber is BAST, glued to the woody core and freed by retting
+# — longer and coarser than flax's, and stronger.
+class: /platform/idea/species/Species
+data:
+  binomial: Cannabis sativa
+  commonNames: ["hemp", "cannabis"]
+  _bodyPlanPath: /stuff/idea/species/BodyPlan/sessile
+  _parentCladePath: /stuff/idea/species/plantae
+  _defaultMaterialPath: /stuff/idea/material/tissue/plant-tissue
+  lifecycleStates: ["alive", "dead"]
+  sexDeterminationSystem: dioecious
+  reproductiveMode: sexual
+  lifespanMin: 0
+  lifespanMax: 1
+  circadianBand: aperiodic
+  diet: photosynthesis

@@ -61,8 +61,10 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import type { VetoResult } from '@saxonberg/server/mud/lib/errors';
 import type { Pumping } from '@saxonberg/server/mud/lib/pump/Pumping';
-import type { PumpSource } from '@saxonberg/server/mud/lib/pump/Pumpable';
-import type { SupplyServing } from '@saxonberg/server/mud/lib/supply/SupplyState';
+import { PumpSourceMixin, type PumpSource } from '@saxonberg/server/mud/lib/pump/PumpSource';
+import type { SupplyServing, SupplyShares, WaterSupply } from '@saxonberg/server/mud/lib/supply/SupplyState';
+import { TrajectoryLog, Piecewise, type Breakpoint } from '@saxonberg/server/mud/lib/Trajectory';
+import { SingletonMixin } from '@saxonberg/server/mud/lib/stuff/Singleton';
 import { AppApi } from '@saxonberg/server/mud/api/app';
 import { AppSettingKeys } from '@saxonberg/server/mud/lib/config/AppSettings';
 import { ZoneApi } from '@saxonberg/server/mud/api/zone';
@@ -105,23 +107,37 @@ export interface ConduitReading {
   headM: number | null;
   /** Watts the pump is drawing to deliver that, or 0 when gravity-fed. */
   pumpWatts: number;
+  /**
+   * ⭐ What it can physically CARRY against the demand right now, m³/s —
+   * the pump's lift, the capacity, the river's flow — whatever words the
+   * reading says (water-supply D6). The share rule divides THIS among the
+   * ranks: an overdrawn main still carries its capacity to somebody.
+   */
+  carriesM3S: number;
 }
 
 // ⭐ Staged + Container since the pump build: a pumped main HOLDS its pump
 // (`props: [intake-pump]`), and vetoes everything else. The claim is true —
 // a conduit's pump is part of the conduit — and the water pack still ships
 // no mover and no verb: the pump is the energy pack's appliance.
-const ConduitBase = StagedMixin(ContainerMixin(SwitchableMixin(Thing)));
+//
+// ⭐ Singleton since the water-supply build: a premises cites a main by its
+// row path and a tap LOADS it on use (`StuffApi.singleton`); the room that
+// props it later adopts the same instance rather than minting a second.
+const ConduitBase = PumpSourceMixin(
+  StagedMixin(ContainerMixin(SwitchableMixin(SingletonMixin(Thing)))),
+);
 
 export default class Conduit
   extends ConduitBase
-  implements PumpSource, SupplyServing
+  implements PumpSource, SupplyServing, WaterSupply
 {
   static fieldMeta: FieldMeta = {
     conduitKey: { persistent: true, authorable: true },
     reachRef: { persistent: true, authorable: true },
     at: { persistent: true, authorable: true },
     extent: { persistent: true, authorable: true },
+    extents: { persistent: true, authorable: true },
     direction: { persistent: true, authorable: true },
     capacityM3S: { persistent: true, authorable: true },
     treatmentFactor: { persistent: true, authorable: true },
@@ -130,6 +146,10 @@ export default class Conduit
     ownerRef: { persistent: true, authorable: true },
     headM: { persistent: true },
     cut: { persistent: true },
+    demandM3S: { persistent: true, authorable: true },
+    shares: { persistent: true, authorable: true },
+    demandSplit: { persistent: true, authorable: true },
+    deliveryLog: { persistent: true, runtimeState: true },
   };
 
   /** Durable identity, independent of the template path. */
@@ -161,6 +181,14 @@ export default class Conduit
    * asked of a different registry.
    */
   public extent = '';
+
+  /**
+   * ⭐ The served area as a LIST of prefixes (water-supply D23) — the city
+   * intake serves the city's districts, not every locality under the realm
+   * root. Longest-prefix over all of them. Empty → the single
+   * {@link extent} (every row authored before the list existed).
+   */
+  public extents: string[] = [];
 
   /** `supply` (reach → extent) or `disposal` (extent → reach). */
   public direction: ConduitDirection = 'supply';
@@ -220,6 +248,41 @@ export default class Conduit
   /** Physically broken. The one failure state that is stored. */
   public cut = false;
 
+  /**
+   * ⭐ What the district actually draws, m³/s (water-supply D5/D6) — the
+   * authored household rate, **never a sum over live taps**. `0` = the
+   * shipped behavior: a main on is a main drawing its capacity.
+   */
+  public demandM3S = 0;
+
+  /**
+   * ⭐ How it shares a shortage (D6): `priority` — the public outlets first,
+   * then the trades, then the houses (Vitruvius's order, read off each
+   * premises' land use) — or `proportion`, everybody the same fraction.
+   */
+  public shares: SupplyShares = 'priority';
+
+  /**
+   * The fraction of {@link demandM3S} each rank draws, for the priority
+   * rule: civic outlets, the trades (commercial + industrial), and houses.
+   */
+  public demandSplit: { civic: number; trades: number; residential: number } = {
+    civic: 0.15,
+    trades: 0.35,
+    residential: 0.5,
+  };
+
+  /**
+   * ⭐ When it delivered and when it did not — a 0/1 ring of breakpoints,
+   * written on every cut and every switch, so a tank it fills integrates an
+   * outage it never saw (D5). Rides a record only on the `PersistentConduit`
+   * twin (D30).
+   */
+  public deliveryLog: Breakpoint[] = [];
+
+  /** The share rule's last answer: deliverable over demand, and when. */
+  private _shareCache: { atS: number; deliverableM3S: number } | null = null;
+
   // ---------- the ends ----------
 
   public getConduitKey(): string {
@@ -237,10 +300,34 @@ export default class Conduit
   }
 
   public getExtent(): string {
-    return this.extent;
+    return this.servedExtents()[0] ?? '';
   }
   public setExtent(value: string): void {
     this.extent = value;
+  }
+
+  /** Every prefix this conduit serves (D23). */
+  public servedExtents(): string[] {
+    if (this.extents.length > 0) return [...this.extents];
+    return this.extent === '' ? [] : [this.extent];
+  }
+
+  /**
+   * The districts this main serves, as a reader says them — the last
+   * word of each extent (`/world/terminus/mayfield-row` → `mayfield row`),
+   * never the path (the water-supply drive read the paths aloud).
+   */
+  private servedPlaceNames(): string[] {
+    return this.servedExtents().map(
+      (extent) => (extent.split('/').filter(Boolean).pop() ?? extent).replace(/-/g, ' '),
+    );
+  }
+  public setExtents(value: string[] | string | null): void {
+    const list = Array.isArray(value) ? value : typeof value === 'string' ? [value] : [];
+    this.extents = list
+      .filter((e): e is string => typeof e === 'string')
+      .map((e) => e.trim().replace(/\/+$/, ''))
+      .filter((e) => e !== '');
   }
 
   public getDirection(): ConduitDirection {
@@ -317,6 +404,62 @@ export default class Conduit
   }
   public setCut(value: boolean): void {
     this.cut = value === true;
+    this.recordDelivery();
+  }
+
+  public override setOn(value: boolean): void {
+    super.setOn(value);
+    this.recordDelivery();
+  }
+  public override switchOn(): void {
+    super.switchOn();
+    this.recordDelivery();
+  }
+  public override switchOff(): void {
+    super.switchOff();
+    this.recordDelivery();
+  }
+
+  public getDemandM3S(): number {
+    return this.demandM3S;
+  }
+  public setDemandM3S(value: number): void {
+    this.demandM3S = Number.isFinite(value) && value > 0 ? value : 0;
+    this._shareCache = null;
+  }
+
+  public getShares(): SupplyShares {
+    return this.shares;
+  }
+  public setShares(value: SupplyShares): void {
+    this.shares = value === 'proportion' ? 'proportion' : 'priority';
+  }
+
+  public setDemandSplit(value: Partial<{ civic: number; trades: number; residential: number }> | null): void {
+    const n = (x: unknown, d: number): number =>
+      typeof x === 'number' && Number.isFinite(x) && x >= 0 ? x : d;
+    this.demandSplit = {
+      civic: n(value?.civic, 0.15),
+      trades: n(value?.trades, 0.35),
+      residential: n(value?.residential, 0.5),
+    };
+  }
+
+  /** Record whether it delivers, now — on every change of cut or switch. */
+  private recordDelivery(): void {
+    const now = WorldClockApi.getNow().rawValue();
+    const v = !this.cut && this.isOn() ? 1 : 0;
+    new TrajectoryLog(this.deliveryLog).record(now, v, v, 0);
+  }
+
+  /**
+   * ⭐ When it delivered over `[fromS, toS]`, as a 0/1 trajectory — read by
+   * a tank it fills, so an outage in an unwatched night still shorts the
+   * morning's fill. An empty log holds today's state.
+   */
+  public deliveryTrajectory(fromS: number, toS: number): Piecewise {
+    const now = !this.cut && this.isOn() ? 1 : 0;
+    return new TrajectoryLog(this.deliveryLog).window(fromS, toS, now);
   }
 
   // ---------- coverage ----------
@@ -329,8 +472,10 @@ export default class Conduit
    * the direction that would be catastrophic.
    */
   public serves(path: string): boolean {
-    if (this.extent === '' || path === '') return false;
-    return path === this.extent || path.startsWith(this.extent + '/');
+    if (path === '') return false;
+    return this.servedExtents().some(
+      (e) => path === e || path.startsWith(e + '/'),
+    );
   }
 
   // ---------- head, and therefore the pump ----------
@@ -359,7 +504,7 @@ export default class Conduit
     // returns null for a path that IS a zone — a zone is not inside
     // itself. The enclosing variant answers for both cases, and
     // elevation inherits through the ancestor walk either way.
-    const zone = await ZoneApi.resolveEnclosingZoneForPath(this.extent);
+    const zone = await ZoneApi.resolveEnclosingZoneForPath(this.getExtent());
     const landM = zone === null
       ? null
       : await zone.lookupField<number>('elevation');
@@ -379,8 +524,8 @@ export default class Conduit
    * extent resolves no zone.
    */
   public async extentAirK(nowS: number): Promise<number | null> {
-    if (this.extent === '') return null;
-    const zone = await ZoneApi.resolveEnclosingZoneForPath(this.extent);
+    if (this.getExtent() === '') return null;
+    const zone = await ZoneApi.resolveEnclosingZoneForPath(this.getExtent());
     // Only a region in space has a site (geography is `SpatialZone`'s); an
     // extent naming a folder or nothing has no air of its own to read.
     if (!(zone instanceof SpatialZone)) return null;
@@ -511,6 +656,107 @@ export default class Conduit
     return state?.hardnessDgh ?? null;
   }
 
+  // ---------- ⭐ the WaterSupply a premises cites (water-supply D3) ----------
+
+  /**
+   * The water surface a tap's head is measured from, m ASL. A gravity main
+   * gives its source's elevation; a PUMPED main gives its served ground plus
+   * the pressure its pump holds the line at (`water.mainPressureHeadM`) —
+   * the city's pump lifts the Kestrel five metres to the streets and then
+   * twenty more into the houses. `null` = unknown (the tap runs full).
+   */
+  public async supplyHeadM(): Promise<number | null> {
+    if (this.direction !== 'supply' || this.reachRef === '') return null;
+    const catalogue = await catalogueOf();
+    if (catalogue === null) return null;
+    if (this.headM === null) await this.resolveHead(catalogue);
+    const reach = await catalogue.reachOf(this.reachRef);
+    if (reach === null) return null;
+    if (this.headM === null || this.headM >= 0) return reach.elevation;
+    const landM = reach.elevation - this.headM;
+    return landM + dial(AppSettingKeys.waterMainPressureHeadM, 20);
+  }
+
+  /** ⭐ A main gives all it is asked while it delivers, and nothing when not. */
+  public drawL(litres: number): number {
+    return this.supplyStateNow() === null ? Math.max(0, litres) : 0;
+  }
+
+  /** A delivering main is unbounded at the tap; a failed one gives nothing. */
+  public availableL(): number {
+    return this.supplyStateNow() === null ? Infinity : 0;
+  }
+
+  /**
+   * ⭐⭐ The share an outlet of `landUse` gets (D6). The main's deliverable —
+   * what the river, its capacity and its pump actually carry against the
+   * district's demand — is read async and held for a game minute. With no
+   * authored demand there is no shortage to share: every outlet gets all.
+   */
+  public async shareFor(landUse: string): Promise<number> {
+    const demand = this.demandM3S;
+    if (demand <= 0) return 1;
+    const nowS = WorldClockApi.getNow().rawValue();
+    if (this._shareCache === null || nowS - this._shareCache.atS >= 60) {
+      const catalogue = await catalogueOf();
+      const deliverable =
+        catalogue === null
+          ? 0
+          : (await this.readingFor(catalogue, nowS, demand, await catalogue.liveDraws(nowS)))
+              .carriesM3S;
+      this._shareCache = { atS: nowS, deliverableM3S: deliverable };
+    }
+    const deliverable = this._shareCache.deliverableM3S;
+    if (deliverable >= demand) return 1;
+    if (this.shares === 'proportion') return Math.max(0, deliverable / demand);
+    // Priority: civic first, then the trades, then houses — each rank is
+    // served in full before the next gets anything.
+    const split = this.demandSplit;
+    const total = split.civic + split.trades + split.residential || 1;
+    const ranks: Array<[string, number]> = [
+      ['civic', (split.civic / total) * demand],
+      ['trades', (split.trades / total) * demand],
+      ['residential', (split.residential / total) * demand],
+    ];
+    const rank =
+      landUse === 'civic'
+        ? 'civic'
+        : landUse === 'commercial' || landUse === 'industrial'
+          ? 'trades'
+          : 'residential';
+    let before = 0;
+    for (const [key, need] of ranks) {
+      if (key === rank) {
+        if (need <= 0) return 1;
+        return Math.max(0, Math.min(1, (deliverable - before) / need));
+      }
+      before += need;
+    }
+    return 1;
+  }
+
+  /**
+   * ⭐ The chemistry of the water this main delivers — its REACH's
+   * (water-supply D8): pH, hardness and salt, after nothing (treatment
+   * removes dirt, not chemistry). `null` for a disposal conduit or a main
+   * whose reach names no water.
+   */
+  public async readWaterChemistry(): Promise<{ pH: number; hardnessDgh: number; salinityPpt: number; fouled?: boolean } | null> {
+    if (this.direction !== 'supply' || this.reachRef === '') return null;
+    const catalogue = await catalogueOf();
+    if (catalogue === null) return null;
+    const nowS = WorldClockApi.getNow().rawValue();
+    const state = await catalogue.waterStateAt(this.reachRef, nowS).catch(() => null);
+    if (state === null) return null;
+    // ⭐ Whether what arrives is fit, after this main's treatment — the same
+    // test its report's `fouled` makes. The tap delivers it as fouled water
+    // (the browser walk: a fouled main poured clean water, and nobody who
+    // drank from it ever fell ill).
+    const dirt = await catalogue.contaminationAt(this.reachRef, nowS).catch(() => null);
+    const fouled = this.foulingOf(dirt?.level ?? 0) > dial(AppSettingKeys.waterFouledAt, 0.35);
+    return { pH: state.pH, hardnessDgh: state.hardnessDgh, salinityPpt: state.salinityPpt, fouled };
+  }
+
   // ---------- state ----------
 
   /**
@@ -595,13 +841,23 @@ export default class Conduit
         : this.requiresPump()
           ? 0
           : Math.min(demand, this.capacityM3S);
-    const delivered = state === null ? lifted : 0;
+    // ⭐ Fouled water is still delivered — it is what a drinker falls ill
+    // of (the browser walk: a fouled main read "lifts 0.00 m³/s" while its
+    // taps poured). Every other trouble stops the water.
+    const delivered = state === null || state === 'fouled' ? lifted : 0;
+    // A main that is cut, off, or not lifting carries nothing; otherwise it
+    // carries what it lifts, up to what the river passes.
+    const carries =
+      this.cut || !this.isOn() || !this.isLifting()
+        ? 0
+        : Math.max(0, Math.min(lifted, flow?.m3s ?? 0));
     return {
       state,
       deliveredM3S: delivered,
       demandM3S: demand,
       headM: this.headM,
       pumpWatts: this.pumpWattsFor(delivered),
+      carriesM3S: carries,
     };
   }
 
@@ -638,8 +894,8 @@ export default class Conduit
 
     lines.push(
       this.direction === 'supply'
-        ? `draws from ${this.reachRef} and serves ${this.extent || '(nothing)'}`
-        : `takes from ${this.extent || '(nothing)'} and outfalls into ${this.reachRef}`,
+        ? `draws from ${this.reachRef} and serves ${this.servedPlaceNames().join(', ') || '(nothing)'}`
+        : `takes from ${this.getExtent() || '(nothing)'} and outfalls into ${this.reachRef}`,
     );
     lines.push(
       flow === null
@@ -666,7 +922,9 @@ export default class Conduit
     lines.push(
       reading.state === null
         ? `delivering ${reading.deliveredM3S.toFixed(2)} m³/s`
-        : `NOT delivering: ${SUPPLY_STATE_GLOSS[reading.state]} (${reading.state})`,
+        : reading.state === 'fouled'
+          ? `delivering ${reading.deliveredM3S.toFixed(2)} m³/s — fouled: ${SUPPLY_STATE_GLOSS.fouled}`
+          : `NOT delivering: ${SUPPLY_STATE_GLOSS[reading.state]} (${reading.state})`,
     );
     return { label, state: reading.state, lines };
   }
@@ -720,7 +978,10 @@ export default class Conduit
   public withdrawalM3S(naturalM3S: number): number {
     if (this.direction !== 'supply') return 0;
     if (this.cut || !this.isOn()) return 0;
-    return Math.min(this.capacityM3S, Math.max(0, naturalM3S));
+    // ⭐ A main with an authored district demand draws THAT (water-supply
+    // D5) — a city does not drink its intake's whole capacity at 3 a.m.
+    const drawn = this.demandM3S > 0 ? Math.min(this.demandM3S, this.capacityM3S) : this.capacityM3S;
+    return Math.min(drawn, Math.max(0, naturalM3S));
   }
 
   /**

@@ -13,8 +13,9 @@
 # ⭐ In the COMMONS rather than under `/trade/forestry`, for the milk
 # argument: a birch gives sap whether or not anybody is sugaring. The
 # SYRUP is the trade's, because somebody has to make it.
-class: /platform/idea/material/ConsumableMaterial
+class: /platform/idea/material/OdorousConsumableMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/wood, strength: 3 }]
   name: maple sap
   keywords: [maple-sap, sap, maple]
   appearance: clear and thin, with the barest sweetness
@@ -26,7 +27,7 @@ data:
   hardness: 0
   toughness: 0
   edibility: true
-  tastes: [sweet]
+  tastes: [{ type: sweet, amount: 25 }]
   spoilActivationEnergy: 55000
   waterActivity: 0.99
   nutrients: ["sugar", "water"]

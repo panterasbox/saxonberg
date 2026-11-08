@@ -1,0 +1,17 @@
+# Flax seed — linseed: small, hard, glossy brown seeds, a third of them
+# oil. Ground on the stones they give up linseed oil (paint D19).
+class: /platform/idea/material/OdorousMaterial
+data:
+  smells: [{ aroma: /base-library/aromas/oil, strength: 10 }]
+  name: flax seed
+  keywords: ["flax seed", linseed, seed]
+  appearance: small glossy brown seeds, slippery as if oiled
+  density: 650
+  specificHeat: 1800
+  thermalConductivity: 0.15
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: [seed, oilseed, organic, once-living, granular]
+  composition: []
+  biologicalSource: null

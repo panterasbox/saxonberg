@@ -89,7 +89,7 @@ is the census that now catches it, and it found **nine collisions already
 shipped**.
 
 ⭐ Where a job genuinely needs a discrete act rather than continuous
-presence — a courier's handover — that is `fulfill`, which earns riding
+presence — a courier's handover — that is `job fulfill`, which earns riding
 the wallet because the implant logging a delivery is a real story. A
 future clause wanting one gets a `job` subcommand, **never a new
 top-level verb**: the vocabulary is the extension seam builds widen, and
@@ -199,7 +199,7 @@ poster's own environment and overridable with `job post … --from`. It is
 a courier who solves the problem their own way (walked, bought it there,
 had one at home) is paid exactly the same.
 
-⭐ What it buys is `jobs --origin <place>` — the **backhaul** read: a
+⭐ What it buys is `job --origin <place>` — the **backhaul** read: a
 hauler at the far end of a corridor asking what wants moving back. *You
 cannot solve your own backhaul*, which is a coordination problem with
 visible waste and the cleanest teachable case of why intermediaries
@@ -225,12 +225,12 @@ found it. See
 - **Exclusive** (the delivery default): `claim` escrows and locks the
   gig to the claimant, with a **game-time claim expiry**
   (`contract.claimExpiryGameHours`) — squatting cannot block a board.
-  Only the claimant may `fulfill`/`complete`. If the hold fails at claim
+  Only the claimant may `job fulfill`/`complete`. If the hold fails at claim
   (funds moved since posting), the gig closes `expired` with a
   `reverted`/`unfundable` event — the board never advertises a check the
   system can't cash.
 - **Open-bounty**: escrowed at post, no claim step; anyone may
-  `fulfill`/`complete` — attribution is inherent (the actor is the
+  `job fulfill`/`complete` — attribution is inherent (the actor is the
   command giver), a `fulfilled` row redeems only for its own actor,
   first verified settle wins, a concurrent second `complete` is refused
   by the compare-and-set terminal-state guard.
@@ -247,7 +247,7 @@ containment chokepoint is untouched, and a new job template is a new
 predicate, never a new chokepoint instrumentation. (A pinned test moves
 the crate into the destination and asserts *nothing settles*.)
 
-1. **`fulfill <id>` — the capture (proof-of-delivery).** At the
+1. **`job fulfill <id>` — the capture (proof-of-delivery).** At the
    destination (the presenter's environment chain must include it — the
    handoff is diegetic, not remote). Runs `holdsFor` now; on success
    appends the engine-sealed **`fulfilled`** row (actor, no money, no
@@ -289,7 +289,7 @@ contract.
 
 ## Expiry is lazy (observe-first)
 
-Every touchpoint (`openGigsOn`, `claim`, `abandon`, `fulfill`,
+Every touchpoint (`openGigsOn`, `claim`, `abandon`, `job fulfill`,
 `complete`, `contractById`) first runs `expireStale`: a claim past
 `claimExpiresAt` → breach + reopen; an open posting past
 `postingExpiresAt` → revert + `expired`. No sweep, no counter, no
@@ -315,7 +315,7 @@ placement: multiple boards in multiple localities) is the physical
 discovery surface. A gig is posted *to a board* (its `templatePath` is
 the pool's visibility key — the board is the surface, not the pool).
 Content affords content: the board's own `commandContributions` afford
-the **`job`/`jobs`** verb (`environment`), first placed in the
+the **`job`** verb (`environment`; the `jobs` word is deleted), first placed in the
 **Terminus terminal hall** (a public noticeboard on the station
 concourse — where newcomers arrive needing a living;
 `world-seed/content/world/terminus/terminal/thing/job-board.yaml` + the hall's
@@ -331,11 +331,13 @@ operation):
   `--business` / `--expires <h>`); `claim <id>`; `complete [id]`;
   `abandon [id]`. Ids accept a unique prefix; a bare
   `complete`/`abandon` resolves the giver's single active claim here.
-- **`fulfill`** (alias `handoff`) — deliberately a **standalone verb**:
-  affordance is per-verb, and the capture beat must travel with the
-  courier away from any board — afforded from `self` by the born-with
-  `CredentialWalletUpdate` (diegetically, the implant logs the
-  delivery). A bare `fulfill` resolves via `ContractApi.activeClaims`.
+- **`job fulfill`** — the capture beat travels with the courier, away from
+  any board: it is a `job` subcommand that binds **no** board (it was a
+  standalone `fulfill`/`handoff` verb afforded by the wallet until
+  controllers-are-io W7, D9 — a transaction with the contract board's book
+  is a subcommand of its noun; `job` is now every character's, afforded by
+  `Persona`). Diegetically the implant still logs the delivery. A bare
+  `job fulfill` resolves via `ContractApi.activeClaims`.
 
 Controllers are thin (model → the `ContractApi` call; Scene + note);
 every actor is context-derived inside the gated logic.

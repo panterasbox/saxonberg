@@ -31,7 +31,7 @@ owns the postmortem clock and the eviction opinion, and burial ends both.
 Composed on `Creature`, so "every creature can be buried" — honest,
 including for a hanging carcass.
 
-Sold as `order burial <body>` off a necropolis `Tariff`. ⭐ The price is
+Sold as `order burial for <body>` off a necropolis `Tariff`. ⭐ The price is
 the dearest of the three services on purpose: the ground is finite, the
 digging is real work, and a price that made burying somebody trivial
 would make the grave a bin.
@@ -299,7 +299,7 @@ spoilage activation energy and water activity (it got `null` before).
 `flesh`'s own authored comment had already said why: *"Flesh rots. This is
 what makes a corpse a clock as well as evidence."* `lint:perishable`
 accordingly accepts `PostmortemMixin` beside `GrowingMixin` — a body rots
-on its own clock, which `ConsignController` already treated as the same
+on its own clock, which `ShelfConsignController` (then `ConsignController`) already treated as the same
 law.
 
 Giving the corpse its own class also says the truer thing: a corpse is a
@@ -414,7 +414,9 @@ Stamped by the shared mint (`mintCorpseFrom`), through the clone's
 | `mass` | ⚠⚠ `Creature.getMass()` falls back to `species.massAt(getAgeDays())`, and a fresh clone's `bornAt` is 0 — an unstamped corpse of a full-grown ewe would dress out as a **newborn lamb** |
 | `bornAt` | so the body's age is the age it **died at** |
 | `conditionAtDeath` | the `flesh` reserve at the kill — a **stamped number, never a reserve**, because a dead animal's condition cannot change. The butcher is reading what the stockman achieved. |
-| `keywords` | the row's `[body, corpse, carcass]` ∪ the dead thing's own, so `butcher ewe` and `look clerk` both find the body |
+| `keywords` | the row's `[body, corpse, carcass]` ∪ the dead thing's own **minus a person's name words**, so `butcher ewe` and `look clerk` both find the body and `look mara` does not (client-surface) |
+| `shortDescription` | `body of <stem>` — for a person the **stranger's** stem (`body of a woman`, `body of a sentry`), never their name; an animal keeps its public presentation |
+| `ofIdentityPath` | a person's identity path (`''` for an animal) — whose body it was, carried as an identity rather than a name; persistent |
 
 Plus, outside the overlay: `adoptMaterialState` (the gated pour), the
 loadout, the place it fell, and `transferContaminationTo` — which is what
@@ -533,11 +535,11 @@ be used). It is perceptible because *being dead does not log you off* — the
 aether is the internet, and a shade is still on it. It is **not** a spirit
 field, and a mystical reading of it is a standing correction.
 
-**Transient, but it lingers like a body.** A shade does **not** override
-`onLinkdead`: a deliberate sign-out fires `PlayerLoggedOut`, a bare drop
-fires `PlayerDisconnected`, and either way the shade stays in the world
-holding the `PlayerApi` slot — so reconnecting returns you to the *same*
-shade in the *same* room, exactly as reconnecting to a living body does.
+**Transient, and it goes like a body.** A shade does **not** override
+`onLinkdead`: a bare drop fires `PlayerDisconnected` and the shade stays,
+holding the `PlayerApi` slot, so reconnecting returns you to the *same* shade in
+the *same* room. A deliberate sign-out fires `PlayerLoggedOut` and destructs it
+(owner, controllers-are-io D30; [connection.md](./connection.md)).
 
 ### Logging out as a shade
 
@@ -545,9 +547,9 @@ Three separate mechanisms have to agree, and they do:
 
 | you | what happens |
 |---|---|
-| **drop / sign out** | shade lingers, holding the registry slot |
+| **drop** | shade lingers, holding the registry slot |
 | **reconnect** | `loadAvatarsForUser` reuses the in-world shade; `embodyForSession` sees no arc on it and passes it straight through |
-| **log in after a restart** | the shade is gone (it persists nothing); the identity's snapshot carries the arc, so `embodyForSession` mints a fresh one |
+| **sign out, then log in; or log in after a restart** | the shade is gone (it persists nothing); the identity's snapshot carries the arc, so `embodyForSession` mints a fresh one at the place of death (⚠ not where the ghost had walked to) |
 
 **You are still a shade either way** — that is what makes quitting useless
 as an escape from death. And there is no living body kept in reserve to
@@ -969,6 +971,30 @@ the circle path**, so an in-circle death wrote no accountability row at
 all. The append is hoisted above the circle branch — see
 [accountability.md](./accountability.md).
 
+## ⭐ The corpse names its dead per viewer (client-surface, 2026-10-31)
+
+A person's name is **per viewer** — it lives in the belief store, not on
+the body — so a corpse minted with the name in its short description and
+its keywords told every passer-by who had died, and `look mara` found
+the body of a woman they had never met (#105).
+
+`mintCorpseFrom` now stamps three things instead:
+
+- `shortDescription: body of <ofStem>`, where `ofStem` is the dead as a
+  **stranger** names them — `presentationPhrase('stranger')` for a
+  persona, the plain presentation for an animal (an animal's name, if it
+  had one, is public — `Mouse` to the whole street);
+- `ofIdentityPath`: the person's `getIdentityPath()`, persistent;
+- keywords without the dead's name words (the tokens of `getName()` and
+  `getFullName()`).
+
+`Corpse.describeFor(viewer, form)` tells the name to whoever knew them:
+when the viewer is a `BeliefStore` with `knownNameOf(ofIdentityPath)`,
+the body reads *the body of Mara*. ⚠ Only where the base answer is the
+plain stranger presentation — every gate the base applies (sight, a
+label someone wrote) still wins, so a body you cannot see is still
+*something* and a labeled one still reads its label.
+
 ## History
 
 Built 2026-07-31 in eight waves. Two decisions reversed during the build,
@@ -986,3 +1012,11 @@ A corpse sinks fresh and **floats again** once decomposed
 (`Postmortem.buoyantNow()` — true only at the `decomposed` stage); a water
 place's `sinks` reads it, and a river's drift fetches the floating body up on
 the next bar. See [river.md](./river.md).
+
+## Client surface (2026-10-31)
+
+A corpse carries `ofIdentityPath` and a stranger's stem, drops the dead's
+name words from its keywords, and names its dead per viewer through
+`Corpse.describeFor` — see § *The corpse names its dead per viewer*.
+`docs/plans/client-surface-plan.md` (W0, B5) until it is retired at the
+sweep.

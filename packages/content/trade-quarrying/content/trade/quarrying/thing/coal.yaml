@@ -2,7 +2,7 @@
 #
 # ⚠⚠ **It is a `Firewood`, not a `Lump`**, and that is the whole point: a
 # `Firewood` is `Combustible(Thermal(Reserved(Thing)))`, so coal **lights**
-# (`ignite coal`), it holds a fuel reserve that burns down, and it drops into
+# (`light coal`), it holds a fuel reserve that burns down, and it drops into
 # every `category: fuel` recipe slot in the game. The material does the rest
 # of the work: `fuel` gets it into the slot, `carbon` passes the charcoal
 # check, and `sulfurous` is what writes the iron down.

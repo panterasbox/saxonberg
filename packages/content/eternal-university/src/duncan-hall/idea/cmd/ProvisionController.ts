@@ -1,5 +1,5 @@
 /**
- * ProvisionController — the `provision <player>` / `lease <player>` verb
+ * ProvisionController — the `provision <player>` verb
  * (a Duncan Hall *content* verb — it lives in the content namespace
  * `world/terminus/eternal/duncan-hall/`, NOT a core command category, because it
  * hardcodes one content instance's `DormWarren`). The landlord act that grows
@@ -17,15 +17,18 @@
  * floor shows the door + reachability updates now. The room / floor
  * materialize lazily on first entry (nothing is built here).
  *
- * **Authorization is at `execute()`, not the validator** — the real boundary,
- * because a dialogue `dispatch` (Katie doing her job) `forceCommand`s this
- * verb, and `forced` bypasses the `requiresWizard` YAML validator. Allowed
+ * **Authorization is at `execute()`, and only there** — a dialogue
+ * `dispatch` (Katie doing her job) `forceCommand`s this verb, and a forced
+ * command runs the view's validators too, so a credential on the view
+ * would refuse Katie herself (it did, until the wizard-axis cleanup).
+ * Allowed
  * iff the actor holds a position at the college (`duncan-hall/idea/college`
  * — Katie's `hall-manager` job, read off the authored roster) OR sits on
  * the committee over the hall (the owner acting for itself). ⭐ Never
  * "a member of the landlord group": an NPC is never on a committee
- * (economic bootstrap D8). `requiresWizard` stays on the YAML affordance
- * so only operators *see* the raw verb.
+ * (economic bootstrap D8). The view carries no credential check: letting a
+ * room is a SEAT's act, and a co-located player who types the raw verb is
+ * refused with the seat named — the refusal is the progression UI.
  */
 
 import { HallController } from '../../../lib/HallController';
@@ -67,11 +70,11 @@ export default class ProvisionController extends HallController<ProvisionModel> 
     }
 
     // The real authorization boundary (execute-level, so a forced dispatch
-    // can't skip it): a wizard, or an agent of the dorms owner (Katie).
+    // can't skip it): staff of the college (Katie), or the hall's committee.
     if (!(await ProvisionController.mayProvision(actor))) {
       return this.fail(
         context,
-        "You're not authorized to lease out Duncan Hall's dorms.",
+        "Only the college's staff or a member of the hall's committee may let Duncan Hall's rooms.",
         'not-authorized',
       );
     }

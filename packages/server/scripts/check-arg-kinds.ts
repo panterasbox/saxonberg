@@ -140,7 +140,7 @@ function refusalFor(name: string): string | undefined {
  * reported) rather than silently — and adding one at all is a design
  * conversation, per that map's own note.
  */
-const SANCTIONED_CLASSES = new Set(["Agent"]);
+const SANCTIONED_CLASSES = new Set(["Agent", "JobBoard"]);
 
 interface FieldRecord {
   file: string;
@@ -208,6 +208,9 @@ function recordField(
     const entries = Array.isArray(requires) ? requires : [requires];
     for (const entry of entries) {
       for (const n of entry.split("|").map((s) => s.trim()).filter(Boolean)) {
+        // ⭐ Not a mixin: the slot predicate "the candidate contributes this
+        // view" (`CommandLogic.parseRequirement`, controllers-are-io D8d).
+        if (n === "affords") continue;
         if (n.startsWith("class:")) {
           if (!SANCTIONED_CLASSES.has(n.slice("class:".length))) unknown.push(n);
           continue;

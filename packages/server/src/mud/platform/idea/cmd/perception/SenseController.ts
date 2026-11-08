@@ -34,7 +34,7 @@ import type {
   CommandContext,
   CommandModel,
 } from '../../../../api/command';
-import type { MqlOneResult } from '../../../../api/mql';
+import { MqlApi, type MqlOneResult } from '../../../../api/mql';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import { MixinApi } from '../../../../api/mixin';
 import { ContainmentApi } from '../../../../api/containment';
@@ -71,6 +71,13 @@ interface SenseModel extends CommandModel {
 }
 
 const SCENE_TOPIC = 'sense.survey';
+
+/**
+ * The room's listing as the viewer sees it — its contents, perceived, not
+ * the room's structure, never the viewer. Shared with `look` (one rule;
+ * the mql-predicate-parity slate's three copies, one query).
+ */
+const ROOM_LISTING = 'here:i:visible:[not mixin.AdornmentMixin] - me';
 
 export default class SenseController extends CommandController<SenseModel> {
   execute(model: SenseModel, context: CommandContext): void {
@@ -149,17 +156,13 @@ export default class SenseController extends CommandController<SenseModel> {
     const hasExits = MixinApi.isExitable(location);
     const hasName = MixinApi.isNamed(location);
 
-    const visibleContents = location
-      .getContents()
-      .filter((item) => {
-        if (item.stuffId === actor.stuffId) return false;
-        if (MixinApi.isAdornment(item)) return false;
-        if (!MixinApi.isVisible(item)) return false;
-        // Honest fog: a concealed, undiscovered/imperceptible thing is
-        // absent from the actor's world.
-        if (!PerceptionApi.perceives(actor, item)) return false;
-        return true;
-      });
+    // ⭐ What stands here as the actor sees it — the room listing's rule,
+    // said in MQL (`:visible` is the perception gate, honest fog included;
+    // an adornment is the room's structure, read through its host).
+    const visibleContents = MqlApi.resolveMany(ROOM_LISTING, {
+      commandGiver: actor,
+      scope: 'here',
+    }).stuff;
 
     if (
       !hasVisible &&
@@ -222,15 +225,10 @@ export default class SenseController extends CommandController<SenseModel> {
     }
 
     /*
-     * ⭐⭐ **Walking into a room mints THAT room's card.** Arrival forces
-     * a bare `sense` (`Mobile.autoSenseOnArrival`), so this is where it
-     * happens. The card for the room you LEFT stays where it is — the
-     * column is a history of where you have been, not one room card
-     * being rewritten under you every time you move.
-     *
-     * Opening a live card demotes its predecessors (`demoteLive`): the
-     * one behind you drops its subscription and becomes an ordinary
-     * snapshot with a `takenAt` and a refresh.
+     * ⭐ A `sense` of the room you stand in is a look at THE room card
+     * (the `here` role, client-surface D10): it rebinds rather than
+     * stacking. Arrival forces `look` now (`Mobile.autoLookOnArrival`),
+     * not `sense`.
      */
     const opened = CardApi.open(context, 'subject', {
       prose: body,

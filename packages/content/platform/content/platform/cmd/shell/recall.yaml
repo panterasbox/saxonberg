@@ -1,4 +1,5 @@
 verbs: [recall]
+category: shell
 controller: /platform/idea/cmd/shell/RecallController
 description: "Search what you were told, and what the world wrote down"
 help: |

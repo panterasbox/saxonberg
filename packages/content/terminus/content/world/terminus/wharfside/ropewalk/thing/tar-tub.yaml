@@ -1,0 +1,18 @@
+# The tar tub (cordage D13′) — pitch kept liquid over a brazier at the head
+# of the walk. `dip rope in tub` draws the rope through it and it comes out
+# under a skin of pitch that sets as it cools: a tarred rope does not rot.
+# A coat BATH (`GlazeTub`), because pitch lays a coat.
+class: /platform/thing/GlazeTub
+data:
+  shortDescription: tar tub
+  keywords: [tub, "tar tub", tar, pitch]
+  register: indefinite
+  longDescription: >-
+    An iron-hooped tub of black pitch on a brazier, the surface wrinkling as it bubbles, a stick across it furred with tar.
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 20
+  fixedInPlace: true
+  interiorBulk: true
+  interiorCapacity: 60
+  interiorMaterial: /stuff/idea/material/bulk/pitch
+  interiorAmount: 50

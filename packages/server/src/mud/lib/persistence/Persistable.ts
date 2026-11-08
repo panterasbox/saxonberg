@@ -40,10 +40,12 @@
  * [docs/requirements/persistence-spine-requirements.md].
  */
 
+import { KeyedHosts } from './KeyedHosts';
 import type { MixinConstructor } from "../mixin";
 import type { Stuff, EvictionContext } from "../stuff/Stuff";
 import type { VetoResult } from "../errors";
-import type { CastSpec, PropSpec, Staged } from "../stuff/Staged";
+import type { CastSpec, Staged } from "../stuff/Staged";
+import type { PropSpec } from "../stuff/Props";
 import type { Container } from "../spatial/Container";
 import type { Containable } from "../spatial/Containable";
 import { Mixins } from "../mixin";
@@ -202,6 +204,29 @@ export interface Persistable {
    *   `super.onRestored()`.
    */
   onRestored(): Promise<void>;
+
+  /**
+   * The keyed records this host OWNS — records that live and die with it
+   * (a tract's marked fields, tracts build D26). A capture of the host
+   * captures each after it; `markForRevert` marks each; an end-of-tenure
+   * revert deletes each by its own key.
+   *
+   * @hook Default `[]`. A host that mints persistable fixtures of its own
+   *   answers them, so nothing that walks holdings needs to know what
+   *   they are.
+   */
+  dependentPersistables(): (Stuff & Persistable)[];
+
+  /**
+   * May this host be stood up ON ITS OWN by its `(row, key)` — by
+   * `PersistableApi.standUpKeyed`? A room a warren
+   * owns may not: minted alone it would stand outside its warren, and the
+   * warren's next wake would mint a second copy under the same key.
+   *
+   * @hook Default `true`. A room only its warren stands up (a ship's hold,
+   *   a holding's furnished room) answers `false`, and is refused there.
+   */
+  standsUpAlone(): boolean;
 }
 
 export function PersistableMixin<
@@ -245,6 +270,9 @@ export function PersistableMixin<
     setPersistenceKey(key: string, explicit = true): void {
       this._persistenceKey = key;
       if (explicit) this._persistenceKeyExplicit = true;
+      // ⭐ Filed under the pair, so "is it standing?" is a lookup, never a
+      // scan of the row's instances.
+      KeyedHosts.note(this as unknown as Stuff & Persistable, key);
     }
 
     capturesAtShutdown(): boolean {
@@ -293,6 +321,19 @@ export function PersistableMixin<
 
     markForRevert(): void {
       this._reverting = true;
+      for (const dependent of this.dependentPersistables()) {
+        dependent.markForRevert();
+      }
+    }
+
+    /** See {@link Persistable.dependentPersistables}. Default: none. */
+    dependentPersistables(): (Stuff & Persistable)[] {
+      return [];
+    }
+
+    /** See {@link Persistable.standsUpAlone}. Default: yes. */
+    standsUpAlone(): boolean {
+      return true;
     }
 
     /**

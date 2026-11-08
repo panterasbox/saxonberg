@@ -1,8 +1,10 @@
 # Rushes — dried rushes for strewing an earth floor (cleanliness D15): they
 # soak up what is spilt and are swept out when they are foul. The honest
 # cleanser of a floor that cannot be scrubbed.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/straw, strength: 20 }]
+  burning: [{ aroma: /base-library/aromas/straw-smoke, strength: 300 }]
   name: rushes
   keywords: [rushes, rush, strewing]
   appearance: dry, sweet-smelling rushes

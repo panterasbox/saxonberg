@@ -168,7 +168,8 @@ describe('⭐ a thrown wall says whose hand raised it (the ceramics drive)', () 
       hand: { band: 'novice', wallFactor, maxL: 2, grade: Grade.of('fair') },
       count: 1,
     });
-    return typeof made === 'string' ? made : (made as unknown as { getLongDescription(): string }).getLongDescription();
+    if (!made.ok) throw new Error(`refused: ${made.reason}`);
+    return (made.made as unknown as { getLongDescription(): string }).getLongDescription();
   }
 
   it("a beginner's mug is heavy, thick-walled", async () => {

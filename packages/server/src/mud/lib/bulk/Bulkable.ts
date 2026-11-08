@@ -43,13 +43,19 @@
  */
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
+import { Mixins } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
+import type { Perceptible } from '../description/Perceptible';
+import { BlendIdentity } from '../craft/BlendIdentity';
 import type { CommandContributions } from '../../api/command';
 import { Quantity } from '../quantity';
 import { QuantityMarshaller } from '../../platform/idea/persistence/QuantityMarshaller';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
-import { BulkableApi } from '../../api/bulk';
+import type { Difficulty } from '../advancement/ActSignature';
+import { PourTargetMixin, type PourAnswer, type PourDone, type PourNote, type PourRequest } from './PourTarget';
+import { WaterChemistry } from '../supply/WaterChemistry';
+import { BulkableApi, type TransferAmount } from '../../api/bulk';
 import { MaterialApi } from '../../api/material';
 import { AppSettingKeys } from '../config/AppSettings';
 import { AppApi } from '../../api/app';
@@ -226,7 +232,7 @@ export interface BulkPayload {
 
   /*
    * ⚠ These three are DATA the craft writes; the reading that uses them
-   * lives on `PalatableMixin` (`lib/metabolism/Palatable.ts`), composed
+   * is read by `TasteModality.flavorOf`, composed
    * on `CraftVessel`. It sat on `BulkableMixin` for one build, which put
    * a taste-palate augmenter on floors, garden beds and air tanks.
    */
@@ -234,7 +240,7 @@ export interface BulkPayload {
 
 
 // `via.bulk` facet — declaration-merged onto MqlMatchVia, colocated
-// with the owning subsystem (mirrors `via.detailPath` / `via.exit`).
+// with the owning subsystem (mirrors `via.detailPath`).
 // Compile-time only; at runtime `via.bulk` is a plain property the
 // resolver and controllers read.
 declare module '../../api/mql/types' {
@@ -287,7 +293,7 @@ export class BulkSlot {
    * controller's empty-source line prints this when there is one.
    */
   whyEmpty(): string | null {
-    return null;
+    return this.host.bulkWhyEmpty(this.affordance);
   }
 
   /**
@@ -432,7 +438,15 @@ export class BulkSlot {
 /** What a receiver does with a pour at a temperature (ceramics S13). */
 export type PourReception = 'holds' | 'melts' | 'burns';
 
+/** A draught from a fixed source, L: one swallow's worth (grain). */
+const DRAUGHT_L = 0.25;
+
 export interface Bulkable {
+  /**
+   * How much a drink takes from this when no measure is named. You finish a cup;
+   * a source fixed in place (a butt, a trough, a tap) gives a draught.
+   */
+  drinkMeasure(): TransferAmount;
   /**
    * ⭐ Can this vessel receive a pour at `k` K — or does it melt (a tin cup
    * under molten lead) or burn (a wooden mould under bronze)? Asked by the
@@ -463,6 +477,16 @@ export interface Bulkable {
   getBulk(affordance?: BulkAffordance): BulkSlot;
 
   /**
+   * ⭐ What the substance held in `affordance` answers to — the blend's
+   * words (its recipe's, else its Material's) and its name; `[]` for an
+   * empty or absent slot. Folded into {@link Bulkable}'s `getKeywords()`
+   * (derived, never stored): `drink coffee` binds the cup because the cup
+   * says it answers to `coffee` while it holds some (one-resolution slate
+   * § 5 row 2). MQL attributes such a match to the slot (`via.bulk`).
+   */
+  getHeldKeywords(affordance: BulkAffordance): string[];
+
+  /**
    * What `viewer` sees in a slot — the per-viewer contents phrase, or
    * `null` when there is nothing to report. The one viewer-aware read
    * on the substrate; see the implementation for why identification is
@@ -483,6 +507,19 @@ export interface Bulkable {
    * a tap pulls its main's hardness into its payload (cleanliness D12).
    */
   settleBulk(affordance: BulkAffordance): Promise<void>;
+  /**
+   * @hook Why this slot has nothing to give, in words — or `null` (an
+   * ordinary vessel: empty is just empty). A tap whose house is on no
+   * supply says so (water-supply build). Read after `settleBulk`.
+   */
+  bulkWhyEmpty(affordance: BulkAffordance): string | null;
+  /**
+   * @hook Called by `fill` before it draws from this slot into `vessel`,
+   * for `by` — a source that has to be WORKED to give (a well with no pump:
+   * a bucket on a rope hauls the water up) brings it to the slot here.
+   * Default: nothing to do. Read before `settleBulk`.
+   */
+  beforeDrawInto(affordance: BulkAffordance, vessel: Stuff, by: Stuff): Promise<void>;
   /**
    * @hook `by` has just poured `litres` OUT of this (the pour verb calls
    * it). A no-op on an ordinary vessel; a tall lye hopper splashes a
@@ -552,8 +589,158 @@ function assertVolume(q: Quantity<'L'>, field: string): void {
 export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
   Base: TBase,
 ) {
-  return class BulkableMixin extends Base {
+  // Whether the composition beneath answers to words (decided once per
+  // class, lazily — the factory runs at import).
+  let inherits: boolean | undefined;
+  return class BulkableMixin extends PourTargetMixin(Base) {
     static _mixinName = 'BulkableMixin';
+
+    /**
+     * ⭐ `pour` into a holder: a thin direction over `BulkableApi.transfer`,
+     * which owns the material-compatibility check, the overflow clamp and the
+     * open-vessel drain-through; what the pour credits is here because it is
+     * the same act whichever controller words it. Instant: `durationMs: 0`.
+     */
+    public receivePour(req: PourRequest): PourAnswer {
+      const target = this as unknown as Stuff;
+      const { by, source } = req;
+      const fromSlot = BulkableApi.slotFor(source, req.sourceVia);
+      if (fromSlot === null) {
+        return { ok: false, reason: 'nothing-in-source', facts: { source, target } };
+      }
+      const toSlot = BulkableApi.slotFor(target, req.targetVia);
+      if (toSlot === null) {
+        return { ok: false, reason: 'not-a-holder', facts: { source, target } };
+      }
+      return {
+        ok: true,
+        durationMs: 0,
+        effortW: 0,
+        facts: { kind: 'now' },
+        onComplete: async () => {
+          const amount = BulkableApi.amountFromOption(req.amount, { kind: 'all' }, req.exact === true);
+          // What the mould is made of, read BEFORE the pour: a mould the pour
+          // consumes is gone by the time the line is written.
+          const waxMould =
+            MixinApi.isMould(target) && MixinApi.isTangible(target) && target.getMaterial()?.hasTag('wax') === true;
+          const result = BulkableApi.transfer(fromSlot, toSlot, amount);
+          const notes: PourNote[] = [...result.notes];
+          const done = (kind: PourDone['kind']): { ok: true; facts: PourDone } => ({
+            ok: true,
+            facts: { kind, source, target, notes },
+          });
+          if (result.applied > 0 && MixinApi.isBulkable(source)) {
+            source.afterPouredOutBy(by, result.applied);
+          }
+          // ⭐⭐ (ceramics S13) The receiver did not survive the pour: its
+          // melting or ignition point is below the metal's heat.
+          if (result.status === 'melted') return done('melted');
+          if (result.status === 'burned') return done('burned');
+          if (result.applied > 0 && MixinApi.isBulkable(target) && !target.isDestroyed()) {
+            target.afterPouredInBy(by, result.applied);
+          }
+          const credit = async (discipline: string, difficulty: Difficulty): Promise<void> => {
+            try {
+              if (MixinApi.isAdvancing(by)) await by.creditDeed({ discipline, difficulty, outcome: 'success' });
+            } catch (err) {
+              console.warn('Bulkable: recording the deed failed:', err);
+            }
+          };
+          if (result.applied > 0) {
+            // The rack credit (fermentation W7/D9): drawing off a FINISHED
+            // batch is the craft's timing act.
+            if (MixinApi.isMaturing(source)) {
+              const phase = source.getMaturationPhase();
+              if (phase === 'finished' || phase === 'turned') await credit('fermenting', 'easy');
+            }
+            // ⭐ The cut's credit: drawing from a RUNNING fractionating host is
+            // the distiller's timing act, and the schedule names the Discipline.
+            if (MixinApi.isFractionating(source)) {
+              const schedule = source.isRunning() ? source.getRunSchedule() : null;
+              const discipline = schedule?.getDiscipline() ?? '';
+              if (discipline) await credit(discipline, 'easy');
+            }
+            // ⭐ The mould's credit (dairy D22): filling a mould IS the act, so
+            // a row that names a Discipline credits it at the fill; a mould
+            // whose pour is a DAY credits when the watch is kept (ceramics D26).
+            if (MixinApi.isMould(target)) {
+              if (target.getPourDurationS() > 0) {
+                const started = target.watchThePour(by);
+                if (started) notes.push(started);
+              } else {
+                const discipline = target.getMouldDiscipline();
+                if (discipline) await credit(discipline, 'standard');
+              }
+            }
+          }
+          // ⭐⭐ Escape: a GAS into something that will not hold it. Not a
+          // puddle and not silence — it is in the air of the room now.
+          if (result.status === 'escaped') return done('escaped');
+          // Drain-through: an open destination didn't retain the liquid.
+          if (result.status === 'drained') return done('drained');
+          if (result.applied <= 0) {
+            if (result.notes.some((n) => n.kind === 'target-declined' && n.reason === 'material-mismatch')) {
+              return done('mismatch');
+            }
+            if (result.notes.some((n) => n.kind === 'quantity-clamped-rejected')) return done('too-much');
+            // ⚠ A lenient pour into a brim-full vessel also moves nothing — and
+            // "nothing to pour" blamed the full flask in your hand.
+            return done(fromSlot.available() > 0 && toSlot.remaining() <= 0 ? 'full' : 'nothing');
+          }
+          // ⭐ The pour consumed its mould — lost wax, or a sand mould broken
+          // away from what set in it.
+          if (target.isDestroyed()) return done(waxMould ? 'lost-wax' : 'mould-broken');
+          return done('poured');
+        },
+      };
+    }
+
+    /** The authored keywords, then what each slot holds — see {@link Bulkable.getHeldKeywords}. */
+    getKeywords(viewer?: Stuff): string[] {
+      inherits ??= MixinApi.hasMixin(Base, Mixins.Perceptible) || MixinApi.hasMixin(Base, Mixins.Named);
+      const out = inherits
+        ? (Base.prototype as unknown as Perceptible).getKeywords.call(this, viewer)
+        : [];
+      const seen = new Set(out);
+      for (const affordance of ['interior', 'surface'] as const) {
+        for (const word of this.getHeldKeywords(affordance)) {
+          if (!seen.has(word)) {
+            seen.add(word);
+            out.push(word);
+          }
+        }
+      }
+      return out;
+    }
+
+    /**
+     * See {@link Bulkable.getHeldKeywords}.
+     *
+     * ⭐ A keyword read does not reconcile: reads don't write. Every scope
+     * walk asks every vessel in reach what it answers to, and through the
+     * slot reads that brought its seepers and its faces current — a third
+     * of a crowd's allocation (controllers-are-io /finalize). What it holds
+     * is what its last reconcile left, and the read that needs the amount
+     * (`look`, a pour, a drink) brings it current.
+     */
+    public getHeldKeywords(affordance: BulkAffordance): string[] {
+      const has = affordance === 'interior' ? this.hasInteriorBulk() : this.hasSurfaceBulk();
+      if (!has) return [];
+      this._peeking++;
+      try {
+        const slot = this.getBulk(affordance);
+        if (slot.isEmpty()) return [];
+        const material = slot.getMaterial();
+        if (material === null) return [];
+        // A blend's per-instance payload names the held substance (`look
+        // stew` on the plated dish); an un-blended slot reads its Material.
+        const payload = slot.getPayload();
+        const words = [...BlendIdentity.keywordsOf(payload, material), BlendIdentity.nameOf(payload, material)];
+        return [...new Set(words.map((w) => w.toLowerCase().trim()).filter((w) => w.length > 0))];
+      } finally {
+        this._peeking--;
+      }
+    }
 
     /**
      * The bulk verbs are **carried by the holder** (the
@@ -864,6 +1051,13 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
      * first (a mixed drink names itself, not its base material), then
      * the material's own appearance.
      */
+    public drinkMeasure(): TransferAmount {
+      const self = this as unknown as Stuff;
+      return MixinApi.isContainable(self) && self.isFixedInPlace()
+        ? { kind: 'measure', litres: DRAUGHT_L, mode: 'lenient' }
+        : { kind: 'all' };
+    }
+
     public getContentsDescriptionFor(
       viewer: Stuff,
       affordance?: BulkAffordance,
@@ -924,6 +1118,14 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
     }
 
     public settleBulk(_affordance: BulkAffordance): Promise<void> {
+      return Promise.resolve();
+    }
+
+    public bulkWhyEmpty(_affordance: BulkAffordance): string | null {
+      return null;
+    }
+
+    public beforeDrawInto(_affordance: BulkAffordance, _vessel: Stuff, _by: Stuff): Promise<void> {
       return Promise.resolve();
     }
 
@@ -991,6 +1193,9 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
     /** Reentry guard for the face exchange (it reads and writes the slot). */
     private _faceExchanging = false;
 
+    /** Reads in flight that must not write — {@link getHeldKeywords}; both reconcilers stand off. */
+    private _peeking = 0;
+
     /** When the interior last filled from empty — where an unread face clock starts. */
     private _interiorFilledAtS: number | null = null;
 
@@ -1006,7 +1211,7 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
      * answer brings the chain current.
      */
     private reconcileSeepers(): void {
-      if (this._seepersReconciling) return;
+      if (this._seepersReconciling || this._peeking > 0) return;
       const self = this as unknown as Stuff;
       this._seepersReconciling = true;
       try {
@@ -1025,8 +1230,13 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
             }
         }
         for (const c of near) {
+          if (c === self) continue;
+          // ⭐ A porous solid a liquid works down through into this vessel —
+          // ash in a hopper, a loaf on its pot — is brought current too
+          // (cordage W7: the hopper's lye is what its heaps have given up).
+          if (MixinApi.isPercolating(c)) c.reconcilePercolation();
           // Only a FACED vessel seeps (its faces are what let a liquid through).
-          if (c === self || !MixinApi.isFaced(c) || !MixinApi.isBulkable(c)) continue;
+          if (!MixinApi.isFaced(c) || !MixinApi.isBulkable(c)) continue;
           try {
             if (c.hasInteriorBulk()) c.getBulkAmount('interior');
           } catch (err) {
@@ -1068,7 +1278,7 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
      * a game-minute.
      */
     private reconcileFaceExchange(): void {
-      if (this._faceExchanging) return;
+      if (this._faceExchanging || this._peeking > 0) return;
       this.reconcileSeepers();
       const self = this as unknown as Stuff;
       if (!MixinApi.isFaced(self) || !this.interiorBulk) return;
@@ -1077,10 +1287,22 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
         ? StuffApi.findByTemplatePath<Material>(this.interiorMaterial) ?? null
         : null;
       if (!(litres > 0) || material === null) return;
+      // ⭐ At most once a game-minute, asked BEFORE the face reads below: this
+      // runs on every read of the slot (an amount, a payload, a keyword in a
+      // scope walk), and those reads cost far more than the clock. Same answer
+      // as the `dt` check further down, which returns for the same span.
+      const checkedS = this.interiorPayload?.faceCheckedS;
+      if (checkedS !== undefined) {
+        const nowS = bulkNowSeconds();
+        if (nowS === null || nowS - checkedS < 60) return;
+      }
       // ⚠ Sparse: an exchange with nothing to do writes nothing — a glazed
       // pot of water carries no payload because of this.
       const insideFace = self.outermost('inside');
-      const leaches = material.acidAttack() > 0 && (insideFace?.getLeaches().length ?? 0) > 0;
+      // ⭐ The contents' own pH when they carry one — a water's, off its
+      // source (water-supply D8) — else the material row's.
+      const payloadPh = this.interiorPayload?.pH;
+      const leaches = material.acidAttack(payloadPh) > 0 && (insideFace?.getLeaches().length ?? 0) > 0;
       const porousInside = !self.holdsWater('inside');
       // A liquid against a wall that lets water through (the face's own read,
       // B100 — this was a second copy of it, inline).
@@ -1109,7 +1331,17 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
         const inside = self.outermost('inside');
         // ⭐ By the contents' pH (B109): vinegar draws the authored rate,
         // vitriol far more, milk next to nothing, seawater none.
-        const attack = material.acidAttack();
+        // ⭐⭐ …and a water's SOFTNESS (water-supply D8): hard water scales a
+        // lead pipe shut and soft water does not, so a soft acid supply
+        // through lead is the poisoning and a hard one is not. A payload
+        // that carries no hardness is not a supply's water (vinegar in a
+        // glazed jar) and the factor is 1 — the shipped glaze law unchanged.
+        const dgh = payload.hardnessDgh;
+        const softness =
+          typeof dgh === 'number' && Number.isFinite(dgh)
+            ? new WaterChemistry(7, dgh, 0).softness()
+            : 1;
+        const attack = material.acidAttack(payload.pH) * softness;
         if (inside !== null && attack > 0) {
           const toxins = [...(payload.dissolvedToxins ?? [])];
           for (const leach of inside.getLeaches()) {
@@ -1314,6 +1546,18 @@ function gasLevelWord(pressure: number): string {
   return 'sitting on its seal';
 }
 
+/**
+ * How full a liquid vessel reads, in words and no numbers
+ * (client-surface D10) — what you see holding a bottle up to the light.
+ */
+function liquidLevelWord(fraction: number): string {
+  if (fraction >= 0.95) return 'full';
+  if (fraction >= 0.7) return 'nearly full';
+  if (fraction >= 0.35) return 'about half';
+  if (fraction >= 0.1) return 'a finger';
+  return 'dregs';
+}
+
 function bulkContentsAugmenter(
   text: string,
   host: Stuff,
@@ -1353,10 +1597,23 @@ function bulkContentsAugmenter(
       lines.push(`It holds ${contents}, ${gasLevelWord(pressure)}.`);
       continue;
     }
+    if (affordance === 'surface') {
+      lines.push(`A puddle of ${contents} pools here.`);
+      continue;
+    }
+    // ⭐ A VESSEL says how full it is and whether it is stopped — gated on
+    // the vessel kind, because Sealable composes on doors and windows too
+    // and a door has no level (client-surface D10).
+    const words: string[] = [];
+    if (MixinApi.isVesselKind(host)) {
+      const cap = host.getBulkCapacity('interior')?.rawValue() ?? 0;
+      if (cap > 0) {
+        words.push(liquidLevelWord(host.getBulkAmount('interior').rawValue() / cap));
+      }
+      if (MixinApi.isSealable(host)) words.push(host.isOpen() ? 'open' : 'sealed');
+    }
     lines.push(
-      affordance === 'surface'
-        ? `A puddle of ${contents} pools here.`
-        : `It holds ${contents}.`,
+      words.length > 0 ? `It holds ${contents}, ${words.join(', ')}.` : `It holds ${contents}.`,
     );
   }
   if (lines.length === 0) return text;

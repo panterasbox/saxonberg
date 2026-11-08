@@ -164,7 +164,7 @@ suite('3 — read a help-wanted sign nobody authored as a prop', () => {
 
 suite('4 — be refused, and be told BOTH numbers', () => {
   it('⭐⭐ `apply` with no gigs names what is wanted and what is held', async () => {
-    const r = await store.cmd('apply');
+    const r = await store.cmd('job apply');
     expectRefused(r);
     expectNote(r, 'controller-rejected', { reason: 'gigs' });
     const said = await r.said();
@@ -181,7 +181,7 @@ suite('⭐ rung ZERO — a seat that asks for nothing at all', () => {
     const seen = await farm.prose('look');
     expect(seen, 'the farm advertises too').toMatch(/HELP WANTED/);
     expect(seen, 'and asks nothing').toMatch(/no prerequisite/);
-    const r = await farm.cmd('apply');
+    const r = await farm.cmd('job apply');
     expectOk(r);
     expect(await r.said()).toMatch(/taken on as labourer/);
   }, 180_000);
@@ -227,7 +227,7 @@ suite('7 — a trade seat asks for more, and says what lifts it', () => {
     expect(seen, "the tailor's advertises").toMatch(/HELP WANTED/);
     expect(seen).toMatch(/competent hand at tailoring/);
 
-    const r = await tailor.cmd('apply');
+    const r = await tailor.cmd('job apply');
     expectRefused(r);
     expectNote(r, 'controller-rejected', { reason: 'band' });
     const said = await r.said();
@@ -261,11 +261,11 @@ suite('8 — the shop still works, from the pack', () => {
   it('`consign` and `reclaim` round-trip a good through the shelf', async () => {
     const rows = await store.query('me:i', { fields: ['displayName'] });
     if (rows.length === 0) return; // nothing to consign; the buy above says why
-    const listed = await store.cmd('consign torch for 5');
+    const listed = await store.cmd('shelf consign torch for 5');
     const said = await listed.said();
     expect(said, 'the shelf answered').not.toMatch(/don't see any/i);
     if (listed.status === 'ok') {
-      const back = await store.cmd('reclaim torch');
+      const back = await store.cmd('shelf reclaim torch');
       expectOk(back);
     }
   }, 180_000);
@@ -306,7 +306,7 @@ suite('10 — nothing that did not move, moved', () => {
     expect(seen, 'the rack is still in the room').toMatch(/rack|coat|check/i);
     // And the verb it affords still binds: `check` with nothing to check
     // answers about the CHECK, never `unknown-verb`.
-    const r = await lounge.cmd('check sword');
+    const r = await lounge.cmd('rack check sword');
     expect(await r.said()).not.toMatch(/unknown verb|don't know how/i);
   }, 180_000);
 });

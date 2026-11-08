@@ -27,6 +27,7 @@ import type {
   CardClosedEnvelope,
   CardOpenedEnvelope,
   CardPinnedEnvelope,
+  CardArrangedEnvelope,
   CardTouchedEnvelope,
   Envelope,
   MqlSubscriptionDeltaEnvelope,
@@ -58,6 +59,9 @@ export const CARD_LABEL: Readonly<Record<CardId, string>> = {
   studio: "the composer",
   stock: "the stock sheet",
   survey: "the survey",
+  terminal: "a terminal",
+  settings: "your settings",
+  map: "where you are",
 };
 
 /**
@@ -125,13 +129,22 @@ export function useCardFeed(): void {
         ...(env.payload ? { payload: env.payload } : {}),
         records: (env.result ?? []) as CardRecord[],
         openedAt: Date.now(),
+        ...(env.segments ? { segments: env.segments } : {}),
+        ...(env.size ? { size: env.size } : {}),
+        ...(env.placed ? { placed: env.placed } : {}),
+        ...(env.minimized ? { minimized: true } : {}),
+        ...(env.role ? { role: env.role } : {}),
       });
     };
 
     const handleTouched = (envelope: Envelope): void => {
       const env = envelope as CardTouchedEnvelope;
+      // A re-run carries a body; a liveness flip (pin, place) does not —
+      // only a re-run is a TOUCH that moves a card in a feed.
+      const rerun = env.prose !== undefined || env.segments !== undefined || env.payload !== undefined;
       useStore.getState().touchCard(env.instanceId, {
         key: env.key,
+        ...(rerun ? { touchedAt: Date.now() } : {}),
         // ⭐ A demotion: this card stopped being the current one.
         ...(env.live !== undefined ? { live: env.live } : {}),
         ...(env.takenAt !== undefined ? { takenAt: env.takenAt } : {}),
@@ -139,6 +152,28 @@ export function useCardFeed(): void {
         ...(env.prose ? { prose: env.prose } : {}),
         ...(env.payload ? { payload: env.payload } : {}),
         ...(env.result ? { records: env.result as CardRecord[] } : {}),
+        ...(env.segments ? { segments: env.segments } : {}),
+        // ⭐ The `here` card rebound: same card, new subject (#53/#92).
+        ...(env.subjectId ? { subjectId: env.subjectId } : {}),
+        ...(env.subjectKind ? { subjectKind: env.subjectKind } : {}),
+        ...(env.role ? { role: env.role } : {}),
+        // ⭐ A terminal's role IS its payload's `primary` flag: a demoted
+        // terminal's touch carries no role, and must still lose it.
+        ...(env.payload?.kind === "terminal"
+          ? { role: env.payload.primary ? ("primary" as const) : undefined }
+          : {}),
+      });
+    };
+
+    const handleArranged = (envelope: Envelope): void => {
+      const env = envelope as CardArrangedEnvelope;
+      useStore.getState().arrangeCardState(env.instanceId, {
+        size: env.size,
+        placed: env.placed,
+        minimized: env.minimized,
+        pinned: env.pinned,
+        live: env.live,
+        role: env.role,
       });
     };
 
@@ -172,6 +207,7 @@ export function useCardFeed(): void {
     websocketClient.onEnvelope("card-touched", handleTouched);
     websocketClient.onEnvelope("card-closed", handleClosed);
     websocketClient.onEnvelope("card-pinned", handlePinned);
+    websocketClient.onEnvelope("card-arranged", handleArranged);
     websocketClient.onEnvelope("mql-subscription-delta", handleDelta);
 
     return () => {
@@ -179,6 +215,7 @@ export function useCardFeed(): void {
       websocketClient.offEnvelope("card-touched", handleTouched);
       websocketClient.offEnvelope("card-closed", handleClosed);
       websocketClient.offEnvelope("card-pinned", handlePinned);
+      websocketClient.offEnvelope("card-arranged", handleArranged);
       websocketClient.offEnvelope("mql-subscription-delta", handleDelta);
     };
   }, []);

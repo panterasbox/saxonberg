@@ -39,7 +39,7 @@
  */
 
 import Good from '../../lib/stuff/Good';
-import { ToolMixin } from '../../lib/craft/Tooled';
+import { ToolMixin } from '../../lib/craft/Tool';
 import { DurableMixin } from '../../lib/material/Durable';
 import { CraftedMixin } from '../../lib/craft/Crafted';
 import { ConstructedMixin } from '../../lib/material/Constructed';

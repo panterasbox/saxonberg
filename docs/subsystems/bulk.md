@@ -604,9 +604,11 @@ marks "you reached this holder through its bulk":
   `via.bulk = { affordance: 'interior' }`; capability-gated (drops
   non-holders), like `:i`. `:B` is unallocated (a bare `B` lowercases to
   a `'b'` keyword filter → empty).
-- **material-keyword** (`drink coffee`) — `scope-walk.pushBulkMaterials`
-  emits one candidate per non-empty slot scored on the Material's
-  keywords, the holder as the matched Stuff, `via.bulk` set.
+- **material-keyword** (`drink coffee`) — the holder answers to what it
+  holds: `BulkableMixin.getKeywords` folds in `getHeldKeywords(affordance)`
+  (the blend's words, else the Material's, and its name) for each
+  non-empty slot, and MQL attributes a match on those words to the slot
+  (`via.bulk`) — the holder is the matched Stuff (controllers-are-io W2).
 - **`MqlQuantity` measure variant** — `value.kind: 'measure'` carries a
   serializable `{ value, unit }` (the `Quantity.toJSON` shape, not a
   live `Quantity`).
@@ -639,6 +641,14 @@ A `bulk/` command category — `fill` / `pour` / `spill` / `drink` /
 Thermometer-carries-`measure` pattern): `BulkableMixin` contributes them
 in the `inventory` / `peers` / `environment` buckets, so they light up
 whenever a Bulkable is reachable — not minted from a bespoke verb mixin.
+
+⭐⭐ **`pour` is one act** (controllers-are-io D12): one view, `target:
+PourTargetMixin`, one controller. `BulkableMixin.receivePour` is a thin direction
+over `transfer` and holds what the pour credits (the rack, the cut, the mould's
+fill); `ManualBuildMixin.receivePour` banks a serving or an ingredient. A pot or a
+trough composes both: a graded bottle is a serving, an ungraded jug is an ordinary
+pour into the holder beneath, and `PourTargetMixin`'s default hands the question
+down rather than shadowing it. `KNOWN_COLLISIONS` went with `pour`, its last row.
 
 | Verb | Shape | Amount |
 |---|---|---|

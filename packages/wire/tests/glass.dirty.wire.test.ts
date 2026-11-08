@@ -154,7 +154,7 @@ suite('⭐ glass — the glasshouse in the woods', () => {
     // melt is a dip bath that plans the gather, and the blowpipe affords
     // the word so a bare `gob` is heard.
     expectOk(await g.cmd('get blowpipe'));
-    const out = await g.cmd('gob');
+    const out = await g.cmd('dip');
     expect(verbUnderstood(out)).toBe(true);
     // No fluid melt in a cold glasshouse → refused in words (`melt-cold`
     // from a stiff melt, or no bath at all), proving the verb is wired.
@@ -223,7 +223,7 @@ suite('⭐⭐ glass — the batch is MIXED in a pot, then FIRED (ceramics W0)', 
     expectOk(await b.cmd('get charcoal'));
     const stoked = await b.cmd('stoke charcoal into kiln');
     expect(verbUnderstood(stoked)).toBe(true);
-    const lit = await b.cmd('ignite kiln');
+    const lit = await b.cmd('light kiln');
     expect(verbUnderstood(lit)).toBe(true);
     const fired = await b.cmd('fire kiln for 30 minutes');
     expect(verbUnderstood(fired)).toBe(true);

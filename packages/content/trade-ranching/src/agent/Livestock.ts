@@ -48,9 +48,13 @@ import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { MarkupAugmenter } from '@saxonberg/server/mud/api/mml';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import type { WorkDifficulty } from '@saxonberg/server/mud/lib/ground/Workable';
-import type { TapClosedReason } from '@saxonberg/server/mud/platform/idea/species/Species';
+import type { TapLanded } from '@saxonberg/server/mud/lib/husbandry/Producing';
+import type { Bulkable } from '@saxonberg/server/mud/lib/bulk/Bulkable';
 import { STOCKMANSHIP } from '../idea/cmd/ranching/HandleController';
+import Tract from '@saxonberg/content-trade-farming/src/location/Tract';
+import { HeadSeed } from '../lib/HeadSeed';
 
 /**
  * ⭐ **`Perceptible` arrives from `Creature` now, and the argument this
@@ -85,11 +89,6 @@ import { STOCKMANSHIP } from '../idea/cmd/ranching/HandleController';
  * expressed as the kilos it would have reached — `perGameDay` × a year.
  */
 const PRIME_WOOL_KG = 360 * 0.008;
-
-/** One decimal place — milk is measured, wool is weighed. */
-function round1(v: number): number {
-  return Math.round(v * 10) / 10;
-}
 
 const LivestockBase = ProducingMixin(
   HandledMixin(HandlingMixin(ChattelMixin(BrandedMixin(Creature)))),
@@ -159,6 +158,11 @@ export default class Livestock extends LivestockBase {
       'trade/ranching/cmd/ranching/milk.yaml',
       'trade/ranching/cmd/ranching/shear.yaml',
       'trade/ranching/cmd/ranching/gather.yaml',
+      // ⭐ Moving the herd is afforded BESIDE one of its animals as well
+      // as at the book (cover build D13, R3): a field is farming's and
+      // must not name a ranching view, so a keeper standing in a field
+      // moves the herd through a head of it.
+      'trade/ranching/cmd/ranching/move.yaml',
     ],
     environment: [],
   };
@@ -184,7 +188,7 @@ export default class Livestock extends LivestockBase {
   /**
    * ⭐⭐ **The animal names the Discipline, and the difficulty.**
    *
-   * `WorkResult.credit` is what retires the old `TapController`'s
+   * The credit on the landing's facts is what retires the old `TapController`'s
    * `discipline()` hook: a kernel controller credits `stockmanship`
    * without knowing ranching exists, and ⚠ the difficulty is read off
    * HER at the moment of the act rather than off a counter — milking a
@@ -202,92 +206,23 @@ export default class Livestock extends LivestockBase {
   }
 
   /**
-   * ⚠ Her refusals, not the verb's — and **not one of them carries a
-   * digit**, because a shut tap is something you read off the animal
-   * rather than a figure you are quoted.
-   */
-  public override tapRefusal(key: string, reason: TapClosedReason): string {
-    if (reason === 'dried-off') {
-      return 'She has dried off for this season. Nothing will come of it until she freshens again.';
-    }
-    // ⭐ (dairy D12) The other sex's tap, in the animal's own terms.
-    if (reason === 'wrong-sex' && key === 'milk') {
-      return 'He has nothing to give you — a male does not milk.';
-    }
-    if (reason === 'wrong-sex' && key === 'eggs') {
-      return 'A cockerel lays nothing, however long you feel under him.';
-    }
-    if (reason === 'brooding') {
-      return 'She is sitting tight on the clutch and will not be shifted. Take the eggs and she will start again.';
-    }
-    if (key === 'eggs' && reason === 'before-season') {
-      return 'The days are too short for laying. There is nothing wrong with the bird.';
-    }
-    if (key === 'eggs' && reason === 'after-season') {
-      return 'The laying season is over. She will come back to it as the days lengthen.';
-    }
-    return super.tapRefusal(key, reason);
-  }
-
-  public override tapEmptyPhrase(key: string): string {
-    if (key === 'milk') return 'There is nothing in her yet. Come back later.';
-    if (key === 'wool') return 'There is nothing on it worth the shears yet.';
-    if (key === 'eggs') return 'Nothing in the nest.';
-    return super.tapEmptyPhrase(key);
-  }
-
-  public override tapBeginPhrase(key: string): string {
-    if (key === 'milk') {
-      return 'You set the pail under her, settle in against her flank, and start.';
-    }
-    if (key === 'wool') {
-      return 'You get her off her feet and set to with the shears.';
-    }
-    if (key === 'eggs') return 'You start feeling under the straw.';
-    return super.tapBeginPhrase(key);
-  }
-
-  /**
-   * What the take came to.
+   * The take, and what the shears read off it.
    *
-   * ⭐ The numbers stay here — you WEIGH a fleece and you MEASURE milk,
-   * so a figure is honest at the moment of the act in a way it never is
-   * in a refusal. ⚠ And milk reports **completeness**: a pail too small
-   * is the player's own information, and it is the one line in the
-   * build that teaches what a vessel is for.
+   * ⭐ How long a fleece has been growing is READ OFF the take, because a
+   * continuous tap's standing amount IS its age in growth. No second clock,
+   * and no way for the two to disagree. The words are the verb's
+   * (`LivestockTapController`).
    */
-  public override tapTookPhrase(
+  public override async completeTap(
+    by: Stuff,
     key: string,
-    drawn: number,
-    kept: number,
-    minted?: Stuff[],
-  ): string {
-    if (key === 'milk') {
-      if (kept <= 0) {
-        return 'She stands for it, and it all goes on the floor — you had nothing to catch it in.';
-      }
-      if (kept < drawn - 0.05) {
-        return `You milk her out and the pail fills before she is done; ${round1(drawn - kept)} litres go on the straw. ${this.handlingPhrase()}.`;
-      }
-      return `You milk her right out — ${round1(kept)} litres, and she stands for it. ${this.handlingPhrase()}.`;
+    vessel: (Stuff & Bulkable) | null,
+  ): Promise<TapLanded> {
+    const out = await super.completeTap(by, key, vessel);
+    if (out.ok && out.facts.kind === 'drawn' && key === 'wool' && out.facts.drawn > PRIME_WOOL_KG * 1.4) {
+      return { ok: true, facts: { ...out.facts, overgrown: true } };
     }
-    if (key === 'wool') {
-      // ⚠ How long it has been growing is READ OFF the take, because a
-      // continuous tap's standing amount IS its age in growth. No second
-      // clock, and no way for the two to disagree.
-      const overgrown = drawn > PRIME_WOOL_KG * 1.4;
-      return overgrown
-        ? `It comes off in one heavy matted piece — ${round1(drawn)} kilos of it, and half of that is second cuts and dung. It should have come off a year ago.`
-        : `The fleece comes off clean in a single piece, ${round1(drawn)} kilos, and the animal walks away looking half the size.`;
-    }
-    if (key === 'eggs') {
-      const n = minted?.length ?? 0;
-      if (n <= 0) return 'Nothing comes of it.';
-      return n === 1
-        ? 'You come away with one egg, still warm.'
-        : `You come away with ${n} eggs, still warm.`;
-    }
-    return super.tapTookPhrase(key, drawn, kept, minted);
+    return out;
   }
 
   public getHerdId(): string {
@@ -296,6 +231,47 @@ export default class Livestock extends LivestockBase {
 
   public getHeadIndex(): number {
     return this.headIndex;
+  }
+
+  /**
+   * ⭐ **A head on its herd's field eats what the field gives the herd**
+   * (cover build D10b): its flesh moves on the herd's fed fraction times
+   * its own seeded tail — the same rule the tally follows at the draft
+   * (`HeadSeed.conditionAfter`), so a head drafted and a head left in
+   * the book thin together. Anywhere else it is fed or not by the
+   * shipped path (a bowl, a hand, nothing).
+   *
+   * ⚠ Only a head of stock grazes the field it stands in — never a pet
+   * (fed from a bowl) and never a creature in general.
+   */
+  protected override partitionFlesh(stepMin: number): void {
+    const fed = this.grazedFraction();
+    if (fed === null) {
+      super.partitionFlesh(stepMin);
+      return;
+    }
+    if (!this.hasReserve('flesh')) return;
+    const own = fed * HeadSeed.tailFactor(HeadSeed.frameOf(this.herdId, this.headIndex));
+    const delta = HeadSeed.fleshRatePerMin(own) * stepMin;
+    if (delta !== 0) this.adjustReserve('flesh', Quantity.of(delta, '%'));
+  }
+
+  /**
+   * The herd's fed fraction on the field this head is standing in, or
+   * `null` when it is not standing on a field its herd grazes. A window
+   * that has only just opened reads as fed — nothing has gone short yet.
+   */
+  private grazedFraction(): number | null {
+    if (!this.herdId) return null;
+    const here = this.getContainer();
+    if (!(here instanceof Tract)) return null;
+    // ⭐ The herd's line is on one of the tract's FIELDS (tracts build D34).
+    const line = here
+      .getFields()
+      .map((f) => f.grazerLedger(this.herdId))
+      .find((l) => l !== null);
+    if (!line) return null;
+    return line.demandKg > 0 ? Math.min(1, line.fedKg / line.demandKg) : 1;
   }
 
   /** Bind this object to the record it was drafted out of. */

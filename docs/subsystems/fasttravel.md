@@ -53,8 +53,12 @@ and structurally the kernel's. Three things moved:
    left naming a pack's view.
 
    So the verb is kernel and the network is a pack's, meeting over the
-   **`TravelNode` shape** (`lib/travel/TravelNode.ts`) — plain data in,
-   plain data out, never an import. Water's `SupplyReporting` is the
+   **`TravelNode` protocol** (`lib/travel/TravelNode.ts`) — plain data in,
+   plain data out, never an import. ⭐ Since controllers-are-io D8a it is
+   a protocol mixin: the tpa pack's `FastTravelMixin` composes
+   `TravelNodeMixin` (`_mixinKind = 'protocol'`, refusing defaults) and
+   `teleport` asks `MixinApi.isTravelNode` instead of probing `ride` and
+   `renderDepartures`. Water's `SupplyReporting` is the
    same seam — a waterworks is read by the shape it answers, and the
    asker never names its class.
 
@@ -217,7 +221,7 @@ wallet.
 
 ## The verbs
 
-**`teleport` / `tp`** — **the KERNEL's verb**
+**`teleport`** — **the KERNEL's verb**
 (`platform/idea/cmd/movement/TeleportController.ts`,
 `platform/cmd/movement/teleport.yaml`), afforded by `MobileMixin`
 beside `go` and `goto`. One verb, and a fork order that decides which of
@@ -509,10 +513,11 @@ the CB mints:
   Seats fill the standard capability-pack way with nothing to build:
   that committee → the `tpa` group the manifest's title claim gives it →
   `owner: {office: prime-minister}` (the same declaration `water` and
-  `arcana` make) → the founder by Art. XI's pool-of-one, with the PM
-  operator override on top. `Authority.ts` says the quiet part: only
-  `office` and `committee` carry that default, so *an authority the
-  founder cannot satisfy is one nobody can satisfy on a cold box* —
+  `arcana` make) → the PM (the founder by default) OWNS the group and
+  seats its members; ⛔ owning the group is not sitting on it (the
+  committee backstop is gone — wizard-axis D18). `Authority.ts` says the
+  quiet part: *an authority the founder cannot satisfy is one nobody can
+  satisfy on a cold box* until somebody is seated —
   which is why `committee` was already right here and a group would have
   been wrong. See [civics.md](./civics.md), [governance.md](./governance.md).
 

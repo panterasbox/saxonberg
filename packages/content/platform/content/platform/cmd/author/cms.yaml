@@ -1,4 +1,5 @@
 verbs: [cms]
+category: author
 controller: /platform/idea/cmd/author/CmsController
 opens_card: cms
 description: "Open the content editor — the explorer, the tree and Monaco"
@@ -16,9 +17,8 @@ help: |
   The card's body is the client's own REST surface — the tree and the
   editor speak `/api/cms/*` — so this verb opens it and nothing more.
   What you can SEE and WRITE there is decided by the CMS routes, not by
-  this verb.
+  this verb: reading is open; writing content asks for title over its
+  path; writing a `.ts` also asks for the wizard axis.
 examples:
   - cmd: cms
     note: Open the content editor
-validators:
-  - /lib/command/validators/requiresWizard

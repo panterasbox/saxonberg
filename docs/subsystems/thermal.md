@@ -1087,8 +1087,15 @@ passes under it.
   on the brine hearth never reached saturation — the crystallize arm
   never fired. Boiling down is now the hearth's road to salt, as the sun's
   evaporative window is the pan's.
-- ⭐⭐ **Purification is the plateau's, not a verb's** (2026-10-19, the
-  `boil` verb retired to an alias of `heat`). While a vessel's contents
+- ⭐⭐ **What is IN the boil is held at the boil** (controllers-are-io D8c).
+  The boil arm calls `holdAtHeatFor(bp, vessel)` on each Soilable occupant
+  beside `purifyIfHeld`: the liquid's clock says how long the LIQUID boiled,
+  the occupant's own says how long IT was in it, read off the vessel's
+  trajectory. `ThermalMixin.onContainableAdded`/`Removed` start and stop that
+  clock. See [cleanliness.md](./cleanliness.md).
+- ⭐⭐ **Purification is the plateau's, not a verb's** (2026-10-19, `boil`
+  retired to an alias of `heat`; the alias itself deleted by
+  controllers-are-io). While a vessel's contents
   sit on the boil plateau and their material names a `purifiedByBoiling`
   arrow, `boilHeldSeconds` integrates the time at the boil off the
   vessel's own trajectory (the cocoon stifle idiom; banked on the bulk
@@ -1175,9 +1182,10 @@ sun) or the heat did (alum liquor cooling).
 The second consumer of the latent-heat boil plateau: lye authors
 `latentHeatOfVaporization`, so an iron pot of it holds at the boil and
 loses water instead of flashing empty. The pot (`trade-potash` `IronPot`)
-keeps a pack-local count of the alkali across the boil-off and casts black
-salts when dry; it converges on the sugar build's solids-keeping plateau and
-is deleted then (`potash-on-sugar`, [potash.md](potash.md)).
+reads the strength the sugar build's solids-keeping plateau writes and casts
+black salts at saturation; its own pack-local count of the alkali was deleted
+when the two converged (`potash-on-sugar`, landed with sugar, MR !439 —
+[potash.md](potash.md)).
 
 ## Thermal shock is Integrity's judgment (B105)
 
@@ -1185,7 +1193,10 @@ Thermal reports the heat: a step (`setContentsTemperature` past 5 K) and
 the steepest rate since the last look, off the body's own curve. How a
 brittle body answers is `IntegrityMixin`'s, as an impact is:
 `thermalShockToleranceK()` (`impact.shockStrain ÷ α`, raised by porosity
-and grog — a refractory body counts as grog-opened — lowered by a glaze)
+and grog — a refractory body counts as grog-opened — lowered by a glaze,
+and ⭐ scaled by the material's thermal conductivity over a fired clay's,
+`impact.shockConductivityRef` (cordage D29: a cast-iron pot, brittle by
+tag, cracked at its first lye until a conducting wall counted))
 and `sufferThermalShock(stepK, rateKPerS)` (past the tolerance a dunt,
 twice past a crack). It was two private Thermal methods until the
 ceramics review.

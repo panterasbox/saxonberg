@@ -194,7 +194,6 @@ export class ConnectionLogic extends ApiLogic {
     const previous = interactive.getHolder();
     if (previous === target) return;
     const previousLinkdead = previous?.isLinkdead() ?? true;
-    const targetLinkdead = target.isLinkdead();
 
     if (previous) {
       previous.removeInteractive(interactive);
@@ -206,15 +205,11 @@ export class ConnectionLogic extends ApiLogic {
     // notifications fire for both endpoints; presence transitions
     // fire only when the count crosses 0.
     if (previous) {
-      previous.onConnectionDetached?.();
       if (!previousLinkdead && previous.isLinkdead()) {
         previous.onLinkdead?.();
       }
     }
     target.onConnectionAttached?.(interactive);
-    if (targetLinkdead && !target.isLinkdead()) {
-      target.onLinkRestored?.();
-    }
 
     // Cross-cutting global event for any observer that doesn't care
     // about a specific holder. Fires once per attach regardless of
@@ -234,7 +229,6 @@ export class ConnectionLogic extends ApiLogic {
     previous.removeInteractive(interactive);
     interactive.setHolder(null);
 
-    previous.onConnectionDetached?.();
     if (wasConnected && previous.isLinkdead()) {
       previous.onLinkdead?.();
     }

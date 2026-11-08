@@ -4,15 +4,19 @@
  * Sibling of `EnvironmentMixin` in the shell substrate: same two-store
  * pattern (persistent + session), same composition-driven static-data
  * defaults pattern (`static defaultAliases` walked via
- * `MixinApi.queryMixins`). Composed onto `ShelledCharacter`; NPCs
- * without an interactive shell don't carry it.
+ * `MixinApi.queryMixins`), plus a second defaults source: ⭐ the views the
+ * giver can reach (`defaultAliases:` on a view, read off `getAffordances()`
+ * at lookup — D16; a pack ships views and nothing else a player's shell
+ * composes). Composed onto `ShelledCharacter`; NPCs without an interactive
+ * shell don't carry it.
  *
  * The lookup chain on `getAlias(name)`:
  *
  *   1. session override (write target of `--session` set / not persisted)
  *   2. persistent override
  *   3. tombstone (persistent[name] === null) → undefined; default suppressed
- *   4. defaults declared statically on any layer of the host's mixin chain
+ *   4. defaults declared statically on any layer of the host's mixin chain,
+ *      or on a view the host can reach
  *
  * `removeAlias` writes a tombstone (null) at the persistent tier when the
  * name has a default, so re-deploying a default after the player removed
@@ -31,6 +35,7 @@
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { CommandContributions } from '../../api/command';
+import type { CommandGiver } from '../command/CommandGiver';
 import { CommandLineApi } from '../../api/command-line';
 import { MixinApi } from '../../api/mixin';
 import { Unshadowable } from '../security/decorators';
@@ -49,6 +54,8 @@ export interface AliasEntry {
   body: string;
   source: 'default' | 'persistent' | 'session';
   description?: string;
+  /** For a default declared on a view: the verb whose view declares it. */
+  view?: string;
 }
 
 /**
@@ -73,6 +80,8 @@ export interface DefaultAliasEntry {
   name: string;
   body: string;
   description?: string;
+  /** The verb whose view declares this default; absent for a mixin static. */
+  view?: string;
 }
 
 /**
@@ -180,6 +189,30 @@ function collectDefaultAliases(host: object): DefaultAliasEntry[] {
       out.push(entry);
     }
   }
+
+  // ⭐ The second source (D16): the views this host can reach, read lazily,
+  // so an alias reaches a player only while the verb does. One view may be
+  // afforded by several sources; two different views claiming one name fail
+  // statically at `lint:one-word` (c), and throw here as the walk above does.
+  if (MixinApi.isCommandGiver(host as Stuff)) {
+    for (const { command } of (host as Stuff & CommandGiver).getAffordances()) {
+      const verb = command.getPrimaryVerb();
+      for (const { name, description } of command.defaultAliases) {
+        const prev = seen.get(name);
+        if (prev === verb) continue;
+        if (prev) {
+          throw new Error(
+            `AliasMixin: default alias '${name}' is declared by both ` +
+              `'${prev}' and the '${verb}' view.`,
+          );
+        }
+        seen.set(name, verb);
+        const entry: DefaultAliasEntry = { name, body: verb, view: verb };
+        if (description !== undefined) entry.description = description;
+        out.push(entry);
+      }
+    }
+  }
   return out;
 }
 
@@ -270,6 +303,7 @@ export function AliasMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (def) {
         const out: AliasEntry = { name: def.name, body: def.body, source: 'default' };
         if (def.description !== undefined) out.description = def.description;
+        if (def.view !== undefined) out.view = def.view;
         return out;
       }
       return undefined;
@@ -288,6 +322,7 @@ export function AliasMixin<TBase extends MixinConstructor>(Base: TBase) {
           source: 'default',
         };
         if (def.description !== undefined) entry.description = def.description;
+        if (def.view !== undefined) entry.view = def.view;
         out.set(def.name, entry);
       }
       if (this.aliases) {

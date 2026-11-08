@@ -27,7 +27,7 @@ import Weapon from '../../../thing/equipment/Weapon';
 import Garment from '../../../thing/equipment/Garment';
 import Tool from '../../../thing/Tool';
 import RecipeCatalogue from '../../RecipeCatalogue';
-import { Reserve } from '../../../../lib/reserve';
+import { Reserve } from '../../../../lib/reserve/Reserved';
 import { Idea } from '../../../../lib/stuff/Idea';
 import { ContainerMixin } from '../../../../lib/spatial/Container';
 import { ThermalMixin } from '../../../../lib/thermal/Thermal';

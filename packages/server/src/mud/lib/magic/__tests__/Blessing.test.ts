@@ -24,7 +24,7 @@ import { Blessing } from '../Blessing';
 import { BlessableMixin } from '../Blessable';
 import { ChargedMixin } from '../Charged';
 import { ArcaneMixin } from '../Arcane';
-import { ReservedMixin } from '../../reserve';
+import { ReservedMixin } from '../../reserve/Reserved';
 import { StackableMixin } from '../../stuff/Stackable';
 import Good from '../../stuff/Good';
 import { Creature } from '../../creature/Creature';

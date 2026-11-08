@@ -5,8 +5,9 @@
 # `transforms`), whatever the order of rennet and starter.
 #
 # Authors no spoilage constants: a salt extract keeps.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/sour, strength: 300 }]
   name: rennet
   keywords: [rennet]
   appearance: clear and faintly brown

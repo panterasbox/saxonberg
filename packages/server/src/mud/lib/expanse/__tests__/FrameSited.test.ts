@@ -23,6 +23,8 @@ const frame = {
     cited.push(cite);
     return { frame: 'line', at: { course: 'test', km: 8.9, across: cite.endsWith(',right') ? 35 : 0 } };
   },
+  getTemplatePath: () => RIVER,
+  craft: () => [],
   onSiteStood: async () => {
     stood += 1;
   },

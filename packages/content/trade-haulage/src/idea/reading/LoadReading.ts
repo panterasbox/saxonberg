@@ -27,7 +27,7 @@ import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MqlApi } from '@saxonberg/server/mud/api/mql';
 import { CompetenceBand } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tooled';
+import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tool';
 import { bandOf } from './PassageReading';
 
 const TOPIC = 'sense.analyze';

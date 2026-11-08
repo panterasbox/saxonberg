@@ -36,6 +36,7 @@ export default class PlatBook extends PlatBookBase {
     priceMinor: { persistent: true, authorable: true },
     areaM2: { persistent: true, authorable: true },
     landUse: { persistent: true, authorable: true },
+    lotWaterSource: { persistent: true, authorable: true },
     holderPath: { persistent: true, authorable: true, authorPicker: 'Template' },
   };
 
@@ -65,6 +66,13 @@ export default class PlatBook extends PlatBookBase {
 
   /** The land use a sold lot is stamped with (validated on set). */
   public landUse: LandUse = "residential";
+
+  /**
+   * ⭐ Where a sold lot takes its water (water-supply D1): `none` — an
+   * unserviced lot until a plumber's service run cites a main — or a
+   * supply path, or `''` to inherit the district's citation.
+   */
+  public lotWaterSource: string = "";
 
   /** The {@link PlatWarren} that stands ground up when a lot sells (an
    *  identity path — the book is reference data). */
@@ -131,6 +139,14 @@ export default class PlatBook extends PlatBookBase {
     this.landUse = LandUses.parse(value);
   }
 
+  public getLotWaterSource(): string {
+    return this.lotWaterSource;
+  }
+
+  public setLotWaterSource(value: string): void {
+    this.lotWaterSource = typeof value === "string" ? value.trim() : "";
+  }
+
   public getHolderPath(): string {
     return this.holderPath;
   }
@@ -178,6 +194,16 @@ export default class PlatBook extends PlatBookBase {
    * what exists is what sold plus what the plan offers next.
    */
   public async lotExtents(): Promise<string[]> {
+    // ⭐ Load on use: the book names its holder, so the listing stands it
+    // up rather than reading only one something else happened to load
+    // (a plat that is not booted listed nothing — tracts build W4).
+    if (this.holderPath && !this.holderView()) {
+      try {
+        await StuffApi.singleton(this.holderPath);
+      } catch (err) {
+        console.warn(`PlatBook: holder '${this.holderPath}' did not stand up —`, err);
+      }
+    }
     const sold: string[] = [];
     const takenLeafs = new Set<string>();
     for (const child of await ParcelApi.childParcelsOf(this.parentExtent)) {

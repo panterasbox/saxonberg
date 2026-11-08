@@ -263,7 +263,7 @@ async function idsOf(s: Session, keyword: string): Promise<string[]> {
 async function goTo(s: Session, where: string): Promise<Session> {
   const handle = s.handle;
   s.close();
-  const next = await Session.open(handle, { startLocation: where, wizard: true });
+  const next = await Session.open(handle, { startLocation: where });
   sessions.push(next);
   await next.drainProse();
   return next;
@@ -271,7 +271,7 @@ async function goTo(s: Session, where: string): Promise<Session> {
 
 /** As the caster, clone `path` into `where` (rows nobody here sells). */
 async function mint(where: string, path: string, count = 1): Promise<void> {
-  const gov = await Session.open('founder', { startLocation: where, wizard: true });
+  const gov = await Session.open('founder', { startLocation: where });
   try {
     expectOk(await gov.cmd(`clone ${path} --here${count > 1 ? ` --count ${count}` : ''}`));
     await gov.drainProse();
@@ -287,7 +287,9 @@ async function founderEval(
   parcel = R,
   then?: () => Promise<unknown>,
 ): Promise<string> {
-  const gov = await Session.open('founder', { startLocation: where, wizard: true });
+  // `eval --parcel` asks the parcel's committee: seated, not a credential
+  // (wizard-axis D13).
+  const gov = await Session.open('founder', { startLocation: where, wizard: true, committees: [parcel] });
   try {
     const r = await gov.cmd(`eval --parcel ${parcel} ${code}`);
     // ⭐ What must follow at once (a pour off a melt) goes BEFORE the prose
@@ -306,7 +308,7 @@ async function founderEval(
 
 /** As the caster, run `code` with `this` bound to the thing called `keyword` in `where`. */
 async function founderEvalOn(where: string, keyword: string, code: string, parcel = R): Promise<string> {
-  const gov = await Session.open('founder', { startLocation: where, wizard: true });
+  const gov = await Session.open('founder', { startLocation: where, wizard: true, committees: [parcel] });
   try {
     const r = await gov.cmd(`eval --parcel ${parcel} --on ${keyword} return ${code}`);
     const said = await r.said();
@@ -367,7 +369,7 @@ async function melt(
 
 async function funded(tag: string, where: string): Promise<Session> {
   const handle = uniqueHandle(tag);
-  const bank = await Session.open(handle, { startLocation: BANK_HALL, wizard: true });
+  const bank = await Session.open(handle, { startLocation: BANK_HALL });
   expectOk(await bank.cmd('bank open'));
   bank.close();
   const gov = await Session.open('founder', { startLocation: BANK_HALL });
@@ -376,7 +378,7 @@ async function funded(tag: string, where: string): Promise<Session> {
   } finally {
     gov.close();
   }
-  const s = await Session.open(handle, { startLocation: where, wizard: true });
+  const s = await Session.open(handle, { startLocation: where });
   sessions.push(s);
   await s.drainProse();
   return s;
@@ -437,7 +439,8 @@ async function clearFloor(only?: RegExp): Promise<void> {
     }
     await caster.drainProse();
   }
-  const gov = await Session.open('founder', { startLocation: FOUNDRY, wizard: true });
+  // `destruct` + `eval --parcel` at Rejection: seated on its committee.
+  const gov = await Session.open('founder', { startLocation: FOUNDRY, wizard: true, committees: [R] });
   try {
     const rows = await gov.query('here', { fields: 'detail' }).catch(() => []);
     const floor = ((rows[0] as { contents?: { stuffId: string; displayName: string }[] } | undefined)?.contents ?? [])
@@ -513,8 +516,8 @@ suite('⭐ 26 — slip cast: gypsum to plaster, plaster to a mould, slip to a cu
     await doing(caster, 'put gypsum in oven');
     await doing(caster, 'get charcoal');
     await doing(caster, 'stoke charcoal into oven');
-    const lit = await say(caster, 'ignite oven');
-    expect(lit, `ignite oven: ${lit}`).toMatch(/catch|light|burn|alight/i);
+    const lit = await say(caster, 'light oven');
+    expect(lit, `light oven: ${lit}`).toMatch(/catch|light|burn|alight/i);
     // A lump heats through slowly and plaster wants a long low heat: an hour
     // was spent warming the stone (run 11 came out gypsum). Four.
     await act(caster, 'fire oven for 4 hours', '4 hours');
@@ -914,7 +917,7 @@ suite('⭐⭐ 32 — crystallize', () => {
       await doing(caster, 'get 1 coal');
       await doing(caster, 'stoke coal into hearth');
     }
-    await doing(caster, 'ignite hearth');
+    await doing(caster, 'light hearth');
     let read = first;
     for (let day = 0; day < 6 && !(read.crop > 4); day++) {
       await act(caster, 'fire hearth for 12 hours', '12 hours', 1);
@@ -1020,7 +1023,7 @@ suite('⭐⭐ 34 — patterns and bells', () => {
     for (const x of ['coal', 'ingot', 'crystals']) await caster.cmd(`drop ${x}`);
     await caster.drainProse();
     await doing(caster, 'get board');
-    const carved = await act(caster, 'carve pattern of sword from board for pewter', '1 hour');
+    const carved = await act(caster, 'carve pattern from board --of sword --for pewter', '1 hour');
     // STATE: the opening line scribes; the pattern is read off the board.
     expect(carved, `carve pattern: ${carved}`).toMatch(/pattern|shavings|scribe|carve/i);
     expect(await examine(caster, 'pattern'), 'the pattern').toMatch(/pattern of an arming sword/i);
@@ -1158,7 +1161,7 @@ suite('⭐⭐⭐ 35 — restart the server', () => {
     });
     process.env.WIRE_SERVER_URL = await bootOwnedWorld();
 
-    const back = await Session.open(handle, { startLocation: FOUNDRY, wizard: true });
+    const back = await Session.open(handle, { startLocation: FOUNDRY });
     try {
       await back.drainProse();
       const flask = await examine(back, 'flask');

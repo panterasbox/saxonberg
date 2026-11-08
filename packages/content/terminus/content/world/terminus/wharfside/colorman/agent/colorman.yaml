@@ -1,0 +1,28 @@
+# Ira Pell, the colorman (paint D20).
+class: /platform/agent/Cast
+extends: /stuff/agent/costume/student
+data:
+  costume:
+    - /stuff/thing/clothes/field-jacket
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  name: Ira Pell
+  keywords: [ira, pell, colorman, "color man", "paint seller"]
+  shortDescription: colorman
+  register: definite
+  longDescription: >-
+    A stooped, careful man in a canvas apron stiff with old paint, with a
+    ring of every color at the end of each finger and the slow habit of
+    holding a jar up to the window before he sells it.
+  archetype: proprietor
+  prologue:
+    - "Has ground his own colors behind this counter since before the towpath was gravelled."
+  competence:
+    - { discipline: painting, asserting: proficient }
+    - { discipline: chemistry, asserting: competent }
+  dispositions:
+    - { disposition: sociability, valence: 20 }
+    - { disposition: composure, valence: 70 }
+  behaviors:
+    - brain: /lib/behavior/introduces
+      trigger: arrival

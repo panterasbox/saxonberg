@@ -1,12 +1,22 @@
 verbs: [maintain]
+category: crafting
 controller: /system/residence/idea/cmd/crafting/MaintainController
-description: "Keep the fabric of a place sound"
+description: "Keep the fabric of a building sound"
 help: |
-  Buildings weather. Left alone, a house goes from sound to weathered
-  to worn to shabby to dilapidated, on the ordinary passage of days —
-  `survey` tells you where yours stands and what the weather has been
-  at. `maintain` is the other half: a morning's work with a
-  householder's kit puts the place back to sound.
+  Buildings weather. The weather takes a building's coat of paint first;
+  once the coat has gone, the fabric under it — sills, putty, boards —
+  goes from sound to worn to badly worn to broken, on the ordinary passage
+  of days. `survey` tells you where a building stands
+  and what the weather has been at. `maintain` is the other half: a
+  morning's work with a householder's kit puts the fabric back to sound.
+  It does not paint: a coat is a brush's work (`paint`).
+
+  Inside, `maintain` works over the building you are in. Outside, where
+  a building meets the weather, `maintain <building>` works over that one.
+
+  A ship's hull is kept the same way: aboard her, or from the quay she
+  lies at, `maintain` with a caulker's kit (oakum and pitch) pays in her
+  seams. A worn hull leaks into her bilge.
 
   You need the kit in your hands; that is also what makes this verb
   appear. It wears a little each time, and a worn-out kit is a trip to
@@ -19,17 +29,26 @@ help: |
   window frames, or a neighbour doing it for you.
 examples:
   - cmd: maintain
-    note: Work over the place you're standing in
+    note: Work over the building you're standing in
+  - cmd: maintain cottage
+    note: From the lane, work over the cottage
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
   - /lib/command/validators/requiresEmbodied
 args:
+  # ⭐ A building from its landing (paint build): structures enter the
+  # `here` pool only where their outside is at hand.
+  - name: target
+    type: object
+    required: false
+    scope: ["here", "peers", "person"]
+    requires: any
   # ⭐ WHICH TOOL, declared rather than hunted for. The default asks
   # `[capability.upkeep]` — *the thing that can do this job* — rather than
   # `[mixin.ToolMixin]`, which would resolve any tool at all and then
   # fail this verb's own check. That atom is what let this stop being a
-  # walk (see `lint:instrument-args`).
+  # walk (see `lint:controller-resolution`).
   - name: kit
     type: object
     required: false

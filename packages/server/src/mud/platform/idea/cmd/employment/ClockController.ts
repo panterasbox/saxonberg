@@ -25,6 +25,7 @@ import { StuffApi } from '../../../../api/stuff';
 import { EmploymentApi } from '../../../../api/employment';
 import { GrammarApi } from '../../../../api/grammar';
 import type { ClockResult } from '../../../../lib/employment/Employed';
+import type { Stuff } from '../../../../lib/stuff/Stuff';
 
 const TOPIC = 'act.deed';
 
@@ -50,7 +51,17 @@ export default class ClockController extends CommandController<ClockModel> {
     const result =
       sub === 'on' ? await giver.clockOn(where) : await giver.clockOff(where);
     if (!result.ok) {
-      return this.fail(context, ClockController.refusal(result, sub), result.reason);
+      // ⭐ The houses BY NAME, never their paths (the browser walk: "You
+      // hold a job at /world/terminus/…/farm-unit").
+      const named = (result.houses ?? []).map((path) => {
+        const house = StuffApi.findByTemplatePath(path);
+        return house ? EmploymentApi.organizationLabel(house) : path;
+      });
+      return this.fail(
+        context,
+        ClockController.refusal({ ...result, houses: named }, sub),
+        result.reason,
+      );
     }
 
     const house =
@@ -71,9 +82,12 @@ export default class ClockController extends CommandController<ClockModel> {
         : '';
       const terms = seat?.payPhrase() ?? '';
       const rate = terms ? ` ${GrammarApi.cap(terms)}.` : '';
+      const handed = seat ? await giver.takeSeatKeys(seat.keys) : 0;
+      const keys =
+        handed === 0 ? '' : handed === 1 ? ' You are handed the key that goes with it.' : ' You are handed the keys that go with it.';
       MessageApi.scene(giver)
         .topic(TOPIC)
-        .toSelf(Mml.compose`You clock on at ${name}.${rate}${grant}`)
+        .toSelf(Mml.compose`You clock on at ${name}.${rate}${grant}${keys}`)
         .toPeers(Mml.compose`${Mml.actor(giver)} starts a shift.`)
         .send();
       return;

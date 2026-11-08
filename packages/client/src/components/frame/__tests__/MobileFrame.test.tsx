@@ -243,7 +243,7 @@ describe('MobileFrame', () => {
     it('⚠ are reachable from the account menu', () => {
       render(
         <MobileFrame
-          mode="play"
+          mode="explore"
           onCommandClick={() => {}}
           onCommandPreview={() => {}}
           onToggleSettings={() => {}}
@@ -263,20 +263,20 @@ describe('MobileFrame', () => {
       const sent: string[] = [];
       render(
         <MobileFrame
-          mode="play"
+          mode="explore"
           onCommandClick={(c) => sent.push(c)}
           onCommandPreview={() => {}}
         />,
       );
       fireEvent.click(screen.getByText('Bartleby'));
-      fireEvent.click(screen.getByTestId('views-item-play:default'));
+      fireEvent.click(screen.getByTestId('views-item-explore:default'));
       // The legacy-layout migration's own mapping — asserted as the
       // real string so the two form factors are pinned to ONE command,
       // not to two hand-written literals that agree today.
       expect(sent).toEqual([
         `cockpit mode ${LEGACY_LAYOUT_MIGRATION.world.mode} ${LEGACY_LAYOUT_MIGRATION.world.arrangement}`,
       ]);
-      expect(sent).toEqual(['cockpit mode play default']);
+      expect(sent).toEqual(['cockpit mode explore default']);
     });
   });
 });

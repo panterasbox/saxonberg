@@ -231,8 +231,9 @@ stale.** `medical/treat.yaml` has shipped `verbs: [treat, bind, dress]`
 since the medic build, where it means *dressing a wound*. So "unclaimed"
 was already false and the constraint as written is unsatisfiable. What
 it protects is checkable and is what the source-shape test asserts:
-**the wardrobe adds no verb**, so `dress` still resolves to exactly one
-view and that view is medical's.
+**the wardrobe adds no verb**, so `dress` resolved to exactly one
+view and that view was medical's. (Since controllers-are-io W6 `treat.yaml`
+is `verbs: [treat]` and `dress` names no view at all.)
 
 ## Mutation surface
 

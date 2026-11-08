@@ -80,6 +80,20 @@ export default class RearingTray extends RearingMixin(ThermalMixin(ContainerMixi
     }
   }
 
+  /**
+   * ...and what it is called is what it answers to: `look silkworms` asked for
+   * this tray by the name on the room's list and found nothing, so it took the
+   * egg cards (the silk drive's AC 2, W10's `--strict` proof).
+   */
+  override getKeywords(viewer?: Stuff): string[] {
+    const out = super.getKeywords(viewer);
+    const name = this.getShortDescription();
+    const onIt = name.startsWith('tray of ') ? name.slice('tray of '.length) : '';
+    if (!onIt) return out;
+    const words = [name, onIt, onIt.split(' ').pop() ?? onIt];
+    return [...out, ...words.filter((w) => !out.includes(w))];
+  }
+
   public canAddContainable(thing: Stuff & Containable): VetoResult {
     if (thing instanceof EggLot) {
       if (this.hasLiveRearing()) {

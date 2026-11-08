@@ -3,8 +3,9 @@
 # (`flammableLimit`, a share of the air) a spark sets the whole room off —
 # the mill explosion. ⚠ A particulate modelled as a gas, the stated fidelity
 # limit: one number, the limit, carries the difference. Not a poison.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  burning: [{ aroma: /base-library/aromas/straw-smoke, strength: 100 }]
   name: flax dust
   keywords: [dust, flax]
   appearance: a fine grey haze of flax tow in the air

@@ -19,6 +19,9 @@ class: /platform/thing/Plant
 data:
   shortDescription: stand of wheat
   keywords: [wheat, corn, crop, stand]
+  # ⭐ What `sample wheat at <field>` pulls (field population D7): one
+  # stem out of the stand, not the stand.
+  specimenNoun: stem of wheat
   register: indefinite
   longDescription: |
     Wheat standing stiff in the ear, beardless and square-shouldered, going gold from the foot of the stem upward.
@@ -31,7 +34,14 @@ data:
   # it — crude protein is nitrogen x 6.25, so the draw and the grain's
   # own figures are the same fact seen twice.
   nutrientDraw: 22
+  # ⭐ Cut with a sickle or a scythe (cover build D3); bare hands cut a
+  # little.
+  harvestTool: reaping
   profile:
+    # ⭐ Maas–Hoffman (water-supply D15): the salt it takes without loss,
+    # dS/m, and the % lost per dS/m above it.
+    saltThresholdDsm: 6
+    saltSlopePerDsm: 7.1
     moistureHappyAt: 0.35
     moistureWiltAt: 0.08
     litresPerGameDay: 0.16
@@ -41,3 +51,12 @@ data:
     warmHappyK: 291
     rootDemand: { seedling: 0.2, young: 1.0, established: 2.0, mature: 3.0 }
     daysToStage: { young: 18, established: 55, mature: 110 }
+    # ⭐ The field crop is two numbers (cover build D2, field population):
+    # the seed a hand broadcasts (150 kg a hectare — a drill sows about
+    # half), and what a square metre gives in a PERFECT season (2.5 t/ha,
+    # the best pre-modern figure). A stand gives that × its condition at
+    # the cut, so the seed-to-yield ratio is derived: about 4:1 on the
+    # bench's thin top end broadcast by hand, three times that on a
+    # manured field, double again drilled.
+    seedRateKgPerM2: 0.015
+    yieldKgPerM2: 0.25

@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { Roster, type RosterAssignment } from '../Roster';
+import { ShiftSchedule } from '../ShiftSchedule';
 import { DefaultCalendar } from '../../time/DefaultCalendar';
 import { Quantity } from '../../quantity';
 
@@ -111,5 +112,51 @@ describe('⭐ seasonal shifts (storage-and-ice D20)', () => {
       { positionKey: 'p', assignee: '/a', schedule: [{ days: [0], hours: [0, 24], season: ['winter', 'mud'] }] },
     ]);
     expect(r.getAssignments()[0]!.schedule[0]!.season).toEqual(['winter']);
+  });
+
+  describe('⭐⭐ one reading of a ShiftEntry — the roster and the gate agree (water-supply)', () => {
+    // Avila's turn on the Delight ditch: three nights a week, 22:00 to 04:00.
+    const AVILA: RosterAssignment = {
+      positionKey: 'irrigator',
+      assignee: '/world/terminus/hearts-delight/ditch/agent/avila',
+      schedule: [{ days: [1, 3, 5], hours: [22, 4] }],
+    };
+
+    it('a night turn is on in its evening AND in the small hours of the next day', () => {
+      const r = Roster.of([AVILA]);
+      expect(r.evaluate(AVILA, { weekday: 1, hour: 23 })).toBe('on-shift');
+      expect(r.evaluate(AVILA, { weekday: 2, hour: 2 })).toBe('on-shift');
+      expect(r.evaluate(AVILA, { weekday: 2, hour: 4 })).toBe('off-shift');
+      expect(r.evaluate(AVILA, { weekday: 1, hour: 2 })).toBe('off-shift'); // day 0 is not hers
+      expect(r.evaluate(AVILA, { weekday: 2, hour: 23 })).toBe('off-shift');
+    });
+
+    it('the roster and the integral say the same thing, hour by hour, across a week', () => {
+      const r = Roster.of([AVILA]);
+      const schedule = new ShiftSchedule(AVILA.schedule);
+      const cal = DefaultCalendar.singleton();
+      for (let h = 0; h < cal.daysPerWeek * cal.hoursPerDay; h++) {
+        const atS = h * 3600 + 1800;
+        const d = cal.decompose(Quantity.of(atS, 's'));
+        const roster = r.evaluate(AVILA, { weekday: d.weekday, hour: d.hour }) === 'on-shift';
+        expect(schedule.isOnAt(atS), `hour ${h}`).toBe(roster);
+      }
+    });
+
+    it('an entry whose two hours are equal covers nothing, in either reading', () => {
+      const e = { days: [0, 1, 2, 3, 4, 5, 6], hours: [8, 8] as [number, number] };
+      expect(new ShiftSchedule([e]).covers({ weekday: 0, hour: 8 })).toBe(false);
+      expect(new ShiftSchedule([e]).onSecondsBetween(0, 7 * 86_400)).toBe(0);
+    });
+
+    it('a season-bound window is off without the house\'s season, in either reading', () => {
+      const e = { days: [0], hours: [8, 16] as [number, number], season: ['winter' as const] };
+      expect(new ShiftSchedule([e]).covers({ weekday: 0, hour: 9 })).toBe(false);
+      expect(new ShiftSchedule([e]).covers({ weekday: 0, hour: 9, season: 'winter' })).toBe(true);
+      const sched = new ShiftSchedule([e]);
+      expect(sched.onSecondsBetween(0, 86_400)).toBe(0);
+      expect(sched.onSecondsBetween(0, 86_400, () => 'winter')).toBe(8 * 3600);
+      expect(sched.onSecondsBetween(0, 86_400, () => 'summer')).toBe(0);
+    });
   });
 });

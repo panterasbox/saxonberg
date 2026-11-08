@@ -208,6 +208,13 @@ suite('stage E — the ferry, and the sea', () => {
   it('35. the Hesper stopped at sea: her boat into the water beside her; over the side, and her course waits', async () => {
     const master = await session(uniqueHandle('rem'), DECK);
     const hand = await session(uniqueHandle('reh'), DECK);
+    // ⭐ Only her master takes the helm: the founder, who holds
+    // the office that appoints her company, puts this player in command —
+    // and dismisses them after, so the seat is free for the next drive.
+    const me = await master.query('me', { fields: ['displayName'] });
+    const name = String((me[0] as { displayName?: unknown } | undefined)?.displayName ?? '');
+    const gov = await Session.open('founder', { startLocation: BANK_HALL });
+    expectOk(await gov.cmd(`house appoint "${name}" to master at /world/terminus/hesper/idea/outfit`));
     await look(master);
     expectOk(await master.cmd('go dinghy'));
     const launched = await say(master, 'launch');
@@ -227,5 +234,7 @@ suite('stage E — the ferry, and the sea', () => {
     const up = await hand.cmd('go hesper');
     expect(up.status, squash(await up.said())).toBe('ok');
     expect(await look(hand)).toMatch(/Hesper's deck/i);
+    await gov.cmd(`house dismiss "${name}" at /world/terminus/hesper/idea/outfit`);
+    gov.close();
   }, 300_000);
 });

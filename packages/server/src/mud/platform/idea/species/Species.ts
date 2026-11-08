@@ -20,6 +20,8 @@
  * template resolves to one instance via `StuffApi.singleton(path)`.
  */
 
+import { Aroma, type OdorTag } from '../../../lib/perception/Aroma';
+import type { PalateProfile } from '../../../lib/metabolism/Palate';
 import { Idea } from '../../../lib/stuff/Idea';
 import { SingletonMixin } from '../../../lib/stuff/Singleton';
 import { VisibleMixin } from '../../../lib/description/Visible';
@@ -473,6 +475,13 @@ export interface TapSpec {
    */
   yieldShape?: 'mass' | 'volume' | 'count';
   /**
+   * ⭐ The tool capability that OPENS the tap (paint build D17): an auger
+   * bores a maple (`boring`, the default — every row before this field), a
+   * blade cuts the face of a pine for its gum (`cutting`). The tree reads
+   * it; the refusal names the tool.
+   */
+  instrument?: string;
+  /**
    * ⭐ A ceiling on a `continuous` tap's standing. Past it the growth is
    * simply lost (a fleece that has shed), and `look` says so. Absent
    * means unbounded, which is what wool meant before the cap existed.
@@ -675,6 +684,12 @@ export default class Species extends SingletonMixin(
   /** Vernacular synonyms (e.g. `['human', 'man']`). */
   protected commonNames: string[] = [];
 
+  /**
+   * The {@link commonNames} only a male answers to (`bull`, `ram`, `billy`): a cow
+   * is not a bull, and `milk bull` must not find her.
+   */
+  protected maleNames: string[] = [];
+
   /** Path to the BodyPlan singleton. */
   public _bodyPlanPath: string | null = null;
 
@@ -780,6 +795,10 @@ export default class Species extends SingletonMixin(
    * smell-propagation work draws on it.
    */
   protected olfactoryProfile: OlfactoryProfile | null = null;
+  /** What a living body of this kind smells of (OU of one kilogram). */
+  protected smells: OdorTag[] = [];
+  /** How far apart this kind is born, and any word's own curve. */
+  protected palate: PalateProfile | null = null;
 
   /**
    * Per-species vital baselines + survivable bands (Vitals substrate).
@@ -828,12 +847,11 @@ export default class Species extends SingletonMixin(
   } | null = null;
 
   /**
-   * References to one or more `NameBank` Documents by key (e.g.
-   * `['common']`, `['orcish', 'common']`). The name suggester resolves
-   * these and unions the pools. NOT the name data itself — that lives
-   * in the `name_banks` collection. See {@link NameBank}.
+   * The `name-bank` documents this species draws names from, by path
+   * (`/species-and-names/name-banks/common`). The name suggester reads
+   * them and unions the pools. See {@link NameBank}.
    */
-  protected nameBankKeys: string[] = [];
+  protected nameBanks: string[] = [];
 
   /**
    * Gated mixins this species **intrinsically confers** (activates) —
@@ -1026,6 +1044,7 @@ export default class Species extends SingletonMixin(
     baseMass: { persistent: true, authorable: true },
     stature: { persistent: true, authorable: true },
     commonNames: { persistent: true },
+    maleNames: { persistent: true },
     _bodyPlanPath: { persistent: true, ref: 'identity:constituent' },
     _parentCladePath: { persistent: true, ref: 'identity:constituent' },
     _defaultMaterialPath: { persistent: true, ref: 'identity:constituent' },
@@ -1063,7 +1082,9 @@ export default class Species extends SingletonMixin(
     diet: { persistent: true },
     visionProfile: { persistent: true },
     olfactoryProfile: { persistent: true },
-    nameBankKeys: { persistent: true },
+    smells: { persistent: true },
+    palate: { persistent: true },
+    nameBanks: { persistent: true },
     sentient: { persistent: true },
     butcheryYield: { persistent: true, authorable: true },
     // ⭐ Level 0: natural history a player is MEANT to learn — the whole
@@ -1137,6 +1158,8 @@ export default class Species extends SingletonMixin(
 
   public getCommonNames(): readonly string[] { return this.commonNames; }
   public setCommonNames(value: string[]): void { this.commonNames = value; }
+  public getMaleNames(): readonly string[] { return this.maleNames; }
+  public setMaleNames(value: string[]): void { this.maleNames = value; }
 
   public isSentient(): boolean { return this.sentient; }
   public setSentient(value: boolean): void { this.sentient = value; }
@@ -1588,6 +1611,20 @@ export default class Species extends SingletonMixin(
   }
 
   /**
+   * ⭐ **Kilograms of dry matter one adult eats a game day** (cover build
+   * D9): `0.1 × adultMass^0.75` — the metabolic-weight rule every feeding
+   * standard reduces to. A 600 kg cow eats about twelve, a 60 kg ewe
+   * about two and a quarter, a 2 kg hen a sixth of a kilo. A fact about a
+   * body's SIZE, so no row authors it; `0` for a species with no mass.
+   * Given an age, the size is the body's at that age ({@link massAt}).
+   */
+  public dryMatterIntakeKgPerDay(ageDays?: number): number {
+    // ⭐ A calf is not a cow: with an age, the body's mass at that age.
+    const m = ageDays === undefined ? this.adultMass : this.massAt(ageDays);
+    return m > 0 ? 0.1 * Math.pow(m, 0.75) : 0;
+  }
+
+  /**
    * ⭐ What one of these weighs at `ageDays` — the adult mass walked back
    * down the maturation curve, or `0` when the species does not say.
    *
@@ -1740,6 +1777,20 @@ export default class Species extends SingletonMixin(
     this.olfactoryProfile = value;
   }
 
+  /** This kind's reach over its people's palates, or `null` for the defaults. */
+  public getPalate(): PalateProfile | null {
+    return this.palate;
+  }
+
+  public getSmells(): readonly OdorTag[] {
+    return this.smells;
+  }
+
+  /** Loads each word's row, so a species naming a word nobody ships fails here. */
+  public async setSmells(value: readonly OdorTag[]): Promise<void> {
+    this.smells = await Aroma.resolveOdorTags(value, 'Species.smells');
+  }
+
   public getVitalProfile(): VitalProfile | null {
     return this.vitalProfile;
   }
@@ -1790,12 +1841,12 @@ export default class Species extends SingletonMixin(
     this.facultyProfile = Faculty.validateProfile(value);
   }
 
-  public getNameBankKeys(): readonly string[] { return this.nameBankKeys; }
-  public setNameBankKeys(value: string[]): void {
-    if (!Array.isArray(value)) {
-      throw new TypeError('Species.setNameBankKeys: must be a string array');
+  public getNameBanks(): readonly string[] { return this.nameBanks; }
+  public setNameBanks(value: string[]): void {
+    if (!Array.isArray(value) || value.some((p) => typeof p !== 'string' || !p.startsWith('/'))) {
+      throw new TypeError('Species.setNameBanks: must be a list of name-bank document paths');
     }
-    this.nameBankKeys = value;
+    this.nameBanks = value;
   }
 
   public getInnateMixins(): readonly string[] { return this.innateMixins; }
@@ -1837,7 +1888,7 @@ export default class Species extends SingletonMixin(
 
   /**
    * Suggest a fantasy name for a new member of this species. Resolves
-   * the species' `nameBankKeys` → the referenced {@link NameBank}
+   * the species' `nameBanks` → the referenced {@link NameBank}
    * pools, then phonetically *riffs* on the player's real given name
    * (when provided) by preferring a bank given-name sharing its first
    * letter — so the suggestion feels personally theirs while reading as
@@ -1848,7 +1899,7 @@ export default class Species extends SingletonMixin(
    * for additional characters (draws straight from the bank).
    */
   public async suggestName(realName?: string): Promise<SuggestedName> {
-    const pools = await SpeciesApi.resolveNamePools(this.nameBankKeys);
+    const pools = await SpeciesApi.resolveNamePools(this.nameBanks);
     const given = pickGiven(pools.given, realName);
     const surname = pick(pools.surname);
     const out: SuggestedName = { name: given };
@@ -1861,7 +1912,7 @@ export default class Species extends SingletonMixin(
    * for another option, or it's an additional character).
    */
   public async rerollName(): Promise<SuggestedName> {
-    const pools = await SpeciesApi.resolveNamePools(this.nameBankKeys);
+    const pools = await SpeciesApi.resolveNamePools(this.nameBanks);
     const given = pickGiven(pools.given, undefined);
     const surname = pick(pools.surname);
     const out: SuggestedName = { name: given };

@@ -11,8 +11,10 @@
 # perishable — milling is what breaks the seed coat and lets the oil out,
 # which is the honest reason flour keeps worse than the grain it came
 # from.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/grain, strength: 15 }]
+  tastes: [{ type: sweet, amount: 8 }]
   name: wheat grain
   keywords: [corn, wheat, grain]
   appearance: hard amber, blunt-ended and beardless

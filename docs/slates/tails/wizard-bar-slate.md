@@ -53,7 +53,7 @@ this institution**, and the corpus already split them:
 |---|---|---|
 | what it is over | a **craft** — scripting, template-craft, dialogue-craft, lore | a **clearance** — the `isWizard` code-trust bit |
 | members | **majority non-wizard by construction** — associates script, members are protowizard authors | only holders of the bit |
-| under which law | **realm** ⊕ meta — one of the two sanctioned membrane-straddles (commissions in realm money ⊕ producer influence) | **meta-state only. No straddle at all** |
+| under which law | **realm** ⊕ meta — one of the two sanctioned membrane-straddles (commissions in realm money ⊕ labor influence) | **meta-state only. No straddle at all** |
 | what it confers | recognition, the interior, a training budget | ⭐ **nothing** |
 | what it imposes | dues, calls, teaching duty | duty, disclosure, disbarment |
 

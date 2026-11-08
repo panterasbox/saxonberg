@@ -3,8 +3,9 @@
 # water back up and is hard in a quarter of an hour, no act and no heat —
 # the third way a thing sets in a mould (freeze, drain, cure). What it sets
 # as is plaster, in the shape of whatever held it.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/wet-clay, strength: 10 }]
   name: plaster slurry
   keywords: [plaster, slurry, "plaster slurry", "wet plaster"]
   appearance: thick white plaster slurry

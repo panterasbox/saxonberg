@@ -6,7 +6,8 @@
  * by use, washed at the basin and counted on the house par — that is
  * `CraftVessel`, and it is shared. Only one of them is something you put
  * to your mouth, and that is the whole content of this class: it carries
- * {@link PalatableMixin}, the derived taste reading.
+ * the reading of what it holds, which is now the person's: `taste` works on
+ * anything that could reach your mouth, and the class keeps its meaning as a kind.
  *
  * The bar's nine glasses are `ServingVessel`s. So are the syrup and juice
  * bottles, which hold something a person genuinely tastes. So is the
@@ -32,8 +33,5 @@
  */
 
 import CraftVessel from './CraftVessel';
-import { PalatableMixin } from '../../lib/metabolism/Palatable';
 
-const ServingVesselBase = PalatableMixin(CraftVessel);
-
-export default class ServingVessel extends ServingVesselBase {}
+export default class ServingVessel extends CraftVessel {}

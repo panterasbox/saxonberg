@@ -145,7 +145,7 @@ describe('title is not content (metal chain R4)', () => {
  * once. It is the same defect that cost a shared bank account and a dead
  * labor market in MR !251, surviving in the one pack that sweep did not
  * reach; `ParcelOwner.templatePath` is an identity path by the kernel's
- * own convention (`TitleController`, `TransferController`,
+ * own convention (`TitleBuyController`, `TitleTransferController`,
  * `ChattelLogic`, `EmploymentLogic` all write one).
  *
  * ⭐⭐ It was invisible to every test because fixtures author a distinct

@@ -5,8 +5,7 @@
  * A verb affordance is a STATIC ON A CLASS (a row's
  * `commandContributions:` is dead, silently), and the affordance here is
  * the instrument rather than the ground: the same relationship
- * `SurveyInstrument` has to `measure` in the mining trade. You cannot
- * plot a field by looking at it — you cut the first sod.
+ * `SurveyInstrument` has to `measure` in the mining trade.
  *
  * ⚠ Deliberately NOT the mine's shovel. A shovel moves what you already
  * broke and has a short handle because a long one has nowhere to go in a
@@ -17,7 +16,8 @@
  * ⭐ **Since the extraction build this extends the KERNEL's `Spade`**, which
  * affords `dig` — because you dig a quarry floor, a peat bank and a wood
  * with the same tool and none of them is a field. What stays farming's is
- * the trade's own surface: `plot`, and the survey channels.
+ * the survey channels. (`plot` rode here until the tracts build retired
+ * it: no verb makes a tract.)
  */
 
 import KernelSpade from '@saxonberg/server/mud/platform/thing/Spade';
@@ -25,9 +25,8 @@ import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 
 export default class Spade extends KernelSpade {
   /**
-   * ⭐ A spade in your hands affords `plot`. Ground does not afford it,
-   * and that is the honest arrangement: the ground has no opinion about
-   * whether you are about to farm it.
+   * ⭐ A spade in your hands affords `dig`, re-listed beside the kernel's
+   * (see below).
    */
   static commandContributions: CommandContributions = {
     // ⚠⚠ **`dig` is RE-LISTED, and it has to be.** A class's own
@@ -36,12 +35,11 @@ export default class Spade extends KernelSpade {
     // `Spade` and declaring `environment` here would silently drop `dig`, and
     // every test would pass because the affordance is a static nothing
     // type-checks. This is the `Panel` precedent, one class over.
-    // ⚠ `environment` — to whoever HOLDS it (both verbs take the spade from
-    // your hands). It was `self`, read only off a command giver, so `plot`
-    // was sayable nowhere at all (lint:self-contributions).
+    // ⚠ `environment` — to whoever HOLDS it (the verb takes the spade from
+    // your hands). `plot` rode here too until the tracts build retired it:
+    // no verb makes a tract — every tract comes from a holding's layout.
     environment: [
       'platform/cmd/ground/dig.yaml',
-      'trade/farming/cmd/farming/plot.yaml',
     ],
     // ⚠⚠ **It used to light `measure` up too, and that history is worth
     // keeping.** For a while it did not — the doc comment above cited the

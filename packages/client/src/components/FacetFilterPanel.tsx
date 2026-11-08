@@ -258,7 +258,7 @@ export function FacetFilterPanel({
         ⚠⚠ **No "presets" row.** It used to sit here — chips named after
         the shipped views, which overwrote the filter you were editing.
         Inside an editor titled *Filter — Forge watch*, a row of buttons
-        labelled `All` / `Aether` / `Diag` is a THIRD mechanism: neither
+        labelled `All` / `Chat` / `Diag` is a THIRD mechanism: neither
         the view you are editing nor the strip you selected it from. The
         shipped views are ordinary views in that strip; if you want one
         of them, select it there.

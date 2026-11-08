@@ -58,6 +58,11 @@ ref:
   seat/staff line is exactly whether a constitutional document *points
   at* the position: a seat is pointed at, personal staff is not — see
   [employment.md](./employment.md).
+- `shipRegister` — the `ShipRegister` row this polity keeps, or `''`
+  for none (harbors). A government keeps one if it chooses to; a ship
+  entered there flies its flag. It is reached FROM the government
+  (`StuffApi.singleton` on the path); nothing searches every register.
+  The register, its entries and the flag are [ship.md](./ship.md)'s.
 - `standards` — `{ key, value, unit }` measures the polity declares, read
   by the readings that judge against them: `cask` (L — the gauger's
   `measure capacity`, [assembly.md](./assembly.md)) and the **statute
@@ -103,6 +108,15 @@ dedupe preserving the most-local position, resolve to descriptors.
 | `domicileAddressOf(character)` | sync | the residence seam's face |
 | `holdsSeat(character, govKey, seatKey)` | async | the authority predicate (the `requiresGovernor` analogue as data) — live `Employment` records first (active statuses win; an explicit quit/fired record **suppresses** the roster path — an exit is never resurrected), then the authored roster (the live organization if standing, else the template row — what makes a lazily-stood-up department's seat provable) |
 | `seatsOf(govKey)` | async | each seat resolved to its roster holder |
+
+⭐ **Aboard a ship, `subjectTo` asks the SHIP first** (harbors P16): her
+rooms stand in her own zone, which no address covers. Her chain is the
+port's (where she is made fast, or within 2 km of a landing on her
+river) and then her **flag state** — `ship.flagState()`, read off the
+register she names (the register she is entered in, never the colors
+she flies). At sea it is the flag state's alone; a ship entered in no
+register is under nobody's law at sea. The `government` verb aboard
+reads the same chain.
 
 **Never-throws:** every read returns `[]`/`null`/`false` off-grid, for
 an unclaimed place, an unknown key, or a dead store — no government is
@@ -161,7 +175,7 @@ deliberate closed scope (re-rooting them is city content), not a bug.
 
 ## The verb
 
-`government` / `gov` (the **`civics`** category — the fiction's
+`government` (the **`civics`** category — the fiction's
 governments; deliberately not `governance`, the Compact's category),
 universal on Persona, public, read-only: bare/`list` renders the
 `subjectTo` chain most-local first (description, departments, seats
@@ -172,9 +186,10 @@ dispatch it (no Interactive assumptions).
 
 ## The two staffs (never merged)
 
-- **Meta staff** — the committee: parcel owners + code-trusted wizards,
-  on the property/code-trust axes (`CompactApi.committeeOf` — the
-  title-holding group IS the committee; see access.md).
+- **Meta staff** — the committee: parcel owners, on the property axis
+  (`CompactApi.committeeOf` — the title-holding group IS the committee;
+  see access.md). The wizard axis is authoring TypeScript and seats
+  nobody on a committee.
 - **Diegetic staff** — seat-holders: players or NPCs, on employment
   positions.
 
@@ -262,7 +277,11 @@ deferred generic office validator); the charter as a readable
 StoredDocument; multi-residence primary-home designation; re-rooting
 the sibling address roots; the University's institutional detail
 (Chancellor, colleges); the realm's ministries; the Compact's capital
-district (staging).
+district (staging); ⭐ **the operating-scale term** — a government's
+operating classes (*smallholding · estate · plantation*) as rows,
+measured by the engine and judged by an officer seat, the third
+dimension of the land-use covenant
+([land-use-covenant-slate § The operating-scale term](../slates/builds/land-use-covenant-slate.md)).
 
 ## Cross-references
 

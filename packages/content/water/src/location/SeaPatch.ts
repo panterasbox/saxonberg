@@ -22,18 +22,19 @@ import { WarrenMemberMixin } from '@saxonberg/server/mud/lib/location/WarrenMemb
 import { ShoreMixin } from '@saxonberg/server/mud/lib/location/Shore';
 import { SwimmableMixin } from '@saxonberg/server/mud/lib/locomotion/Swimmable';
 import { WaterPlaceMixin } from '@saxonberg/server/mud/lib/location/WaterPlace';
+import { HaulOutMixin } from '@saxonberg/server/mud/lib/location/HaulOut';
 import { PositionedMixin } from '@saxonberg/server/mud/lib/expanse/Positioned';
 import { MovingMixin } from '@saxonberg/server/mud/lib/expanse/Moving';
 import { MovingPlaceMixin } from '@saxonberg/server/mud/lib/location/MovingPlace';
 import type { ColumnBand } from '@saxonberg/server/mud/lib/location/WaterColumn';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Exitable } from '@saxonberg/server/mud/lib/boundary/Exitable';
-import { NavigationApi } from '@saxonberg/server/mud/api/navigation';
+import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import SeaPatchExit from '../idea/exits/SeaPatchExit';
 
 export const SeaPatchBase = MovingPlaceMixin(
-  WaterPlaceMixin(SwimmableMixin(ShoreMixin(MovingMixin(PositionedMixin(WarrenMemberMixin(Location)))))),
+  HaulOutMixin(WaterPlaceMixin(SwimmableMixin(ShoreMixin(MovingMixin(PositionedMixin(WarrenMemberMixin(Location))))))),
 );
 
 export default class SeaPatch extends SeaPatchBase {
@@ -64,7 +65,8 @@ export default class SeaPatch extends SeaPatchBase {
     const self = this as unknown as Stuff & Exitable;
     for (const exit of self.getExits().values()) {
       if (!(exit instanceof SeaPatchExit) || exit.getWay() !== 'deck') continue;
-      const ship = NavigationApi.structureAtNow(exit.getTarget());
+      // The way names her by her handle — her identity.
+      const ship = StuffApi.findByIdentityPath<Stuff>(exit.getTarget()).find((s) => !s.isDestroyed()) ?? null;
       if (ship && MixinApi.isVoyaging(ship) && ship.getCourse() === null) return ship;
     }
     return null;

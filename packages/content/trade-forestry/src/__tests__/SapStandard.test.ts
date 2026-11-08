@@ -20,6 +20,10 @@
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import SapStandard from '../thing/SapStandard';
+import TapController from '../idea/cmd/forestry/TapController';
+import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type { TapRefusal } from '@saxonberg/server/mud/lib/husbandry/Producing';
+import type { TapWords } from '@saxonberg/server/mud/platform/idea/cmd/inventory/TapActController';
 import Species from '@saxonberg/server/mud/platform/idea/species/Species';
 import type { TapSpec } from '@saxonberg/server/mud/platform/idea/species/Species';
 import Material from '@saxonberg/server/mud/lib/material/Material';
@@ -168,6 +172,18 @@ function handsWith(items: Array<{ spile?: boolean }> = []): Hands {
   return h;
 }
 
+
+/**
+ * ⭐ The verb's own words for what the tree answered (controllers-are-io D4:
+ * the tree answers reasons and facts, `TapController` writes them). ⚠ The
+ * words are closures that never touch the controller, so asking off the
+ * prototype is the real wording, with no dispatch.
+ */
+const tapSays: TapWords = (TapController.prototype as unknown as {
+  tapWords(giver: Stuff, subject: Stuff): TapWords;
+}).tapWords({} as Stuff, { getPresentation: () => 'it' } as unknown as Stuff);
+const said = (out: TapRefusal): string => tapSays.onRefused(out).toString();
+
 describe('a tree you tap', () => {
   beforeEach(() => {
     installV1QuantityMarshallers();
@@ -233,35 +249,57 @@ describe('a tree you tap', () => {
     const t = tree();
     const hands = handsWith([{ spile: true }]);
     const plan = await t.planTap(hands as never, 'sap', auger(), null, null);
-    expect(plan.kind).toBe('plan');
-    if (plan.kind !== 'plan') return;
-    expect((plan.token as { phase: string }).phase).toBe('set');
+    expect(plan.ok).toBe(true);
+    if (!plan.ok) return;
+    expect(plan.facts.setting).not.toBeNull();
 
-    const result = await t.completeTap(hands as never, 'sap', null, null, plan.token);
+    const result = await plan.onComplete();
+    if (!result.ok) throw new Error(result.reason);
     expect(t.getSpiles()).toBe(1);
     // ⭐ The spile is GONE — that is what makes over-tapping cost
     // something rather than being free.
     expect(hands.getContents().length).toBe(0);
-    expect(result.credit?.discipline).toBe('silviculture');
+    expect(result.facts.credit?.discipline).toBe('silviculture');
   });
 
   it('⚠ setting needs the AUGER, and the refusal names it', async () => {
     const t = tree();
     const hands = handsWith([{ spile: true }]);
     const plan = await t.planTap(hands as never, 'sap', null, null, null);
-    expect(plan.kind).toBe('refusal');
-    if (plan.kind !== 'refusal') return;
+    expect(plan.ok).toBe(false);
+    if (plan.ok) return;
     expect(plan.reason).toBe('no-tool');
-    expect(plan.prose).toMatch(/auger/i);
+    expect(said(plan)).toMatch(/auger/i);
+  });
+
+  it('⭐ a tap that names a BLADE refuses the auger and takes the knife (paint D17)', async () => {
+    const gum: TapSpec[] = [{ ...SAP[0]!, key: 'gum', instrument: 'cutting' }];
+    StuffApi.findByTemplatePath<Species>(SPECIES_PATH)!.setProduction(gum);
+    const t = tree();
+    const bored = await t.planTap(handsWith([{ spile: true }]) as never, 'gum', auger(), null, null);
+    expect(bored.ok).toBe(false);
+    if (!bored.ok) {
+      expect(bored.reason).toBe('no-tool');
+      expect(said(bored)).toMatch(/blade/);
+    }
+    const knife = makeStuff(() => {
+      const k = new Tool();
+      k.setShortDescription('knife');
+      k.setCapabilities(['cutting']);
+      return k;
+    });
+    const cut = await t.planTap(handsWith([{ spile: true }]) as never, 'gum', knife, null, null);
+    expect(cut.ok).toBe(true);
+    if (cut.ok) expect(tapSays.beginSelf(cut.facts).toString()).toMatch(/face through the bark/);
   });
 
   it('⚠ setting needs a SPILE, and the refusal names that too', async () => {
     const t = tree();
     const plan = await t.planTap(handsWith() as never, 'sap', auger(), null, null);
-    expect(plan.kind).toBe('refusal');
-    if (plan.kind !== 'refusal') return;
+    expect(plan.ok).toBe(false);
+    if (plan.ok) return;
     expect(plan.reason).toBe('no-spile');
-    expect(plan.prose).toMatch(/spile/i);
+    expect(said(plan)).toMatch(/spile/i);
   });
 
   it('⭐⭐⭐ OVER-TAPPING is refused at the GIRTH, and nothing is damaged', async () => {
@@ -274,10 +312,10 @@ describe('a tree you tap', () => {
       null,
       null,
     );
-    expect(plan.kind).toBe('refusal');
-    if (plan.kind !== 'refusal') return;
+    expect(plan.ok).toBe(false);
+    if (plan.ok) return;
     expect(plan.reason).toBe('girth');
-    expect(plan.prose).toMatch(/girth/i);
+    expect(said(plan)).toMatch(/girth/i);
     // ⚠ Nothing happened to the tree: no wound, no state change, and the
     // spile is still in your hand.
     expect(t.getSpiles()).toBe(2);
@@ -287,8 +325,8 @@ describe('a tree you tap', () => {
     const t = tree();
     (t as unknown as { spiles: number }).spiles = 2;
     const plan = await t.planTap(handsWith([]) as never, 'latex', null, null, null);
-    expect(plan.kind).toBe('refusal');
-    if (plan.kind !== 'refusal') return;
+    expect(plan.ok).toBe(false);
+    if (plan.ok) return;
     expect(plan.reason).toBe('no-such-tap');
   });
 
@@ -296,10 +334,10 @@ describe('a tree you tap', () => {
     const t = tree();
     (t as unknown as { spiles: number }).spiles = 2;
     const plan = await t.planTap(handsWith([]) as never, 'sap', null, null, null);
-    expect(plan.kind).toBe('refusal');
-    if (plan.kind !== 'refusal') return;
+    expect(plan.ok).toBe(false);
+    if (plan.ok) return;
     expect(plan.reason).toBe('empty');
-    expect(plan.prose).toMatch(/nothing has run/i);
+    expect(said(plan)).toMatch(/nothing has run/i);
   });
 
   it('a stem too slender says so differently from one that is full', async () => {
@@ -308,9 +346,9 @@ describe('a tree you tap', () => {
     (full as unknown as { spiles: number }).spiles = 2;
     const a = await slender.planTap(handsWith([{ spile: true }]) as never, 'sap', auger(), null, null);
     const b = await full.planTap(handsWith([{ spile: true }]) as never, 'sap', auger(), null, null);
-    if (a.kind !== 'refusal' || b.kind !== 'refusal') throw new Error('expected refusals');
-    expect(a.prose).not.toBe(b.prose);
-    expect(a.prose).toMatch(/slender|grow/i);
+    if (a.ok || b.ok) throw new Error('expected refusals');
+    expect(said(a)).not.toBe(said(b));
+    expect(said(a)).toMatch(/slender|grow/i);
   });
 
   it('⭐ with sap standing, `tap` DRAWS instead — and asks for a vessel', async () => {
@@ -320,8 +358,8 @@ describe('a tree you tap', () => {
     expect(t.standingIn('sap')).toBeGreaterThan(0);
 
     const plan = await t.planTap(handsWith() as never, 'sap', auger(), null, null);
-    expect(plan.kind).toBe('refusal');
-    if (plan.kind !== 'refusal') return;
+    expect(plan.ok).toBe(false);
+    if (plan.ok) return;
     // ⭐ Not `no-tool` and not `girth` — the tree has moved to the other
     // phase of the verb, and what it wants now is somewhere to put it.
     expect(plan.reason).toBe('no-vessel');
@@ -341,16 +379,16 @@ describe('a tree you tap', () => {
       null,
       null,
     );
-    expect(plan.kind).toBe('refusal');
-    if (plan.kind !== 'refusal') return;
+    expect(plan.ok).toBe(false);
+    if (plan.ok) return;
     // ⭐ The reason travels as a SEASON, so the controller renders it as
     // information rather than as the player's mistake.
     expect(plan.reason.startsWith('season-')).toBe(true);
-    expect(plan.prose).not.toMatch(/\d/);
+    expect(said(plan)).not.toMatch(/\d/);
     // ⚠ And never the noun — it is bound on nine bar fixtures, so a
     // sugaring refusal saying "the tap" could read as being about beer.
-    expect(plan.prose.toLowerCase()).not.toMatch(/\btap\b/);
-    expect(plan.prose).toMatch(/sap|run|wood|cold|warm/i);
+    expect(said(plan).toLowerCase()).not.toMatch(/\btap\b/);
+    expect(said(plan)).toMatch(/sap|run|wood|cold|warm/i);
   });
 
   it('⚠ the season is checked BEFORE the auger — the useful sentence wins', async () => {
@@ -359,8 +397,8 @@ describe('a tree you tap', () => {
     const t = tree();
     at(winterDay());
     const plan = await t.planTap(handsWith() as never, 'sap', null, null, null);
-    expect(plan.kind).toBe('refusal');
-    if (plan.kind !== 'refusal') return;
+    expect(plan.ok).toBe(false);
+    if (plan.ok) return;
     expect(plan.reason.startsWith('season-')).toBe(true);
   });
 

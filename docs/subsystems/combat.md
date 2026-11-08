@@ -80,7 +80,7 @@ one per combatant, that evaporates at session end and **never touches the
   (`{open, expiresAtTick}`) — the combatant reads `open` for a bounded
   number of ticks, then, unexploited, the window lapses.
 - Defensive/reactive play (a **defend** beat) **restores** poise, capped by
-  the `endurance` reserve ([metabolism](./metabolism.md) / `lib/reserve.ts`)
+  the `endurance` reserve ([metabolism](./metabolism.md) / `lib/reserve/Reserved.ts`)
   — a gassed fighter can't buy it back.
 
 ⭐⭐ **Poise stays combat-scoped — rejected, not merely undone.** The
@@ -625,17 +625,21 @@ initial seven per MR review — see [§ History](#history)):
 
 - **`attack <target> [--lethal] [--to <stop>]`** (`AttackController`) —
   opens a fight; runs the terms handshake.
-- **`fight`** (`FightController`, dispatch-on-subcommand, the `bank`/`chat`
-  precedent) — everything *inside* a fight: bare `fight` (or `fight status`)
-  is the at-a-glance read (own poise/condition/flags/wounds at full fidelity
+- **`fight`** (one controller per subcommand over `FightControllerBase` —
+  controllers-are-io D9) — everything *inside* a fight: bare `fight` (or
+  `fight status`, `FightStatusController`) is the at-a-glance read (own poise/condition/flags/wounds at full fidelity
   + the banded, perception-gated opponent read — all bands, never numbers);
-  `fight strike | disarm | subdue | shove` are the gambits (queued intent,
-  resolved on the next beat); `fight defend` covers up and recovers poise
+  the eleven gambit words (`strike | feint | close | advance | withdraw |
+  disarm | subdue | shove | bash | sweep | entangle`) are ONE act,
+  `FightGambitController`, which queues the word (`queueGambit(name)`;
+  queued intent, resolved on the next beat); `fight defend` routes to
+  `DefendController` — the same act as bare `defend` — and covers up and recovers poise
   (capped by endurance) instead of attacking — the autocombat default
   handed to the player as a deliberate choice, so they can play the
   patient defender on purpose (the build-1 balance finding: a steady armed
-  defender's parry-and-riposte beats a blind aggressor); `fight yield`
-  concedes.
+  defender's parry-and-riposte beats a blind aggressor); `break`, `rush`,
+  `switch` (the target must be `WieldableMixin`), `draw`, `finish` and
+  `yield` are one controller each (`Fight<Sub>Controller`).
 
 Both verbs are contributed by **`CombatantMixin`** (`lib/combat/Combatant.ts`,
 composed on **`lib/creature/Actor`** since the base-class narrowing —
@@ -924,6 +928,28 @@ wraps `perceive` and adds the beat cost + the melee-read `ActSignature`).
 The **same** `CombatFog.reads(sharpness)` gate decides both the fog's tell
 and whether a defender bites a feint, so "the fog says open" and "I bit the
 feint" can never contradict. **The fog is the only dice; skill shrinks it.**
+
+⭐ **A third surface: `look` at a fighter** (client-surface D3, B2).
+`Combatant.combatStateLineFor(viewer)` → `CombatLogic.combatStateLineFor`
+(gated `CombatantCallers`) is what `combatStateAugmenter` prints on a
+combatant's description — `In combat — <band>, <flags>, down.` — and it
+reads **by viewer**:
+
+- a **participant** in the same session reads the target at their own
+  `sharpnessFor(viewerState)` — exactly the fog the `fight` status line
+  and the narration give them;
+- a **bystander** (no state in that session) reads at the **untrained
+  floor**, `Sharpness.resolve({ competenceBand: 'untrained' })` — honest
+  in the one direction that matters: it under-reads toward `steady` and
+  never over-reads;
+- a combatant looking at **themself** reads their own poise **unfogged**.
+
+Flags and `down` pass unfogged — they are visible acts. The read lives
+on the combatant rather than as a `CombatApi.readingOf(viewer, target)`
+static because the augmenter already holds the host and
+`lint:object-verbs` holds world-object-first Api statics at zero. ⚠ The
+augmenter is synchronous and a viewer's lived combat band is async, so a
+bystander's *trained* eye is a deferred seam, not a silent omission.
 
 **Sharpness** (`lib/combat/Sharpness.ts`, pure). One scalar,
 `f(competence) · g(composure)`, modulating **both** poise recovery (a
@@ -1216,3 +1242,9 @@ Named at their sites; nothing inherited:
   body-derived natural profile replacing the five unarmed fallback
   literals); and the gym's hooked determinism cell. Four new dials
   (`combat.influence.*` ×3, `combat.natural.largeBodyMassKg`).
+- **Client surface** (`build/client-surface`, 2026-10-31) — the combat
+  line on `look` reads by viewer (`Combatant.combatStateLineFor`): a
+  bystander at the untrained floor, a participant at their own
+  sharpness, your own poise unfogged. See
+  `docs/plans/client-surface-plan.md` (D3, B2) until it is retired at the
+  sweep.

@@ -47,7 +47,7 @@ describe('a sugar loaf', () => {
   it('will not cut without nips', async () => {
     const l = loaf('fine');
     const actor = makeStuff(() => new Place());
-    const plan = await l.cutPlan({ actor, tools: [], raw: null, options: {} });
+    const plan = await l.cutPlan({ verb: 'cut', actor, tools: [], raw: null, length: null, options: {} });
     expect(plan.ok).toBe(false);
   });
 
@@ -62,10 +62,11 @@ describe('a sugar loaf', () => {
     ContainmentApi.move(l, room);
     const nips = makeStuff(() => new Tool());
     nips.setCapabilities(['nipping']);
-    const plan = await l.cutPlan({ actor: room, tools: [nips], raw: null, options: {} });
+    const plan = await l.cutPlan({ verb: 'cut', actor: room, tools: [nips], raw: null, length: null, options: {} });
     expect(plan.ok).toBe(true);
     if (!plan.ok) return;
-    plan.onComplete();
+    const done = await plan.onComplete();
+    expect(done).toMatchObject({ ok: true, facts: { kind: 'loaf' } });
     await settle();
     const pieces = room.getContents().filter((c) => c instanceof Provision && !(c instanceof SugarLoaf));
     expect(pieces).toHaveLength(3);

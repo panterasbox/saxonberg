@@ -1,0 +1,27 @@
+# A valley farmstead's barn — the generic room (tracts build D33).
+# ⭐ Persistent for ONE purpose: it is the farm's store. A holder's grain,
+# hay and tools set down here belong to the holder, and only a room that
+# keeps its own record lays an owner's goods back down when it loads (the
+# room overlay, furnishing.md). Nothing else here needs saving.
+class: /platform/location/PersistentRoom
+data:
+  shortDescription: barn
+  keywords: [barn, threshing floor, floor]
+  register: definite
+  _biomePath: /stuff/idea/biome/indoor/baseline
+  # Stone walls and a slate roof — what a barn on the valley floor is
+  # built of (construction.md: the place says what it is made of).
+  enclosure:
+    material: /stuff/idea/material/rock/granite
+    thicknessM: 0.45
+  roof:
+    material: /stuff/idea/material/rock/slate
+    thicknessM: 0.02
+  # No ambient of its own: lit by daylight spilling in through the doors
+  # (lint:light-sources — every room's light has a named source).
+  longDescription: |
+    A stone barn with a beaten threshing floor between two great doors, swept and empty, waiting for a harvest to fill it.
+  # ⭐ The farmstead's plan: its ways, an ordinary place.
+  exits:
+    south:
+      destination: /world/terminus/hearts-delight/farmstead/location/yard

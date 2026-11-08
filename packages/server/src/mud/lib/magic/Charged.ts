@@ -67,7 +67,7 @@ import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
 import { AppSettingKeys } from '../config/AppSettings';
 import { Quantity } from '../quantity';
-import { Reserve, type Reserved } from '../reserve';
+import { Reserve, type Reserved } from '../reserve/Reserved';
 import { TemplatePaths } from '../paths';
 import type { Stuff } from '../stuff/Stuff';
 import type { Slotted } from '../slot/Slotted';

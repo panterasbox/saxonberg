@@ -1,7 +1,7 @@
 /**
  * Good — **a thing that can belong to somebody.**
  *
- * Composition: `ChattelMixin(ConcealableMixin(Thing))`.
+ * Composition: `MadeFromMixin(ChattelMixin(ConcealableMixin(Thing)))` (under Faced/Integrity).
  *
  * ⭐⭐ **The line (D13): `Thing` is matter; a `Good` is matter somebody
  * can own.** The two mixins are the two halves of that:
@@ -59,6 +59,7 @@
 
 import Thing from './Thing';
 import { ChattelMixin } from '../chattel/Chattel';
+import { MadeFromMixin } from '../chattel/MadeFrom';
 import { ConcealableMixin } from '../concealment/Concealable';
 import { FacedMixin } from '../material/Faced';
 import { IntegrityMixin } from '../material/Integrity';
@@ -71,7 +72,7 @@ import type { FieldMeta } from '../mixin';
 // damage record — a crack, a dunt, a misrun; how whole it is; how it takes
 // a blow; how it rings. Not on `Thing`: a wall's damage is construction's,
 // a body's is harm's.
-const GoodBase = FacedMixin(IntegrityMixin(ChattelMixin(ConcealableMixin(Thing))));
+const GoodBase = FacedMixin(IntegrityMixin(MadeFromMixin(ChattelMixin(ConcealableMixin(Thing)))));
 
 export default class Good extends GoodBase {
   static fieldMeta: FieldMeta = {};

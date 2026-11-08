@@ -1,0 +1,17 @@
+# Hide scraps — the fleshings and trimmings the tannery throws out: what a
+# glue pot boils hide glue from (paint D19).
+class: /platform/idea/material/OdorousMaterial
+data:
+  smells: [{ aroma: /base-library/aromas/wet-hide, strength: 300 }]
+  name: hide scraps
+  keywords: ["hide scraps", scraps, trimmings, fleshings]
+  appearance: a slimy heap of grey-white hide trimmings that smells of the tanyard
+  density: 1100
+  specificHeat: 3200
+  thermalConductivity: 0.4
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: [tissue, animal, collagen, hide-scraps, organic, once-living]
+  composition: []
+  biologicalSource: null

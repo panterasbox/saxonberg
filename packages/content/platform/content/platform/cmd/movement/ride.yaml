@@ -1,4 +1,5 @@
 verbs: [ride]
+category: movement
 controller: /platform/idea/cmd/movement/RideController
 description: "Ride your mount through a named exit (passthrough to the Mountable host)."
 help: |

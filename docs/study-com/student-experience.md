@@ -105,7 +105,7 @@ The honest retention stack, **strongest → weakest**:
 
 1. **The people** (guild / house / cohort). You stay for the humans who
    remember you. Strongest and most honest lever.
-2. **The producer flip.** The graduated/employed expert becomes a
+2. **The maker flip.** The graduated/employed expert becomes a
    **teacher / mentor / author** in the world — expertise is now a *role*,
    standing, maybe income. Being **needed** is the stickiest motivator; and
    for education specifically, the **working teacher mentoring aspiring
@@ -138,7 +138,7 @@ above are the toolkit; the *paywall posture* is the operator's to set.
 ## 4. Honest caveats
 
 - **Retention is an open question, not a proven outcome.** It depends on the
-  social + producer layers (legs 1–2) actually being compelling in practice.
+  social + maker layers (legs 1–2) actually being compelling in practice.
   Legs 3–5 are supporting, not load-bearing.
 - **The off-campus loop (§1) is strongest for education and weakest for
   vocations whose practice really is off-campus** (nursing, trades) — don't

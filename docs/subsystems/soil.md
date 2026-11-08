@@ -210,6 +210,20 @@ modifier.
 
 ---
 
+## Water let onto ground — inlets and irrigators (water supply)
+
+Besides the rain, a ground takes water two ways. **Inlets** (`inlets:` on
+the row, a gate and a method) integrate the gate's opening × capacity ×
+the method's share. **Irrigators** (`IrrigatingMixin`) are things standing
+on the ground or beside it — a sprinkler, rain in a circle — which settle
+on their own clocks when the ground asks. ⭐ The sync reconcile kicks a
+background `settleInlets`, so a crop read after a turnout's turn or a
+sprinkler's run sees the water; before it, inlets integrated only when
+somebody surveyed. `settleInlets` claims its window before it awaits, so a
+background settle and a survey's never count it twice. What the soil
+cannot take ponds; ponds drain and leach salt. See
+[water-supply.md](./water-supply.md).
+
 ## The survey ladder (D4) — four rungs, no new verb
 
 | rung | cost | reading |
@@ -256,35 +270,145 @@ that one substrate.
 because a field is a KIND of place minted many times — safe only because
 every instance is keyed `<holding extent>/<leaf>`.
 
+### ⭐⭐ Tracts and fields (tracts build, 2026-10-31)
+
+The ground a farm is made of comes in two sizes, and each has its own
+word. A **tract** is walkable open ground — the bench above a farmyard,
+the meadow below it, a cottage garden — and it is a *place*
+(`trade-farming/src/location/Tract.ts`, the class this doc called
+`Field` until then). A **field** is what you plant: a named part of a
+tract with soil, grass and a history of its own (`src/thing/Field.ts`,
+a fixture of the tract — the "patch" of the field-population build,
+promoted). *Patch* is retired in every player-facing word; the kernel's
+word for a part of a soil stays *part* (`soilParts`, `groundPart`,
+`part-unnamed`, `part-sown`).
+
+- **No verb makes a tract.** Every tract comes from a holding's LAYOUT
+  (holding.md § Tracts in a layout): a farm sold off a plat, a house
+  lot's garden, or — for the authored venue farms (Quist's, the dairy,
+  the campus farm, Waponi's pieces, the goat pen) — its own row. `plot`
+  is retired.
+- **A holder marks fields** on a tract they hold — `mark <name> [as
+  <share> of it]`, `unmark <field>` — and the TRACT decides and words
+  every refusal: not yours (the sowing gate: the holder, or a hand on
+  shift for the business that works it); zoned below `field` (*"… is
+  zoned residential — dwelling, companions and small cultivation — and
+  takes beds, not fields."*); never measured; more than is left; a line
+  through a standing crop. Unparcelled ground is not policed.
+- **The tract keeps soil of its own for its unmarked ground** — the
+  REMAINDER — and the kernel counts it as one more area-weighted part
+  (`Soil.soilRemainderAreaM2`), so `analyze soil` reads the whole
+  ground. A new field takes the remainder's soil fractions with it;
+  unmarking folds a field back in by area.
+- **The grass, the seedbed and the herds are a field's.** The field
+  composes `SwardMixin`; `plow`, `mow` and `plant` name the field on a
+  tract of several (`plow at the gate end`); a herd grazes a field
+  (ranching.md); a trough on the tract feeds any field's herd. A tract
+  with no field marked reads *"Nobody has marked a field on it. It is
+  rough ground."*, and nothing is sown on it.
+- **A field keeps its own record**, keyed `<tract key>/<field key>`
+  (`PersistableMixin` on the fixture); the tract's capture writes its
+  fields (`Persistable.dependentPersistables`) and an unmarking deletes
+  the record.
+- **A tract is read from where it is reached** — `look upper bench`
+  from the farmyard lists its fields (`Place.isSeenAcrossExit`); working
+  a field still means standing in its tract.
+
 ### ⭐⭐ The ground key is not the coordinates
 
-A warren member is on nobody's grid, so every field would sit at
-`[0, 0, 0]` and sample the same dirt. `Field.groundSpot` is stamped at
-plot time **from where the plotter was standing**, which is what makes
-D3's *"you can survey before you commit"* predict anything.
+A holding's member is on nobody's grid, so every copy of a layout would
+sample the same dirt. A tract that is one copy of a layout takes a spot
+on the soil field seeded from its key (`<extent>/<leaf>`) when its
+holding wakes it, so the valley's four farmsteads are one layout on four
+grounds. An authored tract authors its spot.
 
-### `plot`, and the field ceiling's first consumer
+### ⭐ An AUTHORED tract stands itself up
 
-`plot` refuses ground that is not yours, ground zoned below `field`, and
-a holding with no room in its yard. ⚠ Unparcelled ground is **not
-policed** — *"nobody has zoned this"* is not *"this is zoned against
-you"*, and the hermit's clearing still works.
+`reserves` is engine state, so a row cannot declare soil. `onCreate`
+resolves the ground and installs what its character calls for, which is
+what makes authoring a tract possible with **zero pack code** (AC 62).
+⚠ It skips a tract with no area: a holding's copy is sized only when its
+holding wakes it (`onWarrenWake`), and installing at registration would
+seed a zero-capacity moisture reserve the real sizing would then find
+present and skip.
 
-It hangs the field on the holding through `HoldingWarren.admitPlot`,
-**duck-typed** across the pack boundary (the `analyze water` trick), so a
-trade does not depend on the residence system to put a field on ground
-somebody holds. The residence pack had promised that seam in a docstring
-since its own build; this is it made real.
+### ⭐⭐ A soil made of parts — the field (field population, 2026-10-30; the "patch" until the tracts build)
 
-### ⭐ An AUTHORED field stands itself up
+A tract may author **fields** (or have them marked at runtime): named
+parts of its ground, each soil of its own. The bench is *the top end ·
+the middle · the lane end*; the campus home field *the gate end · the
+middle · the far side*; every one-piece venue tract carries one
+pre-marked field (`sward`, or `planting` on the cane pieces).
 
-`reserves` is engine state, so a row cannot declare soil — and an
-authored field has no `plot` to hang them on. `onCreate` resolves the
-ground and installs what its character calls for, which is what makes
-authoring a field possible with **zero pack code** (AC 62). ⚠ It skips a
-field with no area: registration runs before `plot` has sized a minted
-one, and installing there would seed a zero-capacity moisture reserve
-that the real sizing call would then find present and skip.
+```yaml
+fields:
+  - key: top-end            # stable — crop rows root here by key
+    name: the top end       # a definite phrase; its "the" is the register
+    share: 0.25             # of the tract; the last absorbs rounding when the shares tile it
+    lean: { depthScale: 0.35, stoninessScale: 1.5, nitrogenPct: 12 }
+    description: The top of the strip, where the soil thins to a skin.
+```
+
+**The parts protocol is the KERNEL's, on `SoilMixin`** — so every verb
+reaches a field without importing the farming pack:
+
+| hook / read | what it answers |
+|---|---|
+| `soilParts()` | the ground's parts (`[]` = one piece) — a `Tract` returns its fields |
+| `soilPartKey()` · `soilDepthM()` | a part's key, and its topsoil depth (the roots read) |
+| `soilPart(key)` · `soilPartRefusal()` · `soilPartNoun()` | find a part; the *"Which field? Name one: …"* line (the host names its parts) |
+| `soilRemainderAreaM2()` | the host's own soil between its parts — counted as one more term when it has area and a reserve |
+| `resolvePartFor(named)` | the GROUND decides: the named part, the only part, or a refusal (`part-unnamed`, `not-a-part-here`) |
+| `rootedAreaCrop(part)` | the area crop rooted in that part (asked of a part, it asks its ground) |
+| `soilMoistureHeadroomL()` · `soilNutrientHeadroom()` | litres (the SUM of the parts), points (the area-weighted MEAN) |
+
+⚠ **A divided field's own reads AGGREGATE its parts, and its writes act
+on them.** Litres are extensive: `waterSoil` spreads by area share and
+returns the sum. Per-cent reserves are intensive: `feedSoil`,
+`drawNutrient`, `fixNitrogen`, `addOrganicMatter` and `poach` apply the
+SAME amount to every part and return the area-weighted mean — spreading
+ten points 60/40 would have halved a divided field's legume nitrogen.
+The sward, `turnUnder` and the grazing integral keep reading the field
+and get the aggregate. A divided field has NO soil of its own.
+
+**`Field`** (`trade-farming/src/thing/Field.ts`, a "patch" until the
+tracts build renamed it; the walkable ground it is marked on is a
+**`Tract`**, `src/location/Tract.ts`) is a fixture, minted get-or-create
+in slot `field:<key>` (the `ensureFloor` shape) by `Tract.ensureFields`: `CharacteredSoilMixin(SoilMixin(ReservedMixin(
+AdornmentMixin(VisibleMixin(Thing)))))`. Its ground is the field's
+sample with the spec's **lean** applied LAST
+(`GroundCharacter.resolve(model, at, seed, nudge)`), and its moisture
+capacity scales by `clamp(field.topsoilM / tract.topsoilM, 0.2, 2)` — a
+thin top end holds a third of the water and dries first. Its watershed is
+its field's; its thirst is the crops rooted in it plus its area share of
+the sward; `ensureCropTitle` and `sowingRefusal` forward to the field.
+Its soil stamps are `runtimeState`; since the tracts build a field keeps its own record (keyed under its tract), and before that its state rode its tract's
+fixtures slice across a restart (the R4 test advances the clock across
+the "restart", or it passes vacuously).
+
+⭐ **A fixture's jurisdiction is its host's** (`AdornmentMixin.
+jurisdictionHost`, 2026-10-30) — a field is pathed by its kind row and
+held in `getFixtures()`, not contents, so a governed `eval --parcel
+<extent>` was refused on every field (and every floor) inside its own
+extent until the hook said so.
+
+**The look.** The field's own look carries one line per SOWN field, read
+at the VIEWER's band (*"At the top end it is in ear and is failing. It is
+short of something."*). `look at the top end` is the field's own look —
+the ground's phrase, the crop rooted there read at your band, and any
+labeled plant (*"Trial stands here, labeled."*). The stand answers to its
+field's words (`look top end wheat`) — derived on `Plant.getKeywords()`
+from the part it is rooted in, only for an area crop, so a renamed field
+renames the words. A stand is not listed among loose contents (D17): the
+field's line is where it reads.
+
+⚠ **Content rule: keys are stable, names may change.** A crop row roots
+by `groundPart: <key>`; a key renamed in the field orphans nothing but
+silently re-roots the crop in the field's aggregate soil.
+
+The plant side — `groundPart`, the specimen, the labeled plant's root
+zone, the banded read, the campus hand — is
+[husbandry.md](husbandry.md) § *A plant's part*.
 
 ---
 
@@ -292,7 +416,8 @@ that the real sizing call would then find present and skip.
 
 > **ground → claim → clear → treat → establish → maintain → *revert*.**
 
-`plot` is step two. Three acts, all real words for real jobs: **`grub`**
+Claiming is buying the holding (`plot` retired with the tracts build).
+Three acts, all real words for real jobs: **`grub`**
 (thorn, root and stone), **`ditch`**, **`lime`**. Terracing
 is priced and has no verb: steep ground simply costs more to grub and
 never comes fully into heart, which is honest — most steep ground never
@@ -351,24 +476,36 @@ difference is whether the mouth was here, and that difference is where
 the nitrogen goes — so **fertility follows the mouths** is a sentence a
 player derives rather than a rule they are told.
 
-⚠ **The *crop* row has no producer yet** (verified 2026-09-19). `plant`/`sow`
-require a `CultivableMixin` target and `Field` composes none — its own
-header says *a field's crop is not four `Slottable`s in a bed* — and
-`Improvable.isPlantable` (D54, *newly plotted ground is not plantable*)
-has no caller. So a field today grows **sward** — hay and grazing — and
-arable crops grow in pots and beds. The row describes the nutrient flow an
-arable field WILL have (exported); the aggregate density that fills it is
-[farming-slate § The land model](../slates/builds/farming-slate.md)'s open
-item, not shipped behaviour.
+⭐ **The *crop* row has its producer** (cover build, 2026-10-28). A field
+holds ONE area crop — a single `Plant` loose in its contents with a sown
+area, rooted in the field's soil by containment (`Growing.getBed()`, see
+[husbandry.md](husbandry.md#ground-is-a-bed-by-containment-and-the-area-crop-cover-build-2026-10-28)).
+The crop's ground leaves the sward (`swardAreaM2 = area − crop`), and
+what stands drinks the soil per square metre. `plow` (once the clearing
+is done) turns the sward under — the grass into organic matter — and
+stamps a **seedbed good for a season**; `plant` asks the field
+(`sowingRefusal`) and the field answers from that stamp; a second plowing
+that season, and a plowing under a standing crop, are refused. `grub` ends
+a standing crop. A crop leaving (cut down, grubbed out) leaves
+**stubble**, which reads until the grass comes back over it. The crop is
+**titled to the business that works the field** (`ensureCropTitle`, a
+`Soil` hook the harvest awaits before it mints) — so whoever cuts it, the
+sheaf is the holder's; *the holder* is realized as the operator because a
+group cannot hold goods. `look` reads all of it in words.
 
-⚠ **The *graze* row has no mouth yet either** (verified 2026-09-19).
-`Field.swardGrazingDemandPerGameDay()` sums `grazingDemandPerGameDay()`
-over the field's occupants, and no class in the tree declares that method
-— `Livestock` included; `Sward.test.ts` overrides the field hook with a
-constant. So in play the sward is drawn down by `mow` alone,
-`cycleGrazedNitrogen` never runs, and *fertility follows the mouths* is
-true of the code and not yet of the game. The grazer is
-[ranching-slate](../slates/builds/ranching-slate.md)'s first `Left` item.
+⭐ **The *graze* row has its mouth** (cover build). The field keeps a
+**grazing ledger** by herd id (`setGrazer` / `clearGrazer` /
+`grazerLedger` / `foldGrazer`): each line's demand
+(`tally × Species.dryMatterIntakeKgPerDay()`, `0.1 × adultMass^0.75`), the
+feeder kinds it eats from, and what it was given against what it wanted
+since it came on. The sward's demand is the sum of the lines; what the
+grass does not give, **the troughs on the field give** — asked once per
+step of the integral (`swardShortfallFed`), drawn by mass, and a trough
+whose `suppliedBy` names a rick draws on the rick when it is empty. So
+*fertility follows the mouths* is true of the game now:
+`cycleGrazedNitrogen` runs on what the herd actually ate. A herd is put
+on a field by ranching's `move` ([ranching.md](ranching.md)); a herd on
+no field eats nothing.
 
 ⚠⚠ The key is **`sward`, not `forage`**. What a *person* gathers off
 rough ground is forage; the standing grass a *cow* eats is the sward.

@@ -16,10 +16,10 @@
  * This is the animal it was waiting for.
  */
 
-import { TapActController } from '@saxonberg/server/mud/platform/idea/cmd/inventory/TapActController';
+import { LivestockTapController } from '../../../lib/LivestockTapController';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 
-export default class ShearController extends TapActController {
+export default class ShearController extends LivestockTapController {
   protected tapKey(): string {
     return 'wool';
   }

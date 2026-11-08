@@ -14,6 +14,8 @@ export type {
   QueryRecord,
   SubscribeOutcome,
   SessionOptions,
+  CapturedEnvelope,
+  CapturedFrame,
 } from './session';
 export {
   expectOk,
@@ -25,6 +27,8 @@ export {
   detailOf,
   describe,
 } from './assertions';
+export { runCrowd, CROWD_SIZE, CROWD_PLACE } from './crowd';
+export type { CrowdRecord, Timing, LoopRead } from './crowd';
 export { declareFile } from './registry';
 export type { FileRecord } from './registry';
 export {
@@ -35,6 +39,7 @@ export {
   toWarmSeason,
   toSeasonDay,
   nourish,
+  arrive,
   dress,
   dressFounder,
   hand,
@@ -42,4 +47,7 @@ export {
   worldClockNow,
   pinWeather,
   unpinWeather,
+  stage,
+  stageShip,
 } from './world';
+export type { ShipStagePlace, ShipStageSpec, ShipStageResult } from './world';

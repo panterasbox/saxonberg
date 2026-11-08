@@ -1,5 +1,5 @@
 /**
- * UnprovisionController — the `unprovision <player>` / `unlease <player>` verb
+ * UnprovisionController — the `unprovision <player>` verb
  * (a Duncan Hall *content* verb — content namespace
  * `world/terminus/eternal/duncan-hall/`, not a core command category). Ends a
  * tenant's dorm lease and reclaims the unit:
@@ -56,7 +56,7 @@ export default class UnprovisionController extends HallController<UnprovisionMod
     if (!owner || !(await UnprovisionController.mayProvision(actor))) {
       return this.fail(
         context,
-        "You're not authorized to end Duncan Hall dorm leases.",
+        "Only the college's staff or a member of the hall's committee may end Duncan Hall's leases.",
         'not-authorized',
       );
     }

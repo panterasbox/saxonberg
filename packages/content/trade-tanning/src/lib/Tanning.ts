@@ -71,6 +71,9 @@ import type {
 } from '@saxonberg/server/mud/lib/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { MarkupAugmenter } from '@saxonberg/server/mud/api/mml';
+import type { SoilSpec } from '@saxonberg/server/mud/lib/cleanliness/SoilSpec';
+import { MessageApi } from '@saxonberg/server/mud/api/message';
+import { Mml } from '@saxonberg/server/mud/api/mml';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
@@ -151,11 +154,47 @@ const BAND_LINES: Record<TanBand, string> = {
     'It has had far too long. The grain has gone hard and dark and it cracks rather than folds. Nothing will bring it back.',
 };
 
+/** The Discipline tanning credits — minted by this pack. */
+export const LEATHERWORK = 'leatherwork';
+
+/** What a tanned skin becomes. */
+const LEATHER = '/stuff/idea/material/organic/leather';
+
+/**
+ * What working a pit puts on the tanner (cleanliness D6) — the fat of the
+ * raw skin and the dung of the bate, on the hands and the apron.
+ */
+export const TAN_SOILS: readonly SoilSpec[] = [
+  { kind: 'grease', amount: 0.2, where: 'hands' },
+  { kind: 'manure', amount: 0.2, where: 'hands' },
+  { kind: 'grease', amount: 0.1, where: 'apron' },
+  { kind: 'manure', amount: 0.1, where: 'apron' },
+];
+
+/** The pit a hide is lifted from: what it read of it, and what it costs it. */
+export interface TanPit {
+  tanLiquorFor(hideKg: number): TanLiquor | null;
+  consumeBark(kg: number): number;
+}
+
 export interface Tanning {
+  /**
+   * ⭐⭐ **Lifted out of a pit** (controllers-are-io D10): the judgement half of
+   * the trade, however the hand got there — `get hide from pit` is the whole
+   * verb. Tanned through, it is leather, the pit pays for it in bark, and the
+   * grade falls by whatever the pit cost it. Pulled early it is the same green
+   * skin, with nothing lost: put it back.
+   *
+   * `by` is who took it, or null when it went somewhere nobody's hands were.
+   */
+  onLiftedFrom(pit: TanPit, by: Stuff | null): Promise<void>;
   /** `[0, …]` — `1` is tanned through; past that it is spoiling. */
   getTannage(): number;
-  /** Advance the hide against whatever it is standing in. */
-  reconcileTanning(): void;
+  /**
+   * Advance the hide against whatever it is standing in. `standingIn` names
+   * the liquor when it has just left it: the last stretch still counts.
+   */
+  reconcileTanning(standingIn?: TanLiquor | null): void;
   /** What a player sees when they look at it. */
   tanReport(): TanReport;
   /** Has the transform run? */
@@ -257,12 +296,12 @@ export function TanningMixin<TBase extends MixinConstructor<Stuff>>(
       return asPit.tanLiquorFor(kg);
     }
 
-    public reconcileTanning(): void {
+    public reconcileTanning(standingIn?: TanLiquor | null): void {
       if (this._reconcilingTan) return;
       const nowS = WorldClockApi.getNow().rawValue();
       if (!Number.isFinite(nowS) || nowS <= 0) return;
 
-      const liquor = this.liquorOver();
+      const liquor = standingIn !== undefined ? standingIn : this.liquorOver();
       if (!liquor) {
         // Out of the pit: the clock stops where it stopped. ⚠ The stamp is
         // CLEARED rather than carried, so a hide pulled out on Monday and
@@ -333,6 +372,8 @@ export function TanningMixin<TBase extends MixinConstructor<Stuff>>(
       const material = await StuffApi.singleton<Material>(
         leatherMaterialPath,
       );
+      // ⭐ It runs once: leather lifted out of a pit again stays what it is.
+      if (self.getMaterial() === material) return false;
       const green = self.getMass().rawValue();
       self.setMaterial(material);
       self.setMass(
@@ -342,6 +383,39 @@ export function TanningMixin<TBase extends MixinConstructor<Stuff>>(
         ),
       );
       return true;
+    }
+
+    /** See {@link Tanning.onLiftedFrom}. */
+    public async onLiftedFrom(pit: TanPit, by: Stuff | null): Promise<void> {
+      const self = this as unknown as Stuff;
+      const kg = MixinApi.isTangible(self) ? self.getMass().rawValue() : 0;
+      this.reconcileTanning(pit.tanLiquorFor(kg));
+      if (!(await this.becomeLeather(LEATHER))) return;
+      // The pit pays for it in bark.
+      if (MixinApi.isTangible(self)) {
+        pit.consumeBark(self.getMass().rawValue() * TANNING.BARK_PER_KG_HIDE);
+      }
+      if (!by) return;
+      // Lifting a sodden skin out of the liquor (cleanliness D6).
+      if (MixinApi.isHygienic(by)) by.soilFrom(TAN_SOILS);
+      const bands = this.tanPenaltyBands();
+      MessageApi.scene(by)
+        .topic('act.deed')
+        .toSelf(
+          bands > 0
+            ? Mml.compose`You lift ${Mml.thing(self)} out. It is leather, and it is harder and darker than it should be — you left it too long, or the liquor was too strong.`
+            : Mml.compose`You lift ${Mml.thing(self)} out, heavy with liquor, and rack it to drain. It is leather.`,
+        )
+        .toPeers(Mml.compose`${Mml.actor(by)} lifts a tanned skin out and racks it.`)
+        .send();
+      if (MixinApi.isAdvancing(by)) {
+        await by.creditDeed({
+          discipline: LEATHERWORK,
+          // ⭐ Judging it out is the skilled half. Putting it in is `easy`.
+          difficulty: 'standard',
+          outcome: bands > 0 ? 'partial' : 'success',
+        });
+      }
     }
 
     /**

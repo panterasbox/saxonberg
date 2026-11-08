@@ -362,8 +362,9 @@ a recomputation and loses nothing.
 Lane 2's real craft verbs don't exist on this branch, so the loop is made
 exercisable standalone:
 
-- **`practice <discipline> [difficulty] [outcome]`** (`cmd/author/`,
-  wizard-gated via `requiresWizard` + AuthorMixin visibility) — the
+- **`practice <discipline> [difficulty] [outcome]`** (`cmd/system/`, a
+  **test-world verb** — `testOnly` + `requiresTestWorld`, the `testharness`
+  shape; absent from any played world, whatever the credential) — the
   harness that fabricates one `deed`, standing in for real practice.
 - **`competence [<subject>]`** (`cmd/charactergen/`, the `chronicle`-verb
   shape) — the **bands-only** view; afforded by `AdvancementMixin`'s
@@ -405,7 +406,7 @@ combat build's `melee-combat` / `blades` (the bar-fight build adds
 innate-instrument exchange), and the concealment build's
 **`awareness`** (`channel: skill`, `iscedf: "0288"`) — the perception /
 attention Discipline that grades a viewer's effective perception (the
-`capacity` term), the reach of an active `search` / `examine`, and `disarm`.
+`capacity` term), the reach of an active `search` / `look`, and `disarm`.
 It carries **no `conferrals`** (`search` / `look` / `disarm` are universally
 afforded; competence only *grades* them, it doesn't gate the menu). See
 [concealment.md](./concealment.md).
@@ -540,7 +541,7 @@ nothing and correctly gets none (a hand practises their trade's
 Discipline); *mining* anchors to a real field and gets one.
 
 - **`mining`** — ISCED-F **0724** (mining and extraction). The metal
-  chain shipped `hew` / `drive` / `sink` / `shore` with **no Discipline
+  chain shipped `hew` / `drive` (now `drift`) / `sink` / `shore` with **no Discipline
   behind them**, so a hewer who had cut a hundred yards of drift read as
   untrained at cutting rock. ⚠ A **sibling** of `colliery` (0722,
   materials), not a duplicate: the collier chars **wood**, the hewer cuts

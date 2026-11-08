@@ -16,8 +16,8 @@
  * one. *No room has a floor* is true and is half of it. The other half:
  * a view's `default:` is applied **at assembly**, so the word `ground` was
  * reaching MQL all along and matching nothing — because the scope walk pools
- * a thing's own `getKeywords()` and `pushDetails` gives a detail the pool
- * `[<its id>]`, never its authored keyword list. So `default-floor`'s
+ * a thing's own `getKeywords()`, and a detail answers there by its id
+ * (`DetailedMixin.getKeywords`), never by its authored keyword list. So `default-floor`'s
  * `details.floor.keywords: [ground]` was dead text, and **attaching that row
  * to all 139 Locations would have fixed `look floor` and left `sit`
  * broken.** Hence the keyword union on the class, and hence this file

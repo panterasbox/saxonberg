@@ -1,4 +1,5 @@
 verbs: [sense]
+category: perception
 controller: /platform/idea/cmd/perception/SenseController
 # ⭐⭐ Arrival auto-senses (`Mobile.autoSenseOnArrival`), so this is the
 # seam where WALKING INTO A ROOM mints its card. Each room you enter

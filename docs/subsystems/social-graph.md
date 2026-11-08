@@ -444,7 +444,7 @@ country" remain deferred to the slate.
 ## The inspection surface — three kinds of fact, and the disclosure model
 
 (Graduated from the social-inspection slate, 2026-09 — the design behind
-`who`, `profile`, `score`/`me` and `privacy.showStatus`.)
+`who`, `profile`, `score` and `privacy.showStatus`.)
 
 There are **three different kinds of fact about a person**, with three
 owners and three privacy semantics — which is why there is no one fat

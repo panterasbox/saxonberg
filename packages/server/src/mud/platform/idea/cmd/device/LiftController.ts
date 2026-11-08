@@ -16,7 +16,7 @@
  * completion, and `exert` decides whether it was overload.
  *
  * The device is a DECLARED arg (`default: "reachable:[capability.load]"`,
- * `requires: [ToolMixin]`), never hunted for (`lint:instrument-args`).
+ * `requires: [ToolMixin]`), never hunted for (`lint:controller-resolution`).
  */
 
 import { ManualBuildController } from '../crafting/ManualBuildController';

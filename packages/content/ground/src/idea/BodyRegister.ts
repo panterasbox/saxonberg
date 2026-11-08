@@ -54,7 +54,7 @@ import { DocumentApi } from '@saxonberg/server/mud/api/document';
 import {
   RegistrarMixin,
   type Registrar,
-} from '@saxonberg/server/mud/lib/document/Register';
+} from '@saxonberg/server/mud/lib/document/Registrar';
 import type { Stuff, EvictionContext } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { VetoResult } from '@saxonberg/server/mud/lib/errors';
 

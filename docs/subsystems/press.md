@@ -50,8 +50,11 @@ publisher suite for that reason.
 
 ⭐ This *strengthens* the founder doctrine rather than straining it. The
 founder's specialness lives entirely at the **appointment** step — the
-pool-of-one backstop inside `isCommitteeMember` lets them fill the
-position — and publishing is earned the way anyone earns it. **Nothing in
+founder DEFAULTS the platform offices, and the Compact's press office is
+appointed by the committee over `/compact`, which the executive (the Prime
+Minister's) holds — and publishing is earned the way anyone earns it.
+(⛔ There is no committee backstop: the founder sits on no committee —
+wizard-axis cleanup D18, 2026-11-05.) **Nothing in
 the publish path consults the founder at all.**
 
 Its honest consequence: **an organization with no comms director publishes

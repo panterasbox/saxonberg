@@ -35,6 +35,7 @@ import { HandlingMixin } from '@saxonberg/server/mud/lib/husbandry/Handling';
 import { ProducingMixin } from '@saxonberg/server/mud/lib/husbandry/Producing';
 import type { TapTake } from '@saxonberg/server/mud/lib/husbandry/Producing';
 import type { WorkDifficulty } from '@saxonberg/server/mud/lib/ground/Workable';
+import { SplittableMixin, type Splittable } from '@saxonberg/server/mud/lib/ground/Splittable';
 import type {
   TapClosedReason,
   TapSpec,
@@ -54,17 +55,19 @@ import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import type { EnclosureDefaults, RoofSpec } from '@saxonberg/server/mud/lib/spatial/Enclosed';
 import type { VetoResult } from '@saxonberg/server/mud/lib/errors';
 import type {
-  Splittable,
-  WorkPrognosis,
-  WorkResult,
+  SplitBegin,
+  SplitDone,
+  SplitRefusal,
+  WorkLanding,
+  WorkPlan,
 } from '@saxonberg/server/mud/lib/ground/Workable';
-import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tooled';
+import type { ActDone } from '@saxonberg/server/mud/lib/craft/ActPlan';
+import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tool';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import type { CompositionEntry } from '@saxonberg/server/mud/lib/material/Material';
-import { SWARD_MIXIN } from '@saxonberg/content-trade-farming/src/lib/Sward';
-import type Field from '@saxonberg/content-trade-farming/src/location/Field';
+import Tract from '@saxonberg/content-trade-farming/src/location/Tract';
 import { ColonyMixin, APICULTURE } from '../lib/Colony';
 import type { Colonial } from '../lib/Colony';
 import HiveBox from './HiveBox';
@@ -79,7 +82,7 @@ import HiveBox from './HiveBox';
  *  - `HandledMixin` and `HandlingMixin` side by side, never nested —
  *    nesting factories collapses TypeScript's inference through the chain.
  */
-const HiveBase = HandledMixin(
+const HiveBase = SplittableMixin(HandledMixin(
   HandlingMixin(
     ProducingMixin(
       ColonyMixin(
@@ -87,7 +90,7 @@ const HiveBase = HandledMixin(
       ),
     ),
   ),
-);
+));
 
 /**
  * The topic every scene this trade sends rides on — an act somebody
@@ -330,31 +333,6 @@ export default class Hive extends HiveBase implements Splittable {
    */
   public override biomeWindowOpen(): boolean {
     return this.forageCensus().totalM2 > 0;
-  }
-
-  public override tapRefusal(key: string, reason: TapClosedReason): string {
-    if (reason === 'no-forage') {
-      return 'Nothing is in bloom within range of them. Out of the flow there is simply nothing to take, and the refusal is the season’s rather than the colony’s.';
-    }
-    return super.tapRefusal(key, reason);
-  }
-
-  public override tapEmptyPhrase(_key: string): string {
-    return 'Nothing capped. Out of the flow there is simply nothing to take, and the refusal is the season’s rather than the colony’s.';
-  }
-
-  public override tapBeginPhrase(_key: string): string {
-    return 'You smoke them down and start lifting frames.';
-  }
-
-  public override tapTookPhrase(
-    _key: string,
-    drawn: number,
-    _kept: number,
-    minted?: Stuff[],
-  ): string {
-    const frames = minted?.length ?? 0;
-    return `You lift out frame after frame of sealed comb and set them aside — ${Math.round(drawn * 100) / 100} kilos of it across ${frames} ${frames === 1 ? 'frame' : 'frames'}, dripping where the knife went through.`;
   }
 
   /**
@@ -667,82 +645,37 @@ export default class Hive extends HiveBase implements Splittable {
 
   // ---------- splitting ----------
 
-  /**
-   * ⭐⭐ **A split is the platform's `split`, and it rides with no
-   * registration at all.**
-   *
-   * `Splittable`'s mandate is *divide an oversized or aggregated thing
-   * into usable units*, and a strong colony is exactly that: too much of
-   * it in one box, and making two is what a beekeeper does with it
-   * instead of losing half to the woods. `SplitController` duck-types
-   * the shape, so this is three methods and no wiring — which is the
-   * `Verbable` pattern doing its job rather than a `handle`-style
-   * collision to resolve.
-   *
-   * ⚠ It is the only acquisition that costs you something you already
-   * have (AC 1's third cost): the parent goes back to 60 % and the
-   * daughter has no queen until she raises one.
-   */
-  public readonly splittable = true as const;
-
-  public async planWork(
+  // ⭐⭐ A split is the platform's `split`: `Splittable`'s mandate is *divide
+  // an oversized or aggregated thing into usable units*, and a strong colony
+  // is exactly that — too much of it in one box. The hive composes
+  // `SplittableMixin` (controllers-are-io D8a; it used to duck-type a
+  // marker). ⚠ The only acquisition that costs something you already have:
+  // the parent goes back to 60 % and the daughter has no queen until she
+  // raises one.
+  public override async planWork(
     by: Stuff,
-    tool: (Stuff & Tooled) | null,
-    what: string | null,
-  ): Promise<WorkPrognosis> {
-    void tool;
-    void what;
+    _tool: (Stuff & Tooled) | null,
+    _what: string | null,
+  ): Promise<WorkPlan<SplitBegin, SplitDone, SplitRefusal> | SplitRefusal> {
     this.reconcileColony();
-    if (this.strength <= 0) {
-      return {
-        kind: 'refusal',
-        reason: 'no-colony',
-        prose: 'There are no bees in it to divide.',
-      };
-    }
-    if (!this.hasQueen) {
-      return {
-        kind: 'refusal',
-        reason: 'no-queen',
-        prose:
-          'They have no queen as it is. Splitting them would leave you two ' +
-          'halves of nothing.',
-      };
-    }
-    if (this.strength < 0.6) {
-      return {
-        kind: 'refusal',
-        reason: 'too-weak',
-        prose: 'There is not enough of them to make two.',
-      };
-    }
-    void by;
+    if (this.strength <= 0) return { ok: false, reason: 'no-colony' };
+    if (!this.hasQueen) return { ok: false, reason: 'no-queen' };
+    if (this.strength < 0.6) return { ok: false, reason: 'too-weak' };
+    const durationMs = 20 * 60 * 1000;
     return {
-      kind: 'plan',
-      durationMs: 20 * 60 * 1000,
-      cost: 6,
-      beginSelf:
-        'You start going through the frames, looking for brood and eggs to ' +
-        'take across.',
-      beginPeers: Mml.compose`${Mml.actor(by)} is working slowly through an open hive.`.toString(),
-      token: 'split',
+      ok: true,
+      durationMs,
+      effortW: MixinApi.isExerting(by) ? by.wattsForFeltCost(6, durationMs / 1000) : 0,
+      facts: { kind: 'colony' },
+      onComplete: () => this.completeSplit(by),
     };
   }
 
-  public async completeWork(
-    by: Stuff,
-    tool: (Stuff & Tooled) | null,
-    token: unknown,
-  ): Promise<WorkResult> {
-    void tool;
-    if (token !== 'split') {
-      return { self: 'Nothing came of it.', peers: null, credit: null };
-    }
+  /** The split lands: the parent goes back to 60 %, the daughter is queenless. */
+  private async completeSplit(by: Stuff): Promise<ActDone<SplitDone & WorkLanding, SplitRefusal>> {
     this.reconcileColony();
     const taken = this.strength * 0.4;
-    if (taken <= 0) {
-      return { self: 'There are no bees in it to divide.', peers: null };
-    }
+    if (taken <= 0) return { ok: false, reason: 'no-colony' };
     this.strength = this.strength * 0.6;
     let made: Stuff | null = null;
     try {
@@ -765,11 +698,8 @@ export default class Hive extends HiveBase implements Splittable {
       }
     }
     return {
-      self:
-        'You lift four frames of brood and bees across into a box of their ' +
-        'own. They have no queen; they will have to make one.',
-      peers: 'Somebody divides a hive into two.',
-      credit: { discipline: APICULTURE, difficulty: 'standard' },
+      ok: true,
+      facts: { kind: 'colony', credit: { discipline: APICULTURE, difficulty: 'standard' } },
     };
   }
 
@@ -866,10 +796,14 @@ export default class Hive extends HiveBase implements Splittable {
         return next > rangeMinutes ? null : next;
       },
       fold: (at) => {
-        // The sward under this patch of ground.
-        if (MixinApi.hasMixin(at.constructor as never, SWARD_MIXIN as never)) {
-          const field = at as unknown as Field;
-          const m2 = field.inFlowerFraction() * field.swardAreaM2();
+        // The sward under this patch of ground: a tract's grass is its
+        // marked fields' (tracts build D24), each in flower by its own
+        // clover and the tract's season.
+        if (at instanceof Tract) {
+          let m2 = 0;
+          for (const field of at.getFields()) {
+            m2 += field.inFlowerFraction() * field.swardAreaM2();
+          }
           if (m2 > 0) {
             const key = '/trade/apiculture/idea/material/clover-nectar';
             sources.set(key, (sources.get(key) ?? 0) + m2);

@@ -42,6 +42,9 @@ data:
     # declares `row` back.
     realty:
       destination: /world/terminus/realty/office
+    # ⭐ The Gazette's print shop (paper W5), beside the land agents.
+    gazette:
+      destination: /world/terminus/gazette/office
     # ⭐ The necropolis, past the far end where the rock softens. Its own
     # zone, so a named cross-zone pair with both sides explicit — the
     # ground declares NORTHWEST back. ⚠ At the quiet end on purpose: a

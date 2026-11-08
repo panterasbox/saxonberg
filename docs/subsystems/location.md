@@ -416,7 +416,7 @@ mirrors it):**
 | `location/Bar.ts` | Singleton external-neighbor shell (Dave's Bar); self-stocks crafting content via `props:` (the hospitality trade's back-bar + stations by reference, the venue's bottles `onto` it, plus the menu) and its troupe via `cast:` (Dave and the lounge cast). |
 | `thing/LoungeTerminal.ts` | The TPA node (a `TpaTerminal`, a Thing) — the pack's boot entry. |
 | `idea/LoungeWarren.ts` | Concrete singleton **`RoomWarren`** — the lounge *policy* (its members are rooms). The elastic *two-tier* consumers (`DormWarren`, `BuildingWarren`, `PlatWarren`) are `CirculationWarren`s whose members are themselves warrens — see [holding.md](./holding.md). |
-| `LoungeMixin.ts` | `LoungeMixin` — lounge-room behavior + the home for future room functionality (a locality's mixin has no branch; it stays at the root, with `paths.ts`). |
+| `Lounge.ts` | `LoungeMixin` — lounge-room behavior + the home for future room functionality (a locality's mixin has no branch; it stays at the root, with `paths.ts`). |
 
 The composition-only classes the lounge used to carry (`Menu`,
 `CraftVessel`, `GradedReceptacle`, `NeonSign`, `CocktailShaker`,
@@ -676,7 +676,7 @@ descriptor at most — `Foo` / `PersistentFoo`, never stacked prefixes:
 
 | | transient | kept |
 |---|---|---|
-| **Locale** — ONE particular place, one row = one place (you *visit* a locale) | `Locale` | `PersistentLocale` ✅ (the cookhouse, chandlery, lavoir, bathhouse; `Wood` and the quarries in shape) |
+| **Locale** — ONE particular place, one row = one place (you *visit* a locale) | `Locale` | `PersistentLocale` ✅ (the cookhouse, chandlery, lavoir, bathhouse; `Wood` and the quarries in shape; `PersistentShore` — the put-in, whose house sells boats where they lie, harbors review 1 — the same shape over a shore's stack, never for a quay a ship makes fast at) |
 | **Location** — one of MANY laid out to a plan (you *fill* a location) | `Location` | `PersistentLocation` (lots, dorm rooms, let units; `Field`, `MineRoom` in shape) |
 | spherical, one place | `SphericalLocale` | `PersistentSphericalLocale` when wanted |
 | spherical, one of many | `SphericalLocation` (unchanged) | `PersistentSphericalLocation` when wanted |
@@ -727,6 +727,47 @@ A kept place must be one place (a locale) or keyed (a location in a warren)
 OUTERMOST over a place's own substrate, which is why a kept place with
 substrate composes the shape rather than subclassing the plain kept class.
 
+### ⭐ The room rung (water-supply review, 2026-11-07)
+
+The taxonomy sorts a place on how it is ADDRESSED and whether it is KEPT;
+neither axis says what a place IS, so substrate only interiors have (water
+piped in; walls and a roof by default) had no host — `PlumbedMixin` went on
+every `Place` and then, worse, onto the parcel. The fix is a KIND rung, on
+both sides of the split, one descriptor at most:
+
+| | one of many (`Location`) | one particular (`Locale`) |
+|---|---|---|
+| plain | `Room` (a house's rooms, a holding's rooms per lot) | `Hall` (the baths, the ward, a works floor, a shop) |
+| kept | `PersistentRoom` (the furnishing archetypes, the dorm room) | `PersistentHall` (the distillery floor, the lavoir) |
+
+⭐ *The hall and the chambers* — the medieval house's one great room and
+the many behind it — is the Locale/Location split said of interiors. `Hall`
+is `SingletonMixin(Room)` exactly as `Locale` is `SingletonMixin(Location)`;
+`PersistentRoom` extends `PersistentLocation` (the kept branch has substrate
+of its own) and shares the room's roof rule (`roofOverWalls()`, on the
+construction mixin).
+
+What a room has, and nothing else does:
+
+- **`PlumbedMixin`** — `plumbing: <word> | none`; a tap implies its pipe
+  ([water-supply.md](./water-supply.md)). `lint:water-plumbed` refuses the
+  word on any other row, and a tap that needs a pipe anywhere but a room.
+- **Walls and a roof unless its row says otherwise** — its roof is its
+  walls' layers (`roofDefaults()`), the answer the legacy biome reading gave
+  every interior, so a room is never on `lint:biome-sky`'s list (97 → 37 at
+  the rung). An open-sided hall says `enclosure: none` and its roof (the
+  lavoir).
+
+⚠ **Not rooms, deliberately:** a ship's rooms are `Compartment`/`Hold` (a
+hull is not a building, and her rooms flood from her bilge); a mine's are
+workings (`MineRoom`, `AuthoredWorking` — cut ground); a delve, a meadow, a
+yard, a pit, a lean-to and an awning are places. A pack's interior class
+extends the rung (`DormRoom`, `ColdRoom`, `HarborOffice`, `SealedCellar`,
+the lounge's `Bar`/`Lounge`, `FloodedCell`, Duncan's `Corridor`).
+⚠ The NAME `/platform/location/Room` once meant the singleton (it became
+`Locale`, !213) and came back meaning one-of-many; `lint:locations` keeps
+rows on it to the enumerated minted kinds, as it does for `Location`.
+
 
 
 ### ⛔ Naming places — the word "room", and what is renamed
@@ -739,7 +780,8 @@ place", in any kind of name or prose, says *place* — `place`, `here`,
 
 1. **A room is an interior**: an enclosed space inside a building or a
    vessel, with walls and a roof over it — somewhere people furnish,
-   sleep, store or work. A dorm room, a ship's saloon or hold, a cold room,
+   sleep, store or work — the room rung's classes (§ The room rung). A dorm
+   room, a ship's saloon or hold (a `Compartment`), a cold room,
    the furnishing archetypes (`FurnishableRoom`), a holding's rooms
    (`/stuff/location/room/*`). If you would not say "come into the
    room", it is not one.

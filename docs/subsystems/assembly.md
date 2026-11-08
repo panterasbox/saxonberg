@@ -144,6 +144,14 @@ Discipline, which must exist when the row ships** (`lint:bills` arm 5):
 practise them is the proof that a new way of joining is a row with no
 engine change.
 
+⭐ **Knots are joints too** (cordage D7): `bowline`, `clove-hitch`,
+`sheet-bend`, `reef-knot` and `splice` ship with the platform, because the
+kernel verbs `tie` and `splice` name them. A knot's `strength` is the share
+of the rope it keeps, and the rope captures it on its knot record at
+tie-time with the tier's dressing ([cordage.md](cordage.md)).
+`JOINT_FAILURES` gained **`spilled`** (a reef knot under an uneven load); a
+clove hitch works loose as `slack`.
+
 **`JointCatalogue`** (`platform/idea/JointCatalogue.ts`) warms by CLASS
 (`Template.findByClass`), so any root's rows are found. ⭐ It loads on
 first use — no `onCreate`, **no boot line** (the scan sweep's rule:
@@ -206,6 +214,22 @@ derivable.
 (`fit`/`repair`/`salvage`) are collected from the mixin chain regardless —
 which is why, with the mixin deep inside the family, no subclass restates
 anything. (The narrow twins had to: `AssembledLauncher` restated `shoot`.)
+
+### ⭐ A line carries its part's own state (repair W0)
+
+A fitted part is a line, not an object — so the state a part has when
+it is loose has to live on the line while it is fitted, or be lost at the
+joint. A `PartLine` carries its part's `condition`, `grade`, `keenness`,
+`name` and `mends`; `fit` reads a loose part's values IN when it is
+fitted and a sound member swapped out is minted WITH its line's values
+(`CraftingLogic` fit/replace). ⭐ The why: *what was done to a part before
+it was fitted stays with it* — a head honed loose keeps its edge when it
+is hafted. That is what lets `Keen` route outward: a whole's keenness is
+its edged lines' minimum (`edgedLines`, `lineKeenness`), `sharpen` hones
+those lines, and a one-piece thing keeps its own gauge. Temper is NOT line
+state (the whole's), and a working has no part to sit in — `recharge`
+reaches the whole; where a working lives when its shell is a thing of
+parts is the repair slate's.
 
 ### ⭐ A name — `Named`'s, living in the part that bears it
 
@@ -364,9 +388,10 @@ branch **per part, in its own material**, weighted by each part row's
 `AssembledMixin` affords `fit`, `repair` and `salvage` in **`environment`
 + `peers`**: a held assembly grants the verbs to its holder, one on the
 floor to the room. ⭐ `fit` is **also the person's** — on `Avatar`'s
-`self`, beside `make`: the raise arm IS `make` for a thing of parts, its
-hand rung has no instrument, and a pick head is a plain `Tool` that can
-afford nothing. `Timber` adds `fit` to `peers` (staves at your feet make
+`self`: the raise arm builds a thing of parts, its hand rung has no
+instrument, and a pick head is a plain `Tool` that can afford nothing.
+(It used to say *"the raise arm IS `make`"* — `make` was never a crafting
+verb; it replayed scripts, and is `do` now.) `Timber` adds `fit` to `peers` (staves at your feet make
 `fit cask` sayable).
 
 ⚠⚠ **`self` is a command GIVER's own verbs** — read off a person, a
@@ -636,7 +661,7 @@ mended at its joint, and every bill-less mould reads *It is one piece*.
   remaining makerless assemblies, humidity in seasoning, the sawmill's
   water right, a compartment's admission cost and a person in one →
   [assembly-slate](../slates/tails/assembly-slate.md).
-- Carving as an engaged act with exertion, `carve` and `make`'s can-make
+- Carving as an engaged act with exertion, `carve`'s can-make
   gate, competence in sawing, the lathe, a store that sells an edge, and
   the clasp knife that *"whittles a peg"* and cannot →
   [carpentry-slate](../slates/builds/carpentry-slate.md).
@@ -690,3 +715,13 @@ pottery now), `ruined`. ⭐ Two pieces whose dryness differs by more than
 `green.joinMismatch` (0.25) still join — and the whole takes a `check` (a
 drying crack, seen) where they meet: the wetter one shrinks more as they dry.
 That is the lesson in the timing, and the only thing the joint grades on.
+
+
+## The glued joint takes glue (paint build, 2026-10-31)
+
+A `Joint` row may say `takes: glue` (`glued` does). Making the joint by
+`fit`'s raise arm draws glue from an open vessel in reach and records it on
+the joint (`JointState.glue`, `setProgress`); the GLUE then decides the
+line's strength (weak until set), how it stands the damp, the heat it lets
+go at, and whether `salvage` gets the parts back. See
+[painting.md](./painting.md) § Glue.

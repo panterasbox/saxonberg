@@ -1,0 +1,23 @@
+# The light under the slab — the one the bar's own description has always
+# promised ("lit from beneath so the bottles ranked behind it throw long
+# colored shadows up the wall") and nothing supplied. Without it the room
+# ran on its two neon signs alone: ~185 lm over the bar's 16 m² is ~12 lux,
+# `dim`, and at `dim` nobody can look closely at anything (detail needs
+# `lit`). The first social room in the realm was too dark to read.
+#
+# A sconce on the bar's own fixtures (the dive shop's pattern), switched on.
+# 450 lm brings the room to ~40 lux: lit, and still the darkest lit band —
+# the amber haze stays.
+class: /generic-objects/thing/SconceLamp
+data:
+  shortDescription: strip of light under the bar
+  keywords: [light, strip, under-light, glow]
+  register: indefinite
+  longDescription: >-
+    A warm strip of light runs the length of the slab's underside, bright
+    enough to read a ledger by and low enough that every bottle on the
+    back-bar throws its own long, colored shadow up the wall.
+  mass: 2
+  on: true
+  emittedIntensity: 450
+  emittedColorTemperature: 2400

@@ -13,7 +13,7 @@
 
 import Reading from '@saxonberg/server/mud/lib/instrument/Reading';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tooled';
+import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tool';
 import {
   CompetenceBand,
   type CompetenceBandName,

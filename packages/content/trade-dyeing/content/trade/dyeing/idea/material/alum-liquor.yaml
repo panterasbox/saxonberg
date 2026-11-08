@@ -8,8 +8,9 @@
 #
 # ⚠ The curve is approximate (kg per liter of solution); its STEEPNESS is
 # the lesson, against salt's nearly flat one.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/sour, strength: 3 }]
   name: alum liquor
   keywords: [liquor, "alum liquor"]
   appearance: clear, faintly cloudy liquor

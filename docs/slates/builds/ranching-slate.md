@@ -15,6 +15,10 @@
 > ⚠ The intake side is unwired — nothing grazes (no class declares
 > `grazingDemandPerGameDay`) and nothing feeds a head (compacted
 > 2026-09-19; ledger `docs/plans/slate-compaction/ranching.md`)
+> ⭐ **The feed loop is being BUILT as Stage B of the cover build** (2026-10-28,
+> [cover-slate § 10](./cover-slate.md)): `move herd`, intake by metabolic
+> weight, the fed fraction into `flesh`, the hay trough, stubble grazing. The
+> rest of this list stays here.
 > **Left:** ⚠ **tap standing at the draft** (handed over by the carcass
 > chain: a head drafted out of the flock carries no record of what it has
 > already given, so nothing prices a ewe that was shorn last week) · the

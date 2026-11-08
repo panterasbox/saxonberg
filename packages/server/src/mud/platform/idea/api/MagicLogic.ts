@@ -65,7 +65,6 @@ import {
   type RangeState,
 } from '../../../lib/combat/RangeBand';
 import { SpeciesApi } from '../../../api/species';
-import { AccessApi } from '../../../api/access';
 import { CommandApi } from '../../../api/command';
 import { ZoneApi } from '../../../api/zone';
 import { BiomeApi } from '../../../api/biome';
@@ -112,7 +111,7 @@ import type Material from '../../../lib/material/Material';
 import UnboundedReceptacle from '../../thing/UnboundedReceptacle';
 import type { FacultyView } from '../../../lib/magic/Caster';
 import { MANA_RESERVE_KEY, OVERCHANNEL_STRAIN_PATH } from '../../../lib/magic/Caster';
-import type { Reserved } from '../../../lib/reserve';
+import type { Reserved } from '../../../lib/reserve/Reserved';
 import type { Container } from '../../../lib/spatial/Container';
 import type { Combatant } from '../../../lib/combat/Combatant';
 import type { GenerationNow } from '../../../lib/identification/Appearance';
@@ -121,35 +120,25 @@ const MagicApiCallers = SecurityPolicies.FromModule('/api/magic#MagicApi');
 /** The F3 object faces forward here as the subject instance. */
 const CasterCallers = SecurityPolicies.AnyOf(
   MagicApiCallers,
-  SecurityPolicies.FromMixin('CasterMixin', {
-    // Compare by stuffId — the caller may surface as the raw target
-    // while the argument is the proxy (or vice versa).
-    where: (caller, _target, _method, args) =>
-      (caller as { stuffId?: string }).stuffId !== undefined &&
-      (caller as { stuffId?: string }).stuffId ===
-        (args[0] as { stuffId?: string } | undefined)?.stuffId,
-  }),
+  SecurityPolicies.AllOf(
+    SecurityPolicies.FromMixin('CasterMixin'),
+    SecurityPolicies.SelfSubject(0),
+  ),
 );
 const ArcaneItemCallers = SecurityPolicies.AnyOf(
   MagicApiCallers,
-  SecurityPolicies.FromMixin('ArcaneMixin', {
-    // Compare by stuffId — the caller may surface as the raw target
-    // while the argument is the proxy (or vice versa).
-    where: (caller, _target, _method, args) =>
-      (caller as { stuffId?: string }).stuffId !== undefined &&
-      (caller as { stuffId?: string }).stuffId ===
-        (args[0] as { stuffId?: string } | undefined)?.stuffId,
-  }),
+  SecurityPolicies.AllOf(
+    SecurityPolicies.FromMixin('ArcaneMixin'),
+    SecurityPolicies.SelfSubject(0),
+  ),
 );
 /** `transferCharge(actor, shell, pt)` — the SHELL hosts the face (arg 1). */
 const ChargeShellCallers = SecurityPolicies.AnyOf(
   MagicApiCallers,
-  SecurityPolicies.FromMixin('ChargedMixin', {
-    where: (caller, _target, _method, args) =>
-      (caller as { stuffId?: string }).stuffId !== undefined &&
-      (caller as { stuffId?: string }).stuffId ===
-        (args[1] as { stuffId?: string } | undefined)?.stuffId,
-  }),
+  SecurityPolicies.AllOf(
+    SecurityPolicies.FromMixin('ChargedMixin'),
+    SecurityPolicies.SelfSubject(1),
+  ),
 );
 
 /** The prepare-phase result — gates only, nothing spent. */
@@ -1307,8 +1296,6 @@ async function executeOne(
     case 'offset-ambient':
       return execHeldWorking(ctx, spell, { realizes: 'offset-ambient', deltaK: effect.deltaK },
         effect.deltaK > 0 ? 'A warmth settles over your skin and stays.' : 'A coolness settles over your skin and stays.');
-    case 'script':
-      return execScript(ctx.actor, effect.source);
   }
 }
 
@@ -2130,19 +2117,6 @@ async function execEmitField(
     pokeReconcile(holder);
   }
   return 'A mote of cold light kindles and holds.';
-}
-
-async function execScript(caster: Stuff, source: string): Promise<string> {
-  // The exotic 5% — code-trust gated (the one non-diegetic gate).
-  if (!(await AccessApi.isWizard(caster))) {
-    return 'That working answers only to those who shape the world itself.';
-  }
-  if (!MixinApi.isCommandGiver(caster)) return 'No voice to speak it with.';
-  for (const line of source.split(/[;\n]/)) {
-    const text = line.trim();
-    if (text.length > 0) await caster.forceCommand(text);
-  }
-  return 'The scripted working runs.';
 }
 
 // ─────────────────────────── helpers ───────────────────────────

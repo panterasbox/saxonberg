@@ -12,6 +12,7 @@
 # ⚠ Texture is DERIVED from `work`, never authored on the cut.
 class: /platform/idea/material/Muscle
 data:
+  smells: [{ aroma: /base-library/aromas/raw-meat, strength: 60 }]
   name: breast-white
   keywords: [breast, white]
   work: 0.1
@@ -23,7 +24,7 @@ data:
   electricalConductivity: 0.2
   waterAbsorptionCapacity: 25
   edibility: true
-  tastes: [umami]
+  tastes: [{ type: umami, amount: 2 }]
   spoilActivationEnergy: 80000
   waterActivity: 0.99
   nutrients: [protein, water, fat]

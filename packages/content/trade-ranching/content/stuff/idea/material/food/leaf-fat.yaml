@@ -6,8 +6,9 @@
 # leaf fat is softer and renders to lard, which is a cooking fat and a
 # poor candle. ⚠ The chandler can use one of them and not the other, and
 # that falls out of the tags rather than out of a check anywhere.
-class: /platform/idea/material/ConsumableMaterial
+class: /platform/idea/material/OdorousConsumableMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/lard, strength: 60 }]
   name: leaf fat
   keywords: ["leaf fat", lard, fat, leaf]
   density: 920
@@ -18,7 +19,7 @@ data:
   electricalConductivity: 0.0
   waterAbsorptionCapacity: 2
   edibility: true
-  tastes: [umami]
+  tastes: [{ type: umami, amount: 0.5 }]
   spoilActivationEnergy: 90000
   waterActivity: 0.6
   nutrients: [fat]

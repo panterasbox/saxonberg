@@ -40,10 +40,9 @@ import Reading from '@saxonberg/server/mud/lib/instrument/Reading';
 import { CompetenceBand, type CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tooled';
+import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tool';
 import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
-import type { Shore } from '@saxonberg/server/mud/lib/location/Shore';
 import type { WaterRead } from '@saxonberg/server/mud/lib/location/WaterSource';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
@@ -97,13 +96,21 @@ function iceLine(ice: IceRecord, band: CompetenceBandName): string {
 const CATALOGUE_PATH = '/system/water/idea/WatercourseCatalogue';
 
 export default class WaterReading extends Reading {
+
   protected override async analyze(
     ctx: CommandContext,
     subject: Stuff | null,
     _band: CompetenceBandName,
-    _handTool: (Stuff & Tooled) | null,
+    handTool: (Stuff & Tooled) | null,
     param: string,
   ): Promise<void> {
+    // ⭐⭐ Whether a water is FIT is the kit's to say (water-supply D18):
+    // fouling and lead announce themselves to no sense, and the eye that
+    // printed *"fouled — an outfall above here"* at a glance was the
+    // engine doing the health officer's job. Bare, `analyze water` reads
+    // the river; with the test kit in hand, it reads what is IN it. The
+    // kit is handed down each call — a reading is one shared instance.
+    const kit = handTool;
     // ⚠ Absent and bound-but-unresolved are DIFFERENT, and collapsing
     // them is how a bare verb silently reads the wrong thing. An empty
     // `param` with nothing bound is *the player said nothing*; a
@@ -130,17 +137,15 @@ export default class WaterReading extends Reading {
         this.say(giver, pick.refusal);
         return;
       }
-      await this.reachReport(giver, pick.ref, pick.read, target);
+      await this.reachReport(giver, pick.ref, pick.read, target, kit);
       return;
     }
     if (target !== null) {
-      await this.reportOn(target, ctx);
+      await this.reportOn(target, ctx, kit);
       return;
     }
 
-    const scope = (
-      giver as Stuff & { getContainer?: () => unknown }
-    ).getContainer?.();
+    const scope = MixinApi.isContainable(giver) ? giver.getContainer() : null;
     if (!scope || !MixinApi.isContainer(scope as Stuff)) {
       ctx.note({
         kind: 'controller-rejected',
@@ -154,10 +159,10 @@ export default class WaterReading extends Reading {
       return;
     }
 
-    if (MixinApi.isShore(scope as Stuff)) {
-      const pick = await (scope as Stuff & Shore).waterRefFor();
+    if (MixinApi.isShore(scope)) {
+      const pick = await scope.waterRefFor();
       if (!('refusal' in pick)) {
-        await this.reachReport(giver, pick.ref, pick.read, scope as Stuff);
+        await this.reachReport(giver, pick.ref, pick.read, scope as Stuff, kit);
         return;
       }
       if (pick.reason !== 'no-water') {
@@ -179,7 +184,7 @@ export default class WaterReading extends Reading {
         .send();
       return;
     }
-    await this.reachReport(giver, reach, null);
+    await this.reachReport(giver, reach, null, null, kit);
   }
 
   private say(giver: Stuff, line: string): void {
@@ -191,7 +196,13 @@ export default class WaterReading extends Reading {
    * by physics. A sea (an `@` ref) reports what the water is instead: a
    * sea has no catchment to drain.
    */
-  private async reachReport(giver: Stuff, reach: string, read: WaterRead | null, place: Stuff | null = null): Promise<void> {
+  private async reachReport(
+    giver: Stuff,
+    reach: string,
+    read: WaterRead | null,
+    place: Stuff | null = null,
+    kit: (Stuff & Tooled) | null = null,
+  ): Promise<void> {
     if (reach.includes('@')) {
       const lines = [`water: ${read?.name ?? 'the sea'}`, 'salt'];
       if (read?.draw) lines.push(`${(read.draw.temperatureK - 273.15).toFixed(0)} °C at the surface`);
@@ -206,7 +217,13 @@ export default class WaterReading extends Reading {
     const flow =
       drainage?.flowAt === undefined
         ? null
-        : await drainage.flowAt(reach, WorldClockApi.getNow().rawValue());
+        : await (async () => {
+            // ⭐ Against the LIVE ledger, as a turnout reads it: an
+            // artificial channel carries only what is diverted into it, and
+            // without the draws a ditch read 0.00 m³/s (the browser walk).
+            const nowS = WorldClockApi.getNow().rawValue();
+            return drainage.flowAt(reach, nowS, await drainage.liveDraws(nowS));
+          })();
     if (flow === null) {
       MessageApi.scene(giver)
         .topic('sense.reading')
@@ -239,13 +256,17 @@ export default class WaterReading extends Reading {
       drainage?.contaminationAt === undefined
         ? null
         : await drainage.contaminationAt(reach, WorldClockApi.getNow().rawValue()).catch(() => null);
-    if (dirt !== null && dirt.level > 0) {
+    if (kit === null) {
+      lines.push('whether it is fit to drink, you cannot tell by looking');
+    } else if (dirt !== null && dirt.level > 0) {
       const fouledAt = Number.parseFloat(String(AppApi.setting('water.fouledAt') ?? '')) || 0.35;
       lines.push(
         dirt.level > fouledAt
           ? 'fouled — an outfall above here; unfit to drink unboiled'
           : 'traces of an outfall above here, thinned out',
       );
+    } else {
+      lines.push('the kit finds nothing in it; fit to drink');
     }
     // ⭐ The ice (the climate build, D8): read by PHYSICS — Stefan's law
     // and what a sheet bears are physics, and the Discipline already
@@ -310,9 +331,29 @@ export default class WaterReading extends Reading {
   }
 
   /** Print a waterworks' own report, over the shape. */
-  private async reportOn(target: Stuff, ctx: CommandContext): Promise<void> {
+  private async reportOn(
+    target: Stuff,
+    ctx: CommandContext,
+    kit: (Stuff & Tooled) | null,
+  ): Promise<void> {
     const giver = ctx.commandGiver;
     const report = (target as unknown as SupplyReporting).supplyReport;
+    // ⭐ Water a thing HOLDS — a pail filled at a standpipe, a jug from a
+    // well — is read the same way: bare, you cannot tell; with the kit,
+    // what is in it (the browser walk: a full pail "carried no water").
+    if (typeof report !== 'function' && this.holdsWater(target)) {
+      const lines =
+        kit === null
+          ? ['whether it is fit to drink, you cannot tell by looking']
+          : this.kitLines(target);
+      MessageApi.scene(giver)
+        .topic('sense.reading')
+        .toSelf(
+          Mml.compose`${target.getPresentation()}\n${lines.map((l) => `  ${l}`).join('\n')}\n`,
+        )
+        .send();
+      return;
+    }
     if (typeof report !== 'function') {
       ctx.note({
         kind: 'controller-rejected',
@@ -328,12 +369,76 @@ export default class WaterReading extends Reading {
       return;
     }
     const read = await report.call(target, WorldClockApi.getNow().rawValue());
+    // ⭐ The kit tests what would come out NOW — the water that stood in the
+    // pipe overnight included — so settle the outlet's water before reading
+    // it (the browser walk: the kit read a stale tap, without the lead).
+    if (kit !== null && MixinApi.isBulkable(target)) {
+      await target.settleBulk('interior').catch(() => undefined);
+    }
+    // ⭐ Without the kit, a supply's working is legible — its ends, its
+    // head, its pump — but whether its water is FIT is not (D18).
+    const lines =
+      kit === null
+        ? read.lines.filter((l) => !/\bfouled\b/.test(l))
+        : read.state !== null && read.state !== 'fouled'
+          ? // Nothing comes out, so the kit has nothing to test — a verdict
+            // on no water was "fit to drink" (the browser walk).
+            [...read.lines, 'nothing comes out for the kit to test']
+          : [
+              ...read.lines,
+              ...this.kitLines(target, read.lines.some((l) => /\bfouled\b/.test(l))),
+            ];
+    if (kit === null && read.lines.length !== lines.length) {
+      lines.push('whether its water is fit to drink, you cannot tell by looking');
+    }
     MessageApi.scene(giver)
       .topic('sense.reading')
       .toSelf(
-        Mml.compose`${read.label}\n${read.lines.map((l) => `  ${l}`).join('\n')}\n`,
+        Mml.compose`${read.label}\n${lines.map((l) => `  ${l}`).join('\n')}\n`,
       )
       .send();
+  }
+
+  /** Whether a thing holds water in its interior now (a pail, a jug). */
+  private holdsWater(target: Stuff): boolean {
+    if (!MixinApi.isBulkable(target)) return false;
+    const material = target.getBulkMaterial('interior');
+    return material !== null && /water/i.test(material.getTemplatePath() ?? '');
+  }
+
+  /**
+   * ⭐ What the kit finds in the water a thing HOLDS — a tap's, a pipe's, a
+   * pail's: lead (the leaf the lead law doses), and the water's acidity and
+   * hardness off its payload, which is how a health officer works out that
+   * a soft, acid supply through lead is the poisoning.
+   */
+  private kitLines(target: Stuff, reportedFouled = false): string[] {
+    if (!MixinApi.isBulkable(target)) return [];
+    const payload = target.getBulkPayload('interior');
+    const out: string[] = [];
+    const lead = payload?.dissolvedToxins?.find((t) => t.type === 'lead')?.amount ?? 0;
+    // What the WATER is: fouled water carries its dose on its material.
+    const fouled =
+      reportedFouled ||
+      (target.getBulkMaterial('interior')?.getToxicity() ?? []).some((t) => t.type !== 'lead');
+    // ⭐ The verdict, every time the kit reads (requirements drive 1:
+    // "with the kit it reads the water clean") — silence is not "clean".
+    if (fouled) {
+      if (!reportedFouled) out.push('fouled — unfit to drink unboiled');
+    } else if (lead > 0) {
+      out.push('lead in it; unfit to drink');
+    } else {
+      out.push('the kit finds nothing in it; fit to drink');
+    }
+    if (payload === null) return out;
+    if (lead > 0) out.push(`lead in the water — ${lead.toFixed(2)} mg a litre`);
+    if (typeof payload.pH === 'number') {
+      out.push(`pH ${payload.pH.toFixed(1)}${payload.pH < 7 ? ' — on the acid side' : ''}`);
+    }
+    if (typeof payload.hardnessDgh === 'number') {
+      out.push(`${payload.hardnessDgh.toFixed(0)} °dH`);
+    }
+    return out;
   }
 
   /**

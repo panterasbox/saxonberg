@@ -12,8 +12,8 @@
 # unions them onto every floor by construction. Belt and braces, and a row
 # should read honestly on its own — `lint:ground` clause (d) holds every
 # floor row to it. ⚠⚠ The `details.floor` keyword list below is NOT what
-# `sit` resolves against: `pushDetails` gives a detail the pool `[<its id>]`
-# and never its authored keywords, which is exactly why the words have to
+# `sit` resolves against: a detail answers through its host's
+# `DetailedMixin.getKeywords` by its id, never its authored keywords, which is exactly why the words have to
 # be up here.
 #
 # This row authors NO material. That is deliberate — it is what sends the

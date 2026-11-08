@@ -121,7 +121,7 @@ unamendable except by founding anew (Article X §4).
 ## Article III — Influence
 
 1. Governance is exercised through **influence**, of three non-fungible
-   kinds, each earned by a kind of contribution: **producer** (creation —
+   kinds, each earned by a kind of contribution: **labor** (creation —
    measured by the engagement one's authored content earns), **capital**
    (funding), **consumer** (participation — engaged consumption, measured as
    engagement × regard).
@@ -145,20 +145,20 @@ unamendable except by founding anew (Article X §4).
    `engagement × regard`), within bounds; it never mints standalone voting
    weight, grants office, or organizes deliberation. *Reputation → bounded
    weight; never reputation → authority.*
-7. **Producer influence may be supplemented by merit pay.** Because producers
-   largely contribute unpaid, a bounded **merit award of producer influence —
-   and producer influence only, never consumer or capital** — may recognize
+7. **Labor influence may be supplemented by merit pay.** Because makers
+   largely contribute unpaid, a bounded **merit award of labor influence —
+   and labor influence only, never consumer or capital** — may recognize
    creation **the §1 measure can't capture**: work the instrumentation can't
    *see* (infrastructure), or worth it can't *judge* (whether content betters
    the world is a human call, not a code metric). The **exception**, never the
-   main way producer influence is earned. It is **minted and capped by the
+   main way labor influence is earned. It is **minted and capped by the
    legislature**, **evaluated by competence** (good work judged by those able
    to judge it), **recusal-gated** (no self-award), **sub-decisive**, and
    recorded with a public rationale and **justiciable**.
 
 ## Article IV — The Legislature
 
-1. The legislature comprises **three co-equal chambers**: the Producer House,
+1. The legislature comprises **three co-equal chambers**: the Labor House,
    the Capital House, and the Consumer House.
 
    > ⚠⚠ **A known limit of two-of-three, recorded 2026-09-29** —
@@ -328,7 +328,7 @@ unamendable except by founding anew (Article X §4).
    by use, so the burden falls on the challenger. A **fault**-based takedown
    (broken, harmful, exploitative) runs as a **case** — the same two faces
    judging whether the content still verifies and still serves the spirit — and
-   yields a **cure order**: the producer is told the specific defect and given a
+   yields a **cure order**: the maker is told the specific defect and given a
    **remediation window**, the content going dark only if uncured. Pulling for
    fault **claws back** the influence that content earned (it was never
    legitimately earned); retiring conforming content is **no-fault deprecation**
@@ -362,7 +362,7 @@ unamendable except by founding anew (Article X §4).
 ## Article VIII — The Treasury & the Economic Firewall
 
 1. The polity's **operating funds** (real money, for the world's real costs
-   and the producers' compensation) and any **in-world economy** are separated
+   and the makers' compensation) and any **in-world economy** are separated
    by an absolute **firewall**: the two **never convert**. Real money earns no
    in-world currency, property, or advantage; in-world value redeems for no
    real money. They are two concerns with two different failure modes —
@@ -531,7 +531,7 @@ co-equality (Art. I §5), shown for completeness, not tunable.
 | Parameter | Meaning | Tier | Value |
 |---|---|---|---|
 | `merit.regard_bound` | cap on how much renown may multiply earned consumer influence | organic | calibrate at launch |
-| `merit.producer_bank_cap` | size of the legislature-minted producer merit-pay bank | organic | set per appropriation |
+| `merit.producer_bank_cap` | size of the legislature-minted labor merit-pay bank | organic | set per appropriation |
 
 ### Amendment tiers (Art. X)
 

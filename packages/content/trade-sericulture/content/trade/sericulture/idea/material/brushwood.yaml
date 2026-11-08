@@ -1,8 +1,10 @@
 # Brushwood — dry twiggy heather or broom, bundled. ⭐ What a wandering
 # worm climbs to spin: the `mounting` tag is what the tray looks for, and
 # a tray with none on it spins a day late, on its own floor, and lighter.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/wood, strength: 10 }]
+  burning: [{ aroma: /base-library/aromas/wood-smoke, strength: 300 }]
   name: brushwood
   keywords: [brushwood, brush, twigs]
   appearance: dry, twiggy brushwood

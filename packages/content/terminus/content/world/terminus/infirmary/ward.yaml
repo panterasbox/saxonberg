@@ -4,7 +4,7 @@
 # store and the bank.
 # ⭐ Persistent (cleanliness D31): a kept place — its floor, its fire,
 # what is curing on its shelves — outlives a restart.
-class: /platform/location/PersistentLocale
+class: /platform/location/PersistentHall
 data:
   shortDescription: infirmary
   keywords: [infirmary]
@@ -42,6 +42,18 @@ data:
     # priced board that is also the bank register reading the fridge.
     - /world/terminus/infirmary/thing/blood-window
     - /world/terminus/infirmary/thing/cot
+    # ⭐ The water-test kit (water-supply D18): whether a water is fit is the
+    # kit's to say. It lives on the ward's shelf, for the health officer.
+    - /system/water/thing/test-kit
+    # A snake plant in a glazed cachepot on the sill, and the can to water
+    # it with (water-supply, the browser walk): the pot has no drainage
+    # hole, so whoever waters it too kindly drowns it. ⚠ Honestly: it is here
+    # because the walk needed somewhere to show acceptance criterion 18
+    # (an undrained pot drowns its plant), and it is still the ONLY undrained
+    # pot in the game — nothing sells one. Move the lesson to where gardeners
+    # buy pots when a trade sells them (farming slate).
+    - /trade/farming/thing/pot/cachepot
+    - /stuff/thing/vessel/watering-can
     - /world/terminus/infirmary/thing/dressing-cabinet
     # ⭐ Cold storage (cold-storage build): a powered blood fridge on the
     # avenue feeder keeps the ward's blood bags cold for weeks, with a colder
@@ -57,7 +69,7 @@ data:
     - /trade/medicine/thing/splint
     - /trade/medicine/thing/surgical-kit
     - /trade/medicine/thing/antivenin-vial
-    # ⭐ The basin is REAL water now (recovery build) — it affords `scrub`
+    # ⭐ The basin is REAL water now (recovery build) — it affords `wash --hard`
     # (clean hands between patients), `rinse` and `cool`. The prose already
     # names a basin; this makes it a working water source.
     - /stuff/thing/fixture/basin

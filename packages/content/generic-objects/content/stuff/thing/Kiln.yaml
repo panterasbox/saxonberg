@@ -3,7 +3,7 @@
 # glasshouse props it, and a pottery trade gave its lining something to
 # wear.
 # Kiln — a ceramics / lime firing furnace. A steady pottery heat (1200 K),
-# with a modest bellows boost. Lit with `ignite`, run with `fire`.
+# with a modest bellows boost. Lit with `light`, run with `fire`.
 #
 # ⭐⭐ **The `Kiln` CLASS is gone, and this row is why it could go.** `Forge`
 # and `Kiln` were byte-identical — the same imports and the same composition

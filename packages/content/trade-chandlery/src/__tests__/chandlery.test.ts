@@ -172,7 +172,7 @@ describe('melt-wax — a STEP of the dip, not a verb of its own', () => {
     expect(row.class).toBe('/trade/chandlery/thing/DipPot');
   });
 
-  it('⭐⭐⭐ `melt` is an ALIAS on `dip`, and ships no view of its own', () => {
+  it('⭐⭐⭐ `melt` is no verb at all: it is a step of `dip`, and ships no view', () => {
     // It shipped as a second verb for one build, on the argument that the
     // pot has to be filled before anything can be dipped out of it. The
     // asymmetry between a liquid crock and a hard cake is real; the
@@ -188,8 +188,8 @@ describe('melt-wax — a STEP of the dip, not a verb of its own', () => {
         'utf8',
       ),
     ) as { verbs: string[]; args: { name: string }[] };
-    // `gob` is glass's word for the same act (a gather out of a melt).
-    expect(dip.verbs).toEqual(['dip', 'melt', 'gob']);
+    // One view, one word: melting and gathering are steps of the dip.
+    expect(dip.verbs).toEqual(['dip']);
     // ⚠ And the thing dipped is declared FIRST. Positionals bind in
     // declared order, so with the bath ahead of it `dip the cake` hands
     // the cake to the bath — the defect the milling trade paid for with
@@ -297,15 +297,8 @@ describe('the class', () => {
     ).toBeGreaterThan(0);
   });
 
-  it('⭐ is a Lamp that smells', () => {
-    const c = makeStuff(() => new Candle());
-    expect(c instanceof Lamp).toBe(true);
-    expect(MixinApi.isSmellSource(c as unknown as Stuff)).toBe(true);
-    // A lantern is not. This is the one thing a candle has that a lantern
-    // does not, and it is why a tallow candle was worth complaining about.
-    expect(MixinApi.isSmellSource(makeStuff(() => new Lamp()) as unknown as Stuff)).toBe(
-      false,
-    );
+  it('⭐ is a Lamp', () => {
+    expect(makeStuff(() => new Candle()) instanceof Lamp).toBe(true);
   });
 
   it('⚠ a candle made of nothing in particular is still a candle', () => {
@@ -315,15 +308,12 @@ describe('the class', () => {
     c.setShortDescription('candle');
     expect(c.getShortDescription()).toBe('candle');
     expect(() => c.getLongDescription()).not.toThrow();
-    // …and `adoptMaterialSmell` on it is a no-op rather than a crash.
-    expect(() => c.adoptMaterialSmell()).not.toThrow();
     // ⭐⭐ Same for the FUEL, and the fire build is why it matters: a
     // candle is a `Burner` whose fuel is itself, so a candle with an
     // empty bed is a light that can never be lit — which is exactly the
     // defect this build found on a shop counter twice. A materialless
     // candle keeps the ROW's tallow default rather than being emptied.
     expect(() => c.adoptMaterialFuel()).not.toThrow();
-    expect(c.getOdorIdentity()).toBe('');
   });
 });
 

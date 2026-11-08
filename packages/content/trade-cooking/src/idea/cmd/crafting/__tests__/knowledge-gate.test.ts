@@ -14,7 +14,7 @@ import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { ExecutionContextApi } from '@saxonberg/server/mud/api/execution-context';
-import { RecipeKnowledge } from '@saxonberg/server/mud/lib/script/RecipeKnowledge';
+import { RecipeKnowledge } from '@saxonberg/server/mud/lib/craft/RecipeKnowledge';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { CommandContext } from '@saxonberg/server/mud/api/command';
 import {

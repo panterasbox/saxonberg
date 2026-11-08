@@ -1,7 +1,7 @@
 /**
  * A body's own ignition point (review R2-B1): the material's autoignition
  * raised by the water the piece holds — the fire system's one wetness
- * formula — so a pour and a firing chamber agree with `ignite` about a
+ * formula — so a pour and a firing chamber agree with `light` about a
  * soaked board.
  */
 
@@ -11,7 +11,7 @@ import Good from '../../stuff/Good';
 import Material from '../Material';
 import { ThermalMixin } from '../../thermal/Thermal';
 import { WetMixin } from '../../wetness/Wet';
-import { ReservedMixin } from '../../reserve';
+import { ReservedMixin } from '../../reserve/Reserved';
 import { BulkableMixin } from '../../bulk/Bulkable';
 import { CombustibleMixin } from '../../fire/Combustible';
 import { Quantity } from '../../quantity';

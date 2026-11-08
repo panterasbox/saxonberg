@@ -15,8 +15,8 @@
 > discipline it has a MASTER of; graph-weighted, exclusive — breadth
 > costs people, not money) · the **guild wizard** as a roster position +
 > the no-custom-code acceptance test · guild governance riding the
-> shipped Office substrate · the noun/verb amendment (verbs are
-> University faculties)
+> shipped Office substrate · the noun/verb amendment (verbs → ⭐ **five verb
+> GUILDS**, 2026-11-07, overturning "University faculties")
 > **Size:** a build
 
 > This slate is the institution-level guild design. It **supersedes and
@@ -177,6 +177,52 @@ faculties rather than vocational institutions.
 (guild) × create (faculty), so **magical craft requires a standing
 relationship with the University** — a cross-institution dependency the
 design currently has nowhere.
+
+### ⭐⭐⭐ Amended 2026-11-07 — FIVE VERB GUILDS, overturning the faculties **[DECIDED — the owner]**
+
+The 09-24 amendment put the verbs in *"faculties of the University."* The owner: *"I dunno what a
+university faculty is, so I'm gonna go with guilds. The university doesn't even have a real curriculum
+yet; it's nothing."* And earlier: *"I want the five verb disciplines to be very exclusive in how
+they're trained, because their impact is so broad … the noun disciplines can go in whatever guilds they
+make sense going in. So a miners' guild gets digging spells … but the verbs should be limited to the
+mages' guild itself, and there should probably be five different mages' guilds for the five verbs."*
+
+- **Five verb guilds**, one per verb. **The nouns stay where 09-24 put them**, as each vocation's
+  mystery tier.
+- ⭐ **The 09-24 objection, *"a verb is not a livelihood,"* no longer holds.** The mana and spellbook
+  designs ([mana-economy-design-pack](./mana-economy-design-pack.md) Part 11,
+  [spellbook-slate](./spellbook-slate.md)) give every verb a utility someone is paid to run:
+
+  | verb | livelihood |
+  |---|---|
+  | perceive | the assay office and the **hallmark**; scrying; diagnosis |
+  | create | conjuring; **reembodiment** providers |
+  | control | teleport and the TPA; the custody summons; held bindings (wards, the bag of holding) |
+  | destroy | dispelling; demolition; breaking curses and bindings |
+  | transform | the great workings: heat treatment at scale, refining, transmutation |
+
+  Whether each guild also **runs** its verb's utility is open.
+- **A smith's fire magic is fire (her guild) × create (the Create guild).** *"I actually don't mind"*
+  **dual membership** for now. Scoped instruction (a course in *create for fire*) and licensing between
+  guilds stay available, and they're one mechanism at two sizes.
+- **Membership limits itself**: dues, an oath and a focus. *"Two or three is a full life,"* with no
+  slot cap. The balance ledger stands: one global dial, markets for the rest.
+- ⭐⭐ **Exclusivity lives in KNOWLEDGE, never in a cap** **[agreed "for now"]**. Competence is never
+  capped (*we measure real competence*). The verb guilds hold their **advanced spell texts as
+  mysteries**. Casting gates on *spell known*, and spellbooks are documents governed by possession (the
+  paper build). That produces stolen spellbooks, defectors, black-market copies, hedge-witches, and
+  schisms over who gets taught.
+- ⚠ **A cartel risk, and the polity's to govern:** five guilds jointly hold all magic. Chartering,
+  licensing law, antitrust, and whether a guild may keep its texts secret or the Compact charters a
+  public library of workings are all governance content. The *claim rule* (a charter claims only what it
+  has a master of) still makes breadth cost people, not money.
+- **Exercising the Disciplines under the new design:**
+  - **conductance** is trained by progressive overload, casting near your limit;
+  - **specification** is trained by precision and examined by tests (the
+    [assessment slate](./assessment-slate.md); the guild as the standards-body issuer);
+  - **nouns** can be trained in the trade itself (knowing stone is knowing stone);
+  - **items don't train the verb** (`MagicProvenance` separates who specified from who fired);
+  - **buffs act on state, never on competence.**
 
 ## Invariants and divergence axes
 
@@ -396,7 +442,7 @@ any character competence ([access.md](../../subsystems/access.md)). So:
 
 - A wizard's **character** joins guilds like anyone.
 - **Authoring is a real disciplined vocation**: worldwrighting is
-  diegetic labor (scripting, Studio, the provenance ledger, producer
+  diegetic labor (scripting, Studio, the provenance ledger, labor
   credit) — discipline × demand, so a **Worldwrights' guild** is its
   natural institution, the player → contributor on-ramp given a hall
   and a ladder (associates script; members are protowizard content
@@ -585,7 +631,7 @@ law**; harm to *people* is **meta-state** (moderation) — the membrane.
 | **The Landwrights** | private charter **holding public contracts** | survey, valuation, conveyancing/title-law, development, tenancy-stewardship; *earth/perceive* | the polity **assessment contract** (DAU-independent); see the deep-dive |
 | **The Chorus** | private, open-door | performance, oratory, music, spectacle-craft; *light/mind* | **tips + venue engagements** (realm money); the broadcast stage pays in *renown and platform patronage* — a **sanctioned membrane-straddle**, not a realm paymaster |
 | **The Society of Inquiry** | private, examined, knowledge | inquiry method, **identification**, materials analysis, arcana-as-subject | identification services (the unidentified-consumables economy), analysis for crafters, instruction employment at the University; *commissioned research waits on the teachable-goods market having teeth* |
-| **The Worldwrights** | private, examined | scripting, template-craft, dialogue-craft, lore | business/guild **commissions in realm money** + producer-stock influence — the second sanctioned straddle (the make chamber, by design) |
+| **The Worldwrights** | private, examined | scripting, template-craft, dialogue-craft, lore | business/guild **commissions in realm money** + labor-stock influence — the second sanctioned straddle (the make chamber, by design) |
 
 ### Standing charters (authored-but-dormant: 8)
 
@@ -664,7 +710,7 @@ Four findings bigger than any single charter:
    that. **Polity paper provides the DAU-independent anchors**
    (assessment, marshal writs, floor-buys, frontier contracts).
 3. **Two membrane-straddles are sanctioned, not bugs**: the
-   Worldwrights (realm-money commissions ⊕ producer influence) and the
+   Worldwrights (realm-money commissions ⊕ labor influence) and the
    Chorus (realm-money tips ⊕ renown/platform patronage) each span the
    realm/meta line exactly the way the three-chambers design intends —
    they *demonstrate* the membrane.
@@ -965,7 +1011,7 @@ it needs no new machinery:
   instant politics.
 - **Compensation already exists on the right axis.** Authored work routes
   through [provenance](../../subsystems/provenance.md) →
-  `authoring_events` → **producer standing**. ⭐ That is the honest
+  `authoring_events` → **labor standing**. ⭐ That is the honest
   answer to *real labor, not a labor experience*: it is compensated on
   the **real** axis, not the diegetic one, whether or not the guild also
   pays a wage.

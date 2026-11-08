@@ -24,6 +24,7 @@ import { SensorMixin } from '../../message/Sensor';
 import { ContainableMixin } from '../../spatial/Containable';
 import { Idea } from '../../stuff/Idea';
 import { StuffApi } from '../../../api/stuff';
+import { candidateFor, scoreCandidate, TIER_PHRASE, TIER_WORDS } from '../../../api/mql/scope-walk';
 import { makeStuffAtPath } from '../../security/__tests__/test-setup';
 
 class Stranger extends BeliefStoreMixin(
@@ -46,7 +47,30 @@ let n = 0;
 beforeEach(() => StuffApi.clearAll());
 afterEach(() => StuffApi.clearAll());
 
+describe('what you may name somebody by', () => {
+  it('⭐ a whole name answers, whatever punctuation is in it (`mary-jane`)', () => {
+    const viewer = makeStuffAtPath(() => new Stranger(), `/v/${n++}`);
+    const mary = makeStuffAtPath(() => new Animal(), `/stuff/agent/cat-${n++}`);
+    mary.setName('Mary-Jane');
+    mary.setShortDescription('thin cat');
+    expect(mary.perceivedKeywordsFor(viewer)).toContain('mary-jane');
+    const c = candidateFor(mary, viewer);
+    expect(scoreCandidate(c, ['mary-jane'])).toBe(TIER_PHRASE);
+    expect(scoreCandidate(c, ['mary']), 'one word still finds her').toBeGreaterThanOrEqual(TIER_WORDS);
+    expect(c.keywords).toContain('mary-janes');
+  });
+});
+
 describe('a stranger reading a name', () => {
+  it('⭐ a thing named outright outranks a person who merely wears one', () => {
+    const viewer = makeStuffAtPath(() => new Stranger(), `/v/${n++}`);
+    const worker = makeStuffAtPath(() => new Person(), `/obj/npc/w-${n++}`);
+    worker.setShortDescription('worker in a jumper');
+    const c = candidateFor(worker, viewer);
+    expect(scoreCandidate(c, ['jumper'])).toBeLessThan(TIER_PHRASE);
+    expect(scoreCandidate(c, ['jumper'])).toBeGreaterThan(0);
+  });
+
   it('⭐ sees a named ANIMAL by its name', () => {
     const viewer = makeStuffAtPath(() => new Stranger(), `/v/${n++}`);
     const mouse = makeStuffAtPath(() => new Animal(), `/stuff/agent/cat-${n++}`);
@@ -100,6 +124,6 @@ describe('⭐ a named animal is still targetable as what it is', () => {
     const kws = bob.perceivedKeywordsFor(viewer);
     expect(kws).not.toContain('bob');
     expect(kws).not.toContain('smuggler');
-    expect(kws).toContain('stranger');
+    expect(kws.join(' ')).toMatch(/\bstranger\b/);
   });
 });

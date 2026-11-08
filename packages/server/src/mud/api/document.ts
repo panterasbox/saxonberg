@@ -32,7 +32,9 @@ import { DocumentLogic } from "../platform/idea/api/DocumentLogic";
 import { fileURLToPath } from "url";
 import { CallSecurity } from "../lib/security/decorators";
 import { Mixins } from '../lib/mixin';
-import type { Registrar } from '../lib/document/Register';
+import type { Registrar } from '../lib/document/Registrar';
+import type { DocumentPages, EditionRequest } from '../lib/document/Edition';
+import type { Berthed } from '../platform/idea/BerthExit';
 import { SecurityPolicies } from "../lib/security/SecurityPolicies";
 import { SecurityApi } from './security';
 
@@ -106,9 +108,26 @@ const MAP_TRANSPORT_CALLERS = SecurityPolicies.FromModule(
   "/platform/idea/api/NavigationLogic#NavigationLogic",
 );
 
-const REGISTER_TRANSPORT_CALLERS = SecurityPolicies.FromMixin(
-  Mixins.Registrar,
-  { where: (caller, _target, _method, args) => caller === args[0] },
+/**
+ * ⚠⚠ **The berth transport — the ship herself, writing her own line, and
+ * nothing else**. A landing's roll of the ships lying
+ * at it is the landing's, but each line on it is one ship's word about
+ * herself — so the caller must be a voyaging craft and the craft it is
+ * writing for (`saveToRegister`'s relational shape). It takes no flag:
+ * whether she lies there is READ off her, so even she cannot write a
+ * false line.
+ */
+const BERTH_TRANSPORT_CALLERS = SecurityPolicies.AllOf(
+  SecurityPolicies.FromModule("/platform/idea/Ship", { includeSubclasses: true }),
+  SecurityPolicies.SelfSubject(0),
+);
+
+// ⚠ The marker, deliberately: registrars are six rows' classes across five
+// packs (kernel code may not name a pack class), and the self-subject bounds
+// it — a register files only under itself (controllers-are-io D25).
+const REGISTER_TRANSPORT_CALLERS = SecurityPolicies.AllOf(
+  SecurityPolicies.FromMixin(Mixins.Registrar),
+  SecurityPolicies.SelfSubject(0),
 );
 
 const LOGIC_PATH = "/platform/idea/api/document";
@@ -203,6 +222,33 @@ export class DocumentApi {
   }
 
   /**
+   * ⭐ Bring `ship`'s line on `landingPath`'s berth roll up to the truth:
+   * her durable handle is on it iff she is made fast there now
+   * (`getBerth() === landingPath`), struck off it otherwise. The roll is
+   * one document per landing at `/platform/berths<landing path>`, kind
+   * `berth-roll`, owned by the landing.
+   *
+   * ⚠⚠ An ownership bypass, narrow by construction: only the ship may
+   * call it for herself ({@link BERTH_TRANSPORT_CALLERS}), it writes only
+   * her own handle, and it takes no word from her about where she lies.
+   */
+  @CallSecurity(BERTH_TRANSPORT_CALLERS)
+  static saveBerth(
+    ship: Stuff & Berthed,
+    landingPath: string,
+  ): Promise<void> {
+    return logic().saveBerth(ship, landingPath);
+  }
+
+  /**
+   * The durable handles on `landingPath`'s berth roll, in the order they
+   * came — `[]` for a landing nobody has made fast at.
+   */
+  static berthRollOf(landingPath: string): Promise<string[]> {
+    return logic().berthRollOf(landingPath);
+  }
+
+  /**
    * ⚠⚠ **The business-filed-paper transport — `saveRelease`'s twin, and
    * one of the three ownership bypasses** (with `saveToRegister` above).
    * Writes a document **owned by a `Business`** rather than by the acting
@@ -232,6 +278,39 @@ export class DocumentApi {
     data: Record<string, unknown>,
   ): Promise<void> {
     return logic().saveAsBusiness(business, path, kind, data);
+  }
+
+  /**
+   * ⭐ A stored document rendered as PAGES — what a sheet, a
+   * book or a screen shows of it. Exhaustive over the closed kind table;
+   * `null` for a kind that does not read as a page (a script, a map).
+   * A read, ungated like {@link DocumentApi.read}.
+   */
+  static pagesOf(path: string): Promise<DocumentPages | null> {
+    return logic().pagesOf(path);
+  }
+
+  /**
+   * ⭐ The document a reader may CALL UP by a word — to show on a
+   * screen, to set in type, to print: the newest standing release whose
+   * headline or publisher answers to it, else a paper of the reader's own.
+   * `null` when nothing answers.
+   */
+  static callUp(reader: Stuff, word: string): Promise<{ path: string; title: string } | null> {
+    return logic().callUp(reader, word);
+  }
+
+  /**
+   * ⚠⚠ **The edition transport** — freeze the pages of a
+   * printing as a `kind: 'edition'` document at
+   * `<source>/editions/<hash>`, owned by the source's owner, and return
+   * its path. Idempotent: the same pages freeze to the same edition. No
+   * caller-supplied owner or path; no caller allowlist (its callers are
+   * the kernel's stores and the printing pack — `saveAsBusiness`'s
+   * reason). Throws on a source that names nothing.
+   */
+  static freezeEdition(req: EditionRequest): Promise<string> {
+    return logic().freezeEdition(req);
   }
 
   /**

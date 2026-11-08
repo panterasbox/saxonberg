@@ -13,6 +13,7 @@
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
+import type Exit from '../boundary/Exit';
 import type { Propertied } from '../stuff/Propertied';
 import { type Enablement } from './Enablement';
 import { Property } from '../stuff/Propertied';
@@ -72,6 +73,13 @@ export function ClimbableMixin<TBase extends MixinConstructor<Stuff>>(
       const cap =
         (actor as Stuff & Propertied).getProp(CLIMBING_CAPABILITY_PROP) ?? 1;
       return cap >= this.difficulty;
+    }
+
+    /** @hook After a crossing on this host (cordage D11). Default: nothing. */
+    public async afterEnabledTraverse(actor: Stuff, direction: string, exit: Exit): Promise<void> {
+      void actor;
+      void direction;
+      void exit;
     }
   };
 }

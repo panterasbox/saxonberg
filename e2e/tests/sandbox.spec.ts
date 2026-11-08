@@ -92,11 +92,12 @@ test.describe('sandbox: the wardrobe crossing', () => {
   test('clutter made inside a circle does not follow you out', async ({
     browser,
   }) => {
-    // A wizard: `clone` is code-trust gated, and cloning is the fastest
-    // way to make durable-looking junk inside the circle.
+    // `clone` is gated on the KIND's title, not on the wizard axis, and
+    // cloning is the fastest way to make durable-looking junk inside the
+    // circle. ⚠ `/platform` kinds are titled to `/compact/executive`
+    // (the Prime Minister's), so an ordinary player is refused this one.
     const { page, close } = await openWorldAs(browser, 'wire-clutter', {
       startLocation: ALCOVE,
-      wizard: true,
     });
     try {
       await sendUntil(page, 'look', whereHeading(page, ALCOVE_HEADING));
@@ -466,7 +467,6 @@ test.describe('sandbox: the wardrobe crossing', () => {
     // actually regressed.
     const { page, close } = await openWorldAs(browser, 'wire-rulebook', {
       startLocation: ALCOVE,
-      wizard: true,
     });
     try {
       await sendUntil(page, 'look', whereHeading(page, ALCOVE_HEADING));
@@ -507,7 +507,6 @@ test.describe('sandbox: the wardrobe crossing', () => {
     // closed door. A refusal is content, not a crash.
     const { page, close } = await openWorldAs(browser, 'wire-nested', {
       startLocation: ALCOVE,
-      wizard: true,
     });
     try {
       await sendUntil(page, 'look', whereHeading(page, ALCOVE_HEADING));

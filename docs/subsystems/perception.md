@@ -302,6 +302,29 @@ sync at the enumeration seams by warming it into
 `PerceptionLogic.preloadForSenseGate`'s per-command snapshot. Full detail in
 [concealment.md](./concealment.md).
 
+### ⭐ The room listing is one query, and the orphan guard stays
+
+`look`, `sense` and the inspection card list a place (or a holder) by ONE
+MQL query since controllers-are-io W2 —
+`here:i:visible:[not mixin.AdornmentMixin] - me` (the card's
+`#<host>:i:visible:carried:…`) — where three verbatim hand-rolled filters
+stood. `:visible` is this face (`perceives`), `:i` is
+`visibleContentsOf`, and ⚠ `visibleContentsOf` now asks `perceives` per
+viewer too: a bare `isConcealed()` there hid a thing the viewer had
+already DISCOVERED the moment it sat in any listing.
+
+⚠ **The orphan guard stays.** The listing then calls
+`Container.getLooseContents(visible)`, whose `ids.has(host)` clause is
+set-relative: an item placed on a host the viewer does NOT perceive is
+listed loose rather than vanishing with it. The mql-predicate-parity
+slate filed it as a question for this doc — *should anything ever hide
+a host and show what is on it?* — and the answer kept is **yes, until a
+build decides otherwise**: concealment is per object, a hidden shelf
+does not hide the bottle someone left on it, and removing the clause
+would be a behavior change no test proves safe. So `:loose` (the
+predicate, typeable) reads the holder's FULL list, and the listing keeps
+the guard by calling the method on what it can see.
+
 ### `resolveAmbush` — a hiding read is a perception fact
 
 `PerceptionApi.resolveAmbush(attacker, defender)` answers "does this
@@ -313,6 +336,49 @@ hidden from you is a perception question, and combat asking it does not
 make it combat physics. Combat asks; perception answers. The band an
 ambush buys (`close`, regardless of the arena's maximum) is combat's
 call and stays in `CombatLogic` — see [ranged.md](./ranged.md).
+
+## ⭐⭐ Another person — what a look may not tell you
+
+*Their pockets and their weight are not in view* (client-surface W0,
+#103/#104). One predicate decides it, named once:
+
+```
+PerceptionApi.isAnotherPerson(viewer, target)
+  = viewer !== target && target.isAgent() && MixinApi.isSlotted(target)
+```
+
+A PERSON is an agent with slots; a rack is slotted and wears nothing, so
+it lists like any container. `PerceptionApi.visibleContentsOf(viewer,
+target)` — the one rule `look`, `inventory` and MQL's `:i` read (see
+[perceiver.md](./perceiver.md)) — reads it: for another person the
+answer is what they **wear** and **hold**, never what they **carry**; for
+yourself it is all three; for a container it is everything inside, once
+open.
+
+The card surface follows the same rule, so the wire cannot leak what the
+prose withholds:
+
+- **`contents`** on a card (`Container`'s subscribable read): for
+  another person, only the children `visibleContentsOf` says they
+  **hold** survive the filter (worn stays the `worn` projection's), so a
+  stranger's pocket never reaches a client.
+- **`mass`** (`Tangible`'s read) returns nothing for another person:
+  *another person's weight is read by a scale, never by a look.* ⚠ The
+  read states `isAnotherPerson`'s three clauses inline rather than
+  importing the Api, because that import closes a cycle through `Thing`
+  (B6); `mql-subscription.privacy.test.ts` pins that the two agree, and a
+  change to the predicate must change both.
+
+### A person's things are seen in their room's light
+
+`VisionModality`'s detail gate lifts the light environment for a
+person: when the thing being looked at sits inside an agent with slots,
+the light it is seen in is the light **its wearer stands in**
+(`env = env.getContainer() ?? env`), beside the existing lift for a
+thing inside a containable. The light inside a body is no light at all,
+so before this every worn hat on a stranger read *something* (#90).
+Which of their things are in view at all stays `visibleContentsOf`'s
+rule, not this one.
 
 ## Where the pattern is currently used
 
@@ -411,3 +477,12 @@ room made them reachable: it skips exits answering false to
 room, and resolving it lands on a non-Container), and it skips a
 destination that is destroyed — a reaped neighbour's proxy answers
 every call with `undefined`, and `look` must not die because of it.
+
+## History
+
+- **Client surface (2026-10-31)** — `PerceptionApi.isAnotherPerson`
+  named the person rule that `visibleContentsOf` reads; a card's
+  `contents` and `mass` follow it; `VisionModality` lifts a person's worn
+  and held things to their room's light. See
+  `docs/plans/client-surface-plan.md` (W0, B6) until it is retired at the
+  sweep.

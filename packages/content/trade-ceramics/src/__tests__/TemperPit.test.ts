@@ -84,7 +84,7 @@ describe('the temper pit', () => {
     const before = fresh.crackRisk();
     const actor = makeStuff(() => new TestActor());
     await ContainmentApi.move(actor, yard);
-    const plan = await p.kneadPlanFor({ actor, commandText: 'knead pit' });
+    const plan = await p.kneadPlanFor({ actor });
     expect(plan.ok).toBe(true);
     if (plan.ok) plan.onComplete();
     for (let i = 0; i < 10; i++) await new Promise<void>((r) => setTimeout(r, 0));
@@ -111,7 +111,7 @@ describe('the temper pit', () => {
     await ContainmentApi.move(jug, p);
     const actor = makeStuff(() => new TestActor());
     await ContainmentApi.move(actor, yard);
-    const plan = await p.kneadPlanFor({ actor, commandText: 'knead pit' });
+    const plan = await p.kneadPlanFor({ actor });
     expect(plan.ok).toBe(true);
     if (plan.ok) plan.onComplete();
     // The tread completes async; a ware's destruct takes more turns than a lump's.
@@ -125,11 +125,12 @@ describe('the temper pit', () => {
     const p = pit(true);
     await put(p, clayMat, 9, true);
     await put(p, material('terracotta', ['ceramic', 'fired']), 1, false);
-    const plan = await p.kneadPlanFor({ actor: makeStuff(() => new Yard()), commandText: 'knead' });
+    const plan = await p.kneadPlanFor({ actor: makeStuff(() => new Yard()) });
     expect(plan.ok).toBe(false);
     if (!plan.ok) {
       expect(plan.reason).toBe('not-treadable');
-      expect(String(plan.line)).toMatch(/grog/);
+      // ⭐ Refused BY NAME: the facts carry the piece; `knead` words it (D4).
+      if (plan.reason === 'not-treadable') expect(plan.facts.hard).toBeDefined();
     }
   });
 
@@ -137,7 +138,7 @@ describe('the temper pit', () => {
     const p = pit(true);
     await put(p, clayMat, 9, true);
     expect(p.workVerb()).toBe('knead');
-    const plan = await p.kneadPlanFor({ actor: makeStuff(() => new Yard()), commandText: 'knead', verb: 'knead' });
+    const plan = await p.kneadPlanFor({ actor: makeStuff(() => new Yard()), verb: 'knead' });
     expect(plan.ok).toBe(true);
   });
 
@@ -145,7 +146,7 @@ describe('the temper pit', () => {
     const p = pit(true);
     await put(p, clayMat, 9, true);
     await put(p, material('ice', ['solid', 'ice', 'frozen']), 50, false);
-    const plan = await p.kneadPlanFor({ actor: makeStuff(() => new Yard()), commandText: 'knead' });
+    const plan = await p.kneadPlanFor({ actor: makeStuff(() => new Yard()) });
     expect(plan.ok).toBe(false);
     if (!plan.ok) expect(plan.reason).toBe('frozen');
   });
@@ -157,14 +158,14 @@ describe('the temper pit', () => {
     grog.setMass(Quantity.of(1, 'kg'));
     grog.setMaterial(material('terracotta', ['ceramic', 'fired']));
     await ContainmentApi.move(grog, p);
-    const plan = await p.kneadPlanFor({ actor: makeStuff(() => new Yard()), commandText: 'knead' });
+    const plan = await p.kneadPlanFor({ actor: makeStuff(() => new Yard()) });
     expect(plan.ok).toBe(true);
   });
 
   it('a dry pit refuses — it wants water', async () => {
     const p = pit(false);
     await put(p, clayMat, 9, true);
-    const plan = await p.kneadPlanFor({ actor: makeStuff(() => new Yard()), commandText: 'knead' });
+    const plan = await p.kneadPlanFor({ actor: makeStuff(() => new Yard()) });
     expect(plan.ok).toBe(false);
     if (!plan.ok) expect(plan.reason).toBe('no-water');
   });

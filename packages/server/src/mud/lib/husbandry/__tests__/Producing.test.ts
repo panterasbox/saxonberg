@@ -16,6 +16,7 @@
  */
 
 import '../../../../test-bootstrap';
+import { TapActController } from '../../../platform/idea/cmd/inventory/TapActController';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ProducingMixin } from '../Producing';
 import { Creature } from '../../../lib/creature/Creature';
@@ -476,7 +477,6 @@ describe('the window — when a tap is open at all', () => {
   });
 
   it('⚠⚠ no refusal the kernel writes contains a DIGIT', () => {
-    const b = withTaps([]);
     const reasons = [
       'before-season',
       'after-season',
@@ -487,7 +487,8 @@ describe('the window — when a tap is open at all', () => {
       'no-forage',
     ] as const;
     for (const r of reasons) {
-      const prose = b.tapRefusal('x', r);
+      // ⭐ The words are the verb's since controllers-are-io D4.
+      const prose = (TapActController as unknown as { seasonWords(r: string): string }).seasonWords(r);
       expect(prose).not.toMatch(/\d/);
       expect(prose.length).toBeGreaterThan(10);
     }

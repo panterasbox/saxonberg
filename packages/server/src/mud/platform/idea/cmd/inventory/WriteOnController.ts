@@ -11,10 +11,14 @@ import type { MqlOneResult } from '../../../../api/mql';
 import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
+import Book from '../../../thing/Book';
 
 interface WriteOnModel extends CommandModel {
   words: string;
   surface: MqlOneResult;
+  medium?: MqlOneResult;
+  /** A book's page; raw from the binder. */
+  page?: string | number;
 }
 
 export default class WriteOnController extends CommandController<WriteOnModel> {
@@ -28,7 +32,16 @@ export default class WriteOnController extends CommandController<WriteOnModel> {
     if (!MixinApi.isMarked(surface)) {
       return this.refuse(context, 'act.deed', `There is nowhere to write on ${surface.getPresentation()}.`, 'no-room');
     }
-    const out = surface.writeOn(giver, model.words ?? '');
+    const medium = model.medium?.stuff ?? undefined;
+    const hasPage = model.page !== undefined && model.page !== '';
+    if (hasPage && !(surface instanceof Book)) {
+      return this.refuse(context, 'act.deed', `${surface.getPresentation()} has no pages.`, 'not-a-book');
+    }
+    // ⭐ A book is written on a page, and its pages are a document.
+    const out =
+      surface instanceof Book
+        ? await surface.writePage(giver, model.words ?? '', hasPage ? Number(model.page) : surface.getOpenPage(), medium)
+        : surface.writeOn(giver, model.words ?? '', medium);
     if (!out.ok) return this.refuse(context, 'act.deed', out.line, out.reason);
     MessageApi.scene(giver)
       .topic('act.deed')

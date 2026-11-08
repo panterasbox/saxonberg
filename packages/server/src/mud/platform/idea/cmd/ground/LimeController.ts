@@ -25,6 +25,7 @@ import { MixinApi } from '../../../../api/mixin';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
 import { StuffApi } from '../../../../api/stuff';
+import { GrammarApi } from '../../../../api/grammar';
 
 /**
  * The material tag a liming agent carries. ⭐ An open vocabulary, like every
@@ -48,7 +49,7 @@ export default class LimeController extends GroundWorkController {
       return;
     }
     const { ground, bill } = reading;
-    if (ground.progressOn('liming', bill) >= 1) {
+    if (ground.isComplete('liming', bill)) {
       this.decline(
         context,
         bill.liming <= 0
@@ -74,12 +75,12 @@ export default class LimeController extends GroundWorkController {
       beginSelf: Mml.compose`You break up ${Mml.thing(agent)} and cast it out across the ground.`,
       beginPeers: Mml.compose`${Mml.actor(giver)} spreads something pale across the ground, handful by handful.`,
       onComplete: () => {
-        void this.finish(context, reading, agent);
+        void LimeController.finish(context, reading, agent);
       },
     });
   }
 
-  private async finish(
+  private static async finish(
     context: CommandContext,
     reading: GroundReading,
     agent: Stuff,
@@ -93,7 +94,7 @@ export default class LimeController extends GroundWorkController {
       .topic(GROUND_TOPIC)
       .toSelf(
         after >= 1
-          ? Mml.compose`That is the last of what this ground wanted. ${ground.improvementPhrase(bill)}.`
+          ? Mml.compose`That is the last of what this ground wanted. ${GrammarApi.cap(ground.improvementPhrase(bill))}.`
           : Mml.compose`It goes on white and weathers in. There is more owing before the sourness is out of it.`,
       )
       .send();
@@ -105,7 +106,7 @@ export default class LimeController extends GroundWorkController {
    *
    * ⚠ It used to walk the giver's contents itself, which meant no player
    * could ever say WHICH sack — and the walk is exactly what
-   * `lint:instrument-args` exists to keep at zero. The view's
+   * `lint:controller-resolution` exists to keep at zero. The view's
    * `[material.liming]` default does the finding now.
    */
   private limingAgent(bound: Stuff | null | undefined): Stuff | null {

@@ -2,7 +2,7 @@
 
 > **Status: UNBUILT, and one arm ships.** `CreditRouting` routes
 > attributed engagement at a location to that content's author and into
-> the producer stock; `CreditShare.weight` is hardcoded to `1` with the
+> the labor stock; `CreditShare.weight` is hardcoded to `1` with the
 > contributor-set model named in
 > [provenance.md](../../subsystems/provenance.md) § Deferred.
 > **Left:** ⭐ **`/studio/` in `UNRELEASED_PREFIXES`** (a one-line live
@@ -20,7 +20,7 @@
 ⚠ **Values frame lives elsewhere.**
 [standing-mint-slate](./standing-mint-slate.md) owns *whether* standing
 is a morality score, legibility as the only lever, and the pathologies as
-required reachable states. **This slate is the mechanics of producer
+required reachable states. **This slate is the mechanics of labor
 credit for collaborative work**, and it takes that slate's framing as
 given — including the founder's line that **how standing is minted is the
 ballgame.**
@@ -175,7 +175,7 @@ FACT** (declared per artifact, checkable).
 > not, **pay them.**
 
 ⭐⭐ Because conflating them makes **every helpful act a political
-claim** — the fastest way to inflate the producer chamber — and
+claim** — the fastest way to inflate the labor chamber — and
 review-count is as gameable as commit-count.
 
 ## 7. ⭐⭐⭐ The renewing obligation

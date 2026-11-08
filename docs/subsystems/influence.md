@@ -1,16 +1,20 @@
 # Influence: the three-stock standing substrate
 
 How contribution and conduct become **governance standing**. Influence has
-three stocks — **consumer** (play), **producer** (make), and **capital**
+three stocks — **consumer** (play), **labor** (make), and **capital**
 (fund) — three dimensions of every member, each earned and spent
-independently. This doc covers the cross-stock substrate, the **producer**
+independently. This doc covers the cross-stock substrate, the **labor**
 faucet, and the **conviction** spend half. The two halves of the consumer
 stock have their own docs: [participation.md](./participation.md) (the
 quantity faucet + the `engagement × renown` projection) and
-[renown.md](./renown.md) (the quality measure). The producer faucet's
+[renown.md](./renown.md) (the quality measure). The labor faucet's
 authorship input lives in [provenance.md](./provenance.md).
 
-This build ships the producer faucet (measured standing only — it feeds no
+The make stock is called **labor** in prose (2026-10-31); code identifiers
+(`'producer'`, `ProducerApi`, `ProducerLogic`, `producer_events`) keep the
+old name until a code sweep renames them.
+
+This build ships the labor faucet (measured standing only — it feeds no
 vote yet) and the conviction substrate (Api + tests, no verb). The ballot,
 the chambers, and the capital faucet are deferred.
 
@@ -19,7 +23,7 @@ the chambers, and the capital faucet are deferred.
 The standing value objects share one directory, `lib/standing/`:
 `Band`, `InfluenceStanding`, `ParticipationEvent`/`ParticipationStanding`
 (consumer), `RenownEvent`/`RenownStanding` (renown), `ProducerEvent`/
-`ProducerStanding` (producer), `Position`/`ConvictionTally` (conviction),
+`ProducerStanding` (labor), `Position`/`ConvictionTally` (conviction),
 plus `AuthoringEvent` and `CreditRouting` (provenance). They are **one
 system** — how contribution and conduct become standing. Named `standing`
 (not `influence`) because the value objects already *are* `*Standing`, and
@@ -28,7 +32,7 @@ readers (NPC reactions, disguise, social), so a neutral name is correct.
 The `*Api` faces stay in `api/`; the `*Logic` singletons in `platform/idea/api/`.
 
 > **Durable identity (Phase 0, already merged).** The whole engagement
-> cluster — renown, participation, producer — banks standing on the durable
+> cluster — renown, participation, labor — banks standing on the durable
 > `templatePath` (`/platform/agent/Avatar/<playerId>`), never the ephemeral `stuffId`
 > (which is re-minted on re-clone). The id stays a live-resolution *handle*
 > for scope; only the stored aggregation *key* is the templatePath. Renown
@@ -71,7 +75,7 @@ formula fits. Raw logs stay per-faucet.
 | `producer` (make) | `account` |
 | `capital` (fund) | `account` |
 
-⚠ **Vocabulary, not arithmetic.** Declaring producer account-level says
+⚠ **Vocabulary, not arithmetic.** Declaring labor account-level says
 nothing about *how* an account's figure derives from its characters'.
 
 ### ⭐ `standingForHost` — the seam, and the account roll-up
@@ -92,8 +96,8 @@ one formula:
 
 #### The formula: **sum**
 
-The members' producer scalars are summed and the sum is banded with the
-**configured** producer cutoffs (`ProducerLogic.standingForAccount`,
+The members' labor scalars are summed and the sum is banded with the
+**configured** labor cutoffs (`ProducerLogic.standingForAccount`,
 which is where the thresholds already live).
 
 ⭐ **Sum, not best or mean, and the argument is the level claim itself.**
@@ -144,7 +148,7 @@ was never the objection, which is why the retry could keep it:
    entry points run one function, so disagreement is unreachable rather
    than merely avoided.
 2. **Wrong cutoffs** — `Band.fromScalar(total)` with no argument
-   silently uses `DEFAULT_BAND_THRESHOLDS` while every real producer
+   silently uses `DEFAULT_BAND_THRESHOLDS` while every real labor
    band uses the configured ones. *Answered by placement:* the
    arithmetic lives in `ProducerLogic` beside `bandThresholds()`.
 3. **Silent downgrade** — it read `getUser()`, unset, and quietly fell
@@ -172,9 +176,9 @@ invent a subsystem concept nothing else needs. The guard is confined to
 one method so there is exactly one place to change if that stops being
 true.
 
-## The producer stock (the make faucet)
+## The labor stock (the make faucet)
 
-An author earns producer standing from **engagement their released content
+An author earns labor standing from **engagement their released content
 draws** — others spending time with what they built.
 
 ```
@@ -212,7 +216,7 @@ per-Player; the rollup is a deferred franchise-gate read.
 
 ### The shared signal + the `restrictSubscribe` pair
 
-Producer reuses the consumer's `CommandDispatchedEvent` (the recognized,
+Labor reuses the consumer's `CommandDispatchedEvent` (the recognized,
 interactive dispatch from `CommandGiverMixin._emitInputEcho`) — no second
 signal. The payload now carries two **optional** fields,
 `locationTemplatePath` and `actorTemplatePath` (the giver's location + own
@@ -261,7 +265,7 @@ The math:
   **Full weight / no pool** (each position spends the holder's *whole*
   standing scalar; `hold` never consults a holder's other targets) and
   **non-fungible** (partitioned by `stock` — the three houses tally
-  independently; a consumer stake and a producer stake on one target are
+  independently; a consumer stake and a labor stake on one target are
   distinct rows).
 
   **Why no pool** (graduated from the cooperative slate, 2026-09): a
@@ -312,23 +316,23 @@ participation + regard inputs described qualitatively), **Make** (`producer`),
 
 ## Tuning (AppSettings, no code defaults)
 
-- `producer.bucketSeconds` / `producer.decayHalfLife` — the producer
+- `producer.bucketSeconds` / `producer.decayHalfLife` — the labor
   faucet's bucket width + real-time recency half-life (mirror participation).
 - `conviction.buildPeriodSeconds` — the linear conviction ramp period.
 - `influence.bandThresholds` — **reused**, stock-agnostic band cutoffs.
 
 New `Collections`: `producer_events`, `producer`, `positions`. The
-entrenched invariants (engagement-only producer formula, full-weight/no-pool,
+entrenched invariants (engagement-only labor formula, full-weight/no-pool,
 non-fungible, derive-don't-track / rebuildable) are **code, never keys**.
 
 ## Deferred (named, not built)
 
 The **ballot / chambers / 2-of-3 / delegation** (population-deferred); the
-**capital** faucet (Twitch intake); the **producer team / co-authorship
+**capital** faucet (Twitch intake); the **labor team / co-authorship
 split** (the weighted `CreditShare[]` vector + the richer team-sandbox +
 explicit `release` action); the **second-order engagement** quality
 enrichment (register D2); the per-Player → User franchise rollup; a
-conviction verb. Producer feeds **no vote** this build — measured standing
+conviction verb. Labor feeds **no vote** this build — measured standing
 only.
 
 

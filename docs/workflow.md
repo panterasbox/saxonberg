@@ -189,8 +189,9 @@ So, without being asked:
    the touched packs' vitest + `lint:family` green. Say in the same
    message what verification is still running and that it does not
    block review.
-2. **Then drive + full suite**, as review-round work. A drive failure
-   is a fix commit on the MR, not a reason the MR was not open.
+2. **Then the blocking drive (once) + the full suite**, alongside the
+   review. A drive failure is a fix commit on the MR, not a reason the
+   MR was not open.
 3. ⚠⚠ **Anything the user waits on must justify itself in the message
    that makes them wait**: what it is, why their next step cannot start
    without it, and how long. If you cannot write that sentence, they
@@ -289,7 +290,7 @@ creation are never gated on the user; only the merge is.
 **Skill.** `/build <plan-path>` — orients the worktree, runs the wave
 loop, keeps the plan current as each wave lands, opens the MR READY at
 code-complete and reports the number, then runs the suite once and
-drives the feature as review-round work. It exists so
+drives the feature once, alongside review (never per round). It exists so
 the completion contract is something the agent *holds* rather than
 something the user retypes every cycle.
 
@@ -303,9 +304,10 @@ table, and for why this is not "checking less".
 **Inputs.** The GitLab merge request (`panterasbox/saxonberg!<n>`)
 opened at the end of the build, with inline comments from the user.
 
-⛔ **A review round never runs a span step** (§ *No merge waits on the
-clock*): a fix is verified by `test:near`, the lints and the blocking
-drive's affected steps.
+⛔ **A review round never runs a drive** — not the blocking drive, not
+its affected steps, and never a span step (§ *No merge waits on the
+clock*). A fix is verified in an isolated window (ground rule 1) by the
+checks it could actually break (ground rule 4).
 
 **Activity.** ⭐ **Review is a conversation.** In practice the user
 reads the MR and raises what they don't like in the session, rather
@@ -337,9 +339,15 @@ re-running tests that waited hours on the game clock:
    unit test, or by wizard tools (`eval`, `clone`, the test-clock
    endpoints) against a standing world — and fix and verify it in that
    small window. A review fix is never proved by re-driving the build.
-2. **Nothing clock-hungry until the whole MR is reviewed.** No drive, no
-   lived-time advance, no hour-long hold runs during review. The drives
-   run ONCE, after the last review change, at the sweep (Phase 5).
+2. ⛔ **Nothing clock-hungry before merge, anywhere** (the owner,
+   2026-11-02: *"anything that depends on sitting there doing nothing
+   gets done after the merge on its own timetable with its own bugfixing
+   workflow. so we don't wait on that shit anymore anywhere"*). Span
+   steps are the soak lane's. The blocking drive, which holds no
+   clock-hungry step, runs exactly **twice** in a cycle: once at
+   code-complete alongside review, and once at the sweep (Phase 5)
+   after the last review change. ⛔ **Never per review round** — *"I
+   definitely don't want to redrive every review round."*
 3. **The full suite runs only at the sweep** (and at code-complete, as
    above) — never between review rounds, however large a change.
 4. **Checks are scoped to what the change could break.** tsc, a gate, a
@@ -347,6 +355,13 @@ re-running tests that waited hours on the game clock:
    guaranteed pass is minutes the owner sits waiting; a skipped check
    that COULD fail is a corner cut. The test is *could this change fail
    this check?*, and the answer decides, not the habit.
+5. ⭐ **A review round takes minutes.** Comment → isolated repro → fix →
+   scoped checks → push → reply. *"These MR review sessions should go
+   quick, not like an hour between comments unless it's a major
+   refactor."* A comment that needs more than that is a **wave** or a
+   **placement error** (the table above): say so, re-plan it, and land
+   it as one — that is the major refactor, and only then may its own
+   drive steps re-run.
 
 **Output.** Descriptive commits naming the change — `refactor(cooking):
 the palate off Bulkable — PalatableMixin on CraftVessel`. ⚠ Not

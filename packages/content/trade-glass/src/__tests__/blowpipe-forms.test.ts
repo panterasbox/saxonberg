@@ -17,7 +17,7 @@ import { ContainmentApi } from "@saxonberg/server/mud/api/containment";
 import { makeStuff, makeStuffAtPath } from "@saxonberg/server/mud/lib/security/__tests__/test-setup";
 import { installV1QuantityMarshallers } from "@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers";
 import type { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
-import type { ActPlan, ActRefusal } from "@saxonberg/server/mud/lib/craft/ActPlan";
+import type { ShapePlan, ShapeRefusal } from "@saxonberg/server/mud/lib/craft/Shapeable";
 import Gather from "../thing/Gather";
 import Blowpipe from "../thing/Blowpipe";
 
@@ -75,9 +75,9 @@ describe("⭐ the blowpipe blows the forms its row lists", () => {
 
   it("a listed word blows: the gather records the row it cracks off as, and the blow's grade", async () => {
     const { pipe, gather } = pipeWithGather();
-    const plan = (await pipe.shapePlanFor({ actor, material: null, formText: "a bottle", commandText: "shape bottle" })) as ActPlan;
+    const plan = (await pipe.shapePlanFor({ actor, material: null, formText: "a bottle", commandText: "shape bottle" })) as ShapePlan;
     expect(plan.ok).toBe(true);
-    plan.onComplete();
+    await plan.onComplete();
     expect(gather.getForm()).toBe("bottle");
     expect(gather.getFormProduct()).toBe(BOTTLE);
     // An untrained blower's bottle is poor work — the hand grades it.
@@ -86,7 +86,7 @@ describe("⭐ the blowpipe blows the forms its row lists", () => {
 
   it("an unlisted word is refused, naming what this pipe blows", async () => {
     const { pipe } = pipeWithGather();
-    const out = (await pipe.shapePlanFor({ actor, material: null, formText: "teapot", commandText: "shape teapot" })) as ActRefusal;
+    const out = (await pipe.shapePlanFor({ actor, material: null, formText: "teapot", commandText: "shape teapot" })) as ShapeRefusal;
     expect(out.ok).toBe(false);
   });
 
@@ -97,7 +97,7 @@ describe("⭐ the blowpipe blows the forms its row lists", () => {
       material: null,
       formText: "bottle holding 8 liters",
       commandText: "shape bottle holding 8 liters",
-    })) as ActRefusal;
+    })) as ShapeRefusal;
     expect(out.ok).toBe(false);
     expect(out.reason).toBe("beyond-your-hand");
   });

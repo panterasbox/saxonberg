@@ -1,0 +1,8 @@
+# The Corrigan's entry — the line's coaster. Her owner is
+# her company, whose cap table is the Greywater Line's, all sixty-four.
+name: Corrigan
+kind: /world/terminus/harbor/ships/coaster/structure
+key: /world/terminus/harbor/ships/coaster/structure
+flag: terminus-city
+registeredAtS: 0
+owner: /world/terminus/harbor/ships/coaster/idea/company

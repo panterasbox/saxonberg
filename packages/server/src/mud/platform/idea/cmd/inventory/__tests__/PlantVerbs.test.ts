@@ -17,7 +17,7 @@ import Plant from '../../../../thing/Plant';
 import PlantPot, { PLANT_SLOT } from '../../../../thing/PlantPot';
 import Seed from '../../../../thing/Seed';
 import Material from '../../../../../lib/material/Material';
-import { Reserve } from '../../../../../lib/reserve';
+import { Reserve } from '../../../../../lib/reserve/Reserved';
 import { type GrowthProfileData } from '../../../../../lib/husbandry/Growing';
 import { SOIL_MOISTURE_RESERVE_KEY } from '../../../../../lib/husbandry/Cultivable';
 import { Quantity } from '../../../../../lib/quantity';

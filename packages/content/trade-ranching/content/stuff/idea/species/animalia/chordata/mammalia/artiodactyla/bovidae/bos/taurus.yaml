@@ -13,8 +13,10 @@
 # two species rather than by a rule about either.
 class: /platform/idea/species/Species
 data:
+  smells: [{ aroma: /base-library/aromas/cattle, strength: 20 }]
   binomial: Bos taurus
   commonNames: ["cow", "cattle", "heifer", "bull", "calf", "ox", "beast"]
+  maleNames: [bull, ox]
   _bodyPlanPath: /stuff/idea/species/BodyPlan/quadruped
   _parentCladePath: /stuff/idea/species/animalia
   _defaultMaterialPath: /stuff/idea/material/tissue/flesh
@@ -37,6 +39,10 @@ data:
   # factor. The RATIO is the teachable term and it is exact.
   # ⭐ Adult liveweight in kg. A grown cow in a working dairy-and-draught landrace — not a modern beef animal.
   adultMass: 550
+  # ⭐ How it is fed (cover build D9): it grazes the field it stands on,
+  # and eats hay from a trough when the grass runs short. What it eats
+  # is its size — `0.1 × adultMass^0.75` kilograms of dry matter a day.
+  feedingStyle: [graze, trough]
   ageCurve: { weanedAt: 60, matureAt: 300, agedAt: 1800, senescentAt: 2600 }
   breeding: { daylightFrom: 0, daylightTo: 1, gestationDays: 120, litter: 1 }
   production:
@@ -119,4 +125,4 @@ data:
     A deep-bodied cow with a hip bone you could hang a hat on, chewing
     steadily and entirely unbothered by you. Nothing on the farm is
     heavier or, when she has a calf at foot, more dangerous.
-  nameBankKeys: []
+  nameBanks: []

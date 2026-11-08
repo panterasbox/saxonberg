@@ -1,7 +1,7 @@
 /**
  * CheckRack — the weapons-check rack: a **persistable** container fixture
  * that takes a patron's arms into custody (their owner-stamps stay put)
- * against a claim ticket, and hands them back on `reclaim`. Custody, never
+ * against a claim ticket, and hands them back on `rack reclaim`. Custody, never
  * title — the bar-fight build's coat-check-with-teeth.
  *
  * It composes the shared **`HeldGoodsMixin`** — the custody base (the coat
@@ -19,7 +19,7 @@ import Holder from "@saxonberg/server/mud/lib/stuff/Holder";
 import { ContainerMixin } from "@saxonberg/server/mud/lib/spatial/Container";
 import { PersistableMixin } from "@saxonberg/server/mud/lib/persistence/Persistable";
 import { FixtureMixin } from "@saxonberg/server/mud/lib/stuff/Fixture";
-import { HeldGoodsMixin } from "@saxonberg/server/mud/lib/retail/Consignment";
+import { HeldGoodsMixin } from "@saxonberg/server/mud/lib/retail/HeldGoods";
 import type { CommandContributions } from "@saxonberg/server/mud/api/command";
 import type { FieldMeta } from "@saxonberg/server/mud/lib/mixin";
 
@@ -47,12 +47,10 @@ export default class CheckRack extends CheckRackBase {
   static commandContributions: CommandContributions = {
     self: [],
     peers: [
-      "platform/cmd/retail/check.yaml",
-      "platform/cmd/retail/reclaim.yaml",
+      "platform/cmd/retail/rack.yaml",
     ],
     environment: [
-      "platform/cmd/retail/check.yaml",
-      "platform/cmd/retail/reclaim.yaml",
+      "platform/cmd/retail/rack.yaml",
     ],
   };
 }

@@ -30,7 +30,6 @@ import type { Stuff } from '../lib/stuff/Stuff';
 import { AccessLogic } from '../platform/idea/api/AccessLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
-import type { ParcelOwner } from '../lib/parcel/ParcelRecord';
 
 const LOGIC_PATH = '/platform/idea/api/access';
 const LOGIC_CLASS_FILE = fileURLToPath(
@@ -96,7 +95,21 @@ export type TreeAction =
   | 'read'
   | 'broadcast'
   | 'teleport'
-  | 'clone';
+  | 'clone'
+  | 'reload';
+
+/**
+ * The source-tree actions {@link AccessApi.sourceWriteRefusal} asks about —
+ * every one a mutation of the source tree.
+ */
+export type SourceWriteAction = 'write' | 'rm' | 'mkdir';
+
+/**
+ * ⭐ **A code file is told by its extension** (wizard-axis D3). A `.ts`
+ * under a pack's `src/` is as much the axis as one under the kernel's; a
+ * `.yaml`, `.md` or `.json` anywhere is content. No content sniffing.
+ */
+const CODE_FILE_RE = /\.(ts|tsx|mts|cts|js|mjs|cjs)$/;
 
 export class AccessApi {
   /**
@@ -152,29 +165,50 @@ export class AccessApi {
   }
 
   /**
-   * Orthogonal wizard axis — the code-trust capability. True iff
-   * `subject` is an Avatar whose playerId is in the `'wizards'` group.
-   * Gates every TypeScript-authoring/execution door (`eval`, `reload`,
-   * source writes, CMS source read/write) AND the executable
-   * code-naming fields on a content template (`class` /
-   * `behaviors[].brain`). A content author who is not
-   * a wizard is a "protowizard": content-write access without code
-   * trust.
+   * Orthogonal wizard axis — **authoring TypeScript**, and nothing else
+   * (owner, 2026-11-05). True iff `subject` is in the `'wizards'` group or
+   * is an archwizard (the Prime Minister is both). It is asked in exactly
+   * two places: {@link AccessApi.sourceWriteRefusal} (writing a code file)
+   * and `eval` (typing code). Running code, reloading it, reading it,
+   * naming it from a row, letting a room, setting a dial — none of those is
+   * the axis; each is decided by a seat (title, an office) or by nothing.
+   * ⛔ Never add a new caller: `lint:wizard-axis` fails on one.
    */
   public static async isWizard(subject: Stuff | null): Promise<boolean> {
     return logic().isWizard(subject);
   }
 
   /**
-   * Is `actor` an **agent of** `owner` — a member of the group the parcel
-   * owner resolves to? The owner-conferred authority a landlord's staff
-   * act under.
+   * ⭐⭐ **May `actor` mutate this source-tree path?** — the ONE write
+   * predicate (wizard-axis D2). `null` = allowed; else the reason, in
+   * words a refusal can show.
+   *
+   * - A **code file** (`.ts`, `.js`, … — {@link CODE_FILE_RE}) asks for the
+   *   wizard axis AND title over the slice: authoring TypeScript.
+   * - **Anything else** (a pack's content YAML, a doc, a directory) asks
+   *   for title over the slice only — writing content is not authoring
+   *   code.
+   *
+   * Title is `can(actor, action, resolveSourceFolderZone(path))`, the slice
+   * walk every source-tree mutation already made. Every writer of the source
+   * tree — the shell's `write -s`/`rm`/`mv`/`cp`/`mkdir`, the CMS, the
+   * studio, `git publish`/`revert` — asks this, and nothing else asks the
+   * wizard for a write.
    */
-  public static async isAgentOf(
-    actor: Stuff,
-    owner: ParcelOwner,
-  ): Promise<boolean> {
-    return logic().isAgentOf(actor, owner);
+  public static async sourceWriteRefusal(
+    actor: Stuff | null,
+    sourceLogical: string,
+    action: SourceWriteAction = 'write'
+  ): Promise<string | null> {
+    if (actor === null) return 'nobody is acting';
+    if (CODE_FILE_RE.test(sourceLogical) && !(await AccessApi.isWizard(actor))) {
+      return `${sourceLogical} is TypeScript, and authoring code asks for the wizard axis`;
+    }
+    const slice = await AccessApi.resolveSourceFolderZone(sourceLogical);
+    if (!(await AccessApi.can(actor, action, slice))) {
+      return `you hold no title over ${sourceLogical}`;
+    }
+    return null;
   }
 
   /**
@@ -189,11 +223,11 @@ export class AccessApi {
   }
 
   /**
-   * Orthogonal archwizard axis. True iff `subject` is an Avatar whose
-   * playerId is in the `'archwizards'` group. Archwizards confer/revoke
-   * wizard status via `wizard grant/revoke` (the `requiresArchwizard`
-   * validator). Operator/root-managed; the Prime Minister office above
-   * them is deferred.
+   * Orthogonal archwizard axis — the conferral of the wizard axis. True iff
+   * `subject` is in the `'archwizards'` group or holds the Prime
+   * Minister's office (derived, never stored). Archwizards confer/revoke
+   * wizard status via `wizard grant/revoke`, and every archwizard is a
+   * wizard (wizard-axis D17).
    */
   public static async isArchwizard(subject: Stuff | null): Promise<boolean> {
     return logic().isArchwizard(subject);

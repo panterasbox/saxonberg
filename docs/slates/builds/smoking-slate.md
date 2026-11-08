@@ -95,8 +95,8 @@ lit pipe — [fire.md](../../subsystems/fire.md)).
 | chain | steps | connects to |
 |---|---|---|
 | **tobacco** | grow → harvest leaves → cure (air, fire or flue) → ferment → age → cut or roll → the tobacconist | [farming](./farming-slate.md) (tobacco is a missing plantation crop); [maturation](../../subsystems/maturation.md) (the curing barn) |
-| **cannabis** | grow → flower → dry → cure → hashish (resin) | ⭐ **the same plant as hemp fiber** ([cordage](./cordage-slate.md)) — one field, two varieties |
-| **the kit** | clay pipes ([pottery](./pottery-slate.md)) · briar · papers ([paper](./paper-and-printing-slate.md)) · ⭐ matches ([chemical works](./chemical-works-slate.md) — white phosphorus, *phossy jaw*, the 1888 London match-girls' strike) · ashtrays · lighters | |
+| **cannabis** | grow → flower → dry → cure → hashish (resin) | ⭐ **the same plant as hemp fiber** ([cordage](../tails/cordage-slate.md)) — one field, two varieties |
+| **the kit** | clay pipes ([pottery](../tails/pottery-slate.md)) · briar · papers ([paper](./paper-and-printing-slate.md)) · ⭐ matches ([chemical works](./chemical-works-slate.md) — white phosphorus, *phossy jaw*, the 1888 London match-girls' strike) · ashtrays · lighters | |
 | **money** | ⭐ colonial Virginia ran on **tobacco as currency**, with tobacco notes as warehouse receipts | [banking](../../subsystems/banking.md) — cash against the ledger |
 
 **Through the epochs** (lens 5): pipe → cigar → hand-rolled cigarette → ⭐ the Bonsack rolling
@@ -133,7 +133,7 @@ machine (1881, which made cigarettes cheap — [machines](./machines-slate.md)) 
 - **Opium and laudanum** → [pharma](./pharma-slate.md); poppy latex is a
   [tap](../../subsystems/taps.md) (a yield scored from a living plant).
 - **Coffee and tea** (stimulants, plantation crops) → their own slate.
-- **Plantation tobacco and unfree labor** — named as [sugar](./sugar-slate.md) named it,
+- **Plantation tobacco and unfree labor** — named as [sugar](../tails/sugar-slate.md) named it,
   linking the [unfree labor](./unfree-labour-slate.md) register; the smallholding is the
   ordinary case.
 

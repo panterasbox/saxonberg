@@ -319,12 +319,18 @@ export const Mixins = {
   SphericalCoordinates: 'SphericalCoordinatesMixin',
   Exitable: 'ExitableMixin',
   Sealable: 'SealableMixin',
+  // ⭐ Opens BY AN AMOUNT and logs who set it — a headgate, a turnout
+  // (water-supply D12). Composed on a Sealable host.
+  Throttleable: 'ThrottleableMixin',
+  Plumbed: 'PlumbedMixin',
+  Irrigating: 'IrrigatingMixin',
   // Binary on/off — a lamppost, a beacon, a machine.
   Switchable: 'SwitchableMixin',
   // Binary locked/unlocked — composed onto Door beneath Sealable.
   Lockable: 'LockableMixin',
   // Binary folded/unfolded — a folding chair refuses its posture slots.
   Foldable: 'FoldableMixin',
+  Tearable: 'TearableMixin',
   // Displays game-time — a pocket watch, a clock tower, a sundial.
   Timekeeping: 'TimekeepingMixin',
   // The windable/drifting clockwork inside a mechanical timepiece.
@@ -349,6 +355,18 @@ export const Mixins = {
   MovingWater: 'MovingWaterMixin',
   SmallCraft: 'SmallCraftMixin',
   TetherEnd: 'TetherEndMixin',
+  // ⭐ The water a hull holds — a ship's, a boat's.
+  Bilge: 'BilgeMixin',
+  // A landing somebody keeps a book for — a harbor quay.
+  Berthing: 'BerthingMixin',
+  // A place that answers a hail — a harbor office.
+  Hailable: 'HailableMixin',
+  // A thing that says what you owe — a harbor office's book.
+  Payable: 'PayableMixin',
+  // A thing let by the day — a hired boat.
+  Hirable: 'HirableMixin',
+  // A thing with something for sale — `buy`'s one protocol.
+  ForSale: 'ForSaleMixin',
   Ringable: 'RingableMixin',
   MovingZone: 'MovingZoneMixin',
   // A craft that holds a course across an expanse (a ship, a boat).
@@ -360,7 +378,6 @@ export const Mixins = {
   Adornment: 'AdornmentMixin',
   AmbientLit: 'AmbientLitMixin',
   LightSource: 'LightSourceMixin',
-  SmellSource: 'SmellSourceMixin',
   SoundSource: 'SoundSourceMixin',
   // Discrete-event sound push — a whistle, a bell, an alarm, a chime.
   Audible: 'AudibleMixin',
@@ -387,6 +404,8 @@ export const Mixins = {
   Dressing: 'DressingMixin',
   Reserved: 'ReservedMixin',
   Radioactive: 'RadioactiveMixin',
+  Odorous: 'OdorousMixin',
+  Olfactory: 'OlfactoryMixin',
   Muscle: 'MuscleMixin',
   Cut: 'CutMixin',
   // The form axis — a material worked into a Construction (materials-
@@ -398,6 +417,9 @@ export const Mixins = {
   // unspoofable ownership is stamped against (the parcel-title twin).
   // Composed at the Thing tier; refused on fungible stacks (Stackable).
   Chattel: 'ChattelMixin',
+  // ⭐ Whose a MADE thing is, from what it was made of — carved off the
+  // title at controllers-are-io: a good is made, a cow is not.
+  MadeFrom: 'MadeFromMixin',
   // Estate — owner-based persistence: the goods a principal holds title to,
   // wherever they sit. The counterpart to the Container slice's skip rule.
   Estate: 'EstateMixin',
@@ -457,6 +479,9 @@ export const Mixins = {
   // `Pool` and the water pack's column bands; never on a bank or a quay,
   // which are BESIDE water.
   WaterPlace: 'WaterPlaceMixin',
+  // ⭐ Getting something out of a water by hand (`pull`) — carved off the
+  // water at controllers-are-io; every water place composes both.
+  HaulOut: 'HaulOutMixin',
   // *This Idea grows the column under a deep water* — the seam the water
   // pack's `ColumnWarren` implements (the WaterSource shape).
   WaterColumn: 'WaterColumnMixin',
@@ -511,16 +536,21 @@ export const Mixins = {
   // see it. Pairing decides who drives it. See docs/subsystems/display.md.
   Display: 'DisplayMixin',
   LoadBearing: 'LoadBearingMixin',
+  // ⭐ What the water makes of a body (displacement, net buoyancy) —
+  // carved off the burden at controllers-are-io.
+  Buoyant: 'BuoyantMixin',
   BeliefStore: 'BeliefStoreMixin',
   Disguisable: 'DisguisableMixin',
   DisguiseBearing: 'DisguiseBearingMixin',
   Status: 'StatusMixin',
   Identifiable: 'IdentifiableMixin',
   Metabolic: 'MetabolicMixin',
+  // ⭐ The act of eating (`eat`), carved off digestion at controllers-are-io.
+  Eating: 'EatingMixin',
   NutritionLabel: 'NutritionLabelMixin',
   // The derived taste reading, projected through the taster's own
   // competence in the discipline that MADE the thing.
-  Palatable: 'PalatableMixin',
+  Palate: 'PalateMixin',
   Thermal: 'ThermalMixin',
   ThermalRegulation: 'ThermalRegulationMixin',
   // ⭐ Active cooling/heating of an Atmospheric interior toward a setpoint
@@ -646,7 +676,7 @@ export const Mixins = {
   Crafted: 'CraftedMixin',
   ManualBuild: 'ManualBuildMixin',
   // A solute that gives up an extract when steeped in a solvent — the
-  // general infusion substrate (`steep`/`infuse`).
+  // general infusion substrate (`steep`).
   Steepable: 'SteepableMixin',
   Bank: 'BankMixin',
   // The unified credential holder — one keyed store of credentials-as-data,
@@ -660,16 +690,44 @@ export const Mixins = {
   // ⭐ *A thing thrown TO someone, to be caught* — a protocol mixin; the
   // host answers `throw … to`.
   Tossable: 'TossableMixin',
+  // ⭐ *A thing whose end is made fast to something* — a protocol mixin
+  // (cordage D8); the host answers `tie`/`untie` (a rope, a line's end, a bag).
+  Tieable: 'TieableMixin',
+  // ⭐ *A thing you splice* — a protocol mixin (cordage D9): two ropes into
+  // one, a cut feeder line made whole.
+  Spliceable: 'SpliceableMixin',
   // ⭐ *A thing in the water holding ANOTHER up* — a protocol mixin the
   // sinking rule asks (an air bag lashed to an anchor).
   Buoy: 'BuoyMixin',
   Hauler: 'HaulerMixin',
+  // ⭐ Protocol mixins (`_mixinKind = 'protocol'`, controllers-are-io D8a):
+  // the shapes a platform verb talks to, each earned by three implementers.
+  Pumpable: 'PumpableMixin',
+  Splittable: 'SplittableMixin',
+  TravelNode: 'TravelNodeMixin',
+  Cuttable: 'CuttableMixin',
+  CutPlanner: 'CutPlannerMixin',
+  // Markers a pack's reader narrows on (controllers-are-io D7a): the supply
+  // a thing draws, the generator that makes it, who may write a name.
+  Powered: 'PoweredMixin',
+  WaterPowered: 'WaterPoweredMixin',
+  NameTaking: 'NameTakingMixin',
+  LiftSource: 'LiftSourceMixin',
+  PumpSource: 'PumpSourceMixin',
   // Employment — the org chart (positions + holders + the appointing
   // authority), the Business that trades on top of it, and an actor's
   // employment relationships (an on-shift Position confers its duties via
   // augments). A ministry is an organization that does not trade.
   Organization: 'OrganizationMixin',
   Business: 'BusinessMixin',
+  // ⭐ *Who comes over* — the house's call rule (`call: regulars | rota`),
+  // carved off the chart at controllers-are-io: a business answers it, a
+  // government does not.
+  OnCall: 'OnCallMixin',
+  // ⭐ A table of owners and their units — who holds a business, and so
+  // who appoints its managing position (the institutions slate's cap
+  // table; ships are its first consumer).
+  CapTable: 'CapTableMixin',
   // ⭐ `EmployedMixin` also carries "who answers for you"
   // (`institutionPath`) — the standing party that fields an actor, which
   // is NOT the episodic `directedBy`: a guard acting for the watch was
@@ -724,6 +782,7 @@ export const Mixins = {
   Shapeable: 'ShapeableMixin',
   // "I plan being carved" — green ware, a mould's riser, pattern stock.
   Carvable: 'CarvableMixin',
+  PourTarget: 'PourTargetMixin',
   // "A pattern pressed into me leaves something" — green ware, a sand flask.
   Impressible: 'ImpressibleMixin',
   // "I am worked by turning" — a screw press.
@@ -736,8 +795,12 @@ export const Mixins = {
   // mass into a form a word names": the wheel, the brick table, the blowpipe.
   Forming: 'FormingMixin',
   // ⭐⭐ Faces and coats (ceramics M6) — "I have an outside, and a vessel an
-  // inside; each carries coats, outermost first". On every Good.
+  // inside; each carries coats, outermost first" — and the outside's
+  // coats thin where the weather reaches them (paint D5). On every Good.
   Faced: 'FacedMixin',
+  // ⭐⭐ SelfHeating (paint D15, promoted from trade-farming) — "I make my own
+  // heat faster than I lose it, until I catch": the hay rick, the oily rags.
+  SelfHeating: 'SelfHeatingMixin',
   // ⭐⭐ Green ware (ceramics M4) — "I am unfired clay, and my water decides
   // whether I can be trimmed, fired, or ruined by the weather".
   Greenware: 'GreenwareMixin',
@@ -868,6 +931,9 @@ export type MixinName = typeof Mixins[keyof typeof Mixins];
  * there for a constraint about to be written.
  */
 export const MixinRefusals: Partial<Record<MixinName, string>> = {
+  OdorousMixin: '{} has no smell of its own',
+  OlfactoryMixin: '{} has no nose',
+  PalateMixin: '{} has no palate',
   // ⭐ Ground, not a thing: the useful information is that the target had
   // to be a piece of ground somebody could work, which "{} is not
   // improvable" would not have said.
@@ -891,6 +957,7 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   CoolboxMixin: "{} isn't a cold box",
   HeldGoodsMixin: "{} isn't a shelf goods are held on",
   ConsignmentShelfMixin: "{} isn't a shelf you can trade from",
+  SmallCraftMixin: "{} isn't a boat",
 
   // Reduction & separation — a mill, a stamp battery.
   ComminutingMixin: "{} isn't something that grinds",
@@ -908,6 +975,9 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
 
   // A pump — the refusal names what one does.
   PumpingMixin: "{} doesn't pump anything",
+  PayableMixin: "{} keeps no bills",
+  ForSaleMixin: "{} has nothing for sale",
+  CapTableMixin: "{} keeps no table of owners",
 
   // Construction & table — a butcher's blade is any EDGE, and cutlery is
   // what you eat with.
@@ -922,6 +992,9 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
 
   // Boundaries & mechanisms.
   SealableMixin: "{} doesn't open and close",
+  ThrottleableMixin: "{} opens or shuts — it has no setting between",
+  PlumbedMixin: "{} is not a place water can be piped into",
+  IrrigatingMixin: "{} doesn't water anything",
   BulkableMixin: "{} doesn't hold liquid to read",
   AdornmentMixin: "{} doesn't hang or mount there",
   // ⭐ Not "isn't a floor" — the useful information is that the thing
@@ -935,10 +1008,11 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   LockableMixin: "{} doesn't lock",
   SwitchableMixin: "{} doesn't switch on and off",
   FoldableMixin: "{} doesn't fold",
+  TearableMixin: "{} won't tear",
   HazardMixin: "{} isn't a trap",
 
   // Fire & heat. ⚠ `CombustibleMixin`'s phrase carries the whole
-  // `CombustibleMixin|BurnerMixin` alternation `ignite` declares — an
+  // `CombustibleMixin|BurnerMixin` alternation `light` declares — an
   // alternation reports its FIRST member's phrase, and "won't burn" is
   // the true sentence for both halves.
   CombustibleMixin: "{} won't burn",
@@ -1028,12 +1102,15 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   KneadVesselMixin: "{} isn't something you could knead in",
   ShapeableMixin: "{} won't take a shape in your hands",
   CarvableMixin: "{} isn't something you could carve",
+  PourTargetMixin: "you can't pour anything into {}",
+  ArcaneMixin: "there is nothing bound into {}",
   ImpressibleMixin: "{} is not soft enough to take an impression",
   TurnableMixin: "{} has nothing to turn",
   HandWorkedMixin: "{} isn't something you work by hand",
   StrikingDieMixin: "{} isn't a die you could strike a blank on",
   FormingMixin: "{} isn't something you shape things on",
   FacedMixin: "{} has no face you could lay a coat on",
+  SelfHeatingMixin: "{} does not heat itself",
   GreenwareMixin: "{} isn't green clay",
   // ⭐ The refusal teaches the rule: a sample is a piece you TOOK and
   // NOTED, and what makes it evidence is the noting. A lump off the
@@ -1049,7 +1126,15 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   DrivableMixin: "you can't drive {}",
   HaulableMixin: "{} isn't something you can hitch",
   PullableMixin: "{} isn't on a line you can pull",
+  // ⭐ The protocol mixins (controllers-are-io D8a) — each refusal names
+  // the verb the thing does not answer.
+  PumpableMixin: "{} has nothing on it to pump",
+  PumpSourceMixin: "{} has no pump set in it",
+  LiftSourceMixin: "{} has nothing standing in it to bail",
+  SplittableMixin: "{} does not come apart like that",
   TossableMixin: "{} isn't something anybody catches",
+  TieableMixin: "{} has no end to tie",
+  SpliceableMixin: "{} isn't something you splice",
   BuoyMixin: "{} doesn't hold anything up in the water",
   HaulerMixin: "{} can't pull a cart",
 

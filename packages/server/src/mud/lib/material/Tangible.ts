@@ -154,6 +154,8 @@ export interface Tangible {
    * runtime API.
    */
   setMass(value: Quantity<'kg'>): void;
+  /** A small bite really comes out of it; bitten to nothing, it is gone. */
+  takeBite(kg: number): Promise<void>;
 
   /**
    * ⭐ The temperature (K) at which THIS piece catches, or 0 when its
@@ -167,7 +169,7 @@ export interface Tangible {
    * water this piece holds raises its ignition threshold by. Surface
    * wetness (a log left in the rain) and the matter's own water (a turf
    * cut from a bog) add. Mass-independent: the fuel mass cancels between
-   * the water-boil energy and the thermal capacity. `stoke`, `ignite`, a
+   * the water-boil energy and the thermal capacity. `stoke`, `light`, a
    * pour and a firing chamber all read this.
    */
   getWetIgnitionPenaltyK(): number;
@@ -199,13 +201,13 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
     static commandContributions: CommandContributions = {
       self: [],
       // OUTWARD to whoever holds it…
-      environment: ['platform/cmd/inventory/throw.yaml'],
+      environment: ['platform/cmd/inventory/throw.yaml', 'platform/cmd/inventory/throw-to.yaml', 'platform/cmd/inventory/throw-at.yaml'],
       // …and SIDEWAYS to anyone sharing the room with it, because you
       // do not have to be holding a rock for throwing it to be on the
       // table. Whether the throw picks it up first, refuses, or costs a
       // beat is the CONTROLLER's call — availability and permission are
       // different questions, and only the first lives here.
-      peers: ['platform/cmd/inventory/throw.yaml'],
+      peers: ['platform/cmd/inventory/throw.yaml', 'platform/cmd/inventory/throw-to.yaml', 'platform/cmd/inventory/throw-at.yaml'],
     };
     /**
      * Field-marshaller binding. `mass` round-trips via the kg-bound
@@ -248,7 +250,19 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
       },
       {
         name: 'mass',
-        read: (stuff) => {
+        read: (stuff, viewer) => {
+          // ⛔ Another person's weight is read by a scale, never by a look.
+          // ⚠ `PerceptionApi.isAnotherPerson`'s rule, stated here because
+          // importing the perception Api from this substrate closes an
+          // import cycle through `Thing` (client-surface B6) — keep the two
+          // in step; `mql-subscription.privacy.test.ts` pins both.
+          if (
+            viewer.stuffId !== stuff.stuffId &&
+            stuff.isAgent() &&
+            MixinApi.isSlotted(stuff)
+          ) {
+            return undefined;
+          }
           const q = (stuff as unknown as Tangible).getMass();
           return { value: q.rawValue(), unit: 'kg' as const };
         },
@@ -497,6 +511,15 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
      * via `Quantity.of(n, 'kg')` at the call site; tag / alt-unit
      * authoring is the marshaller's job, not a runtime API concern.
      */
+    public async takeBite(kg: number): Promise<void> {
+      const left = this.getMass().rawValue() - kg;
+      if (left <= 0) {
+        await StuffApi.destruct(this as unknown as Stuff);
+        return;
+      }
+      this.setMass(Quantity.of(left, 'kg'));
+    }
+
     public setMass(value: Quantity<'kg'>): void {
       const old = this._mass;
       this.mass = value;

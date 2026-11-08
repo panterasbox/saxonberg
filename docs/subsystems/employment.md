@@ -115,7 +115,7 @@ Four value objects + two mixins + the concrete entity:
   `appointingAuthority`, `proprietorPath` (the legacy hydration slot),
   `positions`, `rosterSlots`, `parentOrganization`; the reads
   (`getPositions`/`getRoster`/`getReportingChain`/…) and the **seven holder
-  transitions** `hire` / `endEmployment` / `ensureRostered` / `beginShift`
+  transitions** `house appoint` / `endEmployment` / `ensureRostered` / `beginShift`
   / `endShift` / `beginCover` / `endCover`, gated
   `AnyOf(SelfOnly, FromTemplate('/platform/idea/api/employment'))`. Every record
   write is keyed on the organization's own path — which *is* the
@@ -143,7 +143,7 @@ Four value objects + two mixins + the concrete entity:
   (`FromMixin(Mixins.Organization)` + a relational `where` requiring the
   written record key to be the calling organization's own path), with a
   narrow `FromTemplate('/platform/idea/api/employment')` janitorial arm (lazy
-  standup means a `quit` can outlive its organization's live Idea). The
+  standup means a `job quit` can outlive its organization's live Idea). The
   transitions themselves live on `OrganizationMixin` — so the
   organization acts on its own employee records and the engine keeps
   orchestration (roster evaluation, wage settlement, the clock).
@@ -164,7 +164,8 @@ becomes a tagged `PrincipalRef`:
 | `entity` | templatePath match — the shipped proprietor edge | no |
 | `office` | `CompactApi.holdsOffice` | **yes — founder default** |
 | `seat` | `GovernmentApi.holdsSeat` | no |
-| `committee` | `CompactApi.isCommitteeMember` | **yes — pool-of-one backstop** |
+| `committee` | `CompactApi.isCommitteeMember` | **no** — the founder sits on no committee (wizard-axis D18); an organization-held extent resolves through the organization's chart, so the executive's committee passes its PM |
+| `owners` | the majority holder of an organization's cap table | only if the majority holder's own authority does |
 
 ⭐ **Staff follows the seat.** Because the authority *is* the office, a
 handover moves who may appoint **with no employment or roster record
@@ -179,9 +180,13 @@ closed with no registry, and the `committee` arm narrows with
 `PlayerApi.isAvatarStuff` before the playerId-keyed group read.
 
 ⚠ **The *founder passes* column is load-bearing, not trivia.** Only
-`office` and `committee` carry the Art. XI default, so **an authority the
-founder cannot satisfy is one nobody can satisfy on a cold box** until a
-human edits a group by hand. (The former `AccessApi.isAuthor` fallback —
+`office` carries the founder default, so **an authority the founder
+cannot satisfy is one nobody can satisfy on a cold box** until somebody is
+seated — and a group-held committee is seated by its group's OWNER (an
+office — the PM, the Registrar — the founder by default) with the
+`group` verb: a seat, never a credential. ⛔ The `committee` row used to
+say *yes* through an Art. XI pool-of-one backstop; it misread the jury
+rule and was deleted (wizard-axis cleanup, 2026-11-05). (The former `AccessApi.isAuthor` fallback —
 an always-empty `core` group — is gone since content packs wave 3; the
 operator override is the PM seat, below.)
 
@@ -194,6 +199,44 @@ Minister as operator), never an appointing authority in its own right.
 as `{kind: 'entity', path}` — the legacy shape, same value under the new
 type — and the mixin keeps `proprietorPath` as a legacy hydration slot
 that `appointingAuthority` overrides when both are present.
+
+### ⭐ The owners authority — a cap table (harbors review 1, 2026-11-02, MR !511, `362ec52aa`)
+
+The first slice of the [institutions slate](../slates/builds/institutions-slate.md)'s
+primitive. `lib/employment/CapTable.ts` (`CapTableMixin`, `Mixins.CapTable`,
+`MixinApi.isCapTable`) is **a table of owners and their units**: authored
+`capTable: {units, transfer, rows: [{holder: {kind, path, name?}, units}]}`
+— a holder is a player or an organization by identity path; the rows come
+to `units` or to nothing (a seed nobody holds yet). The concrete host is
+`platform/idea/PersistentBusiness` = `Persistable(CapTable(Business))`:
+**a table that changes hands must be KEPT**, so a move on a host with no
+record throws.
+
+- **Control derives from the table.** `{kind: owners}` is *whoever holds
+  MORE than half the units appoints* — a player by identity (a sole owner
+  appoints themself), an organization through its OWN authority (the
+  Greywater Line's office appoints the Hesper's master), no majority →
+  nobody. Authored bare it reads the organization's own table
+  (`getAppointingAuthority` fills `organization:` with its path); naming
+  `organization:` reads another's (a subsidiary appointed by whoever owns
+  its parent). It replaced the ship-only `register` kind.
+- **One act moves units, with the money.** `sellUnits` claims the units
+  synchronously, settles the price to the seller, and gives them back if
+  the money does not clear; `giveUnits` is the gift. Both are gated to the
+  `title transfer` subcommand, which takes the seller's (or receiver's) confirm and,
+  under the `consent` transfer term, every other holder's. `setCapTable`
+  is the applier's alone (the `Coin` gate's shape) — nothing else lays a
+  table down.
+- **Ships are the first consumer.** A ship is owned by her company; her
+  company's table is her sixty-fourths (`units: 64`); the register keeps
+  her title (`owner:` — the company), not shares. A smack's company is
+  minted at commissioning with the buyer as its whole row and kept
+  `(seed row, serial)` with her. See [ship.md](./ship.md).
+- ⭐ **A unit is a vote in the business, never standing in the polity**
+  (lens 7). Not built here: forms, a filing registry, primary issue,
+  distributions/dividends, the bank wall, charters, endorsements that
+  assemble a majority from a coalition — the institutions slate keeps
+  them.
 
 ## Nesting
 
@@ -229,32 +272,43 @@ suppressing the roster entry**. That is deliberate — it means the
 quit/fired suppression `holdsSeat` implements exists exactly once and
 cannot drift into a second copy.
 
-## Appointment — the `appoint` verb (alias `hire`)
+## Appointment — `house appoint`
 
-`appoint <person> to <position> at <organization>` (`employment`
+> ⭐ **The roster is the house's book, so its transactions are the house's
+> subcommands** (controllers-are-io W7, D9): `house appoint` / `house
+> dismiss` / `house draw` (`HouseAppoint/Dismiss/DrawController` over
+> `HouseControllerBase`, which holds the one *house an omitted `at` means*
+> derivation), and the worker's side is the job noun's — `job apply` /
+> `job quit` (`work/JobApply/QuitController`). The flat `appoint` (and its
+> `hire` alias), `dismiss`, `draw`, `apply` and `quit` are gone. `house`
+> and `job` are every character's (`Persona` affords both); the authority
+> validator, the seat and the proprietorship still do the refusing.
+
+`house appoint <person> to <position> at <organization>` (`employment`
 category), afforded universally on `Persona.commandContributions.self` for
 the same reason `office` is: the gate is the authority, not the
 affordance.
 
-⭐⭐ **Both optional parts are derived, and `hire` is the same verb**
-(2026-10-09). `appoint <person>` with no position and no organization
+⭐⭐ **Both optional parts are derived, and `house appoint` is the same verb**
+(2026-10-09). `house appoint <person>` with no position and no organization
 means *the house I am the proprietor of, and its only position* —
 resolved through `EmploymentApi.businessOfProprietor`. A house with
 several positions refuses and **names** them, because which job somebody
-was just given is not a thing to guess on their behalf. `hire` is an
-alias, so the word the work uses reaches the verb the chart uses.
+was just given is not a thing to guess on their behalf. (The `hire` alias
+that once let the work's word reach the chart's verb is deleted: one view,
+one word.)
 
 ⚠⚠ **The target scope is `["reachable", "online"]`, and `online`-only
-was a real defect.** It meant `appoint` could not reach a brainless NPC
-standing in front of you — so the drilling build shipped `hire` and
+was a real defect.** It meant `house appoint` could not reach a brainless NPC
+standing in front of you — so the drilling build shipped `appoint` and
 `dismiss` controllers **inside a trade pack**, to call
 `OrganizationMixin.appoint`/`.dismiss`, which the kernel had exposed all
 along. ⭐ *A new systemic capability appearing in a trade build is a
 symptom — look upstream.* The symptom here was two verbs; the cause was
 one arg scope and one missing view. The ladder's first rung is **unify
-behind an interface** (`grind` rides `mill`, `melt` rides `dip`), and a
-trade does not get a second verb because its workers happen not to be
-players.
+behind an interface** (one `mill` for the same stones, one `dip` for the
+pot you dip out of), and a trade does not get a second verb because its
+workers happen not to be players.
 
 ## ⭐⭐⭐ Starting work on hire — `startsShiftOnHire`
 
@@ -269,8 +323,8 @@ population with no home:
 
 The third one held a job and never worked a shift — employed, unpaid,
 standing wherever it was hired. It was hidden until 2026-10-09 because
-the drilling build's own `hire` controller called `beginShift` itself;
-unifying that verb into `appoint` exposed it as a kernel gap.
+the drilling build's own `house appoint` controller called `beginShift` itself;
+unifying that verb into `house appoint` exposed it as a kernel gap.
 
 ⚠⚠ **Two attempts to close it globally each broke a shipped contract**,
 and both tests were right:
@@ -289,7 +343,7 @@ from the moment they take hold of it — that is what makes a dry hole
 expensive. A press office's appointee starts nothing by being appointed.
 Both are true and they are not the same claim.
 
-It lives on the **chart**, beside `positions` / `rosterSlots` / `call`,
+It lives on the **chart**, beside `positions` / `rosterSlots`,
 because it is a claim about *this house's hiring* — not a trade
 mechanism. Any house that hires hands who cannot clock themselves on can
 set it.
@@ -297,16 +351,16 @@ set it.
 ⚠ A **player** is never auto-started whatever the house says. Clocking on
 is their act.
 
-## Dismissal — the `dismiss` verb
+## Dismissal — `house dismiss`
 
-`dismiss <person> [at <organization>]` — the **employer's half of
-`quit`**, and until 2026-10-09 the game had none. `quit` has always
+`house dismiss <person> [at <organization>]` — the **employer's half of
+`job quit`**, and until 2026-10-09 the game had none. `job quit` has always
 shipped for the worker and `organization.dismiss(actor)` has always been
 a sealed method on `OrganizationMixin` (*status → fired; history
 preserved*), but no view ever reached it: **no bar, smithy, ranch or
 press office could let anybody go.**
 
-Same declarative gate as `appoint`, same derivation when the
+Same declarative gate as `house appoint`, same derivation when the
 organization is omitted. It refuses on the subject when the person is not
 on those books, because letting go of somebody who never worked for you
 must not read as a dismissal. ⚠ The final wage is **not** the
@@ -401,6 +455,12 @@ and, per roster assignment:
 - **off→on**: stamps `onShiftSince = now`;
 - **on→off**: settles the shift wage off the captured record *before*
   clearing `onShiftSince`, then flips to off-shift;
+- ⭐ the on-test is `ShiftSchedule.covers(clock)` — the ONE reading of a
+  `ShiftEntry` (water supply): a window whose end is before its start runs
+  into the next day's small hours (a night turn `[22, 4)`), an equal-hours
+  entry covers nothing, and a season-bound window is off without the
+  house's season. The ditch gate integrates the same entries over a span
+  (`windowsBetween`), so the roster and the gate agree;
 - a `quit`/`fired` record is left alone (an explicit exit is never
   resurrected by the seed roster).
 
@@ -502,7 +562,7 @@ What was deleted is `EmployedMixin`'s implementation of it. See
 ## ⭐⭐ The opening, the criterion, and the sign
 
 An **opening** is `headcount − holders`, **derived, never stored** — so
-nothing can decrement it wrong: a hire closes it, a `quit` reopens it, a
+nothing can decrement it wrong: a hire closes it, a `job quit` reopens it, a
 `vacated` reopens it, by arithmetic. `headcount` absent = no opening is
 ever advertised, which is every seat that does not author it.
 
@@ -544,11 +604,21 @@ favour of a card that never renders it, which made the sign invisible in a
 browser until the live drive found it. See
 [carded-prose-slate](../slates/tails/carded-prose-slate.md).
 
-## `apply` and `clock` — the player moves first
+## `job apply` and `clock` — the player moves first
 
-- **`apply [for <position>] [at <organization>]`** — the applicant asks;
+- **`job apply [for <position>] [at <organization>]`** — the applicant asks;
   the organization decides. ⭐ Standing is conferred by the employer.
   Every refusal names the number and what lifts it.
+- ⭐⭐ **A body leaving the world ends its shift, paid to the moment it
+  left** (water supply, the payroll gap). `Employed.leaveShifts()` runs from
+  `Avatar.onLinkdead` (a dropped line), from the signed-out body's
+  retirement **before its save** (controllers-are-io D30: otherwise the
+  record said on-shift and a return's `clock off` paid the whole absence),
+  and from the mixin's `onDestruct` (an unloaded hand). Before it, a player who clocked on and
+  logged out was paid for every hour away at `clock off` (walked: 290
+  zorkmids for minutes in the world), and an unloaded hand took its open
+  shift's wage with it. The shift ends even when the wage cannot settle;
+  hours a venue sits unwatched are not paid.
 - **`clock on` / `clock off`** — ⭐⭐ a shift is something you CHOOSE to
   start. Holding a job puts you on the chart, not on the clock.
   `beginShift` runs from exactly one place, the roster tick over authored
@@ -607,10 +677,11 @@ player won every tie, forever**; and between two NPCs, one of them served
 every order of the bar's life while the other stood there. *Predictable
 beats arbitrary; neither is right.*
 
-`call:` is a field on **`OrganizationMixin`**, not on the trading half: a
-watch or a registry with two clerks needs a rule the day it has two, and
-putting it beside `banksAt` would make the watch a Business again to get
-one — the exact conflation the organizations build undid.
+`call:` was first put on **`OrganizationMixin`**, not on the trading half,
+on the argument that a watch or a registry with two clerks needs a rule the
+day it has two. ⚠ Superseded below: it is **`OnCallMixin`'s, on `Business`
+only** (controllers-are-io D6) — every authored `call:` row is a Business,
+and the watch that would need one does not exist yet.
 
 | policy | the house | the legs |
 |---|---|---|
@@ -650,6 +721,16 @@ rule.
 ⚠ The method is **`callFor(request)`**, not `call(request)` — `call` is the
 authored field and a field and a method cannot share a name. The field is
 the rule; the method is the act.
+
+⭐ **The call is `OnCallMixin`'s, not the chart's** (controllers-are-io D6,
+`lib/employment/OnCall.ts`). It shipped on `OrganizationMixin`, which
+claimed *every organization answers who comes over* — and a government, a
+registry or a press office answers nobody; all 37 authored `call:` rows are
+businesses. So the chart keeps its name and file, and `OnCallMixin`
+composes on the concrete Business only (`MixinApi.isOnCall`); the maker
+resolution narrows its house on `isBusiness`. A watch that one day has two
+clerks to choose between composes `OnCallMixin` without becoming a
+Business. The persisted field is still `call`.
 
 ### Being called breaks off what you were doing
 
@@ -776,7 +857,7 @@ retired.
   sell until it did (sugar build). Both are
   kernel, generic, and drive the **literal verbs** through
   `CommandApi.forceCommand` (`wallet use house`, `buy`, `put … on`,
-  `pour … into`, `get`, `wash`; `get`, `consign … --ask`) — nothing an NPC
+  `pour … into`, `get`, `wash`; `get`, `shelf consign … --ask`) — nothing an NPC
   does is unavailable to a player. See [behavior.md](./behavior.md) and
   [retail.md](./retail.md).
 
@@ -802,12 +883,12 @@ and settlement never checks that the payer *owns* the routing account
 - While active: **`buy` stamps the chattel to the business**
   (`BuyController` reads `receipt.accountId` → `BankingApi.ownerKeyOf`
   → a live `Business` → `ChattelApi.stamp(item, business)`, the
-  `organization` owner arm; "for Dave's Bar" in the scene); **`consign`
+  `organization` owner arm; "for Dave's Bar" in the scene); **`shelf consign`
   consigns as the business** (the listing's `consignorKey` is the
   business path, its operating account is the payout; an unstamped good
   the hand holds is stamped to the business first). `house stock` /
   `house par` act on that business.
-- **`quit`** (`platform/idea/cmd/employment/QuitController.ts`, `quit
+- **`job quit`** (`platform/idea/cmd/work/JobQuitController.ts`, `job quit
   [<business>]`) is the player's way out; `actor.quitJob` / `org.dismiss`
   unlink the operating account (`BankingApi.unlinkAccount`), and a relog
   re-clones the wallet app, so the link never outlives the position.
@@ -815,7 +896,7 @@ and settlement never checks that the payer *owns* the routing account
 - **The house card** — NPCs run no `installDefaultLoadout` (no implant,
   no wallet app), so the NPC shape of the same conferral is a
   **`PaymentCard`** linked to the operating account, dealt into the
-  holder's inventory at `hire` / roster materialization when the
+  holder's inventory at `house appoint` / roster materialization when the
   position has `purchases: true` and the holder is not an Avatar
   (`issueHouseCardImpl`, idempotent, `UNCAPPED` — seat authority, not a
   number). Same credential kind, same `wallet use house`, same `buy`.
@@ -885,7 +966,7 @@ every `parLines[].supplier` must resolve to a house whose operating
 locations include a room something props a counter into.
 
 **The player path to the seat** is diegetic: Dave's tree-dialogue
-(*"Looking for work?"*) carries a `dispatch` effect that runs `appoint
+(*"Looking for work?"*) carries a `dispatch` effect that runs `house appoint
 $player to keeper at /world/lounge/idea/business` as Dave, guarded on
 `position:/world/lounge/idea/business eq false`
 ([npc-dialogue.md](./npc-dialogue.md)). No wizard anywhere in the loop.
@@ -1002,7 +1083,7 @@ model:
    the consignment split proved.
 4. **residual** — **not a clause at all**: ownership, the P&L
    remainder — the proprietor's **draw** (`BankingApi.payDraw`, the
-   wallet-afforded `draw <amount>` verb; the business resolves *from*
+   `house draw <amount>` subcommand; the business resolves *from*
    the acting proprietor via `businessOfProprietor`, nothing to spoof).
    A distinct, **solvency-checked** `draw` leg kind — never silently a
    wage; see [banking.md](./banking.md) § The leg-kind vocabulary.
@@ -1038,7 +1119,7 @@ two-beat turn-in) lives in [contract.md](./contract.md).
   *player* maker — craft it yourself, or the engine crafts as you — is
   crafting.md's question, not this one's.
 - **Hire/fire drivers** beyond Dave's cover (a fuller management brain) — the
-  `hire`/`fire` Api exists; v1 driver is seed authoring + the tick's cover
+  `house appoint`/`fire` Api exists; v1 driver is seed authoring + the tick's cover
   reconcile.
 - **The `patronize`/recirculation loop** — off-shift staff at the rail
   ordering/paying/tipping; restores the three-way presence (`railStool`).
@@ -1146,8 +1227,8 @@ overwrite it.
 `max(headcount, distinct rostered assignees) − holders`, so a rostered
 seat is a place whether or not the Position authored a `headcount`. A
 hand who walks off leaves an opening that the help-wanted sign and
-`apply` already read. The opening appears only on positive evidence
-(the hand's own `quit` record), so an unloaded NPC never shows as a
+`job apply` already read. The opening appears only on positive evidence
+(the hand's own `job quit` record), so an unloaded NPC never shows as a
 phantom vacancy.
 
 This came from the unfree-labour slate: nobody works for nothing by
@@ -1184,7 +1265,7 @@ plan. Notable design→implementation shifts:
 
 > **Organizations build.** Factored the org chart out of `Business` into
 > `OrganizationMixin`, generalized `proprietorPath` into the polymorphic
-> **appointing authority**, added nesting and the **`appoint`** verb, and
+> **appointing authority**, added nesting and the **`house appoint`** verb, and
 > renamed `Employment.businessPath` → `organizationPath` (legacy key still
 > read on hydration; no migration). The Business half — `banksAt`,
 > `operatingLocations`, the P&L account, wage settlement — is unchanged,
@@ -1252,20 +1333,20 @@ sheet) — see `blood.md` (`DonationBankMixin`).
 ## A seat with a perceptual effect: the lookout (the maritime build, 2026-10)
 
 The first seat whose holding changes what somebody can SEE. A ship's
-house (`Structure.house`) carries a `lookout` position; whoever holds it
+house (`Ship.house`) carries a `lookout` position; whoever holds it
 **on shift** sees from the masthead (`Structure.sightHeightFor`), and
-everyone else from the deck. Read off the shipped roster — `appoint`,
+everyone else from the deck. Read off the shipped roster — `house appoint`,
 `clock on` — with nothing about the ship changing.
 
 ## ⭐⭐ The hiring driver (the drilling build, 2026-10)
 
-The deferred line *`hire`/`fire` exist on the LOGIC and not on the
+The deferred line *`house appoint`/`fire` exist on the LOGIC and not on the
 facade* is struck: a trade supplies the driver now. `trade-drilling`'s
-`hire <person>` reaches a **reachable** Agent — not an online one — and
-calls the public org face (`appoint`), then the roster primitives under
+`house appoint <person>` reaches a **reachable** Agent — not an online one — and
+calls the public org face (`house appoint`), then the roster primitives under
 `SelfOnly`.
 
-⭐ `appoint` is deliberately **not** widened. `scope: "online"` is right
+⭐ `house appoint` is deliberately **not** widened. `scope: "online"` is right
 for appointing somebody to an OFFICE, where the appointee has to be able
 to accept; a roustabout is not appointed to anything. If a second trade
 wants the same word, widen it then — one consumer is not a pattern.

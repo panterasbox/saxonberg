@@ -1,0 +1,18 @@
+# A pot of paste — starch paste made up at the mill, where bags
+# are pasted at the bottom and labels on the jars. Sold full. ⭐ Starch paste
+# does not resist the damp: a label pasted with it lets go when the jar is
+# wet (casein holds).
+class: /platform/thing/CompoundingVessel
+data:
+  shortDescription: pot of paste
+  keywords: [pot, paste, "paste pot", "pot of paste"]
+  register: indefinite
+  longDescription: A small earthenware pot of smooth grey-white starch paste, a stick standing in it.
+  _materialPath: /stuff/idea/material/ceramic/earthenware
+  mass: 1
+  interiorBulk: true
+  interiorCapacity: 3
+  interiorMaterial: /trade/painting/idea/material/starch-paste
+  interiorAmount: 2
+  closure: liquidTight
+  productMaterial: /trade/painting/idea/material/starch-paste

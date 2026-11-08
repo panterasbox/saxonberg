@@ -4,6 +4,7 @@
 # The THING decides what pulling it means and says why not in its own
 # words. ⛔ Not `haul`: that word is logistics' (goods by cart and wagon).
 verbs: [pull]
+category: inventory
 controller: /platform/idea/cmd/inventory/PullController
 description: "Pull on a line — a pot out of the water, a diver up, a bell down"
 help: |

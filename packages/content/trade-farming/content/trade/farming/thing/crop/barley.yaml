@@ -1,7 +1,7 @@
 # A sack of barley — ⭐ what malt is MADE from, and until now the malt
 # row had nothing behind it at all. Brewing and distilling have both been
 # drawing it from nowhere; this is the crop that closes both.
-class: /platform/thing/Crop
+class: /platform/thing/PlantableCrop
 data:
   shortDescription: sack of barley
   keywords: [barley, crop, sack]
@@ -10,3 +10,6 @@ data:
     Threshed grain, still with a little chaff in it, heavy in the sack and cool to the hand.
   _materialPath: /stuff/idea/material/food/barley-grain
   mass: 25
+  # ⭐ Threshed grain is seed: kept back from the harvest and sown at the
+  # crop's own rate (field population, seed kept back).
+  growsIntoPath: /trade/farming/thing/plant/barley

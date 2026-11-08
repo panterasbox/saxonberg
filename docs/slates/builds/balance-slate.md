@@ -83,7 +83,7 @@ So count the mints:
 
 > ⭐⭐⭐⭐ **Money already solved this. Nine other ledgers have the identical
 > problem and no chokepoint** — and `producer_events` is the one that
-> elects the government. *A parcel that can mint producer standing can
+> elects the government. *A parcel that can mint labor standing can
 > mint votes.*
 
 Which is why balance is not a game-design chore delegated to a designer.
@@ -534,7 +534,7 @@ derived at the right moment.
 And by Part 1's own reframe, **`producer_events` is voting weight.** So
 the one ledger where jurisdiction attribution matters most is the one that
 already has it. ⇒ **blocker #0 downgrades from "nothing is computable" to
-"one is, nine are not."** A producer-only balance instrument is shippable
+"one is, nine are not."** A labor-only balance instrument is shippable
 today, which makes a much cheaper v1 than the slate assumed.
 
 ##### ⚠⚠ Finding 3 — two `locality` fields are DEAD, and the tests say otherwise

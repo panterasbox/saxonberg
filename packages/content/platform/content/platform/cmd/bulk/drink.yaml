@@ -1,4 +1,5 @@
-verbs: [drink, quaff]
+verbs: [drink]
+category: bulk
 controller: /platform/idea/cmd/bulk/DrinkController
 description: "Drink from a holder — all of it, or a measured amount"
 help: |
@@ -7,7 +8,8 @@ help: |
   back empty.
 
   You can name the container or the liquid itself, so
-  `drink coffee` works as well as `drink mug`. If you only want a
+  `drink coffee` works as well as `drink mug`. At a tap or a
+  fountain, `drink from fountain`. If you only want a
   taste, use `sip` instead, which leaves the rest behind.
 
   Give `--amount` to take a measured quantity —
@@ -16,7 +18,7 @@ help: |
   draught is half the effect, and a threshold draught does nothing
   at all below its minimum.
 
-  `quaff` is the same verb. A potion is a liquid like any other —
+  A potion is a liquid like any other —
   it goes down through the same door as ale, and the measure is
   real: dose response is continuous, so half a graded draught is
   half the effect, and a threshold draught does nothing at all
@@ -37,6 +39,10 @@ args:
     type: object
     required: true
     scope: "reachable"
+    # `drink from the fountain` (water-supply drive): the article defect
+    # wants greedy, and `from` is the natural way to name an outlet.
+    greedy: true
+    prepositions: [from]
     requires: VisibleMixin
     validators:
       - /lib/command/validators/mustHaveBulkSlot

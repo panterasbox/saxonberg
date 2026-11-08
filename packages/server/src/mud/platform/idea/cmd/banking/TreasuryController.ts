@@ -24,6 +24,8 @@ import { Mml } from "../../../../api/mml";
 const TOPIC = "act.deed";
 
 interface TreasuryModel extends CommandModel {
+  row?: string;
+  value?: string;
   amount?: string;
   to?: string;
   target?: string;
@@ -37,10 +39,14 @@ export default class TreasuryController extends BankingControllerBase<TreasuryMo
         return this.book(context);
       case "appropriate":
         return this.appropriate(model, context);
+      case "set":
+        // The Minister of Finance's dials — taxes, levies, the fisc's
+        // grants and advances (Tier C), on the record (wizard-axis D11).
+        return this.setSeatDial(context, model.row, model.value, "minister-of-finance");
       default:
         MessageApi.scene(context.commandGiver)
           .topic(TOPIC)
-          .toSelf(Mml.compose`Usage: \`treasury\` or \`treasury appropriate <amount> to <target>\`.`)
+          .toSelf(Mml.compose`Usage: \`treasury\`, \`treasury appropriate <amount> to <target>\` or \`treasury set <row> <value>\`.`)
           .send();
         context.note({ kind: "controller-rejected", reason: "unknown-subcommand", detail: model.subcommand ?? "" });
     }

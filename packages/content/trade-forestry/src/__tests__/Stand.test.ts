@@ -15,7 +15,7 @@ import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { StandMixin, STAND_MIXIN, type StandSpecies } from '../lib/Stand';
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
-import { ReservedMixin, Reserve } from '@saxonberg/server/mud/lib/reserve';
+import { ReservedMixin, Reserve } from '@saxonberg/server/mud/lib/reserve/Reserved';
 import { SoilMixin, SOIL_MOISTURE_RESERVE_KEY } from '@saxonberg/server/mud/lib/husbandry/Soil';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';

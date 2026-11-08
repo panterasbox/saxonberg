@@ -215,4 +215,20 @@ describe('Application — MQL subscription routes', () => {
     getSpy.mockRestore();
     removeSpy.mockRestore();
   });
+
+  it('⚠ several tabs: the LAST connection\'s own close code decides sign-out vs drop', () => {
+    const interactive = makeFakeInteractive('sock-tab');
+    const setLeaveIntent = vi.fn();
+    (interactive as unknown as { getHolder: () => unknown }).getHolder = () => ({ setLeaveIntent });
+    (interactive as unknown as { teardownSubstrateState: () => void }).teardownSubstrateState = vi.fn();
+    const getSpy = vi.spyOn(ConnectionManager.get(), 'getInteractive').mockReturnValue(interactive);
+    const removeSpy = vi.spyOn(ConnectionManager.get(), 'removeInteractive').mockReturnValue(true);
+
+    app.handleUserDisconnect('sock-tab', true);
+    app.handleUserDisconnect('sock-tab', false);
+
+    expect(setLeaveIntent.mock.calls.map((c) => c[0])).toEqual([true, false]);
+    getSpy.mockRestore();
+    removeSpy.mockRestore();
+  });
 });

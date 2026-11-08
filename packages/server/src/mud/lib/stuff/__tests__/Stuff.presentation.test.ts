@@ -20,7 +20,7 @@ import { NamedMixin } from '../../description/Named';
 import { VisibleMixin } from '../../description/Visible';
 import { StackableMixin } from '../Stackable';
 import { DisguisableMixin } from '../../disguise/Disguisable';
-import { DisguiseBearingMixin } from '../../disguise/Disguise';
+import { DisguiseBearingMixin } from '../../disguise/DisguiseBearing';
 import { SlottedMixin } from '../../slot/Slotted';
 import { SlottableMixin } from '../../slot/Slottable';
 import Thing from '../Thing';

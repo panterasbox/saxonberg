@@ -30,7 +30,7 @@ import { MixinApi } from "@saxonberg/server/mud/api/mixin";
 import type { CommandContext } from '@saxonberg/server/mud/api/command';
 import type { SurveyFrame, SurveyPoint } from '@saxonberg/types';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tooled';
+import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tool';
 import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import { MessageApi } from '@saxonberg/server/mud/api/message';

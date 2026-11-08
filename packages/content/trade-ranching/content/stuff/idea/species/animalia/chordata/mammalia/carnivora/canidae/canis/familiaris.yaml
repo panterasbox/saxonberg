@@ -18,6 +18,7 @@
 # where it is.
 class: /platform/idea/species/Species
 data:
+  smells: [{ aroma: /base-library/aromas/dog, strength: 10 }]
   binomial: Canis familiaris
   commonNames: ["dog", "collie", "sheepdog", "hound", "bitch"]
   _bodyPlanPath: /stuff/idea/species/BodyPlan/quadruped
@@ -68,4 +69,4 @@ data:
   longDescription: >-
     A rough-coated collie with one ear up, lying flat with its chin on
     its paws and its eyes on the stock. It has not blinked in a while.
-  nameBankKeys: []
+  nameBanks: []

@@ -38,6 +38,7 @@ import { WorldClockApi } from '../../api/worldclock';
 import { TemplatePaths } from '../paths';
 import { Freshness } from '../material/Freshness';
 import {
+  DECAY_SMELLS,
   DECAY_STAGES,
   MORTALITY_DEFAULTS,
   type DecayStage,
@@ -50,6 +51,8 @@ export interface Postmortem {
   markDeceasedAt(gameSec: number): void;
   /** How far decomposition has gone. `'fresh'` while alive. */
   getDecayStage(): DecayStage;
+  /** What its decay gives a nose, per kilogram; `null` while it is fresh. */
+  decayNote(): { aroma: string; ou: number } | null;
   /**
    * ⭐ Does this body float now (river D27)? A drowned body sinks — fresh
    * flesh is denser than water — and comes up when decomposition has filled
@@ -161,6 +164,10 @@ export function PostmortemMixin<TBase extends MixinConstructor<Stuff>>(
         Math.floor(elapsed / MORTALITY_DEFAULTS.DECAY_STAGE_SEC),
       );
       return DECAY_STAGES[index]!;
+    }
+
+    public decayNote(): { aroma: string; ou: number } | null {
+      return DECAY_SMELLS[this.getDecayStage()];
     }
 
     public buoyantNow(): boolean {

@@ -3,7 +3,7 @@
  *
  * A mode is a view — it owns which arrangements ship, which one you
  * land in, and which card kinds may be summoned. It does not own
- * permission. Everything runnable in `play` is runnable in `build`.
+ * permission. Everything runnable in `explore` is runnable in `build`.
  *
  * ⚠ This test exists because "study mode shouldn't allow combat" is a
  * seductive one-liner, and taking it would put a permission check in
@@ -179,7 +179,7 @@ describe('a cockpit mode gates nothing', () => {
    * answer. If a mode ever became a gate, the resolve would start
    * diverging across this loop.
    */
-  describe('a verb runnable in play is runnable in every mode', () => {
+  describe('a verb runnable in explore is runnable in every mode', () => {
     let look: CommandDefinition | null;
     let location: TestLocation;
     let actor: TestActor;

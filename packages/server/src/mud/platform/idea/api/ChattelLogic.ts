@@ -48,14 +48,10 @@ const ChattelApiCallers = SecurityPolicies.FromModule("/api/chattel#ChattelApi")
 /** The F1 object face: a chattel-bearing good forwards its own title ops. */
 const ChattelCallers = SecurityPolicies.AnyOf(
   ChattelApiCallers,
-  SecurityPolicies.FromMixin("ChattelMixin", {
-    // Compare by stuffId — the caller may surface as the raw target
-    // while the argument is the proxy (or vice versa).
-    where: (caller, _target, _method, args) =>
-      (caller as { stuffId?: string }).stuffId !== undefined &&
-      (caller as { stuffId?: string }).stuffId ===
-        (args[0] as { stuffId?: string } | undefined)?.stuffId,
-  }),
+  SecurityPolicies.AllOf(
+    SecurityPolicies.FromMixin("ChattelMixin"),
+    SecurityPolicies.SelfSubject(0),
+  ),
 );
 
 /** The owner key a person or a house is titled by (Chattel's own rule). */
@@ -103,13 +99,7 @@ const GLOB_REFUSAL =
  * loophole.
  */
 function isFungibleStack(item: Stuff): boolean {
-  if (!MixinApi.isStackable(item)) return false;
-  // ⚠ An UNREADABLE quantity is treated as a stack, not as a lot: the
-  // refusal is the conservative answer, and something that claims to be
-  // fungible without saying how many is exactly the case not to mint an
-  // id for.
-  const n = (item as unknown as { getQuantity?(): number }).getQuantity?.();
-  return typeof n === 'number' ? n > 1 : true;
+  return MixinApi.isStackable(item) && item.getQuantity() > 1;
 }
 
 let registryRef: ChattelRegistry | null = null;
@@ -257,7 +247,11 @@ export class ChattelLogic extends ApiLogic {
         if (reg) await reg.stamp(this.ensureId(good, reg), owner);
       }
     }
-    if (MixinApi.isStackable(item)) return;
+    // ⚠ A STACK has no place; a lone good that happens to stack (a carved peg)
+    // was stamped above and does: left at the default `storage`, its owner's
+    // capture skipped it and the next restore put it in a store, not the hand
+    // (found by the drive, step 17).
+    if (isFungibleStack(item)) return;
     if (!good.getChattelId()) return; // unstamped: nothing owns it
     const owner = await this.resolveOwner(item);
     if (owner?.kind !== "player") return;
@@ -305,10 +299,14 @@ export class ChattelLogic extends ApiLogic {
    * made from nobody's materials with nobody there — as it always was.
    */
   private derivedTitle(item: Stuff, to: Stuff | null): ChattelOwner | null {
-    const good = item as Stuff & Chattel;
-    const made = good.getMadeFromOwner();
-    if (made) return made;
-    if (good.isMadeByProcess()) return null;
+    // ⭐ Only a MADE thing has inputs to inherit a title from — an animal
+    // arriving is never "made" (controllers-are-io D6: narrowed, where it
+    // used to reach every chattel).
+    if (MixinApi.isMadeFrom(item)) {
+      const made = item.getMadeFromOwner();
+      if (made) return made;
+      if (item.isMadeByProcess()) return null;
+    }
     if (to !== null && to.isAgent()) return ownerKeyOf(to);
     if (ExecutionContextApi.getCommandStack().length > 0) {
       const actor = ExecutionContextApi.getActingAuthor() as Stuff | null;
@@ -347,7 +345,11 @@ export class ChattelLogic extends ApiLogic {
       // A good made a moment ago is not titled until it lands — what it
       // was itself made from stands in for it (a press's residue cake is
       // made from what its output was).
-      const owner = id ? reg.ownerOf(id) : good.getMadeFromOwner();
+      const owner = id
+        ? reg.ownerOf(id)
+        : MixinApi.isMadeFrom(input)
+          ? input.getMadeFromOwner()
+          : null;
       if (!owner || owner.kind === "group") continue;
       agreed = agreed.with(owner);
     }
@@ -360,7 +362,7 @@ export class ChattelLogic extends ApiLogic {
    * `chattel` row's by-room index, and a live owner's estate.
    */
   private async applyPlace(item: Stuff, place: string): Promise<void> {
-    if (MixinApi.isStackable(item)) return; // a fungible stack has no place
+    if (isFungibleStack(item)) return; // a fungible stack has no place
     if (!MixinApi.isChattel(item)) return;
     const good = item as Stuff & Chattel;
     good._setPlace(place);

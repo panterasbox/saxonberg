@@ -45,10 +45,10 @@ describe('the stock card', () => {
     CardApi._clearAllForTesting();
   });
 
-  it('is in the catalogue: live, unpinned, an MQL card over reachable bulk', () => {
+  it('is in the catalogue: live, pinned (a working instrument, client-surface B40), an MQL card over reachable bulk', () => {
     expect(CARD_IDS).toContain('stock');
     expect(CARDS.stock.live).toBe(true);
-    expect(CARDS.stock.pinnedByDefault).toBe(false);
+    expect(CARDS.stock.pinnedByDefault).toBe(true);
     expect(CARDS.stock.source.kind).toBe('mql');
   });
 

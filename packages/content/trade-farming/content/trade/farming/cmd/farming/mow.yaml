@@ -1,4 +1,5 @@
 verbs: [mow]
+category: farming
 controller: /trade/farming/idea/cmd/farming/MowController
 description: "Cut the standing grass for hay"
 help: |
@@ -27,7 +28,7 @@ args:
   # `[capability.mowing]` — *the thing that can do this job* — rather than
   # `[mixin.ToolMixin]`, which would resolve any tool at all and then
   # fail this verb's own check. That atom is what let this stop being a
-  # walk (see `lint:instrument-args`).
+  # walk (see `lint:controller-resolution`).
   - name: tool
     type: object
     required: false
@@ -41,3 +42,13 @@ args:
   - name: detail
     type: string
     required: false
+  # ⭐ WHICH FIELD — `at the gate end` (tracts build D38). The grass and the
+  # seedbed are a field's, so on a tract marked into several fields the act
+  # names one; the TRACT decides whether it must, and says so.
+  - name: part
+    type: object
+    required: false
+    greedy: true
+    scope: ["here", "peers", "person"]
+    prepositions: [at]
+    requires: SoilMixin

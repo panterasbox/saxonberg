@@ -14,6 +14,7 @@ class: /platform/idea/species/Species
 data:
   binomial: Gallus domesticus
   commonNames: ["hen", "chicken", "fowl", "cockerel", "pullet", "bird"]
+  maleNames: [cockerel]
   # ⚠⚠ This said `BodyPlan/biped` until 2026-10-05 — the HUMAN plan. A hen
   # had `body.arm.left.hand`, a liver, an upper and lower spine, and NO
   # WINGS. Nothing errored, because nothing checked: a body plan is named
@@ -45,6 +46,10 @@ data:
   diet: omnivore
   # ⭐ Adult liveweight in kg. A grown hen. ⚠ Her body plan is `biped`, whose 70 kg default is a PERSON — without this number a hen massed as much as a farmhand.
   adultMass: 2.5
+  # ⭐ How it is fed (cover build D9): it grazes the field it stands on,
+  # and eats hay from a trough when the grass runs short. What it eats
+  # is its size — `0.1 × adultMass^0.75` kilograms of dry matter a day.
+  feedingStyle: [ground, hopper, graze]
   ageCurve: { weanedAt: 10, matureAt: 60, agedAt: 500, senescentAt: 800 }
   # ⚠ A LONG-day layer: she comes into lay as the days lengthen and goes
   # off as they shorten. The third distinct photoperiod response in the
@@ -112,4 +117,4 @@ data:
     A brown hen with a comb flopped over one eye, moving in the short
     decisive bursts of something that has never once thought anything
     through.
-  nameBankKeys: []
+  nameBanks: []

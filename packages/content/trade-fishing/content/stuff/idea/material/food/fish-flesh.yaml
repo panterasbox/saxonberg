@@ -9,8 +9,9 @@
 # rate is already high at cellar temperature — which is why fish was
 # salted at the quay and not in the kitchen. The one number that makes
 # *a fillet spoils on the shipped clock and keeps when smoked* true.
-class: /platform/idea/material/ConsumableMaterial
+class: /platform/idea/material/OdorousConsumableMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/fish, strength: 300 }]
   name: fish flesh
   keywords: [fish, flesh, fillet]
   appearance: pale, close-grained flesh that flakes along its lines
@@ -18,7 +19,7 @@ data:
   thermalConductivity: 0.5
   specificHeat: 3500
   edibility: true
-  tastes: [umami, salty]
+  tastes: [{ type: umami, amount: 3 }, { type: salty, amount: 1.5 }]
   spoilActivationEnergy: 60000
   waterActivity: 0.99
   nutrients: [protein, fat]

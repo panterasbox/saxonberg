@@ -1,9 +1,12 @@
 import "../../../../../test-bootstrap";
+import { aromaPath } from '../../../../lib/perception/__tests__/aroma-fixtures';
 import { describe, it, expect, beforeEach, afterEach  } from 'vitest';
 import { SmellModality } from '../SmellModality';
 import { MAX_HOPS } from '../../../../lib/perception/Modality';
 import { Smell } from '../../../../lib/perception/Smell';
-import { SmellSourceMixin } from '../../../../lib/perception/SmellSource';
+import { vi } from 'vitest';
+import { OdorousMaterial } from '../../material/OdorousMaterial';
+import { Quantity } from '../../../../lib/quantity';
 import { AtmosphericMixin } from '../../../../lib/biome/Atmospheric';
 import Location from '../../../../lib/location/Location';
 import CartesianZone from '../../location/CartesianZone';
@@ -23,7 +26,15 @@ import { PerceptionApi } from '../../../../api/perception';
 const smellModality = (): SmellModality =>
   PerceptionApi.modalityByName('smell') as SmellModality;
 
-class Candle extends SmellSourceMixin(Good) {}
+/** A kilogram of something that smells of `word` at `ou`, at reference heat. */
+function emitter(word: string, ou: number): Good {
+  const material = makeStuff(() => new OdorousMaterial());
+  material.smells = [{ aroma: aromaPath(word), strength: ou }];
+  const thing = makeStuff(() => new Good());
+  vi.spyOn(thing, 'getMaterial').mockReturnValue(material);
+  vi.spyOn(thing, 'getMass').mockReturnValue(Quantity.of(1, 'kg'));
+  return thing;
+}
 class AtmosphericLocation extends AtmosphericMixin(Location) {}
 
 describe('SmellModality.signalAt — propagation core', () => {
@@ -53,15 +64,13 @@ describe('SmellModality.signalAt — propagation core', () => {
     zone.setCellSize(1);
     const loc = makeStuff(() => new Location());
     zone.addLocation(loc, 0, 0, 0);
-    const candle = makeStuff(() => new Candle());
-    candle.setEmittedConcentration(50);
-    candle.setOdorIdentity('garlic');
+    const candle = emitter('garlic', 50);
     ContainmentApi.move(candle, loc);
 
     const smell = smellModality().signalAt(loc);
     expect(smell).toBeInstanceOf(Smell);
-    expect(smell!.concentration.rawValue()).toBe(50);
-    expect(smell!.identity).toBe('garlic');
+    expect(smell!.strength.rawValue()).toBe(50);
+    expect(smell!.dominantAroma).toBe(aromaPath('garlic'));
     expect(smell!.sources).toHaveLength(1);
   });
 
@@ -73,13 +82,13 @@ describe('SmellModality.signalAt — propagation core', () => {
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 0, 1, 0);
     await a.addBidirectionalExit(b, 'north'); // explicit doorless doorway
-    const candle = makeStuff(() => new Candle());
-    candle.setEmittedConcentration(60);
-    candle.setOdorIdentity('garlic');
+    const candle = emitter('garlic', 60);
     ContainmentApi.move(candle, b);
 
     const smellInA = smellModality().signalAt(a);
-    expect(smellInA!.concentration.rawValue()).toBe(60);
+    // One band fainter per hop, and it remembers how far it came.
+    expect(smellInA!.strength.rawValue()).toBeCloseTo(2);
+    expect(smellInA!.sources[0]!.hops).toBe(1);
   });
 
   it('a closed door between rooms blocks the leak', async () => {
@@ -89,9 +98,7 @@ describe('SmellModality.signalAt — propagation core', () => {
     const b = makeStuff(() => new Location());
     zone.addLocation(a, 0, 0, 0);
     zone.addLocation(b, 0, 1, 0);
-    const candle = makeStuff(() => new Candle());
-    candle.setEmittedConcentration(60);
-    candle.setOdorIdentity('garlic');
+    const candle = emitter('garlic', 60);
     ContainmentApi.move(candle, b);
 
     const door = await StuffApi.create(() => new Door());
@@ -102,7 +109,9 @@ describe('SmellModality.signalAt — propagation core', () => {
     expect(smellModality().signalAt(a)).toBeNull();
     door.open();
     const smellInA = smellModality().signalAt(a);
-    expect(smellInA!.concentration.rawValue()).toBe(60);
+    // One band fainter per hop, and it remembers how far it came.
+    expect(smellInA!.strength.rawValue()).toBeCloseTo(2);
+    expect(smellInA!.sources[0]!.hops).toBe(1);
   });
 
   it('vacuum atmosphere blocks smell at the recipient', () => {
@@ -111,9 +120,7 @@ describe('SmellModality.signalAt — propagation core', () => {
     const a = makeStuff(() => new AtmosphericLocation());
     zone.addLocation(a, 0, 0, 0);
     a.setAtmosphere('vacuum');
-    const candle = makeStuff(() => new Candle());
-    candle.setEmittedConcentration(60);
-    candle.setOdorIdentity('garlic');
+    const candle = emitter('garlic', 60);
     ContainmentApi.move(candle, a);
 
     expect(smellModality().signalAt(a)).toBeNull();
@@ -130,51 +137,53 @@ describe('SmellModality.signalAt — propagation core', () => {
     zone.addLocation(b, 0, 1, 0);
     zone.addLocation(c, 0, 2, 0);
     zone.addLocation(d, 0, 3, 0);
-    const candle = makeStuff(() => new Candle());
-    candle.setEmittedConcentration(80);
-    candle.setOdorIdentity('bog');
+    const candle = emitter('bog', 80);
     ContainmentApi.move(candle, d);
 
     expect(MAX_HOPS).toBe(2);
     expect(smellModality().signalAt(a)).toBeNull();
   });
 
-  it('multi-identity merging: dominant by total concentration', () => {
+  it('each word stands on its own: the dominant is the furthest past threshold', () => {
     const zone = makeStuff(() => new CartesianZone());
     zone.setCellSize(1);
     const loc = makeStuff(() => new Location());
     zone.addLocation(loc, 0, 0, 0);
 
-    const garlic = makeStuff(() => new Candle());
-    garlic.setEmittedConcentration(20);
-    garlic.setOdorIdentity('garlic');
+    const garlic = emitter('garlic', 20);
     ContainmentApi.move(garlic, loc);
 
-    const smoke = makeStuff(() => new Candle());
-    smoke.setEmittedConcentration(60);
-    smoke.setOdorIdentity('smoke');
+    const smoke = emitter('smoke', 60);
     ContainmentApi.move(smoke, loc);
 
     const smell = smellModality().signalAt(loc);
-    expect(smell!.concentration.rawValue()).toBe(80);
-    expect(smell!.identity).toBe('smoke');
+    expect(smell!.notes.map((n) => n.aroma)).toEqual([aromaPath('smoke'), aromaPath('garlic')]);
+    expect(smell!.dominantAroma).toBe(aromaPath('smoke'));
   });
 
-  it('source cap respected when many emitters contribute', () => {
+  it('every source is kept, so a nose can tell when one thing is the only one', () => {
     const zone = makeStuff(() => new CartesianZone());
     zone.setCellSize(1);
     const loc = makeStuff(() => new Location());
     zone.addLocation(loc, 0, 0, 0);
-
     for (let i = 0; i < 5; i++) {
-      const c = makeStuff(() => new Candle());
-      c.setEmittedConcentration(10 * (i + 1));
-      c.setOdorIdentity(`id-${i}`);
-      ContainmentApi.move(c, loc);
+      ContainmentApi.move(emitter(`id-${i}`, 10 * (i + 1)), loc);
     }
+    expect(smellModality().signalAt(loc)!.sources).toHaveLength(5);
+  });
 
-    const smell = smellModality().signalAt(loc);
-    // Source list capped per SMELL_SOURCE_CAP (3 in v1).
-    expect(smell!.sources.length).toBeLessThanOrEqual(3);
+  describe('emissionOf', () => {
+    it('amount is compressive: 10 g and 100 kg are two bands apart', () => {
+      const small = emitter('tallow', 100);
+      vi.spyOn(small, 'getMass').mockReturnValue(Quantity.of(0.01, 'kg'));
+      const large = emitter('tallow', 100);
+      vi.spyOn(large, 'getMass').mockReturnValue(Quantity.of(100, 'kg'));
+      expect(smellModality().emissionOf(small).strength.rawValue()).toBeCloseTo(10);
+      expect(smellModality().emissionOf(large).strength.rawValue()).toBeCloseTo(1000);
+    });
+
+    it('a plain thing gives off nothing, by having nothing to give', () => {
+      expect(smellModality().emissionOf(makeStuff(() => new Good())).isEmpty()).toBe(true);
+    });
   });
 });

@@ -11,7 +11,7 @@
 #
 # Persistent: a rammed flask holds an impression, a plaster mould cures, a
 # press stands screwed down — state that must survive a restart.
-class: /platform/location/PersistentLocale
+class: /platform/location/PersistentHall
 data:
   shortDescription: foundry
   keywords: [foundry, "moulding floor", casting]
@@ -49,6 +49,9 @@ data:
     # ⭐ One flask and one wax block stand ready: a flask is spent by the
     # cast it releases, and the founder rams the next as it is wanted.
     - /trade/smelting/thing/flask
+    # ⭐ The pipe flask (water-supply W5, R4): the city's iron pipe is
+    # founder's work, cast here and sold up the road.
+    - /trade/plumbing/thing/pipe-flask
     - /trade/smelting/thing/wax-block
     - /trade/smelting/thing/chill-mould
     - /trade/smelting/thing/die

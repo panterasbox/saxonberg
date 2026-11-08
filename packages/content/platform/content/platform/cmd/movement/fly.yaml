@@ -26,6 +26,7 @@
 # enablement host in the room — and this key comes off.
 unreachable: awaiting:base-class-narrowing-slate
 verbs: [fly]
+category: movement
 controller: /platform/idea/cmd/movement/FlyController
 description: "Fly through a named exit (must be Flyable-enabled)."
 help: |
@@ -42,7 +43,12 @@ validators:
 args:
   - name: target
     type: object
-    scope: ["$focus", "reachable"]
+    # ⭐ Ways only: an exit is a candidate in its own
+    # right, so the scope names WAYS and the word can only mean one — `go
+    # hesper` is the way named for her, never a line from her lying on the
+    # quay or the thing in focus. A vessel standing here is entered by its
+    # entry-exit (`go carriage`), tried second.
+    scope: ["here:exits", "reachable:[class.ExitableVessel]"]
     required: true
     validators:
       - /lib/command/validators/canReach

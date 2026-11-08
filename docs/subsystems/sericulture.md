@@ -1,8 +1,8 @@
 # Sericulture — the RGO whose take ends the animal
 
 > **Pack:** `trade-sericulture` at `/trade/sericulture` · **Discipline:**
-> `sericulture` · **Verbs:** none of its own (`put`, `get`, `harvest`,
-> `reel`, `spin`, `weave`, `heat`) · **Design:**
+> `sericulture` · **Verbs:** `unwind` (and the platform's `put`, `get`,
+> `harvest`, `spin`, `weave`, `heat`) · **Design:**
 > [silk-slate.md](../slates/tails/silk-slate.md)
 
 A tray of silkworms eats cut mulberry leaf for about a month, ages by the
@@ -31,6 +31,11 @@ as a colony is the hive's ([apiculture.md](apiculture.md)). Nothing mints a
   hive's microtask lesson). A one-brood lot that has not wintered is
   refused in words; the winter clock (`chillS` below 5 °C) lives on the
   `EggLot`.
+- **No tap window.** The species row declares no `production` — the take
+  is the reel, which ends the animal, so it is not a tap — and the hatch
+  is therefore NOT a `TapWindowSpec` timed to the leaf flush. The keeper
+  picks the day by setting a wintered lot on a warm tray; whether there is
+  leaf on the walk that day is the keeper's judgment, not the engine's.
 - **The clock is degree-days** off the tray's own temperature trajectory
   (base 10 °C): hatch at 150, five ages ending at 52 · 97 · 157 · 232 ·
   352 after hatch, the last tenth of ages I–IV a moult (asleep, eating
@@ -90,24 +95,29 @@ next generation, keeping the light lowers it, the middling moves nothing —
 and an underfed tray does NOT breed lighter worms (only the heritable part
 moves).
 
-## The reel — fishing's verb, the instrument decides
+## The reel — `unwind`, silk's own act
 
-`reel` is ONE view, fishing's (the collision ladder's first rung: unify
-behind an interface). ⚠⚠ **Known debt, shipped knowingly:** at review
-this proved a FALSE unification — the controller narrows on the target to
-pick the mechanic, which is command-spec's own tell for two verbs. The
-undo (fishing's view restored; silk's own `unwind` in this pack) is
-`command-taxonomy-slate.md` § The work, item 7, deferred to the global
-command sweep. With nothing bound it is the fishing act; bound to a
-target answering `Reelable` (`trade-fishing/src/lib/Reelable.ts`, the
-kernel's `WorkPrognosis`/`WorkResult`), the target plans, the controller
-engages, the target completes and names the Discipline to credit.
-`ReelingTool` (hand reel rate 1; the mill's basin rate 2, `control: fine`)
-affords it; the stack affords nothing. `reel cocoons --count N`: 40
-cocoons per reeling, wants a lit fire in reach ≥ 330 K, makes ONE skein of
-`RawSilk` (a `TextileStock`, `yarnCount` 0, so `spin` throws it) with the
-filament count and an **evenness** from the reeler's competence and the
-reel's control, the reeler's mark, and a handful of pupae (food).
+`unwind <cocoons> [with <reel>] [--count N]` is this pack's view
+(`cmd/sericulture/unwind.yaml`, `UnwindController`). ⚠ It rode fishing's
+`reel` until controllers-are-io D19: one view and two instruments behind a
+duck-typed `Reelable` shape, with the controller narrowing on the target to
+pick the mechanic — command-spec's own tell for two verbs, and a
+cross-pack dependency for a word. Fishing has its `reel` back; silk has
+`unwind`, and this pack no longer depends on fishing.
+
+The view's `cocoons` arg `requires: StackableMixin` (the kind the binder
+can check); the controller narrows to the `Cocoons` class and refuses
+anything else in its words. The cocoons plan (`Cocoons.planUnwind`, or a
+refusal in their own words), the controller engages the hands, and the
+cocoons complete (`completeUnwind`) and name the Discipline to credit —
+the kernel's `WorkPrognosis`/`WorkResult`. `ReelingTool` (hand reel rate
+1; the mill's basin rate 2, `control: fine`) affords it; the stack affords
+nothing. `unwind cocoons --count N`: 40 cocoons per reeling, wants a lit
+fire in reach ≥ 330 K, makes ONE skein of `RawSilk` (a `TextileStock`,
+`yarnCount` 0, so `spin` throws it) with the filament count and an
+**evenness** from the reeler's competence and the reel's control, the
+reeler's mark, and a handful of pupae (food). The `reels` brain says
+`unwind cocoons --count …`.
 
 ## Downstream
 
@@ -117,6 +127,14 @@ A bolt boils off its gum in a **copper** (the textiles pack's
 `FinishingMixin` + the degumming profile here, through the kernel's
 immersion rung — [thermal.md](thermal.md)) and comes out **silk**, white
 and a quarter lighter. Gummed cloth takes a dye thinly.
+
+⚠ **The copper holds water, not soap.** In life the sericin comes off in
+soap and lye; the model is the water's heat alone (`degumming.yaml`:
+`stallBelowK` 343 · `happyK` 363 · `damageAboveK` 383 — a band a copper of
+water cannot reach, so only something that is not water could over-boil
+it). So cleanliness's cleanser `damages` rule has no consumer in this
+trade, and lye never meets the silk in its own chain — the laundress's
+tub is where a protein fibre meets lye, not the finishing copper.
 
 ## The silk house and the mill
 

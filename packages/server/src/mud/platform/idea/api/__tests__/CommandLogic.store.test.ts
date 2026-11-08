@@ -126,7 +126,7 @@ describe('CommandApi — offline (no store): the packs\' files are the source', 
     expect(r.loaded).toBeGreaterThan(100);
     expect(CommandApi.getCommand('platform/cmd/perception/look.yaml')).not.toBeNull();
     // A locality view (its pack's `content/world/**/cmd/`), keyed domain-prefixed.
-    const local = CommandApi.allDefinitions().find((d) => d.category === 'local');
+    const local = CommandApi.allDefinitions().find((d) => d.filePath.replace(/\\/g, '/').includes('/world/'));
     expect(local).toBeDefined();
   }, 30_000);
 

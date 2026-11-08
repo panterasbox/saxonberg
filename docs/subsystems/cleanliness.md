@@ -91,7 +91,8 @@ dirty glove's load on the bare hand; `remove gloves carefully` puts none.
 
 `Soilable.washSite(spec, site)` is the chemistry (B8 — not `wash()`, which
 is the vessel service wash). A `WashSpec` is the water's heat and
-hardness, zero or more cleansers, and the effort (a scrub is 3). Per kind:
+hardness, zero or more cleansers, and the effort (`wash --hard` is 3 with a brush, 1.5 by hand; the old
+`scrub` verb is gone, controllers-are-io D8). Per kind:
 what a cleanser's action answers to comes off, scaled by heat, effort and
 hardness (soap scums in hard water; soda softens it); blood washed hot
 SETS — in a thing that `holdsSetStains()`; skin does not (B37). A host adds what washing does to IT by override — a `Garment`
@@ -104,7 +105,7 @@ least `washedShare(site)` wet — the whole of a shirt, a rug or a floor (a
 mopped floor is slick until it dries, `Floor` ≥ 0.3), a hand's surface
 share of a body (`Creature.washedShare` over `Attired.surfaceShareOf`:
 washing your hands leaves you dry; a bath soaks you). A thing boiled in a
-pot (`holdAtHeat(…, {wet})`) comes out wet. A WADE wets the body by the
+pot (`holdAtHeatFor`, below) comes out wet. A WADE wets the body by the
 share under water, each layer under it whole (`Attired.immerse`). And a
 **towel** (`platform/thing/Cloth`, held, confers `dry`) takes it off:
 `dry me with towel` → `Wet.soakUp`, the water moved by mass into the
@@ -133,16 +134,26 @@ wool back.
 | `disinfected` | a boil held (≥ 373 K, 300 s), and no pathogen survives |
 | `sterile` | a dry heat or a flame ≥ 433 K for 60 s |
 
-Writers of the heat stamp: `boil <cloth> in <pot>` and `heat <instrument>`
-(held in the flame), each also running the shipped kill law
-(`Contamination.killOver`; spores survive a boil). Readers:
+Writers of the heat stamp: ⭐ **the bath** — a thing IN a vessel whose liquid
+is on the boil is held there by the vessel's own thermal reconcile
+(`Soilable.holdAtHeatFor`, controllers-are-io D8c; no verb, and the word
+`boil` is gone: `put bandage in pot`, with the pot on the fire) — and `heat
+<instrument>` (held in the flame). Each runs the shipped kill law
+(`Contamination.killOver`; spores survive a boil). The occupant keeps its own
+clock from when it went in (`enterBath`/`leaveBath`, from the vessel's
+containment hooks): five minutes of a pot's boil before the bandage went in
+count for nothing. ⚠ Each read credits only the seconds since the last one and
+kills once over those, while the stamp holds the whole time since entry;
+`holdAtHeat` re-kills per call and is for a single act. ⚠ At the boil only: a
+warm bath stamps nothing. Readers:
 
 - **the clinic** — a dressing's quality IS its tier (raw 0.3, washed 0.6,
   sanitised 0.8, boiled 1); `applyTreatment` seeds sepsis from the WORST of
   the hands, the dressing short of disinfected and the instrument short of
   sterile (surgery) or disinfected (a suture needle); surgery seeds
-  whatever the wound's type (B23). A competent nurse boils a raw bandage
-  first.
+  whatever the wound's type (B23). A competent nurse drops a raw bandage
+  into a pot on the boil and waits on it; with no pot on the boil she
+  dresses with what she has.
 - **the kitchen** — a board, knife or hand short of sanitised inoculates
   the food it touches with `staph-aureus` BEFORE the working's kill (B24):
   a stew boiled long enough is safe, a salad cut on a dirty board is not.
@@ -162,12 +173,12 @@ hygienic one.
 
 - **`look`** — the band and its kinds (*soiled, muddy and greasy*); a body
   by region on the bare skin; the wet band.
-- **`smell`** — dirt with a nose has an `odour` on its row (sweat → *stale
+- **`smell`** — dirt with a nose has an `odor` on its row (sweat → *stale
   sweat*, manure → *dung*, milk → *sour milk*, blood → *old blood*, grease
-  → *rancid fat*; mud, ash, soot, flour and crumbs none). `soilOdour()`
-  derives the emission from the loads (a body adds what it wears), the
-  smell walk scents the room with it, and `smell <thing>` reads *it smells
-  of …* (*reeks* at ≥ 100 ppm) once past `cleanliness.odourNoticedPpm`.
+  → *rancid fat*; mud, ash, soot, flour and crumbs none). `soilOdor()` gives a
+  note per word from the loads, in OU, and that is one leg of the one smell model
+  ([senses.md](./senses.md#one-smell-source-air-nose)), so a body smells of what it
+  wears and a nose reads it like anything else.
 - **`analyze cleanliness <thing>`** — the reading
   ([instrumentation.md](./instrumentation.md)): where, what has set, what
   lifts it, what was done to it, how long ago — by `domestic-services`
@@ -181,8 +192,8 @@ hygienic one.
   sand` for boards…), `strew`/`takeStrewn` (rushes, sawdust — a strewn
   absorbent drinks blood, grease and milk), `sweepUp` (on a strewn floor
   everything; on a scrubbed one the debris), `sweepsInto` (the heap row:
-  sweepings, the byre's muck). Verbs: `sweep`/`muck`, `strew`, `dispose`
-  (into a midden), `brush` (alias `beat`: the loose dirt out of any
+  sweepings, the byre's muck). Verbs: `sweep`, `strew`, `dispose`
+  (into a midden), `brush` (the loose dirt out of any
   thing — a coat, a cushion, a rug — dry, by each kind's `brushLifts`, B46)
   — ⭐ each conferred by what PERFORMS it
   (B43): `SweepingTool` (broom, flue brush, clothes brush, carpet beater),
@@ -232,7 +243,7 @@ hygienic one.
 
 ## People — somebody is paid for it
 
-- **`order wash <garment>`** — the hand (`CraftingApi.fulfillingHand`,
+- **`order wash for <garment>`** — the hand (`CraftingApi.fulfillingHand`,
   restricted to the tariff's own house and the row's
   `serviceDisciplines`) reads the garment at HER band
   (`Garment.describeForLaundress`), names a price (`Tariff.quoteFor`),
@@ -332,8 +343,9 @@ Each names where it goes; a slate that does not exist yet is the line that opens
 - **Stale urine's collection** (who fills the tub) → `sanitation-slate`.
 - **An appraisal of a garment's value** (the laundress pays a cover,
   not a value) → `retail`/`contract` slates (an `appraise` reading).
-- **Silk** → ⭐ a raw-goods chain nobody has designed (sericulture: mulberry,
-  the worm, reeling, throwing) — the user's call, 2026-10-17; no slate yet.
+- **Silk** → shipped as `trade-sericulture` ([sericulture.md](sericulture.md),
+  MR !395); the laundress's ruin case still uses wool — the silk drive line
+  and a silk garment row are [silk-slate](../slates/tails/silk-slate.md)'s.
   **Cotton** → `textiles` content. The laundress's ruin case uses wool.
 - **Seznick's and the dorm's windows as objects** → content, one row
   each over `Window`, when those homes want the drive's light step.

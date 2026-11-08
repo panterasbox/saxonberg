@@ -400,6 +400,20 @@ describe('Exit.media', () => {
       expect(exit.allowsMode('walk')).toBe(false);
     });
 
+    it('a way named for the water it goes into is called the way into it; its word stays a keyword', async () => {
+      const river = makeStuff(() => new Exit({
+        direction: 'river', source: locA, destination: locB,
+        media: ['water', 'vertical'],
+      }));
+      expect(river.presentationPhrase().render()).toBe('the way into the river');
+      expect(river.getKeywords()).toContain('river');
+      // A direction stays its direction, water or not; a dry named way stays its word.
+      const south = makeStuff(() => new Exit({ direction: 'south', source: locA, destination: locB, media: ['water'] }));
+      expect(south.presentationPhrase().render()).toBe('south');
+      const lavoir = makeStuff(() => new Exit({ direction: 'lavoir', source: locA, destination: locB, media: ['ground'] }));
+      expect(lavoir.presentationPhrase().render()).toBe('lavoir');
+    });
+
     it('air media admits fly and aerial', async () => {
       const exit = makeStuff(() => new Exit({
         direction: 'up', source: locA, destination: locB,

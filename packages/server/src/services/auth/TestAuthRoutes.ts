@@ -61,6 +61,8 @@ export class TestAuthRoutes {
             startLocation?: unknown;
             wizard?: unknown;
             parcels?: unknown;
+            committees?: unknown;
+            offices?: unknown;
           }
         | undefined;
       const handle = String(body?.handle ?? 'default');
@@ -74,7 +76,8 @@ export class TestAuthRoutes {
         typeof body?.startLocation === 'string'
           ? body.startLocation
           : undefined;
-      // Opt-in wizard conferral for wizard-path E2E (clone/eval/goto).
+      // Opt-in wizard axis — authoring TypeScript (eval, a .ts write), and
+      // nothing else: it confers NO title (wizard-axis D13).
       const wizard = body?.wizard === true;
       // ⭐ Title to stage in: `eval --parcel <it>` as its holder could
       // (TestHooks.#grantParcels — a transfer, not a bypass).
@@ -89,6 +92,24 @@ export class TestAuthRoutes {
         res
           .status(400)
           .json({ error: 'parcels must be an array of /-rooted paths' });
+        return;
+      }
+
+      // ⭐ Authority is a SEAT: the committees over these extents
+      // (`<extent>[:owner]`) and these offices (wizard-axis D13).
+      const committees = body?.committees;
+      const offices = body?.offices;
+      const isStrings = (v: unknown, rooted: boolean): boolean =>
+        Array.isArray(v) &&
+        v.every((x) => typeof x === 'string' && (!rooted || x.startsWith('/')));
+      if (committees !== undefined && !isStrings(committees, true)) {
+        res.status(400).json({
+          error: 'committees must be an array of /-rooted extents (`:owner` to own)',
+        });
+        return;
+      }
+      if (offices !== undefined && !isStrings(offices, false)) {
+        res.status(400).json({ error: 'offices must be an array of office keys' });
         return;
       }
 
@@ -121,7 +142,9 @@ export class TestAuthRoutes {
         withCharacter,
         startLocation,
         wizard,
-        (parcels as string[] | undefined) ?? []
+        (parcels as string[] | undefined) ?? [],
+        (committees as string[] | undefined) ?? [],
+        (offices as string[] | undefined) ?? []
       );
     });
 
@@ -206,6 +229,49 @@ export class TestAuthRoutes {
         });
     });
 
+    // ⭐ A ship staged: `{ship: '/row/path' | '<kind>/<serial>',
+    // at?: {node} | {frame, cite}, hull?: band, bilgeL?: L, sleptDays?: n,
+    // settling?: true}` —
+    // put lying where and as the drive needs her, never sailed there.
+    app.post('/auth/test-ship', (req: Request, res: Response) => {
+      if (TEST_AUTH_TOKEN && req.get('x-test-auth') !== TEST_AUTH_TOKEN) {
+        res.status(403).json({ error: 'forbidden' });
+        return;
+      }
+      const body = req.body as
+        | { ship?: unknown; at?: unknown; hull?: unknown; bilgeL?: unknown; sleptDays?: unknown; settling?: unknown }
+        | undefined;
+      const ship = body?.ship;
+      const at = body?.at as { node?: unknown; frame?: unknown; cite?: unknown } | undefined;
+      const place =
+        at && typeof at.node === 'string'
+          ? { node: at.node }
+          : at && typeof at.frame === 'string' && typeof at.cite === 'string'
+            ? { frame: at.frame, cite: at.cite }
+            : null;
+      const spec: Parameters<typeof TestHooks.stageShip>[1] = {};
+      if (place !== null) spec.at = place;
+      if (typeof body?.hull === 'string') spec.hull = body.hull;
+      if (typeof body?.bilgeL === 'number') spec.bilgeL = body.bilgeL;
+      if (typeof body?.sleptDays === 'number') spec.sleptDays = body.sleptDays;
+      if (body?.settling === true) spec.settling = true;
+      const badAt = at !== undefined && place === null;
+      if (typeof ship !== 'string' || ship === '' || badAt || Object.keys(spec).length === 0) {
+        res.status(400).json({
+          error:
+            "test-ship wants {ship: '/row/path', at?: {node: '/path'} | {frame: '/path', cite: '…'}, " +
+            'hull?: band, bilgeL?: litres, sleptDays?: days, settling?: true} — at least one of them',
+        });
+        return;
+      }
+      void TestHooks.stageShip(ship, spec)
+        .then((report) => res.json(report))
+        .catch((err: unknown) => {
+          console.error('TestAuthRoutes: test-ship failed:', err);
+          res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
+        });
+    });
+
     // ⭐ A test character fed and watered (the meals between a drive's
     // checkpoints) — a route for the clock's reason: a parcel-bound `eval`
     // may not read the biome the body's reconcile reads.
@@ -225,6 +291,54 @@ export class TestAuthRoutes {
         console.error('TestAuthRoutes: test-nourish failed:', err);
         res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
       }
+    });
+
+    // ⭐ Staging (water-supply): one authored mutator on one Stuff, by
+    // path — the state a drive cannot reach by playing (an aquifer drawn
+    // low, an outfall loaded). A parcel-bound `eval` may not reach a
+    // realm-level Idea, which is right; this is the harness's door.
+    app.post('/auth/test-stage', (req: Request, res: Response) => {
+      if (TEST_AUTH_TOKEN && req.get('x-test-auth') !== TEST_AUTH_TOKEN) {
+        res.status(403).json({ error: 'forbidden' });
+        return;
+      }
+      const body = req.body as { path?: unknown; method?: unknown; args?: unknown } | undefined;
+      if (typeof body?.path !== 'string' || typeof body.method !== 'string') {
+        res.status(400).json({ error: 'test-stage wants {path, method, args?: []}' });
+        return;
+      }
+      const args = body.args === undefined ? [] : body.args;
+      if (!Array.isArray(args)) {
+        res.status(400).json({ error: 'args, when given, must be an array' });
+        return;
+      }
+      TestHooks.stage(body.path, body.method, args)
+        .then((report) => res.json(report))
+        .catch((err: unknown) => {
+          console.error('TestAuthRoutes: test-stage failed:', err);
+          res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
+        });
+    });
+
+    // ⭐ A test character arrives as a newcomer does — the Arrival Note's
+    // coin in hand (a walk's real cash, where `reserve override` is only
+    // ledger money the till rightly refuses to pay out).
+    app.post('/auth/test-arrive', (req: Request, res: Response) => {
+      if (TEST_AUTH_TOKEN && req.get('x-test-auth') !== TEST_AUTH_TOKEN) {
+        res.status(403).json({ error: 'forbidden' });
+        return;
+      }
+      const handle = (req.body as { handle?: unknown } | undefined)?.handle;
+      if (typeof handle !== 'string' || handle === '') {
+        res.status(400).json({ error: 'handle must be a string' });
+        return;
+      }
+      TestHooks.arriveCharacter(handle)
+        .then((result) => res.json(result))
+        .catch((err: unknown) => {
+          console.error('TestAuthRoutes: test-arrive failed:', err);
+          res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
+        });
     });
 
     // ⭐ A test character handed a thing (a drive's setup: a winter coat to
@@ -254,7 +368,7 @@ export class TestAuthRoutes {
 
     console.warn(
       'TestAuthRoutes: ⚠  /auth/test-login, /auth/test-clock, /auth/test-weather, ' +
-        '/auth/test-nourish and /auth/test-hand are MOUNTED (test seams). Never in production.'
+        '/auth/test-ship, /auth/test-stage, /auth/test-nourish, /auth/test-arrive and /auth/test-hand are MOUNTED (test seams). Never in production.'
     );
   }
 }

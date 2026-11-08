@@ -1,5 +1,6 @@
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/herbal, strength: 100 }]
   name: wardmoss
   keywords: [wardmoss, moss, herb]
   appearance: a dark cushion of north-face moss

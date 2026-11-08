@@ -476,7 +476,7 @@ Three hazards, and the third needs a rule stated before anything ships.
 **Resource consumption may never mint or reduce standing in any
 chamber.** Efficiency is a *craft* property; standing measures
 *contribution*. Conflate them and the cheapest content becomes the most
-politically powerful — the producer chamber becomes a chamber of thrifty
+politically powerful — the labor chamber becomes a chamber of thrifty
 engineers rather than of makers.
 
 ⭐ **(b) But scarcity constraining production is fine, and the line is
@@ -719,7 +719,7 @@ Under the mint rule it settles itself with shipped machinery:
 - the **rating** is Narnia's → their fingerprint and reputation;
 - the **load** is the player's;
 - ⭐⭐⭐ and `authoring_events` / `CreditRouting` mean **Narnia earns
-  producer credit for engagement with their torch.**
+  labor credit for engagement with their torch.**
 
 > **You pay to make it; they get credit for having designed it.**
 
@@ -1202,7 +1202,7 @@ production heap walk, no per-object measurement.
   on this model: the quota, the cap stack, the breakers § 6 reuses.
 - [feedback-slate.md](./feedback-slate.md) — the ratings § 11 joins, and
   the firewall its mirror image completes.
-- ⭐⭐ [labor-standing-slate.md](./labor-standing-slate.md) — producer
+- ⭐⭐ [labor-standing-slate.md](./labor-standing-slate.md) — labor
   credit for collaborative work: the contributor set as a declared fact,
   role × magnitude, the renewing obligation, and what is reconcilable.
 - ⭐⭐ [contribution-slate.md](../tails/contribution-slate.md) — how work reaches

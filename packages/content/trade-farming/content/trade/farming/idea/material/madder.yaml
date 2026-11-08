@@ -9,8 +9,9 @@
 # `mordant-dye`: alizarin needs a metal ion to bind, so the colour is
 # decided at the mordant bath. Alum gives a clear red, iron saddens it
 # to maroon, tannin softens it to brick.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/earth, strength: 30 }]
   name: madder
   keywords: [alizarin, madder]
   appearance: gritty brick-coloured madder

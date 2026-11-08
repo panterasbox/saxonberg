@@ -1,324 +1,220 @@
-# Saxonberg city slate — the seat of government, deliberately unfurnished
+# Saxonberg city slate — the demo capital, built now because the prison is
 
-> **Status: UNBUILT** — no City of Saxonberg locality pack exists
-> (verified 2026-09-19: the `/world` roots are `eternal · hearthworks ·
-> hearts-delight · terminus · newbie-wilds · rejection · lounge · moor ·
-> practicum · substation`; `OFFICE_APPARATUS` is still the five seats —
-> no `record-archivist`; no `Government` row for the city; no
-> office-keyed tenure anywhere in the residence spine). The substrates it
-> is content over all ship: Locality-declared jurisdiction + `Government`
-> rows (`civics.md`), the committee (`access.md § The committee`),
-> parcel title + the closed six, the TPA network. The stewardship slate
-> it depends on is on master and PARTIAL — land use shipped, **the
-> allowance cascade (the second grant) has not**.
-> **Left:** the Locality + parcel spine · the residential district and
-> its launch stock (six units) · the four leasable storefront shells ·
-> the second Compact grant (waits on the stewardship cascade) · the
-> PM's Residence (office-keyed tenure — the one novel mechanic) · the
-> three chamber halls + the Central Bank · the Courthouse (no chambers)
-> + the Archive · the `record-archivist` sixth office · the TPA node ·
-> the municipal Government row + the interim `core`-committee sanction ·
-> the empty plinth · the reserved prison parcel
+> **Status: UNBUILT** — no City of Saxonberg locality pack exists (verified 2026-09-19: the `/world`
+> roots are `eternal · hearthworks · hearts-delight · terminus · newbie-wilds · rejection · lounge ·
+> moor · practicum · substation`; no `Government` row for the city; no office-keyed tenure anywhere in
+> the residence spine). The substrates it is content over ship: Locality-declared jurisdiction +
+> `Government` rows (`civics.md`), the committee (`access.md § The committee`), parcel title + the
+> closed six land uses, the TPA network, displays (`display.md`), the three-way pack reconcile
+> (`content-packs.md`). The stewardship allowance cascade (the second grant) has not shipped.
+> ⭐ **The name is reserved (2026-11-08, the owner):** *"Saxonberg as an entity to me is reserved for
+> the seat of government which exists in its own dimension separate from the lounge or any other
+> content."* The lounge is the operator's (*Pantera's Box Lounge*), the demo instance is *Pantera's
+> Box running Saxonberg* ([lounge-slate](./lounge-slate.md) § The name).
+> ⚠⚠ **Rewritten 2026-11-07 with the owner.** The 08-01 slate shipped the city *"deliberately
+> unfurnished"* and justified each premise by an office. Both are revised: the prison is load-bearing
+> for launch, so the city is built **now**, as a **demo capital**, and its development is
+> **economic**, not constitutional (§ 1).
+> **Left:** the Saxonberg pack (§ 6) · the prison on its edge parcel ([prison-slate](./prison-slate.md)) ·
+> the windows (§ 3) · the municipal government with an NPC mayor (§ 5) · the reserved embassy row ·
+> the generic seat-of-government pack (§ 6, its own design) · the second grant (waits on the
+> stewardship cascade) · the PM's Residence (office-keyed tenure — the one novel mechanic) · § 9's open
+> list
 > **Size:** a build
 
-**Captured 2026-08-01.** The City of Saxonberg: a new TPA destination,
-the **diegetic seat of the Compact** — our Washington, D.C. — and the
-second city the [stewardship slate](./stewardship-slate.md)'s Tiebout
-argument explicitly depends on (*"this needs a second city to be
-alive"* — that slate currently lives on the `docs/husbandry-conventions`
-branch; merge order note below). Named plainly and without coyness:
-the platform is Saxonberg, and its capital is the City of Saxonberg —
-the eponym is the point.
+**Captured 2026-08-01; rewritten 2026-11-07.** The City of Saxonberg: the **diegetic seat of the
+Compact** — our Washington, D.C. — a TPA destination, and the second city the
+[stewardship slate](./stewardship-slate.md)'s Tiebout argument depends on. Named plainly: the
+platform is Saxonberg, and its capital is the City of Saxonberg. ⭐ **It is the ONE place the
+government can tell you what to build**, because it is the government's content (the owner,
+2026-10-19). Embassies of other **servers** belong here.
 
-Related: [civics.md](../../subsystems/civics.md) (the Government
-substrate + the no-face doctrine this slate must thread),
-[parcel.md](../../subsystems/parcel.md),
-[fasttravel.md](../../subsystems/fasttravel.md),
-[governance.md](../../subsystems/governance.md) (the real Office
-substrate), [residence.md](../../subsystems/residence.md),
-[terminus-city.md](./eternal-university-drafts-slate.md#2-terminus-the-city) (the incumbent city
-this one competes with).
+Related: [prison-slate](./prison-slate.md) (the load-bearing institution),
+[moderation-slate](./moderation-slate.md) (what made it load-bearing), [civics.md](../../subsystems/civics.md),
+[governance.md](../../subsystems/governance.md), [parcel.md](../../subsystems/parcel.md),
+[residence.md](../../subsystems/residence.md), [display.md](../../subsystems/display.md),
+[content-packs.md](../../subsystems/content-packs.md), [settlement-model.md](../../settlement-model.md).
 
-## The doctrine — the frame is ours; the furniture is theirs
+## 1. ⭐⭐⭐ Why it gets built now, and what drives it **[DECIDED — the owner]**
 
-Saxonberg ships **purposefully thin**, and the thinness is
-constitutional, not budgetary: **the legislature decides what the
-content of its own seat really is.** We author the vessel — land,
-zoning, addresses, the grant, a handful of working premises — and
-stop. Monuments, plazas, museums, statuary, civic ornament: those are
-the legislature's and executive's to author organically, through the
-governed channel, as some of their first real content acts. An
-under-decorated capital whose every later ornament carries an
-`authoring_events` trail and a vote is the thesis made of rooms.
+- **The prison is load-bearing for launch.** *"This makes the Saxonberg prison load-bearing content
+  for the game's launch. Most of Saxonberg was meant to be crafted by the Compact once it's formed,
+  but this one can't wait."*
+- ⛔ **Not constitutional mandates.** *"The City of Saxonberg isn't really going to be built based on
+  political needs — the entire Compact is digital, it can run without a seat of government ever
+  existing. What determines the making of the city are, like any other city, its economic needs.
+  Right now we have exactly one institution in town that needs crafting: the prison."* (The 08-01
+  *one venue per office* justification is retired — lens 6, *was the demand there first?*)
+- ⛔ **Not a prison town.** *"Saxonberg isn't a prison town and it was never meant to be. It's the
+  inter-dimensional capital of the entire platform, but development starts with a prison because
+  that's all that's needed economically for launch. I don't want the prison to feel like a prison
+  town in the same way our mines make a town feel like a mining town. That may even mean making
+  some content that isn't strictly needed for the prison, just to fill things out."*
+- ⭐⭐ **A demo capital.** *"Before, we said we'd build nothing for Saxonberg and that's changed. Now
+  essentially what we're doing is building a 'demo capital' that people can adopt or tweak as they
+  want. So the 'demo' part here is the important thing: it needs to demo what we actually want the
+  seat of government to look like."*
 
-This is NOT a violation of never-half-grown. The distinction: every
-system in the frame is **complete** (the parcel titles resolve, the
-zoning answers, the grant apportions, the residences house, the TPA
-node lands). What is deliberately absent is *discretionary content* —
-and its absence is itself the designed experience: an empty capital
-awaiting its government's taste. Rule for future passes: **additions
-to Saxonberg's fabric should come through governance, not through our
-content sprints.** If we find ourselves authoring a statue, stop.
+### 1a. The doctrine, revised — the frame and the demo are ours; the furniture is theirs
 
-## What Saxonberg is
+The 08-01 doctrine stands in its narrower form: **monuments, statuary, museums, lore and
+commemoration are the polity's** — *if we find ourselves authoring a statue, stop*. What changed is
+the size of the frame. We now ship a working demo of a capital; the polity adopts it, edits it, and
+furnishes it (§ 7).
 
-- **The one parcel of public LAND.** Most Compact-owned parcels are
-  infrastructure (the Warren, the wire, the campus utilities). The
-  City of Saxonberg is actual land — a single Compact-held root parcel,
-  title vested in the Compact itself, subdivided under its own
-  Locality. Public land, operated by the public's institution.
-- **A second jurisdiction.** Its own address root and Locality chain,
-  **outside Terminus's jurisdiction** — its own government key, its
-  own zoning table, its own apportionment. Terminus law does not
-  reach it.
-- **A second Compact grant.** Saxonberg receives its own allowance
-  bundle, separate from Terminus's (cascade per the stewardship
-  slate: the Compact is the only mint; localities transfer, never
-  mint). This is the move that makes inter-city competition real:
-  two cities, two allocation policies, and exit becomes an option
-  rather than theatre. The metaresource guardrail holds verbatim —
-  the allowance is an honestly-labeled out-of-fiction meter the
-  city's institutions administer; it never wears a diegetic costume.
-- **A TPA node.** Reachable through the standard teleport network
-  with the standard travel credential — a destination like any
-  other, which is exactly the register we want: the capital is not
-  a cutscene; it's a place you can be.
+## 2. ⭐⭐ The prison's demand, and why the town is not built around it
 
-## The doctrine tension, threaded — premises, not personhood
+The prison is the Compact's **federal** institution, on a parcel the Compact holds, **off the civic
+spine on the reserved edge parcel**. Its demand is met mostly **by import**: NPC staff live on
+Residence Row or commute by TPA, and supplies arrive by freight.
 
-Civics' locked premise: **no tier of the fiction's hierarchy is the
-Compact's face.** Saxonberg does not break this, and the slate must
-keep it unbroken: the city gives the Compact's real institutions
-**street addresses, never a fictional identity**. The Compact remains
-the singular, meta, out-of-fiction institution; what Saxonberg adds is
-that its organs — the offices, the assembly's business, the record —
-have *premises* in the world, the way a real capital gives a
-government buildings without the buildings being the government.
+The owner is *"hesitant to build all those economic inputs into town right away"* — so **no diner, no
+motel, no supplier** at launch. Those are exactly the businesses the **empty leasable storefronts**
+invite players to open, which is itself part of the demo (*commerce invited, not authored*). A prison
+town is organized around its prison the way a mine town is around its pithead; Saxonberg's spine is
+civic, and the prison is one institution on its edge.
 
-The crossover is therefore **opt-in role-play, per office-holder, by
-personality** — and the design must make every point on that dial
-dignified:
+## 3. ⭐⭐⭐ The demo test — every building is a window onto a live system **[DECIDED]**
 
-- One PM genuinely *lives* in the residence: furnishes it, hosts in
-  it, treats the address as part of the office's public presence.
-- Another PM treats it as a nameplate — a single-room workshop that
-  exists to fill the slot — and the residence must read as complete
-  and untragic in that state too (the dorm's untouched-room grace,
-  scaled up: dignified emptiness is a requirement, not a failure
-  mode).
+The demo must show that a digital Compact can have a physical capital without any building becoming
+a workplace or a decoration. The venue doctrine (§ 4) says what a government venue can honestly
+provide — ceremony, spectacle, legibility, address — so: **a building is in the demo only if it lets
+you see a real system working, even with nobody in it.**
 
-Nothing about holding a real seat obligates performance. The premises
-serve office-holders who role-play and office-holders who don't, with
-no mechanical difference between them.
+| building | the live system it shows |
+|---|---|
+| **the three chamber halls** (Labor, Capital, Consumer) | that chamber's live proposals, argument map and tallies, on displays — a reading room on the machine's state |
+| **the Central Bank** | the conservation chokepoint given a front door: the live money supply and the reserve |
+| **the Archive** | the record: the public moderation log and the conduct code ([moderation-slate](./moderation-slate.md) § 12, § 15), the chronicle |
+| **the Courthouse** | sortition — a panel drawn by lot (no judge's chambers: no bench to capture), and where appeals land |
+| **the PM's Residence** | the executive: the seat and who holds it; home and office in one |
+| **the prison** | the one load-bearing building, on its edge parcel ([prison-slate](./prison-slate.md)) — the property room is the **hock** |
+| **the TPA station · embassy row** | the **inter-dimensional** part: other servers' embassies. At launch there are no other servers, so the row ships as **reserved empty lots** — it says the platform is inter-dimensional before any other dimension arrives |
+| **Residence Row · the storefronts** | the second housing market (six move-in-ready units); commerce invited (four empty leasable shells) |
 
-## The short-term build (the thin frame)
+- **Decoration fails the test.** The statue stays the polity's — ⭐ the **empty plinth** in the
+  Square passes, because it demonstrates exactly that.
+- **Filler is allowed where it makes the demo read as a capital** — street life, a café on the
+  Square, an NPC or two — never monuments.
+- **No police headquarters**: moderators work from anywhere (venues are never workplaces).
 
-1. **The Locality + parcel spine.** Compact-held root parcel; the
-   Saxonberg Locality with its own address root; subdivision into a
-   small number of districts using the **closed land-use vocabulary**
-   (residential / commercial / civic at minimum; no new uses — the
-   vocabulary is engine).
-2. **The residential district.** Zoned residential, its own density
-   and allowance policy funded from Saxonberg's own bundle — the
-   second housing market. It should differ from Terminus *by policy*
-   (whatever its government chooses: cheaper and sparser, denser and
-   subsidized — the difference is the content), so settling in one
-   city over the other is a legible political choice from day one.
-   **Launch stock [DECIDED]: a small pre-built stock** — a modest
-   row of move-in-ready residences so the district works day one;
-   expansion (including a claiming event, if the legislature ever
-   wants to run a land rush) arrives through governance.
-3. **Official residences (state-provisioned quarters).** The
-   prototype: **the PM's residence** — which, White-House style, is
-   working office AND home in one premises. Quarters are keyed to
-   the OFFICE, not the person — tenure ex officio, assignment flips
-   on the office_holders handoff, the outgoing holder's arrangement
-   archived per the residence spine (capture on vacate; the next
-   holder starts from the official baseline, not the predecessor's
-   furniture). Additional quarters for other officers who want them
-   — wanting one is optional; a seat never requires residency.
-4. **Metagovernance premises [DECIDED, revised at the map review]:
-   seven premises — one venue per office, plus the office-less
-   branch.** Every venue is a thin face on kernel machinery that
-   already exists (the legislative surfaces are axiomatic — the
-   floor, the argument, the tallies are core design):
-   - **The PM's Residence** (executive) — office + home, above.
-   - **The three chamber halls** — the Producer House, the Capital
-     House, the Consumer House: each Speaker's venue, each a reading
-     room on its own chamber's business (proposals, the claim-map,
-     the tallies). Nothing binding happens in a hall that doesn't
-     happen in the machine.
-   - **The Central Bank** (the Governor's venue) — the conservation
-     chokepoint given a front door.
-   - **The Courthouse** — the third branch's venue, and the branch
-     deliberately has no office, so the architecture says so: **a
-     courthouse with no judge's chambers.** An empaneling room (the
-     panel drawn from the pool), a hearing room, a deliberation
-     room — and no permanent office anywhere in the building.
-     Sortition as floor plan; no bench to capture, no bench to
-     lobby.
-   - **The Archive** — the record's institution (reading room + one
-     modest office), seat of **the sixth office this slate adds**:
-     `record-archivist`, **the Archivist** (bland by intent). Shape
-     mirrors the Central Bank Governor exactly: founder-established
-     origin (ordinary law — the polity may charter, replace, or
-     abolish), executive branch in v1, constitutional independence
-     deliberately unmade — and here that unmade choice has real
-     teeth (the executive holds the pen that writes the record;
-     whether the record's keeper should be independent of the
-     executive is a genuinely good first constitutional question,
-     left sitting on the legislature's desk). The math keeps the
-     record honest; the Archivist keeps it *served* — the chain's
-     infrastructure, attestation, public access.
-   More venues and all customization of these seven arrive **as the
-   legislature activates** — not from us.
+## 4. The venue doctrine — venues are never workplaces **[DECIDED 08-01, unchanged]**
 
-   **The venue doctrine (user, 2026-08-01 — the wizards-council
-   lesson): venues are never workplaces.** Every MUD that built a
-   council chamber learned the same thing: governing happens in the
-   channels and on the forums, because communication pools where
-   friction is lowest, and nobody prefers the `say` command to
-   working from home. So no mechanic may ever require presence for
-   governance — no vote cast in a room, no quorum of bodies, no
-   attendance-gated anything. What a venue honestly provides is
-   exactly four things, all compatible with standing empty:
-   **ceremony** (thresholds bear it — a swearing-in, a ratification
-   day; a calendar of occasions, not office hours), **spectacle**
-   (the live floor as optional theater feeding the async machine —
-   and a stage for the broadcast track), **legibility** (the
-   reading-room function works at zero attendance: the machine's
-   state, in the world, behind a door a tourist can open), and
-   **address** (a place to point at, petition to, film in front
-   of). “Will trials happen in the courthouse? Probably never —
-   and the point was never attendance.”
-5. **The municipal government [MECHANISM DECIDED].** Saxonberg is
-   run **by committee, exactly like Terminus** — the shipped
-   committee concept (access.md § the committee: the title-holding
-   group; reads on CompactApi). The chain: **membership of the
-   Saxonberg committee is set by act of congress** (the legislature
-   legislates who holds the city), and **that committee determines
-   how municipal seats are filled** (appointment, election, charter
-   — the committee's call, not ours and not even directly the
-   legislature's). The diegetic face stays ordinary civics: a
-   `Government` row, jurisdiction declared on the Locality, seats as
-   employment positions. Interim state at launch: the Compact's own
-   `core` committee holds the city (the founder-default pattern),
-   explicitly marked interim until the first act of congress.
+The wizards-council lesson: every MUD that built a council chamber learned governing happens in the
+channels and forums, because communication pools where friction is lowest. **No mechanic may ever
+require presence for governance** — no vote cast in a room, no quorum of bodies, no attendance-gated
+anything. A venue provides **ceremony** (a swearing-in, a ratification day), **spectacle** (the live
+floor as optional theater feeding the async machine; a stage for broadcast), **legibility** (the
+reading room works at zero attendance) and **address** (a place to point at, petition to, film in
+front of). *"Will trials happen in the courthouse? Probably never — and the point was never
+attendance."* This applies to every government venue everywhere.
 
-## The launch map [PROPOSED at the 2026-08-01 review]
+### 4a. Premises, not personhood
 
-One axis, D.C.-style: the chambers at one end, the executive at the
-other, everything hung off the line between. Bland by construction —
-functional names (renaming is cheap first-session content for the
-committee), plain prose, minimal Stuff, at most one NPC (a station
-attendant, possibly nobody — the committee hires its own city).
+Civics' locked premise — **no tier of the fiction's hierarchy is the Compact's face** — holds. The
+city gives the Compact's real institutions **street addresses, never a fictional identity**. Role-play
+by an office-holder is opt-in, and both ends of the dial are dignified: a PM who lives in the
+Residence and a PM for whom it is a nameplate.
+
+### 4b. Official residences, ex officio **[DECIDED 08-01]**
+
+Quarters keyed to the **office**, not the person: assignment flips on the office-holder handoff; the
+outgoing arrangement is captured on vacate; the next holder starts from the official baseline. The
+PM's Residence is the prototype (White House style: office and home). Other officers' quarters are
+optional (§ 9).
+
+## 5. ⭐⭐ Its own government — D.C.'s mayor **[DECIDED]**
+
+*"The city also needs its own governance, just like Washington D.C. has its own mayor."* The prison is
+**federal**; the town around it is the **city's**:
+
+- a municipal `Government` row, jurisdiction declared on the Locality, seats as employment positions;
+- ⭐ **an NPC mayor first** — like Terminus's Magistrate today — on the *start with NPCs, move to player
+  economies organically* rule;
+- the 08-01 mechanism stands: **membership of the city's committee is set by act of congress**, and
+  that committee decides how municipal seats are filled. **Interim**: the Compact's `core` committee
+  holds the city (the founder-default pattern) until the first act;
+- **funding is the D.C. model**: the official premises are Compact budget line-items; every other
+  parcel draws the city's own apportioned bundle. The city sets policy for the town and can never
+  squeeze the offices.
+
+## 6. ⭐⭐ Two packs **[DECIDED — the owner]**
+
+*"I think we'd probably want both. Saxonberg is special, it should get its own pack, but maybe other
+townships and municipalities that operate as seats of government also have a pack they can install.
+If we find out the two are really the same thing we can combine them, but I suspect they have
+different needs."*
+
+- **The Saxonberg pack** — the platform's capital: the windows onto the **Compact's** chambers, bank,
+  archive and court; the federal prison; the embassy row. The only inter-dimensional one.
+- **A seat-of-government pack** — for any township or municipality that governs (a county seat, a
+  realm's capital, Terminus's own civic center someday): smaller and **local** — windows onto the
+  town's council, its register, its lockup within the custody limit, its municipal seats. Its own
+  design.
+- **If both use the same window pattern** (a building whose displays show a live system), that
+  pattern is the shared piece, and it moves down when the second consumer exists.
+
+## 7. ⭐⭐ Editable by the Compact — the machinery already exists
+
+*"The trick will be not predetermining too much, and making what we do have to lock in easily editable
+if the Compact decides it wants to go a different direction."*
+
+1. **The three-way reconcile.** A row the polity edits is **kept** when the pack updates; if we change
+   the same row, it is a recorded **conflict** for a person to settle — never a silent overwrite, never
+   a block. Pins freeze what they want frozen.
+2. **Title is the city's committee's** (interim: `core`), so its seats edit anything in their extent
+   through the ordinary authoring path.
+3. ⭐⭐ **The pack can be handed over.** A pack is files in a repo; `--export` round-trips database edits
+   back into it; the manifest names its maintainers. So the Saxonberg pack can **eventually be
+   maintained by the Compact** — changes to its own capital become commits and merge requests.
+   Manifesto chapter 5, *governing is shipping software*, made literal: the first thing the Compact
+   governs is its own city's source.
+4. **Functional names** (the Square, the Mall, A and B Street, Chamber Row, Court Street) — renaming is
+   cheap, early governance content.
+
+## 8. The launch map
+
+One axis, D.C.-style: the chambers at one end, the executive at the other.
 
 ```
                     [PM's Residence]            gate + 2 rooms
                           |
-                      The Mall                  2 rooms, bare
+                      The Mall                  2 rooms
                           |
               B Street — Market                 1 room + 4 empty
                           |                     leasable shells
-              A Street — Residence Row          1 room + 6 pre-built
-                          |                     units (launch stock)
+              A Street — Residence Row          1 room + 6 units
+                          |
   [TPA Station] ——— THE SQUARE ——— [Central Bank]
-                   (empty plinth)   \
-                          |          Court Street —
-                     Chamber Row      [Courthouse] · [Archive]
-          [Producer] [Capital] [Consumer]
+       |            (empty plinth,  \
+  Embassy Row        a café)         Court Street —
+  (reserved lots)         |           [Courthouse] · [Archive]
+                     Chamber Row
+          [Labor] [Capital] [Consumer]
 
-  (edge parcel, off-axis: RESERVED — the federal facility;
-   see prison-slate.md)
+  (edge parcel, off-axis: the Compact's FACILITY — prison-slate.md)
 ```
 
-~30 addressable spaces: the street/civic rooms, three single-room
-halls (a hall that is one dignified reading room is the thinness
-working), the bank lobby, the Courthouse's three office-less rooms,
-the Archive's two, six housing units, four storefront shells, the
-PM's three. Deliberate touches inside the blandness:
+- **You arrive facing the plinth** — the station opens onto the Square; the first thing every visitor
+  reads is the empty pedestal with the halls behind it.
+- **The axis is the one piece of rhetoric** and survives any amount of committee redecorating.
+- **Court Street adjacency is intentional**: the Courthouse and the Archive sit side by side because
+  the courts run on the record.
+- **The prison is off-axis** — present, built, and not the city's identity.
 
-- **You arrive facing the plinth.** The station opens onto the
-  Square; the first thing every visitor reads is the empty pedestal
-  with the halls behind it — the unfurnished-capital thesis as the
-  establishing shot.
-- **The axis is the one piece of rhetoric** — legislature at one
-  end, executive at the other, the Mall between; it survives any
-  amount of committee redecorating.
-- **Court Street adjacency is intentional**: the Courthouse and the
-  Archive sit side by side because the courts run on the record
-  (evidence, receipts, the trusted-recording thread).
-- **The storefronts ship empty but leasable** — commerce is invited,
-  not authored: vacant shells whose lease terms are among the
-  committee's first economic decisions.
-- **The prison site is reserved, not built.** The federal facility —
-  for the different criminality, violations against the Compact —
-  gets an off-axis edge parcel now (one line, costs nothing, says
-  the frame anticipated it) and a building only when the first real
-  enforcement consumer exists. The abstract design (PrisonMixin,
-  the three enforcement tiers, the never-costume-real-moderation
-  guardrail) lives in [prison-slate.md](./prison-slate.md).
+Zoning: civic for the axis and the premises, residential for A Street, commercial for B Street — three
+of the closed six.
 
-Zoning: civic for the axis and all seven premises, residential for
-A Street, commercial for B Street — three of the six closed uses.
+## 9. Open
 
-## What we deliberately do NOT build
-
-- Monuments, statues, plazas beyond circulation minimum, museums,
-  commemorative anything — the legislature's first taste decisions.
-  (One authored **empty plinth** in the central square is permitted
-  as the single editorial wink: the pedestal ships, the statue is
-  governance's problem.)
-- Lore. Saxonberg gets founding *records*, not founding *myth* — its
-  history is the actual history of the Compact, on the actual record.
-- A second Office apparatus. The real seats stay the governance.md
-  substrate; the municipal seats stay civics positions; no new
-  power machinery of any kind.
-- Any new land use, any new verb, any new subsystem. The city is
-  content over shipped substrates end to end.
-
-## Decided in the 2026-08-01 review (user)
-
-- **Funding is the D.C. model**: the official premises — the five
-  office venues and the officer quarters — are **Compact budget
-  line-items** (the White House has a line in the federal budget;
-  the corner store doesn't). Every other parcel in the city draws
-  from **Saxonberg's own apportioned bundle** like any parcel in any
-  city. The municipal government can set policy for the town; it can
-  never squeeze the offices.
-- **Launch housing = small pre-built stock** (a land rush remains
-  available to the legislature as a later event; not ours to run).
-- **Premises = one venue per known office** (the five), nothing
-  else; the legislative venues are axiomatic (kernel design).
-- **Municipal mechanism = committee, like Terminus**: committee
-  membership by act of congress; the committee decides how seats
-  are filled. Whether real officers sit on that committee is
-  congress's choice at act time — the slate takes no position.
-
-## Open questions (for requirements)
-
-1. **TPA access policy** — open node from day one, or does the
-   credential/pricing differ from other destinations? (Instinct:
-   maximally open; the capital being reachable is the point.)
-2. **Naming inside the city [RESOLVED by the map]** — functional
-   names only (the Square, the Mall, A/B Street, Chamber Row, Court
-   Street); renaming is cheap governance content later.
-3. **The quarters roster** — beyond the PM's Residence, which of the
-   other four officers get quarters at launch (the Speakers? the
-   Governor?), and are they attached to their venues or a separate
-   residential row?
-4. **Merge-order dependency** — this slate consumes the stewardship
-   slate's cascade + land-use vocabulary, which is still on the
-   `docs/husbandry-conventions` branch. Either that merges first, or
-   this build carries the two decided mechanisms with it.
-
-## Where to start
-
-Frame-first, in substrate order: Locality + parcel + addresses →
-zoning rows (closed vocabulary) → the second grant (the cascade's
-first real second consumer) → TPA node → the PM's Residence (the
-office-keyed tenure mechanism is the one genuinely novel mechanic in
-the slate) → the chamber halls + the Central Bank → the municipal
-Government row with
-its interim committee sanction. The empty plinth goes in last, and
-nothing else does.
+1. **TPA access policy** — instinct: maximally open; the capital being reachable is the point.
+2. **The quarters roster** beyond the PM's Residence.
+3. **The second grant** — waits on the stewardship cascade; until then the city runs on the Compact's
+   line-items and the interim committee.
+4. **The `record-archivist` office** (the 08-01 sixth office, *the Archivist*) — still wanted now that
+   the Archive is a window rather than a mandate? The executive-vs-independent question stays the
+   legislature's.
+5. **Which windows need new display sources** — a tally, the money supply, the mod log — versus which
+   the shipped card sources already cover. (The plan's question.)
+6. **The seat-of-government pack** — its own design.
+7. **The café and street life** — how much filler makes it read as a capital.

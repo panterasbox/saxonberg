@@ -13,8 +13,9 @@
 
 import '../../../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import ApplyController from '../ApplyController';
+import JobApplyController from '../../work/JobApplyController';
 import ClockController from '../ClockController';
+import { Lock } from '../../../../../lib/lock/Lock';
 import BusinessEntity from '../../../Business';
 import { ContractApi } from '../../../../../api/contract';
 import { EmploymentApi } from '../../../../../api/employment';
@@ -115,7 +116,7 @@ async function apply(
   const c = ctx(room, 'apply');
   await withRootContext(null, 'apply.test', () => {
     ExecutionContextApi.tagActingAuthor(alice as never);
-    return makeStuff(() => new ApplyController()).execute(model as never, c);
+    return makeStuff(() => new JobApplyController()).execute(model as never, c);
   });
   return c;
 }
@@ -160,6 +161,7 @@ beforeEach(() => {
     return r;
   }, YARD);
   biz = makeStuffAtPath(() => new BusinessEntity(), BIZ);
+  biz.setName("Tolley's yard");
   biz.positions = [seat()] as never;
   biz.operatingLocations = [SHOP];
   alice = makeStuffAtPath(() => {
@@ -178,6 +180,11 @@ describe('⭐ apply — the player moves first', () => {
     expect(reasons(c)).toEqual([]);
     expect(said).toMatch(/taken on as hand/);
     expect(said).toMatch(/clock on/);
+    // ⭐ By its NAME, never its path (the browser walk: the campus farm's
+    // hand was "taken on as labourer at" its template path — a business is
+    // a publisher too, and a publisher's label falls back to its path).
+    expect(said).not.toMatch(new RegExp(BIZ));
+    expect(said).toMatch(/taken on as hand at Tolley's yard/);
     expect(biz.holdersOf('hand')).toContain(ALICE);
     expect(biz.openingsFor('hand')).toBe(0);
   });
@@ -265,11 +272,36 @@ describe('⭐⭐ clock — a shift is something you choose to start', () => {
     expect(alice.isFulfilling()).toBe(true);
   });
 
+  it('⭐ a seat that carries keys hands them over at clock on — once (water-supply D19)', async () => {
+    biz.positions = [
+      seat({ keys: [{ keyway: 'terminus-works', technology: 'pin-tumbler' }] }),
+    ] as never;
+    let held = false;
+    vi.spyOn(Lock.prototype, 'opensFor').mockImplementation(() => held);
+    const issue = vi
+      .spyOn(Lock.prototype, 'issueKeyTo')
+      .mockImplementation(async () => {
+        held = true;
+      });
+    await clock('on');
+    expect(issue).toHaveBeenCalledTimes(1);
+    expect(said).toMatch(/handed the key that goes with it/);
+    await clock('off');
+    said = '';
+    await clock('on');
+    // A key already in hand is not cut twice.
+    expect(issue).toHaveBeenCalledTimes(1);
+    expect(said).not.toMatch(/handed the key/);
+  });
+
   it('⭐ you must be where the house works — employer-bounded', async () => {
     ContainmentApi.move(alice as never, yard as never);
     const c = await clock('on', yard);
     expect(reasons(c)).toEqual(['not-on-premises']);
     expect(said).toMatch(/where they work/);
+    // The house by its name, never its path.
+    expect(said).toMatch(/You hold a job at Tolley's yard/);
+    expect(said).not.toMatch(new RegExp(BIZ));
     expect(alice.isOnShift()).toBe(false);
   });
 
@@ -312,5 +344,37 @@ describe('⭐⭐ clock — a shift is something you choose to start', () => {
     } as never);
     await expect(clock('off')).rejects.toThrow(/authors no banksAt/);
     expect(alice.isOnShift()).toBe(true); // the shift is NOT lost
+  });
+
+  it('⭐⭐ leaving the world ends the shift — a body away is not paid for the absence (the payroll gap)', async () => {
+    // Live, before the fix: clocked on, logged out for two game days, back
+    // and `clock off` — paid 72 hours for a few minutes in the world.
+    const t0 = WorldClockApi.getNow().rawValue();
+    await clock('on');
+    const now = vi.spyOn(WorldClockApi, 'getNow').mockReturnValue({
+      rawValue: () => t0 + 2 * 3600,
+    } as never);
+    vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    await alice.leaveShifts();
+    expect(alice.isOnShift()).toBe(false); // ended even though this house cannot pay
+    now.mockReturnValue({ rawValue: () => t0 + 50 * 3600 } as never);
+    said = '';
+    const off = await clock('off');
+    expect(reasons(off)).toEqual(['not-on-shift']); // nothing left open to pay for
+  });
+
+  it('⭐ an unloaded body on shift settles on the way out', async () => {
+    await clock('on');
+    vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const leave = vi.spyOn(alice, 'leaveShifts');
+    alice.onDestruct();
+    expect(leave).toHaveBeenCalledTimes(1);
+    await vi.waitFor(() => expect(alice.isOnShift()).toBe(false));
+  });
+
+  it('…and a body off shift leaves nothing to settle', () => {
+    const leave = vi.spyOn(alice, 'leaveShifts');
+    alice.onDestruct();
+    expect(leave).not.toHaveBeenCalled();
   });
 });

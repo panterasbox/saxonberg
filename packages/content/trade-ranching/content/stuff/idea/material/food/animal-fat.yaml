@@ -10,8 +10,10 @@
 # else wants.
 #
 # ⚠ It lives in the COMMONS: fat is a fact about animals.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/fat, strength: 100 }]
+  tastes: [{ type: umami, amount: 0.5 }]
   name: animal fat
   keywords: [animal, fat, tallow, suet]
   appearance: hard and waxy white

@@ -20,6 +20,7 @@ import type { MqlOneResult } from '../../../../api/mql';
 import type { GroundReading } from './GroundWorkController';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
+import { GrammarApi } from '../../../../api/grammar';
 
 /** ⭐ The instrument is bound by the view, never hunted for here. */
 interface GrubModel extends CommandModel {
@@ -40,7 +41,7 @@ export default class GrubController extends GroundWorkController {
       return;
     }
     const { ground, bill } = reading;
-    if (ground.progressOn('clearing', bill) >= 1) {
+    if (ground.isComplete('clearing', bill)) {
       this.decline(
         context,
         Mml.compose`There is nothing left on this ground to grub out.`,
@@ -58,12 +59,12 @@ export default class GrubController extends GroundWorkController {
       beginSelf: Mml.compose`You set to with ${Mml.thing(tool)}, cutting into the thorn and levering out what is under it.`,
       beginPeers: Mml.compose`${Mml.actor(giver)} sets to grubbing out the rough ground.`,
       onComplete: () => {
-        void this.finish(context, reading, required);
+        void GrubController.finish(context, reading, required);
       },
     });
   }
 
-  private async finish(
+  private static async finish(
     context: CommandContext,
     reading: GroundReading,
     required: number,
@@ -82,7 +83,7 @@ export default class GrubController extends GroundWorkController {
       .topic(GROUND_TOPIC)
       .toSelf(
         done
-          ? Mml.compose`The last of it comes out. ${ground.improvementPhrase(bill)}.${spoilLine}`
+          ? Mml.compose`The last of it comes out. ${GrammarApi.cap(ground.improvementPhrase(bill))}.${spoilLine}`
           : Mml.compose`Another swathe of it comes out; ${ground.improvementCause(bill) ?? 'there is more to do'}.${spoilLine}`,
       )
       .send();

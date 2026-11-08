@@ -5,7 +5,7 @@
  * ## What the act actually is
  *
  * Putting a skin in liquor takes a moment; tanning it takes three weeks.
- * So this verb does almost nothing: it puts the hide in the pit and the
+ * So this verb does almost nothing: it lays the hide in the pit and the
  * hide's own clock does the work, reconciled on read against the liquor
  * it is standing in. `dry`'s twin — *put the thing where the conditions
  * are and come back* — and for the same reason: an engagement would hold
@@ -18,13 +18,10 @@
  * is thin; too late and the bark has eaten into the grain and nothing
  * brings it back.
  *
- * ## ⭐ Both halves of the act are this one verb
+ * ## ⭐ The lift is the hide's (controllers-are-io D10)
  *
- * `tan <hide>` puts it in **or** takes it out when it is through, because
- * those are the same sentence in a tanner's mouth (*I'm tanning that
- * hide*) and because a second verb for *lift the finished skin out*
- * would be ceremony. ⚠ Plain `get hide from pit` also works and does the
- * same conversion — the controller is the courteous path, never the gate.
+ * This verb lays in, and only lays in. Coming out is the hide's own rule on
+ * leaving the pit (`TanningMixin.onLiftedFrom`), so no verb has to remember it.
  *
  * ## What it credits
  *
@@ -43,38 +40,20 @@ import type {
   MqlOneResult,
 } from '@saxonberg/server/mud/api/mql';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import type { SoilSpec } from '@saxonberg/server/mud/lib/cleanliness/SoilSpec';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import Tanpit from '../../../thing/Tanpit';
 import type Hide from '../../../thing/Hide';
-import { TANNING } from '../../../lib/Tanning';
+import { LEATHERWORK, TAN_SOILS } from '../../../lib/Tanning';
 
 const TOPIC = 'act.deed';
-
-/** The Discipline tanning credits — minted by this pack. */
-export const LEATHERWORK = 'leatherwork';
-
-/** What a tanned skin becomes. */
-const LEATHER = '/stuff/idea/material/organic/leather';
 
 interface TanModel extends CommandModel {
   hide: MqlOneResult;
   pit?: MqlManyResult;
 }
-
-/**
- * What working a pit puts on the tanner (cleanliness D6) — the fat of the
- * raw skin and the dung of the bate, on the hands and the apron.
- */
-const TAN_SOILS: readonly SoilSpec[] = [
-  { kind: 'grease', amount: 0.2, where: 'hands' },
-  { kind: 'manure', amount: 0.2, where: 'hands' },
-  { kind: 'grease', amount: 0.1, where: 'apron' },
-  { kind: 'manure', amount: 0.1, where: 'apron' },
-];
 
 export default class TanController extends CommandController<TanModel> {
   async execute(model: TanModel, context: CommandContext): Promise<void> {
@@ -88,11 +67,6 @@ export default class TanController extends CommandController<TanModel> {
         'no-hide',
       );
       return;
-    }
-
-    // ⭐ Already through — this is the judgement half of the verb.
-    if (hide.isTanned()) {
-      return this.lift(hide, giver, context);
     }
 
     const pit = this.findPit(model.pit, hide);
@@ -119,6 +93,13 @@ export default class TanController extends CommandController<TanModel> {
           Mml.compose`You turn ${Mml.thing(hide)} over in the liquor. ${report.line}`,
         )
         .send();
+      return;
+    }
+
+    // Through, and out of the pit: it has been lifted, and there is nothing
+    // left in it for a pit to do.
+    if (hide.isTanned()) {
+      this.decline(context, Mml.compose`${Mml.thing(hide)} is already tanned.`, 'already-tanned');
       return;
     }
 
@@ -167,64 +148,6 @@ export default class TanController extends CommandController<TanModel> {
         outcome: 'success',
       });
     }
-  }
-
-  /**
-   * Take a finished skin out and make it leather. ⚠ The grade band falls
-   * by whatever the pit cost it, which is where *left it too long* and
-   * *threw in all the bark* both land.
-   */
-  private async lift(
-    hide: Stuff & Hide,
-    giver: Stuff,
-    context: CommandContext,
-  ): Promise<void> {
-    const pit = MixinApi.isContainable(hide) ? hide.getContainer() : null;
-    const became = await hide.becomeLeather(LEATHER);
-    if (!became) {
-      this.decline(
-        context,
-        Mml.compose`${Mml.thing(hide)} is not through yet.`,
-        'not-through',
-      );
-      return;
-    }
-
-    // The pit pays for it in bark.
-    if (pit instanceof Tanpit && MixinApi.isTangible(hide)) {
-      pit.consumeBark(hide.getMass().rawValue() * TANNING.BARK_PER_KG_HIDE);
-    }
-    if (MixinApi.isContainable(hide) && MixinApi.isContainer(giver)) {
-      ContainmentApi.move(hide, giver);
-    }
-    // Lifting a sodden skin out of the liquor (cleanliness D6).
-    if (MixinApi.isHygienic(giver)) giver.soilFrom(TAN_SOILS);
-
-    const bands = hide.tanPenaltyBands();
-    const line =
-      bands > 0
-        ? Mml.compose`You lift ${Mml.thing(hide)} out. It is leather, and it is harder and darker than it should be — you left it too long, or the liquor was too strong.`
-        : Mml.compose`You lift ${Mml.thing(hide)} out, heavy with liquor, and rack it to drain. It is leather.`;
-    MessageApi.scene(giver)
-      .topic(TOPIC)
-      .toSelf(line)
-      .toPeers(
-        Mml.compose`${Mml.actor(giver)} lifts a tanned skin out and racks it.`,
-      )
-      .send();
-
-    if (MixinApi.isAdvancing(giver)) {
-      await giver.creditDeed({
-        discipline: LEATHERWORK,
-        // ⭐ Judging it out is the skilled half. Putting it in is `easy`.
-        difficulty: 'standard',
-        outcome: bands > 0 ? 'partial' : 'success',
-      });
-    }
-    // ⚠ No note on the success path, deliberately: the envelope's note
-    // kinds are a closed vocabulary and none of them means "it worked" —
-    // the SCENE is the outcome. A `controller-succeeded` kind invented
-    // here would be a new entry in a kernel union for one pack's benefit.
   }
 
   /**

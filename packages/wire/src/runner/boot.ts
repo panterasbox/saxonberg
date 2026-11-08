@@ -25,7 +25,7 @@
  */
 
 import { spawn, type ChildProcess } from 'child_process';
-import { createWriteStream, mkdirSync, openSync, readFileSync, rmSync, writeFileSync } from 'fs';
+import { createWriteStream, mkdirSync, openSync, readFileSync, rmSync, writeFileSync, existsSync, renameSync } from 'fs';
 import { dirname, join, resolve } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -116,6 +116,10 @@ export async function bootOwnedWorld(): Promise<string> {
     pre.on('error', () => done());
   });
 
+  // ⚠ The last world's log is the only witness to how it ended: a silent death
+  // on 2026-11-07 could not be read back because the next boot overwrote it.
+  if (existsSync(WIRE_LOG)) renameSync(WIRE_LOG, `${WIRE_LOG}.prev`);
+
   if (keepWorld()) {
     // ⭐ A KEPT world outlives this run: detached, logging straight to the
     // file (a pipe would die with us), and recorded so `WIRE_REUSE=1` can
@@ -197,7 +201,11 @@ export async function reapOwnedPort(): Promise<void> {
  * — six minutes a world — and most iterations change only a drive file.
  */
 export function keepWorld(): boolean {
-  return process.env.WIRE_KEEP_WORLD === '1';
+  // ⚠⚠ A run REUSING a standing world keeps whatever it restarts. A restart step
+  // reboots from inside the test worker; piped through that worker, the new world
+  // dies with it, exit 1 and no line in its log (its log is the pipe). Measured
+  // 2026-11-07; the silent death of a standing world that afternoon had this shape.
+  return process.env.WIRE_KEEP_WORLD === '1' || process.env.WIRE_REUSE === '1';
 }
 
 /** Where a kept world is recorded. */

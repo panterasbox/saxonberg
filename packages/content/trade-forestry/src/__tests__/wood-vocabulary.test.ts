@@ -10,7 +10,8 @@
  * nothing, silently. This is the gate that keeps that from recurring.
  */
 
-import { RIVE_FLOOR, CLEAN_CLEAVE } from '../idea/cmd/forestry/RiveController';
+import '@saxonberg/server/test-bootstrap';
+import { RIVE_FLOOR, CLEAN_CLEAVE } from '../thing/Bole';
 import { describe, it, expect } from 'vitest';
 import { existsSync, readdirSync, readFileSync, statSync } from 'fs';
 import { join } from 'path';

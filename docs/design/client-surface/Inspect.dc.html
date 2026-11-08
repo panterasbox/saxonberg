@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Inspection card</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&amp;family=Spectral:ital,wght@0,400;0,500;0,600;1,400&amp;family=Newsreader:ital,wght@0,400;0,500;1,400&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+</style>
+</helmet>
+<div style="width: {{w}}px; height: {{h}}px; background: #071224; font-family: 'Public Sans', system-ui, sans-serif; color: #f2f5fa; font-size: 13px; box-sizing: border-box; position: relative">
+
+<sc-if value="{{isGlance}}" hint-placeholder-val="{{ false }}">
+<div style="height: 100%; display: flex; flex-direction: column; gap: 8px; padding: 12px; box-sizing: border-box">
+<span style="font-family: Spectral, serif; font-weight: 500; font-size: 10px; letter-spacing: .19em; text-transform: uppercase; color: #8494b3">Glance — the name, then the first section</span>
+<sc-for list="{{glances}}" as="g" hint-placeholder-count="4"><div style="height: 40px; flex: none; display: flex; align-items: center; gap: 8px; padding: 0 6px 0 8px; background: #0d1c38; border: 1px solid #22355e; border-radius: 3px">
+<span aria-hidden="true" style="width: 16px; height: 16px; flex: none; border: 1.5px solid {{g.color}}; border-radius: 3px; color: {{g.color}}; font: 600 9px 'IBM Plex Mono', monospace; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box">{{g.glyph}}</span>
+<span style="font-family: Newsreader, serif; font-size: 15px; white-space: nowrap">{{g.name}}</span>
+<span aria-hidden="true" style="width: 3px; height: 18px; flex: none; border-radius: 2px; background: {{g.stripe}}"></span>
+<span style="flex: 1; min-width: 0; color: #9fb0cc; font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{g.word}}</span>
+</div></sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{notGlance}}" hint-placeholder-val="{{ true }}">
+<article aria-label="{{s.name}}" style="height: 100%; background: #0d1c38; border: 1px solid #22355e; border-radius: 3px; display: flex; flex-direction: column; overflow: hidden; box-sizing: border-box">
+
+<header style="flex: none; display: flex; align-items: stretch; gap: 0; border-bottom: 1px solid #132441">
+<div aria-hidden="true" style="width: 18px; flex: none; display: flex; gap: 2px; justify-content: center; padding: 9px 0"><sc-for list="{{s.headStripes}}" as="g" hint-placeholder-count="2"><span style="width: 3px; border-radius: 2px; background: {{g.bg}}"></span></sc-for></div>
+<div style="flex: 1; min-width: 0; display: flex; align-items: center; gap: 9px; padding: 9px 6px 9px 2px">
+<span aria-hidden="true" style="width: 18px; height: 18px; flex: none; border: 1.5px solid {{s.color}}; border-radius: 3px; color: {{s.color}}; font: 600 10px 'IBM Plex Mono', monospace; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box">{{s.glyph}}</span>
+<div style="flex: 1; min-width: 0">
+<div style="display: flex; align-items: center; gap: 7px">
+<span style="font-family: Newsreader, serif; font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{s.name}}</span>
+<sc-if value="{{s.player}}" hint-placeholder-val="{{ false }}"><svg width="12" height="12" viewBox="0 0 16 16" role="img" aria-label="a real player"><circle cx="8" cy="8" r="6.5" fill="none" stroke="#c9a227" stroke-width="1.6"></circle><circle cx="8" cy="8" r="2.6" fill="#c9a227"></circle></svg></sc-if>
+</div>
+<div style="font-size: 11.5px; color: #8494b3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{s.sub}}</div>
+</div>
+<sc-if value="{{s.live}}" hint-placeholder-val="{{ false }}"><span style="flex: none; font-size: 11px; color: #4a9d8f; display: flex; align-items: center; gap: 4px"><svg width="7" height="7" viewBox="0 0 8 8" aria-hidden="true"><circle cx="4" cy="4" r="4" fill="#4a9d8f"></circle></svg>live</span></sc-if>
+<sc-if value="{{s.notLive}}" hint-placeholder-val="{{ true }}"><span style="flex: none; font-size: 11px; color: #8494b3">{{s.taken}}</span></sc-if>
+<button aria-label="Change size" style="flex: none; width: 30px; height: 30px; border: 0; background: transparent; color: #9fb0cc; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 3px; padding: 0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"></path></svg></button>
+<button aria-label="Minimize" style="flex: none; width: 30px; height: 30px; border: 0; background: transparent; color: #9fb0cc; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 3px; padding: 0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M5 19h14"></path></svg></button>
+<button aria-label="Close" style="flex: none; width: 30px; height: 30px; border: 0; background: transparent; color: #9fb0cc; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 3px; padding: 0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg></button>
+</div>
+</header>
+
+<sc-if value="{{s.hasCrumbs}}" hint-placeholder-val="{{ false }}">
+<nav aria-label="Breadcrumb" style="flex: none; display: flex; align-items: center; gap: 6px; padding: 7px 12px 7px 18px; border-bottom: 1px solid #132441; background: #0a1730; font-size: 12.5px">
+<button aria-label="Back" style="width: 26px; height: 26px; border: 1px solid #22355e; border-radius: 3px; background: transparent; color: #9fb0cc; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg></button>
+<a href="#" style="color: #9fb0cc; text-decoration: none">{{s.crumbRoot}}</a><span aria-hidden="true" style="color: #8494b3">›</span><span aria-current="page" style="font-weight: 600">{{s.crumbHere}}</span>
+<span style="flex: 1"></span><span style="font: 11px 'IBM Plex Mono', monospace; color: #8494b3">› {{s.crumbCmd}}</span>
+</nav>
+</sc-if>
+
+<div style="flex: 1; min-height: 0; display: flex; flex-direction: {{bodyDir}}; overflow: hidden">
+
+<sc-if value="{{s.hasPlate}}" hint-placeholder-val="{{ false }}">
+<div style="{{plateStyle}} flex: none; background: #f2ebdc; border: 1px solid #d8cdb4; border-radius: 3px; display: flex; flex-direction: column; justify-content: space-between; padding: 7px 9px; box-sizing: border-box">
+<span style="align-self: flex-end; font: 600 10px 'IBM Plex Mono', monospace; color: #6b5d3f">wide 16:9</span>
+<span style="font-family: Newsreader, serif; font-style: italic; font-size: 12px; line-height: 1.3; color: #2a2418">{{s.plate}}</span>
+</div>
+</sc-if>
+
+<div style="flex: 1; min-width: 0; min-height: 0; overflow: hidden; padding: 6px 14px 8px 0; display: flex; flex-direction: column; gap: 4px">
+<sc-for list="{{s.sections}}" as="x" hint-placeholder-count="4"><div style="display: flex; align-items: stretch; position: relative">
+<div aria-hidden="true" style="width: 18px; flex: none; display: flex; gap: 2px; justify-content: center; padding: 6px 0"><sc-for list="{{x.stripes}}" as="g" hint-placeholder-count="1"><span style="width: 3px; border-radius: 2px; background: {{g.bg}}"></span></sc-for></div>
+<div style="flex: 1; min-width: 0; padding: 6px 0 7px 2px">
+
+<sc-if value="{{x.isLight}}" hint-placeholder-val="{{ false }}"><span style="font-family: Newsreader, serif; font-style: italic; font-size: 14px; color: #9fb0cc">{{x.text}}</span></sc-if>
+
+<sc-if value="{{x.isDesc}}" hint-placeholder-val="{{ false }}"><div style="display: flex; gap: 12px; align-items: flex-start"><sc-if value="{{x.hasPortrait}}" hint-placeholder-val="{{ false }}"><div style="width: {{x.portraitW}}px; aspect-ratio: {{x.portraitAR}}; flex: none; background: #f2ebdc; border: 1px solid #d8cdb4; border-radius: 3px; display: flex; flex-direction: column; justify-content: space-between; padding: 5px 6px; box-sizing: border-box"><span style="align-self: flex-end; font: 600 9.5px 'IBM Plex Mono', monospace; color: #6b5d3f">{{x.portraitShape}}</span><span style="font-family: Newsreader, serif; font-style: italic; font-size: 10.5px; line-height: 1.25; color: #2a2418">{{x.portrait}}</span></div></sc-if><p style="flex: 1; min-width: 0; margin: 0; font-family: Newsreader, serif; font-size: 15px; line-height: 1.5"><sc-for list="{{x.runs}}" as="r" hint-placeholder-count="1"><sc-if value="{{r.link}}" hint-placeholder-val="{{ false }}"><a href="#" style="color: #f2f5fa; text-decoration: underline; text-decoration-color: #c9a227; text-underline-offset: 3px">{{r.t}}</a></sc-if><sc-if value="{{r.plain}}" hint-placeholder-val="{{ true }}"><span>{{r.t}}</span></sc-if></sc-for></p></div></sc-if>
+
+<sc-if value="{{x.isText}}" hint-placeholder-val="{{ true }}"><span style="font-family: Newsreader, serif; font-size: 14.5px; line-height: 1.45; color: {{x.color}}; font-style: {{x.fstyle}}">{{x.text}}</span></sc-if>
+
+<sc-if value="{{x.isPips}}" hint-placeholder-val="{{ false }}"><div style="display: flex; flex-direction: column; gap: 4px"><span style="font-family: Newsreader, serif; font-size: 14.5px">{{x.text}}</span><div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 3px 12px"><sc-for list="{{x.pips}}" as="p" hint-placeholder-count="6"><span style="display: flex; justify-content: space-between; gap: 6px; font-size: 11.5px; color: #9fb0cc"><span>{{p.k}}</span><span style="font-family: 'IBM Plex Mono', monospace; color: {{p.c}}; letter-spacing: 1px">{{p.v}}</span></span></sc-for></div></div></sc-if>
+
+<sc-if value="{{x.isList}}" hint-placeholder-val="{{ false }}"><div style="display: flex; flex-direction: column; gap: 5px"><span style="font-family: Spectral, serif; font-weight: 500; font-size: 10px; letter-spacing: .19em; text-transform: uppercase; color: #8494b3">{{x.label}}</span><div style="display: flex; flex-wrap: wrap; gap: 5px"><sc-for list="{{x.items}}" as="it" hint-placeholder-count="3"><a href="#" style="height: 25px; display: inline-flex; align-items: center; gap: 5px; padding: 0 8px 0 5px; background: #122447; border: 1px {{it.border}} #22355e; border-radius: 3px; color: #f2f5fa; text-decoration: none; font-size: 12.5px"><span aria-hidden="true" style="width: 13px; height: 13px; flex: none; border: 1.5px solid {{it.color}}; border-radius: 3px; color: {{it.color}}; font: 600 7px 'IBM Plex Mono', monospace; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box">{{it.glyph}}</span>{{it.t}}<sc-if value="{{it.player}}" hint-placeholder-val="{{ false }}"><svg width="10" height="10" viewBox="0 0 16 16" role="img" aria-label="a real player"><circle cx="8" cy="8" r="6.5" fill="none" stroke="#c9a227" stroke-width="1.6"></circle><circle cx="8" cy="8" r="2.6" fill="#c9a227"></circle></svg></sc-if><sc-if value="{{it.more}}" hint-placeholder-val="{{ false }}"><span style="color: #8494b3">▸</span></sc-if></a></sc-for></div></div></sc-if>
+
+<sc-if value="{{x.isHint}}" hint-placeholder-val="{{ false }}"><span style="font-family: Newsreader, serif; font-style: italic; font-size: 14px; color: #9fb0cc">{{x.text}}</span></sc-if>
+
+<sc-if value="{{x.isDo}}" hint-placeholder-val="{{ false }}"><div style="display: flex; flex-wrap: wrap; gap: 5px; align-items: center"><sc-for list="{{x.verbs}}" as="v" hint-placeholder-count="2"><a href="#" style="height: 25px; display: inline-flex; align-items: center; padding: 0 9px; border: 1px solid #22355e; border-radius: 3px; color: #f2f5fa; text-decoration: none; font: 12px 'IBM Plex Mono', monospace">{{v}}</a></sc-for><a href="#" style="margin-left: auto; font: 11.5px 'IBM Plex Mono', monospace; color: #9fb0cc; text-decoration: none">commands ▸</a></div></sc-if>
+
+<sc-if value="{{x.isQuiet}}" hint-placeholder-val="{{ false }}"><button style="border: 0; background: transparent; padding: 0; color: #8494b3; font: 12px 'Public Sans', sans-serif; cursor: pointer; text-align: left">{{x.text}} <span aria-hidden="true">{{x.chev}}</span></button></sc-if>
+
+<sc-if value="{{x.isQuietItem}}" hint-placeholder-val="{{ false }}"><span style="display: flex; gap: 8px; align-items: baseline"><span style="font: 12px 'IBM Plex Mono', monospace; color: #9fb0cc">{{x.label}}</span><span style="font-family: Newsreader, serif; font-size: 13.5px; color: #8494b3">{{x.text}}</span></span></sc-if>
+
+</div>
+<sc-if value="{{x.tip}}" hint-placeholder-val="{{ false }}">
+<div role="tooltip" style="position: absolute; z-index: 5; left: 14px; top: 100%; margin-top: -2px; width: 300px; background: #0d1c38; border: 1px solid #3a4d72; border-radius: 3px; padding: 10px 12px; box-shadow: 0 6px 18px rgba(0,0,0,.45); display: flex; flex-direction: column; gap: 6px; font-size: 12px">
+<div style="display: flex; align-items: center; gap: 8px"><span aria-hidden="true" style="width: 3px; height: 14px; border-radius: 2px; background: {{x.tipColor}}"></span><span style="font: 600 13px 'IBM Plex Mono', monospace">{{x.tipName}}</span><span style="color: #8494b3">{{x.tipKind}}</span></div>
+<span style="color: #9fb0cc; line-height: 1.45">{{x.tipSummary}}</span>
+<span style="color: #8494b3; line-height: 1.45">{{x.tipSays}}</span>
+<div style="display: flex; flex-wrap: wrap; gap: 5px; padding-top: 4px; border-top: 1px solid #132441"><sc-for list="{{x.tipActions}}" as="ta" hint-placeholder-count="2"><span style="font: 11.5px 'IBM Plex Mono', monospace; color: {{ta.c}}; border: 1px {{ta.b}} #22355e; border-radius: 3px; padding: 2px 7px">{{ta.t}}</span></sc-for></div>
+</div>
+</sc-if>
+</div></sc-for>
+</div>
+</div>
+
+<sc-if value="{{s.hasCut}}" hint-placeholder-val="{{ false }}">
+<div style="flex: none; display: flex; align-items: center; gap: 8px; padding: 8px 14px 9px 20px; border-top: 1px solid #132441; background: #0a1730; font-size: 12px; color: #9fb0cc"><span style="flex: 1">{{s.cut}}</span><a href="#" style="color: #f2f5fa; font: 11.5px 'IBM Plex Mono', monospace; text-decoration: none; border: 1px solid #22355e; border-radius: 3px; padding: 2px 8px">larger ▸</a></div>
+</sc-if>
+
+</article>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"specimen":{"editor":"enum","options":["pint","pint-hover","gin","backbar","knife","corpse","dave","player","bar","bar-photos","bar-medium","oak","glance"],"default":"pint"},"$preview":{"width":400,"height":420}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var K = String(this.props.specimen == null ? 'pint' : this.props.specimen);
+    var BR = {
+      L: { color: '#4a9d8f', glyph: 'L' }, A: { color: '#5b8fd6', glyph: 'A' },
+      T: { color: '#c9a227', glyph: 'T' }, I: { color: '#b48ad6', glyph: 'I' }
+    };
+    var CLASSES = { Character: 1, Weapon: 1, CraftVessel: 1, look: 1 };
+    function hue(name) { var h = 0; for (var i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) % 360; return h; }
+    function stripe(name, proposed) {
+      var c = 'hsl(' + hue(name) + ', 52%, 60%)';
+      if (proposed) return { bg: 'repeating-linear-gradient(180deg, #5b8fd6 0 4px, transparent 4px 7px)' };
+      if (CLASSES[name]) return { bg: 'repeating-linear-gradient(180deg, ' + c + ' 0 2px, transparent 2px 4px)' };
+      return { bg: c };
+    }
+    function color(name) { return 'hsl(' + hue(name) + ', 52%, 60%)'; }
+    function base(kind, srcs, o) {
+      var x = Object.assign({ isLight: false, isDesc: false, isText: false, isPips: false, isList: false, isHint: false, isDo: false, isQuiet: false, isQuietItem: false, tip: false, color: '#f2f5fa', fstyle: 'normal' }, o);
+      x[kind] = true; x.stripes = srcs.map(function (n) { return stripe(n, x.proposed); });
+      return x;
+    }
+    function runs(parts) { return parts.map(function (p) { return typeof p === 'string' ? { t: p, link: false, plain: true } : { t: p[0], link: true, plain: false }; }); }
+    var desc = function (parts, srcs, img) {
+      var tall = img && img[0] === 'tall';
+      return base('isDesc', srcs || ['Visible'], { runs: typeof parts === 'string' ? runs([parts]) : runs(parts),
+        hasPortrait: !!img, portrait: img ? img[1] : '', portraitShape: img ? (tall ? 'tall 4:5' : 'square') : '',
+        portraitAR: tall ? '4 / 5' : '1 / 1', portraitW: tall ? 124 : 112 });
+    };
+    var line = function (text, src) { return base('isText', [src], { text: text }); };
+    var prop = function (text, src) { return base('isText', [src], { text: text, proposed: true, color: '#9fb0cc', fstyle: 'italic' }); };
+    var light = function (text) { return base('isLight', ['AmbientLit'], { text: text }); };
+    var hint = function (text) { return base('isHint', ['Concealable'], { text: text }); };
+    var doRow = function (verbs) { return base('isDo', [], { verbs: verbs }); };
+    function pips(text, src, rows) {
+      return base('isPips', [src], { text: text, pips: rows.map(function (r) { var v = ''; for (var i = 0; i < 4; i++) v += i < r[1] ? '●' : '○'; return { k: r[0], v: v, c: r[1] > 0 ? '#c9a227' : '#3a4d72' }; }) });
+    }
+    function it(b, t, o) { return Object.assign({ t: t, player: false, more: false, border: 'solid' }, BR[b], o || {}); }
+    function list(label, src, items) { return base('isList', [src], { label: label, items: items }); }
+    function quiet(names, open) {
+      var head = base('isQuiet', [], { text: names.length + ' quiet interfaces', chev: open ? '▾' : '▸' });
+      head.stripes = [{ bg: 'repeating-linear-gradient(180deg, #3a4d72 0 3px, transparent 3px 6px)' }];
+      if (!open) return [head];
+      return [head].concat(names.map(function (n) { return base('isQuietItem', [n[0]], { label: n[0], text: n[1] }); }));
+    }
+    function card(o) {
+      var c = Object.assign({ player: false, live: false, taken: '', hasCrumbs: false, hasPlate: false, plate: '', sections: [], hasCut: false, cut: '', head: ['Perceptible', 'Containable'] }, o);
+      c.notLive = !c.live;
+      c.headStripes = c.head.map(function (n) { return stripe(n); });
+      return Object.assign(c, BR[c.b]);
+    }
+
+    var barDesc = ['A narrow, warm room that smells of citrus peel and old wood. The bar itself is a single ', ['slab'], ' of something dark and scarred, lit from beneath so the bottles ranked behind it throw long colored shadows up the wall. ', ['Stools'], ' wait in a patient row. Behind the taps a chalkboard menu has been wiped and rewritten so many times it’s gone soft and grey. Neon ', ['signs'], ' and brass tap handles wash the far wall in an amber haze — a wall crowded with framed photographs, a chipped ', ['mug'], ' on a high shelf, and a few curling, signed dollar ', ['bills'], '.'];
+    var barSections = [
+      light('It is dim here; you can make the place out, but not much of it.'),
+      desc(barDesc, ['Visible', 'Detailed']),
+      list('Ways out', 'Exitable', [it('L', 'south · the lounge')]),
+      list('You also see', 'Container', [it('A', 'Dave the Barkeep'), it('A', 'a human', { player: true }), it('T', 'the bar'), it('T', 'the back-bar'), it('T', 'the well'), it('T', '6 bar stools', { more: true, border: 'dashed' }), it('T', 'a glass rack'), it('T', 'the check rack')]),
+      hint('A hairline seam runs up the north wall behind the taps, and a thread of cooler air leaks from it — as though a door were pretending to be a wall.')
+    ];
+    var barQuiet = [['Atmospheric', ''], ['Adornable', ''], ['Staged', ''], ['Slotted', ''], ['CartesianCoordinates', ''], ['Addressable', '']];
+
+    var pintQuiet = [['Palatable', 'taste it to know'], ['Thermal', 'feel it to know'], ['Soilable', 'clean'], ['Wet', 'dry'], ['Serviceable', ''], ['Contaminable', 'no sense reports this'], ['Chattel', ''], ['Tangible', '']];
+    var pintSections = function (open) {
+      var bulk = line('It holds a pint of beer with a finger of head.', 'Bulkable');
+      if (open) {
+        bulk.tip = true; bulk.tipColor = color('Bulkable'); bulk.tipName = 'Bulkable'; bulk.tipKind = 'interface';
+        bulk.tipSummary = 'Continuous matter — a liquid, a powder, a gas — held in a slot, measured, poured and drained.';
+        bulk.tipSays = 'Says what is in it, or that it is empty. Liquids get no level word yet.';
+        bulk.tipActions = [{ t: 'help Bulkable', c: '#f2f5fa', b: 'solid' }, { t: 'sense pint --mixin bulkable', c: '#9fb0cc', b: 'dashed' }, { t: 'copy', c: '#9fb0cc', b: 'solid' }];
+      }
+      return [desc('A nonic pint glass with the bulge below the rim.', null, ['square', 'an empty nonic glass, vignetted — never what is in it']),
+        bulk, prop('Nearly full.', 'Bulkable'),
+        line('It looks fair: honestly made, if unremarkable. Made by Mara.', 'CraftVessel'),
+        doRow(['drink pint', 'sip pint', 'pour pint'])].concat(quiet(pintQuiet, open));
+    };
+
+    var S = {
+      pint: card({ b: 'T', name: 'a pint glass', sub: 'on the counter', taken: 'taken 21:04', sections: pintSections(false) }),
+      'pint-hover': card({ b: 'T', name: 'a pint glass', sub: 'on the counter', taken: 'taken 21:04', sections: pintSections(true) }),
+      gin: card({ b: 'T', name: 'a bottle of Crowsfoot gin', sub: 'on the back-bar', taken: 'taken 21:02', head: ['Perceptible', 'Containable', 'Chattel'],
+        sections: [desc('A bottle of Crowsfoot gin — a hand-numbered label, a crow’s foot pressed into the wax.', null, ['tall', 'label and wax seal; the fill left unreadable']),
+          line('It holds clear, juniper-scented gin.', 'Bulkable'), prop('Still sealed.', 'Sealable'),
+          line('Crowsfoot Gin — an independent label, carried by no corpo.', 'Branded'),
+          line('Owned by Dave’s Bar.', 'Chattel'),
+          doRow(['pour gin', 'drink gin'])].concat(quiet([['Sealable', ''], ['Graded', ''], ['Thermal', ''], ['VesselKind', ''], ['Circulating', ''], ['Wet', '']], false)) }),
+      backbar: card({ b: 'T', name: 'the back-bar', sub: 'in Dave’s Bar · fixed', live: true, hasPlate: true, plate: 'the bare mirrored rail — no bottles: the stock is runtime',
+        sections: [desc('A long mirrored back-bar, its rail worn smooth, ranked with bottles.'),
+          list('On it', 'Placing', [it('T', 'the house tablet'), it('T', 'a tip jar'), it('T', '14 bottles of spirit', { more: true, border: 'dashed' }), it('T', '3 bottles of wine', { more: true, border: 'dashed' })]),
+          doRow(['mix', 'serve', 'garnish'])].concat(quiet([['Wet', ''], ['Tangible', '']], false)) }),
+      knife: card({ b: 'T', name: 'a belt knife', sub: 'in your hands', live: true,
+        sections: [desc('A plain single-edged working knife, full-tang, its grip wrapped in cord. The sort of blade a smith makes early and a traveller carries forever.', null, ['square', 'the knife alone, vignetted on bare paper']),
+          pips('Delivery', 'Constructed', [['edge', 2], ['point', 1], ['blunt', 0], ['heat', 0], ['cold', 0], ['corrosion', 0]]),
+          pips('Playstyle — balance light · one-handed', 'Weapon', [['reach', 0], ['guard', 3]]),
+          line('It is worn.', 'Durable'),
+          doRow(['throw knife'])].concat(quiet([['Keen', ''], ['Wieldable', ''], ['Assembled', ''], ['Crafted', ''], ['Graded', ''], ['Named', ''], ['Slottable', ''], ['Chattel', ''], ['Wet', '']], false)) }),
+      corpse: card({ b: 'T', name: 'the body of a ewe', sub: 'on the floor of the yard', taken: 'taken 06:40',
+        sections: [desc('A body, gone still. Whatever happened to it is still written on it, for as long as anyone cares to look.'),
+          line('Missing the left hand.', 'Vitals'), line('A pale scar marks the left forearm.', 'Vitals'), prop('Dead some hours; it has begun to smell.', 'Postmortem'),
+          list('In it', 'Container', [it('T', 'a plain linen shirt'), it('T', 'a belt knife'), it('T', 'a purse'), it('T', 'a white loaf'), it('T', '3 more', { more: true })]),
+          doRow(['inventory body'])].concat(quiet([['Postmortem', ''], ['Attired', ''], ['Thermal', ''], ['Contaminable', 'no sense reports this'], ['Organism', '']], false)) }),
+      dave: card({ b: 'A', name: 'Dave the Barkeep', sub: 'in Dave’s Bar', live: true,
+        sections: [desc('Dave keeps to the back these days and lets the staff run the rail. When he does drift out front he can’t quite help himself — a glass polished that didn’t need it, a wink at no one in particular, and, if the mood takes him, a startlingly good Bruce Willis impression he swears he’s retired from.', null, ['tall', 'three-quarter length, in his authored costume']),
+          prop('Standing behind the bar, polishing a glass.', 'Status'),
+          line('Dressed plainly.', 'Attired'), line('In good flesh.', 'Character'),
+          list('Wearing', 'Attired', [it('T', 'a plain student shirt'), it('T', 'a pair of sturdy trousers'), it('T', 'a pair of canvas shoes')]),
+          doRow(['talk to dave'])].concat(quiet([['Status', ''], ['Postured', ''], ['Vitals', ''], ['Employed', ''], ['Vocal', ''], ['Behaved', ''], ['Persona', ''], ['Wet', '']], false)) }),
+      player: card({ b: 'A', name: 'a human', player: true, sub: 'at the counter · not introduced', live: true,
+        sections: [desc('A person of ordinary build, neither tall nor short, with the alert, restless look of someone still deciding what to make of themselves.', null, ['tall', 'the species: a human, neutral dress — not this player']),
+          prop('“waiting for the stream” — sitting on a bar stool.', 'Status'),
+          line('Dressed without fuss.', 'Attired'), line('In good flesh.', 'Character'),
+          list('Wearing', 'Attired', [it('T', 'a plain student shirt'), it('T', 'a pair of sturdy trousers')]),
+          list('Holding', 'look', [it('T', 'a pint glass')])].concat(quiet([['Status', ''], ['Postured', ''], ['Vitals', ''], ['Aether', ''], ['Wet', ''], ['Persona', '']], false)) }),
+      bar: card({ b: 'L', name: 'Dave’s Bar', sub: 'University Avenue', live: true, hasPlate: true, plate: 'the room as authored: the slab, the stools, the neon signs, the photo wall — no people, no loose things', head: ['Perceptible', 'Addressable'],
+        sections: barSections, hasCut: true, cut: 'Cut to fit: 6 quiet interfaces below.' }),
+      'bar-photos': card({ b: 'L', name: 'Dave’s Bar', sub: 'University Avenue', live: true, hasCrumbs: true, head: ['Perceptible', 'Addressable'],
+        crumbRoot: 'Dave’s Bar', crumbHere: 'the photos', crumbCmd: 'look photos',
+        sections: [desc('Decades of regulars, going yellow in their frames. A younger Dave mid-impression, caught with one arm flung wide and the whole room laughing. A broad half-orc — Augie, unmistakably — behind the bar with a clipboard under one arm and a grin like he owns the place, though he never did. Empty stools photographed on purpose, the way you photograph people who aren’t coming back.', ['Detailed'])] }),
+      'bar-medium': card({ b: 'L', name: 'Dave’s Bar', sub: 'University Avenue', live: true, hasPlate: true, plate: 'the room as authored: the slab, the stools, the neon signs, the photo wall — no people, no loose things', head: ['Perceptible', 'Addressable'],
+        sections: barSections.concat(quiet(barQuiet, false)) }),
+      oak: card({ b: 'I', name: 'oak', sub: 'a material you have met · wood', taken: 'known', head: ['Perceptible'],
+        sections: [prop('Wood · organic · flammable · once-living.', 'Material'),
+          prop('Seasons in about a year; shrinks a tenth as it dries.', 'Material'),
+          prop('Cleaves readily along the grain.', 'Material'),
+          base('isList', ['Material'], { label: 'Where you have met it', items: [it('L', 'the oak clearing')], proposed: true }),
+          doRow(['wiki oak'])] })
+    };
+
+    var isGlance = K === 'glance', isMedium = K === 'bar-medium';
+    var sizes = { pint: [400, 470], 'pint-hover': [400, 690], gin: [400, 520], backbar: [400, 540], knife: [400, 520], corpse: [400, 460], dave: [400, 590], player: [400, 540],
+      bar: [400, 640], 'bar-photos': [400, 380], 'bar-medium': [704, 600], oak: [400, 380], glance: [400, 236] };
+    var sz = sizes[K] || sizes.pint;
+    return {
+      w: sz[0], h: sz[1], s: S[K] || S.pint,
+      isGlance: isGlance, notGlance: !isGlance,
+      bodyDir: isMedium ? 'row' : 'column',
+      plateStyle: isMedium ? 'width: 320px; aspect-ratio: 16 / 9; align-self: flex-start; margin: 12px 0 0 12px;' : 'aspect-ratio: 16 / 9; margin: 10px 14px 4px 18px;',
+      glances: [
+        Object.assign({ name: 'a pint glass', word: 'It holds a pint of beer with a finger of head.', stripe: color('Bulkable') }, BR.T),
+        Object.assign({ name: 'Dave’s Bar', word: 'It is dim here; you can make the place out, but not much of it.', stripe: color('AmbientLit') }, BR.L),
+        Object.assign({ name: 'Dave the Barkeep', word: 'Dressed plainly.', stripe: color('Attired') }, BR.A),
+        Object.assign({ name: 'the body of a ewe', word: 'Missing the left hand.', stripe: color('Vitals') }, BR.T)
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

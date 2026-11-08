@@ -158,8 +158,9 @@ Elgato hard cut works with the server down.
 
 A token names a player; a socket opened with it receives that streamer's state, client facts and
 chat, and nothing of anyone else's. What crosses is an allowlist: the phase and reason, the timers,
-the topic and agenda, which layout the client is in, the foreground, the relay chat, the number of
-players in the world. Never another player's anything, the streamer's private frames, or card
+the topic and agenda, which layout the client is in, the foreground, ⭐ the **verb** of the
+streamer's last command (the verb only — `tell`, never what was told), the relay chat, the number
+of players in the world. Never another player's anything, the streamer's private frames, or card
 contents.
 
 ### Redaction **[DECIDED — the slate; scope LEAN]**
@@ -187,6 +188,11 @@ source**: Away contains no desktop, no camera and no microphone.
 A card is about one thing and takes a turn only when its source has something
 ([slate § The cards](../slates/builds/broadcast-ready-slate.md)):
 
+- **What you're looking at** — the screen guide: *"a multiplayer game, played in text"*, a sketch
+  of the client's regions (the map, the story, the command line, the cards), the live region lit
+  from the client's facts — another window, the mode, the verb just typed.
+- **What can you do here?** — one true thing about a trade or system per turn, from the docs
+  that say it ships; the last verb steers it (*type `smelt`, smelting comes up*).
 - **Saxonberg** — the brand restated, *"what you're watching, you can play"*, the URL, players in
   the world now, a QR, ⭐ **the build's date and age**. **This build** puts the deployed commit's
   date on the feed — no build identity exists today.
@@ -195,8 +201,9 @@ A card is about one thing and takes a turn only when its source has something
 - **Community** — new subs, gift subs, members and patrons as people; ⭐ **new Saxonberg players
   in real time** (**this build** puts character creation's commit on the feed); where to find us
   on Twitch, YouTube, Kick and Patreon.
-- **Wiki article of the day** and **term of the moment** — read the wiki's public route.
-- **You're watching** — the channel.
+- **The Compact** — the three chambers in the manifesto's words: labor, capital, consumer.
+- **About the streamer** and **the code** (GitLab: where it is, the stack, its size).
+- **Wiki article of the day** — reads the wiki's public route.
 - **The ticker** — in-world news, world firsts, and ⭐ *"Welcome, Iffy!"* for a first arrival,
   *"straight from the stream"* when the Saxonberg card's tagged link brought them.
 
@@ -205,7 +212,7 @@ name"*). Cards are **rows, not code**.
 
 ### Three brands, three jobs **[DECIDED — the owner]**
 
-The **show** (a profile: Saxonberg, a game, music) owns the sidebar's brand block, the topic label,
+The **show** (a profile — Saxonberg is the only one; a music stream is its own scene) owns the sidebar's brand block, the topic label,
 the cards and the standby's right banner; the **studio** (Pantera's Box) is the frame and the left
 banner; the **person** is the nameplate — *Bobalu Smallberries @ Pantera's Box* on the camera.
 
@@ -295,6 +302,9 @@ against the real stack with OBS open.
     from the stream"*.
 15. `instant` · player — the Saxonberg card shows the running build's date and age, matching the
     deployed commit.
+16. `instant` · player — type `smelt` with the overlay up → the screen guide says so and lights
+    the command line; the next *what can you do here?* turn is about smelting; the overlay never
+    sees the command's arguments.
 
 ### Soak drive
 

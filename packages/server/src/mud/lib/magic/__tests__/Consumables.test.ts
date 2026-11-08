@@ -361,15 +361,15 @@ describe('Wave 2 — consumables', () => {
     ).toBeUndefined();
   });
 
-  it('AC5a — `quaff` is an alias on `drink`, not a second view', () => {
+  it('AC5a — `quaff` is no command; a potion goes down through `drink`', () => {
     const byDrink = CommandApi.allDefinitions().filter((d) =>
       d.hasVerb('drink'),
     );
     const byQuaff = CommandApi.allDefinitions().filter((d) =>
       d.hasVerb('quaff'),
     );
-    expect(byQuaff).toHaveLength(1);
-    expect(byQuaff[0]).toBe(byDrink[0]);
+    expect(byDrink).toHaveLength(1);
+    expect(byQuaff).toHaveLength(0);
   });
 
   // ─────────────────────── AC 5b — perceive + decode ───────────────────

@@ -108,7 +108,19 @@ const MUD_ROOT = fileURLToPath(new URL('../src/mud/', import.meta.url));
  * validates against the list and ask whether a pack could ever need a word
  * in it. If it could, the answer is rows — not a bigger number here.
  */
-export const CLOSED_VOCABULARY_CEILING = 5;
+export const CLOSED_VOCABULARY_CEILING = 3;
+
+/**
+ * The vocabularies counted above that have somewhere to go, each with the slate
+ * that takes them. Reported, and checked: an entry for a list that no longer
+ * exists fails, like a stale {@link CLOSED_BY_DESIGN}. ⚠ None of these is closed
+ * by nature, so none belongs in {@link CLOSED_BY_DESIGN}.
+ */
+export const MIGRATING: Readonly<Record<string, string>> = {
+  MATURATION_MECHANISMS: 'docs/slates/builds/material-decomposition-slate.md',
+  DISPLAY_KINDS: 'docs/slates/tails/display-manifestation-slate.md',
+  DISPLAY_PAIRINGS: 'docs/slates/tails/display-manifestation-slate.md',
+};
 
 /**
  * Vocabularies whose closure is a **fact about the world**, each with the
@@ -126,8 +138,7 @@ export const CLOSED_BY_DESIGN: Readonly<Record<string, string>> = {
     'that is territory rather than a modelling choice. ⚠ Smell is NOT ' +
     'the same and must not borrow this reason: ~400 receptor types, no ' +
     'agreed basis set, and "primary odors" is a research programme that ' +
-    'failed. AROMAS was justified by analogy to this entry, and the ' +
-    'analogy does not hold.',
+    'failed. Aroma words are rows for that reason.',
   DIFFICULTIES:
     'A designed ladder of act difficulty. The rungs ARE the design, and ' +
     'the advancement maths reads their ordinal — a sixth rung is a ' +
@@ -151,6 +162,12 @@ export const CLOSED_BY_DESIGN: Readonly<Record<string, string>> = {
     'The procedural / conceptual / bodily split (Bloom, Kolb) — a ' +
     'taxonomy claim about how learning works, which is the advancement ' +
     "model's premise rather than a list of options.",
+  TRANSFER_TERMS:
+    'How a cap table\'s units may move: freely, or with every other ' +
+    'holder\'s consent — the institutions slate\'s one transferability ' +
+    'question (consent-of-others, or none-needed). Each term is a branch ' +
+    'of the move itself (`CapTable.refusalOf`), so a third term is new ' +
+    'transfer code, never a row.',
 };
 
 interface Vocabulary {
@@ -275,6 +292,8 @@ function main(): void {
         `  ${v.name.padEnd(24)} ${String(v.words.length).padStart(2)}w  ${v.file}`,
       );
       console.log(`  ${' '.repeat(24)} refused in: ${v.refusedIn.join(', ')}`);
+      const bound = MIGRATING[v.name];
+      if (bound) console.log(`  ${' '.repeat(24)} goes to: ${bound}`);
     }
     console.log('\ndeclared closed by design:\n');
     for (const v of exempt) {
@@ -290,7 +309,7 @@ function main(): void {
   // reading as a considered judgement about live code. That is the
   // enumeration rot `lint:family` was made derived to escape, so it is
   // an error rather than a note.
-  const stale = Object.keys(CLOSED_BY_DESIGN).filter(
+  const stale = [...Object.keys(CLOSED_BY_DESIGN), ...Object.keys(MIGRATING)].filter(
     (name) => !facing.some((v) => v.name === name),
   );
   if (stale.length > 0) {

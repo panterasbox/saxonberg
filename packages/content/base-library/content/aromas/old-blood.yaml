@@ -1,0 +1,4 @@
+# Blood dried and turning.
+parent: /base-library/aromas/blood
+discipline: butchery
+liking: { peak: 1.5, width: 2, valence: -1 }

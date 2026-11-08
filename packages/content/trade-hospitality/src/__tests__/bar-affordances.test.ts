@@ -88,7 +88,7 @@ describe('the bar affords each verb from exactly one place', () => {
   it('the build vessel banks and works the build', () => {
     const build = ManualBuildMixin(Good).commandContributions;
     expect(build.peers).toEqual([
-      'platform/cmd/crafting/pour.yaml',
+      'platform/cmd/bulk/pour.yaml',
       'platform/cmd/crafting/stir.yaml',
     ]);
   });

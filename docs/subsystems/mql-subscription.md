@@ -1058,3 +1058,13 @@ Three seams survive the split:
 the widget shelf's subscription. **A client cannot name a card at the
 protocol level** — which is a stronger guarantee than a source grep,
 because a missing field cannot be used at all.
+
+## ⭐ A crowd makes a card lag, never a person wait
+
+Every body that walks into a room dirties every card on that room, so thirty
+people is thirty re-resolves of thirty rows per arrival. `drainDirty` therefore
+runs in **slices** (`DRAIN_SLICE_MS`): as many re-resolves as fit, under one
+steady-light hold, then back to the loop, with what is dirtied meanwhile
+coalescing into the set. A card's first prose renders under a hold too
+(`CardRegistry`). Measured in controllers-are-io W10 (D27).
+

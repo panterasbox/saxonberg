@@ -30,6 +30,8 @@ import type { Chambered } from '../lib/spatial/Chambered';
 import type { Coolbox } from '../lib/thermal/Coolbox';
 import type { ClimateControl } from '../lib/thermal/ClimateControl';
 import type { Powered } from '../lib/supply/Powered';
+import type { WaterPowered } from '../lib/supply/WaterPowered';
+import type { NameTaking } from '../lib/description/NameTaking';
 import type { Mobile } from '../lib/spatial/Mobile';
 import type { Sensor } from '../lib/message/Sensor';
 import type { Vocal } from '../lib/message/Vocal';
@@ -45,6 +47,7 @@ import type { Gendered } from '../lib/character/Gendered';
 import type { Persona } from '../lib/character/Persona';
 import type { Dispositioned } from '../lib/trait/Dispositioned';
 import type { Advancing } from '../lib/advancement/Advancement';
+import type { Sampled } from '../lib/instrument/Sampled';
 import type { Visible } from '../lib/description/Visible';
 import type { Perceptible } from '../lib/description/Perceptible';
 import type { Detailed } from '../lib/description/Detailed';
@@ -53,11 +56,15 @@ import type { CommandGiver } from '../lib/command/CommandGiver';
 import type { Focused } from '../lib/command/Focused';
 import type { Exitable } from '../lib/boundary/Exitable';
 import type { Sealable } from '../lib/spatial/Sealable';
+import type { Throttleable } from '../lib/spatial/Throttleable';
+import type { Plumbed } from '../lib/supply/Plumbed';
+import type { Irrigating } from '../lib/husbandry/Irrigating';
 import type { Display } from '../lib/display/Display';
 import type { Switchable } from '../lib/boundary/Switchable';
 import type { Energized } from '../lib/electricity/Energized';
 import type { Lockable } from '../lib/boundary/Lockable';
 import type { Foldable } from '../lib/slot/Foldable';
+import type { Tearable } from '../lib/material/Tearable';
 import type { Timekeeping } from '../lib/time/Timekeeping';
 import type { CartesianCoordinates } from '../lib/location/CartesianCoordinates';
 import type { SphericalCoordinates } from '../lib/location/SphericalCoordinates';
@@ -79,6 +86,11 @@ import type { FrameSited } from '../lib/expanse/FrameSited';
 import type { MovingWater } from '../lib/location/MovingWater';
 import type { SmallCraft } from '../lib/expanse/SmallCraft';
 import type { TetherEnd } from '../lib/spatial/TetherEnd';
+import type { Berthing } from '../lib/expanse/Berthing';
+import type { Payable } from '../lib/banking/Payable';
+import type { Hailable } from '../lib/expanse/Hailable';
+import type { Hirable } from '../lib/retail/Hirable';
+import type { ForSale } from '../lib/retail/ForSale';
 import type { Ringable } from '../lib/perception/Ringable';
 import type { MovingZone } from '../lib/zone/MovingZone';
 import type { Charted } from '../lib/expanse/Charted';
@@ -87,7 +99,6 @@ import type { Adornable } from '../lib/boundary/Adornable';
 import type { Adornment } from '../lib/boundary/Adornment';
 import type { AmbientLit } from '../lib/perception/AmbientLit';
 import type { LightSource } from '../lib/perception/LightSource';
-import type { SmellSource } from '../lib/perception/SmellSource';
 import type { SoundSource } from '../lib/perception/SoundSource';
 import type { Audible } from '../lib/perception/Audible';
 import type { Augment } from '../lib/augmentation/Augment';
@@ -105,10 +116,12 @@ import type { Soilable } from '../lib/cleanliness/Soilable';
 import type { Flued } from '../lib/fire/Flued';
 import type { Postmortem } from '../lib/mortality/Postmortem';
 import type { Incorporeal } from '../lib/mortality/Incorporeal';
-import type { Reserved } from '../lib/reserve';
+import type { Reserved } from '../lib/reserve/Reserved';
 import type { Producing } from '../lib/husbandry/Producing';
 import type { LoadBearing } from '../lib/encumbrance/LoadBearing';
 import type { Metabolic } from '../lib/metabolism/Metabolic';
+import type { Eating } from '../lib/metabolism/Eating';
+import type { Buoyant } from '../lib/encumbrance/Buoyant';
 import type { Exerting } from '../lib/exertion/Exerting';
 import type { Thermal } from '../lib/thermal/Thermal';
 import type { Launcher } from '../lib/combat/Launcher';
@@ -147,17 +160,22 @@ import type { KneadVessel } from '../lib/craft/KneadVessel';
 import type { Shapeable } from '../lib/craft/Shapeable';
 import type { Forming } from '../lib/craft/Forming';
 import type { Carvable } from '../lib/craft/Carvable';
+import type { PourTarget } from '../lib/bulk/PourTarget';
 import type { Impressible } from '../lib/craft/Impressible';
 import type { Turnable } from '../lib/craft/Turnable';
 import type { HandWorked } from '../lib/craft/HandWorked';
 import type { StrikingDie } from '../lib/craft/StrikingDie';
 import type { Faced } from '../lib/material/Faced';
+import type { SelfHeating } from '../lib/thermal/SelfHeating';
 import type { Greenware } from '../lib/material/Greenware';
 import type { Burner } from '../lib/fire/Burner';
 import type { SpaceHeating } from '../lib/thermal/SpaceHeating';
 import type { PublicLighting } from '../lib/perception/PublicLighting';
 import type { Respiration } from '../lib/respiration/Respiration';
 import type { Radioactive } from '../lib/material/Radioactive';
+import type { Odorous } from '../lib/material/Odorous';
+import type { Olfactory } from '../lib/perception/Olfactory';
+import type { Palate } from '../lib/metabolism/Palate';
 import type { Muscle } from '../lib/butchery/Muscle';
 import type { Cut } from '../lib/butchery/Cut';
 import type { Workspace } from '../lib/shell/Workspace';
@@ -185,9 +203,12 @@ import type { Floor } from '../lib/ground/Floor';
 import type { GroundSource } from '../lib/ground/GroundSource';
 import type { Shore } from '../lib/location/Shore';
 import type { WaterPlace } from '../lib/location/WaterPlace';
+import type { HaulOut } from '../lib/location/HaulOut';
 import type { WaterColumn } from '../lib/location/WaterColumn';
 import type { Pullable } from '../lib/spatial/Pullable';
 import type { Tossable } from '../lib/spatial/Tossable';
+import type { Tieable } from '../lib/spatial/Tieable';
+import type { Spliceable } from '../lib/spatial/Spliceable';
 import type { Buoy } from '../lib/location/Buoy';
 import type { WaterSource } from '../lib/location/WaterSource';
 import type { Improvable } from '../lib/ground/Improvable';
@@ -200,9 +221,11 @@ import type { Spawner } from '../lib/stuff/Spawner';
 import type { Spawned } from '../lib/stuff/Spawned';
 import type { Stackable } from '../lib/stuff/Stackable';
 import type { Chattel } from '../lib/chattel/Chattel';
+import type { MadeFrom } from '../lib/chattel/MadeFrom';
 import type { Estate } from '../lib/chattel/Estate';
 import type { Resettable } from '../lib/residency/Resettable';
-import type { ConsignmentShelf, HeldGoodsShelf } from '../lib/retail/Consignment';
+import type { ConsignmentShelf } from '../lib/retail/ConsignmentShelf';
+import type { HeldGoodsShelf } from '../lib/retail/HeldGoods';
 import type { Bulkable } from '../lib/bulk/Bulkable';
 import type { Engaged } from '../lib/activity/Engaged';
 import type { Behaved } from '../lib/behavior/Behaved';
@@ -218,12 +241,12 @@ import type { Offstage } from '../lib/employment/Offstage';
 import type { BeliefStore } from '../lib/belief/BeliefStore';
 import type { Cartographer } from '../lib/location/Cartographer';
 import type { Disguisable } from '../lib/disguise/Disguisable';
-import type { DisguiseBearing } from '../lib/disguise/Disguise';
+import type { DisguiseBearing } from '../lib/disguise/DisguiseBearing';
 import type { Status } from '../lib/status/Status';
 import type { Identifiable } from '../lib/identification/Identifiable';
 import type { Graded } from '../lib/craft/Graded';
 import type { Steepable } from '../lib/craft/Steepable';
-import type { Tooled } from '../lib/craft/Tooled';
+import type { Tooled } from '../lib/craft/Tool';
 import type { Durable } from '../lib/material/Durable';
 import type { Integrity } from '../lib/material/Integrity';
 import type { Assembled } from '../lib/craft/Assembled';
@@ -232,7 +255,7 @@ import type { Keen } from '../lib/material/Keen';
 import type { Dressing } from '../lib/vitals/Dressing';
 import type { Crafted } from '../lib/craft/Crafted';
 import type { VesselKind } from '../lib/bulk/VesselKind';
-import type { Cutlery } from '../lib/bulk/Utensil';
+import type { Cutlery } from '../lib/bulk/Cutlery';
 import type { Serviceable } from '../lib/craft/Serviceable';
 import type { Caster } from '../lib/magic/Caster';
 import type { Arcane } from '../lib/magic/Arcane';
@@ -251,8 +274,17 @@ import type { PricedOffer } from '../lib/commerce/PricedOffer';
 import type { DonationBank } from '../lib/commerce/DonationBank';
 import type { Business } from '../platform/idea/Business';
 import type { Organization } from '../lib/employment/Organization';
+import type { OnCall } from '../lib/employment/OnCall';
+import type { Pumpable } from '../lib/pump/Pumpable';
+import type { Splittable } from '../lib/ground/Splittable';
+import type { TravelNode } from '../lib/travel/TravelNode';
+import type { Cuttable } from '../lib/craft/Cuttable';
+import type { CutPlanner } from '../lib/craft/CutPlanner';
+import type { LiftSource } from '../lib/pump/LiftSource';
+import type { PumpSource } from '../lib/pump/PumpSource';
+import type { CapTable } from '../lib/employment/CapTable';
 import type { Publisher } from '../lib/press/Publisher';
-import type { Registrar } from '../lib/document/Register';
+import type { Registrar } from '../lib/document/Registrar';
 import type { Attendant } from '../lib/attendant/Attendant';
 import type { Employed } from '../lib/employment/Employed';
 import type { Cast } from '../lib/npc/Cast';
@@ -353,6 +385,13 @@ interface MixinClass {
    * kernel map.
    */
   _mixinRefusal?: string;
+  /**
+   * `'protocol'` on a verb protocol mixin — the method a verb calls, with
+   * a refusing default (docs/subsystems/mixins.md § protocol mixins).
+   * Absent on every other mixin. Read only by presentation surfaces (the
+   * card's chips, Studio's palette, `help <verb>`).
+   */
+  _mixinKind?: 'protocol';
   name?: string;
   /** The unified field-metadata static. Was four parallel statics. */
   fieldMeta?: FieldMeta;
@@ -1147,6 +1186,14 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.Dispositioned);
   }
 
+  /**
+   * A SAMPLE — a lot that says where it was taken, by whom and when
+   * (`SampledMixin`).
+   */
+  public static isSampled(obj: Stuff): obj is Stuff & Sampled {
+    return this.hasMixin(obj, Mixins.Sampled);
+  }
+
   public static isAdvancing(obj: Stuff): obj is Stuff & Advancing {
     return this.hasMixin(obj, Mixins.Advancement);
   }
@@ -1209,6 +1256,19 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.Sealable);
   }
 
+  /** Opens by an amount and logs who set it (water-supply D12). */
+  public static isThrottleable(obj: Stuff): obj is Stuff & Sealable & Throttleable {
+    return this.hasMixin(obj, Mixins.Throttleable);
+  }
+
+  public static isPlumbed(obj: Stuff): obj is Stuff & Plumbed {
+    return this.hasMixin(obj, Mixins.Plumbed);
+  }
+
+  public static isIrrigating(obj: Stuff): obj is Stuff & Irrigating {
+    return this.hasMixin(obj, Mixins.Irrigating);
+  }
+
   public static isSwitchable(obj: Stuff): obj is Stuff & Switchable {
     return this.hasMixin(obj, Mixins.Switchable);
   }
@@ -1224,6 +1284,10 @@ export class MixinApi {
 
   public static isFoldable(obj: Stuff): obj is Stuff & Foldable {
     return this.hasMixin(obj, Mixins.Foldable);
+  }
+
+  public static isTearable(obj: Stuff): obj is Stuff & Tearable {
+    return this.hasMixin(obj, Mixins.Tearable);
   }
 
   public static isTimekeeping(obj: Stuff): obj is Stuff & Timekeeping {
@@ -1340,9 +1404,34 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.SmallCraft);
   }
 
-  /** ⭐ The end of a line in somebody's hand (river W16) — a painter, a lifeline. */
+  /** ⭐ The end of a line in somebody's hand (river W16) — a bow line, a lifeline. */
   public static isTetherEnd(obj: Stuff): obj is Stuff & TetherEnd {
     return this.hasMixin(obj, Mixins.TetherEnd);
+  }
+
+  /** ⭐ A landing somebody keeps a book for — a harbor quay. */
+  public static isBerthing(obj: Stuff): obj is Stuff & Berthing {
+    return this.hasMixin(obj, Mixins.Berthing);
+  }
+
+  /** ⭐ A thing that says what you owe — a harbor office's book. */
+  public static isPayable(obj: Stuff): obj is Stuff & Payable {
+    return this.hasMixin(obj, Mixins.Payable);
+  }
+
+  /** ⭐ A thing let by the day — a hired boat. */
+  public static isHirable(obj: Stuff): obj is Stuff & Hirable {
+    return this.hasMixin(obj, Mixins.Hirable);
+  }
+
+  /** ⭐ A thing with something for sale — what `buy` speaks to. */
+  public static isForSale(obj: Stuff): obj is Stuff & ForSale {
+    return this.hasMixin(obj, Mixins.ForSale);
+  }
+
+  /** ⭐ A place that answers a hail — a harbor office. */
+  public static isHailable(obj: Stuff): obj is Stuff & Hailable {
+    return this.hasMixin(obj, Mixins.Hailable);
   }
 
   /** ⭐ A bell or signal you strike (river W16), which remembers when. */
@@ -1397,10 +1486,6 @@ export class MixinApi {
 
   public static isLightSource(obj: Stuff): obj is Stuff & LightSource {
     return this.hasMixin(obj, Mixins.LightSource);
-  }
-
-  public static isSmellSource(obj: Stuff): obj is Stuff & SmellSource {
-    return this.hasMixin(obj, Mixins.SmellSource);
   }
 
   public static isAudible(obj: Stuff): obj is Stuff & Audible {
@@ -1481,6 +1566,16 @@ export class MixinApi {
 
   public static isLoadBearing(obj: Stuff): obj is Stuff & LoadBearing {
     return this.hasMixin(obj, Mixins.LoadBearing);
+  }
+
+  /** ⭐ A body the water can float or sink (`BuoyantMixin`). */
+  public static isBuoyant(obj: Stuff): obj is Stuff & Buoyant {
+    return this.hasMixin(obj, Mixins.Buoyant);
+  }
+
+  /** ⭐ A body that eats (`EatingMixin`) — what the `eat` verb asks. */
+  public static isEating(obj: Stuff): obj is Stuff & Eating {
+    return this.hasMixin(obj, Mixins.Eating);
   }
 
   public static isMetabolic(obj: Stuff): obj is Stuff & Metabolic {
@@ -1771,6 +1866,10 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.Carvable);
   }
 
+  public static isPourTarget(obj: Stuff): obj is Stuff & PourTarget {
+    return this.hasMixin(obj, Mixins.PourTarget);
+  }
+
   public static isImpressible(obj: Stuff): obj is Stuff & Impressible {
     return this.hasMixin(obj, Mixins.Impressible);
   }
@@ -1789,6 +1888,10 @@ export class MixinApi {
 
   public static isFaced(obj: Stuff): obj is Stuff & Faced {
     return this.hasMixin(obj, Mixins.Faced);
+  }
+
+  public static isSelfHeating(obj: Stuff): obj is Stuff & SelfHeating {
+    return this.hasMixin(obj, Mixins.SelfHeating);
   }
 
   public static isGreenware(obj: Stuff): obj is Stuff & Greenware {
@@ -1820,6 +1923,18 @@ export class MixinApi {
 
   public static isRespiration(obj: Stuff): obj is Stuff & Respiration {
     return this.hasMixin(obj, Mixins.Respiration);
+  }
+
+  public static isPalate(obj: Stuff): obj is Stuff & Palate {
+    return this.hasMixin(obj, Mixins.Palate);
+  }
+
+  public static isOlfactory(obj: Stuff): obj is Stuff & Olfactory {
+    return this.hasMixin(obj, Mixins.Olfactory);
+  }
+
+  public static isOdorous(obj: Stuff): obj is Stuff & Odorous {
+    return this.hasMixin(obj, Mixins.Odorous);
   }
 
   public static isRadioactive(obj: Stuff): obj is Stuff & Radioactive {
@@ -1922,6 +2037,14 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.WaterPlace);
   }
 
+  /**
+   * ⭐ A water you can get something out of by hand (`HaulOutMixin`) —
+   * what `pull` asks and a line's landing uses.
+   */
+  public static isHaulOut(obj: Stuff): obj is Stuff & HaulOut {
+    return this.hasMixin(obj, Mixins.HaulOut);
+  }
+
   /** The Idea that grows a column under a deep water (the water pack's). */
   public static isWaterColumn(obj: Stuff): obj is Stuff & WaterColumn {
     return this.hasMixin(obj, Mixins.WaterColumn);
@@ -1933,6 +2056,14 @@ export class MixinApi {
 
   public static isTossable(obj: Stuff): obj is Stuff & Tossable {
     return this.hasMixin(obj, Mixins.Tossable);
+  }
+
+  public static isTieable(obj: Stuff): obj is Stuff & Tieable {
+    return this.hasMixin(obj, Mixins.Tieable);
+  }
+
+  public static isSpliceable(obj: Stuff): obj is Stuff & Spliceable {
+    return this.hasMixin(obj, Mixins.Spliceable);
   }
 
   public static isBuoy(obj: Stuff): obj is Stuff & Buoy {
@@ -1983,6 +2114,14 @@ export class MixinApi {
 
   public static isStackable(obj: Stuff): obj is Stuff & Stackable {
     return this.hasMixin(obj, Mixins.Stackable);
+  }
+
+  /**
+   * ⭐ A made good that knows whose its inputs were (`MadeFromMixin`) —
+   * `Good` and `Vessel`; never an animal.
+   */
+  public static isMadeFrom(obj: Stuff): obj is Stuff & MadeFrom {
+    return this.hasMixin(obj, Mixins.MadeFrom);
   }
 
   /** A movable good carrying a durable per-instance chattel identity. */
@@ -2272,6 +2411,72 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.Registrar);
   }
 
+  /**
+   * ⭐ A business that keeps a table of owners and their units
+   * (`CapTableMixin`) — the read the `owners` appointing authority takes.
+   */
+  public static isCapTable(obj: Stuff): obj is Stuff & CapTable {
+    return this.hasMixin(obj, Mixins.CapTable);
+  }
+
+  /**
+   * A house with a call rule — *who among the able comes over*
+   * (`OnCallMixin`). Every Business is one; a government is not.
+   */
+  public static isOnCall(obj: Stuff): obj is Stuff & OnCall {
+    return this.hasMixin(obj, Mixins.OnCall);
+  }
+
+  /** ⭐ Plans its own cut — `cut` (`CuttableMixin`, a protocol). */
+  public static isCuttable(obj: Stuff): obj is Stuff & Cuttable {
+    return this.hasMixin(obj, Mixins.Cuttable);
+  }
+
+  /** ⭐ Plans the cut of a thing it knows — `cut` (`CutPlannerMixin`, a protocol). */
+  public static isCutPlanner(obj: Stuff): obj is Stuff & CutPlanner {
+    return this.hasMixin(obj, Mixins.CutPlanner);
+  }
+
+  /** Draws a supply that can be on or off (`PoweredMixin`). */
+  public static isPowered(obj: Stuff): obj is Stuff & Powered {
+    return this.hasMixin(obj, Mixins.Powered);
+  }
+
+  /** Turns a reach's flow into watts (`WaterPoweredMixin`). */
+  public static isWaterPowered(obj: Stuff): obj is Stuff & WaterPowered {
+    return this.hasMixin(obj, Mixins.WaterPowered);
+  }
+
+  /** Decides who may give it its name (`NameTakingMixin`). */
+  public static isNameTaking(obj: Stuff): obj is Stuff & NameTaking {
+    return this.hasMixin(obj, Mixins.NameTaking);
+  }
+
+  /** ⭐ A stop on some travel network — `teleport` (`TravelNodeMixin`, a protocol). */
+  public static isTravelNode(obj: Stuff): obj is Stuff & TravelNode {
+    return this.hasMixin(obj, Mixins.TravelNode);
+  }
+
+  /** ⭐ Comes apart a piece per act — `split` (`SplittableMixin`, a protocol). */
+  public static isSplittable(obj: Stuff): obj is Stuff & Splittable {
+    return this.hasMixin(obj, Mixins.Splittable);
+  }
+
+  /** ⭐ Answers `pump` — a pump's handle, a bellows (`PumpableMixin`, a protocol). */
+  public static isPumpable(obj: Stuff): obj is Stuff & Pumpable {
+    return this.hasMixin(obj, Mixins.Pumpable);
+  }
+
+  /** ⭐ A draw point with fluid standing below it (`LiftSourceMixin`, a protocol). */
+  public static isLiftSource(obj: Stuff): obj is Stuff & LiftSource {
+    return this.hasMixin(obj, Mixins.LiftSource);
+  }
+
+  /** ⭐ Something a pump is SET IN (`PumpSourceMixin`, a protocol). */
+  public static isPumpSource(obj: Stuff): obj is Stuff & PumpSource {
+    return this.hasMixin(obj, Mixins.PumpSource);
+  }
+
   /** A standalone employing Business (the `BusinessMixin` marker). */
   public static isBusiness(obj: Stuff): obj is Stuff & Business {
     return this.hasMixin(obj, Mixins.Business);
@@ -2418,34 +2623,53 @@ export class MixinApi {
   public static getAllMarkupAugmenters(
     constructor: AnyConstructor,
   ): Array<(text: string, host: unknown, viewer: unknown, opts?: unknown) => string> {
+    return MixinApi.getMarkupAugmenterLevels(constructor).flatMap((l) => l.fns);
+  }
+
+  /**
+   * ⭐ The same walk as {@link getAllMarkupAugmenters}, keeping WHICH
+   * level contributed which augmenters (client-surface D1) — root → leaf.
+   * A level whose class owns a `_mixinName` is a mixin (`name` without the
+   * `Mixin` suffix); any other is a class (`Weapon`, `CraftVessel`). The
+   * card's source gutter is read off this.
+   */
+  public static getMarkupAugmenterLevels(constructor: AnyConstructor): Array<{
+    source: { kind: 'mixin' | 'class'; name: string };
+    fns: Array<(text: string, host: unknown, viewer: unknown, opts?: unknown) => string>;
+  }> {
     type AugFn = (
       text: string,
       host: unknown,
       viewer: unknown,
       opts?: unknown,
     ) => string;
+    type Level = { source: { kind: 'mixin' | 'class'; name: string }; fns: AugFn[] };
     // Walk leaf → root, collecting contributing levels.
-    const chain: AugFn[][] = [];
+    const chain: Level[] = [];
     let current: unknown = constructor;
     while (current && current !== Object && (current as MixinClass).prototype) {
       const c = current as MixinClass & {
         markupAugmenters?: AugFn[];
+        name?: string;
       };
       if (
         Object.prototype.hasOwnProperty.call(c, 'markupAugmenters') &&
         Array.isArray(c.markupAugmenters)
       ) {
-        chain.push(c.markupAugmenters);
+        const mixinName = Object.prototype.hasOwnProperty.call(c, '_mixinName')
+          ? c._mixinName
+          : undefined;
+        chain.push({
+          source: mixinName
+            ? { kind: 'mixin', name: mixinName.replace(/Mixin$/, '') }
+            : { kind: 'class', name: c.name ?? 'Thing' },
+          fns: c.markupAugmenters,
+        });
       }
       current = Object.getPrototypeOf(current);
     }
-    // Flatten root → leaf so the fold applies parent's augmenters
-    // before child's.
-    const out: AugFn[] = [];
-    for (let i = chain.length - 1; i >= 0; i--) {
-      out.push(...chain[i]!);
-    }
-    return out;
+    // Root → leaf so the fold applies parent's augmenters before child's.
+    return chain.reverse();
   }
 
   /**

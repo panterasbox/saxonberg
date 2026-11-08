@@ -60,7 +60,8 @@ export default class EvalController extends CommandController<EvalModel> {
     const giver = context.commandGiver;
 
     // Wizard axis check is now declarative — see eval.yaml's
-    // `validators: requiresWizard`. The dispatcher rejects the
+    // `validators: requiresWizard` — typing code IS authoring it, the one
+    // verb-level axis gate that remains. The dispatcher rejects the
     // command before this controller runs when the giver isn't a
     // wizard. Code-trust gates WHETHER you may run code; the parcel
     // jurisdiction below gates WHERE it reaches — never the reverse.

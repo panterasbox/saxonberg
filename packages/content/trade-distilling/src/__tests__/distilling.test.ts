@@ -10,7 +10,7 @@
  *
  * The brain drives the literal verbs through `forceCommand` (the giver's own method since the OO sweep);
  * here that seam is a dispatcher onto the REAL controllers (`wallet use
- * house` → WalletController, `consign … --ask` → ConsignController, `get`
+ * house` → WalletController, `shelf consign … --ask` → ShelfConsignController, `get`
  * → the containment move the verb performs), the `HouseAccount` harness
  * shape — the parser/binder is not in the loop (controller tests skip the
  * binder); the live drive is where the typed line is proven.
@@ -88,7 +88,7 @@ import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import ChattelRegistry from '@saxonberg/server/mud/platform/idea/ChattelRegistry';
 import BusinessEntity from '@saxonberg/server/mud/platform/idea/Business';
 import WalletController from '@saxonberg/server/mud/platform/idea/cmd/banking/WalletController';
-import ConsignController from '@saxonberg/server/mud/platform/idea/cmd/retail/ConsignController';
+import ShelfConsignController from '@saxonberg/server/mud/platform/idea/cmd/retail/ShelfConsignController';
 import BuyController from '@saxonberg/server/mud/platform/idea/cmd/retail/BuyController';
 import SpiritBottle from '../thing/SpiritBottle';
 import Still from '../thing/Still';
@@ -558,7 +558,10 @@ describe('trade-distilling — the outfit consigns as itself, and the house card
       if (text === 'sense') return;
       lines.push(text);
       const here = (giver as unknown as TestHand).getContainer() as Place;
-      const [verb, ...rest] = text.split(' ');
+      const [noun, ...words] = text.split(' ');
+      // ⭐ A noun's subcommand (`shelf consign`, `house draw` — controllers-are-io
+      // W7) dispatches here like the flat verb it replaced.
+      const [verb, ...rest] = noun === 'shelf' || noun === 'house' ? words : [noun, ...words];
       if (verb === 'get') {
         // `get 1 <kw>` — the quantity form the beat uses so a lift takes
         // ONE of a keyword rather than every match on the floor (see
@@ -596,7 +599,7 @@ describe('trade-distilling — the outfit consigns as itself, and the house card
         const thing = rest[0]!;
         const ask = rest[rest.indexOf('--ask') + 1]!;
         const c = ctx(giver, here, counter, text);
-        await asPrincipal(giver, () => makeStuff(() => new ConsignController()).execute(
+        await asPrincipal(giver, () => makeStuff(() => new ShelfConsignController()).execute(
           // ⚠ Skips the BINDER: the shelf is a declared arg in `consign.yaml`.
           { thing: bindHeld(giver, thing), ask, shelf: { stuff: counter as never, raw: 'shelf' } },
           c,
@@ -674,7 +677,7 @@ describe('trade-distilling — the outfit consigns as itself, and the house card
     const gets = lines.filter((l) => l.startsWith('get '));
     expect(gets.length).toBe(1); // stopped at the first decline, whichever bottle came first
     expect(gin.getContainer()).toBe(floorStock);
-    if (gets[0] === 'get vodka') expect(lines).toContain('consign vodka --ask 10');
+    if (gets[0] === 'get vodka') expect(lines).toContain('shelf consign vodka --ask 10');
   });
 
   it('the hand consigns only up to its outfit\'s headroom under the listing cap — never at an over-cap decline', async () => {
@@ -703,7 +706,7 @@ describe('trade-distilling — the outfit consigns as itself, and the house card
       'get 1 gin',
       'go out',
       'wallet use house',
-      'consign gin --ask 10',
+      'shelf consign gin --ask 10',
       'go back',
     ]);
     expect(hand.getContainer()).toBe(floorRoom);
@@ -746,8 +749,8 @@ describe('trade-distilling — the outfit consigns as itself, and the house card
       'get 1 vodka',
       'go out',
       'wallet use house',
-      'consign gin --ask 14',
-      'consign vodka --ask 10',
+      'shelf consign gin --ask 14',
+      'shelf consign vodka --ask 10',
       'go back',
     ]);
     expect(hand.getContainer()).toBe(floorRoom);

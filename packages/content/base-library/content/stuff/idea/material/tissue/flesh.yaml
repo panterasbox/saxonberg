@@ -5,8 +5,9 @@
 # pending compound templates; species-specific flesh
 # (`Homo sapiens`-flesh, frog-flesh, …) is a content extension that
 # populates `biologicalSource`.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/raw-meat, strength: 60 }]
   name: flesh
   keywords: [flesh]
   density: 1060
@@ -24,7 +25,7 @@ data:
   # ⭐ The basic tastes (closed five-word set). Nothing authors what a
   # DISH tastes like — `taste` derives that from what went in, projected
   # through the taster's own palate. See docs/subsystems/crafting.md.
-  tastes: [umami]
+  tastes: [{ type: umami, amount: 2 }]
   # ⭐ Spoilage (docs/subsystems/spoilage.md): the microbial growth rate is
   # `μ_max · f_T(T) · f_aw(a_w)`. `spoilActivationEnergy` (J/mol) is how
   # steeply this food answers to warmth; `waterActivity` is how much of its

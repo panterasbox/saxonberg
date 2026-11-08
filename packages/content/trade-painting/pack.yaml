@@ -1,0 +1,18 @@
+id: trade-painting
+version: 0.1.0
+root: /trade/painting
+description: >-
+  The colorman's trade — ⭐ **paint is a binder with pigment in it, and both
+  come from what the world already makes.** Linseed oil pressed from flax
+  seed on the stones, ochre dug and ground, lime slaked at the chandlery,
+  white lead and verdigris corroded in vinegar, a lake struck from madder
+  with alum, an egg broken for tempera, glue boiled from what the tannery
+  and the knackers throw away, turpentine and rosin cut from pine gum. One
+  pot makes every paint: what you put in decides the color, how it covers,
+  how it sets and how long it lasts. No new verb: `mill`, `pour`, `stir`,
+  and the kernel's `paint` with a brush in hand. ⭐⭐ A second colorman is
+  rows.
+requires:
+  # A trade is placeless: its mechanism is held by the Ministry of Trade.
+  title:
+    - { extent: /trade/painting, holder: { organization: /compact/trade } }

@@ -1,0 +1,25 @@
+# A brush (paint D9) — the tool `paint` wants in hand. The class is the
+# kernel's (`/platform/thing/Brush`: a verb affordance is a static on a
+# class); what it is made of is this row's.
+class: /platform/thing/Brush
+data:
+  shortDescription: brush
+  keywords: [brush, "paint brush", paintbrush]
+  register: indefinite
+  longDescription: >-
+    A stout round brush of hog bristle set in a beech handle, the bristles
+    worn to a slant by somebody's habit of hand.
+  _materialPath: /stuff/idea/material/wood/beech
+  mass: 0.15
+  condition: 1
+  capabilities:
+    - kind: painting
+      rate: 1
+  # ⭐ An ASSEMBLY (paint D11): a knot of bristle GLUED into its handle —
+  # the glue line is what goes when a brush is left standing in water.
+  bill:
+    parts:
+      - { part: handle, template: /trade/painting/thing/brush-handle, count: 1, role: structural, material: /stuff/idea/material/wood/beech }
+      - { part: bristles, template: /trade/painting/thing/bristle, count: 1, role: wear, material: /trade/painting/idea/material/hog-bristle }
+    joints:
+      - { key: setting, method: glued, members: [handle, bristles] }

@@ -1,4 +1,5 @@
 verbs: [close]
+category: boundary
 controller: /platform/idea/cmd/boundary/CloseController
 description: "Close a door (by direction or by name)"
 help: |
@@ -18,6 +19,7 @@ args:
     type: object
     required: true
     scope: "reachable"
+    greedy: true
     updates_focus: extend
     requires: SealableMixin
     validators:

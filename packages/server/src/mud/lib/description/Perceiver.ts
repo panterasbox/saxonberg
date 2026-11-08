@@ -31,6 +31,7 @@ import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { CommandContributions } from '../../api/command';
 import type { Sensor } from '../message/Sensor';
 import type { Stuff } from '../stuff/Stuff';
+import type { Whereabouts, WhereaboutsExit } from '@saxonberg/types';
 import type { PublishedStop } from '../travel/TravelNode';
 import type Exit from '../boundary/Exit';
 import type { AnyConstructor } from '../../api/mixin';
@@ -100,6 +101,15 @@ export const SENSE_CHANNELS: readonly SenseChannel[] = [
  * also reach the Sensor surface.
  */
 export interface Perceiver extends Sensor {
+  /**
+   * ⭐ Where I am, at zone level — the navigator card's body: the covering
+   * Localities, the Structure, my cell, the ways out I can PERCEIVE, the
+   * sky over the place, and whose ground it is. A read that fails leaves
+   * its field absent; `null` when I am nowhere. On the viewer because the
+   * viewer is its subject (lint:object-verbs).
+   */
+  whereabouts(): Promise<Whereabouts | null>;
+
   /**
    * ⭐⭐ **A place is being described to me — work out what I can
    * actually make out of it, and remember it.**
@@ -206,6 +216,85 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
       return exits;
     }
 
+    /** See {@link Perceiver.whereabouts}. */
+    async whereabouts(): Promise<Whereabouts | null> {
+      const viewer = this as unknown as Stuff;
+      // Lazily: these reads pull in address, weather, celestial and civics
+      // substrate a foundational mixin must not load at module scope.
+      const [{ AddressApi }, { WeatherApi }, { CelestialApi }, { GovernmentApi }, { NavigationApi }] =
+        await Promise.all([
+          import('../../api/address'),
+          import('../../api/weather'),
+          import('../../api/celestial'),
+          import('../../api/government'),
+          import('../../api/navigation'),
+        ]);
+      if (!MixinApi.isContainable(viewer)) return null;
+      const place = viewer.getContainer();
+      if (!place) return null;
+      /*
+       * ⚠ Each read is its own try: a read that fails leaves its field
+       * ABSENT, and the card says it does not know rather than showing a
+       * guess. One broken subsystem must not blank the whole navigator.
+       */
+      const attempt = async <T>(read: () => T | Promise<T>): Promise<T | undefined> => {
+        try {
+          return await read();
+        } catch {
+          return undefined;
+        }
+      };
+
+      const resolution = await attempt(() => AddressApi.resolveFor(place));
+      const address = resolution?.address ?? null;
+      const localities = address
+        ? AddressApi.coverageChainOf(address)
+            .map((l) => ({ name: l.getName(), address: l.getAddress() }))
+            .filter((l) => l.name.length > 0)
+            .reverse()
+        : [];
+
+      const structure = await attempt(() => NavigationApi.structureAtNow(place.getTemplatePath() ?? ''));
+      // Lazily: a static import of Location from a logic singleton runs the
+      // mixin chain before it is ready (the SandboxLogic precedent).
+      const { default: Location } = await import('../location/Location');
+      const coords = place instanceof Location ? place.getCoords() : null;
+
+      // ⭐ The perception-gated list: a concealed exit is not here.
+      const here = place.getZone();
+      const exits: WhereaboutsExit[] = MixinApi.isExitable(place)
+        ? place.obviousExitsFor(viewer).map((exit) => {
+            const dest = exit.getDestination();
+            const door = exit.getDoor();
+            return {
+              direction: exit.getDirection(),
+              ...(dest ? { destination: dest.getPresentation() } : {}),
+              crossesZone: !!dest && dest.getZone() !== here,
+              ...(door ? { door: { name: door.getPresentation(), open: door.isOpen() } } : {}),
+            };
+          })
+        : [];
+
+      const sample = MixinApi.isContainer(place)
+        ? await attempt(() => WeatherApi.sampleFor(place))
+        : undefined;
+      const day = await attempt(() => CelestialApi.isDayAt(place));
+      const government = address ? await attempt(() => GovernmentApi.governmentAt(address)) : undefined;
+
+      return {
+        place: { stuffId: place.stuffId, name: place.getPresentation() },
+        ...(structure ? { structure: { name: structure.getName() } } : {}),
+        localities,
+        ...(coords ? { coords } : {}),
+        exits,
+        conditions: {
+          ...(sample ? { weather: sample.type, season: sample.season } : {}),
+          ...(day !== undefined ? { daylight: day ? ('day' as const) : ('night' as const) } : {}),
+        },
+        jurisdiction: government?.name ?? null,
+      };
+    }
+
     /** See {@link Perceiver.learnTimetable}. */
     learnTimetable(stops: readonly PublishedStop[]): void {
       if (stops.length === 0) return;
@@ -245,7 +334,7 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
     static commandContributions: CommandContributions = {
       self: [
         'platform/cmd/perception/look.yaml',
-        // ⭐ `query` (alias `scan`): listing a SET is its own verb — `look`
+        // ⭐ `query`: listing a SET is its own verb — `look`
         // takes one thing (maritime revision 2′).
         'platform/cmd/perception/query.yaml',
         // ⭐ `watch`: keeping a watch on the horizon is a perceiver's act
@@ -259,7 +348,6 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
         'platform/cmd/perception/smell.yaml',
         'platform/cmd/perception/listen.yaml',
         'platform/cmd/perception/feel.yaml',
-        'platform/cmd/perception/taste.yaml',
         'platform/cmd/perception/sense.yaml',
         'platform/cmd/perception/assess.yaml',
         'platform/cmd/perception/survey.yaml',

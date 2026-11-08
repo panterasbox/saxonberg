@@ -258,8 +258,8 @@ cost and chemistry win for the ~90% case and buys honest fog for the rest.
 > advantage*) and passes — but **never against the chamber structure**,
 > and there it fails: the benefit is non-excludable **among players** and
 > fully excludable **among authors.** A dollar buys inference → inference
-> buys engagement → engagement mints **producer** standing, so **the
-> dollar minted producer standing**, which is the cross-chamber
+> buys engagement → engagement mints **labor** standing, so **the
+> dollar minted labor standing**, which is the cross-chamber
 > conversion the polity register forbids. The rule that applies was
 > already written in `land-compute` Movement 2: ⭐⭐⭐ **capital grows the
 > PIE, never buys a SLICE** — and directed sponsorship is buying a slice.

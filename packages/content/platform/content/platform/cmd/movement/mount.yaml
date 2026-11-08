@@ -1,4 +1,5 @@
 verbs: [mount]
+category: movement
 controller: /platform/idea/cmd/movement/MountController
 description: "Mount a rideable creature or vehicle"
 help: |

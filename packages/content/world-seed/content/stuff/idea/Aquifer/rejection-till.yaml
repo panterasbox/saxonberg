@@ -1,0 +1,15 @@
+# The Rejection till (water-supply D13, R9) — a shallow, perched aquifer in
+# the boulder clay under the pithead yard, a few metres down: what the
+# village well and the deep well on the hillside both drink from. The
+# Ferrow's own water table (−45 m) is the MINE's, kept apart from this by
+# clay. Staged (D30): nothing in the realm draws it beyond a hand pump that
+# refills between visits.
+class: /system/water/idea/Aquifer
+data:
+  name: the Rejection till
+  areaKm2: 0.6
+  capacityM3: 120000
+  rechargeFraction: 0.15
+  tableM: 446
+  bottomM: 438
+  localityPath: /stuff/idea/Locality/rejection

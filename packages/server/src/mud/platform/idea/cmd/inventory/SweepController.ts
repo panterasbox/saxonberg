@@ -1,6 +1,6 @@
 /**
- * SweepController — `sweep [<floor|hearth>] [with <broom|brush>]`, and
- * `muck` (out the byre) — cleanliness D15, D18, D20.
+ * SweepController — `sweep [<floor|hearth>] [with <broom|brush>]`, the
+ * byre's mucking out included — cleanliness D15, D18, D20.
  *
  * ⭐ Dumb over the things it sweeps: the FLOOR decides what a broom takes
  * up (`FloorMixin.sweepUp` — everything on an earth floor, only the debris
@@ -124,13 +124,15 @@ export default class SweepController extends ManualBuildController<SweepModel> {
   private static async finishHearth(giver: Stuff, hearth: Stuff, brush: boolean): Promise<void> {
     if (brush && MixinApi.isFlued(hearth)) {
       // ⭐ The chimney's own act: soot onto the floor and your hands.
-      const { sootKg } = await hearth.sweepChimney(giver);
+      const { sootKg, taken } = await hearth.sweepChimney(giver);
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(
-          sootKg > 0.05
-            ? Mml.compose`Soot comes down the flue in a black fall, all over the hearthstone. The chimney is clear.`
-            : Mml.compose`A little soot comes down. The flue was clean enough.`,
+          taken.length > 0
+            ? Mml.compose`Soot comes down the flue in a black fall, and you gather the finest of it up: ${Mml.thing(taken[0]!)}. The chimney is clear.`
+            : sootKg > 0.05
+              ? Mml.compose`Soot comes down the flue in a black fall, all over the hearthstone. The chimney is clear.`
+              : Mml.compose`A little soot comes down. The flue was clean enough.`,
         )
         .toPeers(Mml.compose`${Mml.actor(giver)} sweeps the chimney.`)
         .send();

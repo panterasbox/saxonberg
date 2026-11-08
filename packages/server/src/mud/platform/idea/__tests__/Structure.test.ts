@@ -1,7 +1,9 @@
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Structure from '../Structure';
+import StructureBase from '../../../lib/structure/Structure';
 import Ship from '../Ship';
+import Building from '../Building';
 import { NavigationApi } from '../../../api/navigation';
 import { attachGraph } from '../../../lib/location/__tests__/attachments-fixture';
 import { MixinApi } from '../../../api/mixin';
@@ -26,18 +28,34 @@ describe('Structure', () => {
   });
 
   it('⭐ a building has no position and does not voyage; a ship does — a subclass, not a blank field', () => {
-    const tower = makeStuff(() => new Structure());
+    const tower = makeStuff(() => new Building());
     expect(MixinApi.isPositioned(tower)).toBe(false);
     expect(MixinApi.isVoyaging(tower)).toBe(false);
-    expect(MixinApi.isPersistable(tower)).toBe(false);
+    // ⭐ A building composes Persistable (paint D7) but keeps a record only
+    // once it is SOLD — a staged one restages; a ship persists always.
+    expect(MixinApi.isPersistable(tower)).toBe(true);
+    expect(tower.shouldPersist()).toBe(false);
     const ship = makeStuff(() => new Ship());
-    expect(ship).toBeInstanceOf(Structure);
+    // ⭐ A ship is a structure — of the BASE: a building row is one building
+    // (the singleton twin), a ship kind is many ships of one row.
+    expect(ship).toBeInstanceOf(StructureBase);
+    expect(ship).not.toBeInstanceOf(Structure);
+    expect(MixinApi.isSingleton(tower)).toBe(true);
+    expect(MixinApi.isSingleton(ship)).toBe(false);
     expect(MixinApi.isPositioned(ship)).toBe(true);
     expect(MixinApi.isVoyaging(ship)).toBe(true);
     expect(MixinApi.isPersistable(ship)).toBe(true);
+    expect(ship.shouldPersist()).toBe(true);
     expect(ship.getExpansePosition()).toBeNull();
     ship.setExpansePosition({ latDeg: 50, lonDeg: -4 });
     expect(ship.getExpansePosition()!.latDeg).toBe(50);
+  });
+
+  it('⭐ a ship nobody measured still has a hull to paint (the walk found it 0)', () => {
+    const ship = makeStuff(() => new Ship());
+    expect(ship.coatAreaM2()).toBeGreaterThan(0);
+    ship.setHull({ draftM: 2, beamM: 5, lengthM: 20 });
+    expect(ship.coatAreaM2()).toBeCloseTo(20 * (5 + 4), 6);
   });
 
   it('⭐ the lookout seat sees from the masthead; everybody else from the deck', () => {

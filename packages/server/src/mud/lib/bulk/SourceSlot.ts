@@ -23,7 +23,9 @@ import type Material from '../material/Material';
 import type { WaterRead } from '../location/WaterSource';
 import { Quantity } from '../quantity';
 import { StuffApi } from '../../api/stuff';
-// The `hardnessDgh` payload field is declared by WaterHardness's merge.
+// The `hardnessDgh` payload field is declared by WaterHardness's merge;
+// `pH` and `salinityPpt` by WaterChemistry's.
+import '../supply/WaterChemistry';
 import type {} from '../cleanliness/WaterHardness';
 
 /** What a source slot reads its water through — the shore's own surface. */
@@ -121,7 +123,16 @@ export class SourceSlot extends BulkSlot {
   public override payloadForDraw(litres: number): BulkPayload | null {
     void litres;
     const dgh = this.getHardnessDgh();
-    return dgh === null ? null : { hardnessDgh: dgh };
+    // ⭐ …and its acidity and salt (water-supply D8): a pail of brackish
+    // water salts the bed it is poured on.
+    const draw = this.whyEmpty() === null ? this.read()?.draw : undefined;
+    const out: BulkPayload = {};
+    if (dgh !== null) out.hardnessDgh = dgh;
+    if (typeof draw?.pH === 'number' && Number.isFinite(draw.pH)) out.pH = draw.pH;
+    if (typeof draw?.salinityPpt === 'number' && Number.isFinite(draw.salinityPpt)) {
+      out.salinityPpt = draw.salinityPpt;
+    }
+    return Object.keys(out).length === 0 ? null : out;
   }
 
   /** The water's own hardness, as its read says. */

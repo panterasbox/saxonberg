@@ -36,6 +36,8 @@ import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { AppApi } from '@saxonberg/server/mud/api/app';
 import { BulkableApi } from '@saxonberg/server/mud/api/bulk';
 import { Grade, GRADE_BANDS } from '@saxonberg/server/mud/lib/craft/Grade';
+import type Material from '@saxonberg/server/mud/lib/material/Material';
+import TextileStock from '../../../thing/TextileStock';
 
 const TOPIC = 'act.deed';
 
@@ -90,7 +92,7 @@ export default class ScutchController extends ManualBuildController<ScutchModel>
     // Naming the flax row here would be the one line that stops wool
     // ever plugging in.
     if (!material.hasTag('fibre')) {
-      const straw = material.hasTag('retting');
+      const straw = material.hasTag('fibre-stock');
       this.declineStep(
         context,
         straw
@@ -151,7 +153,7 @@ export default class ScutchController extends ManualBuildController<ScutchModel>
           tow: towUnits,
           shive: shiveUnits,
           hard,
-        });
+        }, material);
       },
     });
   }
@@ -164,6 +166,7 @@ async function finish(
   charge: number,
   band: string,
   out: { line: number; tow: number; shive: number; hard: boolean },
+  fibre: Material | null,
 ): Promise<void> {
   const giver = context.commandGiver;
   // ⚠⚠ A module function, never `this.<method>`: a controller is one
@@ -204,6 +207,9 @@ async function finish(
       // put on the sheaf, carried one more step by the shipped
       // weakest-link rule and nothing else.
       if (MixinApi.isGraded(stock)) stock.setGrade(Grade.of(band));
+      // ⭐ Line and tow are the fiber that was retted (cordage D14): a
+      // hemp sheaf scutches into hemp line, never flax.
+      if (stock instanceof TextileStock && row !== SHIVE_ROW) stock.adoptFibre(fibre);
       if (MixinApi.isContainable(stock) && MixinApi.isContainer(giver)) {
         ContainmentApi.move(stock as Stuff & Containable, giver as Stuff & Container);
       }

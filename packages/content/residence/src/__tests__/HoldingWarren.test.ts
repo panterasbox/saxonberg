@@ -13,6 +13,8 @@ import '@saxonberg/server/test-bootstrap';
 import { KERNEL_CONTENT_ROWS } from '@saxonberg/server/test-bootstrap';
 import { Lock } from "@saxonberg/server/mud/lib/lock/Lock";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import HoldingBuilding from '../idea/HoldingBuilding';
+import type Place from '@saxonberg/server/mud/lib/stuff/Place';
 import HoldingWarren from '../idea/HoldingWarren';
 import HouseholdersKit from '../thing/HouseholdersKit';
 import MaintainController from '../idea/cmd/crafting/MaintainController';
@@ -31,6 +33,7 @@ import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { ParcelApi } from '@saxonberg/server/mud/api/parcel';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
 import { CommandApi, type CommandContext, type CommandModel } from '@saxonberg/server/mud/api/command';
 import { CommandDefinition } from '@saxonberg/server/mud/lib/command/CommandDefinition';
 import Tool from '@saxonberg/server/mud/platform/thing/Tool';
@@ -54,8 +57,10 @@ const PH = TemplateApplier.templatePath;
 const PARENT = '/world/prog-test/lots';
 const WARREN_PATH = '/world/prog-test/holder';
 const PROGRAMME = '/world/prog-test/house-programme';
-const ROOM_A = '/world/prog-test/hall';
-const ROOM_B = '/world/prog-test/bedroom';
+const ROOM_A = '/world/prog-test/house/home/hall';
+const ROOM_B = '/world/prog-test/house/home/bedroom';
+const ROOM_C = '/world/prog-test/house/porch';
+const ROOM_D = '/world/prog-test/house/shed';
 const STREET = '/world/prog-test/lane';
 const LOT1 = `${PARENT}/lot-1`;
 
@@ -116,30 +121,67 @@ function seedDomain(): void {
     domain.push({ _id: `d-${++idCounter}`, ...row });
   }
   add('/system/residence/idea/exits/upstairs', '/system/residence/idea/UpstairsExit');
+  add('/system/residence/idea/holding-building', '/system/residence/idea/HoldingBuilding', {
+    shortDescription: 'house',
+    keywords: ['house'],
+  });
   add('/system/residence/idea/exits/front-door', '/system/residence/idea/FrontDoorExit');
   add('/system/residence/idea/exits/lot-gate', '/system/residence/idea/LotGateExit');
   add('/system/residence/idea/exits/keyed-door', '/system/residence/idea/KeyedDoorExit');
 
   add(WARREN_PATH, WARREN_PATH.replace('/holder', '/TestInstitution'));
+  // ⭐ The house's PLAN is the programme row's own (harbors review 3;
+  // 2026-11-03 — no blueprint row): ordinary rows under an extent, and the
+  // way in. ⭐ Its buildings are AUTHORED: the house (first, the main one)
+  // over `house/home/`, and the shed over its one room. The porch lies
+  // under neither — open ground, whatever its air.
   add(PROGRAMME, '/system/residence/idea/HoldingWarren', {
-    floorplan: [
-      {
-        leaf: 'hall',
-        room: ROOM_A,
-        entry: true,
-        exits: [{ to: 'bedroom', direction: 'north' }],
-      },
-      { leaf: 'bedroom', room: ROOM_B },
-    ],
+    extent: '/world/prog-test/house',
+    entrance: ROOM_A,
+    buildings: ['/world/prog-test/house-building', '/world/prog-test/shed-building'],
     upkeepTerm: 'owner-all',
     addressBase: 'prog-test/lot-1',
   });
+  add('/world/prog-test/house-building', '/system/residence/idea/HoldingBuilding', {
+    shortDescription: 'house',
+    keywords: ['house'],
+    extent: '/world/prog-test/house/home',
+    entrance: ROOM_A,
+  });
+  add('/world/prog-test/shed-building', '/system/residence/idea/HoldingBuilding', {
+    shortDescription: 'shed',
+    keywords: ['shed', 'building'],
+    extent: ROOM_D,
+    entrance: ROOM_D,
+  });
+  // The plan's own zone (its rows author cells), and the lots' zone —
+  // a copy's rooms stand in the lots', by their keys.
+  add('/world/prog-test/house', '/platform/idea/location/CartesianZone', { name: 'the house', cellSize: 6 });
+  add(PARENT, '/platform/idea/location/CartesianZone', { name: 'the lots', cellSize: 4 });
   add(ROOM_A, '/platform/location/PersistentLocation', {
     shortDescription: 'the hall',
     props: ['/world/prog-test/coatrack'],
+    exits: { north: { destination: ROOM_B }, east: { destination: ROOM_C } },
   });
   add(ROOM_B, '/platform/location/PersistentLocation', {
     shortDescription: 'a bedroom',
+    exits: { south: { destination: ROOM_A } },
+  });
+  // A PLAIN room: keeps nothing, so has no record (tracts build review).
+  add(ROOM_C, '/platform/location/Location', {
+    shortDescription: 'a porch',
+    // Open to the sky — but that is not why it is no building's: no
+    // building the programme names has it under its extent.
+    enclosure: 'none',
+    roof: 'none',
+    exits: { west: { destination: ROOM_A }, north: { destination: ROOM_D } },
+  });
+  // ⭐ A building of its own (paint review), across the open porch.
+  // (A room that knows its warren — a plain Location does not, so no
+  // place could ask it which building it is in.)
+  add(ROOM_D, '/platform/location/PersistentLocation', {
+    shortDescription: 'a shed',
+    exits: { south: { destination: ROOM_C } },
   });
   add('/world/prog-test/coatrack', '/platform/thing/Thing', {
     shortDescription: 'a coat rack',
@@ -182,8 +224,12 @@ function installStore(): void {
     return arr.filter((d) =>
       keys.every((k) => {
         const stored = d[k];
-        if (Array.isArray(stored)) return stored.includes(q[k]);
-        return stored === q[k];
+        const want = q[k];
+        if (want !== null && typeof want === 'object' && '$regex' in (want as object)) {
+          return typeof stored === 'string' && new RegExp(String((want as { $regex: string }).$regex)).test(stored);
+        }
+        if (Array.isArray(stored)) return stored.includes(want);
+        return stored === want;
       }),
     );
   });
@@ -293,10 +339,49 @@ describe('the residential programme (D16)', () => {
     expect(holding.getUpkeepTerm()).toBe('owner-all');
   });
 
-  it('⭐⭐ lays its rooms out in its OWN frame, from the floorplan (B53)', async () => {
+  it('⭐ a room that keeps nothing stands up with no record (persistence is the exception)', async () => {
+    seedLot();
+    await bootRegistries();
+    const w = await institution();
+    await w.admit(LOT1);
+    const holding = w.holdingFor(LOT1)! as unknown as HoldingWarren;
+    const porch = holding.roomForLeaf('porch')!;
+    expect(porch.getTemplatePath()).toBe(ROOM_C);
+    expect(MixinApi.isPersistable(porch)).toBe(false);
+  });
+
+  it('⭐ harbors review 2: a holding\'s room stood up by its key goes through its holding — never minted alone, never twice', async () => {
+    seedLot();
+    await bootRegistries();
+    const w = await institution();
+    // The seam a parked character re-enters a keyed room by, admitting the
+    // holding (the location graph that finds the institution is not
+    // standing in this unit world).
+    const admit = vi.spyOn(CirculationWarren, 'admitFor').mockImplementation(async (key: string) => {
+      await w.admit(LOT1);
+      return (w.holdingFor(LOT1) as unknown as HoldingWarren).roomForKey(key);
+    });
+    const scan = vi.spyOn(StuffApi, 'findAllByTemplatePath');
+    const bedroom = await PersistableApi.standUpKeyed(ROOM_B, `${LOT1}/bedroom`);
+    expect(admit).toHaveBeenCalledWith(`${LOT1}/bedroom`);
+    expect(scan).not.toHaveBeenCalled();
+    const holding = w.holdingFor(LOT1)! as unknown as HoldingWarren;
+    expect(bedroom).toBe(holding.roomForLeaf('bedroom'));
+    // The holding woken again hands back that room: one bedroom, not two.
+    await w.admit(LOT1);
+    expect(holding.roomForLeaf('bedroom')).toBe(bedroom);
+    scan.mockRestore();
+    expect(StuffApi.findAllByTemplatePath(ROOM_B).filter((r) => !r.isDestroyed())).toHaveLength(1);
+    // Standing, the pair is a lookup: the institution is not asked again.
+    admit.mockClear();
+    expect(await PersistableApi.standUpKeyed(ROOM_B, `${LOT1}/bedroom`)).toBe(bedroom);
+    expect(admit).not.toHaveBeenCalled();
+  });
+
+  it('⭐⭐ lays its rooms out in its OWN frame, from its plan (B53)', async () => {
     // Every place but the void has coordinates. A holding's rooms take
-    // theirs from the floorplan's cardinal exits, the entry at the origin:
-    // the hall at (0,0,0), the bedroom north of it.
+    // theirs from their plan rows: the hall at
+    // (0,0,0), the bedroom north of it.
     seedLot();
     await bootRegistries();
     const w = await institution();
@@ -312,14 +397,9 @@ describe('the residential programme (D16)', () => {
   });
 
   it('⭐⭐ its rooms stand in the HOLDING\'s zone, sized by its cell (B54)', async () => {
-    // A room's size is its zone's cell. The rows live at `/world/prog-test/`
-    // (no zone), the lot under a 4 m zone — so the rooms take the lot's.
-    col('content').push({
-      _id: `d-${++idCounter}`,
-      path: PARENT,
-      class: '/platform/idea/location/CartesianZone',
-      data: { name: 'the lots', cellSize: 4 },
-    });
+    // A room's size is its zone's cell. The plan rows live at
+    // `/world/prog-test/house/` (no zone), the lot under a 4 m zone — so a
+    // copy's rooms take the lot's.
     seedLot();
     await bootRegistries();
     const w = await institution();
@@ -400,37 +480,76 @@ describe('the residential programme (D16)', () => {
     expect(dest.getTemplatePath()).toBe(ROOM_A);
   });
 
-  it('shell condition declines over game time, stamp honest across restarts', async () => {
+  it('⭐ the holding stands its HOUSE up; a bare house wears, honest across restarts (paint D6/D13)', async () => {
     seedLot();
     await bootRegistries();
     const w = await institution();
     await w.admit(LOT1);
     const holding = w.holdingFor(LOT1)! as unknown as HoldingWarren;
+    const house = holding.house()!;
+    expect(house).not.toBeNull();
+    expect(house.getExtent()).toBe(LOT1);
 
     const base = WorldClockApi.getNow().rawValue();
     const clock = vi.spyOn(WorldClockApi, 'getNow');
     clock.mockReturnValue(Quantity.of(base, 's'));
-    expect(holding.conditionBand()).toBe('sound');
+    expect(house.getConditionWord()).toBe('sound');
 
+    // A house that starts bare wears from the day it is held:
     // 45 game-days = the shipped daysToWorn default → half gone.
     clock.mockReturnValue(Quantity.of(base + 45 * 86_400, 's'));
-    const c = holding.reconcileShell();
-    expect(c).toBeCloseTo(0.5, 2);
-    expect(holding.conditionBand()).toBe('worn');
-    expect(holding.conditionCause()).toMatch(/rain|paint|weather/i);
+    expect(house.getCondition()).toBeCloseTo(0.5, 2);
+    expect(house.getConditionWord()).toBe('worn');
+    expect(house.weatherCause()).toMatch(/paint has gone/i);
 
     // "Restart": capture, tear down, re-admit → the decline SURVIVED
-    // (persistent state), and further elapsed time keeps declining.
+    // (the house persists under the holding's key), and keeps declining.
     await (w as unknown as { reconcile(): Promise<void> }).reconcile();
-    const reborn = await w.admit(LOT1);
-    void reborn;
+    await w.admit(LOT1);
     const holding2 = w.holdingFor(LOT1)! as unknown as HoldingWarren;
-    expect(holding2.reconcileShell()).toBeLessThanOrEqual(0.51);
+    const house2 = holding2.house()!;
+    expect(house2.getCondition()).toBeLessThanOrEqual(0.51);
 
-    // The maintenance restore (P10).
-    holding2.restoreShell();
-    expect(holding2.conditionBand()).toBe('sound');
+    // The maintenance restore (P10) — the fabric, not the coat.
+    house2.setCondition(1);
+    expect(house2.getConditionWord()).toBe('sound');
     clock.mockRestore();
+  });
+
+  it('⭐ a holding has the buildings its programme NAMES; ground under none is no building', async () => {
+    seedLot();
+    await bootRegistries();
+    const w = await institution();
+    await w.admit(LOT1);
+    const holding = w.holdingFor(LOT1)! as unknown as HoldingWarren;
+    const all = holding.standingBuildings();
+    expect(all).toHaveLength(2);
+    const [house, shed] = all as [HoldingBuilding, HoldingBuilding];
+    const hall = holding.roomForLeaf('hall')!;
+    const bedroom = holding.roomForLeaf('bedroom')!;
+    const porch = holding.roomForLeaf('porch')!;
+    const shedRoom = holding.roomForLeaf('shed')!;
+    expect(holding.house()).toBe(house);
+    // The hall and the bedroom lie under the house's extent: one building.
+    expect(house.hasRoom(hall)).toBe(true);
+    expect(house.hasRoom(bedroom)).toBe(true);
+    expect(house.hasRoom(porch)).toBe(false);
+    expect(house.hasRoom(shedRoom)).toBe(false);
+    expect(shed.hasRoom(shedRoom)).toBe(true);
+    // By path, only the main building answers, and only at the extent.
+    expect(house.hasMember(LOT1)).toBe(true);
+    expect(shed.hasMember(LOT1)).toBe(false);
+    expect(shed.getPresentation()).toMatch(/shed/);
+    // ⭐ A room asks its warren which building it is in — no path names it.
+    expect((shedRoom as unknown as Place).structureNow()).toBe(shed);
+    expect((bedroom as unknown as Place).structureNow()).toBe(house);
+    expect((hall as unknown as Place).structureNow()).toBe(house);
+    expect((porch as unknown as Place).structureNow()).toBeNull();
+    expect(holding.buildingOf(porch)).toBeNull();
+    // Each keeps its own condition.
+    shed.setCondition(0.3);
+    expect(shed.getConditionWord()).toBe('badly worn');
+    expect(house.getConditionWord()).toBe('sound');
   });
 
   it('heldUnitsOf returns every rung (lease + lease)', async () => {
@@ -504,9 +623,9 @@ describe('the maintenance act (D4/D5)', () => {
     const base = WorldClockApi.getNow().rawValue();
     const clock = vi.spyOn(WorldClockApi, 'getNow');
     clock.mockReturnValue(Quantity.of(base, 's'));
-    holding.reconcileShell();
+    holding.house()!.getCondition();
     clock.mockReturnValue(Quantity.of(base + 45 * 86_400, 's'));
-    expect(holding.conditionBand()).toBe('worn');
+    expect(holding.house()!.getConditionWord()).toBe('worn');
     return { holding, hall, clock };
   }
 
@@ -522,6 +641,7 @@ describe('the maintenance act (D4/D5)', () => {
   async function maintain(
     actor: Stuff,
     room: Stuff | null,
+    target?: Stuff,
   ): Promise<CommandContext> {
     const ctx = CommandApi.createCommandContext({
       commandGiver: actor as never,
@@ -550,7 +670,10 @@ describe('the maintenance act (D4/D5)', () => {
       return typeof t.hasCapability === 'function' && t.hasCapability('upkeep');
     });
     await controller.execute(
-      (kit === undefined ? {} : { kit: { stuff: kit, raw: 'kit' } }) as CommandModel,
+      {
+        ...(kit === undefined ? {} : { kit: { stuff: kit, raw: 'kit' } }),
+        ...(target === undefined ? {} : { target: { stuff: target, raw: 'target' } }),
+      } as CommandModel,
       ctx,
     );
     return ctx;
@@ -575,10 +698,35 @@ describe('the maintenance act (D4/D5)', () => {
 
     const ctx = await maintain(iris as unknown as Stuff, hall as unknown as Stuff);
     expect(reasons(ctx)).toEqual([]);
-    expect(holding.conditionBand()).toBe('sound');
+    expect(holding.house()!.getConditionWord()).toBe('sound');
     // Law 2: the tool wears with USE. That is the recurring cost of
     // upkeep, and the whole economic content of the act.
     expect(k.getCondition()).toBeLessThan(before);
+  });
+
+  it('⭐ a house credits no Discipline — keeping one is nobody\'s yet (harbors P24)', async () => {
+    const { holding, hall } = await wornHolding();
+    const iris = makeStuffAtPath(() => new Avatar(), '/platform/agent/Avatar/iris');
+    ContainmentApi.move(iris as unknown as Stuff & Containable, hall);
+    ContainmentApi.move(
+      kit() as unknown as Stuff & Containable,
+      iris as unknown as Stuff & Container,
+    );
+    const credit = vi.fn(async () => undefined);
+    vi.spyOn(MixinApi, 'isAdvancing').mockReturnValue(true);
+    (iris as unknown as { creditDeed: unknown }).creditDeed = credit;
+    await maintain(iris as unknown as Stuff, hall as unknown as Stuff);
+    expect(holding.house()!.getConditionWord()).toBe('sound');
+    expect(credit).not.toHaveBeenCalled();
+  });
+
+  it('⭐ a named thing that is not a building is refused as such (paint B33)', async () => {
+    const { hall } = await wornHolding();
+    const iris = makeStuffAtPath(() => new Avatar(), '/platform/agent/Avatar/iris');
+    ContainmentApi.move(iris as unknown as Stuff & Containable, hall);
+    const notABuilding = makeStuffAtPath(() => new Tool(), '/world/prog-test/oar');
+    const ctx = await maintain(iris as unknown as Stuff, hall as unknown as Stuff, notABuilding as unknown as Stuff);
+    expect(reasons(ctx)).toEqual(['not-a-building']);
   });
 
   it('refuses without a kit — the shell is untouched', async () => {
@@ -588,7 +736,7 @@ describe('the maintenance act (D4/D5)', () => {
 
     const ctx = await maintain(iris as unknown as Stuff, hall as unknown as Stuff);
     expect(reasons(ctx)).toContain('no-upkeep-tool');
-    expect(holding.conditionBand()).toBe('worn');
+    expect(holding.house()!.getConditionWord()).toBe('worn');
   });
 
   it('refuses where there is no holding to keep', async () => {
@@ -621,7 +769,9 @@ describe('the maintenance act (D4/D5)', () => {
     );
 
     const ctx = await maintain(iris as unknown as Stuff, hall as unknown as Stuff);
-    expect(reasons(ctx)).toContain('already-sound');
+    // ⭐ A sound fabric under no coat: the kit is spared, and the refusal
+    // says the house wants PAINT, which is a brush's work (paint D13).
+    expect(reasons(ctx)).toContain('coat-not-fabric');
     expect(k.getCondition()).toBe(1);
   });
 
@@ -642,7 +792,7 @@ describe('the maintenance act (D4/D5)', () => {
 
     const ctx = await maintain(stranger as unknown as Stuff, hall as unknown as Stuff);
     expect(reasons(ctx)).toEqual([]);
-    expect(holding.conditionBand()).toBe('sound');
+    expect(holding.house()!.getConditionWord()).toBe('sound');
   });
 
   it('⭐ interior goods show ZERO clock-wear over the same elapsed time (Law 2)', async () => {
@@ -657,9 +807,9 @@ describe('the maintenance act (D4/D5)', () => {
 
     const base = WorldClockApi.getNow().rawValue();
     clock.mockReturnValue(Quantity.of(base + 365 * 86_400, 's'));
-    holding.reconcileShell();
+    holding.house()!.getCondition();
 
-    expect(holding.conditionBand()).toBe('dilapidated');
+    expect(holding.house()!.getConditionWord()).toBe('broken');
     expect(tool.getCondition()).toBe(before);
     clock.mockRestore();
   });
@@ -669,108 +819,5 @@ describe('the maintenance act (D4/D5)', () => {
       .map((d) => d.verbs)
       .flat();
     expect(verbs).toContain('maintain');
-  });
-});
-
-/** The holding a room belongs to — the walk `plot` makes to find it. */
-function holdingOf(room: MemberStuff): HoldingWarren {
-  const warren = MixinApi.isWarrenMember(room as unknown as Stuff)
-    ? (room as unknown as { getWarren(): unknown }).getWarren()
-    : null;
-  if (!warren) throw new Error('room is in no warren');
-  return warren as unknown as HoldingWarren;
-}
-
-describe('⭐ admitPlot — the break-ground seam (farmstead W3)', () => {
-  beforeEach(() => {
-    reset();
-    installStore();
-  });
-  afterEach(reset);
-
-  /**
-   * The class has always said the member contract is *"open to
-   * runtime-added members (the cross-build interface with farming's
-   * break-ground act)"*. Until this build that was a docstring and a
-   * `wake()` that iterated only the authored rooms.
-   */
-  it('hangs a room the holder MADE off the holding, wired both ways', async () => {
-    seedLot();
-    await bootRegistries();
-    const w = await institution();
-    // ⚠ `admit` answers the ENTRY ROOM, not the holding. The holding is
-    // what that room is a member OF — which is the same walk `plot` does.
-    const holding = holdingOf(await w.admit(LOT1));
-
-    const field = await holding.admitPlot({
-      leaf: 'top-meadow',
-      room: ROOM_B,
-      direction: 'top-meadow',
-      opposite: 'out',
-      from: 'hall',
-    });
-    expect(field).not.toBeNull();
-
-    const hall = holding.roomForLeaf('hall') as unknown as Stuff & Exitable;
-    expect(hall.getExit('top-meadow')).toBeTruthy();
-    expect(
-      (field as unknown as Stuff & Exitable).getExit('out'),
-    ).toBeTruthy();
-    // ⭐ A plot hung off the house by NAME is not reached by the cardinal
-    // plan, so it sits in the row beyond the house (B53).
-    expect(
-      (field as unknown as { getCoordinates(): number[] }).getCoordinates(),
-    ).toEqual([0, 2, 0]);
-  });
-
-  it('⭐ it PERSISTS, by the same machinery that stands up a hall', async () => {
-    seedLot();
-    await bootRegistries();
-    const w = await institution();
-    // ⚠ `admit` answers the ENTRY ROOM, not the holding. The holding is
-    // what that room is a member OF — which is the same walk `plot` does.
-    const holding = holdingOf(await w.admit(LOT1));
-    await holding.admitPlot({
-      leaf: 'top-meadow',
-      room: ROOM_B,
-      direction: 'top-meadow',
-      from: 'hall',
-      extra: { plottedAreaM2: 400 },
-    });
-
-    // The floorplan is persistent, so the new entry rides the same
-    // record the authored rooms do — no second ledger, no new
-    // collection, no per-caller bookkeeping.
-    const entry = holding.floorplanEntryOf('top-meadow');
-    expect(entry).toMatchObject({ leaf: 'top-meadow', room: ROOM_B, plottedAreaM2: 400 });
-
-    // …and a fresh wake stands it back up alongside the authored ones.
-    // ⚠ The marshaller rows are Stuff too, so a clean process has to
-    // re-install them — which is what a real restart does at boot.
-    StuffApi.clearAll();
-    ParcelApi._resetRegistryRefForReload();
-    installV1QuantityMarshallers();
-    await bootRegistries();
-    const w2 = await institution();
-    const back = holdingOf(await w2.admit(LOT1));
-    expect(back.floorplanEntryOf('top-meadow')).not.toBeNull();
-    expect(back.roomForLeaf('top-meadow')).not.toBeNull();
-  });
-
-  it('refuses a leaf that is taken, and leaves no half-entry behind', async () => {
-    seedLot();
-    await bootRegistries();
-    const w = await institution();
-    // ⚠ `admit` answers the ENTRY ROOM, not the holding. The holding is
-    // what that room is a member OF — which is the same walk `plot` does.
-    const holding = holdingOf(await w.admit(LOT1));
-
-    expect(await holding.admitPlot({ leaf: 'hall', room: ROOM_B, direction: 'x' })).toBeNull();
-    // A row that cannot clone must not leave an entry the next wake
-    // would retry forever.
-    expect(
-      await holding.admitPlot({ leaf: 'nowhere', room: '/world/prog-test/no-such-row', direction: 'x' }),
-    ).toBeNull();
-    expect(holding.floorplanEntryOf('nowhere')).toBeNull();
   });
 });

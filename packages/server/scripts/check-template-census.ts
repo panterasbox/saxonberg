@@ -13,7 +13,7 @@
  *       `exits.<dir>.door`, `adornments`, `floor.material` +
  *       `floor.template`, `stockLines[].itemTemplatePath`,
  *       `prices` keys, `roomTemplate`, `holderPath`, `streetPath`,
- *       `corridorTemplate`, `programmePath`, and floorplan `room`
+ *       `corridorTemplate`, `programmePath`, and a holding plan's `buildings`
  *       entries. (`class:` stays `check-instanceable-placement`'s —
  *       shared reader, no duplicate.)
  *   (c) Every `TemplatePaths` constant in `lib/paths.ts` that names a
@@ -22,6 +22,11 @@
  *       row must not leave a constant pointing at nothing).
  *   (d) A `cast:` entry names a row on an AGENT branch.
  *   (e) ⭐ The PURE-REPEAT ratchet — see {@link PURE_REPEAT_CEILING}.
+ *   (g) ⭐ Every field that names DOCUMENTS by path ({@link
+ *       DOCUMENT_PATH_FIELDS} — a species' `nameBanks`) resolves to a
+ *       document some pack ships: a pack's document is stored at its root
+ *       + the kind's content dir + the file, and a document's path is its
+ *       only identity (owner, 2026-11-08). Aroma paths are `lint:aromas`'.
  *   (f) ⭐⭐ Every field a `fieldMeta` DECLARES on the identity axis
  *       (`ref: 'identity:constituent' | 'identity:relation' |
  *       'identity:kind'`), in the kernel or any pack's `src/`, resolves
@@ -237,6 +242,12 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     // becomes. Resolved live at the cast and the blow.
     'breaksTo', 'strikes',
     'line', 'bunker', 'river', 'ferry', 'service',
+    // ⭐ A charter book's `payTo` — the venue its days are
+    // paid into; a rowless one is a charter whose bill settles nowhere.
+    'payTo',
+    // ⭐ A government's `shipRegister` — the register row it
+    // keeps; a rowless one is a polity whose yard sells a ship into nothing.
+    'shipRegister',
   ] as const) {
     push(f, data[f]);
   }
@@ -246,8 +257,17 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
   // rows too.)
   // ⭐ (W12) A timetabled service's `landings` — a rowless one is a boat
   // that leaves from nowhere.
-  for (const f of ['endpoints', 'featured', 'horizon', 'landings'] as const) {
+  // ⭐ A harbor's `exempt` ships — an authored ship's row; a
+  // rowless one exempts nobody and every city craft pays dues.
+  // ⭐ A charter book's `ships` — the ships a line's desk lets;
+  // a rowless one is a charter for a ship that is not there.
+  for (const f of ['endpoints', 'featured', 'horizon', 'landings', 'exempt', 'ships'] as const) {
     if (Array.isArray(data[f])) for (const v of data[f] as unknown[]) push(f, v);
+  }
+  // ⭐ A harbor's `quays[].place` — a rowless one is a berth
+  // the harbormaster gives that no ship can ever reach.
+  if (Array.isArray(data.quays)) {
+    for (const q of data.quays as Array<Record<string, unknown>>) push('quays', q?.place);
   }
   if (Array.isArray(data.entries)) {
     for (const e of data.entries as Array<Record<string, unknown>>) {
@@ -698,6 +718,14 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
   push('vapourMaterial', data.vapourMaterial);
   // A floor's sweep heaps into this row (cleanliness D15).
   push('sweepsInto', data.sweepsInto);
+  // ⭐ What a soaked-through good of a weak-wet material leaves.
+  push('soddenTemplate', data.soddenTemplate);
+  // ⭐ The paper a bearer receipt is written on — cloned at a deposit.
+  push('receiptPaper', data.receiptPaper);
+  // ⭐ The wet sheet a pulp vat lifts (paper W2) — cloned at each dip.
+  push('sheetTemplate', data.sheetTemplate);
+  // The case a forme is set from — a row named, not minted.
+  push('casePath', data.casePath);
   // The house whose doorman keeps a door (cleanliness D29).
   push('keptBy', data.keptBy);
   /*
@@ -841,6 +869,14 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
       }
     }
   }
+  // ⭐ The hulls on a yard's hull book: each names the
+  // ship kind row she is built to.
+  const hulls = data.hulls;
+  if (Array.isArray(hulls)) {
+    for (const h of hulls) {
+      if (h && typeof h === 'object') push('hulls.kind', (h as Record<string, unknown>).kind);
+    }
+  }
   // ⭐ (ceramics W8) What a solution crystallizes to: the crystals and the
   // mother liquor, both material rows.
   const crystallizesTo = data.crystallizesTo as { product?: unknown; residue?: unknown } | undefined;
@@ -885,17 +921,18 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     // `homeExtent` names a real zone, which is the jurisdictional anchor
     // straying is derived against. Both flagged by clause (d).
     'speciesPath', 'homeExtent',
+    // ⭐ (cover build D8) The field an authored herd starts on — a real
+    // field row, applied once to the record.
+    'grazing',
     'gangueMaterialPath',
   ] as const) {
     push(scalar, data[scalar]);
   }
-  const floorplan = data.floorplan;
-  if (Array.isArray(floorplan)) {
-    for (const roomSpec of floorplan) {
-      if (roomSpec && typeof roomSpec === 'object') {
-        push('floorplan.room', (roomSpec as Record<string, unknown>).room);
-      }
-    }
+  // ⭐ The buildings a holding's plan names —
+  // Building rows on the programme row itself (no blueprint row), each
+  // minted per copy; the main one first.
+  if (Array.isArray(data.buildings)) {
+    for (const b of data.buildings) push('buildings', b);
   }
   return out;
 }
@@ -917,6 +954,20 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
  * until somebody decides which it is. Enumerate, never infer.
  */
 const IGNORED_PATH_FIELDS: readonly string[] = [
+  // ⭐ An AROMA's path (a document, not a row): a material's `smells` and
+  // `burning`, an impart's `type`. `lint:aromas` resolves every one against
+  // the aroma documents the packs ship, with the dependency reach checked.
+  'smells',
+  'burning',
+  'imparts',
+  'combustionImparts',
+  'charredImparts',
+  // A ledger's PREFIX — a document-tree prefix read by
+  // `DocumentApi.list`, not a row: a business's feed, a register's branch.
+  'registerPrefix',
+  // A printed book's EDITION — a document path (`DocumentApi.pagesOf`),
+  // the frozen pages its leaves are bound to; not a row.
+  'edition',
   // Addresses resolve by AddressApi's longest-prefix walk, not by
   // template lookup.
   '_address',
@@ -930,6 +981,13 @@ const IGNORED_PATH_FIELDS: readonly string[] = [
   // unresolvable one fails closed and is not the silent hazard this
   // clause exists to catch. See docs/subsystems/watershed.md.
   'extent',
+  // ⭐ …and a conduit's served extents as a LIST (water-supply D23): the
+  // same longest-prefix prefixes, one per district the main serves.
+  'extents',
+  // ⭐ A field's inlets (water-supply D15) name the GATE they draw on — a
+  // live object loaded on use, placed by its own room's `props:`; the
+  // inlet cites it and brings nothing into the world.
+  'inlets',
   'servesExtent',
   // ⭐ A structure's STOREYS (rubber build) are extents too — each a
   // membership prefix resolved longest-prefix, like the structure's own
@@ -951,6 +1009,12 @@ const IGNORED_PATH_FIELDS: readonly string[] = [
   // that is not a live Container — so a dangling vault serves NOTHING
   // rather than everything, failing closed exactly like the extents above.
   '_vaultPaths',
+  // ⭐ A register's `registerOwner` / `registerPrefix` name
+  // DOCUMENT-tree branches (`/platform`, `/platform/ships/<gov>`), checked by
+  // `DocumentApi.saveToRegister` — never template rows, so there is no row
+  // for them to dangle from.
+  'registerOwner',
+  'registerPrefix',
   // ⭐ A blood unit's donor key is a durable PARTY id — an identity path
   // (a person) for a drawn unit, an organization path for an institutional
   // one, and '' for an unattributed bag. Like `donorIdentityPath` it keys a
@@ -991,7 +1055,6 @@ const UNREAD_PATH_FIELDS: readonly string[] = [
   'parentExtent', 'roadTemplate',
   'rosterSlots', 'routes', 'seatIn', 'seats', 'seedTemplatePath',
   'steepsInto', 'teachesSpellPath', 'trapTemplate', 'treasury',
-  'warren',
 ];
 
 function checkPathFieldCoverage(
@@ -1019,7 +1082,7 @@ function checkPathFieldCoverage(
   }
   const unread: string[] = [];
   for (const k of [...seen].sort()) {
-    if (read.has(k) || IGNORED_PATH_FIELDS.includes(k)) continue;
+    if (read.has(k) || IGNORED_PATH_FIELDS.includes(k) || k in DOCUMENT_PATH_FIELDS) continue;
     if (UNREAD_PATH_FIELDS.includes(k)) { unread.push(k); continue; }
     findings.push({
       clause: 'd', file: '(content)',
@@ -1068,6 +1131,61 @@ function checkFieldRefs(rows: Map<string, string>): number {
           clause: 'b', file,
           detail: `${field}: ${path} resolves to no content row`,
         });
+      }
+    }
+  }
+  return checked;
+}
+
+// ── clause (g): a field naming DOCUMENTS by path resolves ──────────
+/** Field → the document kind's content dir its values are stored under. */
+const DOCUMENT_PATH_FIELDS: Readonly<Record<string, string>> = {
+  // A species' name banks (`/species-and-names/name-banks/common`).
+  nameBanks: 'name-banks',
+};
+
+/** Every document path a pack ships under `contentDir`: its root + the dir + the file. */
+function documentPaths(contentDir: string): Set<string> {
+  const out = new Set<string>();
+  if (!existsSync(CONTENT)) return out;
+  for (const pack of readdirSync(CONTENT)) {
+    const dir = join(CONTENT, pack, 'content', contentDir);
+    if (!existsSync(dir)) continue;
+    let root = `/${pack}`;
+    const manifest = join(CONTENT, pack, 'pack.yaml');
+    if (existsSync(manifest)) {
+      const m = (YAML.parse(readFileSync(manifest, 'utf8')) ?? {}) as { id?: unknown; root?: unknown };
+      root = typeof m.root === 'string' ? m.root : `/${typeof m.id === 'string' ? m.id : pack}`;
+    }
+    for (const f of walk(dir, '.yaml')) {
+      out.add(`${root}/${contentDir}/${relative(dir, f).replace(/\.yaml$/, '').split('\\').join('/')}`);
+    }
+  }
+  return out;
+}
+
+function checkDocumentRefs(rows: Map<string, string>): number {
+  let checked = 0;
+  const shipped = new Map<string, Set<string>>();
+  for (const [, file] of rows) {
+    let parsed: Record<string, unknown> | null;
+    try { parsed = YAML.parse(readFileSync(file, 'utf8')) as Record<string, unknown> | null; }
+    catch { continue; }
+    const data = parsed?.data as Record<string, unknown> | undefined;
+    if (!data || typeof data !== 'object') continue;
+    for (const [field, contentDir] of Object.entries(DOCUMENT_PATH_FIELDS)) {
+      const value = data[field];
+      if (value === undefined) continue;
+      let docs = shipped.get(contentDir);
+      if (!docs) shipped.set(contentDir, (docs = documentPaths(contentDir)));
+      for (const path of Array.isArray(value) ? value : [value]) {
+        checked += 1;
+        if (typeof path !== 'string' || !docs.has(path)) {
+          findings.push({
+            clause: 'g', file,
+            detail: `${field}: ${String(path)} is not the path of a document any pack ships under content/${contentDir}/`,
+          });
+        }
       }
     }
   }
@@ -1288,7 +1406,7 @@ const BY_ENTRY_FIELDS = ['props', 'cast', 'costume', 'adornments'] as const;
  *
  * Census-then-ratchet: it may fall, never rise.
  */
-const PURE_REPEAT_CEILING = 47;
+const PURE_REPEAT_CEILING = 45;
 
 function countPureRepeats(rows: Map<string, string>): number {
   let extra = 0;
@@ -1325,6 +1443,7 @@ function main(): void {
   const rows = templateRows();
   checkRetiredChannel();
   const fieldRefs = checkFieldRefs(rows);
+  const documentRefs = checkDocumentRefs(rows);
   const declared = declaredIdentityFields();
   const identityRefs = checkDeclaredIdentity(rows, declared);
   checkPathFieldCoverage(rows, declared);
@@ -1358,7 +1477,7 @@ function main(): void {
   } else {
     console.log(
       `check-template-census: every templatePath resolves to a row ` +
-        `(${rows.size} rows; ${fieldRefs} field refs, ` +
+        `(${rows.size} rows; ${fieldRefs} field refs, ${documentRefs} document refs, ` +
         `${identityRefs} declared-identity refs over ${declared.size} field(s), ` +
         `${constants} singleton constants, ` +
         `${castRefs} cast member(s) on agent branches; asTemplatePath retired).`,

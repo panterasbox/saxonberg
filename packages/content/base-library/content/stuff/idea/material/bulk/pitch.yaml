@@ -6,8 +6,10 @@
 # it yet, which is said plainly rather than hidden — the demand is the
 # cooperage and shipbuilding builds', and this is the supply waiting for
 # it.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/pitch, strength: 300 }]
+  burning: [{ aroma: /base-library/aromas/oil-smoke, strength: 1500 }]
   name: pitch
   keywords: [pitch]
   # ⚠ Not "brittle": `lint:descriptors` reserves that word for the
@@ -28,6 +30,10 @@ data:
   edibility: false
   nutrients: []
   toxicity: []
-  tags: [bulk, organic, flammable, tar, once-living]
+  tags: [bulk, organic, flammable, tar, once-living, waterproofing]
+  # ⭐ A coat (cordage D13′): dipped hot, it sets on the face as it cools, and
+  # keeps the water out of what it coats — a tarred rope does not rot.
+  laysCoat: true
+  coatWord: tarred
   composition: []
   biologicalSource: null

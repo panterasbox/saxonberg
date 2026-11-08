@@ -2,8 +2,9 @@
 # (potash D9). Brown-black with the char and the iron the lye carried, a
 # little damp, and about two parts in three potassium carbonate. The kiln
 # burns the dirt out and leaves pearl ash.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/lye, strength: 100 }]
   name: black salts
   keywords: ["black salts", salts, "crude potash", "pot ash"]
   appearance: a hard brown-black cake of crude salts

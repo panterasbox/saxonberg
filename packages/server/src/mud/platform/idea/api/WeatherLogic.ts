@@ -20,6 +20,7 @@ import { AppApi } from '../../../api/app';
 import { AppSettingKeys } from '../../../lib/config/AppSettings';
 import { EARTH_LIKE, type Season } from '../../../lib/time/CelestialProfile';
 import type Locality from '../Locality';
+import type Place from '../../../lib/stuff/Place';
 import type Material from '../../../lib/material/Material';
 import type { Bulkable } from '../../../lib/bulk/Bulkable';
 import type { Adornable } from '../../../lib/boundary/Adornable';
@@ -299,7 +300,12 @@ function positionalLean(scope: Stuff | null): ClimateLean | null {
   if (expanseApi === null || scope === null) return null;
   const root = MixinApi.isContainable(scope) ? scope.getRootContainer() ?? scope : scope;
   try {
-    return expanseApi.leanAtSync(root.getTemplatePath() ?? '');
+    // ⭐ A room is asked which structure it is part of:
+    // a ship of a kind's room is keyed by her serial and its row is every
+    // ship of the kind's, so the craft is named by HER identity.
+    const s = root.isPlace() ? (root as unknown as Place).structureNow() : null;
+    const at = s !== null ? (s as unknown as Stuff).getIdentityPath() : root.getTemplatePath();
+    return expanseApi.leanAtSync(at ?? '');
   } catch {
     return null;
   }

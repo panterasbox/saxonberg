@@ -27,6 +27,7 @@ import YAML from 'yaml';
 import { PersistApi } from '@saxonberg/server/mud/api/persist';
 import { DocumentApi } from '@saxonberg/server/mud/api/document';
 import { WeatherApi } from '@saxonberg/server/mud/api/weather';
+import { AppApi } from '@saxonberg/server/mud/api/app';
 import { Collections } from '@saxonberg/server/mud/lib/persistence/Collections';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import Species, {
@@ -192,7 +193,16 @@ const MULLET: Habitat = {
 
 beforeEach(() => {
   StuffApi.clearAll();
+  // A steady DRIZZLE every segment (0.3 mm/h, via the operator's
+  // `water.rate.rain` dial): a wet, deterministic, ordinary summer river.
+  // Since the rainfall calibration (cover B42) a forced `rain` segment is
+  // honest steady rain at 1.5 mm/h, and a month of it end to end is a
+  // spate no mullet holds station in — not the river these tests read.
   WeatherApi._forceTypeForTesting('rain');
+  const setting = AppApi.setting.bind(AppApi);
+  vi.spyOn(AppApi, 'setting').mockImplementation((key: string) =>
+    key === 'water.rate.rain' ? '0.3' : setting(key),
+  );
   installDocuments();
 });
 

@@ -3,6 +3,7 @@
 # water, and is not there in winter.
 class: /platform/idea/species/Species
 data:
+  smells: [{ aroma: /base-library/aromas/fish, strength: 30 }]
   binomial: Chelon labrosus
   commonNames: ["grey mullet", "mullet"]
   _bodyPlanPath: /stuff/idea/species/BodyPlan/fish
@@ -64,4 +65,4 @@ data:
     - { cut: /stuff/thing/items/offal, units: 1 }
   longDescription: >-
     A grey mullet, thick-lipped and silver-grey, the kind that noses along a harbour wall.
-  nameBankKeys: []
+  nameBanks: []

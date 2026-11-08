@@ -1,0 +1,34 @@
+# A valley farmstead — the LAYOUT every farm sold in the Delight valley is
+# a copy of (tracts build D33). A residence holding like a Hinkley house.
+#
+# ⭐ Its PLAN is its own (no blueprint row),
+# authored as an ordinary place under `farmstead/`: the yard you come in
+# by, the barn north (a keyed door), the farmhouse south (a keyed door),
+# and three TRACTS of open ground — the bench up, the meadow east, the
+# close northeast — each its own row's `share` of what the buildings leave.
+# Drawn for a lot EAST of the lane; a copy west of it is mirrored.
+#
+# ⭐ Quist's farm is this shape, dressed (his rows extend these): the same
+# yard, barn, bench, close and meadow. A copy on a lot WEST of the lane is
+# mirrored, so it comes out exactly as Quist's lies — meadow to the west,
+# close to the northwest — and one east of the lane faces it.
+#
+# ⚠ Nothing lies west of the yard in this (east-side) layout: that is the
+# way back out to the lane, which the plat hangs. (A copy on the northeast
+# frontage goes out southwest, also clear.)
+#
+# `buildings`: the farmhouse (the main one, first) and the barn — each its
+# own Building row with its own extent. The
+# yard and the tracts lie under neither, so they are open ground.
+#
+# `footprintM2`: the ground the yard (400), the farmhouse (120) and the
+# barn (150) stand on, which no tract covers.
+class: /system/residence/idea/HoldingWarren
+data:
+  upkeepTerm: owner-all
+  extent: /world/terminus/hearts-delight/farmstead
+  entrance: /world/terminus/hearts-delight/farmstead/location/yard
+  footprintM2: 670
+  buildings:
+    - /world/terminus/hearts-delight/idea/farmstead-house
+    - /world/terminus/hearts-delight/idea/farmstead-barn

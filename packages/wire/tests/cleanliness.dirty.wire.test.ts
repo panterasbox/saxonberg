@@ -233,9 +233,14 @@ async function examine(s: Session, keyword: string): Promise<string> {
     .join('\n');
 }
 
-/** Into the ROOM, by the founder, who holds the title. */
+/**
+ * Into the ROOM, by the founder. `clone` asks the KIND's title: the
+ * `/trade`/`/stuff` kinds are the Minister of Trade's (a founder office);
+ * the glowcap jar is Rejection's, so the founder is seated on Rejection's
+ * committee — seated, not a credential (wizard-axis D13).
+ */
 async function cloneHere(where: string, path: string, count = 1): Promise<void> {
-  const f = await Session.open('founder', { startLocation: where, wizard: true });
+  const f = await Session.open('founder', { startLocation: where, committees: ['/world/terminus/rejection'] });
   try {
     expectOk(await f.cmd(`clone ${path} --here${count > 1 ? ` --count ${count}` : ''}`));
   } finally {
@@ -247,7 +252,7 @@ const LIT = new Set<string>();
 
 /** The same person, standing somewhere else (inventory travels), with a light. */
 async function goTo(handle: string, where: string): Promise<Session> {
-  const s = await Session.open(handle, { startLocation: where, wizard: true });
+  const s = await Session.open(handle, { startLocation: where });
   if (!LIT.has(handle)) {
     LIT.add(handle);
     await cloneHere(where, GLOWCAP);
@@ -260,7 +265,7 @@ async function goTo(handle: string, where: string): Promise<Session> {
 /** A funded player, standing at `where`. */
 async function newPlayer(tag: string, where: string): Promise<Session> {
   const handle = uniqueHandle(tag);
-  const bank = await Session.open(handle, { startLocation: BANK_HALL, wizard: true });
+  const bank = await Session.open(handle, { startLocation: BANK_HALL });
   expectOk(await bank.cmd('bank open'));
   const gov = await Session.open('founder', { startLocation: BANK_HALL });
   try {
@@ -294,7 +299,7 @@ async function buy(s: Session, item: string): Promise<void> {
  */
 async function advance(duration: string): Promise<{ before: number; after: number }> {
   const r = await advanceWorldClock(duration);
-  const probe = await Session.open('founder', { startLocation: BANK_HALL, wizard: true }).catch(() => null);
+  const probe = await Session.open('founder', { startLocation: BANK_HALL }).catch(() => null);
   try {
     const until = Date.now() + 600_000;
     while (probe && Date.now() < until) {
@@ -471,7 +476,14 @@ suite('⭐ drive 4 — strew and sweep a bloodied floor (AC 12)', () => {
     await act(cook, 'sweep with broom');
     const after = await examine(cook, 'floor');
     expect(after, `the floor, swept: ${after}`).not.toMatch(/blood/i);
-    const heap = await mine(cook, 'sweepings');
+    // ⚠ Polled: the heap is minted AFTER the engagement completes (the floor
+    // writes its record, then clones the heap into the hands), so on a loaded
+    // world the first read can land before it.
+    let heap = '';
+    for (let i = 0; i < 10 && !/sweepings/i.test(heap); i++) {
+      if (i > 0) await new Promise((res) => setTimeout(res, 1_000));
+      heap = await mine(cook, 'sweepings');
+    }
     expect(heap, `the heap: ${heap}`).toMatch(/sweepings/i);
   }, 300_000);
 });
@@ -484,7 +496,7 @@ suite('⭐⭐ drive 5, 7, 9 — blood cold and hot, grease and soap, a wet shirt
     await act(cook, 'wash apron');
     expect(await mine(cook, 'apron'), 'water alone').toMatch(/greas/i);
     // Grease in cold water wants work as well as soap: a scrub.
-    await act(cook, 'scrub apron with soap using brush');
+    await act(cook, 'wash apron with soap using brush --hard');
     expect(await mine(cook, 'apron'), 'scrubbed with soap').not.toMatch(/greas/i);
   }, 300_000);
 
@@ -528,7 +540,7 @@ suite('⭐ drive 11 — sulfur burnt in a shut room sours the air (AC 11)', () =
     const s = await goTo(fumesHandle, CELLAR);
     for (let i = 0; i < 6; i++) await s.cmd('practice awareness hard success');
     for (let i = 0; i < 4; i++) await say(s, 'stoke sulfur into brazier');
-    await say(s, 'ignite brazier');
+    await say(s, 'light brazier');
     await advance('30 minutes');
     const air = await say(s, 'analyze atmosphere');
     expect(air, `the cellar air: ${air}`).toMatch(/sulfur|sulphur|dioxide|acrid/i);
@@ -543,7 +555,7 @@ suite('⭐⭐ drive 12 — the cookhouse kept: crumbs, the window, the flue (AC 
     await cloneHere(COOKHOUSE, '/stuff/thing/items/dry-log').catch(() => {});
     await say(s, 'get log');
     await say(s, 'stoke log into oven');
-    const lit = await s.cmd('ignite oven');
+    const lit = await s.cmd('light oven');
     await lit.said();
     // Three meals: one stew off the kitchen (it has the roots for one),
     // and two of the rations bought at the store.
@@ -606,8 +618,14 @@ suite('⭐ drive 15 — the byre fouls with its herd, and is mucked out (AC 17)'
     const s = await goTo(cookHandle, BYRE);
     const floor = await examine(s, 'floor');
     expect(floor, `the byre floor: ${floor}`).toMatch(/manure|dung|filthy|soiled/i);
-    await act(s, 'muck with broom');
-    const heap = await mine(s, 'muck');
+    await act(s, 'sweep with broom');
+    // ⚠ Polled, as drive 4's sweepings are: the heap is minted after the
+    // engagement completes, so the first read can land before it.
+    let heap = '';
+    for (let i = 0; i < 10 && !/muck|manure|dung/i.test(heap); i++) {
+      if (i > 0) await new Promise((res) => setTimeout(res, 1_000));
+      heap = await mine(s, 'muck');
+    }
     expect(heap, `the heap: ${heap}`).toMatch(/muck|manure|dung/i);
     s.close();
   }, 300_000);
@@ -616,9 +634,16 @@ suite('⭐ drive 15 — the byre fouls with its herd, and is mucked out (AC 17)'
 suite('⭐⭐ drive 16 — the ward: a boiled bandage, a kit in the flame (AC 18)', () => {
   it('a bandage boiled in the ward pot; the surgeon’s kit held in the coals', async () => {
     const s = await goTo(cookHandle, WARD);
-    const boiled = await act(s, 'boil bandage in pot');
-    expect(boiled, `boil bandage: ${boiled}`).toMatch(/boil|pot/i);
-    const flamed = await act(s, 'heat kit');
+    // ⭐ No `boil` verb (controllers-are-io D8c): the bandage goes IN the
+    // pot, and a pot on the boil holds it at the boil itself.
+    await act(s, 'get bandage');
+    const boiled = await act(s, 'put bandage in pot');
+    expect(boiled, `put bandage in pot: ${boiled}`).toMatch(/pot/i);
+    // ⚠ `"surgical kit"` (quoted: one arg), not `kit`: names are keywords (controllers-are-io
+    // D22), so the water-test kit this cook carries from the water drive is
+    // a kit too, and `heat` looks in the hand first. It bound that and said
+    // "Heat what?".
+    const flamed = await act(s, 'heat "surgical kit"');
     expect(flamed, `heat the kit: ${flamed}`).toMatch(/flame/i);
     s.close();
   }, 300_000);
@@ -629,14 +654,14 @@ suite('⭐⭐ drive 18 — the laundress at her band, and the house that pays (A
     const s = await goTo(cookHandle, LAVOIR);
     // eslint-disable-next-line no-console -- the drive's own record
     console.log(`  [drive] at the lavoir: ${await examine(s, 'here')}`);
-    const done = await sayYes(s, 'order wash apron');
-    expect(done, `order wash apron: ${done}`).toMatch(/brings .* back/i);
+    const done = await sayYes(s, 'order wash for apron');
+    expect(done, `order wash for apron: ${done}`).toMatch(/brings .* back/i);
     s.close();
   }, 300_000);
 
   it('⭐⭐ the bath attendant boils a wool coat and felts it — and the house answers for it', async () => {
     const s = await goTo(cookHandle, BATHS);
-    const done = await sayYes(s, 'order wash jumper');
+    const done = await sayYes(s, 'order wash for jumper');
     expect(done, `the attendant's wash: ${done}`).toMatch(/felted|shrunk/i);
     const after = await s.listen(3_000);
     expect(`${done} ${after}`, 'the house answers').toMatch(/house (pays|owes)/i);
@@ -745,7 +770,7 @@ suite('⭐⭐⭐ drive 23 — a stain, a band and a kept floor survive a restart
       stdio: 'ignore',
     });
     process.env.WIRE_SERVER_URL = await bootOwnedWorld();
-    const s = await Session.open(cookHandle, { startLocation: COOKHOUSE, wizard: true });
+    const s = await Session.open(cookHandle, { startLocation: COOKHOUSE });
     try {
       // ⭐ Where it was LEFT: drive 9 hung the washed shirt on the
       // cookhouse's drying rack, so it is the kept place that must give it

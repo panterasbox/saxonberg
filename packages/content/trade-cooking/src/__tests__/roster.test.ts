@@ -15,6 +15,7 @@
  * carries and olive oil (463) does not.
  */
 
+import { Aroma, type AromaData } from '@saxonberg/server/mud/lib/perception/Aroma';
 import '@saxonberg/server/test-bootstrap';
 import { chargeHot } from '@saxonberg/server/mud/lib/fire/__tests__/burner-fuel';
 import type { Burner } from '@saxonberg/server/mud/lib/fire/Burner';
@@ -42,7 +43,7 @@ import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import Biome from '@saxonberg/server/mud/lib/biome/Biome';
-import { Reserve } from '@saxonberg/server/mud/lib/reserve';
+import { Reserve } from '@saxonberg/server/mud/lib/reserve/Reserved';
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { StoredDocument } from '@saxonberg/server/mud/lib/document/StoredDocument';
@@ -237,6 +238,21 @@ beforeAll(async () => {
   vi.spyOn(console, 'warn').mockImplementation(() => {});
   ModuleApi.registerPackSource(COOK_SRC, ROOT);
   installRecordTestDb().seed(Collections.Content, contentRows());
+  // The aromas the materials name, read from the shipped documents by the path
+  // each is stored at (base-library has no `root:`, so `/base-library`): a
+  // material's setter loads each one, and this test has no document store.
+  const aromaDir = join(CONTENT, 'base-library', 'content', 'aromas');
+  const pending = (readdirSync(aromaDir, { recursive: true }) as string[])
+    .filter((f) => f.endsWith('.yaml'))
+    .map((f) => ({
+      word: `/base-library/aromas/${f.replace(/\.yaml$/, '').split(/[\\/]/).join('/')}`,
+      data: YAML.parse(readFileSync(join(aromaDir, f), 'utf8')) as AromaData,
+    }));
+  while (pending.length > 0) {
+    const i = pending.findIndex((p) => !p.data.parent || Aroma.resolveKnown(p.data.parent));
+    const [next] = pending.splice(i, 1);
+    Aroma.remember(next!.word, next!.data, next!.data.parent ? Aroma.resolveKnown(next!.data.parent) : null);
+  }
   vi.spyOn(DocumentApi, 'listOfKind').mockImplementation(async (kind: string) =>
     kind === 'recipe' ? recipeDocs() : [],
   );

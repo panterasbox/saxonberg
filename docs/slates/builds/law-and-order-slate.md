@@ -12,7 +12,7 @@
 > push column ([call](./call-slate.md)), sideless interposition ([intervention](./intervention-slate.md)).
 > **Left:** the feeling per settlement type · prevention as cadence, response as witness · the eleven
 > scenarios · the four-part module (situation, playbook, policy, duty) · the witness vocabulary it
-> needs · the received book and the standing orders · citing the law at the act · the medium test ·
+> needs · the received book and the standing orders · citing the law at the act (and § 8a: `accuse` + the explicit second, the player hue and cry) · the medium test ·
 > banishment as dials, sentences on the character · the sentence menu · penal geography (relegation,
 > deportation, the ticket of leave, the inmate polity) · the kit of standing · the custody that
 > survives logout · the griefing table
@@ -235,6 +235,74 @@ restrained logs off.** Standing is computable, so the engine can tell them apart
 | restraint as kidnapping | private restraint lapses on logout |
 | jail as griefing | the sentence menu |
 | planting stolen goods | the chain of title shows who held what, and when |
+
+## 8a. ⭐⭐⭐ Frontier justice — the player population as the moderator **[DECIDED — the owner, 2026-11-07]**
+
+*"As much as we try to moderate the game with moderation tools, the best moderators are always the
+entire player population, not the mods. They police themselves through social contracts and cultural
+norms. Our game provides them a much greater surface to express those things than a Discord server
+does. If someone is spamming the bar, beat them silly until they shut the fuck up or lose the ability
+for speech altogether. There's not always a mod around … and the game affords players a lot of
+instruments they can use to impose their will on others, provided they get pushed far enough."*
+
+This is enforcement's **norm** mode, with the world's instruments in it. What already does the job:
+
+- **Silencing is literal.** Vitals' `conscious / unconscious / dead`: a head blow knocks you out, and
+  unconsciousness gates animate verbs, `say` included — recoverable. (⚠ No **gag** yet; `restrain` is
+  this slate's and policing's, unbuilt.)
+- **The lounge is the sanctuary** (combat-free by mechanism); the bar one room away is where *"your
+  safety is only guaranteed by the other people there."*
+- **Owners have the legitimate tools** — a bouncer with the **eject** grant, a shopkeeper refusing
+  service ([moderation-slate](./moderation-slate.md) § 4–5), recorded.
+- **The room remembers** — regard, belief, renown.
+
+Two edges:
+
+- **Physical force reaches the physical voice, and nothing else.** A beating stops `say` in the bar,
+  not a chat channel's spam, which travels the aether and is the channel's tools' business.
+- ⚠ **The tool that silences a spammer silences a dissenter.** Once is a bar fight — the fiction's,
+  local law's. As a **campaign against one person** it is conduct rule 2 (*using the game's mechanics
+  to target them*), and the moderation record is keyed on offender × target to show exactly that. A
+  person judges it; no new rule.
+
+### The accusation — the hue and cry, for players
+
+*"Everything in our world is codified by its nature. What did actual frontier justice look like? What
+if a player beats up another but names a statute violation when they do it? That's at least a
+contemporaneous record that can be judged later, to separate it from some other crime of passion."*
+
+History's frontier justice was strikingly **procedural** even outside the law: **miners' courts**
+(California, 1849–50s) elected a judge and jury on the spot and tried the thief that day; the San
+Francisco **vigilance committees** (1851, 1856) wrote constitutions, kept minutes and published
+verdicts — the record was what made it read as justice; **claim clubs** enforced squatters' claims;
+**charivari** shamed by noise, not violence; and the **hue and cry** made an accusation public and
+attributable, and covered whoever answered it. Every form came with a **declaration of what the act
+was for**.
+
+- ⭐⭐ **`accuse <who> of <the wrong>`** **[DECIDED]** — its own public act (not a modifier on a blow):
+  it raises the alarm before witnesses, **can precede violence** (a warning — *stop or else*), and
+  **recruits**. (`cry` is the shipped weeping emote; the common word wins.) It is § 5's *every
+  enforcement act cites what it acts under*, extended from the watch to anyone.
+- **Plain words.** *"Of spamming," "of stealing my horse."* No statute numbers; mapping words to law is
+  the judge's job later, not the player's in the moment. Where a place posts rules — **house rules on
+  the wall, in the room** — you may cite one (*"of breaking house rule 2"*); you learn a bar's rules by
+  walking into it (*the first screen is the syllabus*). ⛔ No rulebook to read before playing.
+- **A claim, never a deed.** The accusation lands as the accuser's contemporaneous, attributable,
+  witnessed claim (every witness was delivered the frame). A later judge — local law, a court — weighs
+  it as evidence. ⛔ **It never changes an outcome automatically**: the engine does not decide whose
+  violence was justified (lens 4 — *justified* is a valuation; the engine reads measurements). Local
+  law may write provocation or self-defense into its own code — a town's choice.
+- **Joining is EXPLICIT** **[DECIDED]** — witnesses **second** the accusation before acting; whoever
+  acts without seconding acts on their own account. Joining is a choice made knowingly, because it
+  shares the risk, and it makes agreement visible: *"accused by Ana, seconded by four"* reads unlike
+  one angry player. The miners' meeting in small — the crowd shows its hand before the blow.
+- **A false accusation is its own wrong** — perjury (§ 8's table), **shared by everyone who seconded
+  it**.
+- **The accused may answer on the record** — a denial stands beside the accusation, the way an
+  objection stays open on the argument map, until somebody judges.
+- **It lapses when the accused leaves the place.** A cry cannot follow someone around town; that
+  would be rule 2.
+- **An unclaimed beating is not penalized for being unclaimed** — it is simply judged as a beating.
 
 ## 9. The kit of standing **[LEAN]**
 

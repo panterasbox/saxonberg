@@ -1,6 +1,6 @@
 # The train floor — ⭐ a PersistentLocale (sugar D20): a kettle boiling on
 # the train is the same kettle after a restart.
-class: /platform/location/PersistentLocale
+class: /platform/location/PersistentHall
 data:
   coords: { x: -1, y: 2, z: 0 }
   shortDescription: "train floor"

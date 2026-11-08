@@ -1,4 +1,5 @@
 verbs: [milk]
+category: ranching
 controller: /trade/ranching/idea/cmd/ranching/MilkController
 description: "Milk a beast out"
 help: |
@@ -37,7 +38,7 @@ args:
   # is for. A binder-level refusal would say nothing at all.
   #
   # ⭐ And the pail is DECLARED with a default rather than hunted for
-  # (`lint:instrument-args`): bare, the binder hands over the first thing
+  # (`lint:controller-resolution`): bare, the binder hands over the first thing
   # in your hands that holds liquid; a churn named by name is honoured.
   - name: vessel
     type: object

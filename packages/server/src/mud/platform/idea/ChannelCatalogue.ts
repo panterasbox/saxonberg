@@ -368,10 +368,16 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
     const selfBody = Mml.compose`[${channel.name}] You: ${safeBody}`;
     const peerBody = Mml.compose`[${channel.name}] ${speakerName}: ${safeBody}`;
 
+    // ⭐ The channel rides a TAG as well as meta/payload (client-surface
+    // D6): the record layer stores tags verbatim and nothing else of the
+    // frame's shape, so a backfilled line can only find its channel's
+    // terminal by this.
+    const channelTag = `channel:${channel.name}`;
     MessageApi.scene(speaker)
       .topic('speech.channel')
       .modality('verbal-esp')
       .meta({ channelId })
+      .tags([channelTag])
       .toSelf(selfBody)
       .payload({
         channelId,
@@ -418,7 +424,7 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
       a.onMessage({
         id: SecurityApi.uuid(),
         topic: 'speech.channel',
-        tags: ['audience:witness'],
+        tags: ['audience:witness', channelTag],
         body: peerBody.toString(a),
         meta: { ...baseMeta },
         payload: basePayload,
@@ -428,7 +434,7 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
     this.appendToHistory(channelId, {
       id: SecurityApi.uuid(),
       topic: 'speech.channel',
-      tags: ['audience:witness'],
+      tags: ['audience:witness', channelTag],
       body: selfBody.toString(speaker),
       meta: { ...baseMeta },
       payload: basePayload,

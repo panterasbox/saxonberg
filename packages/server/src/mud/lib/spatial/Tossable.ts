@@ -3,8 +3,8 @@
  * end of a line to a swimmer going under. `throw <thing> at <them>` is an
  * attack; `throw <thing> to <them>` is a toss they are meant to catch,
  * and the thing decides what catching it means and how far it carries (a
- * line reaches the water below a quay). One verb, `throw` — `heave` is
- * one of its words, never a verb of its own.
+ * line reaches the water below a quay). One verb, `throw` — a heave is
+ * one of its shapes, never a verb of its own.
  *
  * ⭐ A **protocol mixin** (the `Pullable` rule): no shared state, but a
  * name — `MixinApi.isTossable`, visible in Studio. The default refuses;

@@ -289,8 +289,10 @@ effect would refuse across the gap it had just crossed.
 
 ## `throw`
 
-`cmd/inventory/throw.yaml` + `platform/idea/cmd/inventory/ThrowController.ts`,
-afforded by **`TangibleMixin`** — the thing with **mass** confers the
+Three views of one word, each with its controller over `ThrowControllerBase`:
+`cmd/inventory/throw.yaml` (`ThrowController`), `throw-to.yaml`
+(`ThrowToController`, `Tossable.tossTo`), `throw-at.yaml` (`ThrowAtController`,
+`mayDeliverTo`, `initiateCombat`, `Combatant.deliverThrown`). All three are afforded by **`TangibleMixin`** — the thing with **mass** confers the
 verb, outward on whoever holds it (`environment`) and sideways on
 whoever stands where it lies (`peers`).
 
@@ -319,10 +321,18 @@ disappear. Pinned by
 `api/__tests__/command-binder-throw.test.ts`.
 
 - `throw <item>` — a ballistic relocation. No target, no gate, no fight.
+- `throw <item> to <someone>` — a toss meant to be caught.
 - `throw <item> at <someone>` — an initiation, through the same door as
   `attack`.
 
-The two parses are told apart by the `at` binding, not by a second verb.
+The three are provably disjoint (D17): `to` and `at` are `prepositionRequired`, so
+a line binds exactly one, and `lint:verb-collisions` proves it from the shapes.
+`throw ball ann` binds none and the all-shapes usage line answers it.
+⭐ `Combatant.deliverThrown(item, target)` owns the arrival (the wound through
+`inflict`), and what becomes of the thing is the thing's: `ThrownLanding`
+breaks it by its own material, and its `spatter` continuation runs the contents'
+landing, so the thrower reads *it shatters* before what that did. (`lint:combat-dynamics`
+keeps the vessel's physics out of `lib/combat/`.)
 
 **A potion only acts if its `route` is `contact`.** Throwing an `oral`
 draught wastes the flask — which is the rule that kills the
@@ -413,8 +423,8 @@ itself (AC 23, 24, 25, 47, and the rest of 46).
 
 ⚠ A second bootstrap blocked the drive before that one, and it is worth
 recording because it is not what anyone guesses: `goto` and `clone` do
-**not** consult `isWizard`. That axis is code-trust (eval / reload /
-source writes). They call `AccessApi.can`, which resolves untitled
+**not** consult `isWizard`. That axis is authoring TypeScript (eval /
+writing a code file), nothing else. They call `AccessApi.can`, which resolves untitled
 content to the `core` group — and `core` is minted empty, has no env
 seed, and is owned by `'system'`, so `group add` refuses everyone. A
 fresh database has nobody who can author anything.

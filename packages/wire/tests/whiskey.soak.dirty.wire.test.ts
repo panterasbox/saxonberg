@@ -85,7 +85,7 @@ async function say(s: Session, text: string): Promise<CommandResult> {
     // failing with it, because a cascade is not diagnostic.
     if (/still in flight/.test(String(err))) {
       k.close();
-      k = await Session.open(handle, { startLocation: FLOOR, wizard: true });
+      k = await Session.open(handle, { startLocation: FLOOR });
       return await k.cmd(text);
     }
     if (!/raised a PROMPT/.test(String(err))) throw err;
@@ -193,7 +193,7 @@ beforeAll(async () => {
   // asserted HERE, at setup, because a funding failure otherwise
   // surfaces several checkpoints later as `insufficient-funds` on a
   // `buy`, which reads like a shop bug.
-  k = await Session.open(handle, { startLocation: BANK_HALL, wizard: true });
+  k = await Session.open(handle, { startLocation: BANK_HALL });
   expectOk(await k.cmd('bank open'));
   const gov = await Session.open('founder', { startLocation: BANK_HALL });
   try {
@@ -207,7 +207,7 @@ beforeAll(async () => {
   expect(bal, 'the account must be funded before the drive starts').toBeTruthy();
   expect(Number(bal![1])).toBeGreaterThan(30);
   k.close();
-  k = await Session.open(handle, { startLocation: FLOOR, wizard: true });
+  k = await Session.open(handle, { startLocation: FLOOR });
   await waitForDaylight(k);
 }, 300_000);
 
@@ -226,7 +226,7 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ the wash ferments, and new-make become
 
   it('the still is lit and charged from the vat', async () => {
     await say(k, 'stoke log into still');
-    const lit = await say(k, 'ignite still');
+    const lit = await say(k, 'light still');
     expect(refusedFor(lit)).not.toBe('no-fuel');
     const poured = await say(k, 'pour vat into still');
     expect(refusedFor(poured)).not.toMatch(/bulk|slot|cannot-pour/i);

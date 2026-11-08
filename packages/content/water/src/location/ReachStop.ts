@@ -8,6 +8,10 @@
  * is in it, gone when empty. It persists by `(row, key)` — the key is its
  * position — so a canoe beached on a bar, or a sword on the bed, is there
  * after a restart, once.
+ *
+ * ⭐ A ship that sinks on the river lies here
+ * (`WreckSiteMixin`): the stop's floor is the bed, so the way into her is on
+ * the stop itself, and her deck's `up` comes back to it.
  */
 
 import { MovingWaterMixin } from '@saxonberg/server/mud/lib/location/MovingWater';
@@ -17,6 +21,7 @@ import { WarrenMemberMixin } from '@saxonberg/server/mud/lib/location/WarrenMemb
 import { ShoreMixin } from '@saxonberg/server/mud/lib/location/Shore';
 import { SwimmableMixin } from '@saxonberg/server/mud/lib/locomotion/Swimmable';
 import { WaterPlaceMixin } from '@saxonberg/server/mud/lib/location/WaterPlace';
+import { HaulOutMixin } from '@saxonberg/server/mud/lib/location/HaulOut';
 import { PositionedMixin } from '@saxonberg/server/mud/lib/expanse/Positioned';
 import { MovingMixin } from '@saxonberg/server/mud/lib/expanse/Moving';
 import { MovingPlaceMixin } from '@saxonberg/server/mud/lib/location/MovingPlace';
@@ -24,19 +29,20 @@ import type { ColumnBand } from '@saxonberg/server/mud/lib/location/WaterColumn'
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { RiverWaterMixin } from '../lib/RiverWater';
+import { WreckSiteMixin } from '../lib/WreckSite';
 import type WatercourseCatalogue from '../idea/WatercourseCatalogue';
 import type ReachWarren from '../idea/ReachWarren';
 
 const CATALOGUE_PATH = '/system/water/idea/WatercourseCatalogue';
 const WARREN_PATH = '/system/water/idea/ReachWarren';
 
-export default class ReachStop extends MovingPlaceMixin(
+export default class ReachStop extends WreckSiteMixin(MovingPlaceMixin(
   RiverWaterMixin(MovingWaterMixin(
-    WaterPlaceMixin(
+    HaulOutMixin(WaterPlaceMixin(
       SwimmableMixin(ShoreMixin(PersistableMixin(MovingMixin(PositionedMixin(WarrenMemberMixin(Location)))))),
-    ),
+    )),
   )),
-) {
+)) {
   constructor() {
     super();
     // The river's bed under its water (D13): stood on where it is shallow.
@@ -58,6 +64,8 @@ export default class ReachStop extends MovingPlaceMixin(
     await super.onRestored();
     const warren = await StuffApi.singleton<ReachWarren>(WARREN_PATH).catch(() => null);
     if (warren) await warren.adoptStop(this);
+    // ⭐ A wreck on this bed: its ways go back on.
+    await this.wireWrecks();
   }
 
   public override getShort(): string {

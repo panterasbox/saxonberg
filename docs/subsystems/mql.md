@@ -216,9 +216,14 @@ Tricky cases the lexer handles:
 - **Hash.** Shape-dispatched: `#5` lexes as `hashInt` (chain-position
   ordinal); `#abc123` lexes as `hashId` (stuff id seed). A bare `#`
   not glued to digits or an identifier is a lex error.
-- **Single-quoted literals.** `'…'` preserves whitespace and has no
-  escape syntax — closing quote is the only terminator. Unterminated
-  is a lex error.
+- **Single-quoted literals.** `'…'` preserves whitespace; it opens
+  only at the START of a token (`dave's` is one bareword). Inside it
+  `\'` is a quote and `\\` a backslash, other `\X` verbatim.
+  Unterminated is a lex error.
+- **Backslash.** Outside a literal, `\X` makes `X` part of the word
+  whatever it is; an escaped word lexes as a bareword, never an int or
+  transform letter. A dangling trailing `\` is a lex error. `looksFormal`
+  ignores escaped characters and a mid-word `'`.
 - **Paths.** Start with `/`; absorb identifier-shaped characters plus
   `*`, `?`, `-`. Stops at whitespace, `.`, or any reserved character
   that isn't legal inside a path segment.
@@ -376,7 +381,7 @@ For fixed-pool seeds (intersection), the prior set's `via`
 attribution is preserved — intersection only decides membership.
 For element-derivable seeds (flat-map), each derived match takes
 its `via` from the candidate's via (e.g., detail subcandidates
-carry `via.detailPath`, exit candidates carry `via.exit`); the
+carry `via.detailPath`); the
 prior `via` is replaced by the derived origin, and score is
 inherited from the prior match (same convention as
 {@link applyTransform}).
@@ -490,27 +495,42 @@ is determined by the scope-walk traversal, which is deterministic for
 fixed pools (location contents in insertion order, exits in declared
 order).
 
-#### Match-quality scoring
+#### Match-quality scoring — keyword tiers (the name is not special)
 
-Lives in `scope-walk.ts:scoreCandidate`. Rules:
+Lives in `scope-walk.ts:scoreCandidate`. ⭐⭐ **The scorer reads ONE list —
+the candidate's keywords** (controllers-are-io D22, one-resolution slate
+§ 4). There is no name field on a candidate: a thing's name is one of its
+keywords (`NamedMixin.getKeywords` folds the name and its bare form, so
+*the One Ring* answers to `one ring`). The tiers (`TIER_*` exports):
 
-- Exact-name match (case-insensitive, single-word query): 100
-- ⭐ Every query word a WHOLE word of the name: 60 (fishing B8) — `net`
-  is a word of *a net* and a substring of *a keepnet*; `edge` a word of
-  *the river's edge* and a substring of *a ledger rod*
-- Whole-name AND-narrow on lowercased name (substring): 50
-- Word-of-name AND-narrow: 40
-- Keywords AND-narrow (all matched): 25
-- Partial keyword match: 10 × matched-count
-- Partial name-word match: 5 × matched-count
+- **100 — a keyword IS the phrase** (`look clay` at the pit is the lumps,
+  keyworded `clay`; the pit answers to `clay pit`)
+- **60 — every query word is a WHOLE word of a keyword** (fishing B8:
+  `net` is a word of *drift net* and begins no word of *keepnet*)
+- **40 — every query word BEGINS a keyword word**
+- **partials — 10 × the words that begin one** (a fallback only)
 
-The rule that matters: **all query keywords must match for a
-candidate to be considered.** AND-narrow, no exceptions. The exact
-multipliers are arbitrary; they preserve Phase-4 behavior so existing
-tests keep passing.
+⚠ A word matches where a keyword WORD begins, never mid-word (ceramics
+run 28: `shelf consign "plant pot"` once sold the aether imPLANT). The
+whole-phrase cut and the tier cascade are one rule now: the highest tier
+present cuts every tier below it, and anything at 40+ answers every word.
+`scoreTier(score)` (3 · 2 · 1 · 0) is what the binder compares ACROSS
+scope tries (`MqlMany.tiers`; see [command-spec.md § scope](./command-spec.md)).
+
+⭐ **Every drive finding that once made a NAME tier keeps its outcome by
+keyword data**, each asserted in `scope-walk.score.test.ts` on the real
+rows' keywords: the field patch answers to `top end` outright while its
+stand answers to `top end wheat` (`Plant.getKeywords` leads its own words
+with its patch's name — a bare `top end` on the stand would tie the
+patch); the clay pit carries `clay pit`, never bare `clay`; the keepnet
+`keepnet`/`net-bag`; the latex cups gained bare `latex`; the implant and
+the brick table were already word rules. ⚠ Where the old 100 name tier
+was the only thing separating two answers, the collapse leaves them tied
+and the binder PROMPTS — the honest outcome; the fix is keyword data,
+never a tier.
 
 ⭐ **A whole-phrase match CUTS the partials** (`scoreCandidates`): when
-any candidate names EVERY query word (in its name or a keyword), the
+any candidate answers to EVERY query word (tier 40 or better), the
 candidates naming only some are dropped — scores only order, they never
 cut, so a plural verb took every partial too. Partials stay the fallback
 when nothing names the whole phrase. Found by the rubber build's browser
@@ -536,34 +556,53 @@ Given a scope name, builds a `ScopeCandidate[]` pool:
 ```ts
 interface ScopeCandidate {
   stuff: Stuff;
-  name: string;
   keywords: string[];
   via?: MqlMatchVia;
+  facets?: { keywords: string[]; via: MqlMatchVia }[];
 }
 ```
 
-Multiple candidates can point at the same Stuff (a location appears
-once for itself, once per Detail, once per Exit-direction). The
-resolver dedups by `(stuff, via)` after scoring.
+⭐⭐ **MQL reads a Stuff ONLY through what it says it answers to**
+(one-resolution slate § 5). `candidateFor(stuff, viewer)` builds the one
+candidate an object makes: its keywords are `perceivedKeywordsFor(viewer)`
+(system mode: the object's own `getKeywords()`), and every word in them is
+supplied by the object — nothing is synthesized query-side:
 
-**Candidate names/keywords are viewer-relative** (the recognition
-name-leak gate). `pushDirect` builds each candidate's `name` from
-`describeFor(giver, stuff)` and its `keywords` from
-`perceivedKeywordsFor(giver, stuff)` — so a living being
-resolves only by what the viewer perceives (`knownAs` if recognized,
-salient features if not, the disguise's descriptors if masked, never the
-true name); items keep their ordinary keywords. `look bob` resolves iff
-the room view shows the viewer "Bob". Ordinal disambiguation
-(`stranger:[2]`) is an index into the snapshot and carries no identity.
-See [belief.md](./belief.md).
+| word | supplied by |
+|---|---|
+| authored keywords | `PerceptibleMixin.getKeywords(viewer?)` |
+| the name + its bare form | `NamedMixin.getKeywords` (derived) |
+| top-level detail ids the viewer may address | `DetailedMixin.getKeywords(viewer)` (derived; the D34 gate) |
+| the held substance (`drink coffee` binds the cup) | `BulkableMixin.getKeywords` → `getHeldKeywords(affordance)` (derived) |
+| a direction and its short forms | `Exit.getKeywords` |
+
+The **facets** are attribution, not words: when the words that matched
+are a detail's id or the held substance's (and the rest of the keywords
+do not reach the same score), the match carries `via.detailPath` /
+`via.bulk` as a fact. `pushDetails` / `pushBulkMaterials` — which built a
+second candidate per detail id and per held material — are retired. A
+side effect worth knowing: an item in your INVENTORY now answers to its
+detail ids too (the old detail candidates were never pooled there).
+
+Multiple candidates point at the same Stuff only inside a detail tree (a
+chain step's tip and its children). The resolver dedups by `(stuff, via)`
+after scoring.
+
+**Candidate keywords are viewer-relative** (the recognition name-leak
+gate): a living being resolves only by what the viewer perceives
+(`knownAs` if recognized, salient features if not, the disguise's
+descriptors if masked, never the true name); items keep their own
+keywords. `look bob` resolves iff the room view shows the viewer "Bob".
+Ordinal disambiguation (`stranger:[2]`) is an index into the snapshot and
+carries no identity. See [belief.md](./belief.md).
 
 Built-in scopes:
 
 | Scope | Members |
 |---|---|
 | `me` | `[giver]` |
-| `here` | location + its details + exits/doors |
-| `peers` | location's contents (each item + its details), minus the giver |
+| `here` | location (its details among its keywords) + exits/doors |
+| `peers` | location's contents, minus the giver |
 | `inventory` | giver's contents (Container check) |
 | `person` | the **on-person** pool: the giver + their own attunement-hosted updates + installed slot occupants (+ each occupant's hosted updates) + carried inventory (+ each carried attuned host's hosted updates). Bearer semantics — no location leg; the anchor for `presentsKey` / payment-credential / hosted-app resolution (a matching key on the floor is never "presented") |
 | `reachable` | `person` + `here` + `peers`, emitted **on-person-first** (the former `ContainmentApi.findReachable` contract, absorbed into the seed): first-match consumers and tie-broken targeting prefer your own gear over the floor's |
@@ -660,39 +699,35 @@ to *"what existed before I subscribed?"* is the scan itself.
 split lets `get` declare the surgical scope it actually wants
 (`peers`) without picking up the room itself or its exits.
 
-##### Doors vs exits — an intentional asymmetry
+##### Doors and exits — both candidates, each as itself
 
-`candidatesForHere` walks doors and exits along **different paths**,
-and that's deliberate, not a workaround:
+`candidatesForHere` emits doors and exits through the same generic
+`pushDirect` path (harbors review 3 retired the asymmetry):
 
-- **Doors are Stuff.** They have keywords, descriptions, props, and
-  participate in the lifecycle like any other thing. They flow
-  through the standard `pushDirect` candidate emission (own
-  keywords + display name) plus `pushDetails` (any details on the
-  door). A door at the north exit is addressable by its own
-  keywords (`oak`, `door`, `iron`).
+- **Doors are Stuff** with keywords, descriptions and details. A door
+  at the north exit is addressable by its own keywords (`oak`, `door`).
+- **Exits are candidates in their own right.** Each exit the viewer can
+  see (`obviousExitsFor(viewer)` — on the slow path too) is emitted with
+  `stuff: exit`, scored over its name and keywords. ⚠ Both are DERIVED
+  on the object and named there: the name is the direction
+  (`Exit.presentationPhrase`), the keywords are the authored ones plus
+  the direction and its short forms — `n`, `u` (`Exit.getKeywords`). MQL
+  reads an exit only through that interface and rewrites no word. An exit composes `Visible`, so
+  `look north` describes it (an authored `longDescription`, else *a way
+  north; the oak door is closed* — never where it leads).
 
-- **Exits are descriptors of the room**, not Stuff. They have a
-  direction, an inverse, optionally a door reference — but they
-  aren't lifecycle-attached objects with keywords of their own. The
-  candidate walk synthesizes one per exit:
-  `{ stuff: location, name: direction, keywords: [direction], via: { exit } }`.
-  The matched Stuff is the location; `via.exit` carries the
-  attribution.
-
-This mirrors how players think about the world: doors are *things*
-("the oak door") and exits are *features of the room* ("you can go
-north"). The resolver's two paths encode that asymmetry — a single
-"give exits keywords too" generalization would obscure it. The
-direction vocabulary stays the canonical surface for "name an exit"
-because it's already the framework's closed set of direction tokens.
+There is no `via.exit`. A verb that needs the door on a way asks
+`MqlApi.effectiveTarget` (the bound thing, else the door hung in a bound
+exit); movement verbs scope to ways (`here:exits`), so a word can only
+mean one. The place steps `:exits` / `:to` / `:from` (`flatMapPlaceStep`,
+reserved chain words like `:members`; `:to` is live-only) are in
+[mql-grammar.md](../mql-grammar.md#places-and-the-ways-between-them).
 
 Collisions between a door's keywords and an exit's direction (a
 door author who adds `north` as a keyword on the door at the north
-exit) resolve through scoring: the synthesized exit candidate
-scores 100 (exact-name match on the direction), the door's keyword
-hit on a multi-word display name scores 25. Exit wins. Authors who
-don't want this should leave directions out of door keyword lists.
+exit) TIE at the top keyword tier and prompt — the name tier that once
+made the exit win is gone. Authors should leave directions out of door
+keyword lists.
 
 #### Scope-as-MQL evaluation
 
@@ -756,8 +791,8 @@ one.
 
 | Key | Carries | Set by | Read by |
 |---|---|---|---|
-| `detailPath?: string[]` | names walked through `Detailed` descriptors | `scope-walk.pushDetails`, the chain detail-keyword extension | controllers that drill into details |
-| `exit?: Exit` | the exit a direction match landed on | `scope-walk.candidatesForHere` (direction synthesis) | `GoController`, `OpenController`, `CloseController` for door access |
+| `detailPath?: string[]` | names walked through `Detailed` descriptors | the detail facet of `scope-walk.candidateFor`, the chain detail-tree steps | controllers that drill into details |
+| `bulk?: { affordance }` | the slot a held-substance match landed on | the bulk facet of `candidateFor`, the `:b` transform | the bulk verbs |
 
 ### The mixed-path consensus rule
 
@@ -822,7 +857,10 @@ The `:i` / `:I` step yields what the VIEWER may see inside a holder —
 `PerceptionApi.visibleContentsOf(viewer, holder)` (`resolver.ts`,
 `visibleInside`): on a person what they wear and hold, never their
 pockets or what is inside their body; an open container everything; a
-shut one nothing; concealed things stay concealed. Your own things —
+shut one nothing; concealed things stay concealed FROM THAT VIEWER (per-viewer
+discovery, the `perceives` rule — a found dagger stays found; until
+controllers-are-io W2 a bare `isConcealed()` hid it again in every
+listing). Your own things —
 and system mode (`commandGiver: null`) — are everything, as before.
 ⭐ The rule lives HERE, not in a verb, because MQL is a view over the
 model: `query bob:i`, `look bob:i:knife`, `inventory bob` and a script
@@ -917,8 +955,30 @@ express (the exemption is commented at both loops).
 ## Predicate registry (`mql/predicates.ts`)
 
 Bareword filters that can appear in chain position
-(`:living`, `:online`, `:mine`, `:here`, `:visible`). Each is a check
-function — no tier (there are none):
+(`:living`, `:online`, `:mine`, `:here`, `:visible`, `:loose`, `:worn`,
+`:carried`). Each is a check function — no tier (there are none) — and
+⭐ each DELEGATES to a method the model already answers
+([architecture.md § MQL is a VIEW](../architecture.md)):
+
+| predicate | delegates to |
+|---|---|
+| `visible` | composes `Visible` and `PerceptionApi.perceives(giver, target)` — the SCOPE is the neighborhood (it used to also demand the room, which made `me:i:visible` empty) |
+| `loose` | the holder's `getLooseContents()` |
+| `worn` / `carried` | the holder's `Slotted.getAllOccupants()` — a partition of its contents |
+
+⭐ The room listing `look`, `sense` and the inspection card share is one
+query — `here:i:visible:[not mixin.AdornmentMixin] - me` (the card adds
+`:carried`) — replacing three verbatim hand-rolled filters
+(mql-predicate-parity slate). The orphan guard stays in
+`getLooseContents(items)` (see [perception.md](./perception.md)).
+
+⭐ **The discriminator for the next hand-rolled `getContents().filter`**
+(the parity slate's census, 2026-09): *if a player would ever want to ask
+it, MQL should be able to; if it is the engine talking to itself, a loop
+is fine.* A brain counting the room's player-shaped occupants
+(`Behaved.ts`) and a kiln reading its tangible charge (`FireController`)
+are the engine's own questions and stay loops; a listing a verb shows a
+player is a targeting rule and must be typeable.
 
 ```ts
 interface MqlPredicate {

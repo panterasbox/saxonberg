@@ -43,13 +43,8 @@ import type { VetoResult } from '../errors';
 import type { Durable } from '../material/Durable';
 import type { Powered } from '../supply/Powered';
 import type Material from '../material/Material';
-import type {
-  LiftSource,
-  PumpSource,
-  Pumpable,
-  PumpPrognosis,
-  PumpResult,
-} from './Pumpable';
+import type { Pumpable, PumpPrognosis, PumpResult } from './Pumpable';
+import type { LiftSource } from './LiftSource';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import { BiomeApi } from '../../api/biome';
@@ -205,9 +200,8 @@ export function PumpingMixin<TBase extends MixinConstructor>(Base: TBase) {
       // ⭐ A pump in a pack, a crate or on a floor is CARRIED, not set. A
       // source is a host that holds a pump as its pump — the one method
       // every source answers (`PumpSource`), read by shape.
-      const h = host as unknown as Partial<PumpSource>;
-      return typeof h.pumpFitted === 'function'
-        ? (host as Stuff & Container)
+      return MixinApi.isPumpSource(host) && MixinApi.isContainer(host)
+        ? host
         : null;
     }
 
@@ -215,11 +209,7 @@ export function PumpingMixin<TBase extends MixinConstructor>(Base: TBase) {
     public liftSource(): (Stuff & LiftSource) | null {
       const host = this.sourceOf();
       if (!host) return null;
-      const h = host as unknown as Partial<LiftSource>;
-      return typeof h.standingDepthM === 'function' &&
-        typeof h.liftInto === 'function'
-        ? (host as unknown as Stuff & LiftSource)
-        : null;
+      return MixinApi.isLiftSource(host) ? host : null;
     }
 
     // ---------- ⭐ the seal ----------
@@ -408,7 +398,7 @@ export function PumpingMixin<TBase extends MixinConstructor>(Base: TBase) {
           litres: 0,
         };
       }
-      const litres = await source.liftInto(want);
+      const litres = await source.liftInto(want, by);
       this.wearPacking(dial(AppSettingKeys.pumpWearPerStroke, WEAR_PER_STROKE_FALLBACK));
       if (!(litres > 0)) {
         return {
@@ -423,7 +413,9 @@ export function PumpingMixin<TBase extends MixinConstructor>(Base: TBase) {
       const name = (path ? StuffApi.findByTemplatePath<Material>(path)?.getName() : '') || 'water';
       const What = name.charAt(0).toUpperCase() + name.slice(1);
       return {
-        self: Mml.compose`${What} comes up in gouts and runs into ${Mml.thing(source)}.`,
+        self: source.liftedWords
+          ? source.liftedWords(What)
+          : Mml.compose`${What} comes up in gouts and runs into ${Mml.thing(source)}.`,
         peers: Mml.compose`${Mml.actor(by)} works the handle of ${Mml.thing(self)}, and ${name} comes up.`,
         litres,
       };
@@ -457,17 +449,17 @@ export function PumpingMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /**
      * Is this pump running on its own right now? A pump with no mover never
-     * is — it runs only while somebody works it. ⭐ Feature-detects an
-     * optional switch and an optional supply on the host (the
+     * is — it runs only while somebody works it. ⭐ Asks after an
+     * optional switch (`MixinApi.isSwitchable`) and the supply on the host (the
      * `poweredTrajectoryOf` shape): an optional capability, never a
      * re-narrowing of which hosts may be pumps.
      */
     public isRunning(): boolean {
-      const h = this as unknown as Partial<Powered> & { isOn?: () => boolean };
-      if (typeof h.availablePowerW !== 'function') return false;
-      if (typeof h.isOn === 'function' && !h.isOn()) return false;
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isPowered(self)) return false;
+      if (MixinApi.isSwitchable(self) && !self.isOn()) return false;
       if (this.packingFitted() === null) return false;
-      return h.availablePowerW() > 0;
+      return self.availablePowerW() > 0;
     }
 
     /** Watts the mover can put into the shaft right now; `0` when stopped. */
@@ -534,10 +526,10 @@ export function PumpingMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
       const from = this.runStamp;
       this.runStamp = nowS;
-      const h = this as unknown as Partial<Powered> & { isOn?: () => boolean };
-      if (typeof h.poweredTrajectory !== 'function') return;
-      if (typeof h.isOn === 'function' && !h.isOn()) return;
-      const seconds = h.poweredTrajectory(from, nowS).integrate((v) => (v > 0.5 ? 1 : 0), 8);
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isPowered(self)) return;
+      if (MixinApi.isSwitchable(self) && !self.isOn()) return;
+      const seconds = self.poweredTrajectory(from, nowS).integrate((v) => (v > 0.5 ? 1 : 0), 8);
       const hours = seconds / 3600;
       if (hours > 0) {
         this.wearPacking(

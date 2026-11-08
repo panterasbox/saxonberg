@@ -24,6 +24,8 @@
 
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeAll } from 'vitest';
+import { MixinApi } from '../mixin';
+import { PerceptibleMixin } from '../../lib/description/Perceptible';
 import { CommandApi } from '../command';
 import { Idea } from '../../lib/stuff/Idea';
 import { CommandGiverMixin, type CommandGiver } from '../../lib/command/CommandGiver';
@@ -105,6 +107,9 @@ class Widget extends VisibleMixin(
 ) {}
 
 class Room extends ContainerMixin(Idea) {}
+
+/** A widget a player can name — Perceptible carries the keywords. */
+class Rock extends PerceptibleMixin(Widget) {}
 
 function viewerOf(v: Viewer): Stuff & CommandGiver {
   return v as unknown as Stuff & CommandGiver;
@@ -220,6 +225,23 @@ describe('the verb menu stops lying', () => {
    * group, declared universal because those controllers refuse nothing
    * by kind. An invented constraint would show up here.
    */
+  it('⭐ each entry carries the exact command it was validated with — `verb #id`, never a word that could name something else (#91)', async () => {
+    const room = makeStuff(() => new Room());
+    const viewer = makeAnimateViewer();
+    ContainmentApi.move(viewer, room);
+    const rock = makeStuff(() => new Rock());
+    rock.setName('a plain rock');
+    rock.setKeywords(['rock', 'plain']);
+    ContainmentApi.move(rock, room);
+    const onRock = (await CommandApi.resolveAffordances(rock, viewerOf(viewer)))!.verbs;
+    expect(entry(onRock, 'look')?.command).toBe(`look #${rock.stuffId}`);
+    // A verb whose target is not its first argument carries NO command:
+    // the client must not compose one.
+    for (const v of onRock) {
+      if (v.command) expect(v.command).toMatch(new RegExp(`^${v.verb}( #${rock.stuffId})?$`));
+    }
+  });
+
   it('keeps look available on a room', async () => {
     const { onRoom } = await world();
     const look = entry(onRoom, 'look');

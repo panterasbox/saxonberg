@@ -20,6 +20,7 @@ import type { MqlOneResult } from '../../../../api/mql';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { PullOutcome, PullSense } from '../../../../lib/spatial/Pullable';
 import type { WaterPlace } from '../../../../lib/location/WaterPlace';
+import type { HaulOut } from '../../../../lib/location/HaulOut';
 import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
 import { MqlApi } from '../../../../api/mql';
@@ -47,7 +48,7 @@ export default class PullController extends CommandController<PullModel> {
     if (target === null || !MixinApi.isPullable(target)) {
       // Not on a line: whatever water it is in gives it up, by hand.
       const inWater = target !== null && MixinApi.isContainable(target) ? target.getContainer() : null;
-      if (target !== null && inWater !== null && MixinApi.isWaterPlace(inWater)) {
+      if (target !== null && inWater !== null && MixinApi.isWaterPlace(inWater) && MixinApi.isHaulOut(inWater) && inWater.depthNow() > 0) {
         return this.run(context, giver, await inWater.pullOut(target, giver));
       }
       for (const water of watersWithinReach(giver)) {
@@ -104,11 +105,11 @@ export default class PullController extends CommandController<PullModel> {
  * The waters a puller can get a hand into: the one they are in, the one
  * their boat floats on, and any one way off. Each answers for its own reach.
  */
-function watersWithinReach(giver: Stuff): Array<Stuff & WaterPlace> {
-  const out: Array<Stuff & WaterPlace> = [];
+function watersWithinReach(giver: Stuff): Array<Stuff & WaterPlace & HaulOut> {
+  const out: Array<Stuff & WaterPlace & HaulOut> = [];
   const add = (x: unknown): void => {
     const s = x as Stuff | null;
-    if (s && MixinApi.isWaterPlace(s) && !out.includes(s)) out.push(s);
+    if (s && MixinApi.isWaterPlace(s) && MixinApi.isHaulOut(s) && s.depthNow() > 0 && !out.includes(s)) out.push(s);
   };
   const at = MixinApi.isContainable(giver) ? (giver.getContainer() as unknown as Stuff | null) : null;
   if (at === null) return out;

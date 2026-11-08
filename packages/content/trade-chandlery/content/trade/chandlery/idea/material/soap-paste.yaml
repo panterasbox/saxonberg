@@ -1,7 +1,8 @@
 # Soap paste — fat and lye stirred together in the kettle, before the
 # boil has done its work (cleanliness D24). Still caustic.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/soap, strength: 300 }]
   name: soap paste
   keywords: [paste, soap, soap-paste]
   appearance: a thick, cloudy paste of fat and lye

@@ -27,7 +27,7 @@ data:
     y: 0
     z: 0
   shortDescription: Dave's Bar
-  keywords: [bar, "dave's", dave]
+  keywords: [bar, "dave's"]
   register: proper
   illustration: location/bar.png
   longDescription: |
@@ -109,6 +109,8 @@ data:
   adornments:
     - { template: /world/lounge/thing/neon-veshko, slot: sign:veshko }
     - { template: /world/lounge/thing/neon-aevex, slot: sign:aevex }
+    # The slab's own light — see the row. Without it the room is `dim`.
+    - { template: /world/lounge/thing/under-bar-light, slot: lamp:under-bar }
   # The crafting fixtures stock the rail; the cast spawns here on
   # hydration too. Each cast member is an NPC template + behavior data;
   # the `shifts` brain sorts them by the game clock — whoever's on shift
@@ -142,7 +144,7 @@ data:
     # the glass alley (where you get cut) so the treat loop is playable
     # in-world."* It was not stocked anywhere, and there is no glass
     # alley: the lounge is four rooms and none of them is one. So the
-    # canonical first-aid dressing that `treat`/`bind`/`dress` CONSUMES
+    # canonical first-aid dressing that `treat` CONSUMES
     # existed and no player could ever hold one — which means deleting it
     # would have deleted the only dressing in the realm and taken the
     # treat loop with it.
@@ -157,8 +159,8 @@ data:
     # is an entry no child row can ever replace* — and it said so on the
     # first run after these went in. Named, a child row (another bar, a
     # richer tin) can substitute either one.
-    - { template: /world/lounge/thing/bandage, as: dressing-1 }
-    - { template: /world/lounge/thing/bandage, as: dressing-2 }
+    - { template: /world/lounge/thing/bandage, as: dressing-1, on: /trade/hospitality/thing/back-bar }
+    - { template: /world/lounge/thing/bandage, as: dressing-2, on: /trade/hospitality/thing/back-bar }
     # ⭐ The house tablet REPLACES the parent's, in place, because both
     # carry `as: tablet`. Without that identity the merge would have to
     # guess between appending (two tablets on one back-bar) and
@@ -169,10 +171,14 @@ data:
     # storefront-attention substrate (scrum / zero-wait: the feel is
     # unchanged, the lease is earned). `order` consults it before serving.
     - /world/lounge/thing/bar-counter
-    - /world/lounge/thing/bar-menu
+    # Propped behind the bar — on the back-bar, not loose in the room.
+    - { template: /world/lounge/thing/bar-menu, on: /trade/hospitality/thing/back-bar }
   cast:
     - /world/lounge/agent/mara
     - /world/lounge/agent/remy
     - /world/lounge/agent/sloane
     - /world/lounge/agent/augie
+    # Dave is cast here but rarely HERE: the roster's `owner` seat puts him
+    # out front for an hour of an evening and parks him out back the rest
+    # of the time ("Dave keeps to the back these days").
     - /world/lounge/agent/dave

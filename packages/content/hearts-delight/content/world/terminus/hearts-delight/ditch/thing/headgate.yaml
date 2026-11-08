@@ -1,0 +1,23 @@
+# The Delight headgate (water-supply W6, D12) — what takes the river into
+# the ditch. LIVE (D30): who opened it, to what, and when is the water
+# ledger the rider audits. The company's padlock; the boss's key.
+class: /system/water/thing/PersistentGate
+data:
+  shortDescription: headgate
+  keywords: [headgate, gate, board, rack]
+  register: definite
+  longDescription: >-
+    A heavy timber board sliding in iron guides across the mouth of the
+    ditch, raised by a toothed rack and a crank, with a chain and padlock
+    through the rack.
+  reachRef: delight:flats
+  at: "delight:flats+0.2,left"
+  controlKind: headgate
+  divertsTo: delight-ditch:head
+  capacityM3S: 0.6
+  open: true
+  keyway: ditch-company
+  lockTechnology: pin-tumbler
+  locked: false
+  mass: 400
+  _materialPath: /stuff/idea/material/wood/oak

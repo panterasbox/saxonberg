@@ -5,6 +5,7 @@
  * reduces them blue.
  */
 
+import { OdorousMaterial } from '@saxonberg/server/mud/platform/idea/material/OdorousMaterial';
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Material from '@saxonberg/server/mud/platform/idea/material/Material';
@@ -167,7 +168,7 @@ describe('the clamp', () => {
 
   it('⭐ lit at noon and fired at dusk, the three bodies still come out — the setting is fixed at the LIGHT (drive A, run 38)', async () => {
     const { clamp } = await clampWith(20, 0.6);
-    // `ignite` starts the firing…
+    // `light` starts the firing…
     await clamp.onFireStart(null);
     for (const c of clamp.getContents()) {
       const b = c as unknown as { restamp(): Promise<void>; reconcileThermal(): void };
@@ -254,14 +255,13 @@ function quantityAt(clamp: BrickClamp, where: string): number {
 describe('⭐ the burning clamp\'s smoke (ceramics browser walk)', () => {
   it('a lit clamp smells of its fuel\'s smoke; a cold one of nothing', () => {
     const clamp = makeStuff(() => new BrickClamp());
-    expect(MixinApi.isSmellSource(clamp)).toBe(true);
-    const coal = { getName: () => 'Coal' } as unknown as Material;
-    vi.spyOn(clamp, 'fuelMaterials').mockReturnValue([coal]);
     vi.spyOn(clamp, 'isLit').mockReturnValue(false);
-    expect(clamp.getEmittedConcentration().rawValue()).toBe(0);
-    expect(clamp.getOdorIdentity()).toBe('');
+    expect(clamp.burningNotes()).toEqual([]);
     vi.spyOn(clamp, 'isLit').mockReturnValue(true);
-    expect(clamp.getEmittedConcentration().rawValue()).toBeGreaterThan(0);
-    expect(clamp.getOdorIdentity()).toBe('coal smoke');
+    const coal = makeStuff(() => new OdorousMaterial());
+    coal.burning = [{ aroma: '/base-library/aromas/coal-smoke', strength: 100 }];
+    vi.spyOn(StuffApi, 'findByTemplatePath').mockReturnValue(coal);
+    clamp.fuelBed = { '/stuff/idea/material/coal': 4 };
+    expect(clamp.burningNotes()).toEqual([{ aroma: '/base-library/aromas/coal-smoke', ou: 200 }]);
   });
 });

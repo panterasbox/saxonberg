@@ -1,0 +1,5 @@
+# The Gazette's forme, set from the Gazette's case.
+class: /trade/printing/thing/Forme
+extends: /trade/printing/thing/forme
+data:
+  casePath: /world/terminus/gazette/thing/case

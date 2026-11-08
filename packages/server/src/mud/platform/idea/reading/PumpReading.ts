@@ -19,13 +19,12 @@
  */
 
 import Reading from '../../../lib/instrument/Reading';
-import type { Tooled } from '../../../lib/craft/Tooled';
+import type { Tooled } from '../../../lib/craft/Tool';
 import type { CompetenceBandName } from '../../../lib/advancement/CompetenceBand';
 import type { CommandContext } from '../../../api/command';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Container } from '../../../lib/spatial/Container';
 import type { Pumping, PackingCondition } from '../../../lib/pump/Pumping';
-import type { PumpSource } from '../../../lib/pump/Pumpable';
 import { MixinApi } from '../../../api/mixin';
 import { BiomeApi } from '../../../api/biome';
 import { Mml } from '../../../api/mml';
@@ -89,9 +88,8 @@ export default class PumpReading extends Reading {
   /** The pump itself, or the one set in a source. */
   private pumpOf(subject: Stuff): (Stuff & Pumping) | null {
     if (MixinApi.isPumping(subject)) return subject;
-    const s = subject as unknown as Partial<PumpSource>;
-    if (typeof s.pumpFitted !== 'function') return null;
-    const fitted = s.pumpFitted();
+    if (!MixinApi.isPumpSource(subject)) return null;
+    const fitted = subject.pumpFitted();
     return fitted && MixinApi.isPumping(fitted) ? fitted : null;
   }
 

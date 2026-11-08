@@ -41,7 +41,7 @@ import { Mml } from '@saxonberg/server/mud/api/mml';
 import type { CommandContext } from '@saxonberg/server/mud/api/command';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
-import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tooled';
+import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tool';
 import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
 import type { StructureReading as Structure } from '@saxonberg/content-ground/src/idea/Deposit';
 import type Deposit from '@saxonberg/content-ground/src/idea/Deposit';

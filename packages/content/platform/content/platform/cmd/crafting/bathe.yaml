@@ -1,4 +1,5 @@
-verbs: [bathe, bath]
+verbs: [bathe]
+category: crafting
 controller: /platform/idea/cmd/crafting/BatheController
 description: "Get into water and wash all of you — a tub, a river, a pool"
 help: |
@@ -21,7 +22,7 @@ validators:
   - /lib/command/validators/requiresConscious
   - /lib/command/validators/requiresEmbodied
 args:
-  # ⭐ WHAT IN — DECLARED (`lint:instrument-args`): a tub, or the water a
+  # ⭐ WHAT IN — DECLARED (`lint:controller-resolution`): a tub, or the water a
   # shore is beside. Too small a vessel is refused in words.
   - name: water
     type: objects
@@ -29,8 +30,12 @@ args:
     greedy: true
     prepositions: [in, at]
     default: "reachable:[mixin.BulkableMixin],reachable:[mixin.ShoreMixin]"
-    scope: ["reachable"]
+    scope: ["here", "peers", "person"]
     requires: any
+    # Something named must hold water — a shore citing none (a ship's dry
+    # cabin) is no bath, and the verb is not offered on it.
+    validators:
+      - /lib/command/validators/anyHasBulkSlot
   # ⭐ WHAT WITH — a cleanser (soap, fuller's earth…), as `wash`.
   - name: cleanser
     type: objects

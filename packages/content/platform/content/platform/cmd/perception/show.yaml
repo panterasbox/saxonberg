@@ -1,0 +1,41 @@
+# ⭐ Show a document on a screen — the LIVE rung beside paper's
+# frozen one: call up a Gazette release on a handset, a paper of your own on
+# a tablet. The screen reads it at read time, so an edit shows and a
+# retraction reads as withdrawn. A printed copy of the same release keeps
+# what it said on the day it was printed.
+verbs: [show]
+category: perception
+controller: /platform/idea/cmd/perception/ShowController
+description: "Call up a document on a screen — a news release, a paper of your own"
+help: |
+  `show <what> on <screen>` puts a document on a screen you can drive —
+  the handset in your hand, a tablet you are allowed to use. Name it by
+  a word of its headline or title, or by its publisher (`show gazette`
+  shows the Gazette's newest). With no screen named, the one in your hand
+  is used.
+
+  Then `read <screen>` reads it — as it stands NOW. If its publisher edits
+  it, the screen shows the edit; if they withdraw it, the screen says so.
+  Paper is the other way round: a printed copy keeps what it said.
+
+  What you may call up: a release you are allowed to read, and any paper
+  of your own.
+examples:
+  - cmd: show gazette on handset
+  - cmd: show prices
+    note: The newest release whose headline says "prices", on the screen in your hand
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+args:
+  - name: what
+    type: string
+    required: true
+    greedy: true
+  - name: screen
+    type: object
+    required: false
+    greedy: true
+    prepositions: [on]
+    scope: ["inventory", "reachable"]
+    requires: [DisplayMixin]

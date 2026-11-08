@@ -288,7 +288,7 @@ suite('stage A — the line and the patch', () => {
     expectOk(await a.cmd('swim'));
     await a.listen(2_000);
     const surface = await here(a);
-    const r = await a.cmd('dive');
+    const r = await a.cmd('descend');
     const said = squash(await r.said());
     expect(r.status, said).toBe('ok');
     expect(await moved(a, surface, 60), 'the dive never went down').toBe(true);

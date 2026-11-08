@@ -1,0 +1,11 @@
+# A sheet off the mould (paper W2) — waterleaf: wet, unsized, the vat's
+# color and the vatman's evenness. It dries on the lines; pressed in the post
+# first it dries flat, unpressed it cockles; dipped in size it takes ink.
+class: /platform/thing/Sheet
+extends: /platform/thing/sheet
+data:
+  shortDescription: sheet of handmade paper
+  keywords: [sheet, paper, "handmade paper", waterleaf, "sheet of handmade paper"]
+  longDescription: A sheet of handmade paper, its deckle edges soft and uneven.
+  sized: false
+  mass: 0.006

@@ -51,6 +51,7 @@ import { CommandApi, type CommandContributions } from '../../api/command';
 import type { DefaultAliasEntry } from '../shell/Alias';
 import { LocomotionApi } from '../../api/locomotion';
 import type { CommandGiver } from '../command/CommandGiver';
+import type Interactive from '../../platform/idea/Interactive';
 import {
   SettingTypes,
   type SettingsSchemaEntry,
@@ -97,7 +98,7 @@ export interface Mobile {
    * augmenter's filter ∩ sensorium = vision for any room with no
    * `<sense>` regions authored.
    */
-  autoSenseOnArrival(): Promise<void>;
+  autoLookOnArrival(interactive?: Interactive): Promise<void>;
   autoIntroduceOnArrival(): void;
 
   /**
@@ -281,7 +282,10 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
      * Default aliases for the 10 canonical cardinal directions
      * (`NavigationApi.cardinalDirections()`) plus their conventional
      * single/double-letter abbreviations. Every entry expands to
-     * `go <full-name>`, which dispatches through `GoController` and
+     * `go <the same word>` — `n` is `go n`, never a rewrite to `go
+     * north`: the north exit answers to `n` because its own keywords say
+     * so (`Exit.getKeywords`, derived and named there). It dispatches
+     * through `GoController` and
      * resolves the actor's currently-engaged locomotion mode at run
      * time — so `n` does the right thing whether the actor is
      * walking, swimming, or climbing.
@@ -295,25 +299,25 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
      * forms they expect from MUD muscle memory.
      */
     static defaultAliases: DefaultAliasEntry[] = [
-      { name: 'n', body: 'go north' },
+      { name: 'n', body: 'go n' },
       { name: 'north', body: 'go north' },
-      { name: 's', body: 'go south' },
+      { name: 's', body: 'go s' },
       { name: 'south', body: 'go south' },
-      { name: 'e', body: 'go east' },
+      { name: 'e', body: 'go e' },
       { name: 'east', body: 'go east' },
-      { name: 'w', body: 'go west' },
+      { name: 'w', body: 'go w' },
       { name: 'west', body: 'go west' },
-      { name: 'ne', body: 'go northeast' },
+      { name: 'ne', body: 'go ne' },
       { name: 'northeast', body: 'go northeast' },
-      { name: 'nw', body: 'go northwest' },
+      { name: 'nw', body: 'go nw' },
       { name: 'northwest', body: 'go northwest' },
-      { name: 'se', body: 'go southeast' },
+      { name: 'se', body: 'go se' },
       { name: 'southeast', body: 'go southeast' },
-      { name: 'sw', body: 'go southwest' },
+      { name: 'sw', body: 'go sw' },
       { name: 'southwest', body: 'go southwest' },
-      { name: 'u', body: 'go up' },
+      { name: 'u', body: 'go u' },
       { name: 'up', body: 'go up' },
-      { name: 'd', body: 'go down' },
+      { name: 'd', body: 'go d' },
       { name: 'down', body: 'go down' },
     ];
 
@@ -336,6 +340,16 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
           'careless walk springs), `run` (fast and careless — springs ' +
           'traps a walk avoids), or any locomotion mode. Explicit verbs ' +
           '(`sneak`, `run`, `climb`, …) override per-call.',
+      },
+      {
+        key: 'movement.arrivalCommand',
+        type: SettingTypes.String,
+        default: 'look',
+        description:
+          'The command run for you each time you arrive somewhere — what ' +
+          'you see of a place by default. `look` (the default), anything ' +
+          'else you would type, or empty for nothing. It echoes like any ' +
+          'command you run.',
       },
       {
         key: 'messages.movement.departSelf',
@@ -454,9 +468,14 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
         return host.traverse(exit, LocomotionApi.resolveHostMode(host).getName());
       }
 
-      return LocomotionApi.engageAround(this, engaged, exit, () =>
-        crossExit(this, exit, mode),
-      );
+      // ⭐ The host that enabled it hears of the crossing after the move and
+      // its witnesses (cordage D11): a rope at the lip takes its wear here.
+      const host = guard.host;
+      return LocomotionApi.engageAround(this, engaged, exit, async () => {
+        const crossed = await crossExit(this, exit, mode);
+        if (crossed.ok && host) await host.afterEnabledTraverse(this, exit.getDirection(), exit);
+        return crossed;
+      });
     }
 
     /**
@@ -556,10 +575,13 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
         // Auto-sense on arrival, same as `traverse`. Fire-and-forget
         // because `teleport` keeps a synchronous signature; failures
         // in the sense (rare — same room rendering) are swallowed.
-        void this.autoSenseOnArrival().catch(() => {});
+        void this.autoLookOnArrival().catch(() => {});
         this.autoIntroduceOnArrival();
       }
-      if (MixinApi.isSaxonbergClient(self)) self.refreshDisplays();
+      if (MixinApi.isSaxonbergClient(self)) {
+        self.refreshDisplays();
+        self.refreshNavigator();
+      }
     }
 
     /**
@@ -607,12 +629,24 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
      * the player walks into a room with no widget, the auto-sense
      * comes up empty).
      */
-    async autoSenseOnArrival(): Promise<void> {
+    async autoLookOnArrival(interactive?: Interactive): Promise<void> {
       const self = this as unknown as Stuff;
       if (!MixinApi.isCommandGiver(self)) return;
       if (MixinApi.isFocused(self)) self.clearFocus();
       try {
-        await self.forceCommand('sense');
+        // ⭐ `look`, not `sense` (client-surface D10, #52): arriving shows
+        // the room exactly as `look` does — band, notices, presence, the
+        // card — so the first view of a place and every later one agree.
+        // The connection that is entering, when there is one: the card
+        // belongs on THAT session, not the player's first.
+        // ⭐ The player's own choice (`movement.arrivalCommand`, default
+        // `look`); empty runs nothing. It is a command they chose, so it
+        // echoes like one (owner, 2026-11-08).
+        const command = (
+          ShellApi.resolveSetting<string>(self, 'movement.arrivalCommand') ?? 'look'
+        ).trim();
+        if (command.length === 0) return;
+        await self.forceCommand(command, interactive ? { interactive } : {});
       } catch {
         // Swallow — see jsdoc.
       }
@@ -1083,7 +1117,7 @@ async function crossExit(
   // or perceives it, or flies/swims over a ground hazard). Reaching the
   // trap through its `resolveTraversal` *method* honors the inter-Stuff
   // methods-only contract. Fires on walked/ridden/conveyed entry only —
-  // teleport arrival uses `autoSenseOnArrival`, a different path.
+  // teleport arrival uses `autoLookOnArrival`, a different path.
   const hazardSeen = new Set<Stuff>();
   const considerHazard = (cand: Stuff): void => {
     if (hazardSeen.has(cand)) return;
@@ -1114,16 +1148,19 @@ async function crossExit(
   // resulting Command frame is tagged `forced: true` and `sense`'s
   // `updates_focus: extend` re-anchors the mover's focus chain
   // for the new room (the `clearFocus()` call inside
-  // `autoSenseOnArrival` resets the chain to "here" first, so
+  // `autoLookOnArrival` resets the chain to "here" first, so
   // extend simply produces "here" again — focus is well-defined
   // on arrival).
-  await mover.autoSenseOnArrival();
+  await mover.autoLookOnArrival();
   mover.autoIntroduceOnArrival();
   // The display you can see shows X — and the one you left, no
   // longer. One hook, both directions; the viewer owns its own
   // client state, so the viewer is who re-syncs it (display.md).
   const self: Stuff = mover;
-  if (MixinApi.isSaxonbergClient(self)) self.refreshDisplays();
+  if (MixinApi.isSaxonbergClient(self)) {
+    self.refreshDisplays();
+    self.refreshNavigator();
+  }
   return { ok: true };
 }
 

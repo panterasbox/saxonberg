@@ -60,9 +60,9 @@ describe('carve — the view binds what a woodworker says', () => {
     expect(m.knife).toBe(EDGE);
   });
 
-  it('`carve handle with the billhook` names the edge', () => {
-    const m = bind('carve handle with the billhook');
+  it('`carve handle --with billhook` names the edge', () => {
+    const m = bind('carve handle --with billhook');
     expect(m.thing).toBe('handle');
-    expect(m.knife).toBe('the billhook');
+    expect(m.knife).toBe('billhook');
   });
 });

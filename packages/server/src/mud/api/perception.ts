@@ -43,7 +43,7 @@ import { fileURLToPath } from 'url';
 /**
  * The depth of an active detection act (D5). `broad` = a whole-room
  * `search` scan; `narrow` = `search <container>` rummaging one scope
- * deeper (a depth bonus); `glance` = the cheap instantaneous `examine`.
+ * deeper (a depth bonus); `glance` = the cheap instantaneous close `look <thing>`.
  * Each maps to a dial-backed attention bonus in {@link PerceptionApi.resolveSearch}.
  */
 export type SearchDepth = 'broad' | 'narrow' | 'glance';
@@ -298,9 +298,8 @@ export class PerceptionApi {
    *   - it is a door attached to one of the location's obvious exits —
    *     ⚠ attached doors live in NO container, so containment alone
    *     never finds them;
-   *   - `viaExit` and the target IS the location — the
-   *     door-via-direction binding, where `open north` resolves to the
-   *     location and the controller reads the door off `via.exit`.
+   *   - it IS one of the location's obvious exits — a direction binds
+   *     the way itself (`open north`, `go north`).
    *
    * ⚠ **Reach is not perception.** A thing can be reachable and
    * unperceived (dark room) or perceived and unreachable (across a
@@ -311,19 +310,18 @@ export class PerceptionApi {
    * otherwise point at. That seed emits a **candidate set for keyword
    * SEARCH** — attention-scored, keyword-bearing, ordered
    * on-person-first. This is a **membership predicate** on a Stuff
-   * that is already resolved, it counts attached doors and the
-   * via-exit binding (which the search pool has no reason to), and it
+   * that is already resolved, it counts attached doors (which the
+   * search pool has no reason to), and it
    * runs per-arg on every dispatch and per-refresh on every card.
    * Answering it by resolving the whole room and testing for inclusion
    * would be the wrong shape and the wrong cost.
    *
    * @param opts.location defaults to the actor's own container.
-   * @param opts.viaExit set when the binding carried a `via.exit`.
    */
   public static canReach(
     actor: Stuff,
     target: Stuff,
-    opts?: { location?: Stuff | null; viaExit?: boolean },
+    opts?: { location?: Stuff | null },
   ): boolean {
     return logic().canReach(actor, target, opts);
   }
@@ -482,8 +480,8 @@ export class PerceptionApi {
    * the newly-discovered things (already-found and still-hidden ones are
    * omitted). `depth` folds in the dial-backed attention bonus: `broad`
    * (whole-room `search`), `narrow` (`search <container>`, a depth bonus),
-   * or `glance` (the instantaneous `examine`). Pure + deterministic given
-   * the viewer's warmed `awareness` band — no RNG. The `search` / `examine`
+   * or `glance` (the instantaneous close `look <thing>`). Pure + deterministic given
+   * the viewer's warmed `awareness` band — no RNG. The `search` / `look`
    * verbs (and `SearchActivity.onComplete`) call this.
    */
   public static resolveSearch(
@@ -534,6 +532,16 @@ export class PerceptionApi {
    */
   public static visibleContentsOf(viewer: Stuff, target: Stuff): VisibleContents {
     return logic().visibleContentsOf(viewer, target);
+  }
+
+  /**
+   * Whether `target` is a PERSON other than `viewer` — an agent with
+   * slots that is not the viewer. The predicate {@link visibleContentsOf}
+   * reads, named once: what a look may not tell you about somebody else
+   * (their pockets, their weight) is decided here and nowhere else.
+   */
+  public static isAnotherPerson(viewer: Stuff, target: Stuff): boolean {
+    return logic().isAnotherPerson(viewer, target);
   }
 
   /**

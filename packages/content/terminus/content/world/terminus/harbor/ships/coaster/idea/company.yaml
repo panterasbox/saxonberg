@@ -1,0 +1,48 @@
+# The Corrigan's company — the house whose roster mans her.
+#
+# ⭐ Her MASTER is a seat: the NPC rostered here keeps it by default, and
+# anybody the appointing authority puts in it holds it beside them —
+# `house appoint me to master at /world/terminus/harbor/ships/coaster/idea/company` is how the founder takes
+# her helm in the drive (her voyages are laid by hand this build). Whoever
+# holds the seat answers for her at the harbor office: her dues are theirs
+# to pay (`pay office`). Whoever holds a majority of this company's table
+# appoints.
+class: /platform/idea/PersistentBusiness
+data:
+  name: "the Corrigan's company"
+  # ⭐ She is owned by this company, and this company by its cap table
+  #: the Greywater Line owns her outright. Whoever holds a MAJORITY of the table
+  # appoints her master (`kind: owners`) — an organization holder through
+  # its own authority. Her register entry names this company as her owner;
+  # `read register` at the harbor office shows the table beside it, and
+  # `title transfer <n> shares of <her> …` moves its units.
+  appointingAuthority:
+    kind: owners
+  capTable:
+    units: 64
+    transfer: free
+    rows:
+      - holder: { kind: organization, path: /world/terminus/harbor/line/idea/office, name: the Greywater Line }
+        units: 64
+  positions:
+    - key: master
+      noun: master
+      label: in command of her
+      wageRate: 5
+      headcount: 1
+    - key: deckhand
+      noun: deckhand
+      label: on deck
+      wageRate: 2
+      headcount: 2
+  rosterSlots:
+    - positionKey: master
+      assignee: /world/terminus/harbor/ships/coaster/agent/master
+      station: /world/terminus/harbor/ships/coaster/deck
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [6, 20] }
+  # A hire starts at once: an appointed master has her helm with no rota to wait for.
+  startsShiftOnHire: true
+  banksAt: goodkin
+  operatingLocations:
+    - /world/terminus/harbor/ships/coaster/deck

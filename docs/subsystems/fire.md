@@ -84,10 +84,10 @@ Dials: `response.heat.referenceClo` (the pulse reference) and `response.heat.ref
   (`depositHeat` gates the rise by thermal inertia — a match can't out-heat a
   beam); the ignition itself is the threshold cross. `tryAutoignite()`
   is the heat-threshold path (spread + tests); `ignite()` is the
-  deliberate `ignite`-verb path (a hand-flame; the wetness penalty must be
+  deliberate `light`-verb path (a hand-flame; the wetness penalty must be
   below the manual-drying headroom, else "too wet to catch").
   ⭐ The formula is the BODY's (`TangibleMixin.getWetIgnitionPenaltyK`, and
-  `getIgnitionPointK` = autoignition + it): `stoke`, `ignite` and a hot
+  `getIgnitionPointK` = autoignition + it): `stoke`, `light` and a hot
   pour (`canReceiveAtK`) read the one number, so a soaked board survives a
   pour that would light a dry one (ceramics review R2-B1). ⚠ A firing
   chamber catching its contents (`Burner.catchContents`) reads the DRY
@@ -107,7 +107,7 @@ Dials: `response.heat.referenceClo` (the pulse reference) and `response.heat.ref
   (`hasBurnedThrough` seam — content decides the after-state).
 - **The three extinguishers.** Water/`douse` (extinguish + wet against
   re-ignition), smother (no O₂ — layer 4), fuel-starvation (burns to embers).
-- Verbs `ignite`/`douse` (`device` category), gated `FireApi`/`FireLogic`.
+- Verbs `light`/`douse` (`device` category), gated `FireApi`/`FireLogic`.
 
 ### 4. The presence-gated fire tick + real chemistry
 
@@ -326,7 +326,7 @@ over `Good`. The lantern and the torch moved onto it from
 `PortableLight`, which is a `Switchable` and therefore **burned
 forever**. The class writes almost nothing: the fuel bed, the drain
 against game time, reconcile-on-read, the burnout edge and
-`ignite`/`douse` are all the mixin's.
+`light`/`douse` are all the mixin's.
 
 ⭐ Its **one** override is `fuelSlot()`, and it is what makes a torch and
 a lantern one class and two rows: *this vessel's interior is its fuel
@@ -366,7 +366,7 @@ for). `lint:light-sources` clause (g) makes every furnace row say which
 it means. On its first run it found four: the campfire and the practicum
 brazier mean it, and **both still rows shipped lit against their own
 prose** (*"the firebox swept and ready"*) and their own class docstring
-(*"lit with `ignite`"*).
+(*"lit with `light`"*).
 
 
 ## Cross-references
@@ -383,13 +383,14 @@ prose** (*"the firebox swept and ready"*) and their own class docstring
 
 ## ⭐⭐ `fire` — a chamber you hold at heat; the MATERIAL decides (ceramics M1)
 
-`platform/cmd/device/fire.yaml`, `verbs: [fire, burn]`, afforded on
+`platform/cmd/device/fire.yaml`, `verbs: [fire]`, afforded on
 **`BurnerMixin.commandContributions.peers`**. Since the ceramics build (W0)
 it is **`fire [<kiln>] [--draught <word>] [for <hold>]`** and it decides
 nothing about the charge:
 
 1. `--draught wide|open|half|low|banked` (an OPTION, so it can never swallow
-   the kiln — `fire kiln`, `burn kiln` and `fire in retort` bind as before)
+   the kiln — `fire kiln` and `fire in retort` bind as before; the `burn`
+   synonym is deleted)
    sets the air;
 2. it refuses `no-charge` and `not-lit` (⚠ *unlit is COLD, not cool*);
 3. it stamps `kineticRecord.firedBy` on every body in the chamber (and one level
@@ -578,7 +579,7 @@ depend on the ceramics trade can name it; the potter's made firebrick
   smelting furnace eats them. Worn brick by brick through the shipped
   `wearLine`, so `failed` counts bricks. `fire` wears it at settle; `smelt`
   wears it per run.
-- **Burnt through** — below `fire.lining.burntBelow` (0.15) `ignite` refuses
+- **Burnt through** — below `fire.lining.burntBelow` (0.15) `light` refuses
   `lining-burnt-through`, naming the cure.
 - **Relining** — `fit lining to <furnace>` (or `fit firebrick to …`) with
   firebrick in reach: the shipped replace arm. ⭐ A LINE word names the part
@@ -657,3 +658,13 @@ clamp's burnt-through ash uses it too, sized to the charge. `sweep` rakes
 ANY burner's grate (it used to require a flue). A firing now concentrates
 the constituents it keeps by `1 / massYield` and grades a Graded output by
 its weakest Graded input. See [potash.md](potash.md).
+
+
+## Self-heating (paint build, 2026-10-31)
+
+`SelfHeatingMixin` is the kernel's (`lib/thermal/SelfHeating`, promoted
+from trade-farming's hay rick): a heap's heat and loss are its host's
+hooks, and a COMBUSTIBLE heap whose core passes its (wetness-adjusted)
+autoignition point ignites, the fire driver spreading it. Hay is not
+combustible here and smokes as before; a heap of oily rags catches. See
+[painting.md](./painting.md) § The hazards.

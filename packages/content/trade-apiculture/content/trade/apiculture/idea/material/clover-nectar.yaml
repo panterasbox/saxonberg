@@ -9,8 +9,10 @@
 # ⚠ Not edible and not sold. It exists to be a KEY in a comb's
 # composition, so that honey off a clover ley tastes and reads differently
 # from honey off cherry blossom with no row written for either.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/floral, strength: 100 }]
+  tastes: [{ type: sweet, amount: 200 }]
   name: clover nectar
   keywords: [nectar, clover]
   appearance: thin colourless nectar

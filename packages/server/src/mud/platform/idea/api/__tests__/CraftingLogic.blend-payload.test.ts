@@ -52,6 +52,9 @@ import {
   makeStuffAtPath,
 } from '../../../../lib/security/__tests__/test-setup';
 
+/** The commons aroma a smoky fuel or working carries, by path. */
+const SMOKE = '/base-library/aromas/smoke';
+
 class TestRoom extends ContainerMixin(Idea) {
   static _mixinName = 'TestRoomBlendPayload';
 }
@@ -244,7 +247,7 @@ describe('a recipe carries its inputs concentrations', () => {
     // heavily-peated malt at 30 mg/L into 0.45 L of clean grain reads
     //   30 × 0.3 / 0.75 = 12 mg/L — fainter, and still unmistakably peated.
     await sourceBottle(MALT_MAT, 0.3, {
-      dissolvedAromatics: [{ type: 'smoke', amount: 30 }],
+      dissolvedAromatics: [{ type: SMOKE, amount: 30 }],
     });
     await sourceBottle(GRAIN_MAT, 0.45, {});
 
@@ -252,7 +255,7 @@ describe('a recipe carries its inputs concentrations', () => {
     expect(res.ok).toBe(true);
     const payload = BulkableApi.slotFor(outputOf(res), undefined)!.getPayload();
     expect(
-      payload?.dissolvedAromatics?.find((t) => t.type === 'smoke')?.amount,
+      payload?.dissolvedAromatics?.find((t) => t.type === SMOKE)?.amount,
     ).toBeCloseTo(12, 6);
   });
 
@@ -306,7 +309,7 @@ describe('Recipe.imparts — what the working itself adds', () => {
       outputApplication: 'bulk',
       outputTemplate: BOTTLE,
       outputMaterial: BLEND_MAT,
-      imparts: [{ type: 'smoke', amount: 30 }],
+      imparts: [{ type: SMOKE, amount: 30 }],
       baseGradeBand: '',
     });
     // ⚠ Re-warm the SAME catalogue — a second one at the same path makes
@@ -324,21 +327,21 @@ describe('Recipe.imparts — what the working itself adds', () => {
     expect(res.ok).toBe(true);
     const payload = BulkableApi.slotFor(outputOf(res), undefined)!.getPayload();
     expect(
-      payload?.dissolvedAromatics?.find((t) => t.type === 'smoke')?.amount,
+      payload?.dissolvedAromatics?.find((t) => t.type === SMOKE)?.amount,
     ).toBeCloseTo(30, 6);
   });
 
   it('adds ON TOP of what the inputs already carried', async () => {
     // Inputs fold to 30 × 0.3 / 0.75 = 12; the working adds 30 → 42.
     await sourceBottle(MALT_MAT, 0.3, {
-      dissolvedAromatics: [{ type: 'smoke', amount: 30 }],
+      dissolvedAromatics: [{ type: SMOKE, amount: 30 }],
     });
     await sourceBottle(GRAIN_MAT, 0.45, {});
     const res = await craftAs(distiller, 'vat-smoked');
     expect(res.ok).toBe(true);
     const payload = BulkableApi.slotFor(outputOf(res), undefined)!.getPayload();
     expect(
-      payload?.dissolvedAromatics?.find((t) => t.type === 'smoke')?.amount,
+      payload?.dissolvedAromatics?.find((t) => t.type === SMOKE)?.amount,
     ).toBeCloseTo(42, 6);
   });
 });

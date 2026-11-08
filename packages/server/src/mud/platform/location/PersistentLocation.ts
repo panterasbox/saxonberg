@@ -59,7 +59,7 @@
 
 import Location from "../../lib/location/Location";
 import { PersistableMixin } from "../../lib/persistence/Persistable";
-import { ReservedMixin } from "../../lib/reserve";
+import { ReservedMixin } from "../../lib/reserve/Reserved";
 import { WarrenMemberMixin, type WarrenMember } from "../../lib/location/WarrenMember";
 import { MixinApi } from "../../api/mixin";
 import { CallSecurity, Final } from "../../lib/security/decorators";
@@ -112,6 +112,17 @@ export default class PersistentLocation extends PersistentLocationBase {
   static fieldMeta: FieldMeta = {
     postedAs: { persistent: true, authorable: true },
   };
+
+  /**
+   * ⭐ A KEYED furnished room is a warren's — a holding's, a dorm's — and
+   * is stood up by that warren, never alone by its key (a
+   * free-standing venue room is keyless, a singleton, and never asked).
+   *
+   * @hook
+   */
+  public override standsUpAlone(): boolean {
+    return false;
+  }
 
   /**
    * **What the sign on the door says** — `unisex`, `gendered`, `staff`,

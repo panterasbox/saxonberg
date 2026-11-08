@@ -1,7 +1,7 @@
 /**
  * SoundSourceMixin — anything that emits sound.
  *
- * Mirrors `SmellSourceMixin`'s shape: stored emission expressed as
+ * Mirrors `LightSourceMixin`'s shape: stored emission expressed as
  * dB amplitude + a string `character` for prose ("whistle",
  * "footsteps", "humming"). To stop emitting, set amplitude to zero;
  * to start, set it to a positive dB value.

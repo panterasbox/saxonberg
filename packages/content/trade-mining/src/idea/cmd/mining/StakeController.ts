@@ -161,7 +161,7 @@ export default class StakeController extends CommandController<StakeModel> {
       // made every claim in the mine owned by every player at once —
       // invisibly, because every fixture authors a distinct owner path.
       // `ParcelOwner.templatePath` is an identity path by the kernel's
-      // own convention (`TitleController`, `TransferController`,
+      // own convention (`TitleBuyController`, `TitleTransferController`,
       // `ChattelLogic`, `EmploymentLogic` all write one); this pack
       // simply never got the MR !251 sweep. `lint:person-keys` holds
       // the shape at zero now.

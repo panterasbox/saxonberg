@@ -49,5 +49,5 @@ data:
     A person of ordinary build whose gaze carries a faint, listening
     stillness — as though half their attention rides a channel no one
     else can hear.
-  nameBankKeys: ["common"]
+  nameBanks: [/species-and-names/name-banks/common]
   facultyProfile: { depth: high, serenity: high, composure: low }

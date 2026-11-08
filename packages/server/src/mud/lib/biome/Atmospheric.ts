@@ -34,6 +34,7 @@
 import { SecurityApi } from '../../api/security';
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
+import type Place from '../stuff/Place';
 import { Quantity } from '../quantity';
 import type { Unit } from '../quantity';
 import { QuantityMarshaller } from '../../platform/idea/persistence/QuantityMarshaller';
@@ -74,7 +75,7 @@ import { Exposure, type Face } from '../spatial/Exposure';
 import type { RoomHeatExchange } from '../thermal/RoomHeatExchange';
 import { CelestialApi } from '../../api/celestial';
 import type Exit from '../boundary/Exit';
-import type Structure from '../../platform/idea/Structure';
+import type Structure from '../structure/Structure';
 
 export interface Atmospheric {
   /** Days since `atS` this place's air crossed freezing; 0 indoors. */
@@ -429,6 +430,13 @@ export interface Atmospheric {
   envelopeTemperatureK: number | null;
   envelopeClockStamp: number;
   envelopeOutsideK: number | null;
+  /**
+   * ⭐ Hand the envelope the OUTSIDE as a function of game time (water-supply
+   * D11), stamped at the async resolve when the outside is the weather's —
+   * so an unwatched gap integrates the night's curve, not the read's noon.
+   * `null` = the outside is an authored constant (a mine's rock).
+   */
+  setEnvelopeOutsideCurve(curve: ((atS: number) => number) | null): void;
 }
 
 /**
@@ -551,6 +559,16 @@ export function AtmosphericMixin<
     /** What it is drifting TOWARD (K) — stamped at the async resolve. */
     public envelopeOutsideK: number | null = null;
     /**
+     * ⭐ The outside as a function of game time, when it is the weather's
+     * (water-supply D11). Transient: re-stamped at every async resolve; a
+     * room never resolved since boot integrates against the scalar.
+     */
+    private _envelopeOutsideCurve: ((atS: number) => number) | null = null;
+
+    public setEnvelopeOutsideCurve(curve: ((atS: number) => number) | null): void {
+      this._envelopeOutsideCurve = curve;
+    }
+    /**
      * ⭐ The scope air's breakpoint ring, backing
      * {@link temperatureTrajectory}. Runtime state like the envelope
      * scalars (a reboot loses the history — plan F2).
@@ -616,6 +634,17 @@ export function AtmosphericMixin<
      */
     public roofDefaults(): RoofSpec | null {
       return null;
+    }
+
+    /**
+     * ⭐ A roof of what this place is walled in — its authored wall layers,
+     * or the class's wall default when it authors none. What a ROOM's
+     * `roofDefaults()` answers (`Room`, `PersistentRoom`): the answer the
+     * legacy biome reading gave every interior, said by the class.
+     */
+    protected roofOverWalls(): RoofSpec {
+      const walls = this.getEnclosure();
+      return walls === null || walls === 'none' ? {} : walls;
     }
 
     /**
@@ -1382,14 +1411,20 @@ export function AtmosphericMixin<
      */
     public exposure(): Exposure {
       const self = this as unknown as Stuff;
-      const path = self.getTemplatePath();
+      // A place is asked (a keyed room's structure is its warren's); a
+      // vessel by its own name.
+      const path = self.getDurableHandle() ?? self.getTemplatePath();
       let structure: Structure | null = null;
-      if (path) {
-        try {
-          structure = NavigationApi.structureAtNow(path);
-        } catch {
-          structure = null;
-        }
+      try {
+        // A place asks its own warren first (a holding's keyed rooms);
+        // anything else is found by its path, as before.
+        structure = self.isPlace()
+          ? (self as unknown as Place).structureNow()
+          : path && !path.includes('#')
+            ? NavigationApi.structureAtNow(path)
+            : null;
+      } catch {
+        structure = null;
       }
       // ⚠ An UNDECLARED place's answer is its biome's, and a biome
       // resolves after the room materializes (the Floor snow lesson) — so
@@ -1466,9 +1501,11 @@ export function AtmosphericMixin<
       let wallsShared = 0;
       for (const { exit, dest } of neighbours) {
         const vertical = AtmosphericMixin.isVertical(exit.getDirection());
-        const destPath = dest.getTemplatePath();
+        const destPath = dest.getIdentityPath();
         const sameStructure =
-          structure !== null && destPath !== null && structure.hasMember(destPath);
+          structure !== null &&
+          ((destPath !== null && structure.hasMember(destPath)) ||
+            (MixinApi.isWarrenMember(dest) && dest.getWarren()?.structureOf(dest) === structure));
         if (sameStructure && enclosed(dest)) {
           if (seen.has(dest.stuffId)) continue;
           seen.add(dest.stuffId);
@@ -1618,6 +1655,13 @@ export function AtmosphericMixin<
         // hour, each with the sun at its midpoint. Every opaque room has no
         // solar term and integrates the segment whole, exactly as before.
         const solar = this.hasSolarFaces();
+        // ⭐⭐ (water-supply D11) …and every room whose outside is the
+        // WEATHER follows the outside's curve the same way: a scullery read
+        // at noon after a frost night must have been at the frost, or no
+        // pipe in it ever froze. The outside is sampled at each piece's
+        // midpoint (the sun's rule), capped at the same piece count; an
+        // authored constant outside integrates the segment whole, as before.
+        const curve = this._envelopeOutsideCurve;
         const maxPieces = Math.max(
           1,
           Math.floor(envelopeDial(AppSettingKeys.envelopeSolarSegmentsMax, 48)),
@@ -1627,7 +1671,7 @@ export function AtmosphericMixin<
           segStartS: number,
           segDur: number,
         ): void => {
-          const pieces = solar
+          const pieces = solar || curve !== null
             ? Math.min(maxPieces, Math.max(1, Math.ceil(segDur / 3600)))
             : 1;
           const pieceS = segDur / pieces;
@@ -1645,7 +1689,8 @@ export function AtmosphericMixin<
             const conductanceWperK = coeff.uWperK + budget.conductanceWperK;
             // Coupled to nothing that has resolved yet: hold, do not drift.
             if (!(conductanceWperK > 0)) continue;
-            const steadyState = this.envelopeSteadyStateFrom(outside, coeff.uWperK, budget, driveW);
+            const outsideHere = curve !== null ? curve(pieceStartS + pieceS / 2) : outside;
+            const steadyState = this.envelopeSteadyStateFrom(outsideHere, coeff.uWperK, budget, driveW);
             const pieceTau = coeff.capacityJPerK / conductanceWperK;
             ring.record(
               pieceStartS,
@@ -2073,7 +2118,7 @@ export function AtmosphericMixin<
      * Lives here rather than in the controller for two reasons, and the
      * second is the one that matters: a controller walking a room's
      * contents to work out what is burning in it is a controller
-     * re-deriving what the room already knows (`lint:instrument-args`
+     * re-deriving what the room already knows (`lint:controller-resolution`
      * fails it by shape, and is right to), and a second copy of that
      * walk is a room whose stated reason could disagree with its own
      * temperature.
@@ -2392,21 +2437,15 @@ function envelopeNowSeconds(): number | null {
 
 /**
  * ⭐ The supply trajectory of a scope that draws one (a `Powered` host), or
- * `null` for a plain room. A **structural probe** — the kernel envelope
- * cannot import the energy pack, and a pack's `GridPoweredMixin` implements
- * `Powered` structurally — so the one legitimate cross is a method check.
+ * `null` for a plain room. The kernel envelope cannot import the energy
+ * pack; `PoweredMixin` is the kernel protocol its `GridPoweredMixin` composes.
  */
 function poweredTrajectoryOf(
   host: Stuff,
   fromS: number,
   toS: number,
 ): Piecewise | null {
-  const h = host as unknown as {
-    poweredTrajectory?: (fromS: number, toS: number) => Piecewise;
-  };
-  return typeof h.poweredTrajectory === 'function'
-    ? h.poweredTrajectory(fromS, toS)
-    : null;
+  return MixinApi.isPowered(host) ? host.poweredTrajectory(fromS, toS) : null;
 }
 
 /** Numeric AppSetting read with a seeded-literal fallback (pre-warm safe). */

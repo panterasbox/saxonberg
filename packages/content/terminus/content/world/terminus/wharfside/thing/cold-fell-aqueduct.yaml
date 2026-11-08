@@ -26,7 +26,9 @@
 # It is also the first thing in the game a single player almost
 # certainly cannot build alone — a cooperation gate that emerges from
 # physics rather than from a lock.
-class: /system/water/thing/Conduit
+# ⭐ LIVE (water-supply D30): whoever opens or cuts the aqueduct does it to
+# the city's works, and the works remember.
+class: /system/water/thing/PersistentConduit
 data:
   shortDescription: Cold Fell aqueduct
   keywords: [aqueduct, conduit, channel, coldfell, cold-fell, cold, fell]
@@ -49,7 +51,8 @@ data:
   fixedInPlace: true
   details:
     channel:
-      keywords: [channel, trough, conduit, water]
+      # ⚠ Not `water`: on the bank the common word is the river's.
+      keywords: [channel, trough, conduit]
       description: |
         A stone trough the width of a cart, running so nearly level that the water in it looks still until you drop something in. It falls about a foot every quarter mile, the whole way from the fell.
     piers:

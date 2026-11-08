@@ -10,8 +10,10 @@
 #
 # It still mills, still keeps, still feeds you, and a flatbread made of
 # it is a perfectly good flatbread.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/flour, strength: 10 }]
+  tastes: [{ type: sweet, amount: 8 }]
   name: barley flour
   keywords: [flour, barley, meal]
   appearance: soft grey-brown, a little coarse

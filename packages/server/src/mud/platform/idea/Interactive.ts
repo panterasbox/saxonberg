@@ -34,8 +34,11 @@ import type {
   EnvelopeTemplate,
   MessageFrame,
   PromptChoice,
+  CardPlacement,
+  ArrangementCard,
+  TerminalFilter,
 } from '@saxonberg/types';
-import type { CardOpenOptions } from './CardRegistry';
+import type { CardOpenOptions, CardListing, CardArrangeAction } from './CardRegistry';
 import type {
   ChoicePromptOpts,
   ComposePromptOpts,
@@ -320,25 +323,47 @@ export default class Interactive extends Idea {
   }
 
   /** The open cards — `cockpit card list`'s report. */
-  public listCards(): {
-    instanceId: string;
-    cardId: CardId;
-    key: string;
-    pinned: boolean;
-    live: boolean;
-  }[] {
+  public listCards(): CardListing[] {
     return cardLogic().list(this);
+  }
+
+  /**
+   * ⭐ Change one card's shape or place — the `cockpit card` actions
+   * (client-surface D8). Returns the refusal reason, or `refused: null`.
+   */
+  public arrangeCard(
+    cardRef: string,
+    action: CardArrangeAction,
+    at?: CardPlacement,
+  ): { refused: string | null; instanceId?: string } {
+    return cardLogic().arrange(this, cardRef, action, at);
   }
 
   /**
    * ⭐⭐ Open exactly the cards an arrangement names — the SERVER
    * resolving a workspace, not the client replaying it.
    */
-  public applyCardArrangement(cards: readonly CardId[]): {
+  public applyCardArrangement(
+    cards: readonly ArrangementCard[],
+    primaryFilter?: TerminalFilter,
+  ): {
     opened: number;
     closed: number;
   } {
-    return cardLogic().applyArrangement(this, cards);
+    return cardLogic().applyArrangement(this, cards, primaryFilter);
+  }
+
+  /**
+   * ⭐ Show a view or channel in the primary terminal, or in a new terminal
+   * card beside it (`cockpit terminal`, client-surface D6).
+   */
+  public showInTerminal(filter: TerminalFilter, beside: boolean): string | null {
+    return cardLogic().showInTerminal(this, filter, beside);
+  }
+
+  /** Make another terminal card the primary; the refusal reason, or null. */
+  public promoteTerminal(cardRef: string): string | null {
+    return cardLogic().promoteTerminal(this, cardRef);
   }
 
   /**

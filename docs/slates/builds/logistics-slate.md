@@ -98,7 +98,7 @@ Eleven decisions, all taken in conversation. Detail follows.
 | **D3** | There is **no tech ladder — there is a cost surface**. Anachronism is deliberate and stratified by economic position. |
 | **D4** | **Rail and the TPA are incumbents you buy passage on.** The player-operable rungs are back / cart / wagon / barge, permanently. |
 | **D5** | Locations and containers are the **quantum layer**; modes are **lane graphs** over the same nodes; a vehicle is a `Mobile ExitableVessel` — a room that moves. |
-| | ⚠ **D5 SCOPE, 2026-10-09** — D5 was written for **D4's list (back / cart / wagon / barge)** and is right there: **one space**. It is **not** a ship ruling, and was generalised past its evidence once. A **many-spaced** craft is a **hull plus a warren** → [navigable-water-slate](./navigable-water-slate.md) § 7a. The test is *does it have more than one space?* |
+| | ⚠ **D5 SCOPE, 2026-10-09** — D5 was written for **D4's list (back / cart / wagon / barge)** and is right there: **one space**. It is **not** a ship ruling, and was generalised past its evidence once. A **many-spaced** craft is a `Ship` (a Structure) whose rooms are her `ShipWarren` ([ship.md](../subsystems/ship.md)) → [navigable-water-slate](./navigable-water-slate.md) § 7a. The test is *does it have more than one space?* |
 | **D6** | **Consign ships first.** Drive, ride and teleport are the same machinery seen from other ends. |
 | **D7** | **Duration is priced in vulnerability, not convenience.** |
 | **D8** | The border is **derived**; the checkpoint is **placed**. Customs powers are **enacted, never defaulted**. Inspection belongs to the enforcement build. |
@@ -784,3 +784,11 @@ on, a scale, and `coldStorage` with no default.
   supply job `--from` the ice company's platform. The standing order a
   household puts in the window (the ice card) is
   [standing-instructions-slate](./standing-instructions-slate.md)'s.
+
+## From controllers-are-io (MR !527, 2026-11-07)
+
+- **A vehicle a person sits in and drives through an exit.** `drive` binds a
+  way and refuses today; no shipped vehicle seats a driver (the coach's
+  `driver:1` is an adornment slot, the barge has none, the wagon no slots), and
+  `journey` is what moves a vehicle. Step 21 of that build's drive dropped the
+  claim on 2026-11-07.

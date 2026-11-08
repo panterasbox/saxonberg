@@ -1,4 +1,5 @@
 verbs: [destruct]
+category: author
 controller: /platform/idea/cmd/author/DestructController
 description: "Destruct a runtime instance or template"
 help: |

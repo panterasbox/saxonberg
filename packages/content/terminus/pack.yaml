@@ -39,27 +39,29 @@ requires:
     # for lint:power-posture) but NO feeder: a feeder citation here would be
     # inherited by every locality under the realm — HD, Hinkley, Rejection —
     # which do NOT draw from the Terminus main. Each city district cites its own.
-    - { extent: /world/terminus, holder: { group: terminus }, landUse: civic, powerBand: commercial }
+    - { extent: /world/terminus, holder: { group: terminus }, landUse: civic, powerBand: commercial, waterSource: none }
     # The Terminus municipality's ground.
-    - { extent: /world/terminus/terminal,        parentParcel: /world/terminus, holder: { group: terminus }, landUse: civic, feeder: terminus-main:crossing }
-    - { extent: /world/terminus/counting-houses, parentParcel: /world/terminus, holder: { group: terminus }, landUse: commercial, feeder: terminus-main:avenue }
-    - { extent: /world/terminus/general-store,   parentParcel: /world/terminus, holder: { group: terminus }, landUse: commercial, feeder: terminus-main:avenue }
+    - { extent: /world/terminus/terminal,        parentParcel: /world/terminus, holder: { group: terminus }, landUse: civic, feeder: terminus-main:crossing, waterSource: /world/terminus/wharfside/thing/city-intake }
+    - { extent: /world/terminus/counting-houses, parentParcel: /world/terminus, holder: { group: terminus }, landUse: commercial, feeder: terminus-main:avenue, waterSource: /world/terminus/wharfside/thing/city-intake }
+    - { extent: /world/terminus/general-store,   parentParcel: /world/terminus, holder: { group: terminus }, landUse: commercial, feeder: terminus-main:avenue, waterSource: /world/terminus/wharfside/thing/city-intake }
     # The farmers market — the produce square off the counting-houses.
-    - { extent: /world/terminus/market,          parentParcel: /world/terminus, holder: { group: terminus }, landUse: commercial, feeder: terminus-main:square }
+    - { extent: /world/terminus/market,          parentParcel: /world/terminus, holder: { group: terminus }, landUse: commercial, feeder: terminus-main:square, waterSource: /world/terminus/wharfside/thing/city-intake }
     # ⭐ The bathhouse (cleanliness D28) — off the square, north.
     - { extent: /world/terminus/market/bathhouse, parentParcel: /world/terminus/market, holder: { group: terminus }, landUse: commercial, feeder: terminus-main:square }
-    - { extent: /world/terminus/registry,        parentParcel: /world/terminus, holder: { group: terminus }, landUse: civic, feeder: terminus-main:avenue }
+    - { extent: /world/terminus/registry,        parentParcel: /world/terminus, holder: { group: terminus }, landUse: civic, feeder: terminus-main:avenue, waterSource: /world/terminus/wharfside/thing/city-intake }
     # University Avenue — the city street the campus gate fronts. Civic
     # like every other public street the municipality keeps.
-    - { extent: /world/terminus/university-avenue, parentParcel: /world/terminus, holder: { group: terminus }, landUse: civic, feeder: terminus-main:crossing }
+    - { extent: /world/terminus/university-avenue, parentParcel: /world/terminus, holder: { group: terminus }, landUse: civic, feeder: terminus-main:crossing, waterSource: /world/terminus/wharfside/thing/city-intake }
     # Mayfield Row (residences D9): the municipality holds the street;
     # the private landlord holds the building the units subdivide under.
-    - { extent: /world/terminus/mayfield-row, parentParcel: /world/terminus, holder: { group: terminus }, landUse: residential, powerBand: domestic, feeder: terminus-mayfield:mayfield }
+    - { extent: /world/terminus/mayfield-row, parentParcel: /world/terminus, holder: { group: terminus }, landUse: residential, powerBand: domestic, feeder: terminus-mayfield:mayfield, waterSource: /world/terminus/wharfside/thing/city-intake }
     - { extent: /world/terminus/mayfield-row/seznick-house, parentParcel: /world/terminus/mayfield-row, holder: { group: mayfield-holdings }, landUse: residential, powerBand: domestic, feeder: terminus-mayfield:mayfield }
     # The land agents' shopfront (residences D14). Commercial, and the
     # municipality's like the rest of the built city — the office SELLS
     # ground, it does not own the ground it sells.
-    - { extent: /world/terminus/realty, parentParcel: /world/terminus, holder: { group: terminus }, landUse: commercial, feeder: terminus-main:avenue }
+    - { extent: /world/terminus/realty, parentParcel: /world/terminus, holder: { group: terminus }, landUse: commercial, feeder: terminus-main:avenue, waterSource: /world/terminus/wharfside/thing/city-intake }
+    # ⭐ The Gazette's house (paper W5): its print shop on Mayfield Row.
+    - { extent: /world/terminus/gazette, parentParcel: /world/terminus, holder: { group: terminus }, landUse: commercial, feeder: terminus-main:avenue, waterSource: /world/terminus/wharfside/thing/city-intake }
     # ⭐ The two corridors (logistics D18/D20): a road corridor is
     # SUBDIVIDED AS ITS OWN PARCEL, so the road across somebody's flats
     # is the road's ground and not theirs — which is what makes
@@ -70,7 +72,11 @@ requires:
     # `civic` — "offices, parks and THE COMMONS" — is the public highway.
     # The estuary towpath is the city's own working waterfront and is
     # kept by the municipality like any other street.
-    - { extent: /world/terminus/estuary, parentParcel: /world/terminus, holder: { group: terminus }, landUse: civic, powerBand: off-grid }
+    - { extent: /world/terminus/estuary, parentParcel: /world/terminus, holder: { group: terminus }, landUse: civic, powerBand: off-grid, waterSource: none }
+    # ⭐ The Port of Terminus: the quays, the stairs, the
+    # office and the line's desk inside the bar — civic ground the city
+    # keeps, like the estuary path it opens off.
+    - { extent: /world/terminus/harbor, parentParcel: /world/terminus, holder: { group: terminus }, landUse: civic, powerBand: off-grid, waterSource: none }
     # ⚠ `wild` — "unserviced ground: PASSAGE and gathering only" — is the
     # Delight road, which crosses ground nobody's municipality maintains.
     # The civic/wild split IS the toll-versus-obstruction distinction
@@ -83,8 +89,8 @@ requires:
     # workshop district (the mill and the dyehouse); the goods yards hold
     # the producers' floors; the infirmary and the necropolis are the
     # city's civic ground.
-    - { extent: /world/terminus/wharfside,   parentParcel: /world/terminus, holder: { group: terminus }, landUse: industrial, powerBand: industrial, feeder: terminus-main:bank }
-    - { extent: /world/terminus/goods-yards, parentParcel: /world/terminus, holder: { group: terminus }, landUse: industrial, powerBand: industrial, feeder: terminus-main:bank }
+    - { extent: /world/terminus/wharfside,   parentParcel: /world/terminus, holder: { group: terminus }, landUse: industrial, powerBand: industrial, feeder: terminus-main:bank, waterSource: /world/terminus/wharfside/thing/city-intake }
+    - { extent: /world/terminus/goods-yards, parentParcel: /world/terminus, holder: { group: terminus }, landUse: industrial, powerBand: industrial, feeder: terminus-main:bank, waterSource: /world/terminus/wharfside/thing/city-intake }
     # ⭐⭐ **The three noxious trades, each titled as its own parcel inside
     # the industrial district.** `landUse: industrial` is the honest word
     # — `settlement-model`'s own test is *what LEAVES* — and the three of
@@ -100,11 +106,17 @@ requires:
     # the day anybody wires one.
     - { extent: /world/terminus/wharfside/knackers,  parentParcel: /world/terminus/wharfside, holder: { group: terminus }, landUse: industrial, powerBand: off-grid }
     - { extent: /world/terminus/wharfside/tannery,   parentParcel: /world/terminus/wharfside, holder: { group: terminus }, landUse: industrial, powerBand: off-grid }
+    # ⭐ The towpath cottage (paint D20): its own parcel so the building can be
+    # SOLD — held by the town it is staged and restages; a person who buys
+    # it owns a building that keeps its paint.
+    - { extent: /world/terminus/wharfside/cottage, parentParcel: /world/terminus/wharfside, holder: { group: terminus }, landUse: residential, powerBand: domestic }
     - { extent: /world/terminus/wharfside/chandlery, parentParcel: /world/terminus/wharfside, holder: { group: terminus }, landUse: industrial, powerBand: industrial, feeder: terminus-main:bank }
     # ⭐ The lavoir (cleanliness D27) — the town's washing place on the bank.
     - { extent: /world/terminus/wharfside/lavoir, parentParcel: /world/terminus/wharfside, holder: { group: terminus }, landUse: commercial, powerBand: off-grid }
-    - { extent: /world/terminus/infirmary,   parentParcel: /world/terminus, holder: { group: terminus }, landUse: civic, feeder: terminus-main:avenue }
-    - { extent: /world/terminus/necropolis,  parentParcel: /world/terminus, holder: { group: terminus }, landUse: civic, powerBand: off-grid }
+    # ⭐ The ropewalk (cordage D17) — a long shed off the towpath, lit by day.
+    - { extent: /world/terminus/wharfside/ropewalk, parentParcel: /world/terminus/wharfside, holder: { group: terminus }, landUse: industrial, powerBand: off-grid }
+    - { extent: /world/terminus/infirmary,   parentParcel: /world/terminus, holder: { group: terminus }, landUse: civic, feeder: terminus-main:avenue, waterSource: /world/terminus/wharfside/thing/city-intake }
+    - { extent: /world/terminus/necropolis,  parentParcel: /world/terminus, holder: { group: terminus }, landUse: civic, powerBand: off-grid, waterSource: none }
 boot:
   # ⛔ No structure and no sea is booted (maritime review, 2026-10-14):
   # each loads with the zone that names it — the clock tower when somebody
@@ -118,7 +130,7 @@ boot:
   - { template: /world/terminus/counting-houses/cash-and-carry, role: producer, reason: "the distributor's counter must be resident for the trades' hands to consign onto it and for the boot spawn sweep to have a census; kept booted because its NPCs act while nobody is present (unobserved-economy-slate)" }
   # ⭐ The one chartered bank is NOT booted (the scan sweep): the banking
   # hall loads it (the location graph attaches it from its operatingLocations),
-  # and `appoint … at` resolves it at the act.
+  # and `house appoint … at` resolves it at the act.
   # ⭐ The trade premises' producers (economic bootstrap D6): a floor's
   # Stock is the home container its trade's rows spawn into, and an
   # outfit's hand runs its brain over a live Business. Moved here WITH the

@@ -1,0 +1,15 @@
+# Painting (paint D21) — laying a coat, making a glue line, lettering a sign.
+class: /platform/idea/Discipline
+data:
+  key: painting
+  channel: skill
+  label: Painting
+  iscedf: "0732"
+  description: >-
+    Knowing a binder by how it sets — the oil that wants air and a day, the
+    lime that wants air and a week, the tempera that wants a dry room — and a
+    pigment by how it covers and how it stands the sun; mixing a paint that
+    will lie even; laying a coat thin enough to set and thick enough to last;
+    choosing the dry day; and making a glue line that holds.
+  specializes: []
+  requires: []

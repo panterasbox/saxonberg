@@ -4,17 +4,23 @@
  * brings the take to the farmers market, all through the literal verbs.
  *
  * The roadmap's production brain, and the `consigns` shape grown a
- * front half. Each beat, at home on the farm: read each ground the way
- * a player would (`soilMoistureFraction` / `nutrientFraction` — the
- * mixin's own reads), `fill can from standpipe` + `water <ground>` when
- * it runs dry, `feed <ground> with sack` when the nitrogen is down,
- * `pick <ground>` for each ripe occupant (bounded — the ground-target
+ * front half. On shift only (a hired hand; the `cuts` rule). Each beat,
+ * at home on the farm: read each bed the way a player would
+ * (`soilMoistureFraction` / `nutrientFraction`) and — ⭐ when home is a
+ * FIELD — read each of its parts through the crop rooted there, at the
+ * hand's OWN band with a seeded bracket (`crop.readFor(band,
+ * crop.readSeedFor(hand))`, field population D11/D12), so a novice can
+ * water the wrong field and an expert cannot. Then ONE watering (a can
+ * is one can) to the lowest read below `waterAt` — `fill can from
+ * <from>` at the configured water room, then `water <crop> at <part>` —
+ * and one feeding (`feed <crop> at <part> with sack`) likewise; `harvest
+ * <ground>` for each ripe occupant of a bed (bounded — the ground-target
  * resolves its ripest plant, so the beat never fights keyword
  * ambiguity); then carry the take to the market stall, `wallet use
  * house`, and `consign <fruit> --ask <n>` per item, bounded by the
  * stall's cap headroom (the shelf's authored `listingCapOverride` when
  * present — the A6 seam — else the global dial). Every Nth beat,
- * `draw <n>` — the proprietor's residual made visible.
+ * `house draw <n>` — the proprietor's residual made visible.
  *
  * ⭐ **Nothing here is unavailable to a player.** Every act is a forced
  * literal verb; the hand trades as its outfit through the house card
@@ -30,9 +36,12 @@
  *
  * config: `{ home: string, shelf: string, ask: Record<string, number>,
  * defaultAsk?: number, batch?: number, waterAt?: number, feedAt?:
- * number, drawEvery?: number, drawAmount?: number }` — `home` the
- * grove/fields room (template path), `shelf` the market stall (template
- * path), `ask` minor units by the produce's primary keyword, `batch`
+ * number, drawEvery?: number, drawAmount?: number, water?: { room:
+ * string, from: string } }` — `home` the grove/fields room (template
+ * path), `shelf` the market stall (template path; `''` disables the
+ * market leg), `water` where the can is filled (the room's template path
+ * and the source's keyword; default a standpipe at home), `ask` minor
+ * units by the produce's primary keyword, `batch`
  * picks/consigns per beat (default 6), `waterAt`/`feedAt` the fractions
  * below which the ground gets tended (defaults 0.5 / 0.35),
  * `drawEvery` beats between draws (default 12, 0 disables),
@@ -57,6 +66,7 @@ import type { Employed } from '@saxonberg/server/mud/lib/employment/Employed';
 import { Urgency } from '@saxonberg/server/mud/lib/behavior/Urgency';
 import type { TaskKind } from '@saxonberg/server/mud/lib/behavior/Urgency';
 import type { EngagementSlot } from '@saxonberg/server/mud/lib/activity/Engaged';
+import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
 
 const DEFAULT_BATCH = 6;
 const DEFAULT_ASK = 5;
@@ -95,6 +105,15 @@ export const brain = class {
       return;
     }
     const hand = host as Hand;
+    // A hired hand works on shift; a smallholder works their own (the
+    // `cuts` rule).
+    if (
+      MixinApi.isEmployed(hand) &&
+      hand.getActiveEmployment() &&
+      hand.shiftState() !== 'on-shift'
+    ) {
+      return;
+    }
     const homePath = ctx.config.home;
     const shelfPath = ctx.config.shelf;
     if (typeof homePath !== 'string' || typeof shelfPath !== 'string') return;
@@ -110,34 +129,72 @@ export const brain = class {
     const waterAt = fraction(ctx.config.waterAt, DEFAULT_WATER_AT);
     const feedAt = fraction(ctx.config.feedAt, DEFAULT_FEED_AT);
 
-    // ── the front half: tend and pick, at home ──
+    // ── the front half: read, tend and pick, at home ──
     const grounds = (home.getContents() as Stuff[])
       .filter((g): g is Stuff & Cultivable & Soil => MixinApi.isCultivable(g))
       .slice(0, GROUNDS_CAP);
+    const tends: Tend[] = [];
+    for (const ground of grounds) {
+      const kw = keywordOf(ground);
+      if (!kw) continue;
+      // A bed's own reads: is the soil dry, is the nitrogen down?
+      tends.push({
+        water: `water ${kw}`,
+        feed: `feed ${kw} with sack`,
+        moisture: ground.soilMoistureFraction(),
+        nutrient: ground.nutrientFraction(),
+      });
+    }
+    // ⭐ A FIELD is read through its crop, part by part, at the hand's OWN
+    // band (field population D11/D12): the observed moisture is the truth
+    // plus a seeded error inside the band's bracket, so a novice can
+    // water the wrong field and an expert cannot. Never the true figure.
+    if (MixinApi.isSoil(home) && !MixinApi.isCultivable(home)) {
+      const parts: readonly ((Stuff & Soil) | null)[] =
+        home.soilParts().length > 0 ? home.soilParts() : [null];
+      for (const bed of parts.slice(0, GROUNDS_CAP)) {
+        const crop = home.rootedAreaCrop(bed);
+        if (!crop) continue;
+        const kw = keywordOf(crop);
+        if (!kw) continue;
+        const band: CompetenceBandName = MixinApi.isAdvancing(hand)
+          ? await hand.competenceBandFor(crop.getDiscipline())
+          : 'untrained';
+        const read = crop.readFor(band, crop.readSeedFor(hand));
+        const part = bed ? bed.presentationPhrase().definite() : null;
+        tends.push({
+          water: part ? `water ${kw} at ${part}` : `water ${kw}`,
+          feed: part ? `feed ${kw} at ${part} with sack` : `feed ${kw} with sack`,
+          moisture: read.moisture ?? null,
+          nutrient: read.nutrient ?? null,
+        });
+      }
+    }
+    // One watering and one feeding a beat at most — a can is one can —
+    // each to the LOWEST read below its mark.
+    const thirsty = lowest(tends, (t) => t.moisture, waterAt);
+    if (thirsty) {
+      // Top the can up first, at the configured water (the yard trough)
+      // or at home; a fill that declines leaves the can as it was, and
+      // the water pours from whatever the hand carries — both verbs' own
+      // rules, not the brain's.
+      await fillCan(hand, ctx.config.water, home as Stuff & Container);
+      await hand.forceCommand(thirsty.water);
+    }
+    const hungry = lowest(tends, (t) => t.nutrient, feedAt);
+    if (hungry) await hand.forceCommand(hungry.feed);
+
     let picked = 0;
     for (const ground of grounds) {
       const kw = keywordOf(ground);
       if (!kw) continue;
-      // The player's own reads: is the soil dry, is the nitrogen down?
-      const moisture = ground.soilMoistureFraction();
-      if (moisture !== null && moisture < waterAt) {
-        // Top the can up first; a ground with no standpipe near simply
-        // declines the fill, and the water pours from whatever the hand
-        // carries — both verbs' own rules, not the brain's.
-        await hand.forceCommand('fill can from standpipe');
-        await hand.forceCommand(`water ${kw}`);
-      }
-      const nutrient = ground.nutrientFraction();
-      if (nutrient !== null && nutrient < feedAt) {
-        await hand.forceCommand(`feed ${kw} with sack`);
-      }
       // Pick the ripe occupants — TARGETING THE GROUND, so the verb's
       // own resolution finds the ripest plant and keyword ambiguity
       // between sibling trees never enters. Bounded twice: by the batch
       // and by a no-progress guard (a pick that declines must not grind).
       let remaining = ripeCount(ground);
       while (remaining > 0 && picked < batch) {
-        await hand.forceCommand(`pick ${kw}`);
+        await hand.forceCommand(`harvest ${kw}`);
         picked += 1;
         const now = ripeCount(ground);
         if (now >= remaining) break; // declined — stop, next beat retries
@@ -156,7 +213,9 @@ export const brain = class {
         !MixinApi.isBulkable(c) && // …the can and the sacks stay home
         !MixinApi.isContainer(c),
     );
-    if (carried.length > 0) {
+    // `shelf: ''` disables the market leg (a hired hand on the campus
+    // farm sells nothing).
+    if (carried.length > 0 && shelfPath !== '') {
       // ⚠⚠⚠ **LIVE ONLY — never `singletonOrClone`**, and this line used
       // to end `?? (await StuffApi.singletonOrClone(shelfPath))`.
       //
@@ -212,7 +271,7 @@ export const brain = class {
           const kw = keywordOf(good);
           if (!kw) continue;
           const ask = askFor(ctx.config, good);
-          await hand.forceCommand(`consign ${kw} --ask ${ask}`);
+          await hand.forceCommand(`shelf consign ${kw} --ask ${ask}`);
         }
       } finally {
         hand.teleport(home as Stuff & Container);
@@ -220,17 +279,92 @@ export const brain = class {
     }
 
     // ── the residual, made visible: one beat in N draws the take ──
-    const drawEvery = positiveInt(ctx.config.drawEvery, DEFAULT_DRAW_EVERY);
+    const drawEvery =
+      ctx.config.drawEvery === 0
+        ? 0
+        : positiveInt(ctx.config.drawEvery, DEFAULT_DRAW_EVERY);
     const beats = ((ctx.state.beats as number | undefined) ?? 0) + 1;
     ctx.state.beats = beats;
     if (drawEvery > 0 && beats % drawEvery === 0) {
       const amount = positiveInt(ctx.config.drawAmount, DEFAULT_DRAW_AMOUNT);
-      await hand.forceCommand(`draw ${amount}`);
+      await hand.forceCommand(`house draw ${amount}`);
     }
   }
 } satisfies BrainStatics;
 
-/** Ripe, growing occupants of a ground — what `pick <ground>` will find. */
+/** One ground or part the beat could tend, as the hand reads it. */
+interface Tend {
+  water: string;
+  feed: string;
+  moisture: number | null;
+  nutrient: number | null;
+}
+
+/** The tend whose read is lowest and below `mark`, or `null`. */
+function lowest(
+  tends: readonly Tend[],
+  of: (t: Tend) => number | null,
+  mark: number,
+): Tend | null {
+  let best: Tend | null = null;
+  let bestAt = mark;
+  for (const t of tends) {
+    const v = of(t);
+    if (v !== null && v < bestAt) {
+      best = t;
+      bestAt = v;
+    }
+  }
+  return best;
+}
+
+/**
+ * `fill can from <from>` — at the configured water room when there is one
+ * (`config.water: { room, from, way?, back? }` — she walks `go <way>` and
+ * `go <back>` when the row names them, else the `shifts` teleport), home
+ * ALWAYS re-taken in `finally`;
+ * else at home from a standpipe. The `shifts`/`consigns` movement shape.
+ */
+async function fillCan(
+  hand: Hand,
+  config: unknown,
+  home: Stuff & Container,
+): Promise<void> {
+  const w = (config ?? {}) as { room?: unknown; from?: unknown; way?: unknown; back?: unknown };
+  const from = typeof w.from === 'string' && w.from ? w.from : 'standpipe';
+  // ⭐ She WALKS when the row names the way (field population, the final
+  // drive): a hand blinking out of the field — "Maud Hollis vanishes …
+  // appears out of nowhere" — betrayed the fiction for a trip of one exit.
+  const way = typeof w.way === 'string' && w.way ? w.way : '';
+  const back = typeof w.back === 'string' && w.back ? w.back : '';
+  const room =
+    typeof w.room === 'string' && w.room
+      ? StuffApi.findByTemplatePath(w.room)
+      : null;
+  if (!room || !MixinApi.isContainer(room) || room === home) {
+    await hand.forceCommand(`fill can from ${from}`);
+    return;
+  }
+  if (way && back) {
+    await hand.forceCommand(`go ${way}`);
+    try {
+      if (hand.getContainer() === room) await hand.forceCommand(`fill can from ${from}`);
+    } finally {
+      if (hand.getContainer() !== home) await hand.forceCommand(`go ${back}`);
+      // A way that did not lead home still ends the beat at home.
+      if (hand.getContainer() !== home) hand.teleport(home);
+    }
+    return;
+  }
+  hand.teleport(room as Stuff & Container);
+  try {
+    await hand.forceCommand(`fill can from ${from}`);
+  } finally {
+    hand.teleport(home);
+  }
+}
+
+/** Ripe, growing occupants of a ground — what `harvest <ground>` will find. */
 function ripeCount(ground: Stuff & Cultivable & Soil): number {
   return (ground.getPlants() as Stuff[]).filter(
     (p) => MixinApi.isGrowing(p) && p.isHarvestable(),

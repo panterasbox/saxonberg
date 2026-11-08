@@ -49,7 +49,7 @@ CommandDispatchedEvent ─► participation_events ─► participation ─► I
   **snooping** side-channel (any mudlib subscriber watching every player's
   command cadence). Restricting the receive side to the two blessed
   consumers closes that while keeping the bus's producer-ignorant
-  decoupling. The producer faucet **shares this same signal** (the event now
+  decoupling. The labor faucet **shares this same signal** (the event now
   also carries optional `locationTemplatePath`/`actorTemplatePath` for credit
   routing); both taps must assert the *full pair* so an HMR re-assert never
   evicts the other — the clobber trap detailed in [influence.md](./influence.md).
@@ -103,7 +103,7 @@ renown's does.
 ## The three-stock contract (symmetry at the output)
 
 The consumer stock is the first of three influence stocks (consumer /
-capital / producer). It is built consumer-only, but against a shared
+capital / labor). It is built consumer-only, but against a shared
 **output contract** so the others slot in without a refactor:
 
 - **`InfluenceStanding`** `{subject, stock, scalar, band}` — the uniform
@@ -139,7 +139,7 @@ fit). Raw logs stay per-faucet.
 
 Value-objects live in `lib/standing/` (`ParticipationEvent`,
 `ParticipationStanding`, `Band`, `InfluenceStanding`) — the consolidated
-home shared with renown's value objects and the producer/conviction
+home shared with renown's value objects and the labor/conviction
 substrate (the influence build folded `lib/participation/` + `lib/renown/`
 into one `lib/standing/`; renown is *not* subordinate, hence the neutral
 name — see [influence.md](./influence.md)). The capture event is in
@@ -178,7 +178,7 @@ the capital faucet (Twitch subs); **second-order engagement** (register D2 —
 "the engagement you cause in others", the population-dependent quality
 enrichment; this build measures the solo-observable quantity); the
 player/human-level rollup for enfranchisement; per-faucet saturation. The
-**producer faucet is now built** (the make stock — see
+**labor faucet is now built** (the make stock — see
 [influence.md](./influence.md)).
 
 

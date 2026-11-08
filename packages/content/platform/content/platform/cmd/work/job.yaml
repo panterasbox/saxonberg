@@ -1,10 +1,14 @@
-verbs: [job, jobs]
-controller: /platform/idea/cmd/work/JobController
-description: "Browse, post, claim, and settle gigs on the job board"
+verbs: [job]
+category: work
+# ⭐ One controller per subcommand (controllers-are-io W7, D9). Bare `job`
+# browses, so the verb-level controller is the browse's — and `fallthrough`
+# with a top-level `board` arg is how the bare form binds its board (the
+# zero-token fallthrough fills a `default:`).
+controller: /platform/idea/cmd/work/JobBrowseController
+description: "The job board and the roster from the applicant's side — browse / post / claim / complete / abandon / fulfill / apply / quit"
 help: |
   The job board — posted work with the reward held in escrow: the money
-  is locked when the gig goes up, so the stakes are real. Bare `job` (or
-  `jobs`) lists what's open on this board.
+  is locked when the gig goes up, so the stakes are real. Bare `job` lists what's open on this board.
 
   Post work with `job post <what has to be true> for <reward>` — either
   `deliver <thing> to <place>` or `supply <n> <kind> to <place>` — funded
@@ -14,20 +18,38 @@ help: |
   and the escrow locks at claim. A claim lapses back to open if it sits
   too long, so squatting can't block a board.
 
-  `job claim <id>` takes an exclusive gig; `job complete [id]` turns work
-  in at the board — the engine checks the state of the world right then
-  (or your sealed `fulfill` record), and pays out of escrow on the spot.
+  `job claim <id>` takes an exclusive gig; `job fulfill [id]` logs the
+  delivery at the drop; `job complete [id]` turns work in at the board —
+  the engine checks the state of the world right then (or your sealed
+  `job fulfill` record), and pays out of escrow on the spot.
   `job abandon [id]` walks away: the escrow reverts, and the issuer
   remembers.
 
-  `jobs --origin here` asks a different question: not what hangs on this
+  `job --origin here` asks a different question: not what hangs on this
   board, but what wants moving OUT of where you are standing. That is the
   backhaul — a wagon going home empty has done half the work for all the
   cost, and you cannot solve your own: you need somebody else's cargo
   going the other way.
+
+  The board is the one in reach; name another with `on <board>` (`job
+  claim 3fa on the depot board`).
+
+  `job apply` and `job quit` are the worker's side of a house's roster:
+  ask for an opening going where you stand, or leave a position you hold
+  (the house's side is `house appoint` / `house dismiss`).
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
+fallthrough: true
+args:
+  - name: board
+    type: object
+    required: false
+    greedy: true
+    prepositions: [on]
+    default: "reachable:[class.JobBoard]"
+    scope: ["here", "peers", "person"]
+    requires: class:JobBoard
 options:
   origin:
     short: o
@@ -36,6 +58,7 @@ options:
 subcommands:
   post:
     description: "Post a piece of work, reward held in escrow"
+    controller: /platform/idea/cmd/work/JobPostController
     help: |
       Post work to this board. The shape is always **what has to be true,
       then what you will pay**:
@@ -102,6 +125,14 @@ subcommands:
         type: string
         required: true
         prepositions: [for]
+      - name: board
+        type: object
+        required: false
+        greedy: true
+        prepositions: [on]
+        default: "reachable:[class.JobBoard]"
+        scope: ["here", "peers", "person"]
+        requires: class:JobBoard
     options:
       bounty:
         short: b
@@ -120,24 +151,139 @@ subcommands:
         description: "Posting lifetime in game-hours (escrow reverts after)."
   claim:
     description: "Claim an exclusive gig (locks it to you, escrows the reward)"
+    controller: /platform/idea/cmd/work/JobClaimController
     args:
       - name: id
         type: string
         required: true
+      - name: board
+        type: object
+        required: false
+        greedy: true
+        prepositions: [on]
+        default: "reachable:[class.JobBoard]"
+        scope: ["here", "peers", "person"]
+        requires: class:JobBoard
   complete:
     description: "Turn a gig in — the engine verifies, escrow pays out"
+    controller: /platform/idea/cmd/work/JobCompleteController
     help: |
       Redeem a gig at the board. Verification runs right now against the
-      world — or against your sealed `fulfill` record if the state has
+      world — or against your sealed `job fulfill` record if the state has
       drifted since the handoff. Bare `job complete` resolves your single
       active claim; a bounty must be named by id.
     args:
       - name: id
         type: string
         required: false
+      - name: board
+        type: object
+        required: false
+        greedy: true
+        prepositions: [on]
+        default: "reachable:[class.JobBoard]"
+        scope: ["here", "peers", "person"]
+        requires: class:JobBoard
   abandon:
     description: "Walk away from a claim (escrow reverts; it's remembered)"
+    controller: /platform/idea/cmd/work/JobAbandonController
     args:
       - name: id
         type: string
         required: false
+      - name: board
+        type: object
+        required: false
+        greedy: true
+        prepositions: [on]
+        default: "reachable:[class.JobBoard]"
+        scope: ["here", "peers", "person"]
+        requires: class:JobBoard
+  # ⭐⭐ The flat `fulfill`, `apply` and `quit` verbs until controllers-are-io
+  # W7 (D9): the contract board's book and the applicant's side of a
+  # house's roster. None binds a board — the drop, and the house, are where
+  # you stand.
+  fulfill:
+    description: Log a delivery at the destination — proof the job is done
+    controller: /platform/idea/cmd/work/JobFulfillController
+    help: |
+      The handoff: standing at the gig's destination with the delivery made,
+      `job fulfill` has your implant verify and log the completed work — an
+      engine-sealed record that the job was done, right here, right now. The
+      payout still happens at the board (`job complete`), but the sealed
+      record survives whatever happens to the goods afterward — the recipient
+      taking the crate inside is the point of delivering it.
+
+      Bare `job fulfill` resolves your single active claim; name an id when you
+      hold several (or for an open bounty).
+    examples:
+    - cmd: job fulfill
+      note: Log your active gig's delivery at the destination
+    args:
+    - name: id
+      type: string
+      required: false
+  apply:
+    description: Ask for a job that is going here
+    controller: /platform/idea/cmd/work/JobApplyController
+    help: |
+      Ask for work. Bare `job apply` takes the one opening where you stand; name
+      the seat with `job apply for <position>`, or the house with `job apply at
+      <organization>` when several are hiring.
+
+      ⭐ **You move first.** Openings are advertised on a card where you can
+      read them — `look` in a room prints every notice going there — and you
+      ask. Nobody sizes you up and makes you an offer; that is not how
+      getting a job works, and a house that could pick you out of a crowd
+      could also pass you over for reasons it never has to say.
+
+      **What a house may ask of you, and it is the whole list:**
+
+      - **completed gigs** — work you have finished off a noticeboard. Two
+        of anything counts as two.
+      - **a competence band in a named discipline** — *a competent hand at
+        tailoring*. Practising lifts it.
+
+      Nothing else. A seat cannot ask what species you are, who your people
+      were, what anybody thinks of you, or what is in your account. If you
+      are refused, the refusal says **which number you are short and by how
+      much**, because a refusal you cannot answer is not a rule, it is a
+      wall.
+
+      Being taken on does not put you to work: you are on the chart, not on
+      shift. `clock on` starts the shift and the wage; `clock off` ends it
+      and pays.
+    examples:
+    - cmd: job apply
+      note: Take the one opening going where you stand
+    - cmd: job apply for hand
+      note: Name the seat when the house has more than one going
+    - cmd: job apply for tailor at /world/terminus/mayfield-row/tailor/idea/outfit
+      note: Name the house too
+    args:
+    - name: position
+      type: string
+      required: false
+      prepositions:
+      - for
+    - name: organization
+      type: string
+      required: false
+      prepositions:
+      - at
+  quit:
+    description: Leave a position you hold
+    controller: /platform/idea/cmd/work/JobQuitController
+    help: |
+      Leave a job. Bare `job quit` leaves the one position you hold; if you hold
+      several, name the organization — `job quit /world/lounge/idea/business`.
+      Leaving a position is what takes the house account back out of your
+      wallet, if you'd put it there with `wallet use house`. Your record is
+      kept (you quit; you weren't fired).
+    examples:
+    - cmd: job quit
+      note: Leave the one position you hold
+    args:
+    - name: organization
+      type: string
+      required: false

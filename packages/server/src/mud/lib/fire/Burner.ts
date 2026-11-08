@@ -43,10 +43,12 @@
  * See docs/subsystems/fire.md + thermal.md.
  */
 
+import type { SmellNote } from '../perception/Smell';
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { CommandContributions } from '../../api/command';
 import type { MarkupAugmenter } from '../../api/mml';
 import { Mml } from '../../api/mml';
+import { PumpableMixin } from '../pump/Pumpable';
 import type { Pumpable, PumpPrognosis, PumpResult } from '../pump/Pumpable';
 import type { Stuff } from '../stuff/Stuff';
 import type { Thermal } from '../thermal/Thermal';
@@ -153,6 +155,8 @@ export interface Burner extends Pumpable {
   fuelEnergyJ(): number;
   /** What it is burning, heaviest first. Empty when the bed is empty. */
   fuelMaterials(): Material[];
+  /** What the fire gives the air, by its fuel's own `burning`; empty unlit. */
+  burningNotes(): SmellNote[];
   /** The dominant fuel, or `null`. */
   fuelMaterial(): Material | null;
   /** This material's share of the bed, by mass. */
@@ -394,7 +398,9 @@ const BANKED_LOOK_THRESHOLD = 0.1;
 export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
   Base: TBase,
 ) {
-  class BurnerMixin extends Base implements Burner {
+  // ⭐ Composes the pump PROTOCOL (`PumpableMixin`): a furnace's bellows
+  // answers `pump`, and a lamp's honest `no-bellows` is this override.
+  class BurnerMixin extends PumpableMixin(Base) implements Burner {
     static _mixinName = 'BurnerMixin';
 
     static markupAugmenters: MarkupAugmenter[] = [burnerAugmenter];
@@ -430,14 +436,14 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
       // holding, and all three would have died at the affordance link
       // in exactly the same silence.
       environment: [
-        'platform/cmd/device/ignite.yaml',
+        'platform/cmd/device/light.yaml',
         'platform/cmd/device/douse.yaml',
         'platform/cmd/device/stoke.yaml',
         'platform/cmd/device/draught.yaml',
         'platform/cmd/device/cover.yaml',
       ],
       peers: [
-        'platform/cmd/device/ignite.yaml',
+        'platform/cmd/device/light.yaml',
         'platform/cmd/device/douse.yaml',
         'platform/cmd/device/stoke.yaml',
         'platform/cmd/device/draught.yaml',
@@ -910,6 +916,29 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
       }
       out.sort((a, b) => b.mass - a.mass);
       return out.map((e) => e.material);
+    }
+
+    public burningNotes(): SmellNote[] {
+      if (!this.isLit()) return [];
+      const slot = this.fuelSlot();
+      const beds: [Material, number][] = [];
+      if (slot !== null) {
+        const material = slot.getMaterial();
+        if (material) beds.push([material, this.fuelRemaining()]);
+      } else {
+        for (const [path, mass] of Object.entries(this.fuelBed)) {
+          const material = StuffApi.findByTemplatePath<Material>(path);
+          if (material && mass > 0) beds.push([material, mass]);
+        }
+      }
+      const out: SmellNote[] = [];
+      for (const [material, kg] of beds) {
+        if (!MixinApi.isOdorous(material)) continue;
+        for (const tag of material.getBurning()) {
+          out.push({ aroma: tag.aroma, ou: tag.strength * Math.sqrt(kg) });
+        }
+      }
+      return out;
     }
 
     public fuelMaterial(): Material | null {
@@ -1555,7 +1584,7 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
 
     // -------- the combustion face (forwards into FireLogic) --------
 
-    /** Light the furnace (the `ignite` verb's appliance arm). Sealed —
+    /** Light the furnace (the `light` verb's appliance arm). Sealed —
      * the combustion driver is the one writer of lit state. */
     @Final
     @Unshadowable

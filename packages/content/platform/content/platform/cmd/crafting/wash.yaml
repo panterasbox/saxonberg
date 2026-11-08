@@ -1,4 +1,5 @@
 verbs: [wash]
+category: crafting
 controller: /platform/idea/cmd/crafting/WashController
 description: "Wash something at water — a glass, a shirt, a floor — or your own hands"
 help: |
@@ -27,12 +28,18 @@ help: |
   medic washes between patients. Hands stay clean until something
   dirties them.
 
-  `scrub` is the same act, harder and slower.
+  `wash <thing> --hard` scrubs it: three times as long and much more
+  effort, and it shifts what a quick wash leaves — baked-on grease, a
+  grimed pane, a stained board, the floor of a busy shop. A scrubbing
+  brush in hand or reach scrubs at the full rate; bare hands at half
+  (`wash floor --hard using brush with soap`).
 examples:
   - cmd: wash shirt in basin with soap
     note: Wash a shirt with soap in the basin
   - cmd: wash
     note: Wash your hands at the water in reach
+  - cmd: wash board in basin with soap --hard
+    note: Scrub a chopping board with soap
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
@@ -43,12 +50,19 @@ args:
   # another; bare, we wash your hands. ONE mixin, no alternation: every
   # washable thing composes Soilable (garments, vessels, kit, bandages,
   # floors, panes, lamps, seats).
+  #
+  # ⭐ HAND-FIRST (`reachable`), not the W2 audit's room-first: what you wash
+  # is, in the common case, what you are holding — a glass, a shirt, the
+  # knife you just butchered with — and the one world case, the floor, has a
+  # word nothing in a hand answers to. Room-first bound the table's knife
+  # over the boning knife in hand (food-safety, `wash boning`), and the tie
+  # goes to the earlier try (D21).
   - name: target
     type: objects
     required: false
     scope: "reachable"
     requires: SoilableMixin
-  # ⭐ WHAT IN — DECLARED, not hunted for (`lint:instrument-args`). A
+  # ⭐ WHAT IN — DECLARED, not hunted for (`lint:controller-resolution`). A
   # vessel of water, or the water a shore is beside — `wash shirt in
   # river`. The controller's narrowing (water or brine) is the check, and
   # a frozen water is refused unless there is a hole in it.
@@ -68,6 +82,22 @@ args:
     type: objects
     required: false
     greedy: true
-    prepositions: [with, using]
+    prepositions: [with]
     scope: ["reachable"]
     requires: any
+  # ⭐ WHAT WITH — the brush, DECLARED (`lint:controller-resolution`): a
+  # scrubbing brush in hand or reach scrubs at the full rate on `--hard`;
+  # bare hands at half (`wash floor --hard using brush with soap`). It was
+  # `scrub`'s slot until `scrub` became this verb's `--hard` (D8c).
+  - name: brush
+    type: objects
+    required: false
+    greedy: true
+    prepositions: [using]
+    default: "me:i:[capability.scrubbing],reachable:[capability.scrubbing]"
+    scope: ["reachable"]
+    requires: [ToolMixin]
+options:
+  hard:
+    type: boolean
+    description: "Scrub it — three washes' worth with a brush, half that by hand"

@@ -50,13 +50,25 @@ A good arriving from nowhere (just minted) is titled by
 `ContainmentApi.move` itself, in order: the owner of what it was **made
 from** (`StuffApi.clone(row, ctx, { madeFrom })`) → the person whose
 **hands** it lands in → the person **acting** in a live command → the
-recorded **maker**. With none of those (a seed a plant sets, a spoil a
+recorded **maker**. ⚠ A piece split off a thing is *made from* it: a page
+torn out of a book, a sheet's second half, a garment's rags all pass
+`madeFrom` — without it the tearer's hands would title the owner's paper
+(the paper build, 2026-11-05). With none of those (a seed a plant sets, a spoil a
 field hook mints) it carries no title. Custody (`followCustody`) is derived
 in the same primitive on every move. `ContainmentApi.place`/`land` and the
 hand-called `stampChattel` + `followCustody` pair at mint sites are gone —
 see [spatial.md](./spatial.md) for the move's full sequence. A hand
 `stampChattel` remains only where title is a decision, not a derivation
 (a sale, a consignment, naming an animal).
+
+⭐ **The made-from half is `MadeFromMixin`'s** (controllers-are-io D6,
+`lib/chattel/MadeFrom.ts`): `recordMadeFrom` / `getMadeFromOwner` /
+`recordMadeBy` / `isMadeByProcess` compose on **`Good` and `Vessel`
+only** — a made thing may carry its inputs' owner, and an animal is not
+made (ranching writes SERVED). The title half keeps `ChattelMixin`, its
+file and every `requires: [ChattelMixin]`; the derived title and
+`ownerOfInputs` narrow on `MixinApi.isMadeFrom`, so an arriving animal no
+longer reads a made-from slot it never had.
 
 #### ⭐⭐ Who acted, when it happens later — and the communal oven (potash build)
 
@@ -224,7 +236,7 @@ identities" from ever arising, and it is why the narrowing is a
 refinement rather than a loophole. An untitled stack merges exactly as it
 always did.
 
-⚠ It is not a nicety. `consign` refused every stack, so a mill could weave
+⚠ It is not a nicety. `shelf consign` refused every stack, so a mill could weave
 cloth it could never sell: a live drive of the textile chain ended on
 `controller-rejected:fungible(bolt)`. A bolt is a stack **on purpose** —
 `canMergeWith` is narrowed to grade + form + dye stack so two dye lots
@@ -232,7 +244,7 @@ never merge — and a good whose fungibility is load-bearing was thereby
 barred from the sale layer entirely. Consigning now takes ONE unit off
 the stack and titles it: the lot on the shelf is a thing with an owner,
 the rest of the stack stays owned-by-possession in the seller's hands.
-See `ConsignController`.
+See `ShelfConsignController`.
 
 ## The trio (mirrors the parcel trio)
 
@@ -274,7 +286,7 @@ Chattel is proven independent of the shop (stamp/transfer/ownerOf, author
 fallback, survival across a container move + a persistence round-trip,
 stack refusal, GC), then consumed by the store's **buy-that-stamps** and
 its **custody-vs-ownership consignment** — see [retail.md](./retail.md).
-Consignment is the load-bearing exercise: `consign` moves *custody* to the
+Consignment is the load-bearing exercise: `shelf consign` moves *custody* to the
 shop while the owner-stamp stays put, and the sale transfers *both*.
 
 ## Deferred
@@ -306,3 +318,24 @@ A good whose host is transient space (a river patch, a sea room) is written
 to the estate as **`loose`** (`ESTATE_LOOSE`): kept where its place is
 persisted (a river stop), lost otherwise, titled still. `Estate.hydrateSlice`
 skips loose entries.
+
+## Harbors build (2026-11, MR !511)
+
+⭐ **Sold where it lies — title moves, the good does not.** A boat the
+put-in's house sells is already lying on its shingle, too big to hand
+across a counter: the sale settles the price, then the good's own
+`transferChattel(buyer)` moves the TITLE and nothing moves the thing; then
+`followCustody()` re-reads where its new owner keeps it, as a move would
+have, so the buyer's estate places it on that landing
+([retail.md](./retail.md) § the offer protocol). The landing is a kept
+`PersistentShore`, so the house's unsold boats do not come back after a
+sold one at a restart.
+
+⭐ **A hire is custody, never title.** `rent` puts a house boat in the
+hirer's hands for a term (`HirableMixin.hireTo`); her stamp stays the
+house's, and the hire ends when she is put down where she was let from.
+It is consignment's split the other way round: custody leaves the owner
+and the title stays put.
+
+A ship is not chattel: her title is her register entry, owned by her
+company, whose holders are its cap table ([ship.md](./ship.md)).

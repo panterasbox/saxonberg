@@ -186,6 +186,8 @@ export const SKYLIT_INTERIORS: readonly string[] = [
   '/world/terminus/waponi-woo/boiling-house/location/curing-house', // slatted openings under the eaves, for the drain's air
   '/world/terminus/rejection/hanging-wood/lean-to', // open along its front to the ashery clearing — daylight under the eaves
   '/world/terminus/hearts-delight/location/mill-house', // little windows at the top of the wheel shaft — the light the dust hangs in
+  '/world/terminus/hearts-delight/paper-mill/location/vat-house', // the vat stands by the window: a vatman holds every sheet up to it (paper W2)
+  '/world/terminus/hearts-delight/paper-mill/location/loft', // louvered on every side for the air, and the light comes with it (paper W2)
   '/world/terminus/market/bathhouse/location/vestibule', // high misted windows over the boot bench
   '/world/terminus/market/bathhouse/location/baths', // high misted windows over the tubs
   '/world/terminus/market/bathhouse/location/gym', // one high window over the barbell
@@ -194,8 +196,9 @@ export const SKYLIT_INTERIORS: readonly string[] = [
   '/world/terminus/eternal/duncan-hall/location/dormroom', // a narrow window over the desk
   '/world/terminus/mayfield-row/seznick-house/location/main', // a sash window onto the row
   '/world/terminus/mayfield-row/seznick-house/location/hall', // a fanlight over the door — about an hour of it each morning
-  '/world/terminus/hinkley-hills/lots/hall', // a tall sash window beside the door
-  '/world/terminus/hinkley-hills/lots/kitchen', // a small window over the sink
+  '/world/terminus/hinkley-hills/house/indoors/hall', // a tall sash window beside the door
+  '/world/terminus/hinkley-hills/house/indoors/kitchen', // a small window over the sink
+  '/world/terminus/hinkley-hills/house/indoors/scullery', // a small window over the stone sink (water-supply W4)
   '/world/terminus/goods-yards/brewing/location/floor', // high shuttered windows above the coppers
   '/world/terminus/goods-yards/vintner/location/floor', // square windows under the eaves, in thick green glass
   '/world/terminus/hearthworks/location/cookhouse', // a wide unglazed window over the wash bench
@@ -206,7 +209,13 @@ export const SKYLIT_INTERIORS: readonly string[] = [
   '/stuff/location/room/bedroom', // a window with a catch that sticks
   '/stuff/location/room/living', // a window taking up most of one wall
   '/stuff/location/room/bathroom', // a small frosted window, high up
-  '/world/terminus/hinkley-hills/lots/bathroom', // the same frosted window, and a copper
+  // ⭐ Blueprint rooms that extend the three above —
+  // the same window, inherited.
+  '/world/terminus/hinkley-hills/house/indoors/bedroom', // the generic bedroom's window
+  '/world/terminus/hinkley-hills/house/indoors/living', // the generic living room's window
+  '/world/terminus/hearts-delight/farmstead/location/house', // the generic bedroom's window
+  '/world/terminus/mayfield-row/seznick-house/location/bathroom', // the generic bathroom's frosted window
+  '/world/terminus/hinkley-hills/house/indoors/bathroom', // the same frosted window, and a copper
   '/world/terminus/hearts-delight/creamery/location/floor', // high north-facing louvred windows — light without sun on the milk
   '/world/terminus/hearts-delight/creamery/location/cheese-room', // an iron grating at the top of the cellar wall
   '/world/terminus/hearts-delight/dairy/location/byre', // the wide byre door, propped open — milking is done by daylight

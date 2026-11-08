@@ -18,7 +18,7 @@ import { StuffApi } from '../../../../api/stuff';
 import { WorldClockApi } from '../../../../api/worldclock';
 import { makeStuff } from '../../../../lib/security/__tests__/test-setup';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
-import type { Tooled } from '../../../../lib/craft/Tooled';
+import type { Tooled } from '../../../../lib/craft/Tool';
 import type { CompetenceBandName } from '../../../../lib/advancement/CompetenceBand';
 import { MixinApi } from '../../../../api/mixin';
 
@@ -76,6 +76,7 @@ describe('ChemistryReading — the bench, and the spoiled sample', () => {
   function asPerishableMatter(): void {
     vi.spyOn(MixinApi, 'isTangible').mockReturnValue(true as never);
     vi.spyOn(MixinApi, 'isFresh').mockReturnValue(true as never);
+    vi.spyOn(MixinApi, 'isSampled').mockReturnValue(true as never);
   }
 
   it('⭐ a fresh sample reads its composition and says nothing about a journey', async () => {

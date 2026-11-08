@@ -112,9 +112,22 @@ async function examine(s: Session, keyword: string): Promise<string> {
     .join('\n');
 }
 
+/**
+ * ⭐ The founder holds every office but sits on NO committee (wizard-axis
+ * D13): seated on the three whose ground this drive stages on — its
+ * `eval --parcel /world/terminus` reaches into the smithy (Hearthworks),
+ * the smelter (Rejection) and the cobbler (Terminus), and `clone` asks
+ * title over the glowcap row's path (Rejection's).
+ */
+const FOUNDER_SEATS = [
+  '/world/terminus',
+  '/world/terminus/hearthworks',
+  '/world/terminus/rejection',
+];
+
 /** Into the ROOM, by the founder, who holds the title. */
 async function cloneHere(where: string, path: string, count = 1): Promise<void> {
-  const f = await Session.open('founder', { startLocation: where, wizard: true });
+  const f = await Session.open('founder', { startLocation: where, committees: FOUNDER_SEATS });
   try {
     expectOk(await f.cmd(`clone ${path} --here${count > 1 ? ` --count ${count}` : ''}`));
   } finally {
@@ -142,7 +155,7 @@ async function evalOn(where: string, keyword: string, code: string): Promise<str
 /** A funded player, standing at `where` with a light. */
 async function newPlayer(tag: string, where: string): Promise<Session> {
   const handle = uniqueHandle(tag);
-  const bank = await Session.open(handle, { startLocation: BANK_HALL, wizard: true });
+  const bank = await Session.open(handle, { startLocation: BANK_HALL });
   expectOk(await bank.cmd('bank open'));
   const gov = await Session.open('founder', { startLocation: BANK_HALL });
   try {
@@ -158,7 +171,10 @@ const LIT = new Set<string>();
 
 /** The same person, somewhere else (inventory travels); a light the first time. */
 async function goTo(handle: string, where: string): Promise<Session> {
-  const s = await Session.open(handle, { startLocation: where, wizard: true });
+  const s = await Session.open(
+    handle,
+    handle === 'founder' ? { startLocation: where, committees: FOUNDER_SEATS } : { startLocation: where },
+  );
   if (!LIT.has(handle)) {
     LIT.add(handle);
     await cloneHere(where, GLOWCAP);
@@ -257,7 +273,7 @@ async function orderAnswering(s: Session, line: string, yes: boolean): Promise<s
 
 /** A player's balance, read at the bank. */
 async function balanceOf(handle: string): Promise<string> {
-  const s = await Session.open(handle, { startLocation: BANK_HALL, wizard: true });
+  const s = await Session.open(handle, { startLocation: BANK_HALL });
   try {
     return (await (await s.cmd('bank')).said()).trim();
   } finally {
@@ -294,7 +310,8 @@ suite('⭐ drive 1 — parts or one piece (AC 12)', () => {
     // pale where two hands have gripped it".
     expect(pick).not.toMatch(/It is worn|has been mended/);
     const stone = await examine(mender, 'whetstone');
-    expect(stone, `look whetstone: ${stone}`).toMatch(/It is one piece\./);
+    // ⭐ Quiet on the look since client-surface D10; the fit refusal says it.
+    expect(stone, `look whetstone: ${stone}`).not.toMatch(/made of/i);
     const fit = await say(mender, 'fit pick-haft to whetstone');
     expect(fit, `fit haft to whetstone: ${fit}`).toMatch(/one piece/i);
   }, 300_000);
@@ -372,7 +389,7 @@ suite('⭐⭐ drive 5 — the paid mend is the smith\'s work (AC 5, 6)', () => {
     await evalOn(SMITHY, 'miners-pick', "(this.wearLine('head', 0.3), this.getCondition())");
     await say(mender, 'get miners-pick');
     await say(mender, 'look'); // the arrival look brings the house current
-    const said = await orderAnswering(mender, 'order repair miners-pick', true);
+    const said = await orderAnswering(mender, 'order repair for miners-pick', true);
     if (!/looks it over/i.test(said)) {
       // What the roster thinks of her, for the record of a failure.
       const state = await evalOn(
@@ -439,7 +456,7 @@ suite('⭐⭐ drive 6 — the tinker on his round (AC 8, 9)', () => {
       // The examine reads his description (a grinding wheel on his back),
       // not his job noun — present is what is asserted.
       expect(here, `the smelter at three: ${here}`).toMatch(/grinding wheel/i);
-      const said = await orderAnswering(at, 'order repair miners-pick', true);
+      const said = await orderAnswering(at, 'order repair for miners-pick', true);
       expect(said, `tinker: ${said}`).toMatch(/haft has failed/i);
       expect(said).toMatch(/head is worn/i);
       const pick = await examine(at, 'miners-pick');
@@ -469,7 +486,7 @@ suite('⭐⭐ drives 7–8 — the cobbler, and her second seat (AC 10)', () => 
       await evalOn(COBBLER, 'boots', "(this.ensureParts(), this.wearLine('sole', 0.5), this.getCondition())");
       await say(at, 'get boots');
       await say(at, 'look');
-      const said = await orderAnswering(at, 'order repair boots', true);
+      const said = await orderAnswering(at, 'order repair for boots', true);
       expect(said, `cobbler: ${said}`).toMatch(/sole is worn/i);
       expect(said).toMatch(/sound/i);
       const boots = await examine(at, 'boots');
@@ -488,7 +505,7 @@ suite('⭐⭐ drives 7–8 — the cobbler, and her second seat (AC 10)', () => 
     const at = await goTo(wearer, COBBLER);
     try {
       await say(at, 'look');
-      const said = await say(at, 'order repair boots');
+      const said = await say(at, 'order repair for boots');
       expect(said, `off shift: ${said}`).toMatch(/nobody here to do the work/i);
     } finally {
       at.close();
@@ -500,7 +517,7 @@ suite('⭐⭐ drives 7–8 — the cobbler, and her second seat (AC 10)', () => 
     const first = await newPlayer('cobbler', COBBLER);
     const handle = first.handle;
     await practise(first, 'leatherwork', 3);
-    const applied = await say(first, 'apply for cobbler');
+    const applied = await say(first, 'job apply for cobbler');
     console.log(`[repair drive] apply → ${applied}`);
     expect(applied, `apply: ${applied}`).toMatch(/cobbler/i);
     first.close();
@@ -528,7 +545,7 @@ suite('⭐⭐ drives 7–8 — the cobbler, and her second seat (AC 10)', () => 
         );
         console.log(`[repair drive] the cobbler's floor: ${floor}`);
         await say(customer, 'get boots');
-        const said = await orderAnswering(customer, 'order repair boots', true);
+        const said = await orderAnswering(customer, 'order repair for boots', true);
         expect(said, `the player's mend: ${said}`).toMatch(/serviceable|sound/i);
         const boots = await examine(customer, 'boots');
         expect(boots, `mended by the player: ${boots}`).toMatch(/mended by/i);
@@ -594,7 +611,7 @@ suite('⭐ drive 10 — a stranger reads what was done to a botched pick (AC 4)'
   it('consigned, it reads mended; with appraisal, by an unpractised hand', async () => {
     mender.close();
     mender = await goTo(pickHandle, STORE);
-    const put = await say(mender, 'consign miners-pick --ask 6');
+    const put = await say(mender, 'shelf consign miners-pick --ask 6');
     expect(put, `consign: ${put}`).not.toMatch(/can'?t|cannot/i);
     const stranger = await newPlayer('stranger', STORE);
     try {
@@ -613,7 +630,7 @@ suite('⭐ drive 10 — a stranger reads what was done to a botched pick (AC 4)'
     // held the pick at the counter, mends and all, and the world did not
     // place it). That is retail's defect, recorded in the plan's drive
     // record; drive 12 proves the MENDS survive, in the owner's hands.
-    const back = await say(mender, 'reclaim miners-pick');
+    const back = await say(mender, 'shelf reclaim miners-pick');
     expect(back, `reclaim: ${back}`).not.toMatch(/can'?t|cannot|isn'?t/i);
   }, 600_000);
 });
@@ -671,7 +688,7 @@ suite('⭐⭐⭐ drive 12 — a restart (AC 4, 18)', () => {
     });
     process.env.WIRE_SERVER_URL = await bootOwnedWorld();
     await toHour(12); // by daylight: in the dark a thing is "something"
-    const back = await Session.open(pickHandle, { startLocation: SMITHY, wizard: true });
+    const back = await Session.open(pickHandle, { startLocation: SMITHY });
     try {
       const hook = await say(back, 'analyze response billhook');
       expect(hook, `the billhook, after a restart: ${hook}`).toMatch(/edge: keen/);

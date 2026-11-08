@@ -1,0 +1,23 @@
+# fish glue — boiled from fish skins: slow to set, very strong, the clearest glue there is, and the damp undoes it.
+class: /platform/idea/material/OdorousMaterial
+data:
+  smells: [{ aroma: /base-library/aromas/fish, strength: 800 }]
+  name: fish glue
+  keywords: ["fish glue", glue, isinglass]
+  appearance: a clear, faintly golden glue with an unmistakable smell of the harbor
+  density: 1200
+  specificHeat: 2500
+  thermalConductivity: 0.3
+  meltingPoint: 300
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: [liquid, glue, animal-glue, organic, once-living]
+  # ⭐ A GLUE (paint D11): the strength of a set line, whether heat and
+  # steam undo it, how it stands the damp, the heat it lets go at.
+  adhesive: { strength: 0.85, reversible: { heatK: 325, steam: true }, resistsDamp: 0.05, softensAtK: 335 }
+  kinetics:
+    - key: set
+      sets: drying
+      order: 0
+      rate: [[273, 0.005], [283, 0.015], [293, 0.03], [303, 0.05]]

@@ -14,8 +14,12 @@
 import "../../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import PutController from '../PutController';
+import { FeederMixin } from '../../../../../lib/husbandry/Feeder';
+import { TangibleMixin } from '../../../../../lib/material/Tangible';
 import { ContainerMixin } from '../../../../../lib/spatial/Container';
 import { ContainableMixin } from '../../../../../lib/spatial/Containable';
+import { StackableMixin } from '../../../../../lib/stuff/Stackable';
+import type { FieldMeta } from '../../../../../lib/mixin';
 import { PlacingMixin } from '../../../../../lib/spatial/Placing';
 import { SealableMixin } from '../../../../../lib/spatial/Sealable';
 import { OrganismMixin } from '../../../../../lib/species/Organism';
@@ -98,6 +102,14 @@ class TestDeskWithDrawer extends PlacingMixin(
   ContainerMixin(ContainableMixin(NamedMixin(Idea))),
 ) {
   static _mixinName = 'TestDeskWithDrawer';
+}
+
+class Coin extends StackableMixin(ContainableMixin(NamedMixin(Idea))) {
+  static _mixinName = 'PutTestCoin';
+  static fieldMeta: FieldMeta = {
+    quantity: { persistent: true },
+    name: { persistent: true },
+  };
 }
 
 class TestItem extends ContainableMixin(NamedMixin(Idea)) {
@@ -808,5 +820,89 @@ describe('PutController — put over N placements', () => {
       makeContext(giver, loc),
     );
     expect(apple.getPlacement()?.name).toBe('from');
+  });
+});
+
+describe('⭐ PutController — a count (the ceramics drive: `put 1 clay in tub` matched no shape)', () => {
+  beforeEach(() => {
+    ShadowApi._clearAllForTesting();
+    StuffApi.clearAll();
+  });
+
+  it('`put 2 coins in chest` splits two off the stack and puts them in; the rest stay in hand', async () => {
+    vi.spyOn(StuffApi, 'clone').mockImplementation(async (path: string) =>
+      makeStuffAtPath(() => {
+        const c = new Coin();
+        c.setName('coin');
+        return c;
+      }, path) as unknown as Stuff,
+    );
+    const loc = makeStuff(() => new Place());
+    const giver = makeStuff(() => new TestGiver());
+    ContainmentApi.move(giver, loc);
+    const stack = makeStuffAtPath(() => {
+      const c = new Coin();
+      c.setName('coin');
+      return c;
+    }, '/obj/item/PutCoin');
+    stack.setQuantity(5);
+    ContainmentApi.move(stack, giver);
+    const chest = makeStuff(() => {
+      const c = new TestChest();
+      c.setName('chest');
+      return c;
+    });
+    ContainmentApi.move(chest, loc);
+
+    const controller = makeStuff(() => new PutController());
+    const item: MqlOneResult = { stuff: stack, raw: '2 coins', quantity: { value: { kind: 'count', n: 2 }, mode: 'lenient' } };
+    await controller.execute(makeModel(item, one(chest, 'chest', 'in')), makeContext(giver, loc));
+
+    expect(stack.getQuantity()).toBe(3);
+    expect(stack.getContainer()).toBe(giver);
+    const inChest = chest.getContents().filter((c) => c instanceof Coin) as Coin[];
+    expect(inChest.reduce((n, c) => n + c.getQuantity(), 0)).toBe(2);
+  });
+
+  describe('⭐ the target says what the word means (controllers-are-io D11)', () => {
+    it('placementFor: a typed word, the only offer, or which of them', () => {
+      const desk = makeStuff(() => new TestDeskWithDrawer());
+      expect(desk.placementFor('in')).toMatchObject({ ok: true, offer: { kind: 'zero' } });
+      expect(desk.placementFor('on')).toMatchObject({ ok: true, offer: { kind: 'placement', name: 'on' } });
+      expect(desk.placementFor(undefined)).toMatchObject({ ok: false, reason: 'preposition-ambiguous' });
+      expect(desk.placementFor('over')).toMatchObject({ ok: false, reason: 'wrong-preposition', got: 'over' });
+      const chest = makeStuff(() => new TestChest());
+      expect(chest.placementFor(undefined)).toMatchObject({ ok: true, offer: { kind: 'zero' } });
+    });
+
+    it('a feeder hears who filled it on its own hook — any move by a person', () => {
+      class TestFeeder extends FeederMixin(ContainerMixin(ContainableMixin(NamedMixin(Idea)))) {}
+      class Scraps extends TangibleMixin(ContainableMixin(NamedMixin(Idea))) {
+        public override isEdible(): boolean {
+          return true;
+        }
+      }
+      class Keeper extends TestGiver {
+        public override isAgent(): boolean {
+          return true;
+        }
+        public override getIdentityPath(): string {
+          return '/platform/agent/Avatar/keeper';
+        }
+      }
+      const giver = makeStuff(() => new Keeper());
+      const loc = makeStuff(() => new Place());
+      ContainmentApi.move(giver, loc);
+      const bowl = makeStuff(() => new TestFeeder());
+      ContainmentApi.move(bowl, loc);
+      const food = makeStuff(() => new Scraps());
+      ContainmentApi.move(food, loc);
+      // Off the floor it is nobody's filling.
+      ContainmentApi.move(food, bowl);
+      expect(bowl.getLastFilledBy()).toBe('');
+      ContainmentApi.move(food, giver);
+      ContainmentApi.move(food, bowl);
+      expect(bowl.getLastFilledBy()).toBe('/platform/agent/Avatar/keeper');
+    });
   });
 });

@@ -160,21 +160,20 @@ export class SpeciesApi {
   }
 
   /**
-   * Merge a list of name-bank keys into one set of pools — given names,
+   * Merge a list of name-bank document paths into one set of pools — given names,
    * surnames, and any style hints, order-preserving with duplicates
    * collapsed.
    *
-   * ⭐ A **missing bank is skipped silently**, not an error: a species
-   * naming a bank no installed pack ships is a content gap, and the
-   * suggester degrading to the banks that ARE there is better than
-   * refusing to name anybody. The banks are `kind: 'name-bank'`
-   * documents; the whole set is cached on first resolve and dropped by
-   * the installer's go-live.
+   * ⭐ A **missing bank is recorded and skipped**: a species naming a
+   * path with no bank is a content gap an author sees in `errors`, and
+   * the suggester degrading to the banks that ARE there is better than
+   * refusing to name anybody. Each bank is read by its path on first
+   * use and cached until the installer's go-live.
    */
   public static async resolveNamePools(
-    keys: readonly string[],
+    paths: readonly string[],
   ): Promise<NamePools> {
-    return logic().resolveNamePools(keys);
+    return logic().resolveNamePools(paths);
   }
 }
 

@@ -114,6 +114,11 @@ export interface PromptAsker {
   askedBy?: string;
   askedByDescription?: string;
   askedAt?: number;
+  /**
+   * ⭐ The bar whose command asked (client-surface D6, #97). A prompt is
+   * that bar's; absent → the primary bar's.
+   */
+  barId?: string;
 }
 
 export type PromptEntry = PromptAsker &
@@ -281,6 +286,15 @@ export interface Frame {
    * server-side keys on it.
    */
   channelName?: string;
+  /**
+   * ⭐ The frame's tags as the server sent them. A chat frame carries
+   * `channel:<name>` (client-surface D6), which the record layer keeps —
+   * so a BACKFILLED line, which has no payload, still finds its channel's
+   * terminal.
+   */
+  tags?: string[];
+  /** Who spoke the line (`payload.speaker`), when it is speech. */
+  speaker?: { stuffId: string; displayName?: string };
   /**
    * Relay-chat provenance (`speech.relay`
    * frames), extracted from `payload` at ingest. Structured so the relay
@@ -450,6 +464,27 @@ interface StoreState
    * client-only UI state, never persisted.
    */
   socialPanelOpen: boolean;
+  /**
+   * ⭐ Whether the player wants the mode panel open (client-surface D9).
+   * The stage still shuts it when the window cannot afford it — the panel
+   * costs two-thirds of a unit, so it collapses first.
+   */
+  modePanelOpen: boolean;
+  setModePanelOpen: (open: boolean) => void;
+  /**
+   * The subject the chat stage's panel has selected — a board shows over
+   * the terminal column; a chat subject is what the primary shows.
+   */
+  stageSubject: {
+    subject: import("@saxonberg/types").ForumSubjectRecord;
+    surface: import("@saxonberg/types").SubjectSurfaceName | null;
+  } | null;
+  setStageSubject: (
+    next: {
+      subject: import("@saxonberg/types").ForumSubjectRecord;
+      surface: import("@saxonberg/types").SubjectSurfaceName | null;
+    } | null,
+  ) => void;
   setSocialPanelOpen: (open: boolean) => void;
 
   /**
@@ -822,11 +857,29 @@ interface StoreState
    */
   promptDrafts: Record<string, string>;
   /**
+   * ⭐ The primary bar's draft, handed across a remount (client-surface):
+   * the fallback bar the stage shows before the primary terminal arrives
+   * is replaced by the terminal's own bar, a different element, and the
+   * text the player had begun typing must survive the swap.
+   */
+  primaryDraftCarry: string;
+  setPrimaryDraftCarry: (text: string) => void;
+  /**
    * Which slot the CommandBar input is currently bound to. Either
    * `BASE_SLOT` or a `promptId` from `prompts`. Set to a new
    * arrival iff `foreground` is true; preserved otherwise.
    */
   activeSlot: string;
+  /**
+   * ⭐ Which slot EACH bar is on (client-surface D6, #97) — a prompt
+   * belongs to the bar that asked, so a second terminal's Enter still
+   * sends a command. `activeSlot` mirrors the last bar that moved, for
+   * the readers that predate per-bar slots.
+   */
+  activeSlotByBar: Record<string, string>;
+  /** The primary terminal's bar — where an un-barred prompt lands. */
+  primaryBarId: string | null;
+  setPrimaryBarId: (barId: string | null) => void;
   /**
    * Server-rendered base-prompt string from the most recent
    * `prompt-refresh` Note. Defaults to a quiet `'>'` until the
@@ -869,7 +922,7 @@ interface StoreState
    * slots are no-ops (so a stale UI click after the prompt
    * dismissed doesn't strand the state).
    */
-  setActiveSlot: (slot: string) => void;
+  setActiveSlot: (slot: string, barId?: string) => void;
   /**
    * Replace the draft text for a slot. Writes to `BASE_SLOT` or
    * any pending prompt id; unknown slots are stored anyway so
@@ -1135,7 +1188,12 @@ export const useStore = create<StoreState>((set, get) => ({
 
   setConnectionPhase: (phase) =>
     set((state) =>
-      state.connectionPhase === phase ? {} : { connectionPhase: phase },
+      state.connectionPhase === phase
+        ? {}
+        : // ⭐ A new screen starts with a clean status bar (#59): a preview
+          // left hovering on the roster or in intake must not follow the
+          // player into the world.
+          { connectionPhase: phase, ghostPreview: null, ghostFlash: null },
     ),
 
   // Ghost command line — preview + transient flash. Input mode is now
@@ -1167,6 +1225,10 @@ export const useStore = create<StoreState>((set, get) => ({
 
   // "Social / Notifications" settings-card modal toggle (account menu).
   socialPanelOpen: false,
+  modePanelOpen: true,
+  setModePanelOpen: (open) => set(() => ({ modePanelOpen: open })),
+  stageSubject: null,
+  setStageSubject: (next) => set(() => ({ stageSubject: next })),
   setSocialPanelOpen: (open) => set(() => ({ socialPanelOpen: open })),
 
   // Summoned-card tier (the no-modal side panel).
@@ -1411,6 +1473,16 @@ export const useStore = create<StoreState>((set, get) => ({
       // login that already had a character).
       connectionPhase: "in-world",
       charGenState: null,
+      /*
+       * ⚠ Cards belong to the server's SESSION (its Interactive). A
+       * reconnect that resumes it keeps them; a NEW one — a fresh login,
+       * a server restart — starts with an empty registry, so the cards
+       * the client still held were orphans: a second room card, a second
+       * `who`, controls that act on nothing.
+       */
+      ...(state.selfInteractiveId !== payload.interactiveStuffId
+        ? { cards: {}, cardOrder: [] }
+        : {}),
       selfInteractiveId: payload.interactiveStuffId,
       selfAvatarId: payload.avatarStuffId,
       topicCatalogue: topicMap,
@@ -1528,9 +1600,15 @@ export const useStore = create<StoreState>((set, get) => ({
   // Prompt-stack slice (initial cleared state)
   prompts: [],
   promptDrafts: { [BASE_SLOT]: "" },
+  primaryDraftCarry: "",
   activeSlot: BASE_SLOT,
+  activeSlotByBar: {},
+  primaryBarId: null,
   basePrompt: ">",
   echoSnapshotQueue: [],
+
+  setPrimaryBarId: (barId) =>
+    set((state) => (state.primaryBarId === barId ? {} : { primaryBarId: barId })),
 
   pushPrompt: (entry) =>
     set((state) => {
@@ -1556,7 +1634,12 @@ export const useStore = create<StoreState>((set, get) => ({
       // whatever the player was on. Per the slate's auto-switch
       // default.
       const activeSlot = entry.foreground ? entry.promptId : state.activeSlot;
-      return { prompts, promptDrafts: drafts, activeSlot };
+      // ⭐ …on the bar that asked, or the primary's (#97).
+      const bar = entry.barId ?? state.primaryBarId ?? "*";
+      const activeSlotByBar = entry.foreground
+        ? { ...state.activeSlotByBar, [bar]: entry.promptId }
+        : state.activeSlotByBar;
+      return { prompts, promptDrafts: drafts, activeSlot, activeSlotByBar };
     }),
 
   dismissPrompt: (promptId) =>
@@ -1576,7 +1659,20 @@ export const useStore = create<StoreState>((set, get) => ({
         const newTop = prompts[prompts.length - 1];
         activeSlot = newTop ? newTop.promptId : BASE_SLOT;
       }
-      return { prompts, promptDrafts, activeSlot };
+      // Each bar that was on it falls to its own newest prompt, or base.
+      const activeSlotByBar: Record<string, string> = {};
+      for (const [bar, slot] of Object.entries(state.activeSlotByBar)) {
+        if (slot !== promptId) {
+          activeSlotByBar[bar] = slot;
+          continue;
+        }
+        const mine = prompts.filter(
+          (p) => (p.barId ?? state.primaryBarId ?? "*") === bar,
+        );
+        const top = mine[mine.length - 1];
+        activeSlotByBar[bar] = top ? top.promptId : BASE_SLOT;
+      }
+      return { prompts, promptDrafts, activeSlot, activeSlotByBar };
     }),
 
   setPromptValidationError: (promptId, message) =>
@@ -1597,13 +1693,20 @@ export const useStore = create<StoreState>((set, get) => ({
       return changed ? { prompts } : {};
     }),
 
-  setActiveSlot: (slot) =>
+  setActiveSlot: (slot, barId) =>
     set((state) => {
-      if (slot === state.activeSlot) return {};
-      if (slot === BASE_SLOT) return { activeSlot: BASE_SLOT };
-      if (!state.prompts.some((p) => p.promptId === slot)) return {};
-      return { activeSlot: slot };
+      if (slot !== BASE_SLOT && !state.prompts.some((p) => p.promptId === slot)) {
+        return {};
+      }
+      const bar = barId ?? state.primaryBarId ?? "*";
+      if (slot === state.activeSlot && state.activeSlotByBar[bar] === slot) return {};
+      return {
+        activeSlot: slot,
+        activeSlotByBar: { ...state.activeSlotByBar, [bar]: slot },
+      };
     }),
+
+  setPrimaryDraftCarry: (text) => set(() => ({ primaryDraftCarry: text })),
 
   setDraft: (slot, text) =>
     set((state) => {
@@ -1638,6 +1741,7 @@ export const useStore = create<StoreState>((set, get) => ({
       prompts: [],
       promptDrafts: { [BASE_SLOT]: "" },
       activeSlot: BASE_SLOT,
+      activeSlotByBar: {},
       echoSnapshotQueue: [],
     })),
 

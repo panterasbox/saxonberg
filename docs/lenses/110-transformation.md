@@ -141,7 +141,7 @@ polity empowered to set incentives. What makes it safe is *only* the bet.
 
 ### ⭐⭐ But the structure carries more of the load than the premise does
 
-`draft-constitution.md` Art. IV: **three co-equal chambers — Producer,
+`draft-constitution.md` Art. IV: **three co-equal chambers — Labor,
 Capital, Consumer** — and a bill becomes law on a **majority of houses
 (two of three).** So a harmful bill needs **two classes' interests
 aligned.** That is not a bet on goodness; it is factions checking each

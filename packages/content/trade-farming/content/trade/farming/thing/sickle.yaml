@@ -1,0 +1,21 @@
+# A sickle — the reaping hook, and the tool a field crop is cut with
+# (cover build D3).
+#
+# ⭐ `swathM2` is the ground one act works. Work per acre is the TOOL's
+# number and yield per acre is the crop's, so a scythe is the same verb
+# with a bigger number and a reaping machine would be a row, not code.
+class: /platform/thing/Tool
+data:
+  keywords: [sickle, hook, reaping-hook]
+  shortDescription: sickle
+  register: indefinite
+  longDescription: >-
+    A crescent of iron on a short ash handle, the inside of the curve
+    ground to an edge and serrated near the tip so it bites the straw
+    rather than sliding off it. You gather a handful of stalks with one
+    hand and draw the hook through them with the other.
+  mass: 0.5
+  capabilities: ["reaping"]
+  swathM2: 40
+  constructionForm: bladed
+  _materialPath: /stuff/idea/material/element/iron

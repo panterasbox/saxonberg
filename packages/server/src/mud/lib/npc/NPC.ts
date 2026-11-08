@@ -19,7 +19,8 @@
  */
 
 import { Character } from '../character/Character';
-import { CostumedMixin, PropsMixin } from '../stuff/Staged';
+import { CostumedMixin } from '../stuff/Costumed';
+import { PropsMixin } from '../stuff/Props';
 import { BehavedMixin } from '../behavior/Behaved';
 import type { FieldMeta } from '../mixin';
 

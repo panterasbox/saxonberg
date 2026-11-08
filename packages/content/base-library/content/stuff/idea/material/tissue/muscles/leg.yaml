@@ -7,6 +7,7 @@
 # `work`, so nobody can author a tender shank.
 class: /platform/idea/material/Muscle
 data:
+  smells: [{ aroma: /base-library/aromas/raw-meat, strength: 60 }]
   name: leg
   keywords: [leg, haunch]
   work: 0.6
@@ -18,7 +19,7 @@ data:
   electricalConductivity: 0.2
   waterAbsorptionCapacity: 25
   edibility: true
-  tastes: [umami]
+  tastes: [{ type: umami, amount: 2 }]
   # Spoilage, as `tissue/flesh`: flesh rots, and a cut is a clock as well
   # as a dinner.
   spoilActivationEnergy: 80000

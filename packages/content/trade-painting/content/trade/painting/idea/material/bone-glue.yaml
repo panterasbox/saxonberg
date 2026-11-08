@@ -1,0 +1,24 @@
+# bone glue — the same glue boiled from bone: a little weaker than hide, and like it reversible with heat and steam.
+class: /platform/idea/material/OdorousMaterial
+data:
+  smells: [{ aroma: /base-library/aromas/glue, strength: 800 }]
+  name: bone glue
+  keywords: ["bone glue", glue, "animal glue"]
+  appearance: a cloudy yellow-brown glue that smells of the boiling-house
+  density: 1250
+  specificHeat: 2500
+  thermalConductivity: 0.3
+  meltingPoint: 308
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: [liquid, glue, animal-glue, organic, once-living]
+  # ⭐ A GLUE (paint D11): the strength of a set line, whether heat and
+  # steam undo it, how it stands the damp, the heat it lets go at.
+  adhesive: { strength: 0.65, reversible: { heatK: 330, steam: true }, resistsDamp: 0.1, softensAtK: 340 }
+  kinetics:
+    - key: set
+      sets: drying
+      order: 0
+      rate: [[273, 0.01], [283, 0.03], [293, 0.06], [303, 0.1]]
+  castTemplate: /trade/painting/thing/glue-cake

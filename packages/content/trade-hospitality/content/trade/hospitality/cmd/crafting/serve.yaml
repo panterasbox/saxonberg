@@ -1,4 +1,5 @@
 verbs: [serve]
+category: crafting
 controller: /trade/hospitality/idea/cmd/crafting/ServeController
 description: "Make a cocktail and hand it to someone"
 help: |

@@ -8,11 +8,31 @@
 import { Idea } from '../../stuff/Idea';
 import { makeStuffAtPath } from '../../security/__tests__/test-setup';
 import type { AttachmentKind } from '../../../api/navigation';
+import type { Stuff } from '../../stuff/Stuff';
 
 type Attached = Record<string, Array<[string, AttachmentKind]>>;
 
 class FakeAttachmentRegistry extends Idea {
   public table: Attached = {};
+  public live = new Map<string, Stuff>();
+  public attachStructure(extent: string, structure: Stuff): void {
+    this.live.set(extent, structure);
+  }
+  public detachStructure(extent: string, structure: Stuff): void {
+    if (this.live.get(extent)?.stuffId === structure.stuffId) this.live.delete(extent);
+  }
+  public liveStructuresAt(path: string): Stuff[] {
+    const out: Stuff[] = [];
+    let probe = path;
+    while (probe.length > 0) {
+      const s = this.live.get(probe);
+      if (s) out.push(s);
+      const cut = probe.lastIndexOf('/');
+      if (cut <= 0) break;
+      probe = probe.slice(0, cut);
+    }
+    return out;
+  }
   public attachedNow(path: string, kind?: AttachmentKind): string[] {
     const out = new Set<string>();
     let probe = path;

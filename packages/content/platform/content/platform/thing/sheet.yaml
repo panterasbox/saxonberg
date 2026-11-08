@@ -1,0 +1,26 @@
+# A sheet of paper (paper build) — the platform's blank: sized writing paper,
+# the kind a stationer sells and a keeper tears receipts from. Printed sheets
+# are this row bound to an edition; a ream is this row in a stack.
+#
+# ⭐ `dryness` seeds it as dry paper (a row has no production act — the mill's
+# sheets come off the mould wet and dry in the loft). `sized: true`: shop
+# paper is sized and takes ink. It burns to ash and pulps when soaked.
+class: /platform/thing/Sheet
+data:
+  shortDescription: sheet of paper
+  keywords: [sheet, paper, page, leaf, "sheet of paper"]
+  register: indefinite
+  longDescription: A sheet of plain paper, smooth on both sides.
+  _materialPath: /stuff/idea/material/organic/paper
+  mass: 0.005
+  writingRoom: 1200
+  sized: true
+  dryness: 0.95
+  charMaterialPath: /stuff/idea/material/organic/ash
+  reserves:
+    fuel:
+      capacityValue: 100
+      currentValue: 100
+      unit: "%"
+      theme: combustion
+      floorEffect: null

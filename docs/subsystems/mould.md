@@ -49,8 +49,8 @@ reusable one) or breaks to release it (a consumed one).
 
 ## ⭐⭐ Impressions — anyone, anything (M9, D21)
 
-`impress <pattern> in|on <medium>` (platform, `cmd/crafting/impress.yaml`,
-alias `mold`; `ImpressController` is dumb). The MEDIUM answers through the
+`impress <pattern> in|on <medium>` (platform, `cmd/crafting/impress.yaml`;
+`ImpressController` is dumb). The MEDIUM answers through the
 `Impressible` protocol (`ImpressibleMixin`, `lib/craft/Impressible.ts` — an
 `ActOutcome` or an `ActRefusal`, at once):
 
@@ -202,7 +202,7 @@ EVERY vessel: `BulkableMixin.canReceiveAtK(pourK)` → `holds` · `melts` ·
 `burns` (its `meltingPoint`, then its `autoignitionTemperature`). On
 `melts` or `burns` the pour goes to the floor (the shipped puddle path) and
 the receiver is gone — melted into its material's `brokenTemplate` where it
-stood, or burning (through its own `ignite` when it is fuel; else it chars
+stood, or burning (through its own `light` when it is fuel; else it chars
 away). Status `melted` / `burned`, and the pour verb says what happened to
 the vessel. Lead melts a tin cup; bronze burns the chandler's pine soap
 frame; pewter into a bronze cup holds. Interior pours only — a floor is
@@ -245,7 +245,7 @@ press; it was a duck-probed `pressForceN()`), so any press a pack ships
 loads a mould the same way. `ScrewPress`
 (`platform/thing`, `PlacingMixin(Good)`, `newtonsPerTurn`, `maxTurns`,
 `turns`) is a **`TurnableMixin`** (`lib/craft/Turnable.ts`, which also affords the verb) that
-the platform verb **`turn`** (`cmd/device/turn.yaml`, alias `tighten`;
+the platform verb **`turn`** (`cmd/device/turn.yaml`;
 `turn back <press>` slackens it) asks — so a windlass can take the word
 later. A turn first banks every mould's set at the OLD load, then adds
 force, then asks each mould on the bed to `pressRelease()`.
@@ -281,7 +281,7 @@ material's own lump.
 
 `pourDurationS > 0` (the **bell pit**, six game hours): the metal still goes
 in at once — it would freeze in the crucible otherwise — and the founder's
-day is the WATCH: `PourController` holds the pourer's attention on a
+day is the WATCH: `MouldMixin.watchThePour` holds the pourer's attention on a
 sealed-down `ManualBuildStep` for that long, and the mould's discipline is
 credited (`hard`) when the watch is kept. Every other pour is unchanged.
 
@@ -309,6 +309,13 @@ is an `ImpressibleMixin` and a `CarvableMixin`, which afford `impress` and
 `carve` (environment + peers) — a mould cut to its
 own shape answers both with its own refusal.
 
+⛔ **Forming over a form is not moulding** (the moulding slate's § 2
+ruling, 2026-10-16): a shoe on a last, a hat on a block, boiled leather,
+steam-bent wood, slumped glass are material worked OVER a shape, not
+matter setting IN a cavity — there is no container, so nothing composes
+`Mould`, and each is its own trade's act (cobbling, millinery, cooperage's
+bending). Pressing IS moulding, because the cavity is the shared thing (M2).
+
 | host | composition | rows |
 |---|---|---|
 | `platform/thing/Mould` | `Mould(Assembled(Durable(Crafted(Thermal(Bulkable(Container(Good)))))))` | `ice-pan`, `ingot-mould`, `chill-mould`, `flask`, `wax-block`, `bell-pit` (smelting), `plaster-case` (two-piece), `plaster-mould`, `tile-mould` (ceramics), the rubber moulds, the soap frame |
@@ -325,6 +332,13 @@ own shape answers both with its own refusal.
 - **The curfew bell** hangs on the Terminus market square; anyone rings it
   (`ring`, the `Bell`'s own `ringSound`).
 - **The creamery's cheese press**, beside the stone.
+- ⭐ **Founding is `trade-smelting`'s discipline**
+  (`/trade/smelting/idea/Discipline/founding`), credited by the flask, the
+  chill mould, the wax block and the bell pit, which ship in that pack with
+  the die and the moulding sand; the plaster case, the plaster mould and the
+  tile mould credit `pottery` ([ceramics.md](./ceramics.md)). Not its own
+  pack: a foundry is where the smelter's metal goes next, so the smelter's
+  pack owns it, and a second foundry is rows. (Closes the moulding slate's Q4.)
 
 ## ⭐ The mould keeps its drainings (sugar, 2026-10)
 
@@ -363,8 +377,11 @@ comes out goes: the vessel below the mould the solid sits in (a loaf in
 its cone on a pot), else the vessel it is placed on. A clayed sugar loaf
 is the first consumer: its head washes white past a third of the reach,
 its middle past two-thirds, its foot when the water is through, and
-the molasses it carries out runs into the pot. The lye hopper's ash is
-the planned second consumer (the potash build).
+the molasses it carries out runs into the pot. ⭐ The lye hopper's ash is
+the second consumer (cordage W7): a heap overrides `percolatesInto()` to
+answer the hopper it lies IN, gives up its alkali by reach, and is spent
+ash at the bottom. A vessel's seeper reconcile brings any percolating thing
+in it current, so reading the hopper (or the pot under a loaf) is enough.
 
 ## Deferred
 

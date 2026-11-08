@@ -2,8 +2,10 @@
 # grease and oil water cannot touch. ⭐ VOLATILE: an open dish of it gives off
 # a vapour heavier than air, and a little over one part in a hundred of it by
 # a naked flame is a fire.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/naphtha, strength: 3000 }]
+  burning: [{ aroma: /base-library/aromas/oil-smoke, strength: 800 }]
   name: naphtha
   keywords: [naphtha, spirit, solvent]
   appearance: a thin, clear, sharp-smelling liquid

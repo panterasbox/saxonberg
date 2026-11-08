@@ -19,21 +19,35 @@
 
 import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
-import { Mml } from '../../api/mml';
+import type { ActOutcome, ActRefusal } from './ActPlan';
+
+/**
+ * ⭐ Every reason a strike comes to nothing — the `hammer` controller words
+ * each (controllers-are-io D4); the blank and the die are its own args.
+ */
+export type StrikeRefusal =
+  | ActRefusal<'not-a-blank'>
+  | ActRefusal<'not-metal'>
+  /** The blow was too weak for the blank's stiffness. */
+  | ActRefusal<'too-hard'>;
+
+/** A strike that bit: the token it struck. */
+export type StrikeOutcome = ActOutcome<{ token: Stuff }>;
 
 /** A die a blank is struck on. */
 export interface StrikingDie {
-  /** Strike `blank` on this with a blow of `blowJ` joules; the line it comes to. */
-  strikeWith(blank: Stuff, blowJ: number, by: Stuff): Promise<Mml>;
+  /** Strike `blank` on this with a blow of `blowJ` joules. */
+  strikeWith(blank: Stuff, blowJ: number, by: Stuff): Promise<StrikeOutcome | StrikeRefusal>;
 }
 
 export function StrikingDieMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
   return class StrikingDieMixin extends Base implements StrikingDie {
     static _mixinName = 'StrikingDieMixin';
+    static _mixinKind = 'protocol' as const;
 
     /** @hook What striking `blank` on this die came to. */
-    public async strikeWith(blank: Stuff, _blowJ: number, _by: Stuff): Promise<Mml> {
-      return Mml.compose`Nothing comes of it — ${Mml.thing(blank)} is no blank for this die.`;
+    public async strikeWith(_blank: Stuff, _blowJ: number, _by: Stuff): Promise<StrikeOutcome | StrikeRefusal> {
+      return { ok: false, reason: 'not-a-blank' };
     }
   };
 }

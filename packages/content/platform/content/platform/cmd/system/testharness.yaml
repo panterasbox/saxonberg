@@ -1,4 +1,5 @@
 verbs: [testharness]
+category: system
 controller: /platform/idea/cmd/system/TestHarnessController
 # ⛔ A TEST-WORLD verb. The view installs everywhere; the command loader
 # admits it only when SecurityApi.isTestEnvironment() (the wire runner's
@@ -6,7 +7,7 @@ controller: /platform/idea/cmd/system/TestHarnessController
 # verb — not in help, not in the affordances — and `requiresTestWorld`
 # keeps the gate in the view's own data too.
 testOnly: true
-description: "Test-world staging: read and move the clock, pin the weather"
+description: "Test-world staging: read and move the clock, pin the weather, stage a ship"
 help: |
   Scaffolding for drives and staging, in a test world only. Subcommands
   and options, never phrases; a bare subcommand reads.
@@ -22,6 +23,19 @@ help: |
   snow, applied at once; `--alive` lets it still vary. `testharness
   weather unpin` releases it. A pin persists: whoever pins, unpins.
 
+  `testharness ship <ship path> at node:<path>` puts a ship lying at a
+  sea's node (or `at <frame path> <cite>`, a citation on a frame), cast
+  off and with no course — the staged twin of sailing her there. Her
+  rooms, and everyone in them, go with her. `hull <band>` puts her hull
+  in a band (sound, weathered, worn, shabby, dilapidated), `bilge <L>`
+  her bilge at so many litres, and `slept <days>` has her lie that long
+  unattended — her bilge fills over every band her hull passed through
+  (with `hull`, the band she reads after it). `settling` puts her bilge
+  up to her deck and lets the water decide: in deep water she begins to
+  settle (everyone aboard is told, and has their acts; with nobody aboard
+  she goes down at once), at a mud berth she settles onto the bottom.
+  Options in any order; an `at <frame> <cite>` goes last.
+
   The same rules as the wire harness's routes — one implementation
   (TestHarnessApi) behind both.
 examples:
@@ -31,8 +45,11 @@ examples:
     note: Hold rain over the Locality you stand in
   - cmd: testharness weather unpin --at /world/terminus
     note: Release a pin somewhere else
+  - cmd: testharness ship /world/terminus/hesper/structure at node:/stuff/idea/WaterExpanse/greywater/bar
+    note: Stage the Hesper lying off the bar
+  - cmd: testharness ship /world/terminus/hesper/structure hull worn slept 0.25
+    note: Stage her hull worn, six hours' water in her bilge
 validators:
-  - /lib/command/validators/requiresWizard
   - /lib/command/validators/requiresTestWorld
 options:
   at:
@@ -62,3 +79,16 @@ subcommands:
       - name: value
         type: string
         required: false
+  ship:
+    description: "Stage a ship: `ship <ship> [at node:<path> | at <frame> <cite>] [hull <band>] [bilge <L>] [slept <days>] [flag <government>] [settling]`"
+    args:
+      - name: op
+        type: string
+        required: false
+      - name: value
+        type: string
+        required: false
+      - name: cite
+        type: string
+        required: false
+        greedy: true

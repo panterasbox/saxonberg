@@ -462,7 +462,7 @@ layer will consume. v1 emits the event into no consumer.
 
 Contribution reuses `reply` as a verb *mode*: `forum reply <node>
 --pro|--con|--rebut` → `supports`/`objects-to`/`responds-to`
-(`ForumController` maps the flags via `valence()`, requiring exactly one
+(`ForumReplyController` maps the flags via its `valence()`, requiring exactly one
 on an argument board and rejecting them on a popularity board); `forum
 edit <node>`; `forum mature <board>`. The React client renders an
 **organizer-gated argument mode** in `ForumView` (additive — the
@@ -557,7 +557,7 @@ heading.
 Conversion happens on the way IN, so existing posts are unaffected.
 
 (markdown → `Mml.markdownToMml` server-side →
-stored MML → `MmlRenderer` displays). `ForumController.resolveBody`
+stored MML → `MmlRenderer` displays). `ForumControllerBase.resolveBody`
 reaches one body field three ways:
 
 1. **greedy markdown on the command string** (CLI / scripting) — overlaid
@@ -593,8 +593,11 @@ Identity + audience own a `subject` verb; surfaces light up separately.
   light-up in one step, default popularity/free. `make` errors on a taken
   name; `on` attaches to existing and is denied to a non-owner.
 
-`forum` (`ForumController` + `forum.yaml`) has subcommand fallthrough (the
-`chat.yaml` pattern — bare `forum <board>` reads): `list / make / on /
+`forum` (`forum.yaml`; one `Forum<Sub>Controller` per subcommand over
+`ForumControllerBase`, which holds the forums gate every subcommand asks
+first — controllers-are-io D9) has subcommand fallthrough (the
+`chat.yaml` pattern — bare `forum <board>` reads, through the verb-level
+`ForumReadController`): `list / make / on /
 post / reply / read / vote / promote / follow`. A **board-subject's title
 is a flat-global handle** (case-insensitive, unique; `RESERVED_NAMES`
 carries over); a **thread-subject's handle is board-scoped**
@@ -631,7 +634,7 @@ as curated/open subjects.
 | `ForumSubscriptionRegistry` | `obj/ForumSubscriptionRegistry.ts` | The document-change observer |
 | `ForumsApi` / `ForumsLogic` | `api/forums.ts` / `platform/idea/api/ForumsLogic.ts` | Board/Entry CRUD + voting + promotion + the folded-in subscription surface |
 | `SubjectApi` / `SubjectLogic` | `api/subject.ts` / `platform/idea/api/SubjectLogic.ts` | Subject identity/audience facade |
-| `ForumController` / `SubjectController` | `platform/idea/cmd/social/` | The `forum` / `subject` verbs |
+| `ForumControllerBase` + `Forum<Sub>Controller` / `SubjectController` | `platform/idea/cmd/social/` | The `forum` / `subject` verbs |
 
 `ForumsApi` is the thin gated forwarding facade over `ForumsLogic` (the
 HMR-able logic singleton at `/platform/idea/api/forums`); both follow the

@@ -236,9 +236,16 @@ async function heldIn(s: Session, vessel: RegExp, name: RegExp): Promise<{ id: s
   return out;
 }
 
-/** Into the ROOM, by the founder, who holds the title. */
+/**
+ * Into the ROOM, by the founder — SEATED on the committees whose title the
+ * clone asks (the glowcap is Rejection's row; the rooms are Terminus's or
+ * Rejection's). The founder sits on no committee by default (wizard-axis D13).
+ */
 async function cloneHere(where: string, path: string, n = 1): Promise<void> {
-  const f = await Session.open('founder', { startLocation: where, wizard: true });
+  const f = await Session.open('founder', {
+    startLocation: where,
+    committees: ['/world/terminus', '/world/terminus/rejection'],
+  });
   try {
     expectOk(await f.cmd(`clone ${path} --here${n > 1 ? ` --count ${n}` : ''}`));
   } finally {
@@ -252,10 +259,10 @@ const CAKES: string[] = [];
 
 /** The same person, standing somewhere else (inventory travels), with a light. */
 async function goTo(handle: string, where: string): Promise<Session> {
-  const s = await Session.open(handle, { startLocation: where, wizard: true });
+  const s = await Session.open(handle, { startLocation: where });
   if (!LIT.has(handle)) {
     // ⚠ A light for the dark rooms; outdoors by day it is not needed, and
-    // the founder may hold no title to clone on Rejection's ground.
+    // a room whose title is held elsewhere refuses the founder's clone.
     const lit = await cloneHere(where, GLOWCAP).then(() => true).catch(() => false);
     if (lit) {
       LIT.add(handle);
@@ -268,7 +275,7 @@ async function goTo(handle: string, where: string): Promise<Session> {
 
 async function newPlayer(tag: string, where: string): Promise<Session> {
   const handle = uniqueHandle(tag);
-  const bank = await Session.open(handle, { startLocation: BANK_HALL, wizard: true });
+  const bank = await Session.open(handle, { startLocation: BANK_HALL });
   expectOk(await bank.cmd('bank open'));
   const gov = await Session.open('founder', { startLocation: BANK_HALL });
   try {
@@ -276,8 +283,8 @@ async function newPlayer(tag: string, where: string): Promise<Session> {
   } finally {
     gov.close();
   }
-  // ⭐ A light that travels with them — the founder holds title at the bank
-  // hall, not on Rejection's ground or in the chandlery (which is dim).
+  // ⭐ A light that travels with them — minted at the bank hall, where the
+  // founder's seat reaches, rather than in the chandlery (which is dim).
   await cloneHere(BANK_HALL, GLOWCAP);
   await bank.cmd('get glowcap');
   LIT.add(handle);
@@ -288,7 +295,7 @@ async function newPlayer(tag: string, where: string): Promise<Session> {
 /** Jump the clock, then wait for the world to answer again. */
 async function advance(duration: string): Promise<void> {
   await advanceWorldClock(duration);
-  const probe = await Session.open('founder', { startLocation: BANK_HALL, wizard: true }).catch(() => null);
+  const probe = await Session.open('founder', { startLocation: BANK_HALL }).catch(() => null);
   try {
     const until = Date.now() + 600_000;
     while (probe && Date.now() < until) {
@@ -385,7 +392,7 @@ async function brashOf(handle: string, species: string, bundles: number): Promis
 /** Light the pit, burn it down (read from time to time), and rake it out. */
 async function burnAndSweep(handle: string): Promise<{ swept: string; heaps: { longDescription: string; mass?: { value: number } }[] }> {
   let s = await goTo(handle, ASHERY);
-  await say(s, 'ignite pit').catch(() => '');
+  await say(s, 'light pit').catch(() => '');
   await say(s, 'draught wide');
   const burning = await examine(s, 'pit');
   expect(burning, `the pit, lit: ${burning}`).toMatch(/burn|flame|fire|smoke|alight/i);
@@ -485,7 +492,7 @@ suite('⭐ drive 6–8 — the leach, the egg, a second pass, and hard water (AC
     let s = await goTo(ashMaker, LEAN_TO);
     await say(s, 'fill waterskin from butt').catch(() => '');
     expect(await inside(s, 'hopper', /wood ash/i), 'beech heaps in the hopper').toBeGreaterThanOrEqual(2);
-    await say(s, 'get pail');
+    await say(s, 'get 1 pail');
     await say(s, 'fill pail from butt');
     await say(s, 'pour pail into hopper');
     s.close();
@@ -603,8 +610,8 @@ suite('⭐ drive 9 — a strong lye and a weak one, boiled on one fire, to black
       await say(s, 'get cordwood');
       await say(s, 'stoke cordwood into hearth');
     }
-    const lit = await say(s, 'ignite hearth');
-    expect(lit, `ignite hearth: ${lit}`).not.toMatch(/no fuel|sodden|can'?t/i);
+    const lit = await say(s, 'light hearth');
+    expect(lit, `light hearth: ${lit}`).not.toMatch(/no fuel|sodden|can'?t/i);
     s.close();
     let hours = 0;
     const setAt: Record<number, number> = {};
@@ -662,7 +669,7 @@ suite('⭐ drive 10–11 — pearl ash by the kiln, and glass fluxed with it (AC
     s = await goTo(ashMaker, ASHERY);
     for (const id of CAKES) await say(s, `put #${id} in kiln`);
     for (let i = 0; i < 4; i++) await say(s, 'stoke cordwood into kiln');
-    await say(s, 'ignite kiln');
+    await say(s, 'light kiln');
     s.close();
     await waitAway(ashMaker, 1, undefined, 1);
     s = await goTo(ashMaker, ASHERY);
@@ -723,7 +730,7 @@ suite('⭐ drive 10–11 — pearl ash by the kiln, and glass fluxed with it (AC
       await say(s, 'get charcoal');
       await say(s, 'stoke charcoal into kiln');
     }
-    await say(s, 'ignite kiln');
+    await say(s, 'light kiln');
     const wrong = await say(s, 'fire kiln');
     // eslint-disable-next-line no-console -- the drive's own record
     console.log(`  [drive] ⭐ lye in the lime's place (${lye ? 'a flask held' : 'NO flask held'}): ${wrong}`);
@@ -756,7 +763,7 @@ suite('⭐ drive 12 — lime slaked, lye made caustic, hard soap straight (AC 7)
     s.close();
     s = await goTo(ashMaker, CHANDLERY);
     await say(s, 'put lime in kettle');
-    await say(s, 'get pail').catch(() => '');
+    await say(s, 'get 1 pail').catch(() => '');
     await say(s, 'fill pail from butt');
     // ⚠ A measure: the kettle holds 10 L and the pail more, so a whole
     // pail leaves no room for the lye.

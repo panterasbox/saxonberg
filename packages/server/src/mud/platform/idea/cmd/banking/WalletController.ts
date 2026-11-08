@@ -170,7 +170,7 @@ export default class WalletController extends BankingControllerBase<WalletModel>
     } catch (err) {
       MessageApi.scene(giver)
         .topic(TOPIC)
-        .toSelf(Mml.compose`${String(err instanceof Error ? err.message : err)}`)
+        .toSelf(Mml.compose`${this.refusalWords(err)}`)
         .send();
       context.note({ kind: "controller-rejected", reason: "no-venue-account", detail: "house" });
       return;
@@ -205,7 +205,7 @@ export default class WalletController extends BankingControllerBase<WalletModel>
     } catch (err) {
       MessageApi.scene(giver)
         .topic(TOPIC)
-        .toSelf(Mml.compose`${String(err instanceof Error ? err.message : err)}`)
+        .toSelf(Mml.compose`${this.refusalWords(err)}`)
         .send();
       context.note({ kind: "controller-rejected", reason: "switch-failed", detail: corpo });
       return;

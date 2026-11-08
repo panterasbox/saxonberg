@@ -468,7 +468,7 @@ async function walk(s: Session, route: readonly string[]): Promise<void> {
 
 beforeAll(async () => {
   handle = uniqueHandle('knacker');
-  k = await Session.open(handle, { startLocation: BANK_HALL, wizard: true });
+  k = await Session.open(handle, { startLocation: BANK_HALL });
   expectOk(await k.cmd('bank open'));
   const gov = await Session.open('founder', { startLocation: BANK_HALL });
   try {
@@ -505,7 +505,7 @@ beforeAll(async () => {
   // ⚠ Which also removes the drive's dependence on a shop it is not
   // about. What it still has to do is keep a body fed across 145 game
   // days, and the thing to eat is what it butchered.
-  k = await Session.open(handle, { startLocation: YARD, wizard: true });
+  k = await Session.open(handle, { startLocation: YARD });
   await ensureDaylight(k);
   await k.drainProse();
 }, 300_000);
@@ -905,7 +905,6 @@ suite.skip('⭐ 10. the wood', () => {
     k.close();
     k = await Session.open(handle, {
       startLocation: OAK_CLEARING,
-      wizard: true,
     });
     await ensureDaylight(k);
 
@@ -957,7 +956,6 @@ suite('⭐⭐ 11–12. tan the hide against the pit it stands in', () => {
     k.close();
     k = await Session.open(handle, {
       startLocation: WHARFSIDE,
-      wizard: true,
     });
     await k.drainProse();
     // ⭐ ONE exit off the bank, and the three chain from the knacker.
@@ -1016,8 +1014,9 @@ suite('⭐⭐ 11–12. tan the hide against the pit it stands in', () => {
     // then surviving a 20 s settle. ⚠⚠ Chunking the jump made it WORSE
     // (thirteen advances, thirteen storms). And the jump had a SECOND
     // cost that took three more checkpoints down with it: the harness
-    // confers wizard by adding the character to every `Group` at login,
-    // the reset sweep interacts with that, and so whether `clone --here`
+    // then conferred wizard by adding the character to every `Group` at
+    // login (it no longer does — wizard-axis D13), the reset sweep
+    // interacted with that, and so whether `clone --here`
     // is permitted downstream depended on whether a boundary had been
     // crossed earlier in the run. **Order-dependent, in a file whose
     // whole value is being repeatable.**
@@ -1104,7 +1103,6 @@ suite('⭐⭐⭐ 14–16. the candle — one act, and the fat decides', () => {
     k.close();
     k = await Session.open(handle, {
       startLocation: WHARFSIDE,
-      wizard: true,
     });
     await ensureDaylight(k);
     await k.drainProse();
@@ -1199,7 +1197,7 @@ suite('⭐⭐⭐ 14–16. the candle — one act, and the fat decides', () => {
     // the real resolve. What THIS step owns, and all it owns, is the
     // ALIAS: that `melt` reaches the dip controller rather than being a
     // second verb.
-    const melted = await say(k, 'melt');
+    const melted = await say(k, 'dip');
     const reason = refusedFor(melted);
     const said = (await melted.said()).toLowerCase();
     // ⚠ The point is that the word is UNDERSTOOD. `no-recipe` would mean
@@ -1243,7 +1241,7 @@ suite('17–18. the ground and the dog', () => {
     // ate the field feeds it back at both ends* — instead of asserting a
     // recipe lookup over a conjured prop.
     k.close();
-    k = await Session.open(handle, { startLocation: YARD, wizard: true });
+    k = await Session.open(handle, { startLocation: YARD });
     await ensureDaylight(k);
     await k.drainProse();
 
@@ -1276,7 +1274,7 @@ suite('17–18. the ground and the dog', () => {
     // biting a second time, in a different trade: the determiner widens
     // the match instead of narrowing it, so a room fixture outranked the
     // thing in your hands. ⭐ A finding for the parser, not for milling.
-    const out = await say(k, 'grind bone');
+    const out = await say(k, 'mill bone');
     const reason = refusedFor(out);
     // ⚠ `no-recipe` would mean the verb cannot reach `bone-meal` at all,
     // which is the gap W7 was written to close.
@@ -1288,7 +1286,7 @@ suite('17–18. the ground and the dog', () => {
 
   it('⭐⭐ 18. the bakery sells a dog loaf, cheaper than people-bread', async () => {
     k.close();
-    k = await Session.open(handle, { startLocation: BAKERY, wizard: true });
+    k = await Session.open(handle, { startLocation: BAKERY });
     await k.drainProse();
     // ⚠⚠ `look till`, not `look bread counter`. The two-word form raised
     // an ambiguity prompt the helper could not answer (`promptId=undefined,
@@ -1387,7 +1385,6 @@ suite('⭐⭐ AC12 — three jobs, and one of them is takeable today', () => {
     k.close();
     k = await Session.open(handle, {
       startLocation: WHARFSIDE,
-      wizard: true,
     });
     await k.drainProse();
     await walk(k, ['down']);
@@ -1399,7 +1396,7 @@ suite('⭐⭐ AC12 — three jobs, and one of them is takeable today', () => {
 
   it('⭐⭐⭐ the CHANDLER\'s seat is takeable with no Discipline at all', async () => {
     await walk(k, ['northeast']);
-    const out = await say(k, 'apply chandler');
+    const out = await say(k, 'job apply chandler');
     const reason = refusedFor(out);
     const said = await out.said();
     // ⭐ The seat the pack deliberately left ungated: dipping a wick in
@@ -1414,7 +1411,7 @@ suite('⭐⭐ AC12 — three jobs, and one of them is takeable today', () => {
 
   it('⚠ and the TANNER\'s refuses — which is the progression UI', async () => {
     await walk(k, ['southwest', 'south']);
-    const out = await say(k, 'apply tanner');
+    const out = await say(k, 'job apply tanner');
     const said = await out.said();
     const reason = refusedFor(out);
     // ⭐⭐ The refusal has to be SAYABLE: the verb exists, the sign is
@@ -1461,7 +1458,7 @@ suite('⭐⭐⭐ AC15 — a kill mid-anything leaves a body and no wreckage', ()
     // reachable. The engine half is not in doubt: `ConditionLogic.die`
     // mints the one `Corpse` whatever the driver, and that is unit-proven.
     k.close();
-    k = await Session.open(handle, { startLocation: YARD, wizard: true });
+    k = await Session.open(handle, { startLocation: YARD });
     await ensureDaylight(k);
     await k.drainProse();
     const drafted = await say(k, 'draft 5');
@@ -1536,7 +1533,7 @@ suite('⚠ regressions — nothing a player could do before has stopped', () => 
     // the page is still readable prose afterwards is the half only this
     // can.
     k.close();
-    k = await Session.open(handle, { startLocation: YARD, wizard: true });
+    k = await Session.open(handle, { startLocation: YARD });
     await ensureDaylight(k);
     await k.drainProse();
     // ⚠ Scoped — the third of three in this file. See checkpoint 2.

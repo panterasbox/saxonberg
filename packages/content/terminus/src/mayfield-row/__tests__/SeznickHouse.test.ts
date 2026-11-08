@@ -114,6 +114,7 @@ function seedDomain(): void {
   add('/system/residence/idea/exits/upstairs', '/system/residence/idea/UpstairsExit');
   add('/system/residence/idea/exits/front-door', '/system/residence/idea/FrontDoorExit');
   add('/system/residence/idea/exits/lot-gate', '/system/residence/idea/LotGateExit');
+  add('/system/residence/idea/holding-building', '/system/residence/idea/HoldingBuilding', { shortDescription: 'house' });
   add('/system/residence/idea/exits/keyed-door', '/system/residence/idea/KeyedDoorExit');
 
   add(BUILDING, '/system/residence/idea/BuildingWarren', {
@@ -125,23 +126,20 @@ function seedDomain(): void {
     defaultCapacity: 3,
     plan: { shape: 'linear', frontagesPerNode: 2, frontageLeaf: 'u' },
   });
+  // ⭐ The unit's plan, the programme's own (harbors review 3; no
+  // blueprint row): ordinary rows under its extent.
   add(PROGRAMME, '/system/residence/idea/HoldingWarren', {
     upkeepTerm: 'landlord-shell',
-    floorplan: [
-      {
-        leaf: 'hall',
-        room: `${HOUSE}/location/hall`,
-        entry: true,
-        exits: [{ to: 'main', direction: 'north', opposite: 'south' }],
-      },
-      { leaf: 'main', room: `${HOUSE}/location/main` },
-    ],
+    extent: `${HOUSE}/location`,
+    entrance: `${HOUSE}/location/hall`,
   });
   add(`${HOUSE}/location/hall`, '/platform/location/PersistentLocation', {
     shortDescription: 'the entry hall',
+    exits: { north: { destination: `${HOUSE}/location/main` } },
   });
   add(`${HOUSE}/location/main`, '/platform/location/PersistentLocation', {
     shortDescription: 'the main room',
+    exits: { south: { destination: `${HOUSE}/location/hall` } },
   });
   add(CORRIDOR, '/platform/location/PersistentLocation', {
     shortDescription: 'a Seznick House landing',
@@ -200,8 +198,12 @@ function installStore(): void {
     return arr.filter((d) =>
       keys.every((k) => {
         const stored = d[k];
-        if (Array.isArray(stored)) return stored.includes(q[k]);
-        return stored === q[k];
+        const want = q[k];
+        if (want !== null && typeof want === 'object' && '$regex' in (want as object)) {
+          return typeof stored === 'string' && new RegExp(String((want as { $regex: string }).$regex)).test(stored);
+        }
+        if (Array.isArray(stored)) return stored.includes(want);
+        return stored === want;
       }),
     );
   });
@@ -507,6 +509,21 @@ describe('Seznick House — the lease loop', () => {
     expect(reasons(no)).toContain('not-authorized');
   });
 
+  it('⭐ a wizard with no seat is refused, and the refusal names the seat (wizard-axis D1)', async () => {
+    // Letting a room is a SEAT's act. The axis is authoring TypeScript;
+    // it confers no title, so a wizard on no committee and in no position
+    // is a stranger at this desk.
+    await building();
+    vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(true);
+    const wizard = makeAvatar('wizard-no-seat');
+    const t = makeAvatar('t-wizard');
+    const ctx = await run(makeStuff(() => new LeaseController()), wizard, t, 'lease');
+    expect(reasons(ctx)).toContain('not-authorized');
+    const said = JSON.stringify(ctx.getNotes());
+    expect(said).toContain("letting agency's staff");
+    expect(said).toContain("building's committee");
+  });
+
   it('a random principal is refused; capacity refuses at the cap', async () => {
     await building(); // the house ledger must be standing
     const nobody = makeAvatar('nobody');
@@ -551,7 +568,7 @@ describe('Seznick House — the lease loop', () => {
    * were unreachable — silently, with every other test still green. This
    * is the test that would have caught it.
    */
-  it('⭐ Walter affords the operator verbs — from his CLASS, sideways to the room', () => {
+  it('⭐ Walter affords the desk verbs — from his CLASS, sideways to the room', () => {
     const verbs = CommandApi.collectContributions(Walter, 'peers')
       .map((d) => d.verbs)
       .flat();

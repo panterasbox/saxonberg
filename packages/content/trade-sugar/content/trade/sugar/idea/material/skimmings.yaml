@@ -1,7 +1,8 @@
 # Skimmings — the scum lifted off a tempered liquor: lime, the dirt the
 # lime threw up, and enough sugar to be worth something to a distiller.
-class: /platform/idea/material/ConsumableMaterial
+class: /platform/idea/material/OdorousConsumableMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/caramel, strength: 100 }]
   name: skimmings
   keywords: [skimmings, scum]
   appearance: a grey-brown froth, sweet and dirty
@@ -13,7 +14,7 @@ data:
   hardness: 0
   toughness: 0
   edibility: false
-  tastes: [sweet]
+  tastes: [{ type: sweet, amount: 100 }]
   spoilActivationEnergy: 55000
   waterActivity: 0.95
   nutrients: ["sugar", "water"]

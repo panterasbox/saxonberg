@@ -3,8 +3,11 @@
  * database a fresh deploy actually has:
  *
  *   founder logs in            → isFounder matches the credential
- *   appoints THEMSELVES        → isCommitteeMember passes by the Art. XI
- *                                pool-of-one backstop
+ *   is seated on the committee → a real group row (wizard-axis D18: the
+ *                                founder sits on NO committee by default —
+ *                                the Art. XI pool-of-one backstop was a
+ *                                misreading of the jury rule, and is gone)
+ *   appoints THEMSELVES        → isCommitteeMember passes as a member
  *                              → the appointment verb fills the position
  *   publishes                  → requiresPublisher admits (holds it now)
  *                              → mayPublishAs admits
@@ -21,8 +24,9 @@
  * test that stubs an author or a group membership.
  *
  * This suite therefore stubs `GroupApi.isMember` to **false for everyone**
- * so the only thing that can carry
- * the founder through is the founder default itself.
+ * but the one seat AC 27 writes — the founder on the committee over
+ * `/compact` — so the only thing that can carry the founder through is a
+ * seat, never a credential.
  *
  * Both breaks this build fixed were invisible to tests that passed in
  * isolation. That is what this file exists for.
@@ -36,7 +40,7 @@ import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import express, { type Express } from 'express';
 import request from 'supertest';
-import AppointController from '../../platform/idea/cmd/employment/AppointController';
+import HouseAppointController from '../../platform/idea/cmd/banking/HouseAppointController';
 import mustHoldAppointingAuthority from '../../lib/command/validators/mustHoldAppointingAuthority';
 import requiresPublisher from '../../lib/command/validators/requiresPublisher';
 import OrganizationEntity from '../../platform/idea/Organization';
@@ -244,7 +248,7 @@ async function runAppoint(
   const ctx = contextFor(giver, 'appoint');
   await withRootContext(null, 'cold-box', () => {
     ExecutionContextApi.tagActingAuthor(giver);
-    return makeStuff(() => new AppointController()).execute(
+    return makeStuff(() => new HouseAppointController()).execute(
       model as never,
       ctx,
     );
@@ -306,8 +310,12 @@ describe('⭐⭐ the cold-box walk', () => {
       /no publishing position/,
     );
 
-    // ── Appointment: the founder default is the ONLY thing that carries
-    //    them, since `core` is empty ─────────────────────────────────
+    // ── The founder is seated on the committee — a group row, exactly
+    //    as a content author is seated. The founder default seats
+    //    OFFICES, never a committee (wizard-axis D18). ───────────────
+    await expect(appointmentGate(founder, PRESS)).resolves.toMatch(/.+/);
+    const seat = founder.getIdentityPath();
+    vi.spyOn(GroupApi, 'isMember').mockImplementation(async (key: string) => key === seat);
     await expect(appointmentGate(founder, PRESS)).resolves.toBeUndefined();
     const ctx = await runAppoint(founder, {
       target: { stuff: founder },

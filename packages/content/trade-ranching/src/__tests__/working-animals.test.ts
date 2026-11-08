@@ -185,7 +185,7 @@ describe('⭐⭐ the dog is the fourth rung, and it costs a relationship', () =>
   it('⭐⭐ a poorly bonded dog works BADLY — the bond made economic', () => {
     // Bond acquires a consequence without any livestock acquiring a bond
     // stat: the dog's own handling scales what its work is worth.
-    expect(HERDS_SRC).toMatch(/getHandling\?\.\(\) \?\? 0/);
+    expect(HERDS_SRC).toMatch(/MixinApi\.isHandling\(dog\) \? dog\.getHandling\(\) : 0/);
     expect(HERDS_SRC).toMatch(/if \(own <= 0\) return;/);
     expect(HERDS_SRC).toMatch(/\* own/);
   });

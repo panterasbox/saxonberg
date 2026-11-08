@@ -15,6 +15,7 @@
  * neither depending on the other.
  */
 
+import { WaterPoweredMixin } from '@saxonberg/server/mud/lib/supply/WaterPowered';
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import PowerReading from '../../../reading/PowerReading';
@@ -59,16 +60,16 @@ class TestActor extends CommandGiverMixin(
  * A weir, over the SHAPE only — no `ControlStructure` import, because
  * the point is that the reading does not need one.
  */
-class FakeWeir extends Good {
+class FakeWeir extends WaterPoweredMixin(Good) {
   public asked = 0;
-  generationW(flowM3S: number): number {
+  public override generationW(flowM3S: number): number {
     this.asked += 1;
     return 1000 * 9.81 * this.getHeadM() * flowM3S * 0.85;
   }
-  getReachRef(): string {
+  public override getReachRef(): string {
     return 'delight:flats';
   }
-  getHeadM(): number {
+  public override getHeadM(): number {
     return 6;
   }
 }

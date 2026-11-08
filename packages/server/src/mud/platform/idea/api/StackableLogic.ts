@@ -52,14 +52,10 @@ const StackableApiCallers = SecurityPolicies.AnyOf(
 /** The F1 object face: a Stackable host forwards its own split/absorb. */
 const StackCallers = SecurityPolicies.AnyOf(
   StackableApiCallers,
-  SecurityPolicies.FromMixin('StackableMixin', {
-    // Compare by stuffId — the caller may surface as the raw target
-    // while the argument is the proxy (or vice versa).
-    where: (caller, _target, _method, args) =>
-      (caller as { stuffId?: string }).stuffId !== undefined &&
-      (caller as { stuffId?: string }).stuffId ===
-        (args[0] as { stuffId?: string } | undefined)?.stuffId,
-  }),
+  SecurityPolicies.AllOf(
+    SecurityPolicies.FromMixin('StackableMixin'),
+    SecurityPolicies.SelfSubject(0),
+  ),
 );
 
 /**

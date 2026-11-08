@@ -6,8 +6,9 @@
 # not waste, it is somebody else's input. The `spent-grain` row is the
 # MASH's residue and this is the RUN's — two different by-products from
 # two different steps, and both have a buyer.
-class: /platform/idea/material/ConsumableMaterial
+class: /platform/idea/material/OdorousConsumableMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/mash, strength: 800 }, { aroma: /base-library/aromas/sour, strength: 100 }]
   name: stillage
   keywords: [stillage, pot-ale, dregs, burnt-ale]
   appearance: "a cloudy, sour-smelling stillage with grain settled through it"

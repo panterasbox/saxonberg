@@ -131,8 +131,8 @@ column is the ground's business, cutting it is the trade's.
 ## Reading a floor
 
 ⚠⚠ **`floor` and `ground` are keywords on the CLASS, not on the row.** The
-MQL scope walk pools a thing's own `getKeywords()`, and `pushDetails` gives
-a detail the pool `[<its id>]` and **never** its authored `keywords:`. So a
+MQL scope walk pools a thing's own `getKeywords()`, and `DetailedMixin.getKeywords` folds
+in a detail by its id `[<its id>]` and **never** its authored `keywords:`. So a
 floor row's `details.floor.keywords: [ground]` is dead text — and attaching
 a floor row to all 139 Locations would have fixed `look floor` while leaving
 bare `sit` broken. `FloorMixin.getKeywords()` unions both words;
@@ -323,15 +323,18 @@ planWork(by, tool, what): Promise<WorkPlan | WorkRefusal>   // no side effects
 completeWork(by, tool, token): Promise<WorkResult>          // once, at completion
 ```
 
-`Diggable` and `Splittable` are markers over it, discriminated on a `kind`
-literal. **Two phases, not one**, because a swing is an engagement and a
+`Splittable` earned a protocol mixin (`SplittableMixin`, `lib/ground/Splittable.ts`,
+three hosts in three packs — controllers-are-io D8a) and `split` asks
+`MixinApi.isSplittable`; `Diggable` has one host and stays a shape that the
+quarry pack's `OpenWorkingMixin` speaks (`dig.yaml` stays `requires: any`;
+the controller narrows on that mixin by name). **Two phases, not one**, because a swing is an engagement and a
 barge-in must leave the ground exactly as it was — a single
 `dig(by, tool, what)` could not have both planned and committed.
 
 ⭐⭐ **The controller knows nothing about stone, peat, clay or worms.**
 `platform/idea/cmd/ground/WorkedActController` speaks this protocol and
-nothing else: the thing being worked prices its own pace, refuses **in its own
-words**, mints its own product, and names the Discipline it wants credited
+nothing else: the thing being worked prices its own pace, refuses with **its
+own reason** (the controller words it — controllers-are-io D4), mints its own product, and names the Discipline it wants credited
 (`WorkResult.credit` — the one field that lets a platform verb earn a *trade's*
 competence). Take every content pack away and both verbs still work: they
 refuse, naming the tool.
@@ -395,8 +398,9 @@ for.
 
 ⚠ **`plough` nearly went silent in the move.** It was listed in
 `ImprovableMixin`'s contributions, and ploughing is not improvement, so it
-could not travel with them. `Field` now declares its own
-`commandContributions` naming `plough.yaml` — mixins **union** with a class's
+could not travel with them. The tract (`Tract`) now declares its own
+`commandContributions` naming `plow.yaml` (the view was `plough` until
+controllers-are-io's one view, one word) — mixins **union** with a class's
 own static, so it sits beside the mixin's three platform views. **Every
 controller test would still have passed.**
 

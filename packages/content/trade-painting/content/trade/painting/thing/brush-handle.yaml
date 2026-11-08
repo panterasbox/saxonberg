@@ -1,0 +1,10 @@
+# A brush handle — a turned beech handle with a socket for a knot of
+# bristle (paint D11).
+class: /platform/thing/Assembly
+data:
+  shortDescription: brush handle
+  keywords: [handle, "brush handle"]
+  register: indefinite
+  longDescription: A turned beech handle, socketed at one end.
+  _materialPath: /stuff/idea/material/wood/beech
+  mass: 0.1

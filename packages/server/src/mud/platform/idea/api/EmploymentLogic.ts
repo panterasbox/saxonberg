@@ -68,38 +68,32 @@ const EmploymentApiCallers = SecurityPolicies.FromModule(
 /** The F4 org face (Organization hosts) forwards here as the org. */
 const OrgCallers = SecurityPolicies.AnyOf(
   EmploymentApiCallers,
-  SecurityPolicies.FromMixin('OrganizationMixin', {
-    // Compare by stuffId — the caller may surface as the raw target
-    // while the argument is the proxy (or vice versa).
-    where: (caller, _target, _method, args) =>
-      (caller as { stuffId?: string }).stuffId !== undefined &&
-      (caller as { stuffId?: string }).stuffId ===
-        (args[0] as { stuffId?: string } | undefined)?.stuffId,
-  }),
+  SecurityPolicies.AllOf(
+    SecurityPolicies.AnyOf(
+      SecurityPolicies.FromModule('/platform/idea/Business', { includeSubclasses: true }),
+      SecurityPolicies.FromModule('/platform/idea/Organization', { includeSubclasses: true }),
+    ),
+    SecurityPolicies.SelfSubject(0),
+  ),
 );
 /** Org-face methods whose ORG is the second argument. */
 const OrgArg1Callers = SecurityPolicies.AnyOf(
   EmploymentApiCallers,
-  SecurityPolicies.FromMixin('OrganizationMixin', {
-    // Compare by stuffId — the caller may surface as the raw target
-    // while the argument is the proxy (or vice versa).
-    where: (caller, _target, _method, args) =>
-      (caller as { stuffId?: string }).stuffId !== undefined &&
-      (caller as { stuffId?: string }).stuffId ===
-        (args[1] as { stuffId?: string } | undefined)?.stuffId,
-  }),
+  SecurityPolicies.AllOf(
+    SecurityPolicies.AnyOf(
+      SecurityPolicies.FromModule('/platform/idea/Business', { includeSubclasses: true }),
+      SecurityPolicies.FromModule('/platform/idea/Organization', { includeSubclasses: true }),
+    ),
+    SecurityPolicies.SelfSubject(1),
+  ),
 );
 /** The F4 actor face (Employed hosts) forwards here as the actor. */
 const EmployedCallers = SecurityPolicies.AnyOf(
   EmploymentApiCallers,
-  SecurityPolicies.FromMixin('EmployedMixin', {
-    // Compare by stuffId — the caller may surface as the raw target
-    // while the argument is the proxy (or vice versa).
-    where: (caller, _target, _method, args) =>
-      (caller as { stuffId?: string }).stuffId !== undefined &&
-      (caller as { stuffId?: string }).stuffId ===
-        (args[0] as { stuffId?: string } | undefined)?.stuffId,
-  }),
+  SecurityPolicies.AllOf(
+    SecurityPolicies.FromMixin('EmployedMixin'),
+    SecurityPolicies.SelfSubject(0),
+  ),
 );
 
 /**
@@ -136,6 +130,7 @@ type EmployedActor = Stuff & Employed;
 async function holdsAuthorityImpl(
   principal: Stuff | null,
   ref: PrincipalRef | null,
+  depth = 0,
 ): Promise<boolean> {
   if (principal === null || ref === null) return false;
   switch (ref.kind) {
@@ -154,7 +149,48 @@ async function holdsAuthorityImpl(
       return PlayerApi.isAvatarStuff(principal)
         ? CompactApi.isCommitteeMember(principal, ref.parcel)
         : false;
+    case 'owners':
+      return holdsOwnersAuthority(principal, ref.organization ?? '', depth);
   }
+}
+
+/**
+ * ⭐ The `owners` authority (the institutions slate's cap
+ * table): whoever holds a MAJORITY of the organization's table. A player
+ * holder is an identity match; an organization holder's OWN authority is
+ * asked in turn (the line's office appoints the Hesper's master). Fails
+ * closed: an organization that is not standing or keeps no table, a table
+ * with no majority, or a chain of organizations holding each other deeper
+ * than a handful.
+ */
+async function holdsOwnersAuthority(
+  principal: Stuff,
+  organization: string,
+  depth: number,
+): Promise<boolean> {
+  if (depth > 4 || organization === '') return false;
+  const org = await organizationAt(organization);
+  if (org === null || !MixinApi.isCapTable(org)) return false;
+  const owner = org.majorityHolder();
+  if (owner === null) return false;
+  if (owner.kind === 'player') {
+    const path = principal.getIdentityPath();
+    return path !== null && path === owner.path;
+  }
+  const holder = await organizationAt(owner.path);
+  if (holder === null || !MixinApi.isOrganization(holder)) return false;
+  return holdsAuthorityImpl(principal, holder.getAppointingAuthority(), depth + 1);
+}
+
+/**
+ * The organization at `path`: the live one with that identity (a minted
+ * company stands with whatever minted it), else its row stood up. `null`
+ * when neither stands.
+ */
+async function organizationAt(path: string): Promise<Stuff | null> {
+  const live = StuffApi.findByIdentityPath<Stuff>(path).find((s) => !s.isDestroyed());
+  if (live !== undefined) return live;
+  return StuffApi.singleton<Stuff>(path).catch(() => null);
 }
 
 /**
@@ -384,6 +420,15 @@ function namesItself(text: string, needle: string): boolean {
 
 /** What a body of people calls itself. */
 function organizationLabelImpl(body: Stuff): string {
+  // ⭐ An organization that has a NAME reads by it. A business is a
+  // publisher too, and a publisher's label falls back to its template
+  // PATH: every business without a press label told a new hand "taken on
+  // as labourer at /world/terminus/eternal/campus-farm/idea/farm-unit"
+  // (field population's browser walk) — the university farm, Quist's farm
+  // and the sawmill all have names.
+  if (MixinApi.isOrganization(body) && body.getName().length > 0) {
+    return body.getPresentation();
+  }
   return MixinApi.isPublisher(body) ? body.getLabel() : body.getPresentation();
 }
 
@@ -1327,6 +1372,7 @@ async function settleShiftWageImpl(
   employeeKey: string,
   employment: Employment,
   offTimeRaw: number,
+  opts: { tell?: boolean } = {},
 ): Promise<void> {
   const onSince = employment.onShiftSince;
   if (onSince == null) return; // never actually on shift
@@ -1356,7 +1402,10 @@ async function settleShiftWageImpl(
   // the worker's decision (sugar D10) — a person is told, a hand past what
   // they will stand walks off. Both shift ends (the roster tick and
   // `clock off`) come through here.
-  if (!paid.ok && paid.reason === 'insufficient-funds') {
+  // ⚠ A settle at LEAVING tells nobody: the worker is being unloaded or has
+  // gone, and loading them back to hear it would undo the leaving. The
+  // arrear stands on the book either way.
+  if (!paid.ok && paid.reason === 'insufficient-funds' && opts.tell !== false) {
     const owed = business.arrearsOwedTo(employeeKey);
     // ⭐ LOADED on use, not looked up: a hand on a holding nobody is
     // standing in is not resident, and a resident-only read skipped their
@@ -1688,6 +1737,8 @@ export class EmploymentLogic extends ApiLogic {
    * not. A cache: empty after a restart, which re-moves once.
    */
   private shiftStations = new Map<string, { slot: number; at: string }>();
+  /** Off-shift rounds parked since this process started (the restart re-park). */
+  private parkedOff = new Set<string>();
 
   /** Rounds whose hand is being fetched to a stop — one load at a time. */
   private fetching = new Set<string>();
@@ -1787,14 +1838,24 @@ export class EmploymentLogic extends ApiLogic {
         !!onSlot &&
         (!was || was.slot !== slotIndex || (!!onSlot.station && was.at !== onSlot.station));
       if (onSlot && !currentlyOn) {
+        this.parkedOff.delete(roundKey);
         business.beginShift(employed, nowRaw);
         moveTo(onSlot);
       } else if (onSlot && currentlyOn && stray) {
         // ⭐ Mid-shift, the hour moved the round to its next stop. A
         // restart re-moves once (the map starts empty).
         moveTo(onSlot);
+        business.showShiftStatus(employed);
+      } else if (desired === 'off-shift' && !currentlyOn && !this.parkedOff.has(roundKey)) {
+        // ⭐ The off-shift twin of the restart re-move: a hand already off
+        // shift is parked once per process. Without it a restart left the
+        // whole cast where the room's `cast:` spawned them — five people
+        // around a bar one of them was working (owner, 2026-11-01).
+        this.parkedOff.add(roundKey);
+        void moveForShift(business, assignment, actor, false);
       } else if (desired === 'off-shift' && currentlyOn) {
         this.shiftStations.delete(roundKey);
+        this.parkedOff.add(roundKey);
         // Settle off the captured record (has `onShiftSince`) at this
         // tick's instant, before the synchronous clear below — no race.
         void settleShiftWageImpl(
@@ -2016,6 +2077,32 @@ export class EmploymentLogic extends ApiLogic {
   @CallSecurity(EmployedCallers)
   public clockOff(actor: Stuff, organizationPath: string): Promise<ClockResult> {
     return this.clockImpl(actor, organizationPath, 'off');
+  }
+
+  /**
+   * See {@link Employed.leaveShifts}. Every shift the actor is on ends NOW
+   * and settles to now — the instant is read before anything awaits, so a
+   * body being unloaded is paid to the moment it left. The record on a body
+   * that is gone is not touched (an unsaved hand's record goes with it).
+   */
+  @CallSecurity(EmployedCallers)
+  public async leaveShifts(actor: Stuff): Promise<void> {
+    if (!MixinApi.isEmployed(actor)) return;
+    const key = actor.getIdentityPath() ?? '';
+    const nowRaw = WorldClockApi.getNow().rawValue();
+    const open = actor.getEmployments().filter((e) => e.status === 'on-shift');
+    for (const employment of open) {
+      const business = await StuffApi.singleton(employment.organizationPath).catch(() => null);
+      if (!business || !MixinApi.isBusiness(business)) continue;
+      // ⚠ The shift ends whether or not the wage could settle: a shift left
+      // open is exactly what a later `clock off` paid the whole absence for.
+      try {
+        await settleShiftWageImpl(business, key, employment, nowRaw, { tell: false });
+      } catch (err) {
+        console.warn(`EmploymentLogic: the leaving wage for ${key} did not settle: ${String(err instanceof Error ? err.message : err)}`);
+      }
+      if (!actor.isDestroyed()) business.endShift(actor as EmployedActor);
+    }
   }
 
   /** See {@link EmploymentApi.buysFor}. */

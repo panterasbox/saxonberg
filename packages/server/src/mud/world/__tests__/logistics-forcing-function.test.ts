@@ -124,7 +124,7 @@ describe('⭐ AC15 — the brains stop teleporting', () => {
         expect(
           // `open` / `close`: the cook opens the shut icebox to put a
           // delivered block in it, and shuts it (storage-and-ice W9).
-          ['get', 'put', 'pour', 'wash', 'wallet', 'job', 'consign', 'drop', 'go', 'open', 'close'],
+          ['get', 'put', 'pour', 'wash', 'wallet', 'job', 'shelf', 'drop', 'go', 'open', 'close'],
           `unexpected verb '${verb}'`,
         ).toContain(verb);
       }

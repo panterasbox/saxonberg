@@ -30,15 +30,13 @@ import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Wet } from '../wetness/Wet';
 import type { MarkupAugmenter } from '../../api/mml';
-import { Mml } from '../../api/mml';
-import { MessageApi } from '../../api/message';
 import { Quantity } from '../quantity';
 import { DefaultCalendar } from '../time/DefaultCalendar';
 import { CarvableMixin } from '../craft/Carvable';
-import type { Carvable, CarveRequest } from '../craft/Carvable';
+import type { Carvable, CarvePlan, CarveRefusal, CarveRequest } from '../craft/Carvable';
 import { ImpressibleMixin } from '../craft/Impressible';
-import type { Impressible } from '../craft/Impressible';
-import type { ActOutcome, ActPlan, ActRefusal } from '../craft/ActPlan';
+import type { Impressible, ImpressOutcome, ImpressRefusal } from '../craft/Impressible';
+import type { ActRefusal } from '../craft/ActPlan';
 import { MixinApi } from '../../api/mixin';
 import { MaterialApi } from '../../api/material';
 import { StuffApi } from '../../api/stuff';
@@ -56,11 +54,21 @@ export type GreenState = 'plastic' | 'leather-hard' | 'bone-dry';
 export type GreenRuin = 'slumped' | 'shattered' | null;
 
 /** What a carve word does to a green piece. */
+/**
+ * ⭐ Green ware refused at the wrong moment — a member of both the carve
+ * and the impress refusal unions (`CarveRefusal`, `ImpressRefusal`).
+ */
+type GreenRefusal =
+  | ActRefusal<'ruined'>
+  | ActRefusal<'fired', { act: 'trim' | 'stamp' }>
+  | ActRefusal<'too-soft', { act: 'trim' | 'stamp' }>
+  | ActRefusal<'too-dry', { act: 'trim' | 'stamp' }>;
+
 const CARVINGS: Readonly<Record<string, { line: string; keep: number }>> = {
   foot: { line: 'a turned foot', keep: 0.95 },
   trim: { line: 'a trimmed wall', keep: 0.95 },
   // ⭐ `design`, not `pattern`: a pattern is the founder's shape to cast from
-  // (`carve pattern of <thing> from <board>`) — one word, one thing.
+  // (`carve pattern from <board> --of <thing>`) — one word, one thing.
   design: { line: 'a design cut into it', keep: 0.98 },
 };
 
@@ -189,56 +197,41 @@ export function GreenwareMixin<TBase extends MixinConstructor<Stuff & Wet & Mois
      * turn a foot, cut a design — at LEATHER-HARD only. Too soft, it
      * smears; too dry, it cracks. Credits pottery.
      */
-    public async carvePlanFor(req: CarveRequest): Promise<ActPlan | ActRefusal> {
+    public async carvePlanFor(req: CarveRequest): Promise<CarvePlan | CarveRefusal | null> {
       // ⭐ Once it is not green, the act is the HOST's own, if it has one (a
       // clay mould carves a riser like any mould) — green ware must never
       // shadow it for life (B99).
       if (!this.isGreen()) {
-        const host = (Base.prototype as { carvePlanFor?: (r: CarveRequest) => Promise<ActPlan | ActRefusal> })
-          .carvePlanFor;
+        const host = (Base.prototype as {
+          carvePlanFor?: (r: CarveRequest) => Promise<CarvePlan | CarveRefusal | null>;
+        }).carvePlanFor;
         if (host) return host.call(this, req);
       }
       const self = this as unknown as Stuff;
       const word = req.word.trim().toLowerCase();
       const cut = CARVINGS[word];
-      if (cut === undefined) {
-        return {
-          ok: false,
-          reason: 'not-carvable',
-          line: Mml.compose`You can trim ${Mml.thing(self)}, turn a foot on it, or cut a design into it.`,
-        };
-      }
+      if (cut === undefined) return { ok: false, reason: 'not-carvable', facts: { carves: 'trim' } };
       const refused = this.leatherHardRefusal('trim');
       if (refused !== null) return refused;
-      if (req.knife === null) {
-        return {
-          ok: false,
-          reason: 'no-edge',
-          line: Mml.compose`You need an edge to trim with — any knife will do.`,
-        };
-      }
+      const knife = req.knife;
+      if (knife === null) return { ok: false, reason: 'no-edge', facts: { carves: 'trim' } };
       const actor = req.actor;
       return {
         ok: true,
         durationMs: 3 * 60 * 1000,
         effortW: 120,
-        beginSelf: Mml.compose`You set ${Mml.thing(self)} upside down and pare at it with ${Mml.thing(req.knife)}.`,
-        beginPeers: Mml.compose`${Mml.actor(actor)} pares at ${Mml.thing(self)}.`,
+        facts: { kind: 'trim', knife },
         onComplete: () => {
-          if (self.isDestroyed()) return;
+          if (self.isDestroyed()) return { ok: true, facts: { kind: 'gone' } };
           if (MixinApi.isTangible(self)) {
             self.setMass(Quantity.of(self.getMass().rawValue() * cut.keep, 'kg'));
           }
           if (!this.workedFeatures.includes(cut.line)) this.workedFeatures = [...this.workedFeatures, cut.line];
-          if (!actor.isDestroyed()) {
-            MessageApi.scene(actor)
-              .topic('act.deed')
-              .toSelf(Mml.compose`The shavings curl away. ${Mml.thing(self)} has ${cut.line} now.`)
-              .send();
-            if (MixinApi.isAdvancing(actor)) {
-              void actor.creditDeed({ discipline: 'pottery', difficulty: 'standard', outcome: 'success' });
-            }
+          if (actor.isDestroyed()) return { ok: true, facts: { kind: 'gone' } };
+          if (MixinApi.isAdvancing(actor)) {
+            void actor.creditDeed({ discipline: 'pottery', difficulty: 'standard', outcome: 'success' });
           }
+          return { ok: true, facts: { kind: 'trimmed', feature: cut.line } };
         },
       };
     }
@@ -249,67 +242,37 @@ export function GreenwareMixin<TBase extends MixinConstructor<Stuff & Wet & Mois
      * bears a device (`MarkedMixin`) and the piece takes it; a tool that
      * bears none leaves only a dent.
      */
-    public async takeImpression(pattern: Stuff, actor: Stuff): Promise<ActOutcome | ActRefusal> {
+    public async takeImpression(pattern: Stuff, actor: Stuff): Promise<ImpressOutcome | ImpressRefusal> {
       // ⭐ The host's own impression once it is not green (a clay mould takes
       // a pattern like any mould) — B99.
       if (!this.isGreen()) {
         const host = (Base.prototype as {
-          takeImpression?: (p: Stuff, a: Stuff) => Promise<ActOutcome | ActRefusal>;
+          takeImpression?: (p: Stuff, a: Stuff) => Promise<ImpressOutcome | ImpressRefusal>;
         }).takeImpression;
         if (host) return host.call(this, pattern, actor);
       }
       const self = this as unknown as Stuff;
       const refused = this.leatherHardRefusal('stamp');
       if (refused !== null) return refused;
-      if (!MixinApi.isMarked(self)) {
-        return { ok: false, reason: 'not-markable', line: Mml.compose`There is nowhere on ${Mml.thing(self)} a mark would mean anything.` };
-      }
+      if (!MixinApi.isMarked(self)) return { ok: false, reason: 'not-markable' };
       // ⭐ The tool's face bears a device; pressing it copies the device into
       // the clay (`MarkedMixin`). Anything else leaves only a dent.
       const identity = MixinApi.isMarked(pattern) ? self.takeDeviceFrom(pattern) : '';
-      if (identity === '') {
-        return {
-          ok: false,
-          reason: 'no-mark',
-          line: Mml.compose`${Mml.thing(pattern)} leaves a dent, and no mark anybody would know.`,
-        };
-      }
-      return {
-        ok: true,
-        line: Mml.compose`You press ${Mml.thing(pattern)} into the base of ${Mml.thing(self)}. It takes ${self.deviceFor(actor) ?? 'the mark'}, sharp and clean.`,
-      };
+      if (identity === '') return { ok: false, reason: 'no-mark' };
+      return { ok: true, facts: { kind: 'marked', device: self.deviceFor(actor) ?? null } };
     }
 
     /** `null` when the piece is leather-hard and sound; a refusal otherwise. */
-    private leatherHardRefusal(act: 'trim' | 'stamp'): ActRefusal | null {
-      const self = this as unknown as Stuff;
+    private leatherHardRefusal(act: 'trim' | 'stamp'): GreenRefusal | null {
       if (this.greenRuin !== null) {
         // ⭐ The way out exists (B99): it is still clay, and a temper pit takes
-        // it back — put it in with water and tread it.
-        return {
-          ok: false,
-          reason: 'ruined',
-          line: Mml.compose`${Mml.thing(self)} is ruined. It is still clay, though — put it back in a temper pit and tread it in again.`,
-        };
+        // it back — put it in with water and tread it (the words say so).
+        return { ok: false, reason: 'ruined' };
       }
       const state = this.greenState();
-      if (state === null) {
-        return { ok: false, reason: 'fired', line: Mml.compose`${Mml.thing(self)} has been fired hard. Nothing will ${act} it now.` };
-      }
-      if (state === 'plastic') {
-        return {
-          ok: false,
-          reason: 'too-soft',
-          line: Mml.compose`${Mml.thing(self)} is too soft to ${act} — it would smear. Let it firm up to leather-hard.`,
-        };
-      }
-      if (state === 'bone-dry') {
-        return {
-          ok: false,
-          reason: 'too-dry',
-          line: Mml.compose`${Mml.thing(self)} is bone-dry — it would crack. That is done at leather-hard.`,
-        };
-      }
+      if (state === null) return { ok: false, reason: 'fired', facts: { act } };
+      if (state === 'plastic') return { ok: false, reason: 'too-soft', facts: { act } };
+      if (state === 'bone-dry') return { ok: false, reason: 'too-dry', facts: { act } };
       return null;
     }
 

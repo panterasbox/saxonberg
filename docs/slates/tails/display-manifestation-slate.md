@@ -56,6 +56,15 @@ Network / channel         OPTIONAL, LATER: how content is organised and found
   or expressed through `AccessApi.can(actor, action, resource)` — which
   is already the project's answer to "who may do this to that."
 
+## From the smell and taste requirements (2026-11-07)
+
+The owner: screens get a full design conversation of their own, which will probably
+change how they work dramatically. So `DISPLAY_KINDS` and `DISPLAY_PAIRINGS` stay
+counted by `lint:closed-vocabularies` until then. One input for that conversation:
+pairings look like the conditions in [locks](../../requirements/locks-requirements.md).
+`held` and `remote` are "a thing held", and `staff` is "named in a record", so a screen
+might declare conditions the way a lock does rather than keep a second list.
+
 ## ⚠ Open questions the build must answer
 
 1. **Does prose project per-viewer, or is it an ordinary scene message?**

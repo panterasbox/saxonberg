@@ -1,0 +1,29 @@
+# The colorman's shop (paint D20) — brick, slate-roofed, smelling of oil.
+class: /platform/location/Hall
+data:
+  coords: { x: 0, y: 0, z: 0 }
+  shortDescription: "colorman's shop"
+  keywords: [shop, colorman, "colorman's", "paint shop"]
+  register: definite
+  _address: terminus/city/wharfside/colorman
+  enclosure: { material: /stuff/idea/material/ceramic/brick, thicknessM: 0.23 }
+  roof: { material: /stuff/idea/material/rock/slate, thicknessM: 0.01 }
+  longDescription: |
+    A low brick shop that smells of linseed and turpentine, its shelves crowded with jars of earths and papers of pigment in every color a wall can be, brushes hanging by their handles in rows. Behind the counter a slab of stone stands ready for grinding, and a door at the back gives north on to a yard.
+  exits:
+    towpath:
+      destination: /world/terminus/valley-road/towpath
+      media: [ground]
+      edgeMinutes: 1
+    north:
+      destination: /world/terminus/wharfside/colorman/location/yard
+  adornments:
+    - { template: /world/terminus/wharfside/colorman/thing/shop-lamp, slot: lamp:shop }
+  props:
+    - /world/terminus/wharfside/colorman/thing/counter
+    - /trade/painting/thing/paint-pot
+    # The hearth: warms a glue pot, fires ochre red, and its swept flue gives
+    # lampblack (paint D18).
+    - /stuff/thing/Hearth
+  cast:
+    - /world/terminus/wharfside/colorman/agent/colorman

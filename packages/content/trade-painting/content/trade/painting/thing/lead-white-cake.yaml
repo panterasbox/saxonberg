@@ -1,0 +1,11 @@
+# A cake of lead white — the white crust scraped off lead corroded in
+# vinegar fumes, pressed into a cake. Ground on the stones it is lead white
+# pigment — and the grinding is where the dust gets into you (paint D14).
+class: /trade/quarrying/thing/Lump
+data:
+  shortDescription: cake of lead white
+  keywords: [cake, "lead white", "white lead", flake, "cake of lead white"]
+  register: indefinite
+  longDescription: A heavy chalky-white cake, flaking at the edges.
+  _materialPath: /trade/painting/idea/material/lead-white-flake
+  mass: 0.5

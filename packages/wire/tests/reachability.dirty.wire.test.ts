@@ -249,10 +249,19 @@ async function carryALight(s: Session): Promise<void> {
   await s.drainProse();
 }
 
-async function at(where: string, tag: string, wizard = true): Promise<Session> {
+/**
+ * A player at `where`. Seated on Rejection's committee by default because
+ * `carryALight` clones Rejection's glowcap row, and `clone` asks title over
+ * the KIND's path (wizard-axis D13) — pass `[]` for a plain stranger.
+ */
+async function at(
+  where: string,
+  tag: string,
+  committees: string[] = ['/world/terminus/rejection'],
+): Promise<Session> {
   const s = await Session.open(uniqueHandle(tag), {
     startLocation: where,
-    ...(wizard ? { wizard: true } : {}),
+    ...(committees.length ? { committees } : {}),
   });
   open.push(s);
   return s;
@@ -264,10 +273,7 @@ beforeAll(async () => {
   // the apiculture and fishing drives both use. An Avatar's inventory and
   // account persist across the socket.
   const handle = uniqueHandle('reach');
-  const s = await Session.open(handle, {
-    startLocation: BANK_HALL,
-    wizard: true,
-  });
+  const s = await Session.open(handle, { startLocation: BANK_HALL });
   expectOk(await s.cmd('bank open'));
   const gov = await Session.open('founder', { startLocation: BANK_HALL });
   try {
@@ -280,7 +286,12 @@ beforeAll(async () => {
     gov.close();
   }
   s.close();
-  k = await Session.open(handle, { startLocation: STORE, wizard: true });
+  // `goto` asks title over the destination (Terminus's rooms), and the
+  // glowcap clone asks it over Rejection's row — seated, not a credential.
+  k = await Session.open(handle, {
+    startLocation: STORE,
+    committees: ['/world/terminus', '/world/terminus/rejection'],
+  });
   open.push(k);
 
   // ⚠⚠ **A lantern before anything is looked at.** The wire world boots
@@ -290,7 +301,8 @@ beforeAll(async () => {
   // them. The doctrine is working; a drive has to carry a lamp.
   await carryALight(k);
 
-  other = await at(STORE, 'reach-other');
+  // A stranger: no seat anywhere, so `subdivide` is refused on authority.
+  other = await at(STORE, 'reach-other', []);
 }, 420_000);
 
 afterAll(async () => {
@@ -312,10 +324,10 @@ suite('1–8. the verbs that shipped and could not be said', () => {
     // `sneak.yaml`'s own advice had no verb to walk a single exit back.
     expectOk(await act(k, 'set movement.defaultMode sneak'));
     const before = await whereAmI(k);
-    const walked = await act(k, 'walk out');
+    const walked = await act(k, 'walk south');
     expectOk(walked);
     const after = await whereAmI(k);
-    expect(after, '`walk out` did not move anybody').not.toBe(before);
+    expect(after, '`walk south` did not move anybody').not.toBe(before);
 
     // ⭐ And the way back to walking does not require changing a setting.
     expectOk(await act(k, 'set movement.defaultMode walk'));
@@ -444,13 +456,13 @@ suite('1–8. the verbs that shipped and could not be said', () => {
     // verb bound, reached its controller, and `AccessApi.can` said no —
     // which is the honest answer. `command-rejected` would mean the game
     // never heard the word.
-    // ⚠ `subdivide <name>` — ONE string arg, and it carves the parcel you
+    // ⚠ `title subdivide <name>` — ONE string arg, and it carves the parcel you
     // are STANDING IN. The drive's first two runs typed a path and an
     // `as` clause and earned `shape-fall-through`, which is the parser
     // saying the shape is wrong rather than the word being unknown. The
-    // view's own example is `subdivide east-wing`.
-    const onGroundNotHeld = await act(other, 'subdivide wire-slice');
-    expectUnderstood(onGroundNotHeld, 'subdivide');
+    // view's own example is `title subdivide east-wing`.
+    const onGroundNotHeld = await act(other, 'title subdivide wire-slice');
+    expectUnderstood(onGroundNotHeld, 'title subdivide');
     const notes = onGroundNotHeld.notes as Array<{ kind?: string }>;
     expect(
       notes.some(
@@ -460,54 +472,23 @@ suite('1–8. the verbs that shipped and could not be said', () => {
         'CONTROLLER on authority, not by the parser on grammar',
     ).toBe(true);
 
-    const xfer = await act(other, 'transfer wire-slice to nobody');
-    expectUnderstood(xfer, 'transfer');
+    const xfer = await act(other, 'title transfer wire-slice to nobody');
+    expectUnderstood(xfer, 'title transfer');
   }, 300_000);
 
-  it('⛔⛔ 7. `swim` is STILL unknown — the water design owns how you get in', async () => {
-    // ⭐⭐⭐ The reversal, asserted as a POSITIVE so it cannot rot.
-    //
-    // Everything about the gap is real and the sweep found it:
-    // `SwimmableMixin` and `SwimController` shipped with the locomotion
-    // build, `BodyPlan/biped.yaml` lists `swim` among a person's modes,
-    // SIX exits in the estuary and at the wharf carry
-    // `media: [ground, water]`, and nothing in the game composes the
-    // mixin — the only composition anywhere is an integration test that
-    // manufactures its own host. Somebody authored those exits expecting
-    // this to work.
-    //
-    // ⚠⚠ And the sweep's answer — a `SwimmableMixin(Thing)` propped in a
-    // land room, so a land exit becomes swimmable — was reversed, because
-    // `navigable-water-slate` merged to master mid-build and OWNS the
-    // question. Its status block says *"nowhere on, in or under the water
-    // is a place you can be"* and puts **"the first water anybody can
-    // stand in"** on its Left list; its model is that every water node is
-    // a **place** (a `Location`) or a **passage** (cited, never
-    // inhabited), with a beach as a land `Location` holding a `Shore`
-    // that CITES a water node *"so nothing is ever in the water's
-    // zone"*, and entering water as a **dive entrance** — one of three
-    // faces on that citation. A Thing in a land room is a fourth shape
-    // it would never produce, in the exact rooms it names as its own
-    // first target.
-    //
-    // ⭐⭐ Third instance of one lesson in one build, after `drive` and
-    // `say`: a gate can prove a view is afforded or declared; it cannot
-    // tell you whether conferring one was yours to decide.
-    //
-    // ⭐ When that build lands this checkpoint FAILS, and asks for the
-    // real thing in its place: swim an estuary exit, and be told there is
-    // nothing to swim in at a dry one.
+  it('7. `swim` is a verb now — the water design landed (underwater: `swim basin`)', async () => {
+    // ⭐ This checkpoint was written to FAIL when navigable water landed and to
+    // ask for the real thing in its place (W11, 2026-11-07: it did). The swim
+    // itself is the underwater drive's (`swim basin` from the quay); what is
+    // held here is that the verb is known and says why a dry way is no swim.
     const swimmer = await at(REACH, 'reach-swimmer');
     await swimmer.drainProse();
     const out = await say(swimmer, 'swim east');
     const notes = out.notes as Array<{ kind?: string; reason?: string }>;
     expect(
-      notes.some(
-        (n) => n.kind === 'command-rejected' && n.reason === 'unknown-verb',
-      ),
-      '`swim` must still be UNKNOWN — held on navigable-water-slate, ' +
-        'which owns what the enablement host is',
-    ).toBe(true);
+      notes.some((n) => n.kind === 'command-rejected' && n.reason === 'unknown-verb'),
+      '`swim` is known',
+    ).toBe(false);
   }, 300_000);
 
   it('⛔ 8. `lock north` and `fly up` are STILL unknown — and that is a recorded decision', async () => {
@@ -523,7 +504,15 @@ suite('1–8. the verbs that shipped and could not be said', () => {
     // no air exit, no flying species and no composer, which makes it the
     // one case where *afford statically, decline diegetically* does not
     // apply: the refusal would point at nothing.
-    for (const dead of ['lock north', 'fly up']) {
+    // ⭐ (harbors, 2026-11-04) `lock north` is a verb now, by decision:
+    // harbors review 3 bound a direction to the WAY, and `lock` reaches the
+    // lock a way carries (`lock ashore` on a smack's gangway is the harbors
+    // drive's step 12). The view lost its `unreachable:` hold with it, so
+    // the word is understood — and refused in the world's words where the
+    // way has no lock. `fly up` is still the recorded absence.
+    const lock = await say(k, 'lock north');
+    expectUnderstood(lock, 'lock north');
+    for (const dead of ['fly up']) {
       const out = await say(k, dead);
       const notes = out.notes as Array<{ kind?: string; reason?: string }>;
       // ⭐ `unknown-verb` specifically — a shape error would ALSO be
@@ -648,10 +637,10 @@ suite('9–14. a good`s name is a PHRASE', () => {
     await k.drainProse();
     const baker = k;
     expectOk(await act(baker, 'buy dog loaf'));
-    const consigned = await act(baker, 'consign dog loaf');
+    const consigned = await act(baker, 'shelf consign dog loaf');
     expect(refusedFor(consigned)).not.toBe('unknown-verb');
     if (refusedFor(consigned) === null) {
-      const back = await act(baker, 'reclaim dog loaf');
+      const back = await act(baker, 'shelf reclaim dog loaf');
       expect(refusedFor(back)).not.toBe('unknown-verb');
       if (refusedFor(back) === null) {
         expect(await carried(baker), 'the loaf came back').toMatch(/loaf|bread/i);

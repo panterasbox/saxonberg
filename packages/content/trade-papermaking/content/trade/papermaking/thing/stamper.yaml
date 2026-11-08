@@ -1,0 +1,14 @@
+# The stamper (paper W2) — three heavy beech stocks shod with iron, lifted by
+# cams on a shaft the race turns and dropped into an oak trough. `put rags in
+# stamper`, `switch on stamper`, and the rags go to pulp in the vat. Its
+# power is the race's: `powerFrom` is authored on the mill's own row.
+class: /trade/papermaking/thing/Stamper
+data:
+  shortDescription: stamper
+  keywords: [stamper, stamps, stocks, trough, "stamping mill"]
+  register: definite
+  longDescription: |
+    Three great wooden stocks stand in a row over an oak trough, their feet shod with iron, each with a peg the cam on the turning shaft catches, lifts and lets fall.
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 400
+  fixedInPlace: true

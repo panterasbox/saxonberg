@@ -53,16 +53,17 @@ describe('CommandLineApi.parsePipeline — quoting', () => {
     ]);
   });
 
-  it("doesn't treat single-quote `'` as a quoting form across whitespace", () => {
-    // Apostrophe is literal; whitespace still splits. The single-
-    // quote-as-`say`-alias case relies on the matcher accepting
-    // `'` as a verb (see say.yaml verbs: [say, "'"]).
-    const t = tokens("'hello world");
-    expect(t).toHaveLength(2);
-    expect(t.map((x) => (x.kind === 'word' ? x.value : ''))).toEqual([
-      "'hello",
-      'world',
-    ]);
+  it("a leading `'` on the line is its own token: the `say` shortcut (D16)", () => {
+    // The default alias `'` (say.yaml) reaches `say`, with or without the
+    // space, and an apostrophe further in stays an apostrophe.
+    const words = (line: string) =>
+      tokens(line).map((x) => (x.kind === 'word' ? x.value : ''));
+    expect(words("'hello world")).toEqual(["'", 'hello', 'world']);
+    expect(words("' hello world")).toEqual(["'", 'hello', 'world']);
+    expect(words("'it's fine")).toEqual(["'", "it's", 'fine']);
+    expect(words("look 'bob")).toEqual(['look', "'bob"]);
+    expect(words('"\'quoted" word')).toEqual(["'quoted", 'word']);
+    expect(CommandLineApi.parsePipeline("'hello").commands[0]?.verb).toBe("'");
   });
 
   it('processes escape sequences inside double-quoted segments', () => {
@@ -245,7 +246,7 @@ describe('CommandLineApi.parsePipeline — verb token', () => {
 
   it("recognises ' as a literal verb token (single-quote alias for say)", () => {
     const t = tokens("'hello world");
-    expect(t[0]).toMatchObject({ kind: 'word', value: "'hello" });
+    expect(t[0]).toMatchObject({ kind: 'word', value: "'" });
   });
 });
 

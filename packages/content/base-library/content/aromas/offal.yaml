@@ -1,0 +1,4 @@
+# Liver and gut, sour and metallic.
+parent: /base-library/aromas/flesh
+discipline: butchery
+liking: { peak: 1.5, width: 2, valence: -1 }

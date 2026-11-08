@@ -11,6 +11,7 @@
  *  3. the rows the arithmetic and the verbs lean on, held to the code.
  */
 
+import { WaterPoweredMixin } from '@saxonberg/server/mud/lib/supply/WaterPowered';
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { readFileSync, readdirSync, existsSync } from 'fs';
@@ -58,11 +59,11 @@ const recipes = (): RecipeRow[] =>
     .map((f) => YAML.parse(readFileSync(join(RECIPES, f), 'utf8')) as RecipeRow);
 
 /** A room sibling that answers the power shape — never a ControlStructure. */
-class FakeRace extends Good {
-  generationW(flowM3S: number): number {
+class FakeRace extends WaterPoweredMixin(Good) {
+  public override generationW(flowM3S: number): number {
     return 1000 * 9.81 * 6 * flowM3S * 0.85;
   }
-  getReachRef(): string {
+  public override getReachRef(): string {
     return 'delight:flats';
   }
 }
@@ -121,7 +122,7 @@ describe('the sawmill — one class, two rungs, and the rate is the river\'s', (
   it('⭐ the pit saw cuts at its own rate whatever the river is doing', async () => {
     const pit = fromRow('pit-saw');
     await ContainmentApi.move(pit as never, room as never);
-    expect(pit.isPowered()).toBe(false);
+    expect(pit.runsOnWater()).toBe(false);
     expect(pit.ratePerHourNow()).toBe(30);
     // 24 kg at 30 kg an hour is 48 game-minutes.
     expect(pit.sawMs(24)).toBe(48 * 60 * 1000);

@@ -191,7 +191,7 @@ villagers"). Three earlier threads collapse into this one:
 
 - **Staffing solves itself** (teacher-vertical §4.2): supply isn't
   conscripted NPCs — the economy *wants* player-teachers and pays them.
-- **The producer flip gets a price signal**
+- **The maker flip gets a price signal**
   ([study-com-student-experience.md](./student-experience.md) §3):
   "being needed" stops being a warm retention feeling and becomes an economic
   fact — the graduated expert teaches because there's a market.

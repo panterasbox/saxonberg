@@ -26,7 +26,8 @@ import { ExpanseApi } from '../../../api/expanse';
 import { WorldClockApi } from '../../../api/worldclock';
 import type { CommandContext } from '../../../api/command';
 import type { Stuff } from '../../../lib/stuff/Stuff';
-import type { Tooled } from '../../../lib/craft/Tooled';
+import type Place from '../../../lib/stuff/Place';
+import type { Tooled } from '../../../lib/craft/Tool';
 import type { CompetenceBandName } from '../../../lib/advancement/CompetenceBand';
 import type { Positioned } from '../../../lib/expanse/Positioned';
 import type { Voyaging } from '../../../lib/expanse/Voyaging';
@@ -118,7 +119,10 @@ export default class BearingReading extends Reading {
 
   private async craftOf(who: Stuff): Promise<Craft | null> {
     const root = MixinApi.isContainable(who) ? who.getRootContainer() ?? who : who;
-    const craft = await ExpanseApi.craftAt(root.getTemplatePath() ?? '');
+    // The place is asked (a keyed room's craft is its warren's ship).
+    const craft = root.isPlace()
+      ? await (root as unknown as Place).craftHere()
+      : await ExpanseApi.craftAt(root.getIdentityPath() ?? '');
     return craft && MixinApi.isVoyaging(craft) ? craft : null;
   }
 }

@@ -1,8 +1,9 @@
 # Frass — what a month of worms leaves on the tray: droppings and the
 # stalks of eaten leaf. ⭐ Tagged `compost`, so the platform's `feed` works
 # it into a bed unchanged — the leaf's nitrogen goes back to the ground.
-class: /platform/idea/material/ConsumableMaterial
+class: /platform/idea/material/OdorousConsumableMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/silkworm, strength: 300 }]
   name: frass
   keywords: [frass, droppings]
   appearance: dark, dry silkworm frass

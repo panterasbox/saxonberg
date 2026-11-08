@@ -1,5 +1,5 @@
 /**
- * Scroll — a single-use **focus** you read, and reading it is the
+ * Scroll — a single-use **focus** you recite, and reciting it is the
  * trigger.
  *
  * D5's consumable class in its purest form: it supplies one packaged
@@ -8,14 +8,14 @@
  * scroll of a working beyond you is a gamble and a wand of the same
  * working is not.
  *
- * ⚠ **A scroll affords `read`, and nothing else** (requirements D34).
- * That is not tidiness — it is the whole unidentified-consumable
- * mechanic. If an identify scroll afforded an `identify` verb, the verb
- * appearing in your list would tell you what you are holding, and the
- * scroll would identify itself for free. Verbs key on the **kind**
- * (which is visible); effects key on the **class** (which is not). So
- * every scroll in the world affords exactly `read`, and what happens
- * when you read it is the effect.
+ * ⚠ **Every scroll affords `read` and `recite`, and nothing else**
+ * (requirements D34; controllers-are-io D10 split the two). That is not
+ * tidiness — it is the whole unidentified-consumable mechanic. If an identify
+ * scroll afforded an `identify` verb, the verb appearing in your list would
+ * tell you what you are holding, and the scroll would identify itself for
+ * free. Verbs key on the **kind** (which is visible); effects key on the
+ * **class** (which is not). `read` tells you what it says; what happens when
+ * you `recite` it is the effect.
  *
  * The composition says the same thing three ways: `Marked` makes it
  * readable (and gives it a modality, so an embossed scroll reads in the
@@ -23,6 +23,7 @@
  */
 
 import Good from '@saxonberg/server/mud/lib/stuff/Good';
+import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import { MarkedMixin } from '@saxonberg/server/mud/lib/description/Marked';
 import { ArcaneMixin } from '@saxonberg/server/mud/lib/magic/Arcane';
 import { ConsumableMixin } from '@saxonberg/server/mud/lib/magic/Consumable';
@@ -53,4 +54,12 @@ const ScrollBase = CirculatingMixin(
   ),
 );
 
-export default class Scroll extends ScrollBase {}
+export default class Scroll extends ScrollBase {
+  /** ⭐ What the kind affords: the class's own, beside `MarkedMixin`'s `read`. */
+  static commandContributions: CommandContributions = {
+    self: [],
+    inventory: [],
+    peers: ['system/arcana/cmd/magic/recite.yaml'],
+    environment: ['system/arcana/cmd/magic/recite.yaml'],
+  };
+}

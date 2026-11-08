@@ -213,8 +213,13 @@ export default class AssessController extends CommandController<AssessModel> {
         seen.push(named ? leaf.replace(/-/g, ' ') : 'unwell');
       }
       if (seen.length > 0) {
-        const who = isSelf ? 'You seem' : `${target.getPresentation()} seems`;
-        blocks.push(Mml.escape(`${who} ${[...new Set(seen)].join(', ')}.`));
+        // Signs are what a body SEEMS ("You seem feverish"); a name is what
+        // it HAS ("You have dysentery") — the walk read "You seem dysentery".
+        const list = [...new Set(seen)].join(', ');
+        const who = named
+          ? isSelf ? 'You have' : `${target.getPresentation()} has`
+          : isSelf ? 'You seem' : `${target.getPresentation()} seems`;
+        blocks.push(Mml.escape(`${who} ${list}.`));
       }
     }
 

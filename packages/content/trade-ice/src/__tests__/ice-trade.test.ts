@@ -1,7 +1,7 @@
 /**
  * ⭐ The ice trade's acts (storage-and-ice W8, D19/D22).
  *
- *  1. `scrape` and `mark` hand the act to the sheet underfoot; a body the
+ *  1. `scrape` and `groove` hand the act to the sheet underfoot; a body the
  *     sheet is not holding up is refused (you do not work ice from the
  *     water), and a room with no sheet is refused.
  *  2. The plough's horse rung: refused with no draft animal on the ice.
@@ -33,7 +33,7 @@ import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/_
 import WatercourseCatalogue, { WATERCOURSE_CATALOGUE_PATH } from '@saxonberg/content-water/src/idea/WatercourseCatalogue';
 import IceSheet from '@saxonberg/content-water/src/thing/IceSheet';
 import ScrapeController from '../idea/cmd/ice/ScrapeController';
-import MarkController from '../idea/cmd/ice/MarkController';
+import GrooveController from '../idea/cmd/ice/GrooveController';
 import Scraper from '../thing/Scraper';
 import IceMarker from '../thing/IceMarker';
 
@@ -114,8 +114,8 @@ afterEach(() => {
   StuffApi.clearAll();
 });
 
-describe('scrape and mark hand the act to the sheet', () => {
-  it('⭐ on the ice: scrape clears a patch, mark scores the grid', async () => {
+describe('scrape and groove hand the act to the sheet', () => {
+  it('⭐ on the ice: scrape clears a patch, groove cuts the grid', async () => {
     const w = walker();
     sheet.occupy(w as never, 'ground:1');
     const scraper = makeStuff(() => {
@@ -132,8 +132,8 @@ describe('scrape and mark hand the act to the sheet', () => {
       m.setCapabilities(['marking']);
       return m;
     });
-    const m = ctxFor(w as unknown as Stuff, 'mark');
-    await makeStuff(() => new MarkController()).execute({ tool: { stuff: [marker], raw: '' } } as never, m);
+    const m = ctxFor(w as unknown as Stuff, 'groove');
+    await makeStuff(() => new GrooveController()).execute({ tool: { stuff: [marker], raw: '' } } as never, m);
     expect(rejected(m)).toBeNull();
     expect(sheet.patchByWord('marked')?.gridM).toBe(0.3);
   });
@@ -147,7 +147,7 @@ describe('scrape and mark hand the act to the sheet', () => {
     });
     const ctx = ctxFor(w as unknown as Stuff, 'scrape');
     await makeStuff(() => new ScrapeController()).execute({ tool: { stuff: [scraper], raw: '' } } as never, ctx);
-    expect(rejected(ctx)).toBe('refused');
+    expect(rejected(ctx)).toBe('not-on-ice');
     expect(sheet.getLog()).toHaveLength(1);
   });
 
@@ -161,9 +161,9 @@ describe('scrape and mark hand the act to the sheet', () => {
       m.gridM = 0.56;
       return m;
     });
-    const ctx = ctxFor(w as unknown as Stuff, 'mark');
-    await makeStuff(() => new MarkController()).execute({ tool: { stuff: [plough], raw: '' } } as never, ctx);
-    expect(rejected(ctx)).toBe('refused');
+    const ctx = ctxFor(w as unknown as Stuff, 'groove');
+    await makeStuff(() => new GrooveController()).execute({ tool: { stuff: [plough], raw: '' } } as never, ctx);
+    expect(rejected(ctx)).toBe('no-horse');
   });
 });
 

@@ -113,7 +113,7 @@ async function say(s: Session, line: string): Promise<string> {
 async function advance(duration: string): Promise<void> {
   // Lived time: in day-long jumps, the drive's people fed between them.
   await advanceLiving(duration, open);
-  const probe = await Session.open('founder', { startLocation: GROUND, wizard: true }).catch(() => null);
+  const probe = await Session.open('founder', { startLocation: GROUND }).catch(() => null);
   try {
     const until = Date.now() + 600_000;
     while (probe && Date.now() < until) {
@@ -220,7 +220,7 @@ async function held(s: Session): Promise<string[]> {
 }
 
 async function at(handle: string, where: string): Promise<Session> {
-  const s = await Session.open(handle, { startLocation: where, wizard: true });
+  const s = await Session.open(handle, { startLocation: where });
   open.push(s);
   await s.drainProse();
   return s;
@@ -448,11 +448,13 @@ suite('⭐ 3 — knead it', () => {
       stuffId: await hand(digger, CLAY, { weatheredDays: 40, _materialPath: ALLUVIAL, quantity: 3 }),
     };
     expect(heap?.stuffId, 'the weathered lumps in hand').toBeDefined();
-    // The pit thawed: 200 L of water and no ice, set by a runner holding the
-    // Delight's title. ⚠ No ';' anywhere — the shell splits a line on it.
+    // The pit thawed: 200 L of water and no ice, set by a runner SEATED on
+    // the Delight's committee — never by buying the parcel (`parcels:` sells
+    // it to a test character, and every later drive then finds no
+    // committee there). ⚠ No ';' anywhere — the shell splits a line on it.
     const thaw = await Session.open(uniqueHandle('pit-thaw'), {
       wizard: true,
-      parcels: ['/world/terminus/hearts-delight'],
+      committees: ['/world/terminus/hearts-delight'],
       startLocation: TEMPER,
     });
     try {
@@ -606,7 +608,7 @@ suite('⭐ 7 — fire the clamp', () => {
     // ⚠ Not `clamp:i`: a clamp is cased in clay and its inside is dark, so a
     // read of it lists nothing (run 36) — what the setter SAID is the record.
     expect(set.join(' | '), 'the clamp is charged').toMatch(/put .*brick.* in .*clamp/i);
-    const lit = await say(digger, 'ignite clamp');
+    const lit = await say(digger, 'light clamp');
     expect(lit).toMatch(/catch|light|burn|alight|fire/i);
     // Fire it into the night and look from next door.
     await toHour(20, 23);

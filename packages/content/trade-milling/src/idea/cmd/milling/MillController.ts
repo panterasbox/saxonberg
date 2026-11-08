@@ -57,6 +57,8 @@ import type {
   ComminutionPlan,
 } from '@saxonberg/server/mud/lib/craft/Comminuting';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import { AppSettingKeys } from '@saxonberg/server/mud/lib/config/AppSettings';
+import { AppApi } from '@saxonberg/server/mud/api/app';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -143,9 +145,8 @@ export default class MillController extends CommandController<MillModel> {
       // trade does not get a second verb because one of its inputs has no
       // dial.
       //
-      // ⭐ `grind` survives as an ALIAS on the view (the `pick`→`harvest`
-      // and `examine`→`look` precedent), so a player still reaches for
-      // the natural word for bone and gets this.
+      // ⭐ One view, one word (controllers-are-io D16): `mill the bone`
+      // is the only spelling, and it reaches this arm.
       return this.grindThrough(source, context);
     }
 
@@ -263,8 +264,7 @@ export default class MillController extends CommandController<MillModel> {
    * nothing here changes.
    *
    * ⚠ The recipe is matched from the INPUT rather than named by the
-   * player: `mill the bone` and `grind the bone` both work, and neither
-   * asks anybody to know a recipe id. That is also why this arm takes an
+   * player: `mill the bone` works, and it never asks anybody to know a recipe id. That is also why this arm takes an
    * object where the reverted `grind` verb took a string — the bone is a
    * thing in reach, not a word.
    */
@@ -306,6 +306,11 @@ export default class MillController extends CommandController<MillModel> {
     }
     const output = outcome.output;
     if (output === null) return;
+    // ⭐ Grinding a lead stock (white lead) raises a dust the grinder
+    // breathes and swallows (paint D14) — the painter's colic is made here.
+    if (material?.hasTag('lead') && MixinApi.isMetabolic(giver)) {
+      giver.addToxinBurden('lead', leadDustDose());
+    }
     // A solid is swept up off the bed; a grind that fills a vessel you
     // brought (bone meal into a sack, dandelion latex into a pail) is
     // caught in it — say which happened.
@@ -378,6 +383,16 @@ export default class MillController extends CommandController<MillModel> {
   ): void {
     MessageApi.scene(context.commandGiver).topic(TOPIC).toSelf(prose).send();
     context.note({ kind: 'controller-rejected', reason, detail: reason });
+  }
+}
+
+/** The lead one grind of a lead stock puts into the grinder (`metabolism.leadDustDose`). */
+function leadDustDose(): number {
+  try {
+    const n = Number.parseFloat(AppApi.setting(AppSettingKeys.metabolismLeadDustDose) ?? '');
+    return Number.isFinite(n) && n > 0 ? n : 0.3;
+  } catch {
+    return 0.3;
   }
 }
 

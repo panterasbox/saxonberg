@@ -1,4 +1,5 @@
 verbs: [subject]
+category: social
 controller: /platform/idea/cmd/social/SubjectController
 description: "Own a subject's identity + audience (make / list); light up surfaces with `chat on` / `forum on`"
 help: |

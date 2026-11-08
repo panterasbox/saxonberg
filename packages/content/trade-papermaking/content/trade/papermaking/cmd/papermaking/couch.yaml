@@ -1,0 +1,38 @@
+# ⭐ Couch a sheet (paper W2) — turn the mould over onto the post and press
+# it down, so the wet sheet lets go of the wire and lies on the felt. The
+# mould affords it; the post is the press's bed unless you name another.
+verbs: [couch]
+category: papermaking
+controller: ../../idea/cmd/papermaking/CouchController
+description: "Couch the wet sheet off a paper mould onto the post"
+help: |
+  At the vat: `dip mould in vat` lifts a wet sheet on the mould's wire;
+  `couch mould` turns it over onto the post — the felt on the press bed —
+  and the sheet lets go. Dip, couch, dip, couch: the post builds up sheet on
+  sheet. Then `turn press` squeezes the water out of the whole post, and
+  the sheets go up to dry. A sheet that dries without pressing cockles.
+
+  `couch mould on <board>` couches onto something else you name.
+examples:
+  - cmd: couch mould
+  - cmd: couch mould on press
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: mould
+    type: object
+    required: true
+    greedy: true
+    scope: ["inventory", "reachable"]
+    requires: [PlacingMixin]
+  # ⭐ The post: the press here (a turned press bed), unless you name one.
+  - name: post
+    type: object
+    required: false
+    greedy: true
+    prepositions: [on, onto]
+    default: "reachable:[mixin.TurnableMixin]"
+    scope: ["here", "peers", "person"]
+    requires: [PlacingMixin]

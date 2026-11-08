@@ -249,7 +249,7 @@ suite('a fresh worker claims, delivers and is paid', () => {
     expectOk(await w.cmd('get torch'));
     expectOk(await w.cmd('north'));
     expectOk(await w.cmd('drop torch'));
-    const sealed = await w.cmd('fulfill');
+    const sealed = await w.cmd('job fulfill');
     expectOk(sealed);
     expect((await sealed.said()).toLowerCase()).toMatch(
       /seals the record|verifies the delivery/

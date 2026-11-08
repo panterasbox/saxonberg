@@ -66,7 +66,7 @@ the decant-to-launder trick.
 The **`Syringe`** (`capability: phlebotomy`) affords all three:
 
 - **`test [patient]`** — reads + labels the type.
-- **`bleed [donor] into <vessel>`** (alias `venesect`) —
+- **`bleed [donor] into <vessel>`** —
   `Vitals.drawBlood(litres)`: spends `bloodVolume` and the **`marrow`**
   reserve (a tenth biological reserve; `bleed` refuses below the donation
   floor); fills the vessel with a stamped unit. Refuses an unconscious /

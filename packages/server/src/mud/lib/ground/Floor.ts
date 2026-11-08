@@ -14,8 +14,8 @@
  * - **`ground` and `floor` as keywords, by construction.** ⚠⚠ This is the
  *   one that mends the defect that opened the cycle, and it has to be here
  *   rather than on a row. The MQL scope walk pools a thing's own
- *   `perceivedKeywordsFor` → `getKeywords()`, and `pushDetails` gives a
- *   detail the pool `[id]` and **nothing from its authored `keywords:`**.
+ *   `perceivedKeywordsFor` → `getKeywords()`, and `DetailedMixin.getKeywords`
+ *   folds in a detail by its id `[id]` and **nothing from its authored `keywords:`**.
  *   So `default-floor`'s detail listing `ground` was dead text, and
  *   attaching that row to every room in the game would still have left
  *   bare `sit` broken. The union is on the class, where a row cannot
@@ -82,6 +82,7 @@ import {
   type GroundKind,
   type GroundMaterialClass,
 } from './GroundKind';
+import CartesianZone from '../../platform/idea/location/CartesianZone';
 
 const FLOOR_MIXIN = 'FloorMixin';
 
@@ -374,7 +375,7 @@ export type FloorThing = Stuff &
 interface FloorHost {
   getFloorSpec?(): { material?: string; onGrade?: boolean; worked?: boolean } | null;
   floorDefaults?(onGrade: boolean): { worked: boolean; materialPath: string };
-  getZone?(): { lookupField<T>(field: string): Promise<T | null>; getCellSize?(): number } | null;
+  getZone?(): { lookupField<T>(field: string): Promise<T | null> } | null;
   getCoordinates?(): [number, number, number];
   getAddress?(): string | null;
 }
@@ -727,7 +728,7 @@ export function FloorMixin<
     private async groundBeneath(host: FloorHost): Promise<string | null> {
       const zone = host.getZone?.() ?? null;
       const cell = host.getCoordinates?.() ?? [0, 0, 0];
-      const size = zone?.getCellSize?.() ?? 1;
+      const size = zone instanceof CartesianZone ? zone.getCellSize() : 1;
       const spot: readonly [number, number] = [cell[0] * size, cell[1] * size];
       const zM = cell[2] * size;
       const address = await this.addressOf(host);
@@ -1128,8 +1129,8 @@ export function FloorMixin<
      * consulted, so this is the only place the words can live where a row
      * cannot forget them.
      */
-    public getKeywords(): string[] {
-      const own = super.getKeywords();
+    public getKeywords(viewer?: Stuff): string[] {
+      const own = super.getKeywords(viewer);
       const seen = new Set(own.map((k: string) => k.toLowerCase()));
       const out = [...own];
       for (const word of FLOOR_KEYWORDS) {

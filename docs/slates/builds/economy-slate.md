@@ -62,7 +62,7 @@ See also:
   value-injection) is handled there by the **reserve + legislature** as
   ongoing monetary policy (the reserve is the *only* mint → the money
   supply is governed and auditable; central banking as governance, not
-  dev-patching). Capital injection + producer-influence both measured
+  dev-patching). Capital injection + labor-influence both measured
   along the authorial subdivision (Locality/zone/group/access).
 
 ---

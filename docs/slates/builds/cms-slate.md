@@ -322,7 +322,7 @@ design** (progression / gamification / economy), the deferred phase — *not
 designed here*. But the platform already leaves the seams, so it plugs in
 cleanly:
 
-- *Signal source — superseded by the code: the authoring ledger is `authoring_events` (provenance.md), not a `domain_history` op-log, and its consumer is the producer influence stock (influence.md); no `domain_history` exists.*
+- *Signal source — superseded by the code: the authoring ledger is `authoring_events` (provenance.md), not a `domain_history` op-log, and its consumer is the labor influence stock (influence.md); no `domain_history` exists.*
 - **Cost gate:** a future "pay to create" rides the **same op-gate** as the
   access lease-check — another condition on the authoring op, no new
   chokepoint.

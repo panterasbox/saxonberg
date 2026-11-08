@@ -21,9 +21,9 @@ import {
 } from '../../lib/connection/Cards';
 
 describe('the card catalogue', () => {
-  it('ships exactly eleven cards, and the list and the map agree', () => {
-    expect(CARD_IDS.length).toBe(11);
-    expect(Object.keys(CARDS).length).toBe(11);
+  it('ships exactly fourteen cards, and the list and the map agree', () => {
+    expect(CARD_IDS.length).toBe(14);
+    expect(Object.keys(CARDS).length).toBe(14);
     expect([...CARD_IDS].sort()).toEqual(Object.keys(CARDS).sort());
   });
 
@@ -52,13 +52,16 @@ describe('the card catalogue', () => {
     // ⚠ `subject` is unpinned: with a card per thing you look at, an
     // inspection card that pinned itself would make "kept" meaningless
     // within a minute and put a floor under the sweep.
-    expect(pinnedAndStatic.length).toBe(5);
-    expect(pinnedAndLive.length).toBe(0);
+    // + `terminal` and `settings` (client-surface D6/D10), + the `map`
+    // navigator (pinned: it is where you are, not a moment).
+    expect(pinnedAndStatic.length).toBe(8);
+    // The stock sheet is a pinned instrument (B40): pinned and live.
+    expect(pinnedAndLive).toEqual(['stock']);
     expect(unpinnedAndStatic.length).toBe(4);
     const unpinnedAndLive = CARD_IDS.filter(
       (id) => !CARDS[id].pinnedByDefault && CARDS[id].live,
     );
-    expect(unpinnedAndLive).toEqual(['subject', 'stock']);
+    expect(unpinnedAndLive).toEqual(['subject']);
   });
 
   /**
@@ -95,7 +98,7 @@ describe('the card catalogue', () => {
 
   it('the authoring cards declare they cannot degrade to prose', () => {
     const noProse = CARD_IDS.filter((id) => CARDS[id].noProse === true);
-    expect(noProse.sort()).toEqual(['cms', 'git', 'prompt', 'studio']);
+    expect(noProse.sort()).toEqual(['cms', 'git', 'map', 'prompt', 'studio', 'terminal']);
   });
 
   it('every payload row names a producer, and every producer is distinct', () => {
@@ -104,8 +107,8 @@ describe('the card catalogue', () => {
       const src = CARDS[id].source;
       if (src.kind === 'payload') producers.push(src.producer);
     }
-    expect(producers.length).toBe(5);
-    expect(new Set(producers).size).toBe(5);
+    expect(producers.length).toBe(7);
+    expect(new Set(producers).size).toBe(7);
   });
 
   it('exactly one row takes a subject, and it resolves behind the gate', () => {
@@ -177,19 +180,22 @@ describe('the card catalogue', () => {
         `${retired} should have been retired`,
       ).toBe(false);
     }
-    // …and the union really is the eleven we expect, by name.
+    // …and the union really is the fourteen we expect, by name.
     expect([...CARD_IDS].sort()).toEqual(
       (
         [
           'cms',
           'git',
           'help',
+          'map',
           'news',
           'prompt',
+          'settings',
           'stock',
           'studio',
           'subject',
           'survey',
+          'terminal',
           'who',
           'wiki',
         ] as CardId[]

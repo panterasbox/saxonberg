@@ -1,4 +1,5 @@
 verbs: [fill]
+category: bulk
 controller: /platform/idea/cmd/bulk/FillController
 description: "Fill a vessel to capacity from a liquid source"
 help: |
@@ -21,14 +22,18 @@ args:
     type: object
     required: true
     scope: "reachable"
+    # The article defect (the water-supply browser walk): `fill the pail
+    # from the standpipe` is this verb's own help example.
+    greedy: true
     requires: VisibleMixin
     validators:
       - /lib/command/validators/mustHaveBulkSlot
   - name: source
     type: object
     required: true
-    scope: "reachable"
+    scope: ["here", "peers", "person"]
     prepositions: [from]
+    greedy: true
     requires: VisibleMixin
     validators:
       - /lib/command/validators/mustHaveBulkSlot

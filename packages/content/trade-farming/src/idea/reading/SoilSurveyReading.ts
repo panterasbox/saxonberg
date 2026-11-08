@@ -23,12 +23,13 @@
  */
 
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tooled';
+import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tool';
 import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
 import { SoilReading, READING_TOPIC, SOIL_SCIENCE } from '../../lib/SoilReading';
 import type { CommandContext } from '@saxonberg/server/mud/api/command';
 import type { SurveyFrame, SurveyPoint } from '@saxonberg/types';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { CompetenceBand } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
 import { SOIL_NITROGEN_RESERVE_KEY } from '@saxonberg/server/mud/lib/husbandry/Cultivable';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
@@ -134,6 +135,26 @@ export default class SoilSurveyReading extends SoilReading {
         'You have sampled nothing here. Open the ground with a spade and roll a pinch of it between your fingers; that is where a survey starts.';
     }
 
+    // ⭐ The ground's water (water-supply D15): what the inlets let on since
+    // the last read is settled first, then what stands on it and the salt
+    // the water has left — the crust a valley learns to read.
+    if (MixinApi.isSoil(place)) {
+      await place.settleInlets(WorldClockApi.getNow().rawValue());
+      const moisture = place.soilMoistureFraction();
+      if (moisture !== null) {
+        solved.push({ parameter: 'moisture', value: `${Math.round(moisture * 100)}% of what it holds`, from: 1 });
+      }
+      const ponded = place.getPondedL();
+      if (ponded > 0) solved.push({ parameter: 'standing water', value: `${Math.round(ponded)} litres on it`, from: 1 });
+      const ec = place.soilSalinityDsm();
+      if (ec >= 0.5) {
+        solved.push({
+          parameter: 'salt',
+          value: `${ec.toFixed(1)} dS/m${ec >= 4 ? ' — a white crust; the less tolerant crops will fail here' : ''}`,
+          from: 1,
+        });
+      }
+    }
     const frame: SurveyFrame = { deposit: ground, points, solved, note };
     const prose = Mml.compose`${renderText(frame)}`;
     MessageApi.scene(giver).topic(READING_TOPIC).toSelf(prose).send();

@@ -6,7 +6,6 @@
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
-import { NavigationApi } from '@saxonberg/server/mud/api/navigation';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { GeoPosition } from '@saxonberg/server/mud/lib/expanse/GeoPosition';
 import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
@@ -20,6 +19,7 @@ function ship(name: string, pos: GeoPosition | null, underWay = false) {
   return {
     stuffId: name,
     getTemplatePath: () => `/ship/${name}`,
+    getDurableHandle: () => `/ship/${name}`,
     getEntrance: () => `/ship/${name}/deck`,
     getName: () => `the ${name}`,
     getCourse: () => (underWay ? { bearingDeg: 0 } : null),
@@ -37,10 +37,6 @@ beforeEach(() => {
   ships = {};
   rooms = [];
   installed = [];
-  vi.spyOn(NavigationApi, 'structureAt').mockImplementation((async (p: string) => {
-    const name = p.split('/')[2] ?? '';
-    return (ships[name] ?? null) as never;
-  }) as never);
   vi.spyOn(MixinApi, 'isVoyaging').mockReturnValue(true);
   vi.spyOn(MixinApi, 'isPositioned').mockReturnValue(true);
   vi.spyOn(StuffApi, 'clone').mockImplementation((async (row: string) => {
@@ -67,7 +63,14 @@ afterEach(() => {
   StuffApi.clearAll();
 });
 
-const deck = (name: string) => ({ getTemplatePath: () => `/ship/${name}/deck` }) as unknown as Stuff;
+// ⭐ A deck is ASKED which ship it is (`Place.structure`).
+const deck = (name: string) =>
+  ({
+    getTemplatePath: () => `/ship/${name}/deck`,
+    getDurableHandle: () => null,
+    isPlace: () => true,
+    structure: async () => ships[name] ?? null,
+  }) as unknown as Stuff;
 
 describe('SeaWarren (river D30)', () => {
   it('⭐ a boat goes into the water beside a ship that has stopped — on the chart where she lies', async () => {
@@ -77,7 +80,8 @@ describe('SeaWarren (river D30)', () => {
     expect(room).toBeInstanceOf(SeaPatch);
     expect(room.getExpanse()).toBe(SEA);
     expect(room.getExpansePosition()!.distanceNm(new GeoPosition(42, -8.47))).toBeLessThan(0.01);
-    expect(installed).toEqual([{ room, direction: 'hesper', target: '/ship/hesper/deck' }]);
+    // ⭐ The way up names HER, by her durable handle — never her deck's row.
+    expect(installed).toEqual([{ room, direction: 'hesper', target: '/ship/hesper' }]);
   });
 
   it('⭐ under way she is alongside nothing', async () => {

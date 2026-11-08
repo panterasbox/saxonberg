@@ -165,7 +165,7 @@ export const brain = class {
       for (const lot of lots) {
         const kw = keywordOf(lot);
         if (!kw) continue;
-        await hand.forceCommand(`consign ${kw} --ask ${ask}`);
+        await hand.forceCommand(`shelf consign ${kw} --ask ${ask}`);
       }
     } finally {
       // ⚠ ALWAYS. A beat that dies at the scale must not strand the

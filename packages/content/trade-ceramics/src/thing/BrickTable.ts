@@ -8,19 +8,17 @@
  */
 
 import Good from '@saxonberg/server/mud/lib/stuff/Good';
-import { ToolMixin } from '@saxonberg/server/mud/lib/craft/Tooled';
+import { ToolMixin } from '@saxonberg/server/mud/lib/craft/Tool';
 import { DurableMixin } from '@saxonberg/server/mud/lib/material/Durable';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { FormClass } from '@saxonberg/server/mud/lib/craft/FormSpec';
-import type { ShapeRequest } from '@saxonberg/server/mud/lib/craft/Shapeable';
-import type { ActPlan, ActRefusal } from '@saxonberg/server/mud/lib/craft/ActPlan';
+import type { ShapeFacts, ShapePlan, ShapeRefusal, ShapeRequest } from '@saxonberg/server/mud/lib/craft/Shapeable';
+import type { ActDone } from '@saxonberg/server/mud/lib/craft/ActPlan';
 import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
-import { Mml } from '@saxonberg/server/mud/api/mml';
-import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { AppApi } from '@saxonberg/server/mud/api/app';
 import { FormingMixin, type FormableClass } from '@saxonberg/server/mud/lib/craft/Forming';
-import Clay from '@saxonberg/content-trade-quarrying/src/thing/Clay';
+import Clay, { type PieceYield } from '@saxonberg/content-trade-quarrying/src/thing/Clay';
 
 /** Bricks an hour, by band — the grain `ceramics.brickTable.rate.<band>` tunes. */
 const RATE: Readonly<Record<CompetenceBandName, number>> = {
@@ -58,7 +56,7 @@ export default class BrickTable extends BrickTableBase {
     return ['block', 'flat'];
   }
 
-  public override async shapePlanFor(req: ShapeRequest): Promise<ActPlan | ActRefusal | null> {
+  public override async shapePlanFor(req: ShapeRequest): Promise<ShapePlan | ShapeRefusal | null> {
     const target = await this.resolveForming(req);
     if (target === null || !('mass' in target)) return target;
     const { form, product, hand, discipline } = target;
@@ -76,45 +74,27 @@ export default class BrickTable extends BrickTableBase {
       // front, and 330 W for eight hours was ~576 % of any body's endurance —
       // nobody could ever mould (the ceramics drive). A day's work is paced.
       effortW: 260,
-      beginSelf: Mml.compose`You sand the brick mould, throw the first clot of clay into it and strike it off. It is going to be a long day.`,
-      beginPeers: Mml.compose`${Mml.actor(actor)} sets to at ${Mml.thing(self)}, throwing clay into the mould.`,
-      onComplete: () => {
-        void (async (): Promise<void> => {
-          // ⭐ As many as the day allows — the clay stops it sooner if it runs out.
-          const count = Math.max(1, Math.floor(rate * hours));
-          const made = await clay.yieldPieces({ actor, form, product, hand, count, into: room });
-          if (!actor.isDestroyed() && MixinApi.isSoilable(actor)) actor.soil('mud', 0.4);
-          await tellDay(actor, typeof made === 'string' ? made : null, made, discipline);
-        })();
+      facts: { kind: 'mould', instrument: self },
+      onComplete: async () => {
+        // ⭐ As many as the day allows — the clay stops it sooner if it runs out.
+        const count = Math.max(1, Math.floor(rate * hours));
+        const made = await clay.yieldPieces({ actor, form, product, hand, count, into: room });
+        if (!actor.isDestroyed() && MixinApi.isSoilable(actor)) actor.soil('mud', 0.4);
+        return dayDone(actor, made, discipline);
       },
     };
   }
 }
 
-/** The day's end (a module function: the clay may be worked out). */
-async function tellDay(
+/** The day's end, credited (a module function: the clay may be worked out). */
+async function dayDone(
   actor: Stuff,
-  line: string | null,
-  made: Stuff | string | null,
+  y: PieceYield,
   discipline: string,
-): Promise<void> {
-  if (actor.isDestroyed()) return;
-  if (line !== null || made === null || typeof made === 'string') {
-    MessageApi.scene(actor).topic('act.deed').toSelf(Mml.compose`${line ?? ''}`).send();
-    return;
-  }
-  // ⭐ Named as the maker knows them, not as the light shows them: a day at
-  // the table ends after dark half the year, and the perceptual name read
-  // "something stand turned out on the pallet" (ceramics browser walk).
-  const n = MixinApi.isStackable(made) ? made.getQuantity() : 1;
-  const what = made.getPresentation();
-  const them = `${what.charAt(0).toUpperCase()}${what.slice(1)}`;
-  MessageApi.scene(actor)
-    .topic('act.deed')
-    .toSelf(Mml.compose`The day is done. ${them} ${n === 1 ? 'stands' : 'stand'} turned out on the pallet, green and soft — get ${n === 1 ? 'it' : 'them'} under the hack cover before it rains.`)
-    .toPeers(Mml.compose`${Mml.actor(actor)} straightens a stiff back over a pallet of green bricks.`)
-    .send();
-  if (MixinApi.isAdvancing(actor)) {
+): Promise<ActDone<ShapeFacts, ShapeRefusal>> {
+  if (!y.ok) return y;
+  if (!actor.isDestroyed() && MixinApi.isAdvancing(actor)) {
     await actor.creditDeed({ discipline, difficulty: 'standard', outcome: 'success' });
   }
+  return { ok: true, facts: { kind: 'moulded', made: y.made } };
 }

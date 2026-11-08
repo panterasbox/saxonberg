@@ -4,10 +4,10 @@
  * location that **opts into one live instance per row.**
  *
  * The vocabulary is LOCATION: a Location belongs to a Zone, and the Zone
- * adopts one of two coordinate systems. "Room" implies an interior and
- * is reserved for {@link PersistentLocation}, the interior somebody
- * furnishes — this class was called `Room` and it was never one; a city
- * crossing, a station hall and a bank frontage are not rooms.
+ * adopts one of two coordinate systems. This class was called `Room` and
+ * it was never one: a city crossing and a bank frontage are not rooms. An
+ * interior is the room rung — `Room` (one of many) and `Hall` (one
+ * particular), each with a kept twin; see `platform/location/Room`.
  *
  * Opt into the restriction wherever **one row IS one place**. The guard
  * then catches a second `clone()` of the Registry office that would

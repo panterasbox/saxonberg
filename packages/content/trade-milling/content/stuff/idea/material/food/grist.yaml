@@ -15,8 +15,10 @@
 # Its figures follow `base-library`'s malt row rather than the cereals'
 # (the two packs disagree on the unit — a finding for whoever owns
 # base-library, not this build's to fix).
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/grain, strength: 15 }]
+  tastes: [{ type: sweet, amount: 10 }]
   name: grist
   keywords: [grist, grits, malt]
   appearance: husk and meal together, pale from the kiln

@@ -70,16 +70,30 @@ facade, not here.
 
 One `HelpTopic` per loaded `CommandDefinition`: `id = command.<primaryVerb>`,
 `title` = primary verb, `summary` = `def.description`, `keywords` =
-`[...verbs, 'command']`, and **`body` = `def.getHelpText()` verbatim** —
+`[verb, ...defaultAliases, 'command']`, and **`body` = `def.getHelpText()` verbatim** —
 the single source that already assembles verb / aliases / syntax /
 options / subcommands / examples. Commands are flat this wave (`relations
-= []`).
+= []`). ⭐ The catalogue indexes them by `def.category` (D24) —
+`commandCategories()` and `listCommandCategory()`, surfaced as
+`HelpApi.commandCategories` / `commandCategory`.
 
 A command view may carry a co-located **`help:` block** — multi-line,
 player-facing prose ([command-spec.md](./command-spec.md) § the YAML
 shape). `getHelpText()` renders it *below* the synthesized syntax, so the
 command topic's body carries the authored prose without a second source,
 and authored prose never restates what the syntax line already says.
+
+⭐ **`help <verb>` lists who ANSWERS it** (controllers-are-io D8b). A command
+topic whose view's slots `requires:` a verb protocol (`_mixinKind =
+'protocol'`, [mixins.md](./mixins.md)) gains an *answers:* section — each
+protocol, and under it the classes that compose it (`help dip`: `DipBathMixin
+— DipPot, GlazeTub, Melt, PaintPot, PulpVat`), from `StudioApi.answerersOf`.
+It is filled on the topic's **first read** and cached until the index is
+rebuilt: the warm keeps only each view's required-mixin list
+(`CommandDefinition.getRequiredMixins`), so the source scan never runs at
+boot and no build artifact exists. ⚠ A verb whose object slot is `requires:
+any` (narrowed in its controller — `turn`, `carve`) lists nothing until its
+view names the protocol; a noun mixin a slot requires is not an answer.
 
 ### API projector — first-class mixins, graded kinds, complete roster
 
@@ -91,9 +105,14 @@ registry, emitting three graded kinds:
    appear in a signature — so the capability model has no holes. Each
    value `'<Concept>Mixin'` → `mixin.<Concept>`, enriched from the
    author-surface consumer members whose `face === concept` (its
-   conferred methods, rendered with signature + summary). No authored
-   match → **degrade to a bare topic** (`(no authored documentation)`).
-   This is the centerpiece tier.
+   conferred methods, rendered with signature + summary). ⭐ The topic's
+   **summary is the mixin's own** — the first paragraph of the TSDoc on
+   its exported `<Concept>Mixin` factory function, from the
+   author-surface `mixins` section (client-surface #89); only a mixin
+   whose factory has no TSDoc falls back to its first conferred member's
+   summary, which used to describe one method rather than the interface.
+   No authored match → **degrade to a bare topic** (`(no authored
+   documentation)`). This is the centerpiece tier.
 2. **Api faces** — `kind === 'api-static'` members grouped by face: a
    grouped landing `api.<Face>` **and** one member topic per static
    `api.<Face>.<member>` carrying the rendered signature + TSDoc body.
@@ -167,6 +186,14 @@ string + the TSDoc summary, plus `@param`/`@returns`/`@example` when
 authored. This is driven by extending the existing author-surface
 projection (`scripts/project-author-surface.ts`) rather than a new
 artifact — one pipeline, one file, right-sized at runtime.
+
+⭐ The surface also carries **`mixins: { name, summary }[]`** — one entry
+per exported function whose name ends `Mixin`, keyed by the name minus
+the suffix, its summary the first paragraph of the function's TSDoc
+(entries with no summary are skipped; sorted by name). It exists because
+a mixin factory's *returned class* does not reflect into the author
+surface, so without it a mixin had no summary of its own.
+`HelpCatalogue` prefers it when it projects `mixin.<Concept>` topics.
 
 `projectAuthorSurface` stays **pure** (no IO). Each consumer member now
 carries `signature`, `summary`, optional `params`/`returns`/`examples`,
@@ -255,12 +282,14 @@ the uniform fields.
 `HelpController` renders every form off the index through `HelpApi`, on
 the existing `shell.result` topic:
 
-- bare `help` → the landing/index (categories + counts + a hint line);
+- bare `help` → the landing: the verb categories with counts, then the
+  rulebook's other kinds, then a hint line;
+- `help <category>` → that category's verbs, one line each;
 - `help <word>` → the **bare fallthrough** (the YAML gained
   `fallthrough: true` + a top-level optional `topic` positional, so the
   common case no longer needs the `verb` subcommand word), resolved in
-  the order a player means the word: **verb → concept → collection →
-  api**. ⚠⚠ The concept rung was missing until 2026-09-17: authored
+  the order a player means the word: **verb → category → concept →
+  collection → api**. ⚠⚠ The concept rung was missing until 2026-09-17: authored
   `HelpConcept` rows were indexed and searchable from the farmstead
   build on, and `help extraction` answered *"no help topic"* — four
   packs' concepts were reachable only through `help search`. The
@@ -290,6 +319,15 @@ what an inspection card already knows (the mixin name), and the relation
 graph is the navigation substrate. Wiring that bridge is Wave 2 and is not
 built here.
 
+⭐ **The first half of the bridge shipped with the client-surface build.**
+The inspection card names the interface that said each line of `look`
+(a gutter stripe per source — see [message-rendering.md § Look
+segments](./message-rendering.md)); a stripe's popover fetches
+`mixin.<Name>` from the REST API (`GET /api/help/topic?id=mixin.<Name>`),
+caches the summary per session, and offers `help mixin.<Name>` as a
+command. The `mixins` summaries above are what make that popover say
+what the interface IS.
+
 ## The line — help vs wiki vs inspection
 
 Everything is an instanced Stuff with state, so the discriminator between
@@ -310,7 +348,9 @@ the thing it documents, where the wiki is the community's.
 
 - **The client React help card** — designed in a layout-system session;
   this build ships the server data contract it consumes.
-- **The inspection↔help bridge wiring** (Wave 2).
+- **The rest of the inspection↔help bridge** (Wave 2) — the card's
+  source popover reads `mixin.<Name>` summaries already (above); a
+  quiet interface's "how you'd find out" line does not exist yet.
 - **Wave 2 subdivisions** — taxonomies / immutable defs / units, mechanics
   (formulas + constants), a standalone `help` **Document** collection, and
   **co-located `help:` prose**. Each is *adding a projector*; the
@@ -359,3 +399,12 @@ the search results open none, so filtering them would leave `help`
 doing nothing.
 
 See [card-surface.md](./card-surface.md).
+
+## History
+
+- **Client surface (2026-10-31)** — `project-author-surface.ts` emits a
+  `mixins` section from the `*Mixin` factory functions' TSDoc, and
+  `HelpCatalogue` uses it as each `mixin.<Concept>` topic's summary
+  (#89); the inspection card's source popover reads those summaries over
+  the REST API. See `docs/plans/client-surface-plan.md` (D10) until it is
+  retired at the sweep.

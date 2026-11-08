@@ -16,6 +16,7 @@
 # different row.
 class: /platform/idea/species/Species
 data:
+  smells: [{ aroma: /base-library/aromas/fowl, strength: 3 }]
   binomial: Serinus canaria
   commonNames: ["canary", "bird"]
   _bodyPlanPath: /stuff/idea/species/BodyPlan/avian

@@ -1114,9 +1114,7 @@ export class SecurityApi {
     'addInteractive',
     'removeInteractive',
     'onConnectionAttached',
-    'onConnectionDetached',
     'onLinkdead',
-    'onLinkRestored',
   ]);
 
   /** Containment-walk cap for the jurisdiction test — insurance, not policy. */

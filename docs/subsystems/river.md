@@ -43,6 +43,21 @@ channel, the tide's stream near the mouth, temperature by source kind
 line is a **frame**: the kernel's `LineFrame` mixin is the protocol a moving
 place and a ship read it through, without importing the water pack.
 
+⭐ **Below the tide's reach the river is the sea's** (harbors P10). Manning's
+normal depth over a 160 m estuary is half a meter — no ship could ever have
+reached a quay inside the bar. A node at the sea's level (`elevation: 0`)
+that authors `meanDepthM` is a drowned valley: its stretches read the
+authored bed (or the normal depth, whichever is deeper) with **the tide's
+level on top**, so the water at the mouth and at the quays rises and falls
+twice a day (the Kestrel's estuary: 2.8 m on the mean, 3.9 m in the channel,
+about 2.0 m at a spring low and 5.9 m at a spring high). `barWaterAt(course,
+nowS)` reads it in the channel at the mouth for `LineFrame.barWater` — the
+bar's window a ship's draft is read against. A river that authors no
+estuary depth is unchanged. A place on `places:` whose `frameSite` authors
+`landing: false` compiles as a `site` — on the line, never a landing
+(`landingNamed`/`landingNear`/a passage skip it) — and `landingNamed` reads
+`town quay` as `town-quay`.
+
 ## How anything moves — the trajectory (W9–W12)
 
 A moving thing — a ship, a river patch, a timetabled ferry, one day a
@@ -179,7 +194,7 @@ test refuses a venue's). It carries what drives it:
   beside you survives the boat being carried (the browser walk found
   `anchor` gone once she was launched — a moving container dropped what its
   insides afforded each other).
-- **Lining**: throw a boat's `painter` to somebody on the bank; as they walk
+- **Lining**: throw a boat's bow line (`/platform/thing/bow-line`) to somebody on the bank; as they walk
   the bank the boat comes along beside them.
 - `launch` / `recover` ask the water mod's warrens (the river's and the
   sea's): a bank's edge, a ship's side on a river or at sea.
@@ -191,7 +206,7 @@ water never needs boats), so the boat, `paddle`, `launch`, `recover` and
 the ice crossing type the warrens and the catalogue. The water reaches the
 boat through **`SmallCraftMixin`** (freeboard, capsize, her kedge, her
 anchor, her sail — also what the kernel's `course` and `anchor` ask), a
-painter through **`TetherEndMixin`** (diving's `LineEnd`), and a bell
+bow line through **`TetherEndMixin`** (the kernel `LineEnd` — the bow line is a `Rope` since cordage; it was the *painter* until paint gave that word to the house painter), and a bell
 through **`RingableMixin`** (diving's `SignalBell` and smelting's cast
 `Bell`, what the ferryman listens for; each also composes `AudibleMixin`,
 so `ring` sounds it from the bell itself — review R2-D4). The ford and the ferry read the river through `LineFrame`.
@@ -218,6 +233,19 @@ for the sea's chart; at a node that names a river (`ExpanseNode.river`),
 `course <river>` takes her in. While anybody who went over her side is still
 in the water her `course` waits; `--leaving-them` sails and records an
 `abandonment` accountability row.
+
+**Alongside a landing** (D18; harbors P4): a ship whose passage ends at a
+landing makes fast there — her lines' ends round the landing's bollards
+and a way aboard named for her (`go ostrander`, a `BerthExit`) put on it
+— and casts off when she next sails; nothing on the landing is authored
+but the bollard. Her deck's `ashore` leads to the landing she is made
+fast at, else the one within 60 m (`ALONGSIDE_M`). A river keeps the
+craft it has adopted (`LineFrameMixin.adopt`), so a landing's first use
+can ask them whether one lies made fast there, and it also reads the
+landing's `berth-roll` document (`lyingHere()` → `DocumentApi.berthRollOf`)
+to stand up a ship of a kind that lies there asleep. The landing's `look` says
+who is alongside. See [expanse.md § Exits](./expanse.md) and
+[ship.md](./ship.md).
 
 ## Ferries
 
@@ -257,6 +285,17 @@ it; `side` (an authored way on the deck) goes over into it; a way named for
 her goes back up; under way she is alongside nothing. `locate` in the water
 beside her reads her reckoning.
 
+⭐ **Why the water is the sea's and not the ship's** (ships slate,
+2026-10-19): a water room that belonged to a ship would have to answer which
+side of her it lay on, and two ships stopped together would each own a
+different water. The patch is keyed to the SPOT, within hail
+(`expanse.hailRangeM`, 100 m — `MovingPlace.hailRangeM`), so ships stopped
+near each other share one water, their boats row between them, and a
+rendezvous is ordinary co-presence. The way up onto a deck is named for her
+(`SeaWarren.wireDeck`), so two ships in one patch are two ways, no prompt.
+The patches do not drift: a hove-to ship's set, and her water with her, is
+still the ships slate's.
+
 ## Readings
 
 `measure current` (the current log), `measure temperature` of the water at
@@ -289,3 +328,9 @@ after a season jump can outlast 30 s.
   duck typing (`SmallCraft`/`TetherEnd`/`Ringable`; transport declares
   water). The browser walk at finalize found eight defects the wire drive
   could not — see the bullets above and the commits `walk(river): …`.
+- **Harbors (2026-10/11, MR !511).** The estuary below the tide's reach
+  reads the sea's level (P10), `frameSite.landing: false` sites, and ships
+  made fast alongside a landing. Review round 1 put a landing's list of
+  who lies there into a `berth-roll` document each ship writes for herself
+  (the `BerthRoll` Idea was deleted). The boat's *painter* row became
+  `/platform/thing/bow-line` when paint merged (`5cfd1a5db`).

@@ -32,7 +32,7 @@ above:
 ```
 flower                    a flower (in the giver's reachable scope)
 the second rose           the 2nd rose match (1-based)
-'lyon's mane'             literal name match (whitespace preserved)
+'lyon's mane'             literal keyword match (whitespace preserved)
 me                        the command-giver
 here                      the giver's current location
 peers                     everything in the room except the giver
@@ -68,7 +68,8 @@ character (part of a bareword, path segment, or quoted string).
 | `(` `)` | Grouping |
 | `[` `]` | Filter expression / ordinal index (overloaded) |
 | `{` `}` | Formal quantity body (`:{N}` strict count, `:{*}` strict all) — see [subsystems/stacks.md](./subsystems/stacks.md). |
-| `'…'` | Literal string (preserves whitespace, no MQL parsing inside) |
+| `'…'` | Literal string (preserves whitespace, no MQL parsing inside). Opens only at the START of a token — `dave's` is a word. Inside, `\'` is a quote and `\\` a backslash. |
+| `\` | Escape: the next character is part of the word, whatever it is (`foo\,bar`, `\#5`) |
 | `-` | Set difference (only between expressions; literal inside barewords) |
 | `#` | Identifier prefix: `#5` ordinal, `#abc123` stuff id |
 | `$` | Memory: `$$` last result |
@@ -86,11 +87,14 @@ These identifiers have reserved meanings and aren't free for use as
 keywords:
 
 - **Pronouns:** `me`, `here`, `it`, `them`, `him`, `her`
-- **Predicates:** `living`, `online`, `mine`, `here`, `visible`
+- **Predicates:** `living`, `online`, `mine`, `here`, `visible`, `loose`, `worn`, `carried`
 - **Boolean ops** (inside `[…]`): `and`, `or`, `not`
 - **Existence** (inside `[…]`): `has`
 - **Transforms:** `i`, `e` (one-letter chain pivots — inventory,
   environment)
+- **Chain words:** `members`, `exits`, `to`, `from` (flat-map steps —
+  see [Places and the ways between them](#places-and-the-ways-between-them));
+  an object keyworded with one is reached with `[keyword.to]`
 - **Ordinal hints** (in the natural-language layer): `first`,
   `second`, …, `tenth`, `last`, plus `1st` / `2nd` / … / `Nth`
 - **Quantity hint** (in the natural-language layer): `all` followed
@@ -119,6 +123,27 @@ The shell deliberately doesn't treat `'` as a quote — apostrophes
 are everywhere in chat (`don't`, `'allo`, `lyon's mane`). That
 single-quote slot is MQL's.
 
+⭐ **And MQL claims it only at the start of a token.** An apostrophe
+glued to a word is part of the word, so `look dave's`, `look lyon's
+mane` and `get twins' cart` are plain keyword queries. Before
+2026-11-01 any `'` opened a literal, which made every name with an
+apostrophe untypeable as a target — and a click on "Dave's Bar" died
+with *unterminated string literal*.
+
+**Escapes.** A backslash makes the next character literal: outside a
+literal it joins the word (`foo\,bar` is the one keyword `foo,bar`;
+an escaped word is always a keyword, never an int or a transform);
+inside `'…'`, `\'` is a quote and `\\` a backslash. The shell keeps
+any `\X` it does not recognize verbatim, so `\,` `\:` `\[` `\'`
+reach MQL untouched; only a literal backslash needs doubling twice
+(`\\\\` at the command line), because each layer takes one.
+
+```
+look dave's                 keyword query — the apostrophe is a letter
+look 'dave\'s bar'          MQL literal with an escaped quote
+look foo\,bar               one keyword containing a comma
+```
+
 ## Seeds
 
 A seed is the head of a chain — what MQL starts looking at. Every
@@ -127,7 +152,7 @@ seed yields a list of Stuff (possibly empty).
 | Seed | Yields |
 |---|---|
 | `bareword` | keyword search in the field's declared scope (default) |
-| `'literal name'` | exact name/keyword match (whitespace preserved) |
+| `'literal name'` | a keyword that IS the phrase (whitespace preserved) — a name is a keyword |
 | `me` | the command-giver |
 | `here` | the giver's current location |
 | `peers` | the location's contents minus the giver, each with its details |
@@ -181,30 +206,46 @@ you need a single token to compose mid-chain.
 
 ### Direction tokens as seeds
 
-Directions (`north`, `up`, `nw`) aren't a separate seed kind —
-they're barewords. They resolve through the `here` scope's exit-match
-path: the matcher looks at the location's exits and matches by
-direction or alias, returning the location with `via.exit` so
-controllers (`go`, `open`, `close`) can act on the exit directly.
+Directions (`north`, `up`, `hesper`) aren't a separate seed kind —
+they're barewords, and an exit is an ordinary candidate. Every exit
+the viewer can see is in the `here` pool (and so in `reachable`) as
+**itself**: its `stuff` IS the way, scored by the one scorer over its
+NAME (its direction) and its KEYWORDS. A verb acts on what came back —
+`look` describes the way, `go` crosses it, and a verb that needs a
+door reaches the one hung in it through `MqlApi.effectiveTarget`.
 
 ```
-go north         resolves to (location, via.exit=north-exit) — controller traverses
-open east        resolves to (location, via.exit=east-exit) — controller opens its door
+go north         resolves to the north exit — the controller crosses it
+look north       resolves to the north exit — "A way north; the oak door is closed."
+open north       resolves to the north exit — effectiveTarget finds its door
+look gangway     resolves to a berth way by its authored keyword
 ```
 
-The direction vocabulary (canonical names + aliases like `n` →
-`north`) lives in the spatial subsystem.
+⚠ **MQL reads a Stuff only through its Perceptible interface** — its
+name and `getKeywords()` — and synthesizes no word of its own. So the
+words an exit answers to are the exit's, **derived (magic) and named
+where they live**: its *name* is its direction
+(`Exit.presentationPhrase`) and its *keywords* are its authored keywords
+plus its direction plus that direction's short forms (`Exit.getKeywords`
+— `north`, `n`; `up`, `u`; the short forms read from the direction
+table). Nothing rewrites `n` to `north` on the way in: `n` and `go n`
+bind the north exit because the exit answers to `n` (the bare-verb
+alias `n` is `go n`, the word untouched).
 
-> **Doors and exits aren't the same thing.** A door is a Stuff —
-> a thing with its own keywords (`oak`, `iron`, `door`) that
-> players reach for. An exit is a feature of the room — a
-> direction the room offers, with an optional door attached. Both
-> are addressable from the `here` scope, but through different
-> paths: `oak` matches the door directly; `north` matches the
-> exit and lands `via.exit` so the controller can find any door
-> hanging off it. That mirrors how players think about the world
-> — `look at the oak door` and `go north` are different verbs
-> aimed at different concepts, and MQL keeps them distinct.
+A hidden exit is in nobody's pool until the viewer perceives it
+(`obviousExitsFor(viewer)`, on both the fast and the slow scope paths).
+A verb that acts only on ways says so in its scope with the grammar —
+the movement verbs declare `scope: ["here:exits", …]`, so `go hesper`
+can only mean the way, whatever else answers to the word.
+
+> **Doors and exits aren't the same thing — yet.** A door is a Stuff
+> with its own keywords (`oak`, `iron`, `door`) hung in an exit; an
+> exit is the way through, named by its direction. Both are candidates
+> from `here`: `oak` matches the door, `north` matches the exit, and a
+> door-verb on the exit (`open north`) reaches the door by MQL's one
+> rule — the bound thing, else the door on a bound way. The
+> [boundary slate](./slates/builds/boundary-slate.md) folds the two
+> into one shared edge whose sides are the exits.
 
 ### Path globs
 
@@ -327,12 +368,19 @@ A reserved predicate name keeps members where the predicate holds:
 | `online` | object is connected |
 | `mine` | object is yours — stamped to you as chattel, or standing on an extent you hold title to. ⚠ Not things you *wrote* (authorship is not ownership) and not things your *group* holds; `mine` is first person singular. ⭐ It says **what** is yours, never **where** it is. |
 | `here` | object is in (or is) the giver's location |
-| `visible` | object is perceivable to the giver |
+| `visible` | object presents to the eye (composes Visible) and the giver perceives it — concealed-and-undiscovered things are not; the scope says *where* |
+| `loose` | object is its holder's own loose contents — not placed on or in something else there (the back-bar's bottles), not a crop standing over the ground |
+| `worn` | object occupies one of its holder's slots (a coat on a person, a coupe in a rack) |
+| `carried` | object is held as contents and occupies none of its holder's slots — `worn` and `carried` partition a holder |
 
 ```
 peers:living              only Mobile peers
 peers:online              only connected peers
 me:i:visible              visible items in inventory
+me:i:worn                 what you are wearing (and holding)
+me:i:carried              what is in your pockets and pack
+here:i:visible:loose:[not mixin.AdornmentMixin] - me
+                          the room as `look` lists it
 ```
 
 Unknown barewords in chain position fall back to the keyword filter —
@@ -407,6 +455,31 @@ it means "peers of each flower, excluding the flowers themselves"
 (flat-map). To express the old intent, swap the order:
 `peers:flower` (peer pool, then keyword filter "flower"). The
 keyword direction is the more natural shape anyway.
+
+### Places and the ways between them
+
+Three element-derivable steps walk the place graph, flat-mapping like
+`:members` (reserved as chain words):
+
+| Step | From each prior… | Yields |
+|---|---|---|
+| `:exits` | place | its exits, as the viewer sees them (a hidden one only once perceived) |
+| `:to` | exit | its destination — **live only**: a far place that is not loaded yields nothing (a query never stands a place up) |
+| `:from` | exit | its source place |
+
+```
+here:exits                    the ways out of where you stand (a set)
+here:exits:north              the north way, by its keywords (`here:exits:n` too)
+here:exits:north:to           the place it leads to — when it is loaded
+here:exits:north:to:exits     that place's ways
+here:exits:hesper:to          her deck, from the quay (her berth way's far side)
+```
+
+⚠ The steps NAME things; they do not grant sight. `look
+here:exits:north:to` describes the far place only where `look` would
+see it (perception still gates the verb). There is **no reverse step**
+(`:entrances`): what leads INTO a place is the location graph's
+question (`location-graph.md`), never a scan of every exit.
 
 ## Brackets `[…]`
 
@@ -515,8 +588,9 @@ want.
 > or its negation (`[not keyword.X]`) instead.
 
 > **Bareword vs `[keyword.X]` are not the same.** A bareword chain
-> step (`peers:rose`) runs the fuzzy scored matcher (exact name >
-> substring > keyword AND-narrow > partial), so it pulls in `rose`,
+> step (`peers:rose`) runs the scored matcher over KEYWORDS (a keyword
+> is the phrase > every word a whole word of one > every word begins one
+> > partial; a name is one of the keywords), so it pulls in `rose`,
 > `rosehip`, `rosie`, etc. `[keyword.X]` is the strict boolean —
 > only Stuff that has the exact keyword `X` in its keyword list.
 > Pick the one that matches your intent: bareword for player-style
@@ -600,7 +674,7 @@ drop them                 drops the coin set
 
 Empty queries don't update the stash — the last successful query
 stays referenced, so `look him` then `look (something else that
-fails)` then `tell him hello` still hits bob.
+fails)` then `dm him hello` still hits bob.
 
 ## Natural-language layer
 
@@ -686,7 +760,7 @@ one returns matches.
 
 Players have a per-session **focus** — the persistent search anchor.
 Bare `look` defaults to `$focus` (your current focus); inspection
-verbs (`look`, `examine`, …) extend the focus chain when they
+verbs (`look`, `search`, …) extend the focus chain when they
 resolve. Drilling deeper:
 
 ```

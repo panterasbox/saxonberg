@@ -223,7 +223,7 @@ describe('sets', () => {
       [],
     );
     await sets.act(ctxOf(w.host, config));
-    expect(w.commands).toEqual(['stoke coal into clamp', 'ignite clamp']);
+    expect(w.commands).toEqual(['stoke coal into clamp', 'light clamp']);
   });
 
   it('a cold clamp of burnt bricks is drawn; a warm one is left', async () => {
@@ -330,6 +330,6 @@ describe('pots', () => {
     ];
     const w = world(shop([], load), '/bf/shop', []);
     await pots.act(ctxOf(w.host, config));
-    expect(w.commands).toEqual(['ignite kiln']);
+    expect(w.commands).toEqual(['light kiln']);
   });
 });

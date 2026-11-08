@@ -34,7 +34,7 @@ import { CommandDefinition } from '../../../../../lib/command/CommandDefinition'
 import { Idea } from '../../../../../lib/stuff/Idea';
 import { StuffApi } from '../../../../../api/stuff';
 import { ContainmentApi } from '../../../../../api/containment';
-import { Reserve } from '../../../../../lib/reserve';
+import { Reserve } from '../../../../../lib/reserve/Reserved';
 import { Quantity } from '../../../../../lib/quantity';
 import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';

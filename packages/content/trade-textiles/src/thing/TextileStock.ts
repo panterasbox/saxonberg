@@ -23,6 +23,7 @@ import { StackableMixin } from '@saxonberg/server/mud/lib/stuff/Stackable';
 import { CraftedMixin } from '@saxonberg/server/mud/lib/craft/Crafted';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { Grade } from '@saxonberg/server/mud/lib/craft/Grade';
+import type Material from '@saxonberg/server/mud/lib/material/Material';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
@@ -41,7 +42,14 @@ export default class TextileStock extends TextileStockBase {
   declare setGrade: (value: Grade) => void;
   static fieldMeta: FieldMeta = {
     yarnCount: { persistent: true, authorable: true },
+    fibreWord: { persistent: true, runtimeState: true },
   };
+
+  /**
+   * ⭐ The fiber this stock was worked from when it is not the row's own
+   * (cordage D14): hemp line scutched off a hemp sheaf. `''` = the row's.
+   */
+  public fibreWord = '';
 
   /**
    * The yarn count — how many hanks to the pound, so **higher is
@@ -78,9 +86,25 @@ export default class TextileStock extends TextileStockBase {
    */
   override getShortDescription(): string {
     const stem = super.getShortDescription();
-    if (this.yarnCount <= 0) return stem;
+    // ⭐ Line and tow worked from another fiber name it where the row's
+    // words name flax (cordage D14): *hank of hemp line*.
+    if (this.yarnCount <= 0) return this.fibreWord !== '' ? stem.replace(/\bflax\b/, this.fibreWord) : stem;
     const fibre = MixinApi.isTangible(this) ? this.getMaterial()?.getName() : '';
     return fibre ? `skein of ${fibre} yarn` : stem;
+  }
+
+  /**
+   * ⭐ Take the fiber it was worked from (cordage D14; spin's `carryFibre`
+   * folded into the class): its material, its name among the keywords, and
+   * — when it is not the row's own fiber — its name in the words.
+   */
+  public adoptFibre(material: Material | null): void {
+    if (material === null) return;
+    const own = this.getMaterial();
+    this.setMaterial(material);
+    const words = material.getName().toLowerCase().split(/\s+/).filter(Boolean);
+    this.setKeywords([...new Set([...this.getKeywords(), ...words])]);
+    if (own !== material) this.fibreWord = material.getName().toLowerCase();
   }
 
   /**

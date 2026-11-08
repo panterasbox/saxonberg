@@ -1,8 +1,9 @@
 # A root vegetable — raw cooking stock (turnip, carrot, whatever the
 # pantry has). Edible raw in a pinch; its worth is what a pot makes of
 # it. The cooking branch's staple input, matched by the `vegetable` tag.
-class: /platform/idea/material/ConsumableMaterial
+class: /platform/idea/material/OdorousConsumableMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/earth, strength: 10 }]
   name: root vegetable
   keywords: [veg, vegetable, root, roots, turnip]
   appearance: knobbly root vegetables, earth still on them
@@ -14,7 +15,7 @@ data:
   # DISH tastes like — `taste` derives that from what went in, projected
   # through the taster's own palate. See docs/subsystems/crafting.md.
   # Roots sweeten as they cook; raw they barely read at all.
-  tastes: [sweet]
+  tastes: [{ type: sweet, amount: 30 }, { type: bitter, amount: 0.01 }]
   # ⭐ Spoilage (docs/subsystems/spoilage.md): the microbial growth rate is
   # `μ_max · f_T(T) · f_aw(a_w)`. `spoilActivationEnergy` (J/mol) is how
   # steeply this food answers to warmth; `waterActivity` is how much of its

@@ -37,7 +37,7 @@ taxonomy. The ten categories: `perception`, `social`, `movement`,
 `charactergen`. (Later builds added more — see CLAUDE.md's category
 roster; the magic build added `magic` for `cast`/`spells`, the casting
 core's verb surface, and the work-contracts build added `work` for the
-labor market — the board-afforded `job` + the travelling `fulfill`, see
+labor market — the board-afforded `job` + the travelling `job fulfill`, see
 [contract.md](./contract.md).) The category prefix is **load-bearing and uniform** — it
 appears in the YAML `controller:` field (`perception/LookController`),
 the seed `class:` path (`/platform/idea/cmd/perception/LookController`), and
@@ -153,7 +153,7 @@ recipe-side requirement and a working, never a verb source (see
 **Where a verb's spec lives follows the same rule: with the pack whose
 content affords it.** The platform pack ships the verbs any trade's
 instrument can confer (`pour`, `stir`, `heat`, `repair`, `salvage`,
-`wash`, `make`) and the commerce pair (`retail/menu`, `retail/order`);
+`wash`) and the commerce pair (`retail/menu`, `retail/order`);
 a trade's own steps ship in the trade's capability pack — hospitality's
 `muddle`/`strain`/`garnish`/`mix`/`serve`, cooking's
 `cook`/`plate`, smithing's `forge`/`hammer`/`quench`/`sharpen` — as
@@ -165,11 +165,13 @@ seeds (arcana's shape), named from that pack's own classes by the
 name only its own views, **the kernel can never name a trade's verb** —
 which is why `Whetstone` moved out of `/platform/thing/` when verbs
 became statics. Appliance mixins with real behavior (the furnace →
-`heat`/`ignite`/`douse`/`pump`) declare statics the same way. A commerce
+`heat`/`light`/`douse`/`pump`) declare statics the same way. A commerce
 object (a `CommerceMenu`) affords only its commerce verbs
 (`menu`/`order`) — the menu is for ordering, not making.
-Knowledge-driven verbs with no instrument (`make`) are innate on
-`Avatar`. See [crafting.md § The offer](./crafting.md) for the table
+A verb with no instrument at all is innate on `Avatar` — `do`, the
+shell's runner for a named script, is one (it was `make` under crafting
+and never made anything; see [scripting.md](./scripting.md)). See
+[crafting.md § The offer](./crafting.md) for the table
 and the parameterized specs (rate / control / technique).
 
 ### Aside: spec, parser, and the model
@@ -195,7 +197,7 @@ the spec is shaped to make it cheap when someone wants it.
 
 When two trades turn out to perform ONE act, the collision ladder's rung 2
 applies: unify behind an interface. `dip` moved from `trade-chandlery` to
-`platform/cmd/crafting/dip.yaml` (aliases `melt`, `gob`) with a dumb
+`platform/cmd/crafting/dip.yaml` with a dumb
 `DipController`: every bound bath — anything composing `DipBathMixin`
 (`lib/craft/DipBath.ts`, the protocol and the mixin in one file), bound by
 that mixin — is asked `dipPlanFor(req)` (the target rides the request),
@@ -205,7 +207,7 @@ controller only words the refusal. The chandler's
 frame, because the craft resolves from the actor's reach); a glaze or slip
 tub (`CompoundingMixin`) lays a WET coat on the good's faces; glass's
 `Melt` turns up a gather on the pipe (the named one, else the empty pipe in
-hand — so a bare `gob` works). A dip leaves a LAYER: `dye` and `quench` are
+hand — so a bare `dip` works). A dip leaves a LAYER: `dye` and `quench` are
 their own acts. Grammar: `dip [<thing>] [inside|outside] [in
 <bath>] [inside|outside]` — the face is a bare optional word that the
 binder's lookahead skips when the next token is the bath's preposition.
@@ -217,14 +219,16 @@ vessel asks the same plan with its own word (`req.verb`).
 
 ⭐⭐ **One vocabulary for every act protocol** (`lib/craft/ActPlan.ts`,
 ceramics review 2026-10-28). A planned act answers an `ActPlan` (duration —
-`0` runs now, in the command frame — effort, the begin lines, and an
-`onComplete` that may itself return a refusal), an `ActRefusal`
-(`{ ok: false, reason, line }`), or `null` = *nothing to say*, and the
-controller asks the next candidate or words a refusal from what is there.
-An instant act (`impress`, `turn`, the hand-worked `stir`) answers an
-`ActOutcome` (`{ ok: true, line, peers? }`) or an `ActRefusal`. Every
-controller engages a plan through ONE routine,
-`ManualBuildController.engagePlan`. Each protocol is a registered marker
+`0` runs now, in the command frame — effort, the facts the begin words
+need, and an `onComplete` that may itself return a refusal), an
+`ActRefusal` (`{ ok: false, reason, facts? }`), or `null` = *nothing to
+say*, and the controller asks the next candidate or words a refusal from
+what is there. An instant act (`impress`, `turn`, the hand-worked `stir`)
+answers an `ActOutcome` (`{ ok: true, facts }`) or an `ActRefusal`.
+⭐ **No `Mml` on any of them** (controllers-are-io D4): each protocol
+declares a closed reason union, and the controller words it in an
+exhaustive `switch`. Every controller engages a plan through ONE routine,
+`ManualBuildController.engagePlan(context, plan, words)`. Each protocol is a registered marker
 mixin named for what the object IS — `DipBathMixin`, `KneadVesselMixin`,
 `ShapeableMixin` (and `FormingMixin` for an instrument), `CarvableMixin`,
 `ImpressibleMixin`, `TurnableMixin`, `HandWorkedMixin`, `StrikingDieMixin`
@@ -256,12 +260,11 @@ glassblower's `shape bottle` binds as it always did.
   blank a founder's pattern (`PatternStockMixin`) — and says itself why
   not. When it has nothing to say (`null`) the controller runs the generic
   carving-RECIPE path (one item of wood, an edge, no heat) with that thing
-  as the stock, so `carve peg on board` and `carve peg from board` are one
-  carving. The controller knows no pattern (B103);
-  `CarvableMixin` affords the platform view. Every shipped
-  form (`carve haft`, `carve peg from the blank`, `carve handle with the
-  billhook`) binds as before.
-- **`impress`** (alias `mold`), new: `impress <pattern> on|in|into <medium>`.
+  as the stock. The controller knows no pattern (B103);
+  `CarvableMixin` affords the platform view. The forms are `carve haft`,
+  `carve peg from the blank`, and options for the rest: `carve handle --with
+  billhook`, `carve pattern from board --of sword --for bronze` (D9).
+- **`impress`**, new: `impress <pattern> on|in|into <medium>`.
   The MEDIUM (`ImpressibleMixin`) answers `takeImpression` — a leather-hard pot takes
   the device the pattern's face bears (`MarkedMixin.takeDeviceFrom` — a
   tool that bears none leaves a dent); moulding's media take a whole impression (W7). A press is a
@@ -274,13 +277,15 @@ glassblower's `shape bottle` binds as it always did.
 
 ## YAML view — top-level shape
 
-Every YAML declares one `CommandView`. Required keys: `verbs`,
+Every YAML declares one `CommandView`. Required keys: `verbs`, `category`,
 `controller`, `description`. After that, pick exactly one of `args`
 (flat verb) or `subcommands` (subcommanded verb) — having both is a
 load-time error. `options` is optional at every level.
 
 ```yaml
-verbs: [look, l]              # primary verb first; rest are aliases
+verbs: [look]                 # ONE word (lint:one-word)
+category: perception          # = the cmd/<category>/ directory (lint:command-views)
+defaultAliases: [{name: l}]   # optional; see below
 controller: perception/LookController  # category/Name; resolves to /platform/idea/cmd/perception/LookController
 description: "Examine your surroundings or an object"
 help: |                       # optional; multi-line player-facing prose
@@ -306,6 +311,45 @@ options:                      # optional; verb-scoped
 
 A zero-arg verb (e.g. `inventory`, `ping`) has neither `args` nor
 `subcommands` — that's fine.
+
+### ⭐⭐ One view, one word (controllers-are-io D16)
+
+`verbs:` is a one-element list and a controller is named by the views of one
+verb — `lint:one-word`, three counts, all zero. A synonym is a second
+vocabulary for one act: the player learns a word `help` never teaches, a
+script works with one and an alias table with the other, and every collision
+check has twice the surface. Which word: the plain English a player says;
+where the file's word was the rarer one, the file moves (`light`, not
+`ignite`; `plow`, not `plough` — American English).
+
+⚠ When a word used to choose a behavior (`shake` vs `stir`, `dive` vs `swim`),
+the behavior moves to what it is ABOUT: the vessel names its own working (the
+tool is what knows — `Technique`), and `descend` goes down. A word split across
+controllers is a base plus one controller per verb (`EquipControllerBase` →
+`EquipController`, `WearController`, `WieldController`), and `context.verb`
+decides nothing.
+
+### `defaultAliases:` — a shortcut, declared on the view
+
+`defaultAliases: [{name, description?}]` beside `verbs:`. The criterion is
+narrow on purpose: a one- or two-character MUD-standard shortcut for a verb
+typed many times a session (`l`, `i`, `h`, `?`, `'`), and nothing else. Reached
+only while the view is afforded; `alias unset` tombstones it, persisted; scripts
+use real verbs. See [shell-alias.md](./shell-alias.md).
+
+### `category:` (D24)
+
+Required on every shipped view: the verb's category, equal to its
+`cmd/<category>/` directory (`lint:command-views`), so the directory stays the
+convention and the field the data. `help` groups by it and the affordance
+radial slots by it.
+
+A **domain-local** view (`world/<sphere>/<locality>/cmd/<verb>.yaml`) sits in no
+category directory; it names **the category the verb would have in the platform
+taxonomy**, which must be a directory some view sits in. Today: `adjust` `blow`
+`tally` `wind` → `device` (operating a built mechanism); `stall` → `retail`;
+`remodel` → `crafting` (`paint`'s); `lease` `unlease` `provision` `unprovision`
+→ `civics` (tenure over titled property, beside `title`).
 
 > ⭐⭐ **The collision doctrine is a TRANSPARENCY rule, not only a
 > tidiness one** ([lens #62](../lenses/62-transparency.md), 2026-09-30).
@@ -396,7 +440,8 @@ lacks. Work down these, in order; the order is the point.
    verb should model *one* thing, so if the two claimants are the same
    act, they are one verb: fold them behind one interface. But a shared
    word over genuinely *different* mechanics cannot be unified without
-   lying about one of them — mining's `drive` (cut a level through rock)
+   lying about one of them — mining's `drive` (cut a level through rock;
+   since controllers-are-io D20 the view and controller are `drift`)
    and a vehicle's `drive` are not one act. **The tell:** if unifying would
    need a guard that re-asks *which mechanic is this*, the models are
    distinct and one claimant must take a different word. Which one is rungs
@@ -424,7 +469,10 @@ lacks. Work down these, in order; the order is the point.
      gesture. Ranching keeps `gather`.
 
    So glass yielded **both** generic words and took its own term of art,
-   **`gob`**. The lesson generalises: a trade's hand-gesture is rarely the
+   **`gob`**. (⚠ Since reversed: once the bath planned the dip, glass's
+   gather became a `dip` and `gob` an alias of it, and one view, one word
+   deleted the alias — controllers-are-io W6. The rung still reads true.)
+   The lesson generalises: a trade's hand-gesture is rarely the
    generative primitive — the system it feeds (dip-coating, the taps
    vocabulary) is, and the system should keep the plain word.
 
@@ -448,9 +496,23 @@ lacks. Work down these, in order; the order is the point.
      cannot, or when no plain word fits — never reach for it just to sound
      authentic.
 
-⚠ The outcome is recorded by **renaming one view**, never by a new line in
-`KNOWN_COLLISIONS` — that allowlist is the shipped-before-the-gate
-backlog, not an amnesty (`check-verb-collisions.ts`).
+⚠ The outcome is recorded by **renaming one view**, never by an
+allowlist row: `KNOWN_COLLISIONS` (the shipped-before-the-gate backlog)
+emptied when `pour` unified and the constant is deleted; since
+controllers-are-io D17 two views of one word either prove disjoint by
+shape (§ `prepositionRequired:`) or fail `lint:verb-collisions`
+(`check-verb-collisions.ts`).
+
+
+**Worked: `mark` (tracts build, 2026-10-31).** Ice's `mark` scored a
+cutting grid; farming's draws a field boundary on held ground. Rung 1
+would have made one view carry both grammars (`as <share>` and `with
+<tool>`) and the controller ask which. Rung 2 decided it: *marking a
+boundary on held ground* is the primitive other content extends (pens,
+plots, claims), and scoring ice is one trade's gesture with a plain word
+of its own. Ice yielded — not to `score`, which the platform already
+claims (`social/score`), but to **`groove`**, what an ice plough did.
+`cut marked` keeps its word: "marked" is the ice's state.
 
 ### `async:` — detach the controller from the giver's input chain
 
@@ -474,6 +536,17 @@ A player overrides the verb default per invocation with the reserved
 framework flags **`--async`** / **`--sync`**, recognized on any verb
 (you declare nothing). The names `async` and `sync` are therefore
 reserved: using either as an option or arg name is a load-time error.
+
+⭐ **`--strict` / `--loose`** are reserved the same way (D23): on any
+verb, `--strict` forces every slot's `onFiltered:` to `error` (a match
+discarded for the wrong kind refuses the line) and `--loose` forces
+`take`, for that one invocation. `strict` and `loose` are reserved
+names too. (`reload --strict` became `reload --force`.)
+
+⭐ **`verb@source`** needs nothing from the view either: `wind@me:i:watch`
+keeps only what the watch affords and the watch fills the first object
+slot whose `requires:` it satisfies. See
+[command-routing.md § `verb@source`](./command-routing.md).
 `async` is *not* the engagement framework — a durative in-world action
 with slots / cancel / abort uses `SchedulerApi` (see
 [activity.md](./activity.md)), for which `async` is a no-op.
@@ -491,6 +564,12 @@ the dispatcher has no definition, so the verb is unknown and never in
 boot logs one line naming them. Pair it with the
 `requiresTestWorld` validator so the gate sits in the view's own data
 too.
+
+### A manner is an option — `wash --hard`
+
+`scrub` was `wash` with more time in it, so it is `wash <x> --hard` (the
+`cut.yaml` boolean-option precedent): `--hard` reads as three washes' worth
+with a brush, half that by hand, and the `brush` slot is `wash`'s.
 
 ## Help content — `description` / `help` / `examples`
 
@@ -566,6 +645,19 @@ the enablement host was missing.
 
 ⚠ Declaring the key AND conferring the view with a static is also a
 failure. One of the two is a lie.
+
+⭐ **The gate and the conferrer are two decisions, and the second is the
+one that gets forgotten.** Of the fifteen dead views the reachability
+sweep opened on (2026-10-07), the timepiece verbs — `wind` and `adjust`,
+half of the domain-local exemplar bundle — had never run: `Watch.ts`
+reasoned correctly that the capability gate belongs on
+`MechanicalMovementMixin` and concluded *"so Watch contributes none"*,
+picking the gate and no conferrer, while its two siblings in the same
+directory (`Whistle`, `CrossingLog`) got it right, which is what made
+the omission invisible. The rule, carried in both docstrings: **the
+mixin is the gate; the concrete class in the pack that owns the verbs is
+the conferrer** — a kernel mixin may never name a locality's view, so a
+view a pack ships is conferred by a class in that pack.
 
 The key is inert at runtime: same verbs, same controller, same bound
 model, and it is neither an arg nor an option
@@ -699,7 +791,7 @@ sentence for the empty case, the binder must be able to reach it. See
 
 `greedy: true` consumes everything from the field's first token to
 end-of-input verbatim — whitespace runs, escapes, single-quote
-literals all preserved. Common for chat verbs (`say`, `tell`) and
+literals all preserved. Common for chat verbs (`say`, `dm`) and
 scope-shaped verbs (`focus`).
 
 ⭐⭐ **THE ARTICLE DEFECT — every object arg a player may put an article
@@ -721,6 +813,14 @@ When a *later* field declares `prepositions:`, the greedy field
 **stops at the boundary**: `give the red flower to bob` slices `gift`
 at `to` because `recipient.prepositions: [to]`. See
 [Multi-positional verbs](#multi-positional-verbs) below.
+
+⭐ **A preposition that opens only `number` fields ends the span only when a
+number follows it** (the paper build, 2026-11-05). `read`'s target is
+greedy, bounded by `page <n>`: `read notebook page 3` binds `notebook` and
+page 3, while `read torn-out page` binds the whole name, because "page" is
+a word in names too. Before this rule a trailing number field turned its
+preposition into a word no name could end in (`collectNumericOnlyPrepositions`
+in `CommandLogic`).
 
 ### ⭐⭐⭐ The phrase ladder — a name with a space in it
 
@@ -746,13 +846,13 @@ phrase today. The question a view has to answer is which rung it is on.
 **Rung 1 — the syntax already says where the name ends.** A greedy field
 whose every later field declares a `prepositions:` boundary. The
 load-time invariant (`validateArgOrdering`) permits greedy before other
-args only in this case, and it is the common one: `buy`/`reclaim` stop at
+args only in this case, and it is the common one: `buy`/`shelf reclaim` stop at
 `from`, `bake` at `at`/`in`/`on`, `ship` at `to`, `order` at `from`.
 Nothing is ambiguous, so nothing needs quoting — `buy dog loaf` just
 works. **Reach for this first.**
 
 **Rung 2 — one argument, and the rest of the line is it.** A trailing
-greedy field: `say`, `tell`, `focus`, `press post`. Dialogue and free
+greedy field: `say`, `dm`, `focus`, `press post`. Dialogue and free
 text live here. The field is last, so there is nothing to collide with.
 
 **Rung 3 — change the syntax so rung 1 applies.** A preposition or a
@@ -821,7 +921,7 @@ fed `"dog loaf"` bound the quotes along with it. The rule now:
   `get "latex cup"` / `look "rubber boots"` answered with a parser error,
   because `get` and `look` are trailing greedy object fields.
 - **a TRAILING greedy STRING field** (rung 2 — the rest of the line:
-  `say`, `tell`, `press post`) → the source slice, **verbatim, quotes and
+  `say`, `dm`, `press post`) → the source slice, **verbatim, quotes and
   all.** That is free text and the quotes are content: if you say *she
   said "no"* you want them in your speech.
 - **several tokens**, either way → the source slice. An interior quote in
@@ -886,17 +986,38 @@ Only meaningful for `type: object` / `type: objects`.
 
 Accepts `string | string[]`. The runtime always sees an array (a bare
 string is normalised to a singleton). Each entry runs through
-`ShellApi.expandVariables`, then the dispatcher tries them in order
-— **first non-empty result wins**.
+`ShellApi.expandVariables`, then the dispatcher tries them in order.
+
+⭐⭐ **The best keyword TIER wins, across tries; a tie goes to the earlier
+try** (controllers-are-io D21, one-resolution § 3 row 11 —
+`CommandLogic.walkScopes`). Every try is asked (stopping early only at the
+top tier, which nothing later can beat), and each kept match carries its
+tier (`MqlMany.tiers`: a keyword IS the phrase · every word a whole word of
+one · every word begins one · a partial). So a whole-name hit in a later
+try beats a word that merely begins some name in the focus, and when two
+tries answer equally the earlier one is meant — which is what drill-first
+means. Until W2 the first try with any admissible match won at any tier.
 
 Patterns:
 
 ```yaml
 scope: "inventory"           # surgical — drop, don't drill
 scope: "peers"               # surgical — get, don't pick up the room
-scope: "reachable"           # broad — everything in arm's reach
+scope: "reachable"           # in-hand act — person first: eat, drop, wield, give
+scope: ["here", "peers", "person"]   # WORLD act — room first: cut, dig, fell, paint
 scope: ["$focus", "reachable"]   # drill-first-then-broad — look, examine
 ```
+
+⭐ **The scope list's ORDER is the dial for where a verb looks first** —
+no new seed, no flag. `reachable` is person-first (on a tie your own
+gear beats the floor's), which is right for an act on what you hold. A
+**world act** — a verb whose target is, in the common case, underfoot or
+standing (a fixture, the ground, a plant, a block, a floor, a counter, a
+furnace) — declares `["here", "peers", "person"]` (with `$focus` first
+when it drills), so `cut ice` standing over a block cuts the block
+underfoot while a smaller one is carried. The audit of every
+`reachable` arg, with its verdict, is
+[controllers-are-io-slate.md § Scope-order audit (W2)](../slates/builds/controllers-are-io-slate.md).
 
 When `scope:` is omitted, the dispatcher defaults to `['$focus']` —
 the drill chain IS the scope. The resolver's empty-scope fallback to
@@ -911,12 +1032,16 @@ So a verb whose target is a room-level thing (a direction, an exit) must
 `$focus` resolves to that object, and a bare-default `go north` searches
 "north" inside it, finds no exit, and fails with "you can't walk that
 way." The movement verbs (`go`/`walk`/`climb`/`swim`/`fly`/`ride`/
-`drive`, joining `mount`) therefore declare `scope: ["$focus",
-"reachable"]` explicitly — drill first, then fall back to the room.
+`drive`, joining `mount`) therefore scope to WAYS — `go.yaml` declares
+`scope: ["here:exits", "reachable:[class.ExitableVessel]"]` (harbors
+review 3; the seven locomotion views share it) — so a direction word can
+only mean a way and a focused object never swallows it. (They declared
+`["$focus", "reachable"]` before that; the drill-first form is still
+right for inspection verbs.)
 
 Verbs that should **ignore drill entirely** declare a non-`$focus`
 fragment (`scope: 'inventory'` for `drop`, `scope: 'peers'` for
-`get`). Inspection-shaped verbs (`look`, `examine`, `read`) declare
+`get`). Inspection-shaped verbs (`look`, `read`) declare
 the drill-first-then-broad form.
 
 There's no implicit "player focus tries first" rule. The YAML is
@@ -990,7 +1115,7 @@ asking HOW the query asked, which rides on the MQL result
 for one revision to let a plural `look` tell an ambiguous name from a set
 it was asked for — the engine guessing which of two jobs one verb was
 doing. The fix was to give the jobs two verbs: `look` takes one thing,
-`query` (alias `scan`) lists a set.
+`query` lists a set.
 
 #### `onShortage` — when there are fewer matches than required
 
@@ -1064,8 +1189,47 @@ also serve as **termination boundaries** for an earlier greedy field.
 That's how `give the red flower to bob` knows to stop the greedy
 `gift` at `to`.
 
-Prepositions are always optional — declaring `prepositions: [to]`
+Prepositions are optional by default — declaring `prepositions: [to]`
 means "consume `to` if it appears here," not "require `to`."
+
+### ⭐ `prepositionRequired:` — the slot binds only behind its preposition
+
+```yaml
+args:
+  - name: item
+    type: object
+    required: true
+  - name: recipient
+    type: object
+    required: true
+    prepositions: [to]
+    prepositionRequired: true
+```
+
+`prepositionRequired: true` makes the preposition part of the SHAPE
+(controllers-are-io D17): the slot binds only when one of its
+`prepositions:` is present. Absent, a required slot is a **shape error
+naming the preposition** (*"missing 'to' before recipient"*), so the
+chain tries the next view of the verb; an optional one stays unbound.
+It is what makes two views of one word provably disjoint — `throw ball
+to ann` cannot bind `throw-at`, and `throw ball at ann` cannot bind
+`throw-to`. A load-time error without `prepositions:`. The usage line
+shows it bare: `throw <item> to <recipient>` (`[to <recipient>]` when
+optional).
+
+⭐ `throw` is the case it was written for. `throw.yaml`, `throw-to.yaml` and
+`throw-at.yaml` are three views of one word and three controllers, because a pitch,
+a catch and an attack are three acts: the word is shared, and the shapes prove
+which act a line means. `lint:verb-collisions` compares positional ranges and then
+the required prepositions, so no list adjudicates them.
+
+### ⭐ When every shape fails — the usage line
+
+When no view of the verb fits the line (every `assemble` a shape
+error), the dispatcher's `shape-fall-through` note carries **every
+matching view's `getUsage()`** joined ` · ` — *"throw <item> · throw
+<item> to <person> · throw <item> at <target>"* — which is the player's
+error for a malformed line. Write `name:`s that read well there.
 
 ### `validators:` — per-field gates
 
@@ -1093,7 +1257,7 @@ args:
   - name: fuel
     requires: CombustibleMixin|BurnerMixin     # `|` inside an entry is OR
   - name: victim
-    requires: class:Agent                       # the one class escape
+    requires: class:Agent                       # the closed class escape (Agent, JobBoard)
   - name: thing
     requires: any                               # deliberately unconstrained
 ```
@@ -1220,6 +1384,17 @@ verb says no.
 offers a verb that then declines with a reason; **under-reporting hides
 a verb that would have worked**, and the player cannot discover it.
 
+##### ⭐ `requires: [affords]` — the candidate offers this verb (controllers-are-io D8d)
+
+One word is not a mixin: `affords` admits a candidate that itself contributes
+this view, by its class or an ACTIVE mixin, in any bucket (the scope decides
+reach). It is an AND-term, opted into per slot; `affords|XMixin` throws at
+spec-load. Use it for a single-host verb with no protocol to name (`wind`,
+`adjust`, `blow`). ⛔ Never on a tool verb's target: the strainer affords
+`strain`, and you strain the drink. A refusal reads *You can't wind the rock.*
+The verb-by-verb record:
+[controllers-are-io-slate.md](../slates/builds/controllers-are-io-slate.md).
+
 ##### `requires: any` — declared, not omitted
 
 Genuinely unconstrained slots declare it **at the site**, the way
@@ -1278,7 +1453,7 @@ Live under `mud/lib/command/validators/`:
 | `mustBeContainable` | every bound Stuff composes `ContainableMixin` | `get`, `drop`, `give` (any verb that calls `ContainmentApi.move`) |
 | `mustBeInInventory` | every bound Stuff is in the giver's inventory | `drop`, `give` (the gift) |
 | `mustBeInLocation` | every bound Stuff is in the giver's location's contents | `get` (excludes inventory items by design — you can't pick up what you already carry) |
-| `canReach` | every bound Stuff is in inventory, location contents, attached to a location exit (door), OR the location with `via.exit` set (door-via-direction) | `open`, `close`, `go`, any verb that interacts with the immediate environment |
+| `canReach` | every bound Stuff is in inventory, location contents, one of the location's exits, or a door attached to one | `open`, `close`, `go`, any verb that interacts with the immediate environment |
 | `requiresAnimate` | giver passes `SpeciesApi.isAnimate` (verb-level — declared under `validators:` at the top of the YAML, not on a specific field) | `eat`, `drink`, future combat / vocal verbs |
 | `requiresAvatar` | giver is an Avatar (player character) | `player` / `me` |
 | `requiresEnvironment` | giver composes `EnvironmentMixin` (has settings / var storage) | `settings`, `var` |
@@ -1405,7 +1580,8 @@ each subcommand can declare its own `args:` and `options:`:
 
 
 ```yaml
-verbs: [player, me]
+verbs: [player]
+category: author
 controller: PlayerController
 description: "Manage your player character settings"
 subcommands:
@@ -1501,9 +1677,10 @@ controllerName =
 
 Load-time validation requires either a verb-level controller OR
 every subcommand declaring its own — failing both is a load error.
-Existing subcommanded verbs (`settings`, `alias`, `var`, `help`,
+Some subcommanded verbs (`settings`, `alias`, `var`, `help`,
 `player`) leave the per-subcommand field unset and continue to share
-their verb-level controller.
+their verb-level controller — variations on one theme, below; an
+institution's noun never does (§ The subcommand rule).
 
 When to reach for per-subcommand controllers vs. branch on
 `model.subcommand` in a single controller:
@@ -1519,6 +1696,55 @@ When to reach for per-subcommand controllers vs. branch on
 The choice is a content-shape question, not a framework question
 — both patterns are first-class.
 
+### ⭐⭐ The subcommand rule (controllers-are-io D9)
+
+*An act on the world is a bare verb; a transaction with an institution's
+book is a subcommand of the institution's noun.* `store` is the model:
+`store deposit` / `withdraw` / `receipts` are three entries in one book,
+and **every subcommand binds the book as its own operand** — nothing is
+inherited from the noun (`args` XOR `subcommands`, so there is nowhere
+to inherit from). The shipped nouns:
+
+| noun | subcommands that write its book | the book |
+|---|---|---|
+| `house` | `appoint` · `dismiss` · `draw` (beside `book` / `pnl` / `payroll` / `roster`) | the roster, the operating account |
+| `job` | `post` · `claim` · `complete` · `abandon` · `fulfill` · `apply` · `quit` | the contract board (`on <board>`, the one in reach), and the applicant's side of the roster |
+| `shelf` | `consign` · `reclaim` | a store's consignment shelf |
+| `rack` | `check` · `reclaim` | a house's check rack |
+| `store` | `deposit` · `withdraw` · `receipts` | the store book |
+| `bank` | `open` · `deposit` · `withdraw` · `transfer` · `borrow` (beside `balance` / `statement` / `book`) | the customer's account at the bank |
+| `title` | `transfer` · `subdivide` · `buy` · `publish` · `offline` | the parcel registry |
+
+⚠ The edges, decided: `buy` / `sell` / `order` / `rent` / `charter` are
+acts on a good; `pay` / `tip` / `collect` are acts with a recipient; a
+fee-paying act (`assay`, `pilot`, `embody`) is an act; the herd verbs are
+acts on animals. `lint:institution-verbs` counts the flat views that
+still write a book: none, and the gate holds it there.
+
+⭐ **A subcommand word is scoped by its noun.** `reclaim` under `shelf`
+and under `rack` is one act over two books (`HeldGoodsControllerBase.
+reclaimFrom`), each stanza binding its own; `wiki read`, `fight draw` and
+the five nouns' `make` are their noun's word, not the global verb's.
+`fight defend` is the one subcommand that IS another view's act, and
+it names that view's controller (`combat/DefendController`).
+
+**One controller per subcommand, over a base per noun.** The switch
+controllers (`wiki`, `party`, `chat`, `forum`, `pack`, `group`, `soul`,
+`job`, `tune`, `fight`) are each `<Noun>ControllerBase` — the shared
+reads and words as **protected methods**, never module functions
+(`lint:controller-functions`) — plus `<Noun><Sub>Controller` per
+subcommand, each with its row (`lint:controller-rows`). The verb-level
+`controller:` is whatever the bare form runs (`SoulListController`,
+`JobBrowseController`, `ChatPostController` for the fallthrough post,
+`WikiReadController` for bare `wiki <page>`, `TuneInController`); a noun
+with no bare form (`pack`) names none. The gating a switch did once
+before dispatch moves onto the base and every subcommand calls it
+(`SoulControllerBase.refuseUnlessCommittee`); a `FromModule` gate that
+named the switch controller names the base with `includeSubclasses`
+(the wiki registry's). ⚠ A controller test now instantiates the
+subcommand's controller and must bind what the view binds (the board,
+the shelf) — it skips the binder.
+
 ### `fallthrough: true` — subcommands AND bare positionals
 
 By default a YAML may declare EITHER `args:` OR `subcommands:` —
@@ -1531,7 +1757,7 @@ flag, which the schema enforces alongside both fields:
 
 ```yaml
 verbs: [chat]
-controller: ChatController
+controller: ChatPostController   # the fallthrough post (one controller per subcommand)
 description: "Post to a channel, or manage channel membership"
 fallthrough: true
 subcommands:
@@ -1905,7 +2131,7 @@ Buckets:
 | `self` | Always — at host registration. Owner-issued verbs (`look`, `inventory`, `say`). |
 | `inventory` | When this thing is in the giver's inventory. A wand grants `zap`. |
 | `environment` | When this thing is in the giver's environment. A throne grants `sit`. |
-| `peers` | When this thing is a peer `CommandGiver` in the same environment. A conversational NPC grants `tell`. |
+| `peers` | When this thing is a peer `CommandGiver` in the same environment. A conversational NPC grants `talk`. |
 
 Choose the smallest concept that owns the verb. A spatial verb goes
 on a spatial mixin (`MobileMixin` declares `go.yaml`, `open.yaml`,
@@ -1918,6 +2144,26 @@ feature mixin and ensure every avatar composes it.
 when the giver has X" example: it lives on `FocusedMixin`, so an NPC scripted
 without `FocusedMixin` simply doesn't see `focus` on its recency
 stack.
+
+## ⭐⭐ Alternate controllers — the same act in other words
+
+A controller that only does input and output can be swapped without touching the
+world (D14). Re-point the view's `controller:` at another class and every state
+change, reason and duration is what it was, because the object decided them. The
+exemplar is `HarvestWordedController`:
+
+```typescript
+export default class HarvestWordedController extends HarvestController {
+  static override refusalWords(r: HarvestRefusal): Composed { /* … */ }
+  static override beginWords(f: HarvestBegin, giver: Stuff) { /* … */ }
+  static override doneWords(f: HarvestDone, giver: Stuff) { /* … */ }
+}
+```
+
+⚠ **Word methods are `static`, and read off the instance's class before the act
+engages** (`const words = this.constructor as typeof HarvestController`). They run
+at completion, after the dispatcher destructed the controller, and a destroyed Stuff
+answers a method call with a silent no-op. `lint:completion-this` reads the closures.
 
 ## Controller template row
 
@@ -2057,3 +2303,15 @@ levels:
   routing.
 - [hot-reload.md](./hot-reload.md) — `StuffApi.clone` +
   `HotReloadApi`; controllers ride this for HMR.
+
+## History — controllers-are-io (MR !527, 2026-11)
+
+Every view now declares ONE verb (`lint:one-word`), a `category:`
+(`lint:command-views`) and, at most, a removable `defaultAliases:` list;
+77 extra words on 65 views were deleted or minted as the five default
+aliases (`l`, `i`, `h`, `?`, `'`) — W6, `831bff42b^..3f6a71578`. Where the
+rarer word held the file it moved (`ignite` → `light`, `plough` → `plow`);
+`make` became the shell's `do`; silk's `reel` became `unwind`; mining's
+`drive` became `drift`. Institution transactions became subcommands of
+their noun (`house appoint`, `job apply`, `shelf consign`, `rack check`,
+`bank …`, `title transfer`) — W7–W8, `848adc897^..76e2d22b6`.

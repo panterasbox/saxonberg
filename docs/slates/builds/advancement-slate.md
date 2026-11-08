@@ -655,8 +655,8 @@ influence model (the three chambers are *dimensions of every member*, so a
 character's play/make/fund composition **drifts** over its life):
 
 - A young character is consumer-heavy (actively learning/playing); as it
-  stops chasing new content, consumer influence plateaus while **producer**
-  influence climbs (producer taps *others* engaging its authored work).
+  stops chasing new content, consumer influence plateaus while **labor**
+  influence climbs (labor taps *others* engaging its authored work).
   **Retirement isn't an event; it's the center of gravity shifting from
   play to make.** You lose nothing; it's organic.
 - **Two ledgers, two rules.** *Skill is permanent* (respect the time,
@@ -665,7 +665,7 @@ character's play/make/fund composition **drifts** over its life):
   capable as the day they left but can't rule on ancient glory — they
   re-earn their voice by showing up. That split prevents gerontocracy
   without punishing learning.
-- **Elders stay honest, and contestable.** Producer influence decays in
+- **Elders stay honest, and contestable.** Labor influence decays in
   real-time and tracks *current* engagement with your work — so an absent
   creator holds influence only as long as their school stays trained-at
   (the still-loved dead rule; the forgotten fade), and a sharper fork can

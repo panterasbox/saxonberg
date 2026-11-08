@@ -28,7 +28,7 @@ import { Charge } from '../Charge';
 import { ChargedMixin, CHARGE_DEFAULTS } from '../Charged';
 import { ArcaneMixin } from '../Arcane';
 import Good from '../../stuff/Good';
-import { ReservedMixin } from '../../reserve';
+import { ReservedMixin } from '../../reserve/Reserved';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 

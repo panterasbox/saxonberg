@@ -1,7 +1,8 @@
 # Sausage — trim, fat and a casing, which is to say the parts of an animal
 # nobody would pay for separately.
-class: /platform/idea/material/ConsumableMaterial
+class: /platform/idea/material/OdorousConsumableMaterial
 data:
+  smells: [{ aroma: /base-library/aromas/cooked-meat, strength: 200 }]
   name: sausage
   keywords: [sausage, sausages]
   density: 1040
@@ -12,7 +13,7 @@ data:
   electricalConductivity: 0.2
   waterAbsorptionCapacity: 20
   edibility: true
-  tastes: [umami, salty]
+  tastes: [{ type: salty, amount: 18 }, { type: umami, amount: 3 }]
   spoilActivationEnergy: 70000
   waterActivity: 0.96
   nutrients: [protein, fat, water]
