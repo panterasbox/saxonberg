@@ -8,7 +8,8 @@
 > designed and unbuilt → [cooperative-slate](cooperative-slate.md)
 > ⭐ **Offerings (2026-11-08):** bounded windows, two pools (recurring rate-locked ·
 > bits discovered), founder matched-plus-one held to 1.0 — § Offerings. Launches with
-> the Twitch stream after New Year.
+> the Twitch stream after New Year, **once the stream proves sustainable** (the stream
+> launches first, with no offering).
 > **Left:** reading patronage off Twitch, YouTube, Patreon (and later
 > Kick) · converting it to dollars **at net** — what reached the
 > commons — with the platform's cut shown · attribution by claim: a
@@ -190,6 +191,25 @@ to money: legibility is the only lever we have (Part 6). A term that is not post
 not exist.
 
 ### Before the first round opens
+
+⭐⭐ **The stream launches first; the offering waits (the owner, 2026-11-08).** *"I'm not
+gonna do any of this before I start livestreaming. I dont even know if I'll have the
+willpower to keep up a weekly stream for more than a month … I'm not gonna go setting up
+bank accounts and corporate accounts until I actually have demand and I've proven I can
+keep up the demands regular livestream schedule on top of the regular commitment I give
+to development every week."*
+
+- **Until incorporation there is no offering.** Gifts are plain support for the stream,
+  exactly as money outside a window already is, and are said to be so on stream.
+- ⛔ **No promise that pre-offering gifts count later.** That would be a backdoor
+  offering with no entity behind it; retroactive credit is already ruled out.
+- **The trigger for round 1:** a regular stream schedule kept up alongside development,
+  and real demand (people asking how to earn standing is that demand). Then the LLC, the
+  business bank account, and round 1 as designed above.
+- The stream also frames the instance: *"the only running instance of the platform is
+  there to market the livestream or rather 'organize' is a better framing of which
+  managing income and expenses as a community is part of what's on offer."*
+
 
 - ⚠⚠ **Incorporate first.** A round sells governance voice for money, so the entity
   whose governance it is, and an operating agreement defining the units as non-economic
