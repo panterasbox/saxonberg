@@ -876,6 +876,22 @@ describe('Avatar', () => {
       });
     });
 
+    it('⭐ onLinkdead ends a shift the body is on — an absent body is not at work (the payroll gap)', () => {
+      const avatar = makeAvatar('ld-shift');
+      vi.spyOn(avatar, 'shiftState').mockReturnValue('on-shift');
+      const leave = vi.spyOn(avatar, 'leaveShifts').mockResolvedValue(undefined);
+      avatar.onLinkdead();
+      expect(leave).toHaveBeenCalledTimes(1);
+    });
+
+    it('…and leaves an off-shift body alone', () => {
+      const avatar = makeAvatar('ld-noshift');
+      vi.spyOn(avatar, 'shiftState').mockReturnValue('off-shift');
+      const leave = vi.spyOn(avatar, 'leaveShifts').mockResolvedValue(undefined);
+      avatar.onLinkdead();
+      expect(leave).not.toHaveBeenCalled();
+    });
+
     it('onLinkdead emits PlayerDisconnected on an involuntary drop', async () => {
       const { EventApi } = await import('../../api/event');
       const { Events } = await import('../../lib/events');

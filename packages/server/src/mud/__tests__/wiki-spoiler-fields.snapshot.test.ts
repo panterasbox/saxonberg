@@ -289,7 +289,7 @@
  *   - ⭐⭐ `MaturingMixin.imparts` → **1 (name 0)**. What a cask gives
  *     its contents. The whole cask wave makes a barrel's character
  *     something you learn by **nosing** — competence-banded, in words,
- *     and `DissolvedAromatics.render` is tested to emit no digit at any
+ *     and the nose (`Scent.phrases`) is tested to emit no digit at any
  *     band. A composition panel printing `{vanilla 40, char 120, oak
  *     15}` hands that over for free AND as numbers, which is precisely
  *     what the no-gauge reading rules keep out of the player-facing

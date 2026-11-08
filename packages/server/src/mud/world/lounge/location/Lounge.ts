@@ -21,7 +21,7 @@
  * Still no `SingletonMixin`: repeated clones are the whole point.
  */
 
-import Location from '../../../lib/location/Location';
+import Room from '../../../platform/location/Room';
 import { WarrenMemberMixin } from '../../../lib/location/WarrenMember';
 import { LoungeMixin } from '../LoungeMixin';
 import type { FieldMeta } from '../../../lib/mixin';
@@ -31,7 +31,7 @@ import type { FieldMeta } from '../../../lib/mixin';
 // `Location` does), so every room class built directly on
 // `Place` has to remember. These rows were authoring `primaryKeyword`
 // into a void until 2026-09-11; `lint:presentation` clause (d) found it.
-const LoungeBase = LoungeMixin(WarrenMemberMixin(Location));
+const LoungeBase = LoungeMixin(WarrenMemberMixin(Room));
 
 export default class Lounge extends LoungeBase {
   static fieldMeta: FieldMeta = {};

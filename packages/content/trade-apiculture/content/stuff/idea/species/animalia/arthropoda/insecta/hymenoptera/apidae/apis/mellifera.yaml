@@ -17,6 +17,7 @@
 # build a fired pot is the potter's, made by `shape`.)
 class: /platform/idea/species/Species
 data:
+  smells: [{ word: bee, strength: 3 }]
   binomial: Apis mellifera
   commonNames: ["bee", "honeybee", "bees"]
   _bodyPlanPath: /stuff/idea/species/BodyPlan/sessile

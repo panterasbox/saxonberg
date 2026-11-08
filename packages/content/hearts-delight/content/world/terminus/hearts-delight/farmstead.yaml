@@ -1,0 +1,8 @@
+# /world/terminus/hearts-delight/farmstead — the ZONE of the valley
+# farmstead PLAN: the farm's rooms and tracts
+# authored as an ordinary place. Nothing stands here in play — every sold
+# farm is a copy minted from these rows, under its lot's key.
+class: /platform/idea/location/CartesianZone
+data:
+  name: a valley farmstead
+  cellSize: 6.0

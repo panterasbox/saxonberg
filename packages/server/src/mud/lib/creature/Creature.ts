@@ -43,6 +43,8 @@ import { BodyPlanSlotsMixin } from '../slot/BodyPlanSlots';
 import { PosedMixin } from '../character/Posed';
 import { VisibleMixin } from '../description/Visible';
 import { PerceptibleMixin } from '../description/Perceptible';
+import { OlfactoryMixin } from '../perception/Olfactory';
+import { PalateMixin } from '../metabolism/Palate';
 import { ContainableMixin } from '../spatial/Containable';
 import { ContainerMixin } from '../spatial/Container';
 import { VitalsMixin } from '../vitals/Vitals';
@@ -148,7 +150,7 @@ import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
 // ⭐ Hygiene OUTERMOST (cleanliness, review): how a body is kept clean reads
 // the covering stack (Attired) and writes the body's soil by part
 // (Soilable), so it sits outside both — and clothing knows nothing of dirt.
-const CreatureBase = HygieneMixin(PostmortemMixin(
+const CreatureBase = PalateMixin(OlfactoryMixin(HygieneMixin(PostmortemMixin(
   ConcealableMixin(
   LoadBearingMixin(
     ContainerMixin(
@@ -226,7 +228,7 @@ const CreatureBase = HygieneMixin(PostmortemMixin(
   )
   )
   )
-));
+))));
 
 /**
  * The body-condition bands, thin to fat — ⭐ a CLOSED, ordinal
@@ -385,34 +387,6 @@ export class Creature extends CreatureBase {
   public override washedShare(site: string): number {
     if (site === '') return 1;
     return this.surfaceShareOf((k) => k === site);
-  }
-
-  /**
-   * ⭐ A body smells of its skin AND what it wears (B57) — the shirt you
-   * worked in all day is half of why you need a bath.
-   */
-  public override soilOdour(): { identity: string; ppm: number } | null {
-    const own = super.soilOdour();
-    let ppm = own?.ppm ?? 0;
-    let identity = own?.identity ?? '';
-    let strongest = own?.ppm ?? 0;
-    const seen = new Set<unknown>();
-    for (const occupants of this.getAllOccupants().values()) {
-      for (const layer of occupants) {
-        if (seen.has(layer)) continue;
-        seen.add(layer);
-        const s = layer as unknown as Stuff;
-        if (!MixinApi.isSoilable(s)) continue;
-        const o = s.soilOdour();
-        if (!o) continue;
-        ppm += o.ppm;
-        if (o.ppm > strongest) {
-          strongest = o.ppm;
-          identity = o.identity;
-        }
-      }
-    }
-    return ppm > 0 ? { identity, ppm } : null;
   }
 
   /**

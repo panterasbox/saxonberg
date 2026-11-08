@@ -3,12 +3,13 @@
 // @internal lands on the reflection TypeDoc emits, not on the module.)
 
 import type { Stuff } from '../../../lib/stuff/Stuff';
-import type Structure from '../Structure';
+import type Structure from '../../../lib/structure/Structure';
 import type { AttachmentKind } from '../../../api/navigation';
 import { ApiLogic } from '../../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../../lib/security/decorators';
 import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import { StuffApi } from '../../../api/stuff';
+import { MixinApi } from '../../../api/mixin';
 import type LocationGraphRegistry from '../LocationGraphRegistry';
 import type { PlaceNode } from '../../../lib/location/PlaceNode';
 import type { GraphFinding } from '../../../lib/location/GraphInvariants';
@@ -21,7 +22,6 @@ import type {
 import type { CardinalDirection } from '../../../api/navigation';
 import { Traversal } from '../../../lib/location/Traversal';
 import type { Whereabouts, WhereaboutsExit } from '@saxonberg/types';
-import { MixinApi } from '../../../api/mixin';
 import { AddressApi } from '../../../api/address';
 import { WeatherApi } from '../../../api/weather';
 import { CelestialApi } from '../../../api/celestial';
@@ -68,16 +68,36 @@ function isStructure(s: Stuff): s is Stuff & Structure {
   return typeof c.hasMember === 'function' && typeof c.getExtent === 'function';
 }
 
-function innermostStructure(place: string, paths: readonly string[]): Structure | null {
+function innermostStructure(
+  place: string,
+  paths: readonly string[],
+  live: readonly Stuff[] = [],
+): Structure | null {
   let best: Structure | null = null;
-  for (const p of paths) {
-    // Structural: a value import of `Structure` here closes a module cycle.
-    const s = StuffApi.findByTemplatePath(p) as (Stuff & Partial<Structure>) | undefined;
-    if (!s || typeof s.hasMember !== 'function' || s.isDestroyed()) continue;
-    if (!isStructure(s) || !s.hasMember(place)) continue;
+  const consider = (s: Stuff | undefined): void => {
+    if (!s || s.isDestroyed()) return;
+    if (!isStructure(s) || !s.hasMember(place)) return;
     if (best === null || s.getExtent().length > best.getExtent().length) best = s;
-  }
+  };
+  // Structural: a value import of `Structure` here closes a module cycle.
+  for (const p of paths) consider(StuffApi.findByTemplatePath(p) as Stuff | undefined);
+  for (const s of live) consider(s);
   return best;
+}
+
+/**
+ * ⭐ A keyed handle (`row#key`) is never a row: the structure a keyed room
+ * belongs to is its warren's answer, asked of the room
+ * (`Place.structure()`), never of a path (the handle
+ * scan is gone). Said loudly: a caller that passes one asks the wrong
+ * question.
+ */
+function refuseHandle(path: string): void {
+  if (path.includes('#')) {
+    throw new TypeError(
+      `NavigationApi.structureAt('${path}'): a keyed room's structure is its warren's — ask the place (Place.structure())`,
+    );
+  }
 }
 
 function registry(): LocationGraphRegistry | null {
@@ -108,6 +128,11 @@ const DIRECTION_OFFSETS: Record<CardinalDirection, [number, number, number]> = {
 /**
  * Alias → canonical long form. Keys are lower-cased tokens the parser will
  * see (`n`, `ne`, `u`, `d`, ...).
+ *
+ * ⚠ **DERIVED (magic) — the table only.** MQL never rewrites a word with
+ * it: an exit answers to `n` because `Exit.getKeywords()` folds its
+ * direction's short forms (`shortFormsOf`) into its own keywords, and the
+ * bare-verb aliases (`n` → `go n`) pass the word through untouched.
  */
 const DIRECTION_ALIASES: Record<string, CardinalDirection> = {
   n: 'north',
@@ -223,6 +248,16 @@ export class NavigationLogic extends ApiLogic {
     return DIRECTION_INVERSES[canonical];
   }
 
+  /** See {@link NavigationApi.shortFormsOf}. */
+  @CallSecurity(NavigationApiCallers)
+  public shortFormsOf(direction: string): string[] {
+    const canonical = normalize(direction);
+    if (!canonical) return [];
+    return Object.keys(DIRECTION_ALIASES).filter(
+      (k) => k !== canonical && DIRECTION_ALIASES[k] === canonical,
+    );
+  }
+
   /** See {@link NavigationApi.directionOffset}. */
   @CallSecurity(NavigationApiCallers)
   public directionOffset(
@@ -310,15 +345,35 @@ export class NavigationLogic extends ApiLogic {
   /** See {@link NavigationApi.structureAt}. */
   @CallSecurity(NavigationApiCallers)
   public async structureAt(path: string): Promise<Structure | null> {
-    const paths = (await registry()?.attachedTo(path, 'structure')) ?? [];
+    refuseHandle(path);
+    const reg = registry();
+    const paths = (await reg?.attachedTo(path, 'structure')) ?? [];
     await Promise.all(paths.map((p) => StuffApi.singleton(p).catch(() => null)));
-    return innermostStructure(path, paths);
+    return innermostStructure(path, paths, reg?.liveStructuresAt(path) ?? []);
   }
 
   /** See {@link NavigationApi.structureAtNow}. */
   @CallSecurity(NavigationApiCallers)
   public structureAtNow(path: string): Structure | null {
-    return innermostStructure(path, registry()?.attachedNow(path, 'structure') ?? []);
+    refuseHandle(path);
+    return this.innermostNow(path);
+  }
+
+  private innermostNow(path: string): Structure | null {
+    const reg = registry();
+    return innermostStructure(path, reg?.attachedNow(path, 'structure') ?? [], reg?.liveStructuresAt(path) ?? []);
+  }
+
+  /** See {@link NavigationApi.attachStructure}. */
+  @CallSecurity(NavigationApiCallers)
+  public attachStructure(extent: string, structure: Structure): void {
+    registry()?.attachStructure(extent, structure);
+  }
+
+  /** See {@link NavigationApi.detachStructure}. */
+  @CallSecurity(NavigationApiCallers)
+  public detachStructure(extent: string, structure: Structure): void {
+    registry()?.detachStructure(extent, structure);
   }
 
   /** See {@link NavigationApi.whereaboutsFor}. */

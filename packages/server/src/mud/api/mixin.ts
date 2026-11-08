@@ -53,11 +53,15 @@ import type { CommandGiver } from '../lib/command/CommandGiver';
 import type { Focused } from '../lib/command/Focused';
 import type { Exitable } from '../lib/boundary/Exitable';
 import type { Sealable } from '../lib/spatial/Sealable';
+import type { Throttleable } from '../lib/spatial/Throttleable';
+import type { Plumbed } from '../lib/supply/Plumbed';
+import type { Irrigating } from '../lib/husbandry/Irrigating';
 import type { Display } from '../lib/display/Display';
 import type { Switchable } from '../lib/boundary/Switchable';
 import type { Energized } from '../lib/electricity/Energized';
 import type { Lockable } from '../lib/boundary/Lockable';
 import type { Foldable } from '../lib/slot/Foldable';
+import type { Tearable } from '../lib/material/Tearable';
 import type { Timekeeping } from '../lib/time/Timekeeping';
 import type { CartesianCoordinates } from '../lib/location/CartesianCoordinates';
 import type { SphericalCoordinates } from '../lib/location/SphericalCoordinates';
@@ -79,6 +83,11 @@ import type { FrameSited } from '../lib/expanse/FrameSited';
 import type { MovingWater } from '../lib/location/MovingWater';
 import type { SmallCraft } from '../lib/expanse/SmallCraft';
 import type { TetherEnd } from '../lib/spatial/TetherEnd';
+import type { Berthing } from '../lib/expanse/Berthing';
+import type { Payable } from '../lib/banking/Payable';
+import type { Hailable } from '../lib/expanse/Hailable';
+import type { Hirable } from '../lib/retail/Hirable';
+import type { ForSale } from '../lib/retail/ForSale';
 import type { Ringable } from '../lib/perception/Ringable';
 import type { MovingZone } from '../lib/zone/MovingZone';
 import type { Charted } from '../lib/expanse/Charted';
@@ -87,7 +96,6 @@ import type { Adornable } from '../lib/boundary/Adornable';
 import type { Adornment } from '../lib/boundary/Adornment';
 import type { AmbientLit } from '../lib/perception/AmbientLit';
 import type { LightSource } from '../lib/perception/LightSource';
-import type { SmellSource } from '../lib/perception/SmellSource';
 import type { SoundSource } from '../lib/perception/SoundSource';
 import type { Audible } from '../lib/perception/Audible';
 import type { Augment } from '../lib/augmentation/Augment';
@@ -152,12 +160,16 @@ import type { Turnable } from '../lib/craft/Turnable';
 import type { HandWorked } from '../lib/craft/HandWorked';
 import type { StrikingDie } from '../lib/craft/StrikingDie';
 import type { Faced } from '../lib/material/Faced';
+import type { SelfHeating } from '../lib/thermal/SelfHeating';
 import type { Greenware } from '../lib/material/Greenware';
 import type { Burner } from '../lib/fire/Burner';
 import type { SpaceHeating } from '../lib/thermal/SpaceHeating';
 import type { PublicLighting } from '../lib/perception/PublicLighting';
 import type { Respiration } from '../lib/respiration/Respiration';
 import type { Radioactive } from '../lib/material/Radioactive';
+import type { Odorous } from '../lib/material/Odorous';
+import type { Olfactory } from '../lib/perception/Olfactory';
+import type { Palate } from '../lib/metabolism/Palate';
 import type { Muscle } from '../lib/butchery/Muscle';
 import type { Cut } from '../lib/butchery/Cut';
 import type { Workspace } from '../lib/shell/Workspace';
@@ -253,6 +265,7 @@ import type { PricedOffer } from '../lib/commerce/PricedOffer';
 import type { DonationBank } from '../lib/commerce/DonationBank';
 import type { Business } from '../platform/idea/Business';
 import type { Organization } from '../lib/employment/Organization';
+import type { CapTable } from '../lib/employment/CapTable';
 import type { Publisher } from '../lib/press/Publisher';
 import type { Registrar } from '../lib/document/Register';
 import type { Attendant } from '../lib/attendant/Attendant';
@@ -1211,6 +1224,19 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.Sealable);
   }
 
+  /** Opens by an amount and logs who set it (water-supply D12). */
+  public static isThrottleable(obj: Stuff): obj is Stuff & Sealable & Throttleable {
+    return this.hasMixin(obj, Mixins.Throttleable);
+  }
+
+  public static isPlumbed(obj: Stuff): obj is Stuff & Plumbed {
+    return this.hasMixin(obj, Mixins.Plumbed);
+  }
+
+  public static isIrrigating(obj: Stuff): obj is Stuff & Irrigating {
+    return this.hasMixin(obj, Mixins.Irrigating);
+  }
+
   public static isSwitchable(obj: Stuff): obj is Stuff & Switchable {
     return this.hasMixin(obj, Mixins.Switchable);
   }
@@ -1226,6 +1252,10 @@ export class MixinApi {
 
   public static isFoldable(obj: Stuff): obj is Stuff & Foldable {
     return this.hasMixin(obj, Mixins.Foldable);
+  }
+
+  public static isTearable(obj: Stuff): obj is Stuff & Tearable {
+    return this.hasMixin(obj, Mixins.Tearable);
   }
 
   public static isTimekeeping(obj: Stuff): obj is Stuff & Timekeeping {
@@ -1342,9 +1372,34 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.SmallCraft);
   }
 
-  /** ⭐ The end of a line in somebody's hand (river W16) — a painter, a lifeline. */
+  /** ⭐ The end of a line in somebody's hand (river W16) — a bow line, a lifeline. */
   public static isTetherEnd(obj: Stuff): obj is Stuff & TetherEnd {
     return this.hasMixin(obj, Mixins.TetherEnd);
+  }
+
+  /** ⭐ A landing somebody keeps a book for — a harbor quay. */
+  public static isBerthing(obj: Stuff): obj is Stuff & Berthing {
+    return this.hasMixin(obj, Mixins.Berthing);
+  }
+
+  /** ⭐ A thing that says what you owe — a harbor office's book. */
+  public static isPayable(obj: Stuff): obj is Stuff & Payable {
+    return this.hasMixin(obj, Mixins.Payable);
+  }
+
+  /** ⭐ A thing let by the day — a hired boat. */
+  public static isHirable(obj: Stuff): obj is Stuff & Hirable {
+    return this.hasMixin(obj, Mixins.Hirable);
+  }
+
+  /** ⭐ A thing with something for sale — what `buy` speaks to. */
+  public static isForSale(obj: Stuff): obj is Stuff & ForSale {
+    return this.hasMixin(obj, Mixins.ForSale);
+  }
+
+  /** ⭐ A place that answers a hail — a harbor office. */
+  public static isHailable(obj: Stuff): obj is Stuff & Hailable {
+    return this.hasMixin(obj, Mixins.Hailable);
   }
 
   /** ⭐ A bell or signal you strike (river W16), which remembers when. */
@@ -1399,10 +1454,6 @@ export class MixinApi {
 
   public static isLightSource(obj: Stuff): obj is Stuff & LightSource {
     return this.hasMixin(obj, Mixins.LightSource);
-  }
-
-  public static isSmellSource(obj: Stuff): obj is Stuff & SmellSource {
-    return this.hasMixin(obj, Mixins.SmellSource);
   }
 
   public static isAudible(obj: Stuff): obj is Stuff & Audible {
@@ -1793,6 +1844,10 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.Faced);
   }
 
+  public static isSelfHeating(obj: Stuff): obj is Stuff & SelfHeating {
+    return this.hasMixin(obj, Mixins.SelfHeating);
+  }
+
   public static isGreenware(obj: Stuff): obj is Stuff & Greenware {
     return this.hasMixin(obj, Mixins.Greenware);
   }
@@ -1822,6 +1877,18 @@ export class MixinApi {
 
   public static isRespiration(obj: Stuff): obj is Stuff & Respiration {
     return this.hasMixin(obj, Mixins.Respiration);
+  }
+
+  public static isPalate(obj: Stuff): obj is Stuff & Palate {
+    return this.hasMixin(obj, Mixins.Palate);
+  }
+
+  public static isOlfactory(obj: Stuff): obj is Stuff & Olfactory {
+    return this.hasMixin(obj, Mixins.Olfactory);
+  }
+
+  public static isOdorous(obj: Stuff): obj is Stuff & Odorous {
+    return this.hasMixin(obj, Mixins.Odorous);
   }
 
   public static isRadioactive(obj: Stuff): obj is Stuff & Radioactive {
@@ -2280,6 +2347,14 @@ export class MixinApi {
    */
   public static isRegistrar(obj: Stuff): obj is Stuff & Registrar {
     return this.hasMixin(obj, Mixins.Registrar);
+  }
+
+  /**
+   * ⭐ A business that keeps a table of owners and their units
+   * (`CapTableMixin`) — the read the `owners` appointing authority takes.
+   */
+  public static isCapTable(obj: Stuff): obj is Stuff & CapTable {
+    return this.hasMixin(obj, Mixins.CapTable);
   }
 
   /** A standalone employing Business (the `BusinessMixin` marker). */

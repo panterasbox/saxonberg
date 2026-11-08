@@ -1,0 +1,26 @@
+# Seamanship — handling a ship or a boat: bringing her
+# alongside and making her fast, casting her off, keeping her afloat at
+# the pump and with the sounding rod, caulking her seams. ⭐ It builds on
+# ropework (cordage's Discipline): a seaman's first trade is lines.
+#
+# ⛔ Not `navigation` — knowing where she is is a different practice; a
+# sibling sharing its ISCED-F field (transport services).
+#
+# ⭐ Competence buys INFORMATION, not outcomes: a practised hand reads the
+# well more finely (how fast she is making water, whether one pump will
+# gain on it). It never makes a leak smaller or a pump faster, and it
+# gates no act. Earned by mooring, casting off, `pump well`, `measure
+# bilge`, `maintain` aboard, and raising the node a course was laid for.
+class: /platform/idea/Discipline
+data:
+  key: seamanship
+  channel: skill
+  label: Seamanship
+  iscedf: "1041"  # ISCED-F 2013: transport services
+  requires: [ropework]
+  synergizes: [navigation]
+  description: >-
+    Handling a ship or a boat: making her fast and casting her off,
+    sounding her well and keeping her pumped, keeping her seams tight.
+    A practised hand reads what the water in her is doing before it
+    matters.

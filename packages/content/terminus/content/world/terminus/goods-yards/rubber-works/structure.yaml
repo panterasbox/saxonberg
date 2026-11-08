@@ -7,7 +7,7 @@
 #   ground  ─┬─ works (the works floor)  ← loft ← terrace (on the roof)
 #            ├─ wing  (the store)        ← tower
 #            └─ the stove house          (glass all round; nothing over it)
-class: /platform/idea/Structure
+class: /platform/idea/Building
 data:
   extent: /world/terminus/goods-yards/rubber-works
   entrance: /world/terminus/goods-yards/rubber-works/location/ground/works/floor

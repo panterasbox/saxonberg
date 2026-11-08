@@ -112,6 +112,12 @@ no bank, no funds: the customer is served and nothing is taken.
 > *the first sale a venue ever makes* the one that always fails. A
 > bootstrap deadlock, invisible to any venue that has traded once.
 >
+> ⭐ **Partly answered (water supply, 2026-11-05):** the refusal now says
+> WHICH side failed — `refusedBroke` asks `BankingApi.canSettle`: the
+> buyer could pay → *the counter can't take payment*; the buyer could not
+> pay one coin → *you have nothing to pay with* (`bank open`); otherwise
+> *you can't cover it*. The cold-shop deadlock above is still unverified.
+>
 > ⚠ Reported, not fixed: it is this subsystem's, not a trade's. The live
 > evidence is the checkpoint
 > `packages/wire/tests/drilling.dirty.wire.test.ts` § *the valley's own
@@ -229,12 +235,78 @@ chattel stamps a discrete instance, so a fungible stack would fall through
 the buy/consign loops (a CI-adjacent content-integrity lint enforces this
 on the seeds).
 
+## ⭐⭐ The offer protocol — `ForSaleMixin` (harbors review, 2026-11)
+
+`buy` speaks **one** protocol: `lib/retail/ForSale.ts`, a thing that has
+something for sale. The view binds `reachable:[mixin.ForSaleMixin]`
+(`requires: [ForSaleMixin]` — *"{} has nothing for sale"*); the controller
+asks the bound thing `sellerFor(word)` (this one if it `offers(word)`,
+else another `ForSale` standing here that does — a market square's stalls
+each answer for their own; a seller the player NAMED is held to), hands
+that seller the whole `sell({buyer, word, ask})`, and says what comes
+back — `{ok, self, peers}` or `{ok: false, line, note}`. **Every refusal
+is the seller's and is returned before any money moves**; the controller
+holds no branch per seller and narrows by nothing but the mixin.
+`purchaserOf(buyer, receipt)` (the wallet's business, else the buyer) is
+the one shared rule. `ask` is the buyer's prompt, `null` for a script.
+
+⭐ It was extracted from what the counter already answered
+(`counterFor`/`resolveBuy`/`bringUpFor`/`carriesLine`/`priceFor` — the
+sequence that lived in `BuyController`), and it exists because the
+harbors build had grown a THIRD and fourth product on `Stock` — ships
+minted to order and boats let by the day — behind `minted:`/`rates:`
+fields on a shop counter. The user's review: a counter sells goods; a
+ship is title; a hire is a let. Each is now its own implementer (or its
+own book, for the let — `HireBook` and `rent`, which is not a sale).
+⭐ The let has ONE record, the boat's own hire (`HirableMixin.hireTo`,
+naming the book that let her): `HireBook` keeps only its authored `rates`,
+persists nothing, and reads which boats are out — and overdue — off the
+standing boats of the kinds it lets whose hire names it (harbors review
+2).
+
+| implementer | offers | the sale |
+|---|---|---|
+| `ConsignmentShelfMixin` | a good it holds a live listing for | the consignor's ask, the remainder split to them, title **transferred**; a `termsAskFor` hook lets a counter price a terms listing itself |
+| `Stock` (composes the shelf) | a line it carries (even bare), a priced good its house keeps lying in its room, or a consigned good | the closed sign first; a shelf good (brought up to order from a store), settled in full and **stamped**; else a listing as above; else ⭐ **a good sold where it lies** — priced on the counter with NO line (`prices` only), lying loose in the counter's room, the house's (stamped to its business or to nobody), not out on hire: settled, title **transferred**, nothing moved (a boat's bow line stays in her), custody re-read in place; else *sold out* (a line, or *there is no rowboat of the house's lying here*) / *isn't for sale here* |
+| `HullBook` (`/system/transport/thing/HullBook`, the yard) | a hull it lists, by kind or slot — sold out or not | **title** off a finite, authored list (`hulls: [{slot, kind, priceMinor}]`, the farmstead pattern): the closed sign; the first hull still on the stocks (*"the yard has no hull on the stocks"*); the register over the yard; her name asked (refused while the register has it); the slot claimed synchronously, then the money (given back if it does not come); her identity minted `<kind>/<serial>`, `Ship.commission` at the book's `quay:`; the sale kept in the book's own record — no restock |
+
+⚠ Worth stays on the offer (Law 1) and every sale settles through
+`EmploymentApi.settleSale` to a venue its house operates. ⛔ It is not a
+price list — `PricedOfferMixin` is the map a menu, a tariff and a counter
+share; `ForSale` is the act. `lint:counters` is unmoved: an implementer
+outside the kernel's `platform/**` (a pack's book) is not a counter class.
+
+**Sold where it lies, and title only.** The sale where a good lies
+transfers its title (the good's own `transferChattel`) and moves nothing, then
+calls the good's `followCustody()` so the new owner's estate records
+where they keep it ([chattel.md](./chattel.md)). Such a landing is
+**kept** — `platform/location/PersistentShore` (`Persistable(Shore)`):
+it lays its `props:` down once and its record is authoritative after, so
+the boat sold does not come back at the next restart (⚠ never a quay a
+ship makes fast at; her lines re-tie from her own record). The yard's
+`HullBook` sells a ship's TITLE: the ship, her register and her company
+are [ship.md](./ship.md)'s, the harbor that keeps the yard
+[harbor.md](./harbor.md)'s.
+
+**The let — `rent`** (`platform/cmd/retail/rent.yaml`,
+`RentController`): `rent <boat> for <n> days` at a `HireBook`
+(`platform/thing/HireBook`, a fixture; its house lists it in
+`operatingLocations`, so the day's money settles there). It lets only a
+boat of the house's lying in the book's room, refuses while the house is
+closed, takes `n ×` the book's `rates` for her kind up front, and puts
+her in the hirer's CUSTODY — her title stays the house's
+(`HirableMixin.hireTo`; ⛔ not on `Good`, a class composes it when its
+kind is let). The hire ends when she is put down on the landing she was
+let from (`endHire`, from her own `onMoved`; there is no return verb).
+Overdue is a fact on the book's page, never a penalty.
+
 ## The buy loop (`buy <thing>`, stamps ownership)
 
-`BuyController` (`platform/idea/cmd/retail/`, the new `retail` command category)
-resolves the good off the present `Stock` **or** a consignment listing on
-the `ConsignmentShelf`, settles a presented `Charge` (card → cash), hands
-the good over, and transfers ownership:
+`BuyController` (`platform/idea/cmd/retail/`, the `retail` command
+category) hands the sale to the seller (above). At a counter it resolves
+the good off the present `Stock` **or** a consignment listing on the
+`ConsignmentShelf`, settles a presented `Charge` (card → cash), hands the
+good over, and transfers ownership:
 
 - **stock good** — settle the full price to the store's Business account,
   remit the demo sales tax on it, and **stamp** the buyer
@@ -256,7 +328,7 @@ as *"float-rod" isn't for sale here* — while the counter's own
 `getLong()` still listed it ("On the shelves: float-rod (11), keepnet
 (6)"). `Stock.carriesLine(keyword)` answers *does a stock LINE carry
 this word*, matched against the template **leaf** — which is exactly
-what that description prints — and `BuyController` refuses a carried
+what that description prints — and the counter refuses a carried
 line with reason `sold-out` and prose that says so. ⚠ The match is the
 leaf only: a player who types a keyword the shelf list does not print
 (`cane` for `…/thing/rod`) still falls through to `not-on-shelf`. Every
@@ -613,3 +685,14 @@ and pearl ash; the Hanging Wood glasshouse's chalked board buys pearl ash
 and black salts. The ash round is a sole trader who buys at the hearth at
 the chandlery's own bid and sells at its counter. See
 [potash.md](potash.md).
+
+## History — the harbors build (MR !511, 2026-11)
+
+The build first sold ships and day hires off `Stock` (`minted:` /
+`deliversTo` lines, `Stock.rates` / `Stock.hires`). Review round 1
+reverted that: the hire book took the let (`f3305cb19`), `Stock` went back
+to selling goods (`f91ad08c7`), `buy` became one offer protocol
+(`ForSaleMixin`, `d898a4a15`; `Stock.counterFor` generalized into
+`sellerFor`), a ship became title off the yard's `HullBook` (`af492d81d`),
+and a boat became a priced good sold where it lies on a kept
+`PersistentShore` (`0b7c75e60`).

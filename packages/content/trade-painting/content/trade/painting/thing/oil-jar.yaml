@@ -1,0 +1,13 @@
+# An oil jar — the empty stoneware jar linseed oil runs into from the stones.
+class: /platform/thing/Bottle
+data:
+  shortDescription: oil jar
+  keywords: [jar, "oil jar"]
+  register: indefinite
+  longDescription: A brown stoneware jar with a narrow lip, oily to the touch.
+  category: jar
+  _materialPath: /stuff/idea/material/ceramic/stoneware
+  interiorBulk: true
+  interiorCapacity: 2
+  closure: liquidTight
+  open: true

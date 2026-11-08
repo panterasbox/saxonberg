@@ -281,3 +281,16 @@ build; a bubble that inflates the money supply is not a lesson, it is a bug.
   significances in TypeScript, the step is wrong.
 - **Build it small.** The value is entirely in what players do with it, so the
   engine's share should be embarrassingly thin.
+
+## From the smell design (2026-11-07)
+
+Not designed here beyond this. See [the smell and taste build](../../subsystems/senses.md#one-smell-source-air-nose) (!531).
+
+- A flower is an ordinary source in the one nose, and needs only a smell entry
+  when its row arrives. Its scent fades as it wilts, on the same freshness clock.
+- Liking applies: a rose can delight one person and do nothing for another.
+- Scent could be a real breeding trade-off, since selecting for looks and vase
+  life is widely reported to cost fragrance in modern roses. ⚠ Check that under
+  the factual-claims rule before authoring it as fact.
+- A perfumer distills what the still already handles. Masking is real, because
+  the smell furthest past its threshold dominates.

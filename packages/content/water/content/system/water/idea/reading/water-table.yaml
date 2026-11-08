@@ -1,0 +1,16 @@
+# The water table — where the ground's water stands, read by tape down an
+# observation well (water-supply D13/D18). ⭐ The ONLY reading of an
+# aquifer's level: a farmer's own well says his pump sucks air, never that
+# the valley is going down.
+class: /system/water/idea/reading/WaterTableReading
+data:
+  channel: water-table
+  kind: fact
+  scope: [subject]
+  discipline: hydrology
+  instrument: ""
+  eyeCeiling: expert
+  improves: >-
+    how far down the valley's water stands, and whether it is falling
+  stakes: >-
+    every well in the valley sucking air in the same August

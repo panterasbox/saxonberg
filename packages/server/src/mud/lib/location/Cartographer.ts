@@ -255,8 +255,11 @@ export function CartographerMixin<TBase extends MixinConstructor>(
           });
         }
         await NavigationApi.recordPlace(viewerKey, locality, claims);
-      } catch {
-        // A map is a convenience; never fail a `look` for it.
+      } catch (err) {
+        // A map is a convenience; never fail a `look` for it — but say so:
+        // a map that silently stopped being written cost two sibling drives
+        // an hour to find (harbors, 2026-11-04).
+        console.warn('[cartographer] map not written:', err);
       }
     }
 

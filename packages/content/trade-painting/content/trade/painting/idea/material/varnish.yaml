@@ -1,0 +1,30 @@
+# Varnish — rosin dissolved in turpentine (paint D17): a clear coat that
+# dries as the spirit leaves it (solvent-set), glossy and hard, and keeps
+# the weather off what is under it a season or two.
+class: /platform/idea/material/OdorousMaterial
+data:
+  smells: [{ word: turpentine, strength: 1500 }]
+  name: varnish
+  keywords: [varnish]
+  appearance: a clear amber varnish, sticky and sharp-smelling
+  density: 950
+  specificHeat: 1700
+  thermalConductivity: 0.15
+  meltingPoint: 240
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: [liquid, varnish, flammable]
+  laysCoat: true
+  coatWord: varnished
+  solidsKgPerL: 0.45
+  weatheringMPerGameYear: 0.00002
+  pigment: { transmitR: 0.97, transmitG: 0.9, transmitB: 0.7, hidingPower: 0.02, lightfastness: 1 }
+  kinetics:
+    # ⭐ Sets as its SOLVENT leaves: wants dry air; hours in a warm room.
+    - key: set
+      sets: solvent
+      order: 0
+      rate: [[273, 0.02], [283, 0.1], [293, 0.2], [303, 0.35]]
+  composition: []
+  biologicalSource: null

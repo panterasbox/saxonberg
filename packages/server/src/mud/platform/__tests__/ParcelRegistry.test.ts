@@ -111,6 +111,7 @@ function seedParcel(entry: {
   areaM2?: number;
   feeder?: string;
   powerBand?: string | null;
+  waterSource?: string;
 }): void {
   col("parcels").push({
     _id: `seed-${++idCounter}`,
@@ -124,6 +125,7 @@ function seedParcel(entry: {
     area: entry.areaM2 ?? 0,
     feeder: entry.feeder ?? "",
     powerBand: entry.powerBand ?? null,
+    waterSource: entry.waterSource ?? "",
   });
 }
 
@@ -842,6 +844,76 @@ describe("ParcelApi.powerOf — the meter read (energy build)", () => {
     );
     const on = await ParcelApi.parcelsOnFeeder("terminus-main:square");
     expect(on).toHaveLength(1);
+  });
+});
+
+describe("ParcelApi.waterOf — the premises water citation (water-supply D1)", () => {
+  beforeEach(() => {
+    reset();
+    installStore();
+  });
+  afterEach(reset);
+
+  const MAIN = "/world/terminus/wharfside/thing/city-intake";
+
+  it("answers a parcel's own citation, and a room inherits it", async () => {
+    seedParcel({
+      extent: "/world/terminus/mayfield-row",
+      owner: { kind: "group", name: "terminus" },
+      waterSource: MAIN,
+    });
+    await boot();
+    expect(ParcelApi.waterOf("/world/terminus/mayfield-row").source).toBe(MAIN);
+    expect(
+      ParcelApi.waterOf("/world/terminus/mayfield-row/seznick-house/bath").source,
+    ).toBe(MAIN);
+  });
+
+  it("⭐ `none` stops the walk — a declared dry premises under a served district", async () => {
+    seedParcel({
+      extent: "/world/terminus/hinkley-hills",
+      owner: { kind: "group", name: "hinkley" },
+      waterSource: "/world/terminus/hinkley-hills/thing/district-tank",
+    });
+    seedParcel({
+      extent: "/world/terminus/hinkley-hills/lots/lot-1",
+      owner: { kind: "group", name: "hinkley" },
+      parentParcel: "/world/terminus/hinkley-hills",
+      waterSource: "none",
+    });
+    await boot();
+    expect(
+      ParcelApi.waterOf("/world/terminus/hinkley-hills/lots/lot-1/kitchen").source,
+    ).toBe("none");
+  });
+
+  it("ground nobody cites reads '' (a tap reads unplumbed)", async () => {
+    await boot();
+    expect(ParcelApi.waterOf("/world/nowhere").source).toBe("");
+  });
+
+  it("⭐ citeWaterSource writes, reindexes, and the next read sees it", async () => {
+    seedParcel({
+      extent: "/world/terminus/hinkley-hills/lots/lot-2",
+      owner: { kind: "group", name: "hinkley" },
+      waterSource: "none",
+    });
+    await boot();
+    await withRootContext(null, "test", () =>
+      ParcelApi.citeWaterSource("/world/terminus/hinkley-hills/lots/lot-2", MAIN),
+    );
+    expect(
+      ParcelApi.waterOf("/world/terminus/hinkley-hills/lots/lot-2/kitchen").source,
+    ).toBe(MAIN);
+    const on = await ParcelApi.parcelsOnWaterSource(MAIN);
+    expect(on.map((r) => r.getExtent())).toEqual([
+      "/world/terminus/hinkley-hills/lots/lot-2",
+    ]);
+  });
+
+  it("a malformed citation throws naming the value", () => {
+    const record = new ParcelRecord();
+    expect(() => record.setWaterSource("city-intake")).toThrow(/city-intake/);
   });
 });
 

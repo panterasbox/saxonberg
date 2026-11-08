@@ -103,7 +103,7 @@ let at = '';
 async function goTo(where: string): Promise<void> {
   at = where;
   k?.close();
-  k = await Session.open(handle, { startLocation: where, wizard: true });
+  k = await Session.open(handle, { startLocation: where });
   await k.drainProse();
 }
 
@@ -125,7 +125,7 @@ async function say(line: string): Promise<string> {
 async function advance(duration: string): Promise<void> {
   // Lived time: in day-long jumps, the drive's people fed between them.
   await advanceLiving(duration, [k]);
-  const probe = await Session.open('founder', { startLocation: SMELTER, wizard: true }).catch(() => null);
+  const probe = await Session.open('founder', { startLocation: SMELTER }).catch(() => null);
   try {
     const until = Date.now() + 600_000;
     while (probe && Date.now() < until) {
@@ -199,7 +199,7 @@ async function drink(): Promise<void> {
   const back = at;
   expect(back, 'drink() needs to know where to come back to').not.toBe('');
   await goTo(PITHEAD);
-  await say('get pail');
+  await say('get 1 pail');
   await act('pump village well', '1 minute');
   await say('fill pail from well');
   for (let i = 0; i < 2; i++) await say('drink pail --amount 1L');
@@ -267,7 +267,7 @@ async function toHour(fromH: number, toH: number): Promise<void> {
 
 beforeAll(async () => {
   handle = uniqueHandle('liner');
-  const bank = await Session.open(handle, { startLocation: BANK_HALL, wizard: true });
+  const bank = await Session.open(handle, { startLocation: BANK_HALL });
   expectOk(await bank.cmd('bank open'));
   bank.close();
   const gov = await Session.open('founder', { startLocation: BANK_HALL });
@@ -280,7 +280,7 @@ beforeAll(async () => {
   // working season, not wherever A left the year (run 31's froze).
   await toWarmSeason();
   await toHour(9, 15);
-  k = await Session.open(handle, { startLocation: QUARRY, wizard: true });
+  k = await Session.open(handle, { startLocation: QUARRY });
   // ⭐ Dressed for the winter it will work through (run 26's founder died of it).
   await dress(k);
   await dressFounder();

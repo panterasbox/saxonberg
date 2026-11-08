@@ -13,6 +13,7 @@
 # anybody is ranching.
 class: /platform/idea/species/Species
 data:
+  smells: [{ word: goat, strength: 40 }]
   binomial: Capra hircus
   commonNames: ["goat", "nanny", "billy", "kid"]
   _bodyPlanPath: /stuff/idea/species/BodyPlan/quadruped

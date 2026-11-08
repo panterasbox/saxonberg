@@ -42,8 +42,15 @@ import type { CommandContributions } from '../../api/command';
 import type { SenseChannel } from './Perceiver';
 import type { Stuff } from '../stuff/Stuff';
 import { MixinApi } from '../../api/mixin';
+import { Quantity } from '../quantity';
+import { Paint } from '../material/Paint';
 import { PerceptionApi } from '../../api/perception';
 import type { MarkupAugmenter } from '../../api/mml';
+import { RecipeKnowledge } from '../script/RecipeKnowledge';
+import type { EditionTeaching } from '../document/Edition';
+
+/** Litres of ink a written character takes (a dip pen's charge writes ~100). */
+const INK_LITRES_PER_CHAR = 0.00001;
 
 /** How wet inked paper must be before the ink runs (0..1). */
 const INK_RUNS_AT = 0.5;
@@ -148,7 +155,7 @@ export interface Marked {
    * who can read it reads — a note to yourself is writing on a thing of
    * your own.
    */
-  writeOn(by: Stuff, words: string): { ok: true; line: string } | { ok: false; reason: string; line: string };
+  writeOn(by: Stuff, words: string, medium?: Stuff): { ok: true; line: string } | { ok: false; reason: string; line: string };
   /**
    * ⭐ WHOSE mark this bears — a DEVICE, not words: a potter's stamp on a
    * pot's base, a die's device on a struck token, the device cut in the
@@ -173,6 +180,29 @@ export interface Marked {
    * {@link DEVICE_MODALITIES}).
    */
   deviceFor(viewer: Stuff): string | null;
+  /**
+   * @hook ⭐ Bring the marks up to date before they are read (harbors B2):
+   * a surface whose words are DERIVED from a record elsewhere —
+   * a ship register's page, a printed sheet's edition, a ledger's papers —
+   * reads the record here, so `getMarkText()` stays a sync read. Default:
+   * nothing (authored marks are what they are).
+   */
+  refreshMarks(viewer: Stuff): Promise<void>;
+  /**
+   * @hook ⭐ What reading this writes into the reader (the
+   * reading-writes-claims protocol): a chart's places into the map, a
+   * printed recipe's *known-of* into the chronicle. Runs after the text has
+   * landed. Returns a line to tell the reader, or `null` for nothing.
+   * Default: teaches nothing.
+   */
+  teach(reader: Stuff): Promise<string | null>;
+  /**
+   * @hook ⭐ The marks as THIS reader reads them: handwriting
+   * names its hands as the reader knows the writers. The stored text
+   * (`getMarkText`) stays the words alone — it is stack identity. Default:
+   * the stored text.
+   */
+  readFor(viewer: Stuff): string;
 
   // ---------- storage (public for the applier) ----------
   markText: string;
@@ -180,6 +210,13 @@ export interface Marked {
   markScript: string;
   writingRoom: number;
   markDevice: string;
+}
+
+/** ⭐ One passage of handwriting, and whose hand wrote it. */
+export interface Passage {
+  text: string;
+  /** The writer's identity path; `''` when nobody is known to have written it. */
+  hand: string;
 }
 
 /** ⭐ A device is relief — pressed or cut — so it is seen or felt. */
@@ -198,6 +235,11 @@ const deviceAugmenter: MarkupAugmenter = (text, host, viewer, opts) => {
   const line = `It bears ${mark}.`;
   return text && text.length > 0 ? `${text}\n\n${line}` : line;
 };
+
+/** Litres of paint a lettered character takes (sign-writing, a brush's width). */
+const LITRES_PER_LETTER = 0.002;
+/** A lettered stroke's set film, m. */
+const LETTER_FILM_M = 0.00003;
 
 export function MarkedMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class MarkedMixin extends Base implements Marked {
@@ -228,7 +270,9 @@ export function MarkedMixin<TBase extends MixinConstructor>(Base: TBase) {
     static fieldMeta: FieldMeta = {
       // A stamped brick and a bare one, or tokens off two dies, do not stack.
       markDevice: { persistent: true, authorable: true, stackIdentity: true },
-      markText: { persistent: true, authorable: true },
+      // ⭐ Two sheets with different words are different goods (paper): a
+      // written sheet never merges into the blank ream it came off.
+      markText: { persistent: true, authorable: true, stackIdentity: true },
       markForm: { persistent: true, authorable: true },
       markScript: { persistent: true, authorable: true },
       writingRoom: { persistent: true, authorable: true },
@@ -271,6 +315,79 @@ export function MarkedMixin<TBase extends MixinConstructor>(Base: TBase) {
       return name ? `${name}'s mark` : "a maker's mark you do not know";
     }
 
+    /** @hook See {@link Marked.refreshMarks}. Authored marks need nothing. */
+    public async refreshMarks(_viewer: Stuff): Promise<void> {}
+
+    /** @hook See {@link Marked.teach}. Most marks teach nothing. */
+    public async teach(_reader: Stuff): Promise<string | null> {
+      return null;
+    }
+
+    /** @hook See {@link Marked.readFor}. Most marks read the same to everyone. */
+    public readFor(_viewer: Stuff): string {
+      return this.getMarkText();
+    }
+
+    /**
+     * ⭐ A hand as THIS viewer knows its writer — the device
+     * mark's rule: *your hand*, *Hester's hand*, *a hand you do not know*.
+     */
+    protected handFor(viewer: Stuff, hand: string): string {
+      if (hand === '') return 'an unknown hand';
+      if (viewer.getIdentityPath() === hand) return 'your hand';
+      const name = MixinApi.isBeliefStore(viewer) ? viewer.knownNameOf(hand) : null;
+      return name ? `${name}'s hand` : 'a hand you do not know';
+    }
+
+    /** Passages in words, each run of one hand named as this viewer knows it. */
+    protected passagesFor(viewer: Stuff, passages: readonly Passage[]): string {
+      return passages
+        .map((p, i) => (passages[i - 1]?.hand === p.hand ? p.text : `(in ${this.handFor(viewer, p.hand)}) ${p.text}`))
+        .join(' / ');
+    }
+
+    /**
+     * ⭐ The ink to hand: the vessel named (`with <pot|pen>`),
+     * else the first vessel the writer holds whose contents are ink. For a
+     * surface that takes INK — paper; a slate scratches and needs none.
+     */
+    protected inkInHand(by: Stuff, medium?: Stuff): Stuff | null {
+      const holdsInk = (v: Stuff): boolean => {
+        if (!MixinApi.isBulkable(v) || !v.hasInteriorBulk()) return false;
+        const m = v.getBulkMaterial('interior');
+        return m !== null && m.hasTag('ink') && v.getBulkAmount('interior').rawValue() > 0;
+      };
+      if (medium !== undefined) return holdsInk(medium) ? medium : null;
+      if (!MixinApi.isContainer(by)) return null;
+      return by.getContents().find((c) => holdsInk(c)) ?? null;
+    }
+
+    /** Draw the ink `chars` written characters took. */
+    protected spendInk(ink: Stuff, chars: number): void {
+      if (!MixinApi.isBulkable(ink)) return;
+      const have = ink.getBulkAmount('interior').rawValue();
+      ink.setBulkAmount('interior', Quantity.of(Math.max(0, have - chars * INK_LITRES_PER_CHAR), 'L'));
+    }
+
+    /**
+     * ⭐ Mint the *known-of* claims a page teaches, once each: reading ABOUT a
+     * dish tells you it exists and lets you recognize it (the recipes slate
+     * § 4). How a recipe is held and consulted is the recipes build's.
+     * Returns the line to tell the reader, or `null` for nothing new.
+     */
+    protected async teachRecipes(reader: Stuff, teaches: readonly EditionTeaching[]): Promise<string | null> {
+      if (teaches.length === 0 || !MixinApi.isPersona(reader)) return null;
+      const learned: string[] = [];
+      for (const t of teaches) {
+        const key = RecipeKnowledge.knownKey(t.recipeId);
+        if (await reader.hasClaimed(key)) continue;
+        await reader.recordChronicleOnce(key, RecipeKnowledge.knownEntry(t.name));
+        learned.push(t.name);
+      }
+      if (learned.length === 0) return null;
+      return `You know of ${learned.join(' and ')} now.`;
+    }
+
     /**
      * ⭐ What the marks say — unless they were inked on something you can
      * carry that has been soaked (underwater D29 seam 2): the ink has run.
@@ -280,6 +397,17 @@ export function MarkedMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     public getMarkText(): string {
       const self = this as unknown as Stuff;
+      // ⭐ Burnt to ash: the words went with the page. The same
+      // shape as the ink rule below — the text is stored, the reading fails.
+      if (
+        this.markText !== '' &&
+        MixinApi.isCombustible(self) &&
+        MixinApi.isTangible(self) &&
+        self.getCharMaterialPath() !== null &&
+        self.getMaterial()?.getTemplatePath() === self.getCharMaterialPath()
+      ) {
+        return 'Nothing is left of it but ash.';
+      }
       if (
         this.markForm === 'inked' &&
         this.markText !== '' &&
@@ -289,7 +417,14 @@ export function MarkedMixin<TBase extends MixinConstructor>(Base: TBase) {
       ) {
         return 'The ink has run; nothing of it can be read.';
       }
-      return this.markText;
+      // ⭐ Words lettered in paint live in their coats (paint D10): they read
+      // in any weather, and go when the weather takes the coat.
+      if (MixinApi.isFaced(self)) self.reconcileWeather();
+      const painted = MixinApi.isFaced(self)
+        ? self.getCoats('outside').map((c) => c.marks).filter((m): m is string => typeof m === 'string' && m !== '')
+        : [];
+      if (painted.length === 0) return this.markText;
+      return [this.markText, ...painted.reverse()].filter((t) => t.trim() !== '').join(' / ');
     }
 
     public setMarkText(text: string): void {
@@ -325,7 +460,7 @@ export function MarkedMixin<TBase extends MixinConstructor>(Base: TBase) {
       this.writingRoom = Number.isFinite(chars) && chars > 0 ? Math.floor(chars) : 0;
     }
 
-    public writeOn(by: Stuff, words: string): { ok: true; line: string } | { ok: false; reason: string; line: string } {
+    public writeOn(by: Stuff, words: string, medium?: Stuff): { ok: true; line: string } | { ok: false; reason: string; line: string } {
       const self = this as unknown as Stuff;
       const text = words.trim();
       if (text === '') return { ok: false, reason: 'nothing-to-write', line: 'Write what?' };
@@ -339,6 +474,9 @@ export function MarkedMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (!held && !fixed) {
         return { ok: false, reason: 'not-holding', line: `You need ${self.getPresentation()} in your hand to write on it.` };
       }
+      // ⭐ In PAINT (paint D10): the words go on as a coat — the surface must
+      // take one, the medium must lay one — and they last as the coat does.
+      if (medium !== undefined) return this.letterInPaint(by, text, medium);
       const before = this.markText.trim();
       const next = before === '' ? text : `${before} / ${text}`;
       if (next.length - before.length > this.getWritingRoom()) {
@@ -348,6 +486,35 @@ export function MarkedMixin<TBase extends MixinConstructor>(Base: TBase) {
       this.markText = next;
       const how = this.getMarkForm() === 'inked' ? 'write' : 'scratch';
       return { ok: true, line: `You ${how} "${text}" on ${self.getPresentation()}.` };
+    }
+
+    /** A litre letters about this many characters of sign-writing. */
+    private letterInPaint(
+      _by: Stuff,
+      text: string,
+      medium: Stuff,
+    ): { ok: true; line: string } | { ok: false; reason: string; line: string } {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isFaced(self)) {
+        return { ok: false, reason: 'not-faced', line: `Paint will not take on ${self.getPresentation()}.` };
+      }
+      const held = MixinApi.isBulkable(medium) && medium.hasInteriorBulk() ? medium.getBulkMaterial('interior') : null;
+      if (held === null || !held.getLaysCoat() || !MixinApi.isBulkable(medium)) {
+        return { ok: false, reason: 'not-paint', line: `What is in ${medium.getPresentation()} will not letter anything.` };
+      }
+      const litres = Math.max(0.01, text.length * LITRES_PER_LETTER);
+      const have = medium.getBulkAmount('interior').rawValue();
+      if (have + 1e-9 < litres) {
+        return { ok: false, reason: 'source-too-low', line: `There is not enough left in ${medium.getPresentation()} to letter that.` };
+      }
+      medium.setBulkAmount('interior', Quantity.of(have - litres, 'L'));
+      const makeup = medium.getBulk('interior').getPayload()?.paint;
+      self.reconcileWeather();
+      self.layCoat('outside', makeup?.binder || (held.getTemplatePath() ?? ''), LETTER_FILM_M, 0, makeup);
+      const top = self.getCoats('outside')[0];
+      if (top !== undefined) top.marks = text;
+      const color = makeup ? ` in ${new Paint(makeup).colorTag()}` : '';
+      return { ok: true, line: `You letter "${text}" on ${self.getPresentation()}${color}, the paint wet on the brush.` };
     }
 
     public getMarkScript(): MarkScript {

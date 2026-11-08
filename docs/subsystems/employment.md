@@ -164,7 +164,8 @@ becomes a tagged `PrincipalRef`:
 | `entity` | templatePath match — the shipped proprietor edge | no |
 | `office` | `CompactApi.holdsOffice` | **yes — founder default** |
 | `seat` | `GovernmentApi.holdsSeat` | no |
-| `committee` | `CompactApi.isCommitteeMember` | **yes — pool-of-one backstop** |
+| `committee` | `CompactApi.isCommitteeMember` | **no** — the founder sits on no committee (wizard-axis D18); an organization-held extent resolves through the organization's chart, so the executive's committee passes its PM |
+| `owners` | the majority holder of an organization's cap table | only if the majority holder's own authority does |
 
 ⭐ **Staff follows the seat.** Because the authority *is* the office, a
 handover moves who may appoint **with no employment or roster record
@@ -179,9 +180,13 @@ closed with no registry, and the `committee` arm narrows with
 `PlayerApi.isAvatarStuff` before the playerId-keyed group read.
 
 ⚠ **The *founder passes* column is load-bearing, not trivia.** Only
-`office` and `committee` carry the Art. XI default, so **an authority the
-founder cannot satisfy is one nobody can satisfy on a cold box** until a
-human edits a group by hand. (The former `AccessApi.isAuthor` fallback —
+`office` carries the founder default, so **an authority the founder
+cannot satisfy is one nobody can satisfy on a cold box** until somebody is
+seated — and a group-held committee is seated by its group's OWNER (an
+office — the PM, the Registrar — the founder by default) with the
+`group` verb: a seat, never a credential. ⛔ The `committee` row used to
+say *yes* through an Art. XI pool-of-one backstop; it misread the jury
+rule and was deleted (wizard-axis cleanup, 2026-11-05). (The former `AccessApi.isAuthor` fallback —
 an always-empty `core` group — is gone since content packs wave 3; the
 operator override is the PM seat, below.)
 
@@ -194,6 +199,44 @@ Minister as operator), never an appointing authority in its own right.
 as `{kind: 'entity', path}` — the legacy shape, same value under the new
 type — and the mixin keeps `proprietorPath` as a legacy hydration slot
 that `appointingAuthority` overrides when both are present.
+
+### ⭐ The owners authority — a cap table (harbors review 1, 2026-11-02, MR !511, `362ec52aa`)
+
+The first slice of the [institutions slate](../slates/builds/institutions-slate.md)'s
+primitive. `lib/employment/CapTable.ts` (`CapTableMixin`, `Mixins.CapTable`,
+`MixinApi.isCapTable`) is **a table of owners and their units**: authored
+`capTable: {units, transfer, rows: [{holder: {kind, path, name?}, units}]}`
+— a holder is a player or an organization by identity path; the rows come
+to `units` or to nothing (a seed nobody holds yet). The concrete host is
+`platform/idea/PersistentBusiness` = `Persistable(CapTable(Business))`:
+**a table that changes hands must be KEPT**, so a move on a host with no
+record throws.
+
+- **Control derives from the table.** `{kind: owners}` is *whoever holds
+  MORE than half the units appoints* — a player by identity (a sole owner
+  appoints themself), an organization through its OWN authority (the
+  Greywater Line's office appoints the Hesper's master), no majority →
+  nobody. Authored bare it reads the organization's own table
+  (`getAppointingAuthority` fills `organization:` with its path); naming
+  `organization:` reads another's (a subsidiary appointed by whoever owns
+  its parent). It replaced the ship-only `register` kind.
+- **One act moves units, with the money.** `sellUnits` claims the units
+  synchronously, settles the price to the seller, and gives them back if
+  the money does not clear; `giveUnits` is the gift. Both are gated to the
+  `transfer` verb, which takes the seller's (or receiver's) confirm and,
+  under the `consent` transfer term, every other holder's. `setCapTable`
+  is the applier's alone (the `Coin` gate's shape) — nothing else lays a
+  table down.
+- **Ships are the first consumer.** A ship is owned by her company; her
+  company's table is her sixty-fourths (`units: 64`); the register keeps
+  her title (`owner:` — the company), not shares. A smack's company is
+  minted at commissioning with the buyer as its whole row and kept
+  `(seed row, serial)` with her. See [ship.md](./ship.md).
+- ⭐ **A unit is a vote in the business, never standing in the polity**
+  (lens 7). Not built here: forms, a filing registry, primary issue,
+  distributions/dividends, the bank wall, charters, endorsements that
+  assemble a majority from a coalition — the institutions slate keeps
+  them.
 
 ## Nesting
 
@@ -401,6 +444,12 @@ and, per roster assignment:
 - **off→on**: stamps `onShiftSince = now`;
 - **on→off**: settles the shift wage off the captured record *before*
   clearing `onShiftSince`, then flips to off-shift;
+- ⭐ the on-test is `ShiftSchedule.covers(clock)` — the ONE reading of a
+  `ShiftEntry` (water supply): a window whose end is before its start runs
+  into the next day's small hours (a night turn `[22, 4)`), an equal-hours
+  entry covers nothing, and a season-bound window is off without the
+  house's season. The ditch gate integrates the same entries over a span
+  (`windowsBetween`), so the roster and the gate agree;
 - a `quit`/`fired` record is left alone (an explicit exit is never
   resurrected by the seed roster).
 
@@ -549,6 +598,14 @@ browser until the live drive found it. See
 - **`apply [for <position>] [at <organization>]`** — the applicant asks;
   the organization decides. ⭐ Standing is conferred by the employer.
   Every refusal names the number and what lifts it.
+- ⭐⭐ **A body leaving the world ends its shift, paid to the moment it
+  left** (water supply, the payroll gap). `Employed.leaveShifts()` runs from
+  `Avatar.onLinkdead` (sign-out or a dropped line) and from the mixin's
+  `onDestruct` (an unloaded hand). Before it, a player who clocked on and
+  logged out was paid for every hour away at `clock off` (walked: 290
+  zorkmids for minutes in the world), and an unloaded hand took its open
+  shift's wage with it. The shift ends even when the wage cannot settle;
+  hours a venue sits unwatched are not paid.
 - **`clock on` / `clock off`** — ⭐⭐ a shift is something you CHOOSE to
   start. Holding a job puts you on the chart, not on the clock.
   `beginShift` runs from exactly one place, the roster tick over authored
@@ -1252,7 +1309,7 @@ sheet) — see `blood.md` (`DonationBankMixin`).
 ## A seat with a perceptual effect: the lookout (the maritime build, 2026-10)
 
 The first seat whose holding changes what somebody can SEE. A ship's
-house (`Structure.house`) carries a `lookout` position; whoever holds it
+house (`Ship.house`) carries a `lookout` position; whoever holds it
 **on shift** sees from the masthead (`Structure.sightHeightFor`), and
 everyone else from the deck. Read off the shipped roster — `appoint`,
 `clock on` — with nothing about the ship changing.

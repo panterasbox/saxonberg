@@ -1,0 +1,291 @@
+/**
+ * The Port of Terminus's rows, read off the files: the quays
+ * stand on the Kestrel's line inside the bar and the river names them; every
+ * quay in the harbor's book is a HarborQuay pointing back at it and props the
+ * bollards a ship's lines go round; the office is sited by the river with no
+ * landing; the district joins the estuary by ONE way each direction; the
+ * harbormaster's seat is rostered at the office on its hours.
+ *
+ * ⚠ Each of these fails closed and silent in the live game — a quay the river
+ * does not name is never a course, a book quay that is a plain Quay never asks
+ * the book, a seat with no roster keeps the office shut for good.
+ */
+
+import '@saxonberg/server/test-bootstrap';
+import { describe, it, expect } from 'vitest';
+import { readFileSync, existsSync, readdirSync, statSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { join } from 'path';
+import YAML from 'yaml';
+
+const PACKS = fileURLToPath(new URL('../../../', import.meta.url));
+
+function rowAt(path: string): Record<string, unknown> {
+  const rel = `${path.replace(/^\//, '')}.yaml`;
+  for (const pack of readdirSync(PACKS)) {
+    const file = join(PACKS, pack, 'content', rel);
+    if (existsSync(file) && statSync(file).isFile()) return YAML.parse(readFileSync(file, 'utf8'));
+  }
+  throw new Error(`no row at ${path}`);
+}
+const data = (path: string) => rowAt(path).data as Record<string, unknown>;
+
+const HARBOR = '/world/terminus/harbor/idea/harbor';
+const TOWN = '/world/terminus/harbor/town-quay';
+const OFFICE = '/world/terminus/harbor/office';
+
+describe('the Port of Terminus', () => {
+  const harbor = data(HARBOR) as {
+    quays: Array<{ place: string; lengthM: number; berthDepthM?: number }>;
+    office: string;
+    seat: { business: string; positionKey: string };
+    rates: { duesPerMeterPerDay: number };
+    exempt: string[];
+  };
+  const kestrel = data('/stuff/idea/Watercourse/kestrel') as { places: string[]; nodes: Array<{ name: string; meanDepthM?: number }> };
+
+  it('⭐ every quay in the book is a HarborQuay of this harbor, propping bollards, named by the river', () => {
+    expect(harbor.quays.map((q) => q.place)).toEqual([TOWN, '/world/terminus/harbor/fish-quay', '/world/terminus/harbor/yard/quay', '/world/terminus/wharfside/bank']);
+    for (const q of harbor.quays) {
+      const row = rowAt(q.place);
+      expect(row.class, q.place).toBe('/system/transport/location/HarborQuay');
+      const d = row.data as { harbor: string; props: Array<string | { template: string }>; frameSite: { frame: string } };
+      expect(d.harbor).toBe(HARBOR);
+      expect(d.props.some((p) => (typeof p === 'string' ? p : p.template) === '/platform/thing/bollard')).toBe(true);
+      expect(d.frameSite.frame).toBe('/stuff/idea/Watercourse/kestrel');
+      expect(kestrel.places).toContain(q.place);
+      // ⚠ Risk 1: a mud berth at or under a smack's 1.8 m hull.
+      expect(q.berthDepthM ?? 99).toBeLessThanOrEqual(1.8);
+    }
+    expect(harbor.quays[0]!.lengthM).toBe(70);
+    expect(harbor.quays[1]!.lengthM).toBe(25);
+    expect(harbor.rates.duesPerMeterPerDay).toBe(0.25);
+    expect(harbor.exempt).toEqual(['/world/terminus/ostrander/structure']);
+  });
+
+  it('⭐ the quays stand inside the bar, between the mouth and the reach; the estuary carries the tide', () => {
+    const km = (p: string): number => Number(/estuary-([\d.]+)/.exec((data(p).frameSite as { cite: string }).cite)![1]);
+    for (const p of [TOWN, '/world/terminus/harbor/fish-quay', '/world/terminus/harbor/harbor-stairs', OFFICE]) {
+      expect(km(p)).toBeGreaterThan(km('/world/terminus/estuary/estuary-mouth'));
+      expect(km(p)).toBeLessThan(0.7); // the reach's span runs down to 0.7
+    }
+    expect(kestrel.nodes.find((n) => n.name === 'estuary')?.meanDepthM).toBe(2.8);
+  });
+
+  it('⭐ the office is a hailable room sited by the river with no landing, the book on its desk, the harbormaster in it', () => {
+    const row = rowAt(OFFICE);
+    expect(row.class).toBe('/system/transport/location/HarborOffice');
+    const d = row.data as { harbor: string; frameSite: { landing: boolean }; props: string[]; cast: string[] };
+    expect(d.harbor).toBe(HARBOR);
+    expect(d.frameSite.landing).toBe(false);
+    expect(d.props).toContain('/world/terminus/harbor/thing/berth-book');
+    expect(d.cast).toContain('/world/terminus/harbor/agent/harbormaster');
+    expect(kestrel.places).toContain(OFFICE);
+    expect(harbor.office).toBe(OFFICE);
+  });
+
+  it('⭐ ONE way joins the district to the estuary, each direction', () => {
+    const mouth = data('/world/terminus/estuary/estuary-mouth').exits as Record<string, { destination: string }>;
+    const town = data(TOWN).exits as Record<string, { destination: string }>;
+    expect(mouth.south?.destination).toBe(TOWN);
+    expect(town.north?.destination).toBe('/world/terminus/estuary/estuary-mouth');
+  });
+
+  it('⭐ the harbormaster is a seat on the harbor works, rostered at the office six till eight', () => {
+    const works = data(harbor.seat.business) as {
+      positions: Array<{ key: string }>;
+      rosterSlots: Array<{ positionKey: string; assignee: string; station: string; schedule: Array<{ hours: number[] }> }>;
+      operatingLocations: string[];
+    };
+    expect(harbor.seat.positionKey).toBe('harbormaster');
+    expect(works.positions.map((p) => p.key)).toContain('harbormaster');
+    const slot = works.rosterSlots.find((s) => s.positionKey === 'harbormaster')!;
+    expect(slot.assignee).toBe('/world/terminus/harbor/agent/harbormaster');
+    expect(slot.station).toBe(OFFICE);
+    expect(slot.schedule[0]!.hours).toEqual([6, 20]);
+    expect(works.operatingLocations).toContain(OFFICE);
+    expect(rowAt('/world/terminus/harbor/agent/harbormaster').class).toBe('/platform/agent/Cast');
+  });
+});
+
+describe('the line’s regulars (harbors A2)', () => {
+  const SHIPS = '/world/terminus/harbor/ships';
+  const harbor = data(HARBOR) as { quays: Array<{ place: string; lengthM: number }> };
+
+  it('⭐ the ketch and the coaster are ships with a deck that makes fast and a master’s seat rostered', () => {
+    for (const [kind, lengthM, draftM] of [['ketch', 20, 1.8], ['coaster', 35, 3.6]] as const) {
+      const row = rowAt(`${SHIPS}/${kind}/structure`);
+      expect(row.class).toBe('/platform/idea/Ship');
+      const d = row.data as { hull: { lengthM: number; draftM: number }; entrance: string; extent: string; house: string; expanse: string };
+      expect(d.hull).toMatchObject({ lengthM, draftM });
+      expect(d.extent).toBe(`${SHIPS}/${kind}`);
+      expect(d.expanse).toBe('/stuff/idea/WaterExpanse/greywater');
+      expect(rowAt(`${SHIPS}/${kind}`).class).toBe('/platform/idea/location/CartesianZone');
+      const deck = data(d.entrance) as { props: Array<string | { template: string; count?: number; as?: string; on?: string }>; exits: Record<string, { kind?: string }> };
+      expect(deck.props).toContain(`${SHIPS}/${kind}/thing/helm`);
+      // ⭐ Her lines are kept AT her bitts — that is what makes a rope one of hers.
+      expect(deck.props).toContainEqual({ template: '/platform/thing/bitts', as: 'bitts' });
+      expect(deck.props).toContainEqual({ template: '/platform/thing/mooring-line', count: 2, on: 'bitts' });
+      expect(deck.exits.ashore?.kind).toBe('/platform/idea/exits/ashore');
+      const company = data(d.house) as {
+        positions: Array<{ key: string }>;
+        rosterSlots: Array<{ positionKey: string; assignee: string; station: string }>;
+        operatingLocations: string[];
+        startsShiftOnHire: boolean;
+      };
+      expect(company.positions.map((p) => p.key)).toContain('master');
+      const slot = company.rosterSlots.find((s) => s.positionKey === 'master')!;
+      expect(rowAt(slot.assignee).class).toBe('/platform/agent/Cast');
+      expect(slot.station).toBe(d.entrance);
+      expect(company.operatingLocations).toContain(d.entrance);
+      expect(company.startsShiftOnHire).toBe(true);
+    }
+  });
+
+  it('⭐ drive step 3 holds by the rows: the Hesper and the ketch share the Town Quay; the coaster has no room left', () => {
+    const town = harbor.quays[0]!.lengthM;
+    const fish = harbor.quays[1]!.lengthM;
+    const hesper = 30; // her hull is unmeasured: `Ship.hullNow` reads 30 m
+    const ketch = (data(`${SHIPS}/ketch/structure`).hull as { lengthM: number }).lengthM;
+    const coaster = (data(`${SHIPS}/coaster/structure`).hull as { lengthM: number }).lengthM;
+    expect(hesper + ketch).toBeLessThanOrEqual(town);
+    expect(coaster).toBeGreaterThan(town - hesper - ketch);
+    expect(coaster).toBeGreaterThan(fish);
+  });
+
+  it('the line keeps an office on the Town Quay, and its mark ships in the commons', () => {
+    const office = data('/world/terminus/harbor/line/idea/office') as { operatingLocations: string[]; appointingAuthority: { office: string } };
+    expect(office.operatingLocations).toEqual(['/world/terminus/harbor/line-desk']);
+    expect(office.appointingAuthority.office).toBe('prime-minister');
+    expect(data('/stuff/idea/corpo/Corpo/greywater-line').key).toBe('greywater-line');
+    expect(data('/stuff/idea/corpo/Brand/greywater-line').owner).toBe('greywater-line');
+  });
+
+  it('⭐ the yard sells TITLE off a finite hull book — two smacks on the stocks, brought alongside its own quay (review 1)', () => {
+    expect(rowAt('/world/terminus/harbor/yard/thing/hull-book').class).toBe('/system/transport/thing/HullBook');
+    const book = data('/world/terminus/harbor/yard/thing/hull-book') as {
+      quay: string;
+      hulls: Array<{ slot: string; kind: string; priceMinor: number }>;
+    };
+    expect(book.quay).toBe('/world/terminus/harbor/yard/quay');
+    // ≈ a season of a hand's wages: 90 days × ~56 a shift.
+    expect(book.hulls).toEqual([
+      { slot: 'the near stocks', kind: '/stuff/idea/Ship/smack', priceMinor: 5000 },
+      { slot: 'the far stocks', kind: '/stuff/idea/Ship/smack', priceMinor: 5000 },
+    ]);
+    expect((data('/world/terminus/harbor/yard/idea/business') as { operatingLocations: string[] }).operatingLocations).toContain('/world/terminus/harbor/yard/thing/hull-book');
+    expect((data('/world/terminus/harbor/yard/shed') as { props: string[] }).props).toContain('/world/terminus/harbor/yard/thing/hull-book');
+    expect(rowAt('/world/terminus/harbor/yard/quay').class).toBe('/system/transport/location/HarborQuay');
+    expect(harbor.quays.map((q) => q.place)).toContain('/world/terminus/harbor/yard/quay');
+    // The smack's company is kept, appointed by whoever holds a majority of
+    // its sixty-four units, and held by nobody until a buyer founds it
+    //; she flies the city's colors.
+    expect(rowAt('/stuff/idea/Business/ship-company').class).toBe('/platform/idea/PersistentBusiness');
+    expect(data('/stuff/idea/Business/ship-company')).toMatchObject({
+      appointingAuthority: { kind: 'owners' },
+      capTable: { units: 64, transfer: 'free', rows: [] },
+    });
+    const deck = data('/stuff/location/ship/smack/deck') as { props: Array<string | Record<string, string>> };
+    expect(deck.props).toContainEqual({ template: '/stuff/thing/flag/terminus-city', on: 'flagstaff' });
+    expect(data('/stuff/idea/corpo/Brand/flag-terminus-city').government).toBe('terminus-city');
+  });
+
+  it('⭐ the city keeps a register of title; the line and the city own their ships through each ship\'s company (B2, P14, review 1)', () => {
+    const city = data('/platform/idea/Government/terminus-city');
+    expect(city.shipRegister).toBe('/platform/idea/ShipRegister/terminus-city');
+    const reg = data('/platform/idea/ShipRegister/terminus-city');
+    expect(reg).toMatchObject({ government: 'terminus-city', registerOwner: '/platform', registerPrefix: '/platform/ships/terminus-city', registerKind: 'ship' });
+    const entry = (slug: string) =>
+      YAML.parse(readFileSync(join(PACKS, 'platform', 'content', 'ships', 'terminus-city', `${slug}.yaml`), 'utf8')) as {
+        key: string;
+        owner: string;
+      };
+    const LINE = { kind: 'organization', path: '/world/terminus/harbor/line/idea/office', name: 'the Greywater Line' };
+    for (const [slug, ship] of [['hesper', '/world/terminus/hesper/structure'], ['kittiwake', `${SHIPS}/ketch/structure`], ['corrigan', `${SHIPS}/coaster/structure`]] as const) {
+      const e = entry(slug);
+      expect(e.key).toBe(ship);
+      // ⭐ The register keeps her title — her company — and no shares.
+      expect(e).not.toHaveProperty('shares');
+      expect(rowAt(e.owner).class).toBe('/platform/idea/PersistentBusiness');
+      // Her company's table is the line's, whole; whoever holds a majority appoints her master.
+      expect(data(e.owner)).toMatchObject({
+        appointingAuthority: { kind: 'owners' },
+        capTable: { units: 64, transfer: 'free', rows: [{ holder: LINE, units: 64 }] },
+      });
+    }
+    expect((data(entry('ostrander').owner) as { capTable: { rows: Array<{ holder: { path: string } }> } }).capTable.rows[0]!.holder.path).toBe('/world/terminus/budget');
+    // ⭐ Each ship knows her register and the name she is entered under — nothing searches for her.
+    for (const [slug, ship] of [['hesper', '/world/terminus/hesper/structure'], ['kittiwake', `${SHIPS}/ketch/structure`], ['corrigan', `${SHIPS}/coaster/structure`], ['ostrander', '/world/terminus/ostrander/structure']] as const) {
+      const row = data(ship) as { shipRegister: string; registeredName: string };
+      expect(row.shipRegister).toBe('/platform/idea/ShipRegister/terminus-city');
+      const e = entry(slug) as unknown as { name: string; key: string };
+      expect(row.registeredName).toBe(e.name);
+      expect(e.key).toBe(ship);
+    }
+  });
+  it('⭐ the chandler sells the caulker\'s kit and mooring line, off the Town Quay (B4)', () => {
+    const counter = data('/world/terminus/harbor/chandler/thing/counter') as {
+      businessPath: string;
+      stockLines: Array<{ itemTemplatePath: string }>;
+      prices: Record<string, number>;
+    };
+    const lines = counter.stockLines.map((l) => l.itemTemplatePath);
+    expect(lines).toEqual(expect.arrayContaining(['/stuff/thing/caulkers-kit', '/platform/thing/mooring-line', '/stuff/thing/oakum', '/stuff/thing/pitch-cask']));
+    for (const l of lines) expect(counter.prices[l]).toBeGreaterThan(0);
+    expect((data(counter.businessPath) as { operatingLocations: string[] }).operatingLocations).toContain('/world/terminus/harbor/chandler/thing/counter');
+    // The kit is the householder's kit by another name: the same class, the upkeep capability.
+    const kit = rowAt('/stuff/thing/caulkers-kit');
+    expect(kit.class).toBe('/system/residence/thing/HouseholdersKit');
+    expect((kit.data as { capabilities: Array<{ kind: string }> }).capabilities[0]!.kind).toBe('upkeep');
+    const town = data(TOWN) as { exits: Record<string, { destination: string }> };
+    expect(town.exits.southwest!.destination).toBe('/world/terminus/harbor/chandler/shop');
+    const shop = data('/world/terminus/harbor/chandler/shop') as { exits: Record<string, { destination: string }> };
+    expect(shop.exits.northeast!.destination).toBe(TOWN);
+  });
+
+  it('⭐ every ship has a pump well with its pump, and a rod to sound it (B4, P19)', () => {
+    expect(rowAt('/world/terminus/hesper/thing/pump').class).toBe('/platform/thing/BilgeWell');
+    expect(rowAt('/stuff/thing/bilge-well').class).toBe('/platform/thing/BilgeWell');
+    expect((data('/stuff/thing/bilge-well') as { props: string[] }).props).toContain('/stuff/thing/bilge-pump');
+    expect((data('/world/terminus/hesper/thing/pump') as { props: string[] }).props).toContain('/stuff/thing/bilge-pump');
+    expect(rowAt('/stuff/thing/bilge-pump').class).toBe('/platform/thing/Pump');
+    for (const deck of ['/world/terminus/hesper/deck', '/stuff/location/ship/smack/deck', '/world/terminus/harbor/ships/ketch/deck', '/world/terminus/harbor/ships/coaster/deck']) {
+      expect((data(deck) as { props: unknown[] }).props, deck).toContain('/platform/thing/sounding-rod');
+    }
+  });
+
+  it('⭐ every authored ship reaches each of her rooms from her entrance by her own ways (her warren follows them, never searches)', () => {
+    const ships = ['/world/terminus/hesper/structure', '/world/terminus/ostrander/structure', '/world/terminus/harbor/ships/ketch/structure', '/world/terminus/harbor/ships/coaster/structure'];
+    for (const path of ships) {
+      const { extent, entrance } = data(path) as { extent: string; entrance: string };
+      // Every room row under her extent, off the files.
+      const dir = (p: string) => join(PACKS, 'terminus', 'content', p.replace(/^\//, ''));
+      const rooms: string[] = [];
+      const walk = (p: string): void => {
+        for (const e of readdirSync(dir(p))) {
+          const sub = `${p}/${e}`;
+          if (statSync(dir(sub)).isDirectory()) walk(sub);
+          else if (e.endsWith('.yaml')) {
+            const row = rowAt(sub.replace(/\.yaml$/, ''));
+            if (String(row.class).startsWith('/platform/location/')) rooms.push(sub.replace(/\.yaml$/, ''));
+          }
+        }
+      };
+      walk(extent);
+      // What her warren adopts: the entrance, then every room a way inside her extent leads to.
+      const seen = new Set([entrance]);
+      const queue = [entrance];
+      while (queue.length > 0) {
+        const exits = (data(queue.shift()!).exits ?? {}) as Record<string, { destination?: string }>;
+        for (const w of Object.values(exits)) {
+          const to = w.destination ?? '';
+          if (!to.startsWith(`${extent}/`) || seen.has(to)) continue;
+          seen.add(to);
+          queue.push(to);
+        }
+      }
+      expect([...seen].sort(), path).toEqual(rooms.sort());
+    }
+    expect(data('/world/terminus/ostrander/structure').entrance).toBe('/world/terminus/ostrander/deck');
+  });
+});

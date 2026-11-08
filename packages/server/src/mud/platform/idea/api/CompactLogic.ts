@@ -173,9 +173,11 @@ export class CompactLogic extends ApiLogic {
       }
       return EmploymentApi.holdsAuthority(player, authority);
     }
-    // The Art. XI pool-of-one backstop, mirroring the office founder
-    // default: at founding every committee's work is the founder's.
-    if (await isFounderImpl(player)) return true;
+    // ⛔ No founder backstop (wizard-axis D18, owner 2026-11-05): *"no one
+    // should 'sit on every committee' not even the founder."* The founder
+    // DEFAULTS the platform OFFICES until they are filled; that seats them
+    // on no committee. Art. XI's pool of one is the JURY rule, not this.
+    // A committee's membership is its group, or an organization's chart.
     // ⭐ Committees are PLAYERS ONLY (economic bootstrap, doctrine 2): an
     // NPC is never a member, whatever a group document says.
     if (!PlayerApi.isAvatarStuff(player)) return false;

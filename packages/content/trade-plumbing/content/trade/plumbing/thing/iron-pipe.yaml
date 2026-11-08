@@ -1,0 +1,13 @@
+# A length of cast-iron pipe (water-supply D10) — spigot one end, hub the
+# other, cast at a founder's. Rigid and cheap, and BRITTLE: a frost that a
+# lead run bulges through cracks it.
+class: /platform/thing/Good
+data:
+  shortDescription: length of iron pipe
+  keywords: ["iron pipe", pipe, length, iron]
+  register: indefinite
+  longDescription: >-
+    Three metres of black cast-iron pipe, a plain spigot at one end and a
+    flared hub at the other, rough from the sand it was cast in.
+  _materialPath: /stuff/idea/material/alloy/cast-iron
+  mass: 18

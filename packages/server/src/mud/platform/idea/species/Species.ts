@@ -20,6 +20,8 @@
  * template resolves to one instance via `StuffApi.singleton(path)`.
  */
 
+import { Aroma, type OdorTag } from '../../../lib/perception/Aroma';
+import type { PalateProfile } from '../../../lib/metabolism/Palate';
 import { Idea } from '../../../lib/stuff/Idea';
 import { SingletonMixin } from '../../../lib/stuff/Singleton';
 import { VisibleMixin } from '../../../lib/description/Visible';
@@ -473,6 +475,13 @@ export interface TapSpec {
    */
   yieldShape?: 'mass' | 'volume' | 'count';
   /**
+   * ⭐ The tool capability that OPENS the tap (paint build D17): an auger
+   * bores a maple (`boring`, the default — every row before this field), a
+   * blade cuts the face of a pine for its gum (`cutting`). The tree reads
+   * it; the refusal names the tool.
+   */
+  instrument?: string;
+  /**
    * ⭐ A ceiling on a `continuous` tap's standing. Past it the growth is
    * simply lost (a fleece that has shed), and `look` says so. Absent
    * means unbounded, which is what wool meant before the cap existed.
@@ -780,6 +789,10 @@ export default class Species extends SingletonMixin(
    * smell-propagation work draws on it.
    */
   protected olfactoryProfile: OlfactoryProfile | null = null;
+  /** What a living body of this kind smells of (OU of one kilogram). */
+  protected smells: OdorTag[] = [];
+  /** How far apart this kind is born, and any word's own curve. */
+  protected palate: PalateProfile | null = null;
 
   /**
    * Per-species vital baselines + survivable bands (Vitals substrate).
@@ -1063,6 +1076,8 @@ export default class Species extends SingletonMixin(
     diet: { persistent: true },
     visionProfile: { persistent: true },
     olfactoryProfile: { persistent: true },
+    smells: { persistent: true },
+    palate: { persistent: true },
     nameBankKeys: { persistent: true },
     sentient: { persistent: true },
     butcheryYield: { persistent: true, authorable: true },
@@ -1752,6 +1767,20 @@ export default class Species extends SingletonMixin(
       }
     }
     this.olfactoryProfile = value;
+  }
+
+  /** This kind's reach over its people's palates, or `null` for the defaults. */
+  public getPalate(): PalateProfile | null {
+    return this.palate;
+  }
+
+  public getSmells(): readonly OdorTag[] {
+    return this.smells;
+  }
+
+  /** Loads each word's row, so a species naming a word nobody ships fails here. */
+  public async setSmells(value: readonly OdorTag[]): Promise<void> {
+    this.smells = await Aroma.resolveOdorTags(value, 'Species.smells');
   }
 
   public getVitalProfile(): VitalProfile | null {

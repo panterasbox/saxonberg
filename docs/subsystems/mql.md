@@ -381,7 +381,7 @@ For fixed-pool seeds (intersection), the prior set's `via`
 attribution is preserved — intersection only decides membership.
 For element-derivable seeds (flat-map), each derived match takes
 its `via` from the candidate's via (e.g., detail subcandidates
-carry `via.detailPath`, exit candidates carry `via.exit`); the
+carry `via.detailPath`); the
 prior `via` is replaced by the derived origin, and score is
 inherited from the prior match (same convention as
 {@link applyTransform}).
@@ -665,32 +665,29 @@ to *"what existed before I subscribed?"* is the scan itself.
 split lets `get` declare the surgical scope it actually wants
 (`peers`) without picking up the room itself or its exits.
 
-##### Doors vs exits — an intentional asymmetry
+##### Doors and exits — both candidates, each as itself
 
-`candidatesForHere` walks doors and exits along **different paths**,
-and that's deliberate, not a workaround:
+`candidatesForHere` emits doors and exits through the same generic
+`pushDirect` path (harbors review 3 retired the asymmetry):
 
-- **Doors are Stuff.** They have keywords, descriptions, props, and
-  participate in the lifecycle like any other thing. They flow
-  through the standard `pushDirect` candidate emission (own
-  keywords + display name) plus `pushDetails` (any details on the
-  door). A door at the north exit is addressable by its own
-  keywords (`oak`, `door`, `iron`).
+- **Doors are Stuff** with keywords, descriptions and details. A door
+  at the north exit is addressable by its own keywords (`oak`, `door`).
+- **Exits are candidates in their own right.** Each exit the viewer can
+  see (`obviousExitsFor(viewer)` — on the slow path too) is emitted with
+  `stuff: exit`, scored over its name and keywords. ⚠ Both are DERIVED
+  on the object and named there: the name is the direction
+  (`Exit.presentationPhrase`), the keywords are the authored ones plus
+  the direction and its short forms — `n`, `u` (`Exit.getKeywords`). MQL
+  reads an exit only through that interface and rewrites no word. An exit composes `Visible`, so
+  `look north` describes it (an authored `longDescription`, else *a way
+  north; the oak door is closed* — never where it leads).
 
-- **Exits are descriptors of the room**, not Stuff. They have a
-  direction, an inverse, optionally a door reference — but they
-  aren't lifecycle-attached objects with keywords of their own. The
-  candidate walk synthesizes one per exit:
-  `{ stuff: location, name: direction, keywords: [direction], via: { exit } }`.
-  The matched Stuff is the location; `via.exit` carries the
-  attribution.
-
-This mirrors how players think about the world: doors are *things*
-("the oak door") and exits are *features of the room* ("you can go
-north"). The resolver's two paths encode that asymmetry — a single
-"give exits keywords too" generalization would obscure it. The
-direction vocabulary stays the canonical surface for "name an exit"
-because it's already the framework's closed set of direction tokens.
+There is no `via.exit`. A verb that needs the door on a way asks
+`MqlApi.effectiveTarget` (the bound thing, else the door hung in a bound
+exit); movement verbs scope to ways (`here:exits`), so a word can only
+mean one. The place steps `:exits` / `:to` / `:from` (`flatMapPlaceStep`,
+reserved chain words like `:members`; `:to` is live-only) are in
+[mql-grammar.md](../mql-grammar.md#places-and-the-ways-between-them).
 
 Collisions between a door's keywords and an exit's direction (a
 door author who adds `north` as a keyword on the door at the north

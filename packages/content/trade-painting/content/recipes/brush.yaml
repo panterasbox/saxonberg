@@ -1,0 +1,14 @@
+# A brush, fitted (paint D11): a knot of bristle glued into a handle. The
+# glued joint TAKES glue — an open pot of it in reach.
+recipeId: brush
+name: Brush
+keywords: [brush, "paint brush"]
+inputSlots:
+  - { slot: handle, category: wood, minGrade: poor, kind: item, count: 1 }
+  - { slot: bristles, category: bristle, minGrade: poor, kind: item, count: 1 }
+toolCapabilities: []
+outputTemplate: /trade/painting/thing/brush
+outputMaterial: ''
+outputApplication: tangible
+difficulty: standard
+discipline: painting

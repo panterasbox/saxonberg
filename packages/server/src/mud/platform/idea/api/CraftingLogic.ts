@@ -14,6 +14,7 @@ import { BulkableApi } from '../../../api/bulk';
 import { ExecutionContextApi } from '../../../api/execution-context';
 import { WorldClockApi } from '../../../api/worldclock';
 import { Quantity } from '../../../lib/quantity';
+import type { Bulkable } from '../../../lib/bulk/Bulkable';
 import { Grade } from '../../../lib/craft/Grade';
 import {
   Texture,
@@ -40,9 +41,7 @@ import {
 import type { ToxinTag } from '../../../lib/metabolism/Metabolic';
 import {
   Recipe,
-  RECIPE_MEDIA,
   type RecipeInputSlot,
-  type RecipeMedium,
 } from '../../../lib/craft/Recipe';
 import { Template } from '../../../lib/stuff/Template';
 import {
@@ -878,16 +877,18 @@ function carriesBrand(stuff: Stuff, brandKey: string): boolean {
  * its **smoke point** (past it the fat breaks down, which is a different
  * thing happening, not a hotter version of this one).
  *
- * `0` when the material tabulates none — no cap, the fire wins. Syrup's
+ * The medium is whichever material carries the recipe's tag, and the ceiling
+ * is the lower of the two limits it tabulates, so nothing here knows a medium
+ * word. `0` when it tabulates neither (sand) — no cap, the fire wins. Syrup's
  * elevated boiling point needs no special case: it rides its own row.
  */
-function mediumCapK(medium: RecipeMedium, material: Material | null): number {
+function mediumCapK(material: Material | null): number {
   if (!material) return 0;
-  const cap =
-    medium === 'fat'
-      ? material.getSmokePoint().rawValue()
-      : material.getBoilingPoint().rawValue();
-  return cap > 0 ? cap : 0;
+  const limits = [
+    material.getSmokePoint().rawValue(),
+    material.getBoilingPoint().rawValue(),
+  ].filter((k) => k > 0);
+  return limits.length > 0 ? Math.min(...limits) : 0;
 }
 
 /**
@@ -897,7 +898,7 @@ function mediumCapK(medium: RecipeMedium, material: Material | null): number {
  * at all: you cannot boil without water.
  */
 function findMediumMaterial(
-  medium: RecipeMedium,
+  medium: string,
   matched: readonly MatchedInput[],
   matchedItems: readonly MatchedItemInput[],
 ): Material | null {
@@ -910,10 +911,10 @@ function findMediumMaterial(
 
 /** Whether a medium candidate's phase ceiling clears the recipe's demand. */
 function capClears(
-  floor: { medium: RecipeMedium; minK: number },
+  floor: { medium: string; minK: number },
   material: Material,
 ): boolean {
-  const cap = mediumCapK(floor.medium, material);
+  const cap = mediumCapK(material);
   return cap === 0 || cap >= floor.minK;
 }
 
@@ -922,7 +923,7 @@ function pickCandidate(
   bottles: BottleCandidate[],
   claimed: Map<Stuff, number>,
   brandKey: string | null,
-  mediumFloor: { medium: RecipeMedium; minK: number } | null = null,
+  mediumFloor: { medium: string; minK: number } | null = null,
 ): BottleCandidate | null {
   const minGrade = Grade.of(inSlot.minGrade);
   const need = inSlot.measureL ?? 0;
@@ -2269,7 +2270,7 @@ function matchBuild(
   recipes: readonly Recipe[],
   contributions: readonly BuildContribution[],
   heatedToK = 0,
-  mediumCaps: ReadonlyMap<RecipeMedium, number> = new Map(),
+  mediumCaps: ReadonlyMap<string, number> = new Map(),
   densities: ReadonlyMap<string, number> = new Map(),
 ): BuildMatch | null {
   let best: BuildMatch | null = null;
@@ -2308,14 +2309,13 @@ function matchBuild(
  */
 async function resolveMediumCaps(
   contributions: readonly BuildContribution[],
-): Promise<Map<RecipeMedium, number>> {
-  const caps = new Map<RecipeMedium, number>();
+): Promise<Map<string, number>> {
+  const caps = new Map<string, number>();
   for (const c of contributions) {
     if (!c.materialPath) continue;
     const material = await StuffApi.singleton<Material>(c.materialPath);
-    for (const medium of RECIPE_MEDIA) {
-      if (!material.hasTag(medium)) continue;
-      const cap = mediumCapK(medium, material);
+    for (const medium of material.getTags()) {
+      const cap = mediumCapK(material);
       const seen = caps.get(medium);
       caps.set(medium, seen === undefined ? cap : Math.max(seen, cap));
     }
@@ -2754,7 +2754,7 @@ async function mintFromBuildImpl(req: BuildMintRequest): Promise<CraftOutcome> {
   const mediumCaps =
     named === null
       ? await resolveMediumCaps(contributions)
-      : new Map<RecipeMedium, number>();
+      : new Map<string, number>();
   const match =
     named === null
       ? matchBuild(
@@ -3452,7 +3452,7 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
       // ordinary way — no new reason word for "you have no water".
       return { ok: false, reason: 'insufficient-input', detail: medium };
     }
-    const cap = mediumCapK(medium, mediumMaterial);
+    const cap = mediumCapK(mediumMaterial);
     if (cap > 0 && cap < effectiveHeatK) effectiveHeatK = cap;
   }
   const requiresHeatK = recipe.getRequiresHeatK();
@@ -4019,8 +4019,15 @@ function instrumentFor(
   | { ok: true; instrument: (Stuff & Tooled) | null; capability: string }
   | { ok: false; reason: RepairDeclineReason; detail: string } {
   if (material?.hasTag('metal')) {
+    // ⭐ A soft metal is worked well below forge heat: lead is wiped and
+    // mended near its own melting point (600 K) and would run off a 900 K
+    // fire. The heat a mend asks is bounded by the metal it mends — the
+    // water-supply browser walk found a plumber who could mend lead only at
+    // a forge.
+    const meltK = material.getMeltingPoint().rawValue();
+    const needK = Number.isFinite(meltK) && meltK > 0 ? Math.min(heatK, meltK * 0.9) : heatK;
     const reach = MixinApi.isThermal(m.hand) ? m.hand.reachableHeatK() : 0;
-    if (reach < heatK) return { ok: false, reason: 'insufficient-heat', detail: `${heatK}` };
+    if (reach < needK) return { ok: false, reason: 'insufficient-heat', detail: `${Math.round(needK)}` };
     return {
       ok: true,
       instrument: m.tools.find((t) => t.hasCapability('anvil')) ?? null,
@@ -4714,6 +4721,55 @@ async function jointGate(
   return null;
 }
 
+/** What a competent hand gets back of a glue line steamed apart. */
+const GLUE_STEAMED_RECOVERY = 0.8;
+
+/** Does `glue` let go of `whole` as it stands — hot enough and wet enough? */
+function glueLetsGo(whole: Stuff, glue: string): boolean {
+  const a = StuffApi.findByTemplatePath<Material>(glue)?.getAdhesive() ?? null;
+  if (a === null || a.reversible === 'never') return false;
+  const hot = a.reversible.heatK === undefined ||
+    (MixinApi.isThermal(whole) && whole.getTemperature().rawValue() >= a.reversible.heatK);
+  const wet = !a.reversible.steam || (MixinApi.isWet(whole) && whole.getWetness() >= 0.5);
+  return hot && wet;
+}
+
+/** Litres of glue one glued joint takes (`crafting.glueLitresPerJoint`, a cupful). */
+function glueLitresPerJoint(): number {
+  try {
+    const n = Number.parseFloat(AppApi.setting(AppSettingKeys.craftingGlueLitresPerJoint) ?? '');
+    return Number.isFinite(n) && n > 0 ? n : 0.02;
+  } catch {
+    return 0.02;
+  }
+}
+
+/**
+ * An open vessel of GLUE in reach holding at least `litres` — the maker's
+ * hands first, then the room (paint D11). A glue is a material with an
+ * `adhesive` block, held liquid (a cold animal glue has set to a cake and
+ * must be warmed first).
+ */
+function glueInReach(
+  location: Stuff,
+  maker: Stuff,
+  litres: number,
+): { vessel: Stuff & Bulkable; material: string } | null {
+  const pool: Stuff[] = [
+    ...(MixinApi.isContainer(maker) ? maker.getContents() : []),
+    ...(MixinApi.isContainer(location) ? location.getContents() : []),
+  ];
+  for (const v of pool) {
+    if (!MixinApi.isBulkable(v) || !v.hasInteriorBulk()) continue;
+    if (MixinApi.isSealable(v) && !v.isOpen()) continue;
+    const m = v.getBulkMaterial('interior');
+    if (m === null || m.getAdhesive() === null) continue;
+    if (v.getBulkAmount('interior').rawValue() + 1e-9 < litres) continue;
+    return { vessel: v, material: m.getTemplatePath() ?? '' };
+  }
+  return null;
+}
+
 /** The joints a line sits in (as a member or as the fastener). */
 function jointsOf(host: Assembled, part: string): JointState[] {
   return host.getJoints().filter((j) => j.members.includes(part) || j.fastener === part);
@@ -4751,14 +4807,29 @@ async function fitImpl(req: FitRequest): Promise<FitOutcome> {
     // `carve`, `rive`), and the refusal says so rather than quietly
     // running a transformation under the wrong verb (assembly D5).
     if (!bill) return { ok: false, reason: 'no-line', detail: 'not-raised-from-parts' };
+    let gluedJoints = 0;
     for (const j of bill?.joints ?? []) {
       const row = j.method ? await cat.warmed(j.method) : null;
       if (!row) continue;
       const gate = await jointGate(maker, row, tools);
       if (gate) return { ok: false, reason: gate.reason, detail: gate.detail };
+      if (row.takes === 'glue') gluedJoints += 1;
+    }
+    // ⭐ A glued joint TAKES glue (paint D11): an open vessel of it in
+    // reach, enough for every glue line the thing will carry — checked
+    // before anything is spent, drawn once the thing is made.
+    const glueLitres = gluedJoints * glueLitresPerJoint();
+    const glue = gluedJoints > 0 ? glueInReach(location, maker, glueLitres) : null;
+    if (gluedJoints > 0 && glue === null) {
+      return { ok: false, reason: 'insufficient-input', detail: 'glue' };
     }
     const made = await craftImpl({ recipeRef: recipe.getRecipeId(), makerMode: 'self' });
     if (!made.ok) return made;
+    if (glue !== null && made.output !== null && MixinApi.isAssembled(made.output)) {
+      const have = glue.vessel.getBulkAmount('interior').rawValue();
+      glue.vessel.setBulkAmount('interior', Quantity.of(Math.max(0, have - glueLitres), 'L'));
+      made.output.glueJoints(glue.material);
+    }
     return {
       ok: true,
       arm: 'raise',
@@ -4848,6 +4919,10 @@ async function fitImpl(req: FitRequest): Promise<FitOutcome> {
   const stack = MixinApi.isStackable(part);
   const have = stack ? part.getQuantity() : 1;
   const k = Math.min(have, line.failed > 0 ? line.failed : 1, line.count);
+  // ⭐ The whole has its own say (water-supply D10), after the joints'
+  // gates and before anything is spent.
+  const veto = await whole.canTakeMembers(line.part, k, maker);
+  if (!veto.ok) return { ok: false, reason: 'refused-by-whole', detail: veto.reason };
   // ⭐ A SOUND member swapped out comes back to hand — a haft you are
   // replacing because you want a better one is still a haft. A failed one
   // (split, sprung) is not worth minting: it is the irreversible branch's.
@@ -4907,6 +4982,7 @@ async function fitImpl(req: FitRequest): Promise<FitOutcome> {
   if (slipMismatch && MixinApi.isIntegrity(whole)) {
     whole.addFlaw('check', true, nowGameS());
   }
+  await whole.afterMembersFitted(maker);
   // The whole is as good as its worst line (weakest link).
   if (MixinApi.isGraded(whole)) {
     const worst = whole
@@ -5066,6 +5142,17 @@ async function salvageByJoints(
     let factor = 1;
     for (const j of mine) {
       const row = await cat.warmed(j.method);
+      // ⭐ A glue line comes apart as its GLUE does (paint D11): an animal
+      // glue softens hot and wet — steam it and it lets go; casein, a
+      // resin, a rubber cement never come apart.
+      if (row && j.glue) {
+        if (!glueLetsGo(item, j.glue)) {
+          rec = 0;
+          break;
+        }
+        rec = Math.min(rec, GLUE_STEAMED_RECOVERY);
+        continue;
+      }
       if (!row || row.reversible === 'never') {
         rec = 0;
         break;

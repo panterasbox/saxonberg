@@ -16,10 +16,20 @@ import type { Business } from "../Business";
 import { RELEASE_DOCUMENT_KIND } from "../../../lib/press/Release";
 import { CommandApi } from "../../../api/command";
 import type { Registrar } from '../../../lib/document/Register';
+import type { Berthed } from '../BerthExit';
 import {
   DECLARED_DOCUMENT_KINDS,
   type DeclaredDocumentKind,
 } from '../../../lib/document/DocumentKinds';
+import { createHash } from 'node:crypto';
+import { Release } from '../../../lib/press/Release';
+import {
+  EDITIONS_DIR,
+  type DocumentPages,
+  type EditionData,
+  type EditionRequest,
+  type EditionTeaching,
+} from '../../../lib/document/Edition';
 
 const DocumentApiCallers = SecurityPolicies.FromModule("/api/document#DocumentApi",
 );
@@ -347,6 +357,76 @@ async function saveMapImpl(
   await doc.save();
 }
 
+/** The branch every landing's berth roll lives under. */
+const BERTHS_BRANCH = '/platform/berths';
+
+/** The document kind a berth roll is stored under. */
+const BERTH_ROLL_KIND = 'berth-roll';
+
+/** A landing's roll, by its path — `null` for a path that names no landing. */
+function berthRollPath(landingPath: string): string | null {
+  const landing = landingPath.replace(/\/+$/, '');
+  return landing.startsWith('/') && landing.length > 1 ? `${BERTHS_BRANCH}${landing}` : null;
+}
+
+/** The handles on a stored roll. */
+function handlesOf(doc: StoredDocument | null): string[] {
+  const lying = doc?.getData().lying;
+  return Array.isArray(lying) ? lying.filter((h): h is string => typeof h === 'string' && h !== '') : [];
+}
+
+/**
+ * The writes to each landing's roll, chained — two ships making fast at one
+ * quay in one tick each read-modify-write the same document, and the second
+ * must read the first's line. A cache of in-flight promises, never state.
+ */
+const berthWrites = new Map<string, Promise<void>>();
+
+/**
+ * ⚠⚠ **The berth transport** — a ship's own line on a landing's roll.
+ *
+ * Rails, all structural: the Api face admits only the ship writing for
+ * herself; the handle is hers (durable handle, else her row); whether she
+ * lies there is READ off her (`getBerth()`), never taken from the caller;
+ * the path and the kind are pinned; the owner is the landing.
+ */
+async function saveBerthImpl(ship: Stuff & Berthed, landingPath: string): Promise<void> {
+  const path = berthRollPath(landingPath);
+  const handle = ship.getDurableHandle() ?? ship.getTemplatePath();
+  if (path === null || !handle) {
+    throw new Error(`DocumentApi.saveBerth: no roll for '${landingPath}' or no handle to write on it`);
+  }
+  const landing = landingPath.replace(/\/+$/, '');
+  const lies = ship.getBerth() === landing;
+  const write = async (): Promise<void> => {
+    const doc = await StoredDocument.findByPath(path);
+    const was = handlesOf(doc);
+    const has = was.includes(handle);
+    if (has === lies) return;
+    if (doc === null && !lies) return;
+    const row = doc ?? new StoredDocument();
+    row.path = path;
+    row.owner = landing;
+    row.kind = BERTH_ROLL_KIND;
+    row.data = { lying: lies ? [...was, handle] : was.filter((h) => h !== handle) };
+    await row.save();
+  };
+  const prior = berthWrites.get(path) ?? Promise.resolve();
+  const mine = prior.catch(() => undefined).then(write);
+  berthWrites.set(path, mine);
+  try {
+    await mine;
+  } finally {
+    if (berthWrites.get(path) === mine) berthWrites.delete(path);
+  }
+}
+
+/** A landing's roll, read. */
+async function berthRollOfImpl(landingPath: string): Promise<string[]> {
+  const path = berthRollPath(landingPath);
+  return path === null ? [] : handlesOf(await StoredDocument.findByPath(path));
+}
+
 /**
  * One player's maps under a locality prefix — theirs only.
  *
@@ -368,62 +448,6 @@ async function readMapsImpl(
   return rows
     .filter((d) => d.kind === 'map')
     .map((d) => ({ path: d.path, data: d.data as Record<string, unknown> }));
-}
-
-/**
- * The gate strings of a command view — everything that names TypeScript:
- * the verb-level and per-subcommand `controller:` values, and every
- * validator / `requires` reference at any level. Rendered as a sorted
- * list so two views compare as sets.
- */
-function codeFieldsOf(view: Record<string, unknown> | undefined): string[] {
-  if (!view) return [];
-  const out: string[] = [];
-  const list = (v: unknown): string[] =>
-    Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : [];
-  const fieldsOf = (fields: unknown, where: string): void => {
-    const arr = Array.isArray(fields)
-      ? fields
-      : fields && typeof fields === "object"
-        ? Object.values(fields as Record<string, unknown>)
-        : [];
-    for (const f of arr) {
-      const r = (f as { requires?: unknown; validators?: unknown }) ?? {};
-      for (const v of list(r.validators)) out.push(`${where}.validators:${v}`);
-      const req = r.requires;
-      if (typeof req === "string") out.push(`${where}.requires:${req}`);
-      for (const v of list(req)) out.push(`${where}.requires:${v}`);
-    }
-  };
-  if (typeof view.controller === "string") out.push(`controller:${view.controller}`);
-  for (const v of list(view.validators)) out.push(`validators:${v}`);
-  fieldsOf(view.args, "args");
-  fieldsOf(view.options, "options");
-  fieldsOf(view.payload, "payload");
-  const subs = (view.subcommands ?? {}) as Record<string, Record<string, unknown>>;
-  for (const [name, sub] of Object.entries(subs)) {
-    if (!sub || typeof sub !== "object") continue;
-    if (typeof sub.controller === "string") out.push(`sub.${name}.controller:${sub.controller}`);
-    for (const v of list(sub.validators)) out.push(`sub.${name}.validators:${v}`);
-    fieldsOf(sub.args, `sub.${name}.args`);
-    fieldsOf(sub.options, `sub.${name}.options`);
-  }
-  return out.sort();
-}
-
-/**
- * Did a command view's CODE-naming fields change? `controller` at any
- * level, or the validator / `requires` SET at any level — any change,
- * not subset-only: a validator is a gate, and removing one widens
- * dispatch just as adding one narrows it (the `TemplateLogic` brain
- * rule's shape). A new view (`prev` undefined) whose fields are set
- * counts as a change from nothing.
- */
-function codeFieldsChanged(
-  prev: Record<string, unknown> | undefined,
-  next: Record<string, unknown>,
-): boolean {
-  return JSON.stringify(codeFieldsOf(prev)) !== JSON.stringify(codeFieldsOf(next));
 }
 
 /**
@@ -528,20 +552,9 @@ async function saveImpl(
   const existing = await StoredDocument.findByPath(path);
 
   if (kind === COMMAND_VIEW_KIND) {
-    // ⚠ A command view names TypeScript — its `controller:` and every
-    // validator are code references, and changing one is WIZARD code
-    // trust (access.md), not content authoring. The installer never
-    // sees this (it writes through PersistApi, bootstrap-exempt like
-    // templates); the CMS and any runtime writer do.
-    if (
-      codeFieldsChanged(existing?.getData(), data) &&
-      !(await AccessApi.isWizard(actor))
-    ) {
-      throw new Error(
-        "changing a command view's controller or validators names TypeScript — " +
-          "that is wizard code trust (see access.md)",
-      );
-    }
+    // ⛔ A view that NAMES code — its `controller:`, its validators — is
+    // content (wizard-axis D5): title over the path decided it above, and
+    // nothing here asks for the wizard axis.
     // A malformed view is refused at the chokepoint, never stored.
     const trail = CommandApi.validateCommandView(data);
     if (trail !== null) {
@@ -579,6 +592,183 @@ async function deleteImpl(path: string): Promise<boolean> {
   return true;
 }
 
+/* ─────────────────────────── paper ─────────────────────────── */
+
+/** One line of a record a register lists — the summary its book prints. */
+function summaryLine(doc: StoredDocument): string {
+  const data = doc.getData();
+  const name = [data.name, data.title, data.what, data.headline, data.key]
+    .find((v): v is string => typeof v === 'string' && v.trim() !== '');
+  const leaf = doc.getPath().split('/').filter(Boolean).pop() ?? doc.getPath();
+  return name ? `${name} (${leaf})` : leaf;
+}
+
+/** A warehouse receipt's terms, in words. */
+function receiptText(data: Record<string, unknown>): string {
+  const what = typeof data.what === 'string' ? data.what : 'goods';
+  const kg = Number(data.originalAmountKg ?? data.amountKg ?? 0);
+  const terms = (data.terms ?? {}) as Record<string, unknown>;
+  const bearer = terms.bearer === true;
+  const allowance = Number(terms.allowancePct ?? 0);
+  const fee = Number(terms.feeMinorPerKg ?? 0);
+  const store = typeof data.store === 'string' ? data.store.split('/').filter(Boolean).pop() : 'the store';
+  const lines = [
+    `RECEIVED into ${store}: ${what}, ${kg.toFixed(1)} kg.`,
+    bearer
+      ? 'To be delivered to the BEARER of this receipt, on presentation.'
+      : 'To be delivered to the depositor named in the book.',
+    `Allowance for shrinkage ${allowance}%; storage ${fee} per kg.`,
+    `Receipt ${String(data.receiptId ?? '')}.`,
+  ];
+  if (typeof data.settledAtS === 'number') lines.push('SETTLED.');
+  return lines.join('\n');
+}
+
+/**
+ * ⭐ Render a stored document as pages — **exhaustive over the closed
+ * kind table**, so a new kind is a compile error here rather than a list a
+ * pack must remember. `null` = *that is not something that reads as a page*
+ * (a script, a command view, a map): the verb says so in words.
+ */
+async function pagesOfImpl(path: string): Promise<DocumentPages | null> {
+  const doc = await StoredDocument.findByPath(path);
+  if (doc === null) return null;
+  const data = doc.getData();
+  const kind = doc.getKind() as DeclaredDocumentKind;
+  const str = (v: unknown): string => (typeof v === 'string' ? v : '');
+  const pagesFrom = (v: unknown): string[] =>
+    Array.isArray(v) ? v.map((p) => (typeof p === 'string' ? p : '')) : [];
+  switch (kind) {
+    case 'release': {
+      const r = Release.fromDocument(doc).serialize();
+      const house = doc.getOwner().split('/').filter(Boolean).pop() ?? '';
+      const masthead = house.length > 0 ? house.replace(/-/g, ' ').toUpperCase() : 'NOTICE';
+      return { title: r.headline, pages: [`${masthead}\n\n${r.headline}\n\n${r.body}`.trim()] };
+    }
+    case 'warehouse-receipt':
+      return { title: `receipt ${str(data.receiptId)}`, pages: [receiptText(data)] };
+    case 'recipe': {
+      const id = str(data.recipeId);
+      const name = str(data.name) || id;
+      const slots = Array.isArray(data.inputSlots) ? (data.inputSlots as Array<Record<string, unknown>>) : [];
+      const inputs = slots.map((s) => `${str(s.slot) || str(s.category)}${Number(s.count ?? 1) > 1 ? ` ×${Number(s.count)}` : ''}`);
+      const tools = Array.isArray(data.toolCapabilities) ? (data.toolCapabilities as string[]) : [];
+      const body = [
+        name.toUpperCase(),
+        inputs.length > 0 ? `Take: ${inputs.join(', ')}.` : '',
+        tools.length > 0 ? `With: ${tools.join(', ')}.` : '',
+        str(data.discipline) ? `The ${str(data.discipline)} trade's work.` : '',
+      ].filter((l) => l !== '');
+      const teaches: EditionTeaching[] = id ? [{ recipeId: id, name }] : [];
+      return { title: name, pages: [body.join('\n')], teaches };
+    }
+    case 'edition': {
+      const pages = pagesFrom(data.pages);
+      if (pages.length === 0) return null;
+      const teaches = Array.isArray(data.teaches) ? (data.teaches as EditionTeaching[]) : undefined;
+      return { title: str(data.title) || 'a book', pages, ...(teaches ? { teaches } : {}) };
+    }
+    case 'instrument':
+      return str(data.text) ? { title: str(data.title) || 'a paper', pages: [str(data.text)] } : null;
+    case 'rate-card':
+    case 'bill-of-lading':
+    case 'water-right':
+    case 'herd':
+    case 'fishery':
+    case 'body':
+    case 'bore':
+    case 'ship':
+      return { title: summaryLine(doc), pages: [summaryLine(doc)] };
+    case 'msh':
+    case 'emote':
+    case 'name-bank':
+    case 'blueprint':
+    case 'command-view':
+    case 'archetype':
+    case 'map':
+    case 'berth-roll':
+    case 'berth-book':
+    case 'aroma':
+      return null;
+    default: {
+      const unreachable: never = kind;
+      void unreachable;
+      return null;
+    }
+  }
+}
+
+/**
+ * ⭐ Freeze a printing — the edition transport. Rails, all structural
+ * (`saveAsBusiness`'s posture — its callers span the kernel and the
+ * printing pack, so a module allowlist would be a kernel list every
+ * printing trade needs): the **path is pinned** to
+ * `<source>/editions/<hash of the pages>`, the **kind is pinned**, the
+ * **owner is derived** from the source (its document's owner, or the
+ * owner of the records under a register prefix) and never supplied, and a
+ * second freeze of the same pages finds the same edition. Throws on a
+ * source that names nothing — the caller checks first.
+ */
+async function freezeEditionImpl(req: EditionRequest): Promise<string> {
+  const source = req.source.replace(/\/+$/, '');
+  if (source.length === 0 || req.pages.length === 0) {
+    throw new TypeError('DocumentApi.freezeEdition: a source and at least one page');
+  }
+  const sourceDoc = await StoredDocument.findByPath(source);
+  const owner =
+    sourceDoc?.getOwner() ??
+    (await StoredDocument.findByPrefix(`${source}/`)).find((d) => d.getOwner() !== '')?.getOwner() ??
+    '';
+  if (owner === '') {
+    throw new TypeError(`DocumentApi.freezeEdition: ${source} names no document to print from`);
+  }
+  const hash = createHash('sha1').update(JSON.stringify(req.pages)).digest('hex').slice(0, 16);
+  const path = `${source}/${EDITIONS_DIR}/${hash}`;
+  if ((await StoredDocument.findByPath(path)) !== null) return path;
+  const data: EditionData = {
+    source,
+    hash,
+    title: req.title ?? source.split('/').filter(Boolean).pop() ?? 'a paper',
+    pages: [...req.pages],
+    frozenAtMs: Date.now(),
+    ...(req.teaches && req.teaches.length > 0 ? { teaches: req.teaches } : {}),
+    ...(req.validUntilS !== undefined ? { validUntilS: req.validUntilS } : {}),
+  };
+  const doc = new StoredDocument();
+  doc.path = path;
+  doc.owner = owner;
+  doc.kind = 'edition';
+  doc.data = data as unknown as Record<string, unknown>;
+  await doc.save();
+  return path;
+}
+
+/**
+ * ⭐ The document `reader` may CALL UP by a word: the newest
+ * standing release whose headline or publisher answers to it (an in-game
+ * reader is a member — `members` and `public` both read; the press room's
+ * `public` filter is the anonymous web's), else a paper of the reader's own
+ * whose title does. Never a search of anyone else's papers.
+ */
+async function callUpImpl(reader: Stuff, word: string): Promise<{ path: string; title: string } | null> {
+  const w = word.trim().toLowerCase();
+  if (w === '') return null;
+  const releases = (await StoredDocument.findByKind(RELEASE_DOCUMENT_KIND))
+    .map((d) => Release.fromDocument(d))
+    .filter((r) => !r.isRetracted() && Release.publishedByOwner(r))
+    .filter((r) => r.getHeadline().toLowerCase().includes(w) || r.owner.toLowerCase().includes(w))
+    .sort((a, b) => b.getPublishedAt() - a.getPublishedAt());
+  const release = releases[0];
+  if (release !== undefined) return { path: release.getPath(), title: `"${release.getHeadline()}"` };
+  const key = (reader.getIdentityPath() ?? '').split('/').filter(Boolean).pop() ?? '';
+  if (key === '') return null;
+  for (const d of await StoredDocument.findByPrefix(`/home/${key}/`)) {
+    const pages = await pagesOfImpl(d.getPath());
+    if (pages !== null && pages.title.toLowerCase().includes(w)) return { path: d.getPath(), title: pages.title };
+  }
+  return null;
+}
+
 /**
  * DocumentLogic — the hot-reloadable logic singleton behind
  * {@link DocumentApi}.
@@ -603,6 +793,12 @@ export class DocumentLogic extends ApiLogic {
   @CallSecurity(DocumentApiCallers)
   public async list(prefix: string): Promise<StoredDocument[]> {
     return listImpl(prefix);
+  }
+
+  /** See {@link DocumentApi.readByKey}. */
+  @CallSecurity(DocumentApiCallers)
+  public async readByKey(kind: string, key: string): Promise<StoredDocument | null> {
+    return StoredDocument.findByKey(kind, key);
   }
 
   /** See {@link DocumentApi.listOfKind}. */
@@ -674,6 +870,18 @@ export class DocumentLogic extends ApiLogic {
     return readMapsImpl(ownerKey, localityPrefix);
   }
 
+  /** See {@link DocumentApi.saveBerth}. Rails in `saveBerthImpl`. */
+  @CallSecurity(DocumentApiCallers)
+  public async saveBerth(ship: Stuff & Berthed, landingPath: string): Promise<void> {
+    return saveBerthImpl(ship, landingPath);
+  }
+
+  /** See {@link DocumentApi.berthRollOf}. */
+  @CallSecurity(DocumentApiCallers)
+  public async berthRollOf(landingPath: string): Promise<string[]> {
+    return berthRollOfImpl(landingPath);
+  }
+
   /** See {@link DocumentApi.saveInstrument}. Rails in `saveInstrumentImpl`. */
   @CallSecurity(DocumentApiCallers)
   public async saveInstrument(
@@ -682,6 +890,24 @@ export class DocumentLogic extends ApiLogic {
     data: Record<string, unknown>,
   ): Promise<void> {
     return saveInstrumentImpl(partyKey, path, data);
+  }
+
+  /** See {@link DocumentApi.pagesOf}. */
+  @CallSecurity(DocumentApiCallers)
+  public async pagesOf(path: string): Promise<DocumentPages | null> {
+    return pagesOfImpl(path);
+  }
+
+  /** See {@link DocumentApi.callUp}. */
+  @CallSecurity(DocumentApiCallers)
+  public async callUp(reader: Stuff, word: string): Promise<{ path: string; title: string } | null> {
+    return callUpImpl(reader, word);
+  }
+
+  /** See {@link DocumentApi.freezeEdition}. Rails in `freezeEditionImpl`. */
+  @CallSecurity(DocumentApiCallers)
+  public async freezeEdition(req: EditionRequest): Promise<string> {
+    return freezeEditionImpl(req);
   }
 
   /** See {@link DocumentApi.save}. */

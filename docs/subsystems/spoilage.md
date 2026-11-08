@@ -866,11 +866,10 @@ the two different acts.
 
 ## What a player sees
 
-A band phrase on `look` and `smell`, never a number — the
-banding-is-presentation rule. A fresh (or inert) thing says nothing at
-all. The augmenter is channel-filtered: you *see* that something has
-turned and you *smell* it, so a `taste` gets the palate line
-([crafting.md](./crafting.md)) rather than a duplicate of the smell.
+A band phrase on `look`, never a number — the banding-is-presentation rule. A
+fresh (or inert) thing says nothing at all. A nose reads rot as a source in the one
+smell model ([senses.md](./senses.md#one-smell-source-air-nose)), so a rotten side of
+beef reaches the next room, and a tongue reads the same note in the palate.
 
 A **treated** thing gets its own line on the same two channels — *"It has
 been thoroughly dried and heavily salted."* Two axes, band words, no

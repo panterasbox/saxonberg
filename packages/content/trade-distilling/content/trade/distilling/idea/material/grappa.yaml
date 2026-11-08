@@ -1,7 +1,10 @@
 # Grappa — pomace through the still (P11): the historically honest
 # byproduct spirit, a margin lesson for a small house.
-class: /platform/idea/material/ConsumableMaterial
+class: /platform/idea/material/OdorousConsumableMaterial
 data:
+  smells: [{ word: spirit, strength: 800 }]
+  burning: [{ word: smoke, strength: 3 }]
+  tastes: [{ type: bitter, amount: 0.01 }]
   name: grappa
   keywords: [grappa]
   appearance: "a sharp, grassy clear spirit"

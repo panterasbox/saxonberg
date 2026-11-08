@@ -3,9 +3,9 @@
  *
  * Mirrors CloseController over the locked axis. Two resolution shapes
  * arrive: a direct hit on a Lockable (`lock oak door`) or a direction
- * match (`lock north`) where the door is fetched from
- * `via.exit.getDoor()`. `MqlApi.effectiveTarget` tries both and returns
- * the first Lockable.
+ * match (`lock north`) binding the exit — itself lockable for the keyed
+ * exits, else the door hung in it. `MqlApi.effectiveTarget` is that one
+ * rule.
  *
  * v1 carries no key/credential model — the crossing gate is seeded
  * permanently locked and soft-walled in dialogue, so lock/unlock are

@@ -395,7 +395,9 @@ describe('⭐ a spoiler-declared field is gated ON A REAL RENDER (27)', () => {
   });
 
   it('TAGS it for a reader who may see it but did not ask to', async () => {
-    vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(true); // ceiling 3
+    // Ceiling 3 = the owner role on the /wiki root (wizard-axis D6).
+    vi.spyOn(StuffApi, 'singleton').mockResolvedValue(reader as never);
+    vi.spyOn(AccessApi, 'canMutateZone').mockResolvedValue(true);
     vi.spyOn(ShellApi, 'resolveSetting').mockReturnValue(0 as unknown as never);
 
     const out = await render('<composition of="/stuff/agent/mimic"/>');
@@ -405,7 +407,8 @@ describe('⭐ a spoiler-declared field is gated ON A REAL RENDER (27)', () => {
   });
 
   it('shows it plainly to a reader who asked for everything', async () => {
-    vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(true);
+    vi.spyOn(StuffApi, 'singleton').mockResolvedValue(reader as never);
+    vi.spyOn(AccessApi, 'canMutateZone').mockResolvedValue(true);
     vi.spyOn(ShellApi, 'resolveSetting').mockReturnValue(3 as unknown as never);
 
     const out = await render('<composition of="/stuff/agent/mimic"/>');

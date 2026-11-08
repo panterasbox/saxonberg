@@ -1,0 +1,27 @@
+# The pump house — the housing on the bank where the city intake's pump
+# lives (water-supply W1). ⭐ The city's water is a LOCKED door: the works
+# keeper's seat carries the key (`clock on` hands it over, D19), and nothing
+# else stands between a player and the switch that turns off a city. No
+# permission check reads a seat; the lock is the gate.
+#
+# Staged (D30): a Locale, not a PersistentLocale. Its furnishing is
+# authored, and the state worth keeping — whether the main is on, whether
+# it is cut — is the intake's own record (`PersistentConduit`).
+class: /platform/location/Hall
+data:
+  shortDescription: pump house
+  keywords: [pump house, pumphouse, housing, works]
+  register: definite
+  _address: terminus/city/wharfside
+  _biomePath: /stuff/idea/biome/indoor/baseline
+  enclosure: { material: /stuff/idea/material/ceramic/brick, thicknessM: 0.35 }
+  roof: { material: /stuff/idea/material/rock/slate, thicknessM: 0.02 }
+  longDescription: |
+    A squat brick housing on the embankment, hot and close and loud. The intake's engine thumps on its bed in the middle of the floor, belted to a pump whose iron throat goes down through the floor to the river, and the whole room shivers with it. A gauge on the wall twitches. A chalked board by the door says who last oiled what.
+  coords: { x: 0, y: 0, z: 0 }
+  exits:
+    out:
+      destination: /world/terminus/wharfside/bank
+      edgeMinutes: 1
+  props:
+    - /world/terminus/wharfside/thing/city-intake

@@ -1,8 +1,9 @@
 # Hard soap — a bar, set in its frame and curing on a rack (cleanliness
 # D24). It cures over four weeks by losing water to the air, and a bar cut
 # short is harsh.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ word: soap, strength: 100 }]
   name: hard soap
   keywords: [soap, bar, hard soap]
   appearance: pale hard soap

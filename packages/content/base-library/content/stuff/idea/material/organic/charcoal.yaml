@@ -12,8 +12,10 @@
 # commons): every wood's `char` transition names this row, and base-library
 # may only name base-library. A trade MAKES charcoal; what it IS belongs to
 # everyone.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ word: char, strength: 3 }]
+  burning: [{ word: wood-smoke, strength: 20 }]
   name: charcoal
   keywords: [charcoal]
   # Light: the volatiles and most of the mass left as smoke.

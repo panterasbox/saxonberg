@@ -24,30 +24,72 @@
  * Structure).
  */
 
-import Structure from './Structure';
+import Structure from '../../lib/structure/Structure';
+import type Place from '../../lib/stuff/Place';
 import { PositionedMixin } from '../../lib/expanse/Positioned';
 import { EngagedMixin } from '../../lib/activity/Engaged';
-import { PersistableMixin } from '../../lib/persistence/Persistable';
+import { PersistableMixin, type Persistable } from '../../lib/persistence/Persistable';
+import { FacedMixin } from '../../lib/material/Faced';
+import { DurableMixin } from '../../lib/material/Durable';
+import { AppSettingKeys } from '../../lib/config/AppSettings';
 import { VoyagingMixin } from '../../lib/expanse/Voyaging';
 import { MovingMixin } from '../../lib/expanse/Moving';
-import { Template } from '../../lib/stuff/Template';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
 import { WorldClockApi } from '../../api/worldclock';
+import { DocumentApi } from '../../api/document';
 import type { Container } from '../../lib/spatial/Container';
 import type { FieldMeta } from '../../lib/mixin';
+import type { EvictionContext } from '../../lib/stuff/Stuff';
+import type { VetoResult } from '../../lib/errors';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { HullNow } from '../../lib/expanse/Voyaging';
 import type { CourseRequest, CraftStop } from '../../lib/expanse/Frame';
 import type { StartResult } from '../../api/scheduler';
 import ExpanseNode from './ExpanseNode';
+import Bollard from '../thing/Bollard';
+import BerthExit, { type Berthed } from './BerthExit';
+import ShipWarren, { AUTHORED_SHIP_WARREN } from './ShipWarren';
 import type { Positioned } from '../../lib/expanse/Positioned';
+import Rope from '../thing/Rope';
+import { BilgeMixin } from '../../lib/expanse/Bilge';
+import type { Exitable } from '../../lib/boundary/Exitable';
+import type { Berthing } from '../../lib/expanse/Berthing';
+import type { LineFrame } from '../../lib/expanse/LineFrame';
+import { PersistableApi } from '../../api/persistable';
+import { MessageApi } from '../../api/message';
+import { Mml } from '../../api/mml';
+import ShipRegister, { type ShipEntry } from './ShipRegister';
+import type { CapTable, CapTableData, UnitHolder } from '../../lib/employment/CapTable';
+import { Template } from '../../lib/stuff/Template';
+import { BoundaryApi } from '../../api/boundary';
+import { GovernmentApi } from '../../api/government';
+import { Lock } from '../../lib/lock/Lock';
+import { CallSecurity } from '../../lib/security/decorators';
+import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
+import type { MarkupAugmenter } from '../../api/mml';
+import Flag from '../thing/Flag';
+import Flagstaff from '../thing/Flagstaff';
+import { AppApi } from '../../api/app';
+import { CompetenceBand, type CompetenceBandName } from '../../lib/advancement/CompetenceBand';
+import type { Difficulty } from '../../lib/advancement/ActSignature';
+import { EventApi, type Subscription } from '../../api/event';
+import { CommandDispatchedEvent, type CommandDispatchedPayload } from '../../lib/events/CommandDispatchedEvent';
+import { ScheduleApi, type ScheduleHandle } from '../../api/schedule';
+import { Quantity } from '../../lib/quantity';
+import type { FramePos } from '../../lib/expanse/Frame';
+import type { ActRefusal } from '../../lib/craft/ActPlan';
 
 /** A ship's hull (river D28): how deep she floats, how wide, how long. */
 export interface ShipHull {
   draftM: number;
   beamM: number;
   lengthM: number;
+  /**
+   * ⭐ The depth of her hull, keel to deck, m — what she can
+   * take aboard before she goes down. Absent for a ship nobody measured.
+   */
+  depthM?: number;
 }
 
 /** Water density, kg/m³ — what a laden hull displaces. */
@@ -56,11 +98,149 @@ const RHO = 1000;
 /** The position key of the seat that sees further (maritime D13). */
 const LOOKOUT_POSITION = 'lookout';
 
+/** The position key of the seat that commands her. */
+const MASTER_POSITION = 'master';
+
+/**
+ * ⭐ A bill she carries until it is paid — a charter's days
+ * owed to her line, written when the charter ends; paid at a harbor
+ * office's book with `pay office`.
+ */
+export interface ShipBill {
+  /** The venue the money goes to (a place its Business operates). */
+  to: string;
+  /** Whole minor units. */
+  amountMinor: number;
+  /** What it is for, in words. */
+  reason: string;
+  /**
+   * Who it is owed by, by identity path (a charter's days are the
+   * charterer's) — they answer for her at the office until it is paid.
+   */
+  by?: string;
+}
+
+/**
+ * ⭐ A voyage charter: the charterer is her master until she
+ * next berths at a kept quay, and pays the line for the world's days it
+ * lasted, at the book's rate.
+ */
+export interface ShipCharter {
+  /** The charterer, by identity path. */
+  charterer: string;
+  /** When it began, game-seconds. */
+  sinceS: number;
+  /** Minor units per world's day, the book's posted rate. */
+  ratePerDay: number;
+  /** The venue the days are paid to (the line's desk) — whose house's books they are. */
+  payTo: string;
+}
+
+const DAY_S = 86_400;
+
+/** The kind row of the way aboard a ship, named for her. */
+const BERTH_EXIT_KIND = '/platform/idea/exits/berth';
+
+/**
+ * ⭐ A mooring line must reach from her rail to the bollard and back again
+ * (grain): twice her height out of the water, never less than
+ * this, m.
+ */
+const MIN_LINE_M = 2;
+
+/** The knot her lines go round a bollard in (a joint row's key) — quick on, quick off. */
+const MOORING_KNOT = 'clove-hitch';
+
+/**
+ * ⭐ The water a master keeps under her keel crossing a bar
+ * (grain): her draft and this much again, m, or she waits for the flood.
+ */
+const UNDER_KEEL_M = 0.5;
+
+/** What the bar says to her draft now. */
+export interface BarClearance {
+  /** Water over the bar less her draft and the margin under her keel, m — negative: she cannot cross. */
+  clearanceM: number;
+  /** The water over the bar now, m. */
+  depthM: number;
+  /** What she wants over it: her draft and the margin, m. */
+  wantsM: number;
+  /** Game-seconds of the next high water, or `null` for an untidal bar. */
+  nextHighS: number | null;
+}
+
+/**
+ * ⭐ How far her seams have opened, by her hull's condition — the floors,
+ * highest first (the five bands the leak is tuned in, grain).
+ * The WORD anyone reads is her `Durable` condition's, a house's word.
+ */
+const SEAM_BANDS: Array<[number, string]> = [
+  [0.9, 'sound'],
+  [0.7, 'weathered'],
+  [0.5, 'worn'],
+  [0.25, 'shabby'],
+  [0, 'dilapidated'],
+];
+
+/** The seam band a hull condition reads as. */
+function seamBandFor(condition: number): string {
+  for (const [floor, band] of SEAM_BANDS) if (condition >= floor) return band;
+  return 'dilapidated';
+}
+
+/**
+ * ⭐ What a hull lets in by how far her seams have opened
+ * (grain): litres a second per meter of her length, each a setting
+ * (`ship.leak.<band>`). A sound hull is tight; a worn one weeps at every
+ * seam.
+ */
+const LEAK_LPS_PER_M: Record<string, number> = {
+  sound: 0,
+  // ⭐ Retuned against *nothing fails over a weekend away* (the
+  // arithmetic is in `platform/content/settings/ship.yaml`).
+  weathered: 0.0005,
+  worn: 0.004,
+  shabby: 0.02,
+  dilapidated: 0.08,
+};
+
+/** What a hole lets in on top of her seams, L/s per meter (`ship.leak.holed`, grain). */
+const HOLED_LPS_PER_M = 0.25;
+
+/** The share of her hull's box that is hull (a block coefficient, as `hullNow` uses). */
+const BLOCK = 0.7;
+
+/** ⭐ Pumped down to this much water over her keel, a ship settled on a drying berth floats again, m (grain). */
+const REFLOAT_BILGE_M = 0.15;
+
+/** ⭐ Acts each person aboard has once she is settling (grain). */
+const SETTLING_ACTS = 6;
+
+/** ⭐ Real seconds the settling window stays open at most (grain). */
+const SETTLING_REAL_S = 600;
+
+/** One bilge pump's throughput, L/s — what a sounding tells an expert she out-runs. */
+const ONE_PUMP_LPS = 0.6;
+
+/** The bilge she has as it stands now, for a reading. */
+export interface BilgeState {
+  /** Litres in her bilge. */
+  litres: number;
+  /** The water's height above her keel, m. */
+  heightM: number;
+  /** Her hull's depth, keel to deck, m. */
+  depthM: number;
+  /** What is coming in, L/s, now. */
+  leakLps: number;
+  /** Her shell's band now (the hull clock). */
+  band: string;
+}
+
 export const SHIP_CLASS_PATH = '/platform/idea/Ship';
 
-export default class Ship extends PersistableMixin(
-  VoyagingMixin(MovingMixin(EngagedMixin(PositionedMixin(Structure)))),
-) {
+export default class Ship extends BilgeMixin(PersistableMixin(
+  VoyagingMixin(MovingMixin(EngagedMixin(PositionedMixin(DurableMixin(FacedMixin(Structure)))))),
+)) {
   static fieldMeta: FieldMeta = {
     deckHeightM: { persistent: true, authorable: true },
     mastheadHeightM: { persistent: true, authorable: true },
@@ -69,7 +249,150 @@ export default class Ship extends PersistableMixin(
     aground: { persistent: true },
     holed: { persistent: true },
     overboard: { persistent: true },
+    berth: { persistent: true, authorable: true, ref: 'identity:relation' },
+    moored: { persistent: true, authorable: true },
+    gangwayKeyway: { persistent: true, authorable: true },
+    gangwayLocked: { persistent: true, authorable: true },
+    owed: { persistent: true },
+    charter: { persistent: true },
+    warren: { persistent: true, authorable: true, ref: 'identity:relation' },
+    settling: { persistent: true },
+    settled: { persistent: true },
+    wreck: { persistent: true },
+    shipRegister: { persistent: true, authorable: true, ref: 'identity:relation' },
+    registeredName: { persistent: true, authorable: true },
   };
+
+  // ── her hull's outside ───────────────
+  // A hull takes coats — tar, paint — and the weather works on them
+  // WHEREVER SHE IS, not from a landing: at sea most of all. Under the
+  // coat is her FABRIC — her seams, their oakum and pitch — a `Durable`
+  // condition exactly as a house's is: once the coat is gone the weather
+  // wears it at the house's rate (`structure.weather.daysToWorn`), read in
+  // the house's words, and `maintain` with a caulker's kit makes it sound.
+  // What a house's worn fabric reads as, a hull's LEAKS (her bilge). A
+  // ship authored with no coat on her is bare from her launch, so her
+  // seams start to go at once. A hole is something else again: `holed`.
+
+  /**
+   * ⭐ Once the coat is gone her seams go (harbors: *the same clock, the
+   * same rate as a house*): half the condition scale in
+   * `structure.weather.daysToWorn` game days.
+   */
+  public override bareWearPerDay(): number {
+    let days = 45;
+    try {
+      const n = Number.parseFloat(AppApi.setting(AppSettingKeys.structureWeatherDaysToWorn) ?? '');
+      if (Number.isFinite(n) && n > 0) days = n;
+    } catch {
+      /* cold cache — the shipped default */
+    }
+    return 0.5 / days;
+  }
+
+  /**
+   * ⭐ Reconcile on read: her bilge is brought up to now over
+   * her hull's line as it stood — so the leak is integrated band by band,
+   * and the bilge's stamp never falls behind the hull's — then the weather
+   * since the last read. The first read of a fresh hull is kept at once:
+   * an authored ship never sleeps, and a stamp never captured would
+   * restart her clock on every boot.
+   */
+  public override getCondition(): number {
+    this.reconcileWeather();
+    return super.getCondition();
+  }
+
+  /** The weather's walk on her hull — her bilge first, over the line as it stood. */
+  public override reconcileWeather(): number | null {
+    const fresh = this.getWeatheredToS() === null;
+    this.integrateBilge(WorldClockApi.getNow().rawValue());
+    const bareAt = super.reconcileWeather();
+    if (fresh) this.persistMooring();
+    return bareAt;
+  }
+
+  /**
+   * ⭐ Caulked (`maintain`): the water that came in came in at the old
+   * rate, then her seams are what they are set to — and kept at once.
+   */
+  public override setCondition(value: number): void {
+    this.integrateBilge(WorldClockApi.getNow().rawValue());
+    super.setCondition(value);
+    this.persistMooring();
+  }
+
+  /**
+   * ⭐ Her hull's line, read WITHOUT reconciling: where her
+   * seams stood at the last read and how fast they are going now — only
+   * while her coat is gone. A leak integrates over it, band by band.
+   */
+  private hullLine(): { condition: number; stampS: number; perSecond: number } {
+    return {
+      condition: this.getWearCondition(),
+      stampS: this.getWeatheredToS() ?? 0,
+      perSecond: this.coatGone() ? this.bareWearPerDay() / 86_400 : 0,
+    };
+  }
+
+  /**
+   * ⭐ Put her hull at `condition`, read as of `stampS` (the
+   * staged twin of a hull that weathered there). A test world's staging
+   * only; the game moves a hull by the weather and `maintain`.
+   */
+  @CallSecurity(SecurityPolicies.FromModule('/platform/idea/api/TestHarnessLogic#TestHarnessLogic'))
+  public stageHull(condition: number, stampS: number): void {
+    super.setCondition(Math.min(1, Math.max(0, Number(condition) || 0)));
+    this.setWeatheredToS(Math.max(0, Number(stampS) || 0));
+  }
+
+  /** Her hull's line, for staging a sleep (the slope while bare). */
+  public hullTrajectory(): { condition: number; stampS: number; perSecond: number } {
+    return this.hullLine();
+  }
+
+  /** The place her outside meets the air: her deck. */
+  public override weatherScope(): Stuff | null {
+    // HER deck, asked of her — a ship of a kind's deck
+    // row is every smack's.
+    return this.watchRoomNow();
+  }
+
+  public override weatherExposureAt(_scope: Stuff): number {
+    return 1;
+  }
+
+  public override skyLightAt(_scope: Stuff): number {
+    return 1;
+  }
+
+  public override airChangeAt(_scope: Stuff): number {
+    return 1;
+  }
+
+  /**
+   * Her hull's skin, roughly: length × (beam + twice the draft) — read off
+   * her hull as she floats (`hullNow`), which every hull reader uses, so a
+   * ship nobody measured still has a hull to paint (the walk found it 0).
+   */
+  public override coatAreaM2(): number {
+    const h = this.hullNow();
+    return h.lengthM * (h.beamM + 2 * h.draftM);
+  }
+
+  /** ⭐ Her hull is painted from where she lies — the quay alongside (paint D9). */
+  public override coatReachRefusal(actor: Stuff): ActRefusal | null {
+    return this.landingRefusal(actor);
+  }
+
+  /**
+   * ⭐ Her hull's coats are kept with her record (merge of paint into
+   * harbors): a ship keeps a record whoever holds her — her mooring, her
+   * bilge, her register entry — so the tar on her hull is kept with it.
+   */
+  public override persistsCoats(): boolean {
+    return true;
+  }
 
   /**
    * ⭐ Who went over her side and has not come back aboard (river D30):
@@ -97,7 +420,7 @@ export default class Ship extends PersistableMixin(
       if (who === null || who.isDestroyed()) continue;
       if (MixinApi.isOrganism(who) && !who.isAlive()) continue;
       const room = MixinApi.isContainable(who) ? who.getContainer() : null;
-      if (room === null || !MixinApi.isWaterPlace(room)) continue;
+      if (room === null || !MixinApi.isWaterPlace(room) || room.depthNow() <= 0) continue;
       keep.push(id);
       still.push(who);
     }
@@ -122,7 +445,589 @@ export default class Ship extends PersistableMixin(
   public isAground(): boolean { return this.aground; }
   public isHoled(): boolean { return this.holed; }
   public setAground(v: boolean): void { this.aground = v === true; }
-  public setHoled(v: boolean): void { this.holed = v === true; }
+  public setHoled(v: boolean): void {
+    // ⭐ The water that came in before the hole (or before it was patched)
+    // came in at the old rate: integrate up to now first.
+    this.integrateBilge(WorldClockApi.getNow().rawValue());
+    this.holed = v === true;
+  }
+
+  /* ───────────── the hull clock and the bilge ───────────── */
+
+  // ⭐ Her bilge's litres and stamp are `BilgeMixin`'s (the
+  // boat's and hers are one substrate); where it comes in is hers below.
+
+  /**
+   * ⭐ How far her seams have opened — `sound · weathered · worn ·
+   * shabby · dilapidated`, the five the leak is tuned in. Read live, so
+   * `maintain` aboard makes her tight at once.
+   */
+  public async hullBand(): Promise<string> {
+    return seamBandFor(this.getCondition());
+  }
+
+  /** ⭐ What is coming in now, L/s: her band's rate by her length, and a hole's. */
+  public async leakLps(): Promise<number> {
+    return this.leakLpsFor(await this.hullBand());
+  }
+
+  /** The leak a hull of her length takes in a given band, L/s (with her hole, if holed). */
+  public leakLpsFor(band: string): number {
+    const length = this.hull?.lengthM ?? 30;
+    const perM = shipSetting(`ship.leak.${band}`, LEAK_LPS_PER_M[band] ?? 0);
+    const hole = this.holed ? shipSetting('ship.leak.holed', HOLED_LPS_PER_M) : 0;
+    return length * (perM + hole);
+  }
+
+  /** Her hull's depth, keel to deck, m — the measured `depthM`, else twice her draft. */
+  public hullDepthM(): number {
+    const h = this.hull;
+    if (h?.depthM !== undefined && h.depthM > 0) return h.depthM;
+    return 2 * (h?.draftM ?? 1.2);
+  }
+
+  /** What her hull holds to the deck, L — past it, she has no more to give. */
+  public override bilgeCapacityL(): number {
+    const h = this.hull ?? { draftM: 1.2, beamM: 6, lengthM: 30 };
+    return h.lengthM * h.beamM * BLOCK * this.hullDepthM() * 1000;
+  }
+
+  /** Litres in her bilge as last reconciled (sync — a reading reconciles first). */
+  public bilgeNowL(): number {
+    return this.bilgeL;
+  }
+
+  /** The water's height above her keel as last reconciled, m. */
+  public bilgeHeightNowM(): number {
+    const h = this.hull ?? { draftM: 1.2, beamM: 6, lengthM: 30 };
+    return this.bilgeL / (h.lengthM * h.beamM * BLOCK * 1000);
+  }
+
+  /**
+   * ⭐ Bring her bilge up to now: the leak integrated over her shell's
+   * LINE since the bilge's stamp — band by band, never sampled, so a long
+   * absence fills her at every rate she weathered through. Her warren asks
+   * this before it reconciles or restores her shell (`ShipWarren`), so the
+   * stamp never falls behind the shell's. Returns her litres.
+   */
+  public async reconcileBilge(): Promise<number> {
+    this.getCondition(); // integrates the bilge first, then the weather
+    await this.noteFlood();
+    return this.bilgeL;
+  }
+
+  /**
+   * The integral itself, sync — `BilgeMixin`'s, over her own leak. Her
+   * warren calls it; a first stamp is kept at once.
+   */
+  public override integrateBilge(nowS: number): void {
+    const fresh = this.bilgeStamp <= 0;
+    super.integrateBilge(nowS);
+    if (fresh) this.persistMooring();
+  }
+
+  /**
+   * ⭐ What came in through her hull between two moments (`BilgeMixin`'s
+   * hook), over her hull's line — band by band, never sampled. Her hull is
+   * HERS (merge of paint): she knows it whether or not her rooms stand.
+   */
+  public override leakedBetween(from: number, nowS: number): number | null {
+    let litres = 0;
+    const line = this.hullLine();
+    const k = line.perSecond;
+    const at = (t: number): number =>
+      line.stampS <= 0 || !(k > 0)
+        ? line.condition
+        : Math.min(1, Math.max(0, line.condition - k * (t - line.stampS)));
+    // Where each band begins on the line, inside the span.
+    const cuts = [from, nowS];
+    if (line.stampS > 0 && k > 0) {
+      for (const [floor] of SEAM_BANDS) {
+        if (floor <= 0) continue;
+        const t = line.stampS + (line.condition - floor) / k;
+        if (t > from && t < nowS) cuts.push(t);
+      }
+    }
+    cuts.sort((a, b) => a - b);
+    for (let i = 0; i + 1 < cuts.length; i += 1) {
+      const a = cuts[i]!;
+      const b = cuts[i + 1]!;
+      if (!(b > a)) continue;
+      litres += this.leakLpsFor(seamBandFor(at((a + b) / 2))) * (b - a);
+    }
+    return litres;
+  }
+
+  /**
+   * ⭐ Pump her: up to `litres` out of her bilge and over the side —
+   * the bilge well's lift. Returns what came out; refuses nothing (an
+   * empty bilge gives nothing back).
+   */
+  public async pumpOut(litres: number): Promise<number> {
+    await this.reconcileBilge();
+    const moved = this.takeBilge(litres);
+    if (!(moved > 0)) return 0;
+    this.persistMooring();
+    await this.noteFlood();
+    return moved;
+  }
+
+  /**
+   * ⭐ Stage her bilge: `litres` in her as of `stampS` — the
+   * staged twin of a bilge that filled there. A test world's staging only.
+   */
+  @CallSecurity(SecurityPolicies.FromModule('/platform/idea/api/TestHarnessLogic#TestHarnessLogic'))
+  public stageBilge(litres: number, stampS: number): void {
+    this.resetBilge(litres, stampS);
+    // ⭐ The water decides, not the staging: a
+    // settled ship staged down near her floors is still ON the mud until
+    // she is read — `noteFlood` floats her when her draft clears the
+    // bottom. Resetting `settled` here meant step 16's pumping could never
+    // lift her off.
+    this.persistMooring();
+  }
+
+  /** ⭐ Her bilge now, reconciled — what a sounding reads. */
+  public async bilgeState(): Promise<BilgeState> {
+    await this.reconcileBilge();
+    const band = await this.hullBand();
+    return {
+      litres: this.bilgeL,
+      heightM: this.bilgeHeightNowM(),
+      depthM: this.hullDepthM(),
+      leakLps: this.leakLpsFor(band),
+      band,
+    };
+  }
+
+  /**
+   * ⭐ Her bilge in words, as a sounding finds it — banded by the
+   * reader's seamanship: everybody hears how deep and whether it is
+   * rising; a novice how fast; an expert whether one pump would gain on
+   * it. Never a number (the reading adds the bracketed figure).
+   */
+  public async bilgeWords(band: CompetenceBandName): Promise<string> {
+    const st = await this.bilgeState();
+    const h = st.heightM;
+    const level =
+      st.litres < 5
+        ? 'Her well is dry.'
+        : h < 0.05
+          ? 'There is a little water sloshing at the bottom of her well.'
+          : h < 0.15
+            ? "There is a hand's depth of water in her bilge."
+            : h < 0.5
+              ? 'There is water knee-deep in her bilge.'
+              : h < 1
+                ? 'There is water waist-deep in her bilge.'
+                : st.heightM < st.depthM * 0.9
+                  ? 'Her bilge is deep in water — deeper than a man could stand in.'
+                  : 'She is full of water almost to her deck.';
+    if (!(st.leakLps > 0)) return `${level} It is not rising.`;
+    const rank = CompetenceBand.rank(band);
+    if (rank < CompetenceBand.rank('novice')) return `${level} It is rising.`;
+    const rate =
+      st.leakLps < 0.05
+        ? 'It is rising slowly — she weeps at her seams.'
+        : st.leakLps < 0.3
+          ? 'It is rising steadily; she is making water at her seams.'
+          : 'It is rising fast.';
+    if (rank < CompetenceBand.rank('expert')) return `${level} ${rate}`;
+    const pump =
+      st.leakLps < ONE_PUMP_LPS
+        ? 'One pump kept at the brake would gain on it.'
+        : 'One pump at the brake would not keep up with it.';
+    return `${level} ${rate} ${pump}`;
+  }
+
+  /* ───────────── flooding, settling, sinking, the wreck ───────────── */
+
+  /**
+   * ⭐ She is settling: the water is at her deck and she will not float
+   * much longer. `null` while she floats. `sinceRealMs` is the WALL clock —
+   * the backstop is real seconds, whatever the world's pace.
+   */
+  protected settling: { sinceS: number; sinceRealMs: number } | null = null;
+  /** ⭐ On the bottom of a berth too shallow to take her: settled, not sunk — pumpable. */
+  protected settled = false;
+  /** ⭐ Gone down: when, and the depth of water she lies in. Her rooms are the wreck. */
+  protected wreck: { atS: number; depthM: number } | null = null;
+
+  /** Runtime: acts each person aboard has made since she began to settle, by stuffId. */
+  private _acts = new Map<string, number>();
+  private _actsSub: Subscription<CommandDispatchedPayload> | null = null;
+  private _backstop: ScheduleHandle | null = null;
+  private _sinking = false;
+
+  public isSunk(): boolean {
+    return this.wreck !== null;
+  }
+
+  public isSettled(): boolean {
+    return this.settled;
+  }
+
+  public isSettling(): boolean {
+    return this.settling !== null;
+  }
+
+  public getWreck(): { atS: number; depthM: number } | null {
+    return this.wreck ? { ...this.wreck } : null;
+  }
+
+  /**
+   * ⭐ The water's height above her keel, m: her bilge spread over her
+   * hull's box (`L × B × 0.7`); sunk, the sea's whole depth over her.
+   */
+  public floodHeightM(): number {
+    if (this.wreck !== null) return this.wreck.depthM;
+    return this.bilgeHeightNowM();
+  }
+
+  /**
+   * ⭐ How high a room's floor stands above her keel, m: what the room says
+   * (`ownFloorM`, the room row's own field — her kind's plan rows author
+   * it), else her deck at her hull's depth and any other room on her keel.
+   */
+  public floorMOf(room: Stuff, ownFloorM: number | null = null): number {
+    if (ownFloorM !== null && Number.isFinite(ownFloorM)) return ownFloorM;
+    const w = this._warren !== null && !this._warren.isDestroyed() ? this._warren : null;
+    // A room of her plan that names no floor: her deck (the entrance)
+    // stands at her hull's depth, any other room on her keel.
+    if (w !== null && w.mintedKeyOf(room) !== null) {
+      return w.entryRoom() === room ? this.hullDepthM() : 0;
+    }
+    const entrance = this.getEntrance();
+    const path = room.getTemplatePath();
+    if (entrance && path === entrance) return this.hullDepthM();
+    return 0;
+  }
+
+  /**
+   * ⭐ How deep the water stands over a room's floor, m — her rooms
+   * flood from the lowest up by this arithmetic alone. ≤ 0 is dry.
+   */
+  public floodDepthAt(room: Stuff, ownFloorM: number | null = null): number {
+    return this.floodHeightM() - this.floorMOf(room, ownFloorM);
+  }
+
+  /**
+   * ⭐ How deep the water is under her where she lies, m: a kept
+   * berth's own depth (a mud berth, the harbor's fact), else her frame's
+   * read of the bottom; `null` when nobody can say.
+   */
+  public async bottomDepthM(): Promise<number | null> {
+    if (this.moored && this.berth) {
+      const d = (await this.berthingAt(this.berth))?.berthDepthM();
+      if (d !== null && d !== undefined && Number.isFinite(d)) return d;
+    }
+    const frame = await this.liveFrame();
+    if (frame === null) return null;
+    const line = this.getLinePosition();
+    const chart = this.getExpansePosition();
+    const pos: FramePos | null =
+      line !== null ? { frame: 'line', at: line } : chart !== null ? { frame: 'chart', at: chart } : null;
+    if (pos === null) return null;
+    try {
+      return await frame.depthUnder(pos, WorldClockApi.getNow().rawValue());
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * ⭐ Where the water in her has got to, decided. Asked after every
+   * bilge reconcile, every stroke of the pump, at stand-up and when her
+   * flood watch comes due. Nothing is rolled: the bilge and the depth
+   * under her decide.
+   *
+   * - **Settled** at a berth: she floats again once her draft with the
+   *   water in her clears the bottom (pumped out).
+   * - **Settling**: pumped back below her deck, she holds — the window
+   *   closes and she is told so.
+   * - **Full to her deck**: in water shallower than her hull she settles
+   *   onto the bottom; otherwise she begins to settle (the window).
+   * - **Not full**: the watch is armed for when she will be.
+   */
+  public async noteFlood(): Promise<void> {
+    if (this.wreck !== null || this._sinking || this.isDestroyed()) return;
+    const full = this.bilgeL >= this.bilgeCapacityL() - 1e-6;
+    if (this.settled) {
+      // ⭐ She floats again once her draft with the water in her clears the
+      // bottom — and at a berth that dries to her keel anyway (the mud she
+      // always lay on at low water) once she is pumped down to her floors.
+      const bottom = await this.bottomDepthM();
+      const h = this.hull ?? { draftM: 1.2 };
+      const clear = Math.max(bottom ?? 0, h.draftM + REFLOAT_BILGE_M);
+      if (bottom !== null && h.draftM + this.bilgeHeightNowM() < clear) {
+        this.settled = false;
+        this.persistMooring();
+        await this.tellAboard('She lifts off the mud and floats again.');
+      }
+      if (!this.settled) this.armFloodWatch();
+      return;
+    }
+    if (this.settling !== null) {
+      if (!full) await this.endSettling();
+      return;
+    }
+    if (!full) {
+      this.armFloodWatch();
+      return;
+    }
+    const bottom = await this.bottomDepthM();
+    if (bottom !== null && bottom < this.hullDepthM()) {
+      this.settled = true;
+      this.persistMooring();
+      await this.tellAboard('She has settled onto the mud, the water standing in her to her deck.');
+      return;
+    }
+    await this.beginSettling();
+  }
+
+  /**
+   * ⭐ Her flood watch: one game-time call when the water will reach
+   * her deck at the leak she has now — or at her shell's next band, when
+   * that comes first and the leak changes. A watch that fires early just
+   * arms the next one; nothing is sampled.
+   */
+  private armFloodWatch(): void {
+    try {
+      WorldClockApi.cancelByTag('ship.flood', this as unknown as Stuff);
+    } catch {
+      return; // no clock (a unit world)
+    }
+    if (this.wreck !== null || this.settled || this.settling !== null || this.isDestroyed()) return;
+    const band = seamBandFor(this.getWearCondition());
+    const lps = this.leakLpsFor(band);
+    if (!(lps > 0)) return;
+    const nowS = WorldClockApi.getNow().rawValue();
+    let dueS = (this.bilgeCapacityL() - this.bilgeL) / lps;
+    {
+      const line = this.hullLine();
+      if (line.stampS > 0 && line.perSecond > 0) {
+        const c = line.condition - line.perSecond * (nowS - line.stampS);
+        for (const [floor] of SEAM_BANDS) {
+          if (floor <= 0 || floor >= c) continue;
+          dueS = Math.min(dueS, (c - floor) / line.perSecond + 1);
+          break;
+        }
+      }
+    }
+    try {
+      WorldClockApi.at(
+        Quantity.of(nowS + Math.max(1, dueS), 's'),
+        () => {
+          void this.reconcileBilge().catch((err) => console.warn('Ship: the flood watch failed:', err));
+        },
+        { host: this as unknown as Stuff, tag: 'ship.flood' },
+      );
+    } catch (err) {
+      console.warn(`Ship: ${this.getDurableHandle()} could not arm her flood watch:`, err);
+    }
+  }
+
+  /**
+   * ⭐ She begins to settle: everyone aboard is told once, and the
+   * window opens — **per person**, sized in acts (*no window shall be
+   * shorter than the act that answers it*): each person aboard, or who
+   * comes aboard while she settles, has `ship.settlingActs` commands of
+   * their own; she goes down when everyone still aboard has used theirs,
+   * or after `ship.settlingRealS` real seconds (the backstop an idle body
+   * or an empty ship meets). Nobody aboard: she goes at once.
+   */
+  private async beginSettling(): Promise<void> {
+    this.settling = { sinceS: WorldClockApi.getNow().rawValue(), sinceRealMs: Date.now() };
+    this._acts.clear();
+    this.persistMooring();
+    await this.tellAboard('She is settling. The water is at her deck, and she will not float much longer.');
+    if ((await this.peopleAboard()).length === 0) {
+      await this.sink();
+      return;
+    }
+    this.listen();
+  }
+
+  /** The window, back after a restart: the backstop's remainder, the acts afresh. */
+  private async resumeSettling(): Promise<void> {
+    if (this.settling === null) return;
+    if ((await this.peopleAboard()).length === 0) {
+      await this.sink();
+      return;
+    }
+    this.listen();
+  }
+
+  /** Pumped back below her deck in time: the window closes. */
+  private async endSettling(): Promise<void> {
+    this.settling = null;
+    this.stopListening();
+    this.persistMooring();
+    await this.tellAboard('The water is below her deck again; she is holding.');
+    this.armFloodWatch();
+  }
+
+  /** Start counting acts and the backstop's clock. */
+  private listen(): void {
+    if (this._actsSub === null) {
+      try {
+        this._actsSub = EventApi.on<CommandDispatchedPayload>(CommandDispatchedEvent.KIND, (p) => {
+          void this.countAct(p).catch((err) => console.warn('Ship: an act was not counted:', err));
+        });
+      } catch (err) {
+        // ⚠ The bus refused the subscription: the window is the backstop alone.
+        console.warn(`Ship: ${this.getDurableHandle()} cannot count acts aboard; the backstop alone closes her window:`, err);
+      }
+    }
+    if (this._backstop === null && this.settling !== null) {
+      const leftMs = Math.max(0, settlingRealMs() - (Date.now() - this.settling.sinceRealMs));
+      this._backstop = ScheduleApi.schedule(leftMs + 50, () => {
+        this._backstop = null;
+        void this.checkSettling().catch((err) => console.warn('Ship: the settling backstop failed:', err));
+      });
+    }
+  }
+
+  private stopListening(): void {
+    try {
+      this._actsSub?.unsubscribe();
+    } catch {
+      // gone with the bus
+    }
+    this._actsSub = null;
+    if (this._backstop !== null) ScheduleApi.cancel(this._backstop);
+    this._backstop = null;
+    this._acts.clear();
+  }
+
+  /**
+   * ⭐ One command dispatched, somewhere: counted only when its giver
+   * stands in one of her rooms. Anybody else's command is nothing to her.
+   */
+  public async countAct(p: CommandDispatchedPayload): Promise<void> {
+    if (this.settling === null) return;
+    const giver = StuffApi.findById(p.subjectId);
+    if (giver === undefined || !(await this.isAboard(giver))) return;
+    this._acts.set(p.subjectId, (this._acts.get(p.subjectId) ?? 0) + 1);
+    await this.checkSettling();
+  }
+
+  /** Somebody left one of her rooms while she settles: they are out of the count. */
+  public noteLeft(): void {
+    if (this.settling === null) return;
+    void this.checkSettling().catch((err) => console.warn('Ship: the settling window was not checked:', err));
+  }
+
+  /**
+   * ⭐ Has her window closed? — everyone still aboard has used their
+   * acts, nobody is aboard, or the backstop's real seconds are gone.
+   */
+  public async checkSettling(nowRealMs: number = Date.now()): Promise<boolean> {
+    const window = this.settling;
+    if (window === null || this.wreck !== null) return false;
+    const people = await this.peopleAboard();
+    const acts = settlingActs();
+    const used = people.every((who) => (this._acts.get(who.stuffId) ?? 0) >= acts);
+    const late = nowRealMs - window.sinceRealMs >= settlingRealMs();
+    if (!used && !late) return false;
+    if (this.settling === null || this.wreck !== null) return false; // closed meanwhile
+    await this.sink();
+    return true;
+  }
+
+  /** The interactive people standing in her rooms now. */
+  private async peopleAboard(): Promise<Stuff[]> {
+    return (await this.aboard()).filter((x) => MixinApi.isHasInteractive(x));
+  }
+
+  /** Does `who` stand in one of her rooms? */
+  private async isAboard(who: Stuff): Promise<boolean> {
+    const room = MixinApi.isContainable(who) ? who.getContainer() : null;
+    if (room === null) return false;
+    return (await this.liveMembers()).includes(room as unknown as Stuff & Container);
+  }
+
+  /**
+   * ⭐ She goes down. Where she lies, with everything in her: her
+   * rooms are the wreck, at the bottom's depth; whoever is still aboard is
+   * in a room under the sea; her title, her register entry and her cargo
+   * are untouched. The water keeps a surface over her and a way down to
+   * her (`Frame.stopOver` — the water pack wires it).
+   */
+  public async sink(): Promise<void> {
+    if (this.wreck !== null || this._sinking) return;
+    this._sinking = true;
+    try {
+      this.stopListening();
+      this.settling = null;
+      try {
+        WorldClockApi.cancelByTag('ship.flood', this as unknown as Stuff);
+      } catch {
+        // no clock
+      }
+      if (this.getCourse() !== null) await this.anchorHere();
+      if (this.moored) await this.castOffForGood();
+      const bottom = (await this.bottomDepthM()) ?? this.hullDepthM() * 4;
+      this.wreck = { atS: WorldClockApi.getNow().rawValue(), depthM: Math.max(bottom, this.hullDepthM()) };
+      this.bilgeL = this.bilgeCapacityL();
+      this.persistMooring();
+      await this.tellAboard('She goes down under you. The sea comes in over her deck and closes over everything.');
+      await this.wireWreck();
+    } finally {
+      this._sinking = false;
+    }
+  }
+
+  /**
+   * Made fast where she went down: the lines part and the way aboard comes
+   * off the landing (the register's entry is untouched — she is still
+   * hers, and still where she lies).
+   */
+  private async castOffForGood(): Promise<void> {
+    const keeper = await this.berthingAt(this.berth);
+    await this.bringLinesIn();
+    this.removeBerth();
+    this.moored = false;
+    this.berth = null;
+    if (keeper !== null) await keeper.release(this as unknown as Stuff, WorldClockApi.getNow().rawValue());
+  }
+
+  /** ⭐ The water over her and the way down to her — asked of her frame; again at every stand-up. */
+  private async wireWreck(): Promise<void> {
+    if (this.wreck === null) return;
+    try {
+      await (await this.liveFrame())?.stopOver(this as never);
+    } catch (err) {
+      console.warn(`Ship: ${this.getDurableHandle()}'s wreck was not wired to the water over her:`, err);
+    }
+  }
+
+  /** Stood up (restored or seeded): the wreck re-wired, the window resumed, or the flood read. */
+  private async afterStanding(): Promise<void> {
+    try {
+      if (this.wreck !== null) await this.wireWreck();
+      else if (this.settling !== null) await this.resumeSettling();
+      else await this.reconcileBilge();
+    } catch (err) {
+      console.warn(`Ship: ${this.getDurableHandle()} could not read the water in her:`, err);
+    }
+  }
+
+  /**
+   * ⭐ Credit those handling her with seamanship: whoever aboard may
+   * take her helm — her master, her charterer — for mooring, casting off,
+   * and bringing her to the node she was laid for.
+   */
+  private async creditHands(difficulty: Difficulty): Promise<void> {
+    try {
+      for (const who of await this.aboard()) {
+        if (!this.mayBeSteeredBy(who) || !MixinApi.isAdvancing(who)) continue;
+        await who.creditDeed({ discipline: 'seamanship', difficulty, outcome: 'success' });
+      }
+    } catch (err) {
+      console.warn(`Ship: seamanship was not credited aboard ${this.getDurableHandle()}:`, err);
+    }
+  }
 
   /** An observer's eye height on deck, meters. */
   protected deckHeightM = 0;
@@ -169,23 +1074,1150 @@ export default class Ship extends PersistableMixin(
     return deck;
   }
 
-  /** Runtime cache of the member room rows (the extent's descendants). */
-  private memberPaths: Promise<string[]> | null = null;
+  /* ───────────── who answers for her, and what she owes ───────────── */
 
-  /** The member rooms that are resident now. */
-  private async liveMembers(): Promise<(Stuff & Container)[]> {
-    if (this.memberPaths === null) {
-      const ext = this.getExtent();
-      this.memberPaths = ext === ''
-        ? Promise.resolve([])
-        : Template.findDescendants(ext).then((ts) => ts.map((t) => t.path));
+  /** ⭐ What she has been billed and not yet paid, in the order billed. */
+  protected owed: ShipBill[] = [];
+
+  /** Her unpaid bills, copies. */
+  public getOwed(): ShipBill[] {
+    return this.owed.map((b) => ({ ...b }));
+  }
+
+  /** ⭐ Bill her: carried until it is paid at a harbor office. */
+  public owe(bill: ShipBill): void {
+    const amountMinor = Math.ceil(Number(bill.amountMinor));
+    if (!Number.isFinite(amountMinor) || amountMinor <= 0 || typeof bill.to !== 'string' || bill.to === '') {
+      throw new Error(`Ship.owe: a bill wants a venue and a positive amount (got ${JSON.stringify(bill)})`);
     }
-    const out: (Stuff & Container)[] = [];
-    for (const p of await this.memberPaths) {
-      const s = StuffApi.findByTemplatePath<Stuff>(p);
-      if (s && s.isPlace() && MixinApi.isContainer(s)) out.push(s);
+    const line: ShipBill = { to: bill.to, amountMinor, reason: String(bill.reason ?? '') };
+    if (typeof bill.by === 'string' && bill.by !== '') line.by = bill.by;
+    this.owed.push(line);
+    this.persistMooring();
+  }
+
+  /** One of her bills has been paid: the first that matches comes off. `false` when none matched. */
+  public settleOwed(bill: ShipBill): boolean {
+    const i = this.owed.findIndex((b) => b.to === bill.to && b.amountMinor === bill.amountMinor && b.reason === bill.reason);
+    if (i < 0) return false;
+    this.owed.splice(i, 1);
+    this.persistMooring();
+    return true;
+  }
+
+  /** What her unpaid bills come to, minor units. */
+  public owedMinor(): number {
+    return this.owed.reduce((n, b) => n + b.amountMinor, 0);
+  }
+
+  /**
+   * ⭐ Does `who` answer for her — the one whose business
+   * her dues and bills are? Whoever holds her company's `master` seat, her
+   * charterer while the charter runs, and a charterer whose days she still
+   * carries unpaid (the charter ended as she berthed; clearing her is still
+   * theirs), and her managing owner — a player who holds a
+   * majority of her company's units.
+   */
+  public answersFor(who: Stuff): boolean {
+    if (this.holdsMasterSeat(who) || this.isChartererOf(who) || this.isManagingOwner(who)) return true;
+    const id = idOf(who);
+    return id !== '' && this.owed.some((b) => b.by === id);
+  }
+
+  /**
+   * ⭐ May `who` take her helm? Her charterer while the charter runs,
+   * or whoever holds her company's `master` seat — nobody else. (Crews and
+   * mates at the helm are a later seam: more seats read here.)
+   */
+  public override mayBeSteeredBy(who: Stuff): boolean {
+    return this.isChartererOf(who) || this.holdsMasterSeat(who);
+  }
+
+  /** Does `who` hold her company's `master` seat? */
+  private holdsMasterSeat(who: Stuff): boolean {
+    const house = this.house;
+    if (house === null || !MixinApi.isEmployed(who)) return false;
+    return who.getEmployment(house)?.positionKey === MASTER_POSITION;
+  }
+
+  /* ───────────── her register, her owners, her flag ───────────── */
+
+  /**
+   * ⭐ The register she is entered in — a `ShipRegister` row path, `null`
+   * when she is in none (stateless). Set as she is commissioned; an
+   * authored ship's row names it. ⭐ She knows her register:
+   * nothing searches the registers for her handle.
+   */
+  protected shipRegister: string | null = null;
+  /** The name she is entered under — the register files her by it (`''`: in none). */
+  protected registeredName = '';
+
+  public getShipRegister(): string | null { return this.shipRegister; }
+  public setShipRegister(v: string | null): void { this.shipRegister = typeof v === 'string' && v !== '' ? v : null; }
+  public getRegisteredName(): string { return this.registeredName; }
+  public setRegisteredName(v: string): void { this.registeredName = typeof v === 'string' ? v.trim() : ''; }
+
+  /** ⭐ Her register, stood up — `null` when she is in none, or the row is not a register (said loudly). */
+  public async ownRegister(): Promise<ShipRegister | null> {
+    if (this.shipRegister === null) return null;
+    const reg = await StuffApi.singleton<Stuff>(this.shipRegister).catch((err) => {
+      console.warn(`Ship: ${this.getDurableHandle()}'s register '${this.shipRegister}' did not stand up:`, err);
+      return null;
+    });
+    if (reg instanceof ShipRegister) return reg;
+    if (reg !== null) console.warn(`Ship: ${this.getDurableHandle()} names '${this.shipRegister}' as her register, which is not one`);
+    return null;
+  }
+
+  /**
+   * ⭐ Her entry in her register — one keyed read under the name she
+   * was entered as, checked to be HER (the entry names her handle). `null`
+   * when she is stateless.
+   */
+  public async registerEntry(): Promise<ShipEntry | null> {
+    if (this.registeredName === '') return null;
+    const reg = await this.ownRegister();
+    if (reg === null) return null;
+    const entry = await reg.entryNamed(this.registeredName);
+    if (entry === null) return null;
+    const mine = this.getDurableHandle() ?? this.getTemplatePath();
+    if (entry.key !== mine) {
+      console.warn(`Ship: the register's '${this.registeredName}' is ${entry.key}, not ${mine}`);
+      return null;
+    }
+    return entry;
+  }
+
+  /** ⭐ Her flag state — the government whose register she is entered in, or `null` (stateless). */
+  public async flagState(): Promise<string | null> {
+    const entry = await this.registerEntry();
+    if (entry === null) return null;
+    return entry.flag || (await this.ownRegister())?.getGovernmentKey() || null;
+  }
+
+  /**
+   * ⭐ Her company — the business that owns her, whose cap table
+   * holds her units (her sixty-fourths). A ship of a kind's is minted under
+   * her serial at her commissioning and kept with her; an authored ship's
+   * is her `house:` row. `null` when she has none yet (a hull not
+   * commissioned), or it keeps no table (said loudly).
+   */
+  public async company(): Promise<(Stuff & CapTable) | null> {
+    const house = this.house ?? '';
+    if (house === '') return null;
+    let c: Stuff | null;
+    if (this.isOfKind()) {
+      const serial = this.serial() ?? '';
+      if (serial === '' || !house.endsWith(`/${serial}`)) return null;
+      c = await this.mintCompany();
+    } else {
+      c = await StuffApi.singleton<Stuff>(house).catch((err) => {
+        console.warn(`Ship: ${this.getDurableHandle()}'s company '${house}' did not stand up:`, err);
+        return null;
+      });
+    }
+    if (c === null) return null;
+    if (MixinApi.isCapTable(c)) return c;
+    console.warn(`Ship: ${this.getDurableHandle()}'s company '${house}' keeps no table of owners`);
+    return null;
+  }
+
+  /** ⭐ Her managing owner: whoever holds a MAJORITY of her company's units — `null` when nobody does. */
+  public async managingOwner(): Promise<UnitHolder | null> {
+    return (await this.company())?.majorityHolder() ?? null;
+  }
+
+  /** Everyone who holds any of her company's units, in the order they first held. */
+  public async shareHolders(): Promise<UnitHolder[]> {
+    return ((await this.company())?.capTableRows() ?? []).map((x) => ({ ...x.holder }));
+  }
+
+  /** Runtime: her managing owner as her company's table last said — read sync by `answersFor`. */
+  private _managingOwner: UnitHolder | null = null;
+
+  /** Is `who` her managing owner (a player holding a majority of her company's units)? */
+  public isManagingOwner(who: Stuff): boolean {
+    const owner = this._managingOwner;
+    const id = idOf(who);
+    return owner !== null && owner.kind === 'player' && id !== '' && owner.path === id;
+  }
+
+  /** ⭐ Read her company's table again — after she is commissioned, after her units change hands, as she stands up. */
+  public async refreshOwners(): Promise<void> {
+    try {
+      this._managingOwner = await this.managingOwner();
+    } catch (err) {
+      console.warn(`Ship: ${this.getDurableHandle()}'s owners could not be read:`, err);
+    }
+  }
+
+  /**
+   * ⭐ The flag she flies: the flag on her entrance room's flagstaff,
+   * or `null`. Only a claim — her flag STATE is her register's, and false
+   * colors are found out by reading it.
+   */
+  public flownFlag(): Flag | null {
+    const deck = this.watchRoomNow();
+    if (deck === null) return null;
+    for (const x of deck.getContents()) {
+      if (x instanceof Flagstaff) {
+        const flag = x.flying();
+        if (flag !== null) return flag;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Her deck if it stands now — never stands her up (a look is sync). What
+   * her way aboard shows a viewer on the landing (`BerthExit.peekDestination`).
+   */
+  public watchRoomNow(): (Stuff & Container) | null {
+    if (this.isOfKind()) {
+      const room = this._warren?.entryRoom() ?? null;
+      return room !== null && MixinApi.isContainer(room) ? room : null;
+    }
+    // An authored ship's entrance is a row of its own: its one instance.
+    const entrance = this.getEntrance();
+    const room = entrance ? StuffApi.findByIdentityPath<Stuff>(entrance).find((r) => !r.isDestroyed()) ?? null : null;
+    return room !== null && MixinApi.isContainer(room) ? room : null;
+  }
+
+  static markupAugmenters: MarkupAugmenter[] = [flagAugmenter];
+
+  /**
+   * ⭐ Commission her: a ship of a kind just bought, keyed
+   * by her serial, is named, given her own company — `buyer` its founder,
+   * holding the whole of its table (all sixty-four units) — entered in
+   * `register` (the register the yard's government keeps) as that
+   * company's, keyed (the gangway locked,
+   * the key to the buyer), her buyer made her master (a sole owner holds
+   * all three — owner, managing owner, master), and brought alongside
+   * `landingPath`. Returns what the buyer is told.
+   *
+   * @throws when she is not a ship of a kind, or her register refuses her
+   *   — the caller asked the register about her name before taking money,
+   *   so a refusal here is a race or a caller error, said loudly.
+   */
+  public async commission(buyer: Stuff, name: string, landingPath: string, register: ShipRegister): Promise<string> {
+    const handle = this.getDurableHandle();
+    const serial = this.serial();
+    if (!handle || !serial) {
+      throw new Error(`Ship.commission: only a ship of a kind, minted under her serial, is commissioned (got ${handle ?? '?'})`);
+    }
+    if (this.shipRegister !== null) throw new Error(`Ship.commission: ${handle} is in a register already (${this.shipRegister})`);
+    const registerPath = register.getTemplatePath();
+    if (!registerPath) throw new Error('Ship.commission: her register has no row path to be named by');
+    const flag = register.getGovernmentKey();
+    const owner = buyer.getIdentityPath();
+    if (!owner) throw new Error('Ship.commission: her buyer has no durable identity to hold her units');
+    const named = name.trim().replace(/^the\s+/i, '');
+    this.setName(`the ${named}`);
+    this.setShortDescription(named);
+    // ⚠ DERIVED (magic), named here: her keywords are written from her
+    // name at commissioning — no author typed them.
+    const words = named.toLowerCase().split(/\s+/).filter((w) => w.length > 0);
+    this.setKeywords([...new Set([named.toLowerCase(), ...words, ...this.getKeywords()])]);
+
+    // ⭐ Her company first — the register enters her as ITS (the title), and
+    // its table is her buyer's, whole.
+    const company = await this.mintCompany(named, { kind: 'player', path: owner, name: buyer.getPresentation() });
+    const companyPath = company?.getIdentityPath() ?? '';
+    if (company === null || companyPath === '' || !MixinApi.isCapTable(company)) {
+      throw new Error(`Ship.commission: ${named}'s company was not minted with a table of owners — she would have no owner`);
+    }
+    const refused = await register.enter({
+      name: named,
+      kind: this.getTemplatePath() ?? '',
+      key: handle,
+      owner: companyPath,
+    });
+    if (refused !== null) throw new Error(`Ship.commission: the register refused ${named} — ${refused}`);
+    this.shipRegister = registerPath;
+    this.registeredName = named;
+    await this.refreshOwners();
+    const units = company.totalUnits();
+
+    // ⭐ Her gangway is a door with a key: locked, the key with her owner.
+    const keyway = BoundaryApi.mintKeyway();
+    this.gangwayKeyway = keyway;
+    this.gangwayLocked = true;
+    try {
+      await new Lock(keyway, 'pin-tumbler').issueKeyTo(buyer);
+    } catch (err) {
+      console.warn(`Ship.commission: ${named}'s key was not issued:`, err);
+    }
+    // A sole owner is her master too: whoever holds a majority of her company appoints, and she names herself.
+    if (MixinApi.isOrganization(company)) {
+      const appointed = await company.appoint(buyer, MASTER_POSITION);
+      if (appointed === null) console.warn(`Ship.commission: ${buyer.getPresentation()} was not made master of ${named}`);
+    }
+
+    // She lies where she was built: on the frame at the landing, made fast to it.
+    const lying = await this.putDownAt(landingPath);
+    await PersistableApi.capture(this as unknown as Stuff);
+    const polity = GovernmentApi.getGovernment(flag)?.name ?? flag;
+    const all = units === 64 ? 'all sixty-four shares' : `all ${units} shares`;
+    return `She is entered in the register of ${polity} as the ${named}, ${all} in your name, and you are her master. Her gangway is locked; the key is yours. ${lying}`.trim();
+  }
+
+  /** ⭐ Put her on the frame where `landingPath` is sited and bring her alongside it. */
+  private async putDownAt(landingPath: string): Promise<string> {
+    const landing = await StuffApi.singleton<Stuff>(landingPath).catch(() => null);
+    if (landing === null) return 'There is nowhere there for her to lie.';
+    if (MixinApi.isFrameSited(landing)) {
+      const site = landing.getFrameSite();
+      const pos = await landing.sitePosition();
+      if (site !== null && pos !== null) {
+        this.placeAt(pos, WorldClockApi.getNow().rawValue(), site.frame);
+        (await this.liveFrame())?.adopt(this as never);
+      }
+    }
+    return this.comeAlongside(landingPath);
+  }
+
+  /**
+   * ⭐ Her own company: a `PersistentBusiness` minted from
+   * her kind's seed row (`house:`) at `<seed>/<serial>` — the drilling
+   * outfit's precedent — whose appointing authority is its OWN cap table
+   * (`kind: owners`). KEPT, keyed `(seed, serial)`: at her commissioning
+   * its table is laid down whole in `founder`'s name (the seed authors the
+   * units and the transfer term, nobody holding any) and captured; when
+   * she loads again it is stood up from the same seed and its record
+   * restored. `null`, loudly, when she has no seed to mint from.
+   */
+  private async mintCompany(named?: string, founder?: UnitHolder): Promise<Stuff | null> {
+    const serial = this.serial();
+    const handle = this.getDurableHandle();
+    if (!serial || !handle) return null;
+    const current = this.house ?? '';
+    const seed = current.endsWith(`/${serial}`) ? current.slice(0, -(serial.length + 1)) : current;
+    if (seed === '') {
+      console.warn(`Ship: ${handle} names no company row to mint hers from`);
+      return null;
+    }
+    const identity = `${seed}/${serial}`;
+    const live = StuffApi.findByTemplatePath<Stuff>(identity);
+    if (live !== undefined) {
+      this.house = identity;
+      return live;
+    }
+    const label = named ?? this.getName().replace(/^the\s+/i, '');
+    try {
+      const overlay: Record<string, unknown> = { name: `the ${label}'s company` };
+      if (founder !== undefined) {
+        // ⭐ Founded: the seed's table (units, transfer term), held whole by her buyer.
+        const shape = ((await Template.findByPath(seed))?.data as { capTable?: Partial<CapTableData> } | undefined)?.capTable;
+        const units = Number(shape?.units);
+        if (!Number.isInteger(units) || units <= 0) {
+          throw new Error(`her company row '${seed}' authors no capTable units to found it with`);
+        }
+        overlay.capTable = { units, transfer: shape?.transfer ?? 'free', rows: [{ holder: { ...founder }, units }] };
+      }
+      const company = await StuffApi.clone<Stuff>(seed, undefined, {
+        // identity-keyed-by: own-record — her company's `holder_snapshots`
+        // record (its table) is filed `(seed, serial)`; her register
+        // entry's `owner`, her own `house` field and the employment records
+        // of whoever holds her seats name it.
+        asIdentityPath: identity,
+        dataOverlay: overlay,
+      });
+      if (MixinApi.isPersistable(company)) await PersistableApi.restoreOrSeed(company, serial);
+      this.house = identity;
+      return company;
+    } catch (err) {
+      console.warn(`Ship: ${handle}'s company '${identity}' could not be minted from '${seed}':`, err);
+      return null;
+    }
+  }
+
+  /**
+   * ⭐ Tell a landing she lies made fast at it (`alongside`), or has left
+   * it: a landing keeps who lies at it, and on
+   * its first use after a restart stands those ships up again so their
+   * ways aboard come back. A landing sited on no frame has no first use to
+   * do that with — said for a ship of a kind, whom nothing else stands up.
+   */
+  /**
+   * ⭐ Her line on `landingPath`'s berth roll is brought up to the truth:
+   * she is on it while she is made fast there,
+   * struck off it when she is not. Only she writes it, and the store reads
+   * where she lies off her — she cannot write a false line. Said, never
+   * thrown: a roll that cannot be written costs her nothing but the
+   * stand-up after a restart.
+   */
+  private async fileBerth(landingPath: string | null): Promise<void> {
+    if (!landingPath) return;
+    try {
+      await DocumentApi.saveBerth(this as unknown as Stuff & Berthed, landingPath);
+    } catch (err) {
+      console.warn(`Ship: ${this.getDurableHandle() ?? this.getTemplatePath()}'s line on '${landingPath}''s berth roll was not written:`, err);
+    }
+  }
+
+  /** ⭐ A landing that keeps her on its roll has stood her up: her line is made true. */
+  public override async answerBerthRoll(landingPath: string): Promise<void> {
+    await this.fileBerth(landingPath);
+  }
+
+  /* ───────────── the charter ───────────── */
+
+  /** ⭐ The charter running now, or `null`. */
+  protected charter: ShipCharter | null = null;
+
+  /** The charter running now, a copy — `null` when she is not chartered. */
+  public getCharter(): ShipCharter | null {
+    return this.charter ? { ...this.charter } : null;
+  }
+
+  /** Is `who` her charterer now? */
+  public isChartererOf(who: Stuff): boolean {
+    const id = idOf(who);
+    return this.charter !== null && id !== '' && this.charter.charterer === id;
+  }
+
+  /**
+   * ⭐ Charter her to `who` at `ratePerDay`, the days paid to `payTo`
+   * — or why not, in words: she has a charterer already, or a master of
+   * her own is aboard on shift (she is not the line's to let while she is
+   * commanded). Written on her and kept.
+   *
+   * @throws when the book posts a rate with nowhere to pay it (an
+   *   authoring error, never a refusal).
+   */
+  public async charterTo(who: Stuff, ratePerDay: number, payTo: string | null): Promise<string | null> {
+    const id = idOf(who);
+    if (id === '') return 'Nobody can charter her by that name.';
+    if (this.charter !== null) {
+      return this.charter.charterer === id
+        ? `${this.getPresentation()} is yours already, until she next berths.`
+        : `${this.getPresentation()} is under charter to somebody else until she next berths.`;
+    }
+    // (A sunken ship is refused here too once she can sink.)
+    if (await this.masterAboardOnShift()) {
+      return `Her master is aboard and on watch; she is not to be chartered while her own master has her.`;
+    }
+    const rate = Math.max(0, Number(ratePerDay) || 0);
+    if (rate > 0 && (typeof payTo !== 'string' || payTo === '')) {
+      throw new Error(`Ship.charterTo: a charter at ${rate} a day names nowhere to pay it (the book's payTo)`);
+    }
+    this.charter = { charterer: id, sinceS: WorldClockApi.getNow().rawValue(), ratePerDay: rate, payTo: payTo ?? '' };
+    this.persistMooring();
+    return null;
+  }
+
+  /** Is anybody who holds her `master` seat aboard her, on shift? */
+  private async masterAboardOnShift(): Promise<boolean> {
+    const house = this.house;
+    if (house === null) return false;
+    for (const who of await this.aboard()) {
+      if (!MixinApi.isEmployed(who)) continue;
+      if (who.getEmployment(house)?.positionKey !== MASTER_POSITION) continue;
+      if (who.isOnShiftFor(house)) return true;
+    }
+    return false;
+  }
+
+  /**
+   * ⭐ The charter ends as she makes fast at a kept quay: the world's
+   * days it lasted — a day begun is a day owed — at its rate are billed to
+   * her, owed by the charterer, paid at the harbor office. Returns what the
+   * charterer is told, or `''` when she was not chartered.
+   */
+  private endCharter(): string {
+    const c = this.charter;
+    if (c === null) return '';
+    this.charter = null;
+    const nowS = WorldClockApi.getNow().rawValue();
+    const days = Math.max(1, Math.ceil((nowS - c.sinceS) / DAY_S - 1e-9));
+    const amount = days * c.ratePerDay;
+    const name = this.getPresentation();
+    let words: string;
+    if (amount > 0) {
+      this.owe({ to: c.payTo, amountMinor: amount, reason: `for ${days} ${days === 1 ? "day's" : "days'"} charter of ${name}`, by: c.charterer });
+      words = `The charter of ${name} ends as she makes fast: ${days} day${days === 1 ? '' : 's'} at ${c.ratePerDay} — ${Math.ceil(amount)} owed to the line, paid at the harbor office.`;
+    } else {
+      this.persistMooring();
+      words = `The charter of ${name} ends as she makes fast.`;
+    }
+    const charterer = StuffApi.findByIdentityPath<Stuff>(c.charterer)[0] ?? null;
+    // Aboard her, the charterer hears it in her arrival (the words are
+    // returned into it); told here too, they read it twice (the browser
+    // walk, 2026-11-04). Only a charterer ashore is told on their own.
+    const at = charterer !== null && MixinApi.isContainable(charterer) ? charterer.getContainer() : null;
+    const aboardHer = at !== null && at.isPlace() && (at as unknown as Place).structureNow() === (this as unknown as Structure);
+    if (charterer !== null && !aboardHer && !charterer.isDestroyed() && MixinApi.isSensor(charterer)) {
+      try {
+        MessageApi.scene(charterer).topic('sense.surroundings').toSelf(Mml.compose`${words}`).send();
+      } catch {
+        // decoration
+      }
+    }
+    return words;
+  }
+
+  /* ───────────── made fast: the berth and her lines ───────────── */
+
+  /**
+   * ⭐ The landing she is made fast at, by path — `null` when she is not.
+   * Her way aboard (a `BerthExit` named for her) stands on it while she is.
+   */
+  protected berth: string | null = null;
+  /** Held to the landing by her own lines. */
+  protected moored = false;
+  /** Her gangway's keyway — `''` opens for nobody. */
+  protected gangwayKeyway = '';
+  /** Her gangway's bolt — `false` refuses nobody. */
+  protected gangwayLocked = false;
+
+  /**
+   * Runtime: the way aboard she has put on her landing, and the ropes she
+   * made fast across (whether each still is, the rope says — {@link fastLines}).
+   */
+  private berthExit: BerthExit | null = null;
+  private madeFast: Rope[] = [];
+
+  /** ⭐ The landing she is made fast at — what her deck's `ashore` leads to first. */
+  public getBerth(): string | null {
+    return this.moored ? this.berth : null;
+  }
+
+  public override isMoored(): boolean {
+    return this.moored && this.berth !== null;
+  }
+
+  public isGangwayLocked(): boolean { return this.gangwayLocked; }
+  /** The bolt thrown or drawn — kept, and told to her way aboard (it answers for her while she sleeps). */
+  public setGangwayLocked(v: boolean): void {
+    this.gangwayLocked = v === true;
+    const exit = this.berthExit;
+    if (exit !== null && !exit.isDestroyed()) exit.configureBerth(this as unknown as Stuff & Berthed);
+    this.persistMooring();
+  }
+  public getGangwayKeyway(): string { return this.gangwayKeyway; }
+  public setGangwayKeyway(v: string): void { this.gangwayKeyway = typeof v === 'string' ? v : ''; }
+
+  /** The authored half of the mooring (a row's `berth:`), set before she loads. */
+  public setBerth(v: string | null): void { this.berth = typeof v === 'string' && v !== '' ? v : null; }
+  public setMoored(v: boolean): void { this.moored = v === true; }
+
+  /**
+   * The word her way aboard is called by: her name, lowercased, the
+   * article dropped.
+   *
+   * ⚠ DERIVED (magic), named here: her way aboard is NAMED for her — this
+   * word becomes the berth exit's direction (and so its name and keyword,
+   * `Exit.getKeywords`). No author writes it.
+   */
+  public berthWord(): string {
+    return this.getName().replace(/^the\s+/i, '').trim().toLowerCase() || 'ship';
+  }
+
+  /**
+   * ⭐ The lines aboard her that will hold her: every ROPE on
+   * her deck kept AT her bitts — flaked down `on` a {@link Bollard} there,
+   * or tied round one — and long enough to reach. A rope lying loose on her
+   * deck is not one of her lines: nobody made it ready (lens 2 — an author's
+   * ordinary rope row propped `on: bitts`, or a player's `put rope on
+   * bitts`, is a mooring line with no code).
+   */
+  public async linesAboard(): Promise<Rope[]> {
+    const deck = await this.watchRoom();
+    if (deck === null) return [];
+    const needM = Math.max(MIN_LINE_M, 2 * this.deckHeightM);
+    const out: Rope[] = [];
+    for (const x of deck.getContents()) {
+      if (!(x instanceof Rope) || x.getLengthM() < needM) continue;
+      const at = x.getPlacement()?.host ?? x.getAnchor();
+      if (at instanceof Bollard && at.getContainer() === (deck as unknown)) out.push(x);
     }
     return out;
+  }
+
+  /**
+   * ⭐ Her lines fast now (moored is a READ over her ropes): the
+   * ropes she made fast across whose end is still round a bollard she made
+   * it fast round. A rope knows; she only remembers which ones she tied.
+   */
+  public fastLines(): Rope[] {
+    this.madeFast = this.madeFast.filter((r) => !r.isDestroyed() && r.acrossFor() === (this as unknown) && r.acrossTo() instanceof Bollard);
+    return this.madeFast;
+  }
+
+  /**
+   * ⭐ Why a course for `target` cannot end alongside, asked before it is
+   * laid — so the refusal is instant and the voyage never starts.
+   * `null` when it can, or when the course is for no landing at all.
+   */
+  public async mooringRefusal(target: string | null): Promise<string | null> {
+    if (target === null || target === '') return null;
+    if (!(await this.landingFor(target))) return null;
+    return (await this.linesAboard()).length === 0 ? 'She has no lines to make fast.' : null;
+  }
+
+  /**
+   * ⭐ Why she may not take a course for the landing `landing` now,
+   * asked before it is laid so the refusal is instant: no line to
+   * make fast with; the berth she lies at has not cleared her; the berth
+   * she is coming to has not admitted her (a harbor quay is given by the
+   * harbormaster). `null` when she may go.
+   */
+  public async courseRefusal(landing: string | null, opts: { admit?: boolean } = {}): Promise<string | null> {
+    const nowS = WorldClockApi.getNow().rawValue();
+    const leaving = this.isMoored() ? await this.berthingAt(this.berth) : null;
+    if (leaving !== null) {
+      const held = await leaving.clearance(this as unknown as Stuff, nowS);
+      if (held !== null) return held;
+    }
+    if (landing === null || landing === '') return null;
+    if ((await this.linesAboard()).length === 0) return 'She has no lines to make fast.';
+    if (opts.admit === false) return null;
+    const coming = await this.berthingAt(landing);
+    return coming === null ? null : coming.admit(this as unknown as Stuff, nowS);
+  }
+
+  /**
+   * ⭐ She has come up to a node whose landing she may make fast at:
+   * a kept quay asks its keeper first — not given the berth, she lies off
+   * and is told why (hail, then `course` it again); otherwise she makes
+   * fast. The words for whoever is aboard.
+   */
+  public async arriveAlongside(landing: string): Promise<string> {
+    const keeper = await this.berthingAt(landing);
+    if (keeper !== null) {
+      const no = await keeper.admit(this as unknown as Stuff, WorldClockApi.getNow().rawValue());
+      if (no !== null) return `She lies off. ${no}`;
+    }
+    return this.comeAlongside(landing);
+  }
+
+  /** The landing at `path` when somebody keeps a book for it (a harbor quay), else `null`. */
+  private async berthingAt(path: string | null): Promise<(Stuff & Berthing) | null> {
+    if (path === null || path === '') return null;
+    const s = await StuffApi.singleton<Stuff>(path).catch(() => null);
+    return s !== null && MixinApi.isBerthing(s) ? s : null;
+  }
+
+  /**
+   * ⭐ What the bar of `river` says to her draft now: the
+   * water over it (the tide's level in it) against her draft as she floats
+   * and the margin a master keeps under her keel. Nothing rolled — only the
+   * clock and her lading change the answer. `null` when the river has no
+   * bar to read.
+   */
+  public async barClearance(river: Stuff & LineFrame, nowS: number): Promise<BarClearance | null> {
+    const water = await river.barWater(nowS);
+    if (water === null) return null;
+    this.weighedKg = await this.cargoKg();
+    const wantsM = this.hullNow().draftM + UNDER_KEEL_M;
+    return {
+      clearanceM: water.depthM - wantsM,
+      depthM: water.depthM,
+      wantsM,
+      nextHighS: water.tide?.nextHighS ?? null,
+    };
+  }
+
+  /**
+   * ⭐ The bar's refusal in a pilot's words — what is over it,
+   * what she wants, and when the flood is — or `null` when she can cross now.
+   */
+  public async barRefusal(river: Stuff & LineFrame, nowS: number): Promise<string | null> {
+    const bar = await this.barClearance(river, nowS);
+    if (bar === null || bar.clearanceM >= 0) return null;
+    const over = `There is ${bar.depthM.toFixed(1)} m over the bar and she wants ${bar.wantsM.toFixed(1)}.`;
+    if (bar.nextHighS === null) return `${over} She cannot cross it.`;
+    const h = Math.max(0, (bar.nextHighS - nowS) / 3600);
+    const n = Math.round(h);
+    const when = h < 0.75 ? 'within the hour' : `in about ${n} hour${n === 1 ? '' : 's'}`;
+    return `${over} Not until the flood — high water ${when}.`;
+  }
+
+  /** Does a course `toward` end at a landing? A river's landing does; a sea node does when it has one behind it. */
+  private async landingFor(toward: string): Promise<string | null> {
+    if (this.getLine() !== null) return toward;
+    const node = await StuffApi.singleton<Stuff>(toward).catch(() => null);
+    return node instanceof ExpanseNode ? node.getDestination() : null;
+  }
+
+  /**
+   * ⭐ She comes alongside `landingPath` and makes fast: each line
+   * aboard goes ashore round a bollard there, and a way aboard named for
+   * her goes on the landing. With no line, or no bollard ashore, she lies
+   * off unmoored — said in the words returned.
+   */
+  public async comeAlongside(landingPath: string): Promise<string> {
+    if (this.moored) await this.castOff();
+    const landing = await StuffApi.singleton<Stuff>(landingPath).catch(() => null);
+    if (landing === null || !MixinApi.isContainer(landing)) return 'There is nothing there to make fast to; she lies off.';
+    const lines = await this.linesAboard();
+    if (lines.length === 0) return 'She has no lines to make fast; she lies off.';
+    const fast = await this.makeLinesFast(landing, lines);
+    if (fast === 0) return `There is nothing at ${landing.getPresentation()} to make a line fast round; she lies off.`;
+    this.berth = landingPath;
+    this.moored = true;
+    await this.installBerth(landing);
+    this.persistMooring();
+    await this.fileBerth(landingPath);
+    if (this.isOfKind() && !MixinApi.isFrameSited(landing)) {
+      console.warn(`Ship: ${this.getDurableHandle()} lies at '${landingPath}', which is sited on no frame — after a restart nothing stands her up there`);
+    }
+    // ⭐ A kept berth (a harbor quay): her time alongside starts in its book,
+    // and a charter ends there — its days billed to her.
+    let ended = '';
+    if (MixinApi.isBerthing(landing)) {
+      await landing.madeFast(this as unknown as Stuff, WorldClockApi.getNow().rawValue());
+      ended = this.endCharter();
+    }
+    // ⭐ Bringing her alongside and making fast is seamanship — for
+    // whoever aboard has her helm.
+    await this.creditHands('standard');
+    const made = fast === 1
+      ? 'A line goes ashore and is made fast round the bollard.'
+      : 'Her lines go ashore and are made fast round the bollards.';
+    return ended ? `${made} ${ended}` : made;
+  }
+
+  /**
+   * ⭐ Cast off: her lines are brought in from aboard and the way
+   * aboard her comes off the landing. Any course from a moored ship does
+   * this first.
+   */
+  public async castOff(): Promise<void> {
+    const was = this.moored ? this.berth : null;
+    const keeper = this.moored ? await this.berthingAt(this.berth) : null;
+    await this.bringLinesIn();
+    this.removeBerth();
+    this.moored = false;
+    this.berth = null;
+    this.persistMooring();
+    await this.fileBerth(was);
+    // ⭐ The berth is free in its keeper's book.
+    if (keeper !== null) await keeper.release(this as unknown as Stuff, WorldClockApi.getNow().rawValue());
+  }
+
+  /**
+   * ⭐ One of her lines was let go — untied off its bollard
+   * on the quay (cordage's `untie`), or cast off aboard. With her last line
+   * off she is no longer moored: the way aboard comes off the landing and
+   * everyone aboard is told. Her own bringing them in (sailing, sleeping,
+   * going down) says nothing here — she asked.
+   */
+  public override onLineLetGo(line: Stuff): void {
+    void line;
+    if (this._bringingIn || !this.moored || this.fastLines().length > 0) return;
+    const was = this.berth;
+    this.removeBerth();
+    this.moored = false;
+    this.berth = null;
+    this.persistMooring();
+    void this.fileBerth(was);
+    // Adrift, she no longer holds the berth she was given.
+    void this.berthingAt(was)
+      .then((keeper) => keeper?.release(this as unknown as Stuff, WorldClockApi.getNow().rawValue()))
+      .catch((err) => console.warn('Ship: the berth was not released:', err));
+    void this.aboard()
+      .then((people) => {
+        for (const who of people) {
+          try {
+            MessageApi.scene(who).topic('sense.surroundings').toSelf(Mml.compose`Her last line is off the bollard. She is adrift.`).send();
+          } catch {
+            // decoration
+          }
+        }
+      })
+      .catch(() => undefined);
+  }
+
+  /**
+   * Her lines, made fast round the bollards of `landing` in turn — each
+   * through the rope's own `tieTo` (the end across: the rope stays at her
+   * bitts, its end goes ashore round the bollard); how many went ashore.
+   */
+  private async makeLinesFast(landing: Stuff & Container, lines: Rope[]): Promise<number> {
+    const bollards = landing.getContents().filter((x): x is Bollard => x instanceof Bollard);
+    if (bollards.length === 0) return 0;
+    this.madeFast = [];
+    let i = 0;
+    for (const line of lines) {
+      const out = await line.tieTo(this as unknown as Stuff, bollards[i % bollards.length]!, MOORING_KNOT);
+      if (out.ok) this.madeFast.push(line);
+      else console.warn(`Ship: ${this.getTemplatePath()}: a line was not made fast (${out.reason})`);
+      i += 1;
+    }
+    return this.fastLines().length;
+  }
+
+  /** Every one of her lines with an end out across comes in — she is not told (she asked). */
+  private async bringLinesIn(): Promise<void> {
+    const lines = this.madeFast;
+    this.madeFast = [];
+    this._bringingIn = true;
+    try {
+      for (const line of lines) if (!line.isDestroyed() && line.acrossFor() === (this as unknown)) await line.castOff();
+    } finally {
+      this._bringingIn = false;
+    }
+  }
+
+  /** Runtime: she is bringing her own lines in — a line let go is hers to expect. */
+  private _bringingIn = false;
+
+  /** Her way aboard on `landing`, named for her; one only. */
+  private async installBerth(landing: Stuff): Promise<void> {
+    const entrance = this.getEntrance();
+    if (!entrance || !MixinApi.isExitable(landing)) return;
+    const ex = landing as unknown as Stuff & Container & Exitable;
+    const live = this.berthExit;
+    if (live !== null && !live.isDestroyed() && live.getSource() === (landing as unknown as Stuff & Container)) return;
+    this.removeBerth();
+    let word = this.berthWord();
+    const there = ex.getExit(word);
+    if (there) {
+      // Hers already (a re-wire); anybody else's word is not taken from them.
+      if (there instanceof BerthExit && there.getShipHandle() === this.getDurableHandle()) {
+        this.berthExit = there;
+        there.configureBerth(this as unknown as Stuff & Berthed);
+        return;
+      }
+      word = `${word}-berth`;
+    }
+    this.berthExit = await ex.installExit<BerthExit>(
+      BERTH_EXIT_KIND,
+      { direction: word, source: ex, destinationPath: entrance, oneWay: true },
+      (e) => e.configureBerth(this),
+    );
+  }
+
+  /** Her way aboard off the landing it is on. */
+  private removeBerth(): void {
+    const exit = this.berthExit;
+    this.berthExit = null;
+    if (exit === null || exit.isDestroyed()) return;
+    const on = exit.getSource();
+    if (MixinApi.isExitable(on) && on.getExit(exit.getDirection()) === (exit as unknown)) on.removeExit(exit.getDirection());
+    StuffApi.destruct(exit as unknown as Stuff);
+  }
+
+  /**
+   * ⭐ Put her mooring back as it was: the landing she is made
+   * fast at is stood up, her way aboard goes on it, and the lines that were
+   * aboard go round its bollards again — a line's end is runtime and does not
+   * outlive the process, and which lines were fast is not kept (every line
+   * aboard is made fast: a line lifted off before a restart is back on). With no line aboard or no bollard ashore she can
+   * no longer be moored, and is not (said loudly: a shipped world should
+   * never hit it).
+   */
+  public async rewireBerth(): Promise<void> {
+    if (!this.moored || this.berth === null) return;
+    const path = this.berth;
+    const landing = await StuffApi.singleton<Stuff>(path).catch(() => null);
+    if (landing === null || !MixinApi.isContainer(landing)) {
+      console.warn(`Ship: ${this.getTemplatePath()} is moored at '${path}', which does not stand`);
+      return;
+    }
+    if (this.fastLines().length === 0) {
+      const fast = await this.makeLinesFast(landing, await this.linesAboard());
+      if (fast === 0) {
+        console.warn(`Ship: ${this.getTemplatePath()} cannot make fast at '${path}' (no line aboard, or no bollard ashore); she lies off`);
+        this.removeBerth();
+        this.moored = false;
+        this.berth = null;
+        this.persistMooring();
+        await this.fileBerth(path);
+        return;
+      }
+    }
+    await this.installBerth(landing);
+    // ⭐ A kept berth knows she lies there — the book's entry stands as it was.
+    if (MixinApi.isBerthing(landing)) await landing.madeFast(this as unknown as Stuff, WorldClockApi.getNow().rawValue());
+  }
+
+  /** ⭐ A landing is being used: if she lies made fast there, her way goes back on it. */
+  public override async wireBerthAt(place: Stuff): Promise<void> {
+    if (this.isMoored() && this.berth === place.getTemplatePath()) await this.rewireBerth();
+  }
+
+  /** ⭐ Loaded from her record: she lies where she was made fast. */
+  override async onRestored(): Promise<void> {
+    await super.onRestored();
+    await this.standKind();
+    await this.armBerth();
+    await this.afterStanding();
+  }
+
+  /** ⭐ First stood up (no record yet): an authored mooring is made. */
+  override async seedBornWith(): Promise<void> {
+    await super.seedBornWith();
+    await this.standKind();
+    await this.armBerth();
+    await this.afterStanding();
+  }
+
+  /**
+   * ⭐ A ship of a kind stood up (minted, or woken from sleep): her rooms
+   * stand with her, and her frame keeps her among its craft — nothing
+   * authored attaches a kind's ship to a sea.
+   */
+  private async standKind(): Promise<void> {
+    // ⭐ An authored ship's warren stands with her too: her hull's clock
+    // is its shell, and her rooms that stand now join it.
+    if (!this.isOfKind()) {
+      await this.standWarren();
+      return;
+    }
+    this._sleeping = false;
+    await this.standWarren();
+    // Her company stands with her once she has one (commissioned: her house is hers by serial).
+    if ((this.house ?? '').endsWith(`/${this.serial() ?? ''}`)) await this.mintCompany();
+    await this.refreshOwners();
+    try {
+      (await this.liveFrame())?.adopt(this as never);
+    } catch (err) {
+      console.warn(`Ship: ${this.getDurableHandle()} was not adopted by her frame:`, err);
+    }
+  }
+
+  private async armBerth(): Promise<void> {
+    if (!this.isMoored()) return;
+    try {
+      await this.rewireBerth();
+    } catch (err) {
+      console.warn(`Ship: ${this.getTemplatePath()} did not make fast again:`, err);
+    }
+  }
+
+  private persistMooring(): void {
+    try {
+      void PersistableApi.capture(this as unknown as Stuff).catch((err) => console.warn('Ship: capture failed:', err));
+    } catch (err) {
+      console.warn('Ship: capture failed:', err);
+    }
+  }
+
+  /** Her way aboard comes off with her (a reaped or destroyed ship leaves no door). */
+  override onDestruct(): void {
+    this.stopListening();
+    try {
+      WorldClockApi.cancelByHost(this as unknown as Stuff);
+    } catch {
+      // no clock (a unit world)
+    }
+    void this.bringLinesIn();
+    this.removeBerth();
+    // ⭐ Her warren goes with her: a kind's rooms come down whole; an
+    // authored ship's adopted rows are let go of, never destructed — they
+    // are rooms in their own right.
+    const w = this._warren;
+    this._warren = null;
+    if (w !== null && !w.isDestroyed()) {
+      if (!this.isOfKind()) w.releaseRooms();
+      StuffApi.destruct(w as unknown as Stuff);
+    }
+    super.onDestruct();
+  }
+
+  /* ───────────── her rooms: the warren, the handle, sleep ───────────── */
+
+  /**
+   * ⭐ The warren her rooms are minted by — a `ShipWarren` row
+   * (`/stuff/idea/ShipWarren/smack`), authored on a ship KIND. `null` for
+   * an authored ship (the Hesper), whose warren adopts her own rows.
+   * ⭐ The PLAN it copies is hers, not the warren's:
+   * her kind row's own `extent` and `entrance`, exactly as an
+   * authored ship's row names them — the warren reads them off her
+   * (`ShipWarren.planOf`). No blueprint row.
+   */
+  protected warren: string | null = null;
+
+  /**
+   * ⭐ A ship of a kind is told by her WARREN, never by a path: her kind
+   * row's `extent` is her PLAN, and every smack's rooms are keyed copies of
+   * its rows — so no path is hers alone, and `hasMember`, her landings and
+   * her resident members read nothing off it (her warren's `structureOf`
+   * answers for her rooms). An authored ship's extent is her own rooms.
+   *
+   * @hook
+   */
+  protected override memberExtent(): string {
+    return this.isOfKind() ? '' : super.memberExtent();
+  }
+
+  public getWarrenRow(): string | null { return this.warren; }
+  public setWarren(v: string | null): void { this.warren = typeof v === 'string' && v !== '' ? v : null; }
+
+  /** Runtime: her warren standing, and its stand-up in flight. */
+  private _warren: ShipWarren | null = null;
+  private _warrenPending: Promise<ShipWarren | null> | null = null;
+  private _sleeping = false;
+  /** Runtime: her going to sleep, in flight — finished when she is gone. */
+  private _asleep: Promise<void> | null = null;
+
+  /**
+   * ⭐ She is going to sleep and will be gone when this settles, or `null`
+   *. A sleep awaits her capture, so somebody
+   * could come up her gangway between her deciding to sleep and her rooms
+   * coming down — and found themselves nowhere, in a destroyed deck. A way
+   * aboard waits this out and stands her up again.
+   */
+  public goingToSleep(): Promise<void> | null {
+    return this._asleep;
+  }
+
+  /**
+   * ⭐ A ship of a KIND — minted under her own identity
+   * `<kind row>/<serial>` — rather than an authored
+   * one-row ship.
+   */
+  public isOfKind(): boolean {
+    return this.serial() !== null;
+  }
+
+  /**
+   * ⭐ Her serial: the leaf of her minted identity under her kind row
+   * (`/stuff/idea/Ship/smack/<serial>`); `null` for an authored ship. Her
+   * record is `(identity, serial)`, her warren `(warren row, serial)`, her
+   * rooms `(room row, <serial>/<leaf>)` and her company
+   * `<company row>/<serial>` — all keyed by it.
+   */
+  private serial(): string | null {
+    const row = this.getTemplatePath();
+    const id = this.getIdentityPath();
+    if (!row || !id || id === row || !id.startsWith(`${row}/`)) return null;
+    const serial = id.slice(row.length + 1);
+    return serial === '' || serial.includes('/') ? null : serial;
+  }
+
+  /**
+   * ⭐ Her durable handle: her identity — minted
+   * `<kind row>/<serial>` for a ship of a kind, her own row for an
+   * authored ship (one row IS one ship). Never `row#key`: a ship is not a
+   * keyed room; she is a minted identity, found by
+   * `StuffApi.findByIdentityPath`, and her keyed rooms are found through
+   * her.
+   */
+  public override getDurableHandle(): string | null {
+    return this.getIdentityPath() ?? this.getTemplatePath();
+  }
+
+  /**
+   * ⭐ Her warren, standing: keyed `(warren row, her key)` through the
+   * spine's resolve-first stand-up — her serial for a kind, her row for an
+   * authored ship — and woken (a kind's rooms minted; an authored ship's
+   * resident rooms adopted). `null`, loudly, when it will not stand.
+   */
+  public async standWarren(): Promise<ShipWarren | null> {
+    const live = this._warren;
+    if (live !== null && !live.isDestroyed()) return live;
+    if (this._warrenPending !== null) return this._warrenPending;
+    this._warrenPending = (async () => {
+      const row = this.warren ?? AUTHORED_SHIP_WARREN;
+      const key = this.serial() ?? this.getTemplatePath();
+      if (!key) return null;
+      try {
+        const w = await PersistableApi.standUpKeyed(row, key);
+        if (!(w instanceof ShipWarren)) {
+          throw new Error(`'${row}' is not a ShipWarren row`);
+        }
+        w.attachShip(this);
+        this._warren = w;
+        await w.wake();
+        return w;
+      } catch (err) {
+        console.warn(`Ship: ${this.getDurableHandle()} could not stand her warren '${row}' up:`, err);
+        return null;
+      }
+    })().finally(() => {
+      this._warrenPending = null;
+    });
+    return this._warrenPending;
+  }
+
+  /** The member rooms that are resident now — her warren's. */
+  private async liveMembers(): Promise<(Stuff & Container)[]> {
+    const w = await this.standWarren();
+    if (w === null) return [];
+    if (!this.isOfKind()) await w.adoptResident();
+    return w.liveRooms();
+  }
+
+  /**
+   * ⭐ Nobody interactive is aboard (her warren saw the last one go): a ship
+   * of a kind that is not under way sleeps whole. An authored ship stands
+   * while her zone does (the `Structure` rule) and never sleeps.
+   */
+  public async sleepIfEmpty(): Promise<void> {
+    if (!this.isOfKind() || this.getCourse() !== null || this._sleeping) return;
+    // ⭐ Aboard is anywhere in her rooms — sitting in her dinghy on deck is
+    // aboard (the owner got into the dinghy to
+    // launch it, she counted nobody on deck, slept, and stowed the stones
+    // he had loaded into it in her hold).
+    const anyoneIn = (xs: readonly Stuff[], depth: number): boolean =>
+      xs.some((x) => MixinApi.isHasInteractive(x) || (depth < 4 && MixinApi.isContainer(x) && anyoneIn(x.getContents(), depth + 1)));
+    for (const room of await this.liveMembers()) {
+      if (anyoneIn(room.getContents(), 0)) return;
+    }
+    await this.sleep();
+  }
+
+  /**
+   * ⭐ Sleep whole (D16's rule for a holding): what is loose on her
+   * plain rooms is stowed in her hold, and she is captured —
+   * her record, then her warren's and her hold's, her dependents — then the warren comes down with her
+   * rooms and she with it. Made fast, she stays made fast — `moored` and
+   * `berth` are kept, her lines' ends ashore come in unannounced (an end is
+   * runtime, as across a restart) and her way aboard STAYS on the landing:
+   * taking it stands her up again (`BerthExit`).
+   */
+  public async sleep(): Promise<void> {
+    if (!this.isOfKind() || this._sleeping || this.isDestroyed()) return;
+    this._sleeping = true;
+    this._asleep = this.sleepNow();
+    await this._asleep;
+  }
+
+  private async sleepNow(): Promise<void> {
+    // Her lines' ends come in unannounced: `moored` is kept, and she is
+    // bringing them in herself, so a line let go says nothing.
+    await this.bringLinesIn();
+    this.berthExit = null; // left standing on the landing, hers by handle
+    const w = this._warren !== null && !this._warren.isDestroyed() ? this._warren : null;
+    // ⭐ Only her hold keeps a record: what is loose on deck and
+    // in the cabin is stowed below before she is captured.
+    w?.stow();
+    // ⭐ One capture: her warren is her dependent and her hold
+    // its, so saving her saves them.
+    await PersistableApi.capture(this as unknown as Stuff);
+    this._warren = null;
+    if (w !== null) StuffApi.destruct(w as unknown as Stuff);
+    StuffApi.destruct(this as unknown as Stuff);
+  }
+
+  /**
+   * ⭐ The records she owns: her warren, standing — whose own
+   * dependents are her rooms that keep a record (her hold). One capture of
+   * her writes all three; marking her for revert marks all three.
+   *
+   * @hook
+   */
+  public override dependentPersistables(): (Stuff & Persistable)[] {
+    const out: (Stuff & Persistable)[] = [];
+    const w = this._warren;
+    if (w !== null && !w.isDestroyed()) out.push(w as unknown as Stuff & Persistable);
+    // ⭐ Her minted company: its table is kept with her.
+    const house = this.house ?? '';
+    const serial = this.serial() ?? '';
+    if (this.isOfKind() && serial !== '' && house.endsWith(`/${serial}`)) {
+      const c = StuffApi.findByTemplatePath<Stuff>(house);
+      if (c !== undefined && !c.isDestroyed() && MixinApi.isPersistable(c)) out.push(c);
+    }
+    return out;
+  }
+
+  /** ⭐ Under way she stays resident (the voyage is hers to keep); otherwise as a structure. */
+  public override canEvict(context: EvictionContext): VetoResult {
+    if (this.getCourse() !== null) return { ok: false, reason: 'she is under way' };
+    return super.canEvict(context);
   }
 
   /** Everyone standing in a member room — told what the water does. */
@@ -199,6 +2231,8 @@ export default class Ship extends PersistableMixin(
 
   /** The entrance — the deck the watch is kept on. */
   override async watchRoom(): Promise<(Stuff & Container) | null> {
+    // ⭐ A ship of a kind: her deck is her warren's entry room, keyed.
+    if (this.isOfKind()) return (await this.standWarren())?.entryRoom() ?? null;
     const entrance = this.getEntrance();
     if (!entrance) return null;
     try {
@@ -244,9 +2278,27 @@ export default class Ship extends PersistableMixin(
     if (this.aground && !(await this.floatIfShePasses())) {
       return { refused: 'She is hard aground. Lighten her, wait for the water, or kedge her off.' };
     }
+    if (this.wreck !== null) return { refused: 'She lies on the bottom. She goes nowhere now.' };
+    if (this.settled) return { refused: 'She has settled onto the mud with the water in her. Pump her out first.' };
+    if (this.settling !== null) return { refused: 'She is settling under you; she will answer no helm.' };
     if (this.holed) return { refused: 'She is holed and taking water; she goes nowhere until she is patched.' };
+    // ⭐ A course that ends alongside needs a line to make fast with,
+    // a kept berth she leaves must clear her and one she comes to admit her
+    // — all asked before the course is laid: the refusal is instant.
+    // ⭐ A course across the chart for a node is laid from beyond hail of its
+    // harbor: the keeper is asked at the arrival (`arriveAlongside`), not now
+    // (the island's quay); a river's landing is asked before she moves.
+    const toward = req.toward ?? null;
+    const refused = await this.courseRefusal(toward ? await this.landingFor(toward) : null, { admit: this.getLine() !== null });
+    if (refused !== null) return { refused };
     this.weighedKg = await this.cargoKg();
-    return super.steer(req);
+    const started = await super.steer(req);
+    // ⭐ Under way from a berth: her lines come in and the way aboard goes.
+    if (!('refused' in started) && this.moored) {
+      await this.castOff();
+      await this.creditHands('easy'); // casting off is seamanship
+    }
+    return started;
   }
 
   /**
@@ -256,6 +2308,15 @@ export default class Ship extends PersistableMixin(
   override async onStop(stop: CraftStop): Promise<string> {
     if (stop.reason === 'aground') this.aground = true;
     if (stop.reason === 'holed') this.holed = true;
+    // ⭐ At a landing she makes fast: her lines go ashore round its bollards.
+    if (stop.reason === 'landing' && stop.landing) {
+      return `${stop.words} ${await this.comeAlongside(stop.landing)}`.trim();
+    }
+    if (stop.reason === 'arrived' && stop.landing) {
+      return `${stop.words} ${await this.arriveAlongside(stop.landing)}`.trim();
+    }
+    // ⭐ The node she was laid for, raised: seamanship to whoever has her helm.
+    if (stop.reason === 'arrived') await this.creditHands('standard');
     if (stop.reason === 'mouth') {
       const frame = await this.liveFrame();
       const sea = frame !== null && MixinApi.isLineFrame(frame) ? frame.mouthOnSea() : null;
@@ -265,7 +2326,10 @@ export default class Ship extends PersistableMixin(
         if (at !== null) {
           this.placeAt({ frame: 'chart', at }, WorldClockApi.getNow().rawValue(), sea.expanse);
           (await this.liveFrame())?.adopt(this as never);
-          return `${stop.words} She is out over the bar, and lies at ${node!.getPresentation()}. The next course is the sea's.`;
+          const out = `${stop.words} She is out over the bar, and lies at ${node!.getPresentation()}. The next course is the sea's.`;
+          // ⭐ The node's landing is where she lies: she makes fast there.
+          const landing = (node as ExpanseNode).getDestination();
+          return landing ? `${out} ${await this.comeAlongside(landing)}` : out;
         }
       }
     }
@@ -276,7 +2340,9 @@ export default class Ship extends PersistableMixin(
    * ⭐ Off the sea and onto a river (D29): at the mouth node a river names,
    * she leaves the chart for the river's line, at its mouth.
    */
-  public enterRiver(line: string, course: string, mouthKm: number, across: number): void {
+  public async enterRiver(line: string, course: string, mouthKm: number, across: number): Promise<void> {
+    // ⭐ Made fast at the node's landing, she casts off first.
+    if (this.moored) await this.castOff();
     this.placeAt({ frame: 'line', at: { course, km: mouthKm, across } }, WorldClockApi.getNow().rawValue(), line);
   }
 
@@ -300,4 +2366,46 @@ export default class Ship extends PersistableMixin(
     const deck = await this.watchRoom();
     return deck ? deck.getContents().filter((x) => MixinApi.isDurable(x)) : [];
   }
+}
+
+/** A person's durable key (D17: never the lineage stamp alone). */
+function idOf(who: Stuff): string {
+  return who.getIdentityPath() ?? who.getTemplatePath() ?? '';
+}
+
+/**
+ * ⭐ *She flies the colors of the City of Terminus.* — derived from the flag
+ * on her flagstaff, so it is true the moment the flag is struck or
+ * changed. Says nothing of her register: colors are a claim.
+ */
+function flagAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
+  if (!(host instanceof Ship)) return text;
+  const flag = host.flownFlag();
+  if (flag === null) return text;
+  const polity = flag.colorsOf();
+  const name = polity ? GovernmentApi.getGovernment(polity)?.name ?? polity : flag.getPresentation();
+  const line = polity ? `She flies the colors of ${name}.` : `She flies ${name}.`;
+  return text && text.length > 0 ? `${text}\n\n${line}` : line;
+}
+
+/** ⭐ Acts each person aboard has once she begins to settle (`ship.settlingActs`, grain). */
+function settlingActs(): number {
+  return Math.max(1, Math.round(shipSetting('ship.settlingActs', SETTLING_ACTS)));
+}
+
+/** ⭐ The backstop on her settling window, real ms (`ship.settlingRealS`, grain). */
+function settlingRealMs(): number {
+  return shipSetting('ship.settlingRealS', SETTLING_REAL_S) * 1000;
+}
+
+/** A numeric setting, else the shipped grain (the `FloorplanWarren` read). */
+function shipSetting(key: string, fallback: number): number {
+  try {
+    const raw = AppApi.setting(key);
+    const n = Number.parseFloat(raw);
+    if (Number.isFinite(n) && n >= 0) return n;
+  } catch {
+    // a cold cache or an unregistered key — the shipped grain
+  }
+  return fallback;
 }

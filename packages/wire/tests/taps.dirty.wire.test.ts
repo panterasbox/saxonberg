@@ -292,10 +292,7 @@ beforeAll(async () => {
   // `insufficient-funds` on a `buy` — which reads like a shop bug (drive
   // run 1).
   //
-  // ⚠ `wizard: true` — checkpoint 0 is an `eval`, the code-trust axis.
-  // Without it the clock cannot move and two thirds of this drive is
-  // unreachable.
-  k = await Session.open(handle, { startLocation: BANK_HALL, wizard: true });
+  k = await Session.open(handle, { startLocation: BANK_HALL });
   expectOk(await k.cmd('bank open'));
   const gov = await Session.open('founder', { startLocation: BANK_HALL });
   try {
@@ -309,6 +306,8 @@ beforeAll(async () => {
   expect(bal, 'the account must be funded before the drive starts').toBeTruthy();
   expect(Number(bal![1])).toBeGreaterThan(30);
   k.close();
+  // ⚠ `wizard: true` — checkpoint 0 types an `eval`, the code-trust axis
+  // (the axis only: it confers no title anywhere).
   k = await Session.open(handle, {
     startLocation: PROVISIONING,
     wizard: true,
@@ -396,9 +395,11 @@ async function stockTheHollow(): Promise<void> {
   // `get` what you cannot see, so a kit dropped there is unreachable.
   // The store is lit, the sugarer is already standing in it, and the
   // glowcap jar in the kit is what lights the walk up.
+  // `eval --parcel` Rejection: the founder (a wizard by its office) sits on
+  // no committee by default — seated, not a credential (wizard-axis D13).
   const gov = await Session.open('founder', {
     startLocation: PROVISIONING,
-    wizard: true,
+    committees: [REJECTION],
   });
   try {
     for (const path of [

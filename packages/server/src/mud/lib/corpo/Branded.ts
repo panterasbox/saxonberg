@@ -32,6 +32,7 @@ import type { MixinConstructor, FieldMeta } from "../mixin";
 import { Mixins } from "../mixin";
 import { MixinApi } from "../../api/mixin";
 import { CorpoApi } from "../../api/corpo";
+import { GovernmentApi } from "../../api/government";
 import type { Stuff } from "../stuff/Stuff";
 import type { SubscribableFieldDescriptor } from "../../api/mql-subscription";
 import type { MarkupAugmenter } from "../../api/mml";
@@ -122,6 +123,12 @@ function brandMarkAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
   const branded = host as unknown as Branded;
   const brand = branded.getBrand();
   if (!brand) return text;
+  // ⭐ A polity's colors: a flag says whose, never a label.
+  if (brand.government) {
+    const polity = GovernmentApi.getGovernment(brand.government);
+    const line = `The colors of ${polity?.name ?? brand.name}.`;
+    return text && text.length > 0 ? `${text}\n\n${line}` : line;
+  }
   const corpo = branded.getCorpo();
   const line = corpo
     ? `${brand.name} — a product of ${corpo.label}.`

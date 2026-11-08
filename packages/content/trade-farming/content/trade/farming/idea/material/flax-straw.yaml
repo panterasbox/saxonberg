@@ -10,8 +10,9 @@
 # than by naming this row. ⭐ Which is what lets wool's scouring and
 # cotton's ginning arrive later as their own profiles over their own
 # materials, with the textile trade unchanged.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ word: straw, strength: 15 }]
   name: flax straw
   keywords: [flax, straw, flax-straw, stems, haulm]
   appearance: stiff pale flax straw

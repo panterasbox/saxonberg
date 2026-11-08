@@ -1,47 +1,29 @@
 # The Hinkley house programme — the holding-as-a-warren-one-level-down
 # (residences D16): ONE row, one keyed instance per sold lot
-# (`scope = this row, key = the lot's parcel extent`). The floorplan is
-# the initial mint — every room a keyed instance of a REAL row (D17);
-# the yard is the entry (reached by the ungated lane gate), and the
-# house door north of it is LOCKED to the lot's keyway (the key `title
-# buy` hands the buyer). `owner-all` (D5): a Hinkley owner owes the
-# whole shell.
+# (`scope = this row, key = the lot's parcel extent`). `owner-all` (D5): a
+# Hinkley owner owes the whole shell.
+#
+# ⭐ Its PLAN is its own (no blueprint row):
+# the house every sold lot gets, authored as an ordinary place under
+# `house/` — the yard you come in by (with its garden west), the house door
+# north of it (a keyed door, LOCKED to the lot's keyway: the key `title
+# buy` hands the buyer), the hall, the kitchen east, the living room west,
+# the bedroom north and the bathroom beyond it. Each lot's rooms are keyed
+# instances of those REAL rows (D17), `(room row, <lot extent>/<leaf>)`;
+# the plan's rows themselves are never served.
+#
+# `buildings`: the house's rooms lie under `house/indoors/`, the extent of
+# its one building; the yard and the garden lie under no building's, so
+# they are open ground.
+#
+# `footprintM2`: the ground the house and yard stand on that the garden
+# does not — the lot's workable area less this is the garden's open ground
+# (tracts build D27).
 class: /system/residence/idea/HoldingWarren
 data:
   upkeepTerm: owner-all
-  floorplan:
-    - leaf: yard
-      room: /world/terminus/hinkley-hills/lots/yard
-      entry: true
-      # ⭐ Footprints (tracts build D27): the ground each room stands on.
-      # What the lot leaves is the garden's open ground.
-      footprintM2: 100
-      exits:
-        - { to: hall, direction: north, opposite: south, locked: true }
-        - { to: garden, direction: west, opposite: east }
-    - leaf: hall
-      room: /world/terminus/hinkley-hills/lots/hall
-      footprintM2: 30
-      exits:
-        - { to: kitchen, direction: east, opposite: west }
-        - { to: living, direction: west, opposite: east }
-        - { to: bedroom, direction: north, opposite: south }
-    - leaf: kitchen
-      room: /world/terminus/hinkley-hills/lots/kitchen
-      footprintM2: 25
-    - leaf: living
-      room: /stuff/location/room/living
-      footprintM2: 30
-    - leaf: bedroom
-      room: /stuff/location/room/bedroom
-      footprintM2: 25
-      exits:
-        - { to: bathroom, direction: east, opposite: west }
-    - leaf: bathroom
-      room: /world/terminus/hinkley-hills/lots/bathroom
-      footprintM2: 10
-    # ⭐ The garden — the lot's open ground, a TRACT of the layout (tracts
-    # build W4). Zoned residential: it takes beds, not fields.
-    - leaf: garden
-      room: /world/terminus/hinkley-hills/lots/garden
-      share: 1
+  extent: /world/terminus/hinkley-hills/house
+  entrance: /world/terminus/hinkley-hills/house/yard
+  footprintM2: 220
+  buildings:
+    - /world/terminus/hinkley-hills/idea/house-building

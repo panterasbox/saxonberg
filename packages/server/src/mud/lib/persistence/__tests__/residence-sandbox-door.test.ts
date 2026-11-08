@@ -34,9 +34,14 @@ const CONTENT = join(HERE, '..', '..', '..', '..', '..', '..', 'content');
 /** The one class a circle is entered through. */
 const CROSSING = '/platform/thing/sandbox/SandboxCrossing';
 
+/** The class a residence programme is (the residence system's holding). */
+const HOLDING = '/system/residence/idea/HoldingWarren';
+
 interface Row {
   template: string;
   cls: string;
+  /** The row this one `extends:` (resolved at read), or null. */
+  parent: string | null;
   data: Record<string, unknown>;
 }
 
@@ -54,10 +59,13 @@ function shippedRows(): Map<string, Row> {
       if (!entry.endsWith('.yaml')) continue;
       try {
         const doc = YAML.parse(readFileSync(full, 'utf8')) as Record<string, unknown>;
-        if (!doc || typeof doc !== 'object' || typeof doc.class !== 'string') continue;
+        if (!doc || typeof doc !== 'object') continue;
+        const parent = typeof doc.extends === 'string' ? doc.extends : null;
+        if (typeof doc.class !== 'string' && parent === null) continue;
         out.set(`${prefix}/${entry.replace(/\.yaml$/, '')}`, {
           template: `${prefix}/${entry.replace(/\.yaml$/, '')}`,
-          cls: doc.class,
+          cls: typeof doc.class === 'string' ? doc.class : '',
+          parent,
           data: (doc.data as Record<string, unknown>) ?? {},
         });
       } catch {
@@ -76,10 +84,12 @@ function shippedRows(): Map<string, Row> {
   return out;
 }
 
-/** The template paths a row's `props:` names. */
-function propsOf(row: Row | undefined): string[] {
+/** The template paths a row's `props:` names — its parent's when it names none. */
+function propsOf(row: Row | undefined, rows?: Map<string, Row>): string[] {
   const raw = row?.data.props;
-  if (!Array.isArray(raw)) return [];
+  if (!Array.isArray(raw)) {
+    return row?.parent && rows ? propsOf(rows.get(row.parent), rows) : [];
+  }
   const out: string[] = [];
   for (const p of raw) {
     if (typeof p === 'string') out.push(p);
@@ -94,26 +104,35 @@ function propsOf(row: Row | undefined): string[] {
 describe('every residence reaches its tenant’s sandbox door', () => {
   const rows = shippedRows();
 
-  /** Programmes = any row declaring a floorplan. Discovered, never listed. */
+  /**
+   * Programmes = any HOLDING row authoring a plan (its own `extent`, no
+   * blueprint row). Discovered, never listed. ⚠ A plan alone is no home
+   * (the lift): a ship kind names one too, and a ship is not a
+   * residence — no circle is granted aboard her.
+   */
   const programmes = [...rows.values()].filter(
-    (r) => Array.isArray(r.data.floorplan),
+    (r) => typeof r.data.extent === 'string' && r.cls === HOLDING,
   );
+
+  /** A plan's room rows: every row at or under the programme's extent. */
+  const roomsOf = (prog: Row): Row[] => {
+    const extent = prog.data.extent;
+    if (typeof extent !== 'string') return [];
+    return [...rows.values()].filter(
+      (r) => r.template === extent || r.template.startsWith(`${extent}/`),
+    );
+  };
 
   it('⚠ the walk finds the shipped programmes — a scan that found none would pass', () => {
     expect(programmes.length).toBeGreaterThanOrEqual(3);
   });
 
-  it('⭐ every floorplan includes a room carrying a SandboxCrossing', () => {
+  it('⭐ every plan includes a room carrying a SandboxCrossing', () => {
     const without: string[] = [];
     for (const prog of programmes) {
-      const plan = prog.data.floorplan as Array<Record<string, unknown>>;
-      const hasDoor = plan.some((leaf) => {
-        const roomPath = leaf.room;
-        if (typeof roomPath !== 'string') return false;
-        return propsOf(rows.get(roomPath)).some(
-          (p) => rows.get(p)?.cls === CROSSING,
-        );
-      });
+      const hasDoor = roomsOf(prog).some((room) =>
+        propsOf(room, rows).some((p) => rows.get(p)?.cls === CROSSING),
+      );
       if (!hasDoor) without.push(prog.template);
     }
     expect(

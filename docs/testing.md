@@ -107,6 +107,16 @@ with player verbs.
   each exact parcel extent named (a `ParcelApi.transfer`; one it already holds is kept), so
   `eval --parcel <it>` runs as that parcel's holder would. ⚠ A transferred title is a sold parcel
   to the pack that claimed it: its next reconcile records a `conflict` and skips its rows there.
+- ⭐ **Authority is a SEAT, in a test exactly as in play** (wizard-axis D13). `wizard: true` is the
+  axis ONLY — authoring TypeScript (`eval`, a `.ts` write) — and confers no title; ⛔ there is no
+  every-group mode under any name (nobody sits on every committee — not even the founder).
+  **`{committees: ['/world/terminus', '/corpo/goodkin:owner']}`** seats the character on the
+  committee over each extent (the managed group's member row, `:owner` for the owner role — what
+  `canMutateZone` asks); an organization-held extent (the executive, `/compact/trade`, a business)
+  is a 400 naming that its staff hold it. **`{offices: ['minister-of-trade', …]}`** seats the
+  character in each office (`CompactApi.assignOfficeForTest`, `@TestOnly`) — one holder per office,
+  so the seat MOVES from the founder. A session that stages names what it stages inside; a session
+  that only plays asks for nothing.
 - **`pinWeather(type, scope)` / `unpinWeather(scope)`** (`/auth/test-weather`) hold the weather of
   the Locality covering `scope`, applied at once as a segment boundary applies it. A drive that
   pins, unpins.

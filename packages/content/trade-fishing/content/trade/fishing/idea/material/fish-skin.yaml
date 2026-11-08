@@ -1,0 +1,17 @@
+# Fish skin — what the fishmonger strips and throws away, and what a glue
+# pot boils the clearest glue from (paint D19).
+class: /platform/idea/material/OdorousMaterial
+data:
+  smells: [{ word: fish, strength: 300 }]
+  name: fish skin
+  keywords: ["fish skin", "fish skins", skins]
+  appearance: a slither of silvery fish skins, scales still on
+  density: 1050
+  specificHeat: 3300
+  thermalConductivity: 0.4
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: [tissue, animal, collagen, fish-skin, organic, once-living]
+  composition: []
+  biologicalSource: null

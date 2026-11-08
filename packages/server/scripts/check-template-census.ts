@@ -13,7 +13,7 @@
  *       `exits.<dir>.door`, `adornments`, `floor.material` +
  *       `floor.template`, `stockLines[].itemTemplatePath`,
  *       `prices` keys, `roomTemplate`, `holderPath`, `streetPath`,
- *       `corridorTemplate`, `programmePath`, and floorplan `room`
+ *       `corridorTemplate`, `programmePath`, and a holding plan's `buildings`
  *       entries. (`class:` stays `check-instanceable-placement`'s —
  *       shared reader, no duplicate.)
  *   (c) Every `TemplatePaths` constant in `lib/paths.ts` that names a
@@ -237,6 +237,12 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     // becomes. Resolved live at the cast and the blow.
     'breaksTo', 'strikes',
     'line', 'bunker', 'river', 'ferry', 'service',
+    // ⭐ A charter book's `payTo` — the venue its days are
+    // paid into; a rowless one is a charter whose bill settles nowhere.
+    'payTo',
+    // ⭐ A government's `shipRegister` — the register row it
+    // keeps; a rowless one is a polity whose yard sells a ship into nothing.
+    'shipRegister',
   ] as const) {
     push(f, data[f]);
   }
@@ -246,8 +252,17 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
   // rows too.)
   // ⭐ (W12) A timetabled service's `landings` — a rowless one is a boat
   // that leaves from nowhere.
-  for (const f of ['endpoints', 'featured', 'horizon', 'landings'] as const) {
+  // ⭐ A harbor's `exempt` ships — an authored ship's row; a
+  // rowless one exempts nobody and every city craft pays dues.
+  // ⭐ A charter book's `ships` — the ships a line's desk lets;
+  // a rowless one is a charter for a ship that is not there.
+  for (const f of ['endpoints', 'featured', 'horizon', 'landings', 'exempt', 'ships'] as const) {
     if (Array.isArray(data[f])) for (const v of data[f] as unknown[]) push(f, v);
+  }
+  // ⭐ A harbor's `quays[].place` — a rowless one is a berth
+  // the harbormaster gives that no ship can ever reach.
+  if (Array.isArray(data.quays)) {
+    for (const q of data.quays as Array<Record<string, unknown>>) push('quays', q?.place);
   }
   if (Array.isArray(data.entries)) {
     for (const e of data.entries as Array<Record<string, unknown>>) {
@@ -698,6 +713,14 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
   push('vapourMaterial', data.vapourMaterial);
   // A floor's sweep heaps into this row (cleanliness D15).
   push('sweepsInto', data.sweepsInto);
+  // ⭐ What a soaked-through good of a weak-wet material leaves.
+  push('soddenTemplate', data.soddenTemplate);
+  // ⭐ The paper a bearer receipt is written on — cloned at a deposit.
+  push('receiptPaper', data.receiptPaper);
+  // ⭐ The wet sheet a pulp vat lifts (paper W2) — cloned at each dip.
+  push('sheetTemplate', data.sheetTemplate);
+  // The case a forme is set from — a row named, not minted.
+  push('casePath', data.casePath);
   // The house whose doorman keeps a door (cleanliness D29).
   push('keptBy', data.keptBy);
   /*
@@ -841,6 +864,14 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
       }
     }
   }
+  // ⭐ The hulls on a yard's hull book: each names the
+  // ship kind row she is built to.
+  const hulls = data.hulls;
+  if (Array.isArray(hulls)) {
+    for (const h of hulls) {
+      if (h && typeof h === 'object') push('hulls.kind', (h as Record<string, unknown>).kind);
+    }
+  }
   // ⭐ (ceramics W8) What a solution crystallizes to: the crystals and the
   // mother liquor, both material rows.
   const crystallizesTo = data.crystallizesTo as { product?: unknown; residue?: unknown } | undefined;
@@ -892,13 +923,11 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
   ] as const) {
     push(scalar, data[scalar]);
   }
-  const floorplan = data.floorplan;
-  if (Array.isArray(floorplan)) {
-    for (const roomSpec of floorplan) {
-      if (roomSpec && typeof roomSpec === 'object') {
-        push('floorplan.room', (roomSpec as Record<string, unknown>).room);
-      }
-    }
+  // ⭐ The buildings a holding's plan names —
+  // Building rows on the programme row itself (no blueprint row), each
+  // minted per copy; the main one first.
+  if (Array.isArray(data.buildings)) {
+    for (const b of data.buildings) push('buildings', b);
   }
   return out;
 }
@@ -920,6 +949,12 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
  * until somebody decides which it is. Enumerate, never infer.
  */
 const IGNORED_PATH_FIELDS: readonly string[] = [
+  // A ledger's PREFIX — a document-tree prefix read by
+  // `DocumentApi.list`, not a row: a business's feed, a register's branch.
+  'registerPrefix',
+  // A printed book's EDITION — a document path (`DocumentApi.pagesOf`),
+  // the frozen pages its leaves are bound to; not a row.
+  'edition',
   // Addresses resolve by AddressApi's longest-prefix walk, not by
   // template lookup.
   '_address',
@@ -933,6 +968,13 @@ const IGNORED_PATH_FIELDS: readonly string[] = [
   // unresolvable one fails closed and is not the silent hazard this
   // clause exists to catch. See docs/subsystems/watershed.md.
   'extent',
+  // ⭐ …and a conduit's served extents as a LIST (water-supply D23): the
+  // same longest-prefix prefixes, one per district the main serves.
+  'extents',
+  // ⭐ A field's inlets (water-supply D15) name the GATE they draw on — a
+  // live object loaded on use, placed by its own room's `props:`; the
+  // inlet cites it and brings nothing into the world.
+  'inlets',
   'servesExtent',
   // ⭐ A structure's STOREYS (rubber build) are extents too — each a
   // membership prefix resolved longest-prefix, like the structure's own
@@ -954,6 +996,12 @@ const IGNORED_PATH_FIELDS: readonly string[] = [
   // that is not a live Container — so a dangling vault serves NOTHING
   // rather than everything, failing closed exactly like the extents above.
   '_vaultPaths',
+  // ⭐ A register's `registerOwner` / `registerPrefix` name
+  // DOCUMENT-tree branches (`/platform`, `/platform/ships/<gov>`), checked by
+  // `DocumentApi.saveToRegister` — never template rows, so there is no row
+  // for them to dangle from.
+  'registerOwner',
+  'registerPrefix',
   // ⭐ A blood unit's donor key is a durable PARTY id — an identity path
   // (a person) for a drawn unit, an organization path for an institutional
   // one, and '' for an unattributed bag. Like `donorIdentityPath` it keys a
@@ -994,7 +1042,6 @@ const UNREAD_PATH_FIELDS: readonly string[] = [
   'parentExtent', 'roadTemplate',
   'rosterSlots', 'routes', 'seatIn', 'seats', 'seedTemplatePath',
   'steepsInto', 'teachesSpellPath', 'trapTemplate', 'treasury',
-  'warren',
 ];
 
 function checkPathFieldCoverage(

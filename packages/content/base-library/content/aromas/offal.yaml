@@ -1,0 +1,5 @@
+# Liver and gut, sour and metallic.
+word: offal
+parent: flesh
+discipline: butchery
+liking: { peak: 1.5, width: 2, valence: -1 }

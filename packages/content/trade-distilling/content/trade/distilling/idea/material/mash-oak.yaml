@@ -1,0 +1,6 @@
+# Oak staves that have held mash and spirit for years. It has gone into the wood,
+# so a tun or a vat smells of its work whether or not it is charged.
+extends: /stuff/idea/material/wood/oak
+data:
+  name: mash-soaked oak
+  smells: [{ word: mash, strength: 60 }, { word: spirit, strength: 20 }]

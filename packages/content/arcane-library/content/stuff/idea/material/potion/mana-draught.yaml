@@ -14,6 +14,8 @@
 # the row), so no effect anywhere can add mana without paying for it.
 class: /system/arcana/idea/material/PotionMaterial
 data:
+  smells: [{ word: ozone, strength: 60 }]
+  tastes: [{ type: sweet, amount: 30 }, { type: bitter, amount: 0.05 }]
   name: mana draught
   keywords: [mana, draught, potion, philtre]
   density: 1080

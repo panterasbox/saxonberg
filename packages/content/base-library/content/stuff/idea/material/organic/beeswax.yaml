@@ -10,8 +10,10 @@
 # well above that, but a candle beside a fire is not), which is the whole
 # reason a wax object behaves differently from a horn one — the shipped
 # phase machinery reads this and nothing else has to.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ word: beeswax, strength: 60 }]
+  burning: [{ word: wax-smoke, strength: 60 }]
   name: beeswax
   keywords: [wax, beeswax]
   appearance: pale yellow wax, slightly translucent at the edges

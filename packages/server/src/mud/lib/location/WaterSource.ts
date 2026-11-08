@@ -34,6 +34,10 @@ export interface WaterDraw {
    * carried by what is drawn. Absent ⇒ the source does not say.
    */
   hardnessDgh?: number;
+  /** The water's pH (water-supply D8). Absent ⇒ the source does not say. */
+  pH?: number;
+  /** The water's salinity, ppt (water-supply D8). Absent ⇒ the source does not say. */
+  salinityPpt?: number;
 }
 
 /**

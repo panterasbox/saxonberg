@@ -27,7 +27,7 @@ data:
   edibility: false
   nutrients: []
   toxicity: []
-  tastes: [salty, bitter]
+  tastes: [{ type: salty, amount: 100 }, { type: bitter, amount: 1 }]
   tags: ["mineral", "salt", "nitrate", "oxidizer", "crystalline"]
   composition: []
   biologicalSource: null

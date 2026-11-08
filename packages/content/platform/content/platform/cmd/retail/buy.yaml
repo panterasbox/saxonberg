@@ -1,6 +1,6 @@
 verbs: [buy, purchase]
 controller: /platform/idea/cmd/retail/BuyController
-description: "Buy a good from a store's shelves"
+description: "Buy something offered for sale here"
 help: |
   Buy a good off a store counter — `buy torch`. The clerk rings it up;
   you pay by card or in coin, and the good is yours (owned, not just
@@ -46,10 +46,11 @@ args:
   # while making the counter addressable when it matters (`buy torch from
   # second counter`), which a controller-side default never was.
   #
-  # ⚠ The query is the SHELF mixin, not `[class.Stock]`: `Stock` composes
-  # `ConsignmentShelfMixin`, so one arg finds a house counter, a
-  # standalone consignment shelf, or a counter being both — and the
-  # controller narrows into the two roles it actually uses.
+  # ⭐ The query is the OFFER protocol (`ForSaleMixin`),
+  # not a class: one arg finds a house counter, a standalone consignment
+  # shelf, the yard's hull book — anything that has something for sale —
+  # and the controller hands the sale to whichever seller here offers the
+  # word.
     # ⭐⭐ `greedy: true` on the TRAILING arg too, and it is the same
     # defect wearing the other hat: a non-greedy arg takes exactly ONE
     # token, so naming the counter at all — ``buy torch from the second counter`` —
@@ -64,6 +65,6 @@ args:
     required: false
     greedy: true
     prepositions: [from]
-    default: "reachable:[mixin.ConsignmentShelfMixin]"
+    default: "reachable:[mixin.ForSaleMixin]"
     scope: [reachable]
-    requires: [ConsignmentShelfMixin]
+    requires: [ForSaleMixin]

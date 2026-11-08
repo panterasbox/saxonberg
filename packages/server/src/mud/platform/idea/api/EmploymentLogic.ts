@@ -136,6 +136,7 @@ type EmployedActor = Stuff & Employed;
 async function holdsAuthorityImpl(
   principal: Stuff | null,
   ref: PrincipalRef | null,
+  depth = 0,
 ): Promise<boolean> {
   if (principal === null || ref === null) return false;
   switch (ref.kind) {
@@ -154,7 +155,48 @@ async function holdsAuthorityImpl(
       return PlayerApi.isAvatarStuff(principal)
         ? CompactApi.isCommitteeMember(principal, ref.parcel)
         : false;
+    case 'owners':
+      return holdsOwnersAuthority(principal, ref.organization ?? '', depth);
   }
+}
+
+/**
+ * ⭐ The `owners` authority (the institutions slate's cap
+ * table): whoever holds a MAJORITY of the organization's table. A player
+ * holder is an identity match; an organization holder's OWN authority is
+ * asked in turn (the line's office appoints the Hesper's master). Fails
+ * closed: an organization that is not standing or keeps no table, a table
+ * with no majority, or a chain of organizations holding each other deeper
+ * than a handful.
+ */
+async function holdsOwnersAuthority(
+  principal: Stuff,
+  organization: string,
+  depth: number,
+): Promise<boolean> {
+  if (depth > 4 || organization === '') return false;
+  const org = await organizationAt(organization);
+  if (org === null || !MixinApi.isCapTable(org)) return false;
+  const owner = org.majorityHolder();
+  if (owner === null) return false;
+  if (owner.kind === 'player') {
+    const path = principal.getIdentityPath();
+    return path !== null && path === owner.path;
+  }
+  const holder = await organizationAt(owner.path);
+  if (holder === null || !MixinApi.isOrganization(holder)) return false;
+  return holdsAuthorityImpl(principal, holder.getAppointingAuthority(), depth + 1);
+}
+
+/**
+ * The organization at `path`: the live one with that identity (a minted
+ * company stands with whatever minted it), else its row stood up. `null`
+ * when neither stands.
+ */
+async function organizationAt(path: string): Promise<Stuff | null> {
+  const live = StuffApi.findByIdentityPath<Stuff>(path).find((s) => !s.isDestroyed());
+  if (live !== undefined) return live;
+  return StuffApi.singleton<Stuff>(path).catch(() => null);
 }
 
 /**
@@ -1336,6 +1378,7 @@ async function settleShiftWageImpl(
   employeeKey: string,
   employment: Employment,
   offTimeRaw: number,
+  opts: { tell?: boolean } = {},
 ): Promise<void> {
   const onSince = employment.onShiftSince;
   if (onSince == null) return; // never actually on shift
@@ -1365,7 +1408,10 @@ async function settleShiftWageImpl(
   // the worker's decision (sugar D10) — a person is told, a hand past what
   // they will stand walks off. Both shift ends (the roster tick and
   // `clock off`) come through here.
-  if (!paid.ok && paid.reason === 'insufficient-funds') {
+  // ⚠ A settle at LEAVING tells nobody: the worker is being unloaded or has
+  // gone, and loading them back to hear it would undo the leaving. The
+  // arrear stands on the book either way.
+  if (!paid.ok && paid.reason === 'insufficient-funds' && opts.tell !== false) {
     const owed = business.arrearsOwedTo(employeeKey);
     // ⭐ LOADED on use, not looked up: a hand on a holding nobody is
     // standing in is not resident, and a resident-only read skipped their
@@ -2037,6 +2083,32 @@ export class EmploymentLogic extends ApiLogic {
   @CallSecurity(EmployedCallers)
   public clockOff(actor: Stuff, organizationPath: string): Promise<ClockResult> {
     return this.clockImpl(actor, organizationPath, 'off');
+  }
+
+  /**
+   * See {@link Employed.leaveShifts}. Every shift the actor is on ends NOW
+   * and settles to now — the instant is read before anything awaits, so a
+   * body being unloaded is paid to the moment it left. The record on a body
+   * that is gone is not touched (an unsaved hand's record goes with it).
+   */
+  @CallSecurity(EmployedCallers)
+  public async leaveShifts(actor: Stuff): Promise<void> {
+    if (!MixinApi.isEmployed(actor)) return;
+    const key = actor.getIdentityPath() ?? '';
+    const nowRaw = WorldClockApi.getNow().rawValue();
+    const open = actor.getEmployments().filter((e) => e.status === 'on-shift');
+    for (const employment of open) {
+      const business = await StuffApi.singleton(employment.organizationPath).catch(() => null);
+      if (!business || !MixinApi.isBusiness(business)) continue;
+      // ⚠ The shift ends whether or not the wage could settle: a shift left
+      // open is exactly what a later `clock off` paid the whole absence for.
+      try {
+        await settleShiftWageImpl(business, key, employment, nowRaw, { tell: false });
+      } catch (err) {
+        console.warn(`EmploymentLogic: the leaving wage for ${key} did not settle: ${String(err instanceof Error ? err.message : err)}`);
+      }
+      if (!actor.isDestroyed()) business.endShift(actor as EmployedActor);
+    }
   }
 
   /** See {@link EmploymentApi.buysFor}. */

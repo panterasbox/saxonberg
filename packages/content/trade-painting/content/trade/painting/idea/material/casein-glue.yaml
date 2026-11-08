@@ -1,0 +1,23 @@
+# casein glue — curd stirred with milk of lime: a cold glue that sets hard, stands the damp, and never comes apart again.
+class: /platform/idea/material/OdorousMaterial
+data:
+  smells: [{ word: sour-milk, strength: 200 }]
+  name: casein glue
+  keywords: ["casein glue", casein, glue]
+  appearance: a thick, chalky white glue that smells faintly sour
+  density: 1300
+  specificHeat: 2500
+  thermalConductivity: 0.3
+  meltingPoint: 271
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: [liquid, glue, casein, organic, once-living]
+  # ⭐ A GLUE (paint D11): the strength of a set line, whether heat and
+  # steam undo it, how it stands the damp, the heat it lets go at.
+  adhesive: { strength: 0.75, reversible: never, resistsDamp: 0.7 }
+  kinetics:
+    - key: set
+      sets: drying
+      order: 0
+      rate: [[273, 0.005], [283, 0.02], [293, 0.04], [303, 0.06]]

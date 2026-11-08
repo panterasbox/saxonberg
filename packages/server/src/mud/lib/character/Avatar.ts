@@ -17,6 +17,7 @@ import { SandboxApi } from "../../api/sandbox";
 import { ConnectionApi } from "../../api/connection";
 import { EventApi } from "../../api/event";
 import { StuffApi } from "../../api/stuff";
+import { BankingApi } from "../../api/banking";
 import { ContainmentApi } from "../../api/containment";
 import { MixinApi } from "../../api/mixin";
 import { BiomeApi } from "../../api/biome";
@@ -1365,6 +1366,15 @@ export default abstract class Avatar extends AvatarBase {
         CredentialWalletUpdate.TEMPLATE_PATH,
       );
       this.hostUpdate(wallet);
+      // ⭐ The accounts are the record; the wallet app is re-cloned every
+      // login, so it links again whatever this person banks with — after
+      // a server restart it held none, and nothing they bought anywhere
+      // could be paid for (found by the drive's restart).
+      const me = this.getIdentityPath();
+      if (me && !this.isGuest) {
+        const pay = wallet.ensureCredential("payment");
+        for (const id of await BankingApi.accountIdsOf(me)) pay.linkAccount(id);
+      }
       // ⭐ The personal calendar surface (D12) — beside comms/forums/wallet,
       // re-provisioned every login exactly as they are.
       const calendar = await StuffApi.clone<CalendarUpdate>(
@@ -1573,12 +1583,23 @@ export default abstract class Avatar extends AvatarBase {
       StuffApi.destruct(this);
       return;
     }
+    // ⭐ The session ended, so the shift did (the payroll gap): paid to now,
+    // on either path — a dropped line is still the last moment this body
+    // was at work, as `markSeen` below reasons. A parked body is elsewhere,
+    // so its shift here ends too.
+    if (MixinApi.isEmployed(this) && this.shiftState() === 'on-shift') {
+      void this.leaveShifts().catch((err) =>
+        console.error(`Avatar.onLinkdead: the leaving settle failed for playerId=${this.playerId}:`, err),
+      );
+    }
     // A PARKED avatar (its player crossed into a circle) suppresses the
     // presence emit: the player didn't leave — they're elsewhere and
     // unreachable, which is what the implant-blind wire means. Presence
     // reads present parked as present-but-unreachable, never offline.
     // (Sandbox Decision P — a suppression, no new event.)
     if (this.parked) return;
+    // Nobody is in the body, so its nose neither tires nor recovers.
+    this.freezeNose();
     // ⭐ In the water when the line went (underwater D11): the water holds
     // a disconnected body face-up at the surface, breathing, until its
     // player comes back. The water-only answer; the general rule for a

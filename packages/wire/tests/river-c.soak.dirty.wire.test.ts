@@ -78,10 +78,14 @@ async function look(s: Session): Promise<string> {
   return squash(await s.prose('look here'));
 }
 
-/** The boat's surroundings: `look` from inside a canoe sees the water it is in. */
+/**
+ * The boat's surroundings: `look` from inside a canoe sees the water it is in.
+ * ⚠ `look here`, not `look out`: `out` binds the canoe's WAY out (an exit is a
+ * candidate in its own right — harbors review 3), which describes itself.
+ */
 async function water(s: Session): Promise<string> {
   await s.drainProse();
-  return squash(await s.prose('look out'));
+  return squash(await s.prose('look here'));
 }
 
 async function morning(): Promise<void> {

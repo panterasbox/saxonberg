@@ -1,0 +1,15 @@
+# Papermaking (paper W2) — beating, dipping, couching, pressing, sizing.
+class: /platform/idea/Discipline
+data:
+  key: papermaking
+  channel: skill
+  label: Papermaking
+  iscedf: "0723"
+  description: >-
+    Knowing rag by its fibre and pulp by how it hangs in the water; lifting
+    the mould level and shaking the wire so the fibres lie every way at once;
+    couching a sheet without a fold in it; pressing a post before it sets;
+    drying in moving air; and knowing that the water in the vat decides the
+    color of everything that comes out of it.
+  specializes: []
+  requires: []

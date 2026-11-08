@@ -1,0 +1,26 @@
+# Manuel Furtado (water-supply W9) — the senior irrigator: his family's
+# right on the Delight is the oldest in the valley, and his turn on the
+# ditch is every morning before the heat. His turns are the company's rota;
+# nobody has to watch him take them.
+class: /platform/agent/Cast
+extends: /stuff/agent/costume/student
+data:
+  costume:
+    - /stuff/thing/clothes/field-jacket
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  name: Manuel Furtado
+  keywords: [manuel, furtado, irrigator, farmer]
+  pronouns: he
+  shortDescription: barefoot irrigator with a long-handled shovel
+  register: indefinite
+  longDescription: >-
+    A broad, unhurried man with his trousers rolled to the knee and mud to
+    the ankle, leaning on a long-handled shovel by the ditch and watching
+    the water the way other men watch a fire.
+  archetype: farmer
+  prologue:
+    - "Holds the oldest right on the Delight, and has never once had to say so."
+  competence:
+    - { discipline: agriculture, asserting: proficient }
+    - { discipline: hydrology, asserting: competent }

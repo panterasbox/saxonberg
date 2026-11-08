@@ -26,7 +26,7 @@
  * See docs/subsystems/electricity.md.
  */
 
-import Locale from '../../lib/location/Locale';
+import Hall from '../../platform/location/Hall';
 import { MixinApi } from '../../api/mixin';
 import { ElectricityApi } from '../../api/electricity';
 import { MessageApi } from '../../api/message';
@@ -36,7 +36,7 @@ import { AppSettingKeys } from '../../lib/config/AppSettings';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Container } from '../../lib/spatial/Container';
 
-export default class FloodedCell extends Locale {
+export default class FloodedCell extends Hall {
   /**
    * The hazard: fired on the destination when a body walks in (the
    * `Mobile.traverse` → `onEntered` seam). Conduct from every live source in

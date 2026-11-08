@@ -127,6 +127,11 @@ The verb did not go away, the thing did.
   `behaviors[].brain` are the wizard axis and are closed to it by the
   shipped code-trust lockdown — so **a generator can never change what a
   thing IS**, only make one.
+  ⚠ **Superseded 2026-11-05:** the wizard-axis cleanup deleted the
+  code-naming gate that was this bullet's mechanism (naming a class is
+  content; the wizard axis is authoring TypeScript only) — so "what a
+  thing IS" is now bounded by title like everything else. The budget
+  below (title = extent) stands.
 - `AccessApi.canAtPath` gates it **by parcel title**, exactly like a human
   author. This is **not a new security model**; it is the shipped one.
 

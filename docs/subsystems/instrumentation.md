@@ -192,6 +192,14 @@ that opens with an escaped quote. The rest is: **read the words**.
 - [command-routing.md](./command-routing.md) — the binder, and the
   `greedy`/`required` rules the article defect turns on
 
+## The aroma channel (vocabularies-to-rows, 2026-11)
+
+`analyze aroma [thing]` is the nose read deliberately: everything you can separate, in
+words. `measure aroma [thing] with <gas analyzer>` reads the same quantity as odor units
+with the honest bracket, so a shipped analyzer gained the channel with no row change. The
+channel's own discipline is empty because a nose bands per word
+([senses.md](./senses.md#one-smell-source-air-nose)).
+
 ## Two channels from the maritime build (2026-10)
 
 - **`depth`** (`/system/water/idea/reading/depth`, the water pack's) —

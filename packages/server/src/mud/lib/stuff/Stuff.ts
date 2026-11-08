@@ -51,6 +51,7 @@ import type { Mml } from '../../api/mml';
 import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
 import { ShadowChangedEvent } from '../events/ShadowChangedEvent';
 import type { VetoResult } from '../errors';
+import type Exit from '../boundary/Exit';
 
 /**
  * Any class reference, abstract or concrete. Used by the top-level
@@ -1337,6 +1338,19 @@ export abstract class Stuff {
    * @hook Overridden once, by `Location`. Nothing else should.
    */
   public isPlace(): boolean {
+    return false;
+  }
+
+  /**
+   * Am I a WAY between places — an `Exit`? MQL binds a direction to the
+   * exit itself, so the readers of a binding ask this
+   * rather than importing the class: `Exit` sits on the locomotion
+   * import graph, and a value import of it from the query engine closed
+   * a load cycle through containment.
+   *
+   * @hook Overridden once, by `Exit`. Nothing else should.
+   */
+  public isExit(): this is Exit {
     return false;
   }
 

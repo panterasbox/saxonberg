@@ -19,6 +19,7 @@
  * Harness mirrors DormResidence.test.ts.
  */
 
+import { Aroma } from '@saxonberg/server/mud/lib/perception/Aroma';
 import "@saxonberg/server/test-bootstrap";
 import { KERNEL_CONTENT_ROWS } from '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
@@ -133,7 +134,8 @@ function addSeed(path: string, file: string): void {
   col('content').push({
     _id: `d-${++idCounter}`,
     path,
-    class: parsed.class as string,
+    // A child row names its parent rather than a class (an aroma under its root).
+    ...(typeof parsed.extends === 'string' ? { extends: parsed.extends } : { class: parsed.class as string }),
     data: (parsed.data as Record<string, unknown>) ?? {},
   });
 }
@@ -157,6 +159,8 @@ function seedDomain(): void {
   for (const row of KERNEL_CONTENT_ROWS) {
     col('content').push({ _id: `d-${++idCounter}`, ...row });
   }
+  // The parent of every holding's building row (paint D6).
+  col('content').push({ _id: `d-${++idCounter}`, path: '/system/residence/idea/holding-building', class: '/system/residence/idea/HoldingBuilding', data: { shortDescription: 'house' } });
   for (const [path, cls] of [
     ['/world/terminus/eternal/duncan-hall/idea/exits/floor-stair', '/world/terminus/eternal/duncan-hall/idea/FloorStairExit'],
     ['/world/terminus/eternal/duncan-hall/idea/exits/dorm-door', '/world/terminus/eternal/duncan-hall/idea/DormDoor'],
@@ -170,6 +174,12 @@ function seedDomain(): void {
   addSeed(
     DormWarren.PROGRAMME_PATH,
     `${SEEDS}world/terminus/eternal/duncan-hall/idea/dorm-programme.yaml`,
+  );
+  // The one building its plan names (harbors review, 2026-11-03 — the
+  // plan is the programme row's own; no blueprint row).
+  addSeed(
+    '/world/terminus/eternal/duncan-hall/idea/dorm-building',
+    `${SEEDS}world/terminus/eternal/duncan-hall/idea/dorm-building.yaml`,
   );
   addSeed(DormRoom.SCOPE, `${SEEDS}world/terminus/eternal/duncan-hall/location/dormroom.yaml`);
   addSeed(
@@ -205,6 +215,8 @@ function seedDomain(): void {
   addSeed('/trade/farming/thing/seed/peace-lily', `${PRODUCE}trade/farming/thing/seed/peace-lily.yaml`);
   addSeed('/trade/farming/thing/seed/snake-plant', `${PRODUCE}trade/farming/thing/seed/snake-plant.yaml`);
   addSeed('/stuff/thing/vessel/watering-can', `${OBJECTS}stuff/thing/vessel/watering-can.yaml`);
+  // ⭐ The run the dorm room stands up for its basin (the default, `Plumbed`).
+  addSeed('/stuff/thing/fixture/iron-run', `${OBJECTS}stuff/thing/fixture/iron-run.yaml`);
   // ⭐ The winter coat the footlocker is born with (the climate build, D18).
   addSeed('/stuff/thing/clothes/greatcoat', `${OBJECTS}stuff/thing/clothes/greatcoat.yaml`);
   // …and its fabric form, which the real world's catalogue registers.
@@ -235,6 +247,10 @@ function seedDomain(): void {
     '/stuff/idea/material/alloy/steel',
     `${CONTENT}base-library/content/stuff/idea/material/alloy/steel.yaml`,
   );
+  // The aroma words those materials name, which load with them.
+  const earth = Aroma.remember('earth', {}, null);
+  Aroma.remember('loam', {}, earth);
+  Aroma.remember('green', {}, null);
   addSeed(
     '/stuff/idea/material/tissue/plant-tissue',
     `${CONTENT}base-library/content/stuff/idea/material/tissue/plant-tissue.yaml`,
@@ -603,6 +619,11 @@ describe('the dorm houseplant — content and placement', () => {
     const plant = plantIn(room)!;
     const can = canIn(room)!;
     const tap = tapIn(room)!;
+    // ⚠ This suite stands up no parcel registry, so the dorm's premises
+    // cites no main and the tap would read `unplumbed` (water-supply D2) —
+    // a true answer about the test world, not about the care loop. The tap
+    // runs on its own water here; the supply is `WaterFixture`'s own suite.
+    (tap as unknown as { setNatural(v: boolean): void }).setNatural(true);
     const tenant = await makeAvatar('tenant');
     ContainmentApi.move(tenant, room as unknown as Stuff & Container);
     ContainmentApi.move(can, tenant); // carried — the verb needs it in hand

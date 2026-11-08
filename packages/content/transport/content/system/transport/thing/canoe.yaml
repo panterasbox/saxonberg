@@ -16,3 +16,5 @@ data:
   props:
     - { template: /system/transport/thing/propulsion/paddle, count: 2 }
     - /system/transport/thing/killick
+    # ⭐ Every boat comes with her bow line (a sailor's "painter").
+    - /platform/thing/bow-line

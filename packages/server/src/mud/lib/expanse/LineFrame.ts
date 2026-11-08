@@ -28,6 +28,9 @@ import type { CourseRequest, Frame, FramePos, FrameSite, WatchReport } from './F
 import type { CourseRecord, HullNow } from './Voyaging';
 import { TrajectoryBuilder, type Trajectory } from './Trajectory';
 import type { Craft } from './Voyage';
+import type { Container } from '../spatial/Container';
+import type { Hailable } from './Hailable';
+import type { WaterTide } from '../location/WaterSource';
 import { AppApi } from '../../api/app';
 
 /** Where on a river: km from the mouth, m from river left. */
@@ -92,6 +95,14 @@ export interface PassagePlan {
   stop: { km: number; atS: number; reason: PassageStopReason; words: string; landing?: string } | null;
 }
 
+/** The water over a river's bar at an instant. */
+export interface BarWater {
+  /** The channel's depth at the mouth now, the tide's level in it, m. */
+  depthM: number;
+  /** The sea's tide at the mouth, or `null` for an untidal sea. */
+  tide: WaterTide | null;
+}
+
 export interface LineFrame extends Frame {
   /** The river's key — the `course` of every position on it. */
   courseKey(): string;
@@ -131,6 +142,13 @@ export interface LineFrame extends Frame {
    * wave is swamped. Pull, never push: the ship's beat asks.
    */
   wakeAt(pos: LinePositionRecord, speedMps: number): Promise<void>;
+  /**
+   * ⭐ The water over the bar now: how deep the channel is at
+   * the river's mouth, the tide's level in it, and the tide — what a ship's
+   * draft is read against before she comes in. `null` for a river with no
+   * mouth on the sea, or before the line is compiled.
+   */
+  barWater(nowS: number): Promise<BarWater | null>;
   /** The sea and the node a ship comes out onto at this river's mouth, or `null`. */
   mouthOnSea(): { expanse: string; node: string } | null;
   /**
@@ -181,9 +199,20 @@ export function LineFrameMixin<TBase extends MixinConstructor<{ getTemplatePath(
       return;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    adopt(_craft: Craft): void {
-      return;
+    /**
+     * ⭐ The craft on this river that have loaded or got under way —
+     * a river keeps its ships as the sea does, so a landing being used
+     * can ask which of them lies made fast at it. Runtime live refs.
+     */
+    private craftSet: Set<Craft> = new Set();
+
+    adopt(craft: Craft): void {
+      this.craftSet.add(craft);
+    }
+
+    craft(): Stuff[] {
+      for (const c of this.craftSet) if (c.isDestroyed()) this.craftSet.delete(c);
+      return [...this.craftSet];
     }
 
     /**
@@ -303,6 +332,23 @@ export function LineFrameMixin<TBase extends MixinConstructor<{ getTemplatePath(
       return null;
     }
 
+    /** @hook Override on the river: the places on its line that answer a hail. Default: none. */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    async hailables(_pos: FramePos): Promise<(Stuff & Hailable)[]> {
+      return [];
+    }
+
+    /** ⭐ The depth under a line position is the river's own read. */
+    async depthUnder(pos: FramePos, nowS: number): Promise<number | null> {
+      return pos.frame === 'line' ? this.depthAt(pos.at, nowS) : null;
+    }
+
+    /** @hook Override on the river: the water kept over a craft that went down. Default: none. */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    async stopOver(_craft: Craft): Promise<(Stuff & Container) | null> {
+      return null;
+    }
+
     /** @hook Override on the river: a bank's way into the water. Default: nothing. */
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async onSiteStood(_place: Stuff): Promise<void> {
@@ -390,6 +436,12 @@ export function LineFrameMixin<TBase extends MixinConstructor<{ getTemplatePath(
     /** @hook Override on the river. Default: nothing to haul on. */
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     kedgeNear(_pos: LinePositionRecord): number | null {
+      return null;
+    }
+
+    /** @hook Override on the river. Default: no bar to read. */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    async barWater(_nowS: number): Promise<BarWater | null> {
       return null;
     }
 

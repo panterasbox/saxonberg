@@ -1,0 +1,21 @@
+# lead white — lead corroded in vinegar fumes: the whitest, most covering white, and a slow poison to whoever grinds it or wears it on their hands.
+class: /platform/idea/material/Material
+data:
+  name: lead white
+  keywords: ["lead white", "white lead", flake, pigment]
+  appearance: a heavy, brilliant white powder
+  density: 6500
+  specificHeat: 800
+  thermalConductivity: 0.3
+  edibility: false
+  nutrients: []
+
+  tags: [granular, solid, pigment, lead, toxic]
+  pigment: { transmitR: 0.96, transmitG: 0.96, transmitB: 0.94, hidingPower: 0.95, lightfastness: 1 }
+  composition: []
+  biologicalSource: null
+  # ⭐ The poison is the pigment (paint D14): the painter's colic. Dust from
+  # the grinding and paint on the skin dose the body; the row says how much.
+  toxicity:
+    - type: lead
+      amount: 0.5

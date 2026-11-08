@@ -165,10 +165,16 @@ at **339, three below where the build found it.**
   `XApi.verb(host, …)`. Two enumerated lists (`EXEMPT_APIS`,
   `NON_SUBJECT_TYPES`) live in the script so a widening is a visible
   diff.
+- **`lint:aromas`** — a word a row names must resolve to an `aroma` document a pack can reach. Aroma
+  words are open, so a misspelling has no list to fail against, and the failure it would
+  otherwise have is a smell silently dropped. It also refuses a smell on a material whose
+  class cannot hold one, a taste with no amount, and a recipe medium nothing in reach
+  carries. No exemption list.
 - ⭐⭐ **`lint:closed-vocabularies`** — **the census of kernel words
   content is not allowed to add to.** A closed list in kernel source that
   stands between a pack author and their row breaks *a pack must never
-  need a kernel list edit*, and until this gate nothing counted them.
+  need a kernel list edit*, and until this gate nothing counted them. Its `MIGRATING`
+  table names the slate each remaining list goes to; a stale entry fails.
   ⭐ **The question is not "is this list closed?" — plenty are correctly
   closed. It is: is its closure a fact about the WORLD, or a convenience
   for the implementation?** A fact about the world stays and is declared
@@ -1690,6 +1696,19 @@ configured**.
   rather than by an argument?) stays a review judgment, because no
   regex can make it — `BankingApi.accountsOf()` looks unkeyed and is
   not.
+- **`lint:wizard-axis`** — **the wizard axis is AUTHORING TypeScript and
+  nothing else** (owner, 2026-11-05). Every non-test file under the server
+  `src/` and every pack's `src/`/`content/` that names `isWizard`,
+  `requiresWizard`, `isArchwizard` or `requiresArchwizard` — in code OR
+  prose — is listed in `scripts/wizard-axis-allowlist.txt` with its count
+  and a reason from a closed set (`axis` · `subject` · `definition` · `ux`
+  · `prose`). The list only shrinks: an unlisted file, a rise, a fall and a
+  vanished file all fail (the `lint:test-content` rule, with counts).
+  ⭐ The one write predicate is `AccessApi.sourceWriteRefusal`; anything
+  else — reload, reading, letting a room, setting a dial — is decided by
+  a seat or by nothing, and a new wizard check is wrong by shape. Prose
+  counts so a stale comment saying `requiresWizard` is rewritten rather
+  than carried.
 
 ## Tests
 

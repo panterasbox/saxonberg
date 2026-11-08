@@ -3,8 +3,9 @@
 # boiled off in the piece (the degumming profile, inputCategory `gummed`)
 # it loses about a quarter of its weight and becomes silk — soft, white
 # and lustrous. Under-boiled, the gum stops a dye from taking.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ word: silk-reeling, strength: 30 }]
   name: raw silk
   keywords: [silk, "raw silk"]
   appearance: stiff, lustrous raw silk, harsh with its gum

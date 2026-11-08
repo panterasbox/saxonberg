@@ -245,7 +245,12 @@ async function heldIn(s: Session, vessel: RegExp, name: RegExp): Promise<{ id: s
 
 /** Into the ROOM, by the founder, who holds the title. */
 async function cloneHere(where: string, path: string, n = 1): Promise<void> {
-  const f = await Session.open('founder', { startLocation: where, wizard: true });
+  // `clone` asks title over the KIND's path: the glowcap is Rejection's row,
+  // and the founder sits on no committee by default (wizard-axis D13).
+  const f = await Session.open('founder', {
+    startLocation: where,
+    committees: ['/world/terminus/rejection'],
+  });
   try {
     expectOk(await f.cmd(`clone ${path} --here${n > 1 ? ` --count ${n}` : ''}`));
   } finally {
@@ -259,7 +264,7 @@ const CAKES: string[] = [];
 
 /** The same person, standing somewhere else (inventory travels), with a light. */
 async function goTo(handle: string, where: string): Promise<Session> {
-  const s = await Session.open(handle, { startLocation: where, wizard: true });
+  const s = await Session.open(handle, { startLocation: where });
   if (!LIT.has(handle)) {
     // ⚠ A light for the dark rooms; outdoors by day it is not needed, and
     // the founder may hold no title to clone on Rejection's ground.
@@ -275,7 +280,7 @@ async function goTo(handle: string, where: string): Promise<Session> {
 
 async function newPlayer(tag: string, where: string): Promise<Session> {
   const handle = uniqueHandle(tag);
-  const bank = await Session.open(handle, { startLocation: BANK_HALL, wizard: true });
+  const bank = await Session.open(handle, { startLocation: BANK_HALL });
   expectOk(await bank.cmd('bank open'));
   const gov = await Session.open('founder', { startLocation: BANK_HALL });
   try {
@@ -295,7 +300,7 @@ async function newPlayer(tag: string, where: string): Promise<Session> {
 /** Jump the clock, then wait for the world to answer again. */
 async function advance(duration: string): Promise<void> {
   await advanceWorldClock(duration);
-  const probe = await Session.open('founder', { startLocation: BANK_HALL, wizard: true }).catch(() => null);
+  const probe = await Session.open('founder', { startLocation: BANK_HALL }).catch(() => null);
   try {
     const until = Date.now() + 600_000;
     while (probe && Date.now() < until) {
@@ -519,7 +524,7 @@ suite('⭐ drive 6–8 — the leach, the egg, a second pass, and hard water (AC
     let s = await goTo(ashMaker, LEAN_TO);
     await say(s, 'fill waterskin from butt').catch(() => '');
     expect(await inside(s, 'hopper', /wood ash/i), 'beech heaps in the hopper').toBeGreaterThanOrEqual(2);
-    await say(s, 'get pail');
+    await say(s, 'get 1 pail');
     await say(s, 'fill pail from butt');
     await say(s, 'pour pail into hopper');
     s.close();
@@ -797,7 +802,7 @@ suite('⭐ drive 12 — lime slaked, lye made caustic, hard soap straight (AC 7)
     s.close();
     s = await goTo(ashMaker, CHANDLERY);
     await say(s, 'put lime in kettle');
-    await say(s, 'get pail').catch(() => '');
+    await say(s, 'get 1 pail').catch(() => '');
     await say(s, 'fill pail from butt');
     // ⚠ A measure: the kettle holds 10 L and the pail more, so a whole
     // pail leaves no room for the lye.

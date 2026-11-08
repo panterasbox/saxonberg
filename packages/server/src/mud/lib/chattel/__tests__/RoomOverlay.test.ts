@@ -30,6 +30,7 @@ import { StuffApi } from "../../../api/stuff";
 import { MixinApi } from "../../../api/mixin";
 import { ContainmentApi } from "../../../api/containment";
 import { PersistableApi } from "../../../api/persistable";
+import { AppApi } from "../../../api/app";
 import { PersistableMixin } from "../../persistence/Persistable";
 import { EstateMixin } from "../Estate";
 import { ContainerMixin } from "../../spatial/Container";
@@ -198,6 +199,34 @@ describe("the room overlay", () => {
       kind: "player",
       templatePath: ALICE_PATH,
     });
+  });
+
+  it("⭐ a room that goes dormant by DESTRUCT keeps the good's title — the next overlay lays it down", async () => {
+    const alice = person(ALICE_PATH);
+    const r = room();
+    const c = chair();
+    await c.stampChattel(alice);
+    await place(c, r);
+    const id = c.getChattelId();
+    await PersistableApi.capture(r);
+    await PersistableApi.capture(alice);
+
+    // Dormancy as the engine does it: captured, then destructed with its
+    // contents — not a registry wipe.
+    vi.spyOn(AppApi, "setting").mockReturnValue("/nowhere");
+    const where = PersistableApi.placeIdOf(r);
+    expect(await ChattelApi.placedIn(where)).toHaveLength(1);
+    const released = vi.spyOn(ChattelApi, "release");
+    StuffApi.destruct(r);
+    expect(c.isDestroyed()).toBe(true);
+    await new Promise((res) => setTimeout(res, 20));
+    expect(released).not.toHaveBeenCalled();
+    expect(await ChattelApi.placedIn(where)).toHaveLength(1);
+
+    const reborn = room();
+    await PersistableApi.materialize(reborn);
+    const contents = (reborn as unknown as Container).getContents();
+    expect(contents.map((x) => (x as unknown as { getChattelId(): string }).getChattelId())).toEqual([id]);
   });
 
   it("the guest-drop leak is closed — a visitor's good never rides the host's record", async () => {

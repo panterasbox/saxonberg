@@ -1,0 +1,10 @@
+# The Ostrander's entry — the city's public river steamer.
+# Her owner is her company, whose cap table holds her sixty-fourths in the
+# municipal budget's name — so whoever holds the budget's authority
+# appoints her master.
+name: Ostrander
+kind: /world/terminus/ostrander/structure
+key: /world/terminus/ostrander/structure
+flag: terminus-city
+registeredAtS: 0
+owner: /world/terminus/ostrander/idea/outfit

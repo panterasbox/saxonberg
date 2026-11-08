@@ -1,6 +1,6 @@
 # A unit's main room — built-ins only (a hearth alcove and shelving in
 # the prose; furniture is the tenant's own). Empty at move-in (D9).
-class: /platform/location/PersistentLocation
+class: /platform/location/PersistentRoom
 data:
   # ⭐ Daylight reaches this room through a real opening, and the
   # opening is named so the claim is something a player can walk up
@@ -23,3 +23,7 @@ data:
       keywords: [window, glass, light]
       description: |
         A sash window onto the row, the sill worn pale where people lean on it to watch the street.
+  # ⭐ The unit's plan: its ways, an ordinary place.
+  exits:
+    south:
+      destination: /world/terminus/mayfield-row/seznick-house/location/hall

@@ -282,7 +282,7 @@ beforeAll(async () => {
   // several game-days, and the whole point of the trade is that the
   // payroll is the cost. A thin account would fail as an arrear, which
   // is correct behaviour and would hide every later checkpoint.
-  k = await Session.open(handle, { startLocation: BANK_HALL, wizard: true });
+  k = await Session.open(handle, { startLocation: BANK_HALL });
   expectOk(await k.cmd('bank open'));
   const gov = await Session.open('founder', { startLocation: BANK_HALL });
   try {
@@ -300,7 +300,7 @@ beforeAll(async () => {
   ).toBeTruthy();
   expect(Number(bal![1]), `the bank said: ${bankProse}`).toBeGreaterThan(100);
   k.close();
-  k = await Session.open(handle, { startLocation: PROVISIONING, wizard: true });
+  k = await Session.open(handle, { startLocation: PROVISIONING });
 }, 300_000);
 
 afterAll(() => k?.close());
@@ -531,11 +531,12 @@ suite('5. the claim is one more entry in the register that already existed', () 
 
 suite('6. the rig goes up, and `bore` is afforded by what is in your hands', () => {
   it('⚠⚠ untitled ground refuses the siting — proved by a NON-WIZARD', async () => {
-    // ⭐ And the session matters, which is the finding: this drive runs
-    // `wizard: true` because the clock seam and `clone` need it, and a
-    // wizard passes a title check. So a title refusal **cannot be proved
-    // by the session that needs code trust** — asserting it there would
-    // have been a checkpoint that could only ever pass.
+    // ⭐ And the session matters, which is the finding: the driller has
+    // STAKED, and a title holder passes a title check. So a title refusal
+    // **cannot be proved by the session that holds the claim** — asserting
+    // it there would have been a checkpoint that could only ever pass.
+    // (The driller once ran `wizard: true`, which then sat on every
+    // committee; the wizard axis confers no title now — wizard-axis D13.)
     //
     // A plain player, on the HILLSIDE, which nobody has staked: the
     // refusal is the one `stake` exists to lift.

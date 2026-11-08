@@ -1,16 +1,17 @@
 /**
  * ErrorsController — the `errors` verb maps the bound model onto
- * DiagnosticApi.list / rawTail / clear and gates raw (wizard-only) + clear
+ * DiagnosticApi.list / rawTail / clear and gates raw (the Prime Minister's —
+ * other players' data, wizard-axis D19) + clear
  * (author-of-path, via the -1 sentinel). Output is captured by spying
  * Mml.fromMarkup + a no-op scene chainable (the PressController.test
- * harness); DiagnosticApi / AccessApi are stubbed.
+ * harness); DiagnosticApi / CompactApi are stubbed.
  */
 
 import "../../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import ErrorsController from '../ErrorsController';
 import { DiagnosticApi } from '../../../../../api/diagnostics';
-import { AccessApi } from '../../../../../api/access';
+import { CompactApi } from '../../../../../api/compact';
 import { MessageApi } from '../../../../../api/message';
 import { Mml } from '../../../../../api/mml';
 import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
@@ -58,7 +59,7 @@ describe('ErrorsController', () => {
     vi.spyOn(DiagnosticApi, 'list').mockResolvedValue([]);
     vi.spyOn(DiagnosticApi, 'rawTail').mockReturnValue([]);
     vi.spyOn(DiagnosticApi, 'clear').mockResolvedValue(0);
-    vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(false);
+    vi.spyOn(CompactApi, 'holdsOffice').mockResolvedValue(false);
 
     ctrl = makeStuff(() => new ErrorsController());
 
@@ -131,16 +132,16 @@ describe('ErrorsController', () => {
     expect(output.join('\n')).toContain('No diagnostics match');
   });
 
-  it('raw is wizard-gated (rejects a non-wizard)', async () => {
+  it('raw is the Prime Minister\'s (refuses anyone else, a wizard included)', async () => {
     await run({ subcommand: 'raw' });
     expect(note).toHaveBeenCalledWith(
-      expect.objectContaining({ kind: 'controller-rejected', reason: 'wizard-only' })
+      expect.objectContaining({ kind: 'controller-rejected', reason: 'pm-only' })
     );
     expect(DiagnosticApi.rawTail).not.toHaveBeenCalled();
   });
 
-  it('raw tails the ring for a wizard', async () => {
-    vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(true);
+  it('raw tails the ring for the Prime Minister', async () => {
+    vi.spyOn(CompactApi, 'holdsOffice').mockResolvedValue(true);
     vi.mocked(DiagnosticApi.rawTail).mockReturnValue([
       { level: 'error', text: 'boom', ts: 1 },
     ]);

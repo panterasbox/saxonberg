@@ -16,7 +16,7 @@
  * synthetic grids can establish.
  *
  * So: boot every shipped place, plant an ear in each, and write down
- * the lux, the dB, the ppm and every gather arrival **with its
+ * the lux, the dB, the odor units and every gather arrival **with its
  * direction**. The golden is captured from the UNMIGRATED walks (W1)
  * and must match byte-for-byte after the migration (W3). ⚠ That means
  * anyone later "tidying" neighbour order in a modality breaks this
@@ -47,6 +47,7 @@ import YAML from "yaml";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import { StuffApi } from "../../src/mud/api/stuff";
+import { Aroma, type AromaData } from "../../src/mud/lib/perception/Aroma";
 import { MixinApi } from "../../src/mud/api/mixin";
 import { ContainmentApi } from "../../src/mud/api/containment";
 import { AppSettings } from "../../src/mud/lib/config/AppSettings";
@@ -111,7 +112,7 @@ interface PlaceReading {
   colourTemperature?: number | null;
   db?: number | null;
   soundSources?: number;
-  ppm?: number | null;
+  ou?: number | null;
   smell?: string | null;
   /** The gather, in walk order, with the direction it was heard from. */
   gather?: Array<{ at: string; db: number; direction: string | null }>;
@@ -148,6 +149,32 @@ function installEveryRow(): void {
     docs.push({ path: row.path, class: eff.class ?? undefined, data });
   }
   installStore(docs);
+  primeAromas();
+}
+
+/**
+ * ⚠ The aroma words are DOCUMENTS (kind `aroma`, keyed by `word:`), which this store does not
+ * hold, and a material naming a word with no document fails to hydrate, so its
+ * place reads no smell at all. Every pack's words are read off disk instead,
+ * parents before children, exactly what `Aroma.ensure` builds from documents.
+ */
+function primeAromas(): void {
+  const pending: { word: string; data: AromaData }[] = [];
+  for (const pack of readdirSync(CONTENT).sort()) {
+    const dir = join(CONTENT, pack, "content", "aromas");
+    if (!existsSync(dir)) continue;
+    for (const f of readdirSync(dir, { recursive: true }) as string[]) {
+      if (!f.endsWith(".yaml")) continue;
+      const data = (YAML.parse(readFileSync(join(dir, f), "utf8")) ?? {}) as AromaData;
+      pending.push({ word: String(data.word), data });
+    }
+  }
+  while (pending.length > 0) {
+    const i = pending.findIndex((p) => !p.data.parent || Aroma.resolveKnown(p.data.parent));
+    if (i < 0) throw new Error(`aroma words with no parent document: ${pending.map((p) => p.word).join(", ")}`);
+    const [next] = pending.splice(i, 1);
+    Aroma.remember(next!.word, next!.data, next!.data.parent ? Aroma.resolveKnown(next!.data.parent) : null);
+  }
 }
 
 /**
@@ -288,8 +315,8 @@ describe("perception characterization — every place in the realm", () => {
       reading.soundSources = heard ? heard.sources.length : 0;
 
       const smelled = smell().signalAt(loc);
-      reading.ppm = smelled ? round(smelled.concentration.rawValue()) : null;
-      reading.smell = smelled ? (smelled.identity ?? null) : null;
+      reading.ou = smelled ? round(smelled.strength.rawValue()) : null;
+      reading.smell = smelled ? smelled.dominantWord || null : null;
 
       // ⭐ The gather in WALK ORDER — not sorted. The order is the
       // behaviour being pinned, and `Scene` consumes `out` in it.

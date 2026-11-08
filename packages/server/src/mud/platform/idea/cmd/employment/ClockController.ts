@@ -25,6 +25,9 @@ import { StuffApi } from '../../../../api/stuff';
 import { EmploymentApi } from '../../../../api/employment';
 import { GrammarApi } from '../../../../api/grammar';
 import type { ClockResult } from '../../../../lib/employment/Employed';
+import type { SeatKey } from '../../../../lib/employment/Position';
+import type { Stuff } from '../../../../lib/stuff/Stuff';
+import { Lock } from '../../../../lib/lock/Lock';
 
 const TOPIC = 'act.deed';
 
@@ -81,9 +84,12 @@ export default class ClockController extends CommandController<ClockModel> {
         : '';
       const terms = seat?.payPhrase() ?? '';
       const rate = terms ? ` ${GrammarApi.cap(terms)}.` : '';
+      const handed = seat ? await ClockController.issueSeatKeys(giver, seat.keys) : 0;
+      const keys =
+        handed === 0 ? '' : handed === 1 ? ' You are handed the key that goes with it.' : ' You are handed the keys that go with it.';
       MessageApi.scene(giver)
         .topic(TOPIC)
-        .toSelf(Mml.compose`You clock on at ${name}.${rate}${grant}`)
+        .toSelf(Mml.compose`You clock on at ${name}.${rate}${grant}${keys}`)
         .toPeers(Mml.compose`${Mml.actor(giver)} starts a shift.`)
         .send();
       return;
@@ -95,6 +101,26 @@ export default class ClockController extends CommandController<ClockModel> {
       )
       .toPeers(Mml.compose`${Mml.actor(giver)} finishes a shift.`)
       .send();
+  }
+
+  /**
+   * ⭐ Hand the holder the keys their seat carries (water-supply D19): a
+   * key to each keyway the position names — unless they already hold one.
+   * Returns how many were handed over. Nothing here is a permission check:
+   * the key opens the lock, and the lock is the gate.
+   */
+  private static async issueSeatKeys(
+    giver: Stuff,
+    keys: readonly SeatKey[],
+  ): Promise<number> {
+    let handed = 0;
+    for (const k of keys) {
+      const lock = new Lock(k.keyway, k.technology);
+      if (lock.opensFor(giver)) continue;
+      await lock.issueKeyTo(giver);
+      handed++;
+    }
+    return handed;
   }
 
   /** Every refusal names something the player can go and change. */

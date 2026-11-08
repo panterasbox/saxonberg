@@ -37,6 +37,12 @@ export interface BrandDescriptor {
   name: string;
   /** Owning Corpo `key`, or `''` for an independent (no corpo mark). */
   owner: string;
+  /**
+   * ⭐ A polity's mark: the government key whose colors this
+   * is — a flag. `''` for a trade brand. `owner` is unchanged: a
+   * government's brand is carried by no corpo.
+   */
+  government: string;
   category: string;
   positioning: string;
   descriptor: string;
@@ -57,6 +63,8 @@ export default class Brand extends NamedMixin(Idea) {
   public key: string = "";
   /** Owning Corpo `key`, or `''` = independent (no corpo mark). */
   public owner: string = "";
+  /** The government whose colors this is (`''` — a trade brand). */
+  public government: string = "";
   /** Honest product category (e.g. `'vodka'`, `'gin'`, `'whiskey'`). */
   public category: string = "";
   /** Authored positioning label (data only; not a price). */
@@ -67,6 +75,7 @@ export default class Brand extends NamedMixin(Idea) {
   static fieldMeta: FieldMeta = {
     key: { persistent: true },
     owner: { persistent: true },
+    government: { persistent: true },
     category: { persistent: true },
     positioning: { persistent: true },
     descriptor: { persistent: true },
@@ -96,6 +105,16 @@ export default class Brand extends NamedMixin(Idea) {
   }
 
   /** Whether this brand belongs to no corpo (the independent). */
+  public getGovernment(): string {
+    return this.government;
+  }
+  public setGovernment(value: string): void {
+    if (typeof value !== "string") {
+      throw new TypeError("Brand.government must be a string (a government key, or '')");
+    }
+    this.government = value;
+  }
+
   public isIndependent(): boolean {
     return this.owner.length === 0;
   }

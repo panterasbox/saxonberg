@@ -162,12 +162,12 @@ hygienic one.
 
 - **`look`** — the band and its kinds (*soiled, muddy and greasy*); a body
   by region on the bare skin; the wet band.
-- **`smell`** — dirt with a nose has an `odour` on its row (sweat → *stale
+- **`smell`** — dirt with a nose has an `odor` on its row (sweat → *stale
   sweat*, manure → *dung*, milk → *sour milk*, blood → *old blood*, grease
-  → *rancid fat*; mud, ash, soot, flour and crumbs none). `soilOdour()`
-  derives the emission from the loads (a body adds what it wears), the
-  smell walk scents the room with it, and `smell <thing>` reads *it smells
-  of …* (*reeks* at ≥ 100 ppm) once past `cleanliness.odourNoticedPpm`.
+  → *rancid fat*; mud, ash, soot, flour and crumbs none). `soilOdor()` gives a
+  note per word from the loads, in OU, and that is one leg of the one smell model
+  ([senses.md](./senses.md#one-smell-source-air-nose)), so a body smells of what it
+  wears and a nose reads it like anything else.
 - **`analyze cleanliness <thing>`** — the reading
   ([instrumentation.md](./instrumentation.md)): where, what has set, what
   lifts it, what was done to it, how long ago — by `domestic-services`
@@ -332,8 +332,9 @@ Each names where it goes; a slate that does not exist yet is the line that opens
 - **Stale urine's collection** (who fills the tub) → `sanitation-slate`.
 - **An appraisal of a garment's value** (the laundress pays a cover,
   not a value) → `retail`/`contract` slates (an `appraise` reading).
-- **Silk** → ⭐ a raw-goods chain nobody has designed (sericulture: mulberry,
-  the worm, reeling, throwing) — the user's call, 2026-10-17; no slate yet.
+- **Silk** → shipped as `trade-sericulture` ([sericulture.md](sericulture.md),
+  MR !395); the laundress's ruin case still uses wool — the silk drive line
+  and a silk garment row are [silk-slate](../slates/tails/silk-slate.md)'s.
   **Cotton** → `textiles` content. The laundress's ruin case uses wool.
 - **Seznick's and the dorm's windows as objects** → content, one row
   each over `Window`, when those homes want the drive's light step.

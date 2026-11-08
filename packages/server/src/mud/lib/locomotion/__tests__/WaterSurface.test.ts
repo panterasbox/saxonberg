@@ -224,7 +224,7 @@ describe('⭐ what sinks — a water you can stand in keeps it (the column\'s be
   function lump(densityKgM3: number): Lump {
     const l = makeStuff(() => new Lump());
     l.setMass(Quantity.of(5, 'kg'));
-    vi.spyOn(l, 'getMaterial').mockReturnValue({ getDensity: () => Quantity.of(densityKgM3, 'kg/m³') } as never);
+    vi.spyOn(l, 'getMaterial').mockReturnValue({ getDensity: () => Quantity.of(densityKgM3, 'kg/m³'), getWetStrength: () => null } as never);
     return l;
   }
   const settle = async (): Promise<void> => {

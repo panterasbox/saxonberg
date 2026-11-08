@@ -25,6 +25,15 @@
  * — *it has an outside, and something may be laid on it* — is true of every
  * good, which is the test for composing on the base. ⚠ Not on `Thing`: a
  * wall, a floor and a fixture take paint through construction's layers.
+ *
+ * ⭐⭐ **The weather** (paint D5, folded in at review): an outside coat
+ * thins where the weather reaches it at its material's rate
+ * (`Material.weatheringMPerGameYear`), outermost first, and fades where the
+ * sun does — {@link Faced.reconcileWeather}. It is decomposition's exposure
+ * clock for a coat: indoors, in a pack or on a rack the weather reaches
+ * nothing and nothing changes (Law 2 holds by construction). What the
+ * weather does to the BODY once its coat is gone is the host's
+ * ({@link Faced.bareWearPerDay}): a building wears; a good does not yet.
  */
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
@@ -38,6 +47,28 @@ import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
 import type { AromaTag } from '../metabolism/DissolvedAromatics';
 import type { MarkupAugmenter } from '../../api/mml';
+import { Paint } from './Paint';
+import type { ActPlan, ActRefusal } from '../craft/ActPlan';
+import { Mml } from '../../api/mml';
+import { MessageApi } from '../../api/message';
+import { Quantity } from '../quantity';
+import type { PaintMakeup } from './Paint';
+import { BiomeApi } from '../../api/biome';
+import { WorldClockApi } from '../../api/worldclock';
+
+/** Game seconds in a game year (the calendar's 360 days). */
+const GAME_YEAR_S = 360 * 86_400;
+
+const GAME_DAY_S = 86_400;
+
+/** How much of the weather a face out under a roof in the open air still meets. */
+const SHELTERED_EXPOSURE = 0.3;
+
+/** A coat that set badly has opened: it weathers this many times as fast. */
+const OPENED_FACTOR = 2;
+
+/** Sun dose (`0..1`) per game day of full sky light — about a hundred days to fade a lake. */
+const SUN_DOSE_PER_DAY = 0.01;
 
 /** The two faces a good can have. */
 export type FaceName = 'outside' | 'inside';
@@ -75,6 +106,45 @@ export interface CoatLayer extends EnclosureSpec {
    * like the body under it (B100). Absent until heat reaches it.
    */
   progress?: { extent: number; dose?: number };
+  /** ⭐ What a paint coat was made of — the pot's makeup, kept (paint D8). */
+  paint?: PaintMakeup;
+  /** Words lettered in the coat (`write … with paint`) — they go when it does. */
+  marks?: string;
+  /** The sun this coat has had, `0..1` — a fugitive pigment fades by it (paint D5). */
+  faded?: number;
+}
+
+/**
+ * ⭐ One stretch of the AIR a coat sits in (paint build D4): how long, how
+ * warm, how humid, whether rain is falling on it, and how freely the air
+ * changes (`1` in the open; an indoor room's air changes per hour over
+ * four, capped at `1`). A coat that sets by the air reads these; a coat
+ * that sets by heat never does.
+ */
+export interface CoatAir {
+  seconds: number;
+  kelvin: number;
+  /** Relative humidity, `0..1`. */
+  rh: number;
+  rain: boolean;
+  airChange: number;
+}
+
+/** What `paint` asks of the thing painted (paint D9). */
+export interface CoatRequest {
+  actor: Stuff;
+  /** The vessel whose liquid is brushed on. */
+  source: Stuff;
+  /** The brush in hand. */
+  brush: Stuff;
+}
+
+/** What an air window did to the coats. */
+export interface AirCoatResult {
+  /** How many coats set (or set badly). */
+  set: number;
+  /** Heat an oxidizing coat gave off, J per m² of face. */
+  heatJPerM2: number;
 }
 
 export interface Faced {
@@ -85,7 +155,38 @@ export interface Faced {
   /** The material that meets the world at a face: its top coat's, else the body's. */
   outermost(face: FaceName): Material | null;
   /** Lay a WET coat of `materialPath` on a face (outermost). */
-  layCoat(face: FaceName, materialPath: string, thicknessM: number, dirtyAtLay?: number): void;
+  layCoat(face: FaceName, materialPath: string, thicknessM: number, dirtyAtLay?: number, paint?: PaintMakeup): void;
+  /**
+   * ⭐ Advance every wet coat that sets by the AIR over `segments` (paint
+   * D4): carbonation and oxidation want air and time, drying and solvent
+   * want dry air; rain on a wet coat runs it and frost crazes it. A coat
+   * that sets by heat is untouched (`heatCoats`'s).
+   */
+  airCoats(segments: readonly CoatAir[]): AirCoatResult;
+  /** The area of a face, m² — a good's skin (`6·V^⅔`); a building's walls and roof. */
+  coatAreaM2(): number;
+  /**
+   * ⭐ Paste a sheet onto the outside with the glue in `pot`: the
+   * glue goes on as a coat carrying the sheet's words, and the sheet is
+   * gone into it. How long it stays is the glue's own damp-resistance.
+   */
+  pasteOn(sheet: Stuff, pot: Stuff): Promise<{ ok: true; line: string } | { ok: false; reason: string; line: string }>;
+  /**
+   * ⭐ The damp lets a weak glue go: on a good that is WET, a
+   * glued coat whose glue does not resist damp comes away — and the words
+   * pasted in it go with it. Returns how many let go.
+   */
+  releaseDampGlue(): number;
+  /** Are this thing's coats kept in its record? A good's always; a staged building's not (paint D7). */
+  persistsCoats(): boolean;
+  /**
+   * ⭐ Plan one brushed coat from `req.source` (paint D9) — the thing
+   * painted decides: how much surface it has, how much paint that takes,
+   * whether the painter can reach it. Refuses in words.
+   */
+  coatPlanFor(req: CoatRequest): Promise<ActPlan | ActRefusal>;
+  /** Why `actor` cannot reach this thing's outside to paint it, or `null`. */
+  coatReachRefusal(actor: Stuff): ActRefusal | null;
   /**
    * ⭐ Advance every wet coat by HEAT-WORK over a window (B100): `integrate`
    * is ∫ rate(T) dt over the window for a kinetic change — the same integral
@@ -131,6 +232,32 @@ export interface Faced {
   absorbedAromas(face: FaceName): readonly AromaTag[];
   /** Record what a porous face keeps — the slot's face exchange writes it. */
   setAbsorbedAromas(face: FaceName, aromas: readonly AromaTag[]): void;
+  /**
+   * ⭐ Walk the weather since the last look over the outside (paint D5):
+   * set what the air sets, thin what the weather reaches, fade what the sun
+   * reaches, and — once the last coat is gone — wear a durable body at
+   * {@link bareWearPerDay}. Returns the game-second the outside went BARE in
+   * this window, or `null` if it did not.
+   */
+  reconcileWeather(): number | null;
+  /**
+   * Thin the outside coats over `segments` at `exposure` (`0..1` of the
+   * weather reaching them). Returns the seconds into the window at which
+   * the last outside coat wore through, or `null`.
+   */
+  weatherCoats(segments: readonly CoatAir[], exposure: number, skyLight: number): number | null;
+  /** Is there no coat left on the outside? */
+  coatGone(): boolean;
+  /** Is the outside coat worn thin (below `thinM`)? */
+  coatThin(thinM: number): boolean;
+  /** What the weather has been doing to the outside, in words — or `null` when nothing shows. */
+  weatherCause(): string | null;
+  /** How much condition a day of weather costs the body once its coat is gone. Default none. */
+  bareWearPerDay(): number;
+  /** The game-second the weather was last walked to, or `null`. */
+  getWeatheredToS(): number | null;
+  /** Restamp the walk — a staging seam. */
+  setWeatheredToS(s: number | null): void;
 }
 
 function dial(key: string, fallback: number): number {
@@ -165,6 +292,32 @@ const COAT_WORDS: Record<CoatState, (coat: Material | null, face: FaceName) => s
   crawled: (m, f) => `The ${nameOf(m)} on its ${f} has crawled back off bare patches.`,
 };
 
+/**
+ * ⭐ The look line for one coat. A PAINT coat says its color and what it
+ * is (paint D8): *"It is painted yellow on the outside: yellow ochre in
+ * linseed oil."* Anything else is the state's line.
+ */
+function coatLine(top: CoatLayer, face: FaceName): string {
+  const m = materialAt(top.material);
+  if (top.paint === undefined) return COAT_WORDS[top.state](m, face);
+  const paint = new Paint(top.paint);
+  const what = paint.words(top.faded ?? 0);
+  const faded = (top.faded ?? 0) * (1 - paint.lightfastness()) > 0.25 ? ', faded by the sun' : '';
+  switch (top.state) {
+    case 'set':
+      return `It is ${paint.coatWord()} ${paint.colorTag(top.faded ?? 0)} on the ${face}${faded} — ${what}.`;
+    case 'wet':
+      return `It has a wet coat of ${what} on the ${face}, not yet set.`;
+    default:
+      return COAT_WORDS[top.state](m, face);
+  }
+}
+
+/** Is any pigment in this paint a lead one (tagged `lead`)? */
+function leadIn(makeup: PaintMakeup): boolean {
+  return makeup.pigments.some((p) => p.share > 0 && (materialAt(p.material)?.hasTag('lead') ?? false));
+}
+
 function nameOf(m: Material | null): string {
   return m?.getName() || 'coating';
 }
@@ -175,14 +328,30 @@ function nameOf(m: Material | null): string {
  * a glazed crock read exactly as a bare one (the ceramics drive C, run 37;
  * run 36 had passed only because "froze wet" matched).
  */
+/** Litres of glue a label takes. */
+const PASTE_LITRES = 0.005;
+/** A pasted label's glue film, m. */
+const PASTE_FILM_M = 0.00005;
+/** Wet past this (the `wet` band), a weak glue lets go. */
+const DAMP_LETS_GO_AT = 0.45;
+/** A glue that resists the damp at least this well holds in it. */
+const GLUE_HOLDS_DAMP = 0.5;
+
 const coatAugmenter: MarkupAugmenter = (text, host, _viewer, opts) => {
   if (opts?.filter) return text;
   if (!MixinApi.isFaced(host)) return text;
+  // Reconcile on read: the weather since the last look, first.
+  host.reconcileWeather();
+  host.releaseDampGlue();
   const lines: string[] = [];
+  // ⭐ A pasted label reads — on any good with an outside.
+  for (const c of host.getCoats('outside')) {
+    if (c.marks && !MixinApi.isMarked(host)) lines.push(`A label is pasted on it: "${c.marks}".`);
+  }
   for (const face of host.faces()) {
     const top = host.getCoats(face)[0];
     if (!top) continue;
-    lines.push(COAT_WORDS[top.state](materialAt(top.material), face));
+    lines.push(coatLine(top, face));
   }
   // ⭐ A weeping vessel's outside is wet for as long as it weeps — the one
   // rule the evaporative cooling reads too (drive C, run 37: the jar of
@@ -203,7 +372,118 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     static fieldMeta: FieldMeta = {
       coats: { persistent: true, authorable: true, runtimeState: true },
       absorbed: { persistent: true, runtimeState: true },
+      weatheredToS: { persistent: true, runtimeState: true },
     };
+
+    /**
+     * The coats' slice — the declared fields, unless the host says its coats
+     * are not kept (a staged ship's hull, paint D7). Plain JSON either way.
+     */
+    static captureSlice(host: Stuff): { fields: Record<string, unknown> } {
+      const self = host as unknown as Faced & { coats: unknown; absorbed: unknown; weatheredToS: unknown };
+      if (!self.persistsCoats()) return { fields: {} };
+      return {
+        fields: {
+          coats: structuredClone(self.coats),
+          absorbed: structuredClone(self.absorbed),
+          weatheredToS: self.weatheredToS,
+        },
+      };
+    }
+
+    /** @hook Why `actor` cannot reach this to paint it — `null` (a good in reach can be). */
+    public coatReachRefusal(_actor: Stuff): ActRefusal | null {
+      return null;
+    }
+
+    /**
+     * @hook One brushed coat (paint D9). A brush lays a wet film
+     * `structure.paint.coatThicknessM` thick over {@link coatAreaM2}; what
+     * stays when it sets is that film × the paint's solids. The pot gives
+     * up exactly that many litres; a pot with less coats nothing.
+     */
+    public async coatPlanFor(req: CoatRequest): Promise<ActPlan | ActRefusal> {
+      const self = this as unknown as Stuff & Faced;
+      const reach = this.coatReachRefusal(req.actor);
+      if (reach !== null) return reach;
+      const src = req.source;
+      if (!MixinApi.isBulkable(src) || !src.hasInteriorBulk()) {
+        return { ok: false, reason: 'not-paint', line: Mml.compose`There is nothing in ${Mml.thing(src)} to paint with.` };
+      }
+      const material = src.getBulkMaterial('interior');
+      if (material === null || !material.getLaysCoat()) {
+        return {
+          ok: false,
+          reason: 'not-paint',
+          line: Mml.compose`What is in ${Mml.thing(src)} will not lay a coat — it runs off and leaves nothing behind.`,
+        };
+      }
+      const area = this.coatAreaM2();
+      if (!(area > 0)) {
+        return { ok: false, reason: 'nothing-to-cover', line: Mml.compose`There is nothing of ${Mml.thing(self)} a brush could cover.` };
+      }
+      const film = dial(AppSettingKeys.structurePaintCoatThicknessM, 0.00005);
+      const litres = area * film * 1000;
+      const held = src.getBulkAmount('interior').rawValue();
+      if (held + 1e-9 < litres) {
+        const want = litres >= 1 ? `about ${Math.round(litres)} litres` : 'more than that';
+        return {
+          ok: false,
+          reason: 'source-too-low',
+          line: Mml.compose`There is not enough in ${Mml.thing(src)} to give ${Mml.thing(self)} a coat — it would take ${want}.`,
+        };
+      }
+      const makeup = src.getBulk('interior').getPayload()?.paint;
+      const solids = makeup?.solidsFraction ?? Math.min(0.9, Math.max(0.1, material.getSolidsKgPerL() || 0.4));
+      const setM = film * solids;
+      // ⭐ A paint's coat is its BINDER's: the binder sets and weathers it;
+      // the makeup keeps the pigments for its color (paint D8).
+      const path = makeup?.binder || (material.getTemplatePath() ?? '');
+      const what = makeup ? new Paint(makeup).words() : material.getName() || 'paint';
+      const giver = req.actor;
+      // A minute to brush a board; an hour and more for a house front.
+      const durationMs = Math.round(Math.min(2 * 3_600_000, Math.max(30_000, area * 45_000)));
+      return {
+        ok: true,
+        durationMs,
+        effortW: 120,
+        beginSelf: Mml.compose`You load the brush from ${Mml.thing(src)} and start laying the coat on ${Mml.thing(self)}.`,
+        beginPeers: Mml.compose`${Mml.actor(giver)} starts painting ${Mml.thing(self)}.`,
+        onComplete: () => {
+          if (self.isDestroyed() || src.isDestroyed() || !MixinApi.isBulkable(src)) return undefined;
+          const have = src.getBulkAmount('interior').rawValue();
+          if (have + 1e-9 < litres) {
+            return { ok: false, reason: 'source-too-low', line: Mml.compose`The pot runs dry before the coat is on.` };
+          }
+          // ⭐ Walk the weather UP TO NOW first, so the rain of last week
+          // does not fall on a coat laid today.
+          self.reconcileWeather();
+          src.setBulkAmount('interior', Quantity.of(have - litres, 'L'));
+          const soil = MixinApi.isSoilable(self) ? Math.max(self.soilAt('outside'), self.soilAt('')) : 0;
+          self.layCoat('outside', path, setM, soil, makeup);
+          // ⭐ Lead paint on the brush is lead on the hands (paint D14): the
+          // body takes a dose by the litre; a glove halves it.
+          if (makeup !== undefined && leadIn(makeup) && MixinApi.isMetabolic(giver)) {
+            const gloved =
+              MixinApi.isAttired(giver) && giver.handSites().some((h) => giver.outermostAt(h) !== null);
+            giver.addToxinBurden('lead', litres * dial(AppSettingKeys.metabolismLeadSkinDosePerL, 0.6) * (gloved ? 0.5 : 1));
+          }
+          if (!giver.isDestroyed()) {
+            MessageApi.scene(giver)
+              .topic('act.deed')
+              .toSelf(Mml.compose`${Mml.thing(self)} stands under a wet coat of ${what}. Let it set; keep the rain off it.`)
+              .toPeers(Mml.compose`${Mml.actor(giver)} finishes a coat on ${Mml.thing(self)}.`)
+              .send();
+          }
+          return undefined;
+        },
+      };
+    }
+
+    /** @hook Are the coats kept in this thing's record? Default yes. */
+    public persistsCoats(): boolean {
+      return true;
+    }
 
     /** What porous faces have soaked up and keep giving back, by face. */
     public absorbed: Partial<Record<FaceName, AromaTag[]>> = {};
@@ -238,6 +518,50 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         }
       }
       this.coats = value ?? {};
+    }
+
+    public async pasteOn(
+      sheet: Stuff,
+      pot: Stuff,
+    ): Promise<{ ok: true; line: string } | { ok: false; reason: string; line: string }> {
+      const self = this as unknown as Stuff;
+      const held = MixinApi.isBulkable(pot) && pot.hasInteriorBulk() ? pot.getBulkMaterial('interior') : null;
+      if (held === null || held.getAdhesive() === null || !MixinApi.isBulkable(pot)) {
+        return { ok: false, reason: 'not-glue', line: `What is in ${pot.getPresentation()} will not stick paper to anything.` };
+      }
+      const have = pot.getBulkAmount('interior').rawValue();
+      if (have + 1e-9 < PASTE_LITRES) {
+        return { ok: false, reason: 'source-too-low', line: `There is not enough left in ${pot.getPresentation()} to paste with.` };
+      }
+      if (!MixinApi.isMarked(sheet)) {
+        return { ok: false, reason: 'not-paper', line: `${sheet.getPresentation()} is not a thing you paste on.` };
+      }
+      await sheet.refreshMarks(sheet);
+      const words = sheet.getMarkText().trim();
+      pot.setBulkAmount('interior', Quantity.of(have - PASTE_LITRES, 'L'));
+      this.layCoat('outside', held.getTemplatePath() ?? '', PASTE_FILM_M, 0);
+      const top = this.getCoats('outside')[0];
+      if (top !== undefined && words !== '') top.marks = words;
+      StuffApi.destruct(sheet);
+      return {
+        ok: true,
+        line: words !== ''
+          ? `You brush ${held.getName()} on the back of the label and smooth it onto ${self.getPresentation()}: "${words}".`
+          : `You paste the paper onto ${self.getPresentation()} with ${held.getName()}.`,
+      };
+    }
+
+    public releaseDampGlue(): number {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isWet(self) || self.getWetness() < DAMP_LETS_GO_AT) return 0;
+      const list = this.coats.outside ?? [];
+      const kept = list.filter((c) => {
+        const glue = materialAt(c.material)?.getAdhesive() ?? null;
+        return glue === null || glue.resistsDamp >= GLUE_HOLDS_DAMP;
+      });
+      const gone = list.length - kept.length;
+      if (gone > 0) this.coats = { ...this.coats, outside: kept };
+      return gone;
     }
 
     public faces(): FaceName[] {
@@ -275,7 +599,7 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       return MixinApi.isTangible(self) ? self.getMaterial() : null;
     }
 
-    public layCoat(face: FaceName, materialPath: string, thicknessM: number, dirtyAtLay = 0): void {
+    public layCoat(face: FaceName, materialPath: string, thicknessM: number, dirtyAtLay = 0, paint?: PaintMakeup): void {
       if (typeof materialPath !== 'string' || materialPath === '') return;
       const layer: CoatLayer = {
         material: materialPath,
@@ -283,6 +607,7 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         state: 'wet',
       };
       if (dirtyAtLay > 0) layer.dirtyAtLay = dirtyAtLay;
+      if (paint !== undefined) layer.paint = { ...paint, pigments: paint.pigments.map((p) => ({ ...p })) };
       this.coats = { ...this.coats, [face]: [layer, ...(this.coats[face] ?? [])] };
     }
 
@@ -295,6 +620,8 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
           if (coat.state !== 'wet') return coat;
           const mat = materialAt(coat.material);
           const change = mat?.getKinetics()?.changes()[0];
+          // A coat the AIR sets is `airCoats`'s, never the fire's.
+          if (change?.setsByAir()) return coat;
           if (change === undefined) {
             // No heat-work law: the melt point alone decides.
             const melts = mat?.getMeltingPoint().rawValue() ?? 0;
@@ -329,6 +656,7 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
           if (coat.state !== 'wet') return coat;
           const mat = materialAt(coat.material);
           const change = mat?.getKinetics()?.changes()[0] ?? null;
+          if (change?.setsByAir()) return coat;
           const fuseK = change?.getReferenceK() ?? mat?.getMeltingPoint().rawValue() ?? 0;
           if (!(fuseK > 0) || peakK < fuseK) return coat;
           changed += 1;
@@ -346,7 +674,7 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         next[face] = (list ?? []).map((coat) => {
           if (coat.state !== 'wet') return coat;
           const mat = materialAt(coat.material);
-          if (mat === null || mat.getKinetics()?.setsByHeat()) return coat;
+          if (mat === null || mat.getKinetics()?.setsByHeat() || mat.getKinetics()?.airSet()) return coat;
           const melts = mat.getMeltingPoint().rawValue();
           if (!(melts > atK)) return coat;
           changed += 1;
@@ -355,6 +683,70 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       }
       if (changed > 0) this.coats = next;
       return changed;
+    }
+
+    public airCoats(segments: readonly CoatAir[]): AirCoatResult {
+      let set = 0;
+      let heatJPerM2 = 0;
+      let touched = false;
+      const next: Partial<Record<FaceName, CoatLayer[]>> = {};
+      for (const [face, list] of Object.entries(this.coats) as [FaceName, CoatLayer[]][]) {
+        next[face] = (list ?? []).map((coat) => {
+          if (coat.state !== 'wet') return coat;
+          const mat = materialAt(coat.material);
+          const change = mat?.getKinetics()?.airSet() ?? null;
+          if (mat === null || change === null) return coat;
+          const sets = change.getSets();
+          let extent = coat.progress?.extent ?? 0;
+          let out: CoatLayer = coat;
+          for (const seg of segments) {
+            if (!(seg.seconds > 0)) continue;
+            // ⭐ Rain on a wet coat washes it down; frost on one cracks it
+            // as the water in it freezes — the shipped fault states.
+            if (seg.rain) {
+              out = { ...out, state: 'run' };
+              break;
+            }
+            if (seg.kelvin < 273.15) {
+              out = { ...out, state: 'crazed' };
+              break;
+            }
+            const f =
+              sets === 'carbonation'
+                ? Math.min(1, Math.max(0, seg.airChange))
+                : sets === 'oxidation'
+                  ? Math.min(1, Math.max(0.1, seg.airChange))
+                  : Math.max(0, 1 - seg.rh);
+            if (!(f > 0)) continue;
+            const before = extent;
+            extent = change.advance(extent, (change.rateAt(seg.kelvin) * f * seg.seconds) / 3_600);
+            const density = mat.getDensity().rawValue() || 900;
+            heatJPerM2 += (extent - before) * coat.thicknessM * density * change.getExothermicJPerKg();
+            if (extent + 1e-9 >= 1) break;
+          }
+          touched = true;
+          if (out.state !== 'wet') {
+            set += 1;
+            return out;
+          }
+          const progress = { extent };
+          if (extent + 1e-9 < 1) return { ...out, progress };
+          set += 1;
+          const dirty = (coat.dirtyAtLay ?? 0) > dial(AppSettingKeys.facesCrawlDirt, 0.3);
+          return { ...out, progress, state: dirty ? 'crawled' : 'set' };
+        });
+      }
+      if (touched) this.coats = next;
+      return { set, heatJPerM2 };
+    }
+
+    /** @hook A face's area — a good's skin, `6·V^⅔` off its mass and material; a building overrides it. */
+    public coatAreaM2(): number {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isTangible(self)) return 0;
+      const kg = self.getMass().rawValue();
+      const density = self.getMaterial()?.getDensity().rawValue() || 2000;
+      return 6 * Math.pow(Math.max(0, kg / density), 2 / 3);
     }
 
     /**
@@ -405,6 +797,186 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         return 1.5;
       }
       return 1;
+    }
+
+    // ── the weather (paint D5) ──────────────────────────────────────
+
+    /** Game-second the weather was last walked to (`null`: never — the first look stamps). */
+    public weatheredToS: number | null = null;
+
+    public getWeatheredToS(): number | null {
+      return this.weatheredToS;
+    }
+
+    public setWeatheredToS(s: number | null): void {
+      this.weatheredToS = typeof s === 'number' && Number.isFinite(s) ? s : null;
+    }
+
+    /**
+     * @hook The place whose air this thing's outside meets — a good's
+     * container by default; a building answers one of its landings.
+     */
+    public weatherScope(): Stuff | null {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isContainable(self)) return null;
+      return self.getContainer() ?? null;
+    }
+
+    /**
+     * @hook How much of the weather reaches the outside at `scope`: all of
+     * it where the rain does, some under a roof in the open air, none
+     * indoors (or in a pack: a person has no exposure).
+     */
+    public weatherExposureAt(scope: Stuff): number {
+      const e = BiomeApi.exposureOf(scope);
+      if (e === null) return 0;
+      if (e.rainReaches()) return 1;
+      return e.windEnters() ? SHELTERED_EXPOSURE : 0;
+    }
+
+    /** @hook The sky light at `scope`, `0..1` — what fades a pigment. */
+    public skyLightAt(scope: Stuff): number {
+      return BiomeApi.exposureOf(scope)?.skyLightFraction() ?? 0;
+    }
+
+    /** @hook How freely the air at `scope` changes for a coat that wants it, `0..1`. */
+    public airChangeAt(scope: Stuff): number {
+      if (!MixinApi.isAtmospheric(scope)) return 1;
+      const ach = scope.airChangesPerHour();
+      return Number.isFinite(ach) ? Math.min(1, Math.max(0, ach / 4)) : 1;
+    }
+
+    /**
+     * @hook What a day of weather costs a durable body once its coat is
+     * gone. ⚠ None by default: what bare exposure does to a good's own
+     * material is decomposition's per-material rate, not built. A building
+     * answers its dial (`structure.weather.daysToWorn`).
+     */
+    public bareWearPerDay(): number {
+      return 0;
+    }
+
+    public reconcileWeather(): number | null {
+      const now = WorldClockApi.getNow().rawValue();
+      const from = this.weatheredToS ?? now;
+      if (!(now > from)) {
+        this.weatheredToS = now;
+        return null;
+      }
+      const self = this as unknown as Stuff;
+      const wearPerDay = MixinApi.isDurable(self) ? this.bareWearPerDay() : 0;
+      const wasBare = this.coatGone();
+      // Nothing on the outside and nothing to wear: no weather to walk.
+      if (wasBare && !(wearPerDay > 0)) {
+        this.weatheredToS = now;
+        return null;
+      }
+      const scope = this.weatherScope();
+      if (scope === null) {
+        // ⭐ No place stands to read the air from (a building whose landing
+        // is not loaded). A bare body still takes the weather; a coat waits,
+        // unwalked, for a landing to walk it from — so nothing is lost.
+        if (wasBare && MixinApi.isDurable(self)) self.wear(((now - from) / GAME_DAY_S) * wearPerDay);
+        if (wasBare || !(wearPerDay > 0)) this.weatheredToS = now;
+        return null;
+      }
+      this.weatheredToS = now;
+      const airChange = this.airChangeAt(scope);
+      const segments: CoatAir[] = BiomeApi.airSegmentsFor(scope, from, now).map((seg) => ({
+        seconds: seg.durationS,
+        kelvin: seg.air.tempK,
+        rh: Math.min(1, Math.max(0, seg.air.humidityPct / 100)),
+        rain: seg.rainMmPerH > 0,
+        airChange,
+      }));
+      // ⭐ A thermal body sets its own wet coats over its room's air and
+      // takes an oil's heat (`Thermal.reconcileCoats`); anything else —
+      // a building, a board — sets them here, and an oil's heat is said,
+      // not felt (the survey says the new oil is curing).
+      if (!MixinApi.isThermal(self)) this.airCoats(segments);
+      const bareAfter = this.weatherCoats(segments, this.weatherExposureAt(scope), this.skyLightAt(scope));
+      const bareAt = bareAfter === null ? null : from + bareAfter;
+      // ⭐ The body takes the weather only for the time it stood bare
+      // (paint D13): a building kept painted stays sound.
+      const bareFrom = wasBare ? from : bareAt;
+      if (bareFrom !== null && wearPerDay > 0 && MixinApi.isDurable(self)) {
+        self.wear(((now - bareFrom) / GAME_DAY_S) * wearPerDay);
+      }
+      return bareAt;
+    }
+
+    public weatherCoats(segments: readonly CoatAir[], exposure: number, skyLight: number): number | null {
+      const face: FaceName = 'outside';
+      const coats = [...this.getCoats(face)].map((c) => ({ ...c }));
+      if (coats.length === 0) return null;
+      let elapsed = 0;
+      let bareAt: number | null = null;
+      for (const seg of segments) {
+        if (!(seg.seconds > 0)) continue;
+        // The sun fades the outermost coat's pigment wherever it reaches.
+        const top = coats[0];
+        if (top !== undefined && top.paint !== undefined && skyLight > 0) {
+          top.faded = Math.min(1, (top.faded ?? 0) + (seg.seconds / GAME_DAY_S) * 0.5 * skyLight * SUN_DOSE_PER_DAY);
+        }
+        const segYears = (seg.seconds / GAME_YEAR_S) * Math.max(0, exposure);
+        let used = 0;
+        while (used < segYears && coats.length > 0) {
+          const c = coats[0]!;
+          if (c.state === 'wet') break;
+          const opened = c.state === 'crazed' || c.state === 'run' ? OPENED_FACTOR : 1;
+          const rate = (materialAt(c.material)?.getWeatheringMPerGameYear() ?? 0) * opened;
+          if (!(rate > 0)) break;
+          const yearsToGo = c.thicknessM / rate;
+          if (yearsToGo > segYears - used) {
+            c.thicknessM -= rate * (segYears - used);
+            used = segYears;
+            break;
+          }
+          // This coat wears through partway into the segment.
+          used += yearsToGo;
+          coats.shift();
+          if (coats.length === 0 && bareAt === null) bareAt = elapsed + (used / segYears) * seg.seconds;
+        }
+        elapsed += seg.seconds;
+      }
+      const rest = { ...this.coats };
+      if (coats.length === 0) delete rest[face];
+      else rest[face] = coats;
+      this.coats = rest;
+      return bareAt;
+    }
+
+    public coatGone(): boolean {
+      return this.getCoats('outside').length === 0;
+    }
+
+    public coatThin(thinM: number): boolean {
+      const coats = this.getCoats('outside');
+      if (coats.length === 0) return false;
+      const total = coats.reduce((a, c) => a + (c.state === 'wet' ? 0 : c.thicknessM), 0);
+      return coats.every((c) => c.state !== 'wet') && total < thinM;
+    }
+
+    /**
+     * ⭐ The weather's work on the outside, read off the COAT — the coat is
+     * what a passer-by sees going: *"the paint has gone; the weather is at
+     * what was under it"*. `null` while a sound coat holds.
+     */
+    public weatherCause(): string | null {
+      const top = this.getCoats('outside')[0];
+      if (top !== undefined && top.state === 'wet') {
+        const sets = top.paint ? new Paint(top.paint).binder()?.getKinetics()?.airSet()?.getSets() : null;
+        return sets === 'oxidation'
+          ? 'the new oil is still curing, faintly warm to the hand'
+          : 'the new coat is still wet';
+      }
+      if (top !== undefined && top.state === 'run') return 'the last coat ran in the rain and never set right';
+      if (top !== undefined && top.state === 'crazed') return 'the last coat crazed in the frost';
+      if (top === undefined) return 'the paint has gone; the weather is at what was under it';
+      if (this.coatThin(dial(AppSettingKeys.structureCoatThinM, 0.00001))) {
+        return 'the paint is going; weather is starting to find the seams';
+      }
+      return null;
     }
   }
   return FacedMixin;

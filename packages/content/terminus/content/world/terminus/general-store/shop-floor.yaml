@@ -9,7 +9,7 @@
 # street, so no new address node is minted (the slim-roster discipline).
 # ⭐ Persistent (cleanliness D31): a kept place — its floor, its fire,
 # what is curing on its shelves — outlives a restart.
-class: /platform/location/PersistentLocale
+class: /platform/location/PersistentHall
 data:
   shortDescription: general store
   keywords: [store, general]

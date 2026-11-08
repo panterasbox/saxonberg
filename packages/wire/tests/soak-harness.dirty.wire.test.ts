@@ -79,7 +79,10 @@ beforeAll(async () => {
   runner = await Session.open(handle, {
     startLocation: SQUARE,
     wizard: true,
-    parcels: [TERMINUS],
+    // SEATED on Terminus's committee — never `parcels:` here: a grant of a
+    // group-held root SELLS it to this character, and every later drive
+    // finds no committee over Terminus (wizard-axis finalize).
+    committees: [TERMINUS],
   });
 }, 300_000);
 
@@ -113,12 +116,12 @@ suite.skipIf(!isOwnedTestWorld())('8 · a test runner stages in a parcel it hold
     // out across the next clock jumps, it died mid-command, and the reply
     // went to the destroyed body (the drive's first runs).
     const patientHandle = uniqueHandle('patient');
-    // A wizard holding Terminus, so it stages on itself — its own eval's
+    // A wizard seated on Terminus, so it stages on itself — its own eval's
     // `self` (a handle is not the character's name, so `--on` cannot find it).
     const patient = await Session.open(patientHandle, {
       startLocation: SQUARE,
       wizard: true,
-      parcels: [TERMINUS],
+      committees: [TERMINUS],
     });
     try {
       const said = await say(
@@ -143,7 +146,8 @@ suite.skipIf(!isOwnedTestWorld())('8 · a test runner stages in a parcel it hold
     runner = await Session.open(handle, {
       startLocation: SQUARE,
       wizard: true,
-      parcels: [TERMINUS, UNHELD],
+      committees: [TERMINUS],
+      parcels: [UNHELD],
     });
     const ran = await say(runner, `eval --parcel ${UNHELD} 1 + 1`);
     expect(ran, `granted: ${ran}`).toMatch(/: 2\b/);

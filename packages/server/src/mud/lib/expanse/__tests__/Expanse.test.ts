@@ -13,6 +13,8 @@ import { ExpanseApi } from '../../../api/expanse';
 import { makeStuffAtPath } from '../../security/__tests__/test-setup';
 import { WeatherApi } from '../../../api/weather';
 import { MixinApi } from '../../../api/mixin';
+import { HailableMixin } from '../Hailable';
+import Good from '../../stuff/Good';
 
 /** The sea's origin — what the graph's points are measured from. */
 const ORIGIN = new GeoPosition(50, -4);
@@ -36,6 +38,9 @@ function corridor(from: [number, number], to: [number, number], widthNm: number)
  * nodes by keyword, the seeded traffic field, per-channel co-presence.
  */
 class TestExpanse extends Expanse {}
+
+/** A place that answers a hail. */
+class HailingOffice extends HailableMixin(Good) {}
 
 const SEA = '/test/sea';
 let sea: TestExpanse;
@@ -116,6 +121,37 @@ describe('nodes', () => {
     // Unsized, a node is reached within the `expanse.arrivalNm` fallback.
     expect((await sea.nodeAt(new GeoPosition(50.31, -4.2)))?.getName()).toBe('Gannet Rock');
     expect(await sea.nodeAt(new GeoPosition(51, -4.2))).toBeNull();
+  });
+
+  it('⭐ a quay sited on the chart by a node’s path stands where the node does — once the sea has stood (harbors A3)', async () => {
+    const n = makeStuffAtPath(() => new ExpanseNode(), `${SEA}/island`);
+    n.setName('Island');
+    n.setFocus(focusAt(48, -4));
+    live.set(`${SEA}/island`, n);
+    sea.invalidate();
+    // Standing on the quay is what compiles the chart for it.
+    await sea.onSiteStood(n as unknown as Stuff);
+    const at = sea.siteOf(`${SEA}/island`);
+    expect(at?.frame).toBe('chart');
+    expect((at as { at: GeoPosition }).at.distanceNm(new GeoPosition(48, -4))).toBeLessThan(0.01);
+    expect(sea.siteOf(`${SEA}/nowhere`)).toBeNull();
+    // A `lat,lon` citation reads as ever.
+    expect(sea.siteOf('47.5,-3')?.frame).toBe('chart');
+  });
+
+  it('⭐ a hail at a node reaches the station its chart names (harbors A3, review 1 — the hailable side, not the berth)', async () => {
+    const n = makeStuffAtPath(() => new ExpanseNode(), `${SEA}/island`);
+    n.setName('Island');
+    n.setFocus(focusAt(48, -4));
+    n.setHail('/test/island/office');
+    live.set(`${SEA}/island`, n);
+    const office = makeStuffAtPath(() => new HailingOffice(), '/test/island/office');
+    live.set('/test/island/office', office);
+    sea.invalidate();
+    const near = await sea.hailables({ frame: 'chart', at: new GeoPosition(48.05, -4) });
+    expect(near).toEqual([office]);
+    const far = await sea.hailables({ frame: 'chart', at: new GeoPosition(46, -4) });
+    expect(far).toEqual([]);
   });
 
   it('a place node carries no passage; a bad kind is refused', () => {

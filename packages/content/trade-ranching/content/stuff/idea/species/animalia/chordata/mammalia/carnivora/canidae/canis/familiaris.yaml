@@ -18,6 +18,7 @@
 # where it is.
 class: /platform/idea/species/Species
 data:
+  smells: [{ word: dog, strength: 10 }]
   binomial: Canis familiaris
   commonNames: ["dog", "collie", "sheepdog", "hound", "bitch"]
   _bodyPlanPath: /stuff/idea/species/BodyPlan/quadruped

@@ -264,12 +264,6 @@ export interface OffsetAmbientEffect {
   readonly deltaK: number;
 }
 
-/** The exotic 5% — backing: the scripting interpreter, **code-trust (`isWizard`) gated** at execution. */
-export interface ScriptEffect {
-  readonly kind: 'script';
-  readonly source: string;
-}
-
 /** The closed union. Growing it means shipping the backing Api first. */
 export type Effect =
   | InjectChannelEffect
@@ -284,8 +278,7 @@ export type Effect =
   | EmitFieldEffect
   | RelocateEffect
   | ConferMediumEffect
-  | OffsetAmbientEffect
-  | ScriptEffect;
+  | OffsetAmbientEffect;
 
 /** The known effect kinds (validation vocabulary). */
 export const EFFECT_KINDS = [
@@ -302,7 +295,6 @@ export const EFFECT_KINDS = [
   'relocate',
   'confer-medium',
   'offset-ambient',
-  'script',
 ] as const;
 
 /** Thin static holder — family derivation + seed validation. */
@@ -336,8 +328,8 @@ export class MagicEffects {
       case 'adjust-blessing':
         return true;
       // These are fine — or better — without a mark. Conjured water
-      // pools on the floor; a sense sweeps the scene; a cloak, a field
-      // and a script all act on the actor or the world.
+      // pools on the floor; a sense sweeps the scene; a cloak and a
+      // field act on the actor or the world.
       case 'relieve':
       case 'adjust-reserve':
       case 'conjure':
@@ -346,7 +338,6 @@ export class MagicEffects {
       case 'emit-field':
       case 'confer-medium':
       case 'offset-ambient':
-      case 'script':
         return false;
       // ⚠ A relocation with no mark and no authored `to` has nowhere to
       // go, and must refuse BEFORE the mana is spent — the shape gate
@@ -636,13 +627,6 @@ export class MagicEffects {
           throw new TypeError('offset-ambient: needs a non-zero deltaK');
         }
         return { kind: 'offset-ambient', deltaK };
-      }
-      case 'script': {
-        const source = e.source;
-        if (typeof source !== 'string' || source.length === 0) {
-          throw new TypeError('script: needs source');
-        }
-        return { kind: 'script', source };
       }
     }
   }

@@ -1,5 +1,5 @@
 # TasteModality — the gustatory (contact) singleton.
-class: /platform/idea/modalities/Modality
+class: /platform/idea/modalities/TasteModality
 data:
   name: taste
   family: contact

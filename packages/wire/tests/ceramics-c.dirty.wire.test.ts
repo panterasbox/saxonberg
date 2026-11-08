@@ -36,6 +36,7 @@ import { describe as suite, it, expect, beforeAll, afterAll } from 'vitest';
 import {
   Session,
   type CommandResult,
+  type SessionOptions,
   declareFile,
   uniqueHandle,
   expectOk,
@@ -122,7 +123,7 @@ async function say(s: Session, line: string): Promise<string> {
 async function advance(duration: string): Promise<void> {
   // Lived time: in day-long jumps, the drive's people fed between them.
   await advanceLiving(duration, sessions);
-  const probe = await Session.open('founder', { startLocation: SHOP, wizard: true }).catch(() => null);
+  const probe = await Session.open('founder', { startLocation: SHOP }).catch(() => null);
   try {
     const until = Date.now() + 600_000;
     while (probe && Date.now() < until) {
@@ -170,18 +171,30 @@ async function held(s: Session): Promise<string> {
   return rows.map((r) => String((r as { displayName?: unknown }).displayName ?? '')).join(' | ');
 }
 
+/**
+ * The potter's login: the one session here that types code (`stageDry`'s
+ * `eval --parcel /world/terminus/hearts-delight`), so the wizard axis and a
+ * seat on the Delight's committee — seated, not a credential (wizard-axis
+ * D13). Everyone else logs in as a plain player.
+ */
+const casters = new Set<string>();
+const loginAs = (handle: string, where: string): SessionOptions =>
+  casters.has(handle)
+    ? { startLocation: where, wizard: true, committees: ['/world/terminus/hearts-delight'] }
+    : { startLocation: where };
+
 /** The same person somewhere else (inventory travels). */
 async function goTo(s: Session, where: string): Promise<Session> {
   const handle = s.handle;
   s.close();
-  const next = await Session.open(handle, { startLocation: where, wizard: true });
+  const next = await Session.open(handle, loginAs(handle, where));
   sessions.push(next);
   await next.drainProse();
   return next;
 }
 
 async function mint(where: string, path: string, count = 1): Promise<void> {
-  const gov = await Session.open('founder', { startLocation: where, wizard: true });
+  const gov = await Session.open('founder', { startLocation: where });
   try {
     expectOk(await gov.cmd(`clone ${path} --here${count > 1 ? ` --count ${count}` : ''}`));
     await gov.drainProse();
@@ -190,9 +203,10 @@ async function mint(where: string, path: string, count = 1): Promise<void> {
   }
 }
 
-async function funded(tag: string, where: string): Promise<Session> {
+async function funded(tag: string, where: string, caster = false): Promise<Session> {
   const handle = uniqueHandle(tag);
-  const bank = await Session.open(handle, { startLocation: BANK_HALL, wizard: true });
+  if (caster) casters.add(handle);
+  const bank = await Session.open(handle, { startLocation: BANK_HALL });
   expectOk(await bank.cmd('bank open'));
   bank.close();
   const gov = await Session.open('founder', { startLocation: BANK_HALL });
@@ -201,7 +215,7 @@ async function funded(tag: string, where: string): Promise<Session> {
   } finally {
     gov.close();
   }
-  const s = await Session.open(handle, { startLocation: where, wizard: true });
+  const s = await Session.open(handle, loginAs(handle, where));
   sessions.push(s);
   await s.drainProse();
   return s;
@@ -247,9 +261,9 @@ async function clayFor(s: Session, n: number): Promise<Session> {
 
 /**
  * ⛔ STAGED (soak-harness census): a piece's drying — days on the shelf —
- * set directly. The potter is a wizard holding the Delight (a wizard is in
- * every managed group), so its own `eval` seeds the piece's water state as
- * a mint would (`seedDryness`: 0.6 leather-hard, 1 bone-dry). The drying
+ * set directly. The potter is a wizard seated on the Delight's committee
+ * (`loginAs`), so its own `eval` seeds the piece's water state as
+ * a mint would (`seedDryness`: 0.4 leather-hard, 1 bone-dry). The drying
  * itself, by the clock, lives in ceramics-c.soak.dirty.
  */
 async function stageDry(s: Session, target: string, dryness: number): Promise<string> {
@@ -321,7 +335,7 @@ beforeAll(async () => {
   // itself in a frost.
   await toHour(8, 14);
   novice = await funded('novice', SHOP);
-  potter = await funded('potter', SHOP);
+  potter = await funded('potter', SHOP, true);
   // ⭐ Dressed for the winter (run 26's founder died of a night of it).
   await dress(novice);
   await dress(potter);
@@ -384,13 +398,20 @@ suite('⭐ 16 — trim, join, mark (leather-hard only)', () => {
     await say(novice, 'drop mug');
     // ⛔ STAGED (soak-harness census): leather-hard is up to ten days on
     // the shelf; set directly here.
-    const lh = await stageDry(potter, 'here:i:jug', 0.6);
+    // ⚠ The seed is ABSOLUTE (1 − moisture); greenware's bands read
+    // dryness against the AIR's own equilibrium. 0.6 read past bone-dry in
+    // the Delight's damp air; 0.4 is leather-hard for any air below ~50%
+    // equilibrium moisture.
+    const lh = await stageDry(potter, 'here:i:jug', 0.4);
     expect(lh, 'the jug at leather-hard').toMatch(/leather-hard/i);
     // The potter's OWN mug, by its maker: a bare `get mug` took the novice's
     // thick one too, and `carve` bound that one, still too soft (run 22).
     const mugs = (await potter.query('here:i:mug', { fields: 'detail' }).catch(() => [])) as { stuffId?: string; longDescription?: string }[];
     const mine = mugs.find((m) => String(m.longDescription ?? '').includes(`Made by ${potter.handle}`));
     expect(mine?.stuffId, `the potter's own mug: ${JSON.stringify(mugs.map((m) => m.longDescription?.slice(0, 120)))}`).toBeDefined();
+    // The mug is trimmed too, so it is staged with the jug — left green it
+    // refused the tool as too soft (paint finalize, run 3).
+    expect(await stageDry(potter, `#${mine!.stuffId}`, 0.4), 'the mug at leather-hard').toMatch(/leather-hard/i);
     await say(potter, `get #${mine!.stuffId}`);
     // ⚠ An engaged act: the foot is turned when the trimming is DONE, so
     // jump past it (run 27 read the mug while the tool was still on it).
@@ -526,7 +547,9 @@ suite('⭐ 17 — bisque fire, with cones in the spy-hole', () => {
     await say(novice, 'get 1 cones');
     const plain1 = await say(novice, 'analyze temperature kiln');
     expect(plain1, `the novice at the spy-hole: ${plain1}`).toMatch(/cone/i);
-    expect(plain1).toMatch(/glow/i);
+    // The eye reads the glow scale — and at the top of it the kiln is
+    // white-hot, which is still the glow, said as it is.
+    expect(plain1).toMatch(/glow|white-hot/i);
     await say(potter, 'get 1 cones');
     const fine = await say(potter, 'analyze temperature kiln');
     expect(fine, `the potter at the spy-hole: ${fine}`).toMatch(/cone (08|04|6)/i);
@@ -554,7 +577,7 @@ suite('⭐ 18 — glaze', () => {
     await toHour(8, 14);
     // The two tubs: ash (or lead) with a little clay and water, stirred.
     potter = await clayFor(potter, 1);
-    await say(potter, 'get pail');
+    await say(potter, 'get 1 pail');
     await say(potter, 'fill pail from butt');
     await say(potter, 'get ash');
     // ⚠ Two-word names are quoted on a command line (run 27: `put ash in
@@ -779,6 +802,17 @@ suite('⭐ 21 — the weeping jar', () => {
     await examine(potter, `#${full}`); // the record: what it was before the fill
     await say(potter, `fill #${full} from butt`);
     await examine(potter, `#${full}`); // the record: sound, or cracked by the fill
+    // ⛔ STAGED: the butt stands outdoors, so a warm shop can still draw
+    // water at the freezing point — and a jar of slush sits on its melt
+    // plateau for hours (paint finalize: 271 K and 275 K after six hours in
+    // a 289 K shop). That is a cold day, not a weep: skip, loudly.
+    const drawnK = Number(/([0-9]+(?:\.[0-9]+)?)\s*K\b/.exec(await say(potter, `measure temperature #${full}`))?.[1] ?? NaN);
+    if (drawnK <= 277) {
+      // eslint-disable-next-line no-console -- the drive's own record
+      console.log(`  [drive] the butt's water is ${drawnK} K — the weep needs a warm day; it lives in ceramics-c.soak.dirty`);
+      ctx.skip();
+      return;
+    }
     await say(potter, 'fill leadpot from butt');
     await say(potter, `drop #${full}`);
     await say(potter, 'drop leadpot');
@@ -813,6 +847,8 @@ suite('⭐ 22 — the filter (W8)', () => {
    * act under test.
    */
   let w: Session;
+  /** The crock each round stood its filter in, by room. */
+  const crockIn = new Map<string, string>();
   async function filterRound(room: string, water: string): Promise<void> {
     w = await goTo(w, SQUARE);
     // ⚠ The stall stocks one filter: the second round found it sold out
@@ -831,18 +867,26 @@ suite('⭐ 22 — the filter (W8)', () => {
     await say(w, 'get crock');
     await say(w, 'get filter');
     expect(await held(w), 'the crock goes with the filterer').toMatch(/crock/i);
+    // ⭐ By id from here: the yard already holds the potter's crocks and
+    // filters, and bare names bound the FIRST — the filter poured into was
+    // not the one standing in the crock, and both read empty (finalize).
+    const idOf = async (q: string): Promise<string> =>
+      String(((await w.query(q, { fields: 'ref' }).catch(() => [])) as { stuffId?: string }[])[0]?.stuffId ?? '');
+    const crockId = await idOf('me:i:crock');
+    const filterId = await idOf('me:i:filter');
+    expect(crockId && filterId, 'the filterer holds a crock and a filter').toBeTruthy();
     w = await goTo(w, room);
-    // The crock stands on the ground and the filter goes in it: `put … in
-    // crock` names a crock HERE, not one in hand (run 28).
-    await say(w, 'drop crock');
-    const set = await run(w, 'put filter in crock');
+    // The crock stands on the ground and the filter goes in it.
+    await say(w, `drop #${crockId}`);
+    const set = await run(w, `put #${filterId} in #${crockId}`);
     expect(refusedFor(set.r), `put filter in crock: ${set.said}`).toBeNull();
     // ⚠ The pail of each water is SETUP, handed already filled (the row's
     // own `interiorMaterial`/`interiorAmount`, as a data overlay): the
     // founder's eval is parcel-bound, and it holds no authority over the
     // brickfield (runs 31 and 34). The FILTER is the act under test.
     const pail = await hand(w, PAIL, { interiorMaterial: water, interiorAmount: 2 });
-    const poured = await say(w, `pour #${pail} into filter`);
+    const poured = await say(w, `pour #${pail} into #${filterId}`);
+    crockIn.set(room, crockId);
     expect(poured, `the pour: ${poured}`).toMatch(/pour/i);
     await say(w, `drop #${pail}`);
   }
@@ -858,7 +902,7 @@ suite('⭐ 22 — the filter (W8)', () => {
       contents?: { primaryKeyword?: string }[];
       longDescription?: string;
     }[];
-    const crock = rows.find((r) => (r.contents ?? []).some((c) => c.primaryKeyword === 'filter'));
+    const crock = rows.find((r) => r.stuffId === crockIn.get(room));
     if (!crock?.stuffId) return null;
     const look = String(crock.longDescription ?? '');
     const chem = await say(w, `analyze chemistry #${crock.stuffId}`);
@@ -1024,7 +1068,9 @@ suite('⭐ 20 — flame and body', () => {
     const crock = `#${crockId}`;
     // The grogged body: grog trodden into clay in the temper pit.
     potter = await goTo(potter, TEMPER);
-    await say(potter, 'put clay in pit');
+    // ONE lump: a bare `put clay` tipped all eight the potter carried, and
+    // kneaded together they were one mass too heavy to lift (paint finalize).
+    await say(potter, 'put 1 clay in pit');
     expect(await say(potter, 'put grog in pit'), 'the grog from 23').toMatch(/put/i);
     await act(potter, 'knead pit', '30 minutes');
     await say(potter, 'get clay from pit');

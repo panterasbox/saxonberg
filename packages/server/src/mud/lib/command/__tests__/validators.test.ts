@@ -107,22 +107,18 @@ describe('field validators', () => {
       ).toBeUndefined();
     });
 
-    it("passes the location itself when via.exit is set (open north case)", () => {
-      // Synthesize the door-via-direction shape — we don't need a
-      // real Exit instance for the validator's check; it only
-      // peeks at via.exit's truthiness.
+    it("rejects the room itself — a direction binds the EXIT, never the room", () => {
+      // ⭐ Harbors review 3: `open north` binds the way (reach covers the
+      // location's exits — perception.can-reach.test), so the room you
+      // stand in is no longer reachable by a side door.
       expect(
-        canReach(
-          { stuff: world.location, raw: 'north', via: { exit: {} as never } },
-          'target',
-          ctx,
-        ),
-      ).toBeUndefined();
+        canReach({ stuff: world.location, raw: 'north' }, 'target', ctx),
+      ).toMatch(/can't reach/);
     });
 
     it("rejects a Stuff that isn't reachable (foreign Stuff)", () => {
       // A standalone Stuff that isn't in inventory, the location,
-      // an exit door, or the location-with-via.exit.
+      // an exit, or an exit's door.
       const foreign = world.location as unknown as Stuff & {
         stuffId: string;
       };

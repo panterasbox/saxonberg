@@ -170,7 +170,12 @@ async function examine(s: Session, keyword: string): Promise<string> {
 }
 
 async function cloneHere(where: string, path: string, count = 1): Promise<void> {
-  const f = await Session.open('founder', { startLocation: where, wizard: true });
+  // `clone` asks title over the KIND's path: the glowcap is Rejection's,
+  // and the founder sits on no committee by default (wizard-axis D13).
+  const f = await Session.open('founder', {
+    startLocation: where,
+    committees: ['/world/terminus/rejection'],
+  });
   try {
     expectOk(await f.cmd(`clone ${path} --here${count > 1 ? ` --count ${count}` : ''}`));
   } finally {
@@ -185,21 +190,21 @@ async function cloneHere(where: string, path: string, count = 1): Promise<void> 
  * collects a fresh jar in the banking hall first (the founder's), then goes.
  */
 async function goTo(handle: string, where: string): Promise<Session> {
-  const lamp = await Session.open(handle, { startLocation: BANK_HALL, wizard: true });
+  const lamp = await Session.open(handle, { startLocation: BANK_HALL });
   try {
     await cloneHere(BANK_HALL, GLOWCAP);
     await lamp.cmd('get 1 glowcap');
   } finally {
     lamp.close();
   }
-  const s = await Session.open(handle, { startLocation: where, wizard: true });
+  const s = await Session.open(handle, { startLocation: where });
   await s.drainProse();
   return s;
 }
 
 async function newPlayer(tag: string, where: string): Promise<Session> {
   const handle = uniqueHandle(tag);
-  const bank = await Session.open(handle, { startLocation: BANK_HALL, wizard: true });
+  const bank = await Session.open(handle, { startLocation: BANK_HALL });
   expectOk(await bank.cmd('bank open'));
   const gov = await Session.open('founder', { startLocation: BANK_HALL });
   try {
@@ -227,7 +232,7 @@ async function advance(seconds: number): Promise<void> {
   // The clock reads words ('90 minutes'), never a bare `s` suffix.
   const r = await advanceWorldClock(`${Math.max(1, Math.round(seconds / 60))} minutes`);
   expect(r.after).toBeGreaterThan(r.before);
-  const probe = await Session.open('founder', { startLocation: BANK_HALL, wizard: true }).catch(() => null);
+  const probe = await Session.open('founder', { startLocation: BANK_HALL }).catch(() => null);
   try {
     const until = Date.now() + 300_000;
     while (probe && Date.now() < until) {
@@ -255,7 +260,7 @@ async function layCourse(s: Session, node: string): Promise<void> {
 
 /** The house's own books where `where` is, read by the founder — evidence for a failure. */
 async function books(where: string): Promise<string> {
-  const f = await Session.open('founder', { startLocation: where, wizard: true });
+  const f = await Session.open('founder', { startLocation: where });
   try {
     const out: string[] = [];
     for (const c of ['house roster', 'house pnl']) {
@@ -431,11 +436,11 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage A, the Terminus sugar 
   }, 600_000);
 
   it('1. ⭐ the unpaid hand walks off and says so; the pantry shows the vacancy (AC 13)', async () => {
-    const wiz = await Session.open('founder', { startLocation: PANTRY, wizard: true });
+    const wiz = await Session.open('founder', { startLocation: PANTRY });
     try {
       // A house whose account has never opened opens on nothing, with no
       // line it has earned: its first wage is refused onto the book.
-      expectOk(await wiz.cmd('config treasury.openingAdvance 0'));
+      expectOk(await wiz.cmd('treasury set treasury.openingAdvance 0'));
       expectOk(await wiz.cmd('config employment.unpaidStandGameDays 0.5'));
     } finally {
       wiz.close();
@@ -468,9 +473,9 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage A, the Terminus sugar 
       expect(notice, 'no help-wanted notice for the empty seat').toMatch(/help wanted/i);
     } finally {
       watcher.close();
-      const wiz2 = await Session.open('founder', { startLocation: PANTRY, wizard: true });
+      const wiz2 = await Session.open('founder', { startLocation: PANTRY });
       try {
-        await wiz2.cmd('config treasury.openingAdvance 50');
+        await wiz2.cmd('treasury set treasury.openingAdvance 50');
         // ⚠⚠ A LONG stand for the rest of the drive, and why: in an idle
         // world no house earns its wages (a 50 float against a day's pay),
         // so with the seed's three days the island's miller walks off before
@@ -645,7 +650,7 @@ let homeFeel = '';
 suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage B, Waponi Woo and the hold', () => {
   afterAll(async () => {
     sailor?.close();
-    const wiz = await Session.open('founder', { startLocation: BANK_HALL, wizard: true }).catch(() => null);
+    const wiz = await Session.open('founder', { startLocation: BANK_HALL }).catch(() => null);
     await wiz?.cmd('config employment.unpaidStandGameDays 3').catch(() => undefined);
     wiz?.close();
     await stopOwnedWorld();
@@ -664,7 +669,14 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage B, Waponi Woo and the 
     sailor = await goTo(sailorHandle, MOUTH);
     // What Terminus feels like tonight, for step 14 to compare against.
     homeFeel = await say(sailor, 'analyze temperature');
-    await say(sailor, 'go aboard');
+    await say(sailor, 'go hesper');
+    // ⭐ Only her master takes the helm: the sailor
+    // charters her from the book in her hold, and lays her course as her
+    // master for the charter.
+    await say(sailor, 'go down');
+    const chartered = await say(sailor, 'charter');
+    expect(chartered, `charter: ${chartered}`).toMatch(/You charter the Hesper/);
+    await say(sailor, 'go up');
     await layCourse(sailor, 'roads');
     await advance(1 * HOUR);
     await layCourse(sailor, 'waponi woo');
@@ -701,7 +713,9 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage B, Waponi Woo and the 
         // river build's voyage, drive 20: she was there and nothing said
         // so) — the course's own refusal is the state, and it is enough.
         const laid = await say(sailor, 'course waponi woo');
-        if (/at Waponi Woo already/i.test(laid)) {
+        // ⭐ Lying off the island already: its name brings her
+        // in — or the jetty's keeper wants a hail first.
+        if (/at Waponi Woo already|given her a berth|bring her in/i.test(laid)) {
           heard += ' You raise Waponi Woo';
           break;
         }
@@ -710,6 +724,17 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage B, Waponi Woo and the 
     }
     expect(fixed, 'the peak never came up over the horizon').toBe(true);
     expect(heard, 'she never raised the island').toMatch(/You raise Waponi Woo/);
+    // ⭐ The island's jetty is a berth: she lies off until the
+    // estate store gives it her — hail, then `course waponi woo` brings her
+    // in alongside, and her charter ends there, billed.
+    let answer = '';
+    for (let i = 0; i < 16 && !/Berth at/.test(answer); i++) {
+      if (i > 0) await advance(HOUR);
+      answer = await say(sailor, 'hail office');
+    }
+    expect(answer, `hail office: ${answer}`).toMatch(/Berth at/);
+    const inAlongside = await say(sailor, 'course waponi woo');
+    expect(inAlongside, `course waponi woo: ${inAlongside}`).toMatch(/bring her in|made fast/i);
     await say(sailor, 'go ashore');
     // She may come up to it at dusk (drive 10: "shapes and edges").
     await daylight();
@@ -866,9 +891,20 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage B, Waponi Woo and the 
     if (bought < 1) bought += await buyEstateBlocks(1);
     if (bought < 1) await books(`${W}/location/store`);
     expect(bought, 'the estate never had a block to sell').toBe(1);
+    // ⭐ Cleared before she sails: the jetty's dues and
+    // step 13's charter days are paid at the estate store — the island's
+    // harbor office.
+    const paidUp = await say(sailor, 'pay office');
+    expect(paidUp, `pay office: ${paidUp}`).toMatch(/You pay|owe nothing/i);
     sailor.close();
     sailor = await goTo(sailorHandle, `${W}/location/landing`);
-    await say(sailor, 'go aboard');
+    await say(sailor, 'go hesper');
+    // ⭐ Chartered again from the book in her hold: her helm is
+    // the charterer's until she next berths at a kept quay.
+    await say(sailor, 'go down');
+    const again = await say(sailor, 'charter');
+    expect(again, `charter: ${again}`).toMatch(/You charter the Hesper/);
+    await say(sailor, 'go up');
     // Laid from a fixed position (the island), the course home holds.
     await layCourse(sailor, 'bar');
     let heard = '';

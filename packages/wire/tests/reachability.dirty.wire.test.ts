@@ -249,10 +249,19 @@ async function carryALight(s: Session): Promise<void> {
   await s.drainProse();
 }
 
-async function at(where: string, tag: string, wizard = true): Promise<Session> {
+/**
+ * A player at `where`. Seated on Rejection's committee by default because
+ * `carryALight` clones Rejection's glowcap row, and `clone` asks title over
+ * the KIND's path (wizard-axis D13) — pass `[]` for a plain stranger.
+ */
+async function at(
+  where: string,
+  tag: string,
+  committees: string[] = ['/world/terminus/rejection'],
+): Promise<Session> {
   const s = await Session.open(uniqueHandle(tag), {
     startLocation: where,
-    ...(wizard ? { wizard: true } : {}),
+    ...(committees.length ? { committees } : {}),
   });
   open.push(s);
   return s;
@@ -264,10 +273,7 @@ beforeAll(async () => {
   // the apiculture and fishing drives both use. An Avatar's inventory and
   // account persist across the socket.
   const handle = uniqueHandle('reach');
-  const s = await Session.open(handle, {
-    startLocation: BANK_HALL,
-    wizard: true,
-  });
+  const s = await Session.open(handle, { startLocation: BANK_HALL });
   expectOk(await s.cmd('bank open'));
   const gov = await Session.open('founder', { startLocation: BANK_HALL });
   try {
@@ -280,7 +286,12 @@ beforeAll(async () => {
     gov.close();
   }
   s.close();
-  k = await Session.open(handle, { startLocation: STORE, wizard: true });
+  // `goto` asks title over the destination (Terminus's rooms), and the
+  // glowcap clone asks it over Rejection's row — seated, not a credential.
+  k = await Session.open(handle, {
+    startLocation: STORE,
+    committees: ['/world/terminus', '/world/terminus/rejection'],
+  });
   open.push(k);
 
   // ⚠⚠ **A lantern before anything is looked at.** The wire world boots
@@ -290,7 +301,8 @@ beforeAll(async () => {
   // them. The doctrine is working; a drive has to carry a lamp.
   await carryALight(k);
 
-  other = await at(STORE, 'reach-other');
+  // A stranger: no seat anywhere, so `subdivide` is refused on authority.
+  other = await at(STORE, 'reach-other', []);
 }, 420_000);
 
 afterAll(async () => {
@@ -523,7 +535,15 @@ suite('1–8. the verbs that shipped and could not be said', () => {
     // no air exit, no flying species and no composer, which makes it the
     // one case where *afford statically, decline diegetically* does not
     // apply: the refusal would point at nothing.
-    for (const dead of ['lock north', 'fly up']) {
+    // ⭐ (harbors, 2026-11-04) `lock north` is a verb now, by decision:
+    // harbors review 3 bound a direction to the WAY, and `lock` reaches the
+    // lock a way carries (`lock ashore` on a smack's gangway is the harbors
+    // drive's step 12). The view lost its `unreachable:` hold with it, so
+    // the word is understood — and refused in the world's words where the
+    // way has no lock. `fly up` is still the recorded absence.
+    const lock = await say(k, 'lock north');
+    expectUnderstood(lock, 'lock north');
+    for (const dead of ['fly up']) {
       const out = await say(k, dead);
       const notes = out.notes as Array<{ kind?: string; reason?: string }>;
       // ⭐ `unknown-verb` specifically — a shape error would ALSO be

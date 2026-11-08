@@ -190,7 +190,6 @@ export const UNBACKED_GROUND_CLAIMS: readonly string[] = [
   '/world/terminus/delight-road/drove',               // "ground back to EARTH by generations of hooves"
   '/world/terminus/delight-road/ford',                // "SET STONES, laid flat and level"
   '/world/terminus/valley-road/towpath',              // "a made path of rammed GRAVEL"
-  '/world/terminus/estuary/estuary-mouth',            // "a mile of saltings and MUD"
 
   // ── the working city ──
   '/world/terminus/market/bakery',                    // "the floor is STONE and the stone is damp"
@@ -210,7 +209,7 @@ export const UNBACKED_GROUND_CLAIMS: readonly string[] = [
 
   // ── Hinkley Hills: the lots nobody has built on ──
   '/world/terminus/hinkley-hills/location/arrival',   // "a CONCRETE apron at the end of the line"
-  '/world/terminus/hinkley-hills/lots/hall',          // "a worn runner on the BOARDS"
+  '/world/terminus/hinkley-hills/house/indoors/hall',          // "a worn runner on the BOARDS"
   '/world/terminus/hinkley-hills/lots/road-segment',  // "the made road gives out here into graded DIRT"
 
   // ── Rejection: the yards above the mine ──

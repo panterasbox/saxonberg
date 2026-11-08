@@ -122,8 +122,26 @@ export interface KineticVolatile {
   litresPerKg: number;
 }
 
+/**
+ * ⭐ What drives a change (paint build, 2026-10-31): HEAT-work (the kiln's,
+ * the default — every glaze, cure and firing), or the AIR — a limewash
+ * CARBONATES (it wants air and time), an oil OXIDIZES (and warms as it
+ * does), a size or tempera DRIES (it wants dry air), a varnish or rubber
+ * cement loses its SOLVENT. One law with the binder as the parameter.
+ */
+export type KineticSet = 'heat' | 'carbonation' | 'oxidation' | 'drying' | 'solvent';
+
+/** Is `s` a {@link KineticSet}? */
+function isKineticSet(s: unknown): s is KineticSet {
+  return s === 'heat' || s === 'carbonation' || s === 'oxidation' || s === 'drying' || s === 'solvent';
+}
+
 /** One authored change, on a material's row. */
 export interface KineticSpec {
+  /** What drives it — heat (default) or the air (a coat setting). */
+  sets?: KineticSet;
+  /** Heat an oxidizing change gives off, J per kg converted (the oily rag). */
+  exothermicJPerKg?: number;
   /** Unique within the material — the key the good's record files under. */
   key: string;
   /** The rate law: a dose to completion, or a point curve. */
@@ -298,6 +316,22 @@ export class KineticChange {
   /** The sense channels its words are read through (`undefined`: every channel). */
   public getSenses(): readonly string[] | undefined {
     return this.spec.senses;
+  }
+
+  /** What drives this change — `heat` unless the row says the air. */
+  public getSets(): KineticSet {
+    return isKineticSet(this.spec.sets) ? this.spec.sets : 'heat';
+  }
+
+  /** Does the AIR drive this change rather than heat-work? */
+  public setsByAir(): boolean {
+    return this.getSets() !== 'heat';
+  }
+
+  /** J per kg converted — what an oxidizing change gives off (`0` when none). */
+  public getExothermicJPerKg(): number {
+    const v = this.spec.exothermicJPerKg;
+    return typeof v === 'number' && v > 0 ? v : 0;
   }
 
   /** The reversal floor (`0` when none). */
@@ -495,7 +529,13 @@ export class Kinetics {
 
   /** ⭐ Does any change set this by HEAT-work (a dose law) — a glaze the fire fuses? */
   public setsByHeat(): boolean {
-    return this.list.some((c) => c.isDoseLaw());
+    return this.list.some((c) => c.isDoseLaw() && !c.setsByAir());
+  }
+
+  /** ⭐ The change a COAT of this sets by the air, or `null` (paint build). */
+  public airSet(): KineticChange | null {
+    const first = this.list[0];
+    return first !== undefined && first.setsByAir() ? first : null;
   }
 
   /** The authored form, for the row's round trip. */
@@ -537,6 +577,12 @@ function validated(raw: KineticSpec): KineticSpec {
 
   const rate = raw.rate as unknown;
   let law: KineticSpec['rate'];
+  if (raw.sets !== undefined && !isKineticSet(raw.sets)) {
+    fail(`sets '${String(raw.sets)}' is not heat, carbonation, oxidation, drying or solvent`);
+  }
+  if (raw.exothermicJPerKg !== undefined && !(typeof raw.exothermicJPerKg === 'number' && raw.exothermicJPerKg >= 0)) {
+    fail('exothermicJPerKg is a non-negative number');
+  }
   if (Array.isArray(rate)) {
     if (rate.length === 0) fail('needs a rate curve');
     ascending(rate, 'rate');

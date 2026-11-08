@@ -1,7 +1,8 @@
 # Russian dandelion root — the root that carries rubber. `rubber-root` is
 # the tag the milling recipe's slot matches.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ word: earth, strength: 10 }]
   name: dandelion root
   keywords: [dandelion, "dandelion root", kok-saghyz]
   appearance: pale fleshy root threaded with white
@@ -19,7 +20,7 @@ data:
   # milling recipe takes it as an item (found by the rubber drive: the
   # stones said there was not enough rubber-root with a bundle in hand).
   edibility: true
-  tastes: [bitter]
+  tastes: [{ type: bitter, amount: 0.1 }]
   spoilActivationEnergy: 60000
   waterActivity: 0.95
   nutrients: [carb]

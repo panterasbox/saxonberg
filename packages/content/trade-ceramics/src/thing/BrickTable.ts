@@ -106,8 +106,13 @@ async function tellDay(
   // ⭐ Named as the maker knows them, not as the light shows them: a day at
   // the table ends after dark half the year, and the perceptual name read
   // "something stand turned out on the pallet" (ceramics browser walk).
-  const n = MixinApi.isStackable(made) ? made.getQuantity() : 1;
-  const what = made.getPresentation();
+  // ⚠ The day's bricks may have MERGED into a stack already on the pallet,
+  // and a merged-away stack is destroyed — its proxy answers nothing, and
+  // `undefined.charAt` here once took the whole world down (wizard-axis
+  // finalize, wire:dirty). Name the bricks without it.
+  const gone = made.isDestroyed();
+  const n = !gone && MixinApi.isStackable(made) ? made.getQuantity() : 2;
+  const what = gone ? 'the bricks' : (made.getPresentation() ?? 'the bricks');
   const them = `${what.charAt(0).toUpperCase()}${what.slice(1)}`;
   MessageApi.scene(actor)
     .topic('act.deed')

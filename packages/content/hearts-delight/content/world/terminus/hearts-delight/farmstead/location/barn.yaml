@@ -3,7 +3,7 @@
 # hay and tools set down here belong to the holder, and only a room that
 # keeps its own record lays an owner's goods back down when it loads (the
 # room overlay, furnishing.md). Nothing else here needs saving.
-class: /platform/location/PersistentLocation
+class: /platform/location/PersistentRoom
 data:
   shortDescription: barn
   keywords: [barn, threshing floor, floor]
@@ -21,3 +21,7 @@ data:
   # (lint:light-sources — every room's light has a named source).
   longDescription: |
     A stone barn with a beaten threshing floor between two great doors, swept and empty, waiting for a harvest to fill it.
+  # ⭐ The farmstead's plan: its ways, an ordinary place.
+  exits:
+    south:
+      destination: /world/terminus/hearts-delight/farmstead/location/yard

@@ -68,3 +68,52 @@ describe('the shipped fouled water', () => {
     expect(data(FOULED).density).toBe(data(CLEAN).density);
   });
 });
+
+describe('⭐ a draught of it makes you ill — and the illness runs its course', () => {
+  const DYSENTERY = data(packRow('platform', 'platform/idea/Condition/metabolism/dysentery.yaml'));
+  const behavior = DYSENTERY.toxinBehavior as {
+    absorptionRate: number;
+    clearanceRate: number;
+    potency: number;
+    bands: Array<{ threshold: number; severity: number }>;
+  };
+  const dose = (data(FOULED).toxicity as Array<{ type: string; amount: number }>)[0]!.amount;
+
+  /** Minute steps of the body's own law: absorb from the gut, clear zero-order. */
+  function course(draughts: number, minutes: number): { peak: number; illMin: number } {
+    let pool = dose * draughts;
+    let burden = 0;
+    let peak = 0;
+    let illMin = 0;
+    for (let m = 0; m < minutes; m++) {
+      const absorbed = Math.min(pool, behavior.absorptionRate);
+      pool -= absorbed;
+      burden += (absorbed * behavior.potency) / 70;
+      burden = Math.max(0, burden - behavior.clearanceRate);
+      peak = Math.max(peak, burden);
+      if (burden >= behavior.bands[0]!.threshold) illMin++;
+    }
+    return { peak, illMin };
+  }
+
+  it('one draught crosses the first band, and stays ill for days', () => {
+    const { peak, illMin } = course(1, 14 * 24 * 60);
+    expect(peak).toBeGreaterThanOrEqual(behavior.bands[0]!.threshold);
+    expect(illMin / (24 * 60)).toBeGreaterThan(1);
+  });
+
+  it('three draughts reach the second band', () => {
+    expect(course(3, 14 * 24 * 60).peak).toBeGreaterThanOrEqual(behavior.bands[1]!.threshold);
+  });
+
+  it('and it clears: two weeks on, one draught has run its course', () => {
+    let pool = dose;
+    let burden = 0;
+    for (let m = 0; m < 14 * 24 * 60; m++) {
+      const absorbed = Math.min(pool, behavior.absorptionRate);
+      pool -= absorbed;
+      burden = Math.max(0, burden + (absorbed * behavior.potency) / 70 - behavior.clearanceRate);
+    }
+    expect(burden).toBe(0);
+  });
+});

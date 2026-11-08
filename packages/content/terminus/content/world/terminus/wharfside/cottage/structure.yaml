@@ -1,0 +1,19 @@
+# The towpath cottage as a BUILDING (paint D20) — a limewashed brick
+# cottage, staged: it weathers and is restaged as authored, until somebody
+# buys it. Its landing is the towpath, where it meets the weather.
+class: /platform/idea/Building
+data:
+  extent: /world/terminus/wharfside/cottage
+  entrance: /world/terminus/wharfside/cottage/location/room
+  shortDescription: cottage
+  register: definite
+  keywords: [cottage, house, building, "towpath cottage"]
+  longDescription: >-
+    A low brick cottage hard against the towpath, its walls washed white,
+    its door and window frames painted the dull red of the boats.
+  heightM: 5
+  coats:
+    outside:
+      - material: /trade/chandlery/idea/material/milk-of-lime
+        thicknessM: 0.00002
+        state: set

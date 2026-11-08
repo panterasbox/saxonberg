@@ -509,10 +509,11 @@ the CB mints:
   Seats fill the standard capability-pack way with nothing to build:
   that committee → the `tpa` group the manifest's title claim gives it →
   `owner: {office: prime-minister}` (the same declaration `water` and
-  `arcana` make) → the founder by Art. XI's pool-of-one, with the PM
-  operator override on top. `Authority.ts` says the quiet part: only
-  `office` and `committee` carry that default, so *an authority the
-  founder cannot satisfy is one nobody can satisfy on a cold box* —
+  `arcana` make) → the PM (the founder by default) OWNS the group and
+  seats its members; ⛔ owning the group is not sitting on it (the
+  committee backstop is gone — wizard-axis D18). `Authority.ts` says the
+  quiet part: *an authority the founder cannot satisfy is one nobody can
+  satisfy on a cold box* until somebody is seated —
   which is why `committee` was already right here and a group would have
   been wrong. See [civics.md](./civics.md), [governance.md](./governance.md).
 

@@ -2,8 +2,9 @@
 # potash is gone into the lye. ⚠ No `potash` tag, so a hopper will not
 # leach it twice. `liming` because it is mostly lime, for the day a field
 # reads it.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ word: smoke, strength: 3 }]
   name: spent ash
   keywords: ["spent ash"]
   density: 900

@@ -1,7 +1,9 @@
 # White must — juice pressed clear off the skins at the crush (white
 # wine is a PROCESS fact: no skin contact). Its own profile category.
-class: /platform/idea/material/ConsumableMaterial
+class: /platform/idea/material/OdorousConsumableMaterial
 data:
+  smells: [{ word: grape, strength: 300 }]
+  tastes: [{ type: sweet, amount: 200 }, { type: sour, amount: 6 }]
   name: white must
   keywords: [white, must, juice]
   appearance: "cloudy pale grape juice, green-gold"

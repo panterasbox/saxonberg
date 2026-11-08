@@ -1,0 +1,21 @@
+# The market fountain — ⭐ a CONTINUOUS outlet (water-supply D24): it draws
+# its share whether anybody fills a bucket at it or not (the Roman *calix*,
+# a bore of fixed size), it ranks as PUBLIC in a shortage — the last thing
+# a short city lets go dry — and it stops the moment its main does, which
+# is how a square full of people learns the works are off before anybody
+# tells them.
+class: /platform/thing/WaterFixture
+data:
+  shortDescription: fountain
+  keywords: [fountain, basin, spout, jet, water]
+  register: definite
+  longDescription: >-
+    A round stone basin in the middle of the square with a bronze spout
+    rising out of it, made to run into the bowl day and night for as long
+    as the city has water to give it. The rim is worn smooth by elbows and
+    buckets, and pigeons stand in the overflow.
+  mass: 4000
+  _materialPath: /stuff/idea/material/rock/granite
+  interiorBulk: true
+  interiorMaterial: /stuff/idea/material/bulk/water
+  continuous: true

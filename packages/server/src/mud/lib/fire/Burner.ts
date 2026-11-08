@@ -43,6 +43,7 @@
  * See docs/subsystems/fire.md + thermal.md.
  */
 
+import type { SmellNote } from '../perception/Smell';
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { CommandContributions } from '../../api/command';
 import type { MarkupAugmenter } from '../../api/mml';
@@ -153,6 +154,8 @@ export interface Burner extends Pumpable {
   fuelEnergyJ(): number;
   /** What it is burning, heaviest first. Empty when the bed is empty. */
   fuelMaterials(): Material[];
+  /** What the fire gives the air, by its fuel's own `burning`; empty unlit. */
+  burningNotes(): SmellNote[];
   /** The dominant fuel, or `null`. */
   fuelMaterial(): Material | null;
   /** This material's share of the bed, by mass. */
@@ -910,6 +913,29 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
       }
       out.sort((a, b) => b.mass - a.mass);
       return out.map((e) => e.material);
+    }
+
+    public burningNotes(): SmellNote[] {
+      if (!this.isLit()) return [];
+      const slot = this.fuelSlot();
+      const beds: [Material, number][] = [];
+      if (slot !== null) {
+        const material = slot.getMaterial();
+        if (material) beds.push([material, this.fuelRemaining()]);
+      } else {
+        for (const [path, mass] of Object.entries(this.fuelBed)) {
+          const material = StuffApi.findByTemplatePath<Material>(path);
+          if (material && mass > 0) beds.push([material, mass]);
+        }
+      }
+      const out: SmellNote[] = [];
+      for (const [material, kg] of beds) {
+        if (!MixinApi.isOdorous(material)) continue;
+        for (const tag of material.getBurning()) {
+          out.push({ word: tag.word, ou: tag.strength * Math.sqrt(kg) });
+        }
+      }
+      return out;
     }
 
     public fuelMaterial(): Material | null {

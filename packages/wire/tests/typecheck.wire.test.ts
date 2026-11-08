@@ -120,8 +120,9 @@ suite('who may check what', () => {
     expect(existsSync(PROBE_FILE)).toBe(true);
   });
 
-  it('a non-wizard cannot typecheck', async () => {
+  it('a player with no title over the class cannot typecheck it (wizard-axis D4: title, not the axis)', async () => {
     const result = await player.cmd(`typecheck ${PROBE_CLASS}`);
-    expect(result.status).not.toBe('ok');
+    expectNote(result, 'controller-rejected', { reason: 'access-denied' });
+    expect(await result.said()).toMatch(/needs title over/);
   });
 });

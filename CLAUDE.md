@@ -147,7 +147,7 @@ behavior. Read the relevant doc before editing in its area.
   - [residency.md](./docs/subsystems/residency.md) — object self-maintenance sweeps: self-eviction of the cold tail, `canEvict` veto, ResidencyLogic
   - [residence.md](./docs/subsystems/residence.md) — the dorm-room first home over Warren + parcels + spine; `(scope, key)` multi-instance persistence; DeferredDestinationExit; Katie
   - [identity.md](./docs/subsystems/identity.md) — who a character IS: the `Cast`/`Extra` rungs (name OR the definite article), the authored dossier as seeded evidence + the archetype stamp, who answers for you, the three gates; ⭐ the Compact stays players-only by ARITHMETIC
-  - [holding.md](./docs/subsystems/holding.md) — the residence ladder as ONE substrate: a holding is a warren one level down; Warren/RoomWarren/CirculationWarren tiers, PlatPlan + the gate ring, the shell clock vs the goods clock, tenure terms, the D/P decision index
+  - [holding.md](./docs/subsystems/holding.md) — the residence ladder as ONE substrate: a holding is a warren one level down; Warren/RoomWarren/CirculationWarren tiers, `FloorplanWarren` (a plan on its owner's row, shared with ships), PlatPlan + the gate ring, the shell clock vs the goods clock, tenure terms, the D/P decision index
   - [state-model.md](./docs/subsystems/state-model.md) — what gets persisted; Avatar self-contained, Document track for auth/meta
   - [connection.md](./docs/subsystems/connection.md) — login/logout, WebSocket upgrade, Interactive/Login/Avatar handoff, multiplexing
   - [char-gen.md](./docs/subsystems/char-gen.md) — new-player intake: `enroll` draft machine, species dossier + NameBank, commit/spawn atomicity
@@ -217,7 +217,7 @@ behavior. Read the relevant doc before editing in its area.
   - [provenance.md](./docs/subsystems/provenance.md) — authorship ledger: `authoring_events`, context-derived author, the `recordAuthoring` gate, CreditRouting
   - [crafting.md](./docs/subsystems/crafting.md) — craft-resolve, Grade/Tool/Durable/Crafted mixins, Recipe docs, the by-hand manual build, Dave's Bar
   - [assembly.md](./docs/subsystems/assembly.md) — a made thing that KEEPS its parts: ⭐ transformation destroys identity, assembly preserves it; the bill on the kind + the parts record on the instance, `Joint` rows (reversibility decides `salvage`), localized wear and `repair`, the one verb `fit`, the families it composes on (no bill = one piece) and part state on the line, the wood column (`rive`/`saw`/`carve`, seasoning, the grain carry) and the compartment
-  - [retail.md](./docs/subsystems/retail.md) — the general store: PricedOffer, the Stock counter, consignment over chattel, `buy`/`consign`/`reclaim`; the kernel/pack line (the MECHANISM is kernel substrate, the class a row names is `trade-shopkeeping`'s) + `lint:counters`
+  - [retail.md](./docs/subsystems/retail.md) — the general store: PricedOffer, the Stock counter, consignment over chattel, `buy`/`consign`/`reclaim`, the `ForSale` offer protocol, the hire (`rent`); the kernel/pack line (the MECHANISM is kernel substrate, the class a row names is `trade-shopkeeping`'s) + `lint:counters`
   - [corpo.md](./docs/subsystems/corpo.md) — the mark substrate: Corpo/Brand data Ideas, CorpoCatalogue, BrandedMixin resolve-on-read
   - [cleanliness.md](./docs/subsystems/cleanliness.md) — dirt as STATE (`SoilableMixin`: deposits by site × kind over `DirtKind` rows, set stains, the wash and the clean tiers from the process record), the body's hygiene, the wash chemistry (cleansers named by their material), places (the floor, the heap, the midden, the flue), the people paid for it (laundress, attendant, doorman), how a player KNOWS (`look`, `smell`, `analyze cleanliness`)
   - [textiles.md](./docs/subsystems/textiles.md) — cloth and what it is FOR: purpose is which channel a garment intercepts, the covering ladder + derived `clo`, fit as two numbers and a stamp, the subtractive dye stack + fade, the soiling seam; the three-trade chain
@@ -247,6 +247,7 @@ behavior. Read the relevant doc before editing in its area.
   - [fire.md](./docs/subsystems/fire.md) — combustion + high heat: the heat channel, FireApi/Combustible, the ignition balance, phase change, furnaces, Hearthworks
   - [ceramics.md](./docs/subsystems/ceramics.md) — clay, the brickmaker and the potter: ⭐ firing is ONE rule (a material's kinetics on its own heat trajectory, no recipe), clay's year (won, weathered, tempered), the potter's hand (`shape`/`carve`/`fit`/`impress`), the clamp and the kiln, the maker's mark as the viewer knows it; `trade-ceramics` at `/trade/ceramics`
   - [faces.md](./docs/subsystems/faces.md) — a good has an outside and a vessel an inside, and a face carries coats: the glaze fired by heat-work, the lead leach by the contents' pH, the weeping jar that cools its water
+  - [painting.md](./docs/subsystems/painting.md) — a building's outside and the coat that weathers: the landing (where a structure meets the weather), `Building` vs `Structure` (a ship's hull, a bare peak), every outside weathering on the exposure rule (`Faced.reconcileWeather`) and a building's fabric as its `Durable` condition, paint as binder + pigments, `paint`, the glued joint, lead · oily rags · turpentine, the colorman and the house painter
   - [glass.md](./docs/subsystems/glass.md) — the glass trade: ⭐ colour is a GRADE not a choice (iron → tint by Beer–Lambert, derived never stored; cullet one-way-toward-green); the four kernel seams (`Colour` on `Light`, the firing carries its charge, the meltable-non-metal salvage, light-strike on spoilage); the hot-work window (`gob`/`shape`/`reheat`/`crack` on a cooling gather) + the cold bench (`scribe`/`snap`/`groze`/`flatten`/`glaze`); the first authored `Window` rows a pane glazes; `trade-glass` at `/trade/glass`, a second glasshouse is rows
   - [rubber.md](./docs/subsystems/rubber.md) — the `trade-rubber` pack and the first technology: latex from Hevea under glass and wet-milled dandelion, caprock sulfur, the cure as DATA on the feedstock (`Crosslinking`: sulfur × heat × time → under-cured · cured · ebonite · burnt, no knowledge gate), `fire … for`, the mould decides the shape, the four corrections (wet conducts, the outer layer sheds rain, packing wears by material, acid names `once-living`), stretch, and the rubber works
   - [potash.md](./docs/subsystems/potash.md) — the ashery: ash with a strength (`alkaliShare`), brash, the hopper's derived lye and the egg, the iron pot on silk's plateau (cast at saturation), pearl ash by `calcine`, slaking and caustic lye, the ash round; ⭐ whose it is — the communal oven (a liquid carries its owner; untitled contents are the maker's)
@@ -309,7 +310,11 @@ behavior. Read the relevant doc before editing in its area.
   - [app-settings.md](./docs/subsystems/app-settings.md) — the AppSettings singleton + key vocabulary, yaml seeding, AppApi reads, the `config` verb
   - [help.md](./docs/subsystems/help.md) — the in-game rulebook: the HelpTopic schema, the harvested catalogue, the REST help API, the `help` verb
   - [expanse.md](./docs/subsystems/expanse.md) — a region you cross by setting a course: ⭐⭐ the GRAPH is spherical (nodes are foci + a radius relative to the expanse, bands named edges drawn from them) and the CHART is lat/lon (`origin` the bridge); the voyage held by the craft as three fields, sight by curvature, seeded traffic, the Structure/Ship split, the water tier
+  - [paper.md](./docs/subsystems/paper.md) — the medium: what paper adds to text in a game made of text (a thing · frozen · marked by its making · carried past the network), editions and the live screen, the sheet and the book as leaves with hands, tearing, bearer paper, the mill; printing is a placeholder (printing-slate)
+  - [harbor.md](./docs/subsystems/harbor.md) — where ships are kept: the berth as a way named for her (`BerthExit`, the berth roll), the berth book + the harbormaster's `berth`, the hail, dues and `pay`, the bar's tidal window, the charter, the hire book
+  - [ship.md](./docs/subsystems/ship.md) — a Structure that moves, is owned and can sink: kinds as one plan (`ShipWarren`), minted identity, the register + flag, owners via her company's cap table (`transfer … shares`), the master, the gangway lock, the leak/bilge/`bail`, flooding and the wreck
   - [watershed.md](./docs/subsystems/watershed.md) — water that gets somewhere: zone elevation (and why `coords.z` is not it), the exact precipitation integral shared by soil and river, `Watercourse` (topology authored · direction derived · a compiled reachability set), flow + snowpack + derived navigability, the `Conduit` ladder (a sewer is the same object reversed) over the six-word `SupplyState`, storage as the build's one piece of state, rights (prior appropriation records · riparian derives), contamination by kind, and the three basins
+  - [water-supply.md](./docs/subsystems/water-supply.md) — water that gets INTO a house and onto a field: the premises citation (fails closed), a tap implies its pipe (`PlumbedMixin`, on the room rung), chemistry and the kit, gates by an amount and the ditch's rota, soil inlets that pond and salt, wells on aquifers, sprinklers as rain in a circle
   - [river.md](./docs/subsystems/river.md) — the river as a LINE you are carried along: ⭐ only places are tracked (a reach patch is the water within hail, a moving place with a moving zone), one `Frame` protocol for chart and line, how anything moves is a trajectory, moving water is CHOSEN (`MovingWaterMixin`), small craft as things in water places (`paddle`), ships and the bar, ferries and the market boat, the water told by its character not its steps; ⭐ a mod imports only the mods it declares, the rest is a kernel protocol
   - [wiki.md](./docs/subsystems/wiki.md) — the community encyclopedia: typed subjects, the frozen render pipeline, the two-axis reveal model (capability DELETES / appetite TAGS) and its one gate, snippets vs components, sticky anchors, the `wiki` verb
 
@@ -819,15 +824,15 @@ reason.
   `testharness`, test-world scaffolding withheld everywhere else — see
   [testing.md § The soak lane](./docs/testing.md)), stream, tpa,
   medical, combat, magic (`cast`/`spells` — the casting core), work (the
-  labor market — `job`/`fulfill`), employment (`appoint` [alias `hire`]/`dismiss`/`quit`/`apply`/`clock`/`tip`/`collect`), retail (`buy`/`consign`/`reclaim`), device
+  labor market — `job`/`fulfill`; `charter`), employment (`appoint` [alias `hire`]/`dismiss`/`quit`/`apply`/`clock`/`tip`/`collect`), retail (`buy`/`consign`/`reclaim`/`rent`), harbor (the transport pack's `berth`), device
   ("operating a built object or mechanism" —
-  `wind`/`adjust`/`switch`/`fold`/`unfold`/`disarm`/`pump`; `lock`/`unlock`
+  `wind`/`adjust`/`switch`/`fold`/`unfold`/`disarm`/`pump`/`bail` — one bucket over any lift source, the drilling pack's view retired; `lock`/`unlock`
   stay under `boundary`), mining (the metal chain's cutting acts —
   `hew`/`drive`/`sink`/`raise`/`shore`/`stake`), fuel (`char`), smelting
   (`smelt`), forestry (`fell` — a standard, a bole, or a planted tree;
   the coppice cut is the platform's `harvest` told its tool by the
   plant). The concealment build added `search` (perception),
-  `sneak`/`run` (movement), and `disarm` (device); `examine` is now a
+  `sneak`/`run` (movement), and `disarm` (device); the harbors build put `transfer … shares` under system; `examine` is now a
   `look` alias, not its own verb; the farming build made `pick` a
   `harvest` alias (inventory). ⭐⭐ The carcass chain added two more
   aliases and the reason is the ladder, not taste: `grind` rides `mill`
@@ -954,14 +959,16 @@ platform/thing/FoldingChair` is ordinary OO and correct. Only classes that are
 
 **When a substrate class is also cloned generically, split it.** The
 abstract base stays in `lib/`; a thin concrete subclass in `platform/`
-absorbs the clones, and templates name that. Thirteen exist. **Nine
+absorbs the clones, and templates name that. Fifteen exist. **Eleven
 deliberately share their base's name** (the import aliases it as
 `<Name>Base`; the module registry keys on class identity, not name):
 `platform/thing/Thing`, `platform/thing/Good`, `platform/thing/Vessel`,
 `platform/idea/modalities/Modality`,
 `platform/location/Location`,
 `platform/location/Locale`, `platform/idea/Exit`,
-`platform/idea/material/Material`, `platform/idea/Biome`. **Four are
+`platform/idea/material/Material`, `platform/idea/Biome`,
+`platform/idea/Structure`, `platform/idea/Building` (`Ship` extends the
+`lib/structure/Structure` base directly). **Four are
 real renames because they are real concepts**: ⭐ `platform/thing/Corpse`
 (← `Creature`), which is also the one twin that changed BRANCH — a corpse
 has lost its agency and never gets it back, so it is Matter, not an Agent
@@ -1201,7 +1208,7 @@ orchestration cases:
 | Raw hydration or a bespoke snapshot to persist a live host's runtime state | `PersistableApi.capture(host)` / `PersistableApi.materialize(host)` — the universal self-persistence spine. A host composes `PersistableMixin` (singleton, keyed by `templatePath`); capture/restore is per-mixin-composed and routed through call-security as the owning principal, into `holder_snapshots`. `Avatar.save()` → `capture`, `Avatar.restore()` → `materialize`. `restoreFromTemplate` is NOT this — it re-hydrates a live clone from an edited *template* (CMS/Pack content go-live); `snapshotToTemplate` was retired. See [persistence.md](./docs/subsystems/persistence.md). |
 | Authoring `container:` on a row so every clone lands somewhere (retired 2026-10-15) | Stuff clones into null and is placed by itself or its creator: a place's `props:`/`cast:`, a fixture's `seatIn:`, a producer stock's `stockLines`, or the verb that minted it. `clone` places post-clone (`--into` → `--here` → self-placement → giver fallback). `lint:instanceable` refuses `container:`. See [spatial.md](./docs/subsystems/spatial.md). |
 | `await GroupApi.isMember(playerId, ref)` inside a controller to gate a staff verb | `await AccessApi.can(giver, action, resource)` — resolves title via `ParcelApi.ownerOf` (parcel registry, longest-prefix) then dispatches on owner kind (group / player / organization); untitled → `null` → **denied**. See [access.md](./docs/subsystems/access.md) + [parcel.md](./docs/subsystems/parcel.md). |
-| Hard-coded "is this player an admin?" check | `await AccessApi.can(giver, action, resource)` (resource-targeted), or `AccessApi.canMutateZone(giver, zone)` for Zone-Template targets, `AccessApi.canAtPath(giver, action, path)` for the path-addressed trees, `AccessApi.heldExtents(giver)` for a within-your-extent listing (there is no author tier), `AccessApi.isWizard(giver)` for the orthogonal code-trust (TS-escape) axis (eval, reload, source-tree writes, **and the `class`/`behaviors[].brain` content-template fields** — ⚠ whose justification is WRONG for `class`; see [access.md](./docs/subsystems/access.md)), `AccessApi.isArchwizard(giver)` for the wizard-conferral axis. |
+| Hard-coded "is this player an admin?" check | `await AccessApi.can(giver, action, resource)` (resource-targeted), or `AccessApi.canMutateZone(giver, zone)` for Zone-Template targets, `AccessApi.canAtPath(giver, action, path)` for the path-addressed trees, `AccessApi.heldExtents(giver)` for a within-your-extent listing (there is no author tier), `AccessApi.isWizard(giver)` is the orthogonal axis for **authoring TypeScript only** — asked solely by `AccessApi.sourceWriteRefusal` (a code-file write) and `eval`; a new `isWizard` check anywhere else is wrong by shape (`lint:wizard-axis`; see [access.md](./docs/subsystems/access.md)), `AccessApi.isArchwizard(giver)` for the wizard-conferral axis. |
 | Reaching `AccessRegistry` directly via `StuffApi.findByTemplatePath('/platform/idea/AccessRegistry')` and calling its methods | `AccessApi` — the Registry's public methods carry `@CallSecurity(FromModule('/api/access#AccessApi'))` and throw on any other caller. The facade is the only legitimate path. |
 | `static collectionName = 'users'` (or a module constant holding the literal) | `static collectionName = Collections.Users` — a literal names a collection the vocabulary cannot see, so it gets no schema doc, no index, no sandbox policy and no help topic, silently. Enforced by `pnpm lint:schema`; `__tests__` fixtures are the one exemption. |
 | `import { readFileSync } from 'fs'` (or `path`/`url`/`yaml`/`../backend/…`) anywhere in the mudlib | Only `api/**` + `platform/idea/api/**` import outside `src/mud/`. To load an authored data file: `SourceTreeApi.readYamlResource(import.meta.url, '…/file.yaml')` (`import.meta.url` is a language construct, not an import). Also `readResource` / `readJsonResource` / `listResource` (a directory of authored files) / `parseYaml` / `toMudPath` / `resolveFrom`. Enforced by `pnpm lint:imports`. |

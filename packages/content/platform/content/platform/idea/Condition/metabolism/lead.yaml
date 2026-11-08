@@ -1,8 +1,10 @@
-# Lead poisoning — wired but its CHRONIC content is deferred (it needs
-# the material-leaching pipeline + prodromal staged conditions for
-# legibility). v1 ships only a slow clearance + a single acute band; the
-# burden socket already handles chronic mechanically (slow clearance +
-# small repeated doses accumulate on the same scalar). Pure poison.
+# Lead poisoning — the slow one. ⭐ (paint D14) Every lead dose in the
+# world now arrives: the rows carried the condition's NAME
+# (`lead-poisoning`) where metabolism looks up the toxin TYPE (`lead`), so
+# every dose was dropped until the paint build. A slow clearance and two
+# bands — the painter's colic, which comes on under repeated small doses
+# (grinding white lead, painting with it bare-handed), then the acute
+# poisoning — on the one burden scalar. Pure poison.
 class: /platform/idea/Condition
 data:
   name: lead-poisoning
@@ -24,4 +26,7 @@ data:
     clearanceRate: 0.01
     potency: 1
     bands:
-      - { threshold: 5, severity: 1 }
+      # The painter's colic: the belly cramps, the gums grey, the hands
+      # tremble — long before anything is acute.
+      - { threshold: 2, severity: 1 }
+      - { threshold: 5, severity: 2 }

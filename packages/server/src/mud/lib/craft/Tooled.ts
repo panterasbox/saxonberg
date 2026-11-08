@@ -48,6 +48,13 @@ export interface Tooled {
   getEpoch(): Epoch | null;
   setEpoch(value: Epoch | null): void;
   /**
+   * ⭐ Does the covenant where `place` stands admit this instrument?
+   * `null` = admitted; else the refusal, in words. A tool with no
+   * epoch stamp is admitted everywhere; a region with no covenant admits
+   * everything.
+   */
+  admittedAt(place: Stuff): Promise<string | null>;
+  /**
    * ⭐ Square metres of ground one act with this tool works — a sickle's
    * swath, a cane knife's, a scythe's (cover build D3). `0` = not an
    * area tool. *Work per acre is the tool's number; yield per acre is
@@ -149,6 +156,18 @@ export function ToolMixin<TBase extends MixinConstructor>(Base: TBase) {
         );
       }
       this.epoch = value;
+    }
+
+    async admittedAt(place: Stuff): Promise<string | null> {
+      const mine = this.epoch;
+      if (mine === null) return null;
+      const zone = place.getZone();
+      if (zone === null) return null;
+      const through = await zone.lookupField<Epoch>('admitsEpochThrough');
+      if (through === null || !(EPOCHS as readonly string[]).includes(through)) return null;
+      if (EPOCHS.indexOf(mine) <= EPOCHS.indexOf(through)) return null;
+      const self = this as unknown as Stuff;
+      return `The covenant here admits nothing later than ${through}; ${self.getPresentation()} is ${mine} work, and stays idle.`;
     }
 
     getCapabilities(): readonly string[] {

@@ -17,8 +17,10 @@ help: |
   per active member, the two lanes outstanding, overrides on the record,
   the default rate on window paper, the price index. `reserve supply`
   reads the money supply and the conservation audit. `reserve set <row>
-  <value>` writes one of the Schedule's `reserve.*` rows — the Governor's
-  levers, and nobody else's. `reserve override <amount> to <target>
+  <value>` writes one of the Schedule's `reserve.*` rows or one of the
+  Governor's Tier C dials (the withdrawal caps — capital controls) — the
+  Governor's levers, and nobody else's, on your record (`chronicle`). The
+  fisc's dials are the Minister of Finance's (`treasury set`). `reserve override <amount> to <target>
   "<reason>"` is the emergency override: a mint the ledger records as
   YOUR act, with your reason, that the dashboard prints as its own line.
   There is no `reserve mint` and no `reserve issue`: issuance no longer
@@ -30,7 +32,7 @@ subcommands:
   supply:
     description: "Money supply + reconciliation audit"
   set:
-    description: "Write one of the Schedule's reserve.* rows"
+    description: "Write a reserve.* row or a Governor's Tier C dial, on the record"
     args:
       - name: row
         type: string

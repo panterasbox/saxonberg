@@ -125,7 +125,7 @@ export default class TemperatureReading extends BiomeReading {
     // ⭐ In the water, or naming it from the bank, the reading is the
     // WATER's (river D32): a thermometer over the side reads the river, not
     // the air over it — the number that decides how long you have in it.
-    if (target && MixinApi.isWaterPlace(target)) {
+    if (target && MixinApi.isWaterPlace(target) && target.depthNow() > 0) {
       return Quantity.of(target.waterTemperatureK(), 'K') as unknown as Quantity<Unit>;
     }
     if (target && param !== '' && MixinApi.isShore(target)) {
@@ -141,7 +141,7 @@ export default class TemperatureReading extends BiomeReading {
 
   /** ⭐ A shore whose water you named: the thermometer goes in the water (river D32). */
   protected override acceptsSubject(subject: Stuff, raw: string): boolean {
-    if (MixinApi.isWaterPlace(subject)) return true;
+    if (MixinApi.isWaterPlace(subject) && subject.depthNow() > 0) return true;
     return raw !== '' && MixinApi.isShore(subject) && 'key' in subject.waterFor(raw);
   }
 

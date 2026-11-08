@@ -8,7 +8,7 @@
 # wave's (W7): it stands its press here when it ships.
 #
 # ⭐ Persistent: a day's green bricks are a day's work.
-class: /platform/location/PersistentLocale
+class: /platform/location/PersistentHall
 data:
   shortDescription: moulding shed
   keywords: [shed, "moulding shed", "molding shed", tables]

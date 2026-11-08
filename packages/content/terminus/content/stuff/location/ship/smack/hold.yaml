@@ -1,0 +1,21 @@
+# A smack's fish hold — forward of the cabin, under the hatch.
+# ⭐ A `Hold`: the one room of hers that keeps a record (persistence is
+# the exception). Her catch and cargo survive her sleep, a
+# restart and her going down; what is loose on deck or in the cabin when
+# she sleeps is stowed down here.
+class: /platform/location/Hold
+data:
+  shortDescription: fish hold
+  keywords: [hold, fish hold, below]
+  register: definite
+  _biomePath: /stuff/idea/biome/indoor/baseline
+  longDescription: |
+    A deep, narrow hold under the hatch, its boards scrubbed but still smelling of fish and salt, with pound boards to keep a catch from shifting.
+  enclosure: { material: /stuff/idea/material/wood/oak, thicknessM: 0.05 }
+  roof: { material: /stuff/idea/material/wood/pine, thicknessM: 0.04 }
+  # ⭐ Her plan: just above her keel — the first of
+  # her rooms the water comes into.
+  floorM: 0.3
+  exits:
+    south:
+      destination: /stuff/location/ship/smack/cabin

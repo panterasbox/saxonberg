@@ -43,6 +43,7 @@ import {
   plain,
   expectOk,
   expectRefused,
+  hand,
 } from '../src/harness';
 
 export const DIRTY_REASON =
@@ -60,6 +61,7 @@ declareFile({
     'generic-objects',
     'eternal-university',
     'saxonberg-lounge',
+    'trade-fuel',
   ],
   dirtyReason: DIRTY_REASON,
 });
@@ -122,10 +124,10 @@ async function assertItIsDark(s: Session): Promise<void> {
   }
 }
 
-async function at(where: string, tag: string, wizard = false): Promise<Session> {
+async function at(where: string, tag: string, committees: string[] = []): Promise<Session> {
   const s = await Session.open(uniqueHandle(`env-${tag}`), {
     startLocation: where,
-    ...(wizard ? { wizard: true } : {}),
+    ...(committees.length ? { committees } : {}),
   });
   open.push(s);
   return s;
@@ -318,11 +320,23 @@ suite('⭐ a lantern you light, and that runs out', () => {
     // ⭐ The sealed cellar is a 3 m cell — 9 m², pitch black, a metre of
     // granite and no lamp in it. 220 lumens there is 24 lux, which is
     // two rungs up from nothing, and it is also what a lantern is FOR.
-    me = await at(CELLAR, 'lamp', true);
+    // `clone` of the general store's lantern row: seated on Terminus's
+    // committee, not a credential (wizard-axis D13).
+    me = await at(CELLAR, 'lamp', ['/world/terminus']);
   }, 180_000);
 
   it('⭐ step 4 — light it and the dark lifts; douse it and it comes back', async () => {
     expectOk(await me.cmd('clone /world/terminus/general-store/thing/lantern'));
+    await me.drainProse();
+    // ⭐ A lantern is sold DRY (its row says so): the oil is a separate
+    // purchase, and a dry lantern refuses `no-fuel`. Fill it as a player
+    // would — from a cask of lamp oil — before lighting it.
+    // Setup, not the act under test: the cask is handed (clone is gated on
+    // held extents, and the fuel row is not this player's).
+    const cask = await hand(me, '/trade/fuel/thing/lamp-oil-cask');
+    await me.cmd(`open #${cask}`);
+    await me.drainProse();
+    expectOk(await me.cmd(`fill lantern from #${cask}`));
     await me.drainProse();
 
     // ⚠⚠ **Douse FIRST, with nothing in between.** The ordering is the
@@ -396,7 +410,7 @@ suite('⭐⭐ the room holds a state different from outside, at a cost', () => {
   let smith: Session;
 
   beforeAll(async () => {
-    cook = await at(SHOP, 'cook', true);
+    cook = await at(SHOP, 'cook');
     cellar = await at(CELLAR, 'cellar');
     smith = await at(SMITHY, 'smith');
   }, 180_000);

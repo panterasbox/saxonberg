@@ -1,0 +1,14 @@
+# The reading screen — on the shop wall, open to anyone in the
+# shop: `show <release> on screen`, then `read screen`. The live rung: it
+# shows a release as it stands now.
+class: /platform/thing/Tablet
+data:
+  shortDescription: reading screen
+  keywords: [screen, "reading screen", board, display]
+  register: definite
+  longDescription: A broad pale screen set into the wall by the window.
+  _materialPath: /stuff/idea/material/glass/glass
+  mass: 8
+  fixedInPlace: true
+  pairing: open
+  shows: [document, prose]

@@ -40,6 +40,42 @@ is not the state but the depot, whose coverage is its market share.
 ⚠ `DocumentApi.saveAsBusiness` is the gate: derived owner, a path under
 the business's branch, and a closed kind allowlist.
 
+⭐ **`ship` — a ship's register entry** (harbors P14). One document per
+ship a register holds, at `<register prefix>/<name slug>`
+(`/platform/ships/terminus-city/petrel`), written only by its
+`ShipRegister` through `DocumentApi.saveToRegister` (the herdbook's
+transport, below — the second `Registrar`). The slug is the uniqueness:
+a register refuses a second ship of a name because the path is taken.
+The entry is TITLE only — `{name, kind, key, flag, registeredAtS,
+owner}`, the owner being her company; who holds the company is its cap
+table ([employment.md](./employment.md)). Pack-shipped for the authored
+ships, runtime-written by a yard sale, `onVanish: 'keep'`. See
+[ship.md](./ship.md).
+
+⭐ **`berth-book` — a harbor's berth record** (the paper build, reconciling harbors, 2026-11-05): the berth
+book's lines and hails, one document per harbor at
+`<registerPrefix>/record`, filed by the harbor through
+`saveToRegister` (the harbor is a `Registrar` of its own branch). The book
+on the desk loads it on use and writes through; burning the book forgives
+nothing. Runtime-written, `onVanish: 'keep'`. See
+[harbor.md](./harbor.md).
+
+⭐ **`berth-roll` — a landing's list of the ships lying at it** (harbors
+review 1). It was a live `Persistable(Idea)` per landing with no behavior
+beyond add/remove/list and nothing targeting it — so it is a document:
+one per landing at `/platform/berths<landing path>` (the path keeps its
+slashes; a harbor's berths are a prefix read), owned by the landing,
+`data: { lying: [handle…] }`, runtime-written on the `map` pattern,
+`onVanish: 'keep'`. ⚠⚠ Its write, `DocumentApi.saveBerth(ship,
+landingPath)`, is an ownership bypass narrow by construction: gated
+`FromMixin(Voyaging, caller === args[0])` (the ship herself, writing her
+own line — the register transport's relational shape), and it takes **no
+lying/gone flag** — the store reads whether she is made fast there now off
+the ship, so even she cannot write a false line. Writes to one roll are
+chained per path. The landing reads it with `DocumentApi.berthRollOf` on
+first use and stands up every ship on it that is not loaded
+([expanse.md](./expanse.md), `FrameSited`).
+
 ⭐ **`water-right` is the worked example of why the vocabulary is closed**
 (water build). A prior-appropriation right is a *record* — dated,
 transferable, and meaningless if it can be quietly lost — so it is
@@ -49,6 +85,11 @@ pack that seeded it going away, because the whole point of recording an
 appropriation is that it outlives the paperwork. A capability pack
 **cannot** declare a kind — adding this one was a platform edit, and that
 is the gate working, not friction to route around.
+
+⭐ **`aroma`** (vocabularies-to-rows, 2026-11): an aroma word, keyed by `word:` across every pack (a pack's documents sit under its own root, so a path cannot name a word any pack may ship) and read by that key with `DocumentApi.readByKey`; authored
+metadata a nose reads ([senses.md](./senses.md#one-smell-source-air-nose)). It was an Idea
+for one build and moved here because nothing writes a word, nothing acts on one, and MQL
+should not find one. ⚠ `DirtKind` has the same shape and has not moved yet.
 
 ## What a record is
 
@@ -274,8 +315,8 @@ A thin gated forwarding shell over a hot-reloadable logic singleton at
   is the release window's rebuild input.
 - `DocumentApi.save(path, kind, data)` → find-or-create. **Access-gated**,
   **owner-stamped from context**, **provenance-recorded** (below). For
-  `kind: 'command-view'` it also runs the **code-naming gate** and the
-  schema check, and reloads the view (below).
+  `kind: 'command-view'` it also runs the schema check and reloads the
+  view (below).
 - `DocumentApi.delete(path)` → the same gate as `save`; no provenance row
   (a deletion is not authorship); returns whether a row existed. The
   emote catalogue's `delete` rides it.
@@ -284,6 +325,9 @@ A thin gated forwarding shell over a hot-reloadable logic singleton at
 - ⚠⚠ `DocumentApi.saveToRegister(register, path, data)` — the **generic**
   one: a `Registrar` files into the branch it keeps the book for. See
   *The register transport* below.
+- ⚠⚠ `DocumentApi.saveBerth(ship, landingPath)` — a ship's own line on a
+  landing's `berth-roll`, truth read off her; `DocumentApi.berthRollOf`
+  reads the roll. See *`berth-roll`* above.
 
 The acting **owner is always derived from `ExecutionContextApi`** (the
 in-world command-frame giver, or a transport's `tagActingAuthor` stamp),
@@ -310,20 +354,21 @@ wave 2, D11), with one base case on top:
    author-minted emote or blueprint lands on the platform's own
    `/emotes/` / `/blueprints/` branch for the same reason.
 
-### The command-view code gate
+### The command-view save
 
-A `kind: 'command-view'` save names TypeScript: its `controller:` (at
-the verb or any subcommand) and every validator / `requires` reference
-are code references. A save that changes any of them — **the set, not a
-subset**: a validator is a gate, and removing one widens dispatch just
-as adding one narrows it — requires `AccessApi.isWizard` (the code-trust
-axis, [access.md](./access.md)); so does a new view naming a controller.
-A cosmetic edit (help text, descriptions) is content authoring. Every
-command-view save is validated against the command schema at the
-chokepoint and then `CommandApi.reload(path)` puts it live — the CMS
-edits `look.yaml`'s help and `help look` changes without a restart. The
-installer never sees this gate (it writes through `PersistApi`,
-bootstrap-exempt like templates).
+A `kind: 'command-view'` save names TypeScript — its `controller:` (at
+the verb or any subcommand) and every validator / `requires` reference —
+but **naming code is content**: the save is gated by title over the
+path like any other document, and nothing asks the wizard axis. (Until
+the wizard-axis cleanup, 2026-11-05, a save that changed that set ran a
+code-naming gate, `codeFieldsChanged`, requiring `AccessApi.isWizard`;
+it was deleted with the template gate — see [access.md § The code-trust
+lockdown](./access.md). A validator is still a gate, which is why
+a view's validators are its titleholder's to change and nobody else's.) Every command-view save is validated against the command schema
+at the chokepoint and then `CommandApi.reload(path)` puts it live — the
+CMS edits `look.yaml`'s help and `help look` changes without a restart.
+The installer writes through `PersistApi`, bootstrap-exempt like
+templates.
 
 ### Provenance
 

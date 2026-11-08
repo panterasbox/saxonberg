@@ -45,7 +45,6 @@ import type { PassportGoogleProfile } from '@saxonberg/types';
 import type { Application } from './Application';
 import { ExecutionContextApi } from '../mud/api/execution-context';
 import { User } from '../mud/lib/identity/User';
-import { Group } from '../mud/lib/social/Group';
 import { PlayerApi } from '../mud/api/player';
 import { AppApi } from '../mud/api/app';
 import { AppSettingKeys } from '../mud/lib/config/AppSettings';
@@ -56,15 +55,21 @@ import { SecurityApi } from '../mud/api/security';
 import {
   TestHarnessApi,
   type ClockJump,
+  type StageReport,
   type WeatherPinReport,
+  type ShipStageSpec,
+  type ShipStageReport,
 } from '../mud/api/test-harness';
 import type { WeatherPinMode } from '../mud/lib/weather/WeatherType';
 import { ParcelApi } from '../mud/api/parcel';
 import { AccessApi } from '../mud/api/access';
+import { CompactApi } from '../mud/api/compact';
 import { StuffApi } from '../mud/api/stuff';
 import { MixinApi } from '../mud/api/mixin';
 import type { Stuff } from '../mud/lib/stuff/Stuff';
 import { ContainmentApi } from '../mud/api/containment';
+import { ContractApi } from '../mud/api/contract';
+import type { IssueNoteResult } from '../mud/api/contract';
 import { TRAUMA_BEHAVIOR } from '../mud/platform/idea/Condition';
 import { Quantity } from '../mud/lib/quantity';
 import { TemplatePaths } from '../mud/lib/paths';
@@ -116,7 +121,9 @@ export class TestHooks {
     withCharacter = false,
     startLocation?: string,
     wizard = false,
-    parcels: readonly string[] = []
+    parcels: readonly string[] = [],
+    committees: readonly string[] = [],
+    offices: readonly string[] = []
   ): Promise<void> {
     if (process.env.AUTH_MODE !== 'test') {
       done(new Error('TestHooks: test authentication is disabled'));
@@ -139,7 +146,9 @@ export class TestHooks {
               handle,
               startLocation,
               wizard,
-              parcels
+              parcels,
+              committees,
+              offices
             );
           }
           return id;
@@ -158,22 +167,33 @@ export class TestHooks {
    * signup auto-mint (human, lobby, seed defaults), named from the test
    * handle. Idempotent (no-op if the user already owns a character).
    *
-   * With `wizard`, the character joins EVERY managed group — a test
-   * character needs authority wherever the thing under test lives, and
-   * the set of groups is whatever the installed packs declared
-   * (`requires.groups`), never a list kept here. The founder already
-   * heads the executive (which holds the platform) with no grant at all;
-   * what the groups add is the sub-titles they hold (`/world/lounge`,
-   * `/arcana`, …), under which nearest-parcel wins for `can`, plus the
-   * three axis groups (`wizards` — code trust, `streamers`,
-   * `archwizards`). Same member-key rule the `wizard` verb uses.
+   * ⭐ **The harness tells the truth** (wizard-axis D13). `wizard` joins
+   * the `wizards` group and NOTHING else — the axis is authoring
+   * TypeScript and confers no title. Authority comes from a SEAT, exactly
+   * as it does for a content author:
+   *
+   * - `committees: ['<extent>[:owner]', …]` seats the character on the
+   *   committee over each extent (the managed group `committeeOf` names),
+   *   as `member` or — with `:owner` — `owner` (what `canMutateZone`
+   *   asks). An extent held by an ORGANIZATION (the executive,
+   *   `/compact/trade`, a business) is refused, naming that its staff and
+   *   appointing authority hold it: seat the office instead.
+   * - `offices: ['minister-of-trade', …]` seats the character in each
+   *   office (`CompactApi.assignOfficeForTest`, `@TestOnly`). One holder
+   *   per office: the seat MOVES.
+   *
+   * ⛔ There is no every-group mode under any name. It used to be what
+   * `wizard: true` meant — a credential that sat on every committee — and
+   * nobody sits on every committee (wizard-axis D18).
    */
   public static async provisionCharacter(
     userId: string,
     name = 'Tester',
     startLocation?: string,
     wizard = false,
-    parcels: readonly string[] = []
+    parcels: readonly string[] = [],
+    committees: readonly string[] = [],
+    offices: readonly string[] = []
   ): Promise<void> {
     TestHooks.#assertTestMode('provisionCharacter');
     const user = await User.findById(userId);
@@ -192,21 +212,59 @@ export class TestHooks {
     } else if (startLocation) {
       await TestHooks.rehomeCharacter(user, startLocation);
     }
-    if (wizard && user.playerIds.length > 0) {
-      const { GroupApi } = await import('../mud/api/group');
-      const reg = await GroupApi.registry();
-      const provider = reg.managed();
-      const memberKey = Avatar.getTemplatePath(user.playerIds[0]!);
-      for (const group of await Group.find({})) {
-        if (!group._id) continue;
-        if (group.addMember(memberKey, 'member')) {
-          await group.save();
-          provider.fireChange(group._id);
-        }
-      }
+    const playerId = user.playerIds[0];
+    if (playerId === undefined) return;
+    if (wizard) await TestHooks.#joinGroup(playerId, 'wizards', 'member');
+    if (committees.length > 0) await TestHooks.#seatOnCommittees(playerId, committees);
+    for (const office of offices) {
+      const r = await CompactApi.assignOfficeForTest(playerId, office);
+      if (!r.ok) throw new Error(`TestHooks: '${office}' is not an office`);
     }
-    if (parcels.length > 0 && user.playerIds.length > 0) {
-      await TestHooks.#grantParcels(user.playerIds[0]!, parcels);
+    if (parcels.length > 0) await TestHooks.#grantParcels(playerId, parcels);
+  }
+
+  /** Add the character to one managed group by name (the `group` verb's write). */
+  static async #joinGroup(
+    playerId: string,
+    groupName: string,
+    role: 'member' | 'owner'
+  ): Promise<void> {
+    const { GroupApi } = await import('../mud/api/group');
+    const provider = (await GroupApi.registry()).managed();
+    const group = await provider.findByName(groupName);
+    if (!group || !group._id) {
+      throw new Error(`TestHooks: no managed group '${groupName}'`);
+    }
+    if (group.addMember(Avatar.getTemplatePath(playerId), role)) {
+      await group.save();
+      provider.fireChange(group._id);
+    }
+  }
+
+  /**
+   * TEST-ONLY: seat the character on the committee over each extent —
+   * `<extent>` as member, `<extent>:owner` as owner. ⭐ A SEAT, NOT A
+   * BYPASS: the row written is the managed group's member row, the one
+   * the installer's enrolment and the `group` verb write.
+   */
+  static async #seatOnCommittees(
+    playerId: string,
+    committees: readonly string[]
+  ): Promise<void> {
+    for (const entry of committees) {
+      const owner = entry.endsWith(':owner');
+      const extent = owner ? entry.slice(0, -':owner'.length) : entry;
+      const committee = await CompactApi.committeeOf(extent);
+      if (!committee) {
+        throw new Error(`TestHooks: no committee covers '${extent}'`);
+      }
+      if (committee.kind !== 'group') {
+        throw new Error(
+          `TestHooks: '${extent}' is held by the organization '${committee.name}' — ` +
+            'its staff and appointing authority hold it; seat the office (`offices:`) instead'
+        );
+      }
+      await TestHooks.#joinGroup(playerId, committee.name, owner ? 'owner' : 'member');
     }
   }
 
@@ -215,7 +273,7 @@ export class TestHooks {
    * named, so it can stage inside it — `eval --parcel <it>` — exactly as
    * the parcel's real holder could.
    *
-   * ⭐ A GRANT, NOT A BYPASS, like the wizard groups above: the title
+   * ⭐ A GRANT, NOT A BYPASS, like the committee seats above: the title
    * moves through `ParcelApi.transfer` (an appended `transfer` event, the
    * owner index re-pointed), so every authority check downstream runs the
    * same walk a player's does. Nothing in `AccessApi` learns about test
@@ -224,8 +282,8 @@ export class TestHooks {
    * - The path must be an EXACT parcel extent; anything else fails the
    *   login, naming the covering parcel (a wrong path should fail here,
    *   not at the first `eval` an hour later).
-   * - A parcel the character already holds (a group it is in — a wizard
-   *   is in every managed group — or a title it already has) is `kept`.
+   * - A parcel the character already holds (a committee it sits on, or a
+   *   title it already has) is `kept`.
    * - ⚠ A transferred title is a SOLD parcel to the pack that claimed it:
    *   its next reconcile records a `conflict` and skips its rows under
    *   that extent (parcel.md § grant). A test world is reset per run.
@@ -373,6 +431,30 @@ export class TestHooks {
     );
   }
 
+  /**
+   * TEST-ONLY: call one authored mutator on the Stuff at `path` — the
+   * staging a drive needs for a state its players cannot make in time (an
+   * aquifer drawn low, an outfall loaded, a ditch lined). Same gates as
+   * the clock; the call is `TestHarnessApi.stage`'s.
+   */
+  public static async stage(path: string, method: string, args: readonly unknown[]): Promise<StageReport> {
+    TestHooks.#assertTestMode('stage');
+    return ExecutionContextApi.runRoot(TestHooks, 'stage', () => TestHarnessApi.stage(path, method, args));
+  }
+
+  /**
+   * TEST-ONLY: stage a ship — put her lying somewhere the
+   * drive needs her, never sailed there. Same three gates as the clock;
+   * the staging itself is `TestHarnessApi.stageShip`'s, the one
+   * implementation the `testharness ship` command calls too.
+   */
+  public static async stageShip(handle: string, spec: ShipStageSpec): Promise<ShipStageReport> {
+    TestHooks.#assertTestMode('stageShip');
+    return ExecutionContextApi.runRoot(TestHooks, 'stageShip', () =>
+      TestHarnessApi.stageShip(handle, spec)
+    );
+  }
+
   /** TEST-ONLY: game-seconds now. The read half of {@link advanceClock}. */
   public static clockNow(): number {
     TestHooks.#assertTestMode('clockNow');
@@ -486,6 +568,26 @@ export class TestHooks {
   }
 
   /**
+   * ⭐ A test character ARRIVES as a newcomer does: the Arrival Note issued
+   * to the Treasury, its principal as coin in hand (economic bootstrap
+   * D10). `embody confirm` issues it; a test-login character skips char-gen
+   * and so arrived with nothing, and a walk staged money by `reserve
+   * override` — ledger money with no coin behind it, the one case the till
+   * is DESIGNED to refuse (AC#13). The water-supply walk read that as a dead
+   * till. Idempotent per member, refused as a value, like the real thing.
+   */
+  public static async arriveCharacter(
+    handle: string
+  ): Promise<IssueNoteResult> {
+    TestHooks.#assertTestMode('arriveCharacter');
+    return ExecutionContextApi.runRoot(TestHooks, 'arriveCharacter', async () => {
+      const avatar = PlayerApi.findAvatarByName(handle);
+      if (!avatar) throw new Error(`no resident character named '${handle}'`);
+      return ContractApi.issueNote(avatar.getIdentityPath() ?? '');
+    });
+  }
+
+  /**
    * ⭐ A test character handed a thing — a drive's SETUP, by the character's
    * name rather than the founder's hands. The founder is not moved by a
    * session's start location when it is resident elsewhere, so a thing it
@@ -522,7 +624,18 @@ export class TestHooks {
         await StuffApi.destruct(thing);
         throw new Error(`'${templatePath}' is not a thing that can be held`);
       }
-      ContainmentApi.move(thing, body);
+      // ⭐ A thing you get into (a boat, a vessel with a way in) is never
+      // carried — it is handed where the character stands (a
+      // holed rowboat for the bail step).
+      const into =
+        MixinApi.isExitable(thing) && MixinApi.isContainable(body)
+          ? body.getContainer()
+          : body;
+      if (!into || !MixinApi.isContainer(into)) {
+        await StuffApi.destruct(thing);
+        throw new Error(`'${handle}' stands nowhere to put '${templatePath}' down`);
+      }
+      ContainmentApi.move(thing, into);
       return thing.stuffId;
     });
   }

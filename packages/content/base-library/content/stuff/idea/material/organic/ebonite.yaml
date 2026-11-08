@@ -2,8 +2,9 @@
 # hard, black, glossy, and it rings when you tap it. The over-range end of
 # the cure (rubber build): combs, pipe stems, the insulating panels of
 # an electrical age.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ word: rubber, strength: 30 }]
   name: ebonite
   keywords: [ebonite, vulcanite, "hard rubber"]
   appearance: hard glossy black ebonite that rings when tapped

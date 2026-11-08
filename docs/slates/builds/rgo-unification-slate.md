@@ -1,20 +1,46 @@
-# RGO unification slate — promote at the third consumer, not at the end
+# RGO unification slate — one architecture pass over the bottom of the chain, once it has no gaps
 
 > **Status: UNBUILT** — the RGO roster is closed in **SHAPE** (mining ·
 > farming · ranching · fishing · forestry · water shipped; extraction added
-> quarrying/salt/coal-peat in MR !291; apiculture shipped), and every one of
-> them rolled its own version of the same few shapes.
-> ⚠ **Drilling is the last FAMILY** (seeded-field), and the roster stays
-> open in **CONTENT** — ice, whaling and guano are rows on shipped shapes.
-> ⭐⭐⭐ **And foraging is not a family at all — it is a MODE over the whole
-> roster, the prehistoric rung every trade is missing** (user, 2026-10-08;
-> § below, which also reconciles the 09-25 priority with it).
-> **Left:** ⭐ `ProducingMixin` (the tap) promoted out of `trade-ranching`'s
-> pack lib into the kernel · a home for the pin walk (`stepOutwardForPin`,
-> copied 3×) · the **sweetener vocabulary** decided once across sugar, honey
-> and maple · and — **held deliberately** — the derived-field interface, which
-> waits for foraging to be **DESIGNED** (not built — § below)
-> **Size:** several waves, landed **between** builds rather than as one build
+> quarrying/salt/coal-peat in MR !291; apiculture, drilling and silk
+> shipped), and every one of them rolled its own version of the same few
+> shapes. ⚠ The roster stays open in **CONTENT** — **whaling is the last
+> known gap**, and a gap scan runs before the pass in case there are more.
+> **Left:** the gap scan · ⭐ the pass itself — every RGO's mixins read side
+> by side, deciding where they CONVERGE and where they rightly DIVERGE
+> (§ *The sequence, decided 2026-11-05*) · its known inputs: `ProducingMixin`
+> (the tap) out of `trade-ranching`'s pack lib · a home for the pin walk ·
+> the **sweetener vocabulary** across sugar, honey and maple · the
+> derived-field interface
+> **Size:** a build — after the architecture season and whaling, before
+> hunting + foraging
+
+## ⭐⭐⭐ The sequence, decided 2026-11-05 (owner) — supersedes § *The operational form*
+
+> *"a lot of it is exactly the architectural work you found just applied to
+> the RGOs. looking at what mixins are doing what and where and seeing where
+> things should converge vs diverge. I only want to do that work once all
+> our RGOs are in place because then we know what everything looks like at
+> the bottom of the production chain with no gaps."*
+
+1. **The architecture season** (to January) — controllers, Api shape,
+   templates: the slop left by builds that ran in isolation.
+2. **Whaling** — the last known RGO gap, designed the way fishing was, without
+   waiting on hunting. (Silk was slated after whaling and built first; there
+   may be more gaps, hence the scan.)
+3. **RGO unification** — this slate: one pass, with the whole bottom of the
+   chain in view. The promotion queue below is its input list, not a set of
+   increments to land early.
+4. **Hunting + foraging, designed together** — both bring flora and fauna
+   into the realm by **procedural generation over authored content**, for the
+   supply chain and for immersion. It is the point at which the game starts
+   to look like an RPG rather than an economic simulation, and it pulls in the
+   bestiary, plant species and pharma. It may make us rethink whaling and
+   fishing, and that is accepted.
+
+⚠ The 09-25 *"promote at the third consumer"* direction quoted below and
+§ *The operational form* are **superseded** by this. They stay as the history
+of why the queue exists.
 
 > **Captured 2026-09-25.** User direction, and it reorders the RGO path:
 >
@@ -29,7 +55,7 @@
 
 Substrate: [field-substrate-slate](../tails/field-substrate-slate.md) (the
 field half) · [ranching.md § The taps](../../subsystems/ranching.md) ·
-[apiculture-slate](./apiculture-slate.md) ·
+[apiculture-slate](../tails/apiculture-slate.md) ·
 [dairy-slate](./dairy-slate.md) ·
 [discovery-slate](./discovery-slate.md) (foraging, the case that completes
 the field interface).
@@ -97,7 +123,7 @@ Two corrections from reading what landed:
    ships, in three separate places that do not know about each other."*
 
 ⭐ **And the rival field has a second claimant, independently.**
-[drilling-slate](./drilling-slate.md) reached the same place from the industrial
+[drilling-slate](../tails/drilling-slate.md) reached the same place from the industrial
 end — it names *"rule of capture vs correlative rights"* as *"a genuine legal
 doctrine"*, and worries about the player who *"drains a field and asks why
 nothing stopped them."* So forage and the reservoir are now **two slates
@@ -141,7 +167,7 @@ Three builds need a sweetener taxonomy and none of them owns it:
 - **sugar** — `category: sugar` is consumed by simple-syrup, mojito and
   old-fashioned, and **produced by nothing** (the census's one unresolved
   demand root after salt shipped).
-- **honey** — [apiculture-slate](./apiculture-slate.md) settles one half
+- **honey** — [apiculture-slate](../tails/apiculture-slate.md) settles one half
   negatively: **honey must NOT satisfy `category: sugar`**, or bees alone
   close the sugar root and the sugar chain loses its demand case. It is also
   true that honey syrup and simple syrup are different drinks.
@@ -168,6 +194,8 @@ second consumer — the way the field pattern was validated before (weather,
 then `Deposit`, then `GroundCharacter`).
 
 ## ⭐ The operational form
+
+> ⚠ **Superseded 2026-11-05** — the promotions land in the one pass, after the roster has no gaps. See § *The sequence, decided 2026-11-05*.
 
 **One small promotion increment per primitive, landed between builds.** Not a
 big unification build at the end, and **not smuggled inside a feature build
@@ -683,6 +711,8 @@ its declared second consumer. ⭐ **That single distinction is what makes
 build order free**, which is the point of designing the pair together.
 
 ### The sequencing, as it now stands
+
+> ⚠ **Superseded 2026-11-05** by § *The sequence, decided 2026-11-05* at the top: the architecture season, then whaling, then this pass, then hunting + foraging.
 
 1. **the design pass** — the shared RGO/epoch spine, then drilling, then
    foraging+hunting (one build). The spine fixes the derived-field

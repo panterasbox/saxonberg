@@ -128,6 +128,30 @@ describe('TestHarnessController', () => {
     });
   });
 
+  describe('ship (harbors P25)', () => {
+    it('`ship <path> at node:<path>` stages her lying at the node', async () => {
+      const stage = vi
+        .spyOn(TestHarnessApi, 'stageShip')
+        .mockResolvedValue({ ship: '/test/hesper/structure', frame: '/test/sea', at: { frame: 'chart', at: null as never } });
+      await run({ subcommand: 'ship', op: '/test/hesper/structure', value: 'at', cite: 'node:/test/sea/bar' });
+      expect(stage).toHaveBeenCalledWith('/test/hesper/structure', { at: { node: '/test/sea/bar' } });
+      expect(said.join('\n')).toMatch(/lies staged on \/test\/sea/);
+    });
+
+    it('`… at <frame> <cite>` stages her at a citation on a frame', async () => {
+      const stage = vi
+        .spyOn(TestHarnessApi, 'stageShip')
+        .mockResolvedValue({ ship: '/s', frame: '/test/river', at: { frame: 'line', at: null as never } });
+      await run({ subcommand: 'ship', op: '/s', value: 'at', cite: '/test/river estuary-1.2' });
+      expect(stage).toHaveBeenCalledWith('/s', { at: { frame: '/test/river', cite: 'estuary-1.2' } });
+    });
+
+    it('without `at` and a place, the usage', async () => {
+      await run({ subcommand: 'ship', op: '/s' });
+      expect(rejected()?.reason).toBe('test-usage');
+    });
+  });
+
   it('no subcommand → the usage, as a refusal', async () => {
     await run({});
     expect(rejected()?.reason).toBe('test-usage');

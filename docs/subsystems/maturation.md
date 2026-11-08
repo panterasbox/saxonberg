@@ -217,8 +217,8 @@ fair whisky: time improves whiskey, it does not absolve a distiller.
 
 `getBulkPayloadForDraw` stamps `BulkPayload.maturedDays` — game-days the
 batch has been sitting — on anything drawn out of a maturing vessel, and
-`palateAugmenter` renders it at `proficient` **in words, naming
-game-days**.
+the taster's palate (`PalateMixin`) reads it at `proficient` **in words,
+naming game-days**.
 
 ⚠⚠ **It is `min`-folded on every blend, never averaged.** An age
 statement means *the youngest thing in the bottle* — that is what it

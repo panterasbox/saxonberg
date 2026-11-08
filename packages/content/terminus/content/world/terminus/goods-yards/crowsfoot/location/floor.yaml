@@ -8,7 +8,7 @@
 # persistable fixtures (the Stock, the racking, the counter) — the
 # consigned goods and their listings ride those, never the room; the
 # `populates` set below is the placement and respawns each boot.
-class: /platform/location/Locale
+class: /platform/location/Hall
 data:
   # ⚠ `coords:` is the MEMBERSHIP operation — `setCoords` is the only way
   # an authored row joins a zone, so without it this floor was in no grid
@@ -160,12 +160,9 @@ data:
     # casks standing side by side is what makes "which cask" a decision
     # a player can see rather than a field in a row file.
     - /trade/distilling/thing/charred-cask
-    # ⭐ And the glass to read them with. `PalatableMixin` is on
-    # `ServingVessel` and nowhere else, so `smell cask` reports nothing
-    # of the contents — the way to nose a cask is to pour a dram, which
-    # is how it is done in the trade. Without this row the entire aroma
-    # layer is unreachable at Crowsfoot: the smoke would be in the
-    # spirit and nobody could smell it.
+    # ⭐ And the glass to read them with: an open cask scents the room, and
+    # pouring a dram is how you read one properly, which is how it is done
+    # in the trade.
     - /trade/distilling/thing/nosing-glass
   cast:
     - /world/terminus/goods-yards/crowsfoot/agent/hand

@@ -303,14 +303,15 @@ reissue).
   boundary) from the **Business account**, skipping the proprietor's unpaid
   cover — see [employment.md](./employment.md). **No employer-solvency
   check** — the venue runs its P&L red by design (subsidy covers). `house
-  payroll <worker> <amount>` (operator-gated via `AuthorMixin` +
-  `requiresWizard`) stays the manual override, resolving the venue's account
+  payroll <worker> <amount>` (gated on the venue SEAT — see
+  [employment.md](./employment.md); no longer `requiresWizard`) stays the manual override, resolving the venue's account
   via the covering Business (`EmploymentApi.businessAt`), now redundant for
   the normal loop.
 - **Demo sales tax** — `BankingApi.remitDemoTax(sellerAccount, saleAmount)`:
   a **seller-collected** `tax`/`tax` posting seller → placeholder treasury at
-  the authored, **inert** rate (`banking.salesTaxRate` AppSetting; recorded,
-  not governed — the corpo-affiliation-edge precedent), so the tax shows in
+  the authored rate (`banking.salesTaxRate`, a Tier C dial the Minister of
+  Finance sets with `treasury set`, on the record — app-settings.md
+  § The tiers), so the tax shows in
   the *seller's* P&L (a `tax` line) and the treasury merely accumulates (no
   appropriation path). (The general payer-side remittance-split seam from
   Phase 3 stays for tips/fees.) The **general store's consignment sale**
@@ -528,8 +529,8 @@ The plan flagged 6 open implementation choices; settled as reached:
    (open/deposit/withdraw/transfer/balance/statement),
    `wallet` (use/freeze), `tab` (settle/skip), plus the flat `pay`; the
    operator surface splits **`reserve`** (mint/supply, central bank) vs
-   **`house`** (pnl/payroll, venue owner): `house` is `requiresWizard` via
-   `AuthorMixin`; **`reserve` is `requiresGovernor`** (the
+   **`house`** (pnl/payroll, venue owner): `house` is gated on the venue
+   seat (it once carried `requiresWizard`); **`reserve` is `requiresGovernor`** (the
    `central-bank-governor` office — see [governance.md](./governance.md)),
    the monetary-authority axis rather than code-trust. 13 flat verbs → 6, collapsing most verb collisions
    (no more banking `open` shadowing the boundary `open`). A pure view-layer
@@ -855,7 +856,15 @@ shipped branch-book property, so Goodkin's cash physics are unchanged.
   cash genesis for the Arrival Note), `advance` / `payTerms` (the ladder's
   legs), `escheat` / `reclaim` (the estate's).
 - **Vault coin is not in the audit identity**: deposited coin is backed by
-  balances; the till fills from deposits. The old till float is gone.
+  balances; the till fills from deposits. The old till float (a mint) is
+  gone. ⭐ A branch may still stock its till from its OWN reserves
+  (water supply, `floatTillImpl`): on a withdrawal the till cannot meet, it
+  draws the shortfall — rounded up to `banking.tillFloatQuantum`, the
+  central bank governor's dial — by `disburse` from the branch's own
+  account, then its corpo's treasury. Supply-neutral; a branch with no
+  reserves still refuses (AC#13). `reserve override` is ledger money with no
+  coin behind it — the case the till is designed to refuse; a walk wanting
+  cash arrives a character with the Arrival Note (`/auth/test-arrive`).
 - ⭐ **A lane's outstanding is a warmed read**: `SupplyAggregate.lanes`
   carries the per-category minted/drained sums the same post keeps;
   `laneOutstanding` never scans the ledger. `recomputeSupply` rebuilds them.

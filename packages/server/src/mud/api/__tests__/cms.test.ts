@@ -486,8 +486,13 @@ describe('CmsApi — source backend', () => {
     expect(names).not.toContain('__tests__');
   });
 
-  it('source read is denied for a non-developer context', async () => {
+  it('⭐ source read is OPEN to a non-wizard — reading is not authoring (wizard-axis D14)', async () => {
     vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(false);
+    await expect(CmsApi.listTree('source', '/')).resolves.toBeDefined();
+  });
+
+  it('source read is denied with no acting avatar (fails closed)', async () => {
+    vi.spyOn(ExecutionContextApi, 'getActingAuthor').mockReturnValue(null);
     await expect(CmsApi.listTree('source', '/')).rejects.toMatchObject({
       code: 'denied',
     });

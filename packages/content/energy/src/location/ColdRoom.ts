@@ -13,18 +13,18 @@
  * Containable; `GridPoweredMixin.resolveRoomPath` returns its own path).
  *
  * The forestry `Wood` precedent: a pack class extending the platform's
- * `Locale`. See [docs/subsystems/energy.md],
+ * `Hall` (a room: walled, roofed and plumbed). See [docs/subsystems/energy.md],
  * [docs/subsystems/thermal.md § The active twin].
  */
 
-import Locale from '@saxonberg/server/mud/platform/location/Locale';
+import Hall from '@saxonberg/server/mud/platform/location/Hall';
 import { ClimateControlMixin } from '@saxonberg/server/mud/lib/thermal/ClimateControl';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { MarkupAugmenter } from '@saxonberg/server/mud/api/mml';
 import { GridPoweredMixin } from '../lib/GridPowered';
 
 const ColdRoomBase = ClimateControlMixin(
-  GridPoweredMixin(Locale),
+  GridPoweredMixin(Hall),
 );
 
 export default class ColdRoom extends ColdRoomBase {

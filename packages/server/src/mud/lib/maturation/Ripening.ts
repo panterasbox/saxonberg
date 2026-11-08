@@ -81,7 +81,7 @@ function bandFor(x: number): GradeBand {
 
 /**
  * The ripeness line, on `look` and `taste` — and NOT `smell`, which the
- * material's own nose already answers. ⚠ The filter gate is the Palatable
+ * material's own nose already answers. ⚠ The filter gate is the usual
  * lesson.
  */
 function ripeningAugmenter(

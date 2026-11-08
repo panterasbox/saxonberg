@@ -3,6 +3,9 @@
  * kernel's own `TemplateApplier` — so these tests prove the rows, not a
  * hand-written copy of them.
  */
+import { Aroma } from '@saxonberg/server/mud/lib/perception/Aroma';
+import { OdorousMaterial } from '@saxonberg/server/mud/platform/idea/material/OdorousMaterial';
+import { OdorousConsumableMaterial } from '@saxonberg/server/mud/platform/idea/material/OdorousConsumableMaterial';
 import { readFileSync, existsSync, readdirSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
@@ -27,6 +30,9 @@ export const PACK = join(CONTENT, 'trade-dairying');
 const CLASSES: Record<string, () => Stuff> = {
   '/platform/idea/material/Material': () => new Material(),
   '/platform/idea/material/ConsumableMaterial': () => new ConsumableMaterial(),
+  // A smell's words are stood up beside the row in `hydrate`, below.
+  '/platform/idea/material/OdorousMaterial': () => new OdorousMaterial(),
+  '/platform/idea/material/OdorousConsumableMaterial': () => new OdorousConsumableMaterial(),
   '/platform/idea/maturation/MaturationProfile': () => new MaturationProfile(),
   '/platform/idea/fractionation/FractionSchedule': () => new FractionSchedule(),
 };
@@ -59,6 +65,10 @@ export async function hydrate<T extends Stuff>(path: string): Promise<T> {
   // at apply time, which a unit test has no store behind; neither is read
   // by anything these tests prove.
   const { composition: _c, electricalConductivity: _e, ...data } = row.data;
+  // The words a smell names load with it; stand each up where a setter finds it.
+  for (const tag of [...((data.smells as { word: string }[]) ?? []), ...((data.burning as { word: string }[]) ?? [])]) {
+    if (!Aroma.resolveKnown(tag.word)) Aroma.remember(tag.word, {}, null);
+  }
   await makeStuff(() => new TemplateApplier()).apply(s, data, { mode: 'mint' });
   return s;
 }

@@ -19,6 +19,10 @@ data:
   ambientColorTemperature: 5800
   groundSpotX: 8
   groundSpotY: 5
+  # ⭐ Watered off the Delight ditch (water-supply D15): what the turnout
+  # lets on while it is open, by flood.
+  inlets:
+    - { gate: /world/terminus/hearts-delight/ditch/thing/turnout-furtado, method: flood }
   areaM2: 6000
   # ⭐ One field over the whole tract (tracts build D24, D32): the grass and the herd on it are a field's.
   # Pre-marked — an author's starting state.

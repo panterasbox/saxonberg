@@ -1,8 +1,10 @@
 # Lager wort — the cold-run mash: paler, cleaner, and its own ferment
 # category (the lager process differs from the grist up — the
 # distinction is honest, not administrative).
-class: /platform/idea/material/ConsumableMaterial
+class: /platform/idea/material/OdorousConsumableMaterial
 data:
+  smells: [{ word: mash, strength: 300 }]
+  tastes: [{ type: sweet, amount: 90 }]
   name: lager wort
   keywords: [wort, lager]
   appearance: "a pale, clear wort"

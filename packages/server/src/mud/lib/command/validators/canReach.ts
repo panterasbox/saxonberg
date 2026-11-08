@@ -2,7 +2,7 @@
  * canReach — every bound Stuff must be physically reachable from the
  * actor right now. The reachability surface is wider than
  * `getContents()` — it includes attached doors and the location
- * itself when the match arrived through a direction (via.exit).
+ * exits themselves (a direction binds the way).
  *
  * **Why the validator exists.** MQL's `scope:` declaration is a
  * search hint, not a security gate. A query like
@@ -22,10 +22,8 @@
  *     location's exits (attached doors have `environment === null`,
  *     so they aren't in any container — but they're reachable
  *     through the exits that reference them).
- *   - The Stuff is the actor's current location AND the binding
- *     carries `via.exit` (the door-via-direction case — `open
- *     north` resolves to the location with the exit attribution;
- *     the controller fetches the door from `via.exit.getDoor()`).
+ *   - The Stuff is one of the location's exits (`open north` binds
+ *     the way; `MqlApi.effectiveTarget` reaches its door).
  *
  * Empty MQL results pass through — the controller produces the
  * `you don't see X here` message.
@@ -42,7 +40,6 @@ const validator: FieldValidator = (value, field, context) => {
   if (stuffs.length === 0) return undefined;
 
   const giver = context.commandGiver;
-  const viaExit = isViaShape(value) ? Boolean(value.via?.exit) : false;
 
   for (const stuff of stuffs) {
     // ⭐ One definition of reach, shared with the card holds. This
@@ -51,7 +48,6 @@ const validator: FieldValidator = (value, field, context) => {
     if (
       !PerceptionApi.canReach(giver as Stuff, stuff as Stuff, {
         location: context.location ?? null,
-        viaExit,
       })
     ) {
       return `you can't reach ${stuff.getPresentation()}`;
@@ -59,9 +55,5 @@ const validator: FieldValidator = (value, field, context) => {
   }
   return undefined;
 };
-
-function isViaShape(value: unknown): value is { via?: { exit?: unknown } } {
-  return typeof value === 'object' && value !== null && 'via' in value;
-}
 
 export default validator;

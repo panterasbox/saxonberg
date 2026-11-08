@@ -243,7 +243,7 @@ async function emptyPail(): Promise<void> {
 /** Move the character by reopening the session where it needs to be. */
 async function goTo(where: string): Promise<void> {
   k?.close();
-  k = await Session.open(handle, { startLocation: where, wizard: true });
+  k = await Session.open(handle, { startLocation: where });
   await k.drainProse();
 }
 
@@ -265,7 +265,9 @@ async function kelvinOf(s: Session, what: string): Promise<number> {
  * (`fromStored` denied) and the dispatch never answers.
  */
 async function mint(where: string, path: string, count = 1): Promise<void> {
-  const gov = await Session.open('founder', { startLocation: where, wizard: true });
+  // `clone` asks the KIND's title: the one kind minted here (the copper
+  // ore) is Rejection's, so the founder sits on its committee.
+  const gov = await Session.open('founder', { startLocation: where, committees: ['/world/terminus/rejection'] });
   try {
     for (let i = 0; i < count; i++) {
       const r = await gov.cmd(`clone ${path} --here`);
@@ -290,7 +292,9 @@ async function daylight(): Promise<void> {
 
 /** As the founder, run a setup `eval` in `where` under `parcel`'s title. */
 async function founderEval(where: string, parcel: string, code: string): Promise<void> {
-  const gov = await Session.open('founder', { startLocation: where, wizard: true });
+  // `eval --parcel` asks the parcel's committee: seated, not a credential
+  // (wizard-axis D13).
+  const gov = await Session.open('founder', { startLocation: where, wizard: true, committees: [parcel] });
   try {
     const r = await gov.cmd(`eval --parcel ${parcel} ${code}`);
     note(`(founder eval → ${(await r.said()).slice(0, 120)})`);
@@ -306,12 +310,12 @@ beforeAll(async () => {
   // wedge from somebody with nowhere to be paid (correctly). Opened first:
   // a wedge carried to the bank through a winter street froze and turned
   // (run 21 — the climate build's freeze reaches what you carry).
-  k = await Session.open(handle, { startLocation: BANK_HALL, wizard: true });
+  k = await Session.open(handle, { startLocation: BANK_HALL });
   await k.drainProse();
   const opened = await k.cmd('bank open');
   expect(refusedFor(opened)).toBeNull();
   k.close();
-  k = await Session.open(handle, { startLocation: BYRE, wizard: true });
+  k = await Session.open(handle, { startLocation: BYRE });
   await k.drainProse();
 }, 300_000);
 
@@ -858,7 +862,7 @@ suite('22–23. an unwashed hand, raw milk, and a stranger who drinks it', () =>
       startLocation: YARD,
     });
     await stranger.drainProse();
-    await doing(stranger, 'get pail');
+    await doing(stranger, 'get 1 pail');
     const drank = await act(stranger, 'drink pail');
     expect(refusedFor(drank.r)).toBeNull();
     await advance('18 hours');

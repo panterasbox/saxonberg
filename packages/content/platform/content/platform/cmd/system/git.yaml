@@ -18,10 +18,15 @@ help: |
   outside `packages/` (docs, deploy config) can't be published — git is
   never a permission bypass.
 
+  `git publish --dry-run -m "<message>"` reports what would be committed
+  and what would be left, and touches nothing.
+
   `git revert <sha>` adds a commit undoing an earlier one, scoped to files
   you may write (a commit touching anything you may not write is refused).
 
-  Wizard-only — it version-controls engine TypeScript.
+  Reading — status, diff, log — is open to anyone. Publishing a `.ts`
+  asks for the wizard axis and title over its slice; publishing content
+  (a pack's YAML) asks for title only.
 examples:
   - cmd: git status
     note: Show the branch, divergence, and dirty files
@@ -29,8 +34,6 @@ examples:
     note: Commit + push your writable dirty files
   - cmd: git revert 1a2b3c4
     note: Additively roll back a commit you may write
-validators:
-  - /lib/command/validators/requiresWizard
 fallthrough: true
 # The bare form `git` falls through here → status (the controller defaults
 # an absent subcommand to status); an explicit subcommand uses its own
@@ -49,6 +52,10 @@ options:
     type: number
     field: limit
     description: "Max commits to show (git log; default 50)"
+  dry-run:
+    type: boolean
+    field: dryRun
+    description: "Report what git publish would commit, and touch nothing"
 subcommands:
   status:
     description: "Show the branch, divergence, and dirty files (default)"

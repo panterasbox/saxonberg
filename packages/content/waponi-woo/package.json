@@ -16,6 +16,7 @@
     "@saxonberg/content-trade-quarrying": "workspace:*",
     "@saxonberg/content-trade-shopkeeping": "workspace:*",
     "@saxonberg/content-trade-sugar": "workspace:*",
+    "@saxonberg/content-transport": "workspace:*",
     "@saxonberg/content-water": "workspace:*",
     "@saxonberg/server": "workspace:*",
     "@saxonberg/types": "workspace:*"

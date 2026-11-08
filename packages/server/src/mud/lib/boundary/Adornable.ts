@@ -107,7 +107,6 @@ export interface Adornable {
   getFloor(): FloorThing | null;
   getFixtureBoundaries(): Boundary[];
   getFixtureLightSources(): (Stuff & Adornment)[];
-  getFixtureSmellSources(): (Stuff & Adornment)[];
   getFixtureSoundSources(): (Stuff & Adornment)[];
   /**
    * @hook Invoked by the `TemplateApplier`'s Phase-2 instruction dispatch from
@@ -361,14 +360,6 @@ export function AdornableMixin<TBase extends MixinConstructor<Stuff & Container>
       return out;
     }
 
-    getFixtureSmellSources(): (Stuff & Adornment)[] {
-      const out: (Stuff & Adornment)[] = [];
-      for (const f of this.fixtureSlots.values()) {
-        if (isSmellSourceMarker(f)) out.push(f);
-      }
-      return out;
-    }
-
     getFixtureSoundSources(): (Stuff & Adornment)[] {
       const out: (Stuff & Adornment)[] = [];
       for (const f of this.fixtureSlots.values()) {
@@ -465,10 +456,6 @@ const EMPTY_OCC_SET: ReadonlySet<Stuff & Slottable> = new Set();
 
 function isLightSourceMarker(f: object): boolean {
   return hasMixinNamed(f, 'LightSourceMixin');
-}
-
-function isSmellSourceMarker(f: object): boolean {
-  return hasMixinNamed(f, 'SmellSourceMixin');
 }
 
 function isSoundSourceMarker(f: object): boolean {

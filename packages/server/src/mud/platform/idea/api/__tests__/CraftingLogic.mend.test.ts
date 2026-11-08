@@ -206,6 +206,28 @@ function wornHead(): Tool {
   return p;
 }
 
+describe('⭐ a soft metal is mended near its own melting point (water-supply walk)', () => {
+  it('a worn lead head mends at a 600 K fire that is no forge — iron at the same fire does not', async () => {
+    const warm = makeStuff(() => {
+      const f = new Forge();
+      f.setBurnTemperatureK(600);
+      chargeHot(f as unknown as Stuff & Burner, 40);
+      return f;
+    });
+    ContainmentApi.move(warm, room);
+    const smith = hand({ smithing: 'expert' }, 'plumb');
+    // Iron at 600 K: the forge's 900 K is still asked.
+    ContainmentApi.move(stock(IRON, 40), room);
+    const iron = pick();
+    iron.getLine('head')!.condition = 0.4;
+    ContainmentApi.move(iron, room);
+    expect(await mend(smith, iron)).toMatchObject({ ok: false, reason: 'insufficient-heat', detail: '900' });
+    // Lead melts at 600 K: a mend near it (540 K) is in reach.
+    mat(IRON).setMeltingPoint(Quantity.of(600, 'K'));
+    expect(await mend(smith, iron)).not.toMatchObject({ reason: 'insufficient-heat' });
+  });
+});
+
 describe('repair W2 — the band decides, never a roll', () => {
   it('⭐⭐ AC1: an untrained mend is short and a grade down — and again; a competent one is sound', async () => {
     const p = wornHead();

@@ -16,3 +16,5 @@ data:
   props:
     - /system/transport/thing/propulsion/pole
     - /system/transport/thing/killick
+    # ⭐ Every boat comes with her bow line (a sailor's "painter").
+    - /platform/thing/bow-line

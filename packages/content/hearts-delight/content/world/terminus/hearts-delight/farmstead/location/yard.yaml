@@ -1,5 +1,7 @@
 # A valley farmstead's yard — the generic room every sold farmstead's yard
-# is a copy of (tracts build D33). No exits: the holding wires them.
+# is a copy of (tracts build D33). Its ways lead within each copy (the
+# plan's rewrite); the way out to the lane is the
+# plat's.
 # ⚠ NOT persistent: a yard keeps nothing a record must carry (persistence is
 # the exception). It comes up from this row each time its holding wakes.
 class: /platform/location/Location
@@ -12,3 +14,19 @@ data:
   ambientColorTemperature: 5800
   longDescription: |
     A beaten-earth yard between a stone barn and the open ground, a water butt under the eaves and the ruts of a cart going out to the fields. Nobody has lived a season here yet; the gate is new and the posts are still pale.
+  # ⭐ The farmstead's plan: its ways, an ordinary place.
+  # The barn door and the farmhouse door are KEYED doors — the holding's key.
+  # Nothing lies west: that is the way back out to the lane.
+  exits:
+    north:
+      kind: /system/residence/idea/exits/keyed-door
+      destination: /world/terminus/hearts-delight/farmstead/location/barn
+    up:
+      destination: /world/terminus/hearts-delight/farmstead/tract/upper-bench
+    east:
+      destination: /world/terminus/hearts-delight/farmstead/tract/lower-meadow
+    northeast:
+      destination: /world/terminus/hearts-delight/farmstead/tract/orchard-close
+    south:
+      kind: /system/residence/idea/exits/keyed-door
+      destination: /world/terminus/hearts-delight/farmstead/location/house

@@ -11,7 +11,7 @@ related:
 
 There is one rope. What it is for is where its two ends are tied: in a
 tender's hands with a diver on the other end it is a lifeline; thrown to a
-swimmer it is a heaving line; on a boat's bow it is a painter; tied round a
+swimmer it is a heaving line; on a boat's bow it is a bow line; tied round a
 post at the edge of a pit it is the way down. A diver's air hose is a line
 too, but it is not a rope.
 

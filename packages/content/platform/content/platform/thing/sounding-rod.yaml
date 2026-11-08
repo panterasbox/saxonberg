@@ -1,0 +1,18 @@
+# A sounding rod — what `measure bilge` reads with: a marked
+# rod on a line, let down the pump well to see how much water is in her.
+#
+# ⚠ `capabilities: [well-sounding]` IS the reachability: the bilge reading
+# refuses any tool that does not declare it. Beside the mooring line and
+# the bollard so any ship can carry one.
+class: /platform/thing/Tool
+data:
+  shortDescription: sounding rod
+  keywords: [rod, "sounding rod", sounding]
+  register: indefinite
+  longDescription: >-
+    A rod of ash a forearm long, notched every inch and blackened with
+    chalk-rubbed tar so the wet shows on it, on a length of cod line to let
+    it down the pump well.
+  capabilities: [well-sounding]
+  _materialPath: /stuff/idea/material/wood/ash
+  mass: 0.4

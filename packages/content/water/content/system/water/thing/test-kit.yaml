@@ -1,0 +1,18 @@
+# The water-test kit (water-supply D18) — a wooden case of reagent bottles,
+# test tubes and a little chart of colors. ⭐ Whether a water is FIT is the
+# kit's to say: fouling and lead announce themselves to no sense, so
+# `analyze water` reads the river bare and what is IN it only with this in
+# hand. The health officer's.
+class: /platform/thing/Tool
+data:
+  shortDescription: water-test kit
+  keywords: ["test kit", kit, "water kit", "water-test kit", case, reagents]
+  register: indefinite
+  longDescription: >-
+    A small hinged case of polished wood, lined with green baize, holding a
+    rack of stoppered reagent bottles, a dozen glass tubes, a dropper and a
+    card of tinted squares to hold the tubes against.
+  capabilities: [water-test]
+  gradeBand: fine
+  mass: 1.2
+  _materialPath: /stuff/idea/material/wood/oak

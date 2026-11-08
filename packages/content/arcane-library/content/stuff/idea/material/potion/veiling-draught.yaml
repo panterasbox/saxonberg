@@ -29,6 +29,8 @@
 # potency doctrine: scale it if it has a size, gate it if it does not.
 class: /system/arcana/idea/material/PotionMaterial
 data:
+  smells: [{ word: potion, strength: 60 }]
+  tastes: [{ type: bitter, amount: 0.1 }]
   name: veiling draught
   keywords: [veiling, draught, potion, philtre]
   # ⚠ NO `appearance:`, deliberately. A potion's look is DERIVED from

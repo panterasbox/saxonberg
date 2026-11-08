@@ -1,0 +1,13 @@
+{
+  "name": "@saxonberg/content-trade-plumbing",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Plumbing — the pipe that brings water into a room: lengths of lead and iron, wiped and caulked joints, laid by fit.",
+  "dependencies": {
+    "@saxonberg/content-base-library": "workspace:*",
+    "@saxonberg/content-generic-objects": "workspace:*",
+    "@saxonberg/content-platform": "workspace:*",
+    "@saxonberg/content-trade-smelting": "workspace:*"
+  }
+}

@@ -5,7 +5,7 @@
 # when they are gone they are gone until somebody sows the bench again.
 # The `distribution` counter is a faucet and is honest precisely because
 # it admits to being one; this is not, and must not become one.
-class: /platform/location/Locale
+class: /platform/location/Hall
 data:
   shortDescription: barn
   keywords: [barn, store, threshing]

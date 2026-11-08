@@ -11,6 +11,7 @@ import type { CommandContext, CommandModel } from '../../../../api/command';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
+import type Place from '../../../../lib/stuff/Place';
 import { MixinApi } from '../../../../api/mixin';
 import { ExpanseApi } from '../../../../api/expanse';
 import type { Positioned } from '../../../../lib/expanse/Positioned';
@@ -35,6 +36,10 @@ export default class AnchorController extends CommandController<CommandModel> {
     if (craft === null) {
       return this.decline(context, 'You are not aboard anything that sails.', 'not-aboard');
     }
+    // ⭐ Only her master takes the helm.
+    if (!craft.mayBeSteeredBy(giver)) {
+      return this.decline(context, 'Only her master takes the helm — charter her, or be appointed to command her.', 'not-her-master');
+    }
     if (craft.getCourse() === null) {
       return this.decline(context, 'You are not under way.', 'not-under-way');
     }
@@ -48,7 +53,10 @@ export default class AnchorController extends CommandController<CommandModel> {
   /** The craft the giver is aboard — their root container's craft. */
   private async craftOf(giver: Stuff): Promise<(Stuff & Positioned & Voyaging) | null> {
     const root = MixinApi.isContainable(giver) ? giver.getRootContainer() ?? giver : giver;
-    const craft = await ExpanseApi.craftAt(root.getTemplatePath() ?? '');
+    // The place is asked (a keyed room's craft is its warren's ship).
+    const craft = root.isPlace()
+      ? await (root as unknown as Place).craftHere()
+      : await ExpanseApi.craftAt(root.getIdentityPath() ?? '');
     return craft && MixinApi.isVoyaging(craft) ? craft : null;
   }
 

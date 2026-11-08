@@ -1,0 +1,39 @@
+# ⭐ Copy by hand: the words of one sheet onto a blank, with a
+# pen, with the copyist's errors. The copy is bound to nothing: an issuer
+# who checks its own record can tell it from the paper it issued.
+verbs: [copy]
+controller: ../../idea/cmd/printing/CopyController
+description: "Copy the words of a sheet onto a blank by hand, with a pen"
+help: |
+  `copy <sheet> onto <blank> with <pen>` copies a sheet out by hand. You
+  need ink in hand (a pot) and a sized blank. Your copy carries your slips
+  of the pen — nobody points them out — and it is only words: a receipt
+  copied out is not the receipt.
+examples:
+  - cmd: copy letter onto sheet with pen
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: from
+    type: object
+    required: true
+    greedy: true
+    scope: ["inventory", "reachable"]
+    requires: [MarkedMixin]
+  - name: onto
+    type: object
+    required: true
+    greedy: true
+    prepositions: [onto, on, to]
+    scope: ["inventory"]
+    requires: [MarkedMixin]
+  - name: pen
+    type: objects
+    required: false
+    greedy: true
+    prepositions: [with, using]
+    default: "inventory:[mixin.ToolMixin]"
+    scope: ["inventory"]
+    requires: [ToolMixin]

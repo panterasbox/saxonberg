@@ -1,0 +1,61 @@
+# ⭐ `rent` — take a boat out by the day. Paid up front to the
+# house, `n × rate`; she is yours to take out, never yours: the house still
+# owns her. The hire ends when she is put down again on the landing she
+# was let from — paddled in, carried round — so there is no `return`
+# (ranching's). ⛔ Not `hire`: that word is `appoint`'s alias.
+#
+# Afforded by the shed's hire book (`HireBook`'s peers)
+# — a let is its own book, not a shop counter's: the book's `rates:` says
+# what it lets and for how much a day, and it writes down who has which
+# boat out until when.
+verbs: [rent]
+controller: /platform/idea/cmd/retail/RentController
+description: "Take a boat out by the day from whoever lets them here"
+help: |
+  `rent canoe for 2 days` pays the house two days' hire up front and the
+  canoe is yours to take out. She is still the house's — you have her,
+  you do not own her. Put her back on the landing you took her from and
+  the hire is done; there is nothing else to do and no one to tell.
+
+  The hire book says what it lets and for how much a day (`look hire
+  book`). Without `for`, a day. A boat kept out past her day is written
+  up in the book under your name.
+examples:
+  - cmd: rent canoe for 2 days
+    note: Two days' hire, paid now
+  - cmd: rent rowboat
+    note: A day's hire
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  # ⭐ WHICH BOAT — one lying here (the house's, on the shingle). Greedy
+  # because a boat's name can be a phrase (`the second canoe`); it stops at
+  # the later declared prepositions (`for`, `at`).
+  - name: boat
+    type: object
+    required: true
+    greedy: true
+    scope: ["reachable"]
+    requires: [SmallCraftMixin]
+  # ⭐ HOW LONG — `for 2 days`, `for a day`. Optional: a day.
+  # ⚠ `greedy: true` — "2 days" is two tokens and one span.
+  - name: days
+    type: string
+    required: false
+    greedy: true
+    prepositions: [for]
+  # ⭐ WHO LETS HER, declared rather than hunted for — the hire book here
+  # (`at the book`). ⚠ `requires:` is a knowingly-accepted SUPERSET (the
+  # charter book's shape): a book is a visible thing, and the controller
+  # narrows `instanceof HireBook` because what it needs — its rates and its
+  # page — is the class's data.
+  - name: book
+    type: object
+    required: false
+    greedy: true
+    prepositions: [at]
+    default: "reachable:[class.HireBook]"
+    scope: [reachable]
+    requires: [VisibleMixin]

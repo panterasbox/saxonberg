@@ -1,0 +1,5 @@
+# The plumber's yard (water-supply W5) — its own zone off the goods yards.
+class: /platform/idea/location/CartesianZone
+data:
+  name: The Plumber's Yard
+  cellSize: 4.0

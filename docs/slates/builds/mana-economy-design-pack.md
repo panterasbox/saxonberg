@@ -1205,6 +1205,152 @@ their physics differs — exactly as power, gas and water do.
 
 ---
 
+## Part 11 — ⭐⭐⭐ The 2026-11-07 conversation: never forbidden, only priced **[the owner — in principle]**
+
+Out of the prison design (the custody summons needed a third-party teleport, which `magic.md` bans
+structurally). The owner: *"That magic doc is terrible. Every time we think of something fun we want
+to do with magic the doc says it's illegal, and I have no idea how or why that even got decided. The
+one thing I have allowed is scaling mana costs for things, but the game needs to provide the mana for
+them to fire or they may as well not exist. That means capacitors and other forms of mana
+generation."*
+
+### 11a. The doctrine — every ban becomes a price, a skill, a defense, or a supply chain
+
+| keep — physics that prices or makes an economy | convert — prohibitions |
+|---|---|
+| cost scaling (kJ, `m·g·Δh`, `lint:spell-cost`) — *the one thing allowed* | `transform: 1000` — a rarity knob that makes the verb **dead**, not expensive (Part 7 found it) → a real price; a great working |
+| η ≤ 1 | *"the specification is worse"* — a difficulty used as a veto → a skill ladder |
+| the **one-way coupling** — what makes mana mineable, sellable, stealable, taxable | *"a caster cannot teleport a third party"* (structural, `relocate` lands on the actor) → **specification** (you must know them — the belief store) **+ the target's composure** (the Reeve Line, already shipped) |
+| *a spell uses the same mechanism as the mundane act* (the owner's duplicate-ontology test) | *"may as well not exist"* — **nothing supplies mana** → the supply build |
+
+⚠ **Not yet written into `arcane-science.md` or `magic.md`** — *"it all depends on the mana economy,
+and how we handle scaling costs that doesn't just turn into costs-that-matter and costs-that-don't."*
+⭐ **Timing:** magic is an unbuilt RGO, and RGO unification runs only once every RGO is in place (*a
+pass run with gaps unifies around the easy cases*), so the mana RGO is **designed before unification**,
+beside whaling.
+
+### 11b. Scaling — a linear ledger and a logarithmic ladder
+
+- **The quantity is linear**: conserved, so it adds. Costs are linear in physical work.
+- **The range spans orders of magnitude**, so the scales people read are **logarithmic**: a faculty or
+  competence band is roughly **a decade** of throughput (the conductance band, Part 7) or of
+  specification. At any band, what is within about a decade is what you think about; far below is
+  trivial and honestly so (an electrician does not budget a AA battery); far above is a working.
+- **Specification is information** — one person among N is log₂ N bits (Landauer is already course
+  content).
+
+### 11c. ⭐⭐⭐ The primitive — mana behaves like moisture **[the owner: "mostly fine"]**
+
+*"The iron isn't magic, the mine is — that would fit more the farming model."* The **locality carries
+the field**; things become charged by **residing** in it, the way wood settles to an equilibrium
+moisture content set by a room's humidity (sorption isotherms; `MoistureMixin` and forestry's seasoning
+ship it):
+
+| moisture | mana |
+|---|---|
+| humidity | **the place's field** — a seeded scalar field (like Deposit or GroundCharacter), its sources the node types of Axis 1 |
+| hygroscopicity | **capacity** (material) — borrowed from the real **dielectric constant**: water about 80, rutile about 100, **titanates in the hundreds to thousands** (the capacitor ore — real capacitors are made of them) |
+| moisture content | **charge** (instance state) |
+| the time constant | **residence time** — geological for ore in place, decades for a tree, a season for a pig |
+| drying away from the source | stores **leak** toward a weaker ambient field (Voss decay) |
+
+Living things settle faster and **concentrate** what they eat — hyperaccumulation in plants (Part 3's
+phytomining), **biomagnification** up food chains (so the long-lived apex predator — the **whale** —
+is the richest biological store). Processing passes lose some (retention factors); time decays it.
+
+- **What makes a magic mine magical: two factors** (drilling's precedent) — a **field** at the place, and
+  **rock that can hold it**. A titanate seam in a strong field is saturated; iron in the same field holds
+  far less.
+- ⭐⭐ **Conduction is permanent; only stores are spent** **[the owner]**. *"Having to keep the sword
+  around some other field just so it works is not great."* The real analogue is **doping**: ore from a
+  magic mine carries mana-bearing inclusions fixed into the lattice at the smelt, so **magic iron
+  conducts forever, anywhere** — conductivity borrowed from the real electrical table (silver, copper,
+  then iron). Structure is permanent; contents are consumable.
+- ⭐⭐ **A mana-bearing good is used only through its own ordinary use.** No good gains a new use for
+  being magic. **Magic bacon in a sword socket fails three numbers** — capacity (fat's dielectric about
+  2–3), stability (it rots on spoilage's clock, and the charge leaks as tissue breaks down), fit (the
+  socket `accepts` a rigid stone). Magic bacon is **eaten** — a slow refill, bounded by stomach capacity,
+  saturable absorption (Michaelis–Menten) and the tank. ⭐ **Bodies run on food; devices run on
+  stones** — biology makes good fuel and bad batteries.
+- **No new elements.** The periodic table is real chemistry and the hard rule caps the invented budget;
+  decision 4 already said *a new field, not a new material*. Magic iron is iron with a provenance, told
+  apart only by **assay** (so counterfeits exist).
+
+### 11d. Across every RGO — the shared contract
+
+| RGO | how the field gets in | charged output | its own use carries it |
+|---|---|---|---|
+| mining | geological residence | ore — ⭐ the **titanate seam** | smelted (doped conduits), set, refined into stores |
+| drilling | deep fluids in a strong field | brine, crude | separated, partitioning at every cut |
+| water | flow through the field; high capacity | ⭐ **mana springs**, diluted downstream | drunk, potion solvent |
+| farming | a fourth soil reserve, drawn down by crops | crops — hyperaccumulator species | eaten, fed on |
+| ranching · taps | charged feed + residence | meat, fat, milk, eggs, wool | eaten (bacon), rendered (tallow) |
+| apiculture | bees forage **other people's land** | honey **averaging the field over the forage radius** | eaten, mead |
+| forestry | decades of residence | ⭐ **heartwood**; seasoning may partition some out with the water | built, carved, burned |
+| fishing · whaling | aquatic biomagnification | ⭐⭐ **whale oil and blubber** | burned in lamps |
+| sericulture | worms on charged leaf | silk, holding little | worn |
+| potash · ash | burning partitions it, ash vs smoke | lye | its usual uses |
+| magic's own rung | the caster settles toward the field | the reserve | casting |
+
+⭐⭐ **Every row needs the same five things** — a **field** at the place, a **capacity** on the material,
+a **residence time**, **uptake and concentration** for the living, and **partition and leakage**. Mana
+needs no RGO contract of its own; it **rides the one every RGO already shares**. That is an input to
+[RGO unification](./rgo-unification-slate.md): each RGO should answer those five without special-casing.
+
+### 11e. Devices — three roles, runes derived **[the owner: "fine for now"]**
+
+An enchanted item is an **assembly** of three roles: the **conduit** (a doped blade — throughput), the
+**store** (gems in sockets — the shipped `Slotted` / `fitsSlot` substrate — how much), the
+**specification** (runes, `carve` — what it does). **Most Tangibles have no magic version**: a thing from
+a magic place carries a charge through its ordinary use and nothing more; it becomes a device only with
+all three roles.
+
+A rune works where three facts line up: it **names an effect from the closed roster** (*an Effect
+exists iff a gated Api does the work*), a **store reaches it through a conduit**, and it **fires on a
+verb the item already affords** (strike, worn, drink, open). Compatibility is derived, never a
+rune-by-item table.
+
+⚠ **The owner's honest critique, kept:** *"You're just burying the problem a layer deeper — the trigger
+is a verb describes a space in the hundreds still … the procgen also handwaves 'pick an effect whose
+channel fits that verb' … but I expect the spellbook to grow organically, and we can come back to this
+when we actually have effects to talk about."* Rune × verb × effect fit is **deferred until the effect
+roster grows**.
+
+### 11f. Open, from this conversation
+
+- Write the 11a doctrine into `arcane-science.md` and `magic.md` (with the mana supply design).
+- Derive the shipped numbers again (180 W recovery, 80/120/180 depth) — never derived the first time.
+- Does the place's field deplete when its charged goods are removed, or is it a standing source?
+- The supply build itself — capacitors, generation, the grid (this pack's *Left* list).
+- Rune × verb × effect fit, when the roster has grown.
+
+## Part 12 — ⭐⭐ The stone list, and gems' two values (2026-11-07) **[the owner: "I buy this"]**
+
+By Part 11c's rule (capacity borrowed from the real dielectric constant):
+
+| gem | mineral | dielectric constant | as a store |
+|---|---|---|---|
+| quartz, amethyst | silica | ~4.5 | weak |
+| diamond | carbon | ~5.7 | **poor**, for all its beauty |
+| emerald, topaz | beryl, topaz | ~6–8 | modest |
+| ⭐ ruby, sapphire | corundum | ~9–11 | **the best of the classic gems** |
+| ⭐⭐ rutile; rutilated quartz (*Venus hair*) | TiO₂ | ~90–170 | an enchanter's stone |
+| ⭐⭐⭐ **fabulite** | strontium titanate | ~300 | ⭐ **sold in the 1950s as a fake diamond** |
+
+⚠ Titanite (sphene) and benitoite are titanium gems and likely strong. Their values are unverified.
+
+- **Two value systems:** **beauty**, priced in zorkmids by the jewelry market, and **capacity**, from
+  the mineral, the mass and the field it sat in. Diamond is high in the first and low in the second,
+  rutile the reverse, ruby good at both. ⭐ **The best mana stone is the fake diamond.**
+- If capacity depends on **geometry** (open, `C = εA/d`), enchanters cut **layered plates rather than
+  brilliants**, a *plate cut* a jeweler would call ruined.
+- **Charge stays invisible to ordinary senses.** That's drilling's precedent (*whether a trap is charged
+  has no reading*). Only an instrument, an assay or a mana sense tells you, which is what gives
+  counterfeits, assayers and the hallmark their meaning
+  ([spellbook-slate](./spellbook-slate.md) § 7a).
+- **The vocabulary** (stores, conduits, specifications, places, acts) is in spellbook § 7a and the size
+  build's requirements.
+
 ## Open questions
 
 1. **What is the ambient mana density of an ordinary place, and what sets

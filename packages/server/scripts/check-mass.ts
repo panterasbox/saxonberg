@@ -115,7 +115,10 @@ import {
 // (a brick kiln and its 30-brick lining) now that a yard props it.
 // ⭐ Lowered 234 → 231 merging ceramics into the cover build: the two
 // builds' rows together state three more masses than either alone.
-export const MASS_CEILING = 231;
+// ⭐ 231 → 230 merging the cover build into paint: paint's rows state one more.
+// ⭐ 230 → 229 (paper W0): the coat-check ticket is paper now, and says its mass.
+// ⭐ 229 → 227 (paper W6): the two spellbooks are paper now, and say so.
+export const MASS_CEILING = 227;
 
 /** The high-water mark: what the count was when the gate landed. */
 export const MASS_HIGH_WATER = 242;

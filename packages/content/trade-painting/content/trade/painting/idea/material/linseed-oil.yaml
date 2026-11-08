@@ -1,0 +1,41 @@
+# Linseed oil — ⭐ the drying oil: flax seed ground on the stones gives up
+# an oil that, spread thin, takes the AIR into itself and sets to a tough
+# skin over a day or so (paint D4). It warms as it does — the heat that
+# sets a heap of oily rags alight. The binder of every oil paint.
+class: /platform/idea/material/OdorousMaterial
+data:
+  smells: [{ word: linseed, strength: 200 }]
+  burning: [{ word: oil-smoke, strength: 800 }]
+  name: linseed oil
+  keywords: ["linseed oil", linseed, oil, "drying oil"]
+  appearance: a clear amber oil that smells faintly of hay and putty
+  density: 930
+  specificHeat: 1840
+  thermalConductivity: 0.17
+  meltingPoint: 253
+  boilingPoint: 560
+  heatOfCombustion: 39
+  autoignitionTemperature: 616
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: [liquid, oil, binder, drying-oil, flammable, organic, once-living]
+  laysCoat: true
+  coatWord: painted
+  # ⭐ Most of a litre stays on the wall when it sets — an oil does not
+  # evaporate, it hardens.
+  solidsKgPerL: 0.85
+  # A set oil coat thirty microns thick lasts two seasons of weather.
+  weatheringMPerGameYear: 0.000015
+  # The oil's own body is faintly yellow — and yellows in the dark.
+  pigment: { transmitR: 0.98, transmitG: 0.95, transmitB: 0.8, hidingPower: 0.05, lightfastness: 1 }
+  kinetics:
+    # ⭐ Sets by OXIDATION: wants air and time, faster warm, nothing below
+    # freezing. About eighteen hours in free air on a mild day.
+    - key: set
+      sets: oxidation
+      order: 0
+      rate: [[273, 0], [283, 0.03], [293, 0.055], [303, 0.09], [320, 0.16]]
+      exothermicJPerKg: 2500000
+  composition: []
+  biologicalSource: null

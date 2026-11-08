@@ -49,8 +49,9 @@
  * MQL: a Door surfaces twice on its containing Location — once via
  * `ExitableMixin.getExitDoors()` and once via
  * `Adornable.getFixtureBoundaries()`. The `getFixtureBoundaries`
- * walk dedupes by `stuffId`, and the resolver dedupes the (stuff, via)
- * pair so the existing `via.exit` attribution survives.
+ * walk dedupes by `stuffId`, and the resolver dedupes by `stuffId`.
+ * The exit it hangs in is a separate candidate (by its direction);
+ * `MqlApi.effectiveTarget` reaches this door from it.
  */
 
 import { Boundary } from '../../lib/boundary/Boundary';
@@ -58,6 +59,8 @@ import { SealableMixin } from '../../lib/spatial/Sealable';
 import { LockableMixin } from '../../lib/boundary/Lockable';
 import type Exit from '../../lib/boundary/Exit';
 import type { FieldMeta } from '../../lib/mixin';
+import type { VetoResult } from '../../lib/errors';
+import type { Stuff } from '../../lib/stuff/Stuff';
 import type {
   Conduit,
   LightConduit,
@@ -142,6 +145,16 @@ export default class Door extends DoorBase {
    * whether their key fits it, and that stays a question only the act
    * answers.
    */
+  /**
+   * ⭐ A locked door does not open (water-supply D12): until this hook, `open`
+   * on a locked door swung it wide and only the traverse refused — a locked
+   * chest opened outright. Unlock it first; the bolt is the gate.
+   */
+  public override canOpen(_by: Stuff): VetoResult {
+    if (this.isLocked()) return { ok: false, reason: "It's locked." };
+    return { ok: true };
+  }
+
   public stateWord(): 'locked' | 'open' | 'closed' {
     if (this.isLocked()) return 'locked';
     return this.isOpen() ? 'open' : 'closed';
@@ -165,6 +178,10 @@ export default class Door extends DoorBase {
    * the door's shortDescription. A door constructed with only
    * `shortDescription: 'heavy oak door'` should still be targetable
    * as `oak` / `door` without re-listing those as explicit keywords.
+   *
+   * ⚠ **DERIVED (magic), named here:** the description's tokens are not
+   * authored keywords; this override folds them in, and MQL reads them
+   * only through this Perceptible interface.
    */
   override getKeywords(): string[] {
     const base = super.getKeywords();

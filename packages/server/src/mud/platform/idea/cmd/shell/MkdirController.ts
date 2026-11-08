@@ -67,25 +67,14 @@ export default class MkdirController extends CommandController<MkdirModel> {
       return;
     }
 
-    if (!(await AccessApi.isWizard(giver))) {
-      return this.fail(
-        context,
-        "you don't have permission to write source",
-        'access-denied',
-      );
-    }
+    // A directory is not code: the one write predicate asks for title
+    // over the parent slice only.
     const parentLogical = SourceTreeApi.joinLogical(cwd, model.path, { home });
     const parent =
       parentLogical.slice(0, Math.max(parentLogical.lastIndexOf('/'), 0)) ||
       '/';
-    const sliceResource = await AccessApi.resolveSourceFolderZone(parent);
-    if (!(await AccessApi.can(giver, 'mkdir', sliceResource))) {
-      return this.fail(
-        context,
-        "you don't have permission to mkdir in that source slice",
-        'access-denied',
-      );
-    }
+    const refusal = await AccessApi.sourceWriteRefusal(giver, parent, 'mkdir');
+    if (refusal) return this.fail(context, refusal, 'access-denied');
 
     let abs: string;
     try {

@@ -71,8 +71,6 @@ packages/server/src/mud/platform/idea/api/__tests__/ProducerLogic.engagement.tes
 packages/server/src/mud/platform/idea/api/__tests__/ProducerLogic.test.ts
 packages/server/src/mud/platform/idea/api/__tests__/ProvenanceLogic.test.ts
 packages/server/src/mud/platform/idea/api/__tests__/StudioLogic.test.ts
-packages/server/src/mud/platform/idea/api/__tests__/TemplateLogic.codeGate.test.ts
-packages/server/src/mud/platform/idea/api/__tests__/TemplateLogic.transitiveClosure.test.ts
 packages/server/src/mud/platform/idea/api/__tests__/comp-bases.integration.test.ts
 packages/server/src/mud/platform/idea/api/__tests__/employment.ensureOperator.test.ts
 packages/server/src/mud/platform/idea/cmd/banking/__tests__/BankingControllers.test.ts

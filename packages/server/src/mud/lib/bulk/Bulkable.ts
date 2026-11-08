@@ -49,6 +49,7 @@ import { Quantity } from '../quantity';
 import { QuantityMarshaller } from '../../platform/idea/persistence/QuantityMarshaller';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
+import { WaterChemistry } from '../supply/WaterChemistry';
 import { BulkableApi } from '../../api/bulk';
 import { MaterialApi } from '../../api/material';
 import { AppSettingKeys } from '../config/AppSettings';
@@ -226,7 +227,7 @@ export interface BulkPayload {
 
   /*
    * ⚠ These three are DATA the craft writes; the reading that uses them
-   * lives on `PalatableMixin` (`lib/metabolism/Palatable.ts`), composed
+   * is read by `TasteModality.flavorOf`, composed
    * on `CraftVessel`. It sat on `BulkableMixin` for one build, which put
    * a taste-palate augmenter on floors, garden beds and air tanks.
    */
@@ -234,7 +235,7 @@ export interface BulkPayload {
 
 
 // `via.bulk` facet — declaration-merged onto MqlMatchVia, colocated
-// with the owning subsystem (mirrors `via.detailPath` / `via.exit`).
+// with the owning subsystem (mirrors `via.detailPath`).
 // Compile-time only; at runtime `via.bulk` is a plain property the
 // resolver and controllers read.
 declare module '../../api/mql/types' {
@@ -287,7 +288,7 @@ export class BulkSlot {
    * controller's empty-source line prints this when there is one.
    */
   whyEmpty(): string | null {
-    return null;
+    return this.host.bulkWhyEmpty(this.affordance);
   }
 
   /**
@@ -483,6 +484,19 @@ export interface Bulkable {
    * a tap pulls its main's hardness into its payload (cleanliness D12).
    */
   settleBulk(affordance: BulkAffordance): Promise<void>;
+  /**
+   * @hook Why this slot has nothing to give, in words — or `null` (an
+   * ordinary vessel: empty is just empty). A tap whose house is on no
+   * supply says so (water-supply build). Read after `settleBulk`.
+   */
+  bulkWhyEmpty(affordance: BulkAffordance): string | null;
+  /**
+   * @hook Called by `fill` before it draws from this slot into `vessel`,
+   * for `by` — a source that has to be WORKED to give (a well with no pump:
+   * a bucket on a rope hauls the water up) brings it to the slot here.
+   * Default: nothing to do. Read before `settleBulk`.
+   */
+  beforeDrawInto(affordance: BulkAffordance, vessel: Stuff, by: Stuff): Promise<void>;
   /**
    * @hook `by` has just poured `litres` OUT of this (the pour verb calls
    * it). A no-op on an ordinary vessel; a tall lye hopper splashes a
@@ -927,6 +941,14 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
       return Promise.resolve();
     }
 
+    public bulkWhyEmpty(_affordance: BulkAffordance): string | null {
+      return null;
+    }
+
+    public beforeDrawInto(_affordance: BulkAffordance, _vessel: Stuff, _by: Stuff): Promise<void> {
+      return Promise.resolve();
+    }
+
     public afterPouredOutBy(_by: Stuff, _litres: number): void {}
 
     public afterPouredInBy(_by: Stuff, _litres: number): void {}
@@ -1085,7 +1107,10 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
       // ⚠ Sparse: an exchange with nothing to do writes nothing — a glazed
       // pot of water carries no payload because of this.
       const insideFace = self.outermost('inside');
-      const leaches = material.acidAttack() > 0 && (insideFace?.getLeaches().length ?? 0) > 0;
+      // ⭐ The contents' own pH when they carry one — a water's, off its
+      // source (water-supply D8) — else the material row's.
+      const payloadPh = this.interiorPayload?.pH;
+      const leaches = material.acidAttack(payloadPh) > 0 && (insideFace?.getLeaches().length ?? 0) > 0;
       const porousInside = !self.holdsWater('inside');
       // A liquid against a wall that lets water through (the face's own read,
       // B100 — this was a second copy of it, inline).
@@ -1114,7 +1139,17 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
         const inside = self.outermost('inside');
         // ⭐ By the contents' pH (B109): vinegar draws the authored rate,
         // vitriol far more, milk next to nothing, seawater none.
-        const attack = material.acidAttack();
+        // ⭐⭐ …and a water's SOFTNESS (water-supply D8): hard water scales a
+        // lead pipe shut and soft water does not, so a soft acid supply
+        // through lead is the poisoning and a hard one is not. A payload
+        // that carries no hardness is not a supply's water (vinegar in a
+        // glazed jar) and the factor is 1 — the shipped glaze law unchanged.
+        const dgh = payload.hardnessDgh;
+        const softness =
+          typeof dgh === 'number' && Number.isFinite(dgh)
+            ? new WaterChemistry(7, dgh, 0).softness()
+            : 1;
+        const attack = material.acidAttack(payload.pH) * softness;
         if (inside !== null && attack > 0) {
           const toxins = [...(payload.dissolvedToxins ?? [])];
           for (const leach of inside.getLeaches()) {

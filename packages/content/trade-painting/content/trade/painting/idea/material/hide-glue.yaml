@@ -1,0 +1,24 @@
+# hide glue — collagen boiled out of hide scraps and reduced: the joiner's glue. Strong, quick to grab, set in a day — and the damp undoes it, and so do heat and steam, which is how a joiner takes a joint apart again.
+class: /platform/idea/material/OdorousMaterial
+data:
+  smells: [{ word: glue, strength: 800 }]
+  name: hide glue
+  keywords: ["hide glue", glue, "animal glue"]
+  appearance: a hot brown glue that smells of the tannery and strings off the brush
+  density: 1250
+  specificHeat: 2500
+  thermalConductivity: 0.3
+  meltingPoint: 308
+  edibility: false
+  nutrients: []
+  toxicity: []
+  tags: [liquid, glue, animal-glue, organic, once-living]
+  # ⭐ A GLUE (paint D11): the strength of a set line, whether heat and
+  # steam undo it, how it stands the damp, the heat it lets go at.
+  adhesive: { strength: 0.8, reversible: { heatK: 330, steam: true }, resistsDamp: 0.1, softensAtK: 340 }
+  kinetics:
+    - key: set
+      sets: drying
+      order: 0
+      rate: [[273, 0.01], [283, 0.03], [293, 0.06], [303, 0.1]]
+  castTemplate: /trade/painting/thing/glue-cake

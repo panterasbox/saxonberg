@@ -1,6 +1,8 @@
 # Dry vermouth — a fortified wine (winemaking's, made with distilling's spirit). Category tags `vermouth`, `dry-vermouth`. The base-library row retires in phase 5.
-class: /platform/idea/material/ConsumableMaterial
+class: /platform/idea/material/OdorousConsumableMaterial
 data:
+  smells: [{ word: wine, strength: 300 }, { word: herbal, strength: 200 }]
+  tastes: [{ type: sweet, amount: 30 }, { type: sour, amount: 5 }, { type: bitter, amount: 0.05 }]
   name: dry vermouth
   keywords: [dry, vermouth]
   appearance: "pale straw-gold vermouth"

@@ -13,6 +13,7 @@
  */
 
 import type { Season } from '../time/CelestialProfile';
+import { ShiftSchedule } from './ShiftSchedule';
 
 /**
  * ⭐ The four quarters of the orbit a shift may be bound to (storage-and-ice
@@ -85,24 +86,16 @@ export class Roster {
   }
 
   /**
-   * Whether `assignment` is on shift at the decomposed clock `date` — the
-   * pure day/hour-window match. On-shift iff some window covers both the
-   * weekday and the hour (`[start, end)`).
+   * Whether `assignment` is on shift at the decomposed clock `date` — some
+   * window covers it, read by {@link ShiftSchedule.covers}: the one reading
+   * of a `ShiftEntry`, so a night turn `[22, 4)` is on in the small hours
+   * of the next day, as the gate that waters by the same entry reads it.
    */
   public evaluate(
     assignment: RosterAssignment,
     date: RosterClock,
   ): 'on-shift' | 'off-shift' {
-    const match = assignment.schedule.some(
-      (e) =>
-        Array.isArray(e.days) &&
-        e.days.includes(date.weekday) &&
-        Array.isArray(e.hours) &&
-        date.hour >= e.hours[0] &&
-        date.hour < e.hours[1] &&
-        (!e.season || (date.season !== undefined && e.season.includes(date.season))),
-    );
-    return match ? 'on-shift' : 'off-shift';
+    return new ShiftSchedule(assignment.schedule).covers(date) ? 'on-shift' : 'off-shift';
   }
 }
 

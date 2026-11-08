@@ -15,8 +15,8 @@
 > discipline it has a MASTER of; graph-weighted, exclusive — breadth
 > costs people, not money) · the **guild wizard** as a roster position +
 > the no-custom-code acceptance test · guild governance riding the
-> shipped Office substrate · the noun/verb amendment (verbs are
-> University faculties)
+> shipped Office substrate · the noun/verb amendment (verbs → ⭐ **five verb
+> GUILDS**, 2026-11-07, overturning "University faculties")
 > **Size:** a build
 
 > This slate is the institution-level guild design. It **supersedes and
@@ -177,6 +177,52 @@ faculties rather than vocational institutions.
 (guild) × create (faculty), so **magical craft requires a standing
 relationship with the University** — a cross-institution dependency the
 design currently has nowhere.
+
+### ⭐⭐⭐ Amended 2026-11-07 — FIVE VERB GUILDS, overturning the faculties **[DECIDED — the owner]**
+
+The 09-24 amendment put the verbs in *"faculties of the University."* The owner: *"I dunno what a
+university faculty is, so I'm gonna go with guilds. The university doesn't even have a real curriculum
+yet; it's nothing."* And earlier: *"I want the five verb disciplines to be very exclusive in how
+they're trained, because their impact is so broad … the noun disciplines can go in whatever guilds they
+make sense going in. So a miners' guild gets digging spells … but the verbs should be limited to the
+mages' guild itself, and there should probably be five different mages' guilds for the five verbs."*
+
+- **Five verb guilds**, one per verb. **The nouns stay where 09-24 put them**, as each vocation's
+  mystery tier.
+- ⭐ **The 09-24 objection, *"a verb is not a livelihood,"* no longer holds.** The mana and spellbook
+  designs ([mana-economy-design-pack](./mana-economy-design-pack.md) Part 11,
+  [spellbook-slate](./spellbook-slate.md)) give every verb a utility someone is paid to run:
+
+  | verb | livelihood |
+  |---|---|
+  | perceive | the assay office and the **hallmark**; scrying; diagnosis |
+  | create | conjuring; **reembodiment** providers |
+  | control | teleport and the TPA; the custody summons; held bindings (wards, the bag of holding) |
+  | destroy | dispelling; demolition; breaking curses and bindings |
+  | transform | the great workings: heat treatment at scale, refining, transmutation |
+
+  Whether each guild also **runs** its verb's utility is open.
+- **A smith's fire magic is fire (her guild) × create (the Create guild).** *"I actually don't mind"*
+  **dual membership** for now. Scoped instruction (a course in *create for fire*) and licensing between
+  guilds stay available, and they're one mechanism at two sizes.
+- **Membership limits itself**: dues, an oath and a focus. *"Two or three is a full life,"* with no
+  slot cap. The balance ledger stands: one global dial, markets for the rest.
+- ⭐⭐ **Exclusivity lives in KNOWLEDGE, never in a cap** **[agreed "for now"]**. Competence is never
+  capped (*we measure real competence*). The verb guilds hold their **advanced spell texts as
+  mysteries**. Casting gates on *spell known*, and spellbooks are documents governed by possession (the
+  paper build). That produces stolen spellbooks, defectors, black-market copies, hedge-witches, and
+  schisms over who gets taught.
+- ⚠ **A cartel risk, and the polity's to govern:** five guilds jointly hold all magic. Chartering,
+  licensing law, antitrust, and whether a guild may keep its texts secret or the Compact charters a
+  public library of workings are all governance content. The *claim rule* (a charter claims only what it
+  has a master of) still makes breadth cost people, not money.
+- **Exercising the Disciplines under the new design:**
+  - **conductance** is trained by progressive overload, casting near your limit;
+  - **specification** is trained by precision and examined by tests (the
+    [assessment slate](./assessment-slate.md); the guild as the standards-body issuer);
+  - **nouns** can be trained in the trade itself (knowing stone is knowing stone);
+  - **items don't train the verb** (`MagicProvenance` separates who specified from who fired);
+  - **buffs act on state, never on competence.**
 
 ## Invariants and divergence axes
 

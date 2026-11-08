@@ -380,7 +380,8 @@ describe('the six-word failure vocabulary', () => {
     expect(starved.state).toBe('dry');
   });
 
-  it('the vocabulary is exactly six words — a seventh is a design conversation', () => {
+  it('the vocabulary is exactly seven words — an eighth is a design conversation', () => {
+    // ⭐ The seventh, `unplumbed`, WAS one (water-supply D7).
     expect([...SUPPLY_STATES].sort()).toEqual([
       'cut',
       'dry',
@@ -388,6 +389,7 @@ describe('the six-word failure vocabulary', () => {
       'frozen',
       'off',
       'overdrawn',
+      'unplumbed',
     ]);
   });
 });

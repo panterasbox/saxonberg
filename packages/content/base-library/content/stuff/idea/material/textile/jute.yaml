@@ -8,8 +8,10 @@
 # Highly hygroscopic (a damp sack gains real weight and then spoils what
 # it holds); stiffer and far less springy than wool, and a poorer
 # insulator because the weave is open rather than lofted.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ word: straw, strength: 20 }]
+  burning: [{ word: paper-smoke, strength: 300 }]
   name: jute
   keywords: [sacking, jute, hessian, burlap]
   # ⚠ A material must not assert a CONSTRUCTION; hessian is jute WOVEN

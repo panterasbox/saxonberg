@@ -157,7 +157,7 @@ let sweatSeen = false;
 let windedCueSeen = false;
 
 async function bank(handle: string, amount: number): Promise<void> {
-  const gov = await Session.open('founder', { startLocation: BANK, wizard: true });
+  const gov = await Session.open('founder', { startLocation: BANK });
   try {
     expectOk(await gov.cmd(`reserve issue ${amount}`));
     expectOk(await gov.cmd('drop coins'));
@@ -180,7 +180,7 @@ beforeAll(async () => {
   await bank(hName, 500);
   H = await Session.open(hName, { startLocation: CROSSROADS });
   L = await Session.open(lName, { startLocation: CROSSROADS });
-  founder = await Session.open('founder', { startLocation: BANK, wizard: true });
+  founder = await Session.open('founder', { startLocation: BANK });
 }, 600_000);
 
 afterAll(() => {
@@ -247,7 +247,7 @@ suite('4 · a fresh body cannot sustain a run', () => {
 
 /* ───────────────── Part 3 — the season, dialled ───────────────── */
 
-suite('5 · the wizard turns the season up', () => {
+suite('5 · the founder turns the season up', () => {
   it('⭐ the body-rate dials are visible in `config`, and the drive records what it changes', async () => {
     for (const key of [...Object.keys(SEASON), ...Object.keys(FADE), ...Object.keys(SCURVY)]) {
       const said = await founder.prose(`config ${key}`);
@@ -531,7 +531,7 @@ suite('13 · two loaves from one wheat', () => {
 
 /* ───────────────── Part 9 — the dials back ───────────────── */
 
-suite('14 · the wizard turns the dials back', () => {
+suite('14 · the founder turns the dials back', () => {
   it('every setting is restored, and the restore is asserted', async () => {
     for (const [key, value] of Object.entries(snapshot)) {
       expectOk(await founder.cmd(`config ${key} ${value}`));

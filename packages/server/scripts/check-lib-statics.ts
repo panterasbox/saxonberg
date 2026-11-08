@@ -197,7 +197,7 @@ const REPO_ROOT = join(MUD, '../../../..');
  * | class | every caller | author surface? |
  * |---|---|---|
  * | `Concentration` | `DissolvedToxins`, `DissolvedAromatics`, `BulkableLogic`, `Fractionating` | no |
- * | `DissolvedAromatics` | `Recipe` (row validation), `Palatable`, `Fractionating` | no |
+ * | `DissolvedAromatics` | `Recipe` (row validation), `Fractionating` | no |
  * | `DissolvedToxins` | `BulkableLogic`, `Fractionating`, `Metabolic` | no |
  *
  * Not one is author surface. What an author actually reaches is
@@ -237,7 +237,7 @@ const REPO_ROOT = join(MUD, '../../../..');
  * light walk + `Light.add` — a value-object factory/lookup, the category
  * this file's own doctrine admits, not world logic wanting a `*Logic`.
  */
-export const LIB_STATICS_CEILING = 341;
+export const LIB_STATICS_CEILING = 340;
 
 const STATIC =
   /^\s*(?:public\s+)?static\s+(?:async\s+)?(?!readonly\b|get\b|set\b|_)([a-zA-Z]\w*)\s*[(<]/;

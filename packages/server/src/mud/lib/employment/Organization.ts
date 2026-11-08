@@ -523,10 +523,15 @@ export function OrganizationMixin<TBase extends MixinConstructor>(
     }
 
     public getAppointingAuthority(): PrincipalRef | null {
-      return (
+      const ref =
         Authority.fromData(this.appointingAuthority) ??
-        Authority.fromData(this.proprietorPath)
-      );
+        Authority.fromData(this.proprietorPath);
+      // ⭐ `{kind: owners}` authored bare reads THIS organization's table.
+      if (ref?.kind === 'owners' && !ref.organization) {
+        const self = this.getOrganizationPath();
+        return self === '' ? null : { kind: 'owners', organization: self };
+      }
+      return ref;
     }
 
     public getProprietor(): string | undefined {

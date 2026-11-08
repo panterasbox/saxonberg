@@ -112,9 +112,22 @@ async function examine(s: Session, keyword: string): Promise<string> {
     .join('\n');
 }
 
+/**
+ * ⭐ The founder holds every office but sits on NO committee (wizard-axis
+ * D13): seated on the three whose ground this drive stages on — its
+ * `eval --parcel /world/terminus` reaches into the smithy (Hearthworks),
+ * the smelter (Rejection) and the cobbler (Terminus), and `clone` asks
+ * title over the glowcap row's path (Rejection's).
+ */
+const FOUNDER_SEATS = [
+  '/world/terminus',
+  '/world/terminus/hearthworks',
+  '/world/terminus/rejection',
+];
+
 /** Into the ROOM, by the founder, who holds the title. */
 async function cloneHere(where: string, path: string, count = 1): Promise<void> {
-  const f = await Session.open('founder', { startLocation: where, wizard: true });
+  const f = await Session.open('founder', { startLocation: where, committees: FOUNDER_SEATS });
   try {
     expectOk(await f.cmd(`clone ${path} --here${count > 1 ? ` --count ${count}` : ''}`));
   } finally {
@@ -142,7 +155,7 @@ async function evalOn(where: string, keyword: string, code: string): Promise<str
 /** A funded player, standing at `where` with a light. */
 async function newPlayer(tag: string, where: string): Promise<Session> {
   const handle = uniqueHandle(tag);
-  const bank = await Session.open(handle, { startLocation: BANK_HALL, wizard: true });
+  const bank = await Session.open(handle, { startLocation: BANK_HALL });
   expectOk(await bank.cmd('bank open'));
   const gov = await Session.open('founder', { startLocation: BANK_HALL });
   try {
@@ -158,7 +171,10 @@ const LIT = new Set<string>();
 
 /** The same person, somewhere else (inventory travels); a light the first time. */
 async function goTo(handle: string, where: string): Promise<Session> {
-  const s = await Session.open(handle, { startLocation: where, wizard: true });
+  const s = await Session.open(
+    handle,
+    handle === 'founder' ? { startLocation: where, committees: FOUNDER_SEATS } : { startLocation: where },
+  );
   if (!LIT.has(handle)) {
     LIT.add(handle);
     await cloneHere(where, GLOWCAP);
@@ -257,7 +273,7 @@ async function orderAnswering(s: Session, line: string, yes: boolean): Promise<s
 
 /** A player's balance, read at the bank. */
 async function balanceOf(handle: string): Promise<string> {
-  const s = await Session.open(handle, { startLocation: BANK_HALL, wizard: true });
+  const s = await Session.open(handle, { startLocation: BANK_HALL });
   try {
     return (await (await s.cmd('bank')).said()).trim();
   } finally {
@@ -672,7 +688,7 @@ suite('⭐⭐⭐ drive 12 — a restart (AC 4, 18)', () => {
     });
     process.env.WIRE_SERVER_URL = await bootOwnedWorld();
     await toHour(12); // by daylight: in the dark a thing is "something"
-    const back = await Session.open(pickHandle, { startLocation: SMITHY, wizard: true });
+    const back = await Session.open(pickHandle, { startLocation: SMITHY });
     try {
       const hook = await say(back, 'analyze response billhook');
       expect(hook, `the billhook, after a restart: ${hook}`).toMatch(/edge: keen/);

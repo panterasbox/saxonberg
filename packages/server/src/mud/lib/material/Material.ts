@@ -60,6 +60,7 @@ import { QuantityMarshaller } from '../../platform/idea/persistence/QuantityMars
 import type { ToxinTag } from '../metabolism/Metabolic';
 import { DissolvedAromatics } from '../metabolism/DissolvedAromatics';
 import type { AromaTag } from '../metabolism/DissolvedAromatics';
+import { Aroma, type HedonicCurve } from '../perception/Aroma';
 import type { VetoResult } from '../errors';
 import { Grade, type GradeBand } from '../craft/Grade';
 import type { EvictionContext, Stuff } from '../stuff/Stuff';
@@ -85,7 +86,7 @@ import type { BoundaryRole } from '../security/BoundaryRole';
  */
 /** What a face gives its contents (ceramics M7). */
 export interface LeachSpec {
-  /** The toxin type, as metabolism names it (`lead-poisoning`). */
+  /** The toxin type, as metabolism names it (`lead` — the Condition row's `toxinType`, not its name). */
   toxin: string;
   /**
    * mg per litre per game-day against VINEGAR (pH 2.4, the acid a lead-
@@ -113,6 +114,39 @@ export const BASIC_TASTES: readonly string[] = [
   'bitter',
   'umami',
 ];
+
+/** A taste a substance carries: `amount` in g/kg of the substance. */
+export interface TasteTag {
+  type: string;
+  amount: number;
+}
+
+/**
+ * Detection thresholds, g/kg: order-of-magnitude literature figures. They are
+ * why a little bitter cuts through a lot of sugar. Physiology, closed with the
+ * list they extend.
+ */
+export const TASTE_THRESHOLDS: Readonly<Record<string, number>> = {
+  sweet: 5,
+  salty: 1,
+  sour: 0.5,
+  bitter: 0.005,
+  umami: 0.3,
+};
+
+/**
+ * How a human tongue takes each taste, in log10 of its multiple of threshold.
+ * Past its peak a pleasant taste turns: too salty reads badly to nearly
+ * everyone. Bitter has no peak; it only gets worse. A species may override
+ * any of them (`Species.palate`), which is the grain and not the law.
+ */
+export const TASTE_HEDONICS: Readonly<Record<string, HedonicCurve>> = {
+  sweet: { peak: 1.5, width: 1.5, valence: 1 },
+  salty: { peak: 0.8, width: 1, valence: 1 },
+  sour: { peak: 0.6, width: 1, valence: 1 },
+  umami: { peak: 1.2, width: 1.5, valence: 1 },
+  bitter: { peak: 0, width: 3, valence: -1 },
+};
 
 /**
  * Atomic / molecular science data — convenience aggregate of
@@ -198,6 +232,33 @@ export interface BiologicalSource {
 export interface CrystallizesTo {
   product: string;
   residue: string;
+}
+
+/**
+ * ⭐ A material as a PIGMENT (paint build D8) — the dyestuff row's shape,
+ * on the material because a pigment is SUSPENDED, not dissolved: what of
+ * each channel it gives back, how much of what is under it a coat hides,
+ * and how well it stands the sun (`1` never fades).
+ */
+export interface PigmentSpec {
+  transmitR: number;
+  transmitG: number;
+  transmitB: number;
+  hidingPower: number;
+  lightfastness: number;
+}
+
+/**
+ * ⭐ A material as a GLUE (paint build D11): the strength of a set line
+ * (`0..1`), whether it comes apart and how (`never`, or heat to `heatK`
+ * and steam), how well it stands the damp (`1` waterproof), and the
+ * temperature it lets go at.
+ */
+export interface AdhesiveSpec {
+  strength: number;
+  reversible: 'never' | { heatK?: number; steam?: boolean };
+  resistsDamp: number;
+  softensAtK?: number;
 }
 
 /** Numeric AppSetting read for the wet law, falling back to the seeded literal. */
@@ -961,7 +1022,7 @@ export default class Material extends SingletonMixin(
    * Empty is the honest default: most materials have never been tasted
    * by anybody who wrote them down.
    */
-  protected tastes: string[] = [];
+  protected tastes: TasteTag[] = [];
 
   /**
    * Free-form classification tags. See class header for layer-1
@@ -1193,9 +1254,23 @@ export default class Material extends SingletonMixin(
     // The word a look uses for a sound coat of this — "glazed", later
     // "painted", "tarred", "varnished". Absent reads "coated".
     coatWord: { persistent: true, authorable: true },
+    // ⭐ How fast a SET coat of this thins where the weather reaches it,
+    // meters per game year (paint build D5). Absent: never weathers — a
+    // glaze, a tar. A painter learns it by what peels.
+    weatheringMPerGameYear: { persistent: true, authorable: true },
+    // ⭐ This is a PIGMENT: its color suspended in a binder, how well it
+    // hides what is under it, how it stands the sun (paint build D8).
+    pigment: { persistent: true, authorable: true },
+    // ⭐ This is a GLUE: how strong its line, whether heat and steam undo
+    // it, how it stands the damp (paint build D11). Measured facts.
+    adhesive: { persistent: true, authorable: true },
     // ⭐ What a broken piece of this becomes (ceramics M5) — fired clay
     // breaks to sherds; glass keeps its cullet (the cast template).
     brokenTemplate: { persistent: true, authorable: true },
+    // ⭐ How a good of this fails in WATER (paper): its strength wet as a
+    // share of dry, and what a soaked-through good of it leaves.
+    wetStrength: { persistent: true, authorable: true },
+    soddenTemplate: { persistent: true, authorable: true },
     // ⭐ What a piece shaped of this becomes, by form class (ceramics D16):
     // `{open: …/vessel, closed: …/jar, flat: …/dish, block: …/block, cone: …}`.
     formTemplates: { persistent: true, authorable: true },
@@ -1305,8 +1380,8 @@ export default class Material extends SingletonMixin(
   public getCombustionImparts(): readonly AromaTag[] {
     return this.combustionImparts;
   }
-  public setCombustionImparts(value: AromaTag[]): void {
-    this.combustionImparts = validateCombustionImparts(value);
+  public async setCombustionImparts(value: AromaTag[]): Promise<void> {
+    this.combustionImparts = await validateCombustionImparts(value);
   }
   /** What burning this gives off into the room (litres per kg burnt). */
   public getCombustionProducts(): readonly { material: string; litresPerKg: number }[] {
@@ -1570,9 +1645,13 @@ export default class Material extends SingletonMixin(
    * eats glass, not lead). Vitriol ≈ 16, lemon ≈ 1.3, wine ≈ 0.35, milk
    * ≈ 0.007, seawater 0.
    */
-  public acidAttack(): number {
-    if (!(this.ph < 7)) return 0;
-    return Math.pow(10, (VINEGAR_PH - this.ph) / PH_UNITS_PER_TENFOLD);
+  public acidAttack(pH?: number): number {
+    // ⭐ A WATER's own pH, when the contents carry one (water-supply D8): a
+    // soft upland water at 6.3 is this material's row and a different
+    // acidity — the row's pH is the material's, the payload's the water's.
+    const ph = typeof pH === 'number' && Number.isFinite(pH) ? pH : this.ph;
+    if (!(ph < 7)) return 0;
+    return Math.pow(10, (VINEGAR_PH - ph) / PH_UNITS_PER_TENFOLD);
   }
 
   /**
@@ -1600,6 +1679,30 @@ export default class Material extends SingletonMixin(
   }
   public setBrokenTemplate(value: string): void {
     this.brokenTemplate = typeof value === 'string' ? value.trim() : '';
+  }
+
+  /**
+   * ⭐ **How a good of this fails in water** (paper build): the share of its
+   * dry strength it keeps when soaked, `[0, 1]`; `null` = water does not
+   * break it (wood swells, cloth holds, iron rusts — those are other rules).
+   * Paper and board keep about a tenth; a good of them soaked through gives
+   * way (`Integrity`), leaving {@link getSoddenTemplate}.
+   */
+  protected wetStrength: number | null = null;
+  public getWetStrength(): number | null {
+    return this.wetStrength;
+  }
+  public setWetStrength(value: number | null): void {
+    this.wetStrength = typeof value === 'number' && Number.isFinite(value) ? Math.min(1, Math.max(0, value)) : null;
+  }
+
+  /** What a soaked-through good of this leaves (paper → a lump of pulp); `''` = nothing. */
+  protected soddenTemplate = '';
+  public getSoddenTemplate(): string {
+    return this.soddenTemplate;
+  }
+  public setSoddenTemplate(value: string): void {
+    this.soddenTemplate = typeof value === 'string' ? value.trim() : '';
   }
 
   /**
@@ -1635,6 +1738,69 @@ export default class Material extends SingletonMixin(
   }
   public setCoatWord(value: string): void {
     this.coatWord = typeof value === 'string' ? value.trim() : '';
+  }
+
+  /** Meters a set coat of this loses per game year in the weather (`0`: never). */
+  protected weatheringMPerGameYear = 0;
+  public getWeatheringMPerGameYear(): number {
+    return this.weatheringMPerGameYear;
+  }
+  public setWeatheringMPerGameYear(value: number): void {
+    const n = Number(value);
+    this.weatheringMPerGameYear = Number.isFinite(n) && n > 0 ? n : 0;
+  }
+
+  /** This material as a pigment, or `null` when it is none. */
+  protected pigment: PigmentSpec | null = null;
+  public getPigment(): PigmentSpec | null {
+    return this.pigment;
+  }
+  public setPigment(value: PigmentSpec | null): void {
+    if (value === null || typeof value !== 'object') {
+      this.pigment = null;
+      return;
+    }
+    const unitOf = (v: unknown, d: number): number => {
+      const n = Number(v);
+      return Number.isFinite(n) ? Math.min(1, Math.max(0, n)) : d;
+    };
+    this.pigment = {
+      transmitR: unitOf(value.transmitR, 1),
+      transmitG: unitOf(value.transmitG, 1),
+      transmitB: unitOf(value.transmitB, 1),
+      hidingPower: unitOf(value.hidingPower, 0.5),
+      lightfastness: unitOf(value.lightfastness, 1),
+    };
+  }
+
+  /** This material as a glue, or `null` when it is none. */
+  protected adhesive: AdhesiveSpec | null = null;
+  public getAdhesive(): AdhesiveSpec | null {
+    return this.adhesive;
+  }
+  public setAdhesive(value: AdhesiveSpec | null): void {
+    if (value === null || typeof value !== 'object') {
+      this.adhesive = null;
+      return;
+    }
+    const unitOf = (v: unknown, d: number): number => {
+      const n = Number(v);
+      return Number.isFinite(n) ? Math.min(1, Math.max(0, n)) : d;
+    };
+    const rev = value.reversible;
+    const spec: AdhesiveSpec = {
+      strength: unitOf(value.strength, 0.7),
+      reversible:
+        rev !== null && typeof rev === 'object'
+          ? {
+              ...(Number(rev.heatK) > 0 ? { heatK: Number(rev.heatK) } : {}),
+              ...(rev.steam === true ? { steam: true } : {}),
+            }
+          : 'never',
+      resistsDamp: unitOf(value.resistsDamp, 0),
+    };
+    if (Number(value.softensAtK) > 0) spec.softensAtK = Number(value.softensAtK);
+    this.adhesive = spec;
   }
 
   /**
@@ -1889,15 +2055,21 @@ export default class Material extends SingletonMixin(
   }
 
   /** The basic tastes this substance carries (may be empty). */
-  public getTastes(): readonly string[] { return this.tastes; }
+  public getTastes(): readonly TasteTag[] { return this.tastes; }
   /** Set the basic tastes. Unknown words are dropped — the set is closed. */
-  public setTastes(value: string[]): void {
+  /** ⚠ Throws on an unknown taste or a non-positive amount: never a quiet drop. */
+  public setTastes(value: readonly TasteTag[]): void {
     if (!Array.isArray(value)) {
-      throw new TypeError('Material.setTastes: expected a string[]');
+      throw new TypeError('Material.setTastes: expected a list of { type, amount }');
     }
-    this.tastes = value.filter((t): t is string =>
-      (BASIC_TASTES as readonly string[]).includes(t),
-    );
+    this.tastes = value.map((tag: TasteTag) => {
+      if (!(BASIC_TASTES as readonly string[]).includes(tag?.type) || !(tag.amount > 0)) {
+        throw new TypeError(
+          `Material.setTastes: '${String(tag?.type)}' needs one of ${BASIC_TASTES.join(', ')} and a positive amount (g/kg)`,
+        );
+      }
+      return { type: tag.type, amount: tag.amount };
+    });
   }
 
   public getTags(): readonly string[] { return this.tags; }
@@ -1947,7 +2119,13 @@ export default class Material extends SingletonMixin(
    */
   public corrodeOnContact(
     victim: Stuff,
-    opts?: { readonly energy?: number; readonly site?: string; readonly shieldFacing?: boolean },
+    opts?: {
+      readonly energy?: number;
+      readonly site?: string;
+      readonly shieldFacing?: boolean;
+      /** It is already inside: no covering stands in the way. */
+      readonly bare?: boolean;
+    },
   ): boolean {
     if (this.corrosiveTo.length === 0) return false;
     if (!MixinApi.isOrganism(victim)) return false;
@@ -1957,6 +2135,7 @@ export default class Material extends SingletonMixin(
       energy: opts?.energy ?? 1,
       corrosiveTo: this.getCorrosiveTo(),
       shieldFacing: opts?.shieldFacing,
+      bare: opts?.bare,
     });
     return true;
   }
@@ -2186,14 +2365,15 @@ function materialLogic(): MaterialLogic {
  * still kiln the barley and the malt would just be unpeated, which is
  * the silent-wrong-answer shape the `imparts` validator exists for.
  */
-function validateCombustionImparts(value: AromaTag[]): AromaTag[] {
+async function validateCombustionImparts(value: AromaTag[]): Promise<AromaTag[]> {
   if (!Array.isArray(value)) {
     throw new TypeError(
       `Material.combustionImparts must be a list of { type, amount }`,
     );
   }
-  return value.map((tag, i) => {
-    if (!DissolvedAromatics.isAroma(tag?.type)) {
+  const out: AromaTag[] = [];
+  for (const [i, tag] of value.entries()) {
+    if (!DissolvedAromatics.isAromaWord(tag?.type)) {
       throw new TypeError(
         `Material.combustionImparts[${i}]: '${tag?.type}' is not an aroma`,
       );
@@ -2204,6 +2384,8 @@ function validateCombustionImparts(value: AromaTag[]): AromaTag[] {
           `positive amount (mg/L)`,
       );
     }
-    return { type: tag.type, amount: tag.amount };
-  });
+    await Aroma.ensure(tag.type);
+    out.push({ type: tag.type, amount: tag.amount });
+  }
+  return out;
 }

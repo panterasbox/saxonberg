@@ -1,8 +1,10 @@
 # Cane fibre — bagasse: what is left of the cane after the mill. ⭐ It
 # burns — about half as well as dry wood — and it is the boiling house's
 # fuel, if it is dry.
-class: /platform/idea/material/ConsumableMaterial
+class: /platform/idea/material/OdorousConsumableMaterial
 data:
+  smells: [{ word: straw, strength: 10 }]
+  burning: [{ word: straw-smoke, strength: 300 }]
   name: bagasse
   keywords: [bagasse, fibre, trash, megass]
   appearance: shredded pale fibre, damp and sweet-smelling

@@ -8,6 +8,7 @@
 # — that is the whole pedagogy claim, stated as a row.
 class: /platform/idea/species/Species
 data:
+  smells: [{ word: fish, strength: 30 }]
   binomial: Salmo trutta
   commonNames: ["brown trout", "trout"]
   _bodyPlanPath: /stuff/idea/species/BodyPlan/fish

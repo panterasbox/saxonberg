@@ -175,6 +175,7 @@ function conduitFrom(rel: string): Conduit {
     c.setDirection(d.direction as never);
     c.setReachRef(String(d.reachRef ?? ''));
     c.setExtent(String(d.extent ?? ''));
+    if (Array.isArray(d.extents)) c.setExtents(d.extents as string[]);
     c.setCapacityM3S(Number(d.capacityM3S ?? 0));
     c.setTreatmentFactor(Number(d.treatmentFactor ?? 0));
     c.setDischargeLoadPerSecond(Number(d.dischargeLoadPerSecond ?? 0));
@@ -498,7 +499,9 @@ describe('⭐ the valley road — a walkable chain, no wizard anywhere (D23)', (
       // that actually has lamps (review, 2026-09-24). The claim this
       // test makes is *ordinary platform content, no gate* — so it
       // checks that, and any platform location class satisfies it.
-      expect(String(doc.class)).toMatch(/^\/platform\/location\//);
+      // ⭐ …or the transport pack's harbor quay: the bank is a
+      // quay of the port's book, still ordinary content with no gate.
+      expect(String(doc.class)).toMatch(/^\/(platform|system\/transport)\/location\//);
       expect(JSON.stringify(doc)).not.toContain('wizard');
     }
   });

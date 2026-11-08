@@ -733,6 +733,14 @@ When a *later* field declares `prepositions:`, the greedy field
 at `to` because `recipient.prepositions: [to]`. See
 [Multi-positional verbs](#multi-positional-verbs) below.
 
+⭐ **A preposition that opens only `number` fields ends the span only when a
+number follows it** (the paper build, 2026-11-05). `read`'s target is
+greedy, bounded by `page <n>`: `read notebook page 3` binds `notebook` and
+page 3, while `read torn-out page` binds the whole name, because "page" is
+a word in names too. Before this rule a trailing number field turned its
+preposition into a word no name could end in (`collectNumericOnlyPrepositions`
+in `CommandLogic`).
+
 ### ⭐⭐⭐ The phrase ladder — a name with a space in it
 
 A good's name is a **phrase**, not a word. Thirty-four of the ninety-three
@@ -1289,7 +1297,7 @@ Live under `mud/lib/command/validators/`:
 | `mustBeContainable` | every bound Stuff composes `ContainableMixin` | `get`, `drop`, `give` (any verb that calls `ContainmentApi.move`) |
 | `mustBeInInventory` | every bound Stuff is in the giver's inventory | `drop`, `give` (the gift) |
 | `mustBeInLocation` | every bound Stuff is in the giver's location's contents | `get` (excludes inventory items by design — you can't pick up what you already carry) |
-| `canReach` | every bound Stuff is in inventory, location contents, attached to a location exit (door), OR the location with `via.exit` set (door-via-direction) | `open`, `close`, `go`, any verb that interacts with the immediate environment |
+| `canReach` | every bound Stuff is in inventory, location contents, one of the location's exits, or a door attached to one | `open`, `close`, `go`, any verb that interacts with the immediate environment |
 | `requiresAnimate` | giver passes `SpeciesApi.isAnimate` (verb-level — declared under `validators:` at the top of the YAML, not on a specific field) | `eat`, `drink`, future combat / vocal verbs |
 | `requiresAvatar` | giver is an Avatar (player character) | `player` / `me` |
 | `requiresEnvironment` | giver composes `EnvironmentMixin` (has settings / var storage) | `settings`, `var` |

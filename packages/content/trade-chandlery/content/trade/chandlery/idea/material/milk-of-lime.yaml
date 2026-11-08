@@ -2,8 +2,9 @@
 # of slaked lime, caustic, and the thing a soap-boiler stirs into a lye to
 # make it strong enough for hard soap. Made in the kettle by pouring water
 # on a lump of lime; it heats as it slakes.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ word: lime, strength: 60 }]
   name: milk of lime
   keywords: ["milk of lime", "slaked lime", limewash, slurry]
   appearance: a thin white slurry, like watered milk
@@ -18,3 +19,18 @@ data:
   tags: [liquid, caustic, alkali, slaked-lime]
   composition: []
   biologicalSource: null
+  # ⭐ LIMEWASH (paint build, requirements gap 1): brushed on a wall it
+  # lays a white coat that hardens by drinking the air — carbonation, over
+  # days, and slowly where the air does not move. Rows only: the kettle that
+  # slakes it is unchanged.
+  laysCoat: true
+  coatWord: limewashed
+  solidsKgPerL: 0.3
+  # A limewash wants renewing every season or two.
+  weatheringMPerGameYear: 0.00003
+  pigment: { transmitR: 0.97, transmitG: 0.97, transmitB: 0.95, hidingPower: 0.55, lightfastness: 1 }
+  kinetics:
+    - key: set
+      sets: carbonation
+      order: 0
+      rate: [[273, 0], [283, 0.012], [293, 0.02], [303, 0.03]]

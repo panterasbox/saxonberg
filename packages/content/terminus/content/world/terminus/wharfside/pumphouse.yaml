@@ -1,0 +1,6 @@
+# The pump house's own zone (water-supply W1): its own authorship, so the
+# bank's named `pumphouse` door is a boundary crossing with a known inverse.
+class: /platform/idea/location/CartesianZone
+data:
+  name: The Pump House
+  cellSize: 4.0

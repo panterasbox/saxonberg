@@ -1,0 +1,44 @@
+# The vat house (paper W2) — ⭐ the mill at the fall, east of the race: the
+# stamper on the shaft, the vat, the press, the size tub. Rags in at the
+# door, paper up the ladder to the loft. Persistent: a post of wet sheets is
+# a day's work.
+class: /platform/location/PersistentHall
+data:
+  shortDescription: paper mill
+  keywords: [mill, "paper mill", "vat house", vat-house, papermill]
+  register: definite
+  _address: terminus/hearts-delight/millsite/paper-mill
+  _biomePath: /stuff/idea/biome/indoor/baseline
+  roof: { material: /stuff/idea/material/rock/slate, thicknessM: 0.01 }
+  ambientSource: sky
+  ambientOpening: windows
+  ambientIntensity: 6000
+  ambientColorTemperature: 5000
+  enclosure: { material: /stuff/idea/material/wood/oak, thicknessM: 0.05 }
+  longDescription: |
+    A long wet room loud with the stamper — three wooden stocks rising and falling into a trough on the race's shaft. A broad vat of grey stuff steams by the window, a press stands beside it with a felt on its bed, and a tub of warm size smells faintly of glue. A ladder goes up through a hatch to the drying loft.
+  extent: 6
+  coords: { x: -12, y: -6, z: 4 }
+  exits:
+    west:
+      destination: /world/terminus/hearts-delight/location/millsite
+      media: [ground]
+      edgeMinutes: 1
+    up:
+      destination: /world/terminus/hearts-delight/paper-mill/location/loft
+      media: [ground]
+      edgeMinutes: 1
+  props:
+    - /world/terminus/hearts-delight/paper-mill/thing/stamper
+    - /world/terminus/hearts-delight/paper-mill/thing/vat
+    - /world/terminus/hearts-delight/paper-mill/thing/rag-counter
+    - /trade/papermaking/thing/size-tub
+    - { template: /trade/papermaking/thing/paper-mould, count: 2 }
+    - /world/terminus/hearts-delight/paper-mill/thing/post-press
+  cast:
+    - /world/terminus/hearts-delight/paper-mill/agent/vatman
+  details:
+    windows:
+      keywords: [window, windows, light]
+      description: |
+        A broad window by the vat, its glass misted from the steam. The vatman holds each sheet up to it before it goes to the post.

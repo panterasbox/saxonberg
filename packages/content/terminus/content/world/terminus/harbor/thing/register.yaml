@@ -1,0 +1,20 @@
+# The register of ships — the City of Terminus' book, open on
+# the harbor office's desk beside the berth book. `read register`: every
+# ship entered under the city's flag, her owners in sixty-fourths. ⭐ The
+# page is read off the register each time (never authored, never written by
+# whoever holds the book), and it is public: anybody can find out a ship
+# flying colors she is not entered under.
+class: /platform/thing/RegisterBook
+data:
+  shortDescription: register of ships
+  keywords: [register, "ship register", "register of ships"]
+  register: definite
+  longDescription: >-
+    A thick folio bound in blue cloth, the city's arms stamped on its cover,
+    each page ruled into a ship's name, her kind, her port and her owners'
+    sixty-fourths.
+  _materialPath: /stuff/idea/material/textile/linen
+  registerPrefix: /platform/ships/terminus-city
+  registerTitle: the register of ships of the City of Terminus
+  markForm: inked
+  mass: 4

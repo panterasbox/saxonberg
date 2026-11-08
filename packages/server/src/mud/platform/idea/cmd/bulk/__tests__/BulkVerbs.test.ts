@@ -265,6 +265,21 @@ describe('Bulk verbs — fill / sip / drink', () => {
     expect(amountL(thermos)).toBeCloseTo(0.5);
   });
 
+  it('⭐ a source FIXED in place gives a draught — you do not drink a butt dry', async () => {
+    const butt = vessel('a water butt', { capacityL: 200 });
+    await makeStuff(() => new FillController()).execute(
+      model({ target: one(butt, 'butt'), source: one(urn, 'urn') }),
+      ctxFor(actor, loc, 'fill'),
+    );
+    (butt as unknown as { fixedInPlace: boolean }).fixedInPlace = true;
+    ContainmentApi.move(butt as never, loc as never);
+    await makeStuff(() => new DrinkController()).execute(
+      model({ target: one(butt, 'butt') }),
+      ctxFor(actor, loc, 'drink'),
+    );
+    expect(amountL(butt)).toBeCloseTo(199.75);
+  });
+
   it('drink takes a NAMED MEASURE, not just the whole slot', async () => {
     await makeStuff(() => new FillController()).execute(
       model({ target: one(thermos, 'thermos'), source: one(urn, 'urn') }),

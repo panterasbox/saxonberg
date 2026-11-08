@@ -1,212 +1,178 @@
 /**
- * Smell — immutable value object describing the olfactory signal at
- * a location.
+ * Smell — immutable value object: the olfactory signal at a place, per word,
+ * in odor units.
  *
- * Carries:
- *   - `concentration: Quantity<'ppm'>` — total odor concentration
- *     at the receiving scope, summed across contributing sources
- *     and identities.
- *   - `identity: string` — dominant odor identity (by total
- *     concentration). When multiple identities contribute, the
- *     source list still carries each one individually for prose.
- *   - `sources: readonly SmellSourceRef[]` — capped contributing-
- *     source list for prose attribution; runtime-only.
+ * An odor unit (OU, the EN 13725 unit) is a source's strength as a multiple
+ * of its aroma word's detection threshold: 1 OU is just detectable by an
+ * ordinary nose. `notes` carries one entry per word, strongest first, so the
+ * dominant smell is the one furthest past its own threshold, whatever the
+ * mass behind it. `sources` says which thing gave what from how many hops
+ * away; only a nose decides what a reader is told of them. {@link Scent} is
+ * what a nose made of one, kept apart because a `Smell`'s OU is physics and a
+ * `Scent`'s has been through a species, adaptation and training.
  *
- * Same shape as `Light`: factory-constructed (`Smell.of` /
- * `Smell.from`), immutable, capped source list. Persistence: the
- * value is runtime-only. `SmellSourceMixin` stores its scalar
- * fields per the scalar-default rule.
+ * Same shape as `Light`: factory-constructed, immutable, runtime-only.
  */
 
 import { Quantity } from '../quantity';
 
+/** One word in a signal and how far past its threshold it stands. */
+export interface SmellNote {
+  readonly word: string;
+  readonly ou: number;
+}
+
+/** One thing's contribution of one word, and how many hops it came. */
 export interface SmellSourceRef {
   readonly stuffId: string;
-  readonly concentration: number; // ppm
-  readonly identity: string;
-}
-
-export interface SmellDataShape {
-  concentration: number | Quantity<'ppm'>;
-  identity: string;
-  sources?: readonly SmellSourceRef[];
-}
-
-/** Maximum number of contributing sources tracked on a single Smell. */
-export const SMELL_SOURCE_CAP = 3;
-
-/**
- * Coerce a number (ppm) or `Quantity<'ppm'>` into `Quantity<'ppm'>`.
- * Numeric inputs are interpreted as canonical ppm. Negative or
- * non-finite values throw — same shape as `coerceLux` for light.
- */
-function coercePpm(value: number | Quantity<'ppm'>): Quantity<'ppm'> {
-  if (typeof value === 'number') {
-    if (!Number.isFinite(value) || value < 0) {
-      throw new Error(
-        `Smell concentration must be a non-negative finite number, got ${value}`,
-      );
-    }
-    return Quantity.of(value, 'ppm');
-  }
-  if (!(value instanceof Quantity) || value.unit !== 'ppm') {
-    throw new TypeError(
-      `Smell concentration must be a number or Quantity<'ppm'>`,
-    );
-  }
-  if (value.rawValue() < 0) {
-    throw new Error(
-      `Smell concentration must be non-negative, got ${value.rawValue()}`,
-    );
-  }
-  return value;
+  readonly word: string;
+  readonly ou: number;
+  readonly hops: number;
+  /** Something the giver holds rather than the giver's own body and clothes. */
+  readonly carried?: boolean;
+  /** The discipline of whoever made it, when it was made. */
+  readonly maker?: string;
 }
 
 export class Smell {
   /** The zero-smell singleton. */
-  public static readonly ZERO: Smell = new Smell(
-    Quantity.of(0, 'ppm'),
-    '',
-    [],
-  );
+  public static readonly ZERO: Smell = new Smell([], []);
 
-  /** Construct-with-defaults helper. */
-  public static of(
-    concentration: number | Quantity<'ppm'>,
-    identity: string,
-    source?: SmellSourceRef,
-  ): Smell {
-    const concentrationQ = coercePpm(concentration);
-    if (concentrationQ.rawValue() === 0 && !source) return Smell.ZERO;
-    const sources: SmellSourceRef[] = source ? [source] : [];
-    return new Smell(concentrationQ, identity, sources);
+  /** Build from contributions; notes are summed per word, strongest first. */
+  public static of(sources: readonly SmellSourceRef[]): Smell {
+    const kept = sources.filter((s) => s.ou > 0);
+    if (kept.length === 0) return Smell.ZERO;
+    const totals = new Map<string, number>();
+    for (const s of kept) totals.set(s.word, (totals.get(s.word) ?? 0) + s.ou);
+    const notes = [...totals.entries()]
+      .map(([word, ou]) => ({ word, ou }))
+      .sort((a, b) => b.ou - a.ou);
+    return new Smell(notes, kept);
   }
 
-  /** Coerce a Smell-shaped plain-object into a Smell. */
-  public static from(value: Smell | SmellDataShape): Smell {
-    if (value instanceof Smell) return value;
-    if (
-      !value ||
-      typeof value !== 'object' ||
-      (typeof value.concentration !== 'number' &&
-        !(value.concentration instanceof Quantity))
-    ) {
-      throw new TypeError(
-        'Smell.from: expected a Smell or { concentration, identity, sources? } shape.',
-      );
-    }
-    const concentrationQ = coercePpm(value.concentration);
-    const sources: SmellSourceRef[] = value.sources
-      ? Array.from(value.sources)
-      : [];
-    if (concentrationQ.rawValue() === 0 && sources.length === 0) {
-      return Smell.ZERO;
-    }
-    return new Smell(concentrationQ, value.identity, sources);
-  }
-
-  public readonly concentration: Quantity<'ppm'>;
-  public readonly identity: string;
+  public readonly notes: readonly SmellNote[];
   public readonly sources: readonly SmellSourceRef[];
 
   protected constructor(
-    concentration: Quantity<'ppm'>,
-    identity: string,
+    notes: readonly SmellNote[],
     sources: readonly SmellSourceRef[],
   ) {
-    this.concentration = concentration;
-    this.identity = identity;
+    this.notes = notes;
     this.sources = sources;
   }
 
-  /**
-   * Sum two Smells. ppm concentrations add. Dominant `identity` is
-   * the identity carrying the highest contribution across the
-   * merged source list. Per-identity attribution stays on
-   * `sources` for prose nuance.
-   */
-  public add(other: Smell): Smell {
-    if (other.concentration.rawValue() === 0 && other.sources.length === 0) {
-      return this;
-    }
-    if (this.concentration.rawValue() === 0 && this.sources.length === 0) {
-      return other;
-    }
-    const concentration = this.concentration.add(other.concentration);
-    const merged = mergeSources(this.sources, other.sources);
-    const dominant = dominantIdentity(merged) || this.identity || other.identity;
-    return new Smell(concentration, dominant, merged);
+  /** The strongest note's strength; the figure an instrument leads with. */
+  public get strength(): Quantity<'OU'> {
+    return Quantity.of(this.notes[0]?.ou ?? 0, 'OU');
   }
 
-  /**
-   * Scale ppm concentration by a 0..1 factor. Sources scale in
-   * lockstep so the cap stays accurate.
-   */
-  public attenuate(factor: number): Smell {
+  /** The word furthest past its threshold, or `''`. */
+  public get dominantWord(): string {
+    return this.notes[0]?.word ?? '';
+  }
+
+  public isEmpty(): boolean {
+    return this.notes.length === 0;
+  }
+
+  /** Both signals at one place. */
+  public add(other: Smell): Smell {
+    if (other.isEmpty()) return this;
+    if (this.isEmpty()) return other;
+    return Smell.of([...this.sources, ...other.sources]);
+  }
+
+  /** Everything scaled by a 0..1 factor; a hop further when `hops` is given. */
+  public attenuate(factor: number, hops: number = 0): Smell {
     if (!Number.isFinite(factor) || factor <= 0) return Smell.ZERO;
-    if (factor >= 1) return this;
-    if (this.concentration.rawValue() === 0 && this.sources.length === 0) {
-      return Smell.ZERO;
-    }
-    const concentration = this.concentration.scale(factor);
-    const sources: SmellSourceRef[] = this.sources.map((s) => ({
-      stuffId: s.stuffId,
-      identity: s.identity,
-      concentration: s.concentration * factor,
-    }));
-    return new Smell(concentration, this.identity, sources);
+    if (factor >= 1 && hops === 0) return this;
+    return Smell.of(
+      this.sources.map((s) => ({
+        ...s,
+        ou: s.ou * Math.min(1, factor),
+        hops: s.hops + hops,
+      })),
+    );
   }
 
   public toJSON(): {
-    concentration: { value: number; unit: 'ppm' };
-    identity: string;
+    notes: SmellNote[];
     sources: SmellSourceRef[];
   } {
     return {
-      concentration: this.concentration.toJSON(),
-      identity: this.identity,
+      notes: this.notes.map((n) => ({ ...n })),
       sources: this.sources.map((s) => ({ ...s })),
     };
   }
 }
 
-function mergeSources(
-  a: readonly SmellSourceRef[],
-  b: readonly SmellSourceRef[],
-): SmellSourceRef[] {
-  if (a.length === 0 && b.length === 0) return [];
-  const byId = new Map<string, SmellSourceRef>();
-  for (const s of [...a, ...b]) {
-    const existing = byId.get(s.stuffId);
-    if (!existing) {
-      byId.set(s.stuffId, { ...s });
-    } else {
-      byId.set(s.stuffId, {
-        stuffId: s.stuffId,
-        identity:
-          s.concentration > existing.concentration ? s.identity : existing.identity,
-        concentration: s.concentration + existing.concentration,
-      });
-    }
-  }
-  return Array.from(byId.values())
-    .sort((x, y) => y.concentration - x.concentration)
-    .slice(0, SMELL_SOURCE_CAP);
+/**
+ * The intensity words, by multiple of the detection threshold.
+ *
+ * WARNING: **The steps are LOGARITHMIC.** Odor detection thresholds are
+ * measured in parts per *billion* while the compounds a drink carries are
+ * measured in parts per *million*, so real concentrations sit three to four
+ * orders of magnitude above threshold; on a linear 1/3/10 ladder every whisky
+ * reads "strongly of smoke". Human intensity perception really is compressive
+ * (Stevens' law, with an exponent well under 1 for odor), so a log ladder is
+ * the honest shape. The case that set the top two steps: a peated malt vatted
+ * with grain spirit must read fainter than the malt alone.
+ */
+const INTENSITIES: readonly { readonly atMultiple: number; readonly word: string }[] = [
+  { atMultiple: 8000, word: 'overpoweringly' },
+  { atMultiple: 2000, word: 'strongly' },
+  { atMultiple: 300, word: 'clearly' },
+  { atMultiple: 30, word: 'faintly' },
+  { atMultiple: 1, word: 'barely' },
+];
+
+/** One smell as a nose read it. */
+export interface ScentNote {
+  /** The word in the tree the reader could name. */
+  readonly word: string;
+  /** That word as it reads in a sentence. */
+  readonly name: string;
+  /** Strength after the nose: below 1 it would not be here. */
+  readonly ou: number;
+  /** The nearest this smell came from. */
+  readonly hops: number;
+  /** The one visible thing carrying it, or `null`: the nose tells you what. */
+  readonly sourceName: string | null;
+  /** The word as authored, before the reader's depth. */
+  readonly leaf: string;
 }
 
-function dominantIdentity(sources: readonly SmellSourceRef[]): string {
-  if (sources.length === 0) return '';
-  const totals = new Map<string, number>();
-  for (const s of sources) {
-    totals.set(s.identity, (totals.get(s.identity) ?? 0) + s.concentration);
+/**
+ * What a nose made of a {@link Smell}: only what this reader detected and could
+ * name, strongest first. It carries no sentence and no digit is ever worded
+ * from it; `phrases` is intensity words.
+ */
+export class Scent {
+  public static readonly EMPTY: Scent = new Scent([]);
+
+  public readonly notes: readonly ScentNote[];
+
+  public constructor(notes: readonly ScentNote[]) {
+    this.notes = notes;
   }
-  let best = '';
-  let bestC = 0;
-  for (const [identity, conc] of totals.entries()) {
-    if (conc > bestC) {
-      best = identity;
-      bestC = conc;
+
+  public isEmpty(): boolean {
+    return this.notes.length === 0;
+  }
+
+  public get dominant(): ScentNote | null {
+    return this.notes[0] ?? null;
+  }
+
+  /** `clearly of peat smoke`, one per note. */
+  public phrases(): string[] {
+    return this.notes.map((n) => `${this.intensityOf(n.ou)} of ${n.name}`);
+  }
+
+  private intensityOf(ou: number): string {
+    for (const step of INTENSITIES) {
+      if (ou >= step.atMultiple) return step.word;
     }
+    return 'barely';
   }
-  return best;
 }

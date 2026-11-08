@@ -123,3 +123,8 @@ But it is sequenced **third** anyway, on two grounds:
    fragments* argues it eventually matters.
 5. ⚠ **Nothing here may write a player's trait** (narration slate's rule).
    A visitor's *choice* is a behaviour, not a disposition event.
+
+- **Painting interior walls, and distemper (glue paint) on them** (from the
+  paint build, 2026-11): `paint` lays a coat on a BUILDING's outside and on
+  a good; a room's own walls take none yet. Distemper is a size-bound
+  paint for exactly that.
