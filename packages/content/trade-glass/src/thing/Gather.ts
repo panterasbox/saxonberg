@@ -28,7 +28,7 @@ import type { Container } from "@saxonberg/server/mud/lib/spatial/Container";
 import type { CompetenceBandName } from "@saxonberg/server/mud/lib/advancement/CompetenceBand";
 import { Grade } from "@saxonberg/server/mud/lib/craft/Grade";
 import type { Formable, FormingHand } from "@saxonberg/server/mud/lib/craft/Forming";
-import type { ActRefusal } from "@saxonberg/server/mud/lib/craft/ActPlan";
+import type { BeyondHandRefusal } from "@saxonberg/server/mud/lib/craft/Shapeable";
 import type { Containable } from "@saxonberg/server/mud/lib/spatial/Containable";
 
 /**
@@ -96,7 +96,7 @@ export default class Gather extends GatherBase implements Formable {
   // ⚠ Own-property only — the framework merges the mixin chain's own
   // fieldMeta up the prototype chain (MixinApi.getAllFieldMeta), so this
   // declares only Gather's new field. `authorable` because the row seeds
-  // `form: gather` and `gob` resets it.
+  // `form: gather` and a fresh `dip` resets it.
   static fieldMeta: FieldMeta = {
     form: { persistent: true, authorable: true },
     formProduct: { persistent: true, runtimeState: true },
@@ -117,7 +117,7 @@ export default class Gather extends GatherBase implements Formable {
 
   public setForm(value: GatherForm): void {
     this.form = value;
-    // A gather worked back (`gob`) is no longer any piece.
+    // A gather worked back (`dip`) is no longer any piece.
     if (value === "gather" || value === "bubble") {
       this.formProduct = "";
       this.formGrade = "";
@@ -152,12 +152,8 @@ export default class Gather extends GatherBase implements Formable {
     };
   }
 
-  public refuseBeyond(hand: FormingHand): ActRefusal {
-    return {
-      ok: false,
-      reason: "beyond-your-hand",
-      line: Mml.compose`That is more glass than you can blow yet — a ${hand.band} glassblower blows a vessel of up to ${String(hand.maxL)} liters.`,
-    };
+  public refuseBeyond(hand: FormingHand): BeyondHandRefusal {
+    return { ok: false, reason: "beyond-your-hand", facts: { band: hand.band, maxL: hand.maxL, maker: "glassblower" } };
   }
 
   /**

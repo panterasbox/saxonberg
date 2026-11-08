@@ -35,14 +35,10 @@ const ForumsApiCallers = SecurityPolicies.FromModule('/api/forums#ForumsApi');
 /** The F2 actor face (SubjectSubscriber hosts) forwards here as the actor. */
 const ForumsActorCallers = SecurityPolicies.AnyOf(
   ForumsApiCallers,
-  SecurityPolicies.FromMixin('SubjectSubscriberMixin', {
-    // Compare by stuffId — the caller may surface as the raw target
-    // while the argument is the proxy (or vice versa).
-    where: (caller, _target, _method, args) =>
-      (caller as { stuffId?: string }).stuffId !== undefined &&
-      (caller as { stuffId?: string }).stuffId ===
-        (args[0] as { stuffId?: string } | undefined)?.stuffId,
-  }),
+  SecurityPolicies.AllOf(
+    SecurityPolicies.FromMixin('SubjectSubscriberMixin'),
+    SecurityPolicies.SelfSubject(0),
+  ),
 );
 
 /**
@@ -364,6 +360,9 @@ export class ForumsLogic extends ApiLogic {
   /** See {@link ForumsApi.getEntry}. */
   @CallSecurity(ForumsApiCallers)
   public async getEntry(id: string): Promise<Entry | null> {
+    // A word a player typed that is no entry id names no entry (`forum reply
+    // xyz` died in the driver's ObjectId with a controller-error).
+    if (!/^[0-9a-f]{24}$/i.test(id)) return null;
     return Entry.findById(id);
   }
 

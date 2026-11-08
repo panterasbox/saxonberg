@@ -18,7 +18,7 @@ import Plant from '../thing/Plant';
 import PlantPot, { PLANT_SLOT } from '../thing/PlantPot';
 import Seed from '../thing/Seed';
 import Material from '../../lib/material/Material';
-import { Reserve, ReservedMixin } from '../../lib/reserve';
+import { Reserve, ReservedMixin } from '../../lib/reserve/Reserved';
 import { SoilMixin, SOIL_NITROGEN_RESERVE_KEY } from '../../lib/husbandry/Soil';
 import { type GrowthProfileData } from '../../lib/husbandry/Growing';
 import { SOIL_MOISTURE_RESERVE_KEY } from '../../lib/husbandry/Cultivable';

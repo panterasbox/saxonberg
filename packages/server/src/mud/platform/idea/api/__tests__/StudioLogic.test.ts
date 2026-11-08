@@ -39,7 +39,7 @@ import { Idea } from '../../../../lib/stuff/Idea';
 import { NamedMixin } from '../../../../lib/description/Named';
 import { VisibleMixin } from '../../../../lib/description/Visible';
 import { DetailedMixin } from '../../../../lib/description/Detailed';
-import { ReservedMixin } from '../../../../lib/reserve';
+import { ReservedMixin } from '../../../../lib/reserve/Reserved';
 import {
   makeStuffAtPath,
 } from '../../../../lib/security/__tests__/test-setup';
@@ -767,6 +767,38 @@ describe('StudioLogic.listMixins — bases with implied mixin sets', () => {
     const mixinEntries = palette.mixins.filter((m) => m.kind === 'mixin');
     const withSummary = mixinEntries.filter((m) => m.summary);
     expect(withSummary.length).toBeGreaterThan(mixinEntries.length / 2);
+  });
+});
+
+// ---- verb protocols (controllers-are-io D8b) -----------------------------
+
+describe('StudioLogic — verb protocols, presented as the verbs they serve', () => {
+  it('offers a protocol mixin in the palette as kind `protocol`', async () => {
+    stubAuthorGateOpen();
+    const palette = await StudioApi.listMixins();
+    const byName = new Map(palette.mixins.map((m) => [m.name, m]));
+    // `_mixinKind = 'protocol'` beside the `_mixinName`, read by the scan.
+    expect(byName.get('DipBathMixin')?.kind).toBe('protocol');
+    expect(byName.get('PumpableMixin')?.kind).toBe('protocol');
+    expect(Array.isArray(byName.get('DipBathMixin')?.verbs)).toBe(true);
+    // A noun mixin is still a mixin, and carries no verbs.
+    expect(byName.get('StackableMixin')?.kind).toBe('mixin');
+    expect(byName.get('StackableMixin')?.verbs).toBeUndefined();
+  });
+
+  it('answers who composes a protocol, and leaves non-protocols out', () => {
+    const out = StudioApi.answerersOf(['DipBathMixin', 'VisibleMixin']);
+    expect(out.map((a) => a.mixin)).toEqual(['DipBathMixin']);
+    // The kernel's glaze tub composes it directly.
+    expect(out[0]!.composers).toContain('GlazeTub');
+  });
+
+  it('follows a protocol nested in another mixin and a same-file base binding', () => {
+    // `BurnerMixin`'s factory nests `PumpableMixin`; `Lamp` composes
+    // Burner inline and `Firebox` through `const FireboxBase = …`.
+    const [pumpable] = StudioApi.answerersOf(['PumpableMixin']);
+    expect(pumpable?.composers).toContain('Lamp');
+    expect(pumpable?.composers).toContain('Firebox');
   });
 });
 

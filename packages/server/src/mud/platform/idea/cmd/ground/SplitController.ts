@@ -18,21 +18,26 @@
  * nothing left — this file names no product and no material.
  */
 
-import { WorkedActController, type WorkedActModel } from './WorkedActController';
+import { WorkedActController, type WorkedActModel, type WorkWords } from './WorkedActController';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
-import type { Splittable, Workable } from '../../../../lib/ground/Workable';
+import type { SplitBegin, SplitDone, SplitRefusal } from '../../../../lib/ground/Workable';
+import type { Splittable } from '../../../../lib/ground/Splittable';
+import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
 
-export default class SplitController extends WorkedActController {
+type Composed = ReturnType<typeof Mml.compose>;
+
+export default class SplitController extends WorkedActController<SplitBegin, SplitDone, SplitRefusal> {
   protected async subjectOf(
     model: WorkedActModel,
     _giver: Stuff,
-  ): Promise<Workable | null> {
+  ): Promise<(Stuff & Splittable) | null> {
     // ⚠ Only the bound target, and no room fallback: `split` with nothing
     // named is a question, not an act on your surroundings. `dig` has a
     // ladder because the ground under you is always a candidate; there is
     // no ambient thing to divide.
-    return asSplittable(model.target?.stuff ?? null);
+    const stuff = model.target?.stuff ?? null;
+    return stuff !== null && MixinApi.isSplittable(stuff) ? stuff : null;
   }
 
   protected nothingHere(model: WorkedActModel): ReturnType<typeof Mml.compose> {
@@ -50,14 +55,87 @@ export default class SplitController extends WorkedActController {
   protected nothingHereReason(): string {
     return 'not-splittable';
   }
+
+  /** ⭐ `split`'s words (D4) — what the thing being divided answered. */
+  protected workWords(giver: Stuff, subject: Stuff): WorkWords<SplitBegin, SplitDone, SplitRefusal> {
+    return {
+      beginSelf: (b) => {
+        switch (b.kind) {
+          case 'colony':
+            return Mml.compose`You start going through the frames, looking for brood and eggs to take across.`;
+          case 'cheese':
+            return Mml.compose`You set the blade at the centre and lean on it.`;
+          case 'stone':
+            return Mml.compose`You set the wedge, find the grain, and start working a piece off it.`;
+          default: {
+            const never: never = b.kind;
+            return never;
+          }
+        }
+      },
+      beginPeers: (b) =>
+        b.kind === 'colony'
+          ? Mml.compose`${Mml.actor(giver)} is working slowly through an open hive.`
+          : b.kind === 'cheese'
+            ? Mml.compose`${Mml.actor(giver)} starts cutting into a wheel of cheese.`
+            : Mml.compose`Somebody starts splitting a block of stone.`,
+      onRefused: (out) => splitRefusal(out, subject),
+      onDone: (d) => {
+        switch (d.kind) {
+          case 'colony':
+            return {
+              self: Mml.compose`You lift four frames of brood and bees across into a box of their own. They have no queen; they will have to make one.`,
+              peers: Mml.compose`Somebody divides a hive into two.`,
+            };
+          case 'cheese':
+            return {
+              self: d.last
+                ? Mml.compose`The last wedge comes away — ${d.wedge}.`
+                : Mml.compose`A wedge comes away clean — ${d.wedge}.`,
+            };
+          case 'stone': {
+            const tail = d.last ? ' That is the last of it; what is left would not build anything.' : '';
+            return {
+              self:
+                d.piece === null
+                  ? Mml.compose`A piece comes away.${tail}`
+                  : Mml.compose`A piece comes away clean — ${d.piece}.${tail}`,
+            };
+          }
+          default: {
+            const never: never = d;
+            return never;
+          }
+        }
+      },
+    };
+  }
 }
 
-/** Narrow to the declared {@link Splittable} shape. See `DigController`. */
-function asSplittable(stuff: Stuff | null): (Stuff & Splittable) | null {
-  if (stuff === null) return null;
-  const candidate = stuff as unknown as Partial<Splittable>;
-  if (candidate.splittable !== true) return null;
-  if (typeof candidate.planWork !== 'function') return null;
-  if (typeof candidate.completeWork !== 'function') return null;
-  return stuff as Stuff & Splittable;
+/** ⭐ The words for a refused split — every reason, exhaustively. */
+function splitRefusal(out: SplitRefusal, subject: Stuff): Composed {
+  switch (out.reason) {
+    case 'not-splittable':
+      return Mml.compose`${subject.getPresentation()} does not come apart like that.`;
+    case 'no-colony':
+      return Mml.compose`There are no bees in it to divide.`;
+    case 'no-queen':
+      return Mml.compose`They have no queen as it is. Splitting them would leave you two halves of nothing.`;
+    case 'too-weak':
+      return Mml.compose`There is not enough of them to make two.`;
+    case 'wheel-spent':
+      return Mml.compose`There is nothing left of it to cut.`;
+    case 'no-edge':
+      return Mml.compose`You want an edge for that — a knife, or a wire.`;
+    case 'wedge-failed':
+      return Mml.compose`It will not come apart cleanly.`;
+    case 'block-spent':
+      return Mml.compose`There is nothing left in it worth splitting — only rubble.`;
+    case 'no-striker':
+      return Mml.compose`Not with your hands. You want something to strike it with — a sledge, or the back of a pick.`;
+    default: {
+      const never: never = out;
+      return never;
+    }
+  }
 }

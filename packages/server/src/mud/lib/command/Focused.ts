@@ -11,7 +11,7 @@
  *   - **Active focus fragment**, defaults to `"here"`. The dispatcher
  *     reads it via `$focus` expansion as the search anchor for verbs
  *     whose YAML opts in (`scope: ['$focus', ...]`); inspection-
- *     shaped commands (`look`, `examine`, `open`, `close`) update it
+ *     shaped commands (`look`, `open`, `close`) update it
  *     post-resolve via the drill-trail rule. Movement
  *     (`Mobile.traverse` / `teleport`) clears it before the
  *     auto-look-on-arrival.
@@ -64,7 +64,7 @@ export interface Focused {
    * Read the giver's active focus fragment — the persisted MQL
    * scope state. Surfaced to verbs via the `$focus` synthetic var
    * inside YAML `scope:` and `default:` declarations. Defaults to
-   * `"here"`. Inspection-shaped commands (`look`, `examine`, …)
+   * `"here"`. Inspection-shaped commands (`look`, `open`, …)
    * update focus post-resolve via the dispatcher's drill-trail
    * rule; the `focus` command sets it explicitly.
    */

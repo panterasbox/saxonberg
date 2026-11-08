@@ -1,4 +1,5 @@
 verbs: [glaze]
+category: glass
 controller: /trade/glass/idea/cmd/glass/GlazeController
 description: "Set a glass pane in a window"
 help: |
@@ -19,5 +20,5 @@ args:
     type: object
     required: true
     prepositions: [in, into]
-    scope: ["reachable"]
+    scope: ["here", "peers", "person"]
     requires: any

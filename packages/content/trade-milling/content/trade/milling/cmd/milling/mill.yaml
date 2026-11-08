@@ -1,4 +1,4 @@
-# ⭐⭐⭐ **`grind` is an ALIAS, not a second verb**, and that is the point.
+# ⭐⭐⭐ **Grinding is not a second verb**, and that is the point.
 # It shipped as its own verb for one build on the argument that milling
 # grain has a decision in it (how much of the coat you keep) and grinding
 # bone does not. True — and not enough: they are the same act on the same
@@ -6,19 +6,18 @@
 # and its FIRST rung is *unify behind an interface*. A trade does not get
 # a second verb because one of its inputs has no dial.
 #
-# ⚠ `mill` is the survivor rather than `grind` for three reasons, in
+# ⚠ `mill` is the word rather than *grind* for three reasons, in
 # order: the trade, the Discipline and the instrument are all *mill* (a
 # quern IS a hand-mill); `mill` carries the extraction dial, which is the
-# pedagogically rich half and the thing lens 1 cares about; and a player
-# reaching for *grind* still gets it. Precedent for the alias:
-# `pick`→`harvest`, `examine`→`look`.
-verbs: [mill, grind]
+# pedagogically rich half and the thing lens 1 cares about. (One view,
+# one word — D16.)
+verbs: [mill]
+category: milling
 controller: /trade/milling/idea/cmd/milling/MillController
 description: "Grind grain or malt, and choose how much of it you keep"
 help: |
   `mill wheat` grinds it at whatever stones are in reach, at their usual
-  setting. `grind` is the same verb — reach for whichever word fits what
-  you are putting through. `mill wheat 0.9` sets the extraction first.
+  setting. `mill wheat 0.9` sets the extraction first.
   Where there is more than one — a quern in your hands and a mill in the
   room — say which: `mill wheat at the quern`.
 
@@ -77,7 +76,7 @@ validators:
 args:
   # ⚠ Named `grain` for the arm that reads it that way; the non-grain arm
   # takes the same object and matches a recipe from its MATERIAL, so
-  # `grind the bone` binds here too and nobody has to know a recipe id.
+  # `mill the bone` binds here too and nobody has to know a recipe id.
   - name: grain
     type: object
     required: true
@@ -123,5 +122,5 @@ args:
     greedy: true
     prepositions: [at, with, on]
     default: "reachable:[mixin.ComminutingMixin]"
-    scope: ["reachable"]
+    scope: ["here", "peers", "person"]
     requires: [ComminutingMixin]

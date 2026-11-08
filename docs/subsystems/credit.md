@@ -60,14 +60,14 @@ ledger** — nobody judges.
 
 | rung | who lends | secured by | the gate | the verb |
 |---|---|---|---|---|
-| **0 · supplier terms** | the supplier | the goods — title stays the supplier's until sale | none | `consign … --ask <price>` at a counter whose `purchasing` is `terms` |
+| **0 · supplier terms** | the supplier | the goods — title stays the supplier's until sale | none | `shelf consign … --ask <price>` at a counter whose `purchasing` is `terms` |
 | **1 · inventory finance** | a chartered bank, funded at the window | the goods, with the bank's lien on the pledged counter | `reserve.ladder.termsRequired` **completed purchases**, no defaulted loan *still owed* | `bank borrow <n> --for stock` |
 | **2 · working capital** | a chartered bank, from its own balance | unsecured, capped at `reserve.ladder.workingCapitalCap` | `reserve.ladder.loansRequired` rung-1 loans repaid, no default still owed | `bank borrow <n> --for wages`, or the wage seam's automatic draw |
 
 ### Rung 0 is consignment grown up
 
 `Stock.purchasing` (`consignment` | `terms`, the counter's authored
-policy) decides what a `consign` at that counter MEANS. At a `terms`
+policy) decides what a `shelf consign` at that counter MEANS. At a `terms`
 counter the consignor's `--ask` is the **price** — what they are owed at
 sale — and the **shop sets the ask** (`Stock.priceFor`: a `stocking`
 line's rule, or `house price <thing> <ask>`, or the supplier's price ×
@@ -75,7 +75,7 @@ line's rule, or `house price <thing> <ask>`, or the supplier's price ×
 **twice**, one command: the buyer pays the shop's ask (`sales`), then
 the shop pays its supplier (`payment`, category `terms`). `look` at the
 crate says whose it still is — *held on the farm outfit's terms until
-sold; the shop asks eight zorkmids* — and `reclaim` lets the supplier's
+sold; the shop asks eight zorkmids* — and `shelf reclaim` lets the supplier's
 hand take an unpaid crate back off a shop's counter: rung 0's
 repossession is a query over who owns it. `house book` lists the terms
 payable per supplier (Σ over unsold terms listings): nothing is owed

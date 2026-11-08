@@ -1,4 +1,5 @@
-verbs: [dose, administer]
+verbs: [dose]
+category: medical
 controller: /platform/idea/cmd/medical/DoseController
 description: "Give a body an antidote or administer a prescribed active from a vial"
 help: |
@@ -22,7 +23,7 @@ args:
     requires: VitalsMixin
   # Bare default: every reachable vessel; the controller keeps the first
   # whose matter names an `antidote:<toxin>` tag — the CONTENTS, which no
-  # predicate can ask (`lint:instrument-args`).
+  # predicate can ask (`lint:controller-resolution`).
   - name: with
     type: object
     required: false
@@ -33,7 +34,7 @@ args:
   # ⭐ D9 — the prescription slip(s) the giver holds. The BINDER resolves
   # every reachable slip; the controller keeps the one that `isFor` this
   # patient + active (the 5-rights match — state no predicate can ask).
-  # Auto-bound (a default), so `administer patient with vial` needs no
+  # Auto-bound (a default), so `dose patient with vial` needs no
   # naming; only controlled actives read it.
   - name: prescription
     type: objects

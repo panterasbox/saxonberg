@@ -48,6 +48,7 @@ import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { CommandContributions } from '../../api/command';
 import type { MarkupAugmenter } from '../../api/mml';
 import { Mml } from '../../api/mml';
+import { PumpableMixin } from '../pump/Pumpable';
 import type { Pumpable, PumpPrognosis, PumpResult } from '../pump/Pumpable';
 import type { Stuff } from '../stuff/Stuff';
 import type { Thermal } from '../thermal/Thermal';
@@ -397,7 +398,9 @@ const BANKED_LOOK_THRESHOLD = 0.1;
 export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
   Base: TBase,
 ) {
-  class BurnerMixin extends Base implements Burner {
+  // ⭐ Composes the pump PROTOCOL (`PumpableMixin`): a furnace's bellows
+  // answers `pump`, and a lamp's honest `no-bellows` is this override.
+  class BurnerMixin extends PumpableMixin(Base) implements Burner {
     static _mixinName = 'BurnerMixin';
 
     static markupAugmenters: MarkupAugmenter[] = [burnerAugmenter];
@@ -433,14 +436,14 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
       // holding, and all three would have died at the affordance link
       // in exactly the same silence.
       environment: [
-        'platform/cmd/device/ignite.yaml',
+        'platform/cmd/device/light.yaml',
         'platform/cmd/device/douse.yaml',
         'platform/cmd/device/stoke.yaml',
         'platform/cmd/device/draught.yaml',
         'platform/cmd/device/cover.yaml',
       ],
       peers: [
-        'platform/cmd/device/ignite.yaml',
+        'platform/cmd/device/light.yaml',
         'platform/cmd/device/douse.yaml',
         'platform/cmd/device/stoke.yaml',
         'platform/cmd/device/draught.yaml',
@@ -1581,7 +1584,7 @@ export function BurnerMixin<TBase extends MixinConstructor<Stuff>>(
 
     // -------- the combustion face (forwards into FireLogic) --------
 
-    /** Light the furnace (the `ignite` verb's appliance arm). Sealed —
+    /** Light the furnace (the `light` verb's appliance arm). Sealed —
      * the combustion driver is the one writer of lit state. */
     @Final
     @Unshadowable

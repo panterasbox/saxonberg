@@ -6,7 +6,7 @@ class: /trade/sericulture/thing/EggLot
 extends: /trade/sericulture/thing/egg-lot
 data:
   shortDescription: card of valley silkworm eggs
-  keywords: [eggs, "egg lot", lot, card, seed, silkworm, valley, "silkworm eggs", "valley silkworm eggs", "card of valley silkworm eggs"]
+  keywords: [eggs, "egg lot", lot, card, seed, valley, "silkworm eggs", "valley silkworm eggs", "card of valley silkworm eggs"]
   _strainPath: /trade/sericulture/idea/strain/valley-gold
   laidWhere: in the silk house at Hearts Delight
   wintered: true

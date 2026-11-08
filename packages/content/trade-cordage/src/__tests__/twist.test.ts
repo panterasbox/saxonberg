@@ -8,7 +8,11 @@
 
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import RopeJack from '../thing/RopeJack';
+import RopeJack, { type TwistPlan } from '../thing/RopeJack';
+import TwistController from '../idea/cmd/cordage/TwistController';
+import { MessageApi } from '@saxonberg/server/mud/api/message';
+import { CommandApi } from '@saxonberg/server/mud/api/command';
+import { CommandDefinition } from '@saxonberg/server/mud/lib/command/CommandDefinition';
 import TextileStock from '@saxonberg/content-trade-textiles/src/thing/TextileStock';
 import Rope from '@saxonberg/server/mud/platform/thing/Rope';
 import Location from '@saxonberg/server/mud/platform/location/Location';
@@ -18,7 +22,6 @@ import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import type { ActPlan } from '@saxonberg/server/mud/lib/craft/ActPlan';
 import { Grade } from '@saxonberg/server/mud/lib/craft/Grade';
 import { makeStuff, makeStuffAtPath, seedKernelContentStore } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
@@ -72,11 +75,11 @@ function yarn(who: Body, skeins: number): TextileStock {
   return y;
 }
 
-async function run(pending: ReturnType<RopeJack['twistPlan']>): Promise<ActPlan> {
+async function run(pending: ReturnType<RopeJack['twistPlan']>): Promise<TwistPlan> {
   const plan = await pending;
-  expect(plan.ok).toBe(true);
-  await (plan as ActPlan).onComplete();
-  return plan as ActPlan;
+  if (!plan.ok) throw new Error(`the twist refused: ${plan.reason}`);
+  await plan.onComplete();
+  return plan;
 }
 
 describe('twist at the walk (cordage D5)', () => {
@@ -116,8 +119,36 @@ describe('twist at the walk (cordage D5)', () => {
     const { jack, who } = walk(300);
     const y = yarn(who, 30);
     const out = await jack.twistPlan(who as unknown as Stuff, [y as unknown as Stuff], { yarns: 40, length: '400 m', mark: null });
-    expect(out).toMatchObject({ ok: false, reason: 'longer-than-walk' });
-    expect(JSON.stringify(out)).toMatch(/The walk is 300 m long; a rope cannot be laid longer than it/);
+    expect(out).toMatchObject({ ok: false, reason: 'longer-than-walk', facts: { walkM: 300 } });
+  });
+
+  it('⭐ the controller says why, in its own words (controllers-are-io D4)', async () => {
+    const { room, jack, who } = walk(300);
+    const y = yarn(who, 30);
+    const said: string[] = [];
+    const chain = {
+      topic: () => chain,
+      toSelf: (m: unknown) => (said.push(String(m)), chain),
+      toPeers: () => chain,
+      send: () => undefined,
+    };
+    vi.spyOn(MessageApi, 'scene').mockReturnValue(chain as never);
+    const context = CommandApi.createCommandContext({
+      commandGiver: who as never,
+      location: room as never,
+      commandSource: who as never,
+      commandText: 'twist yarn --length 400',
+      executionId: 't',
+      commandId: 't',
+      verb: 'twist',
+      command: CommandDefinition.fromYaml('verbs: [twist]\ncontroller: NoopController\ndescription: stub\n', '<test>'),
+    });
+    await makeStuff(() => new TwistController()).execute(
+      { stock: { stuff: [y as unknown as Stuff] }, jack: { stuff: jack as unknown as Stuff }, length: '400 m' } as never,
+      context,
+    );
+    expect(said.join(' ')).toMatch(/The walk is 300 m long; a rope cannot be laid longer than it/);
+    expect(context.getNotes().some((n) => n.kind === 'controller-rejected')).toBe(true);
   });
 
   it('too little yarn, or fewer than three strands, is refused in words', async () => {
@@ -161,8 +192,9 @@ describe('twist at the walk (cordage D5)', () => {
     ContainmentApi.move(mate as never, room as never);
     jack._setWheelHand(mate as unknown as Stuff);
     const crewed = await jack.twistPlan(actor, [y as unknown as Stuff], { yarns: 40, length: '20', mark: null });
-    expect((alone as ActPlan).durationMs).toBe((crewed as ActPlan).durationMs * 2);
+    if (!alone.ok || !crewed.ok) throw new Error('refused');
+    expect(alone.durationMs).toBe(crewed.durationMs * 2);
     // Real work: twenty meters of a forty-yarn strand is a long while.
-    expect((crewed as ActPlan).durationMs).toBeGreaterThanOrEqual(20 * 40_000);
+    expect(crewed.durationMs).toBeGreaterThanOrEqual(20 * 40_000);
   });
 });

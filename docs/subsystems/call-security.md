@@ -1105,7 +1105,7 @@ OO sweep this is the DEFAULT posture for a moved verb — see the
 three-way gate rule in
 [antipatterns.md § A subject-first Api static](../antipatterns.md):
 participant contract, else the logic-side
-`FromMixin(<host>, where caller === subject)` widen, else
+`AllOf(FromMixin(<host>), SelfSubject(n))` widen, else
 ungated + sealed when the writers span packs.
 
 > ⚠ **The identity-path rule** (recorded for a future `FromIdentity`
@@ -1147,12 +1147,30 @@ the gate prevents is calling the logic *as an object you are not*; the
 "who initiates" question is answered only where participant contracts or
 controller-side checks remain. ⚠ And `FromMixin` matches the `_mixinName`
 marker, which a pack class can simply declare — unlike `FromTemplate`,
-which reads the hard-private `#templatePath` stamp. The spoof is bounded
-by the self-subject `where` (a marker-claiming class can only act on
-ITSELF), which is the interface-openness future in embryo; the
-call-security pass should either bless it or re-anchor the widens on
-`FromTemplate`/`FromClass` where the host set is enumerable (graduated
-from the call-security-pass slate, 2026-09).
+which reads the hard-private `#templatePath` stamp, or `FromModule`, whose
+module id the loader stamps.
+
+⭐ **The marker is not blessed (controllers-are-io D25).** The hand-copied
+self-subject clauses are `SecurityPolicies.SelfSubject(argIndex)` now — a
+policy in its own right, composed `AllOf(<identity>, SelfSubject(n))`, and
+`AllOf` **short-circuits in order** so a relational half may assume what the
+identity half proved. Each widen was then judged by one question: *does the
+subject bound the spoof?* A self-subject bounds a claim of "act as yourself"
+only when the logic asks nothing of the caller that a forger could answer
+for someone else. ⚠ So a `where` that reads the caller's OWN method
+(`getIdentityPath`, `getDurableHandle`) bounds nothing, and neither does a
+subject whose methods the logic trusts about third parties:
+
+| verdict | sites | why |
+|---|---|---|
+| **re-anchored** (`FromModule(<class>, {includeSubclasses})`) | Bank (`BankCounter`) · Organization ×3 (`Business`, `Organization`; `Employed`'s key write) · Voyaging ×2 (`Ship`; `ShipRegister`'s entry, the berth transport) | money or a durable record is decided on what the caller says about itself: a vault that keeps your coin, an identity path that names a real employer, another ship's handle |
+| **bounded by a new relation** | `FireLogic.emitExhaust` — the room ENCLOSES the burner; `MadeFrom.recordMadeBy` — the good is unplaced (only its minter holds it) | a non-self subject, so no self-subject applies |
+| **unbounded on purpose** | `FireLogic.tooWetToCatch`/`wetPenaltyK` | a pure read; the marker buys only an answer |
+| **marker kept, self-subject bounds it** | open host sets across packs: Chattel, Stackable, Arcane, Charged, Wieldable, Slotted, Energized, Combustible, Burner, Registrar; and enumerable sets where it acts only as itself (⚠ deliberately not re-anchored: 160+ test fixtures compose these over a bare base): NotifyPolicy ×3, SubjectSubscriber ×3, HasInteractive, PartyMember, Caster, Employed, Combatant ×2 | a forger can do to itself what the face lets a host do to itself, and nothing to anybody else |
+| **marker kept, its own relation bounds it** | `Exit`'s `ByPartyRoom` (the caller is an endpoint of the exit being bound) | the bound is on the arguments, compared by identity |
+
+`FromIdentity`, the audit rail and the full pass remain the call-security
+pass's.
 
 ### Async `allows`
 

@@ -1,5 +1,5 @@
 /**
- * BoreController — `bore` (alias `drill`), and it is **two acts wearing
+ * BoreController — `bore`, and it is **two acts wearing
  * one verb** on purpose.
  *
  * With no hole in the room, `bore` **sites** one: it commits a wellhead

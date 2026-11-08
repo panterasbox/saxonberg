@@ -9,7 +9,7 @@ import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { Creature } from '../creature/Creature';
 import { Quantity } from '../quantity';
-import { BIOLOGICAL_RESERVE_KEYS, Reserve } from '../reserve';
+import { BIOLOGICAL_RESERVE_KEYS, Reserve } from '../reserve/Reserved';
 import { StuffApi } from '../../api/stuff';
 import { makeStuff } from '../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../persistence/__tests__/quantity-marshaller-test-helpers';

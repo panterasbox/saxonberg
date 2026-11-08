@@ -32,7 +32,7 @@ import Good from '../../lib/stuff/Good';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
 import { CraftedMixin } from '../../lib/craft/Crafted';
 import { ServiceableMixin } from '../../lib/craft/Serviceable';
-import { CutleryMixin } from '../../lib/bulk/Utensil';
+import { CutleryMixin } from '../../lib/bulk/Cutlery';
 
 // Crafted, because a spoon is made by somebody and carries their mark and
 // its grade — the carver is a roster gap, not a reason to drop the stamp.

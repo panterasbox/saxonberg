@@ -46,7 +46,7 @@ import { Quantity } from '../quantity';
 import { Paint } from '../material/Paint';
 import { PerceptionApi } from '../../api/perception';
 import type { MarkupAugmenter } from '../../api/mml';
-import { RecipeKnowledge } from '../script/RecipeKnowledge';
+import { RecipeKnowledge } from '../craft/RecipeKnowledge';
 import type { EditionTeaching } from '../document/Edition';
 
 /** Litres of ink a written character takes (a dip pen's charge writes ~100). */

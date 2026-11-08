@@ -327,14 +327,13 @@ export default class WaterStore extends WaterStoreBase implements WaterSupply {
   }
 
   /**
-   * Sideways: anyone standing at a butt can wash, scrub, rinse and cool at
-   * it, exactly as at a basin — it is water in reach (the `WaterFixture`
-   * bucket, the same four views).
+   * Sideways: anyone standing at a butt can wash, rinse and cool at it,
+   * exactly as at a basin — it is water in reach (the `WaterFixture`
+   * bucket, the same three views).
    */
   static commandContributions: CommandContributions = {
     peers: [
       'platform/cmd/crafting/wash.yaml',
-      'platform/cmd/crafting/scrub.yaml',
       'platform/cmd/medical/rinse.yaml',
       'platform/cmd/medical/cool.yaml',
     ],

@@ -17,6 +17,7 @@
  *     nothing else.**
  */
 
+import { PoweredMixin } from '../../supply/Powered';
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { StuffApi } from '../../../api/stuff';
@@ -134,8 +135,13 @@ function packing(): Tool {
   return t;
 }
 
-function pump(mechanism: string, liftM: number, withPacking = true): Pump {
-  const p = makeStuff(() => new Pump());
+function pump(
+  mechanism: string,
+  liftM: number,
+  withPacking = true,
+  Cls: new () => Pump = Pump,
+): Pump {
+  const p = makeStuff(() => new Cls());
   p.setShortDescription(mechanism === FORCE ? 'force pump' : 'hand pump');
   p.mechanism = mechanism;
   p.setLiftM(liftM);
@@ -353,7 +359,8 @@ describe('the two vetoes narrow CONTENTS', () => {
 describe('⭐ the machine rung — power-limited, and wear INTEGRATED', () => {
   /** A pump with a fake supply: on, powered at `watts`, cut over a window. */
   function poweredPump(watts: number, cut: [number, number] | null = null): Pump {
-    const p = pump(FORCE, 30);
+    // Composes the protocol; the supply's answers are stubbed.
+    const p = pump(FORCE, 30, true, PoweredMixin(Pump) as unknown as new () => Pump);
     p.setThroughputLps(1200);
     const host = p as unknown as Record<string, unknown>;
     host.availablePowerW = () => watts;

@@ -18,6 +18,9 @@ import { CraftingApi, NOBODY_TO_WORK } from '../../../../../api/crafting';
 import type { Fault, RepairOutcome, DiagnoseOutcome } from '../../../../../api/crafting';
 import { MessageApi } from '../../../../../api/message';
 import { MqlApi } from '../../../../../api/mql';
+import { PricedOfferMixin } from '../../../../../lib/commerce/PricedOffer';
+import { WashPolicy } from '../../../../../lib/cleanliness/WashPolicy';
+import Garment from '../../../../thing/equipment/Garment';
 import { BankingApi } from '../../../../../api/banking';
 import { StuffApi } from '../../../../../api/stuff';
 import { Character } from '../../../../../lib/character/Character';
@@ -62,21 +65,30 @@ const fault = (over: Partial<Fault>): Fault => ({
 });
 
 function ctx(giver: Stuff, answer: boolean | null): CommandContext {
+  const interactive =
+    answer === null ? undefined : { promptConfirm: vi.fn(async () => answer) };
+  const note = (n: { kind: string; reason?: string }) => notes.push(n);
   return {
     commandGiver: giver,
     location: null,
-    note: (n: { kind: string; reason?: string }) => notes.push(n),
-    interactive:
-      answer === null ? undefined : { promptConfirm: vi.fn(async () => answer) },
+    note,
+    interactive,
+    // The real guard's shape (D23): nobody to ask → `needs-input`.
+    requireInteractive: (what: string) => {
+      if (interactive) return interactive;
+      note({ kind: 'command-rejected', reason: 'needs-input', detail: `order needs ${what} when run from a script` } as never);
+      return null;
+    },
   } as unknown as CommandContext;
 }
 
 async function order(t: Tariff, giver: Stuff, answer: boolean | null): Promise<void> {
   await makeStuff(() => new OrderController()).execute(
     {
-      counter: { stuff: t } as unknown as MqlOneResult,
+      counter: { stuff: [t], raw: '' },
       menu: undefined,
-      cocktail: 'repair pick',
+      cocktail: 'repair',
+      subject: { stuff: pick, raw: 'pick' } as MqlOneResult,
       brand: undefined,
     } as never,
     ctx(giver, answer),
@@ -179,6 +191,8 @@ describe('order repair — the paid mend', () => {
     vi.spyOn(t, 'canSettle').mockReturnValue(true);
     await order(t, giver, null);
     expect(repair).not.toHaveBeenCalled();
+    // ⭐ Fails CLOSED and names the answer it needed (D23).
+    expect(notes.some((n) => n.reason === 'needs-input')).toBe(true);
     vi.spyOn(t, 'canSettle').mockReturnValue(false);
     await order(t, giver, true);
     expect(repair).not.toHaveBeenCalled();
@@ -216,3 +230,56 @@ describe('Tariff.quoteFor — a quote by diagnosis', () => {
     expect(q.total).toBe(18);
   });
 });
+
+describe('⭐ the board decides (controllers-are-io D11)', () => {
+  it('a thing that only prices takes no orders: the mixin default refuses', async () => {
+    class Shelf extends PricedOfferMixin(Idea) {}
+    const shelf = makeStuff(() => new Shelf());
+    expect(shelf.offersOrder('repair')).toBe(false);
+    await expect(
+      shelf.orderPlanFor({ by: giver, phrase: 'repair', key: 'repair', subject: null, location: null }),
+    ).resolves.toMatchObject({ ok: false, reason: 'not-offered' });
+  });
+
+  it('two boards in one room: the one that takes the word, and nobody is asked', async () => {
+    const other = makeStuff(() => new Tariff());
+    other.setPrice("wash", 2);
+    const t = slate();
+    expect(other.offersOrder('repair')).toBe(false);
+    expect(t.offersOrder('repair')).toBe(true);
+    const context = ctx(giver, true);
+    vi.spyOn(CraftingApi, 'fulfillingHand').mockResolvedValue(berta);
+    vi.spyOn(t, 'canSettle').mockReturnValue(true);
+    vi.spyOn(CraftingApi, 'diagnose').mockResolvedValue({
+      ok: true, item: pick, hand: berta, faults: [fault({})],
+    } as DiagnoseOutcome);
+    vi.spyOn(CraftingApi, 'repair').mockResolvedValue({ ok: true, mended: [] } as never);
+    vi.spyOn(t, 'collectMinor').mockResolvedValue({ paid: false, note: null });
+    await makeStuff(() => new OrderController()).execute(
+      {
+        counter: { stuff: [other, t], raw: '' },
+        cocktail: 'repair',
+        subject: { stuff: pick, raw: 'pick' } as MqlOneResult,
+      } as never,
+      context,
+    );
+    expect(notes.map((n) => n.reason)).not.toContain('needs-input-choice');
+    expect(lines.join(' ')).toMatch(/looks it over/);
+  });
+
+  it('⚠ a hot wash that shrinks a thing a little is no ruin (the before-record, 12c)', async () => {
+    const g = makeStuff(() => new Garment());
+    vi.spyOn(g as unknown as { washSite: () => unknown }, 'washSite').mockReturnValue({
+      band: 'clean',
+      damage: ['shrunk'],
+    });
+    const out = await g.launderBy(new WashPolicy('novice'), {
+      hand: berta,
+      customer: giver,
+      hardnessDgh: 0,
+      cleansers: [],
+    });
+    expect(out.ruined).toEqual([]);
+  });
+});
+

@@ -1,4 +1,5 @@
 verbs: [study]
+category: magic
 controller: /system/arcana/idea/cmd/magic/StudyController
 description: "Take a working on board from a spellbook, or sharpen one you hold"
 help: |

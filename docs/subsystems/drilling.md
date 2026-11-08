@@ -145,7 +145,7 @@ headAtm(now) = headAtm0 × (1 − Σdrawn / capacity)
 withdrawal lives in a register rather than on the hole: two owners who
 have never met watch the same gauge fall. `measure head` is the only
 instrument that reports it, **nothing in the trade announces a decline**,
-and `dismiss` is the only thing that stops the meter. That decision is
+and `house dismiss` is the only thing that stops the meter. That decision is
 the content.
 
 ### Withdrawal — `body` documents
@@ -199,7 +199,7 @@ hole gets deeper**. The crew is the mechanism by which *depth costs money
 over time* rather than *depth costs a click*.
 
 ⭐ So NPCs satisfy it completely, and that is the correct answer rather
-than a concession. A player who wants to be on a crew `apply`s and
+than a concession. A player who wants to be on a crew `job apply`s and
 `clock on` like any other job, gets the same wage and counts for the same
 swings, because the engine measures who is standing at the rig and never
 asks who is behind the eyes. ⚠ That sentence is only true because the
@@ -276,17 +276,18 @@ before they dug it. Only one of those is a public record.
 
 | verb | what it does | afforded by |
 |---|---|---|
-| `bore` (`drill`) | sites a hole and raises a rig, or swings the beam | the bailer (`environment`), the derrick (`peers`) |
+| `bore` | sites a hole and raises a rig, or swings the beam | the bailer (`environment`), the derrick (`peers`) |
 | `bail` | lifts what is standing, and clears the hole so it can go deeper | the same |
 | `line` | runs tube down so the hole will hold | the same |
 
-⭐⭐ **Three verbs, and the trade ships NO employment verb.** `hire` and
-`dismiss` were this pack's for one build and should never have been:
+⭐⭐ **Three verbs, and the trade ships NO employment verb.** `house appoint` and
+`house dismiss` were this pack's for one build and should never have been:
 taking somebody on and letting them go are the employment subsystem's
 acts, every house in the realm needs them, and the kernel had the methods
-(`OrganizationMixin.appoint` / `.dismiss`) the whole time. `hire` is an
-alias on the kernel's `appoint` now and `dismiss` is a kernel verb, so
-both are core and need no affordance — which is why the table above is
+(`OrganizationMixin.appoint` / `.dismiss`) the whole time. They are the house's
+transactions now — `house appoint` / `house dismiss` (controllers-are-io
+W7; the `hire` alias went with the flat verb) — so both are core and need
+no rig's affordance — which is why the table above is
 the three acts that genuinely need a derrick standing over a hole. See
 [employment.md](./employment.md) § Appointment and § Dismissal.
 
@@ -425,7 +426,7 @@ see the slate's tail.
 - [fractionation.md](./fractionation.md) — the cut, and now the column
 - [bulk.md](./bulk.md) — the four policy seams, and the gas that escapes
 - [fire.md](./fire.md) — the burner, and the coupled fuel vessel
-- [employment.md](./employment.md) — the roster, the wage, and ⭐ the KERNEL's `appoint` (alias `hire`) / `dismiss`, which this trade deliberately ships none of its own version of
+- [employment.md](./employment.md) — the roster, the wage, and ⭐ the KERNEL's `house appoint` / `house dismiss`, which this trade deliberately ships none of its own version of
 - [activity.md](./activity.md) — why a bore may not be an engagement
 
 ## The pump build (2026-10-09) — the attach point, consumed

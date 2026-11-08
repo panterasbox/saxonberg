@@ -222,6 +222,19 @@ const SWEEP_INTERVAL_MS = 30_000;
 
 const CardRegistryBase = Idea;
 
+/**
+ * A card's prose is one synchronous READ: a room's description names everything
+ * in it, and without a hold each name walked the light (controllers-are-io D27).
+ */
+function steadyProse(prose: Mml, holder: Parameters<Mml['toString']>[0]): string {
+  const release = PerceptionApi.holdLightSteady();
+  try {
+    return prose.toString(holder);
+  } finally {
+    release();
+  }
+}
+
 export default class CardRegistry extends CardRegistryBase {
   /** The ONE recurring sweep handle — retained so re-install is a no-op. */
   private sweepHandle: ScheduleHandle | null = null;
@@ -364,7 +377,7 @@ export default class CardRegistry extends CardRegistryBase {
       ...(opts.subjectId ? { subjectId: opts.subjectId } : {}),
       ...(opts.promptId ? { promptId: opts.promptId } : {}),
       ...(opts.prose && !def.noProse
-        ? { prose: opts.prose.toString(holder) }
+        ? { prose: steadyProse(opts.prose, holder) }
         : {}),
     };
 
@@ -857,7 +870,7 @@ export default class CardRegistry extends CardRegistryBase {
     if (opts.subjectId) state.subjectId = opts.subjectId;
     if (opts.promptId) state.promptId = opts.promptId;
     if (opts.prose && !def.noProse && holder) {
-      state.prose = opts.prose.toString(holder);
+      state.prose = steadyProse(opts.prose, holder);
     }
 
     if (!def.live && holder) {

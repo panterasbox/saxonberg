@@ -31,7 +31,7 @@ import { CompetenceBand } from '@saxonberg/server/mud/lib/advancement/Competence
 import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
 import type { CommandContext } from '@saxonberg/server/mud/api/command';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tooled';
+import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tool';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
@@ -133,9 +133,7 @@ export default class GradeReading extends SurveyReading {
     };
     if (typeof lump.getGrade !== 'function') return null;
     const truth = lump.getGrade() * 100;
-    const stamp = (
-      sample as unknown as { getSampling?(): { at: string } | null }
-    ).getSampling?.();
+    const stamp = MixinApi.isSampled(sample) ? sample.getSampling() : null;
     const { centre, halfWidth } = this.observe(
       truth,
       band,
@@ -176,8 +174,8 @@ export default class GradeReading extends SurveyReading {
   ): Promise<{ grade: number; where: string } | null> {
     const lump = subject as unknown as { getGrade?(): number } | null;
     if (lump && typeof lump.getGrade === 'function') {
-      const stamped = (subject as unknown as { getSampling?(): { at: string } | null })
-        .getSampling?.();
+      const stamped =
+        subject !== null && MixinApi.isSampled(subject) ? subject.getSampling() : null;
       return { grade: lump.getGrade(), where: stamped?.at ?? whereOf(giver) };
     }
     const place = this.placeOf(giver);

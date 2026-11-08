@@ -3,6 +3,7 @@
 # later (`content edit …`, `source edit …`, `docs cat …` — command-taxonomy
 # slate); until then this is `edit`.
 verbs: [edit]
+category: shell
 controller: /platform/idea/cmd/shell/WriteController
 description: "Author a content-tree template or source-tree file (uses workspace.tree default; require -c / -s under mirror mode)"
 help: |

@@ -42,15 +42,13 @@ import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import Lump from './Lump';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
-import { Mml } from '@saxonberg/server/mud/api/mml';
-import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { Grade } from '@saxonberg/server/mud/lib/craft/Grade';
 import { FormGrammar, ParsedForm } from '@saxonberg/server/mud/lib/craft/FormSpec';
 import { ShapeableMixin } from '@saxonberg/server/mud/lib/craft/Shapeable';
-import type { ShapeRequest } from '@saxonberg/server/mud/lib/craft/Shapeable';
+import type { BeyondHandRefusal, ShapeFacts, ShapePlan, ShapeRefusal, ShapeRequest } from '@saxonberg/server/mud/lib/craft/Shapeable';
 import type { Formable, FormingHand } from '@saxonberg/server/mud/lib/craft/Forming';
-import type { ActPlan, ActRefusal } from '@saxonberg/server/mud/lib/craft/ActPlan';
+import type { ActDone } from '@saxonberg/server/mud/lib/craft/ActPlan';
 import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
@@ -85,6 +83,9 @@ const GRADE_OF: Readonly<Record<CompetenceBandName, number>> = {
   proficient: 2,
   expert: 3,
 };
+
+/** What `yieldPieces` made — the piece, or why not (the `shape` controller words it). */
+export type PieceYield = { ok: true; made: Stuff } | ShapeRefusal;
 
 /** What `yieldPieces` is told to make. */
 export interface PieceOrder {
@@ -350,17 +351,17 @@ export default class Clay extends ClayBase implements Formable {
    * this clay's material and composition, at this clay's water, made by the
    * actor at the hand's grade, described by its form; `count > 1` mints ONE
    * stack (a day's bricks), as many as the clay allows. The clay is consumed
-   * by mass. Returns the piece, or a refusal line.
+   * by mass. Returns the piece, or a refusal.
    */
-  public async yieldPieces(order: PieceOrder): Promise<Stuff | string> {
+  public async yieldPieces(order: PieceOrder): Promise<PieceYield> {
     const self = this as unknown as Stuff;
     const material = this.getMaterial();
-    if (material === null) return 'There is nothing in it to shape.';
+    if (material === null) return { ok: false, reason: 'no-material' };
     let product: Stuff;
     try {
       product = await StuffApi.clone<Stuff>(order.product, undefined, { madeFrom: [self] });
     } catch {
-      return 'That is not a thing anybody here knows how to make.';
+      return { ok: false, reason: 'unknown-product' };
     }
     const rowMass = MixinApi.isTangible(product) ? product.getMass().rawValue() : 0;
     const each = this.pieceMassKg(order.form, order.hand, rowMass);
@@ -370,7 +371,7 @@ export default class Clay extends ClayBase implements Formable {
     const need = each * count;
     if (!(each > 0) || !(count >= 1)) {
       await StuffApi.destruct(product);
-      return 'There is not enough clay here for that.';
+      return { ok: false, reason: 'not-enough-clay' };
     }
     if (MixinApi.isTangible(product)) {
       product.setMaterial(material);
@@ -455,16 +456,12 @@ export default class Clay extends ClayBase implements Formable {
     await PersistableApi.captureHostOf(product).catch(() => undefined);
     // Last: a heap worked out is destructed.
     this.consumeKg(need);
-    return product;
+    return { ok: true, made: product };
   }
 
   /** The refusal that names the hand's band — the progression, said. */
-  public refuseBeyond(hand: FormingHand): ActRefusal {
-    return {
-      ok: false,
-      reason: 'beyond-your-hand',
-      line: Mml.compose`That is more than your hand can raise yet — a ${hand.band} potter raises a pot of up to ${String(hand.maxL)} litres.`,
-    };
+  public refuseBeyond(hand: FormingHand): BeyondHandRefusal {
+    return { ok: false, reason: 'beyond-your-hand', facts: { band: hand.band, maxL: hand.maxL, maker: 'potter' } };
   }
 
   /** Take `kg` of clay off this heap; a heap worked out is gone. */
@@ -488,21 +485,13 @@ export default class Clay extends ClayBase implements Formable {
    * raise, slowly — the product row is the material's `formTemplates` for
    * the class. Credits pottery.
    */
-  public override async shapePlanFor(req: ShapeRequest): Promise<ActPlan | ActRefusal> {
+  public override async shapePlanFor(req: ShapeRequest): Promise<ShapePlan | ShapeRefusal> {
     const self = this as unknown as Stuff;
     const parsed = new FormGrammar([]).parse(req.formText);
-    if (!(parsed instanceof ParsedForm)) {
-      return { ok: false, reason: parsed.reason, line: Mml.compose`${parsed.line}` };
-    }
+    if (!(parsed instanceof ParsedForm)) return parsed;
     const form = parsed;
     const product = this.getMaterial()?.getFormTemplates()[form.formClass] ?? '';
-    if (product === '') {
-      return {
-        ok: false,
-        reason: 'no-product',
-        line: Mml.compose`You could coil ${Mml.thing(self)} into a shape, but it would be nothing anybody has a name for. Work it on a wheel, or in a mould.`,
-      };
-    }
+    if (product === '') return { ok: false, reason: 'no-product', facts: { coiling: self } };
     const hand = await this.formingHand(req.actor, 'pottery');
     if (form.formClass !== 'block' && form.formClass !== 'flat' && form.capacityL > hand.maxL) {
       return this.refuseBeyond(hand);
@@ -512,13 +501,8 @@ export default class Clay extends ClayBase implements Formable {
       ok: true,
       durationMs: ceramicsDial('ceramics.hand.minutes', 30) * 60_000,
       effortW: 220,
-      beginSelf: Mml.compose`You roll coils of clay between your palms and begin to build them up, ring on ring.`,
-      beginPeers: Mml.compose`${Mml.actor(actor)} coils a pot by hand.`,
-      onComplete: () => {
-        void this.yieldPieces({ actor, form, product, hand, count: 1 }).then((made) =>
-          tellMade(actor, made, 'pottery'),
-        );
-      },
+      facts: { kind: 'coil' },
+      onComplete: async () => coiled(actor, await this.yieldPieces({ actor, form, product, hand, count: 1 }), 'pottery'),
     };
   }
 
@@ -591,21 +575,17 @@ export default class Clay extends ClayBase implements Formable {
 }
 
 /**
- * Say what a hand-shaping made, and credit it. ⚠ A module function, never a
- * method: the clay may be worked out — destructed — by the time it runs.
+ * What a hand-shaping made, credited. ⚠ A module function, never a method:
+ * the clay may be worked out — destructed — by the time it runs.
  */
-async function tellMade(actor: Stuff, made: Stuff | string, discipline: string): Promise<void> {
-  if (actor.isDestroyed()) return;
-  if (typeof made === 'string') {
-    MessageApi.scene(actor).topic('act.deed').toSelf(Mml.compose`${made}`).send();
-    return;
-  }
-  MessageApi.scene(actor)
-    .topic('act.deed')
-    .toSelf(Mml.compose`You have made ${Mml.thing(made)}. It is green — let it dry before anything else.`)
-    .toPeers(Mml.compose`${Mml.actor(actor)} sets down ${Mml.thing(made)}.`)
-    .send();
-  if (MixinApi.isAdvancing(actor) && discipline !== '') {
+async function coiled(
+  actor: Stuff,
+  y: PieceYield,
+  discipline: string,
+): Promise<ActDone<ShapeFacts, ShapeRefusal>> {
+  if (!y.ok) return y;
+  if (!actor.isDestroyed() && MixinApi.isAdvancing(actor) && discipline !== '') {
     await actor.creditDeed({ discipline, difficulty: 'standard', outcome: 'success' });
   }
+  return { ok: true, facts: { kind: 'coiled', made: y.made } };
 }

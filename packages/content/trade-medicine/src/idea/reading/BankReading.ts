@@ -17,7 +17,7 @@ import { Mml } from '@saxonberg/server/mud/api/mml';
 import ChronicleEntry from '@saxonberg/server/mud/lib/chronicle/ChronicleEntry';
 import type { CommandContext } from '@saxonberg/server/mud/api/command';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tooled';
+import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tool';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { DonationBank } from '@saxonberg/server/mud/lib/commerce/DonationBank';
 

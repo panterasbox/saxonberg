@@ -13,12 +13,9 @@
 import CompoundingVessel from './CompoundingVessel';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import { DipBathMixin } from '../../lib/craft/DipBath';
-import type { DipRequest } from '../../lib/craft/DipBath';
-import type { ActPlan, ActRefusal } from '../../lib/craft/ActPlan';
+import type { DipPlan, DipRefusal, DipRequest } from '../../lib/craft/DipBath';
 import type { FaceName } from '../../lib/material/Faced';
 import { MixinApi } from '../../api/mixin';
-import { MessageApi } from '../../api/message';
-import { Mml } from '../../api/mml';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../../lib/config/AppSettings';
 import { Quantity } from '../../lib/quantity';
@@ -59,7 +56,7 @@ export default class GlazeTub extends DipBathMixin(CompoundingVessel) {
    * no coat (the dip verb says so). The coat SETS by its own material's
    * rule (`FacedMixin`), the fire for a glaze.
    */
-  public async dipPlanFor(req: DipRequest): Promise<ActPlan | ActRefusal | null> {
+  public async dipPlanFor(req: DipRequest): Promise<DipPlan | DipRefusal | null> {
     const self = this as unknown as Stuff;
     const target = req.target;
     if (target === null || !MixinApi.isBulkable(self) || !self.hasInteriorBulk()) return null;
@@ -67,63 +64,41 @@ export default class GlazeTub extends DipBathMixin(CompoundingVessel) {
     if (material === null || !material.getLaysCoat() || !(self.getBulkAmount('interior').rawValue() > 0)) {
       return null;
     }
-    if (!MixinApi.isFaced(target)) {
-      return {
-        ok: false,
-        reason: 'not-faced',
-        line: Mml.compose`${Mml.thing(target)} has nothing a coat could lie on.`,
-      };
-    }
+    if (!MixinApi.isFaced(target)) return { ok: false, reason: 'not-faced', facts: { target } };
     const onto: FaceName[] = (req.faces ?? target.faces()).filter((f) => target.faces().includes(f));
-    if (onto.length === 0) {
-      return { ok: false, reason: 'no-such-face', line: Mml.compose`${Mml.thing(target)} has no inside to coat.` };
-    }
+    if (onto.length === 0) return { ok: false, reason: 'no-such-face', facts: { target } };
     const thicknessM = tubDial(AppSettingKeys.facesDipThicknessM, 0.0003);
     const litres = skinLitres(target, thicknessM) * onto.length;
     // ⭐ A skin takes what it takes (B101): a bath with less than that left
     // coats nothing — it used to lay the whole coat and empty the tub to zero.
     if (self.getBulkAmount('interior').rawValue() + 1e-9 < litres) {
-      return {
-        ok: false,
-        reason: 'bath-too-low',
-        line: Mml.compose`There is not enough left in ${Mml.thing(self)} to coat ${Mml.thing(target)}.`,
-      };
+      return { ok: false, reason: 'bath-too-low', facts: { bath: self, target } };
     }
-    const where = onto.length === 2 ? 'inside and out' : onto[0] === 'inside' ? 'inside' : 'outside';
     // ⭐ A bath of PAINT lays its binder, the makeup kept for its color
     // (paint D8/B14) — a rag dipped in oil paint is oily.
     const makeup = self.getBulk('interior').getPayload()?.paint;
     const path = makeup?.binder || (material.getTemplatePath() ?? '');
-    const sets = material.getKinetics()?.setsByHeat() ? 'It will set when it is fired.' : 'Let it set.';
-    const giver = req.actor;
+    const setsByHeat = material.getKinetics()?.setsByHeat() ?? false;
     return {
       ok: true,
       durationMs: DIP_MS,
       effortW: 80,
-      beginSelf: Mml.compose`You lower ${Mml.thing(target)} into ${Mml.thing(self)} and draw it out slowly, letting it drain.`,
-      beginPeers: Mml.compose`${Mml.actor(giver)} dips ${Mml.thing(target)} into ${Mml.thing(self)}.`,
+      facts: { kind: 'coat', bath: self, target },
       onComplete: () => {
-        if (target.isDestroyed() || self.isDestroyed() || !MixinApi.isBulkable(self)) return;
-        const have = self.getBulkAmount('interior').rawValue();
-        if (have + 1e-9 < litres) {
-          return {
-            ok: false,
-            reason: 'nothing-to-dip-in',
-            line: Mml.compose`The bath has run dry before the coat could take.`,
-          };
+        if (target.isDestroyed() || self.isDestroyed() || !MixinApi.isBulkable(self)) {
+          return { ok: true, facts: { kind: 'gone' } };
         }
+        const have = self.getBulkAmount('interior').rawValue();
+        if (have + 1e-9 < litres) return { ok: false, reason: 'bath-ran-dry' };
         self.setBulkAmount('interior', Quantity.of(have - litres, 'L'));
         for (const face of onto) {
           const soil = MixinApi.isSoilable(target) ? Math.max(target.soilAt(face), target.soilAt('')) : 0;
           target.layCoat(face, path, thicknessM, soil, makeup);
         }
-        if (!giver.isDestroyed()) {
-          MessageApi.scene(giver)
-            .topic('act.deed')
-            .toSelf(Mml.compose`${Mml.thing(target)} comes out ${where} under a wet skin of ${material.getName()}. ${sets}`)
-            .send();
-        }
-        return undefined;
+        return {
+          ok: true,
+          facts: { kind: 'coated', target, faces: onto, materialName: material.getName(), setsByHeat },
+        };
       },
     };
   }

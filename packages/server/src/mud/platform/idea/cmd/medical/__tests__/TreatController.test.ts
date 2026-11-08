@@ -126,6 +126,19 @@ function medicWith(dressing: Good, path: string, severity = 1.5): {
 class MedicCreature extends AdvancementMixin(Creature) {}
 
 describe('TreatController', () => {
+  it('⭐ the patient decides: a reason with no words, and a plan that runs now', async () => {
+    const { medic } = medicWith(makeStuff(() => new CleanRag()), '/test/medic-plan');
+    const plan = medic.treatmentPlanFor({ by: medic, offered: null });
+    expect(plan.ok).toBe(true);
+    if (plan.ok) expect(plan.durationMs).toBe(0);
+    const rock = makeStuff(() => new Good());
+    const bare = makeStuff(() => new MedicCreature());
+    expect(bare.treatmentPlanFor({ by: bare, offered: rock })).toMatchObject({
+      ok: false,
+      reason: 'no-wound',
+    });
+  });
+
   it('consumes any isDressing item, sets dressed, arrests the bleed, mints a deed', async () => {
     const rag = makeStuff(() => new CleanRag()); // not a Bandage
     const { medic, room } = medicWith(rag, '/platform/agent/Avatar/medic-a');

@@ -26,7 +26,7 @@ import Ingot from '../../../platform/thing/Ingot';
 import Forge from '../../../platform/thing/Forge';
 import Floor from '../../../platform/thing/Floor';
 import Locale from '../../../lib/location/Locale';
-import { Reserve } from '../../../lib/reserve';
+import { Reserve } from '../../../lib/reserve/Reserved';
 import { HasInteractiveMixin } from '../../../lib/connection/HasInteractive';
 import type { HasInteractive } from '../../../lib/connection/HasInteractive';
 import { FireApi } from '../../../api/fire';

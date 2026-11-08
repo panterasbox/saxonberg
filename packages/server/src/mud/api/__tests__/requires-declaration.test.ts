@@ -219,7 +219,7 @@ describe('requires: — a slot states what it accepts', () => {
     /*
      * `|` is OR, and it exists for the case where two mixins are the
      * same idea from two directions — `put` takes a container or a
-     * surface, `ignite` takes a combustible or a furnace.
+     * surface, `light` takes a combustible or a furnace.
      */
     it('an alternation accepts either side', async () => {
       const crate = named(() => new Crate(), 'a crate');

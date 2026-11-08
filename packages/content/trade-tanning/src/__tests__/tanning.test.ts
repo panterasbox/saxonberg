@@ -29,6 +29,7 @@ import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
+import Place from '@saxonberg/server/mud/lib/stuff/Place';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
@@ -311,6 +312,38 @@ describe('the hide is what tans; the pit is the condition', () => {
 });
 
 describe('the lift is the transform, and it runs once', () => {
+  it('⭐⭐ `get hide from pit`: leaving the pit is the lift, the last stretch counts', async () => {
+    const p = pit(2000, 100);
+    const h = hide(25);
+    ContainmentApi.move(h, p);
+    h.reconcileTanning();
+    advance(TANNING.FULL_DAYS + 1);
+    const barkBefore = p.getBarkKg();
+    // Not a read since it went in: the stretch in the liquor is read as it leaves.
+    const out = makeStuff(() => new Place());
+    ContainmentApi.move(h, out);
+    await vi.waitFor(() => expect(h.getMaterial()?.getName()).toBe('leather'));
+    expect(p.getBarkKg()).toBeLessThan(barkBefore);
+    // …and it runs once: back in the pit and out again changes nothing.
+    const mass = h.getMass().rawValue();
+    ContainmentApi.move(h, p);
+    ContainmentApi.move(h, out);
+    await new Promise((r) => setTimeout(r, 0));
+    expect(h.getMass().rawValue()).toBe(mass);
+  });
+
+  it('⚠ pulled early by any verb it stays a green skin', async () => {
+    const p = pit(2000, 100);
+    const h = hide(25);
+    ContainmentApi.move(h, p);
+    h.reconcileTanning();
+    advance(3);
+    ContainmentApi.move(h, makeStuff(() => new Place()));
+    await new Promise((r) => setTimeout(r, 0));
+    expect(h.getMaterial()?.getName()).toBe('rawhide');
+    expect(h.getTannage()).toBeGreaterThan(0);
+  });
+
   it('⭐⭐ a finished hide becomes leather and loses more than half its weight', async () => {
     const p = pit(2000, 100);
     const h = hide(25);

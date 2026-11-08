@@ -15,7 +15,7 @@ import Good from '../../../../../lib/stuff/Good';
 import { CombustibleMixin } from '../../../../../lib/fire/Combustible';
 import { WetMixin } from '../../../../../lib/wetness/Wet';
 import { ThermalMixin } from '../../../../../lib/thermal/Thermal';
-import { ReservedMixin, Reserve } from '../../../../../lib/reserve';
+import { ReservedMixin, Reserve } from '../../../../../lib/reserve/Reserved';
 import { ContainmentApi } from '../../../../../api/containment';
 import { Quantity } from '../../../../../lib/quantity';
 import { makeStuffAtPath, makeStuff } from '../../../../../lib/security/__tests__/test-setup';

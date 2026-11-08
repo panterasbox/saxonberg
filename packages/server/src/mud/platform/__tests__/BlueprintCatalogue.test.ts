@@ -175,6 +175,26 @@ describe('BlueprintCatalogue.warm — the curated overlay', () => {
     expect(bp.isBlessed()).toBe(true);
   });
 
+  it('⭐ the signature is verb-aware: same composition, different own views (D25)', () => {
+    class Hone extends NamedMixin(Idea) {
+      static commandContributions = { environment: ['x/cmd/sharpen.yaml'] };
+    }
+    class Stitch extends NamedMixin(Idea) {
+      static commandContributions = { environment: ['x/cmd/suture.yaml'] };
+    }
+    // Two different workings of one composition are two kinds…
+    expect(Blueprint.signatureOf(Hone)).not.toBe(Blueprint.signatureOf(Stitch));
+    expect(Blueprint.signatureOf(Hone)).toContain('x/cmd/sharpen.yaml');
+    // …a class adding no view lands on the pure composition's key, which a
+    // mixin's own contributions (implied by its name) do not disturb…
+    expect(Blueprint.signatureOf(Alpha)).toBe(
+      Blueprint.signatureFromParts('Idea', Blueprint.mixinNamesOf(Alpha))
+    );
+    // …and a subclass inherits what its class declared.
+    class FineHone extends Hone {}
+    expect(Blueprint.signatureOf(FineHone)).toContain('x/cmd/sharpen.yaml');
+  });
+
   it('returns null for unknown id / signature before warm', () => {
     expect(catalogue.getBlueprint('nope')).toBeNull();
     expect(catalogue.findBySignature('nope')).toBeNull();

@@ -1,4 +1,5 @@
 verbs: [exhale]
+category: posture
 controller: /platform/idea/cmd/posture/ExhaleController
 description: "Breathe all the way out — sink, at the cost of your air"
 help: |

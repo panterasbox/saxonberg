@@ -24,6 +24,7 @@ import {
   expectOkOr,
   expectNote,
   engagementIdOf,
+  advanceWorldClock,
 } from '../src/harness';
 
 /**
@@ -110,6 +111,21 @@ async function materialOf(s: Session, query: string): Promise<MaterialSummary> {
   return ((rec as { bulkMaterial?: MaterialSummary } | null)?.bulkMaterial ?? null);
 }
 
+/*
+ * ⭐ By DAY: every read below names objects, and an unlit place reads
+ * "something" (or "pitch dark"). The file used to inherit daylight from
+ * whatever ran before it on a shared world; a world left at night (a drive's
+ * clock walk) failed nine steps for the dark. Brought to noon once, before any
+ * session opens, as cleanliness does.
+ */
+beforeAll(async () => {
+  const { after } = await advanceWorldClock('0 seconds');
+  const tod = ((after % 86_400) + 86_400) % 86_400;
+  if (tod >= 9 * 3600 && tod <= 14 * 3600) return;
+  const toNoon = (12 * 3600 - tod + 86_400) % 86_400;
+  await advanceWorldClock(`${Math.ceil(toNoon / 60)} minutes`);
+}, 120_000);
+
 /* ────────────────────── 1–4: the fuel yard ────────────────────── */
 
 suite('⭐ the fuel yard — the coppice is ready, and it is hazel', () => {
@@ -138,7 +154,7 @@ suite('⭐ the fuel yard — the coppice is ready, and it is hazel', () => {
     expect(stools).toHaveLength(6);
   }, 60_000);
 
-  it('3. `harvest panel with billhook` → eight lengths of cordwood, made of hazel; the panel says when it is ready again', async () => {
+  it('3. `harvest panel --with billhook` → eight lengths of cordwood, made of hazel; the panel says when it is ready again', async () => {
     // ⚠ Bare hands refuse: the stool names its tool, and the billhook is
     // on the ground, not in reach of the view's `[capability.cutting]`
     // default… except that `reachable` includes the room, so it binds.
@@ -162,10 +178,10 @@ suite('⭐ the fuel yard — the coppice is ready, and it is hazel', () => {
   it('…and the second stool refuses NOTHING RIPE while the first regrows — the rotation is real', async () => {
     // Every stool was cut by the pick (`harvest panel` takes the first
     // ripe one; each stool is its own plant). Cut the rest.
-    for (let i = 0; i < 5; i += 1) expectOk(await c.cmd('harvest panel with billhook'));
+    for (let i = 0; i < 5; i += 1) expectOk(await c.cmd('harvest panel --with billhook'));
     const lengths = await c.query('me:i:[keyword.cordwood]');
     expect(lengths).toHaveLength(48);
-    const again = await c.cmd('harvest panel with billhook');
+    const again = await c.cmd('harvest panel --with billhook');
     expectNote(again, 'controller-rejected', { reason: 'nothing-ripe' });
   }, 180_000);
 
@@ -255,12 +271,11 @@ suite('⭐⭐ the Hanging Wood — a place that is a stand', () => {
     /*
      * ⚠ FINDING (pre-existing, the metal chain's): the timber-set RECIPE
      * exists and this timber satisfies its slot (`wood`, ungraded reads
-     * fair — pinned in wood-vocabulary.test.ts), but no by-hand path
-     * mints a tangible recipe with no vessel and no anvil: `make timber
-     * set` answers *"work it by hand first"* and there is nothing to
-     * work it with. The mine has always BOUGHT its sets. So what is
-     * driven is the carry and the mine's own act; the set-from-timber is
-     * the sawing build's seam.
+     * fair — pinned in wood-vocabulary.test.ts), and it is `carve`-shaped
+     * (one wood slot, `cutting`, no heat), so `carve set` should make one —
+     * not driven here. (`make timber set` was the wrong verb: `make` only
+     * replayed scripts and is `do` now.) The mine has always BOUGHT its
+     * sets, so what is driven is the carry and the mine's own act.
      */
     await walk(f, ['south', 'south', 'southwest', 'south', 'south', 'south', 'west']);
     const here = await f.queryOne('here', ['displayName']);
@@ -283,14 +298,14 @@ suite('⭐⭐ the Hanging Wood — a place that is a stand', () => {
 
   it('9. a log from the same tree LIGHTS beside a fire — the smelter’s furnace affords it', async () => {
     // Back up for a log (the crown's are on the ride floor), then to the
-    // smelter: `ignite` is afforded by a fire appliance, and a Firewood
+    // smelter: `light` is afforded by a fire appliance, and a Firewood
     // reads its ignition off its Material, which the mint stamped oak.
     await walk(f, ['east', 'north', 'north', 'north', 'north', 'north', 'north']);
     expectOk(await f.cmd('get log'));
     await walk(f, ['south', 'south', 'southwest', 'south', 'northeast', 'east']);
     const here = await f.queryOne('here', ['displayName']);
     expect(String((here as { displayName?: string })?.displayName)).toMatch(/smelter/i);
-    const lit = await f.cmd('ignite log');
+    const lit = await f.cmd('light log');
     expectOkOr(lit, 'already-burning');
   }, 240_000);
 
@@ -305,7 +320,7 @@ suite('⭐⭐ the Hanging Wood — a place that is a stand', () => {
     expect(standCount(said, 'Oak')).toBe(4);
     expect(standCount(said, 'Ash')).toBe(4);
     expect(await f.prose('look panel')).toMatch(/The stools are ready to cut\./);
-    expectOk(await f.cmd('harvest panel with axe'));
+    expectOk(await f.cmd('harvest panel --with axe'));
     const lengths = await f.query('me:i:[keyword.cordwood]');
     expect(lengths).toHaveLength(8);
     expect(await f.prose('look panel')).toMatch(/cut to the stool and regrowing/);

@@ -36,6 +36,7 @@ import { BiomeApi } from '../../api/biome';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
 import type { Stuff } from '../stuff/Stuff';
+import { MixinApi } from '../../api/mixin';
 import type { Container } from '../spatial/Container';
 
 /**
@@ -362,9 +363,10 @@ export function AmbientLitMixin<TBase extends MixinConstructor>(Base: TBase) {
     openingTransmissivity(): number {
       if (this._ambientSource !== 'sky' || !this._ambientOpening) return 1;
       const opening = this._ambientOpening;
-      const contents = (
-        this as unknown as { getContents?: () => readonly unknown[] }
-      ).getContents?.() ?? [];
+      const self = this as unknown as Stuff;
+      const contents: readonly unknown[] = MixinApi.isContainer(self)
+        ? self.getContents()
+        : [];
       for (const c of contents) {
         // The pane shape, duck-probed (the LightFilter precedent): a lib
         // mixin does not import the platform Window.

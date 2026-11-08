@@ -2,6 +2,7 @@
 # tug, all is well; two, haul me up; three, give me more line. Felt by
 # whoever holds the other end, through any water, and by nobody else.
 verbs: [tug]
+category: inventory
 controller: /platform/idea/cmd/inventory/TugController
 description: "Signal up your line — one tug, two, or three"
 help: |

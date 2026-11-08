@@ -34,7 +34,7 @@ import Footlocker from '../thing/Footlocker';
 import Plant from '@saxonberg/server/mud/platform/thing/Plant';
 import PlantPot, { PLANT_SLOT } from '@saxonberg/server/mud/platform/thing/PlantPot';
 import { SOIL_MOISTURE_RESERVE_KEY } from '@saxonberg/server/mud/lib/husbandry/Cultivable';
-import { Reserve } from '@saxonberg/server/mud/lib/reserve';
+import { Reserve } from '@saxonberg/server/mud/lib/reserve/Reserved';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import Seed from '@saxonberg/server/mud/platform/thing/Seed';
 import WateringCan from '@saxonberg/server/mud/platform/thing/WateringCan';
@@ -649,7 +649,7 @@ describe('the dorm houseplant — content and placement', () => {
 
     // `water` the plant. ⚠ The source is what the binder would bind for
     // bare `water` — the carried vessels (`water.yaml`'s `me:i` default);
-    // a controller test skips the binder (`lint:instrument-args`).
+    // a controller test skips the binder (`lint:controller-resolution`).
     const ctx = ctxFor(tenant, 'water');
     await run(
       makeStuff(() => new WaterController()),

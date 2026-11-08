@@ -1,4 +1,5 @@
 verbs: [clay]
+category: sugar
 controller: /trade/sugar/idea/cmd/sugar/ClayController
 description: "Clay a sugar loaf so it washes white from the head"
 help: |
@@ -17,7 +18,7 @@ args:
   - name: loaf
     type: object
     required: true
-    scope: ["reachable"]
+    scope: ["here", "peers", "person"]
     requires: [PercolatingMixin]
   - name: clay
     type: object

@@ -59,7 +59,7 @@ beforeEach(() => {
   vi.spyOn(pm, 'isConnected').mockReturnValue(true);
   vi.spyOn(pm, 'save').mockImplementation(
     async (c: string, doc: Record<string, unknown>) => {
-      const id = (doc._id as string | undefined) ?? `id-${idCounter++}`;
+      const id = (doc._id as string | undefined) ?? (idCounter++).toString(16).padStart(24, "0"); // a real id shape: getEntry refuses a word that is no id
       col(c).set(id, { ...doc, _id: id });
       return id;
     }

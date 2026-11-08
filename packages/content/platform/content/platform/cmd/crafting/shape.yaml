@@ -1,4 +1,5 @@
 verbs: [shape]
+category: crafting
 controller: /platform/idea/cmd/crafting/ShapeController
 description: "Form a soft material into a shape — clay on a wheel or in a mould, glass on a pipe"
 help: |
@@ -35,14 +36,15 @@ validators:
 args:
   # What to shape — the clay you hold or stand by. Optional: the gather on
   # a pipe is the pipe's to find, and `shape bottle` (no `into`) binds the
-  # word here and the controller reads it as the form.
+  # word here and the controller reads it as the form. A word that names
+  # nothing shapeable still binds its raw text (`onFiltered` takes).
   - name: material
     type: object
     required: false
     scope: ["reachable"]
-    requires: any
+    requires: ShapeableMixin
   # ⭐ WHAT shapes it — the wheel, the brick table, the blowpipe. Declared
-  # with a default (`lint:instrument-args`); the controller asks each bound
+  # with a default (`lint:controller-resolution`); the controller asks each bound
   # tool whether it plans the shape, and hands are the fallback.
   - name: instrument
     type: objects

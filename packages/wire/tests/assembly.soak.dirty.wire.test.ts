@@ -329,7 +329,7 @@ suite('⭐⭐ the pick is a head on a haft (drive 2, 10, 16; AC 2, 3, 10, 12)', 
   // refused — the clone gate reads the first live instance's zone.
   it('⭐ D16 — a dowel carved from a SAWN board is sawn, and its end grain says so', async () => {
     await buy(smith, 'sawn board');
-    const carved = await say(smith, 'carve dowel from sawn board with billhook');
+    const carved = await say(smith, 'carve dowel from sawn board --with billhook');
     expect(carved, `carve dowel: ${carved}`).toMatch(/dowel/i);
     const dowel = await examine(smith, 'dowel');
     expect(dowel, `dowel: ${dowel}`).toMatch(/It was sawn/i);
@@ -533,7 +533,7 @@ suite('⭐⭐ the proficient cooper (drive 6, 7, 8, 11, 17, 22; AC 6, 14, 23, 24
     });
     try {
       await gauger.cmd('get glowcap');
-      expectOk(await gauger.cmd(`appoint me to gauger at ${REGISTRY}`));
+      expectOk(await gauger.cmd(`house appoint me to gauger at ${REGISTRY}`));
       const record = await say(gauger, 'measure capacity cask');
       expect(record, `gauger gauges: ${record}`).toMatch(/of record/i);
       expect(record).not.toMatch(/not of record/i);

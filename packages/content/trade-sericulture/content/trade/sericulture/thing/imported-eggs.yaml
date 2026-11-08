@@ -5,7 +5,7 @@ class: /trade/sericulture/thing/EggLot
 extends: /trade/sericulture/thing/egg-lot
 data:
   shortDescription: card of imported silkworm eggs
-  keywords: [eggs, "egg lot", lot, card, seed, silkworm, imported, "silkworm eggs", "imported silkworm eggs", "card of imported silkworm eggs"]
+  keywords: [eggs, "egg lot", lot, card, seed, imported, "silkworm eggs", "imported silkworm eggs", "card of imported silkworm eggs"]
   _strainPath: /trade/sericulture/idea/strain/white-one-brood
   laidWhere: from a grainer over the mountains
   wintered: true

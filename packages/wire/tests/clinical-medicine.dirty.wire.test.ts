@@ -162,7 +162,7 @@ suite('the prescribe → administer → operate flow', () => {
     const rx = (await (await doctor.cmd('prescribe patient anaesthesia')).said()).toLowerCase();
     expect(afforded(rx), `prescribe: ${rx}`).toBe(true);
     // The nurse administers from the ward's grey-draught vial.
-    const adm = (await (await nurse.cmd('administer patient with vial')).said()).toLowerCase();
+    const adm = (await (await nurse.cmd('dose patient with vial')).said()).toLowerCase();
     expect(afforded(adm), `administer: ${adm}`).toBe(true);
   }, 120_000);
 

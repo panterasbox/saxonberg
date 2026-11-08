@@ -1,6 +1,6 @@
 # A bundle of cut cane — mill it the day it is cut (sugar D15: it inverts).
 # ⭐ And it is what cane is PLANTED from (cover build D15): lengths of
-# stalk laid in a ploughed furrow sprout at every joint, so `sow cane`
+# stalk laid in a ploughed furrow sprout at every joint, so `plant cane`
 # with a bundle in hand starts a new piece. No sett row, no new act.
 class: /platform/thing/PlantableCrop
 data:

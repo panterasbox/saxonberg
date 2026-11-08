@@ -1,16 +1,41 @@
-/** ScrapeController — `scrape [<patch>]`: clear the snow off the ice so it freezes black. */
+/**
+ * ScrapeController — `scrape [<patch>]`: clear the snow off the ice so it
+ * freezes black. ⭐ The sheet decides (`IceSheet.cutPlan({verb: 'scrape'})`);
+ * the words are this controller's (controllers-are-io D4).
+ */
 
 import { IceActController } from '../../../lib/IceActController';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type { ScrapeDone, ScrapeRefusal } from '@saxonberg/server/mud/lib/craft/Cuttable';
 import { Mml } from '@saxonberg/server/mud/api/mml';
-import type IceSheet from '@saxonberg/content-water/src/thing/IceSheet';
 
-export default class ScrapeController extends IceActController {
+export default class ScrapeController extends IceActController<'scrape'> {
+  protected verb(): 'scrape' {
+    return 'scrape';
+  }
   protected capability(): string {
     return 'scraping';
   }
-  protected perform(sheet: IceSheet, actor: Stuff, tool: Stuff, raw: string | null) {
-    return sheet.scrapePatch(actor, tool, raw);
+  protected refusalWords(out: ScrapeRefusal): string {
+    switch (out.reason) {
+      case 'not-cuttable':
+        return 'There is no ice here to work.';
+      case 'not-on-ice':
+        return 'You cannot work the ice from the water.';
+      case 'no-snowy-ice':
+        return 'There is no snowy ice there to scrape.';
+      case 'open':
+        return 'That is open water.';
+      case 'nothing-left':
+        return 'There is nothing left there to scrape.';
+      default: {
+        const never: never = out;
+        return never;
+      }
+    }
+  }
+  protected doneWords(facts: ScrapeDone): string {
+    return `You scrape the snow off a patch of the ice, about ${Math.round(facts.areaM2)} square metres of it, down to the black.`;
   }
   protected peersLine(actor: Stuff) {
     return Mml.compose`${Mml.actor(actor)} scrapes the snow off a patch of the ice.`;

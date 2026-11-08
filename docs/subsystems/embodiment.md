@@ -174,9 +174,10 @@ mixin.
 
 ## Verbs
 
-⭐⭐ **Six verbs, two controllers.** `equip` / `unequip` are the
-orchestrators; `wear` · `wield` · `remove` · `doff` · `unwield` are the
-precise acts and **keep their own views**. See
+⭐⭐ **Six verbs, one controller each over two bases.** `equip` / `unequip`
+are the orchestrators; `wear` · `wield` · `remove` · `unwield` are the
+precise acts and **keep their own views** (`EquipControllerBase` /
+`UnequipControllerBase` since controllers-are-io W7; `doff` is deleted). See
 equip-slate.md *(slate retired 2026-09-06 — fully absorbed)*.
 
 | Verb | Action |
@@ -198,16 +199,19 @@ used to be the ARG's (a grammar error, before any controller runs)
 would become a rule, or nothing.
 
 So the split is the **grammar**, and the act is one implementation:
-`EquipController` and `UnequipController` each back three views. The
+`EquipControllerBase` and `UnequipControllerBase` each back three views
+(one thin controller per verb since controllers-are-io W7 — `context.verb`
+decides nothing; the controller's own mode does). The
 gates (fit, the ladder, the slot) and the timing live in one place,
 because duplicating a controller to express a grammar difference is how
 two halves of one rule drift apart.
 
-⭐ The consequence is that **the invoked verb is real input**. A gauntlet
+⭐ The consequence is that **the invoked verb is real input** (which
+controller ran, never the typed word). A gauntlet
 is `Wearable` and `Wieldable` both: `wear gauntlet` puts it on, `wield
 gauntlet` takes it up, and bare `equip` prefers the worn reading (the
 shipped precedence — `getSlotClaim` was always read off `Wearable`
-first). `EquipController.claimAs` is the one place that decides, and
+first). `EquipControllerBase.claimAs` is the one place that decides, and
 `slotsFor` reads the claim off the face it selected. The fit gate and
 the covering ladder are the **worn** reading's alone: a gauntlet in the
 hand is not covering anything.
@@ -240,7 +244,7 @@ in exactly one garment. An interrupted dressing leaves what went on ON —
 the covering stack is a stack, and a shorter one is already coherent, so
 no rollback exists or is needed.
 
-⚠⚠ **The completion path is STATIC** (`EquipController.put` and the
+⚠⚠ **The completion path is STATIC** (`EquipControllerBase.put` and the
 reads it makes). A controller is one ephemeral clone per execution,
 destructed when `execute` returns, so a step completion calling back into
 the instance ran on a destroyed Stuff and the proxy no-op'd it: *"You put

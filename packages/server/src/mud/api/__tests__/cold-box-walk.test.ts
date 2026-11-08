@@ -40,7 +40,7 @@ import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import express, { type Express } from 'express';
 import request from 'supertest';
-import AppointController from '../../platform/idea/cmd/employment/AppointController';
+import HouseAppointController from '../../platform/idea/cmd/banking/HouseAppointController';
 import mustHoldAppointingAuthority from '../../lib/command/validators/mustHoldAppointingAuthority';
 import requiresPublisher from '../../lib/command/validators/requiresPublisher';
 import OrganizationEntity from '../../platform/idea/Organization';
@@ -248,7 +248,7 @@ async function runAppoint(
   const ctx = contextFor(giver, 'appoint');
   await withRootContext(null, 'cold-box', () => {
     ExecutionContextApi.tagActingAuthor(giver);
-    return makeStuff(() => new AppointController()).execute(
+    return makeStuff(() => new HouseAppointController()).execute(
       model as never,
       ctx,
     );

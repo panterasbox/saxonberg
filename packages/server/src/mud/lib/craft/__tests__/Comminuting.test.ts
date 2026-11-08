@@ -13,7 +13,7 @@ import { describe, it, expect, beforeEach } from "vitest";
 import Good from "../../stuff/Good";
 import Material from "../../material/Material";
 import { ComminutingMixin } from "../Comminuting";
-import { ToolMixin } from "../Tooled";
+import { ToolMixin } from "../Tool";
 import { Grade } from "../Grade";
 import { Quantity } from "../../quantity";
 import { StuffApi } from "../../../api/stuff";

@@ -19,6 +19,7 @@ data:
   smells: [{ aroma: /base-library/aromas/sheep, strength: 20 }]
   binomial: Ovis aries
   commonNames: ["sheep", "ewe", "ram", "lamb", "hogget"]
+  maleNames: [ram]
   _bodyPlanPath: /stuff/idea/species/BodyPlan/quadruped
   _parentCladePath: /stuff/idea/species/animalia
   _defaultMaterialPath: /stuff/idea/material/tissue/flesh

@@ -47,7 +47,7 @@ import {
   SOIL_ORGANIC_MATTER_RESERVE_KEY,
   type Soil,
 } from '../../../../lib/husbandry/Soil';
-import type { Reserved } from '../../../../lib/reserve';
+import type { Reserved } from '../../../../lib/reserve/Reserved';
 import { CraftingApi } from '../../../../api/crafting';
 import Plant from '../../../thing/Plant';
 

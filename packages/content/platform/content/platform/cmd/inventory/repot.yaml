@@ -1,4 +1,5 @@
-verbs: [repot, transplant]
+verbs: [repot]
+category: inventory
 controller: /platform/idea/cmd/inventory/RepotController
 description: "Move a growing plant into another pot"
 help: |
@@ -9,7 +10,7 @@ help: |
 
   A plant that has outgrown its pot stops getting bigger and looks rough
   about it. Repotting is the fix, and nothing is lost in the move: it
-  keeps its size, its condition and its water. `transplant` is an alias.
+  keeps its size, its condition and its water.
 examples:
   - cmd: repot the lily into the large pot
     note: Give a root-bound plant more room

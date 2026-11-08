@@ -21,26 +21,20 @@
  * disturbing `perceive`, and a spellbook's comprehension floor (wave 6)
  * is already a decoding gate in all but name.
  *
- * **Then the working, if there is one.** Reading a scroll is how a
- * scroll fires — there is no separate verb, deliberately. An `identify`
- * verb would announce what you were holding just by appearing in your
- * affordance list, and the whole unidentified-consumable mechanic would
- * collapse (D34). Verbs key on the visible **kind**; effects key on the
- * hidden **class**.
+ * ⭐ **`read` never casts** (controllers-are-io D10). A scroll fires from
+ * `recite` — a word every scroll affords, whichever working it carries, so
+ * the affordance list still says nothing about what you are holding (D34:
+ * verbs key on the visible **kind**; effects on the hidden **class**).
  */
 
 import { CommandController } from '../../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { MqlOneResult } from '../../../../api/mql';
-import type { Stuff } from '../../../../lib/stuff/Stuff';
 import { MixinApi } from '../../../../api/mixin';
 import { COMMON_SCRIPT, DEVICE_MODALITIES } from '../../../../lib/description/Marked';
 import { MessageApi } from '../../../../api/message';
 import { PerceptionApi } from '../../../../api/perception';
-import { MagicApi } from '../../../../api/magic';
 import { Mml } from '../../../../api/mml';
-import type { Arcane } from '../../../../lib/magic/Arcane';
-import type { Charged } from '../../../../lib/magic/Charged';
 import Book from '../../../thing/Book';
 
 const TOPIC = 'sense.survey';
@@ -198,8 +192,6 @@ export default class ReadController extends CommandController<ReadModel> {
             : Mml.compose`${Mml.thing(target)} is blank.`;
     MessageApi.scene(giver).topic(TOPIC).toSelf(body).send();
 
-    // ── …and whatever reading it sets off ──
-    await this.fireAnyWorking(target, context);
     // ⭐ What reading writes into the reader: a chart's places
     // into the map, a printed recipe's known-of into the chronicle. The
     // marks show first; the thing read decides what it teaches.
@@ -208,91 +200,4 @@ export default class ReadController extends CommandController<ReadModel> {
       MessageApi.scene(giver).topic(TOPIC).toSelf(Mml.text(taught)).send();
     }
   }
-
-  /**
-   * A scroll's working fires from *reading* it. Split out because the
-   * ordering matters and is easy to get wrong: the text lands first, so
-   * a player sees what they read even when the working consumes the
-   * scroll out from under them.
-   *
-   * A scroll is a **focus**, not a battery (D5) — it supplies the
-   * specification and the *reader* pays. That is why the discharge names
-   * the reader as the source.
-   */
-  private async fireAnyWorking(
-    target: Stuff,
-    context: CommandContext,
-  ): Promise<void> {
-    const giver = context.commandGiver;
-    if (!MixinApi.isArcane(target)) return;
-    if (target.getCarriedSpellPath().length === 0) return;
-
-    // A spent scroll still affords `read` and still shows its text — it
-    // just does nothing (D34: the affordance reflects the kind, never
-    // the state). Failing audibly is the requirement.
-    if (MixinApi.isConsumable(target) && target.isSpent()) {
-      MessageApi.scene(giver)
-        .topic(TOPIC)
-        .toSelf(
-          Mml.compose`The marks are inert — whatever was bound into ${Mml.thing(target)} is long spent.`,
-        )
-        .send();
-      context.note({
-        kind: 'controller-rejected',
-        reason: 'spent',
-        detail: 'consumable exhausted',
-      });
-      return;
-    }
-
-    // ⚠ **Reading is not aimed.** `read scroll at flask` used to exist
-    // and was a preposition on a verb where aiming means nothing —
-    // invented because the prompt substrate went unused. When the
-    // working wants a mark, ASK; a scroll is never spent on a question
-    // that went unanswered.
-    let mark: Stuff | undefined;
-    if (target.requiresMark()) {
-      const picked = await this.promptForObject(
-        context,
-        'What do you want to use it on?',
-        this.reachableMarks(context.commandGiver),
-      );
-      if (!picked) {
-        MessageApi.scene(giver)
-          .topic(TOPIC)
-          .toSelf(
-            Mml.compose`You hold the reading in your head, unspent — there is nothing you have settled on to use it on.`,
-          )
-          .send();
-        context.note({
-          kind: 'controller-rejected',
-          reason: 'no-mark-chosen',
-          detail: 'working needs a mark; none chosen',
-        });
-        return;
-      }
-      mark = picked;
-    }
-
-    const outcome = await (target as Stuff & Arcane).dischargeAt(mark, {
-      source: giver,
-    });
-    const prose = outcome.ok
-      ? outcome.reports.join(' ')
-      : (outcome.refusal ?? '');
-    if (prose.length > 0) {
-      MessageApi.scene(giver).topic(TOPIC).toSelf(Mml.text(prose)).send();
-    }
-    if (!outcome.ok) {
-      context.note({
-        kind: 'controller-rejected',
-        reason: 'working-refused',
-        detail: outcome.refusal ?? 'the working did not take',
-      });
-      return;
-    }
-    // Spent on use — the vessel, if any, is left behind.
-    if (MixinApi.isConsumable(target)) await target.consume();
-  }
-
 }

@@ -436,6 +436,35 @@ function FromMixin(
 }
 
 /**
+ * `SelfSubject(argIndex)` — the caller IS the call's subject: the object at
+ * `args[argIndex]` (controllers-are-io D25). The relational half of every
+ * object face that forwards ITSELF to its logic singleton —
+ * `advance(self)`, `deposit(bank, …)`, `cast(caster, …)` — hoisted out of
+ * the thirty hand-copied `where` clauses it used to be, and combined with
+ * the identity half: `AllOf(FromMixin(…) | FromModule(…), SelfSubject(0))`.
+ *
+ * ⭐ It is what BOUNDS a marker-only gate: a class that merely declares a
+ * `_mixinName` can then do, as itself, only what that face lets a host do
+ * to itself — never to another object.
+ *
+ * Compares by `stuffId`: the caller may surface as the raw target while
+ * the argument is the proxy (or the other way round). A caller with no
+ * `stuffId` is never the subject.
+ */
+function SelfSubject(argIndex = 0): SecurityPolicy {
+  return {
+    name: `SelfSubject(${argIndex})`,
+    allows(caller, _target, _method, args) {
+      if (caller === null || typeof caller !== 'object') return false;
+      const id = (caller as { stuffId?: string }).stuffId;
+      if (id === undefined) return false;
+      const subject = (args ?? [])[argIndex] as { stuffId?: string } | undefined;
+      return subject?.stuffId === id;
+    },
+  };
+}
+
+/**
  * `ApiOnly` — the Api tier: callers under `api/**` plus the Api's
  * hot-reloadable logic singletons under `obj/api/**`.
  *
@@ -527,19 +556,26 @@ function AllOf(...policies: SecurityPolicy[]): SecurityPolicy {
   const policyNames = policies.map((p) => p.name).join(' & ');
   return {
     name: `AllOf(${policyNames})`,
+    // ⭐ SHORT-CIRCUITS, in order: a relational policy sits behind an
+    // identity one (`AllOf(FromMixin(…), Custom(…))`), so it may assume the
+    // caller is what the identity half just proved — the same promise
+    // `FromMixin`'s `where` makes. Evaluating it for a caller the first
+    // half refused would throw instead of denying.
     allows(caller, target, method, args) {
-      const results = policies.map((p) =>
-        p.allows(caller, target, method, args)
-      );
-      if (results.some((r) => r instanceof Promise)) {
-        return (async () => {
-          for (const r of results) {
+      for (let i = 0; i < policies.length; i++) {
+        const r = policies[i]!.allows(caller, target, method, args);
+        if (r instanceof Promise) {
+          return (async () => {
             if (!(await r)) return false;
-          }
-          return true;
-        })();
+            for (const p of policies.slice(i + 1)) {
+              if (!(await p.allows(caller, target, method, args))) return false;
+            }
+            return true;
+          })();
+        }
+        if (!r) return false;
       }
-      return (results as boolean[]).every(Boolean);
+      return true;
     },
   };
 }
@@ -619,6 +655,7 @@ export const SecurityPolicies = {
   FromClass,
   FromMixin,
   FromController,
+  SelfSubject,
 } as const;
 
 export { FromController };

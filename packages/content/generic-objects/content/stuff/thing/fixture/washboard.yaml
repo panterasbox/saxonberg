@@ -1,5 +1,5 @@
 # A washboard — ⭐ ridged wood to scrub on (cleanliness D27): an instrument
-# with the `scrubbing` capability, so `scrub shirt using washboard` is a
+# with the `scrubbing` capability, so `wash shirt --hard using washboard` is a
 # scrub, not a wash.
 class: /platform/thing/Tool
 data:

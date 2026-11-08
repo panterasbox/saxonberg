@@ -1,4 +1,5 @@
 verbs: [unmark]
+category: farming
 controller: /trade/farming/idea/cmd/farming/UnmarkController
 description: "Take up a field's stakes"
 help: |
@@ -19,5 +20,5 @@ args:
     type: object
     required: true
     greedy: true
-    scope: ["reachable"]
+    scope: ["here", "peers", "person"]
     requires: SoilMixin

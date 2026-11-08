@@ -1,4 +1,5 @@
 verbs: [broadcast]
+category: social
 controller: /platform/idea/cmd/social/BroadcastController
 description: "Send a message to everyone under an extent you hold"
 help: |

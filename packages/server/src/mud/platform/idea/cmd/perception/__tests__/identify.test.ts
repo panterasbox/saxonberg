@@ -9,7 +9,7 @@
  * list *because of what you are holding* tells you what you are
  * holding, so a scroll of identify would have identified itself for
  * free. The scroll affords `read` like every other written thing, and
- * the identify **effect** fires from having read it — covered in
+ * the identify **effect** fires from having recited it — covered in
  * `lib/magic/__tests__/Consumables.test.ts`, where the catalogue is
  * warmed. What is left here is the belief-rendering half, which is what
  * this file was always really testing.

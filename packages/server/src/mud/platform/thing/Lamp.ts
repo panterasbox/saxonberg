@@ -6,7 +6,7 @@
  * fuelled light needs and owns it once: the fuel that drains against
  * game time, reconcile-on-read so an unattended lamp burns down
  * correctly with nobody watching, the burnout edge that sets `lit=false`
- * and restamps, `ignite`/`douse` through `FireApi`, and the gate that
+ * and restamps, `light`/`douse` through `FireApi`, and the gate that
  * makes `getEmittedFlux()` answer zero while it is out. None of that is
  * written here.
  *

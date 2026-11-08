@@ -11,7 +11,7 @@
  * hosting relation — see {@link AetherHost}).
  *
  * **Attunement ≠ transmission.** Transmission moved to `CommsMixin`
- * (the hosted comms update — `lib/comms/Comms`): the `tell` send, the
+ * (the hosted comms update — `lib/comms/Comms`): the `tell()` send, the
  * `dm`/`reply`/`broadcast`/`chat` verb family, and the DM cohort state.
  * Net: attunement = perceive the aether + host software; the comms
  * update = transmit on it. A recipient who is attuned but lacks the
@@ -49,7 +49,7 @@ import type { AetherHosted } from '../augmentation/AetherHosted';
  * perception modalities (`verbal-esp` / `emotive-esp`, declared as the
  * static `_grantsModalities`, not on this instance interface).
  *
- * Transmission moved out: `tell` and the DM cohort state now live on
+ * Transmission moved out: `tell()` and the DM cohort state now live on
  * `CommsMixin` (the hosted comms update). Attunement = perceive the
  * aether + host software; the comms update = transmit on it.
  */
@@ -128,7 +128,7 @@ export function AetherMixin<TBase extends MixinConstructor>(Base: TBase) {
       'emotive-esp',
     ];
 
-    // Transmission (`tell` + the DM cohort state + the `dm`/`reply`/
+    // Transmission (`tell()` + the DM cohort state + the `dm`/`reply`/
     // `broadcast`/`chat` command contributions) moved to `CommsMixin`
     // (the hosted comms update). Residual `AetherMixin` is attunement:
     // the ESP modalities above + the host side below.

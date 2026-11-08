@@ -1,4 +1,5 @@
 verbs: [gather]
+category: ranching
 controller: /trade/ranching/idea/cmd/ranching/GatherController
 description: "Collect what has been laid"
 help: |

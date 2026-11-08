@@ -1,4 +1,5 @@
 verbs: [defend]
+category: combat
 controller: /platform/idea/cmd/combat/DefendController
 description: "Cover up, stay a killing stroke, or interpose for an ally"
 help: |

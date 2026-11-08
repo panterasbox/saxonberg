@@ -26,6 +26,7 @@
 # enablement host in the room — and this key comes off.
 unreachable: awaiting:base-class-narrowing-slate
 verbs: [fly]
+category: movement
 controller: /platform/idea/cmd/movement/FlyController
 description: "Fly through a named exit (must be Flyable-enabled)."
 help: |

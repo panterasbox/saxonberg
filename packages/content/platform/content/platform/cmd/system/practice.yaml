@@ -1,4 +1,5 @@
 verbs: [practice]
+category: system
 controller: /platform/idea/cmd/system/PracticeController
 # ⛔ A TEST-WORLD verb (the `testharness` shape). It fabricates a deed, and
 # nobody may fabricate a record in a world somebody plays in — not a

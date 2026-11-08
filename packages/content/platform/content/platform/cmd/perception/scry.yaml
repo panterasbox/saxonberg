@@ -1,4 +1,5 @@
 verbs: [scry]
+category: perception
 controller: /platform/idea/cmd/perception/ScryController
 description: "Perceive a remote object as if you were there"
 help: |

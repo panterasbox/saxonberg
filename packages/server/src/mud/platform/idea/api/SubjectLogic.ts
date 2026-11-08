@@ -24,14 +24,10 @@ const SubjectApiCallers = SecurityPolicies.FromModule('/api/subject#SubjectApi',
 /** The F2 actor face (SubjectSubscriber hosts) forwards here as the actor. */
 const SubjectActorCallers = SecurityPolicies.AnyOf(
   SubjectApiCallers,
-  SecurityPolicies.FromMixin('SubjectSubscriberMixin', {
-    // Compare by stuffId — the caller may surface as the raw target
-    // while the argument is the proxy (or vice versa).
-    where: (caller, _target, _method, args) =>
-      (caller as { stuffId?: string }).stuffId !== undefined &&
-      (caller as { stuffId?: string }).stuffId ===
-        (args[0] as { stuffId?: string } | undefined)?.stuffId,
-  }),
+  SecurityPolicies.AllOf(
+    SecurityPolicies.FromMixin('SubjectSubscriberMixin'),
+    SecurityPolicies.SelfSubject(0),
+  ),
 );
 
 /**

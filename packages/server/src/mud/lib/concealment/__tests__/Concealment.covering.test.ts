@@ -7,7 +7,7 @@
  */
 
 import '../../../../test-bootstrap';
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { readFileSync, readdirSync, statSync, existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
@@ -246,7 +246,11 @@ describe('the covering contribution', () => {
     const loud = body.concealmentOffset();
     coat.setFastness(0);
     coat.launder();
+    // The reading stands for a second while the same things are worn.
+    const later = Date.now() + 2_000;
+    const clock = vi.spyOn(Date, 'now').mockReturnValue(later);
     expect(body.concealmentOffset()).toBeLessThan(loud);
+    clock.mockRestore();
   });
 
   it('`getConcealment` DERIVES — authored base shifted by what is worn', () => {

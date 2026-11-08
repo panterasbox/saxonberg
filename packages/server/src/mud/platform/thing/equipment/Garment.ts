@@ -87,8 +87,14 @@ const RAG_TEMPLATE = '/stuff/thing/rag';
 /** A rag's mass, kg — the row's. */
 const RAG_KG = 0.05;
 
-/** Damage words that are a RUINED garment (a fade is only wear). */
-const LAUNDRY_RUIN = new Set(['felted', 'shrunk', 'rotted', 'burnt', 'bled']);
+/**
+ * Damage words that are a RUINED garment. ⚠ A fade is only wear, and `shrunk`
+ * is hot water taking 3% off the cut — *"it has shrunk a little"*. It counted
+ * as a ruin until the before-record of `order wash` showed why not: every hot
+ * wash of plain linen came back "ruined", the house paid 20 on a 3 wash, and
+ * a customer could wash an apron for an income (controllers-are-io W0, 12c).
+ */
+const LAUNDRY_RUIN = new Set(['felted', 'rotted', 'burnt', 'bled']);
 
 /** The water at which wool FELTS — boiling, near enough. */
 const FELT_ABOVE_K = 363;

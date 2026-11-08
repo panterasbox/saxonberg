@@ -35,8 +35,6 @@ import { EventApi } from '../../api/event';
 import { MixinApi } from '../../api/mixin';
 import { ForumsApi } from '../../api/forums';
 import { PlayerApi } from '../../api/player';
-import { Template } from '../../lib/stuff/Template';
-import { TemplatePathPrefixes } from '../../lib/paths';
 import { ForumEventFired } from '../../lib/forum/ForumEvent';
 import type { ArgumentLensNode } from '../../api/forums';
 import type Interactive from './Interactive';
@@ -575,8 +573,8 @@ export default class ForumSubscriptionRegistry extends Idea {
 
 /**
  * Resolve author player ids → current display names, batched. Tries the
- * live avatar first (its current presentation), then the durable Avatar
- * template (for offline authors). Empty ids (anonymous guests) resolve to
+ * live avatar first (its current presentation), then the name on the Avatar's
+ * record (for offline authors). Empty ids (anonymous guests) resolve to
  * '' — the client renders a generic byline. The name is NEVER stored on
  * the entry; the entry links by id and this resolves on read, so renames
  * reflect and the byline can become viewer-aware later (`describeFor`).
@@ -596,14 +594,7 @@ async function resolveAuthorNames(
     else offline.push(id);
   }
   if (offline.length > 0) {
-    const prefix = TemplatePathPrefixes.avatar;
-    const templates = await Template.findByPaths(offline.map((id) => prefix + id));
-    for (const tpl of templates) {
-      const id = tpl.path.slice(prefix.length);
-      const data = tpl.data as { name?: unknown } | undefined;
-      out.set(id, typeof data?.name === 'string' ? data.name : id);
-    }
-    for (const id of offline) if (!out.has(id)) out.set(id, '');
+    await Promise.all(offline.map(async (id) => out.set(id, (await PlayerApi.storedNameOf(id)) ?? '')));
   }
   return out;
 }

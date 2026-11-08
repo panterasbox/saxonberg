@@ -33,7 +33,7 @@
 import type { MixinConstructor, FieldMeta } from "../mixin";
 import type { Stuff } from "../stuff/Stuff";
 import type { Containable } from "../spatial/Containable";
-import type { Reserved } from "../reserve";
+import type { Reserved } from "../reserve/Reserved";
 import type { Vitals, VitalSign } from "../vitals/Vitals";
 import type { Organism } from "../species/Organism";
 import type { Thermal } from "./Thermal";

@@ -11,7 +11,7 @@
 class: /trade/sericulture/thing/EggLot
 data:
   shortDescription: card of silkworm eggs
-  keywords: [eggs, "egg lot", lot, card, seed, silkworm, "silkworm eggs", "card of silkworm eggs"]
+  keywords: [eggs, "egg lot", lot, card, seed, "silkworm eggs", "card of silkworm eggs"]
   register: indefinite
   longDescription: |
     A stiff card dotted all over with tiny grey eggs, each no bigger than a poppy seed.

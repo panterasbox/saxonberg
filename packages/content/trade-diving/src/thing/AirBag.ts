@@ -66,7 +66,7 @@ export default class AirBag extends TieableMixin(BuoyMixin(BulkableMixin(Good)))
   }
 
   /**
-   * ⭐ `tie bag to <load>` (`lash`): if the two of them displace more
+   * ⭐ `tie bag to <load>`: if the two of them displace more
    * water than they weigh, they rise together to the top of the water.
    */
   public override async tieTo(by: Stuff, load: Stuff, knot: string | null): Promise<TieOutcome> {

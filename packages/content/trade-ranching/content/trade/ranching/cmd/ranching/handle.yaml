@@ -1,4 +1,5 @@
 verbs: [handle]
+category: ranching
 controller: /trade/ranching/idea/cmd/ranching/HandleController
 description: "Work an animal quietly — and find out what condition it is really in"
 help: |

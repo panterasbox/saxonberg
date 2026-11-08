@@ -1,4 +1,5 @@
 verbs: [crack]
+category: glass
 controller: /trade/glass/idea/cmd/glass/CrackController
 description: "Crack the finished piece off the blowpipe"
 help: |

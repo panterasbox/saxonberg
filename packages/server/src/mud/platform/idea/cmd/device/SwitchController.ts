@@ -1,5 +1,5 @@
 /**
- * SwitchController — `switch <thing> [on|off]` / `toggle <thing>`.
+ * SwitchController — `switch <thing> [on|off]` (bare: toggle).
  *
  * Targets any Switchable in reach (a lamppost, a beacon, a machine).
  * With an explicit `on`/`off` state it sets that state; without one it

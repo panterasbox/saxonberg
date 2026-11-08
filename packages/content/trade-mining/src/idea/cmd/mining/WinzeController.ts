@@ -1,5 +1,5 @@
 /**
- * WinzeController — the shared vertical half of {@link DriveController}.
+ * WinzeController — the shared vertical half of {@link DriftController}.
  *
  * A base class only (no YAML names it), holding the one thing `sink` and
  * `raise` add to a level heading: ⭐ **a winze is climbed, not walked**,
@@ -14,12 +14,12 @@
  * So the medium is read at DISPATCH time and carried into the closure.
  */
 
-import DriveController from './DriveController';
+import DriftController from './DriftController';
 
 /** The medium a vertical edge admits — `climb`'s own, off its shipped row. */
 const VERTICAL = 'vertical';
 
-export abstract class WinzeController extends DriveController {
+export abstract class WinzeController extends DriftController {
   protected override edgeMedium(): string | null {
     return VERTICAL;
   }

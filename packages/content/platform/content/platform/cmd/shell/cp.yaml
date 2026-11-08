@@ -1,4 +1,5 @@
 verbs: [cp]
+category: shell
 controller: /platform/idea/cmd/shell/CpController
 description: "Copy <src> to <dst> in the content (default) or source tree"
 help: |

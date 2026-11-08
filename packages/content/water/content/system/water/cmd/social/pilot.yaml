@@ -4,6 +4,7 @@
 # your map, signed with the pilot's name — sellable, and sometimes wrong.
 # Afforded by a `Pilot` to whoever stands with them.
 verbs: [pilot]
+category: social
 controller: /system/water/idea/cmd/social/PilotController
 description: "Pay a pilot for what they know of the water"
 help: |

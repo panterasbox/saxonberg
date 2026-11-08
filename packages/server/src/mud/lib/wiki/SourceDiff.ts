@@ -30,7 +30,7 @@
  * ## ⚠ Diffing happens AFTER redaction, never before
  *
  * This module is deliberately ignorant of the reveal model — it diffs
- * two strings. The caller (`WikiController`) redacts both sides first,
+ * two strings. The caller (`WikiDiffController`) redacts both sides first,
  * so a fragment above the reader's ceiling is **absent from both
  * inputs** and therefore produces no operation at all. Two revisions
  * differing only above the ceiling diff to nothing, which is what makes

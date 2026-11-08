@@ -23,7 +23,7 @@ import Place from '../../stuff/Place';
 import Material from '../../material/Material';
 import { BulkableMixin } from '../../bulk/Bulkable';
 import { ThermalMixin, THERMAL_DEFAULTS } from '../Thermal';
-import { ReservedMixin } from '../../reserve';
+import { ReservedMixin } from '../../reserve/Reserved';
 import { LightSourceMixin } from '../../perception/LightSource';
 import { PlacingMixin } from '../../spatial/Placing';
 import { BurnerMixin } from '../../fire/Burner';

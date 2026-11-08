@@ -178,7 +178,7 @@ sits above the spell's floor (`magic.potency.competenceFactor`).
   reconcile a raw keyed `getReserve('mana')` skips (the
   `Combustible.getFuelRemaining` pattern; `MANA_RESERVE_KEY` is
   magic-internal plumbing — see the reserve landscape table in
-  `lib/reserve.ts`).
+  `lib/reserve/Reserved.ts`).
 - **recovery** — reconcile-on-read at the **serenity**-banded rate
   (`magic.recoveryPerMinBase` × `magic.serenityFactor.<band>`), scaled
   by the same rest inputs metabolism uses (posture base ×

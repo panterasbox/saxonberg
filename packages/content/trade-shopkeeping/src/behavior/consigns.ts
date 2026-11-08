@@ -221,7 +221,7 @@ export const brain = class {
     // everything the hand carries to find its house card, so an
     // inventory that grows without bound makes each consign slower than
     // the last. A profile of the running server put 54% of the process
-    // in `ConsignController → activeHouse → activeCredential`.
+    // in `ShelfConsignController → activeHouse → activeCredential`.
     const before = new Set(hand.getContents().map((c) => c.stuffId));
     for (const good of goods) {
       const kw = keywordOf(good);
@@ -291,7 +291,7 @@ export const brain = class {
         const kw = keywordOf(good);
         if (!kw) continue;
         const ask = askFor(ctx.config, good);
-        await hand.forceCommand(`consign ${kw} --ask ${ask}`);
+        await hand.forceCommand(`shelf consign ${kw} --ask ${ask}`);
       }
     } finally {
       // Home again, on its own feet. ⚠ In a `finally` for the reason the

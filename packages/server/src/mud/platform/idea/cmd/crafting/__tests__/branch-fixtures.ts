@@ -29,7 +29,7 @@ import { Quantity } from '../../../../../lib/quantity';
 import Material from '../../../../../lib/material/Material';
 import Forge from '../../../../thing/Forge';
 import Oven from '../../../../thing/Oven';
-import { Reserve } from '../../../../../lib/reserve';
+import { Reserve } from '../../../../../lib/reserve/Reserved';
 import Tool from '../../../../thing/Tool';
 import { Idea } from '../../../../../lib/stuff/Idea';
 import Good from '../../../../../lib/stuff/Good';

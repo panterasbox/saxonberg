@@ -16,7 +16,7 @@
  * branch is a road off a segment.
  *
  * {@link PlatBook} is the catalogue half; the sale chokepoint
- * (`TitleController`) calls `provision` + `ensureGate` exactly as
+ * (`TitleBuyController`) calls `provision` + `ensureGate` exactly as
  * before — the designed swap seam, swapped.
  */
 

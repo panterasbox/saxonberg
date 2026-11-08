@@ -19,7 +19,7 @@ import { CompetenceBand } from '../../../lib/advancement/CompetenceBand';
 import type { CommandContext } from '../../../api/command';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Container } from '../../../lib/spatial/Container';
-import type { Tooled } from '../../../lib/craft/Tooled';
+import type { Tooled } from '../../../lib/craft/Tool';
 import type { CompetenceBandName } from '../../../lib/advancement/CompetenceBand';
 
 export default class LightReading extends Reading {

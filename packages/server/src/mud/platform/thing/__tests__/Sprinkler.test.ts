@@ -15,7 +15,7 @@ import Sprinkler from '../Sprinkler';
 import WaterHose from '../WaterHose';
 import WaterFixture from '../WaterFixture';
 import { Idea } from '../../../lib/stuff/Idea';
-import { ReservedMixin, Reserve } from '../../../lib/reserve';
+import { ReservedMixin, Reserve } from '../../../lib/reserve/Reserved';
 import { SoilMixin, SOIL_MOISTURE_RESERVE_KEY, SOIL_RESERVE_THEME } from '../../../lib/husbandry/Soil';
 import { ContainerMixin } from '../../../lib/spatial/Container';
 import { ContainableMixin } from '../../../lib/spatial/Containable';

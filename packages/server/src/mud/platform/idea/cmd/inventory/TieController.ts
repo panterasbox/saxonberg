@@ -1,6 +1,5 @@
 /**
- * TieController — `tie <gear> to <load> [with <knot>]` (cordage D8; `lash`
- * is one of its words). ONE verb over the `Tieable` protocol: the gear —
+ * TieController — `tie <gear> to <load> [with <knot>]` (cordage D8). ONE verb over the `Tieable` protocol: the gear —
  * a rope, a line's end, an air bag — decides what tying it means. The verb
  * renders.
  */

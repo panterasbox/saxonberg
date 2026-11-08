@@ -6,6 +6,7 @@ import { CallSecurity, Unshadowable } from '../../../lib/security/decorators';
 import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import { resolveWithQuantity } from '../../../api/mql/resolver';
+import { scoreTier } from '../../../api/mql/scope-walk';
 import { PerceptionApi } from '../../../api/perception';
 
 import type { Container } from '../../../lib/spatial/Container';
@@ -138,6 +139,7 @@ export class MqlLogic extends ApiLogic {
     if (isSet) out.isSet = true;
     if (via) out.via = via;
     if (matches.some((m) => m.via)) out.vias = matches.map((m) => m.via);
+    if (matches.length > 0) out.tiers = matches.map((m) => scoreTier(m.score));
     if (quantity) out.quantity = quantity;
     if (scan) out.scan = scan;
     return out;

@@ -23,7 +23,7 @@ import FeedController from '../../bulk/FeedController';
 import Receptacle from '../../../../thing/Receptacle';
 import Plant from '../../../../thing/Plant';
 import Material from '../../../../../lib/material/Material';
-import { Reserve, ReservedMixin } from '../../../../../lib/reserve';
+import { Reserve, ReservedMixin } from '../../../../../lib/reserve/Reserved';
 import {
   SoilMixin,
   SOIL_MOISTURE_RESERVE_KEY,
@@ -424,8 +424,10 @@ describe('sample <crop> at <patch> / label <crop> [text] at <patch>', () => {
     expect(trial!.getShortDescription()).toBe('stem of wheat labeled "trial"');
     expect(trial!.getKeywords()).toEqual(expect.arrayContaining(['trial', 'labeled']));
     // A labeled plant does not answer to its patch's name — the stand does.
-    expect(trial!.getKeywords()).not.toContain('top end');
-    expect(topStand.getKeywords()).toContain('top end');
+    // (the patch's name as a QUALIFIER — `top end wheat` — never bare).
+    expect(trial!.getKeywords().some((k) => k.startsWith('top end'))).toBe(false);
+    expect(topStand.getKeywords()).toContain('top end wheat');
+    expect(topStand.getKeywords()).not.toContain('top end');
     expect(trial!.hasRootZone()).toBe(true);
     expect(topStand.getSownAreaM2()).toBe(1000);
     // Read in full, as a pot plant reads — no banded "short of something".

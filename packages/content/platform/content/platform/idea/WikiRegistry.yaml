@@ -1,7 +1,7 @@
 # /platform/idea/WikiRegistry — the wiki's state and its one write chokepoint.
 #
-# Every mutator is gated `FromModule('/platform/idea/cmd/system/WikiController')`,
-# so resolving this singleton by template path yields a reference and a
+# Every mutator is gated `FromModule('/platform/idea/cmd/system/WikiControllerBase#WikiControllerBase',
+# { includeSubclasses: true })` — the `wiki` controllers, one per subcommand — so resolving this singleton by template path yields a reference and a
 # SecurityError on the first call. onCreate mints the `wiki-editors`
 # group idempotently (the AccessRegistry seeding shape).
 class: /platform/idea/WikiRegistry

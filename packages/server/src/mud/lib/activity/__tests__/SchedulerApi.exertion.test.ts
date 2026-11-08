@@ -12,7 +12,7 @@ import { WorldClockApi } from '../../../api/worldclock';
 import { AppApi } from '../../../api/app';
 import { StuffApi } from '../../../api/stuff';
 import { Quantity } from '../../quantity';
-import { Reserve, ReservedMixin } from '../../reserve';
+import { Reserve, ReservedMixin } from '../../reserve/Reserved';
 import { ExertingMixin } from '../../exertion/Exerting';
 import { EngagedMixin } from '../Engaged';
 import { SensorMixin } from '../../message/Sensor';

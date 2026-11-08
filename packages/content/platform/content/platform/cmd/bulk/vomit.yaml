@@ -1,4 +1,5 @@
 verbs: [vomit]
+category: bulk
 controller: /platform/idea/cmd/bulk/VomitController
 description: "Empty your stomach — dump the un-absorbed contents"
 help: |

@@ -32,6 +32,7 @@ import { WarrenMemberMixin } from '@saxonberg/server/mud/lib/location/WarrenMemb
 import { ShoreMixin } from '@saxonberg/server/mud/lib/location/Shore';
 import { SwimmableMixin } from '@saxonberg/server/mud/lib/locomotion/Swimmable';
 import { WaterPlaceMixin } from '@saxonberg/server/mud/lib/location/WaterPlace';
+import { HaulOutMixin } from '@saxonberg/server/mud/lib/location/HaulOut';
 import { PositionedMixin } from '@saxonberg/server/mud/lib/expanse/Positioned';
 import { MovingMixin } from '@saxonberg/server/mud/lib/expanse/Moving';
 import { MovingPlaceMixin } from '@saxonberg/server/mud/lib/location/MovingPlace';
@@ -57,7 +58,7 @@ const WARREN_PATH = '/system/water/idea/ReachWarren';
 
 export const ReachPlaceBase = MovingPlaceMixin(
   RiverWaterMixin(MovingWaterMixin(
-    WaterPlaceMixin(SwimmableMixin(ShoreMixin(MovingMixin(PositionedMixin(WarrenMemberMixin(Location)))))),
+    HaulOutMixin(WaterPlaceMixin(SwimmableMixin(ShoreMixin(MovingMixin(PositionedMixin(WarrenMemberMixin(Location))))))),
   )),
 );
 
@@ -140,8 +141,8 @@ export default class ReachPatch extends ReachPlaceBase {
    * thing that sinks — a stone, a sword, not a body standing — goes to the
    * stop at this km whatever the depth.
    */
-  public override onContainableAdded(thing: Stuff & Containable): void {
-    super.onContainableAdded(thing);
+  public override onContainableAdded(thing: Stuff & Containable, from?: Stuff | null): void {
+    super.onContainableAdded(thing, from);
     if (thing.isAgent() || !this.sinks(thing)) return;
     const floor = this.getFloor();
     const borne = floor !== null && MixinApi.isFloor(floor) && floor.supportIsSlotted() && floor.bears(0);

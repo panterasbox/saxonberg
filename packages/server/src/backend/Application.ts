@@ -323,12 +323,13 @@ export class Application {
       // avatar) BEFORE teardown so its `onLinkdead` fires `loggedOut`
       // (a clean departure) rather than `disconnected` (an involuntary
       // linkdead). A bare network drop leaves the flag unset.
-      if (intentional) {
-        const holder = interactive.getHolder() as {
-          setLeaveIntent?: (intentional: boolean) => void;
-        } | null;
-        holder?.setLeaveIntent?.(true);
-      }
+      // ⚠ Written on EVERY close, not only the deliberate one: the last
+      // connection's own code decides, so one tab signing out and another
+      // dropping later is a drop.
+      const holder = interactive.getHolder() as {
+        setLeaveIntent?: (intentional: boolean) => void;
+      } | null;
+      holder?.setLeaveIntent?.(intentional);
       interactive.teardownSubstrateState();
     }
 

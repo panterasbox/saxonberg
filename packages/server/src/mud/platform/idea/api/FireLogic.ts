@@ -25,44 +25,55 @@ import type { Combustible } from '../../../lib/fire/Combustible';
 import type { IgniteOutcome, Incandescence } from '../../../api/fire';
 
 const FireApiCallers = SecurityPolicies.FromModule('/api/fire#FireApi');
-/** The F1 object face: a Combustible host forwards its own combustion. */
-const selfSubject = {
-  // Compare by stuffId — the caller may surface as the raw target
-  // while the argument is the proxy (or vice versa).
-  where: (
-    caller: unknown,
-    _target: unknown,
-    _method: string,
-    args: readonly unknown[],
-  ) =>
-    (caller as { stuffId?: string }).stuffId !== undefined &&
-    (caller as { stuffId?: string }).stuffId ===
-      (args[0] as { stuffId?: string } | undefined)?.stuffId,
-};
 /**
  * The exhaust face's callers. ⚠ Deliberately NOT {@link FireCallers}: its
- * `where` clause asserts `args[0]` IS the caller, which is true of every
+ * self-subject asserts `args[0]` IS the caller, which is true of every
  * `advance(self)`-shaped forward and false here — the first argument is
  * the ROOM. A burner emitting into its scope is the legitimate caller and
  * the subject is somewhere else entirely.
+ *
+ * ⭐ So the bound is the other relation (controllers-are-io D25): the room
+ * ENCLOSES the burner — the walk `Burner.airScope` itself takes. A class
+ * that only declares the marker can foul the air it stands in, and never
+ * anybody else's.
  */
 const FireExhaustCallers = SecurityPolicies.AnyOf(
-  SecurityPolicies.FromModule('/api/fire#FireApi'),
+  FireApiCallers,
+  SecurityPolicies.AllOf(
+    SecurityPolicies.FromMixin('BurnerMixin'),
+    SecurityPolicies.Custom((caller, _target, _method, args) => {
+      const room = (args ?? [])[0] as { stuffId?: string } | undefined;
+      let at: Stuff | null = caller as Stuff;
+      let depth = 32;
+      while (at !== null && depth-- > 0) {
+        if (at.stuffId === room?.stuffId) return true;
+        at = MixinApi.isContainable(at) ? at.getContainer() : null;
+      }
+      return false;
+    }, 'EnclosesTheBurner'),
+  ),
+);
+
+/**
+ * The wetness READS. Unbounded by design: a read of an item's water harms
+ * nothing, so a class that declares the marker gains only an answer.
+ */
+const FireReadCallers = SecurityPolicies.AnyOf(
+  FireApiCallers,
   SecurityPolicies.FromMixin('BurnerMixin'),
   SecurityPolicies.FromMixin('CombustibleMixin'),
 );
 
 const FireCallers = SecurityPolicies.AnyOf(
   FireApiCallers,
-  SecurityPolicies.FromMixin('BurnerMixin', selfSubject),
-  SecurityPolicies.FromMixin('CombustibleMixin', {
-    // Compare by stuffId — the caller may surface as the raw target
-    // while the argument is the proxy (or vice versa).
-    where: (caller, _target, _method, args) =>
-      (caller as { stuffId?: string }).stuffId !== undefined &&
-      (caller as { stuffId?: string }).stuffId ===
-        (args[0] as { stuffId?: string } | undefined)?.stuffId,
-  }),
+  SecurityPolicies.AllOf(
+    SecurityPolicies.FromMixin('BurnerMixin'),
+    SecurityPolicies.SelfSubject(0),
+  ),
+  SecurityPolicies.AllOf(
+    SecurityPolicies.FromMixin('CombustibleMixin'),
+    SecurityPolicies.SelfSubject(0),
+  ),
 );
 
 /**
@@ -71,7 +82,7 @@ const FireCallers = SecurityPolicies.AnyOf(
  * Lives at `/platform/idea/api/fire` (a stateless `Stuff` singleton, no backing
  * `Template`); `FireApi`'s public statics forward here via
  * `StuffApi.singletonSync`. The **single external writer** of a
- * `Combustible`'s Burning state — deliberate ignition (`ignite`), the
+ * `Combustible`'s Burning state — deliberate ignition (`light`), the
  * heat-threshold autoignition the spread check drives (`tryAutoignite`), the
  * three extinguishers (`douse` / smother / fuel-starvation via `advance`), and
  * the per-object `advance` the presence-gated fire tick fans out. Holds NO
@@ -94,7 +105,7 @@ export class FireLogic extends ApiLogic {
   /**
    * Put one fire's exhaust for `kgBurnt` of fuel into a scope's medium —
    * the `Burner` face of {@link emitExhaustInto}. A burner's own tick
-   * forwards here the way its `ignite`/`douse` do.
+   * forwards here the way its `light`/`douse` do.
    */
   @CallSecurity(FireExhaustCallers)
   public emitExhaust(
@@ -121,10 +132,10 @@ export class FireLogic extends ApiLogic {
    * the rain and the matter's OWN water (a turf cut out of a bog is
    * nearly all water) raise the ignition threshold in exactly the same
    * way, so they add. That is what makes `stoke`'s *"It is too sodden to
-   * catch."* and `ignite`'s shipped refusal the same sentence about the
+   * catch."* and `light`'s shipped refusal the same sentence about the
    * same number, with no peat-specific branch anywhere.
    */
-  @CallSecurity(FireExhaustCallers)
+  @CallSecurity(FireReadCallers)
   public tooWetToCatch(item: Stuff): boolean {
     return (
       wetPenaltyKOf(item) >
@@ -133,7 +144,7 @@ export class FireLogic extends ApiLogic {
   }
 
   /** The held-water ignition penalty (K) — see {@link wetPenaltyKOf}. */
-  @CallSecurity(FireExhaustCallers)
+  @CallSecurity(FireReadCallers)
   public wetPenaltyK(item: Stuff): number {
     return wetPenaltyKOf(item);
   }
@@ -231,7 +242,7 @@ function fireNowSeconds(): number {
 }
 
 /**
- * Deliberate ignition (the `ignite` verb): a hand-flame lights a flammable,
+ * Deliberate ignition (the `light` verb): a hand-flame lights a flammable,
  * dry-enough object. Rejects a non-flammable object, one already aflame, a
  * spent one, or one too wet for a sustained hand-flame to dry (the water
  * penalty exceeds the manual-drying headroom). The oxygen leg is a Phase-5

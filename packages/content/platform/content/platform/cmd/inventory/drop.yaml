@@ -1,4 +1,5 @@
 verbs: [drop]
+category: inventory
 controller: /platform/idea/cmd/inventory/DropController
 description: "Drop objects from your inventory"
 help: |

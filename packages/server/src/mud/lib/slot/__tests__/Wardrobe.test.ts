@@ -167,7 +167,7 @@ describe('the verb shape — sets ride a verb, they are not one', () => {
     const narrow: Array<[string, string[], string]> = [
       ['wear', ['wear'], 'WearableMixin'],
       ['wield', ['wield'], 'WieldableMixin'],
-      ['remove', ['remove', 'doff'], 'WearableMixin'],
+      ['remove', ['remove'], 'WearableMixin'],
       ['unwield', ['unwield'], 'WieldableMixin'],
     ];
     for (const [name, verbs, requires] of narrow) {
@@ -193,40 +193,30 @@ describe('the verb shape — sets ride a verb, they are not one', () => {
      * and it is how the two halves drift apart.
      */
     const on = (name: string): string => view(name).controller ?? '';
-    for (const name of ['equip', 'wear', 'wield']) {
-      expect(on(name), name).toBe('/platform/idea/cmd/inventory/EquipController');
-    }
-    for (const name of ['unequip', 'remove', 'unwield']) {
-      expect(on(name), name).toBe(
-        '/platform/idea/cmd/inventory/UnequipController',
-      );
+    for (const [name, ctrl] of [
+      ['equip', 'EquipController'],
+      ['wear', 'WearController'],
+      ['wield', 'WieldController'],
+      ['unequip', 'UnequipController'],
+      ['remove', 'RemoveController'],
+      ['unwield', 'UnwieldController'],
+    ] as const) {
+      expect(on(name), name).toBe(`/platform/idea/cmd/inventory/${ctrl}`);
     }
   });
 
-  it('⚠⚠ TEXTILES claims no `dress` — and medical still owns it alone', () => {
+  it('⚠⚠ TEXTILES claims no `dress` — the word is nobody\'s (D16)', () => {
     /*
-     * ⚠ **The requirement's premise was stale.** *"`dress` is not
-     * taken"* was settled with build-3 and reserved for a future
-     * butchery pack — but `medical/treat.yaml` has shipped
-     * `verbs: [treat, bind, dress]` since the medic build, where it
-     * means *dressing a wound*. So "unclaimed" was already false, and
-     * the constraint as literally written is unsatisfiable.
-     *
-     * What it actually protects is checkable and is what this asserts:
-     * **the wardrobe adds no verb**, so `dress` still resolves to
-     * exactly one view and that view is medical's — the textiles build
-     * neither took the word nor made it ambiguous.
+     * What the wardrobe build protected: **the wardrobe adds no verb**.
+     * `dress` was medical's extra word until one-view-one-word deleted it,
+     * so it stays unclaimed.
      */
     const owners: string[] = [];
     for (const { file, doc } of allViews(CMD_ROOT)) {
-      const words = [
-        ...((doc.verbs as string[] | undefined) ?? []),
-        ...((doc.aliases as string[] | undefined) ?? []),
-      ];
+      const words = (doc.verbs as string[] | undefined) ?? [];
       if (words.includes('dress')) owners.push(file);
     }
-    expect(owners).toHaveLength(1);
-    expect(owners[0]).toMatch(/medical[/\\]treat\.yaml$/);
+    expect(owners).toHaveLength(0);
   });
 
   it('nothing under `inventory/` claims a verb this build did not have', () => {

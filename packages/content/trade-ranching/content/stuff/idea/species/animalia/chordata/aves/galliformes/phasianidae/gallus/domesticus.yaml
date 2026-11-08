@@ -14,6 +14,7 @@ class: /platform/idea/species/Species
 data:
   binomial: Gallus domesticus
   commonNames: ["hen", "chicken", "fowl", "cockerel", "pullet", "bird"]
+  maleNames: [cockerel]
   # ⚠⚠ This said `BodyPlan/biped` until 2026-10-05 — the HUMAN plan. A hen
   # had `body.arm.left.hand`, a liver, an upper and lower spine, and NO
   # WINGS. Nothing errored, because nothing checked: a body plan is named

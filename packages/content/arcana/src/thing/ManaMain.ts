@@ -21,7 +21,7 @@
  */
 
 import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
-import { ReservedMixin } from '@saxonberg/server/mud/lib/reserve';
+import { ReservedMixin } from '@saxonberg/server/mud/lib/reserve/Reserved';
 import { ChargedMixin } from '@saxonberg/server/mud/lib/magic/Charged';
 import { FixtureMixin } from '@saxonberg/server/mud/lib/stuff/Fixture';
 import { SingletonMixin } from '@saxonberg/server/mud/lib/stuff/Singleton';

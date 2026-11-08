@@ -9,7 +9,7 @@
  *
  * The handle-case (`dm <ad-hoc-handle> ...` to post to a known ad-hoc
  * channel) is NOT shipped in v1 — users post to ad-hoc channels via
- * `chat <handle> ...` (ChatController routes the bare-post path
+ * `chat <handle> ...` (`ChatPostController` routes the bare-post path
  * through the ad-hoc registry). Documented limitation per the
  * requirements doc's acceptance criteria.
  *

@@ -296,7 +296,7 @@ export function WorkingMixin<TBase extends MixinConstructor<Stuff & Container>>(
      * thing that makes them exist.**
      *
      * ⚠ A row's `commandContributions:` is dead silently — the affordance
-     * is a STATIC ON A CLASS. Without this block `hew`, `drive`, `sink`,
+     * is a STATIC ON A CLASS. Without this block `hew`, `drift`, `sink`,
      * `raise` and `shore` parse as nothing at all: *"I don't understand
      * 'hew'."* Found by driving, in the tutorial drift, where every one
      * of them was supposed to be taught.
@@ -316,7 +316,7 @@ export function WorkingMixin<TBase extends MixinConstructor<Stuff & Container>>(
       // `inventory`: a location's occupants hear it (`self` is a giver's).
       inventory: [
         'trade/mining/cmd/mining/hew.yaml',
-        'trade/mining/cmd/mining/drive.yaml',
+        'trade/mining/cmd/mining/drift.yaml',
         'trade/mining/cmd/mining/sink.yaml',
         'trade/mining/cmd/mining/raise.yaml',
         'trade/mining/cmd/mining/shore.yaml',
@@ -629,8 +629,7 @@ export function WorkingMixin<TBase extends MixinConstructor<Stuff & Container>>(
 
     /**
      * **Air is the shortest distance, along the carved graph, to a room
-     * that breathes** — one with a way out of the workings, or one an
-     * author has declared ventilated.
+     * that breathes** — one with a way out of the workings.
      *
      * So a dead-end heading degrades as you drive it and **recovers the
      * moment you hole it through**, because holing through shortens that
@@ -905,8 +904,6 @@ function workingNowSeconds(): number | null {
 
 /** Does this room have a way OUT of the workings — or say it breathes? */
 function breathes(room: Stuff & Container): boolean {
-  const declared = (room as unknown as { getVentilated?(): boolean }).getVentilated?.();
-  if (declared === true) return true;
   const myZone = (room as unknown as { getZone?(): unknown }).getZone?.() ?? null;
   for (const dest of destinationsOf(room)) {
     const theirZone = (dest as unknown as { getZone?(): unknown }).getZone?.() ?? null;

@@ -47,7 +47,7 @@ data:
       wageRate: 4
       fulfills: [bartending]
       # ⚠⚠ **Found by driving.** This seat had NO `headcount`, so
-      # `openingsFor('bartender')` was 0 and `apply for bartender` answered
+      # `openingsFor('bartender')` was 0 and `job apply for bartender` answered
       # *"There's no work going here."* — in the venue whose whole story is
       # that a player can join the crew. The requirements for this build
       # said "a player can join the crew via the shipped bartender opening",
@@ -65,7 +65,7 @@ data:
     # becomes the one they trade as) and run `house stock` / `house par`.
     # Unpaid: Mara keeps the bar on her bartending wage; a player Dave
     # appoints (his "looking for work?" branch) holds it the same way and
-    # `quit`s the same way. No wizard anywhere in the loop.
+    # `job quit`s the same way. No wizard anywhere in the loop.
     - key: keeper
       noun: keeper
       label: keeping the bar

@@ -1,4 +1,5 @@
 verbs: [slaughter]
+category: ranching
 controller: /trade/ranching/idea/cmd/ranching/SlaughterController
 description: "Kill a beast cleanly; it leaves a body"
 help: |

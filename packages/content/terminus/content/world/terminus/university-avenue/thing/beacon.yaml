@@ -1,7 +1,7 @@
 # The pedestrian crossing beacon — `Beacon` = Switchable + Propertied +
 # Detailed. On = WALK, off = STOP (walk/stop is prose over the on/off state;
 # the beacon gates no movement — theatrical, like Gus's paddle). `switch`/
-# `toggle` drive it.
+# `switch` drive it.
 class: /platform/thing/Beacon
 data:
   shortDescription: crossing beacon

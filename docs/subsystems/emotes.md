@@ -2,7 +2,7 @@
 
 The emote subsystem turns expressive acts (`wave`, `smile`, `bow`,
 `cry`, free-form `:scratches his chin`) into the same per-audience
-`Scene` plumbing that powers `say` and `tell`, with one significant
+`Scene` plumbing that powers `say` and `dm`, with one significant
 difference: emotes ride the ESP modality (`emotive-esp`) and an
 authored catalog of grammar templates rather than a single fixed
 prose form. The substrate ships as part of the social-cluster build
@@ -358,9 +358,10 @@ paths run inline in the router.
 
 ## The `soul` authoring suite
 
-`SoulController` (`platform/idea/cmd/social/SoulController.ts`) implements the
-author surface: `soul make / edit / delete / disable / enable / show /
-list / search` — the mutations gated by title over the soul
+The author surface is `soul make / edit / delete / disable / enable /
+show / list / search`, **one controller per subcommand** over
+`SoulControllerBase` (`platform/idea/cmd/social/Soul<Sub>Controller.ts`;
+bare `soul` is `SoulListController` — controllers-are-io D9) — the mutations gated by title over the soul
 committee's extent (see *The client read face*). The verb is gated by composition — `AuthorMixin` contributes
 `social/soul.yaml` to its `commandContributions.self`, paralleling the
 existing `clone` / `reload` / `eval` / `teleport` AuthorMixin
@@ -462,7 +463,8 @@ in **declaration order**, which is the order `EmoteGrammarRunner.bind`
 consumes tokens in. `required` is derived from the author's `optional`
 flag rather than restated. `soul list` / `show` / `search` are open to
 anyone since content-packs wave 3; the mutations (`make` / `edit` /
-`delete` / `disable` / `enable`) are **title**: `SoulController` checks
+`delete` / `disable` / `enable`) are **title**: each mutating controller asks
+`SoulControllerBase.refuseUnlessCommittee`, which checks
 `AccessApi.canAtPath(giver, 'write-document', <the existing row's path,
 else the mint branch>)` — the soul committee's extent, so a non-member's
 `soul disable nod` is refused as "the soul committee holds the emote

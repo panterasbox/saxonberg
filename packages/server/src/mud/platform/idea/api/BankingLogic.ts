@@ -67,14 +67,10 @@ const BankingApiCallers = SecurityPolicies.FromModule("/api/banking#BankingApi",
 /** The F4 bank face (Bank hosts) forwards here as the branch. */
 const BankCallers = SecurityPolicies.AnyOf(
   BankingApiCallers,
-  SecurityPolicies.FromMixin("BankMixin", {
-    // Compare by stuffId — the caller may surface as the raw target
-    // while the argument is the proxy (or vice versa).
-    where: (caller, _target, _method, args) =>
-      (caller as { stuffId?: string }).stuffId !== undefined &&
-      (caller as { stuffId?: string }).stuffId ===
-        (args[0] as { stuffId?: string } | undefined)?.stuffId,
-  }),
+  SecurityPolicies.AllOf(
+    SecurityPolicies.FromModule("/platform/thing/BankCounter", { includeSubclasses: true }),
+    SecurityPolicies.SelfSubject(0),
+  ),
 );
 
 /**
@@ -196,7 +192,7 @@ function isCashLike(stuff: unknown): stuff is Stuff & Stackable & CashLike {
   return (
     typeof s?.getCurrency === "function" &&
     typeof s?.getDenomination === "function" &&
-    typeof s?.getQuantity === "function"
+    MixinApi.isStackable(stuff as Stuff)
   );
 }
 
@@ -1949,9 +1945,9 @@ function liveCoinOf(currency: string): {
   for (const coin of StuffApi.findAllByTemplatePath(COIN_PATH)) {
     if (!isCashLike(coin)) continue;
     if (coin.getCurrency() !== currency) continue;
-    const container = (
-      coin as unknown as { getContainer?(): Stuff | null }
-    ).getContainer?.();
+    const container = MixinApi.isContainable(coin)
+      ? (coin.getContainer() as unknown as Stuff | null)
+      : null;
     if (container && MixinApi.isBank(container)) vault += Currency.stackValue(coin.getCurrency(), coin.getDenomination(), coin.getQuantity());
     else circulating += Currency.stackValue(coin.getCurrency(), coin.getDenomination(), coin.getQuantity());
   }

@@ -39,7 +39,7 @@ describe('the delves beat is bounded and literal', () => {
     expect(SRC).toContain("'shore'");
     expect(SRC).toContain('`hew ${face.direction}`');
     expect(SRC).toContain("'wallet use house'");
-    expect(SRC).toContain('`consign ${kw} --ask ${ask}`');
+    expect(SRC).toContain('`shelf consign ${kw} --ask ${ask}`');
   });
 
   it('⚠ its one `get` names WHAT to take — never a bare or counted grab', () => {

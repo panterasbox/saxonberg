@@ -1,4 +1,5 @@
 verbs: [fell]
+category: forestry
 controller: /trade/forestry/idea/cmd/forestry/FellController
 description: "Fell a standard with an axe, or cross-cut a felled one"
 help: |
@@ -43,9 +44,9 @@ args:
   - name: target
     type: object
     required: false
-    scope: [reachable]
+    scope: ["here", "peers", "person"]
     requires: any
-  # ⭐ WHICH AXE — DECLARED, not hunted for (`lint:instrument-args`).
+  # ⭐ WHICH AXE — DECLARED, not hunted for (`lint:controller-resolution`).
   # Bare, the binder hands over the first reachable thing offering
   # `felling`; a billhook bound by name refuses in words.
   - name: axe

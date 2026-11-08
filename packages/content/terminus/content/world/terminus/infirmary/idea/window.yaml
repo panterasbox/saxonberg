@@ -3,7 +3,7 @@
 # independently now: its appointing authority is the registrar herself (an
 # `entity` — a specific private owner, no founder pass), not the corpo's
 # committee. NPC-run in v1 by construction: both seats are filled by NPC
-# roster, so `apply` finds nothing open and no player can issue.
+# roster, so `job apply` finds nothing open and no player can issue.
 #
 # It operates its FIXTURE (the blood-window counter), never the ward — the
 # practice keeps the ward (the operator-index last-writer collision the

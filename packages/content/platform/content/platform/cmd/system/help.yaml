@@ -1,11 +1,14 @@
-verbs: [help, h, "?"]
+verbs: [help]
+category: system
+defaultAliases: [{name: h}, {name: "?"}]
 controller: /platform/idea/cmd/system/HelpController
 opens_card: help
-description: "Get help: bare lists verbs; `help verb`, `help api`, `help search`"
+description: "Get help: bare lists the verb categories; `help <category>`, `help <verb>`, `help api`, `help search`"
 help: |
-  Your way into everything the game can do. Plain `help` lists every
-  verb available to you right now. `help <verb>` shows the full entry
-  for one command — what it does, how to phrase it, and examples.
+  Your way into everything the game can do. Plain `help` lists the verb
+  categories; `help <category>` lists the verbs in one. `help <verb>` shows
+  the full entry for one command — what it does, how to phrase it, and
+  examples.
 
   Naming something that isn't a verb still works: `help bank_ledger`
   shows how the world stores money — what the collection is for, what

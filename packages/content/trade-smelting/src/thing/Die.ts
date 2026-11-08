@@ -18,7 +18,7 @@ import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { CraftedMixin } from '@saxonberg/server/mud/lib/craft/Crafted';
 import { MarkedMixin } from '@saxonberg/server/mud/lib/description/Marked';
 import { DurableMixin } from '@saxonberg/server/mud/lib/material/Durable';
-import { ToolMixin } from '@saxonberg/server/mud/lib/craft/Tooled';
+import { ToolMixin } from '@saxonberg/server/mud/lib/craft/Tool';
 import { StrikingDieMixin } from '@saxonberg/server/mud/lib/craft/StrikingDie';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
@@ -29,7 +29,7 @@ import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
-import { Mml } from '@saxonberg/server/mud/api/mml';
+import type { StrikeOutcome, StrikeRefusal } from '@saxonberg/server/mud/lib/craft/StrikingDie';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 
 /** How far a blow drives the die home, m — the blow's energy over it is its force. */
@@ -82,14 +82,14 @@ export default class Die extends StrikingDieMixin(MarkedMixin(ToolMixin(DurableM
    * nears its melting point). Strong enough, the blank becomes the die's
    * shape, carrying whose die it was; too weak, the device barely shows.
    */
-  public override async strikeWith(blank: Stuff, blowJ: number, by: Stuff): Promise<Mml> {
+  public override async strikeWith(blank: Stuff, blowJ: number, by: Stuff): Promise<StrikeOutcome | StrikeRefusal> {
     const self = this as unknown as Stuff;
     if (!MixinApi.isTangible(blank) || this.strikes === '') {
-      return Mml.compose`Nothing comes of it — ${Mml.thing(blank)} is no blank for this die.`;
+      return { ok: false, reason: 'not-a-blank' };
     }
     const mat = blank.getMaterial();
     if (mat === null || !mat.hasTag('metal')) {
-      return Mml.compose`${Mml.thing(blank)} is not metal; it only bruises.`;
+      return { ok: false, reason: 'not-metal' };
     }
     const mp = mat.getMeltingPoint().rawValue();
     const t = MixinApi.isThermal(blank) ? blank.getTemperature().rawValue() : 0;
@@ -97,7 +97,7 @@ export default class Die extends StrikingDieMixin(MarkedMixin(ToolMixin(DurableM
     const stiffN = mat.getHardness().rawValue() * 1e6 * FACE_M2 * ease;
     const forceN = blowJ / STROKE_M;
     if (forceN < stiffN) {
-      return Mml.compose`The hammer rings off ${Mml.thing(blank)} and the device barely shows on it. It is too hard to strike cold — heat it, or strike harder.`;
+      return { ok: false, reason: 'too-hard' };
     }
     const token = await StuffApi.clone<Stuff>(this.strikes, undefined, { madeFrom: [blank] });
     if (MixinApi.isTangible(token)) {
@@ -117,6 +117,6 @@ export default class Die extends StrikingDieMixin(MarkedMixin(ToolMixin(DurableM
     }
     await PersistableApi.captureHostOf(token);
     if (MixinApi.isDurable(self)) self.wear();
-    return Mml.compose`The die bites. ${Mml.thing(token)} comes up off it with the device sharp on its face.`;
+    return { ok: true, facts: { token } };
   }
 }

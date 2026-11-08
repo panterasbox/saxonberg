@@ -1,4 +1,5 @@
 verbs: [spin]
+category: textiles
 controller: /trade/textiles/idea/cmd/textiles/SpinController
 description: "Draw fibre into yarn at a chosen count"
 help: |
@@ -25,7 +26,7 @@ args:
     required: true
     scope: [inventory, reachable]
     requires: StackableMixin
-  # ⭐ WHICH WHEEL — DECLARED, not hunted for (`lint:instrument-args`).
+  # ⭐ WHICH WHEEL — DECLARED, not hunted for (`lint:controller-resolution`).
   # Bare, the binder hands over every reachable thing offering
   # `spinning` and the controller takes the best-rated — so a carried spindle no
   # longer beats the wheel in the room.
@@ -34,7 +35,7 @@ args:
     required: false
     prepositions: [on, at, with]
     default: "reachable:[capability.spinning]"
-    scope: ["reachable"]
+    scope: ["here", "peers", "person"]
     requires: [ToolMixin]
 options:
   count:

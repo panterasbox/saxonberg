@@ -1,4 +1,5 @@
 verbs: [who]
+category: social
 controller: /platform/idea/cmd/social/WhoController
 opens_card: who
 description: "See who's online."

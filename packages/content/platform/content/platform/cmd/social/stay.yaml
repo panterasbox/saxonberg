@@ -1,4 +1,5 @@
 verbs: [stay]
+category: social
 controller: /platform/idea/cmd/social/StayController
 description: "Tell an animal to hold where it is"
 help: |

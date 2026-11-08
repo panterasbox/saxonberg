@@ -21,7 +21,7 @@ import Plant from '../thing/Plant';
 import PlantPot from '../thing/PlantPot';
 import GardenBed from '../thing/GardenBed';
 import Material from '../../lib/material/Material';
-import { Reserve } from '../../lib/reserve';
+import { Reserve } from '../../lib/reserve/Reserved';
 import {
   PLANT_SLOT,
   SOIL_MOISTURE_RESERVE_KEY,

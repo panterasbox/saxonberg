@@ -180,6 +180,13 @@ describe('EventApi', () => {
     expect(recent.map((e) => e.payload)).toEqual([1, 2, 3]);
   });
 
+  it('history names nobody: the emitting frame holds the acting body, and a ring of those outlives destruct', async () => {
+    await makeRegistry();
+    EventApi.emit<number>(Events.PlayerLoggedIn, 1);
+    const [record] = EventApi.history<number>(Events.PlayerLoggedIn);
+    expect(Object.keys(record!).sort()).toEqual(['payload', 'timestamp']);
+  });
+
   it('throws SecurityError when emit fails the per-event policy', async () => {
     await makeRegistry();
     // StuffCreated is allowlisted to StuffApi only — direct emit from

@@ -24,7 +24,7 @@ import Oven from '../thing/Oven';
 import Campfire from '../thing/Campfire';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
-import { Reserve } from '../../lib/reserve';
+import { Reserve } from '../../lib/reserve/Reserved';
 import { Quantity } from '../../lib/quantity';
 import { chargeWood } from '../../lib/fire/__tests__/burner-fuel';
 import type { Burner } from '../../lib/fire/Burner';

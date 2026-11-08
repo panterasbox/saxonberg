@@ -1,4 +1,5 @@
 verbs: [flourish]
+category: social
 controller: /platform/idea/cmd/social/FlourishController
 description: "Show off a bit of bartending flair"
 help: |

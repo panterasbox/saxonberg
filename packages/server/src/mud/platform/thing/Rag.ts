@@ -20,7 +20,7 @@ import { SelfHeatingMixin } from '../../lib/thermal/SelfHeating';
 import { CombustibleMixin } from '../../lib/fire/Combustible';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
 import { StackableMixin } from '../../lib/stuff/Stackable';
-import { ReservedMixin } from '../../lib/reserve';
+import { ReservedMixin } from '../../lib/reserve/Reserved';
 import { WetMixin } from '../../lib/wetness/Wet';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';

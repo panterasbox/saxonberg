@@ -12,8 +12,9 @@
  */
 
 import { existsSync, readdirSync, readFileSync, statSync } from "fs";
-import { dirname, join, relative, resolve } from "path";
+import { dirname, join, relative, resolve, sep } from "path";
 import { fileURLToPath } from "url";
+import ts from "typescript";
 import YAML from "yaml";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -363,6 +364,212 @@ export function packSrcFiles(srcDir: string): string[] {
   };
   walk(srcDir);
   return out;
+}
+
+/** One command controller module, and who ships it. */
+export interface ControllerFile {
+  /** Absolute file path. */
+  file: string;
+  /** The pack id that ships it, or `'kernel'`. */
+  owner: string;
+  /** Repo-relative path, for reporting (`packages/content/…`, `packages/server/src/…`). */
+  rel: string;
+}
+
+/**
+ * ⭐⭐ Every command controller module in the tree — the ONE enumerator
+ * the controller gates share (controllers-are-io W0, D26).
+ *
+ * Five homes, every one of which a shipped gate has missed at least once:
+ *
+ *   1. the kernel's `platform/idea/cmd/**`;
+ *   2. the kernel's `lib/**\/*Controller.ts` — the inherited bases
+ *      (`CommandController`, `EngagedActController`);
+ *   3. the kernel's `world/**\/idea/cmd/**` (none today; the rule holds a
+ *      place for them so the first one is counted the day it lands);
+ *   4. every pack's `src/**\/idea/cmd/**` — ⚠ at ANY depth, which is what
+ *      reaches the domain-local controllers at
+ *      `<pack>/src/<locality>/idea/cmd/` (`check-instrument-args` read only
+ *      `src/idea/cmd/` and missed all ten);
+ *   5. every pack's `src/lib/**\/*Controller.ts` — a pack's own bases
+ *      (`IceActController`, `HallController`, `LettingController`).
+ *
+ * A file qualifies by its NAME (`*Controller.ts`, or `*ControllerBase.ts`
+ * — a noun's shared base, `BankingControllerBase`, `WikiControllerBase`)
+ * inside one of those homes; `__tests__` and `node_modules` are never
+ * walked. ⚠ The base suffix was missed until controllers-are-io W7: the
+ * four shipped bases' helpers were invisible to every controller census,
+ * and a switch controller split into a base + one controller per
+ * subcommand would have looked like a burn-down it was not.
+ */
+export function controllerFiles(
+  contentDir: string = CONTENT,
+  mudDir: string = MUD,
+): ControllerFile[] {
+  const out: ControllerFile[] = [];
+  const seen = new Set<string>();
+  const repo = join(mudDir, "..", "..", "..", "..");
+  const push = (file: string, owner: string): void => {
+    if (seen.has(file) || !/Controller(?:Base)?\.ts$/.test(file)) return;
+    seen.add(file);
+    out.push({ file, owner, rel: relative(repo, file) });
+  };
+  const underCmd = (file: string, base: string): boolean =>
+    /(^|\/)idea\/cmd\//.test(relative(base, file));
+  for (const file of tsFilesUnder(join(mudDir, "platform", "idea", "cmd"))) push(file, "kernel");
+  for (const file of tsFilesUnder(join(mudDir, "lib"))) push(file, "kernel");
+  const world = join(mudDir, "world");
+  for (const file of tsFilesUnder(world)) if (underCmd(file, world)) push(file, "kernel");
+  for (const pack of packSources(contentDir)) {
+    for (const file of packSrcFiles(pack.srcDir)) {
+      const rel = relative(pack.srcDir, file);
+      if (underCmd(file, pack.srcDir) || rel.startsWith("lib/")) push(file, pack.id);
+    }
+  }
+  return out.sort((a, b) => a.rel.localeCompare(b.rel));
+}
+
+/**
+ * Every mud source module — the kernel's `src/mud/**` and every pack's
+ * `src/**` — `__tests__` excluded. The corpus the whole-tree census gates
+ * (`lint:duck-typing`, `lint:mixin-files`, `lint:mixin-clusters`) read.
+ */
+export function mudSourceFiles(
+  contentDir: string = CONTENT,
+  mudDir: string = MUD,
+): Array<{ file: string; owner: string }> {
+  const out: Array<{ file: string; owner: string }> = [];
+  for (const file of tsFilesUnder(mudDir)) out.push({ file, owner: "kernel" });
+  for (const pack of packSources(contentDir)) {
+    for (const file of packSrcFiles(pack.srcDir)) out.push({ file, owner: pack.id });
+  }
+  return out;
+}
+
+/**
+ * Strip block and line comments, keeping every line where it was (a
+ * finding's line number must point at the code, never at a shifted line).
+ * String contents are left alone; a gate that cares masks them itself.
+ */
+export function stripComments(src: string): string {
+  const blank = (m: string): string => m.replace(/[^\n]/g, " ");
+  return src.replace(/\/\*[\s\S]*?\*\//g, blank).replace(/(^|[^:\\])\/\/[^\n]*/g, (m, pre: string) => pre + blank(m.slice(pre.length)));
+}
+
+/**
+ * ⭐ The census-then-ratchet verdict every count-only-falls gate prints
+ * (docs/lint-family.md): above the ceiling fails with the findings; BELOW
+ * it also fails, asking for the ceiling to be lowered — a ratchet that is
+ * not re-pinned stops ratcheting. Returns whether the line held.
+ */
+export function ratchet(
+  gate: string,
+  label: string,
+  count: number,
+  ceiling: number,
+  findings: readonly string[],
+  advice: string,
+): boolean {
+  if (count > ceiling) {
+    console.error(`${gate}: ✗ ${label}: ${count}, above the ceiling of ${ceiling}.\n`);
+    for (const f of findings) console.error(`  ✗ ${f}`);
+    console.error(`\n${advice}`);
+    return false;
+  }
+  if (count < ceiling) {
+    console.error(
+      `${gate}: ${label} has FALLEN to ${count} and the ceiling is still ${ceiling}. ` +
+        `Lower it — a ratchet that is not re-pinned stops ratcheting.`,
+    );
+    return false;
+  }
+  console.log(`${gate}: ${label} ${count} / ceiling ${ceiling} ✔`);
+  return true;
+}
+
+/** Parse one module for an AST census (no type information; syntax only). */
+export function parseTs(file: string, text: string = readFileSync(file, "utf8")): ts.SourceFile {
+  return ts.createSourceFile(file, text, ts.ScriptTarget.ES2022, true, ts.ScriptKind.TS);
+}
+
+/**
+ * Every `cmd/**\/*.yaml` command VIEW under every shipped pack's
+ * `content/` — ⚠ every pack, a content-only locality included.
+ *
+ * ⚠ A `cmd` dir is views UNLESS its parent is `idea` — the shipped path
+ * rule (`<root>/idea/cmd/**` holds CONTROLLER rows, which carry `class:`
+ * and no `verbs:`). Moved here from `check-verb-collisions` at the view
+ * gates' arrival (controllers-are-io W0), so every view gate reads one walk.
+ */
+export function commandViewFiles(contentDir: string = CONTENT): string[] {
+  if (!existsSync(contentDir)) return [];
+  const out: string[] = [];
+  const walk = (dir: string): void => {
+    let entries: string[];
+    try {
+      entries = readdirSync(dir);
+    } catch {
+      return;
+    }
+    for (const entry of entries) {
+      const full = join(dir, entry);
+      if (statSync(full).isDirectory()) {
+        walk(full);
+        continue;
+      }
+      if (!entry.endsWith(".yaml")) continue;
+      const parts = full.split(sep);
+      const cmdAt = parts.lastIndexOf("cmd");
+      if (cmdAt < 1 || parts[cmdAt - 1] === "idea") continue;
+      out.push(full);
+    }
+  };
+  for (const pack of readdirSync(contentDir).sort()) {
+    const content = join(contentDir, pack, "content");
+    if (existsSync(content)) walk(content);
+  }
+  return out;
+}
+
+/** One parsed command view. */
+export interface CommandView {
+  /** Absolute file. */
+  file: string;
+  /** Pack-relative-to-content path (`platform/cmd/perception/look.yaml`). */
+  rel: string;
+  /** The pack id. */
+  pack: string;
+  /** The parsed YAML. */
+  doc: Record<string, unknown>;
+}
+
+/** Every command view, parsed; an unparseable one is skipped (`lint:command-views` reports it). */
+export function commandViews(contentDir: string = CONTENT): CommandView[] {
+  const out: CommandView[] = [];
+  for (const file of commandViewFiles(contentDir)) {
+    const fromPack = relative(contentDir, file).split(sep);
+    const pack = fromPack[0]!;
+    const rel = fromPack.slice(2).join("/");
+    try {
+      const doc = YAML.parse(readFileSync(file, "utf8")) as Record<string, unknown> | null;
+      if (doc && typeof doc === "object") out.push({ file, rel, pack, doc });
+    } catch {
+      /* lint:command-views owns the parse failure */
+    }
+  }
+  return out;
+}
+
+/**
+ * A view's `controller:` value as an absolute template path — the
+ * dispatcher's one rule: absolute stays, relative resolves against the
+ * view's own document directory (`platform/cmd/x/y.yaml` → `/platform/cmd/x`).
+ */
+export function controllerPathOf(viewRel: string, controller: unknown): string | null {
+  if (typeof controller !== "string" || controller.length === 0) return null;
+  if (controller.startsWith("/")) return normalizeClassPath(controller);
+  const dir = "/" + viewRel.split("/").slice(0, -1).join("/");
+  return normalizeClassPath(`${dir}/${controller}`);
 }
 
 /** One `static _mixinName` declaration, and where it was written. */

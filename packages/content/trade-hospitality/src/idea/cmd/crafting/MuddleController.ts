@@ -1,7 +1,7 @@
 /**
  * MuddleController — `muddle` (press the build's solids in the vessel).
  *
- * An engaged step like `stir` / `shake` that records the build method
+ * An engaged step like `stir` that records the build method
  * `muddled` on the vessel. It needs a reachable **muddler** (the tool
  * capability) — a mojito is not made with a spoon. No matter moves; it's
  * the working of what's already banked (the mint reads the method for
@@ -56,14 +56,12 @@ export default class MuddleController extends ManualBuildController<MuddleModel>
     }
 
     const built: Stuff & Builds = vessel;
-    const commandText = context.commandText;
     this.engageStep(context, {
       durationMs: this.paceMs(MUDDLE_MS, muddler, [MUDDLER]),
       effortW: 150,
       beginSelf: Mml.compose`You set ${Mml.thing(muddler)} to ${Mml.thing(vessel)} and press.`,
       onComplete: () => {
         built.setBuildMethod("muddled");
-        built.recordCommand(commandText);
         MessageApi.scene(giver)
           .topic(TOPIC)
           .toSelf(Mml.compose`You muddle ${Mml.thing(built)} until the oils come up.`)

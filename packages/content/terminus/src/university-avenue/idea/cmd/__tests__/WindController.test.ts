@@ -9,7 +9,7 @@ import "@saxonberg/server/test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import WindController from '../WindController';
 import Watch from '../../../thing/Watch';
-import { Reserve, type Reserved } from '@saxonberg/server/mud/lib/reserve';
+import { Reserve, type Reserved } from '@saxonberg/server/mud/lib/reserve/Reserved';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import Place from '@saxonberg/server/mud/lib/stuff/Place';
 import Good from '@saxonberg/server/mud/lib/stuff/Good';

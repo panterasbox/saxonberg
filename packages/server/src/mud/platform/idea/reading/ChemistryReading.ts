@@ -21,7 +21,7 @@ import Reading from '../../../lib/instrument/Reading';
 import type { BenchResult } from '../../../lib/instrument/Reading';
 import { CompetenceBand } from '../../../lib/advancement/CompetenceBand';
 import { WorldClockApi } from '../../../api/worldclock';
-import type { Tooled } from '../../../lib/craft/Tooled';
+import type { Tooled } from '../../../lib/craft/Tool';
 import type { CompetenceBandName } from '../../../lib/advancement/CompetenceBand';
 import type { CommandContext, CommandModel } from '../../../api/command';
 import type { MqlOneResult } from '../../../api/mql';
@@ -206,9 +206,7 @@ export default class ChemistryReading extends Reading {
       // stored flag. At `competent` and above the assayer says what the
       // reading is really about.
       if (CompetenceBand.atOrAbove(band, 'competent') && state !== 'fresh') {
-        const stamp = (
-          sample as unknown as { getSampling?(): { on: number } | null }
-        ).getSampling?.();
+        const stamp = MixinApi.isSampled(sample) ? sample.getSampling() : null;
         const hours = stamp
           ? Math.max(
               0,

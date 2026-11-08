@@ -232,7 +232,7 @@ export default class DoseController extends CommandController<DoseModel> {
    * The first reachable vessel whose matter carries an `antidote:<toxin>`
    * tag, with the toxin types it counters — a NARROWING over the bound
    * `[mixin.BulkableMixin]` default (state, not identity: no predicate can
-   * ask what a vessel holds — `lint:instrument-args`).
+   * ask what a vessel holds — `lint:controller-resolution`).
    */
   private findRemedy(
     bound: MqlManyResult | undefined,

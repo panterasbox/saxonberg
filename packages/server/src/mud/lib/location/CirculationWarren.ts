@@ -78,8 +78,7 @@ export interface CapacityCheck {
  * Named once rather than spelled inline at each call site: five
  * anonymous probes for one concept hid how wide the seam actually is,
  * and a second consumer has to be able to see the whole surface it is
- * being asked for. Same pattern as `PersistentLocation`'s `WarrenView` and
- * `TitleController`'s `PlatWarrenShape`.
+ * being asked for. Same pattern as `PersistentLocation`'s `WarrenView`.
  */
 interface HoldingView {
   /** Where a mover lands — the holding's own entry room. */

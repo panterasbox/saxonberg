@@ -18,7 +18,7 @@ import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
 import { BiomeApi } from '../../../api/biome';
 import { SOIL_MOISTURE_RESERVE_KEY } from '../Cultivable';
-import { ReservedMixin, Reserve } from '../../reserve';
+import { ReservedMixin, Reserve } from '../../reserve/Reserved';
 import { HasInteractiveMixin } from '../../connection/HasInteractive';
 import { ThermalMixin } from '../../thermal/Thermal';
 import { MixinApi } from '../../../api/mixin';

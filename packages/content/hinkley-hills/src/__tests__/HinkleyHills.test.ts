@@ -35,7 +35,7 @@ import Plant from '@saxonberg/server/mud/platform/thing/Plant';
 import PersistentLocation from '@saxonberg/server/mud/platform/location/PersistentLocation';
 import ParcelRegistry from '@saxonberg/server/mud/platform/idea/ParcelRegistry';
 import GroupRegistry from '@saxonberg/server/mud/platform/idea/GroupRegistry';
-import { Reserve } from '@saxonberg/server/mud/lib/reserve';
+import { Reserve } from '@saxonberg/server/mud/lib/reserve/Reserved';
 import {
   PLANT_SLOT,
   SOIL_MOISTURE_RESERVE_KEY,

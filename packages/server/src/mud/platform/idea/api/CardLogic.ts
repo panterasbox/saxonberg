@@ -93,11 +93,8 @@ export class CardLogic extends ApiLogic {
    *
    * 1. `expandAliases` — the player's own aliases, so a personal `l`
    *    for `look` does not mint a second card.
-   * 2. ⚠ **Canonicalise the verb to `command.verbs[0]`.** `examine` is
-   *    a verb SYNONYM, not an alias — `look.yaml` declares
-   *    `verbs: [look, l, examine, exa]`, so `expandAliases` never sees
-   *    it. Without this rung `examine a` and `look a` are two cards and
-   *    acceptance criterion 3 fails.
+   * 2. **Canonicalise the verb to `command.verbs[0]`** — the view's one
+   *    word, whichever alias reached it.
    * 3. `CommandLineApi.format()` — the canonical round-trip, which is
    *    what makes `look   lamp` and `look lamp` the same key.
    *

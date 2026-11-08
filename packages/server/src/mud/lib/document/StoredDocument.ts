@@ -9,7 +9,7 @@
  * document is **per-owner runtime state** — created and edited live, owned
  * by whoever claims its `/home/<self>/` (or other granted) branch:
  *
- *   /home/<player>/scripts/<name>     a player's recorded recipe-script (msh)
+ *   /home/<player>/scripts/<name>     a player's saved script (msh)
  *   /home/<player>/dorm/<room>        (future) dorm customization data
  *   /world/<world>/msh/<name>        managed world content (a pack's msh/)
  *

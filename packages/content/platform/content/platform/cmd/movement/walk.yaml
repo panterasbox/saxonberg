@@ -1,4 +1,5 @@
 verbs: [walk]
+category: movement
 controller: /platform/idea/cmd/movement/WalkController
 description: "Walk through a named exit (compass, door, or vessel)."
 help: |

@@ -6,11 +6,12 @@
 #
 # Conferred by the instrument (`SweepingTool` — a clothes brush, a carpet
 # beater, a broom); a floor is SWEPT, not brushed.
-verbs: [brush, beat]
+verbs: [brush]
+category: inventory
 controller: /platform/idea/cmd/inventory/BrushController
-description: "Brush or beat the loose dirt out of something"
+description: "Brush the loose dirt out of something"
 help: |
-  `brush coat`, `beat rug with beater` — what is loose comes out: crumbs,
+  `brush coat`, `brush rug with beater` — what is loose comes out: crumbs,
   grit, ash, flour, dried mud. Grease and sweat stay for the wash, and a
   set stain for a bleach. A beater or a stiff brush does more than a broom.
 validators:

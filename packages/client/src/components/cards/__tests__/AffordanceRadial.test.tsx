@@ -36,7 +36,7 @@ function answer(
   useStore.getState().setAffordances({
     stuffId: "anvil",
     verbs,
-    composition,
+    composition: composition.map((name) => ({ name, kind: "mixin" as const })),
     kind,
   });
 }

@@ -548,7 +548,10 @@ export interface LocomotionGateFailedNote {
     | 'encumbrance'
     | 'locked'
     | 'unbuilt'
-    | 'unpublished';
+    | 'unpublished'
+    // ⭐ A guard this vocabulary has no word for reports its own raw name; it
+    // used to read as `exit-mode` whatever it was (controllers-are-io D31).
+    | (string & Record<never, never>);
   /** 'walk', 'climb', 'swim', etc. */
   mode: string;
 }
@@ -577,8 +580,41 @@ export interface CommandRejectedNote {
     | 'shape-fall-through'
     | 'bind-failed'
     | 'missing-subcommand'
-    | 'unknown-subcommand';
+    | 'unknown-subcommand'
+    /**
+     * `verb@source` named nothing: the scope after the `@` resolved to
+     * no object the giver can reach.
+     */
+    | 'source-not-found'
+    /**
+     * `verb@source` named something, and nothing it named affords the
+     * verb — *"the watch does not answer `drink`"*.
+     */
+    | 'source-affords-nothing'
+    /**
+     * The command needed an answer — a choice, a confirmation, a body —
+     * and nobody is there to give one (a script line, an NPC). A script
+     * fails CLOSED: `detail` names the input it would have asked for.
+     */
+    | 'needs-input';
   detail?: string;
+}
+
+/**
+ * ⭐ **The other offer** — the line was refused, and a different source
+ * here would have taken it. The dispatcher proves it with the binder
+ * alone (assemble, resolve, validators — the controller is never run
+ * speculatively) and says so: *"The wheat on the far bed also answers
+ * `harvest` — `harvest@here:2nd wheat`."*
+ */
+export interface OtherOfferNote {
+  kind: 'other-offer';
+  /** The verb as typed. */
+  verb: string;
+  /** The source that would have taken the line. */
+  source: StuffRef;
+  /** The `@` form that names it, proved by resolving it once. */
+  scopedForm: string;
 }
 
 export interface MqlErrorNote {
@@ -885,6 +921,7 @@ export type Note =
   | PaceBrokenNote
   | SlotOccupiedNote
   | CommandRejectedNote
+  | OtherOfferNote
   | MqlErrorNote
   | RegistryScanNote
   | ValidatorFailedNote
@@ -1512,6 +1549,17 @@ export interface AffordanceEntry {
    * the player would have been shown had they typed the verb.
    */
   reason?: string;
+  /**
+   * Which validator refused, on `disabled` — the note's own name
+   * (`field`, `verb`, `subcommand:<name>`, …).
+   */
+  validator?: string;
+  /**
+   * The `requires:` mixin the bound target was found WITHOUT, on
+   * `disabled`, when that is why — so a client can say what is missing
+   * rather than only that something is.
+   */
+  missing?: string;
   /**
    * The field still needing a value, on `pending-operand` — so the
    * client can open the right prompt rather than guessing.
@@ -2245,6 +2293,27 @@ export interface ReactionExpandResultEnvelope {
 }
 
 /**
+ * One mixin in a subject's active composition, as the card's chip row
+ * presents it (controllers-are-io D8b).
+ */
+export interface CompositionEntry {
+  /** The mixin's `_mixinName` (`DipBathMixin`). */
+  name: string;
+  /**
+   * `protocol` — a verb protocol (`_mixinKind = 'protocol'`): the thing
+   * ANSWERS a verb, so the chip names the verb. `mixin` — everything else,
+   * a fact about what the thing is.
+   */
+  kind: 'mixin' | 'protocol';
+  /**
+   * For a protocol: the verbs whose views `requires:` it — the words the
+   * chip reads (*answers: dip*). Empty when no view names it yet (its
+   * verb's slot is `requires: any`); the chip then reads the mixin's name.
+   */
+  verbs?: string[];
+}
+
+/**
  * Result of an {@link AffordanceResolveMessage}: what this viewer can
  * do with this object, at this instant.
  *
@@ -2265,8 +2334,13 @@ export interface AffordanceResultEnvelope {
    * group without a second round trip. **Active**, not declared:
    * augments, implants, species innates and on-shift conferral all
    * change it at runtime.
+   *
+   * ⭐ Each entry says what KIND of mixin it is (controllers-are-io D8b): a
+   * `protocol` mixin (`_mixinKind = 'protocol'`) is presented as the verb
+   * it serves — the card reads *answers: dip* — and a `mixin` as a noun
+   * chip.
    */
-  composition: string[];
+  composition: CompositionEntry[];
   /**
    * What the subject IS, to this viewer — the centre chip's middle
    * term (*"cast-iron anvil · thing · 6 mixins"*).
@@ -4606,8 +4680,15 @@ export interface MixinPaletteEntry {
   /**
    * `mixin` — a class-factory mixin (`FooMixin`), applied over the base.
    * `base` — an instantiable base class (`Idea`/`Thing`/…) the mixins wrap.
+   * `protocol` — a verb protocol mixin (`_mixinKind = 'protocol'`): composing
+   * it makes the class ANSWER a verb (controllers-are-io D8b).
    */
-  kind: 'mixin' | 'base';
+  kind: 'mixin' | 'base' | 'protocol';
+  /**
+   * For a `protocol`: the verbs whose views `requires:` it (`['dip']`).
+   * Absent for a noun mixin or a base.
+   */
+  verbs?: string[];
   /**
    * A one-line summary — the first sentence of the mixin's TSDoc doc
    * comment (or its companion interface's), from the server source scan.

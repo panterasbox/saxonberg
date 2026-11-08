@@ -24,7 +24,7 @@ import Material from '../../lib/material/Material';
 import { Recipe } from '../../lib/craft/Recipe';
 import { CombustibleMixin } from '../../lib/fire/Combustible';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
-import { ReservedMixin, Reserve } from '../../lib/reserve';
+import { ReservedMixin, Reserve } from '../../lib/reserve/Reserved';
 import Good from '../../lib/stuff/Good';
 import { FireApi } from '../../api/fire';
 import { WorldClockApi } from '../../api/worldclock';

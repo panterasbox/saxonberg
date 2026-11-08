@@ -1,6 +1,6 @@
 # ship — hand goods to a carrier for carriage, and get the paper.
 #
-# ⚠⚠ **Not `consign`.** Retail's `consign <thing> --ask <coin>` creates a
+# ⚠⚠ **Not `consign`.** Retail's `shelf consign <thing> --ask <coin>` creates a
 # priced LISTING with a commission split; this creates a BILL OF LADING —
 # a destination, a custody chain, no price and no buyer. They share an
 # English word and nothing else.
@@ -12,6 +12,7 @@
 # Its own `haulage` category, on the metal chain's precedent: a trade's
 # own acts get their own category.
 verbs: [ship]
+category: haulage
 controller: /trade/haulage/idea/cmd/haulage/ShipController
 description: "Hand goods to the carrier for carriage, and take the bill of lading."
 help: |
@@ -32,7 +33,7 @@ help: |
 
   ⭐ Goods you ship somewhere and sell THERE are worth more than goods
   you sell here. That difference is the whole of why carriage is a
-  business: `ship` them out, and `consign` them at the far end.
+  business: `ship` them out, and `shelf consign` them at the far end.
 
   Loose goods (a stack of anything) cannot be shipped as they are: a
   merging stack has no identity, so nothing could say which of it
@@ -67,7 +68,7 @@ args:
     required: false
     prepositions: [at]
     default: "reachable:[mixin.ShipmentDeskMixin]"
-    scope: [reachable]
+    scope: ["here", "peers", "person"]
     requires: [ShipmentDeskMixin]
 options:
   worth:

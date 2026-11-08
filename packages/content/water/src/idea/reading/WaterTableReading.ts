@@ -16,7 +16,7 @@ import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
 import type { CommandContext } from '@saxonberg/server/mud/api/command';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tooled';
+import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tool';
 import ObservationWell from '../../thing/ObservationWell';
 import Aquifer from '../Aquifer';
 

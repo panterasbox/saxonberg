@@ -6,6 +6,7 @@
 #
 # Afforded by the boat you sit in (`Boat.commandContributions.inventory`).
 verbs: [paddle]
+category: movement
 controller: /system/transport/idea/cmd/movement/PaddleController
 description: "Paddle, row or pole the boat you are sitting in"
 help: |

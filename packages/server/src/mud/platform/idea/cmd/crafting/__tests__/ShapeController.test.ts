@@ -8,10 +8,9 @@ import '../../../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import ShapeController from '../ShapeController';
 import Good from '../../../../../lib/stuff/Good';
-import { Mml } from '../../../../../api/mml';
 import { ExecutionContextApi } from '../../../../../api/execution-context';
 import { ShapeableMixin } from '../../../../../lib/craft/Shapeable';
-import type { ShapeRequest } from '../../../../../lib/craft/Shapeable';
+import type { ShapePlan, ShapeRefusal, ShapeRequest } from '../../../../../lib/craft/Shapeable';
 import { FormingMixin } from '../../../../../lib/craft/Forming';
 import type { FormableClass, FormingHand } from '../../../../../lib/craft/Forming';
 import type { CommandContext } from '../../../../../api/command';
@@ -20,9 +19,15 @@ import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
 
 class Pipe extends FormingMixin(Good) {
   public seen: ShapeRequest | null = null;
-  public override async shapePlanFor(req: ShapeRequest) {
+  public override async shapePlanFor(req: ShapeRequest): Promise<ShapePlan> {
     this.seen = req;
-    return { ok: true as const, durationMs: 1, effortW: 1, beginSelf: Mml.compose`go`, onComplete: () => {} };
+    return {
+      ok: true,
+      durationMs: 1,
+      effortW: 1,
+      facts: { kind: 'coil' },
+      onComplete: () => ({ ok: true, facts: { kind: 'lost' } }),
+    };
   }
 }
 /** An instrument with nothing to say — the default plan, `null`. */
@@ -49,9 +54,9 @@ class Undeclared extends FormingMixin(Good) {
 }
 class Lump extends ShapeableMixin(Good) {
   public asked = false;
-  public override async shapePlanFor() {
+  public override async shapePlanFor(): Promise<ShapeRefusal> {
     this.asked = true;
-    return { ok: false as const, reason: 'too-dry', line: Mml.compose`too dry` };
+    return { ok: false, reason: 'set-hard' };
   }
 }
 
@@ -92,7 +97,7 @@ describe('shape asks; it never decides', () => {
       form: 'open vessel holding 2 pints',
     });
     expect(lump.asked).toBe(true);
-    expect(declined(ctx)).toBe('too-dry');
+    expect(declined(ctx)).toBe('set-hard');
   });
 
   it('nothing to shape and nothing to shape it on is refused in words', async () => {

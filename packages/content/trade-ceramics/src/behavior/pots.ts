@@ -13,7 +13,7 @@
  *
  * Every step is the LITERAL verb through `forceCommand`: `dig clay`, `shape
  * clay into jug`, `drop jug`, `put jug in kiln`, `stoke charcoal into kiln`,
- * `ignite kiln`, `fire kiln for 10 hours`, `douse kiln`, `get jug from kiln`,
+ * `light kiln`, `fire kiln for 10 hours`, `douse kiln`, `get jug from kiln`,
  * `dip jar inside in lead tub`, `put jug in shelf`. Nothing here mints, and
  * a player's pots are never the potter's to move.
  *
@@ -164,7 +164,7 @@ export const brain = class {
         if (!fuel) return; // no charcoal: the load waits for the fuel trade
         await p.forceCommand('stoke charcoal into kiln');
       }
-      await p.forceCommand('ignite kiln');
+      await p.forceCommand('light kiln');
       if (kiln.isLit()) await p.forceCommand(`fire kiln for ${hold}`);
       return;
     }

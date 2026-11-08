@@ -13,6 +13,11 @@ burden and capacity are recomputed every call from its contents, its worn
 
 ## The gauge — `LoadBearingMixin`
 
+⭐ The water's question — displacement and net buoyancy — is
+`BuoyantMixin`'s (`lib/encumbrance/Buoyant.ts`, carved off at
+controllers-are-io D6; `LoadBearing` reads its `NEUTRAL_DENSITY_KG_M3`).
+The burden stays here. Both compose on `Creature`.
+
 `lib/encumbrance/LoadBearing.ts` is the single home for the capability:
 the gauge, the consequence helpers, the recursive tree-walk (a private
 module function), and the engine dials (`LOAD_BEARING_DEFAULTS`, a

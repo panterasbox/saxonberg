@@ -29,8 +29,8 @@
  */
 
 import type { MixinConstructor, FieldMeta } from '@saxonberg/server/mud/lib/mixin';
-import { Reserve } from '@saxonberg/server/mud/lib/reserve';
-import type { Reserved } from '@saxonberg/server/mud/lib/reserve';
+import { Reserve } from '@saxonberg/server/mud/lib/reserve/Reserved';
+import type { Reserved } from '@saxonberg/server/mud/lib/reserve/Reserved';
 import {
   SOIL_MOISTURE_RESERVE_KEY,
   SOIL_NITROGEN_RESERVE_KEY,

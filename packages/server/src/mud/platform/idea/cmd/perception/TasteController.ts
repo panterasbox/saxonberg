@@ -10,6 +10,7 @@ import type { Stuff } from '../../../../lib/stuff/Stuff';
 import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
+import { GrammarApi } from '../../../../api/grammar';
 import type { Savor } from '../../../../lib/perception/Flavor';
 
 export default class TasteController extends SingleSenseControllerBase {
@@ -45,6 +46,10 @@ export default class TasteController extends SingleSenseControllerBase {
           return this.decline(context, Mml.compose`You'd have to open ${Mml.thing(target)} first.`, 'closed');
         case 'nothing-left':
           return this.decline(context, Mml.compose`There's nothing to taste.`, 'nothing-left');
+        default: {
+          const never: never = outcome;
+          return never;
+        }
       }
     }
     const opening = {
@@ -55,7 +60,7 @@ export default class TasteController extends SingleSenseControllerBase {
     const burn = outcome.burned ? ' It burns.' : '';
     MessageApi.scene(giver)
       .topic(this.sceneTopic)
-      .toSelf(Mml.compose`${opening}${burn}${readingLines(outcome.savor)}`)
+      .toSelf(Mml.compose`${opening}${burn}${TasteController.readingLines(outcome.savor)}`)
       .toPeers(Mml.compose`${Mml.actor(giver)} tastes ${outcome.foodName}.`)
       .send();
   }
@@ -64,31 +69,25 @@ export default class TasteController extends SingleSenseControllerBase {
     MessageApi.scene(context.commandGiver).topic(this.sceneTopic).toSelf(line).send();
     context.note({ kind: 'controller-rejected', reason, detail: reason });
   }
-}
 
-/** `a, b and c`. */
-function joined(words: readonly string[]): string {
-  if (words.length <= 1) return words[0] ?? '';
-  return `${words.slice(0, -1).join(', ')} and ${words[words.length - 1]}`;
-}
-
-/** Each thing a mouth read, in sentences; never a digit. */
-function readingLines(savor: Savor): string {
-  const out: string[] = [];
-  const tastes = savor.tastePhrases();
-  out.push(tastes.length > 0 ? `It tastes ${joined(tastes)}.` : 'It tastes of very little.');
-  if (!savor.scent.isEmpty()) out.push(`It smells ${joined(savor.scent.phrases())}.`);
-  const { parts, gradeBand, maturedDays } = savor.details;
-  if (parts.length > 0) out.push(`You pick out ${joined(parts)}.`);
-  if (gradeBand) out.push(`The making of it reads ${gradeBand}.`);
-  if (maturedDays > 0) out.push(`It has had ${savor.ageInWords()} in the wood.`);
-  const verdict = {
-    revolting: 'It is revolting.',
-    unpleasant: 'You do not like it.',
-    indifferent: '',
-    good: 'You like it.',
-    delicious: 'It is delicious.',
-  }[savor.liking.word];
-  if (verdict) out.push(verdict);
-  return ` ${out.join(' ')}`;
+  /** Each thing a mouth read, in sentences; never a digit. */
+  private static readingLines(savor: Savor): string {
+    const out: string[] = [];
+    const tastes = savor.tastePhrases();
+    out.push(tastes.length > 0 ? `It tastes ${GrammarApi.joinList(tastes)}.` : 'It tastes of very little.');
+    if (!savor.scent.isEmpty()) out.push(`It smells ${GrammarApi.joinList(savor.scent.phrases())}.`);
+    const { parts, gradeBand } = savor.details;
+    if (parts.length > 0) out.push(`You pick out ${GrammarApi.joinList(parts)}.`);
+    if (gradeBand) out.push(`The making of it reads ${gradeBand}.`);
+    if (savor.hasAged()) out.push(`It has had ${savor.ageInWords()} in the wood.`);
+    const verdict = {
+      revolting: 'It is revolting.',
+      unpleasant: 'You do not like it.',
+      indifferent: '',
+      good: 'You like it.',
+      delicious: 'It is delicious.',
+    }[savor.liking.word];
+    if (verdict) out.push(verdict);
+    return ` ${out.join(' ')}`;
+  }
 }

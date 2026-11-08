@@ -125,7 +125,7 @@ suite('the workings — the ground answers, and remembers', () => {
     expect(await hewn.said()).toMatch(
       /start cutting|set the pick|already driven|nothing left to cut|pick/i
     );
-    const driven = await m.cmd('drive south');
+    const driven = await m.cmd('drift south');
     expect(await driven.said()).toMatch(
       /start driving|already driven|cut and finished|pick|timber/i
     );

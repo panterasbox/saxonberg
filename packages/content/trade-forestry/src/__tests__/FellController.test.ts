@@ -49,7 +49,7 @@ import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { PLANT_SLOT, SOIL_MOISTURE_RESERVE_KEY, SOIL_NITROGEN_RESERVE_KEY } from '@saxonberg/server/mud/lib/husbandry/Cultivable';
-import { Reserve } from '@saxonberg/server/mud/lib/reserve';
+import { Reserve } from '@saxonberg/server/mud/lib/reserve/Reserved';
 import { Document } from '@saxonberg/server/mud/lib/persistence/Document';
 import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import {

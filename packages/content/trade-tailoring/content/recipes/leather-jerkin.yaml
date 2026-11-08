@@ -9,8 +9,8 @@
 #
 # ⚠⚠⚠ **STILL UNMAKEABLE, and now for a reason that is written down.**
 # The material was one blocker and this build fixed it. The other is that
-# nothing RESOLVES this recipe: `make` dispatches a recipe SCRIPT rather
-# than a catalogue recipe, and `cut` requires `StackableMixin` — a BOLT —
+# nothing RESOLVES this recipe: no craft verb takes it (`make` only ever
+# ran a player's SCRIPT, and is `do` now), and `cut` requires `StackableMixin` — a BOLT —
 # which a tanned hide is not and must not become (two hides must never
 # merge; each is a particular skin off a particular animal with its own
 # grade). So a hide has no path to a worn jerkin, and three unit suites

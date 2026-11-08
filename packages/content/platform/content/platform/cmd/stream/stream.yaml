@@ -1,4 +1,5 @@
 verbs: [stream]
+category: stream
 controller: /platform/idea/cmd/stream/StreamController
 description: "Drive the livestream overlay (standby countdown / go live)"
 help: |

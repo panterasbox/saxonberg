@@ -352,7 +352,7 @@ describe('aboard a ship of a kind — the room is asked, never its row', () => {
     // HER, never a prompt between two things called by one name. The way
     // keeps her name as its direction and among its keywords (`go smack`).
     expect(way.describeFor(who)).toMatch(/^the smack's gangway$/i);
-    expect(way.getKeywords()).toEqual(expect.arrayContaining(['gangway', 'smack']));
+    expect(way.getKeywords()).toEqual(expect.arrayContaining(['gangway', 'smack gangway']));
     // `look gangway` binds the WAY itself, and look shows what MQL bound.
     const bound = MqlApi.resolveOne('gangway', { commandGiver: who as never, scope: 'reachable' });
     expect(bound.stuff).toBe(way);

@@ -18,7 +18,7 @@
  *  - the parse, the class check, the product (the word's, else this
  *    instrument's `formTemplates`, else the mass's material's), and the hand:
  *    a vessel larger than this maker can raise is refused in the mass's own
- *    words (`Formable.refuseBeyond`).
+ *    words the controller says (`Formable.refuseBeyond`, a reason and facts).
  *
  * Kernel, because its composers live in two packs with no common ancestor
  * (ceramics and glass).
@@ -31,11 +31,9 @@ import type { CompetenceBandName } from '../advancement/CompetenceBand';
 import type { Grade } from './Grade';
 import type { FormClass, FormWord } from './FormSpec';
 import { FormGrammar, ParsedForm } from './FormSpec';
-import type { ShapeRequest } from './Shapeable';
-import type { ActPlan, ActRefusal } from './ActPlan';
+import type { BeyondHandRefusal, ShapePlan, ShapeRefusal, ShapeRequest } from './Shapeable';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
-import { Mml } from '../../api/mml';
 import Form from '../../platform/idea/Form';
 
 const SHAPING = ['platform/cmd/crafting/shape.yaml'];
@@ -63,7 +61,7 @@ export interface FormingHand {
  */
 export interface Formable {
   formingHand(actor: Stuff, discipline: string): Promise<FormingHand>;
-  refuseBeyond(hand: FormingHand): ActRefusal;
+  refuseBeyond(hand: FormingHand): BeyondHandRefusal;
 }
 
 /** What a forming instrument resolved for a shape. */
@@ -86,7 +84,7 @@ export interface Forming {
   /** The Form rows this instrument makes, by path. */
   getForms(): readonly string[];
   /** The plan, a refusal, or `null` when this instrument has nothing to say. */
-  shapePlanFor(req: ShapeRequest): Promise<ActPlan | ActRefusal | null>;
+  shapePlanFor(req: ShapeRequest): Promise<ShapePlan | ShapeRefusal | null>;
 }
 
 export function FormingMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
@@ -114,7 +112,7 @@ export function FormingMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase)
     }
 
     /** @hook The shape this instrument plans — `null` when it has nothing to say. */
-    public async shapePlanFor(_req: ShapeRequest): Promise<ActPlan | ActRefusal | null> {
+    public async shapePlanFor(_req: ShapeRequest): Promise<ShapePlan | ShapeRefusal | null> {
       return null;
     }
 
@@ -182,24 +180,18 @@ export function FormingMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase)
     }
 
     /**
-     * ⭐ Resolve what this instrument would make — or a refusal in words.
+     * ⭐ Resolve what this instrument would make — or a refusal (facts).
      * `null` when there is no mass to work (a blowpipe's gather is not the
      * wheel's business).
      */
-    protected async resolveForming(req: ShapeRequest): Promise<FormingTarget | ActRefusal | null> {
+    protected async resolveForming(req: ShapeRequest): Promise<FormingTarget | ShapeRefusal | null> {
       const mass = this.formingMass(req);
       if (mass === null) return null;
       const parsed = new FormGrammar(await this.formWords()).parse(req.formText);
-      if (!(parsed instanceof ParsedForm)) {
-        return { ok: false, reason: parsed.reason, line: Mml.compose`${parsed.line}` };
-      }
+      if (!(parsed instanceof ParsedForm)) return parsed;
       const self = this as unknown as Stuff;
       if (!this.formClasses().includes(parsed.formClass)) {
-        return {
-          ok: false,
-          reason: 'wrong-instrument',
-          line: Mml.compose`${Mml.thing(self)} will not make that shape.`,
-        };
+        return { ok: false, reason: 'wrong-instrument', facts: { instrument: self } };
       }
       const material = MixinApi.isTangible(mass) ? mass.getMaterial() : null;
       const product =
@@ -207,13 +199,7 @@ export function FormingMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase)
         this.formTemplates[parsed.formClass] ||
         material?.getFormTemplates()[parsed.formClass] ||
         '';
-      if (product === '') {
-        return {
-          ok: false,
-          reason: 'no-product',
-          line: Mml.compose`You could make that shape, but it would be nothing anybody has a name for.`,
-        };
-      }
+      if (product === '') return { ok: false, reason: 'no-product', facts: { coiling: null } };
       const discipline = parsed.word?.discipline || this.formingDiscipline();
       if (discipline === '') {
         throw new TypeError(

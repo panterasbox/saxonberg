@@ -23,6 +23,7 @@ import type {
   Status,
   AffordanceEntry,
   AffordanceState,
+  CompositionEntry,
 } from '@saxonberg/types';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
@@ -148,6 +149,23 @@ export interface CommandContext {
   barId?: string;
 
   /**
+   * ⭐ The per-invocation `--strict` / `--loose` override of every
+   * slot's {@link OnFilteredPolicy} — `--strict` forces `error`,
+   * `--loose` forces `take`. Absent: each slot's own policy applies.
+   */
+  filterPolicy?: OnFilteredPolicy;
+
+  /**
+   * ⭐⭐ **The one guard every prompt seam uses.** Returns the
+   * Interactive to ask, or — when nobody is there to answer (a script
+   * line, an NPC) — notes `command-rejected { reason: 'needs-input',
+   * detail: '<verb> needs <what> when run from a script' }` and returns
+   * `null`, so the caller stops. A script fails CLOSED: it never waits
+   * on a question, and it never gets a silent default for one.
+   */
+  requireInteractive(what: string): Interactive | null;
+
+  /**
    * Accumulate a structured note. Auto-escalates status per the
    * {@link autoEscalationFor} table unless `setStatus` was already
    * called explicitly (in which case the explicit value sticks).
@@ -190,6 +208,8 @@ export interface CreateCommandContextArgs {
   bodyFields?: Record<string, unknown>;
   /** Submitting command bar; see {@link CommandContext.barId}. */
   barId?: string;
+  /** `--strict` / `--loose`; see {@link CommandContext.filterPolicy}. */
+  filterPolicy?: OnFilteredPolicy;
 }
 
 /**
@@ -399,10 +419,10 @@ export type ModelData = Record<string, FieldValue | undefined>;
  */
 export interface AffordanceResolution {
   verbs: AffordanceEntry[];
-  composition: string[];
+  composition: CompositionEntry[];
 }
 
-export type { AffordanceEntry, AffordanceState };
+export type { AffordanceEntry, AffordanceState, CompositionEntry };
 
 export type CommandModel = ModelData & {
   /**
@@ -915,7 +935,7 @@ export interface FieldDefinition {
    *     giver's current focus with `:` as the separator. With
    *     same-anchor + via.detailPath compaction (re-resolving the
    *     same target doesn't double-add). The drill-additive default
-   *     for inspection-shaped verbs (`look`, `examine`, `read`,
+   *     for inspection-shaped verbs (`look`, `read`,
    *     `open`, `close`).
    *
    *   - `replace` — set focus to the post-desugar input fragment
@@ -953,10 +973,19 @@ export interface FieldDefinition {
    * `recipient: prepositions: [to]` tells the matcher to stop the
    * greedy `gift` at `to`.
    *
-   * Prepositions are always optional: declaring `prepositions: [to]`
-   * means "consume `to` if it appears here," not "require `to`."
+   * Prepositions are optional by default: declaring `prepositions: [to]`
+   * means "consume `to` if it appears here," not "require `to`." See
+   * {@link prepositionRequired} for the slot that demands one.
    */
   prepositions?: string[];
+  /**
+   * ⭐ The slot binds ONLY when one of its `prepositions:` is present
+   * (`throw ball to ann` — the `to` is what tells the throw-to view from
+   * the throw-at view). Absent preposition: a required slot is a shape
+   * error naming the preposition, so the chain tries the next view; an
+   * optional one stays unbound. Meaningless without `prepositions:`.
+   */
+  prepositionRequired?: boolean;
 }
 
 /**
@@ -989,7 +1018,7 @@ export interface PositionalDefinition extends FieldDefinition {
  *   - a list — `[VisibleMixin, ContainableMixin]`, meaning **all of
  *     them**. Any single entry may itself be an alternation written
  *     with `|` — `CombustibleMixin|BurnerMixin` means *either*, which
- *     is what `ignite` needs.
+ *     is what `light` needs.
  *
  * ### Why this and not a validator
  *
@@ -1032,6 +1061,12 @@ export interface PositionalDefinition extends FieldDefinition {
  * and if the controller refuses on a class, that is usually a sign the
  * capability wants extracting into a mixin (`PlantableMixin` is the
  * worked example).
+ *
+ * ⭐ One word is not a mixin: **`affords`** (controllers-are-io D8d, opted
+ * into per slot) — the candidate itself contributes this view, by its class
+ * or an ACTIVE mixin. An AND-term of its own, kept beside the protocol mixin
+ * and never instead of it: the mixin says what the thing IS, `affords` that
+ * this thing is the one offering the verb.
  *
  * @see MixinRefusals — where the player-facing sentence comes from.
  */
@@ -1186,8 +1221,18 @@ export interface SubcommandDefinition {
  * command-shape preconditions (animacy, future mobility / vocal
  * checks).
  */
+/** One entry of a view's `defaultAliases:` — a shortcut for the view's verb. */
+export interface ViewDefaultAlias {
+  name: string;
+  description?: string;
+}
+
 export interface CommandView {
   verbs: string[];
+  /** The verb's category (`cmd/<category>/`; {@link CommandDefinition.category}). */
+  category?: string;
+  /** Default player aliases for this verb (D16). */
+  defaultAliases?: ViewDefaultAlias[];
   /**
    * Verb-level controller template name. Optional only when every
    * subcommand declares its own `controller:` (Option E — the verb
@@ -1324,6 +1369,38 @@ export interface AssembleSuccess {
    * `CommandGiverMixin._runChain` to compute the effective async mode.
    */
   reservedAsync?: 'async' | 'sync';
+  /**
+   * The reserved `--strict` / `--loose` flag consumed from the token
+   * stream (last wins), as the {@link OnFilteredPolicy} it forces:
+   * `--strict` → `'error'`, `--loose` → `'take'`. Stripped like
+   * `--async`, so it works on any verb. The dispatcher carries it onto
+   * the attempt's {@link CommandContext.filterPolicy}.
+   */
+  reservedFiltered?: OnFilteredPolicy;
+}
+
+/**
+ * Per-call options for {@link CommandApi.assemble}.
+ *
+ * `scopeSource` — ⭐ the source a `verb@source` named. It fills the
+ * FIRST positional object slot whose `requires:` it satisfies: nothing
+ * typed there → the source is bound; a typed word that matches the
+ * source → the source wins the slot; a typed word that does not → the
+ * typed words win.
+ */
+export interface AssembleOptions {
+  scopeSource?: Stuff;
+}
+
+/**
+ * Per-call options for {@link CommandApi.resolveModel}.
+ *
+ * `speculative` — the other-offer probe: resolve WITHOUT side effects on
+ * the giver (no focus update, no pronoun memory). The probe also strips
+ * the Interactive, so nothing prompts.
+ */
+export interface ResolveModelOptions {
+  speculative?: boolean;
 }
 
 export type AssembleResult =
@@ -1391,6 +1468,17 @@ export class CommandApi {
    */
   static allDefinitions(): CommandDefinition[] {
     return logic().allDefinitions();
+  }
+
+  /**
+   * The primary verbs of every loaded view a slot of which `requires:` the
+   * named mixin (`DipBathMixin` → `['dip']`), sorted. The verb side of a
+   * protocol mixin (controllers-are-io D8b): what a card's *answers:* chip
+   * and Studio's palette say the protocol serves. Empty when no view names
+   * it (a `requires: any` slot narrowed in its controller).
+   */
+  static verbsRequiring(mixinName: string): string[] {
+    return logic().verbsRequiring(mixinName);
   }
 
   /**
@@ -1733,9 +1821,10 @@ export class CommandApi {
   static assemble(
     parsed: ParsedCommand,
     command: CommandDefinition,
-    ctx: { commandGiver: Stuff & CommandGiver; location: (Stuff & Container) | null }
+    ctx: { commandGiver: Stuff & CommandGiver; location: (Stuff & Container) | null },
+    opts: AssembleOptions = {}
   ): AssembleResult {
-    return logic().assemble(parsed, command, ctx);
+    return logic().assemble(parsed, command, ctx, opts);
   }
 
   /**
@@ -1885,9 +1974,10 @@ export class CommandApi {
   static resolveModel(
     model: CommandModel,
     context: CommandContext,
-    prep: Record<string, string> = {}
-  ): Promise<{ resolved: CommandModel } | { result: 'failed' }> {
-    return logic().resolveModel(model, context, prep);
+    prep: Record<string, string> = {},
+    opts: ResolveModelOptions = {}
+  ): Promise<{ resolved: CommandModel; result?: undefined } | { result: 'failed' }> {
+    return logic().resolveModel(model, context, prep, opts);
   }
 
   /**
@@ -1905,7 +1995,7 @@ export class CommandApi {
     resolved: CommandModel,
     context: CommandContext,
     preloads?: ValidatorPreloads,
-  ): { ok: true } | { result: 'failed' } {
+  ): { ok: true; result?: undefined } | { result: 'failed' } {
     return logic().runValidators(resolved, context, preloads);
   }
 
@@ -1920,7 +2010,7 @@ export class CommandApi {
     model: CommandModel,
     context: CommandContext,
     prep: Record<string, string> = {}
-  ): Promise<{ resolved: CommandModel } | { result: 'failed' }> {
+  ): Promise<{ resolved: CommandModel; result?: undefined } | { result: 'failed' }> {
     return logic().resolveAndValidate(model, context, prep);
   }
 
@@ -1934,8 +2024,8 @@ export class CommandApi {
    */
   static emitSchemaDelta(
     recipient: Stuff,
-    kind: 'added' | 'removed' | 'reset',
-    payload: CommandSchemaPayload | { verb: string } | CommandSchemaPayload[]
+    kind: 'reset',
+    payload: CommandSchemaPayload[]
   ): void {
     logic().emitSchemaDelta(recipient, kind, payload);
   }

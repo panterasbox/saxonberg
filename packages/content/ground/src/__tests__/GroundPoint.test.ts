@@ -30,6 +30,7 @@ import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/_
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { GroundPointMixin, GROUND_POINT_MIXIN } from '../lib/GroundPoint';
 import Deposit, { type FluidBody } from '../idea/Deposit';
+import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
 
 class TestFixture extends GroundPointMixin(Thing) {}
 
@@ -38,11 +39,13 @@ const BRINE = '/stuff/idea/material/bulk/salt-water';
 const WATER = '/stuff/idea/material/bulk/water';
 
 function stubZone(cellSize: number, deposit: string | null) {
-  return {
+  // A CartesianZone-shaped stub: the cell size is asked by `instanceof`
+  // (controllers-are-io D7a), never probed.
+  return Object.assign(Object.create(CartesianZone.prototype), {
     getCellSize: () => cellSize,
     lookupField: async <T,>(f: string): Promise<T | null> =>
       f === 'deposit' ? (deposit as unknown as T) : null,
-  };
+  });
 }
 
 /** A surface room with coordinates and a zone — what a derrick stands in. */

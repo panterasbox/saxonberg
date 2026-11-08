@@ -2,7 +2,7 @@
 # concealed cache, a secret door, a lurking watcher, the wrongness of a
 # tripped floor. The Discipline that grades detection — it modulates a
 # viewer's effective perception (the `capacity` term), the reach of an
-# active `search`/`examine`, and (later) `disarm`. Seeded as pure data (the
+# active `search`/`look`, and (later) `disarm`. Seeded as pure data (the
 # bartending / melee-combat precedent); the DisciplineCatalogue harvests
 # every /platform/idea/Discipline/* leaf at boot. No `conferrals`: search
 # / examine are universally afforded verbs — competence only *grades* them,

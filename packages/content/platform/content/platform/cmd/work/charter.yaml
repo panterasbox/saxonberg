@@ -5,6 +5,7 @@
 # — until she next berths at a kept quay, when the world's days it lasted
 # are billed to her, paid at the harbor office.
 verbs: [charter]
+category: work
 controller: /platform/idea/cmd/work/CharterController
 description: "Charter a ship for a voyage — her helm is yours until she next berths"
 help: |
@@ -39,7 +40,7 @@ args:
     required: false
     greedy: true
   # ⭐ The book the charter is written in — declared, not hunted for: the
-  # one in front of you (`lint:instrument-args`), defaulted so absent
+  # one in front of you (`lint:controller-resolution`), defaulted so absent
   # means that book (optional only because it follows the optional ship —
   # the dry rack's shape); greedy, so `at the book` binds.
   # ⚠ `requires:` is a knowingly-accepted SUPERSET (menu.yaml's shape): a
@@ -52,5 +53,5 @@ args:
     greedy: true
     prepositions: [at, from, in]
     default: "reachable:[class.CharterBook]"
-    scope: ["reachable"]
+    scope: ["here", "peers", "person"]
     requires: [VisibleMixin]

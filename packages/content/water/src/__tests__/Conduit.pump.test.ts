@@ -8,6 +8,8 @@
  * not care. And the bill reads through the fitted pump.
  */
 
+import { PoweredMixin } from '@saxonberg/server/mud/lib/supply/Powered';
+import { SwitchableMixin } from '@saxonberg/server/mud/lib/boundary/Switchable';
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -30,9 +32,11 @@ function main(headM: number): Conduit {
   });
 }
 
-/** A pump on a fake supply — the Powered shape, read structurally. */
+/** A pump on a fake supply — it composes the protocol; the answers are stubbed. */
+// ⭐ A pump with a switch: `isRunning` asks `MixinApi.isSwitchable`, never a stubbed `isOn`.
+const PumpOnSupply = SwitchableMixin(PoweredMixin(Pump));
 function poweredPump(watts: number, on = true): Pump {
-  const p = makeStuff(() => new Pump());
+  const p = makeStuff(() => new PumpOnSupply()) as unknown as Pump;
   p.setLiftM(30);
   p.setThroughputLps(1200);
   const leather = makeStuff(() => new Tool());
@@ -40,7 +44,7 @@ function poweredPump(watts: number, on = true): Pump {
   ContainmentApi.move(leather, p);
   const host = p as unknown as Record<string, unknown>;
   host.availablePowerW = () => watts;
-  host.isOn = () => on;
+  (p as unknown as { setOn(v: boolean): void }).setOn(on);
   host.poweredTrajectory = (from: number, to: number) =>
     new Piecewise([{ fromS: from, toS: to, startValue: watts > 0 ? 1 : 0, target: watts > 0 ? 1 : 0, tau: 0 }]);
   return p;

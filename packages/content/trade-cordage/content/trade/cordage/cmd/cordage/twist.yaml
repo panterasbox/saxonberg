@@ -2,6 +2,7 @@
 # strands make a ROPE — the stage is what you twist, never a second verb.
 # The JACK at the head of the walk affords it and plans it.
 verbs: [twist]
+category: cordage
 controller: /trade/cordage/idea/cmd/cordage/TwistController
 description: "Twist yarn into a strand, or strands into a rope, at a ropewalk"
 help: |
@@ -26,14 +27,14 @@ args:
     greedy: true
     scope: ["inventory"]
     requires: any
-  # ⭐ The jack — DECLARED, never hunted (`lint:instrument-args`).
+  # ⭐ The jack — DECLARED, never hunted (`lint:controller-resolution`).
   - name: jack
     type: object
     required: false
     prepositions: [on, at, with]
     greedy: true
     default: "reachable:[capability.ropelaying]"
-    scope: ["reachable"]
+    scope: ["here", "peers", "person"]
     requires: [ToolMixin]
 options:
   yarns:

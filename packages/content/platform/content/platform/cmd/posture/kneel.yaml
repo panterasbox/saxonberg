@@ -1,4 +1,5 @@
 verbs: [kneel]
+category: posture
 controller: /platform/idea/cmd/posture/KneelController
 description: "Kneel. With no argument, kneel on the ground."
 help: |

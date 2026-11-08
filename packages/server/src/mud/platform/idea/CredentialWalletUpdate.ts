@@ -41,19 +41,17 @@ export default class CredentialWalletUpdate extends CredentialWalletMixin(
    * `self` bucket (a hosted update confers its `self` verbs to the host).
    */
   static commandContributions: CommandContributions = {
-    // `platform/cmd/work/fulfill.yaml` rides the wallet because the capture beat must
-    // travel with the courier, away from any board — diegetically the
-    // implant logs the delivery.
+    // ⚠ `draw` and `fulfill` rode this list until controllers-are-io W7
+    // and are `house draw` / `job fulfill` now — subcommands of the noun
+    // whose book they write, afforded to every character by `Persona`.
     self: [
       "platform/cmd/banking/pay.yaml",
       "platform/cmd/banking/wallet.yaml",
-      "platform/cmd/banking/draw.yaml",
-      "platform/cmd/work/fulfill.yaml",
       // ⚠ `watch` rode this list for one build and was removed. Two
       // reasons, and the second is the one that generalizes:
       //   1. it SHADOWED the livestream `watch` — and because this
       //      wallet is born-with, it did so for every character alive.
-      //   2. a wallet is not why you can stand a post. `fulfill` earns
+      //   2. a wallet is not why you can stand a post. `fulfill` earned
       //      its place here (the implant logs the delivery); `watch`
       //      had no such story, and reaching for the wallet because it
       //      is the thing everybody has is how a host goes wrong.

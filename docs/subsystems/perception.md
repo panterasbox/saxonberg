@@ -302,6 +302,29 @@ sync at the enumeration seams by warming it into
 `PerceptionLogic.preloadForSenseGate`'s per-command snapshot. Full detail in
 [concealment.md](./concealment.md).
 
+### ⭐ The room listing is one query, and the orphan guard stays
+
+`look`, `sense` and the inspection card list a place (or a holder) by ONE
+MQL query since controllers-are-io W2 —
+`here:i:visible:[not mixin.AdornmentMixin] - me` (the card's
+`#<host>:i:visible:carried:…`) — where three verbatim hand-rolled filters
+stood. `:visible` is this face (`perceives`), `:i` is
+`visibleContentsOf`, and ⚠ `visibleContentsOf` now asks `perceives` per
+viewer too: a bare `isConcealed()` there hid a thing the viewer had
+already DISCOVERED the moment it sat in any listing.
+
+⚠ **The orphan guard stays.** The listing then calls
+`Container.getLooseContents(visible)`, whose `ids.has(host)` clause is
+set-relative: an item placed on a host the viewer does NOT perceive is
+listed loose rather than vanishing with it. The mql-predicate-parity
+slate filed it as a question for this doc — *should anything ever hide
+a host and show what is on it?* — and the answer kept is **yes, until a
+build decides otherwise**: concealment is per object, a hidden shelf
+does not hide the bottle someone left on it, and removing the clause
+would be a behavior change no test proves safe. So `:loose` (the
+predicate, typeable) reads the holder's FULL list, and the listing keeps
+the guard by calling the method on what it can see.
+
 ### `resolveAmbush` — a hiding read is a perception fact
 
 `PerceptionApi.resolveAmbush(attacker, defender)` answers "does this

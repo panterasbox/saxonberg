@@ -308,7 +308,7 @@ export default class WaterFixture
         this._supply = null;
       }
     }
-    if (this._supply === null || typeof this._supply.drawL !== 'function') {
+    if (this._supply === null) {
       this._resolution = 'missing';
       this._supply = null;
       this._headM = null;
@@ -555,15 +555,10 @@ export default class WaterFixture
     // ⭐ The supply's whole chemistry where it says (water-supply D8) — so a
     // pail from this tap carries the main's acidity and salt as well as its
     // hardness — else its hardness alone, else this fixture's own.
-    const chemistry =
-      supply && typeof supply.readWaterChemistry === 'function'
-        ? await supply.readWaterChemistry().catch(() => null)
-        : null;
+    const chemistry = supply ? await supply.readWaterChemistry().catch(() => null) : null;
     const fromSupply =
       chemistry?.hardnessDgh ??
-      (supply && typeof supply.readWaterHardnessDgh === 'function'
-        ? await supply.readWaterHardnessDgh().catch(() => null)
-        : null);
+      (supply ? await supply.readWaterHardnessDgh().catch(() => null) : null);
     const dgh = fromSupply ?? this.hardnessDgh;
     // ⭐ A fouled supply delivers fouled water — the material whose dose is
     // the dysentery — and clean water again once it clears.
@@ -677,10 +672,7 @@ export default class WaterFixture
         ],
       };
     }
-    const report =
-      typeof supply.supplyReport === 'function'
-        ? await supply.supplyReport(nowS)
-        : { label: supply.getPresentation(), state: supply.supplyStateNow(), lines: [] };
+    const report = await supply.supplyReport(nowS);
     const lines = [...report.lines];
     // ⭐ What a shortage leaves THIS outlet (D6) — the main's report says it
     // is short; only the outlet can say whose rank goes without (the
@@ -718,8 +710,6 @@ export default class WaterFixture
       // The valve: anybody at the outlet can shut it or open it.
       'platform/cmd/device/switch.yaml',
       'platform/cmd/crafting/wash.yaml',
-      // ⭐ …and `scrub`, the same act harder (cleanliness D10).
-      'platform/cmd/crafting/scrub.yaml',
       // ⭐ You learn `rinse` the same way you learn `wash`: by standing
       // at water. A separate verb rather than a second `wash` stanza —
       // `wash`'s arg is a CRAFTED thing, and widening it to also accept a

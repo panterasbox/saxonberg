@@ -23,7 +23,6 @@ import { WorldClockApi } from '../../../api/worldclock';
 import { Quantity } from '../../../lib/quantity';
 import { TemplatePaths } from '../../../lib/paths';
 import type { Stuff } from '../../../lib/stuff/Stuff';
-import type { ActPlan } from '../../../lib/craft/ActPlan';
 import type { JointDescriptor } from '../../idea/Joint';
 import { makeStuff, makeStuffAtPath, seedKernelContentStore } from '../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
@@ -143,9 +142,9 @@ describe('cut, splice, coil (D4, D9, D10)', () => {
     const r = rope(fiber('hemp', 4), 20);
     r.marks = ['red'];
     const { who, knife } = await cutter(r);
-    const plan = await r.cutPlan({ actor: who as unknown as Stuff, tools: [knife as unknown as Stuff], raw: null, length: '8 m', options: {} });
-    expect(plan.ok).toBe(true);
-    await (plan as ActPlan).onComplete();
+    const plan = await r.cutPlan({ verb: 'cut', actor: who as unknown as Stuff, tools: [knife as unknown as Stuff], raw: null, length: '8 m', options: {} });
+    if (!plan.ok) throw new Error('the cut refused');
+    expect(await plan.onComplete()).toMatchObject({ ok: true, facts: { kind: 'rope', takeM: 8, leftM: 12 } });
     const ropes = who.getContents().filter((c): c is Rope => c instanceof Rope);
     expect(ropes).toHaveLength(2);
     expect(ropes.map((x) => x.getLengthM()).sort((a, b) => a - b)).toEqual([8, 12]);
@@ -157,9 +156,9 @@ describe('cut, splice, coil (D4, D9, D10)', () => {
     const r = rope(fiber('hemp', 4), 20);
     const { who, knife } = await cutter(r);
     const actor = who as unknown as Stuff;
-    expect(await r.cutPlan({ actor, tools: [], raw: null, length: '5', options: {} })).toMatchObject({ ok: false, reason: 'no-knife' });
-    expect(await r.cutPlan({ actor, tools: [knife as unknown as Stuff], raw: null, length: null, options: {} })).toMatchObject({ ok: false, reason: 'no-length' });
-    expect(await r.cutPlan({ actor, tools: [knife as unknown as Stuff], raw: null, length: '30 meters', options: {} })).toMatchObject({ ok: false, reason: 'too-long' });
+    expect(await r.cutPlan({ verb: 'cut', actor, tools: [], raw: null, length: '5', options: {} })).toMatchObject({ ok: false, reason: 'no-knife' });
+    expect(await r.cutPlan({ verb: 'cut', actor, tools: [knife as unknown as Stuff], raw: null, length: null, options: {} })).toMatchObject({ ok: false, reason: 'no-length' });
+    expect(await r.cutPlan({ verb: 'cut', actor, tools: [knife as unknown as Stuff], raw: null, length: '30 meters', options: {} })).toMatchObject({ ok: false, reason: 'too-long' });
   });
 
   it('⭐ a splice makes one rope, keeps nine tenths and shows both ropes\' marks', async () => {
@@ -183,8 +182,8 @@ describe('cut, splice, coil (D4, D9, D10)', () => {
     const who = makeStuff(() => new Body());
     expect(await r.tossTo(who as unknown as Stuff, 'anyone')).toMatchObject({ ok: false, reason: 'not-coiled' });
     const plan = r.coilPlan(who as unknown as Stuff);
-    expect(plan.ok).toBe(true);
-    await (plan as ActPlan).onComplete();
+    if (!plan.ok) throw new Error('the coil refused');
+    expect(await plan.onComplete()).toMatchObject({ ok: true, facts: { coiled: true } });
     expect(r.isCoiled()).toBe(true);
     expect(await r.tossTo(who as unknown as Stuff, 'anyone')).toMatchObject({ reason: 'no-such-person' });
   });

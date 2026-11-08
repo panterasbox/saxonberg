@@ -1,4 +1,5 @@
 verbs: [clone]
+category: author
 controller: /platform/idea/cmd/author/CloneController
 description: "Clone a fresh instance from a template"
 help: |

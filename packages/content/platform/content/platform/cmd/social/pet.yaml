@@ -1,4 +1,5 @@
 verbs: [pet]
+category: social
 controller: /platform/idea/cmd/social/PetController
 description: "Put a hand on an animal — the smallest act of attention there is"
 help: |

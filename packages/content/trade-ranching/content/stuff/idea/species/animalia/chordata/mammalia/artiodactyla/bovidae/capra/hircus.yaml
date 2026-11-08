@@ -16,6 +16,7 @@ data:
   smells: [{ aroma: /base-library/aromas/goat, strength: 40 }]
   binomial: Capra hircus
   commonNames: ["goat", "nanny", "billy", "kid"]
+  maleNames: [billy]
   _bodyPlanPath: /stuff/idea/species/BodyPlan/quadruped
   _parentCladePath: /stuff/idea/species/animalia
   _defaultMaterialPath: /stuff/idea/material/tissue/flesh

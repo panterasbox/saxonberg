@@ -20,14 +20,10 @@ const PartyApiCallers = SecurityPolicies.FromModule("/api/party#PartyApi");
 /** The F3 member face (PartyMember hosts) forwards here as the member. */
 const PartyMemberCallers = SecurityPolicies.AnyOf(
   PartyApiCallers,
-  SecurityPolicies.FromMixin("PartyMemberMixin", {
-    // Compare by stuffId — the caller may surface as the raw target
-    // while the argument is the proxy (or vice versa).
-    where: (caller, _target, _method, args) =>
-      (caller as { stuffId?: string }).stuffId !== undefined &&
-      (caller as { stuffId?: string }).stuffId ===
-        (args[0] as { stuffId?: string } | undefined)?.stuffId,
-  }),
+  SecurityPolicies.AllOf(
+    SecurityPolicies.FromMixin("PartyMemberMixin"),
+    SecurityPolicies.SelfSubject(0),
+  ),
 );
 
 /**

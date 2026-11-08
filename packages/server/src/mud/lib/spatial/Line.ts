@@ -5,7 +5,7 @@
  * is the person or the load on it. Everything anybody does with a line is
  * one of three acts on this object, whatever the line is made of:
  *
- *  - **`throw <line> to <person>`** (`heave`) — the holder throws the free
+ *  - **`throw <line> to <person>`** — the holder throws the free
  *    end to somebody here or in the water beside here. A body in the water
  *    that has the line is held up by it while it is held (*reach, throw,
  *    don't go*).
@@ -198,7 +198,7 @@ export default class Line extends PullableMixin(TossableMixin(GoodBase)) {
   }
 
   /**
-   * ⭐ `throw <line> to <person>` (`heave`): the free end, to somebody
+   * ⭐ `throw <line> to <person>`: the free end, to somebody
    * here or in the water one way from here — a thrown line crosses that
    * gap where a hand cannot.
    */
@@ -423,7 +423,7 @@ export default class Line extends PullableMixin(TossableMixin(GoodBase)) {
     // ⭐ Out of the water, the water gives them up (river D22, review): its
     // hold on them — a strainer, a jammed foot — lets go, as it does for a
     // hand. A line and a hand land the same way.
-    if (out && MixinApi.isWaterPlace(where)) where.deliverOut(diver, next);
+    if (out && MixinApi.isHaulOut(where)) where.deliverOut(diver, next);
     else ContainmentApi.move(diver, next);
     for (const bag of bags) ContainmentApi.move(bag as never, next);
     this._end?.followLoad();

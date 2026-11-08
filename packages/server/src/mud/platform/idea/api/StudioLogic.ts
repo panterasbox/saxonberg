@@ -13,6 +13,8 @@ import { HelpApi } from '../../../api/help';
 import { ExecutionContextApi } from '../../../api/execution-context';
 import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
+import { ModuleApi } from '../../../api/module';
+import { CommandApi } from '../../../api/command';
 import type { AnyConstructor } from '../../../api/mixin';
 import { ProvenanceApi } from '../../../api/provenance';
 import { DocumentApi } from '../../../api/document';
@@ -24,7 +26,7 @@ import { HotReloadApi } from '../../../api/hot-reload';
 import { Quantity } from '../../../lib/quantity';
 import { Mixins } from '../../../lib/mixin';
 import type { FieldMeta } from '../../../lib/mixin';
-import { StudioError } from '../../../api/studio';
+import { StudioError, type ProtocolAnswerers } from '../../../api/studio';
 import { SecurityError } from '../../../lib/security/errors';
 import { Blueprint } from '../../../lib/studio/Blueprint';
 import { Idea } from '../../../lib/stuff/Idea';
@@ -239,6 +241,21 @@ interface ExportSources {
   topDescriptions: Map<string, TopDescription>;
   /** exported `interface <Name>` → its TSDoc summary — the companion fallback. */
   interfaceSummaries: Map<string, string>;
+  /**
+   * ⭐ The verb protocols: every `_mixinName` (kernel AND every registered
+   * pack `src/`) whose class also declares `_mixinKind = 'protocol'`
+   * (controllers-are-io D8b).
+   */
+  protocols: Set<string>;
+  /**
+   * The composition graph — a class or mixin name → the identifiers its
+   * `extends` expression names (same-file `const XBase = …` bindings and
+   * import aliases substituted). Kernel and every pack `src/`; read by
+   * {@link composersOf}.
+   */
+  extendsOf: Map<string, Set<string>>;
+  /** Named classes that are not mixin factories — the candidate composers. */
+  concrete: Set<string>;
 }
 
 /** Cap a palette summary so one verbose comment can't blow up the row. */
@@ -374,6 +391,145 @@ function collectHelpEnrichment(mixinName: string): {
  * classification scan. Best-effort — an unresolved name degrades to a
  * placeholder comment the wizard fixes in Monaco.
  */
+/**
+ * Every `class [Name] extends <expr> {` in a source, the expression read
+ * with its parentheses balanced (a deep stack spans lines), `implements …`
+ * dropped.
+ */
+function extendsClauses(src: string): { name: string | null; expr: string }[] {
+  const out: { name: string | null; expr: string }[] = [];
+  const re = /\bclass\s+(?:([A-Za-z0-9_$]+)\s+)?extends\s+/g;
+  for (const m of src.matchAll(re)) {
+    let i = (m.index ?? 0) + m[0].length;
+    let depth = 0;
+    const start = i;
+    for (; i < src.length; i++) {
+      const c = src[i];
+      if (c === '(' || c === '<' || c === '[') depth++;
+      else if (c === ')' || c === '>' || c === ']') depth--;
+      else if (c === '{' && depth <= 0) break;
+    }
+    const expr = src.slice(start, i).replace(/\bimplements\b[\s\S]*$/, '');
+    out.push({ name: m[1] ?? null, expr });
+  }
+  return out;
+}
+
+/**
+ * The identifiers a composition expression names, with this file's own
+ * `const XBase = AMixin(BMixin(Base))` bindings expanded and its import
+ * aliases (`Thing as ThingBase`) resolved to the imported name — the two
+ * ways a stack in this tree is actually written (the `composesMixin`
+ * lesson, `scripts/pack-roots.ts`).
+ */
+function expressionIds(
+  expr: string,
+  consts: Map<string, string>,
+  aliases: Map<string, string>,
+  seen: Set<string> = new Set()
+): Set<string> {
+  const ids = new Set<string>();
+  for (const id of expr.match(/[A-Za-z_$][\w$]*/g) ?? []) {
+    const bound = consts.get(id);
+    if (bound !== undefined && !seen.has(id)) {
+      seen.add(id);
+      for (const inner of expressionIds(bound, consts, aliases, seen)) {
+        ids.add(inner);
+      }
+      continue;
+    }
+    ids.add(aliases.get(id) ?? id);
+  }
+  return ids;
+}
+
+/**
+ * Fold one source file into the composition graph: its mixin factory (the
+ * class carrying its `_mixinName`, or the anonymous `return class extends`)
+ * is a node under the mixin's name; every other named class is a candidate
+ * composer.
+ */
+function scanComposition(src: string, sources: ExportSources): void {
+  // Every `_mixinName` the file declares — a literal, or a same-file string
+  // constant (`_mixinName = FAST_TRAVEL_MIXIN`) — and whether the SAME class
+  // declares `_mixinKind = 'protocol'` right beside it.
+  const mixinNames = new Set<string>();
+  let firstMixin: string | null = null;
+  for (const m of src.matchAll(
+    /static\s+_mixinName\s*(?::\s*string\s*)?=\s*(?:['"]([A-Za-z0-9_]+)['"]|([A-Za-z0-9_$]+))\s*;([^\n]*\n){0,3}/g
+  )) {
+    const name =
+      m[1] ??
+      new RegExp(
+        `const\\s+${m[2]}\\s*(?::\\s*string\\s*)?=\\s*['"]([A-Za-z0-9_]+)['"]`
+      ).exec(src)?.[1];
+    if (!name) continue;
+    mixinNames.add(name);
+    firstMixin ??= name;
+    if (/static\s+_mixinKind\s*=\s*['"]protocol['"]/.test(m[0])) {
+      sources.protocols.add(name);
+    }
+  }
+  const consts = new Map<string, string>();
+  for (const m of src.matchAll(
+    /\bconst\s+([A-Za-z0-9_$]+)\s*=\s*([A-Za-z0-9_$]+\s*\([^;]*?)\s*;/g
+  )) {
+    consts.set(m[1]!, m[2]!);
+  }
+  const aliases = new Map<string, string>();
+  for (const m of src.matchAll(/import\s+(?:type\s+)?\{([^}]*)\}/g)) {
+    for (const part of m[1]!.split(',')) {
+      const am = /^\s*(?:type\s+)?([A-Za-z0-9_$]+)\s+as\s+([A-Za-z0-9_$]+)\s*$/.exec(
+        part
+      );
+      if (am) aliases.set(am[2]!, am[1]!);
+    }
+  }
+  for (const { name, expr } of extendsClauses(src)) {
+    // A class named for one of the file's mixins IS that mixin's node; an
+    // anonymous `return class extends` is the file's (first) mixin.
+    const node = name === null ? firstMixin : name;
+    if (!node) continue;
+    const ids = expressionIds(expr, consts, aliases);
+    ids.delete(node);
+    const into = sources.extendsOf.get(node) ?? new Set<string>();
+    for (const id of ids) into.add(id);
+    sources.extendsOf.set(node, into);
+    if (!mixinNames.has(node)) sources.concrete.add(node);
+  }
+}
+
+/**
+ * The classes that compose `mixin`, directly or through anything they
+ * extend — a mixin nested in another's factory (`BurnerMixin` over
+ * `PumpableMixin`) and a subclass of a composer (`ElectricPump` over
+ * `Pump`) both count. Sorted, deduped by class name.
+ */
+function composersOf(mixin: string, sources: ExportSources): string[] {
+  const memo = new Map<string, boolean>();
+  const reaches = (node: string, seen: Set<string>): boolean => {
+    const known = memo.get(node);
+    if (known !== undefined) return known;
+    if (seen.has(node)) return false;
+    seen.add(node);
+    const ids = sources.extendsOf.get(node);
+    let hit = false;
+    if (ids) {
+      for (const id of ids) {
+        if (id === mixin || reaches(id, seen)) {
+          hit = true;
+          break;
+        }
+      }
+    }
+    memo.set(node, hit);
+    return hit;
+  };
+  return [...sources.concrete]
+    .filter((c) => reaches(c, new Set()))
+    .sort();
+}
+
 function scanExportSources(): ExportSources {
   const mixins = new Map<string, string>();
   const classes = new Map<string, ClassExport>();
@@ -437,14 +593,37 @@ function scanExportSources(): ExportSources {
       if (s) interfaceSummaries.set(name, s);
     }
   }
-  return {
+  const sources: ExportSources = {
     mixins,
     classes,
     summaries,
     topSummaries,
     topDescriptions,
     interfaceSummaries,
+    protocols: new Set(),
+    extendsOf: new Map(),
+    concrete: new Set(),
   };
+  // ⭐ The composition graph reads the kernel AND every registered pack's
+  // `src/` — a kernel protocol's answerers are mostly pack classes (a dip
+  // pot is the chandler's). The maps above stay kernel-only: they name what
+  // the scaffolder may import.
+  const roots = [
+    MUD_ROOT,
+    ...new Set(ModuleApi.packSources().map((p) => p.dir)),
+  ];
+  for (const root of roots) {
+    let files: string[];
+    try {
+      files = walkTsFiles(root, []);
+    } catch {
+      continue; // a registered pack dir that is gone is not ours to report
+    }
+    for (const file of files) {
+      scanComposition(readFileSync(file, 'utf8'), sources);
+    }
+  }
+  return sources;
 }
 
 /**
@@ -736,7 +915,22 @@ export class StudioLogic extends ApiLogic {
     }
 
     const mixinNames = [...new Set(input.mixinNames ?? [])].sort();
-    const signature = Blueprint.signatureFromParts(input.baseClass, mixinNames);
+    // ⭐ A blueprint naming a class dedups against that class's derived row,
+    // so it folds the views the class affords (D25). A class that does not
+    // resolve is a composition by name — the caller's choice, not an error.
+    let cls: AnyConstructor | undefined;
+    if (input.classPath) {
+      try {
+        cls = (await StuffApi.loadClassByPath(input.classPath)) as AnyConstructor;
+      } catch {
+        cls = undefined;
+      }
+    }
+    const signature = Blueprint.signatureFromParts(
+      input.baseClass,
+      mixinNames,
+      cls
+    );
     const catalogue = await this.requireCatalogue();
 
     // Dedup on signature: a collision reuses the existing durable id (stable
@@ -780,6 +974,18 @@ export class StudioLogic extends ApiLogic {
     return { disposition: 'committed', blueprintId };
   }
 
+  /** See {@link StudioApi.answerersOf}. */
+  @CallSecurity(StudioApiCallers)
+  public answerersOf(mixinNames: readonly string[]): ProtocolAnswerers[] {
+    const sources = this.getExportSources();
+    const out: ProtocolAnswerers[] = [];
+    for (const mixin of mixinNames) {
+      if (!sources.protocols.has(mixin)) continue;
+      out.push({ mixin, composers: composersOf(mixin, sources) });
+    }
+    return out;
+  }
+
   /** See {@link StudioApi.listMixins}. */
   @CallSecurity(StudioApiCallers)
   public async listMixins(): Promise<MixinPalette> {
@@ -789,7 +995,10 @@ export class StudioLogic extends ApiLogic {
       mixins.push({ name: base, kind: 'base' });
     }
     for (const name of Object.values(Mixins)) {
-      const entry: MixinPaletteEntry = { name, kind: 'mixin' };
+      // ⭐ A verb protocol is offered as the verb it serves (D8b).
+      const entry: MixinPaletteEntry = sources.protocols.has(name)
+        ? { name, kind: 'protocol', verbs: CommandApi.verbsRequiring(name) }
+        : { name, kind: 'mixin' };
       // Inline one-line help, sourced from the mixin's TSDoc doc comment (or
       // its companion interface's). Degrades to `undefined` when undocumented.
       const summary = mixinSummary(name, sources);

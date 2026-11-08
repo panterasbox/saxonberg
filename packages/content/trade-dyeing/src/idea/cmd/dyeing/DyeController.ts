@@ -235,7 +235,7 @@ export default class DyeController extends ManualBuildController<DyeModel> {
    * The bath — a NARROWING over what the binder bound, not a search.
    * `dye.yaml` declares `bath` with a `[mixin.BulkableMixin]` default, so
    * bare `dye` arrives with every reachable vessel and the only question
-   * left is what is IN it (`lint:instrument-args`). A NAMED bath is taken
+   * left is what is IN it (`lint:controller-resolution`). A NAMED bath is taken
    * as named, so the decline below can say what is wrong with it.
    */
   private findBath(bound: MqlManyResult | undefined): Stuff | null {
@@ -300,12 +300,9 @@ function fibreOf(target: Stuff): Material | null {
 }
 
 async function competenceOf(giver: Stuff): Promise<CompetenceBandName> {
-  const asActor = giver as unknown as {
-    competenceBandFor?(key: string): Promise<CompetenceBandName>;
-  };
-  if (typeof asActor.competenceBandFor !== 'function') return 'untrained';
+  if (!MixinApi.isAdvancing(giver)) return 'untrained';
   try {
-    return await asActor.competenceBandFor('dyeing');
+    return await giver.competenceBandFor('dyeing');
   } catch {
     return 'untrained';
   }

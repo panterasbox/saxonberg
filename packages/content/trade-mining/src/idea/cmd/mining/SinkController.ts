@@ -6,7 +6,7 @@
  * rather than walked. What does not ship is the cage — a called,
  * capacity-limited lift is the shaft's, and an adit needs none.
  *
- * Everything else is `drive` pointed down, which is what it is in the
+ * Everything else is `drift` pointed down, which is what it is in the
  * ground too.
  */
 

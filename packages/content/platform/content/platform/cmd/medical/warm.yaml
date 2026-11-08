@@ -1,4 +1,5 @@
 verbs: [warm]
+category: medical
 controller: /platform/idea/cmd/medical/WarmController
 description: "Warm frostbite (or a body gone cold) by a fire"
 help: |
@@ -21,11 +22,11 @@ args:
     requires: VitalsMixin
   # Bare default: every reachable combustible; the controller keeps the
   # first that is actually BURNING (a cold hearth warms nothing) — state,
-  # which no predicate asks (`lint:instrument-args`).
+  # which no predicate asks (`lint:controller-resolution`).
   - name: source
     type: object
     required: false
     prepositions: [by, at, over]
     default: "reachable:[mixin.CombustibleMixin]"
-    scope: ["reachable"]
+    scope: ["here", "peers", "person"]
     requires: [CombustibleMixin]

@@ -35,6 +35,7 @@
  */
 
 import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
+import { WaterPoweredMixin } from '@saxonberg/server/mud/lib/supply/WaterPowered';
 import { AppApi } from '@saxonberg/server/mud/api/app';
 import { AppSettingKeys } from '@saxonberg/server/mud/lib/config/AppSettings';
 import { BiomeApi } from '@saxonberg/server/mud/api/biome';
@@ -59,7 +60,7 @@ export interface ControlSplit {
   generatedW: number;
 }
 
-const ControlStructureBase = Thing;
+const ControlStructureBase = WaterPoweredMixin(Thing);
 
 export default class ControlStructure extends ControlStructureBase {
   static fieldMeta: FieldMeta = {
@@ -139,7 +140,7 @@ export default class ControlStructure extends ControlStructureBase {
         : 'weir';
   }
 
-  public getReachRef(): string {
+  public override getReachRef(): string {
     return this.reachRef;
   }
   public setReachRef(value: string): void {
@@ -162,7 +163,7 @@ export default class ControlStructure extends ControlStructureBase {
     this.divertsTo = value;
   }
 
-  public getHeadM(): number {
+  public override getHeadM(): number {
     return this.headM;
   }
   public setHeadM(value: number): void {
@@ -229,7 +230,7 @@ export default class ControlStructure extends ControlStructureBase {
    * generated less when it diverted more would make the two axes of
    * control interfere for no physical reason.
    */
-  public generationW(flowM3S: number): number {
+  public override generationW(flowM3S: number): number {
     if (!this.generates || this.headM <= 0 || flowM3S <= 0) return 0;
     const rho = BiomeApi.densityOf('water').rawValue();
     const g = BiomeApi.getRootBiome().getDefaultGravity()?.rawValue() ?? 9.81;

@@ -27,7 +27,7 @@
  */
 
 import Good from '@saxonberg/server/mud/lib/stuff/Good';
-import { ReservedMixin } from '@saxonberg/server/mud/lib/reserve';
+import { ReservedMixin } from '@saxonberg/server/mud/lib/reserve/Reserved';
 import { ArcaneMixin } from '@saxonberg/server/mud/lib/magic/Arcane';
 import { ChargedMixin } from '@saxonberg/server/mud/lib/magic/Charged';
 import { CirculatingMixin } from '@saxonberg/server/mud/lib/residency/Circulating';

@@ -2,6 +2,7 @@
 # pen, with the copyist's errors. The copy is bound to nothing: an issuer
 # who checks its own record can tell it from the paper it issued.
 verbs: [copy]
+category: printing
 controller: ../../idea/cmd/printing/CopyController
 description: "Copy the words of a sheet onto a blank by hand, with a pen"
 help: |

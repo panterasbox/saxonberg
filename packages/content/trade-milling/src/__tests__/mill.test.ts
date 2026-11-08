@@ -18,6 +18,7 @@
  * installs and a mill with no wheel says it will not turn.
  */
 
+import { WaterPoweredMixin } from '@saxonberg/server/mud/lib/supply/WaterPowered';
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { readFileSync, existsSync } from 'fs';
@@ -26,7 +27,7 @@ import { dirname, join } from 'path';
 import YAML from 'yaml';
 import GristMill from '../thing/GristMill';
 import { ComminutingMixin } from '@saxonberg/server/mud/lib/craft/Comminuting';
-import { ToolMixin } from '@saxonberg/server/mud/lib/craft/Tooled';
+import { ToolMixin } from '@saxonberg/server/mud/lib/craft/Tool';
 import MillController from '../idea/cmd/milling/MillController';
 import Material from '@saxonberg/server/mud/lib/material/Material';
 import Sack from '@saxonberg/server/mud/platform/thing/Sack';
@@ -95,11 +96,11 @@ class TestActor extends CommandGiverMixin(
 }
 
 /** A room sibling that answers the power shape — never a ControlStructure. */
-class FakeWheel extends Good {
-  generationW(flowM3S: number): number {
+class FakeWheel extends WaterPoweredMixin(Good) {
+  public override generationW(flowM3S: number): number {
     return 1000 * 9.81 * 6 * flowM3S * 0.85;
   }
-  getReachRef(): string {
+  public override getReachRef(): string {
     return 'delight:flats';
   }
 }

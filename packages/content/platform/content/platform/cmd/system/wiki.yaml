@@ -1,5 +1,8 @@
 verbs: [wiki]
-controller: /platform/idea/cmd/system/WikiController
+category: system
+# ⭐ One controller per subcommand (controllers-are-io D9); bare `wiki
+# <page>` (the fallthrough) reads, so the verb-level controller is the read's.
+controller: /platform/idea/cmd/system/WikiReadController
 opens_card: wiki
 description: "Read and write the world's encyclopedia (create / edit / history / rollback / move / delete / protect)"
 help: |
@@ -41,6 +44,7 @@ payload:
     description: "The article source, in wiki markdown (GUI editor; structured-form-only)"
 subcommands:
   create:
+    controller: /platform/idea/cmd/system/WikiCreateController
     description: "Write a page that does not exist yet"
     help: |
       Start a new page. Give it a name; the body rides the editor, or
@@ -81,6 +85,7 @@ subcommands:
         type: string
         required: true
   edit:
+    controller: /platform/idea/cmd/system/WikiEditController
     description: "Revise a page (--section / --summary / --draft / --rev)"
     help: |
       Replace a page's body. The prior text is kept as a revision, so
@@ -152,6 +157,7 @@ subcommands:
         type: string
         required: true
   read:
+    controller: /platform/idea/cmd/system/WikiReadController
     description: "Read a page (the same as bare `wiki <page>`)"
     help: |
       Render a page for you specifically. Content beyond your reach is
@@ -163,6 +169,7 @@ subcommands:
         type: string
         required: true
   history:
+    controller: /platform/idea/cmd/system/WikiHistoryController
     description: "List a page's revisions, newest first"
     help: |
       Who changed what, and why. Each line is one revision with its
@@ -175,6 +182,7 @@ subcommands:
         type: string
         required: true
   diff:
+    controller: /platform/idea/cmd/system/WikiDiffController
     description: "Compare two revisions, word by word"
     help: |
       Show what changed between two revisions. With no numbers, it
@@ -202,6 +210,7 @@ subcommands:
         type: string
         required: false
   rollback:
+    controller: /platform/idea/cmd/system/WikiRollbackController
     description: "Restore an earlier revision (appends; never rewrites history)"
     help: |
       Put a page back the way it was. This APPENDS a new revision
@@ -215,6 +224,7 @@ subcommands:
         type: string
         required: true
   move:
+    controller: /platform/idea/cmd/system/WikiMoveController
     description: "Rename a page; the old name keeps working"
     help: |
       Change a page's name. The old one becomes an alias, so every
@@ -228,6 +238,7 @@ subcommands:
         type: string
         required: true
   delete:
+    controller: /platform/idea/cmd/system/WikiDeleteController
     description: "Soft-delete a page (moderators; reversible)"
     help: |
       Stop a page resolving for readers. Moderators still see it, its
@@ -237,12 +248,14 @@ subcommands:
         type: string
         required: true
   undelete:
+    controller: /platform/idea/cmd/system/WikiUndeleteController
     description: "Restore a soft-deleted page (moderators)"
     args:
       - name: page
         type: string
         required: true
   purge:
+    controller: /platform/idea/cmd/system/WikiPurgeController
     description: "⚠ Destroy a page AND its revisions (moderators; irreversible)"
     help: |
       For content that must not exist at all — illegal material,
@@ -256,6 +269,7 @@ subcommands:
         type: string
         required: true
   protect:
+    controller: /platform/idea/cmd/system/WikiProtectController
     description: "Set a page's edit floor: anyone | editors | moderators (moderators)"
     help: |
       Tighten a page against vandalism. A page can be made stricter
@@ -269,6 +283,7 @@ subcommands:
         type: string
         required: true
   preview:
+    controller: /platform/idea/cmd/system/WikiPreviewController
     description: "Render a body without saving it"
     help: |
       See exactly what saving would produce, before you save. Naming a
@@ -283,6 +298,7 @@ subcommands:
         type: string
         required: false
   links:
+    controller: /platform/idea/cmd/system/WikiLinksController
     description: "What links here"
     help: |
       Every page that links to this one. Follows aliases, so renaming
@@ -292,6 +308,7 @@ subcommands:
         type: string
         required: true
   wanted:
+    controller: /platform/idea/cmd/system/WikiWantedController
     description: "Redlinks, ranked by how many pages want them"
     help: |
       The pages people have linked to and nobody has written. This is
@@ -301,6 +318,7 @@ subcommands:
       Start at the top — those are the gaps the most articles are
       currently pointing into.
   orphans:
+    controller: /platform/idea/cmd/system/WikiOrphansController
     description: "Pages nothing links to"
     help: |
       Pages that exist but cannot be reached by following links from
@@ -308,6 +326,7 @@ subcommands:
       simply unlinked — but it is usually a sign that something should
       mention it.
   dangling:
+    controller: /platform/idea/cmd/system/WikiDanglingController
     description: "Articles whose subject no longer exists"
     help: |
       Articles bound to a template that has since been renamed or
@@ -315,6 +334,7 @@ subcommands:
       panel was always derived — but it no longer has a live thing to
       describe, and somebody should rebind or reword it.
   list:
+    controller: /platform/idea/cmd/system/WikiListController
     description: "List pages, optionally in one namespace"
     args:
       - name: namespace

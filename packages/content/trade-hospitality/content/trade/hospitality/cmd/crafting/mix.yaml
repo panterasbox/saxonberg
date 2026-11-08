@@ -1,4 +1,5 @@
 verbs: [mix]
+category: crafting
 controller: /trade/hospitality/idea/cmd/crafting/MixController
 description: "Mix a cocktail for yourself"
 help: |

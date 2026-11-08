@@ -4,56 +4,63 @@
  * neighborhood and score candidates against the query.
  *
  * Conceptually, a scope identifies a SET of search candidates, each
- * of which carries display name, keywords, and optional sub-feature
- * attribution. The `here` neighborhood walks four match paths
- * (req §11.2): the location itself, contents in the location, details
- * on each, and exits on the location. Other neighborhoods are simpler.
+ * of which carries the keywords the object answers to and optional
+ * sub-feature attribution. The `here` neighborhood is the location
+ * itself, its doors and its exits; peers are what stands in it. Other
+ * neighborhoods are simpler.
  *
- * Score returned by {@link scoreCandidate} mirrors the legacy
- * Phase-4 algorithm (exact > prefix > substring; AND-narrow on all
- * keywords). Magic numbers are preserved verbatim — req §14.1 / §14.2
- * commit to the rules, not the literal values.
+ * Score returned by {@link scoreCandidate} is the keyword tier
+ * ({@link TIER_PHRASE} and below) — one list, the object's own; the
+ * name is not special (one-resolution slate § 4).
  */
 
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Container } from '../../lib/spatial/Container';
+import { GrammarApi } from '../grammar';
 import { MixinApi } from '../mixin';
 import { PerceptionApi } from '../perception';
 import Place from '../../lib/stuff/Place';
-import type { Detail } from '../../lib/description/Detailed';
-import type { BulkAffordance } from '../../lib/bulk/Bulkable';
 import type { MqlMatch, MqlMatchVia } from './types';
-import { BlendIdentity } from '../../lib/craft/BlendIdentity';
-import { GrammarApi } from '../grammar';
 
 /**
  * One search target inside a scope. Each candidate represents a
- * "thing the player might mean": its `name` and `keywords` are what
- * the keyword matcher scores against, and the optional `via`
- * attribution describes the sub-feature path that brought it into
+ * "thing the player might mean": its `keywords` are what the scorer
+ * reads — the object's own face for the viewer, and nothing else (the
+ * name is one of them; see {@link candidateFor}) — and the optional
+ * `via` attribution describes the sub-feature path that brought it into
  * the pool.
  *
- * Multiple candidates may point at the same Stuff — e.g., a location
- * appears once for itself and once per Detail. The
- * resolver dedups by (`stuff`, `via`) tuple before reporting matches.
+ * Multiple candidates may point at the same Stuff (a chain step inside
+ * a detail tree). The resolver dedups by (`stuff`, `via`) tuple before
+ * reporting matches.
  */
 export interface ScopeCandidate {
   stuff: Stuff;
-  /** Display name to score against (lowercased at scoring time). */
-  name: string;
-  /** Keyword list to score against (already lowercased / deduped). */
+  /** Keyword list to score against (lowercased). */
   keywords: string[];
   /** Optional attribution. */
   via?: MqlMatchVia;
+  /**
+   * The features of the object a match may be ATTRIBUTED to — a detail,
+   * the held substance. Words a subset of `keywords`; see
+   * {@link candidateFor}.
+   */
+  facets?: ScopeFacet[];
+}
+
+/** One attributable feature of a candidate — its words and its via. */
+export interface ScopeFacet {
+  keywords: string[];
+  via: MqlMatchVia;
 }
 
 /**
  * Build the candidate pool for the `here` neighborhood (req §11.2):
  *
- * 1. The location itself.
- * 2. Each Detail on the location.
- * 3. Doors associated with the location's exits (each door + details).
- * 4. Each Exit the viewer can see — the exit itself, by its direction
+ * 1. The location itself (its details are its own keywords — see
+ *    {@link candidateFor}).
+ * 2. Doors associated with the location's exits.
+ * 3. Each Exit the viewer can see — the exit itself, by its direction
  *    and keywords.
  *
  * Peers (the location's contents) live in their own seed —
@@ -68,7 +75,6 @@ export function candidatesForHere(
   const out: ScopeCandidate[] = [];
 
   pushDirect(out, location, viewer, attention);
-  pushDetails(out, location, viewer);
 
   if (MixinApi.isExitable(location)) {
     const seenDoors = new Set<string>();
@@ -76,7 +82,6 @@ export function candidatesForHere(
       if (seenDoors.has(door.stuffId)) continue;
       seenDoors.add(door.stuffId);
       pushDirect(out, door, viewer, attention);
-      pushDetails(out, door, viewer);
     }
     // ⭐ Each exit the VIEWER can see is a candidate in its own right
     //: its `stuff` IS the way, read like every other
@@ -139,7 +144,7 @@ export function candidatesForInventory(
 /**
  * Build the candidate pool for the giver's peers — the contents of
  * the giver's location, excluding the giver itself. Each peer
- * contributes its direct entry plus any Details it carries.
+ * contributes one candidate (its details are among its keywords).
  *
  * Fixtures count as peers. A wall sconce, a neon sign, a mounted TV is
  * an object standing in the room with you, even though it rides the
@@ -162,7 +167,6 @@ export function candidatesForPeers(
   for (const item of env.getContents()) {
     if (item.stuffId === giver.stuffId) continue;
     pushDirect(out, item, giver, attention);
-    pushDetails(out, item, giver);
     // One level into an OPEN container standing in the room — the glass
     // rack's coupes, the floor stock's kegs, a crate's limes. The pool
     // this scope offers must agree with what `PerceptionApi.canReach`
@@ -177,7 +181,6 @@ export function candidatesForPeers(
   if (MixinApi.isAdornable(env)) {
     for (const fixture of env.getFixtures()) {
       pushDirect(out, fixture, giver, attention);
-      pushDetails(out, fixture, giver);
     }
   }
   return out;
@@ -297,16 +300,11 @@ function pushDirect(
   attention?: number,
 ): void {
   // System mode (viewer === null — see MqlContext.commandGiver): a
-  // viewer-blind engine enumeration. No perception gate, baseline
-  // presentation instead of recognition-relative naming. Unreachable
-  // from player-typed MQL (the dispatcher always sets a giver).
+  // viewer-blind engine enumeration. No perception gate, the object's own
+  // keywords instead of recognition-relative ones. Unreachable from
+  // player-typed MQL (the dispatcher always sets a giver).
   if (viewer === null) {
-    out.push({
-      stuff,
-      name: stuff.getPresentation(),
-      keywords: MixinApi.isPerceptible(stuff) ? stuff.getKeywords() : [],
-    });
-    pushBulkMaterials(out, stuff);
+    out.push(candidateFor(stuff, null));
     return;
   }
   // Honest fog: a concealed thing the viewer hasn't discovered / can't yet
@@ -316,234 +314,179 @@ function pushDirect(
   // baseline) lets a detection consumer resolve what it perceives when
   // actively watching (see MqlContext.attention).
   if (!PerceptionApi.perceives(viewer, stuff, attention)) return;
-  // Viewer-relative name + keywords: a target resolves only by what the
-  // viewer can perceive — its `knownAs` if recognized, salient features
-  // if not, the disguise's descriptors if masked — never its true name.
-  // The same `describe` routine drives the rendered name, so `look bob`
-  // works iff "Bob" is also what the room view shows the viewer. Items
-  // and inert things keep their ordinary keywords (no identity gate).
-  const name = stuff.describeFor(viewer);
-  const keywords = stuff.perceivedKeywordsFor(viewer);
-  out.push({ stuff, name, keywords });
-  pushBulkMaterials(out, stuff);
+  out.push(candidateFor(stuff, viewer));
 }
 
 /**
- * For a bulk holder, emit one extra candidate per non-empty slot whose
- * name + keywords are the contained Material's — so `drink coffee`
- * resolves the holder by what it holds. The match lands the HOLDER on
- * the target field (the Material singleton is never itself a candidate,
- * so material keywords never leak into room scope) with `via.bulk`
- * marking the affordance. Empty slots contribute nothing.
- */
-function pushBulkMaterials(out: ScopeCandidate[], host: Stuff): void {
-  if (!MixinApi.isBulkable(host)) return;
-  const affordances: BulkAffordance[] = [];
-  if (host.hasInteriorBulk()) affordances.push('interior');
-  if (host.hasSurfaceBulk()) affordances.push('surface');
-  for (const affordance of affordances) {
-    const slot = host.getBulk(affordance);
-    if (slot.isEmpty()) continue;
-    const material = slot.getMaterial();
-    if (material === null) continue;
-    // A blend's per-instance payload names the held substance (`look
-    // stew` on the plated dish); an un-blended slot reads its Material.
-    const payload = slot.getPayload();
-    out.push({
-      stuff: host,
-      name: BlendIdentity.nameOf(payload, material),
-      keywords: [...BlendIdentity.keywordsOf(payload, material)],
-      via: { bulk: { affordance } },
-    });
-  }
-}
-
-/**
- * ⚠ `viewer` is not optional in spirit. A detail key is a targeting
- * token, so an item that offers `sigil` as a candidate has told you
- * what it is before you look at anything — the same D34 shape as a
- * flat wand dropping `zap` from its affordance list. `null` is system
- * mode (a viewer-blind engine enumeration), matching `pushDirect`.
- */
-function pushDetails(
-  out: ScopeCandidate[],
-  host: Stuff,
-  viewer: Stuff | null,
-): void {
-  if (!MixinApi.isDetailed(host)) return;
-  const ids = host.getDetailIds(undefined, viewer ?? undefined) ?? [];
-  // Each Detail can carry aliases (multiple ids → same Detail
-  // object). Walk the alias map to dedup before emitting candidates.
-  const seen = new Set<Detail>();
-  for (const id of ids) {
-    // Top-level details only — nested details are reached through
-    // the chain rule (`:keyword` mid-chain auto-extends with child
-    // detail names at the current via depth), not the seed scope.
-    if (!host.hasDetail(id, undefined, viewer ?? undefined)) continue;
-    // Resolve the actual Detail object behind this id by reading the
-    // raw map. DetailedMixin doesn't expose the Detail object
-    // directly; we use its public shape. Keyword pool for a detail
-    // is just its id list (each id is a searchable name). Aliases
-    // emit one candidate per alias; the resolver dedups by stuff+via.
-    void seen;
-    out.push({
-      stuff: host,
-      name: id,
-      keywords: [id.toLowerCase()],
-      via: { detailPath: [id] },
-    });
-  }
-}
-
-/**
- * Score `candidate` against `queryWords`. Returns 0 when no match.
- * Higher = better match.
+ * ⭐ **The one candidate an object makes — read off its own face.** MQL
+ * reads a Stuff ONLY through what it says it answers to: its keywords for
+ * `viewer` (`perceivedKeywordsFor` — what a person is perceived as, a
+ * thing's own `getKeywords(viewer)`), never a word built here. A name is
+ * one of those keywords (`NamedMixin.getKeywords` folds it in), a detail
+ * id is one (`DetailedMixin.getKeywords`), and so is the substance a
+ * vessel holds (`BulkableMixin.getKeywords` — `drink coffee` binds the
+ * cup). The one-resolution slate § 5.
  *
- * The exact rules:
- *   - Exact name match on a single-word query: 100
- *   - ⭐ Every query word is a WHOLE word of the name: 60 — `net` is a
- *     word of "a net" and a substring of "a keepnet"; `edge` a word of
- *     "the river's edge" and a substring of "a ledger rod". Without
- *     this tier both scored 50 and the tie fell to pool order, so
- *     `haul net` with a keepnet in hand hauled the keepnet (the fishing
- *     drive found it three times over: creel/eel, ledger/edge,
+ * The **facets** are attribution, not words: when the words that matched
+ * are a detail's id or the held substance's, the match carries
+ * `via.detailPath` / `via.bulk` as a fact, so `look sigil` still says
+ * which feature of the host was meant. Each facet's words are a subset of
+ * `keywords`, read from the same mixin surface that put them there.
+ *
+ * ⚠ `viewer` is not optional in spirit. A detail key is a targeting
+ * token, so an item that answers to `sigil` has told you what it is
+ * before you look at anything. `null` is system mode.
+ */
+export function candidateFor(stuff: Stuff, viewer: Stuff | null): ScopeCandidate {
+  const said = (viewer ? stuff.perceivedKeywordsFor(viewer) : ownKeywords(stuff, undefined))
+    .map((k) => k.toLowerCase());
+  // ⭐ What answers to a word answers to its plural: `all watches`, `get all
+  // swords` (the grammar's own examples, and the drive's `wind@"all watches"`).
+  const keywords = [...new Set([...said, ...said.map((k) => GrammarApi.pluralize(stuff, k))])];
+  const facets: ScopeFacet[] = [];
+  if (MixinApi.isDetailed(stuff)) {
+    // Top-level details only — nested details are reached through the
+    // chain rule (`:keyword` mid-chain auto-extends with child detail
+    // names at the current via depth).
+    for (const id of stuff.getDetailIds(undefined, viewer ?? undefined) ?? []) {
+      facets.push({ keywords: [id.toLowerCase()], via: { detailPath: [id] } });
+    }
+  }
+  if (MixinApi.isBulkable(stuff)) {
+    for (const affordance of ['interior', 'surface'] as const) {
+      const held = stuff.getHeldKeywords(affordance);
+      if (held.length > 0) facets.push({ keywords: held, via: { bulk: { affordance } } });
+    }
+  }
+  const c: ScopeCandidate = { stuff, keywords };
+  if (facets.length > 0) c.facets = facets;
+  return c;
+}
+
+/** The keyword face with no viewer (system mode, the slow path's anchor). */
+function ownKeywords(stuff: Stuff, viewer: Stuff | undefined): string[] {
+  if (MixinApi.isPerceptible(stuff)) return stuff.getKeywords(viewer);
+  if (MixinApi.isNamed(stuff)) return stuff.getKeywords(viewer);
+  return [];
+}
+
+/**
+ * The keyword tiers (one-resolution § 4: *the name is not special*). The
+ * scorer reads ONE list — the candidate's keywords — and ranks how the
+ * query's words meet it:
+ *
+ *   - {@link TIER_PHRASE} — a keyword IS the phrase. `look clay` at the pit
+ *     is the lumps (`clay`), not the pit (`clay pit`); `look at the top end`
+ *     is the patch (`top end`), not the stand that answers to `top`.
+ *   - {@link TIER_WORDS} — every query word is a WHOLE word of a keyword:
+ *     `net` is a word of `drift net` and begins no word of `keepnet` (the
+ *     fishing drive found it three times: creel/eel, ledger/edge,
  *     keepnet/net).
- *   - Whole-name AND-narrow on lowercased name: 50
- *   - Word-of-name AND-narrow: 40
- *   - Keywords AND-narrow (all matched): 25
- *   - Partial keyword match: 10 × matched-count
- *   - Partial name-word match: 5 × matched-count
+ *   - {@link TIER_PREFIX} — every query word BEGINS a keyword word.
+ *   - partials — {@link TIER_PARTIAL} × the words that begin one; a
+ *     fallback for when nothing answers to every word.
+ *
+ * ⚠ A query word matches where a WORD of a keyword BEGINS, never in the
+ * middle of one: `consign "plant pot"`, with no plant pot in hand, put the
+ * player's aether imPLANT up for sale (the ceramics drive C, run 28); `get
+ * 1 brick` took the "brick table" by its keyword's tail.
+ */
+export const TIER_PHRASE = 100;
+/** See {@link TIER_PHRASE}. */
+export const TIER_WORDS = 60;
+/** See {@link TIER_PHRASE}. */
+export const TIER_PREFIX = 40;
+/** See {@link TIER_PHRASE}: the per-word step of a partial. */
+export const TIER_PARTIAL = 10;
+
+/**
+ * The tier a score sits in — what the binder compares ACROSS scope tries
+ * (`CommandLogic.walkScopes`): a whole-name hit in a later try beats a
+ * partial in an earlier one, and a tie goes to the earlier. Partials are
+ * one tier, however many words they caught.
+ */
+export function scoreTier(score: number): number {
+  if (score >= TIER_PHRASE) return 3;
+  if (score >= TIER_WORDS) return 2;
+  if (score >= TIER_PREFIX) return 1;
+  return 0;
+}
+
+/**
+ * Score `candidate` against `queryWords` by its keywords alone. Returns 0
+ * when no match; higher is better. See {@link TIER_PHRASE}.
  */
 export function scoreCandidate(
   candidate: ScopeCandidate,
   queryWords: string[]
 ): number {
-  const nameLower = candidate.name.toLowerCase();
-  if (!nameLower && candidate.keywords.length === 0) return 0;
+  return scoreKeywords(candidate.keywords, queryWords);
+}
 
-  // The name IS the query — one word or a phrase (`top end`). ⚠ Its
-  // article is the register, not the stem: a definite-register patch
-  // presents as "the top end", and the query's own article is already
-  // stripped (field population final pass 4 — without this it tied the
-  // stand standing in it at the exact-keyword tier, and `look at the top
-  // end` asked which).
-  if (queryWords.length > 0 && bareName(nameLower) === queryWords.join(' ')) return 100;
-
-  // ⭐ A query that IS one of the thing's keywords names that thing outright,
-  // above a word that merely appears in some other name: `look clay` at the
-  // pit looked at "the clay pit" — its NAME holds the word, the lumps' does
-  // too, and the tie went to the place (ceramics browser walk). The lump
-  // answers to `clay`; the pit only to "clay pit".
+function scoreKeywords(keywords: readonly string[], queryWords: string[]): number {
+  if (keywords.length === 0 || queryWords.length === 0) return 0;
   const phrase = queryWords.join(' ');
-  if (phrase && candidate.keywords.some((kw) => kw.toLowerCase() === phrase)) return 70;
-
-  const nameWords = nameLower.split(/\s+/).filter((w) => w.length > 0);
-  if (
-    nameWords.length > 0 &&
-    queryWords.length > 0 &&
-    queryWords.every((qw) => nameWords.some((nw) => nw === qw))
-  ) {
-    return 60;
-  }
-
-  if (nameLower && queryWords.every((w) => startsAWord(nameLower, w))) return 50;
-
-  // ⚠ A query word matches where a WORD of the name or a keyword BEGINS,
-  // never in the middle of one. Mid-word substrings scored as partials, and
-  // a partial is the fallback when nothing names the whole phrase — so
-  // `consign "plant pot"`, with no plant pot in hand, put the player's
-  // aether imPLANT up for sale (the ceramics drive C, run 28); `get 1 brick`
-  // took the "brick table" by its keyword's tail.
-  const nameMatches = queryWords.filter((qw) =>
-    nameWords.some((nw) => nw.startsWith(qw))
-  );
-  if (nameMatches.length === queryWords.length && queryWords.length > 0) {
-    return 40;
-  }
-
-  if (candidate.keywords.length > 0) {
-    const kwMatches = queryWords.filter((qw) =>
-      candidate.keywords.some((kw) => startsAWord(kw, qw))
-    );
-    if (kwMatches.length === queryWords.length) return 25;
-    if (kwMatches.length > 0) return 10 * kwMatches.length;
-  }
-
-  if (nameMatches.length > 0) return 5 * nameMatches.length;
-
-  return 0;
+  if (keywords.some((kw) => kw === phrase)) return TIER_PHRASE;
+  const words = keywords.flatMap((kw) => kw.split(/\s+/)).filter((w) => w.length > 0);
+  if (queryWords.every((qw) => words.includes(qw))) return TIER_WORDS;
+  const begun = queryWords.filter((qw) => words.some((w) => w.startsWith(qw)));
+  if (begun.length === queryWords.length) return TIER_PREFIX;
+  return TIER_PARTIAL * begun.length;
 }
 
-/** A lowercased name with one leading article dropped. */
-function bareName(nameLower: string): string {
-  const space = nameLower.indexOf(' ');
-  return space > 0 && GrammarApi.ARTICLES.has(nameLower.slice(0, space))
-    ? nameLower.slice(space + 1)
-    : nameLower;
+/**
+ * The attribution a match carries: the facet whose words reach the
+ * match's own score when the rest of the keywords do not. `look sigil` on
+ * the wand is its `sigil` detail; `look wand` is the wand.
+ */
+function attributionOf(c: ScopeCandidate, queryWords: string[], score: number): MqlMatchVia | undefined {
+  if (!c.facets) return c.via;
+  const facetWords = new Set(c.facets.flatMap((f) => f.keywords));
+  const rest = scoreKeywords(c.keywords.filter((k) => !facetWords.has(k)), queryWords);
+  if (rest >= score) return c.via;
+  for (const f of c.facets) {
+    if (scoreKeywords(f.keywords, queryWords) >= score) return { ...c.via, ...f.via };
+  }
+  return c.via;
 }
 
-/** Whether `word` begins one of the whitespace-separated words of `text`. */
-function startsAWord(text: string, word: string): boolean {
-  return text.split(/\s+/).some((t) => t.startsWith(word));
+/**
+ * One candidate scored as a match — its score and the attribution the
+ * words that matched carry — or `null` when it does not answer at all.
+ */
+export function matchCandidate(c: ScopeCandidate, queryWords: string[]): MqlMatch | null {
+  const score = scoreCandidate(c, queryWords);
+  if (score <= 0) return null;
+  const match: MqlMatch = { stuff: c.stuff, score };
+  const via = attributionOf(c, queryWords, score);
+  if (via) match.via = via;
+  return match;
 }
 
 /**
  * Apply {@link scoreCandidate} across an entire candidate pool and
  * return the matches with score > 0. Stable secondary ordering
  * (insertion order of candidates) is the tiebreak per req §14.2.
+ *
+ * ⭐ The highest tier present cuts every tier below it, and a candidate
+ * that answers to EVERY word ({@link TIER_PREFIX} or better) cuts every
+ * partial absolutely — a partial is a fallback for when nothing names the
+ * whole phrase, never a companion to one (`get "latex cup"` once picked
+ * up the three cups AND the coagulating pan, whose keywords say "latex
+ * pan"). Things that answer alike still prompt (`look rod` among three
+ * rods).
  */
 export function scoreCandidates(
   candidates: ReadonlyArray<ScopeCandidate>,
   queryWords: string[]
 ): MqlMatch[] {
   const out: MqlMatch[] = [];
-  const whole: boolean[] = [];
   for (const c of candidates) {
-    const score = scoreCandidate(c, queryWords);
-    if (score > 0) {
-      const match: MqlMatch = { stuff: c.stuff, score };
-      if (c.via) match.via = c.via;
-      out.push(match);
-      whole.push(namesEveryWord(c, queryWords));
-    }
+    const match = matchCandidate(c, queryWords);
+    if (match) out.push(match);
   }
-  // ⭐ A candidate that answers to EVERY word of the query outranks one
-  // that answers to only some, absolutely: a partial match is a fallback
-  // for when nothing names the whole phrase, never a companion to one.
-  // Without this a plural verb took every partial too — live, `get
-  // "latex cup"` picked up the three cups AND the coagulating pan (whose
-  // keywords say "latex pan"), because scores only order, they never cut.
-  const kept = whole.some(Boolean) ? out.filter((_, i) => whole[i]) : out;
-  // ⭐ One ordered cascade (merged: the ceramics build and the cover build's
-  // field population each found half of it). The highest tier present cuts
-  // every tier below it:
-  //   100 — a thing whose NAME is the query outright, one word or a phrase:
-  //         `look at the middle` / `look at the top end` is the patch so
-  //         named, not the stand that answers to the patch's words;
-  //    70 — a thing one of whose KEYWORDS is the query: `look clay` at the
-  //         pit is the lump, not "the clay pit" whose name merely holds it;
-  //  40–60 — a thing whose NAME carries the words: outranks one that
-  //         reaches them only through keywords (`latex` is the cups, not
-  //         the pan whose keyword says "latex pan").
-  // Things NAMED alike still prompt (`look rod` among three rods).
-  for (const floor of [100, 70, NAME_TIER]) {
-    if (kept.some((m) => m.score >= floor)) return kept.filter((m) => m.score >= floor);
+  for (const floor of [TIER_PHRASE, TIER_WORDS, TIER_PREFIX]) {
+    if (out.some((m) => m.score >= floor)) return out.filter((m) => m.score >= floor);
   }
-  return kept;
-}
-
-/** The lowest score at which the candidate's NAME answers every word. */
-const NAME_TIER = 40;
-
-/** Does every query word appear in the candidate's name or a keyword? */
-function namesEveryWord(
-  candidate: ScopeCandidate,
-  queryWords: string[]
-): boolean {
-  if (queryWords.length < 2) return true; // one word: matched is whole
-  const nameLower = candidate.name.toLowerCase();
-  return queryWords.every(
-    (qw) =>
-      nameLower.includes(qw) || candidate.keywords.some((kw) => kw.includes(qw))
-  );
+  return out;
 }

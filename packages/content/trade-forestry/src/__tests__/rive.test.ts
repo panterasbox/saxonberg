@@ -22,9 +22,8 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type Place from '@saxonberg/server/mud/lib/stuff/Place';
 import type { CommandGiver } from '@saxonberg/server/mud/lib/command/CommandGiver';
 import Timber from '@saxonberg/server/mud/platform/thing/Timber';
-import Bole, { TIMBER_MASS_KG } from '../thing/Bole';
+import Bole, { BILLET_KG, TIMBER_MASS_KG } from '../thing/Bole';
 import Billet from '../thing/Billet';
-import { BILLET_KG } from '../idea/cmd/forestry/RiveController';
 
 const VIEW = fileURLToPath(
   new URL('../../content/trade/forestry/cmd/forestry/rive.yaml', import.meta.url),

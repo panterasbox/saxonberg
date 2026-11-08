@@ -33,11 +33,29 @@ is text, re-tokenized at expansion time through the same
 escapes, and flag classification all behave identically inside the
 body.
 
-Defaults are declared on mixins via `static defaultAliases`,
-exactly mirroring how `static settings`, `static syntheticVars`,
-and `static commandContributions` work. There is **no central
-registry**; the resolution walk picks contributions up by
-prototype-chain inspection.
+Defaults come from two sources, and neither is a central registry:
+
+- ⭐ **the view** — `defaultAliases: [{name: l}]` beside `verbs:`, the home
+  of a shortcut for that one word (controllers-are-io D16). The defaults
+  tier reads the views the giver can reach (`getAffordances()`) lazily at
+  lookup, so an alias reaches a player only while the verb does. A pack
+  ships views and nothing else a player's shell composes, so the view is
+  the only place a pack's alias can live. Minted: `l` → `look`, `i` →
+  `inventory`, `h` and `?` → `help`, `'` → `say`. The criterion: a one- or
+  two-character MUD-standard shortcut for a verb typed many times a
+  session, and nothing else — a synonym is deleted, the verb is the word
+  `help` teaches. `lint:one-word` (c) refuses a name declared twice or
+  equal to a verb or builtin, statically, because reach is dynamic.
+- **a mixin layer** — `static defaultAliases`, exactly mirroring how
+  `static settings`, `static syntheticVars` and `static
+  commandContributions` work, picked up by prototype-chain inspection.
+  Two ship: `MobileMixin` (`n`, `ne`, … → `go <dir>`) and `EngagedMixin`
+  (`stop` → `cancel`) — bodies, not extra words for a view.
+
+⭐ **`'` is a sigil as well as a name.** The tokenizer splits a leading `'`
+off a line's first token (`'hello there` lexes as `'` `hello` `there`,
+`CommandLineLogic`), so the alias fires with or without the space. Anywhere
+else `'` is an apostrophe; a quoted `"'hi"` is a word.
 
 ## Concepts
 
@@ -47,7 +65,7 @@ Three layers, with most-specific winning:
 
 | Tier | Storage | Lifetime |
 |---|---|---|
-| Defaults | `static defaultAliases` on a mixin layer | Compile-time |
+| Defaults | `defaultAliases:` on a reachable view; `static defaultAliases` on a mixin layer | Read at lookup |
 | Persistent | `aliases` field on the host (Hydrator-saved) | Persisted |
 | Session | `aliasesSession` on the host | In-memory only |
 | Tombstones | a `null` value at a name in the persistent tier | Persisted |
@@ -83,6 +101,16 @@ single `\` at lex time, so `\\look` and `\look` produce the same
 post-bypass verb (`look`); the spec-level "literal-backslash verb"
 hypothetical is unreachable through msh and that's a known
 limitation.
+
+### `verb@source` survives the alias
+
+A scoped invocation keeps its scope through expansion
+(`ShellLogic.carryScope`, controllers-are-io D1): `l@me:i:book` with
+`l = look` dispatches `look@me:i:book`, and the echo's `expandedText`
+says so. The **invocation's** scope wins over one written in an alias
+body (`ww = wind@me:i:watch`, typed `ww@here` → `wind@here`); with none
+typed, the body's own stands. The bypass prefix keeps it too
+(`\look@me`).
 
 ### Cycle guard + depth ceiling
 
@@ -272,7 +300,7 @@ consumers can correlate.
 
 | Subcommand | Effect |
 |---|---|
-| `alias` / `alias list` | List effective aliases (defaults + persistent + session) with source markers (`*` for any override, `T` for tombstones) |
+| `alias` / `alias list` | List effective aliases (defaults + persistent + session) with source markers (`*` for any override, `T` for tombstones; a view default reads `[view: look]`) |
 | `alias get <name>` | Show one alias's body and source |
 | `alias set <name> <body>` | Validate + write. Body is greedy. Persistent unless `--session` is supplied |
 | `alias set --session <name> <body>` | Same, but writes to the session store |
@@ -331,10 +359,6 @@ it adjacent to the other shell-tier mixins in the prototype chain means
 
 Out of scope for v1, deliberate follow-ups when demand surfaces:
 
-- **Default-alias starter set.** AliasMixin ships with empty
-  `static defaultAliases`. Content mixins are the right home for
-  domain-specific defaults (a `MovementShortcutsMixin` shipping
-  `n/s/e/w` etc.). The mechanism is in place.
 - **Description round-tripping.** Persistent storage is body-only
   (`Record<string, string | null>`). A future "rich alias"
   persistence shape (`Record<string, string | null | { body, description }>`)

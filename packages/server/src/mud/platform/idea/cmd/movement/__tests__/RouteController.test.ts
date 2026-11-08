@@ -131,7 +131,16 @@ async function run(
     commandGiver: giver,
     location,
     verb: 'route',
-    interactive: {} as never,
+    // ⭐ The COMMAND's Interactive is what a prompt asks (D23): absent, the
+    // verb fails closed `needs-input`.
+    interactive: hasInteractive
+      ? ({
+          promptChoice: (
+            label: string,
+            opts: Array<{ label: string; response: string }>,
+          ) => promptImpl(label, opts),
+        } as never)
+      : undefined,
     commandText: 'route',
     executionId: 'test-execution',
     commandId: 'test-command-id',
@@ -140,15 +149,16 @@ async function run(
   // ⚠ The note is captured off the CONTEXT, not read back out of it:
   // the accumulator is not external surface (the `PracticeController`
   // test's idiom).
-  const seen: Array<{ reason?: string }> = [];
+  const seen: Array<{ reason?: string; detail?: string }> = [];
   vi.spyOn(context as unknown as { note(n: unknown): void }, 'note').mockImplementation(
     (n: unknown) => {
-      seen.push(n as { reason?: string });
+      seen.push(n as { reason?: string; detail?: string });
     },
   );
   await controller.execute(args as never, context as never);
   const rejected = seen.find((n) => n.reason !== undefined);
-  return { reason: rejected?.reason ?? null, text: said.join('\n') };
+  const words = rejected?.reason === 'needs-input' ? [...said, rejected.detail ?? ''] : said;
+  return { reason: rejected?.reason ?? null, text: words.join('\n') };
 }
 
 beforeEach(() => {
@@ -564,14 +574,14 @@ describe("⭐⭐⭐ naming a destination: a collection, then a keyword", () => {
     expect(out.text).toMatch(/Never mind/);
   });
 
-  it('⚠⚠ with NO interactive it refuses in WORDS and names the candidates', async () => {
-    // An NPC driving the verb, or a stripped harness. Hanging on a
-    // prompt nobody can answer is the failure to avoid.
+  it('⚠⚠ with NO interactive it fails closed `needs-input` and names the candidates', async () => {
+    // An NPC or a script driving the verb. Hanging on a prompt nobody
+    // can answer is the failure to avoid; so is guessing (D23).
     hasInteractive = false;
     withMap(terrace());
     const out = await run({ destination: 'kitchen' }, BEDROOM);
-    expect(out.reason).toBe('ambiguous-place');
-    expect(out.text).toMatch(/2 places called 'kitchen'/);
+    expect(out.reason).toBe('needs-input');
+    expect(out.text).toMatch(/route needs which 'kitchen' you mean/);
     expect(out.text).toMatch(/cramped kitchen/);
   });
 

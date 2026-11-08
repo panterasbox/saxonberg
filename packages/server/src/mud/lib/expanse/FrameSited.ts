@@ -189,8 +189,8 @@ export function FrameSitedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBa
     }
 
     /** A player put down on it (a login, a spawn) is using it. */
-    public onContainableAdded(thing: unknown): void {
-      (Base.prototype as { onContainableAdded?: (t: unknown) => void }).onContainableAdded?.call(this, thing);
+    public onContainableAdded(thing: unknown, from?: Stuff | null): void {
+      (Base.prototype as { onContainableAdded?: (t: unknown, f?: unknown) => void }).onContainableAdded?.call(this, thing, from);
       if (this.frameSite !== null && MixinApi.isHasInteractive(thing as Stuff)) void this.frameSiteStood();
     }
 

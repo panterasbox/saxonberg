@@ -26,7 +26,7 @@
  */
 
 import Good from '@saxonberg/server/mud/lib/stuff/Good';
-import { ToolMixin } from '@saxonberg/server/mud/lib/craft/Tooled';
+import { ToolMixin } from '@saxonberg/server/mud/lib/craft/Tool';
 import { ComminutingMixin } from '@saxonberg/server/mud/lib/craft/Comminuting';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
@@ -34,15 +34,10 @@ import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
+import type { WaterPowered } from '@saxonberg/server/mud/lib/supply/WaterPowered';
 
 /** The drainage catalogue, by path — never by import. */
 const WATERCOURSE_CATALOGUE = '/system/water/idea/WatercourseCatalogue';
-
-/** A room sibling that turns a flow into watts. */
-interface PowerTake {
-  generationW(flowM3S: number): number;
-  getReachRef(): string;
-}
 
 /** The catalogue's reading surface, duck-typed. */
 interface FlowSource {
@@ -106,14 +101,11 @@ export default class GristMill extends GristMillBase {
   }
 
   /** The room sibling that makes the power, if there is one. */
-  private powerTake(): PowerTake | null {
+  private powerTake(): (Stuff & WaterPowered) | null {
     const self = this as unknown as Stuff;
     if (this.powerFrom) {
       const named = StuffApi.findByTemplatePath<Stuff>(this.powerFrom);
-      const duck = named as unknown as Partial<PowerTake> | undefined;
-      if (duck && typeof duck.generationW === 'function' && typeof duck.getReachRef === 'function') {
-        return duck as PowerTake;
-      }
+      if (named && MixinApi.isWaterPowered(named)) return named;
       // ⚠ Never minted from here: the race is a prop of its OWN room and
       // lives when that room does (a singleton clone would be a second,
       // unplaced race). Not resident = nothing driving the stones yet.
@@ -122,19 +114,13 @@ export default class GristMill extends GristMillBase {
     const room = MixinApi.isContainable(self) ? self.getContainer() : null;
     if (room === null || !MixinApi.isContainer(room)) return null;
     for (const occ of room.getContents()) {
-      const duck = occ as unknown as Partial<PowerTake>;
-      if (
-        typeof duck.generationW === 'function' &&
-        typeof duck.getReachRef === 'function'
-      ) {
-        return duck as PowerTake;
-      }
+      if (MixinApi.isWaterPowered(occ)) return occ;
     }
     return null;
   }
 
   /** Re-read the flow at most once per six game-hours. */
-  private async refreshPower(take: PowerTake): Promise<void> {
+  private async refreshPower(take: WaterPowered): Promise<void> {
     if (this._refreshing) return;
     const nowS = WorldClockApi.getNow().rawValue();
     // The weather field itself is memoised per six-game-hour segment, so

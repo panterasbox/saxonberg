@@ -6,8 +6,11 @@
 > [emotes.md](../../subsystems/emotes.md); reactions shipped →
 > [reactions.md](../../subsystems/reactions.md)
 > ⭐ **Meaning (acts, manners, consent, witnesses):** [expressive-acts-slate](./expressive-acts-slate.md).
-> **Left:** the Layer-2 client render toggle (`social.emote.render`
-> honoured, per channel and per source) · Layer 3 honorary / entitlement
+> **Left:** ⭐ the dispatch reversal (no bare emote verbs; `;` = catalog,
+> `:` / bare `emote` = free-form, a miss refuses — § Reversal) · the Layer-2 client render toggle (`social.emote.render`
+> honoured, per channel and per source) · ⭐ Layer 2b illustrated emotes and
+> the meme (an `illustration` per emote, hosted; the meme classification sets
+> the play frame; sent by verb only, never a picker; text art) · Layer 3 honorary / entitlement
 > gating (the `requires` predicate seam) · channel / remote-audience
 > emotes (routing over comms) · echo (the `social.emote.echo` setting +
 > the routing) · the provenance label on remote emotes · the typed-slot
@@ -184,6 +187,45 @@ trusting a denylist.
 
 *Shipped: `emote.yaml` → `EmoteController`; `:` / `;` prefixes via `detectEmotePrefix` in `msh`, falling back to free-form on a catalog miss → [emotes.md § Dispatch paths](../../subsystems/emotes.md) (b), (c).*
 
+### ⭐⭐⭐ Reversal: emotes leave the verb space; the sigil decides **[DECIDED 2026-11-08 — the owner]** — UNBUILT
+
+The owner: *"I'm reconsidering … the whole emotes as their own verbs thing. I just think
+it's gonna create a little too much confusion with our actual active verb space."* And
+on why the sigil must stay meaningful: *"then 'emote pbride is my favorite emote' becomes
+inexpressible. so maybe the ; is doing something there actually."*
+
+**Retired:** dispatch path (a), the bare-verb router — `wave iffy` no longer emotes. And
+the catalog-first-then-free-form *guess* both sigils make today. A guess always leaves a
+sentence it cannot express.
+
+**The grammar — one meaning per sigil, no guessing:**
+
+| you type | you get |
+|---|---|
+| `;pbride` · `emote ;pbride` · `;pbride iffy` · `;smile evilly` | the **catalog** emote (slots bind as today) |
+| `:is taking it easy.` · `emote is taking it easy.` | **free-form**, word for word |
+| `emote pbride is my favorite emote` | free-form — *Bobalu pbride is my favorite emote.* |
+| `;pbridee` (a miss) | an honest refusal with a search hint (*no emote `pbridee` — `soul search pbri`?*), **never** a silent fall to free text |
+| `smile` (bare) | whatever the verb space says — usually `unknown-verb` |
+
+- **`;` names a word from the shared vocabulary; `:` writes your own.** Inside `emote`,
+  no sigil means free-form. `emote :text` is accepted and equals `emote text`.
+- **Why (lens 2, creative expression, and the verb-collision ladder):** every catalog
+  verb competed with real commands for its word (`bow` vs posture, `point`, `kneel`),
+  and an EotL-sized meme catalog (Layer 2b) would make every new trade verb dodge
+  hundreds of emotes. A typo'd command also stopped silently becoming an emote. And it
+  is the meme doctrine made syntax: typing `;` says *I am using a shared word*.
+- **Muscle memory** (`smile` bare) is the player's own `alias smile ;smile`. No default
+  alias set ships, since one would bring the collision back.
+- **The same sigils inside channels:** `chat gossip ;pbride`, `chat gossip :is afk`.
+  ⚠ `chat` parses neither today (a leading sigil is sent as literal text); that is the
+  deferred channel/remote-audience path (emotes.md § What's deferred), which adopts this
+  grammar when it ships.
+- **Touches when built:** the `msh` prefix hook and the router branch in
+  `CommandGiver`, `EmoteController`, the scripting parser (it routes sigil lines
+  through `detectEmotePrefix`), the prefix tests, `emotes.md § Dispatch paths`, and help
+  text. `react` and NPC `emote()` calls are unaffected; they never used the bare verb.
+
 ### NPCs emote — and the immersion gate
 
 Because the capability is on the being, NPCs, combat, and scheduled
@@ -318,6 +360,190 @@ Two disciplines fall out of the thesis:
   the medium.
 
 Mostly client work + a payload field + a setting; cheap server-side.
+
+---
+
+## Layer 2b — Illustrated emotes and the meme **[DESIGNED 2026-11-08 — the owner]**
+
+The owner: *"emotes often being the memes of their era (looking at EotL many emotes are
+just movie quotes). I'd like to keep that idea … but I want to actually classify the
+emote as a meme and attach a gif to it. whether the gifs render is up to the player
+based on their channel settings and other config but it's another layer on the emotes
+system where we can attach an illustration to an emote."* And on what it must not
+become: *"I would try to avoid something like a giphy plugin where you just search by
+the image metadata itself and communicate it absent of context. I think I want only
+specific memes in the emote catalog and it's a vocabulary players learn … this isn't
+discord and I don't want it to be. that doesn't mean we can't have some fun with
+gifs."*
+
+The EotL precedent is two things, and they land in two places: 500+ feelings were
+quotes (`pbride`, `caddyshack`) — that is **this layer**; players also built toys that
+sent ASCII/ANSI art to each other — that was culture, not the soul, and its descendant
+is a player's own piece ([visual-arts slate](./visual-arts-slate.md)), not the curated
+catalog.
+
+### 1. ⭐⭐ An illustration is a layer, exactly as the glyph is **[DECIDED]**
+
+- An `Emote` row may carry an **`illustration`** beside `emoji`. Any emote may — the
+  owner: *"it's not just for quotables but that's where I think it would have the most
+  impact"* — a `rose` that hands someone a drawn rose is the second case.
+- **Prose stays primary and is always sent.** It is the failsafe body, what a
+  text-only reader and a screen reader get, and the only thing that changes nothing
+  when the picture is off. The illustration rides the payload, as the glyph does.
+- **The reader decides whether it renders** — the Layer-2 setting grows a media axis
+  (`social.emote.render` stays per channel and per source, so a reader can keep a
+  friend's memes and drop an NPC's). Off · still · animated is the shape; the default
+  is **plays once, then holds its last frame** — a loop is an attention cost
+  ([measurement.md](../../measurement.md): *the feed hides the measurement*), and the
+  reader who wants loops opts in.
+- **A space decides too.** The conduct code already says *"a space may allow quoted
+  media if it says so"* ([moderation-slate](./moderation-slate.md) § conduct rule 1); a
+  channel or place may turn illustrations off for everyone in it (the lecture hall, the
+  court). The reader's setting can only narrow what the space allows.
+- **The sender never forces a picture on anyone** — Principle 3 unchanged.
+
+### 2. ⭐⭐ Hosted by us, never linked **[DECIDED — the owner: "yes"]**
+
+The illustration is a **media key** on the [media](../../subsystems/media.md) reference
+model — a hosted asset with a `MediaAsset` provenance record — never an outside URL. A
+hot link rots, can be swapped for something else after review, and tells a third party
+who is reading. One reference model serves a room's picture, a species' portrait and an
+emote's clip.
+
+### 3. ⭐⭐⭐ Classifying an emote as a MEME does something **[DECIDED]**
+
+A meme emote declares what it is quoting — the work (title, year, medium), the line,
+optionally the scene. The payoff is not the picture:
+
+- **It sets the play frame.** [expressive-acts § 4](./expressive-acts-slate.md) already
+  decided that `pbride` performs banter, never a threat — *"you don't really mean to
+  kill the guy … it's a metaphor, i.e. a meme."* The meme classification is the field
+  that says so: a meme performs within the play frame, so its literal content is never
+  read as its act. Classification is how the engine tells performance from statement.
+- **Provenance is the pedagogy** (lens 1). `soul show pbride` says the film, the year,
+  and the line — knowing where a meme comes from is media literacy, and the game can
+  show it instead of assuming it.
+- A meme is a **kind** of emote, not a separate system: same grammar, same dispatch,
+  same acts, same reactions.
+
+### 4. ⭐⭐⭐ A vocabulary, not a search box **[DECIDED — the owner]**
+
+- **A meme is sent by its verb and nothing else** — the only word that dispatches, as
+  for every emote today. There is no compose-line picker that searches image metadata
+  and sends the hit, and no picture that is not in the catalog.
+- **Browsing and searching are welcome as the catalog grows** — `soul search`, and a
+  client browser of the catalog — but every result teaches **the word you would type**.
+  The browser is a dictionary, never a send button. (*The first screen is the
+  syllabus.*)
+- **Why this is the line against Discord:** a GIF picker communicates *absent of
+  context* and skips the learning; here the shared word is the point. Knowing `pbride`
+  is being in on it.
+- **Who adds memes is governance**, as for any emote: `soul make` under the soul
+  committee's title, or a pack the Compact installs
+  ([expressive-acts § 2a–2b](./expressive-acts-slate.md)).
+
+### 5. ⭐ The rose is a spoken rose **[DECIDED]**
+
+Emotes change nothing in the world (emotes.md). `rose iffy` sends **a picture of a
+rose**, not a rose; a real flower changing hands is [giving](./giving-slate.md). Both
+may exist, and the line between them is what keeps the fiction honest — the prose says
+*offers*, never *gives*.
+
+### 6. Text art is an illustration form **[DECIDED — format open]**
+
+An illustration may be a hosted image **or a block of text art** — the descendant of
+EotL's ASCII menus and toys, cheap, and legible in any client. The owner: *"it's not
+true ansi art if it's hypertext but sure whatever the format I dont really care."* The
+format (monospace block in MML, colored by theme tokens rather than raw ANSI codes, per
+[message-rendering.md](../../subsystems/message-rendering.md)) is the plan's.
+
+### Open
+
+1. **What the base pack may ship** — real film/TV clips or not, and how long. The
+   owner: *"I believe there's a limit to what we can get away with here … I'd want to
+   do an actual investigation here before we decide. I know yarn.co gets away with
+   hosting gifs of basically entire works."* The engine is neutral either way — a realm
+   ships what its polity and host allow ([bestiary § 14a](./bestiary-slate.md): the
+   engine is neutral, realms govern); the question is only the company's own pack and
+   the managed host's floor. **The investigation (2026-11-08, US-centric, not legal
+   advice):**
+   - **No seconds are free.** No statute or court sets a safe length; fair use is the
+     four factors, case by case. Brevity helps factor 3, but the iconic scene is the
+     work's *heart*, which cuts the other way however short (*Richardson v. Townsquare*,
+     2d Cir. 2026: even single frames were not de minimis). *Warhol* (2023) weakens
+     "transformative" for a commercial use serving the original's purpose, and studios
+     license GIFs (GIPHY's branded channels), which is a market factor 4 counts. **No
+     court has ruled on reaction GIFs.**
+   - **Safe harbor is for USER uploads.** DMCA § 512(c) covers material stored *"at the
+     direction of a user."* A clip the company curates into its base pack is the
+     company's own publication — and an AGPL pack is *distributed* to every
+     self-hoster, so the company is a distributor, not just a host. A realm committee
+     of players is much nearer "users", but *Mavrix v. LiveJournal* (9th Cir. 2017)
+     strips the harbor when curators act as the platform's agents — so company staff
+     stay out of realm curation.
+   - **A drawn re-creation of a scene is still a derivative work** — restyling is
+     exactly what lost in *Warhol*, and an actor's face adds publicity rights. Titles
+     and short phrases are not copyrightable; a quoted *line* as text is a weak claim
+     but not automatically free.
+   - **Licensing doesn't fit.** GIPHY's API forbids caching/re-hosting without written
+     approval (breaks § 2, hosted-not-linked) and conveys no studio rights; Tenor's API
+     shut down 2026-06-30; archive clip licensing runs ~$50–350/second with minimums.
+     Yarn's footing could not be verified — treat it as unknown, not precedent.
+   - **EU/UK are friendlier to USERS:** DSM Art. 17(7) and Germany's § 51a UrhG
+     (naming memes and GIFs) and UK s30A protect pastiche/parody *uploads*, not a
+     provider's own catalog.
+
+   **Options, lowest risk first:** (a) the base pack ships no copyrighted clips —
+   original art, public-domain films, the line quoted as text with its citation;
+   (b) original house-style art that evokes a *mood*, never a recognizable scene;
+   (c) hosted realms take player/committee uploads under a full DMCA program
+   (designated agent, repeat-infringer policy, fast takedown, staff out of curation);
+   (d) GIPHY hot-linked — breaks § 2; (e) drawn scene re-creations in the base pack;
+   (f) per-clip studio licenses; (g) film GIFs in the base pack on fair use — highest:
+   no harbor, company as publisher and distributor, no precedent, a licensing market.
+   ⭐ **Recommendation (lens 4 — values, with the company's floor):** (a) + (b) for
+   our pack, (c) as the managed host's posture, and the public-domain film catalog
+   (US: published 1930 or earlier, as of 2026 — the line moves a year every January) as the base pack's quotable classics. **The owner decides.**
+
+   **Decided (the owner, 2026-11-08):** rely on the safe harbor for what realms' players
+   upload, and give the company's own demo realm (`mud.panterasbox.com`) real assets
+   anyway, at the owner's own risk as its curator. The images live in a **private realm
+   pack** (an org repo, kept out of the public monorepo and its distribution) and a
+   realm-only S3 prefix, so a takedown deletes one object and nothing infringing is
+   distributed to self-hosters. Licensing and sponsorship, the ways rights holders come
+   in by agreement, are the [sponsorship slate](./sponsorship-slate.md).
+
+   **Other sources (2026-11-08, informed knowledge, not legal advice):**
+   - **Video games:** everything on screen is a copyrighted audiovisual work, cutscene
+     or gameplay. Publishers' content-usage policies (Nintendo, Microsoft, …) permit
+     streams and videos but not use in another commercial product. A streamer can
+     license only what is theirs (face, voice, overlay), never the game footage in the
+     same clip.
+   - **News:** a network's broadcast is its copyright; removing the logo only avoids a
+     trademark problem. The event and the facts are no one's; a prepared speech can be
+     the speaker's (the King estate v. CBS).
+   - ⭐ **Free and real: the US federal government's own cameras** (17 USC 105 — the
+     White House's own photos and briefing streams, the House and Senate floor feeds,
+     agency imagery). Traps: C-SPAN's committee footage is C-SPAN's, the press pool's
+     video is the networks', states and other countries vary (UK Parliament footage has
+     historically barred satire). **The base pack's political quotables come from
+     these.**
+
+   ⭐⭐ **A political quotable is the person's own words, cited** — who, when, which
+   event, which feed. The owner: *"I'd never want to put words in a politicians mouth,
+   they create plenty of good enough content on their own usually."* That is the
+   **grain** for our packs and our realm, not engine law (bestiary § 14a: a realm
+   governs its own content). The meme classification carries the citation, so the
+   game teaches sourcing (lens 1: is this a primary source, is the line real?) and
+   quoting is told apart from fabricating. Parody is marked as parody and plays within
+   the play frame. The legal edge is defamation, not copyright: a realistic false
+   quote is a false statement of fact, satire is protected only when nobody would read
+   it as fact (*Hustler v. Falwell*), and several states regulate manipulated media of
+   candidates near an election.
+2. **Where a directed illustration lands for its target** — inline in the transcript,
+   or also as a card the target keeps. Waits on the cards-versus-terminal session
+   (build-3, 2026-11-08); [card-surface.md](../../subsystems/card-surface.md)'s one
+   birth path (*a command pushes*) is the constraint either way.
 
 ---
 

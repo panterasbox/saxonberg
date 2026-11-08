@@ -48,6 +48,7 @@
  */
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
+import { PoweredMixin } from '../supply/Powered';
 import type { Stuff } from '../stuff/Stuff';
 import type { CompositionEntry } from '../material/Material';
 import type { WaterState } from '../material/Moisture';
@@ -208,7 +209,7 @@ export interface Comminuting {
 export function ComminutingMixin<TBase extends MixinConstructor<Stuff>>(
   Base: TBase,
 ) {
-  return class ComminutingMixin extends Base implements Comminuting {
+  return class ComminutingMixin extends PoweredMixin(Base) implements Comminuting {
     static _mixinName: string = 'ComminutingMixin';
 
     static fieldMeta: FieldMeta = {

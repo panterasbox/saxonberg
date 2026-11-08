@@ -37,7 +37,7 @@ import Species from '@saxonberg/server/mud/platform/idea/species/Species';
 import BodyPlan from '@saxonberg/server/mud/platform/idea/species/BodyPlan';
 import Smoker from '../thing/Smoker';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
-import { Reserve } from '@saxonberg/server/mud/lib/reserve';
+import { Reserve } from '@saxonberg/server/mud/lib/reserve/Reserved';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -151,7 +151,7 @@ function held(): Smoker {
 /**
  * …and one that is actually going.
  *
- * ⚠ It has to be FUELLED first — `ignite` refuses `not-flammable` on an
+ * ⚠ It has to be FUELLED first — `light` refuses `not-flammable` on an
  * empty burner, which is right and is also the one thing about a smoker
  * a beekeeper actually forgets. The ROW authors this reserve.
  */

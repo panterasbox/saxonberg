@@ -1,4 +1,4 @@
-# The `clock on` / `clock off` controller row. See ApplyController.yaml —
+# The `clock on` / `clock off` controller row —
 # a kernel controller is reached by TEMPLATE PATH and needs a row like
 # any other Idea.
 class: /platform/idea/cmd/employment/ClockController

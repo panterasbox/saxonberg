@@ -895,7 +895,7 @@ export default class Material extends SingletonMixin(
   /**
    * Inspectable nutrient amounts (tag → mg per serving, see
    * {@link servingKg}) — the
-   * education-by-reference profile `examine <food>` surfaces. Parallel
+   * education-by-reference profile `look <food>` surfaces. Parallel
    * to {@link nutrients}: the tags drive routing, these amounts are
    * data + display only (no body-side machinery). A flat
    * `Record<string, number>` → default-applier round-trip (the

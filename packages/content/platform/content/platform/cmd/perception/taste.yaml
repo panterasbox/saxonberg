@@ -1,4 +1,5 @@
 verbs: [taste]
+category: perception
 controller: /platform/idea/cmd/perception/TasteController
 description: "Put a thing to your tongue"
 help: |

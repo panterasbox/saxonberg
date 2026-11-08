@@ -124,12 +124,12 @@ not on the wire. A `FieldHandler` knows how to: name its renderer
 (`kind`) and heading (`label`), decide if the field is `applicable` to
 the current draft (sex only applies to a sexed species), report whether
 it `isSet`, produce its option list and current `display` value, offer
-an optional `hint`, `validate` a value, and `apply` it to the draft.
+an optional `hint`, `validate` a value, and `job apply` it to the draft.
 
 `execute` (`EmbodyController.ts:479`) dispatches on the rest-of-line:
 
 - **bare `embody`** → re-emit the full draft state (no mutation).
-- **`embody <field> <value>`** → `FIELDS[field].validate` then `apply`,
+- **`embody <field> <value>`** → `FIELDS[field].validate` then `job apply`,
   then re-emit the full state. This is **live-fire**: each field-set is
   its own command, applied and reflected immediately.
 - **`embody confirm`** → gate on `computeMissing(draft, cfg)`
