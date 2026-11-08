@@ -41,7 +41,7 @@ export class TasteModality extends Modality {
       for (const part of payload?.makeup ?? []) {
         const m = StuffApi.findByTemplatePath<Material>(part.materialPath);
         if (m) parts.push({ material: m, fraction: part.fraction });
-        else Aroma.waitFor(part.materialPath, StuffApi.singleton(part.materialPath));
+        else Aroma.loadRow(part.materialPath);
       }
       if (parts.length === 0 && material) parts.push({ material, fraction: 1 });
       const rot = new Freshness(thing.getBulk('interior')).rotNote();

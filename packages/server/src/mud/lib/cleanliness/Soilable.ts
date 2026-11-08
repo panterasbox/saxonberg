@@ -528,7 +528,7 @@ export function SoilableMixin<TBase extends MixinConstructor<Stuff>>(
     protected dirtKind(kind: string): DirtKindDescriptor | null {
       const row = StuffApi.findByTemplatePath<DirtKind>(DIRT_KIND_ROOT + kind);
       if (row) return row.descriptor();
-      Aroma.waitFor(DIRT_KIND_ROOT + kind, StuffApi.singleton(DIRT_KIND_ROOT + kind));
+      Aroma.loadRow(DIRT_KIND_ROOT + kind);
       return null;
     }
 

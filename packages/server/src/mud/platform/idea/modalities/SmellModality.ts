@@ -331,7 +331,7 @@ export class SmellModality extends Modality {
     if (makeup.length > 0) {
       for (const part of makeup) {
         const m = StuffApi.findByTemplatePath<Material>(part.materialPath);
-        if (!m) Aroma.waitFor(part.materialPath, StuffApi.singleton(part.materialPath));
+        if (!m) Aroma.loadRow(part.materialPath);
         this.addMaterial(m ?? null, litres * part.fraction, heat, into);
       }
     } else {

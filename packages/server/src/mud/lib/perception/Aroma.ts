@@ -24,6 +24,7 @@
 
 import { DocumentApi } from '../../api/document';
 import { DiagnosticApi } from '../../api/diagnostics';
+import { StuffApi } from '../../api/stuff';
 
 /** How one person's liking moves with a note's strength: a hump, in log10 OU. */
 export interface HedonicCurve {
@@ -180,6 +181,14 @@ export class Aroma {
       key,
       load.catch(() => {}).finally(() => Aroma.loading.delete(key)),
     );
+  }
+
+  /**
+   * Start loading a row a smell read found cold, by path, and have
+   * {@link Aroma.settling} wait for it. @internal
+   */
+  public static loadRow(path: string): void {
+    Aroma.waitFor(path, StuffApi.singleton(path));
   }
 
   /** Every load a cold read started, to wait out; `null` when there are none. @internal */
