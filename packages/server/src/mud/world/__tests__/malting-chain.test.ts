@@ -384,7 +384,7 @@ describe('⭐⭐ the peated kiln — one choice, and the whole product changes',
       expect(DissolvedAromatics.isAromaPath(tag.type), tag.type).toBe(true);
       expect(tag.amount).toBeGreaterThan(0);
     }
-    expect(imparts.find((t) => t.type === 'smoke')).toBeDefined();
+    expect(imparts.find((t) => t.type === '/base-library/aromas/smoke')).toBeDefined();
 
     // ⚠ And the turf THING resolves to that material, or there is
     // nothing in the world to stoke the kiln WITH.
