@@ -311,6 +311,63 @@ like their fakes, so the culture grows out of **not being sure what you're holdi
   - ⭐ **name their gear** (*Grandmother's Needle*). Pets already have naming as a promotion; items could
     get their own handle.
 
+## 7b. ⭐⭐⭐ Crafting magic items, and what the maker knows **[DECIDED — the owner, 2026-11-07]**
+
+### Blanks, then the specification, then the charge
+
+| consumable | the blank (a mundane trade) | the specification step | charge |
+|---|---|---|---|
+| wand | a body (wood, or a metalworker's brass) fitted with a conduit and a socket | an enchanter carves the rune (`carve`) | a utility, or a field |
+| scroll | **paper and ink**, from the paper build (the ink rides on paint's drying oil) | a scribe writes the working: one use, read to fire | carried in the specification |
+| potion | a vial (the glassblower) and a base material | brewed (*potions ride the MATERIAL, not the flask*, shipped) | in the brew |
+| ring, amulet | a jeweler's setting with a stone | the rune on the band or the bezel | held, so dear |
+
+In assembly's own terms: **setting a stone is a joint**, and a prong setting is reversible, so the gem
+is salvageable. **Filigree and damascening are face coats.** **A rune is a mark on a face.** No new
+assembly vocabulary is needed. This answers [magic-items-slate](../tails/magic-items-slate.md)'s open
+question of whether shells are craftable: **yes, as blanks.**
+
+### One appearance regime: crafted looks like found
+
+The owner: *"if you craft something it should just show up as 'a blue potion' unless you specifically
+knew what you were crafting."* A two-regime proposal (found items mysterious, crafted items showing
+honest parts and identified by reading their rune) was **rejected**. Crafted and found share the shipped
+derivation of appearance from (class, generation). The difference is only **what the maker knows**, and
+the recipes design's *declare intent* is how the engine knows what you meant to make.
+
+### ⭐⭐ Crafting must never be an identification oracle
+
+*"What you don't want is to provide a foolproof way to identify items through crafting. If you really
+know what you're doing and know a healing potion from a poison vial, then sure, identify the thing.
+Otherwise it has to read from the vocabulary of labels as something else that could be crafted, or
+render something off the chart entirely, which reveals itself to not be anything in the entire set of
+craftables."* Otherwise a novice who brews a known healing recipe and sees it come out blue has learned
+what every blue potion in the world is.
+
+1. **Only competence turns crafting into identification.** A brewer who really knows sees her product
+   truly, and knows it.
+2. **Below that, you see your own product through your fog.** The appearance you perceive is **drawn
+   from the vocabulary of craftable appearances**, seeded per viewer and object (never redrawn, so it
+   never flickers). It looks like something craftable, so seeing it teaches nothing about the mapping.
+   That's combat's fog doctrine: *the fog is the only dice, and skill shrinks it.*
+3. **A craft that made nothing in the set shows off the chart** (*a murky, settling sludge*). It
+   honestly says *failed* without saying what anything else is.
+4. **The maker holds a belief, not knowledge**: *your healing potion (you think)*. That's the shipped
+   believed-name machinery: *false information is only worse than none while it stays uncontradicted.*
+5. **Other people see the truth**, so comparing notes is social knowledge, and fine. The engine only
+   guarantees that your own craft doesn't hand you the mapping for free.
+6. ⭐ **Lot numbers close the merge oracle.** A crafted batch carries its batch identity and **merges
+   only with its own lot**, so a fogged potion never merges into a stack of blue ones and reveals that
+   they're the same. It's true to life (batches are kept apart), and it needs no per-viewer stack.
+
+**Consequences:**
+- **A botched batch** made from a known recipe is believed good by a novice, and a skilled brewer catches
+  it.
+- **A false recipe** (a forged or mistaken document) is followed faithfully into a false belief.
+  Recipes become **knowledge goods that need trust**.
+- A sincere crafter can **sell a bad potion in good faith**. **The hallmark and the assay office** (§ 7a)
+  are what catch it.
+
 ## 8. Open
 
 - Clusters 5–12.
