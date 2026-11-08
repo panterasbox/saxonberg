@@ -126,8 +126,7 @@ and that requires the engine actually be running."*
 1. **Permission (free).** The rights holder lets fans keep using the work, in exchange
    for attribution, an *official* badge, and the report. GIPHY's official-channel deal.
 2. **Official presence.** They author their own emotes and their brand exists in the
-   world, under a corpo ([corpo.md](../../subsystems/corpo.md); brand placement is its
-   own conversation, Open 4).
+   world, under a corpo ([corpo.md](../../subsystems/corpo.md); brand placement is § 11).
 3. **Campaigns (paid).** The premiere, earned emotes, lobby cards (§ 2).
 4. **The blanket license (later, the federation).** § 8.
 
@@ -183,19 +182,97 @@ accurate, auditable and public from the start.
    record ([contract.md](../../subsystems/contract.md): clauses over verifiable
    conditions, escrow), e.g. *a premiere with at least N attendees*.
 
+## 11. ⭐⭐⭐ Brand placement across the simulation **[DECIDED — the owner, 2026-11-08]**
+
+The owner: *"if we're talking about breaking the seal on sponsored content, it's not
+gonna end at emotes we have a whole simulation to market. and again, a codified
+incentives structure answerable to a codified governance framework."* And: *"personally
+I'm eager to do business with Coca-Cola but I'll settle for Pepsi."*
+
+### 11.1 A brand joins a corpo, and picks a package
+
+- ⭐ **The usual route: a real brand joins one of our fictional corpos** (Coca-Cola as
+  a Veshko brand). It fits [corpo.md](../../subsystems/corpo.md)'s three axes as
+  shipped: the brand is a mark with an owner, the corpo is the capital, and the
+  product is made by its trade like anything else. The owner, on why the corpo: *"it
+  gives the brand an accountability trail in the game through the corpo's own committee
+  structure and whatever offices it creates as an org. it also means whoever running
+  these corpos has to be respectful of the brands they're representing in the game but
+  that's the sort of thing we want to incentivize anyway, real brands just up the
+  stakes."* The corpo's board is a real committee (it holds title over `/corpo/<key>`),
+  so the trail is the board's record. The brand's guidelines are clauses in its deal,
+  and the board answers for keeping them.
+- **Packages to choose from**, because brands do not want to write content: *"they
+  probably dont want to join a game server and start writing their own shit."*
+  Billboards (a building's painted face), screens ([display.md](../../subsystems/display.md)),
+  product placement (brand rows on goods in their trade packs), events (the premiere,
+  [performance](./performance-slate.md)), sweepstakes. ⚠ A sweepstakes with a real prize
+  is a lottery if entry costs anything, so no purchase necessary, and some US states
+  require registration above a prize value (Open 3).
+- **A brand may also set up shop entirely** (its own corpo, its own content), by
+  negotiating with the Compact. The owner: *"more content is always better … the engine
+  is open to anyone so none of this stuff is off the table."*
+- **The launch corpo catalog grows or shrinks** with who is being courted.
+- ⭐ **The opt-out needs no new mechanism.** Each real brand ships as **its own pack**
+  depending on its corpo's pack (`brand-coca-cola` on `corpo-veshko`). The Compact's
+  existing act of deciding which packs to install *is* the opt-out, and one standing
+  amendment (*no real-brand packs*) opts a realm out entirely, for an operator who
+  does not want *"that capitalist slop."* The engine never learns "real brand" as a
+  category.
+
+### 11.2 ⭐⭐⭐ A brand buys presence, never physics **[DECIDED — law, the owner: "this is a good rule"]**
+
+- Coke's sugar and caffeine run through [metabolism](../../subsystems/metabolism.md)
+  as they really do, and its supply chain is simulated like everyone else's. **No brand
+  pays for its product to be healthier, cheaper to make or better than the sim says.**
+- Platform law, not grain: a realm that sells physics breaks derivability (lens 1) and
+  the fiction (lens 3a).
+- It is also the pitch: *your product, in a world that simulates how things are
+  actually made.* The brands that stay are the ones confident in their product.
+- **Disclosure:** a can on a shelf is ordinary product placement. A scripted NPC
+  praising it, or a player paid to promote it, is an endorsement, which the FTC
+  requires be disclosed; the *sponsored* source class (§ 3) covers speech.
+
+### 11.3 ⭐⭐ A brand earns standing like any author **[DECIDED — the balance is open]**
+
+The owner: *"the brand may want terms where they can also earn standing for their
+content, the same as any other content author. this would probably be labor standing,
+though an argument could be made about capital standing. they're not offlimits from
+acquiring capital standing through the normal means either."*
+
+- **Labor standing** for what the brand authors, through the same authorship ledger
+  as every author ([provenance.md](../../subsystems/provenance.md)).
+- **Capital standing by the normal means**, never as a term of the deal.
+- ⚠ **The standing economy is unbalanced, and that is the next conversation**
+  ([standing-mint-slate](./standing-mint-slate.md),
+  [company-and-capital.md](../../company-and-capital.md)). The owner's starting
+  positions:
+  - **Bounded offerings at intervals**, not an open market or one big pile.
+  - **Design capital standing as if it were equity** to learn whether running the
+    system is worth actual capital risk, **while never implying equity anywhere**
+    (illegal: real equity is a security, company-and-capital Part 3).
+  - **Value and risk, measured as well as possible.** The revenue lines are this
+    slate's sponsorship, subscriptions or cover fees, and a desktop build (Electron) on
+    Steam. The owner: *"there's value to be had after the initial capital investment
+    here, but there's also risk. I wanna know as best as I can how much of both are on
+    offer."*
+
+### 11.4 ⭐⭐ All real money goes to the Compact's budget **[DECIDED — the owner]**
+
+The owner: *"all real moneys go to the compact budget. I dont want anyone running their
+own side hustles if I can avoid it. people will create external markets to trade on and
+I can't stop that but I don't have to make it easy."*
+
+- A brand pays the realm, never a corpo's board, an office holder or a player. A
+  corpo's in-world treasury is game money; any real-money marketing spend on its
+  behalf is appropriated by the Compact from the [budget](./budget-slate.md).
+- External markets will exist; nothing in the engine makes them easy.
+
 ## Open
 
 1. **The deal's shape.** What a sponsor receives, for how long, and who signs for a
    realm (the Compact's officer? a business?).
-2. **Where the money goes.** A sponsor's payment to the realm's budget, the
-   company's, or both, and who decides the split.
-3. **The cinema.** Its place in the city slate and the performance slate.
-4. ⭐ **Brand placement across the whole simulation**, the owner's next conversation
-   (2026-11-08): *"it's not gonna end at emotes we have a whole simulation to market."*
-   The owner's starting position: a brand that wants placement **picks a corpo to exist
-   under**, which gives it an accountability trail through the corpo's committees and
-   offices, and makes whoever runs the corpo answerable for respecting the brand (*"real
-   brands just up the stakes"*). The launch corpo catalog may grow or shrink with who
-   is being courted. **An easy Compact amendment opts a realm out of real brands
-   entirely.** The owner: *"personally I'm eager to do business with Coca-Cola but I'll
-   settle for Pepsi."* Platform level, panterasbox.com's own culture, and in between.
+2. **The cinema.** Its place in the city slate and the performance slate.
+3. **The sweepstakes rules** (§ 11.1): no purchase necessary, registration where
+   required, and whether a brand's prize to a player squares with § 11.4.
+4. ⭐⭐ **What capital standing is worth: the next conversation** (§ 11.3).
