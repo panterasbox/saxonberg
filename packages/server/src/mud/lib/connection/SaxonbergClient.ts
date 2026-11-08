@@ -650,11 +650,9 @@ export function SaxonbergClientMixin<
         const card = interactive.listCards().find((c) => c.cardId === 'map');
         return card ? [{ interactive, key: card.key }] : [];
       });
-      if (sessions.length === 0) return;
-      // Lazily: the navigation Api pulls in the address / weather / civics
-      // reads, which a client-host mixin must not load at module scope.
-      void import('../../api/navigation')
-        .then(({ NavigationApi }) => NavigationApi.whereaboutsFor(self))
+      if (sessions.length === 0 || !MixinApi.isPerceiver(self)) return;
+      void self
+        .whereabouts()
         .then((where) => {
           if (!where) return;
           for (const { interactive, key } of sessions) {

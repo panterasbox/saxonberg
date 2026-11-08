@@ -21,11 +21,6 @@ import type {
 } from '../../../lib/location/MapClaim';
 import type { CardinalDirection } from '../../../api/navigation';
 import { Traversal } from '../../../lib/location/Traversal';
-import type { Whereabouts, WhereaboutsExit } from '@saxonberg/types';
-import { AddressApi } from '../../../api/address';
-import { WeatherApi } from '../../../api/weather';
-import { CelestialApi } from '../../../api/celestial';
-import { GovernmentApi } from '../../../api/government';
 import type { Leg } from '../../../lib/location/Traversal';
 import {
   TravelProfile,
@@ -374,75 +369,6 @@ export class NavigationLogic extends ApiLogic {
   @CallSecurity(NavigationApiCallers)
   public detachStructure(extent: string, structure: Structure): void {
     registry()?.detachStructure(extent, structure);
-  }
-
-  /** See {@link NavigationApi.whereaboutsFor}. */
-  @CallSecurity(NavigationApiCallers)
-  public async whereaboutsFor(viewer: Stuff): Promise<Whereabouts | null> {
-    if (!MixinApi.isContainable(viewer)) return null;
-    const place = viewer.getContainer();
-    if (!place) return null;
-    /*
-     * ⚠ Each read is its own try: a read that fails leaves its field
-     * ABSENT, and the card says it does not know rather than showing a
-     * guess. One broken subsystem must not blank the whole navigator.
-     */
-    const attempt = async <T>(read: () => T | Promise<T>): Promise<T | undefined> => {
-      try {
-        return await read();
-      } catch {
-        return undefined;
-      }
-    };
-
-    const resolution = await attempt(() => AddressApi.resolveFor(place));
-    const address = resolution?.address ?? null;
-    const localities = address
-      ? AddressApi.coverageChainOf(address)
-          .map((l) => ({ name: l.getName(), address: l.getAddress() }))
-          .filter((l) => l.name.length > 0)
-          .reverse()
-      : [];
-
-    const structure = await attempt(() => this.structureAtNow(place.getTemplatePath() ?? ''));
-    // Lazily: a static import of Location from a logic singleton runs the
-    // mixin chain before it is ready (the SandboxLogic precedent).
-    const { default: Location } = await import('../../../lib/location/Location');
-    const coords = place instanceof Location ? place.getCoords() : null;
-
-    // ⭐ The perception-gated list: a concealed exit is not here.
-    const here = place.getZone();
-    const exits: WhereaboutsExit[] = MixinApi.isExitable(place)
-      ? place.obviousExitsFor(viewer).map((exit) => {
-          const dest = exit.getDestination();
-          const door = exit.getDoor();
-          return {
-            direction: exit.getDirection(),
-            ...(dest ? { destination: dest.getPresentation() } : {}),
-            crossesZone: !!dest && dest.getZone() !== here,
-            ...(door ? { door: { name: door.getPresentation(), open: door.isOpen() } } : {}),
-          };
-        })
-      : [];
-
-    const sample = MixinApi.isContainer(place)
-      ? await attempt(() => WeatherApi.sampleFor(place))
-      : undefined;
-    const day = await attempt(() => CelestialApi.isDayAt(place));
-    const government = address ? await attempt(() => GovernmentApi.governmentAt(address)) : undefined;
-
-    return {
-      place: { stuffId: place.stuffId, name: place.getPresentation() },
-      ...(structure ? { structure: { name: structure.getName() } } : {}),
-      localities,
-      ...(coords ? { coords } : {}),
-      exits,
-      conditions: {
-        ...(sample ? { weather: sample.type, season: sample.season } : {}),
-        ...(day !== undefined ? { daylight: day ? ('day' as const) : ('night' as const) } : {}),
-      },
-      jurisdiction: government?.name ?? null,
-    };
   }
 
   /** See {@link NavigationApi.attachedWithinNow}. */

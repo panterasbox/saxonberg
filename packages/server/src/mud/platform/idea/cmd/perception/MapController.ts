@@ -28,6 +28,7 @@ import { Mml } from '../../../../api/mml';
 import { NavigationApi } from '../../../../api/navigation';
 import { WorldClockApi } from '../../../../api/worldclock';
 import { CardApi } from '../../../../api/card';
+import { MixinApi } from '../../../../api/mixin';
 import type { MapClaim, MapDocument } from '../../../../lib/location/MapClaim';
 
 const TOPIC = 'sense.survey';
@@ -91,7 +92,8 @@ export default class MapController extends CommandController<MapModel> {
 
   /** Open (or refresh) the navigator card; its instance id, or null. */
   private async openNavigator(context: CommandContext): Promise<string | null> {
-    const where = await NavigationApi.whereaboutsFor(context.commandGiver);
+    const giver = context.commandGiver;
+    const where = MixinApi.isPerceiver(giver) ? await giver.whereabouts() : null;
     if (!where) return null;
     return CardApi.open(context, 'map', { payload: { kind: 'navigation', where } });
   }
