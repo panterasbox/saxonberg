@@ -8,6 +8,7 @@
 # consumer rather than a consumer being invented for it.
 class: /platform/idea/species/Species
 data:
+  smells: [{ word: hog, strength: 40 }]
   binomial: Sus domesticus
   commonNames: ["pig", "sow", "boar", "hog", "piglet", "swine"]
   maleNames: [boar]

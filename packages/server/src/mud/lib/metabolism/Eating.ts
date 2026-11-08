@@ -18,6 +18,8 @@
 import type { MixinConstructor } from "../mixin";
 import type { CommandContributions } from "../../api/command";
 import type { Stuff } from "../stuff/Stuff";
+import type { Liking } from "../perception/Flavor";
+import type { TasteModality } from "../../platform/idea/modalities/TasteModality";
 import { MixinApi } from "../../api/mixin";
 import { StuffApi } from "../../api/stuff";
 import { CraftingApi } from "../../api/crafting";
@@ -25,6 +27,8 @@ import { BulkableApi } from "../../api/bulk";
 import { Freshness } from "../material/Freshness";
 import { UTENSIL_KINDS, type UtensilKind } from "../bulk/Cutlery";
 import { METABOLIC_DEFAULTS, type Metabolic } from "./Metabolic";
+
+const TASTE_MODALITY_PATH = '/platform/idea/modalities/taste';
 
 /**
  * What `eat` did — or why not. ⭐ The act is the EATER's (review: a
@@ -45,6 +49,10 @@ export type EatOutcome =
       what: string;
       /** The food's presentation, captured before a whole item is gone. */
       foodName: string;
+      /** How it went down for this person; absent on a body with no palate. */
+      liking?: Liking;
+      /** Whether hunger is what got it down. */
+      hungerHelped?: boolean;
       /** The clean utensil used and dirtied, or `null` — the fingers. */
       utensil: UtensilKind | null;
     };
@@ -102,12 +110,31 @@ export function EatingMixin<TBase extends MixinConstructor>(Base: TBase) {
       );
     }
 
+    /** How the food reads before it is gone; eating it teaches the palate. */
+    private readBeforeEating(food: Stuff): { liking?: Liking; hungerHelped?: boolean } {
+      const self = this as unknown as Stuff;
+      // Degrades where no modality is loaded (a unit fixture), the file's idiom
+      // for the world clock too.
+      const modality = StuffApi.findByTemplatePath<TasteModality>(TASTE_MODALITY_PATH);
+      if (!modality || !MixinApi.isPalate(self)) return {};
+      const flavor = modality.flavorOf(food);
+      const payload = MixinApi.isBulkable(food) && food.hasInteriorBulk()
+        ? food.getBulkPayload('interior')
+        : null;
+      const material = MixinApi.isTangible(food) ? food.getMaterial() : null;
+      const foodKey = payload?.recipeId ?? material?.getTemplatePath() ?? undefined;
+      const savor = self.tongue(flavor, { foodKey });
+      self.recordExposure(savor.tastes);
+      return { liking: savor.liking, hungerHelped: self.hungerRaises() };
+    }
+
     public async eat(food: Stuff, utensils: readonly Stuff[] = []): Promise<EatOutcome> {
       const self = this as unknown as Stuff;
       // ⭐ Under the water nothing goes in by mouth but the water (D29).
       const ingest = (this as unknown as Metabolic).canIngest();
       if (!ingest.ok) return { ok: false, reason: 'airway', line: ingest.line };
       const portionL = METABOLIC_DEFAULTS.EAT_PORTION_LITRES;
+      const wentDown = this.readBeforeEating(food);
       // ⭐ A cooked meal is a bulk blend in a claimed dish: serve from the
       // slot rather than swallowing the crockery, and EMPTY the dish — a
       // bowl you have finished is a bowl to wash.
@@ -129,7 +156,7 @@ export function EatingMixin<TBase extends MixinConstructor>(Base: TBase) {
         const utensil = this.claimUtensil(utensils);
         BulkableApi.transfer(slot, null, { kind: 'measure', litres: accepted, mode: 'lenient' });
         this.leaveCrumbs(utensil !== null);
-        return { ok: true, fromDish: true, what, foodName: food.getPresentation(), utensil };
+        return { ok: true, fromDish: true, what, foodName: food.getPresentation(), utensil, ...wentDown };
       }
       const material = MixinApi.isTangible(food) ? food.getMaterial() : null;
       if (!material || material.getEdibility() !== true) {
@@ -147,7 +174,7 @@ export function EatingMixin<TBase extends MixinConstructor>(Base: TBase) {
       this.leaveCrumbs(utensil !== null);
       const foodName = food.getPresentation();
       await StuffApi.destruct(food);
-      return { ok: true, fromDish: false, what, foodName, utensil };
+      return { ok: true, fromDish: false, what, foodName, utensil, ...wentDown };
     }
   };
 }

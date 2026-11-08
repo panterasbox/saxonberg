@@ -6,8 +6,10 @@
 #
 # ⚠ A season, not a lactation you start: a ewe milks after lambing,
 # through the lengthening days (`aries.yaml`'s photoperiod window).
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ word: milk, strength: 100 }]
+  tastes: [{ type: sweet, amount: 45 }]
   name: ewe's milk
   keywords: [milk, "ewe's milk", ewe-milk]
   appearance: thick, white and sweet-smelling

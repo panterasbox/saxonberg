@@ -232,7 +232,7 @@ export interface BulkPayload {
 
   /*
    * ⚠ These three are DATA the craft writes; the reading that uses them
-   * lives on `PalatableMixin` (`lib/metabolism/Palatable.ts`), composed
+   * is read by `TasteModality.flavorOf`, composed
    * on `CraftVessel`. It sat on `BulkableMixin` for one build, which put
    * a taste-palate augmenter on floors, garden beds and air tanks.
    */

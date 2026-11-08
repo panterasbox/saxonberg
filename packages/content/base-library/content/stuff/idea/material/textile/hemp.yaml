@@ -5,8 +5,10 @@
 # given thickness holds more than a flax one, and a flax one more than
 # jute. It rots wet, as every plant fiber does, which is what the tar is
 # for.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ word: straw, strength: 20 }]
+  burning: [{ word: paper-smoke, strength: 300 }]
   name: hemp
   keywords: [hemp]
   appearance: coarse grey-gold hemp

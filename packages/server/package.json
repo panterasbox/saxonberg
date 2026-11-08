@@ -84,6 +84,7 @@
     "lint:graph-walks": "tsx scripts/check-graph-walks.ts",
     "lint:kept-animals": "tsx scripts/check-kept-animals.ts",
     "lint:light-sources": "tsx scripts/check-light-sources.ts",
+    "lint:aromas": "tsx scripts/check-aromas.ts",
     "lint:closed-vocabularies": "tsx scripts/check-closed-vocabularies.ts",
     "lint:lib-statics": "tsx scripts/check-lib-statics.ts --lint",
     "lint:reconcile-chains": "tsx scripts/check-reconcile-chains.ts --lint",

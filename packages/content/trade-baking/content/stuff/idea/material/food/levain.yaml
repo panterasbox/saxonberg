@@ -6,8 +6,10 @@
 # falls when it is not fed (`starveDays`), and a dead one is dead. A
 # baker's starter is a thing you keep alive, and forgetting it for a
 # fortnight is a real loss.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ word: dough, strength: 300 }]
+  tastes: [{ type: sour, amount: 6 }]
   name: levain
   keywords: [levain, starter, leaven, sourdough, barm]
   appearance: bubbled and creamy, smelling of apples and sourness

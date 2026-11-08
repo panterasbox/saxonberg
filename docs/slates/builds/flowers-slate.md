@@ -284,7 +284,7 @@ build; a bubble that inflates the money supply is not a lesson, it is a bug.
 
 ## From the smell design (2026-11-07)
 
-Not designed here beyond this. See [vocabularies-to-rows](../../requirements/vocabularies-to-rows-requirements.md).
+Not designed here beyond this. See [the smell and taste build](../../subsystems/senses.md#one-smell-source-air-nose) (!531).
 
 - A flower is an ordinary source in the one nose, and needs only a smell entry
   when its row arrives. Its scent fades as it wilts, on the same freshness clock.

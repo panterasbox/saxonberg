@@ -9,8 +9,10 @@
 # tree (the forestry trade's Quercus robur); the species row names its
 # LIVING material (plant tissue) — the wood is what is left when it is
 # felled, and `density` is what a bole is minted at.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ word: oak, strength: 2 }]
+  burning: [{ word: wood-smoke, strength: 300 }]
   name: oak
   keywords: [oak]
   density: 750

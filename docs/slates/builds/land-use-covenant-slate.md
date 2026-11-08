@@ -397,6 +397,14 @@ provisioning or subdivision.
    density. If servicing turns out to be cosmetic, density is an unpriced
    dial and the budget conflict returns.
 
+## ⭐⭐ Privacy as a covenant term (2026-11-07)
+
+The **inspection option** a parent sets over a sub-extent (*retained · with notice · by consent ·
+relinquished*, [access-slate](../tails/access-slate.md) § Inspection) is one more term on the covenant:
+recorded with the grant, readable by anyone considering living there, and narrowed by local law. Like
+every covenant term it's a fact about the land, which is what lets privacy be priced into where people
+choose to live.
+
 ## ⭐⭐⭐ Goods at the border — customs (designed 2026-10-19)
 
 Out of the harbor session. The owner: *"this customs enforcement sounds like a

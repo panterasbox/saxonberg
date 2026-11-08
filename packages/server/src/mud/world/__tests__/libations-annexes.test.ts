@@ -370,8 +370,10 @@ describe('libations annexes — the serving recipes and the zone', () => {
         // case): a thing raised from parts is a TANGIBLE output, never a
         // pour — farming's plough (assembly) lives in an annex pack and is
         // not a serving recipe.
-        (parse(readFileSync(f, 'utf8')) as { outputApplication?: string }).outputApplication !==
-          'tangible',
+        // …and nor is a dish: a wine poach is cooking done in a winery's pack.
+        !['tangible', 'edible'].includes(
+          String((parse(readFileSync(f, 'utf8')) as { outputApplication?: string }).outputApplication),
+        ),
     );
     expect(files.length).toBe(1 + 3 + 1);
     for (const f of files) {

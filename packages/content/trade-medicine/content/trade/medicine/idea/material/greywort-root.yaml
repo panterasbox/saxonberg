@@ -1,5 +1,6 @@
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ word: herbal, strength: 60 }]
   name: greywort root
   keywords: [greywort, root, herb]
   appearance: a pale, hooded marsh root

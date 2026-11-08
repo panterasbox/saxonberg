@@ -16,6 +16,7 @@
 # ranches; the husbandry is the trade, the animal is a thing in the world.
 class: /platform/idea/species/Species
 data:
+  smells: [{ word: sheep, strength: 20 }]
   binomial: Ovis aries
   commonNames: ["sheep", "ewe", "ram", "lamb", "hogget"]
   maleNames: [ram]

@@ -15,6 +15,7 @@
  * simply cooked.
  */
 
+import { installAromas } from '../../../../lib/perception/__tests__/aroma-fixtures';
 import '../../../../../test-bootstrap';
 import { MixinApi } from '../../../../api/mixin';
 import { chargeHot, fuelMaterial } from '../../../../lib/fire/__tests__/burner-fuel';
@@ -62,6 +63,9 @@ class TestCook extends ThermalMixin(
 
 const WATER = '/stuff/idea/material/_test/medium-water';
 const TALLOW = '/stuff/idea/material/_test/medium-tallow';
+const BRINE = '/stuff/idea/material/_test/medium-brine';
+const SAND = '/stuff/idea/material/_test/medium-sand';
+const BOTH = '/stuff/idea/material/_test/medium-both';
 const MEAT = '/stuff/idea/material/_test/medium-meat';
 const RAW_BEAN = '/stuff/idea/material/_test/medium-raw-bean';
 const SPIRIT = '/stuff/idea/material/_test/medium-spirit';
@@ -132,7 +136,7 @@ async function craftAs(
 /** A wet/fat/dry recipe over one meat item, at the demanded heat. */
 function recipeRow(
   id: string,
-  medium: '' | 'water' | 'fat',
+  medium: string,
   requiresHeatK: number,
 ): Record<string, unknown> {
   const slots: Record<string, unknown>[] = [
@@ -153,6 +157,14 @@ function recipeRow(
       minGrade: 'fair',
       kind: 'bulk',
       measureL: 0.1,
+    });
+  } else if (medium) {
+    slots.unshift({
+      slot: medium,
+      category: medium,
+      minGrade: 'fair',
+      kind: 'bulk',
+      measureL: 0.5,
     });
   }
   return {
@@ -224,6 +236,11 @@ beforeEach(async () => {
   water.setBoilingPoint(Quantity.of(373, 'K'));
   const tallow = registerMaterial(TALLOW, 'tallow', ['liquid', 'fat'], true);
   tallow.setSmokePoint(Quantity.of(478, 'K'));
+  registerMaterial(BRINE, 'brine', ['liquid', 'brine']).setBoilingPoint(Quantity.of(374, 'K'));
+  registerMaterial(SAND, 'sand', ['liquid', 'sand']);
+  const both = registerMaterial(BOTH, 'both', ['liquid', 'both']);
+  both.setBoilingPoint(Quantity.of(365, 'K'));
+  both.setSmokePoint(Quantity.of(400, 'K'));
   registerMaterial(MEAT, 'stew meat', ['meat'], true);
   // ⭐ The AC9 fixtures — a synthetic raw bean whose lectin is destroyed
   // by boiling, and a synthetic ferment whose alcohol is not. A kernel
@@ -243,6 +260,11 @@ beforeEach(async () => {
 
   store.recipes!.push(
     recipeRow('wet-simmer', 'water', 373),
+    recipeRow('brine-boil', 'brine', 374),
+    recipeRow('brine-too-hot', 'brine', 380),
+    recipeRow('sand-roast', 'sand', 700),
+    recipeRow('both-under', 'both', 360),
+    recipeRow('both-over', 'both', 380),
     recipeRow('wet-browned', 'water', 450), // impossible: water stops at 373
     recipeRow('fried-cutlet', 'fat', 440), // fine in tallow
     recipeRow('scorched-cutlet', 'fat', 500), // past tallow's smoke point
@@ -295,12 +317,13 @@ describe('⭐⭐⭐ what the FIRE puts into the work (the fire build, W5)', () =
    * recipe row — and `kiln-malt-peated`, which was `kiln-malt` plus an
    * `imparts:` block plus four turves as an ITEM SLOT, is retired.
    */
-  function stokeHearthWith(mjPerKg: number, imparts: { type: string; amount: number }[]): void {
+  async function stokeHearthWith(mjPerKg: number, imparts: { type: string; amount: number }[]): Promise<void> {
     const fire = [...(room as unknown as { getContents(): unknown[] })
       .getContents()]
       .find((c) => MixinApi.isBurner(c as Stuff)) as unknown as Stuff & Burner;
     const material = fuelMaterial(mjPerKg, `w5-${imparts.length}`);
-    if (imparts.length > 0) material.setCombustionImparts(imparts);
+    installAromas(['smoke']);
+    if (imparts.length > 0) await material.setCombustionImparts(imparts);
     const path = material.getTemplatePath()!;
     (fire as unknown as { fuelBed: Record<string, number> }).fuelBed = {
       [path]: 20,
@@ -317,7 +340,7 @@ describe('⭐⭐⭐ what the FIRE puts into the work (the fire build, W5)', () =
   }
 
   it('⭐⭐ a smoky fuel puts its smoke into the output', async () => {
-    stokeHearthWith(15, [{ type: 'smoke', amount: 30 }]);
+    await stokeHearthWith(15, [{ type: 'smoke', amount: 30 }]);
     const outcome = await craftAs(cook, {
       recipeRef: 'dry-roast',
       makerMode: 'self',
@@ -328,7 +351,7 @@ describe('⭐⭐⭐ what the FIRE puts into the work (the fire build, W5)', () =
   it('⭐⭐ …and the SAME recipe over a clean fuel does not', async () => {
     // The control, and the whole argument: one recipe, two outputs,
     // decided by an act somebody performed at the firebox.
-    stokeHearthWith(16, []);
+    await stokeHearthWith(16, []);
     const outcome = await craftAs(cook, {
       recipeRef: 'dry-roast',
       makerMode: 'self',
@@ -341,7 +364,8 @@ describe('⭐⭐⭐ what the FIRE puts into the work (the fire build, W5)', () =
       .getContents()]
       .find((c) => MixinApi.isBurner(c as Stuff)) as unknown as Stuff & Burner;
     const smoky = fuelMaterial(15, 'w5-mix-smoky');
-    smoky.setCombustionImparts([{ type: 'smoke', amount: 30 }]);
+    installAromas(['smoke']);
+    await smoky.setCombustionImparts([{ type: 'smoke', amount: 30 }]);
     const clean = fuelMaterial(16, 'w5-mix-clean');
     (fire as unknown as { fuelBed: Record<string, number> }).fuelBed = {
       [smoky.getTemplatePath()!]: 10,
@@ -356,15 +380,16 @@ describe('⭐⭐⭐ what the FIRE puts into the work (the fire build, W5)', () =
     expect(smokeIn(outcome)).toBeCloseTo(15);
   });
 
-  it('⚠ a misspelt aroma on a material fails at the SETTER, not silently', () => {
+  it('⚠ a misspelt aroma on a material fails at the SETTER, not silently', async () => {
     // A fuel that quietly imparted nothing would still kiln the barley
     // and the malt would just be unpeated — the silent-wrong-answer
     // shape the recipe `imparts` validator exists for.
     const m = fuelMaterial(15, 'w5-bad');
-    expect(() => m.setCombustionImparts([{ type: 'smoak', amount: 30 }]))
-      .toThrow(/aroma/);
-    expect(() => m.setCombustionImparts([{ type: 'smoke', amount: 0 }]))
-      .toThrow(/amount/);
+    installAromas(['smoke']);
+    await expect(m.setCombustionImparts([{ type: 'smoak', amount: 30 }]))
+      .rejects.toThrow(/smoak/);
+    await expect(m.setCombustionImparts([{ type: 'smoke', amount: 0 }]))
+      .rejects.toThrow(/amount/);
   });
 });
 
@@ -397,6 +422,39 @@ describe('the medium caps the effective heat (AC7)', () => {
       makerMode: 'self',
     });
     expect(outcome.ok).toBe(true);
+  });
+});
+
+describe('a medium is any tag, and its material sets the ceiling', () => {
+  it('⭐ brine boils a degree above water, and no hotter', async () => {
+    ContainmentApi.move(makeBottle(BRINE, 2), room);
+    expect((await craftAs(cook, { recipeRef: 'brine-boil', makerMode: 'self' })).ok).toBe(true);
+  });
+
+  it('…and a recipe wanting more than the brine can carry declines', async () => {
+    ContainmentApi.move(makeBottle(BRINE, 2), room);
+    expect(await craftAs(cook, { recipeRef: 'brine-too-hot', makerMode: 'self' })).toMatchObject({
+      ok: false,
+      reason: 'insufficient-heat',
+    });
+  });
+
+  it('sand tabulates no limit, so the fire decides', async () => {
+    ContainmentApi.move(makeBottle(SAND, 2), room);
+    expect((await craftAs(cook, { recipeRef: 'sand-roast', makerMode: 'self' })).ok).toBe(true);
+  });
+
+  it('with both limits tabulated, the lower one is the ceiling', async () => {
+    ContainmentApi.move(makeBottle(BOTH, 2), room);
+    expect((await craftAs(cook, { recipeRef: 'both-under', makerMode: 'self' })).ok).toBe(true);
+  });
+
+  it('…so a recipe between the two limits declines', async () => {
+    ContainmentApi.move(makeBottle(BOTH, 2), room);
+    expect(await craftAs(cook, { recipeRef: 'both-over', makerMode: 'self' })).toMatchObject({
+      ok: false,
+      reason: 'insufficient-heat',
+    });
   });
 });
 
@@ -518,14 +576,15 @@ describe('Recipe.fromData validates the medium word', () => {
     outputTemplate: '/obj/x',
   };
 
-  it('throws at READ on an unknown medium — never a silently uncapped fire', () => {
-    expect(() => Recipe.fromData({ ...base, medium: 'steam' })).toThrow(
+  it('throws at READ on a medium that could not be a tag', () => {
+    expect(() => Recipe.fromData({ ...base, medium: 'Steam Cloud' })).toThrow(
       /medium/,
     );
     expect(() => Recipe.fromData({ ...base, medium: 42 })).toThrow(/medium/);
   });
 
-  it('accepts the two real media, and absence', () => {
+  it('accepts any tag, and absence', () => {
+    expect(Recipe.fromData({ ...base, medium: 'brine' }).getMedium()).toBe('brine');
     expect(Recipe.fromData({ ...base, medium: 'water' }).getMedium()).toBe(
       'water',
     );

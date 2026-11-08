@@ -6,8 +6,9 @@
 # soaked sheet's felt lets go — the `soaked` band is where paper pulps
 #. Sized paper takes ink; unsized paper drinks it and the line
 # bleeds. Neither is this row's: sizing is a COAT on the sheet.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  burning: [{ word: paper-smoke, strength: 300 }]
   name: paper
   keywords: [paper]
   appearance: matte felted paper

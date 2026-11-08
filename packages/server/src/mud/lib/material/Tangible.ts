@@ -154,6 +154,8 @@ export interface Tangible {
    * runtime API.
    */
   setMass(value: Quantity<'kg'>): void;
+  /** A small bite really comes out of it; bitten to nothing, it is gone. */
+  takeBite(kg: number): Promise<void>;
 
   /**
    * ⭐ The temperature (K) at which THIS piece catches, or 0 when its
@@ -497,6 +499,15 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
      * via `Quantity.of(n, 'kg')` at the call site; tag / alt-unit
      * authoring is the marshaller's job, not a runtime API concern.
      */
+    public async takeBite(kg: number): Promise<void> {
+      const left = this.getMass().rawValue() - kg;
+      if (left <= 0) {
+        await StuffApi.destruct(this as unknown as Stuff);
+        return;
+      }
+      this.setMass(Quantity.of(left, 'kg'));
+    }
+
     public setMass(value: Quantity<'kg'>): void {
       const old = this._mass;
       this.mass = value;

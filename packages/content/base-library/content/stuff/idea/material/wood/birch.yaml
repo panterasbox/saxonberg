@@ -15,8 +15,10 @@
 # ⚠ The WOOD is not what a birch is for. Its sap is
 # (`/stuff/idea/material/food/birch-sap`), which is a fact about the
 # living tree and lives on the species row.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ word: wood, strength: 1 }]
+  burning: [{ word: wood-smoke, strength: 300 }]
   name: birch
   keywords: [birch]
   density: 640

@@ -382,7 +382,7 @@ args:
 
   it('an optional slot stays unbound without its preposition', () => {
     const def = CommandDefinition.fromYaml(
-      THROW_TO.replace(/required: true\n    prepositions/, 'required: false\n    prepositions'),
+      THROW_TO.replace(/required: true\n {4}prepositions/, 'required: false\n    prepositions'),
       '<t>',
     );
     const r = assemble(def, 'tossish ball');

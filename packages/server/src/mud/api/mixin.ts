@@ -99,7 +99,6 @@ import type { Adornable } from '../lib/boundary/Adornable';
 import type { Adornment } from '../lib/boundary/Adornment';
 import type { AmbientLit } from '../lib/perception/AmbientLit';
 import type { LightSource } from '../lib/perception/LightSource';
-import type { SmellSource } from '../lib/perception/SmellSource';
 import type { SoundSource } from '../lib/perception/SoundSource';
 import type { Audible } from '../lib/perception/Audible';
 import type { Augment } from '../lib/augmentation/Augment';
@@ -174,6 +173,9 @@ import type { SpaceHeating } from '../lib/thermal/SpaceHeating';
 import type { PublicLighting } from '../lib/perception/PublicLighting';
 import type { Respiration } from '../lib/respiration/Respiration';
 import type { Radioactive } from '../lib/material/Radioactive';
+import type { Odorous } from '../lib/material/Odorous';
+import type { Olfactory } from '../lib/perception/Olfactory';
+import type { Palate } from '../lib/metabolism/Palate';
 import type { Muscle } from '../lib/butchery/Muscle';
 import type { Cut } from '../lib/butchery/Cut';
 import type { Workspace } from '../lib/shell/Workspace';
@@ -1486,10 +1488,6 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.LightSource);
   }
 
-  public static isSmellSource(obj: Stuff): obj is Stuff & SmellSource {
-    return this.hasMixin(obj, Mixins.SmellSource);
-  }
-
   public static isAudible(obj: Stuff): obj is Stuff & Audible {
     return this.hasMixin(obj, Mixins.Audible);
   }
@@ -1925,6 +1923,18 @@ export class MixinApi {
 
   public static isRespiration(obj: Stuff): obj is Stuff & Respiration {
     return this.hasMixin(obj, Mixins.Respiration);
+  }
+
+  public static isPalate(obj: Stuff): obj is Stuff & Palate {
+    return this.hasMixin(obj, Mixins.Palate);
+  }
+
+  public static isOlfactory(obj: Stuff): obj is Stuff & Olfactory {
+    return this.hasMixin(obj, Mixins.Olfactory);
+  }
+
+  public static isOdorous(obj: Stuff): obj is Stuff & Odorous {
+    return this.hasMixin(obj, Mixins.Odorous);
   }
 
   public static isRadioactive(obj: Stuff): obj is Stuff & Radioactive {

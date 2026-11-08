@@ -1,5 +1,6 @@
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ word: herbal, strength: 60 }]
   name: willow bark
   keywords: [willow, bark, herb]
   appearance: strips of grey willow bark

@@ -5,6 +5,7 @@
   "description": "Generic objects \u2014 the object clusters and loose rows every locality names, plus the small classes those rows need (the pack ships a src/: SconceLamp, the wall-mounted light the residences build hangs).",
   "type": "module",
   "dependencies": {
+    "@saxonberg/content-base-library": "workspace:*",
     "@saxonberg/content-platform": "workspace:*",
     "@saxonberg/content-species-and-names": "workspace:*",
     "@saxonberg/server": "workspace:*",

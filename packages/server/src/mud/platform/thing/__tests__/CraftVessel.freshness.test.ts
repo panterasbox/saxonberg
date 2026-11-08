@@ -75,16 +75,16 @@ describe('a vessel speaks its contents’ spoilage', () => {
     WorldClockApi._resetForTesting();
   });
 
-  it('⭐ milk a day in the warm smells turned; the same milk kept cool does not', () => {
+  it('⭐ milk a day in the warm looks turned; the same milk kept cool does not', () => {
     const warm = jug(300);
     const cool = jug(284);
     new Freshness(BulkableApi.slotFor(warm, undefined)!).load();
     new Freshness(BulkableApi.slotFor(cool, undefined)!).load();
-    expect(augmented(warm, ['smell'])).not.toMatch(/sour|off|turn|taint|spoil|rank/i);
+    expect(augmented(warm, ['vision'])).not.toMatch(/off|bad|rotten/i);
     setNow(24 * HOUR);
-    expect(augmented(warm, ['smell'])).toMatch(/sour|off|turn|taint|spoil|rank/i);
-    expect(augmented(cool, ['smell'])).not.toMatch(/sour|off|turn|taint|spoil|rank/i);
+    expect(augmented(warm, ['vision'])).toMatch(/off|bad|rotten/i);
+    expect(augmented(cool, ['vision'])).not.toMatch(/off|bad|rotten/i);
     // Not to the ear.
-    expect(augmented(warm, ['hearing'])).not.toMatch(/sour|off|turn|taint|spoil|rank/i);
+    expect(augmented(warm, ['hearing'])).not.toMatch(/off|bad|rotten/i);
   });
 });

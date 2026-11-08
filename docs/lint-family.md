@@ -165,10 +165,16 @@ at **339, three below where the build found it.**
   `XApi.verb(host, …)`. Two enumerated lists (`EXEMPT_APIS`,
   `NON_SUBJECT_TYPES`) live in the script so a widening is a visible
   diff.
+- **`lint:aromas`** — a word a row names must resolve to an `aroma` document a pack can reach. Aroma
+  words are open, so a misspelling has no list to fail against, and the failure it would
+  otherwise have is a smell silently dropped. It also refuses a smell on a material whose
+  class cannot hold one, a taste with no amount, and a recipe medium nothing in reach
+  carries. No exemption list.
 - ⭐⭐ **`lint:closed-vocabularies`** — **the census of kernel words
   content is not allowed to add to.** A closed list in kernel source that
   stands between a pack author and their row breaks *a pack must never
-  need a kernel list edit*, and until this gate nothing counted them.
+  need a kernel list edit*, and until this gate nothing counted them. Its `MIGRATING`
+  table names the slate each remaining list goes to; a stale entry fails.
   ⭐ **The question is not "is this list closed?" — plenty are correctly
   closed. It is: is its closure a fact about the WORLD, or a convenience
   for the implementation?** A fact about the world stays and is declared

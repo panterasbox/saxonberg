@@ -1,6 +1,7 @@
 # lampblack — soot: the black a flue sheds when it is swept, and the blackest, most covering pigment there is.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ word: smoke, strength: 10 }]
   name: lampblack
   keywords: [lampblack, soot, black, pigment]
   appearance: a soft, greasy black powder, light as smoke

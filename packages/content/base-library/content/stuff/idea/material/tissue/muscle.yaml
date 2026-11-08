@@ -3,8 +3,9 @@
 # and `thermalConductivity` (W/(m·K)) are Material's real Quantity fields,
 # authored bare + marshalled; the thermal value feeds algor-mortis
 # cooling when the Thermal capability lands.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ word: raw-meat, strength: 60 }]
   name: muscle
   keywords: [muscle]
   density: 1060
@@ -17,7 +18,7 @@ data:
   # ⭐ The basic tastes (closed five-word set). Nothing authors what a
   # DISH tastes like — `taste` derives that from what went in, projected
   # through the taster's own palate. See docs/subsystems/crafting.md.
-  tastes: [umami]
+  tastes: [{ type: umami, amount: 2 }]
   # ⭐ Spoilage (docs/subsystems/spoilage.md): the microbial growth rate is
   # `μ_max · f_T(T) · f_aw(a_w)`. `spoilActivationEnergy` (J/mol) is how
   # steeply this food answers to warmth; `waterActivity` is how much of its

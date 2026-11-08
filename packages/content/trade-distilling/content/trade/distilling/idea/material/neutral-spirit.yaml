@@ -4,8 +4,11 @@
 # combustion substrate reads autoignition + heat of combustion off the
 # material — an ignited spill burns, which is what a still-house
 # respects.
-class: /platform/idea/material/ConsumableMaterial
+class: /platform/idea/material/OdorousConsumableMaterial
 data:
+  smells: [{ word: spirit, strength: 800 }]
+  burning: [{ word: smoke, strength: 3 }]
+  tastes: [{ type: bitter, amount: 0.01 }]
   name: neutral spirit
   keywords: [spirit, "neutral spirit", neutral]
   appearance: "a water-clear spirit with a hot, empty nose"

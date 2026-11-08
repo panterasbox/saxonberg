@@ -2,8 +2,11 @@
 # input slot matches (vodka); the brand is the ROW's
 # (`_brandKey`), never the material's. Distilling's, by the generic drain
 # rule: the trade whose PROCESS makes it ships it.
-class: /platform/idea/material/ConsumableMaterial
+class: /platform/idea/material/OdorousConsumableMaterial
 data:
+  smells: [{ word: spirit, strength: 300 }]
+  burning: [{ word: smoke, strength: 3 }]
+  tastes: [{ type: bitter, amount: 0.01 }]
   name: vodka
   keywords: [vodka]
   appearance: a clear, neutral spirit

@@ -8,8 +8,10 @@
 # It is a real good with its own market: feed for pigs and hens (the
 # ranching trade already eats), and the poor man's bread. A mill that
 # threw it away would be throwing away its second income.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ word: grain, strength: 15 }]
+  tastes: [{ type: bitter, amount: 0.01 }]
   name: bran
   keywords: [bran, offal, sharps]
   appearance: coarse red-brown flakes, dusty

@@ -1315,20 +1315,10 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       const self = this as unknown as Stuff;
       const species = MixinApi.isOrganism(self) ? self.getSpecies() : null;
       const alleles = species?.getBloodGroups()?.alleles ?? { O: 1 };
-      const seed = this.seedFromString(self.getIdentityPath() ?? '');
+      const seed = Seeded.ofString(self.getIdentityPath() ?? '');
       const a = this.drawAllele(alleles, Seeded.unit(seed, 0));
       const b = this.drawAllele(alleles, Seeded.unit(seed, 1));
       return a + b;
-    }
-
-    /** FNV-1a fold of an identity path to a 32-bit seed. */
-    private seedFromString(s: string): number {
-      let h = 0x811c9dc5;
-      for (let i = 0; i < s.length; i++) {
-        h ^= s.charCodeAt(i);
-        h = Math.imul(h, 0x01000193);
-      }
-      return h >>> 0;
     }
 
     /** One allele drawn from a cumulative frequency table by a unit draw. */

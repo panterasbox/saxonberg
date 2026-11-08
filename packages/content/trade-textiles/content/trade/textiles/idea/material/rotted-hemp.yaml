@@ -1,7 +1,8 @@
 # Rotted hemp (cordage D14) — hemp left in the pit days past ready: the rot
 # is into the fiber itself. Grey, weak, short, and no way back.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ word: retting, strength: 3000 }]
   name: rotted hemp
   keywords: [hemp, rotted-hemp, rot, slime, ruin, rotted]
   appearance: grey slimy rotted hemp

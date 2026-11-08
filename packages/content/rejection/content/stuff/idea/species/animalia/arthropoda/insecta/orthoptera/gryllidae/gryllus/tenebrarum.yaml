@@ -10,6 +10,7 @@
 # crickets you cannot help hearing. Neither is a spare.
 class: /platform/idea/species/Species
 data:
+  smells: [{ word: animal, strength: 3 }]
   binomial: Gryllus tenebrarum
   commonNames: ["delve cricket", "cricket"]
   _bodyPlanPath: /stuff/idea/species/BodyPlan/sessile

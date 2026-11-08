@@ -12,8 +12,9 @@
 #
 # The stage rows `extends:` this one and keep the curve and the arrows;
 # an arrow that names the material already in the pan does nothing.
-class: /platform/idea/material/ConsumableMaterial
+class: /platform/idea/material/OdorousConsumableMaterial
 data:
+  smells: [{ word: sugar, strength: 30 }]
   name: raw liquor
   keywords: [raw-liquor, liquor, sugar, syrup]
   appearance: thin and brown, a scum rising on it
@@ -25,7 +26,7 @@ data:
   hardness: 0
   toughness: 0
   edibility: true
-  tastes: [sweet]
+  tastes: [{ type: sweet, amount: 250 }]
   spoilActivationEnergy: 60000
   waterActivity: 0.9
   nutrients: ["sugar", "water"]

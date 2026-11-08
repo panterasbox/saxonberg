@@ -688,6 +688,7 @@ async function pagesOfImpl(path: string): Promise<DocumentPages | null> {
     case 'map':
     case 'berth-roll':
     case 'berth-book':
+    case 'aroma':
       return null;
     default: {
       const unreachable: never = kind;
@@ -792,6 +793,12 @@ export class DocumentLogic extends ApiLogic {
   @CallSecurity(DocumentApiCallers)
   public async list(prefix: string): Promise<StoredDocument[]> {
     return listImpl(prefix);
+  }
+
+  /** See {@link DocumentApi.readByKey}. */
+  @CallSecurity(DocumentApiCallers)
+  public async readByKey(kind: string, key: string): Promise<StoredDocument | null> {
+    return StoredDocument.findByKey(kind, key);
   }
 
   /** See {@link DocumentApi.listOfKind}. */

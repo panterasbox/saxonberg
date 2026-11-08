@@ -64,6 +64,7 @@
  * See [docs/subsystems/spoilage.md].
  */
 
+import type { SmellNote } from '../perception/Smell';
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type Material from './Material';
@@ -147,15 +148,36 @@ function clamp01(x: number): number {
   return x < 0 ? 0 : x > 1 ? 1 : x;
 }
 
-/** The senses spoilage answers to: you see it and you smell it. */
-const FRESHNESS_CHANNELS: readonly string[] = ['vision', 'smell'];
+/**
+ * The sense spoilage's sentence answers to. A nose reads rot through the one
+ * smell model, {@link Fresh.rotNote}, so it reaches the next room like any
+ * other smell.
+ */
+const FRESHNESS_CHANNELS: readonly string[] = ['vision'];
 
 /** The player-facing phrase for a non-fresh band (never `fresh`). */
 const FRESHNESS_PHRASE: Record<Exclude<FreshnessBand, 'fresh'>, string> = {
-  tainted: 'It smells faintly off.',
-  spoiled: 'It has gone bad — the smell is unmistakable.',
+  tainted: 'It looks a little off.',
+  spoiled: 'It has gone bad.',
   rotten: 'It is rotten, crawling and foul.',
 };
+
+/**
+ * Rot's strength by band, in OU of one kilogram. ⚠ Each band is well past the
+ * last, so a rotten thing reads through a wall and a tainted one barely does.
+ */
+const ROT_OU: Record<Exclude<FreshnessBand, 'fresh'>, number> = {
+  tainted: 30,
+  spoiled: 300,
+  rotten: 3000,
+};
+
+/** The word rot reads as; a row in the commons. */
+const ROT_WORD = 'rot';
+
+function rotNoteFor(band: FreshnessBand): SmellNote | null {
+  return band === 'fresh' ? null : { word: ROT_WORD, ou: ROT_OU[band] };
+}
 
 /**
  * Append a spoilage band line to a host's long description — band only,
@@ -170,10 +192,10 @@ function freshnessAugmenter(
   _viewer: Stuff,
   opts?: { filter?: readonly string[] },
 ): string {
-  // ⭐ You SEE that something has turned and you SMELL it; you do not hear
-  // it. A per-call filter naming neither channel is a different sense
-  // asking, and gets nothing. (No filter at all is the gestalt read — the
-  // band belongs there.)
+  // You SEE that something has turned here; a nose reads it as a source.
+  // A per-call filter not naming vision is a different sense asking, and
+  // gets nothing. (No filter at all is the gestalt read: the band belongs
+  // there.)
   if (opts?.filter && !opts.filter.some((c) => FRESHNESS_CHANNELS.includes(c))) {
     return text;
   }
@@ -732,6 +754,12 @@ export class Freshness {
     return band === 'fresh' ? null : FRESHNESS_PHRASE[band];
   }
 
+  /** What this slot's rot gives a nose, per kilogram; `null` when fresh. */
+  rotNote(): SmellNote | null {
+    if (this.slot.isEmpty()) return null;
+    return rotNoteFor(Freshness.bandFor(this.load()));
+  }
+
   /**
    * Stamp a blend's microbial load outright — the cook's kill step and
    * the pour's blend. Writes the shadow payload if the slot had none, so
@@ -928,6 +956,8 @@ export interface Fresh {
   getMicrobialLoad(): number;
   /** Current banded freshness (presentation). */
   getFreshnessBand(): FreshnessBand;
+  /** What its rot gives a nose, per kilogram; `null` when fresh. */
+  rotNote(): SmellNote | null;
   /** Whether this host's matter can spoil at all (a tabulated `Ea`). */
   isPerishable(): boolean;
   /** Reconcile the elapsed growth / die-off (sync). */
@@ -1029,6 +1059,10 @@ export function FreshnessMixin<TBase extends MixinConstructor<Stuff>>(
         ? self.getPathogenLoads()
         : {};
       return Contamination.withLoads(payload, pathogens);
+    }
+
+    public rotNote(): SmellNote | null {
+      return rotNoteFor(this.getFreshnessBand());
     }
 
     public getFreshnessBand(): FreshnessBand {

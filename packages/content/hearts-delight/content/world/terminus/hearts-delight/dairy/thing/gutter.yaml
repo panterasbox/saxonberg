@@ -1,0 +1,13 @@
+# The byre's gutter, which the floor slopes to. It is a thing because it is where
+# the smell comes from, and a nose should be able to find it.
+class: /platform/thing/Thing
+data:
+  shortDescription: gutter
+  keywords: [gutter, muck, channel]
+  register: indefinite
+  longDescription: >-
+    A brick channel along the foot of the stalls, swilled twice a day and never
+    quite clean.
+  fixedInPlace: true
+  _materialPath: /world/terminus/hearts-delight/idea/material/byre-muck
+  mass: 200

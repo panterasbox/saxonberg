@@ -1,8 +1,9 @@
 # Wool — animal-fibre textile. Low conductivity (it traps air): the
 # insulating cloth a warm garment is woven from. Its low
 # thermalConductivity is why a wool layer authors meaningful `clo`.
-class: /platform/idea/material/Material
+class: /platform/idea/material/OdorousMaterial
 data:
+  smells: [{ word: wet-wool, strength: 20 }]
   name: wool
   keywords: [wool]
   # ⚠ A material must not assert a CONSTRUCTION — `woven` is a form a

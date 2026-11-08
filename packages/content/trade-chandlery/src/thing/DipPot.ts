@@ -92,7 +92,6 @@ export default class DipPot extends DipBathMixin(CraftVessel) {
         const candle = outcome.output;
         // ⭐ The smell and the fuel are the fat's, stamped here.
         if (candle instanceof Candle) {
-          candle.adoptMaterialSmell();
           candle.adoptMaterialFuel();
         }
         if (MixinApi.isContainable(candle) && MixinApi.isContainer(giver)) {

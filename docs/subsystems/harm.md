@@ -168,8 +168,9 @@ in the `HARM_DEFAULTS` const-object (the driver `*_DEFAULTS` convention).
   the game says exactly what is wrong and exactly why the bandage is no
   use. Minted by the depth ladder on a `blunt` channel past
   `response.blunt.ruptureThreshold`.
-- **frostbite** *(reserved — the cold channel)* and **caustic**
-  *(reserved — the corrosion channel)*: see materials-response.md.
+- **caustic** is live: a swallowed caustic lands one at `body.head`, with `bare: true`
+  on its spec so no covering sheds it (the agent is already inside).
+- **frostbite** *(reserved — the cold channel)*: see materials-response.md.
 
 ## ⭐⭐ The sever — losing a part
 

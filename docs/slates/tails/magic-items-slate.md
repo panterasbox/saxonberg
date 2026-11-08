@@ -1,5 +1,7 @@
 # Magic items slate (working doc) — NetHack's consumables + the BUC axis
 
+> ⭐ **2026-11-07 → [spellbook-slate](../builds/spellbook-slate.md)** is now the catalog: the walk over every shipped system, how effects are realized (physics first, getter shadows where magic breaks physics), combat and the item-firing taxonomy. This slate's list stays as a source.
+
 > **Status: PARTIAL** — the substrate landed whole (2026-08-05): effect
 > context, the three item classes (`Focus` cut), the charge economy, BUC
 > (incl. multi-target `scope`), identification, the fade/defective-copy
@@ -17,7 +19,7 @@
 > "later") · holy water (BUC-raising by `dip`, the consecration ritual; the
 > anti-hollow reaction waits on presence-hollowing-slate) · create-monster
 > / the procgen-NPC generator (shared with spawn-distribution-slate) ·
-> whether shells are craftable or only found · combat items (combat has
+> whether shells are craftable or only found (⭐ answered 2026-11-07: **craftable, as blanks**; the maker knows only by competence → [spellbook-slate](../builds/spellbook-slate.md) § 7b) · combat items (combat has
 > shipped; enchant/protection/reflection/conflict remain unauthored) · the
 > blessing economy beyond v1
 > **Size:** a wave — the catalog ships as content packs (§ Where the

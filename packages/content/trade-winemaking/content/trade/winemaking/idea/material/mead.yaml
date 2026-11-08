@@ -2,8 +2,9 @@
 # same mechanism as wine with a different feedstock. ⭐ That is the point:
 # one microbial clock, many products, and nothing about mead is special
 # in the code.
-class: /platform/idea/material/ConsumableMaterial
+class: /platform/idea/material/OdorousConsumableMaterial
 data:
+  smells: [{ word: honey, strength: 200 }, { word: alcohol, strength: 100 }]
   name: mead
   keywords: [mead, metheglin, honeywine]
   appearance: "clear gold mead"
@@ -11,7 +12,7 @@ data:
   thermalConductivity: 0.55
   specificHeat: 4000
   edibility: true
-  tastes: [sweet]
+  tastes: [{ type: sweet, amount: 40 }, { type: sour, amount: 3 }]
   nutrients: ["water", "alcohol", "sugar"]
   nutrientAmounts:
     alcohol: 11000

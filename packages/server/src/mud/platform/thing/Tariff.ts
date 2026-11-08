@@ -613,8 +613,9 @@ export default class Tariff extends TariffBase {
    */
   private transfusionPlan(req: OrderRequest): OrderAnswer {
     const { by, key } = req;
-    if (!MixinApi.isDonationBank(this)) return { ok: false, reason: 'no-bank', facts: {} };
-    const bank = this;
+    // Narrowed once and named: the plan's completion runs later, out of `this`'s narrowing.
+    const bank = MixinApi.isDonationBank(this) ? this : null;
+    if (!bank) return { ok: false, reason: 'no-bank', facts: {} };
     if (!MixinApi.isVitals(by)) return { ok: false, reason: 'not-a-body', facts: { phrase: 'transfusion' } };
     if (!bank.hasCompatibleUnitFor(by)) return { ok: false, reason: 'no-compatible-unit', facts: {} };
     const issuer = this.windowIssuerAt(req.location);

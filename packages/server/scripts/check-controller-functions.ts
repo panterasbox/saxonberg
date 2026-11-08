@@ -26,7 +26,7 @@ import { pathToFileURL } from "url";
 import ts from "typescript";
 import { controllerFiles, parseTs, ratchet } from "./pack-roots";
 
-export const CONTROLLER_FUNCTIONS_CEILING = 232; // W5: the kernel acts moved onto their objects
+export const CONTROLLER_FUNCTIONS_CEILING = 230; // the merge with vocabularies-to-rows: smell, taste and eat word on the controller
 
 /** The names of the module-level functions in one controller module. */
 export function moduleFunctions(sf: ts.SourceFile): Array<{ name: string; line: number }> {

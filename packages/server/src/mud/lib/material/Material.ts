@@ -60,6 +60,7 @@ import { QuantityMarshaller } from '../../platform/idea/persistence/QuantityMars
 import type { ToxinTag } from '../metabolism/Metabolic';
 import { DissolvedAromatics } from '../metabolism/DissolvedAromatics';
 import type { AromaTag } from '../metabolism/DissolvedAromatics';
+import { Aroma, type HedonicCurve } from '../perception/Aroma';
 import type { VetoResult } from '../errors';
 import { Grade, type GradeBand } from '../craft/Grade';
 import type { EvictionContext, Stuff } from '../stuff/Stuff';
@@ -113,6 +114,39 @@ export const BASIC_TASTES: readonly string[] = [
   'bitter',
   'umami',
 ];
+
+/** A taste a substance carries: `amount` in g/kg of the substance. */
+export interface TasteTag {
+  type: string;
+  amount: number;
+}
+
+/**
+ * Detection thresholds, g/kg: order-of-magnitude literature figures. They are
+ * why a little bitter cuts through a lot of sugar. Physiology, closed with the
+ * list they extend.
+ */
+export const TASTE_THRESHOLDS: Readonly<Record<string, number>> = {
+  sweet: 5,
+  salty: 1,
+  sour: 0.5,
+  bitter: 0.005,
+  umami: 0.3,
+};
+
+/**
+ * How a human tongue takes each taste, in log10 of its multiple of threshold.
+ * Past its peak a pleasant taste turns: too salty reads badly to nearly
+ * everyone. Bitter has no peak; it only gets worse. A species may override
+ * any of them (`Species.palate`), which is the grain and not the law.
+ */
+export const TASTE_HEDONICS: Readonly<Record<string, HedonicCurve>> = {
+  sweet: { peak: 1.5, width: 1.5, valence: 1 },
+  salty: { peak: 0.8, width: 1, valence: 1 },
+  sour: { peak: 0.6, width: 1, valence: 1 },
+  umami: { peak: 1.2, width: 1.5, valence: 1 },
+  bitter: { peak: 0, width: 3, valence: -1 },
+};
 
 /**
  * Atomic / molecular science data — convenience aggregate of
@@ -988,7 +1022,7 @@ export default class Material extends SingletonMixin(
    * Empty is the honest default: most materials have never been tasted
    * by anybody who wrote them down.
    */
-  protected tastes: string[] = [];
+  protected tastes: TasteTag[] = [];
 
   /**
    * Free-form classification tags. See class header for layer-1
@@ -1346,8 +1380,8 @@ export default class Material extends SingletonMixin(
   public getCombustionImparts(): readonly AromaTag[] {
     return this.combustionImparts;
   }
-  public setCombustionImparts(value: AromaTag[]): void {
-    this.combustionImparts = validateCombustionImparts(value);
+  public async setCombustionImparts(value: AromaTag[]): Promise<void> {
+    this.combustionImparts = await validateCombustionImparts(value);
   }
   /** What burning this gives off into the room (litres per kg burnt). */
   public getCombustionProducts(): readonly { material: string; litresPerKg: number }[] {
@@ -2021,15 +2055,21 @@ export default class Material extends SingletonMixin(
   }
 
   /** The basic tastes this substance carries (may be empty). */
-  public getTastes(): readonly string[] { return this.tastes; }
+  public getTastes(): readonly TasteTag[] { return this.tastes; }
   /** Set the basic tastes. Unknown words are dropped — the set is closed. */
-  public setTastes(value: string[]): void {
+  /** ⚠ Throws on an unknown taste or a non-positive amount: never a quiet drop. */
+  public setTastes(value: readonly TasteTag[]): void {
     if (!Array.isArray(value)) {
-      throw new TypeError('Material.setTastes: expected a string[]');
+      throw new TypeError('Material.setTastes: expected a list of { type, amount }');
     }
-    this.tastes = value.filter((t): t is string =>
-      (BASIC_TASTES as readonly string[]).includes(t),
-    );
+    this.tastes = value.map((tag: TasteTag) => {
+      if (!(BASIC_TASTES as readonly string[]).includes(tag?.type) || !(tag.amount > 0)) {
+        throw new TypeError(
+          `Material.setTastes: '${String(tag?.type)}' needs one of ${BASIC_TASTES.join(', ')} and a positive amount (g/kg)`,
+        );
+      }
+      return { type: tag.type, amount: tag.amount };
+    });
   }
 
   public getTags(): readonly string[] { return this.tags; }
@@ -2079,7 +2119,13 @@ export default class Material extends SingletonMixin(
    */
   public corrodeOnContact(
     victim: Stuff,
-    opts?: { readonly energy?: number; readonly site?: string; readonly shieldFacing?: boolean },
+    opts?: {
+      readonly energy?: number;
+      readonly site?: string;
+      readonly shieldFacing?: boolean;
+      /** It is already inside: no covering stands in the way. */
+      readonly bare?: boolean;
+    },
   ): boolean {
     if (this.corrosiveTo.length === 0) return false;
     if (!MixinApi.isOrganism(victim)) return false;
@@ -2089,6 +2135,7 @@ export default class Material extends SingletonMixin(
       energy: opts?.energy ?? 1,
       corrosiveTo: this.getCorrosiveTo(),
       shieldFacing: opts?.shieldFacing,
+      bare: opts?.bare,
     });
     return true;
   }
@@ -2318,14 +2365,15 @@ function materialLogic(): MaterialLogic {
  * still kiln the barley and the malt would just be unpeated, which is
  * the silent-wrong-answer shape the `imparts` validator exists for.
  */
-function validateCombustionImparts(value: AromaTag[]): AromaTag[] {
+async function validateCombustionImparts(value: AromaTag[]): Promise<AromaTag[]> {
   if (!Array.isArray(value)) {
     throw new TypeError(
       `Material.combustionImparts must be a list of { type, amount }`,
     );
   }
-  return value.map((tag, i) => {
-    if (!DissolvedAromatics.isAroma(tag?.type)) {
+  const out: AromaTag[] = [];
+  for (const [i, tag] of value.entries()) {
+    if (!DissolvedAromatics.isAromaWord(tag?.type)) {
       throw new TypeError(
         `Material.combustionImparts[${i}]: '${tag?.type}' is not an aroma`,
       );
@@ -2336,6 +2384,8 @@ function validateCombustionImparts(value: AromaTag[]): AromaTag[] {
           `positive amount (mg/L)`,
       );
     }
-    return { type: tag.type, amount: tag.amount };
-  });
+    await Aroma.ensure(tag.type);
+    out.push({ type: tag.type, amount: tag.amount });
+  }
+  return out;
 }

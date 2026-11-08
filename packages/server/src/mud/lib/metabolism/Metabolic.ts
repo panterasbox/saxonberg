@@ -195,6 +195,13 @@ interface NutrientRoute {
  * playtest. Times are GAME-seconds / game-minutes.
  */
 export const METABOLIC_DEFAULTS = {
+  /**
+   * Where a mouthful burns. ⚠ A body plan has no mouth part yet, so it sits at
+   * the head; one constant, for the day mouths are real anatomy.
+   */
+  MOUTH_SITE: 'body.head',
+  /** The mouthful a caustic's burn is measured against. */
+  SIP_LITRES: 0.03,
   /** Integration slice (game-seconds). One game-minute. */
   STEP_SEC: 60,
   /** Max fixed slices before collapsing the remainder into one step. */
@@ -422,6 +429,8 @@ export interface Metabolic {
    * — refused before anything is moved, in the body's words.
    */
   canIngest(): { ok: true } | { ok: false; reason: 'airway'; line: string };
+  /** The materials in a mouthful that burn on the way down. */
+  corrosivesIn(material: Material, payload: BulkPayload | null): Material[];
   /** The live level a toxin's severity bands are read against (BAC for a
    * `storeRaw` toxin, the raw burden otherwise). */
   toxinLevelFor(type: string): number;
@@ -1566,11 +1575,57 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
         if (tox.amount <= 0) continue;
         this.recordToxinMaker(tox.type, payload?.maker);
       }
+      // ⭐ A caustic burns on the way down, by the same path for every mouth:
+      // `taste`, `eat`, `drink` and `sip` all arrive here. It is already
+      // inside, so no covering sheds it.
+      for (const caustic of this.corrosivesIn(material, payload)) {
+        caustic.corrodeOnContact(this as unknown as Stuff, {
+          site: METABOLIC_DEFAULTS.MOUTH_SITE,
+          energy: Math.min(1, litres / METABOLIC_DEFAULTS.SIP_LITRES),
+          bare: true,
+        });
+      }
+      this.noteIllnessFrom(material, payload);
       // ⚠⚠ **And the living half.** A toxin is a dose that routes into a
       // pool; a pathogen is a population that has to be handed to the body
       // as something that GROWS. Same seam, one line apart, because this
       // is the one place food becomes body.
       this.exposeToPathogens(payload);
+    }
+
+    public corrosivesIn(material: Material, payload: BulkPayload | null): Material[] {
+      const makeup = payload?.makeup ?? [];
+      const parts = makeup.length > 0
+        ? makeup
+            .map((p) => StuffApi.findByTemplatePath<Material>(p.materialPath))
+            .filter((m): m is Material => !!m)
+        : [material];
+      return parts.filter((m) =>
+        m.getCorrosiveTo().some((t) => t === 'tissue' || t === 'protein'),
+      );
+    }
+
+    /**
+     * ⭐ Food poisoning leaves an aversion that reads once symptoms arrive: a
+     * load past its infectious dose, or a poison the food had already made.
+     * Written here because this is the moment the dose is known to hurt.
+     */
+    private noteIllnessFrom(material: Material, payload: BulkPayload | null): void {
+      const self = this as unknown as Stuff;
+      if (!payload || !MixinApi.isPalate(self)) return;
+      const now = StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry)
+        ? WorldClockApi.getNow().rawValue()
+        : 0;
+      const key = payload.recipeId ?? material.getTemplatePath() ?? '';
+      if (!key) return;
+      if ((payload.formedToxins ?? []).some((t) => t.amount > 0)) {
+        self.recordAversion(key, now);
+      }
+      for (const [organism, load] of Object.entries(payload.pathogens ?? {})) {
+        const behavior = MaterialApi.pathogenBehaviorOf(organism);
+        if (!behavior || behavior.reach !== 'infect' || load < behavior.infectiousDose) continue;
+        self.recordAversion(key, now + (behavior.incubationSec ?? 0));
+      }
     }
 
     /**

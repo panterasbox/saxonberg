@@ -259,7 +259,6 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
         'platform/cmd/perception/smell.yaml',
         'platform/cmd/perception/listen.yaml',
         'platform/cmd/perception/feel.yaml',
-        'platform/cmd/perception/taste.yaml',
         'platform/cmd/perception/sense.yaml',
         'platform/cmd/perception/assess.yaml',
         'platform/cmd/perception/survey.yaml',

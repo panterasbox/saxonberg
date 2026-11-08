@@ -213,7 +213,7 @@ export const BESPOKE_RESOLUTION_CEILING = 4;
  * ⭐ Self-resolution — the census-then-ratchet half (controllers-are-io
  * W0). Pinned at this gate's own W0 count; may fall, never rise.
  */
-export const SELF_RESOLUTION_CEILING = 111; // W5: the two-houses scan, the subject, the grave, the attendant
+export const SELF_RESOLUTION_CEILING = 110; // the merge with vocabularies-to-rows: smell no longer looks a source up by id
 
 /** A controller resolving its own target: the MQL facade, a store find, a contents walk. */
 const SELF_RESOLUTION =
